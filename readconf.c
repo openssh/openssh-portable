@@ -324,7 +324,8 @@ process_config_line(Options *options, const char *host,
 
 	s = line;
 	/* Get the keyword. (Each line is supposed to begin with a keyword). */
-	keyword = strdelim(&s);
+	if ((keyword = strdelim(&s)) == NULL)
+		return 0;
 	/* Ignore leading whitespace. */
 	if (*keyword == '\0')
 		keyword = strdelim(&s);

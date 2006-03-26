@@ -447,7 +447,8 @@ process_server_config_line(ServerOptions *options, char *line,
 	u_int i;
 
 	cp = line;
-	arg = strdelim(&cp);
+	if ((arg = strdelim(&cp)) != NULL)
+		return 0;
 	/* Ignore leading whitespace */
 	if (*arg == '\0')
 		arg = strdelim(&cp);
