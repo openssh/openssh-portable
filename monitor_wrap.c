@@ -636,7 +636,7 @@ mm_send_keystate(struct monitor *monitor)
 }
 
 int
-mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
+mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {
 	Buffer m;
 	char *p, *msg;

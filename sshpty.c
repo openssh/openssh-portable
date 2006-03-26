@@ -46,7 +46,7 @@
  */
 
 int
-pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
+pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {
 	/* openpty(3) exists in OSF/1 and some other os'es */
 	char *name;
@@ -169,11 +169,12 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 /* Changes the window size associated with the pty. */
 
 void
-pty_change_window_size(int ptyfd, int row, int col,
-	int xpixel, int ypixel)
+pty_change_window_size(int ptyfd, u_int row, u_int col,
+	u_int xpixel, u_int ypixel)
 {
 	struct winsize w;
 
+	/* may truncate u_int -> u_short */
 	w.ws_row = row;
 	w.ws_col = col;
 	w.ws_xpixel = xpixel;

@@ -880,10 +880,10 @@ server_input_eof(int type, u_int32_t seq, void *ctxt)
 static void
 server_input_window_size(int type, u_int32_t seq, void *ctxt)
 {
-	int row = packet_get_int();
-	int col = packet_get_int();
-	int xpixel = packet_get_int();
-	int ypixel = packet_get_int();
+	u_int row = packet_get_int();
+	u_int col = packet_get_int();
+	u_int xpixel = packet_get_int();
+	u_int ypixel = packet_get_int();
 
 	debug("Window change received.");
 	packet_check_eom();

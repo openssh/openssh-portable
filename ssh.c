@@ -889,10 +889,10 @@ ssh_session(void)
 		/* Store window size in the packet. */
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 			memset(&ws, 0, sizeof(ws));
-		packet_put_int(ws.ws_row);
-		packet_put_int(ws.ws_col);
-		packet_put_int(ws.ws_xpixel);
-		packet_put_int(ws.ws_ypixel);
+		packet_put_int((u_int)ws.ws_row);
+		packet_put_int((u_int)ws.ws_col);
+		packet_put_int((u_int)ws.ws_xpixel);
+		packet_put_int((u_int)ws.ws_ypixel);
 
 		/* Store tty modes in the packet. */
 		tty_make_modes(fileno(stdin), NULL);

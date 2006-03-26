@@ -74,6 +74,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 17:17:23
      [ssh-rsa.c]
      in a switch (), break after return or goto is stupid
+   - deraadt@cvs.openbsd.org 2006/03/20 18:14:02
+     [channels.c clientloop.c monitor_wrap.c monitor_wrap.h serverloop.c ssh.c sshpty.c sshpty.h]
+     sprinkle u_int throughout pty subsystem, ok markus
 
 20060325
  - OpenBSD CVS Sync
@@ -4331,4 +4334,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4262 2006/03/26 03:03:21 djm Exp $
+$Id: ChangeLog,v 1.4263 2006/03/26 03:04:36 djm Exp $

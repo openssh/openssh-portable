@@ -434,10 +434,10 @@ client_check_window_change(void)
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 			return;
 		packet_start(SSH_CMSG_WINDOW_SIZE);
-		packet_put_int(ws.ws_row);
-		packet_put_int(ws.ws_col);
-		packet_put_int(ws.ws_xpixel);
-		packet_put_int(ws.ws_ypixel);
+		packet_put_int((u_int)ws.ws_row);
+		packet_put_int((u_int)ws.ws_col);
+		packet_put_int((u_int)ws.ws_xpixel);
+		packet_put_int((u_int)ws.ws_ypixel);
 		packet_send();
 	}
 }
@@ -1881,10 +1881,10 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 
 		channel_request_start(id, "pty-req", 0);
 		packet_put_cstring(term != NULL ? term : "");
-		packet_put_int(ws.ws_col);
-		packet_put_int(ws.ws_row);
-		packet_put_int(ws.ws_xpixel);
-		packet_put_int(ws.ws_ypixel);
+		packet_put_int((u_int)ws.ws_col);
+		packet_put_int((u_int)ws.ws_row);
+		packet_put_int((u_int)ws.ws_xpixel);
+		packet_put_int((u_int)ws.ws_ypixel);
 		tio = get_saved_tio();
 		tty_make_modes(-1, tiop != NULL ? tiop : &tio);
 		packet_send();

@@ -2737,10 +2737,10 @@ channel_send_window_changes(void)
 		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
 			continue;
 		channel_request_start(i, "window-change", 0);
-		packet_put_int(ws.ws_col);
-		packet_put_int(ws.ws_row);
-		packet_put_int(ws.ws_xpixel);
-		packet_put_int(ws.ws_ypixel);
+		packet_put_int((u_int)ws.ws_col);
+		packet_put_int((u_int)ws.ws_row);
+		packet_put_int((u_int)ws.ws_xpixel);
+		packet_put_int((u_int)ws.ws_ypixel);
 		packet_send();
 	}
 }
