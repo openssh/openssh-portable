@@ -1305,23 +1305,23 @@ control_client(const char *path)
 			    strerror(errno));
 		}
 		if (errno == ENOENT)
-	 		debug("Control socket \"%.100s\" does not exist", path);
+			debug("Control socket \"%.100s\" does not exist", path);
 		else {
-	 		error("Control socket connect(%.100s): %s", path,
+			error("Control socket connect(%.100s): %s", path,
 			    strerror(errno));
 		}
- 		close(sock);
- 		return;
- 	}
+		close(sock);
+		return;
+	}
 
- 	if (stdin_null_flag) {
- 		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
- 			fatal("open(/dev/null): %s", strerror(errno));
- 		if (dup2(fd, STDIN_FILENO) == -1)
- 			fatal("dup2: %s", strerror(errno));
- 		if (fd > STDERR_FILENO)
- 			close(fd);
- 	}
+	if (stdin_null_flag) {
+		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+			fatal("open(/dev/null): %s", strerror(errno));
+		if (dup2(fd, STDIN_FILENO) == -1)
+			fatal("dup2: %s", strerror(errno));
+		if (fd > STDERR_FILENO)
+			close(fd);
+	}
 
 	term = getenv("TERM");
 

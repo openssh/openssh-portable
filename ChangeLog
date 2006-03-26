@@ -49,6 +49,9 @@
    - deraadt@cvs.openbsd.org 2006/03/19 18:59:49
      [ssh-keyscan.c]
      please lint
+   - deraadt@cvs.openbsd.org 2006/03/19 18:59:30
+     [ssh.c]
+     spacing
 
 20060325
  - OpenBSD CVS Sync
@@ -4306,4 +4309,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4255 2006/03/26 02:59:38 djm Exp $
+$Id: ChangeLog,v 1.4256 2006/03/26 02:59:59 djm Exp $
