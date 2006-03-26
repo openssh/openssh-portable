@@ -171,6 +171,9 @@
    - deraadt@cvs.openbsd.org 2006/03/25 18:56:55
      [bufaux.c channels.c packet.c]
      remove (char *) casts to a function that accepts void * for the arg
+   - deraadt@cvs.openbsd.org 2006/03/25 18:58:10
+     [channels.c]
+     delete cast not required
 
 20060325
  - OpenBSD CVS Sync
@@ -4428,4 +4431,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4284 2006/03/26 03:28:50 djm Exp $
+$Id: ChangeLog,v 1.4285 2006/03/26 03:29:06 djm Exp $

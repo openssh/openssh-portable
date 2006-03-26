@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.246 2006/03/25 18:56:54 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.247 2006/03/25 18:58:10 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1049,7 +1049,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	debug2("channel %d: socks5 post auth", c->self);
 	if (have < sizeof(s5_req)+1)
 		return 0;			/* need more */
-	memcpy((char *)&s5_req, p, sizeof(s5_req));
+	memcpy(&s5_req, p, sizeof(s5_req));
 	if (s5_req.version != 0x05 ||
 	    s5_req.command != SSH_SOCKS5_CONNECT ||
 	    s5_req.reserved != 0x00) {
