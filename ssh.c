@@ -1041,7 +1041,7 @@ ssh_control_listener(void)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
 	old_umask = umask(0177);
-	if (bind(control_fd, (struct sockaddr*)&addr, addr_len) == -1) {
+	if (bind(control_fd, (struct sockaddr *)&addr, addr_len) == -1) {
 		control_fd = -1;
 		if (errno == EINVAL || errno == EADDRINUSE)
 			fatal("ControlSocket %s already exists",
@@ -1299,7 +1299,7 @@ control_client(const char *path)
 	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
-	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1) {
+	if (connect(sock, (struct sockaddr *)&addr, addr_len) == -1) {
 		if (mux_command != SSHMUX_COMMAND_OPEN) {
 			fatal("Control socket connect(%.100s): %s", path,
 			    strerror(errno));

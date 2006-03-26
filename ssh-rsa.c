@@ -61,6 +61,7 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 
 	if (ok != 1) {
 		int ecode = ERR_get_error();
+
 		error("ssh_rsa_sign: RSA_sign failed: %s",
 		    ERR_error_string(ecode, NULL));
 		xfree(sig);

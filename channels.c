@@ -2877,7 +2877,7 @@ connect_local_xsocket(u_int dnr)
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	snprintf(addr.sun_path, sizeof addr.sun_path, _PATH_UNIX_X, dnr);
-	if (connect(sock, (struct sockaddr *) & addr, sizeof(addr)) == 0)
+	if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
 		return sock;
 	close(sock);
 	error("connect %.100s: %.100s", addr.sun_path, strerror(errno));

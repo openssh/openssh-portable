@@ -1226,7 +1226,7 @@ mm_record_login(Session *s, struct passwd *pw)
 	fromlen = sizeof(from);
 	if (packet_connection_is_on_socket()) {
 		if (getpeername(packet_get_connection_in(),
-			(struct sockaddr *) & from, &fromlen) < 0) {
+			(struct sockaddr *)&from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
 			cleanup_exit(255);
 		}

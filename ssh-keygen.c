@@ -105,7 +105,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 
 	if (key_type_name == NULL)
 		name = _PATH_SSH_CLIENT_ID_RSA;
-	else
+	else {
 		switch (key_type_from_name(key_type_name)) {
 		case KEY_RSA1:
 			name = _PATH_SSH_CLIENT_IDENTITY;
@@ -121,7 +121,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 			exit(1);
 			break;
 		}
-
+	}
 	snprintf(identity_file, sizeof(identity_file), "%s/%s", pw->pw_dir, name);
 	fprintf(stderr, "%s (%s): ", prompt, identity_file);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
@@ -316,7 +316,7 @@ get_line(FILE *fp, char *line, size_t len)
 			fprintf(stderr, "input line too long.\n");
 			exit(1);
 		}
-		switch(c) {
+		switch (c) {
 		case '\r':
 			c = fgetc(fp);
 			if (c != EOF && c != '\n' && ungetc(c, fp) == EOF) {
@@ -1144,6 +1144,7 @@ main(int ac, char **av)
 			break;
 		case 'D':
 			download = 1;
+			/*FALLTHROUGH*/
 		case 'U':
 			reader_id = optarg;
 			break;

@@ -887,7 +887,7 @@ after_select(fd_set *readset, fd_set *writeset)
 			if (FD_ISSET(sockets[i].fd, readset)) {
 				slen = sizeof(sunaddr);
 				sock = accept(sockets[i].fd,
-				    (struct sockaddr *) &sunaddr, &slen);
+				    (struct sockaddr *)&sunaddr, &slen);
 				if (sock < 0) {
 					error("accept from AUTH_SOCKET: %s",
 					    strerror(errno));
@@ -1134,7 +1134,7 @@ main(int ac, char **av)
 	sunaddr.sun_family = AF_UNIX;
 	strlcpy(sunaddr.sun_path, socket_name, sizeof(sunaddr.sun_path));
 	prev_mask = umask(0177);
-	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0) {
+	if (bind(sock, (struct sockaddr *) &sunaddr, sizeof(sunaddr)) < 0) {
 		perror("bind");
 		*socket_name = '\0'; /* Don't unlink any existing file */
 		umask(prev_mask);
