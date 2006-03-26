@@ -128,7 +128,7 @@ static u_int x11_saved_data_len = 0;
  * Fake X11 authentication data.  This is what the server will be sending us;
  * we should replace any occurrences of this by the real data.
  */
-static char *x11_fake_data = NULL;
+static u_char *x11_fake_data = NULL;
 static u_int x11_fake_data_len;
 
 

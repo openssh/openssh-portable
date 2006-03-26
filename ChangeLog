@@ -89,6 +89,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 18:27:50
      [monitor.c]
      spacing
+   - deraadt@cvs.openbsd.org 2006/03/20 18:35:12
+     [channels.c]
+     x11_fake_data is only ever used as u_char *
 
 20060325
  - OpenBSD CVS Sync
@@ -4346,4 +4349,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4267 2006/03/26 03:07:52 djm Exp $
+$Id: ChangeLog,v 1.4268 2006/03/26 03:08:10 djm Exp $
