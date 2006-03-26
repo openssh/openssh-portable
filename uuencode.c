@@ -1,4 +1,4 @@
-/* $OpenBSD: uuencode.c,v 1.20 2006/03/25 13:17:03 djm Exp $ */
+/* $OpenBSD: uuencode.c,v 1.21 2006/03/26 01:31:48 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -58,7 +58,7 @@ uudecode(const char *src, u_char *target, size_t targsize)
 void
 dump_base64(FILE *fp, u_char *data, u_int len)
 {
-	char *buf;;
+	char *buf;
 	int i, n;
 
 	if (len > 65536) {
