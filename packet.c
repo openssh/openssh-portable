@@ -988,7 +988,7 @@ packet_read_poll1(void)
 	 * Ariel Futoransky(futo@core-sdi.com)
 	 */
 	if (!receive_context.plaintext &&
-	    detect_attack(buffer_ptr(&input), padded_len, NULL) == DEATTACK_DETECTED)
+	    detect_attack(buffer_ptr(&input), padded_len) == DEATTACK_DETECTED)
 		packet_disconnect("crc32 compensation attack: network attack detected");
 
 	/* Decrypt data to incoming_packet. */
