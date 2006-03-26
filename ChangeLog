@@ -78,6 +78,10 @@
      [channels.c clientloop.c monitor_wrap.c monitor_wrap.h serverloop.c]
      [ssh.c sshpty.c sshpty.h]
      sprinkle u_int throughout pty subsystem, ok markus
+   - deraadt@cvs.openbsd.org 2006/03/20 18:17:20
+     [auth1.c auth2.c sshd.c]
+     sprinkle some ARGSUSED for table driven functions (which sometimes 
+     must ignore their args)
 
 20060325
  - OpenBSD CVS Sync
@@ -4335,4 +4339,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4264 2006/03/26 03:05:02 djm Exp $
+$Id: ChangeLog,v 1.4265 2006/03/26 03:05:20 djm Exp $

@@ -273,7 +273,6 @@ sighup_handler(int sig)
  * Called from the main program after receiving SIGHUP.
  * Restarts the server.
  */
-/*ARGSUSED*/
 static void
 sighup_restart(void)
 {
