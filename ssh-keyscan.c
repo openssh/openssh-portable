@@ -128,7 +128,7 @@ Linebuf_alloc(const char *filename, void (*errfun) (const char *,...))
 		lb->stream = stdin;
 	}
 
-	if (!(lb->buf = malloc(lb->size = LINEBUF_SIZE))) {
+	if (!(lb->buf = malloc((lb->size = LINEBUF_SIZE)))) {
 		if (errfun)
 			(*errfun) ("linebuf (%s): malloc failed\n", lb->filename);
 		xfree(lb);
@@ -603,7 +603,6 @@ conread(int s)
 			keyprint(c, keygrab_ssh1(c));
 			confree(s);
 			return;
-			break;
 		default:
 			fatal("conread: invalid status %d", c->c_status);
 			break;

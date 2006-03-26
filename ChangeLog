@@ -46,6 +46,9 @@
    - deraadt@cvs.openbsd.org 2006/03/19 18:56:41
      [clientloop.c progressmeter.c serverloop.c sshd.c]
      ARGSUSED for signal handlers
+   - deraadt@cvs.openbsd.org 2006/03/19 18:59:49
+     [ssh-keyscan.c]
+     please lint
 
 20060325
  - OpenBSD CVS Sync
@@ -4303,4 +4306,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4254 2006/03/26 02:59:20 djm Exp $
+$Id: ChangeLog,v 1.4255 2006/03/26 02:59:38 djm Exp $
