@@ -1021,6 +1021,10 @@ mm_answer_keyallowed(int sock, Buffer *m)
 		key_blobtype = type;
 		hostbased_cuser = cuser;
 		hostbased_chost = chost;
+	} else {
+		xfree(blob);
+		xfree(cuser);
+		xfree(chost);
 	}
 
 	debug3("%s: key %p is %s",

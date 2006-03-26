@@ -56,6 +56,11 @@
      [authfile.c]
      whoever thought that break after return was a good idea needs to
      get their head examimed
+   - djm@cvs.openbsd.org 2006/03/20 04:09:44
+     [monitor.c]
+     memory leaks detected by Coverity via elad AT netbsd.org;
+     deraadt@ ok
+     that should be all of them now
 
 20060325
  - OpenBSD CVS Sync
@@ -4313,4 +4318,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4257 2006/03/26 03:00:31 djm Exp $
+$Id: ChangeLog,v 1.4258 2006/03/26 03:01:54 djm Exp $
