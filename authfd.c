@@ -337,7 +337,6 @@ ssh_get_next_identity(AuthenticationConnection *auth, char **comment, int versio
 		break;
 	default:
 		return NULL;
-		break;
 	}
 	/* Decrement the number of remaining entries. */
 	auth->howmany--;
