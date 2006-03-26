@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.244 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.245 2006/03/25 18:43:30 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3079,7 +3079,7 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	if (cp)
 		cp = strchr(cp, '.');
 	if (cp)
-		screen_number = atoi(cp + 1);
+		screen_number = (u_int)strtonum(cp + 1, 0, 400, NULL);
 	else
 		screen_number = 0;
 
