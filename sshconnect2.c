@@ -513,8 +513,10 @@ userauth_gssapi(Authctxt *authctxt)
 		}
 	}
 
-	if (!ok)
+	if (!ok) {
+		ssh_gssapi_delete_ctx(&gssctxt);
 		return 0;
+	}
 
 	authctxt->methoddata=(void *)gssctxt;
 
@@ -1330,6 +1332,7 @@ userauth_hostbased(Authctxt *authctxt)
 	if (p == NULL) {
 		error("userauth_hostbased: cannot get local ipaddr/name");
 		key_free(private);
+		xfree(blob);
 		return 0;
 	}
 	len = strlen(p) + 2;
@@ -1368,6 +1371,7 @@ userauth_hostbased(Authctxt *authctxt)
 		error("key_sign failed");
 		xfree(chost);
 		xfree(pkalg);
+		xfree(blob);
 		return 0;
 	}
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
@@ -1383,6 +1387,7 @@ userauth_hostbased(Authctxt *authctxt)
 	xfree(signature);
 	xfree(chost);
 	xfree(pkalg);
+	xfree(blob);
 
 	packet_send();
 	return 1;
