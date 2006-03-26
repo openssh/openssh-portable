@@ -101,6 +101,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 18:48:34
      [channels.c fatal.c kex.c packet.c serverloop.c]
      spacing
+   - deraadt@cvs.openbsd.org 2006/03/20 21:11:53
+     [ttymodes.c]
+     spacing
 
 20060325
  - OpenBSD CVS Sync
@@ -4358,4 +4361,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4271 2006/03/26 03:10:14 djm Exp $
+$Id: ChangeLog,v 1.4272 2006/03/26 03:10:34 djm Exp $
