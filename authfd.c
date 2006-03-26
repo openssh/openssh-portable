@@ -519,7 +519,6 @@ ssh_add_identity_constrained(AuthenticationConnection *auth, Key *key,
 	default:
 		buffer_free(&msg);
 		return 0;
-		break;
 	}
 	if (constrained) {
 		if (life != 0) {
