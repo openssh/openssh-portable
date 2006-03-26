@@ -122,6 +122,8 @@ key_new_private(int type)
 void
 key_free(Key *k)
 {
+	if (k == NULL)
+		fatal("key_free: key is NULL);
 	switch (k->type) {
 	case KEY_RSA1:
 	case KEY_RSA:

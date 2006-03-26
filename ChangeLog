@@ -61,6 +61,10 @@
      memory leaks detected by Coverity via elad AT netbsd.org;
      deraadt@ ok
      that should be all of them now
+   - djm@cvs.openbsd.org 2006/03/20 11:38:46
+     [key.c]
+     (really) last of the Coverity diffs: avoid possible NULL deref in
+     key_free. via elad AT netbsd.org; markus@ ok
 
 20060325
  - OpenBSD CVS Sync
@@ -4318,4 +4322,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4258 2006/03/26 03:01:54 djm Exp $
+$Id: ChangeLog,v 1.4259 2006/03/26 03:02:16 djm Exp $
