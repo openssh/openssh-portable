@@ -52,6 +52,10 @@
    - deraadt@cvs.openbsd.org 2006/03/19 18:59:30
      [ssh.c]
      spacing
+   - deraadt@cvs.openbsd.org 2006/03/19 18:59:09
+     [authfile.c]
+     whoever thought that break after return was a good idea needs to
+     get their head examimed
 
 20060325
  - OpenBSD CVS Sync
@@ -4309,4 +4313,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4256 2006/03/26 02:59:59 djm Exp $
+$Id: ChangeLog,v 1.4257 2006/03/26 03:00:31 djm Exp $

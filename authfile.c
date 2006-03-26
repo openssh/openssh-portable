@@ -213,12 +213,10 @@ key_save_private(Key *key, const char *filename, const char *passphrase,
 	case KEY_RSA1:
 		return key_save_private_rsa1(key, filename, passphrase,
 		    comment);
-		break;
 	case KEY_DSA:
 	case KEY_RSA:
 		return key_save_private_pem(key, filename, passphrase,
 		    comment);
-		break;
 	default:
 		break;
 	}
@@ -556,13 +554,11 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 		return key_load_private_rsa1(fd, filename, passphrase,
 		    commentp);
 		/* closes fd */
-		break;
 	case KEY_DSA:
 	case KEY_RSA:
 	case KEY_UNSPEC:
 		return key_load_private_pem(fd, type, passphrase, commentp);
 		/* closes fd */
-		break;
 	default:
 		close(fd);
 		break;
