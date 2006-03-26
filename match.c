@@ -137,7 +137,7 @@ match_pattern_list(const char *string, const char *pattern, u_int len,
 		    i < len && subi < sizeof(sub) - 1 && pattern[i] != ',';
 		    subi++, i++)
 			sub[subi] = dolower && isupper(pattern[i]) ?
-			    tolower(pattern[i]) : pattern[i];
+			    (char)tolower(pattern[i]) : pattern[i];
 		/* If subpattern too long, return failure (no match). */
 		if (subi >= sizeof(sub) - 1)
 			return 0;

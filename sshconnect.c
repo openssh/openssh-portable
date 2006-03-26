@@ -927,7 +927,7 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 	host = xstrdup(orighost);
 	for (cp = host; *cp; cp++)
 		if (isupper(*cp))
-			*cp = tolower(*cp);
+			*cp = (char)tolower(*cp);
 
 	/* Exchange protocol version identification strings with the server. */
 	ssh_exchange_identification();

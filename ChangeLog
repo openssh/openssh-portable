@@ -95,6 +95,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 18:41:43
      [dns.c]
      cast xstrdup to propert u_char *
+   - deraadt@cvs.openbsd.org 2006/03/20 18:42:27
+     [canohost.c match.c ssh.c sshconnect.c]
+     be strict with tolower() casting
 
 20060325
  - OpenBSD CVS Sync
@@ -4352,4 +4355,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4269 2006/03/26 03:09:09 djm Exp $
+$Id: ChangeLog,v 1.4270 2006/03/26 03:09:54 djm Exp $

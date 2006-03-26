@@ -88,7 +88,7 @@ get_remote_hostname(int sock, int use_dns)
 	 */
 	for (i = 0; name[i]; i++)
 		if (isupper(name[i]))
-			name[i] = tolower(name[i]);
+			name[i] = (char)tolower(name[i]);
 	/*
 	 * Map it back to an IP address and check that the given
 	 * address actually is an address of this host.  This is

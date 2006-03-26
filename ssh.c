@@ -629,7 +629,7 @@ main(int ac, char **av)
 	if (options.host_key_alias != NULL) {
 		for (p = options.host_key_alias; *p; p++)
 			if (isupper(*p))
-				*p = tolower(*p);
+				*p = (char)tolower(*p);
 	}
 
 	/* Get default port if port has not been set. */
