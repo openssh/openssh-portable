@@ -174,6 +174,18 @@
    - deraadt@cvs.openbsd.org 2006/03/25 18:58:10
      [channels.c]
      delete cast not required
+   - djm@cvs.openbsd.org 2006/03/25 22:22:43
+     [atomicio.h auth-options.h auth.h auth2-gss.c authfd.h authfile.h]
+     [bufaux.h buffer.h canohost.h channels.h cipher.h clientloop.h]
+     [compat.h compress.h crc32.c crc32.h deattack.h dh.h dispatch.h]
+     [dns.c dns.h getput.h groupaccess.h gss-genr.c gss-serv-krb5.c]
+     [gss-serv.c hostfile.h includes.h kex.h key.h log.h mac.h match.h]
+     [misc.h monitor.h monitor_fdpass.h monitor_mm.h monitor_wrap.h msg.h]
+     [myproposal.h packet.h pathnames.h progressmeter.h readconf.h rsa.h]
+     [scard.h servconf.h serverloop.h session.h sftp-common.h sftp.h]
+     [ssh-gss.h ssh.h ssh1.h ssh2.h sshconnect.h sshlogin.h sshpty.h]
+     [ttymodes.h uidswap.h uuencode.h xmalloc.h]
+     standardise spacing in $OpenBSD$ tags; requested by deraadt@
 
 20060325
  - OpenBSD CVS Sync
@@ -4431,4 +4443,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4285 2006/03/26 03:29:06 djm Exp $
+$Id: ChangeLog,v 1.4286 2006/03/26 03:30:00 djm Exp $

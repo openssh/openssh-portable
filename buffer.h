@@ -1,4 +1,4 @@
-/*	$OpenBSD: buffer.h,v 1.13 2005/03/14 11:46:56 markus Exp $	*/
+/* $OpenBSD: buffer.h,v 1.14 2006/03/25 22:22:42 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>

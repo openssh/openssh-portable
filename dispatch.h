@@ -1,4 +1,4 @@
-/*	$OpenBSD: dispatch.h,v 1.9 2002/01/11 13:39:36 markus Exp $	*/
+/* $OpenBSD: dispatch.h,v 1.10 2006/03/25 22:22:43 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.

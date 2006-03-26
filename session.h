@@ -1,4 +1,4 @@
-/*	$OpenBSD: session.h,v 1.26 2006/03/20 18:26:55 deraadt Exp $	*/
+/* $OpenBSD: session.h,v 1.27 2006/03/25 22:22:43 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
