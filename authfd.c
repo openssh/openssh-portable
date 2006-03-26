@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.72 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.73 2006/03/25 18:29:35 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -396,7 +396,7 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 		 * fatal error if the packet is corrupt.
 		 */
 		for (i = 0; i < 16; i++)
-			response[i] = buffer_get_char(&buffer);
+			response[i] = (u_char)buffer_get_char(&buffer);
 	}
 	buffer_free(&buffer);
 	return success;

@@ -150,6 +150,9 @@
      [uidswap.c uuencode.c xmalloc.c]
      Put $OpenBSD$ tags back (as comments) to replace the RCSID()s that
      Theo nuked - our scripts to sync -portable need them in the files
+   - deraadt@cvs.openbsd.org 2006/03/25 18:29:35
+     [auth-rsa.c authfd.c packet.c]
+     needed casts (always will be needed)
 
 20060325
  - OpenBSD CVS Sync
@@ -4407,4 +4410,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4277 2006/03/26 03:25:05 djm Exp $
+$Id: ChangeLog,v 1.4278 2006/03/26 03:25:19 djm Exp $

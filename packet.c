@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.128 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.129 2006/03/25 18:29:35 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1549,7 +1549,7 @@ packet_send_ignore(int nbytes)
 	for (i = 0; i < nbytes; i++) {
 		if (i % 4 == 0)
 			rnd = arc4random();
-		packet_put_char(rnd & 0xff);
+		packet_put_char((u_char)rnd & 0xff);
 		rnd >>= 8;
 	}
 }
