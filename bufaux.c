@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.39 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.40 2006/03/25 18:56:54 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -71,7 +71,7 @@ buffer_put_bignum_ret(Buffer *buffer, const BIGNUM *value)
 	PUT_16BIT(msg, bits);
 	buffer_append(buffer, msg, 2);
 	/* Store the binary data. */
-	buffer_append(buffer, (char *)buf, oi);
+	buffer_append(buffer, buf, oi);
 
 	memset(buf, 0, bin_size);
 	xfree(buf);

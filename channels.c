@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.245 2006/03/25 18:43:30 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.246 2006/03/25 18:56:54 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -988,7 +988,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	s4_rsp.command = 90;			/* cd: req granted */
 	s4_rsp.dest_port = 0;			/* ignored */
 	s4_rsp.dest_addr.s_addr = INADDR_ANY;	/* ignored */
-	buffer_append(&c->output, (char *)&s4_rsp, sizeof(s4_rsp));
+	buffer_append(&c->output, &s4_rsp, sizeof(s4_rsp));
 	return 1;
 }
 
@@ -1097,9 +1097,9 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	((struct in_addr *)&dest_addr)->s_addr = INADDR_ANY;
 	dest_port = 0;				/* ignored */
 
-	buffer_append(&c->output, (char *)&s5_rsp, sizeof(s5_rsp));
-	buffer_append(&c->output, (char *)&dest_addr, sizeof(struct in_addr));
-	buffer_append(&c->output, (char *)&dest_port, sizeof(dest_port));
+	buffer_append(&c->output, &s5_rsp, sizeof(s5_rsp));
+	buffer_append(&c->output, &dest_addr, sizeof(struct in_addr));
+	buffer_append(&c->output, &dest_port, sizeof(dest_port));
 	return 1;
 }
 

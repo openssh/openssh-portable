@@ -168,6 +168,9 @@
    - deraadt@cvs.openbsd.org 2006/03/25 18:43:30
      [channels.c]
      use strtonum() instead of atoi() [limit X screens to 400, sorry]
+   - deraadt@cvs.openbsd.org 2006/03/25 18:56:55
+     [bufaux.c channels.c packet.c]
+     remove (char *) casts to a function that accepts void * for the arg
 
 20060325
  - OpenBSD CVS Sync
@@ -4425,4 +4428,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4283 2006/03/26 03:28:32 djm Exp $
+$Id: ChangeLog,v 1.4284 2006/03/26 03:28:50 djm Exp $

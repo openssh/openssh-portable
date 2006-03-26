@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.129 2006/03/25 18:29:35 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.130 2006/03/25 18:56:55 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -788,7 +788,7 @@ packet_send2_wrapped(void)
 	    buffer_len(&outgoing_packet));
 	/* append unencrypted MAC */
 	if (mac && mac->enabled)
-		buffer_append(&output, (char *)macbuf, mac->mac_len);
+		buffer_append(&output, macbuf, mac->mac_len);
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "encrypted: ");
 	buffer_dump(&output);
