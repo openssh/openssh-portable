@@ -156,14 +156,12 @@ key_equal(const Key *a, const Key *b)
 		return a->rsa != NULL && b->rsa != NULL &&
 		    BN_cmp(a->rsa->e, b->rsa->e) == 0 &&
 		    BN_cmp(a->rsa->n, b->rsa->n) == 0;
-		break;
 	case KEY_DSA:
 		return a->dsa != NULL && b->dsa != NULL &&
 		    BN_cmp(a->dsa->p, b->dsa->p) == 0 &&
 		    BN_cmp(a->dsa->q, b->dsa->q) == 0 &&
 		    BN_cmp(a->dsa->g, b->dsa->g) == 0 &&
 		    BN_cmp(a->dsa->pub_key, b->dsa->pub_key) == 0;
-		break;
 	default:
 		fatal("key_equal: bad key type %d", a->type);
 		break;
@@ -210,7 +208,6 @@ key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
 		break;
 	case KEY_UNSPEC:
 		return retval;
-		break;
 	default:
 		fatal("key_fingerprint_raw: bad key type %d", k->type);
 		break;
@@ -531,13 +528,10 @@ key_type(const Key *k)
 	switch (k->type) {
 	case KEY_RSA1:
 		return "RSA1";
-		break;
 	case KEY_RSA:
 		return "RSA";
-		break;
 	case KEY_DSA:
 		return "DSA";
-		break;
 	}
 	return "unknown";
 }
@@ -548,10 +542,8 @@ key_ssh_name(const Key *k)
 	switch (k->type) {
 	case KEY_RSA:
 		return "ssh-rsa";
-		break;
 	case KEY_DSA:
 		return "ssh-dss";
-		break;
 	}
 	return "ssh-unknown";
 }
@@ -563,10 +555,8 @@ key_size(const Key *k)
 	case KEY_RSA1:
 	case KEY_RSA:
 		return BN_num_bits(k->rsa->n);
-		break;
 	case KEY_DSA:
 		return BN_num_bits(k->dsa->p);
-		break;
 	}
 	return 0;
 }
@@ -575,6 +565,7 @@ static RSA *
 rsa_generate_private_key(u_int bits)
 {
 	RSA *private;
+
 	private = RSA_generate_key(bits, 35, NULL, NULL);
 	if (private == NULL)
 		fatal("rsa_generate_private_key: key generation failed.");
@@ -585,6 +576,7 @@ static DSA*
 dsa_generate_private_key(u_int bits)
 {
 	DSA *private = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
+
 	if (private == NULL)
 		fatal("dsa_generate_private_key: DSA_generate_parameters failed");
 	if (!DSA_generate_key(private))
@@ -794,14 +786,11 @@ key_sign(
 	switch (key->type) {
 	case KEY_DSA:
 		return ssh_dss_sign(key, sigp, lenp, data, datalen);
-		break;
 	case KEY_RSA:
 		return ssh_rsa_sign(key, sigp, lenp, data, datalen);
-		break;
 	default:
 		error("key_sign: invalid key type %d", key->type);
 		return -1;
-		break;
 	}
 }
 
@@ -821,14 +810,11 @@ key_verify(
 	switch (key->type) {
 	case KEY_DSA:
 		return ssh_dss_verify(key, signature, signaturelen, data, datalen);
-		break;
 	case KEY_RSA:
 		return ssh_rsa_verify(key, signature, signaturelen, data, datalen);
-		break;
 	default:
 		error("key_verify: invalid key type %d", key->type);
 		return -1;
-		break;
 	}
 }
 

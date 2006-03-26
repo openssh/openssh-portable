@@ -65,6 +65,9 @@
      [key.c]
      (really) last of the Coverity diffs: avoid possible NULL deref in
      key_free. via elad AT netbsd.org; markus@ ok
+   - deraadt@cvs.openbsd.org 2006/03/20 17:10:19
+     [auth.c key.c misc.c packet.c ssh-add.c]
+     in a switch (), break after return or goto is stupid
 
 20060325
  - OpenBSD CVS Sync
@@ -4322,4 +4325,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4259 2006/03/26 03:02:16 djm Exp $
+$Id: ChangeLog,v 1.4260 2006/03/26 03:02:45 djm Exp $

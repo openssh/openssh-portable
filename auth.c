@@ -314,7 +314,6 @@ auth_root_allowed(char *method)
 	switch (options.permit_root_login) {
 	case PERMIT_YES:
 		return 1;
-		break;
 	case PERMIT_NO_PASSWD:
 		if (strcmp(method, "password") != 0)
 			return 1;

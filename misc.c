@@ -297,6 +297,7 @@ convtime(const char *s)
 		switch (*endp++) {
 		case '\0':
 			endp--;
+			break;
 		case 's':
 		case 'S':
 			break;

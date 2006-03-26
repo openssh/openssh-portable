@@ -1188,7 +1188,6 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 				break;
 			default:
 				return type;
-				break;
 			}
 		} else {
 			type = packet_read_poll1();
@@ -1211,7 +1210,6 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 				if (type)
 					DBG(debug("received packet type %d", type));
 				return type;
-				break;
 			}
 		}
 	}
