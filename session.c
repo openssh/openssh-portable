@@ -2190,7 +2190,7 @@ session_exit_message(Session *s, int status)
 
 	/*
 	 * Adjust cleanup callback attachment to send close messages when
-	 * the channel gets EOF. The session will be then be closed 
+	 * the channel gets EOF. The session will be then be closed
 	 * by session_close_by_channel when the childs close their fds.
 	 */
 	channel_register_cleanup(c->self, session_close_by_channel, 1);

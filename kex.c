@@ -432,7 +432,7 @@ derive_key(Kex *kex, int id, u_int need, u_char *hash, u_int hashlen,
 
 	if ((mdsz = EVP_MD_size(kex->evp_md)) <= 0)
 		fatal("bad kex md size %d", mdsz);
- 	digest = xmalloc(roundup(need, mdsz));
+	digest = xmalloc(roundup(need, mdsz));
 
 	buffer_init(&b);
 	buffer_put_bignum2(&b, shared_secret);

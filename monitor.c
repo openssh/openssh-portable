@@ -545,7 +545,7 @@ mm_answer_sign(int sock, Buffer *m)
 	p = buffer_get_string(m, &datlen);
 
 	/*
-	 * Supported KEX types will only return SHA1 (20 byte) or 
+	 * Supported KEX types will only return SHA1 (20 byte) or
 	 * SHA256 (32 byte) hashes
 	 */
 	if (datlen != 20 && datlen != 32)
