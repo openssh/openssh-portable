@@ -244,7 +244,7 @@ local_do_shell(const char *args)
 		if (errno != EINTR)
 			fatal("Couldn't wait for child: %s", strerror(errno));
 	if (!WIFEXITED(status))
-		error("Shell exited abormally");
+		error("Shell exited abnormally");
 	else if (WEXITSTATUS(status))
 		error("Shell exited with status %d", WEXITSTATUS(status));
 }

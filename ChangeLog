@@ -128,6 +128,9 @@
      realloc is particularly prone to integer overflows because it is
      almost always allocating "n * size" bytes, so this is a far safer 
      API; ok deraadt@
+   - djm@cvs.openbsd.org 2006/03/25 01:30:23
+     [sftp.c]
+     "abormally" is a perfectly cromulent word, but "abnormally" is better
 
 20060325
  - OpenBSD CVS Sync
@@ -4385,4 +4388,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4274 2006/03/26 03:22:47 djm Exp $
+$Id: ChangeLog,v 1.4275 2006/03/26 03:23:17 djm Exp $
