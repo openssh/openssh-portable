@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.160 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.161 2006/03/25 18:30:55 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -582,7 +582,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 }
 
 static void
-client_process_net_input(fd_set * readset)
+client_process_net_input(fd_set *readset)
 {
 	int len;
 	char buf[8192];
@@ -690,7 +690,7 @@ client_extra_session2_setup(int id, void *arg)
 }
 
 static void
-client_process_control(fd_set * readset)
+client_process_control(fd_set *readset)
 {
 	Buffer m;
 	Channel *c;
@@ -1184,7 +1184,7 @@ Supported escape sequences:\r\n\
 }
 
 static void
-client_process_input(fd_set * readset)
+client_process_input(fd_set *readset)
 {
 	int len;
 	char buf[8192];
@@ -1237,7 +1237,7 @@ client_process_input(fd_set * readset)
 }
 
 static void
-client_process_output(fd_set * writeset)
+client_process_output(fd_set *writeset)
 {
 	int len;
 	char buf[100];

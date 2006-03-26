@@ -153,6 +153,9 @@
    - deraadt@cvs.openbsd.org 2006/03/25 18:29:35
      [auth-rsa.c authfd.c packet.c]
      needed casts (always will be needed)
+   - deraadt@cvs.openbsd.org 2006/03/25 18:30:55
+     [clientloop.c serverloop.c]
+     spacing
 
 20060325
  - OpenBSD CVS Sync
@@ -4410,4 +4413,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4278 2006/03/26 03:25:19 djm Exp $
+$Id: ChangeLog,v 1.4279 2006/03/26 03:25:37 djm Exp $

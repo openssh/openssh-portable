@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.134 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.135 2006/03/25 18:30:55 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -355,7 +355,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
  * in buffers and processed later.
  */
 static void
-process_input(fd_set * readset)
+process_input(fd_set *readset)
 {
 	int len;
 	char buf[16384];
@@ -414,7 +414,7 @@ process_input(fd_set * readset)
  * Sends data from internal buffers to client program stdin.
  */
 static void
-process_output(fd_set * writeset)
+process_output(fd_set *writeset)
 {
 	struct termios tio;
 	u_char *data;
