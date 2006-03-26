@@ -858,30 +858,32 @@ do_change_passphrase(struct passwd *pw)
 /*
  * Print the SSHFP RR.
  */
-static void
-do_print_resource_record(struct passwd *pw, char *hname)
+static int
+do_print_resource_record(struct passwd *pw, char *fname, char *hname)
 {
 	Key *public;
 	char *comment = NULL;
 	struct stat st;
 
-	if (!have_identity)
+	if (fname == NULL)
 		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0) {
-		perror(identity_file);
+	if (stat(fname, &st) < 0) {
+		if (errno == ENOENT)
+			return 0;
+		perror(fname);
 		exit(1);
 	}
-	public = key_load_public(identity_file, &comment);
+	public = key_load_public(fname, &comment);
 	if (public != NULL) {
 		export_dns_rr(hname, public, stdout, print_generic);
 		key_free(public);
 		xfree(comment);
-		exit(0);
+		return 1;
 	}
 	if (comment)
 		xfree(comment);
 
-	printf("failed to read v2 public key from %s.\n", identity_file);
+	printf("failed to read v2 public key from %s.\n", fname);
 	exit(1);
 }
 
@@ -1224,7 +1226,27 @@ main(int ac, char **av)
 	if (print_public)
 		do_print_public(pw);
 	if (rr_hostname != NULL) {
-		do_print_resource_record(pw, rr_hostname);
+		unsigned int n = 0;
+
+		if (have_identity) {
+			n = do_print_resource_record(pw,
+			    identity_file, rr_hostname);
+			if (n == 0) {
+				perror(identity_file);
+				exit(1);
+			}
+			exit(0);
+		} else {
+
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_RSA_KEY_FILE, rr_hostname);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_DSA_KEY_FILE, rr_hostname);
+
+			if (n == 0)
+				fatal("no keys found.");
+			exit(0);
+		}
 	}
 	if (reader_id != NULL) {
 #ifdef SMARTCARD
