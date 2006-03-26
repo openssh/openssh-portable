@@ -1090,6 +1090,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		success = channel_cancel_rport_listener(cancel_address,
 		    cancel_port);
+		xfree(cancel_address);
 	}
 	if (want_reply) {
 		packet_start(success ?
