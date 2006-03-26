@@ -34,6 +34,9 @@
      [sshconnect2.c]
      memory leaks detected by Coverity via elad AT netbsd.org;
      deraadt@ ok
+   - dtucker@cvs.openbsd.org 2006/03/19 11:51:52
+     [servconf.c]
+     Correct strdelim null test; ok djm@
 
 20060325
  - OpenBSD CVS Sync
@@ -4291,4 +4294,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4250 2006/03/26 02:54:12 djm Exp $
+$Id: ChangeLog,v 1.4251 2006/03/26 02:54:37 djm Exp $
