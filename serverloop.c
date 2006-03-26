@@ -147,6 +147,7 @@ notify_done(fd_set *readset)
 			debug2("notify_done: reading");
 }
 
+/*ARGSUSED*/
 static void
 sigchld_handler(int sig)
 {
@@ -159,6 +160,7 @@ sigchld_handler(int sig)
 	errno = save_errno;
 }
 
+/*ARGSUSED*/
 static void
 sigterm_handler(int sig)
 {
@@ -942,7 +944,7 @@ server_request_tun(void)
 
 	tun = packet_get_int();
 	if (forced_tun_device != -1) {
-	 	if (tun != SSH_TUNID_ANY && forced_tun_device != tun)
+		if (tun != SSH_TUNID_ANY && forced_tun_device != tun)
 			goto done;
 		tun = forced_tun_device;
 	}

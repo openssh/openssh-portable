@@ -272,6 +272,7 @@ stop_progress_meter(void)
 	atomicio(vwrite, STDOUT_FILENO, "\n", 1);
 }
 
+/*ARGSUSED*/
 static void
 sig_winch(int sig)
 {
