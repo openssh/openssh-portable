@@ -877,7 +877,7 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 	char buf[8192];
 	DBG(debug("packet_read()"));
 
-	setp = (fd_set *)xmalloc(howmany(connection_in+1, NFDBITS) *
+	setp = (fd_set *)xcalloc(howmany(connection_in+1, NFDBITS),
 	    sizeof(fd_mask));
 
 	/* Since we are blocking, ensure that all written packets have been sent. */
@@ -1419,7 +1419,7 @@ packet_write_wait(void)
 {
 	fd_set *setp;
 
-	setp = (fd_set *)xmalloc(howmany(connection_out + 1, NFDBITS) *
+	setp = (fd_set *)xcalloc(howmany(connection_out + 1, NFDBITS),
 	    sizeof(fd_mask));
 	packet_write_poll();
 	while (packet_have_data_to_write()) {

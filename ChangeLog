@@ -104,6 +104,20 @@
    - deraadt@cvs.openbsd.org 2006/03/20 21:11:53
      [ttymodes.c]
      spacing
+   - djm@cvs.openbsd.org 2006/03/25 00:05:41
+     [auth-bsdauth.c auth-skey.c auth.c auth2-chall.c channels.c]
+     [clientloop.c deattack.c gss-genr.c kex.c key.c misc.c moduli.c]
+     [monitor.c monitor_wrap.c packet.c scard.c sftp-server.c ssh-agent.c]
+     [ssh-keyscan.c ssh.c sshconnect.c sshconnect2.c sshd.c uuencode.c]
+     [xmalloc.c xmalloc.h]
+     introduce xcalloc() and xasprintf() failure-checked allocations 
+     functions and use them throughout openssh
+
+     xcalloc is particularly important because malloc(nmemb * size) is a
+     dangerous idiom (subject to integer overflow) and it is time for it 
+     to die
+
+     feedback and ok deraadt@
 
 20060325
  - OpenBSD CVS Sync
@@ -4361,4 +4375,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4272 2006/03/26 03:10:34 djm Exp $
+$Id: ChangeLog,v 1.4273 2006/03/26 03:19:21 djm Exp $

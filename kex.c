@@ -82,7 +82,7 @@ kex_buf2prop(Buffer *raw, int *first_kex_follows)
 	int i;
 	char **proposal;
 
-	proposal = xmalloc(PROPOSAL_MAX * sizeof(char *));
+	proposal = xcalloc(PROPOSAL_MAX, sizeof(char *));
 
 	buffer_init(&b);
 	buffer_append(&b, buffer_ptr(raw), buffer_len(raw));
@@ -217,8 +217,7 @@ kex_setup(char *proposal[PROPOSAL_MAX])
 {
 	Kex *kex;
 
-	kex = xmalloc(sizeof(*kex));
-	memset(kex, 0, sizeof(*kex));
+	kex = xcalloc(1, sizeof(*kex));
 	buffer_init(&kex->peer);
 	buffer_init(&kex->my);
 	kex_prop2buf(&kex->my, proposal);
@@ -379,8 +378,7 @@ kex_choose_conf(Kex *kex)
 
 	/* Algorithm Negotiation */
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		newkeys = xmalloc(sizeof(*newkeys));
-		memset(newkeys, 0, sizeof(*newkeys));
+		newkeys = xcalloc(1, sizeof(*newkeys));
 		kex->newkeys[mode] = newkeys;
 		ctos = (!kex->server && mode == MODE_OUT) || (kex->server && mode == MODE_IN);
 		nenc  = ctos ? PROPOSAL_ENC_ALGS_CTOS  : PROPOSAL_ENC_ALGS_STOC;

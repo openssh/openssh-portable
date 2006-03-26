@@ -54,7 +54,7 @@ int maxfd;
 
 extern char *__progname;
 fd_set *read_wait;
-size_t read_wait_size;
+size_t read_wait_nfdset;
 int ncon;
 int nonfatal_fatal = 0;
 jmp_buf kexjmp;
@@ -634,10 +634,10 @@ conloop(void)
 	} else
 		seltime.tv_sec = seltime.tv_usec = 0;
 
-	r = xmalloc(read_wait_size);
-	memcpy(r, read_wait, read_wait_size);
-	e = xmalloc(read_wait_size);
-	memcpy(e, read_wait, read_wait_size);
+	r = xcalloc(read_wait_nfdset, sizeof(fd_mask));
+	e = xcalloc(read_wait_nfdset, sizeof(fd_mask));
+	memcpy(r, read_wait, read_wait_nfdset * sizeof(fd_mask));
+	memcpy(e, read_wait, read_wait_nfdset * sizeof(fd_mask));
 
 	while (select(maxfd, r, NULL, e, &seltime) == -1 &&
 	    (errno == EAGAIN || errno == EINTR))
@@ -804,12 +804,10 @@ main(int argc, char **argv)
 		fatal("%s: not enough file descriptors", __progname);
 	if (maxfd > fdlim_get(0))
 		fdlim_set(maxfd);
-	fdcon = xmalloc(maxfd * sizeof(con));
-	memset(fdcon, 0, maxfd * sizeof(con));
+	fdcon = xcalloc(maxfd, sizeof(con));
 
-	read_wait_size = howmany(maxfd, NFDBITS) * sizeof(fd_mask);
-	read_wait = xmalloc(read_wait_size);
-	memset(read_wait, 0, read_wait_size);
+	read_wait_nfdset = howmany(maxfd, NFDBITS);
+	read_wait = xcalloc(read_wait_nfdset, sizeof(fd_mask));
 
 	if (fopt_count) {
 		Linebuf *lb;

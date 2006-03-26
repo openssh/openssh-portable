@@ -290,7 +290,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	if (nresp > 100)
 		fatal("input_userauth_info_response: too many replies");
 	if (nresp > 0) {
-		response = xmalloc(nresp * sizeof(char *));
+		response = xcalloc(nresp, sizeof(char *));
 		for (i = 0; i < nresp; i++)
 			response[i] = packet_get_string(NULL);
 	}

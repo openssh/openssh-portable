@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-genr.c,v 1.7 2006/03/20 04:07:49 djm Exp $	*/
+/*	$OpenBSD: gss-genr.c,v 1.8 2006/03/25 00:05:41 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -135,9 +135,7 @@ ssh_gssapi_last_error(Gssctxt *ctxt, OM_uint32 *major_status,
 void
 ssh_gssapi_build_ctx(Gssctxt **ctx)
 {
-	*ctx = xmalloc(sizeof (Gssctxt));
-	(*ctx)->major = 0;
-	(*ctx)->minor = 0;
+	*ctx = xcalloc(1, sizeof (Gssctxt));
 	(*ctx)->context = GSS_C_NO_CONTEXT;
 	(*ctx)->name = GSS_C_NO_NAME;
 	(*ctx)->oid = GSS_C_NO_OID;

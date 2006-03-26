@@ -49,9 +49,8 @@ key_new(int type)
 	Key *k;
 	RSA *rsa;
 	DSA *dsa;
-	k = xmalloc(sizeof(*k));
+	k = xcalloc(1, sizeof(*k));
 	k->type = type;
-	k->flags = 0;
 	k->dsa = NULL;
 	k->rsa = NULL;
 	switch (k->type) {
@@ -231,8 +230,7 @@ key_fingerprint_hex(u_char *dgst_raw, u_int dgst_raw_len)
 	char *retval;
 	u_int i;
 
-	retval = xmalloc(dgst_raw_len * 3 + 1);
-	retval[0] = '\0';
+	retval = xcalloc(1, dgst_raw_len * 3 + 1);
 	for (i = 0; i < dgst_raw_len; i++) {
 		char hex[4];
 		snprintf(hex, sizeof(hex), "%02x:", dgst_raw[i]);
@@ -254,7 +252,7 @@ key_fingerprint_bubblebabble(u_char *dgst_raw, u_int dgst_raw_len)
 	char *retval;
 
 	rounds = (dgst_raw_len / 2) + 1;
-	retval = xmalloc(sizeof(char) * (rounds*6));
+	retval = xcalloc((rounds * 6), sizeof(char));
 	retval[j++] = 'x';
 	for (i = 0; i < rounds; i++) {
 		u_int idx0, idx1, idx2, idx3, idx4;
@@ -824,7 +822,7 @@ key_demote(const Key *k)
 {
 	Key *pk;
 
-	pk = xmalloc(sizeof(*pk));
+	pk = xcalloc(1, sizeof(*pk));
 	pk->type = k->type;
 	pk->flags = k->flags;
 	pk->dsa = NULL;

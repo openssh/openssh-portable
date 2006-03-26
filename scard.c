@@ -382,7 +382,7 @@ sc_get_keys(const char *id, const char *pin)
 		key_free(k);
 		return NULL;
 	}
-	keys = xmalloc((nkeys+1) * sizeof(Key *));
+	keys = xcalloc((nkeys+1), sizeof(Key *));
 
 	n = key_new(KEY_RSA1);
 	BN_copy(n->rsa->n, k->rsa->n);

@@ -31,6 +31,22 @@ xmalloc(size_t size)
 }
 
 void *
+xcalloc(size_t nmemb, size_t size)
+{
+	void *ptr;
+
+        if (nmemb && size && SIZE_T_MAX / nmemb < size)
+		fatal("xcalloc: nmemb * size > SIZE_T_MAX");
+	if (size == 0 || nmemb == 0)
+		fatal("xcalloc: zero size");
+	ptr = calloc(nmemb, size);
+	if (ptr == NULL)
+		fatal("xcalloc: out of memory (allocating %lu bytes)",
+		    (u_long)(size * nmemb));
+	return ptr;
+}
+
+void *
 xrealloc(void *ptr, size_t new_size)
 {
 	void *new_ptr;
@@ -64,4 +80,20 @@ xstrdup(const char *str)
 	cp = xmalloc(len);
 	strlcpy(cp, str, len);
 	return cp;
+}
+
+int
+xasprintf(char **ret, const char *fmt, ...)
+{
+	va_list ap;
+	int i;
+
+	va_start(ap, fmt);
+	i = vasprintf(ret, fmt, ap);
+	va_end(ap);
+
+	if (i < 0 || *ret == NULL)
+		fatal("xasprintf: could not allocate memory");
+
+	return (i);
 }

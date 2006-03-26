@@ -93,7 +93,7 @@ detect_attack(u_char *buf, u_int32_t len)
 
 	if (h == NULL) {
 		debug("Installing crc compensation attack detector.");
-		h = (u_int16_t *) xmalloc(l * HASH_ENTRYSIZE);
+		h = (u_int16_t *) xcalloc(l, HASH_ENTRYSIZE);
 		n = l;
 	} else {
 		if (l > n) {

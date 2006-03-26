@@ -820,8 +820,7 @@ client_process_control(fd_set * readset)
 		return;
 	}
 
-	cctx = xmalloc(sizeof(*cctx));
-	memset(cctx, 0, sizeof(*cctx));
+	cctx = xcalloc(1, sizeof(*cctx));
 	cctx->want_tty = (flags & SSHMUX_FLAG_TTY) != 0;
 	cctx->want_subsys = (flags & SSHMUX_FLAG_SUBSYS) != 0;
 	cctx->want_x_fwd = (flags & SSHMUX_FLAG_X11_FWD) != 0;
@@ -836,7 +835,7 @@ client_process_control(fd_set * readset)
 	env_len = MIN(env_len, 4096);
 	debug3("%s: receiving %d env vars", __func__, env_len);
 	if (env_len != 0) {
-		cctx->env = xmalloc(sizeof(*cctx->env) * (env_len + 1));
+		cctx->env = xcalloc(env_len + 1, sizeof(*cctx->env));
 		for (i = 0; i < env_len; i++)
 			cctx->env[i] = buffer_get_string(&m, &len);
 		cctx->env[i] = NULL;

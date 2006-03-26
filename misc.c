@@ -172,9 +172,8 @@ strdelim(char **s)
 struct passwd *
 pwcopy(struct passwd *pw)
 {
-	struct passwd *copy = xmalloc(sizeof(*copy));
+	struct passwd *copy = xcalloc(1, sizeof(*copy));
 
-	memset(copy, 0, sizeof(*copy));
 	copy->pw_name = xstrdup(pw->pw_name);
 	copy->pw_passwd = xstrdup(pw->pw_passwd);
 	copy->pw_gecos = xstrdup(pw->pw_gecos);
@@ -697,8 +696,7 @@ tohex(const u_char *d, u_int l)
 	u_int i, hl;
 
 	hl = l * 2 + 1;
-	r = xmalloc(hl);
-	*r = '\0';
+	r = xcalloc(1, hl);
 	for (i = 0; i < l; i++) {
 		snprintf(b, sizeof(b), "%02x", d[i]);
 		strlcat(r, b, hl);

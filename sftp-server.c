@@ -712,7 +712,7 @@ process_readdir(void)
 		Stat *stats;
 		int nstats = 10, count = 0, i;
 
-		stats = xmalloc(nstats * sizeof(Stat));
+		stats = xcalloc(nstats, sizeof(Stat));
 		while ((dp = readdir(dirp)) != NULL) {
 			if (count >= nstats) {
 				nstats *= 2;

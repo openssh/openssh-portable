@@ -340,7 +340,8 @@ auth_root_allowed(char *method)
 static char *
 expand_authorized_keys(const char *filename, struct passwd *pw)
 {
-	char *file, *ret;
+	char *file, ret[MAXPATHLEN];
+	int i;
 
 	file = percent_expand(filename, "h", pw->pw_dir,
 	    "u", pw->pw_name, (char *)NULL);
@@ -352,14 +353,11 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	if (*file == '/')
 		return (file);
 
-	ret = xmalloc(MAXPATHLEN);
-	if (strlcpy(ret, pw->pw_dir, MAXPATHLEN) >= MAXPATHLEN ||
-	    strlcat(ret, "/", MAXPATHLEN) >= MAXPATHLEN ||
-	    strlcat(ret, file, MAXPATHLEN) >= MAXPATHLEN)
+	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
+	if (i < 0 || (size_t)i >= sizeof(ret))
 		fatal("expand_authorized_keys: path too long");
-
 	xfree(file);
-	return (ret);
+	return (xstrdup(ret));
 }
 
 char *

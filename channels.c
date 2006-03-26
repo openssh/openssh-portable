@@ -249,7 +249,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	/* Do initial allocation if this is the first call. */
 	if (channels_alloc == 0) {
 		channels_alloc = 10;
-		channels = xmalloc(channels_alloc * sizeof(Channel *));
+		channels = xcalloc(channels_alloc, sizeof(Channel *));
 		for (i = 0; i < channels_alloc; i++)
 			channels[i] = NULL;
 	}
@@ -274,8 +274,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 			channels[i] = NULL;
 	}
 	/* Initialize and return new channel. */
-	c = channels[found] = xmalloc(sizeof(Channel));
-	memset(c, 0, sizeof(Channel));
+	c = channels[found] = xcalloc(1, sizeof(Channel));
 	buffer_init(&c->input);
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
@@ -2842,7 +2841,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	}
 
 	/* Allocate a channel for each socket. */
-	*chanids = xmalloc(sizeof(**chanids) * (num_socks + 1));
+	*chanids = xcalloc(num_socks + 1, sizeof(**chanids));
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
 		nc = channel_new("x11 listener",

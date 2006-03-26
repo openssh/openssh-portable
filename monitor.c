@@ -1625,8 +1625,7 @@ mm_get_kex(Buffer *m)
 	void *blob;
 	u_int bloblen;
 
-	kex = xmalloc(sizeof(*kex));
-	memset(kex, 0, sizeof(*kex));
+	kex = xcalloc(1, sizeof(*kex));
 	kex->session_id = buffer_get_string(m, &kex->session_id_len);
 	if ((session_id2 == NULL) ||
 	    (kex->session_id_len != session_id2_len) ||
@@ -1796,9 +1795,8 @@ monitor_init(void)
 	struct monitor *mon;
 	int pair[2];
 
-	mon = xmalloc(sizeof(*mon));
+	mon = xcalloc(1, sizeof(*mon));
 
-	mon->m_pid = 0;
 	monitor_socketpair(pair);
 
 	mon->m_recvfd = pair[0];

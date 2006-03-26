@@ -1,4 +1,4 @@
-/*	$OpenBSD: xmalloc.h,v 1.9 2002/06/19 00:27:55 deraadt Exp $	*/
+/*	$OpenBSD: xmalloc.h,v 1.10 2006/03/25 00:05:41 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -20,8 +20,12 @@
 #define XMALLOC_H
 
 void	*xmalloc(size_t);
+void	*xcalloc(size_t, size_t);
 void	*xrealloc(void *, size_t);
 void     xfree(void *);
 char	*xstrdup(const char *);
+int	 xasprintf(char **, const char *, ...)
+                __attribute__((__format__ (printf, 2, 3)))
+                __attribute__((__nonnull__ (2)));
 
 #endif				/* XMALLOC_H */

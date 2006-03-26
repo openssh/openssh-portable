@@ -1029,8 +1029,7 @@ pubkey_prepare(Authctxt *authctxt)
 		if (key && key->type == KEY_RSA1)
 			continue;
 		options.identity_keys[i] = NULL;
-		id = xmalloc(sizeof(*id));
-		memset(id, 0, sizeof(*id));
+		id = xcalloc(1, sizeof(*id));
 		id->key = key;
 		id->filename = xstrdup(options.identity_files[i]);
 		TAILQ_INSERT_TAIL(&files, id, next);
@@ -1054,8 +1053,7 @@ pubkey_prepare(Authctxt *authctxt)
 				}
 			}
 			if (!found && !options.identities_only) {
-				id = xmalloc(sizeof(*id));
-				memset(id, 0, sizeof(*id));
+				id = xcalloc(1, sizeof(*id));
 				id->key = key;
 				id->filename = comment;
 				id->ac = ac;
@@ -1336,9 +1334,7 @@ userauth_hostbased(Authctxt *authctxt)
 		return 0;
 	}
 	len = strlen(p) + 2;
-	chost = xmalloc(len);
-	strlcpy(chost, p, len);
-	strlcat(chost, ".", len);
+	xasprintf(&chost, "%s.", p);
 	debug2("userauth_hostbased: chost %s", chost);
 	xfree(p);
 
