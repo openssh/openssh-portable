@@ -68,6 +68,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 17:10:19
      [auth.c key.c misc.c packet.c ssh-add.c]
      in a switch (), break after return or goto is stupid
+   - deraadt@cvs.openbsd.org 2006/03/20 17:13:16
+     [key.c]
+     djm did a typo
 
 20060325
  - OpenBSD CVS Sync
@@ -4325,4 +4328,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4260 2006/03/26 03:02:45 djm Exp $
+$Id: ChangeLog,v 1.4261 2006/03/26 03:03:03 djm Exp $
