@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.134 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.135 2006/03/25 18:41:45 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -962,6 +962,7 @@ cleanup_exit(int i)
 	_exit(i);
 }
 
+/*ARGSUSED*/
 static void
 cleanup_handler(int sig)
 {
@@ -969,6 +970,7 @@ cleanup_handler(int sig)
 	_exit(2);
 }
 
+/*ARGSUSED*/
 static void
 check_parent_exists(int sig)
 {
