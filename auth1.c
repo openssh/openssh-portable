@@ -1,3 +1,4 @@
+/* $OpenBSD: auth1.c,v 1.66 2006/03/25 13:17:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved

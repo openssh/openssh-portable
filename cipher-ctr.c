@@ -1,3 +1,4 @@
+/* $OpenBSD: cipher-ctr.c,v 1.8 2006/03/25 13:17:01 djm Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
  *

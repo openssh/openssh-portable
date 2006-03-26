@@ -1,3 +1,4 @@
+/* $OpenBSD: kexgexs.c,v 1.4 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.

@@ -1,3 +1,4 @@
+/* $OpenBSD: md-sha256.c,v 1.3 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright (c) 2005 Damien Miller <djm@openbsd.org>
  *

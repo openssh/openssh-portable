@@ -1,3 +1,4 @@
+/* $OpenBSD: atomicio.c,v 1.16 2006/03/25 13:17:01 djm Exp $ */
 /*
  * Copyright (c) 2005 Anil Madhavapeddy. All rights reserved.
  * Copyright (c) 1995,1999 Theo de Raadt.  All rights reserved.

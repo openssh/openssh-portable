@@ -1,3 +1,4 @@
+/* $OpenBSD: monitor_mm.c,v 1.11 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.

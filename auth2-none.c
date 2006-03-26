@@ -1,3 +1,4 @@
+/* $OpenBSD: auth2-none.c,v 1.10 2006/03/25 13:17:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *

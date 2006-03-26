@@ -1,3 +1,4 @@
+/* $OpenBSD: fatal.c,v 1.5 2006/03/25 13:17:01 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *

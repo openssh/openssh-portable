@@ -1,3 +1,4 @@
+/* $OpenBSD: nchan.c,v 1.53 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *

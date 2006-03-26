@@ -1,3 +1,4 @@
+/* $OpenBSD: sshconnect2.c,v 1.151 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *

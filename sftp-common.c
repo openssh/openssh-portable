@@ -1,3 +1,4 @@
+/* $OpenBSD: sftp-common.c,v 1.13 2006/03/25 13:17:02 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
