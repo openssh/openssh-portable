@@ -18,6 +18,10 @@
      [serverloop.c]
      memory leaks detected by Coverity via elad AT netbsd.org;
      ok deraadt@ dtucker@
+   - djm@cvs.openbsd.org 2006/03/19 02:22:56
+     [sftp.c]
+     more memory leaks detected by Coverity via elad AT netbsd.org;
+     deraadt@ ok
 
 20060325
  - OpenBSD CVS Sync
@@ -4275,4 +4279,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4246 2006/03/26 02:51:08 djm Exp $
+$Id: ChangeLog,v 1.4247 2006/03/26 02:51:44 djm Exp $
