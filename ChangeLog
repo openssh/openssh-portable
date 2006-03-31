@@ -43,6 +43,9 @@
    - jmc@cvs.openbsd.org 2006/03/31 09:09:30
      [ssh_config.5]
      kill trailing whitespace;
+   - djm@cvs.openbsd.org 2006/03/31 09:13:56
+     [ssh_config.5]
+     remote user escape is %r not %h; spotted by jmc@
 
 20060326
  - OpenBSD CVS Sync
@@ -4492,4 +4495,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4299 2006/03/31 12:14:41 djm Exp $
+$Id: ChangeLog,v 1.4300 2006/03/31 12:14:57 djm Exp $
