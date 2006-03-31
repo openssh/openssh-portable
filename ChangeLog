@@ -40,6 +40,9 @@
    - dtucker@cvs.openbsd.org 2006/03/30 11:40:21
      [auth.c monitor.c]
      Prevent duplicate log messages when privsep=yes; ok djm@
+   - jmc@cvs.openbsd.org 2006/03/31 09:09:30
+     [ssh_config.5]
+     kill trailing whitespace;
 
 20060326
  - OpenBSD CVS Sync
@@ -4489,4 +4492,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4298 2006/03/31 12:14:23 djm Exp $
+$Id: ChangeLog,v 1.4299 2006/03/31 12:14:41 djm Exp $
