@@ -16,6 +16,10 @@
    - deraadt@cvs.openbsd.org 2006/03/28 01:52:28
      [channels.c]
      do not accept unreasonable X ports numbers; ok djm
+   - deraadt@cvs.openbsd.org 2006/03/28 01:53:43
+     [ssh-agent.c]
+     use strtonum() to parse the pid from the file, and range check it
+     better; ok djm
 
 20060326
  - OpenBSD CVS Sync
@@ -4465,4 +4469,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4292 2006/03/31 12:11:07 djm Exp $
+$Id: ChangeLog,v 1.4293 2006/03/31 12:11:28 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.135 2006/03/25 18:41:45 deraadt Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.136 2006/03/28 01:53:43 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1077,20 +1077,24 @@ main(int ac, char **av)
 
 	if (ac == 0 && !c_flag && !s_flag) {
 		shell = getenv("SHELL");
-		if (shell != NULL && strncmp(shell + strlen(shell) - 3, "csh", 3) == 0)
+		if (shell != NULL &&
+		    strncmp(shell + strlen(shell) - 3, "csh", 3) == 0)
 			c_flag = 1;
 	}
 	if (k_flag) {
+		const char *errstr = NULL;
+
 		pidstr = getenv(SSH_AGENTPID_ENV_NAME);
 		if (pidstr == NULL) {
 			fprintf(stderr, "%s not set, cannot kill agent\n",
 			    SSH_AGENTPID_ENV_NAME);
 			exit(1);
 		}
-		pid = atoi(pidstr);
-		if (pid < 1) {
-			fprintf(stderr, "%s=\"%s\", which is not a good PID\n",
-			    SSH_AGENTPID_ENV_NAME, pidstr);
+		pid = (int)strtonum(pidstr, 2, INT_MAX, &errstr);
+		if (errstr) {
+			fprintf(stderr,
+			    "%s=\"%s\", which is not a good PID: %s\n",
+			    SSH_AGENTPID_ENV_NAME, pidstr, errstr);
 			exit(1);
 		}
 		if (kill(pid, SIGTERM) == -1) {
