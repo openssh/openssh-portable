@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.76 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.77 2006/03/30 11:40:21 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -179,6 +179,7 @@ struct mon_table {
 #define MON_ISAUTH	0x0004	/* Required for Authentication */
 #define MON_AUTHDECIDE	0x0008	/* Decides Authentication */
 #define MON_ONCE	0x0010	/* Disable after calling */
+#define MON_ALOG	0x0020	/* Log auth attempt without authenticating */
 
 #define MON_AUTH	(MON_ISAUTH|MON_AUTHDECIDE)
 
@@ -239,8 +240,8 @@ struct mon_table mon_dispatch_proto15[] = {
     {MONITOR_REQ_SESSKEY, MON_ONCE, mm_answer_sesskey},
     {MONITOR_REQ_SESSID, MON_ONCE, mm_answer_sessid},
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
-    {MONITOR_REQ_RSAKEYALLOWED, MON_ISAUTH, mm_answer_rsa_keyallowed},
-    {MONITOR_REQ_KEYALLOWED, MON_ISAUTH, mm_answer_keyallowed},
+    {MONITOR_REQ_RSAKEYALLOWED, MON_ISAUTH|MON_ALOG, mm_answer_rsa_keyallowed},
+    {MONITOR_REQ_KEYALLOWED, MON_ISAUTH|MON_ALOG, mm_answer_keyallowed},
     {MONITOR_REQ_RSACHALLENGE, MON_ONCE, mm_answer_rsa_challenge},
     {MONITOR_REQ_RSARESPONSE, MON_ONCE|MON_AUTHDECIDE, mm_answer_rsa_response},
 #ifdef BSD_AUTH
@@ -334,6 +335,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 
 	/* The first few requests do not require asynchronous access */
 	while (!authenticated) {
+		auth_method = "unknown";
 		authenticated = monitor_read(pmonitor, mon_dispatch, &ent);
 		if (authenticated) {
 			if (!(ent->flags & MON_AUTHDECIDE))
@@ -356,7 +358,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 #endif
 		}
 
-		if (ent->flags & MON_AUTHDECIDE) {
+		if (ent->flags & (MON_AUTHDECIDE|MON_ALOG)) {
 			auth_log(authctxt, authenticated, auth_method,
 			    compat20 ? " ssh2" : "");
 			if (!authenticated)
@@ -366,6 +368,8 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 
 	if (!authctxt->valid)
 		fatal("%s: authenticated invalid user", __func__);
+	if (strcmp(auth_method, "unknown") == 0)
+		fatal("%s: authentication method name unknown", __func__);
 
 	debug("%s: %s has been authenticated by privileged process",
 	    __func__, authctxt->user);
@@ -992,17 +996,20 @@ mm_answer_keyallowed(int sock, Buffer *m)
 		case MM_USERKEY:
 			allowed = options.pubkey_authentication &&
 			    user_key_allowed(authctxt->pw, key);
+			auth_method = "publickey";
 			break;
 		case MM_HOSTKEY:
 			allowed = options.hostbased_authentication &&
 			    hostbased_key_allowed(authctxt->pw,
 			    cuser, chost, key);
+			auth_method = "hostbased";
 			break;
 		case MM_RSAHOSTKEY:
 			key->type = KEY_RSA1; /* XXX */
 			allowed = options.rhosts_rsa_authentication &&
 			    auth_rhosts_rsa_key_allowed(authctxt->pw,
 			    cuser, chost, key);
+			auth_method = "rsa";
 			break;
 		default:
 			fatal("%s: unknown key type %d", __func__, type);
@@ -1023,6 +1030,8 @@ mm_answer_keyallowed(int sock, Buffer *m)
 		hostbased_cuser = cuser;
 		hostbased_chost = chost;
 	} else {
+		/* Log failed attempt */
+		auth_log(authctxt, 0, auth_method, compat20 ? " ssh2" : "");
 		xfree(blob);
 		xfree(cuser);
 		xfree(chost);
@@ -1390,6 +1399,7 @@ mm_answer_rsa_keyallowed(int sock, Buffer *m)
 
 	debug3("%s entering", __func__);
 
+	auth_method = "rsa";
 	if (options.rsa_authentication && authctxt->valid) {
 		if ((client_n = BN_new()) == NULL)
 			fatal("%s: BN_new", __func__);

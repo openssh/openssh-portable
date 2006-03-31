@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.66 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.67 2006/03/30 11:40:21 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -61,6 +61,7 @@
 
 /* import */
 extern ServerOptions options;
+extern int use_privsep;
 extern Buffer loginmsg;
 
 /* Debugging messages */
@@ -236,6 +237,9 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 {
 	void (*authlog) (const char *fmt,...) = verbose;
 	char *authmsg;
+
+	if (use_privsep && !mm_is_monitor() && !authctxt->postponed)
+		return;
 
 	/* Raise logging level */
 	if (authenticated == 1 ||

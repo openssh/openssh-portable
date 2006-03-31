@@ -37,6 +37,9 @@
    - dtucker@cvs.openbsd.org 2006/03/30 11:05:17
      [ssh-keygen.c]
      Correctly handle truncated files while converting keys; ok djm@
+   - dtucker@cvs.openbsd.org 2006/03/30 11:40:21
+     [auth.c monitor.c]
+     Prevent duplicate log messages when privsep=yes; ok djm@
 
 20060326
  - OpenBSD CVS Sync
@@ -4486,4 +4489,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4297 2006/03/31 12:13:35 djm Exp $
+$Id: ChangeLog,v 1.4298 2006/03/31 12:14:23 djm Exp $
