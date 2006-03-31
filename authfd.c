@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.73 2006/03/25 18:29:35 deraadt Exp $ */
+/* $OpenBSD: authfd.c,v 1.74 2006/03/30 09:58:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -47,7 +47,6 @@
 #include "buffer.h"
 #include "bufaux.h"
 #include "xmalloc.h"
-#include "getput.h"
 #include "key.h"
 #include "authfd.h"
 #include "cipher.h"
@@ -55,6 +54,7 @@
 #include "compat.h"
 #include "log.h"
 #include "atomicio.h"
+#include "misc.h"
 
 static int agent_present = 0;
 
@@ -122,7 +122,7 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 
 	/* Get the length of the message, and format it in the buffer. */
 	len = buffer_len(request);
-	PUT_32BIT(buf, len);
+	put_u32(buf, len);
 
 	/* Send the length and then the packet to the agent. */
 	if (atomicio(vwrite, auth->fd, buf, 4) != 4 ||
@@ -141,7 +141,7 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 	}
 
 	/* Extract the length, and check it for sanity. */
-	len = GET_32BIT(buf);
+	len = get_u32(buf);
 	if (len > 256 * 1024)
 		fatal("Authentication response too long: %u", len);
 

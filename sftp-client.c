@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.63 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.64 2006/03/30 09:58:16 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -32,11 +32,11 @@
 
 #include "buffer.h"
 #include "bufaux.h"
-#include "getput.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "atomicio.h"
 #include "progressmeter.h"
+#include "misc.h"
 
 #include "sftp.h"
 #include "sftp-common.h"
@@ -66,7 +66,7 @@ send_msg(int fd, Buffer *m)
 		fatal("Outbound message too long %u", buffer_len(m));
 
 	/* Send length first */
-	PUT_32BIT(mlen, buffer_len(m));
+	put_u32(mlen, buffer_len(m));
 	if (atomicio(vwrite, fd, mlen, sizeof(mlen)) != sizeof(mlen))
 		fatal("Couldn't send packet: %s", strerror(errno));
 

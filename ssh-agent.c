@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.136 2006/03/28 01:53:43 deraadt Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.137 2006/03/30 09:58:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -56,7 +56,6 @@
 #include "buffer.h"
 #include "bufaux.h"
 #include "xmalloc.h"
-#include "getput.h"
 #include "key.h"
 #include "authfd.h"
 #include "compat.h"
@@ -692,7 +691,7 @@ process_message(SocketEntry *e)
 	if (buffer_len(&e->input) < 5)
 		return;		/* Incomplete message. */
 	cp = buffer_ptr(&e->input);
-	msg_len = GET_32BIT(cp);
+	msg_len = get_u32(cp);
 	if (msg_len > 256 * 1024) {
 		close_socket(e);
 		return;

@@ -1,4 +1,4 @@
-/* $OpenBSD: deattack.c,v 1.26 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: deattack.c,v 1.27 2006/03/30 09:58:15 djm Exp $ */
 /*
  * Cryptographic attack detector for ssh - source code
  *
@@ -23,8 +23,8 @@
 #include "deattack.h"
 #include "log.h"
 #include "crc32.h"
-#include "getput.h"
 #include "xmalloc.h"
+#include "misc.h"
 
 /* SSH Constants */
 #define SSH_MAXBLOCKS	(32 * 1024)
@@ -42,7 +42,7 @@
 
 
 /* Hash function (Input keys are cipher results) */
-#define HASH(x)		GET_32BIT(x)
+#define HASH(x)		get_u32(x)
 
 #define CMP(a, b)	(memcmp(a, b, SSH_BLOCKSIZE))
 

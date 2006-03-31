@@ -23,6 +23,13 @@
    - djm@cvs.openbsd.org 2006/03/30 09:41:25
      [channels.c]
      ARGSUSED for dispatch table-driven functions
+   - djm@cvs.openbsd.org 2006/03/30 09:58:16
+     [authfd.c bufaux.c deattack.c gss-serv.c mac.c misc.c misc.h]
+     [monitor_wrap.c msg.c packet.c sftp-client.c sftp-server.c ssh-agent.c]
+     replace {GET,PUT}_XXBIT macros with functionally similar functions,
+     silencing a heap of lint warnings. also allows them to use
+     __bounded__ checking which can't be applied to macros; requested
+     by and feedback from deraadt@
 
 20060326
  - OpenBSD CVS Sync
@@ -4472,4 +4479,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4294 2006/03/31 12:11:44 djm Exp $
+$Id: ChangeLog,v 1.4295 2006/03/31 12:13:02 djm Exp $

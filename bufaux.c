@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.40 2006/03/25 18:56:54 deraadt Exp $ */
+/* $OpenBSD: bufaux.c,v 1.41 2006/03/30 09:58:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,8 +42,8 @@
 #include <openssl/bn.h>
 #include "bufaux.h"
 #include "xmalloc.h"
-#include "getput.h"
 #include "log.h"
+#include "misc.h"
 
 /*
  * Stores an BIGNUM in the buffer with a 2-byte msb first bit count, followed
@@ -68,7 +68,7 @@ buffer_put_bignum_ret(Buffer *buffer, const BIGNUM *value)
 	}
 
 	/* Store the number of bits in the buffer in two bytes, msb first. */
-	PUT_16BIT(msg, bits);
+	put_u16(msg, bits);
 	buffer_append(buffer, msg, 2);
 	/* Store the binary data. */
 	buffer_append(buffer, buf, oi);
@@ -100,7 +100,7 @@ buffer_get_bignum_ret(Buffer *buffer, BIGNUM *value)
 		error("buffer_get_bignum_ret: invalid length");
 		return (-1);
 	}
-	bits = GET_16BIT(buf);
+	bits = get_u16(buf);
 	/* Compute the number of binary bytes that follow. */
 	bytes = (bits + 7) / 8;
 	if (bytes > 8 * 1024) {
@@ -219,7 +219,7 @@ buffer_get_short_ret(u_short *ret, Buffer *buffer)
 
 	if (buffer_get_ret(buffer, (char *) buf, 2) == -1)
 		return (-1);
-	*ret = GET_16BIT(buf);
+	*ret = get_u16(buf);
 	return (0);
 }
 
@@ -241,7 +241,7 @@ buffer_get_int_ret(u_int *ret, Buffer *buffer)
 
 	if (buffer_get_ret(buffer, (char *) buf, 4) == -1)
 		return (-1);
-	*ret = GET_32BIT(buf);
+	*ret = get_u32(buf);
 	return (0);
 }
 
@@ -263,7 +263,7 @@ buffer_get_int64_ret(u_int64_t *ret, Buffer *buffer)
 
 	if (buffer_get_ret(buffer, (char *) buf, 8) == -1)
 		return (-1);
-	*ret = GET_64BIT(buf);
+	*ret = get_u64(buf);
 	return (0);
 }
 
@@ -286,7 +286,7 @@ buffer_put_short(Buffer *buffer, u_short value)
 {
 	char buf[2];
 
-	PUT_16BIT(buf, value);
+	put_u16(buf, value);
 	buffer_append(buffer, buf, 2);
 }
 
@@ -295,7 +295,7 @@ buffer_put_int(Buffer *buffer, u_int value)
 {
 	char buf[4];
 
-	PUT_32BIT(buf, value);
+	put_u32(buf, value);
 	buffer_append(buffer, buf, 4);
 }
 
@@ -304,7 +304,7 @@ buffer_put_int64(Buffer *buffer, u_int64_t value)
 {
 	char buf[8];
 
-	PUT_64BIT(buf, value);
+	put_u64(buf, value);
 	buffer_append(buffer, buf, 8);
 }
 

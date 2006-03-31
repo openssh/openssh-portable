@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.30 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.31 2006/03/30 09:58:15 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -11,6 +11,9 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
+
+#ifndef _MISC_H
+#define _MISC_H
 
 /* misc.c */
 
@@ -27,7 +30,7 @@ char	*colon(char *);
 long	 convtime(const char *);
 char	*tilde_expand_filename(const char *, uid_t);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
-char	*tohex(const u_char *, u_int);
+char	*tohex(const void *, size_t);
 void	 sanitise_stdfd(void);
 
 struct passwd *pwcopy(struct passwd *);
@@ -67,3 +70,20 @@ int	 tun_open(int, int);
 #define SSH_TUNID_ANY		0x7fffffff
 #define SSH_TUNID_ERR		(SSH_TUNID_ANY - 1)
 #define SSH_TUNID_MAX		(SSH_TUNID_ANY - 2)
+
+/* Functions to extract or store big-endian words of various sizes */
+u_int64_t	get_u64(const void *)
+    __attribute__((__bounded__( __minbytes__, 1, 8)));
+u_int32_t	get_u32(const void *)
+    __attribute__((__bounded__( __minbytes__, 1, 4)));
+u_int16_t	get_u16(const void *)
+    __attribute__((__bounded__( __minbytes__, 1, 2)));
+void		put_u64(void *, u_int64_t)
+    __attribute__((__bounded__( __minbytes__, 1, 8)));
+void		put_u32(void *, u_int32_t)
+    __attribute__((__bounded__( __minbytes__, 1, 4)));
+void		put_u16(void *, u_int16_t)
+    __attribute__((__bounded__( __minbytes__, 1, 2)));
+
+#endif /* _MISC_H */
+

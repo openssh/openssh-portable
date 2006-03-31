@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.44 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.45 2006/03/30 09:58:15 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -52,7 +52,7 @@
 #include "xmalloc.h"
 #include "atomicio.h"
 #include "monitor_fdpass.h"
-#include "getput.h"
+#include "misc.h"
 #include "servconf.h"
 
 #include "auth.h"
@@ -91,7 +91,7 @@ mm_request_send(int sock, enum monitor_reqtype type, Buffer *m)
 
 	debug3("%s entering: type %d", __func__, type);
 
-	PUT_32BIT(buf, mlen + 1);
+	put_u32(buf, mlen + 1);
 	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
 	if (atomicio(vwrite, sock, buf, sizeof(buf)) != sizeof(buf))
 		fatal("%s: write: %s", __func__, strerror(errno));
@@ -112,7 +112,7 @@ mm_request_receive(int sock, Buffer *m)
 			cleanup_exit(255);
 		fatal("%s: read: %s", __func__, strerror(errno));
 	}
-	msg_len = GET_32BIT(buf);
+	msg_len = get_u32(buf);
 	if (msg_len > 256 * 1024)
 		fatal("%s: read: bad msg_len %d", __func__, msg_len);
 	buffer_clear(m);

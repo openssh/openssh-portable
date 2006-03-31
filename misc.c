@@ -1,7 +1,7 @@
-/* $OpenBSD: misc.c,v 1.51 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.52 2006/03/30 09:58:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
- * Copyright (c) 2005 Damien Miller.  All rights reserved.
+ * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -691,17 +691,100 @@ sanitise_stdfd(void)
 }
 
 char *
-tohex(const u_char *d, u_int l)
+tohex(const void *vp, size_t l)
 {
+	const u_char *p = (const u_char *)vp;
 	char b[3], *r;
-	u_int i, hl;
+	size_t i, hl;
+
+	if (l > 65536)
+		return xstrdup("tohex: length > 65536");
 
 	hl = l * 2 + 1;
 	r = xcalloc(1, hl);
 	for (i = 0; i < l; i++) {
-		snprintf(b, sizeof(b), "%02x", d[i]);
+		snprintf(b, sizeof(b), "%02x", p[i]);
 		strlcat(r, b, hl);
 	}
 	return (r);
 }
 
+u_int64_t
+get_u64(const void *vp)
+{
+	const u_char *p = (const u_char *)vp;
+	u_int64_t v;
+
+	v  = (u_int64_t)p[0] << 56;
+	v |= (u_int64_t)p[1] << 48;
+	v |= (u_int64_t)p[2] << 40;
+	v |= (u_int64_t)p[3] << 32;
+	v |= (u_int64_t)p[4] << 24;
+	v |= (u_int64_t)p[5] << 16;
+	v |= (u_int64_t)p[6] << 8;
+	v |= (u_int64_t)p[7];
+
+	return (v);
+}
+
+u_int32_t
+get_u32(const void *vp)
+{
+	const u_char *p = (const u_char *)vp;
+	u_int32_t v;
+
+	v  = (u_int32_t)p[0] << 24;
+	v |= (u_int32_t)p[1] << 16;
+	v |= (u_int32_t)p[2] << 8;
+	v |= (u_int32_t)p[3];
+
+	return (v);
+}
+
+u_int16_t
+get_u16(const void *vp)
+{
+	const u_char *p = (const u_char *)vp;
+	u_int16_t v;
+
+	v  = (u_int16_t)p[0] << 8;
+	v |= (u_int16_t)p[1];
+
+	return (v);
+}
+
+void
+put_u64(void *vp, u_int64_t v)
+{
+	u_char *p = (u_char *)vp;
+
+	p[0] = (u_char)(v >> 56) & 0xff;
+	p[1] = (u_char)(v >> 48) & 0xff;
+	p[2] = (u_char)(v >> 40) & 0xff;
+	p[3] = (u_char)(v >> 32) & 0xff;
+	p[4] = (u_char)(v >> 24) & 0xff;
+	p[5] = (u_char)(v >> 16) & 0xff;
+	p[6] = (u_char)(v >> 8) & 0xff;
+	p[7] = (u_char)v & 0xff;
+}
+
+void
+put_u32(void *vp, u_int32_t v)
+{
+	u_char *p = (u_char *)vp;
+
+	p[0] = (u_char)(v >> 24) & 0xff;
+	p[1] = (u_char)(v >> 16) & 0xff;
+	p[2] = (u_char)(v >> 8) & 0xff;
+	p[3] = (u_char)v & 0xff;
+}
+
+
+void
+put_u16(void *vp, u_int16_t v)
+{
+	u_char *p = (u_char *)vp;
+
+	p[0] = (u_char)(v >> 8) & 0xff;
+	p[1] = (u_char)v & 0xff;
+}

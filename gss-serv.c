@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.16 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.17 2006/03/30 09:58:15 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -35,7 +35,7 @@
 #include "session.h"
 #include "servconf.h"
 #include "xmalloc.h"
-#include "getput.h"
+#include "misc.h"
 
 #include "ssh-gss.h"
 
@@ -153,7 +153,7 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	 * second without.
 	 */
 
-	oidl = GET_16BIT(tok+2); /* length including next two bytes */
+	oidl = get_u16(tok+2); /* length including next two bytes */
 	oidl = oidl-2; /* turn it into the _real_ length of the variable OID */
 
 	/*
@@ -170,7 +170,7 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	if (ename->length < offset+4)
 		return GSS_S_FAILURE;
 
-	name->length = GET_32BIT(tok+offset);
+	name->length = get_u32(tok+offset);
 	offset += 4;
 
 	if (ename->length < offset+name->length)

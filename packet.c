@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.130 2006/03/25 18:56:55 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.131 2006/03/30 09:58:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -48,7 +48,6 @@
 #include "packet.h"
 #include "bufaux.h"
 #include "crc32.h"
-#include "getput.h"
 
 #include "compress.h"
 #include "deattack.h"
@@ -559,7 +558,7 @@ packet_send1(void)
 	/* Add check bytes. */
 	checksum = ssh_crc32(buffer_ptr(&outgoing_packet),
 	    buffer_len(&outgoing_packet));
-	PUT_32BIT(buf, checksum);
+	put_u32(buf, checksum);
 	buffer_append(&outgoing_packet, buf, 4);
 
 #ifdef PACKET_DEBUG
@@ -568,7 +567,7 @@ packet_send1(void)
 #endif
 
 	/* Append to output. */
-	PUT_32BIT(buf, len);
+	put_u32(buf, len);
 	buffer_append(&output, buf, 4);
 	cp = buffer_append_space(&output, buffer_len(&outgoing_packet));
 	cipher_crypt(&send_context, cp, buffer_ptr(&outgoing_packet),
@@ -771,7 +770,7 @@ packet_send2_wrapped(void)
 	/* packet_length includes payload, padding and padding length field */
 	packet_length = buffer_len(&outgoing_packet) - 4;
 	cp = buffer_ptr(&outgoing_packet);
-	PUT_32BIT(cp, packet_length);
+	put_u32(cp, packet_length);
 	cp[4] = padlen;
 	DBG(debug("send: len %d (includes padlen %d)", packet_length+4, padlen));
 
@@ -969,7 +968,7 @@ packet_read_poll1(void)
 		return SSH_MSG_NONE;
 	/* Get length of incoming packet. */
 	cp = buffer_ptr(&input);
-	len = GET_32BIT(cp);
+	len = get_u32(cp);
 	if (len < 1 + 2 + 2 || len > 256 * 1024)
 		packet_disconnect("Bad packet length %u.", len);
 	padded_len = (len + 8) & ~7;
@@ -1017,7 +1016,7 @@ packet_read_poll1(void)
 		    len, buffer_len(&incoming_packet));
 
 	cp = (u_char *)buffer_ptr(&incoming_packet) + len - 4;
-	stored_checksum = GET_32BIT(cp);
+	stored_checksum = get_u32(cp);
 	if (checksum != stored_checksum)
 		packet_disconnect("Corrupted check bytes on input.");
 	buffer_consume_end(&incoming_packet, 4);
@@ -1066,7 +1065,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		cipher_crypt(&receive_context, cp, buffer_ptr(&input),
 		    block_size);
 		cp = buffer_ptr(&incoming_packet);
-		packet_length = GET_32BIT(cp);
+		packet_length = get_u32(cp);
 		if (packet_length < 1 + 4 || packet_length > 256 * 1024) {
 #ifdef PACKET_DEBUG
 			buffer_dump(&incoming_packet);

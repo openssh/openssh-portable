@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.56 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.57 2006/03/30 09:58:16 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -23,7 +23,6 @@
 
 #include "buffer.h"
 #include "bufaux.h"
-#include "getput.h"
 #include "log.h"
 #include "xmalloc.h"
 #include "misc.h"
@@ -172,7 +171,7 @@ handle_to_string(int handle, char **stringp, int *hlenp)
 	if (stringp == NULL || hlenp == NULL)
 		return -1;
 	*stringp = xmalloc(sizeof(int32_t));
-	PUT_32BIT(*stringp, handle);
+	put_u32(*stringp, handle);
 	*hlenp = sizeof(int32_t);
 	return 0;
 }
@@ -184,7 +183,7 @@ handle_from_string(const char *handle, u_int hlen)
 
 	if (hlen != sizeof(int32_t))
 		return -1;
-	val = GET_32BIT(handle);
+	val = get_u32(handle);
 	if (handle_is_ok(val, HANDLE_FILE) ||
 	    handle_is_ok(val, HANDLE_DIR))
 		return val;
@@ -950,7 +949,7 @@ process(void)
 	if (buf_len < 5)
 		return;		/* Incomplete message. */
 	cp = buffer_ptr(&iqueue);
-	msg_len = GET_32BIT(cp);
+	msg_len = get_u32(cp);
 	if (msg_len > SFTP_MAX_MSG_LENGTH) {
 		error("bad message ");
 		exit(11);
