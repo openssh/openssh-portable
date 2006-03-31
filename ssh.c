@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.274 2006/03/28 00:12:31 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.275 2006/03/30 10:41:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -647,15 +647,15 @@ main(int ac, char **av)
 		options.control_path = NULL;
 
 	if (options.control_path != NULL) {
-		char me[NI_MAXHOST];
+		char thishost[NI_MAXHOST];
 
-		if (gethostname(me, sizeof(me)) == -1)
+		if (gethostname(thishost, sizeof(thishost)) == -1)
 			fatal("gethostname: %s", strerror(errno));
 		snprintf(buf, sizeof(buf), "%d", options.port);
 		cp = tilde_expand_filename(options.control_path,
 		    original_real_uid);
 		options.control_path = percent_expand(cp, "p", buf, "h", host,
-		    "r", options.user, "l", me, (char *)NULL);
+		    "r", options.user, "l", thishost, (char *)NULL);
 		xfree(cp);
 	}
 	if (mux_command != 0 && options.control_path == NULL)
@@ -1194,9 +1194,10 @@ ssh_session2(void)
 static void
 load_public_identity_files(void)
 {
-	char *filename;
+	char *filename, *cp, thishost[NI_MAXHOST];
 	int i = 0;
 	Key *public;
+	struct passwd *pw;
 #ifdef SMARTCARD
 	Key **keys;
 
@@ -1220,9 +1221,18 @@ load_public_identity_files(void)
 		xfree(keys);
 	}
 #endif /* SMARTCARD */
+	if ((pw = getpwuid(original_real_uid)) == NULL)
+		fatal("load_public_identity_files: getpwuid failed");
+	if (gethostname(thishost, sizeof(thishost)) == -1)
+		fatal("load_public_identity_files: gethostname: %s",
+		    strerror(errno));
 	for (; i < options.num_identity_files; i++) {
-		filename = tilde_expand_filename(options.identity_files[i],
+		cp = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
+		filename = percent_expand(cp, "d", pw->pw_dir,
+		    "u", pw->pw_name, "l", thishost, "h", host, 
+		    "r", options.user, (char *)NULL);
+		xfree(cp);
 		public = key_load_public(filename, NULL);
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);

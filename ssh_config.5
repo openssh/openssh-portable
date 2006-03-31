@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.89 2006/03/14 16:32:48 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.90 2006/03/30 10:41:25 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -548,8 +548,21 @@ and
 for protocol version 2.
 Additionally, any identities represented by the authentication agent
 will be used for authentication.
+.Pp
 The file name may use the tilde
-syntax to refer to a user's home directory.
+syntax to refer to a user's home directory or one of the following 
+escape characters:
+.Ql %d
+(local user's home directory),
+.Ql %u
+(local user name),
+.Ql %l
+(local host name),
+.Ql %h
+(remote host name) or
+.Ql %h
+(remote user name).
+.Pp
 It is possible to have
 multiple identity files specified in configuration files; all these
 identities will be tried in sequence.

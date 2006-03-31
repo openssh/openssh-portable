@@ -30,6 +30,10 @@
      silencing a heap of lint warnings. also allows them to use
      __bounded__ checking which can't be applied to macros; requested
      by and feedback from deraadt@
+   - djm@cvs.openbsd.org 2006/03/30 10:41:25
+     [ssh.c ssh_config.5]
+     add percent escape chars to the IdentityFile option, bz #1159 based
+     on a patch by imaging AT math.ualberta.ca; feedback and ok dtucker@
 
 20060326
  - OpenBSD CVS Sync
@@ -4479,4 +4483,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4295 2006/03/31 12:13:02 djm Exp $
+$Id: ChangeLog,v 1.4296 2006/03/31 12:13:21 djm Exp $
