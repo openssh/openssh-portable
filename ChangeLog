@@ -20,6 +20,9 @@
      [ssh-agent.c]
      use strtonum() to parse the pid from the file, and range check it
      better; ok djm
+   - djm@cvs.openbsd.org 2006/03/30 09:41:25
+     [channels.c]
+     ARGSUSED for dispatch table-driven functions
 
 20060326
  - OpenBSD CVS Sync
@@ -4469,4 +4472,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4293 2006/03/31 12:11:28 djm Exp $
+$Id: ChangeLog,v 1.4294 2006/03/31 12:11:44 djm Exp $
