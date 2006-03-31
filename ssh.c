@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.273 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.274 2006/03/28 00:12:31 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -688,7 +688,7 @@ main(int ac, char **av)
 	if (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication) {
 		sensitive_data.nkeys = 3;
-		sensitive_data.keys = xcalloc(sensitive_data.nkeys, 
+		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
 
 		PRIV_START;

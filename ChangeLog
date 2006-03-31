@@ -10,6 +10,9 @@
    - djm@cvs.openbsd.org 2006/03/27 23:15:46
      [sftp.c]
      always use a format string for addargs; spotted by mouring@
+   - deraadt@cvs.openbsd.org 2006/03/28 00:12:31
+     [README.tun ssh.c]
+     spacing
 
 20060326
  - OpenBSD CVS Sync
@@ -4459,4 +4462,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4290 2006/03/31 12:10:31 djm Exp $
+$Id: ChangeLog,v 1.4291 2006/03/31 12:10:51 djm Exp $
