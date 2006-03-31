@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.79 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.80 2006/03/27 23:15:46 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1468,7 +1468,7 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 	memset(&args, '\0', sizeof(args));
 	args.list = NULL;
-	addargs(&args, ssh_program);
+	addargs(&args, "%s", ssh_program);
 	addargs(&args, "-oForwardX11 no");
 	addargs(&args, "-oForwardAgent no");
 	addargs(&args, "-oPermitLocalCommand no");
