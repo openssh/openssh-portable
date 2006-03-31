@@ -1,3 +1,10 @@
+20060331
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2006/03/27 01:21:18
+     [xmalloc.c]
+     we can do the size & nmemb check before the integer overflow check; 
+     evol
+
 20060326
  - OpenBSD CVS Sync
    - jakob@cvs.openbsd.org 2006/03/15 08:46:44
@@ -4446,4 +4453,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4287 2006/03/26 03:30:33 djm Exp $
+$Id: ChangeLog,v 1.4288 2006/03/31 12:09:17 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: xmalloc.c,v 1.20 2006/03/25 13:17:03 djm Exp $ */
+/* $OpenBSD: xmalloc.c,v 1.21 2006/03/27 01:21:18 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -36,10 +36,10 @@ xcalloc(size_t nmemb, size_t size)
 {
 	void *ptr;
 
-	if (nmemb && size && SIZE_T_MAX / nmemb < size)
-		fatal("xcalloc: nmemb * size > SIZE_T_MAX");
 	if (size == 0 || nmemb == 0)
 		fatal("xcalloc: zero size");
+	if (SIZE_T_MAX / nmemb < size)
+		fatal("xcalloc: nmemb * size > SIZE_T_MAX");
 	ptr = calloc(nmemb, size);
 	if (ptr == NULL)
 		fatal("xcalloc: out of memory (allocating %lu bytes)",
@@ -53,10 +53,10 @@ xrealloc(void *ptr, size_t nmemb, size_t size)
 	void *new_ptr;
 	size_t new_size = nmemb * size;
 
-	if (nmemb && size && SIZE_T_MAX / nmemb < size)
-		fatal("xrealloc: nmemb * size > SIZE_T_MAX");
 	if (new_size == 0)
 		fatal("xrealloc: zero size");
+	if (SIZE_T_MAX / nmemb < size)
+		fatal("xrealloc: nmemb * size > SIZE_T_MAX");
 	if (ptr == NULL)
 		new_ptr = malloc(new_size);
 	else
