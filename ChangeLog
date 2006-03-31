@@ -13,6 +13,9 @@
    - deraadt@cvs.openbsd.org 2006/03/28 00:12:31
      [README.tun ssh.c]
      spacing
+   - deraadt@cvs.openbsd.org 2006/03/28 01:52:28
+     [channels.c]
+     do not accept unreasonable X ports numbers; ok djm
 
 20060326
  - OpenBSD CVS Sync
@@ -4462,4 +4465,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4291 2006/03/31 12:10:51 djm Exp $
+$Id: ChangeLog,v 1.4292 2006/03/31 12:11:07 djm Exp $

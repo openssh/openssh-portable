@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.247 2006/03/25 18:58:10 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.248 2006/03/28 01:52:28 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2886,12 +2886,12 @@ connect_local_xsocket(u_int dnr)
 int
 x11_connect_display(void)
 {
-	int display_number, sock = 0;
+	u_int display_number;
 	const char *display;
 	char buf[1024], *cp;
 	struct addrinfo hints, *ai, *aitop;
 	char strport[NI_MAXSERV];
-	int gaierr;
+	int gaierr, sock = 0;
 
 	/* Try to open a socket for the local X server. */
 	display = getenv("DISPLAY");
@@ -2911,7 +2911,7 @@ x11_connect_display(void)
 	if (strncmp(display, "unix:", 5) == 0 ||
 	    display[0] == ':') {
 		/* Connect to the unix domain socket. */
-		if (sscanf(strrchr(display, ':') + 1, "%d", &display_number) != 1) {
+		if (sscanf(strrchr(display, ':') + 1, "%u", &display_number) != 1) {
 			error("Could not parse display number from DISPLAY: %.100s",
 			    display);
 			return -1;
@@ -2936,7 +2936,7 @@ x11_connect_display(void)
 	}
 	*cp = 0;
 	/* buf now contains the host name.  But first we parse the display number. */
-	if (sscanf(cp + 1, "%d", &display_number) != 1) {
+	if (sscanf(cp + 1, "%u", &display_number) != 1) {
 		error("Could not parse display number from DISPLAY: %.100s",
 		    display);
 		return -1;
@@ -2946,7 +2946,7 @@ x11_connect_display(void)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = IPv4or6;
 	hints.ai_socktype = SOCK_STREAM;
-	snprintf(strport, sizeof strport, "%d", 6000 + display_number);
+	snprintf(strport, sizeof strport, "%u", 6000 + display_number);
 	if ((gaierr = getaddrinfo(buf, strport, &hints, &aitop)) != 0) {
 		error("%.100s: unknown host. (%s)", buf, gai_strerror(gaierr));
 		return -1;
@@ -2960,7 +2960,7 @@ x11_connect_display(void)
 		}
 		/* Connect it to the display. */
 		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
-			debug2("connect %.100s port %d: %.100s", buf,
+			debug2("connect %.100s port %u: %.100s", buf,
 			    6000 + display_number, strerror(errno));
 			close(sock);
 			continue;
@@ -2970,7 +2970,7 @@ x11_connect_display(void)
 	}
 	freeaddrinfo(aitop);
 	if (!ai) {
-		error("connect %.100s port %d: %.100s", buf, 6000 + display_number,
+		error("connect %.100s port %u: %.100s", buf, 6000 + display_number,
 		    strerror(errno));
 		return -1;
 	}
