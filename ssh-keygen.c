@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.142 2006/03/25 18:40:14 deraadt Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.143 2006/03/30 11:05:17 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -331,6 +331,8 @@ get_line(FILE *fp, char *line, size_t len)
 		line[pos++] = c;
 		line[pos] = '\0';
 	}
+	if (c == EOF)
+		return -1;
 	return pos;
 }
 
