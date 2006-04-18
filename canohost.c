@@ -45,6 +45,9 @@ get_remote_hostname(int sock, int use_dns)
 		cleanup_exit(255);
 	}
 
+	if (from.ss_family == AF_INET)
+		check_ip_options(sock, ntop);
+
 	ipv64_normalise_mapped(&from, &fromlen);
 
 	if (from.ss_family == AF_INET6)
@@ -53,9 +56,6 @@ get_remote_hostname(int sock, int use_dns)
 	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
 	    NULL, 0, NI_NUMERICHOST) != 0)
 		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
-
-	if (from.ss_family == AF_INET)
-		check_ip_options(sock, ntop);
 
 	if (!use_dns)
 		return xstrdup(ntop);

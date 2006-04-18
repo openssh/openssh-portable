@@ -1,3 +1,8 @@
+20060418
+ - (djm) Reorder IP options check so that it isn't broken by 
+   mapped addresses; bz #1179 reported by markw wtech-llc.com;
+   ok dtucker@
+
 20060331
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2006/03/27 01:21:18
@@ -4495,4 +4500,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4300 2006/03/31 12:14:57 djm Exp $
+$Id: ChangeLog,v 1.4301 2006/04/18 05:13:16 djm Exp $
