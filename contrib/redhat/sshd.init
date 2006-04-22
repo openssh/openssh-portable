@@ -35,6 +35,9 @@ do_rsa1_keygen() {
 		if $KEYGEN -q -t rsa1 -f $RSA1_KEY -C '' -N '' >&/dev/null; then
 			chmod 600 $RSA1_KEY
 			chmod 644 $RSA1_KEY.pub
+			if [ -x /sbin/restorecon ]; then
+			    /sbin/restorecon $RSA1_KEY.pub
+			fi
 			success $"RSA1 key generation"
 			echo
 		else
@@ -51,6 +54,9 @@ do_rsa_keygen() {
 		if $KEYGEN -q -t rsa -f $RSA_KEY -C '' -N '' >&/dev/null; then
 			chmod 600 $RSA_KEY
 			chmod 644 $RSA_KEY.pub
+			if [ -x /sbin/restorecon ]; then
+			    /sbin/restorecon $RSA_KEY.pub
+			fi
 			success $"RSA key generation"
 			echo
 		else
@@ -67,6 +73,9 @@ do_dsa_keygen() {
 		if $KEYGEN -q -t dsa -f $DSA_KEY -C '' -N '' >&/dev/null; then
 			chmod 600 $DSA_KEY
 			chmod 644 $DSA_KEY.pub
+			if [ -x /sbin/restorecon ]; then
+			    /sbin/restorecon $DSA_KEY.pub
+			fi
 			success $"DSA key generation"
 			echo
 		else

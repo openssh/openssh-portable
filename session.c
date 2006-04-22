@@ -1352,6 +1352,10 @@ do_setusercontext(struct passwd *pw)
 #endif
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 		fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
+
+#ifdef WITH_SELINUX
+	ssh_selinux_setup_exec_context(pw->pw_name);
+#endif
 }
 
 static void

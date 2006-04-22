@@ -210,6 +210,10 @@ pty_setowner(struct passwd *pw, const char *tty)
 		fatal("stat(%.100s) failed: %.100s", tty,
 		    strerror(errno));
 
+#ifdef WITH_SELINUX
+	ssh_selinux_setup_pty(pw->pw_name, tty);
+#endif
+
 	if (st.st_uid != pw->pw_uid || st.st_gid != gid) {
 		if (chown(tty, pw->pw_uid, gid) < 0) {
 			if (errno == EROFS &&

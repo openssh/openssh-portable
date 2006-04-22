@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.338 2006/03/15 21:14:34 dtucker Exp $
+# $Id: configure.ac,v 1.339 2006/04/22 11:26:08 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.338 $)
+AC_REVISION($Revision: 1.339 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3000,6 +3000,23 @@ int main()
 			[#include <arpa/nameser.h>])
 	])
 
+# Check whether user wants SELinux support
+SELINUX_MSG="no"
+LIBSELINUX=""
+AC_ARG_WITH(selinux,
+	[  --with-selinux   Enable SELinux support],
+	[ if test "x$withval" != "xno" ; then
+		AC_DEFINE(WITH_SELINUX,1,[Define if you want SELinux support.])
+		SELINUX_MSG="yes"
+		AC_CHECK_HEADER([selinux/selinux.h], ,
+		    AC_MSG_ERROR(SELinux support requires selinux.h header))
+		AC_CHECK_LIB(selinux, setexeccon, [ LIBSELINUX="-lselinux" ],
+		    AC_MSG_ERROR(SELinux support requires libselinux library))
+		AC_CHECK_FUNCS(getseuserbyname get_default_context_with_level)
+	fi ]
+)
+AC_SUBST(LIBSELINUX)
+
 # Check whether user wants Kerberos 5 support
 KRB5_MSG="no"
 AC_ARG_WITH(kerberos5,
@@ -3818,6 +3835,7 @@ fi
 echo "                    Manpage format: $MANTYPE"
 echo "                       PAM support: $PAM_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
+echo "                   SELinux support: $SELINUX_MSG"
 echo "                 Smartcard support: $SCARD_MSG"
 echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"

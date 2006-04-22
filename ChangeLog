@@ -1,6 +1,14 @@
+20060421
+ - (djm) [Makefile.in configure.ac session.c sshpty.c]
+   [contrib/redhat/sshd.init openbsd-compat/Makefile.in]
+   [openbsd-compat/openbsd-compat.h openbsd-compat/port-linux.c]
+   [openbsd-compat/port-linux.h] Add support for SELinux, setting 
+   the execution and TTY contexts. based on patch from Daniel Walsh,
+   bz #880; ok dtucker@
+
 20060418
- - (djm) Reorder IP options check so that it isn't broken by 
-   mapped addresses; bz #1179 reported by markw wtech-llc.com;
+ - (djm) [canohost.c] Reorder IP options check so that it isn't broken
+   by mapped addresses; bz #1179 reported by markw wtech-llc.com;
    ok dtucker@
 
 20060331
@@ -4500,4 +4508,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4301 2006/04/18 05:13:16 djm Exp $
+$Id: ChangeLog,v 1.4302 2006/04/22 11:26:08 djm Exp $

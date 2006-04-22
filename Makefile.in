@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.276 2006/03/15 02:09:18 djm Exp $
+# $Id: Makefile.in,v 1.277 2006/04/22 11:26:08 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -43,6 +43,7 @@ LD=@LD@
 CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
+LIBSELINUX=@LIBSELINUX@
 LIBEDIT=@LIBEDIT@
 LIBPAM=@LIBPAM@
 LIBWRAP=@LIBWRAP@
@@ -136,7 +137,7 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
-	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBWRAP) $(LIBPAM) $(LIBS)
+	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBWRAP) $(LIBPAM) $(LIBSELINUX) $(LIBS)
 
 scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o progressmeter.o
 	$(LD) -o $@ scp.o progressmeter.o bufaux.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
