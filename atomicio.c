@@ -1,4 +1,4 @@
-/* $OpenBSD: atomicio.c,v 1.18 2006/04/16 00:52:55 djm Exp $ */
+/* $OpenBSD: atomicio.c,v 1.19 2006/04/16 07:59:00 djm Exp $ */
 /*
  * Copyright (c) 2006 Damien Miller. All rights reserved.
  * Copyright (c) 2005 Anil Madhavapeddy. All rights reserved.
@@ -99,7 +99,7 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 				iovcnt--;
 			}
 			/* This shouldn't happen... */
-			if (rem > iov[0].iov_len || (rem > 0 && iovcnt <= 0)) {
+			if (rem > 0 && (iovcnt <= 0 || rem > iov[0].iov_len)) {
 				errno = EFAULT;
 				return 0;
 			}

@@ -37,6 +37,10 @@
      commands, which would result in a separate tiny packet on the wire by
      using atomiciov(writev, ...) to write the length and the command in one
      pass; ok deraadt@
+   - djm@cvs.openbsd.org 2006/04/16 07:59:00
+     [atomicio.c]
+     reorder sanity test so that it cannot dereference past the end of the
+     iov array; well spotted canacar@!
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4548,4 +4552,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4309 2006/04/23 02:06:35 djm Exp $
+$Id: ChangeLog,v 1.4310 2006/04/23 02:06:49 djm Exp $
