@@ -62,6 +62,10 @@
      a file descriptor per session and apparently makes userland ppp over
      ssh work; ok markus@ deraadt@ (ID Sync only - portable makes this
      decision on a per-platform basis)
+   - djm@cvs.openbsd.org 2006/04/22 04:06:51
+     [uidswap.c]
+     use setres[ug]id() to permanently revoke privileges; ok deraadt@
+     (ID Sync only - portable already uses setres[ug]id() whenever possible)
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4573,4 +4577,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4314 2006/04/23 02:10:49 djm Exp $
+$Id: ChangeLog,v 1.4315 2006/04/23 02:11:57 djm Exp $
