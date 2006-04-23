@@ -55,6 +55,13 @@
    - markus@cvs.openbsd.org 2006/04/20 09:47:59
      [sshconnect.c]
      simplify; ok djm@
+   - djm@cvs.openbsd.org 2006/04/20 21:53:44
+     [includes.h session.c sftp.c]
+     Switch from using pipes to socketpairs for communication between
+     sftp/scp and ssh, and between sshd and its subprocesses. This saves
+     a file descriptor per session and apparently makes userland ppp over
+     ssh work; ok markus@ deraadt@ (ID Sync only - portable makes this
+     decision on a per-platform basis)
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4566,4 +4573,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4313 2006/04/23 02:08:59 djm Exp $
+$Id: ChangeLog,v 1.4314 2006/04/23 02:10:49 djm Exp $
