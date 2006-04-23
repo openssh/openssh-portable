@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.139 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.140 2006/04/01 05:42:20 deraadt Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -92,6 +92,8 @@
 
 extern char *__progname;
 
+int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout);
+
 void bwlimit(int);
 
 /* Struct for addargs */
@@ -177,7 +179,7 @@ do_local_cmd(arglist *a)
  */
 
 int
-do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
+do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 {
 	int pin[2], pout[2], reserved[2];
 
@@ -244,7 +246,6 @@ typedef struct {
 
 BUF *allocbuf(BUF *, int, int);
 void lostconn(int);
-void nospace(void);
 int okname(char *);
 void run_err(const char *,...);
 void verifydir(char *);
@@ -419,9 +420,10 @@ main(int argc, char **argv)
 void
 toremote(char *targ, int argc, char **argv)
 {
-	int i, len;
 	char *bp, *host, *src, *suser, *thost, *tuser, *arg;
 	arglist alist;
+	size_t len;
+	int i;
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -491,7 +493,7 @@ toremote(char *targ, int argc, char **argv)
 				(void) snprintf(bp, len, "%s -t %s", cmd, targ);
 				host = cleanhostname(thost);
 				if (do_cmd(host, tuser, bp, &remin,
-				    &remout, argc) < 0)
+				    &remout) < 0)
 					exit(1);
 				if (response() < 0)
 					exit(1);
@@ -505,9 +507,10 @@ toremote(char *targ, int argc, char **argv)
 void
 tolocal(int argc, char **argv)
 {
-	int i, len;
 	char *bp, *host, *src, *suser;
 	arglist alist;
+	size_t len;
+	int i;
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -542,7 +545,7 @@ tolocal(int argc, char **argv)
 		len = strlen(src) + CMDNEEDS + 20;
 		bp = xmalloc(len);
 		(void) snprintf(bp, len, "%s -f %s", cmd, src);
-		if (do_cmd(host, suser, bp, &remin, &remout, argc) < 0) {
+		if (do_cmd(host, suser, bp, &remin, &remout) < 0) {
 			(void) xfree(bp);
 			++errs;
 			continue;
@@ -787,7 +790,8 @@ sink(int argc, char **argv)
 	BUF *bp;
 	off_t i;
 	size_t j, count;
-	int amt, exists, first, mask, mode, ofd, omode;
+	int amt, exists, first, ofd;
+	mode_t mode, omode, mask;
 	off_t size, statbytes;
 	int setimes, targisdir, wrerrno = 0;
 	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048];
