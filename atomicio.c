@@ -1,5 +1,6 @@
-/* $OpenBSD: atomicio.c,v 1.17 2006/04/01 05:51:34 djm Exp $ */
+/* $OpenBSD: atomicio.c,v 1.18 2006/04/16 00:52:55 djm Exp $ */
 /*
+ * Copyright (c) 2006 Damien Miller. All rights reserved.
  * Copyright (c) 2005 Anil Madhavapeddy. All rights reserved.
  * Copyright (c) 1995,1999 Theo de Raadt.  All rights reserved.
  * All rights reserved.
@@ -58,4 +59,56 @@ atomicio(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n)
 		}
 	}
 	return (pos);
+}
+
+/*
+ * ensure all of data on socket comes through. f==readv || f==writev
+ */
+size_t
+atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
+    const struct iovec *_iov, int iovcnt)
+{
+	size_t pos = 0, rem;
+	ssize_t res;
+	struct iovec iov_array[IOV_MAX], *iov = iov_array;
+
+	if (iovcnt > IOV_MAX) {
+		errno = EINVAL;
+		return 0;
+	}
+	/* Make a copy of the iov array because we may modify it below */
+	memcpy(iov, _iov, iovcnt * sizeof(*_iov));
+
+	for (; iovcnt > 0 && iov[0].iov_len > 0;) {
+		res = (f) (fd, iov, iovcnt);
+		switch (res) {
+		case -1:
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+			return 0;
+		case 0:
+			errno = EPIPE;
+			return pos;
+		default:
+			rem = (size_t)res;
+			pos += rem;
+			/* skip completed iov entries */
+			while (iovcnt > 0 && rem >= iov[0].iov_len) {
+				rem -= iov[0].iov_len;
+				iov++;
+				iovcnt--;
+			}
+			/* This shouldn't happen... */
+			if (rem > iov[0].iov_len || (rem > 0 && iovcnt <= 0)) {
+				errno = EFAULT;
+				return 0;
+			}
+			if (iovcnt == 0)
+				break;
+			/* update pointer in partially complete iov */
+			iov[0].iov_base = ((char *)iov[0].iov_base) + rem;
+			iov[0].iov_len -= rem;
+		}
+	}
+	return pos;
 }

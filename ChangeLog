@@ -26,6 +26,11 @@
      channels code can use to propsectivly check whether an incremental
      allocation will succeed.  bz #1131, debugged with the assistance of
      cove AT wildpackets.com; ok dtucker@ deraadt@
+   - djm@cvs.openbsd.org 2006/04/16 00:52:55
+     [atomicio.c atomicio.h]
+     introduce atomiciov() function that wraps readv/writev to retry
+     interrupted transfers like atomicio() does for read/write;
+     feedback deraadt@ dtucker@ stevesk@ ok deraadt@
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4537,4 +4542,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4307 2006/04/23 02:06:03 djm Exp $
+$Id: ChangeLog,v 1.4308 2006/04/23 02:06:20 djm Exp $
