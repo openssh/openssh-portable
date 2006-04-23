@@ -42,7 +42,7 @@
      reorder sanity test so that it cannot dereference past the end of the
      iov array; well spotted canacar@!
    - dtucker@cvs.openbsd.org 2006/04/18 10:44:28
-     [bufaux.c bufbn.c]
+     [bufaux.c bufbn.c Makefile.in]
      Move Buffer bignum functions into their own file, bufbn.c. This means
      that sftp and sftp-server (which use the Buffer functions in bufaux.c 
      but not the bignum ones) no longer need to be linked with libcrypto.
@@ -4582,4 +4582,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4317 2006/04/23 02:28:53 djm Exp $
+$Id: ChangeLog,v 1.4318 2006/04/23 02:31:27 djm Exp $
