@@ -12,6 +12,11 @@
    - dtucker@cvs.openbsd.org 2006/04/02 08:34:52
      [ssh-keysign.c]
      sessionid can be 32 bytes now too when sha256 kex is used; ok djm@
+   - djm@cvs.openbsd.org 2006/04/03 07:10:38
+     [gss-genr.c]
+     GSSAPI buffers shouldn't be nul-terminated, spotted in bugzilla #1066
+     by dleonard AT vintela.com. use xasprintf() to simplify code while in
+     there; "looks right" deraadt@
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4523,4 +4528,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4305 2006/04/23 02:05:32 djm Exp $
+$Id: ChangeLog,v 1.4306 2006/04/23 02:05:46 djm Exp $

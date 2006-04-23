@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.9 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.10 2006/04/03 07:10:38 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -205,10 +205,11 @@ OM_uint32
 ssh_gssapi_import_name(Gssctxt *ctx, const char *host)
 {
 	gss_buffer_desc gssbuf;
+	char *val;
 
-	gssbuf.length = sizeof("host@") + strlen(host);
-	gssbuf.value = xmalloc(gssbuf.length);
-	snprintf(gssbuf.value, gssbuf.length, "host@%s", host);
+	xasprintf(&val, "host@%s", host);
+	gssbuf.value = val;
+	gssbuf.length = strlen(gssbuf.value);
 
 	if ((ctx->major = gss_import_name(&ctx->minor,
 	    &gssbuf, GSS_C_NT_HOSTBASED_SERVICE, &ctx->name)))
