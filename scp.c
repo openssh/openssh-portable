@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.140 2006/04/01 05:42:20 deraadt Exp $ */
+/* $OpenBSD: scp.c,v 1.141 2006/04/01 05:50:29 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -422,7 +422,6 @@ toremote(char *targ, int argc, char **argv)
 {
 	char *bp, *host, *src, *suser, *thost, *tuser, *arg;
 	arglist alist;
-	size_t len;
 	int i;
 
 	memset(&alist, '\0', sizeof(alist));
@@ -488,9 +487,7 @@ toremote(char *targ, int argc, char **argv)
 				errs = 1;
 		} else {	/* local to remote */
 			if (remin == -1) {
-				len = strlen(targ) + CMDNEEDS + 20;
-				bp = xmalloc(len);
-				(void) snprintf(bp, len, "%s -t %s", cmd, targ);
+				xasprintf(&bp, "%s -t %s", cmd, targ);
 				host = cleanhostname(thost);
 				if (do_cmd(host, tuser, bp, &remin,
 				    &remout) < 0)
@@ -509,7 +506,6 @@ tolocal(int argc, char **argv)
 {
 	char *bp, *host, *src, *suser;
 	arglist alist;
-	size_t len;
 	int i;
 
 	memset(&alist, '\0', sizeof(alist));
@@ -542,9 +538,7 @@ tolocal(int argc, char **argv)
 				suser = pwd->pw_name;
 		}
 		host = cleanhostname(host);
-		len = strlen(src) + CMDNEEDS + 20;
-		bp = xmalloc(len);
-		(void) snprintf(bp, len, "%s -f %s", cmd, src);
+		xasprintf(&bp, "%s -f %s", cmd, src);
 		if (do_cmd(host, suser, bp, &remin, &remout) < 0) {
 			(void) xfree(bp);
 			++errs;
