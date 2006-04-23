@@ -26,6 +26,7 @@
 #ifndef KEX_H
 #define KEX_H
 
+#include <signal.h>
 #include <openssl/evp.h>
 #include "buffer.h"
 #include "cipher.h"

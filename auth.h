@@ -28,6 +28,8 @@
 #ifndef AUTH_H
 #define AUTH_H
 
+#include <signal.h>
+
 #include "key.h"
 #include "hostfile.h"
 #include "buffer.h"

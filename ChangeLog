@@ -69,6 +69,8 @@
    - stevesk@cvs.openbsd.org 2006/04/22 18:29:33
      [crc32.c]
      remove extra spaces
+ - (djm) [auth.h dispatch.h kex.h] sprinkle in signal.h to get
+   sig_atomic_t
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4580,4 +4582,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4316 2006/04/23 02:12:24 djm Exp $
+$Id: ChangeLog,v 1.4317 2006/04/23 02:28:53 djm Exp $
