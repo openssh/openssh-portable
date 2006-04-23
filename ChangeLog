@@ -31,6 +31,12 @@
      introduce atomiciov() function that wraps readv/writev to retry
      interrupted transfers like atomicio() does for read/write;
      feedback deraadt@ dtucker@ stevesk@ ok deraadt@
+   - djm@cvs.openbsd.org 2006/04/16 00:54:10
+     [sftp-client.c]
+     avoid making a tiny 4-byte write to send the packet length of sftp
+     commands, which would result in a separate tiny packet on the wire by
+     using atomiciov(writev, ...) to write the length and the command in one
+     pass; ok deraadt@
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4542,4 +4548,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4308 2006/04/23 02:06:20 djm Exp $
+$Id: ChangeLog,v 1.4309 2006/04/23 02:06:35 djm Exp $

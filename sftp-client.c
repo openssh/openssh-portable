@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.64 2006/03/30 09:58:16 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.65 2006/04/16 00:54:10 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -61,16 +61,19 @@ static void
 send_msg(int fd, Buffer *m)
 {
 	u_char mlen[4];
+	struct iovec iov[2];
 
 	if (buffer_len(m) > SFTP_MAX_MSG_LENGTH)
 		fatal("Outbound message too long %u", buffer_len(m));
 
 	/* Send length first */
 	put_u32(mlen, buffer_len(m));
-	if (atomicio(vwrite, fd, mlen, sizeof(mlen)) != sizeof(mlen))
-		fatal("Couldn't send packet: %s", strerror(errno));
-
-	if (atomicio(vwrite, fd, buffer_ptr(m), buffer_len(m)) != buffer_len(m))
+	iov[0].iov_base = mlen;
+	iov[0].iov_len = sizeof(mlen);
+	iov[1].iov_base = buffer_ptr(m);
+	iov[1].iov_len = buffer_len(m);
+	
+	if (atomiciov(writev, fd, iov, 2) != buffer_len(m) + sizeof(mlen))
 		fatal("Couldn't send packet: %s", strerror(errno));
 
 	buffer_clear(m);
