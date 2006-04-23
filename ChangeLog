@@ -17,6 +17,15 @@
      GSSAPI buffers shouldn't be nul-terminated, spotted in bugzilla #1066
      by dleonard AT vintela.com. use xasprintf() to simplify code while in
      there; "looks right" deraadt@
+   - djm@cvs.openbsd.org 2006/04/16 00:48:52
+     [buffer.c buffer.h channels.c]
+     Fix condition where we could exit with a fatal error when an input
+     buffer became too large and the remote end had advertised a big window.
+     The problem was a mismatch in the backoff math between the channels code
+     and the buffer code, so make a buffer_check_alloc() function that the
+     channels code can use to propsectivly check whether an incremental
+     allocation will succeed.  bz #1131, debugged with the assistance of
+     cove AT wildpackets.com; ok dtucker@ deraadt@
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4528,4 +4537,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4306 2006/04/23 02:05:46 djm Exp $
+$Id: ChangeLog,v 1.4307 2006/04/23 02:06:03 djm Exp $

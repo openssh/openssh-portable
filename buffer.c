@@ -1,4 +1,4 @@
-/* $OpenBSD: buffer.c,v 1.26 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: buffer.c,v 1.27 2006/04/16 00:48:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,6 +17,10 @@
 #include "xmalloc.h"
 #include "buffer.h"
 #include "log.h"
+
+#define	BUFFER_MAX_CHUNK	0x100000
+#define	BUFFER_MAX_LEN		0xa00000
+#define	BUFFER_ALLOCSZ		0x008000
 
 /* Initializes the buffer structure. */
 
@@ -66,6 +70,23 @@ buffer_append(Buffer *buffer, const void *data, u_int len)
 	memcpy(p, data, len);
 }
 
+static int
+buffer_compact(Buffer *buffer)
+{
+	/*
+	 * If the buffer is quite empty, but all data is at the end, move the
+	 * data to the beginning.
+	 */
+	if (buffer->offset > MIN(buffer->alloc, BUFFER_MAX_CHUNK)) {
+		memmove(buffer->buf, buffer->buf + buffer->offset,
+			buffer->end - buffer->offset);
+		buffer->end -= buffer->offset;
+		buffer->offset = 0;
+		return (1);
+	}
+	return (0);
+}
+
 /*
  * Appends space to the buffer, expanding the buffer if necessary. This does
  * not actually copy the data into the buffer, but instead returns a pointer
@@ -93,20 +114,13 @@ restart:
 		buffer->end += len;
 		return p;
 	}
-	/*
-	 * If the buffer is quite empty, but all data is at the end, move the
-	 * data to the beginning and retry.
-	 */
-	if (buffer->offset > MIN(buffer->alloc, BUFFER_MAX_CHUNK)) {
-		memmove(buffer->buf, buffer->buf + buffer->offset,
-			buffer->end - buffer->offset);
-		buffer->end -= buffer->offset;
-		buffer->offset = 0;
-		goto restart;
-	}
-	/* Increase the size of the buffer and retry. */
 
-	newlen = buffer->alloc + len + 32768;
+	/* Compact data back to the start of the buffer if necessary */
+	if (buffer_compact(buffer))
+		goto restart;
+
+	/* Increase the size of the buffer and retry. */
+	newlen = roundup(buffer->alloc + len, BUFFER_ALLOCSZ);
 	if (newlen > BUFFER_MAX_LEN)
 		fatal("buffer_append_space: alloc %u not supported",
 		    newlen);
@@ -114,6 +128,27 @@ restart:
 	buffer->alloc = newlen;
 	goto restart;
 	/* NOTREACHED */
+}
+
+/*
+ * Check whether an allocation of 'len' will fit in the buffer
+ * This must follow the same math as buffer_append_space
+ */
+int
+buffer_check_alloc(Buffer *buffer, u_int len)
+{
+	if (buffer->offset == buffer->end) {
+		buffer->offset = 0;
+		buffer->end = 0;
+	}
+ restart:
+	if (buffer->end + len < buffer->alloc)
+		return (1);
+	if (buffer_compact(buffer))
+		goto restart;
+	if (roundup(buffer->alloc + len, BUFFER_ALLOCSZ) <= BUFFER_MAX_LEN)
+		return (1);
+	return (0);
 }
 
 /* Returns the number of bytes of data in the buffer. */

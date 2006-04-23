@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.249 2006/03/30 09:41:25 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.250 2006/04/16 00:48:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -747,12 +747,10 @@ channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	u_int limit = compat20 ? c->remote_window : packet_get_maxsize();
 
-	/* check buffer limits */
-	limit = MIN(limit, (BUFFER_MAX_LEN - BUFFER_MAX_CHUNK - CHAN_RBUF));
-
 	if (c->istate == CHAN_INPUT_OPEN &&
 	    limit > 0 &&
-	    buffer_len(&c->input) < limit)
+	    buffer_len(&c->input) < limit &&
+	    buffer_check_alloc(&c->input, CHAN_RBUF))
 		FD_SET(c->rfd, readset);
 	if (c->ostate == CHAN_OUTPUT_OPEN ||
 	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
