@@ -1,4 +1,4 @@
-/* $OpenBSD: atomicio.c,v 1.16 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: atomicio.c,v 1.17 2006/04/01 05:51:34 djm Exp $ */
 /*
  * Copyright (c) 2005 Anil Madhavapeddy. All rights reserved.
  * Copyright (c) 1995,1999 Theo de Raadt.  All rights reserved.
@@ -33,11 +33,7 @@
  * ensure all of data on socket comes through. f==read || f==vwrite
  */
 size_t
-atomicio(f, fd, _s, n)
-	ssize_t (*f) (int, void *, size_t);
-	int fd;
-	void *_s;
-	size_t n;
+atomicio(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n)
 {
 	char *s = _s;
 	size_t pos = 0;
