@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.52 2006/03/25 22:22:42 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.53 2006/04/20 09:27:09 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -48,7 +48,7 @@ typedef struct Authmethod Authmethod;
 typedef struct KbdintDevice KbdintDevice;
 
 struct Authctxt {
-	int		 success;
+	sig_atomic_t	 success;
 	int		 postponed;	/* authentication needs another step */
 	int		 valid;		/* user exists and is allowed to login */
 	int		 attempt;

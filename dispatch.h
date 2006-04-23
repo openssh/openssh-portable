@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.h,v 1.10 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: dispatch.h,v 1.11 2006/04/20 09:27:09 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -33,6 +33,6 @@ typedef void dispatch_fn(int, u_int32_t, void *);
 void	 dispatch_init(dispatch_fn *);
 void	 dispatch_set(int, dispatch_fn *);
 void	 dispatch_range(u_int, u_int, dispatch_fn *);
-void	 dispatch_run(int, int *, void *);
+void	 dispatch_run(int, volatile sig_atomic_t *, void *);
 void	 dispatch_protocol_error(int, u_int32_t, void *);
 void	 dispatch_protocol_ignore(int, u_int32_t, void *);

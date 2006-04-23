@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.161 2006/03/25 18:30:55 deraadt Exp $ */
+/* $OpenBSD: clientloop.c,v 1.162 2006/04/20 09:27:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -131,7 +131,7 @@ static volatile sig_atomic_t received_signal = 0;
 static int in_non_blocking_mode = 0;
 
 /* Common data for the client loop code. */
-static int quit_pending;	/* Set to non-zero to quit the client loop. */
+static volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
 static int escape_char;		/* Escape character. */
 static int escape_pending;	/* Last character was the escape character */
 static int last_was_cr;		/* Last character was a newline. */
