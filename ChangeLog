@@ -52,6 +52,9 @@
      replace the last non-sig_atomic_t flag used in a signal handler with a
      sig_atomic_t, unfortunately with some knock-on effects in other (non-
      signal) contexts in which it is used; ok markus@
+   - markus@cvs.openbsd.org 2006/04/20 09:47:59
+     [sshconnect.c]
+     simplify; ok djm@
 
 20060421
  - (djm) [Makefile.in configure.ac session.c sshpty.c]
@@ -4563,4 +4566,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4312 2006/04/23 02:08:37 djm Exp $
+$Id: ChangeLog,v 1.4313 2006/04/23 02:08:59 djm Exp $
