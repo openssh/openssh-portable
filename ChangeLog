@@ -1,3 +1,8 @@
+20060503
+ - (dtucker) [packet.c] Remove in_systm.h since it's also in includes.h
+   and double including it on IRIX 5.3 causes problems.  From Georg Schwarz,
+   "no objections" tim@
+
 20060423
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2006/04/01 05:42:20
@@ -4582,4 +4587,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4318 2006/04/23 02:31:27 djm Exp $
+$Id: ChangeLog,v 1.4319 2006/05/03 09:01:09 dtucker Exp $
