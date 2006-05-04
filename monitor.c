@@ -924,7 +924,7 @@ mm_answer_pam_respond(int sock, Buffer *m)
 	sshpam_authok = NULL;
 	num = buffer_get_int(m);
 	if (num > 0) {
-		resp = xmalloc(num * sizeof(char *));
+		resp = xcalloc(num, sizeof(char *));
 		for (i = 0; i < num; ++i)
 			resp[i] = buffer_get_string(m, NULL);
 		ret = (sshpam_device.respond)(sshpam_ctxt, num, resp);

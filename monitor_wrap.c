@@ -776,8 +776,11 @@ mm_sshpam_query(void *ctx, char **name, char **info,
 	*name = buffer_get_string(&m, NULL);
 	*info = buffer_get_string(&m, NULL);
 	*num = buffer_get_int(&m);
-	*prompts = xmalloc((*num + 1) * sizeof(char *));
-	*echo_on = xmalloc((*num + 1) * sizeof(u_int));
+	if (*num > PAM_MAX_NUM_MSG)
+		fatal("%s: recieved %u PAM messages, expected <= %u",
+		    __func__, *num, PAM_MAX_NUM_MSG);
+	*prompts = xcalloc((*num + 1), sizeof(char *));
+	*echo_on = xcalloc((*num + 1), sizeof(u_int));
 	for (i = 0; i < *num; ++i) {
 		(*prompts)[i] = buffer_get_string(&m, NULL);
 		(*echo_on)[i] = buffer_get_int(&m);

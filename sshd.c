@@ -921,7 +921,7 @@ main(int ac, char **av)
 	/* Save argv. Duplicate so setproctitle emulation doesn't clobber it */
 	saved_argc = ac;
 	rexec_argc = ac;
-	saved_argv = xmalloc(sizeof(*saved_argv) * (ac + 1));
+	saved_argv = xcalloc(ac + 1, sizeof(*saved_argv));
 	for (i = 0; i < ac; i++)
 		saved_argv[i] = xstrdup(av[i]);
 	saved_argv[i] = NULL;

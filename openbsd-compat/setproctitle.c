@@ -80,7 +80,7 @@ compat_init_setproctitle(int argc, char *argv[])
 	/* Fail if we can't allocate room for the new environment */
 	for (i = 0; envp[i] != NULL; i++)
 		;
-	if ((environ = malloc(sizeof(*environ) * (i + 1))) == NULL) {
+	if ((environ = calloc(i + 1, sizeof(*environ))) == NULL) {
 		environ = envp;	/* put it back */
 		return;
 	}

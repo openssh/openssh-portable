@@ -984,7 +984,7 @@ do_setup_env(Session *s, const char *shell)
 
 	/* Initialize the environment. */
 	envsize = 100;
-	env = xmalloc(envsize * sizeof(char *));
+	env = xcalloc(envsize, sizeof(char *));
 	env[0] = NULL;
 
 #ifdef HAVE_CYGWIN

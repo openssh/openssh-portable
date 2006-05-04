@@ -674,8 +674,7 @@ prng_read_commands(char *cmdfilename)
 	}
 
 	num_cmds = 64;
-	entcmd = xmalloc(num_cmds * sizeof(entropy_cmd_t));
-	memset(entcmd, '\0', num_cmds * sizeof(entropy_cmd_t));
+	entcmd = xcalloc(num_cmds, sizeof(entropy_cmd_t));
 
 	/* Read in file */
 	cur_cmd = linenum = 0;

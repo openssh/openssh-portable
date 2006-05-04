@@ -288,7 +288,10 @@ import_environments(Buffer *b)
 
 	/* Import environment from subprocess */
 	num_env = buffer_get_int(b);
-	sshpam_env = xmalloc((num_env + 1) * sizeof(*sshpam_env));
+	if (num_env > 1024)
+		fatal("%s: received %u environment variables, expected <= 1024",
+		    __func__, num_env);
+	sshpam_env = xcalloc(num_env + 1, sizeof(*sshpam_env));
 	debug3("PAM: num env strings %d", num_env);
 	for(i = 0; i < num_env; i++)
 		sshpam_env[i] = buffer_get_string(b, NULL);
@@ -335,9 +338,8 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
 
-	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+	if ((reply = calloc(n, sizeof(*reply))) == NULL)
 		return (PAM_CONV_ERR);
-	memset(reply, 0, n * sizeof(*reply));
 
 	buffer_init(&buffer);
 	for (i = 0; i < n; ++i) {
@@ -533,9 +535,8 @@ sshpam_store_conv(int n, sshpam_const struct pam_message **msg,
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
 
-	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+	if ((reply = calloc(n, sizeof(*reply))) == NULL)
 		return (PAM_CONV_ERR);
-	memset(reply, 0, n * sizeof(*reply));
 
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
@@ -935,9 +936,8 @@ sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
 	if (n <= 0 || n > PAM_MAX_NUM_MSG || !isatty(STDIN_FILENO))
 		return (PAM_CONV_ERR);
 
-	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+	if ((reply = calloc(n, sizeof(*reply))) == NULL)
 		return (PAM_CONV_ERR);
-	memset(reply, 0, n * sizeof(*reply));
 
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {

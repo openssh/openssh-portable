@@ -52,8 +52,8 @@ ga_init(const char *user, gid_t base)
 	ngroups = MAX(NGROUPS_MAX, sysconf(_SC_NGROUPS_MAX));
 #endif
 
-	groups_bygid = xmalloc(ngroups * sizeof(*groups_bygid));
-	groups_byname = xmalloc(ngroups * sizeof(*groups_byname));
+	groups_bygid = xcalloc(ngroups, sizeof(*groups_bygid));
+	groups_byname = xcalloc(ngroups, sizeof(*groups_byname));
 
 	if (getgrouplist(user, base, groups_bygid, &ngroups) == -1)
 		logit("getgrouplist: groups list too small");
