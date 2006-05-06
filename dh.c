@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.35 2006/03/27 13:03:54 deraadt Exp $ */
+/* $OpenBSD: dh.c,v 1.36 2006/05/04 14:55:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -181,19 +181,36 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 	int i;
 	int n = BN_num_bits(dh_pub);
 	int bits_set = 0;
+	BIGNUM *tmp;
 
 	if (dh_pub->neg) {
 		logit("invalid public DH value: negativ");
 		return 0;
 	}
+	if (BN_cmp(dh_pub, BN_value_one()) != 1) {	/* pub_exp <= 1 */
+		logit("invalid public DH value: <= 1");
+		return 0;
+	}
+
+	if ((tmp = BN_new()) == NULL)
+		return (-1);
+	if (!BN_sub(tmp, dh->p, BN_value_one()) ||
+	    BN_cmp(dh_pub, tmp) != -1) {		/* pub_exp > p-2 */
+		BN_clear_free(tmp);
+		logit("invalid public DH value: >= p-1");
+		return 0;
+	}
+	BN_clear_free(tmp);
+
 	for (i = 0; i <= n; i++)
 		if (BN_is_bit_set(dh_pub, i))
 			bits_set++;
 	debug2("bits set: %d/%d", bits_set, BN_num_bits(dh->p));
 
 	/* if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial */
-	if (bits_set > 1 && (BN_cmp(dh_pub, dh->p) == -1))
+	if (bits_set > 1)
 		return 1;
+
 	logit("invalid public DH value (%d/%d)", bits_set, BN_num_bits(dh->p));
 	return 0;
 }

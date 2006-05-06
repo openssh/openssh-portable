@@ -5,6 +5,9 @@
      Prevent ssh from trying to open private keys with bad permissions more than
      once or prompting for their passphrases (which it subsequently ignores
      anyway), similar to a previous change in ssh-add.  bz #1186, ok djm@
+   - djm@cvs.openbsd.org 2006/05/04 14:55:23
+     [dh.c]
+     tighter DH exponent checks here too; feedback and ok markus@
 
 20060504
  - (dtucker) [auth-pam.c groupaccess.c monitor.c monitor_wrap.c scard-opensc.c
@@ -4602,4 +4605,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4321 2006/05/06 07:41:51 dtucker Exp $
+$Id: ChangeLog,v 1.4322 2006/05/06 07:43:33 dtucker Exp $
