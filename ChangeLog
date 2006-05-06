@@ -8,6 +8,9 @@
    - djm@cvs.openbsd.org 2006/05/04 14:55:23
      [dh.c]
      tighter DH exponent checks here too; feedback and ok markus@
+   - djm@cvs.openbsd.org 2006/04/01 05:37:46
+     [OVERVIEW]
+     $OpenBSD$ in here too
 
 20060504
  - (dtucker) [auth-pam.c groupaccess.c monitor.c monitor_wrap.c scard-opensc.c
@@ -4605,4 +4608,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4322 2006/05/06 07:43:33 dtucker Exp $
+$Id: ChangeLog,v 1.4323 2006/05/06 07:48:48 dtucker Exp $

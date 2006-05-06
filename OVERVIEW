@@ -162,8 +162,8 @@ these programs.
     - There are several other files in the distribution that contain
       various auxiliary routines:
 	ssh.h	     the main header file for ssh (various definitions)
-	getput.h     byte-order independent storage of integers
 	includes.h   includes most system headers.  Lots of #ifdefs.
-	tildexpand.c expand tilde in file names
 	uidswap.c    uid-swapping
 	xmalloc.c    "safe" malloc routines
+
+$OpenBSD: OVERVIEW,v 1.10 2006/04/01 05:37:46 djm Exp $
