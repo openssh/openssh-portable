@@ -1,3 +1,4 @@
+/* $OpenBSD: auth-krb5.c,v 1.18 2006/05/06 08:35:40 dtucker Exp $ */
 /*
  *    Kerberos v5 authentication and ticket-passing routines.
  *

@@ -11,6 +11,9 @@
    - djm@cvs.openbsd.org 2006/04/01 05:37:46
      [OVERVIEW]
      $OpenBSD$ in here too
+   - dtucker@cvs.openbsd.org 2006/05/06 08:35:40
+     [auth-krb5.c]
+     Add $OpenBSD$ in comment here too
 
 20060504
  - (dtucker) [auth-pam.c groupaccess.c monitor.c monitor_wrap.c scard-opensc.c
@@ -4608,4 +4611,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4323 2006/05/06 07:48:48 dtucker Exp $
+$Id: ChangeLog,v 1.4324 2006/05/06 08:40:53 dtucker Exp $
