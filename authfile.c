@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.66 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.67 2006/04/25 08:02:27 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -538,7 +538,7 @@ key_perm_ok(int fd, const char *filename)
 
 Key *
 key_load_private_type(int type, const char *filename, const char *passphrase,
-    char **commentp)
+    char **commentp, int *perm_ok)
 {
 	int fd;
 
@@ -546,10 +546,14 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 	if (fd < 0)
 		return NULL;
 	if (!key_perm_ok(fd, filename)) {
+		if (perm_ok != NULL)
+			*perm_ok = 0;
 		error("bad permissions: ignore key: %s", filename);
 		close(fd);
 		return NULL;
 	}
+	if (perm_ok != NULL)
+		*perm_ok = 1;
 	switch (type) {
 	case KEY_RSA1:
 		return key_load_private_rsa1(fd, filename, passphrase,

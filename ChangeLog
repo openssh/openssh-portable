@@ -1,3 +1,11 @@
+20050506
+ - (dtucker) OpenBSD CVS Syn
+   - dtucker@cvs.openbsd.org 2006/04/25 08:02:27
+     [authfile.c authfile.h sshconnect2.c ssh.c sshconnect1.c]
+     Prevent ssh from trying to open private keys with bad permissions more than
+     once or prompting for their passphrases (which it subsequently ignores
+     anyway), similar to a previous change in ssh-add.  bz #1186, ok djm@
+
 20060504
  - (dtucker) [auth-pam.c groupaccess.c monitor.c monitor_wrap.c scard-opensc.c
    session.c ssh-rand-helper.c sshd.c openbsd-compat/bsd-cygwin_util.c
@@ -4594,4 +4602,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4320 2006/05/04 06:24:34 dtucker Exp $
+$Id: ChangeLog,v 1.4321 2006/05/06 07:41:51 dtucker Exp $

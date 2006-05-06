@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.151 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.152 2006/04/25 08:02:27 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -970,14 +970,16 @@ load_identity_file(char *filename)
 {
 	Key *private;
 	char prompt[300], *passphrase;
-	int quit, i;
+	int perm_ok, quit, i;
 	struct stat st;
 
 	if (stat(filename, &st) < 0) {
 		debug3("no such identity: %s", filename);
 		return NULL;
 	}
-	private = key_load_private_type(KEY_UNSPEC, filename, "", NULL);
+	private = key_load_private_type(KEY_UNSPEC, filename, "", NULL, &perm_ok);
+	if (!perm_ok)
+		return NULL;
 	if (private == NULL) {
 		if (options.batch_mode)
 			return NULL;
@@ -986,8 +988,8 @@ load_identity_file(char *filename)
 		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(prompt, 0);
 			if (strcmp(passphrase, "") != 0) {
-				private = key_load_private_type(KEY_UNSPEC, filename,
-				    passphrase, NULL);
+				private = key_load_private_type(KEY_UNSPEC,
+				    filename, passphrase, NULL, NULL);
 				quit = 0;
 			} else {
 				debug2("no passphrase given, try next key");
