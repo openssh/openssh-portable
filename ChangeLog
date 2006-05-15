@@ -9,7 +9,7 @@
    do not allow kbdint again after the PAM account check fails.  ok djm@
 
 20050506
- - (dtucker) OpenBSD CVS Syn
+ - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2006/04/25 08:02:27
      [authfile.c authfile.h sshconnect2.c ssh.c sshconnect1.c]
      Prevent ssh from trying to open private keys with bad permissions more than
@@ -4621,4 +4621,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4327 2006/05/15 07:22:33 dtucker Exp $
+$Id: ChangeLog,v 1.4328 2006/05/15 07:24:25 dtucker Exp $
