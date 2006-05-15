@@ -1,3 +1,9 @@
+20050515
+ - (dtucker) [openbsd-compat/getrrsetbyname.c] Use _compat_res instead of
+   _res, prevents problems on some platforms that have _res as a global but
+   don't have getrrsetbyname(), eg IRIX 5.3.  Found and tested by
+   georg.schwarz at freenet.de, ok djm@.
+
 20050506
  - (dtucker) OpenBSD CVS Syn
    - dtucker@cvs.openbsd.org 2006/04/25 08:02:27
@@ -4611,4 +4617,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4324 2006/05/06 08:40:53 dtucker Exp $
+$Id: ChangeLog,v 1.4325 2006/05/15 07:15:56 dtucker Exp $

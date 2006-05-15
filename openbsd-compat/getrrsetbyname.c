@@ -60,6 +60,10 @@ extern int h_errno;
 # undef _THREAD_PRIVATE
 #endif
 #define _THREAD_PRIVATE(a,b,c) (c)
+
+/* to avoid conflicts where a platform already has _res */
+#define _res	_compat_res
+
 struct __res_state _res;
 
 /* Necessary functions and macros */
