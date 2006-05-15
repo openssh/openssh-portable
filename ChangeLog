@@ -3,6 +3,8 @@
    _res, prevents problems on some platforms that have _res as a global but
    don't have getrrsetbyname(), eg IRIX 5.3.  Found and tested by
    georg.schwarz at freenet.de, ok djm@.
+ - (dtucker) [defines.h] Find a value for IOV_MAX or use a conservative
+   default.  Patch originally from tim@, ok djm
 
 20050506
  - (dtucker) OpenBSD CVS Syn
@@ -4617,4 +4619,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4325 2006/05/15 07:15:56 dtucker Exp $
+$Id: ChangeLog,v 1.4326 2006/05/15 07:17:29 dtucker Exp $

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.131 2006/03/15 02:02:28 djm Exp $ */
+/* $Id: defines.h,v 1.132 2006/05/15 07:17:30 dtucker Exp $ */
 
 
 /* Constants */
@@ -729,6 +729,16 @@ struct winsize {
 
 #if defined(HAVE_MMAP) && defined(BROKEN_MMAP)
 # undef HAVE_MMAP
+#endif
+
+#ifndef IOV_MAX
+# if defined(_XOPEN_IOV_MAX)
+#  define	IOV_MAX		_XOPEN_IOV_MAX
+# elif defined(DEF_IOV_MAX)
+#  define	IOV_MAX		DEF_IOV_MAX
+# else
+#  define	IOV_MAX		16
+# endif
 #endif
 
 /* some system headers on HP-UX define YES/NO */
