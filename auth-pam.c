@@ -445,8 +445,10 @@ sshpam_thread(void *ctxtp)
 		goto auth_fail;
 
 	if (compat20) {
-		if (!do_pam_account())
+		if (!do_pam_account()) {
+			sshpam_err = PAM_ACCT_EXPIRED;
 			goto auth_fail;
+		}
 		if (sshpam_authctxt->force_pwchange) {
 			sshpam_err = pam_chauthtok(sshpam_handle,
 			    PAM_CHANGE_EXPIRED_AUTHTOK);
@@ -488,7 +490,10 @@ sshpam_thread(void *ctxtp)
 	buffer_put_cstring(&buffer,
 	    pam_strerror(sshpam_handle, sshpam_err));
 	/* XXX - can't do much about an error here */
-	ssh_msg_send(ctxt->pam_csock, PAM_AUTH_ERR, &buffer);
+	if (sshpam_err == PAM_ACCT_EXPIRED)
+		ssh_msg_send(ctxt->pam_csock, PAM_ACCT_EXPIRED, &buffer);
+	else
+		ssh_msg_send(ctxt->pam_csock, PAM_AUTH_ERR, &buffer);
 	buffer_free(&buffer);
 	pthread_exit(NULL);
 
@@ -643,8 +648,11 @@ sshpam_init_ctx(Authctxt *authctxt)
 	int socks[2];
 
 	debug3("PAM: %s entering", __func__);
-	/* Refuse to start if we don't have PAM enabled */
-	if (!options.use_pam)
+	/*
+	 * Refuse to start if we don't have PAM enabled or do_pam_account
+	 * has previously failed.
+	 */
+	if (!options.use_pam || sshpam_account_status == 0)
 		return NULL;
 
 	/* Initialize PAM */
@@ -721,8 +729,11 @@ sshpam_query(void *ctx, char **name, char **info,
 			plen++;
 			xfree(msg);
 			break;
+		case PAM_ACCT_EXPIRED:
+			sshpam_account_status = 0;
+			/* FALLTHROUGH */
 		case PAM_AUTH_ERR:
-			debug3("PAM: PAM_AUTH_ERR");
+			debug3("PAM: %s", pam_strerror(sshpam_handle, type));
 			if (**prompts != NULL && strlen(**prompts) != 0) {
 				*info = **prompts;
 				**prompts = NULL;

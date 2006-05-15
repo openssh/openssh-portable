@@ -5,6 +5,8 @@
    georg.schwarz at freenet.de, ok djm@.
  - (dtucker) [defines.h] Find a value for IOV_MAX or use a conservative
    default.  Patch originally from tim@, ok djm
+ - (dtucker) [auth-pam.c] Bug #1188: pass result of do_pam_account back and
+   do not allow kbdint again after the PAM account check fails.  ok djm@
 
 20050506
  - (dtucker) OpenBSD CVS Syn
@@ -4619,4 +4621,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4326 2006/05/15 07:17:29 dtucker Exp $
+$Id: ChangeLog,v 1.4327 2006/05/15 07:22:33 dtucker Exp $
