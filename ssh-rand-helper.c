@@ -573,7 +573,8 @@ prng_write_seedfile(void)
 	/* Try to ensure that the parent directory is there */
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 	    _PATH_SSH_USER_DIR);
-	mkdir(filename, 0700);
+	if (mkdir(filename, 0700) < 0)
+		fatal("mkdir: %s", strerror(errno));
 
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 	    SSH_PRNG_SEED_FILE);
@@ -782,6 +783,7 @@ prng_read_commands(char *cmdfilename)
 	debug("Loaded %d entropy commands from %.100s", cur_cmd,
 	    cmdfilename);
 
+	fclose(f);
 	return cur_cmd < MIN_ENTROPY_SOURCES ? -1 : 0;
 }
 

@@ -1,3 +1,7 @@
+20050517
+ - (dtucker) [ssh-rand-helper.c] Check return code of mkdir and fix file
+   pointer leak.  From kjhall at us.ibm.com, found by coverity.
+
 20050515
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Use _compat_res instead of
    _res, prevents problems on some platforms that have _res as a global but
@@ -4621,4 +4625,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4328 2006/05/15 07:24:25 dtucker Exp $
+$Id: ChangeLog,v 1.4329 2006/05/17 12:24:56 dtucker Exp $
