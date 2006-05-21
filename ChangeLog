@@ -1,8 +1,13 @@
-20050517
+20060521
+ - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
+   and slave, we can remove the special-case handling in the audit hook in
+   auth_log.
+
+20060517
  - (dtucker) [ssh-rand-helper.c] Check return code of mkdir and fix file
    pointer leak.  From kjhall at us.ibm.com, found by coverity.
 
-20050515
+20060515
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Use _compat_res instead of
    _res, prevents problems on some platforms that have _res as a global but
    don't have getrrsetbyname(), eg IRIX 5.3.  Found and tested by
@@ -12,7 +17,7 @@
  - (dtucker) [auth-pam.c] Bug #1188: pass result of do_pam_account back and
    do not allow kbdint again after the PAM account check fails.  ok djm@
 
-20050506
+20060506
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2006/04/25 08:02:27
      [authfile.c authfile.h sshconnect2.c ssh.c sshconnect1.c]
@@ -4625,4 +4630,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4329 2006/05/17 12:24:56 dtucker Exp $
+$Id: ChangeLog,v 1.4330 2006/05/21 08:26:40 dtucker Exp $

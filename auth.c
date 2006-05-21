@@ -271,42 +271,8 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
 #ifdef SSH_AUDIT_EVENTS
-	if (authenticated == 0 && !authctxt->postponed) {
-		ssh_audit_event_t event;
-
-		debug3("audit failed auth attempt, method %s euid %d",
-		    method, (int)geteuid());
-		/*
-		 * Because the auth loop is used in both monitor and slave,
-		 * we must be careful to send each event only once and with
-		 * enough privs to write the event.
-		 */
-		event = audit_classify_auth(method);
-		switch(event) {
-		case SSH_AUTH_FAIL_NONE:
-		case SSH_AUTH_FAIL_PASSWD:
-		case SSH_AUTH_FAIL_KBDINT:
-			if (geteuid() == 0)
-				audit_event(event);
-			break;
-		case SSH_AUTH_FAIL_PUBKEY:
-		case SSH_AUTH_FAIL_HOSTBASED:
-		case SSH_AUTH_FAIL_GSSAPI:
-			/*
-			 * This is required to handle the case where privsep
-			 * is enabled but it's root logging in, since
-			 * use_privsep won't be cleared until after a
-			 * successful login.
-			 */
-			if (geteuid() == 0)
-				audit_event(event);
-			else
-				PRIVSEP(audit_event(event));
-			break;
-		default:
-			error("unknown authentication audit event %d", event);
-		}
-	}
+	if (authenticated == 0 && !authctxt->postponed)
+		audit_event(audit_classify_auth(method));
 #endif
 }
 

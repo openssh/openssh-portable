@@ -909,6 +909,7 @@ mm_answer_pam_query(int sock, Buffer *m)
 		xfree(prompts);
 	if (echo_on != NULL)
 		xfree(echo_on);
+	auth_method = "keyboard-interactive/pam";
 	mm_request_send(sock, MONITOR_ANS_PAM_QUERY, m);
 	return (0);
 }
@@ -951,6 +952,7 @@ mm_answer_pam_free_ctx(int sock, Buffer *m)
 	(sshpam_device.free_ctx)(sshpam_ctxt);
 	buffer_clear(m);
 	mm_request_send(sock, MONITOR_ANS_PAM_FREE_CTX, m);
+	auth_method = "keyboard-interactive/pam";
 	return (sshpam_authok == sshpam_ctxt);
 }
 #endif
