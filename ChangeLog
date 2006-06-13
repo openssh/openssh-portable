@@ -13,6 +13,9 @@
    - miod@cvs.openbsd.org 2006/05/18 21:27:25
      [kexdhc.c kexgexc.c]
      paramter -> parameter
+   - dtucker@cvs.openbsd.org 2006/05/29 12:54:08
+     [ssh_config.5]
+     Add gssapi-with-mic to PreferredAuthentications default list; ok jmc
 
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
@@ -4646,4 +4649,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4334 2006/06/13 03:00:41 djm Exp $
+$Id: ChangeLog,v 1.4335 2006/06/13 03:00:55 djm Exp $
