@@ -1,3 +1,10 @@
+20060613
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2006/05/08 10:49:48
+     [sshconnect2.c]
+     uint32_t -> u_int32_t (which we use everywhere else)
+     (Id sync only - portable already had this)
+
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
    and slave, we can remove the special-case handling in the audit hook in
@@ -4630,4 +4637,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4330 2006/05/21 08:26:40 dtucker Exp $
+$Id: ChangeLog,v 1.4331 2006/06/13 02:59:53 djm Exp $

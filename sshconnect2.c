@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.152 2006/04/25 08:02:27 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.153 2006/05/08 10:49:48 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
