@@ -42,6 +42,9 @@
      [readpass.c sshconnect.c sshconnect.h sshconnect2.c uidswap.c]
      replace remaining setuid() calls with permanently_set_uid() and
      check seteuid() return values; report Marcus Meissner; ok dtucker djm
+   - markus@cvs.openbsd.org 2006/06/08 14:45:49
+     [readpass.c sshconnect.c sshconnect2.c uidswap.c uidswap.h]
+     do not set the gid, noted by solar; ok djm
 
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
@@ -4675,4 +4678,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4341 2006/06/13 03:05:15 djm Exp $
+$Id: ChangeLog,v 1.4342 2006/06/13 03:10:00 djm Exp $

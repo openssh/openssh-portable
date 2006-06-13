@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.28 2006/06/06 10:20:20 markus Exp $ */
+/* $OpenBSD: uidswap.c,v 1.29 2006/06/08 14:45:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -121,6 +121,41 @@ temporarily_use_uid(struct passwd *pw)
 	if (seteuid(pw->pw_uid) == -1)
 		fatal("seteuid %u: %.100s", (u_int)pw->pw_uid,
 		    strerror(errno));
+}
+
+void
+permanently_drop_suid(uid_t uid)
+{
+	uid_t old_uid = getuid();
+
+	debug("permanently_drop_suid: %u", (u_int)uid);
+#if defined(HAVE_SETRESUID) && !defined(BROKEN_SETRESUID)
+	if (setresuid(uid, uid, uid) < 0)
+		fatal("setresuid %u: %.100s", (u_int)uid, strerror(errno));
+#elif defined(HAVE_SETREUID) && !defined(BROKEN_SETREUID)
+	if (setreuid(uid, uid) < 0)
+		fatal("setreuid %u: %.100s", (u_int)uid, strerror(errno));
+#else
+# ifndef SETEUID_BREAKS_SETUID
+	if (seteuid(uid) < 0)
+		fatal("seteuid %u: %.100s", (u_int)uid, strerror(errno));
+# endif
+	if (setuid(uid) < 0)
+		fatal("setuid %u: %.100s", (u_int)uid, strerror(errno));
+#endif
+
+#ifndef HAVE_CYGWIN
+	/* Try restoration of UID if changed (test clearing of saved uid) */
+	if (old_uid != uid &&
+	    (setuid(old_uid) != -1 || seteuid(old_uid) != -1))
+		fatal("%s: was able to restore old [e]uid", __func__);
+#endif
+
+	/* Verify UID drop was successful */
+	if (getuid() != uid || geteuid() != uid) {
+		fatal("%s: euid incorrect uid:%u euid:%u (should be %u)",
+		    __func__, (u_int)getuid(), (u_int)geteuid(), (u_int)uid);
+	}
 }
 
 /*

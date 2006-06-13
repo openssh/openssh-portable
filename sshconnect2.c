@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.154 2006/06/06 10:20:20 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.155 2006/06/08 14:45:49 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1253,7 +1253,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 	if (pid == 0) {
-		permanently_set_uid(getpwuid(getuid()));
+		permanently_drop_suid(getuid());
 		close(from[0]);
 		if (dup2(from[1], STDOUT_FILENO) < 0)
 			fatal("ssh_keysign: dup2: %s", strerror(errno));
