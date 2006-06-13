@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.137 2006/03/30 09:58:16 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.138 2006/05/17 12:43:34 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -315,8 +315,8 @@ process_sign_request2(SocketEntry *e)
 		Identity *id = lookup_identity(key, 2);
 		if (id != NULL && (!id->confirm || confirm_key(id) == 0))
 			ok = key_sign(id->key, &signature, &slen, data, dlen);
+		key_free(key);
 	}
-	key_free(key);
 	buffer_init(&msg);
 	if (ok == 0) {
 		buffer_put_char(&msg, SSH2_AGENT_SIGN_RESPONSE);

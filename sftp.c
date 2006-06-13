@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.81 2006/04/20 21:53:44 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.82 2006/05/17 12:43:34 markus Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -548,6 +548,7 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 		if (g.gl_matchc == 1 && dst) {
 			/* If directory specified, append filename */
+			xfree(tmp);
 			if (is_dir(dst)) {
 				if (infer_path(g.gl_pathv[0], &tmp)) {
 					err = 1;
@@ -572,8 +573,6 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 out:
 	xfree(abs_src);
-	if (abs_dst)
-		xfree(abs_dst);
 	globfree(&g);
 	return(err);
 }
