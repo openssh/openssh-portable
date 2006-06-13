@@ -23,6 +23,13 @@
    - jmc@cvs.openbsd.org 2006/05/29 16:10:03
      [ssh_config.5]
      oops - previous was too long; split the list of auths up
+   - mk@cvs.openbsd.org 2006/05/30 11:46:38
+     [ssh-add.c]
+     Sync usage() with man page and reality.
+     ok deraadt dtucker
+   - jmc@cvs.openbsd.org 2006/05/29 16:13:23
+     [ssh.1]
+     add GSSAPI to the list of authentication methods supported;
 
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
@@ -4656,4 +4663,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4337 2006/06/13 03:01:41 djm Exp $
+$Id: ChangeLog,v 1.4338 2006/06/13 03:03:16 djm Exp $

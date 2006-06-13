@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.259 2006/03/22 21:16:24 jakob Exp $
+.\" $OpenBSD: ssh.1,v 1.260 2006/05/29 16:13:23 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -666,6 +666,7 @@ Protocol 1 lacks a strong mechanism for ensuring the
 integrity of the connection.
 .Pp
 The methods available for authentication are:
+GSSAPI-based authentication,
 host-based authentication,
 public key authentication,
 challenge-response authentication,
