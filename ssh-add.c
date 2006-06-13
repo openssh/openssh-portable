@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.79 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.80 2006/05/30 11:46:38 mk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -299,7 +299,7 @@ do_file(AuthenticationConnection *ac, int deleting, char *file)
 static void
 usage(void)
 {
-	fprintf(stderr, "Usage: %s [options]\n", __progname);
+	fprintf(stderr, "Usage: %s [options] [file ...]\n", __progname);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l          List fingerprints of all identities.\n");
 	fprintf(stderr, "  -L          List public key parameters of all identities.\n");
