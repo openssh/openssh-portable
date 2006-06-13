@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.330 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.331 2006/06/01 09:21:48 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1671,7 +1671,13 @@ main(int ac, char **av)
 	 * We use get_canonical_hostname with usedns = 0 instead of
 	 * get_remote_ipaddr here so IP options will be checked.
 	 */
-	remote_ip = get_canonical_hostname(0);
+	(void) get_canonical_hostname(0);
+	/*
+	 * The rest of the code depends on the fact that
+	 * get_remote_ipaddr() caches the remote ip, even if
+	 * the socket goes away.
+	 */
+	remote_ip = get_remote_ipaddr();
 
 #ifdef SSH_AUDIT_EVENTS
 	audit_connection_from(remote_ip, remote_port);
