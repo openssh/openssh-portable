@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.153 2006/05/08 10:49:48 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.154 2006/06/06 10:20:20 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -53,6 +53,7 @@
 #include "canohost.h"
 #include "msg.h"
 #include "pathnames.h"
+#include "uidswap.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -1252,8 +1253,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 	if (pid == 0) {
-		seteuid(getuid());
-		setuid(getuid());
+		permanently_set_uid(getpwuid(getuid()));
 		close(from[0]);
 		if (dup2(from[1], STDOUT_FILENO) < 0)
 			fatal("ssh_keysign: dup2: %s", strerror(errno));

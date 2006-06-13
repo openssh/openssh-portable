@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.182 2006/05/17 12:43:34 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.183 2006/06/06 10:20:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -97,8 +97,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 		char *argv[10];
 
 		/* Child.  Permanently give up superuser privileges. */
-		seteuid(original_real_uid);
-		setuid(original_real_uid);
+		permanently_set_uid(getpwuid(original_real_uid));
 
 		/* Redirect stdin and stdout. */
 		close(pin[1]);

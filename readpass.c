@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.37 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.38 2006/06/06 10:20:20 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -37,6 +37,7 @@
 #include "pathnames.h"
 #include "log.h"
 #include "ssh.h"
+#include "uidswap.h"
 
 static char *
 ssh_askpass(char *askpass, const char *msg)
@@ -60,8 +61,7 @@ ssh_askpass(char *askpass, const char *msg)
 		return NULL;
 	}
 	if (pid == 0) {
-		seteuid(getuid());
-		setuid(getuid());
+		permanently_set_uid(getpwuid(getuid()));
 		close(p[0]);
 		if (dup2(p[1], STDOUT_FILENO) < 0)
 			fatal("ssh_askpass: dup2: %s", strerror(errno));
