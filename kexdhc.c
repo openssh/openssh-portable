@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.5 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.6 2006/05/18 21:27:25 miod Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -82,7 +82,7 @@ kexdh_client(Kex *kex)
 	if (kex->verify_host_key(server_host_key) == -1)
 		fatal("server_host_key verification failed");
 
-	/* DH paramter f, server public DH key */
+	/* DH parameter f, server public DH key */
 	if ((dh_server_pub = BN_new()) == NULL)
 		fatal("dh_server_pub == NULL");
 	packet_get_bignum2(dh_server_pub);
