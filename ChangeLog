@@ -1,4 +1,5 @@
 20060613
+ - (djm) [getput.h] This file has been replaced by functions in misc.c
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2006/05/08 10:49:48
      [sshconnect2.c]
@@ -4684,4 +4685,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4343 2006/06/13 03:10:18 djm Exp $
+$Id: ChangeLog,v 1.4344 2006/06/13 03:15:54 djm Exp $
