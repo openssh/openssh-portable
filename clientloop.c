@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.162 2006/04/20 09:27:09 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.163 2006/05/16 09:00:00 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -844,6 +844,7 @@ client_process_control(fd_set *readset)
 
 	debug2("%s: accepted tty %d, subsys %d, cmd %s", __func__,
 	    cctx->want_tty, cctx->want_subsys, cmd);
+	xfree(cmd);
 
 	/* Gather fds from client */
 	new_fd[0] = mm_receive_fd(client_fd);

@@ -4,6 +4,9 @@
      [sshconnect2.c]
      uint32_t -> u_int32_t (which we use everywhere else)
      (Id sync only - portable already had this)
+   - markus@cvs.openbsd.org 2006/05/16 09:00:00
+     [clientloop.c]
+     missing free; from Kylene Hall
 
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
@@ -4637,4 +4640,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4331 2006/06/13 02:59:53 djm Exp $
+$Id: ChangeLog,v 1.4332 2006/06/13 03:00:09 djm Exp $
