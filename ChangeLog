@@ -18,8 +18,11 @@
      Add gssapi-with-mic to PreferredAuthentications default list; ok jmc
    - dtucker@cvs.openbsd.org 2006/05/29 12:56:33
      [ssh_config]
-     Add GSSAPIAuthentication and GSSAPIDelegateCredentials to examples in sample
-     ssh_config.  ok markus@
+     Add GSSAPIAuthentication and GSSAPIDelegateCredentials to examples in
+     sample ssh_config.  ok markus@
+   - jmc@cvs.openbsd.org 2006/05/29 16:10:03
+     [ssh_config.5]
+     oops - previous was too long; split the list of auths up
 
 20060521
  - (dtucker) [auth.c monitor.c] Now that we don't log from both the monitor
@@ -4653,4 +4656,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4336 2006/06/13 03:01:09 djm Exp $
+$Id: ChangeLog,v 1.4337 2006/06/13 03:01:41 djm Exp $
