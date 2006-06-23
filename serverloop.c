@@ -387,10 +387,15 @@ process_input(fd_set *readset)
 
 	/* Read and buffer any available stdout data from the program. */
 	if (!fdout_eof && FD_ISSET(fdout, readset)) {
+		errno = 0;
 		len = read(fdout, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
+#ifdef PTY_ZEROREAD
 		} else if (len <= 0) {
+#else
+		} else if (len < 0 || (len == 0 && errno != 0)) {
+#endif
 			fdout_eof = 1;
 		} else {
 			buffer_append(&stdout_buffer, buf, len);
@@ -399,10 +404,15 @@ process_input(fd_set *readset)
 	}
 	/* Read and buffer any available stderr data from the program. */
 	if (!fderr_eof && FD_ISSET(fderr, readset)) {
+		errno = 0;
 		len = read(fderr, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
+#ifdef PTY_ZEROREAD
 		} else if (len <= 0) {
+#else
+		} else if (len < 0 || (len == 0 && errno != 0)) {
+#endif
 			fderr_eof = 1;
 		} else {
 			buffer_append(&stderr_buffer, buf, len);

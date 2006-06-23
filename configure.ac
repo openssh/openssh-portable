@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.340 2006/06/23 11:05:13 dtucker Exp $
+# $Id: configure.ac,v 1.341 2006/06/23 11:24:13 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.340 $)
+AC_REVISION($Revision: 1.341 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -190,6 +190,7 @@ case "$host" in
 		supported by bsd-setproctitle.c])
 	AC_DEFINE(SSHPAM_CHAUTHTOK_NEEDS_RUID, 1,
 	    [AIX 5.2 and 5.3 (and presumably newer) require this])
+	AC_DEFINE(PTY_ZEROREAD, 1, [read(1) can return 0 for a non-closed fd])
 	;;
 *-*-cygwin*)
 	check_for_libcrypt_later=1

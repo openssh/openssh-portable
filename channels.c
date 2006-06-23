@@ -1415,10 +1415,15 @@ channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 
 	if (c->rfd != -1 &&
 	    FD_ISSET(c->rfd, readset)) {
+		errno = 0;
 		len = read(c->rfd, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return 1;
+#ifndef PTY_ZEROREAD
 		if (len <= 0) {
+#else
+		if (len < 0 || (len == 0 && errno != 0)) {
+#endif
 			debug2("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);
 			if (c->type != SSH_CHANNEL_OPEN) {
