@@ -29,6 +29,7 @@
  * settings.
  *
  * SSH_TUN_LINUX	Use the (newer) Linux tun/tap device
+ * SSH_TUN_FREEBSD	Use the FreeBSD tun/tap device
  * SSH_TUN_COMPAT_AF	Translate the OpenBSD address family
  * SSH_TUN_PREPEND_AF	Prepend/remove the address family
  */
@@ -96,7 +97,10 @@ sys_tun_open(int tun, int mode)
 #ifdef SSH_TUN_FREEBSD
 #include <sys/socket.h>
 #include <net/if.h>
+
+#ifdef HAVE_NET_IF_TUN_H
 #include <net/if_tun.h>
+#endif
 
 int
 sys_tun_open(int tun, int mode)

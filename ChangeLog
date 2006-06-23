@@ -1,3 +1,8 @@
+20060623
+ - (dtucker) [README.platform configure.ac openbsd-compat/port-tun.c] Add
+   tunnel support for Mac OS X/Darwin via a third-party tun driver.  Patch
+   from reyk@, tested by anil@
+
 20060613
  - (djm) [getput.h] This file has been replaced by functions in misc.c
  - OpenBSD CVS Sync
@@ -4685,4 +4690,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4344 2006/06/13 03:15:54 djm Exp $
+$Id: ChangeLog,v 1.4345 2006/06/23 11:05:12 dtucker Exp $

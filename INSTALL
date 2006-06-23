@@ -57,9 +57,10 @@ installed.  No other S/Key library is currently known to be supported.
 http://www.sparc.spb.su/solaris/skey/
 
 LibEdit:
-sftp now supports command-line editing via NetBSD's libedit.  If your
-platform has it available natively you can use that, alternatively
-you might try these multi-platform ports:
+
+sftp supports command-line editing via NetBSD's libedit.  If your platform
+has it available natively you can use that, alternatively you might try
+these multi-platform ports:
 
 http://www.thrysoee.dk/editline/
 http://sourceforge.net/projects/libedit/
@@ -210,7 +211,8 @@ for sshd, ssh and ssh-agent.
 -------------------------
 
 $ make survey
-[check the contents and make sure there's no sensitive information]
+[check the contents of the file "survey" to ensure there's no information
+that you consider sensitive]
 $ make send-survey
 
 This will send configuration information for the currently configured
@@ -227,4 +229,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.71 2006/02/20 09:17:36 dtucker Exp $
+$Id: INSTALL,v 1.72 2006/06/23 11:05:13 dtucker Exp $

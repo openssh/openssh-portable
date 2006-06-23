@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.339 2006/04/22 11:26:08 djm Exp $
+# $Id: configure.ac,v 1.340 2006/06/23 11:05:13 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.339 $)
+AC_REVISION($Revision: 1.340 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -231,6 +231,11 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE_UNQUOTED(BIND_8_COMPAT, 1,
 		[Define if your resolver libs need this for getrrsetbyname])
+	AC_DEFINE(SSH_TUN_FREEBSD, 1, [Open tunnel devices the FreeBSD way])
+	AC_DEFINE(SSH_TUN_COMPAT_AF, 1,
+	    [Use tunnel device compatibility to OpenBSD])
+	AC_DEFINE(SSH_TUN_PREPEND_AF, 1,
+	    [Prepend the address family to IP tunnel traffic])
 	;;
 *-*-hpux*)
 	# first we define all of the options common to all HP-UX releases
@@ -682,6 +687,7 @@ AC_CHECK_HEADERS( \
 	login.h \
 	maillock.h \
 	ndir.h \
+	net/if_tun.h \
 	netdb.h \
 	netgroup.h \
 	pam/pam_appl.h \
