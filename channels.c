@@ -1422,7 +1422,8 @@ channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 #ifndef PTY_ZEROREAD
 		if (len <= 0) {
 #else
-		if (len < 0 || (len == 0 && errno != 0)) {
+		if ((!c->isatty && len <= 0) ||
+		    (c->isatty && (len < 0 || (len == 0 && errno != 0)))) {
 #endif
 			debug2("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);

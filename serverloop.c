@@ -394,7 +394,8 @@ process_input(fd_set *readset)
 #ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
 #else
-		} else if (len < 0 || (len == 0 && errno != 0)) {
+		} else if ((!isatty(fdout) && len <= 0) ||
+		    (isatty(fdout) && (len < 0 || (len == 0 && errno != 0)))) {
 #endif
 			fdout_eof = 1;
 		} else {
@@ -411,7 +412,8 @@ process_input(fd_set *readset)
 #ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
 #else
-		} else if (len < 0 || (len == 0 && errno != 0)) {
+		} else if ((!isatty(fderr) && len <= 0) ||
+		    (isatty(fderr) && (len < 0 || (len == 0 && errno != 0)))) {
 #endif
 			fderr_eof = 1;
 		} else {

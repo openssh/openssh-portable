@@ -1,3 +1,7 @@
+20060625
+ - (dtucker) [channels.c serverloop.c] Apply the bug #1102 workaround to ptys
+   only, otherwise sshd can hang exiting non-interactive sessions.
+
 20060624
  - (dtucker) [configure.ac] Bug #1193: Define PASSWD_NEEDS_USERNAME on Solaris.
    Works around limitation in Solaris' passwd program for changing passwords
@@ -4704,4 +4708,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4348 2006/06/24 06:58:45 dtucker Exp $
+$Id: ChangeLog,v 1.4349 2006/06/24 22:25:25 dtucker Exp $
