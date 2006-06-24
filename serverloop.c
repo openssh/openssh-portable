@@ -391,7 +391,7 @@ process_input(fd_set *readset)
 		len = read(fdout, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
-#ifdef PTY_ZEROREAD
+#ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
 #else
 		} else if (len < 0 || (len == 0 && errno != 0)) {
@@ -408,7 +408,7 @@ process_input(fd_set *readset)
 		len = read(fderr, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
-#ifdef PTY_ZEROREAD
+#ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
 #else
 		} else if (len < 0 || (len == 0 && errno != 0)) {

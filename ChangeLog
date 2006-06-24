@@ -2,6 +2,8 @@
  - (dtucker) [configure.ac] Bug #1193: Define PASSWD_NEEDS_USERNAME on Solaris.
    Works around limitation in Solaris' passwd program for changing passwords
    where the username is longer than 8 characters.  ok djm@
+ - (dtucker) [serverloop.c] Get ifdef/ifndef the right way around for the bug
+   #1102 workaround.
 
 20060623
  - (dtucker) [README.platform configure.ac openbsd-compat/port-tun.c] Add
@@ -4702,4 +4704,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4347 2006/06/24 02:10:07 dtucker Exp $
+$Id: ChangeLog,v 1.4348 2006/06/24 06:58:45 dtucker Exp $
