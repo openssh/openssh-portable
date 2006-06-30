@@ -1,3 +1,7 @@
+20060630
+ - (dtucker) [openbsd-compat/openbsd-compat.h] SNPRINTF_CONST for snprintf
+   declaration too.  Patch from russ at sludge.net.
+
 20060627
  - (dtucker) [configure.ac] Bug #1203: Add missing '[', which causes problems
    with autoconf 2.60.  Patch from vapier at gentoo.org.
@@ -4712,4 +4716,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4350 2006/06/27 01:20:28 dtucker Exp $
+$Id: ChangeLog,v 1.4351 2006/06/30 00:51:32 dtucker Exp $

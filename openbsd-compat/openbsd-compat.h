@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.36 2006/04/22 11:26:08 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.37 2006/06/30 00:51:32 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -154,7 +154,7 @@ int openpty(int *, int *, char *, struct termios *, struct winsize *);
 /* #include <sys/types.h> XXX needed? For size_t */
 
 #ifndef HAVE_SNPRINTF
-int snprintf(char *, size_t, const char *, ...);
+int snprintf(char *, size_t, SNPRINTF_CONST char *, ...);
 #endif 
 
 #ifndef HAVE_STRTOLL
