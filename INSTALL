@@ -12,6 +12,8 @@ http://www.openssl.org/
 (OpenSSL 0.9.5a is partially supported, but some ciphers (SSH protocol 1
 Blowfish) do not work correctly.)
 
+The remaining items are optional.
+
 OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
 supports it. PAM is standard on Redhat and Debian Linux, Solaris and
 HP-UX 11.
@@ -64,6 +66,14 @@ these multi-platform ports:
 
 http://www.thrysoee.dk/editline/
 http://sourceforge.net/projects/libedit/
+
+Autoconf:
+
+If you modify configure.ac then you will need autoconf-2.59 to rebuild
+the automatically generated files by running "autoreconf".
+
+http://www.gnu.org/software/autoconf/
+
 
 2. Building / Installation
 --------------------------
@@ -229,4 +239,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.72 2006/06/23 11:05:13 dtucker Exp $
+$Id: INSTALL,v 1.73 2006/06/30 06:20:59 dtucker Exp $
