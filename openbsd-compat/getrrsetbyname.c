@@ -62,6 +62,9 @@ extern int h_errno;
 #define _THREAD_PRIVATE(a,b,c) (c)
 
 /* to avoid conflicts where a platform already has _res */
+#ifdef _res
+# undef _res
+#endif
 #define _res	_compat_res
 
 struct __res_state _res;
