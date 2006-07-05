@@ -1,3 +1,7 @@
+20060705
+ - (dtucker) [ssh-rand-helper.c] Don't exit if mkdir fails because the
+   target already exists.
+
 20060630
  - (dtucker) [openbsd-compat/openbsd-compat.h] SNPRINTF_CONST for snprintf
    declaration too.  Patch from russ at sludge.net.
@@ -4720,4 +4724,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4353 2006/06/30 06:20:58 dtucker Exp $
+$Id: ChangeLog,v 1.4354 2006/07/05 11:35:48 dtucker Exp $

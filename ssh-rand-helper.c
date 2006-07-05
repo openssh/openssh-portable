@@ -573,8 +573,8 @@ prng_write_seedfile(void)
 	/* Try to ensure that the parent directory is there */
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 	    _PATH_SSH_USER_DIR);
-	if (mkdir(filename, 0700) < 0)
-		fatal("mkdir: %s", strerror(errno));
+	if (mkdir(filename, 0700) < 0 && errno != EEXIST)
+		fatal("mkdir %.200s: %s", filename, strerror(errno));
 
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 	    SSH_PRNG_SEED_FILE);
