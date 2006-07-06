@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.343 2006/06/27 01:20:29 dtucker Exp $
+# $Id: configure.ac,v 1.344 2006/07/06 01:56:25 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.343 $)
+AC_REVISION($Revision: 1.344 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -135,7 +135,12 @@ case "$host" in
 		blibpath="/usr/lib:/lib"
 	fi
 	saved_LDFLAGS="$LDFLAGS"
-	for tryflags in -blibpath: -Wl,-blibpath: -Wl,-rpath, ;do
+	if test "$GCC" = "yes"; then
+		flags="-Wl,-blibpath: -Wl,-rpath, -blibpath:"
+	else
+		flags="-blibpath: -Wl,-blibpath: -Wl,-rpath,"
+	fi
+	for tryflags in $flags ;do
 		if (test -z "$blibflags"); then
 			LDFLAGS="$saved_LDFLAGS $tryflags$blibpath"
 			AC_TRY_LINK([], [], [blibflags=$tryflags])
