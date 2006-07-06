@@ -2,6 +2,7 @@
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
    compiling with gcc.  gcc 4.1.x will accept (but ignore) -b flags so
    configure would not select the correct libpath linker flags.
+ - (dtucker) [INSTALL] A bit more info on autoconf.
 
 20060705
  - (dtucker) [ssh-rand-helper.c] Don't exit if mkdir fails because the
@@ -4729,4 +4730,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4357 2006/07/06 01:56:25 dtucker Exp $
+$Id: ChangeLog,v 1.4358 2006/07/06 09:12:08 dtucker Exp $
