@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.251 2006/07/03 17:59:32 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.252 2006/07/10 12:08:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1014,7 +1014,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	} s5_req, s5_rsp;
 	u_int16_t dest_port;
 	u_char *p, dest_addr[255+1];
-	u_int have, i, found, nmethods, addrlen, af;
+	u_int have, need, i, found, nmethods, addrlen, af;
 
 	debug2("channel %d: decode socks5", c->self);
 	p = buffer_ptr(&c->input);
@@ -1075,7 +1075,10 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 		debug2("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
 		return -1;
 	}
-	if (have < 4 + addrlen + 2)
+	need = sizeof(s5_req) + addrlen + 2;
+	if (s5_req.atyp == SSH_SOCKS5_DOMAIN)
+		need++;
+	if (have < need)
 		return 0;
 	buffer_consume(&c->input, sizeof(s5_req));
 	if (s5_req.atyp == SSH_SOCKS5_DOMAIN)

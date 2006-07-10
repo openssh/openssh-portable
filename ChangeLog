@@ -92,6 +92,10 @@
      [scp.c]
      duplicate argv at the start of main() because it gets modified later;
      pointed out by deraadt@ ok markus@
+   - djm@cvs.openbsd.org 2006/07/10 12:08:08
+     [channels.c]
+     fix misparsing of SOCKS 5 packets that could result in a crash;
+     reported by mk@ ok markus@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4825,4 +4829,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4382 2006/07/10 12:19:53 djm Exp $
+$Id: ChangeLog,v 1.4383 2006/07/10 12:21:02 djm Exp $
