@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.186 2006/07/03 08:54:20 stevesk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.187 2006/07/05 02:42:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -18,6 +18,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
 
 #include <ctype.h>
 #ifdef HAVE_PATHS_H

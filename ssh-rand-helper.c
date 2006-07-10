@@ -28,6 +28,9 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
 
 #ifdef HAVE_SYS_UN_H
 # include <sys/un.h>

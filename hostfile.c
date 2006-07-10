@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.40 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.41 2006/07/05 02:42:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,6 +37,10 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+
+#include <netinet/in.h>
 
 #include <resolv.h>
 

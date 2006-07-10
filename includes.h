@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.43 2006/07/03 17:59:32 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.44 2006/07/05 02:42:09 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -129,7 +129,6 @@
 #include <sys/ptms.h>	/* for grantpt() and friends */
 #endif
 
-#include <netinet/in.h>
 #include <netinet/in_systm.h> /* For typedefs */
 #if defined(HAVE_NETDB_H)
 # include <netdb.h>
