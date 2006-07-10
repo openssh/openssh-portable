@@ -47,6 +47,7 @@
 #include <paths.h>
 #endif
 #include <signal.h>
+#include <arpa/inet.h>
 
 #include "ssh.h"
 #include "ssh1.h"
