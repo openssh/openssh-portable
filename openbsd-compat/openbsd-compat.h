@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.38 2006/07/10 11:33:05 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.39 2006/07/10 14:20:52 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -33,6 +33,8 @@
 
 #include <sys/types.h>
 #include <pwd.h>
+
+#include <sys/socket.h>
 
 /* OpenBSD function replacements */
 #include "base64.h"
