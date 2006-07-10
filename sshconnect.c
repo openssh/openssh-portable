@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.188 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.189 2006/07/10 12:46:51 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -514,12 +514,12 @@ confirm(const char *prompt)
  * is not valid. the user_hostfile will not be updated if 'readonly' is true.
  */
 static int
-check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
+check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
     int readonly, const char *user_hostfile, const char *system_hostfile)
 {
 	Key *file_key;
 	const char *type = key_type(host_key);
-	char *ip = NULL;
+	char *ip = NULL, *host = NULL;
 	char hostline[1000], *hostp, *fp;
 	HostStatus host_status;
 	HostStatus ip_status;
@@ -570,7 +570,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		if (getnameinfo(hostaddr, salen, ntop, sizeof(ntop),
 		    NULL, 0, NI_NUMERICHOST) != 0)
 			fatal("check_host_key: getnameinfo failed");
-		ip = xstrdup(ntop);
+		ip = put_host_port(ntop, options.port);
 	} else {
 		ip = xstrdup("<no hostip for proxy command>");
 	}
@@ -578,18 +578,21 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	 * Turn off check_host_ip if the connection is to localhost, via proxy
 	 * command or if we don't have a hostname to compare with
 	 */
-	if (options.check_host_ip &&
-	    (local || strcmp(host, ip) == 0 || options.proxy_command != NULL))
+	if (options.check_host_ip && (local ||
+	    strcmp(hostname, ip) == 0 || options.proxy_command != NULL))
 		options.check_host_ip = 0;
 
 	/*
-	 * Allow the user to record the key under a different name. This is
-	 * useful for ssh tunneling over forwarded connections or if you run
-	 * multiple sshd's on different ports on the same machine.
+	 * Allow the user to record the key under a different name or
+	 * differentiate a non-standard port.  This is useful for ssh
+	 * tunneling over forwarded connections or if you run multiple
+	 * sshd's on different ports on the same machine.
 	 */
 	if (options.host_key_alias != NULL) {
-		host = options.host_key_alias;
+		host = xstrdup(options.host_key_alias);
 		debug("using hostkeyalias: %s", host);
+	} else {
+		host = put_host_port(hostname, options.port);
 	}
 
 	/*
@@ -851,10 +854,12 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	}
 
 	xfree(ip);
+	xfree(host);
 	return 0;
 
 fail:
 	xfree(ip);
+	xfree(host);
 	return -1;
 }
 

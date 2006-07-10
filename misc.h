@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.32 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: misc.h,v 1.33 2006/07/10 12:46:51 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@ int	 unset_nonblock(int);
 void	 set_nodelay(int);
 int	 a2port(const char *);
 int	 a2tun(const char *, int *);
+char	*put_host_port(const char *, u_short);
 char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);

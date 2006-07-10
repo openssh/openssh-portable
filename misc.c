@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.55 2006/07/09 15:15:10 stevesk Exp $ */
+/* $OpenBSD: misc.c,v 1.56 2006/07/10 12:46:51 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -45,6 +45,7 @@
 #include "misc.h"
 #include "log.h"
 #include "xmalloc.h"
+#include "ssh.h"
 
 /* remove newline at end of string */
 char *
@@ -334,6 +335,23 @@ convtime(const char *s)
 	}
 
 	return total;
+}
+
+/*
+ * Returns a standardized host+port identifier string.
+ * Caller must free returned string.
+ */
+char *
+put_host_port(const char *host, u_short port)
+{
+	char *hoststr;
+
+	if (port == 0 || port == SSH_DEFAULT_PORT)
+		return(xstrdup(host));
+	if (asprintf(&hoststr, "[%s]:%d", host, (int)port) < 0)
+		fatal("put_host_port: asprintf: %s", strerror(errno));
+	debug3("put_host_port: %s", hoststr);
+	return hoststr;
 }
 
 /*

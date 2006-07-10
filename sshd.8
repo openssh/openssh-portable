@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.230 2006/02/24 20:31:31 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.231 2006/07/10 12:46:52 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -588,6 +588,13 @@ A pattern may also be preceded by
 to indicate negation: if the host name matches a negated
 pattern, it is not accepted (by that line) even if it matched another
 pattern on the line.
+A hostname or address may optionally be enclosed within
+.Ql \&[
+and
+.Ql \&]
+brackets then followed by
+.Ql \&:
+and and a non-standard port number.
 .Pp
 Alternately, hostnames may be stored in a hashed form which hides host names
 and addresses should the file's contents be disclosed.

@@ -96,6 +96,14 @@
      [channels.c]
      fix misparsing of SOCKS 5 packets that could result in a crash;
      reported by mk@ ok markus@
+   - dtucker@cvs.openbsd.org 2006/07/10 12:46:51
+     [misc.c misc.h sshd.8 sshconnect.c]
+     Add port identifier to known_hosts for non-default ports, based originally
+     on a patch from Devin Nate in bz#910.
+     For any connection using the default port or using a HostKeyAlias the
+     format is unchanged, otherwise the host name or address is enclosed
+     within square brackets in the same format as sshd's ListenAddress.
+     Tested by many, ok markus@.
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4829,4 +4837,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4383 2006/07/10 12:21:02 djm Exp $
+$Id: ChangeLog,v 1.4384 2006/07/10 13:04:19 dtucker Exp $
