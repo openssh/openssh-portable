@@ -119,7 +119,7 @@ record_login(pid_t pid, const char *tty, const char *user, uid_t uid,
 #ifdef LOGIN_NEEDS_UTMPX
 void
 record_utmp_only(pid_t pid, const char *ttyname, const char *user,
-		 const char *host, struct sockaddr * addr, socklen_t addrlen)
+		 const char *host, struct sockaddr *addr, socklen_t addrlen)
 {
 	struct logininfo *li;
 

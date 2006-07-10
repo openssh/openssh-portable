@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.21 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.22 2006/07/08 21:47:12 stevesk Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -27,6 +27,7 @@
 #define SSHCONNECT_H
 
 #include <sys/types.h>
+#include <sys/socket.h>
 
 #include <pwd.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.64 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.65 2006/07/08 21:47:12 stevesk Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *

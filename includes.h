@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.45 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.46 2006/07/08 21:47:12 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -87,7 +87,6 @@
 #endif
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif

@@ -39,6 +39,7 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/un.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.132 2006/07/05 02:42:09 stevesk Exp $ */
+/* $OpenBSD: packet.c,v 1.133 2006/07/08 21:47:12 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -39,6 +39,7 @@
 
 #include "includes.h"
  
+#include <sys/types.h>
 #include "openbsd-compat/sys-queue.h"
 #include <sys/socket.h>
 
