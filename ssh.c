@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.276 2006/04/25 08:02:27 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.277 2006/07/02 17:12:58 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -176,7 +176,7 @@ usage(void)
 "           [-i identity_file] [-L [bind_address:]port:host:hostport]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
-"           [-w tunnel:tunnel] [user@]hostname [command]\n"
+"           [-w local_tun[:remote_tun]] [user@]hostname [command]\n"
 	);
 	exit(255);
 }

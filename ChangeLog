@@ -8,6 +8,10 @@
      [clientloop.c]
      mention optional bind_address in runtime port forwarding setup
      command-line help. patch from santhi.amirta AT gmail.com
+   - stevesk@cvs.openbsd.org 2006/07/02 17:12:58
+     [ssh.1 ssh.c ssh_config.5 sshd_config.5]
+     more details and clarity for tun(4) device forwarding; ok and help
+     jmc@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4741,4 +4745,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4361 2006/07/10 10:16:12 djm Exp $
+$Id: ChangeLog,v 1.4362 2006/07/10 10:16:27 djm Exp $

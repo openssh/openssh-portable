@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.260 2006/05/29 16:13:23 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.261 2006/07/02 17:12:58 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -78,7 +78,8 @@
 .Oc
 .Op Fl S Ar ctl_path
 .Bk -words
-.Op Fl w Ar tunnel : Ns Ar tunnel
+.Oo Fl w Ar local_tun Ns
+.Op : Ns Ar remote_tun Oc
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
 .Ek
@@ -588,24 +589,35 @@ Multiple
 .Fl v
 options increase the verbosity.
 The maximum is 3.
-.It Fl w Ar tunnel : Ns Ar tunnel
-Requests a
+.It Fl w Xo
+.Ar local_tun Ns Op : Ns Ar remote_tun
+.Xc
+Requests
+tunnel
+device forwarding with the specified
 .Xr tun 4
-device on the client
-(first
-.Ar tunnel
-arg)
-and server
-(second
-.Ar tunnel
-arg).
+devices between the client
+.Pq Ar local_tun
+and the server
+.Pq Ar remote_tun .
+.Pp
 The devices may be specified by numerical ID or the keyword
 .Dq any ,
 which uses the next available tunnel device.
+If
+.Ar remote_tun
+is not specified, it defaults to
+.Dq any .
 See also the
 .Cm Tunnel
-directive in
+and
+.Cm TunnelDevice
+directives in
 .Xr ssh_config 5 .
+If the
+.Cm Tunnel
+directive is unset, it is set to the default tunnel mode, which is
+.Dq point-to-point .
 .It Fl X
 Enables X11 forwarding.
 This can also be specified on a per-host basis in a configuration file.

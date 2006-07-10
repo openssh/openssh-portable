@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.57 2006/03/14 16:32:48 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.58 2006/07/02 17:12:58 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -537,10 +537,17 @@ Specifies whether
 device forwarding is allowed.
 The argument must be
 .Dq yes ,
-.Dq point-to-point ,
-.Dq ethernet ,
-or
+.Dq point-to-point
+(layer 3),
+.Dq ethernet
+(layer 2), or
 .Dq no .
+Specifying
+.Dq yes
+permits both
+.Dq point-to-point
+and
+.Dq ethernet .
 The default is
 .Dq no .
 .It Cm PermitUserEnvironment

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.94 2006/05/29 16:10:03 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.95 2006/07/02 17:12:58 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -931,24 +931,44 @@ This is important in scripts, and many users want it too.
 To disable TCP keepalive messages, the value should be set to
 .Dq no .
 .It Cm Tunnel
-Request starting
+Request
 .Xr tun 4
 device forwarding between the client and the server.
-This option also allows requesting layer 2 (ethernet)
-instead of layer 3 (point-to-point) tunneling from the server.
 The argument must be
 .Dq yes ,
-.Dq point-to-point ,
-.Dq ethernet ,
+.Dq point-to-point
+(layer 3),
+.Dq ethernet
+(layer 2),
 or
 .Dq no .
+Specifying
+.Dq yes
+requests the default tunnel mode, which is
+.Dq point-to-point .
 The default is
 .Dq no .
 .It Cm TunnelDevice
-Force a specified
+Specifies the
 .Xr tun 4
-device on the client.
-Without this option, the next available device will be used.
+devices to open on the client
+.Pq Ar local_tun
+and the server
+.Pq Ar remote_tun .
+.Pp
+The argument must be
+.Sm off
+.Ar local_tun Op : Ar remote_tun .
+.Sm on
+The devices may be specified by numerical ID or the keyword
+.Dq any ,
+which uses the next available tunnel device.
+If
+.Ar remote_tun
+is not specified, it defaults to
+.Dq any .
+The default is
+.Dq any:any .
 .It Cm UsePrivilegedPort
 Specifies whether to use a privileged port for outgoing connections.
 The argument must be
