@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.54 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: misc.c,v 1.55 2006/07/09 15:15:10 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -33,6 +33,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
+#include <fcntl.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #include <pwd.h>

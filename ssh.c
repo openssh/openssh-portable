@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.280 2006/07/08 21:47:12 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.281 2006/07/09 15:15:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -52,6 +52,7 @@
 #include <sys/un.h>
 
 #include <ctype.h>
+#include <fcntl.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif

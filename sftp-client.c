@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.65 2006/04/16 00:54:10 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.66 2006/07/09 15:15:11 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -26,7 +26,9 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
-# include <signal.h>
+
+#include <fcntl.h>
+#include <signal.h>
 
 #include "openbsd-compat/sys-queue.h"
 

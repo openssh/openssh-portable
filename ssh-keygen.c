@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.146 2006/07/06 16:22:39 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.147 2006/07/09 15:15:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -21,6 +21,7 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
+#include <fcntl.h>
 #include <paths.h>
 #include <pwd.h>
 

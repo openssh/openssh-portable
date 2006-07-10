@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.334 2006/07/08 21:47:12 stevesk Exp $ */
+/* $OpenBSD: sshd.c,v 1.335 2006/07/09 15:15:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -52,6 +52,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include <fcntl.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif

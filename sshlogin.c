@@ -1,4 +1,4 @@
-/* $OpenBSD: sshlogin.c,v 1.17 2006/03/25 18:36:15 deraadt Exp $ */
+/* $OpenBSD: sshlogin.c,v 1.18 2006/07/09 15:15:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -40,6 +40,8 @@
  */
 
 #include "includes.h"
+
+#include <fcntl.h>
 
 #include "loginrec.h"
 #include "log.h"

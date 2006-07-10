@@ -68,6 +68,12 @@
    - stevesk@cvs.openbsd.org 2006/07/08 23:30:06
      [log.c]
      move user includes after /usr/include files
+   - stevesk@cvs.openbsd.org 2006/07/09 15:15:11
+     [auth2-none.c authfd.c authfile.c includes.h misc.c monitor.c]
+     [readpass.c scp.c serverloop.c sftp-client.c sftp-server.c]
+     [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keysign.c ssh.c sshd.c]
+     [sshlogin.c sshpty.c]
+     move #include <fcntl.h> out of includes.h
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4801,4 +4807,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4376 2006/07/10 11:09:22 djm Exp $
+$Id: ChangeLog,v 1.4377 2006/07/10 11:13:46 djm Exp $
