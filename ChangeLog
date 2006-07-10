@@ -1,3 +1,6 @@
+20060710
+ - (dtucker) [INSTALL] New autoconf version: 2.60.
+
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
    compiling with gcc.  gcc 4.1.x will accept (but ignore) -b flags so
@@ -4730,4 +4733,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4358 2006/07/06 09:12:08 dtucker Exp $
+$Id: ChangeLog,v 1.4359 2006/07/10 02:55:24 dtucker Exp $
