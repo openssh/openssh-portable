@@ -53,6 +53,9 @@
    - stevesk@cvs.openbsd.org 2006/07/06 16:22:39
      [ssh-keygen.c]
      move #include "dns.h" up
+   - stevesk@cvs.openbsd.org 2006/07/06 17:36:37
+     [monitor_wrap.h]
+     typo in comment
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4786,4 +4789,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4372 2006/07/10 10:53:31 djm Exp $
+$Id: ChangeLog,v 1.4373 2006/07/10 10:53:45 djm Exp $

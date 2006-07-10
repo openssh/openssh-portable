@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.17 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.18 2006/07/06 17:36:37 stevesk Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -116,4 +116,4 @@ void *mm_zalloc(struct mm_master *, u_int, u_int);
 void mm_zfree(struct mm_master *, void *);
 void mm_init_compression(struct mm_master *);
 
-#endif /* _MM_H_ */
+#endif /* _MM_WRAP_H_ */
