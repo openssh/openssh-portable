@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.60 2006/07/10 11:24:54 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.61 2006/07/10 11:25:53 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -480,9 +480,9 @@ process_open(void)
 	int handle, fd, flags, mode, status = SSH2_FX_FAILURE;
 
 	id = get_int();
-	debug3("request %u: open flags %d", id, pflags);
 	name = get_string(NULL);
 	pflags = get_int();		/* portable flags */
+	debug3("request %u: open flags %d", id, pflags);
 	a = get_attrib();
 	flags = flags_from_portable(pflags);
 	mode = (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) ? a->perm : 0666;
