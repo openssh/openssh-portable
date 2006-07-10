@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.78 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: monitor.c,v 1.79 2006/07/08 21:48:53 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>

@@ -61,6 +61,10 @@
      [monitor_fdpass.c nchan.c packet.c servconf.c sftp.c ssh-agent.c]
      [ssh-keyscan.c ssh.c sshconnect.h sshd.c sshlogin.h]
      move #include <sys/socket.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/08 21:48:53
+     [monitor.c session.c]
+     missed these from last commit:
+     move #include <sys/socket.h> out of includes.h
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4794,4 +4798,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4374 2006/07/10 11:08:03 djm Exp $
+$Id: ChangeLog,v 1.4375 2006/07/10 11:08:34 djm Exp $
