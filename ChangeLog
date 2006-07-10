@@ -87,6 +87,11 @@
    [openbsd-compat/mktemp.c openbsd-compat/openbsd-compat.h]
    [openbsd-compat/port-tun.c openbsd-compat/readpassphrase.c]
    [openbsd-compat/xcrypt.c] Fix includes.h fallout, mainly fcntl.h
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2006/07/10 12:03:20
+     [scp.c]
+     duplicate argv at the start of main() because it gets modified later;
+     pointed out by deraadt@ ok markus@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4820,4 +4825,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4381 2006/07/10 11:33:04 djm Exp $
+$Id: ChangeLog,v 1.4382 2006/07/10 12:19:53 djm Exp $

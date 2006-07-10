@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.144 2006/07/09 15:15:10 stevesk Exp $ */
+/* $OpenBSD: scp.c,v 1.145 2006/07/10 12:03:20 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -272,14 +272,20 @@ void usage(void);
 int
 main(int argc, char **argv)
 {
-	int ch, fflag, tflag, status;
+	int ch, fflag, tflag, status, n;
 	double speed;
-	char *targ, *endp;
+	char *targ, *endp, **newargv;
 	extern char *optarg;
 	extern int optind;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
+
+	/* Copy argv, because we modify it */
+	newargv = xcalloc(MAX(argc + 1, 1), sizeof(*newargv));
+	for (n = 0; n < argc; n++)
+		newargv[n] = xstrdup(argv[n]);
+	argv = newargv;
 
 	__progname = ssh_get_progname(argv[0]);
 
