@@ -24,6 +24,9 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+#include <pwd.h>
+
 # ifdef HAVE_CRYPT_H
 #  include <crypt.h>
 # endif

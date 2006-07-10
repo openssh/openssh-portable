@@ -153,6 +153,7 @@
 
 #include <netinet/in.h>
 
+#include <fcntl.h>
 #include <pwd.h>
 
 #include "ssh.h"

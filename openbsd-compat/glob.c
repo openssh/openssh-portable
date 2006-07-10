@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <ctype.h>
+#include <pwd.h>
 
 static long
 get_arg_max(void)

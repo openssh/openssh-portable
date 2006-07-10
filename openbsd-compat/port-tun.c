@@ -16,8 +16,11 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <netinet/ip.h>
+
+#include <fcntl.h>
 
 #include "log.h"
 #include "misc.h"

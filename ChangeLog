@@ -83,6 +83,10 @@
    - djm@cvs.openbsd.org 2006/07/10 11:25:53
      [sftp-server.c]
      don't log variables that aren't yet set
+ - (djm) [loginrec.c ssh-rand-helper.c sshd.c openbsd-compat/glob.c]
+   [openbsd-compat/mktemp.c openbsd-compat/openbsd-compat.h]
+   [openbsd-compat/port-tun.c openbsd-compat/readpassphrase.c]
+   [openbsd-compat/xcrypt.c] Fix includes.h fallout, mainly fcntl.h
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4816,4 +4820,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4380 2006/07/10 11:31:27 djm Exp $
+$Id: ChangeLog,v 1.4381 2006/07/10 11:33:04 djm Exp $

@@ -29,6 +29,7 @@
 #include <termios.h>
 #include <signal.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <readpassphrase.h>
 
 #ifdef TCSASOFT

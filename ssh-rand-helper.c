@@ -36,6 +36,7 @@
 # include <sys/un.h>
 #endif
 
+#include <fcntl.h>
 #include <pwd.h>
 #include <signal.h>
 

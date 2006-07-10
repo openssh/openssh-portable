@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.37 2006/06/30 00:51:32 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.38 2006/07/10 11:33:05 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -30,6 +30,9 @@
 #define _OPENBSD_COMPAT_H
 
 #include "includes.h"
+
+#include <sys/types.h>
+#include <pwd.h>
 
 /* OpenBSD function replacements */
 #include "base64.h"
@@ -131,8 +134,6 @@ int BSDgetopt(int argc, char * const *argv, const char *opts);
 #include "bsd-misc.h"
 #include "bsd-waitpid.h"
 
-/*#include <sys/types.h> XXX Still needed? * For uid_t, gid_t * */
-
 #ifndef HAVE_GETPEEREID
 int getpeereid(int , uid_t *, gid_t *);
 #endif 
@@ -176,7 +177,6 @@ int vsnprintf(char *, size_t, const char *, va_list);
 void *xmmap(size_t size);
 char *xcrypt(const char *password, const char *salt);
 char *shadow_pw(struct passwd *pw);
-
 
 /* rfc2553 socket API replacements */
 #include "fake-rfc2553.h"
