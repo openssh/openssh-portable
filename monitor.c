@@ -30,7 +30,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <sys/socket.h>
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>
