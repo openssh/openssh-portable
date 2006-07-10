@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.58 2006/07/02 17:12:58 stevesk Exp $
+.\" $OpenBSD: sshd_config.5,v 1.59 2006/07/06 10:47:05 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -643,8 +643,8 @@ The default is
 .Dq yes .
 .It Cm Subsystem
 Configures an external subsystem (e.g. file transfer daemon).
-Arguments should be a subsystem name and a command to execute upon subsystem
-request.
+Arguments should be a subsystem name and a command (with optional arguments)
+to execute upon subsystem request.
 The command
 .Xr sftp-server 8
 implements the

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.150 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.151 2006/07/06 10:47:05 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -446,6 +446,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	ServerOpCodes opcode;
 	u_short port;
 	u_int i;
+	size_t len;
 
 	cp = line;
 	if ((arg = strdelim(&cp)) == NULL)
@@ -901,6 +902,17 @@ parse_flag:
 			fatal("%s line %d: Missing subsystem command.",
 			    filename, linenum);
 		options->subsystem_command[options->num_subsystems] = xstrdup(arg);
+
+		/* Collect arguments (separate to executable) */
+		p = xstrdup(arg);
+		len = strlen(p) + 1;
+		while ((arg = strdelim(&cp)) != NULL && *arg != '\0') {
+			len += 1 + strlen(arg);
+			p = xrealloc(p, 1, len);
+			strlcat(p, " ", len);
+			strlcat(p, arg, len);
+		}
+		options->subsystem_args[options->num_subsystems] = p;
 		options->num_subsystems++;
 		break;
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.204 2006/07/02 22:45:59 stevesk Exp $ */
+/* $OpenBSD: session.c,v 1.205 2006/07/06 10:47:05 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1841,7 +1841,7 @@ session_subsystem_req(Session *s)
 	struct stat st;
 	u_int len;
 	int success = 0;
-	char *cmd, *subsys = packet_get_string(&len);
+	char *prog, *cmd, *subsys = packet_get_string(&len);
 	u_int i;
 
 	packet_check_eom();
@@ -1849,9 +1849,10 @@ session_subsystem_req(Session *s)
 
 	for (i = 0; i < options.num_subsystems; i++) {
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
-			cmd = options.subsystem_command[i];
-			if (stat(cmd, &st) < 0) {
-				error("subsystem: cannot stat %s: %s", cmd,
+			prog = options.subsystem_command[i];
+			cmd = options.subsystem_args[i];
+			if (stat(prog, &st) < 0) {
+				error("subsystem: cannot stat %s: %s", prog,
 				    strerror(errno));
 				break;
 			}
