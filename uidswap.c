@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.29 2006/06/08 14:45:49 markus Exp $ */
+/* $OpenBSD: uidswap.c,v 1.30 2006/07/06 16:03:53 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -13,6 +13,10 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+
+#include <pwd.h>
 
 #include <grp.h>
 

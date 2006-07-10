@@ -36,6 +36,7 @@
 # include <sys/un.h>
 #endif
 
+#include <pwd.h>
 #include <signal.h>
 
 #include <openssl/rand.h>

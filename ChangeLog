@@ -41,6 +41,15 @@
    - djm@cvs.openbsd.org 2006/07/06 10:47:57
      [sftp-server.8 sftp-server.c]
      add commandline options to enable logging of transactions; ok markus@
+   - stevesk@cvs.openbsd.org 2006/07/06 16:03:53
+     [auth-options.c auth-options.h auth-passwd.c auth-rh-rsa.c]
+     [auth-rhosts.c auth-rsa.c auth.c auth.h auth2-hostbased.c]
+     [auth2-pubkey.c auth2.c includes.h misc.c misc.h monitor.c]
+     [monitor_wrap.c monitor_wrap.h scp.c serverloop.c session.c]
+     [session.h sftp-common.c ssh-add.c ssh-keygen.c ssh-keysign.c]
+     [ssh.c sshconnect.c sshconnect.h sshd.c sshpty.c sshpty.h uidswap.c]
+     [uidswap.h]
+     move #include <pwd.h> out of includes.h; ok markus@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4774,4 +4783,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4370 2006/07/10 10:46:55 djm Exp $
+$Id: ChangeLog,v 1.4371 2006/07/10 10:53:08 djm Exp $

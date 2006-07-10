@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.53 2006/07/05 02:42:09 stevesk Exp $ */
+/* $OpenBSD: misc.c,v 1.54 2006/07/06 16:03:53 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -27,6 +27,7 @@
 #include "includes.h"
 
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
@@ -34,6 +35,7 @@
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
+#include <pwd.h>
 #endif
 #ifdef SSH_TUN_OPENBSD
 #include <net/if.h>

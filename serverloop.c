@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.136 2006/07/05 02:42:09 stevesk Exp $ */
+/* $OpenBSD: serverloop.c,v 1.137 2006/07/06 16:03:53 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -43,6 +43,7 @@
 
 #include <netinet/in.h>
 
+#include <pwd.h>
 #include <signal.h>
 #include <termios.h>
 

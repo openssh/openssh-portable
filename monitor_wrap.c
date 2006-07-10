@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.45 2006/03/30 09:58:15 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.46 2006/07/06 16:03:53 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -27,8 +27,12 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+
+#include <pwd.h>
 
 #include "ssh.h"
 #include "dh.h"

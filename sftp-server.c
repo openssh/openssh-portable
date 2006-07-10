@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 
 #include <dirent.h>
+#include <pwd.h>
 
 #include "buffer.h"
 #include "bufaux.h"

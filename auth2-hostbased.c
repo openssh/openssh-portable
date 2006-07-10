@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.8 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.9 2006/07/06 16:03:53 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -24,6 +24,10 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+
+#include <pwd.h>
 
 #include "ssh2.h"
 #include "xmalloc.h"

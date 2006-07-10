@@ -153,6 +153,8 @@
 
 #include <netinet/in.h>
 
+#include <pwd.h>
+
 #include "ssh.h"
 #include "xmalloc.h"
 #include "loginrec.h"
