@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.82 2006/07/09 15:15:11 stevesk Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.83 2006/07/09 15:27:59 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -135,7 +135,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	char msg[1024];
 	int fd, perms_ok, ret = -1;
 
-	if ((fd = open(filename, 0)) < 0) {
+	if ((fd = open(filename, O_RDONLY)) < 0) {
 		perror(filename);
 		return -1;
 	}

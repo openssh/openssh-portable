@@ -74,6 +74,9 @@
      [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keysign.c ssh.c sshd.c]
      [sshlogin.c sshpty.c]
      move #include <fcntl.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/09 15:27:59
+     [ssh-add.c]
+     use O_RDONLY vs. 0 in open(); no binary change
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4807,4 +4810,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4377 2006/07/10 11:13:46 djm Exp $
+$Id: ChangeLog,v 1.4378 2006/07/10 11:14:00 djm Exp $
