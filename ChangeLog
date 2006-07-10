@@ -50,6 +50,9 @@
      [ssh.c sshconnect.c sshconnect.h sshd.c sshpty.c sshpty.h uidswap.c]
      [uidswap.h]
      move #include <pwd.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/07/06 16:22:39
+     [ssh-keygen.c]
+     move #include "dns.h" up
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4783,4 +4786,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4371 2006/07/10 10:53:08 djm Exp $
+$Id: ChangeLog,v 1.4372 2006/07/10 10:53:31 djm Exp $
