@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.17 2006/03/30 09:58:15 djm Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.18 2006/07/02 18:36:47 stevesk Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -33,7 +33,6 @@
 #include "log.h"
 #include "channels.h"
 #include "session.h"
-#include "servconf.h"
 #include "xmalloc.h"
 #include "misc.h"
 

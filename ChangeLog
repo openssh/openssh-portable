@@ -12,6 +12,10 @@
      [ssh.1 ssh.c ssh_config.5 sshd_config.5]
      more details and clarity for tun(4) device forwarding; ok and help
      jmc@
+   - stevesk@cvs.openbsd.org 2006/07/02 18:36:47
+     [gss-serv-krb5.c gss-serv.c]
+     no "servconf.h" needed here
+     (gss-serv-krb5.c change not applied, portable needs the server options)
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4745,4 +4749,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4362 2006/07/10 10:16:27 djm Exp $
+$Id: ChangeLog,v 1.4363 2006/07/10 10:17:55 djm Exp $
