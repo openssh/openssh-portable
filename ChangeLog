@@ -77,6 +77,9 @@
    - stevesk@cvs.openbsd.org 2006/07/09 15:27:59
      [ssh-add.c]
      use O_RDONLY vs. 0 in open(); no binary change
+   - djm@cvs.openbsd.org 2006/07/10 11:24:54
+     [sftp-server.c]
+     remove optind - it isn't used here
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4810,4 +4813,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4378 2006/07/10 11:14:00 djm Exp $
+$Id: ChangeLog,v 1.4379 2006/07/10 11:31:00 djm Exp $
