@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.41 2006/07/02 22:45:59 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.42 2006/07/03 08:54:20 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -188,7 +188,6 @@
 
 #include "defines.h"
 
-#include "version.h"
 #include "openbsd-compat/openbsd-compat.h"
 #include "openbsd-compat/bsd-nextstep.h"
 

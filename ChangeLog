@@ -23,6 +23,9 @@
    - stevesk@cvs.openbsd.org 2006/07/02 23:01:55
      [clientloop.c ssh.1]
      use -KR[bind_address:]port here; ok djm@
+   - stevesk@cvs.openbsd.org 2006/07/03 08:54:20
+     [includes.h ssh.c sshconnect.c sshd.c]
+     move #include "version.h" out of includes.h; ok markus@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4756,4 +4759,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4365 2006/07/10 10:20:52 djm Exp $
+$Id: ChangeLog,v 1.4366 2006/07/10 10:23:39 djm Exp $
