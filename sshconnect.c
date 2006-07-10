@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.184 2006/06/08 14:45:49 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.185 2006/06/14 10:50:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -385,10 +385,10 @@ ssh_exchange_identification(void)
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
 	int minor1 = PROTOCOL_MINOR_1;
-	u_int i;
+	u_int i, n;
 
 	/* Read other side's version identification. */
-	for (;;) {
+	for (n = 0;;) {
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			size_t len = atomicio(read, connection_in, &buf[i], 1);
 
@@ -405,6 +405,8 @@ ssh_exchange_identification(void)
 				buf[i + 1] = 0;
 				break;
 			}
+			if (++n > 65536)
+				fatal("ssh_exchange_identification: No banner received");
 		}
 		buf[sizeof(buf) - 1] = 0;
 		if (strncmp(buf, "SSH-", 4) == 0)

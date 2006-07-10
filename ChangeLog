@@ -1,5 +1,9 @@
 20060710
  - (dtucker) [INSTALL] New autoconf version: 2.60.
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2006/06/14 10:50:42
+     [sshconnect.c]
+     limit the number of pre-banner characters we will accept; ok markus@
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4733,4 +4737,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4359 2006/07/10 02:55:24 dtucker Exp $
+$Id: ChangeLog,v 1.4360 2006/07/10 10:15:56 djm Exp $
