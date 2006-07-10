@@ -16,6 +16,10 @@
      [gss-serv-krb5.c gss-serv.c]
      no "servconf.h" needed here
      (gss-serv-krb5.c change not applied, portable needs the server options)
+   - stevesk@cvs.openbsd.org 2006/07/02 22:45:59
+     [groupaccess.c groupaccess.h includes.h session.c sftp-common.c sshpty.c]
+     move #include <grp.h> out of includes.h
+     (portable needed uidswap.c too)
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4749,4 +4753,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4363 2006/07/10 10:17:55 djm Exp $
+$Id: ChangeLog,v 1.4364 2006/07/10 10:20:33 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.203 2006/04/20 21:53:44 djm Exp $ */
+/* $OpenBSD: session.c,v 1.204 2006/07/02 22:45:59 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -42,6 +42,7 @@
 #include <sys/wait.h>
 #include <sys/un.h>
 
+#include <grp.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif

@@ -14,6 +14,8 @@
 
 #include "includes.h"
 
+#include <grp.h>
+
 #include "log.h"
 #include "uidswap.h"
 #include "xmalloc.h"

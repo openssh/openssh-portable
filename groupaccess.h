@@ -1,4 +1,4 @@
-/* $OpenBSD: groupaccess.h,v 1.5 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: groupaccess.h,v 1.6 2006/07/02 22:45:59 stevesk Exp $ */
 
 /*
  * Copyright (c) 2001 Kevin Steves.  All rights reserved.
@@ -27,7 +27,7 @@
 #ifndef GROUPACCESS_H
 #define GROUPACCESS_H
 
-#include <grp.h>
+#include <sys/types.h>
 
 int	 ga_init(const char *, gid_t);
 int	 ga_match(char * const *, int);
