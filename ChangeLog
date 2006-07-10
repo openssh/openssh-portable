@@ -4,6 +4,10 @@
    - djm@cvs.openbsd.org 2006/06/14 10:50:42
      [sshconnect.c]
      limit the number of pre-banner characters we will accept; ok markus@
+   - djm@cvs.openbsd.org 2006/06/26 10:36:15
+     [clientloop.c]
+     mention optional bind_address in runtime port forwarding setup
+     command-line help. patch from santhi.amirta AT gmail.com
 
 20060706
  - (dtucker) [configure.ac] Try AIX blibpath test in different order when
@@ -4737,4 +4741,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4360 2006/07/10 10:15:56 djm Exp $
+$Id: ChangeLog,v 1.4361 2006/07/10 10:16:12 djm Exp $
