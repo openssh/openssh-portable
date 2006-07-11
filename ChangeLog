@@ -1,3 +1,8 @@
+20060711
+ - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
+   openbsd-compat/daemon.c] Add includes needed by open(2).  Conditionally
+   include paths.h.  Fixes build error on Solaris.
+
 20060710
  - (dtucker) [INSTALL] New autoconf version: 2.60.
  - OpenBSD CVS Sync
@@ -4839,4 +4844,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4385 2006/07/10 14:20:51 dtucker Exp $
+$Id: ChangeLog,v 1.4386 2006/07/11 08:00:06 dtucker Exp $
