@@ -27,6 +27,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
+
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
