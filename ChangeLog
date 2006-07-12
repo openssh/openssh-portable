@@ -1,7 +1,7 @@
 20060712
- - (dtucker) [configure.ac defines.h] Only define SHUT_RD (and friends) and O_NONBLOCK
-   if they're really needed.  Fixes build errors on HP-UX, old Linuxes and probably
-   more.
+ - (dtucker) [configure.ac defines.h] Only define SHUT_RD (and friends) and
+   O_NONBLOCK if they're really needed.  Fixes build errors on HP-UX, old
+   Linuxes and probably more.
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4851,4 +4851,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4388 2006/07/12 04:14:31 dtucker Exp $
+$Id: ChangeLog,v 1.4389 2006/07/12 09:01:29 dtucker Exp $
