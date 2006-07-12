@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.152 2006/07/05 02:42:09 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.153 2006/07/11 18:50:48 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -102,6 +102,7 @@
 typedef enum {
 	oBadOption,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oGatewayPorts,
+	oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
@@ -132,6 +133,7 @@ static struct {
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
 	{ "forwardx11trusted", oForwardX11Trusted },
+	{ "exitonforwardfailure", oExitOnForwardFailure },
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
 	{ "useprivilegedport", oUsePrivilegedPort },
@@ -384,6 +386,10 @@ parse_flag:
 
 	case oGatewayPorts:
 		intptr = &options->gateway_ports;
+		goto parse_flag;
+
+	case oExitOnForwardFailure:
+		intptr = &options->exit_on_forward_failure;
 		goto parse_flag;
 
 	case oUsePrivilegedPort:
@@ -987,6 +993,7 @@ initialize_options(Options * options)
 	options->forward_agent = -1;
 	options->forward_x11 = -1;
 	options->forward_x11_trusted = -1;
+	options->exit_on_forward_failure = -1;
 	options->xauth_location = NULL;
 	options->gateway_ports = -1;
 	options->use_privileged_port = -1;
@@ -1067,6 +1074,8 @@ fill_default_options(Options * options)
 		options->forward_x11 = 0;
 	if (options->forward_x11_trusted == -1)
 		options->forward_x11_trusted = 0;
+	if (options->exit_on_forward_failure == -1)
+		options->exit_on_forward_failure = 0;
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->gateway_ports == -1)

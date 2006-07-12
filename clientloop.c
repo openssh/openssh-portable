@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.166 2006/07/08 21:47:12 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.167 2006/07/11 18:50:47 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -996,9 +996,12 @@ process_cmdline(void)
 				goto out;
 			}
 		} else {
-			channel_request_remote_forwarding(fwd.listen_host,
+			if (channel_request_remote_forwarding(fwd.listen_host,
 			    fwd.listen_port, fwd.connect_host,
-			    fwd.connect_port);
+			    fwd.connect_port) < 0) {
+				logit("Port forwarding failed.");
+				goto out;
+			}
 		}
 
 		logit("Forwarding port.");

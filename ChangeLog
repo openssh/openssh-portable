@@ -23,6 +23,12 @@
      Only copy the part of environment variable that we actually use.  Prevents
      ssh bailing when SendEnv is used and an environment variable with a really
      long value exists.  ok djm@
+   - markus@cvs.openbsd.org 2006/07/11 18:50:48
+     [clientloop.c ssh.1 ssh.c channels.c ssh_config.5 readconf.h session.c
+     channels.h readconf.c]
+     add ExitOnForwardFailure: terminate the connection if ssh(1)
+     cannot set up all requested dynamic, local, and remote port
+     forwardings. ok djm, dtucker, stevesk, jmc
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4872,4 +4878,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4395 2006/07/12 12:16:23 dtucker Exp $
+$Id: ChangeLog,v 1.4396 2006/07/12 12:17:10 dtucker Exp $

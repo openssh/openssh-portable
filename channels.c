@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.252 2006/07/10 12:08:08 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.253 2006/07/11 18:50:47 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2481,7 +2481,7 @@ channel_setup_remote_fwd_listener(const char *listen_address,
  * the secure channel to host:port from local side.
  */
 
-void
+int
 channel_request_remote_forwarding(const char *listen_host, u_short listen_port,
     const char *host_to_connect, u_short port_to_connect)
 {
@@ -2525,7 +2525,6 @@ channel_request_remote_forwarding(const char *listen_host, u_short listen_port,
 			success = 1;
 			break;
 		case SSH_SMSG_FAILURE:
-			logit("Warning: Server denied remote port forwarding.");
 			break;
 		default:
 			/* Unknown packet */
@@ -2539,6 +2538,7 @@ channel_request_remote_forwarding(const char *listen_host, u_short listen_port,
 		permitted_opens[num_permitted_opens].listen_port = listen_port;
 		num_permitted_opens++;
 	}
+	return (success ? 0 : -1);
 }
 
 /*
@@ -2578,12 +2578,13 @@ channel_request_rforward_cancel(const char *host, u_short port)
 /*
  * This is called after receiving CHANNEL_FORWARDING_REQUEST.  This initates
  * listening for the port, and sends back a success reply (or disconnect
- * message if there was an error).  This never returns if there was an error.
+ * message if there was an error).
  */
-void
+int
 channel_input_port_forward_request(int is_root, int gateway_ports)
 {
 	u_short port, host_port;
+	int success = 0;
 	char *hostname;
 
 	/* Get arguments from the packet. */
@@ -2605,11 +2606,13 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 #endif
 
 	/* Initiate forwarding */
-	channel_setup_local_fwd_listener(NULL, port, hostname,
+	success = channel_setup_local_fwd_listener(NULL, port, hostname,
 	    host_port, gateway_ports);
 
 	/* Free the argument string. */
 	xfree(hostname);
+
+	return (success ? 0 : -1);
 }
 
 /*
@@ -2628,7 +2631,7 @@ void
 channel_add_permitted_opens(char *host, int port)
 {
 	if (num_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
-		fatal("channel_request_remote_forwarding: too many forwards");
+		fatal("channel_add_permitted_opens: too many forwards");
 	debug("allow port forwarding to host %s port %d", host, port);
 
 	permitted_opens[num_permitted_opens].host_to_connect = xstrdup(host);

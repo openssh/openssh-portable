@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.282 2006/07/11 10:12:07 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.283 2006/07/11 18:50:48 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -817,6 +817,8 @@ ssh_init_forwarding(void)
 		    options.local_forwards[i].connect_port,
 		    options.gateway_ports);
 	}
+	if (i > 0 && success != i && options.exit_on_forward_failure)
+		fatal("Could not request local forwarding.");
 	if (i > 0 && success == 0)
 		error("Could not request local forwarding.");
 
@@ -829,11 +831,17 @@ ssh_init_forwarding(void)
 		    options.remote_forwards[i].listen_port,
 		    options.remote_forwards[i].connect_host,
 		    options.remote_forwards[i].connect_port);
-		channel_request_remote_forwarding(
+		if (channel_request_remote_forwarding(
 		    options.remote_forwards[i].listen_host,
 		    options.remote_forwards[i].listen_port,
 		    options.remote_forwards[i].connect_host,
-		    options.remote_forwards[i].connect_port);
+		    options.remote_forwards[i].connect_port) < 0) {
+			if (options.exit_on_forward_failure)
+				fatal("Could not request remote forwarding.");
+			else
+				logit("Warning: Could not request remote "
+				    "forwarding.");
+		}
 	}
 }
 
@@ -1015,9 +1023,16 @@ client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
 	    options.remote_forwards[i].listen_port,
 	    options.remote_forwards[i].connect_host,
 	    options.remote_forwards[i].connect_port);
-	if (type == SSH2_MSG_REQUEST_FAILURE)
-		logit("Warning: remote port forwarding failed for listen "
-		    "port %d", options.remote_forwards[i].listen_port);
+	if (type == SSH2_MSG_REQUEST_FAILURE) {
+		if (options.exit_on_forward_failure)
+			fatal("Error: remote port forwarding failed for "
+			    "listen port %d",
+			    options.remote_forwards[i].listen_port);
+		else
+			logit("Warning: remote port forwarding failed for "
+			    "listen port %d",
+			    options.remote_forwards[i].listen_port);
+	}
 }
 
 static void

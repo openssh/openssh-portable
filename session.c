@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.207 2006/07/08 21:48:53 stevesk Exp $ */
+/* $OpenBSD: session.c,v 1.208 2006/07/11 18:50:48 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -338,7 +338,11 @@ do_authenticated1(Authctxt *authctxt)
 				break;
 			}
 			debug("Received TCP/IP port forwarding request.");
-			channel_input_port_forward_request(s->pw->pw_uid == 0, options.gateway_ports);
+			if (channel_input_port_forward_request(s->pw->pw_uid == 0,
+			    options.gateway_ports) < 0) {
+				debug("Port forwarding failed.");
+				break;
+			}
 			success = 1;
 			break;
 
