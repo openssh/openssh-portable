@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.40 2006/07/09 15:15:10 stevesk Exp $ */
+/* $OpenBSD: readpass.c,v 1.41 2006/07/10 16:37:36 stevesk Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -32,6 +32,7 @@
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
+#include <stdarg.h>
 
 #include "xmalloc.h"
 #include "misc.h"

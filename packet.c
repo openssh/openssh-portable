@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.133 2006/07/08 21:47:12 stevesk Exp $ */
+/* $OpenBSD: packet.c,v 1.134 2006/07/10 16:37:36 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -46,6 +46,8 @@
 #include <netinet/in_systm.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+
+#include <stdarg.h>
 
 #include "xmalloc.h"
 #include "buffer.h"

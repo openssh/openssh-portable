@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.12 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: log.h,v 1.13 2006/07/10 16:37:36 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -14,6 +14,8 @@
 
 #ifndef SSH_LOG_H
 #define SSH_LOG_H
+
+#include <stdarg.h>
 
 #include <syslog.h> /* Needed for LOG_AUTHPRIV (if present) */
 
