@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.281 2006/07/09 15:15:11 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.282 2006/07/11 10:12:07 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1262,15 +1262,14 @@ control_client_sigrelay(int signo)
 static int
 env_permitted(char *env)
 {
-	int i;
+	int i, ret;
 	char name[1024], *cp;
 
-	if (strlcpy(name, env, sizeof(name)) >= sizeof(name))
-		fatal("env_permitted: name too long");
-	if ((cp = strchr(name, '=')) == NULL)
+	if ((cp = strchr(env, '=')) == NULL || cp == env)
 		return (0);
-
-	*cp = '\0';
+	ret = snprintf(name, sizeof(name), "%.*s", (cp - env), env);
+	if (ret <= 0 || (size_t)ret >= sizeof(name))
+		fatal("env_permitted: name '%.100s...' too long", env);
 
 	for (i = 0; i < options.num_send_env; i++)
 		if (match_pattern(name, options.send_env[i]))
