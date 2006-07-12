@@ -36,6 +36,10 @@
      sftp-client.c nchan.c clientloop.c sftp.c misc.c canohost.c channels.c
      ssh-keygen.c progressmeter.c uidswap.c msg.c readconf.c sshconnect.c]
      move #include <errno.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/07/11 20:16:43
+     [ssh.c]
+     cast asterisk field precision argument to int to remove warning;
+     ok markus@
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4885,4 +4889,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4397 2006/07/12 12:22:46 dtucker Exp $
+$Id: ChangeLog,v 1.4398 2006/07/12 12:23:35 dtucker Exp $

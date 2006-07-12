@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.283 2006/07/11 18:50:48 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.284 2006/07/11 20:16:43 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1282,7 +1282,7 @@ env_permitted(char *env)
 
 	if ((cp = strchr(env, '=')) == NULL || cp == env)
 		return (0);
-	ret = snprintf(name, sizeof(name), "%.*s", (cp - env), env);
+	ret = snprintf(name, sizeof(name), "%.*s", (int)(cp - env), env);
 	if (ret <= 0 || (size_t)ret >= sizeof(name))
 		fatal("env_permitted: name '%.100s...' too long", env);
 
