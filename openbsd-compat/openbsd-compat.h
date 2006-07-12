@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.39 2006/07/10 14:20:52 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.40 2006/07/12 13:10:34 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -166,6 +166,10 @@ long long strtoll(const char *, char **, int);
 
 #ifndef HAVE_STRTONUM
 long long strtonum(const char *, long long, long long, const char **);
+#endif
+
+#if !defined(HAVE_VASPRINTF) || !defined(HAVE_VSNPRINTF)
+# include <stdarg.h>
 #endif
 
 #ifndef HAVE_VASPRINTF
