@@ -35,6 +35,7 @@
 
 #ifndef HAVE_SETPROCTITLE
 
+#include <stdarg.h>
 #include <unistd.h>
 #ifdef HAVE_SYS_PSTAT_H
 #include <sys/pstat.h>
