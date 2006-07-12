@@ -4,6 +4,8 @@
    Linuxes and probably more.
  - (dtucker) [configure.ac] OpenBSD needs <sys/types.h> before <sys/socket.h>
    for SHUT_RD.
+ - (dtucker) [openbsd-compat/port-tun.c] OpenBSD needs <netinet/in.h> before
+   <netinet/ip.h>.
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4853,4 +4855,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4390 2006/07/12 09:02:56 dtucker Exp $
+$Id: ChangeLog,v 1.4391 2006/07/12 09:05:56 dtucker Exp $

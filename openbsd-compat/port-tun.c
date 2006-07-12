@@ -18,6 +18,7 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
 
 #include <fcntl.h>
