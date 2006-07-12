@@ -59,6 +59,7 @@
    openbsd-compat/glob.c openbsd-compat/mktemp.c openbsd-compat/port-tun.c
    openbsd-compat/readpassphrase.c openbsd-compat/strtonum.c] Include <errno.h>.
  - (dtucker) [openbsd-compat/setproctitle.c] Include stdarg.h.
+ - (dtucker) [ssh-keyscan.c ssh-rand-helper.c] More errno.h here too.
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4908,4 +4909,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4403 2006/07/12 12:43:28 dtucker Exp $
+$Id: ChangeLog,v 1.4404 2006/07/12 12:44:34 dtucker Exp $

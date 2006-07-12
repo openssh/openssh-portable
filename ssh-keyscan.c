@@ -11,6 +11,7 @@
  
 #include "openbsd-compat/sys-queue.h"
 #include <sys/resource.h>
+#include <errno.h>
 #include <stdarg.h>
 
 #include <openssl/bn.h>
