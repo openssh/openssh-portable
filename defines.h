@@ -25,12 +25,12 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.132 2006/05/15 07:17:30 dtucker Exp $ */
+/* $Id: defines.h,v 1.133 2006/07/12 04:14:31 dtucker Exp $ */
 
 
 /* Constants */
 
-#ifndef SHUT_RDWR
+#if defined(HAVE_DECL_SHUT_RD) && HAVE_DECL_SHUT_RD == 0
 enum
 {
   SHUT_RD = 0,		/* No more receptions.  */
@@ -90,8 +90,8 @@ enum
 #endif
 #endif
 
-#ifndef O_NONBLOCK	/* Non Blocking Open */
-# define O_NONBLOCK      00004
+#if defined(HAVE_DECL_O_NONBLOCK) && HAVE_DECL_O_NONBLOCK == 0
+# define O_NONBLOCK      00004	/* Non Blocking Open */
 #endif
 
 #ifndef S_ISDIR

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.345 2006/07/11 08:00:06 dtucker Exp $
+# $Id: configure.ac,v 1.346 2006/07/12 04:14:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.345 $)
+AC_REVISION($Revision: 1.346 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1284,6 +1284,19 @@ AC_CHECK_DECL(tcsendbreak,
 )
 
 AC_CHECK_DECLS(h_errno, , ,[#include <netdb.h>])
+
+AC_CHECK_DECLS(SHUT_RD, , ,[#include <sys/socket.h>])
+
+AC_CHECK_DECLS(O_NONBLOCK, , ,
+	[
+#include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
+	])
 
 AC_CHECK_FUNCS(setresuid, [
 	dnl Some platorms have setresuid that isn't implemented, test for this
