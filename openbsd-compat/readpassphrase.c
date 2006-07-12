@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <readpassphrase.h>
+#include <errno.h>
 
 #ifdef TCSASOFT
 # define _T_FLUSH	(TCSAFLUSH|TCSASOFT)

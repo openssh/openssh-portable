@@ -36,6 +36,8 @@
 
 #include "includes.h"
 
+#include <errno.h>
+
 #define STARTPORT 600
 #define ENDPORT (IPPORT_RESERVED - 1)
 #define NPORTS	(ENDPORT - STARTPORT + 1)

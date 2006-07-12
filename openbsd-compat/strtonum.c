@@ -22,6 +22,7 @@
 #include "includes.h"
 #ifndef HAVE_STRTONUM
 #include <limits.h>
+#include <errno.h>
 
 #define INVALID 	1
 #define TOOSMALL 	2

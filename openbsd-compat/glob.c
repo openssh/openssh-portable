@@ -34,10 +34,12 @@
 /* OPENBSD ORIGINAL: lib/libc/gen/glob.c */
 
 #include "includes.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <ctype.h>
+#include <errno.h>
 #include <pwd.h>
 
 static long

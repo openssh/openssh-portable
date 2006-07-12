@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include <errno.h>
 #include <fcntl.h>
 
 #include "log.h"
