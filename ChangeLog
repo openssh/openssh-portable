@@ -6,6 +6,11 @@
    for SHUT_RD.
  - (dtucker) [openbsd-compat/port-tun.c] OpenBSD needs <netinet/in.h> before
    <netinet/ip.h>.
+ - (dtucker) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2006/07/10 16:01:57
+     [sftp-glob.c sftp-common.h sftp.c]
+     buffer.h only needed in sftp-common.h and remove some unneeded
+     user includes; ok djm@
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4855,4 +4860,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4391 2006/07/12 09:05:56 dtucker Exp $
+$Id: ChangeLog,v 1.4392 2006/07/12 12:07:08 dtucker Exp $
