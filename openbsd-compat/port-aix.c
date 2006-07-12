@@ -33,6 +33,7 @@
 
 #ifdef _AIX
 
+#include <errno.h>
 #include <uinfo.h>
 #include <sys/socket.h>
 #include "port-aix.h"

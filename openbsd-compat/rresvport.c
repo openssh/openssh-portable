@@ -35,6 +35,8 @@
 
 #ifndef HAVE_RRESVPORT_AF
 
+#include <errno.h>
+
 #if 0
 int
 rresvport(int *alport)
