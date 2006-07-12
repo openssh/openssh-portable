@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.84 2006/07/10 16:01:57 stevesk Exp $ */
+/* $OpenBSD: sftp.c,v 1.85 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -24,6 +24,8 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+
+#include <errno.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>

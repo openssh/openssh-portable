@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.41 2006/07/10 16:37:36 stevesk Exp $ */
+/* $OpenBSD: readpass.c,v 1.42 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>

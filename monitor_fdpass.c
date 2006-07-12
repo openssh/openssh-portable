@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_fdpass.c,v 1.9 2006/07/08 21:47:12 stevesk Exp $ */
+/* $OpenBSD: monitor_fdpass.c,v 1.10 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Copyright 2001 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+
+#include <errno.h>
 
 #include "log.h"
 #include "monitor_fdpass.h"

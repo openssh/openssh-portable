@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.253 2006/07/11 18:50:47 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.254 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,6 +49,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <errno.h>
 #include <termios.h>
 
 #include "ssh.h"

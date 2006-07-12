@@ -29,6 +29,13 @@
      add ExitOnForwardFailure: terminate the connection if ssh(1)
      cannot set up all requested dynamic, local, and remote port
      forwardings. ok djm, dtucker, stevesk, jmc
+   - stevesk@cvs.openbsd.org 2006/07/11 20:07:25
+     [scp.c auth.c monitor.c serverloop.c sftp-server.c sshpty.c readpass.c
+     sshd.c monitor_wrap.c monitor_fdpass.c ssh-agent.c ttymodes.c atomicio.c
+     includes.h session.c sshlogin.c monitor_mm.c packet.c sshconnect2.c
+     sftp-client.c nchan.c clientloop.c sftp.c misc.c canohost.c channels.c
+     ssh-keygen.c progressmeter.c uidswap.c msg.c readconf.c sshconnect.c]
+     move #include <errno.h> out of includes.h; ok markus@
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4878,4 +4885,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4396 2006/07/12 12:17:10 dtucker Exp $
+$Id: ChangeLog,v 1.4397 2006/07/12 12:22:46 dtucker Exp $

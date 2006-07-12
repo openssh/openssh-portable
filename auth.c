@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.69 2006/07/10 16:37:36 stevesk Exp $ */
+/* $OpenBSD: auth.c,v 1.70 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <errno.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif

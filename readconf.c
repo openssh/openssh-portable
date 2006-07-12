@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.153 2006/07/11 18:50:48 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.154 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 
 #include <ctype.h>
+#include <errno.h>
 
 #include "ssh.h"
 #include "xmalloc.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: msg.c,v 1.11 2006/03/30 09:58:15 djm Exp $ */
+/* $OpenBSD: msg.c,v 1.12 2006/07/11 20:07:25 stevesk Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
+
+#include <errno.h>
 
 #include "buffer.h"
 #include "log.h"
