@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.74 2006/07/06 10:47:05 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.75 2006/07/12 11:34:58 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -142,8 +142,13 @@ typedef struct {
 
 void	 initialize_server_options(ServerOptions *);
 void	 fill_default_server_options(ServerOptions *);
-int	 process_server_config_line(ServerOptions *, char *, const char *, int);
+int	 process_server_config_line(ServerOptions *, char *, const char *, int,
+	     int *, const char *, const char *, const char *);
 void	 load_server_config(const char *, Buffer *);
-void	 parse_server_config(ServerOptions *, const char *, Buffer *);
+void	 parse_server_config(ServerOptions *, const char *, Buffer *,
+	     const char *, const char *, const char *);
+void	 parse_server_match_config(ServerOptions *, const char *, const char *,
+	     const char *);
+void	 copy_set_server_options(ServerOptions *, ServerOptions *);
 
 #endif				/* SERVCONF_H */

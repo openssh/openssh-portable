@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.336 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: sshd.c,v 1.337 2006/07/12 11:34:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -219,11 +219,14 @@ int *startup_pipes = NULL;
 int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
-int use_privsep;
+int use_privsep = -1;
 struct monitor *pmonitor = NULL;
 
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
+
+/* sshd_config buffer */
+Buffer cfg;
 
 /* message to be displayed after login */
 Buffer loginmsg;
@@ -916,7 +919,6 @@ main(int ac, char **av)
 	Key *key;
 	Authctxt *authctxt;
 	int ret, key_used = 0;
-	Buffer cfg;
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -1036,7 +1038,7 @@ main(int ac, char **av)
 		case 'o':
 			line = xstrdup(optarg);
 			if (process_server_config_line(&options, line,
-			    "command-line", 0) != 0)
+			    "command-line", 0, NULL, NULL, NULL, NULL) != 0)
 				exit(1);
 			xfree(line);
 			break;
@@ -1094,11 +1096,8 @@ main(int ac, char **av)
 	else
 		load_server_config(config_file_name, &cfg);
 
-	parse_server_config(&options,
-	    rexeced_flag ? "rexec" : config_file_name, &cfg);
-
-	if (!rexec_flag)
-		buffer_free(&cfg);
+	parse_server_config(&options, rexeced_flag ? "rexec" : config_file_name,
+	    &cfg, NULL, NULL, NULL);
 
 	seed_rng();
 

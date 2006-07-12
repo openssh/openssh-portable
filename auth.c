@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.70 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: auth.c,v 1.71 2006/07/12 11:34:58 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -466,6 +466,9 @@ getpwnamallow(const char *user)
 #endif
 #endif
 	struct passwd *pw;
+
+	parse_server_match_config(&options, user,
+	    get_canonical_hostname(options.use_dns), get_remote_ipaddr());
 
 	pw = getpwnam(user);
 	if (pw == NULL) {

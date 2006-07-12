@@ -43,6 +43,18 @@
    - stevesk@cvs.openbsd.org 2006/07/11 20:27:56
      [authfile.c ssh.c]
      need <errno.h> here also (it's also included in <openssl/err.h>)
+   - dtucker@cvs.openbsd.org 2006/07/12 11:34:58
+     [sshd.c servconf.h servconf.c sshd_config.5 auth.c]
+     Add support for conditional directives to sshd_config via a "Match"
+     keyword, which works similarly to the "Host" directive in ssh_config.
+     Lines after a Match line override the default set in the main section
+     if the condition on the Match line is true, eg
+     AllowTcpForwarding yes
+     Match User anoncvs
+             AllowTcpForwarding no
+     will allow port forwarding by all users except "anoncvs".
+     Currently only a very small subset of directives are supported.
+     ok djm@
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4892,4 +4904,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4399 2006/07/12 12:24:22 dtucker Exp $
+$Id: ChangeLog,v 1.4400 2006/07/12 12:34:17 dtucker Exp $
