@@ -40,6 +40,7 @@
 #include "auth.h"
 
 #ifdef KRB5
+#include <errno.h>
 #include <krb5.h>
 
 extern ServerOptions	 options;

@@ -1,3 +1,6 @@
+20060713
+ - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
+
 20060712
  - (dtucker) [configure.ac defines.h] Only define SHUT_RD (and friends) and
    O_NONBLOCK if they're really needed.  Fixes build errors on HP-UX, old
@@ -63,7 +66,6 @@
  - (dtucker) [openbsd-compat/openbsd-compat.h] v*printf needs stdarg.h.
  - (dtucker) [openbsd-compat/bsd-asprintf.c openbsd-compat/port-aix.c
    openbsd-compat/rresvport.c] More errno.h.
-
 
 20060711
  - (dtucker) [configure.ac ssh-keygen.c openbsd-compat/bsd-openpty.c
@@ -4913,4 +4915,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4406 2006/07/12 13:41:33 dtucker Exp $
+$Id: ChangeLog,v 1.4407 2006/07/12 22:45:14 dtucker Exp $
