@@ -73,6 +73,9 @@
    - stevesk@cvs.openbsd.org 2006/07/21 21:13:30
      [channels.c]
      more ARGSUSED (lint) for dispatch table-driven functions; ok djm@
+   - stevesk@cvs.openbsd.org 2006/07/21 21:26:55
+     [progressmeter.c]
+     ARGSUSED for signal handler
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4991,4 +4994,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4425 2006/07/24 04:08:32 djm Exp $
+$Id: ChangeLog,v 1.4426 2006/07/24 04:08:50 djm Exp $

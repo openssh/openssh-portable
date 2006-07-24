@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.31 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.32 2006/07/21 21:26:55 stevesk Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -222,6 +222,7 @@ refresh_progress_meter(void)
 	last_update = now;
 }
 
+/*ARGSUSED*/
 static void
 update_progress_meter(int ignore)
 {
