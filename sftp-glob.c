@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-glob.c,v 1.20 2006/07/10 16:01:57 stevesk Exp $ */
+/* $OpenBSD: sftp-glob.c,v 1.21 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -21,8 +21,9 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
- 
+
 #include <dirent.h>
+#include <string.h>
 
 #include "xmalloc.h"
 

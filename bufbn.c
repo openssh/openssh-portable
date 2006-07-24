@@ -1,4 +1,4 @@
-/* $OpenBSD: bufbn.c,v 1.1 2006/04/18 10:44:28 dtucker Exp $*/
+/* $OpenBSD: bufbn.c,v 1.2 2006/07/22 20:48:22 stevesk Exp $*/
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -40,6 +40,9 @@
 #include "includes.h"
 
 #include <openssl/bn.h>
+
+#include <string.h>
+
 #include "bufaux.h"
 #include "xmalloc.h"
 #include "log.h"

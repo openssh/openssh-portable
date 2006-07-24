@@ -1,4 +1,4 @@
-/* $OpenBSD: canohost.c,v 1.57 2006/07/12 22:28:51 stevesk Exp $ */
+/* $OpenBSD: canohost.c,v 1.58 2006/07/22 20:48:22 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -24,6 +24,7 @@
 #if defined(HAVE_NETDB_H)
 # include <netdb.h>
 #endif
+#include <string.h>
 
 #include "packet.h"
 #include "xmalloc.h"

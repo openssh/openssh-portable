@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.64 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: key.c,v 1.65 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,6 +35,8 @@
 #include "includes.h"
 
 #include <openssl/evp.h>
+
+#include <string.h>
 
 #include "xmalloc.h"
 #include "key.h"

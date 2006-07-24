@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.79 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.80 2006/07/22 20:48:22 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,11 +37,13 @@
 
 #include "includes.h"
 
+#include <openssl/md5.h>
+
+#include <string.h>
+
 #include "xmalloc.h"
 #include "log.h"
 #include "cipher.h"
-
-#include <openssl/md5.h>
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"

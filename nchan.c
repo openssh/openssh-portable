@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.55 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: nchan.c,v 1.56 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -29,6 +29,7 @@
 #include <sys/socket.h>
 
 #include <errno.h>
+#include <string.h>
 
 #include "ssh1.h"
 #include "ssh2.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.6 2006/05/18 21:27:25 miod Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.7 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -25,6 +25,8 @@
  */
 
 #include "includes.h"
+
+#include <string.h>
 
 #include "xmalloc.h"
 #include "key.h"

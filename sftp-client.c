@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.68 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.69 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "openbsd-compat/sys-queue.h"

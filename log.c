@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.34 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: log.c,v 1.35 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,6 +37,7 @@
 #include "includes.h"
 
 #include <stdarg.h>
+#include <string.h>
 #include <syslog.h>
 #include <unistd.h>
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H)

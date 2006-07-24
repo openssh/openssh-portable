@@ -1,4 +1,4 @@
-/* $OpenBSD: rsa.c,v 1.26 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: rsa.c,v 1.27 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -61,6 +61,8 @@
  */
 
 #include "includes.h"
+
+#include <string.h>
 
 #include "rsa.h"
 #include "log.h"

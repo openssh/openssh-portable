@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.149 2006/07/17 01:31:10 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.150 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -30,6 +30,7 @@
 # include <paths.h>
 #endif
 #include <pwd.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "xmalloc.h"

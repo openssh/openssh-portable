@@ -80,6 +80,21 @@
      [includes.h moduli.c progressmeter.c scp.c sftp-common.c]
      [sftp-server.c ssh-agent.c sshlogin.c]
      move #include <time.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/22 20:48:23
+     [atomicio.c auth-options.c auth-passwd.c auth-rhosts.c auth-rsa.c]
+     [auth.c auth1.c auth2-chall.c auth2-hostbased.c auth2-passwd.c auth2.c]
+     [authfd.c authfile.c bufaux.c bufbn.c buffer.c canohost.c channels.c]
+     [cipher-3des1.c cipher-bf1.c cipher-ctr.c cipher.c clientloop.c]
+     [compat.c deattack.c dh.c dns.c gss-genr.c gss-serv.c hostfile.c]
+     [includes.h kex.c kexdhc.c kexdhs.c kexgexc.c kexgexs.c key.c log.c]
+     [mac.c match.c md-sha256.c misc.c moduli.c monitor.c monitor_fdpass.c]
+     [monitor_mm.c monitor_wrap.c msg.c nchan.c packet.c rsa.c]
+     [progressmeter.c readconf.c readpass.c scp.c servconf.c serverloop.c]
+     [session.c sftp-client.c sftp-common.c sftp-glob.c sftp-server.c sftp.c]
+     [ssh-add.c ssh-agent.c ssh-dss.c ssh-keygen.c ssh-keyscan.c]
+     [ssh-keysign.c ssh-rsa.c ssh.c sshconnect.c sshconnect1.c sshconnect2.c]
+     [sshd.c sshlogin.c sshpty.c ttymodes.c uidswap.c xmalloc.c]
+     move #include <string.h> out of includes.h
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4998,4 +5013,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4427 2006/07/24 04:09:40 djm Exp $
+$Id: ChangeLog,v 1.4428 2006/07/24 04:13:33 djm Exp $

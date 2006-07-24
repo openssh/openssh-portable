@@ -1,4 +1,4 @@
-/* $OpenBSD: buffer.c,v 1.27 2006/04/16 00:48:52 djm Exp $ */
+/* $OpenBSD: buffer.c,v 1.28 2006/07/22 20:48:22 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -13,6 +13,8 @@
  */
 
 #include "includes.h"
+
+#include <string.h>
 
 #include "xmalloc.h"
 #include "buffer.h"

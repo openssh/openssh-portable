@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.288 2006/07/17 01:31:10 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.289 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -63,6 +63,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <stddef.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <openssl/evp.h>

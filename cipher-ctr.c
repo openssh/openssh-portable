@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher-ctr.c,v 1.8 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: cipher-ctr.c,v 1.9 2006/07/22 20:48:22 stevesk Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
+
+#include <string.h>
 
 #include <openssl/evp.h>
 

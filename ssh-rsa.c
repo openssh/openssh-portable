@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.37 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.38 2006/07/22 20:48:23 stevesk Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -18,6 +18,8 @@
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
+
+#include <string.h>
 
 #include "xmalloc.h"
 #include "log.h"

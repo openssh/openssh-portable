@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.111 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: auth2.c,v 1.112 2006/07/22 20:48:22 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 
 #include <pwd.h>
+#include <string.h>
 
 #include "ssh2.h"
 #include "xmalloc.h"
