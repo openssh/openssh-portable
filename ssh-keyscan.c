@@ -14,9 +14,7 @@
 
 #include <openssl/bn.h>
 
-#if defined(HAVE_NETDB_H)
-# include <netdb.h>
-#endif
+#include <netdb.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <setjmp.h>

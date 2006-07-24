@@ -29,6 +29,8 @@
 #ifdef GSSAPI
 #ifdef KRB5
 
+#include <string.h>
+
 #include "auth.h"
 #include "xmalloc.h"
 #include "log.h"

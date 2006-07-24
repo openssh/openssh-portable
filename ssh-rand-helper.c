@@ -41,6 +41,8 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <signal.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <openssl/rand.h>
 #include <openssl/sha.h>

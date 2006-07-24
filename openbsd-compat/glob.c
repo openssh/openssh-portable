@@ -41,6 +41,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include <pwd.h>
+#include <string.h>
+#include <unistd.h>
 
 static long
 get_arg_max(void)

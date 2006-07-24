@@ -17,6 +17,7 @@
 
 #include "includes.h"
 
+#include <string.h>
 #include <signal.h>
 
 #include "xmalloc.h"

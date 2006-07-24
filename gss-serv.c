@@ -29,6 +29,7 @@
 #ifdef GSSAPI
 
 #include <string.h>
+#include <unistd.h>
 
 #include "bufaux.h"
 #include "auth.h"

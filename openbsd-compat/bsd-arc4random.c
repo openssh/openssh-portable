@@ -15,6 +15,10 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+#include <string.h>
+
 #include "log.h"
 
 #ifndef HAVE_ARC4RANDOM

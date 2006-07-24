@@ -148,7 +148,7 @@ main(int argc, char **argv)
 {
 	Buffer b;
 	Options options;
-	Key *keys[2], *key;
+	Key *keys[2], *key = NULL;
 	struct passwd *pw;
 	int key_fd[2], i, found, version = 2, fd;
 	u_char *signature, *data;

@@ -26,6 +26,7 @@
 
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #include <shadow.h>
+#include <string.h>
 
 #include "auth.h"
 #include "buffer.h"

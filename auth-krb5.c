@@ -41,6 +41,8 @@
 
 #ifdef KRB5
 #include <errno.h>
+#include <unistd.h>
+#include <string.h>
 #include <krb5.h>
 
 extern ServerOptions	 options;

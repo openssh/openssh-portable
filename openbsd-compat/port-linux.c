@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.1 2006/04/22 11:26:08 djm Exp $ */
+/* $Id: port-linux.c,v 1.2 2006/07/24 04:51:01 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -22,6 +22,9 @@
  */
 
 #include "includes.h"
+
+#include <errno.h>
+#include <string.h>
 
 #ifdef WITH_SELINUX
 #include "log.h"

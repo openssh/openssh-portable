@@ -23,6 +23,8 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "log.h"
 #include "misc.h"

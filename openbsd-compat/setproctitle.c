@@ -40,6 +40,7 @@
 #ifdef HAVE_SYS_PSTAT_H
 #include <sys/pstat.h>
 #endif
+#include <string.h>
 
 #define SPT_NONE	0	/* don't use it at all */
 #define SPT_PSTAT	1	/* use pstat(PSTAT_SETCMD, ...) */

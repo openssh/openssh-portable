@@ -15,6 +15,8 @@
 #ifndef SSH_LOG_H
 #define SSH_LOG_H
 
+#include "includes.h"
+
 #include <stdarg.h>
 
 #include <syslog.h> /* Needed for LOG_AUTHPRIV (if present) */

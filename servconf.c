@@ -15,9 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#if defined(HAVE_NETDB_H)
-# include <netdb.h>
-#endif
+#include <netdb.h>
 #include <string.h>
 #include <unistd.h>
 

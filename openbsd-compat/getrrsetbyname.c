@@ -49,6 +49,8 @@
 
 #ifndef HAVE_GETRRSETBYNAME
 
+#include <string.h>
+
 #include "getrrsetbyname.h"
 
 #if defined(HAVE_DECL_H_ERRNO) && !HAVE_DECL_H_ERRNO

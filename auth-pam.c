@@ -54,6 +54,8 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -152,14 +154,16 @@ sshpam_sigchld_handler(int sig)
 		fatal("PAM: authentication thread exited uncleanly");
 }
 
+/* ARGSUSED */
 static void
-pthread_exit(void *value __unused)
+pthread_exit(void *value)
 {
 	_exit(0);
 }
 
+/* ARGSUSED */
 static int
-pthread_create(sp_pthread_t *thread, const void *attr __unused,
+pthread_create(sp_pthread_t *thread, const void *attr,
     void *(*thread_start)(void *), void *arg)
 {
 	pid_t pid;
@@ -191,8 +195,9 @@ pthread_cancel(sp_pthread_t thread)
 	return (kill(thread, SIGTERM));
 }
 
+/* ARGSUSED */
 static int
-pthread_join(sp_pthread_t thread, void **value __unused)
+pthread_join(sp_pthread_t thread, void **value)
 {
 	int status;
 

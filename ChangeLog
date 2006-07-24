@@ -99,6 +99,19 @@
      [auth.h dispatch.c kex.h sftp-client.c]
      #include <signal.h> for sig_atomic_t; need this prior to <sys/param.h>
      move
+ - (djm) [acss.c auth-krb5.c auth-options.c auth-pam.c auth-shadow.c]
+   [canohost.c channels.c cipher-acss.c defines.h dns.c gss-genr.c]
+   [gss-serv-krb5.c gss-serv.c log.h loginrec.c logintest.c readconf.c]
+   [servconf.c ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh-rand-helper.c]
+   [ssh.c sshconnect.c sshd.c openbsd-compat/bindresvport.c]
+   [openbsd-compat/bsd-arc4random.c openbsd-compat/bsd-misc.c]
+   [openbsd-compat/getrrsetbyname.c openbsd-compat/glob.c]
+   [openbsd-compat/mktemp.c openbsd-compat/port-linux.c]
+   [openbsd-compat/port-tun.c openbsd-compat/readpassphrase.c]
+   [openbsd-compat/setproctitle.c openbsd-compat/xmmap.c]
+   make the portable tree compile again - sprinkle unistd.h and string.h 
+   back in. Don't redefine __unused, as it turned out to be used in
+   headers on Linux, and replace its use in auth-pam.c with ARGSUSED
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5017,4 +5030,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4429 2006/07/24 04:14:19 djm Exp $
+$Id: ChangeLog,v 1.4430 2006/07/24 04:51:00 djm Exp $

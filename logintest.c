@@ -40,9 +40,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pwd.h>
-#if defined(HAVE_NETDB_H)
-# include <netdb.h>
-#endif
+#include <netdb.h>
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
