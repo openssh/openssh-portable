@@ -70,6 +70,9 @@
      Make PermitOpen take a list of permitted ports and act more like most
      other keywords (ie the first match is the effective setting). This
      also makes it easier to override a previously set PermitOpen. ok djm@
+   - stevesk@cvs.openbsd.org 2006/07/21 21:13:30
+     [channels.c]
+     more ARGSUSED (lint) for dispatch table-driven functions; ok djm@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4988,4 +4991,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4424 2006/07/24 04:08:13 djm Exp $
+$Id: ChangeLog,v 1.4425 2006/07/24 04:08:32 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.258 2006/07/21 12:43:36 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.259 2006/07/21 21:13:30 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -736,12 +736,14 @@ typedef void chan_fn(Channel *c, fd_set *readset, fd_set *writeset);
 chan_fn *channel_pre[SSH_CHANNEL_MAX_TYPE];
 chan_fn *channel_post[SSH_CHANNEL_MAX_TYPE];
 
+/* ARGSUSED */
 static void
 channel_pre_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	FD_SET(c->sock, readset);
 }
 
+/* ARGSUSED */
 static void
 channel_pre_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -796,6 +798,7 @@ channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 		FD_SET(c->ctl_fd, readset);
 }
 
+/* ARGSUSED */
 static void
 channel_pre_input_draining(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -808,6 +811,7 @@ channel_pre_input_draining(Channel *c, fd_set *readset, fd_set *writeset)
 	}
 }
 
+/* ARGSUSED */
 static void
 channel_pre_output_draining(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -937,6 +941,7 @@ channel_pre_x11_open(Channel *c, fd_set *readset, fd_set *writeset)
 }
 
 /* try to decode a socks4 header */
+/* ARGSUSED */
 static int
 channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1015,6 +1020,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 #define SSH_SOCKS5_CONNECT	0x01
 #define SSH_SOCKS5_SUCCESS	0x00
 
+/* ARGSUSED */
 static int
 channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1165,6 +1171,7 @@ channel_pre_dynamic(Channel *c, fd_set *readset, fd_set *writeset)
 }
 
 /* This is our fake X11 server socket. */
+/* ARGSUSED */
 static void
 channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1290,6 +1297,7 @@ channel_set_reuseaddr(int fd)
 /*
  * This socket is listening for connections to a forwarded TCP/IP port.
  */
+/* ARGSUSED */
 static void
 channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1347,6 +1355,7 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
  * This is the authentication agent socket listening for connections from
  * clients.
  */
+/* ARGSUSED */
 static void
 channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1380,6 +1389,7 @@ channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 	}
 }
 
+/* ARGSUSED */
 static void
 channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1426,6 +1436,7 @@ channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 	}
 }
 
+/* ARGSUSED */
 static int
 channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1473,6 +1484,7 @@ channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 	return 1;
 }
 
+/* ARGSUSED */
 static int
 channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1605,6 +1617,7 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 	return 1;
 }
 
+/* ARGSUSED */
 static int
 channel_handle_ctl(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -1667,6 +1680,7 @@ channel_post_open(Channel *c, fd_set *readset, fd_set *writeset)
 	channel_check_window(c);
 }
 
+/* ARGSUSED */
 static void
 channel_post_output_drain_13(Channel *c, fd_set *readset, fd_set *writeset)
 {
@@ -3054,6 +3068,7 @@ x11_connect_display(void)
  * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
  */
 
+/* ARGSUSED */
 void
 x11_input_open(int type, u_int32_t seq, void *ctxt)
 {
@@ -3097,6 +3112,7 @@ x11_input_open(int type, u_int32_t seq, void *ctxt)
 }
 
 /* dummy protocol handler that denies SSH-1 requests (agent/x11) */
+/* ARGSUSED */
 void
 deny_input_open(int type, u_int32_t seq, void *ctxt)
 {
