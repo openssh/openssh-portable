@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.278 2006/04/23 02:15:08 djm Exp $
+# $Id: Makefile.in,v 1.279 2006/07/24 05:30:19 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -203,7 +203,8 @@ clean:	regressclean
 distclean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core opensshd.init
-	rm -f Makefile buildpkg.sh config.h config.status ssh_prng_cmds survey.sh *~
+	rm -f Makefile buildpkg.sh config.h config.status ssh_prng_cmds
+	rm -f survey.sh openbsd-compat/regress/Makefile *~ 
 	rm -rf autom4te.cache
 	(cd openbsd-compat && $(MAKE) distclean)
 	(cd scard && $(MAKE) distclean)

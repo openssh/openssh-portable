@@ -129,6 +129,8 @@
    [openbsd-compat/rresvport.c]
    These look to need string.h and/or unistd.h (based on a grep for function
    names)
+ - (djm) [Makefile.in]
+   Remove generated openbsd-compat/regress/Makefile in distclean target
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5047,4 +5049,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4434 2006/07/24 05:08:35 djm Exp $
+$Id: ChangeLog,v 1.4435 2006/07/24 05:30:18 djm Exp $
