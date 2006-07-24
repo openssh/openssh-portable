@@ -131,6 +131,10 @@
    names)
  - (djm) [Makefile.in]
    Remove generated openbsd-compat/regress/Makefile in distclean target
+ - (djm) [regress/Makefile regress/agent-getpeereid.sh regress/cfgmatch.sh]
+   [regress/cipher-speed.sh regress/forcecommand.sh regress/forwarding.sh]
+   Sync regress tests to -current; include dtucker@'s new cfgmatch and 
+   forcecommand tests. Add cipher-speed.sh test (not linked in yet)
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5049,4 +5053,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4435 2006/07/24 05:30:18 djm Exp $
+$Id: ChangeLog,v 1.4436 2006/07/24 05:31:41 djm Exp $
