@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.209 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: session.c,v 1.210 2006/07/19 13:07:10 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -672,10 +672,14 @@ do_pre_login(Session *s)
 void
 do_exec(Session *s, const char *command)
 {
-	if (forced_command) {
+	if (options.adm_forced_command) {
+		original_command = command;
+		command = options.adm_forced_command;
+		debug("Forced command (config) '%.900s'", command);
+	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
-		debug("Forced command '%.900s'", command);
+		debug("Forced command (key option) '%.900s'", command);
 	}
 
 #ifdef SSH_AUDIT_EVENTS

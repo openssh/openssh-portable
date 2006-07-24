@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.232 2006/07/10 16:04:21 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.233 2006/07/19 13:07:10 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -481,6 +481,9 @@ to restrict certain public keys to perform just a specific operation.
 An example might be a key that permits remote backups but nothing else.
 Note that the client may specify TCP and/or X11
 forwarding unless they are explicitly prohibited.
+The command originally supplied by the client is available in the
+.Ev SSH_ORIGINAL_COMMAND
+environment variable.
 Note that this option applies to shell, command or subsystem execution.
 .It Cm environment="NAME=value"
 Specifies that the string is to be added to the environment when

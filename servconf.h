@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.75 2006/07/12 11:34:58 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.76 2006/07/19 13:07:10 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -134,6 +134,8 @@ typedef struct {
 
 	char   *authorized_keys_file;	/* File containing public keys */
 	char   *authorized_keys_file2;
+
+	char   *adm_forced_command;
 
 	int	use_pam;		/* Enable auth via PAM */
 

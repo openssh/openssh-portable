@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.157 2006/07/19 08:56:41 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.158 2006/07/19 13:07:10 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -113,6 +113,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_keys_file2 = NULL;
 	options->num_accept_env = 0;
 	options->permit_tun = -1;
+	options->adm_forced_command = NULL;
 }
 
 void
@@ -282,7 +283,7 @@ typedef enum {
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
 	sGssAuthentication, sGssCleanupCreds, sAcceptEnv, sPermitTunnel,
-	sMatch, sPermitOpen,
+	sMatch, sPermitOpen, sForceCommand,
 	sUsePrivilegeSeparation,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
@@ -393,6 +394,7 @@ static struct {
 	{ "permittunnel", sPermitTunnel, SSHCFG_GLOBAL },
  	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
+	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -550,6 +552,8 @@ match_cfg_line(char **condition, int line, const char *user, const char *host,
 	*condition = cp;
 	return result;
 }
+
+#define WHITESPACE " \t\r\n"
 
 int
 process_server_config_line(ServerOptions *options, char *line,
@@ -1173,6 +1177,15 @@ parse_flag:
 			channel_add_adm_permitted_opens(p, port);
 		break;
 
+	case sForceCommand:
+		if (cp == NULL)
+			fatal("%.200s line %d: Missing argument.", filename,
+			    linenum);
+		len = strspn(cp, WHITESPACE);
+		if (*activep && options->adm_forced_command == NULL)
+			options->adm_forced_command = xstrdup(cp + len);
+		return 0;
+
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
@@ -1247,6 +1260,11 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src)
 		dst->allow_tcp_forwarding = src->allow_tcp_forwarding;
 	if (src->gateway_ports != -1)
 		dst->gateway_ports = src->gateway_ports;
+	if (src->adm_forced_command != NULL) {
+		if (dst->adm_forced_command != NULL)
+			xfree(dst->adm_forced_command);
+		dst->adm_forced_command = src->adm_forced_command;
+	}
 	if (src->x11_display_offset != -1)
 		dst->x11_display_offset = src->x11_display_offset;
 	if (src->x11_forwarding != -1)

@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.73 2005/12/06 22:38:28 reyk Exp $
+#	$OpenBSD: sshd_config,v 1.74 2006/07/19 13:07:10 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -104,3 +104,9 @@
 
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server
+
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#	X11Forwarding no
+#	AllowTcpForwarding no
+#	ForceCommand cvs server

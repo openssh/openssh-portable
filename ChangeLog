@@ -56,6 +56,11 @@
      [servconf.c sshd_config.5]
      Add support for X11Forwaring, X11DisplayOffset and X11UseLocalhost to
      Match.  ok djm@
+   - dtucker@cvs.openbsd.org 2006/07/19 13:07:10
+     [servconf.c servconf.h session.c sshd.8 sshd_config sshd_config.5]
+     Add ForceCommand keyword to sshd_config, equivalent to the "command="
+     key option, man page entry and example in sshd_config.
+     Feedback & ok djm@, man page corrections & ok jmc@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4974,4 +4979,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4421 2006/07/24 04:05:48 djm Exp $
+$Id: ChangeLog,v 1.4422 2006/07/24 04:06:47 djm Exp $
