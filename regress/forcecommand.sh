@@ -5,9 +5,9 @@ tid="forced command"
 
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
-echo -n 'command="true" ' >$OBJ/authorized_keys_$USER
+echon 'command="true" ' >$OBJ/authorized_keys_$USER
 cat $OBJ/rsa.pub >> $OBJ/authorized_keys_$USER
-echo -n 'command="true" ' >>$OBJ/authorized_keys_$USER
+echon 'command="true" ' >>$OBJ/authorized_keys_$USER
 cat $OBJ/rsa1.pub >> $OBJ/authorized_keys_$USER
 
 for p in 1 2; do
@@ -16,9 +16,9 @@ for p in 1 2; do
 	    fail "forced command in key proto $p"
 done
 
-echo -n 'command="false" ' >$OBJ/authorized_keys_$USER
+echon 'command="false" ' >$OBJ/authorized_keys_$USER
 cat $OBJ/rsa.pub >> $OBJ/authorized_keys_$USER
-echo -n 'command="false" ' >>$OBJ/authorized_keys_$USER
+echon 'command="false" ' >>$OBJ/authorized_keys_$USER
 cat $OBJ/rsa1.pub >> $OBJ/authorized_keys_$USER
 
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy

@@ -137,6 +137,7 @@
    forcecommand tests. Add cipher-speed.sh test (not linked in yet)
  - (dtucker) [cleanup.c] Since config.h defines _LARGE_FILES on AIX, including
    system headers before defines.h will cause conflicting definitions.
+ - (dtucker) [regress/forcecommand.sh] Portablize.
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5055,4 +5056,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4437 2006/07/24 13:19:40 dtucker Exp $
+$Id: ChangeLog,v 1.4438 2006/07/24 13:50:23 dtucker Exp $
