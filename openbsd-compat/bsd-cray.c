@@ -1,5 +1,5 @@
 /* 
- * $Id: bsd-cray.c,v 1.14 2005/02/02 06:10:11 dtucker Exp $
+ * $Id: bsd-cray.c,v 1.15 2006/07/24 05:08:36 djm Exp $
  *
  * bsd-cray.c
  *
@@ -53,6 +53,8 @@
 #include <sys/stat.h>
 #include <sys/session.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <pwd.h>
 #include <fcntl.h>
 #include <errno.h>

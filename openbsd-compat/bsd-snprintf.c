@@ -108,6 +108,8 @@
 
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
+#include <string.h>
+
 #ifdef HAVE_LONG_DOUBLE
 # define LDOUBLE long double
 #else

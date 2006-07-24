@@ -122,7 +122,14 @@
  - (djm) [session.c]
    fix compile error with -Werror -Wall: 'path' is only used in
    do_setup_env() if HAVE_LOGIN_CAP is not defined
-  
+ - (djm) [openbsd-compat/basename.c openbsd-compat/bsd-closefrom.c]
+   [openbsd-compat/bsd-cray.c openbsd-compat/bsd-openpty.c]
+   [openbsd-compat/bsd-snprintf.c openbsd-compat/fake-rfc2553.c]
+   [openbsd-compat/port-aix.c openbsd-compat/port-irix.c]
+   [openbsd-compat/rresvport.c]
+   These look to need string.h and/or unistd.h (based on a grep for function
+   names)
+
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
 
@@ -5040,4 +5047,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4433 2006/07/24 05:03:06 djm Exp $
+$Id: ChangeLog,v 1.4434 2006/07/24 05:08:35 djm Exp $

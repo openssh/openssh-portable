@@ -36,6 +36,7 @@
  */
 
 #include "includes.h"
+#include <string.h>
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 

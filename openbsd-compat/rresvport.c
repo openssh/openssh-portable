@@ -36,6 +36,7 @@
 #ifndef HAVE_RRESVPORT_AF
 
 #include <errno.h>
+#include <string.h>
 
 #if 0
 int

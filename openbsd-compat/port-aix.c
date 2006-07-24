@@ -38,6 +38,8 @@
 # include <netdb.h>
 #endif
 #include <uinfo.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include "port-aix.h"
 

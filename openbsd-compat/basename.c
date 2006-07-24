@@ -20,6 +20,7 @@
 
 #include "includes.h"
 #ifndef HAVE_BASENAME
+#include <string.h>
 
 char *
 basename(const char *path)

@@ -57,6 +57,8 @@
 #endif
 
 #include <signal.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifndef O_NOCTTY
 #define O_NOCTTY 0
