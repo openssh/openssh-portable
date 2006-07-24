@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.37 2006/07/12 22:28:51 stevesk Exp $ */
+/* $OpenBSD: auth-options.c,v 1.38 2006/07/17 12:02:24 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -138,7 +138,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				forced_command = NULL;
 				goto bad_option;
 			}
-			forced_command[i] = 0;
+			forced_command[i] = '\0';
 			auth_debug_add("Forced command: %.900s", forced_command);
 			opts++;
 			goto next_option;
@@ -170,7 +170,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				xfree(s);
 				goto bad_option;
 			}
-			s[i] = 0;
+			s[i] = '\0';
 			auth_debug_add("Adding to environment: %.900s", s);
 			debug("Adding to environment: %.900s", s);
 			opts++;
@@ -207,7 +207,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				xfree(patterns);
 				goto bad_option;
 			}
-			patterns[i] = 0;
+			patterns[i] = '\0';
 			opts++;
 			if (match_host_and_ip(remote_host, remote_ip,
 			    patterns) != 1) {
@@ -252,7 +252,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				xfree(patterns);
 				goto bad_option;
 			}
-			patterns[i] = 0;
+			patterns[i] = '\0';
 			opts++;
 			p = patterns;
 			host = hpdelim(&p);
@@ -300,7 +300,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				forced_tun_device = -1;
 				goto bad_option;
 			}
-			tun[i] = 0;
+			tun[i] = '\0';
 			forced_tun_device = a2tun(tun, NULL);
 			xfree(tun);
 			if (forced_tun_device == SSH_TUNID_ERR) {
