@@ -9,6 +9,9 @@
      [auth-options.c canohost.c channels.c includes.h readconf.c]
      [servconf.c ssh-keyscan.c ssh.c sshconnect.c sshd.c]
      move #include <netdb.h> out of includes.h; ok djm@
+   - stevesk@cvs.openbsd.org 2006/07/12 22:42:32
+     [includes.h ssh.c ssh-rand-helper.c]
+     move #include <stddef.h> out of includes.h
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4927,4 +4930,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4410 2006/07/24 03:52:06 djm Exp $
+$Id: ChangeLog,v 1.4411 2006/07/24 03:53:19 djm Exp $

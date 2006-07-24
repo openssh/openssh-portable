@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <stddef.h>
 
 #include <netinet/in.h>
 
