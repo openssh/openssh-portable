@@ -44,6 +44,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) || \
+    !defined(GLOB_HAS_GL_MATCHC)
+
 static long
 get_arg_max(void)
 {
@@ -55,9 +58,6 @@ get_arg_max(void)
 	return(256); /* XXX: arbitrary */
 #endif
 }
-
-#if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) || \
-    !defined(GLOB_HAS_GL_MATCHC)
 
 /*
  * glob(3) -- a superset of the one defined in POSIX 1003.2.

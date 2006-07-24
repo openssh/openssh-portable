@@ -112,6 +112,10 @@
    make the portable tree compile again - sprinkle unistd.h and string.h 
    back in. Don't redefine __unused, as it turned out to be used in
    headers on Linux, and replace its use in auth-pam.c with ARGSUSED
+ - (djm) [openbsd-compat/glob.c]
+   Move get_arg_max() into the ifdef HAVE_GLOB block so that it compiles
+   on OpenBSD (or other platforms with a decent glob implementation) with
+   -Werror
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5030,4 +5034,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4430 2006/07/24 04:51:00 djm Exp $
+$Id: ChangeLog,v 1.4431 2006/07/24 04:55:47 djm Exp $
