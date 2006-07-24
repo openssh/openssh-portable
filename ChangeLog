@@ -49,6 +49,9 @@
    - dtucker@cvs.openbsd.org 2006/07/18 08:22:23
      [sshd_config.5]
      Clarify description of Match, with minor correction from jmc@
+   - stevesk@cvs.openbsd.org 2006/07/18 22:27:55
+     [dh.c]
+     remove unneeded includes; ok djm@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4967,4 +4970,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4419 2006/07/24 04:05:08 djm Exp $
+$Id: ChangeLog,v 1.4420 2006/07/24 04:05:24 djm Exp $
