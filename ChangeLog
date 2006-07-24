@@ -12,6 +12,10 @@
    - stevesk@cvs.openbsd.org 2006/07/12 22:42:32
      [includes.h ssh.c ssh-rand-helper.c]
      move #include <stddef.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/14 01:15:28
+     [monitor_wrap.h]
+     don't need incompletely-typed 'struct passwd' now with
+     #include <pwd.h>; ok markus@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4930,4 +4934,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4411 2006/07/24 03:53:19 djm Exp $
+$Id: ChangeLog,v 1.4412 2006/07/24 03:55:56 djm Exp $
