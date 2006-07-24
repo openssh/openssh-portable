@@ -1,3 +1,11 @@
+20060724
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2006/07/12 13:39:55
+     [sshd_config.5]
+      - new sentence, new line
+      - s/The the/The/
+      - kill a bad comma
+
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
 
@@ -4915,4 +4923,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4407 2006/07/12 22:45:14 dtucker Exp $
+$Id: ChangeLog,v 1.4408 2006/07/24 03:46:50 djm Exp $

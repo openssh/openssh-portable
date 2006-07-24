@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.60 2006/07/12 11:34:58 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.61 2006/07/12 13:39:55 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -464,12 +464,13 @@ Multiple algorithms must be comma-separated.
 The default is:
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
 .It Cm Match
-Introduces a conditional block.  Keywords on lines following a
+Introduces a conditional block.
+Keywords on lines following a
 .Cm Match
 block are only applied if all of the criteria on the
 .Cm Match
 are satisfied.
-The the arguments to
+The arguments to
 .Cm Match
 block are one or more criteria-pattern pairs.
 The available criteria are
@@ -481,7 +482,7 @@ Only a subset of keywords may be used on the lines following a
 .Cm Match
 keyword.
 Available keywords are
-.Cm AllowTcpForwarding ,
+.Cm AllowTcpForwarding
 and
 .Cm GatewayPorts .
 .It Cm MaxAuthTries
