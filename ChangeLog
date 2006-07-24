@@ -37,6 +37,9 @@
      Note that users can still use external forwarders such as netcat,
      so to be those must be controlled too for the limits to be effective.
      Feedback & ok djm@, man page corrections & ok jmc@.
+   - jmc@cvs.openbsd.org 2006/07/18 07:50:40
+     [sshd_config.5]
+     tweak; ok dtucker
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4955,4 +4958,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4415 2006/07/24 04:04:00 djm Exp $
+$Id: ChangeLog,v 1.4416 2006/07/24 04:04:16 djm Exp $
