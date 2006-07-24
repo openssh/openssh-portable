@@ -116,6 +116,9 @@
    Move get_arg_max() into the ifdef HAVE_GLOB block so that it compiles
    on OpenBSD (or other platforms with a decent glob implementation) with
    -Werror
+ - (djm) [uuencode.c]
+   Add resolv.h, is it contains the prototypes for __b64_ntop/__b64_pton on
+   some platforms
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5034,4 +5037,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4431 2006/07/24 04:55:47 djm Exp $
+$Id: ChangeLog,v 1.4432 2006/07/24 04:58:07 djm Exp $

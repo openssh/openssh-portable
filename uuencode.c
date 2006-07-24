@@ -29,6 +29,8 @@
 
 #include <netinet/in.h>
 
+#include <resolv.h>
+
 #include "xmalloc.h"
 #include "uuencode.h"
 
