@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.66 2006/07/10 16:37:36 stevesk Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.67 2006/07/12 22:28:52 stevesk Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -11,12 +11,15 @@
  
 #include "openbsd-compat/sys-queue.h"
 #include <sys/resource.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #include <errno.h>
 #include <stdarg.h>
+#include <setjmp.h>
 
 #include <openssl/bn.h>
 
-#include <setjmp.h>
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"

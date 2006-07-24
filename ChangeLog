@@ -5,6 +5,9 @@
       - new sentence, new line
       - s/The the/The/
       - kill a bad comma
+   - stevesk@cvs.openbsd.org 2006/07/12 22:28:52
+     [auth-options.c canohost.c channels.c includes.h readconf.c servconf.c ssh-keyscan.c ssh.c sshconnect.c sshd.c]
+     move #include <netdb.h> out of includes.h; ok djm@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4923,4 +4926,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4408 2006/07/24 03:46:50 djm Exp $
+$Id: ChangeLog,v 1.4409 2006/07/24 03:51:51 djm Exp $

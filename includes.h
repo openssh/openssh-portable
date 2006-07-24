@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.49 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.50 2006/07/12 22:28:51 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -123,9 +123,6 @@
 #endif
 
 #include <netinet/in_systm.h> /* For typedefs */
-#if defined(HAVE_NETDB_H)
-# include <netdb.h>
-#endif
 #ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h> /* For INADDR_LOOPBACK */
 #endif

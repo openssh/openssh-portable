@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.337 2006/07/12 11:34:58 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.338 2006/07/12 22:28:52 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,6 +54,9 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.190 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.191 2006/07/12 22:28:52 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -24,6 +24,9 @@
 
 #include <ctype.h>
 #include <errno.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.154 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.155 2006/07/12 22:28:52 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -22,6 +22,9 @@
 
 #include <ctype.h>
 #include <errno.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 
 #include "ssh.h"
 #include "xmalloc.h"

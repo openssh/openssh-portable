@@ -23,6 +23,9 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif

@@ -34,6 +34,9 @@
 #ifdef _AIX
 
 #include <errno.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #include <uinfo.h>
 #include <sys/socket.h>
 #include "port-aix.h"

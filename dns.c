@@ -30,7 +30,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <netdb.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 
 #include "xmalloc.h"
 #include "key.h"
