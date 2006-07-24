@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.64 2006/07/18 08:03:09 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.65 2006/07/18 08:22:23 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -465,14 +465,15 @@ The default is:
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
 .It Cm Match
 Introduces a conditional block.
-Keywords on lines following a
+If all of the criteria on the
 .Cm Match
-block are only applied if all of the criteria on the
+line are satisfied, the keywords on the following lines override those
+set in the global section of the config file, until either another
 .Cm Match
-are satisfied.
+line or the end of the file.
 The arguments to
 .Cm Match
-block are one or more criteria-pattern pairs.
+are one or more criteria-pattern pairs.
 The available criteria are
 .Cm User ,
 .Cm Host ,
