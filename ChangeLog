@@ -65,6 +65,11 @@
      [auth1.c serverloop.c session.c sshconnect2.c]
      missed some needed #include <unistd.h> when KERBEROS5=no; issue from
      massimo@cedoc.mo.it
+   - dtucker@cvs.openbsd.org 2006/07/21 12:43:36
+     [channels.c channels.h servconf.c servconf.h sshd_config.5]
+     Make PermitOpen take a list of permitted ports and act more like most
+     other keywords (ie the first match is the effective setting). This
+     also makes it easier to override a previously set PermitOpen. ok djm@
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4983,4 +4988,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4423 2006/07/24 04:07:35 djm Exp $
+$Id: ChangeLog,v 1.4424 2006/07/24 04:08:13 djm Exp $

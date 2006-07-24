@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.76 2006/07/19 13:07:10 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.77 2006/07/21 12:43:36 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -140,6 +140,8 @@ typedef struct {
 	int	use_pam;		/* Enable auth via PAM */
 
 	int	permit_tun;
+
+	int	num_permitted_opens;
 }       ServerOptions;
 
 void	 initialize_server_options(ServerOptions *);

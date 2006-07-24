@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.257 2006/07/17 12:06:00 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.258 2006/07/21 12:43:36 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2653,17 +2653,17 @@ channel_add_permitted_opens(char *host, int port)
 	all_opens_permitted = 0;
 }
 
-void
+int
 channel_add_adm_permitted_opens(char *host, int port)
 {
 	if (num_adm_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
 		fatal("channel_add_adm_permitted_opens: too many forwards");
-	debug("allow port forwarding to host %s port %d", host, port);
+	debug("config allows port forwarding to host %s port %d", host, port);
 
 	permitted_adm_opens[num_adm_permitted_opens].host_to_connect
 	     = xstrdup(host);
 	permitted_adm_opens[num_adm_permitted_opens].port_to_connect = port;
-	num_adm_permitted_opens++;
+	return ++num_adm_permitted_opens;
 }
 
 void

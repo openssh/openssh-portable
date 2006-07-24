@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.158 2006/07/19 13:07:10 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.159 2006/07/21 12:43:36 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -113,6 +113,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_keys_file2 = NULL;
 	options->num_accept_env = 0;
 	options->permit_tun = -1;
+	options->num_permitted_opens = -1;
 	options->adm_forced_command = NULL;
 }
 
@@ -1161,20 +1162,27 @@ parse_flag:
 			fatal("%s line %d: missing PermitOpen specification",
 			    filename, linenum);
 		if (strcmp(arg, "any") == 0) {
-			if (*activep)
+			if (*activep) {
 				channel_clear_adm_permitted_opens();
+				options->num_permitted_opens = 0;
+			}
 			break;
 		}
-		p = hpdelim(&arg);
-		if (p == NULL)
-			fatal("%s line %d: missing host in PermitOpen",
-			    filename, linenum);
-		p = cleanhostname(p);
-		if (arg == NULL || (port = a2port(arg)) == 0)
-			fatal("%s line %d: bad port number in PermitOpen",
-			    filename, linenum);
-		if (*activep)
-			channel_add_adm_permitted_opens(p, port);
+		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
+			p = hpdelim(&arg);
+			if (p == NULL)
+				fatal("%s line %d: missing host in PermitOpen",
+				    filename, linenum);
+			p = cleanhostname(p);
+			if (arg == NULL || (port = a2port(arg)) == 0)
+				fatal("%s line %d: bad port number in "
+				    "PermitOpen", filename, linenum);
+			if (*activep && options->num_permitted_opens == -1) {
+				channel_clear_adm_permitted_opens();
+				options->num_permitted_opens =
+				    channel_add_adm_permitted_opens(p, port);
+			}
+		}
 		break;
 
 	case sForceCommand:
