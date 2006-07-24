@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.61 2006/07/12 13:39:55 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.62 2006/07/17 12:06:00 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -482,9 +482,10 @@ Only a subset of keywords may be used on the lines following a
 .Cm Match
 keyword.
 Available keywords are
-.Cm AllowTcpForwarding
+.Cm AllowTcpForwarding ,
+.Cm GatewayPorts ,
 and
-.Cm GatewayPorts .
+.Cm PermitOpen .
 .It Cm MaxAuthTries
 Specifies the maximum number of authentication attempts permitted per
 connection.
@@ -524,6 +525,35 @@ When password authentication is allowed, it specifies whether the
 server allows login to accounts with empty password strings.
 The default is
 .Dq no .
+.It Cm PermitOpen
+Specifies the destinations to which TCP port forwarding is permitted.
+The forwarding specification must be one of the following forms:
+.Pp
+.Bl -item -offset indent -compact
+.It
+.Cm PermitOpen
+.Sm off
+.Ar host : port
+.Sm on
+.It
+.Cm PermitOpen
+.Sm off
+.Ar IPv4_addr : port
+.Sm on
+.It
+.Cm PermitOpen
+.Sm off
+.Ar \&[ IPv6_addr \&] : port
+.Sm on
+.El
+.Pp
+Multiple instances of
+.Cm PermitOpen
+are permitted.
+An argument of
+.Dq any
+can be used to remove all restrictions and permit any forwarding requests.
+By default all port forward requests are permitted.
 .It Cm PermitRootLogin
 Specifies whether root can log in using
 .Xr ssh 1 .

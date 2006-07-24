@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.256 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.257 2006/07/17 12:06:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -106,11 +106,18 @@ typedef struct {
 	u_short listen_port;		/* Remote side should listen port number. */
 } ForwardPermission;
 
-/* List of all permitted host/port pairs to connect. */
+/* List of all permitted host/port pairs to connect by the user. */
 static ForwardPermission permitted_opens[SSH_MAX_FORWARDS_PER_DIRECTION];
 
-/* Number of permitted host/port pairs in the array. */
+/* List of all permitted host/port pairs to connect by the admin. */
+static ForwardPermission permitted_adm_opens[SSH_MAX_FORWARDS_PER_DIRECTION];
+
+/* Number of permitted host/port pairs in the array permitted by the user. */
 static int num_permitted_opens = 0;
+
+/* Number of permitted host/port pair in the array permitted by the admin. */
+static int num_adm_permitted_opens = 0;
+
 /*
  * If this is true, all opens are permitted.  This is the case on the server
  * on which we have to trust the client anyway, and the user could do
@@ -2647,6 +2654,19 @@ channel_add_permitted_opens(char *host, int port)
 }
 
 void
+channel_add_adm_permitted_opens(char *host, int port)
+{
+	if (num_adm_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
+		fatal("channel_add_adm_permitted_opens: too many forwards");
+	debug("allow port forwarding to host %s port %d", host, port);
+
+	permitted_adm_opens[num_adm_permitted_opens].host_to_connect
+	     = xstrdup(host);
+	permitted_adm_opens[num_adm_permitted_opens].port_to_connect = port;
+	num_adm_permitted_opens++;
+}
+
+void
 channel_clear_permitted_opens(void)
 {
 	int i;
@@ -2655,7 +2675,17 @@ channel_clear_permitted_opens(void)
 		if (permitted_opens[i].host_to_connect != NULL)
 			xfree(permitted_opens[i].host_to_connect);
 	num_permitted_opens = 0;
+}
 
+void
+channel_clear_adm_permitted_opens(void)
+{
+	int i;
+
+	for (i = 0; i < num_adm_permitted_opens; i++)
+		if (permitted_adm_opens[i].host_to_connect != NULL)
+			xfree(permitted_adm_opens[i].host_to_connect);
+	num_adm_permitted_opens = 0;
 }
 
 /* return socket to remote host, port */
@@ -2734,7 +2764,7 @@ channel_connect_by_listen_address(u_short listen_port)
 int
 channel_connect_to(const char *host, u_short port)
 {
-	int i, permit;
+	int i, permit, permit_adm = 1;
 
 	permit = all_opens_permitted;
 	if (!permit) {
@@ -2743,9 +2773,19 @@ channel_connect_to(const char *host, u_short port)
 			    permitted_opens[i].port_to_connect == port &&
 			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
 				permit = 1;
-
 	}
-	if (!permit) {
+
+	if (num_adm_permitted_opens > 0) {
+		permit_adm = 0;
+		for (i = 0; i < num_adm_permitted_opens; i++)
+			if (permitted_adm_opens[i].host_to_connect != NULL &&
+			    permitted_adm_opens[i].port_to_connect == port &&
+			    strcmp(permitted_adm_opens[i].host_to_connect, host)
+			    == 0)
+				permit_adm = 1;
+	}
+
+	if (!permit || !permit_adm) {
 		logit("Received request to connect to host %.100s port %d, "
 		    "but the request was denied.", host, port);
 		return -1;
