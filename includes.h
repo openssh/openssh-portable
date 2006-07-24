@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.51 2006/07/12 22:42:32 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.52 2006/07/17 01:31:09 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -56,7 +56,6 @@
 #ifdef HAVE_PATHS
 # include <paths.h>
 #endif
-#include <unistd.h> /* For STDIN_FILENO, etc */
 
 /*
  *-*-nto-qnx needs these headers for strcasecmp and LASTLOG_FILE respectively

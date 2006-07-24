@@ -16,6 +16,13 @@
      [monitor_wrap.h]
      don't need incompletely-typed 'struct passwd' now with
      #include <pwd.h>; ok markus@
+   - stevesk@cvs.openbsd.org 2006/07/17 01:31:10
+     [authfd.c authfile.c channels.c cleanup.c clientloop.c groupaccess.c]
+     [includes.h log.c misc.c msg.c packet.c progressmeter.c readconf.c]
+     [readpass.c scp.c servconf.c sftp-client.c sftp-server.c sftp.c]
+     [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh.c]
+     [sshconnect.c sshlogin.c sshpty.c uidswap.c]
+     move #include <unistd.h> out of includes.h
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4934,4 +4941,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4412 2006/07/24 03:55:56 djm Exp $
+$Id: ChangeLog,v 1.4413 2006/07/24 04:01:23 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.135 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: packet.c,v 1.136 2006/07/17 01:31:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,6 +49,7 @@
 
 #include <errno.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 #include "buffer.h"

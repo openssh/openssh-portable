@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.85 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: sftp.c,v 1.86 2006/07/17 01:31:09 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -36,6 +36,7 @@
 typedef void EditLine;
 #endif
 #include <signal.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 #include "log.h"

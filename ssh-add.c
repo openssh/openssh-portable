@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.83 2006/07/09 15:27:59 stevesk Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.84 2006/07/17 01:31:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,6 +44,7 @@
 
 #include <fcntl.h>
 #include <pwd.h>
+#include <unistd.h>
 
 #include "ssh.h"
 #include "rsa.h"

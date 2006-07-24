@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.168 2006/07/11 20:07:25 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.169 2006/07/17 01:31:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -75,6 +75,7 @@
 #endif
 #include <signal.h>
 #include <termios.h>
+#include <unistd.h>
 
 #include "ssh.h"
 #include "ssh1.h"

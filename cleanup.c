@@ -1,4 +1,4 @@
-/* $OpenBSD: cleanup.c,v 1.3 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: cleanup.c,v 1.4 2006/07/17 01:31:09 stevesk Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -14,7 +14,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "includes.h"
+
+#include <unistd.h>
 
 #include "log.h"
 
