@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.19 2006/04/20 09:27:09 djm Exp $ */
+/* $OpenBSD: dispatch.c,v 1.20 2006/07/23 01:11:05 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
+
+#include <signal.h>
 
 #include "ssh1.h"
 #include "ssh2.h"

@@ -95,6 +95,10 @@
      [ssh-keysign.c ssh-rsa.c ssh.c sshconnect.c sshconnect1.c sshconnect2.c]
      [sshd.c sshlogin.c sshpty.c ttymodes.c uidswap.c xmalloc.c]
      move #include <string.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/23 01:11:05
+     [auth.h dispatch.c kex.h sftp-client.c]
+     #include <signal.h> for sig_atomic_t; need this prior to <sys/param.h>
+     move
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5013,4 +5017,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4428 2006/07/24 04:13:33 djm Exp $
+$Id: ChangeLog,v 1.4429 2006/07/24 04:14:19 djm Exp $
