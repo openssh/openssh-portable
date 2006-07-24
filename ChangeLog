@@ -135,6 +135,8 @@
    [regress/cipher-speed.sh regress/forcecommand.sh regress/forwarding.sh]
    Sync regress tests to -current; include dtucker@'s new cfgmatch and 
    forcecommand tests. Add cipher-speed.sh test (not linked in yet)
+ - (dtucker) [cleanup.c] Since config.h defines _LARGE_FILES on AIX, including
+   system headers before defines.h will cause conflicting definitions.
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -5053,4 +5055,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4436 2006/07/24 05:31:41 djm Exp $
+$Id: ChangeLog,v 1.4437 2006/07/24 13:19:40 dtucker Exp $
