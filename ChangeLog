@@ -119,7 +119,10 @@
  - (djm) [uuencode.c]
    Add resolv.h, is it contains the prototypes for __b64_ntop/__b64_pton on
    some platforms
-
+ - (djm) [session.c]
+   fix compile error with -Werror -Wall: 'path' is only used in
+   do_setup_env() if HAVE_LOGIN_CAP is not defined
+  
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
 
@@ -5037,4 +5040,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4432 2006/07/24 04:58:07 djm Exp $
+$Id: ChangeLog,v 1.4433 2006/07/24 05:03:06 djm Exp $

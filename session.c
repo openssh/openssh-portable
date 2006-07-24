@@ -995,8 +995,11 @@ do_setup_env(Session *s, const char *shell)
 {
 	char buf[256];
 	u_int i, envsize;
-	char **env, *laddr, *path = NULL;
+	char **env, *laddr;
 	struct passwd *pw = s->pw;
+#ifndef HAVE_LOGIN_CAP
+	char *path = NULL;
+#endif
 
 	/* Initialize the environment. */
 	envsize = 100;
