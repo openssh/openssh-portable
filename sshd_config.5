@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.65 2006/07/18 08:22:23 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.66 2006/07/19 08:56:41 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -485,8 +485,11 @@ keyword.
 Available keywords are
 .Cm AllowTcpForwarding ,
 .Cm GatewayPorts ,
+.Cm PermitOpen ,
+.Cm X11DisplayOffset ,
+.Cm X11Forwarding ,
 and
-.Cm PermitOpen .
+.Cm X11UseLocalHost .
 .It Cm MaxAuthTries
 Specifies the maximum number of authentication attempts permitted per
 connection.

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.156 2006/07/17 12:06:00 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.157 2006/07/19 08:56:41 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -357,9 +357,9 @@ static struct {
 	{ "printlastlog", sPrintLastLog, SSHCFG_GLOBAL },
 	{ "ignorerhosts", sIgnoreRhosts, SSHCFG_GLOBAL },
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts, SSHCFG_GLOBAL },
-	{ "x11forwarding", sX11Forwarding, SSHCFG_GLOBAL },
-	{ "x11displayoffset", sX11DisplayOffset, SSHCFG_GLOBAL },
-	{ "x11uselocalhost", sX11UseLocalhost, SSHCFG_GLOBAL },
+	{ "x11forwarding", sX11Forwarding, SSHCFG_ALL },
+	{ "x11displayoffset", sX11DisplayOffset, SSHCFG_ALL },
+	{ "x11uselocalhost", sX11UseLocalhost, SSHCFG_ALL },
 	{ "xauthlocation", sXAuthLocation, SSHCFG_GLOBAL },
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
 	{ "permitemptypasswords", sEmptyPasswd, SSHCFG_GLOBAL },
@@ -1247,6 +1247,12 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src)
 		dst->allow_tcp_forwarding = src->allow_tcp_forwarding;
 	if (src->gateway_ports != -1)
 		dst->gateway_ports = src->gateway_ports;
+	if (src->x11_display_offset != -1)
+		dst->x11_display_offset = src->x11_display_offset;
+	if (src->x11_forwarding != -1)
+		dst->x11_forwarding = src->x11_forwarding;
+	if (src->x11_use_localhost != -1)
+		dst->x11_use_localhost = src->x11_use_localhost;
 }
 
 void
