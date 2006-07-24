@@ -1,4 +1,4 @@
-/* $OpenBSD: includes.h,v 1.52 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: includes.h,v 1.53 2006/07/22 19:08:54 stevesk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */

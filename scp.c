@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.148 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: scp.c,v 1.149 2006/07/22 19:08:54 stevesk Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -86,6 +86,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "xmalloc.h"

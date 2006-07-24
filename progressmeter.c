@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.32 2006/07/21 21:26:55 stevesk Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.33 2006/07/22 19:08:54 stevesk Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -30,6 +30,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "progressmeter.h"

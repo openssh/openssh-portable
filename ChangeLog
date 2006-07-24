@@ -76,6 +76,10 @@
    - stevesk@cvs.openbsd.org 2006/07/21 21:26:55
      [progressmeter.c]
      ARGSUSED for signal handler
+   - stevesk@cvs.openbsd.org 2006/07/22 19:08:54
+     [includes.h moduli.c progressmeter.c scp.c sftp-common.c]
+     [sftp-server.c ssh-agent.c sshlogin.c]
+     move #include <time.h> out of includes.h
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4994,4 +4998,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4426 2006/07/24 04:08:50 djm Exp $
+$Id: ChangeLog,v 1.4427 2006/07/24 04:09:40 djm Exp $

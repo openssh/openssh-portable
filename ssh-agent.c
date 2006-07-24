@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.144 2006/07/17 01:31:10 stevesk Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.145 2006/07/22 19:08:54 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -51,6 +51,7 @@
 # include <paths.h>
 #endif
 #include <signal.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <openssl/evp.h>
