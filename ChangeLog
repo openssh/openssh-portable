@@ -40,6 +40,9 @@
    - jmc@cvs.openbsd.org 2006/07/18 07:50:40
      [sshd_config.5]
      tweak; ok dtucker
+   - jmc@cvs.openbsd.org 2006/07/18 07:56:28
+     [scp.1]
+     replace DIAGNOSTICS with .Ex;
 
 20060713
  - (dtucker) [auth-krb5.c auth-pam.c] Still more errno.h
@@ -4958,4 +4961,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4416 2006/07/24 04:04:16 djm Exp $
+$Id: ChangeLog,v 1.4417 2006/07/24 04:04:36 djm Exp $
