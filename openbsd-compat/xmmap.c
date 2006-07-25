@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.9 2006/07/24 04:51:01 djm Exp $ */
+/* $Id: xmmap.c,v 1.10 2006/07/25 09:52:08 dtucker Exp $ */
 
 #include "includes.h"
 
@@ -32,6 +32,9 @@
 #include <sys/mman.h>
 #endif
 #include <sys/stat.h>
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
 
 #include <errno.h>
 #include <string.h>
