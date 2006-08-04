@@ -1,4 +1,4 @@
-/* $OpenBSD: scard.c,v 1.32 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: scard.c,v 1.33 2006/07/25 02:01:34 stevesk Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -27,7 +27,9 @@
 #if defined(SMARTCARD) && defined(USE_SECTOK)
 
 #include <openssl/evp.h>
+
 #include <sectok.h>
+#include <string.h>
 
 #include "key.h"
 #include "log.h"
