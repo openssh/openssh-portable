@@ -1,3 +1,8 @@
+20060804
+ - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
+   versions of Solaris, so use AC_LINK_IFELSE to actually link the test program
+   rather than just compiling it.  Spotted by dlg@.
+
 20060802
  - (dtucker) [openbsd-compat/daemon.c] Add unistd.h for fork() prototype.
 
@@ -5062,4 +5067,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4440 2006/08/02 13:33:54 dtucker Exp $
+$Id: ChangeLog,v 1.4441 2006/08/04 09:44:23 dtucker Exp $

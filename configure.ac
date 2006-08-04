@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.347 2006/07/12 09:02:57 dtucker Exp $
+# $Id: configure.ac,v 1.348 2006/08/04 09:44:23 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.347 $)
+AC_REVISION($Revision: 1.348 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1892,7 +1892,7 @@ int main(void){ENGINE_load_builtin_engines();ENGINE_register_all_complete();}
 
 # Check for OpenSSL without EVP_aes_{192,256}_cbc
 AC_MSG_CHECKING([whether OpenSSL has crippled AES support])
-AC_COMPILE_IFELSE(
+AC_LINK_IFELSE(
 	[AC_LANG_SOURCE([[
 #include <string.h>
 #include <openssl/evp.h>
