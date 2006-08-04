@@ -1,3 +1,10 @@
+20060805
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2006/07/24 13:58:22
+     [sshconnect.c]
+     disable tunnel forwarding when no strict host key checking
+     and key changed; ok djm@ markus@ dtucker@
+
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
    versions of Solaris, so use AC_LINK_IFELSE to actually link the test program
@@ -5067,4 +5074,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4441 2006/08/04 09:44:23 dtucker Exp $
+$Id: ChangeLog,v 1.4442 2006/08/04 23:11:13 djm Exp $
