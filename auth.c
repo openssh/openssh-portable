@@ -60,7 +60,6 @@
 #include "canohost.h"
 #include "uidswap.h"
 #include "misc.h"
-#include "bufaux.h"
 #include "packet.h"
 #include "loginrec.h"
 #ifdef GSSAPI

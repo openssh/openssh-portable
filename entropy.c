@@ -46,7 +46,6 @@
 #include "pathnames.h"
 #include "log.h"
 #include "buffer.h"
-#include "bufaux.h"
 
 /*
  * Portable OpenSSH PRNG seeding:

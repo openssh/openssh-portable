@@ -86,6 +86,9 @@
      [monitor.c session.c ssh-agent.c]
      spaces
  - (djm) [auth-pam.c defines.h] Move PAM related bits to auth-pam.c
+ - (djm) [auth-pam.c auth.c bufaux.h entropy.c openbsd-compat/port-tun.c]
+   remove last traces of bufaux.h - it was merged into buffer.h in the big
+   includes.h commit
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5156,4 +5159,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4454 2006/08/05 02:43:32 djm Exp $
+$Id: ChangeLog,v 1.4455 2006/08/05 02:49:30 djm Exp $

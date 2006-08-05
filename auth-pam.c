@@ -81,7 +81,6 @@
 #include "auth.h"
 #include "auth-pam.h"
 #include "buffer.h"
-#include "bufaux.h"
 #include "canohost.h"
 #include "log.h"
 #include "monitor_wrap.h"
