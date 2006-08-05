@@ -25,6 +25,11 @@
      [ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh.c sshconnect.c]
      [sshconnect1.c sshd.c xmalloc.c]
      move #include <stdlib.h> out of includes.h
+   - jmc@cvs.openbsd.org 2006/07/27 08:00:50
+     [ssh_config.5]
+     avoid confusing wording in HashKnownHosts:
+     originally spotted by alan amesbury;
+     ok deraadt
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5095,4 +5100,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4446 2006/08/05 01:34:19 djm Exp $
+$Id: ChangeLog,v 1.4447 2006/08/05 01:34:51 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.96 2006/07/11 18:50:48 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.97 2006/07/27 08:00:50 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -497,8 +497,9 @@ but they do not reveal identifying information should the file's contents
 be disclosed.
 The default is
 .Dq no .
-Note that hashing of names and addresses will not be retrospectively applied
-to existing known hosts files, but these may be manually hashed using
+Note that existing names and addresses in known hosts files
+will not be converted automatically,
+but may be manually hashed using
 .Xr ssh-keygen 1 .
 .It Cm HostbasedAuthentication
 Specifies whether to try rhosts based authentication with public key
