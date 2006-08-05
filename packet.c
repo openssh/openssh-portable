@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.142 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.143 2006/08/05 08:34:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -676,7 +676,7 @@ set_newkeys(int mode)
 
 /*
  * Delayed compression for SSH2 is enabled after authentication:
- * This happans on the server side after a SSH2_MSG_USERAUTH_SUCCESS is sent,
+ * This happens on the server side after a SSH2_MSG_USERAUTH_SUCCESS is sent,
  * and on the client side after a SSH2_MSG_USERAUTH_SUCCESS is received.
  */
 static void

@@ -115,6 +115,9 @@
    - dtucker@cvs.openbsd.org 2006/08/05 08:28:24
      [monitor_wrap.c auth-skey.c auth2-chall.c]
      Zap unused variables in -DSKEY code.  ok djm@
+   - dtucker@cvs.openbsd.org 2006/08/05 08:34:04
+     [packet.c]
+     Typo in comment
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5185,4 +5188,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4468 2006/08/05 08:50:35 dtucker Exp $
+$Id: ChangeLog,v 1.4469 2006/08/05 08:51:08 dtucker Exp $
