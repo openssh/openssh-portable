@@ -90,6 +90,9 @@
    remove last traces of bufaux.h - it was merged into buffer.h in the big
    includes.h commit
  - (djm) [auth.c loginrec.c] Missing netinet/in.h for loginrec
+ - (djm) [openbsd-compat/regress/snprintftest.c]
+   [openbsd-compat/regress/strduptest.c] Add missing includes so they pass
+   compilation with "-Wall -Werror"
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5160,4 +5163,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4456 2006/08/05 02:54:24 djm Exp $
+$Id: ChangeLog,v 1.4457 2006/08/05 03:27:29 djm Exp $
