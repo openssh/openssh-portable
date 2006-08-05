@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.11 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.12 2006/07/26 02:35:17 stevesk Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -27,6 +27,8 @@
 #include "includes.h"
 
 #ifdef GSSAPI
+
+#include <sys/param.h>
 
 #include <string.h>
 #include <unistd.h>

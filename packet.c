@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.138 2006/07/25 02:59:21 stevesk Exp $ */
+/* $OpenBSD: packet.c,v 1.139 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -41,6 +41,7 @@
  
 #include <sys/types.h>
 #include "openbsd-compat/sys-queue.h"
+#include <sys/param.h>
 #include <sys/socket.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>

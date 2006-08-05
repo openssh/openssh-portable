@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.82 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: monitor.c,v 1.83 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -28,6 +28,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 

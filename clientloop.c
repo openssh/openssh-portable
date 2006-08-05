@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.171 2006/07/25 02:59:21 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.172 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -63,6 +63,7 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/param.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif

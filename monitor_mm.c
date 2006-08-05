@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_mm.c,v 1.13 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: monitor_mm.c,v 1.14 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -26,12 +26,13 @@
 
 #include "includes.h"
 
-#include <errno.h>
-#include <string.h>
-
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#include <sys/param.h>
+
+#include <errno.h>
+#include <string.h>
 
 #include "ssh.h"
 #include "xmalloc.h"

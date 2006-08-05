@@ -82,7 +82,6 @@
 #ifdef HAVE_SYS_BSDTTY_H
 # include <sys/bsdtty.h>
 #endif
-#include <sys/param.h> /* For MAXPATHLEN and roundup() */
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.147 2006/07/25 02:59:21 stevesk Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.148 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,6 +37,8 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/param.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #ifdef HAVE_SYS_TIME_H
@@ -46,7 +48,6 @@
 # include <sys/un.h>
 #endif
 #include "openbsd-compat/sys-queue.h"
-#include <sys/resource.h>
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>

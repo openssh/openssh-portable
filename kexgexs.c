@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.5 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.6 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -25,6 +25,8 @@
  */
 
 #include "includes.h"
+
+#include <sys/param.h>
 
 #include <string.h>
 

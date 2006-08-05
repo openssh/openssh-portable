@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.212 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: session.c,v 1.213 2006/07/26 02:35:17 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -36,12 +36,13 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/param.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
 #include <sys/socket.h>
-#include <sys/wait.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 
 #include <arpa/inet.h>
 

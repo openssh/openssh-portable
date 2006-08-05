@@ -11,6 +11,13 @@
      [channels.c clientloop.c packet.c scp.c serverloop.c sftp-client.c]
      [sftp-server.c ssh-agent.c ssh-keyscan.c sshconnect.c sshd.c]
      move #include <sys/time.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/26 02:35:17
+     [atomicio.c auth.c dh.c authfile.c buffer.c clientloop.c kex.c]
+     [groupaccess.c gss-genr.c kexgexs.c misc.c monitor.c monitor_mm.c]
+     [packet.c scp.c serverloop.c session.c sftp-client.c sftp-common.c]
+     [sftp-server.c sftp.c ssh-add.c ssh-agent.c ssh-keygen.c sshlogin.c]
+     [uidswap.c xmalloc.c]
+     move #include <sys/param.h> out of includes.h
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5081,4 +5088,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4444 2006/08/05 00:57:45 djm Exp $
+$Id: ChangeLog,v 1.4445 2006/08/05 01:02:17 djm Exp $
