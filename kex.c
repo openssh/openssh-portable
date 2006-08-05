@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.75 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: kex.c,v 1.76 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -27,21 +27,21 @@
 
 #include <sys/param.h>
 
-#include <openssl/crypto.h>
-
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "ssh2.h"
+#include <openssl/crypto.h>
+
 #include "xmalloc.h"
+#include "ssh2.h"
 #include "buffer.h"
-#include "bufaux.h"
 #include "packet.h"
 #include "compat.h"
 #include "cipher.h"
-#include "kex.h"
 #include "key.h"
+#include "kex.h"
 #include "log.h"
 #include "mac.h"
 #include "match.h"

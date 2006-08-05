@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.19 2006/07/14 01:15:28 stevesk Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.20 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -28,13 +28,6 @@
 #ifndef _MM_WRAP_H_
 #define _MM_WRAP_H_
 
-#include <sys/types.h>
-
-#include <pwd.h>
-
-#include "key.h"
-#include "buffer.h"
-
 extern int use_privsep;
 #define PRIVSEP(x)	(use_privsep ? mm_##x : x)
 
@@ -61,7 +54,6 @@ int mm_auth_rsa_verify_response(Key *, BIGNUM *, u_char *);
 BIGNUM *mm_auth_rsa_generate_challenge(Key *);
 
 #ifdef GSSAPI
-#include "ssh-gss.h"
 OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **, gss_OID);
 OM_uint32 mm_ssh_gssapi_accept_ctx(Gssctxt *,
    gss_buffer_desc *, gss_buffer_desc *, OM_uint32 *);

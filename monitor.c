@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.84 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: monitor.c,v 1.85 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include "openbsd-compat/sys-tree.h"
 #include <sys/wait.h>
 
 #include <errno.h>
@@ -48,8 +49,13 @@
 
 #include <openssl/dh.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
+#include "key.h"
+#include "buffer.h"
+#include "hostfile.h"
 #include "auth.h"
+#include "cipher.h"
 #include "kex.h"
 #include "dh.h"
 #ifdef TARGET_OS_MAC	/* XXX Broken krb5 headers on Mac */
@@ -70,17 +76,16 @@
 #include "servconf.h"
 #include "monitor.h"
 #include "monitor_mm.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 #include "monitor_fdpass.h"
-#include "xmalloc.h"
 #include "misc.h"
-#include "buffer.h"
-#include "bufaux.h"
 #include "compat.h"
 #include "ssh2.h"
 
 #ifdef GSSAPI
-#include "ssh-gss.h"
 static Gssctxt *gsscontext = NULL;
 #endif
 

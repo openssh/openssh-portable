@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.215 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: session.c,v 1.216 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -58,10 +58,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"
 #include "ssh2.h"
-#include "xmalloc.h"
 #include "sshpty.h"
 #include "packet.h"
 #include "buffer.h"
@@ -69,7 +69,12 @@
 #include "uidswap.h"
 #include "compat.h"
 #include "channels.h"
-#include "bufaux.h"
+#include "key.h"
+#include "cipher.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
+#include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
 #include "pathnames.h"
@@ -84,10 +89,6 @@
 
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
-#endif
-
-#ifdef GSSAPI
-#include "ssh-gss.h"
 #endif
 
 /* func */

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.49 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.50 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -29,21 +29,25 @@
 
 #include <sys/types.h>
 
-#include <openssl/bn.h>
-#include <openssl/dh.h>
-
 #include <errno.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <openssl/bn.h>
+#include <openssl/dh.h>
+
+#include "xmalloc.h"
 #include "ssh.h"
 #include "dh.h"
+#include "buffer.h"
+#include "key.h"
+#include "cipher.h"
 #include "kex.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
-#include "buffer.h"
-#include "bufaux.h"
 #include "packet.h"
 #include "mac.h"
 #include "log.h"
@@ -55,20 +59,17 @@
 #include "zlib.h"
 #endif
 #include "monitor.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
-#include "xmalloc.h"
 #include "atomicio.h"
 #include "monitor_fdpass.h"
 #include "misc.h"
 #include "servconf.h"
 
-#include "auth.h"
 #include "channels.h"
 #include "session.h"
-
-#ifdef GSSAPI
-#include "ssh-gss.h"
-#endif
 
 /* Imports */
 extern int compat20;

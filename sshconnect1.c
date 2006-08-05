@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect1.c,v 1.68 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: sshconnect1.c,v 1.69 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -15,30 +15,36 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <openssl/bn.h>
 #include <openssl/md5.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+#include <pwd.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"
-#include "xmalloc.h"
 #include "rsa.h"
 #include "buffer.h"
 #include "packet.h"
+#include "key.h"
+#include "cipher.h"
 #include "kex.h"
 #include "uidswap.h"
 #include "log.h"
 #include "readconf.h"
-#include "key.h"
 #include "authfd.h"
 #include "sshconnect.h"
 #include "authfile.h"
 #include "misc.h"
-#include "cipher.h"
 #include "canohost.h"
+#include "hostfile.h"
 #include "auth.h"
 
 /* Session id for the current session. */

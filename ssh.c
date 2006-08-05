@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.292 2006/08/01 23:36:12 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.293 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,15 +69,14 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"
 #include "ssh2.h"
 #include "compat.h"
 #include "cipher.h"
-#include "xmalloc.h"
 #include "packet.h"
 #include "buffer.h"
-#include "bufaux.h"
 #include "channels.h"
 #include "key.h"
 #include "authfd.h"
@@ -1256,7 +1255,7 @@ load_public_identity_files(void)
 		cp = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
 		filename = percent_expand(cp, "d", pw->pw_dir,
-		    "u", pw->pw_name, "l", thishost, "h", host, 
+		    "u", pw->pw_name, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
 		xfree(cp);
 		public = key_load_public(filename, NULL);

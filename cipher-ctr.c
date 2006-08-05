@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher-ctr.c,v 1.9 2006/07/22 20:48:22 stevesk Exp $ */
+/* $OpenBSD: cipher-ctr.c,v 1.10 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -16,12 +16,14 @@
  */
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <string.h>
 
 #include <openssl/evp.h>
 
-#include "log.h"
 #include "xmalloc.h"
+#include "log.h"
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.11 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: mac.c,v 1.12 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -25,13 +25,18 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <openssl/hmac.h>
 
 #include <string.h>
+#include <signal.h>
 
 #include "xmalloc.h"
 #include "log.h"
 #include "cipher.h"
+#include "buffer.h"
+#include "key.h"
 #include "kex.h"
 #include "mac.h"
 #include "misc.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.44 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: hostfile.c,v 1.45 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,11 +50,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "xmalloc.h"
 #include "match.h"
 #include "key.h"
 #include "hostfile.h"
 #include "log.h"
-#include "xmalloc.h"
 
 static int
 extract_salt(const char *s, u_int l, char *salt, size_t salt_len)

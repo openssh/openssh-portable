@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.70 2006/07/11 18:50:48 markus Exp $ */
+/* $OpenBSD: readconf.h,v 1.71 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,8 +15,6 @@
 
 #ifndef READCONF_H
 #define READCONF_H
-
-#include "key.h"
 
 /* Data structure for representing a forwarding request. */
 

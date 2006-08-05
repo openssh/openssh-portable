@@ -1,4 +1,4 @@
-/* $OpenBSD: atomicio.h,v 1.9 2006/07/30 20:15:19 stevesk Exp $ */
+/* $OpenBSD: atomicio.h,v 1.10 2006/08/03 03:34:41 deraadt Exp $ */
 
 /*
  * Copyright (c) 2006 Damien Miller.  All rights reserved.
@@ -28,11 +28,6 @@
 
 #ifndef _ATOMICIO_H
 #define _ATOMICIO_H
-
-#include <sys/types.h>
-#include <sys/uio.h>
-
-#include <unistd.h>
 
 /*
  * Ensure all of data on socket comes through. f==read || f==vwrite

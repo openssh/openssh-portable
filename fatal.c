@@ -1,4 +1,4 @@
-/* $OpenBSD: fatal.c,v 1.6 2006/07/10 16:37:36 stevesk Exp $ */
+/* $OpenBSD: fatal.c,v 1.7 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -24,6 +24,8 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
 
 #include <stdarg.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.69 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: auth1.c,v 1.70 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pwd.h>
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -26,10 +27,15 @@
 #include "log.h"
 #include "servconf.h"
 #include "compat.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "channels.h"
 #include "session.h"
 #include "uidswap.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 #include "buffer.h"
 

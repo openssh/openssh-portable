@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.69 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.70 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -14,6 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 #include "includes.h"
 
 #include <sys/types.h>
@@ -30,13 +31,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pwd.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdarg.h>
 
-#include "buffer.h"
-#include "bufaux.h"
-#include "log.h"
 #include "xmalloc.h"
+#include "buffer.h"
+#include "log.h"
 #include "misc.h"
 #include "uidswap.h"
 
@@ -135,7 +137,7 @@ string_from_portable(int pflags)
 #define PAPPEND(str)	{				\
 		if (*ret != '\0')			\
 			strlcat(ret, ",", sizeof(ret));	\
-		strlcat(ret, str, sizeof(ret)); 	\
+		strlcat(ret, str, sizeof(ret));		\
 	}
 
 	if (pflags & SSH2_FXF_READ)
@@ -1225,7 +1227,7 @@ main(int argc, char **argv)
 		case 'c':
 			/*
 			 * Ignore all arguments if we are invoked as a
-			 * shell using "sftp-server -c command" 
+			 * shell using "sftp-server -c command"
 			 */
 			skipargs = 1;
 			break;

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-kbdint.c,v 1.4 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: auth2-kbdint.c,v 1.5 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -25,11 +25,16 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
+#include "xmalloc.h"
 #include "packet.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "log.h"
+#include "buffer.h"
 #include "servconf.h"
-#include "xmalloc.h"
 
 /* import */
 extern ServerOptions options;

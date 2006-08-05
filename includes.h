@@ -25,9 +25,6 @@
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */
 #endif
-#ifdef HAVE_GETOPT_H
-# include <getopt.h>
-#endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
 #endif

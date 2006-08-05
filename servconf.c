@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.163 2006/08/01 23:36:12 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.164 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -19,16 +19,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
+#include <stdarg.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "log.h"
+#include "buffer.h"
 #include "servconf.h"
-#include "xmalloc.h"
 #include "compat.h"
 #include "pathnames.h"
 #include "misc.h"
 #include "cipher.h"
+#include "key.h"
 #include "kex.h"
 #include "mac.h"
 #include "match.h"

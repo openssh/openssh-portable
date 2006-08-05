@@ -1,4 +1,4 @@
-/* $OpenBSD: session.h,v 1.28 2006/07/06 16:03:53 stevesk Exp $ */
+/* $OpenBSD: session.h,v 1.29 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -25,10 +25,6 @@
  */
 #ifndef SESSION_H
 #define SESSION_H
-
-#include <sys/types.h>
-
-#include <pwd.h>
 
 #define TTYSZ 64
 typedef struct Session Session;

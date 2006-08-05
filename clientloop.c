@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.174 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.175 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -82,20 +82,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <pwd.h>
 #include <unistd.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"
 #include "ssh2.h"
-#include "xmalloc.h"
 #include "packet.h"
 #include "buffer.h"
 #include "compat.h"
 #include "channels.h"
 #include "dispatch.h"
-#include "buffer.h"
-#include "bufaux.h"
 #include "key.h"
+#include "cipher.h"
 #include "kex.h"
 #include "log.h"
 #include "readconf.h"

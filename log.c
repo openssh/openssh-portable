@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.37 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: log.c,v 1.38 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -36,6 +36,8 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +48,8 @@
 # include <vis.h>
 #endif
 
-#include "log.h"
 #include "xmalloc.h"
+#include "log.h"
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;

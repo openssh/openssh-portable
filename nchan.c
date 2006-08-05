@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.56 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: nchan.c,v 1.57 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -30,6 +30,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "ssh1.h"
 #include "ssh2.h"

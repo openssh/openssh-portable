@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.158 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.159 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -23,19 +23,22 @@
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "ssh.h"
 #include "xmalloc.h"
+#include "ssh.h"
 #include "compat.h"
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
+#include "key.h"
 #include "readconf.h"
 #include "match.h"
 #include "misc.h"
+#include "buffer.h"
 #include "kex.h"
 #include "mac.h"
 

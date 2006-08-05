@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.56 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: auth.h,v 1.57 2006/08/03 03:34:41 deraadt Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -28,14 +28,8 @@
 #ifndef AUTH_H
 #define AUTH_H
 
-#include <sys/types.h>
-
 #include <signal.h>
-#include <pwd.h>
-#include <signal.h>
-#include <stdio.h>
 
-#include "buffer.h"
 #include <openssl/rsa.h>
 
 #ifdef HAVE_LOGIN_CAP
@@ -47,9 +41,6 @@
 #ifdef KRB5
 #include <krb5.h>
 #endif
-
-#include "key.h"
-#include "hostfile.h"
 
 typedef struct Authctxt Authctxt;
 typedef struct Authmethod Authmethod;

@@ -31,10 +31,6 @@
 
 #include "includes.h"
 
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-
 /**
  ** you should use the login_* calls to work around platform dependencies
  **/

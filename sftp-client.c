@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.73 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.74 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -24,25 +24,25 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
+#include "openbsd-compat/sys-queue.h"
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#include <sys/uio.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "openbsd-compat/sys-queue.h"
-
-#include "buffer.h"
-#include "bufaux.h"
 #include "xmalloc.h"
+#include "buffer.h"
 #include "log.h"
 #include "atomicio.h"
 #include "progressmeter.h"
@@ -82,7 +82,7 @@ send_msg(int fd, Buffer *m)
 	iov[0].iov_len = sizeof(mlen);
 	iov[1].iov_base = buffer_ptr(m);
 	iov[1].iov_len = buffer_len(m);
-	
+
 	if (atomiciov(writev, fd, iov, 2) != buffer_len(m) + sizeof(mlen))
 		fatal("Couldn't send packet: %s", strerror(errno));
 

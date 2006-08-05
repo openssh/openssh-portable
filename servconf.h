@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.77 2006/07/21 12:43:36 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.78 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,8 +15,6 @@
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
-
-#include "buffer.h"
 
 #define MAX_PORTS		256	/* Max # ports. */
 

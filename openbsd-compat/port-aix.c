@@ -25,11 +25,14 @@
  *
  */
 #include "includes.h"
+
+#include "xmalloc.h"
+#include "buffer.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "ssh.h"
 #include "log.h"
-#include "xmalloc.h"
-#include "buffer.h"
 
 #ifdef _AIX
 

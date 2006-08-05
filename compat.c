@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.75 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: compat.c,v 1.76 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -25,12 +25,15 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
+#include "xmalloc.h"
 #include "buffer.h"
 #include "packet.h"
-#include "xmalloc.h"
 #include "compat.h"
 #include "log.h"
 #include "match.h"

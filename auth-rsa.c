@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.70 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.71 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -26,18 +26,23 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "xmalloc.h"
 #include "rsa.h"
 #include "packet.h"
-#include "xmalloc.h"
 #include "ssh1.h"
 #include "uidswap.h"
 #include "match.h"
+#include "buffer.h"
 #include "auth-options.h"
 #include "pathnames.h"
 #include "log.h"
 #include "servconf.h"
-#include "auth.h"
+#include "key.h"
 #include "hostfile.h"
+#include "auth.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 #include "ssh.h"
 #include "misc.h"

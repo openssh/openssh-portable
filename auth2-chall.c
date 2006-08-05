@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.29 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.30 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -23,16 +23,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "includes.h"
+
+#include <sys/types.h>
 
 #include <stdio.h>
 #include <string.h>
 
+#include "xmalloc.h"
 #include "ssh2.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "buffer.h"
 #include "packet.h"
-#include "xmalloc.h"
 #include "dispatch.h"
 #include "log.h"
 #include "servconf.h"

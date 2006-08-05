@@ -1,4 +1,4 @@
-/* $OpenBSD: cleanup.c,v 1.4 2006/07/17 01:31:09 stevesk Exp $ */
+/* $OpenBSD: cleanup.c,v 1.5 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -17,7 +17,10 @@
 
 #include "config.h"
 
+#include <sys/types.h>
+
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "log.h"
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: uuencode.c,v 1.23 2006/08/01 23:22:48 stevesk Exp $ */
+/* $OpenBSD: uuencode.c,v 1.24 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -26,9 +26,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
-
 #include <netinet/in.h>
-
 #include <resolv.h>
 #include <stdio.h>
 

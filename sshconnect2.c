@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.159 2006/08/01 23:22:48 stevesk Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.160 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -26,24 +26,27 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 
 #include <errno.h>
+#include <pwd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "openbsd-compat/sys-queue.h"
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
-#include "xmalloc.h"
 #include "buffer.h"
 #include "packet.h"
 #include "compat.h"
-#include "bufaux.h"
 #include "cipher.h"
+#include "key.h"
 #include "kex.h"
 #include "myproposal.h"
 #include "sshconnect.h"

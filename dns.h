@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.h,v 1.9 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: dns.h,v 1.10 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -24,13 +24,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include "includes.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <stdio.h>
 
 #ifndef DNS_H
 #define DNS_H

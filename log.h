@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.13 2006/07/10 16:37:36 stevesk Exp $ */
+/* $OpenBSD: log.h,v 1.14 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -14,12 +14,6 @@
 
 #ifndef SSH_LOG_H
 #define SSH_LOG_H
-
-#include "includes.h"
-
-#include <stdarg.h>
-
-#include <syslog.h> /* Needed for LOG_AUTHPRIV (if present) */
 
 /* Supported syslog facilities and levels. */
 typedef enum {

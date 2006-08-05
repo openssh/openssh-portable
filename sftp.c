@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.90 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: sftp.c,v 1.91 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -18,10 +18,10 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/ioctl.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
-#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -41,6 +41,7 @@ typedef void EditLine;
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "xmalloc.h"
 #include "log.h"
@@ -48,6 +49,7 @@ typedef void EditLine;
 #include "misc.h"
 
 #include "sftp.h"
+#include "buffer.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
 

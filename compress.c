@@ -1,4 +1,4 @@
-/* $OpenBSD: compress.c,v 1.23 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: compress.c,v 1.24 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -13,6 +13,10 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+
+#include <stdarg.h>
 
 #include "log.h"
 #include "buffer.h"

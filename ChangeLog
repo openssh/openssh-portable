@@ -54,6 +54,34 @@
    - stevesk@cvs.openbsd.org 2006/08/01 23:36:12
      [authfile.c channels.c progressmeter.c scard.c servconf.c ssh.c]
      clean extra spaces
+   - deraadt@cvs.openbsd.org 2006/08/03 03:34:42
+     [OVERVIEW atomicio.c atomicio.h auth-bsdauth.c auth-chall.c auth-krb5.c]
+     [auth-options.c auth-options.h auth-passwd.c auth-rh-rsa.c auth-rhosts.c]
+     [auth-rsa.c auth-skey.c auth.c auth.h auth1.c auth2-chall.c auth2-gss.c]
+     [auth2-hostbased.c auth2-kbdint.c auth2-none.c auth2-passwd.c ]
+     [auth2-pubkey.c auth2.c authfd.c authfd.h authfile.c bufaux.c bufbn.c]
+     [buffer.c buffer.h canohost.c channels.c channels.h cipher-3des1.c]
+     [cipher-bf1.c cipher-ctr.c cipher.c cleanup.c clientloop.c compat.c]
+     [compress.c deattack.c dh.c dispatch.c dns.c dns.h fatal.c groupaccess.c]
+     [groupaccess.h gss-genr.c gss-serv-krb5.c gss-serv.c hostfile.c kex.c]
+     [kex.h kexdh.c kexdhc.c kexdhs.c kexgex.c kexgexc.c kexgexs.c key.c]
+     [key.h log.c log.h mac.c match.c md-sha256.c misc.c misc.h moduli.c]
+     [monitor.c monitor_fdpass.c monitor_mm.c monitor_mm.h monitor_wrap.c]
+     [monitor_wrap.h msg.c nchan.c packet.c progressmeter.c readconf.c]
+     [readconf.h readpass.c rsa.c scard.c scard.h scp.c servconf.c servconf.h]
+     [serverloop.c session.c session.h sftp-client.c sftp-common.c]
+     [sftp-common.h sftp-glob.c sftp-server.c sftp.c ssh-add.c ssh-agent.c]
+     [ssh-dss.c ssh-gss.h ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh-rsa.c]
+     [ssh.c ssh.h sshconnect.c sshconnect.h sshconnect1.c sshconnect2.c]
+     [sshd.c sshlogin.c sshlogin.h sshpty.c sshpty.h sshtty.c ttymodes.c]
+     [uidswap.c uidswap.h uuencode.c uuencode.h xmalloc.c xmalloc.h]
+     [loginrec.c loginrec.h openbsd-compat/port-aix.c openbsd-compat/port-tun.h]
+     almost entirely get rid of the culture of ".h files that include .h files"
+     ok djm, sort of ok stevesk
+     makes the pain stop in one easy step
+     NB. portable commit contains everything *except* removing includes.h, as
+     that will take a fair bit more work as we move headers that are required
+     for portability workarounds to defines.h. (also, this step wasn't "easy")
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5124,4 +5152,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4451 2006/08/05 01:38:40 djm Exp $
+$Id: ChangeLog,v 1.4452 2006/08/05 02:39:39 djm Exp $

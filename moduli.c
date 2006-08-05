@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.17 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: moduli.c,v 1.18 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <time.h>
 
 #include "xmalloc.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.87 2006/07/21 12:43:36 dtucker Exp $ */
+/* $OpenBSD: channels.h,v 1.88 2006/08/03 03:34:42 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,8 +37,6 @@
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
-
-#include "buffer.h"
 
 /* Definitions for channel types. */
 #define SSH_CHANNEL_X11_LISTENER	1	/* Listening for inet X11 conn. */

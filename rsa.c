@@ -1,4 +1,4 @@
-/* $OpenBSD: rsa.c,v 1.27 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: rsa.c,v 1.28 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,11 +62,13 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
 #include <string.h>
 
+#include "xmalloc.h"
 #include "rsa.h"
 #include "log.h"
-#include "xmalloc.h"
 
 void
 rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)

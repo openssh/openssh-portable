@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.39 2006/07/22 20:48:22 stevesk Exp $ */
+/* $OpenBSD: auth-options.c,v 1.40 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,17 +17,25 @@
 #include <netdb.h>
 #include <pwd.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "xmalloc.h"
 #include "match.h"
 #include "log.h"
 #include "canohost.h"
+#include "buffer.h"
 #include "channels.h"
 #include "auth-options.h"
 #include "servconf.h"
 #include "misc.h"
-#include "monitor_wrap.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
+#include "monitor_wrap.h"
 
 /* Flags set authorized_keys flags */
 int no_port_forwarding_flag = 0;

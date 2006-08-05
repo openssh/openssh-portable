@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.28 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.29 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "includes.h"
 
 #include <fcntl.h>
@@ -37,14 +38,13 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 
+#include "xmalloc.h"
 #include "log.h"
 #include "key.h"
 #include "ssh.h"
 #include "ssh2.h"
 #include "misc.h"
-#include "xmalloc.h"
 #include "buffer.h"
-#include "bufaux.h"
 #include "authfile.h"
 #include "msg.h"
 #include "canohost.h"

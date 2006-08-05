@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.14 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.15 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -30,22 +30,26 @@
 
 #include <pwd.h>
 #include <stdio.h>
+#include <stdarg.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "ssh2.h"
-#include "xmalloc.h"
 #include "packet.h"
 #include "buffer.h"
 #include "log.h"
 #include "servconf.h"
 #include "compat.h"
-#include "bufaux.h"
-#include "auth.h"
 #include "key.h"
+#include "hostfile.h"
+#include "auth.h"
 #include "pathnames.h"
 #include "uidswap.h"
 #include "auth-options.h"
 #include "canohost.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 #include "misc.h"
 

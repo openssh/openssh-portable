@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.88 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.89 2006/08/03 03:34:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,11 +50,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "xmalloc.h"
 #include "ssh.h"
 #include "rsa.h"
 #include "log.h"
-#include "xmalloc.h"
 #include "key.h"
+#include "buffer.h"
 #include "authfd.h"
 #include "authfile.h"
 #include "pathnames.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-bsdauth.c,v 1.9 2006/03/25 13:17:01 djm Exp $ */
+/* $OpenBSD: auth-bsdauth.c,v 1.10 2006/08/03 03:34:41 deraadt Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -22,12 +22,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "includes.h"
+
+#include <sys/types.h>
 
 #ifdef BSD_AUTH
 #include "xmalloc.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "log.h"
+#include "buffer.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 #include "monitor_wrap.h"
 
 static void *
