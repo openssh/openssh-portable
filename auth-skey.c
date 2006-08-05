@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-skey.c,v 1.25 2006/08/05 08:00:33 dtucker Exp $ */
+/* $OpenBSD: auth-skey.c,v 1.26 2006/08/05 08:28:24 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -51,8 +51,7 @@ skey_query(void *ctx, char **name, char **infotxt,
     u_int* numprompts, char ***prompts, u_int **echo_on)
 {
 	Authctxt *authctxt = ctx;
-	char challenge[1024], *p;
-	int len;
+	char challenge[1024];
 	struct skey skey;
 
 	if (_compat_skeychallenge(&skey, authctxt->user, challenge,

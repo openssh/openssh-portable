@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.51 2006/08/05 07:52:52 dtucker Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.52 2006/08/05 08:28:24 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -941,9 +941,8 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
    u_int *numprompts, char ***prompts, u_int **echo_on)
 {
 	Buffer m;
-	int len;
 	u_int success;
-	char *p, *challenge;
+	char *challenge;
 
 	debug3("%s: entering", __func__);
 
