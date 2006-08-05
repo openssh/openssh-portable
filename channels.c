@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.261 2006/07/25 02:59:21 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.262 2006/07/26 13:57:17 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,6 +54,7 @@
 
 #include <errno.h>
 #include <netdb.h>
+#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>

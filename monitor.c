@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.83 2006/07/26 02:35:17 stevesk Exp $ */
+/* $OpenBSD: monitor.c,v 1.84 2006/07/26 13:57:17 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -39,6 +39,7 @@
 #endif
 #include <pwd.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef SKEY

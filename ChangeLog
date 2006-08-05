@@ -18,6 +18,13 @@
      [sftp-server.c sftp.c ssh-add.c ssh-agent.c ssh-keygen.c sshlogin.c]
      [uidswap.c xmalloc.c]
      move #include <sys/param.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/07/26 13:57:17
+     [authfd.c authfile.c dh.c canohost.c channels.c clientloop.c compat.c]
+     [hostfile.c kex.c log.c misc.c moduli.c monitor.c packet.c readpass.c]
+     [scp.c servconf.c session.c sftp-server.c sftp.c ssh-add.c ssh-agent.c]
+     [ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh.c sshconnect.c]
+     [sshconnect1.c sshd.c xmalloc.c]
+     move #include <stdlib.h> out of includes.h
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5088,4 +5095,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4445 2006/08/05 01:02:17 djm Exp $
+$Id: ChangeLog,v 1.4446 2006/08/05 01:34:19 djm Exp $

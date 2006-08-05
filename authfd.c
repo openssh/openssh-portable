@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.78 2006/07/22 20:48:22 stevesk Exp $ */
+/* $OpenBSD: authfd.c,v 1.79 2006/07/26 13:57:17 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,6 +44,7 @@
 #include <openssl/evp.h>
 
 #include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 

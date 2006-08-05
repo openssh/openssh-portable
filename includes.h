@@ -22,7 +22,6 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */

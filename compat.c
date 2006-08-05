@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.74 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: compat.c,v 1.75 2006/07/26 13:57:17 stevesk Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -25,6 +25,7 @@
 
 #include "includes.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "buffer.h"

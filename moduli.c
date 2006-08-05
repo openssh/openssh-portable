@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.15 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: moduli.c,v 1.16 2006/07/26 13:57:17 stevesk Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -43,6 +43,7 @@
 
 #include <openssl/bn.h>
 
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
