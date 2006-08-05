@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.55 2006/07/23 01:11:05 stevesk Exp $ */
+/* $OpenBSD: auth.h,v 1.56 2006/08/01 23:22:47 stevesk Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -33,6 +33,7 @@
 #include <signal.h>
 #include <pwd.h>
 #include <signal.h>
+#include <stdio.h>
 
 #include "buffer.h"
 #include <openssl/rsa.h>

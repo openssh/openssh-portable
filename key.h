@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.24 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: key.h,v 1.25 2006/08/01 23:22:47 stevesk Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -28,6 +28,8 @@
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+
+#include <stdio.h>
 
 typedef struct Key Key;
 enum types {

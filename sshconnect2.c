@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.158 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.159 2006/08/01 23:22:48 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 

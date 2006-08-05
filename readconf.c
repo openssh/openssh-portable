@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.157 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.158 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.161 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.162 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -16,6 +16,7 @@
 #include <sys/socket.h>
 
 #include <netdb.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

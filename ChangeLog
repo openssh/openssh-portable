@@ -40,6 +40,17 @@
      Allow fallback to known_hosts entries without port qualifiers for
      non-standard ports too, so that all existing known_hosts entries will be
      recognised.  Requested by, feedback and ok markus@
+   - stevesk@cvs.openbsd.org 2006/08/01 23:22:48
+     [auth-passwd.c auth-rhosts.c auth-rsa.c auth.c auth.h auth1.c]
+     [auth2-chall.c auth2-pubkey.c authfile.c buffer.c canohost.c]
+     [channels.c clientloop.c dh.c dns.c dns.h hostfile.c kex.c kexdhc.c]
+     [kexgexc.c kexgexs.c key.c key.h log.c misc.c misc.h moduli.c]
+     [monitor_wrap.c packet.c progressmeter.c readconf.c readpass.c scp.c]
+     [servconf.c session.c sftp-client.c sftp-common.c sftp-server.c sftp.c]
+     [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keyscan.c ssh.c sshconnect.c]
+     [sshconnect1.c sshconnect2.c sshd.c sshlogin.c sshtty.c uuencode.c]
+     [uuencode.h xmalloc.c]
+     move #include <stdio.h> out of includes.h
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5110,4 +5121,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4449 2006/08/05 01:35:45 djm Exp $
+$Id: ChangeLog,v 1.4450 2006/08/05 01:37:59 djm Exp $

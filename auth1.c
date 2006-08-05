@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.68 2006/07/22 20:48:22 stevesk Exp $ */
+/* $OpenBSD: auth1.c,v 1.69 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -14,6 +14,7 @@
 
 #include <sys/types.h>
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 

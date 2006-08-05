@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.74 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: kex.c,v 1.75 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -29,6 +29,7 @@
 
 #include <openssl/crypto.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

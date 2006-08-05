@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.40 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: dh.c,v 1.41 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -30,6 +30,7 @@
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

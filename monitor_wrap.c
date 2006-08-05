@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.48 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.49 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -34,6 +34,7 @@
 
 #include <errno.h>
 #include <pwd.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "ssh.h"

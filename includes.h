@@ -21,7 +21,6 @@
 #define _GNU_SOURCE /* activate extra prototypes for glibc */
 
 #include <sys/types.h>
-#include <stdio.h>
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */

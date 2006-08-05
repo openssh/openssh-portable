@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.68 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.69 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>

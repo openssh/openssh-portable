@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.45 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: readpass.c,v 1.46 2006/08/01 23:22:47 stevesk Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -34,6 +34,7 @@
 # include <paths.h>
 #endif
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

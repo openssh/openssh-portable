@@ -1,4 +1,4 @@
-/* $OpenBSD: sshtty.c,v 1.10 2006/03/25 13:17:03 djm Exp $ */
+/* $OpenBSD: sshtty.c,v 1.11 2006/08/01 23:22:48 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,6 +37,7 @@
 
 #include "includes.h"
 
+#include <stdio.h>
 #include <termios.h>
 
 #include "sshpty.h"
