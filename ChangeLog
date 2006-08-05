@@ -122,6 +122,7 @@
    on Cygwin.
  - (dtucker) [openbsd-compat/fake-rfc2553.c] Add headers needed for inet_ntoa.
  - (dtucker) [auth-skey.c] monitor_wrap.h needs ssh-gss.h.
+ - (dtucker) [audit.c audit.h] Repair headers.
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5192,4 +5193,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4472 2006/08/05 09:56:00 dtucker Exp $
+$Id: ChangeLog,v 1.4473 2006/08/05 14:05:09 dtucker Exp $

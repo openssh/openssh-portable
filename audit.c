@@ -1,4 +1,4 @@
-/* $Id: audit.c,v 1.3 2005/07/17 07:26:44 djm Exp $ */
+/* $Id: audit.c,v 1.4 2006/08/05 14:05:10 dtucker Exp $ */
 
 /*
  * Copyright (c) 2004, 2005 Darren Tucker.  All rights reserved.
@@ -30,6 +30,8 @@
 
 #include "audit.h"
 #include "log.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 
 /*
