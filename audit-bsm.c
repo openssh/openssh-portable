@@ -1,4 +1,4 @@
-/* $Id: audit-bsm.c,v 1.1 2005/02/20 10:08:00 dtucker Exp $ */
+/* $Id: audit-bsm.c,v 1.2 2006/08/05 14:12:54 dtucker Exp $ */
 
 /*
  * TODO
@@ -39,6 +39,8 @@
 
 #include "ssh.h"
 #include "log.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "xmalloc.h"
 
