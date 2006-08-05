@@ -31,11 +31,16 @@
 
 #ifdef HAVE_CYGWIN
 
-#include <fcntl.h>
-#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/utsname.h>
 #include <sys/vfs.h>
+
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <windows.h>
+
 #include "xmalloc.h"
 #define is_winnt       (GetVersion() < 0x80000000)
 
