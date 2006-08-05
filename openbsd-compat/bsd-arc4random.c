@@ -17,7 +17,9 @@
 #include "includes.h"
 
 #include <sys/types.h>
+
 #include <string.h>
+#include <stdarg.h>
 
 #include "log.h"
 
