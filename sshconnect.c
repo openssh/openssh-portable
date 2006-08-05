@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.196 2006/07/26 13:57:17 stevesk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.197 2006/08/01 11:34:36 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -521,9 +521,13 @@ confirm(const char *prompt)
  * check whether the supplied host key is valid, return -1 if the key
  * is not valid. the user_hostfile will not be updated if 'readonly' is true.
  */
+#define RDRW	0
+#define RDONLY	1
+#define ROQUIET	2
 static int
-check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
-    int readonly, const char *user_hostfile, const char *system_hostfile)
+check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
+    Key *host_key, int readonly, const char *user_hostfile,
+    const char *system_hostfile)
 {
 	Key *file_key;
 	const char *type = key_type(host_key);
@@ -578,7 +582,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
 		if (getnameinfo(hostaddr, salen, ntop, sizeof(ntop),
 		    NULL, 0, NI_NUMERICHOST) != 0)
 			fatal("check_host_key: getnameinfo failed");
-		ip = put_host_port(ntop, options.port);
+		ip = put_host_port(ntop, port);
 	} else {
 		ip = xstrdup("<no hostip for proxy command>");
 	}
@@ -600,7 +604,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
 		host = xstrdup(options.host_key_alias);
 		debug("using hostkeyalias: %s", host);
 	} else {
-		host = put_host_port(hostname, options.port);
+		host = put_host_port(hostname, port);
 	}
 
 	/*
@@ -669,6 +673,15 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
 		}
 		break;
 	case HOST_NEW:
+		if (options.host_key_alias == NULL && port != 0 &&
+		    port != SSH_DEFAULT_PORT) {
+			debug("checking without port identifier");
+			if (check_host_key(hostname, hostaddr, 0, host_key, 2,
+			    user_hostfile, system_hostfile) == 0) {
+				debug("found matching key w/out port");
+				break;
+			}
+		}
 		if (readonly)
 			goto fail;
 		/* The host is new. */
@@ -748,6 +761,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, Key *host_key,
 			    "list of known hosts.", hostp, type);
 		break;
 	case HOST_CHANGED:
+		if (readonly == ROQUIET)
+			goto fail;
 		if (options.check_host_ip && host_ip_differ) {
 			char *key_msg;
 			if (ip_status == HOST_NEW)
@@ -906,12 +921,13 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 	/* return ok if the key can be found in an old keyfile */
 	if (stat(options.system_hostfile2, &st) == 0 ||
 	    stat(options.user_hostfile2, &st) == 0) {
-		if (check_host_key(host, hostaddr, host_key, /*readonly*/ 1,
-		    options.user_hostfile2, options.system_hostfile2) == 0)
+		if (check_host_key(host, hostaddr, options.port, host_key,
+		    RDONLY, options.user_hostfile2,
+		    options.system_hostfile2) == 0)
 			return 0;
 	}
-	return check_host_key(host, hostaddr, host_key, /*readonly*/ 0,
-	    options.user_hostfile, options.system_hostfile);
+	return check_host_key(host, hostaddr, options.port, host_key,
+	    RDRW, options.user_hostfile, options.system_hostfile);
 }
 
 /*

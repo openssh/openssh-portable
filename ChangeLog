@@ -35,6 +35,11 @@
      avoid confusing wording in HashKnownHosts:
      originally spotted by alan amesbury;
      ok deraadt
+   - dtucker@cvs.openbsd.org 2006/08/01 11:34:36
+     [sshconnect.c]
+     Allow fallback to known_hosts entries without port qualifiers for
+     non-standard ports too, so that all existing known_hosts entries will be
+     recognised.  Requested by, feedback and ok markus@
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5105,4 +5110,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4448 2006/08/05 01:35:23 djm Exp $
+$Id: ChangeLog,v 1.4449 2006/08/05 01:35:45 djm Exp $
