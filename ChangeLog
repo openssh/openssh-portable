@@ -120,6 +120,7 @@
      Typo in comment
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Add headers required to compile
    on Cygwin.
+ - (dtucker) [openbsd-compat/fake-rfc2553.c] Add headers needed for inet_ntoa.
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5190,4 +5191,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4470 2006/08/05 09:08:16 dtucker Exp $
+$Id: ChangeLog,v 1.4471 2006/08/05 09:18:08 dtucker Exp $
