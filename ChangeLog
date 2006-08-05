@@ -109,6 +109,9 @@
    - dtucker@cvs.openbsd.org 2006/08/05 07:52:52
      [auth2-none.c sshd.c monitor_wrap.c]
      Add headers required to build with KERBEROS5=no.  ok djm@
+   - dtucker@cvs.openbsd.org 2006/08/05 08:00:33
+     [auth-skey.c]
+     Add headers required to build with -DSKEY.  ok djm@
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5179,4 +5182,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4466 2006/08/05 08:46:47 dtucker Exp $
+$Id: ChangeLog,v 1.4467 2006/08/05 08:48:01 dtucker Exp $

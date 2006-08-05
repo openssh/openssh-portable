@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-skey.c,v 1.24 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: auth-skey.c,v 1.25 2006/08/05 08:00:33 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -29,9 +29,14 @@
 
 #include <sys/types.h>
 
+#include <pwd.h>
+#include <stdio.h>
+
 #include <skey.h>
 
 #include "xmalloc.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "monitor_wrap.h"
 
