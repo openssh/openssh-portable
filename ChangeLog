@@ -105,6 +105,10 @@
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Nees stdlib.h for malloc.
  - (dtucker) [openbsd-compat/strtonum.c] Include stdlib.h for strtoll,
    otherwise it is implicitly declared as returning an int.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2006/08/05 07:52:52
+     [auth2-none.c sshd.c monitor_wrap.c]
+     Add headers required to build with KERBEROS5=no.  ok djm@
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5175,4 +5179,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4465 2006/08/05 06:27:20 dtucker Exp $
+$Id: ChangeLog,v 1.4466 2006/08/05 08:46:47 dtucker Exp $
