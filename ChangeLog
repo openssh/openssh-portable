@@ -96,6 +96,7 @@
  - (djm) [auth-pam.c auth-shadow.c auth2-none.c cleanup.c sshd.c]
    [openbsd-compat/port-tun.c openbsd-compat/port-tun.h] Sprinkle more
    includes for Linux in
+ - (dtucker) [cleanup.c] Need defines.h for __dead.
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5166,4 +5167,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4458 2006/08/05 04:07:20 djm Exp $
+$Id: ChangeLog,v 1.4459 2006/08/05 04:46:27 dtucker Exp $
