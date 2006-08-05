@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.194 2006/07/24 13:58:22 stevesk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.195 2006/07/25 02:59:21 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -19,6 +19,9 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 
 #include <netinet/in.h>
 

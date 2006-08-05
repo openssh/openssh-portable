@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.141 2006/07/22 20:48:23 stevesk Exp $ */
+/* $OpenBSD: serverloop.c,v 1.142 2006/07/25 02:59:21 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -40,6 +40,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 
 #include <netinet/in.h>
 

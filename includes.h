@@ -20,6 +20,7 @@
 
 #define _GNU_SOURCE /* activate extra prototypes for glibc */
 
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -69,19 +70,12 @@
 #  include <utmp.h>
 #endif
 #ifdef HAVE_UTMPX_H
-#  ifdef HAVE_TV_IN_UTMPX
-#    include <sys/time.h>
-#  endif
 #  include <utmpx.h>
 #endif
 #ifdef HAVE_LASTLOG_H
 #  include <lastlog.h>
 #endif
 
-#include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h> /* For timersub */
-#endif
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.70 2006/07/23 01:11:05 stevesk Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.71 2006/07/25 02:59:21 stevesk Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
 #endif
 
 #include <errno.h>
