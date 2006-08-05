@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.216 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: session.c,v 1.217 2006/08/04 20:46:05 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1598,7 +1598,7 @@ do_child(Session *s, const char *command)
 		do_rc_files(s, shell);
 
 	/* restore SIGPIPE for child */
-	signal(SIGPIPE,  SIG_DFL);
+	signal(SIGPIPE, SIG_DFL);
 
 	if (options.use_login) {
 		launch_login(pw, hostname);

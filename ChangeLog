@@ -82,6 +82,9 @@
      NB. portable commit contains everything *except* removing includes.h, as
      that will take a fair bit more work as we move headers that are required
      for portability workarounds to defines.h. (also, this step wasn't "easy")
+   - stevesk@cvs.openbsd.org 2006/08/04 20:46:05
+     [monitor.c session.c ssh-agent.c]
+     spaces
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5152,4 +5155,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4452 2006/08/05 02:39:39 djm Exp $
+$Id: ChangeLog,v 1.4453 2006/08/05 02:40:11 djm Exp $

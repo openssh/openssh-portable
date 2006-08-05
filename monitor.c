@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.85 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: monitor.c,v 1.86 2006/08/04 20:46:05 stevesk Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1266,7 +1266,7 @@ mm_session_close(Session *s)
 {
 	debug3("%s: session %d pid %ld", __func__, s->self, (long)s->pid);
 	if (s->ttyfd != -1) {
-		debug3("%s: tty %s ptyfd %d",  __func__, s->tty, s->ptyfd);
+		debug3("%s: tty %s ptyfd %d", __func__, s->tty, s->ptyfd);
 		session_pty_cleanup2(s);
 	}
 	s->used = 0;
@@ -1326,7 +1326,7 @@ mm_answer_pty(int sock, Buffer *m)
 	/* no need to dup() because nobody closes ptyfd */
 	s->ptymaster = s->ptyfd;
 
-	debug3("%s: tty %s ptyfd %d",  __func__, s->tty, s->ttyfd);
+	debug3("%s: tty %s ptyfd %d", __func__, s->tty, s->ttyfd);
 
 	return (0);
 
