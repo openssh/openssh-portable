@@ -38,6 +38,7 @@
 #include "key.h"
 #include "hostfile.h"
 #include "auth.h"
+#include "ssh-gss.h"
 #include "monitor_wrap.h"
 
 static void *
