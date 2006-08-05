@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.134 2006/07/24 04:51:01 djm Exp $ */
+/* $Id: defines.h,v 1.135 2006/08/05 02:43:33 djm Exp $ */
 
 
 /* Constants */
@@ -526,19 +526,6 @@ struct winsize {
 # define optopt             BSDoptopt
 # define optreset           BSDoptreset
 # define optarg             BSDoptarg
-#endif
-
-/* In older versions of libpam, pam_strerror takes a single argument */
-#ifdef HAVE_OLD_PAM
-# define PAM_STRERROR(a,b) pam_strerror((b))
-#else
-# define PAM_STRERROR(a,b) pam_strerror((a),(b))
-#endif
-
-#ifdef PAM_SUN_CODEBASE
-# define PAM_MSG_MEMBER(msg, n, member) ((*(msg))[(n)].member)
-#else
-# define PAM_MSG_MEMBER(msg, n, member) ((msg)[(n)]->member)
 #endif
 
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)

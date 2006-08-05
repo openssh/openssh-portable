@@ -71,6 +71,13 @@
 # define sshpam_const	const	/* LinuxPAM, OpenPAM */
 #endif
 
+/* Ambiguity in spec: is it an array of pointers or a pointer to an array? */
+#ifdef PAM_SUN_CODEBASE
+# define PAM_MSG_MEMBER(msg, n, member) ((*(msg))[(n)].member)
+#else
+# define PAM_MSG_MEMBER(msg, n, member) ((msg)[(n)]->member)
+#endif
+
 #include "auth.h"
 #include "auth-pam.h"
 #include "buffer.h"
