@@ -45,6 +45,8 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 
+#include <netinet/in.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>

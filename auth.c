@@ -29,6 +29,8 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#include <netinet/in.h>
+
 #include <errno.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>
