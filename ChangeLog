@@ -100,6 +100,7 @@
  - (dtucker) [auth2-gss.c] We still need the #ifdef GSSAPI in -portable.
  - (dtucker) [openbsd-compat/{bsd-arc4random.c,port-tun.c,xmmap.c}] Lots of
    #include stdarg.h, needed for log.h.
+ - (dtucker) [entropy.c] Needs unistd.h too.
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5170,4 +5171,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4461 2006/08/05 05:47:26 dtucker Exp $
+$Id: ChangeLog,v 1.4462 2006/08/05 05:50:20 dtucker Exp $

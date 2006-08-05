@@ -34,6 +34,7 @@
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#include <unistd.h>
 
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
