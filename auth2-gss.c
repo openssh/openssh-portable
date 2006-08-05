@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#ifdef GSSAPI
+
 #include <sys/types.h>
 
 #include "xmalloc.h"
@@ -293,3 +295,5 @@ Authmethod method_gssapi = {
 	userauth_gssapi,
 	&options.gss_authentication
 };
+
+#endif /* GSSAPI */
