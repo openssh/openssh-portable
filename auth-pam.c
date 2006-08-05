@@ -78,19 +78,24 @@
 # define PAM_MSG_MEMBER(msg, n, member) ((msg)[(n)]->member)
 #endif
 
+#include "xmalloc.h"
+#include "buffer.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "auth-pam.h"
-#include "buffer.h"
 #include "canohost.h"
 #include "log.h"
-#include "monitor_wrap.h"
 #include "msg.h"
 #include "packet.h"
 #include "misc.h"
 #include "servconf.h"
 #include "ssh2.h"
-#include "xmalloc.h"
 #include "auth-options.h"
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
+#include "monitor_wrap.h"
 
 extern ServerOptions options;
 extern Buffer loginmsg;

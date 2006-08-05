@@ -28,6 +28,8 @@
 #include <shadow.h>
 #include <string.h>
 
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "buffer.h"
 #include "log.h"

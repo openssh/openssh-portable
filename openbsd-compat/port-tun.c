@@ -29,6 +29,7 @@
 #include "log.h"
 #include "misc.h"
 #include "buffer.h"
+#include "channels.h"
 
 /*
  * This is the portable version of the SSH tunnel forwarding, it

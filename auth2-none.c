@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 #include "key.h"
