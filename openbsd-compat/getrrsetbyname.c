@@ -49,6 +49,7 @@
 
 #ifndef HAVE_GETRRSETBYNAME
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "getrrsetbyname.h"

@@ -102,6 +102,7 @@
    #include stdarg.h, needed for log.h.
  - (dtucker) [entropy.c] Needs unistd.h too.
  - (dtucker) [ssh-rand-helper.c] Needs stdarg.h for log.h.
+ - (dtucker) [openbsd-compat/getrrsetbyname.c] Nees stdlib.h for malloc.
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5172,4 +5173,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4463 2006/08/05 05:57:40 dtucker Exp $
+$Id: ChangeLog,v 1.4464 2006/08/05 06:12:15 dtucker Exp $
