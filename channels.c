@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.263 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.264 2006/08/01 23:36:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1052,7 +1052,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 			return 0;
 		/* look for method: "NO AUTHENTICATION REQUIRED" */
 		for (found = 0, i = 2 ; i < nmethods + 2; i++) {
-			if (p[i] == SSH_SOCKS5_NOAUTH ) {
+			if (p[i] == SSH_SOCKS5_NOAUTH) {
 				found = 1;
 				break;
 			}

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.291 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.292 2006/08/01 23:36:12 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1229,7 +1229,7 @@ load_public_identity_files(void)
 
 	if (options.smartcard_device != NULL &&
 	    options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
-	    (keys = sc_get_keys(options.smartcard_device, NULL)) != NULL ) {
+	    (keys = sc_get_keys(options.smartcard_device, NULL)) != NULL) {
 		int count = 0;
 		for (i = 0; keys[i] != NULL; i++) {
 			count++;

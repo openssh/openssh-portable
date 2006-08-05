@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.35 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.36 2006/08/01 23:36:12 stevesk Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -164,7 +164,7 @@ refresh_progress_meter(void)
 			len = 0;
 		if (len >= file_len + 1)
 			len = file_len;
-		for (i = len;  i < file_len; i++ )
+		for (i = len; i < file_len; i++)
 			buf[i] = ' ';
 		buf[file_len] = '\0';
 	}

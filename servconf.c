@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.162 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.163 2006/08/01 23:36:12 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -961,7 +961,7 @@ parse_flag:
 	case sDenyUsers:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {
 			if (options->num_deny_users >= MAX_DENY_USERS)
-				fatal( "%s line %d: too many deny users.",
+				fatal("%s line %d: too many deny users.",
 				    filename, linenum);
 			options->deny_users[options->num_deny_users++] =
 			    xstrdup(arg);
@@ -1096,7 +1096,7 @@ parse_flag:
 	 */
 	case sAuthorizedKeysFile:
 	case sAuthorizedKeysFile2:
-		charptr = (opcode == sAuthorizedKeysFile ) ?
+		charptr = (opcode == sAuthorizedKeysFile) ?
 		    &options->authorized_keys_file :
 		    &options->authorized_keys_file2;
 		goto parse_filename;

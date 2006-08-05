@@ -51,6 +51,9 @@
      [sshconnect1.c sshconnect2.c sshd.c sshlogin.c sshtty.c uuencode.c]
      [uuencode.h xmalloc.c]
      move #include <stdio.h> out of includes.h
+   - stevesk@cvs.openbsd.org 2006/08/01 23:36:12
+     [authfile.c channels.c progressmeter.c scard.c servconf.c ssh.c]
+     clean extra spaces
 
 20060804
  - (dtucker) [configure.ac] The "crippled AES" test does not work on recent
@@ -5121,4 +5124,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4450 2006/08/05 01:37:59 djm Exp $
+$Id: ChangeLog,v 1.4451 2006/08/05 01:38:40 djm Exp $

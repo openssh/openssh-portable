@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.74 2006/08/01 23:22:47 stevesk Exp $ */
+/* $OpenBSD: authfile.c,v 1.75 2006/08/01 23:36:11 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -195,7 +195,7 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 		return 0;
 	}
 	fp = fdopen(fd, "w");
-	if (fp == NULL ) {
+	if (fp == NULL) {
 		error("fdopen %s failed: %s.", filename, strerror(errno));
 		close(fd);
 		return 0;
