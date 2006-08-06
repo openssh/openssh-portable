@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.135 2006/08/05 02:43:33 djm Exp $ */
+/* $Id: defines.h,v 1.136 2006/08/06 11:23:28 dtucker Exp $ */
 
 
 /* Constants */
@@ -721,14 +721,6 @@ struct winsize {
 # else
 #  define	IOV_MAX		16
 # endif
-#endif
-
-/* some system headers on HP-UX define YES/NO */
-#ifdef YES
-# undef YES
-#endif
-#ifdef NO
-# undef NO
 #endif
 
 #endif /* _DEFINES_H */

@@ -1,3 +1,7 @@
+2006086
+ - (dtucker) [defines.h] With the includes.h changes we no longer get the
+   name clash on "YES" so we can remove the workaround for it.
+
 20060805
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2006/07/24 13:58:22
@@ -5194,4 +5198,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4474 2006/08/05 14:12:54 dtucker Exp $
+$Id: ChangeLog,v 1.4475 2006/08/06 11:23:27 dtucker Exp $
