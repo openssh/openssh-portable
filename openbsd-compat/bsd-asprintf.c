@@ -23,6 +23,7 @@
 
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #ifndef VA_COPY
 # ifdef HAVE_VA_COPY

@@ -1,6 +1,8 @@
 2006086
  - (dtucker) [defines.h] With the includes.h changes we no longer get the
    name clash on "YES" so we can remove the workaround for it.
+ - (dtucker) [openbsd-compat/{bsd-asprintf.c,bsd-openpty.c,bsd-snprintf.c,
+   glob.c}] Include stdlib.h for malloc and friends in compat code.
 
 20060805
  - (djm) OpenBSD CVS Sync
@@ -5198,4 +5200,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4475 2006/08/06 11:23:27 dtucker Exp $
+$Id: ChangeLog,v 1.4476 2006/08/06 11:25:24 dtucker Exp $
