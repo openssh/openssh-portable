@@ -18,6 +18,11 @@
 
 #if !defined(HAVE_GETPEEREID)
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <unistd.h>
+
 #if defined(SO_PEERCRED)
 int
 getpeereid(int s, uid_t *euid, gid_t *gid)

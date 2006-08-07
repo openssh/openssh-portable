@@ -1,4 +1,8 @@
-2006086
+20060806
+ - (djm) [openbsd-compat/bsd-getpeereid.c] Add some headers to quiet warnings
+   on Solaris 10
+
+20060806
  - (dtucker) [defines.h] With the includes.h changes we no longer get the
    name clash on "YES" so we can remove the workaround for it.
  - (dtucker) [openbsd-compat/{bsd-asprintf.c,bsd-openpty.c,bsd-snprintf.c,
@@ -5200,4 +5204,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4476 2006/08/06 11:25:24 dtucker Exp $
+$Id: ChangeLog,v 1.4477 2006/08/07 01:26:36 djm Exp $
