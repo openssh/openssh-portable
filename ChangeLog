@@ -1,3 +1,6 @@
+20060816
+ - (djm) [audit-bsm.c] Sprinkle in some headers
+
 20060815
  - (dtucker) [LICENCE] Add Reyk to the list for the compat dir.
 
@@ -5207,4 +5210,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4478 2006/08/15 08:21:32 dtucker Exp $
+$Id: ChangeLog,v 1.4479 2006/08/16 01:40:45 djm Exp $
