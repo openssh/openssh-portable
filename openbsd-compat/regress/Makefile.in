@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.1 2006/02/19 11:50:20 dtucker Exp $
+# $Id: Makefile.in,v 1.2 2006/08/17 09:40:35 dtucker Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -14,7 +14,7 @@ LIBS=@LIBS@
 LDFLAGS=-L.. -lopenbsd-compat @LDFLAGS@
 
 LIBCOMPAT=../libopenbsd-compat.a
-TESTPROGS=strtonumtest strduptest snprintftest
+TESTPROGS=closefromtest strtonumtest strduptest snprintftest
 
 all:	t-exec ${OTHERTESTS}
 
@@ -31,6 +31,9 @@ strtonumtest: strtonumtest.c $(LIBCOMPAT)
 
 strduptest: strduptest.c $(LIBCOMPAT)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o strduptest $< $(LDFLAGS)
+
+closefromtest: closefromtest.c $(LIBCOMPAT)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o closefromtest $< $(LDFLAGS)
 
 clean:
 	rm -f *.o *.a core $(TESTPROGS) valid.out
