@@ -1,3 +1,7 @@
+20060817
+ - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
+   Include stdlib.h for malloc and friends.
+
 20060816
  - (djm) [audit-bsm.c] Sprinkle in some headers
 
@@ -5210,4 +5214,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4479 2006/08/16 01:40:45 djm Exp $
+$Id: ChangeLog,v 1.4480 2006/08/17 08:55:27 dtucker Exp $
