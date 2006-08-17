@@ -1,6 +1,8 @@
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
    Include stdlib.h for malloc and friends.
+ - (dtucker) [configure.ac openbsd-compat/bsd-closefrom.c] Use F_CLOSEM fcntl
+   for closefrom() on AIX.  Pointed out by William Ahern.
 
 20060816
  - (djm) [audit-bsm.c] Sprinkle in some headers
@@ -5214,4 +5216,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4480 2006/08/17 08:55:27 dtucker Exp $
+$Id: ChangeLog,v 1.4481 2006/08/17 09:35:49 dtucker Exp $

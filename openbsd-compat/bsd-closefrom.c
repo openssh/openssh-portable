@@ -22,6 +22,9 @@
 #include <sys/param.h>
 #include <unistd.h>
 #include <stdio.h>
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
 #include <limits.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -76,6 +79,10 @@ closefrom(int lowfd)
 	}
 	(void) closedir(dirp);
     } else
+#elif defined(USE_FCNTL_CLOSEM)
+    if (fcntl(lowfd, F_CLOSEM, 0) != -1) {
+	return;
+    } else 
 #endif
     {
 	/*
