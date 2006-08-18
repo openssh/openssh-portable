@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.136 2006/08/06 11:23:28 dtucker Exp $ */
+/* $Id: defines.h,v 1.137 2006/08/18 22:38:24 djm Exp $ */
 
 
 /* Constants */
@@ -540,6 +540,11 @@ struct winsize {
 
 #if defined(BROKEN_UPDWTMPX) && defined(HAVE_UPDWTMPX)
 # undef HAVE_UPDWTMPX
+#endif
+
+#if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT) && \
+    defined(SYSLOG_R_SAFE_IN_SIGHAND)
+# define DO_LOG_SAFE_IN_SIGHAND
 #endif
 
 #if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)
