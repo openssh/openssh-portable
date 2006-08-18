@@ -1,4 +1,4 @@
-/* $OpenBSD: compress.c,v 1.24 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: compress.c,v 1.25 2006/08/06 01:13:32 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,10 +17,10 @@
 #include <sys/types.h>
 
 #include <stdarg.h>
+#include <zlib.h>
 
 #include "log.h"
 #include "buffer.h"
-#include "zlib.h"
 #include "compress.h"
 
 z_stream incoming_stream;
