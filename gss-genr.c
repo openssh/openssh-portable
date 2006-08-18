@@ -1,7 +1,7 @@
-/* $OpenBSD: gss-genr.c,v 1.13 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.14 2006/08/18 13:54:54 djm Exp $ */
 
 /*
- * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
+ * Copyright (c) 2001-2006 Simon Wilkinson. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -289,6 +289,35 @@ ssh_gssapi_server_ctx(Gssctxt **ctx, gss_OID oid)
 	ssh_gssapi_build_ctx(ctx);
 	ssh_gssapi_set_oid(*ctx, oid);
 	return (ssh_gssapi_acquire_cred(*ctx));
+}
+
+int
+ssh_gssapi_check_mechanism(Gssctxt **ctx, gss_OID oid, char *host)
+{
+	gss_buffer_desc token = GSS_C_EMPTY_BUFFER;
+	OM_uint32 major, minor;
+	gss_OID_desc spnego_oid = {6, (void *)"\x2B\x06\x01\x05\x05\x02"};
+
+	/* RFC 4462 says we MUST NOT do SPNEGO */
+	if (oid->length == spnego_oid.length && 
+	    (memcmp(oid->elements, spnego_oid.elements, oid->length) == 0))
+		return -1;
+
+	ssh_gssapi_build_ctx(ctx);
+	ssh_gssapi_set_oid(*ctx, oid);
+	major = ssh_gssapi_import_name(*ctx, host);
+	if (!GSS_ERROR(major)) {
+		major = ssh_gssapi_init_ctx(*ctx, 0, GSS_C_NO_BUFFER, &token, 
+		    NULL);
+		gss_release_buffer(&minor, &token);
+		gss_delete_sec_context(&minor, &(*ctx)->context, 
+		    GSS_C_NO_BUFFER);
+	}
+
+	if (GSS_ERROR(major)) 
+		ssh_gssapi_delete_ctx(ctx);
+
+	return (!GSS_ERROR(major));
 }
 
 #endif /* GSSAPI */

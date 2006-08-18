@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.160 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.161 2006/08/18 13:54:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -508,25 +508,18 @@ userauth_gssapi(Authctxt *authctxt)
 
 	/* Check to see if the mechanism is usable before we offer it */
 	while (mech < gss_supported->count && !ok) {
-		if (gssctxt)
-			ssh_gssapi_delete_ctx(&gssctxt);
-		ssh_gssapi_build_ctx(&gssctxt);
-		ssh_gssapi_set_oid(gssctxt, &gss_supported->elements[mech]);
-
 		/* My DER encoding requires length<128 */
 		if (gss_supported->elements[mech].length < 128 &&
-		    !GSS_ERROR(ssh_gssapi_import_name(gssctxt,
-		    authctxt->host))) {
+		    ssh_gssapi_check_mechanism(&gssctxt, 
+		    &gss_supported->elements[mech], authctxt->host)) {
 			ok = 1; /* Mechanism works */
 		} else {
 			mech++;
 		}
 	}
 
-	if (!ok) {
-		ssh_gssapi_delete_ctx(&gssctxt);
+	if (!ok)
 		return 0;
-	}
 
 	authctxt->methoddata=(void *)gssctxt;
 
