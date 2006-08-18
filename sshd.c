@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.344 2006/08/05 07:52:52 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.345 2006/08/16 11:47:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -905,6 +905,322 @@ recv_rexec_state(int fd, Buffer *conf)
 	debug3("%s: done", __func__);
 }
 
+/* Accept a connection from inetd */
+static void
+server_accept_inetd(int *sock_in, int *sock_out)
+{
+	int fd;
+
+	startup_pipe = -1;
+	if (rexeced_flag) {
+		close(REEXEC_CONFIG_PASS_FD);
+		*sock_in = *sock_out = dup(STDIN_FILENO);
+		if (!debug_flag) {
+			startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
+			close(REEXEC_STARTUP_PIPE_FD);
+		}
+	} else {
+		*sock_in = dup(STDIN_FILENO);
+		*sock_out = dup(STDOUT_FILENO);
+	}
+	/*
+	 * We intentionally do not close the descriptors 0, 1, and 2
+	 * as our code for setting the descriptors won't work if
+	 * ttyfd happens to be one of those.
+	 */
+	if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		if (fd > STDOUT_FILENO)
+			close(fd);
+	}
+	debug("inetd sockets after dupping: %d, %d", *sock_in, *sock_out);
+}
+
+/*
+ * Listen for TCP connections
+ */
+static void
+server_listen(void)
+{
+	int ret, listen_sock, on = 1;
+	struct addrinfo *ai;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+
+	for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
+		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+			continue;
+		if (num_listen_socks >= MAX_LISTEN_SOCKS)
+			fatal("Too many listen sockets. "
+			    "Enlarge MAX_LISTEN_SOCKS");
+		if ((ret = getnameinfo(ai->ai_addr, ai->ai_addrlen,
+		    ntop, sizeof(ntop), strport, sizeof(strport),
+		    NI_NUMERICHOST|NI_NUMERICSERV)) != 0) {
+			error("getnameinfo failed: %.100s",
+			    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
+			    strerror(errno));
+			continue;
+		}
+		/* Create socket for listening. */
+		listen_sock = socket(ai->ai_family, ai->ai_socktype,
+		    ai->ai_protocol);
+		if (listen_sock < 0) {
+			/* kernel may not support ipv6 */
+			verbose("socket: %.100s", strerror(errno));
+			continue;
+		}
+		if (set_nonblock(listen_sock) == -1) {
+			close(listen_sock);
+			continue;
+		}
+		/*
+		 * Set socket options.
+		 * Allow local port reuse in TIME_WAIT.
+		 */
+		if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
+		    &on, sizeof(on)) == -1)
+			error("setsockopt SO_REUSEADDR: %s", strerror(errno));
+
+		debug("Bind to port %s on %s.", strport, ntop);
+
+		/* Bind the socket to the desired port. */
+		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+			error("Bind to port %s on %s failed: %.200s.",
+			    strport, ntop, strerror(errno));
+			close(listen_sock);
+			continue;
+		}
+		listen_socks[num_listen_socks] = listen_sock;
+		num_listen_socks++;
+
+		/* Start listening on the port. */
+		if (listen(listen_sock, SSH_LISTEN_BACKLOG) < 0)
+			fatal("listen on [%s]:%s: %.100s",
+			    ntop, strport, strerror(errno));
+		logit("Server listening on %s port %s.", ntop, strport);
+	}
+	freeaddrinfo(options.listen_addrs);
+
+	if (!num_listen_socks)
+		fatal("Cannot bind any address.");
+}
+
+/*
+ * The main TCP accept loop. Note that, for the non-debug case, returns
+ * from this function are in a forked subprocess.
+ */
+static void
+server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
+{
+	fd_set *fdset;
+	int i, j, ret, maxfd;
+	int key_used = 0, startups = 0;
+	int startup_p[2] = { -1 , -1 };
+	struct sockaddr_storage from;
+	socklen_t fromlen;
+	pid_t pid;
+
+	/* setup fd set for accept */
+	fdset = NULL;
+	maxfd = 0;
+	for (i = 0; i < num_listen_socks; i++)
+		if (listen_socks[i] > maxfd)
+			maxfd = listen_socks[i];
+	/* pipes connected to unauthenticated childs */
+	startup_pipes = xcalloc(options.max_startups, sizeof(int));
+	for (i = 0; i < options.max_startups; i++)
+		startup_pipes[i] = -1;
+
+	/*
+	 * Stay listening for connections until the system crashes or
+	 * the daemon is killed with a signal.
+	 */
+	for (;;) {
+		if (received_sighup)
+			sighup_restart();
+		if (fdset != NULL)
+			xfree(fdset);
+		fdset = (fd_set *)xcalloc(howmany(maxfd + 1, NFDBITS),
+		    sizeof(fd_mask));
+
+		for (i = 0; i < num_listen_socks; i++)
+			FD_SET(listen_socks[i], fdset);
+		for (i = 0; i < options.max_startups; i++)
+			if (startup_pipes[i] != -1)
+				FD_SET(startup_pipes[i], fdset);
+
+		/* Wait in select until there is a connection. */
+		ret = select(maxfd+1, fdset, NULL, NULL, NULL);
+		if (ret < 0 && errno != EINTR)
+			error("select: %.100s", strerror(errno));
+		if (received_sigterm) {
+			logit("Received signal %d; terminating.",
+			    (int) received_sigterm);
+			close_listen_socks();
+			unlink(options.pid_file);
+			exit(255);
+		}
+		if (key_used && key_do_regen) {
+			generate_ephemeral_server_key();
+			key_used = 0;
+			key_do_regen = 0;
+		}
+		if (ret < 0)
+			continue;
+
+		for (i = 0; i < options.max_startups; i++)
+			if (startup_pipes[i] != -1 &&
+			    FD_ISSET(startup_pipes[i], fdset)) {
+				/*
+				 * the read end of the pipe is ready
+				 * if the child has closed the pipe
+				 * after successful authentication
+				 * or if the child has died
+				 */
+				close(startup_pipes[i]);
+				startup_pipes[i] = -1;
+				startups--;
+			}
+		for (i = 0; i < num_listen_socks; i++) {
+			if (!FD_ISSET(listen_socks[i], fdset))
+				continue;
+			fromlen = sizeof(from);
+			*newsock = accept(listen_socks[i],
+			    (struct sockaddr *)&from, &fromlen);
+			if (*newsock < 0) {
+				if (errno != EINTR && errno != EWOULDBLOCK)
+					error("accept: %.100s", strerror(errno));
+				continue;
+			}
+			if (unset_nonblock(*newsock) == -1) {
+				close(*newsock);
+				continue;
+			}
+			if (drop_connection(startups) == 1) {
+				debug("drop connection #%d", startups);
+				close(*newsock);
+				continue;
+			}
+			if (pipe(startup_p) == -1) {
+				close(*newsock);
+				continue;
+			}
+
+			if (rexec_flag && socketpair(AF_UNIX,
+			    SOCK_STREAM, 0, config_s) == -1) {
+				error("reexec socketpair: %s",
+				    strerror(errno));
+				close(*newsock);
+				close(startup_p[0]);
+				close(startup_p[1]);
+				continue;
+			}
+
+			for (j = 0; j < options.max_startups; j++)
+				if (startup_pipes[j] == -1) {
+					startup_pipes[j] = startup_p[0];
+					if (maxfd < startup_p[0])
+						maxfd = startup_p[0];
+					startups++;
+					break;
+				}
+
+			/*
+			 * Got connection.  Fork a child to handle it, unless
+			 * we are in debugging mode.
+			 */
+			if (debug_flag) {
+				/*
+				 * In debugging mode.  Close the listening
+				 * socket, and start processing the
+				 * connection without forking.
+				 */
+				debug("Server will not fork when running in debugging mode.");
+				close_listen_socks();
+				*sock_in = *newsock;
+				*sock_out = *newsock;
+				close(startup_p[0]);
+				close(startup_p[1]);
+				startup_pipe = -1;
+				pid = getpid();
+				if (rexec_flag) {
+					send_rexec_state(config_s[0],
+					    &cfg);
+					close(config_s[0]);
+				}
+				break;
+			}
+
+			/*
+			 * Normal production daemon.  Fork, and have
+			 * the child process the connection. The
+			 * parent continues listening.
+			 */
+			if ((pid = fork()) == 0) {
+				/*
+				 * Child.  Close the listening and
+				 * max_startup sockets.  Start using
+				 * the accepted socket. Reinitialize
+				 * logging (since our pid has changed).
+				 * We break out of the loop to handle
+				 * the connection.
+				 */
+				startup_pipe = startup_p[1];
+				close_startup_pipes();
+				close_listen_socks();
+				*sock_in = *newsock;
+				*sock_out = *newsock;
+				log_init(__progname,
+				    options.log_level,
+				    options.log_facility,
+				    log_stderr);
+				if (rexec_flag)
+					close(config_s[0]);
+				break;
+			}
+
+			/* Parent.  Stay in the loop. */
+			if (pid < 0)
+				error("fork: %.100s", strerror(errno));
+			else
+				debug("Forked child %ld.", (long)pid);
+
+			close(startup_p[1]);
+
+			if (rexec_flag) {
+				send_rexec_state(config_s[0], &cfg);
+				close(config_s[0]);
+				close(config_s[1]);
+			}
+
+			/*
+			 * Mark that the key has been used (it
+			 * was "given" to the child).
+			 */
+			if ((options.protocol & SSH_PROTO_1) &&
+			    key_used == 0) {
+				/* Schedule server key regeneration alarm. */
+				signal(SIGALRM, key_regeneration_alarm);
+				alarm(options.key_regeneration_time);
+				key_used = 1;
+			}
+
+			close(*newsock);
+
+			/*
+			 * Ensure that our random state differs
+			 * from that of the child
+			 */
+			arc4random_stir();
+		}
+
+		/* child process check (or debug mode) */
+		if (num_listen_socks < 0)
+			break;
+	}
+}
+
+
 /*
  * Main program for the daemon.
  */
@@ -913,24 +1229,14 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, j, i, on = 1;
+	int opt, i, on = 1;
 	int sock_in = -1, sock_out = -1, newsock = -1;
-	pid_t pid;
-	socklen_t fromlen;
-	fd_set *fdset;
-	struct sockaddr_storage from;
 	const char *remote_ip;
 	int remote_port;
-	FILE *f;
-	struct addrinfo *ai;
-	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	char *line;
-	int listen_sock, maxfd;
-	int startup_p[2] = { -1 , -1 }, config_s[2] = { -1 , -1 };
-	int startups = 0;
+	int config_s[2] = { -1 , -1 };
 	Key *key;
 	Authctxt *authctxt;
-	int ret, key_used = 0;
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -1278,121 +1584,31 @@ main(int ac, char **av)
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
 
-	/* Start listening for a socket, unless started from inetd. */
+	/* Get a connection, either from inetd or a listening TCP socket */
 	if (inetd_flag) {
-		int fd;
+		server_accept_inetd(&sock_in, &sock_out);
 
-		startup_pipe = -1;
-		if (rexeced_flag) {
-			close(REEXEC_CONFIG_PASS_FD);
-			sock_in = sock_out = dup(STDIN_FILENO);
-			if (!debug_flag) {
-				startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
-				close(REEXEC_STARTUP_PIPE_FD);
-			}
-		} else {
-			sock_in = dup(STDIN_FILENO);
-			sock_out = dup(STDOUT_FILENO);
-		}
-		/*
-		 * We intentionally do not close the descriptors 0, 1, and 2
-		 * as our code for setting the descriptors won't work if
-		 * ttyfd happens to be one of those.
-		 */
-		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
-			dup2(fd, STDIN_FILENO);
-			dup2(fd, STDOUT_FILENO);
-			if (fd > STDOUT_FILENO)
-				close(fd);
-		}
-		debug("inetd sockets after dupping: %d, %d", sock_in, sock_out);
 		if ((options.protocol & SSH_PROTO_1) &&
 		    sensitive_data.server_key == NULL)
 			generate_ephemeral_server_key();
 	} else {
-		for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
-			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
-				continue;
-			if (num_listen_socks >= MAX_LISTEN_SOCKS)
-				fatal("Too many listen sockets. "
-				    "Enlarge MAX_LISTEN_SOCKS");
-			if ((ret = getnameinfo(ai->ai_addr, ai->ai_addrlen,
-			    ntop, sizeof(ntop), strport, sizeof(strport),
-			    NI_NUMERICHOST|NI_NUMERICSERV)) != 0) {
-				error("getnameinfo failed: %.100s",
-				    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
-				    strerror(errno));
-				continue;
-			}
-			/* Create socket for listening. */
-			listen_sock = socket(ai->ai_family, ai->ai_socktype,
-			    ai->ai_protocol);
-			if (listen_sock < 0) {
-				/* kernel may not support ipv6 */
-				verbose("socket: %.100s", strerror(errno));
-				continue;
-			}
-			if (set_nonblock(listen_sock) == -1) {
-				close(listen_sock);
-				continue;
-			}
-			/*
-			 * Set socket options.
-			 * Allow local port reuse in TIME_WAIT.
-			 */
-			if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
-			    &on, sizeof(on)) == -1)
-				error("setsockopt SO_REUSEADDR: %s", strerror(errno));
-
-			debug("Bind to port %s on %s.", strport, ntop);
-
-			/* Bind the socket to the desired port. */
-			if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
-				if (!ai->ai_next)
-				    error("Bind to port %s on %s failed: %.200s.",
-					    strport, ntop, strerror(errno));
-				close(listen_sock);
-				continue;
-			}
-			listen_socks[num_listen_socks] = listen_sock;
-			num_listen_socks++;
-
-			/* Start listening on the port. */
-			if (listen(listen_sock, SSH_LISTEN_BACKLOG) < 0)
-				fatal("listen on [%s]:%s: %.100s",
-				    ntop, strport, strerror(errno));
-			logit("Server listening on %s port %s.", ntop, strport);
-		}
-		freeaddrinfo(options.listen_addrs);
-
-		if (!num_listen_socks)
-			fatal("Cannot bind any address.");
+		server_listen();
 
 		if (options.protocol & SSH_PROTO_1)
 			generate_ephemeral_server_key();
 
-		/*
-		 * Arrange to restart on SIGHUP.  The handler needs
-		 * listen_sock.
-		 */
 		signal(SIGHUP, sighup_handler);
-
+		signal(SIGCHLD, main_sigchld_handler);
 		signal(SIGTERM, sigterm_handler);
 		signal(SIGQUIT, sigterm_handler);
 
-		/* Arrange SIGCHLD to be caught. */
-		signal(SIGCHLD, main_sigchld_handler);
-
-		/* Write out the pid file after the sigterm handler is setup */
+		/*
+		 * Write out the pid file after the sigterm handler
+		 * is setup and the listen sockets are bound
+		 */
 		if (!debug_flag) {
-			/*
-			 * Record our pid in /var/run/sshd.pid to make it
-			 * easier to kill the correct sshd.  We don't want to
-			 * do this before the bind above because the bind will
-			 * fail if there already is a daemon, and this will
-			 * overwrite any old pid in the file.
-			 */
-			f = fopen(options.pid_file, "wb");
+			FILE *f = fopen(options.pid_file, "w");
+
 			if (f == NULL) {
 				error("Couldn't create pid file \"%s\": %s",
 				    options.pid_file, strerror(errno));
@@ -1402,198 +1618,9 @@ main(int ac, char **av)
 			}
 		}
 
-		/* setup fd set for listen */
-		fdset = NULL;
-		maxfd = 0;
-		for (i = 0; i < num_listen_socks; i++)
-			if (listen_socks[i] > maxfd)
-				maxfd = listen_socks[i];
-		/* pipes connected to unauthenticated childs */
-		startup_pipes = xcalloc(options.max_startups, sizeof(int));
-		for (i = 0; i < options.max_startups; i++)
-			startup_pipes[i] = -1;
-
-		/*
-		 * Stay listening for connections until the system crashes or
-		 * the daemon is killed with a signal.
-		 */
-		for (;;) {
-			if (received_sighup)
-				sighup_restart();
-			if (fdset != NULL)
-				xfree(fdset);
-			fdset = (fd_set *)xcalloc(howmany(maxfd + 1, NFDBITS),
-			    sizeof(fd_mask));
-
-			for (i = 0; i < num_listen_socks; i++)
-				FD_SET(listen_socks[i], fdset);
-			for (i = 0; i < options.max_startups; i++)
-				if (startup_pipes[i] != -1)
-					FD_SET(startup_pipes[i], fdset);
-
-			/* Wait in select until there is a connection. */
-			ret = select(maxfd+1, fdset, NULL, NULL, NULL);
-			if (ret < 0 && errno != EINTR)
-				error("select: %.100s", strerror(errno));
-			if (received_sigterm) {
-				logit("Received signal %d; terminating.",
-				    (int) received_sigterm);
-				close_listen_socks();
-				unlink(options.pid_file);
-				exit(255);
-			}
-			if (key_used && key_do_regen) {
-				generate_ephemeral_server_key();
-				key_used = 0;
-				key_do_regen = 0;
-			}
-			if (ret < 0)
-				continue;
-
-			for (i = 0; i < options.max_startups; i++)
-				if (startup_pipes[i] != -1 &&
-				    FD_ISSET(startup_pipes[i], fdset)) {
-					/*
-					 * the read end of the pipe is ready
-					 * if the child has closed the pipe
-					 * after successful authentication
-					 * or if the child has died
-					 */
-					close(startup_pipes[i]);
-					startup_pipes[i] = -1;
-					startups--;
-				}
-			for (i = 0; i < num_listen_socks; i++) {
-				if (!FD_ISSET(listen_socks[i], fdset))
-					continue;
-				fromlen = sizeof(from);
-				newsock = accept(listen_socks[i],
-				    (struct sockaddr *)&from, &fromlen);
-				if (newsock < 0) {
-					if (errno != EINTR && errno != EWOULDBLOCK)
-						error("accept: %.100s", strerror(errno));
-					continue;
-				}
-				if (unset_nonblock(newsock) == -1) {
-					close(newsock);
-					continue;
-				}
-				if (drop_connection(startups) == 1) {
-					debug("drop connection #%d", startups);
-					close(newsock);
-					continue;
-				}
-				if (pipe(startup_p) == -1) {
-					close(newsock);
-					continue;
-				}
-
-				if (rexec_flag && socketpair(AF_UNIX,
-				    SOCK_STREAM, 0, config_s) == -1) {
-					error("reexec socketpair: %s",
-					    strerror(errno));
-					close(newsock);
-					close(startup_p[0]);
-					close(startup_p[1]);
-					continue;
-				}
-
-				for (j = 0; j < options.max_startups; j++)
-					if (startup_pipes[j] == -1) {
-						startup_pipes[j] = startup_p[0];
-						if (maxfd < startup_p[0])
-							maxfd = startup_p[0];
-						startups++;
-						break;
-					}
-
-				/*
-				 * Got connection.  Fork a child to handle it, unless
-				 * we are in debugging mode.
-				 */
-				if (debug_flag) {
-					/*
-					 * In debugging mode.  Close the listening
-					 * socket, and start processing the
-					 * connection without forking.
-					 */
-					debug("Server will not fork when running in debugging mode.");
-					close_listen_socks();
-					sock_in = newsock;
-					sock_out = newsock;
-					close(startup_p[0]);
-					close(startup_p[1]);
-					startup_pipe = -1;
-					pid = getpid();
-					if (rexec_flag) {
-						send_rexec_state(config_s[0],
-						    &cfg);
-						close(config_s[0]);
-					}
-					break;
-				} else {
-					/*
-					 * Normal production daemon.  Fork, and have
-					 * the child process the connection. The
-					 * parent continues listening.
-					 */
-					if ((pid = fork()) == 0) {
-						/*
-						 * Child.  Close the listening and
-						 * max_startup sockets.  Start using
-						 * the accepted socket. Reinitialize
-						 * logging (since our pid has changed).
-						 * We break out of the loop to handle
-						 * the connection.
-						 */
-						startup_pipe = startup_p[1];
-						close_startup_pipes();
-						close_listen_socks();
-						sock_in = newsock;
-						sock_out = newsock;
-						log_init(__progname,
-						    options.log_level,
-						    options.log_facility,
-						    log_stderr);
-						if (rexec_flag)
-							close(config_s[0]);
-						break;
-					}
-				}
-
-				/* Parent.  Stay in the loop. */
-				if (pid < 0)
-					error("fork: %.100s", strerror(errno));
-				else
-					debug("Forked child %ld.", (long)pid);
-
-				close(startup_p[1]);
-
-				if (rexec_flag) {
-					send_rexec_state(config_s[0], &cfg);
-					close(config_s[0]);
-					close(config_s[1]);
-				}
-
-				/*
-				 * Mark that the key has been used (it
-				 * was "given" to the child).
-				 */
-				if ((options.protocol & SSH_PROTO_1) &&
-				    key_used == 0) {
-					/* Schedule server key regeneration alarm. */
-					signal(SIGALRM, key_regeneration_alarm);
-					alarm(options.key_regeneration_time);
-					key_used = 1;
-				}
-
-				arc4random_stir();
-				close(newsock);
-			}
-			/* child process check (or debug mode) */
-			if (num_listen_socks < 0)
-				break;
-		}
+		/* Accept a connection and return in a forked child */
+		server_accept_loop(&sock_in, &sock_out,
+		    &newsock, config_s);
 	}
 
 	/* This is the child processing a new connection. */
