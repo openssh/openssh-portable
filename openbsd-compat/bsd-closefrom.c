@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 Todd C. Miller <Todd.Miller@courtesan.com>
+ * Copyright (c) 2004-2005 Todd C. Miller <Todd.Miller@courtesan.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -52,12 +52,19 @@
 #endif
 
 #ifndef lint
-static const char sudorcsid[] = "$Sudo: closefrom.c,v 1.6 2004/06/01 20:51:56 millert Exp $";
+__unused static const char rcsid[] = "$Sudo: closefrom.c,v 1.11 2006/08/17 15:26:54 millert Exp $";
 #endif /* lint */
 
 /*
  * Close all file descriptors greater than or equal to lowfd.
  */
+#ifdef HAVE_FCNTL_CLOSEM
+void
+closefrom(int lowfd)
+{
+    (void) fcntl(lowfd, F_CLOSEM, 0);
+}
+#else
 void
 closefrom(int lowfd)
 {
@@ -70,7 +77,7 @@ closefrom(int lowfd)
 
     /* Check for a /proc/$$/fd directory. */
     len = snprintf(fdpath, sizeof(fdpath), "/proc/%ld/fd", (long)getpid());
-    if (len >= 0 && (u_int)len <= sizeof(fdpath) && (dirp = opendir(fdpath))) {
+    if (len > 0 && (size_t)len <= sizeof(fdpath) && (dirp = opendir(fdpath))) {
 	while ((dent = readdir(dirp)) != NULL) {
 	    fd = strtol(dent->d_name, &endp, 10);
 	    if (dent->d_name != endp && *endp == '\0' &&
@@ -79,10 +86,6 @@ closefrom(int lowfd)
 	}
 	(void) closedir(dirp);
     } else
-#elif defined(USE_FCNTL_CLOSEM)
-    if (fcntl(lowfd, F_CLOSEM, 0) != -1) {
-	return;
-    } else 
 #endif
     {
 	/*
@@ -102,6 +105,5 @@ closefrom(int lowfd)
 	    (void) close((int) fd);
     }
 }
-
+#endif /* !HAVE_FCNTL_CLOSEM */
 #endif /* HAVE_CLOSEFROM */
-

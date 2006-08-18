@@ -1,3 +1,7 @@
+20060818
+ - (dtucker) [configure.ac openbsd-compat/bsd-closefrom.c] Resync with
+   closefrom.c from sudo.
+
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
    Include stdlib.h for malloc and friends.
@@ -5218,4 +5222,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4482 2006/08/17 09:40:35 dtucker Exp $
+$Id: ChangeLog,v 1.4483 2006/08/18 08:51:20 dtucker Exp $

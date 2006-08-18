@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.349 2006/08/17 09:35:49 dtucker Exp $
+# $Id: configure.ac,v 1.350 2006/08/18 08:51:20 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.349 $)
+AC_REVISION($Revision: 1.350 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -181,7 +181,7 @@ case "$host" in
 	)
 	AC_CHECK_FUNCS(setauthdb)
 	AC_CHECK_DECL(F_CLOSEM,
-	    AC_DEFINE(USE_FCNTL_CLOSEM, 1, [Use F_CLOSEM fcntl for closefrom]),
+	    AC_DEFINE(HAVE_FCNTL_CLOSEM, 1, [Use F_CLOSEM fcntl for closefrom]),
 	    [],
 	    [ #include <limits.h>
 	      #include <fcntl.h> ]
