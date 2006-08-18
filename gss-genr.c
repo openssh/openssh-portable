@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.14 2006/08/18 13:54:54 djm Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.15 2006/08/18 14:40:34 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2006 Simon Wilkinson. All rights reserved.
@@ -292,7 +292,7 @@ ssh_gssapi_server_ctx(Gssctxt **ctx, gss_OID oid)
 }
 
 int
-ssh_gssapi_check_mechanism(Gssctxt **ctx, gss_OID oid, char *host)
+ssh_gssapi_check_mechanism(Gssctxt **ctx, gss_OID oid, const char *host)
 {
 	gss_buffer_desc token = GSS_C_EMPTY_BUFFER;
 	OM_uint32 major, minor;

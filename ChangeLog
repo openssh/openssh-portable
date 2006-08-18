@@ -38,6 +38,10 @@
      [gss-genr.c ssh-gss.h sshconnect2.c]
      bz #1218 - disable SPNEGO as per RFC4462; diff from simon AT sxw.org.uk
      ok markus@
+   - djm@cvs.openbsd.org 2006/08/18 14:40:34
+     [gss-genr.c ssh-gss.h]
+     constify host argument to match the rest of the GSSAPI functions and
+     unbreak compilation with -Werror
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5259,4 +5263,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4494 2006/08/18 14:33:34 djm Exp $
+$Id: ChangeLog,v 1.4495 2006/08/18 14:46:43 djm Exp $
