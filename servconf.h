@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.78 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: servconf.h,v 1.79 2006/08/14 12:40:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -25,6 +25,7 @@
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
 #define MAX_HOSTKEYS		256	/* Max # hostkeys. */
 #define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
+#define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1

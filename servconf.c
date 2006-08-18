@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.164 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: servconf.c,v 1.165 2006/08/14 12:40:25 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -16,6 +16,7 @@
 #include <sys/socket.h>
 
 #include <netdb.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +38,7 @@
 #include "mac.h"
 #include "match.h"
 #include "channels.h"
+#include "groupaccess.h"
 
 static void add_listen_addr(ServerOptions *, char *, u_short);
 static void add_one_listen_addr(ServerOptions *, char *, u_short);
@@ -497,6 +499,51 @@ add_one_listen_addr(ServerOptions *options, char *addr, u_short port)
  */
 
 static int
+match_cfg_line_group(const char *grps, int line, const char *user)
+{
+	int result = 0;
+	u_int ngrps = 0;
+	char *arg, *p, *cp, *grplist[MAX_MATCH_GROUPS];
+	struct passwd *pw;
+
+	/*
+	 * Even if we do not have a user yet, we still need to check for
+	 * valid syntax.
+	 */
+	arg = cp = xstrdup(grps);
+	while ((p = strsep(&cp, ",")) != NULL && *p != '\0') {
+		if (ngrps >= MAX_MATCH_GROUPS) {
+			error("line %d: too many groups in Match Group", line);
+			result = -1;
+			goto out;
+		}
+		grplist[ngrps++] = p;
+	}
+
+	if (user == NULL)
+		goto out;
+
+	if ((pw = getpwnam(user)) == NULL) {
+		debug("Can't match group at line %d because user %.100s does "
+		    "not exist", line, user);
+	} else if (ga_init(pw->pw_name, pw->pw_gid) == 0) {
+		debug("Can't Match group because user %.100s not in any group "
+		    "at line %d", user, line);
+	} else if (ga_match(grplist, ngrps) != 1) {
+		debug("user %.100s does not match group %.100s at line %d",
+		    user, arg, line);
+	} else {
+		debug("user %.100s matched group %.100s at line %d", user,
+		    arg, line);
+		result = 1;
+	}
+out:
+	ga_free();
+	xfree(arg);
+	return result;
+}
+
+static int
 match_cfg_line(char **condition, int line, const char *user, const char *host,
     const char *address)
 {
@@ -527,6 +574,13 @@ match_cfg_line(char **condition, int line, const char *user, const char *host,
 			else
 				debug("user %.100s matched 'User %.100s' at "
 				    "line %d", user, arg, line);
+		} else if (strcasecmp(attrib, "group") == 0) {
+			switch (match_cfg_line_group(arg, line, user)) {
+			case -1:
+				return -1;
+			case 0:
+				result = 0;
+			}
 		} else if (strcasecmp(attrib, "host") == 0) {
 			if (!host) {
 				result = 0;

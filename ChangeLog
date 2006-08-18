@@ -14,6 +14,10 @@
      Revert previous include file ordering change, for ssh to compile under
      gcc2 (or until openssl include files are cleaned of parameter names
      in function prototypes)
+   - dtucker@cvs.openbsd.org 2006/08/14 12:40:25
+     [servconf.c servconf.h sshd_config.5]
+     Add ability to match groups to Match keyword in sshd_config.  Feedback
+     djm@, stevesk@, ok stevesk@.
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5235,4 +5239,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4488 2006/08/18 14:22:40 djm Exp $
+$Id: ChangeLog,v 1.4489 2006/08/18 14:23:15 djm Exp $

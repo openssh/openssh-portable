@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.68 2006/07/21 12:43:36 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.69 2006/08/14 12:40:25 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -488,6 +488,7 @@ The arguments to
 are one or more criteria-pattern pairs.
 The available criteria are
 .Cm User ,
+.Cm Group ,
 .Cm Host ,
 and
 .Cm Address .
