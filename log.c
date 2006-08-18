@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.38 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: log.c,v 1.39 2006/08/18 09:13:25 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -136,6 +136,18 @@ error(const char *fmt,...)
 	do_log(SYSLOG_LEVEL_ERROR, fmt, args);
 	va_end(args);
 }
+
+void
+sigdie(const char *fmt,...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
+	va_end(args);
+	_exit(1);
+}
+
 
 /* Log this message (information that usually should go to the log). */
 

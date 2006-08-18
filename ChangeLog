@@ -22,6 +22,10 @@
      [sshd.c]
      factor inetd connection, TCP listen and main TCP accept loop out of
      main() into separate functions to improve readability; ok markus@
+   - deraadt@cvs.openbsd.org 2006/08/18 09:13:26
+     [log.c log.h sshd.c]
+     make signal handler termination path shorter; risky code pointed out by
+     mark dowd; ok djm markus
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5243,4 +5247,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4490 2006/08/18 14:31:39 djm Exp $
+$Id: ChangeLog,v 1.4491 2006/08/18 14:32:20 djm Exp $

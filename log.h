@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.14 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: log.h,v 1.15 2006/08/18 09:13:25 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -53,6 +53,7 @@ LogLevel log_level_number(char *);
 
 void     fatal(const char *, ...) __dead __attribute__((format(printf, 1, 2)));
 void     error(const char *, ...) __attribute__((format(printf, 1, 2)));
+void     sigdie(const char *, ...) __attribute__((format(printf, 1, 2)));
 void     logit(const char *, ...) __attribute__((format(printf, 1, 2)));
 void     verbose(const char *, ...) __attribute__((format(printf, 1, 2)));
 void     debug(const char *, ...) __attribute__((format(printf, 1, 2)));

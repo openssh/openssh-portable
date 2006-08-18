@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.345 2006/08/16 11:47:15 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.346 2006/08/18 09:13:26 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -344,13 +344,11 @@ main_sigchld_handler(int sig)
 static void
 grace_alarm_handler(int sig)
 {
-	/* XXX no idea how fix this signal handler */
-
 	if (use_privsep && pmonitor != NULL && pmonitor->m_pid > 0)
 		kill(pmonitor->m_pid, SIGALRM);
 
 	/* Log error and exit. */
-	fatal("Timeout before authentication for %s", get_remote_ipaddr());
+	sigdie("Timeout before authentication for %s", get_remote_ipaddr());
 }
 
 /*
