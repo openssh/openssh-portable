@@ -3,6 +3,8 @@
    closefrom.c from sudo.
  - (dtucker) [openbsd-compat/bsd-closefrom.c] Comment out rcsid.
  - (dtucker) [openbsd-compat/regress/snprintftest.c] Newline on error.
+ - (dtucker) [openbsd-compat/regress/Makefile.in] Use implicit rules for the
+   test progs instead; they work better than what we have.
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5224,4 +5226,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4485 2006/08/18 10:09:32 dtucker Exp $
+$Id: ChangeLog,v 1.4486 2006/08/18 10:56:18 dtucker Exp $

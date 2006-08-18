@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.2 2006/08/17 09:40:35 dtucker Exp $
+# $Id: Makefile.in,v 1.3 2006/08/18 10:56:19 dtucker Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -25,15 +25,6 @@ t-exec:	$(TESTPROGS)
 		./$${TEST} || exit $$? ; \
 	done
 	@echo finished compat regress tests
-
-strtonumtest: strtonumtest.c $(LIBCOMPAT)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o strtonumtest $< $(LDFLAGS)
-
-strduptest: strduptest.c $(LIBCOMPAT)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o strduptest $< $(LDFLAGS)
-
-closefromtest: closefromtest.c $(LIBCOMPAT)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o closefromtest $< $(LDFLAGS)
 
 clean:
 	rm -f *.o *.a core $(TESTPROGS) valid.out
