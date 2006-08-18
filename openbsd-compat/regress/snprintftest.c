@@ -28,7 +28,7 @@ static int failed = 0;
 static void
 fail(const char *m)
 {
-	fprintf(stderr, "%s", m);
+	fprintf(stderr, "snprintftest: %s\n", m);
 	failed = 1;
 }
 
