@@ -9,6 +9,11 @@
    - stevesk@cvs.openbsd.org 2006/08/06 01:13:32
      [compress.c monitor.c monitor_wrap.c]
      "zlib.h" can be <zlib.h>; ok djm@ markus@
+   - miod@cvs.openbsd.org 2006/08/12 20:46:46
+     [monitor.c monitor_wrap.c]
+     Revert previous include file ordering change, for ssh to compile under
+     gcc2 (or until openssl include files are cleaned of parameter names
+     in function prototypes)
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5230,4 +5235,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4487 2006/08/18 14:21:46 djm Exp $
+$Id: ChangeLog,v 1.4488 2006/08/18 14:22:40 djm Exp $
