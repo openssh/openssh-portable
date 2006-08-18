@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.35 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: misc.h,v 1.36 2006/08/18 10:27:16 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -48,17 +48,6 @@ void	 replacearg(arglist *, u_int, char *, ...)
 	     __attribute__((format(printf, 3, 4)));
 void	 freeargs(arglist *);
 
-/* readpass.c */
-
-#define RP_ECHO			0x0001
-#define RP_ALLOW_STDIN		0x0002
-#define RP_ALLOW_EOF		0x0004
-#define RP_USE_ASKPASS		0x0008
-
-char	*read_passphrase(const char *, int);
-int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
-int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
-
 int	 tun_open(int, int);
 
 /* Common definitions for ssh tunnel device forwarding */
@@ -86,5 +75,16 @@ void		put_u32(void *, u_int32_t)
 void		put_u16(void *, u_int16_t)
     __attribute__((__bounded__( __minbytes__, 1, 2)));
 
-#endif /* _MISC_H */
 
+/* readpass.c */
+
+#define RP_ECHO			0x0001
+#define RP_ALLOW_STDIN		0x0002
+#define RP_ALLOW_EOF		0x0004
+#define RP_USE_ASKPASS		0x0008
+
+char	*read_passphrase(const char *, int);
+int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
+int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
+
+#endif /* _MISC_H */

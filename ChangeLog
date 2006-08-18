@@ -30,6 +30,10 @@
      [auth.h session.c sshd.c]
      delay authentication related cleanups until we're authenticated and
      all alarms have been cancelled; ok deraadt
+   - djm@cvs.openbsd.org 2006/08/18 10:27:16
+     [misc.h]
+     reorder so prototypes are sorted by the files they refer to; no
+     binary change
 
 20060817
  - (dtucker) [openbsd-compat/fake-rfc2553.c openbsd-compat/setproctitle.c]
@@ -5251,4 +5255,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4492 2006/08/18 14:32:46 djm Exp $
+$Id: ChangeLog,v 1.4493 2006/08/18 14:33:05 djm Exp $
