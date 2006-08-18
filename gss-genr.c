@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.15 2006/08/18 14:40:34 djm Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.16 2006/08/18 22:41:29 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2006 Simon Wilkinson. All rights reserved.
@@ -301,7 +301,7 @@ ssh_gssapi_check_mechanism(Gssctxt **ctx, gss_OID oid, const char *host)
 	/* RFC 4462 says we MUST NOT do SPNEGO */
 	if (oid->length == spnego_oid.length && 
 	    (memcmp(oid->elements, spnego_oid.elements, oid->length) == 0))
-		return -1;
+		return 0; /* false */
 
 	ssh_gssapi_build_ctx(ctx);
 	ssh_gssapi_set_oid(*ctx, oid);
