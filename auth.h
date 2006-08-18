@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.57 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: auth.h,v 1.58 2006/08/18 09:15:20 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -48,6 +48,7 @@ typedef struct KbdintDevice KbdintDevice;
 
 struct Authctxt {
 	sig_atomic_t	 success;
+	int		 authenticated;	/* authenticated and alarms cancelled */
 	int		 postponed;	/* authentication needs another step */
 	int		 valid;		/* user exists and is allowed to login */
 	int		 attempt;

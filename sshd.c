@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.346 2006/08/18 09:13:26 deraadt Exp $ */
+/* $OpenBSD: sshd.c,v 1.347 2006/08/18 09:15:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1800,6 +1800,7 @@ main(int ac, char **av)
 	 */
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
+	authctxt->authenticated = 1;
 	if (startup_pipe != -1) {
 		close(startup_pipe);
 		startup_pipe = -1;
