@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.3 2006/08/18 10:56:19 dtucker Exp $
+# $Id: Makefile.in,v 1.4 2006/08/19 09:12:14 dtucker Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -10,19 +10,24 @@ CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I.. -I$(srcdir) -I$(srcdir)/.. @CPPFLAGS@ @DEFS@
-LIBS=@LIBS@
-LDFLAGS=-L.. -lopenbsd-compat @LDFLAGS@
-
+EXEEXT=@EXEEXT@
 LIBCOMPAT=../libopenbsd-compat.a
-TESTPROGS=closefromtest strtonumtest strduptest snprintftest
+LIBS=@LIBS@
+LDFLAGS=@LDFLAGS@ $(LIBCOMPAT)
+
+TESTPROGS=closefromtest$(EXEEXT) snprintftest$(EXEEXT) strduptest$(EXEEXT) \
+	strtonumtest$(EXEEXT)
 
 all:	t-exec ${OTHERTESTS}
+
+%$(EXEEXT):	%.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $< $(LIBCOMPAT) $(LIBS)
 
 t-exec:	$(TESTPROGS)
 	@echo running compat regress tests
 	@for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
-		./$${TEST} || exit $$? ; \
+		./$${TEST}$(EXEEXT) || exit $$? ; \
 	done
 	@echo finished compat regress tests
 
