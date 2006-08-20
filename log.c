@@ -140,9 +140,9 @@ error(const char *fmt,...)
 void
 sigdie(const char *fmt,...)
 {
+#ifdef DO_LOG_SAFE_IN_SIGHAND
 	va_list args;
 
-#ifdef DO_LOG_SAFE_IN_SIGHAND
 	va_start(args, fmt);
 	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
 	va_end(args);
