@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.354 2006/08/20 10:17:53 dtucker Exp $
+# $Id: configure.ac,v 1.355 2006/08/20 11:43:19 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.354 $)
+AC_REVISION($Revision: 1.355 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1966,7 +1966,7 @@ AC_ARG_WITH(pam,
 					# libdl already in LIBS
 					;;
 				*)
-					LIBPAM="-$LIBPAM -ldl"
+					LIBPAM="$LIBPAM -ldl"
 					;;
 				esac
 			fi
