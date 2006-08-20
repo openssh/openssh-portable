@@ -4,6 +4,8 @@
    afterward.  Removes the need to mangle $LIBS later to remove -lpam and -ldl.
  - (dtucker) [configure.ac] Relocate --with-pam parts in preparation for
    fixing bug #1181.  No changes yet.
+ - (dtucker) [configure.ac] Bug #1181: Explicitly test to see if OpenSSL
+   (0.9.8a and presumably newer) requires -ldl to successfully link.
 
 20060819
  - (djm) OpenBSD CVS Sync
@@ -5281,4 +5283,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4501 2006/08/20 10:03:50 dtucker Exp $
+$Id: ChangeLog,v 1.4502 2006/08/20 10:17:53 dtucker Exp $
