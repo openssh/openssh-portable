@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.352 2006/08/20 09:55:02 dtucker Exp $
+# $Id: configure.ac,v 1.353 2006/08/20 10:03:50 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.352 $)
+AC_REVISION($Revision: 1.353 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1680,63 +1680,6 @@ fi
 
 AC_FUNC_GETPGRP
 
-# Check for PAM libs
-PAM_MSG="no"
-AC_ARG_WITH(pam,
-	[  --with-pam              Enable PAM support ],
-	[
-		if test "x$withval" != "xno" ; then
-			if test "x$ac_cv_header_security_pam_appl_h" != "xyes" && \
-			   test "x$ac_cv_header_pam_pam_appl_h" != "xyes" ; then
-				AC_MSG_ERROR([PAM headers not found])
-			fi
-
-			saved_LIBS="$LIBS"
-			AC_CHECK_LIB(dl, dlopen, , )
-			AC_CHECK_LIB(pam, pam_set_item, , AC_MSG_ERROR([*** libpam missing]))
-			AC_CHECK_FUNCS(pam_getenvlist)
-			AC_CHECK_FUNCS(pam_putenv)
-			LIBS="$saved_LIBS"
-
-			PAM_MSG="yes"
-
-			AC_DEFINE(USE_PAM, 1,
-				[Define if you want to enable PAM support])
-			if test $ac_cv_lib_dl_dlopen = yes; then
-				LIBPAM="-lpam -ldl"
-			else
-				LIBPAM="-lpam"
-			fi
-			AC_SUBST(LIBPAM)
-		fi
-	]
-)
-
-# Check for older PAM
-if test "x$PAM_MSG" = "xyes" ; then
-	# Check PAM strerror arguments (old PAM)
-	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
-	AC_TRY_COMPILE(
-		[
-#include <stdlib.h>
-#if defined(HAVE_SECURITY_PAM_APPL_H)
-#include <security/pam_appl.h>
-#elif defined (HAVE_PAM_PAM_APPL_H)
-#include <pam/pam_appl.h>
-#endif
-		],
-		[(void)pam_strerror((pam_handle_t *)NULL, -1);],
-		[AC_MSG_RESULT(no)],
-		[
-			AC_DEFINE(HAVE_OLD_PAM, 1,
-				[Define if you have an old version of PAM
-				which takes only one argument to pam_strerror])
-			AC_MSG_RESULT(yes)
-			PAM_MSG="yes (old library)"
-		]
-	)
-fi
-
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
@@ -1963,6 +1906,62 @@ int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
 	]
 )
 
+# Check for PAM libs
+PAM_MSG="no"
+AC_ARG_WITH(pam,
+	[  --with-pam              Enable PAM support ],
+	[
+		if test "x$withval" != "xno" ; then
+			if test "x$ac_cv_header_security_pam_appl_h" != "xyes" && \
+			   test "x$ac_cv_header_pam_pam_appl_h" != "xyes" ; then
+				AC_MSG_ERROR([PAM headers not found])
+			fi
+
+			saved_LIBS="$LIBS"
+			AC_CHECK_LIB(dl, dlopen, , )
+			AC_CHECK_LIB(pam, pam_set_item, , AC_MSG_ERROR([*** libpam missing]))
+			AC_CHECK_FUNCS(pam_getenvlist)
+			AC_CHECK_FUNCS(pam_putenv)
+			LIBS="$saved_LIBS"
+
+			PAM_MSG="yes"
+
+			AC_DEFINE(USE_PAM, 1,
+				[Define if you want to enable PAM support])
+			if test $ac_cv_lib_dl_dlopen = yes; then
+				LIBPAM="-lpam -ldl"
+			else
+				LIBPAM="-lpam"
+			fi
+			AC_SUBST(LIBPAM)
+		fi
+	]
+)
+
+# Check for older PAM
+if test "x$PAM_MSG" = "xyes" ; then
+	# Check PAM strerror arguments (old PAM)
+	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
+	AC_TRY_COMPILE(
+		[
+#include <stdlib.h>
+#if defined(HAVE_SECURITY_PAM_APPL_H)
+#include <security/pam_appl.h>
+#elif defined (HAVE_PAM_PAM_APPL_H)
+#include <pam/pam_appl.h>
+#endif
+		],
+		[(void)pam_strerror((pam_handle_t *)NULL, -1);],
+		[AC_MSG_RESULT(no)],
+		[
+			AC_DEFINE(HAVE_OLD_PAM, 1,
+				[Define if you have an old version of PAM
+				which takes only one argument to pam_strerror])
+			AC_MSG_RESULT(yes)
+			PAM_MSG="yes (old library)"
+		]
+	)
+fi
 
 # Do we want to force the use of the rand helper?
 AC_ARG_WITH(rand-helper,
