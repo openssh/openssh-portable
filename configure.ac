@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.351 2006/08/18 22:38:23 djm Exp $
+# $Id: configure.ac,v 1.352 2006/08/20 09:55:02 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.351 $)
+AC_REVISION($Revision: 1.352 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1691,10 +1691,12 @@ AC_ARG_WITH(pam,
 				AC_MSG_ERROR([PAM headers not found])
 			fi
 
+			saved_LIBS="$LIBS"
 			AC_CHECK_LIB(dl, dlopen, , )
 			AC_CHECK_LIB(pam, pam_set_item, , AC_MSG_ERROR([*** libpam missing]))
 			AC_CHECK_FUNCS(pam_getenvlist)
 			AC_CHECK_FUNCS(pam_putenv)
+			LIBS="$saved_LIBS"
 
 			PAM_MSG="yes"
 
@@ -3818,14 +3820,6 @@ fi
 if test ! -z "$blibpath" ; then
 	LDFLAGS="$LDFLAGS $blibflags$blibpath"
 	AC_MSG_WARN([Please check and edit blibpath in LDFLAGS in Makefile])
-fi
-
-dnl remove pam and dl because they are in $LIBPAM
-if test "$PAM_MSG" = yes ; then
-	LIBS=`echo $LIBS | sed 's/-lpam //'`
-fi
-if test "$ac_cv_lib_pam_pam_set_item" = yes ; then
-	LIBS=`echo $LIBS | sed 's/-ldl //'`
 fi
 
 dnl Adding -Werror to CFLAGS early prevents configure tests from running.
