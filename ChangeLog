@@ -1,3 +1,7 @@
+20060822
+ - (dtucker) [Makefile.in] Bug #1177: fix incorrect path for sshrc in
+   Makefile.  Patch from santhi.amirta at gmail, ok djm.
+
 20060820
  - (dtucker) [log.c] Move ifdef to prevent unused variable warning.
  - (dtucker) [configure.ac] Save $LIBS during PAM library tests and restore
@@ -5284,4 +5288,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4503 2006/08/20 11:43:19 dtucker Exp $
+$Id: ChangeLog,v 1.4504 2006/08/22 12:24:10 dtucker Exp $
