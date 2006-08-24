@@ -17,8 +17,13 @@
 
 #include "includes.h"
 
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "xmalloc.h"
 
