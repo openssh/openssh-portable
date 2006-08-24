@@ -20,6 +20,7 @@
 
 #include "includes.h"
 #ifndef HAVE_BASENAME
+#include <errno.h>
 #include <string.h>
 
 char *

@@ -1,3 +1,6 @@
+20060824
+ - (dtucker) [openbsd-compat/basename.c] Include errno.h.
+
 20060822
  - (dtucker) [Makefile.in] Bug #1177: fix incorrect path for sshrc in
    Makefile.  Patch from santhi.amirta at gmail, ok djm.
@@ -5288,4 +5291,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4504 2006/08/22 12:24:10 dtucker Exp $
+$Id: ChangeLog,v 1.4505 2006/08/24 09:41:03 dtucker Exp $
