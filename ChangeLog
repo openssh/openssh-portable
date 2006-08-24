@@ -2,6 +2,8 @@
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
  - (dtucker) [openbsd-compat/bsd-misc.c] Add includes needed for select(2) on
    older systems.
+ - (dtucker) [openbsd-compat/bsd-misc.c] Include <sys/select.h> for select(2)
+   on POSIX systems.
 
 20060822
  - (dtucker) [Makefile.in] Bug #1177: fix incorrect path for sshrc in
@@ -5293,4 +5295,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4506 2006/08/24 09:43:16 dtucker Exp $
+$Id: ChangeLog,v 1.4507 2006/08/24 09:45:33 dtucker Exp $
