@@ -5,6 +5,7 @@
  - (dtucker) [openbsd-compat/bsd-misc.c] Include <sys/select.h> for select(2)
    on POSIX systems.
  - (dtucker) [openbsd-compat/bsd-openpty.c] Include for ioctl(2).
+ - (dtucker) [openbsd-compat/rresvport.c] Include <stdlib.h> for malloc.
 
 20060822
  - (dtucker) [Makefile.in] Bug #1177: fix incorrect path for sshrc in
@@ -5296,4 +5297,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4508 2006/08/24 09:52:30 dtucker Exp $
+$Id: ChangeLog,v 1.4509 2006/08/24 09:53:40 dtucker Exp $
