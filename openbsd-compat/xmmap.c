@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.11 2006/08/05 05:47:27 dtucker Exp $ */
+/* $Id: xmmap.c,v 1.12 2006/08/24 09:58:36 dtucker Exp $ */
 
 #include "includes.h"
 
@@ -45,9 +45,9 @@
 
 void *xmmap(size_t size)
 {
+#ifdef HAVE_MMAP
 	void *address;
 
-#ifdef HAVE_MMAP
 # ifdef MAP_ANON
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, (off_t)0);
