@@ -1,3 +1,10 @@
+20060830
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2006/08/21 08:14:01
+     [sshd_config.5]
+     Document HostbasedUsesNameFromPacketOnly.  Corrections from jmc@,
+     ok jmc@ djm@
+
 20060824
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
  - (dtucker) [openbsd-compat/bsd-misc.c] Add includes needed for select(2) on
@@ -5299,4 +5306,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4510 2006/08/24 09:55:41 dtucker Exp $
+$Id: ChangeLog,v 1.4511 2006/08/30 01:06:34 djm Exp $
