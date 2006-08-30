@@ -265,15 +265,17 @@ sys_auth_record_login(const char *user, const char *host, const char *ttynm,
     Buffer *loginmsg)
 {
 	char *msg = NULL;
+	static int msg_done = 0;
 	int success = 0;
 
 	aix_setauthdb(user);
 	if (loginsuccess((char *)user, (char *)host, (char *)ttynm, &msg) == 0) {
 		success = 1;
-		if (msg != NULL) {
+		if (msg != NULL && loginmsg != NULL && !msg_done) {
 			debug("AIX/loginsuccess: msg %s", msg);
 			buffer_append(loginmsg, msg, strlen(msg));
 			xfree(msg);
+			msg_done = 1;
 		}
 	}
 	aix_restoreauthdb();

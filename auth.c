@@ -279,6 +279,11 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    strcmp(method, "challenge-response") == 0))
 		record_failed_login(authctxt->user,
 		    get_canonical_hostname(options.use_dns), "ssh");
+# ifdef WITH_AIXAUTHENTICATE
+	if (authenticated)
+		sys_auth_record_login(authctxt->user,
+		    get_canonical_hostname(options.use_dns), "ssh", &loginmsg);
+# endif
 #endif
 #ifdef SSH_AUDIT_EVENTS
 	if (authenticated == 0 && !authctxt->postponed)

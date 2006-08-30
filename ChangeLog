@@ -27,6 +27,15 @@
      [version.h]
      crank to 4.4
  - (djm) [openbsd-compat/xcrypt.c] needs unistd.h
+ - (dtucker) [auth.c openbsd-compat/port-aix.c] Bug #1207: always call
+   loginsuccess on AIX immediately after authentication to clear the failed
+   login count.  Previously this would only happen when an interactive
+   session starts (ie when a pty is allocated) but this means that accounts
+   that have primarily non-interactive sessions (eg scp's) may gradually
+   accumulate enough failures to lock out an account.  This change may have
+   a side effect of creating two audit records, one with a tty of "ssh"
+   corresponding to the authentication and one with the allocated pty per
+   interactive session.
 
 20060824
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
@@ -5329,4 +5338,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4517 2006/08/30 07:52:03 djm Exp $
+$Id: ChangeLog,v 1.4518 2006/08/30 12:33:09 dtucker Exp $
