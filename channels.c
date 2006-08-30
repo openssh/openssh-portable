@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.265 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.266 2006/08/29 10:40:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3164,9 +3164,7 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 		return;
 	}
 
-	cp = disp;
-	if (disp)
-		cp = strchr(disp, ':');
+	cp = strchr(disp, ':');
 	if (cp)
 		cp = strchr(cp, '.');
 	if (cp)

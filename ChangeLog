@@ -8,6 +8,11 @@
      [sshd.8]
      Add more detail about what permissions are and aren't accepted for
      authorized_keys files.  Corrections jmc@, ok djm@, "looks good" jmc@
+   - djm@cvs.openbsd.org 2006/08/29 10:40:19
+     [channels.c session.c]
+     normalise some inconsistent (but harmless) NULL pointer checks
+     spotted by the Stanford SATURN tool, via Isil Dillig;
+     ok markus@ deraadt@
 
 20060824
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
@@ -5310,4 +5315,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4512 2006/08/30 01:07:00 djm Exp $
+$Id: ChangeLog,v 1.4513 2006/08/30 01:07:39 djm Exp $
