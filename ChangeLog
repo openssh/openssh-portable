@@ -13,6 +13,12 @@
      normalise some inconsistent (but harmless) NULL pointer checks
      spotted by the Stanford SATURN tool, via Isil Dillig;
      ok markus@ deraadt@
+   - dtucker@cvs.openbsd.org 2006/08/29 12:02:30
+     [gss-genr.c]
+     Work around a problem in Heimdal that occurs when KRB5CCNAME file is
+     missing, by checking whether or not kerberos allocated us a context
+     before attempting to free it.  Patch from Simon Wilkinson, tested by
+     biorn@, ok djm@
 
 20060824
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
@@ -5315,4 +5321,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4513 2006/08/30 01:07:39 djm Exp $
+$Id: ChangeLog,v 1.4514 2006/08/30 01:08:04 djm Exp $

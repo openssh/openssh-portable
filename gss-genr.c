@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.16 2006/08/18 22:41:29 djm Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.17 2006/08/29 12:02:30 dtucker Exp $ */
 
 /*
  * Copyright (c) 2001-2006 Simon Wilkinson. All rights reserved.
@@ -310,8 +310,9 @@ ssh_gssapi_check_mechanism(Gssctxt **ctx, gss_OID oid, const char *host)
 		major = ssh_gssapi_init_ctx(*ctx, 0, GSS_C_NO_BUFFER, &token, 
 		    NULL);
 		gss_release_buffer(&minor, &token);
-		gss_delete_sec_context(&minor, &(*ctx)->context, 
-		    GSS_C_NO_BUFFER);
+		if ((*ctx)->context != GSS_C_NO_CONTEXT)
+			gss_delete_sec_context(&minor, &(*ctx)->context,
+			    GSS_C_NO_BUFFER);
 	}
 
 	if (GSS_ERROR(major)) 
