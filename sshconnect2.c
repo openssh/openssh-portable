@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.161 2006/08/18 13:54:54 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.162 2006/08/30 00:06:51 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -377,7 +377,7 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 	debug3("input_userauth_banner");
 	msg = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
-	if (options.log_level > SYSLOG_LEVEL_QUIET)
+	if (options.log_level >= SYSLOG_LEVEL_INFO)
 		fprintf(stderr, "%s", msg);
 	xfree(msg);
 	xfree(lang);
