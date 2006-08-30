@@ -25,6 +25,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <unistd.h>
 #include <pwd.h>
 
 # ifdef HAVE_CRYPT_H

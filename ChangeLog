@@ -26,6 +26,7 @@
    - djm@cvs.openbsd.org 2006/08/30 00:14:37
      [version.h]
      crank to 4.4
+ - (djm) [openbsd-compat/xcrypt.c] needs unistd.h
 
 20060824
  - (dtucker) [openbsd-compat/basename.c] Include errno.h.
@@ -5328,4 +5329,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4516 2006/08/30 01:09:01 djm Exp $
+$Id: ChangeLog,v 1.4517 2006/08/30 07:52:03 djm Exp $
