@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.355 2006/08/20 11:43:19 dtucker Exp $
+# $Id: configure.ac,v 1.356 2006/08/30 17:24:41 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.355 $)
+AC_REVISION($Revision: 1.356 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -126,6 +126,10 @@ AC_ARG_WITH(rpath,
 		fi
 	]
 )
+
+# Messages for features tested for in target-specific section
+SIA_MSG="no"
+SPC_MSG="no"
 
 # Check for some target-specific stuff
 case "$host" in
@@ -438,6 +442,17 @@ mips-sony-bsd|mips-sony-newsos4)
 	else
 		AC_MSG_RESULT(no)
 	fi
+	AC_ARG_WITH(solaris-contracts,
+		[  --with-solaris-contracts Enable Solaris process contracts (experimental)],
+		[
+		AC_CHECK_LIB(contract, ct_tmpl_activate,
+			[ AC_DEFINE(USE_SOLARIS_PROCESS_CONTRACTS, 1,
+				[Define if you have Solaris process contracts])
+			  SSHDLIBS="$SSHDLIBS -lcontract"
+			  AC_SUBST(SSHDLIBS)
+			  SPC_MSG="yes" ], )
+		],
+	)
 	;;
 *-*-sunos4*)
 	CPPFLAGS="$CPPFLAGS -DSUNOS4"
@@ -586,6 +601,7 @@ mips-sony-bsd|mips-sony-newsos4)
 				system's login() call])
 			AC_DEFINE(DISABLE_FD_PASSING)
 			LIBS="$LIBS -lsecurity -ldb -lm -laud"
+			SIA_MSG="yes"
 		else
 			AC_MSG_RESULT(no)
 			AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin",
@@ -3905,6 +3921,7 @@ echo "          sshd superuser user PATH: $J"
 fi
 echo "                    Manpage format: $MANTYPE"
 echo "                       PAM support: $PAM_MSG"
+echo "                   OSF SIA support: $SIA_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
 echo "                   SELinux support: $SELINUX_MSG"
 echo "                 Smartcard support: $SCARD_MSG"
@@ -3912,6 +3929,7 @@ echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"
 echo "                   libedit support: $LIBEDIT_MSG"
+echo "  Solaris process contract support: $SPC_MSG"
 echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"

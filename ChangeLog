@@ -1,3 +1,11 @@
+20060831
+ - (djm) [CREDITS LICENCE Makefile.in auth.c configure.ac includes.h ]
+   [platform.c platform.h sshd.c openbsd-compat/Makefile.in]
+   [openbsd-compat/openbsd-compat.h openbsd-compat/port-solaris.c]
+   [openbsd-compat/port-solaris.h] Add support for Solaris process
+   contracts, enabled with --use-solaris-contracts. Patch from Chad
+   Mynhier, tweaked by dtucker@ and myself; ok dtucker@
+
 20060830
  - (djm) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2006/08/21 08:14:01
@@ -5338,4 +5346,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4518 2006/08/30 12:33:09 dtucker Exp $
+$Id: ChangeLog,v 1.4519 2006/08/30 17:24:41 djm Exp $

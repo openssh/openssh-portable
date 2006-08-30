@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.40 2006/07/12 13:10:34 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.41 2006/08/30 17:24:42 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -190,10 +190,12 @@ char *shadow_pw(struct passwd *pw);
 /* Routines for a single OS platform */
 #include "bsd-cray.h"
 #include "bsd-cygwin_util.h"
+
+#include "port-aix.h"
 #include "port-irix.h"
 #include "port-linux.h"
-#include "port-aix.h"
-#include "port-uw.h"
+#include "port-solaris.h"
 #include "port-tun.h"
+#include "port-uw.h"
 
 #endif /* _OPENBSD_COMPAT_H */

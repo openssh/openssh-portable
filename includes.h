@@ -160,6 +160,7 @@
 
 #include "defines.h"
 
+#include "platform.h"
 #include "openbsd-compat/openbsd-compat.h"
 #include "openbsd-compat/bsd-nextstep.h"
 

@@ -1154,6 +1154,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * the child process the connection. The
 			 * parent continues listening.
 			 */
+			platform_pre_fork();
 			if ((pid = fork()) == 0) {
 				/*
 				 * Child.  Close the listening and
@@ -1163,6 +1164,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				 * We break out of the loop to handle
 				 * the connection.
 				 */
+				platform_post_fork_child();
 				startup_pipe = startup_p[1];
 				close_startup_pipes();
 				close_listen_socks();
@@ -1178,6 +1180,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			}
 
 			/* Parent.  Stay in the loop. */
+			platform_post_fork_parent(pid);
 			if (pid < 0)
 				error("fork: %.100s", strerror(errno));
 			else
