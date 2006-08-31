@@ -516,6 +516,7 @@ then
 	    fi
 	    editrights -a SeAssignPrimaryTokenPrivilege -u sshd_server &&
 	    editrights -a SeCreateTokenPrivilege -u sshd_server &&
+	    editrights -a SeTcbPrivilege -u sshd_server &&
 	    editrights -a SeDenyInteractiveLogonRight -u sshd_server &&
 	    editrights -a SeDenyNetworkLogonRight -u sshd_server &&
 	    editrights -a SeDenyRemoteInteractiveLogonRight -u sshd_server &&

@@ -5,6 +5,8 @@
    [openbsd-compat/port-solaris.h] Add support for Solaris process
    contracts, enabled with --use-solaris-contracts. Patch from Chad
    Mynhier, tweaked by dtucker@ and myself; ok dtucker@
+ - (dtucker) [contrib/cygwin/ssh-host-config] Add SeTcbPrivilege privilege
+   while setting up the ssh service account.  Patch from Corinna Vinschen.
 
 20060830
  - (djm) OpenBSD CVS Sync
@@ -5346,4 +5348,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4519 2006/08/30 17:24:41 djm Exp $
+$Id: ChangeLog,v 1.4520 2006/08/31 01:28:49 dtucker Exp $
