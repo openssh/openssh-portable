@@ -24,6 +24,8 @@
    Stops sftp from segfaulting when attempting to get a nonexistent file on
    Cygwin (previous versions of OpenSSH didn't use the native glob). Partly
    from and tested by Corinna Vinschen.
+ - (dtucker) [README contrib/{caldera,redhat,suse}/openssh.spec]  Crank
+   versions.
 
 20060831
  - (djm) [CREDITS LICENCE Makefile.in auth.c configure.ac includes.h ]
@@ -5375,4 +5377,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4524 2006/09/01 10:29:10 dtucker Exp $
+$Id: ChangeLog,v 1.4525 2006/09/01 11:32:53 dtucker Exp $
