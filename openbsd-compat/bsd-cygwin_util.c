@@ -31,6 +31,13 @@
 
 #ifdef HAVE_CYGWIN
 
+#if defined(open) && open == binary_open
+# undef open
+#endif
+#if defined(pipe) && open == binary_pipe
+# undef pipe
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
@@ -47,13 +54,6 @@
 #define ntsec_on(c)	((c) && strstr((c),"ntsec") && !strstr((c),"nontsec"))
 #define ntsec_off(c)	((c) && strstr((c),"nontsec"))
 #define ntea_on(c)	((c) && strstr((c),"ntea") && !strstr((c),"nontea"))
-
-#if defined(open) && open == binary_open
-# undef open
-#endif
-#if defined(pipe) && open == binary_pipe
-# undef pipe
-#endif
 
 int 
 binary_open(const char *filename, int flags, ...)
