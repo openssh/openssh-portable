@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.356 2006/08/30 17:24:41 djm Exp $
+# $Id: configure.ac,v 1.357 2006/09/01 10:29:11 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.356 $)
+AC_REVISION($Revision: 1.357 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -981,6 +981,8 @@ AC_TRY_COMPILE(
 		AC_MSG_RESULT(no)
 	]
 )
+
+AC_CHECK_DECLS(GLOB_NOMATCH, , , [#include <glob.h>])
 
 AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
 AC_RUN_IFELSE(

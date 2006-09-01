@@ -19,6 +19,11 @@
    sys/socket.h and unistd.h in various places
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Fix implict declaration
    warnings for binary_open and binary_close.  Patch from Corinna Vinschen.
+ - (dtucker) [configure.ac includes.h openbsd-compat/glob.{c,h}] Explicitly
+   test for GLOB_NOMATCH and use our glob functions if it's not found.
+   Stops sftp from segfaulting when attempting to get a nonexistent file on
+   Cygwin (previous versions of OpenSSH didn't use the native glob). Partly
+   from and tested by Corinna Vinschen.
 
 20060831
  - (djm) [CREDITS LICENCE Makefile.in auth.c configure.ac includes.h ]
@@ -5370,4 +5375,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4523 2006/09/01 09:29:01 dtucker Exp $
+$Id: ChangeLog,v 1.4524 2006/09/01 10:29:10 dtucker Exp $
