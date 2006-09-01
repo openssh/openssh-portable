@@ -1,3 +1,20 @@
+20060901
+ - (djm) [audit-bsm.c audit.c auth-bsdauth.c auth-chall.c auth-pam.c]
+   [auth-rsa.c auth-shadow.c auth-sia.c auth1.c auth2-chall.c]
+   [auth2-gss.c auth2-kbdint.c auth2-none.c authfd.c authfile.c]
+   [cipher-3des1.c cipher-aes.c cipher-bf1.c cipher-ctr.c clientloop.c]
+   [dh.c dns.c entropy.c gss-serv-krb5.c gss-serv.c hostfile.c kex.c]
+   [kexdhc.c kexdhs.c kexgexc.c kexgexs.c key.c loginrec.c mac.c]
+   [md5crypt.c monitor.c monitor_wrap.c readconf.c rsa.c]
+   [scard-opensc.c scard.c session.c ssh-add.c ssh-agent.c ssh-dss.c]
+   [ssh-keygen.c ssh-keysign.c ssh-rsa.c ssh.c sshconnect.c]
+   [sshconnect1.c sshconnect2.c sshd.c rc4.diff]
+   [openbsd-compat/bsd-cray.c openbsd-compat/port-aix.c]
+   [openbsd-compat/port-linux.c openbsd-compat/port-solaris.c]
+   [openbsd-compat/port-uw.c]
+   Lots of headers for SCO OSR6, mainly adding stdarg.h for log.h;
+   compile problems reported by rac AT tenzing.org
+
 20060831
  - (djm) [CREDITS LICENCE Makefile.in auth.c configure.ac includes.h ]
    [platform.c platform.h sshd.c openbsd-compat/Makefile.in]
@@ -5348,4 +5365,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4520 2006/08/31 01:28:49 dtucker Exp $
+$Id: ChangeLog,v 1.4521 2006/09/01 05:38:36 djm Exp $

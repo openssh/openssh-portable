@@ -26,8 +26,12 @@
 #include "includes.h"
 #if defined(SMARTCARD) && defined(USE_OPENSC)
 
+#include <sys/types.h>
+
 #include <openssl/evp.h>
 #include <openssl/x509.h>
+
+#include <stdarg.h>
 
 #include <opensc/opensc.h>
 #include <opensc/pkcs15.h>

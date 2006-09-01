@@ -18,6 +18,7 @@
 
 #include <sys/types.h>
 
+#include <stdarg.h>
 #include <string.h>
 
 #include <openssl/evp.h>

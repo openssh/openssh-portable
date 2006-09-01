@@ -27,6 +27,8 @@
 
 #include <sys/types.h>
 
+#include <stdarg.h>
+
 #ifdef BSD_AUTH
 #include "xmalloc.h"
 #include "key.h"

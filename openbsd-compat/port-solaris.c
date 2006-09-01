@@ -1,4 +1,4 @@
-/* $Id: port-solaris.c,v 1.1 2006/08/30 17:24:42 djm Exp $ */
+/* $Id: port-solaris.c,v 1.2 2006/09/01 05:38:41 djm Exp $ */
 
 /*
  * Copyright (c) 2006 Chad Mynhier.
@@ -29,6 +29,7 @@
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 

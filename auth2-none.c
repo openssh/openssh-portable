@@ -30,6 +30,7 @@
 #include <sys/uio.h>
 
 #include <fcntl.h>
+#include <stdarg.h>
 #include <unistd.h>
 
 #include "xmalloc.h"

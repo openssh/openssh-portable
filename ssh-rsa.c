@@ -22,6 +22,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 
+#include <stdarg.h>
 #include <string.h>
 
 #include "xmalloc.h"

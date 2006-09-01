@@ -41,6 +41,7 @@
 # include <netdb.h>
 #endif
 #include <uinfo.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>

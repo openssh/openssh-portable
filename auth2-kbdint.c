@@ -27,6 +27,8 @@
 
 #include <sys/types.h>
 
+#include <stdarg.h>
+
 #include "xmalloc.h"
 #include "packet.h"
 #include "key.h"

@@ -156,6 +156,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 

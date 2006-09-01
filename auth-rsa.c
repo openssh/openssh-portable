@@ -24,6 +24,7 @@
 
 #include <pwd.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "xmalloc.h"

@@ -29,6 +29,7 @@
 
 #include <openssl/hmac.h>
 
+#include <stdarg.h>
 #include <string.h>
 #include <signal.h>
 

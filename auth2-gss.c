@@ -30,6 +30,8 @@
 
 #include <sys/types.h>
 
+#include <stdarg.h>
+
 #include "xmalloc.h"
 #include "key.h"
 #include "hostfile.h"

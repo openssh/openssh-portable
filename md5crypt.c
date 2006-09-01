@@ -11,6 +11,10 @@
 #include "includes.h"
 
 #if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
+#include <sys/types.h>
+
+#include <string.h>
+
 #include <openssl/md5.h>
 
 /* 0 ... 63 => ascii - 64 */

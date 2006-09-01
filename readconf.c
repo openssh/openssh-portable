@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

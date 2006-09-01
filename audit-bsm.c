@@ -1,4 +1,4 @@
-/* $Id: audit-bsm.c,v 1.3 2006/08/16 01:40:45 djm Exp $ */
+/* $Id: audit-bsm.c,v 1.4 2006/09/01 05:38:36 djm Exp $ */
 
 /*
  * TODO
@@ -39,6 +39,7 @@
 
 #include <sys/types.h>
 
+#include <stdarg.h>
 #include <unistd.h>
 
 #include "ssh.h"
