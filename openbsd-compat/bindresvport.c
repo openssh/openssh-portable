@@ -33,8 +33,10 @@
 #include "includes.h"
 
 #ifndef HAVE_BINDRESVPORT_SA
+#include <sys/types.h>
+#include <sys/socket.h>
 
-#include "includes.h"
+#include <netinet/in.h>
 
 #include <errno.h>
 #include <string.h>

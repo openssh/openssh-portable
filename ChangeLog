@@ -8,12 +8,15 @@
    [md5crypt.c monitor.c monitor_wrap.c readconf.c rsa.c]
    [scard-opensc.c scard.c session.c ssh-add.c ssh-agent.c ssh-dss.c]
    [ssh-keygen.c ssh-keysign.c ssh-rsa.c ssh.c sshconnect.c]
-   [sshconnect1.c sshconnect2.c sshd.c rc4.diff]
+   [sshconnect1.c sshconnect2.c sshd.c]
    [openbsd-compat/bsd-cray.c openbsd-compat/port-aix.c]
    [openbsd-compat/port-linux.c openbsd-compat/port-solaris.c]
    [openbsd-compat/port-uw.c]
    Lots of headers for SCO OSR6, mainly adding stdarg.h for log.h;
    compile problems reported by rac AT tenzing.org
+ - (djm) [includes.h monitor.c openbsd-compat/bindresvport.c]
+   [openbsd-compat/rresvport.c] Some more headers: netinet/in.h 
+   sys/socket.h and unistd.h in various places
 
 20060831
  - (djm) [CREDITS LICENCE Makefile.in auth.c configure.ac includes.h ]
@@ -5365,4 +5368,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4521 2006/09/01 05:38:36 djm Exp $
+$Id: ChangeLog,v 1.4522 2006/09/01 05:48:19 djm Exp $

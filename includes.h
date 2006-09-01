@@ -21,6 +21,7 @@
 #define _GNU_SOURCE /* activate extra prototypes for glibc */
 
 #include <sys/types.h>
+#include <sys/socket.h> /* For CMSG_* */
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */
@@ -106,6 +107,7 @@
 #include <sys/ptms.h>	/* for grantpt() and friends */
 #endif
 
+#include <netinet/in.h>
 #include <netinet/in_systm.h> /* For typedefs */
 #ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h> /* For INADDR_LOOPBACK */
