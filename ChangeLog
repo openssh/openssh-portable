@@ -1,5 +1,10 @@
 20060902
  - (dtucker) [openbsd-compat/port-irix.c] Add errno.h, found by Iain Morgan.
+ - (dtucker) [ssh-keyscan.c ssh-rand-helper.c ssh.c sshconnect.c
+   openbsd-compat/bindresvport.c openbsd-compat/getrrsetbyname.c
+   openbsd-compat/port-tun.c openbsd-compat/rresvport.c] Include <arpa/inet.h>
+   for hton* and ntoh* macros.  Required on (at least) HP-UX since we define
+   _XOPEN_SOURCE_EXTENDED.  Found by santhi.amirta at gmail com.
 
 20060901
  - (djm) [audit-bsm.c audit.c auth-bsdauth.c auth-chall.c auth-pam.c]
@@ -5380,4 +5385,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4526 2006/09/02 02:38:56 dtucker Exp $
+$Id: ChangeLog,v 1.4527 2006/09/02 05:32:40 dtucker Exp $

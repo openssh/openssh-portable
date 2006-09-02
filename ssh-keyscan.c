@@ -15,6 +15,9 @@
 # include <sys/time.h>
 #endif
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <openssl/bn.h>
 
 #include <netdb.h>

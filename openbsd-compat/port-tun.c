@@ -18,7 +18,9 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
+
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netinet/ip.h>
 
 #include <errno.h>

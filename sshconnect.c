@@ -24,6 +24,7 @@
 #endif
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <ctype.h>
 #include <errno.h>
