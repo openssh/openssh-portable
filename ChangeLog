@@ -1,3 +1,6 @@
+20060902
+ - (dtucker) [openbsd-compat/port-irix.c] Add errno.h, found by Iain Morgan.
+
 20060901
  - (djm) [audit-bsm.c audit.c auth-bsdauth.c auth-chall.c auth-pam.c]
    [auth-rsa.c auth-shadow.c auth-sia.c auth1.c auth2-chall.c]
@@ -5377,4 +5380,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4525 2006/09/01 11:32:53 dtucker Exp $
+$Id: ChangeLog,v 1.4526 2006/09/02 02:38:56 dtucker Exp $
