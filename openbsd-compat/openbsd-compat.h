@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.41 2006/08/30 17:24:42 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.42 2006/09/03 12:44:50 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -131,6 +131,11 @@ int getgrouplist(const char *, gid_t, gid_t *, int *);
 int BSDgetopt(int argc, char * const *argv, const char *opts);
 #endif
 
+#if defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0
+# include <sys/types.h>
+# include <sys/uio.h>
+int writev(int, struct iovec *, int);
+#endif
 
 /* Home grown routines */
 #include "bsd-misc.h"

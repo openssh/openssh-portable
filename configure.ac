@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.357 2006/09/01 10:29:11 dtucker Exp $
+# $Id: configure.ac,v 1.358 2006/09/03 12:44:49 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.357 $)
+AC_REVISION($Revision: 1.358 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1326,6 +1326,12 @@ AC_CHECK_DECLS(O_NONBLOCK, , ,
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+	])
+
+AC_CHECK_DECLS(writev, , , [
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
 	])
 
 AC_CHECK_FUNCS(setresuid, [

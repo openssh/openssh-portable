@@ -1,3 +1,8 @@
+20060903
+ - (dtucker) [configure.ac openbsd-compat/openbsd-compat.h] Check for
+   declaration of writev(2) and declare it ourselves if necessary.  Makes
+   the atomiciov() calls build on really old systems.  ok djm@
+
 20060902
  - (dtucker) [openbsd-compat/port-irix.c] Add errno.h, found by Iain Morgan.
  - (dtucker) [ssh-keyscan.c ssh-rand-helper.c ssh.c sshconnect.c
@@ -5385,4 +5390,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4527 2006/09/02 05:32:40 dtucker Exp $
+$Id: ChangeLog,v 1.4528 2006/09/03 12:44:49 dtucker Exp $
