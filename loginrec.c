@@ -155,6 +155,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <paths.h>
 #include <pwd.h>
 #include <stdarg.h>
 #include <string.h>
