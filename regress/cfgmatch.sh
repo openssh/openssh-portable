@@ -12,6 +12,7 @@ stop_client()
 	pid=`cat $pidfile`
 	if [ ! -z "$pid" ]; then
 		kill $pid
+		sleep 1
 	fi
 }
 

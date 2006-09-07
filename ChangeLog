@@ -6,6 +6,8 @@
    exist on all the time, not just when UsePrivilegeSeparation=yes
  - (tim) [configure.ac] s/BROKEN_UPDWTMP/BROKEN_UPDWTMPX/ on SCO OSR6
  - (dtucker) [loginrec.c] Wrap paths.h in HAVE_PATHS_H.
+ - (dtucker) [regress/cfgmatch.sh] stop_client is racy, so give us a better
+   chance of winning.
 
 20060905
  - (dtucker) [configure.ac] s/AC_DEFINES/AC_DEFINE/ spotted by Roumen Petrov.
@@ -5408,4 +5410,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4534 2006/09/07 12:57:53 dtucker Exp $
+$Id: ChangeLog,v 1.4535 2006/09/07 14:03:05 dtucker Exp $
