@@ -36,6 +36,8 @@
 #include <string.h>
 
 #include "ssh.h"
+#include "key.h"
+#include "hostfile.h"
 #include "auth.h"
 #include "auth-sia.h"
 #include "log.h"
