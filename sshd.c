@@ -244,6 +244,9 @@ Buffer cfg;
 /* message to be displayed after login */
 Buffer loginmsg;
 
+/* Unprivileged user */
+struct passwd *privsep_pw = NULL;
+
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
 void demote_sensitive_data(void);
@@ -579,7 +582,6 @@ privsep_preauth_child(void)
 {
 	u_int32_t rnd[256];
 	gid_t gidset[1];
-	struct passwd *pw;
 	int i;
 
 	/* Enable challenge-response authentication for privilege separation */
@@ -592,12 +594,6 @@ privsep_preauth_child(void)
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
 
-	if ((pw = getpwnam(SSH_PRIVSEP_USER)) == NULL)
-		fatal("Privilege separation user %s does not exist",
-		    SSH_PRIVSEP_USER);
-	memset(pw->pw_passwd, 0, strlen(pw->pw_passwd));
-	endpwent();
-
 	/* Change our root directory */
 	if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
 		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
@@ -606,16 +602,16 @@ privsep_preauth_child(void)
 		fatal("chdir(\"/\"): %s", strerror(errno));
 
 	/* Drop our privileges */
-	debug3("privsep user:group %u:%u", (u_int)pw->pw_uid,
-	    (u_int)pw->pw_gid);
+	debug3("privsep user:group %u:%u", (u_int)privsep_pw->pw_uid,
+	    (u_int)privsep_pw->pw_gid);
 #if 0
 	/* XXX not ready, too heavy after chroot */
-	do_setusercontext(pw);
+	do_setusercontext(privsep_pw);
 #else
-	gidset[0] = pw->pw_gid;
+	gidset[0] = privsep_pw->pw_gid;
 	if (setgroups(1, gidset) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
-	permanently_set_uid(pw);
+	permanently_set_uid(privsep_pw);
 #endif
 }
 
@@ -1435,6 +1431,15 @@ main(int ac, char **av)
 
 	debug("sshd version %.100s", SSH_RELEASE);
 
+	/* Store privilege separation user for later use */
+	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL)
+		fatal("Privilege separation user %s does not exist",
+		    SSH_PRIVSEP_USER);
+	memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
+	strlcpy(privsep_pw->pw_passwd, "*", sizeof(privsep_pw->pw_passwd));
+	privsep_pw = pwcopy(privsep_pw);
+	endpwent();
+
 	/* load private host keys */
 	sensitive_data.host_keys = xcalloc(options.num_host_key_files,
 	    sizeof(Key *));
@@ -1504,9 +1509,6 @@ main(int ac, char **av)
 	if (use_privsep) {
 		struct stat st;
 
-		if (getpwnam(SSH_PRIVSEP_USER) == NULL)
-			fatal("Privilege separation user %s does not exist",
-			    SSH_PRIVSEP_USER);
 		if ((stat(_PATH_PRIVSEP_CHROOT_DIR, &st) == -1) ||
 		    (S_ISDIR(st.st_mode) == 0))
 			fatal("Missing privilege separation directory: %s",

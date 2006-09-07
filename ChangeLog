@@ -1,3 +1,10 @@
+20060907
+ - (djm) [sshd.c auth.c] Set up fakepw() with privsep uid/gid, so it can
+   be used to drop privilege to; fixes Solaris GSSAPI crash reported by
+   Magnus Abrante; suggestion and feedback dtucker@
+   NB. this change will require that the privilege separation user must
+   exist on all the time, not just when UsePrivilegeSeparation=yes
+
 20060905
  - (dtucker) [configure.ac] s/AC_DEFINES/AC_DEFINE/ spotted by Roumen Petrov.
  - (dtucker) [loginrec.c] Include paths.h for _PATH_BTMP.
@@ -5399,4 +5406,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4531 2006/09/05 09:25:19 dtucker Exp $
+$Id: ChangeLog,v 1.4532 2006/09/07 00:36:43 djm Exp $

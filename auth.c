@@ -73,6 +73,7 @@
 extern ServerOptions options;
 extern int use_privsep;
 extern Buffer loginmsg;
+extern struct passwd *privsep_pw;
 
 /* Debugging messages */
 Buffer auth_debug;
@@ -570,6 +571,8 @@ fakepw(void)
 	fake.pw_gecos = "NOUSER";
 	fake.pw_uid = (uid_t)-1;
 	fake.pw_gid = (gid_t)-1;
+	fake.pw_uid = privsep_pw->pw_uid;
+	fake.pw_gid = privsep_pw->pw_gid;
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	fake.pw_class = "";
 #endif
