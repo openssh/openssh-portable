@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.361 2006/09/07 01:11:29 tim Exp $
+# $Id: configure.ac,v 1.362 2006/09/08 15:05:21 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.361 $)
+AC_REVISION($Revision: 1.362 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1166,7 +1166,13 @@ AC_ARG_WITH(audit,
 		AUDIT_MODULE=bsm
 		dnl    Checks for headers, libs and functions
 		AC_CHECK_HEADERS(bsm/audit.h, [],
-		    [AC_MSG_ERROR(BSM enabled and bsm/audit.h not found)])
+		    [AC_MSG_ERROR(BSM enabled and bsm/audit.h not found)],
+		    [
+#ifdef HAVE_TIME_H
+# include <time.h>
+#endif
+		    ]
+)
 		AC_CHECK_LIB(bsm, getaudit, [],
 		    [AC_MSG_ERROR(BSM enabled and required library not found)])
 		AC_CHECK_FUNCS(getaudit, [],
