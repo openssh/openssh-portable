@@ -1,3 +1,6 @@
+20060909
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Add stdarg.h.
+
 20060908
  - (dtucker) [auth-sia.c] Add includes required for build on Tru64.  Patch
    from Chris Adams.
@@ -5415,4 +5418,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4537 2006/09/08 15:05:21 dtucker Exp $
+$Id: ChangeLog,v 1.4538 2006/09/09 05:59:43 dtucker Exp $
