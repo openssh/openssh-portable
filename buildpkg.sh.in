@@ -311,14 +311,7 @@ then
 	chroot=echo
 fi
 
-if egrep '^[ \t]*UsePrivilegeSeparation[ \t]+no' \${PKG_INSTALL_ROOT}/$sysconfdir/sshd_config >/dev/null
-then
-	echo "UsePrivilegeSeparation disabled in config, not creating PrivSep user"
-	echo "or group."
-else
-	echo "UsePrivilegeSeparation enabled in config (or defaulting to on)."
-
-	# user required?
+	echo "PrivilegeSeparation user always required."
 	if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
 	then
 		echo "PrivSep user $SSH_PRIVSEP_USER already exists."
@@ -363,7 +356,6 @@ else
 		\$chroot ${PATH_USERADD_PROG} -c 'SSHD PrivSep User' -s /bin/false -g $SSH_PRIVSEP_USER \$sshduid $SSH_PRIVSEP_USER
 		\$chroot ${PATH_PASSWD_PROG} -l $SSH_PRIVSEP_USER
 	}
-fi
 
 [ "\${POST_INS_START}" = "yes" ]  &&  ${TEST_DIR}/etc/init.d/${SYSVINIT_NAME} start
 exit 0
