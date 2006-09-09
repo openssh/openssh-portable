@@ -1,5 +1,6 @@
 20060909
  - (dtucker) [openbsd-compat/bsd-snprintf.c] Add stdarg.h.
+ - (dtucker) [contrib/aix/buildbff.sh] Always create privsep user.
 
 20060908
  - (dtucker) [auth-sia.c] Add includes required for build on Tru64.  Patch
@@ -5418,4 +5419,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4538 2006/09/09 05:59:43 dtucker Exp $
+$Id: ChangeLog,v 1.4539 2006/09/09 10:34:15 dtucker Exp $
