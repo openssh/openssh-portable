@@ -1,5 +1,6 @@
 20060910
  - (dtucker) [contrib/aix/buildbff.sh] Ensure that perl is available.
+ - (dtucker) [configure.ac] Add -lcrypt to let DragonFly build OOTB.
 
 20060909
  - (dtucker) [openbsd-compat/bsd-snprintf.c] Add stdarg.h.
@@ -5423,4 +5424,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4541 2006/09/10 03:24:18 dtucker Exp $
+$Id: ChangeLog,v 1.4542 2006/09/10 10:25:51 dtucker Exp $

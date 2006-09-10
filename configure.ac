@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.362 2006/09/08 15:05:21 dtucker Exp $
+# $Id: configure.ac,v 1.363 2006/09/10 10:25:51 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.362 $)
+AC_REVISION($Revision: 1.363 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -252,6 +252,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	    [Use tunnel device compatibility to OpenBSD])
 	AC_DEFINE(SSH_TUN_PREPEND_AF, 1,
 	    [Prepend the address family to IP tunnel traffic])
+	;;
+*-*-dragonfly*)
+	SSHDLIBS="$SSHDLIBS -lcrypt"
 	;;
 *-*-hpux*)
 	# first we define all of the options common to all HP-UX releases
