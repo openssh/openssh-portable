@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # buildbff.sh: Create AIX SMIT-installable OpenSSH packages
-# $Id: buildbff.sh,v 1.9 2006/09/09 10:34:15 dtucker Exp $
+# $Id: buildbff.sh,v 1.10 2006/09/10 03:24:19 dtucker Exp $
 #
 # Author: Darren Tucker (dtucker at zip dot com dot au)
 # This file is placed in the public domain and comes with absolutely
@@ -22,6 +22,8 @@
 umask 022
 
 startdir=`pwd`
+
+perl -v >/dev/null || (echo perl required; exit 1)
 
 # Path to inventory.sh: same place as buildbff.sh
 if  echo $0 | egrep '^/'
