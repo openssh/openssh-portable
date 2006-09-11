@@ -33,6 +33,7 @@
 #include <openssl/evp.h>
 
 #include <stdarg.h>
+#include <string.h>
 
 #include "rijndael.h"
 #include "xmalloc.h"

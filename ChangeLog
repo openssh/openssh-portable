@@ -1,3 +1,7 @@
+20060911
+ - (dtucker) [cipher-aes.c] Include string.h for memcpy and friends.  Noted
+   by Pekka Savola.
+
 20060910
  - (dtucker) [contrib/aix/buildbff.sh] Ensure that perl is available.
  - (dtucker) [configure.ac] Add -lcrypt to let DragonFly build OOTB.
@@ -5424,4 +5428,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4542 2006/09/10 10:25:51 dtucker Exp $
+$Id: ChangeLog,v 1.4543 2006/09/11 10:46:13 dtucker Exp $
