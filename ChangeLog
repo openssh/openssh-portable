@@ -1,3 +1,8 @@
+20060912
+ - (djm) [Makefile.in buildpkg.sh.in configure.ac openssh.xml.in]
+   Support SMF in Solaris Packages if enabled by configure. Patch from
+   Chad Mynhier, tested by dtucker@
+
 20060911
  - (dtucker) [cipher-aes.c] Include string.h for memcpy and friends.  Noted
    by Pekka Savola.
@@ -5428,4 +5433,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4543 2006/09/11 10:46:13 dtucker Exp $
+$Id: ChangeLog,v 1.4544 2006/09/12 11:54:10 djm Exp $
