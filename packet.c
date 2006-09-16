@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.143 2006/08/05 08:34:04 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.144 2006/09/16 19:53:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1000,9 +1000,16 @@ packet_read_poll1(void)
 	 * (C)1998 CORE-SDI, Buenos Aires Argentina
 	 * Ariel Futoransky(futo@core-sdi.com)
 	 */
-	if (!receive_context.plaintext &&
-	    detect_attack(buffer_ptr(&input), padded_len) == DEATTACK_DETECTED)
-		packet_disconnect("crc32 compensation attack: network attack detected");
+	if (!receive_context.plaintext) {
+		switch (detect_attack(buffer_ptr(&input), padded_len)) {
+		case DEATTACK_DETECTED:
+			packet_disconnect("crc32 compensation attack: "
+			    "network attack detected");
+		case DEATTACK_DOS_DETECTED:
+			packet_disconnect("deattack denial of "
+			    "service detected");
+		}
+	}
 
 	/* Decrypt data to incoming_packet. */
 	buffer_clear(&incoming_packet);

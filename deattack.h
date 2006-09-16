@@ -1,4 +1,4 @@
-/* $OpenBSD: deattack.h,v 1.9 2006/03/25 22:22:43 djm Exp $ */
+/* $OpenBSD: deattack.h,v 1.10 2006/09/16 19:53:37 djm Exp $ */
 
 /*
  * Cryptographic attack detector for ssh - Header file
@@ -25,6 +25,7 @@
 /* Return codes */
 #define DEATTACK_OK		0
 #define DEATTACK_DETECTED	1
+#define DEATTACK_DOS_DETECTED	2
 
 int	 detect_attack(u_char *, u_int32_t);
 #endif

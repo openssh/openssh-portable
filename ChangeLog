@@ -1,3 +1,11 @@
+20060916
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2006/09/16 19:53:37
+     [deattack.c deattack.h packet.c]
+     limit maximum work performed by the CRC compensation attack detector,
+     problem reported by Tavis Ormandy, Google Security Team;
+     ok markus@ deraadt@
+
 20060912
  - (djm) [Makefile.in buildpkg.sh.in configure.ac openssh.xml.in]
    Support SMF in Solaris Packages if enabled by configure. Patch from
@@ -5433,4 +5441,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4544 2006/09/12 11:54:10 djm Exp $
+$Id: ChangeLog,v 1.4545 2006/09/16 20:08:53 djm Exp $
