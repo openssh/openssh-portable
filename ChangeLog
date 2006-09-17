@@ -6,6 +6,9 @@
      problem reported by Tavis Ormandy, Google Security Team;
      ok markus@ deraadt@
  - (djm) Add openssh.xml to .cvsignore and sort it
+ - (dtucker) [auth-pam.c] Propogate TZ environment variable to PAM auth
+   process so that any logging it does is with the right timezone.  From
+   Scott Strickler, ok djm@.
 
 20060912
  - (djm) [Makefile.in buildpkg.sh.in configure.ac openssh.xml.in]
@@ -5442,4 +5445,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4546 2006/09/16 22:05:03 djm Exp $
+$Id: ChangeLog,v 1.4547 2006/09/17 01:57:46 dtucker Exp $

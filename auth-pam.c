@@ -437,10 +437,16 @@ sshpam_thread(void *ctxtp)
 	u_int i;
 	const char *pam_user;
 	const char **ptr_pam_user = &pam_user;
+	char *tz = getenv("TZ");
 
 	pam_get_item(sshpam_handle, PAM_USER,
 	    (sshpam_const void **)ptr_pam_user);
+
 	environ[0] = NULL;
+	if (tz != NULL)
+		if (setenv("TZ", tz, 1) == -1)
+			error("PAM: could not set TZ environment: %s",
+			    strerror(errno));
 
 	if (sshpam_authctxt != NULL) {
 		setproctitle("%s [pam]",
