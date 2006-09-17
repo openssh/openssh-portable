@@ -75,6 +75,12 @@ the automatically generated files by running "autoreconf".
 
 http://www.gnu.org/software/autoconf/
 
+Basic Security Module (BSM):
+
+Native BSM support is know to exist in Solaris from at least 2.5.1,
+FreeBSD 6.1 and OS X.  Alternatively, you may use the OpenBSM
+implementation (http://www.openbsm.org).
+
 
 2. Building / Installation
 --------------------------
@@ -124,6 +130,10 @@ configuration will work with sshd (sshd will match the other service
 name).
 
 There are a few other options to the configure script:
+
+--with-audit=[module] enable additional auditing via the specified module.
+Currently, drivers for "debug" (additional info via syslog) and "bsm"
+(Sun's Basic Security Module) are supported.
 
 --with-pam enables PAM support. If PAM support is compiled in, it must
 also be enabled in sshd_config (refer to the UsePAM directive).
@@ -240,4 +250,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.75 2006/07/10 02:55:24 dtucker Exp $
+$Id: INSTALL,v 1.76 2006/09/17 12:55:52 dtucker Exp $

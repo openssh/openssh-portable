@@ -12,6 +12,7 @@
  - (dtucker) [monitor.c] Correctly handle auditing of single commands when
    using Protocol 1.  From jhb at freebsd.
  - (djm) [sshd.c] Fix warning/API abuse; ok dtucker@
+ - (dtucker) [INSTALL] Add info about audit support.
 
 20060912
  - (djm) [Makefile.in buildpkg.sh.in configure.ac openssh.xml.in]
@@ -5448,4 +5449,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4549 2006/09/17 04:04:46 djm Exp $
+$Id: ChangeLog,v 1.4550 2006/09/17 12:55:52 dtucker Exp $
