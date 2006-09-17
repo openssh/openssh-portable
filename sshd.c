@@ -1436,7 +1436,7 @@ main(int ac, char **av)
 		fatal("Privilege separation user %s does not exist",
 		    SSH_PRIVSEP_USER);
 	memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
-	strlcpy(privsep_pw->pw_passwd, "*", sizeof(privsep_pw->pw_passwd));
+	privsep_pw->pw_passwd = "*";
 	privsep_pw = pwcopy(privsep_pw);
 	endpwent();
 
