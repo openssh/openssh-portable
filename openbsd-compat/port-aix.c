@@ -45,6 +45,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
+
+#ifdef WITH_AIXAUTHENTICATE
+# include <login.h>
+# include <userpw.h>
+# if defined(HAVE_SYS_AUDIT_H) && defined(AIX_LOGINFAILED_4ARG)
+#  include <sys/audit.h>
+# endif
+# include <usersec.h>
+#endif
+
 #include "port-aix.h"
 
 # ifdef HAVE_SETAUTHDB
