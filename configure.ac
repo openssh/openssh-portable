@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.364 2006/09/12 11:54:11 djm Exp $
+# $Id: configure.ac,v 1.365 2006/09/18 13:17:41 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.364 $)
+AC_REVISION($Revision: 1.365 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -134,6 +134,27 @@ SPC_MSG="no"
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
+	# Some versions of VAC won't allow macro redefinitions at
+	# -qlanglevel=ansi, and autoconf 2.60 sometimes insists on using that
+	# particularly with older versions of vac or xlc.
+	# It also throws errors about null macro argments, but these are
+	# not fatal.
+	AC_MSG_CHECKING(if compiler allows macro redefinitions)
+	AC_COMPILE_IFELSE(
+	    [AC_LANG_SOURCE([[
+#define testmacro foo
+#define testmacro bar
+int main(void) { exit(0); }
+	    ]])],
+	    [ AC_MSG_RESULT(yes) ],
+	    [ AC_MSG_RESULT(no)
+	      CC="`echo $CC | sed 's/-qlanglvl\=ansi//g'`"
+	      LD="`echo $LD | sed 's/-qlanglvl\=ansi//g'`"
+	      CFLAGS="`echo $CFLAGS | sed 's/-qlanglvl\=ansi//g'`"
+	      CPPFLAGS="`echo $CPPFLAGS | sed 's/-qlanglvl\=ansi//g'`"
+	    ]
+	)
+
 	AC_MSG_CHECKING([how to specify blibpath for linker ($LD)])
 	if (test -z "$blibpath"); then
 		blibpath="/usr/lib:/lib"

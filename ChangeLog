@@ -1,3 +1,9 @@
+20060918
+ - (dtucker) [configure.ac] On AIX, check to see if the compiler will allow
+   macro redefinitions, and if not, remove "-qlanglvl=ansi" from the flags.
+   Allows build out of the box with older VAC and XLC compilers.  Found by
+   David Bronder and Bernhard Simon.
+
 20060916
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2006/09/16 19:53:37
@@ -5449,4 +5455,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4550 2006/09/17 12:55:52 dtucker Exp $
+$Id: ChangeLog,v 1.4551 2006/09/18 13:17:40 dtucker Exp $
