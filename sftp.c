@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.91 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: sftp.c,v 1.92 2006/09/19 05:52:23 otto Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -493,7 +493,7 @@ is_dir(char *path)
 	if (stat(path, &sb) == -1)
 		return(0);
 
-	return(sb.st_mode & S_IFDIR);
+	return(S_ISDIR(sb.st_mode));
 }
 
 static int
@@ -517,7 +517,7 @@ remote_is_dir(struct sftp_conn *conn, char *path)
 		return(0);
 	if (!(a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
 		return(0);
-	return(a->perm & S_IFDIR);
+	return(S_ISDIR(a->perm));
 }
 
 static int
