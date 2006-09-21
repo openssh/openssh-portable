@@ -5,6 +5,9 @@
      Use S_IS* macros insted of masking with S_IF* flags. The latter may
      have multiple bits set, which lead to surprising results. Spotted by
      Paul Stoeber, more to come. ok millert@ pedro@ jaredy@ djm@
+   - markus@cvs.openbsd.org 2006/09/19 21:14:08
+     [packet.c]
+     client NULL deref on protocol error; Tavis Ormandy, Google Security Team
 
 20060918
  - (dtucker) [configure.ac] On AIX, check to see if the compiler will allow
@@ -5465,4 +5468,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4553 2006/09/21 02:59:33 dtucker Exp $
+$Id: ChangeLog,v 1.4554 2006/09/21 03:00:25 dtucker Exp $
