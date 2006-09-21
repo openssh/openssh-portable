@@ -8,6 +8,8 @@
    - markus@cvs.openbsd.org 2006/09/19 21:14:08
      [packet.c]
      client NULL deref on protocol error; Tavis Ormandy, Google Security Team
+ - (dtucker) [defines.h] Include unistd.h before defining getpgrp; fixes
+   build error on Ultrix.  From Bernhard Simon.
 
 20060918
  - (dtucker) [configure.ac] On AIX, check to see if the compiler will allow
@@ -5468,4 +5470,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4554 2006/09/21 03:00:25 dtucker Exp $
+$Id: ChangeLog,v 1.4555 2006/09/21 13:13:30 dtucker Exp $

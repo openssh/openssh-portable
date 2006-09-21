@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.137 2006/08/18 22:38:24 djm Exp $ */
+/* $Id: defines.h,v 1.138 2006/09/21 13:13:30 dtucker Exp $ */
 
 
 /* Constants */
@@ -556,6 +556,7 @@ struct winsize {
 #endif /* defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX) */
 
 #ifndef GETPGRP_VOID
+# include <unistd.h>
 # define getpgrp() getpgrp(0)
 #endif
 
