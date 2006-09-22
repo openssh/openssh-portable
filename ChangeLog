@@ -1,3 +1,7 @@
+20060922
+ - (dtucker) [packet.c canohost.c] Include arpa/inet.h for htonl macros on
+   some platforms (eg HP-UX 11.00).  From santhi.amirta at gmail com.
+
 20060921
  - (dtucker) OpenBSD CVS Sync
    - otto@cvs.openbsd.org 2006/09/19 05:52:23
@@ -5470,4 +5474,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4555 2006/09/21 13:13:30 dtucker Exp $
+$Id: ChangeLog,v 1.4556 2006/09/22 09:22:17 dtucker Exp $
