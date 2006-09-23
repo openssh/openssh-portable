@@ -1,3 +1,7 @@
+20060923
+ - (dtucker) [configure.ac] Bug #1234: Put opensc libs into $LIBS rather than
+   $LDFLAGS.  Patch from vapier at gentoo org.
+
 20060922
  - (dtucker) [packet.c canohost.c] Include arpa/inet.h for htonl macros on
    some platforms (eg HP-UX 11.00).  From santhi.amirta at gmail com.
@@ -5474,4 +5478,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4556 2006/09/22 09:22:17 dtucker Exp $
+$Id: ChangeLog,v 1.4557 2006/09/23 06:25:19 dtucker Exp $

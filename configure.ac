@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.365 2006/09/18 13:17:41 dtucker Exp $
+# $Id: configure.ac,v 1.366 2006/09/23 06:25:20 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.365 $)
+AC_REVISION($Revision: 1.366 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3086,7 +3086,7 @@ AC_ARG_WITH(opensc,
 			LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
 			LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
 			CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
-			LDFLAGS="$LDFLAGS $LIBOPENSC_LIBS"
+			LIBS="$LIBS $LIBOPENSC_LIBS"
 			AC_DEFINE(SMARTCARD)
 			AC_DEFINE(USE_OPENSC, 1,
 				[Define if you want smartcard support
