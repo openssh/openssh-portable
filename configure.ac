@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.366 2006/09/23 06:25:20 dtucker Exp $
+# $Id: configure.ac,v 1.367 2006/09/24 19:08:59 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.366 $)
+AC_REVISION($Revision: 1.367 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -514,7 +514,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # UnixWare 1.x, UnixWare 2.x, and others based on code from Univel.
 *-*-sysv4.2*)
-	CFLAGS="$CFLAGS -Dva_list=_VA_LIST"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
