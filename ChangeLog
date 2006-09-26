@@ -1,6 +1,7 @@
 20060926
  - (dtucker) [bufaux.h] nuke bufaux.h; it's already gone from OpenBSD and not
    referenced any more.  ok djm@
+ - (dtucker) [sftp-server.8] Resync; spotted by djm@
 
 20060924
  - (tim) [configure.ac] Remove CFLAGS hack for UnixWare 1.x/2.x (added
@@ -2495,4 +2496,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4560 2006/09/26 08:59:34 dtucker Exp $
+$Id: ChangeLog,v 1.4561 2006/09/26 10:14:28 dtucker Exp $
