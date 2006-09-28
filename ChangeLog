@@ -2,6 +2,7 @@
  - (dtucker) [bufaux.h] nuke bufaux.h; it's already gone from OpenBSD and not
    referenced any more.  ok djm@
  - (dtucker) [sftp-server.8] Resync; spotted by djm@
+ - (dtucker) Release 4.4p1.
 
 20060924
  - (tim) [configure.ac] Remove CFLAGS hack for UnixWare 1.x/2.x (added
@@ -5487,4 +5488,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4558.2.2 2006/09/26 10:57:05 dtucker Exp $
+$Id: ChangeLog,v 1.4558.2.3 2006/09/28 09:09:11 dtucker Exp $
