@@ -1,3 +1,8 @@
+20060928
+ - (dtucker) [entropy.c] Bug #1238: include signal.h to fix compilation error
+   on Solaris 8 w/out /dev/random or prngd.  Patch from rl at
+   math.technion.ac.il.
+
 20060926
  - (dtucker) [bufaux.h] nuke bufaux.h; it's already gone from OpenBSD and not
    referenced any more.  ok djm@
@@ -5488,4 +5493,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4558.2.3 2006/09/28 09:09:11 dtucker Exp $
+$Id: ChangeLog,v 1.4558.2.4 2006/09/28 09:40:55 dtucker Exp $
