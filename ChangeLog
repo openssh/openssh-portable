@@ -1,3 +1,8 @@
+20060928
+ - (dtucker) [entropy.c] Bug #1238: include signal.h to fix compilation error
+   on Solaris 8 w/out /dev/random or prngd.  Patch from rl at
+   math.technion.ac.il.
+
 20060926
  - (dtucker) [bufaux.h] nuke bufaux.h; it's already gone from OpenBSD and not
    referenced any more.  ok djm@
@@ -2497,4 +2502,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4562 2006/09/28 09:08:32 dtucker Exp $
+$Id: ChangeLog,v 1.4563 2006/09/28 09:40:20 dtucker Exp $
