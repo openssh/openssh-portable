@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.367 2006/09/24 19:08:59 tim Exp $
+# $Id: configure.ac,v 1.367.2.1 2006/09/29 10:16:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.367 $)
+AC_REVISION($Revision: 1.367.2.1 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1916,7 +1916,7 @@ AC_ARG_WITH(ssl-engine,
 		AC_TRY_COMPILE(
 			[ #include <openssl/engine.h>],
 			[
-int main(void){ENGINE_load_builtin_engines();ENGINE_register_all_complete();}
+ENGINE_load_builtin_engines();ENGINE_register_all_complete();
 			],
 			[ AC_MSG_RESULT(yes)
 			  AC_DEFINE(USE_OPENSSL_ENGINE, 1,
