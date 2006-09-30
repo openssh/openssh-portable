@@ -1,3 +1,6 @@
+20061001
+ - (dtucker) [audit-bsm.c] Include errno.h.  Pointed out by des at des.no.
+
 20060929
  - (dtucker) [configure.ac] Bug #1239: Fix configure test for OpenSSH engine
    support.  Patch from andrew.benham at thus net.
@@ -5497,4 +5500,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4558.2.5 2006/09/29 10:16:31 dtucker Exp $
+$Id: ChangeLog,v 1.4558.2.6 2006/09/30 22:10:20 dtucker Exp $
