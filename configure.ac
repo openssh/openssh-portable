@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.367.2.1 2006/09/29 10:16:31 dtucker Exp $
+# $Id: configure.ac,v 1.367.2.2 2006/10/06 23:09:27 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.367.2.1 $)
+AC_REVISION($Revision: 1.367.2.2 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3145,7 +3145,10 @@ AC_ARG_WITH(selinux,
 		    AC_MSG_ERROR(SELinux support requires selinux.h header))
 		AC_CHECK_LIB(selinux, setexeccon, [ LIBSELINUX="-lselinux" ],
 		    AC_MSG_ERROR(SELinux support requires libselinux library))
+		save_LIBS="$LIBS"
+		LIBS="$LIBS $LIBSELINUX"
 		AC_CHECK_FUNCS(getseuserbyname get_default_context_with_level)
+		LIBS="$save_LIBS"
 	fi ]
 )
 AC_SUBST(LIBSELINUX)

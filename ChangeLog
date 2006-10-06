@@ -1,3 +1,8 @@
+20061006
+ - (dtucker) [configure.ac] Set put -lselinux into $LIBS while testing for
+   SELinux functions so they're detected correctly.  Patch from pebenito at
+   gentoo.org.
+
 20061001
  - (dtucker) [audit-bsm.c] Include errno.h.  Pointed out by des at des.no.
 
@@ -5500,4 +5505,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4558.2.6 2006/09/30 22:10:20 dtucker Exp $
+$Id: ChangeLog,v 1.4558.2.7 2006/10/06 23:09:26 dtucker Exp $
