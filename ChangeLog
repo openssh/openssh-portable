@@ -1,6 +1,9 @@
 20061006
  - (tim) [buildpkg.sh.in] Use uname -r instead of -v in OS_VER for Solaris.
    Differentiate between OpenServer 5 and OpenServer 6
+ - (dtucker) [configure.ac] Set put -lselinux into $LIBS while testing for
+   SELinux functions so they're detected correctly.  Patch from pebenito at
+   gentoo.org.
 
 20061003
  - (tim) [configure.ac] Move CHECK_HEADERS test before platform specific
@@ -2519,4 +2522,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4567 2006/10/06 21:58:38 tim Exp $
+$Id: ChangeLog,v 1.4568 2006/10/06 23:07:20 dtucker Exp $
