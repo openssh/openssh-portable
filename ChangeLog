@@ -1,3 +1,7 @@
+20061006
+ - (tim) [buildpkg.sh.in] Use uname -r instead of -v in OS_VER for Solaris.
+   Differentiate between OpenServer 5 and OpenServer 6
+
 20061003
  - (tim) [configure.ac] Move CHECK_HEADERS test before platform specific
    section so additional platform specific CHECK_HEADER tests will work
@@ -2515,4 +2519,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4566 2006/10/03 16:34:35 tim Exp $
+$Id: ChangeLog,v 1.4567 2006/10/06 21:58:38 tim Exp $
