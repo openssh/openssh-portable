@@ -24,6 +24,7 @@ PKGNAME=OpenSSH
 # revisions within the same version (REV=a)
 #REV=
 SYSVINIT_NAME=opensshd
+AWK=${AWK:="nawk"}
 MAKE=${MAKE:="make"}
 SSHDUID=67	# Default privsep uid
 SSHDGID=67	# Default privsep gid
@@ -645,7 +646,7 @@ cat >mk-proto.awk << _EOF
 _EOF
 
 find . | egrep -v "prototype|pkginfo|mk-proto.awk" | sort | \
-	pkgproto $PROTO_ARGS | nawk -f mk-proto.awk > prototype
+	pkgproto $PROTO_ARGS | ${AWK} -f mk-proto.awk > prototype
 
 # /usr/local is a symlink on some systems
 [ "${USR_LOCAL_IS_SYMLINK}" = yes ]  &&  {

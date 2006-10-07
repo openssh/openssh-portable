@@ -4,6 +4,8 @@
  - (dtucker) [configure.ac] Set put -lselinux into $LIBS while testing for
    SELinux functions so they're detected correctly.  Patch from pebenito at
    gentoo.org.
+ - (tim) [buildpkg.sh.in] Some systems have really limited nawk (OpenServer).
+   Allow setting alternate awk in openssh-config.local.
 
 20061003
  - (tim) [configure.ac] Move CHECK_HEADERS test before platform specific
@@ -2522,4 +2524,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4568 2006/10/06 23:07:20 dtucker Exp $
+$Id: ChangeLog,v 1.4569 2006/10/07 01:49:36 tim Exp $
