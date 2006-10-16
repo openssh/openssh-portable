@@ -1,3 +1,7 @@
+20061016
+ - (dtucker) [monitor_fdpass.c] Include sys/in.h, required for cmsg macros
+   on older (2.0) Linuxes.  Based on patch from thmo-13 at gmx de.
+
 20061006
  - (tim) [buildpkg.sh.in] Use uname -r instead of -v in OS_VER for Solaris.
    Differentiate between OpenServer 5 and OpenServer 6
@@ -2524,4 +2528,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4569 2006/10/07 01:49:36 tim Exp $
+$Id: ChangeLog,v 1.4570 2006/10/16 09:49:12 dtucker Exp $
