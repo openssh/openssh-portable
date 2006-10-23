@@ -25,6 +25,8 @@
    - djm@cvs.openbsd.org 2006/10/22 02:25:50
      [sftp-client.c]
      cancel progress meter when upload write fails; ok deraadt@
+ - (tim) [Makefile.in scard/Makefile.in] Add datarootdir= lines to keep
+   autoconf 2.60 from complaining.
 
 20061018
  - (dtucker) OpenBSD CVS Sync
@@ -2566,4 +2568,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4578 2006/10/23 17:03:02 djm Exp $
+$Id: ChangeLog,v 1.4579 2006/10/23 21:44:47 tim Exp $
