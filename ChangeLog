@@ -1,3 +1,11 @@
+20061023
+ - (djm) OpenBSD CVS Sync
+   - ray@cvs.openbsd.org 2006/09/30 17:48:22
+     [sftp.c]
+     Clear errno before calling the strtol functions.
+     From Paul Stoeber <x0001 at x dot de1 dot cc>.
+     OK deraadt@.
+
 20061018
  - (dtucker) OpenBSD CVS Sync
    - ray@cvs.openbsd.org 2006/09/25 04:55:38
@@ -2538,4 +2546,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4572 2006/10/18 12:51:31 dtucker Exp $
+$Id: ChangeLog,v 1.4573 2006/10/23 17:00:12 djm Exp $
