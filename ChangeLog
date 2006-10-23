@@ -13,6 +13,10 @@
      [session.c]
      xmalloc -> xcalloc that was missed previously, from portable
      (NB. Id sync only for portable, obviously)
+   - markus@cvs.openbsd.org 2006/10/10 10:12:45
+     [sshconnect.c]
+     sleep before retrying (not after) since sleep changes errno; fixes
+     pr 5250; rad@twig.com; ok dtucker djm
 
 20061018
  - (dtucker) OpenBSD CVS Sync
@@ -2554,4 +2558,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4575 2006/10/23 17:01:56 djm Exp $
+$Id: ChangeLog,v 1.4576 2006/10/23 17:02:23 djm Exp $
