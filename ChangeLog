@@ -9,6 +9,10 @@
      [ssh-agent.c ssh-keyscan.c ssh.c]
      sys/resource.h needs sys/time.h; prompted by brad@
      (NB. Id sync only for portable)
+   - djm@cvs.openbsd.org 2006/10/09 23:36:11
+     [session.c]
+     xmalloc -> xcalloc that was missed previously, from portable
+     (NB. Id sync only for portable, obviously)
 
 20061018
  - (dtucker) OpenBSD CVS Sync
@@ -2550,4 +2554,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4574 2006/10/23 17:01:16 djm Exp $
+$Id: ChangeLog,v 1.4575 2006/10/23 17:01:56 djm Exp $
