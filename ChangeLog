@@ -1,3 +1,10 @@
+20061101
+ - (dtucker) [openbsd-compat/port-solaris.c] Bug #1255: Make only hwerr
+   events fatal in Solaris process contract support and tell it to signal
+   only processes in the same process group when something happens.
+   Based on information from andrew.benham at thus.net and similar to
+   a patch from Chad Mynhier.  ok djm@
+
 20061027
 - (djm) [auth.c] gc some dead code
 
@@ -2571,4 +2578,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4580 2006/10/27 15:10:15 djm Exp $
+$Id: ChangeLog,v 1.4581 2006/10/31 23:28:49 dtucker Exp $
