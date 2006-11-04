@@ -1,3 +1,9 @@
+20061105
+ - (djm) OpenBSD CVS Sync
+   - otto@cvs.openbsd.org 2006/10/28 18:08:10
+     [ssh.1]
+     correct/expand example of usage of -w; ok jmc@ stevesk@
+
 20061101
  - (dtucker) [openbsd-compat/port-solaris.c] Bug #1255: Make only hwerr
    events fatal in Solaris process contract support and tell it to signal
@@ -2578,4 +2584,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4581 2006/10/31 23:28:49 dtucker Exp $
+$Id: ChangeLog,v 1.4582 2006/11/04 18:31:33 djm Exp $
