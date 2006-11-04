@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.9 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.10 2006/10/31 16:33:12 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -50,7 +50,8 @@ kexdh_client(Kex *kex)
 	Key *server_host_key;
 	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char *kbuf, *hash;
-	u_int klen, kout, slen, sbloblen, hashlen;
+	u_int klen, slen, sbloblen, hashlen;
+	int kout;
 
 	/* generate and send 'e', client DH public key */
 	switch (kex->kex_type) {
@@ -112,7 +113,8 @@ kexdh_client(Kex *kex)
 
 	klen = DH_size(dh);
 	kbuf = xmalloc(klen);
-	kout = DH_compute_key(kbuf, dh_server_pub, dh);
+	if ((kout = DH_compute_key(kbuf, dh_server_pub, dh)) < 0)
+		fatal("DH_compute_key: failed");
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif

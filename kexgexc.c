@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.9 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.10 2006/10/31 16:33:12 markus Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -51,7 +51,8 @@ kexgex_client(Kex *kex)
 	BIGNUM *p = NULL, *g = NULL;
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
-	u_int klen, kout, slen, sbloblen, hashlen;
+	u_int klen, slen, sbloblen, hashlen;
+	int kout;
 	int min, max, nbits;
 	DH *dh;
 
@@ -150,7 +151,8 @@ kexgex_client(Kex *kex)
 
 	klen = DH_size(dh);
 	kbuf = xmalloc(klen);
-	kout = DH_compute_key(kbuf, dh_server_pub, dh);
+	if ((kout = DH_compute_key(kbuf, dh_server_pub, dh)) < 0)
+		fatal("DH_compute_key: failed");
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
