@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.43 2006/11/06 21:25:28 markus Exp $ */
+/* $OpenBSD: dh.c,v 1.44 2006/11/07 13:02:07 markus Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -254,9 +254,9 @@ dh_new_group_asc(const char *gen, const char *modulus)
 	if ((dh = DH_new()) == NULL)
 		fatal("dh_new_group_asc: DH_new");
 
-	if (BN_hex2bn(&dh->p, modulus) == NULL)
+	if (BN_hex2bn(&dh->p, modulus) == 0)
 		fatal("BN_hex2bn p");
-	if (BN_hex2bn(&dh->g, gen) == NULL)
+	if (BN_hex2bn(&dh->g, gen) == 0)
 		fatal("BN_hex2bn g");
 
 	return (dh);
