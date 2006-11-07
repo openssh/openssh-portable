@@ -6,6 +6,11 @@
      [auth-rsa.c kexgexc.c kexdhs.c key.c ssh-dss.c sshd.c kexgexs.c
      ssh-keygen.c bufbn.c moduli.c scard.c kexdhc.c sshconnect1.c dh.c rsa.c]
      add missing checks for openssl return codes; with & ok djm@
+   - markus@cvs.openbsd.org 2006/11/07 10:31:31
+     [monitor.c version.h]
+     correctly check for bad signatures in the monitor, otherwise the monitor
+     and the unpriv process can get out of sync. with dtucker@, ok djm@,
+     dtucker@
 
 20061105
  - (djm) OpenBSD CVS Sync
@@ -2597,4 +2602,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4585 2006/11/07 12:14:41 dtucker Exp $
+$Id: ChangeLog,v 1.4586 2006/11/07 12:16:08 dtucker Exp $
