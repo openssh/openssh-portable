@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.8 2006/10/31 16:33:12 markus Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.9 2006/11/06 21:25:28 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -108,7 +108,8 @@ kexdh_server(Kex *kex)
 #endif
 	if ((shared_secret = BN_new()) == NULL)
 		fatal("kexdh_server: BN_new failed");
-	BN_bin2bn(kbuf, kout, shared_secret);
+	if (BN_bin2bn(kbuf, kout, shared_secret) == NULL)
+		fatal("kexdh_server: BN_bin2bn failed");
 	memset(kbuf, 0, klen);
 	xfree(kbuf);
 

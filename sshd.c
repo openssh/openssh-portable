@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.347 2006/08/18 09:15:20 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.348 2006/11/06 21:25:28 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2013,10 +2013,10 @@ do_ssh1_kex(void)
 	 * key is in the highest bits.
 	 */
 	if (!rsafail) {
-		BN_mask_bits(session_key_int, sizeof(session_key) * 8);
+		(void) BN_mask_bits(session_key_int, sizeof(session_key) * 8);
 		len = BN_num_bytes(session_key_int);
 		if (len < 0 || (u_int)len > sizeof(session_key)) {
-			error("do_connection: bad session key len from %s: "
+			error("do_ssh1_kex: bad session key len from %s: "
 			    "session_key_int %d > sizeof(session_key) %lu",
 			    get_remote_ipaddr(), len, (u_long)sizeof(session_key));
 			rsafail++;

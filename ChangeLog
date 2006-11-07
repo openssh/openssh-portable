@@ -1,6 +1,11 @@
 20061107
  - (dtucker) [sshd.c] Use privsep_pw if we have it, but only require it
    if we absolutely need it.  Pointed out by Corinna, ok djm@
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2006/11/06 21:25:28
+     [auth-rsa.c kexgexc.c kexdhs.c key.c ssh-dss.c sshd.c kexgexs.c
+     ssh-keygen.c bufbn.c moduli.c scard.c kexdhc.c sshconnect1.c dh.c rsa.c]
+     add missing checks for openssl return codes; with & ok djm@
 
 20061105
  - (djm) OpenBSD CVS Sync
@@ -2592,4 +2597,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4584 2006/11/07 00:28:40 dtucker Exp $
+$Id: ChangeLog,v 1.4585 2006/11/07 12:14:41 dtucker Exp $
