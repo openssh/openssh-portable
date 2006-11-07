@@ -1,3 +1,7 @@
+20061107
+ - (dtucker) [sshd.c] Use privsep_pw if we have it, but only require it
+   if we absolutely need it.  Pointed out by Corinna, ok djm@
+
 20061105
  - (djm) OpenBSD CVS Sync
    - otto@cvs.openbsd.org 2006/10/28 18:08:10
@@ -2588,4 +2592,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4583 2006/11/04 18:32:02 djm Exp $
+$Id: ChangeLog,v 1.4584 2006/11/07 00:28:40 dtucker Exp $

@@ -1431,14 +1431,17 @@ main(int ac, char **av)
 
 	debug("sshd version %.100s", SSH_RELEASE);
 
-	/* Store privilege separation user for later use */
-	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL)
-		fatal("Privilege separation user %s does not exist",
-		    SSH_PRIVSEP_USER);
-	memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
-	privsep_pw = pwcopy(privsep_pw);
-	xfree(privsep_pw->pw_passwd);
-	privsep_pw->pw_passwd = xstrdup("*");
+	/* Store privilege separation user for later use if required. */
+	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
+		if (use_privsep || options.kerberos_authentication)
+			fatal("Privilege separation user %s does not exist",
+			    SSH_PRIVSEP_USER);
+	} else {
+		memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
+		privsep_pw = pwcopy(privsep_pw);
+		xfree(privsep_pw->pw_passwd);
+		privsep_pw->pw_passwd = xstrdup("*");
+	}
 	endpwent();
 
 	/* load private host keys */
