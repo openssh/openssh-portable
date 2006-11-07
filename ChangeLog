@@ -13,6 +13,7 @@
      dtucker@
  - (dtucker) [README contrib/{caldera,redhat,contrib}/openssh.spec] Bump
    versions.
+ - (dtucker) [dh.c] Type fix for BN_hex2bn; ok markus@
  - (dtucker) Release 4.5p1.
 
 20061105
@@ -2605,4 +2606,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4588 2006/11/07 12:27:34 dtucker Exp $
+$Id: ChangeLog,v 1.4588.2.1 2006/11/07 13:02:59 dtucker Exp $

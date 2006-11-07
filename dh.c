@@ -254,9 +254,9 @@ dh_new_group_asc(const char *gen, const char *modulus)
 	if ((dh = DH_new()) == NULL)
 		fatal("dh_new_group_asc: DH_new");
 
-	if (BN_hex2bn(&dh->p, modulus) == NULL)
+	if (BN_hex2bn(&dh->p, modulus) == 0)
 		fatal("BN_hex2bn p");
-	if (BN_hex2bn(&dh->g, gen) == NULL)
+	if (BN_hex2bn(&dh->g, gen) == 0)
 		fatal("BN_hex2bn g");
 
 	return (dh);
