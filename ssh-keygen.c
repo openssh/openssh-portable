@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.156 2006/11/14 19:41:04 deraadt Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.157 2007/01/03 00:53:38 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -346,9 +346,8 @@ get_line(FILE *fp, char *line, size_t len)
 		line[pos++] = c;
 		line[pos] = '\0';
 	}
-	if (c == EOF)
-		return -1;
-	return pos;
+	/* We reached EOF */
+	return -1;
 }
 
 static void
