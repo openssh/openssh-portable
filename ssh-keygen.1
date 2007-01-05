@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.72 2005/11/28 05:16:53 dtucker Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.73 2006/12/11 21:25:46 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -205,8 +205,8 @@ Download the RSA public key stored in the smartcard in
 .Ar reader .
 .It Fl e
 This option will read a private or public OpenSSH key file and
-print the key in a
-.Sq SECSH Public Key File Format
+print the key in
+RFC 4716 SSH Public Key File Format
 to stdout.
 This option allows exporting keys for use by several commercial
 SSH implementations.
@@ -450,12 +450,9 @@ The file format is described in
 .Xr moduli 5 ,
 .Xr sshd 8
 .Rs
-.%A J. Galbraith
-.%A R. Thayer
-.%T "SECSH Public Key File Format"
-.%N draft-ietf-secsh-publickeyfile-01.txt
-.%D March 2001
-.%O work in progress material
+.%R RFC 4716
+.%T "The Secure Shell (SSH) Public Key File Format"
+.%D 2006
 .Re
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
