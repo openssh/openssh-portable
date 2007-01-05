@@ -3,6 +3,10 @@
    - deraadt@cvs.openbsd.org 2006/11/14 19:41:04
      [ssh-keygen.c]
      use argc and argv not some made up short form
+   - ray@cvs.openbsd.org 2006/11/23 01:35:11
+     [misc.c sftp.c]
+     Don't access buf[strlen(buf) - 1] for zero-length strings.
+     ``ok by me'' djm@.
 
 20061205
  - (djm) [auth.c] Fix NULL pointer dereference in fakepw().  Crash would
@@ -2623,4 +2627,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4592 2007/01/05 05:22:57 djm Exp $
+$Id: ChangeLog,v 1.4593 2007/01/05 05:24:47 djm Exp $
