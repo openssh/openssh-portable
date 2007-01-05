@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.155 2006/11/06 21:25:28 markus Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.156 2006/11/14 19:41:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1049,7 +1049,7 @@ usage(void)
  * Main program for key management.
  */
 int
-main(int ac, char **av)
+main(int argc, char **argv)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
 	char out_file[MAXPATHLEN], *reader_id = NULL;
@@ -1074,7 +1074,7 @@ main(int ac, char **av)
 	__progname = ssh_get_progname(av[0]);
 
 	SSLeay_add_all_algorithms();
-	log_init(av[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
+	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	init_rng();
 	seed_rng();
@@ -1090,7 +1090,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av,
+	while ((opt = getopt(argc, argv,
 	    "degiqpclBHvxXyF:b:f:t:U:D:P:N:C:r:g:R:T:G:M:S:a:W:")) != -1) {
 		switch (opt) {
 		case 'b':
@@ -1223,9 +1223,9 @@ main(int ac, char **av)
 	}
 
 	/* reinit */
-	log_init(av[0], log_level, SYSLOG_FACILITY_USER, 1);
+	log_init(argv[0], log_level, SYSLOG_FACILITY_USER, 1);
 
-	if (optind < ac) {
+	if (optind < argc) {
 		printf("Too many arguments.\n");
 		usage();
 	}
