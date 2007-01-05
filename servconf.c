@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.166 2006/12/13 08:34:39 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.167 2006/12/14 10:01:14 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1220,14 +1220,14 @@ parse_flag:
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: missing PermitOpen specification",
 			    filename, linenum);
+		n = options->num_permitted_opens;	/* modified later */
 		if (strcmp(arg, "any") == 0) {
-			if (*activep) {
+			if (*activep && n == -1) {
 				channel_clear_adm_permitted_opens();
 				options->num_permitted_opens = 0;
 			}
 			break;
 		}
-		n = options->num_permitted_opens;	/* modified later */
 		if (*activep && n == -1)
 			channel_clear_adm_permitted_opens();
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
