@@ -25,6 +25,10 @@
      [servconf.c]
      Make "PermitOpen all" first-match within a block to match the way other
      options work.  ok markus@ djm@
+   - jmc@cvs.openbsd.org 2007/01/02 09:57:25
+     [sshd_config.5]
+     do not use lists for SYNOPSIS;
+     from eric s. raymond via brad
 
 20061205
  - (djm) [auth.c] Fix NULL pointer dereference in fakepw().  Crash would
@@ -2645,4 +2649,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4597 2007/01/05 05:29:02 djm Exp $
+$Id: ChangeLog,v 1.4598 2007/01/05 05:29:30 djm Exp $
