@@ -35,6 +35,9 @@
    - stevesk@cvs.openbsd.org 2007/01/03 03:01:40
      [auth2-chall.c channels.c dns.c sftp.c ssh-keygen.c ssh.c]
      spaces
+   - stevesk@cvs.openbsd.org 2007/01/03 04:09:15
+     [sftp.c]
+     ARGSUSED for lint
 
 20061205
  - (djm) [auth.c] Fix NULL pointer dereference in fakepw().  Crash would
@@ -2655,4 +2658,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4600 2007/01/05 05:30:16 djm Exp $
+$Id: ChangeLog,v 1.4601 2007/01/05 05:30:41 djm Exp $
