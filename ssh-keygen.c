@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.157 2007/01/03 00:53:38 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.158 2007/01/03 03:01:40 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -253,7 +253,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 	i2 = buffer_get_int(&b);
 	i3 = buffer_get_int(&b);
 	i4 = buffer_get_int(&b);
-	debug("ignore (%d %d %d %d)", i1,i2,i3,i4);
+	debug("ignore (%d %d %d %d)", i1, i2, i3, i4);
 	if (strcmp(cipher, "none") != 0) {
 		error("unsupported cipher %s", cipher);
 		xfree(cipher);
@@ -553,7 +553,7 @@ do_fingerprint(struct passwd *pw)
 			for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
 				;
 			if (!*cp || *cp == '\n' || *cp == '#')
-				continue ;
+				continue;
 			i = strtol(cp, &ep, 10);
 			if (i == 0 || ep == NULL || (*ep != ' ' && *ep != '\t')) {
 				int quoted = 0;
