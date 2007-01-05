@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.266 2006/08/29 10:40:18 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.267 2006/12/12 03:58:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2525,11 +2525,18 @@ channel_request_remote_forwarding(const char *listen_host, u_short listen_port,
 	/* Send the forward request to the remote side. */
 	if (compat20) {
 		const char *address_to_bind;
-		if (listen_host == NULL)
-			address_to_bind = "localhost";
-		else if (*listen_host == '\0' || strcmp(listen_host, "*") == 0)
-			address_to_bind = "";
-		else
+		if (listen_host == NULL) {
+			if (datafellows & SSH_BUG_RFWD_ADDR)
+				address_to_bind = "127.0.0.1";
+			else
+				address_to_bind = "localhost";
+		} else if (*listen_host == '\0' ||
+			   strcmp(listen_host, "*") == 0) {
+			if (datafellows & SSH_BUG_RFWD_ADDR)
+				address_to_bind = "0.0.0.0";
+			else
+				address_to_bind = "";
+		} else
 			address_to_bind = listen_host;
 
 		packet_start(SSH2_MSG_GLOBAL_REQUEST);
