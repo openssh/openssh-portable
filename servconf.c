@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.165 2006/08/14 12:40:25 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.166 2006/12/13 08:34:39 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1227,6 +1227,9 @@ parse_flag:
 			}
 			break;
 		}
+		n = options->num_permitted_opens;	/* modified later */
+		if (*activep && n == -1)
+			channel_clear_adm_permitted_opens();
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
 			p = hpdelim(&arg);
 			if (p == NULL)
@@ -1236,11 +1239,9 @@ parse_flag:
 			if (arg == NULL || (port = a2port(arg)) == 0)
 				fatal("%s line %d: bad port number in "
 				    "PermitOpen", filename, linenum);
-			if (*activep && options->num_permitted_opens == -1) {
-				channel_clear_adm_permitted_opens();
+			if (*activep && n == -1)
 				options->num_permitted_opens =
 				    channel_add_adm_permitted_opens(p, port);
-			}
 		}
 		break;
 
