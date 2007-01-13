@@ -1,3 +1,6 @@
+20070114
+ - (dtucker) [ssh-keygen.c] ac -> argv to match earlier sync.
+
 20070105
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2006/11/14 19:41:04
@@ -2661,4 +2664,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4602 2007/01/05 05:31:02 djm Exp $
+$Id: ChangeLog,v 1.4603 2007/01/13 23:19:59 dtucker Exp $
