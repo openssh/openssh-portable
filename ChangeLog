@@ -1,5 +1,10 @@
 20070114
  - (dtucker) [ssh-keygen.c] av -> argv to match earlier sync.
+ - (djm) [openbsd-compat/bsd-snprintf.c] Fix integer overflow in return
+   value of snprintf replacement, similar to bugs in various libc
+   implementations. This overflow is not exploitable in OpenSSH. 
+   While I'm fiddling with it, make it a fair bit faster by inlining the
+   append-char routine; ok dtucker@
 
 20070105
  - (djm) OpenBSD CVS Sync
@@ -2664,4 +2669,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4604 2007/01/13 23:26:25 dtucker Exp $
+$Id: ChangeLog,v 1.4605 2007/01/14 10:20:30 djm Exp $
