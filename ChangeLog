@@ -1,3 +1,8 @@
+20070117
+ - (dtucker) [packet.c] Re-remove in_systm.h since it's already in includes.h
+   and multiple including it causes problems on old IRIXes.  (It snuck back
+   in during a sync.)  Found (again) by Georg Schwarz.
+
 20070114
  - (dtucker) [ssh-keygen.c] av -> argv to match earlier sync.
  - (djm) [openbsd-compat/bsd-snprintf.c] Fix integer overflow in return
@@ -2669,4 +2674,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4605 2007/01/14 10:20:30 djm Exp $
+$Id: ChangeLog,v 1.4606 2007/01/17 00:00:13 dtucker Exp $
