@@ -1,3 +1,7 @@
+20070122
+ - (djm) [ssh-rand-helper.8] manpage nits;
+   from dleonard AT vintela.com (bz#1529)
+
 20070117
  - (dtucker) [packet.c] Re-remove in_systm.h since it's already in includes.h
    and multiple including it causes problems on old IRIXes.  (It snuck back
@@ -2674,4 +2678,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4606 2007/01/17 00:00:13 dtucker Exp $
+$Id: ChangeLog,v 1.4607 2007/01/22 01:44:53 djm Exp $
