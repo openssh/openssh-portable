@@ -1,3 +1,11 @@
+20070123
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Static declarations for public
+   library interfaces aren't very helpful. Fix up the DOPR_OUTCH macro
+   so it works properly and modify its callers so that they don't pre or
+   post decrement arguments that are conditionally evaluated. While there,
+   put SNPRINTF_CONST back as it prevents build failures in some
+   configurations.  ok djm@ (for most of it)
+
 20070122
  - (djm) [ssh-rand-helper.8] manpage nits;
    from dleonard AT vintela.com (bz#1529)
@@ -2678,4 +2686,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4607 2007/01/22 01:44:53 djm Exp $
+$Id: ChangeLog,v 1.4608 2007/01/23 13:07:29 dtucker Exp $

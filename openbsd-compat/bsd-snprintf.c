@@ -168,12 +168,13 @@
 
 #define DOPR_OUTCH(buf, pos, buflen, thechar) \
 	do { \
-		if (++pos >= INT_MAX) { \
+		if (pos + 1 >= INT_MAX) { \
 			errno = ERANGE; \
 			return -1; \
+		} \
 		if (pos < buflen) \
 			buf[pos] = thechar; \
-		} \
+		(pos)++; \
 	} while (0)
 
 static int dopr(char *buffer, size_t maxlen, const char *format, 
@@ -494,7 +495,8 @@ fmtstr(char *buffer, size_t *currlen, size_t maxlen,
 		++cnt;
 	}
 	while (*value && (cnt < max)) {
-		DOPR_OUTCH(buffer, *currlen, maxlen, *value++);
+		DOPR_OUTCH(buffer, *currlen, maxlen, *value);
+		*value++;
 		++cnt;
 	}
 	while ((padlen < 0) && (cnt < max)) {
@@ -582,8 +584,10 @@ fmtint(char *buffer, size_t *currlen, size_t maxlen,
 	}
 
 	/* Digits */
-	while (place > 0) 
-		DOPR_OUTCH(buffer, *currlen, maxlen, convert[--place]);
+	while (place > 0) {
+		--place;
+		DOPR_OUTCH(buffer, *currlen, maxlen, convert[place]);
+	}
   
 	/* Left Justified spaces */
 	while (spadlen < 0) {
@@ -788,8 +792,10 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 	if (signvalue) 
 		DOPR_OUTCH(buffer, *currlen, maxlen, signvalue);
 	
-	while (iplace > 0) 
-		DOPR_OUTCH(buffer, *currlen, maxlen, iconvert[--iplace]);
+	while (iplace > 0) {
+		--iplace;
+		DOPR_OUTCH(buffer, *currlen, maxlen, iconvert[iplace]);
+	}
 
 #ifdef DEBUG_SNPRINTF
 	printf("fmtfp: fplace=%d zpadlen=%d\n", fplace, zpadlen);
@@ -807,9 +813,10 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 			--zpadlen;
 		}
 
-		while (fplace > 0) 
-			DOPR_OUTCH(buffer, *currlen, maxlen,
-			    fconvert[--fplace]);
+		while (fplace > 0) {
+			--fplace;
+			DOPR_OUTCH(buffer, *currlen, maxlen, fconvert[fplace]);
+		}
 	}
 
 	while (padlen < 0) {
@@ -821,7 +828,7 @@ fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 #endif /* !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF) */
 
 #if !defined(HAVE_VSNPRINTF)
-static int
+int
 vsnprintf (char *str, size_t count, const char *fmt, va_list args)
 {
 	return dopr(str, count, fmt, args);
@@ -829,8 +836,8 @@ vsnprintf (char *str, size_t count, const char *fmt, va_list args)
 #endif
 
 #if !defined(HAVE_SNPRINTF)
-static int
-snprintf(char *str, size_t count, const char *fmt, ...)
+int
+snprintf(char *str, size_t count, SNPRINTF_CONST char *fmt, ...)
 {
 	size_t ret;
 	va_list ap;
