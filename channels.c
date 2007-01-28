@@ -1449,10 +1449,11 @@ channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 	int len;
 
 	if (c->rfd != -1 &&
-	    FD_ISSET(c->rfd, readset)) {
+	    (c->detach_close || FD_ISSET(c->rfd, readset))) {
 		errno = 0;
 		len = read(c->rfd, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+		if (len < 0 && (errno == EINTR ||
+		    (errno == EAGAIN && !(c->isatty && c->detach_close))))
 			return 1;
 #ifndef PTY_ZEROREAD
 		if (len <= 0) {
@@ -1604,11 +1605,12 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 				c->local_consumed += len;
 			}
 		} else if (c->extended_usage == CHAN_EXTENDED_READ &&
-		    FD_ISSET(c->efd, readset)) {
+		    (c->detach_close || FD_ISSET(c->efd, readset))) {
 			len = read(c->efd, buf, sizeof(buf));
 			debug2("channel %d: read %d from efd %d",
 			    c->self, len, c->efd);
-			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			if (len < 0 && (errno == EINTR ||
+			    (errno == EAGAIN && !c->detach_close)))
 				return 1;
 			if (len <= 0) {
 				debug2("channel %d: closing read-efd %d",
