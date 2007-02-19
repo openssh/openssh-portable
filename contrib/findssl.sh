@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: findssl.sh,v 1.3 2004/12/13 07:08:33 dtucker Exp $
+# $Id: findssl.sh,v 1.4 2007/02/19 11:44:25 dtucker Exp $
 #
 # findssl.sh
 #	Search for all instances of OpenSSL headers and libraries
@@ -88,6 +88,25 @@ LIBPATH=${LIBPATH:=$DEFAULT_LIBPATH}
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH:=$DEFAULT_LIBPATH}
 LIBRARY_PATH=${LIBRARY_PATH:=$DEFAULT_LIBPATH}
 export LIBPATH LD_LIBRARY_PATH LIBRARY_PATH
+
+# not all platforms have a 'which' command
+if which ls >/dev/null 2>/dev/null; then
+    : which is defined
+else
+    which () {
+	saveIFS="$IFS"
+	IFS=:
+	for p in $PATH; do
+	    if test -x "$p/$1" -a -f "$p/$1"; then
+		IFS="$saveIFS"
+		echo "$p/$1"
+		return 0
+	    fi
+	done
+	IFS="$saveIFS"
+	return 1
+    }
+fi
 
 #
 # Search for OpenSSL headers and print versions
