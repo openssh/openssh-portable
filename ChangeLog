@@ -32,6 +32,9 @@
      tested isatty(stderr) but wrote the progress meter to stdout. This patch
      makes it test stdout. bz#1265 reported by junkmail AT bitsculpture.com;
      of dtucker@
+   - stevesk@cvs.openbsd.org 2007/02/14 14:32:00
+     [bufbn.c]
+     typos in comments; ok jmc@
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2727,4 +2730,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4615 2007/02/19 11:14:11 dtucker Exp $
+$Id: ChangeLog,v 1.4616 2007/02/19 11:17:28 dtucker Exp $
