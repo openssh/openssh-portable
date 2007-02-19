@@ -26,6 +26,12 @@
      return error from do_upload() when a write fails. fixes bz#1252: zero
      exit status from sftp when uploading to a full device. report from
      jirkat AT atlas.cz; ok dtucker@
+   - djm@cvs.openbsd.org 2007/01/22 13:06:21
+     [scp.c]
+     fix detection of whether we should show progress meter or not: scp
+     tested isatty(stderr) but wrote the progress meter to stdout. This patch
+     makes it test stdout. bz#1265 reported by junkmail AT bitsculpture.com;
+     of dtucker@
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2721,4 +2727,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4614 2007/02/19 11:13:39 dtucker Exp $
+$Id: ChangeLog,v 1.4615 2007/02/19 11:14:11 dtucker Exp $
