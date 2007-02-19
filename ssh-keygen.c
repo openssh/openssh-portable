@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.158 2007/01/03 03:01:40 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.159 2007/01/12 20:20:41 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1016,13 +1016,13 @@ usage(void)
 #ifdef SMARTCARD
 	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
 #endif /* SMARTCARD */
-	fprintf(stderr, "  -e          Convert OpenSSH to IETF SECSH key file.\n");
+	fprintf(stderr, "  -e          Convert OpenSSH to RFC 4716 key file.\n");
 	fprintf(stderr, "  -F hostname Find hostname in known hosts file.\n");
 	fprintf(stderr, "  -f filename Filename of the key file.\n");
 	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
 	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
-	fprintf(stderr, "  -i          Convert IETF SECSH to OpenSSH key file.\n");
+	fprintf(stderr, "  -i          Convert RFC 4716 to OpenSSH key file.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");

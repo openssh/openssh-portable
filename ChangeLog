@@ -5,6 +5,11 @@
      do not use a list for SYNOPSIS;
      this is actually part of a larger report sent by eric s. raymond
      and forwarded by brad, but i only read half of it. spotted by brad.
+   - jmc@cvs.openbsd.org 2007/01/12 20:20:41
+     [ssh-keygen.1 ssh-keygen.c]
+     more secsh -> rfc 4716 updates;
+     spotted by wiz@netbsd
+     ok markus
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2700,4 +2705,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4610 2007/02/19 11:08:17 dtucker Exp $
+$Id: ChangeLog,v 1.4611 2007/02/19 11:09:06 dtucker Exp $
