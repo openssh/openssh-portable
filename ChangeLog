@@ -43,6 +43,10 @@
      offsite.  ok djm@, man page bits ok jmc@
  - (dtucker) [contrib/findssl.sh] Add "which" as a shell function since some
    platforms don't have it.  Patch from dleonard at vintela.com.
+ - (dtucker) [openbsd-compat/getrrsetbyname.c] Don't attempt to calloc
+   an array for signatures when there are none since "calloc(0, n) returns
+   NULL on some platforms (eg Tru64), which is explicitly permitted by
+   POSIX.  Diagnosis and patch by svallet genoscope.cns.fr.
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2738,4 +2742,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4618 2007/02/19 11:44:25 dtucker Exp $
+$Id: ChangeLog,v 1.4619 2007/02/19 11:56:55 dtucker Exp $
