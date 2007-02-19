@@ -35,6 +35,12 @@
    - stevesk@cvs.openbsd.org 2007/02/14 14:32:00
      [bufbn.c]
      typos in comments; ok jmc@
+   - dtucker@cvs.openbsd.org 2007/02/19 10:45:58
+     [monitor_wrap.c servconf.c servconf.h monitor.c sshd_config.5]
+     Teach Match how handle config directives that are used before
+     authentication.  This allows configurations such as permitting password
+     authentication from the local net only while requiring pubkey from
+     offsite.  ok djm@, man page bits ok jmc@
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2730,4 +2736,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4616 2007/02/19 11:17:28 dtucker Exp $
+$Id: ChangeLog,v 1.4617 2007/02/19 11:25:37 dtucker Exp $
