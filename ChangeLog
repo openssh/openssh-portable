@@ -10,6 +10,14 @@
      more secsh -> rfc 4716 updates;
      spotted by wiz@netbsd
      ok markus
+   - dtucker@cvs.openbsd.org 2007/01/17 23:22:52
+     [readconf.c]
+     Honour activep for times (eg ServerAliveInterval) while parsing
+     ssh_config and ~/.ssh/config so they work properly with Host directives.
+     From mario.lorenz@wincor-nixdorf.com via bz #1275.  ok markus@
+   - stevesk@cvs.openbsd.org 2007/01/21 01:41:54
+     [auth-skey.c kex.c ssh-keygen.c session.c clientloop.c]
+     spaces
 
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
@@ -2705,4 +2713,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4611 2007/02/19 11:09:06 dtucker Exp $
+$Id: ChangeLog,v 1.4612 2007/02/19 11:12:23 dtucker Exp $
