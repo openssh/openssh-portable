@@ -1,3 +1,11 @@
+20070219
+  - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2007/01/10 13:23:22
+     [ssh_config.5]
+     do not use a list for SYNOPSIS;
+     this is actually part of a larger report sent by eric s. raymond
+     and forwarded by brad, but i only read half of it. spotted by brad.
+
 20070128
  - (djm) [channels.c serverloop.c] Fix so-called "hang on exit" (bz #52)
    when closing a tty session when a background process still holds tty
@@ -2692,4 +2700,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4609 2007/01/28 23:16:28 djm Exp $
+$Id: ChangeLog,v 1.4610 2007/02/19 11:08:17 dtucker Exp $
