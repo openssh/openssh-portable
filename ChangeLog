@@ -4,6 +4,13 @@
      [clientloop.c]
      set maximum packet and window sizes the same for multiplexed clients
      as normal connections; ok markus@
+   - dtucker@cvs.openbsd.org 2007/02/21 11:00:05
+     [sshd.c]
+     Clear alarm() before restarting sshd on SIGHUP.  Without this, if there's
+     a SIGALRM pending (for SSH1 key regeneration) when sshd is SIGHUP'ed, the
+     newly exec'ed sshd will get the SIGALRM and not have a handler for it,
+     and the default action will terminate the listening sshd.  Analysis and
+     patch from andrew at gaul.org.
 
 20070219
   - (dtucker) OpenBSD CVS Sync
@@ -2749,4 +2756,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4620 2007/02/25 09:36:49 dtucker Exp $
+$Id: ChangeLog,v 1.4621 2007/02/25 09:37:21 dtucker Exp $
