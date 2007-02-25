@@ -1,3 +1,10 @@
+20070225
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2007/02/20 10:25:14
+     [clientloop.c]
+     set maximum packet and window sizes the same for multiplexed clients
+     as normal connections; ok markus@
+
 20070219
   - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2007/01/10 13:23:22
@@ -2742,4 +2749,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4619 2007/02/19 11:56:55 dtucker Exp $
+$Id: ChangeLog,v 1.4620 2007/02/25 09:36:49 dtucker Exp $
