@@ -11,6 +11,9 @@
      newly exec'ed sshd will get the SIGALRM and not have a handler for it,
      and the default action will terminate the listening sshd.  Analysis and
      patch from andrew at gaul.org.
+   - dtucker@cvs.openbsd.org 2007/02/22 12:58:40
+     [servconf.c]
+     Check activep so Match and GatewayPorts work together; ok markus@
 
 20070219
   - (dtucker) OpenBSD CVS Sync
@@ -2756,4 +2759,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4621 2007/02/25 09:37:21 dtucker Exp $
+$Id: ChangeLog,v 1.4622 2007/02/25 09:37:52 dtucker Exp $
