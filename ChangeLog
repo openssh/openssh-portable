@@ -1,3 +1,12 @@
+20070228
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2007/02/28 00:55:30
+     [ssh-agent.c]
+     Remove expired keys periodically so they don't remain in memory when
+     the agent is entirely idle, as noted by David R. Piegdon.  This is the
+     simple fix, a more efficient one will be done later.  With markus,
+     deraadt, with & ok djm.
+
 20070225
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/02/20 10:25:14
@@ -2764,4 +2773,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4623 2007/02/25 09:38:55 dtucker Exp $
+$Id: ChangeLog,v 1.4624 2007/02/28 10:19:58 dtucker Exp $
