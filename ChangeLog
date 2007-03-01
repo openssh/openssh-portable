@@ -1,3 +1,12 @@
+20070301
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2007/03/01 10:28:02
+     [auth2.c sshd_config.5 servconf.c]
+     Remove ChallengeResponseAuthentication support inside a Match
+     block as its interaction with KbdInteractive makes it difficult to
+     support.  Also, relocate the CR/kbdint option special-case code into
+     servconf.  "please commit" djm@, ok markus@ for the relocation.
+
 20070228
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2007/02/28 00:55:30
@@ -2773,4 +2782,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4624 2007/02/28 10:19:58 dtucker Exp $
+$Id: ChangeLog,v 1.4625 2007/03/01 10:31:28 dtucker Exp $

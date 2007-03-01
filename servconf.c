@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.169 2007/02/22 12:58:40 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.170 2007/03/01 10:28:02 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -357,7 +357,7 @@ static struct {
 #endif
 	{ "passwordauthentication", sPasswordAuthentication, SSHCFG_ALL },
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication, SSHCFG_ALL },
-	{ "challengeresponseauthentication", sChallengeResponseAuthentication, SSHCFG_ALL },
+	{ "challengeresponseauthentication", sChallengeResponseAuthentication, SSHCFG_GLOBAL },
 	{ "skeyauthentication", sChallengeResponseAuthentication, SSHCFG_GLOBAL }, /* alias */
 	{ "checkmail", sDeprecated, SSHCFG_GLOBAL },
 	{ "listenaddress", sListenAddress, SSHCFG_GLOBAL },
@@ -1350,7 +1350,6 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
 	M_CP_INTOPT(kbd_interactive_authentication);
-	M_CP_INTOPT(challenge_response_authentication);
 
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(gateway_ports);
@@ -1388,4 +1387,8 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);
+
+	/* challenge-response is implemented via keyboard interactive */
+	if (options->challenge_response_authentication == 1)
+		options->kbd_interactive_authentication = 1;
 }
