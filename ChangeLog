@@ -6,6 +6,8 @@
      block as its interaction with KbdInteractive makes it difficult to
      support.  Also, relocate the CR/kbdint option special-case code into
      servconf.  "please commit" djm@, ok markus@ for the relocation.
+ - (tim) [buildpkg.sh.in openssh.xml.in] Clean up Solaris 10 smf(5) bits.
+   "Looks sane" dtucker@
 
 20070228
  - (dtucker) OpenBSD CVS Sync
@@ -2782,4 +2784,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4625 2007/03/01 10:31:28 dtucker Exp $
+$Id: ChangeLog,v 1.4626 2007/03/01 17:34:52 tim Exp $
