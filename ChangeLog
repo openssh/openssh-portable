@@ -2,6 +2,7 @@
  - (dtucker) [configure.ac] For Cygwin, read files in textmode (which allows
    CRLF as well as LF lineendings) and write in binary mode.  Patch from
    vinschen at redhat.com.
+ - (dtucker) [INSTALL] Update to autoconf-2.61.
 
 20070301
  - (dtucker) OpenBSD CVS Sync
@@ -2789,4 +2790,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4627 2007/03/02 06:50:03 dtucker Exp $
+$Id: ChangeLog,v 1.4628 2007/03/02 06:53:41 dtucker Exp $
