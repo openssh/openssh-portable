@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.370 2006/10/06 23:07:21 dtucker Exp $
+# $Id: configure.ac,v 1.371 2007/03/02 06:50:04 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.370 $)
+AC_REVISION($Revision: 1.371 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -360,7 +360,7 @@ int main(void) { exit(0); }
 	;;
 *-*-cygwin*)
 	check_for_libcrypt_later=1
-	LIBS="$LIBS /usr/lib/textmode.o"
+	LIBS="$LIBS /usr/lib/textreadmode.o"
 	AC_DEFINE(HAVE_CYGWIN, 1, [Define if you are on Cygwin])
 	AC_DEFINE(USE_PIPES, 1, [Use PIPES instead of a socketpair()])
 	AC_DEFINE(DISABLE_SHADOW, 1,
