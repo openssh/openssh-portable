@@ -2,6 +2,10 @@
  - (djm) [configure.ac] add a --without-openssl-header-check option to
    configure, as some platforms (OS X) ship OpenSSL headers whose version
    does not match that of the shipping library. ok dtucker@
+ - (dtucker) [openbsd-compat/openssl-compat.h] Bug #1291: Work around a
+   bug in OpenSSL 0.9.8e that prevents aes256-ctr, aes192-ctr and arcfour256
+   ciphers from working correctly (disconnects with "Bad packet length"
+   errors) as found by Ben Harris.  ok djm@
 
 20070303
  - (dtucker) [regress/agent-ptrace.sh] Make ttrace gdb error a little more
@@ -2799,4 +2803,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4630 2007/03/05 00:51:27 djm Exp $
+$Id: ChangeLog,v 1.4631 2007/03/05 07:25:20 dtucker Exp $
