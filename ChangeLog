@@ -8,6 +8,7 @@
      openssh-4.6; "please" deraadt@
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] crank spec files for release
+ - (djm) [README] correct link to release notes
  - (djm) Release 4.6p1
 
 20070304
@@ -2815,4 +2816,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635 2007/03/06 10:24:00 djm Exp $
+$Id: ChangeLog,v 1.4636 2007/03/08 09:13:39 djm Exp $
