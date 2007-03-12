@@ -1,6 +1,8 @@
 20070313
  - (dtucker) [entropy.c scard-opensc.c ssh-rand-helper.c] Bug #1294: include
    string.h to prevent warnings, from vapier at gentoo.org.
+ - (dtucker) [LICENCE] Add Daniel Walsh as a copyright holder for the
+   selinux bits in -portable.
 
 20070306
  - (djm) OpenBSD CVS Sync
@@ -2820,4 +2822,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4637 2007/03/12 20:35:38 dtucker Exp $
+$Id: ChangeLog,v 1.4638 2007/03/12 20:37:49 dtucker Exp $
