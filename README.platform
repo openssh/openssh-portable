@@ -23,6 +23,14 @@ to force the previous IPv4-only behaviour.
 IPv6 known to work: 5.1ML7 5.2ML2 5.2ML5
 IPv6 known broken: 4.3.3ML11 5.1ML4
 
+If you wish to use dynamic libraries that aren't in the normal system
+locations (eg IBM's OpenSSL and zlib packages) then you will need to
+define the environment variable blibpath before running configure, eg
+
+blibpath=/lib:/usr/lib:/opt/freeware/lib ./configure \
+  --with-ssl-dir=/opt/freeware --with-zlib=/opt/freeware
+
+
 Cygwin
 ------
 To build on Cygwin, OpenSSH requires the following packages:
@@ -67,4 +75,4 @@ account stacks which will prevent authentication entirely, but will still
 return the output from pam_nologin to the client.
 
 
-$Id: README.platform,v 1.7 2006/06/23 11:05:13 dtucker Exp $
+$Id: README.platform,v 1.8 2007/03/13 10:00:45 dtucker Exp $

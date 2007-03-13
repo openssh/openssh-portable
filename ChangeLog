@@ -6,6 +6,7 @@
  - (dtucker) [cipher-3des1.c cipher-bf1.c] The OpenSSL 0.9.8e problem in
    bug #1291 also affects Protocol 1 3des.  While at it, use compat-openssl.h
    in cipher-bf1.c.  Patch from Juan Gallego.
+ - (dtucker) [README.platform] Info about blibpath on AIX.
 
 20070306
  - (djm) OpenBSD CVS Sync
@@ -2825,4 +2826,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4639 2007/03/13 07:50:04 dtucker Exp $
+$Id: ChangeLog,v 1.4640 2007/03/13 10:00:45 dtucker Exp $
