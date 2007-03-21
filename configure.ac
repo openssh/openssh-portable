@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.372 2007/03/05 00:51:27 djm Exp $
+# $Id: configure.ac,v 1.373 2007/03/21 10:39:57 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.372 $)
+AC_REVISION($Revision: 1.373 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1241,6 +1241,7 @@ AC_CHECK_FUNCS( \
 	getnameinfo \
 	getopt \
 	getpeereid \
+	getpeerucred \
 	_getpty \
 	getrlimit \
 	getttyent \
@@ -1489,7 +1490,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
 
 # Check for missing getpeereid (or equiv) support
 NO_PEERCHECK=""
-if test "x$ac_cv_func_getpeereid" != "xyes" ; then
+if test "x$ac_cv_func_getpeereid" != "xyes" -a "x$ac_cv_func_getpeerucred" != "xyes"; then
 	AC_MSG_CHECKING([whether system supports SO_PEERCRED getsockopt])
 	AC_TRY_COMPILE(
 		[#include <sys/types.h>
@@ -4030,12 +4031,12 @@ if test ! -z "$RAND_HELPER_CMDHASH" ; then
 fi
 
 if test ! -z "$NO_PEERCHECK" ; then
-	echo "WARNING: the operating system that you are using does not "
-	echo "appear to support either the getpeereid() API nor the "
-	echo "SO_PEERCRED getsockopt() option. These facilities are used to "
-	echo "enforce security checks to prevent unauthorised connections to "
-	echo "ssh-agent. Their absence increases the risk that a malicious "
-	echo "user can connect to your agent. "
+	echo "WARNING: the operating system that you are using does not"
+	echo "appear to support getpeereid(), getpeerucred() or the"
+	echo "SO_PEERCRED getsockopt() option. These facilities are used to"
+	echo "enforce security checks to prevent unauthorised connections to"
+	echo "ssh-agent. Their absence increases the risk that a malicious"
+	echo "user can connect to your agent."
 	echo ""
 fi
 
