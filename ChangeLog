@@ -6,6 +6,12 @@
      loaded, which makes ChallengeResponse default to yes again.  This
      was broken by the Match changes and not fixed properly subsequently.
      Found by okan at demirmen.com, ok djm@ "please do it" deraadt@
+   - djm@cvs.openbsd.org 2007/03/19 01:01:29
+     [sshd_config]
+     Disable the legacy SSH protocol 1 for new installations via
+     a configuration override. In the future, we will change the
+     server's default itself so users who need the legacy protocol
+     will need to turn it on explicitly
 
 20070313
  - (dtucker) [entropy.c scard-opensc.c ssh-rand-helper.c] Bug #1294: include
@@ -2835,4 +2841,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4641 2007/03/21 09:38:53 dtucker Exp $
+$Id: ChangeLog,v 1.4642 2007/03/21 09:42:24 dtucker Exp $
