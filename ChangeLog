@@ -12,6 +12,13 @@
      a configuration override. In the future, we will change the
      server's default itself so users who need the legacy protocol
      will need to turn it on explicitly
+   - dtucker@cvs.openbsd.org 2007/03/19 12:16:42
+     [ssh-agent.c]
+     Remove the signal handler that checks if the agent's parent process
+     has gone away, instead check when the select loop returns.  Record when
+     the next key will expire when scanning for expired keys.  Set the select
+     timeout to whichever of these two things happens next.  With djm@, with &
+     ok deraadt@ markus@
 
 20070313
  - (dtucker) [entropy.c scard-opensc.c ssh-rand-helper.c] Bug #1294: include
@@ -2841,4 +2848,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4642 2007/03/21 09:42:24 dtucker Exp $
+$Id: ChangeLog,v 1.4643 2007/03/21 09:45:06 dtucker Exp $
