@@ -1,3 +1,12 @@
+20070321
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2007/03/09 05:20:06
+     [servconf.c sshd.c]
+     Move C/R -> kbdint special case to after the defaults have been
+     loaded, which makes ChallengeResponse default to yes again.  This
+     was broken by the Match changes and not fixed properly subsequently.
+     Found by okan at demirmen.com, ok djm@ "please do it" deraadt@
+
 20070313
  - (dtucker) [entropy.c scard-opensc.c ssh-rand-helper.c] Bug #1294: include
    string.h to prevent warnings, from vapier at gentoo.org.
@@ -2826,4 +2835,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4640 2007/03/13 10:00:45 dtucker Exp $
+$Id: ChangeLog,v 1.4641 2007/03/21 09:38:53 dtucker Exp $
