@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.373 2007/03/21 10:39:57 dtucker Exp $
+# $Id: configure.ac,v 1.374 2007/03/25 08:26:01 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.373 $)
+AC_REVISION($Revision: 1.374 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1109,8 +1109,7 @@ AC_ARG_WITH(tcp-wrappers,
 					CPPFLAGS="-I${withval} ${CPPFLAGS}"
 				fi
 			fi
-			LIBWRAP="-lwrap"
-			LIBS="$LIBWRAP $LIBS"
+			LIBS="-lwrap $LIBS"
 			AC_MSG_CHECKING(for libwrap)
 			AC_TRY_LINK(
 				[
@@ -1126,7 +1125,7 @@ AC_ARG_WITH(tcp-wrappers,
 					AC_DEFINE(LIBWRAP, 1,
 						[Define if you want
 						TCP Wrappers support])
-					AC_SUBST(LIBWRAP)
+					SSHDLIBS="$SSHDLIBS -lwrap"
 					TCPW_MSG="yes"
 				],
 				[
@@ -2028,7 +2027,7 @@ AC_ARG_WITH(pam,
 
 			PAM_MSG="yes"
 
-			LIBPAM="-lpam"
+			SSHDLIBS="$SSHDLIBS -lpam"
 			AC_DEFINE(USE_PAM, 1,
 				[Define if you want to enable PAM support])
 
@@ -2038,11 +2037,10 @@ AC_ARG_WITH(pam,
 					# libdl already in LIBS
 					;;
 				*)
-					LIBPAM="$LIBPAM -ldl"
+					SSHDLIBS="$SSHDLIBS -ldl"
 					;;
 				esac
 			fi
-			AC_SUBST(LIBPAM)
 		fi
 	]
 )
@@ -3157,19 +3155,18 @@ LIBSELINUX=""
 AC_ARG_WITH(selinux,
 	[  --with-selinux   Enable SELinux support],
 	[ if test "x$withval" != "xno" ; then
+		save_LIBS="$LIBS"
 		AC_DEFINE(WITH_SELINUX,1,[Define if you want SELinux support.])
 		SELINUX_MSG="yes"
 		AC_CHECK_HEADER([selinux/selinux.h], ,
 		    AC_MSG_ERROR(SELinux support requires selinux.h header))
 		AC_CHECK_LIB(selinux, setexeccon, [ LIBSELINUX="-lselinux" ],
 		    AC_MSG_ERROR(SELinux support requires libselinux library))
-		save_LIBS="$LIBS"
-		LIBS="$LIBS $LIBSELINUX"
+		SSHDLIBS="$SSHDLIBS $LIBSELINUX"
 		AC_CHECK_FUNCS(getseuserbyname get_default_context_with_level)
 		LIBS="$save_LIBS"
 	fi ]
 )
-AC_SUBST(LIBSELINUX)
 
 # Check whether user wants Kerberos 5 support
 KRB5_MSG="no"
@@ -4005,7 +4002,10 @@ echo "          Compiler: ${CC}"
 echo "    Compiler flags: ${CFLAGS}"
 echo "Preprocessor flags: ${CPPFLAGS}"
 echo "      Linker flags: ${LDFLAGS}"
-echo "         Libraries: ${LIBWRAP} ${LIBPAM} ${LIBS}"
+echo "         Libraries: ${LIBS}"
+if test ! -z "${SSHDLIBS}"; then
+echo "         +for sshd: ${SSHDLIBS}"
+fi
 
 echo ""
 
