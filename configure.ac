@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.374 2007/03/25 08:26:01 dtucker Exp $
+# $Id: configure.ac,v 1.375 2007/03/26 16:35:28 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.374 $)
+AC_REVISION($Revision: 1.375 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1977,7 +1977,12 @@ fi
 # Search for SHA256 support in libc and/or OpenSSL
 AC_CHECK_FUNCS(SHA256_Update EVP_sha256)
 
-AC_CHECK_LIB(iaf, ia_openinfo)
+saved_LIBS="$LIBS"
+AC_CHECK_LIB(iaf, ia_openinfo, [
+	LIBS="$LIBS -liaf"
+	AC_CHECK_FUNCS(set_id, [SSHDLIBS="$SSHDLIBS -liaf"])
+])
+LIBS="$saved_LIBS"
 
 ### Configure cryptographic random number support
 
