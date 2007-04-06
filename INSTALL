@@ -42,10 +42,10 @@ http://www.jmknoble.net/software/x11-ssh-askpass/
 
 PRNGD:
 
-If your system lacks Kernel based random collection, the use of Lutz
+If your system lacks kernel-based random collection, the use of Lutz
 Jaenicke's PRNGd is recommended.
 
-http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/prngd.html
+http://prngd.sourceforge.net/
 
 EGD:
 
@@ -254,4 +254,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.78 2007/04/06 02:21:48 dtucker Exp $
+$Id: INSTALL,v 1.79 2007/04/06 02:25:09 dtucker Exp $

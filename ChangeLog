@@ -1,6 +1,7 @@
 20070406
  - (dtucker) [INSTALL] Update the systems that have PAM as standard.  Link
    to OpenPAM too.
+ - (dtucker) [INSTALL] prngd lives at sourceforge these days.
 
 20070326
  - (tim) [auth.c configure.ac defines.h session.c openbsd-compat/port-uw.c
@@ -2877,4 +2878,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4650 2007/04/06 02:21:47 dtucker Exp $
+$Id: ChangeLog,v 1.4651 2007/04/06 02:25:08 dtucker Exp $
