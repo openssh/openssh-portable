@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.372.2.1 2007/03/27 09:07:48 dtucker Exp $
+# $Id: configure.ac,v 1.372.2.2 2007/04/29 03:58:47 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.372.2.1 $)
+AC_REVISION($Revision: 1.372.2.2 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3154,6 +3154,25 @@ int main()
 			    [Define if HEADER.ad exists in arpa/nameser.h])],,
 			[#include <arpa/nameser.h>])
 	])
+
+AC_MSG_CHECKING(if struct __res_state _res is an extern)
+AC_LINK_IFELSE([
+#include <stdio.h>
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+extern struct __res_state _res;
+int main() { return 0; }
+		],
+		[AC_MSG_RESULT(yes)
+		 AC_DEFINE(HAVE__RES_EXTERN, 1,
+		    [Define if you have struct __res_state _res as an extern])
+		],
+		[ AC_MSG_RESULT(no) ]
+)
 
 # Check whether user wants SELinux support
 SELINUX_MSG="no"

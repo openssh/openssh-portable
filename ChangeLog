@@ -1,3 +1,8 @@
+20070429
+ - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Bug #1299: Use the
+   platform's _res if it has one.  Should fix problem of DNSSEC record lookups
+   on NetBSD as reported by Curt Sampson.
+
 20070326
  - (tim) [auth.c configure.ac defines.h session.c openbsd-compat/port-uw.c
    openbsd-compat/port-uw.h openbsd-compat/xcrypt.c] Rework libiaf test/defines
@@ -2837,4 +2842,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.5 2007/03/27 09:07:48 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.6 2007/04/29 03:58:47 dtucker Exp $
