@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.139 2007/03/26 16:35:28 tim Exp $ */
+/* $Id: defines.h,v 1.140 2007/04/29 04:39:03 dtucker Exp $ */
 
 
 /* Constants */
@@ -68,7 +68,7 @@ enum
 # endif
 #endif
 
-#ifndef MAXSYMLINKS
+#if defined(HAVE_DECL_MAXSYMLINKS) && HAVE_DECL_MAXSYMLINKS == 0
 # define MAXSYMLINKS 5
 #endif
 
