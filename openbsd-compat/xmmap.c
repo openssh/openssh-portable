@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.12 2006/08/24 09:58:36 dtucker Exp $ */
+/* $Id: xmmap.c,v 1.13 2007/04/29 04:02:43 dtucker Exp $ */
 
 #include "includes.h"
 
@@ -38,6 +38,7 @@
 #endif
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 

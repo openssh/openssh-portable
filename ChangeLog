@@ -5,6 +5,7 @@
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Bug #1299: Use the
    platform's _res if it has one.  Should fix problem of DNSSEC record lookups
    on NetBSD as reported by Curt Sampson.
+ - (dtucker) [openbsd-compat/xmmap.c] Include stdlib.h for mkstemp prototype.
 
 20070406
  - (dtucker) [INSTALL] Update the systems that have PAM as standard.  Link
@@ -2886,4 +2887,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4654 2007/04/29 03:58:06 dtucker Exp $
+$Id: ChangeLog,v 1.4655 2007/04/29 04:02:43 dtucker Exp $
