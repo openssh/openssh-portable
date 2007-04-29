@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.378 2007/04/29 04:49:21 dtucker Exp $
+# $Id: configure.ac,v 1.379 2007/04/29 05:06:44 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.378 $)
+AC_REVISION($Revision: 1.379 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1373,6 +1373,10 @@ AC_CHECK_DECLS(writev, , , [
 
 AC_CHECK_DECLS(MAXSYMLINKS, , , [
 #include <sys/param.h>
+	])
+
+AC_CHECK_DECLS(offsetof, , , [
+#include <stddef.h>
 	])
 
 AC_CHECK_FUNCS(setresuid, [

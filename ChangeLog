@@ -11,6 +11,8 @@
  - (dtucker) [openbsd-compat/xmmap.c] Include stdlib.h for mkstemp prototype.
  - (dtucker) [configure.ac defines.h] Prevent warnings about __attribute__
    __nonnull__ for versions of GCC that don't support it.
+ - (dtucker) [configure.ac defines.h] Have configure check for offsetof
+   to prevent redefinition warnings.
 
   20070406
    - (dtucker) [INSTALL] Update the systems that have PAM as standard.  Link
@@ -2895,4 +2897,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4657 2007/04/29 04:49:21 dtucker Exp $
+$Id: ChangeLog,v 1.4658 2007/04/29 05:06:44 dtucker Exp $
