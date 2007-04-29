@@ -1,3 +1,7 @@
+20070429
+ - (dtucker) [openbsd-compat/bsd-misc.c] Include unistd.h and sys/types.h
+   for select(2) prototype.
+
 20070406
  - (dtucker) [INSTALL] Update the systems that have PAM as standard.  Link
    to OpenPAM too.
@@ -2878,4 +2882,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4651 2007/04/06 02:25:08 dtucker Exp $
+$Id: ChangeLog,v 1.4652 2007/04/29 02:06:55 dtucker Exp $

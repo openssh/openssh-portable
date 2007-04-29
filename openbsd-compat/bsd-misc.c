@@ -17,6 +17,7 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
@@ -27,6 +28,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 
