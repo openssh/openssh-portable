@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.377 2007/04/29 04:39:03 dtucker Exp $
+# $Id: configure.ac,v 1.378 2007/04/29 04:49:21 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.377 $)
+AC_REVISION($Revision: 1.378 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -94,9 +94,12 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wuninitialized"
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
 	case $GCC_VER in
-		1.*) ;;
-		2.8* | 2.9*) CFLAGS="$CFLAGS -Wsign-compare" ;;
-		2.*) ;;
+		1.*) no_attrib_nonnull=1 ;;
+		2.8* | 2.9*)
+		     CFLAGS="$CFLAGS -Wsign-compare"
+		     no_attrib_nonnull=1
+		     ;;
+		2.*) no_attrib_nonnull=1 ;;
 		3.*) CFLAGS="$CFLAGS -Wsign-compare" ;;
 		4.*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign" ;;
 		*) ;;
@@ -113,6 +116,10 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		    [#include <limits.h>]
 		)
 	fi
+fi
+
+if test "x$no_attrib_nonnull" != "x1" ; then
+	AC_DEFINE(HAVE_ATTRIBUTE__NONNULL__, 1, [Have attribute nonnull])
 fi
 
 AC_ARG_WITH(rpath,

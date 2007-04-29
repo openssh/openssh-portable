@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.140 2007/04/29 04:39:03 dtucker Exp $ */
+/* $Id: defines.h,v 1.141 2007/04/29 04:49:21 dtucker Exp $ */
 
 
 /* Constants */
@@ -447,6 +447,10 @@ struct winsize {
 
 #if !defined(HAVE_ATTRIBUTE__BOUNDED__) && !defined(__bounded__)
 # define __bounded__(x, y, z)
+#endif
+
+#if !defined(HAVE_ATTRIBUTE__NONNULL__) && !defined(__nonnull__)
+# define __nonnull__(x)
 #endif
 
 /* *-*-nto-qnx doesn't define this macro in the system headers */
