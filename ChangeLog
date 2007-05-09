@@ -1,3 +1,6 @@
+20070509
+ - (tim) [configure.ac] Bug #1287: Add missing test for ucred.h.
+
 20070429
  - (dtucker) [openbsd-compat/bsd-misc.c] Include unistd.h and sys/types.h
    for select(2) prototype.
@@ -2894,4 +2897,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4659 2007/04/29 07:14:48 dtucker Exp $
+$Id: ChangeLog,v 1.4660 2007/05/09 22:57:43 tim Exp $
