@@ -12,6 +12,9 @@
    - dtucker@cvs.openbsd.org 2007/04/23 10:15:39
      [servconf.c]
      Remove debug() left over from development.  ok deraadt@
+   - djm@cvs.openbsd.org 2007/05/17 07:50:31
+     [log.c]
+     save and restore errno when logging; ok deraadt@
 
 20070509
  - (tim) [configure.ac] Bug #1287: Add missing test for ucred.h.
@@ -2912,4 +2915,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4663 2007/05/20 05:03:15 dtucker Exp $
+$Id: ChangeLog,v 1.4664 2007/05/20 05:08:15 dtucker Exp $
