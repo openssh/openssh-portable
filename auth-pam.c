@@ -984,7 +984,8 @@ sshpam_tty_conv(int n, sshpam_const struct pam_message **msg,
 			break;
 		case PAM_PROMPT_ECHO_ON:
 			fprintf(stderr, "%s\n", PAM_MSG_MEMBER(msg, i, msg));
-			fgets(input, sizeof input, stdin);
+			if (fgets(input, sizeof input, stdin) == NULL)
+				input[0] = '\0';
 			if ((reply[i].resp = strdup(input)) == NULL)
 				goto fail;
 			reply[i].resp_retcode = PAM_SUCCESS;
