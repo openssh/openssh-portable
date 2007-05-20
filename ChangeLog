@@ -22,6 +22,12 @@
      input/output buffers past the maximum supported by the buffer API and
      promptly fatal()
      based on patch from Thue Janus Kristensen; feedback & ok dtucker@
+   - djm@cvs.openbsd.org 2007/05/17 20:48:13
+     [sshconnect2.c]
+     fall back to gethostname() when the outgoing connection is not
+     on a socket, such as is the case when ProxyCommand is used.
+     Gives hostbased auth an opportunity to work; bz#616, report
+     and feedback stuart AT kaloram.com; ok markus@
 
 20070509
  - (tim) [configure.ac] Bug #1287: Add missing test for ucred.h.
@@ -2922,4 +2928,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4665 2007/05/20 05:09:04 dtucker Exp $
+$Id: ChangeLog,v 1.4666 2007/05/20 05:09:42 dtucker Exp $

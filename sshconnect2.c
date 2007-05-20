@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.162 2006/08/30 00:06:51 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.163 2007/05/17 20:48:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1307,7 +1307,7 @@ userauth_hostbased(Authctxt *authctxt)
 	Sensitive *sensitive = authctxt->sensitive;
 	Buffer b;
 	u_char *signature, *blob;
-	char *chost, *pkalg, *p;
+	char *chost, *pkalg, *p, myname[NI_MAXHOST];
 	const char *service;
 	u_int blen, slen;
 	int ok, i, len, found = 0;
@@ -1331,7 +1331,16 @@ userauth_hostbased(Authctxt *authctxt)
 		return 0;
 	}
 	/* figure out a name for the client host */
-	p = get_local_name(packet_get_connection_in());
+	p = NULL;
+	if (packet_connection_is_on_socket())
+		p = get_local_name(packet_get_connection_in());
+	if (p == NULL) {
+		if (gethostname(myname, sizeof(myname)) == -1) {
+			verbose("userauth_hostbased: gethostname: %s", 
+			    strerror(errno));
+		} else
+			p = xstrdup(myname);
+	}
 	if (p == NULL) {
 		error("userauth_hostbased: cannot get local ipaddr/name");
 		key_free(private);
