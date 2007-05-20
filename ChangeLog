@@ -1,3 +1,11 @@
+20070520
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2007/04/23 10:15:39
+     [servconf.c]
+     Remove debug() left over from development.  ok deraadt@
+     (This fixes a null pointer deref on startup with Match+debug on some
+     platforms).
+
 20070429
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Bug #1299: Use the
    platform's _res if it has one.  Should fix problem of DNSSEC record lookups
@@ -2842,4 +2850,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.6 2007/04/29 03:58:47 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.7 2007/05/20 05:06:11 dtucker Exp $
