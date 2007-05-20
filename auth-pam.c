@@ -686,8 +686,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 		return (NULL);
 	}
 
-	ctxt = xmalloc(sizeof *ctxt);
-	memset(ctxt, 0, sizeof(*ctxt));
+	ctxt = xcalloc(1, sizeof *ctxt);
 
 	/* Start the authentication thread */
 	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, socks) == -1) {
@@ -1130,9 +1129,8 @@ sshpam_passwd_conv(int n, sshpam_const struct pam_message **msg,
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
 
-	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+	if ((reply = calloc(n, sizeof(*reply))) == NULL)
 		return (PAM_CONV_ERR);
-	memset(reply, 0, n * sizeof(*reply));
 
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {

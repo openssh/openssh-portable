@@ -36,6 +36,8 @@
    - jolan@cvs.openbsd.org 2007/05/17 23:53:41
      [sshconnect2.c]
      djm owes me a vb and a tism cd for breaking ssh compilation
+ - (dtucker) [auth-pam.c] malloc+memset -> calloc.  Patch from
+   ldv at altlinux.org.
 
 20070509
  - (tim) [configure.ac] Bug #1287: Add missing test for ucred.h.
@@ -2936,4 +2938,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4668 2007/05/20 05:11:33 dtucker Exp $
+$Id: ChangeLog,v 1.4669 2007/05/20 05:20:08 dtucker Exp $
