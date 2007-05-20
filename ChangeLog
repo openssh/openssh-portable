@@ -1,3 +1,9 @@
+20070520
+ - (dtucker) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2007/04/14 22:01:58
+     [auth2.c]
+     remove unused macro; from Dmitry V. Levin <ldv@altlinux.org>
+
 20070509
  - (tim) [configure.ac] Bug #1287: Add missing test for ucred.h.
 
@@ -2897,4 +2903,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4660 2007/05/09 22:57:43 tim Exp $
+$Id: ChangeLog,v 1.4661 2007/05/20 04:58:41 dtucker Exp $
