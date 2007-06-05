@@ -15,6 +15,9 @@
    - djm@cvs.openbsd.org 2007/05/31 23:34:29
      [packet.c]
      gc unreachable code; spotted by Tavis Ormandy
+   - djm@cvs.openbsd.org 2007/06/02 09:04:58
+     [bufbn.c]
+     memory leak on error path; from arnaud.lacombe.1 AT ulaval.ca
 
 20070520
  - (dtucker) OpenBSD CVS Sync
@@ -2958,4 +2961,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4674 2007/06/05 08:28:20 dtucker Exp $
+$Id: ChangeLog,v 1.4675 2007/06/05 08:29:35 dtucker Exp $
