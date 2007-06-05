@@ -1,6 +1,6 @@
 #!/usr/bin/awk
 #
-# $Id: mdoc2man.awk,v 1.6 2007/06/05 09:16:59 dtucker Exp $
+# $Id: mdoc2man.awk,v 1.7 2007/06/05 09:30:48 dtucker Exp $
 #
 # Version history:
 #  v4+ Adapted for OpenSSH Portable (see cvs Id and history)
@@ -138,7 +138,7 @@ function add(str) {
 	nospace=0
     }
     if(match(words[w],"^Dd$")) {
-      if(match(words[w+1],"^\\$Mdocdate:$")) {
+      if(match(words[w+1],"^\\$Mdocdate:")) {
         w++;
         if(match(words[w+4],"^\\$$")) {
           words[w+4] = ""

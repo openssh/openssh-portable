@@ -26,6 +26,8 @@
      committing at his request)
  - (dtucker) [mdoc2man.awk] Teach it to deal with $Mdocdate tags that
    OpenBSD's cvs now adds.
+ - (dtucker) [mdoc2man.awk] Remove trailing "$" from Mdocdate regex so
+   mindrot's cvs doesn't expand it on us.
 
 20070520
  - (dtucker) OpenBSD CVS Sync
@@ -2969,4 +2971,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4677 2007/06/05 09:16:59 dtucker Exp $
+$Id: ChangeLog,v 1.4678 2007/06/05 09:30:47 dtucker Exp $
