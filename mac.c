@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.12 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: mac.c,v 1.13 2007/06/05 06:52:37 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -57,7 +57,7 @@ struct {
 };
 
 int
-mac_init(Mac *mac, char *name)
+mac_setup(Mac *mac, char *name)
 {
 	int i, evp_len;
 
@@ -71,32 +71,42 @@ mac_init(Mac *mac, char *name)
 				if (macs[i].truncatebits != 0)
 					mac->mac_len = macs[i].truncatebits/8;
 			}
-			debug2("mac_init: found %s", name);
+			debug2("mac_setup: found %s", name);
 			return (0);
 		}
 	}
-	debug2("mac_init: unknown %s", name);
+	debug2("mac_setup: unknown %s", name);
 	return (-1);
+}
+
+void
+mac_init(Mac *mac)
+{
+	if (mac->key == NULL)
+		fatal("mac_init: no key");
+	HMAC_Init(&mac->ctx, mac->key, mac->key_len, mac->md);
 }
 
 u_char *
 mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 {
-	HMAC_CTX c;
 	static u_char m[EVP_MAX_MD_SIZE];
 	u_char b[4];
 
-	if (mac->key == NULL)
-		fatal("mac_compute: no key");
 	if (mac->mac_len > sizeof(m))
 		fatal("mac_compute: mac too long");
-	HMAC_Init(&c, mac->key, mac->key_len, mac->md);
 	put_u32(b, seqno);
-	HMAC_Update(&c, b, sizeof(b));
-	HMAC_Update(&c, data, datalen);
-	HMAC_Final(&c, m, NULL);
-	HMAC_cleanup(&c);
+	HMAC_Init(&mac->ctx, NULL, 0, NULL);	/* reset HMAC context */
+	HMAC_Update(&mac->ctx, b, sizeof(b));
+	HMAC_Update(&mac->ctx, data, datalen);
+	HMAC_Final(&mac->ctx, m, NULL);
 	return (m);
+}
+
+void
+mac_clear(Mac *mac)
+{
+	HMAC_cleanup(&mac->ctx);
 }
 
 /* XXX copied from ciphers_valid */
@@ -111,7 +121,7 @@ mac_valid(const char *names)
 	maclist = cp = xstrdup(names);
 	for ((p = strsep(&cp, MAC_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, MAC_SEP))) {
-		if (mac_init(NULL, p) < 0) {
+		if (mac_setup(NULL, p) < 0) {
 			debug("bad mac %s [%s]", p, names);
 			xfree(maclist);
 			return (0);

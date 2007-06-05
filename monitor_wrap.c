@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.55 2007/02/19 10:45:58 dtucker Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.56 2007/06/05 06:52:37 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -476,7 +476,7 @@ mm_newkeys_from_blob(u_char *blob, int blen)
 
 	/* Mac structure */
 	mac->name = buffer_get_string(&b, NULL);
-	if (mac->name == NULL || mac_init(mac, mac->name) == -1)
+	if (mac->name == NULL || mac_setup(mac, mac->name) == -1)
 		fatal("%s: can not init mac %s", __func__, mac->name);
 	mac->enabled = buffer_get_int(&b);
 	mac->key = buffer_get_string(&b, &len);

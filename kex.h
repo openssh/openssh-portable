@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.44 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: kex.h,v 1.45 2007/06/05 06:52:37 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -28,6 +28,7 @@
 
 #include <signal.h>
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 
 #define	KEX_DH1			"diffie-hellman-group1-sha1"
 #define	KEX_DH14		"diffie-hellman-group14-sha1"
@@ -90,6 +91,7 @@ struct Mac {
 	u_int	mac_len;
 	u_char	*key;
 	u_int	key_len;
+	HMAC_CTX	ctx;
 };
 struct Comp {
 	int	type;

@@ -18,6 +18,12 @@
    - djm@cvs.openbsd.org 2007/06/02 09:04:58
      [bufbn.c]
      memory leak on error path; from arnaud.lacombe.1 AT ulaval.ca
+   - djm@cvs.openbsd.org 2007/06/05 06:52:37
+     [kex.c monitor_wrap.c packet.c mac.h kex.h mac.c]
+     Preserve MAC ctx between packets, saving 2xhash calls per-packet.
+     Yields around a 12-16% end-to-end speedup for arcfour256/hmac-md5
+     patch from markus@ tested dtucker@ and myself, ok markus@ and me (I'm
+     committing at his request)
 
 20070520
  - (dtucker) OpenBSD CVS Sync
@@ -2961,4 +2967,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4675 2007/06/05 08:29:35 dtucker Exp $
+$Id: ChangeLog,v 1.4676 2007/06/05 08:30:18 dtucker Exp $

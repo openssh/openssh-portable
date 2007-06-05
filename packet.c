@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.146 2007/05/31 23:34:29 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.147 2007/06/05 06:52:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -629,7 +629,8 @@ set_newkeys(int mode)
 		enc  = &newkeys[mode]->enc;
 		mac  = &newkeys[mode]->mac;
 		comp = &newkeys[mode]->comp;
-		memset(mac->key, 0, mac->key_len);
+		if (mac->md != NULL)
+			mac_clear(mac);
 		xfree(enc->name);
 		xfree(enc->iv);
 		xfree(enc->key);
@@ -644,14 +645,17 @@ set_newkeys(int mode)
 	enc  = &newkeys[mode]->enc;
 	mac  = &newkeys[mode]->mac;
 	comp = &newkeys[mode]->comp;
-	if (mac->md != NULL)
+	if (mac->md != NULL) {
+		mac_init(mac);
 		mac->enabled = 1;
+	}
 	DBG(debug("cipher_init_context: %d", mode));
 	cipher_init(cc, enc->cipher, enc->key, enc->key_len,
 	    enc->iv, enc->block_size, crypt_type);
 	/* Deleting the keys does not gain extra security */
 	/* memset(enc->iv,  0, enc->block_size);
-	   memset(enc->key, 0, enc->key_len); */
+	   memset(enc->key, 0, enc->key_len);
+	   memset(mac->key, 0, mac->key_len); */
 	if ((comp->type == COMP_ZLIB ||
 	    (comp->type == COMP_DELAYED && after_authentication)) &&
 	    comp->enabled == 0) {
