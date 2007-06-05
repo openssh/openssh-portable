@@ -1,6 +1,9 @@
 #!/usr/bin/awk
 #
+# $Id: mdoc2man.awk,v 1.6 2007/06/05 09:16:59 dtucker Exp $
+#
 # Version history:
+#  v4+ Adapted for OpenSSH Portable (see cvs Id and history)
 #  v3, I put the program under a proper license
 #      Dan Nelson <dnelson@allantgroup.com> added .An, .Aq and fixed a typo
 #  v2, fixed to work on GNU awk --posix and MacOS X
@@ -135,6 +138,12 @@ function add(str) {
 	nospace=0
     }
     if(match(words[w],"^Dd$")) {
+      if(match(words[w+1],"^\\$Mdocdate:$")) {
+        w++;
+        if(match(words[w+4],"^\\$$")) {
+          words[w+4] = ""
+        }
+      }
       date=wtail()
       next
     } else if(match(words[w],"^Dt$")) {
