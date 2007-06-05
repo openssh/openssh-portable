@@ -1,3 +1,10 @@
+20070605
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2007/05/22 10:18:52
+     [sshd.c]
+     zap double include; from p_nowaczyk AT o2.pl
+     (not required in -portable, Id sync only)
+
 20070520
  - (dtucker) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2007/04/14 22:01:58
@@ -2940,4 +2947,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4670 2007/05/20 05:26:07 dtucker Exp $
+$Id: ChangeLog,v 1.4671 2007/06/05 08:22:32 dtucker Exp $

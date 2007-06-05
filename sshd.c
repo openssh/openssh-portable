@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.350 2007/03/09 05:20:06 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.351 2007/05/22 10:18:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
