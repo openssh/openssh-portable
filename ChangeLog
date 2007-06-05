@@ -12,6 +12,9 @@
      ssh-keygen.1 ssh-keyscan.1 ssh-add.1 sshd.8 ssh.1 ssh-keysign.8]
      convert to new .Dd format;
      (We will need to teach mdoc2man.awk to understand this too.)
+   - djm@cvs.openbsd.org 2007/05/31 23:34:29
+     [packet.c]
+     gc unreachable code; spotted by Tavis Ormandy
 
 20070520
  - (dtucker) OpenBSD CVS Sync
@@ -2955,4 +2958,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4673 2007/06/05 08:27:13 dtucker Exp $
+$Id: ChangeLog,v 1.4674 2007/06/05 08:28:20 dtucker Exp $
