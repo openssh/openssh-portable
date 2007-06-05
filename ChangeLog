@@ -7,6 +7,11 @@
    - djm@cvs.openbsd.org 2007/05/30 05:58:13
      [kex.c]
      tidy: KNF, ARGSUSED and u_int
+   - jmc@cvs.openbsd.org 2007/05/31 19:20:16
+     [scp.1 ssh_config.5 sftp-server.8 ssh-agent.1 sshd_config.5 sftp.1
+     ssh-keygen.1 ssh-keyscan.1 ssh-add.1 sshd.8 ssh.1 ssh-keysign.8]
+     convert to new .Dd format;
+     (We will need to teach mdoc2man.awk to understand this too.)
 
 20070520
  - (dtucker) OpenBSD CVS Sync
@@ -2950,4 +2955,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4672 2007/06/05 08:23:28 dtucker Exp $
+$Id: ChangeLog,v 1.4673 2007/06/05 08:27:13 dtucker Exp $
