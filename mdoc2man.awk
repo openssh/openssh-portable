@@ -1,6 +1,6 @@
 #!/usr/bin/awk
 #
-# $Id: mdoc2man.awk,v 1.7 2007/06/05 09:30:48 dtucker Exp $
+# $Id: mdoc2man.awk,v 1.8 2007/06/05 10:01:16 dtucker Exp $
 #
 # Version history:
 #  v4+ Adapted for OpenSSH Portable (see cvs Id and history)
@@ -166,6 +166,7 @@ function add(str) {
       refissue=""
       refdate=""
       refopt=""
+      refreport=""
       reference=1
       next
     } else if(match(words[w],"^Re$")) {
@@ -177,9 +178,14 @@ function add(str) {
       }
       if(nrefauthors>1)
 	add(" and ")
-      add(refauthors[0] ", \\fI" reftitle "\\fP")
+      if(nrefauthors>0)
+        add(refauthors[0] ", ")
+      add("\\fI" reftitle "\\fP")
       if(length(refissue))
 	add(", " refissue)
+      if(length(refreport)) {
+	add(", " refreport)
+      }
       if(length(refdate))
 	add(", " refdate)
       if(length(refopt))
@@ -196,6 +202,7 @@ function add(str) {
       if(match(words[w],"^%N$")) { refissue=wtail() }
       if(match(words[w],"^%D$")) { refdate=wtail() }
       if(match(words[w],"^%O$")) { refopt=wtail() }
+      if(match(words[w],"^%R$")) { refreport=wtail() }
     } else if(match(words[w],"^Nm$")) {
       if(synopsis) {
 	add(".br")
