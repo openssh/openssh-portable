@@ -11,6 +11,12 @@
      one of its underlying hash algorithms is found to be vulnerable to a
      new attack.  http://www.ietf.org/rfc/rfc4418.txt
      in conjunction with and OK djm@
+   - pvalchev@cvs.openbsd.org 2007/06/08 04:40:40
+     [ssh_config]
+     Add a "MACs" line after "Ciphers" with the default MAC algorithms,
+     to ease people who want to tweak both (eg. for performance reasons).
+     ok deraadt@ djm@ dtucker@
+
 20070605
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/05/22 10:18:52
@@ -2985,4 +2991,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4681 2007/06/11 04:01:42 djm Exp $
+$Id: ChangeLog,v 1.4682 2007/06/11 04:04:42 djm Exp $
