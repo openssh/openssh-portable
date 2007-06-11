@@ -24,6 +24,10 @@
      [sshd_config.5]
      oops, here too: put the MAC list into a display, like we do for
      ciphers, since groff has trouble with wide lines;
+   - markus@cvs.openbsd.org 2007/06/11 08:04:44
+     [channels.c]
+     send 'window adjust' messages every tree packets and do not wait
+     until 50% of the window is consumed.  ok djm dtucker
  - (djm) [configure.ac umac.c] If platform doesn't provide swap32(3), then
    fallback to provided bit-swizzing functions
  - (dtucker) [openbsd-compat/bsd-misc.c] According to the spec the "remainder"
@@ -3007,4 +3011,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4687 2007/06/11 04:44:02 dtucker Exp $
+$Id: ChangeLog,v 1.4688 2007/06/11 08:33:15 djm Exp $
