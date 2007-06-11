@@ -1446,14 +1446,13 @@ static int
 channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char buf[CHAN_RBUF];
-	int len;
+	int len, force;
 
-	if (c->rfd != -1 &&
-	    (c->detach_close || FD_ISSET(c->rfd, readset))) {
+	force = c->isatty && c->detach_close && c->istate != CHAN_INPUT_CLOSED;
+	if (c->rfd != -1 && (force || FD_ISSET(c->rfd, readset))) {
 		errno = 0;
 		len = read(c->rfd, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR ||
-		    (errno == EAGAIN && !(c->isatty && c->detach_close))))
+		if (len < 0 && (errno == EINTR || (errno == EAGAIN && !force)))
 			return 1;
 #ifndef PTY_ZEROREAD
 		if (len <= 0) {
