@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.100 2007/06/07 19:37:34 pvalchev Exp $
-.Dd $Mdocdate: June 7 2007 $
+.\" $OpenBSD: ssh_config.5,v 1.101 2007/06/08 07:43:46 jmc Exp $
+.Dd $Mdocdate: June 8 2007 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -641,7 +641,10 @@ The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
 The default is:
-.Dq hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
+.Bd -literal -offset indent
+hmac-md5,hmac-sha1,umac-64@openssh.com,
+hmac-ripemd160,hmac-sha1-96,hmac-md5-96
+.Ed
 .It Cm NoHostAuthenticationForLocalhost
 This option can be used if the home directory is shared across machines.
 In this case localhost will refer to a different machine on each of

@@ -16,6 +16,10 @@
      Add a "MACs" line after "Ciphers" with the default MAC algorithms,
      to ease people who want to tweak both (eg. for performance reasons).
      ok deraadt@ djm@ dtucker@
+   - jmc@cvs.openbsd.org 2007/06/08 07:43:46
+     [ssh_config.5]
+     put the MAC list into a display, like we do for ciphers,
+     since groff has trouble handling wide lines;
 
 20070605
  - (dtucker) OpenBSD CVS Sync
@@ -2991,4 +2995,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4682 2007/06/11 04:04:42 djm Exp $
+$Id: ChangeLog,v 1.4683 2007/06/11 04:06:32 djm Exp $
