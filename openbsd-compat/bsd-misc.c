@@ -158,7 +158,8 @@ int nanosleep(const struct timespec *req, struct timespec *rem)
 		tremain.tv_sec = 0;
 		tremain.tv_usec = 0;
 	}
-	TIMEVAL_TO_TIMESPEC(&tremain, rem)
+	if (rem != NULL)
+		TIMEVAL_TO_TIMESPEC(&tremain, rem)
 
 	return(rc);
 }
