@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.147 2007/06/05 06:52:37 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.148 2007/06/07 19:37:34 pvalchev Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -629,8 +629,7 @@ set_newkeys(int mode)
 		enc  = &newkeys[mode]->enc;
 		mac  = &newkeys[mode]->mac;
 		comp = &newkeys[mode]->comp;
-		if (mac->md != NULL)
-			mac_clear(mac);
+		mac_clear(mac);
 		xfree(enc->name);
 		xfree(enc->iv);
 		xfree(enc->key);
@@ -645,10 +644,8 @@ set_newkeys(int mode)
 	enc  = &newkeys[mode]->enc;
 	mac  = &newkeys[mode]->mac;
 	comp = &newkeys[mode]->comp;
-	if (mac->md != NULL) {
-		mac_init(mac);
+	if (mac_init(mac) == 0)
 		mac->enabled = 1;
-	}
 	DBG(debug("cipher_init_context: %d", mode));
 	cipher_init(cc, enc->cipher, enc->key, enc->key_len,
 	    enc->iv, enc->block_size, crypt_type);

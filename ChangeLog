@@ -1,7 +1,16 @@
 20070611
  - (djm) Bugzilla #1306: silence spurious error messages from hang-on-exit
    fix; tested by dtucker@ and jochen.kirn AT gmail.com
-
+   - pvalchev@cvs.openbsd.org 2007/06/07 19:37:34
+     [kex.h mac.c mac.h monitor_wrap.c myproposal.h packet.c ssh.1]
+     [ssh_config.5 sshd.8 sshd_config.5]
+     Add a new MAC algorithm for data integrity, UMAC-64 (not default yet,
+     must specify umac-64@openssh.com). Provides about 20% end-to-end speedup
+     compared to hmac-md5. Represents a different approach to message
+     authentication to that of HMAC that may be beneficial if HMAC based on
+     one of its underlying hash algorithms is found to be vulnerable to a
+     new attack.  http://www.ietf.org/rfc/rfc4418.txt
+     in conjunction with and OK djm@
 20070605
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/05/22 10:18:52
@@ -2976,4 +2985,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4680 2007/06/11 03:03:16 djm Exp $
+$Id: ChangeLog,v 1.4681 2007/06/11 04:01:42 djm Exp $

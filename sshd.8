@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.236 2007/05/31 19:20:16 jmc Exp $
-.Dd $Mdocdate: May 31 2007 $
+.\" $OpenBSD: sshd.8,v 1.237 2007/06/07 19:37:34 pvalchev Exp $
+.Dd $Mdocdate: June 7 2007 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -276,7 +276,7 @@ The client selects the encryption algorithm
 to use from those offered by the server.
 Additionally, session integrity is provided
 through a cryptographic message authentication code
-(hmac-sha1 or hmac-md5).
+(hmac-md5, hmac-sha1, umac-64 or hmac-ripemd160).
 .Pp
 Finally, the server and the client enter an authentication dialog.
 The client tries to authenticate itself using

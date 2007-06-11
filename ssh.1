@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.267 2007/05/31 19:20:16 jmc Exp $
-.Dd $Mdocdate: May 31 2007 $
+.\" $OpenBSD: ssh.1,v 1.268 2007/06/07 19:37:34 pvalchev Exp $
+.Dd $Mdocdate: June 7 2007 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -674,7 +674,7 @@ Both protocols support similar authentication methods,
 but protocol 2 is preferred since
 it provides additional mechanisms for confidentiality
 (the traffic is encrypted using AES, 3DES, Blowfish, CAST128, or Arcfour)
-and integrity (hmac-md5, hmac-sha1, hmac-ripemd160).
+and integrity (hmac-md5, hmac-sha1, umac-64, hmac-ripemd160).
 Protocol 1 lacks a strong mechanism for ensuring the
 integrity of the connection.
 .Pp

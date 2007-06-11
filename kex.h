@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.45 2007/06/05 06:52:37 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.46 2007/06/07 19:37:34 pvalchev Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -87,11 +87,13 @@ struct Enc {
 struct Mac {
 	char	*name;
 	int	enabled;
-	const EVP_MD	*md;
 	u_int	mac_len;
 	u_char	*key;
 	u_int	key_len;
-	HMAC_CTX	ctx;
+	int	type;
+	const EVP_MD	*evp_md;
+	HMAC_CTX	evp_ctx;
+	struct umac_ctx *umac_ctx;
 };
 struct Comp {
 	int	type;
