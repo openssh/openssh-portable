@@ -29,6 +29,9 @@
  - (dtucker) [openbsd-compat/bsd-misc.c] According to the spec the "remainder"
    argument to nanosleep may be NULL.  Currently this never happens in OpenSSH,
    but check anyway in case this changes or the code gets used elsewhere.
+ - (dtucker) [includes.h] Bug #1243: HAVE_PATHS -> HAVE_PATHS_H.  Should
+   prevent warnings about redefinitions of various things in paths.h.
+   Spotted by cartmanltd at hotmail.com.
 
 20070605
  - (dtucker) OpenBSD CVS Sync
@@ -3004,4 +3007,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4686 2007/06/11 04:34:53 dtucker Exp $
+$Id: ChangeLog,v 1.4687 2007/06/11 04:44:02 dtucker Exp $
