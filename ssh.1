@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.268 2007/06/07 19:37:34 pvalchev Exp $
-.Dd $Mdocdate: June 7 2007 $
+.\" $OpenBSD: ssh.1,v 1.269 2007/06/12 11:15:17 djm Exp $
+.Dd $Mdocdate: June 11 2007 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -315,6 +315,9 @@ It is possible to have multiple
 .Fl i
 options (and multiple identities specified in
 configuration files).
+.It Fl K
+Enables GSSAPI-based authentication and forwarding (delegation) of GSSAPI
+credentials to the server.
 .It Fl k
 Disables forwarding (delegation) of GSSAPI credentials to the server.
 .It Fl L Xo

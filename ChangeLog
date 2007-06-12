@@ -23,6 +23,12 @@
      fix slave exit value when a control master goes away without passing the
      full exit status by ensuring that the slave reads a full int. bz#1261
      reported by frekko AT gmail.com; ok markus@ dtucker@
+   - djm@cvs.openbsd.org 2007/06/12 11:15:17
+     [ssh.c ssh.1]
+     Add "-K" flag for ssh to set GSSAPIAuthentication=yes and
+     GSSAPIDelegateCredentials=yes. This is symmetric with -k (disable GSSAPI)
+     and is useful for hosts with /home on Kerberised NFS; bz #1312
+     patch from Markus.Kuhn AT cl.cam.ac.uk; ok dtucker@ markus@
 
 20070611
  - (djm) Bugzilla #1306: silence spurious error messages from hang-on-exit
@@ -3037,4 +3043,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4693 2007/06/12 13:41:33 dtucker Exp $
+$Id: ChangeLog,v 1.4694 2007/06/12 13:43:16 dtucker Exp $

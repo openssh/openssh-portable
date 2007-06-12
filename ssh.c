@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.296 2007/06/12 11:11:08 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.297 2007/06/12 11:15:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -185,7 +185,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-1246AaCfgkMNnqsTtVvXxY] [-b bind_address] [-c cipher_spec]\n"
+"usage: ssh [-1246AaCfgKkMNnqsTtVvXxY] [-b bind_address] [-c cipher_spec]\n"
 "           [-D [bind_address:]port] [-e escape_char] [-F configfile]\n"
 "           [-i identity_file] [-L [bind_address:]port:host:hostport]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
@@ -272,7 +272,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNO:PR:S:TVw:XY")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:KL:MNO:PR:S:TVw:XY")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -325,6 +325,10 @@ main(int ac, char **av)
 			break;
 		case 'k':
 			options.gss_deleg_creds = 0;
+			break;
+		case 'K':
+			options.gss_authentication = 1;
+			options.gss_deleg_creds = 1;
 			break;
 		case 'i':
 			if (stat(optarg, &st) < 0) {
