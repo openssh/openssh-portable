@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.157 2007/06/12 08:24:20 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.158 2007/06/12 13:54:28 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -96,6 +96,9 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H)
+#include <vis.h>
+#endif
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -582,7 +585,7 @@ source(int argc, char **argv)
 	off_t i, amt, statbytes;
 	size_t result;
 	int fd = -1, haderr, indx;
-	char *last, *name, buf[2048];
+	char *last, *name, buf[2048], encname[MAXPATHLEN];
 	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
@@ -591,13 +594,12 @@ source(int argc, char **argv)
 		len = strlen(name);
 		while (len > 1 && name[len-1] == '/')
 			name[--len] = '\0';
-		if (strchr(name, '\n') != NULL) {
-			run_err("%s: skipping, filename contains a newline",
-			    name);
-			goto next;
-		}
 		if ((fd = open(name, O_RDONLY|O_NONBLOCK, 0)) < 0)
 			goto syserr;
+		if (strchr(name, '\n') != NULL) {
+			strnvis(encname, name, sizeof(encname), VIS_NL);
+			name = encname;
+		}
 		if (fstat(fd, &stb) < 0) {
 syserr:			run_err("%s: %s", name, strerror(errno));
 			goto next;
