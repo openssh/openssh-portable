@@ -29,6 +29,10 @@
      GSSAPIDelegateCredentials=yes. This is symmetric with -k (disable GSSAPI)
      and is useful for hosts with /home on Kerberised NFS; bz #1312
      patch from Markus.Kuhn AT cl.cam.ac.uk; ok dtucker@ markus@
+   - djm@cvs.openbsd.org 2007/06/12 11:45:27
+     [ssh.c]
+     improved exit message from multiplex slave sessions; bz #1262
+     reported by alexandre.nunes AT gmail.com; ok dtucker@
 
 20070611
  - (djm) Bugzilla #1306: silence spurious error messages from hang-on-exit
@@ -3043,4 +3047,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4694 2007/06/12 13:43:16 dtucker Exp $
+$Id: ChangeLog,v 1.4695 2007/06/12 13:44:10 dtucker Exp $

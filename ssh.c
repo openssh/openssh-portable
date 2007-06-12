@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.297 2007/06/12 11:15:17 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.298 2007/06/12 11:45:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1485,7 +1485,8 @@ control_client(const char *path)
 		debug2("Received exit status from master %d", exitval);
 
 	if (tty_flag && options.log_level != SYSLOG_LEVEL_QUIET)
-		fprintf(stderr, "Connection to master closed.\r\n");
+		fprintf(stderr, "Shared connection to %s closed.\r\n",
+		    host);
 
 	exit(exitval);
 }
