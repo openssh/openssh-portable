@@ -1,7 +1,7 @@
 /* $OpenBSD: gss-genr.c,v 1.17 2006/08/29 12:02:30 dtucker Exp $ */
 
 /*
- * Copyright (c) 2001-2006 Simon Wilkinson. All rights reserved.
+ * Copyright (c) 2001-2007 Simon Wilkinson. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -107,7 +107,7 @@ ssh_gssapi_last_error(Gssctxt *ctxt, OM_uint32 *major_status,
 	/* The GSSAPI error */
 	do {
 		gss_display_status(&lmin, ctxt->major,
-		    GSS_C_GSS_CODE, GSS_C_NULL_OID, &ctx, &msg);
+		    GSS_C_GSS_CODE, ctxt->oid, &ctx, &msg);
 
 		buffer_append(&b, msg.value, msg.length);
 		buffer_put_char(&b, '\n');
@@ -118,7 +118,7 @@ ssh_gssapi_last_error(Gssctxt *ctxt, OM_uint32 *major_status,
 	/* The mechanism specific error */
 	do {
 		gss_display_status(&lmin, ctxt->minor,
-		    GSS_C_MECH_CODE, GSS_C_NULL_OID, &ctx, &msg);
+		    GSS_C_MECH_CODE, ctxt->oid, &ctx, &msg);
 
 		buffer_append(&b, msg.value, msg.length);
 		buffer_put_char(&b, '\n');
