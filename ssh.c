@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.295 2007/01/03 03:01:40 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.296 2007/06/12 11:11:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1458,24 +1458,27 @@ control_client(const char *path)
 
 	/* Stick around until the controlee closes the client_fd */
 	exitval = 0;
-	for (;!control_client_terminate;) {
-		r = read(sock, &exitval, sizeof(exitval));
+	for (i = 0; !control_client_terminate && i < (int)sizeof(exitval);) {
+		r = read(sock, (char *)&exitval + i, sizeof(exitval) - i);
 		if (r == 0) {
 			debug2("Received EOF from master");
 			break;
 		}
-		if (r > 0)
-			debug2("Received exit status from master %d", exitval);
 		if (r == -1 && errno != EINTR)
 			fatal("%s: read %s", __func__, strerror(errno));
+		i += r;
 	}
-
-	if (control_client_terminate)
-		debug2("Exiting on signal %d", control_client_terminate);
-
 	close(sock);
-
 	leave_raw_mode();
+
+	if (control_client_terminate) {
+		debug2("Exiting on signal %d", control_client_terminate);
+		exitval = 255;
+	} else if (i < (int)sizeof(exitval)) {
+		debug2("Control master terminated unexpectedly");
+		exitval = 255;
+	} else
+		debug2("Received exit status from master %d", exitval);
 
 	if (tty_flag && options.log_level != SYSLOG_LEVEL_QUIET)
 		fprintf(stderr, "Connection to master closed.\r\n");
