@@ -1,5 +1,10 @@
 20070612
  - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2007/06/12 11:11:08
+     [ssh.c]
+     fix slave exit value when a control master goes away without passing the
+     full exit status by ensuring that the slave reads a full int. bz#1261
+     reported by frekko AT gmail.com; ok markus@ dtucker@
   - dtucker@cvs.openbsd.org 2007/06/12 11:56:15
     [gss-genr.c]
     Pass GSS OID to gss_display_status to provide better information in
@@ -2868,4 +2873,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.11 2007/06/12 13:47:25 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.12 2007/06/12 13:49:11 dtucker Exp $
