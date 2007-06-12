@@ -3,6 +3,11 @@
    - markus@cvs.openbsd.org 2007/06/11 09:14:00
      [channels.h]
      increase default channel windows; ok djm
+   - djm@cvs.openbsd.org 2007/06/12 07:41:00
+     [ssh-add.1]
+     better document ssh-add's -d option (delete identies from agent), bz#1224
+     new text based on some provided by andrewmc-debian AT celt.dias.ie;
+     ok dtucker@
 
 20070611
  - (djm) Bugzilla #1306: silence spurious error messages from hang-on-exit
@@ -3017,4 +3022,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4689 2007/06/12 13:38:53 dtucker Exp $
+$Id: ChangeLog,v 1.4690 2007/06/12 13:39:52 dtucker Exp $
