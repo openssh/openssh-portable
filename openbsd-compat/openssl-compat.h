@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.7 2007/03/05 07:25:20 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.8 2007/06/14 13:21:33 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -22,6 +22,15 @@
 #if OPENSSL_VERSION_NUMBER < 0x00906000L
 # define SSH_OLD_EVP
 # define EVP_CIPHER_CTX_get_app_data(e)		((e)->app_data)
+# define USE_BUILTIN_RIJNDAEL
+#endif
+
+#ifdef USE_BUILTIN_RIJNDAEL
+# include "rijndael.h"
+# define AES_KEY rijndael_ctx
+# define AES_BLOCK_SIZE 16
+# define AES_encrypt(a, b, c)		rijndael_encrypt(c, a, b)
+# define AES_set_encrypt_key(a, b, c)	rijndael_set_key(c, (char *)a, b, 1)
 #endif
 
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L) || defined(OPENSSL_LOBOTOMISED_AES)

@@ -1,3 +1,9 @@
+20070614
+ - (dtucker) [cipher-ctr.c umac.c openbsd-compat/openssl-compat.h] Move the
+   USE_BUILTIN_RIJNDAEL compat goop to openssl-compat.h so it can be
+   shared with umac.c.  Allows building with OpenSSL 0.9.5 again including
+   umac support.  With tim@ djm@, ok djm.
+
 20070612
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2007/06/11 09:14:00
@@ -3061,4 +3067,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4699 2007/06/12 14:02:07 dtucker Exp $
+$Id: ChangeLog,v 1.4700 2007/06/14 13:21:32 dtucker Exp $
