@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.9 2007/06/14 13:38:39 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.10 2007/06/14 13:47:31 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -22,7 +22,6 @@
 #if OPENSSL_VERSION_NUMBER < 0x00906000L
 # define SSH_OLD_EVP
 # define EVP_CIPHER_CTX_get_app_data(e)		((e)->app_data)
-# define USE_BUILTIN_RIJNDAEL
 #endif
 
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L) || defined(OPENSSL_LOBOTOMISED_AES)

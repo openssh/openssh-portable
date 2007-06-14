@@ -5,6 +5,9 @@
    umac support.  With tim@ djm@, ok djm.
  - (dtucker) [openbsd-compat/openssl-compat.h] Merge USE_BUILTIN_RIJNDAEL
    sections.  Fixes builds with early OpenSSL 0.9.6 versions.
+ - (dtucker) [openbsd-compat/openssl-compat.h] Remove redundant definition
+   of USE_BUILTIN_RIJNDAEL since the <0.9.6 test is covered by the
+   subsequent <0.9.7 test.
 
 20070612
  - (dtucker) OpenBSD CVS Sync
@@ -3069,4 +3072,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4701 2007/06/14 13:38:39 dtucker Exp $
+$Id: ChangeLog,v 1.4702 2007/06/14 13:47:31 dtucker Exp $
