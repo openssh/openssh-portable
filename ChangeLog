@@ -3,6 +3,9 @@
      [scp.c]
      don't ftruncate() non-regular files; bz#1236 reported by wood AT
      xmission.com; ok dtucker@
+   - djm@cvs.openbsd.org 2007/06/14 21:43:25
+     [ssh.c]
+     handle EINTR when waiting for mux exit status properly
 
 20070612
  - (dtucker) OpenBSD CVS Sync
@@ -2879,4 +2882,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.13 2007/06/25 08:33:56 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.14 2007/06/25 08:43:03 dtucker Exp $
