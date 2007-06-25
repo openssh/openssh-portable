@@ -25,6 +25,10 @@
      Include <poll.h> like the man page says rather than <sys/poll.h>.  ok djm@
  - (dtucker) [atomicio.c] Test for EWOULDBLOCK in atomiciov to match
    atomicio.
+ - (dtucker) [atomicio.c configure.ac openbsd-compat/Makefile.in
+   openbsd-compat/bsd-poll.{c,h} openbsd-compat/openbsd-compat.h]
+   Add an implementation of poll() built on top of select(2).  Code from
+   OpenNTPD with changes suggested by djm.  ok djm@
 
 20070614
  - (dtucker) [cipher-ctr.c umac.c openbsd-compat/openssl-compat.h] Move the
@@ -3100,4 +3104,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4709 2007/06/25 12:08:10 dtucker Exp $
+$Id: ChangeLog,v 1.4710 2007/06/25 12:15:12 dtucker Exp $

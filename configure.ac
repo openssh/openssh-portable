@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.381 2007/06/11 04:15:43 djm Exp $
+# $Id: configure.ac,v 1.382 2007/06/25 12:15:12 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.381 $)
+AC_REVISION($Revision: 1.382 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -205,6 +205,7 @@ AC_CHECK_HEADERS( \
 	netgroup.h \
 	pam/pam_appl.h \
 	paths.h \
+	poll.h \
 	pty.h \
 	readpassphrase.h \
 	rpc/types.h \
@@ -1267,6 +1268,7 @@ AC_CHECK_FUNCS( \
 	ogetaddrinfo \
 	openlog_r \
 	openpty \
+	poll \
 	prctl \
 	pstat \
 	readpassphrase \

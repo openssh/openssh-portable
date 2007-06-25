@@ -32,7 +32,9 @@
 #include <sys/uio.h>
 
 #include <errno.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <string.h>
 #include <unistd.h>
 
