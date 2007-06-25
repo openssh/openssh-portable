@@ -101,7 +101,11 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 		res = (f) (fd, iov, iovcnt);
 		switch (res) {
 		case -1:
+#ifdef EWOULDBLOCK
+			if (errno == EINTR || errno == EWOULDBLOCK)
+#else
 			if (errno == EINTR)
+#endif
 				continue;
 			if (errno == EAGAIN) {
 				(void)poll(&pfd, 1, -1);
