@@ -1307,7 +1307,7 @@ static void
 control_client(const char *path)
 {
 	struct sockaddr_un addr;
-	int i, r, fd, sock, exitval, num_env, addr_len;
+	int i, r, fd, sock, exitval[2], num_env, addr_len;
 	Buffer m;
 	char *term;
 	extern char **environ;
@@ -1456,10 +1456,16 @@ control_client(const char *path)
 	if (tty_flag)
 		enter_raw_mode();
 
-	/* Stick around until the controlee closes the client_fd */
-	exitval = 0;
+	/*
+	 * Stick around until the controlee closes the client_fd.
+	 * Before it does, it is expected to write this process' exit
+	 * value (one int). This process must read the value and wait for
+	 * the closure of the client_fd; if this one closes early, the 
+	 * multiplex master will terminate early too (possibly losing data).
+	 */
+	exitval[0] = 0;
 	for (i = 0; !control_client_terminate && i < (int)sizeof(exitval);) {
-		r = read(sock, (char *)&exitval + i, sizeof(exitval) - i);
+		r = read(sock, (char *)exitval + i, sizeof(exitval) - i);
 		if (r == 0) {
 			debug2("Received EOF from master");
 			break;
@@ -1471,20 +1477,23 @@ control_client(const char *path)
 		}
 		i += r;
 	}
+
 	close(sock);
 	leave_raw_mode();
-
+	if (i > (int)sizeof(int))
+		fatal("%s: master returned too much data (%d > %lu)",
+		    __func__, i, sizeof(int));
 	if (control_client_terminate) {
 		debug2("Exiting on signal %d", control_client_terminate);
-		exitval = 255;
-	} else if (i < (int)sizeof(exitval)) {
+		exitval[0] = 255;
+	} else if (i < (int)sizeof(int)) {
 		debug2("Control master terminated unexpectedly");
-		exitval = 255;
+		exitval[0] = 255;
 	} else
-		debug2("Received exit status from master %d", exitval);
+		debug2("Received exit status from master %d", exitval[0]);
 
 	if (tty_flag && options.log_level != SYSLOG_LEVEL_QUIET)
-		fprintf(stderr, "Connection to master closed.\r\n");
+		fprintf(stderr, "Shared connection to %s closed.\r\n", host);
 
-	exit(exitval);
+	exit(exitval[0]);
 }
