@@ -1464,8 +1464,11 @@ control_client(const char *path)
 			debug2("Received EOF from master");
 			break;
 		}
-		if (r == -1 && errno != EINTR)
+		if (r == -1) {
+			if (errno == EINTR)
+				continue;
 			fatal("%s: read %s", __func__, strerror(errno));
+		}
 		i += r;
 	}
 	close(sock);
