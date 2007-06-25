@@ -20,6 +20,9 @@
      [channels.c]
      Correct test for window updates every three packets; prevents sending
      window updates for every single packet.  ok markus@
+   - dtucker@cvs.openbsd.org 2007/06/25 12:02:27
+     [atomicio.c]
+     Include <poll.h> like the man page says rather than <sys/poll.h>.  ok djm@
  - (dtucker) [atomicio.c] Test for EWOULDBLOCK in atomiciov to match
    atomicio.
 
@@ -3097,4 +3100,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4708 2007/06/25 09:06:53 dtucker Exp $
+$Id: ChangeLog,v 1.4709 2007/06/25 12:08:10 dtucker Exp $
