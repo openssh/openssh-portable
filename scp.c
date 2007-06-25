@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.158 2007/06/12 13:54:28 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.159 2007/06/13 00:21:27 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1024,7 +1024,8 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			wrerr = YES;
 			wrerrno = errno;
 		}
-		if (wrerr == NO && ftruncate(ofd, size) != 0) {
+		if (wrerr == NO && (!exists || S_ISREG(stb.st_mode)) &&
+		    ftruncate(ofd, size) != 0) {
 			run_err("%s: truncate: %s", np, strerror(errno));
 			wrerr = DISPLAYED;
 		}
