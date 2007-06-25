@@ -12,6 +12,10 @@
      when waiting for the multiplex exit status, read until the master end
      writes an entire int of data *and* closes the client_fd; fixes mux
      regression spotted by dtucker, ok dtucker@
+   - djm@cvs.openbsd.org 2007/06/19 02:04:43
+     [atomicio.c]
+     if the fd passed to atomicio/atomiciov() is non blocking, then poll() to
+     avoid a spin if it is not yet ready for reading/writing; ok dtucker@
 
 20070614
  - (dtucker) [cipher-ctr.c umac.c openbsd-compat/openssl-compat.h] Move the
@@ -3087,4 +3091,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4705 2007/06/25 08:59:17 dtucker Exp $
+$Id: ChangeLog,v 1.4706 2007/06/25 09:04:12 dtucker Exp $

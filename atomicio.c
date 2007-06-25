@@ -1,4 +1,4 @@
-/* $OpenBSD: atomicio.c,v 1.23 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: atomicio.c,v 1.24 2007/06/19 02:04:43 djm Exp $ */
 /*
  * Copyright (c) 2006 Damien Miller. All rights reserved.
  * Copyright (c) 2005 Anil Madhavapeddy. All rights reserved.
@@ -30,9 +30,11 @@
 
 #include <sys/param.h>
 #include <sys/uio.h>
+#include <sys/poll.h>
 
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "atomicio.h"
 
@@ -45,17 +47,24 @@ atomicio(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n)
 	char *s = _s;
 	size_t pos = 0;
 	ssize_t res;
+	struct pollfd pfd;
 
+	pfd.fd = fd;
+	pfd.events = f == read ? POLLIN : POLLOUT;
 	while (n > pos) {
 		res = (f) (fd, s + pos, n - pos);
 		switch (res) {
 		case -1:
 #ifdef EWOULDBLOCK
-			if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+			if (errno == EINTR || errno == EWOULDBLOCK)
 #else
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EINTR)
 #endif
 				continue;
+			if (errno == EAGAIN) {
+				(void)poll(&pfd, 1, -1);
+				continue;
+			}
 			return 0;
 		case 0:
 			errno = EPIPE;
@@ -77,6 +86,7 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 	size_t pos = 0, rem;
 	ssize_t res;
 	struct iovec iov_array[IOV_MAX], *iov = iov_array;
+	struct pollfd pfd;
 
 	if (iovcnt > IOV_MAX) {
 		errno = EINVAL;
@@ -85,12 +95,18 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 	/* Make a copy of the iov array because we may modify it below */
 	memcpy(iov, _iov, iovcnt * sizeof(*_iov));
 
+	pfd.fd = fd;
+	pfd.events = f == readv ? POLLIN : POLLOUT;
 	for (; iovcnt > 0 && iov[0].iov_len > 0;) {
 		res = (f) (fd, iov, iovcnt);
 		switch (res) {
 		case -1:
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EINTR)
 				continue;
+			if (errno == EAGAIN) {
+				(void)poll(&pfd, 1, -1);
+				continue;
+			}
 			return 0;
 		case 0:
 			errno = EPIPE;
