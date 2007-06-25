@@ -7,6 +7,11 @@
    - djm@cvs.openbsd.org 2007/06/14 21:43:25
      [ssh.c]
      handle EINTR when waiting for mux exit status properly
+   - djm@cvs.openbsd.org 2007/06/14 22:48:05
+     [ssh.c]
+     when waiting for the multiplex exit status, read until the master end
+     writes an entire int of data *and* closes the client_fd; fixes mux
+     regression spotted by dtucker, ok dtucker@
 
 20070614
  - (dtucker) [cipher-ctr.c umac.c openbsd-compat/openssl-compat.h] Move the
@@ -3082,4 +3087,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4704 2007/06/25 08:34:43 dtucker Exp $
+$Id: ChangeLog,v 1.4705 2007/06/25 08:59:17 dtucker Exp $
