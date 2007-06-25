@@ -4,6 +4,9 @@
      [scp.c]
      don't ftruncate() non-regular files; bz#1236 reported by wood AT
      xmission.com; ok dtucker@
+   - djm@cvs.openbsd.org 2007/06/14 21:43:25
+     [ssh.c]
+     handle EINTR when waiting for mux exit status properly
 
 20070614
  - (dtucker) [cipher-ctr.c umac.c openbsd-compat/openssl-compat.h] Move the
@@ -3079,4 +3082,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4703 2007/06/25 08:32:33 dtucker Exp $
+$Id: ChangeLog,v 1.4704 2007/06/25 08:34:43 dtucker Exp $

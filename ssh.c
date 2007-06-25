@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.298 2007/06/12 11:45:27 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.299 2007/06/14 21:43:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1468,8 +1468,11 @@ control_client(const char *path)
 			debug2("Received EOF from master");
 			break;
 		}
-		if (r == -1 && errno != EINTR)
+		if (r == -1) {
+			if (errno == EINTR)
+				continue;
 			fatal("%s: read %s", __func__, strerror(errno));
+		}
 		i += r;
 	}
 	close(sock);
