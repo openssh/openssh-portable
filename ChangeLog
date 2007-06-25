@@ -1,3 +1,9 @@
+20070625
+   - djm@cvs.openbsd.org 2007/06/13 00:21:27
+     [scp.c]
+     don't ftruncate() non-regular files; bz#1236 reported by wood AT
+     xmission.com; ok dtucker@
+
 20070612
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/06/12 11:11:08
@@ -2873,4 +2879,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.12 2007/06/12 13:49:11 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.13 2007/06/25 08:33:56 dtucker Exp $
