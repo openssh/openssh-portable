@@ -1,4 +1,10 @@
+20070628
+ - (djm) bz#1325: Fix SELinux in permissive mode where it would
+   incorrectly fatal() on errors. patch from cjwatson AT debian.org;
+   ok dtucker
+
 20070625
+ - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/06/13 00:21:27
      [scp.c]
      don't ftruncate() non-regular files; bz#1236 reported by wood AT
@@ -2887,4 +2893,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4635.2.15 2007/06/25 08:59:31 dtucker Exp $
+$Id: ChangeLog,v 1.4635.2.16 2007/06/28 00:07:43 dtucker Exp $
