@@ -19,7 +19,7 @@
 <service_bundle type='manifest' name='OpenSSH server'>
 
     <service
-        name='site/openssh'
+        name='site/__SYSVINIT_NAME__'
         type='service'
         version='1'>
 
