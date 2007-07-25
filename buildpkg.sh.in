@@ -218,19 +218,19 @@ fi
 
 [ "${PERMIT_ROOT_LOGIN}" = no ]  &&  \
 	perl -p -i -e "s/#PermitRootLogin yes/PermitRootLogin no/" \
-		$FAKE_ROOT/${sysconfdir}/sshd_config
+		$FAKE_ROOT${sysconfdir}/sshd_config
 [ "${X11_FORWARDING}" = yes ]  &&  \
 	perl -p -i -e "s/#X11Forwarding no/X11Forwarding yes/" \
-		$FAKE_ROOT/${sysconfdir}/sshd_config
+		$FAKE_ROOT${sysconfdir}/sshd_config
 # fix PrintMotd
 perl -p -i -e "s/#PrintMotd yes/PrintMotd no/" \
-	$FAKE_ROOT/${sysconfdir}/sshd_config
+	$FAKE_ROOT${sysconfdir}/sshd_config
 
 # We don't want to overwrite config files on multiple installs
-mv $FAKE_ROOT/${sysconfdir}/ssh_config $FAKE_ROOT/${sysconfdir}/ssh_config.default
-mv $FAKE_ROOT/${sysconfdir}/sshd_config $FAKE_ROOT/${sysconfdir}/sshd_config.default
-[ -f $FAKE_ROOT/${sysconfdir}/ssh_prng_cmds ]  &&  \
-mv $FAKE_ROOT/${sysconfdir}/ssh_prng_cmds $FAKE_ROOT/${sysconfdir}/ssh_prng_cmds.default
+mv $FAKE_ROOT${sysconfdir}/ssh_config $FAKE_ROOT${sysconfdir}/ssh_config.default
+mv $FAKE_ROOT${sysconfdir}/sshd_config $FAKE_ROOT${sysconfdir}/sshd_config.default
+[ -f $FAKE_ROOT${sysconfdir}/ssh_prng_cmds ]  &&  \
+mv $FAKE_ROOT${sysconfdir}/ssh_prng_cmds $FAKE_ROOT${sysconfdir}/ssh_prng_cmds.default
 
 # local tweeks here
 [ -s "${POST_MAKE_INSTALL_FIXES}" ]  &&  . ${POST_MAKE_INSTALL_FIXES}
