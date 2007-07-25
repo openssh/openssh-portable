@@ -1,5 +1,7 @@
 20070724
  - (tim) [openssh.xml.in] make FMRI match what package scripts use.
+ - (tim) [openbsd-compat/regress/closefromtest.c] Bug 1345: fix open() call.
+   Report/patch by David.Leonard AT quest.com
 
 20070628
  - (djm) bz#1325: Fix SELinux in permissive mode where it would
@@ -3112,4 +3114,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4712 2007/07/24 20:13:42 tim Exp $
+$Id: ChangeLog,v 1.4713 2007/07/25 03:54:09 tim Exp $
