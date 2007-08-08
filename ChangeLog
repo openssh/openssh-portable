@@ -4,6 +4,12 @@
      [key.c]
      Delint: remove some unreachable statements, from Bret Lambert.
      OK markus@ and dtucker@.
+   - sobrado@cvs.openbsd.org 2007/08/06 19:16:06
+     [scp.1 scp.c]
+     the ellipsis is not an optional argument; while here, sync the usage
+     and synopsis of commands
+     lots of good ideas by jmc@
+     ok jmc@
 
 20070724
  - (tim) [openssh.xml.in] make FMRI match what package scripts use.
@@ -3123,4 +3129,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4716 2007/08/08 04:28:26 djm Exp $
+$Id: ChangeLog,v 1.4717 2007/08/08 04:29:58 djm Exp $
