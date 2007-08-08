@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.179 2007/03/20 03:56:12 tedu Exp $ */
+/* $OpenBSD: clientloop.c,v 1.180 2007/08/07 07:32:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1771,6 +1771,50 @@ client_request_agent(const char *request_type, int rchan)
 	    "authentication agent connection", 1);
 	c->force_drain = 1;
 	return c;
+}
+
+int
+client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
+{
+	Channel *c;
+	int fd;
+
+	if (tun_mode == SSH_TUNMODE_NO)
+		return 0;
+
+	if (!compat20) {
+		error("Tunnel forwarding is not support for protocol 1");
+		return -1;
+	}
+
+	debug("Requesting tun unit %d in mode %d", local_tun, tun_mode);
+
+	/* Open local tunnel device */
+	if ((fd = tun_open(local_tun, tun_mode)) == -1) {
+		error("Tunnel device open failed.");
+		return -1;
+	}
+
+	c = channel_new("tun", SSH_CHANNEL_OPENING, fd, fd, -1,
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	c->datagram = 1;
+
+#if defined(SSH_TUN_FILTER)
+	if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
+		channel_register_filter(c->self, sys_tun_infilter,
+		    sys_tun_outfilter);
+#endif
+
+	packet_start(SSH2_MSG_CHANNEL_OPEN);
+	packet_put_cstring("tun@openssh.com");
+	packet_put_int(c->self);
+	packet_put_int(c->local_window_max);
+	packet_put_int(c->local_maxpacket);
+	packet_put_int(tun_mode);
+	packet_put_int(remote_tun);
+	packet_send();
+
+	return 0;
 }
 
 /* XXXX move to generic input handler */

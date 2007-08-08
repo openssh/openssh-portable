@@ -10,6 +10,12 @@
      and synopsis of commands
      lots of good ideas by jmc@
      ok jmc@
+   - djm@cvs.openbsd.org 2007/08/07 07:32:53
+     [clientloop.c clientloop.h ssh.c]
+     bz#1232: ensure that any specified LocalCommand is executed after the
+     tunnel device is opened. Also, make failures to open a tunnel device
+     fatal when ExitOnForwardFailure is active.
+     Reported by h.goebel AT goebel-consult.de; ok dtucker markus reyk deraadt
 
 20070724
  - (tim) [openssh.xml.in] make FMRI match what package scripts use.
@@ -3129,4 +3135,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4717 2007/08/08 04:29:58 djm Exp $
+$Id: ChangeLog,v 1.4718 2007/08/08 04:32:41 djm Exp $

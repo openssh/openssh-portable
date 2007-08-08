@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.300 2007/06/14 22:48:05 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.301 2007/08/07 07:32:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -857,6 +857,17 @@ ssh_init_forwarding(void)
 				    "forwarding.");
 		}
 	}
+
+	/* Initiate tunnel forwarding. */
+	if (options.tun_open != SSH_TUNMODE_NO) {
+		if (client_request_tun_fwd(options.tun_open,
+		    options.tun_local, options.tun_remote) == -1) {
+			if (options.exit_on_forward_failure)
+				fatal("Could not request tunnel forwarding.");
+			else
+				error("Could not request tunnel forwarding.");
+		}
+	}			
 }
 
 static void
@@ -1119,33 +1130,6 @@ ssh_session2_setup(int id, void *arg)
 		packet_send();
 	}
 
-	if (options.tun_open != SSH_TUNMODE_NO) {
-		Channel *c;
-		int fd;
-
-		debug("Requesting tun.");
-		if ((fd = tun_open(options.tun_local,
-		    options.tun_open)) >= 0) {
-			c = channel_new("tun", SSH_CHANNEL_OPENING, fd, fd, -1,
-			    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-			    0, "tun", 1);
-			c->datagram = 1;
-#if defined(SSH_TUN_FILTER)
-			if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
-				channel_register_filter(c->self, sys_tun_infilter,
-				    sys_tun_outfilter);
-#endif
-			packet_start(SSH2_MSG_CHANNEL_OPEN);
-			packet_put_cstring("tun@openssh.com");
-			packet_put_int(c->self);
-			packet_put_int(c->local_window_max);
-			packet_put_int(c->local_maxpacket);
-			packet_put_int(options.tun_open);
-			packet_put_int(options.tun_remote);
-			packet_send();
-		}
-	}
-
 	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
 	    NULL, fileno(stdin), &command, environ, &ssh_subsystem_reply);
 
@@ -1205,7 +1189,6 @@ ssh_session2(void)
 
 	/* XXX should be pre-session */
 	ssh_init_forwarding();
-	ssh_control_listener();
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
@@ -1214,6 +1197,9 @@ ssh_session2(void)
 	if (options.local_command != NULL &&
 	    options.permit_local_command)
 		ssh_local_cmd(options.local_command);
+
+	/* Start listening for multiplex clients */
+	ssh_control_listener();
 
 	/* If requested, let ssh continue in the background. */
 	if (fork_after_authentication_flag)
