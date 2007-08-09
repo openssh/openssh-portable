@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.142 2007/04/29 05:06:45 dtucker Exp $ */
+/* $Id: defines.h,v 1.143 2007/08/09 04:37:52 dtucker Exp $ */
 
 
 /* Constants */
@@ -320,12 +320,6 @@ struct winsize {
 
 #ifndef _PATH_BSHELL
 # define _PATH_BSHELL "/bin/sh"
-#endif
-#ifndef _PATH_CSHELL
-# define _PATH_CSHELL "/bin/csh"
-#endif
-#ifndef _PATH_SHELLS
-# define _PATH_SHELLS "/etc/shells"
 #endif
 
 #ifdef USER_PATH

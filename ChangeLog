@@ -2,6 +2,8 @@
  - (dtucker) [openbsd-compat/port-aix.c] Comment typo.
  - (dtucker) [README.platform] Document the interaction between PermitRootLogin
    and the AIX native login restrictions.
+ - (dtucker) [defines.h] Remove _PATH_{CSHELL,SHELLS} which aren't
+   used anywhere and are a potential source of warnings.
 
 20070808
  - (djm) OpenBSD CVS Sync
@@ -3140,4 +3142,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4720 2007/08/09 04:31:53 dtucker Exp $
+$Id: ChangeLog,v 1.4721 2007/08/09 04:37:52 dtucker Exp $
