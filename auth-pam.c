@@ -161,9 +161,9 @@ sshpam_sigchld_handler(int sig)
 	    WTERMSIG(sshpam_thread_status) == SIGTERM)
 		return;	/* terminated by pthread_cancel */
 	if (!WIFEXITED(sshpam_thread_status))
-		fatal("PAM: authentication thread exited unexpectedly");
+		sigdie("PAM: authentication thread exited unexpectedly");
 	if (WEXITSTATUS(sshpam_thread_status) != 0)
-		fatal("PAM: authentication thread exited uncleanly");
+		sigdie("PAM: authentication thread exited uncleanly");
 }
 
 /* ARGSUSED */
