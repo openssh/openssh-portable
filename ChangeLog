@@ -1,5 +1,7 @@
 20070810
  - (dtucker) [auth-pam.c] Use sigdie here too.  ok djm@
+ - (dtucker) [configure.ac] Bug #1343: Set DISABLE_FD_PASSING for QNX6. From 
+   Matt Kraai, ok djm@ 
 
 20070809
  - (dtucker) [openbsd-compat/port-aix.c] Comment typo.
@@ -3145,4 +3147,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4723 2007/08/10 04:32:34 dtucker Exp $
+$Id: ChangeLog,v 1.4724 2007/08/10 04:36:12 dtucker Exp $
