@@ -1310,7 +1310,7 @@ do_setusercontext(struct passwd *pw)
 # ifdef USE_PAM
 		if (options.use_pam) {
 			do_pam_session();
-			do_pam_setcred(0);
+			do_pam_setcred(use_privsep);
 		}
 # endif /* USE_PAM */
 		if (setusercontext(lc, pw, pw->pw_uid,
@@ -1352,7 +1352,7 @@ do_setusercontext(struct passwd *pw)
 		 */
 		if (options.use_pam) {
 			do_pam_session();
-			do_pam_setcred(0);
+			do_pam_setcred(use_privsep);
 		}
 # endif /* USE_PAM */
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
