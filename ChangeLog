@@ -1,3 +1,7 @@
+20070816
+ - (dtucker) [session.c] Call PAM cleanup functions for unauthenticated
+   connections too.  Based on a patch from Sandro Wefel, with & ok djm@
+
 20070815
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2007/08/15 08:14:46
@@ -3169,4 +3173,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4730 2007/08/15 12:20:22 dtucker Exp $
+$Id: ChangeLog,v 1.4731 2007/08/16 13:28:04 dtucker Exp $
