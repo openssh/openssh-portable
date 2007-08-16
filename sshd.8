@@ -35,7 +35,7 @@
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
 .\" $OpenBSD: sshd.8,v 1.237 2007/06/07 19:37:34 pvalchev Exp $
-.Dd $Mdocdate: June 7 2007 $
+.Dd $Mdocdate: June 11 2007 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -302,8 +302,9 @@ on Tru64,
 a leading
 .Ql \&*LOCKED\&*
 on FreeBSD and a leading
-.Ql \&!!
-on Linux).  If there is a requirement to disable password authentication
+.Ql \&!
+on most Linuxes).
+If there is a requirement to disable password authentication
 for the account while allowing still public-key, then the passwd field
 should be set to something other than these values (eg
 .Ql NP

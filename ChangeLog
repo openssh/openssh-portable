@@ -1,3 +1,8 @@
+20070817
+ - (dtucker) [sshd.8] Many Linux variants use a single "!" to denote locked
+   accounts and that's what the code looks for, so make man page and code
+   agree.  Pointed out by Roumen Petrov.
+
 20070816
  - (dtucker) [session.c] Call PAM cleanup functions for unauthenticated
    connections too.  Based on a patch from Sandro Wefel, with & ok djm@
@@ -3173,4 +3178,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4731 2007/08/16 13:28:04 dtucker Exp $
+$Id: ChangeLog,v 1.4732 2007/08/16 23:42:32 dtucker Exp $
