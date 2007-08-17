@@ -75,7 +75,7 @@ Autoconf:
 If you modify configure.ac or configure doesn't exist (eg if you checked
 the code out of CVS yourself) then you will need autoconf-2.61 to rebuild
 the automatically generated files by running "autoreconf".  Earlier
-version may also work but this is not guaranteed.
+versions may also work but this is not guaranteed.
 
 http://www.gnu.org/software/autoconf/
 
@@ -254,4 +254,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.79 2007/04/06 02:25:09 dtucker Exp $
+$Id: INSTALL,v 1.80 2007/08/17 11:40:22 dtucker Exp $
