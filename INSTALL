@@ -184,7 +184,7 @@ $DISPLAY environment variable. Some broken systems need this.
 --with-default-path=PATH allows you to specify a default $PATH for sessions
 started by sshd. This replaces the standard path entirely.
 
---with-pid-dir=PATH specifies the directory in which the ssh.pid file is
+--with-pid-dir=PATH specifies the directory in which the sshd.pid file is
 created.
 
 --with-xauth=PATH specifies the location of the xauth binary
@@ -255,4 +255,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.81 2007/08/17 12:03:10 dtucker Exp $
+$Id: INSTALL,v 1.82 2007/08/17 12:10:11 dtucker Exp $
