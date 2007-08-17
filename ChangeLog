@@ -6,6 +6,7 @@
    implementations together which is hopefully more coherent.
  - (dtucker) [INSTALL] the pid file is sshd.pid not ssh.pid.
  - (dtucker) [INSTALL] Give PAM its own heading.
+ - (dtucker) [INSTALL] Link to tcpwrappers.
 
 20070816
  - (dtucker) [session.c] Call PAM cleanup functions for unauthenticated
@@ -3182,4 +3183,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4735 2007/08/17 12:12:14 dtucker Exp $
+$Id: ChangeLog,v 1.4736 2007/08/17 12:52:05 dtucker Exp $

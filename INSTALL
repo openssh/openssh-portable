@@ -57,6 +57,15 @@ passphrase requester. This is maintained separately at:
 
 http://www.jmknoble.net/software/x11-ssh-askpass/
 
+TCP Wrappers:
+
+If you wish to use the TCP wrappers functionality you will need at least
+tcpd.h and libwrap.a, either in the standard include and library paths,
+or in the directory specified by --with-tcp-wrappers.  Version 7.6 is
+known to work.
+
+http://ftp.porcupine.org/pub/security/index.html
+
 S/Key Libraries:
 
 If you wish to use --with-skey then you will need the library below
@@ -168,7 +177,7 @@ Integration Architecture.  The default for OSF1 machines is enable.
 need the S/Key libraries and header files installed for this to work.
 
 --with-tcp-wrappers will enable TCP Wrappers (/etc/hosts.allow|deny)
-support. You will need libwrap.a and tcpd.h installed.
+support.
 
 --with-md5-passwords will enable the use of MD5 passwords. Enable this
 if your operating system uses MD5 passwords and the system crypt() does
@@ -257,4 +266,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.83 2007/08/17 12:12:14 dtucker Exp $
+$Id: INSTALL,v 1.84 2007/08/17 12:52:05 dtucker Exp $
