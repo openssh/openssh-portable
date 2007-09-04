@@ -17,7 +17,8 @@
    - markus@cvs.openbsd.org 2007/08/15 08:14:46
      [clientloop.c]
      do NOT fall back to the trused x11 cookie if generation of an untrusted
-     cookie fails; from security-alert at sun.com; ok dtucker
+     cookie fails; from Jan Pechanec, via security-alert at sun.com;
+     ok dtucker
      Originally found and fixed by Jan Pechanec.
    - markus@cvs.openbsd.org 2007/08/15 08:16:49
      [version.h]
@@ -3184,4 +3185,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4737 2007/09/04 04:05:24 dtucker Exp $
+$Id: ChangeLog,v 1.4738 2007/09/04 04:26:32 djm Exp $
