@@ -1,3 +1,7 @@
+20070910
+ - (dtucker) [openbsd-compat/regress/closefromtest.c] Bug #1358: Always
+   return 0 on successful test.  From David.Leonard at quest com.
+
 20070817
  - (dtucker) [sshd.8] Many Linux variants use a single "!" to denote locked
    accounts and that's what the code looks for, so make man page and code
@@ -3184,4 +3188,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4739 2007/09/04 06:49:39 djm Exp $
+$Id: ChangeLog,v 1.4740 2007/09/10 03:20:14 dtucker Exp $
