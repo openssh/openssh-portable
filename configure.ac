@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.383 2007/08/10 04:36:12 dtucker Exp $
+# $Id: configure.ac,v 1.383.2.1 2007/09/10 23:25:17 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.383 $)
+AC_REVISION($Revision: 1.383.2.1 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2004,7 +2004,10 @@ AC_CHECK_FUNCS(SHA256_Update EVP_sha256)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(iaf, ia_openinfo, [
 	LIBS="$LIBS -liaf"
-	AC_CHECK_FUNCS(set_id, [SSHDLIBS="$SSHDLIBS -liaf"])
+	AC_CHECK_FUNCS(set_id, [SSHDLIBS="$SSHDLIBS -liaf"
+				AC_DEFINE(HAVE_LIBIAF, 1,
+        		[Define if system has libiaf that supports set_id])
+				])
 ])
 LIBS="$saved_LIBS"
 
