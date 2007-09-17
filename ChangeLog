@@ -37,6 +37,10 @@
      [ssh-add.c ssh-agent.1 ssh-agent.c ssh-keygen.c]
      sort synopsis and options in ssh-agent(1); usage is lowercase
      ok jmc@
+   - stevesk@cvs.openbsd.org 2007/09/11 04:36:29
+     [sshpty.c]
+     sort #include
+     NB. RCS ID sync only
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3234,4 +3238,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4750 2007/09/17 06:05:50 djm Exp $
+$Id: ChangeLog,v 1.4751 2007/09/17 06:07:32 djm Exp $
