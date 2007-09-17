@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.143 2007/08/09 04:37:52 dtucker Exp $ */
+/* $Id: defines.h,v 1.144 2007/09/17 15:32:33 tim Exp $ */
 
 
 /* Constants */
@@ -694,9 +694,11 @@ struct winsize {
 # define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
+#if defined(HAVE_LIBIAF) && defined(HAVE_SET_ID)
+# define CUSTOM_SYS_AUTH_PASSWD 1
+#endif
 #if defined(HAVE_LIBIAF) && defined(HAVE_SET_ID) && !defined(BROKEN_LIBIAF)
 # define USE_LIBIAF
-# define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
 /* HP-UX 11.11 */

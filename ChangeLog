@@ -59,6 +59,8 @@
      [sftp-client.c]
      use off_t instead of u_int64_t for file offsets, matching what the
      progressmeter code expects; bz #842
+ - (tim) [defines.h] Fix regression in long password support on OpenServer 6.
+   Problem report and additional testing rac AT tenzing.org.
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3256,4 +3258,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4756 2007/09/17 06:12:03 djm Exp $
+$Id: ChangeLog,v 1.4757 2007/09/17 15:32:32 tim Exp $
