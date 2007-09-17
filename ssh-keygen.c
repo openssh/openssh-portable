@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.161 2007/09/09 11:38:01 sobrado Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.162 2007/09/11 15:47:17 gilles Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -141,8 +141,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 	fprintf(stderr, "%s (%s): ", prompt, identity_file);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
 		exit(1);
-	if (strchr(buf, '\n'))
-		*strchr(buf, '\n') = 0;
+	buf[strcspn(buf, "\n")] = '\0';
 	if (strcmp(buf, "") != 0)
 		strlcpy(identity_file, buf, sizeof(identity_file));
 	have_identity = 1;
@@ -962,8 +961,7 @@ do_change_comment(struct passwd *pw)
 			key_free(private);
 			exit(1);
 		}
-		if (strchr(new_comment, '\n'))
-			*strchr(new_comment, '\n') = 0;
+		new_comment[strcspn(new_comment, "\n")] = '\0';
 	}
 
 	/* Save the file using the new passphrase. */
