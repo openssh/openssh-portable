@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.77 2007/06/08 07:48:09 jmc Exp $
-.Dd $Mdocdate: June 8 2007 $
+.\" $OpenBSD: sshd_config.5,v 1.78 2007/08/23 03:22:16 djm Exp $
+.Dd $Mdocdate: June 11 2007 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -159,10 +159,11 @@ directory.
 The default is
 .Dq .ssh/authorized_keys .
 .It Cm Banner
-In some jurisdictions, sending a warning message before authentication
-may be relevant for getting legal protection.
 The contents of the specified file are sent to the remote user before
 authentication is allowed.
+If the argument is
+.Dq none
+then no banner is displayed.
 This option is only available for protocol version 2.
 By default, no banner is displayed.
 .It Cm ChallengeResponseAuthentication

@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.75 2007/03/19 01:01:29 djm Exp $
+#	$OpenBSD: sshd_config,v 1.76 2007/08/23 03:22:16 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -104,7 +104,7 @@ Protocol 2
 #PermitTunnel no
 
 # no default banner path
-#Banner /some/path
+#Banner none
 
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server
