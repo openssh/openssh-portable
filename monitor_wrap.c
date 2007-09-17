@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.57 2007/06/07 19:37:34 pvalchev Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.58 2007/09/04 03:21:03 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -688,8 +688,9 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 	buffer_append(&loginmsg, msg, strlen(msg));
 	xfree(msg);
 
-	*ptyfd = mm_receive_fd(pmonitor->m_recvfd);
-	*ttyfd = mm_receive_fd(pmonitor->m_recvfd);
+	if ((*ptyfd = mm_receive_fd(pmonitor->m_recvfd)) == -1 ||
+	    (*ttyfd = mm_receive_fd(pmonitor->m_recvfd)) == -1)
+		fatal("%s: receive fds failed", __func__);
 
 	/* Success */
 	return (1);

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.91 2007/05/17 20:52:13 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.92 2007/09/04 03:21:03 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1314,8 +1314,9 @@ mm_answer_pty(int sock, Buffer *m)
 
 	mm_request_send(sock, MONITOR_ANS_PTY, m);
 
-	mm_send_fd(sock, s->ptyfd);
-	mm_send_fd(sock, s->ttyfd);
+	if (mm_send_fd(sock, s->ptyfd) == -1 ||
+	    mm_send_fd(sock, s->ttyfd) == -1)
+		fatal("%s: send fds failed", __func__);
 
 	/* make sure nothing uses fd 0 */
 	if ((fd0 = open(_PATH_DEVNULL, O_RDONLY)) < 0)

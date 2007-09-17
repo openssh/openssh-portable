@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.181 2007/08/15 08:14:46 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.182 2007/09/04 03:21:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -722,7 +722,7 @@ client_process_control(fd_set *readset)
 	struct sockaddr_storage addr;
 	struct confirm_ctx *cctx;
 	char *cmd;
-	u_int i, len, env_len, command, flags;
+	u_int i, j, len, env_len, command, flags;
 	uid_t euid;
 	gid_t egid;
 
@@ -870,9 +870,22 @@ client_process_control(fd_set *readset)
 	xfree(cmd);
 
 	/* Gather fds from client */
-	new_fd[0] = mm_receive_fd(client_fd);
-	new_fd[1] = mm_receive_fd(client_fd);
-	new_fd[2] = mm_receive_fd(client_fd);
+	for(i = 0; i < 3; i++) {
+		if ((new_fd[i] = mm_receive_fd(client_fd)) == -1) {
+			error("%s: failed to receive fd %d from slave",
+			    __func__, i);
+			for (j = 0; j < i; j++)
+				close(new_fd[j]);
+			for (j = 0; j < env_len; j++)
+				xfree(cctx->env[j]);
+			if (env_len > 0)
+				xfree(cctx->env);
+			xfree(cctx->term);
+			buffer_free(&cctx->cmd);
+			xfree(cctx);
+			return;
+		}
+	}
 
 	debug2("%s: got fds stdin %d, stdout %d, stderr %d", __func__,
 	    new_fd[0], new_fd[1], new_fd[2]);

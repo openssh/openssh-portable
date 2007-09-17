@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.301 2007/08/07 07:32:53 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.302 2007/09/04 03:21:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1426,9 +1426,10 @@ control_client(const char *path)
 	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
 		fatal("%s: msg_send", __func__);
 
-	mm_send_fd(sock, STDIN_FILENO);
-	mm_send_fd(sock, STDOUT_FILENO);
-	mm_send_fd(sock, STDERR_FILENO);
+	if (mm_send_fd(sock, STDIN_FILENO) == -1 ||
+	    mm_send_fd(sock, STDOUT_FILENO) == -1 ||
+	    mm_send_fd(sock, STDERR_FILENO) == -1)
+		fatal("%s: send fds failed", __func__);
 
 	/* Wait for reply, so master has a chance to gather ttymodes */
 	buffer_clear(&m);
