@@ -52,6 +52,9 @@
    - stevesk@cvs.openbsd.org 2007/09/12 19:39:19
      [umac.c]
      use xmalloc() and xfree(); ok markus@ pvalchev@
+   - djm@cvs.openbsd.org 2007/09/13 04:39:04
+     [sftp-server.c]
+     fix incorrect test when setting syslog facility; from Jan Pechanec
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3249,4 +3252,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4754 2007/09/17 06:11:01 djm Exp $
+$Id: ChangeLog,v 1.4755 2007/09/17 06:11:33 djm Exp $
