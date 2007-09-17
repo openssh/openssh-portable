@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.200 2006/10/10 10:12:45 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.201 2007/08/23 03:23:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,10 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	char *command_string, *tmp;
 	int pin[2], pout[2];
 	pid_t pid;
-	char strport[NI_MAXSERV];
+	char *shell, strport[NI_MAXSERV];
+
+	if ((shell = getenv("SHELL")) == NULL)
+		shell = _PATH_BSHELL;
 
 	/* Convert the port number into a string. */
 	snprintf(strport, sizeof strport, "%hu", port);
@@ -132,7 +135,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 		/* Stderr is left as it is so that error messages get
 		   printed on the user's terminal. */
-		argv[0] = _PATH_BSHELL;
+		argv[0] = shell;
 		argv[1] = "-c";
 		argv[2] = command_string;
 		argv[3] = NULL;

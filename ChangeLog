@@ -16,6 +16,9 @@
      [auth2-none.c sshd_config sshd_config.5]
      Support "Banner=none" to disable displaying of the pre-login banner;
      ok dtucker@ deraadt@
+   - djm@cvs.openbsd.org 2007/08/23 03:23:26
+     [sshconnect.c]
+     Execute ProxyCommands with $SHELL rather than /bin/sh unconditionally
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3213,4 +3216,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4746 2007/09/17 01:57:38 djm Exp $
+$Id: ChangeLog,v 1.4747 2007/09/17 01:58:04 djm Exp $
