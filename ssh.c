@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.302 2007/09/04 03:21:03 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.303 2007/09/04 11:15:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -210,7 +210,7 @@ main(int ac, char **av)
 	char *p, *cp, *line, buf[256];
 	struct stat st;
 	struct passwd *pw;
-	int dummy;
+	int dummy, timeout_ms;
 	extern int optind, optreset;
 	extern char *optarg;
 	struct servent *sp;
@@ -681,9 +681,12 @@ main(int ac, char **av)
 	if (options.control_path != NULL)
 		control_client(options.control_path);
 
+	timeout_ms = options.connection_timeout * 1000;
+
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
-	    options.address_family, options.connection_attempts,
+	    options.address_family, options.connection_attempts, &timeout_ms,
+	    options.tcp_keep_alive, 
 #ifdef HAVE_CYGWIN
 	    options.use_privileged_port,
 #else
@@ -691,6 +694,9 @@ main(int ac, char **av)
 #endif
 	    options.proxy_command) != 0)
 		exit(255);
+
+	if (timeout_ms > 0)
+		debug3("timeout: %d ms remain after connect", timeout_ms);
 
 	/*
 	 * If we successfully made the connection, load the host private key
@@ -767,7 +773,8 @@ main(int ac, char **av)
 	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
 	/* Log into the remote system.  This never returns if the login fails. */
-	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr, pw);
+	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr,
+	    pw, timeout_ms);
 
 	/* We no longer need the private host keys.  Clear them now. */
 	if (sensitive_data.nkeys != 0) {
