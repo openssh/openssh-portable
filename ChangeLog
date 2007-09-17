@@ -4,6 +4,10 @@
      [auth-passwd.c auth.c session.c]
      unifdef HAVE_LOGIN_CAP; ok deraadt@ millert@
      NB. RCS ID sync only for portable
+   - djm@cvs.openbsd.org 2007/08/23 02:55:51
+     [auth-passwd.c auth.c session.c]
+     missed include bits from last commit
+     NB. RCS ID sync only for portable
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3201,4 +3205,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4743 2007/09/17 01:52:59 djm Exp $
+$Id: ChangeLog,v 1.4744 2007/09/17 01:54:24 djm Exp $
