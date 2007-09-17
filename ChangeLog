@@ -55,6 +55,10 @@
    - djm@cvs.openbsd.org 2007/09/13 04:39:04
      [sftp-server.c]
      fix incorrect test when setting syslog facility; from Jan Pechanec
+   - djm@cvs.openbsd.org 2007/09/16 00:55:52
+     [sftp-client.c]
+     use off_t instead of u_int64_t for file offsets, matching what the
+     progressmeter code expects; bz #842
 
 20070914
  - (dtucker) [openbsd-compat/bsd-asprintf.c] Plug mem leak in error path.
@@ -3252,4 +3256,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4755 2007/09/17 06:11:33 djm Exp $
+$Id: ChangeLog,v 1.4756 2007/09/17 06:12:03 djm Exp $

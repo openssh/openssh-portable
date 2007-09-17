@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.76 2007/01/22 11:32:50 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.77 2007/09/16 00:55:52 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -994,7 +994,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 {
 	int local_fd, status;
 	u_int handle_len, id, type;
-	u_int64_t offset;
+	off_t offset;
 	char *handle, *data;
 	Buffer msg;
 	struct stat sb;
@@ -1004,7 +1004,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	struct outstanding_ack {
 		u_int id;
 		u_int len;
-		u_int64_t offset;
+		off_t offset;
 		TAILQ_ENTRY(outstanding_ack) tq;
 	};
 	TAILQ_HEAD(ackhead, outstanding_ack) acks;
@@ -1143,12 +1143,14 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 				status = -1;
 				goto done;
 			}
-			debug3("In write loop, ack for %u %u bytes at %llu",
-			    ack->id, ack->len, (unsigned long long)ack->offset);
+			debug3("In write loop, ack for %u %u bytes at %lld",
+			    ack->id, ack->len, (long long)ack->offset);
 			++ackid;
 			xfree(ack);
 		}
 		offset += len;
+		if (offset < 0)
+			fatal("%s: offset < 0", __func__);
 	}
 	if (showprogress)
 		stop_progress_meter();
