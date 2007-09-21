@@ -57,13 +57,13 @@ atomicio(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n)
 		res = (f) (fd, s + pos, n - pos);
 		switch (res) {
 		case -1:
-#ifdef EWOULDBLOCK
-			if (errno == EINTR || errno == EWOULDBLOCK)
-#else
 			if (errno == EINTR)
-#endif
 				continue;
+#ifdef EWOULDBLOCK
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+#else
 			if (errno == EAGAIN) {
+#endif
 				(void)poll(&pfd, 1, -1);
 				continue;
 			}
@@ -103,13 +103,13 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 		res = (f) (fd, iov, iovcnt);
 		switch (res) {
 		case -1:
-#ifdef EWOULDBLOCK
-			if (errno == EINTR || errno == EWOULDBLOCK)
-#else
 			if (errno == EINTR)
-#endif
 				continue;
+#ifdef EWOULDBLOCK
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+#else
 			if (errno == EAGAIN) {
+#endif
 				(void)poll(&pfd, 1, -1);
 				continue;
 			}
