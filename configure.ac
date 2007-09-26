@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.384 2007/09/10 23:24:18 tim Exp $
+# $Id: configure.ac,v 1.385 2007/09/26 21:00:09 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.384 $)
+AC_REVISION($Revision: 1.385 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -223,6 +223,7 @@ AC_CHECK_HEADERS( \
 	sys/dir.h \
 	sys/mman.h \
 	sys/ndir.h \
+	sys/poll.h \
 	sys/prctl.h \
 	sys/pstat.h \
 	sys/select.h \
