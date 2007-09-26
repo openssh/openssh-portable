@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.144 2007/09/17 15:32:33 tim Exp $ */
+/* $Id: defines.h,v 1.145 2007/09/26 21:03:20 dtucker Exp $ */
 
 
 /* Constants */
@@ -538,6 +538,10 @@ struct winsize {
 
 #if defined(BROKEN_UPDWTMPX) && defined(HAVE_UPDWTMPX)
 # undef HAVE_UPDWTMPX
+#endif
+
+#if defined(BROKEN_SHADOW_EXPIRE) && defined(HAS_SHADOW_EXPIRE)
+# undef HAS_SHADOW_EXPIRE
 #endif
 
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT) && \

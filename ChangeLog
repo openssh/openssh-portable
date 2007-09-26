@@ -1,6 +1,8 @@
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
    we don't have <poll.h> (eq QNX).  From bacon at cs nyu edu.
+ - (dtucker) [configure.ac defines.h] Shadow expiry does not work on QNX6
+   so disable it for that platform.  From bacon at cs nyu edu.
 
 20070921
  - (djm) [atomicio.c] Fix spin avoidance for platforms that define
@@ -3266,4 +3268,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4759 2007/09/26 21:00:09 dtucker Exp $
+$Id: ChangeLog,v 1.4760 2007/09/26 21:03:20 dtucker Exp $
