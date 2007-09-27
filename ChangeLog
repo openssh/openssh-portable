@@ -1,3 +1,7 @@
+20070927
+ - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
+   we don't have <poll.h> (eq QNX).  From bacon at cs nyu edu.
+
 20070917
  - (tim) [defines.h] Fix regression in long password support on OpenServer 6.
    Problem report and additional testing rac AT tenzing.org.
@@ -3192,4 +3196,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4738.2.3 2007/09/17 15:33:47 tim Exp $
+$Id: ChangeLog,v 1.4738.2.4 2007/09/27 10:43:48 dtucker Exp $
