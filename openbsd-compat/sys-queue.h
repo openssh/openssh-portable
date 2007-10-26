@@ -1,4 +1,4 @@
-/*	$OpenBSD: queue.h,v 1.29 2005/10/24 20:25:14 otto Exp $	*/
+/*	$OpenBSD: queue.h,v 1.30 2005/10/25 06:37:47 otto Exp $	*/
 /*	$NetBSD: queue.h,v 1.11 1996/05/16 05:17:14 mycroft Exp $	*/
 
 /*
@@ -236,7 +236,6 @@ struct {								\
 			curelm = curelm->field.sle_next;		\
 		curelm->field.sle_next =				\
 		    curelm->field.sle_next->field.sle_next;		\
-		(elm)->field.sle_next = NULL;				\
 	}								\
 } while (0)
 
@@ -312,8 +311,6 @@ struct {								\
 		    &(elm2)->field.le_next;				\
 	(elm2)->field.le_prev = (elm)->field.le_prev;			\
 	*(elm2)->field.le_prev = (elm2);				\
-	(elm)->field.le_prev = NULL; 					\
-	(elm)->field.le_next = NULL;					\
 } while (0)
 
 /*
@@ -468,8 +465,6 @@ struct {								\
 	else								\
 		(head)->tqh_last = (elm)->field.tqe_prev;		\
 	*(elm)->field.tqe_prev = (elm)->field.tqe_next;			\
-	(elm)->field.tqe_prev = NULL; 					\
-	(elm)->field.tqe_next = NULL;					\
 } while (0)
 
 #define TAILQ_REPLACE(head, elm, elm2, field) do {			\
@@ -480,8 +475,6 @@ struct {								\
 		(head)->tqh_last = &(elm2)->field.tqe_next;		\
 	(elm2)->field.tqe_prev = (elm)->field.tqe_prev;			\
 	*(elm2)->field.tqe_prev = (elm2);				\
-	(elm)->field.tqe_prev = NULL; 					\
-	(elm)->field.tqe_next = NULL;					\
 } while (0)
 
 /*
@@ -582,8 +575,6 @@ struct {								\
 	else								\
 		(elm)->field.cqe_prev->field.cqe_next =			\
 		    (elm)->field.cqe_next;				\
-	(elm)->field.cqe_next = NULL;					\
-	(elm)->field.cqe_prev = NULL;					\
 } while (0)
 
 #define CIRCLEQ_REPLACE(head, elm, elm2, field) do {			\
@@ -597,8 +588,6 @@ struct {								\
 		(head).cqh_first = (elm2);				\
 	else								\
 		(elm2)->field.cqe_prev->field.cqe_next = (elm2);	\
-	(elm)->field.cqe_next = NULL;					\
-	(elm)->field.cqe_prev = NULL;					\
 } while (0)
 
 #endif	/* !_FAKE_QUEUE_H_ */
