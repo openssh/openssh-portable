@@ -30,6 +30,9 @@
    - dtucker@cvs.openbsd.org 2007/09/29 00:25:51
      [auth2.c]
      Remove unused prototype.  ok djm@
+   - chl@cvs.openbsd.org 2007/10/02 17:49:58
+     [ssh-keygen.c]
+     handles zero-sized strings that fgets can return
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3301,4 +3304,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4766 2007/10/26 04:26:15 djm Exp $
+$Id: ChangeLog,v 1.4767 2007/10/26 04:26:32 djm Exp $

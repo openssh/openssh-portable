@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.162 2007/09/11 15:47:17 gilles Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.163 2007/10/02 17:49:58 chl Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -535,8 +535,7 @@ do_fingerprint(struct passwd *pw)
 	f = fopen(identity_file, "r");
 	if (f != NULL) {
 		while (fgets(line, sizeof(line), f)) {
-			i = strlen(line) - 1;
-			if (line[i] != '\n') {
+			if ((cp = strchr(line, '\n')) == NULL) {
 				error("line %d too long: %.40s...", num, line);
 				skip = 1;
 				continue;
@@ -546,7 +545,7 @@ do_fingerprint(struct passwd *pw)
 				skip = 0;
 				continue;
 			}
-			line[i] = '\0';
+			*cp = '\0';
 
 			/* Skip leading whitespace, empty and comment lines. */
 			for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
@@ -614,7 +613,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	Key *public;
 	char *cp, *cp2, *kp, *kp2;
 	char line[16*1024], tmp[MAXPATHLEN], old[MAXPATHLEN];
-	int c, i, skip = 0, inplace = 0, num = 0, invalid = 0, has_unhashed = 0;
+	int c, skip = 0, inplace = 0, num = 1, invalid = 0, has_unhashed = 0;
 
 	if (!have_identity) {
 		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
@@ -649,19 +648,18 @@ do_known_hosts(struct passwd *pw, const char *name)
 	}
 
 	while (fgets(line, sizeof(line), in)) {
-		num++;
-		i = strlen(line) - 1;
-		if (line[i] != '\n') {
+		if ((cp = strchr(line, '\n')) == NULL) {
 			error("line %d too long: %.40s...", num, line);
 			skip = 1;
 			invalid = 1;
 			continue;
 		}
+		num++;
 		if (skip) {
 			skip = 0;
 			continue;
 		}
-		line[i] = '\0';
+		*cp = '\0';
 
 		/* Skip leading whitespace, empty and comment lines. */
 		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
