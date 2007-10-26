@@ -27,6 +27,9 @@
      Also fix a typo.
      Initial diff from Matthew Dempsky, input from djm.
      OK djm, markus.
+   - dtucker@cvs.openbsd.org 2007/09/29 00:25:51
+     [auth2.c]
+     Remove unused prototype.  ok djm@
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3298,4 +3301,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4765 2007/10/26 04:25:55 djm Exp $
+$Id: ChangeLog,v 1.4766 2007/10/26 04:26:15 djm Exp $
