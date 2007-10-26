@@ -94,6 +94,11 @@
    - tdeval@cvs.openbsd.org 2004/11/24 18:10:42
      [openbsd-compat/sys-tree.h]
      typo
+   - grange@cvs.openbsd.org 2004/05/04 16:59:32
+     [openbsd-compat/sys-queue.h]
+     Remove useless ``elm'' argument from the SIMPLEQ_REMOVE_HEAD macro.
+     This matches our SLIST behaviour and NetBSD's SIMPLEQ as well.
+     ok millert krw deraadt
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3370,4 +3375,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4785 2007/10/26 06:39:05 djm Exp $
+$Id: ChangeLog,v 1.4786 2007/10/26 06:40:20 djm Exp $
