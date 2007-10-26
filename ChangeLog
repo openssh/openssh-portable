@@ -87,10 +87,13 @@
      [openbsd-compat/base64.c]
      remove calls to abort(3) that can't happen anyway; from
      <bret dot lambert at gmail.com>; ok millert@ deraadt@
-   - frantzen@@cvs.openbsd.org 2004/04/24 18:11:46
-     [openbsd-compat/tree.h]
+   - frantzen@cvs.openbsd.org 2004/04/24 18:11:46
+     [openbsd-compat/sys-tree.h]
      sync to Niels Provos' version.  avoid unused variable warning in
      RB_NEXT()
+   - tdeval@cvs.openbsd.org 2004/11/24 18:10:42
+     [openbsd-compat/sys-tree.h]
+     typo
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3367,4 +3370,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4784 2007/10/26 06:37:43 djm Exp $
+$Id: ChangeLog,v 1.4785 2007/10/26 06:39:05 djm Exp $
