@@ -118,6 +118,11 @@
      [openbsd-compat/sys-queue.h]
      Some uvm problem is being exposed with the more strict macros.
      Revert until we've found out what's causing the panics.
+   - otto@cvs.openbsd.org 2005/11/25 08:06:25
+     [openbsd-compat/sys-queue.h]
+     Introduce debugging aid for queue macros. Disabled by default; but
+     developers are encouraged to run with this enabled.
+     ok krw@ fgsch@ deraadt@
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3394,4 +3399,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4790 2007/10/26 06:44:27 djm Exp $
+$Id: ChangeLog,v 1.4791 2007/10/26 06:45:32 djm Exp $
