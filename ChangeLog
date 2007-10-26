@@ -20,6 +20,13 @@
      [ssh-agent.c]
      When adding a key that already exists, update the properties
      (time, confirm, comment) instead of discarding them. ok djm@ markus@
+   - ray@cvs.openbsd.org 2007/09/27 00:15:57
+     [dh.c]
+     Don't return -1 on error in dh_pub_is_valid(), since it evaluates
+     to true.
+     Also fix a typo.
+     Initial diff from Matthew Dempsky, input from djm.
+     OK djm, markus.
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3291,4 +3298,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4764 2007/10/26 04:25:31 djm Exp $
+$Id: ChangeLog,v 1.4765 2007/10/26 04:25:55 djm Exp $
