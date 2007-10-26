@@ -30,6 +30,9 @@ else
 	USER=`id -un`
 fi
 
+# XXX platforms that don't support -E may need a replacement
+ECHOE="echo -E"
+
 OBJ=$1
 if [ "x$OBJ" = "x" ]; then
 	echo '$OBJ not defined'
@@ -156,31 +159,31 @@ cleanup ()
 
 trace ()
 {
-	echo "trace: $@" >>$TEST_SSH_LOGFILE
+	$ECHOE "trace: $@" >>$TEST_SSH_LOGFILE
 	if [ "X$TEST_SSH_TRACE" = "Xyes" ]; then
-		echo "$@"
+		$ECHOE "$@"
 	fi
 }
 
 verbose ()
 {
-	echo "verbose: $@" >>$TEST_SSH_LOGFILE
+	$ECHOE "verbose: $@" >>$TEST_SSH_LOGFILE
 	if [ "X$TEST_SSH_QUIET" != "Xyes" ]; then
-		echo "$@"
+		$ECHOE "$@"
 	fi
 }
 
 
 fail ()
 {
-	echo "FAIL: $@" >>$TEST_SSH_LOGFILE
+	$ECHOE "FAIL: $@" >>$TEST_SSH_LOGFILE
 	RESULT=1
-	echo "$@"
+	$ECHOE "$@"
 }
 
 fatal ()
 {
-	echo "FATAL: $@" >>$TEST_SSH_LOGFILE
+	$ECHOE "FATAL: $@" >>$TEST_SSH_LOGFILE
 	echon "FATAL: "
 	fail "$@"
 	cleanup

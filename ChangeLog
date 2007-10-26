@@ -69,6 +69,10 @@
      [regress/cipher-speed.sh regress/try-ciphers.sh]
      test umac-64@openssh.com
      ok djm@
+   - djm@cvs.openbsd.org 2007/10/24 03:32:35
+     [regress/sftp-cmds.sh regress/sftp-glob.sh regress/test-exec.sh]
+     comprehensive tests for sftp escaping its interaction with globbing;
+     ok dtucker@
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3340,4 +3344,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4775 2007/10/26 04:45:57 djm Exp $
+$Id: ChangeLog,v 1.4776 2007/10/26 04:54:12 djm Exp $
