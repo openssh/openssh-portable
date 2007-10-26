@@ -127,6 +127,10 @@
      [openbsd-compat/sys-queue.h]
      Enable QUEUE_MACRO_DEBUG on DIAGNOSTIC kernels.
      Input and okays from krw@, millert@, otto@, deraadt@, miod@.
+   - millert@cvs.openbsd.org 2004/10/07 16:56:11
+     GLOB_NOESCAPE is POSIX so move it out of the #ifndef _POSIX_SOURCE
+     block.
+     (NB. mostly an RCS ID sync, as portable strips out the conditionals)
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3403,4 +3407,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4792 2007/10/26 06:46:31 djm Exp $
+$Id: ChangeLog,v 1.4793 2007/10/26 06:48:13 djm Exp $
