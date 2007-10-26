@@ -41,6 +41,14 @@
      [readconf.c]
      make sure that both the local and remote port are correct when
      parsing -L; Jan Pechanec (bz #1378)
+   - djm@cvs.openbsd.org 2007/10/24 03:30:02
+     [sftp.c]
+     rework argument splitting and parsing to cope correctly with common
+     shell escapes and make handling of escaped characters consistent
+     with sh(1) and between sftp commands (especially between ones that
+     glob their arguments and ones that don't).
+     parse command flags using getopt(3) rather than hand-rolled parsers.
+     ok dtucker@
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3312,4 +3320,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4769 2007/10/26 04:27:22 djm Exp $
+$Id: ChangeLog,v 1.4770 2007/10/26 04:27:45 djm Exp $
