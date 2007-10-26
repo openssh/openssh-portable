@@ -81,7 +81,7 @@
      [openbsd-compat/glob.c]
      unused arg in internal static API
    - jakob@cvs.openbsd.org 2007/10/11 18:36:41
-     [openbsd-compat/getrrsetbyname.c]
+     [openbsd-compat/getrrsetbyname.c openbsd-compat/getrrsetbyname.h]
      use RRSIG instead of SIG for DNSSEC. ok djm@
    - otto@cvs.openbsd.org 2006/10/21 09:55:03
      [openbsd-compat/base64.c]
@@ -3363,4 +3363,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4782 2007/10/26 06:17:24 djm Exp $
+$Id: ChangeLog,v 1.4783 2007/10/26 06:26:46 djm Exp $
