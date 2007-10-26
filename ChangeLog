@@ -33,6 +33,10 @@
    - chl@cvs.openbsd.org 2007/10/02 17:49:58
      [ssh-keygen.c]
      handles zero-sized strings that fgets can return
+     properly removes trailing newline
+     removes an unused variable
+     correctly counts line number
+     "looks ok" ray@ markus@
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3304,4 +3308,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4767 2007/10/26 04:26:32 djm Exp $
+$Id: ChangeLog,v 1.4768 2007/10/26 04:27:02 djm Exp $
