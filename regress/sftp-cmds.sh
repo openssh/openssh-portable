@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.6 2003/10/07 07:04:52 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.7 2006/08/29 09:44:00 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -207,5 +207,5 @@ echo "lchdir ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "lchdir failed"
 
 rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
-
+rm -rf ${QUOTECOPY}
 
