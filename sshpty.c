@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.27 2007/09/11 04:36:29 stevesk Exp $ */
+/* $OpenBSD: sshpty.c,v 1.28 2007/09/11 23:49:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
