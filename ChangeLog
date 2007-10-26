@@ -77,6 +77,9 @@
      [regress/sftp-glob.sh regress/test-exec.sh]
      remove "echo -E" crap that I added in last commit and use printf(1) for
      cases where we strictly require echo not to reprocess escape characters.
+ - (djm) [regress/sftp-cmds.sh]
+   Use more restrictive glob to pick up test files from /bin - some platforms
+   ship broken symlinks there which could spoil the test.
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3348,4 +3351,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4777 2007/10/26 05:35:54 djm Exp $
+$Id: ChangeLog,v 1.4778 2007/10/26 05:37:50 djm Exp $

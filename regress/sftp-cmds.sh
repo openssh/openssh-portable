@@ -171,7 +171,7 @@ cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to directory"
-echo "put /bin/l* ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+echo "put /bin/l? ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 for x in $GLOBFILES; do
 	cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
@@ -185,7 +185,7 @@ cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to local dir"
-(echo "cd ${COPY}.dd"; echo "put /bin/l*") | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+(echo "cd ${COPY}.dd"; echo "put /bin/l?") | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
