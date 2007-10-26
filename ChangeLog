@@ -86,6 +86,8 @@
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
+ - (djm) [openbsd-compat/bindresvport.c]
+   Sync RCS ID after irrelevant (for portable OpenSSH) header shuffling
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3357,4 +3359,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4780 2007/10/26 06:14:46 djm Exp $
+$Id: ChangeLog,v 1.4781 2007/10/26 06:16:09 djm Exp $
