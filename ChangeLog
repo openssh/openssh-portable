@@ -102,6 +102,14 @@
    - deraadt@cvs.openbsd.org 2005/02/25 13:29:30
      [openbsd-compat/sys-queue.h]
      minor white spacing
+   - otto@cvs.openbsd.org 2005/10/17 20:19:42
+     [openbsd-compat/sys-queue.h]
+     Performing certain operations on queue.h data structurs produced
+     funny results.  An example is calling  LIST_REMOVE on the same
+     element twice. This will not fail, but result in a data structure
+     referencing who knows what. Prevent these accidents by NULLing some
+     fields on remove and replace. This way, either a panic or segfault
+     will be produced on the faulty operation.
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3378,4 +3386,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4787 2007/10/26 06:41:14 djm Exp $
+$Id: ChangeLog,v 1.4788 2007/10/26 06:42:18 djm Exp $
