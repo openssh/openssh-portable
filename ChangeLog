@@ -123,6 +123,10 @@
      Introduce debugging aid for queue macros. Disabled by default; but
      developers are encouraged to run with this enabled.
      ok krw@ fgsch@ deraadt@
+   - otto@cvs.openbsd.org 2007/04/30 18:42:34
+     [openbsd-compat/sys-queue.h]
+     Enable QUEUE_MACRO_DEBUG on DIAGNOSTIC kernels.
+     Input and okays from krw@, millert@, otto@, deraadt@, miod@.
  - (djm) [regress/sftp-cmds.sh]
    Use more restrictive glob to pick up test files from /bin - some platforms
    ship broken symlinks there which could spoil the test.
@@ -3399,4 +3403,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4791 2007/10/26 06:45:32 djm Exp $
+$Id: ChangeLog,v 1.4792 2007/10/26 06:46:31 djm Exp $
