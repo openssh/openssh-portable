@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.28 2005/05/20 23:14:15 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.30 2007/10/26 05:30:01 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -29,9 +29,6 @@ elif logname >/dev/null 2>&1; then
 else
 	USER=`id -un`
 fi
-
-# XXX platforms that don't support -E may need a replacement
-ECHOE="echo -E"
 
 OBJ=$1
 if [ "x$OBJ" = "x" ]; then
@@ -159,31 +156,31 @@ cleanup ()
 
 trace ()
 {
-	$ECHOE "trace: $@" >>$TEST_SSH_LOGFILE
+	echo "trace: $@" >>$TEST_SSH_LOGFILE
 	if [ "X$TEST_SSH_TRACE" = "Xyes" ]; then
-		$ECHOE "$@"
+		echo "$@"
 	fi
 }
 
 verbose ()
 {
-	$ECHOE "verbose: $@" >>$TEST_SSH_LOGFILE
+	echo "verbose: $@" >>$TEST_SSH_LOGFILE
 	if [ "X$TEST_SSH_QUIET" != "Xyes" ]; then
-		$ECHOE "$@"
+		echo "$@"
 	fi
 }
 
 
 fail ()
 {
-	$ECHOE "FAIL: $@" >>$TEST_SSH_LOGFILE
+	echo "FAIL: $@" >>$TEST_SSH_LOGFILE
 	RESULT=1
-	$ECHOE "$@"
+	echo "$@"
 }
 
 fatal ()
 {
-	$ECHOE "FATAL: $@" >>$TEST_SSH_LOGFILE
+	echo "FATAL: $@" >>$TEST_SSH_LOGFILE
 	echon "FATAL: "
 	fail "$@"
 	cleanup
