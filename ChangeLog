@@ -8,6 +8,14 @@
      [ssh_config.5]
      document KbdInteractiveAuthentication in ssh_config.5;
      patch from dkg AT fifthhorseman.net
+   - djm@cvs.openbsd.org 2007/09/21 08:15:29
+     [auth-bsdauth.c auth-passwd.c auth.c auth.h auth1.c auth2-chall.c]
+     [monitor.c monitor_wrap.c]
+     unifdef -DBSD_AUTH
+     unifdef -USKEY
+     These options have been in use for some years;
+     ok markus@ "no objection" millert@
+     (NB. RCD ID sync only for portable)
 
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
@@ -3279,4 +3287,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4762 2007/10/26 04:24:48 djm Exp $
+$Id: ChangeLog,v 1.4763 2007/10/26 04:25:12 djm Exp $
