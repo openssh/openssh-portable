@@ -4,6 +4,11 @@
      [sshpty.c]
      remove #if defined block not needed; ok markus@ dtucker@
      (NB. RCD ID sync only for portable)
+   - djm@cvs.openbsd.org 2007/09/21 03:05:23
+     [ssh_config.5]
+     document KbdInteractiveAuthentication in ssh_config.5;
+     patch from dkg AT fifthhorseman.net
+
 20070927
  - (dtucker) [configure.ac atomicio.c] Fall back to including <sys/poll.h> if
    we don't have <poll.h> (eq QNX).  From bacon at cs nyu edu.
@@ -3274,4 +3279,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4761 2007/10/26 04:24:30 djm Exp $
+$Id: ChangeLog,v 1.4762 2007/10/26 04:24:48 djm Exp $
