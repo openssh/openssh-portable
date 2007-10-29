@@ -1,4 +1,4 @@
-/*	$OpenBSD: tree.h,v 1.9 2004/11/24 18:10:42 tdeval Exp $	*/
+/*	$OpenBSD: tree.h,v 1.10 2007/10/29 23:49:41 djm Exp $	*/
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -382,8 +382,8 @@ struct type *name##_RB_REMOVE(struct name *, struct type *);		\
 struct type *name##_RB_INSERT(struct name *, struct type *);		\
 struct type *name##_RB_FIND(struct name *, struct type *);		\
 struct type *name##_RB_NEXT(struct type *);				\
-struct type *name##_RB_MINMAX(struct name *, int);			\
-									\
+struct type *name##_RB_MINMAX(struct name *, int);			
+
 
 /* Main rb operation.
  * Moves node close to the key of elm to top

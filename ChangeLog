@@ -1,3 +1,10 @@
+20071030
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2007/10/29 23:49:41
+     [openbsd-compat/sys-tree.h]
+     remove extra backslash at the end of RB_PROTOTYPE, report from
+     Jan.Pechanec AT Sun.COM; ok deraadt@
+
 20071026
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2007/09/11 23:49:09
@@ -3407,4 +3414,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4793 2007/10/26 06:48:13 djm Exp $
+$Id: ChangeLog,v 1.4794 2007/10/29 23:52:44 djm Exp $
