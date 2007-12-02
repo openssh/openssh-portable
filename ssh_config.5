@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.103 2007/09/21 03:05:23 djm Exp $
-.Dd $Mdocdate: September 21 2007 $
+.\" $OpenBSD: ssh_config.5,v 1.104 2007/10/29 06:51:59 dtucker Exp $
+.Dd $Mdocdate: October 29 2007 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -599,7 +599,7 @@ and
 Specifies a command to execute on the local machine after successfully
 connecting to the server.
 The command string extends to the end of the line, and is executed with
-.Pa /bin/sh .
+the user's shell .
 This directive is ignored unless
 .Cm PermitLocalCommand
 has been enabled.
@@ -723,7 +723,7 @@ if version 2 is not available.
 Specifies the command to use to connect to the server.
 The command
 string extends to the end of the line, and is executed with
-.Pa /bin/sh .
+the user's shell .
 In the command string,
 .Ql %h
 will be substituted by the host name to
