@@ -8,6 +8,10 @@
      [auth2-gss.c]
      Allow build without -DGSSAPI; ok deraadt@
      (Id sync only, Portable already has the ifdefs)
+   - dtucker@cvs.openbsd.org 2007/10/29 01:55:04
+     [ssh.c]
+     Plug tiny mem leaks in ControlPath and ProxyCommand option processing;
+     ok djm@
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3425,4 +3429,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4797 2007/12/02 11:59:45 dtucker Exp $
+$Id: ChangeLog,v 1.4798 2007/12/02 12:01:03 dtucker Exp $
