@@ -12,6 +12,11 @@
      [ssh.c]
      Plug tiny mem leaks in ControlPath and ProxyCommand option processing;
      ok djm@
+   - dtucker@cvs.openbsd.org 2007/10/29 04:08:08
+     [monitor_wrap.c monitor.c]
+     Send config block back to slave for invalid users too so options
+     set by a Match block (eg Banner) behave the same for non-existent
+     users.  Found by and ok djm@
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3429,4 +3434,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4798 2007/12/02 12:01:03 dtucker Exp $
+$Id: ChangeLog,v 1.4799 2007/12/02 12:02:15 dtucker Exp $

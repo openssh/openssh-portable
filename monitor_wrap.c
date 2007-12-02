@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.59 2007/09/21 08:15:29 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.60 2007/10/29 04:08:08 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -222,8 +222,8 @@ mm_getpwnamallow(const char *username)
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PWNAM, &m);
 
 	if (buffer_get_char(&m) == 0) {
-		buffer_free(&m);
-		return (NULL);
+		pw = NULL;
+		goto out;
 	}
 	pw = buffer_get_string(&m, &len);
 	if (len != sizeof(struct passwd))
@@ -237,6 +237,7 @@ mm_getpwnamallow(const char *username)
 	pw->pw_dir = buffer_get_string(&m, NULL);
 	pw->pw_shell = buffer_get_string(&m, NULL);
 
+out:
 	/* copy options block as a Match directive may have changed some */
 	newopts = buffer_get_string(&m, &len);
 	if (len != sizeof(*newopts))
