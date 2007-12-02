@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.305 2007/10/29 06:54:50 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.306 2007/11/03 01:24:06 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1231,6 +1231,7 @@ static void
 load_public_identity_files(void)
 {
 	char *filename, *cp, thishost[NI_MAXHOST];
+	char *pwdir = NULL, *pwname = NULL;
 	int i = 0;
 	Key *public;
 	struct passwd *pw;
@@ -1259,14 +1260,16 @@ load_public_identity_files(void)
 #endif /* SMARTCARD */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
 		fatal("load_public_identity_files: getpwuid failed");
+	pwname = strdup(pw->pw_name);
+	pwdir = strdup(pw->pw_dir);
 	if (gethostname(thishost, sizeof(thishost)) == -1)
 		fatal("load_public_identity_files: gethostname: %s",
 		    strerror(errno));
 	for (; i < options.num_identity_files; i++) {
 		cp = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
-		filename = percent_expand(cp, "d", pw->pw_dir,
-		    "u", pw->pw_name, "l", thishost, "h", host,
+		filename = percent_expand(cp, "d", pwdir,
+		    "u", pwname, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
 		xfree(cp);
 		public = key_load_public(filename, NULL);
@@ -1276,6 +1279,10 @@ load_public_identity_files(void)
 		options.identity_files[i] = filename;
 		options.identity_keys[i] = public;
 	}
+	bzero(pwname, strlen(pwname));
+	free(pwname);
+	bzero(pwdir, strlen(pwdir));
+	free(pwdir);
 }
 
 static void
