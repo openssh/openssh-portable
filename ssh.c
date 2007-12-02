@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.304 2007/10/29 01:55:04 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.305 2007/10/29 06:54:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1001,6 +1001,11 @@ ssh_session(void)
 
 	/* Initiate port forwardings. */
 	ssh_init_forwarding();
+
+	/* Execute a local command */
+	if (options.local_command != NULL &&
+	    options.permit_local_command)
+		ssh_local_cmd(options.local_command);
 
 	/* If requested, let ssh continue in the background. */
 	if (fork_after_authentication_flag)

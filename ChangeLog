@@ -20,6 +20,9 @@
    - dtucker@cvs.openbsd.org 2007/10/29 06:51:59
      [ssh_config.5]
      ProxyCommand and LocalCommand use the user's shell, not /bin/sh; ok djm@
+   - dtucker@cvs.openbsd.org 2007/10/29 06:54:50
+     [ssh.c]
+     Make LocalCommand work for Protocol 1 too; ok djm@
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3437,4 +3440,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4800 2007/12/02 12:05:09 dtucker Exp $
+$Id: ChangeLog,v 1.4801 2007/12/02 12:06:35 dtucker Exp $
