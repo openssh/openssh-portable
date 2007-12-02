@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.386 2007/09/26 21:03:20 dtucker Exp $
+# $Id: configure.ac,v 1.387 2007/12/02 10:02:22 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.386 $)
+AC_REVISION($Revision: 1.387 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -104,6 +104,15 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		4.*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign" ;;
 		*) ;;
 	esac
+
+	AC_MSG_CHECKING(if $GCC understands -fstack-protector-all)
+	saved_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS -fstack-protector-all"
+	AC_TRY_COMPILE([], [ int main(void){return 0;} ],
+	    [ AC_MSG_RESULT(yes) ],
+	    [ AC_MSG_RESULT(no)
+	      CFLAGS="$saved_CFLAGS" ]
+	)
 
 	if test -z "$have_llong_max"; then
 		# retry LLONG_MAX with -std=gnu99, needed on some Linuxes
