@@ -35,6 +35,9 @@
      bz #1377: getpwuid results were being clobbered by another getpw* call
      inside tilde_expand_filename(); save the data we need carefully
      ok djm
+   - dtucker@cvs.openbsd.org 2007/11/03 02:00:32
+     [ssh.c]
+     Use xstrdup/xfree when saving pwname and pwdir; ok deraadt@
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3452,4 +3455,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4804 2007/12/02 12:16:32 dtucker Exp $
+$Id: ChangeLog,v 1.4805 2007/12/02 12:21:16 dtucker Exp $

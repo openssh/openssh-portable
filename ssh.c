@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.306 2007/11/03 01:24:06 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.307 2007/11/03 02:00:32 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1260,8 +1260,8 @@ load_public_identity_files(void)
 #endif /* SMARTCARD */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
 		fatal("load_public_identity_files: getpwuid failed");
-	pwname = strdup(pw->pw_name);
-	pwdir = strdup(pw->pw_dir);
+	pwname = xstrdup(pw->pw_name);
+	pwdir = xstrdup(pw->pw_dir);
 	if (gethostname(thishost, sizeof(thishost)) == -1)
 		fatal("load_public_identity_files: gethostname: %s",
 		    strerror(errno));
@@ -1280,9 +1280,9 @@ load_public_identity_files(void)
 		options.identity_keys[i] = public;
 	}
 	bzero(pwname, strlen(pwname));
-	free(pwname);
+	xfree(pwname);
 	bzero(pwdir, strlen(pwdir));
-	free(pwdir);
+	xfree(pwdir);
 }
 
 static void
