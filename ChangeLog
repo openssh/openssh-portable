@@ -1,6 +1,8 @@
 20071202
  - (dtucker) [configure.ac] Enable -fstack-protector-all on systems where
    gcc supports it.  ok djm@
+ - (dtucker) [scp.c] Update $OpenBSD tag missing from rev 1.175 and remove
+   leftover debug code.
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3418,4 +3420,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4795 2007/12/02 10:02:22 dtucker Exp $
+$Id: ChangeLog,v 1.4796 2007/12/02 11:48:40 dtucker Exp $
