@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.182 2007/09/04 03:21:03 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.183 2007/11/03 00:36:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -953,6 +953,9 @@ process_cmdline(void)
 	u_short cancel_port;
 	Forward fwd;
 
+	bzero(&fwd, sizeof(fwd));
+	fwd.listen_host = fwd.connect_host = NULL;
+
 	leave_raw_mode();
 	handler = signal(SIGINT, SIG_IGN);
 	cmd = s = read_passphrase("\r\nssh> ", RP_ECHO);
@@ -1052,6 +1055,10 @@ out:
 	enter_raw_mode();
 	if (cmd)
 		xfree(cmd);
+	if (fwd.listen_host != NULL)
+		xfree(fwd.listen_host);
+	if (fwd.connect_host != NULL)
+		xfree(fwd.connect_host);
 }
 
 /* process the characters one by one */

@@ -26,6 +26,10 @@
    - jmc@cvs.openbsd.org 2007/10/29 07:48:19
      [ssh_config.5]
      clean up after previous macro removal;
+   - djm@cvs.openbsd.org 2007/11/03 00:36:14
+     [clientloop.c]
+     fix memory leak in process_cmdline(), patch from Jan.Pechanec AT Sun.COM;
+     ok dtucker@
 
 20071030
  - (djm) OpenBSD CVS Sync
@@ -3443,4 +3447,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4802 2007/12/02 12:09:30 dtucker Exp $
+$Id: ChangeLog,v 1.4803 2007/12/02 12:12:30 dtucker Exp $
