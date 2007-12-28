@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.97 2007/10/24 03:30:02 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.98 2007/12/12 05:04:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1080,6 +1080,8 @@ parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
 			*path1 = xstrdup(argv[optidx]);
 		break;
 	case I_LLS:
+		/* Skip ls command and following whitespace */
+		cp = cp + strlen(cmd) + strspn(cp, WHITESPACE);
 	case I_SHELL:
 		/* Uses the rest of the line */
 		break;

@@ -1,3 +1,10 @@
+20071229
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2007/12/12 05:04:03
+     [sftp.c]
+     unbreak lls command and add a regress test that would have caught the
+     breakage; spotted by mouring@
+
 20071202
  - (dtucker) [configure.ac] Enable -fstack-protector-all on systems where
    gcc supports it.  ok djm@
@@ -3458,4 +3465,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4806 2007/12/02 12:22:52 dtucker Exp $
+$Id: ChangeLog,v 1.4807 2007/12/28 15:40:43 dtucker Exp $
