@@ -10,6 +10,12 @@
      Add a small helper function to consistently handle the EAI_SYSTEM error
      code of getaddrinfo.  Prompted by vgiffin at apple com via bz #1417.
      ok markus@ stevesk@
+   - dtucker@cvs.openbsd.org 2007/12/28 15:32:24
+     [clientloop.c serverloop.c packet.c]
+     Make SSH2_MSG_UNIMPLEMENTED and SSH2_MSG_IGNORE messages reset the
+     ServerAlive and ClientAlive timers.  Prevents dropping a connection
+     when these are enabled but the peer does not support our keepalives.
+     bz #1307, ok djm@.
 
 20071202
  - (dtucker) [configure.ac] Enable -fstack-protector-all on systems where
@@ -3471,4 +3477,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4808 2007/12/28 15:43:51 dtucker Exp $
+$Id: ChangeLog,v 1.4809 2007/12/28 15:45:07 dtucker Exp $

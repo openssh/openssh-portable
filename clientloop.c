@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.183 2007/11/03 00:36:14 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.184 2007/12/28 15:32:24 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -462,6 +462,12 @@ client_check_window_change(void)
 		packet_put_int((u_int)ws.ws_ypixel);
 		packet_send();
 	}
+}
+
+static void
+client_global_keepalive(int type, u_int32_t seq, void *ctxt)
+{
+	server_alive_timeouts = 0;
 }
 
 static void
@@ -2076,6 +2082,8 @@ client_init_dispatch_20(void)
 	/* global request reply messages */
 	dispatch_set(SSH2_MSG_REQUEST_FAILURE, &client_global_request_reply);
 	dispatch_set(SSH2_MSG_REQUEST_SUCCESS, &client_global_request_reply);
+	dispatch_set(SSH2_MSG_IGNORE, &client_global_keepalive);
+	dispatch_set(SSH2_MSG_UNIMPLEMENTED, &client_global_keepalive);
 }
 static void
 client_init_dispatch_13(void)
