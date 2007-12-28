@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.202 2007/09/04 11:15:55 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.203 2007/12/27 14:22:08 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -224,7 +224,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	gaierr = getaddrinfo(options.bind_address, "0", &hints, &res);
 	if (gaierr) {
 		error("getaddrinfo: %s: %s", options.bind_address,
-		    gai_strerror(gaierr));
+		    ssh_gai_strerror(gaierr));
 		close(sock);
 		return -1;
 	}
@@ -356,8 +356,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf(strport, sizeof strport, "%u", port);
 	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)
-		fatal("%s: %.100s: %s", __progname, host,
-		    gai_strerror(gaierr));
+		fatal("%s: Could not resolve hostname %.100s: %s", __progname,
+		    host, ssh_gai_strerror(gaierr));
 
 	for (attempt = 0; attempt < connection_attempts; attempt++) {
 		if (attempt > 0) {

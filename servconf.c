@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.172 2007/04/23 10:15:39 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.173 2007/12/27 14:22:08 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -458,7 +458,7 @@ add_one_listen_addr(ServerOptions *options, char *addr, u_short port)
 	if ((gaierr = getaddrinfo(addr, strport, &hints, &aitop)) != 0)
 		fatal("bad addr or host: %s (%s)",
 		    addr ? addr : "<NULL>",
-		    gai_strerror(gaierr));
+		    ssh_gai_strerror(gaierr));
 	for (ai = aitop; ai->ai_next; ai = ai->ai_next)
 		;
 	ai->ai_next = options->listen_addrs;

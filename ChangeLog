@@ -4,6 +4,12 @@
      [sftp.c]
      unbreak lls command and add a regress test that would have caught the
      breakage; spotted by mouring@
+   - dtucker@cvs.openbsd.org 2007/12/27 14:22:08
+     [servconf.c canohost.c misc.c channels.c sshconnect.c misc.h ssh-keyscan.c
+      sshd.c]
+     Add a small helper function to consistently handle the EAI_SYSTEM error
+     code of getaddrinfo.  Prompted by vgiffin at apple com via bz #1417.
+     ok markus@ stevesk@
 
 20071202
  - (dtucker) [configure.ac] Enable -fstack-protector-all on systems where
@@ -3465,4 +3471,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4807 2007/12/28 15:40:43 dtucker Exp $
+$Id: ChangeLog,v 1.4808 2007/12/28 15:43:51 dtucker Exp $

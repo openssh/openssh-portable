@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.351 2007/05/22 10:18:52 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.352 2007/12/27 14:22:08 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -953,8 +953,7 @@ server_listen(void)
 		    ntop, sizeof(ntop), strport, sizeof(strport),
 		    NI_NUMERICHOST|NI_NUMERICSERV)) != 0) {
 			error("getnameinfo failed: %.100s",
-			    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
-			    strerror(errno));
+			    ssh_gai_strerror(ret));
 			continue;
 		}
 		/* Create socket for listening. */
