@@ -1,3 +1,8 @@
+20071231
+ - (dtucker) [configure.ac openbsd-compat/glob.{c,h}] Bug #1407: force use of
+   builtin glob implementation on Mac OS X.  Based on a patch from
+   vgiffin at apple.
+
 20071229
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2007/12/12 05:04:03
@@ -3482,4 +3487,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4810 2007/12/28 22:37:10 dtucker Exp $
+$Id: ChangeLog,v 1.4811 2007/12/31 10:29:26 dtucker Exp $
