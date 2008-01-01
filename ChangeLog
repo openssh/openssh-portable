@@ -23,6 +23,9 @@
      [sshd_config.5 servconf.c]
      Allow PermitRootLogin in a Match block.  Allows for, eg, permitting root
      only from the local network.  ok markus@, man page bit ok jmc@
+   - dtucker@cvs.openbsd.org 2008/01/01 08:51:20
+     [moduli]
+     Updated moduli file; ok djm@
 
 20071231
  - (dtucker) [configure.ac openbsd-compat/glob.{c,h}] Bug #1407: force use of
@@ -3513,4 +3516,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4815 2008/01/01 09:36:56 dtucker Exp $
+$Id: ChangeLog,v 1.4816 2008/01/01 13:09:16 dtucker Exp $
