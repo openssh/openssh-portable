@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.161 2007/10/24 03:44:02 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.162 2008/01/01 09:06:39 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -669,8 +669,14 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 			 * versions expecting microseconds.
 			 */
 			(void) snprintf(buf, sizeof buf, "T%lu 0 %lu 0\n",
-			    (u_long) stb.st_mtime,
-			    (u_long) stb.st_atime);
+			    (u_long) (stb.st_mtime < 0 ? 0 : stb.st_mtime),
+			    (u_long) (stb.st_atime < 0 ? 0 : stb.st_atime));
+			if (verbose_mode) {
+				fprintf(stderr, "File mtime %ld atime %ld\n",
+				    (long)stb.st_mtime, (long)stb.st_atime);
+				fprintf(stderr, "Sending file timestamps: %s",
+				    buf);
+			}
 			(void) atomicio(vwrite, remout, buf, strlen(buf));
 			if (response() < 0)
 				goto next;
