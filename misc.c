@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.66 2007/12/27 14:22:08 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.67 2008/01/01 08:47:04 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -124,9 +124,9 @@ unset_nonblock(int fd)
 const char *
 ssh_gai_strerror(int gaierr)
 {
-        if (gaierr == EAI_SYSTEM)
-                return strerror(errno);
-        return gai_strerror(gaierr);
+	if (gaierr == EAI_SYSTEM)
+		return strerror(errno);
+	return gai_strerror(gaierr);
 }
 
 /* disable nagle on socket */
