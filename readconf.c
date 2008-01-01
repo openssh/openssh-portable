@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.163 2007/10/22 19:10:24 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.164 2007/12/31 10:41:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -326,6 +326,7 @@ process_config_line(Options *options, const char *host,
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2, fwdarg[256];
 	int opcode, *intptr, value, value2, scale;
+	LogLevel *log_level_ptr;
 	long long orig, val64;
 	size_t len;
 	Forward fwd;
@@ -692,14 +693,14 @@ parse_int:
 		break;
 
 	case oLogLevel:
-		intptr = (int *) &options->log_level;
+		log_level_ptr = &options->log_level;
 		arg = strdelim(&s);
 		value = log_level_number(arg);
 		if (value == SYSLOG_LEVEL_NOT_SET)
 			fatal("%.200s line %d: unsupported log level '%s'",
 			    filename, linenum, arg ? arg : "<NONE>");
-		if (*activep && (LogLevel) *intptr == SYSLOG_LEVEL_NOT_SET)
-			*intptr = (LogLevel) value;
+		if (*activep && *log_level_ptr == SYSLOG_LEVEL_NOT_SET)
+			*log_level_ptr = (LogLevel) value;
 		break;
 
 	case oLocalForward:

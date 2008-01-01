@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.173 2007/12/27 14:22:08 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.174 2007/12/31 10:41:31 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -621,6 +621,8 @@ process_server_config_line(ServerOptions *options, char *line,
 {
 	char *cp, **charptr, *arg, *p;
 	int cmdline = 0, *intptr, value, n;
+	SyslogFacility *log_facility_ptr;
+	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
 	u_short port;
 	u_int i, flags = 0;
@@ -976,25 +978,25 @@ parse_flag:
 		goto parse_flag;
 
 	case sLogFacility:
-		intptr = (int *) &options->log_facility;
+		log_facility_ptr = &options->log_facility;
 		arg = strdelim(&cp);
 		value = log_facility_number(arg);
 		if (value == SYSLOG_FACILITY_NOT_SET)
 			fatal("%.200s line %d: unsupported log facility '%s'",
 			    filename, linenum, arg ? arg : "<NONE>");
-		if (*intptr == -1)
-			*intptr = (SyslogFacility) value;
+		if (*log_facility_ptr == -1)
+			*log_facility_ptr = (SyslogFacility) value;
 		break;
 
 	case sLogLevel:
-		intptr = (int *) &options->log_level;
+		log_level_ptr = &options->log_level;
 		arg = strdelim(&cp);
 		value = log_level_number(arg);
 		if (value == SYSLOG_LEVEL_NOT_SET)
 			fatal("%.200s line %d: unsupported log level '%s'",
 			    filename, linenum, arg ? arg : "<NONE>");
-		if (*intptr == -1)
-			*intptr = (LogLevel) value;
+		if (*log_level_ptr == -1)
+			*log_level_ptr = (LogLevel) value;
 		break;
 
 	case sAllowTcpForwarding:
