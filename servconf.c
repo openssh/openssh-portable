@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.174 2007/12/31 10:41:31 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.175 2008/01/01 09:27:33 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -321,7 +321,7 @@ static struct {
 	{ "serverkeybits", sServerKeyBits, SSHCFG_GLOBAL },
 	{ "logingracetime", sLoginGraceTime, SSHCFG_GLOBAL },
 	{ "keyregenerationinterval", sKeyRegenerationTime, SSHCFG_GLOBAL },
-	{ "permitrootlogin", sPermitRootLogin, SSHCFG_GLOBAL },
+	{ "permitrootlogin", sPermitRootLogin, SSHCFG_ALL },
 	{ "syslogfacility", sLogFacility, SSHCFG_GLOBAL },
 	{ "loglevel", sLogLevel, SSHCFG_GLOBAL },
 	{ "rhostsauthentication", sDeprecated, SSHCFG_GLOBAL },
@@ -806,7 +806,7 @@ parse_filename:
 			fatal("%s line %d: Bad yes/"
 			    "without-password/forced-commands-only/no "
 			    "argument: %s", filename, linenum, arg);
-		if (*intptr == -1)
+		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
 
@@ -1351,6 +1351,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
 	M_CP_INTOPT(kbd_interactive_authentication);
+	M_CP_INTOPT(permit_root_login);
 
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(gateway_ports);
