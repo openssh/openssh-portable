@@ -1,3 +1,6 @@
+20080102
+ - (dtucker) [configure.ac] Fix message for -fstack-protector-all test.
+
 20080101
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2007/12/31 10:41:31
@@ -3516,4 +3519,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4816 2008/01/01 13:09:16 dtucker Exp $
+$Id: ChangeLog,v 1.4817 2008/01/02 07:08:45 dtucker Exp $
