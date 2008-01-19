@@ -976,6 +976,16 @@ server_listen(void)
 		    &on, sizeof(on)) == -1)
 			error("setsockopt SO_REUSEADDR: %s", strerror(errno));
 
+#ifdef IPV6_V6ONLY
+		/* Only communicate in IPv6 over AF_INET6 sockets. */
+		if (ai->ai_family == AF_INET6) {
+			if (setsockopt(listen_sock, IPPROTO_IPV6, IPV6_V6ONLY,
+			    &on, sizeof(on)) == -1)
+				error("setsockopt IPV6_V6ONLY: %s",
+				    strerror(errno));
+		}
+#endif
+
 		debug("Bind to port %s on %s.", strport, ntop);
 
 		/* Bind the socket to the desired port. */
