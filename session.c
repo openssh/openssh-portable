@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.225 2008/02/04 21:53:00 markus Exp $ */
+/* $OpenBSD: session.c,v 1.226 2008/02/08 23:24:07 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -84,6 +84,7 @@
 #include "sshlogin.h"
 #include "serverloop.h"
 #include "canohost.h"
+#include "misc.h"
 #include "session.h"
 #include "kex.h"
 #include "monitor_wrap.h"
@@ -92,6 +93,9 @@
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
 #endif
+
+/* Magic name for internal sftp-server */
+#define INTERNAL_SFTP_NAME	"internal-sftp"
 
 /* func */
 
@@ -130,7 +134,7 @@ extern Buffer loginmsg;
 const char *original_command = NULL;
 
 /* data */
-#define MAX_SESSIONS 10
+#define MAX_SESSIONS 20
 Session	sessions[MAX_SESSIONS];
 
 #define SUBSYSTEM_NONE		0
@@ -688,13 +692,17 @@ do_exec(Session *s, const char *command)
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
-		if (s->is_subsystem)
+		if (strcmp(INTERNAL_SFTP_NAME, command) == 0)
+			s->is_subsystem = SUBSYSTEM_INT_SFTP;
+		else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (config) '%.900s'", command);
 	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
-		if (s->is_subsystem)
+		if (strcmp(INTERNAL_SFTP_NAME, command) == 0)
+			s->is_subsystem = SUBSYSTEM_INT_SFTP;
+		else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (key option) '%.900s'", command);
 	}
@@ -710,7 +718,6 @@ do_exec(Session *s, const char *command)
 		PRIVSEP(audit_run_command(shell));
 	}
 #endif
-
 	if (s->ttyfd != -1)
 		do_exec_pty(s, command);
 	else
@@ -1293,6 +1300,61 @@ do_nologin(struct passwd *pw)
 	}
 }
 
+/*
+ * Chroot into a directory after checking it for safety: all path components
+ * must be root-owned directories with strict permissions.
+ */
+static void
+safely_chroot(const char *path, uid_t uid)
+{
+	const char *cp;
+	char component[MAXPATHLEN];
+	struct stat st;
+
+	if (*path != '/')
+		fatal("chroot path does not begin at root");
+	if (strlen(path) >= sizeof(component))
+		fatal("chroot path too long");
+
+	/*
+	 * Descend the path, checking that each component is a
+	 * root-owned directory with strict permissions.
+	 */
+	for (cp = path; cp != NULL;) {
+		if ((cp = strchr(cp, '/')) == NULL)
+			strlcpy(component, path, sizeof(component));
+		else {
+			cp++;
+			memcpy(component, path, cp - path);
+			component[cp - path] = '\0';
+		}
+	
+		debug3("%s: checking '%s'", __func__, component);
+
+		if (stat(component, &st) != 0)
+			fatal("%s: stat(\"%s\"): %s", __func__,
+			    component, strerror(errno));
+		if (st.st_uid != 0 || (st.st_mode & 022) != 0)
+			fatal("bad ownership or modes for chroot "
+			    "directory %s\"%s\"", 
+			    cp == NULL ? "" : "component ", component);
+		if (!S_ISDIR(st.st_mode))
+			fatal("chroot path %s\"%s\" is not a directory",
+			    cp == NULL ? "" : "component ", component);
+
+	}
+
+	if (chdir(path) == -1)
+		fatal("Unable to chdir to chroot path \"%s\": "
+		    "%s", path, strerror(errno));
+	if (chroot(path) == -1)
+		fatal("chroot(\"%s\"): %s", path, strerror(errno));
+	if (chdir("/") == -1)
+		fatal("%s: chdir(/) after chroot: %s",
+		    __func__, strerror(errno));
+	verbose("Changed root directory to \"%s\"", path);
+}
+
 /* Set login name, uid, gid, and groups. */
 void
 do_setusercontext(struct passwd *pw)
@@ -1324,7 +1386,7 @@ do_setusercontext(struct passwd *pw)
 		}
 # endif /* USE_PAM */
 		if (setusercontext(lc, pw, pw->pw_uid,
-		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
+		    (LOGIN_SETALL & ~(LOGIN_SETPATH|LOGIN_SETUSER))) < 0) {
 			perror("unable to set user context");
 			exit(1);
 		}
@@ -1347,13 +1409,13 @@ do_setusercontext(struct passwd *pw)
 			exit(1);
 		}
 		endgrent();
-#ifdef GSSAPI
+# ifdef GSSAPI
 		if (options.gss_authentication) {
 			temporarily_use_uid(pw);
 			ssh_gssapi_storecreds();
 			restore_uid();
 		}
-#endif
+# endif
 # ifdef USE_PAM
 		/*
 		 * PAM credentials may take the form of supplementary groups.
@@ -1367,15 +1429,33 @@ do_setusercontext(struct passwd *pw)
 # endif /* USE_PAM */
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 		irix_setusercontext(pw);
-#  endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
+# endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
 # ifdef _AIX
 		aix_usrinfo(pw);
 # endif /* _AIX */
-#ifdef USE_LIBIAF
+# ifdef USE_LIBIAF
 		if (set_id(pw->pw_name) != 0) {
 			exit(1);
 		}
-#endif /* USE_LIBIAF */
+# endif /* USE_LIBIAF */
+#endif
+
+		if (options.chroot_directory != NULL &&
+		    strcasecmp(options.chroot_directory, "none") != 0) {
+			char *chroot_path;
+
+			chroot_path = percent_expand(options.chroot_directory,
+			    "h", pw->pw_dir, "u", pw->pw_name, (char *)NULL);
+			safely_chroot(chroot_path, pw->pw_uid);
+			free(chroot_path);
+		}
+
+#ifdef HAVE_LOGIN_CAP
+		if (setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUSER) < 0) {
+			perror("unable to set user context (setuser)");
+			exit(1);
+		}
+#else
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
 #endif
@@ -1625,7 +1705,7 @@ do_child(Session *s, const char *command)
 		argv[i] = NULL;
 		optind = optreset = 1;
 		__progname = argv[0];
-		exit(sftp_server_main(i, argv));
+		exit(sftp_server_main(i, argv, s->pw));
 	}
 
 	if (options.use_login) {
@@ -1900,7 +1980,7 @@ session_subsystem_req(Session *s)
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
-			if (!strcmp("internal-sftp", prog)) {
+			if (!strcmp(INTERNAL_SFTP_NAME, prog)) {
 				s->is_subsystem = SUBSYSTEM_INT_SFTP;
 			} else if (stat(prog, &st) < 0) {
 				error("subsystem: cannot stat %s: %s", prog,

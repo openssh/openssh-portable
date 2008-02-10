@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.h,v 1.6 2008/02/04 21:53:00 markus Exp $ */
+/* $OpenBSD: sftp.h,v 1.7 2008/02/08 23:24:07 djm Exp $ */
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -91,5 +91,7 @@
 #define SSH2_FX_OP_UNSUPPORTED		8
 #define SSH2_FX_MAX			8
 
-int	sftp_server_main(int, char **);
+struct passwd;
+
+int	sftp_server_main(int, char **, struct passwd *);
 void	sftp_server_cleanup_exit(int) __dead;

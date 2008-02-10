@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.175 2008/01/01 09:27:33 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.176 2008/02/08 23:24:08 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -122,6 +122,7 @@ initialize_server_options(ServerOptions *options)
 	options->permit_tun = -1;
 	options->num_permitted_opens = -1;
 	options->adm_forced_command = NULL;
+	options->chroot_directory = NULL;
 }
 
 void
@@ -291,7 +292,7 @@ typedef enum {
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
 	sGssAuthentication, sGssCleanupCreds, sAcceptEnv, sPermitTunnel,
-	sMatch, sPermitOpen, sForceCommand,
+	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
@@ -403,6 +404,7 @@ static struct {
  	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
+	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1147,6 +1149,7 @@ parse_flag:
 	case sBanner:
 		charptr = &options->banner;
 		goto parse_filename;
+
 	/*
 	 * These options can contain %X options expanded at
 	 * connect time, so that you can specify paths like:
@@ -1254,6 +1257,10 @@ parse_flag:
 		if (*activep && options->adm_forced_command == NULL)
 			options->adm_forced_command = xstrdup(cp + len);
 		return 0;
+
+	case sChrootDirectory:
+		charptr = &options->chroot_directory;
+		goto parse_filename;
 
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
@@ -1363,6 +1370,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	if (preauth)
 		return;
 	M_CP_STROPT(adm_forced_command);
+	M_CP_STROPT(chroot_directory);
 }
 
 #undef M_CP_INTOPT
