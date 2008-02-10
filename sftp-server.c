@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.75 2008/01/21 17:24:30 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.76 2008/02/04 21:53:00 markus Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1110,7 +1110,7 @@ process(void)
 	if (msg_len > SFTP_MAX_MSG_LENGTH) {
 		error("bad message from %s local user %s",
 		    client_addr, pw->pw_name);
-		cleanup_exit(11);
+		sftp_server_cleanup_exit(11);
 	}
 	if (buf_len < msg_len + 4)
 		return;
@@ -1183,18 +1183,22 @@ process(void)
 		break;
 	}
 	/* discard the remaining bytes from the current packet */
-	if (buf_len < buffer_len(&iqueue))
-		fatal("iqueue grew unexpectedly");
+	if (buf_len < buffer_len(&iqueue)) {
+		error("iqueue grew unexpectedly");
+		sftp_server_cleanup_exit(255);
+	}
 	consumed = buf_len - buffer_len(&iqueue);
-	if (msg_len < consumed)
-		fatal("msg_len %d < consumed %d", msg_len, consumed);
+	if (msg_len < consumed) {
+		error("msg_len %d < consumed %d", msg_len, consumed);
+		sftp_server_cleanup_exit(255);
+	}
 	if (msg_len > consumed)
 		buffer_consume(&iqueue, msg_len - consumed);
 }
 
 /* Cleanup handler that logs active handles upon normal exit */
 void
-cleanup_exit(int i)
+sftp_server_cleanup_exit(int i)
 {
 	if (pw != NULL && client_addr != NULL) {
 		handle_log_exit();
@@ -1205,7 +1209,7 @@ cleanup_exit(int i)
 }
 
 static void
-usage(void)
+sftp_server_usage(void)
 {
 	extern char *__progname;
 
@@ -1215,7 +1219,7 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
+sftp_server_main(int argc, char **argv)
 {
 	fd_set *rset, *wset;
 	int in, out, max, ch, skipargs = 0, log_stderr = 0;
@@ -1256,7 +1260,7 @@ main(int argc, char **argv)
 			break;
 		case 'h':
 		default:
-			usage();
+			sftp_server_usage();
 		}
 	}
 
@@ -1264,15 +1268,19 @@ main(int argc, char **argv)
 
 	if ((cp = getenv("SSH_CONNECTION")) != NULL) {
 		client_addr = xstrdup(cp);
-		if ((cp = strchr(client_addr, ' ')) == NULL)
-			fatal("Malformed SSH_CONNECTION variable: \"%s\"",
+		if ((cp = strchr(client_addr, ' ')) == NULL) {
+			error("Malformed SSH_CONNECTION variable: \"%s\"",
 			    getenv("SSH_CONNECTION"));
+			sftp_server_cleanup_exit(255);
+		}
 		*cp = '\0';
 	} else
 		client_addr = xstrdup("UNKNOWN");
 
-	if ((pw = getpwuid(getuid())) == NULL)
-		fatal("No user found for uid %lu", (u_long)getuid());
+	if ((pw = getpwuid(getuid())) == NULL) {
+		error("No user found for uid %lu", (u_long)getuid());
+		sftp_server_cleanup_exit(255);
+	}
 	pw = pwcopy(pw);
 
 	logit("session opened for local user %s from [%s]",
@@ -1320,7 +1328,7 @@ main(int argc, char **argv)
 			if (errno == EINTR)
 				continue;
 			error("select: %s", strerror(errno));
-			cleanup_exit(2);
+			sftp_server_cleanup_exit(2);
 		}
 
 		/* copy stdin to iqueue */
@@ -1328,10 +1336,10 @@ main(int argc, char **argv)
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
 				debug("read eof");
-				cleanup_exit(0);
+				sftp_server_cleanup_exit(0);
 			} else if (len < 0) {
 				error("read: %s", strerror(errno));
-				cleanup_exit(1);
+				sftp_server_cleanup_exit(1);
 			} else {
 				buffer_append(&iqueue, buf, len);
 			}
@@ -1341,7 +1349,7 @@ main(int argc, char **argv)
 			len = write(out, buffer_ptr(&oqueue), olen);
 			if (len < 0) {
 				error("write: %s", strerror(errno));
-				cleanup_exit(1);
+				sftp_server_cleanup_exit(1);
 			} else {
 				buffer_consume(&oqueue, len);
 			}

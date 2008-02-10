@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.224 2007/09/11 15:47:17 gilles Exp $ */
+/* $OpenBSD: session.c,v 1.225 2008/02/04 21:53:00 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -87,6 +87,7 @@
 #include "session.h"
 #include "kex.h"
 #include "monitor_wrap.h"
+#include "sftp.h"
 
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
@@ -131,6 +132,10 @@ const char *original_command = NULL;
 /* data */
 #define MAX_SESSIONS 10
 Session	sessions[MAX_SESSIONS];
+
+#define SUBSYSTEM_NONE		0
+#define SUBSYSTEM_EXT		1
+#define SUBSYSTEM_INT_SFTP	2
 
 #ifdef HAVE_LOGIN_CAP
 login_cap_t *lc;
@@ -683,10 +688,14 @@ do_exec(Session *s, const char *command)
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
+		if (s->is_subsystem)
+			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (config) '%.900s'", command);
 	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
+		if (s->is_subsystem)
+			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (key option) '%.900s'", command);
 	}
 
@@ -1465,12 +1474,13 @@ child_close_fds(void)
  * environment, closing extra file descriptors, setting the user and group
  * ids, and executing the command or shell.
  */
+#define ARGV_MAX 10
 void
 do_child(Session *s, const char *command)
 {
 	extern char **environ;
 	char **env;
-	char *argv[10];
+	char *argv[ARGV_MAX];
 	const char *shell, *shell0, *hostname = NULL;
 	struct passwd *pw = s->pw;
 
@@ -1601,6 +1611,22 @@ do_child(Session *s, const char *command)
 
 	/* restore SIGPIPE for child */
 	signal(SIGPIPE, SIG_DFL);
+
+	if (s->is_subsystem == SUBSYSTEM_INT_SFTP) {
+		extern int optind, optreset;
+		int i;
+		char *p, *args;
+
+		setproctitle("%s@internal-sftp-server", s->pw->pw_name);
+		args = strdup(command ? command : "sftp-server");
+		for (i = 0, (p = strtok(args, " ")); p; (p = strtok(NULL, " ")))
+			if (i < ARGV_MAX - 1)
+				argv[i++] = p;
+		argv[i] = NULL;
+		optind = optreset = 1;
+		__progname = argv[0];
+		exit(sftp_server_main(i, argv));
+	}
 
 	if (options.use_login) {
 		launch_login(pw, hostname);
@@ -1874,13 +1900,16 @@ session_subsystem_req(Session *s)
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
-			if (stat(prog, &st) < 0) {
+			if (!strcmp("internal-sftp", prog)) {
+				s->is_subsystem = SUBSYSTEM_INT_SFTP;
+			} else if (stat(prog, &st) < 0) {
 				error("subsystem: cannot stat %s: %s", prog,
 				    strerror(errno));
 				break;
+			} else {
+				s->is_subsystem = SUBSYSTEM_EXT;
 			}
 			debug("subsystem: exec() %s", cmd);
-			s->is_subsystem = 1;
 			do_exec(s, cmd);
 			success = 1;
 			break;
