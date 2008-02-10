@@ -71,6 +71,10 @@
    - markus@cvs.openbsd.org 2008/02/04 21:53:00
      [session.c sftp-server.c sftp.h]
      link sftp-server into sshd; feedback and ok djm@
+   - mcbride@cvs.openbsd.org 2008/02/09 12:15:43
+     [ssh.1 sshd.8]
+     Document the correct permissions for the ~/.ssh/ directory.
+     ok jmc
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3599,4 +3603,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4834 2008/02/10 11:29:40 djm Exp $
+$Id: ChangeLog,v 1.4835 2008/02/10 11:46:22 djm Exp $
