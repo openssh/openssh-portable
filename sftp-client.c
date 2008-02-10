@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.79 2008/01/19 22:04:57 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.80 2008/01/21 19:20:17 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -997,7 +997,8 @@ int
 do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
     int pflag)
 {
-	int local_fd, status;
+	int local_fd;
+	int status = SSH2_FX_OK;
 	u_int handle_len, id, type;
 	off_t offset;
 	char *handle, *data;
@@ -1059,7 +1060,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	if (handle == NULL) {
 		close(local_fd);
 		buffer_free(&msg);
-		return(-1);
+		return -1;
 	}
 
 	startid = ackid = id + 1;
@@ -1079,7 +1080,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		 * Simulate an EOF on interrupt, allowing ACKs from the
 		 * server to drain.
 		 */
-		if (interrupted)
+		if (interrupted || status != SSH2_FX_OK)
 			len = 0;
 		else do
 			len = read(local_fd, data, conn->transfer_buflen);
@@ -1135,19 +1136,6 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 			if (ack == NULL)
 				fatal("Can't find request for ID %u", r_id);
 			TAILQ_REMOVE(&acks, ack, tq);
-
-			if (status != SSH2_FX_OK) {
-				error("Couldn't write to remote file \"%s\": %s",
-				    remote_path, fx2txt(status));
-				if (showprogress)
-					stop_progress_meter();
-				do_close(conn, handle, handle_len);
-				close(local_fd);
-				xfree(data);
-				xfree(ack);
-				status = -1;
-				goto done;
-			}
 			debug3("In write loop, ack for %u %u bytes at %lld",
 			    ack->id, ack->len, (long long)ack->offset);
 			++ackid;
@@ -1157,26 +1145,31 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		if (offset < 0)
 			fatal("%s: offset < 0", __func__);
 	}
+	buffer_free(&msg);
+
 	if (showprogress)
 		stop_progress_meter();
 	xfree(data);
 
+	if (status != SSH2_FX_OK) {
+		error("Couldn't write to remote file \"%s\": %s",
+		    remote_path, fx2txt(status));
+		status = -1;
+	}
+
 	if (close(local_fd) == -1) {
 		error("Couldn't close local file \"%s\": %s", local_path,
 		    strerror(errno));
-		do_close(conn, handle, handle_len);
 		status = -1;
-		goto done;
 	}
 
 	/* Override umask and utimes if asked */
 	if (pflag)
 		do_fsetstat(conn, handle, handle_len, &a);
 
-	status = do_close(conn, handle, handle_len);
-
-done:
+	if (do_close(conn, handle, handle_len) != SSH2_FX_OK)
+		status = -1;
 	xfree(handle);
-	buffer_free(&msg);
-	return(status);
+
+	return status;
 }
