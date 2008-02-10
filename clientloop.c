@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.185 2007/12/28 22:34:47 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.186 2008/01/19 20:48:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -888,6 +888,7 @@ client_process_control(fd_set *readset)
 				xfree(cctx->env);
 			xfree(cctx->term);
 			buffer_free(&cctx->cmd);
+			close(client_fd);
 			xfree(cctx);
 			return;
 		}
