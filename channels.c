@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.271 2007/12/27 14:22:08 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.272 2008/01/19 23:02:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2385,7 +2385,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 			wildcard = 1;
 	} else if (gateway_ports || is_client) {
 		if (((datafellows & SSH_OLD_FORWARD_ADDR) &&
-		    strcmp(listen_addr, "0.0.0.0") == 0) ||
+		    strcmp(listen_addr, "0.0.0.0") == 0 && is_client == 0) ||
 		    *listen_addr == '\0' || strcmp(listen_addr, "*") == 0 ||
 		    (!is_client && gateway_ports == 1))
 			wildcard = 1;
