@@ -9,9 +9,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.42 2007/08/06 19:16:06 sobrado Exp $
+.\" $OpenBSD: scp.1,v 1.43 2008/01/19 19:25:50 djm Exp $
 .\"
-.Dd $Mdocdate: August 6 2007 $
+.Dd $Mdocdate: January 19 2008 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -178,7 +178,9 @@ is already reserved for preserving the times and modes of the file in
 Preserves modification times, access times, and modes from the
 original file.
 .It Fl q
-Disables the progress meter.
+Quiet mode: disables the progress meter as well as warning and diagnostic
+messages from
+.Xr ssh 1 .
 .It Fl r
 Recursively copy entire directories.
 .It Fl S Ar program
