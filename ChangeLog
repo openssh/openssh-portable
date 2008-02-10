@@ -49,6 +49,11 @@
      When uploading, correctly handle the case of an unquoted filename with
      glob metacharacters that match a file exactly but not as a glob, e.g. a
      file called "[abcd]". report and test cases from duncan2nd AT gmx.de
+   - djm@cvs.openbsd.org 2008/01/21 17:24:30
+     [sftp-server.c]
+     Remove the fixed 100 handle limit in sftp-server and allocate as many
+     as we have available file descriptors. Patch from miklos AT szeredi.hu;
+     ok dtucker@ markus@
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3577,4 +3582,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4829 2008/02/10 11:26:24 djm Exp $
+$Id: ChangeLog,v 1.4830 2008/02/10 11:26:51 djm Exp $

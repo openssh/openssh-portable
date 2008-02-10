@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.74 2007/09/13 04:39:04 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.75 2008/01/21 17:24:30 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -169,6 +169,7 @@ struct Handle {
 	int fd;
 	char *name;
 	u_int64_t bytes_read, bytes_write;
+	int next_unused;
 };
 
 enum {
@@ -177,40 +178,46 @@ enum {
 	HANDLE_FILE
 };
 
-Handle	handles[100];
+Handle *handles = NULL;
+u_int num_handles = 0;
+int first_unused_handle = -1;
 
-static void
-handle_init(void)
+static void handle_unused(int i)
 {
-	u_int i;
-
-	for (i = 0; i < sizeof(handles)/sizeof(Handle); i++)
-		handles[i].use = HANDLE_UNUSED;
+	handles[i].use = HANDLE_UNUSED;
+	handles[i].next_unused = first_unused_handle;
+	first_unused_handle = i;
 }
 
 static int
 handle_new(int use, const char *name, int fd, DIR *dirp)
 {
-	u_int i;
+	int i;
 
-	for (i = 0; i < sizeof(handles)/sizeof(Handle); i++) {
-		if (handles[i].use == HANDLE_UNUSED) {
-			handles[i].use = use;
-			handles[i].dirp = dirp;
-			handles[i].fd = fd;
-			handles[i].name = xstrdup(name);
-			handles[i].bytes_read = handles[i].bytes_write = 0;
-			return i;
-		}
+	if (first_unused_handle == -1) {
+		if (num_handles + 1 <= num_handles)
+			return -1;
+		num_handles++;
+		handles = xrealloc(handles, num_handles, sizeof(Handle));
+		handle_unused(num_handles - 1);
 	}
-	return -1;
+
+	i = first_unused_handle;
+	first_unused_handle = handles[i].next_unused;
+
+	handles[i].use = use;
+	handles[i].dirp = dirp;
+	handles[i].fd = fd;
+	handles[i].name = xstrdup(name);
+	handles[i].bytes_read = handles[i].bytes_write = 0;
+
+	return i;
 }
 
 static int
 handle_is_ok(int i, int type)
 {
-	return i >= 0 && (u_int)i < sizeof(handles)/sizeof(Handle) &&
-	    handles[i].use == type;
+	return i >= 0 && (u_int)i < num_handles && handles[i].use == type;
 }
 
 static int
@@ -300,12 +307,12 @@ handle_close(int handle)
 
 	if (handle_is_ok(handle, HANDLE_FILE)) {
 		ret = close(handles[handle].fd);
-		handles[handle].use = HANDLE_UNUSED;
 		xfree(handles[handle].name);
+		handle_unused(handle);
 	} else if (handle_is_ok(handle, HANDLE_DIR)) {
 		ret = closedir(handles[handle].dirp);
-		handles[handle].use = HANDLE_UNUSED;
 		xfree(handles[handle].name);
+		handle_unused(handle);
 	} else {
 		errno = ENOENT;
 	}
@@ -333,7 +340,7 @@ handle_log_exit(void)
 {
 	u_int i;
 
-	for (i = 0; i < sizeof(handles)/sizeof(Handle); i++)
+	for (i = 0; i < num_handles; i++)
 		if (handles[i].use != HANDLE_UNUSED)
 			handle_log_close(i, "forced");
 }
@@ -1270,8 +1277,6 @@ main(int argc, char **argv)
 
 	logit("session opened for local user %s from [%s]",
 	    pw->pw_name, client_addr);
-
-	handle_init();
 
 	in = dup(STDIN_FILENO);
 	out = dup(STDOUT_FILENO);
