@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.163 2007/10/02 17:49:58 chl Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.164 2008/01/19 22:22:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -596,7 +596,7 @@ do_fingerprint(struct passwd *pw)
 }
 
 static void
-print_host(FILE *f, char *name, Key *public, int hash)
+print_host(FILE *f, const char *name, Key *public, int hash)
 {
 	if (hash && (name = host_hash(name, NULL, 0)) == NULL)
 		fatal("hash_host failed");
@@ -723,7 +723,8 @@ do_known_hosts(struct passwd *pw, const char *name)
 					printf("# Host %s found: "
 					    "line %d type %s\n", name,
 					    num, key_type(public));
-					print_host(out, cp, public, hash_hosts);
+					print_host(out, name, public,
+					    hash_hosts);
 				}
 				if (delete_host && !c)
 					print_host(out, cp, public, 0);
