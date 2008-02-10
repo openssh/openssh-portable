@@ -19,6 +19,10 @@
      ignore SIGPIPE in multiplex client mode - we can receive this if the
      server runs out of fds on us midway. Report and patch from
      gregory_shively AT fanniemae.com
+   - djm@cvs.openbsd.org 2008/01/19 22:04:57
+     [sftp-client.c]
+     fix remote handle leak in do_download() local file open error path;
+     report and fix from sworley AT chkno.net
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3547,4 +3551,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4823 2008/02/10 11:23:18 djm Exp $
+$Id: ChangeLog,v 1.4824 2008/02/10 11:23:41 djm Exp $

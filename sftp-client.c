@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.78 2008/01/11 07:22:27 chl Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.79 2008/01/19 22:04:57 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -823,6 +823,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
 		    local_path, strerror(errno));
+		do_close(conn, handle, handle_len);
 		buffer_free(&msg);
 		xfree(handle);
 		return(-1);
