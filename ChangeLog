@@ -1,3 +1,12 @@
+20080210
+ - OpenBSD CVS Sync
+   - chl@cvs.openbsd.org 2008/01/11 07:22:28
+     [sftp-client.c sftp-client.h]
+     disable unused functions
+     initially from tobias@, but disabled them by placing them in
+     "#ifdef notyet" which was asked by djm@
+     ok djm@ tobias@
+
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
    mikel AT mikelward.com
@@ -3525,4 +3534,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4819 2008/01/19 21:56:00 djm Exp $
+$Id: ChangeLog,v 1.4820 2008/02/10 11:20:44 djm Exp $
