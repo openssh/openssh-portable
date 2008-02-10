@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.149 2007/12/28 15:32:24 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.150 2008/01/23 01:56:54 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -968,10 +968,9 @@ packet_read_expect(int expected_type)
  * packet_process_incoming.  If so, reads the packet; otherwise returns
  * SSH_MSG_NONE.  This does not wait for data from the connection.
  *
- * SSH_MSG_DISCONNECT is handled specially here.  Also, SSH_MSG_IGNORE
- * messages are skipped by this function and are never returned
- * to higher levels, although SSH2_MSG_IGNORE are since they are needed
- * for keepalives.
+ * SSH_MSG_DISCONNECT is handled specially here.  Also,
+ * SSH_MSG_IGNORE messages are skipped by this function and are never returned
+ * to higher levels.
  */
 
 static int
@@ -1196,6 +1195,8 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 			if (type)
 				DBG(debug("received packet type %d", type));
 			switch (type) {
+			case SSH2_MSG_IGNORE:
+				break;
 			case SSH2_MSG_DEBUG:
 				packet_get_char();
 				msg = packet_get_string(NULL);
@@ -1216,7 +1217,7 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 				seqnr = packet_get_int();
 				debug("Received SSH2_MSG_UNIMPLEMENTED for %u",
 				    seqnr);
-				/* FALLTHROUGH */
+				break;
 			default:
 				return type;
 			}

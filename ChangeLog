@@ -58,6 +58,11 @@
      [sftp-client.c]
      when a remote write error occurs during an upload, ensure that ACKs for
      all issued requests are properly drained. patch from t8m AT centrum.cz
+   - dtucker@cvs.openbsd.org 2008/01/23 01:56:54
+     [clientloop.c packet.c serverloop.c]
+     Revert the change for bz #1307 as it causes connection aborts if an IGNORE
+     packet arrives while we're waiting in packet_read_expect (and possibly
+     elsewhere).
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3586,4 +3591,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4831 2008/02/10 11:27:24 djm Exp $
+$Id: ChangeLog,v 1.4832 2008/02/10 11:27:47 djm Exp $
