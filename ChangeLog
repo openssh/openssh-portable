@@ -44,6 +44,11 @@
      [readconf.c readconf.h sshconnect2.c]
      promote rekeylimit to a int64 so it can hold the maximum useful limit
      of 2^32; report and patch from Jan.Pechanec AT Sun.COM, ok dtucker@
+   - djm@cvs.openbsd.org 2008/01/20 00:38:30
+     [sftp.c]
+     When uploading, correctly handle the case of an unquoted filename with
+     glob metacharacters that match a file exactly but not as a glob, e.g. a
+     file called "[abcd]". report and test cases from duncan2nd AT gmx.de
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3572,4 +3577,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4828 2008/02/10 11:25:52 djm Exp $
+$Id: ChangeLog,v 1.4829 2008/02/10 11:26:24 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.98 2007/12/12 05:04:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.99 2008/01/20 00:38:30 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -434,17 +434,6 @@ is_dir(char *path)
 }
 
 static int
-is_reg(char *path)
-{
-	struct stat sb;
-
-	if (stat(path, &sb) == -1)
-		fatal("stat %s: %s", path, strerror(errno));
-
-	return(S_ISREG(sb.st_mode));
-}
-
-static int
 remote_is_dir(struct sftp_conn *conn, char *path)
 {
 	Attrib *a;
@@ -532,6 +521,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 	glob_t g;
 	int err = 0;
 	int i;
+	struct stat sb;
 
 	if (dst) {
 		tmp_dst = xstrdup(dst);
@@ -540,7 +530,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 	memset(&g, 0, sizeof(g));
 	debug3("Looking up %s", src);
-	if (glob(src, 0, NULL, &g)) {
+	if (glob(src, GLOB_NOCHECK, NULL, &g)) {
 		error("File \"%s\" not found.", src);
 		err = -1;
 		goto out;
@@ -555,7 +545,13 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-		if (!is_reg(g.gl_pathv[i])) {
+		if (stat(g.gl_pathv[i], &sb) == -1) {
+			err = -1;
+			error("stat %s: %s", g.gl_pathv[i], strerror(errno));
+			continue;
+		}
+
+		if (!S_ISREG(sb.st_mode)) {
 			error("skipping non-regular file %s",
 			    g.gl_pathv[i]);
 			continue;
