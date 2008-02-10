@@ -63,6 +63,11 @@
      Revert the change for bz #1307 as it causes connection aborts if an IGNORE
      packet arrives while we're waiting in packet_read_expect (and possibly
      elsewhere).
+   - jmc@cvs.openbsd.org 2008/01/31 20:06:50
+     [scp.1]
+     explain how to handle local file names containing colons;
+     requested by Tamas TEVESZ
+     ok dtucker
 
 20080119
  - (djm) Silence noice from expr in ssh-copy-id; patch from
@@ -3591,4 +3596,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4832 2008/02/10 11:27:47 djm Exp $
+$Id: ChangeLog,v 1.4833 2008/02/10 11:28:45 djm Exp $
