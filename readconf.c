@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.164 2007/12/31 10:41:31 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.165 2008/01/19 23:09:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -499,7 +499,6 @@ parse_yesnoask:
 		goto parse_int;
 
 	case oRekeyLimit:
-		intptr = &options->rekey_limit;
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
@@ -527,14 +526,14 @@ parse_yesnoask:
 		}
 		val64 *= scale;
 		/* detect integer wrap and too-large limits */
-		if ((val64 / scale) != orig || val64 > INT_MAX)
+		if ((val64 / scale) != orig || val64 > UINT_MAX)
 			fatal("%.200s line %d: RekeyLimit too large",
 			    filename, linenum);
 		if (val64 < 16)
 			fatal("%.200s line %d: RekeyLimit too small",
 			    filename, linenum);
-		if (*activep && *intptr == -1)
-			*intptr = (int)val64;
+		if (*activep && options->rekey_limit == -1)
+			options->rekey_limit = (u_int32_t)val64;
 		break;
 
 	case oIdentityFile:
