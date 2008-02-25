@@ -1,3 +1,8 @@
+20080225
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] rename ssh_gai_strerror hack
+   since it now conflicts with the helper function in misc.c.  From
+   vinschen AT redhat.com.
+
 20080224
  - (tim) [contrib/cygwin/ssh-host-config]
    Grammar changes on SYSCONFDIR LOCALSTATEDIR messages.
@@ -3616,4 +3621,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4838 2008/02/25 09:18:31 dtucker Exp $
+$Id: ChangeLog,v 1.4839 2008/02/25 09:21:20 dtucker Exp $
