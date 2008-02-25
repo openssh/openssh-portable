@@ -5,6 +5,9 @@
  - (dtucker) [configure.ac audit-bsm.c] Bug #1420: Add a local implementation
    of aug_get_machine for systems that don't have their own (eg OS X, FreeBSD).
    Help and testing from csjp at FreeBSD org, vgiffin at apple com.  ok djm@
+ - (dtucker) [includes.h openbsd-compat/openssl-compat.c] Bug #1437: reshuffle
+   headers so ./configure --with-ssl-engine actually works.  Patch from
+   Ian Lister.
 
 20080224
  - (tim) [contrib/cygwin/ssh-host-config]
@@ -3624,4 +3627,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4840 2008/02/25 10:05:04 dtucker Exp $
+$Id: ChangeLog,v 1.4841 2008/02/25 10:13:47 dtucker Exp $
