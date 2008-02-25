@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.389 2008/01/02 07:08:45 dtucker Exp $
+# $Id: configure.ac,v 1.390 2008/02/25 10:05:04 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.389 $)
+AC_REVISION($Revision: 1.390 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -423,6 +423,11 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	    [Use tunnel device compatibility to OpenBSD])
 	AC_DEFINE(SSH_TUN_PREPEND_AF, 1,
 	    [Prepend the address family to IP tunnel traffic])
+	m4_pattern_allow(AU_IPv)
+	AC_CHECK_DECL(AU_IPv4, [], 
+	    AC_DEFINE(AU_IPv4, 0, [System only supports IPv4 audit records])
+	    [#include <bsm/audit.h>]
+	)
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
@@ -1226,7 +1231,7 @@ AC_ARG_WITH(audit,
 		AC_CHECK_FUNCS(getaudit, [],
 		    [AC_MSG_ERROR(BSM enabled and required function not found)])
 		# These are optional
-		AC_CHECK_FUNCS(getaudit_addr)
+		AC_CHECK_FUNCS(getaudit_addr aug_get_machine)
 		AC_DEFINE(USE_BSM_AUDIT, 1, [Use BSM audit module])
 		;;
 	  debug)
