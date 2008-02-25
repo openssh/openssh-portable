@@ -1,3 +1,9 @@
+20080224
+ - (tim) [contrib/cygwin/ssh-host-config]
+   Grammar changes on SYSCONFDIR LOCALSTATEDIR messages.
+   Check more thoroughly that it's possible to create the /var/empty directory.
+   Patch by vinschen AT redhat.com
+
 20080210
  - OpenBSD CVS Sync
    - chl@cvs.openbsd.org 2008/01/11 07:22:28
@@ -3610,4 +3616,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4837 2008/02/10 11:48:55 djm Exp $
+$Id: ChangeLog,v 1.4838 2008/02/25 09:18:31 dtucker Exp $
