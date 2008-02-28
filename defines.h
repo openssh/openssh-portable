@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.145 2007/09/26 21:03:20 dtucker Exp $ */
+/* $Id: defines.h,v 1.146 2008/02/28 08:22:04 dtucker Exp $ */
 
 
 /* Constants */
@@ -565,11 +565,6 @@ struct winsize {
 #ifdef USE_BSM_AUDIT
 # define SSH_AUDIT_EVENTS
 # define CUSTOM_SSH_AUDIT_EVENTS
-#endif
-
-/* OPENSSL_free() is Free() in versions before OpenSSL 0.9.6 */
-#if !defined(OPENSSL_VERSION_NUMBER) || (OPENSSL_VERSION_NUMBER < 0x0090600f)
-# define OPENSSL_free(x) Free(x)
 #endif
 
 #if !defined(HAVE___func__) && defined(HAVE___FUNCTION__)
