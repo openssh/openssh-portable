@@ -122,8 +122,8 @@
 #ifdef LIBWRAP
 #include <tcpd.h>
 #include <syslog.h>
-int allow_severity = LOG_INFO;
-int deny_severity = LOG_WARNING;
+int allow_severity;
+int deny_severity;
 #endif /* LIBWRAP */
 
 #ifndef O_NOCTTY
@@ -1747,6 +1747,8 @@ main(int ac, char **av)
 	audit_connection_from(remote_ip, remote_port);
 #endif
 #ifdef LIBWRAP
+	allow_severity = options.log_facility|LOG_INFO;
+	deny_severity = options.log_facility|LOG_WARNING;
 	/* Check whether logins are denied from this host. */
 	if (packet_connection_is_on_socket()) {
 		struct request_info req;

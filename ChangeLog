@@ -11,6 +11,9 @@
    getgrouplist via getgrset on AIX, rather than iterating over getgrent.
    This allows, eg, Match and AllowGroups directives to work with NIS and
    LDAP groups.
+ - (dtucker) [sshd.c] Bug #1042: make log messages for tcpwrappers use the
+   same SyslogFacility as the rest of sshd.  Patch from William Knox,
+   ok djm@.
 
 20080225
  - (dtucker) [openbsd-compat/fake-rfc2553.h] rename ssh_gai_strerror hack
@@ -3641,4 +3644,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4845 2008/02/28 12:16:04 dtucker Exp $
+$Id: ChangeLog,v 1.4846 2008/02/28 12:20:48 dtucker Exp $
