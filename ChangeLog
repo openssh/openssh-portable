@@ -7,6 +7,10 @@
    SSLeay_add_all_algorithms as a macro already.
  - (dtucker) [key.c defines.h openbsd-compat/openssl-compat.h] Move old OpenSSL
    compat glue into openssl-compat.h.
+ - (dtucker) [configure.ac openbsd-compat/port-aix.{c,h}] Bug #1081: Implement
+   getgrouplist via getgrset on AIX, rather than iterating over getgrent.
+   This allows, eg, Match and AllowGroups directives to work with NIS and
+   LDAP groups.
 
 20080225
  - (dtucker) [openbsd-compat/fake-rfc2553.h] rename ssh_gai_strerror hack
@@ -3637,4 +3641,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4844 2008/02/28 08:22:04 dtucker Exp $
+$Id: ChangeLog,v 1.4845 2008/02/28 12:16:04 dtucker Exp $
