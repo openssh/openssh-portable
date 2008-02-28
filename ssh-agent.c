@@ -51,6 +51,7 @@
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
+#include "openbsd-compat/openssl-compat.h"
 
 #include <errno.h>
 #include <fcntl.h>

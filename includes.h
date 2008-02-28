@@ -166,7 +166,6 @@
 #include "platform.h"
 #include "openbsd-compat/openbsd-compat.h"
 #include "openbsd-compat/bsd-nextstep.h"
-#include "openbsd-compat/openssl-compat.h"
 
 #include "entropy.h"
 

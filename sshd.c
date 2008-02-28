@@ -75,6 +75,8 @@
 #include <openssl/bn.h>
 #include <openssl/md5.h>
 #include <openssl/rand.h>
+#include "openbsd-compat/openssl-compat.h"
+
 #ifdef HAVE_SECUREWARE
 #include <sys/security.h>
 #include <prot.h>

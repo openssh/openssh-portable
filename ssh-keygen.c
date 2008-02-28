@@ -21,6 +21,7 @@
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+#include "openbsd-compat/openssl-compat.h"
 
 #include <errno.h>
 #include <fcntl.h>

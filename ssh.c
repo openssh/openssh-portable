@@ -72,6 +72,7 @@
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include "openbsd-compat/openssl-compat.h"
 
 #include "xmalloc.h"
 #include "ssh.h"

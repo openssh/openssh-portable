@@ -42,6 +42,7 @@
 #include <sys/param.h>
 
 #include <openssl/evp.h>
+#include "openbsd-compat/openssl-compat.h"
 
 #include <fcntl.h>
 #include <pwd.h>
