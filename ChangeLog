@@ -3,6 +3,7 @@
    configure (and there's not much point, as openssh won't work without it)
    so HAVE_SELECT is not defined and the poll(2) compat code doesn't get
    built in.  Remove HAVE_SELECT so we can build on platforms without poll.
+ - (dtucker) [scp.c] Include sys/poll.h inside HAVE_SYS_POLL_H.
 
 20080228
  - (dtucker) [configure.ac] Add -fstack-protector to LDFLAGS too, fixes
@@ -3650,4 +3651,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4847 2008/02/29 02:57:47 dtucker Exp $
+$Id: ChangeLog,v 1.4848 2008/02/29 04:07:01 dtucker Exp $
