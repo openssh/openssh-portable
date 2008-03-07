@@ -4,6 +4,11 @@
      [ssh.1 sshd.8 sshd_config.5]
      bump Mdocdate for pages committed in "febuary", necessary because
      of a typo in rcs.c;
+   - djm@cvs.openbsd.org 2008/02/13 22:38:17
+     [servconf.h session.c sshd.c]
+     rekey arc4random and OpenSSL RNG in postauth child
+     closefrom fds > 2 before shell/command execution
+     ok markus@
 
 20080302
  - (dtucker) [configure.ac] FreeBSD's glob() doesn't behave the way we expect
@@ -3664,4 +3669,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4851 2008/03/07 07:27:58 djm Exp $
+$Id: ChangeLog,v 1.4852 2008/03/07 07:31:24 djm Exp $

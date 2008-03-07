@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.227 2008/02/10 10:54:29 djm Exp $ */
+/* $OpenBSD: session.c,v 1.228 2008/02/13 22:38:17 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -93,9 +93,6 @@
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
 #endif
-
-/* Magic name for internal sftp-server */
-#define INTERNAL_SFTP_NAME	"internal-sftp"
 
 /* func */
 
@@ -491,6 +488,8 @@ do_exec_no_pty(Session *s, const char *command)
 		cray_init_job(s->pw); /* set up cray jid and tmpdir */
 #endif
 
+		closefrom(STDERR_FILENO + 1);
+
 		/* Do processing for the child (exec command etc). */
 		do_child(s, command);
 		/* NOTREACHED */
@@ -610,6 +609,8 @@ do_exec_pty(Session *s, const char *command)
 			do_pre_login(s);
 # endif
 #endif
+
+		closefrom(STDERR_FILENO + 1);
 
 		/* Do common processing for the child, such as execing the command. */
 		do_child(s, command);
