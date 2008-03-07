@@ -1,3 +1,10 @@
+20080307
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2008/02/11 07:58:28
+     [ssh.1 sshd.8 sshd_config.5]
+     bump Mdocdate for pages committed in "febuary", necessary because
+     of a typo in rcs.c;
+
 20080302
  - (dtucker) [configure.ac] FreeBSD's glob() doesn't behave the way we expect
    either, so use our own.
@@ -3657,4 +3664,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4850 2008/03/02 10:52:27 dtucker Exp $
+$Id: ChangeLog,v 1.4851 2008/03/07 07:27:58 djm Exp $
