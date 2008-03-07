@@ -34,6 +34,9 @@
      [monitor_fdpass.c]
      use a union to ensure alignment of the cmsg (pay attention: various other
      parts of the tree need this treatment too); ok djm
+   - deraadt@cvs.openbsd.org 2008/03/04 21:15:42
+     [version.h]
+     crank version; from djm
 
 20080302
  - (dtucker) [configure.ac] FreeBSD's glob() doesn't behave the way we expect
@@ -3694,4 +3697,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4858 2008/03/07 07:35:26 djm Exp $
+$Id: ChangeLog,v 1.4859 2008/03/07 07:35:47 djm Exp $
