@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.187 2008/01/23 01:56:54 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.188 2008/02/22 20:44:02 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -157,7 +157,6 @@ static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
 static int session_closed = 0;	/* In SSH2: login session closed. */
-static int server_alive_timeouts = 0;
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
@@ -467,14 +466,14 @@ client_check_window_change(void)
 static void
 client_global_request_reply(int type, u_int32_t seq, void *ctxt)
 {
-	server_alive_timeouts = 0;
+	keep_alive_timeouts = 0;
 	client_global_request_reply_fwd(type, seq, ctxt);
 }
 
 static void
 server_alive_check(void)
 {
-	if (++server_alive_timeouts > options.server_alive_count_max) {
+	if (++keep_alive_timeouts > options.server_alive_count_max) {
 		logit("Timeout, server not responding.");
 		cleanup_exit(255);
 	}
