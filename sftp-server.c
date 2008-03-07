@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.77 2008/02/08 23:24:07 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.78 2008/02/27 20:21:15 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -487,6 +487,9 @@ process_init(void)
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_VERSION);
 	buffer_put_int(&msg, SSH2_FILEXFER_VERSION);
+	/* POSIX rename extension */
+	buffer_put_cstring(&msg, "posix-rename@openssh.com");
+	buffer_put_cstring(&msg, "1"); /* version */
 	send_msg(&msg);
 	buffer_free(&msg);
 }
@@ -1080,6 +1083,23 @@ process_symlink(void)
 }
 
 static void
+process_extended_posix_rename(u_int32_t id)
+{
+	char *oldpath, *newpath;
+
+	oldpath = get_string(NULL);
+	newpath = get_string(NULL);
+	debug3("request %u: posix-rename", id);
+	logit("posix-rename old \"%s\" new \"%s\"", oldpath, newpath);
+	if (rename(oldpath, newpath) == -1)
+		send_status(id, errno_to_portable(errno));
+	else
+		send_status(id, SSH2_FX_OK);
+	xfree(oldpath);
+	xfree(newpath);
+}
+
+static void
 process_extended(void)
 {
 	u_int32_t id;
@@ -1087,7 +1107,10 @@ process_extended(void)
 
 	id = get_int();
 	request = get_string(NULL);
-	send_status(id, SSH2_FX_OP_UNSUPPORTED);		/* MUST */
+	if (strcmp(request, "posix-rename@openssh.com") == 0)
+		process_extended_posix_rename(id);
+	else
+		send_status(id, SSH2_FX_OP_UNSUPPORTED);	/* MUST */
 	xfree(request);
 }
 
