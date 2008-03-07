@@ -30,6 +30,10 @@
      add an extension method "posix-rename@openssh.com" to perform POSIX atomic
      rename() operations. based on patch from miklos AT szeredi.hu in bz#1400;
      ok dtucker@ markus@
+   - deraadt@cvs.openbsd.org 2008/03/02 18:19:35
+     [monitor_fdpass.c]
+     use a union to ensure alignment of the cmsg (pay attention: various other
+     parts of the tree need this treatment too); ok djm
 
 20080302
  - (dtucker) [configure.ac] FreeBSD's glob() doesn't behave the way we expect
@@ -3690,4 +3694,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4857 2008/03/07 07:33:53 djm Exp $
+$Id: ChangeLog,v 1.4858 2008/03/07 07:35:26 djm Exp $

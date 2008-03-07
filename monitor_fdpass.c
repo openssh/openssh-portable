@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_fdpass.c,v 1.13 2007/09/04 03:21:03 djm Exp $ */
+/* $OpenBSD: monitor_fdpass.c,v 1.14 2008/03/02 18:19:35 deraadt Exp $ */
 /*
  * Copyright 2001 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -49,7 +49,10 @@ mm_send_fd(int sock, int fd)
 	char ch = '\0';
 	ssize_t n;
 #ifndef HAVE_ACCRIGHTS_IN_MSGHDR
-	char tmp[CMSG_SPACE(sizeof(int))];
+	union {
+		struct cmsghdr hdr;
+		char tmp[CMSG_SPACE(sizeof(int))];
+	} tmp;
 	struct cmsghdr *cmsg;
 #endif
 
@@ -58,7 +61,7 @@ mm_send_fd(int sock, int fd)
 	msg.msg_accrights = (caddr_t)&fd;
 	msg.msg_accrightslen = sizeof(fd);
 #else
-	msg.msg_control = (caddr_t)tmp;
+	msg.msg_control = (caddr_t)&tmp;
 	msg.msg_controllen = CMSG_LEN(sizeof(int));
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
@@ -100,7 +103,10 @@ mm_receive_fd(int sock)
 	char ch;
 	int fd;
 #ifndef HAVE_ACCRIGHTS_IN_MSGHDR
-	char tmp[CMSG_SPACE(sizeof(int))];
+	union {
+		char tmp[CMSG_SPACE(sizeof(int))];
+		struct cmsghdr hdr;
+	} tmp;
 	struct cmsghdr *cmsg;
 #endif
 
@@ -113,7 +119,7 @@ mm_receive_fd(int sock)
 	msg.msg_accrights = (caddr_t)&fd;
 	msg.msg_accrightslen = sizeof(fd);
 #else
-	msg.msg_control = tmp;
+	msg.msg_control = &tmp;
 	msg.msg_controllen = sizeof(tmp);
 #endif
 
