@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.229 2008/02/20 15:25:26 markus Exp $ */
+/* $OpenBSD: session.c,v 1.230 2008/02/22 05:58:56 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -488,8 +488,6 @@ do_exec_no_pty(Session *s, const char *command)
 		cray_init_job(s->pw); /* set up cray jid and tmpdir */
 #endif
 
-		closefrom(STDERR_FILENO + 1);
-
 		/* Do processing for the child (exec command etc). */
 		do_child(s, command);
 		/* NOTREACHED */
@@ -609,8 +607,6 @@ do_exec_pty(Session *s, const char *command)
 			do_pre_login(s);
 # endif
 #endif
-
-		closefrom(STDERR_FILENO + 1);
 
 		/* Do common processing for the child, such as execing the command. */
 		do_child(s, command);
@@ -1344,6 +1340,8 @@ safely_chroot(const char *path, uid_t uid)
 			    cp == NULL ? "" : "component ", component);
 
 	}
+
+	closefrom(STDERR_FILENO + 1);
 
 	if (chdir(path) == -1)
 		fatal("Unable to chdir to chroot path \"%s\": "
