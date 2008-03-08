@@ -15,9 +15,12 @@ sftp_ls() {
 	if [ $? -ne 0 ]; then
 		fail "$errtag failed"
 	fi
-	if test "x$expected" != "x" && \
-	   ! fgrep "$expected" ${RESULTS} >/dev/null 2>&1 ; then
+	if test "x$expected" != "x" ; then
+	    if fgrep "$expected" ${RESULTS} >/dev/null 2>&1 ; then
+		:
+	    else
 		fail "$expected missing from $errtag results"
+	    fi
 	fi
 	if test "x$unexpected" != "x" && \
 	   fgrep "$unexpected" ${RESULTS} >/dev/null 2>&1 ; then

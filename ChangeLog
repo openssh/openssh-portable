@@ -37,6 +37,7 @@
    - deraadt@cvs.openbsd.org 2008/03/04 21:15:42
      [version.h]
      crank version; from djm
+ - (tim) [regress/sftp-glob.sh] Shell portability fix.
 
 20080302
  - (dtucker) [configure.ac] FreeBSD's glob() doesn't behave the way we expect
@@ -3697,4 +3698,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4859 2008/03/07 07:35:47 djm Exp $
+$Id: ChangeLog,v 1.4860 2008/03/08 03:00:33 tim Exp $
