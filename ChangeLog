@@ -8,6 +8,9 @@
  - (dtucker) [openbsd-compat/regress/strtonumtest.c] Bug #1347: Use platform's
    equivalent of LLONG_MAX for the compat regression tests, which makes them
    run on AIX and HP-UX.  Patch from David Leonard.
+ - (dtucker) [configure.ac] Run stack-protector tests with -Werror to catch
+   platforms where gcc understands the option but it's not supported (and
+   thus generates a warning).
 
 20080307
  - (djm) OpenBSD CVS Sync
@@ -3709,4 +3712,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4863 2008/03/09 06:10:09 dtucker Exp $
+$Id: ChangeLog,v 1.4864 2008/03/09 11:50:50 dtucker Exp $
