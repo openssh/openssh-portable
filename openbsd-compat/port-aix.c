@@ -435,17 +435,6 @@ out:
 	*grpcnt = ngroups;
 	return ret;
 }
-
-int
-ssh_initgroups(const char *user, gid_t group)
-{
-	gid_t grps[NGROUPS_MAX];
-	int grpcnt = NGROUPS_MAX;
-
-	if (getgrouplist(user, group, grps, &grpcnt) == -1)
-		return -1;
-	return setgroups(grpcnt, grps);
-}
 # endif	/* USE_GETGRSET */
 
 #endif /* _AIX */

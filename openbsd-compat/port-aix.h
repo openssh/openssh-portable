@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.28 2008/02/28 12:16:04 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.29 2008/03/09 05:36:55 dtucker Exp $ */
 
 /*
  *
@@ -111,8 +111,6 @@ int sshaix_getnameinfo(const struct sockaddr *, size_t, char *, size_t,
 # define HAVE_GETGROUPLIST
 # define USE_GETGRSET
 int getgrouplist(const char *, gid_t, gid_t *, int *);
-int ssh_initgroups(const char *, gid_t);
-# define initgroups(a, b) ssh_initgroups((a), (b))
 #endif
 
 #endif /* _AIX */

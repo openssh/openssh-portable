@@ -2,6 +2,9 @@
  - (dtucker) [configure.ac] It turns out gcc's -fstack-protector-all doesn't
    always work for all platforms and versions, so test what we can and
    add a configure flag to turn it of if needed.  ok djm@
+ - (dtucker) [openbsd-compat/port-aix.{c,h}] Remove AIX specific initgroups
+   implementation.  It's not needed to fix bug #1081 and breaks the build
+   on some AIX configurations.
 
 20080307
  - (djm) OpenBSD CVS Sync
@@ -3703,4 +3706,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4861 2008/03/09 00:34:23 dtucker Exp $
+$Id: ChangeLog,v 1.4862 2008/03/09 05:36:55 dtucker Exp $
