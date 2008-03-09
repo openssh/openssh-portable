@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.393 2008/03/02 10:52:28 dtucker Exp $
+# $Id: configure.ac,v 1.394 2008/03/09 00:34:23 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.393 $)
+AC_REVISION($Revision: 1.394 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -90,6 +90,13 @@ AC_C_INLINE
 
 AC_CHECK_DECL(LLONG_MAX, have_llong_max=1, , [#include <limits.h>])
 
+use_stack_protector=1
+AC_ARG_WITH(stackprotect,
+    [  --without-stackprotect Don't use compiler's stack protection], [
+    if test "x$withval" = "xno"; then
+	use_stack_protector=0
+    fi ])
+
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wuninitialized"
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
@@ -105,18 +112,36 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		*) ;;
 	esac
 
-	AC_MSG_CHECKING(if $CC understands -fstack-protector-all)
-	saved_CFLAGS="$CFLAGS"
-	saved_LDFLAGS="$LDFLAGS"
-	CFLAGS="$CFLAGS -fstack-protector-all"
-	LDFLAGS="$LDFLAGS -fstack-protector-all"
-	AC_TRY_LINK([], [ int main(void){return 0;} ],
-	    [ AC_MSG_RESULT(yes) ],
-	    [ AC_MSG_RESULT(no)
-	      CFLAGS="$saved_CFLAGS"
-	      LDFLAGS="$saved_LDFLAGS"
-	     ]
-	)
+	# -fstack-protector-all doesn't always work for some GCC versions
+	# and/or platforms, so we test if we can.
+	if test "x$use_stack_protector" = "x1"; then
+	    for t in -fstack-protector-all -fstack-protector; do
+		AC_MSG_CHECKING(if $CC understands $t)
+		saved_CFLAGS="$CFLAGS"
+		saved_LDFLAGS="$LDFLAGS"
+		CFLAGS="$CFLAGS $t"
+		LDFLAGS="$LDFLAGS $t"
+		AC_TRY_LINK([], [ int main(void){return 0;} ],
+		    [ AC_MSG_RESULT(yes)
+		      AC_MSG_CHECKING(if $t works)
+		      AC_RUN_IFELSE(
+			[AC_LANG_SOURCE([
+#include <stdlib.h>
+int main(void){exit(0);}
+			])],
+			[ AC_MSG_RESULT(yes)
+			  break ],
+			[ AC_MSG_RESULT(no) ],
+			[ AC_MSG_WARN([cross compiling: cannot test])
+			  break ]
+		    )
+		    ],
+		    [ AC_MSG_RESULT(no) ]
+		)
+		CFLAGS="$saved_CFLAGS"
+		LDFLAGS="$saved_LDFLAGS"
+	    done
+	fi
 
 	if test -z "$have_llong_max"; then
 		# retry LLONG_MAX with -std=gnu99, needed on some Linuxes
