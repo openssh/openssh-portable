@@ -1,3 +1,9 @@
+20080312
+ - (dtucker) [auth-pam.c monitor.c session.c sshd.c] Bug #926: Move
+   pam_open_session and pam_close_session into the privsep monitor, which
+   will ensure that pam_session_close is called as root.  Patch from Tomas
+   Mraz.
+
 20080309
  - (dtucker) [configure.ac] It turns out gcc's -fstack-protector-all doesn't
    always work for all platforms and versions, so test what we can and
@@ -3712,4 +3718,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4864 2008/03/09 11:50:50 dtucker Exp $
+$Id: ChangeLog,v 1.4865 2008/03/11 11:58:25 dtucker Exp $

@@ -428,11 +428,6 @@ do_exec_no_pty(Session *s, const char *command)
 
 	session_proctitle(s);
 
-#if defined(USE_PAM)
-	if (options.use_pam && !use_privsep)
-		do_pam_setcred(1);
-#endif /* USE_PAM */
-
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
 		is_child = 1;
@@ -562,14 +557,6 @@ do_exec_pty(Session *s, const char *command)
 		fatal("do_exec_pty: no session");
 	ptyfd = s->ptyfd;
 	ttyfd = s->ttyfd;
-
-#if defined(USE_PAM)
-	if (options.use_pam) {
-		do_pam_set_tty(s->tty);
-		if (!use_privsep)
-			do_pam_setcred(1);
-	}
-#endif
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
@@ -1373,16 +1360,8 @@ do_setusercontext(struct passwd *pw)
 # ifdef __bsdi__
 		setpgid(0, 0);
 # endif
-#ifdef GSSAPI
-		if (options.gss_authentication) {
-			temporarily_use_uid(pw);
-			ssh_gssapi_storecreds();
-			restore_uid();
-		}
-#endif
 # ifdef USE_PAM
 		if (options.use_pam) {
-			do_pam_session();
 			do_pam_setcred(use_privsep);
 		}
 # endif /* USE_PAM */
@@ -1410,13 +1389,6 @@ do_setusercontext(struct passwd *pw)
 			exit(1);
 		}
 		endgrent();
-# ifdef GSSAPI
-		if (options.gss_authentication) {
-			temporarily_use_uid(pw);
-			ssh_gssapi_storecreds();
-			restore_uid();
-		}
-# endif
 # ifdef USE_PAM
 		/*
 		 * PAM credentials may take the form of supplementary groups.
@@ -1424,7 +1396,6 @@ do_setusercontext(struct passwd *pw)
 		 * Reestablish them here.
 		 */
 		if (options.use_pam) {
-			do_pam_session();
 			do_pam_setcred(use_privsep);
 		}
 # endif /* USE_PAM */

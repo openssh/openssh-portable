@@ -1847,6 +1847,20 @@ main(int ac, char **av)
 	audit_event(SSH_AUTH_SUCCESS);
 #endif
 
+#ifdef GSSAPI
+	if (options.gss_authentication) {
+		temporarily_use_uid(authctxt->pw);
+		ssh_gssapi_storecreds();
+		restore_uid();
+	}
+#endif
+#ifdef USE_PAM
+	if (options.use_pam) {
+		do_pam_setcred(1);
+		do_pam_session();
+	}
+#endif
+
 	/*
 	 * In privilege separation, we fork another child and prepare
 	 * file descriptor passing.
