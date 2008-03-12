@@ -13,6 +13,12 @@
      unbreak lls command and add a regress test that would have caught the
      breakage; spotted by mouring@
      NB. sftp code change already committed.
+   - djm@cvs.openbsd.org 2007/12/21 04:13:53
+     [regress/Makefile regress/test-exec.sh regress/putty-ciphers.sh]
+     [regress/putty-kex.sh regress/putty-transfer.sh regress/ssh2putty.sh]
+     basic (crypto, kex and transfer) interop regression tests against putty
+     To run these, install putty and run "make interop-tests" from the build
+     directory - the tests aren't run by default yet.
 
 20080311
  - (dtucker) [auth-pam.c monitor.c session.c sshd.c] Bug #926: Move
@@ -3734,4 +3740,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4869 2008/03/12 12:59:43 djm Exp $
+$Id: ChangeLog,v 1.4870 2008/03/12 13:17:00 djm Exp $

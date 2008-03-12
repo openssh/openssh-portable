@@ -1,7 +1,10 @@
-#	$OpenBSD: Makefile,v 1.43 2007/10/29 06:57:13 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.44 2007/12/21 04:13:53 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
+
+# Interop tests are not run by default
+interop: t-exec-interop
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
@@ -45,6 +48,9 @@ LTESTS= 	connect \
 		localcommand \
 		forcecommand
 
+INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex
+#INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
+
 USER!=		id -un
 CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		authorized_keys_${USER} known_hosts pidfile \
@@ -54,8 +60,6 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		ls.copy banner.in banner.out empty.in \
 		scp-ssh-wrapper.scp ssh_proxy_envpass remote_pid \
 		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv
-
-#LTESTS +=	ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
 t1:
 	ssh-keygen -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
@@ -97,3 +101,11 @@ t-exec:	${LTESTS:=.sh}
 		echo "run test $${TEST}" ... 1>&2; \
 		(env SUDO=${SUDO} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
+
+t-exec-interop:	${INTEROP_TESTS:=.sh}
+	@if [ "x$?" = "x" ]; then exit 0; fi; \
+	for TEST in ""$?; do \
+		echo "run test $${TEST}" ... 1>&2; \
+		(env SUDO=${SUDO} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+	done
+
