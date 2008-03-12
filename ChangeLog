@@ -1,4 +1,10 @@
 20080311
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2007/10/29 06:57:13
+     [regress/Makefile regress/localcommand.sh]
+     Add simple regress test for LocalCommand; ok djm@
+
+20080311
  - (dtucker) [auth-pam.c monitor.c session.c sshd.c] Bug #926: Move
    pam_open_session and pam_close_session into the privsep monitor, which
    will ensure that pam_session_close is called as root.  Patch from Tomas
@@ -3718,4 +3724,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4866 2008/03/11 12:01:44 dtucker Exp $
+$Id: ChangeLog,v 1.4867 2008/03/12 12:58:05 djm Exp $
