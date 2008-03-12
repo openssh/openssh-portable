@@ -8,6 +8,11 @@
      more existant -> existent, from Martynas Venckus;
      pfctl changes: ok henning
      ssh changes: ok deraadt
+   - djm@cvs.openbsd.org 2007/12/12 05:04:03
+     [regress/sftp-cmds.sh]
+     unbreak lls command and add a regress test that would have caught the
+     breakage; spotted by mouring@
+     NB. sftp code change already committed.
 
 20080311
  - (dtucker) [auth-pam.c monitor.c session.c sshd.c] Bug #926: Move
@@ -3729,4 +3734,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4868 2008/03/12 12:58:55 djm Exp $
+$Id: ChangeLog,v 1.4869 2008/03/12 12:59:43 djm Exp $
