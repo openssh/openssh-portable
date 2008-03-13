@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.287 2008/02/10 11:44:20 djm Exp $
+# $Id: Makefile.in,v 1.288 2008/03/13 01:05:40 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -378,7 +378,7 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-keysign.8
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 
-tests:	$(TARGETS)
+tests interop-tests:	$(TARGETS)
 	BUILDDIR=`pwd`; \
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	[ -f `pwd`/regress/Makefile ]  || \

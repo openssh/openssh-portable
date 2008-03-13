@@ -4,7 +4,7 @@ REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
 
 # Interop tests are not run by default
-interop: t-exec-interop
+interop interop-tests: t-exec-interop
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
