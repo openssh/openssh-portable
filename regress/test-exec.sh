@@ -101,10 +101,18 @@ if [ "x$TEST_SSH_SCP" != "x" ]; then
 	SCP="${TEST_SSH_SCP}"
 fi
 if [ "x$TEST_SSH_PLINK" != "x" ]; then
-	PLINK="${TEST_SSH_PLINK}"
+	# Find real binary, if it exists
+	case "${TEST_SSH_PLINK}" in
+	/*) PLINK="${TEST_SSH_PLINK}" ;;
+	*) PLINK=`which ${TEST_SSH_PLINK}` ;;
+	esac
 fi
 if [ "x$TEST_SSH_PUTTYGEN" != "x" ]; then
-	PUTTYGEN="${TEST_SSH_PUTTYGEN}"
+	# Find real binary, if it exists
+	case "${TEST_SSH_PUTTYGEN}" in
+	/*) PUTTYGEN="${TEST_SSH_PUTTYGEN}" ;;
+	*) PUTTYGEN=`which ${TEST_SSH_PUTTYGEN}` ;;
+	esac
 fi
 
 # Path to sshd must be absolute for rexec

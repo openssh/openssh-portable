@@ -1,6 +1,8 @@
 20080313
  - (djm) [Makefile.in regress/Makefile] Fix interop-tests target (note to
    self: make changes to Makefile.in next time, not the generated Makefile).
+ - (djm) [Makefile.in regress/test-exec.sh] Find installed plink(1) and
+   puttygen(1) by $PATH
 
 20080312
  - (djm) OpenBSD CVS Sync
@@ -3744,4 +3746,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4871 2008/03/13 01:05:40 djm Exp $
+$Id: ChangeLog,v 1.4872 2008/03/13 01:41:31 djm Exp $

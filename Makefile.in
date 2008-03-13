@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.288 2008/03/13 01:05:40 djm Exp $
+# $Id: Makefile.in,v 1.289 2008/03/13 01:41:31 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -392,6 +392,8 @@ tests interop-tests:	$(TARGETS)
 	TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/ssh-keyscan"; \
 	TEST_SSH_SFTP="$${BUILDDIR}/sftp"; \
 	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
+	TEST_SSH_PLINK="plink"; \
+	TEST_SSH_PUTTYGEN="puttygen"; \
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
@@ -408,6 +410,8 @@ tests interop-tests:	$(TARGETS)
 		TEST_SSH_SSHKEYSCAN="$${TEST_SSH_SSHKEYSCAN}" \
 		TEST_SSH_SFTP="$${TEST_SSH_SFTP}" \
 		TEST_SSH_SFTPSERVER="$${TEST_SSH_SFTPSERVER}" \
+		TEST_SSH_PLINK="$${TEST_SSH_PLINK}" \
+		TEST_SSH_PUTTYGEN="$${TEST_SSH_PUTTYGEN}" \
 		EXEEXT="$(EXEEXT)" \
 		$@
 
