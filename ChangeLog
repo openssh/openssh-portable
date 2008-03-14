@@ -1,3 +1,9 @@
+20080315
+ - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
+   empty; report and patch from Peter Stuge
+ - (djm) [regress/test-exec.sh] Silence noise from detection of putty
+   commands; report from Peter Stuge
+
 20080314
  - (tim) [regress/sftp-cmds.sh] s/cd/lcd/ in lls test. Reported by
    vinschen at redhat.com. Add () to put echo commands in subshell for lls test
@@ -3757,4 +3763,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4877 2008/03/14 18:02:51 tim Exp $
+$Id: ChangeLog,v 1.4878 2008/03/14 22:25:54 djm Exp $
