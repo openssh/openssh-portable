@@ -10,7 +10,9 @@ PORT=$2
 KEYFILE=$3
 
 # XXX - support DSA keys too
-if ! grep -q "BEGIN RSA PRIVATE KEY" $KEYFILE ; then
+if grep "BEGIN RSA PRIVATE KEY" $KEYFILE >/dev/null 2>&1 ; then
+	:
+else
 	echo "Unsupported private key format"
 	exit 1
 fi
