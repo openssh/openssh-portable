@@ -2,6 +2,8 @@
  - (tim) [regress/sftp-cmds.sh] s/cd/lcd/ in lls test. Reported by
    vinschen at redhat.com. Add () to put echo commands in subshell for lls test
    I mistakenly left out of last commit.
+ - (tim) [regress/localcommand.sh] Shell portability fix. Reported by imorgan at
+   nas.nasa.gov
 
 20080313
  - (djm) [Makefile.in regress/Makefile] Fix interop-tests target (note to
@@ -3755,4 +3757,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4876 2008/03/14 17:39:17 tim Exp $
+$Id: ChangeLog,v 1.4877 2008/03/14 18:02:51 tim Exp $
