@@ -6,7 +6,7 @@
  - (tim) [scp.c] Use poll.h if available, fall back to sys/poll.h if not. Patch
    by vinschen at redhat.com.
  - (tim) [regress/sftp-cmds.sh regress/ssh2putty.sh] Shell portability fixes
-   from imorgan at nas.nasa.gov
+   from vinschen at redhat.com and imorgan at nas.nasa.gov
 
 20080312
  - (djm) OpenBSD CVS Sync
@@ -3750,4 +3750,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4874 2008/03/14 01:21:06 tim Exp $
+$Id: ChangeLog,v 1.4875 2008/03/14 01:37:05 tim Exp $
