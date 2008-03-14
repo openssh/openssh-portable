@@ -44,7 +44,7 @@ rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 mkdir ${COPY}.dd
 
 verbose "$tid: lls"
-echo "cd ${OBJ}" ; echo "lls" | ${SFTP} -P ${SFTPSERVER} 2>&1 | \
+(echo "lcd ${OBJ}" ; echo "lls") | ${SFTP} -P ${SFTPSERVER} 2>&1 | \
 	grep copy.dd >/dev/null 2>&1 || fail "lls failed"
 
 verbose "$tid: lls w/path"
