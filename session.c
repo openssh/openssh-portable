@@ -1328,8 +1328,6 @@ safely_chroot(const char *path, uid_t uid)
 
 	}
 
-	closefrom(STDERR_FILENO + 1);
-
 	if (chdir(path) == -1)
 		fatal("Unable to chdir to chroot path \"%s\": "
 		    "%s", path, strerror(errno));
@@ -1658,6 +1656,8 @@ do_child(Session *s, const char *command)
 			exit(1);
 #endif
 	}
+
+	closefrom(STDERR_FILENO + 1);
 
 	if (!options.use_login)
 		do_rc_files(s, shell);
