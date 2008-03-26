@@ -1345,6 +1345,11 @@ do_setusercontext(struct passwd *pw)
 {
 	char *chroot_path, *tmp;
 
+#ifdef WITH_SELINUX
+	/* Cache selinux status for later use */
+	(void)ssh_selinux_enabled();
+#endif
+
 #ifndef HAVE_CYGWIN
 	if (getuid() == 0 || geteuid() == 0)
 #endif /* HAVE_CYGWIN */

@@ -1,3 +1,9 @@
+20080327
+ - (dtucker) Cache selinux status earlier so we know if it's enabled after a
+   chroot.  Allows ChrootDirectory to work with selinux support compiled in
+   but not enabled.  Using it with selinux enabled will require some selinux
+   support inside the chroot.  "looks sane" djm@
+
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
    empty; report and patch from Peter Stuge
@@ -3765,4 +3771,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4879 2008/03/15 06:27:58 djm Exp $
+$Id: ChangeLog,v 1.4880 2008/03/26 20:27:20 dtucker Exp $
