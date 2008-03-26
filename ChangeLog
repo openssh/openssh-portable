@@ -13,6 +13,11 @@
      [monitor_fdpass.c]
      Correct CMSG_SPACE and CMSG_LEN usage everywhere in the tree. Due to
      an extensive discussion with otto, kettenis, millert, and hshoexer
+   - deraadt@cvs.openbsd.org 2008/03/15 16:19:02
+     [monitor_fdpass.c]
+     Repair the simple cases for msg_controllen where it should just be
+     CMSG_SIZE(sizeof(int)), not sizeof(buffer) which may be larger because
+     of alignment; ok kettenis hshoexer
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3781,4 +3786,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4883 2008/03/26 23:53:23 djm Exp $
+$Id: ChangeLog,v 1.4884 2008/03/26 23:54:44 djm Exp $
