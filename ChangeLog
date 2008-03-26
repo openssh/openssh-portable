@@ -18,6 +18,14 @@
      Repair the simple cases for msg_controllen where it should just be
      CMSG_SIZE(sizeof(int)), not sizeof(buffer) which may be larger because
      of alignment; ok kettenis hshoexer
+   - djm@cvs.openbsd.org 2008/03/23 12:54:01
+     [sftp-client.c]
+     prefer POSIX-style file renaming over filexfer rename behaviour if the
+     server supports the posix-rename@openssh.com extension.
+     Note that the old (filexfer) behaviour would refuse to clobber an
+     existing file. Users who depended on this should adjust their sftp(1)
+     usage.
+     ok deraadt@ markus@
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3786,4 +3794,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4884 2008/03/26 23:54:44 djm Exp $
+$Id: ChangeLog,v 1.4885 2008/03/26 23:59:57 djm Exp $

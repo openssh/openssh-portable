@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.80 2008/01/21 19:20:17 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.81 2008/03/23 12:54:01 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -65,6 +65,8 @@ struct sftp_conn {
 	u_int num_requests;
 	u_int version;
 	u_int msg_id;
+#define SFTP_EXT_POSIX_RENAME	1
+	u_int exts;
 };
 
 static void
@@ -239,7 +241,7 @@ get_decode_stat(int fd, u_int expected_id, int quiet)
 struct sftp_conn *
 do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 {
-	u_int type;
+	u_int type, exts = 0;
 	int version;
 	Buffer msg;
 	struct sftp_conn *ret;
@@ -270,6 +272,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 		char *value = buffer_get_string(&msg, NULL);
 
 		debug2("Init extension: \"%s\"", name);
+		if (strcmp(name, "posix-rename@openssh.com") == 0)
+			exts |= SFTP_EXT_POSIX_RENAME;
 		xfree(name);
 		xfree(value);
 	}
@@ -283,6 +287,7 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 	ret->num_requests = num_requests;
 	ret->version = version;
 	ret->msg_id = 1;
+	ret->exts = exts;
 
 	/* Some filexfer v.0 servers don't support large packets */
 	if (version == 0)
@@ -639,13 +644,20 @@ do_rename(struct sftp_conn *conn, char *oldpath, char *newpath)
 
 	/* Send rename request */
 	id = conn->msg_id++;
-	buffer_put_char(&msg, SSH2_FXP_RENAME);
-	buffer_put_int(&msg, id);
+	if ((conn->exts & SFTP_EXT_POSIX_RENAME)) {
+		buffer_put_char(&msg, SSH2_FXP_EXTENDED);
+		buffer_put_int(&msg, id);
+		buffer_put_cstring(&msg, "posix-rename@openssh.com");
+	} else {
+		buffer_put_char(&msg, SSH2_FXP_RENAME);
+		buffer_put_int(&msg, id);
+	}
 	buffer_put_cstring(&msg, oldpath);
 	buffer_put_cstring(&msg, newpath);
 	send_msg(conn->fd_out, &msg);
-	debug3("Sent message SSH2_FXP_RENAME \"%s\" -> \"%s\"", oldpath,
-	    newpath);
+	debug3("Sent message %s \"%s\" -> \"%s\"",
+	    (conn->exts & SFTP_EXT_POSIX_RENAME) ? "posix-rename@openssh.com" :
+	    "SSH2_FXP_RENAME", oldpath, newpath);
 	buffer_free(&msg);
 
 	status = get_status(conn->fd_in, id);
