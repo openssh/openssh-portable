@@ -1,4 +1,4 @@
-/* $OpenBSD: */
+/* $OpenBSD: sftp-server-main.c,v 1.3 2008/03/26 23:44:41 djm Exp $ */
 /*
  * Copyright (c) 2008 Markus Friedl.  All rights reserved.
  *

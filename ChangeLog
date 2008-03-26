@@ -3,6 +3,7 @@
    chroot.  Allows ChrootDirectory to work with selinux support compiled in
    but not enabled.  Using it with selinux enabled will require some selinux
    support inside the chroot.  "looks sane" djm@
+ - (djm) Fix RCS ident in sftp-server-main.c
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3771,4 +3772,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4880 2008/03/26 20:27:20 dtucker Exp $
+$Id: ChangeLog,v 1.4881 2008/03/26 23:45:49 djm Exp $
