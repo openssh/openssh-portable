@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.230 2008/02/22 05:58:56 djm Exp $ */
+/* $OpenBSD: session.c,v 1.231 2008/03/25 11:58:02 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1202,8 +1202,9 @@ do_rc_files(Session *s, const char *shell)
 	do_xauth =
 	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
 
-	/* ignore _PATH_SSH_USER_RC for subsystems */
-	if (!s->is_subsystem && (stat(_PATH_SSH_USER_RC, &st) >= 0)) {
+	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
+	if (!s->is_subsystem && options.adm_forced_command != NULL &&
+	    (stat(_PATH_SSH_USER_RC, &st) >= 0)) {
 		snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
 		    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
 		if (debug_flag)
