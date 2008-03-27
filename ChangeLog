@@ -46,6 +46,10 @@
    - djm@cvs.openbsd.org 2008/03/27 00:16:49
      [version.h]
      openssh-4.9
+   - djm@cvs.openbsd.org 2008/03/24 21:46:54
+     [regress/sftp-badcmds.sh]
+     disable no-replace rename test now that we prefer a POSIX rename; spotted
+     by dkrause@
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3814,4 +3818,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4890 2008/03/27 00:18:13 djm Exp $
+$Id: ChangeLog,v 1.4891 2008/03/27 00:26:56 djm Exp $
