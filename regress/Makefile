@@ -8,6 +8,8 @@ interop interop-tests: t-exec-interop
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
+	rm -rf $(OBJ).putty
+
 distclean:	clean
 
 LTESTS= 	connect \
@@ -59,7 +61,8 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		rsa-agent rsa-agent.pub rsa1-agent rsa1-agent.pub \
 		ls.copy banner.in banner.out empty.in \
 		scp-ssh-wrapper.scp ssh_proxy_envpass remote_pid \
-		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv
+		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv \
+		putty.rsa2
 
 t1:
 	ssh-keygen -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
