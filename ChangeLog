@@ -50,6 +50,7 @@
      [regress/sftp-badcmds.sh]
      disable no-replace rename test now that we prefer a POSIX rename; spotted
      by dkrause@
+ - (djm) [configure.ac] fix alignment of --without-stackprotect description
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3818,4 +3819,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4891 2008/03/27 00:26:56 djm Exp $
+$Id: ChangeLog,v 1.4892 2008/03/27 01:30:18 djm Exp $

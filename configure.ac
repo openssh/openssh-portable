@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.395 2008/03/09 11:50:50 dtucker Exp $
+# $Id: configure.ac,v 1.396 2008/03/27 01:30:18 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.395 $)
+AC_REVISION($Revision: 1.396 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -92,7 +92,7 @@ AC_CHECK_DECL(LLONG_MAX, have_llong_max=1, , [#include <limits.h>])
 
 use_stack_protector=1
 AC_ARG_WITH(stackprotect,
-    [  --without-stackprotect Don't use compiler's stack protection], [
+    [  --without-stackprotect  Don't use compiler's stack protection], [
     if test "x$withval" = "xno"; then
 	use_stack_protector=0
     fi ])
