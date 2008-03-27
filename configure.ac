@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.396 2008/03/27 01:30:18 djm Exp $
+# $Id: configure.ac,v 1.397 2008/03/27 01:33:07 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.396 $)
+AC_REVISION($Revision: 1.397 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3258,7 +3258,7 @@ int main() { return 0; }
 SELINUX_MSG="no"
 LIBSELINUX=""
 AC_ARG_WITH(selinux,
-	[  --with-selinux   Enable SELinux support],
+	[  --with-selinux          Enable SELinux support],
 	[ if test "x$withval" != "xno" ; then
 		save_LIBS="$LIBS"
 		AC_DEFINE(WITH_SELINUX,1,[Define if you want SELinux support.])
