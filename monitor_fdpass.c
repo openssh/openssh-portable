@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_fdpass.c,v 1.16 2008/03/15 16:19:02 deraadt Exp $ */
+/* $OpenBSD: monitor_fdpass.c,v 1.17 2008/03/24 16:11:07 deraadt Exp $ */
 /*
  * Copyright 2001 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -63,7 +63,7 @@ mm_send_fd(int sock, int fd)
 	msg.msg_accrightslen = sizeof(fd);
 #else
 	msg.msg_control = (caddr_t)&cmsgbuf.buf;
-	msg.msg_controllen = CMSG_LEN(sizeof(int));
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
 	cmsg->cmsg_level = SOL_SOCKET;
@@ -121,7 +121,7 @@ mm_receive_fd(int sock)
 	msg.msg_accrightslen = sizeof(fd);
 #else
 	msg.msg_control = &cmsgbuf.buf;
-	msg.msg_controllen = CMSG_LEN(sizeof(int));
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
 #endif
 
 	if ((n = recvmsg(sock, &msg, 0)) == -1) {

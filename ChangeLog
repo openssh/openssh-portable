@@ -26,6 +26,13 @@
      existing file. Users who depended on this should adjust their sftp(1)
      usage.
      ok deraadt@ markus@
+   - deraadt@cvs.openbsd.org 2008/03/24 16:11:07
+     [monitor_fdpass.c]
+     msg_controllen has to be CMSG_SPACE so that the kernel can account for
+     each cmsg_len (ie. msg_controllen = sum of CMSG_ALIGN(cmsg_len).  This
+     works now that kernel fd passing has been fixed to accept a bit of
+     sloppiness because of this ABI repair.
+     lots of discussion with kettenis
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3794,4 +3801,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4885 2008/03/26 23:59:57 djm Exp $
+$Id: ChangeLog,v 1.4886 2008/03/27 00:01:15 djm Exp $
