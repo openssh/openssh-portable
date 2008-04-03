@@ -13,6 +13,7 @@
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers in RPM spec files
  - (djm) [README] Update link to release notes
+ - (djm) Release 5.0p1
 
 20080315
  - (djm) [regress/test-exec.sh] Quote putty-related variables in case they are
@@ -3850,4 +3851,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4902 2008/04/03 09:56:38 djm Exp $
+$Id: ChangeLog,v 1.4903 2008/04/03 09:57:05 djm Exp $
