@@ -4,6 +4,9 @@
      [channels.c]
      avoid possible hijacking of x11-forwarded connections (back out 1.183)
      CVE-2008-1483; ok djm@
+   - jmc@cvs.openbsd.org 2008/03/27 22:37:57
+     [sshd.8]
+     remove trailing whitespace;
 
 20080327
  - (dtucker) Cache selinux status earlier so we know if it's enabled after a
@@ -3832,4 +3835,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4898 2008/04/02 21:43:57 djm Exp $
+$Id: ChangeLog,v 1.4899 2008/04/03 09:52:51 djm Exp $
