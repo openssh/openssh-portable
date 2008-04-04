@@ -1,4 +1,8 @@
 20080403
+ - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
+   time warnings on LynxOS. Patch from ops AT iki.fi
+
+20080403
  - (djm) OpenBSD CVS sync:
    - markus@cvs.openbsd.org 2008/04/02 15:36:51
      [channels.c]
@@ -3851,4 +3855,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4903 2008/04/03 09:57:05 djm Exp $
+$Id: ChangeLog,v 1.4904 2008/04/04 05:16:35 djm Exp $
