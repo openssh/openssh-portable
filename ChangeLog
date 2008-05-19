@@ -1,3 +1,10 @@
+20080518
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2008/04/04 05:14:38
+     [sshd_config.5]
+     ChrootDirectory is supported in Match blocks (in fact, it is most useful
+     there). Spotted by Minstrel AT minstrel.org.uk
+
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
    time warnings on LynxOS. Patch from ops AT iki.fi
@@ -3857,4 +3864,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4905 2008/05/16 00:01:54 djm Exp $
+$Id: ChangeLog,v 1.4906 2008/05/19 04:27:42 djm Exp $

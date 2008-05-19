@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.84 2008/03/25 11:58:02 djm Exp $
-.Dd $Mdocdate: March 25 2008 $
+.\" $OpenBSD: sshd_config.5,v 1.85 2008/04/04 05:14:38 djm Exp $
+.Dd $Mdocdate: April 4 2008 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -210,6 +210,29 @@ in-process sftp server is used (see
 .Cm Subsystem
 for details).
 .Pp
+Please note that there are many ways to misconfigure a chroot environment
+in ways that compromise security.
+These include:
+.Pp
+.Bl -dash -offset indent -compact
+.It
+Making unsafe setuid binaries available;
+.It
+Having missing or incorrect configuration files in the chroot's
+.Pa /etc
+directory;
+.It
+Hard-linking files between the chroot and outside;
+.It
+Leaving unnecessary
+.Pa /dev
+nodes accessible inside the chroot (especially those for physical drives);
+.It
+Executing scripts or binaries inside the chroot from outside, either
+directly or through facilities such as
+.Xr cron 8 .
+.El
+.Pp
 The default is not to
 .Xr chroot 2 .
 .It Cm Ciphers
@@ -340,6 +363,11 @@ Specifying a command of
 will force the use of an in-process sftp server that requires no support
 files when used with
 .Cm ChrootDirectory .
+Note that
+.Dq internal-sftp
+is only supported when
+.Cm UsePrivilegeSeparation
+is enabled.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
@@ -563,6 +591,7 @@ keyword.
 Available keywords are
 .Cm AllowTcpForwarding ,
 .Cm Banner ,
+.Cm ChrootDirectory ,
 .Cm ForceCommand ,
 .Cm GatewayPorts ,
 .Cm GSSApiAuthentication ,
@@ -801,6 +830,11 @@ server.
 This may simplify configurations using
 .Cm ChrootDirectory
 to force a different filesystem root on clients.
+Note that
+.Dq internal-sftp
+is only supported when
+.Cm UsePrivilegeSeparation
+is enabled.
 .Pp
 By default no subsystems are defined.
 Note that this option applies to protocol version 2 only.
