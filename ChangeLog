@@ -77,6 +77,21 @@
      shouldn't happen in compliant implementations, but it could be
      abused to leak memory.
      ok markus@ (as part of a larger diff)
+   - djm@cvs.openbsd.org 2008/05/08 12:21:16
+     [monitor.c monitor_wrap.c session.h servconf.c servconf.h session.c]
+     [sshd_config sshd_config.5]
+     Make the maximum number of sessions run-time controllable via
+     a sshd_config MaxSessions knob. This is useful for disabling
+     login/shell/subsystem access while leaving port-forwarding working
+     (MaxSessions 0), disabling connection multiplexing (MaxSessions 1) or
+     simply increasing the number of allows multiplexed sessions.
+     Because some bozos are sure to configure MaxSessions in excess of the
+     number of available file descriptors in sshd (which, at peak, might be
+     as many as 9*MaxSessions), audit sshd to ensure that it doesn't leak fds
+     on error paths, and make it fail gracefully on out-of-fd conditions -
+     sending channel errors instead of than exiting with fatal().
+     bz#1090; MaxSessions config bits and manpage from junyer AT gmail.com
+     ok markus@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3937,4 +3952,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4922 2008/05/19 05:28:35 djm Exp $
+$Id: ChangeLog,v 1.4923 2008/05/19 05:34:50 djm Exp $

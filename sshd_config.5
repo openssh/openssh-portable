@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.89 2008/05/07 08:00:14 jmc Exp $
-.Dd $Mdocdate: May 19 2008 $
+.\" $OpenBSD: sshd_config.5,v 1.90 2008/05/08 12:21:16 djm Exp $
+.Dd $Mdocdate: May 8 2008 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -594,6 +594,9 @@ connection.
 Once the number of failures reaches half this value,
 additional failures are logged.
 The default is 6.
+.It Cm MaxSessions
+Specifies the maximum number of open sessions permitted per network connection.
+The default is 10.
 .It Cm MaxStartups
 Specifies the maximum number of concurrent unauthenticated connections to the
 SSH daemon.

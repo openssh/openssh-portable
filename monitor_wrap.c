@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.61 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.62 2008/05/08 12:21:16 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -666,7 +666,20 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {
 	Buffer m;
 	char *p, *msg;
-	int success = 0;
+	int success = 0, tmp1 = -1, tmp2 = -1;
+
+	/* Kludge: ensure there are fds free to receive the pty/tty */
+	if ((tmp1 = dup(pmonitor->m_recvfd)) == -1 ||
+	    (tmp2 = dup(pmonitor->m_recvfd)) == -1) {
+		error("%s: cannot allocate fds for pty", __func__);
+		if (tmp1 > 0)
+			close(tmp1);
+		if (tmp2 > 0)
+			close(tmp2);
+		return 0;
+	}
+	close(tmp1);
+	close(tmp2);
 
 	buffer_init(&m);
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PTY, &m);
@@ -711,8 +724,9 @@ mm_session_pty_cleanup2(Session *s)
 	buffer_free(&m);
 
 	/* closed dup'ed master */
-	if (close(s->ptymaster) < 0)
-		error("close(s->ptymaster): %s", strerror(errno));
+	if (s->ptymaster != -1 && close(s->ptymaster) < 0)
+		error("close(s->ptymaster/%d): %s",
+		    s->ptymaster, strerror(errno));
 
 	/* unlink pty from session */
 	s->ttyfd = -1;
