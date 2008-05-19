@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.45 2007/09/27 00:15:57 ray Exp $ */
+/* $OpenBSD: dh.c,v 1.46 2008/04/13 00:22:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -153,7 +153,7 @@ choose_dh(int min, int wantbits, int max)
 	}
 
 	linenum = 0;
-	which = arc4random() % bestcount;
+	which = arc4random_uniform(bestcount);
 	while (fgets(line, sizeof(line), f)) {
 		if (!parse_prime(linenum, line, &dhg))
 			continue;
