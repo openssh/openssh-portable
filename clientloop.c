@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.189 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.190 2008/05/08 13:06:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -171,6 +171,11 @@ struct confirm_ctx {
 	char *term;
 	struct termios tio;
 	char **env;
+};
+
+struct channel_reply_ctx {
+	const char *request_type;
+	int id, do_close;
 };
 
 /*XXX*/
@@ -645,25 +650,60 @@ client_process_net_input(fd_set *readset)
 }
 
 static void
-client_subsystem_reply(int type, u_int32_t seq, void *ctxt)
+client_status_confirm(int type, Channel *c, void *ctx)
 {
-	int id;
-	Channel *c;
+	struct channel_reply_ctx *cr = (struct channel_reply_ctx *)ctx;
+	char errmsg[256];
+	int tochan;
 
-	id = packet_get_int();
-	packet_check_eom();
+	/* XXX supress on mux _client_ quietmode */
+	tochan = options.log_level >= SYSLOG_LEVEL_ERROR &&
+	    c->ctl_fd != -1 && c->extended_usage == CHAN_EXTENDED_WRITE;
 
-	if ((c = channel_lookup(id)) == NULL) {
-		error("%s: no channel for id %d", __func__, id);
-		return;
+	if (type == SSH2_MSG_CHANNEL_SUCCESS) {
+		debug2("%s request accepted on channel %d",
+		    cr->request_type, c->self);
+	} else if (type == SSH2_MSG_CHANNEL_FAILURE) {
+		if (tochan) {
+			snprintf(errmsg, sizeof(errmsg),
+			    "%s request failed\r\n", cr->request_type);
+		} else {
+			snprintf(errmsg, sizeof(errmsg),
+			    "%s request failed on channel %d",
+			    cr->request_type, c->self);
+		}
+		/* If error occurred on primary session channel, then exit */
+		if (cr->do_close && c->self == session_ident)
+			fatal("%s", errmsg);
+		/* If error occurred on mux client, append to their stderr */
+		if (tochan)
+			buffer_append(&c->extended, errmsg, strlen(errmsg));
+		else
+			error("%s", errmsg);
+		if (cr->do_close) {
+			chan_read_failed(c);
+			chan_write_failed(c);
+		}
 	}
+	xfree(cr);
+}
 
-	if (type == SSH2_MSG_CHANNEL_SUCCESS)
-		debug2("Request suceeded on channel %d", id);
-	else if (type == SSH2_MSG_CHANNEL_FAILURE) {
-		error("Request failed on channel %d", id);
-		channel_free(c);
-	}
+static void
+client_abandon_status_confirm(Channel *c, void *ctx)
+{
+	xfree(ctx);
+}
+
+static void
+client_expect_confirm(int id, const char *request, int do_close)
+{
+	struct channel_reply_ctx *cr = xmalloc(sizeof(*cr));
+
+	cr->request_type = request;
+	cr->do_close = do_close;
+
+	channel_register_status_confirm(id, client_status_confirm,
+	    client_abandon_status_confirm, cr);
 }
 
 static void
@@ -698,8 +738,7 @@ client_extra_session2_setup(int id, void *arg)
 	}
 
 	client_session2_setup(id, cctx->want_tty, cctx->want_subsys,
-	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env,
-	    client_subsystem_reply);
+	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env);
 
 	c->open_confirm_ctx = NULL;
 	buffer_free(&cctx->cmd);
@@ -1366,7 +1405,9 @@ client_process_buffered_input_packets(void)
 static int
 simple_escape_filter(Channel *c, char *buf, int len)
 {
-	/* XXX we assume c->extended is writeable */
+	if (c->extended_usage != CHAN_EXTENDED_WRITE)
+		return 0;
+
 	return process_escapes(&c->input, &c->output, &c->extended, buf, len);
 }
 
@@ -1962,8 +2003,7 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 void
 client_session2_setup(int id, int want_tty, int want_subsystem,
-    const char *term, struct termios *tiop, int in_fd, Buffer *cmd, char **env,
-    dispatch_fn *subsys_repl)
+    const char *term, struct termios *tiop, int in_fd, Buffer *cmd, char **env)
 {
 	int len;
 	Channel *c = NULL;
@@ -1981,7 +2021,8 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		if (ioctl(in_fd, TIOCGWINSZ, &ws) < 0)
 			memset(&ws, 0, sizeof(ws));
 
-		channel_request_start(id, "pty-req", 0);
+		channel_request_start(id, "pty-req", 1);
+		client_expect_confirm(id, "PTY allocation", 0);
 		packet_put_cstring(term != NULL ? term : "");
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);
@@ -2036,22 +2077,21 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		if (len > 900)
 			len = 900;
 		if (want_subsystem) {
-			debug("Sending subsystem: %.*s", len, (u_char*)buffer_ptr(cmd));
-			channel_request_start(id, "subsystem", subsys_repl != NULL);
-			if (subsys_repl != NULL) {
-				/* register callback for reply */
-				/* XXX we assume that client_loop has already been called */
-				dispatch_set(SSH2_MSG_CHANNEL_FAILURE, subsys_repl);
-				dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, subsys_repl);
-			}
+			debug("Sending subsystem: %.*s",
+			    len, (u_char*)buffer_ptr(cmd));
+			channel_request_start(id, "subsystem", 1);
+			client_expect_confirm(id, "subsystem", 1);
 		} else {
-			debug("Sending command: %.*s", len, (u_char*)buffer_ptr(cmd));
-			channel_request_start(id, "exec", 0);
+			debug("Sending command: %.*s",
+			    len, (u_char*)buffer_ptr(cmd));
+			channel_request_start(id, "exec", 1);
+			client_expect_confirm(id, "exec", 1);
 		}
 		packet_put_string(buffer_ptr(cmd), buffer_len(cmd));
 		packet_send();
 	} else {
-		channel_request_start(id, "shell", 0);
+		channel_request_start(id, "shell", 1);
+		client_expect_confirm(id, "shell", 1);
 		packet_send();
 	}
 }

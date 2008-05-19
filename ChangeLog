@@ -92,6 +92,18 @@
      sending channel errors instead of than exiting with fatal().
      bz#1090; MaxSessions config bits and manpage from junyer AT gmail.com
      ok markus@
+   - djm@cvs.openbsd.org 2008/05/08 13:06:11
+     [clientloop.c clientloop.h ssh.c]
+     Use new channel status confirmation callback system to properly deal
+     with "important" channel requests that fail, in particular command exec,
+     shell and subsystem requests. Previously we would optimistically assume
+     that the requests would always succeed, which could cause hangs if they
+     did not (e.g. when the server runs out of fds) or were unimplemented by
+     the server (bz #1384)
+     Also, properly report failing multiplex channel requests via the mux
+     client stderr (subject to LogLevel in the mux master) - better than
+     silently failing.
+     most bits ok markus@ (as part of a larger diff)
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3952,4 +3964,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4923 2008/05/19 05:34:50 djm Exp $
+$Id: ChangeLog,v 1.4924 2008/05/19 05:36:08 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.310 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.311 2008/05/08 13:06:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1039,21 +1039,6 @@ ssh_session(void)
 	    options.escape_char : SSH_ESCAPECHAR_NONE, 0);
 }
 
-static void
-ssh_subsystem_reply(int type, u_int32_t seq, void *ctxt)
-{
-	int id, len;
-
-	id = packet_get_int();
-	len = buffer_len(&command);
-	if (len > 900)
-		len = 900;
-	packet_check_eom();
-	if (type == SSH2_MSG_CHANNEL_FAILURE)
-		fatal("Request for subsystem '%.*s' failed on channel %d",
-		    len, (u_char *)buffer_ptr(&command), id);
-}
-
 void
 client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
 {
@@ -1150,7 +1135,7 @@ ssh_session2_setup(int id, void *arg)
 	}
 
 	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
-	    NULL, fileno(stdin), &command, environ, &ssh_subsystem_reply);
+	    NULL, fileno(stdin), &command, environ);
 
 	packet_set_interactive(interactive);
 }
