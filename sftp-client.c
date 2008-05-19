@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.81 2008/03/23 12:54:01 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.82 2008/04/18 12:32:11 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -24,6 +24,7 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
+#include <sys/statvfs.h>
 #include "openbsd-compat/sys-queue.h"
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
@@ -65,7 +66,9 @@ struct sftp_conn {
 	u_int num_requests;
 	u_int version;
 	u_int msg_id;
-#define SFTP_EXT_POSIX_RENAME	1
+#define SFTP_EXT_POSIX_RENAME	0x00000001
+#define SFTP_EXT_STATVFS	0x00000002
+#define SFTP_EXT_FSTATVFS	0x00000004
 	u_int exts;
 };
 
@@ -238,6 +241,56 @@ get_decode_stat(int fd, u_int expected_id, int quiet)
 	return(a);
 }
 
+static int
+get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
+{
+	Buffer msg;
+	u_int type, id, flag;
+
+	buffer_init(&msg);
+	get_msg(fd, &msg);
+
+	type = buffer_get_char(&msg);
+	id = buffer_get_int(&msg);
+
+	debug3("Received statvfs reply T:%u I:%u", type, id);
+	if (id != expected_id)
+		fatal("ID mismatch (%u != %u)", id, expected_id);
+	if (type == SSH2_FXP_STATUS) {
+		int status = buffer_get_int(&msg);
+
+		if (quiet)
+			debug("Couldn't statvfs: %s", fx2txt(status));
+		else
+			error("Couldn't statvfs: %s", fx2txt(status));
+		buffer_free(&msg);
+		return -1;
+	} else if (type != SSH2_FXP_EXTENDED_REPLY) {
+		fatal("Expected SSH2_FXP_EXTENDED_REPLY(%u) packet, got %u",
+		    SSH2_FXP_EXTENDED_REPLY, type);
+	}
+
+	bzero(st, sizeof(*st));
+	st->f_bsize = buffer_get_int(&msg);
+	st->f_frsize = buffer_get_int(&msg);
+	st->f_blocks = buffer_get_int64(&msg);
+	st->f_bfree = buffer_get_int64(&msg);
+	st->f_bavail = buffer_get_int64(&msg);
+	st->f_files = buffer_get_int64(&msg);
+	st->f_ffree = buffer_get_int64(&msg);
+	st->f_favail = buffer_get_int64(&msg);
+	st->f_fsid = buffer_get_int(&msg);
+	flag = buffer_get_int(&msg);
+	st->f_namemax = buffer_get_int(&msg);
+
+	st->f_flag = (flag & SSH2_FXE_STATVFS_ST_RDONLY) ? ST_RDONLY : 0;
+	st->f_flag |= (flag & SSH2_FXE_STATVFS_ST_NOSUID) ? ST_NOSUID : 0;
+
+	buffer_free(&msg);
+
+	return 0;
+}
+
 struct sftp_conn *
 do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 {
@@ -272,8 +325,15 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 		char *value = buffer_get_string(&msg, NULL);
 
 		debug2("Init extension: \"%s\"", name);
-		if (strcmp(name, "posix-rename@openssh.com") == 0)
+		if (strcmp(name, "posix-rename@openssh.com") == 0 &&
+		    strcmp(value, "1") == 0)
 			exts |= SFTP_EXT_POSIX_RENAME;
+		if (strcmp(name, "statvfs@openssh.com") == 0 &&
+		    strcmp(value, "1") == 0)
+			exts |= SFTP_EXT_STATVFS;
+		if (strcmp(name, "fstatvfs@openssh.com") == 0 &&
+		    strcmp(value, "1") == 0)
+			exts |= SFTP_EXT_FSTATVFS;
 		xfree(name);
 		xfree(value);
 	}
@@ -746,6 +806,60 @@ do_readlink(struct sftp_conn *conn, char *path)
 	buffer_free(&msg);
 
 	return(filename);
+}
+#endif
+
+int
+do_statvfs(struct sftp_conn *conn, const char *path, struct statvfs *st,
+    int quiet)
+{
+	Buffer msg;
+	u_int id;
+
+	if ((conn->exts & SFTP_EXT_STATVFS) == 0) {
+		error("Server does not support statvfs@openssh.com extension");
+		return -1;
+	}
+
+	id = conn->msg_id++;
+
+	buffer_init(&msg);
+	buffer_clear(&msg);
+	buffer_put_char(&msg, SSH2_FXP_EXTENDED);
+	buffer_put_int(&msg, id);
+	buffer_put_cstring(&msg, "statvfs@openssh.com");
+	buffer_put_cstring(&msg, path);
+	send_msg(conn->fd_out, &msg);
+	buffer_free(&msg);
+
+	return get_decode_statvfs(conn->fd_in, st, id, quiet);
+}
+
+#ifdef notyet
+int
+do_fstatvfs(struct sftp_conn *conn, const char *handle, u_int handle_len,
+    struct statvfs *st, int quiet)
+{
+	Buffer msg;
+	u_int id;
+
+	if ((conn->exts & SFTP_EXT_FSTATVFS) == 0) {
+		error("Server does not support fstatvfs@openssh.com extension");
+		return -1;
+	}
+
+	id = conn->msg_id++;
+
+	buffer_init(&msg);
+	buffer_clear(&msg);
+	buffer_put_char(&msg, SSH2_FXP_EXTENDED);
+	buffer_put_int(&msg, id);
+	buffer_put_cstring(&msg, "fstatvfs@openssh.com");
+	buffer_put_string(&msg, handle, handle_len);
+	send_msg(conn->fd_out, &msg);
+	buffer_free(&msg);
+
+	return get_decode_statvfs(conn->fd_in, st, id, quiet);
 }
 #endif
 

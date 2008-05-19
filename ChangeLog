@@ -21,6 +21,15 @@
      Use arc4random_uniform() when the desired random number upper bound
      is not a power of two
      ok deraadt@ millert@
+   - djm@cvs.openbsd.org 2008/04/18 12:32:11
+     [sftp-client.c sftp-client.h sftp-server.c sftp.1 sftp.c sftp.h]
+     introduce sftp extension methods statvfs@openssh.com and
+     fstatvfs@openssh.com that implement statvfs(2)-like operations,
+     based on a patch from miklos AT szeredi.hu (bz#1399)
+     also add a "df" command to the sftp client that uses the
+     statvfs@openssh.com to produce a df(1)-like display of filesystem
+     space and inode utilisation
+     ok markus@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3881,4 +3890,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4910 2008/05/19 04:50:00 djm Exp $
+$Id: ChangeLog,v 1.4911 2008/05/19 04:53:33 djm Exp $

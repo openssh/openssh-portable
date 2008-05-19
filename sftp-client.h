@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.15 2008/01/11 07:22:28 chl Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.16 2008/04/18 12:32:11 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -69,6 +69,10 @@ int do_fsetstat(struct sftp_conn *, char *, u_int, Attrib *);
 
 /* Canonicalise 'path' - caller must free result */
 char *do_realpath(struct sftp_conn *, char *);
+
+/* Get statistics for filesystem hosting file at "path" */
+struct statvfs;
+int do_statvfs(struct sftp_conn *, const char *, struct statvfs *, int);
 
 /* Rename 'oldpath' to 'newpath' */
 int do_rename(struct sftp_conn *, char *, char *);

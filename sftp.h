@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.h,v 1.7 2008/02/08 23:24:07 djm Exp $ */
+/* $OpenBSD: sftp.h,v 1.8 2008/04/18 12:32:11 djm Exp $ */
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -78,6 +78,10 @@
 #define SSH2_FXF_CREAT			0x00000008
 #define SSH2_FXF_TRUNC			0x00000010
 #define SSH2_FXF_EXCL			0x00000020
+
+/* statvfs@openssh.com f_flag flags */
+#define SSH2_FXE_STATVFS_ST_RDONLY	0x00000001
+#define SSH2_FXE_STATVFS_ST_NOSUID	0x00000002
 
 /* status messages */
 #define SSH2_FX_OK			0

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.99 2008/01/20 00:38:30 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.100 2008/04/18 12:32:11 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -25,6 +25,7 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/statvfs.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -42,6 +43,7 @@ typedef void EditLine;
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <util.h>
 #include <stdarg.h>
 
 #include "xmalloc.h"
@@ -104,6 +106,7 @@ extern char *__progname;
 #define I_CHGRP		2
 #define I_CHMOD		3
 #define I_CHOWN		4
+#define I_DF		24
 #define I_GET		5
 #define I_HELP		6
 #define I_LCHDIR	7
@@ -136,6 +139,7 @@ static const struct CMD cmds[] = {
 	{ "chgrp",	I_CHGRP },
 	{ "chmod",	I_CHMOD },
 	{ "chown",	I_CHOWN },
+	{ "df",		I_DF },
 	{ "dir",	I_LS },
 	{ "exit",	I_QUIT },
 	{ "get",	I_GET },
@@ -200,6 +204,8 @@ help(void)
 	printf("chgrp grp path                Change group of file 'path' to 'grp'\n");
 	printf("chmod mode path               Change permissions of file 'path' to 'mode'\n");
 	printf("chown own path                Change owner of file 'path' to 'own'\n");
+	printf("df [path]                     Display statistics for current directory or\n");
+	printf("                              filesystem containing 'path'\n");
 	printf("help                          Display this help text\n");
 	printf("get remote-path [local-path]  Download file\n");
 	printf("lls [ls-options [path]]       Display local directory listing\n");
@@ -414,6 +420,33 @@ parse_ls_flags(char **argv, int argc, int *lflag)
 			break;
 		default:
 			error("ls: Invalid flag -%c", ch);
+			return -1;
+		}
+	}
+
+	return optind;
+}
+
+static int
+parse_df_flags(const char *cmd, char **argv, int argc, int *hflag, int *iflag)
+{
+	extern int optind, optreset, opterr;
+	int ch;
+
+	optind = optreset = 1;
+	opterr = 0;
+
+	*hflag = *iflag = 0;
+	while ((ch = getopt(argc, argv, "hi")) != -1) {
+		switch (ch) {
+		case 'h':
+			*hflag = 1;
+			break;
+		case 'i':
+			*iflag = 1;
+			break;
+		default:
+			error("%s: Invalid flag -%c", cmd, ch);
 			return -1;
 		}
 	}
@@ -797,6 +830,56 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	return (0);
 }
 
+static int
+do_df(struct sftp_conn *conn, char *path, int hflag, int iflag)
+{
+	struct statvfs st;
+	char s_used[FMT_SCALED_STRSIZE];
+	char s_avail[FMT_SCALED_STRSIZE];
+	char s_root[FMT_SCALED_STRSIZE];
+	char s_total[FMT_SCALED_STRSIZE];
+
+	if (do_statvfs(conn, path, &st, 1) == -1)
+		return -1;
+	if (iflag) {
+		printf("     Inodes        Used       Avail      "
+		    "(root)    %%Capacity\n");
+		printf("%11llu %11llu %11llu %11llu         %3llu%%\n",
+		    (unsigned long long)st.f_files,
+		    (unsigned long long)(st.f_files - st.f_ffree),
+		    (unsigned long long)st.f_favail,
+		    (unsigned long long)st.f_ffree,
+		    (unsigned long long)(100 * (st.f_files - st.f_ffree) /
+		    st.f_files));
+	} else if (hflag) {
+		strlcpy(s_used, "error", sizeof(s_used));
+		strlcpy(s_avail, "error", sizeof(s_avail));
+		strlcpy(s_root, "error", sizeof(s_root));
+		strlcpy(s_total, "error", sizeof(s_total));
+		fmt_scaled((st.f_blocks - st.f_bfree) * st.f_frsize, s_used);
+		fmt_scaled(st.f_bavail * st.f_frsize, s_avail);
+		fmt_scaled(st.f_bfree * st.f_frsize, s_root);
+		fmt_scaled(st.f_blocks * st.f_frsize, s_total);
+		printf("    Size     Used    Avail   (root)    %%Capacity\n");
+		printf("%7sB %7sB %7sB %7sB         %3llu%%\n",
+		    s_total, s_used, s_avail, s_root,
+		    (unsigned long long)(100 * (st.f_blocks - st.f_bfree) /
+		    st.f_blocks));
+	} else {
+		printf("        Size         Used        Avail       "
+		    "(root)    %%Capacity\n");
+		printf("%12llu %12llu %12llu %12llu         %3llu%%\n",
+		    (unsigned long long)(st.f_frsize * st.f_blocks / 1024),
+		    (unsigned long long)(st.f_frsize *
+		    (st.f_blocks - st.f_bfree) / 1024),
+		    (unsigned long long)(st.f_frsize * st.f_bavail / 1024),
+		    (unsigned long long)(st.f_frsize * st.f_bfree / 1024),
+		    (unsigned long long)(100 * (st.f_blocks - st.f_bfree) /
+		    st.f_blocks));
+	}
+	return 0;
+}
+
 /*
  * Undo escaping of glob sequences in place. Used to undo extra escaping
  * applied in makeargv() when the string is destined for a function that
@@ -972,7 +1055,7 @@ makeargv(const char *arg, int *argcp)
 }
 
 static int
-parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
+parse_args(const char **cpp, int *pflag, int *lflag, int *iflag, int *hflag,
     unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
@@ -1016,7 +1099,7 @@ parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
 	}
 
 	/* Get arguments and parse flags */
-	*lflag = *pflag = *n_arg = 0;
+	*lflag = *pflag = *hflag = *n_arg = 0;
 	*path1 = *path2 = NULL;
 	optidx = 1;
 	switch (cmdnum) {
@@ -1067,6 +1150,18 @@ parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
 		/* Only "rm" globs */
 		if (cmdnum != I_RM)
 			undo_glob_escape(*path1);
+		break;
+	case I_DF:
+		if ((optidx = parse_df_flags(cmd, argv, argc, hflag,
+		    iflag)) == -1)
+			return -1;
+		/* Default to current directory if no path specified */
+		if (argc - optidx < 1)
+			*path1 = NULL;
+		else {
+			*path1 = xstrdup(argv[optidx]);
+			undo_glob_escape(*path1);
+		}
 		break;
 	case I_LS:
 		if ((optidx = parse_ls_flags(argv, argc, lflag)) == -1)
@@ -1130,7 +1225,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
     int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int pflag, lflag, iflag, cmdnum, i;
+	int pflag, lflag, iflag, hflag, cmdnum, i;
 	unsigned long n_arg;
 	Attrib a, *aa;
 	char path_buf[MAXPATHLEN];
@@ -1138,7 +1233,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	glob_t g;
 
 	path1 = path2 = NULL;
-	cmdnum = parse_args(&cmd, &pflag, &lflag, &iflag, &n_arg,
+	cmdnum = parse_args(&cmd, &pflag, &lflag, &iflag, &hflag, &n_arg,
 	    &path1, &path2);
 
 	if (iflag != 0)
@@ -1231,6 +1326,13 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 
 		path1 = make_absolute(path1, *pwd);
 		err = do_globbed_ls(conn, path1, tmp, lflag);
+		break;
+	case I_DF:
+		/* Default to current directory if no path specified */
+		if (path1 == NULL)
+			path1 = xstrdup(*pwd);
+		path1 = make_absolute(path1, *pwd);
+		err = do_df(conn, path1, hflag, iflag);
 		break;
 	case I_LCHDIR:
 		if (chdir(path1) == -1) {
