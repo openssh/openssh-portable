@@ -43,8 +43,15 @@ typedef void EditLine;
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <util.h>
 #include <stdarg.h>
+
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
+
+#ifdef HAVE_LIBUTIL_H
+# include <libutil.h>
+#endif
 
 #include "xmalloc.h"
 #include "log.h"

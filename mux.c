@@ -17,6 +17,8 @@
 
 /* ssh session multiplexing support */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -32,8 +34,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <util.h>
 #include <paths.h>
+
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
+
+#ifdef HAVE_LIBUTIL_H
+# include <libutil.h>
+#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"

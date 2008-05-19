@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.398 2008/05/19 04:47:37 djm Exp $
+# $Id: configure.ac,v 1.399 2008/05/19 22:57:06 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.398 $)
+AC_REVISION($Revision: 1.399 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1034,7 +1034,7 @@ dnl    Checks for libutil functions
 AC_CHECK_HEADERS(libutil.h)
 AC_SEARCH_LIBS(login, util bsd, [AC_DEFINE(HAVE_LOGIN, 1,
 	[Define if your libraries define login()])])
-AC_CHECK_FUNCS(logout updwtmp logwtmp)
+AC_CHECK_FUNCS(fmt_scaled logout updwtmp logwtmp)
 
 AC_FUNC_STRFTIME
 

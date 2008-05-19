@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.44 2008/05/19 04:47:37 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.45 2008/05/19 22:57:08 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -99,6 +99,11 @@ int daemon(int nochdir, int noclose);
 
 #ifndef HAVE_DIRNAME
 char *dirname(const char *path);
+#endif
+
+#ifndef HAVE_FMT_SCALED
+#define	FMT_SCALED_STRSIZE	7
+int	fmt_scaled(long long number, char *result);
 #endif
 
 #if defined(BROKEN_INET_NTOA) || !defined(HAVE_INET_NTOA)

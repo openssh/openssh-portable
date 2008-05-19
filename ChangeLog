@@ -1,3 +1,9 @@
+20080519
+ - (djm) [configure.ac mux.c sftp.c openbsd-compat/Makefile.in]
+   [openbsd-compat/fmt_scaled.c openbsd-compat/openbsd-compat.h]
+   Fix compilation on Linux, including pulling in fmt_scaled(3)
+   implementation from OpenBSD's libutil.
+
 20080518
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/04/04 05:14:38
@@ -4017,4 +4023,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4934 2008/05/19 06:11:56 djm Exp $
+$Id: ChangeLog,v 1.4935 2008/05/19 22:57:06 djm Exp $
