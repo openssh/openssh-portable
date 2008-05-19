@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.311 2008/05/08 13:06:11 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.312 2008/05/09 14:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,7 +49,6 @@
 #include <sys/resource.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -99,7 +98,6 @@
 #include "sshpty.h"
 #include "match.h"
 #include "msg.h"
-#include "monitor_fdpass.h"
 #include "uidswap.h"
 #include "version.h"
 
@@ -171,15 +169,9 @@ static int client_global_request_id = 0;
 /* pid of proxycommand child process */
 pid_t proxy_command_pid = 0;
 
-/* fd to control socket */
-int control_fd = -1;
-
-/* Multiplexing control command */
-static u_int mux_command = 0;
-
-/* Only used in control client mode */
-volatile sig_atomic_t control_client_terminate = 0;
-u_int control_server_pid = 0;
+/* mux.c */
+extern int muxserver_sock;
+extern u_int muxclient_command;
 
 /* Prints a help message to the user.  This function never returns. */
 
@@ -200,7 +192,10 @@ usage(void)
 static int ssh_session(void);
 static int ssh_session2(void);
 static void load_public_identity_files(void);
-static void control_client(const char *path);
+
+/* from muxclient.c */
+void muxclient(const char *);
+void muxserver_listen(void);
 
 /*
  * Main program for the ssh client.
@@ -310,9 +305,9 @@ main(int ac, char **av)
 			break;
 		case 'O':
 			if (strcmp(optarg, "check") == 0)
-				mux_command = SSHMUX_COMMAND_ALIVE_CHECK;
+				muxclient_command = SSHMUX_COMMAND_ALIVE_CHECK;
 			else if (strcmp(optarg, "exit") == 0)
-				mux_command = SSHMUX_COMMAND_TERMINATE;
+				muxclient_command = SSHMUX_COMMAND_TERMINATE;
 			else
 				fatal("Invalid multiplex command.");
 			break;
@@ -683,10 +678,10 @@ main(int ac, char **av)
 		    "r", options.user, "l", thishost, (char *)NULL);
 		xfree(cp);
 	}
-	if (mux_command != 0 && options.control_path == NULL)
+	if (muxclient_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");
 	if (options.control_path != NULL)
-		control_client(options.control_path);
+		muxclient(options.control_path);
 
 	timeout_ms = options.connection_timeout * 1000;
 
@@ -809,7 +804,7 @@ main(int ac, char **av)
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
 
-	if (options.control_path != NULL && control_fd != -1)
+	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
 
 	/*
@@ -1064,48 +1059,6 @@ client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
 	}
 }
 
-static void
-ssh_control_listener(void)
-{
-	struct sockaddr_un addr;
-	mode_t old_umask;
-	int addr_len;
-
-	if (options.control_path == NULL ||
-	    options.control_master == SSHCTL_MASTER_NO)
-		return;
-
-	debug("setting up multiplex master socket");
-
-	memset(&addr, '\0', sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	addr_len = offsetof(struct sockaddr_un, sun_path) +
-	    strlen(options.control_path) + 1;
-
-	if (strlcpy(addr.sun_path, options.control_path,
-	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
-		fatal("ControlPath too long");
-
-	if ((control_fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
-		fatal("%s socket(): %s", __func__, strerror(errno));
-
-	old_umask = umask(0177);
-	if (bind(control_fd, (struct sockaddr *)&addr, addr_len) == -1) {
-		control_fd = -1;
-		if (errno == EINVAL || errno == EADDRINUSE)
-			fatal("ControlSocket %s already exists",
-			    options.control_path);
-		else
-			fatal("%s bind(): %s", __func__, strerror(errno));
-	}
-	umask(old_umask);
-
-	if (listen(control_fd, 64) == -1)
-		fatal("%s listen(): %s", __func__, strerror(errno));
-
-	set_nonblock(control_fd);
-}
-
 /* request pty/x11/agent/tcpfwd/shell for channel */
 static void
 ssh_session2_setup(int id, void *arg)
@@ -1204,7 +1157,7 @@ ssh_session2(void)
 		ssh_local_cmd(options.local_command);
 
 	/* Start listening for multiplex clients */
-	ssh_control_listener();
+	muxserver_listen();
 
 	/* If requested, let ssh continue in the background. */
 	if (fork_after_authentication_flag)
@@ -1271,238 +1224,4 @@ load_public_identity_files(void)
 	xfree(pwname);
 	bzero(pwdir, strlen(pwdir));
 	xfree(pwdir);
-}
-
-static void
-control_client_sighandler(int signo)
-{
-	control_client_terminate = signo;
-}
-
-static void
-control_client_sigrelay(int signo)
-{
-	int save_errno = errno;
-
-	if (control_server_pid > 1)
-		kill(control_server_pid, signo);
-
-	errno = save_errno;
-}
-
-static int
-env_permitted(char *env)
-{
-	int i, ret;
-	char name[1024], *cp;
-
-	if ((cp = strchr(env, '=')) == NULL || cp == env)
-		return (0);
-	ret = snprintf(name, sizeof(name), "%.*s", (int)(cp - env), env);
-	if (ret <= 0 || (size_t)ret >= sizeof(name))
-		fatal("env_permitted: name '%.100s...' too long", env);
-
-	for (i = 0; i < options.num_send_env; i++)
-		if (match_pattern(name, options.send_env[i]))
-			return (1);
-
-	return (0);
-}
-
-static void
-control_client(const char *path)
-{
-	struct sockaddr_un addr;
-	int i, r, fd, sock, exitval[2], num_env, addr_len;
-	Buffer m;
-	char *term;
-	extern char **environ;
-	u_int  flags;
-
-	if (mux_command == 0)
-		mux_command = SSHMUX_COMMAND_OPEN;
-
-	switch (options.control_master) {
-	case SSHCTL_MASTER_AUTO:
-	case SSHCTL_MASTER_AUTO_ASK:
-		debug("auto-mux: Trying existing master");
-		/* FALLTHROUGH */
-	case SSHCTL_MASTER_NO:
-		break;
-	default:
-		return;
-	}
-
-	memset(&addr, '\0', sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	addr_len = offsetof(struct sockaddr_un, sun_path) +
-	    strlen(path) + 1;
-
-	if (strlcpy(addr.sun_path, path,
-	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
-		fatal("ControlPath too long");
-
-	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
-		fatal("%s socket(): %s", __func__, strerror(errno));
-
-	if (connect(sock, (struct sockaddr *)&addr, addr_len) == -1) {
-		if (mux_command != SSHMUX_COMMAND_OPEN) {
-			fatal("Control socket connect(%.100s): %s", path,
-			    strerror(errno));
-		}
-		if (errno == ENOENT)
-			debug("Control socket \"%.100s\" does not exist", path);
-		else {
-			error("Control socket connect(%.100s): %s", path,
-			    strerror(errno));
-		}
-		close(sock);
-		return;
-	}
-
-	if (stdin_null_flag) {
-		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			fatal("open(/dev/null): %s", strerror(errno));
-		if (dup2(fd, STDIN_FILENO) == -1)
-			fatal("dup2: %s", strerror(errno));
-		if (fd > STDERR_FILENO)
-			close(fd);
-	}
-
-	term = getenv("TERM");
-
-	flags = 0;
-	if (tty_flag)
-		flags |= SSHMUX_FLAG_TTY;
-	if (subsystem_flag)
-		flags |= SSHMUX_FLAG_SUBSYS;
-	if (options.forward_x11)
-		flags |= SSHMUX_FLAG_X11_FWD;
-	if (options.forward_agent)
-		flags |= SSHMUX_FLAG_AGENT_FWD;
-
-	signal(SIGPIPE, SIG_IGN);
-
-	buffer_init(&m);
-
-	/* Send our command to server */
-	buffer_put_int(&m, mux_command);
-	buffer_put_int(&m, flags);
-	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
-		fatal("%s: msg_send", __func__);
-	buffer_clear(&m);
-
-	/* Get authorisation status and PID of controlee */
-	if (ssh_msg_recv(sock, &m) == -1)
-		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != SSHMUX_VER)
-		fatal("%s: wrong version", __func__);
-	if (buffer_get_int(&m) != 1)
-		fatal("Connection to master denied");
-	control_server_pid = buffer_get_int(&m);
-
-	buffer_clear(&m);
-
-	switch (mux_command) {
-	case SSHMUX_COMMAND_ALIVE_CHECK:
-		fprintf(stderr, "Master running (pid=%d)\r\n",
-		    control_server_pid);
-		exit(0);
-	case SSHMUX_COMMAND_TERMINATE:
-		fprintf(stderr, "Exit request sent.\r\n");
-		exit(0);
-	case SSHMUX_COMMAND_OPEN:
-		/* continue below */
-		break;
-	default:
-		fatal("silly mux_command %d", mux_command);
-	}
-
-	/* SSHMUX_COMMAND_OPEN */
-	buffer_put_cstring(&m, term ? term : "");
-	buffer_append(&command, "\0", 1);
-	buffer_put_cstring(&m, buffer_ptr(&command));
-
-	if (options.num_send_env == 0 || environ == NULL) {
-		buffer_put_int(&m, 0);
-	} else {
-		/* Pass environment */
-		num_env = 0;
-		for (i = 0; environ[i] != NULL; i++)
-			if (env_permitted(environ[i]))
-				num_env++; /* Count */
-
-		buffer_put_int(&m, num_env);
-
-		for (i = 0; environ[i] != NULL && num_env >= 0; i++)
-			if (env_permitted(environ[i])) {
-				num_env--;
-				buffer_put_cstring(&m, environ[i]);
-			}
-	}
-
-	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
-		fatal("%s: msg_send", __func__);
-
-	if (mm_send_fd(sock, STDIN_FILENO) == -1 ||
-	    mm_send_fd(sock, STDOUT_FILENO) == -1 ||
-	    mm_send_fd(sock, STDERR_FILENO) == -1)
-		fatal("%s: send fds failed", __func__);
-
-	/* Wait for reply, so master has a chance to gather ttymodes */
-	buffer_clear(&m);
-	if (ssh_msg_recv(sock, &m) == -1)
-		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != SSHMUX_VER)
-		fatal("%s: wrong version", __func__);
-	buffer_free(&m);
-
-	signal(SIGHUP, control_client_sighandler);
-	signal(SIGINT, control_client_sighandler);
-	signal(SIGTERM, control_client_sighandler);
-	signal(SIGWINCH, control_client_sigrelay);
-
-	if (tty_flag)
-		enter_raw_mode();
-
-	/*
-	 * Stick around until the controlee closes the client_fd.
-	 * Before it does, it is expected to write this process' exit
-	 * value (one int). This process must read the value and wait for
-	 * the closure of the client_fd; if this one closes early, the 
-	 * multiplex master will terminate early too (possibly losing data).
-	 */
-	exitval[0] = 0;
-	for (i = 0; !control_client_terminate && i < (int)sizeof(exitval);) {
-		r = read(sock, (char *)exitval + i, sizeof(exitval) - i);
-		if (r == 0) {
-			debug2("Received EOF from master");
-			break;
-		}
-		if (r == -1) {
-			if (errno == EINTR)
-				continue;
-			fatal("%s: read %s", __func__, strerror(errno));
-		}
-		i += r;
-	}
-
-	close(sock);
-	leave_raw_mode();
-	if (i > (int)sizeof(int))
-		fatal("%s: master returned too much data (%d > %lu)",
-		    __func__, i, sizeof(int));
-	if (control_client_terminate) {
-		debug2("Exiting on signal %d", control_client_terminate);
-		exitval[0] = 255;
-	} else if (i < (int)sizeof(int)) {
-		debug2("Control master terminated unexpectedly");
-		exitval[0] = 255;
-	} else
-		debug2("Received exit status from master %d", exitval[0]);
-
-	if (tty_flag && options.log_level != SYSLOG_LEVEL_QUIET)
-		fprintf(stderr, "Shared connection to %s closed.\r\n", host);
-
-	exit(exitval[0]);
 }

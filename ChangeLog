@@ -111,6 +111,12 @@
      was to try the first address and give up.
      Reported by stig AT venaas.com in bz#343
      great feedback and ok markus@
+   - djm@cvs.openbsd.org 2008/05/09 14:18:44
+     [clientloop.c clientloop.h ssh.c mux.c]
+     tidy up session multiplexing code, moving it into its own file and
+     making the function names more consistent - making ssh.c and
+     clientloop.c a fair bit more readable.
+     ok markus@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3971,4 +3977,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4925 2008/05/19 05:37:09 djm Exp $
+$Id: ChangeLog,v 1.4926 2008/05/19 06:00:08 djm Exp $

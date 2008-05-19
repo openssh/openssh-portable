@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.18 2008/05/08 13:06:11 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.19 2008/05/09 14:18:44 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -58,3 +58,21 @@ int	 client_request_tun_fwd(int, int, int);
 #define SSHMUX_FLAG_SUBSYS		(1<<1)	/* Subsystem request on open */
 #define SSHMUX_FLAG_X11_FWD		(1<<2)	/* Request X11 forwarding */
 #define SSHMUX_FLAG_AGENT_FWD		(1<<3)	/* Request agent forwarding */
+
+/* Multiplexing routines */
+
+struct mux_session_confirm_ctx {
+	int want_tty;
+	int want_subsys;
+	int want_x_fwd;
+	int want_agent_fwd;
+	Buffer cmd;
+	char *term;
+	struct termios tio;
+	char **env;
+};
+
+/* mux.c */
+void	muxserver_listen(void);
+int	muxserver_accept_control(void);
+void	muxclient(const char *);

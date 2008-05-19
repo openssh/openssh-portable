@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.191 2008/05/09 04:55:56 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.192 2008/05/09 14:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -121,7 +121,7 @@ extern int stdin_null_flag;
 extern int no_shell_flag;
 
 /* Control socket */
-extern int control_fd;
+extern int muxserver_sock;
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
@@ -161,17 +161,6 @@ static int session_closed = 0;	/* In SSH2: login session closed. */
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
-
-struct confirm_ctx {
-	int want_tty;
-	int want_subsys;
-	int want_x_fwd;
-	int want_agent_fwd;
-	Buffer cmd;
-	char *term;
-	struct termios tio;
-	char **env;
-};
 
 struct channel_reply_ctx {
 	const char *request_type;
@@ -538,8 +527,8 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	if (packet_have_data_to_write())
 		FD_SET(connection_out, *writesetp);
 
-	if (control_fd != -1)
-		FD_SET(control_fd, *readsetp);
+	if (muxserver_sock != -1)
+		FD_SET(muxserver_sock, *readsetp);
 
 	/*
 	 * Wait for something to happen.  This will suspend the process until
@@ -704,284 +693,6 @@ client_expect_confirm(int id, const char *request, int do_close)
 
 	channel_register_status_confirm(id, client_status_confirm,
 	    client_abandon_status_confirm, cr);
-}
-
-static void
-client_extra_session2_setup(int id, void *arg)
-{
-	struct confirm_ctx *cctx = arg;
-	const char *display;
-	Channel *c;
-	int i;
-
-	if (cctx == NULL)
-		fatal("%s: cctx == NULL", __func__);
-	if ((c = channel_lookup(id)) == NULL)
-		fatal("%s: no channel for id %d", __func__, id);
-
-	display = getenv("DISPLAY");
-	if (cctx->want_x_fwd && options.forward_x11 && display != NULL) {
-		char *proto, *data;
-		/* Get reasonable local authentication information. */
-		client_x11_get_proto(display, options.xauth_location,
-		    options.forward_x11_trusted, &proto, &data);
-		/* Request forwarding with authentication spoofing. */
-		debug("Requesting X11 forwarding with authentication spoofing.");
-		x11_request_forwarding_with_spoofing(id, display, proto, data);
-		/* XXX wait for reply */
-	}
-
-	if (cctx->want_agent_fwd && options.forward_agent) {
-		debug("Requesting authentication agent forwarding.");
-		channel_request_start(id, "auth-agent-req@openssh.com", 0);
-		packet_send();
-	}
-
-	client_session2_setup(id, cctx->want_tty, cctx->want_subsys,
-	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env);
-
-	c->open_confirm_ctx = NULL;
-	buffer_free(&cctx->cmd);
-	xfree(cctx->term);
-	if (cctx->env != NULL) {
-		for (i = 0; cctx->env[i] != NULL; i++)
-			xfree(cctx->env[i]);
-		xfree(cctx->env);
-	}
-	xfree(cctx);
-}
-
-static void
-client_process_control(fd_set *readset)
-{
-	Buffer m;
-	Channel *c;
-	int client_fd, new_fd[3], ver, allowed, window, packetmax;
-	socklen_t addrlen;
-	struct sockaddr_storage addr;
-	struct confirm_ctx *cctx;
-	char *cmd;
-	u_int i, j, len, env_len, command, flags;
-	uid_t euid;
-	gid_t egid;
-
-	/*
-	 * Accept connection on control socket
-	 */
-	if (control_fd == -1 || !FD_ISSET(control_fd, readset))
-		return;
-
-	memset(&addr, 0, sizeof(addr));
-	addrlen = sizeof(addr);
-	if ((client_fd = accept(control_fd,
-	    (struct sockaddr*)&addr, &addrlen)) == -1) {
-		error("%s accept: %s", __func__, strerror(errno));
-		return;
-	}
-
-	if (getpeereid(client_fd, &euid, &egid) < 0) {
-		error("%s getpeereid failed: %s", __func__, strerror(errno));
-		close(client_fd);
-		return;
-	}
-	if ((euid != 0) && (getuid() != euid)) {
-		error("control mode uid mismatch: peer euid %u != uid %u",
-		    (u_int) euid, (u_int) getuid());
-		close(client_fd);
-		return;
-	}
-
-	unset_nonblock(client_fd);
-
-	/* Read command */
-	buffer_init(&m);
-	if (ssh_msg_recv(client_fd, &m) == -1) {
-		error("%s: client msg_recv failed", __func__);
-		close(client_fd);
-		buffer_free(&m);
-		return;
-	}
-	if ((ver = buffer_get_char(&m)) != SSHMUX_VER) {
-		error("%s: wrong client version %d", __func__, ver);
-		buffer_free(&m);
-		close(client_fd);
-		return;
-	}
-
-	allowed = 1;
-	command = buffer_get_int(&m);
-	flags = buffer_get_int(&m);
-
-	buffer_clear(&m);
-
-	switch (command) {
-	case SSHMUX_COMMAND_OPEN:
-		if (options.control_master == SSHCTL_MASTER_ASK ||
-		    options.control_master == SSHCTL_MASTER_AUTO_ASK)
-			allowed = ask_permission("Allow shared connection "
-			    "to %s? ", host);
-		/* continue below */
-		break;
-	case SSHMUX_COMMAND_TERMINATE:
-		if (options.control_master == SSHCTL_MASTER_ASK ||
-		    options.control_master == SSHCTL_MASTER_AUTO_ASK)
-			allowed = ask_permission("Terminate shared connection "
-			    "to %s? ", host);
-		if (allowed)
-			quit_pending = 1;
-		/* FALLTHROUGH */
-	case SSHMUX_COMMAND_ALIVE_CHECK:
-		/* Reply for SSHMUX_COMMAND_TERMINATE and ALIVE_CHECK */
-		buffer_clear(&m);
-		buffer_put_int(&m, allowed);
-		buffer_put_int(&m, getpid());
-		if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
-			error("%s: client msg_send failed", __func__);
-			close(client_fd);
-			buffer_free(&m);
-			return;
-		}
-		buffer_free(&m);
-		close(client_fd);
-		return;
-	default:
-		error("Unsupported command %d", command);
-		buffer_free(&m);
-		close(client_fd);
-		return;
-	}
-
-	/* Reply for SSHMUX_COMMAND_OPEN */
-	buffer_clear(&m);
-	buffer_put_int(&m, allowed);
-	buffer_put_int(&m, getpid());
-	if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
-		error("%s: client msg_send failed", __func__);
-		close(client_fd);
-		buffer_free(&m);
-		return;
-	}
-
-	if (!allowed) {
-		error("Refused control connection");
-		close(client_fd);
-		buffer_free(&m);
-		return;
-	}
-
-	buffer_clear(&m);
-	if (ssh_msg_recv(client_fd, &m) == -1) {
-		error("%s: client msg_recv failed", __func__);
-		close(client_fd);
-		buffer_free(&m);
-		return;
-	}
-	if ((ver = buffer_get_char(&m)) != SSHMUX_VER) {
-		error("%s: wrong client version %d", __func__, ver);
-		buffer_free(&m);
-		close(client_fd);
-		return;
-	}
-
-	cctx = xcalloc(1, sizeof(*cctx));
-	cctx->want_tty = (flags & SSHMUX_FLAG_TTY) != 0;
-	cctx->want_subsys = (flags & SSHMUX_FLAG_SUBSYS) != 0;
-	cctx->want_x_fwd = (flags & SSHMUX_FLAG_X11_FWD) != 0;
-	cctx->want_agent_fwd = (flags & SSHMUX_FLAG_AGENT_FWD) != 0;
-	cctx->term = buffer_get_string(&m, &len);
-
-	cmd = buffer_get_string(&m, &len);
-	buffer_init(&cctx->cmd);
-	buffer_append(&cctx->cmd, cmd, strlen(cmd));
-
-	env_len = buffer_get_int(&m);
-	env_len = MIN(env_len, 4096);
-	debug3("%s: receiving %d env vars", __func__, env_len);
-	if (env_len != 0) {
-		cctx->env = xcalloc(env_len + 1, sizeof(*cctx->env));
-		for (i = 0; i < env_len; i++)
-			cctx->env[i] = buffer_get_string(&m, &len);
-		cctx->env[i] = NULL;
-	}
-
-	debug2("%s: accepted tty %d, subsys %d, cmd %s", __func__,
-	    cctx->want_tty, cctx->want_subsys, cmd);
-	xfree(cmd);
-
-	/* Gather fds from client */
-	for(i = 0; i < 3; i++) {
-		if ((new_fd[i] = mm_receive_fd(client_fd)) == -1) {
-			error("%s: failed to receive fd %d from slave",
-			    __func__, i);
-			for (j = 0; j < i; j++)
-				close(new_fd[j]);
-			for (j = 0; j < env_len; j++)
-				xfree(cctx->env[j]);
-			if (env_len > 0)
-				xfree(cctx->env);
-			xfree(cctx->term);
-			buffer_free(&cctx->cmd);
-			close(client_fd);
-			xfree(cctx);
-			return;
-		}
-	}
-
-	debug2("%s: got fds stdin %d, stdout %d, stderr %d", __func__,
-	    new_fd[0], new_fd[1], new_fd[2]);
-
-	/* Try to pick up ttymodes from client before it goes raw */
-	if (cctx->want_tty && tcgetattr(new_fd[0], &cctx->tio) == -1)
-		error("%s: tcgetattr: %s", __func__, strerror(errno));
-
-	/* This roundtrip is just for synchronisation of ttymodes */
-	buffer_clear(&m);
-	if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
-		error("%s: client msg_send failed", __func__);
-		close(client_fd);
-		close(new_fd[0]);
-		close(new_fd[1]);
-		close(new_fd[2]);
-		buffer_free(&m);
-		xfree(cctx->term);
-		if (env_len != 0) {
-			for (i = 0; i < env_len; i++)
-				xfree(cctx->env[i]);
-			xfree(cctx->env);
-		}
-		return;
-	}
-	buffer_free(&m);
-
-	/* enable nonblocking unless tty */
-	if (!isatty(new_fd[0]))
-		set_nonblock(new_fd[0]);
-	if (!isatty(new_fd[1]))
-		set_nonblock(new_fd[1]);
-	if (!isatty(new_fd[2]))
-		set_nonblock(new_fd[2]);
-
-	set_nonblock(client_fd);
-
-	window = CHAN_SES_WINDOW_DEFAULT;
-	packetmax = CHAN_SES_PACKET_DEFAULT;
-	if (cctx->want_tty) {
-		window >>= 1;
-		packetmax >>= 1;
-	}
-	
-	c = channel_new("session", SSH_CHANNEL_OPENING,
-	    new_fd[0], new_fd[1], new_fd[2], window, packetmax,
-	    CHAN_EXTENDED_WRITE, "client-session", /*nonblock*/0);
-
-	/* XXX */
-	c->ctl_fd = client_fd;
-
-	debug3("%s: channel_new: %d", __func__, c->self);
-
-	channel_send_open(c->self);
-	channel_register_open_confirm(c->self,
-	    client_extra_session2_setup, cctx);
 }
 
 static void
@@ -1448,8 +1159,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 	max_fd = MAX(connection_in, connection_out);
-	if (control_fd != -1)
-		max_fd = MAX(max_fd, control_fd);
+	if (muxserver_sock != -1)
+		max_fd = MAX(max_fd, muxserver_sock);
 
 	if (!compat20) {
 		/* enable nonblocking unless tty */
@@ -1569,7 +1280,10 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		client_process_net_input(readset);
 
 		/* Accept control connections.  */
-		client_process_control(readset);
+		if (muxserver_sock != -1 &&FD_ISSET(muxserver_sock, readset)) {
+			if (muxserver_accept_control())
+				quit_pending = 1;
+		}
 
 		if (quit_pending)
 			break;
@@ -2157,7 +1871,7 @@ cleanup_exit(int i)
 {
 	leave_raw_mode();
 	leave_non_blocking();
-	if (options.control_path != NULL && control_fd != -1)
+	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
 	_exit(i);
 }
