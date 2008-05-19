@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.276 2008/05/09 04:55:56 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.277 2008/05/09 16:17:51 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -819,7 +819,8 @@ channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 		}
 	}
 	/** XXX check close conditions, too */
-	if (compat20 && c->efd != -1) {
+	if (compat20 && c->efd != -1 && 
+	    !(c->istate == CHAN_INPUT_CLOSED && c->ostate == CHAN_OUTPUT_CLOSED)) {
 		if (c->extended_usage == CHAN_EXTENDED_WRITE &&
 		    buffer_len(&c->extended) > 0)
 			FD_SET(c->efd, writeset);
