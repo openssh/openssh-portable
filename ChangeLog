@@ -140,6 +140,10 @@
      ignoring SIGPIPE by adding a new channel message (EOW) that signals
      the peer that we're not interested in any data it might send.
      fixes bz #85; discussion, debugging and ok djm@
+   - pvalchev@cvs.openbsd.org 2008/05/12 20:52:20
+     [umac.c]
+     Ensure nh_result lies on a 64-bit boundary (fixes warnings observed
+     on Itanium on Linux); from Dale Talcott (bug #1462); ok djm@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -4000,4 +4004,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4930 2008/05/19 06:06:47 djm Exp $
+$Id: ChangeLog,v 1.4931 2008/05/19 06:07:45 djm Exp $
