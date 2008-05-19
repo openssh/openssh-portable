@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.41 2008/03/26 21:28:14 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.42 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "match.h"
 #include "log.h"

@@ -62,6 +62,19 @@
      [bufaux.c buffer.h channels.c packet.c packet.h]
      avoid extra malloc/copy/free when receiving data over the net;
      ~10% speedup for localhost-scp; ok djm@
+   - djm@cvs.openbsd.org 2008/05/08 12:02:23
+     [auth-options.c auth1.c channels.c channels.h clientloop.c gss-serv.c]
+     [monitor.c monitor_wrap.c nchan.c servconf.c serverloop.c session.c]
+     [ssh.c sshd.c]
+     Implement a channel success/failure status confirmation callback
+     mechanism. Each channel maintains a queue of callbacks, which will
+     be drained in order (RFC4253 guarantees confirm messages are not
+     reordered within an channel).
+     Also includes a abandonment callback to clean up if a channel is
+     closed without sending confirmation messages. This probably
+     shouldn't happen in compliant implementations, but it could be
+     abused to leak memory.
+     ok markus@ (as part of a larger diff)
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3922,4 +3935,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4919 2008/05/19 04:59:37 djm Exp $
+$Id: ChangeLog,v 1.4920 2008/05/19 05:05:07 djm Exp $

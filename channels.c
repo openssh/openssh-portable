@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.274 2008/05/08 06:59:01 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.275 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -61,6 +61,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"
@@ -319,10 +320,11 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->single_connection = 0;
 	c->detach_user = NULL;
 	c->detach_close = 0;
-	c->confirm = NULL;
-	c->confirm_ctx = NULL;
+	c->open_confirm = NULL;
+	c->open_confirm_ctx = NULL;
 	c->input_filter = NULL;
 	c->output_filter = NULL;
+	TAILQ_INIT(&c->status_confirms);
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
 }
@@ -379,6 +381,7 @@ channel_free(Channel *c)
 {
 	char *s;
 	u_int i, n;
+	struct channel_confirm *cc;
 
 	for (n = 0, i = 0; i < channels_alloc; i++)
 		if (channels[i])
@@ -401,6 +404,13 @@ channel_free(Channel *c)
 	if (c->remote_name) {
 		xfree(c->remote_name);
 		c->remote_name = NULL;
+	}
+	while ((cc = TAILQ_FIRST(&c->status_confirms)) != NULL) {
+		if (cc->abandon_cb != NULL)
+			cc->abandon_cb(c, cc->ctx);
+		TAILQ_REMOVE(&c->status_confirms, cc, entry);
+		bzero(cc, sizeof(*cc));
+		xfree(cc);
 	}
 	channels[c->self] = NULL;
 	xfree(c);
@@ -660,16 +670,33 @@ channel_request_start(int id, char *service, int wantconfirm)
 }
 
 void
-channel_register_confirm(int id, channel_callback_fn *fn, void *ctx)
+channel_register_status_confirm(int id, channel_confirm_cb *cb,
+    channel_confirm_abandon_cb *abandon_cb, void *ctx)
+{
+	struct channel_confirm *cc;
+	Channel *c;
+
+	if ((c = channel_lookup(id)) == NULL)
+		fatal("channel_register_expect: %d: bad id", id);
+
+	cc = xmalloc(sizeof(*cc));
+	cc->cb = cb;
+	cc->abandon_cb = abandon_cb;
+	cc->ctx = ctx;
+	TAILQ_INSERT_TAIL(&c->status_confirms, cc, entry);
+}
+
+void
+channel_register_open_confirm(int id, channel_callback_fn *fn, void *ctx)
 {
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		logit("channel_register_comfirm: %d: bad id", id);
+		logit("channel_register_open_comfirm: %d: bad id", id);
 		return;
 	}
-	c->confirm = fn;
-	c->confirm_ctx = ctx;
+	c->open_confirm = fn;
+	c->open_confirm_ctx = ctx;
 }
 
 void
@@ -2209,9 +2236,9 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 	if (compat20) {
 		c->remote_window = packet_get_int();
 		c->remote_maxpacket = packet_get_int();
-		if (c->confirm) {
+		if (c->open_confirm) {
 			debug2("callback start");
-			c->confirm(c->self, c->confirm_ctx);
+			c->open_confirm(c->self, c->open_confirm_ctx);
 			debug2("callback done");
 		}
 		debug2("channel %d: open confirm rwindow %u rmax %u", c->self,
@@ -2328,6 +2355,34 @@ channel_input_port_open(int type, u_int32_t seq, void *ctxt)
 	xfree(host);
 }
 
+/* ARGSUSED */
+void
+channel_input_status_confirm(int type, u_int32_t seq, void *ctxt)
+{
+	Channel *c;
+	struct channel_confirm *cc;
+	int remote_id;
+
+	/* Reset keepalive timeout */
+	keep_alive_timeouts = 0;
+
+	remote_id = packet_get_int();
+	packet_check_eom();
+
+	debug2("channel_input_confirm: type %d id %d", type, remote_id);
+
+	if ((c = channel_lookup(remote_id)) == NULL) {
+		logit("channel_input_success_failure: %d: unknown", remote_id);
+		return;
+	}	
+	;
+	if ((cc = TAILQ_FIRST(&c->status_confirms)) == NULL)
+		return;
+	cc->cb(type, c, cc->ctx);
+	TAILQ_REMOVE(&c->status_confirms, cc, entry);
+	bzero(cc, sizeof(*cc));
+	xfree(cc);
+}
 
 /* -- tcp forwarding */
 

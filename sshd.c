@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.356 2008/04/13 00:22:17 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.357 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -54,6 +54,7 @@
 # include <sys/time.h>
 #endif
 #include "openbsd-compat/sys-tree.h"
+#include "openbsd-compat/sys-queue.h"
 #include <sys/wait.h>
 
 #include <errno.h>

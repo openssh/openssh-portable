@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.309 2008/01/19 20:51:26 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.310 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -73,6 +73,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include "openbsd-compat/openssl-compat.h"
+#include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1195,7 +1196,8 @@ ssh_session2_open(void)
 
 	channel_send_open(c->self);
 	if (!no_shell_flag)
-		channel_register_confirm(c->self, ssh_session2_setup, NULL);
+		channel_register_open_confirm(c->self,
+		    ssh_session2_setup, NULL);
 
 	return c->self;
 }

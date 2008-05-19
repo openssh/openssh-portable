@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.94 2007/10/29 04:08:08 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.95 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -51,6 +51,7 @@
 
 #include <openssl/dh.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "key.h"

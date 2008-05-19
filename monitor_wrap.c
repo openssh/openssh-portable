@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.60 2007/10/29 04:08:08 dtucker Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.61 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -41,6 +41,7 @@
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
 #include "dh.h"

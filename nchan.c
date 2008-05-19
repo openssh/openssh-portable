@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.57 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: nchan.c,v 1.58 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "ssh1.h"
 #include "ssh2.h"
 #include "buffer.h"

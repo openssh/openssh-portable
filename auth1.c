@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.71 2007/09/21 08:15:29 djm Exp $ */
+/* $OpenBSD: auth1.c,v 1.72 2008/05/08 12:02:23 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <pwd.h>
 
+#include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh1.h"

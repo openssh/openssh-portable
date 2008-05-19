@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.89 2007/06/11 09:14:00 markus Exp $ */
+/* $OpenBSD: channels.h,v 1.90 2008/05/08 12:02:23 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -64,6 +64,17 @@ typedef void channel_callback_fn(int, void *);
 typedef int channel_infilter_fn(struct Channel *, char *, int);
 typedef u_char *channel_outfilter_fn(struct Channel *, u_char **, u_int *);
 
+/* Channel success/failure callbacks */
+typedef void channel_confirm_cb(int, struct Channel *, void *);
+typedef void channel_confirm_abandon_cb(struct Channel *, void *);
+struct channel_confirm {
+	TAILQ_ENTRY(channel_confirm) entry;
+	channel_confirm_cb *cb;
+	channel_confirm_abandon_cb *abandon_cb;
+	void *ctx;
+};
+TAILQ_HEAD(channel_confirms, channel_confirm);
+
 struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
@@ -104,10 +115,11 @@ struct Channel {
 	char   *ctype;		/* type */
 
 	/* callback */
-	channel_callback_fn	*confirm;
-	void			*confirm_ctx;
+	channel_callback_fn	*open_confirm;
+	void			*open_confirm_ctx;
 	channel_callback_fn	*detach_user;
 	int			detach_close;
+	struct channel_confirms	status_confirms;
 
 	/* filter */
 	channel_infilter_fn	*input_filter;
@@ -170,8 +182,11 @@ void	 channel_stop_listening(void);
 void	 channel_send_open(int);
 void	 channel_request_start(int, char *, int);
 void	 channel_register_cleanup(int, channel_callback_fn *, int);
-void	 channel_register_confirm(int, channel_callback_fn *, void *);
-void	 channel_register_filter(int, channel_infilter_fn *, channel_outfilter_fn *);
+void	 channel_register_open_confirm(int, channel_callback_fn *, void *);
+void	 channel_register_filter(int, channel_infilter_fn *,
+    channel_outfilter_fn *);
+void	 channel_register_status_confirm(int, channel_confirm_cb *,
+    channel_confirm_abandon_cb *, void *);
 void	 channel_cancel_cleanup(int);
 int	 channel_close_fd(int *);
 void	 channel_send_window_changes(void);
@@ -188,6 +203,7 @@ void	 channel_input_open_confirmation(int, u_int32_t, void *);
 void	 channel_input_open_failure(int, u_int32_t, void *);
 void	 channel_input_port_open(int, u_int32_t, void *);
 void	 channel_input_window_adjust(int, u_int32_t, void *);
+void	 channel_input_status_confirm(int, u_int32_t, void *);
 
 /* file descriptor handling (read/write) */
 
