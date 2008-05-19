@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.91 2008/05/09 04:55:56 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.92 2008/05/09 16:21:13 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -267,6 +267,7 @@ void	 chan_mark_dead(Channel *);
 /* channel events */
 
 void	 chan_rcvd_oclose(Channel *);
+void	 chan_rcvd_eow(Channel *);	/* SSH2-only */
 void	 chan_read_failed(Channel *);
 void	 chan_ibuf_empty(Channel *);
 

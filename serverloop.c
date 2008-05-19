@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.150 2008/05/09 04:55:56 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.151 2008/05/09 16:21:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1160,7 +1160,10 @@ server_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	if ((c = channel_lookup(id)) == NULL)
 		packet_disconnect("server_input_channel_req: "
 		    "unknown channel %d", id);
-	if (c->type == SSH_CHANNEL_LARVAL || c->type == SSH_CHANNEL_OPEN)
+	if (!strcmp(rtype, "eow@openssh.com")) {
+		packet_check_eom();
+		chan_rcvd_eow(c);
+	} else if (c->type == SSH_CHANNEL_LARVAL || c->type == SSH_CHANNEL_OPEN)
 		success = session_input_channel_req(c, rtype);
 	if (reply) {
 		packet_start(success ?

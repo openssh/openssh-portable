@@ -133,6 +133,13 @@
      for channels with both in- and output closed, since the channel
      will go away before we call select();
      report, lots of debugging help and ok djm@
+   - markus@cvs.openbsd.org 2008/05/09 16:21:13
+     [channels.h clientloop.c nchan.c serverloop.c]
+     unbreak
+        ssh -2 localhost od /bin/ls | true
+     ignoring SIGPIPE by adding a new channel message (EOW) that signals
+     the peer that we're not interested in any data it might send.
+     fixes bz #85; discussion, debugging and ok djm@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3993,4 +4000,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4929 2008/05/19 06:05:41 djm Exp $
+$Id: ChangeLog,v 1.4930 2008/05/19 06:06:47 djm Exp $
