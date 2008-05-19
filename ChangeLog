@@ -151,6 +151,12 @@
    - djm@cvs.openbsd.org 2008/05/18 21:29:05
      [sftp-server.c]
      comment extension announcement
+   - djm@cvs.openbsd.org 2008/05/16 08:30:42
+     [PROTOCOL]
+     document our protocol extensions and deviations; ok markus@
+   - djm@cvs.openbsd.org 2008/05/17 01:31:56
+     [PROTOCOL]
+     grammar and correctness fixes from stevesk@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -4011,4 +4017,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4933 2008/05/19 06:08:41 djm Exp $
+$Id: ChangeLog,v 1.4934 2008/05/19 06:11:56 djm Exp $
