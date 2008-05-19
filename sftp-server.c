@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.79 2008/04/18 12:32:11 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.80 2008/05/18 21:29:05 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -519,8 +519,10 @@ process_init(void)
 	/* POSIX rename extension */
 	buffer_put_cstring(&msg, "posix-rename@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
+	/* statvfs extension */
 	buffer_put_cstring(&msg, "statvfs@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
+	/* fstatvfs extension */
 	buffer_put_cstring(&msg, "fstatvfs@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
 	send_msg(&msg);
