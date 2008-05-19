@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.149 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.150 2008/05/09 04:55:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -938,7 +938,6 @@ static Channel *
 server_request_direct_tcpip(void)
 {
 	Channel *c;
-	int sock;
 	char *target, *originator;
 	int target_port, originator_port;
 
@@ -948,18 +947,16 @@ server_request_direct_tcpip(void)
 	originator_port = packet_get_int();
 	packet_check_eom();
 
-	debug("server_request_direct_tcpip: originator %s port %d, target %s port %d",
-	    originator, originator_port, target, target_port);
+	debug("server_request_direct_tcpip: originator %s port %d, target %s "
+	    "port %d", originator, originator_port, target, target_port);
 
 	/* XXX check permission */
-	sock = channel_connect_to(target, target_port);
-	xfree(target);
+	c = channel_connect_to(target, target_port,
+	    "direct-tcpip", "direct-tcpip");
+
 	xfree(originator);
-	if (sock < 0)
-		return NULL;
-	c = channel_new("direct-tcpip", SSH_CHANNEL_CONNECTING,
-	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
-	    CHAN_TCP_PACKET_DEFAULT, 0, "direct-tcpip", 1);
+	xfree(target);
+
 	return c;
 }
 

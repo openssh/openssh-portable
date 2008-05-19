@@ -104,6 +104,13 @@
      client stderr (subject to LogLevel in the mux master) - better than
      silently failing.
      most bits ok markus@ (as part of a larger diff)
+   - djm@cvs.openbsd.org 2008/05/09 04:55:56
+     [channels.c channels.h clientloop.c serverloop.c]
+     Try additional addresses when connecting to a port forward destination
+     whose DNS name resolves to more than one address. The previous behaviour
+     was to try the first address and give up.
+     Reported by stig AT venaas.com in bz#343
+     great feedback and ok markus@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3964,4 +3971,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4924 2008/05/19 05:36:08 djm Exp $
+$Id: ChangeLog,v 1.4925 2008/05/19 05:37:09 djm Exp $

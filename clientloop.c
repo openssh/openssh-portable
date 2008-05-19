@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.190 2008/05/08 13:06:10 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.191 2008/05/09 04:55:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1762,7 +1762,6 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	Channel *c = NULL;
 	char *listen_address, *originator_address;
 	int listen_port, originator_port;
-	int sock;
 
 	/* Get rest of the packet */
 	listen_address = packet_get_string(NULL);
@@ -1771,19 +1770,13 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	originator_port = packet_get_int();
 	packet_check_eom();
 
-	debug("client_request_forwarded_tcpip: listen %s port %d, originator %s port %d",
-	    listen_address, listen_port, originator_address, originator_port);
+	debug("client_request_forwarded_tcpip: listen %s port %d, "
+	    "originator %s port %d", listen_address, listen_port,
+	    originator_address, originator_port);
 
-	sock = channel_connect_by_listen_address(listen_port);
-	if (sock < 0) {
-		xfree(originator_address);
-		xfree(listen_address);
-		return NULL;
-	}
-	c = channel_new("forwarded-tcpip",
-	    SSH_CHANNEL_CONNECTING, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,
-	    originator_address, 1);
+	c = channel_connect_by_listen_address(listen_port,
+	    "forwarded-tcpip", originator_address);
+
 	xfree(originator_address);
 	xfree(listen_address);
 	return c;

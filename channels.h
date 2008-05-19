@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.90 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.91 2008/05/09 04:55:56 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -75,6 +75,13 @@ struct channel_confirm {
 };
 TAILQ_HEAD(channel_confirms, channel_confirm);
 
+/* Context for non-blocking connects */
+struct channel_connect {
+	char *host;
+	int port;
+	struct addrinfo *ai, *aitop;
+};
+
 struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
@@ -125,7 +132,11 @@ struct Channel {
 	channel_infilter_fn	*input_filter;
 	channel_outfilter_fn	*output_filter;
 
-	int     datagram;	/* keep boundaries */
+	/* keep boundaries */
+	int     		datagram;
+
+	/* non-blocking connect */
+	struct channel_connect	connect_ctx;
 };
 
 #define CHAN_EXTENDED_IGNORE		0
@@ -225,8 +236,8 @@ int	 channel_add_adm_permitted_opens(char *, int);
 void	 channel_clear_permitted_opens(void);
 void	 channel_clear_adm_permitted_opens(void);
 int      channel_input_port_forward_request(int, int);
-int	 channel_connect_to(const char *, u_short);
-int	 channel_connect_by_listen_address(u_short);
+Channel	*channel_connect_to(const char *, u_short, char *, char *);
+Channel	*channel_connect_by_listen_address(u_short, char *, char *);
 int	 channel_request_remote_forwarding(const char *, u_short,
 	     const char *, u_short);
 int	 channel_setup_local_fwd_listener(const char *, u_short,
@@ -241,7 +252,7 @@ int	 x11_connect_display(void);
 int	 x11_create_display_inet(int, int, int, u_int *, int **);
 void     x11_input_open(int, u_int32_t, void *);
 void	 x11_request_forwarding_with_spoofing(int, const char *, const char *,
-	    const char *);
+	     const char *);
 void	 deny_input_open(int, u_int32_t, void *);
 
 /* agent forwarding */

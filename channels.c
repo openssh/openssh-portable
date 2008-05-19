@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.275 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.276 2008/05/09 04:55:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -164,6 +164,10 @@ static int IPv4or6 = AF_UNSPEC;
 
 /* helper */
 static void port_open_helper(Channel *c, char *rtype);
+
+/* non-blocking connect helpers */
+static int connect_next(struct channel_connect *);
+static void channel_connect_ctx_free(struct channel_connect *);
 
 /* -- channel core */
 
@@ -1425,7 +1429,7 @@ channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 static void
 channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 {
-	int err = 0;
+	int err = 0, sock;
 	socklen_t sz = sizeof(err);
 
 	if (FD_ISSET(c->sock, writeset)) {
@@ -1434,7 +1438,9 @@ channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 			error("getsockopt SO_ERROR failed");
 		}
 		if (err == 0) {
-			debug("channel %d: connected", c->self);
+			debug("channel %d: connected to %s port %d",
+			    c->self, c->connect_ctx.host, c->connect_ctx.port);
+			channel_connect_ctx_free(&c->connect_ctx);
 			c->type = SSH_CHANNEL_OPEN;
 			if (compat20) {
 				packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
@@ -1448,8 +1454,19 @@ channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 				packet_put_int(c->self);
 			}
 		} else {
-			debug("channel %d: not connected: %s",
+			debug("channel %d: connection failed: %s",
 			    c->self, strerror(err));
+			/* Try next address, if any */
+			if ((sock = connect_next(&c->connect_ctx)) > 0) {
+				close(c->sock);
+				c->sock = c->rfd = c->wfd = sock;
+				channel_max_fd = channel_find_maxfd();
+				return;
+			}
+			/* Exhausted all addresses */
+			error("connect_to %.100s port %d: failed.",
+			    c->connect_ctx.host, c->connect_ctx.port);
+			channel_connect_ctx_free(&c->connect_ctx);
 			if (compat20) {
 				packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 				packet_put_int(c->remote_id);
@@ -2327,7 +2344,7 @@ channel_input_port_open(int type, u_int32_t seq, void *ctxt)
 	Channel *c = NULL;
 	u_short host_port;
 	char *host, *originator_string;
-	int remote_id, sock = -1;
+	int remote_id;
 
 	remote_id = packet_get_int();
 	host = packet_get_string(NULL);
@@ -2339,20 +2356,16 @@ channel_input_port_open(int type, u_int32_t seq, void *ctxt)
 		originator_string = xstrdup("unknown (remote did not supply name)");
 	}
 	packet_check_eom();
-	sock = channel_connect_to(host, host_port);
-	if (sock != -1) {
-		c = channel_new("connected socket",
-		    SSH_CHANNEL_CONNECTING, sock, sock, -1, 0, 0, 0,
-		    originator_string, 1);
-		c->remote_id = remote_id;
-	}
+	c = channel_connect_to(host, host_port,
+	    "connected socket", originator_string);
 	xfree(originator_string);
+	xfree(host);
 	if (c == NULL) {
 		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(remote_id);
 		packet_send();
-	}
-	xfree(host);
+	} else
+		c->remote_id = remote_id;
 }
 
 /* ARGSUSED */
@@ -2770,35 +2783,26 @@ channel_clear_adm_permitted_opens(void)
 	num_adm_permitted_opens = 0;
 }
 
-/* return socket to remote host, port */
+/* Try to start non-blocking connect to next host in cctx list */
 static int
-connect_to(const char *host, u_short port)
+connect_next(struct channel_connect *cctx)
 {
-	struct addrinfo hints, *ai, *aitop;
+	int sock, saved_errno;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
-	int gaierr;
-	int sock = -1;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = IPv4or6;
-	hints.ai_socktype = SOCK_STREAM;
-	snprintf(strport, sizeof strport, "%d", port);
-	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0) {
-		error("connect_to %.100s: unknown host (%s)", host,
-		    ssh_gai_strerror(gaierr));
-		return -1;
-	}
-	for (ai = aitop; ai; ai = ai->ai_next) {
-		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+	for (; cctx->ai; cctx->ai = cctx->ai->ai_next) {
+		if (cctx->ai->ai_family != AF_INET &&
+		    cctx->ai->ai_family != AF_INET6)
 			continue;
-		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
-		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
-			error("connect_to: getnameinfo failed");
+		if (getnameinfo(cctx->ai->ai_addr, cctx->ai->ai_addrlen,
+		    ntop, sizeof(ntop), strport, sizeof(strport),
+		    NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+			error("connect_next: getnameinfo failed");
 			continue;
 		}
-		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-		if (sock < 0) {
-			if (ai->ai_next == NULL)
+		if ((sock = socket(cctx->ai->ai_family, cctx->ai->ai_socktype,
+		    cctx->ai->ai_protocol)) == -1) {
+			if (cctx->ai->ai_next == NULL)
 				error("socket: %.100s", strerror(errno));
 			else
 				verbose("socket: %.100s", strerror(errno));
@@ -2806,45 +2810,94 @@ connect_to(const char *host, u_short port)
 		}
 		if (set_nonblock(sock) == -1)
 			fatal("%s: set_nonblock(%d)", __func__, sock);
-		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0 &&
-		    errno != EINPROGRESS) {
-			error("connect_to %.100s port %s: %.100s", ntop, strport,
+		if (connect(sock, cctx->ai->ai_addr,
+		    cctx->ai->ai_addrlen) == -1 && errno != EINPROGRESS) {
+			debug("connect_next: host %.100s ([%.100s]:%s): "
+			    "%.100s", cctx->host, ntop, strport,
 			    strerror(errno));
+			saved_errno = errno;
 			close(sock);
+			errno = saved_errno;
 			continue;	/* fail -- try next */
 		}
-		break; /* success */
-
+		debug("connect_next: host %.100s ([%.100s]:%s) "
+		    "in progress, fd=%d", cctx->host, ntop, strport, sock);
+		cctx->ai = cctx->ai->ai_next;
+		set_nodelay(sock);
+		return sock;
 	}
-	freeaddrinfo(aitop);
-	if (!ai) {
-		error("connect_to %.100s port %d: failed.", host, port);
-		return -1;
-	}
-	/* success */
-	set_nodelay(sock);
-	return sock;
-}
-
-int
-channel_connect_by_listen_address(u_short listen_port)
-{
-	int i;
-
-	for (i = 0; i < num_permitted_opens; i++)
-		if (permitted_opens[i].host_to_connect != NULL &&
-		    permitted_opens[i].listen_port == listen_port)
-			return connect_to(
-			    permitted_opens[i].host_to_connect,
-			    permitted_opens[i].port_to_connect);
-	error("WARNING: Server requests forwarding for unknown listen_port %d",
-	    listen_port);
 	return -1;
 }
 
+static void
+channel_connect_ctx_free(struct channel_connect *cctx)
+{
+	xfree(cctx->host);
+	if (cctx->aitop)
+		freeaddrinfo(cctx->aitop);
+	bzero(cctx, sizeof(*cctx));
+	cctx->host = NULL;
+	cctx->ai = cctx->aitop = NULL;
+}
+
+/* Return CONNECTING channel to remote host, port */
+static Channel *
+connect_to(const char *host, u_short port, char *ctype, char *rname)
+{
+	struct addrinfo hints;
+	int gaierr;
+	int sock = -1;
+	char strport[NI_MAXSERV];
+	struct channel_connect cctx;
+	Channel *c;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(strport, sizeof strport, "%d", port);
+	if ((gaierr = getaddrinfo(host, strport, &hints, &cctx.aitop)) != 0) {
+		error("connect_to %.100s: unknown host (%s)", host,
+		    ssh_gai_strerror(gaierr));
+		return NULL;
+	}
+
+	cctx.host = xstrdup(host);
+	cctx.port = port;
+	cctx.ai = cctx.aitop;
+
+	if ((sock = connect_next(&cctx)) == -1) {
+		error("connect to %.100s port %d failed: %s",
+		    host, port, strerror(errno));
+		channel_connect_ctx_free(&cctx);
+		return NULL;
+	}
+	c = channel_new(ctype, SSH_CHANNEL_CONNECTING, sock, sock, -1,
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1);
+	c->connect_ctx = cctx;
+	return c;
+}
+
+Channel *
+channel_connect_by_listen_address(u_short listen_port, char *ctype, char *rname)
+{
+	int i;
+
+	for (i = 0; i < num_permitted_opens; i++) {
+		if (permitted_opens[i].host_to_connect != NULL &&
+		    permitted_opens[i].listen_port == listen_port) {
+			return connect_to(
+			    permitted_opens[i].host_to_connect,
+			    permitted_opens[i].port_to_connect, ctype, rname);
+		}
+	}
+	error("WARNING: Server requests forwarding for unknown listen_port %d",
+	    listen_port);
+	return NULL;
+}
+
 /* Check if connecting to that port is permitted and connect. */
-int
-channel_connect_to(const char *host, u_short port)
+Channel *
+channel_connect_to(const char *host, u_short port, char *ctype, char *rname)
 {
 	int i, permit, permit_adm = 1;
 
@@ -2870,9 +2923,9 @@ channel_connect_to(const char *host, u_short port)
 	if (!permit || !permit_adm) {
 		logit("Received request to connect to host %.100s port %d, "
 		    "but the request was denied.", host, port);
-		return -1;
+		return NULL;
 	}
-	return connect_to(host, port);
+	return connect_to(host, port, ctype, rname);
 }
 
 void
