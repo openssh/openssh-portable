@@ -144,6 +144,10 @@
      [umac.c]
      Ensure nh_result lies on a 64-bit boundary (fixes warnings observed
      on Itanium on Linux); from Dale Talcott (bug #1462); ok djm@
+   - djm@cvs.openbsd.org 2008/05/15 23:52:24
+     [nchan2.ms]
+     document eow message in ssh protocol 2 channel state machine;
+     feedback and ok markus@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -4004,4 +4008,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4931 2008/05/19 06:07:45 djm Exp $
+$Id: ChangeLog,v 1.4932 2008/05/19 06:08:20 djm Exp $
