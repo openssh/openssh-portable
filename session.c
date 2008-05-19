@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.234 2008/04/18 22:01:33 djm Exp $ */
+/* $OpenBSD: session.c,v 1.235 2008/05/07 05:49:37 pyr Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -335,7 +335,8 @@ do_authenticated1(Authctxt *authctxt)
 			break;
 
 		case SSH_CMSG_AGENT_REQUEST_FORWARDING:
-			if (no_agent_forwarding_flag || compat13) {
+			if (!options.allow_agent_forwarding ||
+			    no_agent_forwarding_flag || compat13) {
 				debug("Authentication agent forwarding not permitted for this authentication.");
 				break;
 			}
@@ -2081,7 +2082,7 @@ session_auth_agent_req(Session *s)
 {
 	static int called = 0;
 	packet_check_eom();
-	if (no_agent_forwarding_flag) {
+	if (no_agent_forwarding_flag || !options.allow_agent_forwarding) {
 		debug("session_auth_agent_req: no_agent_forwarding_flag");
 		return 0;
 	}
