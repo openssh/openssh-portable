@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.237 2008/05/08 12:21:16 djm Exp $ */
+/* $OpenBSD: session.c,v 1.238 2008/05/09 16:16:06 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
