@@ -58,6 +58,10 @@
    - jmc@cvs.openbsd.org 2008/05/07 08:00:14
      [sshd_config.5]
      sort;
+   - markus@cvs.openbsd.org 2008/05/08 06:59:01
+     [bufaux.c buffer.h channels.c packet.c packet.h]
+     avoid extra malloc/copy/free when receiving data over the net;
+     ~10% speedup for localhost-scp; ok djm@
 
 20080403
  - (djm) [openbsd-compat/bsd-poll.c] Include stdlib.h to avoid compile-
@@ -3918,4 +3922,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4918 2008/05/19 04:59:02 djm Exp $
+$Id: ChangeLog,v 1.4919 2008/05/19 04:59:37 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.273 2008/04/02 21:36:51 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.274 2008/05/08 06:59:01 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2012,7 +2012,7 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 		return;
 
 	/* Get the data. */
-	data = packet_get_string(&data_len);
+	data = packet_get_string_ptr(&data_len);
 
 	/*
 	 * Ignore data for protocol > 1.3 if output end is no longer open.
@@ -2026,7 +2026,6 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 			c->local_window -= data_len;
 			c->local_consumed += data_len;
 		}
-		xfree(data);
 		return;
 	}
 
@@ -2038,17 +2037,15 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 		if (data_len > c->local_window) {
 			logit("channel %d: rcvd too much data %d, win %d",
 			    c->self, data_len, c->local_window);
-			xfree(data);
 			return;
 		}
 		c->local_window -= data_len;
 	}
-	packet_check_eom();
 	if (c->datagram)
 		buffer_put_string(&c->output, data, data_len);
 	else
 		buffer_append(&c->output, data, data_len);
-	xfree(data);
+	packet_check_eom();
 }
 
 /* ARGSUSED */
