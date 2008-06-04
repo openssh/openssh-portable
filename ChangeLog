@@ -1,3 +1,8 @@
+20080604
+ - (djm) [openbsd-compat/bsd-arc4random.c] Fix math bug that caused bias
+   in arc4random_uniform with upper_bound in (2^30,2*31). Note that 
+   OpenSSH did not make requests with upper bounds in this range.
+
 20080519
  - (djm) [configure.ac mux.c sftp.c openbsd-compat/Makefile.in]
    [openbsd-compat/fmt_scaled.c openbsd-compat/openbsd-compat.h]
@@ -4023,4 +4028,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4935 2008/05/19 22:57:06 djm Exp $
+$Id: ChangeLog,v 1.4936 2008/06/04 00:54:00 djm Exp $
