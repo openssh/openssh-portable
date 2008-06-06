@@ -1,3 +1,6 @@
+20080607
+ - (dtucker) [mux.c] Include paths.h inside ifdef HAVE_PATHS_H.
+
 20080604
  - (djm) [openbsd-compat/bsd-arc4random.c] Fix math bug that caused bias
    in arc4random_uniform with upper_bound in (2^30,2*31). Note that 
@@ -4028,4 +4031,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4936 2008/06/04 00:54:00 djm Exp $
+$Id: ChangeLog,v 1.4937 2008/06/06 20:25:15 dtucker Exp $
