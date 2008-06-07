@@ -23,8 +23,12 @@
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#ifdef HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
+#endif
 
 #include <dirent.h>
 #include <errno.h>
@@ -477,6 +481,7 @@ send_attrib(u_int32_t id, const Attrib *a)
 	buffer_free(&msg);
 }
 
+#ifdef USE_STATVFS
 static void
 send_statvfs(u_int32_t id, struct statvfs *st)
 {
@@ -503,6 +508,7 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	send_msg(&msg);
 	buffer_free(&msg);
 }
+#endif
 
 /* parse incoming */
 
@@ -519,12 +525,14 @@ process_init(void)
 	/* POSIX rename extension */
 	buffer_put_cstring(&msg, "posix-rename@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
+#ifdef USEE_STATVFS
 	/* statvfs extension */
 	buffer_put_cstring(&msg, "statvfs@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
 	/* fstatvfs extension */
 	buffer_put_cstring(&msg, "fstatvfs@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
+#endif
 	send_msg(&msg);
 	buffer_free(&msg);
 }
@@ -1134,6 +1142,7 @@ process_extended_posix_rename(u_int32_t id)
 	xfree(newpath);
 }
 
+#ifdef USE_STATVFS
 static void
 process_extended_statvfs(u_int32_t id)
 {
@@ -1169,6 +1178,7 @@ process_extended_fstatvfs(u_int32_t id)
 	else
 		send_statvfs(id, &st);
 }
+#endif
 
 static void
 process_extended(void)
@@ -1180,10 +1190,12 @@ process_extended(void)
 	request = get_string(NULL);
 	if (strcmp(request, "posix-rename@openssh.com") == 0)
 		process_extended_posix_rename(id);
+#ifdef USE_STATVFS
 	else if (strcmp(request, "statvfs@openssh.com") == 0)
 		process_extended_statvfs(id);
 	else if (strcmp(request, "fstatvfs@openssh.com") == 0)
 		process_extended_fstatvfs(id);
+#endif
 	else
 		send_status(id, SSH2_FX_OP_UNSUPPORTED);	/* MUST */
 	xfree(request);

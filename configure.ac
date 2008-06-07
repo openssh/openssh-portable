@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.399 2008/05/19 22:57:06 djm Exp $
+# $Id: configure.ac,v 1.400 2008/06/07 23:25:28 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.399 $)
+AC_REVISION($Revision: 1.400 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -267,6 +267,7 @@ AC_CHECK_HEADERS( \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
+	sys/mount.h \
 	sys/ndir.h \
 	sys/poll.h \
 	sys/prctl.h \
@@ -276,6 +277,7 @@ AC_CHECK_HEADERS( \
 	sys/stream.h \
 	sys/stropts.h \
 	sys/strtio.h \
+	sys/statvfs.h \
 	sys/sysmacros.h \
 	sys/time.h \
 	sys/timers.h \
@@ -1354,6 +1356,8 @@ AC_CHECK_FUNCS( \
 	sigvec \
 	snprintf \
 	socketpair \
+	statfs \
+	statvfs \
 	strdup \
 	strerror \
 	strlcat \

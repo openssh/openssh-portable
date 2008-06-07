@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.146 2008/02/28 08:22:04 dtucker Exp $ */
+/* $Id: defines.h,v 1.147 2008/06/07 23:25:28 dtucker Exp $ */
 
 
 /* Constants */
@@ -565,6 +565,10 @@ struct winsize {
 #ifdef USE_BSM_AUDIT
 # define SSH_AUDIT_EVENTS
 # define CUSTOM_SSH_AUDIT_EVENTS
+#endif
+
+#if defined(HAVE_STATVFS)
+# define USE_STATVFS
 #endif
 
 #if !defined(HAVE___func__) && defined(HAVE___FUNCTION__)
