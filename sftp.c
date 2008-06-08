@@ -842,7 +842,6 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 static int
 do_df(struct sftp_conn *conn, char *path, int hflag, int iflag)
 {
-#ifdef USE_STATVFS
 	struct statvfs st;
 	char s_used[FMT_SCALED_STRSIZE];
 	char s_avail[FMT_SCALED_STRSIZE];
@@ -888,10 +887,6 @@ do_df(struct sftp_conn *conn, char *path, int hflag, int iflag)
 		    st.f_blocks));
 	}
 	return 0;
-#else
-	error("client does not support statvfs extension");
-	return -1;
-#endif
 }
 
 /*

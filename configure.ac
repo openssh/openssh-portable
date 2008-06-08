@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.400 2008/06/07 23:25:28 dtucker Exp $
+# $Id: configure.ac,v 1.401 2008/06/08 17:32:29 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.400 $)
+AC_REVISION($Revision: 1.401 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1305,6 +1305,7 @@ AC_CHECK_FUNCS( \
 	fchmod \
 	fchown \
 	freeaddrinfo \
+	fstatvfs \
 	futimes \
 	getaddrinfo \
 	getcwd \
@@ -2651,6 +2652,18 @@ fi
 TYPE_SOCKLEN_T
 
 AC_CHECK_TYPES(sig_atomic_t,,,[#include <signal.h>])
+AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t],,,[
+#include <sys/types.h>
+#ifdef HAVE_SYS_BITYPES_H
+#include <sys/bitypes.h>
+#endif
+#ifdef HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
+])
 
 AC_CHECK_TYPES(in_addr_t,,,
 [#include <sys/types.h>

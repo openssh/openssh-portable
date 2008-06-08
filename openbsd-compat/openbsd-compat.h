@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.45 2008/05/19 22:57:08 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.46 2008/06/08 17:32:29 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -144,6 +144,7 @@ int writev(int, struct iovec *, int);
 
 /* Home grown routines */
 #include "bsd-misc.h"
+#include "bsd-statvfs.h"
 #include "bsd-waitpid.h"
 #include "bsd-poll.h"
 

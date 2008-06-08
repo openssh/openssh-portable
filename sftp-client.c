@@ -243,7 +243,6 @@ get_decode_stat(int fd, u_int expected_id, int quiet)
 	return(a);
 }
 
-#ifdef USE_STATVFS
 static int
 get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
 {
@@ -293,7 +292,6 @@ get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
 
 	return 0;
 }
-#endif
 
 struct sftp_conn *
 do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
@@ -813,7 +811,6 @@ do_readlink(struct sftp_conn *conn, char *path)
 }
 #endif
 
-#ifdef USE_STATVFS
 int
 do_statvfs(struct sftp_conn *conn, const char *path, struct statvfs *st,
     int quiet)
@@ -839,7 +836,6 @@ do_statvfs(struct sftp_conn *conn, const char *path, struct statvfs *st,
 
 	return get_decode_statvfs(conn->fd_in, st, id, quiet);
 }
-#endif
 
 #ifdef notyet
 int
