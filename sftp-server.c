@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.80 2008/05/18 21:29:05 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.81 2008/06/07 21:52:46 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -502,7 +502,7 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	buffer_put_int64(&msg, st->f_files);
 	buffer_put_int64(&msg, st->f_ffree);
 	buffer_put_int64(&msg, st->f_favail);
-	buffer_put_int(&msg, st->f_fsid);
+	buffer_put_int64(&msg, st->f_fsid);
 	buffer_put_int(&msg, flag);
 	buffer_put_int(&msg, st->f_namemax);
 	send_msg(&msg);
@@ -528,10 +528,10 @@ process_init(void)
 #ifdef USEE_STATVFS
 	/* statvfs extension */
 	buffer_put_cstring(&msg, "statvfs@openssh.com");
-	buffer_put_cstring(&msg, "1"); /* version */
+	buffer_put_cstring(&msg, "2"); /* version */
 	/* fstatvfs extension */
 	buffer_put_cstring(&msg, "fstatvfs@openssh.com");
-	buffer_put_cstring(&msg, "1"); /* version */
+	buffer_put_cstring(&msg, "2"); /* version */
 #endif
 	send_msg(&msg);
 	buffer_free(&msg);

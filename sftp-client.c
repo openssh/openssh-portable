@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.82 2008/04/18 12:32:11 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.83 2008/06/07 21:52:46 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -282,7 +282,7 @@ get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
 	st->f_files = buffer_get_int64(&msg);
 	st->f_ffree = buffer_get_int64(&msg);
 	st->f_favail = buffer_get_int64(&msg);
-	st->f_fsid = buffer_get_int(&msg);
+	st->f_fsid = buffer_get_int64(&msg);
 	flag = buffer_get_int(&msg);
 	st->f_namemax = buffer_get_int(&msg);
 
@@ -333,10 +333,10 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 		    strcmp(value, "1") == 0)
 			exts |= SFTP_EXT_POSIX_RENAME;
 		if (strcmp(name, "statvfs@openssh.com") == 0 &&
-		    strcmp(value, "1") == 0)
+		    strcmp(value, "2") == 0)
 			exts |= SFTP_EXT_STATVFS;
 		if (strcmp(name, "fstatvfs@openssh.com") == 0 &&
-		    strcmp(value, "1") == 0)
+		    strcmp(value, "2") == 0)
 			exts |= SFTP_EXT_FSTATVFS;
 		xfree(name);
 		xfree(value);
