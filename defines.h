@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.148 2008/06/08 17:32:29 dtucker Exp $ */
+/* $Id: defines.h,v 1.149 2008/06/08 20:17:53 dtucker Exp $ */
 
 
 /* Constants */
@@ -588,6 +588,15 @@ struct winsize {
 # define SSH_SYSFDMAX sysconf(_SC_OPEN_MAX)
 #else
 # define SSH_SYSFDMAX 10000
+#endif
+
+#ifdef FSID_HAS_VAL
+/* encode f_fsid into a 64 bit value  */
+#define FSID_TO_ULONG(f) \
+	((((u_int64_t)(f).val[0] & 0xffffffffUL) << 32) | \
+	    ((f).val[1] & 0xffffffffUL))
+#else
+# define FSID_TO_ULONG(f) ((f))
 #endif
 
 #if defined(__Lynx__)

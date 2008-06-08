@@ -501,7 +501,7 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	buffer_put_int64(&msg, st->f_files);
 	buffer_put_int64(&msg, st->f_ffree);
 	buffer_put_int64(&msg, st->f_favail);
-	buffer_put_int64(&msg, st->f_fsid);
+	buffer_put_int64(&msg, FSID_TO_ULONG(st->f_fsid));
 	buffer_put_int(&msg, flag);
 	buffer_put_int(&msg, st->f_namemax);
 	send_msg(&msg);

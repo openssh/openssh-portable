@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.401 2008/06/08 17:32:29 dtucker Exp $
+# $Id: configure.ac,v 1.402 2008/06/08 20:17:53 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.401 $)
+AC_REVISION($Revision: 1.402 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3025,6 +3025,16 @@ if test "x$ac_cv_have_accrights_in_msghdr" = "xyes" ; then
 		[Define if your system uses access rights style
 		file descriptor passing])
 fi
+
+AC_MSG_CHECKING(if f_fsid has val members)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/statvfs.h>],
+[struct fsid_t t; t.val[0] = 0;],
+	[ AC_MSG_RESULT(yes)
+	  AC_DEFINE(FSID_HAS_VAL, 1, f_fsid has members) ],
+	[ AC_MSG_RESULT(no) ]
+)
 
 AC_CACHE_CHECK([for msg_control field in struct msghdr],
 		ac_cv_have_control_in_msghdr, [

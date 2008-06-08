@@ -3,6 +3,9 @@
    openbsd-compat/Makefile.in openbsd-compat/openbsd-compat.h
    openbsd-compat/bsd-statvfs.{c,h}] Add a null implementation of statvfs and
    fstatvfs and remove #defines around statvfs code.  ok djm@
+ - (dtucker) [configure.ac defines.h sftp-client.c M sftp-server.c] Add a
+   macro to convert fsid to unsigned long for platforms where fsid is a
+   2-member array.
 
 20080607
  - (dtucker) [mux.c] Include paths.h inside ifdef HAVE_PATHS_H.
@@ -4060,4 +4063,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4943 2008/06/08 17:32:29 dtucker Exp $
+$Id: ChangeLog,v 1.4944 2008/06/08 20:17:53 dtucker Exp $
