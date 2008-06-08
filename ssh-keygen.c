@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.165 2008/01/19 22:37:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.166 2008/05/19 15:46:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -600,12 +600,24 @@ do_fingerprint(struct passwd *pw)
 static void
 print_host(FILE *f, const char *name, Key *public, int hash)
 {
-	if (hash && (name = host_hash(name, NULL, 0)) == NULL)
-		fatal("hash_host failed");
-	fprintf(f, "%s ", name);
-	if (!key_write(public, f))
-		fatal("key_write failed");
-	fprintf(f, "\n");
+	if (print_fingerprint) {
+		enum fp_rep rep;
+		enum fp_type fptype;
+		char *fp;
+
+		fptype = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
+		rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
+		fp = key_fingerprint(public, fptype, rep);
+		printf("%u %s %s\n", key_size(public), fp, name);
+		xfree(fp);
+	} else {
+		if (hash && (name = host_hash(name, NULL, 0)) == NULL)
+			fatal("hash_host failed");
+		fprintf(f, "%s ", name);
+		if (!key_write(public, f))
+			fatal("key_write failed");
+		fprintf(f, "\n");
+	}
 }
 
 static void
@@ -1229,6 +1241,10 @@ main(int argc, char **argv)
 	}
 	if (change_passphrase && change_comment) {
 		printf("Can only have one of -p and -c.\n");
+		usage();
+	}
+	if (print_fingerprint && (delete_host || hash_hosts)) {
+		printf("Cannot use -l with -D or -R.\n");
 		usage();
 	}
 	if (delete_host || hash_hosts || find_host)
