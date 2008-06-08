@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.193 2008/05/09 16:21:13 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.194 2008/05/19 20:53:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1725,7 +1725,6 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 
 	if (want_tty) {
 		struct winsize ws;
-		struct termios tio;
 
 		/* Store window size in the packet. */
 		if (ioctl(in_fd, TIOCGWINSZ, &ws) < 0)
@@ -1738,8 +1737,9 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		packet_put_int((u_int)ws.ws_row);
 		packet_put_int((u_int)ws.ws_xpixel);
 		packet_put_int((u_int)ws.ws_ypixel);
-		tio = get_saved_tio();
-		tty_make_modes(-1, tiop != NULL ? tiop : &tio);
+		if (tiop == NULL)
+			tiop = get_saved_tio();
+		tty_make_modes(-1, tiop);
 		packet_send();
 		/* XXX wait for reply */
 		c->client_tty = 1;
