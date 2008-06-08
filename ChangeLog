@@ -2,6 +2,9 @@
  - (dtucker) [mux.c] Include paths.h inside ifdef HAVE_PATHS_H.
  - (dtucker) [configure.ac defines.h sftp-client.c sftp-server.c sftp.c]
    Do not enable statvfs extensions on platforms that do not have statvfs.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2008/05/19 06:14:02
+     [packet.c] unbreak protocol keepalive timeouts bz#1465; ok dtucker@
 
 20080604
  - (djm) [openbsd-compat/bsd-arc4random.c] Fix math bug that caused bias
@@ -4033,4 +4036,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4938 2008/06/07 23:25:28 dtucker Exp $
+$Id: ChangeLog,v 1.4939 2008/06/08 02:49:30 dtucker Exp $

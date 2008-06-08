@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.152 2008/05/08 06:59:01 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.153 2008/05/19 06:14:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1194,9 +1194,10 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 	for (;;) {
 		if (compat20) {
 			type = packet_read_poll2(seqnr_p);
-			keep_alive_timeouts = 0;
-			if (type)
+			if (type) {
+				keep_alive_timeouts = 0;
 				DBG(debug("received packet type %d", type));
+			}
 			switch (type) {
 			case SSH2_MSG_IGNORE:
 				debug3("Received SSH2_MSG_IGNORE");
