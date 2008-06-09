@@ -141,7 +141,7 @@ return the following SSH_FXP_EXTENDED_REPLY reply:
 	uint64		f_files		/* total file inodes */
 	uint64		f_ffree		/* free file inodes */
 	uint64		f_favail	/* free file inodes for to non-root */
-	uint32		f_fsid		/* file system id */
+	uint64		f_fsid		/* file system id */
 	uint32		f_flag		/* bit mask of f_flag values */
 	uint32		f_namemax	/* maximum filename length */
 
@@ -150,5 +150,8 @@ The values of the f_flag bitmask are as follows:
 	#define SSH_FXE_STATVFS_ST_RDONLY	0x1	/* read-only */
 	#define SSH_FXE_STATVFS_ST_NOSUID	0x2	/* no setuid */
 
-$Id: PROTOCOL,v 1.1 2008/05/19 06:11:56 djm Exp $
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"2".
+
+$Id: PROTOCOL,v 1.2 2008/06/09 13:47:37 dtucker Exp $
 
