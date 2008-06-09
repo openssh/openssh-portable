@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.82 2008/06/08 17:04:41 dtucker Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.83 2008/06/09 13:02:39 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -496,8 +496,8 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_EXTENDED_REPLY);
 	buffer_put_int(&msg, id);
-	buffer_put_int(&msg, st->f_bsize);
-	buffer_put_int(&msg, st->f_frsize);
+	buffer_put_int64(&msg, st->f_bsize);
+	buffer_put_int64(&msg, st->f_frsize);
 	buffer_put_int64(&msg, st->f_blocks);
 	buffer_put_int64(&msg, st->f_bfree);
 	buffer_put_int64(&msg, st->f_bavail);
@@ -505,8 +505,8 @@ send_statvfs(u_int32_t id, struct statvfs *st)
 	buffer_put_int64(&msg, st->f_ffree);
 	buffer_put_int64(&msg, st->f_favail);
 	buffer_put_int64(&msg, FSID_TO_ULONG(st->f_fsid));
-	buffer_put_int(&msg, flag);
-	buffer_put_int(&msg, st->f_namemax);
+	buffer_put_int64(&msg, flag);
+	buffer_put_int64(&msg, st->f_namemax);
 	send_msg(&msg);
 	buffer_free(&msg);
 }
