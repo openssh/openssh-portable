@@ -1,3 +1,9 @@
+20080609
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2008/06/08 17:04:41
+     [sftp-server.c]
+     Add case for ENOSYS in errno_to_portable; ok deraadt
+
 20080608
  - (dtucker) [configure.ac defines.h sftp-client.c sftp-server.c sftp.c
    openbsd-compat/Makefile.in openbsd-compat/openbsd-compat.h
@@ -4063,4 +4069,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4944 2008/06/08 20:17:53 dtucker Exp $
+$Id: ChangeLog,v 1.4945 2008/06/09 12:48:31 dtucker Exp $

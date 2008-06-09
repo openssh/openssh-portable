@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.81 2008/06/07 21:52:46 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.82 2008/06/08 17:04:41 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -103,6 +103,9 @@ errno_to_portable(int unixerrno)
 	case ENAMETOOLONG:
 	case EINVAL:
 		ret = SSH2_FX_BAD_MESSAGE;
+		break;
+	case ENOSYS:
+		ret = SSH2_FX_OP_UNSUPPORTED;
 		break;
 	default:
 		ret = SSH2_FX_FAILURE;
