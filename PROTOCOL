@@ -153,5 +153,5 @@ The values of the f_flag bitmask are as follows:
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "2".
 
-$Id: PROTOCOL,v 1.3 2008/06/09 13:49:09 dtucker Exp $
+$OpenBSD: PROTOCOL,v 1.5 2008/06/09 13:38:46 dtucker Exp $
 
