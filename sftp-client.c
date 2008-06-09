@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.83 2008/06/07 21:52:46 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.84 2008/06/08 20:15:29 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -244,7 +244,8 @@ get_decode_stat(int fd, u_int expected_id, int quiet)
 }
 
 static int
-get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
+get_decode_statvfs(int fd, struct sftp_statvfs *st, u_int expected_id,
+    int quiet)
 {
 	Buffer msg;
 	u_int type, id, flag;
@@ -273,8 +274,8 @@ get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
 	}
 
 	bzero(st, sizeof(*st));
-	st->f_bsize = buffer_get_int(&msg);
-	st->f_frsize = buffer_get_int(&msg);
+	st->f_bsize = buffer_get_int64(&msg);
+	st->f_frsize = buffer_get_int64(&msg);
 	st->f_blocks = buffer_get_int64(&msg);
 	st->f_bfree = buffer_get_int64(&msg);
 	st->f_bavail = buffer_get_int64(&msg);
@@ -282,8 +283,8 @@ get_decode_statvfs(int fd, struct statvfs *st, u_int expected_id, int quiet)
 	st->f_ffree = buffer_get_int64(&msg);
 	st->f_favail = buffer_get_int64(&msg);
 	st->f_fsid = buffer_get_int64(&msg);
-	flag = buffer_get_int(&msg);
-	st->f_namemax = buffer_get_int(&msg);
+	flag = buffer_get_int64(&msg);
+	st->f_namemax = buffer_get_int64(&msg);
 
 	st->f_flag = (flag & SSH2_FXE_STATVFS_ST_RDONLY) ? ST_RDONLY : 0;
 	st->f_flag |= (flag & SSH2_FXE_STATVFS_ST_NOSUID) ? ST_NOSUID : 0;
@@ -812,7 +813,7 @@ do_readlink(struct sftp_conn *conn, char *path)
 #endif
 
 int
-do_statvfs(struct sftp_conn *conn, const char *path, struct statvfs *st,
+do_statvfs(struct sftp_conn *conn, const char *path, struct sftp_statvfs *st,
     int quiet)
 {
 	Buffer msg;
@@ -840,7 +841,7 @@ do_statvfs(struct sftp_conn *conn, const char *path, struct statvfs *st,
 #ifdef notyet
 int
 do_fstatvfs(struct sftp_conn *conn, const char *handle, u_int handle_len,
-    struct statvfs *st, int quiet)
+    struct sftp_statvfs *st, int quiet)
 {
 	Buffer msg;
 	u_int id;

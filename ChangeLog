@@ -3,6 +3,13 @@
    - dtucker@cvs.openbsd.org 2008/06/08 17:04:41
      [sftp-server.c]
      Add case for ENOSYS in errno_to_portable; ok deraadt
+   - dtucker@cvs.openbsd.org 2008/06/08 20:15:29
+     [sftp.c sftp-client.c sftp-client.h]
+     Have the sftp client store the statvfs replies in wire format,
+     which prevents problems when the server's native sizes exceed the
+     client's.
+     Also extends the sizes of the remaining 32bit wire format to 64bit,
+     they're specified as unsigned long in the standard.
 
 20080608
  - (dtucker) [configure.ac defines.h sftp-client.c sftp-server.c sftp.c
@@ -4069,4 +4076,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4945 2008/06/09 12:48:31 dtucker Exp $
+$Id: ChangeLog,v 1.4946 2008/06/09 12:49:36 dtucker Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.100 2008/04/18 12:32:11 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.101 2008/06/08 20:15:29 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -842,7 +842,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 static int
 do_df(struct sftp_conn *conn, char *path, int hflag, int iflag)
 {
-	struct statvfs st;
+	struct sftp_statvfs st;
 	char s_used[FMT_SCALED_STRSIZE];
 	char s_avail[FMT_SCALED_STRSIZE];
 	char s_root[FMT_SCALED_STRSIZE];
