@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.32 2008/06/09 18:06:32 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.33 2008/06/10 15:21:41 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -290,7 +290,15 @@ chmod 644 $OBJ/authorized_keys_$USER
 # If PuTTY is present and we are running a PuTTY test, prepare keys and
 # configuration
 REGRESS_INTEROP_PUTTY=no
-if test -x $PUTTYGEN -a -x $PLINK && [[ $SCRIPT = *putty* ]] ; then
+if test -x $PUTTYGEN -a -x $PLINK ; then
+	REGRESS_INTEROP_PUTTY=yes
+fi
+case "$SCRIPT" in
+*putty*)	;;
+*)		REGRESS_INTEROP_PUTTY=no ;;
+esac
+
+if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	mkdir -p ${OBJ}/.putty
 
 	# Add a PuTTY key to authorized_keys
