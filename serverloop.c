@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.151 2008/05/09 16:21:13 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.152 2008/06/10 22:15:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -105,6 +105,7 @@ static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
 static int connection_closed = 0;	/* Connection to client closed. */
 static u_int buffer_high;	/* "Soft" max buffer size. */
+static int no_more_sessions = 0; /* Disallow further sessions. */
 
 /*
  * This SIGCHLD kludge is used to detect when the child exits.  The server
@@ -1013,6 +1014,12 @@ server_request_session(void)
 
 	debug("input_session_request");
 	packet_check_eom();
+
+	if (no_more_sessions) {
+		packet_disconnect("Possible attack: attempt to open a session "
+		    "after additional sessions disabled");
+	}
+
 	/*
 	 * A server session has no fd to read or write until a
 	 * CHANNEL_REQUEST for a shell is made, so we set the type to
@@ -1133,6 +1140,9 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		success = channel_cancel_rport_listener(cancel_address,
 		    cancel_port);
 		xfree(cancel_address);
+	} else if (strcmp(rtype, "no-more-sessions@openssh.com") == 0) {
+		no_more_sessions = 1;
+		success = 1;
 	}
 	if (want_reply) {
 		packet_start(success ?

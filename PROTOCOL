@@ -61,7 +61,30 @@ remain open after a "eow@openssh.com" has been sent and more data may
 still be sent in the other direction. This message does not consume
 window space and may be sent even if no window space is available.
 
-4. sftp: Reversal of arguments to SSH_FXP_SYMLINK
+4. connection: disallow additional sessions extension
+   "no-more-sessions@openssh.com"
+
+Most SSH connections will only ever request a single session, but a
+attacker may abuse a running ssh client to surreptitiously open
+additional sessions under their control. OpenSSH provides a global
+request "no-more-sessions@openssh.com" to mitigate this attack.
+
+When an OpenSSH client expects that it will never open another session
+(i.e. it has been started with connection multiplexing disabled), it
+will send the following global request:
+
+	byte		SSH_MSG_GLOBAL_REQUEST
+	string		"no-more-sessions@openssh.com"
+	char		want-reply
+
+On receipt of such a message, an OpenSSH server will refuse to open
+future channels of type "session" and instead immediately abort the
+connection.
+
+Note that this is not a general defence against compromised clients
+(that is impossible), but it thwarts a simple attack.
+
+5. sftp: Reversal of arguments to SSH_FXP_SYMLINK
 
 When OpenSSH's sftp-server was implemented, the order of the arguments
 to the SSH_FXP_SYMLINK method was inadvertendly reversed. Unfortunately,
@@ -74,7 +97,7 @@ SSH_FXP_SYMLINK as follows:
 	string		targetpath
 	string		linkpath
 
-5. sftp: Server extension announcement in SSH_FXP_VERSION
+6. sftp: Server extension announcement in SSH_FXP_VERSION
 
 OpenSSH's sftp-server lists the extensions it supports using the
 standard extension announcement mechanism in the SSH_FXP_VERSION server
@@ -95,7 +118,7 @@ ever changed in an incompatible way. The server MAY advertise the same
 extension with multiple versions (though this is unlikely). Clients MUST
 check the version number before attemping to use the extension.
 
-6. sftp: Extension request "posix-rename@openssh.com"
+7. sftp: Extension request "posix-rename@openssh.com"
 
 This operation provides a rename operation with POSIX semantics, which
 are different to those provided by the standard SSH_FXP_RENAME in
@@ -112,7 +135,7 @@ rename(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-7. sftp: Extension requests "statvfs@openssh.com" and
+8. sftp: Extension requests "statvfs@openssh.com" and
          "fstatvfs@openssh.com"
 
 These requests correspond to the statvfs and fstatvfs POSIX system
@@ -153,5 +176,5 @@ The values of the f_flag bitmask are as follows:
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "2".
 
-$OpenBSD: PROTOCOL,v 1.5 2008/06/09 13:38:46 dtucker Exp $
+$OpenBSD: PROTOCOL,v 1.6 2008/06/10 22:15:23 djm Exp $
 

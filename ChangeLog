@@ -41,6 +41,16 @@
    - dtucker@cvs.openbsd.org 2008/06/10 18:21:24
      [ssh_config.5]
      clarify that Host patterns are space-separated.  ok deraadt
+   - djm@cvs.openbsd.org 2008/06/10 22:15:23
+     [PROTOCOL ssh.c serverloop.c]
+     Add a no-more-sessions@openssh.com global request extension that the
+     client sends when it knows that it will never request another session
+     (i.e. when session multiplexing is disabled). This allows a server to
+     disallow further session requests and terminate the session.
+     Why would a non-multiplexing client ever issue additional session
+     requests? It could have been attacked with something like SSH'jack:
+     http://www.storm.net.nz/projects/7
+     feedback & ok markus
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Add sin6_scope_id to sockaddr_in6
    since the new CIDR code in addmatch.c references it.
  - (dtucker) [Makefile.in configure.ac regress/addrmatch.sh] Skip IPv6
@@ -4133,4 +4143,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4961 2008/06/10 23:33:01 dtucker Exp $
+$Id: ChangeLog,v 1.4962 2008/06/10 23:34:01 dtucker Exp $

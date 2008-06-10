@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.313 2008/05/09 14:26:08 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.314 2008/06/10 22:15:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1150,6 +1150,15 @@ ssh_session2(void)
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
+
+	/* If we don't expect to open a new session, then disallow it */
+	if (options.control_master == SSHCTL_MASTER_NO) {
+		debug("Requesting no-more-sessions@openssh.com");
+		packet_start(SSH2_MSG_GLOBAL_REQUEST);
+		packet_put_cstring("no-more-sessions@openssh.com");
+		packet_put_char(0);
+		packet_send();
+	}
 
 	/* Execute a local command */
 	if (options.local_command != NULL &&
