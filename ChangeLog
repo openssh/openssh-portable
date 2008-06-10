@@ -35,6 +35,9 @@
    - dtucker@cvs.openbsd.org 2008/06/10 15:21:41
      [test-exec.sh]
      Use a more portable construct for checking if we're running a putty test
+   - dtucker@cvs.openbsd.org 2008/06/10 15:28:49
+     [test-exec.sh]
+     Add quotes
   - (dtucker) [openbsd-compat/fake-rfc2553.h] Add sin6_scope_id to sockaddr_in6
     since the new CIDR code in addmatch.c references it.
 
@@ -4123,4 +4126,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4957 2008/06/10 15:38:52 dtucker Exp $
+$Id: ChangeLog,v 1.4958 2008/06/10 15:39:38 dtucker Exp $

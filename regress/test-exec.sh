@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.33 2008/06/10 15:21:41 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.34 2008/06/10 15:28:49 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -290,7 +290,7 @@ chmod 644 $OBJ/authorized_keys_$USER
 # If PuTTY is present and we are running a PuTTY test, prepare keys and
 # configuration
 REGRESS_INTEROP_PUTTY=no
-if test -x $PUTTYGEN -a -x $PLINK ; then
+if test -x "$PUTTYGEN" -a -x "$PLINK" ; then
 	REGRESS_INTEROP_PUTTY=yes
 fi
 case "$SCRIPT" in
