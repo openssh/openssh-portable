@@ -47,6 +47,7 @@ LTESTS= 	connect \
 		reexec \
 		brokenkeys \
 		cfgmatch \
+		addrmatch \
 		localcommand \
 		forcecommand
 
