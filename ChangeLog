@@ -42,6 +42,8 @@
    since the new CIDR code in addmatch.c references it.
  - (dtucker) [Makefile.in configure.ac regress/addrmatch.sh] Skip IPv6
    specific tests on platforms that don't do IPv6.
+ - (dtucker) [Makefile.in] Define TEST_SSH_IPV6 in make's arguments as well
+   as environment.
 
 20080609
  - (dtucker) OpenBSD CVS Sync
@@ -4128,4 +4130,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4959 2008/06/10 18:15:05 dtucker Exp $
+$Id: ChangeLog,v 1.4960 2008/06/10 19:15:51 dtucker Exp $
