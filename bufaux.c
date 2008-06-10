@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.45 2008/05/08 06:59:01 markus Exp $ */
+/* $OpenBSD: bufaux.c,v 1.46 2008/06/10 23:21:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,7 +180,7 @@ buffer_get_string_ret(Buffer *buffer, u_int *length_ptr)
 		return (NULL);
 	}
 	/* Append a null character to make processing easier. */
-	value[len] = 0;
+	value[len] = '\0';
 	/* Optionally return the length of the string. */
 	if (length_ptr)
 		*length_ptr = len;

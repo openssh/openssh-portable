@@ -55,6 +55,9 @@
      [auth-options.c match.c servconf.c addrmatch.c sshd.8]
      support CIDR address matching in .ssh/authorized_keys from="..." stanzas
      ok and extensive testing dtucker@
+   - dtucker@cvs.openbsd.org 2008/06/10 23:21:34
+     [bufaux.c]
+     Use '\0' for a nul byte rather than unadorned 0.  ok djm@
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Add sin6_scope_id to sockaddr_in6
    since the new CIDR code in addmatch.c references it.
  - (dtucker) [Makefile.in configure.ac regress/addrmatch.sh] Skip IPv6
@@ -4147,4 +4150,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4963 2008/06/10 23:34:46 dtucker Exp $
+$Id: ChangeLog,v 1.4964 2008/06/10 23:35:37 dtucker Exp $
