@@ -21,6 +21,11 @@
    - jmc@cvs.openbsd.org 2008/06/10 07:12:00
      [sshd_config.5]
      tweak previous;
+   - jmc@cvs.openbsd.org 2008/06/10 08:17:40
+     [sshd.8 sshd.c]
+     - update usage()
+     - fix SYNOPSIS, and sort options
+     - some minor additional fixes
 
 20080609
  - (dtucker) OpenBSD CVS Sync
@@ -4107,4 +4112,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4952 2008/06/10 13:03:04 dtucker Exp $
+$Id: ChangeLog,v 1.4953 2008/06/10 13:06:01 dtucker Exp $

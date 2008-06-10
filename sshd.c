@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.358 2008/06/10 04:50:25 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.359 2008/06/10 08:17:40 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -804,8 +804,9 @@ usage(void)
 	fprintf(stderr, "%s, %s\n",
 	    SSH_RELEASE, SSLeay_version(SSLEAY_VERSION));
 	fprintf(stderr,
-"usage: sshd [-46Ddeiqt] [-b bits] [-f config_file] [-g login_grace_time]\n"
-"            [-h host_key_file] [-k key_gen_time] [-o option] [-p port] [-u len]\n"
+"usage: sshd [-46DdeiqTt] [-b bits] [-C connection_spec] [-f config_file]\n"
+"            [-g login_grace_time] [-h host_key_file] [-k key_gen_time]\n"
+"            [-o option] [-p port] [-u len]\n"
 	);
 	exit(1);
 }
