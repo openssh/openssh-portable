@@ -1,4 +1,4 @@
-#	$OpenBSD: addrmatch.sh,v 1.0 2008/06/10 05:23:32 dtucker Exp $
+#	$OpenBSD: addrmatch.sh,v 1.1 2008/06/10 05:23:32 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="address match"
