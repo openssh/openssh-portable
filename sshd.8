@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.243 2008/06/10 08:17:40 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.244 2008/06/10 23:06:19 djm Exp $
 .Dd $Mdocdate: June 10 2008 $
 .Dt SSHD 8
 .Os
@@ -531,23 +531,27 @@ This option is automatically disabled if
 .Cm UseLogin
 is enabled.
 .It Cm from="pattern-list"
-Specifies that in addition to public key authentication, the canonical name
-of the remote host must be present in the comma-separated list of
-patterns.
-The purpose
-of this option is to optionally increase security: public key authentication
-by itself does not trust the network or name servers or anything (but
-the key); however, if somebody somehow steals the key, the key
-permits an intruder to log in from anywhere in the world.
-This additional option makes using a stolen key more difficult (name
-servers and/or routers would have to be compromised in addition to
-just the key).
-.Pp
+Specifies that in addition to public key authentication, either the canonical
+name of the remote host or its IP address must be present in the 
+comma-separated list of patterns.
 See
 .Sx PATTERNS
 in
 .Xr ssh_config 5
 for more information on patterns.
+.Pp
+In addition to the wildcard matching that may be applied to hostnames or
+addresses, a
+.Cm from
+stanza may match IP addressess using CIDR address/masklen notation.
+.Pp
+The purpose of this option is to optionally increase security: public key
+authentication by itself does not trust the network or name servers or
+anything (but the key); however, if somebody somehow steals the key, the key
+permits an intruder to log in from anywhere in the world.
+This additional option makes using a stolen key more difficult (name
+servers and/or routers would have to be compromised in addition to
+just the key).
 .It Cm no-agent-forwarding
 Forbids authentication agent forwarding when this key is used for
 authentication.

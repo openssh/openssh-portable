@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.182 2008/06/10 04:50:25 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.183 2008/06/10 23:06:19 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -621,9 +621,10 @@ match_cfg_line(char **condition, int line, const char *user, const char *host,
 				    "%.100s' at line %d", address, arg, line);
 				break;
 			case 0:
+			case -1:
 				result = 0;
 				break;
-			case -1:
+			case -2:
 				return -1;
 			}
 		} else {

@@ -1,4 +1,4 @@
-/*	$OpenBSD: addrmatch.c,v 1.2 2008/06/10 05:22:45 djm Exp $ */
+/*	$OpenBSD: addrmatch.c,v 1.3 2008/06/10 23:06:19 djm Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -366,7 +366,8 @@ addr_netmatch(const struct xaddr *host, const struct xaddr *net, u_int masklen)
  *
  * Returns 1 on match found (never returned when addr == NULL).
  * Returns 0 on if no match found, or no errors found when addr == NULL.
- * Returns -1 on invalid list entry.
+ * Returns -1 on negated match found (never returned when addr == NULL).
+ * Returns -2 on invalid list entry.
  */
 int
 addr_match_list(const char *addr, const char *_list)
@@ -387,7 +388,7 @@ addr_match_list(const char *addr, const char *_list)
 		if (neg)
 			cp++;
 		if (*cp == '\0') {
-			ret = -1;
+			ret = -2;
 			break;
 		}
 		/* Prefer CIDR address matching */
@@ -395,14 +396,14 @@ addr_match_list(const char *addr, const char *_list)
 		if (r == -2) {
 			error("Inconsistent mask length for "
 			    "network \"%.100s\"", cp);
-			ret = -1;
+			ret = -2;
 			break;
 		} else if (r == 0) {
 			if (addr != NULL && addr_netmatch(&try_addr,
                            &match_addr, masklen) == 0) {
  foundit:
 				if (neg) {
-					ret = 0;
+					ret = -1;
 					break;
 				}
 				ret = 1;

@@ -51,6 +51,10 @@
      requests? It could have been attacked with something like SSH'jack:
      http://www.storm.net.nz/projects/7
      feedback & ok markus
+   - djm@cvs.openbsd.org 2008/06/10 23:06:19
+     [auth-options.c match.c servconf.c addrmatch.c sshd.8]
+     support CIDR address matching in .ssh/authorized_keys from="..." stanzas
+     ok and extensive testing dtucker@
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Add sin6_scope_id to sockaddr_in6
    since the new CIDR code in addmatch.c references it.
  - (dtucker) [Makefile.in configure.ac regress/addrmatch.sh] Skip IPv6
@@ -4143,4 +4147,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4962 2008/06/10 23:34:01 dtucker Exp $
+$Id: ChangeLog,v 1.4963 2008/06/10 23:34:46 dtucker Exp $
