@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.92 2008/06/10 04:17:46 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.93 2008/06/10 07:12:00 jmc Exp $
 .Dd $Mdocdate: June 10 2008 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -576,16 +576,17 @@ section of
 The patterns in an
 .Cm Address
 criteria may additionally contain addresses to match in CIDR
-address/masklen format, e.g.
+address/masklen format, e.g.\&
 .Dq 192.0.2.0/24
 or
 .Dq 3ffe:ffff::/32 .
 Note that the mask length provided must be consistent with the address -
 it is an error to specify a mask length that is too long for the address
-or one with bits set in this host portion of the address. For example,
+or one with bits set in this host portion of the address.
+For example,
 .Dq 192.0.2.0/33
 and
-.Dq 192.0.2.0/8 
+.Dq 192.0.2.0/8
 respectively.
 .Pp
 Only a subset of keywords may be used on the lines following a
