@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.241 2008/03/27 22:37:57 jmc Exp $
-.Dd $Mdocdate: March 27 2008 $
+.\" $OpenBSD: sshd.8,v 1.242 2008/06/10 04:50:25 dtucker Exp $
+.Dd $Mdocdate: June 10 2008 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -44,8 +44,9 @@
 .Sh SYNOPSIS
 .Nm sshd
 .Bk -words
-.Op Fl 46Ddeiqt
+.Op Fl 46DTdeiqt
 .Op Fl b Ar bits
+.Op Fl C Ar connection_spec
 .Op Fl f Ar config_file
 .Op Fl g Ar login_grace_time
 .Op Fl h Ar host_key_file
@@ -197,6 +198,33 @@ Only check the validity of the configuration file and sanity of the keys.
 This is useful for updating
 .Nm
 reliably as configuration options may change.
+.It Fl T
+Extended test mode.
+Check the validity of the configuration file, output the effective configuration
+to stdout and then exit.
+Optionally,
+.Cm Match
+rules may be applied by specifying the connection parameters using one or more
+.Fl C
+options.
+.It Fl C
+Specify the connection parameters to use for the the
+.Fl T
+extended test mode.
+If provided, any
+.Cm Match
+directives in the configuration file
+that would apply to the specified user, host and address will be set before
+the configuration is written to standard output.
+The connection parameters are supplied as keyword=value pairs.
+The keywords are
+.Dq user ,
+.Dq host
+and 
+.Dq addr
+All are required and may be supplied in any order, either with multiple
+.Fl C
+options or as a comma-separated list.
 .It Fl u Ar len
 This option is used to specify the size of the field
 in the

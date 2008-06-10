@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.181 2008/06/10 03:57:27 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.182 2008/06/10 04:50:25 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -23,6 +23,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -415,6 +416,17 @@ static struct {
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
+};
+
+static struct {
+	int val;
+	char *text;
+} tunmode_desc[] = {
+	{ SSH_TUNMODE_NO, "no" },
+	{ SSH_TUNMODE_POINTOPOINT, "point-to-point" },
+	{ SSH_TUNMODE_ETHERNET, "ethernet" },
+	{ SSH_TUNMODE_YES, "yes" },
+	{ -1, NULL }
 };
 
 /*
@@ -1211,16 +1223,13 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing yes/point-to-point/"
 			    "ethernet/no argument.", filename, linenum);
-		value = 0;	/* silence compiler */
-		if (strcasecmp(arg, "ethernet") == 0)
-			value = SSH_TUNMODE_ETHERNET;
-		else if (strcasecmp(arg, "point-to-point") == 0)
-			value = SSH_TUNMODE_POINTOPOINT;
-		else if (strcasecmp(arg, "yes") == 0)
-			value = SSH_TUNMODE_YES;
-		else if (strcasecmp(arg, "no") == 0)
-			value = SSH_TUNMODE_NO;
-		else
+		value = -1;
+		for (i = 0; tunmode_desc[i].val != -1; i++)
+			if (strcmp(tunmode_desc[i].text, arg) == 0) {
+				value = tunmode_desc[i].val;
+				break;
+			}
+		if (value == -1)
 			fatal("%s line %d: Bad yes/point-to-point/ethernet/"
 			    "no argument: %s", filename, linenum, arg);
 		if (*intptr == -1)
@@ -1425,4 +1434,214 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);
+}
+
+static const char *
+fmt_intarg(ServerOpCodes code, int val)
+{
+	if (code == sAddressFamily) {
+		switch (val) {
+		case AF_INET:
+			return "inet";
+		case AF_INET6:
+			return "inet6";
+		case AF_UNSPEC:
+			return "any";
+		default:
+			return "UNKNOWN";
+		}
+	}
+	if (code == sPermitRootLogin) {
+		switch (val) {
+		case PERMIT_NO_PASSWD:
+			return "without-passord";
+		case PERMIT_FORCED_ONLY:
+			return "forced-commands-only";
+		case PERMIT_YES:
+			return "yes";
+		}
+	}
+	if (code == sProtocol) {
+		switch (val) {
+		case SSH_PROTO_1:
+			return "1";
+		case SSH_PROTO_2:
+			return "2";
+		case (SSH_PROTO_1|SSH_PROTO_2):
+			return "2,1";
+		default:
+			return "UNKNOWN";
+		}
+	}
+	if (code == sGatewayPorts && val == 2)
+		return "clientspecified";
+	if (code == sCompression && val == COMP_DELAYED)
+		return "delayed";
+	switch (val) {
+	case -1:
+		return "unset";
+	case 0:
+		return "no";
+	case 1:
+		return "yes";
+	}
+	return "UNKNOWN";
+}
+
+static const char *
+lookup_opcode_name(ServerOpCodes code)
+{
+	u_int i;
+
+	for (i = 0; keywords[i].name != NULL; i++)
+		if (keywords[i].opcode == code)
+			return(keywords[i].name);
+	return "UNKNOWN";
+}
+
+static void
+dump_cfg_int(ServerOpCodes code, int val)
+{
+	printf("%s %d\n", lookup_opcode_name(code), val);
+}
+
+static void
+dump_cfg_fmtint(ServerOpCodes code, int val)
+{
+	printf("%s %s\n", lookup_opcode_name(code), fmt_intarg(code, val));
+}
+
+static void
+dump_cfg_string(ServerOpCodes code, const char *val)
+{
+	if (val == NULL)
+		return;
+	printf("%s %s\n", lookup_opcode_name(code), val);
+}
+
+static void
+dump_cfg_strarray(ServerOpCodes code, u_int count, char **vals)
+{
+	u_int i;
+
+	for (i = 0; i < count; i++)
+		printf("%s %s\n", lookup_opcode_name(code),  vals[i]);
+}
+
+void
+dump_config(ServerOptions *o)
+{
+	u_int i;
+	int ret;
+	struct addrinfo *ai;
+	char addr[NI_MAXHOST], port[NI_MAXSERV], *s = NULL;
+
+	/* these are usually at the top of the config */
+	for (i = 0; i < o->num_ports; i++)
+		printf("port %d\n", o->ports[i]);
+	dump_cfg_fmtint(sProtocol, o->protocol);
+	dump_cfg_fmtint(sAddressFamily, o->address_family);
+
+	/* ListenAddress must be after Port */
+	for (ai = o->listen_addrs; ai; ai = ai->ai_next) {
+		if ((ret = getnameinfo(ai->ai_addr, ai->ai_addrlen, addr,
+		    sizeof(addr), port, sizeof(port),
+		    NI_NUMERICHOST|NI_NUMERICSERV)) != 0) {
+			error("getnameinfo failed: %.100s",
+			    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
+			    strerror(errno));
+		} else {
+			if (ai->ai_family == AF_INET6)
+				printf("listenaddress [%s]:%s\n", addr, port);
+			else
+				printf("listenaddress %s:%s\n", addr, port);
+		}
+	}
+
+	/* integer arguments */
+	dump_cfg_int(sServerKeyBits, o->server_key_bits);
+	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
+	dump_cfg_int(sKeyRegenerationTime, o->key_regeneration_time);
+	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
+	dump_cfg_int(sMaxAuthTries, o->max_authtries);
+	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
+	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
+
+	/* formatted integer arguments */
+	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);
+	dump_cfg_fmtint(sIgnoreRhosts, o->ignore_rhosts);
+	dump_cfg_fmtint(sIgnoreUserKnownHosts, o->ignore_user_known_hosts);
+	dump_cfg_fmtint(sRhostsRSAAuthentication, o->rhosts_rsa_authentication);
+	dump_cfg_fmtint(sHostbasedAuthentication, o->hostbased_authentication);
+	dump_cfg_fmtint(sHostbasedUsesNameFromPacketOnly,
+	    o->hostbased_uses_name_from_packet_only);
+	dump_cfg_fmtint(sRSAAuthentication, o->rsa_authentication);
+	dump_cfg_fmtint(sPubkeyAuthentication, o->pubkey_authentication);
+	dump_cfg_fmtint(sKerberosAuthentication, o->kerberos_authentication);
+	dump_cfg_fmtint(sKerberosOrLocalPasswd, o->kerberos_or_local_passwd);
+	dump_cfg_fmtint(sKerberosTicketCleanup, o->kerberos_ticket_cleanup);
+	dump_cfg_fmtint(sKerberosGetAFSToken, o->kerberos_get_afs_token);
+	dump_cfg_fmtint(sGssAuthentication, o->gss_authentication);
+	dump_cfg_fmtint(sGssCleanupCreds, o->gss_cleanup_creds);
+	dump_cfg_fmtint(sPasswordAuthentication, o->password_authentication);
+	dump_cfg_fmtint(sKbdInteractiveAuthentication,
+	    o->kbd_interactive_authentication);
+	dump_cfg_fmtint(sChallengeResponseAuthentication,
+	    o->challenge_response_authentication);
+	dump_cfg_fmtint(sPrintMotd, o->print_motd);
+	dump_cfg_fmtint(sPrintLastLog, o->print_lastlog);
+	dump_cfg_fmtint(sX11Forwarding, o->x11_forwarding);
+	dump_cfg_fmtint(sX11UseLocalhost, o->x11_use_localhost);
+	dump_cfg_fmtint(sStrictModes, o->strict_modes);
+	dump_cfg_fmtint(sTCPKeepAlive, o->tcp_keep_alive);
+	dump_cfg_fmtint(sEmptyPasswd, o->permit_empty_passwd);
+	dump_cfg_fmtint(sPermitUserEnvironment, o->permit_user_env);
+	dump_cfg_fmtint(sUseLogin, o->use_login);
+	dump_cfg_fmtint(sCompression, o->compression);
+	dump_cfg_fmtint(sGatewayPorts, o->gateway_ports);
+	dump_cfg_fmtint(sUseDNS, o->use_dns);
+	dump_cfg_fmtint(sAllowTcpForwarding, o->allow_tcp_forwarding);
+	dump_cfg_fmtint(sUsePrivilegeSeparation, use_privsep);
+
+	/* string arguments */
+	dump_cfg_string(sPidFile, o->pid_file);
+	dump_cfg_string(sXAuthLocation, o->xauth_location);
+	dump_cfg_string(sCiphers, o->ciphers);
+	dump_cfg_string(sMacs, o->macs);
+	dump_cfg_string(sBanner, o->banner);
+	dump_cfg_string(sAuthorizedKeysFile, o->authorized_keys_file);
+	dump_cfg_string(sAuthorizedKeysFile2, o->authorized_keys_file2);
+	dump_cfg_string(sForceCommand, o->adm_forced_command);
+
+	/* string arguments requiring a lookup */
+	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
+	dump_cfg_string(sLogFacility, log_facility_name(o->log_facility));
+
+	/* string array arguments */
+	dump_cfg_strarray(sHostKeyFile, o->num_host_key_files,
+	     o->host_key_files);
+	dump_cfg_strarray(sAllowUsers, o->num_allow_users, o->allow_users);
+	dump_cfg_strarray(sDenyUsers, o->num_deny_users, o->deny_users);
+	dump_cfg_strarray(sAllowGroups, o->num_allow_groups, o->allow_groups);
+	dump_cfg_strarray(sDenyGroups, o->num_deny_groups, o->deny_groups);
+	dump_cfg_strarray(sAcceptEnv, o->num_accept_env, o->accept_env);
+
+	/* other arguments */
+	for (i = 0; i < o->num_subsystems; i++)
+		printf("subsystem %s %s\n", o->subsystem_name[i],
+		    o->subsystem_args[i]);
+
+	printf("maxstartups %d:%d:%d\n", o->max_startups_begin,
+	    o->max_startups_rate, o->max_startups);
+
+	for (i = 0; tunmode_desc[i].val != -1; i++)
+		if (tunmode_desc[i].val == o->permit_tun) {
+			s = tunmode_desc[i].text;
+			break;
+		}
+	dump_cfg_string(sPermitTunnel, s);
+
+	printf("permitopen");
+	channel_print_adm_permitted_opens();
+	printf("\n");
 }

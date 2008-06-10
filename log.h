@@ -1,4 +1,4 @@
-/* $OpenBSD: log.h,v 1.15 2006/08/18 09:13:25 deraadt Exp $ */
+/* $OpenBSD: log.h,v 1.16 2008/06/10 04:50:25 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -49,7 +49,9 @@ typedef enum {
 void     log_init(char *, LogLevel, SyslogFacility, int);
 
 SyslogFacility	log_facility_number(char *);
-LogLevel log_level_number(char *);
+const char * 	log_facility_name(SyslogFacility);
+LogLevel	log_level_number(char *);
+const char *	log_level_name(LogLevel);
 
 void     fatal(const char *, ...) __dead __attribute__((format(printf, 1, 2)));
 void     error(const char *, ...) __attribute__((format(printf, 1, 2)));

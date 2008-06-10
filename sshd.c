@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.357 2008/05/08 12:02:23 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.358 2008/06/10 04:50:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1240,8 +1240,9 @@ main(int ac, char **av)
 	int opt, i, on = 1;
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
+	char *test_user = NULL, *test_host = NULL, *test_addr = NULL;
 	int remote_port;
-	char *line;
+	char *line, *p, *cp;
 	int config_s[2] = { -1 , -1 };
 	Key *key;
 	Authctxt *authctxt;
@@ -1276,7 +1277,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:dDeiqrtQR46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:C:dDeiqrtQRT46")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
@@ -1354,6 +1355,25 @@ main(int ac, char **av)
 		case 't':
 			test_flag = 1;
 			break;
+		case 'T':
+			test_flag = 2;
+			break;
+		case 'C':
+			cp = optarg;
+			while ((p = strsep(&cp, ",")) && *p != '\0') {
+				if (strncmp(p, "addr=", 5) == 0)
+					test_addr = xstrdup(p + 5);
+				else if (strncmp(p, "host=", 5) == 0)
+					test_host = xstrdup(p + 5);
+				else if (strncmp(p, "user=", 5) == 0)
+					test_user = xstrdup(p + 5);
+				else {
+					fprintf(stderr, "Invalid test "
+					    "mode specification %s\n", p);
+					exit(1);
+				}
+			}
+			break;
 		case 'u':
 			utmp_len = (u_int)strtonum(optarg, 0, MAXHOSTNAMELEN+1, NULL);
 			if (utmp_len > MAXHOSTNAMELEN) {
@@ -1414,6 +1434,20 @@ main(int ac, char **av)
 	sensitive_data.ssh1_host_key = NULL;
 	sensitive_data.have_ssh1_key = 0;
 	sensitive_data.have_ssh2_key = 0;
+
+	/*
+	 * If we're doing an extended config test, make sure we have all of
+	 * the parameters we need.  If we're not doing an extended test,
+	 * do not silently ignore connection test params.
+	 */
+	if (test_flag >= 2 && (test_user != NULL || test_host != NULL || test_addr != NULL)
+	    && (test_user == NULL || test_host == NULL || test_addr == NULL))
+		fatal("user, host and addr are all required when testing "
+		   "Match configs");
+	if (test_flag < 2 && (test_user != NULL || test_host != NULL ||
+	    test_addr != NULL))
+		fatal("Config test connection parameter (-C) provided without "
+		   "test mode (-T)");
 
 	/* Fetch our configuration */
 	buffer_init(&cfg);
@@ -1541,6 +1575,13 @@ main(int ac, char **av)
 #endif
 			fatal("%s must be owned by root and not group or "
 			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
+	}
+
+	if (test_flag > 1) {
+		if (test_user != NULL && test_addr != NULL && test_host != NULL)
+			parse_server_match_config(&options, test_user,
+			    test_host, test_addr);
+		dump_config(&options);
 	}
 
 	/* Configuration looks good, so exit if in test mode. */
