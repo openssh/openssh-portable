@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.91 2008/06/10 03:57:27 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.92 2008/06/10 04:17:46 djm Exp $
 .Dd $Mdocdate: June 10 2008 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -569,9 +569,9 @@ and
 .Cm Address .
 The match patterns may consist of single entries or comma-separated
 lists and may use the wildcard and negation operators described in the
-.Sx SSH_KNOWN_HOSTS FILE FORMAT
+.Sx PATTERNS
 section of
-.Xr sshd 8 .
+.Xr ssh_config 5 .
 .Pp
 The patterns in an
 .Cm Address
