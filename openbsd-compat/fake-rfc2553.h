@@ -1,4 +1,4 @@
-/* $Id: fake-rfc2553.h,v 1.14 2008/02/25 09:21:20 dtucker Exp $ */
+/* $Id: fake-rfc2553.h,v 1.15 2008/06/10 13:52:51 dtucker Exp $ */
 
 /*
  * Copyright (C) 2000-2003 Damien Miller.  All rights reserved.
@@ -77,6 +77,7 @@ struct sockaddr_in6 {
 	u_int16_t	sin6_port;
 	u_int32_t	sin6_flowinfo;
 	struct in6_addr	sin6_addr;
+	u_int32_t	sin6_scope_id;
 };
 #endif /* !HAVE_STRUCT_SOCKADDR_IN6 */
 

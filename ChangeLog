@@ -32,6 +32,8 @@
    - dtucker@cvs.openbsd.org 2008/06/10 05:23:32
      [regress/addrmatch.sh regress/Makefile]
      Regress test for Match CIDR rules.  ok djm@
+  - (dtucker) [openbsd-compat/fake-rfc2553.h] Add sin6_scope_id to sockaddr_in6
+    since the new CIDR code in addmatch.c references it.
 
 20080609
  - (dtucker) OpenBSD CVS Sync
@@ -4118,4 +4120,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4955 2008/06/10 13:16:46 dtucker Exp $
+$Id: ChangeLog,v 1.4956 2008/06/10 13:52:51 dtucker Exp $
