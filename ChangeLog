@@ -26,6 +26,9 @@
      - update usage()
      - fix SYNOPSIS, and sort options
      - some minor additional fixes
+   - dtucker@cvs.openbsd.org 2008/06/09 18:06:32
+     [regress/test-exec.sh]
+     Don't generate putty keys if we're not going to use them.  ok djm
 
 20080609
  - (dtucker) OpenBSD CVS Sync
@@ -4112,4 +4115,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4953 2008/06/10 13:06:01 dtucker Exp $
+$Id: ChangeLog,v 1.4954 2008/06/10 13:15:54 dtucker Exp $
