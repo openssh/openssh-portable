@@ -67,6 +67,7 @@
    specific tests on platforms that don't do IPv6.
  - (dtucker) [Makefile.in] Define TEST_SSH_IPV6 in make's arguments as well
    as environment.
+ - (dtucker) [Makefile.in] Move addrmatch.o to libssh.a where it's needed now.
 
 20080609
  - (dtucker) OpenBSD CVS Sync
@@ -4153,4 +4154,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4965 2008/06/10 23:38:12 dtucker Exp $
+$Id: ChangeLog,v 1.4966 2008/06/10 23:47:59 dtucker Exp $
