@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.180 2008/05/08 12:21:16 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.181 2008/06/10 03:57:27 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -603,15 +603,17 @@ match_cfg_line(char **condition, int line, const char *user, const char *host,
 				debug("connection from %.100s matched 'Host "
 				    "%.100s' at line %d", host, arg, line);
 		} else if (strcasecmp(attrib, "address") == 0) {
-			if (!address) {
-				result = 0;
-				continue;
-			}
-			if (match_hostname(address, arg, len) != 1)
-				result = 0;
-			else
+			switch (addr_match_list(address, arg)) {
+			case 1:
 				debug("connection from %.100s matched 'Address "
 				    "%.100s' at line %d", address, arg, line);
+				break;
+			case 0:
+				result = 0;
+				break;
+			case -1:
+				return -1;
+			}
 		} else {
 			error("Unsupported Match attribute %s", attrib);
 			return -1;
