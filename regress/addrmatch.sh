@@ -33,6 +33,7 @@ run_trial user 19.0.0.1 somehost no		"deny, no match"
 run_trial user 10.255.255.254 somehost yes	"permit, list middle"
 run_trial user 192.168.30.1 192.168.0.1 no	"deny, faked IP in hostname"
 run_trial user 1.1.1.1 somehost.example.com yes	"permit, bare IP4 address"
+test "$TEST_SSH_IPV6" = "no" && exit
 run_trial user ::1 somehost.example.com	 yes	"permit, bare IP6 address"
 run_trial user ::2 somehost.exaple.com no	"deny IPv6"
 run_trial user ::3 somehost no			"deny IP6 negated"
