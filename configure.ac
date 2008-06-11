@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.403 2008/06/10 18:15:05 dtucker Exp $
+# $Id: configure.ac,v 1.404 2008/06/11 20:05:12 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.403 $)
+AC_REVISION($Revision: 1.404 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -553,7 +553,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	no_dev_ptmx=1
 	check_for_libcrypt_later=1
 	check_for_openpty_ctty_bug=1
-	AC_DEFINE(DONT_TRY_OTHER_AF, 1, [Workaround more Linux IPv6 quirks])
 	AC_DEFINE(PAM_TTY_KLUDGE, 1,
 		[Work around problematic Linux PAM modules handling of PAM_TTY])
 	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!",

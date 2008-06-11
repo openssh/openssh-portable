@@ -3018,7 +3018,8 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 					error("setsockopt IPV6_V6ONLY: %.100s", strerror(errno));
 			}
 #endif
-			channel_set_reuseaddr(sock);
+			if (x11_use_localhost)
+				channel_set_reuseaddr(sock);
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
 				debug2("bind port %d: %.100s", port, strerror(errno));
 				close(sock);
@@ -3030,17 +3031,8 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 				break;
 			}
 			socks[num_socks++] = sock;
-#ifndef DONT_TRY_OTHER_AF
 			if (num_socks == NUM_SOCKS)
 				break;
-#else
-			if (x11_use_localhost) {
-				if (num_socks == NUM_SOCKS)
-					break;
-			} else {
-				break;
-			}
-#endif
 		}
 		freeaddrinfo(aitop);
 		if (num_socks > 0)
