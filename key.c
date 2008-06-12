@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.72 2008/06/11 23:51:57 grunk Exp $ */
+/* $OpenBSD: key.c,v 1.73 2008/06/12 00:13:13 otto Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -319,8 +319,8 @@ key_fingerprint_bubblebabble(u_char *dgst_raw, u_int dgst_raw_len)
  * Graphs are not unambiguous, because circles in graphs can be
  * walked in either direction.
  */
-#define	FLDSIZE_Y	8
-#define	FLDSIZE_X	(FLDSIZE_Y * 2)
+#define	FLDSIZE_Y	(8 + 1)
+#define	FLDSIZE_X	(8 * 2 + 1)
 static char *
 key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 {
@@ -328,7 +328,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	 * Chars to be used after each other every time the worm
 	 * intersects with itself.  Matter of taste.
 	 */
-	char	*augmentation_string = " .o+=*BOX@%&#/^";
+	char	*augmentation_string = " .o+=*BOX@%&#/^S";
 	char	*retval, *p;
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
 	u_int	 i, b;
@@ -341,7 +341,6 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	memset(field, 0, FLDSIZE_X * FLDSIZE_Y * sizeof(char));
 	x = FLDSIZE_X / 2;
 	y = FLDSIZE_Y / 2;
-	field[x][y] = 1;
 
 	/* process raw key */
 	for (i = 0; i < dgst_raw_len; i++) {
@@ -364,6 +363,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 			input = input >> 2;
 		}
 	}
+	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len;
 
 	/* fill in retval */
 	p = retval;
