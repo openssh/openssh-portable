@@ -122,6 +122,9 @@
      [sshd.c sshconnect.c packet.h misc.c misc.h packet.c]
      Make keepalive timeouts apply while waiting for a packet, particularly
      during key renegotiation (bz #1363).  With djm and Matt Day, ok djm@
+   - djm@cvs.openbsd.org 2008/06/12 20:47:04
+     [sftp-client.c]
+     print extension revisions for extensions that we understand
   - (dtucker) [clientloop.c serverloop.c]  channel_register_filter now
     takes 2 more args.  with djm@
 
@@ -4286,4 +4289,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4988 2008/06/12 20:42:45 dtucker Exp $
+$Id: ChangeLog,v 1.4989 2008/06/12 21:01:29 dtucker Exp $

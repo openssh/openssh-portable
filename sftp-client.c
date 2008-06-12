@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.84 2008/06/08 20:15:29 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.85 2008/06/12 20:47:04 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -326,17 +326,27 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 	while (buffer_len(&msg) > 0) {
 		char *name = buffer_get_string(&msg, NULL);
 		char *value = buffer_get_string(&msg, NULL);
+		int known = 0;
 
-		debug2("Init extension: \"%s\"", name);
 		if (strcmp(name, "posix-rename@openssh.com") == 0 &&
-		    strcmp(value, "1") == 0)
+		    strcmp(value, "1") == 0) {
 			exts |= SFTP_EXT_POSIX_RENAME;
-		if (strcmp(name, "statvfs@openssh.com") == 0 &&
-		    strcmp(value, "2") == 0)
+			known = 1;
+		} else if (strcmp(name, "statvfs@openssh.com") == 0 &&
+		    strcmp(value, "2") == 0) {
 			exts |= SFTP_EXT_STATVFS;
-		if (strcmp(name, "fstatvfs@openssh.com") == 0 &&
-		    strcmp(value, "2") == 0)
+			known = 1;
+		} if (strcmp(name, "fstatvfs@openssh.com") == 0 &&
+		    strcmp(value, "2") == 0) {
 			exts |= SFTP_EXT_FSTATVFS;
+			known = 1;
+		}
+		if (known) {
+			debug2("Server supports extension \"%s\" revision %s",
+			    name, value);
+		} else {
+			debug2("Unrecognised server extension \"%s\"", name);
+		}
 		xfree(name);
 		xfree(value);
 	}
