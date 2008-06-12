@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.168 2008/06/11 21:38:25 grunk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.169 2008/06/11 22:20:46 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -71,6 +71,8 @@ int change_passphrase = 0;
 int change_comment = 0;
 
 int quiet = 0;
+
+int log_level = SYSLOG_LEVEL_INFO;
 
 /* Flag indicating that we want to hash a known_hosts file */
 int hash_hosts = 0;
@@ -524,7 +526,8 @@ do_fingerprint(struct passwd *pw)
 		fp = key_fingerprint(public, fptype, rep);
 		ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
 		printf("%u %s %s\n", key_size(public), fp, comment);
-		verbose("%s", ra);
+		if (log_level >= SYSLOG_LEVEL_VERBOSE)
+			printf("%s\n", ra);
 		key_free(public);
 		xfree(comment);
 		xfree(ra);
@@ -588,7 +591,8 @@ do_fingerprint(struct passwd *pw)
 			ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
 			printf("%u %s %s\n", key_size(public), fp,
 			    comment ? comment : "no comment");
-			verbose("%s\n", ra);
+			if (log_level >= SYSLOG_LEVEL_VERBOSE)
+				printf("%s\n", ra);
 			xfree(ra);
 			xfree(fp);
 			key_free(public);
@@ -1078,7 +1082,6 @@ main(int argc, char **argv)
 	int opt, type, fd, download = 0;
 	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
-	int log_level = SYSLOG_LEVEL_INFO;
 	BIGNUM *start = NULL;
 	FILE *f;
 	const char *errstr;

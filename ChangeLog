@@ -28,6 +28,12 @@
      [ssh-keygen.c]
      ssh-keygen -lv -f /etc/ssh/ssh_host_rsa_key.pub
      would not display you the random art as intended, spotted by canacar@
+   - grunk@cvs.openbsd.org 2008/06/11 22:20:46
+     [ssh-keygen.c ssh-keygen.1]
+     ssh-keygen would write fingerprints to STDOUT, and random art to STDERR,
+     that is not how it was envisioned.
+     Also correct manpage saying that -v is needed along with -l for it to work.
+     spotted by naddy@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4190,4 +4196,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4970 2008/06/12 18:42:14 dtucker Exp $
+$Id: ChangeLog,v 1.4971 2008/06/12 18:43:15 dtucker Exp $

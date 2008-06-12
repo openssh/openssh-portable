@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.76 2008/06/11 21:01:35 grunk Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.77 2008/06/11 22:20:46 grunk Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -257,7 +257,10 @@ RFC 4716 SSH Public Key File Format.
 This option allows importing keys from several commercial
 SSH implementations.
 .It Fl l
-Show fingerprint and ASCII art representation of specified public key file.
+Show fingerprint of specified public key file.
+If invoked along with
+.Fl v ,
+an ASCII art representation of the key is supplied with the fingerprint.
 Private RSA1 keys are also supported.
 For RSA and DSA keys
 .Nm
