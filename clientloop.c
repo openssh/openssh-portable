@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.198 2008/06/12 15:19:17 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.199 2008/06/12 21:06:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -745,7 +745,7 @@ client_register_global_confirm(global_confirm_cb *cb, void *ctx)
 	struct global_confirm *gc, *first_gc;
 
 	/* Coalesce identical callbacks */
-	first_gc = TAILQ_FIRST(&global_confirms);
+	first_gc = TAILQ_LAST(&global_confirms, global_confirms);
 	if (first_gc && first_gc->cb == cb && first_gc->ctx == ctx) {
 		if (++first_gc->ref_count >= INT_MAX)
 			fatal("%s: first_gc->ref_count = %d",
