@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.74 2008/06/12 05:42:46 grunk Exp $ */
+/* $OpenBSD: key.c,v 1.75 2008/06/12 06:32:59 grunk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -336,7 +336,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len, const Key *k)
 	 * Chars to be used after each other every time the worm
 	 * intersects with itself.  Matter of taste.
 	 */
-	char	*augmentation_string = " .o+=*BOX@%&#/^S";
+	char	*augmentation_string = " .o+=*BOX@%&#/^SE";
 	char	*retval, *p;
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
 	u_int	 i, b;
@@ -371,7 +371,10 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len, const Key *k)
 			input = input >> 2;
 		}
 	}
-	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len;
+
+	/* mark starting point and end point*/
+	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len - 1;
+	field[x][y] = len;
 
 	/* fill in retval */
 	snprintf(retval, 10, "+--[%4s]", key_type(k));

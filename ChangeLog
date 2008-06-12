@@ -97,6 +97,17 @@
    - djm@cvs.openbsd.org 2008/06/12 05:32:30
      [mux.c]
      some more TODO for me
+   - grunk@cvs.openbsd.org 2008/06/12 05:42:46
+     [key.c]
+     supply the key type (rsa1, rsa, dsa) as a caption in the frame of the
+     random art.  while there, stress the fact that the field base should at
+     least be 8 characters for the pictures to make sense.
+     comment and ok djm@
+   - grunk@cvs.openbsd.org 2008/06/12 06:32:59
+     [key.c]
+     We already mark the start of the worm, now also mark the end of the worm
+     in our random art drawings.
+     ok djm@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4259,4 +4270,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4982 2008/06/12 18:54:05 dtucker Exp $
+$Id: ChangeLog,v 1.4983 2008/06/12 18:55:10 dtucker Exp $
