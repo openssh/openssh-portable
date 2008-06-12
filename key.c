@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.71 2008/06/11 23:02:22 otto Exp $ */
+/* $OpenBSD: key.c,v 1.72 2008/06/11 23:51:57 grunk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -319,8 +319,8 @@ key_fingerprint_bubblebabble(u_char *dgst_raw, u_int dgst_raw_len)
  * Graphs are not unambiguous, because circles in graphs can be
  * walked in either direction.
  */
-#define	FLDSIZE_Y	 8
-#define	FLDSIZE_X	FLDSIZE_Y * 2
+#define	FLDSIZE_Y	8
+#define	FLDSIZE_X	(FLDSIZE_Y * 2)
 static char *
 key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 {
@@ -333,7 +333,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
 	u_int	 i, b;
 	int	 x, y;
-	size_t	 len = strlen(augmentation_string);
+	size_t	 len = strlen(augmentation_string) - 1;
 
 	retval = xcalloc(1, (FLDSIZE_X + 3) * (FLDSIZE_Y + 2));
 
@@ -379,7 +379,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	for (y = 0; y < FLDSIZE_Y; y++) {
 		*p++ = '|';
 		for (x = 0; x < FLDSIZE_X; x++)
-			*p++ = augmentation_string[MIN(field[x][y], len - 1)];
+			*p++ = augmentation_string[MIN(field[x][y], len)];
 		*p++ = '|';
 		*p++ = '\n';
 	}
