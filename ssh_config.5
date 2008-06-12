@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.108 2008/06/11 23:03:56 grunk Exp $
-.Dd $Mdocdate: June 11 2008 $
+.\" $OpenBSD: ssh_config.5,v 1.109 2008/06/12 16:35:31 dtucker Exp $
+.Dd $Mdocdate: June 12 2008 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -606,6 +606,21 @@ Specifies a command to execute on the local machine after successfully
 connecting to the server.
 The command string extends to the end of the line, and is executed with
 the user's shell.
+The following escape character substitutions will be performed:
+.Ql %d
+(local user's home directory),
+.Ql %h
+(remote host name),
+.Ql %l
+(local host name),
+.Ql %n
+(host name as provided on the command line),
+.Ql %p
+(remote port),
+.Ql %r
+(remote user name) or
+.Ql %u
+(local user name).
 This directive is ignored unless
 .Cm PermitLocalCommand
 has been enabled.

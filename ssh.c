@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.316 2008/06/12 04:24:06 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.317 2008/06/12 16:35:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -647,6 +647,28 @@ main(int ac, char **av)
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
 
+	/* Get default port if port has not been set. */
+	if (options.port == 0) {
+		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
+		options.port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+	}
+
+	if (options.local_command != NULL) {
+		char thishost[NI_MAXHOST];
+
+		if (gethostname(thishost, sizeof(thishost)) == -1)
+			fatal("gethostname: %s", strerror(errno));
+		snprintf(buf, sizeof(buf), "%d", options.port);
+		debug3("expanding LocalCommand: %s", options.local_command);
+		cp = options.local_command;
+		options.local_command = percent_expand(cp, "d", pw->pw_dir,
+		    "h", options.hostname? options.hostname : host,
+                    "l", thishost, "n", host, "r", options.user, "p", buf,
+                    "u", pw->pw_name, (char *)NULL);
+		debug3("expanded LocalCommand: %s", options.local_command);
+		xfree(cp);
+	}
+
 	if (options.hostname != NULL)
 		host = options.hostname;
 
@@ -655,12 +677,6 @@ main(int ac, char **av)
 		for (p = options.host_key_alias; *p; p++)
 			if (isupper(*p))
 				*p = (char)tolower(*p);
-	}
-
-	/* Get default port if port has not been set. */
-	if (options.port == 0) {
-		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		options.port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
 	}
 
 	if (options.proxy_command != NULL &&

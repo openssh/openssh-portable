@@ -112,6 +112,9 @@
      [clientloop.h channels.h clientloop.c channels.c mux.c]
      The multiplexing escape char handler commit last night introduced a
      small memory leak per session; plug it.
+   - dtucker@cvs.openbsd.org 2008/06/12 16:35:31
+     [ssh_config.5 ssh.c]
+     keyword expansion for localcommand.  ok djm@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4274,4 +4277,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4984 2008/06/12 18:55:46 dtucker Exp $
+$Id: ChangeLog,v 1.4985 2008/06/12 18:56:37 dtucker Exp $
