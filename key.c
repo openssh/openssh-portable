@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.70 2008/06/11 21:01:35 grunk Exp $ */
+/* $OpenBSD: key.c,v 1.71 2008/06/11 23:02:22 otto Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -330,17 +330,18 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	 */
 	char	*augmentation_string = " .o+=*BOX@%&#/^";
 	char	*retval, *p;
-	char	 field[FLDSIZE_X][FLDSIZE_Y];
+	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
 	u_int	 i, b;
 	int	 x, y;
+	size_t	 len = strlen(augmentation_string);
 
 	retval = xcalloc(1, (FLDSIZE_X + 3) * (FLDSIZE_Y + 2));
 
 	/* initialize field */
-	memset(field, ' ', FLDSIZE_X * FLDSIZE_Y * sizeof(char));
+	memset(field, 0, FLDSIZE_X * FLDSIZE_Y * sizeof(char));
 	x = FLDSIZE_X / 2;
 	y = FLDSIZE_Y / 2;
-	field[x][y] = '.';
+	field[x][y] = 1;
 
 	/* process raw key */
 	for (i = 0; i < dgst_raw_len; i++) {
@@ -359,10 +360,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 			y = MIN(y, FLDSIZE_Y - 1);
 
 			/* augment the field */
-			p = strchr(augmentation_string, field[x][y]);
-			if (*++p != '\0')
-				field[x][y] = *p;
-
+			field[x][y]++;
 			input = input >> 2;
 		}
 	}
@@ -381,7 +379,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	for (y = 0; y < FLDSIZE_Y; y++) {
 		*p++ = '|';
 		for (x = 0; x < FLDSIZE_X; x++)
-			*p++ = field[x][y];
+			*p++ = augmentation_string[MIN(field[x][y], len - 1)];
 		*p++ = '|';
 		*p++ = '\n';
 	}

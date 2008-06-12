@@ -34,6 +34,9 @@
      that is not how it was envisioned.
      Also correct manpage saying that -v is needed along with -l for it to work.
      spotted by naddy@
+   - otto@cvs.openbsd.org 2008/06/11 23:02:22
+     [key.c]
+     simpler way of computing the augmentations; ok grunk@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4196,4 +4199,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4971 2008/06/12 18:43:15 dtucker Exp $
+$Id: ChangeLog,v 1.4972 2008/06/12 18:43:51 dtucker Exp $
