@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.20 2008/06/12 03:40:52 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.21 2008/06/12 04:06:00 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -49,6 +49,10 @@ int	 client_request_tun_fwd(int, int, int);
 /* Escape filter for protocol 2 sessions */
 void	*client_new_escape_filter_ctx(int);
 int	 client_simple_escape_filter(Channel *, char *, int);
+
+/* Global request confirmation callbacks */
+typedef void global_confirm_cb(int, u_int32_t seq, void *);
+void	 client_register_global_confirm(global_confirm_cb *, void *);
 
 /* Multiplexing protocol version */
 #define SSHMUX_VER			2

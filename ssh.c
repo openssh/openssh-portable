@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.314 2008/06/10 22:15:23 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.315 2008/06/12 04:06:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -164,7 +164,7 @@ Buffer command;
 int subsystem_flag = 0;
 
 /* # of replies received for global requests */
-static int client_global_request_id = 0;
+static int remote_forward_confirms_received = 0;
 
 /* pid of proxycommand child process */
 pid_t proxy_command_pid = 0;
@@ -817,6 +817,28 @@ main(int ac, char **av)
 	return exit_status;
 }
 
+/* Callback for remote forward global requests */
+static void
+ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
+{
+	Forward *rfwd = (Forward *)ctxt;
+
+	debug("remote forward %s for: listen %d, connect %s:%d",
+	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
+	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
+	if (type == SSH2_MSG_REQUEST_FAILURE) {
+		if (options.exit_on_forward_failure)
+			fatal("Error: remote port forwarding failed for "
+			    "listen port %d", rfwd->listen_port);
+		else
+			logit("Warning: remote port forwarding failed for "
+			    "listen port %d", rfwd->listen_port);
+	}
+	if (++remote_forward_confirms_received == options.num_remote_forwards)
+		debug("All remote forwarding requests processed");
+		/* XXX fork-after-authentication */
+}
+
 static void
 ssh_init_forwarding(void)
 {
@@ -865,6 +887,8 @@ ssh_init_forwarding(void)
 				logit("Warning: Could not request remote "
 				    "forwarding.");
 		}
+		client_register_global_confirm(ssh_confirm_remote_forward,
+		    &options.remote_forwards[i]);
 	}
 
 	/* Initiate tunnel forwarding. */
@@ -1032,31 +1056,6 @@ ssh_session(void)
 	/* Enter the interactive session. */
 	return client_loop(have_tty, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, 0);
-}
-
-void
-client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
-{
-	int i;
-
-	i = client_global_request_id++;
-	if (i >= options.num_remote_forwards)
-		return;
-	debug("remote forward %s for: listen %d, connect %s:%d",
-	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
-	    options.remote_forwards[i].listen_port,
-	    options.remote_forwards[i].connect_host,
-	    options.remote_forwards[i].connect_port);
-	if (type == SSH2_MSG_REQUEST_FAILURE) {
-		if (options.exit_on_forward_failure)
-			fatal("Error: remote port forwarding failed for "
-			    "listen port %d",
-			    options.remote_forwards[i].listen_port);
-		else
-			logit("Warning: remote port forwarding failed for "
-			    "listen port %d",
-			    options.remote_forwards[i].listen_port);
-	}
 }
 
 /* request pty/x11/agent/tcpfwd/shell for channel */

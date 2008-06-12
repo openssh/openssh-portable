@@ -78,6 +78,13 @@
      mux client will not be able to connect to a running old ssh
      mux master.
      ok dtucker@
+   - djm@cvs.openbsd.org 2008/06/12 04:06:00
+     [clientloop.h ssh.c clientloop.c]
+     maintain an ordered queue of outstanding global requests that we
+     expect replies to, similar to the per-channel confirmation queue.
+     Use this queue to verify success or failure for remote forward
+     establishment in a race free way.
+     ok dtucker@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4240,4 +4247,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4977 2008/06/12 18:49:33 dtucker Exp $
+$Id: ChangeLog,v 1.4978 2008/06/12 18:50:27 dtucker Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.195 2008/06/12 03:40:52 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.196 2008/06/12 04:06:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -173,6 +173,17 @@ struct channel_reply_ctx {
 	const char *request_type;
 	int id, do_close;
 };
+
+/* Global request success/failure callbacks */
+struct global_confirm {
+	TAILQ_ENTRY(global_confirm) entry;
+	global_confirm_cb *cb;
+	void *ctx;
+	int ref_count;
+};
+TAILQ_HEAD(global_confirms, global_confirm);
+static struct global_confirms global_confirms =
+    TAILQ_HEAD_INITIALIZER(global_confirms);
 
 /*XXX*/
 extern Kex *xxx_kex;
@@ -468,8 +479,19 @@ client_check_window_change(void)
 static void
 client_global_request_reply(int type, u_int32_t seq, void *ctxt)
 {
+	struct global_confirm *gc;
+
+	if ((gc = TAILQ_FIRST(&global_confirms)) == NULL)
+		return;
+	if (gc->cb != NULL)
+		gc->cb(type, seq, gc->ctx);
+	if (--gc->ref_count <= 0) {
+		TAILQ_REMOVE(&global_confirms, gc, entry);
+		bzero(gc, sizeof(*gc));
+		xfree(gc);
+	}
+
 	keep_alive_timeouts = 0;
-	client_global_request_reply_fwd(type, seq, ctxt);
 }
 
 static void
@@ -483,6 +505,8 @@ server_alive_check(void)
 	packet_put_cstring("keepalive@openssh.com");
 	packet_put_char(1);     /* boolean: want reply */
 	packet_send();
+	/* Insert an empty placeholder to maintain ordering */
+	client_register_global_confirm(NULL, NULL);
 }
 
 /*
@@ -700,6 +724,27 @@ client_expect_confirm(int id, const char *request, int do_close)
 
 	channel_register_status_confirm(id, client_status_confirm,
 	    client_abandon_status_confirm, cr);
+}
+
+void
+client_register_global_confirm(global_confirm_cb *cb, void *ctx)
+{
+	struct global_confirm *gc, *first_gc;
+
+	/* Coalesce identical callbacks */
+	first_gc = TAILQ_FIRST(&global_confirms);
+	if (first_gc && first_gc->cb == cb && first_gc->ctx == ctx) {
+		if (++first_gc->ref_count >= INT_MAX)
+			fatal("%s: first_gc->ref_count = %d",
+			    __func__, first_gc->ref_count);
+		return;
+	}
+
+	gc = xmalloc(sizeof(*gc));
+	gc->cb = cb;
+	gc->ctx = ctx;
+	gc->ref_count = 1;
+	TAILQ_INSERT_TAIL(&global_confirms, gc, entry);
 }
 
 static void
