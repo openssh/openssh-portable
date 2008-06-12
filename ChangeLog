@@ -68,6 +68,16 @@
      [key.c]
      use an odd number of rows and columns and a separate start marker, looks
      better; ok grunk@
+   - djm@cvs.openbsd.org 2008/06/12 03:40:52
+     [clientloop.h mux.c channels.c clientloop.c channels.h]
+     Enable ~ escapes for multiplex slave sessions; give each channel
+     its own escape state and hook the escape filters up to muxed
+     channels. bz #1331
+     Mux slaves do not currently support the ~^Z and ~& escapes.
+     NB. this change cranks the mux protocol version, so a new ssh
+     mux client will not be able to connect to a running old ssh
+     mux master.
+     ok dtucker@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4230,4 +4240,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4976 2008/06/12 18:48:11 dtucker Exp $
+$Id: ChangeLog,v 1.4977 2008/06/12 18:49:33 dtucker Exp $

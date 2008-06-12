@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.194 2008/05/19 20:53:52 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.195 2008/06/12 03:40:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -144,8 +144,8 @@ static int in_non_blocking_mode = 0;
 
 /* Common data for the client loop code. */
 static volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
-static int escape_char;		/* Escape character. */
-static int escape_pending;	/* Last character was the escape character */
+static int escape_char1;	/* Escape character. (proto1 only) */
+static int escape_pending1;	/* Last character was an escape (proto1 only) */
 static int last_was_cr;		/* Last character was a newline. */
 static int exit_status;		/* Used to store the exit status of the command. */
 static int stdin_eof;		/* EOF has been encountered on standard error. */
@@ -162,6 +162,13 @@ static int session_closed = 0;	/* In SSH2: login session closed. */
 static void client_init_dispatch(void);
 int	session_ident = -1;
 
+/* Track escape per proto2 channel */
+struct escape_filter_ctx {
+	int escape_pending;
+	int escape_char;
+};
+
+/* Context for channel confirmation replies */
 struct channel_reply_ctx {
 	const char *request_type;
 	int id, do_close;
@@ -385,8 +392,8 @@ client_check_initial_eof_on_stdin(void)
 			 * and also process it as an escape character if
 			 * appropriate.
 			 */
-			if ((u_char) buf[0] == escape_char)
-				escape_pending = 1;
+			if ((u_char) buf[0] == escape_char1)
+				escape_pending1 = 1;
 			else
 				buffer_append(&stdin_buffer, buf, 1);
 		}
@@ -813,9 +820,12 @@ out:
 		xfree(fwd.connect_host);
 }
 
-/* process the characters one by one */
+/* 
+ * Process the characters one by one, call with c==NULL for proto1 case.
+ */
 static int
-process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
+process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
+    char *buf, int len)
 {
 	char string[1024];
 	pid_t pid;
@@ -823,7 +833,20 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 	u_int i;
 	u_char ch;
 	char *s;
+	int *escape_pendingp, escape_char;
+	struct escape_filter_ctx *efc;
 
+	if (c == NULL) {
+		escape_pendingp = &escape_pending1;
+		escape_char = escape_char1;
+	} else {
+		if (c->filter_ctx == NULL)
+			return 0;
+		efc = (struct escape_filter_ctx *)c->filter_ctx;
+		escape_pendingp = &efc->escape_pending;
+		escape_char = efc->escape_char;
+	}
+	
 	if (len <= 0)
 		return (0);
 
@@ -831,25 +854,43 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 		/* Get one character at a time. */
 		ch = buf[i];
 
-		if (escape_pending) {
+		if (*escape_pendingp) {
 			/* We have previously seen an escape character. */
 			/* Clear the flag now. */
-			escape_pending = 0;
+			*escape_pendingp = 0;
 
 			/* Process the escaped character. */
 			switch (ch) {
 			case '.':
 				/* Terminate the connection. */
-				snprintf(string, sizeof string, "%c.\r\n", escape_char);
+				snprintf(string, sizeof string, "%c.\r\n",
+				    escape_char);
 				buffer_append(berr, string, strlen(string));
 
-				quit_pending = 1;
+				if (c && c->ctl_fd != -1) {
+					chan_read_failed(c);
+					chan_write_failed(c);
+					return 0;
+				} else
+					quit_pending = 1;
 				return -1;
 
 			case 'Z' - 64:
+				/* XXX support this for mux clients */
+				if (c && c->ctl_fd != -1) {
+ noescape:
+					snprintf(string, sizeof string,
+					    "%c%c escape not available to "
+					    "multiplexed sessions\r\n",
+					    escape_char, ch);
+					buffer_append(berr, string,
+					    strlen(string));
+					continue;
+				}
 				/* Suspend the program. */
 				/* Print a message to that effect to the user. */
-				snprintf(string, sizeof string, "%c^Z [suspend ssh]\r\n", escape_char);
+				snprintf(string, sizeof string,
+				    "%c^Z [suspend ssh]\r\n", escape_char);
 				buffer_append(berr, string, strlen(string));
 
 				/* Restore terminal modes and suspend. */
@@ -881,6 +922,8 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				continue;
 
 			case '&':
+				if (c && c->ctl_fd != -1)
+					goto noescape;
 				/*
 				 * Detach the program (continue to serve connections,
 				 * but put in background and no more new connections).
@@ -929,27 +972,50 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				continue;
 
 			case '?':
-				snprintf(string, sizeof string,
+				if (c && c->ctl_fd != -1) {
+					snprintf(string, sizeof string,
 "%c?\r\n\
 Supported escape sequences:\r\n\
-%c.  - terminate connection\r\n\
-%cB  - send a BREAK to the remote system\r\n\
-%cC  - open a command line\r\n\
-%cR  - Request rekey (SSH protocol 2 only)\r\n\
-%c^Z - suspend ssh\r\n\
-%c#  - list forwarded connections\r\n\
-%c&  - background ssh (when waiting for connections to terminate)\r\n\
-%c?  - this message\r\n\
-%c%c  - send the escape character by typing it twice\r\n\
+  %c.  - terminate session\r\n\
+  %cB  - send a BREAK to the remote system\r\n\
+  %cC  - open a command line\r\n\
+  %cR  - Request rekey (SSH protocol 2 only)\r\n\
+  %c#  - list forwarded connections\r\n\
+  %c?  - this message\r\n\
+  %c%c  - send the escape character by typing it twice\r\n\
 (Note that escapes are only recognized immediately after newline.)\r\n",
-				    escape_char, escape_char, escape_char, escape_char,
-				    escape_char, escape_char, escape_char, escape_char,
-				    escape_char, escape_char, escape_char);
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char);
+				} else {
+					snprintf(string, sizeof string,
+"%c?\r\n\
+Supported escape sequences:\r\n\
+  %c.  - terminate connection (and any multiplexed sessions)\r\n\
+  %cB  - send a BREAK to the remote system\r\n\
+  %cC  - open a command line\r\n\
+  %cR  - Request rekey (SSH protocol 2 only)\r\n\
+  %c^Z - suspend ssh\r\n\
+  %c#  - list forwarded connections\r\n\
+  %c&  - background ssh (when waiting for connections to terminate)\r\n\
+  %c?  - this message\r\n\
+  %c%c  - send the escape character by typing it twice\r\n\
+(Note that escapes are only recognized immediately after newline.)\r\n",
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char, escape_char,
+					    escape_char);
+				}
 				buffer_append(berr, string, strlen(string));
 				continue;
 
 			case '#':
-				snprintf(string, sizeof string, "%c#\r\n", escape_char);
+				snprintf(string, sizeof string, "%c#\r\n",
+				    escape_char);
 				buffer_append(berr, string, strlen(string));
 				s = channel_open_message();
 				buffer_append(berr, s, strlen(s));
@@ -975,7 +1041,7 @@ Supported escape sequences:\r\n\
 			 */
 			if (last_was_cr && ch == escape_char) {
 				/* It is. Set the flag and continue to next character. */
-				escape_pending = 1;
+				*escape_pendingp = 1;
 				continue;
 			}
 		}
@@ -1026,7 +1092,7 @@ client_process_input(fd_set *readset)
 				packet_start(SSH_CMSG_EOF);
 				packet_send();
 			}
-		} else if (escape_char == SSH_ESCAPECHAR_NONE) {
+		} else if (escape_char1 == SSH_ESCAPECHAR_NONE) {
 			/*
 			 * Normal successful read, and no escape character.
 			 * Just append the data to buffer.
@@ -1037,8 +1103,8 @@ client_process_input(fd_set *readset)
 			 * Normal, successful read.  But we have an escape character
 			 * and have to process the characters one by one.
 			 */
-			if (process_escapes(&stdin_buffer, &stdout_buffer,
-			    &stderr_buffer, buf, len) == -1)
+			if (process_escapes(NULL, &stdin_buffer,
+			    &stdout_buffer, &stderr_buffer, buf, len) == -1)
 				return;
 		}
 	}
@@ -1113,13 +1179,26 @@ client_process_buffered_input_packets(void)
 
 /* scan buf[] for '~' before sending data to the peer */
 
-static int
-simple_escape_filter(Channel *c, char *buf, int len)
+/* Helper: allocate a new escape_filter_ctx and fill in its escape char */
+void *
+client_new_escape_filter_ctx(int escape_char)
+{
+	struct escape_filter_ctx *ret;
+
+	ret = xmalloc(sizeof(*ret));
+	ret->escape_pending = 0;
+	ret->escape_char = escape_char;
+	return (void *)ret;
+}
+
+int
+client_simple_escape_filter(Channel *c, char *buf, int len)
 {
 	if (c->extended_usage != CHAN_EXTENDED_WRITE)
 		return 0;
 
-	return process_escapes(&c->input, &c->output, &c->extended, buf, len);
+	return process_escapes(c, &c->input, &c->output, &c->extended,
+	    buf, len);
 }
 
 static void
@@ -1151,7 +1230,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	start_time = get_current_time();
 
 	/* Initialize variables. */
-	escape_pending = 0;
+	escape_pending1 = 0;
 	last_was_cr = 1;
 	exit_status = -1;
 	stdin_eof = 0;
@@ -1178,7 +1257,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	stdout_bytes = 0;
 	stderr_bytes = 0;
 	quit_pending = 0;
-	escape_char = escape_char_arg;
+	escape_char1 = escape_char_arg;
 
 	/* Initialize buffers. */
 	buffer_init(&stdin_buffer);
@@ -1206,9 +1285,10 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	if (compat20) {
 		session_ident = ssh2_chan_id;
-		if (escape_char != SSH_ESCAPECHAR_NONE)
+		if (escape_char_arg != SSH_ESCAPECHAR_NONE)
 			channel_register_filter(session_ident,
-			    simple_escape_filter, NULL);
+			    client_simple_escape_filter, NULL,
+			    client_new_escape_filter_ctx(escape_char_arg));
 		if (session_ident != -1)
 			channel_register_cleanup(session_ident,
 			    client_channel_closed, 0);

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.278 2008/06/10 04:50:25 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.279 2008/06/12 03:40:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -731,7 +731,7 @@ channel_cancel_cleanup(int id)
 
 void
 channel_register_filter(int id, channel_infilter_fn *ifn,
-    channel_outfilter_fn *ofn)
+    channel_outfilter_fn *ofn, void *ctx)
 {
 	Channel *c = channel_lookup(id);
 
@@ -741,6 +741,7 @@ channel_register_filter(int id, channel_infilter_fn *ifn,
 	}
 	c->input_filter = ifn;
 	c->output_filter = ofn;
+	c->filter_ctx = ctx;
 }
 
 void

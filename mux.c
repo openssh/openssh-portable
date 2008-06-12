@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.1 2008/05/09 14:18:44 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.2 2008/06/12 03:40:52 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -18,6 +18,20 @@
 /* ssh session multiplexing support */
 
 #include "includes.h"
+
+/*
+ * TODO:
+ *   1. partial reads in muxserver_accept_control (maybe make channels
+ *      from accepted connections)
+ *   2. Better signalling from master to slave, especially passing of
+ *      error messages
+ *   3. Better fall-back from mux slave error to new connection.
+ *   3. Add/delete forwardings via slave
+ *   4. ExitOnForwardingFailure (after #3 obviously)
+ *   5. Maybe extension mechanisms for multi-X11/multi-agent forwarding
+ *   6. Document the mux mini-protocol somewhere.
+ *   6. Support ~^Z in mux slaves.
+ */
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -70,6 +84,18 @@ extern int stdin_null_flag;
 extern char *host;
 int subsystem_flag;
 extern Buffer command;
+
+/* Context for session open confirmation callback */
+struct mux_session_confirm_ctx {
+	int want_tty;
+	int want_subsys;
+	int want_x_fwd;
+	int want_agent_fwd;
+	Buffer cmd;
+	char *term;
+	struct termios tio;
+	char **env;
+};
 
 /* fd to control socket */
 int muxserver_sock = -1;
@@ -131,7 +157,7 @@ muxserver_listen(void)
 
 /* Callback on open confirmation in mux master for a mux client session. */
 static void
-client_extra_session2_setup(int id, void *arg)
+mux_session_confirm(int id, void *arg)
 {
 	struct mux_session_confirm_ctx *cctx = arg;
 	const char *display;
@@ -190,7 +216,7 @@ muxserver_accept_control(void)
 	struct sockaddr_storage addr;
 	struct mux_session_confirm_ctx *cctx;
 	char *cmd;
-	u_int i, j, len, env_len, mux_command, flags;
+	u_int i, j, len, env_len, mux_command, flags, escape_char;
 	uid_t euid;
 	gid_t egid;
 	int start_close = 0;
@@ -317,6 +343,7 @@ muxserver_accept_control(void)
 	cctx->want_x_fwd = (flags & SSHMUX_FLAG_X11_FWD) != 0;
 	cctx->want_agent_fwd = (flags & SSHMUX_FLAG_AGENT_FWD) != 0;
 	cctx->term = buffer_get_string(&m, &len);
+	escape_char = buffer_get_int(&m);
 
 	cmd = buffer_get_string(&m, &len);
 	buffer_init(&cctx->cmd);
@@ -402,14 +429,17 @@ muxserver_accept_control(void)
 	    new_fd[0], new_fd[1], new_fd[2], window, packetmax,
 	    CHAN_EXTENDED_WRITE, "client-session", /*nonblock*/0);
 
-	/* XXX */
 	c->ctl_fd = client_fd;
+	if (cctx->want_tty && escape_char != 0xffffffff) {
+		channel_register_filter(c->self,
+		    client_simple_escape_filter, NULL,
+		    client_new_escape_filter_ctx((int)escape_char));
+	}
 
 	debug3("%s: channel_new: %d", __func__, c->self);
 
 	channel_send_open(c->self);
-	channel_register_open_confirm(c->self,
-	    client_extra_session2_setup, cctx);
+	channel_register_open_confirm(c->self, mux_session_confirm, cctx);
 	return 0;
 }
 
@@ -561,33 +591,34 @@ muxclient(const char *path)
 		fprintf(stderr, "Exit request sent.\r\n");
 		exit(0);
 	case SSHMUX_COMMAND_OPEN:
-		/* continue below */
+		buffer_put_cstring(&m, term ? term : "");
+		if (options.escape_char == SSH_ESCAPECHAR_NONE)
+			buffer_put_int(&m, 0xffffffff);
+		else
+			buffer_put_int(&m, options.escape_char);
+		buffer_append(&command, "\0", 1);
+		buffer_put_cstring(&m, buffer_ptr(&command));
+
+		if (options.num_send_env == 0 || environ == NULL) {
+			buffer_put_int(&m, 0);
+		} else {
+			/* Pass environment */
+			num_env = 0;
+			for (i = 0; environ[i] != NULL; i++) {
+				if (env_permitted(environ[i]))
+					num_env++; /* Count */
+			}
+			buffer_put_int(&m, num_env);
+		for (i = 0; environ[i] != NULL && num_env >= 0; i++) {
+				if (env_permitted(environ[i])) {
+					num_env--;
+					buffer_put_cstring(&m, environ[i]);
+				}
+			}
+		}
 		break;
 	default:
-		fatal("silly muxclient_command %d", muxclient_command);
-	}
-
-	/* SSHMUX_COMMAND_OPEN */
-	buffer_put_cstring(&m, term ? term : "");
-	buffer_append(&command, "\0", 1);
-	buffer_put_cstring(&m, buffer_ptr(&command));
-
-	if (options.num_send_env == 0 || environ == NULL) {
-		buffer_put_int(&m, 0);
-	} else {
-		/* Pass environment */
-		num_env = 0;
-		for (i = 0; environ[i] != NULL; i++)
-			if (env_permitted(environ[i]))
-				num_env++; /* Count */
-
-		buffer_put_int(&m, num_env);
-
-		for (i = 0; environ[i] != NULL && num_env >= 0; i++)
-			if (env_permitted(environ[i])) {
-				num_env--;
-				buffer_put_cstring(&m, environ[i]);
-			}
+		fatal("unrecognised muxclient_command %d", muxclient_command);
 	}
 
 	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
