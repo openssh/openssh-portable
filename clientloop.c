@@ -1745,7 +1745,7 @@ client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
 #if defined(SSH_TUN_FILTER)
 	if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
 		channel_register_filter(c->self, sys_tun_infilter,
-		    sys_tun_outfilter);
+		    sys_tun_outfilter, NULL, NULL);
 #endif
 
 	packet_start(SSH2_MSG_CHANNEL_OPEN);

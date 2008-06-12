@@ -998,7 +998,7 @@ server_request_tun(void)
 #if defined(SSH_TUN_FILTER)
 	if (mode == SSH_TUNMODE_POINTOPOINT)
 		channel_register_filter(c->self, sys_tun_infilter,
-		    sys_tun_outfilter);
+		    sys_tun_outfilter, NULL, NULL);
 #endif
 
  done:
