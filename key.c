@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.73 2008/06/12 00:13:13 otto Exp $ */
+/* $OpenBSD: key.c,v 1.74 2008/06/12 05:42:46 grunk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -319,10 +319,18 @@ key_fingerprint_bubblebabble(u_char *dgst_raw, u_int dgst_raw_len)
  * Graphs are not unambiguous, because circles in graphs can be
  * walked in either direction.
  */
-#define	FLDSIZE_Y	(8 + 1)
-#define	FLDSIZE_X	(8 * 2 + 1)
+
+/*
+ * Field sizes for the random art.  Have to be odd, so the starting point
+ * can be in the exact middle of the picture, and FLDBASE should be >=8 .
+ * Else pictures would be too dense, and drawing the frame would
+ * fail, too, because the key type would not fit in anymore.
+ */
+#define	FLDBASE		8
+#define	FLDSIZE_Y	(FLDBASE + 1)
+#define	FLDSIZE_X	(FLDBASE * 2 + 1)
 static char *
-key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
+key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len, const Key *k)
 {
 	/*
 	 * Chars to be used after each other every time the worm
@@ -366,11 +374,11 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len)
 	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len;
 
 	/* fill in retval */
-	p = retval;
+	snprintf(retval, 10, "+--[%4s]", key_type(k));
+	p = strchr(retval, '\0');
 
 	/* output upper border */
-	*p++ = '+';
-	for (i = 0; i < FLDSIZE_X; i++)
+	for (i = 0; i < FLDSIZE_X - 8; i++)
 		*p++ = '-';
 	*p++ = '+';
 	*p++ = '\n';
@@ -411,7 +419,7 @@ key_fingerprint(const Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 		retval = key_fingerprint_bubblebabble(dgst_raw, dgst_raw_len);
 		break;
 	case SSH_FP_RANDOMART:
-		retval = key_fingerprint_randomart(dgst_raw, dgst_raw_len);
+		retval = key_fingerprint_randomart(dgst_raw, dgst_raw_len, k);
 		break;
 	default:
 		fatal("key_fingerprint_ex: bad digest representation %d",
