@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.279 2008/06/12 03:40:52 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.280 2008/06/12 15:19:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -328,6 +328,8 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->open_confirm_ctx = NULL;
 	c->input_filter = NULL;
 	c->output_filter = NULL;
+	c->filter_ctx = NULL;
+	c->filter_cleanup = NULL;
 	TAILQ_INIT(&c->status_confirms);
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
@@ -416,6 +418,8 @@ channel_free(Channel *c)
 		bzero(cc, sizeof(*cc));
 		xfree(cc);
 	}
+	if (c->filter_cleanup != NULL && c->filter_ctx != NULL)
+		c->filter_cleanup(c->self, c->filter_ctx);
 	channels[c->self] = NULL;
 	xfree(c);
 }
@@ -731,7 +735,7 @@ channel_cancel_cleanup(int id)
 
 void
 channel_register_filter(int id, channel_infilter_fn *ifn,
-    channel_outfilter_fn *ofn, void *ctx)
+    channel_outfilter_fn *ofn, channel_filter_cleanup_fn *cfn, void *ctx)
 {
 	Channel *c = channel_lookup(id);
 
@@ -742,6 +746,7 @@ channel_register_filter(int id, channel_infilter_fn *ifn,
 	c->input_filter = ifn;
 	c->output_filter = ofn;
 	c->filter_ctx = ctx;
+	c->filter_cleanup = cfn;
 }
 
 void

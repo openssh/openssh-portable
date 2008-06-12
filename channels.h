@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.94 2008/06/12 03:40:52 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.95 2008/06/12 15:19:17 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -62,6 +62,7 @@ typedef struct Channel Channel;
 
 typedef void channel_callback_fn(int, void *);
 typedef int channel_infilter_fn(struct Channel *, char *, int);
+typedef void channel_filter_cleanup_fn(int, void *);
 typedef u_char *channel_outfilter_fn(struct Channel *, u_char **, u_int *);
 
 /* Channel success/failure callbacks */
@@ -132,6 +133,7 @@ struct Channel {
 	channel_infilter_fn	*input_filter;
 	channel_outfilter_fn	*output_filter;
 	void			*filter_ctx;
+	channel_filter_cleanup_fn *filter_cleanup;
 
 	/* keep boundaries */
 	int     		datagram;
@@ -196,7 +198,7 @@ void	 channel_request_start(int, char *, int);
 void	 channel_register_cleanup(int, channel_callback_fn *, int);
 void	 channel_register_open_confirm(int, channel_callback_fn *, void *);
 void	 channel_register_filter(int, channel_infilter_fn *,
-    channel_outfilter_fn *, void *);
+    channel_outfilter_fn *, channel_filter_cleanup_fn *, void *);
 void	 channel_register_status_confirm(int, channel_confirm_cb *,
     channel_confirm_abandon_cb *, void *);
 void	 channel_cancel_cleanup(int);

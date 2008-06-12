@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.3 2008/06/12 05:32:30 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.4 2008/06/12 15:19:17 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -436,6 +436,7 @@ muxserver_accept_control(void)
 	if (cctx->want_tty && escape_char != 0xffffffff) {
 		channel_register_filter(c->self,
 		    client_simple_escape_filter, NULL,
+		    client_filter_cleanup,
 		    client_new_escape_filter_ctx((int)escape_char));
 	}
 

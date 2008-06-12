@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.197 2008/06/12 04:17:47 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.198 2008/06/12 15:19:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1260,6 +1260,13 @@ client_new_escape_filter_ctx(int escape_char)
 	return (void *)ret;
 }
 
+/* Free the escape filter context on channel free */
+void
+client_filter_cleanup(int cid, void *ctx)
+{
+	xfree(ctx);
+}
+
 int
 client_simple_escape_filter(Channel *c, char *buf, int len)
 {
@@ -1357,6 +1364,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (escape_char_arg != SSH_ESCAPECHAR_NONE)
 			channel_register_filter(session_ident,
 			    client_simple_escape_filter, NULL,
+			    client_filter_cleanup,
 			    client_new_escape_filter_ctx(escape_char_arg));
 		if (session_ident != -1)
 			channel_register_cleanup(session_ident,
