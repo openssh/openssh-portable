@@ -47,6 +47,23 @@
      will cause trouble in some cases.
      Also do a computation of -1 once, and not in a loop several times.
      spotted by otto@
+   - dtucker@cvs.openbsd.org 2008/06/12 00:03:49
+     [dns.c canohost.c sshconnect.c]
+     Do not pass "0" strings as ports to getaddrinfo because the lookups
+     can slow things down and we never use the service info anyway. bz
+     #859, patch from YOSHIFUJI Hideaki and John Devitofranceschi.  ok
+     deraadt@ djm@
+     djm belives that the reason for the "0" strings is to ensure that
+     it's not possible to call getaddrinfo with both host and port being
+     NULL.  In the case of canohost.c host is a local array.  In the
+     case of sshconnect.c, it's checked for null immediately before use.
+     In dns.c it ultimately comes from ssh.c:main() and is guaranteed to
+     be non-null but it's not obvious, so I added a warning message in
+     case it is ever passed a null.
+   - grunk@cvs.openbsd.org 2008/06/12 00:13:55
+     [sshconnect.c]
+     Make ssh print the random art also when ssh'ing to a host using IP only.
+     spotted by naddy@, ok and help djm@ dtucker@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4209,4 +4226,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4974 2008/06/12 18:45:50 dtucker Exp $
+$Id: ChangeLog,v 1.4975 2008/06/12 18:47:34 dtucker Exp $

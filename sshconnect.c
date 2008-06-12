@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.205 2008/06/12 00:03:49 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.206 2008/06/12 00:13:55 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -611,6 +611,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	char msg[1024];
 	int len, host_line, ip_line;
 	const char *host_file = NULL, *ip_file = NULL;
+	int display_randomart;
 
 	/*
 	 * Force accepting of the host key for loopback/localhost. The
@@ -656,6 +657,13 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	} else {
 		ip = xstrdup("<no hostip for proxy command>");
 	}
+
+	/*
+	 * check_host_ip may be set to zero in the next step, so if it
+	 * conveys a request to display the random art, save it away.
+	 */
+	display_randomart = (options.check_host_ip == SSHCTL_CHECKHOSTIP_FPR);
+
 	/*
 	 * Turn off check_host_ip if the connection is to localhost, via proxy
 	 * command or if we don't have a hostname to compare with
@@ -740,7 +748,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				logit("Warning: Permanently added the %s host "
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
-		} else if (options.check_host_ip == SSHCTL_CHECKHOSTIP_FPR) {
+		} else if (display_randomart) {
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 			ra = key_fingerprint(host_key, SSH_FP_MD5,
 			    SSH_FP_RANDOMART);
