@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.2 2008/06/12 03:40:52 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.3 2008/06/12 05:32:30 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -30,7 +30,10 @@
  *   4. ExitOnForwardingFailure (after #3 obviously)
  *   5. Maybe extension mechanisms for multi-X11/multi-agent forwarding
  *   6. Document the mux mini-protocol somewhere.
- *   6. Support ~^Z in mux slaves.
+ *   7. Support ~^Z in mux slaves.
+ *   8. Inspect or control sessions in master.
+ *   9. If we ever support the "signal" channel request, send signals on
+ *      sessions in master.
  */
 
 #include <sys/types.h>
