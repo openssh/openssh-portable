@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.167 2008/06/11 21:01:35 grunk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.168 2008/06/11 21:38:25 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -522,9 +522,9 @@ do_fingerprint(struct passwd *pw)
 	public = key_load_public(identity_file, &comment);
 	if (public != NULL) {
 		fp = key_fingerprint(public, fptype, rep);
-		ra = key_fingerprint(public, fptype, rep);
+		ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
 		printf("%u %s %s\n", key_size(public), fp, comment);
-		verbose("%s\n", ra);
+		verbose("%s", ra);
 		key_free(public);
 		xfree(comment);
 		xfree(ra);

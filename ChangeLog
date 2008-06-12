@@ -24,6 +24,10 @@
      walked in either direction.
      discussions with several people,
      help, corrections and ok markus@ djm@
+   - grunk@cvs.openbsd.org 2008/06/11 21:38:25
+     [ssh-keygen.c]
+     ssh-keygen -lv -f /etc/ssh/ssh_host_rsa_key.pub
+     would not display you the random art as intended, spotted by canacar@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4186,4 +4190,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4969 2008/06/12 18:40:35 dtucker Exp $
+$Id: ChangeLog,v 1.4970 2008/06/12 18:42:14 dtucker Exp $
