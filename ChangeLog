@@ -3,6 +3,27 @@
    - jmc@cvs.openbsd.org 2008/06/11 07:30:37
      [sshd.8]
      kill trailing whitespace;
+   - grunk@cvs.openbsd.org 2008/06/11 21:01:35
+     [ssh_config.5 key.h readconf.c readconf.h ssh-keygen.1 ssh-keygen.c key.c
+      sshconnect.c]
+     Introduce SSH Fingerprint ASCII Visualization, a technique inspired by the
+     graphical hash visualization schemes known as "random art", and by
+     Dan Kaminsky's musings on the subject during a BlackOp talk at the
+     23C3 in Berlin.
+     Scientific publication (original paper):
+     "Hash Visualization: a New Technique to improve Real-World Security",
+     Perrig A. and Song D., 1999, International Workshop on Cryptographic
+     Techniques and E-Commerce (CrypTEC '99)
+     http://sparrow.ece.cmu.edu/~adrian/projects/validation/validation.pdf
+     The algorithm used here is a worm crawling over a discrete plane,
+     leaving a trace (augmenting the field) everywhere it goes.
+     Movement is taken from dgst_raw 2bit-wise.  Bumping into walls
+     makes the respective movement vector be ignored for this turn,
+     thus switching to the other color of the chessboard.
+     Graphs are not unambiguous for now, because circles in graphs can be
+     walked in either direction.
+     discussions with several people,
+     help, corrections and ok markus@ djm@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4165,4 +4186,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4968 2008/06/12 18:32:00 dtucker Exp $
+$Id: ChangeLog,v 1.4969 2008/06/12 18:40:35 dtucker Exp $

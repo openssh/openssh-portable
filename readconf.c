@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.165 2008/01/19 23:09:49 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.166 2008/06/11 21:01:35 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -452,7 +452,23 @@ parse_flag:
 
 	case oCheckHostIP:
 		intptr = &options->check_host_ip;
-		goto parse_flag;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing CheckHostIP argument.",
+			    filename, linenum);
+		value = 0;	/* To avoid compiler warning... */
+		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
+			value = SSHCTL_CHECKHOSTIP_YES;
+		else if (strcmp(arg, "no") == 0 || strcmp(arg, "false") == 0)
+			value = SSHCTL_CHECKHOSTIP_NO;
+		else if (strcmp(arg, "fingerprint") == 0)
+			value = SSHCTL_CHECKHOSTIP_FPR;
+		else
+			fatal("%.200s line %d: Bad CheckHostIP argument.",
+			    filename, linenum);
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
 
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;

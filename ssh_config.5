@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.106 2008/06/10 18:21:24 dtucker Exp $
-.Dd $Mdocdate: June 10 2008 $
+.\" $OpenBSD: ssh_config.5,v 1.107 2008/06/11 21:01:35 grunk Exp $
+.Dd $Mdocdate: June 11 2008 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -160,6 +160,10 @@ will additionally check the host IP address in the
 .Pa known_hosts
 file.
 This allows ssh to detect if a host key changed due to DNS spoofing.
+If the option is set to
+.Dq fingerprint ,
+not only the host IP address will be checked, but also an ASCII art
+representation of the key will be printed.
 If the option is set to
 .Dq no ,
 the check will not be executed.

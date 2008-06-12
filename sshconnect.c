@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.203 2007/12/27 14:22:08 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.204 2008/06/11 21:01:35 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -602,7 +602,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	Key *file_key;
 	const char *type = key_type(host_key);
 	char *ip = NULL, *host = NULL;
-	char hostline[1000], *hostp, *fp;
+	char hostline[1000], *hostp, *fp, *ra;
 	HostStatus host_status;
 	HostStatus ip_status;
 	int r, local = 0, host_ip_differ = 0;
@@ -740,6 +740,13 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				logit("Warning: Permanently added the %s host "
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
+		} else if (options.check_host_ip == SSHCTL_CHECKHOSTIP_FPR) {
+			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
+			ra = key_fingerprint(host_key, SSH_FP_MD5,
+			    SSH_FP_RANDOMART);
+			logit("Host key fingerprint is %s\n%s\n", fp, ra);
+			xfree(ra);
+			xfree(fp);
 		}
 		break;
 	case HOST_NEW:
@@ -775,6 +782,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				snprintf(msg1, sizeof(msg1), ".");
 			/* The default */
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
+			ra = key_fingerprint(host_key, SSH_FP_MD5,
+			    SSH_FP_RANDOMART);
 			msg2[0] = '\0';
 			if (options.verify_host_key_dns) {
 				if (matching_host_key_dns)
@@ -789,10 +798,11 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
 			    "established%s\n"
-			    "%s key fingerprint is %s.\n%s"
+			    "%s key fingerprint is %s.\n%s\n%s"
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ",
-			    host, ip, msg1, type, fp, msg2);
+			    host, ip, msg1, type, fp, ra, msg2);
+			xfree(ra);
 			xfree(fp);
 			if (!confirm(msg))
 				goto fail;
@@ -1063,18 +1073,20 @@ static int
 show_key_from_file(const char *file, const char *host, int keytype)
 {
 	Key *found;
-	char *fp;
+	char *fp, *ra;
 	int line, ret;
 
 	found = key_new(keytype);
 	if ((ret = lookup_key_in_hostfile_by_type(file, host,
 	    keytype, found, &line))) {
 		fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
+		ra = key_fingerprint(found, SSH_FP_MD5, SSH_FP_RANDOMART);
 		logit("WARNING: %s key found for host %s\n"
 		    "in %s:%d\n"
-		    "%s key fingerprint %s.",
+		    "%s key fingerprint %s.\n%s\n",
 		    key_type(found), host, file, line,
-		    key_type(found), fp);
+		    key_type(found), fp, ra);
+		xfree(ra);
 		xfree(fp);
 	}
 	key_free(found);
