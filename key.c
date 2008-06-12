@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.75 2008/06/12 06:32:59 grunk Exp $ */
+/* $OpenBSD: key.c,v 1.76 2008/06/12 22:03:36 grunk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -11,6 +11,7 @@
  *
  *
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
