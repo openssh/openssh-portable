@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.109 2008/06/12 16:35:31 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.110 2008/06/12 19:10:09 jmc Exp $
 .Dd $Mdocdate: June 12 2008 $
 .Dt SSH_CONFIG 5
 .Os
@@ -162,9 +162,8 @@ file.
 This allows ssh to detect if a host key changed due to DNS spoofing.
 If the option is set to
 .Dq fingerprint ,
-not only the host IP address will be checked, but also a fingerprint
-along with an ASCII art
-representation of the key will be printed.
+a fingerprint and an ASCII art representation of the key are printed,
+in addition to the host IP address check.
 If the option is set to
 .Dq no ,
 the check will not be executed.
