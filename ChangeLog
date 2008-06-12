@@ -88,6 +88,9 @@
    - djm@cvs.openbsd.org 2008/06/12 04:17:47
      [clientloop.c]
      thall shalt not code past the eightieth column
+   - djm@cvs.openbsd.org 2008/06/12 04:24:06
+     [ssh.c]
+     thal shalt not code past the eightieth column
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4250,4 +4253,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4979 2008/06/12 18:51:14 dtucker Exp $
+$Id: ChangeLog,v 1.4980 2008/06/12 18:52:53 dtucker Exp $

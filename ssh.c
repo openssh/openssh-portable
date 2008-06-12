@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.315 2008/06/12 04:06:00 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.316 2008/06/12 04:24:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -107,7 +107,7 @@
 
 extern char *__progname;
 
-/* Flag indicating whether debug mode is on.  This can be set on the command line. */
+/* Flag indicating whether debug mode is on.  May be set on the command line. */
 int debug_flag = 0;
 
 /* Flag indicating whether a tty should be allocated */
@@ -261,15 +261,18 @@ main(int ac, char **av)
 	 */
 	umask(022);
 
-	/* Initialize option structure to indicate that no values have been set. */
+	/*
+	 * Initialize option structure to indicate that no values have been
+	 * set.
+	 */
 	initialize_options(&options);
 
 	/* Parse command-line arguments. */
 	host = NULL;
 
  again:
-	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:KL:MNO:PR:S:TVw:XY")) != -1) {
+	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
+	    "ACD:F:I:KL:MNO:PR:S:TVw:XY")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -374,7 +377,8 @@ main(int ac, char **av)
 				options.tun_open = SSH_TUNMODE_DEFAULT;
 			options.tun_local = a2tun(optarg, &options.tun_remote);
 			if (options.tun_local == SSH_TUNID_ERR) {
-				fprintf(stderr, "Bad tun device '%s'\n", optarg);
+				fprintf(stderr,
+				    "Bad tun device '%s'\n", optarg);
 				exit(255);
 			}
 			break;
@@ -477,7 +481,8 @@ main(int ac, char **av)
 			}
 			if (cp != NULL) {
 				fwd.listen_port = a2port(cp);
-				fwd.listen_host = cleanhostname(fwd.listen_host);
+				fwd.listen_host =
+				    cleanhostname(fwd.listen_host);
 			} else {
 				fwd.listen_port = a2port(fwd.listen_host);
 				fwd.listen_host = NULL;
@@ -583,8 +588,10 @@ main(int ac, char **av)
 	}
 
 	/* Cannot fork to background if no command. */
-	if (fork_after_authentication_flag && buffer_len(&command) == 0 && !no_shell_flag)
-		fatal("Cannot fork into background without a command to execute.");
+	if (fork_after_authentication_flag && buffer_len(&command) == 0 &&
+	    !no_shell_flag)
+		fatal("Cannot fork into background without a command "
+		    "to execute.");
 
 	/* Allocate a tty by default if no command specified. */
 	if (buffer_len(&command) == 0)
@@ -596,7 +603,8 @@ main(int ac, char **av)
 	/* Do not allocate a tty if stdin is not a tty. */
 	if ((!isatty(fileno(stdin)) || stdin_null_flag) && !force_tty_flag) {
 		if (tty_flag)
-			logit("Pseudo-terminal will not be allocated because stdin is not a terminal.");
+			logit("Pseudo-terminal will not be allocated because "
+			    "stdin is not a terminal.");
 		tty_flag = 0;
 	}
 
@@ -604,7 +612,8 @@ main(int ac, char **av)
 	 * Initialize "log" output.  Since we are the client all output
 	 * actually goes to stderr.
 	 */
-	log_init(av[0], options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
+	log_init(av[0],
+	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    SYSLOG_FACILITY_USER, 1);
 
 	/*
@@ -753,7 +762,8 @@ main(int ac, char **av)
 	 * Now that we are back to our own permissions, create ~/.ssh
 	 * directory if it doesn't already exist.
 	 */
-	snprintf(buf, sizeof buf, "%.100s%s%.100s", pw->pw_dir, strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
+	snprintf(buf, sizeof buf, "%.100s%s%.100s", pw->pw_dir,
+	    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
 	if (stat(buf, &st) < 0)
 		if (mkdir(buf, 0700) < 0)
 			error("Could not create directory '%.200s'.", buf);
@@ -774,7 +784,7 @@ main(int ac, char **av)
 
 	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
-	/* Log into the remote system.  This never returns if the login fails. */
+	/* Log into the remote system.  Never returns if the login fails. */
 	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr,
 	    pw, timeout_ms);
 
@@ -925,10 +935,13 @@ ssh_session(void)
 
 	/* Enable compression if requested. */
 	if (options.compression) {
-		debug("Requesting compression at level %d.", options.compression_level);
+		debug("Requesting compression at level %d.",
+		    options.compression_level);
 
-		if (options.compression_level < 1 || options.compression_level > 9)
-			fatal("Compression level must be from 1 (fast) to 9 (slow, best).");
+		if (options.compression_level < 1 ||
+		    options.compression_level > 9)
+			fatal("Compression level must be from 1 (fast) to "
+			    "9 (slow, best).");
 
 		/* Send the request. */
 		packet_start(SSH_CMSG_REQUEST_COMPRESSION);
@@ -941,7 +954,8 @@ ssh_session(void)
 		else if (type == SSH_SMSG_FAILURE)
 			logit("Warning: Remote host refused compression.");
 		else
-			packet_disconnect("Protocol error waiting for compression response.");
+			packet_disconnect("Protocol error waiting for "
+			    "compression response.");
 	}
 	/* Allocate a pseudo tty if appropriate. */
 	if (tty_flag) {
@@ -978,9 +992,11 @@ ssh_session(void)
 			interactive = 1;
 			have_tty = 1;
 		} else if (type == SSH_SMSG_FAILURE)
-			logit("Warning: Remote host failed or refused to allocate a pseudo tty.");
+			logit("Warning: Remote host failed or refused to "
+			    "allocate a pseudo tty.");
 		else
-			packet_disconnect("Protocol error waiting for pty request response.");
+			packet_disconnect("Protocol error waiting for pty "
+			    "request response.");
 	}
 	/* Request X11 forwarding if enabled and DISPLAY is set. */
 	display = getenv("DISPLAY");
@@ -990,7 +1006,8 @@ ssh_session(void)
 		client_x11_get_proto(display, options.xauth_location,
 		    options.forward_x11_trusted, &proto, &data);
 		/* Request forwarding with authentication spoofing. */
-		debug("Requesting X11 forwarding with authentication spoofing.");
+		debug("Requesting X11 forwarding with authentication "
+		    "spoofing.");
 		x11_request_forwarding_with_spoofing(0, display, proto, data);
 
 		/* Read response from the server. */
@@ -1000,7 +1017,8 @@ ssh_session(void)
 		} else if (type == SSH_SMSG_FAILURE) {
 			logit("Warning: Remote host denied X11 forwarding.");
 		} else {
-			packet_disconnect("Protocol error waiting for X11 forwarding");
+			packet_disconnect("Protocol error waiting for X11 "
+			    "forwarding");
 		}
 	}
 	/* Tell the packet module whether this is an interactive session. */
@@ -1041,7 +1059,8 @@ ssh_session(void)
 		int len = buffer_len(&command);
 		if (len > 900)
 			len = 900;
-		debug("Sending command: %.*s", len, (u_char *)buffer_ptr(&command));
+		debug("Sending command: %.*s", len,
+		    (u_char *)buffer_ptr(&command));
 		packet_start(SSH_CMSG_EXEC_CMD);
 		packet_put_string(buffer_ptr(&command), buffer_len(&command));
 		packet_send();
@@ -1073,7 +1092,8 @@ ssh_session2_setup(int id, void *arg)
 		client_x11_get_proto(display, options.xauth_location,
 		    options.forward_x11_trusted, &proto, &data);
 		/* Request forwarding with authentication spoofing. */
-		debug("Requesting X11 forwarding with authentication spoofing.");
+		debug("Requesting X11 forwarding with authentication "
+		    "spoofing.");
 		x11_request_forwarding_with_spoofing(id, display, proto, data);
 		interactive = 1;
 		/* XXX wait for reply */
@@ -1193,9 +1213,11 @@ load_public_identity_files(void)
 		int count = 0;
 		for (i = 0; keys[i] != NULL; i++) {
 			count++;
-			memmove(&options.identity_files[1], &options.identity_files[0],
+			memmove(&options.identity_files[1],
+			    &options.identity_files[0],
 			    sizeof(char *) * (SSH_MAX_IDENTITY_FILES - 1));
-			memmove(&options.identity_keys[1], &options.identity_keys[0],
+			memmove(&options.identity_keys[1],
+			    &options.identity_keys[0],
 			    sizeof(Key *) * (SSH_MAX_IDENTITY_FILES - 1));
 			options.num_identity_files++;
 			options.identity_keys[0] = keys[i];
