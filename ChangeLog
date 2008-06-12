@@ -1,3 +1,9 @@
+20080612
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2008/06/11 07:30:37
+     [sshd.8]
+     kill trailing whitespace;
+
 20080611
  - (djm) [channels.c configure.ac]
    Do not set SO_REUSEADDR on wildcard X11 listeners (X11UseLocalhost=no)
@@ -4159,4 +4165,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4967 2008/06/11 20:05:12 djm Exp $
+$Id: ChangeLog,v 1.4968 2008/06/12 18:32:00 dtucker Exp $
