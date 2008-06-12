@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.169 2008/06/11 22:20:46 grunk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.170 2008/06/12 21:14:46 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -525,7 +525,8 @@ do_fingerprint(struct passwd *pw)
 	if (public != NULL) {
 		fp = key_fingerprint(public, fptype, rep);
 		ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
-		printf("%u %s %s\n", key_size(public), fp, comment);
+		printf("%u %s %s (%s)\n", key_size(public), fp, comment,
+		    key_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
 			printf("%s\n", ra);
 		key_free(public);
@@ -589,8 +590,8 @@ do_fingerprint(struct passwd *pw)
 			comment = *cp ? cp : comment;
 			fp = key_fingerprint(public, fptype, rep);
 			ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
-			printf("%u %s %s\n", key_size(public), fp,
-			    comment ? comment : "no comment");
+			printf("%u %s %s (%s)\n", key_size(public), fp,
+			    comment ? comment : "no comment", key_type(public));
 			if (log_level >= SYSLOG_LEVEL_VERBOSE)
 				printf("%s\n", ra);
 			xfree(ra);
@@ -619,7 +620,8 @@ print_host(FILE *f, const char *name, Key *public, int hash)
 		rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
 		fp = key_fingerprint(public, fptype, rep);
 		ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
-		printf("%u %s %s\n%s\n", key_size(public), fp, name, ra);
+		printf("%u %s %s (%s)\n%s\n", key_size(public), fp, name,
+		    key_type(public), ra);
 		xfree(ra);
 		xfree(fp);
 	} else {
