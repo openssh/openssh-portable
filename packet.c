@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.153 2008/05/19 06:14:02 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.154 2008/06/12 20:38:28 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -138,6 +138,9 @@ static int after_authentication = 0;
 
 int keep_alive_timeouts = 0;
 
+/* Set to the maximum time that we will wait to send or receive a packet */
+static int packet_timeout_ms = -1;
+
 /* Session key information for Encryption and MAC */
 Newkeys *newkeys[MODE_MAX];
 static struct packet_state {
@@ -189,6 +192,19 @@ packet_set_connection(int fd_in, int fd_out)
 		buffer_init(&incoming_packet);
 		TAILQ_INIT(&outgoing);
 	}
+}
+
+void
+packet_set_timeout(int timeout, int count)
+{
+	if (timeout == 0 || count == 0) {
+		packet_timeout_ms = -1;
+		return;
+	}
+	if ((INT_MAX / 1000) / count < timeout)
+		packet_timeout_ms = INT_MAX;
+	else
+		packet_timeout_ms = timeout * count * 1000;
 }
 
 /* Returns 1 if remote host is connected via socket, 0 if not. */
@@ -891,10 +907,11 @@ packet_send(void)
 int
 packet_read_seqnr(u_int32_t *seqnr_p)
 {
-	int type, len;
+	int type, len, ret, ms_remain;
 	fd_set *setp;
 	char buf[8192];
 	DBG(debug("packet_read()"));
+	struct timeval timeout, start, *timeoutp = NULL;
 
 	setp = (fd_set *)xcalloc(howmany(connection_in+1, NFDBITS),
 	    sizeof(fd_mask));
@@ -925,11 +942,34 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 		    sizeof(fd_mask));
 		FD_SET(connection_in, setp);
 
+		if (packet_timeout_ms > 0) {
+			ms_remain = packet_timeout_ms;
+			timeoutp = &timeout;
+		}
 		/* Wait for some data to arrive. */
-		while (select(connection_in + 1, setp, NULL, NULL, NULL) == -1 &&
-		    (errno == EAGAIN || errno == EINTR))
-			;
-
+		for (;;) {
+			if (packet_timeout_ms != -1) {
+				ms_to_timeval(&timeout, ms_remain);
+				gettimeofday(&start, NULL);
+			}
+			if ((ret = select(connection_in + 1, setp, NULL,
+			    NULL, timeoutp)) >= 0)
+				break;
+		   	if (errno != EAGAIN && errno != EINTR)
+				break;
+			if (packet_timeout_ms == -1)
+				continue;
+			ms_subtract_diff(&start, &ms_remain);
+			if (ms_remain <= 0) {
+				ret = 0;
+				break;
+			}
+		}
+		if (ret == 0) {
+			logit("Connection to %.200s timed out while "
+			    "waiting to read", get_remote_ipaddr());
+			cleanup_exit(255);
+		}
 		/* Read data from the socket. */
 		len = read(connection_in, buf, sizeof(buf));
 		if (len == 0) {
@@ -1452,6 +1492,8 @@ void
 packet_write_wait(void)
 {
 	fd_set *setp;
+	int ret, ms_remain;
+	struct timeval start, timeout, *timeoutp = NULL;
 
 	setp = (fd_set *)xcalloc(howmany(connection_out + 1, NFDBITS),
 	    sizeof(fd_mask));
@@ -1460,9 +1502,34 @@ packet_write_wait(void)
 		memset(setp, 0, howmany(connection_out + 1, NFDBITS) *
 		    sizeof(fd_mask));
 		FD_SET(connection_out, setp);
-		while (select(connection_out + 1, NULL, setp, NULL, NULL) == -1 &&
-		    (errno == EAGAIN || errno == EINTR))
-			;
+
+		if (packet_timeout_ms > 0) {
+			ms_remain = packet_timeout_ms;
+			timeoutp = &timeout;
+		}
+		for (;;) {
+			if (packet_timeout_ms != -1) {
+				ms_to_timeval(&timeout, ms_remain);
+				gettimeofday(&start, NULL);
+			}
+			if ((ret = select(connection_out + 1, NULL, setp,
+			    NULL, timeoutp)) >= 0)
+				break;
+		   	if (errno != EAGAIN && errno != EINTR)
+				break;
+			if (packet_timeout_ms == -1)
+				continue;
+			ms_subtract_diff(&start, &ms_remain);
+			if (ms_remain <= 0) {
+				ret = 0;
+				break;
+			}
+		}
+		if (ret == 0) {
+			logit("Connection to %.200s timed out while "
+			    "waiting to write", get_remote_ipaddr());
+			cleanup_exit(255);
+		}
 		packet_write_poll();
 	}
 	xfree(setp);

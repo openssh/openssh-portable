@@ -118,6 +118,10 @@
    - jmc@cvs.openbsd.org 2008/06/12 19:10:09
      [ssh_config.5 ssh-keygen.1]
      tweak the ascii art text; ok grunk
+   - dtucker@cvs.openbsd.org 2008/06/12 20:38:28
+     [sshd.c sshconnect.c packet.h misc.c misc.h packet.c]
+     Make keepalive timeouts apply while waiting for a packet, particularly
+     during key renegotiation (bz #1363).  With djm and Matt Day, ok djm@
   - (dtucker) [clientloop.c serverloop.c]  channel_register_filter now
     takes 2 more args.  with djm@
 
@@ -4282,4 +4286,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4987 2008/06/12 19:18:03 dtucker Exp $
+$Id: ChangeLog,v 1.4988 2008/06/12 20:42:45 dtucker Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.206 2008/06/12 00:13:55 grunk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.207 2008/06/12 20:38:28 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -76,23 +76,6 @@ extern pid_t proxy_command_pid;
 
 static int show_other_keys(const char *, Key *);
 static void warn_changed_key(Key *);
-
-static void
-ms_subtract_diff(struct timeval *start, int *ms)
-{
-	struct timeval diff, finish;
-
-	gettimeofday(&finish, NULL);
-	timersub(&finish, start, &diff);	
-	*ms -= (diff.tv_sec * 1000) + (diff.tv_usec / 1000);
-}
-
-static void
-ms_to_timeval(struct timeval *tv, int ms)
-{
-	tv->tv_sec = ms / 1000;
-	tv->tv_usec = (ms % 1000) * 1000;
-}
 
 /*
  * Connect to the given ssh server using a proxy command.
@@ -178,6 +161,8 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 	/* Set the connection file descriptors. */
 	packet_set_connection(pout[0], pin[1]);
+	packet_set_timeout(options.server_alive_interval,
+	    options.server_alive_count_max);
 
 	/* Indicate OK return */
 	return 0;
@@ -422,6 +407,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 	/* Set the connection. */
 	packet_set_connection(sock, sock);
+	packet_set_timeout(options.server_alive_interval,
+	    options.server_alive_count_max);
 
 	return 0;
 }

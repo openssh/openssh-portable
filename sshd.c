@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.359 2008/06/10 08:17:40 jmc Exp $ */
+/* $OpenBSD: sshd.c,v 1.360 2008/06/12 20:38:28 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1902,6 +1902,9 @@ main(int ac, char **av)
 		if (!compat20)
 			destroy_sensitive_data();
 	}
+
+	packet_set_timeout(options.client_alive_interval,
+	    options.client_alive_count_max);
 
 	/* Start session. */
 	do_authenticated(authctxt);
