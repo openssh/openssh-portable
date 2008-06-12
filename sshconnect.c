@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.204 2008/06/11 21:01:35 grunk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.205 2008/06/12 00:03:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -221,7 +221,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	hints.ai_socktype = ai->ai_socktype;
 	hints.ai_protocol = ai->ai_protocol;
 	hints.ai_flags = AI_PASSIVE;
-	gaierr = getaddrinfo(options.bind_address, "0", &hints, &res);
+	gaierr = getaddrinfo(options.bind_address, NULL, &hints, &res);
 	if (gaierr) {
 		error("getaddrinfo: %s: %s", options.bind_address,
 		    ssh_gai_strerror(gaierr));
