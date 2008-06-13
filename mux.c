@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.6 2008/06/13 00:47:53 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.7 2008/06/13 17:21:20 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -594,11 +594,11 @@ muxclient(const char *path)
 
 	/* Get authorisation status and PID of controlee */
 	if (ssh_msg_recv(sock, &m) == -1) {
-		error("%s: msg_recv", __func__);
+		error("%s: Did not receive reply from master", __func__);
 		goto muxerr;
 	}
 	if (buffer_get_char(&m) != SSHMUX_VER) {
-		error("%s: wrong version", __func__);
+		error("%s: Master replied with wrong version", __func__);
 		goto muxerr;
 	}
 	if (buffer_get_int_ret(&allowed, &m) != 0) {

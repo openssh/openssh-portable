@@ -12,6 +12,9 @@
    - dtucker@cvs.openbsd.org 2008/06/13 14:18:51
      [auth2-pubkey.c auth-rhosts.c]
      Include unistd.h for close(), prevents warnings in -portable
+   - dtucker@cvs.openbsd.org 2008/06/13 17:21:20
+     [mux.c]
+     Friendlier error messages for mux fallback.  ok djm@
 
 20080612
  - (dtucker) OpenBSD CVS Sync
@@ -4350,4 +4353,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5006 2008/06/13 23:01:24 dtucker Exp $
+$Id: ChangeLog,v 1.5007 2008/06/13 23:01:54 dtucker Exp $
