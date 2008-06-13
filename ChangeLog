@@ -23,6 +23,9 @@
      Explain the use of SSH fpr visualization using random art, and cite the
      original scientific paper inspiring that technique.
      Much help with English and nroff by jmc@, thanks.
+ - (dtucker) [configure.ac] Bug #1276: avoid linking against libgssapi, which
+   despite its name doesn't seem to implement all of GSSAPI.  Patch from
+   Jan Engelhardt, sanity checked by Simon Wilkinson.
 
 20080612
  - (dtucker) OpenBSD CVS Sync
@@ -4361,4 +4364,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5009 2008/06/13 23:04:26 dtucker Exp $
+$Id: ChangeLog,v 1.5010 2008/06/13 23:14:46 dtucker Exp $
