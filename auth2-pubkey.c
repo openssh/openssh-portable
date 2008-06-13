@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.15 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.16 2008/06/13 04:40:22 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <fcntl.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -180,7 +181,7 @@ static int
 user_key_allowed2(struct passwd *pw, Key *key, char *file)
 {
 	char line[SSH_MAX_PUBKEY_BYTES];
-	int found_key = 0;
+	int found_key = 0, fd;
 	FILE *f;
 	u_long linenum = 0;
 	struct stat st;
@@ -192,16 +193,29 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 
 	debug("trying public key file %s", file);
 
-	/* Fail quietly if file does not exist */
-	if (stat(file, &st) < 0) {
-		/* Restore the privileged uid. */
+	/*
+	 * Open the file containing the authorized keys
+	 * Fail quietly if file does not exist
+	 */
+	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
 		restore_uid();
 		return 0;
 	}
-	/* Open the file containing the authorized keys. */
-	f = fopen(file, "r");
-	if (!f) {
-		/* Restore the privileged uid. */
+	if (fstat(fd, &st) < 0) {
+		close(fd);
+		restore_uid();
+		return 0;
+	}
+	if (!S_ISREG(st.st_mode)) {
+		logit("User %s authorized keys %s is not a regular file",
+		    pw->pw_name, file);
+		close(fd);
+		restore_uid();
+		return 0;
+	}
+	unset_nonblock(fd);
+	if ((f = fdopen(fd, "r")) == NULL) {
+		close(fd);
 		restore_uid();
 		return 0;
 	}
