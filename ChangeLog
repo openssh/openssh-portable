@@ -160,6 +160,9 @@
     from Todd Vierling.
   - (dtucker) [auth-sia.c] Bug #1241: support password expiry on Tru64 SIA
     systems.  Patch from R. Scott Bailey.
+  - (dtucker) [umac.c] STORE_UINT32_REVERSED and endian_convert are never used
+    on big endian machines, so ifdef them for little-endian only to prevent
+    unused function warnings on big-endians.
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4322,4 +4325,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4999 2008/06/13 01:13:13 dtucker Exp $
+$Id: ChangeLog,v 1.5000 2008/06/13 02:40:55 dtucker Exp $

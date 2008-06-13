@@ -136,12 +136,14 @@ static UINT32 LOAD_UINT32_REVERSED(void *ptr)
     return (UINT32)temp;
 }
 
+# if (__LITTLE_ENDIAN__)
 static void STORE_UINT32_REVERSED(void *ptr, UINT32 x)
 {
     UINT32 i = (UINT32)x;
     *(UINT32 *)ptr = (i >> 24) | ((i & 0x00FF0000) >> 8 )
                    | ((i & 0x0000FF00) << 8 ) | (i << 24);
 }
+# endif /* __LITTLE_ENDIAN */
 #endif /* HAVE_SWAP32 */
 
 /* The following definitions use the above reversal-primitives to do the right
@@ -544,6 +546,7 @@ static void nh_transform(nh_ctx *hc, UINT8 *buf, UINT32 nbytes)
 
 /* ---------------------------------------------------------------------- */
 
+#if (__LITTLE_ENDIAN__)
 static void endian_convert(void *buf, UWORD bpw, UINT32 num_bytes)
 /* We endian convert the keys on little-endian computers to               */
 /* compensate for the lack of big-endian memory reads during hashing.     */
@@ -566,7 +569,6 @@ static void endian_convert(void *buf, UWORD bpw, UINT32 num_bytes)
         } while (--iters);
     }
 }
-#if (__LITTLE_ENDIAN__)
 #define endian_convert_if_le(x,y,z) endian_convert((x),(y),(z))
 #else
 #define endian_convert_if_le(x,y,z) do{}while(0)  /* Do nothing */
