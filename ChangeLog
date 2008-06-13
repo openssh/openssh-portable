@@ -9,6 +9,9 @@
      applying additional restrictions to non-pubkey authentications in
      the case where pubkey fails but another method subsequently succeeds.
      bz #1472, found by Colin Watson, ok markus@ djm@
+   - dtucker@cvs.openbsd.org 2008/06/13 14:18:51
+     [auth2-pubkey.c auth-rhosts.c]
+     Include unistd.h for close(), prevents warnings in -portable
 
 20080612
  - (dtucker) OpenBSD CVS Sync
@@ -4347,4 +4350,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5005 2008/06/13 22:59:49 dtucker Exp $
+$Id: ChangeLog,v 1.5006 2008/06/13 23:01:24 dtucker Exp $
