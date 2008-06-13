@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.154 2008/06/12 20:38:28 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.155 2008/06/13 09:44:36 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -910,8 +910,9 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 	int type, len, ret, ms_remain;
 	fd_set *setp;
 	char buf[8192];
-	DBG(debug("packet_read()"));
 	struct timeval timeout, start, *timeoutp = NULL;
+
+	DBG(debug("packet_read()"));
 
 	setp = (fd_set *)xcalloc(howmany(connection_in+1, NFDBITS),
 	    sizeof(fd_mask));
