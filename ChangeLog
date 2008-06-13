@@ -18,6 +18,11 @@
    - dtucker@cvs.openbsd.org 2008/06/13 18:55:22
      [scp.c]
      Prevent -Wsign-compare warnings on LP64 systems.  bz #1192, ok deraadt@
+   - grunk@cvs.openbsd.org 2008/06/13 20:13:26
+     [ssh.1]
+     Explain the use of SSH fpr visualization using random art, and cite the
+     original scientific paper inspiring that technique.
+     Much help with English and nroff by jmc@, thanks.
 
 20080612
  - (dtucker) OpenBSD CVS Sync
@@ -4356,4 +4361,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5008 2008/06/13 23:02:25 dtucker Exp $
+$Id: ChangeLog,v 1.5009 2008/06/13 23:04:26 dtucker Exp $
