@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.4 2008/06/12 15:19:17 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.5 2008/06/13 00:16:49 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -144,10 +144,16 @@ muxserver_listen(void)
 	old_umask = umask(0177);
 	if (bind(muxserver_sock, (struct sockaddr *)&addr, addr_len) == -1) {
 		muxserver_sock = -1;
-		if (errno == EINVAL || errno == EADDRINUSE)
-			fatal("ControlSocket %s already exists",
-			    options.control_path);
-		else
+		if (errno == EINVAL || errno == EADDRINUSE) {
+			error("ControlSocket %s already exists, "
+			    "disabling multiplexing", options.control_path);
+			close(muxserver_sock);
+			muxserver_sock = -1;
+			xfree(options.control_path);
+			options.control_path = NULL;
+			options.control_master = SSHCTL_MASTER_NO;
+			return;
+		} else
 			fatal("%s bind(): %s", __func__, strerror(errno));
 	}
 	umask(old_umask);
@@ -500,7 +506,7 @@ muxclient(const char *path)
 	Buffer m;
 	char *term;
 	extern char **environ;
-	u_int  flags;
+	u_int allowed, flags;
 
 	if (muxclient_command == 0)
 		muxclient_command = SSHMUX_COMMAND_OPEN;
@@ -571,17 +577,38 @@ muxclient(const char *path)
 	/* Send our command to server */
 	buffer_put_int(&m, muxclient_command);
 	buffer_put_int(&m, flags);
-	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
-		fatal("%s: msg_send", __func__);
+	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1) {
+		error("%s: msg_send", __func__);
+ muxerr:
+		close(sock);
+		buffer_free(&m);
+		if (muxclient_command != SSHMUX_COMMAND_OPEN)
+			cleanup_exit(255);
+		logit("Falling back to non-multiplexed connection");
+		xfree(options.control_path);
+		options.control_path = NULL;
+		options.control_master = SSHCTL_MASTER_NO;
+		return;
+	}
 	buffer_clear(&m);
 
 	/* Get authorisation status and PID of controlee */
-	if (ssh_msg_recv(sock, &m) == -1)
-		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != SSHMUX_VER)
-		fatal("%s: wrong version", __func__);
-	if (buffer_get_int(&m) != 1)
-		fatal("Connection to master denied");
+	if (ssh_msg_recv(sock, &m) == -1) {
+		error("%s: msg_recv", __func__);
+		goto muxerr;
+	}
+	if (buffer_get_char(&m) != SSHMUX_VER) {
+		error("%s: wrong version", __func__);
+		goto muxerr;
+	}
+	if (buffer_get_int_ret(&allowed, &m) != 0) {
+		error("%s: bad server reply", __func__);
+		goto muxerr;
+	}
+	if (allowed != 1) {
+		error("Connection to master denied");
+		goto muxerr;
+	}
 	muxserver_pid = buffer_get_int(&m);
 
 	buffer_clear(&m);
@@ -625,13 +652,22 @@ muxclient(const char *path)
 		fatal("unrecognised muxclient_command %d", muxclient_command);
 	}
 
-	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
-		fatal("%s: msg_send", __func__);
+	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1) {
+		error("%s: msg_send", __func__);
+		goto muxerr;
+	}
 
 	if (mm_send_fd(sock, STDIN_FILENO) == -1 ||
 	    mm_send_fd(sock, STDOUT_FILENO) == -1 ||
-	    mm_send_fd(sock, STDERR_FILENO) == -1)
-		fatal("%s: send fds failed", __func__);
+	    mm_send_fd(sock, STDERR_FILENO) == -1) {
+		error("%s: send fds failed", __func__);
+		goto muxerr;
+	}
+
+	/*
+	 * Mux errors are non-recoverable from this point as the master
+	 * has ownership of the session now.
+	 */
 
 	/* Wait for reply, so master has a chance to gather ttymodes */
 	buffer_clear(&m);
