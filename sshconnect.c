@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.207 2008/06/12 20:38:28 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.208 2008/06/12 23:24:58 ian Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -850,7 +850,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			error("@       WARNING: POSSIBLE DNS SPOOFING DETECTED!          @");
 			error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			error("The %s host key for %s has changed,", type, host);
-			error("and the key for the according IP address %s", ip);
+			error("and the key for the corresponding IP address %s", ip);
 			error("%s. This could either mean that", key_msg);
 			error("DNS SPOOFING is happening or the IP address for the host");
 			error("and its host key have changed at the same time.");

@@ -136,6 +136,9 @@
    - grunk@cvs.openbsd.org 2008/06/12 22:03:36
      [key.c]
      add my copyright, ok djm@
+   - ian@cvs.openbsd.org 2008/06/12 23:24:58
+     [sshconnect.c]
+     tweak wording in message, ok deraadt@ jmc@
   - (dtucker) [clientloop.c serverloop.c]  channel_register_filter now
     takes 2 more args.  with djm@
 
@@ -4300,4 +4303,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4992 2008/06/12 22:58:05 dtucker Exp $
+$Id: ChangeLog,v 1.4993 2008/06/13 00:21:51 dtucker Exp $
