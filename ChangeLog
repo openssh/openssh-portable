@@ -15,6 +15,9 @@
    - dtucker@cvs.openbsd.org 2008/06/13 17:21:20
      [mux.c]
      Friendlier error messages for mux fallback.  ok djm@
+   - dtucker@cvs.openbsd.org 2008/06/13 18:55:22
+     [scp.c]
+     Prevent -Wsign-compare warnings on LP64 systems.  bz #1192, ok deraadt@
 
 20080612
  - (dtucker) OpenBSD CVS Sync
@@ -4353,4 +4356,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5007 2008/06/13 23:01:54 dtucker Exp $
+$Id: ChangeLog,v 1.5008 2008/06/13 23:02:25 dtucker Exp $
