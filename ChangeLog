@@ -171,6 +171,8 @@
   - (dtucker) [umac.c] STORE_UINT32_REVERSED and endian_convert are never used
     on big endian machines, so ifdef them for little-endian only to prevent
     unused function warnings on big-endians.
+  - (dtucker) [openbsd-compat/setenv.c] Make offsets size_t to prevent
+    compiler warnings on some platforms.  Based on a discussion with otto@
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4333,4 +4335,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5002 2008/06/13 04:51:28 dtucker Exp $
+$Id: ChangeLog,v 1.5003 2008/06/13 05:03:14 dtucker Exp $
