@@ -154,6 +154,9 @@
    - dtucker@cvs.openbsd.org 2008/06/13 00:51:47
      [mac.c]
      upcast another size_t to u_long to match format
+   - dtucker@cvs.openbsd.org 2008/06/13 01:38:23
+     [misc.c]
+     upcast uid to long with matching %ld, prevents warnings in portable
   - (dtucker) [clientloop.c serverloop.c]  channel_register_filter now
     takes 2 more args.  with djm@
   - (dtucker) [defines.h] Bug #1112: __dead is, well dead. Based on a patch
@@ -4325,4 +4328,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5000 2008/06/13 02:40:55 dtucker Exp $
+$Id: ChangeLog,v 1.5001 2008/06/13 04:48:59 dtucker Exp $

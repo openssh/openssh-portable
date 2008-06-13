@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.68 2008/06/12 20:38:28 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.69 2008/06/13 01:38:23 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -534,7 +534,7 @@ tilde_expand_filename(const char *filename, uid_t uid)
 		if ((pw = getpwnam(user)) == NULL)
 			fatal("tilde_expand_filename: No such user %s", user);
 	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
-		fatal("tilde_expand_filename: No such uid %d", uid);
+		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
 
 	if (strlcpy(ret, pw->pw_dir, sizeof(ret)) >= sizeof(ret))
 		fatal("tilde_expand_filename: Path too long");
