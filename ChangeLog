@@ -158,6 +158,8 @@
     takes 2 more args.  with djm@
   - (dtucker) [defines.h] Bug #1112: __dead is, well dead. Based on a patch
     from Todd Vierling.
+  - (dtucker) [auth-sia.c] Bug #1241: support password expiry on Tru64 SIA
+    systems.  Patch from R. Scott Bailey.
 
 20080611
  - (djm) [channels.c configure.ac]
@@ -4320,4 +4322,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4998 2008/06/13 00:58:50 dtucker Exp $
+$Id: ChangeLog,v 1.4999 2008/06/13 01:13:13 dtucker Exp $
