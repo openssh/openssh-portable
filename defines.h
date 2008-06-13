@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.149 2008/06/08 20:17:53 dtucker Exp $ */
+/* $Id: defines.h,v 1.150 2008/06/13 00:28:57 dtucker Exp $ */
 
 
 /* Constants */
@@ -430,10 +430,6 @@ struct winsize {
 #if !defined(__GNUC__) || (__GNUC__ < 2)
 # define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
-
-#ifndef __dead
-# define __dead	__attribute__((noreturn))
-#endif
 
 #if !defined(HAVE_ATTRIBUTE__SENTINEL__) && !defined(__sentinel__)
 # define __sentinel__
