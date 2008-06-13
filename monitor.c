@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.96 2008/05/08 12:21:16 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.97 2008/06/13 13:56:59 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1015,6 +1015,8 @@ mm_answer_keyallowed(int sock, Buffer *m)
 			allowed = options.pubkey_authentication &&
 			    user_key_allowed(authctxt->pw, key);
 			auth_method = "publickey";
+			if (options.pubkey_authentication && allowed != 1)
+				auth_clear_options();
 			break;
 		case MM_HOSTKEY:
 			allowed = options.hostbased_authentication &&
@@ -1027,6 +1029,8 @@ mm_answer_keyallowed(int sock, Buffer *m)
 			allowed = options.rhosts_rsa_authentication &&
 			    auth_rhosts_rsa_key_allowed(authctxt->pw,
 			    cuser, chost, key);
+			if (options.rhosts_rsa_authentication && allowed != 1)
+				auth_clear_options();
 			auth_method = "rsa";
 			break;
 		default:
