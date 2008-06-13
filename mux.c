@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.5 2008/06/13 00:16:49 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.6 2008/06/13 00:47:53 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -711,7 +711,7 @@ muxclient(const char *path)
 	leave_raw_mode();
 	if (i > (int)sizeof(int))
 		fatal("%s: master returned too much data (%d > %lu)",
-		    __func__, i, sizeof(int));
+		    __func__, i, (u_long)sizeof(int));
 	if (muxclient_terminate) {
 		debug2("Exiting on signal %d", muxclient_terminate);
 		exitval[0] = 255;

@@ -148,6 +148,9 @@
      fall back to creating a new TCP connection on most multiplexing errors
      (socket connect fail, invalid version, refused permittion, corrupted
      messages, etc.); bz #1329 ok dtucker@
+   - dtucker@cvs.openbsd.org 2008/06/13 00:47:53
+     [mux.c]
+     upcast size_t to u_long to match format arg; ok djm@
   - (dtucker) [clientloop.c serverloop.c]  channel_register_filter now
     takes 2 more args.  with djm@
   - (dtucker) [defines.h] Bug #1112: __dead is, well dead. Based on a patch
@@ -4314,4 +4317,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.4996 2008/06/13 00:28:57 dtucker Exp $
+$Id: ChangeLog,v 1.4997 2008/06/13 00:58:10 dtucker Exp $
