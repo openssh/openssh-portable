@@ -18,6 +18,9 @@
    - dtucker@cvs.openbsd.org 2008/06/15 16:55:38
      [sshd_config.5]
      MaxSessions is allowed in a Match block too
+   - dtucker@cvs.openbsd.org 2008/06/15 16:58:40
+     [servconf.c sshd_config.5]
+     Allow MaxAuthTries within a Match block.  ok djm@
 
 20080614
  - (djm) [openbsd-compat/sigact.c] Avoid NULL derefs in ancient sigaction
@@ -4390,4 +4393,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5017 2008/06/15 21:55:46 djm Exp $
+$Id: ChangeLog,v 1.5018 2008/06/15 21:56:20 djm Exp $

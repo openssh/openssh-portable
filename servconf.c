@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.183 2008/06/10 23:06:19 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.184 2008/06/15 16:58:40 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -398,7 +398,7 @@ static struct {
 	{ "gatewayports", sGatewayPorts, SSHCFG_ALL },
 	{ "subsystem", sSubsystem, SSHCFG_GLOBAL },
 	{ "maxstartups", sMaxStartups, SSHCFG_GLOBAL },
-	{ "maxauthtries", sMaxAuthTries, SSHCFG_GLOBAL },
+	{ "maxauthtries", sMaxAuthTries, SSHCFG_ALL },
 	{ "maxsessions", sMaxSessions, SSHCFG_ALL },
 	{ "banner", sBanner, SSHCFG_ALL },
 	{ "usedns", sUseDNS, SSHCFG_GLOBAL },
@@ -1403,6 +1403,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(x11_forwarding);
 	M_CP_INTOPT(x11_use_localhost);
 	M_CP_INTOPT(max_sessions);
+	M_CP_INTOPT(max_authtries);
 
 	M_CP_STROPT(banner);
 	if (preauth)
