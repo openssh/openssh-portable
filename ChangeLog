@@ -4,6 +4,9 @@
    - dtucker@cvs.openbsd.org 2008/06/14 15:49:48
      [sshd.c]
      wrap long line at 80 chars
+   - dtucker@cvs.openbsd.org 2008/06/14 17:07:11
+     [sshd.c]
+     ensure default umask disallows at least group and world write; ok djm@
 
 20080614
  - (djm) [openbsd-compat/sigact.c] Avoid NULL derefs in ancient sigaction
@@ -4376,4 +4379,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5013 2008/06/15 21:50:24 djm Exp $
+$Id: ChangeLog,v 1.5014 2008/06/15 21:50:58 djm Exp $

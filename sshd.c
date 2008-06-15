@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.361 2008/06/14 15:49:48 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.362 2008/06/14 17:07:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1245,6 +1245,7 @@ main(int ac, char **av)
 	int remote_port;
 	char *line, *p, *cp;
 	int config_s[2] = { -1 , -1 };
+	mode_t new_umask;
 	Key *key;
 	Authctxt *authctxt;
 
@@ -1609,6 +1610,10 @@ main(int ac, char **av)
 		rexec_argv[rexec_argc] = "-R";
 		rexec_argv[rexec_argc + 1] = NULL;
 	}
+
+	/* Ensure that umask disallows at least group and world write */
+	new_umask = umask(0077) | 0022;
+	(void) umask(new_umask);
 
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && (!inetd_flag || rexeced_flag))
