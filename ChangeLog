@@ -1,3 +1,6 @@
+20080615
+ - (dtucker) [configure.ac] Enable -fno-builtin-memset when using gcc.
+
 20080614
  - (djm) [openbsd-compat/sigact.c] Avoid NULL derefs in ancient sigaction
    replacement code; patch from ighighi AT gmail.com in bz#1240;
@@ -4369,4 +4372,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5011 2008/06/15 00:55:34 djm Exp $
+$Id: ChangeLog,v 1.5012 2008/06/15 16:27:48 dtucker Exp $
