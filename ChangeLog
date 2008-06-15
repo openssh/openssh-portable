@@ -1,5 +1,9 @@
 20080615
  - (dtucker) [configure.ac] Enable -fno-builtin-memset when using gcc.
+ - OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2008/06/14 15:49:48
+     [sshd.c]
+     wrap long line at 80 chars
 
 20080614
  - (djm) [openbsd-compat/sigact.c] Avoid NULL derefs in ancient sigaction
@@ -4372,4 +4376,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5012 2008/06/15 16:27:48 dtucker Exp $
+$Id: ChangeLog,v 1.5013 2008/06/15 21:50:24 djm Exp $

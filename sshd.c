@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.360 2008/06/12 20:38:28 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.361 2008/06/14 15:49:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1441,7 +1441,8 @@ main(int ac, char **av)
 	 * the parameters we need.  If we're not doing an extended test,
 	 * do not silently ignore connection test params.
 	 */
-	if (test_flag >= 2 && (test_user != NULL || test_host != NULL || test_addr != NULL)
+	if (test_flag >= 2 &&
+	   (test_user != NULL || test_host != NULL || test_addr != NULL)
 	    && (test_user == NULL || test_host == NULL || test_addr == NULL))
 		fatal("user, host and addr are all required when testing "
 		   "Match configs");
