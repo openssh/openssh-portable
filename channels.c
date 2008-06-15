@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.280 2008/06/12 15:19:17 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.281 2008/06/15 20:06:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -221,7 +221,7 @@ channel_lookup(int id)
  */
 static void
 channel_register_fds(Channel *c, int rfd, int wfd, int efd,
-    int extusage, int nonblock)
+    int extusage, int nonblock, int isatty)
 {
 	/* Update the maximum file descriptor value. */
 	channel_max_fd = MAX(channel_max_fd, rfd);
@@ -237,18 +237,9 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 	c->efd = efd;
 	c->extended_usage = extusage;
 
-	/* XXX ugly hack: nonblock is only set by the server */
-	if (nonblock && isatty(c->rfd)) {
+	if ((c->isatty = isatty) != 0)
 		debug2("channel %d: rfd %d isatty", c->self, c->rfd);
-		c->isatty = 1;
-		if (!isatty(c->wfd)) {
-			error("channel %d: wfd %d is not a tty?",
-			    c->self, c->wfd);
-		}
-	} else {
-		c->isatty = 0;
-	}
-	c->wfd_isatty = isatty(c->wfd);
+	c->wfd_isatty = isatty || isatty(c->wfd);
 
 	/* enable nonblocking mode */
 	if (nonblock) {
@@ -308,7 +299,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->ostate = CHAN_OUTPUT_OPEN;
 	c->istate = CHAN_INPUT_OPEN;
 	c->flags = 0;
-	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, 0);
 	c->self = found;
 	c->type = type;
 	c->ctype = ctype;
@@ -751,13 +742,13 @@ channel_register_filter(int id, channel_infilter_fn *ifn,
 
 void
 channel_set_fds(int id, int rfd, int wfd, int efd,
-    int extusage, int nonblock, u_int window_max)
+    int extusage, int nonblock, int isatty, u_int window_max)
 {
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
-	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, isatty);
 	c->type = SSH_CHANNEL_OPEN;
 	c->local_window = c->local_window_max = window_max;
 	packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);

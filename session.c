@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.239 2008/06/14 18:33:43 djm Exp $ */
+/* $OpenBSD: session.c,v 1.240 2008/06/15 20:06:26 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -98,7 +98,7 @@
 /* func */
 
 Session *session_new(void);
-void	session_set_fds(Session *, int, int, int);
+void	session_set_fds(Session *, int, int, int, int);
 void	session_pty_cleanup(Session *);
 void	session_proctitle(Session *);
 int	session_setup_x11fwd(Session *);
@@ -591,7 +591,7 @@ do_exec_no_pty(Session *s, const char *command)
 			close(perr[0]);
 			perr[0] = -1;
 		}
-		session_set_fds(s, pin[1], pout[0], perr[0]);
+		session_set_fds(s, pin[1], pout[0], perr[0], 0);
 	} else {
 		/* Enter the interactive session. */
 		server_loop(pid, pin[1], pout[0], perr[0]);
@@ -608,7 +608,7 @@ do_exec_no_pty(Session *s, const char *command)
 	 */
 	if (compat20) {
 		session_set_fds(s, inout[1], inout[1],
-		    s->is_subsystem ? -1 : err[1]);
+		    s->is_subsystem ? -1 : err[1], 0);
 		if (s->is_subsystem)
 			close(err[1]);
 	} else {
@@ -733,7 +733,7 @@ do_exec_pty(Session *s, const char *command)
 	s->ptymaster = ptymaster;
 	packet_set_interactive(1);
 	if (compat20) {
-		session_set_fds(s, ptyfd, fdout, -1);
+		session_set_fds(s, ptyfd, fdout, -1, 1);
 	} else {
 		server_loop(pid, ptyfd, fdout, -1);
 		/* server_loop _has_ closed ptyfd and fdout. */
@@ -2285,7 +2285,7 @@ session_input_channel_req(Channel *c, const char *rtype)
 }
 
 void
-session_set_fds(Session *s, int fdin, int fdout, int fderr)
+session_set_fds(Session *s, int fdin, int fdout, int fderr, int isatty)
 {
 	if (!compat20)
 		fatal("session_set_fds: called for proto != 2.0");
@@ -2298,8 +2298,7 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
 	channel_set_fds(s->chanid,
 	    fdout, fdin, fderr,
 	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1,
-	    CHAN_SES_WINDOW_DEFAULT);
+	    1, isatty, CHAN_SES_WINDOW_DEFAULT);
 }
 
 /*

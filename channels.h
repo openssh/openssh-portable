@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.95 2008/06/12 15:19:17 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.96 2008/06/15 20:06:26 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -188,7 +188,7 @@ struct Channel {
 Channel	*channel_by_id(int);
 Channel	*channel_lookup(int);
 Channel *channel_new(char *, int, int, int, int, u_int, u_int, int, char *, int);
-void	 channel_set_fds(int, int, int, int, int, int, u_int);
+void	 channel_set_fds(int, int, int, int, int, int, int, u_int);
 void	 channel_free(Channel *);
 void	 channel_free_all(void);
 void	 channel_stop_listening(void);
