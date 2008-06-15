@@ -10,8 +10,9 @@
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
 .\" $OpenBSD: scp.1,v 1.44 2008/01/31 20:06:50 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.45 2008/06/14 19:42:10 dtucker Exp $
 .\"
-.Dd $Mdocdate: January 31 2008 $
+.Dd $Mdocdate: June 14 2008 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -189,6 +190,9 @@ messages from
 .Xr ssh 1 .
 .It Fl r
 Recursively copy entire directories.
+Note that
+.Nm
+follows symbolic links encountered in the tree traversal.
 .It Fl S Ar program
 Name of
 .Ar program
