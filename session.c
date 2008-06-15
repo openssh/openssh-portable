@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.238 2008/05/09 16:16:06 markus Exp $ */
+/* $OpenBSD: session.c,v 1.239 2008/06/14 18:33:43 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1647,6 +1647,7 @@ do_child(Session *s, const char *command)
 	char *argv[ARGV_MAX];
 	const char *shell, *shell0, *hostname = NULL;
 	struct passwd *pw = s->pw;
+	int r = 0;
 
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
@@ -1762,12 +1763,16 @@ do_child(Session *s, const char *command)
 
 	/* Change current directory to the user's home directory. */
 	if (chdir(pw->pw_dir) < 0) {
-		fprintf(stderr, "Could not chdir to home directory %s: %s\n",
-		    pw->pw_dir, strerror(errno));
+		/* Suppress missing homedir warning for chroot case */
 #ifdef HAVE_LOGIN_CAP
-		if (login_getcapbool(lc, "requirehome", 0))
-			exit(1);
+		r = login_getcapbool(lc, "requirehome", 0);
 #endif
+		if (r || options.chroot_directory == NULL)
+			fprintf(stderr, "Could not chdir to home "
+			    "directory %s: %s\n", pw->pw_dir,
+			    strerror(errno));
+		if (r)
+			exit(1);
 	}
 
 	closefrom(STDERR_FILENO + 1);
