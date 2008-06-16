@@ -4,6 +4,7 @@
      [session.c channels.c]
      Rename the isatty argument to is_tty so we don't shadow
      isatty(3).  ok markus@
+ - (dtucker) [channels.c] isatty -> is_tty here too.
 
 20080615
  - (dtucker) [configure.ac] Enable -fno-builtin-memset when using gcc.
@@ -4406,4 +4407,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5020 2008/06/16 13:29:18 dtucker Exp $
+$Id: ChangeLog,v 1.5021 2008/06/16 13:35:56 dtucker Exp $
