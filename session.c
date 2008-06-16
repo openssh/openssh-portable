@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.240 2008/06/15 20:06:26 djm Exp $ */
+/* $OpenBSD: session.c,v 1.241 2008/06/16 13:22:53 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2285,7 +2285,7 @@ session_input_channel_req(Channel *c, const char *rtype)
 }
 
 void
-session_set_fds(Session *s, int fdin, int fdout, int fderr, int isatty)
+session_set_fds(Session *s, int fdin, int fdout, int fderr, int is_tty)
 {
 	if (!compat20)
 		fatal("session_set_fds: called for proto != 2.0");
@@ -2298,7 +2298,7 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr, int isatty)
 	channel_set_fds(s->chanid,
 	    fdout, fdin, fderr,
 	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1, isatty, CHAN_SES_WINDOW_DEFAULT);
+	    1, is_tty, CHAN_SES_WINDOW_DEFAULT);
 }
 
 /*

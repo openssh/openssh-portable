@@ -1,3 +1,10 @@
+20080616
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2008/06/16 13:22:53
+     [session.c channels.c]
+     Rename the isatty argument to is_tty so we don't shadow
+     isatty(3).  ok markus@
+
 20080615
  - (dtucker) [configure.ac] Enable -fno-builtin-memset when using gcc.
  - OpenBSD CVS Sync
@@ -4399,4 +4406,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5019 2008/06/15 21:59:23 djm Exp $
+$Id: ChangeLog,v 1.5020 2008/06/16 13:29:18 dtucker Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.281 2008/06/15 20:06:26 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.282 2008/06/16 13:22:53 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -221,7 +221,7 @@ channel_lookup(int id)
  */
 static void
 channel_register_fds(Channel *c, int rfd, int wfd, int efd,
-    int extusage, int nonblock, int isatty)
+    int extusage, int nonblock, int is_tty)
 {
 	/* Update the maximum file descriptor value. */
 	channel_max_fd = MAX(channel_max_fd, rfd);
@@ -237,7 +237,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 	c->efd = efd;
 	c->extended_usage = extusage;
 
-	if ((c->isatty = isatty) != 0)
+	if ((c->isatty = is_tty) != 0)
 		debug2("channel %d: rfd %d isatty", c->self, c->rfd);
 	c->wfd_isatty = isatty || isatty(c->wfd);
 
@@ -742,13 +742,13 @@ channel_register_filter(int id, channel_infilter_fn *ifn,
 
 void
 channel_set_fds(int id, int rfd, int wfd, int efd,
-    int extusage, int nonblock, int isatty, u_int window_max)
+    int extusage, int nonblock, int is_tty, u_int window_max)
 {
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
-	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, isatty);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, is_tty);
 	c->type = SSH_CHANNEL_OPEN;
 	c->local_window = c->local_window_max = window_max;
 	packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);
