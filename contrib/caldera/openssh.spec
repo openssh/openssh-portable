@@ -342,6 +342,7 @@ fi
 %config %{SVIcdir}/sshd
 %{_libexecdir}/sftp-server
 %{_sbindir}/sshd
+%{_mandir}/man5/moduli.5.gz
 %{_mandir}/man5/sshd_config.5.gz
 %{_mandir}/man8/sftp-server.8.gz
 %{_mandir}/man8/sshd.8.gz
@@ -357,4 +358,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.63 2008/04/03 09:55:46 djm Exp $
+$Id: openssh.spec,v 1.64 2008/06/26 06:02:04 djm Exp $

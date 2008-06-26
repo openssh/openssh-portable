@@ -1,6 +1,8 @@
 20080626
  - (djm) [Makefile.in moduli.5] Include moduli(5) manpage from OpenBSD.
    (bz#1372)
+ - (djm) [ contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Include moduli.5 in RPM spec files.
 
 20080616
  - (dtucker) OpenBSD CVS Sync
@@ -4411,4 +4413,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5022 2008/06/26 05:59:32 djm Exp $
+$Id: ChangeLog,v 1.5023 2008/06/26 06:01:56 djm Exp $

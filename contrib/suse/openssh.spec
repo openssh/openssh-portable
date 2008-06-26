@@ -228,6 +228,7 @@ fi
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh-agent.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh-keygen.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh-keyscan.1*
+%attr(0644,root,root) %doc %{_mandir}/man5/moduli.5*
 %attr(0644,root,root) %doc %{_mandir}/man5/ssh_config.5*
 %attr(0644,root,root) %doc %{_mandir}/man5/sshd_config.5*
 %attr(0644,root,root) %doc %{_mandir}/man8/sftp-server.8*
