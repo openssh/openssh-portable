@@ -37,7 +37,6 @@ install-sshdoc:
 	$(INSTALL) -m 644 $(srcdir)/README.dns $(DESTDIR)$(sshdocdir)/README.dns
 	$(INSTALL) -m 644 $(srcdir)/README.privsep $(DESTDIR)$(sshdocdir)/README.privsep
 	$(INSTALL) -m 644 $(srcdir)/README.smartcard $(DESTDIR)$(sshdocdir)/README.smartcard
-	$(INSTALL) -m 644 $(srcdir)/RFC.nroff $(DESTDIR)$(sshdocdir)/RFC.nroff
 	$(INSTALL) -m 644 $(srcdir)/TODO $(DESTDIR)$(sshdocdir)/TODO
 	$(INSTALL) -m 644 $(srcdir)/WARNING.RNG $(DESTDIR)$(sshdocdir)/WARNING.RNG
 

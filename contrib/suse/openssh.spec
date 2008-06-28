@@ -201,7 +201,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc ChangeLog OVERVIEW README*
-%doc RFC.nroff TODO CREDITS LICENCE
+%doc TODO CREDITS LICENCE
 %attr(0755,root,root) %dir %{_sysconfdir}/ssh
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config
 %attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/sshd_config

@@ -1,3 +1,7 @@
+20080628
+ - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
+   RFC.nroff lacks a license, remove it (it is long gone in OpenBSD).
+
 20080626
  - (djm) [Makefile.in moduli.5] Include moduli(5) manpage from OpenBSD.
    (bz#1372)
@@ -4413,4 +4417,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5023 2008/06/26 06:01:56 djm Exp $
+$Id: ChangeLog,v 1.5024 2008/06/28 06:01:35 djm Exp $
