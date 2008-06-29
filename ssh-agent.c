@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.158 2008/06/28 13:58:23 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.159 2008/06/28 14:05:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -312,6 +312,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *blob, *data, *signature = NULL;
 	u_int blen, dlen, slen = 0;
 	extern int datafellows;
+	int odatafellows;
 	int ok = -1, flags;
 	Buffer msg;
 	Key *key;
@@ -322,6 +323,7 @@ process_sign_request2(SocketEntry *e)
 	data = buffer_get_string(&e->request, &dlen);
 
 	flags = buffer_get_int(&e->request);
+	odatafellows = datafellows;
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		datafellows = SSH_BUG_SIGBLOB;
 
@@ -347,6 +349,7 @@ process_sign_request2(SocketEntry *e)
 	xfree(blob);
 	if (signature != NULL)
 		xfree(signature);
+	datafellows = odatafellows;
 }
 
 /* shared */
