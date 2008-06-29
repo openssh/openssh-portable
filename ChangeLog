@@ -1,3 +1,9 @@
+20080630
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2008/06/10 23:13:43
+     [regress/Makefile regress/key-options.sh]
+     Add regress test for key options.  ok djm@
+
 20080629
  - (djm) OpenBSD CVS Sync
    - martynas@cvs.openbsd.org 2008/06/21 07:46:46
@@ -4465,4 +4471,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5034 2008/06/29 14:07:00 djm Exp $
+$Id: ChangeLog,v 1.5035 2008/06/29 22:06:25 djm Exp $
