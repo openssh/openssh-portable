@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.85 2008/06/12 20:47:04 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.86 2008/06/26 06:10:09 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -920,7 +920,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	if (a == NULL)
 		return(-1);
 
-	/* XXX: should we preserve set[ug]id? */
+	/* Do not preserve set[ug]id here, as we do not preserve ownership */
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
 		mode = a->perm & 0777;
 	else
