@@ -31,6 +31,9 @@
    - jmc@cvs.openbsd.org 2008/06/26 21:11:46
      [ssh.1]
      add VisualHostKey to the list of options listed in -o;
+   - djm@cvs.openbsd.org 2008/06/28 07:25:07
+     [PROTOCOL]
+     spelling fixes
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4451,4 +4454,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5030 2008/06/29 14:04:31 djm Exp $
+$Id: ChangeLog,v 1.5031 2008/06/29 14:04:57 djm Exp $
