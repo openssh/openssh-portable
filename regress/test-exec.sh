@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.34 2008/06/10 15:28:49 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.35 2008/06/28 13:57:25 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -72,6 +72,7 @@ SCP=scp
 # Interop testing
 PLINK=/usr/local/bin/plink
 PUTTYGEN=/usr/local/bin/puttygen
+CONCH=/usr/local/bin/conch
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
@@ -113,6 +114,9 @@ if [ "x$TEST_SSH_PUTTYGEN" != "x" ]; then
 	/*) PUTTYGEN="${TEST_SSH_PUTTYGEN}" ;;
 	*) PUTTYGEN=`which ${TEST_SSH_PUTTYGEN} 2>/dev/null` ;;
 	esac
+fi
+if [ "x$TEST_SSH_CONCH" != "x" ]; then
+	CONCH="${TEST_SSH_CONCH}"
 fi
 
 # Path to sshd must be absolute for rexec
@@ -286,6 +290,12 @@ for t in rsa rsa1; do
 	echo HostKey $OBJ/$t >> $OBJ/sshd_proxy
 done
 chmod 644 $OBJ/authorized_keys_$USER
+
+# Activate Twisted Conch tests if the binary is present
+REGRESS_INTEROP_CONCH=no
+if test -x "$CONCH" ; then
+	REGRESS_INTEROP_CONCH=yes
+fi
 
 # If PuTTY is present and we are running a PuTTY test, prepare keys and
 # configuration

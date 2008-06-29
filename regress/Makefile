@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.47 2008/06/11 23:11:40 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.48 2008/06/28 13:57:25 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -52,7 +52,7 @@ LTESTS= 	connect \
 		localcommand \
 		forcecommand
 
-INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex
+INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
 USER!=		id -un
