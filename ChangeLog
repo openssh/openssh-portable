@@ -42,6 +42,9 @@
      [ssh-agent.c]
      reset global compat flag after processing a protocol 2 signature
      request with the legacy DSA encoding flag set; ok markus
+   - djm@cvs.openbsd.org 2008/06/28 14:08:30
+     [PROTOCOL PROTOCOL.agent]
+     document the protocol used by ssh-agent; "looks ok" markus@
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4462,4 +4465,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5033 2008/06/29 14:05:48 djm Exp $
+$Id: ChangeLog,v 1.5034 2008/06/29 14:07:00 djm Exp $

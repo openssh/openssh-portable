@@ -9,6 +9,9 @@ http://www.openssh.com/txt/draft-ietf-secsh-filexfer-02.txt
 Features from newer versions of the draft are not supported, unless
 explicitly implemented as extensions described below.
 
+The protocol used by OpenSSH's ssh-agent is described in the file
+PROTOCOL.agent
+
 1. transport: Protocol 2 MAC algorithm "umac-64@openssh.com"
 
 This is a new transport-layer MAC method using the UMAC algorithm
@@ -237,4 +240,4 @@ The values of the f_flag bitmask are as follows:
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "2".
 
-$OpenBSD: PROTOCOL,v 1.8 2008/06/28 07:25:07 djm Exp $
+$OpenBSD: PROTOCOL,v 1.9 2008/06/28 14:08:30 djm Exp $
