@@ -4,6 +4,10 @@
      [sftp.c]
      use optopt to get invalid flag, instead of return value of getopt,
      which is always '?';  ok djm@
+   - otto@cvs.openbsd.org 2008/06/25 11:13:43
+     [key.c]
+     add key length to visual fingerprint; zap magical constants;
+     ok grunk@ djm@
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4424,4 +4428,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5025 2008/06/29 12:45:13 djm Exp $
+$Id: ChangeLog,v 1.5026 2008/06/29 12:45:37 djm Exp $
