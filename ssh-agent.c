@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.157 2007/09/25 23:48:57 canacar Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.158 2008/06/28 13:58:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -526,9 +526,8 @@ process_add_identity(SocketEntry *e, int version)
 		xfree(comment);
 		goto send;
 	}
-	success = 1;
 	while (buffer_len(&e->request)) {
-		switch (buffer_get_char(&e->request)) {
+		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
 			death = time(NULL) + buffer_get_int(&e->request);
 			break;
@@ -536,9 +535,14 @@ process_add_identity(SocketEntry *e, int version)
 			confirm = 1;
 			break;
 		default:
-			break;
+			error("process_add_identity: "
+			    "Unknown constraint type %d", type);
+			xfree(comment);
+			key_free(k);
+			goto send;
 		}
 	}
+	success = 1;
 	if (lifetime && !death)
 		death = time(NULL) + lifetime;
 	if ((id = lookup_identity(k, version)) == NULL) {
@@ -604,10 +608,10 @@ no_identities(SocketEntry *e, u_int type)
 
 #ifdef SMARTCARD
 static void
-process_add_smartcard_key (SocketEntry *e)
+process_add_smartcard_key(SocketEntry *e)
 {
 	char *sc_reader_id = NULL, *pin;
-	int i, version, success = 0, death = 0, confirm = 0;
+	int i, type, version, success = 0, death = 0, confirm = 0;
 	Key **keys, *k;
 	Identity *id;
 	Idtab *tab;
@@ -616,7 +620,7 @@ process_add_smartcard_key (SocketEntry *e)
 	pin = buffer_get_string(&e->request, NULL);
 
 	while (buffer_len(&e->request)) {
-		switch (buffer_get_char(&e->request)) {
+		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
 			death = time(NULL) + buffer_get_int(&e->request);
 			break;
@@ -624,7 +628,11 @@ process_add_smartcard_key (SocketEntry *e)
 			confirm = 1;
 			break;
 		default:
-			break;
+			error("process_add_smartcard_key: "
+			    "Unknown constraint type %d", type);
+			xfree(sc_reader_id);
+			xfree(pin);
+			goto send;
 		}
 	}
 	if (lifetime && !death)

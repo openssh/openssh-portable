@@ -34,6 +34,10 @@
    - djm@cvs.openbsd.org 2008/06/28 07:25:07
      [PROTOCOL]
      spelling fixes
+   - djm@cvs.openbsd.org 2008/06/28 13:58:23
+     [ssh-agent.c]
+     refuse to add a key that has unknown constraints specified;
+     ok markus
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4454,4 +4458,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5031 2008/06/29 14:04:57 djm Exp $
+$Id: ChangeLog,v 1.5032 2008/06/29 14:05:21 djm Exp $
