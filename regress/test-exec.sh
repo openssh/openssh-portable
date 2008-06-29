@@ -70,9 +70,9 @@ SFTPSERVER=/usr/libexec/openssh/sftp-server
 SCP=scp
 
 # Interop testing
-PLINK=/usr/local/bin/plink
-PUTTYGEN=/usr/local/bin/puttygen
-CONCH=/usr/local/bin/conch
+PLINK=plink
+PUTTYGEN=puttygen
+CONCH=conch
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
@@ -116,7 +116,11 @@ if [ "x$TEST_SSH_PUTTYGEN" != "x" ]; then
 	esac
 fi
 if [ "x$TEST_SSH_CONCH" != "x" ]; then
-	CONCH="${TEST_SSH_CONCH}"
+	# Find real binary, if it exists
+	case "${TEST_SSH_CONCH}" in
+	/*) CONCH="${TEST_SSH_CONCH}" ;;
+	*) CONCH=`which ${TEST_SSH_CONCH} 2>/dev/null` ;;
+	esac
 fi
 
 # Path to sshd must be absolute for rexec

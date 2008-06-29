@@ -11,6 +11,7 @@
      very basic regress test against Twisted Conch in "make interop"
      target (conch is available in ports/devel/py-twisted/conch);
      ok markus@
+ - (djm) [regress/Makefile] search for conch by path, like we do putty
 
 20080629
  - (djm) OpenBSD CVS Sync
@@ -4479,4 +4480,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5037 2008/06/29 22:07:56 djm Exp $
+$Id: ChangeLog,v 1.5038 2008/06/29 22:12:37 djm Exp $
