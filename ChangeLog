@@ -14,6 +14,12 @@
      bits. Note that this only affects explicit setting of modes (e.g. via
      sftp(1)'s chmod command) and not file transfers. (bz#1310)
      ok deraadt@ at c2k8
+   - djm@cvs.openbsd.org 2008/06/26 09:19:40
+     [dh.c dh.h moduli.c]
+     when loading moduli from /etc/moduli in sshd(8), check that they
+     are of the expected "safe prime" structure and have had
+     appropriate primality tests performed;
+     feedback and ok dtucker@
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4434,4 +4440,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5027 2008/06/29 12:46:35 djm Exp $
+$Id: ChangeLog,v 1.5028 2008/06/29 12:47:04 djm Exp $
