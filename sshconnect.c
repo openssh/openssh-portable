@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.208 2008/06/12 23:24:58 ian Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.209 2008/06/26 11:46:31 grunk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -598,7 +598,6 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	char msg[1024];
 	int len, host_line, ip_line;
 	const char *host_file = NULL, *ip_file = NULL;
-	int display_randomart;
 
 	/*
 	 * Force accepting of the host key for loopback/localhost. The
@@ -644,12 +643,6 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	} else {
 		ip = xstrdup("<no hostip for proxy command>");
 	}
-
-	/*
-	 * check_host_ip may be set to zero in the next step, so if it
-	 * conveys a request to display the random art, save it away.
-	 */
-	display_randomart = (options.check_host_ip == SSHCTL_CHECKHOSTIP_FPR);
 
 	/*
 	 * Turn off check_host_ip if the connection is to localhost, via proxy
@@ -735,7 +728,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				logit("Warning: Permanently added the %s host "
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
-		} else if (display_randomart) {
+		} else if (options.visual_host_key) {
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 			ra = key_fingerprint(host_key, SSH_FP_MD5,
 			    SSH_FP_RANDOMART);
@@ -793,10 +786,13 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
 			    "established%s\n"
-			    "%s key fingerprint is %s.\n%s\n%s"
+			    "%s key fingerprint is %s.%s%s\n%s"
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ",
-			    host, ip, msg1, type, fp, ra, msg2);
+			    host, ip, msg1, type, fp,
+			    options.visual_host_key ? "\n" : "",
+			    options.visual_host_key ? ra : "",
+			    msg2);
 			xfree(ra);
 			xfree(fp);
 			if (!confirm(msg))

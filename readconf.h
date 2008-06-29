@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.73 2008/06/11 21:01:35 grunk Exp $ */
+/* $OpenBSD: readconf.h,v 1.74 2008/06/26 11:46:31 grunk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -120,12 +120,9 @@ typedef struct {
 
 	char	*local_command;
 	int	permit_local_command;
+	int	visual_host_key;
 
 }       Options;
-
-#define SSHCTL_CHECKHOSTIP_NO	0
-#define SSHCTL_CHECKHOSTIP_YES	1
-#define SSHCTL_CHECKHOSTIP_FPR	2
 
 #define SSHCTL_MASTER_NO	0
 #define SSHCTL_MASTER_YES	1

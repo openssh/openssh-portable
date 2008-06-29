@@ -20,6 +20,14 @@
      are of the expected "safe prime" structure and have had
      appropriate primality tests performed;
      feedback and ok dtucker@
+   - grunk@cvs.openbsd.org 2008/06/26 11:46:31
+     [readconf.c readconf.h ssh.1 ssh_config.5 sshconnect.c]
+     Move SSH Fingerprint Visualization away from sharing the config option
+     CheckHostIP to an own config option named VisualHostKey.
+     While there, fix the behaviour that ssh would draw a random art picture
+     on every newly seen host even when the option was not enabled.
+     prodded by deraadt@, discussions,
+     help and ok markus@ djm@ dtucker@
 
 20080628
  - (djm) [RFC.nroff contrib/cygwin/Makefile contrib/suse/openssh.spec]
@@ -4440,4 +4448,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5028 2008/06/29 12:47:04 djm Exp $
+$Id: ChangeLog,v 1.5029 2008/06/29 14:04:03 djm Exp $
