@@ -46,9 +46,9 @@ processes of the condition, e.g. by closing the corresponding file
 descriptor.
 
 OpenSSH implements a channel extension message to perform this
-signalling: "eow@openssh.com" (End Of Write). This message is sent by an
-endpoint when the local output of a channel is closed or experiences a
-write error. The message is formatted as follows:
+signalling: "eow@openssh.com" (End Of Write). This message is sent by
+an endpoint when the local output of a session channel is closed or
+experiences a write error. The message is formatted as follows:
 
 	byte		SSH_MSG_CHANNEL_REQUEST
 	uint32		recipient channel
@@ -240,4 +240,4 @@ The values of the f_flag bitmask are as follows:
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "2".
 
-$OpenBSD: PROTOCOL,v 1.9 2008/06/28 14:08:30 djm Exp $
+$OpenBSD: PROTOCOL,v 1.10 2008/06/30 12:18:34 djm Exp $

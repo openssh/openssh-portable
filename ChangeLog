@@ -10,6 +10,9 @@
    - djm@cvs.openbsd.org 2008/06/30 12:16:02
      [nchan.c]
      only send eow@openssh.com notifications for session channels; ok! markus@
+   - djm@cvs.openbsd.org 2008/06/30 12:18:34
+     [PROTOCOL]
+     clarify that eow@openssh.com is only sent on session channels
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4493,4 +4496,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5041 2008/07/02 12:32:43 dtucker Exp $
+$Id: ChangeLog,v 1.5042 2008/07/02 12:33:16 dtucker Exp $
