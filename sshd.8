@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.245 2008/06/11 07:30:37 jmc Exp $
-.Dd $Mdocdate: June 11 2008 $
+.\" $OpenBSD: sshd.8,v 1.246 2008/07/02 02:24:18 djm Exp $
+.Dd $Mdocdate: July 2 2008 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -100,7 +100,7 @@ Forces
 to use IPv6 addresses only.
 .It Fl b Ar bits
 Specifies the number of bits in the ephemeral protocol version 1
-server key (default 768).
+server key (default 1024).
 .It Fl C Ar connection_spec
 Specify the connection parameters to use for the
 .Fl T

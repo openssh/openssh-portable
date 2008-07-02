@@ -24,6 +24,10 @@
    - stevesk@cvs.openbsd.org 2008/07/01 23:12:47
      [PROTOCOL.agent]
      fix some typos; ok djm@
+   - djm@cvs.openbsd.org 2008/07/02 02:24:18
+     [sshd_config sshd_config.5 sshd.8 servconf.c]
+     increase default size of ssh protocol 1 ephemeral key from 768 to 1024
+     bits; prodded by & ok dtucker@ ok deraadt@
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4507,4 +4511,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5045 2008/07/02 12:35:00 dtucker Exp $
+$Id: ChangeLog,v 1.5046 2008/07/02 12:35:43 dtucker Exp $

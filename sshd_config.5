@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.95 2008/06/15 16:58:40 dtucker Exp $
-.Dd $Mdocdate: June 15 2008 $
+.\" $OpenBSD: sshd_config.5,v 1.96 2008/07/02 02:24:18 djm Exp $
+.Dd $Mdocdate: July 2 2008 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -811,7 +811,7 @@ The default is
 This option applies to protocol version 1 only.
 .It Cm ServerKeyBits
 Defines the number of bits in the ephemeral protocol version 1 server key.
-The minimum value is 512, and the default is 768.
+The minimum value is 512, and the default is 1024.
 .It Cm StrictModes
 Specifies whether
 .Xr sshd 8

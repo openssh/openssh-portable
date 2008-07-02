@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.184 2008/06/15 16:58:40 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.185 2008/07/02 02:24:18 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -158,7 +158,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->pid_file == NULL)
 		options->pid_file = _PATH_SSH_DAEMON_PID_FILE;
 	if (options->server_key_bits == -1)
-		options->server_key_bits = 768;
+		options->server_key_bits = 1024;
 	if (options->login_grace_time == -1)
 		options->login_grace_time = 120;
 	if (options->key_regeneration_time == -1)
