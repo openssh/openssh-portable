@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.152 2008/06/10 22:15:23 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.153 2008/06/30 12:15:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1173,7 +1173,8 @@ server_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	if (!strcmp(rtype, "eow@openssh.com")) {
 		packet_check_eom();
 		chan_rcvd_eow(c);
-	} else if (c->type == SSH_CHANNEL_LARVAL || c->type == SSH_CHANNEL_OPEN)
+	} else if ((c->type == SSH_CHANNEL_LARVAL ||
+	    c->type == SSH_CHANNEL_OPEN) && strcmp(c->ctype, "session") == 0)
 		success = session_input_channel_req(c, rtype);
 	if (reply) {
 		packet_start(success ?
