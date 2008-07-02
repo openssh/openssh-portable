@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.209 2008/06/26 11:46:31 grunk Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.210 2008/07/01 07:20:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -596,7 +596,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	int salen;
 	char ntop[NI_MAXHOST];
 	char msg[1024];
-	int len, host_line, ip_line;
+	int len, host_line, ip_line, cancelled_forwarding = 0;
 	const char *host_file = NULL, *ip_file = NULL;
 
 	/*
@@ -878,27 +878,32 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			error("Password authentication is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.password_authentication = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.kbd_interactive_authentication) {
 			error("Keyboard-interactive authentication is disabled"
 			    " to avoid man-in-the-middle attacks.");
 			options.kbd_interactive_authentication = 0;
 			options.challenge_response_authentication = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.challenge_response_authentication) {
 			error("Challenge/response authentication is disabled"
 			    " to avoid man-in-the-middle attacks.");
 			options.challenge_response_authentication = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.forward_agent) {
 			error("Agent forwarding is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.forward_agent = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.forward_x11) {
 			error("X11 forwarding is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.forward_x11 = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.num_local_forwards > 0 ||
 		    options.num_remote_forwards > 0) {
@@ -906,12 +911,18 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			    "man-in-the-middle attacks.");
 			options.num_local_forwards =
 			    options.num_remote_forwards = 0;
+			cancelled_forwarding = 1;
 		}
 		if (options.tun_open != SSH_TUNMODE_NO) {
 			error("Tunnel forwarding is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.tun_open = SSH_TUNMODE_NO;
+			cancelled_forwarding = 1;
 		}
+		if (options.exit_on_forward_failure && cancelled_forwarding)
+			fatal("Error: forwarding disabled due to host key "
+			    "check failure");
+		
 		/*
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an

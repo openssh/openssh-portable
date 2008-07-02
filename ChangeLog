@@ -13,6 +13,10 @@
    - djm@cvs.openbsd.org 2008/06/30 12:18:34
      [PROTOCOL]
      clarify that eow@openssh.com is only sent on session channels
+   - dtucker@cvs.openbsd.org 2008/07/01 07:20:52
+     [sshconnect.c]
+     Check ExitOnForwardFailure if forwardings are disabled due to a failed
+     host key check.  ok djm@
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4496,4 +4500,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5042 2008/07/02 12:33:16 dtucker Exp $
+$Id: ChangeLog,v 1.5043 2008/07/02 12:33:55 dtucker Exp $
