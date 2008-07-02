@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.362 2008/06/14 17:07:11 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.363 2008/07/01 07:24:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -399,7 +399,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	int mismatch;
 	int remote_major, remote_minor;
 	int major, minor;
-	char *s;
+	char *s, *newline = "\n";
 	char buf[256];			/* Must not be larger than remote_version. */
 	char remote_version[256];	/* Must be at least as big as buf. */
 
@@ -410,11 +410,13 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	} else if (options.protocol & SSH_PROTO_2) {
 		major = PROTOCOL_MAJOR_2;
 		minor = PROTOCOL_MINOR_2;
+		newline = "\r\n";
 	} else {
 		major = PROTOCOL_MAJOR_1;
 		minor = PROTOCOL_MINOR_1;
 	}
-	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n", major, minor, SSH_VERSION);
+	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s%s", major, minor,
+	    SSH_VERSION, newline);
 	server_version_string = xstrdup(buf);
 
 	/* Send our protocol version identification. */

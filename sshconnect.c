@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.210 2008/07/01 07:20:52 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.211 2008/07/01 07:24:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -537,10 +537,10 @@ ssh_exchange_identification(int timeout_ms)
 		    (options.protocol & SSH_PROTO_2) ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
 		    remote_major);
 	/* Send our own protocol version identification. */
-	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
+	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s%s",
 	    compat20 ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
 	    compat20 ? PROTOCOL_MINOR_2 : minor1,
-	    SSH_VERSION);
+	    SSH_VERSION, compat20 ? "\r\n" : "\n");
 	if (atomicio(vwrite, connection_out, buf, strlen(buf)) != strlen(buf))
 		fatal("write: %.100s", strerror(errno));
 	client_version_string = xstrdup(buf);

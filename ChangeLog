@@ -17,6 +17,10 @@
      [sshconnect.c]
      Check ExitOnForwardFailure if forwardings are disabled due to a failed
      host key check.  ok djm@
+   - dtucker@cvs.openbsd.org 2008/07/01 07:24:22
+     [sshconnect.c sshd.c]
+     Send CR LF during protocol banner exchanges, but only for Protocol 2 only,
+     in order to comply with RFC 4253.  bz #1443, ok djm@
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4500,4 +4504,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5043 2008/07/02 12:33:55 dtucker Exp $
+$Id: ChangeLog,v 1.5044 2008/07/02 12:34:30 dtucker Exp $
