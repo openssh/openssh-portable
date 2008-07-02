@@ -16,14 +16,14 @@ encryption.
 With a couple of exceptions, the protocol message names used in this
 document indicate which type of key the message relates to. SSH_*
 messages refer to protocol 1 keys only. SSH2_* messages refer to
-protocol 2 keys. Furthermore, the names also indicate whether message
-is a request to the agent (*_AGENTC_*) or a reply from the agent
-(*_AGENT_*). Section 3 below contains the mapping of the protocol
-message names to their integer values.
+protocol 2 keys. Furthermore, the names also indicate whether the
+message is a request to the agent (*_AGENTC_*) or a reply from the
+agent (*_AGENT_*). Section 3 below contains the mapping of the
+protocol message names to their integer values.
 
 1. Data types
 
-Because of it support for legacy SSH protocol 1 keys, OpenSSH's agent
+Because of support for legacy SSH protocol 1 keys, OpenSSH's agent
 protocol makes use of some data types not defined in RFC 4251.
 
 1.1 uint16
@@ -42,9 +42,9 @@ Its format is as follows:
 "bignum" contains an unsigned arbitrary precision integer encoded as
 eight bits per byte in big-endian (MSB first) format.
 
-Note the difference between the "mpint1" encoding an the the "mpint"
+Note the difference between the "mpint1" encoding and the "mpint"
 encoding defined in RFC 4251. Also note that the length of the encoded
-integer is specified in bits, not bytes and that the byte length of of
+integer is specified in bits, not bytes and that the byte length of
 the integer must be calculated by rounding up the number of bits to the
 nearest eight.
 
@@ -56,7 +56,7 @@ as a 32 bit unsigned integer. Specifically:
 	uint32			message_length
 	byte[message_length]	message
 
-The following message description refer only to the content the
+The following message descriptions refer only to the content the
 "message" field.
 
 2.1 Generic server responses
@@ -86,9 +86,9 @@ and SSH2_AGENTC_ADD_ID_CONSTRAINED - these add keys with optional
 "constraints" on their usage.
 
 OpenSSH may be built with support for keys hosted on a smartcard
-or other hardware security module. These keys may added
+or other hardware security module. These keys may be added
 to the agent using the SSH_AGENTC_ADD_SMARTCARD_KEY and
-SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED requests
+SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED requests.
 
 2.2.1 Key constraints
 
@@ -126,7 +126,7 @@ consecutively to the end of the request:
 
 Such a sequence of zero or more constraints will be referred to below
 as "constraint[]". Agents may determine whether there are constraints
-by checking whether additional data exists in the an "add key" request
+by checking whether additional data exists in the "add key" request
 after the key data itself. OpenSSH will refuse to add a key if it
 contains unknown constraints.
 
@@ -187,7 +187,7 @@ RSA keys may be added with this request:
 	string			key_comment
 	constraint[]		key_constraints
 
-Note that the 'rsa_p' and 'rsa_q' parameters are send in the reverse
+Note that the 'rsa_p' and 'rsa_q' parameters are sent in the reverse
 order to the protocol 1 add keys message. As with the corresponding
 protocol 1 "add key" request, the private key is overspecified to avoid
 redundant processing.
@@ -212,7 +212,7 @@ delegated to the smartcard.
 	string			pin
 	constraint[]		key_constraints
 
-"reader_id" the an identifier to a smartcard reader and "pin"
+"reader_id" is an identifier to a smartcard reader and "pin"
 is a PIN or passphrase used to unlock the private key(s) on the
 device. "key_constraints" may only be present if the request type is
 SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED.
@@ -326,7 +326,7 @@ Followed by zero or more consecutive keys, encoded as:
 
 2.5.2 Requesting a list of protocol 2 keys
 
-A client may send the following message to request a list of keys
+A client may send the following message to request a list of
 protocol 2 keys that are stored in the agent:
 
 	byte			SSH2_AGENTC_REQUEST_IDENTITIES
@@ -372,14 +372,14 @@ It may be requested using this message:
 been encrypted with the public key and must be in the range 
 1 <= encrypted_challenge < 2^256. "session_id" is the SSH protocol 1
 session ID (computed from the server host key, the server semi-ephemeral
-key and the session cookie.)
+key and the session cookie).
 
 "ignored" and "response_type" exist for compatibility with legacy
 implementations. "response_type" must be equal to 1; other response
 types are not supported.
 
 On receiving this request, the server decrypts the "encrypted_challenge"
-using private key matching the supplied (rsa_e, rsa_n) values. For
+using the private key matching the supplied (rsa_e, rsa_n) values. For
 the response derivation, the decrypted challenge is represented as an
 unsigned, big-endian integer encoded in a 32 byte buffer (i.e. values
 smaller than 2^248 will have leading 0 bytes).
@@ -513,4 +513,4 @@ Locking and unlocking affects both protocol 1 and protocol 2 keys.
 	SSH_AGENT_CONSTRAIN_LIFETIME			1
 	SSH_AGENT_CONSTRAIN_CONFIRM			2
 
-$OpenBSD: PROTOCOL.agent,v 1.3 2008/06/30 08:05:59 djm Exp $
+$OpenBSD: PROTOCOL.agent,v 1.4 2008/07/01 23:12:47 stevesk Exp $
