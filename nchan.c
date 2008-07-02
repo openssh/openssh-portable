@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.59 2008/05/09 16:21:13 markus Exp $ */
+/* $OpenBSD: nchan.c,v 1.60 2008/06/30 12:16:02 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -334,7 +334,8 @@ chan_write_failed2(Channel *c)
 	case CHAN_OUTPUT_OPEN:
 	case CHAN_OUTPUT_WAIT_DRAIN:
 		chan_shutdown_write(c);
-		chan_send_eow2(c);
+		if (strcmp(c->ctype, "session") == 0)
+			chan_send_eow2(c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
