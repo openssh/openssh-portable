@@ -33,6 +33,22 @@
      Merge duplicate host key file checks, based in part on a patch from Rob
      Holland via bz #1348 .  Also checks for non-regular files during protocol
      1 RSA auth.  ok djm@
+   - djm@cvs.openbsd.org 2008/07/02 12:36:39
+     [auth2-none.c auth2.c]
+     Make protocol 2 MaxAuthTries behaviour a little more sensible:
+     Check whether client has exceeded MaxAuthTries before running
+     an authentication method and skip it if they have, previously it
+     would always allow one try (for "none" auth).
+     Preincrement failure count before post-auth test - previously this
+     checked and postincremented, also to allow one "none" try.
+     Together, these two changes always count the "none" auth method
+     which could be skipped by a malicious client (e.g. an SSH worm)
+     to get an extra attempt at a real auth method. They also make
+     MaxAuthTries=0 a useful way to block users entirely (esp. in a
+     sshd_config Match block).
+     Also, move sending of any preauth banner from "none" auth method
+     to the first call to input_userauth_request(), so worms that skip
+     the "none" method get to see it too.
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4516,4 +4532,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5047 2008/07/02 12:37:30 dtucker Exp $
+$Id: ChangeLog,v 1.5048 2008/07/02 12:56:09 dtucker Exp $
