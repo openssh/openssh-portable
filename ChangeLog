@@ -28,6 +28,11 @@
      [sshd_config sshd_config.5 sshd.8 servconf.c]
      increase default size of ssh protocol 1 ephemeral key from 768 to 1024
      bits; prodded by & ok dtucker@ ok deraadt@
+   - dtucker@cvs.openbsd.org 2008/07/02 12:03:51
+     [auth-rsa.c auth.c auth2-pubkey.c auth.h]
+     Merge duplicate host key file checks, based in part on a patch from Rob
+     Holland via bz #1348 .  Also checks for non-regular files during protocol
+     1 RSA auth.  ok djm@
 
 20080630
  - (djm) OpenBSD CVS Sync
@@ -4511,4 +4516,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5046 2008/07/02 12:35:43 dtucker Exp $
+$Id: ChangeLog,v 1.5047 2008/07/02 12:37:30 dtucker Exp $

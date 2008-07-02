@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.17 2008/06/13 14:18:51 dtucker Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.18 2008/07/02 12:03:51 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -182,10 +182,9 @@ static int
 user_key_allowed2(struct passwd *pw, Key *key, char *file)
 {
 	char line[SSH_MAX_PUBKEY_BYTES];
-	int found_key = 0, fd;
+	int found_key = 0;
 	FILE *f;
 	u_long linenum = 0;
-	struct stat st;
 	Key *found;
 	char *fp;
 
@@ -193,37 +192,10 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 	temporarily_use_uid(pw);
 
 	debug("trying public key file %s", file);
+	f = auth_openkeyfile(file, pw, options.strict_modes);
 
-	/*
-	 * Open the file containing the authorized keys
-	 * Fail quietly if file does not exist
-	 */
-	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
-		restore_uid();
-		return 0;
-	}
-	if (fstat(fd, &st) < 0) {
-		close(fd);
-		restore_uid();
-		return 0;
-	}
-	if (!S_ISREG(st.st_mode)) {
-		logit("User %s authorized keys %s is not a regular file",
-		    pw->pw_name, file);
-		close(fd);
-		restore_uid();
-		return 0;
-	}
-	unset_nonblock(fd);
-	if ((f = fdopen(fd, "r")) == NULL) {
-		close(fd);
-		restore_uid();
-		return 0;
-	}
-	if (options.strict_modes &&
-	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
-		fclose(f);
-		logit("Authentication refused: %s", line);
+	if (!f) {
+		xfree(file);
 		restore_uid();
 		return 0;
 	}
