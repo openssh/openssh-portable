@@ -18,6 +18,8 @@
    - dtucker@cvs.openbsd.org 2008/07/04 03:47:02
      [monitor.c]
      Make debug a little clearer.  ok djm@
+ - (dtucker) [sftp-server.c] Bug #1447: fall back to racy rename if link
+   returns EXDEV.  Patch from Mike Garrison, ok djm@
 
 20080702
  - (dtucker) OpenBSD CVS Sync
@@ -4553,4 +4555,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5053 2008/07/04 03:51:45 dtucker Exp $
+$Id: ChangeLog,v 1.5054 2008/07/04 04:10:19 dtucker Exp $

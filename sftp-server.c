@@ -1042,6 +1042,9 @@ process_rename(void)
 		/* Race-free rename of regular files */
 		if (link(oldpath, newpath) == -1) {
 			if (errno == EOPNOTSUPP
+#ifdef EXDEV
+			    || errno == EXDEV
+#endif
 #ifdef LINK_OPNOTSUPP_ERRNO
 			    || errno == LINK_OPNOTSUPP_ERRNO
 #endif
