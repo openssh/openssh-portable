@@ -1494,7 +1494,8 @@ channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 	if (c->rfd != -1 && (force || FD_ISSET(c->rfd, readset))) {
 		errno = 0;
 		len = read(c->rfd, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR || (errno == EAGAIN && !force)))
+		if (len < 0 && (errno == EINTR ||
+		    ((errno == EAGAIN || errno == EWOULDBLOCK) && !force)))
 			return 1;
 #ifndef PTY_ZEROREAD
 		if (len <= 0) {
@@ -1565,7 +1566,8 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			c->local_consumed += dlen + 4;
 			len = write(c->wfd, buf, dlen);
 			xfree(data);
-			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			if (len < 0 && (errno == EINTR || errno == EAGAIN ||
+			    errno == EWOULDBLOCK))
 				return 1;
 			if (len <= 0) {
 				if (c->type != SSH_CHANNEL_OPEN)
@@ -1583,7 +1585,8 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 #endif
 
 		len = write(c->wfd, buf, dlen);
-		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+		if (len < 0 &&
+		    (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
 			return 1;
 		if (len <= 0) {
 			if (c->type != SSH_CHANNEL_OPEN) {
@@ -1635,7 +1638,8 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 			    buffer_len(&c->extended));
 			debug2("channel %d: written %d to efd %d",
 			    c->self, len, c->efd);
-			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			if (len < 0 && (errno == EINTR || errno == EAGAIN ||
+			    errno == EWOULDBLOCK))
 				return 1;
 			if (len <= 0) {
 				debug2("channel %d: closing write-efd %d",
@@ -1650,8 +1654,8 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 			len = read(c->efd, buf, sizeof(buf));
 			debug2("channel %d: read %d from efd %d",
 			    c->self, len, c->efd);
-			if (len < 0 && (errno == EINTR ||
-			    (errno == EAGAIN && !c->detach_close)))
+			if (len < 0 && (errno == EINTR || ((errno == EAGAIN ||
+			    errno == EWOULDBLOCK) && !c->detach_close)))
 				return 1;
 			if (len <= 0) {
 				debug2("channel %d: closing read-efd %d",
@@ -1675,7 +1679,8 @@ channel_handle_ctl(Channel *c, fd_set *readset, fd_set *writeset)
 	/* Monitor control fd to detect if the slave client exits */
 	if (c->ctl_fd != -1 && FD_ISSET(c->ctl_fd, readset)) {
 		len = read(c->ctl_fd, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+		if (len < 0 &&
+		    (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
 			return 1;
 		if (len <= 0) {
 			debug2("channel %d: ctl read<=0", c->self);

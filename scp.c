@@ -474,7 +474,7 @@ scpio(ssize_t (*f)(int, void *, size_t), int fd, void *_p, size_t l, off_t *c)
 		if (r < 0) {
 			if (errno == EINTR)
 				continue;
-			if (errno == EAGAIN) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				(void)poll(&pfd, 1, -1); /* Ignore errors */
 				continue;
 			}

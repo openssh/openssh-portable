@@ -1096,7 +1096,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			*newsock = accept(listen_socks[i],
 			    (struct sockaddr *)&from, &fromlen);
 			if (*newsock < 0) {
-				if (errno != EINTR && errno != EWOULDBLOCK)
+				if (errno != EINTR && errno != EAGAIN &&
+				    errno != EWOULDBLOCK)
 					error("accept: %.100s", strerror(errno));
 				continue;
 			}

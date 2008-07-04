@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.150 2008/06/13 00:28:57 dtucker Exp $ */
+/* $Id: defines.h,v 1.151 2008/07/04 13:10:49 djm Exp $ */
 
 
 /* Constants */
@@ -732,6 +732,10 @@ struct winsize {
 # else
 #  define	IOV_MAX		16
 # endif
+#endif
+
+#ifndef EWOULDBLOCK
+# define EWOULDBLOCK EAGAIN
 #endif
 
 #endif /* _DEFINES_H */

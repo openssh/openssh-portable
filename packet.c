@@ -956,7 +956,8 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 			if ((ret = select(connection_in + 1, setp, NULL,
 			    NULL, timeoutp)) >= 0)
 				break;
-		   	if (errno != EAGAIN && errno != EINTR)
+		   	if (errno != EAGAIN && errno != EINTR &&
+			    errno != EWOULDBLOCK)
 				break;
 			if (packet_timeout_ms == -1)
 				continue;
@@ -1475,7 +1476,7 @@ packet_write_poll(void)
 	if (len > 0) {
 		len = write(connection_out, buffer_ptr(&output), len);
 		if (len <= 0) {
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				return;
 			else
 				fatal("Write failed: %.100s", strerror(errno));
@@ -1516,7 +1517,8 @@ packet_write_wait(void)
 			if ((ret = select(connection_out + 1, NULL, setp,
 			    NULL, timeoutp)) >= 0)
 				break;
-		   	if (errno != EAGAIN && errno != EINTR)
+		   	if (errno != EAGAIN && errno != EINTR &&
+			    errno != EWOULDBLOCK)
 				break;
 			if (packet_timeout_ms == -1)
 				continue;

@@ -30,7 +30,12 @@
      explicitly disable conch options that could interfere with the test
  - (dtucker) [sftp-server.c] Bug #1447: fall back to racy rename if link
    returns EXDEV.  Patch from Mike Garrison, ok djm@
-h
+ - (djm) [atomicio.c channels.c clientloop.c defines.h includes.h]
+   [packet.c scp.c serverloop.c sftp-client.c ssh-agent.c ssh-keyscan.c]
+   [sshd.c] Explicitly handle EWOULDBLOCK wherever we handle EAGAIN, on
+   some platforms (HP nonstop) it is a distinct errno;
+   bz#1467 reported by sconeu AT yahoo.com; ok dtucker@
+
 20080702
  - (dtucker) OpenBSD CVS Sync
     - djm@cvs.openbsd.org 2008/06/30 08:05:59
@@ -4565,4 +4570,4 @@ h
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5057 2008/07/04 07:11:30 dtucker Exp $
+$Id: ChangeLog,v 1.5058 2008/07/04 13:10:49 djm Exp $

@@ -961,7 +961,8 @@ after_select(fd_set *readset, fd_set *writeset)
 					    buffer_ptr(&sockets[i].output),
 					    buffer_len(&sockets[i].output));
 					if (len == -1 && (errno == EAGAIN ||
-					    errno == EINTR))
+					    errno == EINTR ||
+					    errno == EWOULDBLOCK))
 						continue;
 					break;
 				} while (1);
@@ -975,7 +976,8 @@ after_select(fd_set *readset, fd_set *writeset)
 				do {
 					len = read(sockets[i].fd, buf, sizeof(buf));
 					if (len == -1 && (errno == EAGAIN ||
-					    errno == EINTR))
+					    errno == EINTR ||
+					    errno == EWOULDBLOCK))
 						continue;
 					break;
 				} while (1);

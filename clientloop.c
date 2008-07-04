@@ -663,7 +663,8 @@ client_process_net_input(fd_set *readset)
 		 * There is a kernel bug on Solaris that causes select to
 		 * sometimes wake up even though there is no data available.
 		 */
-		if (len < 0 && (errno == EAGAIN || errno == EINTR))
+		if (len < 0 &&
+		    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
 			len = 0;
 
 		if (len < 0) {
@@ -1129,7 +1130,8 @@ client_process_input(fd_set *readset)
 	if (FD_ISSET(fileno(stdin), readset)) {
 		/* Read as much as possible. */
 		len = read(fileno(stdin), buf, sizeof(buf));
-		if (len < 0 && (errno == EAGAIN || errno == EINTR))
+		if (len < 0 &&
+		    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
 			return;		/* we'll try again later */
 		if (len <= 0) {
 			/*
@@ -1186,7 +1188,8 @@ client_process_output(fd_set *writeset)
 		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
 		    buffer_len(&stdout_buffer));
 		if (len <= 0) {
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EINTR || errno == EAGAIN ||
+			    errno == EWOULDBLOCK)
 				len = 0;
 			else {
 				/*
@@ -1210,7 +1213,8 @@ client_process_output(fd_set *writeset)
 		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
 		    buffer_len(&stderr_buffer));
 		if (len <= 0) {
-			if (errno == EINTR || errno == EAGAIN)
+			if (errno == EINTR || errno == EAGAIN ||
+			    errno == EWOULDBLOCK)
 				len = 0;
 			else {
 				/*

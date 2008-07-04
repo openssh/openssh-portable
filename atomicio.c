@@ -63,11 +63,7 @@ atomicio(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n)
 		case -1:
 			if (errno == EINTR)
 				continue;
-#ifdef EWOULDBLOCK
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-#else
-			if (errno == EAGAIN) {
-#endif
 				(void)poll(&pfd, 1, -1);
 				continue;
 			}
@@ -109,11 +105,7 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 		case -1:
 			if (errno == EINTR)
 				continue;
-#ifdef EWOULDBLOCK
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-#else
-			if (errno == EAGAIN) {
-#endif
 				(void)poll(&pfd, 1, -1);
 				continue;
 			}

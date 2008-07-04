@@ -1223,7 +1223,8 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 			len = 0;
 		else do
 			len = read(local_fd, data, conn->transfer_buflen);
-		while ((len == -1) && (errno == EINTR || errno == EAGAIN));
+		while ((len == -1) &&
+		    (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
 
 		if (len == -1)
 			fatal("Couldn't read from \"%s\": %s", local_path,

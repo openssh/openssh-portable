@@ -656,7 +656,7 @@ conloop(void)
 	memcpy(e, read_wait, read_wait_nfdset * sizeof(fd_mask));
 
 	while (select(maxfd, r, NULL, e, &seltime) == -1 &&
-	    (errno == EAGAIN || errno == EINTR))
+	    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
 		;
 
 	for (i = 0; i < maxfd; i++) {

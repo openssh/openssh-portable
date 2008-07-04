@@ -400,7 +400,8 @@ process_input(fd_set *readset)
 				return;
 			cleanup_exit(255);
 		} else if (len < 0) {
-			if (errno != EINTR && errno != EAGAIN) {
+			if (errno != EINTR && errno != EAGAIN &&
+			    errno != EWOULDBLOCK) {
 				verbose("Read error from remote host "
 				    "%.100s: %.100s",
 				    get_remote_ipaddr(), strerror(errno));
@@ -418,8 +419,8 @@ process_input(fd_set *readset)
 	if (!fdout_eof && FD_ISSET(fdout, readset)) {
 		errno = 0;
 		len = read(fdout, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR ||
-		    (errno == EAGAIN && !child_terminated))) {
+		if (len < 0 && (errno == EINTR || ((errno == EAGAIN ||
+		    errno == EWOULDBLOCK) && !child_terminated))) {
 			/* do nothing */
 #ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
@@ -437,8 +438,8 @@ process_input(fd_set *readset)
 	if (!fderr_eof && FD_ISSET(fderr, readset)) {
 		errno = 0;
 		len = read(fderr, buf, sizeof(buf));
-		if (len < 0 && (errno == EINTR ||
-		    (errno == EAGAIN && !child_terminated))) {
+		if (len < 0 && (errno == EINTR || ((errno == EAGAIN ||
+		    errno == EWOULDBLOCK) && !child_terminated))) {
 			/* do nothing */
 #ifndef PTY_ZEROREAD
 		} else if (len <= 0) {
@@ -469,7 +470,8 @@ process_output(fd_set *writeset)
 		data = buffer_ptr(&stdin_buffer);
 		dlen = buffer_len(&stdin_buffer);
 		len = write(fdin, data, dlen);
-		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
+		if (len < 0 &&
+		    (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) {
 			/* do nothing */
 		} else if (len <= 0) {
 			if (fdin != fdout)
