@@ -9,6 +9,9 @@
      enabled, delay the fork until after replies for any -R forwards have
      been seen. Allows for robust detection of -R forward failure when
      using -f (similar to bz#92); ok dtucker@
+   - otto@cvs.openbsd.org 2008/07/03 21:46:58
+     [auth2-pubkey.c]
+     avoid nasty double free; ok dtucker@ djm@
 
 20080702
  - (dtucker) OpenBSD CVS Sync
@@ -4544,4 +4547,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5050 2008/07/04 02:53:50 dtucker Exp $
+$Id: ChangeLog,v 1.5051 2008/07/04 02:54:25 dtucker Exp $
