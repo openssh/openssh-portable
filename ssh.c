@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.317 2008/06/12 16:35:31 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.318 2008/07/02 13:47:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -860,9 +860,15 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 			logit("Warning: remote port forwarding failed for "
 			    "listen port %d", rfwd->listen_port);
 	}
-	if (++remote_forward_confirms_received == options.num_remote_forwards)
+	if (++remote_forward_confirms_received == options.num_remote_forwards) {
 		debug("All remote forwarding requests processed");
-		/* XXX fork-after-authentication */
+		if (fork_after_authentication_flag) {
+			fork_after_authentication_flag = 0;
+			if (daemon(1, 1) < 0)
+				fatal("daemon() failed: %.200s",
+				    strerror(errno));
+		}
+	}
 }
 
 static void
@@ -1062,10 +1068,17 @@ ssh_session(void)
 	    options.permit_local_command)
 		ssh_local_cmd(options.local_command);
 
-	/* If requested, let ssh continue in the background. */
-	if (fork_after_authentication_flag)
+	/*
+	 * If requested and we are not interested in replies to remote
+	 * forwarding requests, then let ssh continue in the background.
+	 */
+	if (fork_after_authentication_flag &&
+	    (!options.exit_on_forward_failure ||
+	    options.num_remote_forwards == 0)) {
+		fork_after_authentication_flag = 0;
 		if (daemon(1, 1) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
+	}
 
 	/*
 	 * If a command was specified on the command line, execute the
@@ -1204,9 +1217,11 @@ ssh_session2(void)
 	muxserver_listen();
 
 	/* If requested, let ssh continue in the background. */
-	if (fork_after_authentication_flag)
+	if (fork_after_authentication_flag) {
+		fork_after_authentication_flag = 0;
 		if (daemon(1, 1) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
+	}
 
 	return client_loop(tty_flag, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);

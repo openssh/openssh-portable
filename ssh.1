@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.276 2008/06/26 21:11:46 jmc Exp $
-.Dd $Mdocdate: June 26 2008 $
+.\" $OpenBSD: ssh.1,v 1.277 2008/07/02 13:47:39 djm Exp $
+.Dd $Mdocdate: July 2 2008 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -290,6 +290,15 @@ This implies
 The recommended way to start X11 programs at a remote site is with
 something like
 .Ic ssh -f host xterm .
+.Pp
+If the
+.Cm ExitOnForwardFailure
+configuration option is set to
+.Dq yes ,
+then a client started with
+.Fl f
+will wait for all remote port forwards to be successfully established
+before placing itself in the background.
 .It Fl g
 Allows remote hosts to connect to local forwarded ports.
 .It Fl I Ar smartcard_device
