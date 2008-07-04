@@ -6,6 +6,7 @@
    Tru64. readv doesn't seem to be a comparable object there.
    bz#1386, patch from dtucker@ ok me
  - (djm) [Makefile.in] Pass though pass to conch for interop tests
+ - (djm) [configure.ac] unbreak: remove extra closing brace
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/07/04 23:08:25
      [packet.c]
@@ -4591,4 +4592,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5063 2008/07/04 23:50:23 djm Exp $
+$Id: ChangeLog,v 1.5064 2008/07/04 23:52:03 djm Exp $
