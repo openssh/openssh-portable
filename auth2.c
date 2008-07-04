@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.118 2008/07/02 13:30:34 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.119 2008/07/04 23:30:16 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -36,6 +36,7 @@
 #include <unistd.h>
 
 #include "xmalloc.h"
+#include "atomicio.h"
 #include "ssh2.h"
 #include "packet.h"
 #include "log.h"
@@ -333,7 +334,11 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else {
-		if (++authctxt->failures >= options.max_authtries) {
+
+		/* Allow initial try of "none" auth without failure penalty */
+		if (authctxt->attempt > 1 || strcmp(method, "none") != 0)
+			authctxt->failures++;
+		if (authctxt->failures >= options.max_authtries) {
 #ifdef SSH_AUDIT_EVENTS
 			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
