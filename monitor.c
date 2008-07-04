@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.97 2008/06/13 13:56:59 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.98 2008/07/04 03:47:02 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1060,7 +1060,7 @@ mm_answer_keyallowed(int sock, Buffer *m)
 	}
 
 	debug3("%s: key %p is %s",
-	    __func__, key, allowed ? "allowed" : "disallowed");
+	    __func__, key, allowed ? "allowed" : "not allowed");
 
 	buffer_clear(m);
 	buffer_put_int(m, allowed);

@@ -15,6 +15,9 @@
    - djm@cvs.openbsd.org 2008/07/04 03:44:59
      [servconf.c groupaccess.h groupaccess.c]
      support negation of groups in "Match group" block (bz#1315); ok dtucker@
+   - dtucker@cvs.openbsd.org 2008/07/04 03:47:02
+     [monitor.c]
+     Make debug a little clearer.  ok djm@
 
 20080702
  - (dtucker) OpenBSD CVS Sync
@@ -4550,4 +4553,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5052 2008/07/04 03:51:12 dtucker Exp $
+$Id: ChangeLog,v 1.5053 2008/07/04 03:51:45 dtucker Exp $
