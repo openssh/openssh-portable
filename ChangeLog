@@ -1,3 +1,9 @@
+20080704
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2008/07/02 13:30:34
+     [auth2.c]
+     really really remove the freebie "none" auth try for protocol 2
+
 20080702
  - (dtucker) OpenBSD CVS Sync
     - djm@cvs.openbsd.org 2008/06/30 08:05:59
@@ -4532,4 +4538,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5048 2008/07/02 12:56:09 dtucker Exp $
+$Id: ChangeLog,v 1.5049 2008/07/04 02:53:23 dtucker Exp $

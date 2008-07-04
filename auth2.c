@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.117 2008/07/02 12:36:39 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.118 2008/07/02 13:30:34 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -333,7 +333,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else {
-		if (++authctxt->failures > options.max_authtries) {
+		if (++authctxt->failures >= options.max_authtries) {
 #ifdef SSH_AUDIT_EVENTS
 			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
