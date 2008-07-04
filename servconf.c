@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.185 2008/07/02 02:24:18 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.186 2008/07/04 03:44:59 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -525,23 +525,7 @@ static int
 match_cfg_line_group(const char *grps, int line, const char *user)
 {
 	int result = 0;
-	u_int ngrps = 0;
-	char *arg, *p, *cp, *grplist[MAX_MATCH_GROUPS];
 	struct passwd *pw;
-
-	/*
-	 * Even if we do not have a user yet, we still need to check for
-	 * valid syntax.
-	 */
-	arg = cp = xstrdup(grps);
-	while ((p = strsep(&cp, ",")) != NULL && *p != '\0') {
-		if (ngrps >= MAX_MATCH_GROUPS) {
-			error("line %d: too many groups in Match Group", line);
-			result = -1;
-			goto out;
-		}
-		grplist[ngrps++] = p;
-	}
 
 	if (user == NULL)
 		goto out;
@@ -552,17 +536,16 @@ match_cfg_line_group(const char *grps, int line, const char *user)
 	} else if (ga_init(pw->pw_name, pw->pw_gid) == 0) {
 		debug("Can't Match group because user %.100s not in any group "
 		    "at line %d", user, line);
-	} else if (ga_match(grplist, ngrps) != 1) {
-		debug("user %.100s does not match group %.100s at line %d",
-		    user, arg, line);
+	} else if (ga_match_pattern_list(grps) != 1) {
+		debug("user %.100s does not match group list %.100s at line %d",
+		    user, grps, line);
 	} else {
-		debug("user %.100s matched group %.100s at line %d", user,
-		    arg, line);
+		debug("user %.100s matched group list %.100s at line %d", user,
+		    grps, line);
 		result = 1;
 	}
 out:
 	ga_free();
-	xfree(arg);
 	return result;
 }
 
