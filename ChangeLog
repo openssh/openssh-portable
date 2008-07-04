@@ -25,6 +25,9 @@
    - djm@cvs.openbsd.org 2008/06/30 10:31:11
      [regress/{putty-transfer,putty-kex,putty-ciphers}.sh]
      remove "set -e" left over from debugging
+   - djm@cvs.openbsd.org 2008/06/30 10:43:03
+     [regress/conch-ciphers.sh]
+     explicitly disable conch options that could interfere with the test
  - (dtucker) [sftp-server.c] Bug #1447: fall back to racy rename if link
    returns EXDEV.  Patch from Mike Garrison, ok djm@
 h
@@ -4562,4 +4565,4 @@ h
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5056 2008/07/04 07:10:30 dtucker Exp $
+$Id: ChangeLog,v 1.5057 2008/07/04 07:11:30 dtucker Exp $
