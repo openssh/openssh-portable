@@ -2,6 +2,9 @@
  - (djm) [auth.c] Fixed test for locked account on HP/UX with shadowed
    passwords disabled. bz#1083 report & patch from senthilkumar_sen AT
    hotpop.com, w/ dtucker@
+ - (djm) [atomicio.c configure.ac] Disable poll() fallback in atomiciov for
+   Tru64. readv doesn't seem to be a comparable object there.
+   bz#1386, patch from dtucker@ ok me
 
 20080704
  - (dtucker) OpenBSD CVS Sync
@@ -4575,4 +4578,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5059 2008/07/04 22:59:43 djm Exp $
+$Id: ChangeLog,v 1.5060 2008/07/04 23:36:58 djm Exp $

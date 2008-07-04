@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.406 2008/06/15 16:27:48 dtucker Exp $
+# $Id: configure.ac,v 1.407 2008/07/04 23:36:58 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.406 $)
+AC_REVISION($Revision: 1.407 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -841,6 +841,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
+	AC_DEFINE(BROKEN_READV_COMPARISON, 1, [Can't do comparisons on readv]))
 	;;
 
 *-*-nto-qnx*)

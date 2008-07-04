@@ -97,8 +97,10 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 	/* Make a copy of the iov array because we may modify it below */
 	memcpy(iov, _iov, iovcnt * sizeof(*_iov));
 
+#ifndef BROKEN_READV_COMPARISON
 	pfd.fd = fd;
 	pfd.events = f == readv ? POLLIN : POLLOUT;
+#endif
 	for (; iovcnt > 0 && iov[0].iov_len > 0;) {
 		res = (f) (fd, iov, iovcnt);
 		switch (res) {
@@ -106,7 +108,9 @@ atomiciov(ssize_t (*f) (int, const struct iovec *, int), int fd,
 			if (errno == EINTR)
 				continue;
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+#ifndef BROKEN_READV_COMPARISON
 				(void)poll(&pfd, 1, -1);
+#endif
 				continue;
 			}
 			return 0;
