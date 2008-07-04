@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.1 2008/06/10 23:13:43 dtucker Exp $
+#	$OpenBSD: key-options.sh,v 1.2 2008/06/30 08:07:34 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -53,11 +53,11 @@ for p in 1 2; do
 		fail "key option proto $p failed without restriction"
 	fi
 
-	sed 's/.*/from="'$f'" &/' $origkeys >$authkeys
+	sed 's/.*/from="'"$f"'" &/' $origkeys >$authkeys
 	from=`head -1 $authkeys | cut -f1 -d ' '`
 	verbose "key option proto $p $from"
 	r=`${SSH} -$p -q -F $OBJ/ssh_proxy somehost 'echo true'`
-	if [ "$r" == "true" ]; then
+	if [ "$r" = "true" ]; then
 		fail "key option proto $p $from not restricted"
 	fi
 
