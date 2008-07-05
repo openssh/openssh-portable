@@ -237,7 +237,7 @@ The values of the f_flag bitmask are as follows:
 	#define SSH_FXE_STATVFS_ST_RDONLY	0x1	/* read-only */
 	#define SSH_FXE_STATVFS_ST_NOSUID	0x2	/* no setuid */
 
-This extension is advertised in the SSH_FXP_VERSION hello with version
-"2".
+Both the "statvfs@openssh.com" and "fstatvfs@openssh.com" extensions are
+advertised in the SSH_FXP_VERSION hello with version "2".
 
-$OpenBSD: PROTOCOL,v 1.10 2008/06/30 12:18:34 djm Exp $
+$OpenBSD: PROTOCOL,v 1.11 2008/07/05 05:16:01 djm Exp $

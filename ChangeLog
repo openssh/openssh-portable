@@ -19,6 +19,9 @@
      Makes MaxAuthTries' user-visible behaviour identical for
      protocol 1 vs 2.
      ok dtucker@
+   - djm@cvs.openbsd.org 2008/07/05 05:16:01
+     [PROTOCOL]
+     grammar
 
 20080704
  - (dtucker) OpenBSD CVS Sync
@@ -4592,4 +4595,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5064 2008/07/04 23:52:03 djm Exp $
+$Id: ChangeLog,v 1.5065 2008/07/05 05:17:48 djm Exp $
