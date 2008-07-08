@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.296 2008/07/04 23:50:24 djm Exp $
+# $Id: Makefile.in,v 1.297 2008/07/08 14:21:12 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -419,7 +419,7 @@ tests interop-tests:	$(TARGETS)
 		TEST_SSH_CONCH="$${TEST_SSH_CONCH}" \
 		TEST_SSH_IPV6="@TEST_SSH_IPV6@" \
 		EXEEXT="$(EXEEXT)" \
-		$@
+		$@ && echo all tests passed
 
 compat-tests: $(LIBCOMPAT)
 	(cd openbsd-compat/regress && $(MAKE))
