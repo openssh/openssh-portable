@@ -354,7 +354,7 @@ do_authloop(Authctxt *authctxt)
 					msg[len] = '\0';
 			else
 				msg = "Access denied.";
-			packet_disconnect(msg);
+			packet_disconnect("%s", msg);
 		}
 #endif
 
