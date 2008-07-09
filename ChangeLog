@@ -3,6 +3,7 @@
  - (djm) [auth1.c] Fix format string vulnerability in protocol 1 PAM
    account check failure path. The vulnerable format buffer is supplied
    from PAM and should not contain attacker-supplied data.
+ - (djm) [auth.c] Missing unistd.h for close()
 
 20080705
  - (djm) [auth.c] Fixed test for locked account on HP/UX with shadowed
@@ -4601,4 +4602,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5067 2008/07/09 10:54:05 djm Exp $
+$Id: ChangeLog,v 1.5068 2008/07/09 10:54:37 djm Exp $
