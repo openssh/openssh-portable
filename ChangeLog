@@ -1,3 +1,10 @@
+20080711
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2008/07/07 00:31:41
+     [ttymodes.c]
+     we don't need arg after the debug3() was removed.  from lint.
+     ok djm@
+
 20080709
  - (djm) [Makefile.in] Print "all tests passed" when all regress tests pass
  - (djm) [auth1.c] Fix format string vulnerability in protocol 1 PAM
@@ -4603,4 +4610,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5069 2008/07/09 11:07:19 djm Exp $
+$Id: ChangeLog,v 1.5070 2008/07/11 07:34:35 djm Exp $

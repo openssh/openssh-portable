@@ -1,4 +1,4 @@
-/* $OpenBSD: ttymodes.c,v 1.27 2008/05/19 15:45:07 djm Exp $ */
+/* $OpenBSD: ttymodes.c,v 1.28 2008/07/07 00:31:41 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -355,7 +355,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 	int n_bytes = 0;
 	int failure = 0;
 	u_int (*get_arg)(void);
-	int arg, arg_size;
+	int arg_size;
 
 	if (compat20) {
 		*n_bytes_ptr = packet_get_int();
@@ -416,7 +416,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 #define TTYMODE(NAME, FIELD, OP) \
 	case OP: \
 	  n_bytes += arg_size; \
-	  if ((arg = get_arg())) \
+	  if (get_arg()) \
 	    tio.FIELD |= NAME; \
 	  else \
 	    tio.FIELD &= ~NAME;	\
