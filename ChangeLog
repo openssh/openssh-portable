@@ -9,6 +9,9 @@
      /*NOTREACHED*/ for lint warning:
        warning: function key_equal falls off bottom without returning value
      ok djm@
+   - markus@cvs.openbsd.org 2008/07/10 18:05:58
+     [channels.c]
+     missing bzero; from mickey; ok djm@
 
 20080709
  - (djm) [Makefile.in] Print "all tests passed" when all regress tests pass
@@ -4615,4 +4618,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5071 2008/07/11 07:35:09 djm Exp $
+$Id: ChangeLog,v 1.5072 2008/07/11 07:35:37 djm Exp $

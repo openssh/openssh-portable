@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.282 2008/06/16 13:22:53 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.283 2008/07/10 18:05:58 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2875,6 +2875,7 @@ connect_to(const char *host, u_short port, char *ctype, char *rname)
 		return NULL;
 	}
 
+	memset(&cctx, 0, sizeof(cctx));
 	cctx.host = xstrdup(host);
 	cctx.port = port;
 	cctx.ai = cctx.aitop;
