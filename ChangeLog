@@ -4,6 +4,11 @@
      [ttymodes.c]
      we don't need arg after the debug3() was removed.  from lint.
      ok djm@
+   - stevesk@cvs.openbsd.org 2008/07/07 23:32:51
+     [key.c]
+     /*NOTREACHED*/ for lint warning:
+       warning: function key_equal falls off bottom without returning value
+     ok djm@
 
 20080709
  - (djm) [Makefile.in] Print "all tests passed" when all regress tests pass
@@ -4610,4 +4615,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5070 2008/07/11 07:34:35 djm Exp $
+$Id: ChangeLog,v 1.5071 2008/07/11 07:35:09 djm Exp $

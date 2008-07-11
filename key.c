@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.77 2008/06/25 11:13:43 otto Exp $ */
+/* $OpenBSD: key.c,v 1.78 2008/07/07 23:32:51 stevesk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -174,6 +174,7 @@ key_equal(const Key *a, const Key *b)
 	default:
 		fatal("key_equal: bad key type %d", a->type);
 	}
+	/* NOTREACHED */
 }
 
 u_char*
