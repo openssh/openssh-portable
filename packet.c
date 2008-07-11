@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.156 2008/07/04 23:08:25 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.157 2008/07/10 18:08:11 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -147,6 +147,7 @@ static struct packet_state {
 	u_int32_t seqnr;
 	u_int32_t packets;
 	u_int64_t blocks;
+	u_int64_t bytes;
 } p_read, p_send;
 
 static u_int64_t max_blocks_in, max_blocks_out;
@@ -191,6 +192,7 @@ packet_set_connection(int fd_in, int fd_out)
 		buffer_init(&outgoing_packet);
 		buffer_init(&incoming_packet);
 		TAILQ_INIT(&outgoing);
+		p_send.packets = p_read.packets = 0;
 	}
 }
 
@@ -311,18 +313,25 @@ packet_get_ssh1_cipher(void)
 }
 
 void
-packet_get_state(int mode, u_int32_t *seqnr, u_int64_t *blocks, u_int32_t *packets)
+packet_get_state(int mode, u_int32_t *seqnr, u_int64_t *blocks, u_int32_t *packets,
+    u_int64_t *bytes)
 {
 	struct packet_state *state;
 
 	state = (mode == MODE_IN) ? &p_read : &p_send;
-	*seqnr = state->seqnr;
-	*blocks = state->blocks;
-	*packets = state->packets;
+	if (seqnr)
+		*seqnr = state->seqnr;
+	if (blocks)
+		*blocks = state->blocks;
+	if (packets)
+		*packets = state->packets;
+	if (bytes)
+		*bytes = state->bytes;
 }
 
 void
-packet_set_state(int mode, u_int32_t seqnr, u_int64_t blocks, u_int32_t packets)
+packet_set_state(int mode, u_int32_t seqnr, u_int64_t blocks, u_int32_t packets,
+    u_int64_t bytes)
 {
 	struct packet_state *state;
 
@@ -330,6 +339,7 @@ packet_set_state(int mode, u_int32_t seqnr, u_int64_t blocks, u_int32_t packets)
 	state->seqnr = seqnr;
 	state->blocks = blocks;
 	state->packets = packets;
+	state->bytes = bytes;
 }
 
 /* returns 1 if connection is via ipv4 */
@@ -608,7 +618,8 @@ packet_send1(void)
 	fprintf(stderr, "encrypted: ");
 	buffer_dump(&output);
 #endif
-
+	p_send.packets++;
+	p_send.bytes += len + buffer_len(&outgoing_packet);
 	buffer_clear(&outgoing_packet);
 
 	/*
@@ -834,6 +845,7 @@ packet_send2_wrapped(void)
 		if (!(datafellows & SSH_BUG_NOREKEY))
 			fatal("XXX too many packets with same key");
 	p_send.blocks += (packet_length + 4) / block_size;
+	p_send.bytes += packet_length + 4;
 	buffer_clear(&outgoing_packet);
 
 	if (type == SSH2_MSG_NEWKEYS)
@@ -1096,6 +1108,8 @@ packet_read_poll1(void)
 		buffer_append(&incoming_packet, buffer_ptr(&compression_buffer),
 		    buffer_len(&compression_buffer));
 	}
+	p_read.packets++;
+	p_read.bytes += padded_len + 4;
 	type = buffer_get_char(&incoming_packet);
 	if (type < SSH_MSG_MIN || type > SSH_MSG_MAX)
 		packet_disconnect("Invalid ssh1 packet type: %d", type);
@@ -1184,6 +1198,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		if (!(datafellows & SSH_BUG_NOREKEY))
 			fatal("XXX too many packets with same key");
 	p_read.blocks += (packet_length + 4) / block_size;
+	p_read.bytes += packet_length + 4;
 
 	/* get padlen */
 	cp = buffer_ptr(&incoming_packet);

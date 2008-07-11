@@ -12,6 +12,10 @@
    - markus@cvs.openbsd.org 2008/07/10 18:05:58
      [channels.c]
      missing bzero; from mickey; ok djm@
+   - markus@cvs.openbsd.org 2008/07/10 18:08:11
+     [clientloop.c monitor.c monitor_wrap.c packet.c packet.h sshd.c]
+     sync v1 and v2 traffic accounting; add it to sshd, too;
+     ok djm@, dtucker@
 
 20080709
  - (djm) [Makefile.in] Print "all tests passed" when all regress tests pass
@@ -4618,4 +4622,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5072 2008/07/11 07:35:37 djm Exp $
+$Id: ChangeLog,v 1.5073 2008/07/11 07:36:48 djm Exp $

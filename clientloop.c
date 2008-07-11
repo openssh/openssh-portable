@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.199 2008/06/12 21:06:25 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.200 2008/07/10 18:08:11 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -152,7 +152,6 @@ static int stdin_eof;		/* EOF has been encountered on stderr. */
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
 static Buffer stderr_buffer;	/* Buffer for stderr data. */
-static u_long stdin_bytes, stdout_bytes, stderr_bytes;
 static u_int buffer_high;/* Soft max buffer size. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
@@ -437,7 +436,6 @@ client_make_packets_from_stdin_data(void)
 		packet_put_string(buffer_ptr(&stdin_buffer), len);
 		packet_send();
 		buffer_consume(&stdin_buffer, len);
-		stdin_bytes += len;
 		/* If we have a pending EOF, send it now. */
 		if (stdin_eof && buffer_len(&stdin_buffer) == 0) {
 			packet_start(SSH_CMSG_EOF);
@@ -1205,7 +1203,6 @@ client_process_output(fd_set *writeset)
 		}
 		/* Consume printed data from the buffer. */
 		buffer_consume(&stdout_buffer, len);
-		stdout_bytes += len;
 	}
 	/* Write buffered output to stderr. */
 	if (FD_ISSET(fileno(stderr), writeset)) {
@@ -1227,7 +1224,6 @@ client_process_output(fd_set *writeset)
 		}
 		/* Consume printed characters from the buffer. */
 		buffer_consume(&stderr_buffer, len);
-		stderr_bytes += len;
 	}
 }
 
@@ -1302,6 +1298,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	fd_set *readset = NULL, *writeset = NULL;
 	double start_time, total_time;
 	int max_fd = 0, max_fd2 = 0, len, rekeying = 0;
+	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
 	char buf[100];
 
@@ -1333,9 +1330,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		max_fd = MAX(max_fd, fileno(stdout));
 		max_fd = MAX(max_fd, fileno(stderr));
 	}
-	stdin_bytes = 0;
-	stdout_bytes = 0;
-	stderr_bytes = 0;
 	quit_pending = 0;
 	escape_char1 = escape_char_arg;
 
@@ -1521,7 +1515,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stdout_buffer, len);
-		stdout_bytes += len;
 	}
 
 	/* Output any buffered data for stderr. */
@@ -1533,7 +1526,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stderr_buffer, len);
-		stderr_bytes += len;
 	}
 
 	/* Clear and free any buffers. */
@@ -1544,13 +1536,13 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Report bytes transferred, and transfer rates. */
 	total_time = get_current_time() - start_time;
-	debug("Transferred: stdin %lu, stdout %lu, stderr %lu bytes in %.1f "
-	    "seconds", stdin_bytes, stdout_bytes, stderr_bytes, total_time);
+	packet_get_state(MODE_IN, NULL, NULL, NULL, &ibytes);
+	packet_get_state(MODE_OUT, NULL, NULL, NULL, &obytes);
+	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
+	    obytes, ibytes, total_time);
 	if (total_time > 0)
-		debug("Bytes per second: stdin %.1f, stdout %.1f, stderr %.1f",
-		    stdin_bytes / total_time, stdout_bytes / total_time,
-		    stderr_bytes / total_time);
-
+		verbose("Bytes per second: sent %.1f, received %.1f",
+		    obytes / total_time, ibytes / total_time);
 	/* Return the exit status of the program. */
 	debug("Exit status %d", exit_status);
 	return exit_status;

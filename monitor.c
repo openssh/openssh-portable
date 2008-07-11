@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.98 2008/07/04 03:47:02 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.99 2008/07/10 18:08:11 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1705,7 +1705,7 @@ mm_get_keystate(struct monitor *pmonitor)
 	u_char *blob, *p;
 	u_int bloblen, plen;
 	u_int32_t seqnr, packets;
-	u_int64_t blocks;
+	u_int64_t blocks, bytes;
 
 	debug3("%s: Waiting for new keys", __func__);
 
@@ -1738,11 +1738,13 @@ mm_get_keystate(struct monitor *pmonitor)
 	seqnr = buffer_get_int(&m);
 	blocks = buffer_get_int64(&m);
 	packets = buffer_get_int(&m);
-	packet_set_state(MODE_OUT, seqnr, blocks, packets);
+	bytes = buffer_get_int64(&m);
+	packet_set_state(MODE_OUT, seqnr, blocks, packets, bytes);
 	seqnr = buffer_get_int(&m);
 	blocks = buffer_get_int64(&m);
 	packets = buffer_get_int(&m);
-	packet_set_state(MODE_IN, seqnr, blocks, packets);
+	bytes = buffer_get_int64(&m);
+	packet_set_state(MODE_IN, seqnr, blocks, packets, bytes);
 
  skip:
 	/* Get the key context */
