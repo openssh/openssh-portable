@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.283 2008/07/10 18:05:58 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.284 2008/07/12 04:52:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2865,6 +2865,7 @@ connect_to(const char *host, u_short port, char *ctype, char *rname)
 	struct channel_connect cctx;
 	Channel *c;
 
+	memset(&cctx, 0, sizeof(cctx));
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = IPv4or6;
 	hints.ai_socktype = SOCK_STREAM;
@@ -2875,7 +2876,6 @@ connect_to(const char *host, u_short port, char *ctype, char *rname)
 		return NULL;
 	}
 
-	memset(&cctx, 0, sizeof(cctx));
 	cctx.host = xstrdup(host);
 	cctx.port = port;
 	cctx.ai = cctx.aitop;
