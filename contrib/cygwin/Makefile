@@ -8,6 +8,7 @@ sshdocdir=$(docdir)/openssh
 cygdocdir=$(docdir)/Cygwin
 sysconfdir=/etc
 defaultsdir=$(sysconfdir)/defaults/etc
+inetdefdir=$(defaultsdir)/inetd.d
 PRIVSEP_PATH=/var/empty
 INSTALL=/usr/bin/install -c
 
@@ -27,6 +28,10 @@ move-config-files: $(DESTDIR)$(sysconfdir)/ssh_config $(DESTDIR)$(sysconfdir)/ss
 remove-empty-dir:
 	rm -rf $(DESTDIR)$(PRIVSEP_PATH)
 
+install-inetd-config:
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(inetdefdir)
+	$(INSTALL) -m 644 sshd-inetd  $(DESTDIR)$(inetdefdir)/sshd-inetd
+
 install-sshdoc:
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(sshdocdir)
 	$(INSTALL) -m 644 $(srcdir)/CREDITS $(DESTDIR)$(sshdocdir)/CREDITS
@@ -37,6 +42,7 @@ install-sshdoc:
 	$(INSTALL) -m 644 $(srcdir)/README.dns $(DESTDIR)$(sshdocdir)/README.dns
 	$(INSTALL) -m 644 $(srcdir)/README.privsep $(DESTDIR)$(sshdocdir)/README.privsep
 	$(INSTALL) -m 644 $(srcdir)/README.smartcard $(DESTDIR)$(sshdocdir)/README.smartcard
+	$(INSTALL) -m 644 $(srcdir)/RFC.nroff $(DESTDIR)$(sshdocdir)/RFC.nroff
 	$(INSTALL) -m 644 $(srcdir)/TODO $(DESTDIR)$(sshdocdir)/TODO
 	$(INSTALL) -m 644 $(srcdir)/WARNING.RNG $(DESTDIR)$(sshdocdir)/WARNING.RNG
 
@@ -51,5 +57,5 @@ install-scripts: ssh-host-config ssh-user-config
 	$(INSTALL) -m 755 ssh-host-config $(DESTDIR)$(bindir)/ssh-host-config
 	$(INSTALL) -m 755 ssh-user-config $(DESTDIR)$(bindir)/ssh-user-config
 
-cygwin-postinstall: move-config-files remove-empty-dir install-doc install-scripts
+cygwin-postinstall: move-config-files remove-empty-dir install-inetd-config install-doc install-scripts
 	@echo "Cygwin specific configuration finished."

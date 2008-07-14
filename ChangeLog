@@ -26,6 +26,11 @@
    prototype; reported by cristian.ionescu-idbohrn AT axis.com
  - (djm) [umac.c] Rename variable s/buffer_ptr/bufp/ to avoid clash;
    reported by cristian.ionescu-idbohrn AT axis.com
+ - (djm) [contrib/cygwin/Makefile contrib/cygwin/ssh-host-config]
+   [contrib/cygwin/ssh-user-config contrib/cygwin/sshd-inetd]
+   Revamped and simplified Cygwin ssh-host-config script that uses
+   unified csih configuration tool. Requires recent Cygwin.
+   Patch from vinschen AT redhat.com
 
 20080712
  - (djm) OpenBSD CVS Sync
@@ -4662,4 +4667,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5082 2008/07/14 02:09:57 djm Exp $
+$Id: ChangeLog,v 1.5083 2008/07/14 02:12:52 djm Exp $
