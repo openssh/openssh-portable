@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.170 2008/06/12 21:14:46 grunk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.171 2008/07/13 21:22:52 sthen Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -620,8 +620,10 @@ print_host(FILE *f, const char *name, Key *public, int hash)
 		rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
 		fp = key_fingerprint(public, fptype, rep);
 		ra = key_fingerprint(public, fptype, SSH_FP_RANDOMART);
-		printf("%u %s %s (%s)\n%s\n", key_size(public), fp, name,
-		    key_type(public), ra);
+		printf("%u %s %s (%s)\n", key_size(public), fp, name,
+		    key_type(public));
+		if (log_level >= SYSLOG_LEVEL_VERBOSE)
+			printf("%s\n", ra);
 		xfree(ra);
 		xfree(fp);
 	} else {

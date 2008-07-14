@@ -1,3 +1,12 @@
+20080714
+ - (djm) OpenBSD CVS Sync
+   - sthen@cvs.openbsd.org 2008/07/13 21:22:52
+     [ssh-keygen.c]
+     Change "ssh-keygen -F [host] -l" to not display random art unless
+     -v is also specified, making it consistent with the manual and other
+     uses of -l.
+     ok grunk@
+
 20080712
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/07/12 04:52:50
@@ -4633,4 +4642,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5075 2008/07/12 07:12:49 djm Exp $
+$Id: ChangeLog,v 1.5076 2008/07/14 01:28:29 djm Exp $
