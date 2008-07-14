@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.102 2008/06/21 07:46:46 martynas Exp $ */
+/* $OpenBSD: sftp.c,v 1.103 2008/07/13 22:16:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -75,7 +75,7 @@ int batchmode = 0;
 size_t copy_buffer_len = 32768;
 
 /* Number of concurrent outstanding requests */
-size_t num_requests = 16;
+size_t num_requests = 64;
 
 /* PID of ssh transport process */
 static pid_t sshpid = -1;
