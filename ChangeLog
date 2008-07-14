@@ -42,6 +42,9 @@
      [scp.1]
      better description for -i flag:
      s/RSA authentication/public key authentication/
+ - (djm) [openbsd-compat/fake-rfc2553.c openbsd-compat/fake-rfc2553.h]
+   return EAI_FAMILY when trying to lookup unsupported address family;
+   from vinschen AT redhat.com
 
 20080711
  - (djm) OpenBSD CVS Sync
@@ -4667,4 +4670,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5083 2008/07/14 02:12:52 djm Exp $
+$Id: ChangeLog,v 1.5084 2008/07/14 11:37:36 djm Exp $

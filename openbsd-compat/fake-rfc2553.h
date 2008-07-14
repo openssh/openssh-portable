@@ -1,4 +1,4 @@
-/* $Id: fake-rfc2553.h,v 1.15 2008/06/10 13:52:51 dtucker Exp $ */
+/* $Id: fake-rfc2553.h,v 1.16 2008/07/14 11:37:37 djm Exp $ */
 
 /*
  * Copyright (C) 2000-2003 Damien Miller.  All rights reserved.
@@ -128,6 +128,9 @@ struct sockaddr_in6 {
 #endif
 #ifndef EAI_SYSTEM
 # define EAI_SYSTEM	(INT_MAX - 4)
+#endif
+#ifndef EAI_FAMILY
+# define EAI_FAMILY	(INT_MAX - 5)
 #endif
 
 #ifndef HAVE_STRUCT_ADDRINFO
