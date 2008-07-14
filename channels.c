@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.284 2008/07/12 04:52:50 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.285 2008/07/13 22:13:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1210,7 +1210,7 @@ static void
 channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
-	struct sockaddr addr;
+	struct sockaddr_storage addr;
 	int newsock;
 	socklen_t addrlen;
 	char buf[16384], *remote_ipaddr;
@@ -1219,7 +1219,7 @@ channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 	if (FD_ISSET(c->sock, readset)) {
 		debug("X11 connection requested.");
 		addrlen = sizeof(addr);
-		newsock = accept(c->sock, &addr, &addrlen);
+		newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
 		if (c->single_connection) {
 			debug2("single_connection: closing X11 listener.");
 			channel_close_fd(&c->sock);
@@ -1336,7 +1336,7 @@ static void
 channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
-	struct sockaddr addr;
+	struct sockaddr_storage addr;
 	int newsock, nextstate;
 	socklen_t addrlen;
 	char *rtype;
@@ -1360,7 +1360,7 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		}
 
 		addrlen = sizeof(addr);
-		newsock = accept(c->sock, &addr, &addrlen);
+		newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
 		if (newsock < 0) {
 			error("accept: %.100s", strerror(errno));
 			return;
@@ -1395,12 +1395,12 @@ channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
 	int newsock;
-	struct sockaddr addr;
+	struct sockaddr_storage addr;
 	socklen_t addrlen;
 
 	if (FD_ISSET(c->sock, readset)) {
 		addrlen = sizeof(addr);
-		newsock = accept(c->sock, &addr, &addrlen);
+		newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
 		if (newsock < 0) {
 			error("accept from auth socket: %.100s", strerror(errno));
 			return;
