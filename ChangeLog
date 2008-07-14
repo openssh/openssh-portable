@@ -20,6 +20,8 @@
    cristian.ionescu-idbohrn AT axis.com
  - (djm) [openbsd-compat/rresvport.c] Add unistd.h for missing close()
    prototype; reported by cristian.ionescu-idbohrn AT axis.com
+ - (djm) [umac.c] Rename variable s/buffer_ptr/bufp/ to avoid clash;
+   reported by cristian.ionescu-idbohrn AT axis.com
 
 20080712
  - (djm) OpenBSD CVS Sync
@@ -4656,4 +4658,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5080 2008/07/14 02:03:27 djm Exp $
+$Id: ChangeLog,v 1.5081 2008/07/14 02:04:43 djm Exp $

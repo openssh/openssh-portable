@@ -181,14 +181,14 @@ typedef AES_KEY aes_int_key[1];
 /* The user-supplied UMAC key is stretched using AES in a counter
  * mode to supply all random bits needed by UMAC. The kdf function takes
  * an AES internal key representation 'key' and writes a stream of
- * 'nbytes' bytes to the memory pointed at by 'buffer_ptr'. Each distinct
+ * 'nbytes' bytes to the memory pointed at by 'bufp'. Each distinct
  * 'ndx' causes a distinct byte stream.
  */
-static void kdf(void *buffer_ptr, aes_int_key key, UINT8 ndx, int nbytes)
+static void kdf(void *bufp, aes_int_key key, UINT8 ndx, int nbytes)
 {
     UINT8 in_buf[AES_BLOCK_LEN] = {0};
     UINT8 out_buf[AES_BLOCK_LEN];
-    UINT8 *dst_buf = (UINT8 *)buffer_ptr;
+    UINT8 *dst_buf = (UINT8 *)bufp;
     int i;
     
     /* Setup the initial value */
