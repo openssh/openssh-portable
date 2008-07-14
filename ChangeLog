@@ -15,6 +15,10 @@
      increase number of piplelined requests so they properly fill the
      (recently increased) channel window. prompted by rapier AT psc.edu;
      ok markus@
+   - djm@cvs.openbsd.org 2008/07/14 01:55:56
+     [sftp-server.8]
+     mention requirement for /dev/log inside chroot when using sftp-server
+     with ChrootDirectory
  - (djm) [openbsd-compat/bindresvport.c] Rename variables s/sin/in/ to
    avoid clash with sin(3) function; reported by
    cristian.ionescu-idbohrn AT axis.com
@@ -4658,4 +4662,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5081 2008/07/14 02:04:43 djm Exp $
+$Id: ChangeLog,v 1.5082 2008/07/14 02:09:57 djm Exp $
