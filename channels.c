@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.285 2008/07/13 22:13:07 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.286 2008/07/16 11:52:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2789,7 +2789,7 @@ channel_clear_adm_permitted_opens(void)
 void
 channel_print_adm_permitted_opens(void)
 {
-	static int i;
+	int i;
 
 	for (i = 0; i < num_adm_permitted_opens; i++)
 		if (permitted_adm_opens[i].host_to_connect != NULL)
