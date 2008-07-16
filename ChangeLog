@@ -4,6 +4,10 @@
      [sftp.1]
      number of pipelined requests is now 64;
      prodded by Iain.Morgan AT nasa.gov
+   - djm@cvs.openbsd.org 2008/07/16 11:51:14
+     [clientloop.c]
+     rename variable first_gc -> last_gc (since it is actually the last
+     in the list).
 
 20080714
  - (djm) OpenBSD CVS Sync
@@ -4677,4 +4681,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5085 2008/07/16 11:17:23 djm Exp $
+$Id: ChangeLog,v 1.5086 2008/07/16 12:40:52 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.200 2008/07/10 18:08:11 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.201 2008/07/16 11:51:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -741,14 +741,14 @@ client_expect_confirm(int id, const char *request, int do_close)
 void
 client_register_global_confirm(global_confirm_cb *cb, void *ctx)
 {
-	struct global_confirm *gc, *first_gc;
+	struct global_confirm *gc, *last_gc;
 
 	/* Coalesce identical callbacks */
-	first_gc = TAILQ_LAST(&global_confirms, global_confirms);
-	if (first_gc && first_gc->cb == cb && first_gc->ctx == ctx) {
-		if (++first_gc->ref_count >= INT_MAX)
-			fatal("%s: first_gc->ref_count = %d",
-			    __func__, first_gc->ref_count);
+	last_gc = TAILQ_LAST(&global_confirms, global_confirms);
+	if (last_gc && last_gc->cb == cb && last_gc->ctx == ctx) {
+		if (++last_gc->ref_count >= INT_MAX)
+			fatal("%s: last_gc->ref_count = %d",
+			    __func__, last_gc->ref_count);
 		return;
 	}
 
