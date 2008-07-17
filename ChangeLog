@@ -1,3 +1,9 @@
+20080717
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2008/07/17 08:48:00
+     [sshconnect2.c]
+     strnvis preauth banner; pointed out by mpf@ ok markus@
+
 20080716
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/07/15 02:23:14
@@ -4684,4 +4690,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5087 2008/07/16 12:42:06 djm Exp $
+$Id: ChangeLog,v 1.5088 2008/07/17 08:57:06 djm Exp $
