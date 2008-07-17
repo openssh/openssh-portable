@@ -7,6 +7,9 @@
      [auth2-hostbased.c]
      strip trailing '.' from hostname when HostbasedUsesNameFromPacketOnly=yes
      report and patch from res AT qoxp.net (bz#1200); ok markus@
+ - (dtucker) [openbsd-compat/bsd-cygwin_util.c]  Remove long-unneeded compat
+   code, replace with equivalent cygwin library call.  Patch from vinschen
+   at redhat.comi, ok djm@.
 
 20080716
  - OpenBSD CVS Sync
@@ -4694,4 +4697,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5089 2008/07/17 08:57:19 djm Exp $
+$Id: ChangeLog,v 1.5090 2008/07/17 09:03:49 dtucker Exp $
