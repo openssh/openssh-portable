@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2008/07/17 08:48:00
      [sshconnect2.c]
      strnvis preauth banner; pointed out by mpf@ ok markus@
+   - djm@cvs.openbsd.org 2008/07/17 08:51:07
+     [auth2-hostbased.c]
+     strip trailing '.' from hostname when HostbasedUsesNameFromPacketOnly=yes
+     report and patch from res AT qoxp.net (bz#1200); ok markus@
 
 20080716
  - OpenBSD CVS Sync
@@ -4690,4 +4694,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5088 2008/07/17 08:57:06 djm Exp $
+$Id: ChangeLog,v 1.5089 2008/07/17 08:57:19 djm Exp $
