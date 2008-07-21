@@ -1,3 +1,9 @@
+20080721
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2008/07/18 22:51:01
+     [sftp-server.8]
+     no need for .Pp before or after .Sh;
+
 20080717
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/07/17 08:48:00
@@ -4698,4 +4704,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5091 2008/07/17 09:15:43 djm Exp $
+$Id: ChangeLog,v 1.5092 2008/07/21 08:20:39 djm Exp $
