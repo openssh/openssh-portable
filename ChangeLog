@@ -6,6 +6,8 @@
    - djm@cvs.openbsd.org 2008/07/21 08:19:07
      [version.h]
      openssh-5.1
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Update version number in README and RPM specs
 
 20080717
  - (djm) OpenBSD CVS Sync
@@ -4707,4 +4709,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5093 2008/07/21 08:21:05 djm Exp $
+$Id: ChangeLog,v 1.5094 2008/07/21 08:21:52 djm Exp $
