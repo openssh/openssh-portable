@@ -1544,6 +1544,9 @@ dump_config(ServerOptions *o)
 	}
 
 	/* integer arguments */
+#ifdef USE_PAM
+	dump_cfg_int(sUsePAM, o->use_pam);
+#endif
 	dump_cfg_int(sServerKeyBits, o->server_key_bits);
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
 	dump_cfg_int(sKeyRegenerationTime, o->key_regeneration_time);
