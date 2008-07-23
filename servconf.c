@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.186 2008/07/04 03:44:59 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.187 2008/07/23 07:36:55 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1562,12 +1562,18 @@ dump_config(ServerOptions *o)
 	    o->hostbased_uses_name_from_packet_only);
 	dump_cfg_fmtint(sRSAAuthentication, o->rsa_authentication);
 	dump_cfg_fmtint(sPubkeyAuthentication, o->pubkey_authentication);
+#ifdef KRB5
 	dump_cfg_fmtint(sKerberosAuthentication, o->kerberos_authentication);
 	dump_cfg_fmtint(sKerberosOrLocalPasswd, o->kerberos_or_local_passwd);
 	dump_cfg_fmtint(sKerberosTicketCleanup, o->kerberos_ticket_cleanup);
+# ifdef USE_AFS
 	dump_cfg_fmtint(sKerberosGetAFSToken, o->kerberos_get_afs_token);
+# endif
+#endif
+#ifdef GSSAPI
 	dump_cfg_fmtint(sGssAuthentication, o->gss_authentication);
 	dump_cfg_fmtint(sGssCleanupCreds, o->gss_cleanup_creds);
+#endif
 	dump_cfg_fmtint(sPasswordAuthentication, o->password_authentication);
 	dump_cfg_fmtint(sKbdInteractiveAuthentication,
 	    o->kbd_interactive_authentication);
