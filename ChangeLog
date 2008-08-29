@@ -1,3 +1,8 @@
+20080830
+ - (dtucker) [openbsd-compat/bsd-poll.c] correctly check for number of FDs
+   larger than FD_SETSIZE (OpenSSH only ever uses poll with one fd).  Patch
+   from Nicholas Marriott.
+
 20080721
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/07/23 07:36:55
@@ -4721,4 +4726,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5097 2008/07/23 07:42:29 djm Exp $
+$Id: ChangeLog,v 1.5098 2008/08/29 21:32:37 dtucker Exp $
