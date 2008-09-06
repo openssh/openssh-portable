@@ -1,3 +1,8 @@
+20080906
+ - (dtucker) [config.guess config.sub] Update to latest versions from
+   http://git.savannah.gnu.org/gitweb/ (2008-04-14 and 2008-06-16
+   respectively).
+
 20080830
  - (dtucker) [openbsd-compat/bsd-poll.c] correctly check for number of FDs
    larger than FD_SETSIZE (OpenSSH only ever uses poll with one fd).  Patch
@@ -4726,4 +4731,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5098 2008/08/29 21:32:37 dtucker Exp $
+$Id: ChangeLog,v 1.5099 2008/09/06 08:20:57 dtucker Exp $
