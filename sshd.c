@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.364 2008/07/10 18:08:11 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.365 2008/10/30 19:31:16 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -117,7 +117,6 @@
 #include "ssh-gss.h"
 #endif
 #include "monitor_wrap.h"
-#include "monitor_fdpass.h"
 #include "version.h"
 
 #ifdef LIBWRAP

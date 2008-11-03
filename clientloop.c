@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.201 2008/07/16 11:51:14 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.202 2008/10/30 19:31:16 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -107,7 +107,6 @@
 #include "atomicio.h"
 #include "sshpty.h"
 #include "misc.h"
-#include "monitor_fdpass.h"
 #include "match.h"
 #include "msg.h"
 
