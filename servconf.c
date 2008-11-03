@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.187 2008/07/23 07:36:55 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.188 2008/10/09 03:50:54 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -380,7 +380,7 @@ static struct {
 	{ "x11uselocalhost", sX11UseLocalhost, SSHCFG_ALL },
 	{ "xauthlocation", sXAuthLocation, SSHCFG_GLOBAL },
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
-	{ "permitemptypasswords", sEmptyPasswd, SSHCFG_GLOBAL },
+	{ "permitemptypasswords", sEmptyPasswd, SSHCFG_ALL },
 	{ "permituserenvironment", sPermitUserEnvironment, SSHCFG_GLOBAL },
 	{ "uselogin", sUseLogin, SSHCFG_GLOBAL },
 	{ "compression", sCompression, SSHCFG_GLOBAL },
@@ -1378,6 +1378,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(hostbased_authentication);
 	M_CP_INTOPT(kbd_interactive_authentication);
 	M_CP_INTOPT(permit_root_login);
+	M_CP_INTOPT(permit_empty_passwd);
 
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(allow_agent_forwarding);
