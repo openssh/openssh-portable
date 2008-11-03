@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.168 2008/11/01 17:40:33 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.169 2008/11/03 01:07:02 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -942,7 +942,6 @@ read_config_file(const char *filename, const char *host, Options *options,
 	int active, linenum;
 	int bad_options = 0;
 
-	/* Open the file. */
 	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
 

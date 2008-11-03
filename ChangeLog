@@ -100,6 +100,9 @@
      [ttymodes.c]
      protocol 2 tty modes support is now 7.5 years old so remove these
      debug3()s; ok deraadt@
+   - stevesk@cvs.openbsd.org 2008/11/03 01:07:02
+     [readconf.c]
+     remove valueless comment
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4834,4 +4837,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5123 2008/11/03 08:27:52 djm Exp $
+$Id: ChangeLog,v 1.5124 2008/11/03 08:28:07 djm Exp $
