@@ -56,6 +56,9 @@
      [servconf.c sshd_config.5]
      support setting PermitEmptyPasswords in a Match block
      requested in PR3891; ok dtucker@
+   - jmc@cvs.openbsd.org 2008/10/09 06:54:22
+     [ssh.c]
+     add -y to usage();
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4790,4 +4793,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5111 2008/11/03 08:23:10 djm Exp $
+$Id: ChangeLog,v 1.5112 2008/11/03 08:23:28 djm Exp $
