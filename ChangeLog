@@ -59,6 +59,9 @@
    - jmc@cvs.openbsd.org 2008/10/09 06:54:22
      [ssh.c]
      add -y to usage();
+   - stevesk@cvs.openbsd.org 2008/10/10 04:55:16
+     [scp.c]
+     spelling in comment; ok djm@
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4793,4 +4796,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5112 2008/11/03 08:23:28 djm Exp $
+$Id: ChangeLog,v 1.5113 2008/11/03 08:23:45 djm Exp $
