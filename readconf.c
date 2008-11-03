@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.169 2008/11/03 01:07:02 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.170 2008/11/03 02:44:41 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1225,7 +1225,7 @@ parse_forward(Forward *fwd, const char *fwdspec, int dynamicfwd)
 		if ((fwdarg[i] = hpdelim(&cp)) == NULL)
 			break;
 
-	/* Check for trailing garbage in 4-arg case*/
+	/* Check for trailing garbage */
 	if (cp != NULL)
 		i = 0;	/* failure */
 
