@@ -82,6 +82,10 @@
    - stevesk@cvs.openbsd.org 2008/10/31 15:05:34
      [dispatch.c]
      remove unused #define DISPATCH_MIN; ok markus@
+   - djm@cvs.openbsd.org 2008/11/01 04:50:08
+     [sshconnect2.c]
+     sprinkle ARGSUSED on dispatch handlers
+     nuke stale unusued prototype
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4816,4 +4820,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5118 2008/11/03 08:26:00 djm Exp $
+$Id: ChangeLog,v 1.5119 2008/11/03 08:26:18 djm Exp $

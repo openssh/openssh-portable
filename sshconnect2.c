@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.168 2008/10/03 23:56:28 deraadt Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.169 2008/11/01 04:50:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -218,7 +218,6 @@ int	userauth_pubkey(Authctxt *);
 int	userauth_passwd(Authctxt *);
 int	userauth_kbdint(Authctxt *);
 int	userauth_hostbased(Authctxt *);
-int	userauth_kerberos(Authctxt *);
 
 #ifdef GSSAPI
 int	userauth_gssapi(Authctxt *authctxt);
@@ -367,6 +366,7 @@ userauth(Authctxt *authctxt, char *authlist)
 	}
 }
 
+/* ARGSUSED */
 void
 input_userauth_error(int type, u_int32_t seq, void *ctxt)
 {
@@ -374,6 +374,7 @@ input_userauth_error(int type, u_int32_t seq, void *ctxt)
 	    "type %d", type);
 }
 
+/* ARGSUSED */
 void
 input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 {
@@ -395,6 +396,7 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 	xfree(lang);
 }
 
+/* ARGSUSED */
 void
 input_userauth_success(int type, u_int32_t seq, void *ctxt)
 {
@@ -412,6 +414,7 @@ input_userauth_success(int type, u_int32_t seq, void *ctxt)
 	authctxt->success = 1;			/* break out */
 }
 
+/* ARGSUSED */
 void
 input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 {
@@ -432,6 +435,8 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 
 	userauth(authctxt, authlist);
 }
+
+/* ARGSUSED */
 void
 input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 {
@@ -614,6 +619,7 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 	return status;
 }
 
+/* ARGSUSED */
 void
 input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 {
@@ -653,6 +659,7 @@ input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 	}
 }
 
+/* ARGSUSED */
 void
 input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 {
@@ -680,6 +687,7 @@ input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 	}
 }
 
+/* ARGSUSED */
 void
 input_gssapi_errtok(int type, u_int32_t plen, void *ctxt)
 {
@@ -709,6 +717,7 @@ input_gssapi_errtok(int type, u_int32_t plen, void *ctxt)
 	/* Server will be returning a failed packet after this one */
 }
 
+/* ARGSUSED */
 void
 input_gssapi_error(int type, u_int32_t plen, void *ctxt)
 {
@@ -773,9 +782,11 @@ userauth_passwd(Authctxt *authctxt)
 
 	return 1;
 }
+
 /*
  * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
  */
+/* ARGSUSED */
 void
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 {
