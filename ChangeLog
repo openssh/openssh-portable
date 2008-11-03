@@ -11,6 +11,10 @@
      [key.c]
      In random art visualization, make sure to use the end marker only at the
      end.  Initial diff by Dirk Loss, tweaks and ok djm@
+  - markus@cvs.openbsd.org 2008/07/31 14:48:28
+     [sshconnect2.c]
+     don't allocate space for empty banners; report t8m at centrum.cz;
+     ok deraadt
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4745,4 +4749,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5101 2008/11/03 08:16:20 djm Exp $
+$Id: ChangeLog,v 1.5102 2008/11/03 08:17:08 djm Exp $
