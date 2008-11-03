@@ -96,6 +96,10 @@
      [clientloop.c readconf.c readconf.h ssh.c]
      merge dynamic forward parsing into parse_forward();
      'i think this is OK' djm@
+   - stevesk@cvs.openbsd.org 2008/11/02 00:16:16
+     [ttymodes.c]
+     protocol 2 tty modes support is now 7.5 years old so remove these
+     debug3()s; ok deraadt@
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4830,4 +4834,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5122 2008/11/03 08:27:34 djm Exp $
+$Id: ChangeLog,v 1.5123 2008/11/03 08:27:52 djm Exp $
