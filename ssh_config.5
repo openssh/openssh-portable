@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.113 2008/10/10 16:43:27 stevesk Exp $
-.Dd $Mdocdate: October 10 2008 $
+.\" $OpenBSD: ssh_config.5,v 1.114 2008/10/17 18:36:24 stevesk Exp $
+.Dd $Mdocdate: October 17 2008 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1065,10 +1065,12 @@ in
 If this flag is set to
 .Dq yes ,
 an ASCII art representation of the remote host key fingerprint is
-printed additionally to the hex fingerprint string.
+printed in addition to the hex fingerprint string at login and
+for unknown host keys.
 If this flag is set to
 .Dq no ,
-only the hex fingerprint string will be printed.
+no fingerprint strings are printed at login and
+only the hex fingerprint string will be printed for unknown host keys.
 The default is
 .Dq no .
 .It Cm XAuthLocation
