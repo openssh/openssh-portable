@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.78 2008/07/07 23:32:51 stevesk Exp $ */
+/* $OpenBSD: key.c,v 1.79 2008/07/25 07:05:16 grunk Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -369,7 +369,8 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len, const Key *k)
 			y = MIN(y, FLDSIZE_Y - 1);
 
 			/* augment the field */
-			field[x][y]++;
+			if (field[x][y] < len - 2)
+				field[x][y]++;
 			input = input >> 2;
 		}
 	}
