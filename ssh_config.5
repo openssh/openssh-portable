@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.112 2008/08/02 04:29:51 krw Exp $
-.Dd $Mdocdate: August 2 2008 $
+.\" $OpenBSD: ssh_config.5,v 1.113 2008/10/10 16:43:27 stevesk Exp $
+.Dd $Mdocdate: October 10 2008 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -811,7 +811,8 @@ and
 .Ar host Ns / Ns Ar hostport .
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
-Only the superuser can forward privileged ports.
+Privileged ports can be forwarded only when
+logging in as root on the remote machine.
 .Pp
 If the
 .Ar bind_address
