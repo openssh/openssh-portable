@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.321 2008/10/09 06:54:22 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.322 2008/11/01 17:40:33 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -453,7 +453,7 @@ main(int ac, char **av)
 			break;
 
 		case 'L':
-			if (parse_forward(&fwd, optarg))
+			if (parse_forward(&fwd, optarg, 0))
 				add_local_forward(&options, &fwd);
 			else {
 				fprintf(stderr,
@@ -464,7 +464,7 @@ main(int ac, char **av)
 			break;
 
 		case 'R':
-			if (parse_forward(&fwd, optarg)) {
+			if (parse_forward(&fwd, optarg, 0)) {
 				add_remote_forward(&options, &fwd);
 			} else {
 				fprintf(stderr,
@@ -475,30 +475,14 @@ main(int ac, char **av)
 			break;
 
 		case 'D':
-			cp = p = xstrdup(optarg);
-			memset(&fwd, '\0', sizeof(fwd));
-			fwd.connect_host = "socks";
-			if ((fwd.listen_host = hpdelim(&cp)) == NULL) {
-				fprintf(stderr, "Bad dynamic forwarding "
-				    "specification '%.100s'\n", optarg);
-				exit(255);
-			}
-			if (cp != NULL) {
-				fwd.listen_port = a2port(cp);
-				fwd.listen_host =
-				    cleanhostname(fwd.listen_host);
+			if (parse_forward(&fwd, optarg, 1)) {
+				add_local_forward(&options, &fwd);
 			} else {
-				fwd.listen_port = a2port(fwd.listen_host);
-				fwd.listen_host = NULL;
-			}
-
-			if (fwd.listen_port == 0) {
-				fprintf(stderr, "Bad dynamic port '%s'\n",
-				    optarg);
+				fprintf(stderr,
+				    "Bad dynamic forwarding specification "
+				    "'%s'\n", optarg);
 				exit(255);
 			}
-			add_local_forward(&options, &fwd);
-			xfree(p);
 			break;
 
 		case 'C':
