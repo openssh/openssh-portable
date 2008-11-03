@@ -65,6 +65,14 @@
    - stevesk@cvs.openbsd.org 2008/10/10 05:00:12
      [key.c]
      typo in error message; ok djm@
+   - stevesk@cvs.openbsd.org 2008/10/10 16:43:27
+     [ssh_config.5]
+     use 'Privileged ports can be forwarded only when logging in as root on
+     the remote machine.' for RemoteForward just like ssh.1 -R.
+     ok djm@ jmc@
+   - stevesk@cvs.openbsd.org 2008/10/14 18:11:33
+     [sshconnect.c]
+     use #define ROQUIET here; no binary change. ok dtucker@
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4799,4 +4807,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5114 2008/11/03 08:24:16 djm Exp $
+$Id: ChangeLog,v 1.5115 2008/11/03 08:25:03 djm Exp $
