@@ -89,6 +89,9 @@
    - stevesk@cvs.openbsd.org 2008/11/01 06:43:33
      [channels.c]
      fix some typos in log messages; ok djm@
+   - sobrado@cvs.openbsd.org 2008/11/01 11:14:36
+     [ssh-keyscan.1 ssh-keyscan.c]
+     the ellipsis is not an optional argument; while here, improve spacing.
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4823,4 +4826,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5120 2008/11/03 08:26:35 djm Exp $
+$Id: ChangeLog,v 1.5121 2008/11/03 08:27:07 djm Exp $

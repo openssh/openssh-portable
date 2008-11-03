@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.76 2008/04/30 10:14:03 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.77 2008/11/01 11:14:36 sobrado Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -713,8 +713,9 @@ fatal(const char *fmt,...)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-46Hv] [-f file] [-p port] [-T timeout] [-t type]\n"
-	    "\t\t   [host | addrlist namelist] [...]\n",
+	fprintf(stderr,
+	    "usage: %s [-46Hv] [-f file] [-p port] [-T timeout] [-t type]\n"
+	    "\t\t   [host | addrlist namelist] ...\n",
 	    __progname);
 	exit(1);
 }
