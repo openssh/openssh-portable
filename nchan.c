@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.60 2008/06/30 12:16:02 djm Exp $ */
+/* $OpenBSD: nchan.c,v 1.61 2008/09/11 14:22:37 markus Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -387,6 +387,8 @@ chan_send_eow2(Channel *c)
 		    c->self);
 		return;
 	}
+	if (!(datafellows & SSH_NEW_OPENSSH))
+		return;
 	packet_start(SSH2_MSG_CHANNEL_REQUEST);
 	packet_put_int(c->remote_id);
 	packet_put_cstring("eow@openssh.com");

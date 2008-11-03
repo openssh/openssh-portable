@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.318 2008/07/02 13:47:39 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.319 2008/09/11 14:22:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1200,7 +1200,8 @@ ssh_session2(void)
 		id = ssh_session2_open();
 
 	/* If we don't expect to open a new session, then disallow it */
-	if (options.control_master == SSHCTL_MASTER_NO) {
+	if (options.control_master == SSHCTL_MASTER_NO &&
+	    (datafellows & SSH_NEW_OPENSSH)) {
 		debug("Requesting no-more-sessions@openssh.com");
 		packet_start(SSH2_MSG_GLOBAL_REQUEST);
 		packet_put_cstring("no-more-sessions@openssh.com");
