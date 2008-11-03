@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.241 2008/06/16 13:22:53 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.242 2008/08/21 04:09:57 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -94,6 +94,12 @@
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
 #endif
+
+#define IS_INTERNAL_SFTP(c) \
+	(!strncmp(c, INTERNAL_SFTP_NAME, sizeof(INTERNAL_SFTP_NAME) - 1) && \
+	 (c[sizeof(INTERNAL_SFTP_NAME) - 1] == '\0' || \
+	  c[sizeof(INTERNAL_SFTP_NAME) - 1] == ' ' || \
+	  c[sizeof(INTERNAL_SFTP_NAME) - 1] == '\t'))
 
 /* func */
 
@@ -781,7 +787,7 @@ do_exec(Session *s, const char *command)
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
-		if (strcmp(INTERNAL_SFTP_NAME, command) == 0)
+		if (IS_INTERNAL_SFTP(command))
 			s->is_subsystem = SUBSYSTEM_INT_SFTP;
 		else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
@@ -789,7 +795,7 @@ do_exec(Session *s, const char *command)
 	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
-		if (strcmp(INTERNAL_SFTP_NAME, command) == 0)
+		if (IS_INTERNAL_SFTP(command))
 			s->is_subsystem = SUBSYSTEM_INT_SFTP;
 		else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;

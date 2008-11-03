@@ -18,6 +18,10 @@
    - krw@cvs.openbsd.org 2008/08/02 04:29:51
      [ssh_config.5]
      whitepsace -> whitespace. From Matthew Clarke via bugs@.
+   - djm@cvs.openbsd.org 2008/08/21 04:09:57
+     [session.c]
+     allow ForceCommand internal-sftp with arguments. based on patch from
+     michael.barabanov AT gmail.com; ok markus@
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4752,4 +4756,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5103 2008/11/03 08:17:33 djm Exp $
+$Id: ChangeLog,v 1.5104 2008/11/03 08:17:57 djm Exp $
