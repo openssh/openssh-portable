@@ -39,6 +39,14 @@
      do not give an example of how to chmod files: we can presume the user
      knows that. removes an ambiguity in the permission of authorized_keys;
      ok deraadt
+   - deraadt@cvs.openbsd.org 2008/10/03 23:56:28
+     [sshconnect2.c]
+     Repair strnvis() buffersize of 4*n+1, with termination gauranteed by the
+     function.
+     spotted by des@freebsd, who commited an incorrect fix to the freebsd tree
+     and (as is fairly typical) did not report the problem to us.  But this fix
+     is correct.
+     ok djm
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4773,4 +4781,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5108 2008/11/03 08:21:21 djm Exp $
+$Id: ChangeLog,v 1.5109 2008/11/03 08:22:09 djm Exp $

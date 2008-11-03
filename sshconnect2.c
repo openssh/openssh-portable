@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.167 2008/07/31 14:48:28 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.168 2008/10/03 23:56:28 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -386,8 +386,8 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 	if (len > 0 && options.log_level >= SYSLOG_LEVEL_INFO) {
 		if (len > 65536)
 			len = 65536;
-		msg = xmalloc(len * 4); /* max expansion from strnvis() */
-		strnvis(msg, raw, len * 4, VIS_SAFE|VIS_OCTAL);
+		msg = xmalloc(len * 4 + 1); /* max expansion from strnvis() */
+		strnvis(msg, raw, len * 4 + 1, VIS_SAFE|VIS_OCTAL);
 		fprintf(stderr, "%s", msg);
 		xfree(msg);
 	}
