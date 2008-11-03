@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.286 2008/07/16 11:52:19 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.287 2008/11/01 06:43:33 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -691,7 +691,7 @@ channel_register_open_confirm(int id, channel_callback_fn *fn, void *ctx)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		logit("channel_register_open_comfirm: %d: bad id", id);
+		logit("channel_register_open_confirm: %d: bad id", id);
 		return;
 	}
 	c->open_confirm = fn;
@@ -2385,10 +2385,10 @@ channel_input_status_confirm(int type, u_int32_t seq, void *ctxt)
 	remote_id = packet_get_int();
 	packet_check_eom();
 
-	debug2("channel_input_confirm: type %d id %d", type, remote_id);
+	debug2("channel_input_status_confirm: type %d id %d", type, remote_id);
 
 	if ((c = channel_lookup(remote_id)) == NULL) {
-		logit("channel_input_success_failure: %d: unknown", remote_id);
+		logit("channel_input_status_confirm: %d: unknown", remote_id);
 		return;
 	}	
 	;
