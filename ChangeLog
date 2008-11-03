@@ -47,6 +47,11 @@
      and (as is fairly typical) did not report the problem to us.  But this fix
      is correct.
      ok djm
+   - djm@cvs.openbsd.org 2008/10/08 23:34:03
+     [ssh.1 ssh.c]
+     Add -y option to force logging via syslog rather than stderr.
+     Useful for daemonised ssh connection (ssh -f). Patch originally from
+     and ok'd by markus@
 
 20080906
  - (dtucker) [config.guess config.sub] Update to latest versions from
@@ -4781,4 +4786,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5109 2008/11/03 08:22:09 djm Exp $
+$Id: ChangeLog,v 1.5110 2008/11/03 08:22:37 djm Exp $

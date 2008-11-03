@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.319 2008/09/11 14:22:37 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.320 2008/10/08 23:34:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -203,7 +203,7 @@ void muxserver_listen(void);
 int
 main(int ac, char **av)
 {
-	int i, opt, exit_status;
+	int i, opt, exit_status, use_syslog;
 	char *p, *cp, *line, buf[256];
 	struct stat st;
 	struct passwd *pw;
@@ -269,10 +269,11 @@ main(int ac, char **av)
 
 	/* Parse command-line arguments. */
 	host = NULL;
+	use_syslog = 0;
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:F:I:KL:MNO:PR:S:TVw:XY")) != -1) {
+	    "ACD:F:I:KL:MNO:PR:S:TVw:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -298,6 +299,9 @@ main(int ac, char **av)
 			break;
 		case 'X':
 			options.forward_x11 = 1;
+			break;
+		case 'y':
+			use_syslog = 1;
 			break;
 		case 'Y':
 			options.forward_x11 = 1;
@@ -614,7 +618,7 @@ main(int ac, char **av)
 	 */
 	log_init(av[0],
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
-	    SYSLOG_FACILITY_USER, 1);
+	    SYSLOG_FACILITY_USER, !use_syslog);
 
 	/*
 	 * Read per-user configuration file.  Ignore the system wide config
@@ -640,7 +644,7 @@ main(int ac, char **av)
 	channel_set_af(options.address_family);
 
 	/* reinit */
-	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 1);
+	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
 
 	seed_rng();
 
