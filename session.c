@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.242 2008/08/21 04:09:57 djm Exp $ */
+/* $OpenBSD: session.c,v 1.243 2008/10/02 14:39:35 millert Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1795,7 +1795,7 @@ do_child(Session *s, const char *command)
 		char *p, *args;
 
 		setproctitle("%s@internal-sftp-server", s->pw->pw_name);
-		args = strdup(command ? command : "sftp-server");
+		args = xstrdup(command ? command : "sftp-server");
 		for (i = 0, (p = strtok(args, " ")); p; (p = strtok(NULL, " ")))
 			if (i < ARGV_MAX - 1)
 				argv[i++] = p;
