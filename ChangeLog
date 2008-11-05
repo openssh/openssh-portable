@@ -7,6 +7,25 @@
      [auth.c]
      need unistd.h for close() prototype
      (ID sync only)
+   - djm@cvs.openbsd.org 2008/11/04 08:22:13
+     [auth.h auth2.c monitor.c monitor.h monitor_wrap.c monitor_wrap.h]
+     [readconf.c readconf.h servconf.c servconf.h ssh2.h ssh_config.5]
+     [sshconnect2.c sshd_config.5 jpake.c jpake.h schnorr.c auth2-jpake.c]
+     [Makefile.in]
+     Add support for an experimental zero-knowledge password authentication
+     method using the J-PAKE protocol described in F. Hao, P. Ryan,
+     "Password Authenticated Key Exchange by Juggling", 16th Workshop on
+     Security Protocols, Cambridge, April 2008.
+     
+     This method allows password-based authentication without exposing
+     the password to the server. Instead, the client and server exchange
+     cryptographic proofs to demonstrate of knowledge of the password while
+     revealing nothing useful to an attacker or compromised endpoint.
+     
+     This is experimental, work-in-progress code and is presently
+     compiled-time disabled (turn on -DJPAKE in Makefile.inc).
+     
+     "just commit it.  It isn't too intrusive." deraadt@
 
 20081103
  - OpenBSD CVS Sync
@@ -4857,4 +4876,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5129 2008/11/05 05:12:54 djm Exp $
+$Id: ChangeLog,v 1.5130 2008/11/05 05:20:46 djm Exp $

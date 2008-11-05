@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.97 2008/10/09 03:50:54 djm Exp $
-.Dd $Mdocdate: October 9 2008 $
+.\" $OpenBSD: sshd_config.5,v 1.98 2008/11/04 08:22:13 djm Exp $
+.Dd $Mdocdate: November 4 2008 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -612,8 +612,9 @@ Available keywords are
 .Cm RSAAuthentication ,
 .Cm X11DisplayOffset ,
 .Cm X11Forwarding ,
+.Cm X11UseLocalHost ,
 and
-.Cm X11UseLocalHost .
+.Cm ZeroKnowledgePasswordAuthentication .
 .It Cm MaxAuthTries
 Specifies the maximum number of authentication attempts permitted per
 connection.
@@ -1004,6 +1005,17 @@ Specifies the full pathname of the
 program.
 The default is
 .Pa /usr/X11R6/bin/xauth .
+.It Cm ZeroKnowledgePasswordAuthentication
+Specifies whether to use zero knowledge password authentication.
+This authentication method avoids exposure of password to untrusted
+hosts.
+The argument to this keyword must be
+.Dq yes
+or
+.Dq no .
+The default is currently
+.Dq no
+as this method is considered experimental.
 .El
 .Sh TIME FORMATS
 .Xr sshd 8

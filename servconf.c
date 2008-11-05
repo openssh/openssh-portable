@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.189 2008/11/03 08:59:41 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.190 2008/11/04 08:22:13 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -127,6 +127,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_permitted_opens = -1;
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
+	options->zero_knowledge_password_authentication = -1;
 }
 
 void
@@ -258,6 +259,8 @@ fill_default_server_options(ServerOptions *options)
 		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
 	if (options->permit_tun == -1)
 		options->permit_tun = SSH_TUNMODE_NO;
+	if (options->zero_knowledge_password_authentication == -1)
+		options->zero_knowledge_password_authentication = 0;
 
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
@@ -302,6 +305,7 @@ typedef enum {
 	sGssAuthentication, sGssCleanupCreds, sAcceptEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
+	sZeroKnowledgePasswordAuthentication,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -368,6 +372,11 @@ static struct {
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication, SSHCFG_ALL },
 	{ "challengeresponseauthentication", sChallengeResponseAuthentication, SSHCFG_GLOBAL },
 	{ "skeyauthentication", sChallengeResponseAuthentication, SSHCFG_GLOBAL }, /* alias */
+#ifdef JPAKE
+	{ "zeroknowledgepasswordauthentication", sZeroKnowledgePasswordAuthentication, SSHCFG_ALL },
+#else
+	{ "zeroknowledgepasswordauthentication", sUnsupported, SSHCFG_ALL },
+#endif
 	{ "checkmail", sDeprecated, SSHCFG_GLOBAL },
 	{ "listenaddress", sListenAddress, SSHCFG_GLOBAL },
 	{ "addressfamily", sAddressFamily, SSHCFG_GLOBAL },
@@ -890,6 +899,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->password_authentication;
 		goto parse_flag;
 
+	case sZeroKnowledgePasswordAuthentication:
+		intptr = &options->zero_knowledge_password_authentication;
+		goto parse_flag;
+
 	case sKbdInteractiveAuthentication:
 		intptr = &options->kbd_interactive_authentication;
 		goto parse_flag;
@@ -1377,6 +1390,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
 	M_CP_INTOPT(kbd_interactive_authentication);
+	M_CP_INTOPT(zero_knowledge_password_authentication);
 	M_CP_INTOPT(permit_root_login);
 	M_CP_INTOPT(permit_empty_passwd);
 
@@ -1578,6 +1592,10 @@ dump_config(ServerOptions *o)
 #ifdef GSSAPI
 	dump_cfg_fmtint(sGssAuthentication, o->gss_authentication);
 	dump_cfg_fmtint(sGssCleanupCreds, o->gss_cleanup_creds);
+#endif
+#ifdef JPAKE
+	dump_cfg_fmtint(sZeroKnowledgePasswordAuthentication,
+	    o->zero_knowledge_password_authentication);
 #endif
 	dump_cfg_fmtint(sPasswordAuthentication, o->password_authentication);
 	dump_cfg_fmtint(sKbdInteractiveAuthentication,

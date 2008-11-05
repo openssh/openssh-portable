@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.170 2008/11/03 02:44:41 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.171 2008/11/04 08:22:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -130,7 +130,7 @@ typedef enum {
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
 	oSendEnv, oControlPath, oControlMaster, oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
-	oVisualHostKey,
+	oVisualHostKey, oZeroKnowledgePasswordAuthentication,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -228,6 +228,13 @@ static struct {
 	{ "localcommand", oLocalCommand },
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
+#ifdef JPAKE
+	{ "zeroknowledgepasswordauthentication",
+	    oZeroKnowledgePasswordAuthentication },
+#else
+	{ "zeroknowledgepasswordauthentication", oUnsupported },
+#endif
+
 	{ NULL, oBadOption }
 };
 
@@ -410,6 +417,10 @@ parse_flag:
 
 	case oPasswordAuthentication:
 		intptr = &options->password_authentication;
+		goto parse_flag;
+
+	case oZeroKnowledgePasswordAuthentication:
+		intptr = &options->zero_knowledge_password_authentication;
 		goto parse_flag;
 
 	case oKbdInteractiveAuthentication:
@@ -1054,6 +1065,7 @@ initialize_options(Options * options)
 	options->local_command = NULL;
 	options->permit_local_command = -1;
 	options->visual_host_key = -1;
+	options->zero_knowledge_password_authentication = -1;
 }
 
 /*
@@ -1190,6 +1202,8 @@ fill_default_options(Options * options)
 		options->permit_local_command = 0;
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
+	if (options->zero_knowledge_password_authentication == -1)
+		options->zero_knowledge_password_authentication = 0;
 	/* options->local_command should not be set by default */
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
