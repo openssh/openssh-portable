@@ -26,6 +26,16 @@
      compiled-time disabled (turn on -DJPAKE in Makefile.inc).
      
      "just commit it.  It isn't too intrusive." deraadt@
+   - stevesk@cvs.openbsd.org 2008/11/04 19:18:00
+     [readconf.c]
+     because parse_forward() is now used to parse all forward types (DLR),
+     and it malloc's space for host variables, we don't need to malloc
+     here.  fixes small memory leaks.
+     
+     previously dynamic forwards were not parsed in parse_forward() and
+     space was not malloc'd in that case.
+     
+     ok djm@
 
 20081103
  - OpenBSD CVS Sync
@@ -4876,4 +4886,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5130 2008/11/05 05:20:46 djm Exp $
+$Id: ChangeLog,v 1.5131 2008/11/05 05:30:06 djm Exp $

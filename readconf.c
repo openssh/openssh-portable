@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.171 2008/11/04 08:22:13 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.172 2008/11/04 19:18:00 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -256,10 +256,9 @@ add_local_forward(Options *options, const Forward *newfwd)
 		fatal("Too many local forwards (max %d).", SSH_MAX_FORWARDS_PER_DIRECTION);
 	fwd = &options->local_forwards[options->num_local_forwards++];
 
-	fwd->listen_host = (newfwd->listen_host == NULL) ?
-	    NULL : xstrdup(newfwd->listen_host);
+	fwd->listen_host = newfwd->listen_host;
 	fwd->listen_port = newfwd->listen_port;
-	fwd->connect_host = xstrdup(newfwd->connect_host);
+	fwd->connect_host = newfwd->connect_host;
 	fwd->connect_port = newfwd->connect_port;
 }
 
@@ -277,10 +276,9 @@ add_remote_forward(Options *options, const Forward *newfwd)
 		    SSH_MAX_FORWARDS_PER_DIRECTION);
 	fwd = &options->remote_forwards[options->num_remote_forwards++];
 
-	fwd->listen_host = (newfwd->listen_host == NULL) ?
-	    NULL : xstrdup(newfwd->listen_host);
+	fwd->listen_host = newfwd->listen_host;
 	fwd->listen_port = newfwd->listen_port;
-	fwd->connect_host = xstrdup(newfwd->connect_host);
+	fwd->connect_host = newfwd->connect_host;
 	fwd->connect_port = newfwd->connect_port;
 }
 
