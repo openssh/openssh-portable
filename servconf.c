@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.188 2008/10/09 03:50:54 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.189 2008/11/03 08:59:41 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1553,6 +1553,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sKeyRegenerationTime, o->key_regeneration_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
 	dump_cfg_int(sMaxAuthTries, o->max_authtries);
+	dump_cfg_int(sMaxSessions, o->max_sessions);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
 
