@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.278 2008/10/08 23:34:03 djm Exp $
-.Dd $Mdocdate: October 8 2008 $
+.\" $OpenBSD: ssh.1,v 1.279 2008/11/05 03:23:09 stevesk Exp $
+.Dd $Mdocdate: November 5 2008 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -898,9 +898,10 @@ Send a BREAK to the remote system
 .It Cm ~C
 Open command line.
 Currently this allows the addition of port forwardings using the
-.Fl L
-and
+.Fl L ,
 .Fl R
+and
+.Fl D
 options (see above).
 It also allows the cancellation of existing remote port-forwardings
 using

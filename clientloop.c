@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.203 2008/11/01 17:40:33 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.204 2008/11/05 03:23:09 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -764,7 +764,7 @@ process_cmdline(void)
 	void (*handler)(int);
 	char *s, *cmd, *cancel_host;
 	int delete = 0;
-	int local = 0;
+	int local = 0, remote = 0, dynamic = 0;
 	u_short cancel_port;
 	Forward fwd;
 
@@ -789,6 +789,8 @@ process_cmdline(void)
 		    "Request local forward");
 		logit("      -R[bind_address:]port:host:hostport    "
 		    "Request remote forward");
+		logit("      -D[bind_address:]port                  "
+		    "Request dynamic forward");
 		logit("      -KR[bind_address:]port                 "
 		    "Cancel remote forward");
 		if (!options.permit_local_command)
@@ -808,17 +810,22 @@ process_cmdline(void)
 		delete = 1;
 		s++;
 	}
-	if (*s != 'L' && *s != 'R') {
+	if (*s == 'L')
+		local = 1;
+	else if (*s == 'R')
+		remote = 1;
+	else if (*s == 'D')
+		dynamic = 1;
+	else {
 		logit("Invalid command.");
 		goto out;
 	}
-	if (*s == 'L')
-		local = 1;
-	if (local && delete) {
+
+	if ((local || dynamic) && delete) {
 		logit("Not supported.");
 		goto out;
 	}
-	if ((!local || delete) && !compat20) {
+	if (remote && delete && !compat20) {
 		logit("Not supported for SSH protocol version 1.");
 		goto out;
 	}
@@ -842,11 +849,11 @@ process_cmdline(void)
 		}
 		channel_request_rforward_cancel(cancel_host, cancel_port);
 	} else {
-		if (!parse_forward(&fwd, s, 0)) {
+		if (!parse_forward(&fwd, s, dynamic ? 1 : 0)) {
 			logit("Bad forwarding specification.");
 			goto out;
 		}
-		if (local) {
+		if (local || dynamic) {
 			if (channel_setup_local_fwd_listener(fwd.listen_host,
 			    fwd.listen_port, fwd.connect_host,
 			    fwd.connect_port, options.gateway_ports) < 0) {
