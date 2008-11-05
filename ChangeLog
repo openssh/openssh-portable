@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2008/11/03 08:59:41
      [servconf.c]
      include MaxSessions in sshd -T output; patch from imorgan AT nas.nasa.gov
+   - djm@cvs.openbsd.org 2008/11/04 07:58:09
+     [auth.c]
+     need unistd.h for close() prototype
+     (ID sync only)
 
 20081103
  - OpenBSD CVS Sync
@@ -4853,4 +4857,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5128 2008/11/05 05:12:11 djm Exp $
+$Id: ChangeLog,v 1.5129 2008/11/05 05:12:54 djm Exp $
