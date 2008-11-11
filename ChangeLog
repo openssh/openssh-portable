@@ -10,6 +10,9 @@
    - stevesk@cvs.openbsd.org 2008/11/07 18:50:18
      [nchan.c]
      add space to some log/debug messages for readability; ok djm@ markus@
+   - dtucker@cvs.openbsd.org 2008/11/07 23:34:48
+     [auth2-jpake.c]
+     Move JPAKE define to make life easier for portable.  ok djm@
 
 20081105
  - OpenBSD CVS Sync
@@ -4902,4 +4905,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5135 2008/11/11 05:32:25 dtucker Exp $
+$Id: ChangeLog,v 1.5136 2008/11/11 05:33:03 dtucker Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-jpake.c,v 1.1 2008/11/04 08:22:12 djm Exp $ */
+/* $OpenBSD: auth2-jpake.c,v 1.2 2008/11/07 23:34:48 dtucker Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -24,6 +24,8 @@
  *
  * http://grouper.ieee.org/groups/1363/Research/contributions/hao-ryan-2008.pdf
  */
+
+#ifdef JPAKE
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -54,8 +56,6 @@
 #include "monitor_wrap.h"
 
 #include "jpake.h"
-
-#ifdef JPAKE
 
 /*
  * XXX options->permit_empty_passwd (at the moment, they will be refused
