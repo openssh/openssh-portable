@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.243 2008/10/02 14:39:35 millert Exp $ */
+/* $OpenBSD: session.c,v 1.244 2008/11/09 12:34:47 tobias Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -932,7 +932,7 @@ check_quietlogin(Session *s, const char *command)
 
 /*
  * Sets the value of the given variable in the environment.  If the variable
- * already exists, its value is overriden.
+ * already exists, its value is overridden.
  */
 void
 child_set_env(char ***envp, u_int *envsizep, const char *name,
