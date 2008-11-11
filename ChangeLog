@@ -1,3 +1,10 @@
+20081111
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2008/11/05 11:22:54
+     [servconf.c]
+     passord -> password;
+     fixes user/5975 from Rene Maroufi
+
 20081105
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2008/11/03 08:59:41
@@ -4889,4 +4896,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5132 2008/11/05 05:30:31 djm Exp $
+$Id: ChangeLog,v 1.5133 2008/11/11 05:31:05 dtucker Exp $

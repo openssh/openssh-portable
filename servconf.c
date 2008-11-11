@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.190 2008/11/04 08:22:13 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.191 2008/11/05 11:22:54 jmc Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1454,7 +1454,7 @@ fmt_intarg(ServerOpCodes code, int val)
 	if (code == sPermitRootLogin) {
 		switch (val) {
 		case PERMIT_NO_PASSWD:
-			return "without-passord";
+			return "without-password";
 		case PERMIT_FORCED_ONLY:
 			return "forced-commands-only";
 		case PERMIT_YES:
