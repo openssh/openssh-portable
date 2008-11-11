@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.171 2008/07/13 21:22:52 sthen Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.172 2008/11/07 00:42:12 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1426,7 +1426,7 @@ passphrase_again:
 	if (identity_comment) {
 		strlcpy(comment, identity_comment, sizeof(comment));
 	} else {
-		/* Create default commend field for the passphrase. */
+		/* Create default comment field for the passphrase. */
 		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name, hostname);
 	}
 
