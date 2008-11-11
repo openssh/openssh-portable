@@ -26,6 +26,9 @@
      [channels.c]
      for sshd -T print 'permitopen any' vs. 'permitopen' for case of no
      permitopen's; ok and input dtucker@
+   - djm@cvs.openbsd.org 2008/11/10 02:06:35
+     [regress/putty-ciphers.sh]
+     PuTTY supports AES CTR modes, so interop test against them too
 
 20081105
  - OpenBSD CVS Sync
@@ -4918,4 +4921,4 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5139 2008/11/11 05:40:22 dtucker Exp $
+$Id: ChangeLog,v 1.5140 2008/11/11 05:55:25 dtucker Exp $
