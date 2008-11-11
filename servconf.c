@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.191 2008/11/05 11:22:54 jmc Exp $ */
+/* $OpenBSD: servconf.c,v 1.192 2008/11/11 02:58:09 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
