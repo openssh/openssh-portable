@@ -4921,4 +4921,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5140 2008/11/11 05:55:25 dtucker Exp $
+$Id: ChangeLog,v 1.5141 2008/11/19 00:54:24 djm Exp $
+
