@@ -1,3 +1,8 @@
+20081118
+ - (tim) [addrmatch.c configure.ac] Some platforms do not have sin6_scope_id
+   member of sockaddr_in6. Also reported in Bug 1491 by David Leonard. OK and
+   feedback by djm@
+
 20081111
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2008/11/05 11:22:54
@@ -4921,5 +4926,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5141 2008/11/19 00:54:24 djm Exp $
+$Id: ChangeLog,v 1.5142 2008/11/19 05:26:41 tim Exp $
 

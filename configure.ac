@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.409 2008/07/09 11:07:19 djm Exp $
+# $Id: configure.ac,v 1.410 2008/11/19 05:26:42 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.409 $)
+AC_REVISION($Revision: 1.410 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2824,6 +2824,15 @@ AC_CACHE_CHECK([for struct in6_addr], ac_cv_have_struct_in6_addr, [
 if test "x$ac_cv_have_struct_in6_addr" = "xyes" ; then
 	AC_DEFINE(HAVE_STRUCT_IN6_ADDR, 1,
 		[define if you have struct in6_addr data type])
+
+dnl Now check for sin6_scope_id
+	AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_scope_id],,,
+		[
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#include <netinet/in.h>
+		])
 fi
 
 AC_CACHE_CHECK([for struct addrinfo], ac_cv_have_struct_addrinfo, [

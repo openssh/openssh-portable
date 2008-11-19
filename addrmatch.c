@@ -97,7 +97,9 @@ addr_sa_to_xaddr(struct sockaddr *sa, socklen_t slen, struct xaddr *xa)
 			return -1;
 		xa->af = AF_INET6;
 		memcpy(&xa->v6, &in6->sin6_addr, sizeof(xa->v6));
+#ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_SCOPE_ID
 		xa->scope_id = in6->sin6_scope_id;
+#endif
 		break;
 	default:
 		return -1;
