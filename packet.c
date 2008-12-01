@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.157 2008/07/10 18:08:11 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.158 2008/11/21 15:47:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1152,7 +1152,8 @@ packet_read_poll2(u_int32_t *seqnr_p)
 #ifdef PACKET_DEBUG
 			buffer_dump(&incoming_packet);
 #endif
-			packet_disconnect("Bad packet length %u.", packet_length);
+			packet_disconnect("Bad packet length %-10u",
+			    packet_length);
 		}
 		DBG(debug("input: packet len %u", packet_length+4));
 		buffer_consume(&input, block_size);
@@ -1161,9 +1162,11 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	need = 4 + packet_length - block_size;
 	DBG(debug("partial packet %d, need %d, maclen %d", block_size,
 	    need, maclen));
-	if (need % block_size != 0)
-		fatal("padding error: need %d block %d mod %d",
+	if (need % block_size != 0) {
+		logit("padding error: need %d block %d mod %d",
 		    need, block_size, need % block_size);
+		packet_disconnect("Bad packet length %-10u", packet_length);
+	}
 	/*
 	 * check if the entire packet has been received and
 	 * decrypt into incoming_packet

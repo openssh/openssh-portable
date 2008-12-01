@@ -2,6 +2,12 @@
  - (dtucker) [contrib/cygwin/{Makefile,ssh-host-config}]  Add new doc files
    and tweak the is-sshd-running check in ssh-host-config.  Patch from
    vinschen at redhat com.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2008/11/21 15:47:38
+     [packet.c]
+     packet_disconnect() on padding error, too.  should reduce the success
+     probability for the CPNI-957037 Plaintext Recovery Attack to 2^-18
+     ok djm@
 
 20081123
  - (dtucker) [monitor_fdpass.c] Reduce diff vs OpenBSD by moving some
@@ -4936,5 +4942,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5145 2008/12/01 10:34:28 dtucker Exp $
+$Id: ChangeLog,v 1.5146 2008/12/01 10:40:48 dtucker Exp $
 
