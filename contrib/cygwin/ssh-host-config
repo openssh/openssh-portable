@@ -456,7 +456,7 @@ done
 
 # Check for running ssh/sshd processes first. Refuse to do anything while
 # some ssh processes are still running
-if ps -ef | grep -v grep | grep -q ssh
+if ps -ef | grep -q '/sshd\?$'
 then
   echo
   csih_error "There are still ssh processes running. Please shut them down first."
