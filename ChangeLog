@@ -8,6 +8,9 @@
      packet_disconnect() on padding error, too.  should reduce the success
      probability for the CPNI-957037 Plaintext Recovery Attack to 2^-18
      ok djm@
+   - dtucker@cvs.openbsd.org 2008/11/30 11:59:26
+     [monitor_fdpass.c]
+     Retry sendmsg/recvmsg on EAGAIN and EINTR; ok djm@
 
 20081123
  - (dtucker) [monitor_fdpass.c] Reduce diff vs OpenBSD by moving some
@@ -4942,5 +4945,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5146 2008/12/01 10:40:48 dtucker Exp $
+$Id: ChangeLog,v 1.5147 2008/12/01 10:42:13 dtucker Exp $
 
