@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.153 2008/06/30 12:15:39 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.154 2008/12/02 19:08:59 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1202,9 +1202,9 @@ server_init_dispatch_20(void)
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &server_input_channel_req);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
 	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &server_input_global_request);
-	dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &channel_input_status_confirm);
-	dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &channel_input_status_confirm);
 	/* client_alive */
+	dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &server_input_keep_alive);
+	dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &server_input_keep_alive);
 	dispatch_set(SSH2_MSG_REQUEST_SUCCESS, &server_input_keep_alive);
 	dispatch_set(SSH2_MSG_REQUEST_FAILURE, &server_input_keep_alive);
 	/* rekeying */

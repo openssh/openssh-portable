@@ -9,6 +9,10 @@
      SSH2_MSG_CHANNEL_SUCCESS/SSH2_MSG_CHANNEL_FAILURE messages,
      otherwise we trigger 'Non-public channel' error messages on sshd
      systems with clientkeepalive enabled; noticed by sturm; ok djm;
+   - markus@cvs.openbsd.org 2008/12/02 19:08:59
+     [serverloop.c]
+     backout 1.149, since it's not necessary and openssh clients send
+     broken CHANNEL_FAILURE/SUCCESS messages since about 2004; ok djm@
 
 20081201
  - (dtucker) [contrib/cygwin/{Makefile,ssh-host-config}]  Add new doc files
@@ -4957,5 +4961,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5149 2008/12/07 22:54:40 djm Exp $
+$Id: ChangeLog,v 1.5150 2008/12/07 22:55:02 djm Exp $
 
