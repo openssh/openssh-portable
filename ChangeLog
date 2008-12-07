@@ -13,6 +13,9 @@
      [serverloop.c]
      backout 1.149, since it's not necessary and openssh clients send
      broken CHANNEL_FAILURE/SUCCESS messages since about 2004; ok djm@
+   - markus@cvs.openbsd.org 2008/12/02 19:09:38
+     [channels.c]
+     s/remote_id/id/ to be more consistent with other code; ok djm@
 
 20081201
  - (dtucker) [contrib/cygwin/{Makefile,ssh-host-config}]  Add new doc files
@@ -4961,5 +4964,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5150 2008/12/07 22:55:02 djm Exp $
+$Id: ChangeLog,v 1.5151 2008/12/07 22:55:25 djm Exp $
 

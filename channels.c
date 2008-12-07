@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.288 2008/11/11 03:55:11 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.289 2008/12/02 19:09:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2377,18 +2377,18 @@ channel_input_status_confirm(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c;
 	struct channel_confirm *cc;
-	int remote_id;
+	int id;
 
 	/* Reset keepalive timeout */
 	keep_alive_timeouts = 0;
 
-	remote_id = packet_get_int();
+	id = packet_get_int();
 	packet_check_eom();
 
-	debug2("channel_input_status_confirm: type %d id %d", type, remote_id);
+	debug2("channel_input_status_confirm: type %d id %d", type, id);
 
-	if ((c = channel_lookup(remote_id)) == NULL) {
-		logit("channel_input_status_confirm: %d: unknown", remote_id);
+	if ((c = channel_lookup(id)) == NULL) {
+		logit("channel_input_status_confirm: %d: unknown", id);
 		return;
 	}	
 	;
