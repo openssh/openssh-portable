@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.410 2008/11/19 05:26:42 tim Exp $
+# $Id: configure.ac,v 1.411 2008/12/07 22:35:36 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.410 $)
+AC_REVISION($Revision: 1.411 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -126,7 +126,7 @@ int main(void){char b[10]; memset(b, 0, sizeof(b));}
 
 	# -fstack-protector-all doesn't always work for some GCC versions
 	# and/or platforms, so we test if we can.  If it's not supported
-	# on a give platform gcc will emit a warning so we use -Werror.
+	# on a given platform gcc will emit a warning so we use -Werror.
 	if test "x$use_stack_protector" = "x1"; then
 	    for t in -fstack-protector-all -fstack-protector; do
 		AC_MSG_CHECKING(if $CC supports $t)
@@ -136,8 +136,8 @@ int main(void){char b[10]; memset(b, 0, sizeof(b));}
 		LDFLAGS="$LDFLAGS $t -Werror"
 		AC_LINK_IFELSE(
 			[AC_LANG_SOURCE([
-#include <stdlib.h>
-int main(void){return 0;}
+#include <stdio.h>
+int main(void){char x[[256]]; snprintf(x, sizeof(x), "XXX"); return 0;}
 			 ])],
 		    [ AC_MSG_RESULT(yes)
 		      CFLAGS="$saved_CFLAGS $t"
@@ -145,8 +145,8 @@ int main(void){return 0;}
 		      AC_MSG_CHECKING(if $t works)
 		      AC_RUN_IFELSE(
 			[AC_LANG_SOURCE([
-#include <stdlib.h>
-int main(void){exit(0);}
+#include <stdio.h>
+int main(void){char x[[256]]; snprintf(x, sizeof(x), "XXX"); return 0;}
 			])],
 			[ AC_MSG_RESULT(yes)
 			  break ],
