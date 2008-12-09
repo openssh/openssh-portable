@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.172 2008/11/04 19:18:00 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.173 2008/12/09 02:58:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1293,9 +1293,13 @@ parse_forward(Forward *fwd, const char *fwdspec, int dynamicfwd)
 	return (i);
 
  fail_free:
-	if (fwd->connect_host != NULL)
+	if (fwd->connect_host != NULL) {
 		xfree(fwd->connect_host);
-	if (fwd->listen_host != NULL)
+		fwd->connect_host = NULL;
+	}
+	if (fwd->listen_host != NULL) {
 		xfree(fwd->listen_host);
+		fwd->listen_host = NULL;
+	}
 	return (0);
 }
