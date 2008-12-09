@@ -1,3 +1,13 @@
+20081209
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2008/12/09 02:38:18
+     [clientloop.c]
+     The ~C escape handler does not work correctly for multiplexed sessions -
+     it opens a commandline on the master session, instead of on the slave
+     that requested it. Disable it on slave sessions until such time as it
+     is fixed; bz#1543 report from Adrian Bridgett via Colin Watson
+     ok markus@
+
 20081208
  - (djm) [configure.ac] bz#1538: better test for ProPolice/SSP: actually
    use some stack in main().
@@ -4964,5 +4974,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5151 2008/12/07 22:55:25 djm Exp $
+$Id: ChangeLog,v 1.5152 2008/12/09 03:11:32 djm Exp $
 
