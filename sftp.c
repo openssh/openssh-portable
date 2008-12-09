@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.104 2008/12/09 02:39:59 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.105 2008/12/09 03:04:39 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1670,8 +1670,8 @@ usage(void)
 	    "usage: %s [-1Cv] [-B buffer_size] [-b batchfile] [-F ssh_config]\n"
 	    "            [-o ssh_option] [-P sftp_server_path] [-R num_requests]\n"
 	    "            [-S program] [-s subsystem | sftp_server] host\n"
-	    "       %s [[user@]host[:file [file]]]\n"
-	    "       %s [[user@]host[:dir[/]]]\n"
+	    "       %s [user@]host[:file ...]\n"
+	    "       %s [user@]host[:dir[/]]\n"
 	    "       %s -b batchfile [user@]host\n", __progname, __progname, __progname, __progname);
 	exit(1);
 }

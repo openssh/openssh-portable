@@ -18,6 +18,10 @@
      failure; avoids double-free in ~C -L handler when given an invalid
      forwarding specification; bz#1539 report from adejong AT debian.org
      via Colin Watson; ok markus@ dtucker@
+   - djm@cvs.openbsd.org 2008/12/09 03:02:37
+     [sftp.1 sftp.c]
+     correct sftp(1) and corresponding usage syntax;
+     bz#1518 patch from imorgan AT nas.nasa.gov; ok deraadt@ improved diff jmc@
 
 20081208
  - (djm) [configure.ac] bz#1538: better test for ProPolice/SSP: actually
@@ -4985,5 +4989,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5154 2008/12/09 03:12:05 djm Exp $
+$Id: ChangeLog,v 1.5155 2008/12/09 03:12:33 djm Exp $
 
