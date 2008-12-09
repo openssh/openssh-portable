@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.103 2008/07/13 22:16:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.104 2008/12/09 02:39:59 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1386,17 +1386,19 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!(aa = do_stat(conn, g.gl_pathv[i], 0))) {
-				if (err != 0 && err_abort)
+				if (err_abort) {
+					err = -1;
 					break;
-				else
+				} else
 					continue;
 			}
 			if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 				error("Can't get current ownership of "
 				    "remote file \"%s\"", g.gl_pathv[i]);
-				if (err != 0 && err_abort)
+				if (err_abort) {
+					err = -1;
 					break;
-				else
+				} else
 					continue;
 			}
 			aa->flags &= SSH2_FILEXFER_ATTR_UIDGID;
