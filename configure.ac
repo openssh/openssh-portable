@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.411 2008/12/07 22:35:36 djm Exp $
+# $Id: configure.ac,v 1.412 2009/01/07 18:04:12 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.411 $)
+AC_REVISION($Revision: 1.412 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -741,6 +741,11 @@ mips-sony-bsd|mips-sony-newsos4)
 		AC_DEFINE(BROKEN_LIBIAF, 1,
 			[ia_uinfo routines not supported by OS yet])
 		AC_DEFINE(BROKEN_UPDWTMPX)
+		AC_CHECK_LIB(prot, getluid,[ LIBS="$LIBS -lprot"
+			AC_CHECK_FUNCS(getluid setluid,,,-lprot)
+			AC_DEFINE(HAVE_SECUREWARE)
+			AC_DEFINE(DISABLE_SHADOW)
+			],,)
 		;;
 	*)	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 		;;
