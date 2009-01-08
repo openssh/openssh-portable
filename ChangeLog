@@ -2,6 +2,8 @@
  - (tim) [configure.ac defines.h openbsd-compat/port-uw.c
    openbsd-compat/xcrypt.c] Add SECUREWARE support to OpenServer 6 SVR5 ABI.
    OK djm@ dtucker@
+ - (tim) [configure.ac] Move check_for_libcrypt_later=1 in *-*-sysv5*) section.
+   OpenServer 6 doesn't need libcrypt.
 
 20081209
  - (djm) OpenBSD CVS Sync
@@ -4994,5 +4996,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5156 2009/01/07 18:04:12 tim Exp $
+$Id: ChangeLog,v 1.5157 2009/01/08 04:50:08 tim Exp $
 

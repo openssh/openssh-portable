@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.412 2009/01/07 18:04:12 tim Exp $
+# $Id: configure.ac,v 1.413 2009/01/08 04:50:09 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.412 $)
+AC_REVISION($Revision: 1.413 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -728,7 +728,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
-	check_for_libcrypt_later=1
 	AC_DEFINE(UNIXWARE_LONG_PASSWORDS, 1, [Support passwords > 8 chars])
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
@@ -748,6 +747,7 @@ mips-sony-bsd|mips-sony-newsos4)
 			],,)
 		;;
 	*)	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
+		check_for_libcrypt_later=1
 		;;
 	esac
 	;;
