@@ -4,6 +4,9 @@
  - (djm) [channels.c] bz#1419: support "on demand" X11 forwarding via
    launchd on OS X; patch from vgiffin AT apple.com, slightly tweaked;
    ok dtucker@
+ - (djm) [contrib/ssh-copy-id.1 contrib/ssh-copy-id] bz#1492: Make
+   ssh-copy-id copy id_rsa.pub by default (instead of the legacy "identity"
+   key). Patch from cjwatson AT debian.org
 
 20090107
  - (tim) [configure.ac defines.h openbsd-compat/port-uw.c
@@ -5003,5 +5006,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5159 2009/01/21 05:46:26 djm Exp $
+$Id: ChangeLog,v 1.5160 2009/01/21 09:29:20 djm Exp $
 
