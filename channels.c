@@ -3078,7 +3078,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 }
 
 static int
-connect_local_xsocket(u_int dnr)
+connect_local_xsocket_path(const char *pathname)
 {
 	int sock;
 	struct sockaddr_un addr;
@@ -3088,12 +3088,20 @@ connect_local_xsocket(u_int dnr)
 		error("socket: %.100s", strerror(errno));
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	snprintf(addr.sun_path, sizeof addr.sun_path, _PATH_UNIX_X, dnr);
+	strlcpy(addr.sun_path, pathname, sizeof addr.sun_path);
 	if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
 		return sock;
 	close(sock);
 	error("connect %.100s: %.100s", addr.sun_path, strerror(errno));
 	return -1;
+}
+
+static int
+connect_local_xsocket(u_int dnr)
+{
+	char buf[1024];
+	snprintf(buf, sizeof buf, _PATH_UNIX_X, dnr);
+	return connect_local_xsocket_path(buf);
 }
 
 int
@@ -3117,6 +3125,17 @@ x11_connect_display(void)
 	 * connection to the real X server.
 	 */
 
+	/* Check if the display is from launchd. */
+#ifdef __APPLE__
+	if (strncmp(display, "/tmp/launch", 11) == 0) {
+		sock = connect_local_xsocket_path(display);
+		if (sock < 0)
+			return -1;
+
+		/* OK, we now have a connection to the display. */
+		return sock;
+	}
+#endif
 	/*
 	 * Check if it is a unix domain socket.  Unix domain displays are in
 	 * one of the following formats: unix:d[.s], :d[.s], ::d[.s]

@@ -1,6 +1,9 @@
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
    Patch based on one from vgiffin AT apple.com; ok dtucker@
+ - (djm) [channels.c] bz#1419: support "on demand" X11 forwarding via
+   launchd on OS X; patch from vgiffin AT apple.com, slightly tweaked;
+   ok dtucker@
 
 20090107
  - (tim) [configure.ac defines.h openbsd-compat/port-uw.c
@@ -5000,5 +5003,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5158 2009/01/21 05:04:24 djm Exp $
+$Id: ChangeLog,v 1.5159 2009/01/21 05:46:26 djm Exp $
 
