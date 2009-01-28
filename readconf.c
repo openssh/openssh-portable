@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.173 2008/12/09 02:58:16 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.174 2009/01/15 17:38:43 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -172,7 +172,7 @@ static struct {
 	{ "fallbacktorsh", oDeprecated },
 	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
-	{ "identityfile2", oIdentityFile },			/* alias */
+	{ "identityfile2", oIdentityFile },			/* obsolete */
 	{ "identitiesonly", oIdentitiesOnly },
 	{ "hostname", oHostName },
 	{ "hostkeyalias", oHostKeyAlias },
@@ -188,8 +188,8 @@ static struct {
 	{ "host", oHost },
 	{ "escapechar", oEscapeChar },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
-	{ "userknownhostsfile", oUserKnownHostsFile },		/* obsolete */
-	{ "globalknownhostsfile2", oGlobalKnownHostsFile2 },
+	{ "globalknownhostsfile2", oGlobalKnownHostsFile2 },	/* obsolete */
+	{ "userknownhostsfile", oUserKnownHostsFile },
 	{ "userknownhostsfile2", oUserKnownHostsFile2 },	/* obsolete */
 	{ "connectionattempts", oConnectionAttempts },
 	{ "batchmode", oBatchMode },

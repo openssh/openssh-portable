@@ -46,6 +46,13 @@
      [channels.c]
      support SOCKS4A protocol, from dwmw2 AT infradead.org via bz#1482;
      "looks ok" markus@
+   - stevesk@cvs.openbsd.org 2009/01/15 17:38:43
+     [readconf.c]
+     1) use obsolete instead of alias for consistency
+     2) oUserKnownHostsFile not obsolete but oGlobalKnownHostsFile2 is
+        so move the comment.
+     3) reorder so like options are together
+     ok djm@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5055,5 +5062,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5171 2009/01/28 05:24:41 djm Exp $
+$Id: ChangeLog,v 1.5172 2009/01/28 05:27:31 djm Exp $
 
