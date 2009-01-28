@@ -25,7 +25,7 @@ source ${CSIH_SCRIPT}
 port_number=22
 privsep_configured=no
 privsep_used=yes
-cygwin_value="ntsec"
+cygwin_value=""
 password_value=
 
 # ======================================================================
@@ -76,7 +76,7 @@ update_services_file() {
   fi
   _serv_tmp="${_my_etcdir}/srv.out.$$"
   
-  mount -t -f "${_win_etcdir}" "${_my_etcdir}"
+  mount -o text -f "${_win_etcdir}" "${_my_etcdir}"
   
   # Depends on the above mount
   _wservices=`cygpath -w "${_services}"`
@@ -278,8 +278,6 @@ install_service() {
       echo -e "${_csih_QUERY_STR} Do you want to install sshd as a service?"
       if csih_request "(Say \"no\" if it is already installed as a service)"
       then
-	csih_inform "Note that the CYGWIN variable must contain at least \"ntsec\""
-        csih_inform "for sshd to be able to change user context without password."
         csih_get_cygenv "${cygwin_value}"
 
         if ( csih_is_nt2003 || [ "$csih_FORCE_PRIVILEGED_USER" = "yes" ] )

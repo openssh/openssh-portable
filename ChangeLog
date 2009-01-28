@@ -1,3 +1,10 @@
+20090128
+ - (tim) [contrib/cygwin/ssh-host-config] Patch from Corinna Vinschen.
+   Changes to work on Cygwin 1.5.x as well as on the new Cygwin 1.7.x.
+   The information given for the setting of the CYGWIN environment variable
+   is wrong for both releases so I just removed it, together with the
+   unnecessary (Cygwin 1.5.x) or wrong (Cygwin 1.7.x) default setting.
+
 20081228
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2008/12/09 03:20:42
@@ -5095,5 +5102,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5179 2009/01/28 05:38:41 djm Exp $
+$Id: ChangeLog,v 1.5180 2009/01/28 20:50:04 tim Exp $
 
