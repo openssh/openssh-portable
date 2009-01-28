@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.292 2009/01/14 01:38:06 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.293 2009/01/22 09:46:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -296,6 +296,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	buffer_init(&c->input);
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
+	c->path = NULL;
 	c->ostate = CHAN_OUTPUT_OPEN;
 	c->istate = CHAN_INPUT_OPEN;
 	c->flags = 0;
@@ -401,6 +402,10 @@ channel_free(Channel *c)
 	if (c->remote_name) {
 		xfree(c->remote_name);
 		c->remote_name = NULL;
+	}
+	if (c->path) {
+		xfree(c->path);
+		c->path = NULL;
 	}
 	while ((cc = TAILQ_FIRST(&c->status_confirms)) != NULL) {
 		if (cc->abandon_cb != NULL)
@@ -1035,9 +1040,13 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	strlcpy(username, p, sizeof(username));
 	buffer_consume(&c->input, len);
 
+	if (c->path != NULL) {
+		xfree(c->path);
+		c->path = NULL;
+	}
 	if (need == 1) {			/* SOCKS4: one string */
 		host = inet_ntoa(s4_req.dest_addr);
-		strlcpy(c->path, host, sizeof(c->path));
+		c->path = xstrdup(host);
 	} else {				/* SOCKS4A: two strings */
 		have = buffer_len(&c->input);
 		p = buffer_ptr(&c->input);
@@ -1048,11 +1057,12 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 		if (len > have)
 			fatal("channel %d: decode socks4a: len %d > have %d",
 			    c->self, len, have);
-		if (strlcpy(c->path, p, sizeof(c->path)) >= sizeof(c->path)) {
+		if (len > NI_MAXHOST) {
 			error("channel %d: hostname \"%.100s\" too long",
 			    c->self, p);
 			return -1;
 		}
+		c->path = xstrdup(p);
 		buffer_consume(&c->input, len);
 	}
 	c->host_port = ntohs(s4_req.dest_port);
@@ -1093,7 +1103,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 		u_int8_t atyp;
 	} s5_req, s5_rsp;
 	u_int16_t dest_port;
-	u_char *p, dest_addr[255+1];
+	u_char *p, dest_addr[255+1], ntop[INET6_ADDRSTRLEN];
 	u_int have, need, i, found, nmethods, addrlen, af;
 
 	debug2("channel %d: decode socks5", c->self);
@@ -1166,10 +1176,22 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	buffer_get(&c->input, (char *)&dest_addr, addrlen);
 	buffer_get(&c->input, (char *)&dest_port, 2);
 	dest_addr[addrlen] = '\0';
-	if (s5_req.atyp == SSH_SOCKS5_DOMAIN)
-		strlcpy(c->path, (char *)dest_addr, sizeof(c->path));
-	else if (inet_ntop(af, dest_addr, c->path, sizeof(c->path)) == NULL)
-		return -1;
+	if (c->path != NULL) {
+		xfree(c->path);
+		c->path = NULL;
+	}
+	if (s5_req.atyp == SSH_SOCKS5_DOMAIN) {
+		if (addrlen > NI_MAXHOST - 1) {
+			error("channel %d: dynamic request: socks5 hostname "
+			    "\"%.100s\" too long", c->self, dest_addr);
+			return -1;
+		}
+		c->path = xstrdup(dest_addr);
+	} else {
+		if (inet_ntop(af, dest_addr, ntop, sizeof(ntop)) == NULL)
+			return -1;
+		c->path = xstrdup(ntop);
+	}
 	c->host_port = ntohs(dest_port);
 
 	debug2("channel %d: dynamic request: socks5 host %s port %u command %u",
@@ -1398,7 +1420,8 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		    c->local_window_max, c->local_maxpacket, 0, rtype, 1);
 		nc->listening_port = c->listening_port;
 		nc->host_port = c->host_port;
-		strlcpy(nc->path, c->path, sizeof(nc->path));
+		if (c->path != NULL)
+			nc->path = xstrdup(c->path);
 
 		if (nextstate == SSH_CHANNEL_DYNAMIC) {
 			/*
@@ -2454,7 +2477,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		error("No forward host name.");
 		return 0;
 	}
-	if (strlen(host) > SSH_CHANNEL_PATH_LEN - 1) {
+	if (strlen(host) > NI_MAXHOST) {
 		error("Forward host name too long.");
 		return 0;
 	}
@@ -2555,7 +2578,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		c = channel_new("port listener", type, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 		    0, "port listener", 1);
-		strlcpy(c->path, host, sizeof(c->path));
+		c->path = xstrdup(host);
 		c->host_port = port_to_connect;
 		c->listening_port = listen_port;
 		success = 1;
@@ -2577,8 +2600,7 @@ channel_cancel_rport_listener(const char *host, u_short port)
 		Channel *c = channels[i];
 
 		if (c != NULL && c->type == SSH_CHANNEL_RPORT_LISTENER &&
-		    strncmp(c->path, host, sizeof(c->path)) == 0 &&
-		    c->listening_port == port) {
+		    strcmp(c->path, host) == 0 && c->listening_port == port) {
 			debug2("%s: close channel %d", __func__, i);
 			channel_free(c);
 			found = 1;
