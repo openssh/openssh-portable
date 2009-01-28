@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.192 2008/11/11 02:58:09 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.193 2008/12/09 03:20:42 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1655,7 +1655,5 @@ dump_config(ServerOptions *o)
 		}
 	dump_cfg_string(sPermitTunnel, s);
 
-	printf("permitopen");
 	channel_print_adm_permitted_opens();
-	printf("\n");
 }

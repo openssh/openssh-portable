@@ -1,3 +1,11 @@
+20081228
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2008/12/09 03:20:42
+     [channels.c servconf.c]
+     channel_print_adm_permitted_opens() should deal with all the printing
+     for that config option.  suggested by markus@; ok markus@ djm@
+     dtucker@
+
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
    Patch based on one from vgiffin AT apple.com; ok dtucker@
@@ -5006,5 +5014,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5160 2009/01/21 09:29:20 djm Exp $
+$Id: ChangeLog,v 1.5161 2009/01/28 05:13:04 djm Exp $
 
