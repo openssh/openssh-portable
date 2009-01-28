@@ -57,6 +57,10 @@
      [channels.c channels.h session.c]
      make Channel->path an allocated string, saving a few bytes here and
      there and fixing bz#1380 in the process; ok markus@
+   - djm@cvs.openbsd.org 2009/01/22 09:49:57
+     [channels.c]
+     oops! I committed the wrong version of the Channel->path diff,
+     it was missing some tweaks suggested by stevesk@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5066,5 +5070,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5173 2009/01/28 05:29:49 djm Exp $
+$Id: ChangeLog,v 1.5174 2009/01/28 05:30:33 djm Exp $
 

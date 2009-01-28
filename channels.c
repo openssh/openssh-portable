@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.293 2009/01/22 09:46:01 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.294 2009/01/22 09:49:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1181,7 +1181,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 		c->path = NULL;
 	}
 	if (s5_req.atyp == SSH_SOCKS5_DOMAIN) {
-		if (addrlen > NI_MAXHOST - 1) {
+		if (addrlen >= NI_MAXHOST) {
 			error("channel %d: dynamic request: socks5 hostname "
 			    "\"%.100s\" too long", c->self, dest_addr);
 			return -1;
@@ -2477,7 +2477,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		error("No forward host name.");
 		return 0;
 	}
-	if (strlen(host) > NI_MAXHOST) {
+	if (strlen(host) >= NI_MAXHOST) {
 		error("Forward host name too long.");
 		return 0;
 	}
