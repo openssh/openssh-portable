@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.206 2008/12/09 02:38:18 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.207 2008/12/09 22:37:33 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1728,7 +1728,7 @@ client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
 		return 0;
 
 	if (!compat20) {
-		error("Tunnel forwarding is not support for protocol 1");
+		error("Tunnel forwarding is not supported for protocol 1");
 		return -1;
 	}
 
