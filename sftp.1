@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.68 2008/12/09 03:02:37 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.69 2008/12/09 15:35:00 sobrado Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -48,7 +48,7 @@
 .Nm sftp
 .Oo Ar user Ns @ Oc Ns
 .Ar host Ns Oo : Ns Ar dir Ns
-.Oo Ar / Oc Oc
+.Op Ar / Oc
 .Nm sftp
 .Fl b Ar batchfile
 .Oo Ar user Ns @ Oc Ns Ar host
@@ -441,7 +441,7 @@ to
 Display the
 .Nm
 protocol version.
-.It Ic \&! Ar command
+.It Ic \&! Ns Ar command
 Execute
 .Ar command
 in local shell.
