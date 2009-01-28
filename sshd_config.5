@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.98 2008/11/04 08:22:13 djm Exp $
-.Dd $Mdocdate: November 4 2008 $
+.\" $OpenBSD: sshd_config.5,v 1.99 2008/12/30 00:46:56 okan Exp $
+.Dd $Mdocdate: December 30 2008 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -593,6 +593,7 @@ Only a subset of keywords may be used on the lines following a
 .Cm Match
 keyword.
 Available keywords are
+.Cm AllowAgentForwarding ,
 .Cm AllowTcpForwarding ,
 .Cm Banner ,
 .Cm ChrootDirectory ,
