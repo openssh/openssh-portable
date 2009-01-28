@@ -77,6 +77,9 @@
      [myproposal.h]
      prefer CTR modes and revised arcfour (i.e w/ discard) modes to CBC
      modes; ok markus@
+   - naddy@cvs.openbsd.org 2009/01/24 17:10:22
+     [ssh_config.5 sshd_config.5]
+     sync list of preferred ciphers; ok djm@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5086,5 +5089,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5177 2009/01/28 05:33:31 djm Exp $
+$Id: ChangeLog,v 1.5178 2009/01/28 05:34:00 djm Exp $
 
