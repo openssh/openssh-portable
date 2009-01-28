@@ -42,6 +42,10 @@
      values and not the sanity checked versions that we acutally use;
      bz#1540 reported by john.smith AT arrows.demon.co.uk
      ok markus@
+   - djm@cvs.openbsd.org 2009/01/14 01:38:06
+     [channels.c]
+     support SOCKS4A protocol, from dwmw2 AT infradead.org via bz#1482;
+     "looks ok" markus@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5051,5 +5055,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5170 2009/01/28 05:23:06 djm Exp $
+$Id: ChangeLog,v 1.5171 2009/01/28 05:24:41 djm Exp $
 

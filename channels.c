@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.291 2009/01/01 21:14:35 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.292 2009/01/14 01:38:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -980,7 +980,7 @@ static int
 channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char *p, *host;
-	u_int len, have, i, found;
+	u_int len, have, i, found, need;
 	char username[256];
 	struct {
 		u_int8_t version;
@@ -996,10 +996,20 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	if (have < len)
 		return 0;
 	p = buffer_ptr(&c->input);
+
+	need = 1;
+	/* SOCKS4A uses an invalid IP address 0.0.0.x */
+	if (p[4] == 0 && p[5] == 0 && p[6] == 0 && p[7] != 0) {
+		debug2("channel %d: socks4a request", c->self);
+		/* ... and needs an extra string (the hostname) */
+		need = 2;
+	}
+	/* Check for terminating NUL on the string(s) */
 	for (found = 0, i = len; i < have; i++) {
 		if (p[i] == '\0') {
-			found = 1;
-			break;
+			found++;
+			if (found == need)
+				break;
 		}
 		if (i > 1024) {
 			/* the peer is probably sending garbage */
@@ -1008,7 +1018,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 			return -1;
 		}
 	}
-	if (!found)
+	if (found < need)
 		return 0;
 	buffer_get(&c->input, (char *)&s4_req.version, 1);
 	buffer_get(&c->input, (char *)&s4_req.command, 1);
@@ -1018,23 +1028,41 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	p = buffer_ptr(&c->input);
 	len = strlen(p);
 	debug2("channel %d: decode socks4: user %s/%d", c->self, p, len);
+	len++;					/* trailing '\0' */
 	if (len > have)
 		fatal("channel %d: decode socks4: len %d > have %d",
 		    c->self, len, have);
 	strlcpy(username, p, sizeof(username));
 	buffer_consume(&c->input, len);
-	buffer_consume(&c->input, 1);		/* trailing '\0' */
 
-	host = inet_ntoa(s4_req.dest_addr);
-	strlcpy(c->path, host, sizeof(c->path));
+	if (need == 1) {			/* SOCKS4: one string */
+		host = inet_ntoa(s4_req.dest_addr);
+		strlcpy(c->path, host, sizeof(c->path));
+	} else {				/* SOCKS4A: two strings */
+		have = buffer_len(&c->input);
+		p = buffer_ptr(&c->input);
+		len = strlen(p);
+		debug2("channel %d: decode socks4a: host %s/%d",
+		    c->self, p, len);
+		len++;				/* trailing '\0' */
+		if (len > have)
+			fatal("channel %d: decode socks4a: len %d > have %d",
+			    c->self, len, have);
+		if (strlcpy(c->path, p, sizeof(c->path)) >= sizeof(c->path)) {
+			error("channel %d: hostname \"%.100s\" too long",
+			    c->self, p);
+			return -1;
+		}
+		buffer_consume(&c->input, len);
+	}
 	c->host_port = ntohs(s4_req.dest_port);
 
 	debug2("channel %d: dynamic request: socks4 host %s port %u command %u",
-	    c->self, host, c->host_port, s4_req.command);
+	    c->self, c->path, c->host_port, s4_req.command);
 
 	if (s4_req.command != 1) {
-		debug("channel %d: cannot handle: socks4 cn %d",
-		    c->self, s4_req.command);
+		debug("channel %d: cannot handle: %s cn %d",
+		    c->self, need == 1 ? "SOCKS4" : "SOCKS4A", s4_req.command);
 		return -1;
 	}
 	s4_rsp.version = 0;			/* vn: 0 for reply */
