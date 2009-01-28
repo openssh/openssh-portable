@@ -24,6 +24,9 @@
      [ssh-keyscan.1]
      fix example, default key type is rsa for 3+ years; from
      frederic.perrin@resel.fr
+   - stevesk@cvs.openbsd.org 2008/12/29 02:23:26
+     [pathnames.h]
+     no need to escape single quotes in comments
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5033,5 +5036,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5166 2009/01/28 05:18:03 djm Exp $
+$Id: ChangeLog,v 1.5167 2009/01/28 05:19:52 djm Exp $
 
