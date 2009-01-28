@@ -5,6 +5,9 @@
      channel_print_adm_permitted_opens() should deal with all the printing
      for that config option.  suggested by markus@; ok markus@ djm@
      dtucker@
+   - djm@cvs.openbsd.org 2008/12/09 04:32:22
+     [auth2-chall.c]
+     replace by-hand string building with xasprinf(); ok deraadt@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5014,5 +5017,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5161 2009/01/28 05:13:04 djm Exp $
+$Id: ChangeLog,v 1.5162 2009/01/28 05:13:39 djm Exp $
 
