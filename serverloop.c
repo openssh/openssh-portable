@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.154 2008/12/02 19:08:59 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.155 2009/01/22 10:02:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -942,7 +942,7 @@ server_request_direct_tcpip(void)
 {
 	Channel *c;
 	char *target, *originator;
-	int target_port, originator_port;
+	u_short target_port, originator_port;
 
 	target = packet_get_string(NULL);
 	target_port = packet_get_int();

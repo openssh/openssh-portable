@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.77 2008/11/01 11:14:36 sobrado Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.78 2009/01/22 10:02:34 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -748,7 +748,7 @@ main(int argc, char **argv)
 			break;
 		case 'p':
 			ssh_port = a2port(optarg);
-			if (ssh_port == 0) {
+			if (ssh_port <= 0) {
 				fprintf(stderr, "Bad port '%s'\n", optarg);
 				exit(1);
 			}

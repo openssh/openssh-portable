@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.322 2008/11/01 17:40:33 stevesk Exp $ */
+/* $OpenBSD: ssh.c,v 1.323 2009/01/22 10:02:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -443,7 +443,7 @@ main(int ac, char **av)
 			break;
 		case 'p':
 			options.port = a2port(optarg);
-			if (options.port == 0) {
+			if (options.port <= 0) {
 				fprintf(stderr, "Bad port '%s'\n", optarg);
 				exit(255);
 			}

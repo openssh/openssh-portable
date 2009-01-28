@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.69 2008/06/13 01:38:23 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.70 2009/01/22 10:02:34 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -221,23 +221,19 @@ pwcopy(struct passwd *pw)
 
 /*
  * Convert ASCII string to TCP/IP port number.
- * Port must be >0 and <=65535.
- * Return 0 if invalid.
+ * Port must be >=0 and <=65535.
+ * Return -1 if invalid.
  */
 int
 a2port(const char *s)
 {
-	long port;
-	char *endp;
+	long long port;
+	const char *errstr;
 
-	errno = 0;
-	port = strtol(s, &endp, 0);
-	if (s == endp || *endp != '\0' ||
-	    (errno == ERANGE && (port == LONG_MIN || port == LONG_MAX)) ||
-	    port <= 0 || port > 65535)
-		return 0;
-
-	return port;
+	port = strtonum(s, 0, 65535, &errstr);
+	if (errstr != NULL)
+		return -1;
+	return (int)port;
 }
 
 int
