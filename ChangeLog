@@ -20,6 +20,10 @@
    - stevesk@cvs.openbsd.org 2008/12/10 03:55:20
      [addrmatch.c]
      o cannot be NULL here but use xfree() to be consistent; ok djm@
+   - stevesk@cvs.openbsd.org 2008/12/29 01:12:36
+     [ssh-keyscan.1]
+     fix example, default key type is rsa for 3+ years; from
+     frederic.perrin@resel.fr
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5029,5 +5033,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5165 2009/01/28 05:16:00 djm Exp $
+$Id: ChangeLog,v 1.5166 2009/01/28 05:18:03 djm Exp $
 
