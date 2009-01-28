@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.290 2008/12/09 03:20:42 stevesk Exp $ */
+/* $OpenBSD: channels.c,v 1.291 2009/01/01 21:14:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2311,8 +2311,8 @@ channel_input_open_failure(int type, u_int32_t seq, void *ctxt)
 			xfree(lang);
 	}
 	packet_check_eom();
-	/* Free the channel.  This will also close the socket. */
-	channel_free(c);
+	/* Schedule the channel for cleanup/deletion. */
+	chan_mark_dead(c);
 }
 
 /* ARGSUSED */

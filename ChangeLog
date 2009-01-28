@@ -31,6 +31,11 @@
      [sshd_config.5]
      add AllowAgentForwarding to available Match keywords list
      ok djm
+   - djm@cvs.openbsd.org 2009/01/01 21:14:35
+     [channels.c]
+     call channel destroy callbacks on receipt of open failure messages.
+     fixes client hangs when connecting to a server that has MaxSessions=0
+     set spotted by imorgan AT nas.nasa.gov; ok markus@
 
 20090107
  - (djm) [uidswap.c] bz#1412: Support >16 supplemental groups in OS X.
@@ -5040,5 +5045,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5168 2009/01/28 05:20:17 djm Exp $
+$Id: ChangeLog,v 1.5169 2009/01/28 05:22:34 djm Exp $
 
