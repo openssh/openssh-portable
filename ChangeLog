@@ -3,6 +3,7 @@
    If the CYGWIN environment variable is empty, the installer script
    should not install the service with an empty CYGWIN variable, but
    rather without setting CYGWNI entirely.
+ - (tim) [contrib/cygwin/ssh-host-config] Whitespace cleanup. No code changes.
 
 20090128
  - (tim) [contrib/cygwin/ssh-host-config] Patch from Corinna Vinschen.
@@ -5108,5 +5109,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5181 2009/01/29 20:30:01 tim Exp $
+$Id: ChangeLog,v 1.5182 2009/01/29 20:40:30 tim Exp $
 
