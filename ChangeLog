@@ -1,3 +1,8 @@
+20090201
+ - (dtucker) [defines.h sshconnect.c] INET6_ADDRSTRLEN is now needed in
+   channels.c too, so move the definition for non-IP6 platforms to defines.h
+   where it can be shared.
+
 20090129
  - (tim) [contrib/cygwin/ssh-host-config] Patch from Corinna Vinschen.
    If the CYGWIN environment variable is empty, the installer script
@@ -5109,5 +5114,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5182 2009/01/29 20:40:30 tim Exp $
+$Id: ChangeLog,v 1.5183 2009/02/01 11:19:54 dtucker Exp $
 

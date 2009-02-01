@@ -70,10 +70,6 @@ extern uid_t original_real_uid;
 extern uid_t original_effective_uid;
 extern pid_t proxy_command_pid;
 
-#ifndef INET6_ADDRSTRLEN		/* for non IPv6 machines */
-#define INET6_ADDRSTRLEN 46
-#endif
-
 static int show_other_keys(const char *, Key *);
 static void warn_changed_key(Key *);
 

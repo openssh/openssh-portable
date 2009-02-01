@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.152 2009/01/07 18:04:12 tim Exp $ */
+/* $Id: defines.h,v 1.153 2009/02/01 11:19:54 dtucker Exp $ */
 
 
 /* Constants */
@@ -736,6 +736,10 @@ struct winsize {
 
 #ifndef EWOULDBLOCK
 # define EWOULDBLOCK EAGAIN
+#endif
+
+#ifndef INET6_ADDRSTRLEN	/* for non IPv6 machines */
+#define INET6_ADDRSTRLEN 46
 #endif
 
 #endif /* _DEFINES_H */
