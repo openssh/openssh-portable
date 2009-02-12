@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.413 2009/01/08 04:50:09 tim Exp $
+# $Id: configure.ac,v 1.414 2009/02/12 02:12:22 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.413 $)
+AC_REVISION($Revision: 1.414 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -477,6 +477,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_DECL(AU_IPv4, [], 
 	    AC_DEFINE(AU_IPv4, 0, [System only supports IPv4 audit records])
 	    [#include <bsm/audit.h>]
+	AC_DEFINE(LASTLOG_WRITE_PUTUTXLINE, 1,
+	    [Define if pututxline updates lastlog too])
 	)
 	;;
 *-*-dragonfly*)
@@ -1508,6 +1510,8 @@ AC_CHECK_FUNCS(utmpname)
 dnl    Checks for utmpx functions
 AC_CHECK_FUNCS(endutxent getutxent getutxid getutxline pututxline )
 AC_CHECK_FUNCS(setutxent utmpxname)
+dnl    Checks for lastlog functions
+AC_CHECK_FUNCS(getlastlogxbyname)
 
 AC_CHECK_FUNC(daemon,
 	[AC_DEFINE(HAVE_DAEMON, 1, [Define if your libraries define daemon()])],

@@ -1,6 +1,11 @@
-20090212
+20090205
  - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
    set ownership and modes, so avoid explicitly setting them
+ - (djm) [configure.ac loginrec.c] bz#1421: fix lastlog support for OSX.
+   OSX provides a getlastlogxbyname function that automates the reading of
+   a lastlog file. Also, the pututxline function will update lastlog so
+   there is no need for loginrec.c to do it explicitly. Collapse some
+   overly verbose code while I'm in there.
 
 20090201
  - (dtucker) [defines.h sshconnect.c] INET6_ADDRSTRLEN is now needed in
@@ -5118,5 +5123,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5184 2009/02/12 01:19:20 djm Exp $
+$Id: ChangeLog,v 1.5185 2009/02/12 02:12:21 djm Exp $
 
