@@ -1,3 +1,7 @@
+20090212
+ - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
+   set ownership and modes, so avoid explicitly setting them
+
 20090201
  - (dtucker) [defines.h sshconnect.c] INET6_ADDRSTRLEN is now needed in
    channels.c too, so move the definition for non-IP6 platforms to defines.h
@@ -5114,5 +5118,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5183 2009/02/01 11:19:54 dtucker Exp $
+$Id: ChangeLog,v 1.5184 2009/02/12 01:19:20 djm Exp $
 
