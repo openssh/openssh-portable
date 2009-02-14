@@ -33,6 +33,10 @@
    - markus@cvs.openbsd.org 2009/02/13 11:50:21
      [packet.c]
      check for enc !=NULL in packet_start_discard
+   - djm@cvs.openbsd.org 2009/02/14 06:35:49
+     [PROTOCOL]
+     mention that eow and no-more-sessions extensions are sent only to
+     OpenSSH peers
 
 20090212
  - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
@@ -5159,5 +5163,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5194 2009/02/14 05:35:01 djm Exp $
+$Id: ChangeLog,v 1.5195 2009/02/14 07:00:52 djm Exp $
 
