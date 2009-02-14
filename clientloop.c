@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.208 2009/01/22 10:02:34 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.209 2009/02/12 03:00:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -849,7 +849,7 @@ process_cmdline(void)
 		}
 		channel_request_rforward_cancel(cancel_host, cancel_port);
 	} else {
-		if (!parse_forward(&fwd, s, dynamic ? 1 : 0)) {
+		if (!parse_forward(&fwd, s, dynamic, remote)) {
 			logit("Bad forwarding specification.");
 			goto out;
 		}

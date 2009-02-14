@@ -4,6 +4,12 @@
      [sftp.c]
      Initialize a few variables to prevent spurious "may be used
      uninitialized" warnings from newer gcc's.  ok djm@
+   - djm@cvs.openbsd.org 2009/02/12 03:00:56
+     [canohost.c canohost.h channels.c channels.h clientloop.c readconf.c]
+     [readconf.h serverloop.c ssh.c]
+     support remote port forwarding with a zero listen port (-R0:...) to
+     dyamically allocate a listen port at runtime (this is actually
+     specified in rfc4254); bz#1003 ok markus@
 
 20090212
  - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
@@ -5130,5 +5136,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5186 2009/02/14 05:26:19 djm Exp $
+$Id: ChangeLog,v 1.5187 2009/02/14 05:28:21 djm Exp $
 

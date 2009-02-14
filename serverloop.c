@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.155 2009/01/22 10:02:34 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.156 2009/02/12 03:00:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1095,7 +1095,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 {
 	char *rtype;
 	int want_reply;
-	int success = 0;
+	int success = 0, allocated_listen_port = 0;
 
 	rtype = packet_get_string(NULL);
 	want_reply = packet_get_char();
@@ -1119,7 +1119,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		if (!options.allow_tcp_forwarding ||
 		    no_port_forwarding_flag
 #ifndef NO_IPPORT_RESERVED_CONCEPT
-		    || (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
+		    || (listen_port != 0 &&
+		    listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
 #endif
 		    ) {
 			success = 0;
@@ -1149,6 +1150,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 	if (want_reply) {
 		packet_start(success ?
 		    SSH2_MSG_REQUEST_SUCCESS : SSH2_MSG_REQUEST_FAILURE);
+		if (success && allocated_listen_port > 0)
+			packet_put_int(allocated_listen_port);
 		packet_send();
 		packet_write_wait();
 	}

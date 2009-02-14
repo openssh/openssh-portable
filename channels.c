@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.294 2009/01/22 09:49:57 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.295 2009/02/12 03:00:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2460,7 +2460,8 @@ channel_set_af(int af)
 }
 
 static int
-channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_port,
+channel_setup_fwd_listener(int type, const char *listen_addr,
+    u_short listen_port, int *allocated_listen_port,
     const char *host_to_connect, u_short port_to_connect, int gateway_ports)
 {
 	Channel *c;
@@ -2468,6 +2469,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 	struct addrinfo hints, *ai, *aitop;
 	const char *host, *addr;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	in_port_t *lport_p;
 
 	host = (type == SSH_CHANNEL_RPORT_LISTENER) ?
 	    listen_addr : host_to_connect;
@@ -2536,10 +2538,29 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		}
 		return 0;
 	}
-
+	if (allocated_listen_port != NULL)
+		*allocated_listen_port = 0;
 	for (ai = aitop; ai; ai = ai->ai_next) {
-		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+		switch (ai->ai_family) {
+		case AF_INET:
+			lport_p = &((struct sockaddr_in *)ai->ai_addr)->
+			    sin_port;
+			break;
+		case AF_INET6:
+			lport_p = &((struct sockaddr_in6 *)ai->ai_addr)->
+			    sin6_port;
+			break;
+		default:
 			continue;
+		}
+		/*
+		 * If allocating a port for -R forwards, then use the
+		 * same port for all address families.
+		 */
+		if (type == SSH_CHANNEL_RPORT_LISTENER && listen_port == 0 &&
+		    allocated_listen_port != NULL && *allocated_listen_port > 0)
+			*lport_p = htons(*allocated_listen_port);
+
 		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
 		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
 			error("channel_setup_fwd_listener: getnameinfo failed");
@@ -2555,7 +2576,8 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 
 		channel_set_reuseaddr(sock);
 
-		debug("Local forwarding listening on %s port %s.", ntop, strport);
+		debug("Local forwarding listening on %s port %s.",
+		    ntop, strport);
 
 		/* Bind the socket to the address. */
 		if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
@@ -2574,6 +2596,19 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 			close(sock);
 			continue;
 		}
+
+		/*
+		 * listen_port == 0 requests a dynamically allocated port -
+		 * record what we got.
+		 */
+		if (type == SSH_CHANNEL_RPORT_LISTENER && listen_port == 0 &&
+		    allocated_listen_port != NULL &&
+		    *allocated_listen_port == 0) {
+			*allocated_listen_port = get_sock_port(sock, 1);
+			debug("Allocated listen port %d",
+			    *allocated_listen_port);
+		}
+
 		/* Allocate a channel number for the socket. */
 		c = channel_new("port listener", type, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
@@ -2616,17 +2651,18 @@ channel_setup_local_fwd_listener(const char *listen_host, u_short listen_port,
     const char *host_to_connect, u_short port_to_connect, int gateway_ports)
 {
 	return channel_setup_fwd_listener(SSH_CHANNEL_PORT_LISTENER,
-	    listen_host, listen_port, host_to_connect, port_to_connect,
+	    listen_host, listen_port, NULL, host_to_connect, port_to_connect,
 	    gateway_ports);
 }
 
 /* protocol v2 remote port fwd, used by sshd */
 int
 channel_setup_remote_fwd_listener(const char *listen_address,
-    u_short listen_port, int gateway_ports)
+    u_short listen_port, int *allocated_listen_port, int gateway_ports)
 {
 	return channel_setup_fwd_listener(SSH_CHANNEL_RPORT_LISTENER,
-	    listen_address, listen_port, NULL, 0, gateway_ports);
+	    listen_address, listen_port, allocated_listen_port,
+	    NULL, 0, gateway_ports);
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.323 2009/01/22 10:02:34 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.324 2009/02/12 03:00:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -453,7 +453,7 @@ main(int ac, char **av)
 			break;
 
 		case 'L':
-			if (parse_forward(&fwd, optarg, 0))
+			if (parse_forward(&fwd, optarg, 0, 0))
 				add_local_forward(&options, &fwd);
 			else {
 				fprintf(stderr,
@@ -464,7 +464,7 @@ main(int ac, char **av)
 			break;
 
 		case 'R':
-			if (parse_forward(&fwd, optarg, 0)) {
+			if (parse_forward(&fwd, optarg, 0, 1)) {
 				add_remote_forward(&options, &fwd);
 			} else {
 				fprintf(stderr,
@@ -475,7 +475,7 @@ main(int ac, char **av)
 			break;
 
 		case 'D':
-			if (parse_forward(&fwd, optarg, 1)) {
+			if (parse_forward(&fwd, optarg, 1, 0)) {
 				add_local_forward(&options, &fwd);
 			} else {
 				fprintf(stderr,
@@ -837,9 +837,16 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 {
 	Forward *rfwd = (Forward *)ctxt;
 
+	/* XXX verbose() on failure? */
 	debug("remote forward %s for: listen %d, connect %s:%d",
 	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
 	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
+	if (type == SSH2_MSG_REQUEST_SUCCESS && rfwd->listen_port == 0) {
+		logit("Allocated port %u for remote forward to %s:%d",
+			packet_get_int(),
+			rfwd->connect_host, rfwd->connect_port);
+	}
+	
 	if (type == SSH2_MSG_REQUEST_FAILURE) {
 		if (options.exit_on_forward_failure)
 			fatal("Error: remote port forwarding failed for "
