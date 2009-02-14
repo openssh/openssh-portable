@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.280 2008/11/09 12:34:47 tobias Exp $
-.Dd $Mdocdate: November 9 2008 $
+.\" $OpenBSD: ssh.1,v 1.281 2009/02/12 03:42:09 djm Exp $
+.Dd $Mdocdate: February 12 2009 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -563,6 +563,13 @@ will only succeed if the server's
 .Cm GatewayPorts
 option is enabled (see
 .Xr sshd_config 5 ) .
+.Pp
+If the
+.Ar port
+argument is
+.Dq 0 ,
+the listen port will be dynamically allocated on the server and reported
+to the client at run time.
 .It Fl S Ar ctl_path
 Specifies the location of a control socket for connection sharing.
 Refer to the description of

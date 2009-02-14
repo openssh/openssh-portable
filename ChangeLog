@@ -18,6 +18,9 @@
      [monitor.c]
      some paranoia: check that the serialised key is really KEY_RSA before
      diddling its internals
+   - djm@cvs.openbsd.org 2009/02/12 03:42:09
+     [ssh.1]
+     document -R0:... usage
 
 20090212
  - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
@@ -5144,5 +5147,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5189 2009/02/14 05:33:31 djm Exp $
+$Id: ChangeLog,v 1.5190 2009/02/14 05:33:49 djm Exp $
 
