@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.156 2009/02/12 03:00:56 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.157 2009/02/12 03:16:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1117,10 +1117,10 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if (!options.allow_tcp_forwarding ||
-		    no_port_forwarding_flag
+		    no_port_forwarding_flag ||
+		    (!want_reply && listen_port == 0)
 #ifndef NO_IPPORT_RESERVED_CONCEPT
-		    || (listen_port != 0 &&
-		    listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
+		    || (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
 #endif
 		    ) {
 			success = 0;
@@ -1128,7 +1128,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		} else {
 			/* Start listening on the port */
 			success = channel_setup_remote_fwd_listener(
-			    listen_address, listen_port, options.gateway_ports);
+			    listen_address, listen_port,
+			    &allocated_listen_port, options.gateway_ports);
 		}
 		xfree(listen_address);
 	} else if (strcmp(rtype, "cancel-tcpip-forward") == 0) {

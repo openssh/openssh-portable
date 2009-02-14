@@ -10,6 +10,10 @@
      support remote port forwarding with a zero listen port (-R0:...) to
      dyamically allocate a listen port at runtime (this is actually
      specified in rfc4254); bz#1003 ok markus@
+   - djm@cvs.openbsd.org 2009/02/12 03:16:01
+     [serverloop.c]
+     tighten check for -R0:... forwarding: only allow dynamic allocation
+     if want_reply is set in the packet
 
 20090212
  - (djm) [sshpty.c] bz#1419: OSX uses cloning ptys that automagically
@@ -5136,5 +5140,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5187 2009/02/14 05:28:21 djm Exp $
+$Id: ChangeLog,v 1.5188 2009/02/14 05:33:09 djm Exp $
 
