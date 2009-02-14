@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.159 2009/01/26 09:58:15 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.160 2009/02/13 11:50:21 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -236,7 +236,7 @@ packet_stop_discard(void)
 static void
 packet_start_discard(Enc *enc, Mac *mac, u_int packet_length, u_int discard)
 {
-	if (!cipher_is_cbc(enc->cipher))
+	if (enc == NULL || !cipher_is_cbc(enc->cipher))
 		packet_disconnect("Packet corrupt");
 	if (packet_length != PACKET_MAX_SIZE && mac && mac->enabled)
 		packet_discard_mac = mac;
