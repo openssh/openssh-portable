@@ -3,6 +3,8 @@
    [regress/putty-kex.sh regress/putty-transfer.sh] Downgrade disabled
    interop tests from FATAL error to a warning. Allows some interop
    tests to proceed if others are missing necessary prerequisites.
+ - (djm) [configure.ac] support GNU/kFreeBSD and GNU/kOpensolaris
+   systems; patch from Aurelien Jarno via rmh AT aybabtu.com
 
 20090214
  - (djm) OpenBSD CVS Sync
@@ -5169,5 +5171,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5196 2009/02/16 04:21:39 djm Exp $
+$Id: ChangeLog,v 1.5197 2009/02/16 04:37:03 djm Exp $
 

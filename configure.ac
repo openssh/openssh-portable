@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.414 2009/02/12 02:12:22 djm Exp $
+# $Id: configure.ac,v 1.415 2009/02/16 04:37:03 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.414 $)
+AC_REVISION($Revision: 1.415 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -562,6 +562,14 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(BROKEN_UPDWTMPX, 1, [updwtmpx is broken (if present)])
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
+	;;
+*-*-k*bsd*-gnu | *-*-kopensolaris*-gnu)
+	check_for_libcrypt_later=1
+	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!")
+	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
+	AC_DEFINE(_PATH_BTMP, "/var/log/btmp", [log for bad login attempts])
+	AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
