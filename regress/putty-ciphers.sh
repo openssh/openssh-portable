@@ -7,7 +7,8 @@ DATA=/bin/ls
 COPY=${OBJ}/copy
 
 if test "x$REGRESS_INTEROP_PUTTY" != "xyes" ; then
-	fatal "putty interop tests not enabled"
+	echo "putty interop tests not enabled"
+	exit 0
 fi
 
 for c in aes blowfish 3des arcfour aes128-ctr aes192-ctr aes256-ctr ; do
