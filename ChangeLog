@@ -1,3 +1,10 @@
+20090222
+ - (djm) OpenBSD CVS Sync
+   - tobias@cvs.openbsd.org 2009/02/21 19:32:04
+     [misc.c sftp-server-main.c ssh-keygen.c]
+     Added missing newlines in error messages.
+     ok dtucker
+
 20090221
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2009/02/17 01:28:32
@@ -5183,5 +5190,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5200 2009/02/21 07:03:04 djm Exp $
+$Id: ChangeLog,v 1.5201 2009/02/21 21:47:02 djm Exp $
 
