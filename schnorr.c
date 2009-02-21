@@ -1,4 +1,4 @@
-/* $OpenBSD: schnorr.c,v 1.1 2008/11/04 08:22:13 djm Exp $ */
+/* $OpenBSD: schnorr.c,v 1.2 2009/02/18 04:31:21 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -81,8 +81,10 @@ schnorr_hash(const BIGNUM *p, const BIGNUM *q, const BIGNUM *g,
 	buffer_init(&b);
 	EVP_MD_CTX_init(&evp_md_ctx);
 
-	/* h = H(g || g^v || g^x || id) */
+	/* h = H(g || p || q || g^v || g^x || id) */
 	buffer_put_bignum2(&b, g);
+	buffer_put_bignum2(&b, p);
+	buffer_put_bignum2(&b, q);
 	buffer_put_bignum2(&b, g_v);
 	buffer_put_bignum2(&b, g_x);
 	buffer_put_string(&b, id, idlen);
