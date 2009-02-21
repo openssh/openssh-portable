@@ -1,3 +1,9 @@
+20090221
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2009/02/17 01:28:32
+     [ssh_config]
+     sync with revised default ciphers; pointed out by dkrause@
+
 20090216
  - (djm) [regress/conch-ciphers.sh regress/putty-ciphers.sh]
    [regress/putty-kex.sh regress/putty-transfer.sh] Downgrade disabled
@@ -5171,5 +5177,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5197 2009/02/16 04:37:03 djm Exp $
+$Id: ChangeLog,v 1.5198 2009/02/21 01:45:02 djm Exp $
 
