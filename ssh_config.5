@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.118 2009/02/12 07:34:20 jmc Exp $
-.Dd $Mdocdate: February 12 2009 $
+.\" $OpenBSD: ssh_config.5,v 1.119 2009/02/22 23:50:57 djm Exp $
+.Dd $Mdocdate: February 22 2009 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1086,17 +1086,6 @@ Specifies the full pathname of the
 program.
 The default is
 .Pa /usr/X11R6/bin/xauth .
-.It Cm ZeroKnowledgePasswordAuthentication
-Specifies whether to use zero knowledge password authentication.
-This authentication method avoids exposure of password to untrusted
-hosts.
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-The default is currently
-.Dq no
-as this method is considered experimental.
 .El
 .Sh PATTERNS
 A
