@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2009/02/22 23:50:57
      [ssh_config.5 sshd_config.5]
      don't advertise experimental options
+   - djm@cvs.openbsd.org 2009/02/22 23:59:25
+     [sshd_config.5]
+     missing period
 
 20090222
  - (djm) OpenBSD CVS Sync
@@ -5196,5 +5199,5 @@
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
    passwords between UnixWare and OpenServer they will still work. OK dtucker@
 
-$Id: ChangeLog,v 1.5202 2009/02/22 23:53:58 djm Exp $
+$Id: ChangeLog,v 1.5203 2009/02/23 00:00:24 djm Exp $
 
