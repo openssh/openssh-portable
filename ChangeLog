@@ -9,6 +9,7 @@
    - djm@cvs.openbsd.org 2009/02/23 00:06:15
      [version.h]
      openssh-5.2
+ - (djm) [README] update for 5.2
 
 20090222
  - (djm) OpenBSD CVS Sync
