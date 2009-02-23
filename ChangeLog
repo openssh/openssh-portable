@@ -10,6 +10,7 @@
      [version.h]
      openssh-5.2
  - (djm) [README] update for 5.2
+ - (djm) Release openssh-5.2p1
 
 20090222
  - (djm) OpenBSD CVS Sync
