@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.64 2008/11/04 08:22:13 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.65 2009/03/05 07:18:19 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -71,6 +71,7 @@
 #include "atomicio.h"
 #include "monitor_fdpass.h"
 #include "misc.h"
+#include "schnorr.h"
 #include "jpake.h"
 
 #include "channels.h"
@@ -1282,7 +1283,7 @@ mm_auth2_jpake_get_pwdata(Authctxt *authctxt, BIGNUM **s,
 }
 
 void
-mm_jpake_step1(struct jpake_group *grp,
+mm_jpake_step1(struct modp_group *grp,
     u_char **id, u_int *id_len,
     BIGNUM **priv1, BIGNUM **priv2, BIGNUM **g_priv1, BIGNUM **g_priv2,
     u_char **priv1_proof, u_int *priv1_proof_len,
@@ -1317,7 +1318,7 @@ mm_jpake_step1(struct jpake_group *grp,
 }
 
 void
-mm_jpake_step2(struct jpake_group *grp, BIGNUM *s,
+mm_jpake_step2(struct modp_group *grp, BIGNUM *s,
     BIGNUM *mypub1, BIGNUM *theirpub1, BIGNUM *theirpub2, BIGNUM *mypriv2,
     const u_char *theirid, u_int theirid_len,
     const u_char *myid, u_int myid_len,
@@ -1357,7 +1358,7 @@ mm_jpake_step2(struct jpake_group *grp, BIGNUM *s,
 }
 
 void
-mm_jpake_key_confirm(struct jpake_group *grp, BIGNUM *s, BIGNUM *step2_val,
+mm_jpake_key_confirm(struct modp_group *grp, BIGNUM *s, BIGNUM *step2_val,
     BIGNUM *mypriv2, BIGNUM *mypub1, BIGNUM *mypub2,
     BIGNUM *theirpub1, BIGNUM *theirpub2,
     const u_char *my_id, u_int my_id_len,

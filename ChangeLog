@@ -1,3 +1,11 @@
+20090306
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2009/03/05 07:18:19
+     [auth2-jpake.c jpake.c jpake.h monitor_wrap.c monitor_wrap.h schnorr.c]
+     [sshconnect2.c]
+     refactor the (disabled) Schnorr proof code to make it a little more
+     generally useful
+
 20090223
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2009/02/22 23:50:57
