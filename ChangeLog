@@ -5,6 +5,10 @@
      [sshconnect2.c]
      refactor the (disabled) Schnorr proof code to make it a little more
      generally useful
+   - djm@cvs.openbsd.org 2009/03/05 11:30:50
+     [uuencode.c]
+     document what these functions do so I don't ever have to recuse into
+     b64_pton/ntop to remember their return values
 
 20090223
  - (djm) OpenBSD CVS Sync
