@@ -1,3 +1,8 @@
+20090307
+ - (dtucker) [contrib/aix/buildbff.sh] Only try to rename ssh_prng_cmds if it
+   exists (it's not created if OpenSSL's PRNG is self-seeded, eg if the OS
+   has a /dev/random).
+
 20090306
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2009/03/05 07:18:19
