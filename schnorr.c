@@ -42,6 +42,8 @@
 
 #include "schnorr.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 /* #define SCHNORR_DEBUG */		/* Privacy-violating debugging */
 /* #define SCHNORR_MAIN */		/* Include main() selftest */
 

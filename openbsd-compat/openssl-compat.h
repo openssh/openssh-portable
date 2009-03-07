@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.12 2008/02/28 08:22:04 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.13 2009/03/07 01:01:47 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -78,6 +78,7 @@ extern const EVP_CIPHER *evp_acss(void);
 #  define EVP_CipherInit(a,b,c,d,e)	ssh_EVP_CipherInit((a),(b),(c),(d),(e))
 #  define EVP_Cipher(a,b,c,d)		ssh_EVP_Cipher((a),(b),(c),(d))
 #  define EVP_CIPHER_CTX_cleanup(a)	ssh_EVP_CIPHER_CTX_cleanup((a))
+#  define EVP_DigestUpdate(a,b,c)	ssh_EVP_DigestUpdate((a),(b),(c))
 # endif /* SSH_OLD_EVP */
 
 # ifdef USE_OPENSSL_ENGINE

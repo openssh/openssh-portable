@@ -2,6 +2,9 @@
  - (dtucker) [contrib/aix/buildbff.sh] Only try to rename ssh_prng_cmds if it
    exists (it's not created if OpenSSL's PRNG is self-seeded, eg if the OS
    has a /dev/random).
+ - (dtucker) [schnorr.c openbsd-compat/openssl-compat.{c,h}] Add
+   EVP_DigestUpdate to the OLD_EVP compatibility functions and tell schnorr.c
+   to use them.  Allows building with older OpenSSL versions.
 
 20090306
  - (djm) OpenBSD CVS Sync

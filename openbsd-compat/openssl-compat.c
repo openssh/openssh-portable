@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.6 2008/02/28 08:13:52 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.7 2009/03/07 01:01:47 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -45,6 +45,13 @@ int
 ssh_EVP_CIPHER_CTX_cleanup(EVP_CIPHER_CTX *evp)
 {
 	EVP_CIPHER_CTX_cleanup(evp);
+	return 1;
+}
+
+int
+ssh_EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d, unsigned int cnt)
+{
+	EVP_DigestUpdate(ctx, d, cnt);
 	return 1;
 }
 #endif
