@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.415 2009/02/16 04:37:03 djm Exp $
+# $Id: configure.ac,v 1.416 2009/03/07 01:32:22 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.415 $)
+AC_REVISION($Revision: 1.416 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2694,7 +2694,7 @@ AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t],,,[
 #endif
 ])
 
-AC_CHECK_TYPES(in_addr_t,,,
+AC_CHECK_TYPES([in_addr_t in_port_t],,,
 [#include <sys/types.h>
 #include <netinet/in.h>])
 

@@ -5,6 +5,7 @@
  - (dtucker) [schnorr.c openbsd-compat/openssl-compat.{c,h}] Add
    EVP_DigestUpdate to the OLD_EVP compatibility functions and tell schnorr.c
    to use them.  Allows building with older OpenSSL versions.
+ - (dtucker) [configure.ac defines.h] Check for in_port_t and typedef if needed.
 
 20090306
  - (djm) OpenBSD CVS Sync

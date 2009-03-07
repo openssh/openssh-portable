@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.153 2009/02/01 11:19:54 dtucker Exp $ */
+/* $Id: defines.h,v 1.154 2009/03/07 01:32:22 dtucker Exp $ */
 
 
 /* Constants */
@@ -299,6 +299,9 @@ struct	sockaddr_un {
 
 #ifndef HAVE_IN_ADDR_T
 typedef u_int32_t	in_addr_t;
+#endif
+#ifndef HAVE_IN_PORT_T
+typedef u_int16_t	in_port_t;
 #endif
 
 #if defined(BROKEN_SYS_TERMIO_H) && !defined(_STRUCT_WINSIZE)
