@@ -7,6 +7,9 @@
    to use them.  Allows building with older OpenSSL versions.
  - (dtucker) [configure.ac defines.h] Check for in_port_t and typedef if needed.
  - (dtucker) [configure.ac] Missing comma in type list.
+ - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]
+   EVP_DigestUpdate does not exactly match the other OLD_EVP functions (eg
+   in openssl 0.9.6) so add an explicit test for it.
 
 20090306
  - (djm) OpenBSD CVS Sync

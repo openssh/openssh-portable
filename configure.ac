@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.417 2009/03/07 07:06:22 dtucker Exp $
+# $Id: configure.ac,v 1.418 2009/03/07 11:22:35 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.417 $)
+AC_REVISION($Revision: 1.418 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2073,6 +2073,23 @@ int main(void) { exit(EVP_aes_192_cbc() == NULL || EVP_aes_256_cbc() == NULL);}
 		AC_MSG_RESULT(yes)
 		AC_DEFINE(OPENSSL_LOBOTOMISED_AES, 1,
 		    [libcrypto is missing AES 192 and 256 bit functions])
+	]
+)
+
+AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
+AC_LINK_IFELSE(
+	[AC_LANG_SOURCE([[
+#include <string.h>
+#include <openssl/evp.h>
+int main(void) { if(EVP_DigestUpdate(NULL, NULL,0)) exit(0); }
+	]])],
+	[
+		AC_MSG_RESULT(yes)
+	],
+	[
+		AC_MSG_RESULT(no)
+		AC_DEFINE(OPENSSL_EVP_DIGESTUPDATE_VOID, 1,
+		    [Define if EVP_DigestUpdate returns void])
 	]
 )
 
