@@ -6,6 +6,7 @@
    EVP_DigestUpdate to the OLD_EVP compatibility functions and tell schnorr.c
    to use them.  Allows building with older OpenSSL versions.
  - (dtucker) [configure.ac defines.h] Check for in_port_t and typedef if needed.
+ - (dtucker) [configure.ac] Missing comma in type list.
 
 20090306
  - (djm) OpenBSD CVS Sync
