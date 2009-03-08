@@ -1,3 +1,9 @@
+20090308
+ - (dtucker) [auth-passwd.c auth1.c auth2-kbdint.c auth2-none.c auth2-passwd.c
+   auth2-pubkey.c session.c openbsd-compat/bsd-cygwin_util.{c,h}
+   openbsd-compat/daemon.c] Remove support for Windows 95/98/ME and very old
+   version of Cygwin.  Patch from vinschen at redhat com.
+
 20090307
  - (dtucker) [contrib/aix/buildbff.sh] Only try to rename ssh_prng_cmds if it
    exists (it's not created if OpenSSL's PRNG is self-seeded, eg if the OS
