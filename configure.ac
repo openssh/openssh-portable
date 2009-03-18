@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.418 2009/03/07 11:22:35 dtucker Exp $
+# $Id: configure.ac,v 1.419 2009/03/18 18:25:02 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.418 $)
+AC_REVISION($Revision: 1.419 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -434,8 +434,6 @@ int main(void) { exit(0); }
 	AC_DEFINE(USE_PIPES, 1, [Use PIPES instead of a socketpair()])
 	AC_DEFINE(DISABLE_SHADOW, 1,
 		[Define if you want to disable shadow passwords])
-	AC_DEFINE(IP_TOS_IS_BROKEN, 1,
-		[Define if your system choked on IP TOS setting])
 	AC_DEFINE(NO_X11_UNIX_SOCKETS, 1,
 		[Define if X11 doesn't support AF_UNIX sockets on that system])
 	AC_DEFINE(NO_IPPORT_RESERVED_CONCEPT, 1,
@@ -446,7 +444,8 @@ int main(void) { exit(0); }
 		file descriptor passing])
 	;;
 *-*-dgux*)
-	AC_DEFINE(IP_TOS_IS_BROKEN)
+	AC_DEFINE(IP_TOS_IS_BROKEN, 1,
+		[Define if your system choked on IP TOS setting])
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
