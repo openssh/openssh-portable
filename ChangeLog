@@ -1,3 +1,8 @@
+20090504
+ - (dtucker) [sshlogin.c] Move the NO_SSH_LASTLOG #ifndef line to include
+   variable declarations.  Should prevent unused warnings anywhere it's set
+   (only Crays as far as I can tell) and be a no-op everywhere else.
+
 20090318
  - (tim) [configure.ac] Remove setting IP_TOS_IS_BROKEN for Cygwin. The problem
    that setsockopt(IP_TOS) doesn't work on Cygwin has been fixed since 2005.

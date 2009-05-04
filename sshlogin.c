@@ -86,10 +86,10 @@ get_last_login_time(uid_t uid, const char *logname,
 static void
 store_lastlog_message(const char *user, uid_t uid)
 {
+#ifndef NO_SSH_LASTLOG
 	char *time_string, hostname[MAXHOSTNAMELEN] = "", buf[512];
 	time_t last_login_time;
 
-#ifndef NO_SSH_LASTLOG
 	if (!options.print_lastlog)
 		return;
 
