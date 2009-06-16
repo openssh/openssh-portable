@@ -1,3 +1,7 @@
+20090616
+ - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
+   is a struct with a __val member.  Fixes build on, eg, Redhat 6.2.
+
 20090504
  - (dtucker) [sshlogin.c] Move the NO_SSH_LASTLOG #ifndef line to include
    variable declarations.  Should prevent unused warnings anywhere it's set

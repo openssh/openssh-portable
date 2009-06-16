@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.154 2009/03/07 01:32:22 dtucker Exp $ */
+/* $Id: defines.h,v 1.155 2009/06/16 06:11:02 dtucker Exp $ */
 
 
 /* Constants */
@@ -594,6 +594,10 @@ struct winsize {
 #define FSID_TO_ULONG(f) \
 	((((u_int64_t)(f).val[0] & 0xffffffffUL) << 32) | \
 	    ((f).val[1] & 0xffffffffUL))
+#elif defined(FSID_HAS___VAL)
+#define FSID_TO_ULONG(f) \
+	((((u_int64_t)(f).__val[0] & 0xffffffffUL) << 32) | \
+	    ((f).__val[1] & 0xffffffffUL))
 #else
 # define FSID_TO_ULONG(f) ((f))
 #endif
