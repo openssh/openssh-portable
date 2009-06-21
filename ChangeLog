@@ -51,6 +51,17 @@
      [sshd_config.5]
      clarify we cd to user's home after chroot; ok markus@ on
      earlier version; tweaks and ok jmc@
+   - andreas@cvs.openbsd.org 2009/05/25 06:48:01
+     [channels.c packet.c clientloop.c packet.h serverloop.c monitor_wrap.c
+     monitor.c]
+     Put the globals in packet.c into a struct and don't access it directly
+     from other files. No functional changes.
+     ok markus@ djm@
+   - andreas@cvs.openbsd.org 2009/05/27 06:31:25
+     [canohost.h canohost.c]
+     Add clear_cached_addr(), needed for upcoming changes allowing the peer
+     address to change.
+     ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

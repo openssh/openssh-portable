@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.209 2009/02/12 03:00:56 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.210 2009/05/25 06:48:01 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -491,13 +491,13 @@ client_global_request_reply(int type, u_int32_t seq, void *ctxt)
 		xfree(gc);
 	}
 
-	keep_alive_timeouts = 0;
+	packet_set_alive_timeouts(0);
 }
 
 static void
 server_alive_check(void)
 {
-	if (++keep_alive_timeouts > options.server_alive_count_max) {
+	if (packet_inc_alive_timeouts() > options.server_alive_count_max) {
 		logit("Timeout, server not responding.");
 		cleanup_exit(255);
 	}

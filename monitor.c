@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.101 2009/02/12 03:26:22 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.102 2009/05/25 06:48:01 andreas Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -100,7 +100,6 @@ extern Newkeys *current_keys[];
 extern z_stream incoming_stream;
 extern z_stream outgoing_stream;
 extern u_char session_id[];
-extern Buffer input, output;
 extern Buffer auth_debug;
 extern int auth_debug_init;
 extern Buffer loginmsg;
@@ -1670,13 +1669,14 @@ monitor_apply_keystate(struct monitor *pmonitor)
 
 	/* Network I/O buffers */
 	/* XXX inefficient for large buffers, need: buffer_init_from_string */
-	buffer_clear(&input);
-	buffer_append(&input, child_state.input, child_state.ilen);
+	buffer_clear(packet_get_input());
+	buffer_append(packet_get_input(), child_state.input, child_state.ilen);
 	memset(child_state.input, 0, child_state.ilen);
 	xfree(child_state.input);
 
-	buffer_clear(&output);
-	buffer_append(&output, child_state.output, child_state.olen);
+	buffer_clear(packet_get_output());
+	buffer_append(packet_get_output(), child_state.output,
+		      child_state.olen);
 	memset(child_state.output, 0, child_state.olen);
 	xfree(child_state.output);
 }

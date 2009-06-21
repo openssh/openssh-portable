@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.65 2009/03/05 07:18:19 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.66 2009/05/25 06:48:01 andreas Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -80,11 +80,9 @@
 
 /* Imports */
 extern int compat20;
-extern Newkeys *newkeys[];
 extern z_stream incoming_stream;
 extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
-extern Buffer input, output;
 extern Buffer loginmsg;
 extern ServerOptions options;
 
@@ -509,7 +507,7 @@ mm_newkeys_to_blob(int mode, u_char **blobp, u_int *lenp)
 	Enc *enc;
 	Mac *mac;
 	Comp *comp;
-	Newkeys *newkey = newkeys[mode];
+	Newkeys *newkey = (Newkeys *)packet_get_newkeys(mode);
 
 	debug3("%s: converting %p", __func__, newkey);
 
@@ -571,7 +569,7 @@ mm_send_kex(Buffer *m, Kex *kex)
 void
 mm_send_keystate(struct monitor *monitor)
 {
-	Buffer m;
+	Buffer m, *input, *output;
 	u_char *blob, *p;
 	u_int bloblen, plen;
 	u_int32_t seqnr, packets;
@@ -609,7 +607,8 @@ mm_send_keystate(struct monitor *monitor)
 	}
 
 	debug3("%s: Sending new keys: %p %p",
-	    __func__, newkeys[MODE_OUT], newkeys[MODE_IN]);
+	    __func__, packet_get_newkeys(MODE_OUT),
+	    packet_get_newkeys(MODE_IN));
 
 	/* Keys from Kex */
 	if (!mm_newkeys_to_blob(MODE_OUT, &blob, &bloblen))
@@ -656,8 +655,10 @@ mm_send_keystate(struct monitor *monitor)
 	buffer_put_string(&m, &incoming_stream, sizeof(incoming_stream));
 
 	/* Network I/O buffers */
-	buffer_put_string(&m, buffer_ptr(&input), buffer_len(&input));
-	buffer_put_string(&m, buffer_ptr(&output), buffer_len(&output));
+	input = (Buffer *)packet_get_input();
+	output = (Buffer *)packet_get_output();
+	buffer_put_string(&m, buffer_ptr(input), buffer_len(input));
+	buffer_put_string(&m, buffer_ptr(output), buffer_len(output));
 
 	mm_request_send(monitor->m_recvfd, MONITOR_REQ_KEYEXPORT, &m);
 	debug3("%s: Finished sending state", __func__);
