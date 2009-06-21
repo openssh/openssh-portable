@@ -16,6 +16,12 @@
      Fixed a possible out-of-bounds memory access if the environment variable
      SHELL is shorter than 3 characters.
      with input by and ok dtucker
+   - tobias@cvs.openbsd.org 2009/03/23 19:38:04
+     [ssh-agent.c]
+     My previous commit didn't fix the problem at all, so stick at my first
+     version of the fix presented to dtucker.
+     Issue notified by Matthias Barkhoff (matthias dot barkhoff at gmx dot de).
+     ok dtucker
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
