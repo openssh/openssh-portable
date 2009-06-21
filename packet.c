@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.164 2009/06/12 20:43:22 andreas Exp $ */
+/* $OpenBSD: packet.c,v 1.165 2009/06/12 20:58:32 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -181,6 +181,15 @@ struct session_state {
 
 	/* Used in packet_read_poll2() */
 	u_int packlen;
+
+	/* Used in packet_send2 */
+	int rekeying;
+
+	/* Used in packet_set_interactive */
+	int set_interactive_called;
+
+	/* Used in packet_set_maxsize */
+	int set_maxsize_called;
 
 	TAILQ_HEAD(, packet) outgoing;
 };
@@ -950,7 +959,6 @@ packet_send2_wrapped(void)
 static void
 packet_send2(void)
 {
-	static int rekeying = 0;
 	struct packet *p;
 	u_char type, *cp;
 
@@ -958,7 +966,7 @@ packet_send2(void)
 	type = cp[5];
 
 	/* during rekeying we can only send key exchange messages */
-	if (rekeying) {
+	if (active_state->rekeying) {
 		if (!((type >= SSH2_MSG_TRANSPORT_MIN) &&
 		    (type <= SSH2_MSG_TRANSPORT_MAX))) {
 			debug("enqueue packet: %u", type);
@@ -974,13 +982,13 @@ packet_send2(void)
 
 	/* rekeying starts with sending KEXINIT */
 	if (type == SSH2_MSG_KEXINIT)
-		rekeying = 1;
+		active_state->rekeying = 1;
 
 	packet_send2_wrapped();
 
 	/* after a NEWKEYS message we can send the complete queue */
 	if (type == SSH2_MSG_NEWKEYS) {
-		rekeying = 0;
+		active_state->rekeying = 0;
 		while ((p = TAILQ_FIRST(&active_state->outgoing))) {
 			type = p->type;
 			debug("dequeue packet: %u", type);
@@ -1737,11 +1745,9 @@ packet_set_tos(int interactive)
 void
 packet_set_interactive(int interactive)
 {
-	static int called = 0;
-
-	if (called)
+	if (active_state->set_interactive_called)
 		return;
-	called = 1;
+	active_state->set_interactive_called = 1;
 
 	/* Record that we are in interactive mode. */
 	active_state->interactive_mode = interactive;
@@ -1764,9 +1770,7 @@ packet_is_interactive(void)
 int
 packet_set_maxsize(u_int s)
 {
-	static int called = 0;
-
-	if (called) {
+	if (active_state->set_maxsize_called) {
 		logit("packet_set_maxsize: called twice: old %d new %d",
 		    active_state->max_packet_size, s);
 		return -1;
@@ -1775,7 +1779,7 @@ packet_set_maxsize(u_int s)
 		logit("packet_set_maxsize: bad size %d", s);
 		return -1;
 	}
-	called = 1;
+	active_state->set_maxsize_called = 1;
 	debug("packet_set_maxsize: setting to %d", s);
 	active_state->max_packet_size = s;
 	return s;

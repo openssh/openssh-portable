@@ -93,6 +93,10 @@
      Fix warnings found by chl@ and djm@ and change roaming_atomicio's
      return type to match atomicio's
      Diff from djm@, ok markus@
+   - andreas@cvs.openbsd.org 2009/06/12 20:58:32
+     [packet.c]
+     Move some more statics into session_state
+     ok markus@ djm@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
