@@ -88,6 +88,11 @@
      changes. Most code from Martin Forssen, maf at appgate dot com.
      ok markus@
      Also, applied appropriate changes to Makefile.in
+   - andreas@cvs.openbsd.org 2009/06/12 20:43:22
+     [monitor.c packet.c]
+     Fix warnings found by chl@ and djm@ and change roaming_atomicio's
+     return type to match atomicio's
+     Diff from djm@, ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

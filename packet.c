@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.163 2009/05/28 16:50:16 andreas Exp $ */
+/* $OpenBSD: packet.c,v 1.164 2009/06/12 20:43:22 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -188,7 +188,7 @@ struct session_state {
 static struct session_state *active_state;
 
 static struct session_state *
-alloc_session_state()
+alloc_session_state(void)
 {
     struct session_state *s = xcalloc(1, sizeof(*s));
 

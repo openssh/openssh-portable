@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.103 2009/05/28 16:50:16 andreas Exp $ */
+/* $OpenBSD: monitor.c,v 1.104 2009/06/12 20:43:22 andreas Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -88,6 +88,7 @@
 #include "compat.h"
 #include "ssh2.h"
 #include "jpake.h"
+#include "roaming.h"
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
