@@ -3,6 +3,14 @@
    - markus@cvs.openbsd.org 2009/03/17 21:37:00
      [ssh.c]
      pass correct argv[0] to openlog(); ok djm@
+  - jmc@cvs.openbsd.org 2009/03/19 15:15:09
+     [ssh.1]
+     for "Ciphers", just point the reader to the keyword in ssh_config(5), just
+     as we do for "MACs": this stops us getting out of sync when the lists
+     change;
+     fixes documentation/6102, submitted by Peter J. Philipp
+     alternative fix proposed by djm
+     ok markus
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
