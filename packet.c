@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.161 2009/05/25 06:48:01 andreas Exp $ */
+/* $OpenBSD: packet.c,v 1.162 2009/05/27 06:36:07 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -593,6 +593,12 @@ void
 packet_put_int(u_int value)
 {
 	buffer_put_int(&active_state->outgoing_packet, value);
+}
+
+void
+packet_put_int64(u_int64_t value)
+{
+	buffer_put_int64(&active_state->outgoing_packet, value);
 }
 
 void
@@ -1465,6 +1471,14 @@ u_int
 packet_get_int(void)
 {
 	return buffer_get_int(&active_state->incoming_packet);
+}
+
+/* Returns an 64 bit integer from the packet data. */
+
+u_int64_t
+packet_get_int64(void)
+{
+	return buffer_get_int64(&active_state->incoming_packet);
 }
 
 /*

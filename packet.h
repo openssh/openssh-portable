@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.50 2009/05/25 06:48:01 andreas Exp $ */
+/* $OpenBSD: packet.h,v 1.51 2009/05/27 06:36:07 andreas Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -39,6 +39,7 @@ void     packet_set_authenticated(void);
 void     packet_start(u_char);
 void     packet_put_char(int ch);
 void     packet_put_int(u_int value);
+void     packet_put_int64(u_int64_t value);
 void     packet_put_bignum(BIGNUM * value);
 void     packet_put_bignum2(BIGNUM * value);
 void     packet_put_string(const void *buf, u_int len);
@@ -55,6 +56,7 @@ int      packet_read_poll_seqnr(u_int32_t *seqnr_p);
 
 u_int	 packet_get_char(void);
 u_int	 packet_get_int(void);
+u_int64_t packet_get_int64(void);
 void     packet_get_bignum(BIGNUM * value);
 void     packet_get_bignum2(BIGNUM * value);
 void	*packet_get_raw(u_int *length_ptr);

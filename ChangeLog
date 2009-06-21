@@ -75,6 +75,12 @@
      [packet.h packet.c]
      Add packet_put_int64() and packet_get_int64(), part of a larger change
      from Martin Forssen.
+     ok markus@
+   - andreas@cvs.openbsd.org 2009/05/27 06:38:16
+     [sshconnect.h sshconnect.c]
+     Un-static ssh_exchange_identification(), part of a larger change from
+     Martin Forssen and needed for upcoming changes.
+     ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
