@@ -67,6 +67,10 @@
      Send SSH2_MSG_DISCONNECT when the client disconnects. From a larger
      change from Martin Forssen, maf at appgate dot com.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/05/27 06:34:36
+     [kex.c kex.h]
+     Move the KEX_COOKIE_LEN define to kex.h
+     ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
