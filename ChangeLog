@@ -62,6 +62,11 @@
      Add clear_cached_addr(), needed for upcoming changes allowing the peer
      address to change.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/05/27 06:33:39
+     [clientloop.c]
+     Send SSH2_MSG_DISCONNECT when the client disconnects. From a larger
+     change from Martin Forssen, maf at appgate dot com.
+     ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
