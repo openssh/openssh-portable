@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.104 2009/04/17 19:40:17 stevesk Exp $
-.Dd $Mdocdate: April 17 2009 $
+.\" $OpenBSD: sshd_config.5,v 1.105 2009/04/18 18:39:10 jmc Exp $
+.Dd $Mdocdate: April 18 2009 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -213,13 +213,10 @@ and
 .Xr tty 4
 devices.
 For file transfer sessions using
-.Dq sftp
-which do not use logging,
+.Dq sftp ,
 no additional configuration of the environment is necessary if the
-in-process sftp server is used (see
-.Cm Subsystem
-for details).
-sftp sessions which do use logging require
+in-process sftp server is used,
+though sessions which use logging do require
 .Pa /dev/log
 inside the chroot directory (see
 .Xr sftp-server 8

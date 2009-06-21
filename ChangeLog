@@ -44,6 +44,9 @@
      [sshd_config.5]
      clarify that even internal-sftp needs /dev/log for logging to work; ok
      markus@
+   - jmc@cvs.openbsd.org 2009/04/18 18:39:10
+     [sshd_config.5]
+     tweak previous; ok stevesk
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
