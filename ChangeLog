@@ -108,6 +108,8 @@
  - (dtucker) [auth2-jpake.c auth2.c canohost.h session.c] Whitespace and
    header-order changes to reduce diff vs OpenBSD.
  - (dtucker) [servconf.c sshd.c] More whitespace sync.
+ - (dtucker) [roaming_common.c roaming_dummy.c] Wrap #include <inttypes.h> in
+   ifdef.
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

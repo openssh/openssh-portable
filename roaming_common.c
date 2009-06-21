@@ -15,12 +15,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
 
 #include <errno.h>
+#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
 #include <stdarg.h>
 #include <unistd.h>
 
