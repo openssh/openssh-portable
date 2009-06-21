@@ -32,6 +32,10 @@
    - stevesk@cvs.openbsd.org 2009/04/14 16:33:42
      [sftp-server.c]
      remove unused option character from getopt() optstring; ok markus@
+   - jj@cvs.openbsd.org 2009/04/14 21:10:54
+     [servconf.c]
+     Fixed a few the-the misspellings in comments. Skipped a bunch in
+     binutils,gcc and so on. ok jmc@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
