@@ -47,6 +47,10 @@
    - jmc@cvs.openbsd.org 2009/04/18 18:39:10
      [sshd_config.5]
      tweak previous; ok stevesk
+   - stevesk@cvs.openbsd.org 2009/04/21 15:13:17
+     [sshd_config.5]
+     clarify we cd to user's home after chroot; ok markus@ on
+     earlier version; tweaks and ok jmc@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

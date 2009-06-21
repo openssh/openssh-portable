@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.105 2009/04/18 18:39:10 jmc Exp $
-.Dd $Mdocdate: April 18 2009 $
+.\" $OpenBSD: sshd_config.5,v 1.106 2009/04/21 15:13:17 stevesk Exp $
+.Dd $Mdocdate: April 21 2009 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -188,6 +188,9 @@ Specifies a path to
 to after authentication.
 This path, and all its components, must be root-owned directories that are
 not writable by any other user or group.
+After the chroot,
+.Xr sshd 8
+changes the working directory to the user's home directory.
 .Pp
 The path may contain the following tokens that are expanded at runtime once
 the connecting user has been authenticated: %% is replaced by a literal '%',
