@@ -26,6 +26,9 @@
      [sftp-server.8 sshd.8 ssh-agent.1]
      fix a few typographical errors found by spell(1).
      ok dtucker@, jmc@
+   - stevesk@cvs.openbsd.org 2009/04/13 19:07:44
+     [sshd_config.5]
+     fix possessive; ok djm@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
