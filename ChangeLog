@@ -71,6 +71,10 @@
      [kex.c kex.h]
      Move the KEX_COOKIE_LEN define to kex.h
      ok markus@
+   - andreas@cvs.openbsd.org 2009/05/27 06:36:07
+     [packet.h packet.c]
+     Add packet_put_int64() and packet_get_int64(), part of a larger change
+     from Martin Forssen.
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
