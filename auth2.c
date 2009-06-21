@@ -35,8 +35,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "xmalloc.h"
 #include "atomicio.h"
+#include "xmalloc.h"
 #include "ssh2.h"
 #include "packet.h"
 #include "log.h"

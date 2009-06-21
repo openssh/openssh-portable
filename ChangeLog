@@ -105,6 +105,8 @@
      [roaming.h roaming_common.c roaming_dummy.c]
      Add  tags for the benefit of the sync scripts
      Also: pull in the changes for 1.1->1.2 missed in the previous sync.
+ - (dtucker) [auth2-jpake.c auth2.c canohost.h session.c] Whitespace and
+   header-order changes to reduce diff vs OpenBSD.
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

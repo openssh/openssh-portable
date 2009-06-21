@@ -715,8 +715,8 @@ do_exec_pty(Session *s, const char *command)
 		 * Do common processing for the child, such as execing
 		 * the command.
 		 */
- 		do_child(s, command);
- 		/* NOTREACHED */
+		do_child(s, command);
+		/* NOTREACHED */
 	default:
 		break;
 	}
@@ -845,7 +845,7 @@ do_login(Session *s, const char *command)
 	fromlen = sizeof(from);
 	if (packet_connection_is_on_socket()) {
 		if (getpeername(packet_get_connection_in(),
-		    (struct sockaddr *) & from, &fromlen) < 0) {
+		    (struct sockaddr *)&from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
 			cleanup_exit(255);
 		}
