@@ -97,6 +97,10 @@
      [packet.c]
      Move some more statics into session_state
      ok markus@ djm@
+   - dtucker@cvs.openbsd.org 2009/06/21 07:37:15
+     [kexdhs.c kexgexs.c]
+     abort if key_sign fails, preventing possible null deref.  Based on report
+     from Paolo Ganci, ok markus@ djm@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
