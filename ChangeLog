@@ -40,6 +40,10 @@
      [session.c]
      use INTERNAL_SFTP_NAME for setproctitle() of in-process sftp-server;
      ok djm@ markus@
+   - stevesk@cvs.openbsd.org 2009/04/17 19:40:17
+     [sshd_config.5]
+     clarify that even internal-sftp needs /dev/log for logging to work; ok
+     markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
