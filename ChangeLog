@@ -29,6 +29,9 @@
    - stevesk@cvs.openbsd.org 2009/04/13 19:07:44
      [sshd_config.5]
      fix possessive; ok djm@
+   - stevesk@cvs.openbsd.org 2009/04/14 16:33:42
+     [sftp-server.c]
+     remove unused option character from getopt() optstring; ok markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
