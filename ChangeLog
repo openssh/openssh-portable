@@ -22,6 +22,10 @@
      version of the fix presented to dtucker.
      Issue notified by Matthias Barkhoff (matthias dot barkhoff at gmx dot de).
      ok dtucker
+   - sobrado@cvs.openbsd.org 2009/03/26 08:38:39
+     [sftp-server.8 sshd.8 ssh-agent.1]
+     fix a few typographical errors found by spell(1).
+     ok dtucker@, jmc@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
