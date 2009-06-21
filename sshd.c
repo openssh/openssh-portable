@@ -578,7 +578,7 @@ demote_sensitive_data(void)
 static void
 privsep_preauth_child(void)
 {
- 	u_int32_t rnd[256];
+	u_int32_t rnd[256];
 	gid_t gidset[1];
 
 	/* Enable challenge-response authentication for privilege separation */

@@ -107,6 +107,7 @@
      Also: pull in the changes for 1.1->1.2 missed in the previous sync.
  - (dtucker) [auth2-jpake.c auth2.c canohost.h session.c] Whitespace and
    header-order changes to reduce diff vs OpenBSD.
+ - (dtucker) [servconf.c sshd.c] More whitespace sync.
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
