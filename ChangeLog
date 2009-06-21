@@ -36,6 +36,10 @@
      [servconf.c]
      Fixed a few the-the misspellings in comments. Skipped a bunch in
      binutils,gcc and so on. ok jmc@
+   - stevesk@cvs.openbsd.org 2009/04/17 19:23:06
+     [session.c]
+     use INTERNAL_SFTP_NAME for setproctitle() of in-process sftp-server;
+     ok djm@ markus@
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
