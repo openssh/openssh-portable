@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.102 2009/05/25 06:48:01 andreas Exp $ */
+/* $OpenBSD: monitor.c,v 1.103 2009/05/28 16:50:16 andreas Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -125,6 +125,8 @@ struct {
 	u_int ilen;
 	u_char *output;
 	u_int olen;
+	u_int64_t sent_bytes;
+	u_int64_t recv_bytes;
 } child_state;
 
 /* Functions on the monitor that answer unprivileged requests */
@@ -1679,6 +1681,10 @@ monitor_apply_keystate(struct monitor *pmonitor)
 		      child_state.olen);
 	memset(child_state.output, 0, child_state.olen);
 	xfree(child_state.output);
+
+	/* Roaming */
+	if (compat20)
+		roam_set_bytes(child_state.sent_bytes, child_state.recv_bytes);
 }
 
 static Kex *
@@ -1793,6 +1799,12 @@ mm_get_keystate(struct monitor *pmonitor)
 	debug3("%s: Getting Network I/O buffers", __func__);
 	child_state.input = buffer_get_string(&m, &child_state.ilen);
 	child_state.output = buffer_get_string(&m, &child_state.olen);
+
+	/* Roaming */
+	if (compat20) {
+		child_state.sent_bytes = buffer_get_int64(&m);
+		child_state.recv_bytes = buffer_get_int64(&m);
+	}
 
 	buffer_free(&m);
 }

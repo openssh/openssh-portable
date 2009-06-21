@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.211 2009/05/27 06:33:39 andreas Exp $ */
+/* $OpenBSD: clientloop.c,v 1.212 2009/05/28 16:50:16 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -109,6 +109,7 @@
 #include "misc.h"
 #include "match.h"
 #include "msg.h"
+#include "roaming.h"
 
 /* import options */
 extern Options options;
@@ -634,7 +635,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 static void
 client_process_net_input(fd_set *readset)
 {
-	int len;
+	int len, cont = 0;
 	char buf[8192];
 
 	/*
@@ -643,8 +644,8 @@ client_process_net_input(fd_set *readset)
 	 */
 	if (FD_ISSET(connection_in, readset)) {
 		/* Read as much as possible. */
-		len = read(connection_in, buf, sizeof(buf));
-		if (len == 0) {
+		len = roaming_read(connection_in, buf, sizeof(buf), &cont);
+		if (len == 0 && cont == 0) {
 			/*
 			 * Received EOF.  The remote host has closed the
 			 * connection.

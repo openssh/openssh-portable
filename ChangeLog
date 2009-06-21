@@ -83,10 +83,11 @@
      ok markus@
    - andreas@cvs.openbsd.org 2009/05/28 16:50:16
      [sshd.c packet.c serverloop.c monitor_wrap.c clientloop.c sshconnect.c
-      monitor.c]
+     monitor.c Added roaming.h roaming_common.c roaming_dummy.c]
      Keep track of number of bytes read and written. Needed for upcoming
      changes. Most code from Martin Forssen, maf at appgate dot com.
      ok markus@
+     Also, applied appropriate changes to Makefile.in
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.158 2009/05/25 06:48:01 andreas Exp $ */
+/* $OpenBSD: serverloop.c,v 1.159 2009/05/28 16:50:16 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -78,6 +78,7 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "misc.h"
+#include "roaming.h"
 
 extern ServerOptions options;
 
@@ -391,8 +392,11 @@ process_input(fd_set *readset)
 
 	/* Read and buffer any input data from the client. */
 	if (FD_ISSET(connection_in, readset)) {
-		len = read(connection_in, buf, sizeof(buf));
+		int cont = 0;
+		len = roaming_read(connection_in, buf, sizeof(buf), &cont);
 		if (len == 0) {
+			if (cont)
+				return;
 			verbose("Connection closed by %.100s",
 			    get_remote_ipaddr());
 			connection_closed = 1;

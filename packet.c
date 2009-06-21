@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.162 2009/05/27 06:36:07 andreas Exp $ */
+/* $OpenBSD: packet.c,v 1.163 2009/05/28 16:50:16 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -77,6 +77,7 @@
 #include "canohost.h"
 #include "misc.h"
 #include "ssh.h"
+#include "roaming.h"
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -1012,7 +1013,7 @@ packet_send(void)
 int
 packet_read_seqnr(u_int32_t *seqnr_p)
 {
-	int type, len, ret, ms_remain;
+	int type, len, ret, ms_remain, cont;
 	fd_set *setp;
 	char buf[8192];
 	struct timeval timeout, start, *timeoutp = NULL;
@@ -1061,8 +1062,7 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 			if ((ret = select(active_state->connection_in + 1, setp,
 			    NULL, NULL, timeoutp)) >= 0)
 				break;
-			if (errno != EAGAIN && errno != EINTR &&
-			    errno != EWOULDBLOCK)
+			if (errno != EAGAIN && errno != EINTR)
 				break;
 			if (active_state->packet_timeout_ms == -1)
 				continue;
@@ -1078,7 +1078,11 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 			cleanup_exit(255);
 		}
 		/* Read data from the socket. */
-		len = read(active_state->connection_in, buf, sizeof(buf));
+		do {
+			cont = 0;
+			len = roaming_read(active_state->connection_in, buf,
+			    sizeof(buf), &cont);
+		} while (len == 0 && cont);
 		if (len == 0) {
 			logit("Connection closed by %.200s", get_remote_ipaddr());
 			cleanup_exit(255);
@@ -1624,22 +1628,22 @@ void
 packet_write_poll(void)
 {
 	int len = buffer_len(&active_state->output);
+	int cont;
 
 	if (len > 0) {
-		len = write(active_state->connection_out,
-		    buffer_ptr(&active_state->output), len);
+		cont = 0;
+		len = roaming_write(active_state->connection_out,
+		    buffer_ptr(&active_state->output), len, &cont);
 		if (len == -1) {
-			if (errno == EINTR || errno == EAGAIN ||
-			    errno == EWOULDBLOCK)
+			if (errno == EINTR || errno == EAGAIN)
 				return;
 			fatal("Write failed: %.100s", strerror(errno));
 		}
-		if (len == 0)
+		if (len == 0 && !cont)
 			fatal("Write connection closed");
 		buffer_consume(&active_state->output, len);
 	}
 }
-
 
 /*
  * Calls packet_write_poll repeatedly until all pending output data has been
@@ -1673,8 +1677,7 @@ packet_write_wait(void)
 			if ((ret = select(active_state->connection_out + 1,
 			    NULL, setp, NULL, timeoutp)) >= 0)
 				break;
-			if (errno != EAGAIN && errno != EINTR &&
-			    errno != EWOULDBLOCK)
+			if (errno != EAGAIN && errno != EINTR)
 				break;
 			if (active_state->packet_timeout_ms == -1)
 				continue;
@@ -1712,7 +1715,6 @@ packet_not_very_much_data_to_write(void)
 	else
 		return buffer_len(&active_state->output) < 128 * 1024;
 }
-
 
 static void
 packet_set_tos(int interactive)
