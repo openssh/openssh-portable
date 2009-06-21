@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.324 2009/02/12 03:00:56 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.325 2009/03/17 21:37:00 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -204,7 +204,7 @@ int
 main(int ac, char **av)
 {
 	int i, opt, exit_status, use_syslog;
-	char *p, *cp, *line, buf[256];
+	char *p, *cp, *line, *argv0, buf[256];
 	struct stat st;
 	struct passwd *pw;
 	int dummy, timeout_ms;
@@ -270,6 +270,7 @@ main(int ac, char **av)
 	/* Parse command-line arguments. */
 	host = NULL;
 	use_syslog = 0;
+	argv0 = av[0];
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
@@ -600,7 +601,7 @@ main(int ac, char **av)
 	 * Initialize "log" output.  Since we are the client all output
 	 * actually goes to stderr.
 	 */
-	log_init(av[0],
+	log_init(argv0,
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    SYSLOG_FACILITY_USER, !use_syslog);
 
@@ -628,7 +629,7 @@ main(int ac, char **av)
 	channel_set_af(options.address_family);
 
 	/* reinit */
-	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
+	log_init(argv0, options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
 
 	seed_rng();
 

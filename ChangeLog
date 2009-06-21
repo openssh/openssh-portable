@@ -1,3 +1,9 @@
+20090621
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2009/03/17 21:37:00
+     [ssh.c]
+     pass correct argv[0] to openlog(); ok djm@
+
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
    is a struct with a __val member.  Fixes build on, eg, Redhat 6.2.
