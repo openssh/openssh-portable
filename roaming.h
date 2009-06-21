@@ -1,3 +1,4 @@
+/* $OpenBSD: roaming.h,v 1.3 2009/06/21 09:04:03 dtucker Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
@@ -22,7 +23,7 @@ extern int resume_in_progress;
 void	add_recv_bytes(u_int64_t);
 ssize_t	roaming_write(int, const void *, size_t, int *);
 ssize_t	roaming_read(int, void *, size_t, int *);
-ssize_t	roaming_atomicio(ssize_t (*)(int, void *, size_t), int, void *, size_t);
+size_t	roaming_atomicio(ssize_t (*)(int, void *, size_t), int, void *, size_t);
 u_int64_t	get_recv_bytes(void);
 u_int64_t	get_sent_bytes(void);
 void	roam_set_bytes(u_int64_t, u_int64_t);

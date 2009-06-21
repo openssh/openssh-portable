@@ -101,6 +101,10 @@
      [kexdhs.c kexgexs.c]
      abort if key_sign fails, preventing possible null deref.  Based on report
      from Paolo Ganci, ok markus@ djm@
+   - dtucker@cvs.openbsd.org 2009/06/21 09:04:03
+     [roaming.h roaming_common.c roaming_dummy.c]
+     Add  tags for the benefit of the sync scripts
+     Also: pull in the changes for 1.1->1.2 missed in the previous sync.
 
 20090616
  - (dtucker) [configure.ac defines.h] Bug #1607: handle the case where fsid_t
