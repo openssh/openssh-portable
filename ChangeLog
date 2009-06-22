@@ -1,3 +1,11 @@
+20090622
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2009/06/22 05:39:28
+     [monitor_wrap.c monitor_mm.c ssh-keygen.c auth2.c gss-genr.c sftp-client.c]
+     alphabetize includes; reduces diff vs portable and style(9).
+     ok stevesk djm
+     (Id sync only; these were already in order in -portable)
+
 20090621
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2009/03/17 21:37:00
