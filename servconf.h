@@ -185,6 +185,11 @@ typedef struct {
 
 	u_int	num_auth_methods;
 	char   *auth_methods[MAX_AUTH_METHODS];
+
+	int obfuscated_ports[MAX_PORTS];
+	u_int num_obfuscated_ports;
+	char *obfuscate_keyword;
+
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */

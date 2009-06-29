@@ -127,6 +127,7 @@ typedef enum {
 	oHost, oMatch,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
+	oObfuscateHandshake, oObfuscateKeyword,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
@@ -266,6 +267,8 @@ static struct {
 	{ "streamlocalbindmask", oStreamLocalBindMask },
 	{ "streamlocalbindunlink", oStreamLocalBindUnlink },
 	{ "ignoreunknown", oIgnoreUnknown },
+	{ "obfuscatehandshake", oObfuscateHandshake },
+	{ "obfuscatekeyword", oObfuscateKeyword },
 
 	{ NULL, oBadOption }
 };
@@ -1433,6 +1436,15 @@ parse_int:
 		intptr = &options->fwd_opts.streamlocal_bind_unlink;
 		goto parse_flag;
 
+	case oObfuscateHandshake:
+		intptr = &options->obfuscate_handshake;
+		goto parse_flag;
+
+	case oObfuscateKeyword:
+		options->obfuscate_handshake = 1;
+		charptr = &options->obfuscate_keyword;
+		goto parse_string;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1609,6 +1621,8 @@ initialize_options(Options * options)
 	options->canonicalize_max_dots = -1;
 	options->canonicalize_fallback_local = -1;
 	options->canonicalize_hostname = -1;
+	options->obfuscate_handshake = 0;
+	options->obfuscate_keyword = NULL;
 }
 
 /*

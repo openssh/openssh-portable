@@ -62,6 +62,7 @@
 #include "monitor_fdpass.h"
 #include "ssh2.h"
 #include "version.h"
+#include "obfuscate.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
@@ -494,6 +495,15 @@ ssh_connect_direct(const char *host, struct addrinfo *aitop,
 	/* Set the connection. */
 	packet_set_connection(sock, sock);
 
+	packet_set_timeout(options.server_alive_interval,
+	    options.server_alive_count_max);
+
+	if(options.obfuscate_handshake) {
+		if(options.obfuscate_keyword)
+			obfuscate_set_keyword(options.obfuscate_keyword);
+		packet_enable_obfuscation();
+	}
+
 	return 0;
 }
 
@@ -594,6 +604,8 @@ ssh_exchange_identification(int timeout_ms)
 			else if (len != 1)
 				fatal("ssh_exchange_identification: "
 				    "read: %.100s", strerror(errno));
+			if(options.obfuscate_handshake)
+				obfuscate_input(&buf[i], 1);
 			if (buf[i] == '\r') {
 				buf[i] = '\n';
 				buf[i + 1] = 0;
@@ -674,6 +686,17 @@ ssh_exchange_identification(int timeout_ms)
 		    "scheme; disabling use of RSA keys", remote_version);
 	if (!client_banner_sent)
 		send_client_banner(connection_out, minor1);
+	/* Send our own protocol version identification. */
+	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s%s",
+	    compat20 ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
+	    compat20 ? PROTOCOL_MINOR_2 : minor1,
+	    SSH_VERSION, compat20 ? "\r\n" : "\n");
+	client_version_string = xstrdup(buf);
+	if(options.obfuscate_handshake)
+		obfuscate_output(buf, strlen(buf));
+	if (atomicio(vwrite, connection_out, buf, strlen(buf)) != strlen(buf))
+		fatal("write: %.100s", strerror(errno));
+	chop(client_version_string);
 	chop(server_version_string);
 }
 
@@ -1294,6 +1317,9 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 	/* Convert the user-supplied hostname into all lowercase. */
 	host = xstrdup(orighost);
 	lowercase(host);
+
+	if(options.obfuscate_handshake)
+		obfuscate_send_seed(packet_get_connection_out());
 
 	/* Exchange protocol version identification strings with the server. */
 	ssh_exchange_identification(timeout_ms);

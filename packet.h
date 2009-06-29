@@ -38,6 +38,8 @@ void     packet_set_interactive(int, int, int);
 int      packet_is_interactive(void);
 void     packet_set_server(void);
 void     packet_set_authenticated(void);
+void     packet_enable_obfuscation(void);
+void     packet_disable_obfuscation(void);
 
 void     packet_start(u_char);
 void     packet_put_char(int ch);
