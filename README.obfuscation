@@ -1,0 +1,84 @@
+Handshake Obfuscation
+---------------------
+
+The SSH obfuscation patch contributes two new security features to the SSH protocol
+handshake.  The first is to make it much more difficult to automatically identify
+SSH traffic by passively monitoring network traffic.  This is accomplished by adding
+a layer of encryption over the handshake in such a way that examining the traffic
+becomes 'expensive' to accomplish with automated analysis.  
+
+The second feature is to prevent an SSHD server from advertising a banner or sending
+any traffic at all until a specially formatted message has been sent from the client
+to the server to initiate an obfuscated handshake.  This change to the handshake
+protocol is needed to acheive the first requirement of making the network traffic
+difficult to identify as SSH protocol activity.  It also prevents discovery of SSH
+servers by portscanning unless the scanning tool is aware of format of the message
+it must send to cause the server to respond.   
+
+
+
+Protocol Description
+--------------------
+
+The first step in the obfuscation protocol is that the client connects to a port
+running the protocol and sends a seed message which is used to derive the keys
+for obfuscating the handshake.
+
+#define OBFUSCATE_MAGIC_VALUE        0x0BF5CA7E
+#define OBFUSCATE_SEED_LENGTH        16
+#define OBFUSCATE_MAX_PADDING        8192
+
+
+[     16 byte random seed           ][  magic  ][ plength ][ .. plength bytes of random padding ... ]
+|___________________________________||______________________________________________________________|
+                |                                                   |
+            Plaintext                                Encrypted with key derived from seed 
+
+To create the seed message the client first generates 16 pseudo random bytes from which
+the handshake obfuscation keys will be derived.  The client also runs the key derivation algorithm
+(described below) to initialize the obfuscation cipher.
+
+The 'magic' field and the 'plength' field are 32 bit unsigned values transfered in network byte order (MSB first).
+
+The magic field must contain the constant OBFUSCATE_MAGIC_VALUE and the 'plength' field must
+contain a randomly selected value between 0 and OBFUSCATE_MAX_PADDING.  Then 'plength' bytes of
+pseudo randomly generated data is appended after the length field.
+
+The purpose of the padding is to prevent a trivial traffic analysis attack which allows the protocol
+to be identified my merely observing the size of the first message.
+
+Upon receiving the seed message from the client, the server must extract the seed bytes
+and perform the key derivation algorithm (described below) before decrypting the rest of the
+message.  Then the server must that the magic value is correct and also that the padding length
+is below OBFUSCATE_MAX_PADDING.
+
+If these checks fail the server will continue reading and discarding all data until
+the client closes the connection without sending anything in response.
+
+Key Derivation
+--------------
+
+#define OBFUSCATE_HASH_ITERATIONS     6000
+#define OBFUSCATE_KEY_LENGTH          16
+
+    h = SHA1(seed || iv)
+
+    for(i = 0; i < OBFUSCATE_HASH_ITERATIONS; i++)
+        h = SHA1(h);
+
+    key = [first OBFUSCATE_KEY_LENGTH bytes of h]
+
+For traffic from the client to the server the iv is the string "client_to_server"
+
+For traffic from the server to the client the iv is the string "server_to_clint"
+
+Passworded Key Derivation
+-------------------------
+
+A configuration option is provided which allows specification of a password which must be specified by a client in order
+to initiate a handshake with the server.  This feature should not be considered as strong authentication as it is only
+for preventing casual portscanning and fingerprinting of your ssh server.
+
+    h = SHA1(seed || password || iv)
+
+
