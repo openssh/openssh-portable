@@ -15,7 +15,42 @@ difficult to identify as SSH protocol activity.  It also prevents discovery of S
 servers by portscanning unless the scanning tool is aware of format of the message
 it must send to cause the server to respond.   
 
+[keyword obfuscation]
 
+Configuration
+-------------
+
+Server:
+
+The server configuration for obufscated handshakes adds two new keywords which may
+be used in a sshd_config file to enable obfuscation.
+
+    ObfuscatedPort
+           This option is similar to the Port option and specifies one or more ports
+           on which to listen for obfuscated handshake connections.  Both this option
+           and the Port option may be used in the same configuration file to create a
+           configuration with both regular and obfuscated listening ports.
+
+    ObfuscateKeyword
+           Enables the keyword protected obfuscated handshake which prevents initiating
+           a handshake to the server without knowing the keyword.
+
+Client:
+
+The OpenSSH client can be configured to use the obfuscated handshake protocol by passing
+command line options as well as through configuration file options.
+
+    -z             Initiate an obfuscated handshake to the remote server.
+    -Z keyword     Initiate a keyword protected obfuscated handshake to the remote server.
+
+Two new client configuration file options hve been added.
+
+    ObfuscateHandshake
+           Requests that the client use the obfuscated handshake protocol.  The default is 'no'
+
+    ObfuscateKeyword
+           Enables keyword protected obfuscated handshake.  The server and client must be
+           configured with the same keyword in order to initiate a connection.
 
 Protocol Description
 --------------------
@@ -58,19 +93,25 @@ the client closes the connection without sending anything in response.
 Key Derivation
 --------------
 
+The key derivation produces a pair of keys (one for each direction) by performing an iterated 
+hash function over the random seed value concatenated with a constant value.
+
+A different constant value is used for each direction to guarantee that the two stream ciphers
+instances are initialized with unique keys.
+
 #define OBFUSCATE_HASH_ITERATIONS     6000
 #define OBFUSCATE_KEY_LENGTH          16
 
-    h = SHA1(seed || iv)
+    h = SHA1(seed || constant)
 
     for(i = 0; i < OBFUSCATE_HASH_ITERATIONS; i++)
         h = SHA1(h);
 
     key = [first OBFUSCATE_KEY_LENGTH bytes of h]
 
-For traffic from the client to the server the iv is the string "client_to_server"
+For traffic from the client to the server the constant is the string "client_to_server"
 
-For traffic from the server to the client the iv is the string "server_to_clint"
+For traffic from the server to the client the constant is the string "server_to_clint"
 
 Passworded Key Derivation
 -------------------------
@@ -79,6 +120,6 @@ A configuration option is provided which allows specification of a password whic
 to initiate a handshake with the server.  This feature should not be considered as strong authentication as it is only
 for preventing casual portscanning and fingerprinting of your ssh server.
 
-    h = SHA1(seed || password || iv)
+    h = SHA1(seed || password || constant)
 
 
