@@ -84,7 +84,7 @@ to be identified my merely observing the size of the first message.
 
 Upon receiving the seed message from the client, the server must extract the seed bytes
 and perform the key derivation algorithm (described below) before decrypting the rest of the
-message.  Then the server must that the magic value is correct and also that the padding length
+message.  Then the server must verify that the magic value is correct and also that the padding length
 is below OBFUSCATE_MAX_PADDING.
 
 If these checks fail the server will continue reading and discarding all data until
