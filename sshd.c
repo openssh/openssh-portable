@@ -2124,10 +2124,14 @@ main(int ac, char **av)
 	auth_debug_reset();
 
 	if (use_privsep) {
-		if (privsep_preauth(authctxt) == 1)
+		if (privsep_preauth(authctxt) == 1) {
+			if(use_obfuscation)
+				packet_disable_obfuscation();
 			goto authenticated;
-	} else if (compat20 && have_agent)
+		}
+	} else if (compat20 && have_agent) {
 		auth_conn = ssh_get_authentication_connection();
+	}
 
 	/* perform the key exchange */
 	/* authenticate user and start session */
