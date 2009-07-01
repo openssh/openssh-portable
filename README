@@ -1,5 +1,6 @@
 See http://www.openssh.com/txt/release-6.7 for the release notes.
 
+<<<<<<< HEAD
 - A Japanese translation of this document and of the OpenSSH FAQ is
 - available at http://www.unixuser.org/~haruyama/security/openssh/index.html
 - Thanks to HARUYAMA Seigo <haruyama@unixuser.org>
@@ -13,6 +14,42 @@ external libraries), all known security bugs fixed, new features
 reintroduced and many other clean-ups.  OpenSSH has been created by
 Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, Theo de Raadt,
 and Dug Song. It has a homepage at http://www.openssh.com/
+=======
+Handshake obfuscation strengthens the initial SSH handshake against systems
+that identify or classify various network protocols by examining data in 
+transit for static signatures.  Such automatic classification of traffic is 
+often used to provide different levels of network service for each protocol
+and sometimes used to implement policies which prohibit certain uses of a
+network.
+
+When an SSH connection is initiated, the client and server exchange several
+packets to configure the cryptographic parameters for the session.  Since
+the encryption algorithms and keys have not yet been determined, this exchange
+of messages is not encrypted and is vulnerable to analysis which can conclusively
+identify the connection as SSH protocol traffic no matter what port the server
+is listening on.  For most users this is of no concern, because merely being
+able to identify a connection as an SSH session does not introduce any security
+vulnerabilities in the protocol itself.
+
+Some users may have special security needs where they would prefer not to 
+disclose that they are using the SSH protocol to somebody who may be monitoring
+the network.  Handshake obfuscation prevents automatic identification of SSH
+protocol traffic by encrypting the entire handshake with a stream cipher, and 
+is designed to make it difficult to implement an automated analysis tool even
+understanding how the obfuscation protocol works. 
+
+The obfuscation encryption key is generated in a way which is deliberately 
+slow to make it difficult to implement on the type of high performance network
+hardware which is usually used for classifying protocol traffic.  Additionally
+an option is provided for the client and server to share a 'keyword' which is
+a simple kind of password that is used only for securing the handshake.  No
+connection can be initiated to a server which has keyword obfuscation enabled 
+without knowing the keyword, and the obfuscation keyword is used to derive the
+keys that encrypt the handshake in order prevent decrypting the handshake 
+traffic without knowing the keyword.
+
+
+>>>>>>> Some documentation improvements
 
 This port consists of the re-introduction of autoconf support, PAM
 support, EGD[1]/PRNGD[2] support and replacements for OpenBSD library
