@@ -2259,7 +2259,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
+	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:P:R:zZ:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2284,12 +2284,18 @@ main(int argc, char **argv)
 		case 'P':
 			addargs(&args, "-oPort %s", optarg);
 			break;
+		case 'z':
+			addargs(&args, "-%c", ch);
+			break;
 		case 'v':
 			if (debug_level < 3) {
 				addargs(&args, "-v");
 				ll = SYSLOG_LEVEL_DEBUG1 + debug_level;
 			}
 			debug_level++;
+			break;
+		case 'Z':
+			addargs(&args, "-%c%s", ch, optarg);
 			break;
 		case '1':
 			sshver = 1;
