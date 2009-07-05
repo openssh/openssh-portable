@@ -19,6 +19,10 @@
    - markus@cvs.openbsd.org 2009/06/30 14:54:40
      [version.h]
      crank version; ok deraadt
+   - dtucker@cvs.openbsd.org 2009/07/02 02:11:47
+     [ssh.c]
+     allow for long home dir paths (bz #1615).  ok deraadt
+     (based in part on a patch from jchadima at redhat)
 
 20090622
  - (dtucker) OpenBSD CVS Sync
