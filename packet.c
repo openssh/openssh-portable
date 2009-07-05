@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.165 2009/06/12 20:58:32 andreas Exp $ */
+/* $OpenBSD: packet.c,v 1.166 2009/06/27 09:29:06 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -194,7 +194,7 @@ struct session_state {
 	TAILQ_HEAD(, packet) outgoing;
 };
 
-static struct session_state *active_state;
+static struct session_state *active_state, *backup_state;
 
 static struct session_state *
 alloc_session_state(void)
@@ -1886,4 +1886,51 @@ void *
 packet_get_newkeys(int mode)
 {
 	return (void *)active_state->newkeys[mode];
+}
+
+/*
+ * Save the state for the real connection, and use a separate state when
+ * resuming a suspended connection.
+ */
+void
+packet_backup_state(void)
+{
+	struct session_state *tmp;
+
+	close(active_state->connection_in);
+	active_state->connection_in = -1;
+	close(active_state->connection_out);
+	active_state->connection_out = -1;
+	if (backup_state)
+		tmp = backup_state;
+	else
+		tmp = alloc_session_state();
+	backup_state = active_state;
+	active_state = tmp;
+}
+
+/*
+ * Swap in the old state when resuming a connecion.
+ */
+void
+packet_restore_state(void)
+{
+	struct session_state *tmp;
+	void *buf;
+	u_int len;
+
+	tmp = backup_state;
+	backup_state = active_state;
+	active_state = tmp;
+	active_state->connection_in = backup_state->connection_in;
+	backup_state->connection_in = -1;
+	active_state->connection_out = backup_state->connection_out;
+	backup_state->connection_out = -1;
+	len = buffer_len(&backup_state->input);
+	if (len > 0) {
+		buf = buffer_ptr(&backup_state->input);
+		buffer_append(&active_state->input, buf, len);
+		buffer_clear(&backup_state->input);
+		add_recv_bytes(len);
+	}
 }

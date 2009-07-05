@@ -1,3 +1,10 @@
+ - (dtucker) OpenBSD CVS Sync
+   - andreas@cvs.openbsd.org 2009/06/27 09:29:06
+     [packet.h packet.c]
+     packet_bacup_state() and packet_restore_state() will be used to
+     temporarily save the current state ren resuming a suspended connection.
+     ok markus@
+
 20090622
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2009/06/22 05:39:28
