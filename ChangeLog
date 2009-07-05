@@ -23,6 +23,10 @@
      [ssh.c]
      allow for long home dir paths (bz #1615).  ok deraadt
      (based in part on a patch from jchadima at redhat)
+   - stevesk@cvs.openbsd.org 2009/07/05 19:28:33
+     [clientloop.c]
+     only send SSH2_MSG_DISCONNECT if we're in compat20; from dtucker@
+     ok deraadt@ markus@
 
 20090622
  - (dtucker) OpenBSD CVS Sync

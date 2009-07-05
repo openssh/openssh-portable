@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.212 2009/05/28 16:50:16 andreas Exp $ */
+/* $OpenBSD: clientloop.c,v 1.213 2009/07/05 19:28:33 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1477,11 +1477,13 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	/* Stop watching for window change. */
 	signal(SIGWINCH, SIG_DFL);
 
-	packet_start(SSH2_MSG_DISCONNECT);
-	packet_put_int(SSH2_DISCONNECT_BY_APPLICATION);
-	packet_put_cstring("disconnected by user");
-	packet_send();
-	packet_write_wait();
+	if (compat20) {
+		packet_start(SSH2_MSG_DISCONNECT);
+		packet_put_int(SSH2_DISCONNECT_BY_APPLICATION);
+		packet_put_cstring("disconnected by user");
+		packet_send();
+		packet_write_wait();
+	}
 
 	channel_free_all();
 
