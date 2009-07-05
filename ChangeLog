@@ -4,6 +4,12 @@
      packet_bacup_state() and packet_restore_state() will be used to
      temporarily save the current state ren resuming a suspended connection.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/06/27 09:32:43
+     [roaming_common.c roaming.h]
+     It may be necessary to retransmit some data when resuming, so add it
+     to a buffer when roaming is enabled.
+     Most of this code was written by Martin Forssen, maf at appgate dot com.
+     ok markus@
 
 20090622
  - (dtucker) OpenBSD CVS Sync
