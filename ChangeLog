@@ -16,6 +16,9 @@
      control whether the client tries to use roaming if enabled on the
      server. From Martin Forssen.
      ok markus@
+   - markus@cvs.openbsd.org 2009/06/30 14:54:40
+     [version.h]
+     crank version; ok deraadt
 
 20090622
  - (dtucker) OpenBSD CVS Sync
