@@ -10,6 +10,12 @@
      to a buffer when roaming is enabled.
      Most of this code was written by Martin Forssen, maf at appgate dot com.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/06/27 09:35:06
+     [readconf.h readconf.c]
+     Add client option UseRoaming. It doesn't do anything yet but will
+     control whether the client tries to use roaming if enabled on the
+     server. From Martin Forssen.
+     ok markus@
 
 20090622
  - (dtucker) OpenBSD CVS Sync
