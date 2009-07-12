@@ -1,6 +1,8 @@
 20090712
  - (dtucker) [configure.ac] Include sys/param.h for the sys/mount.h test,
    prevents configure complaining on older BSDs.
+ - (dtucker [contrib/cygwin/ssh-{host,user}-config] Add license text. Patch
+   from Corinna Vinschen.
 
 20090707
  - (dtucker) [contrib/cygwin/ssh-host-config] better support for automated
