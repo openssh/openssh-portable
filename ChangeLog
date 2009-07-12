@@ -3,6 +3,8 @@
    prevents configure complaining on older BSDs.
  - (dtucker [contrib/cygwin/ssh-{host,user}-config] Add license text. Patch
    from Corinna Vinschen.
+ - (dtucker) [auth-pam.c] Bug #1534: move the deletion of PAM credentials on
+   logout to after the session close.  Patch from Anicka Bernathova, ok djm.
 
 20090707
  - (dtucker) [contrib/cygwin/ssh-host-config] better support for automated
