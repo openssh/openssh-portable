@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.420 2009/06/16 06:11:02 dtucker Exp $
+# $Id: configure.ac,v 1.421 2009/07/12 11:56:29 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.420 $)
+AC_REVISION($Revision: 1.421 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -279,7 +279,6 @@ AC_CHECK_HEADERS( \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
-	sys/mount.h \
 	sys/ndir.h \
 	sys/poll.h \
 	sys/prctl.h \
@@ -324,6 +323,11 @@ AC_CHECK_HEADERS(sys/ptms.h, [], [], [
 # login_cap.h requires sys/types.h on NetBSD
 AC_CHECK_HEADERS(login_cap.h, [], [], [
 #include <sys/types.h>
+])
+
+# older BSDs need sys/param.h before sys/mount.h
+AC_CHECK_HEADERS(sys/mount.h, [], [], [
+#include <sys/param.h>
 ])
 
 # Messages for features tested for in target-specific section
