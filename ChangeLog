@@ -1,3 +1,8 @@
+20090713
+ - (dtucker) [openbsd-compat/getrrsetbyname.c] Reduce answer buffer size so it
+   fits into 16 bits to work around a bug in glibc's resolver where it masks
+   off the buffer size at 16 bits.  Patch from Hauke Lampe, ok djm jakob.
+
 20090712
  - (dtucker) [configure.ac] Include sys/param.h for the sys/mount.h test,
    prevents configure complaining on older BSDs.
