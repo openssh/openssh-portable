@@ -1,3 +1,7 @@
+20090729
+ - (tim) [contrib/cygwin/ssh-user-config] Change script to call correct error
+   function. Patch from Corinna Vinschen.
+
 20090713
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Reduce answer buffer size so it
    fits into 16 bits to work around a bug in glibc's resolver where it masks
