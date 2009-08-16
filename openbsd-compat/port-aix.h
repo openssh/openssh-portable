@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.29 2008/03/09 05:36:55 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.30 2009/08/16 23:40:00 dtucker Exp $ */
 
 /*
  *
@@ -87,6 +87,8 @@ void aix_usrinfo(struct passwd *);
 int sys_auth_allowed_user(struct passwd *, Buffer *);
 # define CUSTOM_SYS_AUTH_RECORD_LOGIN 1
 int sys_auth_record_login(const char *, const char *, const char *, Buffer *);
+# define CUSTOM_SYS_AUTH_GET_LASTLOGIN_MSG
+char *sys_auth_get_lastlogin_msg(const char *, uid_t);
 # define CUSTOM_FAILED_LOGIN 1
 #endif
 

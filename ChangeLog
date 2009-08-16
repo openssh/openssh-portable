@@ -2,6 +2,8 @@
  - (dtucker) [configure.ac] Check for headers before libraries for openssl an
    zlib, which should make the errors slightly more meaningful on platforms
    where there's separate "-devel" packages for those.
+ - (dtucker) [sshlogin.c openbsd-compat/port-aix.{c,h}] Bug #1595: make
+   PrintLastLog work on AIX.  Based in part on a patch from Miguel Sanders.
 
 20090729
  - (tim) [contrib/cygwin/ssh-user-config] Change script to call correct error
