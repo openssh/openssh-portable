@@ -1,3 +1,8 @@
+20090817
+ - (dtucker) [configure.ac] Check for headers before libraries for openssl an
+   zlib, which should make the errors slightly more meaningful on platforms
+   where there's separate "-devel" packages for those.
+
 20090729
  - (tim) [contrib/cygwin/ssh-user-config] Change script to call correct error
    function. Patch from Corinna Vinschen.
