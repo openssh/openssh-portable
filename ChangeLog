@@ -1,3 +1,8 @@
+20090820
+ - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
+   using it since the type conflicts can cause problems on FreeBSD.  Patch
+   from Jonathan Chen.
+
 20090817
  - (dtucker) [configure.ac] Check for headers before libraries for openssl an
    zlib, which should make the errors slightly more meaningful on platforms
