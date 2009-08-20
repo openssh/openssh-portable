@@ -1466,11 +1466,6 @@ do_setusercontext(struct passwd *pw)
 	if (getuid() == 0 || geteuid() == 0)
 #endif /* HAVE_CYGWIN */
 	{
-
-#ifdef HAVE_SETPCRED
-		if (setpcred(pw->pw_name, (char **)NULL) == -1)
-			fatal("Failed to set process credentials");
-#endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
 # ifdef __bsdi__
 		setpgid(0, 0);
@@ -1538,6 +1533,10 @@ do_setusercontext(struct passwd *pw)
 			free(chroot_path);
 		}
 
+#ifdef HAVE_SETPCRED
+		if (setpcred(pw->pw_name, (char **)NULL) == -1)
+			fatal("Failed to set process credentials");
+#endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUSER) < 0) {
 			perror("unable to set user context (setuser)");

@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.30 2009/08/16 23:40:00 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.31 2009/08/20 06:20:50 dtucker Exp $ */
 
 /*
  *
@@ -69,6 +69,11 @@ int passwdexpired(char *, char **);
 /* For struct timespec on AIX 4.2.x */
 #ifdef HAVE_SYS_TIMERS_H
 # include <sys/timers.h>
+#endif
+
+/* for setpcred and friends */
+#ifdef HAVE_USERSEC_H
+# include <usersec.h>
 #endif
 
 /*

@@ -2,6 +2,10 @@
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
    using it since the type conflicts can cause problems on FreeBSD.  Patch
    from Jonathan Chen.
+ - (dtucker) [session.c openbsd-compat/port-aix.h] Bugs #1249 and #1567: move
+   the setpcred call on AIX to immediately before the permanently_set_uid().
+   Ensures that we still have privileges when we call chroot and
+   pam_open_sesson.  Based on a patch from David Leonard.
 
 20090817
  - (dtucker) [configure.ac] Check for headers before libraries for openssl an
