@@ -15,6 +15,7 @@
  - (dtucker) [clientloop.c configure.ac defines.h] Make the client's IO buffer
    size a compile-time option and set it to 64k on Cygwin, since Corinna
    reports that it makes a significant difference to performance.  ok djm@
+ - (dtucker) [configure.ac] Fix the syntax of the Solaris tcgetattr entry.
 
 20090820
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
