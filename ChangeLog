@@ -6,6 +6,8 @@
    bz#1408; ok dtucker@
  - (djm) [sftp-server.c] bz#1535: accept ENOSYS as a fallback error when
    attempting atomic rename(); ok dtucker@
+ - (djm) [Makefile.in] bz#1505: Solaris make(1) doesn't accept make variables
+   in argv, so pass them in the environment; ok dtucker@
 
 20090820
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
