@@ -176,10 +176,9 @@ then no banner is displayed.
 This option is only available for protocol version 2.
 By default, no banner is displayed.
 .It Cm ChallengeResponseAuthentication
-Specifies whether challenge-response authentication is allowed.
-All authentication styles from
-.Xr login.conf 5
-are supported.
+Specifies whether challenge-response authentication is allowed (e.g. via
+PAM or though authentication styles supported in
+.Xr login.conf 5 )
 The default is
 .Dq yes .
 .It Cm ChrootDirectory
