@@ -1,3 +1,7 @@
+20090828
+ - dtucker [auth-sia.c] Roll back the change for bug #1241 as it apparently
+   causes problems in some Tru64 configurations.
+
 20090820
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
    using it since the type conflicts can cause problems on FreeBSD.  Patch
