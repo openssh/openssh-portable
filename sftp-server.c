@@ -1041,7 +1041,7 @@ process_rename(void)
 	else if (S_ISREG(sb.st_mode)) {
 		/* Race-free rename of regular files */
 		if (link(oldpath, newpath) == -1) {
-			if (errno == EOPNOTSUPP
+			if (errno == EOPNOTSUPP || errno == ENOSYS
 #ifdef EXDEV
 			    || errno == EXDEV
 #endif
