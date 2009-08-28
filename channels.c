@@ -1653,6 +1653,7 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			}
 			return -1;
 		}
+#ifndef BROKEN_TCGETATTR_ICANON
 		if (compat20 && c->isatty && dlen >= 1 && buf[0] != '\r') {
 			if (tcgetattr(c->wfd, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
@@ -1666,6 +1667,7 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 				packet_send();
 			}
 		}
+#endif
 		buffer_consume(&c->output, len);
 		if (compat20 && len > 0) {
 			c->local_consumed += len;

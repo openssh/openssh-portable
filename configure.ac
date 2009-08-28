@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.422 2009/08/16 23:35:22 dtucker Exp $
+# $Id: configure.ac,v 1.423 2009/08/28 01:02:37 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.422 $)
+AC_REVISION($Revision: 1.423 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -671,6 +671,7 @@ mips-sony-bsd|mips-sony-newsos4)
 		after setsid()])
 	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd
 		in case the name is longer than 8 chars])
+	AC_DEFINE(BROKEN_TCGETATTR_ICANON, tcgetattr with ICANON may hang)
 	external_path_file=/etc/default/login
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"

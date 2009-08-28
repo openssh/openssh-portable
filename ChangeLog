@@ -8,6 +8,10 @@
    attempting atomic rename(); ok dtucker@
  - (djm) [Makefile.in] bz#1505: Solaris make(1) doesn't accept make variables
    in argv, so pass them in the environment; ok dtucker@
+ - (dtucker) [channels.c configure.ac] Bug #1528: skip the tcgetattr call on
+    the pty master on Solaris, since it never succeeds and can hang if large
+    amounts of data is sent to the slave (eg a copy-paste).  Based on a patch
+    originally from Doke Scott, ok djm@
 
 20090820
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not
