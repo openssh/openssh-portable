@@ -12,6 +12,9 @@
     the pty master on Solaris, since it never succeeds and can hang if large
     amounts of data is sent to the slave (eg a copy-paste).  Based on a patch
     originally from Doke Scott, ok djm@
+ - (dtucker) [clientloop.c configure.ac defines.h] Make the client's IO buffer
+   size a compile-time option and set it to 64k on Cygwin, since Corinna
+   reports that it makes a significant difference to performance.  ok djm@
 
 20090820
  - (dtucker) [includes.h] Bug #1634: do not include system glob.h if we're not

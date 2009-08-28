@@ -636,7 +636,7 @@ static void
 client_process_net_input(fd_set *readset)
 {
 	int len, cont = 0;
-	char buf[8192];
+	char buf[SSH_IOBUFSZ];
 
 	/*
 	 * Read input from the server, and add any such data to the buffer of
@@ -1129,7 +1129,7 @@ static void
 client_process_input(fd_set *readset)
 {
 	int len;
-	char buf[8192];
+	char buf[SSH_IOBUFSZ];
 
 	/* Read input from stdin. */
 	if (FD_ISSET(fileno(stdin), readset)) {

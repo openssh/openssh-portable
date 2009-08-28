@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.155 2009/06/16 06:11:02 dtucker Exp $ */
+/* $Id: defines.h,v 1.156 2009/08/28 01:21:07 dtucker Exp $ */
 
 
 /* Constants */
@@ -747,6 +747,10 @@ struct winsize {
 
 #ifndef INET6_ADDRSTRLEN	/* for non IPv6 machines */
 #define INET6_ADDRSTRLEN 46
+#endif
+
+#ifndef SSH_IOBUFSZ
+# define SSH_IOBUFSZ 8192
 #endif
 
 #endif /* _DEFINES_H */
