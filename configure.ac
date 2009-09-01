@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.425 2009/08/28 05:01:20 dtucker Exp $
+# $Id: configure.ac,v 1.426 2009/09/01 08:26:00 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.425 $)
+AC_REVISION($Revision: 1.426 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3404,10 +3404,10 @@ AC_ARG_WITH(kerberos5,
 		AC_DEFINE(KRB5, 1, [Define if you want Kerberos 5 support])
 		KRB5_MSG="yes"
 
-		AC_MSG_CHECKING(for krb5-config)
-		if test -x  $KRB5ROOT/bin/krb5-config ; then
-			KRB5CONF=$KRB5ROOT/bin/krb5-config
-			AC_MSG_RESULT($KRB5CONF)
+		AC_PATH_PROG([KRB5CONF],[krb5-config],
+			     [$KRB5ROOT/bin/krb5-config],
+			     [$KRB5ROOT/bin:$PATH])
+		if test -x $KRB5CONF ; then
 
 			AC_MSG_CHECKING(for gssapi support)
 			if $KRB5CONF | grep gssapi >/dev/null ; then
@@ -3433,7 +3433,6 @@ AC_ARG_WITH(kerberos5,
 				         AC_MSG_RESULT(no)
 			)
 		else
-			AC_MSG_RESULT(no)
 			CPPFLAGS="$CPPFLAGS -I${KRB5ROOT}/include"
 			LDFLAGS="$LDFLAGS -L${KRB5ROOT}/lib"
 			AC_MSG_CHECKING(whether we are using Heimdal)

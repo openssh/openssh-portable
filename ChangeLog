@@ -1,3 +1,8 @@
+20090901
+ - (dtucker) [configure.ac] Bug #1639: use AC_PATH_PROG to search the path for
+   krb5-config if it's not in the location specified by --with-kerberos5.
+   Patch from jchadima at redhat.
+
 20090829
  - (dtucker) [README.platform] Add text about development packages, based on
    text from Chris Pepper in bug #1631.
