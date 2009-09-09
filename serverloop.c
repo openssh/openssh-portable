@@ -1124,7 +1124,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		    no_port_forwarding_flag ||
 		    (!want_reply && listen_port == 0)
 #ifndef NO_IPPORT_RESERVED_CONCEPT
-		    || (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
+		    || (listen_port != 0 && listen_port < IPPORT_RESERVED &&
+                    pw->pw_uid != 0)
 #endif
 		    ) {
 			success = 0;

@@ -1,3 +1,7 @@
+20090908
+ - (djm) [serverloop.c] Fix test for server-assigned remote forwarding port
+   (-R 0:...); bz#1578, spotted and fix by gavin AT emf.net; ok dtucker@
+
 20090901
  - (dtucker) [configure.ac] Bug #1639: use AC_PATH_PROG to search the path for
    krb5-config if it's not in the location specified by --with-kerberos5.
