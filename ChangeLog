@@ -1,3 +1,8 @@
+20090911
+ - (dtucker) [configure.ac] Change the -lresolv check so it works on Mac OS X
+   10.6 (which doesn't have BIND8_COMPAT and thus uses res_9_query).  Patch
+   from jbasney at ncsa uiuc edu.
+
 20090908
  - (djm) [serverloop.c] Fix test for server-assigned remote forwarding port
    (-R 0:...); bz#1578, spotted and fix by gavin AT emf.net; ok dtucker@

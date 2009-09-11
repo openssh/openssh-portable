@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.426 2009/09/01 08:26:00 dtucker Exp $
+# $Id: configure.ac,v 1.427 2009/09/11 04:56:08 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.426 $)
+AC_REVISION($Revision: 1.427 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3324,12 +3324,30 @@ AC_SEARCH_LIBS(getrrsetbyname, resolv,
 		AC_SEARCH_LIBS(res_query, resolv)
 		AC_SEARCH_LIBS(dn_expand, resolv)
 		AC_MSG_CHECKING(if res_query will link)
-		AC_TRY_LINK_FUNC(res_query, AC_MSG_RESULT(yes),
+		AC_LINK_IFELSE([
+#include "confdefs.h"
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <netdb.h>
+#include <resolv.h>
+int main()
+{
+	res_query (0, 0, 0, 0, 0);
+	return 0;
+}
+		   ],
+		    AC_MSG_RESULT(yes),
 		   [AC_MSG_RESULT(no)
 		    saved_LIBS="$LIBS"
 		    LIBS="$LIBS -lresolv"
 		    AC_MSG_CHECKING(for res_query in -lresolv)
 		    AC_LINK_IFELSE([
+#include "confdefs.h"
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <netdb.h>
 #include <resolv.h>
 int main()
 {
@@ -3337,8 +3355,7 @@ int main()
 	return 0;
 }
 			],
-			[LIBS="$LIBS -lresolv"
-			 AC_MSG_RESULT(yes)],
+			[AC_MSG_RESULT(yes)],
 			[LIBS="$saved_LIBS"
 			 AC_MSG_RESULT(no)])
 		    ])
