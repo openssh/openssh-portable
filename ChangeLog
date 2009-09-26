@@ -1,3 +1,7 @@
+20090926
+ - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+         [contrib/suse/openssh.spec] Update for release
+
 20090911
  - (dtucker) [configure.ac] Change the -lresolv check so it works on Mac OS X
    10.6 (which doesn't have BIND8_COMPAT and thus uses res_9_query).  Patch
