@@ -2,6 +2,7 @@
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
          [contrib/suse/openssh.spec] Update for release
  - (djm) [README] update relnotes URL
+ - (djm) [packet.c] Restore EWOULDBLOCK handling that got lost somewhere
 
 20090911
  - (dtucker) [configure.ac] Change the -lresolv check so it works on Mac OS X
