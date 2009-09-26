@@ -3,6 +3,7 @@
          [contrib/suse/openssh.spec] Update for release
  - (djm) [README] update relnotes URL
  - (djm) [packet.c] Restore EWOULDBLOCK handling that got lost somewhere
+ - (djm) Release 5.3p1
 
 20090911
  - (dtucker) [configure.ac] Change the -lresolv check so it works on Mac OS X
