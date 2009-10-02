@@ -1,3 +1,7 @@
+20091002
+ - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
+   spotted by des AT des.no
+
 20090926
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
          [contrib/suse/openssh.spec] Update for release
