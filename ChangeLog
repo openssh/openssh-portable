@@ -11,6 +11,13 @@
   - jmc@cvs.openbsd.org 2009/08/12 06:31:42
      [sftp.1]
      sort options;
+   - djm@cvs.openbsd.org 2009/08/13 01:11:19
+     [sftp.1 sftp.c]
+     Swizzle options: "-P sftp_server_path" moves to "-D sftp_server_path",
+     add "-P port" to match scp(1). Fortunately, the -P option is only really
+     used by our regression scripts.
+     part of larger patch from carlosvsilvapt@gmail.com for his Google Summer
+     of Code work; ok deraadt markus
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.

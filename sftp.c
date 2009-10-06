@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.108 2009/08/12 00:13:00 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.109 2009/08/13 01:11:19 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1707,7 +1707,8 @@ main(int argc, char **argv)
 	ll = SYSLOG_LEVEL_INFO;
 	infile = stdin;
 
-	while ((ch = getopt(argc, argv, "1246hqvCc:i:o:s:S:b:B:F:P:R:")) != -1) {
+	while ((ch = getopt(argc, argv,
+	    "1246hqvCc:D:i:o:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -1725,6 +1726,9 @@ main(int argc, char **argv)
 		case 'q':
 			showprogress = 0;
 			addargs(&args, "-%c", ch);
+			break;
+		case 'P':
+			addargs(&args, "-oPort %s", optarg);
 			break;
 		case 'v':
 			if (debug_level < 3) {
@@ -1758,7 +1762,7 @@ main(int argc, char **argv)
 			batchmode = 1;
 			addargs(&args, "-obatchmode yes");
 			break;
-		case 'P':
+		case 'D':
 			sftp_direct = optarg;
 			break;
 		case 'R':
