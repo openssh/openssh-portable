@@ -73,6 +73,13 @@
    - djm@cvs.openbsd.org 2009/08/31 21:01:29
      [sftp-server.8]
      document -e and -h; prodded by jmc@
+   - djm@cvs.openbsd.org 2009/09/01 14:43:17
+     [ssh-agent.c]
+     fix a race condition in ssh-agent that could result in a wedged or
+     spinning agent: don't read off the end of the allocated fd_sets, and
+     don't issue blocking read/write on agent sockets - just fall back to
+     select() on retriable read/write errors. bz#1633 reported and tested
+     by "noodle10000 AT googlemail.com"; ok dtucker@ markus@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.

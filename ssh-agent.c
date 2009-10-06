@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.161 2009/03/23 19:38:04 tobias Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.162 2009/09/01 14:43:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -919,11 +919,11 @@ after_select(fd_set *readset, fd_set *writeset)
 	socklen_t slen;
 	char buf[1024];
 	int len, sock;
-	u_int i;
+	u_int i, orig_alloc;
 	uid_t euid;
 	gid_t egid;
 
-	for (i = 0; i < sockets_alloc; i++)
+	for (i = 0, orig_alloc = sockets_alloc; i < orig_alloc; i++)
 		switch (sockets[i].type) {
 		case AUTH_UNUSED:
 			break;
@@ -956,16 +956,13 @@ after_select(fd_set *readset, fd_set *writeset)
 		case AUTH_CONNECTION:
 			if (buffer_len(&sockets[i].output) > 0 &&
 			    FD_ISSET(sockets[i].fd, writeset)) {
-				do {
-					len = write(sockets[i].fd,
-					    buffer_ptr(&sockets[i].output),
-					    buffer_len(&sockets[i].output));
-					if (len == -1 && (errno == EAGAIN ||
-					    errno == EINTR ||
-					    errno == EWOULDBLOCK))
-						continue;
-					break;
-				} while (1);
+				len = write(sockets[i].fd,
+				    buffer_ptr(&sockets[i].output),
+				    buffer_len(&sockets[i].output));
+				if (len == -1 && (errno == EAGAIN ||
+				    errno == EWOULDBLOCK ||
+				    errno == EINTR))
+					continue;
 				if (len <= 0) {
 					close_socket(&sockets[i]);
 					break;
@@ -973,14 +970,11 @@ after_select(fd_set *readset, fd_set *writeset)
 				buffer_consume(&sockets[i].output, len);
 			}
 			if (FD_ISSET(sockets[i].fd, readset)) {
-				do {
-					len = read(sockets[i].fd, buf, sizeof(buf));
-					if (len == -1 && (errno == EAGAIN ||
-					    errno == EINTR ||
-					    errno == EWOULDBLOCK))
-						continue;
-					break;
-				} while (1);
+				len = read(sockets[i].fd, buf, sizeof(buf));
+				if (len == -1 && (errno == EAGAIN ||
+				    errno == EWOULDBLOCK ||
+				    errno == EINTR))
+					continue;
 				if (len <= 0) {
 					close_socket(&sockets[i]);
 					break;
