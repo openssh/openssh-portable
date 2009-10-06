@@ -108,6 +108,10 @@
      used by our regression scripts.
      part of larger patch from carlosvsilvapt@gmail.com for his Google Summer
      of Code work; ok deraadt markus
+   - djm@cvs.openbsd.org 2009/08/20 18:43:07
+     [ssh-com-sftp.sh]
+     fix one sftp -D ... => sftp -P ... conversion that I missed; from Carlos
+     Silva for Google Summer of Code
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
