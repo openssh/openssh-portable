@@ -25,6 +25,10 @@
      [sftp-client.c]
      make the "get_handle: ..." error messages vaguely useful by allowing
      callers to specify their own error message strings.
+   - fgsch@cvs.openbsd.org 2009/08/15 18:56:34
+     [auth.h]
+     remove unused define. markus@ ok.
+     (Id sync only, Portable still uses this.)
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
