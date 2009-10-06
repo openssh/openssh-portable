@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.90 2007/09/09 11:38:01 sobrado Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.91 2009/08/27 17:44:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -195,9 +195,6 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		if (confirm != 0)
 			fprintf(stderr,
 			    "The user has to confirm each use of the key\n");
-	} else if (ssh_add_identity(ac, private, comment)) {
-		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
-		ret = 0;
 	} else {
 		fprintf(stderr, "Could not add identity: %s\n", filename);
 	}

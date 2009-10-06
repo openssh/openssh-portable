@@ -60,6 +60,13 @@
      [sftp-server.8]
      allow setting an explicit umask on the commandline to override whatever
      default the user has. bz#1229; ok dtucker@ deraadt@ markus@
+   - djm@cvs.openbsd.org 2009/08/27 17:44:52
+     [authfd.c ssh-add.c authfd.h]
+     Do not fall back to adding keys without contraints (ssh-add -c / -t ...)
+     when the agent refuses the constrained add request. This was a useful
+     migration measure back in 2002 when constraints were new, but just
+     adds risk now.
+     bz #1612, report and patch from dkg AT fifthhorseman.net; ok markus@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.

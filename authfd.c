@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.80 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: authfd.c,v 1.81 2009/08/27 17:44:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -543,12 +543,6 @@ ssh_add_identity_constrained(AuthenticationConnection *auth, Key *key,
 	type = buffer_get_char(&msg);
 	buffer_free(&msg);
 	return decode_reply(type);
-}
-
-int
-ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
-{
-	return ssh_add_identity_constrained(auth, key, comment, 0, 0);
 }
 
 /*
