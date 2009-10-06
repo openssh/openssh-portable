@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.87 2009/06/22 05:39:28 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.88 2009/08/14 18:17:49 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -73,6 +73,10 @@ struct sftp_conn {
 #define SFTP_EXT_FSTATVFS	0x00000004
 	u_int exts;
 };
+
+static char *
+get_handle(int fd, u_int expected_id, u_int *len, const char *errfmt, ...)
+    __attribute__((format(printf, 4, 5)));
 
 static void
 send_msg(int fd, Buffer *m)
@@ -179,11 +183,18 @@ get_status(int fd, u_int expected_id)
 }
 
 static char *
-get_handle(int fd, u_int expected_id, u_int *len)
+get_handle(int fd, u_int expected_id, u_int *len, const char *errfmt, ...)
 {
 	Buffer msg;
 	u_int type, id;
-	char *handle;
+	char *handle, errmsg[256];
+	va_list args;
+	int status;
+
+	va_start(args, errfmt);
+	if (errfmt != NULL)
+		vsnprintf(errmsg, sizeof(errmsg), errfmt, args);
+	va_end(args);
 
 	buffer_init(&msg);
 	get_msg(fd, &msg);
@@ -191,16 +202,17 @@ get_handle(int fd, u_int expected_id, u_int *len)
 	id = buffer_get_int(&msg);
 
 	if (id != expected_id)
-		fatal("ID mismatch (%u != %u)", id, expected_id);
+		fatal("%s: ID mismatch (%u != %u)",
+		    errfmt == NULL ? __func__ : errmsg, id, expected_id);
 	if (type == SSH2_FXP_STATUS) {
-		int status = buffer_get_int(&msg);
-
-		error("Couldn't get handle: %s", fx2txt(status));
+		status = buffer_get_int(&msg);
+		if (errfmt != NULL)
+			error("%s: %s", errmsg, fx2txt(status));
 		buffer_free(&msg);
 		return(NULL);
 	} else if (type != SSH2_FXP_HANDLE)
-		fatal("Expected SSH2_FXP_HANDLE(%u) packet, got %u",
-		    SSH2_FXP_HANDLE, type);
+		fatal("%s: Expected SSH2_FXP_HANDLE(%u) packet, got %u",
+		    errfmt == NULL ? __func__ : errmsg, SSH2_FXP_HANDLE, type);
 
 	handle = buffer_get_string(&msg, len);
 	buffer_free(&msg);
@@ -418,7 +430,8 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 
 	buffer_clear(&msg);
 
-	handle = get_handle(conn->fd_in, id, &handle_len);
+	handle = get_handle(conn->fd_in, id, &handle_len,
+	    "remote readdir(\"%s\")", path);
 	if (handle == NULL)
 		return(-1);
 
@@ -951,7 +964,8 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	send_msg(conn->fd_out, &msg);
 	debug3("Sent message SSH2_FXP_OPEN I:%u P:%s", id, remote_path);
 
-	handle = get_handle(conn->fd_in, id, &handle_len);
+	handle = get_handle(conn->fd_in, id, &handle_len,
+	    "remote open(\"%s\")", remote_path);
 	if (handle == NULL) {
 		buffer_free(&msg);
 		return(-1);
@@ -1195,7 +1209,8 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 	buffer_clear(&msg);
 
-	handle = get_handle(conn->fd_in, id, &handle_len);
+	handle = get_handle(conn->fd_in, id, &handle_len,
+	    "remote open(\"%s\")", remote_path);
 	if (handle == NULL) {
 		close(local_fd);
 		buffer_free(&msg);

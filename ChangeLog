@@ -21,6 +21,10 @@
    - jmc@cvs.openbsd.org 2009/08/13 13:39:54
      [sftp.1 sftp.c]
      sync synopsis and usage();
+   - djm@cvs.openbsd.org 2009/08/14 18:17:49
+     [sftp-client.c]
+     make the "get_handle: ..." error messages vaguely useful by allowing
+     callers to specify their own error message strings.
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
