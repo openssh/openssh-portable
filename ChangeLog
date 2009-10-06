@@ -40,6 +40,9 @@
   - djm@cvs.openbsd.org 2009/08/18 21:15:59
      [sftp.1]
      fix "get" command usage, spotted by jmc@
+   - jmc@cvs.openbsd.org 2009/08/19 04:56:03
+     [sftp.1]
+     ether -> either;
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
