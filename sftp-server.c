@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.86 2009/08/27 17:28:52 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.87 2009/08/31 20:56:02 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1368,7 +1368,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			break;
 		case 'u':
 			mask = (mode_t)strtonum(optarg, 0, 0777, &errmsg);
-			if (cp != NULL)
+			if (errmsg != NULL)
 				fatal("Invalid umask \"%s\": %s",
 				    optarg, errmsg);
 			(void)umask(mask);

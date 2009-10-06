@@ -67,6 +67,9 @@
      migration measure back in 2002 when constraints were new, but just
      adds risk now.
      bz #1612, report and patch from dkg AT fifthhorseman.net; ok markus@
+   - djm@cvs.openbsd.org 2009/08/31 20:56:02
+     [sftp-server.c]
+     check correct variable for error message, spotted by martynas@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
