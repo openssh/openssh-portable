@@ -70,6 +70,9 @@
    - djm@cvs.openbsd.org 2009/08/31 20:56:02
      [sftp-server.c]
      check correct variable for error message, spotted by martynas@
+   - djm@cvs.openbsd.org 2009/08/31 21:01:29
+     [sftp-server.8]
+     document -e and -h; prodded by jmc@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
