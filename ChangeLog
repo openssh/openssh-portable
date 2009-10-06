@@ -92,6 +92,10 @@
      [regress/addrmatch.sh]
      match string "passwordauthentication" only at start of line, not anywhere
      in sshd -T output
+   - dtucker@cvs.openbsd.org 2009/05/05 07:51:36
+     [regress/multiplex.sh]
+     Always specify ssh_config for multiplex tests: prevents breakage caused
+     by options in ~/.ssh/config.  From Dan Peterson.
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
