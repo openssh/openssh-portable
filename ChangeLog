@@ -80,6 +80,10 @@
      don't issue blocking read/write on agent sockets - just fall back to
      select() on retriable read/write errors. bz#1633 reported and tested
      by "noodle10000 AT googlemail.com"; ok dtucker@ markus@
+   - grunk@cvs.openbsd.org 2009/10/01 11:37:33
+     [dh.c]
+     fix a cast
+     ok djm@ markus@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
