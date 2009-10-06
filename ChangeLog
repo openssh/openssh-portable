@@ -84,6 +84,10 @@
      [dh.c]
      fix a cast
      ok djm@ markus@
+   - djm@cvs.openbsd.org 2009/10/06 04:46:40
+     [session.c]
+     bz#1596: fflush(NULL) before exec() to ensure that everying (motd
+     in particular) has made it out before the streams go away.
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
