@@ -56,6 +56,10 @@
      as it was inheriting the wrong one when bubblebabble signatures were
      activated; bz#1611 report and patch from fwojcik+openssh AT besh.com;
      ok markus@
+   - djm@cvs.openbsd.org 2009/08/27 17:43:00
+     [sftp-server.8]
+     allow setting an explicit umask on the commandline to override whatever
+     default the user has. bz#1229; ok dtucker@ deraadt@ markus@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
