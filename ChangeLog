@@ -29,6 +29,9 @@
      [auth.h]
      remove unused define. markus@ ok.
      (Id sync only, Portable still uses this.)
+   - dtucker@cvs.openbsd.org 2009/08/16 23:29:26
+     [sshd_config.5]
+     Add PubkeyAuthentication to the list allowed in a Match block (bz #1577)
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
