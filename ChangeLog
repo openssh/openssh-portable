@@ -101,7 +101,8 @@
      regression test for port number parsing. written as part of the a2port
      change that went into 5.2 but I forgot to commit it at the time...
    - djm@cvs.openbsd.org 2009/08/13 01:11:55
-     [sftp-batch.sh sftp-badcmds.sh sftp.sh sftp-cmds.sh sftp-glob.sh]
+     [regress/sftp-batch.sh regress/sftp-badcmds.sh regress/sftp.sh
+     regress/sftp-cmds.sh regres/sftp-glob.sh]
      date: 2009/08/13 01:11:19;  author: djm;  state: Exp;  lines: +10 -7
      Swizzle options: "-P sftp_server_path" moves to "-D sftp_server_path",
      add "-P port" to match scp(1). Fortunately, the -P option is only really
@@ -109,9 +110,12 @@
      part of larger patch from carlosvsilvapt@gmail.com for his Google Summer
      of Code work; ok deraadt markus
    - djm@cvs.openbsd.org 2009/08/20 18:43:07
-     [ssh-com-sftp.sh]
+     [regress/ssh-com-sftp.sh]
      fix one sftp -D ... => sftp -P ... conversion that I missed; from Carlos
      Silva for Google Summer of Code
+   - dtucker@cvs.openbsd.org 2009/10/06 23:51:49
+     [regress/ssh2putty.sh]
+     Add OpenBSD tag to make syncs easier
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
