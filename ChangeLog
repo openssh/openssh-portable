@@ -32,6 +32,11 @@
    - dtucker@cvs.openbsd.org 2009/08/16 23:29:26
      [sshd_config.5]
      Add PubkeyAuthentication to the list allowed in a Match block (bz #1577)
+   - djm@cvs.openbsd.org 2009/08/18 18:36:21
+     [sftp-client.h sftp.1 sftp-client.c sftp.c]
+     recursive transfer support for get/put and on the commandline
+     work mostly by carlosvsilvapt@gmail.com for the Google Summer of Code
+     with some tweaks by me; "go for it" deraadt@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.

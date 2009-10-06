@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.73 2009/08/13 13:39:54 jmc Exp $
+.\" $OpenBSD: sftp.1,v 1.74 2009/08/18 18:36:20 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -22,7 +22,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: August 13 2009 $
+.Dd $Mdocdate: August 18 2009 $
 .Dt SFTP 1
 .Os
 .Sh NAME
@@ -31,7 +31,7 @@
 .Sh SYNOPSIS
 .Nm sftp
 .Bk -words
-.Op Fl 1246Cqv
+.Op Fl 1246Cpqrv
 .Op Fl B Ar buffer_size
 .Op Fl b Ar batchfile
 .Op Fl c Ar cipher
@@ -223,6 +223,9 @@ For full details of the options listed below, and their possible values, see
 .El
 .It Fl P Ar port
 Specifies the port to connect to on the remote host.
+.It Fl p
+Preserves modification times, access times, and modes from the
+original files transferred.
 .It Fl q
 Quiet mode: disables the progress meter as well as warning and
 diagnostic messages from
@@ -232,6 +235,11 @@ Specify how many requests may be outstanding at any one time.
 Increasing this may slightly improve file transfer speed
 but will increase memory usage.
 The default is 64 outstanding requests.
+.It Fl r
+Recursively copy entire directories when uploading and downloading.
+Note that
+.Nm
+does not follow symbolic links encountered in the tree traversal.
 .It Fl S Ar program
 Name of the
 .Ar program
@@ -322,7 +330,7 @@ extension.
 Quit
 .Nm sftp .
 .It Xo Ic get
-.Op Fl P
+.Op Fl Ppr
 .Ar remote-path
 .Op Ar local-path
 .Xc
@@ -341,10 +349,20 @@ If it does and
 is specified, then
 .Ar local-path
 must specify a directory.
-If the
-.Fl P
+.Pp
+If ether the
+.Fl Ppr
+or
+.Fl p
 flag is specified, then full file permissions and access times are
 copied too.
+.Pp
+If the
+.Fl r
+flag is specified then directories will be copied recursively.
+Note that
+.Nm
+does not follow symbolic links when performing recursive transfers.
 .It Ic help
 Display help text.
 .It Ic lcd Ar path
@@ -440,10 +458,20 @@ If it does and
 is specified, then
 .Ar remote-path
 must specify a directory.
-If the
+.Pp
+If ether the
 .Fl P
-flag is specified, then the file's full permission and access time are
+or
+.Fl p
+flag is specified, then full file permissions and access times are
 copied too.
+.Pp
+If the
+.Fl r
+flag is specified then directories will be copied recursively.
+Note that
+.Nm
+does not follow symbolic links when performing recursive transfers.
 .It Ic pwd
 Display remote working directory.
 .It Ic quit
