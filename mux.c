@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.7 2008/06/13 17:21:20 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.8 2009/08/20 23:54:28 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -85,7 +85,7 @@ extern int tty_flag;
 extern Options options;
 extern int stdin_null_flag;
 extern char *host;
-int subsystem_flag;
+extern int subsystem_flag;
 extern Buffer command;
 
 /* Context for session open confirmation callback */

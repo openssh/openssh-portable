@@ -43,6 +43,9 @@
    - jmc@cvs.openbsd.org 2009/08/19 04:56:03
      [sftp.1]
      ether -> either;
+   - dtucker@cvs.openbsd.org 2009/08/20 23:54:28
+     [mux.c]
+     subsystem_flag is defined in ssh.c so it's extern; ok djm
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
