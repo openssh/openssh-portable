@@ -1,3 +1,14 @@
+20091007
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2009/08/12 00:13:00
+     [sftp.c sftp.1]
+     support most of scp(1)'s commandline arguments in sftp(1), as a first
+     step towards making sftp(1) a drop-in replacement for scp(1).
+     One conflicting option (-P) has not been changed, pending further
+     discussion.
+     Patch from carlosvsilvapt@gmail.com as part of his work in the
+     Google Summer of Code
+
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
    spotted by des AT des.no

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.107 2009/02/02 11:15:14 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.108 2009/08/12 00:13:00 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1668,12 +1668,14 @@ usage(void)
 	extern char *__progname;
 
 	fprintf(stderr,
-	    "usage: %s [-1Cv] [-B buffer_size] [-b batchfile] [-F ssh_config]\n"
-	    "            [-o ssh_option] [-P sftp_server_path] [-R num_requests]\n"
-	    "            [-S program] [-s subsystem | sftp_server] host\n"
+	    "usage: %s [-1246Cqv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
+	    "          [-F ssh_config] [-i identify_file] [-o ssh_option]\n"
+	    "          [-P sftp_server_path] [-R num_requests] [-S program]\n"
+	    "          [-s subsystem | sftp_server] host\n"
 	    "       %s [user@]host[:file ...]\n"
 	    "       %s [user@]host[:dir[/]]\n"
-	    "       %s -b batchfile [user@]host\n", __progname, __progname, __progname, __progname);
+	    "       %s -b batchfile [user@]host\n",
+	    __progname, __progname, __progname, __progname);
 	exit(1);
 }
 
@@ -1705,10 +1707,24 @@ main(int argc, char **argv)
 	ll = SYSLOG_LEVEL_INFO;
 	infile = stdin;
 
-	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:B:F:P:R:")) != -1) {
+	while ((ch = getopt(argc, argv, "1246hqvCc:i:o:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
+		/* Passed through to ssh(1) */
+		case '4':
+		case '6':
 		case 'C':
-			addargs(&args, "-C");
+			addargs(&args, "-%c", ch);
+			break;
+		/* Passed through to ssh(1) with argument */
+		case 'F':
+		case 'c':
+		case 'i':
+		case 'o':
+			addargs(&args, "-%c%s", ch, optarg);
+			break;
+		case 'q':
+			showprogress = 0;
+			addargs(&args, "-%c", ch);
 			break;
 		case 'v':
 			if (debug_level < 3) {
@@ -1717,21 +1733,18 @@ main(int argc, char **argv)
 			}
 			debug_level++;
 			break;
-		case 'F':
-		case 'o':
-			addargs(&args, "-%c%s", ch, optarg);
-			break;
 		case '1':
 			sshver = 1;
 			if (sftp_server == NULL)
 				sftp_server = _PATH_SFTP_SERVER;
 			break;
-		case 's':
-			sftp_server = optarg;
+		case '2':
+			sshver = 2;
 			break;
-		case 'S':
-			ssh_program = optarg;
-			replacearg(&args, 0, "%s", ssh_program);
+		case 'B':
+			copy_buffer_len = strtol(optarg, &cp, 10);
+			if (copy_buffer_len == 0 || *cp != '\0')
+				fatal("Invalid buffer size \"%s\"", optarg);
 			break;
 		case 'b':
 			if (batchmode)
@@ -1748,16 +1761,18 @@ main(int argc, char **argv)
 		case 'P':
 			sftp_direct = optarg;
 			break;
-		case 'B':
-			copy_buffer_len = strtol(optarg, &cp, 10);
-			if (copy_buffer_len == 0 || *cp != '\0')
-				fatal("Invalid buffer size \"%s\"", optarg);
-			break;
 		case 'R':
 			num_requests = strtol(optarg, &cp, 10);
 			if (num_requests == 0 || *cp != '\0')
 				fatal("Invalid number of requests \"%s\"",
 				    optarg);
+			break;
+		case 's':
+			sftp_server = optarg;
+			break;
+		case 'S':
+			ssh_program = optarg;
+			replacearg(&args, 0, "%s", ssh_program);
 			break;
 		case 'h':
 		default:
