@@ -96,6 +96,10 @@
      [regress/multiplex.sh]
      Always specify ssh_config for multiplex tests: prevents breakage caused
      by options in ~/.ssh/config.  From Dan Peterson.
+   - djm@cvs.openbsd.org 2009/08/13 00:57:17
+     [regress/Makefile]
+     regression test for port number parsing. written as part of the a2port
+     change that went into 5.2 but I forgot to commit it at the time...
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
