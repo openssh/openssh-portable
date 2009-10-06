@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.74 2009/08/18 18:36:20 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.75 2009/08/18 21:15:59 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -351,7 +351,7 @@ is specified, then
 must specify a directory.
 .Pp
 If ether the
-.Fl Ppr
+.Fl P
 or
 .Fl p
 flag is specified, then full file permissions and access times are
@@ -440,7 +440,7 @@ Create remote directory specified by
 .It Ic progress
 Toggle display of progress meter.
 .It Xo Ic put
-.Op Fl P
+.Op Fl Ppr
 .Ar local-path
 .Op Ar remote-path
 .Xc

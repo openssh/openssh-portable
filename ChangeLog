@@ -37,6 +37,9 @@
      recursive transfer support for get/put and on the commandline
      work mostly by carlosvsilvapt@gmail.com for the Google Summer of Code
      with some tweaks by me; "go for it" deraadt@
+  - djm@cvs.openbsd.org 2009/08/18 21:15:59
+     [sftp.1]
+     fix "get" command usage, spotted by jmc@
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
