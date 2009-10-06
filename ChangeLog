@@ -100,6 +100,14 @@
      [regress/Makefile]
      regression test for port number parsing. written as part of the a2port
      change that went into 5.2 but I forgot to commit it at the time...
+   - djm@cvs.openbsd.org 2009/08/13 01:11:55
+     [sftp-batch.sh sftp-badcmds.sh sftp.sh sftp-cmds.sh sftp-glob.sh]
+     date: 2009/08/13 01:11:19;  author: djm;  state: Exp;  lines: +10 -7
+     Swizzle options: "-P sftp_server_path" moves to "-D sftp_server_path",
+     add "-P port" to match scp(1). Fortunately, the -P option is only really
+     used by our regression scripts.
+     part of larger patch from carlosvsilvapt@gmail.com for his Google Summer
+     of Code work; ok deraadt markus
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
