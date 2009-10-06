@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.70 2009/08/12 00:13:00 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.71 2009/08/12 06:31:42 jmc Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -132,14 +132,14 @@ prefixing the command with a
 .Sq \-
 character (for example,
 .Ic -rm /tmp/blah* ) .
-.It Fl c Ar cipher
-Selects the cipher to use for encrypting the data transfers.
-This option is directly passed to
-.Xr ssh 1 .
 .It Fl C
 Enables compression (via ssh's
 .Fl C
 flag).
+.It Fl c Ar cipher
+Selects the cipher to use for encrypting the data transfers.
+This option is directly passed to
+.Xr ssh 1 .
 .It Fl F Ar ssh_config
 Specifies an alternative
 per-user configuration file for

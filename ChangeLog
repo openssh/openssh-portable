@@ -8,6 +8,9 @@
      discussion.
      Patch from carlosvsilvapt@gmail.com as part of his work in the
      Google Summer of Code
+  - jmc@cvs.openbsd.org 2009/08/12 06:31:42
+     [sftp.1]
+     sort options;
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
