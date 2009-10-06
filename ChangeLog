@@ -18,6 +18,9 @@
      used by our regression scripts.
      part of larger patch from carlosvsilvapt@gmail.com for his Google Summer
      of Code work; ok deraadt markus
+   - jmc@cvs.openbsd.org 2009/08/13 13:39:54
+     [sftp.1 sftp.c]
+     sync synopsis and usage();
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
