@@ -88,6 +88,10 @@
      [session.c]
      bz#1596: fflush(NULL) before exec() to ensure that everying (motd
      in particular) has made it out before the streams go away.
+   - djm@cvs.openbsd.org 2008/12/07 22:17:48
+     [regress/addrmatch.sh]
+     match string "passwordauthentication" only at start of line, not anywhere
+     in sshd -T output
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.

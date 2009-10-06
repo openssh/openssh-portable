@@ -1,4 +1,4 @@
-#	$OpenBSD: addrmatch.sh,v 1.1 2008/06/10 05:23:32 dtucker Exp $
+#	$OpenBSD: addrmatch.sh,v 1.2 2008/12/07 22:17:48 djm Exp $
 #	Placed in the Public Domain.
 
 tid="address match"
@@ -12,7 +12,7 @@ run_trial()
 	verbose "test $descr for $user $addr $host"
 	result=`${SSHD} -f $OBJ/sshd_proxy -T \
 	    -C user=${user},addr=${addr},host=${host} | \
-	    awk '/passwordauthentication/ {print $2}'`
+	    awk '/^passwordauthentication/ {print $2}'`
 	if [ "$result" != "$expected" ]; then
 		fail "failed for $user $addr $host: expected $expected, got $result"
 	fi
