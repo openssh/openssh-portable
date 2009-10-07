@@ -37,6 +37,9 @@
 #include <sys/uio.h>
 
 #include <dirent.h>
+#ifdef DTTOIF_IN_FS_FFS_DIR_H
+# include <fs/ffs/dir.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
