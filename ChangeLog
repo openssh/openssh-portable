@@ -116,6 +116,7 @@
    - dtucker@cvs.openbsd.org 2009/10/06 23:51:49
      [regress/ssh2putty.sh]
      Add OpenBSD tag to make syncs easier
+ - (dtucker) [regress/portnum.sh] Import new test.
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
