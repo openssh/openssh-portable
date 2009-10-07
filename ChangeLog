@@ -117,8 +117,10 @@
      [regress/ssh2putty.sh]
      Add OpenBSD tag to make syncs easier
  - (dtucker) [regress/portnum.sh] Import new test.
- - (dtucker) [configure.ac sftp-client.c] DOTTIF is in fs/ffs/dir.h on at
+ - (dtucker) [configure.ac sftp-client.c] DTOTIF is in fs/ffs/dir.h on at
    least dragonflybsd.
+ - (dtucker) d_type is not mandated by POSIX, so add fallback code using
+    stat(), needed on at least cygwin.
 
 20091002
  - (djm) [Makefile.in] Mention readconf.o in ssh-keysign's make deps.
