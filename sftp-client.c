@@ -37,9 +37,6 @@
 #include <sys/uio.h>
 
 #include <dirent.h>
-#ifdef DTTOIF_IN_FS_FFS_DIR_H
-# include <fs/ffs/dir.h>
-#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -1454,20 +1451,6 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	return status;
 }
 
-static mode_t
-dirent_to_mode(struct dirent *dp)
-{
-#if defined(HAVE_STRUCT_DIRENT_D_TYPE) && defined(DTTOIF)
-	return DTTOIF(dp->d_type);
-#else
-	struct stat sb;
-
-	if (stat(dp->d_name, &sb) == -1)
-		return 0;
-	return sb.st_mode;
-#endif
-}	
-
 static int
 upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
     int pflag, int printflag, int depth)
@@ -1529,7 +1512,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 		new_dst = path_append(dst, filename);
 		new_src = path_append(src, filename);
 
-		if (S_ISDIR(dirent_to_mode(dp))) {
+		if (S_ISDIR(DTTOIF(dp->d_type))) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
@@ -1537,7 +1520,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 			if (upload_dir_internal(conn, new_src, new_dst,
 			    pflag, depth + 1, printflag) == -1)
 				ret = -1;
-		} else if (S_ISREG(dirent_to_mode(dp))) {
+		} else if (S_ISREG(DTTOIF(dp->d_type)) ) {
 			if (do_upload(conn, new_src, new_dst, pflag) == -1) {
 				error("Uploading of file %s to %s failed!",
 				    new_src, new_dst);

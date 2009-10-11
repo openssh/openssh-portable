@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.429 2009/10/07 07:56:10 dtucker Exp $
+# $Id: configure.ac,v 1.430 2009/10/11 10:50:20 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.429 $)
+AC_REVISION($Revision: 1.430 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1129,15 +1129,6 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
 	]
 )
-
-AC_CHECK_DECL(DTTOIF,
-  AC_DEFINE(DTTOIF_IN_FS_FFS_DIR_H, 1 , [DTTOIF macro in fs/ffs/dir.h]), ,
-  [
-#include <sys/types.h>
-#include <fs/ffs/dir.h>
-  ])
-
-AC_CHECK_MEMBERS([struct dirent.d_type],,, [#include <dirent.h>])
 
 AC_MSG_CHECKING([for /proc/pid/fd directory])
 if test -d "/proc/$$/fd" ; then
