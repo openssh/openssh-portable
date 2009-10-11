@@ -7,6 +7,9 @@
      [sshd_config readconf.c ssh_config.5 servconf.c sshd_config.5]
      disable protocol 1 by default (after a transition period of about 10 years)
      ok deraadt
+   - jmc@cvs.openbsd.org 2009/10/08 20:42:12
+     [sshd_config.5 ssh_config.5 sshd.8 ssh.1]
+     some tweaks now that protocol 1 is not offered by default; ok markus
 
 20091007
  - (dtucker) OpenBSD CVS Sync

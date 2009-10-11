@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.283 2009/03/19 15:15:09 jmc Exp $
-.Dd $Mdocdate: March 19 2009 $
+.\" $OpenBSD: ssh.1,v 1.284 2009/10/08 20:42:12 jmc Exp $
+.Dd $Mdocdate: October 8 2009 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -666,20 +666,18 @@ exits with the exit status of the remote command or with 255
 if an error occurred.
 .Sh AUTHENTICATION
 The OpenSSH SSH client supports SSH protocols 1 and 2.
-Protocol 2 is the default, with
-.Nm
-falling back to protocol 1 if it detects protocol 2 is unsupported.
-These settings may be altered using the
+The default is to use protocol 2 only,
+though this can be changed via the
 .Cm Protocol
 option in
-.Xr ssh_config 5 ,
-or enforced using the
+.Xr ssh_config 5
+or the
 .Fl 1
 and
 .Fl 2
 options (see above).
 Both protocols support similar authentication methods,
-but protocol 2 is preferred since
+but protocol 2 is the default since
 it provides additional mechanisms for confidentiality
 (the traffic is encrypted using AES, 3DES, Blowfish, CAST128, or Arcfour)
 and integrity (hmac-md5, hmac-sha1, umac-64, hmac-ripemd160).
