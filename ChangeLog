@@ -14,6 +14,9 @@
      [sftp-client.c]
      d_type isn't portable so use lstat to get dirent modes.  Suggested by and
      "looks sane" deraadt@
+   - markus@cvs.openbsd.org 2009/10/08 18:04:27
+     [regress/test-exec.sh]
+     re-enable protocol v1 for the tests.
 
 20091007
  - (dtucker) OpenBSD CVS Sync
