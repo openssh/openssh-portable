@@ -10,6 +10,10 @@
    - jmc@cvs.openbsd.org 2009/10/08 20:42:12
      [sshd_config.5 ssh_config.5 sshd.8 ssh.1]
      some tweaks now that protocol 1 is not offered by default; ok markus
+   - dtucker@cvs.openbsd.org 2009/10/11 10:41:26
+     [sftp-client.c]
+     d_type isn't portable so use lstat to get dirent modes.  Suggested by and
+     "looks sane" deraadt@
 
 20091007
  - (dtucker) OpenBSD CVS Sync

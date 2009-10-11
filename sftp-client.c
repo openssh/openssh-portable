@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.89 2009/08/18 18:36:20 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.90 2009/10/11 10:41:26 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1512,7 +1512,11 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 		new_dst = path_append(dst, filename);
 		new_src = path_append(src, filename);
 
-		if (S_ISDIR(DTTOIF(dp->d_type))) {
+		if (lstat(new_src, &sb) == -1) {
+			logit("%s: lstat failed: %s", filename,
+			    strerror(errno));
+			ret = -1;
+		} else if (S_ISDIR(sb.st_mode)) {
 			if (strcmp(filename, ".") == 0 ||
 			    strcmp(filename, "..") == 0)
 				continue;
@@ -1520,7 +1524,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 			if (upload_dir_internal(conn, new_src, new_dst,
 			    pflag, depth + 1, printflag) == -1)
 				ret = -1;
-		} else if (S_ISREG(DTTOIF(dp->d_type)) ) {
+		} else if (S_ISREG(sb.st_mode)) {
 			if (do_upload(conn, new_src, new_dst, pflag) == -1) {
 				error("Uploading of file %s to %s failed!",
 				    new_src, new_dst);
