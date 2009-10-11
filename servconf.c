@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.195 2009/04/14 21:10:54 jj Exp $ */
+/* $OpenBSD: servconf.c,v 1.196 2009/10/08 14:03:41 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -139,7 +139,7 @@ fill_default_server_options(ServerOptions *options)
 
 	/* Standard Options */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
+		options->protocol = SSH_PROTO_2;
 	if (options->num_host_key_files == 0) {
 		/* fill default hostkeys for protocols */
 		if (options->protocol & SSH_PROTO_1)
