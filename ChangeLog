@@ -6,6 +6,10 @@
    - sobrado@cvs.openbsd.org 2009/10/17 12:10:39
      [sftp-server.c]
      sort flags.
+   - sobrado@cvs.openbsd.org 2009/10/22 12:35:53
+     [ssh.1 ssh-agent.1 ssh-add.1]
+     use the UNIX-related macros (.At and .Ux) where appropriate.
+     ok jmc@
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for

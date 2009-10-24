@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.284 2009/10/08 20:42:12 jmc Exp $
-.Dd $Mdocdate: October 8 2009 $
+.\" $OpenBSD: ssh.1,v 1.285 2009/10/22 12:35:53 sobrado Exp $
+.Dd $Mdocdate: October 22 2009 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -132,8 +132,9 @@ This can also be specified on a per-host basis in a configuration file.
 .Pp
 Agent forwarding should be enabled with caution.
 Users with the ability to bypass file permissions on the remote host
-(for the agent's Unix-domain socket)
-can access the local agent through the forwarded connection.
+(for the agent's
+.Ux
+domain socket) can access the local agent through the forwarded connection.
 An attacker cannot obtain key material from the agent,
 however they can perform operations on the keys that enable them to
 authenticate using the identities loaded into the agent.
