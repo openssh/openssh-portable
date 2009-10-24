@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.76 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: authfile.c,v 1.77 2009/10/22 22:26:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -184,7 +184,7 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 	int success = 0;
 	int len = strlen(_passphrase);
 	u_char *passphrase = (len > 0) ? (u_char *)_passphrase : NULL;
-	const EVP_CIPHER *cipher = (len > 0) ? EVP_des_ede3_cbc() : NULL;
+	const EVP_CIPHER *cipher = (len > 0) ? EVP_aes_128_cbc() : NULL;
 
 	if (len > 0 && len <= 4) {
 		error("passphrase too short: have %d bytes, need > 4", len);

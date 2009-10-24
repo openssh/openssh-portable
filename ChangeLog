@@ -16,6 +16,10 @@
      few remaining ".Tn UNIX" macros with ".Ux" ones.
      pointed out by ratchov@, thanks!
      ok jmc@
+   - djm@cvs.openbsd.org 2009/10/22 22:26:13
+     [authfile.c]
+     switch from 3DES to AES-128 for encryption of passphrase-protected
+     SSH protocol 2 private keys; ok several
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for
