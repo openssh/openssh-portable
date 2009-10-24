@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.45 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: hostfile.c,v 1.46 2009/10/11 23:03:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -204,7 +204,7 @@ check_host_in_hostfile_by_key_or_type(const char *filename,
 	char *cp, *cp2, *hashed_host;
 	HostStatus end_return;
 
-	debug3("check_host_in_hostfile: filename %s", filename);
+	debug3("check_host_in_hostfile: host %s filename %s", host, filename);
 
 	/* Open the file containing the list of known hosts. */
 	f = fopen(filename, "r");

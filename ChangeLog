@@ -1,3 +1,9 @@
+20091024
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2009/10/11 23:03:15
+     [hostfile.c]
+     mention the host name that we are looking for in check_host_in_hostfile()
+
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for
    dirent d_type and DTTOIF as we've switched OpenBSD to the more portable
