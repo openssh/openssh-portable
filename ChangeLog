@@ -24,6 +24,9 @@
      [sshconnect2.c]
      disallow a hostile server from checking jpake auth by sending an
      out-of-sequence success message. (doesn't affect code enabled by default)
+   - dtucker@cvs.openbsd.org 2009/10/24 00:48:34
+     [ssh-keygen.1]
+     ssh-keygen now uses AES-128 for private keys
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for
