@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.48 2009/10/22 12:35:53 sobrado Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.49 2009/10/22 15:02:12 sobrado Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -68,8 +68,8 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl a Ar bind_address
 Bind the agent to the
-.Ux
-domain socket
+.Ux Ns -domain
+socket
 .Ar bind_address .
 The default is
 .Pa /tmp/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt .
@@ -165,8 +165,8 @@ by the agent, and the result will be returned to the requester.
 This way, private keys are not exposed to clients using the agent.
 .Pp
 A
-.Ux
-domain socket is created and the name of this socket is stored in the
+.Ux Ns -domain
+socket is created and the name of this socket is stored in the
 .Ev SSH_AUTH_SOCK
 environment
 variable.
@@ -189,9 +189,8 @@ Contains the protocol version 2 DSA authentication identity of the user.
 .It Pa ~/.ssh/id_rsa
 Contains the protocol version 2 RSA authentication identity of the user.
 .It Pa /tmp/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt
-.Ux
-domain sockets used to contain the connection to the
-authentication agent.
+.Ux Ns -domain
+sockets used to contain the connection to the authentication agent.
 These sockets should only be readable by the owner.
 The sockets should get automatically removed when the agent exits.
 .El

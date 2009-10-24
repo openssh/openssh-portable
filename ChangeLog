@@ -10,6 +10,12 @@
      [ssh.1 ssh-agent.1 ssh-add.1]
      use the UNIX-related macros (.At and .Ux) where appropriate.
      ok jmc@
+   - sobrado@cvs.openbsd.org 2009/10/22 15:02:12
+     [ssh-agent.1 ssh-add.1 ssh.1]
+     write UNIX-domain in a more consistent way; while here, replace a
+     few remaining ".Tn UNIX" macros with ".Ux" ones.
+     pointed out by ratchov@, thanks!
+     ok jmc@
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for
