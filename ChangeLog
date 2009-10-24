@@ -20,6 +20,10 @@
      [authfile.c]
      switch from 3DES to AES-128 for encryption of passphrase-protected
      SSH protocol 2 private keys; ok several
+   - djm@cvs.openbsd.org 2009/10/23 01:57:11
+     [sshconnect2.c]
+     disallow a hostile server from checking jpake auth by sending an
+     out-of-sequence success message. (doesn't affect code enabled by default)
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.171 2009/03/05 07:18:19 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.172 2009/10/23 01:57:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -210,6 +210,7 @@ struct Authmethod {
 };
 
 void	input_userauth_success(int, u_int32_t, void *);
+void	input_userauth_success_unexpected(int, u_int32_t, void *);
 void	input_userauth_failure(int, u_int32_t, void *);
 void	input_userauth_banner(int, u_int32_t, void *);
 void	input_userauth_error(int, u_int32_t, void *);
@@ -427,17 +428,32 @@ void
 input_userauth_success(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
+
 	if (authctxt == NULL)
 		fatal("input_userauth_success: no authentication context");
 	if (authctxt->authlist) {
 		xfree(authctxt->authlist);
 		authctxt->authlist = NULL;
 	}
+	if (authctxt->method != NULL && authctxt->method->cleanup != NULL)
+		authctxt->method->cleanup(authctxt);
 	if (authctxt->methoddata) {
 		xfree(authctxt->methoddata);
 		authctxt->methoddata = NULL;
 	}
 	authctxt->success = 1;			/* break out */
+}
+
+void
+input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
+{
+	Authctxt *authctxt = ctxt;
+
+	if (authctxt == NULL)
+		fatal("%s: no authentication context", __func__);
+
+	fatal("Unexpected authentication success during %s.",
+	    authctxt->method->name);
 }
 
 /* ARGSUSED */
@@ -1709,6 +1725,8 @@ userauth_jpake(Authctxt *authctxt)
 	/* Expect step 1 packet from peer */
 	dispatch_set(SSH2_MSG_USERAUTH_JPAKE_SERVER_STEP1,
 	    input_userauth_jpake_server_step1);
+	dispatch_set(SSH2_MSG_USERAUTH_SUCCESS,
+	    &input_userauth_success_unexpected);
 
 	return 1;
 }
@@ -1721,6 +1739,7 @@ userauth_jpake_cleanup(Authctxt *authctxt)
 		jpake_free(authctxt->methoddata);
 		authctxt->methoddata = NULL;
 	}
+	dispatch_set(SSH2_MSG_USERAUTH_SUCCESS, &input_userauth_success);
 }
 #endif /* JPAKE */
 
