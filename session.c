@@ -1796,6 +1796,9 @@ do_child(Session *s, const char *command)
 		argv[i] = NULL;
 		optind = optreset = 1;
 		__progname = argv[0];
+#ifdef WITH_SELINUX
+		ssh_selinux_change_context("sftpd_t");
+#endif
 		exit(sftp_server_main(i, argv, s->pw));
 	}
 

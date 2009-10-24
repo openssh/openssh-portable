@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.5 2008/03/26 20:27:21 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.6 2009/10/24 04:04:13 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -29,6 +29,7 @@
 
 #ifdef WITH_SELINUX
 #include "log.h"
+#include "xmalloc.h"
 #include "port-linux.h"
 
 #include <selinux/selinux.h>
@@ -167,5 +168,39 @@ ssh_selinux_setup_pty(char *pwname, const char *tty)
 	if (user_ctx != NULL)
 		freecon(user_ctx);
 	debug3("%s: done", __func__);
+}
+
+void
+ssh_selinux_change_context(const char *newname)
+{
+	int len, newlen;
+	char *oldctx, *newctx, *cx;
+
+	if (!ssh_selinux_enabled())
+		return;
+
+	if (getcon((security_context_t *)&oldctx) < 0) {
+		logit("%s: getcon failed with %s", __func__, strerror (errno));
+		return;
+	}
+	if ((cx = index(oldctx, ':')) == NULL || (cx = index(cx + 1, ':')) ==
+	    NULL) {
+		logit ("%s: unparseable context %s", __func__, oldctx);
+		return;
+	}
+
+	newlen = strlen(oldctx) + strlen(newname) + 1;
+	newctx = xmalloc(newlen);
+	len = cx - oldctx + 1;
+	memcpy(newctx, oldctx, len);
+	strlcpy(newctx + len, newname, newlen - len);
+	if ((cx = index(cx + 1, ':')))
+		strlcat(newctx, cx, newlen);
+	debug3("%s: setting context from '%s' to '%s'", __func__, oldctx,
+	    newctx);
+	if (setcon(newctx) < 0)
+		logit("%s: setcon failed with %s", __func__, strerror (errno));
+	xfree(oldctx);
+	xfree(newctx);
 }
 #endif /* WITH_SELINUX */

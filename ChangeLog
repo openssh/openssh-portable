@@ -28,6 +28,9 @@
      [ssh-keygen.1]
      ssh-keygen now uses AES-128 for private keys
  - (dtucker) [mdoc2man.awk] Teach it to understand the .Ux macro.
+ - (dtucker) [session.c openbsd-compat/port-linux.{c,h}] Bug #1637: if selinux
+   is enabled set the security context to "sftpd_t" before running the
+   internal sftp server   Based on a patch from jchadima at redhat.
 
 20091011
  - (dtucker) [configure.ac sftp-client.c] Remove the gyrations required for
