@@ -1,3 +1,7 @@
+20091105
+ - (dtucker) [authfile.c] Add OpenSSL compat header so this still builds with
+   older versions of OpenSSL.
+
 20091024
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2009/10/11 23:03:15

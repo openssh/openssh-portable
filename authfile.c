@@ -47,6 +47,9 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
+/* compatibility with old or broken OpenSSL versions */
+#include "openbsd-compat/openssl-compat.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
