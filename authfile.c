@@ -187,7 +187,11 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 	int success = 0;
 	int len = strlen(_passphrase);
 	u_char *passphrase = (len > 0) ? (u_char *)_passphrase : NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x00907000L)
+	const EVP_CIPHER *cipher = (len > 0) ? EVP_des_ede3_cbc() : NULL;
+#else
 	const EVP_CIPHER *cipher = (len > 0) ? EVP_aes_128_cbc() : NULL;
+#endif
 
 	if (len > 0 && len <= 4) {
 		error("passphrase too short: have %d bytes, need > 4", len);

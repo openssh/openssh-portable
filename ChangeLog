@@ -1,3 +1,7 @@
+20091107
+ - (dtucker) [authfile.c] Fall back to 3DES for the encryption of private
+    keys when built with OpenSSL versions that don't do AES.
+
 20091105
  - (dtucker) [authfile.c] Add OpenSSL compat header so this still builds with
    older versions of OpenSSL.
