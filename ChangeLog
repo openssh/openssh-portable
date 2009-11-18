@@ -2,7 +2,9 @@
  - (djm) [channels.c misc.c misc.h sshd.c] add missing setsockopt() to
    set IPV6_V6ONLY for local forwarding with GatwayPorts=yes. Unify
    setting IPV6_V6ONLY behind a new function misc.c:sock_set_v6only()
-   report and fix from jan.kratochvil AT redhat.com
+   bz#1648, report and fix from jan.kratochvil AT redhat.com
+ - (djm) [contrib/gnome-ssh-askpass2.c] Make askpass dialog desktop-modal.
+   bz#1645, patch from jchadima AT redhat.com
 
 20091107
  - (dtucker) [authfile.c] Fall back to 3DES for the encryption of private
