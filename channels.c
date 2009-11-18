@@ -2577,6 +2577,8 @@ channel_setup_fwd_listener(int type, const char *listen_addr,
 		}
 
 		channel_set_reuseaddr(sock);
+		if (ai->ai_family == AF_INET6)
+			sock_set_v6only(sock);
 
 		debug("Local forwarding listening on %s port %s.",
 		    ntop, strport);
@@ -3108,13 +3110,8 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 					continue;
 				}
 			}
-#ifdef IPV6_V6ONLY
-			if (ai->ai_family == AF_INET6) {
-				int on = 1;
-				if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
-					error("setsockopt IPV6_V6ONLY: %.100s", strerror(errno));
-			}
-#endif
+			if (ai->ai_family == AF_INET6)
+				sock_set_v6only(sock);
 			if (x11_use_localhost)
 				channel_set_reuseaddr(sock);
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {

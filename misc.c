@@ -849,3 +849,14 @@ ms_to_timeval(struct timeval *tv, int ms)
 	tv->tv_usec = (ms % 1000) * 1000;
 }
 
+void
+sock_set_v6only(int s)
+{
+#ifdef IPV6_V6ONLY
+	int on = 1;
+
+	debug3("%s: set socket %d IPV6_V6ONLY", __func__, s);
+	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) == -1)
+		error("setsockopt IPV6_V6ONLY: %s", strerror(errno));
+#endif
+}

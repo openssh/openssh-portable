@@ -1,4 +1,10 @@
 20091107
+ - (djm) [channels.c misc.c misc.h sshd.c] add missing setsockopt() to
+   set IPV6_V6ONLY for local forwarding with GatwayPorts=yes. Unify
+   setting IPV6_V6ONLY behind a new function misc.c:sock_set_v6only()
+   report and fix from jan.kratochvil AT redhat.com
+
+20091107
  - (dtucker) [authfile.c] Fall back to 3DES for the encryption of private
     keys when built with OpenSSL versions that don't do AES.
 

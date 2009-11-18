@@ -35,6 +35,7 @@ char	*tohex(const void *, size_t);
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
 void	 ms_to_timeval(struct timeval *, int);
+void	 sock_set_v6only(int);
 
 struct passwd *pwcopy(struct passwd *);
 const char *ssh_gai_strerror(int);
