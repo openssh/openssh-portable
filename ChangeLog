@@ -1,4 +1,9 @@
-20091107
+20091120
+ - (djm) [ssh-rand-helper.c] Print error and usage() when passed command-
+   line arguments as none are supported. Exit when passed unrecognised
+   commandline flags. bz#1568 from gson AT araneus.fi
+
+20091118
  - (djm) [channels.c misc.c misc.h sshd.c] add missing setsockopt() to
    set IPV6_V6ONLY for local forwarding with GatwayPorts=yes. Unify
    setting IPV6_V6ONLY behind a new function misc.c:sock_set_v6only()

@@ -853,10 +853,16 @@ main(int argc, char **argv)
 		default:
 			error("Invalid commandline option");
 			usage();
+			exit(1);
 		}
 	}
-
 	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
+
+	if (argc != optind) {
+		error("Unexpected commandline arguments.");
+		usage();
+		exit(1);
+	}
 
 #ifdef USE_SEED_FILES
 	prng_read_seedfile();
