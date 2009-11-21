@@ -1,3 +1,7 @@
+20091121
+ - (tim) [opensshd.init.in] If PidFile is set in sshd_config, use it.
+   Bug 1628. OK dtucker@
+
 20091120
  - (djm) [ssh-rand-helper.c] Print error and usage() when passed command-
    line arguments as none are supported. Exit when passed unrecognised
