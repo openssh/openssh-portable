@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.430 2009/10/11 10:50:20 dtucker Exp $
+# $Id: configure.ac,v 1.431 2009/12/07 00:15:43 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.430 $)
+AC_REVISION($Revision: 1.431 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3295,11 +3295,18 @@ AC_ARG_WITH(opensc,
 	[  --with-opensc[[=PFX]]     Enable smartcard support using OpenSC (optionally in PATH)],
 	[
 	    if test "x$withval" != "xno" ; then
-		if test "x$withval" != "xyes" ; then
-  			OPENSC_CONFIG=$withval/bin/opensc-config
+		AC_PATH_PROG(PKGCONFIG, pkg-config, no)
+		AC_MSG_CHECKING(how to get opensc config)
+		if test "x$withval" != "xyes" -a "x$PKGCONFIG" = "xno"; then
+			OPENSC_CONFIG="$withval/bin/opensc-config"
+		elif test -f "$withval/src/libopensc/libopensc.pc"; then
+			OPENSC_CONFIG="$PKGCONFIG $withval/src/libopensc/libopensc.pc"
+		elif test "x$PKGCONFIG" != "xno"; then
+			OPENSC_CONFIG="$PKGCONFIG libopensc"
 		else
-  			AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
+			AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
 		fi
+		AC_MSG_RESULT($OPENSC_CONFIG)
 		if test "$OPENSC_CONFIG" != "no"; then
 			LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
 			LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
