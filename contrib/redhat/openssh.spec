@@ -74,7 +74,9 @@ Release: %{rel}
 %endif
 URL: http://www.openssh.com/portable.html
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{version}.tar.gz
+%if ! %{skip_x11_askpass}
 Source1: http://www.jmknoble.net/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
+%endif
 License: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
