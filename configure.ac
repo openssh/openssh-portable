@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.431 2009/12/07 00:15:43 dtucker Exp $
+# $Id: configure.ac,v 1.432 2009/12/08 02:39:48 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.431 $)
+AC_REVISION($Revision: 1.432 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -589,6 +589,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		if it doesn't return EOPNOTSUPP.])
 	AC_DEFINE(_PATH_BTMP, "/var/log/btmp", [log for bad login attempts])
 	AC_DEFINE(USE_BTMP)
+	AC_DEFINE(LINUX_OOM_ADJUST, 1, [Adjust Linux out-of-memory killer])
 	inet6_default_4in6=yes
 	case `uname -r` in
 	1.*|2.0.*)

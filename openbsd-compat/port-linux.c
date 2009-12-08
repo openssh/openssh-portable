@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.6 2009/10/24 04:04:13 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.7 2009/12/08 02:39:48 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -23,15 +23,17 @@
 
 #include "includes.h"
 
+#if defined(WITH_SELINUX) || defined(LINUX_OOM_ADJUST)
 #include <errno.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 
-#ifdef WITH_SELINUX
 #include "log.h"
 #include "xmalloc.h"
 #include "port-linux.h"
 
+#ifdef WITH_SELINUX
 #include <selinux/selinux.h>
 #include <selinux/flask.h>
 #include <selinux/get_context_list.h>
@@ -204,3 +206,60 @@ ssh_selinux_change_context(const char *newname)
 	xfree(newctx);
 }
 #endif /* WITH_SELINUX */
+
+#ifdef LINUX_OOM_ADJUST
+#define OOM_ADJ_PATH	"/proc/self/oom_adj"
+/*
+ * The magic "don't kill me", as documented in eg:
+ * http://lxr.linux.no/#linux+v2.6.32/Documentation/filesystems/proc.txt
+ */
+#define OOM_ADJ_NOKILL	-17
+
+static int oom_adj_save = INT_MIN;
+
+/*
+ * Tell the kernel's out-of-memory killer to avoid sshd.
+ * Returns the previous oom_adj value or zero.
+ */
+void
+oom_adjust_setup(void)
+{
+	FILE *fp;
+
+	debug3("%s", __func__);
+	if ((fp = fopen(OOM_ADJ_PATH, "r+")) != NULL) {
+		if (fscanf(fp, "%d", &oom_adj_save) != 1)
+			logit("error reading %s: %s", OOM_ADJ_PATH, strerror(errno));
+		else {
+			rewind(fp);
+			if (fprintf(fp, "%d\n", OOM_ADJ_NOKILL) <= 0)
+				logit("error writing %s: %s",
+				    OOM_ADJ_PATH, strerror(errno));
+			else
+				verbose("Set %s from %d to %d",
+				    OOM_ADJ_PATH, oom_adj_save, OOM_ADJ_NOKILL);
+		}
+		fclose(fp);
+	}
+}
+
+/* Restore the saved OOM adjustment */
+void
+oom_adjust_restore(void)
+{
+	FILE *fp;
+
+	debug3("%s", __func__);
+	if (oom_adj_save == INT_MIN || (fp = fopen(OOM_ADJ_PATH, "w")) == NULL)
+		return;
+
+	if (fprintf(fp, "%d\n", oom_adj_save) <= 0)
+		logit("error writing %s: %s", OOM_ADJ_PATH, strerror(errno));
+	else
+		verbose("Set %s to %d", OOM_ADJ_PATH, oom_adj_save);
+
+	fclose(fp);
+	return;
+}
+#endif /* LINUX_OOM_ADJUST */
+#endif /* WITH_SELINUX || LINUX_OOM_ADJUST */

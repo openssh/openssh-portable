@@ -1656,6 +1656,7 @@ main(int ac, char **av)
 	if (inetd_flag) {
 		server_accept_inetd(&sock_in, &sock_out);
 	} else {
+		platform_pre_listen();
 		server_listen();
 
 		if (options.protocol & SSH_PROTO_1)

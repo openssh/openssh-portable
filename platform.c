@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.1 2006/08/30 17:24:41 djm Exp $ */
+/* $Id: platform.c,v 1.2 2009/12/08 02:39:48 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -22,6 +22,15 @@
 #include "openbsd-compat/openbsd-compat.h"
 
 void
+platform_pre_listen(void)
+{
+#ifdef LINUX_OOM_ADJUST
+	/* Adjust out-of-memory killer so listening process is not killed */
+	oom_adjust_setup();
+#endif
+}
+
+void
 platform_pre_fork(void)
 {
 #ifdef USE_SOLARIS_PROCESS_CONTRACTS
@@ -42,5 +51,8 @@ platform_post_fork_child(void)
 {
 #ifdef USE_SOLARIS_PROCESS_CONTRACTS
 	solaris_contract_post_fork_child();
+#endif
+#ifdef LINUX_OOM_ADJUST
+	oom_adjust_restore();
 #endif
 }

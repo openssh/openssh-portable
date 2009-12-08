@@ -1,3 +1,7 @@
+20091208
+ - (dtucker) Bug #1470: Disable OOM-killing of the listening sshd on Linux,
+   based on a patch from Vaclav Ovsik and Colin Watson.  ok djm.
+
 20091207
  - (dtucker) Bug #1160: use pkg-config for opensc config if it's available.
    Tested by Martin Paljak.
