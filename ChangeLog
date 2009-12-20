@@ -1,3 +1,8 @@
+20091221
+ - (dtucker) [auth-krb5.c platform.{c,h} openbsd-compat/port-aix.{c,h}]
+   Bug #1583: Use system's kerberos principal name on AIX if it's available.
+   Based on a patch from and tested by Miguel Sanders 
+
 20091208
  - (dtucker) Bug #1470: Disable OOM-killing of the listening sshd on Linux,
    based on a patch from Vaclav Ovsik and Colin Watson.  ok djm.

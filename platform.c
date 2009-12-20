@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.2 2009/12/08 02:39:48 dtucker Exp $ */
+/* $Id: platform.c,v 1.3 2009/12/20 23:49:22 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -54,5 +54,15 @@ platform_post_fork_child(void)
 #endif
 #ifdef LINUX_OOM_ADJUST
 	oom_adjust_restore();
+#endif
+}
+
+char *
+platform_krb5_get_principal_name(const char *pw_name)
+{
+#ifdef USE_AIX_KRB_NAME
+	return aix_krb5_get_principal_name(pw_name);
+#else
+	return NULL;
 #endif
 }
