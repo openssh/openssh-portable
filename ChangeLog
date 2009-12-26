@@ -1,3 +1,7 @@
+20091226
+ - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
+   Gzip all man pages. Patch from Corinna Vinschen.
+
 20091221
  - (dtucker) [auth-krb5.c platform.{c,h} openbsd-compat/port-aix.{c,h}]
    Bug #1583: Use system's kerberos principal name on AIX if it's available.
