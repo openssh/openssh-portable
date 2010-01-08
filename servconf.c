@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.197 2009/10/28 16:38:18 reyk Exp $ */
+/* $OpenBSD: servconf.c,v 1.198 2009/12/25 19:40:21 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1298,7 +1298,16 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sRDomain:
 		intptr = &options->rdomain;
-		goto parse_int;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing rdomain value.",
+			    filename, linenum);
+		if ((value = a2rdomain(arg)) == -1)
+			fatal("%s line %d: invalid rdomain value.",
+			    filename, linenum);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
 
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",

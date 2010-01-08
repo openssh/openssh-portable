@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.73 2009/11/20 03:24:07 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.74 2009/12/25 19:40:21 stevesk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -271,6 +271,18 @@ a2port(const char *s)
 	if (errstr != NULL)
 		return -1;
 	return (int)port;
+}
+
+int
+a2rdomain(const char *s)
+{
+	long long rdomain;
+	const char *errstr;
+
+	rdomain = strtonum(s, 0, RT_TABLEID_MAX, &errstr);
+	if (errstr != NULL)
+		return -1;
+	return (int)rdomain;
 }
 
 int

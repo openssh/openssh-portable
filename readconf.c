@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.179 2009/10/28 16:38:18 reyk Exp $ */
+/* $OpenBSD: readconf.c,v 1.180 2009/12/25 19:40:21 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -925,7 +925,7 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.",
 			    filename, linenum);
-		value = a2port(arg);
+		value = a2rdomain(arg);
 		if (value == -1)
 			fatal("%.200s line %d: Bad rdomain.",
 			    filename, linenum);

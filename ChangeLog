@@ -123,6 +123,10 @@
      [PROTOCOL]
      fix an incorrect magic number and typo in PROTOCOL; bz#1688
      report and fix from ueno AT unixuser.org
+   - stevesk@cvs.openbsd.org 2009/12/25 19:40:21
+     [readconf.c servconf.c misc.h ssh-keyscan.c misc.c]
+     validate routing domain is in range 0-RT_TABLEID_MAX.
+     'Looks right' deraadt@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
