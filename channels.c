@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.298 2009/11/10 04:30:44 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.299 2009/11/11 21:37:03 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -331,6 +331,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->output_filter = NULL;
 	c->filter_ctx = NULL;
 	c->filter_cleanup = NULL;
+	c->delayed = 1;		/* prevent call to channel_post handler */
 	TAILQ_INIT(&c->status_confirms);
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
@@ -1228,7 +1229,6 @@ channel_pre_dynamic(Channel *c, fd_set *readset, fd_set *writeset)
 	int ret;
 
 	have = buffer_len(&c->input);
-	c->delayed = 0;
 	debug2("channel %d: pre_dynamic: have %d", c->self, have);
 	/* buffer_dump(&c->input); */
 	/* check if the fixed size part of the packet is in buffer. */
@@ -1432,16 +1432,8 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		if (c->path != NULL)
 			nc->path = xstrdup(c->path);
 
-		if (nextstate == SSH_CHANNEL_DYNAMIC) {
-			/*
-			 * do not call the channel_post handler until
-			 * this flag has been reset by a pre-handler.
-			 * otherwise the FD_ISSET calls might overflow
-			 */
-			nc->delayed = 1;
-		} else {
+		if (nextstate != SSH_CHANNEL_DYNAMIC)
 			port_open_helper(nc, rtype);
-		}
 	}
 }
 
@@ -1786,8 +1778,6 @@ channel_check_window(Channel *c)
 static void
 channel_post_open(Channel *c, fd_set *readset, fd_set *writeset)
 {
-	if (c->delayed)
-		return;
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
 	if (!compat20)
@@ -1919,17 +1909,23 @@ static void
 channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset)
 {
 	static int did_init = 0;
-	u_int i;
+	u_int i, oalloc;
 	Channel *c;
 
 	if (!did_init) {
 		channel_handler_init();
 		did_init = 1;
 	}
-	for (i = 0; i < channels_alloc; i++) {
+	for (i = 0, oalloc = channels_alloc; i < oalloc; i++) {
 		c = channels[i];
 		if (c == NULL)
 			continue;
+		if (c->delayed) {
+			if (ftab == channel_pre)
+				c->delayed = 0;
+			else
+				continue;
+		}
 		if (ftab[c->type] != NULL)
 			(*ftab[c->type])(c, readset, writeset);
 		channel_garbage_collect(c);

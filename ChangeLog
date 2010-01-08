@@ -51,6 +51,12 @@
      [sshconnect2.c channels.c sshconnect.c]
      Set close-on-exec on various descriptors so they don't get leaked to
      child processes.  bz #1643, patch from jchadima at redhat, ok deraadt.
+   - markus@cvs.openbsd.org 2009/11/11 21:37:03
+     [channels.c channels.h]
+     fix race condition in x11/agent channel allocation: don't read after
+     the end of the select read/write fdset and make sure a reused FD
+     is not touched before the pre-handlers are called.
+     with and ok djm@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
