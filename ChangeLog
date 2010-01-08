@@ -1,3 +1,7 @@
+20091209
+ - (dtucker) Wrap use of IPPROTO_IPV6 in an ifdef for platforms that don't
+   have it.
+
 20091208
  - (dtucker) OpenBSD CVS Sync
    - andreas@cvs.openbsd.org 2009/10/24 11:11:58

@@ -164,9 +164,11 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 		return (sock);
 
 	switch (domain) {
+#ifdef IPPROTO_IPV6
 	case AF_INET6:
 		ipproto = IPPROTO_IPV6;
 		/* FALLTHROUGH */
+#endif
 	case AF_INET:
 #ifdef USE_ROUTINGDOMAIN
 		debug2("socket %d af %d setting rdomain %d",
