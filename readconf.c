@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.180 2009/12/25 19:40:21 stevesk Exp $ */
+/* $OpenBSD: readconf.c,v 1.181 2009/12/29 16:38:41 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -229,7 +229,7 @@ static struct {
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
 	{ "useroaming", oUseRoaming },
-	{ "rdomain", oRDomain },
+	{ "routingdomain", oRDomain },
 #ifdef JPAKE
 	{ "zeroknowledgepasswordauthentication",
 	    oZeroKnowledgePasswordAuthentication },

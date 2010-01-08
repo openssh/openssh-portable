@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.198 2009/12/25 19:40:21 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.199 2009/12/29 16:38:41 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -424,7 +424,7 @@ static struct {
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
-	{ "rdomain", sRDomain, SSHCFG_GLOBAL },
+	{ "routingdomain", sRDomain, SSHCFG_GLOBAL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };

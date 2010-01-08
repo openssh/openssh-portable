@@ -127,6 +127,13 @@
      [readconf.c servconf.c misc.h ssh-keyscan.c misc.c]
      validate routing domain is in range 0-RT_TABLEID_MAX.
      'Looks right' deraadt@
+   - stevesk@cvs.openbsd.org 2009/12/29 16:38:41
+     [sshd_config.5 readconf.c ssh_config.5 scp.1 servconf.c sftp.1 ssh.1]
+     Rename RDomain config option to RoutingDomain to be more clear and
+     consistent with other options.
+     NOTE: if you currently use RDomain in the ssh client or server config,
+     or ssh/sshd -o, you must update to use RoutingDomain.
+     ok markus@ djm@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
