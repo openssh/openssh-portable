@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.115 2009/12/20 07:28:36 guenther Exp $ */
+/* $OpenBSD: sftp.c,v 1.116 2010/01/04 02:03:57 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -95,6 +95,12 @@ volatile sig_atomic_t interrupted = 0;
 /* I wish qsort() took a separate ctx for the comparison function...*/
 int sort_flag;
 
+/* Context used for commandline completion */
+struct complete_ctx {
+	struct sftp_conn *conn;
+	char **remote_pathp;
+};
+
 int remote_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
@@ -145,43 +151,47 @@ extern char *__progname;
 struct CMD {
 	const char *c;
 	const int n;
+	const int t;
 };
 
+/* Type of completion */
+#define NOARGS	0
+#define REMOTE	1
+#define LOCAL	2
+
 static const struct CMD cmds[] = {
-	{ "bye",	I_QUIT },
-	{ "cd",		I_CHDIR },
-	{ "chdir",	I_CHDIR },
-	{ "chgrp",	I_CHGRP },
-	{ "chmod",	I_CHMOD },
-	{ "chown",	I_CHOWN },
-	{ "df",		I_DF },
-	{ "dir",	I_LS },
-	{ "exit",	I_QUIT },
-	{ "get",	I_GET },
-	{ "mget",	I_GET },
-	{ "help",	I_HELP },
-	{ "lcd",	I_LCHDIR },
-	{ "lchdir",	I_LCHDIR },
-	{ "lls",	I_LLS },
-	{ "lmkdir",	I_LMKDIR },
-	{ "ln",		I_SYMLINK },
-	{ "lpwd",	I_LPWD },
-	{ "ls",		I_LS },
-	{ "lumask",	I_LUMASK },
-	{ "mkdir",	I_MKDIR },
-	{ "progress",	I_PROGRESS },
-	{ "put",	I_PUT },
-	{ "mput",	I_PUT },
-	{ "pwd",	I_PWD },
-	{ "quit",	I_QUIT },
-	{ "rename",	I_RENAME },
-	{ "rm",		I_RM },
-	{ "rmdir",	I_RMDIR },
-	{ "symlink",	I_SYMLINK },
-	{ "version",	I_VERSION },
-	{ "!",		I_SHELL },
-	{ "?",		I_HELP },
-	{ NULL,			-1}
+	{ "bye",	I_QUIT,		NOARGS	},
+	{ "cd",		I_CHDIR,	REMOTE	},
+	{ "chdir",	I_CHDIR,	REMOTE	},
+	{ "chgrp",	I_CHGRP,	REMOTE	},
+	{ "chmod",	I_CHMOD,	REMOTE	},
+	{ "chown",	I_CHOWN,	REMOTE	},
+	{ "df",		I_DF,		REMOTE	},
+	{ "dir",	I_LS,		REMOTE	},
+	{ "exit",	I_QUIT,		NOARGS	},
+	{ "get",	I_GET,		REMOTE	},
+	{ "help",	I_HELP,		NOARGS	},
+	{ "lcd",	I_LCHDIR,	LOCAL	},
+	{ "lchdir",	I_LCHDIR,	LOCAL	},
+	{ "lls",	I_LLS,		LOCAL	},
+	{ "lmkdir",	I_LMKDIR,	LOCAL	},
+	{ "ln",		I_SYMLINK,	REMOTE	},
+	{ "lpwd",	I_LPWD,		LOCAL	},
+	{ "ls",		I_LS,		REMOTE	},
+	{ "lumask",	I_LUMASK,	NOARGS	},
+	{ "mkdir",	I_MKDIR,	REMOTE	},
+	{ "progress",	I_PROGRESS,	NOARGS	},
+	{ "put",	I_PUT,		LOCAL	},
+	{ "pwd",	I_PWD,		REMOTE	},
+	{ "quit",	I_QUIT,		NOARGS	},
+	{ "rename",	I_RENAME,	REMOTE	},
+	{ "rm",		I_RM,		REMOTE	},
+	{ "rmdir",	I_RMDIR,	REMOTE	},
+	{ "symlink",	I_SYMLINK,	REMOTE	},
+	{ "version",	I_VERSION,	NOARGS	},
+	{ "!",		I_SHELL,	NOARGS	},
+	{ "?",		I_HELP,		NOARGS	},
+	{ NULL,		-1,		-1	}
 };
 
 int interactive_loop(struct sftp_conn *, char *file1, char *file2);
@@ -932,12 +942,23 @@ undo_glob_escape(char *s)
  * Split a string into an argument vector using sh(1)-style quoting,
  * comment and escaping rules, but with some tweaks to handle glob(3)
  * wildcards.
+ * The "sloppy" flag allows for recovery from missing terminating quote, for
+ * use in parsing incomplete commandlines during tab autocompletion.
+ *
  * Returns NULL on error or a NULL-terminated array of arguments.
+ *
+ * If "lastquote" is not NULL, the quoting character used for the last
+ * argument is placed in *lastquote ("\0", "'" or "\"").
+ * 
+ * If "terminated" is not NULL, *terminated will be set to 1 when the
+ * last argument's quote has been properly terminated or 0 otherwise.
+ * This parameter is only of use if "sloppy" is set.
  */
 #define MAXARGS 	128
 #define MAXARGLEN	8192
 static char **
-makeargv(const char *arg, int *argcp)
+makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
+    u_int *terminated)
 {
 	int argc, quot;
 	size_t i, j;
@@ -951,6 +972,10 @@ makeargv(const char *arg, int *argcp)
 		error("string too long");
 		return NULL;
 	}
+	if (terminated != NULL)
+		*terminated = 1;
+	if (lastquote != NULL)
+		*lastquote = '\0';
 	state = MA_START;
 	i = j = 0;
 	for (;;) {
@@ -967,6 +992,8 @@ makeargv(const char *arg, int *argcp)
 			if (state == MA_START) {
 				argv[argc] = argvs + j;
 				state = q;
+				if (lastquote != NULL)
+					*lastquote = arg[i];
 			} else if (state == MA_UNQUOTED) 
 				state = q;
 			else if (state == q)
@@ -1003,6 +1030,8 @@ makeargv(const char *arg, int *argcp)
 				if (state == MA_START) {
 					argv[argc] = argvs + j;
 					state = MA_UNQUOTED;
+					if (lastquote != NULL)
+						*lastquote = '\0';
 				}
 				if (arg[i + 1] == '?' || arg[i + 1] == '[' ||
 				    arg[i + 1] == '*' || arg[i + 1] == '\\') {
@@ -1028,6 +1057,12 @@ makeargv(const char *arg, int *argcp)
 				goto string_done;
 		} else if (arg[i] == '\0') {
 			if (state == MA_SQUOTE || state == MA_DQUOTE) {
+				if (sloppy) {
+					state = MA_UNQUOTED;
+					if (terminated != NULL)
+						*terminated = 0;
+					goto string_done;
+				}
 				error("Unterminated quoted argument");
 				return NULL;
 			}
@@ -1041,6 +1076,8 @@ makeargv(const char *arg, int *argcp)
 			if (state == MA_START) {
 				argv[argc] = argvs + j;
 				state = MA_UNQUOTED;
+				if (lastquote != NULL)
+					*lastquote = '\0';
 			}
 			if ((state == MA_SQUOTE || state == MA_DQUOTE) &&
 			    (arg[i] == '?' || arg[i] == '[' || arg[i] == '*')) {
@@ -1063,8 +1100,8 @@ makeargv(const char *arg, int *argcp)
 }
 
 static int
-parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag, int *hflag,
-    unsigned long *n_arg, char **path1, char **path2)
+parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag,
+    int *hflag, unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
 	char *cp2, **argv;
@@ -1086,7 +1123,7 @@ parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag, int
 		cp++;
 	}
 
-	if ((argv = makeargv(cp, &argc)) == NULL)
+	if ((argv = makeargv(cp, &argc, 0, NULL, NULL)) == NULL)
 		return -1;
 
 	/* Figure out which command we have */
@@ -1468,10 +1505,344 @@ prompt(EditLine *el)
 }
 #endif
 
+/* Display entries in 'list' after skipping the first 'len' chars */
+static void
+complete_display(char **list, u_int len)
+{
+	u_int y, m = 0, width = 80, columns = 1, colspace = 0, llen;
+	struct winsize ws;
+	char *tmp;
+
+	/* Count entries for sort and find longest */
+	for (y = 0; list[y]; y++) 
+		m = MAX(m, strlen(list[y]));
+
+	if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
+		width = ws.ws_col;
+
+	m = m > len ? m - len : 0;
+	columns = width / (m + 2);
+	columns = MAX(columns, 1);
+	colspace = width / columns;
+	colspace = MIN(colspace, width);
+
+	printf("\n");
+	m = 1;
+	for (y = 0; list[y]; y++) {
+		llen = strlen(list[y]);
+		tmp = llen > len ? list[y] + len : "";
+		printf("%-*s", colspace, tmp);
+		if (m >= columns) {
+			printf("\n");
+			m = 1;
+		} else
+			m++;
+	}
+	printf("\n");
+}
+
+/*
+ * Given a "list" of words that begin with a common prefix of "word",
+ * attempt to find an autocompletion to extends "word" by the next
+ * characters common to all entries in "list".
+ */
+static char *
+complete_ambiguous(const char *word, char **list, size_t count)
+{
+	if (word == NULL)
+		return NULL;
+
+	if (count > 0) {
+		u_int y, matchlen = strlen(list[0]);
+
+		/* Find length of common stem */
+		for (y = 1; list[y]; y++) {
+			u_int x;
+
+			for (x = 0; x < matchlen; x++) 
+				if (list[0][x] != list[y][x]) 
+					break;
+
+			matchlen = x;
+		}
+
+		if (matchlen > strlen(word)) {
+			char *tmp = xstrdup(list[0]);
+
+			tmp[matchlen] = NULL;
+			return tmp;
+		}
+	} 
+
+	return xstrdup(word);
+}
+
+/* Autocomplete a sftp command */
+static int
+complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
+    int terminated)
+{
+	u_int y, count = 0, cmdlen, tmplen;
+	char *tmp, **list, argterm[3];
+	const LineInfo *lf;
+
+	list = xcalloc((sizeof(cmds) / sizeof(*cmds)) + 1, sizeof(char *));
+
+	/* No command specified: display all available commands */
+	if (cmd == NULL) {
+		for (y = 0; cmds[y].c; y++)
+			list[count++] = xstrdup(cmds[y].c);
+		
+		list[count] = NULL;
+		complete_display(list, 0);
+
+		for (y = 0; list[y] != NULL; y++)  
+			xfree(list[y]);	
+		xfree(list);
+		return count;
+	}
+
+	/* Prepare subset of commands that start with "cmd" */
+	cmdlen = strlen(cmd);
+	for (y = 0; cmds[y].c; y++)  {
+		if (!strncasecmp(cmd, cmds[y].c, cmdlen)) 
+			list[count++] = xstrdup(cmds[y].c);
+	}
+	list[count] = NULL;
+
+	if (count == 0)
+		return 0;
+
+	/* Complete ambigious command */
+	tmp = complete_ambiguous(cmd, list, count);
+	if (count > 1)
+		complete_display(list, 0);
+
+	for (y = 0; list[y]; y++)  
+		xfree(list[y]);	
+	xfree(list);
+
+	if (tmp != NULL) {
+		tmplen = strlen(tmp);
+		cmdlen = strlen(cmd);
+		/* If cmd may be extended then do so */
+		if (tmplen > cmdlen)
+			if (el_insertstr(el, tmp + cmdlen) == -1)
+				fatal("el_insertstr failed.");
+		lf = el_line(el);
+		/* Terminate argument cleanly */
+		if (count == 1) {
+			y = 0;
+			if (!terminated)
+				argterm[y++] = quote;
+			if (lastarg || *(lf->cursor) != ' ')
+				argterm[y++] = ' ';
+			argterm[y] = '\0';
+			if (y > 0 && el_insertstr(el, argterm) == -1)
+				fatal("el_insertstr failed.");
+		}
+		xfree(tmp);
+	}
+
+	return count;
+}
+
+/*
+ * Determine whether a particular sftp command's arguments (if any)
+ * represent local or remote files.
+ */
+static int
+complete_is_remote(char *cmd) {
+	int i;
+
+	if (cmd == NULL)
+		return -1;
+
+	for (i = 0; cmds[i].c; i++) {
+		if (!strncasecmp(cmd, cmds[i].c, strlen(cmds[i].c))) 
+			return cmds[i].t;
+	}
+
+	return -1;
+}
+
+/* Autocomplete a filename "file" */
+static int
+complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
+    char *file, int remote, int lastarg, char quote, int terminated)
+{
+	glob_t g;
+	char *tmp, *tmp2, ins[3];
+	u_int i, hadglob, pwdlen, len, tmplen, filelen;
+	const LineInfo *lf;
+	
+	/* Glob from "file" location */
+	if (file == NULL)
+		tmp = xstrdup("*");
+	else
+		xasprintf(&tmp, "%s*", file);
+
+	memset(&g, 0, sizeof(g));
+	if (remote != LOCAL) {
+		tmp = make_absolute(tmp, remote_path);
+		remote_glob(conn, tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
+	} else 
+		glob(tmp, GLOB_DOOFFS|GLOB_MARK, NULL, &g);
+	
+	/* Determine length of pwd so we can trim completion display */
+	for (hadglob = tmplen = pwdlen = 0; tmp[tmplen] != 0; tmplen++) {
+		/* Terminate counting on first unescaped glob metacharacter */
+		if (tmp[tmplen] == '*' || tmp[tmplen] == '?') {
+			if (tmp[tmplen] != '*' || tmp[tmplen + 1] != '\0')
+				hadglob = 1;
+			break;
+		}
+		if (tmp[tmplen] == '\\' && tmp[tmplen + 1] != '\0')
+			tmplen++;
+		if (tmp[tmplen] == '/')
+			pwdlen = tmplen + 1;	/* track last seen '/' */
+	}
+	xfree(tmp);
+
+	if (g.gl_matchc == 0) 
+		goto out;
+
+	if (g.gl_matchc > 1)
+		complete_display(g.gl_pathv, pwdlen);
+
+	tmp = NULL;
+	/* Don't try to extend globs */
+	if (file == NULL || hadglob)
+		goto out;
+
+	tmp2 = complete_ambiguous(file, g.gl_pathv, g.gl_matchc);
+	tmp = path_strip(tmp2, remote_path);
+	xfree(tmp2);
+
+	if (tmp == NULL)
+		goto out;
+
+	tmplen = strlen(tmp);
+	filelen = strlen(file);
+
+	if (tmplen > filelen)  {
+		tmp2 = tmp + filelen;
+		len = strlen(tmp2); 
+		/* quote argument on way out */
+		for (i = 0; i < len; i++) {
+			ins[0] = '\\';
+			ins[1] = tmp2[i];
+			ins[2] = '\0';
+			switch (tmp2[i]) {
+			case '\'':
+			case '"':
+			case '\\':
+			case '\t':
+			case ' ':
+				if (quote == '\0' || tmp2[i] == quote) {
+					if (el_insertstr(el, ins) == -1)
+						fatal("el_insertstr "
+						    "failed.");
+					break;
+				}
+				/* FALLTHROUGH */
+			default:
+				if (el_insertstr(el, ins + 1) == -1)
+					fatal("el_insertstr failed.");
+				break;
+			}
+		}
+	}
+
+	lf = el_line(el);
+	/*
+	 * XXX should we really extend here? the user may not be done if
+	 * the filename is a directory.
+	 */
+	if (g.gl_matchc == 1) {
+		i = 0;
+		if (!terminated)
+			ins[i++] = quote;
+		if (lastarg || *(lf->cursor) != ' ')
+			ins[i++] = ' ';
+		ins[i] = '\0';
+		if (i > 0 && el_insertstr(el, ins) == -1)
+			fatal("el_insertstr failed.");
+	}
+	xfree(tmp);
+
+ out:
+	globfree(&g);
+	return g.gl_matchc;
+}
+
+/* tab-completion hook function, called via libedit */
+static unsigned char
+complete(EditLine *el, int ch)
+{
+	char **argv, *line, quote; 
+	u_int argc, carg, cursor, len, terminated, ret = CC_ERROR;
+	const LineInfo *lf;
+	struct complete_ctx *complete_ctx;
+
+	lf = el_line(el);
+	if (el_get(el, EL_CLIENTDATA, (void**)&complete_ctx) != 0)
+		fatal("%s: el_get failed", __func__);
+
+	/* Figure out which argument the cursor points to */
+	cursor = lf->cursor - lf->buffer;
+	line = (char *)xmalloc(cursor + 1);
+	memcpy(line, lf->buffer, cursor);
+	line[cursor] = '\0';
+	argv = makeargv(line, &carg, 1, &quote, &terminated);
+	xfree(line);
+
+	/* Get all the arguments on the line */
+	len = lf->lastchar - lf->buffer;
+	line = (char *)xmalloc(len + 1);
+	memcpy(line, lf->buffer, len);
+	line[len] = '\0';
+	argv = makeargv(line, &argc, 1, NULL, NULL);
+
+	/* Ensure cursor is at EOL or a argument boundary */
+	if (line[cursor] != ' ' && line[cursor] != '\0' &&
+	    line[cursor] != '\n') {
+		xfree(line);
+		return ret;
+	}
+
+	if (carg == 0) {
+		/* Show all available commands */
+		complete_cmd_parse(el, NULL, argc == carg, '\0', 1);
+		ret = CC_REDISPLAY;
+	} else if (carg == 1 && cursor > 0 && line[cursor - 1] != ' ')  {
+		/* Handle the command parsing */
+		if (complete_cmd_parse(el, argv[0], argc == carg,
+		    quote, terminated) != 0) 
+			ret = CC_REDISPLAY;
+	} else if (carg >= 1) {
+		/* Handle file parsing */
+		int remote = complete_is_remote(argv[0]);
+		char *filematch = NULL;
+
+		if (carg > 1 && line[cursor-1] != ' ')
+			filematch = argv[carg - 1];
+
+		if (remote != 0 &&
+		    complete_match(el, complete_ctx->conn,
+		    *complete_ctx->remote_pathp, filematch,
+		    remote, carg == argc, quote, terminated) != 0) 
+			ret = CC_REDISPLAY;
+	}
+
+	xfree(line);	
+	return ret;
+}
+
 int
 interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 {
-	char *pwd;
+	char *remote_path;
 	char *dir = NULL;
 	char cmd[2048];
 	int err, interactive;
@@ -1480,6 +1851,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	History *hl = NULL;
 	HistEvent hev;
 	extern char *__progname;
+	struct complete_ctx complete_ctx;
 
 	if (!batchmode && isatty(STDIN_FILENO)) {
 		if ((el = el_init(__progname, stdin, stdout, stderr)) == NULL)
@@ -1494,23 +1866,32 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		el_set(el, EL_TERMINAL, NULL);
 		el_set(el, EL_SIGNAL, 1);
 		el_source(el, NULL);
+
+		/* Tab Completion */
+		el_set(el, EL_ADDFN, "ftp-complete", 
+		    "Context senstive argument completion", complete);
+		complete_ctx.conn = conn;
+		complete_ctx.remote_pathp = &remote_path;
+		el_set(el, EL_CLIENTDATA, (void*)&complete_ctx);
+		el_set(el, EL_BIND, "^I", "ftp-complete", NULL);
 	}
 #endif /* USE_LIBEDIT */
 
-	pwd = do_realpath(conn, ".");
-	if (pwd == NULL)
+	remote_path = do_realpath(conn, ".");
+	if (remote_path == NULL)
 		fatal("Need cwd");
 
 	if (file1 != NULL) {
 		dir = xstrdup(file1);
-		dir = make_absolute(dir, pwd);
+		dir = make_absolute(dir, remote_path);
 
 		if (remote_is_dir(conn, dir) && file2 == NULL) {
 			printf("Changing to: %s\n", dir);
 			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
-			if (parse_dispatch_command(conn, cmd, &pwd, 1) != 0) {
+			if (parse_dispatch_command(conn, cmd,
+			    &remote_path, 1) != 0) {
 				xfree(dir);
-				xfree(pwd);
+				xfree(remote_path);
 				xfree(conn);
 				return (-1);
 			}
@@ -1521,9 +1902,10 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 				snprintf(cmd, sizeof cmd, "get %s %s", dir,
 				    file2);
 
-			err = parse_dispatch_command(conn, cmd, &pwd, 1);
+			err = parse_dispatch_command(conn, cmd,
+			    &remote_path, 1);
 			xfree(dir);
-			xfree(pwd);
+			xfree(remote_path);
 			xfree(conn);
 			return (err);
 		}
@@ -1564,7 +1946,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			const char *line;
 			int count = 0;
 
-			if ((line = el_gets(el, &count)) == NULL || count <= 0) {
+			if ((line = el_gets(el, &count)) == NULL ||
+			    count <= 0) {
 				printf("\n");
  				break;
 			}
@@ -1584,11 +1967,12 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		interrupted = 0;
 		signal(SIGINT, cmd_interrupt);
 
-		err = parse_dispatch_command(conn, cmd, &pwd, batchmode);
+		err = parse_dispatch_command(conn, cmd, &remote_path,
+		    batchmode);
 		if (err != 0)
 			break;
 	}
-	xfree(pwd);
+	xfree(remote_path);
 	xfree(conn);
 
 #ifdef USE_LIBEDIT

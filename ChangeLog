@@ -141,6 +141,15 @@
      [sshconnect2.c]
      Don't escape backslashes in the SSH2 banner.  bz#1533, patch from
      Michal Gorny via Gentoo.
+   - djm@cvs.openbsd.org 2010/01/04 02:03:57
+     [sftp.c]
+     Implement tab-completion of commands, local and remote filenames for sftp.
+     Hacked on and off for some time by myself, mouring, Carlos Silva (via 2009
+     Google Summer of Code) and polished to a fine sheen by myself again.
+     It should deal more-or-less correctly with the ikky corner-cases presented
+     by quoted filenames, but the UI could still be slightly improved.
+     In particular, it is quite slow for remote completion on large directories.
+     bz#200; ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
