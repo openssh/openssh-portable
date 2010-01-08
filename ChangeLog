@@ -72,6 +72,12 @@
      Warn but do not fail if stat()ing the subsystem binary fails.  This helps
      with chrootdirectory+forcecommand=sftp-server and restricted shells.
      bz #1599, ok djm.
+   - djm@cvs.openbsd.org 2009/11/20 00:54:01
+     [sftp.c]
+     bz#1588 change "Connecting to host..." message to "Connected to host."
+     and delay it until after the sftp protocol connection has been established.
+     Avoids confusing sequence of messages when the underlying ssh connection
+     experiences problems. ok dtucker@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

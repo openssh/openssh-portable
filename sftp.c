@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.111 2009/08/18 18:36:21 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.112 2009/11/20 00:54:01 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -68,17 +68,14 @@ typedef void EditLine;
 #include "sftp-common.h"
 #include "sftp-client.h"
 
+#define DEFAULT_COPY_BUFLEN	32768	/* Size of buffer for up/download */
+#define DEFAULT_NUM_REQUESTS	64	/* # concurrent outstanding requests */
+
 /* File to read commands from */
 FILE* infile;
 
 /* Are we in batchfile mode? */
 int batchmode = 0;
-
-/* Size of buffer used when copying files */
-size_t copy_buffer_len = 32768;
-
-/* Number of concurrent outstanding requests */
-size_t num_requests = 64;
 
 /* PID of ssh transport process */
 static pid_t sshpid = -1;
@@ -187,7 +184,7 @@ static const struct CMD cmds[] = {
 	{ NULL,			-1}
 };
 
-int interactive_loop(int fd_in, int fd_out, char *file1, char *file2);
+int interactive_loop(struct sftp_conn *, char *file1, char *file2);
 
 /* ARGSUSED */
 static void
@@ -1472,12 +1469,11 @@ prompt(EditLine *el)
 #endif
 
 int
-interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
+interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 {
 	char *pwd;
 	char *dir = NULL;
 	char cmd[2048];
-	struct sftp_conn *conn;
 	int err, interactive;
 	EditLine *el = NULL;
 #ifdef USE_LIBEDIT
@@ -1500,10 +1496,6 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 		el_source(el, NULL);
 	}
 #endif /* USE_LIBEDIT */
-
-	conn = do_init(fd_in, fd_out, copy_buffer_len, num_requests);
-	if (conn == NULL)
-		fatal("Couldn't initialise connection to server");
 
 	pwd = do_realpath(conn, ".");
 	if (pwd == NULL)
@@ -1694,6 +1686,9 @@ main(int argc, char **argv)
 	arglist args;
 	extern int optind;
 	extern char *optarg;
+	struct sftp_conn *conn;
+	size_t copy_buffer_len = DEFAULT_COPY_BUFLEN;
+	size_t num_requests = DEFAULT_NUM_REQUESTS;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1837,20 +1832,27 @@ main(int argc, char **argv)
 		addargs(&args, "%s", (sftp_server != NULL ?
 		    sftp_server : "sftp"));
 
-		if (!batchmode)
-			fprintf(stderr, "Connecting to %s...\n", host);
 		connect_to_server(ssh_program, args.list, &in, &out);
 	} else {
 		args.list = NULL;
 		addargs(&args, "sftp-server");
 
-		if (!batchmode)
-			fprintf(stderr, "Attaching to %s...\n", sftp_direct);
 		connect_to_server(sftp_direct, args.list, &in, &out);
 	}
 	freeargs(&args);
 
-	err = interactive_loop(in, out, file1, file2);
+	conn = do_init(in, out, copy_buffer_len, num_requests);
+	if (conn == NULL)
+		fatal("Couldn't initialise connection to server");
+
+	if (!batchmode) {
+		if (sftp_direct == NULL)
+			fprintf(stderr, "Connected to %s.\n", host);
+		else
+			fprintf(stderr, "Attached to %s.\n", sftp_direct);
+	}
+
+	err = interactive_loop(conn, file1, file2);
 
 #if !defined(USE_PIPES)
 	shutdown(in, SHUT_RDWR);
