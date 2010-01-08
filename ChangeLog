@@ -134,6 +134,9 @@
      NOTE: if you currently use RDomain in the ssh client or server config,
      or ssh/sshd -o, you must update to use RoutingDomain.
      ok markus@ djm@
+   - jmc@cvs.openbsd.org 2009/12/29 18:03:32
+     [sshd_config.5 ssh_config.5]
+     sort previous;
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
