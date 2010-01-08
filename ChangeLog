@@ -18,6 +18,13 @@
      [ssh2.h]
      Define the KEX messages used when resuming a suspended connection.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/10/24 11:22:37
+     [roaming_common.c]
+     Do the actual suspend/resume in the client. This won't be useful until
+     the server side supports roaming.
+     Most code from Martin Forssen, maf at appgate dot com. Some changes by
+     me and markus@
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
