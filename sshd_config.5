@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.110 2009/10/28 16:38:18 reyk Exp $
+.\" $OpenBSD: sshd_config.5,v 1.111 2009/10/28 21:45:08 jmc Exp $
 .Dd $Mdocdate: October 28 2009 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -806,15 +806,15 @@ Specifies whether public key authentication is allowed.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
+.It Cm RDomain
+Set the routing domain number.
+The default routing domain is set by the system.
 .It Cm RhostsRSAAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful RSA host authentication is allowed.
 The default is
 .Dq no .
 This option applies to protocol version 1 only.
-.It Cm RDomain
-Set the routing domain number.
-The default routing domain is set by the system.
 .It Cm RSAAuthentication
 Specifies whether pure RSA authentication is allowed.
 The default is

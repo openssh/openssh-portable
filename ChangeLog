@@ -36,6 +36,9 @@
      sftp.1 sshd_config.5 readconf.c ssh.c misc.c]
      Allow to set the rdomain in ssh/sftp/scp/sshd and ssh-keyscan.
      ok markus@
+   - jmc@cvs.openbsd.org 2009/10/28 21:45:08
+     [sshd_config.5 sftp.1]
+     tweak previous;
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
