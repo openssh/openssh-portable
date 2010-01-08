@@ -14,6 +14,9 @@
      client_loop() must detect if the session has been suspended and resumed,
      and take appropriate action in that case.
      From Martin Forssen, maf at appgate dot com
+   - andreas@cvs.openbsd.org 2009/10/24 11:19:17
+     [ssh2.h]
+     Define the KEX messages used when resuming a suspended connection.
      ok markus@
 
 20091226

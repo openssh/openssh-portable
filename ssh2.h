@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh2.h,v 1.11 2008/11/04 08:22:13 djm Exp $ */
+/* $OpenBSD: ssh2.h,v 1.12 2009/10/24 11:19:17 andreas Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -165,4 +165,11 @@
 #define SSH2_OPEN_RESOURCE_SHORTAGE			4
 
 #define SSH2_EXTENDED_DATA_STDERR			1
+
+/* kex messages for resume@appgate.com */
+#define SSH2_MSG_KEX_ROAMING_RESUME			30
+#define SSH2_MSG_KEX_ROAMING_AUTH_REQUIRED		31
+#define SSH2_MSG_KEX_ROAMING_AUTH			32
+#define SSH2_MSG_KEX_ROAMING_AUTH_OK			33
+#define SSH2_MSG_KEX_ROAMING_AUTH_FAIL			34
 
