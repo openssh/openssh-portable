@@ -119,6 +119,10 @@
      filenames that start with a '-'.
      Based on a diff by halex@
      ok halex@ djm@ deraadt@
+   - djm@cvs.openbsd.org 2009/12/20 23:20:40
+     [PROTOCOL]
+     fix an incorrect magic number and typo in PROTOCOL; bz#1688
+     report and fix from ueno AT unixuser.org
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

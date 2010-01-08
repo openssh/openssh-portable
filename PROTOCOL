@@ -121,10 +121,10 @@ layer 2 frames or layer 3 packets. It may take one of the following values:
 	SSH_TUNMODE_ETHERNET     2		/* layer 2 frames */
 
 The "tunnel unit number" specifies the remote interface number, or may
-be zero to allow the server to automatically chose an interface. A server
-that is not willing to open a client-specified unit should refuse the
-request with a SSH_MSG_CHANNEL_OPEN_FAILURE error. On successful open,
-the server should reply with SSH_MSG_CHANNEL_OPEN_SUCCESS.
+be 0x7fffffff to allow the server to automatically chose an interface. A
+server that is not willing to open a client-specified unit should refuse
+the request with a SSH_MSG_CHANNEL_OPEN_FAILURE error. On successful
+open, the server should reply with SSH_MSG_CHANNEL_OPEN_SUCCESS.
 
 Once established the client and server may exchange packet or frames
 over the tunnel channel by encapsulating them in SSH protocol strings
@@ -151,7 +151,7 @@ It may be one of:
 The "packet data" field consists of the IPv4/IPv6 datagram itself
 without any link layer header.
 
-The contents of the "data" field for layer 3 packets is:
+The contents of the "data" field for layer 2 packets is:
 
 	uint32			packet length
 	byte[packet length]	frame
@@ -251,4 +251,4 @@ The values of the f_flag bitmask are as follows:
 Both the "statvfs@openssh.com" and "fstatvfs@openssh.com" extensions are
 advertised in the SSH_FXP_VERSION hello with version "2".
 
-$OpenBSD: PROTOCOL,v 1.12 2009/02/14 06:35:49 djm Exp $
+$OpenBSD: PROTOCOL,v 1.13 2009/12/20 23:20:40 djm Exp $
