@@ -137,6 +137,10 @@
    - jmc@cvs.openbsd.org 2009/12/29 18:03:32
      [sshd_config.5 ssh_config.5]
      sort previous;
+   - dtucker@cvs.openbsd.org 2010/01/04 01:45:30
+     [sshconnect2.c]
+     Don't escape backslashes in the SSH2 banner.  bz#1533, patch from
+     Michal Gorny via Gentoo.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.176 2009/12/06 23:41:15 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.177 2010/01/04 01:45:30 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -421,7 +421,7 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 		if (len > 65536)
 			len = 65536;
 		msg = xmalloc(len * 4 + 1); /* max expansion from strnvis() */
-		strnvis(msg, raw, len * 4 + 1, VIS_SAFE|VIS_OCTAL);
+		strnvis(msg, raw, len * 4 + 1, VIS_SAFE|VIS_OCTAL|VIS_NOSLASH);
 		fprintf(stderr, "%s", msg);
 		xfree(msg);
 	}
