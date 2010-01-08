@@ -9,6 +9,12 @@
      Let the client detect if the server supports roaming by looking
      for the resume@appgate.com kex algorithm.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/10/24 11:15:29
+     [clientloop.c]
+     client_loop() must detect if the session has been suspended and resumed,
+     and take appropriate action in that case.
+     From Martin Forssen, maf at appgate dot com
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

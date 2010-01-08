@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.213 2009/07/05 19:28:33 stevesk Exp $ */
+/* $OpenBSD: clientloop.c,v 1.214 2009/10/24 11:15:29 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -160,6 +160,8 @@ static int session_closed = 0;	/* In SSH2: login session closed. */
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
+
+int	session_resumed = 0;
 
 /* Track escape per proto2 channel */
 struct escape_filter_ctx {
@@ -1458,6 +1460,14 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			 * the connection is processed elsewhere (above).
 			 */
 			client_process_output(writeset);
+		}
+
+		if (session_resumed) {
+			connection_in = packet_get_connection_in();
+			connection_out = packet_get_connection_out();
+			max_fd = MAX(max_fd, connection_out);
+			max_fd = MAX(max_fd, connection_in);
+			session_resumed = 0;
 		}
 
 		/*
