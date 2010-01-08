@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.328 2009/10/28 16:38:18 reyk Exp $ */
+/* $OpenBSD: ssh.c,v 1.329 2009/12/20 07:28:36 guenther Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -528,7 +528,7 @@ main(int ac, char **av)
 	ac -= optind;
 	av += optind;
 
-	if (ac > 0 && !host && **av != '-') {
+	if (ac > 0 && !host) {
 		if (strrchr(*av, '@')) {
 			p = xstrdup(*av);
 			cp = strrchr(p, '@');

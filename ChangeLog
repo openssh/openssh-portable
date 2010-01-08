@@ -108,6 +108,17 @@
      [key.c]
      switch from 35 to the more common value of RSA_F4 == (2**16)+1 == 65537
      for the RSA public exponent; discussed with provos; ok djm@
+   - guenther@cvs.openbsd.org 2009/12/20 07:28:36
+     [ssh.c sftp.c scp.c]
+     When passing user-controlled options with arguments to other programs,
+     pass the option and option argument as separate argv entries and
+     not smashed into one (e.g., as -l foo and not -lfoo).  Also, always
+     pass a "--" argument to stop option parsing, so that a positional
+     argument that starts with a '-' isn't treated as an option.  This
+     fixes some error cases as well as the handling of hostnames and
+     filenames that start with a '-'.
+     Based on a diff by halex@
+     ok halex@ djm@ deraadt@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

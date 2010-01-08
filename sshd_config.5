@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.112 2009/11/10 02:58:56 djm Exp $
-.Dd $Mdocdate: November 10 2009 $
+.\" $OpenBSD: sshd_config.5,v 1.113 2009/12/19 16:53:13 stevesk Exp $
+.Dd $Mdocdate: December 19 2009 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -182,16 +182,16 @@ PAM or though authentication styles supported in
 The default is
 .Dq yes .
 .It Cm ChrootDirectory
-Specifies a path to
+Specifies the pathname of a directory to
 .Xr chroot 2
 to after authentication.
-This path, and all its components, must be root-owned directories that are
+All components of the pathname must be root-owned directories that are
 not writable by any other user or group.
 After the chroot,
 .Xr sshd 8
 changes the working directory to the user's home directory.
 .Pp
-The path may contain the following tokens that are expanded at runtime once
+The pathname may contain the following tokens that are expanded at runtime once
 the connecting user has been authenticated: %% is replaced by a literal '%',
 %h is replaced by the home directory of the user being authenticated, and
 %u is replaced by the username of that user.
