@@ -150,6 +150,10 @@
      by quoted filenames, but the UI could still be slightly improved.
      In particular, it is quite slow for remote completion on large directories.
      bz#200; ok markus@
+   - djm@cvs.openbsd.org 2010/01/04 02:25:15
+     [sftp-server.c]
+     bz#1566 don't unnecessarily dup() in and out fds for sftp-server;
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
