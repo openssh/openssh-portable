@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.80 2008/10/10 05:00:12 stevesk Exp $ */
+/* $OpenBSD: key.c,v 1.81 2009/12/11 18:16:33 markus Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -685,7 +685,7 @@ rsa_generate_private_key(u_int bits)
 {
 	RSA *private;
 
-	private = RSA_generate_key(bits, 35, NULL, NULL);
+	private = RSA_generate_key(bits, RSA_F4, NULL, NULL);
 	if (private == NULL)
 		fatal("rsa_generate_private_key: key generation failed.");
 	return private;

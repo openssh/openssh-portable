@@ -104,6 +104,10 @@
      fix potential divide-by-zero in sftp's "df" output when talking to a server
      that reports zero files on the filesystem (Unix filesystems always have at
      least the root inode).  From Steve McClellan at radisys, ok djm@
+   - markus@cvs.openbsd.org 2009/12/11 18:16:33
+     [key.c]
+     switch from 35 to the more common value of RSA_F4 == (2**16)+1 == 65537
+     for the RSA public exponent; discussed with provos; ok djm@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
