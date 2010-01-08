@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.156 2009/08/28 01:21:07 dtucker Exp $ */
+/* $Id: defines.h,v 1.157 2010/01/08 22:25:54 dtucker Exp $ */
 
 
 /* Constants */
@@ -751,6 +751,10 @@ struct winsize {
 
 #ifndef SSH_IOBUFSZ
 # define SSH_IOBUFSZ 8192
+#endif
+
+#ifndef PRIu64
+# define PRIu64 "llu"
 #endif
 
 #endif /* _DEFINES_H */
