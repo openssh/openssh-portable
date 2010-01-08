@@ -61,6 +61,12 @@
      [clientloop.c]
      fix incorrect exit status when multiplexing and channel ID 0 is recycled
      bz#1570 reported by peter.oliver AT eon-is.co.uk; ok dtucker
+   - djm@cvs.openbsd.org 2009/11/19 23:39:50
+     [session.c]
+     bz#1606: error when an attempt is made to connect to a server
+     with ForceCommand=internal-sftp with a shell session (i.e. not a
+     subsystem session). Avoids stuck client when attempting to ssh to such a
+     service. ok dtucker@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

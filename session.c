@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.247 2009/10/06 04:46:40 djm Exp $ */
+/* $OpenBSD: session.c,v 1.248 2009/11/19 23:39:50 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -142,9 +142,10 @@ static int sessions_first_unused = -1;
 static int sessions_nalloc = 0;
 static Session *sessions = NULL;
 
-#define SUBSYSTEM_NONE		0
-#define SUBSYSTEM_EXT		1
-#define SUBSYSTEM_INT_SFTP	2
+#define SUBSYSTEM_NONE			0
+#define SUBSYSTEM_EXT			1
+#define SUBSYSTEM_INT_SFTP		2
+#define SUBSYSTEM_INT_SFTP_ERROR	3
 
 #ifdef HAVE_LOGIN_CAP
 login_cap_t *lc;
@@ -785,17 +786,19 @@ do_exec(Session *s, const char *command)
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
-		if (IS_INTERNAL_SFTP(command))
-			s->is_subsystem = SUBSYSTEM_INT_SFTP;
-		else if (s->is_subsystem)
+		if (IS_INTERNAL_SFTP(command)) {
+			s->is_subsystem = s->is_subsystem ?
+			    SUBSYSTEM_INT_SFTP : SUBSYSTEM_INT_SFTP_ERROR;
+		} else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (config) '%.900s'", command);
 	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
-		if (IS_INTERNAL_SFTP(command))
-			s->is_subsystem = SUBSYSTEM_INT_SFTP;
-		else if (s->is_subsystem)
+		if (IS_INTERNAL_SFTP(command)) {
+			s->is_subsystem = s->is_subsystem ?
+			    SUBSYSTEM_INT_SFTP : SUBSYSTEM_INT_SFTP_ERROR;
+		} else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
 		debug("Forced command (key option) '%.900s'", command);
 	}
@@ -1783,7 +1786,11 @@ do_child(Session *s, const char *command)
 	/* restore SIGPIPE for child */
 	signal(SIGPIPE, SIG_DFL);
 
-	if (s->is_subsystem == SUBSYSTEM_INT_SFTP) {
+	if (s->is_subsystem == SUBSYSTEM_INT_SFTP_ERROR) {
+		printf("This service allows sftp connections only.\n");
+		fflush(NULL);
+		exit(1);
+	} else if (s->is_subsystem == SUBSYSTEM_INT_SFTP) {
 		extern int optind, optreset;
 		int i;
 		char *p, *args;
