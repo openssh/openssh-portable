@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.71 2009/02/21 19:32:04 tobias Exp $ */
+/* $OpenBSD: misc.c,v 1.72 2009/10/28 16:38:18 reyk Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -149,6 +149,43 @@ set_nodelay(int fd)
 	debug2("fd %d setting TCP_NODELAY", fd);
 	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof opt) == -1)
 		error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
+}
+
+/* open a socket in the specified routing domain */
+int
+socket_rdomain(int domain, int type, int protocol, int rdomain)
+{
+	int sock, ipproto = IPPROTO_IP;
+
+	if ((sock = socket(domain, type, protocol)) == -1)
+		return (-1);
+
+	if (rdomain == -1)
+		return (sock);
+	
+	switch (domain) {
+	case AF_INET6:
+		ipproto = IPPROTO_IPV6;
+		/* FALLTHROUGH */
+	case AF_INET:
+		debug2("socket %d af %d setting rdomain %d",
+		    sock, domain, rdomain);
+		if (setsockopt(sock, ipproto, SO_RDOMAIN, &rdomain,
+		    sizeof(rdomain)) == -1) {
+			debug("setsockopt SO_RDOMAIN: %.100s",
+			    strerror(errno));
+			close(sock);
+			return (-1);
+		}
+		break;
+	default:
+		debug("socket %d af %d does not support rdomain %d",
+		    sock, domain, rdomain);
+		close(sock);
+		return (-1);
+	}
+
+	return (sock);
 }
 
 /* Characters considered whitespace in strsep calls. */

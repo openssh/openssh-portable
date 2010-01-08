@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.121 2009/10/08 20:42:13 jmc Exp $
-.Dd $Mdocdate: October 8 2009 $
+.\" $OpenBSD: ssh_config.5,v 1.122 2009/10/28 16:38:18 reyk Exp $
+.Dd $Mdocdate: October 28 2009 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -782,6 +782,9 @@ or
 The default is
 .Dq yes .
 This option applies to protocol version 2 only.
+.It Cm RDomain
+Set the routing domain number.
+The default routing domain is set by the system.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted before the
 session key is renegotiated.

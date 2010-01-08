@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.79 2009/06/27 09:35:06 andreas Exp $ */
+/* $OpenBSD: readconf.h,v 1.80 2009/10/28 16:38:18 reyk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -124,6 +124,8 @@ typedef struct {
 	int	visual_host_key;
 
 	int	use_roaming;
+
+	int	rdomain;	/* routing domain a.k.a. VRF */
 
 }       Options;
 

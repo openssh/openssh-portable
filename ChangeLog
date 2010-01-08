@@ -30,6 +30,12 @@
      Request roaming to be enabled if UseRoaming is true and the server
      supports it.
      ok markus@
+   - reyk@cvs.openbsd.org 2009/10/28 16:38:18
+     [ssh_config.5 sshd.c misc.h ssh-keyscan.1 readconf.h sshconnect.c
+     channels.c channels.h servconf.h servconf.c ssh.1 ssh-keyscan.c scp.1
+     sftp.1 sshd_config.5 readconf.c ssh.c misc.c]
+     Allow to set the rdomain in ssh/sftp/scp/sshd and ssh-keyscan.
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

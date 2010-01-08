@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.87 2009/01/22 10:02:34 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.88 2009/10/28 16:38:18 reyk Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -149,6 +149,8 @@ typedef struct {
 	int	permit_tun;
 
 	int	num_permitted_opens;
+
+	int	rdomain;
 
 	char   *chroot_directory;
 }       ServerOptions;
