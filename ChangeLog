@@ -78,6 +78,9 @@
      and delay it until after the sftp protocol connection has been established.
      Avoids confusing sequence of messages when the underlying ssh connection
      experiences problems. ok dtucker@
+   - dtucker@cvs.openbsd.org 2009/11/20 00:59:36
+     [sshconnect2.c]
+     Use the HostKeyAlias when prompting for passwords.  bz#1039, ok djm@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
