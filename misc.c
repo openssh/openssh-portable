@@ -155,7 +155,6 @@ set_nodelay(int fd)
 int
 socket_rdomain(int domain, int type, int protocol, int rdomain)
 {
-#ifdef USE_ROUTINGDOMAIN
 	int sock, ipproto = IPPROTO_IP;
 
 	if ((sock = socket(domain, type, protocol)) == -1)
@@ -163,7 +162,8 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 
 	if (rdomain == -1)
 		return (sock);
-	
+
+#ifdef USE_ROUTINGDOMAIN
 	switch (domain) {
 	case AF_INET6:
 		ipproto = IPPROTO_IPV6;
@@ -187,6 +187,8 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 	}
 
 	return (sock);
+#else
+	return (-1);
 #endif
 }
 

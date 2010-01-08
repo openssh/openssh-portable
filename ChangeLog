@@ -163,6 +163,8 @@
    RoutingDomain an unsupported option on platforms that don't have it.
  - (dtucker) [sftp.c] Expand ifdef for libedit to cover complete_is_remote
    too.
+ - (dtucker) [misc.c] Move the routingdomain ifdef to allow the socket to
+   be created.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
