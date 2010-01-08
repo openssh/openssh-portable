@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.111 2009/10/28 21:45:08 jmc Exp $
-.Dd $Mdocdate: October 28 2009 $
+.\" $OpenBSD: sshd_config.5,v 1.112 2009/11/10 02:58:56 djm Exp $
+.Dd $Mdocdate: November 10 2009 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -832,6 +832,9 @@ This is normally desirable because novices sometimes accidentally leave their
 directory or files world-writable.
 The default is
 .Dq yes .
+Note that this does not apply to
+.Cm ChrootDirectory ,
+whose permissions and ownership are checked unconditionally.
 .It Cm Subsystem
 Configures an external subsystem (e.g. file transfer daemon).
 Arguments should be a subsystem name and a command (with optional arguments)

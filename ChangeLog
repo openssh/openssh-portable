@@ -43,6 +43,10 @@
      [ssh_config.5]
      explain the constraints on LocalCommand some more so people don't
      try to abuse it.
+   - djm@cvs.openbsd.org 2009/11/10 02:58:56
+     [sshd_config.5]
+     clarify that StrictModes does not apply to ChrootDirectory. Permissions
+     and ownership are always checked when chrooting. bz#1532
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
