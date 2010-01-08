@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.248 2009/11/19 23:39:50 djm Exp $ */
+/* $OpenBSD: session.c,v 1.249 2009/11/20 00:15:41 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2121,16 +2121,16 @@ session_subsystem_req(Session *s)
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
-			if (!strcmp(INTERNAL_SFTP_NAME, prog)) {
+			if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
 				s->is_subsystem = SUBSYSTEM_INT_SFTP;
-			} else if (stat(prog, &st) < 0) {
-				error("subsystem: cannot stat %s: %s", prog,
-				    strerror(errno));
-				break;
+				debug("subsystem: %s", prog);
 			} else {
+				if (stat(prog, &st) < 0)
+					debug("subsystem: cannot stat %s: %s",
+					    prog, strerror(errno));
 				s->is_subsystem = SUBSYSTEM_EXT;
+				debug("subsystem: exec() %s", cmd);
 			}
-			debug("subsystem: exec() %s", cmd);
 			success = do_exec(s, cmd) == 0;
 			break;
 		}

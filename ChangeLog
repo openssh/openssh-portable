@@ -67,6 +67,11 @@
      with ForceCommand=internal-sftp with a shell session (i.e. not a
      subsystem session). Avoids stuck client when attempting to ssh to such a
      service. ok dtucker@
+   - dtucker@cvs.openbsd.org 2009/11/20 00:15:41
+     [session.c]
+     Warn but do not fail if stat()ing the subsystem binary fails.  This helps
+     with chrootdirectory+forcecommand=sftp-server and restricted shells.
+     bz #1599, ok djm.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
