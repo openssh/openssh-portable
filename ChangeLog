@@ -156,6 +156,7 @@
      ok markus@
  - (dtucker) [Makefile.in added roaming_client.c roaming_serv.c] Import new
    files for roaming and add to Makefile.
+ - (dtucker) [Makefile.in] .c files do not belong in the OBJ lines.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
