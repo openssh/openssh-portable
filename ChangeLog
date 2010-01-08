@@ -165,6 +165,8 @@
    too.
  - (dtucker) [misc.c] Move the routingdomain ifdef to allow the socket to
    be created.
+ - (dtucker] [misc.c] Shrink the area covered by USE_ROUTINGDOMAIN more
+   to eliminate an unused variable warning.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
