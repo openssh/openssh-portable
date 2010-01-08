@@ -57,6 +57,10 @@
      the end of the select read/write fdset and make sure a reused FD
      is not touched before the pre-handlers are called.
      with and ok djm@
+   - djm@cvs.openbsd.org 2009/11/17 05:31:44
+     [clientloop.c]
+     fix incorrect exit status when multiplexing and channel ID 0 is recycled
+     bz#1570 reported by peter.oliver AT eon-is.co.uk; ok dtucker
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
