@@ -1,3 +1,10 @@
+20091208
+ - (dtucker) OpenBSD CVS Sync
+   - andreas@cvs.openbsd.org 2009/10/24 11:11:58
+     [roaming.h]
+     Declarations needed for upcoming changes.
+     ok markus@
+
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
    Gzip all man pages. Patch from Corinna Vinschen.
