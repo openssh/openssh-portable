@@ -807,11 +807,17 @@ main(int argc, char **argv)
 			IPv4or6 = AF_INET6;
 			break;
 		case 'V':
+#ifdef USE_ROUTINGDOMAIN
 			scan_rdomain = a2rdomain(optarg);
 			if (scan_rdomain == -1) {
 				fprintf(stderr, "Bad rdomain '%s'\n", optarg);
 				exit(1);
 			}
+#else
+			fprintf(stderr, "RoutingDomain not supported on this "
+			   "platform.\n");
+			exit(1);
+#endif
 			break;
 		case '?':
 		default:

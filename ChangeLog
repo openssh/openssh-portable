@@ -159,6 +159,8 @@
  - (dtucker) [Makefile.in] .c files do not belong in the OBJ lines.
  - (dtucker) [sftp.c] ifdef out the sftp completion bits for platforms that
    don't have libedit.
+ - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c] Make
+   RoutingDomain an unsupported option on platforms that don't have it.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

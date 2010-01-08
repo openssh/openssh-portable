@@ -424,7 +424,11 @@ static struct {
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
+#ifdef USE_ROUTINGDOMAIN
 	{ "routingdomain", sRDomain, SSHCFG_GLOBAL },
+#else
+	{ "routingdomain", sUnsupported, SSHCFG_GLOBAL },
+#endif
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
@@ -1296,6 +1300,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			*charptr = xstrdup(arg);
 		break;
 
+#ifdef USE_ROUTINGDOMAIN
 	case sRDomain:
 		intptr = &options->rdomain;
 		arg = strdelim(&cp);
@@ -1308,6 +1313,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (*intptr == -1)
 			*intptr = value;
 		break;
+#endif
 
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",

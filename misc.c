@@ -155,6 +155,7 @@ set_nodelay(int fd)
 int
 socket_rdomain(int domain, int type, int protocol, int rdomain)
 {
+#ifdef USE_ROUTINGDOMAIN
 	int sock, ipproto = IPPROTO_IP;
 
 	if ((sock = socket(domain, type, protocol)) == -1)
@@ -186,6 +187,7 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 	}
 
 	return (sock);
+#endif
 }
 
 /* Characters considered whitespace in strsep calls. */
@@ -273,6 +275,7 @@ a2port(const char *s)
 	return (int)port;
 }
 
+#ifdef USE_ROUTINGDOMAIN
 int
 a2rdomain(const char *s)
 {
@@ -284,6 +287,7 @@ a2rdomain(const char *s)
 		return -1;
 	return (int)rdomain;
 }
+#endif
 
 int
 a2tun(const char *s, int *remote)

@@ -229,7 +229,11 @@ static struct {
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
 	{ "useroaming", oUseRoaming },
+#ifdef USE_ROUTINGDOMAIN
 	{ "routingdomain", oRDomain },
+#else
+	{ "routingdomain", oUnsupported },
+#endif
 #ifdef JPAKE
 	{ "zeroknowledgepasswordauthentication",
 	    oZeroKnowledgePasswordAuthentication },
@@ -920,6 +924,7 @@ parse_int:
 		intptr = &options->use_roaming;
 		goto parse_flag;
 
+#ifdef USE_ROUTINGDOMAIN
 	case oRDomain:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
@@ -932,6 +937,7 @@ parse_int:
 		if (*activep)
 			options->rdomain = value;
 		break;
+#endif
 
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
