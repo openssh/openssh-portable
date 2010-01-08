@@ -154,6 +154,8 @@
      [sftp-server.c]
      bz#1566 don't unnecessarily dup() in and out fds for sftp-server;
      ok markus@
+ - (dtucker) [Makefile.in added roaming_client.c roaming_serv.c] Import new
+   files for roaming and add to Makefile.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
