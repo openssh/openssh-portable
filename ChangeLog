@@ -157,6 +157,8 @@
  - (dtucker) [Makefile.in added roaming_client.c roaming_serv.c] Import new
    files for roaming and add to Makefile.
  - (dtucker) [Makefile.in] .c files do not belong in the OBJ lines.
+ - (dtucker) [sftp.c] ifdef out the sftp completion bits for platforms that
+   don't have libedit.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

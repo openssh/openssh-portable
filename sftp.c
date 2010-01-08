@@ -1503,7 +1503,6 @@ prompt(EditLine *el)
 {
 	return ("sftp> ");
 }
-#endif
 
 /* Display entries in 'list' after skipping the first 'len' chars */
 static void
@@ -1646,6 +1645,7 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 
 	return count;
 }
+#endif
 
 /*
  * Determine whether a particular sftp command's arguments (if any)
@@ -1666,6 +1666,7 @@ complete_is_remote(char *cmd) {
 	return -1;
 }
 
+#ifdef USE_LIBEDIT
 /* Autocomplete a filename "file" */
 static int
 complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
@@ -1838,6 +1839,7 @@ complete(EditLine *el, int ch)
 	xfree(line);	
 	return ret;
 }
+#endif /* USE_LIBEDIT */
 
 int
 interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
