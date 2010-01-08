@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.297 2009/10/28 16:38:18 reyk Exp $ */
+/* $OpenBSD: channels.c,v 1.298 2009/11/10 04:30:44 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -53,6 +53,7 @@
 #include <arpa/inet.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -231,7 +232,12 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 	channel_max_fd = MAX(channel_max_fd, wfd);
 	channel_max_fd = MAX(channel_max_fd, efd);
 
-	/* XXX set close-on-exec -markus */
+	if (rfd != -1)
+		fcntl(rfd, F_SETFD, FD_CLOEXEC);
+	if (wfd != -1 && wfd != rfd)
+		fcntl(wfd, F_SETFD, FD_CLOEXEC);
+	if (efd != -1 && efd != rfd && efd != wfd)
+		fcntl(efd, F_SETFD, FD_CLOEXEC);
 
 	c->rfd = rfd;
 	c->wfd = wfd;

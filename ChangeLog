@@ -47,6 +47,10 @@
      [sshd_config.5]
      clarify that StrictModes does not apply to ChrootDirectory. Permissions
      and ownership are always checked when chrooting. bz#1532
+   - dtucker@cvs.openbsd.org 2009/11/10 04:30:45
+     [sshconnect2.c channels.c sshconnect.c]
+     Set close-on-exec on various descriptors so they don't get leaked to
+     child processes.  bz #1643, patch from jchadima at redhat, ok deraadt.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
