@@ -92,6 +92,9 @@
      make passing of zero-length arguments to ssh safe by
      passing "-<switch>" "<value>" rather than "-<switch><value>"
      ok dtucker@, guenther@, djm@
+   - dtucker@cvs.openbsd.org 2009/12/06 23:41:15
+     [sshconnect2.c]
+     zap unused variable and strlen; from Steve McClellan, ok djm
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

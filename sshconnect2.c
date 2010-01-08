@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.175 2009/11/20 00:59:36 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.176 2009/12/06 23:41:15 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1589,7 +1589,7 @@ userauth_hostbased(Authctxt *authctxt)
 	char *chost, *pkalg, *p, myname[NI_MAXHOST];
 	const char *service;
 	u_int blen, slen;
-	int ok, i, len, found = 0;
+	int ok, i, found = 0;
 
 	/* check for a useful key */
 	for (i = 0; i < sensitive->nkeys; i++) {
@@ -1626,7 +1626,6 @@ userauth_hostbased(Authctxt *authctxt)
 		xfree(blob);
 		return 0;
 	}
-	len = strlen(p) + 2;
 	xasprintf(&chost, "%s.", p);
 	debug2("userauth_hostbased: chost %s", chost);
 	xfree(p);
