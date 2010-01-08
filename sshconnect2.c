@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.172 2009/10/23 01:57:11 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.173 2009/10/24 11:13:54 andreas Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -151,6 +151,11 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	xxx_kex = kex;
 
 	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
+
+	if (options.use_roaming && !kex->roaming) {
+		debug("Roaming not allowed by server");
+		options.use_roaming = 0;
+	}
 
 	session_id2 = kex->session_id;
 	session_id2_len = kex->session_id_len;

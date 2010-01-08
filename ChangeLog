@@ -4,6 +4,11 @@
      [roaming.h]
      Declarations needed for upcoming changes.
      ok markus@
+   - andreas@cvs.openbsd.org 2009/10/24 11:13:54
+     [sshconnect2.c kex.h kex.c]
+     Let the client detect if the server supports roaming by looking
+     for the resume@appgate.com kex algorithm.
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
