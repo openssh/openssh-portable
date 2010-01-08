@@ -87,6 +87,11 @@
      to expand EXPAND_MAX_KEYS, allowing only EXPAND_MAX_KEYS-1 to actually
      work.  Note that nothing in OpenSSH actually uses close to this limit at
      present.  bz#1607 from Jan.Pechanec AT Sun.COM
+   - halex@cvs.openbsd.org 2009/11/22 13:18:00
+     [sftp.c]
+     make passing of zero-length arguments to ssh safe by
+     passing "-<switch>" "<value>" rather than "-<switch><value>"
+     ok dtucker@, guenther@, djm@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
