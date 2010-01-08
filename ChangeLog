@@ -154,6 +154,10 @@
      [sftp-server.c]
      bz#1566 don't unnecessarily dup() in and out fds for sftp-server;
      ok markus@
+   - dtucker@cvs.openbsd.org 2010/01/08 21:50:49
+     [sftp.c]
+     Fix two warnings: possibly used unitialized and use a nul byte instead of
+     NULL pointer.  ok djm@
  - (dtucker) [Makefile.in added roaming_client.c roaming_serv.c] Import new
    files for roaming and add to Makefile.
  - (dtucker) [Makefile.in] .c files do not belong in the OBJ lines.

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.116 2010/01/04 02:03:57 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.117 2010/01/08 21:50:49 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1568,7 +1568,7 @@ complete_ambiguous(const char *word, char **list, size_t count)
 		if (matchlen > strlen(word)) {
 			char *tmp = xstrdup(list[0]);
 
-			tmp[matchlen] = NULL;
+			tmp[matchlen] = '\0';
 			return tmp;
 		}
 	} 
@@ -2062,7 +2062,7 @@ int
 main(int argc, char **argv)
 {
 	int in, out, ch, err;
-	char *host, *userhost, *cp, *file2 = NULL;
+	char *host = NULL, *userhost, *cp, *file2 = NULL;
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
