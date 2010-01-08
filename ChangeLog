@@ -167,6 +167,7 @@
    be created.
  - (dtucker] [misc.c] Shrink the area covered by USE_ROUTINGDOMAIN more
    to eliminate an unused variable warning.
+ - (dtucker) [roaming_serv.c] Include includes.h for u_intXX_t types.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
