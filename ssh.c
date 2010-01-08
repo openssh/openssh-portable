@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.326 2009/07/02 02:11:47 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.327 2009/10/24 11:23:42 andreas Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -100,6 +100,7 @@
 #include "match.h"
 #include "msg.h"
 #include "uidswap.h"
+#include "roaming.h"
 #include "version.h"
 
 #ifdef SMARTCARD
@@ -1221,6 +1222,9 @@ ssh_session2(void)
 		if (daemon(1, 1) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
 	}
+
+	if (options.use_roaming)
+		request_roaming();
 
 	return client_loop(tty_flag, tty_flag ?
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);

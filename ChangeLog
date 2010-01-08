@@ -25,6 +25,11 @@
      Most code from Martin Forssen, maf at appgate dot com. Some changes by
      me and markus@
      ok markus@
+   - andreas@cvs.openbsd.org 2009/10/24 11:23:42
+     [ssh.c]
+     Request roaming to be enabled if UseRoaming is true and the server
+     supports it.
+     ok markus@
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1
