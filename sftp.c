@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.113 2009/11/22 13:18:00 halex Exp $ */
+/* $OpenBSD: sftp.c,v 1.114 2009/12/06 23:53:54 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -846,19 +846,19 @@ do_df(struct sftp_conn *conn, char *path, int hflag, int iflag)
 	char s_avail[FMT_SCALED_STRSIZE];
 	char s_root[FMT_SCALED_STRSIZE];
 	char s_total[FMT_SCALED_STRSIZE];
+	unsigned long long ffree;
 
 	if (do_statvfs(conn, path, &st, 1) == -1)
 		return -1;
 	if (iflag) {
+		ffree = st.f_files ? (100 * (st.f_files - st.f_ffree) / st.f_files) : 0;
 		printf("     Inodes        Used       Avail      "
 		    "(root)    %%Capacity\n");
 		printf("%11llu %11llu %11llu %11llu         %3llu%%\n",
 		    (unsigned long long)st.f_files,
 		    (unsigned long long)(st.f_files - st.f_ffree),
 		    (unsigned long long)st.f_favail,
-		    (unsigned long long)st.f_ffree,
-		    (unsigned long long)(100 * (st.f_files - st.f_ffree) /
-		    st.f_files));
+		    (unsigned long long)st.f_ffree, ffree);
 	} else if (hflag) {
 		strlcpy(s_used, "error", sizeof(s_used));
 		strlcpy(s_avail, "error", sizeof(s_avail));
