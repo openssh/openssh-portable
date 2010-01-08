@@ -161,6 +161,8 @@
    don't have libedit.
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c] Make
    RoutingDomain an unsupported option on platforms that don't have it.
+ - (dtucker) [sftp.c] Expand ifdef for libedit to cover complete_is_remote
+   too.
 
 20091226
  - (tim) [contrib/cygwin/Makefile] Install ssh-copy-id and ssh-copy-id.1

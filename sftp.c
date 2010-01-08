@@ -1645,7 +1645,6 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 
 	return count;
 }
-#endif
 
 /*
  * Determine whether a particular sftp command's arguments (if any)
@@ -1666,7 +1665,6 @@ complete_is_remote(char *cmd) {
 	return -1;
 }
 
-#ifdef USE_LIBEDIT
 /* Autocomplete a filename "file" */
 static int
 complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
