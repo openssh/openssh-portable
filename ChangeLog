@@ -16,6 +16,10 @@
    - jmc@cvs.openbsd.org 2010/01/09 03:36:00
      [sftp-server.8]
      bad place to forget a comma...
+   - djm@cvs.openbsd.org 2010/01/09 05:04:24
+     [mux.c sshpty.h clientloop.c sshtty.c]
+     quell tc[gs]etattr warnings when forcing a tty (ssh -tt), since we
+     usually don't actually have a tty to read/set; bz#1686 ok dtucker@
 
 20091208
  - (dtucker) OpenBSD CVS Sync

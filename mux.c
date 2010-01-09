@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.8 2009/08/20 23:54:28 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.9 2010/01/09 05:04:24 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -82,6 +82,7 @@
 
 /* from ssh.c */
 extern int tty_flag;
+extern int force_tty_flag;
 extern Options options;
 extern int stdin_null_flag;
 extern char *host;
@@ -683,7 +684,7 @@ muxclient(const char *path)
 	signal(SIGWINCH, control_client_sigrelay);
 
 	if (tty_flag)
-		enter_raw_mode();
+		enter_raw_mode(force_tty_flag);
 
 	/*
 	 * Stick around until the controlee closes the client_fd.
@@ -708,7 +709,7 @@ muxclient(const char *path)
 	}
 
 	close(sock);
-	leave_raw_mode();
+	leave_raw_mode(force_tty_flag);
 	if (i > (int)sizeof(int))
 		fatal("%s: master returned too much data (%d > %lu)",
 		    __func__, i, (u_long)sizeof(int));
