@@ -6,8 +6,8 @@ filexfer protocol described in:
 
 http://www.openssh.com/txt/draft-ietf-secsh-filexfer-02.txt
 
-Features from newer versions of the draft are not supported, unless
-explicitly implemented as extensions described below.
+Newer versions of the draft will not be supported, though some features
+are individually implemented as extensions described below.
 
 The protocol used by OpenSSH's ssh-agent is described in the file
 PROTOCOL.agent
@@ -251,4 +251,4 @@ The values of the f_flag bitmask are as follows:
 Both the "statvfs@openssh.com" and "fstatvfs@openssh.com" extensions are
 advertised in the SSH_FXP_VERSION hello with version "2".
 
-$OpenBSD: PROTOCOL,v 1.13 2009/12/20 23:20:40 djm Exp $
+$OpenBSD: PROTOCOL,v 1.14 2010/01/09 00:57:10 djm Exp $

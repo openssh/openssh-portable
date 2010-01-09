@@ -10,6 +10,9 @@
      [sftp-server.c sftp-server.8]
      add a 'read-only' mode to sftp-server(8) that disables open in write mode
      and all other fs-modifying protocol methods. bz#430 ok dtucker@
+   - djm@cvs.openbsd.org 2010/01/09 00:57:10
+     [PROTOCOL]
+     tweak language
 
 20091208
  - (dtucker) OpenBSD CVS Sync
