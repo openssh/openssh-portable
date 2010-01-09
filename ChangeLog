@@ -13,6 +13,9 @@
    - djm@cvs.openbsd.org 2010/01/09 00:57:10
      [PROTOCOL]
      tweak language
+   - jmc@cvs.openbsd.org 2010/01/09 03:36:00
+     [sftp-server.8]
+     bad place to forget a comma...
 
 20091208
  - (dtucker) OpenBSD CVS Sync

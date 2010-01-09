@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp-server.8,v 1.18 2010/01/09 00:20:26 djm Exp $
+.\" $OpenBSD: sftp-server.8,v 1.19 2010/01/09 03:36:00 jmc Exp $
 .\"
 .\" Copyright (c) 2000 Markus Friedl.  All rights reserved.
 .\"
@@ -86,7 +86,7 @@ Places this instance of
 .Nm
 into a read-only mode.
 Attempts to open files for writing, as well as other operations that change
-the state of the filesystem will be denied.
+the state of the filesystem, will be denied.
 .It Fl u Ar umask
 Sets an explicit
 .Xr umask 2
