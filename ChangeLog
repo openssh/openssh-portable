@@ -3,6 +3,8 @@
    have it.
  - (dtucker) [defines.h] define PRIu64 for platforms that don't have it.
  - (dtucker) [roaming_client.c] Wrap inttypes.h in an ifdef.
+ - (dtucker) [loginrec.c] Use the SUSv3 specified name for the user name
+   when using utmpx.  Patch from Ed Schouten.
 
 20091208
  - (dtucker) OpenBSD CVS Sync
