@@ -21,7 +21,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
