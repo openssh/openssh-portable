@@ -164,13 +164,10 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 		return (sock);
 
 	switch (domain) {
-#ifdef IPPROTO_IPV6
 	case AF_INET6:
 		ipproto = IPPROTO_IPV6;
 		/* FALLTHROUGH */
-#endif
 	case AF_INET:
-#ifdef USE_ROUTINGDOMAIN
 		debug2("socket %d af %d setting rdomain %d",
 		    sock, domain, rdomain);
 		if (setsockopt(sock, ipproto, SO_RDOMAIN, &rdomain,
@@ -180,7 +177,6 @@ socket_rdomain(int domain, int type, int protocol, int rdomain)
 			close(sock);
 			return (-1);
 		}
-#endif
 		break;
 	default:
 		debug("socket %d af %d does not support rdomain %d",
@@ -277,7 +273,6 @@ a2port(const char *s)
 	return (int)port;
 }
 
-#ifdef USE_ROUTINGDOMAIN
 int
 a2rdomain(const char *s)
 {
@@ -289,7 +284,6 @@ a2rdomain(const char *s)
 		return -1;
 	return (int)rdomain;
 }
-#endif
 
 int
 a2tun(const char *s, int *remote)

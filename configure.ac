@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.433 2010/01/08 08:53:52 dtucker Exp $
+# $Id: configure.ac,v 1.434 2010/01/09 23:26:58 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.433 $)
+AC_REVISION($Revision: 1.434 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1622,11 +1622,6 @@ if test "x$ac_cv_func_getpeereid" != "xyes" -a "x$ac_cv_func_getpeerucred" != "x
 		NO_PEERCHECK=1]
         )
 fi
-
-AC_CHECK_DECL(SO_RDOMAIN,
-    AC_DEFINE(USE_ROUTINGDOMAIN, 1, [Enable rdomain/VRF support]), ,
-    [#include <sys/types.h>
-     #include <sys/socket.h>])
 
 dnl see whether mkstemp() requires XXXXXX
 if test "x$ac_cv_func_mkdtemp" = "xyes" ; then

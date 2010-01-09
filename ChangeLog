@@ -1,3 +1,7 @@
+20091210
+ - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
+   Remove hacks add for RoutingDomain in preparation for its removal.
+
 20091209
  - (dtucker) Wrap use of IPPROTO_IPV6 in an ifdef for platforms that don't
    have it.
