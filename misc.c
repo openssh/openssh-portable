@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.74 2009/12/25 19:40:21 stevesk Exp $ */
+/* $OpenBSD: misc.c,v 1.75 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -151,43 +151,6 @@ set_nodelay(int fd)
 		error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
 }
 
-/* open a socket in the specified routing domain */
-int
-socket_rdomain(int domain, int type, int protocol, int rdomain)
-{
-	int sock, ipproto = IPPROTO_IP;
-
-	if ((sock = socket(domain, type, protocol)) == -1)
-		return (-1);
-
-	if (rdomain == -1)
-		return (sock);
-
-	switch (domain) {
-	case AF_INET6:
-		ipproto = IPPROTO_IPV6;
-		/* FALLTHROUGH */
-	case AF_INET:
-		debug2("socket %d af %d setting rdomain %d",
-		    sock, domain, rdomain);
-		if (setsockopt(sock, ipproto, SO_RDOMAIN, &rdomain,
-		    sizeof(rdomain)) == -1) {
-			debug("setsockopt SO_RDOMAIN: %.100s",
-			    strerror(errno));
-			close(sock);
-			return (-1);
-		}
-		break;
-	default:
-		debug("socket %d af %d does not support rdomain %d",
-		    sock, domain, rdomain);
-		close(sock);
-		return (-1);
-	}
-
-	return (sock);
-}
-
 /* Characters considered whitespace in strsep calls. */
 #define WHITESPACE " \t\r\n"
 #define QUOTE	"\""
@@ -271,18 +234,6 @@ a2port(const char *s)
 	if (errstr != NULL)
 		return -1;
 	return (int)port;
-}
-
-int
-a2rdomain(const char *s)
-{
-	long long rdomain;
-	const char *errstr;
-
-	rdomain = strtonum(s, 0, RT_TABLEID_MAX, &errstr);
-	if (errstr != NULL)
-		return -1;
-	return (int)rdomain;
 }
 
 int

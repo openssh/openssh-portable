@@ -1,6 +1,19 @@
 20091210
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
    Remove hacks add for RoutingDomain in preparation for its removal.
+   - dtucker@cvs.openbsd.org 2010/01/09 23:04:13
+     [channels.c ssh.1 servconf.c sshd_config.5 sshd.c channels.h servconf.h
+     ssh-keyscan.1 ssh-keyscan.c readconf.c sshconnect.c misc.c ssh.c
+     readconf.h scp.1 sftp.1 ssh_config.5 misc.h]
+     Remove RoutingDomain from ssh since it's now not needed.  It can be
+     replaced with "route exec" or "nc -V" as a proxycommand.  "route exec"
+     also ensures that trafic such as DNS lookups stays withing the specified
+     routingdomain.  For example (from reyk):
+     # route -T 2 exec /usr/sbin/sshd
+     or inherited from the parent process
+     $ route -T 2 exec sh
+     $ ssh 10.1.2.3
+     ok deraadt@ markus@ stevesk@ reyk@
 
 20091209
  - (dtucker) Wrap use of IPPROTO_IPV6 in an ifdef for platforms that don't

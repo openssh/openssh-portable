@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.27 2009/10/28 16:38:18 reyk Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.28 2010/01/09 23:04:13 dtucker Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: October 28 2009 $
+.Dd $Mdocdate: January 9 2010 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -20,7 +20,6 @@
 .Op Fl p Ar port
 .Op Fl T Ar timeout
 .Op Fl t Ar type
-.Op Fl V Ar rdomain
 .Op Ar host | addrlist namelist
 .Ar ...
 .Ek
@@ -96,8 +95,6 @@ for protocol version 2.
 Multiple values may be specified by separating them with commas.
 The default is
 .Dq rsa .
-.It Fl V Ar rdomain
-Set the routing domain.
 .It Fl v
 Verbose mode.
 Causes

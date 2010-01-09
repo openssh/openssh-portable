@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.199 2009/12/29 16:38:41 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.200 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -128,7 +128,6 @@ initialize_server_options(ServerOptions *options)
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
 	options->zero_knowledge_password_authentication = -1;
-	options->rdomain = -1;
 }
 
 void
@@ -305,7 +304,7 @@ typedef enum {
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
 	sGssAuthentication, sGssCleanupCreds, sAcceptEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
-	sUsePrivilegeSeparation, sAllowAgentForwarding, sRDomain,
+	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sZeroKnowledgePasswordAuthentication,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
@@ -424,7 +423,6 @@ static struct {
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
-	{ "routingdomain", sRDomain, SSHCFG_GLOBAL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
@@ -1296,19 +1294,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			*charptr = xstrdup(arg);
 		break;
 
-	case sRDomain:
-		intptr = &options->rdomain;
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing rdomain value.",
-			    filename, linenum);
-		if ((value = a2rdomain(arg)) == -1)
-			fatal("%s line %d: invalid rdomain value.",
-			    filename, linenum);
-		if (*intptr == -1)
-			*intptr = value;
-		break;
-
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
@@ -1585,7 +1570,6 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sMaxSessions, o->max_sessions);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
-	dump_cfg_int(sRDomain, o->rdomain);
 
 	/* formatted integer arguments */
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);

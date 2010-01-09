@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.80 2009/12/25 19:40:21 stevesk Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.81 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -67,9 +67,6 @@ int timeout = 5;
 
 int maxfd;
 #define MAXCON (maxfd - 10)
-
-/* The default routing domain */
-int scan_rdomain = -1;
 
 extern char *__progname;
 fd_set *read_wait;
@@ -415,8 +412,7 @@ tcpconnect(char *host)
 	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)
 		fatal("getaddrinfo %s: %s", host, ssh_gai_strerror(gaierr));
 	for (ai = aitop; ai; ai = ai->ai_next) {
-		s = socket_rdomain(ai->ai_family, ai->ai_socktype,
-		    ai->ai_protocol, scan_rdomain);
+		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (s < 0) {
 			error("socket: %s", strerror(errno));
 			continue;
@@ -719,7 +715,7 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: %s [-46Hv] [-f file] [-p port] [-T timeout] [-t type]\n"
-	    "\t\t   [-V rdomain] [host | addrlist namelist] ...\n",
+	    "\t\t   [host | addrlist namelist] ...\n",
 	    __progname);
 	exit(1);
 }
@@ -745,7 +741,7 @@ main(int argc, char **argv)
 	if (argc <= 1)
 		usage();
 
-	while ((opt = getopt(argc, argv, "Hv46p:T:t:f:V:")) != -1) {
+	while ((opt = getopt(argc, argv, "Hv46p:T:t:f:")) != -1) {
 		switch (opt) {
 		case 'H':
 			hash_hosts = 1;
@@ -805,13 +801,6 @@ main(int argc, char **argv)
 			break;
 		case '6':
 			IPv4or6 = AF_INET6;
-			break;
-		case 'V':
-			scan_rdomain = a2rdomain(optarg);
-			if (scan_rdomain == -1) {
-				fprintf(stderr, "Bad rdomain '%s'\n", optarg);
-				exit(1);
-			}
 			break;
 		case '?':
 		default:

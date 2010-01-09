@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.125 2009/12/29 18:03:32 jmc Exp $
-.Dd $Mdocdate: December 29 2009 $
+.\" $OpenBSD: ssh_config.5,v 1.126 2010/01/09 23:04:13 dtucker Exp $
+.Dd $Mdocdate: January 9 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -857,9 +857,6 @@ The default is
 This option applies to protocol version 1 only and requires
 .Xr ssh 1
 to be setuid root.
-.It Cm RoutingDomain
-Set the routing domain number.
-The default routing domain is set by the system.
 .It Cm RSAAuthentication
 Specifies whether to try RSA authentication.
 The argument to this keyword must be

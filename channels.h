@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.100 2009/11/11 21:37:03 markus Exp $ */
+/* $OpenBSD: channels.h,v 1.101 2010/01/09 23:04:13 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -235,7 +235,6 @@ int	 channel_find_open(void);
 
 /* tcp forwarding */
 void	 channel_set_af(int af);
-void	 channel_set_rdomain(int);
 void     channel_permit_all_opens(void);
 void	 channel_add_permitted_opens(char *, int);
 int	 channel_add_adm_permitted_opens(char *, int);

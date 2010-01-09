@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.369 2010/01/09 11:17:56 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.370 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -961,8 +961,8 @@ server_listen(void)
 			continue;
 		}
 		/* Create socket for listening. */
-		listen_sock = socket_rdomain(ai->ai_family, ai->ai_socktype,
-		    ai->ai_protocol, options.rdomain);
+		listen_sock = socket(ai->ai_family, ai->ai_socktype,
+		    ai->ai_protocol);
 		if (listen_sock < 0) {
 			/* kernel may not support ipv6 */
 			verbose("socket: %.100s", strerror(errno));
@@ -1470,9 +1470,8 @@ main(int ac, char **av)
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
 
-	/* set default channel AF and routing domain */
+	/* set default channel AF */
 	channel_set_af(options.address_family);
-	channel_set_rdomain(options.rdomain);
 
 	/* Check that there are no remaining arguments. */
 	if (optind < ac) {

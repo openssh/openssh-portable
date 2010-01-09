@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.216 2009/11/10 04:30:45 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.217 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -191,8 +191,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 			debug("Allocated local port %d.", p);
 		return sock;
 	}
-	sock = socket_rdomain(ai->ai_family, ai->ai_socktype, ai->ai_protocol,
-	    options.rdomain);
+	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (sock < 0) {
 		error("socket: %.100s", strerror(errno));
 		return -1;

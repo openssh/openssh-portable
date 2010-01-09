@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.329 2009/12/20 07:28:36 guenther Exp $ */
+/* $OpenBSD: ssh.c,v 1.330 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -630,7 +630,6 @@ main(int ac, char **av)
 	fill_default_options(&options);
 
 	channel_set_af(options.address_family);
-	channel_set_rdomain(options.rdomain);
 
 	/* reinit */
 	log_init(argv0, options.log_level, SYSLOG_FACILITY_USER, !use_syslog);

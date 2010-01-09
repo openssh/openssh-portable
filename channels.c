@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.299 2009/11/11 21:37:03 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.300 2010/01/09 23:04:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -162,9 +162,6 @@ static u_int x11_fake_data_len;
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 static int IPv4or6 = AF_UNSPEC;
-
-/* Set the routing domain a.k.a. VRF */
-static int channel_rdomain = -1;
 
 /* helper */
 static void port_open_helper(Channel *c, char *rtype);
@@ -2466,12 +2463,6 @@ channel_set_af(int af)
 	IPv4or6 = af;
 }
 
-void
-channel_set_rdomain(int rdomain)
-{
-	channel_rdomain = rdomain;
-}
-
 static int
 channel_setup_fwd_listener(int type, const char *listen_addr,
     u_short listen_port, int *allocated_listen_port,
@@ -2580,8 +2571,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr,
 			continue;
 		}
 		/* Create a port to listen for the host. */
-		sock = socket_rdomain(ai->ai_family, ai->ai_socktype,
-		    ai->ai_protocol, channel_rdomain);
+		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sock < 0) {
 			/* this is no error since kernel may not support ipv6 */
 			verbose("socket: %.100s", strerror(errno));
@@ -2922,9 +2912,8 @@ connect_next(struct channel_connect *cctx)
 			error("connect_next: getnameinfo failed");
 			continue;
 		}
-		if ((sock = socket_rdomain(cctx->ai->ai_family,
-		    cctx->ai->ai_socktype, cctx->ai->ai_protocol,
-		    channel_rdomain)) == -1) {
+		if ((sock = socket(cctx->ai->ai_family, cctx->ai->ai_socktype,
+		    cctx->ai->ai_protocol)) == -1) {
 			if (cctx->ai->ai_next == NULL)
 				error("socket: %.100s", strerror(errno));
 			else
@@ -3110,8 +3099,8 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		for (ai = aitop; ai; ai = ai->ai_next) {
 			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
 				continue;
-			sock = socket_rdomain(ai->ai_family, ai->ai_socktype,
-			    ai->ai_protocol, channel_rdomain);
+			sock = socket(ai->ai_family, ai->ai_socktype,
+			    ai->ai_protocol);
 			if (sock < 0) {
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)) {
 					error("socket: %.100s", strerror(errno));
@@ -3286,8 +3275,7 @@ x11_connect_display(void)
 	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
 		/* Create a socket. */
-		sock = socket_rdomain(ai->ai_family, ai->ai_socktype,
-		    ai->ai_protocol, channel_rdomain);
+		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sock < 0) {
 			debug2("socket: %.100s", strerror(errno));
 			continue;
