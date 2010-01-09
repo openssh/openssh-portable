@@ -20,6 +20,9 @@
      [mux.c sshpty.h clientloop.c sshtty.c]
      quell tc[gs]etattr warnings when forcing a tty (ssh -tt), since we
      usually don't actually have a tty to read/set; bz#1686 ok dtucker@
+   - dtucker@cvs.openbsd.org 2010/01/09 05:17:00
+     [roaming_client.c]
+     Remove a PRIu64 format string that snuck in with roaming.  ok djm@
 
 20091208
  - (dtucker) OpenBSD CVS Sync
