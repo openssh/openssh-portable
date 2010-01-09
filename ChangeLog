@@ -28,6 +28,11 @@
      Prevent sftp from derefing a null pointer when given a "-" without a
      command.  Also, allow whitespace to follow a "-".  bz#1691, path from
      Colin Watson via Debian.  ok djm@ deraadt@
+   - dtucker@cvs.openbsd.org 2010/01/09 11:17:56
+     [sshd.c]
+     Afer sshd receives a SIGHUP, ignore subsequent HUPs while sshd re-execs
+     itself.  Prevents two HUPs in quick succession from resulting in sshd
+     dying.  bz#1692, patch from Colin Watson via Ubuntu.
 
 20091208
  - (dtucker) OpenBSD CVS Sync

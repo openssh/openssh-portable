@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.368 2009/10/28 16:38:18 reyk Exp $ */
+/* $OpenBSD: sshd.c,v 1.369 2010/01/09 11:17:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -309,6 +309,7 @@ sighup_restart(void)
 	close_listen_socks();
 	close_startup_pipes();
 	alarm(0);  /* alarm timer persists across exec */
+	signal(SIGHUP, SIG_IGN); /* will be restored after exec */
 	execv(saved_argv[0], saved_argv);
 	logit("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0],
 	    strerror(errno));
