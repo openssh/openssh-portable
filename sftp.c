@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.117 2010/01/08 21:50:49 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.118 2010/01/09 11:13:02 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1112,16 +1112,17 @@ parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag,
 	/* Skip leading whitespace */
 	cp = cp + strspn(cp, WHITESPACE);
 
-	/* Ignore blank lines and lines which begin with comment '#' char */
-	if (*cp == '\0' || *cp == '#')
-		return (0);
-
 	/* Check for leading '-' (disable error processing) */
 	*iflag = 0;
 	if (*cp == '-') {
 		*iflag = 1;
 		cp++;
+		cp = cp + strspn(cp, WHITESPACE);
 	}
+
+	/* Ignore blank lines and lines which begin with comment '#' char */
+	if (*cp == '\0' || *cp == '#')
+		return (0);
 
 	if ((argv = makeargv(cp, &argc, 0, NULL, NULL)) == NULL)
 		return -1;

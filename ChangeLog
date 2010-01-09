@@ -23,6 +23,11 @@
    - dtucker@cvs.openbsd.org 2010/01/09 05:17:00
      [roaming_client.c]
      Remove a PRIu64 format string that snuck in with roaming.  ok djm@
+   - dtucker@cvs.openbsd.org 2010/01/09 11:13:02
+     [sftp.c]
+     Prevent sftp from derefing a null pointer when given a "-" without a
+     command.  Also, allow whitespace to follow a "-".  bz#1691, path from
+     Colin Watson via Debian.  ok djm@ deraadt@
 
 20091208
  - (dtucker) OpenBSD CVS Sync
