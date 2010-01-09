@@ -5,6 +5,11 @@
  - (dtucker) [roaming_client.c] Wrap inttypes.h in an ifdef.
  - (dtucker) [loginrec.c] Use the SUSv3 specified name for the user name
    when using utmpx.  Patch from Ed Schouten.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/01/09 00:20:26
+     [sftp-server.c sftp-server.8]
+     add a 'read-only' mode to sftp-server(8) that disables open in write mode
+     and all other fs-modifying protocol methods. bz#430 ok dtucker@
 
 20091208
  - (dtucker) OpenBSD CVS Sync
