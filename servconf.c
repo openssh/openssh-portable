@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.200 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.201 2010/01/10 03:51:17 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1626,6 +1626,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sAuthorizedKeysFile, o->authorized_keys_file);
 	dump_cfg_string(sAuthorizedKeysFile2, o->authorized_keys_file2);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
+	dump_cfg_string(sChrootDirectory, o->chroot_directory);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
