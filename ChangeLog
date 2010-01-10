@@ -18,6 +18,9 @@
    - dtucker@cvs.openbsd.org 2010/01/10 03:51:17
      [servconf.c]
      Add ChrootDirectory to sshd.c test-mode output
+   - dtucker@cvs.openbsd.org 2010/01/10 07:15:56
+     [auth.c]
+     Output a debug if we can't open an existing keyfile.  bz#1694, ok djm@
 
 20091209
  - (dtucker) Wrap use of IPPROTO_IPV6 in an ifdef for platforms that don't
