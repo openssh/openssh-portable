@@ -19,6 +19,10 @@
      [authfile.c]
      Fix bug introduced in r1.78 (incorrect brace location) that broke key auth.
      Patch from joachim joachimschipper nl.
+   - djm@cvs.openbsd.org 2010/01/12 00:58:25
+     [monitor_fdpass.c]
+     avoid spinning when fd passing on nonblocking sockets by calling poll()
+     in the EINTR/EAGAIN path, much like we do in atomicio; ok dtucker@
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
