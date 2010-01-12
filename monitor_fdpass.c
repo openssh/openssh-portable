@@ -34,7 +34,9 @@
 #endif
 
 #include <errno.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <string.h>
 #include <stdarg.h>
 

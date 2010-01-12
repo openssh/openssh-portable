@@ -1,3 +1,6 @@
+20100113
+ - (dtucker) [monitor_fdpass.c] Wrap poll.h include in ifdefs.
+
 20100112
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2010/01/11 01:39:46
