@@ -1,4 +1,4 @@
-/* $OpenBSD: buffer.h,v 1.17 2008/05/08 06:59:01 markus Exp $ */
+/* $OpenBSD: buffer.h,v 1.18 2010/01/12 01:36:08 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -81,6 +81,7 @@ int	buffer_get_short_ret(u_short *, Buffer *);
 int	buffer_get_int_ret(u_int *, Buffer *);
 int	buffer_get_int64_ret(u_int64_t *, Buffer *);
 void	*buffer_get_string_ret(Buffer *, u_int *);
+void	*buffer_get_string_ptr_ret(Buffer *, u_int *);
 int	buffer_get_char_ret(char *, Buffer *);
 
 #endif				/* BUFFER_H */

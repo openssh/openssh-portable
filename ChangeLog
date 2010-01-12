@@ -31,6 +31,10 @@
      [session.c]
      Do not allow logins if /etc/nologin exists but is not readable by the user
      logging in.  Noted by Jan.Pechanec at Sun, ok djm@ deraadt@
+   - djm@cvs.openbsd.org 2010/01/12 01:36:08
+     [buffer.h bufaux.c]
+     add a buffer_get_string_ptr_ret() that does the same as
+     buffer_get_string_ptr() but does not fatal() on error; ok dtucker@
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
