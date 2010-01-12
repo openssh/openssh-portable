@@ -11,6 +11,10 @@
      Do not prompt for a passphrase if we fail to open a keyfile, and log the
      reason the open failed to debug.
      bz #1693, found by tj AT castaglia org, ok djm@
+   - djm@cvs.openbsd.org 2010/01/11 10:51:07
+     [ssh-keygen.c]
+     when converting keys, truncate key comments at 72 chars as per RFC4716;
+     bz#1630 reported by tj AT castaglia.org; ok markus@
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]

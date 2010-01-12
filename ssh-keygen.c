@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.175 2009/08/27 17:33:49 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.176 2010/01/11 10:51:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -181,6 +181,7 @@ do_convert_to_ssh2(struct passwd *pw)
 	Key *k;
 	u_int len;
 	u_char *blob;
+	char comment[61];
 	struct stat st;
 
 	if (!have_identity)
@@ -203,11 +204,14 @@ do_convert_to_ssh2(struct passwd *pw)
 		fprintf(stderr, "key_to_blob failed\n");
 		exit(1);
 	}
-	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_BEGIN);
-	fprintf(stdout,
-	    "Comment: \"%u-bit %s, converted from OpenSSH by %s@%s\"\n",
+	/* Comment + surrounds must fit into 72 chars (RFC 4716 sec 3.3) */
+	snprintf(comment, sizeof(comment),
+	    "%u-bit %s, converted by %s@%s from OpenSSH",
 	    key_size(k), key_type(k),
 	    pw->pw_name, hostname);
+
+	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_BEGIN);
+	fprintf(stdout, "Comment: \"%s\"\n", comment);
 	dump_base64(stdout, blob, len);
 	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_END);
 	key_free(k);
