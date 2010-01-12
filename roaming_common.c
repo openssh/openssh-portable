@@ -1,4 +1,4 @@
-/* $OpenBSD: roaming_common.c,v 1.7 2009/12/06 23:53:45 djm Exp $ */
+/* $OpenBSD: roaming_common.c,v 1.8 2010/01/12 00:59:29 djm Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
@@ -145,8 +145,6 @@ roaming_write(int fd, const void *buf, size_t count, int *cont)
 		if (out_buf_size > 0)
 			buf_append(buf, ret);
 	}
-	debug3("Wrote %ld bytes for a total of %llu", (long)ret,
-	    (unsigned long long)write_bytes);
 	if (out_buf_size > 0 &&
 	    (ret == 0 || (ret == -1 && errno == EPIPE))) {
 		if (wait_for_roaming_reconnect() != 0) {

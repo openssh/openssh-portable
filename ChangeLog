@@ -23,6 +23,10 @@
      [monitor_fdpass.c]
      avoid spinning when fd passing on nonblocking sockets by calling poll()
      in the EINTR/EAGAIN path, much like we do in atomicio; ok dtucker@
+   - djm@cvs.openbsd.org 2010/01/12 00:59:29
+     [roaming_common.c]
+     delete with extreme prejudice a debug() that fired with every keypress;
+     ok dtucker deraadt
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
