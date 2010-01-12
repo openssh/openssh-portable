@@ -6,6 +6,11 @@
      single port forward on the server.  This allows, for example, using ssh as
      a ProxyCommand to route connections via intermediate servers.
      bz #1618, man page help from jmc@, ok markus@
+   - dtucker@cvs.openbsd.org 2010/01/11 04:46:45
+     [authfile.c sshconnect2.c]
+     Do not prompt for a passphrase if we fail to open a keyfile, and log the
+     reason the open failed to debug.
+     bz #1693, found by tj AT castaglia org, ok djm@
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
