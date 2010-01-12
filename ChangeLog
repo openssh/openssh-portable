@@ -27,6 +27,10 @@
      [roaming_common.c]
      delete with extreme prejudice a debug() that fired with every keypress;
      ok dtucker deraadt
+   - dtucker@cvs.openbsd.org 2010/01/12 01:31:05
+     [session.c]
+     Do not allow logins if /etc/nologin exists but is not readable by the user
+     logging in.  Noted by Jan.Pechanec at Sun, ok djm@ deraadt@
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
