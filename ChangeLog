@@ -1,4 +1,4 @@
-20100111
+20100112
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2010/01/11 01:39:46
      [ssh_config channels.c ssh.1 channels.h ssh.c]
@@ -35,6 +35,10 @@
      [buffer.h bufaux.c]
      add a buffer_get_string_ptr_ret() that does the same as
      buffer_get_string_ptr() but does not fatal() on error; ok dtucker@
+   - dtucker@cvs.openbsd.org 2010/01/12 08:33:17
+     [session.c]
+     Add explicit stat so we reliably detect nologin with bad perms.
+     ok djm markus
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]

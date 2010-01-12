@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.250 2010/01/12 01:31:05 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.251 2010/01/12 08:33:17 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1377,28 +1377,32 @@ static void
 do_nologin(struct passwd *pw)
 {
 	FILE *f = NULL;
-	char buf[1024];
+	char buf[1024], *nl, *def_nl = _PATH_NOLOGIN;
+	struct stat sb;
 
 #ifdef HAVE_LOGIN_CAP
-	if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
-		f = fopen(login_getcapstr(lc, "nologin", _PATH_NOLOGIN,
-		    _PATH_NOLOGIN), "r");
+	if (login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
+		return;
+	nl = login_getcapstr(lc, "nologin", def_nl, def_nl);
 #else
-	if (pw->pw_uid)
-		f = fopen(_PATH_NOLOGIN, "r");
+	if (pw->pw_uid == 0)
+		return;
+	nl = def_nl;
 #endif
-	if (f != NULL || errno == EPERM) {
-		/* /etc/nologin exists.  Print its contents and exit. */
-		logit("User %.100s not allowed because %s exists",
-		    pw->pw_name, _PATH_NOLOGIN);
-		if (f == NULL)
-			exit(254);
-		while (fgets(buf, sizeof(buf), f))
-			fputs(buf, stderr);
-		fclose(f);
-		fflush(NULL);
-		exit(254);
+	if (stat(nl, &sb) == -1) {
+		if (nl != def_nl)
+			xfree(nl);
+		return;
 	}
+
+	/* /etc/nologin exists.  Print its contents if we can and exit. */
+	logit("User %.100s not allowed because %s exists", pw->pw_name, nl);
+	if ((f = fopen(nl, "r")) != NULL) {
+ 		while (fgets(buf, sizeof(buf), f))
+ 			fputs(buf, stderr);
+ 		fclose(f);
+ 	}
+	exit(254);
 }
 
 /*
