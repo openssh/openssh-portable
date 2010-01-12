@@ -15,6 +15,10 @@
      [ssh-keygen.c]
      when converting keys, truncate key comments at 72 chars as per RFC4716;
      bz#1630 reported by tj AT castaglia.org; ok markus@
+   - dtucker@cvs.openbsd.org 2010/01/12 00:16:47
+     [authfile.c]
+     Fix bug introduced in r1.78 (incorrect brace location) that broke key auth.
+     Patch from joachim joachimschipper nl.
 
 20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]

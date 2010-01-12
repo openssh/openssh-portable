@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.78 2010/01/11 04:46:45 dtucker Exp $ */
+/* $OpenBSD: authfile.c,v 1.79 2010/01/12 00:16:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -564,8 +564,8 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 		    strerror(errno));
 		if (perm_ok != NULL)
 			*perm_ok = 0;
-	}
 		return NULL;
+	}
 	if (!key_perm_ok(fd, filename)) {
 		if (perm_ok != NULL)
 			*perm_ok = 0;
