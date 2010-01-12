@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.330 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.331 2010/01/11 01:39:46 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -133,6 +133,10 @@ int stdin_null_flag = 0;
  */
 int fork_after_authentication_flag = 0;
 
+/* forward stdio to remote host and port */
+char *stdio_forward_host = NULL;
+int stdio_forward_port = 0;
+
 /*
  * General data structure for command line options and options configurable
  * in configuration files.  See readconf.h.
@@ -186,7 +190,8 @@ usage(void)
 "           [-i identity_file] [-L [bind_address:]port:host:hostport]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
-"           [-w local_tun[:remote_tun]] [user@]hostname [command]\n"
+"           [-W host:port] [-w local_tun[:remote_tun]]\n"
+"           [user@]hostname [command]\n"
 	);
 	exit(255);
 }
@@ -276,7 +281,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:F:I:KL:MNO:PR:S:TVw:XYy")) != -1) {
+	    "ACD:F:I:KL:MNO:PR:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -388,6 +393,22 @@ main(int ac, char **av)
 				    "Bad tun device '%s'\n", optarg);
 				exit(255);
 			}
+			break;
+		case 'W':
+			if (parse_forward(&fwd, optarg, 1, 0)) {
+				stdio_forward_host = fwd.listen_host;
+				stdio_forward_port = fwd.listen_port;
+				xfree(fwd.connect_host);
+			} else {
+				fprintf(stderr,
+				    "Bad stdio forwarding specification '%s'\n",
+				    optarg);
+				exit(255);
+			}
+			no_tty_flag = 1;
+			no_shell_flag = 1;
+			options.clear_forwardings = 1;
+			options.exit_on_forward_failure = 1;
 			break;
 		case 'q':
 			options.log_level = SYSLOG_LEVEL_QUIET;
@@ -871,10 +892,40 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 }
 
 static void
+client_cleanup_stdio_fwd(int id, void *arg)
+{
+	debug("stdio forwarding: done");
+	cleanup_exit(0);
+}
+
+static int
+client_setup_stdio_fwd(const char *host_to_connect, u_short port_to_connect)
+{
+	Channel *c;
+
+	debug3("client_setup_stdio_fwd %s:%d", host_to_connect,
+	    port_to_connect);
+	if ((c = channel_connect_stdio_fwd(host_to_connect, port_to_connect))
+	    == NULL)
+		return 0;
+	channel_register_cleanup(c->self, client_cleanup_stdio_fwd, 0);
+	return 1;
+}
+
+static void
 ssh_init_forwarding(void)
 {
 	int success = 0;
 	int i;
+
+	if (stdio_forward_host != NULL) {
+		if (!compat20) {
+			fatal("stdio forwarding require Protocol 2");
+		}
+		if (!client_setup_stdio_fwd(stdio_forward_host,
+		    stdio_forward_port))
+			fatal("Failed to connect in stdio forward mode.");
+	}
 
 	/* Initiate local TCP/IP port forwardings. */
 	for (i = 0; i < options.num_local_forwards; i++) {

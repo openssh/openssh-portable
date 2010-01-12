@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.300 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.301 2010/01/11 01:39:46 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1215,6 +1215,35 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	buffer_append(&c->output, &dest_addr, sizeof(struct in_addr));
 	buffer_append(&c->output, &dest_port, sizeof(dest_port));
 	return 1;
+}
+
+Channel *
+channel_connect_stdio_fwd(const char *host_to_connect, u_short port_to_connect)
+{
+	Channel *c;
+	int in, out;
+
+	debug("channel_connect_stdio_fwd %s:%d", host_to_connect,
+	    port_to_connect);
+
+	in = dup(STDIN_FILENO);
+	out = dup(STDOUT_FILENO);
+	if (in < 0 || out < 0)
+		fatal("channel_connect_stdio_fwd: dup() in/out failed");
+
+	c = channel_new("stdio-forward", SSH_CHANNEL_OPENING, in, out,
+	    -1, CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
+	    0, "stdio-forward", /*nonblock*/0);
+
+	c->path = xstrdup(host_to_connect);
+	c->host_port = port_to_connect;
+	c->listening_port = 0;
+	c->force_drain = 1;
+
+	channel_register_fds(c, in, out, -1, 0, 1, 0);
+	port_open_helper(c, "direct-tcpip");
+
+	return c;
 }
 
 /* dynamic port forwarding */

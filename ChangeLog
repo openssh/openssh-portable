@@ -1,4 +1,13 @@
-20091210
+20100111
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2010/01/11 01:39:46
+     [ssh_config channels.c ssh.1 channels.h ssh.c]
+     Add a 'netcat mode' (ssh -W).  This connects stdio on the client to a
+     single port forward on the server.  This allows, for example, using ssh as
+     a ProxyCommand to route connections via intermediate servers.
+     bz #1618, man page help from jmc@, ok markus@
+
+20100110
  - (dtucker) [configure.ac misc.c readconf.c servconf.c ssh-keyscan.c]
    Remove hacks add for RoutingDomain in preparation for its removal.
  - (dtucker) OpenBSD CVS Sync
@@ -22,7 +31,7 @@
      [auth.c]
      Output a debug if we can't open an existing keyfile.  bz#1694, ok djm@
 
-20091209
+20100109
  - (dtucker) Wrap use of IPPROTO_IPV6 in an ifdef for platforms that don't
    have it.
  - (dtucker) [defines.h] define PRIu64 for platforms that don't have it.
@@ -59,7 +68,7 @@
      dying.  bz#1692, patch from Colin Watson via Ubuntu.
  - (dtucker) [defines.h] Remove now-undeeded PRIu64 define.
 
-20091208
+20100108
  - (dtucker) OpenBSD CVS Sync
    - andreas@cvs.openbsd.org 2009/10/24 11:11:58
      [roaming.h]

@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.289 2010/01/09 23:04:13 dtucker Exp $
-.Dd $Mdocdate: January 9 2010 $
+.\" $OpenBSD: ssh.1,v 1.290 2010/01/11 01:39:46 dtucker Exp $
+.Dd $Mdocdate: January 11 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -77,12 +77,11 @@
 .Sm on
 .Oc
 .Op Fl S Ar ctl_path
-.Bk -words
+.Op Fl W Ar host : Ns Ar port
 .Oo Fl w Ar local_tun Ns
 .Op : Ns Ar remote_tun Oc
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
-.Ek
 .Sh DESCRIPTION
 .Nm
 (SSH client) is a program for logging into a remote machine and for
@@ -594,6 +593,19 @@ Multiple
 .Fl v
 options increase the verbosity.
 The maximum is 3.
+.It Fl W Ar host : Ns Ar port
+Requests that standard input and output on the client be forwarded to
+.Ar host
+on
+.Ar port
+over the secure channel.
+Implies
+.Fl N ,
+.Fl T ,
+.Cm ExitOnForwardFailure
+and
+.Cm ClearAllForwardings
+and works with Protocol version 2 only.
 .It Fl w Xo
 .Ar local_tun Ns Op : Ns Ar remote_tun
 .Xc
