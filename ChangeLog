@@ -1,5 +1,7 @@
 20100113
  - (dtucker) [monitor_fdpass.c] Wrap poll.h include in ifdefs.
+ - (dtucker) [openbsd-compat/readpassphrase.c] Resync against OpenBSD's r1.18:
+   missing restore of SIGTTOU and some whitespace.
 
 20100112
  - (dtucker) OpenBSD CVS Sync

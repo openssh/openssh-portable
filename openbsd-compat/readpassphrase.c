@@ -152,6 +152,7 @@ restart:
 	(void)sigaction(SIGTERM, &saveterm, NULL);
 	(void)sigaction(SIGTSTP, &savetstp, NULL);
 	(void)sigaction(SIGTTIN, &savettin, NULL);
+	(void)sigaction(SIGTTOU, &savettou, NULL);
 	if (input != STDIN_FILENO)
 		(void)close(input);
 
@@ -172,7 +173,7 @@ restart:
 	errno = save_errno;
 	return(nr == -1 ? NULL : buf);
 }
-  
+
 #if 0
 char *
 getpass(const char *prompt)
