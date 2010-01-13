@@ -36,7 +36,9 @@
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
+#ifdef HAVE_UTIL_H
 #include <util.h>
+#endif
 
 #include "xmalloc.h"
 #include "buffer.h"
