@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.178 2010/01/11 04:46:45 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.179 2010/01/13 01:20:20 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1514,7 +1514,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 	debug2("ssh_keysign called");
 
 	if (stat(_PATH_SSH_KEY_SIGN, &st) < 0) {
-		error("ssh_keysign: no installed: %s", strerror(errno));
+		error("ssh_keysign: not installed: %s", strerror(errno));
 		return -1;
 	}
 	if (fflush(stdout) != 0)
@@ -1586,7 +1586,7 @@ userauth_hostbased(Authctxt *authctxt)
 	Sensitive *sensitive = authctxt->sensitive;
 	Buffer b;
 	u_char *signature, *blob;
-	char *chost, *pkalg, *p, myname[NI_MAXHOST];
+	char *chost, *pkalg, *p;
 	const char *service;
 	u_int blen, slen;
 	int ok, i, found = 0;
@@ -1610,16 +1610,7 @@ userauth_hostbased(Authctxt *authctxt)
 		return 0;
 	}
 	/* figure out a name for the client host */
-	p = NULL;
-	if (packet_connection_is_on_socket())
-		p = get_local_name(packet_get_connection_in());
-	if (p == NULL) {
-		if (gethostname(myname, sizeof(myname)) == -1) {
-			verbose("userauth_hostbased: gethostname: %s", 
-			    strerror(errno));
-		} else
-			p = xstrdup(myname);
-	}
+	p = get_local_name(packet_get_connection_in());
 	if (p == NULL) {
 		error("userauth_hostbased: cannot get local ipaddr/name");
 		key_free(private);
