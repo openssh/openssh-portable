@@ -3,6 +3,9 @@
  - (dtucker) [openbsd-compat/readpassphrase.c] Resync against OpenBSD's r1.18:
    missing restore of SIGTTOU and some whitespace.
  - (dtucker) [openbsd-compat/readpassphrase.c] Update to OpenBSD's r1.21.
+ - (dtucker) [openbsd-compat/readpassphrase.c] Update to OpenBSD's r1.22.
+   Fixes bz #1590, where sometimes you could not interrupt a connection while
+   ssh was prompting for a passphrase or password.
 
 20100112
  - (dtucker) OpenBSD CVS Sync
