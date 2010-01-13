@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.81 2009/12/11 18:16:33 markus Exp $ */
+/* $OpenBSD: key.c,v 1.82 2010/01/13 01:10:56 dtucker Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -522,6 +522,12 @@ key_read(Key *ret, char **cpp)
 			return -1;
 		if (!read_bignum(cpp, ret->rsa->n))
 			return -1;
+		/* validate the claimed number of bits */
+		if ((u_int)BN_num_bits(ret->rsa->n) != bits) {
+			verbose("key_read: claimed key size %d does not match "
+			   "actual %d", bits, BN_num_bits(ret->rsa->n));
+			return -1;
+		}
 		success = 1;
 		break;
 	case KEY_UNSPEC:

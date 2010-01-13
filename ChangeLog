@@ -10,6 +10,10 @@
    - dtucker@cvs.openbsd.org 2010/01/13 00:19:04
      [sshconnect.c auth.c]
      Fix a couple of typos/mispellings in comments
+   - dtucker@cvs.openbsd.org 2010/01/13 01:10:56
+     [key.c]
+     Ignore and log any Protocol 1 keys where the claimed size is not equal to
+     the actual size.  Noted by Derek Martin, ok djm@
 
 20100112
  - (dtucker) OpenBSD CVS Sync
