@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.217 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.218 2010/01/13 00:19:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -929,7 +929,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an
 		 * identifying sentence, tell that the host identifies itself
-		 * by that sentence, and ask the user if he/she whishes to
+		 * by that sentence, and ask the user if he/she wishes to
 		 * accept the authentication.
 		 */
 		break;

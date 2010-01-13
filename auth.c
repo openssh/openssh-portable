@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.81 2010/01/10 07:15:56 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.82 2010/01/13 00:19:04 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -455,7 +455,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			return -1;
 		}
 
-		/* If are passed the homedir then we can stop */
+		/* If are past the homedir then we can stop */
 		if (comparehome && strcmp(homedir, buf) == 0) {
 			debug3("secure_filename: terminating check at '%s'",
 			    buf);

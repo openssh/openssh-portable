@@ -6,6 +6,10 @@
  - (dtucker) [openbsd-compat/readpassphrase.c] Update to OpenBSD's r1.22.
    Fixes bz #1590, where sometimes you could not interrupt a connection while
    ssh was prompting for a passphrase or password.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2010/01/13 00:19:04
+     [sshconnect.c auth.c]
+     Fix a couple of typos/mispellings in comments
 
 20100112
  - (dtucker) OpenBSD CVS Sync
