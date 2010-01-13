@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.118 2010/01/09 11:13:02 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.119 2010/01/13 01:40:16 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -110,16 +110,17 @@ extern char *__progname;
 #define WHITESPACE " \t\r\n"
 
 /* ls flags */
-#define LS_LONG_VIEW	0x01	/* Full view ala ls -l */
-#define LS_SHORT_VIEW	0x02	/* Single row view ala ls -1 */
-#define LS_NUMERIC_VIEW	0x04	/* Long view with numeric uid/gid */
-#define LS_NAME_SORT	0x08	/* Sort by name (default) */
-#define LS_TIME_SORT	0x10	/* Sort by mtime */
-#define LS_SIZE_SORT	0x20	/* Sort by file size */
-#define LS_REVERSE_SORT	0x40	/* Reverse sort order */
-#define LS_SHOW_ALL	0x80	/* Don't skip filenames starting with '.' */
+#define LS_LONG_VIEW	0x0001	/* Full view ala ls -l */
+#define LS_SHORT_VIEW	0x0002	/* Single row view ala ls -1 */
+#define LS_NUMERIC_VIEW	0x0004	/* Long view with numeric uid/gid */
+#define LS_NAME_SORT	0x0008	/* Sort by name (default) */
+#define LS_TIME_SORT	0x0010	/* Sort by mtime */
+#define LS_SIZE_SORT	0x0020	/* Sort by file size */
+#define LS_REVERSE_SORT	0x0040	/* Reverse sort order */
+#define LS_SHOW_ALL	0x0080	/* Don't skip filenames starting with '.' */
+#define LS_SI_UNITS	0x0100	/* Display sizes as K, M, G, etc. */
 
-#define VIEW_FLAGS	(LS_LONG_VIEW|LS_SHORT_VIEW|LS_NUMERIC_VIEW)
+#define VIEW_FLAGS	(LS_LONG_VIEW|LS_SHORT_VIEW|LS_NUMERIC_VIEW|LS_SI_UNITS)
 #define SORT_FLAGS	(LS_NAME_SORT|LS_TIME_SORT|LS_SIZE_SORT)
 
 /* Commands for interactive mode */
@@ -383,7 +384,7 @@ parse_ls_flags(char **argv, int argc, int *lflag)
 	opterr = 0;
 
 	*lflag = LS_NAME_SORT;
-	while ((ch = getopt(argc, argv, "1Saflnrt")) != -1) {
+	while ((ch = getopt(argc, argv, "1Safhlnrt")) != -1) {
 		switch (ch) {
 		case '1':
 			*lflag &= ~VIEW_FLAGS;
@@ -399,12 +400,15 @@ parse_ls_flags(char **argv, int argc, int *lflag)
 		case 'f':
 			*lflag &= ~SORT_FLAGS;
 			break;
+		case 'h':
+			*lflag |= LS_SI_UNITS;
+			break;
 		case 'l':
-			*lflag &= ~VIEW_FLAGS;
+			*lflag &= ~LS_SHORT_VIEW;
 			*lflag |= LS_LONG_VIEW;
 			break;
 		case 'n':
-			*lflag &= ~VIEW_FLAGS;
+			*lflag &= ~LS_SHORT_VIEW;
 			*lflag |= LS_NUMERIC_VIEW|LS_LONG_VIEW;
 			break;
 		case 'r':
@@ -716,13 +720,14 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		xfree(tmp);
 
 		if (lflag & LS_LONG_VIEW) {
-			if (lflag & LS_NUMERIC_VIEW) {
+			if (lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) {
 				char *lname;
 				struct stat sb;
 
 				memset(&sb, 0, sizeof(sb));
 				attrib_to_stat(&d[n]->a, &sb);
-				lname = ls_file(fname, &sb, 1);
+				lname = ls_file(fname, &sb, 1,
+				    (lflag & LS_SI_UNITS));
 				printf("%s\n", lname);
 				xfree(lname);
 			} else
@@ -824,7 +829,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 				a = do_lstat(conn, g.gl_pathv[i], 1);
 			if (a != NULL)
 				attrib_to_stat(a, &sb);
-			lname = ls_file(fname, &sb, 1);
+			lname = ls_file(fname, &sb, 1, (lflag & LS_SI_UNITS));
 			printf("%s\n", lname);
 			xfree(lname);
 		} else {

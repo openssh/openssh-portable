@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.90 2010/01/09 00:20:26 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.91 2010/01/13 01:40:16 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -940,7 +940,7 @@ process_readdir(void)
 				continue;
 			stat_to_attrib(&st, &(stats[count].attrib));
 			stats[count].name = xstrdup(dp->d_name);
-			stats[count].long_name = ls_file(dp->d_name, &st, 0);
+			stats[count].long_name = ls_file(dp->d_name, &st, 0, 0);
 			count++;
 			/* send up to 100 entries in one message */
 			/* XXX check packet size instead */

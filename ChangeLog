@@ -18,6 +18,10 @@
      [canohost.c ssh-keysign.c sshconnect2.c]
      Make HostBased authentication work with a ProxyCommand.  bz #1569, patch
      from imorgan at nas nasa gov, ok djm@
+   - djm@cvs.openbsd.org 2010/01/13 01:40:16
+     [sftp.c sftp-server.c sftp.1 sftp-common.c sftp-common.h]
+     support '-h' (human-readable units) for sftp's ls command, just like
+     ls(1); ok dtucker@
 
 20100112
  - (dtucker) OpenBSD CVS Sync
