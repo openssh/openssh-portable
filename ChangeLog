@@ -26,6 +26,10 @@
      [servconf.c servconf.h sshd.c]
      avoid run-time failures when specifying hostkeys via a relative
      path by prepending the cwd in these cases; bz#1290; ok dtucker@
+   - djm@cvs.openbsd.org 2010/01/13 04:10:50
+     [sftp.c]
+     don't append a space after inserting a completion of a directory (i.e.
+     a path ending in '/') for a slightly better user experience; ok dtucker@
 
 20100112
  - (dtucker) OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.119 2010/01/13 01:40:16 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.120 2010/01/13 04:10:50 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1760,15 +1760,12 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 	}
 
 	lf = el_line(el);
-	/*
-	 * XXX should we really extend here? the user may not be done if
-	 * the filename is a directory.
-	 */
 	if (g.gl_matchc == 1) {
 		i = 0;
 		if (!terminated)
 			ins[i++] = quote;
-		if (lastarg || *(lf->cursor) != ' ')
+		if (*(lf->cursor - 1) != '/' &&
+		    (lastarg || *(lf->cursor) != ' '))
 			ins[i++] = ' ';
 		ins[i] = '\0';
 		if (i > 0 && el_insertstr(el, ins) == -1)
