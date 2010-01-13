@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.370 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.371 2010/01/13 03:48:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1351,7 +1351,8 @@ main(int ac, char **av)
 				fprintf(stderr, "too many host keys.\n");
 				exit(1);
 			}
-			options.host_key_files[options.num_host_key_files++] = optarg;
+			options.host_key_files[options.num_host_key_files++] = 
+			   derelativise_path(optarg);
 			break;
 		case 't':
 			test_flag = 1;

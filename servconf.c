@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.201 2010/01/10 03:51:17 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.202 2010/01/13 03:48:12 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -459,6 +459,22 @@ parse_token(const char *cp, const char *filename,
 	return sBadOption;
 }
 
+char *
+derelativise_path(const char *path)
+{
+	char *expanded, *ret, *cwd;
+
+	expanded = tilde_expand_filename(path, getuid());
+	if (*expanded == '/')
+		return expanded;
+	if ((cwd = getcwd(NULL, 0)) == NULL)
+		fatal("%s: getcwd: %s", __func__, strerror(errno));
+	xasprintf(&ret, "%s/%s", cwd, expanded);
+	xfree(cwd);
+	xfree(expanded);
+	return ret;
+}
+
 static void
 add_listen_addr(ServerOptions *options, char *addr, int port)
 {
@@ -793,7 +809,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			fatal("%s line %d: missing file name.",
 			    filename, linenum);
 		if (*activep && *charptr == NULL) {
-			*charptr = tilde_expand_filename(arg, getuid());
+			*charptr = derelativise_path(arg);
 			/* increase optional counter */
 			if (intptr != NULL)
 				*intptr = *intptr + 1;

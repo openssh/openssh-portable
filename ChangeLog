@@ -22,6 +22,10 @@
      [sftp.c sftp-server.c sftp.1 sftp-common.c sftp-common.h]
      support '-h' (human-readable units) for sftp's ls command, just like
      ls(1); ok dtucker@
+   - djm@cvs.openbsd.org 2010/01/13 03:48:13
+     [servconf.c servconf.h sshd.c]
+     avoid run-time failures when specifying hostkeys via a relative
+     path by prepending the cwd in these cases; bz#1290; ok dtucker@
 
 20100112
  - (dtucker) OpenBSD CVS Sync
