@@ -31,6 +31,8 @@
      don't append a space after inserting a completion of a directory (i.e.
      a path ending in '/') for a slightly better user experience; ok dtucker@
  - (dtucker) [sftp-common.c] Wrap include of util.h in an ifdef.
+ - (tim) [defines.h] openbsd-compat/readpassphrase.c now needs _NSIG. 
+   feedback and ok dtucker@
 
 20100112
  - (dtucker) OpenBSD CVS Sync
