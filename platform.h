@@ -1,4 +1,4 @@
-/* $Id: platform.h,v 1.3 2009/12/20 23:49:22 dtucker Exp $ */
+/* $Id: platform.h,v 1.4 2010/01/14 01:44:16 djm Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -22,5 +22,7 @@ void platform_pre_listen(void);
 void platform_pre_fork(void);
 void platform_post_fork_parent(pid_t child_pid);
 void platform_post_fork_child(void);
-char * platform_get_krb5_client(const char *);
+char *platform_get_krb5_client(const char *);
+char *platform_krb5_get_principal_name(const char *);
+
 

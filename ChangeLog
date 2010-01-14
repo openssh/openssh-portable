@@ -1,3 +1,7 @@
+20100114
+ - (djm) [platform.h] Add missing prototype for
+   platform_krb5_get_principal_name
+
 20100113
  - (dtucker) [monitor_fdpass.c] Wrap poll.h include in ifdefs.
  - (dtucker) [openbsd-compat/readpassphrase.c] Resync against OpenBSD's r1.18:
