@@ -21,6 +21,8 @@
      inherited SIGTERM as ignored it will still be able to kill the ssh it
      starts.
      ok dtucker@
+ - (dtucker) [openbsd-compat.c/pwcache.c] Pull in pwcache.c from OpenBSD (no
+   changes yet but there will be some to come).
 
 20100114
  - (djm) [platform.h] Add missing prototype for
