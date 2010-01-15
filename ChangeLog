@@ -11,6 +11,10 @@
      when using ChrootDirectory, make sure we test for the existence of the
      user's shell inside the chroot; bz #1679, patch from alex AT rtfs.hu;
      ok dtucker
+   - dtucker@cvs.openbsd.org 2010/01/14 23:41:49
+     [sftp-common.c]
+     use user_from{uid,gid} to lookup up ids since it keeps a small cache.
+     ok djm
 
 20100114
  - (djm) [platform.h] Add missing prototype for

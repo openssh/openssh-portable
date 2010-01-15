@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.c,v 1.21 2010/01/13 01:40:16 djm Exp $ */
+/* $OpenBSD: sftp-common.c,v 1.22 2010/01/14 23:41:49 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -198,14 +198,14 @@ ls_file(const char *name, const struct stat *st, int remote, int si_units)
 	char sbuf[FMT_SCALED_STRSIZE];
 
 	strmode(st->st_mode, mode);
-	if (!remote && (pw = getpwuid(st->st_uid)) != NULL) {
-		user = pw->pw_name;
+	if (!remote) {
+		user = user_from_uid(st->st_uid, 0);
 	} else {
 		snprintf(ubuf, sizeof ubuf, "%u", (u_int)st->st_uid);
 		user = ubuf;
 	}
-	if (!remote && (gr = getgrgid(st->st_gid)) != NULL) {
-		group = gr->gr_name;
+	if (!remote) {
+		group = group_from_gid(st->st_gid, 0);
 	} else {
 		snprintf(gbuf, sizeof gbuf, "%u", (u_int)st->st_gid);
 		group = gbuf;
