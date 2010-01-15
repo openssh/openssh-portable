@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.121 2010/01/13 12:48:34 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.122 2010/01/15 00:05:22 guenther Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2027,9 +2027,11 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		 * The underlying ssh is in the same process group, so we must
 		 * ignore SIGINT if we want to gracefully abort commands,
 		 * otherwise the signal will make it to the ssh process and
-		 * kill it too
+		 * kill it too.  Contrawise, since sftp sends SIGTERMs to the
+		 * underlying ssh, it must *not* ignore that signal.
 		 */
 		signal(SIGINT, SIG_IGN);
+		signal(SIGTERM, SIG_DFL);
 		execvp(path, args);
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
 		_exit(1);

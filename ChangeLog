@@ -15,6 +15,12 @@
      [sftp-common.c]
      use user_from{uid,gid} to lookup up ids since it keeps a small cache.
      ok djm
+   - guenther@cvs.openbsd.org 2010/01/15 00:05:22
+     [sftp.c]
+     Reset SIGTERM to SIG_DFL before executing ssh, so that even if sftp
+     inherited SIGTERM as ignored it will still be able to kill the ssh it
+     starts.
+     ok dtucker@
 
 20100114
  - (djm) [platform.h] Add missing prototype for
