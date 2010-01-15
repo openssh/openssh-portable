@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.434 2010/01/09 23:26:58 dtucker Exp $
+# $Id: configure.ac,v 1.435 2010/01/15 01:38:30 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.434 $)
+AC_REVISION($Revision: 1.435 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1351,6 +1351,7 @@ AC_CHECK_FUNCS( \
 	getrlimit \
 	getttyent \
 	glob \
+	group_from_gid \
 	inet_aton \
 	inet_ntoa \
 	inet_ntop \
@@ -1377,8 +1378,10 @@ AC_CHECK_FUNCS( \
 	setegid \
 	setenv \
 	seteuid \
+	setgroupent \
 	setgroups \
 	setlogin \
+	setpassent\
 	setpcred \
 	setproctitle \
 	setregid \
@@ -1407,6 +1410,7 @@ AC_CHECK_FUNCS( \
 	truncate \
 	unsetenv \
 	updwtmpx \
+	user_from_uid \
 	vasprintf \
 	vhangup \
 	vsnprintf \

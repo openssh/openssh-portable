@@ -23,6 +23,8 @@
      ok dtucker@
  - (dtucker) [openbsd-compat.c/pwcache.c] Pull in pwcache.c from OpenBSD (no
    changes yet but there will be some to come).
+ - (dtucker) [configure.ac openbsd-compat/{Makefile.in,pwcache.c} Portability
+   for pwcache.  Also, added caching of negative hits.
 
 20100114
  - (djm) [platform.h] Add missing prototype for

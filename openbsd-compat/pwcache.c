@@ -28,22 +28,26 @@
  * SUCH DAMAGE.
  */
 
+/* OPENBSD ORIGINAL: lib/libc/gen/pwcache.c */
+
 #include <sys/types.h>
 
 #include <grp.h>
 #include <pwd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define	NCACHE	64			/* power of 2 */
 #define	MASK	(NCACHE - 1)		/* bits to store with */
 
+#ifndef HAVE_USER_FROM_UID
 char *
 user_from_uid(uid_t uid, int nouser)
 {
 	static struct ncache {
 		uid_t	uid;
-		char	name[_PW_NAME_LEN + 1];
+		char	*name;
 	} c_uid[NCACHE];
 	static int pwopen;
 	static char nbuf[15];		/* 32 bits == 10 digits */
@@ -51,29 +55,34 @@ user_from_uid(uid_t uid, int nouser)
 	struct ncache *cp;
 
 	cp = c_uid + (uid & MASK);
-	if (cp->uid != uid || !*cp->name) {
+	if (cp->uid != uid || cp->name == NULL) {
+#ifdef HAVE_SETPASSENT
 		if (pwopen == 0) {
 			setpassent(1);
 			pwopen = 1;
 		}
+#endif
 		if ((pw = getpwuid(uid)) == NULL) {
 			if (nouser)
 				return (NULL);
 			(void)snprintf(nbuf, sizeof(nbuf), "%u", uid);
-			return (nbuf);
 		}
 		cp->uid = uid;
-		strlcpy(cp->name, pw->pw_name, sizeof(cp->name));
+		if (cp->name != NULL)
+			free(cp->name);
+		cp->name = strdup(pw ? pw->pw_name : nbuf);
 	}
 	return (cp->name);
 }
+#endif
 
+#ifndef HAVE_GROUP_FROM_GID
 char *
 group_from_gid(gid_t gid, int nogroup)
 {
 	static struct ncache {
 		gid_t	gid;
-		char	name[_PW_NAME_LEN + 1];
+		char	*name;
 	} c_gid[NCACHE];
 	static int gropen;
 	static char nbuf[15];		/* 32 bits == 10 digits */
@@ -81,19 +90,23 @@ group_from_gid(gid_t gid, int nogroup)
 	struct ncache *cp;
 
 	cp = c_gid + (gid & MASK);
-	if (cp->gid != gid || !*cp->name) {
+	if (cp->gid != gid || cp->name == NULL) {
+#ifdef HAVE_SETGROUPENT
 		if (gropen == 0) {
 			setgroupent(1);
 			gropen = 1;
 		}
+#endif
 		if ((gr = getgrgid(gid)) == NULL) {
 			if (nogroup)
 				return (NULL);
 			(void)snprintf(nbuf, sizeof(nbuf), "%u", gid);
-			return (nbuf);
 		}
 		cp->gid = gid;
-		strlcpy(cp->name, gr->gr_name, sizeof(cp->name));
+		if (cp->name != NULL)
+			free(cp->name);
+		cp->name = strdup(gr ? gr->gr_name : nbuf);
 	}
 	return (cp->name);
 }
+#endif
