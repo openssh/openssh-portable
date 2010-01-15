@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.81 2010/01/13 01:40:16 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.82 2010/01/13 12:48:34 jmc Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -393,7 +393,7 @@ to
 .It Ic lpwd
 Print local working directory.
 .It Xo Ic ls
-.Op Fl 1aflhnrSt
+.Op Fl 1afhlnrSt
 .Op Ar path
 .Xc
 Display a remote directory listing of either
@@ -418,14 +418,14 @@ List files beginning with a dot
 .It Fl f
 Do not sort the listing.
 The default sort order is lexicographical.
-.It Fl l
-Display additional details including permissions
-and ownership information.
 .It Fl h
 When used with a long format option, use unit suffixes: Byte, Kilobyte,
 Megabyte, Gigabyte, Terabyte, Petabyte, and Exabyte in order to reduce
 the number of digits to four or fewer using powers of 2 for sizes (K=1024,
 M=1048576, etc.).
+.It Fl l
+Display additional details including permissions
+and ownership information.
 .It Fl n
 Produce a long listing with user and group information presented
 numerically.

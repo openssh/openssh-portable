@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.120 2010/01/13 04:10:50 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.121 2010/01/13 12:48:34 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -233,18 +233,18 @@ help(void)
 	    "df [-hi] [path]                    Display statistics for current directory or\n"
 	    "                                   filesystem containing 'path'\n"
 	    "exit                               Quit sftp\n"
-	    "get [-Pr] remote-path [local-path] Download file\n"
+	    "get [-Ppr] remote [local]          Download file\n"
 	    "help                               Display this help text\n"
 	    "lcd path                           Change local directory to 'path'\n"
 	    "lls [ls-options [path]]            Display local directory listing\n"
 	    "lmkdir path                        Create local directory\n"
 	    "ln oldpath newpath                 Symlink remote file\n"
 	    "lpwd                               Print local working directory\n"
-	    "ls [-1aflnrSt] [path]              Display remote directory listing\n"
+	    "ls [-1afhlnrSt] [path]             Display remote directory listing\n"
 	    "lumask umask                       Set local umask to 'umask'\n"
 	    "mkdir path                         Create remote directory\n"
 	    "progress                           Toggle display of progress meter\n"
-	    "put [-Pr] local-path [remote-path] Upload file\n"
+	    "put [-Ppr] local [remote]          Upload file\n"
 	    "pwd                                Display remote working directory\n"
 	    "quit                               Quit sftp\n"
 	    "rename oldpath newpath             Rename remote file\n"

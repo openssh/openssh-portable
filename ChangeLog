@@ -1,3 +1,12 @@
+20100115
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/01/13 12:48:34
+     [sftp.1 sftp.c]
+     sftp.1: put ls -h in the right place
+     sftp.c: as above, plus add -p to get/put, and shorten their arg names
+     to keep the help usage nicely aligned
+     ok djm
+
 20100114
  - (djm) [platform.h] Add missing prototype for
    platform_krb5_get_principal_name
