@@ -6,6 +6,11 @@
      sftp.c: as above, plus add -p to get/put, and shorten their arg names
      to keep the help usage nicely aligned
      ok djm
+   - djm@cvs.openbsd.org 2010/01/13 23:47:26
+     [auth.c]
+     when using ChrootDirectory, make sure we test for the existence of the
+     user's shell inside the chroot; bz #1679, patch from alex AT rtfs.hu;
+     ok dtucker
 
 20100114
  - (djm) [platform.h] Add missing prototype for
