@@ -3,6 +3,8 @@
    so we correctly detect whether or not we have a native user_from_uid.
  - (dtucker) [openbsd-compat/openbsd-compat.h] Prototypes for user_from_uid
    and group_from_gid.
+ - (dtucker) [openbsd-compat/openbsd-compat.h] Fix prototypes, spotted by
+   Tim.
 
 20100115
  - (dtucker) OpenBSD CVS Sync
