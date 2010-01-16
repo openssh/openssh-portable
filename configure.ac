@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.435 2010/01/15 01:38:30 dtucker Exp $
+# $Id: configure.ac,v 1.436 2010/01/16 20:23:25 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.435 $)
+AC_REVISION($Revision: 1.436 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -747,6 +747,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(UNIXWARE_LONG_PASSWORDS, 1, [Support passwords > 8 chars])
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(PASSWD_NEEDS_USERNAME)

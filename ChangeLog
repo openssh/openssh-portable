@@ -13,6 +13,8 @@
    variable warnings.
  - (dtucker) [openbsd-compat/openbsd-compat.h] Typo.
  - (tim) [regress/portnum.sh] Shell portability fix.
+ - (tim) [configure.ac] Define BROKEN_GETADDRINFO on SVR5 systems. The native
+   getaddrinfo() is too old and limited for addr_pton() in addrmatch.c.
 
 20100115
  - (dtucker) OpenBSD CVS Sync
