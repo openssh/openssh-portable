@@ -58,12 +58,12 @@ user_from_uid(uid_t uid, int nouser)
 
 	cp = c_uid + (uid & MASK);
 	if (cp->uid != uid || cp->name == NULL) {
-#ifdef HAVE_SETPASSENT
 		if (pwopen == 0) {
+#ifdef HAVE_SETPASSENT
 			setpassent(1);
+#endif
 			pwopen = 1;
 		}
-#endif
 		if ((pw = getpwuid(uid)) == NULL) {
 			if (nouser)
 				return (NULL);
@@ -93,12 +93,12 @@ group_from_gid(gid_t gid, int nogroup)
 
 	cp = c_gid + (gid & MASK);
 	if (cp->gid != gid || cp->name == NULL) {
-#ifdef HAVE_SETGROUPENT
 		if (gropen == 0) {
+#ifdef HAVE_SETGROUPENT
 			setgroupent(1);
+#endif
 			gropen = 1;
 		}
-#endif
 		if ((gr = getgrgid(gid)) == NULL) {
 			if (nogroup)
 				return (NULL);

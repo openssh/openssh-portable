@@ -9,6 +9,8 @@
    - markus@cvs.openbsd.org 2010/01/15 09:24:23
      [sftp-common.c]
      unused
+ - (dtucker) [openbsd-compat/pwcache.c] Shrink ifdef area to prevent unused
+   variable warnings.
 
 20100115
  - (dtucker) OpenBSD CVS Sync
