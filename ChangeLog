@@ -12,6 +12,7 @@
  - (dtucker) [openbsd-compat/pwcache.c] Shrink ifdef area to prevent unused
    variable warnings.
  - (dtucker) [openbsd-compat/openbsd-compat.h] Typo.
+ - (tim) [regress/portnum.sh] Shell portability fix.
 
 20100115
  - (dtucker) OpenBSD CVS Sync

@@ -13,7 +13,9 @@ badport() {
 goodport() {
 	port=$1
 	verbose "$tid: valid port $port"
-	if ! ${SSH} -F $OBJ/ssh_proxy -p $port somehost true 2>/dev/null ; then
+	if ${SSH} -F $OBJ/ssh_proxy -p $port somehost true 2>/dev/null ; then
+		:
+	else
 		fail "$tid rejected valid port $port"
 	fi
 }
