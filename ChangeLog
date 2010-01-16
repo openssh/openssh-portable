@@ -5,6 +5,10 @@
    and group_from_gid.
  - (dtucker) [openbsd-compat/openbsd-compat.h] Fix prototypes, spotted by
    Tim.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2010/01/15 09:24:23
+     [sftp-common.c]
+     unused
 
 20100115
  - (dtucker) OpenBSD CVS Sync
