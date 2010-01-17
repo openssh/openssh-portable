@@ -1,3 +1,6 @@
+20100117
+ - (tim) [configure.ac] OpenServer 5 needs BROKEN_GETADDRINFO too.
+
 20100116
  - (dtucker) [openbsd-compat/pwcache.c] Pull in includes.h and thus defines.h
    so we correctly detect whether or not we have a native user_from_uid.
