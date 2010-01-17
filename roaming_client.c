@@ -17,7 +17,7 @@
 
 #include "includes.h"
 
-#include <sys/queue.h>
+#include "openbsd-compat/sys-queue.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -122,7 +122,7 @@ roaming_auth_required(void)
 	calculate_new_key(&key1, cookie, chall);
 	calculate_new_key(&key2, cookie, chall);
 
-	debug("Received %llu bytes", (long long unsigned)get_recv_bytes());
+	debug("Received %llu bytes", (unsigned long long)get_recv_bytes());
 	debug("Sent roaming_auth packet");
 }
 
@@ -216,7 +216,7 @@ roaming_resume(void)
 		goto fail;
 	}
 	recv_bytes = packet_get_int64() ^ oldkey2;
-	debug("Peer received %llu bytes", (long long unsigned)recv_bytes);
+	debug("Peer received %llu bytes", (unsigned long long)recv_bytes);
 	resend_bytes(packet_get_connection_out(), &recv_bytes);
 
 	resume_in_progress = 0;
