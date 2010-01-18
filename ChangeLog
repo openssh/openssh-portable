@@ -1,7 +1,7 @@
 20100117
  - (tim) [configure.ac] OpenServer 5 needs BROKEN_GETADDRINFO too.
- - (tim) [configure.ac] Use the C99-conforming functions snprintf() and
-   vsnprintf() named _xsnprintf() and _xvsnprintf() on SVR5 systems.
+ - (tim) [configure.ac] On SVR5 systems, use the C99-conforming functions
+   snprintf() and vsnprintf() named _xsnprintf() and _xvsnprintf().
 
 20100116
  - (dtucker) [openbsd-compat/pwcache.c] Pull in includes.h and thus defines.h
