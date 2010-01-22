@@ -1,3 +1,8 @@
+20100122
+ - (tim) [configure.ac] Due to constraints in Windows Sockets in terms of
+   socket inheritance, reduce the default SO_RCVBUF/SO_SNDBUF buffer size
+   in Cygwin to 65535. Patch from Corinna Vinschen.
+
 20100117
  - (tim) [configure.ac] OpenServer 5 needs BROKEN_GETADDRINFO too.
  - (tim) [configure.ac] On SVR5 systems, use the C99-conforming functions

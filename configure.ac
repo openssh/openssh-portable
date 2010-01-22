@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.438 2010/01/18 01:05:39 tim Exp $
+# $Id: configure.ac,v 1.439 2010/01/22 18:25:15 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.438 $)
+AC_REVISION($Revision: 1.439 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -446,7 +446,7 @@ int main(void) { exit(0); }
 	AC_DEFINE(DISABLE_FD_PASSING, 1,
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
-	AC_DEFINE(SSH_IOBUFSZ, 65536, [Windows is sensitive to read buffer size])
+	AC_DEFINE(SSH_IOBUFSZ, 65535, [Windows is sensitive to read buffer size])
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN, 1,
