@@ -4,6 +4,10 @@
      [ssh-agent.1]
      Correct and clarify ssh-add's password asking behavior.
      Improved text dtucker and ok jmc
+   - dtucker@cvs.openbsd.org 2010/01/18 01:50:27
+     [roaming_client.c]
+     s/long long unsigned/unsigned long long/, from tim via portable
+     (Id sync only, change already in portable)
 
 20100122
  - (tim) [configure.ac] Due to constraints in Windows Sockets in terms of

@@ -1,4 +1,4 @@
-/* $OpenBSD: roaming_client.c,v 1.2 2010/01/09 05:17:00 dtucker Exp $ */
+/* $OpenBSD: roaming_client.c,v 1.3 2010/01/18 01:50:27 dtucker Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
