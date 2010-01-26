@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.216 2010/01/09 05:04:24 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.217 2010/01/26 01:28:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -121,7 +121,7 @@ extern int stdin_null_flag;
 extern int no_shell_flag;
 
 /* Control socket */
-extern int muxserver_sock;
+extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
@@ -146,7 +146,7 @@ static volatile sig_atomic_t received_signal = 0;
 static int in_non_blocking_mode = 0;
 
 /* Common data for the client loop code. */
-static volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
+volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
 static int escape_char1;	/* Escape character. (proto1 only) */
 static int escape_pending1;	/* Last character was an escape (proto1 only) */
 static int last_was_cr;		/* Last character was a newline. */
@@ -564,9 +564,6 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	if (packet_have_data_to_write())
 		FD_SET(connection_out, *writesetp);
 
-	if (muxserver_sock != -1)
-		FD_SET(muxserver_sock, *readsetp);
-
 	/*
 	 * Wait for something to happen.  This will suspend the process until
 	 * some selected descriptor can be read, written, or has some other
@@ -695,7 +692,7 @@ client_status_confirm(int type, Channel *c, void *ctx)
 
 	/* XXX supress on mux _client_ quietmode */
 	tochan = options.log_level >= SYSLOG_LEVEL_ERROR &&
-	    c->ctl_fd != -1 && c->extended_usage == CHAN_EXTENDED_WRITE;
+	    c->ctl_chan != -1 && c->extended_usage == CHAN_EXTENDED_WRITE;
 
 	if (type == SSH2_MSG_CHANNEL_SUCCESS) {
 		debug2("%s request accepted on channel %d",
@@ -839,6 +836,7 @@ process_cmdline(void)
 	while (isspace(*++s))
 		;
 
+	/* XXX update list of forwards in options */
 	if (delete) {
 		cancel_port = 0;
 		cancel_host = hpdelim(&s);	/* may be NULL */
@@ -936,7 +934,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				    escape_char);
 				buffer_append(berr, string, strlen(string));
 
-				if (c && c->ctl_fd != -1) {
+				if (c && c->ctl_chan != -1) {
 					chan_read_failed(c);
 					chan_write_failed(c);
 					return 0;
@@ -946,7 +944,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 
 			case 'Z' - 64:
 				/* XXX support this for mux clients */
-				if (c && c->ctl_fd != -1) {
+				if (c && c->ctl_chan != -1) {
  noescape:
 					snprintf(string, sizeof string,
 					    "%c%c escape not available to "
@@ -991,7 +989,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			case '&':
-				if (c && c->ctl_fd != -1)
+				if (c && c->ctl_chan != -1)
 					goto noescape;
 				/*
 				 * Detach the program (continue to serve
@@ -1042,7 +1040,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			case '?':
-				if (c && c->ctl_fd != -1) {
+				if (c && c->ctl_chan != -1) {
 					snprintf(string, sizeof string,
 "%c?\r\n\
 Supported escape sequences:\r\n\
@@ -1091,7 +1089,7 @@ Supported escape sequences:\r\n\
 				continue;
 
 			case 'C':
-				if (c && c->ctl_fd != -1)
+				if (c && c->ctl_chan != -1)
 					goto noescape;
 				process_cmdline();
 				continue;
@@ -1327,8 +1325,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 	max_fd = MAX(connection_in, connection_out);
-	if (muxserver_sock != -1)
-		max_fd = MAX(max_fd, muxserver_sock);
 
 	if (!compat20) {
 		/* enable nonblocking unless tty */
@@ -1445,12 +1441,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 		/* Buffer input from the connection.  */
 		client_process_net_input(readset);
-
-		/* Accept control connections.  */
-		if (muxserver_sock != -1 &&FD_ISSET(muxserver_sock, readset)) {
-			if (muxserver_accept_control())
-				quit_pending = 1;
-		}
 
 		if (quit_pending)
 			break;
@@ -1859,9 +1849,8 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 		chan_rcvd_eow(c);
 	} else if (strcmp(rtype, "exit-status") == 0) {
 		exitval = packet_get_int();
-		if (c->ctl_fd != -1) {
-			/* Dispatch to mux client */
-			atomicio(vwrite, c->ctl_fd, &exitval, sizeof(exitval));
+		if (c->ctl_chan != -1) {
+			mux_exit_message(c, exitval);
 			success = 1;
 		} else if (id == session_ident) {
 			/* Record exit value of local session */

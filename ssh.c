@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.331 2010/01/11 01:39:46 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.332 2010/01/26 01:28:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -319,6 +319,11 @@ main(int ac, char **av)
 			options.gateway_ports = 1;
 			break;
 		case 'O':
+			if (stdio_forward_host != NULL)
+				fatal("Cannot specify multiplexing "
+				    "command with -W");
+			else if (muxclient_command != 0)
+				fatal("Multiplexing command already specified");
 			if (strcmp(optarg, "check") == 0)
 				muxclient_command = SSHMUX_COMMAND_ALIVE_CHECK;
 			else if (strcmp(optarg, "exit") == 0)
@@ -395,6 +400,10 @@ main(int ac, char **av)
 			}
 			break;
 		case 'W':
+			if (stdio_forward_host != NULL)
+				fatal("stdio forward already specified");
+			if (muxclient_command != 0)
+				fatal("Cannot specify stdio forward with -O");
 			if (parse_forward(&fwd, optarg, 1, 0)) {
 				stdio_forward_host = fwd.listen_host;
 				stdio_forward_port = fwd.listen_port;
@@ -902,11 +911,18 @@ static int
 client_setup_stdio_fwd(const char *host_to_connect, u_short port_to_connect)
 {
 	Channel *c;
+	int in, out;
 
 	debug3("client_setup_stdio_fwd %s:%d", host_to_connect,
 	    port_to_connect);
-	if ((c = channel_connect_stdio_fwd(host_to_connect, port_to_connect))
-	    == NULL)
+
+	in = dup(STDIN_FILENO);
+	out = dup(STDOUT_FILENO);
+	if (in < 0 || out < 0)
+		fatal("channel_connect_stdio_fwd: dup() in/out failed");
+
+	if ((c = channel_connect_stdio_fwd(host_to_connect, port_to_connect,
+	    in, out)) == NULL)
 		return 0;
 	channel_register_cleanup(c->self, client_cleanup_stdio_fwd, 0);
 	return 1;

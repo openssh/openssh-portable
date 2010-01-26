@@ -8,6 +8,29 @@
      [roaming_client.c]
      s/long long unsigned/unsigned long long/, from tim via portable
      (Id sync only, change already in portable)
+   - djm@cvs.openbsd.org 2010/01/26 01:28:35
+     [channels.c channels.h clientloop.c clientloop.h mux.c nchan.c ssh.c]
+     rewrite ssh(1) multiplexing code to a more sensible protocol.
+     
+     The new multiplexing code uses channels for the listener and
+     accepted control sockets to make the mux master non-blocking, so
+     no stalls when processing messages from a slave.
+     
+     avoid use of fatal() in mux master protocol parsing so an errant slave
+     process cannot take down a running master.
+     
+     implement requesting of port-forwards over multiplexed sessions. Any
+     port forwards requested by the slave are added to those the master has
+     established.
+     
+     add support for stdio forwarding ("ssh -W host:port ...") in mux slaves.
+     
+     document master/slave mux protocol so that other tools can use it to
+     control a running ssh(1). Note: there are no guarantees that this
+     protocol won't be incompatibly changed (though it is versioned).
+     
+     feedback Salvador Fandino, dtucker@
+     channel changes ok markus@
 
 20100122
  - (tim) [configure.ac] Due to constraints in Windows Sockets in terms of
