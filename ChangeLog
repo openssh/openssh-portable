@@ -1,3 +1,10 @@
+20100126
+ - (djm) OpenBSD CVS Sync
+   - tedu@cvs.openbsd.org 2010/01/17 21:49:09
+     [ssh-agent.1]
+     Correct and clarify ssh-add's password asking behavior.
+     Improved text dtucker and ok jmc
+
 20100122
  - (tim) [configure.ac] Due to constraints in Windows Sockets in terms of
    socket inheritance, reduce the default SO_RCVBUF/SO_SNDBUF buffer size
