@@ -1,3 +1,10 @@
+20100128
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/01/26 02:15:20
+     [mux.c]
+     -Wuninitialized and remove a // comment; from portable
+     (Id sync only)
+
 20100126
  - (djm) OpenBSD CVS Sync
    - tedu@cvs.openbsd.org 2010/01/17 21:49:09
