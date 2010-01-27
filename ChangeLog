@@ -4,6 +4,18 @@
      [mux.c]
      -Wuninitialized and remove a // comment; from portable
      (Id sync only)
+   - djm@cvs.openbsd.org 2010/01/27 13:26:17
+     [mux.c]
+     fix bug introduced in mux rewrite:
+     
+     In a mux master, when a socket to a mux slave closes before its server
+     session (as may occur when the slave has been signalled), gracefully
+     close the server session rather than deleting its channel immediately.
+     A server may have more messages on that channel to send (e.g. an exit
+     message) that will fatal() the client if they are sent to a channel that
+     has been prematurely deleted.
+     
+     spotted by imorgan AT nas.nasa.gov
 
 20100126
  - (djm) OpenBSD CVS Sync
