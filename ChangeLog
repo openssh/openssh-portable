@@ -16,6 +16,10 @@
      has been prematurely deleted.
      
      spotted by imorgan AT nas.nasa.gov
+   - djm@cvs.openbsd.org 2010/01/27 19:21:39
+     [sftp.c]
+     add missing "p" flag to getopt optstring;
+     bz#1704 from imorgan AT nas.nasa.gov
 
 20100126
  - (djm) OpenBSD CVS Sync
