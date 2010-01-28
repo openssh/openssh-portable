@@ -1,3 +1,9 @@
+20100129
+ - (dtucker) [openbsd-compat/openssl-compat.c] Bug #1707: Call OPENSSL_config()
+   after registering the hardware engines, which causes the openssl.cnf file to
+   be processed.  See OpenSSL's man page for OPENSSL_config(3) for details.
+   Patch from Solomon Peachy, ok djm@.
+
 20100128
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/01/26 02:15:20
