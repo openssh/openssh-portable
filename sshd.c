@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.371 2010/01/13 03:48:13 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.372 2010/01/29 00:20:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1747,6 +1747,10 @@ main(int ac, char **av)
 		debug("rexec cleanup in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 	}
+
+	/* Executed child processes don't need these. */
+	fcntl(sock_out, F_SETFD, FD_CLOEXEC);
+	fcntl(sock_in, F_SETFD, FD_CLOEXEC);
 
 	/*
 	 * Disable the key regeneration alarm.  We will not regenerate the

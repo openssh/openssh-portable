@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.12 2010/01/27 13:26:17 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.13 2010/01/29 20:16:17 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -212,7 +212,7 @@ mux_master_control_cleanup_cb(int cid, void *unused)
 		sc->ctl_chan = -1;
 		if (sc->type != SSH_CHANNEL_OPEN) {
 			debug2("%s: channel %d: not open", __func__, sc->self);
-			chan_mark_dead(c);
+			chan_mark_dead(sc);
 		} else {
 			chan_read_failed(sc);
 			chan_write_failed(sc);
