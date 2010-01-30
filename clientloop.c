@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.217 2010/01/26 01:28:35 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.218 2010/01/28 00:21:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1857,8 +1857,9 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 			success = 1;
 			exit_status = exitval;
 		} else {
-			error("client_input_channel_req: unexpected channel %d",
-			    session_ident);
+			/* Probably for a mux channel that has already closed */
+			debug("%s: no sink for exit-status on channel %d",
+			    __func__, id);
 		}
 		packet_check_eom();
 	}

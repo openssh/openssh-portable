@@ -1,3 +1,11 @@
+20100130
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/01/28 00:21:18
+     [clientloop.c]
+     downgrade an error() to a debug() - this particular case can be hit in
+     normal operation for certain sequences of mux slave vs session closure
+     and is harmless
+
 20100129
  - (dtucker) [openbsd-compat/openssl-compat.c] Bug #1707: Call OPENSSL_config()
    after registering the hardware engines, which causes the openssl.cnf file to
