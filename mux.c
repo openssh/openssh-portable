@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.13 2010/01/29 20:16:17 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.14 2010/01/30 02:54:53 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -214,8 +214,10 @@ mux_master_control_cleanup_cb(int cid, void *unused)
 			debug2("%s: channel %d: not open", __func__, sc->self);
 			chan_mark_dead(sc);
 		} else {
-			chan_read_failed(sc);
-			chan_write_failed(sc);
+			if (sc->istate == CHAN_INPUT_OPEN)
+				chan_read_failed(sc);
+			if (sc->ostate == CHAN_OUTPUT_OPEN)
+				chan_write_failed(sc);
 		}
 	}
 	channel_cancel_cleanup(c->self);

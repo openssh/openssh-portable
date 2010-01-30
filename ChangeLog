@@ -9,6 +9,10 @@
      [sshd.c]
      set FD_CLOEXEC on sock_in/sock_out; bz#1706 from jchadima AT redhat.com
      ok dtucker@
+   - djm@cvs.openbsd.org 2010/01/29 20:16:17
+     [mux.c]
+     kill correct channel (was killing already-dead mux channel, not
+     its session channel)
 
 20100129
  - (dtucker) [openbsd-compat/openssl-compat.c] Bug #1707: Call OPENSSL_config()
