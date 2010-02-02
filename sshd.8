@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.249 2009/10/08 20:42:13 jmc Exp $
-.Dd $Mdocdate: October 8 2009 $
+.\" $OpenBSD: sshd.8,v 1.250 2010/01/30 21:08:33 djm Exp $
+.Dd $Mdocdate: January 30 2010 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -127,8 +127,8 @@ This allows easy monitoring of
 .Nm sshd .
 .It Fl d
 Debug mode.
-The server sends verbose debug output to the system
-log, and does not put itself in the background.
+The server sends verbose debug output to standard error,
+and does not put itself in the background.
 The server also will not fork and will only process one connection.
 This option is only intended for debugging for the server.
 Multiple
