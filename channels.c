@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.302 2010/01/26 01:28:35 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.303 2010/01/30 21:12:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1375,6 +1375,13 @@ port_open_helper(Channel *c, char *rtype)
 	char buf[1024];
 	char *remote_ipaddr = get_peer_ipaddr(c->sock);
 	int remote_port = get_peer_port(c->sock);
+
+	if (remote_port == -1) {
+		/* Fake addr/port to appease peers that validate it (Tectia) */
+		xfree(remote_ipaddr);
+		remote_ipaddr = xstrdup("127.0.0.1");
+		remote_port = 65535;
+	}
 
 	direct = (strcmp(rtype, "direct-tcpip") == 0);
 

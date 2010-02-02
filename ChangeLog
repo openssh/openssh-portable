@@ -3,6 +3,12 @@
    - djm@cvs.openbsd.org 2010/01/30 21:08:33
      [sshd.8]
      debug output goes to stderr, not "the system log"; ok markus dtucker
+   - djm@cvs.openbsd.org 2010/01/30 21:12:08
+     [channels.c]
+     fake local addr:port when stdio fowarding as some servers (Tectia at
+     least) validate that they are well-formed;
+     reported by imorgan AT nas.nasa.gov
+     ok dtucker
 
 20100130
  - (djm) OpenBSD CVS Sync
