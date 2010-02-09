@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.439 2010/01/22 18:25:15 tim Exp $
+# $Id: configure.ac,v 1.440 2010/02/09 23:19:29 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.439 $)
+AC_REVISION($Revision: 1.440 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3413,9 +3413,12 @@ AC_ARG_WITH(selinux,
 		AC_DEFINE(WITH_SELINUX,1,[Define if you want SELinux support.])
 		SELINUX_MSG="yes"
 		AC_CHECK_HEADER([selinux/selinux.h], ,
-		    AC_MSG_ERROR(SELinux support requires selinux.h header))
-		AC_CHECK_LIB(selinux, setexeccon, [ LIBSELINUX="-lselinux" ],
-		    AC_MSG_ERROR(SELinux support requires libselinux library))
+			AC_MSG_ERROR(SELinux support requires selinux.h header))
+		AC_CHECK_LIB(selinux, setexeccon,
+			[ LIBSELINUX="-lselinux"
+			  LIBS="$LIBS -lselinux"
+			],
+			AC_MSG_ERROR(SELinux support requires libselinux library))
 		SSHDLIBS="$SSHDLIBS $LIBSELINUX"
 		AC_CHECK_FUNCS(getseuserbyname get_default_context_with_level)
 		LIBS="$save_LIBS"
