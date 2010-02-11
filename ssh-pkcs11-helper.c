@@ -16,6 +16,8 @@
 
 #include "includes.h"
 
+#ifdef ENABLE_PKCS11
+
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -277,6 +279,8 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern char *__progname;
 
+	__progname = ssh_get_progname(argv[0]);
+
 	log_init(__progname, log_level, log_facility, log_stderr);
 
 	in = STDIN_FILENO;
@@ -352,3 +356,14 @@ main(int argc, char **argv)
 			process();
 	}
 }
+#else /* ENABLE_PKCS11 */
+int
+main(int argc, char **argv)
+{
+	extern char *__progname;
+
+	__progname = ssh_get_progname(argv[0]);
+	log_init(__progname, SYSLOG_LEVEL_ERROR, SYSLOG_FACILITY_AUTH, 0);
+	fatal("PKCS#11 support disabled at compile time");
+}
+#endif /* ENABLE_PKCS11 */

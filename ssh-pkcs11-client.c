@@ -16,6 +16,8 @@
 
 #include "includes.h"
 
+#ifdef ENABLE_PKCS11
+
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -231,3 +233,5 @@ pkcs11_del_provider(char *name)
 	buffer_free(&msg);
 	return (ret);
 }
+
+#endif /* ENABLE_PKCS11 */

@@ -16,6 +16,8 @@
 
 #include "includes.h"
 
+#ifdef ENABLE_PKCS11
+
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -548,3 +550,5 @@ fail:
 		dlclose(handle);
 	return (-1);
 }
+
+#endif /* ENABLE_PKCS11 */
