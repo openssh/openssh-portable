@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.176 2010/01/11 10:51:07 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.177 2010/02/08 10:50:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,8 +49,8 @@
 #include "hostfile.h"
 #include "dns.h"
 
-#ifdef SMARTCARD
-#include "scard.h"
+#ifdef ENABLE_PKCS11
+#include "ssh-pkcs11.h"
 #endif
 
 /* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
@@ -459,51 +459,29 @@ do_print_public(struct passwd *pw)
 	exit(0);
 }
 
-#ifdef SMARTCARD
 static void
-do_upload(struct passwd *pw, const char *sc_reader_id)
+do_download(struct passwd *pw, const char *pkcs11provider)
 {
-	Key *prv = NULL;
-	struct stat st;
-	int ret;
-
-	if (!have_identity)
-		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0) {
-		perror(identity_file);
-		exit(1);
-	}
-	prv = load_identity(identity_file);
-	if (prv == NULL) {
-		error("load failed");
-		exit(1);
-	}
-	ret = sc_put_key(prv, sc_reader_id);
-	key_free(prv);
-	if (ret < 0)
-		exit(1);
-	logit("loading key done");
-	exit(0);
-}
-
-static void
-do_download(struct passwd *pw, const char *sc_reader_id)
-{
+#ifdef ENABLE_PKCS11
 	Key **keys = NULL;
-	int i;
+	int i, nkeys;
 
-	keys = sc_get_keys(sc_reader_id, NULL);
-	if (keys == NULL)
-		fatal("cannot read public key from smartcard");
-	for (i = 0; keys[i]; i++) {
+	pkcs11_init(0);
+	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys);
+	if (nkeys <= 0)
+		fatal("cannot read public key from pkcs11");
+	for (i = 0; i < nkeys; i++) {
 		key_write(keys[i], stdout);
 		key_free(keys[i]);
 		fprintf(stdout, "\n");
 	}
 	xfree(keys);
+	pkcs11_terminate();
 	exit(0);
+#else
+	fatal("no pkcs11 support");
+#endif /* ENABLE_PKCS11 */
 }
-#endif /* SMARTCARD */
 
 static void
 do_fingerprint(struct passwd *pw)
@@ -1044,9 +1022,9 @@ usage(void)
 	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
 	fprintf(stderr, "  -C comment  Provide new comment.\n");
 	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
-#ifdef SMARTCARD
-	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
-#endif /* SMARTCARD */
+#ifdef ENABLE_PKCS11
+	fprintf(stderr, "  -D pkcs11   Download public key from pkcs11 token.\n");
+#endif
 	fprintf(stderr, "  -e          Convert OpenSSH to RFC 4716 key file.\n");
 	fprintf(stderr, "  -F hostname Find hostname in known hosts file.\n");
 	fprintf(stderr, "  -f filename Filename of the key file.\n");
@@ -1065,9 +1043,6 @@ usage(void)
 	fprintf(stderr, "  -S start    Start point (hex) for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -t type     Specify type of key to create.\n");
-#ifdef SMARTCARD
-	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
-#endif /* SMARTCARD */
 	fprintf(stderr, "  -v          Verbose.\n");
 	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -y          Read private key file and print public key.\n");
@@ -1082,12 +1057,12 @@ int
 main(int argc, char **argv)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
-	char out_file[MAXPATHLEN], *reader_id = NULL;
+	char out_file[MAXPATHLEN], *pkcs11provider = NULL;
 	char *rr_hostname = NULL;
 	Key *private, *public;
 	struct passwd *pw;
 	struct stat st;
-	int opt, type, fd, download = 0;
+	int opt, type, fd;
 	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	BIGNUM *start = NULL;
@@ -1120,7 +1095,7 @@ main(int argc, char **argv)
 	}
 
 	while ((opt = getopt(argc, argv,
-	    "degiqpclBHvxXyF:b:f:t:U:D:P:N:C:r:g:R:T:G:M:S:a:W:")) != -1) {
+	    "degiqpclBHvxXyF:b:f:t:D:P:N:C:r:g:R:T:G:M:S:a:W:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = (u_int32_t)strtonum(optarg, 768, 32768, &errstr);
@@ -1192,10 +1167,7 @@ main(int argc, char **argv)
 			key_type_name = optarg;
 			break;
 		case 'D':
-			download = 1;
-			/*FALLTHROUGH*/
-		case 'U':
-			reader_id = optarg;
+			pkcs11provider = optarg;
 			break;
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
@@ -1303,16 +1275,8 @@ main(int argc, char **argv)
 			exit(0);
 		}
 	}
-	if (reader_id != NULL) {
-#ifdef SMARTCARD
-		if (download)
-			do_download(pw, reader_id);
-		else
-			do_upload(pw, reader_id);
-#else /* SMARTCARD */
-		fatal("no support for smartcards.");
-#endif /* SMARTCARD */
-	}
+	if (pkcs11provider != NULL)
+		do_download(pw, pkcs11provider);
 
 	if (do_gen_candidates) {
 		FILE *out = fopen(out_file, "w");

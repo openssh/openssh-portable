@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.290 2010/01/11 01:39:46 dtucker Exp $
-.Dd $Mdocdate: January 11 2010 $
+.\" $OpenBSD: ssh.1,v 1.291 2010/02/08 10:50:20 markus Exp $
+.Dd $Mdocdate: February 8 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -284,12 +284,12 @@ will wait for all remote port forwards to be successfully established
 before placing itself in the background.
 .It Fl g
 Allows remote hosts to connect to local forwarded ports.
-.It Fl I Ar smartcard_device
-Specify the device
+.It Fl I Ar pkcs11
+Specify the PKCS#11 shared libarary
 .Nm
-should use to communicate with a smartcard used for storing the user's
+should use to communicate with a PKCS#11 token used for storing the user's
 private RSA key.
-This option is only available if support for smartcard devices
+This option is only available if support for PKCS#11
 is compiled in (default is no support).
 .It Fl i Ar identity_file
 Selects a file from which the identity (private key) for
@@ -469,6 +469,7 @@ For full details of the options listed below, and their possible values, see
 .It NumberOfPasswordPrompts
 .It PasswordAuthentication
 .It PermitLocalCommand
+.It PKCS11Provider
 .It Port
 .It PreferredAuthentications
 .It Protocol
@@ -481,7 +482,6 @@ For full details of the options listed below, and their possible values, see
 .It SendEnv
 .It ServerAliveInterval
 .It ServerAliveCountMax
-.It SmartcardDevice
 .It StrictHostKeyChecking
 .It TCPKeepAlive
 .It Tunnel

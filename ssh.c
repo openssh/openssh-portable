@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.332 2010/01/26 01:28:35 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.333 2010/02/08 10:50:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -103,8 +103,8 @@
 #include "roaming.h"
 #include "version.h"
 
-#ifdef SMARTCARD
-#include "scard.h"
+#ifdef ENABLE_PKCS11
+#include "ssh-pkcs11.h"
 #endif
 
 extern char *__progname;
@@ -362,10 +362,10 @@ main(int ac, char **av)
 			    xstrdup(optarg);
 			break;
 		case 'I':
-#ifdef SMARTCARD
-			options.smartcard_device = xstrdup(optarg);
+#ifdef ENABLE_PKCS11
+			options.pkcs11_provider = xstrdup(optarg);
 #else
-			fprintf(stderr, "no support for smartcards.\n");
+			fprintf(stderr, "no support for PKCS#11.\n");
 #endif
 			break;
 		case 't':
@@ -1305,14 +1305,17 @@ load_public_identity_files(void)
 	int i = 0;
 	Key *public;
 	struct passwd *pw;
-#ifdef SMARTCARD
+#ifdef ENABLE_PKCS11
 	Key **keys;
+	int nkeys;
 
-	if (options.smartcard_device != NULL &&
+	if (options.pkcs11_provider != NULL &&
 	    options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
-	    (keys = sc_get_keys(options.smartcard_device, NULL)) != NULL) {
+	    (pkcs11_init(!options.batch_mode) == 0) &&
+	    (nkeys = pkcs11_add_provider(options.pkcs11_provider, NULL,
+	    &keys)) > 0) {
 		int count = 0;
-		for (i = 0; keys[i] != NULL; i++) {
+		for (i = 0; i < nkeys; i++) {
 			count++;
 			memmove(&options.identity_files[1],
 			    &options.identity_files[0],
@@ -1322,14 +1325,16 @@ load_public_identity_files(void)
 			    sizeof(Key *) * (SSH_MAX_IDENTITY_FILES - 1));
 			options.num_identity_files++;
 			options.identity_keys[0] = keys[i];
-			options.identity_files[0] = sc_get_key_label(keys[i]);
+			options.identity_files[0] =
+			    xstrdup(options.pkcs11_provider); /* XXX */
 		}
 		if (options.num_identity_files > SSH_MAX_IDENTITY_FILES)
 			options.num_identity_files = SSH_MAX_IDENTITY_FILES;
 		i = count;
 		xfree(keys);
+		/* XXX leaks some keys */
 	}
-#endif /* SMARTCARD */
+#endif /* ENABLE_PKCS11 */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
 		fatal("load_public_identity_files: getpwuid failed");
 	pwname = xstrdup(pw->pw_name);

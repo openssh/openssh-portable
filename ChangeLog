@@ -5,6 +5,16 @@
      make buffer_get_string_ret() really non-fatal in all cases (it was
      using buffer_get_int(), which could fatal() on buffer empty);
      ok markus dtucker
+   - markus@cvs.openbsd.org 2010/02/08 10:50:20
+     [pathnames.h readconf.c readconf.h scp.1 sftp.1 ssh-add.1 ssh-add.c]
+     [ssh-agent.c ssh-keygen.1 ssh-keygen.c ssh.1 ssh.c ssh_config.5]
+     replace our obsolete smartcard code with PKCS#11.
+        ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-11/v2-20/pkcs-11v2-20.pdf
+     ssh(1) and ssh-keygen(1) use dlopen(3) directly to talk to a PKCS#11
+     provider (shared library) while ssh-agent(1) delegates PKCS#11 to
+     a forked a ssh-pkcs11-helper process.
+     PKCS#11 is currently a compile time option.
+     feedback and ok djm@; inspired by patches from Alon Bar-Lev
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for

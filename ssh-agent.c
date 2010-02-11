@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.162 2009/09/01 14:43:17 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.163 2010/02/08 10:50:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -76,8 +76,8 @@
 #include "log.h"
 #include "misc.h"
 
-#ifdef SMARTCARD
-#include "scard.h"
+#ifdef ENABLE_PKCS11
+#include "ssh-pkcs11.h"
 #endif
 
 #if defined(HAVE_SYS_PRCTL_H)
@@ -105,6 +105,7 @@ typedef struct identity {
 	TAILQ_ENTRY(identity) next;
 	Key *key;
 	char *comment;
+	char *provider;
 	u_int death;
 	u_int confirm;
 } Identity;
@@ -171,6 +172,7 @@ static void
 free_identity(Identity *id)
 {
 	key_free(id->key);
+	xfree(id->provider);
 	xfree(id->comment);
 	xfree(id);
 }
@@ -549,7 +551,7 @@ process_add_identity(SocketEntry *e, int version)
 	if (lifetime && !death)
 		death = time(NULL) + lifetime;
 	if ((id = lookup_identity(k, version)) == NULL) {
-		id = xmalloc(sizeof(Identity));
+		id = xcalloc(1, sizeof(Identity));
 		id->key = k;
 		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 		/* Increment the number of identities. */
@@ -609,17 +611,17 @@ no_identities(SocketEntry *e, u_int type)
 	buffer_free(&msg);
 }
 
-#ifdef SMARTCARD
+#ifdef ENABLE_PKCS11
 static void
 process_add_smartcard_key(SocketEntry *e)
 {
-	char *sc_reader_id = NULL, *pin;
-	int i, type, version, success = 0, death = 0, confirm = 0;
-	Key **keys, *k;
+	char *provider = NULL, *pin;
+	int i, type, version, count = 0, success = 0, death = 0, confirm = 0;
+	Key **keys = NULL, *k;
 	Identity *id;
 	Idtab *tab;
 
-	sc_reader_id = buffer_get_string(&e->request, NULL);
+	provider = buffer_get_string(&e->request, NULL);
 	pin = buffer_get_string(&e->request, NULL);
 
 	while (buffer_len(&e->request)) {
@@ -633,30 +635,22 @@ process_add_smartcard_key(SocketEntry *e)
 		default:
 			error("process_add_smartcard_key: "
 			    "Unknown constraint type %d", type);
-			xfree(sc_reader_id);
-			xfree(pin);
 			goto send;
 		}
 	}
 	if (lifetime && !death)
 		death = time(NULL) + lifetime;
 
-	keys = sc_get_keys(sc_reader_id, pin);
-	xfree(sc_reader_id);
-	xfree(pin);
-
-	if (keys == NULL || keys[0] == NULL) {
-		error("sc_get_keys failed");
-		goto send;
-	}
-	for (i = 0; keys[i] != NULL; i++) {
+	count = pkcs11_add_provider(provider, pin, &keys);
+	for (i = 0; i < count; i++) {
 		k = keys[i];
 		version = k->type == KEY_RSA1 ? 1 : 2;
 		tab = idtab_lookup(version);
 		if (lookup_identity(k, version) == NULL) {
-			id = xmalloc(sizeof(Identity));
+			id = xcalloc(1, sizeof(Identity));
 			id->key = k;
-			id->comment = sc_get_key_label(k);
+			id->provider = xstrdup(provider);
+			id->comment = xstrdup(provider); /* XXX */
 			id->death = death;
 			id->confirm = confirm;
 			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
@@ -667,8 +661,13 @@ process_add_smartcard_key(SocketEntry *e)
 		}
 		keys[i] = NULL;
 	}
-	xfree(keys);
 send:
+	if (pin)
+		xfree(pin);
+	if (provider)
+		xfree(provider);
+	if (keys)
+		xfree(keys);
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
@@ -677,42 +676,37 @@ send:
 static void
 process_remove_smartcard_key(SocketEntry *e)
 {
-	char *sc_reader_id = NULL, *pin;
-	int i, version, success = 0;
-	Key **keys, *k = NULL;
-	Identity *id;
+	char *provider = NULL, *pin = NULL;
+	int version, success = 0;
+	Identity *id, *nxt;
 	Idtab *tab;
 
-	sc_reader_id = buffer_get_string(&e->request, NULL);
+	provider = buffer_get_string(&e->request, NULL);
 	pin = buffer_get_string(&e->request, NULL);
-	keys = sc_get_keys(sc_reader_id, pin);
-	xfree(sc_reader_id);
 	xfree(pin);
 
-	if (keys == NULL || keys[0] == NULL) {
-		error("sc_get_keys failed");
-		goto send;
-	}
-	for (i = 0; keys[i] != NULL; i++) {
-		k = keys[i];
-		version = k->type == KEY_RSA1 ? 1 : 2;
-		if ((id = lookup_identity(k, version)) != NULL) {
-			tab = idtab_lookup(version);
-			TAILQ_REMOVE(&tab->idlist, id, next);
-			tab->nentries--;
-			free_identity(id);
-			success = 1;
+	for (version = 1; version < 3; version++) {
+		tab = idtab_lookup(version);
+		for (id = TAILQ_FIRST(&tab->idlist); id; id = nxt) {
+			nxt = TAILQ_NEXT(id, next);
+			if (!strcmp(provider, id->provider)) {
+				TAILQ_REMOVE(&tab->idlist, id, next);
+				free_identity(id);
+				tab->nentries--;
+			}
 		}
-		key_free(k);
-		keys[i] = NULL;
 	}
-	xfree(keys);
-send:
+	if (pkcs11_del_provider(provider) == 0)
+		success = 1;
+	else
+		error("process_remove_smartcard_key:"
+		    " pkcs11_del_provider failed");
+	xfree(provider);
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
-#endif /* SMARTCARD */
+#endif /* ENABLE_PKCS11 */
 
 /* dispatch incoming messages */
 
@@ -797,7 +791,7 @@ process_message(SocketEntry *e)
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
 		break;
-#ifdef SMARTCARD
+#ifdef ENABLE_PKCS11
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
 	case SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED:
 		process_add_smartcard_key(e);
@@ -805,7 +799,7 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:
 		process_remove_smartcard_key(e);
 		break;
-#endif /* SMARTCARD */
+#endif /* ENABLE_PKCS11 */
 	default:
 		/* Unknown message.  Respond with failure. */
 		error("Unknown message %d", type);
@@ -1009,6 +1003,9 @@ static void
 cleanup_handler(int sig)
 {
 	cleanup_socket();
+#ifdef ENABLE_PKCS11
+	pkcs11_terminate();
+#endif
 	_exit(2);
 }
 
@@ -1255,6 +1252,10 @@ main(int ac, char **av)
 #endif
 
 skip:
+
+#ifdef ENABLE_PKCS11
+	pkcs11_init(0);
+#endif
 	new_socket(AUTH_SOCKET, sock);
 	if (ac > 0)
 		parent_alive_interval = 10;

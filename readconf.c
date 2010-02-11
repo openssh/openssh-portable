@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.182 2010/01/09 23:04:13 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.183 2010/02/08 10:50:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -123,7 +123,7 @@ typedef enum {
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
+	oHostKeyAlgorithms, oBindAddress, oPKCS11Provider,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
@@ -205,10 +205,12 @@ static struct {
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
-#ifdef SMARTCARD
-	{ "smartcarddevice", oSmartcardDevice },
+#ifdef ENABLE_PKCS11
+	{ "smartcarddevice", oPKCS11Provider },
+	{ "pkcs11provider", oPKCS11Provider },
 #else
 	{ "smartcarddevice", oUnsupported },
+	{ "pkcs11provider", oUnsupported },
 #endif
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
@@ -609,8 +611,8 @@ parse_string:
 		charptr = &options->bind_address;
 		goto parse_string;
 
-	case oSmartcardDevice:
-		charptr = &options->smartcard_device;
+	case oPKCS11Provider:
+		charptr = &options->pkcs11_provider;
 		goto parse_string;
 
 	case oProxyCommand:
@@ -1051,7 +1053,7 @@ initialize_options(Options * options)
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
-	options->smartcard_device = NULL;
+	options->pkcs11_provider = NULL;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
 	options->identities_only = - 1;

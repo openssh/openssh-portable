@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.126 2010/01/09 23:04:13 dtucker Exp $
-.Dd $Mdocdate: January 9 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.127 2010/02/08 10:50:20 markus Exp $
+.Dd $Mdocdate: February 8 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -711,6 +711,13 @@ or
 .Dq no .
 The default is
 .Dq no .
+.It Cm PKCS11Provider
+Specifies which PKCS#11 provider to use.
+The argument to this keyword is the PKCS#11 shared libary
+.Xr ssh 1
+should use to communicate with a PKCS#11 token used for storing the user's
+private RSA key.
+By default, no device is specified and PKCS#11 support is not activated.
 .It Cm Port
 Specifies the port number to connect on the remote host.
 The default is 22.
@@ -927,13 +934,6 @@ channel to request a response from the server.
 The default
 is 0, indicating that these messages will not be sent to the server.
 This option applies to protocol version 2 only.
-.It Cm SmartcardDevice
-Specifies which smartcard device to use.
-The argument to this keyword is the device
-.Xr ssh 1
-should use to communicate with a smartcard used for storing the user's
-private RSA key.
-By default, no device is specified and smartcard support is not activated.
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes ,

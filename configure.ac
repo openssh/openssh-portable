@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.440 2010/02/09 23:19:29 djm Exp $
+# $Id: configure.ac,v 1.441 2010/02/11 22:21:02 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.440 $)
+AC_REVISION($Revision: 1.441 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -4195,6 +4195,10 @@ if grep "#define BROKEN_GETADDRINFO 1" confdefs.h >/dev/null || \
 	AC_SUBST(TEST_SSH_IPV6, no)
 else
 	AC_SUBST(TEST_SSH_IPV6, yes)
+fi
+
+if test "x$enable_pkcs11" != "xno" ; then
+	AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])
 fi
 
 AC_EXEEXT

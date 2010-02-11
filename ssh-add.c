@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.91 2009/08/27 17:44:52 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.92 2010/02/08 10:50:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -211,7 +211,7 @@ update_card(AuthenticationConnection *ac, int add, const char *id)
 	char *pin;
 	int ret = -1;
 
-	pin = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
+	pin = read_passphrase("Enter passphrase for PKCS#11: ", RP_ALLOW_STDIN);
 	if (pin == NULL)
 		return -1;
 
@@ -317,10 +317,8 @@ usage(void)
 	fprintf(stderr, "  -X          Unlock agent.\n");
 	fprintf(stderr, "  -t life     Set lifetime (in seconds) when adding identities.\n");
 	fprintf(stderr, "  -c          Require confirmation to sign using identities\n");
-#ifdef SMARTCARD
-	fprintf(stderr, "  -s reader   Add key in smartcard reader.\n");
-	fprintf(stderr, "  -e reader   Remove key in smartcard reader.\n");
-#endif
+	fprintf(stderr, "  -s pkcs11   Add keys from PKCS#11 provider.\n");
+	fprintf(stderr, "  -e pkcs11   Remove keys provided by PKCS#11 provider.\n");
 }
 
 int
@@ -329,7 +327,7 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	AuthenticationConnection *ac = NULL;
-	char *sc_reader_id = NULL;
+	char *pkcs11provider = NULL;
 	int i, ch, deleting = 0, ret = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -371,11 +369,11 @@ main(int argc, char **argv)
 				ret = 1;
 			goto done;
 		case 's':
-			sc_reader_id = optarg;
+			pkcs11provider = optarg;
 			break;
 		case 'e':
 			deleting = 1;
-			sc_reader_id = optarg;
+			pkcs11provider = optarg;
 			break;
 		case 't':
 			if ((lifetime = convtime(optarg)) == -1) {
@@ -392,8 +390,8 @@ main(int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-	if (sc_reader_id != NULL) {
-		if (update_card(ac, !deleting, sc_reader_id) == -1)
+	if (pkcs11provider != NULL) {
+		if (update_card(ac, !deleting, pkcs11provider) == -1)
 			ret = 1;
 		goto done;
 	}
