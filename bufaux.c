@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.47 2010/01/12 01:36:08 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.48 2010/02/02 22:49:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -166,7 +166,10 @@ buffer_get_string_ret(Buffer *buffer, u_int *length_ptr)
 	u_int len;
 
 	/* Get the length. */
-	len = buffer_get_int(buffer);
+	if (buffer_get_int_ret(&len, buffer) != 0) {
+		error("buffer_get_string_ret: cannot extract length");
+		return (NULL);
+	}
 	if (len > 256 * 1024) {
 		error("buffer_get_string_ret: bad string length %u", len);
 		return (NULL);
