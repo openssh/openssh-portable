@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.304 2010/02/11 22:21:02 djm Exp $
+# $Id: Makefile.in,v 1.305 2010/02/11 22:34:22 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -72,8 +72,8 @@ LIBSSH_OBJS=acss.o authfd.o authfile.o bufaux.o bufbn.o buffer.o \
 	readpass.o rsa.o ttymodes.o xmalloc.o addrmatch.o \
 	atomicio.o key.o dispatch.o kex.o mac.o uidswap.o uuencode.o misc.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o \
-	kexgex.o kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
-	entropy.o scard-opensc.o gss-genr.o umac.o jpake.o schnorr.o \
+	kexgex.o kexdhc.o kexgexc.o msg.o progressmeter.o dns.o \
+	entropy.o gss-genr.o umac.o jpake.o schnorr.o \
 	ssh-pkcs11.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
@@ -215,7 +215,6 @@ distclean:	regressclean
 	rm -f survey.sh openbsd-compat/regress/Makefile *~ 
 	rm -rf autom4te.cache
 	(cd openbsd-compat && $(MAKE) distclean)
-	(cd scard && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
 	fi
@@ -238,7 +237,6 @@ catman-do:
 distprep: catman-do
 	$(AUTORECONF)
 	-rm -rf autom4te.cache
-	(cd scard && $(MAKE) -f Makefile.in distprep)
 
 install: $(CONFIGFILES) ssh_prng_cmds.out $(MANPAGES) $(TARGETS) install-files install-sysconf host-key check-config
 install-nokeys: $(CONFIGFILES) ssh_prng_cmds.out $(MANPAGES) $(TARGETS) install-files install-sysconf
@@ -247,10 +245,7 @@ install-nosysconf: $(CONFIGFILES) ssh_prng_cmds.out $(MANPAGES) $(TARGETS) insta
 check-config:
 	-$(DESTDIR)$(sbindir)/sshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
 
-scard-install:
-	(cd scard && env DESTDIR=$(DESTDIR) $(MAKE) DESTDIR=$(DESTDIR) install)
-
-install-files: scard-install
+install-files:
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)

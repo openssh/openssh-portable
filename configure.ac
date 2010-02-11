@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.441 2010/02/11 22:21:02 djm Exp $
+# $Id: configure.ac,v 1.442 2010/02/11 22:34:22 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.441 $)
+AC_REVISION($Revision: 1.442 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3263,73 +3263,6 @@ if test "x$ac_cv_libc_defines_sys_nerr" = "xyes" ; then
 	AC_DEFINE(HAVE_SYS_NERR, 1, [Define if your system defines sys_nerr])
 fi
 
-SCARD_MSG="no"
-# Check whether user wants sectok support
-AC_ARG_WITH(sectok,
-	[  --with-sectok           Enable smartcard support using libsectok],
-	[
-		if test "x$withval" != "xno" ; then
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}"
-				LDFLAGS="$LDFLAGS -L${withval}"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R${withval}"
-				fi
-				if test ! -z "$blibpath" ; then
-					blibpath="$blibpath:${withval}"
-				fi
-			fi
-			AC_CHECK_HEADERS(sectok.h)
-			if test "$ac_cv_header_sectok_h" != yes; then
-				AC_MSG_ERROR(Can't find sectok.h)
-			fi
-			AC_CHECK_LIB(sectok, sectok_open)
-			if test "$ac_cv_lib_sectok_sectok_open" != yes; then
-				AC_MSG_ERROR(Can't find libsectok)
-			fi
-			AC_DEFINE(SMARTCARD, 1,
-				[Define if you want smartcard support])
-			AC_DEFINE(USE_SECTOK, 1,
-				[Define if you want smartcard support
-				using sectok])
-			SCARD_MSG="yes, using sectok"
-		fi
-	]
-)
-
-# Check whether user wants OpenSC support
-OPENSC_CONFIG="no"
-AC_ARG_WITH(opensc,
-	[  --with-opensc[[=PFX]]     Enable smartcard support using OpenSC (optionally in PATH)],
-	[
-	    if test "x$withval" != "xno" ; then
-		AC_PATH_PROG(PKGCONFIG, pkg-config, no)
-		AC_MSG_CHECKING(how to get opensc config)
-		if test "x$withval" != "xyes" -a "x$PKGCONFIG" = "xno"; then
-			OPENSC_CONFIG="$withval/bin/opensc-config"
-		elif test -f "$withval/src/libopensc/libopensc.pc"; then
-			OPENSC_CONFIG="$PKGCONFIG $withval/src/libopensc/libopensc.pc"
-		elif test "x$PKGCONFIG" != "xno"; then
-			OPENSC_CONFIG="$PKGCONFIG libopensc"
-		else
-			AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
-		fi
-		AC_MSG_RESULT($OPENSC_CONFIG)
-		if test "$OPENSC_CONFIG" != "no"; then
-			LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
-			LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
-			CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
-			LIBS="$LIBS $LIBOPENSC_LIBS"
-			AC_DEFINE(SMARTCARD)
-			AC_DEFINE(USE_OPENSC, 1,
-				[Define if you want smartcard support
-				using OpenSC])
-			SCARD_MSG="yes, using OpenSC"
-		fi
-	    fi
-	]
-)
-
 # Check libraries needed by DNS fingerprint support
 AC_SEARCH_LIBS(getrrsetbyname, resolv,
 	[AC_DEFINE(HAVE_GETRRSETBYNAME, 1,
@@ -4204,7 +4137,7 @@ fi
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
 	openbsd-compat/Makefile openbsd-compat/regress/Makefile \
-	scard/Makefile ssh_prng_cmds survey.sh])
+	ssh_prng_cmds survey.sh])
 AC_OUTPUT
 
 # Print summary of options
