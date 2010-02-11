@@ -34,6 +34,9 @@
    - markus@cvs.openbsd.org 2010/02/10 23:20:38
      [ssh-add.1 ssh-keygen.1 ssh.1 ssh_config.5]
      pkcs#11 is no longer optional; improve wording; ok jmc@
+   - jmc@cvs.openbsd.org 2010/02/11 13:23:29
+     [ssh.1]
+     libarary -> library;
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for
