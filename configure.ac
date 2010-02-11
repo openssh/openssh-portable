@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.442 2010/02/11 22:34:22 djm Exp $
+# $Id: configure.ac,v 1.443 2010/02/11 23:11:34 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.442 $)
+AC_REVISION($Revision: 1.443 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1418,6 +1418,11 @@ AC_CHECK_FUNCS( \
 	vhangup \
 	vsnprintf \
 	waitpid \
+)
+
+# PKCS#11 support requires dlopen() and co
+AC_SEARCH_LIBS(dlopen, dl,
+    AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])
 )
 
 # IRIX has a const char return value for gai_strerror()
@@ -4128,10 +4133,6 @@ if grep "#define BROKEN_GETADDRINFO 1" confdefs.h >/dev/null || \
 	AC_SUBST(TEST_SSH_IPV6, no)
 else
 	AC_SUBST(TEST_SSH_IPV6, yes)
-fi
-
-if test "x$enable_pkcs11" != "xno" ; then
-	AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])
 fi
 
 AC_EXEEXT

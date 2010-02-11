@@ -44,6 +44,8 @@
    Make it compile on OSX
  - (djm) [ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c]
    Use ssh_get_progname to fill __progname
+ - (djm) [configure.ac] Enable PKCS#11 support only when we find a working
+   dlopen()
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for
