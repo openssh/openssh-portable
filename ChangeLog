@@ -15,6 +15,9 @@
      a forked a ssh-pkcs11-helper process.
      PKCS#11 is currently a compile time option.
      feedback and ok djm@; inspired by patches from Alon Bar-Lev
+   - jmc@cvs.openbsd.org 2010/02/08 22:03:05
+     [ssh-add.1 ssh-keygen.1 ssh.1 ssh.c]
+     tweak previous; ok markus
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for

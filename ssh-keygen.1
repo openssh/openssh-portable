@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.81 2010/02/08 10:50:20 markus Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.82 2010/02/08 22:03:05 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -79,7 +79,7 @@
 .Fl B
 .Op Fl f Ar input_keyfile
 .Nm ssh-keygen
-.Fl D Ar reader
+.Fl D Ar pkcs11
 .Nm ssh-keygen
 .Fl F Ar hostname
 .Op Fl f Ar known_hosts_file
@@ -90,9 +90,6 @@
 .Nm ssh-keygen
 .Fl R Ar hostname
 .Op Fl f Ar known_hosts_file
-.Nm ssh-keygen
-.Fl U Ar reader
-.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl r Ar hostname
 .Op Fl f Ar input_keyfile

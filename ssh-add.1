@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.49 2010/02/08 10:50:20 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.50 2010/02/08 22:03:05 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -49,9 +49,9 @@
 .Op Fl t Ar life
 .Op Ar
 .Nm ssh-add
-.Fl s Ar reader
+.Fl s Ar pkcs11
 .Nm ssh-add
-.Fl e Ar reader
+.Fl e Ar pkcs11
 .Sh DESCRIPTION
 .Nm
 adds RSA or DSA identities to the authentication agent,
@@ -110,7 +110,7 @@ by the agent.
 .It Fl l
 Lists fingerprints of all identities currently represented by the agent.
 .It Fl s Ar pkcs11
-Add key provider by
+Add key provided by
 .Ar pkcs11 .
 .It Fl t Ar life
 Set a maximum lifetime when adding identities to an agent.
