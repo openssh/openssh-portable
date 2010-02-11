@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.292 2010/02/08 22:03:05 jmc Exp $
-.Dd $Mdocdate: February 8 2010 $
+.\" $OpenBSD: ssh.1,v 1.293 2010/02/10 23:20:38 markus Exp $
+.Dd $Mdocdate: February 10 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -288,10 +288,8 @@ Allows remote hosts to connect to local forwarded ports.
 .It Fl I Ar pkcs11
 Specify the PKCS#11 shared libarary
 .Nm
-should use to communicate with a PKCS#11 token used for storing the user's
+should use to communicate with a PKCS#11 token providing the user's
 private RSA key.
-This option is only available if support for PKCS#11
-is compiled in (default is no support).
 .It Fl i Ar identity_file
 Selects a file from which the identity (private key) for
 RSA or DSA authentication is read.

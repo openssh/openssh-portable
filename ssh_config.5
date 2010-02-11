@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.127 2010/02/08 10:50:20 markus Exp $
-.Dd $Mdocdate: February 8 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.128 2010/02/10 23:20:38 markus Exp $
+.Dd $Mdocdate: February 10 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -715,9 +715,8 @@ The default is
 Specifies which PKCS#11 provider to use.
 The argument to this keyword is the PKCS#11 shared libary
 .Xr ssh 1
-should use to communicate with a PKCS#11 token used for storing the user's
+should use to communicate with a PKCS#11 token providing the user's
 private RSA key.
-By default, no device is specified and PKCS#11 support is not activated.
 .It Cm Port
 Specifies the port number to connect on the remote host.
 The default is 22.
