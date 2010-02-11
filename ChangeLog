@@ -40,6 +40,8 @@
  - (djm) [INSTALL Makefile.in README.smartcard configure.ac scard-opensc.c]
    [scard.c scard.h pkcs11.h scard/Makefile.in scard/Ssh.bin.uu scard/Ssh.java]
    Remove obsolete smartcard support
+ - (djm) [ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c]
+   Make it compile on OSX
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for

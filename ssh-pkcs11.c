@@ -14,13 +14,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
-#include <sys/queue.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 
 #include <string.h>
 #include <dlfcn.h>
+
+#include "openbsd-compat/sys-queue.h"
 
 #define CRYPTOKI_COMPAT
 #include "pkcs11.h"
@@ -190,14 +196,14 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	CK_ULONG		tlen = 0, nfound = 0;
 	CK_RV			rv;
 	CK_OBJECT_CLASS		private_key_class = CKO_PRIVATE_KEY;
-	CK_BBOOL		true = CK_TRUE;
+	CK_BBOOL		true_val = CK_TRUE;
 	CK_MECHANISM		mech = {
 		CKM_RSA_PKCS, NULL_PTR, 0
 	};
 	CK_ATTRIBUTE		key_filter[] = {
 		{CKA_CLASS, &private_key_class, sizeof(private_key_class) },
 		{CKA_ID, NULL, 0},
-		{CKA_SIGN, &true, sizeof(true) }
+		{CKA_SIGN, &true_val, sizeof(true_val) }
 	};
 	char			*pin, prompt[1024];
 	int			rval = -1;
