@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.83 2010/01/13 23:47:26 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.84 2010/02/09 06:18:46 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -95,7 +95,6 @@ allowed_user(struct passwd * pw)
 {
 	struct stat st;
 	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
-	char *shell, *tmp, *chroot_path;
 	u_int i;
 #ifdef USE_SHADOW
 	struct spwd *spw = NULL;
@@ -153,43 +152,29 @@ allowed_user(struct passwd * pw)
 	}
 
 	/*
-	 * Get the shell from the password data.  An empty shell field is
-	 * legal, and means /bin/sh.
+	 * Deny if shell does not exist or is not executable unless we
+	 * are chrooting.
 	 */
-	shell = xstrdup((pw->pw_shell[0] == '\0') ?
-	    _PATH_BSHELL : pw->pw_shell);
+	if (options.chroot_directory == NULL ||
+	    strcasecmp(options.chroot_directory, "none") == 0) {
+		char *shell = xstrdup((pw->pw_shell[0] == '\0') ?
+		    _PATH_BSHELL : pw->pw_shell); /* empty = /bin/sh */
 
-	/*
-	 * Amend shell if chroot is requested.
-	 */
-	if (options.chroot_directory != NULL &&
-	    strcasecmp(options.chroot_directory, "none") != 0) {
-		tmp = tilde_expand_filename(options.chroot_directory,
-		    pw->pw_uid);
-		chroot_path = percent_expand(tmp, "h", pw->pw_dir,
-		    "u", pw->pw_name, (char *)NULL);
-		xfree(tmp);
-		xasprintf(&tmp, "%s/%s", chroot_path, shell);
+		if (stat(shell, &st) != 0) {
+			logit("User %.100s not allowed because shell %.100s "
+			    "does not exist", pw->pw_name, shell);
+			xfree(shell);
+			return 0;
+		}
+		if (S_ISREG(st.st_mode) == 0 ||
+		    (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)) == 0) {
+			logit("User %.100s not allowed because shell %.100s "
+			    "is not executable", pw->pw_name, shell);
+			xfree(shell);
+			return 0;
+		}
 		xfree(shell);
-		shell = tmp;
-		free(chroot_path);
 	}
-
-	/* deny if shell does not exists or is not executable */
-	if (stat(shell, &st) != 0) {
-		logit("User %.100s not allowed because shell %.100s does not exist",
-		    pw->pw_name, shell);
-		xfree(shell);
-		return 0;
-	}
-	if (S_ISREG(st.st_mode) == 0 ||
-	    (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)) == 0) {
-		logit("User %.100s not allowed because shell %.100s is not executable",
-		    pw->pw_name, shell);
-		xfree(shell);
-		return 0;
-	}
-	xfree(shell);
 
 	if (options.num_deny_users > 0 || options.num_allow_users > 0 ||
 	    options.num_deny_groups > 0 || options.num_allow_groups > 0) {

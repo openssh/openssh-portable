@@ -27,6 +27,10 @@
    - djm@cvs.openbsd.org 2010/02/09 03:56:28
      [buffer.c buffer.h]
      constify the arguments to buffer_len, buffer_ptr and buffer_dump
+   - djm@cvs.openbsd.org 2010/02/09 06:18:46
+     [auth.c]
+     unbreak ChrootDirectory+internal-sftp by skipping check for executable
+     shell when chrooting; reported by danh AT wzrd.com; ok dtucker@
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for
