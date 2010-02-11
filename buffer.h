@@ -1,4 +1,4 @@
-/* $OpenBSD: buffer.h,v 1.18 2010/01/12 01:36:08 djm Exp $ */
+/* $OpenBSD: buffer.h,v 1.19 2010/02/09 03:56:28 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -27,8 +27,8 @@ void	 buffer_init(Buffer *);
 void	 buffer_clear(Buffer *);
 void	 buffer_free(Buffer *);
 
-u_int	 buffer_len(Buffer *);
-void	*buffer_ptr(Buffer *);
+u_int	 buffer_len(const Buffer *);
+void	*buffer_ptr(const Buffer *);
 
 void	 buffer_append(Buffer *, const void *, u_int);
 void	*buffer_append_space(Buffer *, u_int);
@@ -40,7 +40,7 @@ void	 buffer_get(Buffer *, void *, u_int);
 void	 buffer_consume(Buffer *, u_int);
 void	 buffer_consume_end(Buffer *, u_int);
 
-void     buffer_dump(Buffer *);
+void     buffer_dump(const Buffer *);
 
 int	 buffer_get_ret(Buffer *, void *, u_int);
 int	 buffer_consume_ret(Buffer *, u_int);

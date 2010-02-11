@@ -24,6 +24,9 @@
    - djm@cvs.openbsd.org 2010/02/09 00:50:59
      [ssh-keygen.c]
      fix -Wall
+   - djm@cvs.openbsd.org 2010/02/09 03:56:28
+     [buffer.c buffer.h]
+     constify the arguments to buffer_len, buffer_ptr and buffer_dump
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for
