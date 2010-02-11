@@ -21,6 +21,9 @@
    - djm@cvs.openbsd.org 2010/02/09 00:50:36
      [ssh-agent.c]
      fallout from PKCS#11: unbreak -D
+   - djm@cvs.openbsd.org 2010/02/09 00:50:59
+     [ssh-keygen.c]
+     fix -Wall
 
 20100210
  - (djm) add -lselinux to LIBS before calling AC_CHECK_FUNCS for
