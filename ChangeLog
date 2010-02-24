@@ -18,6 +18,10 @@
      [regress/Makefile]
      turn on all the malloc(3) checking options when running regression
      tests. this has caught a few bugs for me in the past; ok dtucker@
+   - djm@cvs.openbsd.org 2010/02/24 06:21:56
+     [regress/test-exec.sh]
+     wait for sshd to fully stop in cleanup() function; avoids races in tests
+     that do multiple start_sshd/cleanup cycles; "I hate pidfiles" deraadt@
 
 20100212
  - (djm) OpenBSD CVS Sync

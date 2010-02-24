@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.36 2009/10/08 18:04:27 markus Exp $
+#	$OpenBSD: test-exec.sh,v 1.37 2010/02/24 06:21:56 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -172,9 +172,17 @@ cleanup ()
 			echo no sshd running
 		else
 			if [ $pid -lt 2 ]; then
-				echo bad pid for ssd: $pid
+				echo bad pid for ssh: $pid
 			else
 				$SUDO kill $pid
+				trace "wait for sshd to exit"
+				i=0;
+				while [ -f $PIDFILE -a $i -lt 5 ]; do
+					i=`expr $i + 1`
+					sleep $i
+				done
+				test -f $PIDFILE && \
+				    fatal "sshd didn't exit port $PORT pid $pid"
 			fi
 		fi
 	fi
