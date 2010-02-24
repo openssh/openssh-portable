@@ -22,6 +22,9 @@
      [regress/test-exec.sh]
      wait for sshd to fully stop in cleanup() function; avoids races in tests
      that do multiple start_sshd/cleanup cycles; "I hate pidfiles" deraadt@
+   - markus@cvs.openbsd.org 2010/02/08 10:52:47
+     [regress/agent-pkcs11.sh]
+     test for PKCS#11 support (currently disabled)
 
 20100212
  - (djm) OpenBSD CVS Sync
