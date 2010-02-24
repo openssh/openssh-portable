@@ -11,6 +11,9 @@
    - dtucker@cvs.openbsd.org 2010/01/11 02:53:44
      [regress/forwarding.sh]
      regress test for stdio forwarding
+   - djm@cvs.openbsd.org 2010/02/09 04:57:36
+     [regress/addrmatch.sh]
+     clean up droppings
 
 20100212
  - (djm) OpenBSD CVS Sync

@@ -1,9 +1,9 @@
-#	$OpenBSD: addrmatch.sh,v 1.2 2008/12/07 22:17:48 djm Exp $
+#	$OpenBSD: addrmatch.sh,v 1.3 2010/02/09 04:57:36 djm Exp $
 #	Placed in the Public Domain.
 
 tid="address match"
 
-mv $OBJ/sshd_proxy $OBJ/sshd_proxy_orig
+mv $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
 run_trial()
 {
@@ -18,7 +18,7 @@ run_trial()
 	fi
 }
 
-cp $OBJ/sshd_proxy_orig $OBJ/sshd_proxy
+cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 cat >>$OBJ/sshd_proxy <<EOD
 PasswordAuthentication no
 Match Address 192.168.0.0/16,!192.168.30.0/24,10.0.0.0/8,host.example.com
@@ -40,3 +40,6 @@ run_trial user ::3 somehost no			"deny IP6 negated"
 run_trial user ::4 somehost no			"deny, IP6 no match"
 run_trial user 2000::1 somehost yes		"permit, IP6 network"
 run_trial user 2001::1 somehost no		"deny, IP6 network"
+
+cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+rm $OBJ/sshd_proxy_bak
