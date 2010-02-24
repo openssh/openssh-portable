@@ -1,6 +1,10 @@
 20100224
  - (djm) [pkcs11.h ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c]
    [ssh-pkcs11.h] Add $OpenBSD$ RCS idents so we can sync portable
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/02/11 20:37:47
+     [pathnames.h]
+     correct comment
 
 20100212
  - (djm) OpenBSD CVS Sync
