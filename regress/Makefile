@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.49 2009/08/13 00:57:17 djm Exp $
+#	$OpenBSD: Makefile,v 1.50 2009/11/09 04:20:04 dtucker Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -34,6 +34,7 @@ LTESTS= 	connect \
 		agent-ptrace \
 		keyscan \
 		keygen-change \
+		keygen-convert \
 		key-options \
 		scp \
 		sftp \

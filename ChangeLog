@@ -5,6 +5,9 @@
    - djm@cvs.openbsd.org 2010/02/11 20:37:47
      [pathnames.h]
      correct comment
+   - dtucker@cvs.openbsd.org 2009/11/09 04:20:04
+     [regress/Makefile]
+     add regression test for ssh-keygen pubkey conversions
 
 20100212
  - (djm) OpenBSD CVS Sync
