@@ -25,6 +25,7 @@
    - markus@cvs.openbsd.org 2010/02/08 10:52:47
      [regress/agent-pkcs11.sh]
      test for PKCS#11 support (currently disabled)
+ - (djm) [Makefile.in ssh-pkcs11-helper.8] Add manpage for PKCS#11 helper
 
 20100212
  - (djm) OpenBSD CVS Sync
