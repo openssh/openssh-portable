@@ -14,6 +14,10 @@
    - djm@cvs.openbsd.org 2010/02/09 04:57:36
      [regress/addrmatch.sh]
      clean up droppings
+   - djm@cvs.openbsd.org 2010/02/09 06:29:02
+     [regress/Makefile]
+     turn on all the malloc(3) checking options when running regression
+     tests. this has caught a few bugs for me in the past; ok dtucker@
 
 20100212
  - (djm) OpenBSD CVS Sync

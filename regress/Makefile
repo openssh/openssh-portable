@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.50 2009/11/09 04:20:04 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.51 2010/02/09 06:29:02 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -68,6 +68,9 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv \
 		putty.rsa2
 
+# Enable all malloc(3) randomisations and checks
+TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
+
 t1:
 	ssh-keygen -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
 
@@ -106,13 +109,13 @@ t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO=${SUDO} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		(env SUDO=${SUDO} TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO=${SUDO} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		(env SUDO=${SUDO} TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
 
