@@ -345,7 +345,9 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
 %attr(4711,root,root) %{_libexecdir}/openssh/ssh-keysign
+%attr(0755,root,root) %{_libexecdir}/openssh/ssh-pkcs11-helper
 %attr(0644,root,root) %{_mandir}/man8/ssh-keysign.8*
+%attr(0644,root,root) %{_mandir}/man8/ssh-pkcs11-helper.8*
 %endif
 %if %{scard}
 %attr(0755,root,root) %dir %{_datadir}/openssh

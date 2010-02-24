@@ -319,6 +319,7 @@ fi
 %{_bindir}/ssh-keyscan
 %dir %{_libexecdir}
 %attr(4711,root,root) %{_libexecdir}/ssh-keysign
+%{_libexecdir}/ssh-pkcs11-helper
 %{_sbindir}/ssh-host-keygen
 %dir %{_defaultdocdir}/%{name}-%{version}
 %{_defaultdocdir}/%{name}-%{version}/CREDITS
@@ -330,6 +331,7 @@ fi
 %{_defaultdocdir}/%{name}-%{version}/faq.html
 %{_mandir}/man1/*
 %{_mandir}/man8/ssh-keysign.8.gz
+%{_mandir}/man8/ssh-pkcs11-helper.8.gz
 %{_mandir}/man5/ssh_config.5.gz
  
 %Files server
@@ -358,4 +360,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.67 2009/10/02 01:49:05 djm Exp $
+$Id: openssh.spec,v 1.68 2010/02/24 07:21:46 djm Exp $

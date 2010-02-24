@@ -26,6 +26,8 @@
      [regress/agent-pkcs11.sh]
      test for PKCS#11 support (currently disabled)
  - (djm) [Makefile.in ssh-pkcs11-helper.8] Add manpage for PKCS#11 helper
+ - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Add PKCS#11 helper binary and manpage
 
 20100212
  - (djm) OpenBSD CVS Sync
