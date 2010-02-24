@@ -8,6 +8,9 @@
    - dtucker@cvs.openbsd.org 2009/11/09 04:20:04
      [regress/Makefile]
      add regression test for ssh-keygen pubkey conversions
+   - dtucker@cvs.openbsd.org 2010/01/11 02:53:44
+     [regress/forwarding.sh]
+     regress test for stdio forwarding
 
 20100212
  - (djm) OpenBSD CVS Sync
