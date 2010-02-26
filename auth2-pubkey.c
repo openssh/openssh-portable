@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.19 2008/07/03 21:46:58 otto Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.20 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -32,6 +32,8 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "xmalloc.h"
@@ -178,6 +180,7 @@ static int
 user_key_allowed2(struct passwd *pw, Key *key, char *file)
 {
 	char line[SSH_MAX_PUBKEY_BYTES];
+	const char *reason;
 	int found_key = 0;
 	FILE *f;
 	u_long linenum = 0;
@@ -196,10 +199,12 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 	}
 
 	found_key = 0;
-	found = key_new(key->type);
+	found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
 
 	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
 		char *cp, *key_options = NULL;
+
+		auth_clear_options();
 
 		/* Skip leading whitespace, empty and comment lines. */
 		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
@@ -227,8 +232,32 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 				continue;
 			}
 		}
-		if (key_equal(found, key) &&
-		    auth_parse_options(pw, key_options, file, linenum) == 1) {
+		if (auth_parse_options(pw, key_options, file, linenum) != 1)
+			continue;
+		if (key->type == KEY_RSA_CERT || key->type == KEY_DSA_CERT) {
+			if (!key_is_cert_authority)
+				continue;
+			if (!key_equal(found, key->cert->signature_key))
+				continue;
+			debug("matching CA found: file %s, line %lu",
+			    file, linenum);
+			fp = key_fingerprint(found, SSH_FP_MD5,
+			    SSH_FP_HEX);
+			verbose("Found matching %s CA: %s",
+			    key_type(found), fp);
+			xfree(fp);
+			if (key_cert_check_authority(key, 0, 0, pw->pw_name,
+			    &reason) != 0) {
+				error("%s", reason);
+				auth_debug_add("%s", reason);
+				continue;
+			}
+			if (auth_cert_constraints(&key->cert->constraints,
+			    pw) != 0)
+				continue;
+			found_key = 1;
+			break;
+		} else if (!key_is_cert_authority && key_equal(found, key)) {
 			found_key = 1;
 			debug("matching key found: file %s, line %lu",
 			    file, linenum);

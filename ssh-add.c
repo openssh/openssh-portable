@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.92 2010/02/08 10:50:20 markus Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.93 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -138,9 +138,9 @@ delete_all(AuthenticationConnection *ac)
 static int
 add_file(AuthenticationConnection *ac, const char *filename)
 {
-	Key *private;
+	Key *private, *cert;
 	char *comment = NULL;
-	char msg[1024];
+	char msg[1024], *certpath;
 	int fd, perms_ok, ret = -1;
 
 	if ((fd = open(filename, O_RDONLY)) < 0) {
@@ -199,6 +199,34 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		fprintf(stderr, "Could not add identity: %s\n", filename);
 	}
 
+
+	/* Now try to add the certificate flavour too */
+	xasprintf(&certpath, "%s-cert.pub", filename);
+	if ((cert = key_load_public(certpath, NULL)) != NULL) {
+		/* Graft with private bits */
+		if (key_to_certified(private) != 0)
+			fatal("%s: key_to_certified failed", __func__);
+		key_cert_copy(cert, private);
+		key_free(cert);
+
+		if (ssh_add_identity_constrained(ac, private, comment,
+		    lifetime, confirm)) {
+			fprintf(stderr, "Certificate added: %s (%s)\n",
+			    certpath, private->cert->key_id);
+			if (lifetime != 0)
+				fprintf(stderr, "Lifetime set to %d seconds\n",
+				    lifetime);
+			if (confirm != 0)
+				fprintf(stderr, "The user has to confirm each "
+				    "use of the key\n");
+		} else {
+			error("Certificate %s (%s) add failed", certpath,
+			    private->cert->key_id);
+		}
+	} else
+		fprintf(stderr, "Unable to load certificate %s", certpath);
+
+	xfree(certpath);
 	xfree(comment);
 	key_free(private);
 

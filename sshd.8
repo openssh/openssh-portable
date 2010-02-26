@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.250 2010/01/30 21:08:33 djm Exp $
-.Dd $Mdocdate: January 30 2010 $
+.\" $OpenBSD: sshd.8,v 1.251 2010/02/26 20:29:54 djm Exp $
+.Dd $Mdocdate: February 26 2010 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -47,6 +47,7 @@
 .Op Fl 46DdeiqTt
 .Op Fl b Ar bits
 .Op Fl C Ar connection_spec
+.Op Fl c Ar host_certificate_file
 .Op Fl f Ar config_file
 .Op Fl g Ar login_grace_time
 .Op Fl h Ar host_key_file
@@ -101,6 +102,15 @@ to use IPv6 addresses only.
 .It Fl b Ar bits
 Specifies the number of bits in the ephemeral protocol version 1
 server key (default 1024).
+.It Fl c Ar host_certificate_file
+Specifies a path to a certificate file to identify
+.Nm
+during key exchange.
+The certificate file must match a host key file specified using the
+.Fl -h
+option or the
+.Cm HostKey
+configuration directive.
 .It Fl C Ar connection_spec
 Specify the connection parameters to use for the
 .Fl T
@@ -498,6 +508,13 @@ No spaces are permitted, except within double quotes.
 The following option specifications are supported (note
 that option keywords are case-insensitive):
 .Bl -tag -width Ds
+.It Cm from="cert-authority"
+Specifies that the listed key is a certification authority (CA) that is
+trusted to validate signed certificates for user authentication.
+.Pp
+Certificates may encode access restrictions similar to these key options.
+If both certificate restrictions and key options are present, the most
+restrictive union of the two is applied.
 .It Cm command="command"
 Specifies that the command is executed whenever this key is used for
 authentication.
@@ -517,6 +534,10 @@ The command originally supplied by the client is available in the
 .Ev SSH_ORIGINAL_COMMAND
 environment variable.
 Note that this option applies to shell, command or subsystem execution.
+Also note that this command may be superseded by either a
+.Xr sshd_config 5
+.Cm ForceCommand
+directive or a command embedded in a certificate.
 .It Cm environment="NAME=value"
 Specifies that the string is to be added to the environment when
 logging in using this key.

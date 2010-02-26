@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.164 2010/02/09 00:50:36 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.165 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -468,6 +468,8 @@ process_add_identity(SocketEntry *e, int version)
 	int type, success = 0, death = 0, confirm = 0;
 	char *type_name, *comment;
 	Key *k = NULL;
+	u_char *cert;
+	u_int len;
 
 	switch (version) {
 	case 1:
@@ -498,6 +500,14 @@ process_add_identity(SocketEntry *e, int version)
 			buffer_get_bignum2(&e->request, k->dsa->pub_key);
 			buffer_get_bignum2(&e->request, k->dsa->priv_key);
 			break;
+		case KEY_DSA_CERT:
+			cert = buffer_get_string(&e->request, &len);
+			if ((k = key_from_blob(cert, len)) == NULL)
+				fatal("Certificate parse failed");
+			xfree(cert);
+			key_add_private(k);
+			buffer_get_bignum2(&e->request, k->dsa->priv_key);
+			break;
 		case KEY_RSA:
 			k = key_new_private(type);
 			buffer_get_bignum2(&e->request, k->rsa->n);
@@ -510,6 +520,17 @@ process_add_identity(SocketEntry *e, int version)
 			/* Generate additional parameters */
 			rsa_generate_additional_parameters(k->rsa);
 			break;
+		case KEY_RSA_CERT:
+			cert = buffer_get_string(&e->request, &len);
+			if ((k = key_from_blob(cert, len)) == NULL)
+				fatal("Certificate parse failed");
+			xfree(cert);
+			key_add_private(k);
+			buffer_get_bignum2(&e->request, k->rsa->d);
+			buffer_get_bignum2(&e->request, k->rsa->iqmp);
+			buffer_get_bignum2(&e->request, k->rsa->p);
+			buffer_get_bignum2(&e->request, k->rsa->q);
+			break;
 		default:
 			buffer_clear(&e->request);
 			goto send;
@@ -519,6 +540,7 @@ process_add_identity(SocketEntry *e, int version)
 	/* enable blinding */
 	switch (k->type) {
 	case KEY_RSA:
+	case KEY_RSA_CERT:
 	case KEY_RSA1:
 		if (RSA_blinding_on(k->rsa, NULL) != 1) {
 			error("process_add_identity: RSA_blinding_on failed");

@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.294 2010/02/11 13:23:29 jmc Exp $
-.Dd $Mdocdate: February 11 2010 $
+.\" $OpenBSD: ssh.1,v 1.295 2010/02/26 20:29:54 djm Exp $
+.Dd $Mdocdate: February 26 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -1103,6 +1103,25 @@ See the
 option in
 .Xr ssh_config 5
 for more information.
+.Pp
+Host keys may also be presented as certificates signed by a trusted
+certification authority (CA).
+In this case, trust of the CA key alone is sufficient for the host key
+to be accepted.
+To specify a public key as a trusted CA key in a known hosts file,
+it should be added after a
+.Dq @cert-authority
+tag and a set of one or more domain-name wildcards separated by commas.
+For example:
+.Pp
+.Dl @cert-authority *.mydomain.org,*.mydomain.com ssh-rsa AAAAB5W...
+.Pp
+See the
+.Sx CERTIFICATES
+section of
+.Xr ssh-keygen 1
+for more details.
+.Pp
 .Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
 .Nm
 contains support for Virtual Private Network (VPN) tunnelling

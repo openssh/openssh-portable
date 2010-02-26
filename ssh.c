@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.334 2010/02/08 22:03:05 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.335 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1306,34 +1306,35 @@ load_public_identity_files(void)
 	int i = 0;
 	Key *public;
 	struct passwd *pw;
+	u_int n_ids;
+	char *identity_files[SSH_MAX_IDENTITY_FILES];
+	Key *identity_keys[SSH_MAX_IDENTITY_FILES];
 #ifdef ENABLE_PKCS11
 	Key **keys;
 	int nkeys;
+#endif /* PKCS11 */
 
+	n_ids = 0;
+	bzero(identity_files, sizeof(identity_files));
+	bzero(identity_keys, sizeof(identity_keys));
+
+#ifdef ENABLE_PKCS11
 	if (options.pkcs11_provider != NULL &&
 	    options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
 	    (pkcs11_init(!options.batch_mode) == 0) &&
 	    (nkeys = pkcs11_add_provider(options.pkcs11_provider, NULL,
 	    &keys)) > 0) {
-		int count = 0;
 		for (i = 0; i < nkeys; i++) {
-			count++;
-			memmove(&options.identity_files[1],
-			    &options.identity_files[0],
-			    sizeof(char *) * (SSH_MAX_IDENTITY_FILES - 1));
-			memmove(&options.identity_keys[1],
-			    &options.identity_keys[0],
-			    sizeof(Key *) * (SSH_MAX_IDENTITY_FILES - 1));
-			options.num_identity_files++;
-			options.identity_keys[0] = keys[i];
-			options.identity_files[0] =
+			if (n_ids >= SSH_MAX_IDENTITY_FILES) {
+				key_free(keys[i]);
+				continue;
+			}
+			identity_keys[n_ids] = keys[i];
+			identity_files[n_ids] =
 			    xstrdup(options.pkcs11_provider); /* XXX */
+			n_ids++;
 		}
-		if (options.num_identity_files > SSH_MAX_IDENTITY_FILES)
-			options.num_identity_files = SSH_MAX_IDENTITY_FILES;
-		i = count;
 		xfree(keys);
-		/* XXX leaks some keys */
 	}
 #endif /* ENABLE_PKCS11 */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
@@ -1343,7 +1344,11 @@ load_public_identity_files(void)
 	if (gethostname(thishost, sizeof(thishost)) == -1)
 		fatal("load_public_identity_files: gethostname: %s",
 		    strerror(errno));
-	for (; i < options.num_identity_files; i++) {
+	for (i = 0; i < options.num_identity_files; i++) {
+		if (n_ids >= SSH_MAX_IDENTITY_FILES) {
+			xfree(options.identity_files[i]);
+			continue;
+		}
 		cp = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
 		filename = percent_expand(cp, "d", pwdir,
@@ -1354,9 +1359,37 @@ load_public_identity_files(void)
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);
 		xfree(options.identity_files[i]);
-		options.identity_files[i] = filename;
-		options.identity_keys[i] = public;
+		identity_files[n_ids] = filename;
+		identity_keys[n_ids] = public;
+
+		if (++n_ids >= SSH_MAX_IDENTITY_FILES)
+			continue;
+
+		/* Try to add the certificate variant too */
+		xasprintf(&cp, "%s-cert", filename);
+		public = key_load_public(cp, NULL);
+		debug("identity file %s type %d", cp,
+		    public ? public->type : -1);
+		if (public == NULL) {
+			xfree(cp);
+			continue;
+		}
+		if (!key_is_cert(public)) {
+			debug("%s: key %s type %s is not a certificate",
+			    __func__, cp, key_type(public));
+			key_free(public);
+			xfree(cp);
+			continue;
+		}
+		identity_keys[n_ids] = public;
+		/* point to the original path, most likely the private key */
+		identity_files[n_ids] = xstrdup(filename);
+		n_ids++;
 	}
+	options.num_identity_files = n_ids;
+	memcpy(options.identity_files, identity_files, sizeof(identity_files));
+	memcpy(options.identity_keys, identity_keys, sizeof(identity_keys));
+
 	bzero(pwname, strlen(pwname));
 	xfree(pwname);
 	bzero(pwdir, strlen(pwdir));

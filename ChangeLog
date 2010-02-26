@@ -1,3 +1,36 @@
+20100226
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/02/26 20:29:54
+     [PROTOCOL PROTOCOL.agent PROTOCOL.certkeys addrmatch.c auth-options.c]
+     [auth-options.h auth.h auth2-pubkey.c authfd.c dns.c dns.h hostfile.c]
+     [hostfile.h kex.h kexdhs.c kexgexs.c key.c key.h match.h monitor.c]
+     [myproposal.h servconf.c servconf.h ssh-add.c ssh-agent.c ssh-dss.c]
+     [ssh-keygen.1 ssh-keygen.c ssh-rsa.c ssh.1 ssh.c ssh2.h sshconnect.c]
+     [sshconnect2.c sshd.8 sshd.c sshd_config.5]
+     Add support for certificate key types for users and hosts.
+     
+     OpenSSH certificate key types are not X.509 certificates, but a much
+     simpler format that encodes a public key, identity information and
+     some validity constraints and signs it with a CA key. CA keys are
+     regular SSH keys. This certificate style avoids the attack surface
+     of X.509 certificates and is very easy to deploy.
+     
+     Certified host keys allow automatic acceptance of new host keys
+     when a CA certificate is marked as trusted in ~/.ssh/known_hosts.
+     see VERIFYING HOST KEYS in ssh(1) for details.
+     
+     Certified user keys allow authentication of users when the signing
+     CA key is marked as trusted in authorized_keys. See "AUTHORIZED_KEYS
+     FILE FORMAT" in sshd(8) for details.
+     
+     Certificates are minted using ssh-keygen(1), documentation is in
+     the "CERTIFICATES" section of that manpage.
+     
+     Documentation on the format of certificates is in the file
+     PROTOCOL.certkeys
+     
+     feedback and ok markus@
+
 20100224
  - (djm) [pkcs11.h ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c]
    [ssh-pkcs11.h] Add $OpenBSD$ RCS idents so we can sync portable

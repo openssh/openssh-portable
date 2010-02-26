@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.46 2009/10/11 23:03:15 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.47 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,7 +199,7 @@ check_host_in_hostfile_by_key_or_type(const char *filename,
 {
 	FILE *f;
 	char line[8192];
-	int linenum = 0;
+	int linenum = 0, want_cert = key_is_cert(key);
 	u_int kbits;
 	char *cp, *cp2, *hashed_host;
 	HostStatus end_return;
@@ -227,6 +227,23 @@ check_host_in_hostfile_by_key_or_type(const char *filename,
 		for (; *cp == ' ' || *cp == '\t'; cp++)
 			;
 		if (!*cp || *cp == '#' || *cp == '\n')
+			continue;
+
+		/*
+		 * Ignore CA keys when looking for raw keys.
+		 * Ignore raw keys when looking for CA keys.
+		 */
+		if (strncasecmp(cp, CA_MARKER, sizeof(CA_MARKER) - 1) == 0 &&
+		    (cp[sizeof(CA_MARKER) - 1] == ' ' ||
+		    cp[sizeof(CA_MARKER) - 1] == '\t')) {
+			if (want_cert) {
+				/* Skip the marker and following whitespace */
+				cp += sizeof(CA_MARKER);
+				for (; *cp == ' ' || *cp == '\t'; cp++)
+					;
+			} else
+				continue;
+		} else if (want_cert)
 			continue;
 
 		/* Find the end of the host name portion. */
@@ -273,8 +290,14 @@ check_host_in_hostfile_by_key_or_type(const char *filename,
 			continue;
 
 		/* Check if the current key is the same as the given key. */
-		if (key_equal(key, found)) {
-			/* Ok, they match. */
+		if (want_cert && key_equal(key->cert->signature_key, found)) {
+			/* Found CA cert for key */
+			debug3("check_host_in_hostfile: CA match line %d",
+			    linenum);
+			fclose(f);
+			return HOST_OK;
+		} else if (!want_cert && key_equal(key, found)) {
+			/* Found identical key */
 			debug3("check_host_in_hostfile: match line %d", linenum);
 			fclose(f);
 			return HOST_OK;

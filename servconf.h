@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.90 2010/01/13 03:48:13 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.91 2010/02/26 20:29:54 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -24,6 +24,7 @@
 #define MAX_DENY_GROUPS		256	/* Max # groups on deny list. */
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
 #define MAX_HOSTKEYS		256	/* Max # hostkeys. */
+#define MAX_HOSTCERTS		256	/* Max # host certificates. */
 #define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
 #define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
 
@@ -49,6 +50,8 @@ typedef struct {
 	int     address_family;		/* Address family used by the server. */
 	char   *host_key_files[MAX_HOSTKEYS];	/* Files containing host keys. */
 	int     num_host_key_files;     /* Number of files for host keys. */
+	char   *host_cert_files[MAX_HOSTCERTS];	/* Files containing host certs. */
+	int     num_host_cert_files;     /* Number of files for host certs. */
 	char   *pid_file;	/* Where to put our pid */
 	int     server_key_bits;/* Size of the server key. */
 	int     login_grace_time;	/* Disconnect if no auth in this time

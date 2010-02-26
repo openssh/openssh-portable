@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.81 2009/08/27 17:44:52 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.82 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -483,11 +483,28 @@ ssh_encode_identity_ssh2(Buffer *b, Key *key, const char *comment)
 		buffer_put_bignum2(b, key->rsa->p);
 		buffer_put_bignum2(b, key->rsa->q);
 		break;
+	case KEY_RSA_CERT:
+		if (key->cert == NULL || buffer_len(&key->cert->certblob) == 0)
+			fatal("%s: no cert/certblob", __func__);
+		buffer_put_string(b, buffer_ptr(&key->cert->certblob),
+		    buffer_len(&key->cert->certblob));
+		buffer_put_bignum2(b, key->rsa->d);
+		buffer_put_bignum2(b, key->rsa->iqmp);
+		buffer_put_bignum2(b, key->rsa->p);
+		buffer_put_bignum2(b, key->rsa->q);
+		break;
 	case KEY_DSA:
 		buffer_put_bignum2(b, key->dsa->p);
 		buffer_put_bignum2(b, key->dsa->q);
 		buffer_put_bignum2(b, key->dsa->g);
 		buffer_put_bignum2(b, key->dsa->pub_key);
+		buffer_put_bignum2(b, key->dsa->priv_key);
+		break;
+	case KEY_DSA_CERT:
+		if (key->cert == NULL || buffer_len(&key->cert->certblob) == 0)
+			fatal("%s: no cert/certblob", __func__);
+		buffer_put_string(b, buffer_ptr(&key->cert->certblob),
+		    buffer_len(&key->cert->certblob));
 		buffer_put_bignum2(b, key->dsa->priv_key);
 		break;
 	}
@@ -517,7 +534,9 @@ ssh_add_identity_constrained(AuthenticationConnection *auth, Key *key,
 		ssh_encode_identity_rsa1(&msg, key->rsa, comment);
 		break;
 	case KEY_RSA:
+	case KEY_RSA_CERT:
 	case KEY_DSA:
+	case KEY_DSA_CERT:
 		type = constrained ?
 		    SSH2_AGENTC_ADD_ID_CONSTRAINED :
 		    SSH2_AGENTC_ADD_IDENTITY;
@@ -565,7 +584,8 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
 		buffer_put_bignum(&msg, key->rsa->e);
 		buffer_put_bignum(&msg, key->rsa->n);
-	} else if (key->type == KEY_DSA || key->type == KEY_RSA) {
+	} else if (key_type_plain(key->type) == KEY_DSA ||
+	    key_type_plain(key->type) == KEY_RSA) {
 		key_to_blob(key, &blob, &blen);
 		buffer_put_char(&msg, SSH2_AGENTC_REMOVE_IDENTITY);
 		buffer_put_string(&msg, blob, blen);

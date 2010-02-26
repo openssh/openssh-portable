@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.178 2010/02/09 00:50:59 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.179 2010/02/26 20:29:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -48,6 +48,7 @@
 #include "match.h"
 #include "hostfile.h"
 #include "dns.h"
+#include "ssh2.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -97,6 +98,35 @@ char *identity_new_passphrase = NULL;
 
 /* This is set to the new comment if given on the command line. */
 char *identity_comment = NULL;
+
+/* Path to CA key when certifying keys. */
+char *ca_key_path = NULL;
+
+/* Key type when certifying */
+u_int cert_key_type = SSH2_CERT_TYPE_USER;
+
+/* "key ID" of signed key */
+char *cert_key_id = NULL;
+
+/* Comma-separated list of principal names for certifying keys */
+char *cert_principals = NULL;
+
+/* Validity period for certificates */
+u_int64_t cert_valid_from = 0;
+u_int64_t cert_valid_to = ~0ULL;
+
+/* Certificate constraints */
+#define CONSTRAINT_X_FWD	(1)
+#define CONSTRAINT_AGENT_FWD	(1<<1)
+#define CONSTRAINT_PORT_FWD	(1<<2)
+#define CONSTRAINT_PTY		(1<<3)
+#define CONSTRAINT_USER_RC	(1<<4)
+#define CONSTRAINT_DEFAULT	(CONSTRAINT_X_FWD|CONSTRAINT_AGENT_FWD| \
+				CONSTRAINT_PORT_FWD|CONSTRAINT_PTY| \
+				CONSTRAINT_USER_RC)
+u_int32_t constraint_flags = CONSTRAINT_DEFAULT;
+char *constraint_command = NULL;
+char *constraint_src_addr = NULL;
 
 /* Dump public key file in format used by real and the original SSH 2 */
 int convert_to_ssh2 = 0;
@@ -591,7 +621,7 @@ do_fingerprint(struct passwd *pw)
 }
 
 static void
-print_host(FILE *f, const char *name, Key *public, int hash)
+printhost(FILE *f, const char *name, Key *public, int ca, int hash)
 {
 	if (print_fingerprint) {
 		enum fp_rep rep;
@@ -611,7 +641,7 @@ print_host(FILE *f, const char *name, Key *public, int hash)
 	} else {
 		if (hash && (name = host_hash(name, NULL, 0)) == NULL)
 			fatal("hash_host failed");
-		fprintf(f, "%s ", name);
+		fprintf(f, "%s%s%s ", ca ? CA_MARKER : "", ca ? " " : "", name);
 		if (!key_write(public, f))
 			fatal("key_write failed");
 		fprintf(f, "\n");
@@ -622,10 +652,11 @@ static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
 	FILE *in, *out = stdout;
-	Key *public;
+	Key *pub;
 	char *cp, *cp2, *kp, *kp2;
 	char line[16*1024], tmp[MAXPATHLEN], old[MAXPATHLEN];
 	int c, skip = 0, inplace = 0, num = 0, invalid = 0, has_unhashed = 0;
+	int ca;
 
 	if (!have_identity) {
 		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
@@ -681,9 +712,19 @@ do_known_hosts(struct passwd *pw, const char *name)
 				fprintf(out, "%s\n", cp);
 			continue;
 		}
+		/* Check whether this is a CA key */
+		if (strncasecmp(cp, CA_MARKER, sizeof(CA_MARKER) - 1) == 0 &&
+		    (cp[sizeof(CA_MARKER) - 1] == ' ' ||
+		    cp[sizeof(CA_MARKER) - 1] == '\t')) {
+			ca = 1;
+			cp += sizeof(CA_MARKER);
+		} else
+			ca = 0;
+
 		/* Find the end of the host name portion. */
 		for (kp = cp; *kp && *kp != ' ' && *kp != '\t'; kp++)
 			;
+
 		if (*kp == '\0' || *(kp + 1) == '\0') {
 			error("line %d missing key: %.40s...",
 			    num, line);
@@ -693,15 +734,15 @@ do_known_hosts(struct passwd *pw, const char *name)
 		*kp++ = '\0';
 		kp2 = kp;
 
-		public = key_new(KEY_RSA1);
-		if (key_read(public, &kp) != 1) {
+		pub = key_new(KEY_RSA1);
+		if (key_read(pub, &kp) != 1) {
 			kp = kp2;
-			key_free(public);
-			public = key_new(KEY_UNSPEC);
-			if (key_read(public, &kp) != 1) {
+			key_free(pub);
+			pub = key_new(KEY_UNSPEC);
+			if (key_read(pub, &kp) != 1) {
 				error("line %d invalid key: %.40s...",
 				    num, line);
-				key_free(public);
+				key_free(pub);
 				invalid = 1;
 				continue;
 			}
@@ -719,43 +760,52 @@ do_known_hosts(struct passwd *pw, const char *name)
 				c = (strcmp(cp2, cp) == 0);
 				if (find_host && c) {
 					printf("# Host %s found: "
-					    "line %d type %s\n", name,
-					    num, key_type(public));
-					print_host(out, cp, public, 0);
+					    "line %d type %s%s\n", name,
+					    num, key_type(pub),
+					    ca ? " (CA key)" : "");
+					printhost(out, cp, pub, ca, 0);
 				}
-				if (delete_host && !c)
-					print_host(out, cp, public, 0);
+				if (delete_host && !c && !ca)
+					printhost(out, cp, pub, ca, 0);
 			} else if (hash_hosts)
-				print_host(out, cp, public, 0);
+				printhost(out, cp, pub, ca, 0);
 		} else {
 			if (find_host || delete_host) {
 				c = (match_hostname(name, cp,
 				    strlen(cp)) == 1);
 				if (find_host && c) {
 					printf("# Host %s found: "
-					    "line %d type %s\n", name,
-					    num, key_type(public));
-					print_host(out, name, public,
-					    hash_hosts);
+					    "line %d type %s%s\n", name,
+					    num, key_type(pub),
+					    ca ? " (CA key)" : "");
+					printhost(out, name, pub,
+					    ca, hash_hosts && !ca);
 				}
-				if (delete_host && !c)
-					print_host(out, cp, public, 0);
+				if (delete_host && !c && !ca)
+					printhost(out, cp, pub, ca, 0);
 			} else if (hash_hosts) {
 				for (cp2 = strsep(&cp, ",");
 				    cp2 != NULL && *cp2 != '\0';
 				    cp2 = strsep(&cp, ",")) {
-					if (strcspn(cp2, "*?!") != strlen(cp2))
+					if (ca) {
+						fprintf(stderr, "Warning: "
+						    "ignoring CA key for host: "
+						    "%.64s\n", cp2);
+						printhost(out, cp2, pub, ca, 0);
+					} else if (strcspn(cp2, "*?!") !=
+					    strlen(cp2)) {
 						fprintf(stderr, "Warning: "
 						    "ignoring host name with "
 						    "metacharacters: %.64s\n",
 						    cp2);
-					else
-						print_host(out, cp2, public, 1);
+						printhost(out, cp2, pub, ca, 0);
+					} else
+						printhost(out, cp2, pub, ca, 1);
 				}
 				has_unhashed = 1;
 			}
 		}
-		key_free(public);
+		key_free(pub);
 	}
 	fclose(in);
 
@@ -1012,6 +1062,293 @@ do_change_comment(struct passwd *pw)
 	exit(0);
 }
 
+static const char *
+fmt_validity(void)
+{
+	char from[32], to[32];
+	static char ret[64];
+	time_t tt;
+	struct tm *tm;
+
+	*from = *to = '\0';
+	if (cert_valid_from == 0 &&
+	    cert_valid_to == 0xffffffffffffffffULL)
+		return "forever";
+
+	if (cert_valid_from != 0) {
+		/* XXX revisit INT_MAX in 2038 :) */
+		tt = cert_valid_from > INT_MAX ? INT_MAX : cert_valid_from;
+		tm = localtime(&tt);
+		strftime(from, sizeof(from), "%Y-%m-%dT%H:%M:%S", tm);
+	}
+	if (cert_valid_to != 0xffffffffffffffffULL) {
+		/* XXX revisit INT_MAX in 2038 :) */
+		tt = cert_valid_to > INT_MAX ? INT_MAX : cert_valid_to;
+		tm = localtime(&tt);
+		strftime(to, sizeof(to), "%Y-%m-%dT%H:%M:%S", tm);
+	}
+
+	if (cert_valid_from == 0) {
+		snprintf(ret, sizeof(ret), "before %s", to);
+		return ret;
+	}
+	if (cert_valid_to == 0xffffffffffffffffULL) {
+		snprintf(ret, sizeof(ret), "after %s", from);
+		return ret;
+	}
+
+	snprintf(ret, sizeof(ret), "from %s to %s", from, to);
+	return ret;
+}
+
+static void
+add_flag_constraint(Buffer *c, const char *name)
+{
+	debug3("%s: %s", __func__, name);
+	buffer_put_cstring(c, name);
+	buffer_put_string(c, NULL, 0);
+}
+
+static void
+add_string_constraint(Buffer *c, const char *name, const char *value)
+{
+	Buffer b;
+
+	debug3("%s: %s=%s", __func__, name, value);
+	buffer_init(&b);
+	buffer_put_cstring(&b, value);
+
+	buffer_put_cstring(c, name);
+	buffer_put_string(c, buffer_ptr(&b), buffer_len(&b));
+
+	buffer_free(&b);
+}
+
+static void
+prepare_constraint_buf(Buffer *c)
+{
+
+	buffer_clear(c);
+	if ((constraint_flags & CONSTRAINT_X_FWD) != 0)
+		add_flag_constraint(c, "permit-X11-forwarding");
+	if ((constraint_flags & CONSTRAINT_AGENT_FWD) != 0)
+		add_flag_constraint(c, "permit-agent-forwarding");
+	if ((constraint_flags & CONSTRAINT_PORT_FWD) != 0)
+		add_flag_constraint(c, "permit-port-forwarding");
+	if ((constraint_flags & CONSTRAINT_PTY) != 0)
+		add_flag_constraint(c, "permit-pty");
+	if ((constraint_flags & CONSTRAINT_USER_RC) != 0)
+		add_flag_constraint(c, "permit-user-rc");
+	if (constraint_command != NULL)
+		add_string_constraint(c, "forced-command", constraint_command);
+	if (constraint_src_addr != NULL)
+		add_string_constraint(c, "source-address", constraint_src_addr);
+}
+
+static void
+do_ca_sign(struct passwd *pw, int argc, char **argv)
+{
+	int i, fd;
+	u_int n;
+	Key *ca, *public;
+	char *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
+	FILE *f;
+
+	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
+	if ((ca = load_identity(tmp)) == NULL)
+		fatal("Couldn't load CA key \"%s\"", tmp);
+	xfree(tmp);
+
+	for (i = 0; i < argc; i++) {
+		/* Split list of principals */
+		n = 0;
+		if (cert_principals != NULL) {
+			otmp = tmp = xstrdup(cert_principals);
+			plist = NULL;
+			for (; (cp = strsep(&tmp, ",")) != NULL; n++) {
+				plist = xrealloc(plist, n + 1, sizeof(*plist));
+				if (*(plist[n] = xstrdup(cp)) == '\0')
+					fatal("Empty principal name");
+			}
+			xfree(otmp);
+		}
+	
+		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
+		if ((public = key_load_public(tmp, &comment)) == NULL)
+			fatal("%s: unable to open \"%s\"", __func__, tmp);
+		if (public->type != KEY_RSA && public->type != KEY_DSA)
+			fatal("%s: key \"%s\" type %s cannot be certified",
+			    __func__, tmp, key_type(public));
+
+		/* Prepare certificate to sign */
+		if (key_to_certified(public) != 0)
+			fatal("Could not upgrade key %s to certificate", tmp);
+		public->cert->type = cert_key_type;
+		public->cert->key_id = xstrdup(cert_key_id);
+		public->cert->nprincipals = n;
+		public->cert->principals = plist;
+		public->cert->valid_after = cert_valid_from;
+		public->cert->valid_before = cert_valid_to;
+		prepare_constraint_buf(&public->cert->constraints);
+		public->cert->signature_key = key_from_private(ca);
+
+		if (key_certify(public, ca) != 0)
+			fatal("Couldn't not certify key %s", tmp);
+
+		if ((cp = strrchr(tmp, '.')) != NULL && strcmp(cp, ".pub") == 0)
+			*cp = '\0';
+		xasprintf(&out, "%s-cert.pub", tmp);
+		xfree(tmp);
+
+		if ((fd = open(out, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
+			fatal("Could not open \"%s\" for writing: %s", out,
+			    strerror(errno));
+		if ((f = fdopen(fd, "w")) == NULL)
+			fatal("%s: fdopen: %s", __func__, strerror(errno));
+		if (!key_write(public, f))
+			fatal("Could not write certified key to %s", out);
+		fprintf(f, " %s\n", comment);
+		fclose(f);
+
+		if (!quiet)
+			logit("Signed %s key %s: id \"%s\"%s%s valid %s",
+			    cert_key_type == SSH2_CERT_TYPE_USER?"user":"host",
+			    out, cert_key_id,
+			    cert_principals != NULL ? " for " : "",
+			    cert_principals != NULL ? cert_principals : "",
+			    fmt_validity());
+
+		key_free(public);
+		xfree(out);
+	}
+	exit(0);
+}
+
+static u_int64_t
+parse_relative_time(const char *s, time_t now)
+{
+	int64_t mul, secs;
+
+	mul = *s == '-' ? -1 : 1;
+
+	if ((secs = convtime(s + 1)) == -1)
+		fatal("Invalid relative certificate time %s", s);
+	if (mul == -1 && secs > now)
+		fatal("Certificate time %s cannot be represented", s);
+	return now + (u_int64_t)(secs * mul);
+}
+
+static u_int64_t
+parse_absolute_time(const char *s)
+{
+	struct tm tm;
+	time_t tt;
+
+	if (strlen(s) != 8 && strlen(s) != 14)
+		fatal("Invalid certificate time format %s", s);
+
+	bzero(&tm, sizeof(tm));
+	if (strptime(s,
+	    strlen(s) == 8 ? "%Y%m%d" : "%Y%m%d%H%M%S", &tm) == NULL)
+		fatal("Invalid certificate time %s", s);
+	if ((tt = mktime(&tm)) < 0)
+		fatal("Certificate time %s cannot be represented", s);
+	return (u_int64_t)tt;
+}
+
+static void
+parse_cert_times(char *timespec)
+{
+	char *from, *to;
+	time_t now = time(NULL);
+	int64_t secs;
+
+	/* +timespec relative to now */
+	if (*timespec == '+' && strchr(timespec, ':') == NULL) {
+		if ((secs = convtime(timespec + 1)) == -1)
+			fatal("Invalid relative certificate life %s", timespec);
+		cert_valid_to = now + secs;
+		/*
+		 * Backdate certificate one minute to avoid problems on hosts
+		 * with poorly-synchronised clocks.
+		 */
+		cert_valid_from = ((now - 59)/ 60) * 60;
+		return;
+	}
+
+	/*
+	 * from:to, where
+	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
+	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
+	 */
+	from = xstrdup(timespec);
+	to = strchr(from, ':');
+	if (to == NULL || from == to || *(to + 1) == '\0')
+		fatal("Invalid certificate life specification %s", optarg);
+	*to++ = '\0';
+
+	if (*from == '-' || *from == '+')
+		cert_valid_from = parse_relative_time(from, now);
+	else
+		cert_valid_from = parse_absolute_time(from);
+
+	if (*to == '-' || *to == '+')
+		cert_valid_to = parse_relative_time(to, cert_valid_from);
+	else
+		cert_valid_to = parse_absolute_time(to);
+
+	if (cert_valid_to <= cert_valid_from)
+		fatal("Empty certificate validity interval");
+	xfree(from);
+}
+
+static void
+add_cert_constraint(char *opt)
+{
+	char *val;
+
+	if (strcmp(opt, "clear") == 0)
+		constraint_flags = 0;
+	else if (strcasecmp(opt, "no-x11-forwarding") == 0)
+		constraint_flags &= ~CONSTRAINT_X_FWD;
+	else if (strcasecmp(opt, "permit-x11-forwarding") == 0)
+		constraint_flags |= CONSTRAINT_X_FWD;
+	else if (strcasecmp(opt, "no-agent-forwarding") == 0)
+		constraint_flags &= ~CONSTRAINT_AGENT_FWD;
+	else if (strcasecmp(opt, "permit-agent-forwarding") == 0)
+		constraint_flags |= CONSTRAINT_AGENT_FWD;
+	else if (strcasecmp(opt, "no-port-forwarding") == 0)
+		constraint_flags &= ~CONSTRAINT_PORT_FWD;
+	else if (strcasecmp(opt, "permit-port-forwarding") == 0)
+		constraint_flags |= CONSTRAINT_PORT_FWD;
+	else if (strcasecmp(opt, "no-pty") == 0)
+		constraint_flags &= ~CONSTRAINT_PTY;
+	else if (strcasecmp(opt, "permit-pty") == 0)
+		constraint_flags |= CONSTRAINT_PTY;
+	else if (strcasecmp(opt, "no-user-rc") == 0)
+		constraint_flags &= ~CONSTRAINT_USER_RC;
+	else if (strcasecmp(opt, "permit-user-rc") == 0)
+		constraint_flags |= CONSTRAINT_USER_RC;
+	else if (strncasecmp(opt, "force-command=", 14) == 0) {
+		val = opt + 14;
+		if (*val == '\0')
+			fatal("Empty force-command constraint");
+		if (constraint_command != NULL)
+			fatal("force-command already specified");
+		constraint_command = xstrdup(val);
+	} else if (strncasecmp(opt, "source-address=", 15) == 0) {
+		val = opt + 15;
+		if (*val == '\0')
+			fatal("Empty source-address constraint");
+		if (constraint_src_addr != NULL)
+			fatal("source-address already specified");
+		if (addr_match_cidr_list(NULL, val) != 0)
+			fatal("Invalid source-address list");
+		constraint_src_addr = xstrdup(val);
+	} else
+		fatal("Unsupported certificate constraint \"%s\"", opt);
+}
+
 static void
 usage(void)
 {
@@ -1031,18 +1368,24 @@ usage(void)
 	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
 	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
+	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
+	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
 	fprintf(stderr, "  -i          Convert RFC 4716 to OpenSSH key file.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
+	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
+	fprintf(stderr, "  -O cnstr    Specify a certificate constraint.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
 	fprintf(stderr, "  -q          Quiet.\n");
 	fprintf(stderr, "  -R hostname Remove host from known_hosts file.\n");
 	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
+	fprintf(stderr, "  -s ca_key   Certify keys with CA key.\n");
 	fprintf(stderr, "  -S start    Start point (hex) for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -t type     Specify type of key to create.\n");
+	fprintf(stderr, "  -V from:to  Specify certificate validity interval.\n");
 	fprintf(stderr, "  -v          Verbose.\n");
 	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -y          Read private key file and print public key.\n");
@@ -1094,8 +1437,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv,
-	    "degiqpclBHvxXyF:b:f:t:D:P:N:C:r:g:R:T:G:M:S:a:W:")) != -1) {
+	while ((opt = getopt(argc, argv, "degiqpclBHhvxXyF:b:f:t:D:I:P:N:n:"
+	    "O:C:r:g:R:T:G:M:S:s:a:V:W:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = (u_int32_t)strtonum(optarg, 768, 32768, &errstr);
@@ -1110,6 +1453,9 @@ main(int argc, char **argv)
 		case 'H':
 			hash_hosts = 1;
 			break;
+		case 'I':
+			cert_key_id = optarg;
+			break;
 		case 'R':
 			delete_host = 1;
 			rr_hostname = optarg;
@@ -1119,6 +1465,9 @@ main(int argc, char **argv)
 			break;
 		case 'B':
 			print_bubblebabble = 1;
+			break;
+		case 'n':
+			cert_principals = optarg;
 			break;
 		case 'p':
 			change_passphrase = 1;
@@ -1141,6 +1490,9 @@ main(int argc, char **argv)
 		case 'N':
 			identity_new_passphrase = optarg;
 			break;
+		case 'O':
+			add_cert_constraint(optarg);
+			break;
 		case 'C':
 			identity_comment = optarg;
 			break;
@@ -1152,6 +1504,10 @@ main(int argc, char **argv)
 			/* export key */
 			convert_to_ssh2 = 1;
 			break;
+		case 'h':
+			cert_key_type = SSH2_CERT_TYPE_HOST;
+			constraint_flags = 0;
+			break;
 		case 'i':
 		case 'X':
 			/* import key */
@@ -1162,6 +1518,9 @@ main(int argc, char **argv)
 			break;
 		case 'd':
 			key_type_name = "dsa";
+			break;
+		case 's':
+			ca_key_path = optarg;
 			break;
 		case 't':
 			key_type_name = optarg;
@@ -1217,6 +1576,9 @@ main(int argc, char **argv)
 			if (BN_hex2bn(&start, optarg) == 0)
 				fatal("Invalid start point.");
 			break;
+		case 'V':
+			parse_cert_times(optarg);
+			break;
 		case '?':
 		default:
 			usage();
@@ -1226,7 +1588,15 @@ main(int argc, char **argv)
 	/* reinit */
 	log_init(argv[0], log_level, SYSLOG_FACILITY_USER, 1);
 
-	if (optind < argc) {
+	argv += optind;
+	argc -= optind;
+
+	if (ca_key_path != NULL) {
+		if (argc < 1) {
+			printf("Too few arguments.\n");
+			usage();
+		}
+	} else if (argc > 0) {
 		printf("Too many arguments.\n");
 		usage();
 	}
@@ -1237,6 +1607,11 @@ main(int argc, char **argv)
 	if (print_fingerprint && (delete_host || hash_hosts)) {
 		printf("Cannot use -l with -D or -R.\n");
 		usage();
+	}
+	if (ca_key_path != NULL) {
+		if (cert_key_id == NULL)
+			fatal("Must specify key id (-I) when certifying");
+		do_ca_sign(pw, argc, argv);
 	}
 	if (delete_host || hash_hosts || find_host)
 		do_known_hosts(pw, rr_hostname);

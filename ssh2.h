@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh2.h,v 1.12 2009/10/24 11:19:17 andreas Exp $ */
+/* $OpenBSD: ssh2.h,v 1.13 2010/02/26 20:29:54 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -173,3 +173,6 @@
 #define SSH2_MSG_KEX_ROAMING_AUTH_OK			33
 #define SSH2_MSG_KEX_ROAMING_AUTH_FAIL			34
 
+/* Certificate types for OpenSSH certificate keys extension */
+#define SSH2_CERT_TYPE_USER				1
+#define SSH2_CERT_TYPE_HOST				2

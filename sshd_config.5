@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.116 2010/01/09 23:04:13 dtucker Exp $
-.Dd $Mdocdate: January 9 2010 $
+.\" $OpenBSD: sshd_config.5,v 1.117 2010/02/26 20:29:54 djm Exp $
+.Dd $Mdocdate: February 26 2010 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -411,6 +411,14 @@ uses the name supplied by the client rather than
 attempting to resolve the name from the TCP connection itself.
 The default is
 .Dq no .
+.It Cm HostCertificate
+Specifies a file containing a public host certificate.
+The certificate's public key must match a private host key already specified
+by
+.Cm HostKey .
+The default behaviour of
+.Xr sshd 8
+is not to load any certificates.
 .It Cm HostKey
 Specifies a file containing a private host key
 used by SSH.
