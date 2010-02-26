@@ -30,6 +30,9 @@
      PROTOCOL.certkeys
      
      feedback and ok markus@
+   - djm@cvs.openbsd.org 2010/02/26 20:33:21
+     [Makefile regress/cert-hostkey.sh regress/cert-userkey.sh]
+     regression tests for certified keys
 
 20100224
  - (djm) [pkcs11.h ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c]
