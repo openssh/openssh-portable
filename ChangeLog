@@ -1,5 +1,7 @@
 20100227
-- (djm) [ssh-pkcs11-helper.c ] Ensure RNG is initialised and seeded
+ - (djm) [ssh-pkcs11-helper.c ] Ensure RNG is initialised and seeded
+ - (djm) [openbsd-compat/bsd-cygwin_util.c] Reduce the set of environment
+   variables copied into sshd child processes. From vinschen AT redhat.com
 
 20100226
  - OpenBSD CVS Sync
