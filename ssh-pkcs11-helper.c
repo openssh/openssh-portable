@@ -280,6 +280,8 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern char *__progname;
 
+	init_rng();
+	seed_rng();
 	__progname = ssh_get_progname(argv[0]);
 
 	log_init(__progname, log_level, log_facility, log_stderr);

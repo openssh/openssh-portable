@@ -1,3 +1,6 @@
+20100227
+- (djm) [ssh-pkcs11-helper.c ] Ensure RNG is initialised and seeded
+
 20100226
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/02/26 20:29:54
