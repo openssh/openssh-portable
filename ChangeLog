@@ -4,6 +4,8 @@
    platform, passwords are stored case-insensitively, but sshd requires
    exact case matching for Match blocks in sshd_config(5). Based on
    a patch from vinschen AT redhat.com.
+ - (tim) [ssh-pkcs11-helper.c] Move declarations before calling functions
+   to make older compilers (gcc 2.95) happy.
 
 20100227
  - (djm) [ssh-pkcs11-helper.c ] Ensure RNG is initialised and seeded

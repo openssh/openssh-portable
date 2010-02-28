@@ -274,11 +274,11 @@ main(int argc, char **argv)
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
 	char buf[4*4096];
 
-	TAILQ_INIT(&pkcs11_keylist);
-	pkcs11_init(0);
-
 	extern char *optarg;
 	extern char *__progname;
+
+	TAILQ_INIT(&pkcs11_keylist);
+	pkcs11_init(0);
 
 	init_rng();
 	seed_rng();
