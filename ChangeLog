@@ -1,3 +1,10 @@
+20100228
+ - (djm) [auth.c] On Cygwin, refuse usernames that have differences in
+   case from that matched in the system password database. On this
+   platform, passwords are stored case-insensitively, but sshd requires
+   exact case matching for Match blocks in sshd_config(5). Based on
+   a patch from vinschen AT redhat.com.
+
 20100227
  - (djm) [ssh-pkcs11-helper.c ] Ensure RNG is initialised and seeded
  - (djm) [openbsd-compat/bsd-cygwin_util.c] Reduce the set of environment

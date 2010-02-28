@@ -535,6 +535,19 @@ getpwnamallow(const char *user)
 	    get_canonical_hostname(options.use_dns), get_remote_ipaddr());
 
 	pw = getpwnam(user);
+#ifdef HAVE_CYGWIN
+	/*
+	 * Windows usernames are case-insensitive.  To avoid later problems
+	 * when trying to match the username, the user is only allowed to
+	 * login if the username is given in the same case as stored in the
+	 * user database.
+	 */
+	if (pw != NULL && strcmp(user, pw->pw_name) != 0) {
+		logit("Login name %.100s does not match stored username %.100s",
+		    user, pw->pw_name);
+		pw = NULL;
+	}
+#endif
 	if (pw == NULL) {
 		logit("Invalid user %.100s from %.100s",
 		    user, get_remote_ipaddr());
