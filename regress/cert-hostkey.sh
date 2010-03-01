@@ -12,8 +12,8 @@ HOSTS='localhost-with-alias,127.0.0.1,::1'
 ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/host_ca_key ||\
 	fail "ssh-keygen of host_ca_key failed"
 (
-	echo -n '@cert-authority '
-	echo -n "$HOSTS "
+	echon '@cert-authority '
+	echon "$HOSTS "
 	cat $OBJ/host_ca_key.pub
 ) > $OBJ/known_hosts-cert
 
@@ -102,7 +102,7 @@ for ktype in rsa dsa ; do
 	    -n $HOSTS $OBJ/cert_host_key_${ktype} ||
 		fail "couldn't sign cert_host_key_${ktype}"
 	(
-		echo -n "$HOSTS "
+		echon "$HOSTS "
 		cat $OBJ/cert_host_key_${ktype}.pub
 	) > $OBJ/known_hosts-cert
 	(
