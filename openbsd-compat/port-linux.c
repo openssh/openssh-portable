@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.7 2009/12/08 02:39:48 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.8 2010/03/01 04:52:50 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -229,11 +229,11 @@ oom_adjust_setup(void)
 	debug3("%s", __func__);
 	if ((fp = fopen(OOM_ADJ_PATH, "r+")) != NULL) {
 		if (fscanf(fp, "%d", &oom_adj_save) != 1)
-			logit("error reading %s: %s", OOM_ADJ_PATH, strerror(errno));
+			verbose("error reading %s: %s", OOM_ADJ_PATH, strerror(errno));
 		else {
 			rewind(fp);
 			if (fprintf(fp, "%d\n", OOM_ADJ_NOKILL) <= 0)
-				logit("error writing %s: %s",
+				verbose("error writing %s: %s",
 				    OOM_ADJ_PATH, strerror(errno));
 			else
 				verbose("Set %s from %d to %d",
@@ -254,7 +254,7 @@ oom_adjust_restore(void)
 		return;
 
 	if (fprintf(fp, "%d\n", oom_adj_save) <= 0)
-		logit("error writing %s: %s", OOM_ADJ_PATH, strerror(errno));
+		verbose("error writing %s: %s", OOM_ADJ_PATH, strerror(errno));
 	else
 		verbose("Set %s to %d", OOM_ADJ_PATH, oom_adj_save);
 

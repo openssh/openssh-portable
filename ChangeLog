@@ -1,6 +1,9 @@
 20100301
  - (dtucker) [regress/{cert-hostkey,cfgmatch,cipher-speed}.sh} Replace
    "echo -n" with "echon" for portability.
+ - (dtucker) [openbsd-compat/port-linux.c] Make failure to write to the OOM
+   adjust log at verbose only, since according to cjwatson in bug #1470
+   some virtualization platforms don't allow writes.
 
 20100228
  - (djm) [auth.c] On Cygwin, refuse usernames that have differences in
