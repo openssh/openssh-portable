@@ -1,3 +1,8 @@
+20100302
+ - (tim) [config.guess config.sub] Bug 1722: Update to latest versions from
+   http://git.savannah.gnu.org/gitweb/ (2009-12-30 and 2010-01-22
+   respectively).
+
 20100301
  - (dtucker) [regress/{cert-hostkey,cfgmatch,cipher-speed}.sh} Replace
    "echo -n" with "echon" for portability.
