@@ -7,6 +7,10 @@
    - otto@cvs.openbsd.org 2010/03/01 11:07:06
      [ssh-add.c]
      zap what seems to be a left-over debug message; ok markus@
+   - djm@cvs.openbsd.org 2010/03/02 23:20:57
+     [ssh-keygen.c]
+     POSIX strptime is stricter than OpenBSD's so do a little dance to
+     appease it.
 
 20100302
  - (tim) [config.guess config.sub] Bug 1722: Update to latest versions from
