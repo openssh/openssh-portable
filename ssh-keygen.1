@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.84 2010/02/26 20:29:54 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.85 2010/02/26 22:09:28 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -107,6 +107,7 @@
 .Op Fl a Ar num_trials
 .Op Fl W Ar generator
 .Nm ssh-keygen
+.Bk -words
 .Fl s Ar ca_key
 .Fl I Ar certificate_identity
 .Op Fl h
@@ -114,6 +115,7 @@
 .Op Fl O Ar constraint
 .Op Fl V Ar validity_interval
 .Ar
+.Ek
 .Sh DESCRIPTION
 .Nm
 generates, manages and converts authentication keys for
@@ -259,7 +261,7 @@ certificate.
 Please see the
 .Sx CERTIFICATES
 section for details.
-.It Fl I
+.It Fl I Ar certificate_identity
 Specify the key identity when signing a public key.
 Please see the
 .Sx CERTIFICATES
@@ -303,21 +305,21 @@ section for details.
 The constraints that are valid for user certificates are:
 .Bl -tag -width Ds
 .It Ic no-x11-forwarding
-Disable X11 forwarding. (permitted by default)
+Disable X11 forwarding (permitted by default).
 .It Ic no-agent-forwarding
 Disable
 .Xr ssh-agent 1
-forwarding. (permitted by default)
+forwarding (permitted by default).
 .It Ic no-port-forwarding
-Disable port forwarding. (permitted by default)
+Disable port forwarding (permitted by default).
 .It Ic no-pty
-Disable PTY allocation. (permitted by default)
+Disable PTY allocation (permitted by default).
 .It Ic no-user-rc
 Disable execution of
 .Pa ~/.ssh/rc
 by
-.Xr sshd 8 .
-(permitted by default)
+.Xr sshd 8
+(permitted by default).
 .It Ic clear
 Clear all enabled permissions.
 This is useful for clearing the default set of permissions so permissions may
@@ -504,7 +506,8 @@ the X.509 certificates used in
 .Nm
 supports two types of certificates: user and host.
 User certificates authenticate users to servers, whereas host certificates
-authenticate server hosts to users. To generate a user certificate:
+authenticate server hosts to users.
+To generate a user certificate:
 .Pp
 .Dl $ ssh-keygen -s /path/to/ca_key -I key_id /path/to/user_key.pub
 .Pp

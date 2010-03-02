@@ -1,5 +1,9 @@
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
+ - OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/02/26 22:09:28
+     [ssh-keygen.1 ssh.1 sshd.8]
+     tweak previous;
 
 20100302
  - (tim) [config.guess config.sub] Bug 1722: Update to latest versions from

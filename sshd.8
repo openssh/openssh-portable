@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.251 2010/02/26 20:29:54 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.252 2010/02/26 22:09:28 jmc Exp $
 .Dd $Mdocdate: February 26 2010 $
 .Dt SSHD 8
 .Os
@@ -102,15 +102,6 @@ to use IPv6 addresses only.
 .It Fl b Ar bits
 Specifies the number of bits in the ephemeral protocol version 1
 server key (default 1024).
-.It Fl c Ar host_certificate_file
-Specifies a path to a certificate file to identify
-.Nm
-during key exchange.
-The certificate file must match a host key file specified using the
-.Fl -h
-option or the
-.Cm HostKey
-configuration directive.
 .It Fl C Ar connection_spec
 Specify the connection parameters to use for the
 .Fl T
@@ -129,6 +120,15 @@ and
 All are required and may be supplied in any order, either with multiple
 .Fl C
 options or as a comma-separated list.
+.It Fl c Ar host_certificate_file
+Specifies a path to a certificate file to identify
+.Nm
+during key exchange.
+The certificate file must match a host key file specified using the
+.Fl h
+option or the
+.Cm HostKey
+configuration directive.
 .It Fl D
 When this option is specified,
 .Nm
