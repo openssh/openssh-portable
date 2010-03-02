@@ -189,3 +189,5 @@ source-address          string        Comma-separated list of source addresses
                                       If this constraint is not present then
                                       certificates may be presented from any
                                       source address.
+
+$OpenBSD: PROTOCOL.certkeys,v 1.2 2010/03/02 23:22:44 djm Exp $

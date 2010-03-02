@@ -1,3 +1,6 @@
+20100303
+ - (djm) [PROTOCOL.certkeys] Add RCS Ident
+
 20100302
  - (tim) [config.guess config.sub] Bug 1722: Update to latest versions from
    http://git.savannah.gnu.org/gitweb/ (2009-12-30 and 2010-01-22
