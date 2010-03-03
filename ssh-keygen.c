@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.179 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.180 2010/03/02 23:20:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1243,13 +1243,29 @@ parse_absolute_time(const char *s)
 {
 	struct tm tm;
 	time_t tt;
+	char buf[32], *fmt;
 
-	if (strlen(s) != 8 && strlen(s) != 14)
+	/*
+	 * POSIX strptime says "The application shall ensure that there 
+	 * is white-space or other non-alphanumeric characters between
+	 * any two conversion specifications" so arrange things this way.
+	 */
+	switch (strlen(s)) {
+	case 8:
+		fmt = "%Y/%m/%d";
+		snprintf(buf, sizeof(buf), "%.4s/%.2s/%.2s", s, s + 4, s + 6);
+		break;
+	case 14:
+		fmt = "%Y/%m/%d %H:%M:%S";
+		snprintf(buf, sizeof(buf), "%.4s/%.2s/%.2s %.2s:%.2s:%.2s",
+		    s, s + 4, s + 6, s + 8, s + 10, s + 12);
+		break;
+	default:
 		fatal("Invalid certificate time format %s", s);
+	}
 
 	bzero(&tm, sizeof(tm));
-	if (strptime(s,
-	    strlen(s) == 8 ? "%Y%m%d" : "%Y%m%d%H%M%S", &tm) == NULL)
+	if (strptime(buf, fmt, &tm) == NULL)
 		fatal("Invalid certificate time %s", s);
 	if ((tt = mktime(&tm)) < 0)
 		fatal("Certificate time %s cannot be represented", s);
