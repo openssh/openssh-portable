@@ -11,6 +11,7 @@
      [ssh-keygen.c]
      POSIX strptime is stricter than OpenBSD's so do a little dance to
      appease it.
+ - (djm) [regress/cert-userkey.sh] s/echo -n/echon/ here too
 
 20100302
  - (tim) [config.guess config.sub] Bug 1722: Update to latest versions from

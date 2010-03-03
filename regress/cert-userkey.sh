@@ -10,7 +10,7 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/user_ca_key ||\
 	fail "ssh-keygen of user_ca_key failed"
 (
-	echo -n 'cert-authority '
+	echon 'cert-authority '
 	cat $OBJ/user_ca_key.pub
 ) > $OBJ/authorized_keys_$USER
 
