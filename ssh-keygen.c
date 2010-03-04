@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.182 2010/03/04 20:35:08 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.183 2010/03/04 23:27:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1142,7 +1142,7 @@ prepare_constraint_buf(Buffer *c)
 	if ((constraint_flags & CONSTRAINT_USER_RC) != 0)
 		add_flag_constraint(c, "permit-user-rc");
 	if (constraint_command != NULL)
-		add_string_constraint(c, "forced-command", constraint_command);
+		add_string_constraint(c, "force-command", constraint_command);
 	if (constraint_src_addr != NULL)
 		add_string_constraint(c, "source-address", constraint_src_addr);
 }

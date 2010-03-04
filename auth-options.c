@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.46 2010/03/03 01:44:36 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.47 2010/03/04 23:27:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -446,7 +446,7 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 			}
 			if (cert_forced_command != NULL) {
 				error("Certificate has multiple "
-				    "forced-command constraints");
+				    "force-command constraints");
 				xfree(command);
 				goto out;
 			}
