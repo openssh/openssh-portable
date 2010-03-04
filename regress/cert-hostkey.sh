@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.2 2010/03/03 00:47:23 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.3 2010/03/04 10:38:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -49,6 +49,68 @@ for privsep in yes no ; do
 		fi
 	done
 done
+
+# Revoked certificates with key present
+(
+	echon '@cert-authority '
+	echon "$HOSTS "
+	cat $OBJ/host_ca_key.pub
+	echon '@revoked '
+	echon "* "
+	cat $OBJ/cert_host_key_rsa.pub
+	echon '@revoked '
+	echon "* "
+	cat $OBJ/cert_host_key_dsa.pub
+) > $OBJ/known_hosts-cert
+for privsep in yes no ; do
+	for ktype in rsa dsa ; do 
+		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
+		(
+			cat $OBJ/sshd_proxy_bak
+			echo HostKey $OBJ/cert_host_key_${ktype}
+			echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
+			echo UsePrivilegeSeparation $privsep
+		) > $OBJ/sshd_proxy
+
+		${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
+		    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
+			-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			fail "ssh cert connect succeeded unexpectedly"
+		fi
+	done
+done
+
+# Revoked CA
+(
+	echon '@cert-authority '
+	echon "$HOSTS "
+	cat $OBJ/host_ca_key.pub
+	echon '@revoked '
+	echon "* "
+	cat $OBJ/host_ca_key.pub
+) > $OBJ/known_hosts-cert
+for ktype in rsa dsa ; do 
+	verbose "$tid: host ${ktype} revoked cert"
+	(
+		cat $OBJ/sshd_proxy_bak
+		echo HostKey $OBJ/cert_host_key_${ktype}
+		echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
+	) > $OBJ/sshd_proxy
+	${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
+	    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
+		-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		fail "ssh cert connect succeeded unexpectedly"
+	fi
+done
+
+# Create a CA key and add it to known hosts
+(
+	echon '@cert-authority '
+	echon "$HOSTS "
+	cat $OBJ/host_ca_key.pub
+) > $OBJ/known_hosts-cert
 
 test_one() {
 	ident=$1

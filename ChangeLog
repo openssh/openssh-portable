@@ -39,6 +39,9 @@
      [regress/cert-hostkey.sh regress/cert-userkey.sh]
      add an extra test to ensure that authentication with the wrong
      certificate fails as it should (and it does)
+   - djm@cvs.openbsd.org 2010/03/04 10:38:23
+     [regress/cert-hostkey.sh regress/cert-userkey.sh]
+     additional regression tests for revoked keys and TrustedUserCAKeys
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
