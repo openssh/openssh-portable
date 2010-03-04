@@ -15,6 +15,9 @@
      [sshd.8]
      the authorized_keys option for CA keys is "cert-authority", not
      "from=cert-authority". spotted by imorgan AT nas.nasa.gov
+   - djm@cvs.openbsd.org 2010/03/03 22:50:40
+     [PROTOCOL.certkeys]
+     s/similar same/similar/; from imorgan AT nas.nasa.gov
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
