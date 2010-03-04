@@ -9,6 +9,9 @@
    - jmc@cvs.openbsd.org 2010/03/04 22:52:40
      [ssh-keygen.1]
      fix Bk/Ek;
+   - djm@cvs.openbsd.org 2010/03/04 23:17:25
+     [sshd_config.5]
+     missing word; spotted by jmc@
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
 
