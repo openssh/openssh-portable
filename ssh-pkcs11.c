@@ -204,12 +204,17 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 		CKM_RSA_PKCS, NULL_PTR, 0
 	};
 	CK_ATTRIBUTE		key_filter[] = {
-		{CKA_CLASS, &private_key_class, sizeof(private_key_class) },
+		{CKA_CLASS, NULL, sizeof(private_key_class) },
 		{CKA_ID, NULL, 0},
-		{CKA_SIGN, &true_val, sizeof(true_val) }
+		{CKA_SIGN, NULL, sizeof(true_val) }
 	};
 	char			*pin, prompt[1024];
 	int			rval = -1;
+
+	/* some compilers complain about non-constant initializer so we
+	   use NULL in CK_ATTRIBUTE above and set the values here */
+	key_filter[0].pValue = &private_key_class;
+	key_filter[2].pValue = &true_val;
 
 	if ((k11 = RSA_get_app_data(rsa)) == NULL) {
 		error("RSA_get_app_data failed for rsa %p", rsa);
@@ -371,13 +376,17 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx, Key ***keysp,
 	CK_FUNCTION_LIST	*f;
 	CK_OBJECT_CLASS		pubkey_class = CKO_PUBLIC_KEY;
 	CK_ATTRIBUTE		pubkey_filter[] = {
-		{ CKA_CLASS, &pubkey_class, sizeof(pubkey_class) }
+		{ CKA_CLASS, NULL, sizeof(pubkey_class) }
 	};
 	CK_ATTRIBUTE		attribs[] = {
 		{ CKA_ID, NULL, 0 },
 		{ CKA_MODULUS, NULL, 0 },
 		{ CKA_PUBLIC_EXPONENT, NULL, 0 }
 	};
+
+	/* some compilers complain about non-constant initializer so we
+	   use NULL in CK_ATTRIBUTE above and set the value here */
+	pubkey_filter[0].pValue = &pubkey_class;
 
 	f = p->function_list;
 	session = p->slotinfo[slotidx].session;
