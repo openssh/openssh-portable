@@ -4,6 +4,7 @@
  - (djm) [contrib/redhat/openssh.spec] Replace obsolete BuildPreReq
    on XFree86-devel with neutral /usr/include/X11/Xlib.h;
    imorgan AT nas.nasa.gov in bz#1731
+ - (djm) [.cvsignore] Ignore ssh-pkcs11-helper
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
