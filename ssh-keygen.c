@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.181 2010/03/04 10:36:03 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.182 2010/03/04 20:35:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -81,6 +81,9 @@ int hash_hosts = 0;
 int find_host = 0;
 /* Flag indicating that we want to delete a host from a known_hosts file */
 int delete_host = 0;
+
+/* Flag indicating that we want to show the contents of a certificate */
+int show_cert = 0;
 
 /* Flag indicating that we just want to see the key fingerprint */
 int print_fingerprint = 0;
@@ -1063,7 +1066,7 @@ do_change_comment(struct passwd *pw)
 }
 
 static const char *
-fmt_validity(void)
+fmt_validity(u_int64_t valid_from, u_int64_t valid_to)
 {
 	char from[32], to[32];
 	static char ret[64];
@@ -1071,28 +1074,27 @@ fmt_validity(void)
 	struct tm *tm;
 
 	*from = *to = '\0';
-	if (cert_valid_from == 0 &&
-	    cert_valid_to == 0xffffffffffffffffULL)
+	if (valid_from == 0 && valid_to == 0xffffffffffffffffULL)
 		return "forever";
 
-	if (cert_valid_from != 0) {
+	if (valid_from != 0) {
 		/* XXX revisit INT_MAX in 2038 :) */
-		tt = cert_valid_from > INT_MAX ? INT_MAX : cert_valid_from;
+		tt = valid_from > INT_MAX ? INT_MAX : valid_from;
 		tm = localtime(&tt);
 		strftime(from, sizeof(from), "%Y-%m-%dT%H:%M:%S", tm);
 	}
-	if (cert_valid_to != 0xffffffffffffffffULL) {
+	if (valid_to != 0xffffffffffffffffULL) {
 		/* XXX revisit INT_MAX in 2038 :) */
-		tt = cert_valid_to > INT_MAX ? INT_MAX : cert_valid_to;
+		tt = valid_to > INT_MAX ? INT_MAX : valid_to;
 		tm = localtime(&tt);
 		strftime(to, sizeof(to), "%Y-%m-%dT%H:%M:%S", tm);
 	}
 
-	if (cert_valid_from == 0) {
+	if (valid_from == 0) {
 		snprintf(ret, sizeof(ret), "before %s", to);
 		return ret;
 	}
-	if (cert_valid_to == 0xffffffffffffffffULL) {
+	if (valid_to == 0xffffffffffffffffULL) {
 		snprintf(ret, sizeof(ret), "after %s", from);
 		return ret;
 	}
@@ -1216,7 +1218,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			    out, cert_key_id,
 			    cert_principals != NULL ? " for " : "",
 			    cert_principals != NULL ? cert_principals : "",
-			    fmt_validity());
+			    fmt_validity(cert_valid_from, cert_valid_to));
 
 		key_free(public);
 		xfree(out);
@@ -1366,6 +1368,89 @@ add_cert_constraint(char *opt)
 }
 
 static void
+do_show_cert(struct passwd *pw)
+{
+	Key *key;
+	struct stat st;
+	char *key_fp, *ca_fp;
+	Buffer constraints, constraint;
+	u_char *name, *data;
+	u_int i, dlen;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		exit(1);
+	}
+	if ((key = key_load_public(identity_file, NULL)) == NULL)
+		fatal("%s is not a public key", identity_file);
+	if (!key_is_cert(key))
+		fatal("%s is not a certificate", identity_file);
+	
+	key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+	ca_fp = key_fingerprint(key->cert->signature_key,
+	    SSH_FP_MD5, SSH_FP_HEX);
+
+	printf("%s:\n", identity_file);
+	printf("        %s certificate %s\n", key_type(key), key_fp);
+	printf("        Signed by %s CA %s\n",
+	    key_type(key->cert->signature_key), ca_fp);
+	printf("        Key ID \"%s\"\n", key->cert->key_id);
+	printf("        Valid: %s\n",
+	    fmt_validity(key->cert->valid_after, key->cert->valid_before));
+	printf("        Principals: ");
+	if (key->cert->nprincipals == 0)
+		printf("(none)\n");
+	else {
+		for (i = 0; i < key->cert->nprincipals; i++)
+			printf("\n                %s",
+			    key->cert->principals[i]);
+		printf("\n");
+	}
+	printf("        Constraints: ");
+	if (buffer_len(&key->cert->constraints) == 0)
+		printf("(none)\n");
+	else {
+		printf("\n");
+		buffer_init(&constraints);
+		buffer_append(&constraints,
+		    buffer_ptr(&key->cert->constraints),
+		    buffer_len(&key->cert->constraints));
+		buffer_init(&constraint);
+		while (buffer_len(&constraints) != 0) {
+			name = buffer_get_string(&constraints, NULL);
+			data = buffer_get_string_ptr(&constraints, &dlen);
+			buffer_append(&constraint, data, dlen);
+			printf("                %s", name);
+			if (strcmp(name, "permit-X11-forwarding") == 0 ||
+			    strcmp(name, "permit-agent-forwarding") == 0 ||
+			    strcmp(name, "permit-port-forwarding") == 0 ||
+			    strcmp(name, "permit-pty") == 0 ||
+			    strcmp(name, "permit-user-rc") == 0)
+				printf("\n");
+			else if (strcmp(name, "force-command") == 0 ||
+			    strcmp(name, "source-address") == 0) {
+				data = buffer_get_string(&constraint, NULL);
+				printf(" %s\n", data);
+				xfree(data);
+			} else {
+				printf(" UNKNOWN CONSTRAINT (len %u)\n",
+				    buffer_len(&constraint));
+				buffer_clear(&constraint);
+			}
+			xfree(name);
+			if (buffer_len(&constraint) != 0)
+				fatal("Constraint corrupt: extra data at end");
+		}
+		buffer_free(&constraint);
+		buffer_free(&constraints);
+	}
+
+	exit(0);
+}
+
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: %s [options]\n", __progname);
@@ -1387,6 +1472,7 @@ usage(void)
 	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
 	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
 	fprintf(stderr, "  -i          Convert RFC 4716 to OpenSSH key file.\n");
+	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
@@ -1453,7 +1539,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv, "degiqpclBHhvxXyF:b:f:t:D:I:P:N:n:"
+	while ((opt = getopt(argc, argv, "degiqpclBHLhvxXyF:b:f:t:D:I:P:N:n:"
 	    "O:C:r:g:R:T:G:M:S:s:a:V:W:")) != -1) {
 		switch (opt) {
 		case 'b':
@@ -1475,6 +1561,9 @@ main(int argc, char **argv)
 		case 'R':
 			delete_host = 1;
 			rr_hostname = optarg;
+			break;
+		case 'L':
+			show_cert = 1;
 			break;
 		case 'l':
 			print_fingerprint = 1;
@@ -1629,6 +1718,8 @@ main(int argc, char **argv)
 			fatal("Must specify key id (-I) when certifying");
 		do_ca_sign(pw, argc, argv);
 	}
+	if (show_cert)
+		do_show_cert(pw);
 	if (delete_host || hash_hosts || find_host)
 		do_known_hosts(pw, rr_hostname);
 	if (print_fingerprint || print_bubblebabble)

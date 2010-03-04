@@ -3,6 +3,9 @@
    - jmc@cvs.openbsd.org 2010/03/04 12:51:25
      [ssh.1 sshd_config.5]
      tweak previous;
+   - djm@cvs.openbsd.org 2010/03/04 20:35:08
+     [ssh-keygen.1 ssh-keygen.c]
+     Add a -L flag to print the contents of a certificate; ok markus@
 
 20100304
  - (djm) [ssh-keygen.c] Use correct local variable, instead of
