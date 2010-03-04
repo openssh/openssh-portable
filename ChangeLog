@@ -1,3 +1,7 @@
+20100304
+ - (djm) [ssh-keygen.c] Use correct local variable, instead of
+   maybe-undefined global "optarg"
+
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
  - OpenBSD CVS Sync

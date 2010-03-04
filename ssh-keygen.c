@@ -1300,7 +1300,7 @@ parse_cert_times(char *timespec)
 	from = xstrdup(timespec);
 	to = strchr(from, ':');
 	if (to == NULL || from == to || *(to + 1) == '\0')
-		fatal("Invalid certificate life specification %s", optarg);
+		fatal("Invalid certificate life specification %s", timespec);
 	*to++ = '\0';
 
 	if (*from == '-' || *from == '+')
