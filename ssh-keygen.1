@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.86 2010/03/04 20:35:08 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.87 2010/03/04 22:52:40 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -52,7 +52,6 @@
 .Op Fl N Ar new_passphrase
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
-.Ek
 .Nm ssh-keygen
 .Fl p
 .Op Fl P Ar old_passphrase
@@ -107,7 +106,6 @@
 .Op Fl a Ar num_trials
 .Op Fl W Ar generator
 .Nm ssh-keygen
-.Bk -words
 .Fl s Ar ca_key
 .Fl I Ar certificate_identity
 .Op Fl h
@@ -116,7 +114,6 @@
 .Op Fl V Ar validity_interval
 .Ar
 .Nm ssh-keygen
-.Bk -words
 .Fl L
 .Op Fl f Ar input_keyfile
 .Ek

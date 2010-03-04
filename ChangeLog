@@ -6,6 +6,9 @@
    - djm@cvs.openbsd.org 2010/03/04 20:35:08
      [ssh-keygen.1 ssh-keygen.c]
      Add a -L flag to print the contents of a certificate; ok markus@
+   - jmc@cvs.openbsd.org 2010/03/04 22:52:40
+     [ssh-keygen.1]
+     fix Bk/Ek;
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
 
