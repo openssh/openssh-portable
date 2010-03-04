@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.252 2010/02/26 22:09:28 jmc Exp $
-.Dd $Mdocdate: February 26 2010 $
+.\" $OpenBSD: sshd.8,v 1.253 2010/03/03 22:49:50 djm Exp $
+.Dd $Mdocdate: March 3 2010 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -508,7 +508,7 @@ No spaces are permitted, except within double quotes.
 The following option specifications are supported (note
 that option keywords are case-insensitive):
 .Bl -tag -width Ds
-.It Cm from="cert-authority"
+.It Cm cert-authority
 Specifies that the listed key is a certification authority (CA) that is
 trusted to validate signed certificates for user authentication.
 .Pp

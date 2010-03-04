@@ -11,6 +11,10 @@
      [auth-options.c key.c]
      reject strings with embedded ASCII nul chars in certificate key IDs,
      principal names and constraints
+   - djm@cvs.openbsd.org 2010/03/03 22:49:50
+     [sshd.8]
+     the authorized_keys option for CA keys is "cert-authority", not
+     "from=cert-authority". spotted by imorgan AT nas.nasa.gov
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
