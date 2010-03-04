@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.91 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.92 2010/03/04 10:36:03 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -154,6 +154,8 @@ typedef struct {
 	int	num_permitted_opens;
 
 	char   *chroot_directory;
+	char   *revoked_keys_file;
+	char   *trusted_user_ca_keys;
 }       ServerOptions;
 
 void	 initialize_server_options(ServerOptions *);

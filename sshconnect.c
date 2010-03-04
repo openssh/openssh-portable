@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.219 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.220 2010/03/04 10:36:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -859,6 +859,25 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			logit("Warning: Permanently added '%.200s' (%s) to the "
 			    "list of known hosts.", hostp, type);
 		break;
+	case HOST_REVOKED:
+		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		error("@       WARNING: REVOKED HOST KEY DETECTED!               @");
+		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		error("The %s host key for %s is marked as revoked.", type, host);
+		error("This could mean that a stolen key is being used to");
+		error("impersonate this host.");
+
+		/*
+		 * If strict host key checking is in use, the user will have
+		 * to edit the key manually and we can only abort.
+		 */
+		if (options.strict_host_key_checking) {
+			error("%s host key for %.200s was revoked and you have "
+			    "requested strict checking.", type, host);
+			goto fail;
+		}
+		goto continue_unsafe;
+
 	case HOST_CHANGED:
 		if (want_cert) {
 			/*
@@ -908,6 +927,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			goto fail;
 		}
 
+ continue_unsafe:
 		/*
 		 * If strict host key checking has not been requested, allow
 		 * the connection but without MITM-able authentication or
@@ -1007,7 +1027,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	return 0;
 
 fail:
-	if (want_cert) {
+	if (want_cert && host_status != HOST_REVOKED) {
 		/*
 		 * No matching certificate. Downgrade cert to raw key and
 		 * search normally.

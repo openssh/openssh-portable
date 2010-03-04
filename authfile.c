@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.79 2010/01/12 00:16:47 dtucker Exp $ */
+/* $OpenBSD: authfile.c,v 1.80 2010/03/04 10:36:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -692,3 +692,65 @@ key_load_public(const char *filename, char **commentp)
 	key_free(pub);
 	return NULL;
 }
+
+/*
+ * Returns 1 if the specified "key" is listed in the file "filename",
+ * 0 if the key is not listed or -1 on error.
+ * If strict_type is set then the key type must match exactly,
+ * otherwise a comparison that ignores certficiate data is performed.
+ */
+int
+key_in_file(Key *key, const char *filename, int strict_type)
+{
+	FILE *f;
+	char line[SSH_MAX_PUBKEY_BYTES];
+	char *cp;
+	u_long linenum = 0;
+	int ret = 0;
+	Key *pub;
+	int (*key_compare)(const Key *, const Key *) = strict_type ?
+	    key_equal : key_equal_public;
+
+	if ((f = fopen(filename, "r")) == NULL) {
+		if (errno == ENOENT) {
+			debug("%s: keyfile \"%s\" missing", __func__, filename);
+			return 0;
+		} else {
+			error("%s: could not open keyfile \"%s\": %s", __func__,
+			    filename, strerror(errno));
+			return -1;
+		}
+	}
+
+	while (read_keyfile_line(f, filename, line, sizeof(line),
+		    &linenum) != -1) {
+		cp = line;
+
+		/* Skip leading whitespace. */
+		for (; *cp && (*cp == ' ' || *cp == '\t'); cp++)
+			;
+
+		/* Skip comments and empty lines */
+		switch (*cp) {
+		case '#':
+		case '\n':
+		case '\0':
+			continue;
+		}
+
+		pub = key_new(KEY_UNSPEC);
+		if (key_read(pub, &cp) != 1) {
+			key_free(pub);
+			continue;
+		}
+		if (key_compare(key, pub)) {
+			ret = 1;
+			key_free(pub);
+			break;
+		}
+		key_free(pub);
+	}
+	fclose(f);
+	return ret;
+}
+

@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.117 2010/02/26 20:29:54 djm Exp $
-.Dd $Mdocdate: February 26 2010 $
+.\" $OpenBSD: sshd_config.5,v 1.118 2010/03/04 10:36:03 djm Exp $
+.Dd $Mdocdate: March 4 2010 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -814,6 +814,11 @@ Specifies whether public key authentication is allowed.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
+.It Cm RevokedKeys
+Specifies a list of revoked public keys.
+Keys listed in this file will be refused for public key authentication.
+Note that if this file is not readable, then public key authentication will
+be refused for all users.
 .It Cm RhostsRSAAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful RSA host authentication is allowed.
@@ -889,6 +894,22 @@ This avoids infinitely hanging sessions.
 .Pp
 To disable TCP keepalive messages, the value should be set to
 .Dq no .
+.It Cm TrustedUserCAKeys
+Specifies a file containing public keys of certificate authorities that are
+trusted sign user certificates for authentication.
+Keys are listed one per line, empty lines and comments starting with
+.Ql #
+are allowed.
+If a certificate is presented for authentication and has its signing CA key
+listed in this file, then it may be used for authentication for any user
+listed in the certificate's principals list.
+Note that certificates that lack a list of principals will not be permitted
+for authentication using
+.Cm TrustedUserCAKeys .
+For more details in certificates, please see the
+.Sx CERTIFICATES
+section in
+.Xr ssh-keygen 1 .
 .It Cm UseDNS
 Specifies whether
 .Xr sshd 8

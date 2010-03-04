@@ -22,6 +22,19 @@
      [key.c]
      use buffer_get_string_ptr_ret() where we are checking the return
      value explicitly instead of the fatal()-causing buffer_get_string_ptr()
+   - djm@cvs.openbsd.org 2010/03/04 10:36:03
+     [auth-rh-rsa.c auth-rsa.c auth.c auth.h auth2-hostbased.c auth2-pubkey.c]
+     [authfile.c authfile.h hostfile.c hostfile.h servconf.c servconf.h]
+     [ssh-keygen.c ssh.1 sshconnect.c sshd_config.5]
+     Add a TrustedUserCAKeys option to sshd_config to specify CA keys that
+     are trusted to authenticate users (in addition than doing it per-user
+     in authorized_keys).
+     
+     Add a RevokedKeys option to sshd_config and a @revoked marker to
+     known_hosts to allow keys to me revoked and banned for user or host
+     authentication.
+     
+     feedback and ok markus@
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident

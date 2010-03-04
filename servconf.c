@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.203 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.204 2010/03/04 10:36:03 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -129,6 +129,8 @@ initialize_server_options(ServerOptions *options)
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
 	options->zero_knowledge_password_authentication = -1;
+	options->revoked_keys_file = NULL;
+	options->trusted_user_ca_keys = NULL;
 }
 
 void
@@ -308,6 +310,7 @@ typedef enum {
 	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sZeroKnowledgePasswordAuthentication, sHostCertificate,
+	sRevokedKeys, sTrustedUserCAKeys,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -427,6 +430,8 @@ static struct {
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ "hostcertificate", sHostCertificate, SSHCFG_GLOBAL },
+	{ "revokedkeys", sRevokedKeys, SSHCFG_ALL },
+	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1323,6 +1328,14 @@ process_server_config_line(ServerOptions *options, char *line,
 			*charptr = xstrdup(arg);
 		break;
 
+	case sTrustedUserCAKeys:
+		charptr = &options->trusted_user_ca_keys;
+		goto parse_filename;
+
+	case sRevokedKeys:
+		charptr = &options->revoked_keys_file;
+		goto parse_filename;
+
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
@@ -1437,6 +1450,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		return;
 	M_CP_STROPT(adm_forced_command);
 	M_CP_STROPT(chroot_directory);
+	M_CP_STROPT(trusted_user_ca_keys);
+	M_CP_STROPT(revoked_keys_file);
 }
 
 #undef M_CP_INTOPT
@@ -1656,6 +1671,8 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sAuthorizedKeysFile2, o->authorized_keys_file2);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
+	dump_cfg_string(sTrustedUserCAKeys, o->trusted_user_ca_keys);
+	dump_cfg_string(sRevokedKeys, o->revoked_keys_file);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));

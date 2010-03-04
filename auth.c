@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.84 2010/02/09 06:18:46 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.85 2010/03/04 10:36:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -69,6 +69,7 @@
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
+#include "authfile.h"
 #include "monitor_wrap.h"
 
 /* import */
@@ -580,6 +581,34 @@ getpwnamallow(const char *user)
 	if (pw != NULL)
 		return (pwcopy(pw));
 	return (NULL);
+}
+
+/* Returns 1 if key is revoked by revoked_keys_file, 0 otherwise */
+int
+auth_key_is_revoked(Key *key)
+{
+	char *key_fp;
+
+	if (options.revoked_keys_file == NULL)
+		return 0;
+
+	switch (key_in_file(key, options.revoked_keys_file, 0)) {
+	case 0:
+		/* key not revoked */
+		return 0;
+	case -1:
+		/* Error opening revoked_keys_file: refuse all keys */
+		error("Revoked keys file is unreadable: refusing public key "
+		    "authentication");
+		return 1;
+	case 1:
+		/* Key revoked */
+		key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		error("%s key %s is revoked", key_type(key), key_fp);
+		xfree(key_fp);
+		return 1;
+	}
+	fatal("key_in_file returned junk");
 }
 
 void

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.20 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.21 2010/03/04 10:36:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -56,6 +56,7 @@
 #endif
 #include "monitor_wrap.h"
 #include "misc.h"
+#include "authfile.h"
 
 /* import */
 extern ServerOptions options;
@@ -276,12 +277,62 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 	return found_key;
 }
 
+/* Authenticate a certificate key against TrustedUserCAKeys */
+static int
+user_cert_trusted_ca(struct passwd *pw, Key *key)
+{
+	char *key_fp, *ca_fp;
+	const char *reason;
+	int ret = 0;
+
+	if (!key_is_cert(key) || options.trusted_user_ca_keys == NULL)
+		return 0;
+
+	key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+	ca_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+
+	if (key_in_file(key->cert->signature_key,
+	    options.trusted_user_ca_keys, 1) != 1) {
+		debug2("%s: CA %s %s is not listed in %s", __func__,
+		    key_type(key->cert->signature_key), ca_fp,
+		    options.trusted_user_ca_keys);
+		goto out;
+	}
+	if (key_cert_check_authority(key, 0, 1, pw->pw_name, &reason) != 0) {
+		error("%s", reason);
+		auth_debug_add("%s", reason);
+		goto out;
+	}
+	if (auth_cert_constraints(&key->cert->constraints, pw) != 0)
+		goto out;
+
+	verbose("%s certificate %s allowed by trusted %s key %s",
+	    key_type(key), key_fp, key_type(key->cert->signature_key), ca_fp);
+	ret = 1;
+
+ out:
+	if (key_fp != NULL)
+		xfree(key_fp);
+	if (ca_fp != NULL)
+		xfree(ca_fp);
+	return ret;
+}
+
 /* check whether given key is in .ssh/authorized_keys* */
 int
 user_key_allowed(struct passwd *pw, Key *key)
 {
 	int success;
 	char *file;
+
+	if (auth_key_is_revoked(key))
+		return 0;
+	if (key_is_cert(key) && auth_key_is_revoked(key->cert->signature_key))
+		return 0;
+
+	success = user_cert_trusted_ca(pw, key);
+	if (success)
+		return success;
 
 	file = authorized_keys_file(pw);
 	success = user_key_allowed2(pw, key, file);
