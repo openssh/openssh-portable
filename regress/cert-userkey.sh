@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.1 2010/02/26 20:33:21 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.2 2010/03/03 00:47:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -24,7 +24,6 @@ for ktype in rsa dsa ; do
 	    "regress user key for $USER" \
 	    -n $USER $OBJ/cert_user_key_${ktype} ||
 		fail "couldn't sign cert_user_key_${ktype}"
-
 done
 
 # Basic connect tests
@@ -85,5 +84,20 @@ test_one "cert expired"		failure "-V19800101:19900101"
 test_one "cert valid interval"	success "-V-1w:+2w"
 test_one "wrong source-address"	failure "-Osource-address=10.0.0.0/8"
 test_one "force-command"	failure "-Oforce-command=false"
+
+# Wrong certificate
+for ktype in rsa dsa ; do 
+	# Self-sign
+	${SSHKEYGEN} -q -s $OBJ/cert_user_key_${ktype} -I \
+	    "regress user key for $USER" \
+	    -n $USER $OBJ/cert_user_key_${ktype} ||
+		fail "couldn't sign cert_user_key_${ktype}"
+	verbose "$tid: user ${ktype} connect wrong cert"
+	${SSH} -2i $OBJ/cert_user_key_${ktype} -F $OBJ/ssh_proxy \
+	    somehost true >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		fail "ssh cert connect $ident succeeded unexpectedly"
+	fi
+done
 
 rm -f $OBJ/authorized_keys_$USER $OBJ/user_ca_key* $OBJ/cert_user_key*

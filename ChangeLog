@@ -35,6 +35,10 @@
      authentication.
      
      feedback and ok markus@
+   - djm@cvs.openbsd.org 2010/03/03 00:47:23
+     [regress/cert-hostkey.sh regress/cert-userkey.sh]
+     add an extra test to ensure that authentication with the wrong
+     certificate fails as it should (and it does)
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident

@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.1 2010/02/26 20:33:21 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.2 2010/03/03 00:47:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -116,6 +116,33 @@ for ktype in rsa dsa ; do
 		-F $OBJ/ssh_proxy somehost true
 	if [ $? -ne 0 ]; then
 		fail "ssh cert connect failed"
+	fi
+done
+
+# Wrong certificate
+(
+	echon '@cert-authority '
+	echon "$HOSTS "
+	cat $OBJ/host_ca_key.pub
+) > $OBJ/known_hosts-cert
+for ktype in rsa dsa ; do 
+	# Self-sign key
+	${SSHKEYGEN} -h -q -s $OBJ/cert_host_key_${ktype} \
+	    -I "regress host key for $USER" \
+	    -n $HOSTS $OBJ/cert_host_key_${ktype} ||
+		fail "couldn't sign cert_host_key_${ktype}"
+	verbose "$tid: host ${ktype} connect wrong cert"
+	(
+		cat $OBJ/sshd_proxy_bak
+		echo HostKey $OBJ/cert_host_key_${ktype}
+		echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
+	) > $OBJ/sshd_proxy
+
+	${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
+	    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
+		-F $OBJ/ssh_proxy -q somehost true >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		fail "ssh cert connect $ident succeeded unexpectedly"
 	fi
 done
 
