@@ -18,6 +18,10 @@
    - djm@cvs.openbsd.org 2010/03/03 22:50:40
      [PROTOCOL.certkeys]
      s/similar same/similar/; from imorgan AT nas.nasa.gov
+   - djm@cvs.openbsd.org 2010/03/04 01:44:57
+     [key.c]
+     use buffer_get_string_ptr_ret() where we are checking the return
+     value explicitly instead of the fatal()-causing buffer_get_string_ptr()
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident

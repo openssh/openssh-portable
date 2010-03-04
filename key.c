@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.84 2010/03/03 01:44:36 djm Exp $ */
+/* $OpenBSD: key.c,v 1.85 2010/03/04 01:44:57 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1069,8 +1069,8 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	buffer_append(&tmp, constraints, clen);
 	/* validate structure */
 	while (buffer_len(&tmp) != 0) {
-		if (buffer_get_string_ptr(&tmp, NULL) == NULL ||
-		    buffer_get_string_ptr(&tmp, NULL) == NULL) {
+		if (buffer_get_string_ptr_ret(&tmp, NULL) == NULL ||
+		    buffer_get_string_ptr_ret(&tmp, NULL) == NULL) {
 			error("%s: Constraints data invalid", __func__);
 			goto out;
 		}
