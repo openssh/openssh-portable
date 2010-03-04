@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.83 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: key.c,v 1.84 2010/03/03 01:44:36 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1000,7 +1000,7 @@ static int
 cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 {
 	u_char *principals, *constraints, *sig_key, *sig;
-	u_int signed_len, plen, clen, sklen, slen;
+	u_int signed_len, plen, clen, sklen, slen, kidlen;
 	Buffer tmp;
 	char *principal;
 	int ret = -1;
@@ -1012,7 +1012,7 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 
 	principals = constraints = sig_key = sig = NULL;
 	if (buffer_get_int_ret(&key->cert->type, b) != 0 ||
-	    (key->cert->key_id = buffer_get_string_ret(b, NULL)) == NULL ||
+	    (key->cert->key_id = buffer_get_string_ret(b, &kidlen)) == NULL ||
 	    (principals = buffer_get_string_ret(b, &plen)) == NULL ||
 	    buffer_get_int64_ret(&key->cert->valid_after, b) != 0 ||
 	    buffer_get_int64_ret(&key->cert->valid_before, b) != 0 ||
@@ -1021,6 +1021,11 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	    /* skip reserved */ buffer_get_string_ptr_ret(b, NULL) == NULL ||
 	    (sig_key = buffer_get_string_ret(b, &sklen)) == NULL) {
 		error("%s: parse error", __func__);
+		goto out;
+	}
+
+	if (kidlen != strlen(key->cert->key_id)) {
+		error("%s: key ID contains \\0 character", __func__);
 		goto out;
 	}
 
@@ -1041,11 +1046,16 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	buffer_append(&tmp, principals, plen);
 	while (buffer_len(&tmp) > 0) {
 		if (key->cert->nprincipals >= CERT_MAX_PRINCIPALS) {
-			error("Too many principals");
+			error("%s: Too many principals", __func__);
 			goto out;
 		}
-		if ((principal = buffer_get_string_ret(&tmp, NULL)) == NULL) {
-			error("Principals data invalid");
+		if ((principal = buffer_get_string_ret(&tmp, &plen)) == NULL) {
+			error("%s: Principals data invalid", __func__);
+			goto out;
+		}
+		if (strlen(principal) != plen) {
+			error("%s: Principal contains \\0 character",
+			    __func__);
 			goto out;
 		}
 		key->cert->principals = xrealloc(key->cert->principals,
@@ -1061,7 +1071,7 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	while (buffer_len(&tmp) != 0) {
 		if (buffer_get_string_ptr(&tmp, NULL) == NULL ||
 		    buffer_get_string_ptr(&tmp, NULL) == NULL) {
-			error("Constraints data invalid");
+			error("%s: Constraints data invalid", __func__);
 			goto out;
 		}
 	}
@@ -1069,12 +1079,12 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 
 	if ((key->cert->signature_key = key_from_blob(sig_key,
 	    sklen)) == NULL) {
-		error("Signature key invalid");
+		error("%s: Signature key invalid", __func__);
 		goto out;
 	}
 	if (key->cert->signature_key->type != KEY_RSA &&
 	    key->cert->signature_key->type != KEY_DSA) {
-		error("Invalid signature key type %s (%d)",
+		error("%s: Invalid signature key type %s (%d)", __func__,
 		    key_type(key->cert->signature_key),
 		    key->cert->signature_key->type);
 		goto out;
@@ -1083,16 +1093,16 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	switch (key_verify(key->cert->signature_key, sig, slen, 
 	    buffer_ptr(&key->cert->certblob), signed_len)) {
 	case 1:
+		ret = 0;
 		break; /* Good signature */
 	case 0:
-		error("Invalid signature on certificate");
+		error("%s: Invalid signature on certificate", __func__);
 		goto out;
 	case -1:
-		error("Certificate signature verification failed");
+		error("%s: Certificate signature verification failed",
+		    __func__);
 		goto out;
 	}
-
-	ret = 0;
 
  out:
 	buffer_free(&tmp);

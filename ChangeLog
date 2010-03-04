@@ -6,6 +6,11 @@
    imorgan AT nas.nasa.gov in bz#1731
  - (djm) [.cvsignore] Ignore ssh-pkcs11-helper
  - (djm) [regress/Makefile] Cleanup sshd_proxy_orig
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/03/03 01:44:36
+     [auth-options.c key.c]
+     reject strings with embedded ASCII nul chars in certificate key IDs,
+     principal names and constraints
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident

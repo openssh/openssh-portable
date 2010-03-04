@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.45 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.46 2010/03/03 01:44:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -391,7 +391,7 @@ int
 auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 {
 	u_char *name = NULL, *data_blob = NULL;
-	u_int len;
+	u_int nlen, dlen, clen;
 	Buffer c, data;
 	int ret = -1;
 
@@ -410,14 +410,18 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 	buffer_append(&c, buffer_ptr(c_orig), buffer_len(c_orig));
 
 	while (buffer_len(&c) > 0) {
-		if ((name = buffer_get_string_ret(&c, NULL)) == NULL ||
-		    (data_blob = buffer_get_string_ret(&c, &len)) == NULL) {
+		if ((name = buffer_get_string_ret(&c, &nlen)) == NULL ||
+		    (data_blob = buffer_get_string_ret(&c, &dlen)) == NULL) {
 			error("Certificate constraints corrupt");
 			goto out;
 		}
-		buffer_append(&data, data_blob, len);
+		buffer_append(&data, data_blob, dlen);
 		debug3("found certificate constraint \"%.100s\" len %u",
-		    name, len);
+		    name, dlen);
+		if (strlen(name) != nlen) {
+			error("Certificate constraint name contains \\0");
+			goto out;
+		}
 		if (strcmp(name, "permit-X11-forwarding") == 0)
 			cert_no_x11_forwarding_flag = 0;
 		else if (strcmp(name, "permit-agent-forwarding") == 0)
@@ -429,11 +433,15 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 		else if (strcmp(name, "permit-user-rc") == 0)
 			cert_no_user_rc = 0;
 		else if (strcmp(name, "force-command") == 0) {
-			char *command = buffer_get_string_ret(&data, NULL);
+			char *command = buffer_get_string_ret(&data, &clen);
 
 			if (command == NULL) {
 				error("Certificate constraint \"%s\" corrupt",
 				    name);
+				goto out;
+			}
+			if (strlen(command) != clen) {
+				error("force-command constrain contains \\0");
 				goto out;
 			}
 			if (cert_forced_command != NULL) {
@@ -444,12 +452,16 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 			}
 			cert_forced_command = command;
 		} else if (strcmp(name, "source-address") == 0) {
-			char *allowed = buffer_get_string_ret(&data, NULL);
+			char *allowed = buffer_get_string_ret(&data, &clen);
 			const char *remote_ip = get_remote_ipaddr();
 			
 			if (allowed == NULL) {
 				error("Certificate constraint \"%s\" corrupt",
 				    name);
+				goto out;
+			}
+			if (strlen(allowed) != clen) {
+				error("source-address constrain contains \\0");
 				goto out;
 			}
 			if (cert_source_address_done++) {
