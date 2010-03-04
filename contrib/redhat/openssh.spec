@@ -94,7 +94,7 @@ BuildPreReq: glibc-devel, pam
 BuildPreReq: /usr/include/security/pam_appl.h
 %endif
 %if ! %{no_x11_askpass}
-BuildPreReq: XFree86-devel
+BuildPreReq: /usr/include/X11/Xlib.h
 %endif
 %if ! %{no_gnome_askpass}
 BuildPreReq: pkgconfig

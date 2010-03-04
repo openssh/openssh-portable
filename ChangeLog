@@ -1,6 +1,9 @@
 20100304
  - (djm) [ssh-keygen.c] Use correct local variable, instead of
    maybe-undefined global "optarg"
+ - (djm) [contrib/redhat/openssh.spec] Replace obsolete BuildPreReq
+   on XFree86-devel with neutral /usr/include/X11/Xlib.h;
+   imorgan AT nas.nasa.gov in bz#1731
 
 20100303
  - (djm) [PROTOCOL.certkeys] Add RCS Ident
