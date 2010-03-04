@@ -12,6 +12,10 @@
    - djm@cvs.openbsd.org 2010/03/04 23:17:25
      [sshd_config.5]
      missing word; spotted by jmc@
+   - djm@cvs.openbsd.org 2010/03/04 23:19:29
+     [ssh.1 sshd.8]
+     move section on CA and revoked keys from ssh.1 to sshd.8's known hosts
+     format section and rework it a bit; requested by jmc@
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
 

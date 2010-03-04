@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.253 2010/03/03 22:49:50 djm Exp $
-.Dd $Mdocdate: March 3 2010 $
+.\" $OpenBSD: sshd.8,v 1.254 2010/03/04 23:19:29 djm Exp $
+.Dd $Mdocdate: March 4 2010 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -634,9 +634,18 @@ be prepared by the administrator (optional), and the per-user file is
 maintained automatically: whenever the user connects from an unknown host,
 its key is added to the per-user file.
 .Pp
-Each line in these files contains the following fields: hostnames,
-bits, exponent, modulus, comment.
+Each line in these files contains the following fields: markers (optional),
+hostnames, bits, exponent, modulus, comment.
 The fields are separated by spaces.
+.Pp
+The marker is optional, but if it is present then it must be one of
+.Dq @cert-authority ,
+to indicate that the line contains a certification authority (CA) key,
+or
+.Dq @revoked ,
+to indicate that the key contained on the line is revoked and must not ever
+be accepted.
+Only one marker should be used on a key line.
 .Pp
 Hostnames is a comma-separated list of patterns
 .Pf ( Ql *
@@ -677,8 +686,25 @@ Lines starting with
 and empty lines are ignored as comments.
 .Pp
 When performing host authentication, authentication is accepted if any
-matching line has the proper key.
-It is thus permissible (but not
+matching line has the proper key; either one that matches exactly or,
+if the server has presented a certificate for authentication, the key
+of the certification authority that signed the certificate.
+For a key to be trusted as a certification authority, it must use the
+.Dq @cert-authority
+marker described above.
+.Pp
+The known hosts file also provides a facility to mark keys as revoked,
+for example when it is known that the associated private key has been
+stolen.
+Revoked keys are specified by including the
+.Dq @revoked
+marker at the beginning of the key line, and are never accepted for
+authentication or as certification authorities, but instead will
+produce a warning from
+.Xr ssh 1
+when they are encountered.
+.Pp
+It is permissible (but not
 recommended) to have several lines or different host keys for the same
 names.
 This will inevitably happen when short forms of host names
@@ -689,10 +715,16 @@ accepted if valid information can be found from either file.
 .Pp
 Note that the lines in these files are typically hundreds of characters
 long, and you definitely don't want to type in the host keys by hand.
-Rather, generate them by a script
+Rather, generate them by a script,
+.Xr ssh-keyscan 1
 or by taking
 .Pa /etc/ssh/ssh_host_key.pub
 and adding the host names at the front.
+.Xr ssh-keygen 1
+also offers some basic automated editing for 
+.Pa ~/.ssh/known_hosts
+including removing hosts matching a host name and converting all host
+names to their hashed representations.
 .Pp
 An example ssh_known_hosts file:
 .Bd -literal -offset 3n
@@ -702,6 +734,10 @@ cvs.example.net,192.0.2.10 ssh-rsa AAAA1234.....=
 # A hashed hostname
 |1|JfKTdBh7rNbXkVAQCRp4OQoPfmI=|USECr3SWf1JUPsms5AqfD5QfxkM= ssh-rsa
 AAAA1234.....=
+# A revoked key
+@revoked * ssh-rsa AAAAB5W...
+# A CA key, accepted for any host in *.mydomain.com or *.mydomain.org
+@cert-authority *.mydomain.org,*.mydomain.com ssh-rsa AAAAB5W...
 .Ed
 .Sh FILES
 .Bl -tag -width Ds -compact
