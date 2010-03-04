@@ -1,3 +1,9 @@
+20100305
+ - OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/03/04 12:51:25
+     [ssh.1 sshd_config.5]
+     tweak previous;
+
 20100304
  - (djm) [ssh-keygen.c] Use correct local variable, instead of
    maybe-undefined global "optarg"

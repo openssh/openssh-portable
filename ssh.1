@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.297 2010/03/04 10:36:03 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.298 2010/03/04 12:51:25 jmc Exp $
 .Dd $Mdocdate: March 4 2010 $
 .Dt SSH 1
 .Os
@@ -1122,7 +1122,7 @@ section of
 .Xr ssh-keygen 1
 for more details.
 .Pp
-Keys may be also be marked as revoked using the
+Keys may also be marked as revoked using the
 .Dq @revoked
 marker.
 Revoked keys will always trigger a warning when encountered and the host
@@ -1133,10 +1133,10 @@ For example:
 .Pp
 Revoking a key revokes it for direct use and as a certification authority.
 Do not use both the
-.Dq @cert-authority and
+.Dq @cert-authority
+and
 .Dq @revoked
 markers on the same line.
-.Pp
 .Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
 .Nm
 contains support for Virtual Private Network (VPN) tunnelling

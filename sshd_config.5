@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.118 2010/03/04 10:36:03 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.119 2010/03/04 12:51:25 jmc Exp $
 .Dd $Mdocdate: March 4 2010 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -897,7 +897,7 @@ To disable TCP keepalive messages, the value should be set to
 .It Cm TrustedUserCAKeys
 Specifies a file containing public keys of certificate authorities that are
 trusted sign user certificates for authentication.
-Keys are listed one per line, empty lines and comments starting with
+Keys are listed one per line; empty lines and comments starting with
 .Ql #
 are allowed.
 If a certificate is presented for authentication and has its signing CA key
@@ -906,7 +906,7 @@ listed in the certificate's principals list.
 Note that certificates that lack a list of principals will not be permitted
 for authentication using
 .Cm TrustedUserCAKeys .
-For more details in certificates, please see the
+For more details on certificates, see the
 .Sx CERTIFICATES
 section in
 .Xr ssh-keygen 1 .
