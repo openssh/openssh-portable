@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.128 2010/02/10 23:20:38 markus Exp $
-.Dd $Mdocdate: February 10 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.129 2010/03/05 10:28:21 djm Exp $
+.Dd $Mdocdate: March 5 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -559,6 +559,12 @@ and
 for protocol version 2.
 Additionally, any identities represented by the authentication agent
 will be used for authentication.
+.Xr ssh 1
+will try to load certificate information from the filename obtained by
+appending
+.Pa -cert.pub
+to the path of a specified
+.Cm IdentityFile .
 .Pp
 The file name may use the tilde
 syntax to refer to a user's home directory or one of the following

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.301 2010/03/05 08:31:20 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.302 2010/03/05 10:28:21 djm Exp $
 .Dd $Mdocdate: March 5 2010 $
 .Dt SSH 1
 .Os
@@ -306,6 +306,11 @@ It is possible to have multiple
 .Fl i
 options (and multiple identities specified in
 configuration files).
+.Nm
+will also try to load certificate information from the filename obtained
+by appending
+.Pa -cert.pub
+to identity filenames.
 .It Fl K
 Enables GSSAPI-based authentication and forwarding (delegation) of GSSAPI
 credentials to the server.

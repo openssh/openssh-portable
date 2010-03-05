@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.51 2010/02/10 23:20:38 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.52 2010/03/05 10:28:21 djm Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -37,7 +37,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: February 10 2010 $
+.Dd $Mdocdate: March 5 2010 $
 .Dt SSH-ADD 1
 .Os
 .Sh NAME
@@ -61,7 +61,14 @@ When run without arguments, it adds the files
 .Pa ~/.ssh/id_dsa
 and
 .Pa ~/.ssh/identity .
+After loading a private key,
+.Nm
+will try to load corresponding certificate information from the
+filename obtained by appending
+.Pa -cert.pub
+to the name of the private key file.
 Alternative file names can be given on the command line.
+.Pp
 If any file requires a passphrase,
 .Nm
 asks for the passphrase from the user.

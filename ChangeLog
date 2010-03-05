@@ -29,6 +29,10 @@
    - jmc@cvs.openbsd.org 2010/03/05 08:31:20
      [ssh.1]
      document certificate authentication; help/ok djm
+   - djm@cvs.openbsd.org 2010/03/05 10:28:21
+     [ssh-add.1 ssh.1 ssh_config.5]
+     mention loading of certificate files from [private]-cert.pub when
+     they are present; feedback and ok jmc@
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
  - (djm) [ssh-rand-helper.c] declare optind, avoiding compilation failure
