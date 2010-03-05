@@ -23,6 +23,9 @@
    - djm@cvs.openbsd.org 2010/03/05 02:58:11
      [auth.c]
      make the warning for a revoked key louder and more noticable
+   - jmc@cvs.openbsd.org 2010/03/05 06:50:35
+     [ssh.1 sshd.8]
+     tweak previous;
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
  - (djm) [ssh-rand-helper.c] declare optind, avoiding compilation failure
