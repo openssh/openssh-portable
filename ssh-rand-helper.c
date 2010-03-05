@@ -818,6 +818,7 @@ main(int argc, char **argv)
 	unsigned char *buf;
 	int ret, ch, debug_level, output_hex, bytes;
 	extern char *optarg;
+	extern int optind;
 	LogLevel ll;
 
 	__progname = ssh_get_progname(argv[0]);

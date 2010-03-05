@@ -22,6 +22,8 @@
      imorgan AT nas.nasa.gov
  - (tim) [ssh-pkcs11.c] Fix "non-constant initializer" errors in older
    compilers. OK djm@
+ - (djm) [ssh-rand-helper.c] declare optind, avoiding compilation failure
+   on some platforms
 
 20100304
  - (djm) [ssh-keygen.c] Use correct local variable, instead of
