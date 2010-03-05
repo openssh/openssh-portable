@@ -27,6 +27,7 @@
    compilers. OK djm@
  - (djm) [ssh-rand-helper.c] declare optind, avoiding compilation failure
    on some platforms
+ - (djm) [configure.ac] set -fno-strict-aliasing for gcc4; ok dtucker@
 
 20100304
  - (djm) [ssh-keygen.c] Use correct local variable, instead of
