@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.85 2010/03/04 10:36:03 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.86 2010/03/05 02:58:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -604,7 +604,8 @@ auth_key_is_revoked(Key *key)
 	case 1:
 		/* Key revoked */
 		key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
-		error("%s key %s is revoked", key_type(key), key_fp);
+		error("WARNING: authentication attempt with a revoked "
+		    "%s key %s ", key_type(key), key_fp);
 		xfree(key_fp);
 		return 1;
 	}
