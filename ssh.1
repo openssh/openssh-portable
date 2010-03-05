@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.300 2010/03/05 06:50:34 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.301 2010/03/05 08:31:20 jmc Exp $
 .Dd $Mdocdate: March 5 2010 $
 .Dt SSH 1
 .Os
@@ -798,8 +798,20 @@ file, and has one key
 per line, though the lines can be very long.
 After this, the user can log in without giving the password.
 .Pp
-The most convenient way to use public key authentication may be with an
-authentication agent.
+A variation on public key authentication
+is available in the form of certificate authentication:
+instead of a set of public/private keys,
+signed certificates are used.
+This has the advantage that a single trusted certification authority
+can be used in place of many public/private keys.
+See the
+.Sx CERTIFICATES
+section of
+.Xr ssh-keygen 1
+for more information.
+.Pp
+The most convenient way to use public key or certificate authentication
+may be with an authentication agent.
 See
 .Xr ssh-agent 1
 for more information.
