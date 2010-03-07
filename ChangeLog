@@ -5,6 +5,8 @@
  - (dtucker) [session.c] Bug #1567: move setpcred call to before chroot and
    do not set real uid, since that's needed for the chroot, and will be set
    by permanently_set_uid.
+ - (dtucker) [session.c] Also initialize creds to NULL for handing to
+    setpcred.
 
 20100305
  - OpenBSD CVS Sync

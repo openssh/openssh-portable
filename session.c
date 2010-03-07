@@ -1537,7 +1537,7 @@ do_setusercontext(struct passwd *pw)
 		 * chroot directory, we don't override anything.
 		 */
 		{
-			char **creds, *chroot_creds[] =
+			char **creds = NULL, *chroot_creds[] =
 			    { "REAL_USER=root", NULL };
 
 			if (options.chroot_directory != NULL &&
