@@ -1,4 +1,10 @@
 20100307
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/03/07 22:01:32
+     [version.h]
+     openssh-5.4
+
+20100307
  - (dtucker) [auth.c] Bug #1710: call setauthdb on AIX before getpwuid so that
    it gets the passwd struct from the LAM that knows about the user which is
    not necessarily the default.  Patch from Alexandre Letourneau.
