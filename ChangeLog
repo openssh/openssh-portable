@@ -2,6 +2,9 @@
  - (dtucker) [auth.c] Bug #1710: call setauthdb on AIX before getpwuid so that
    it gets the passwd struct from the LAM that knows about the user which is
    not necessarily the default.  Patch from Alexandre Letourneau.
+ - (dtucker) [session.c] Bug #1567: move setpcred call to before chroot and
+   do not set real uid, since that's needed for the chroot, and will be set
+   by permanently_set_uid.
 
 20100305
  - OpenBSD CVS Sync
