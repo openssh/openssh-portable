@@ -535,7 +535,15 @@ getpwnamallow(const char *user)
 	parse_server_match_config(&options, user,
 	    get_canonical_hostname(options.use_dns), get_remote_ipaddr());
 
+#if defined(_AIX) && defined(HAVE_SETAUTHDB)
+	aix_setauthdb(user);
+#endif
+
 	pw = getpwnam(user);
+
+#if defined(_AIX) && defined(HAVE_SETAUTHDB)
+	aix_restoreauthdb();
+#endif
 #ifdef HAVE_CYGWIN
 	/*
 	 * Windows usernames are case-insensitive.  To avoid later problems

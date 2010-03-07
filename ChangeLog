@@ -1,3 +1,8 @@
+20100307
+ - (dtucker) [auth.c] Bug #1710: call setauthdb on AIX before getpwuid so that
+   it gets the passwd struct from the LAM that knows about the user which is
+   not necessarily the default.  Patch from Alexandre Letourneau.
+
 20100305
  - OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2010/03/04 12:51:25
