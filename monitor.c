@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.105 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.106 2010/03/07 11:57:13 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -997,17 +997,6 @@ mm_answer_pam_free_ctx(int sock, Buffer *m)
 }
 #endif
 
-static void
-mm_append_debug(Buffer *m)
-{
-	if (auth_debug_init && buffer_len(&auth_debug)) {
-		debug3("%s: Appending debug messages for child", __func__);
-		buffer_append(m, buffer_ptr(&auth_debug),
-		    buffer_len(&auth_debug));
-		buffer_clear(&auth_debug);
-	}
-}
-
 int
 mm_answer_keyallowed(int sock, Buffer *m)
 {
@@ -1089,8 +1078,6 @@ mm_answer_keyallowed(int sock, Buffer *m)
 	buffer_clear(m);
 	buffer_put_int(m, allowed);
 	buffer_put_int(m, forced_command != NULL);
-
-	mm_append_debug(m);
 
 	mm_request_send(sock, MONITOR_ANS_KEYALLOWED, m);
 
@@ -1474,8 +1461,6 @@ mm_answer_rsa_keyallowed(int sock, Buffer *m)
 	}
 	if (key != NULL)
 		key_free(key);
-
-	mm_append_debug(m);
 
 	mm_request_send(sock, MONITOR_ANS_RSAKEYALLOWED, m);
 

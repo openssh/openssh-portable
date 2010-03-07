@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.251 2010/01/12 08:33:17 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.252 2010/03/07 11:57:13 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -270,6 +270,8 @@ do_authenticated(Authctxt *authctxt)
 	/* setup the channel layer */
 	if (!no_port_forwarding_flag && options.allow_tcp_forwarding)
 		channel_permit_all_opens();
+
+	auth_debug_send();
 
 	if (compat20)
 		do_authenticated2(authctxt);

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.47 2010/03/04 23:27:25 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.48 2010/03/07 11:57:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -78,7 +78,6 @@ auth_clear_options(void)
 	}
 	forced_tun_device = -1;
 	channel_clear_permitted_opens();
-	auth_debug_reset();
 }
 
 /*
@@ -364,9 +363,6 @@ next_option:
 		/* Process the next option. */
 	}
 
-	if (!use_privsep)
-		auth_debug_send();
-
 	/* grant access */
 	return 1;
 
@@ -375,9 +371,6 @@ bad_option:
 	    file, linenum, opts);
 	auth_debug_add("Bad options in %.100s file, line %lu: %.50s",
 	    file, linenum, opts);
-
-	if (!use_privsep)
-		auth_debug_send();
 
 	/* deny access */
 	return 0;

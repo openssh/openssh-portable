@@ -7,6 +7,12 @@
    by permanently_set_uid.
  - (dtucker) [session.c] Also initialize creds to NULL for handing to
     setpcred.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2010/03/07 11:57:13
+     [auth-rhosts.c monitor.c monitor_wrap.c session.c auth-options.c sshd.c]
+     Hold authentication debug messages until after successful authentication.
+     Fixes an info leak of environment variables specified in authorized_keys,
+     reported by Jacob Appelbaum.  ok djm@
 
 20100305
  - OpenBSD CVS Sync
