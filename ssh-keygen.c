@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.183 2010/03/04 23:27:25 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.184 2010/03/07 22:16:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1254,12 +1254,12 @@ parse_absolute_time(const char *s)
 	 */
 	switch (strlen(s)) {
 	case 8:
-		fmt = "%Y/%m/%d";
-		snprintf(buf, sizeof(buf), "%.4s/%.2s/%.2s", s, s + 4, s + 6);
+		fmt = "%Y-%m-%d";
+		snprintf(buf, sizeof(buf), "%.4s-%.2s-%.2s", s, s + 4, s + 6);
 		break;
 	case 14:
-		fmt = "%Y/%m/%d %H:%M:%S";
-		snprintf(buf, sizeof(buf), "%.4s/%.2s/%.2s %.2s:%.2s:%.2s",
+		fmt = "%Y-%m-%dT%H:%M:%S";
+		snprintf(buf, sizeof(buf), "%.4s-%.2s-%.2sT%.2s:%.2s:%.2s",
 		    s, s + 4, s + 6, s + 8, s + 10, s + 12);
 		break;
 	default:
