@@ -7,6 +7,9 @@
    - djm@cvs.openbsd.org 2010/03/07 22:01:32
      [version.h]
      openssh-5.4
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   crank version numbers
+
 
 20100307
  - (dtucker) [auth.c] Bug #1710: call setauthdb on AIX before getpwuid so that
