@@ -4,6 +4,10 @@
      [ssh-keygen.c]
      make internal strptime string match strftime format;
      suggested by vinschen AT redhat.com and markus@
+   - djm@cvs.openbsd.org 2010/03/08 00:28:55
+     [ssh-keygen.1]
+     document permit-agent-forwarding certificate constraint; patch from
+     stevesk@
    - djm@cvs.openbsd.org 2010/03/07 22:01:32
      [version.h]
      openssh-5.4
