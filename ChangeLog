@@ -1,4 +1,8 @@
-20100307
+20100309
+ - (dtucker) [configure.ac] Use a proper AC_CHECK_DECL for BROKEN_GETADDRINFO
+   so setting it in CFLAGS correctly skips IPv6 tests.
+
+20100308
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/03/07 22:16:01
      [ssh-keygen.c]
