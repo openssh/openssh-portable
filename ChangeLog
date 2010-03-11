@@ -1,3 +1,7 @@
+20100311
+ - (tim) [contrib/suse/openssh.spec] crank version number here too.
+   report by imorgan AT nas.nasa.gov
+
 20100309
  - (dtucker) [configure.ac] Use a proper AC_CHECK_DECL for BROKEN_GETADDRINFO
    so setting it in CFLAGS correctly skips IPv6 tests.
