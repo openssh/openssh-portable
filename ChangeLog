@@ -1,6 +1,7 @@
 20100312
- - (tim) [openssh/Makefile.in] Now that scard is gone, no need to
-   make $(datadir)
+ - (tim) [Makefile.in] Now that scard is gone, no need to make $(datadir)
+ - (tim) [Makefile.in] Add missing $(EXEEXT) to install targets.
+   Patch from Corinna Vinschen.
 
 20100311
  - (tim) [contrib/suse/openssh.spec] crank version number here too.
