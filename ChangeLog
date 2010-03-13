@@ -2,6 +2,9 @@
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
    compilation failure when !HAVE_DLOPEN. Reported by felix-mindrot
    AT fefe.de
+ - (djm) [Makefile.in] Respecify -lssh after -lopenbsd-compat for
+   ssh-pkcs11-helper to repair static builds (we do the same for
+   ssh-keyscan). Reported by felix-mindrot AT fefe.de
 
 20100312
  - (tim) [Makefile.in] Now that scard is gone, no need to make $(datadir)
