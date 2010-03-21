@@ -30,6 +30,10 @@
    - jmc@cvs.openbsd.org 2010/03/13 23:38:13
      [ssh-keygen.1]
      fix a formatting error (args need quoted); noted by stevesk
+   - stevesk@cvs.openbsd.org 2010/03/15 19:40:02
+     [key.c key.h ssh-keygen.c]
+     also print certificate type (user or host) for ssh-keygen -L
+     ok djm kettenis
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
