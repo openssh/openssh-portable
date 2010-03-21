@@ -11,6 +11,10 @@
      [auth2-pubkey.c]
      correct certificate logging and make it more consistent between
      authorized_keys and TrustedCAKeys; ok markus@
+   - djm@cvs.openbsd.org 2010/03/12 01:06:25
+     [servconf.c]
+     unbreak AuthorizedKeys option with a $HOME-relative path; reported by
+     vinschen AT redhat.com, ok dtucker@
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix

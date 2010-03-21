@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.204 2010/03/04 10:36:03 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.205 2010/03/12 01:06:25 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1223,7 +1223,17 @@ process_server_config_line(ServerOptions *options, char *line,
 		charptr = (opcode == sAuthorizedKeysFile) ?
 		    &options->authorized_keys_file :
 		    &options->authorized_keys_file2;
-		goto parse_filename;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing file name.",
+			    filename, linenum);
+		if (*activep && *charptr == NULL) {
+			*charptr = derelativise_path(arg);
+			/* increase optional counter */
+			if (intptr != NULL)
+				*intptr = *intptr + 1;
+		}
+		break;
 
 	case sClientAliveInterval:
 		intptr = &options->client_alive_interval;
