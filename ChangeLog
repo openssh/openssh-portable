@@ -23,6 +23,10 @@
      [clientloop.c]
      protocol conformance fix: send language tag when disconnecting normally;
      spotted by 1.41421 AT gmail.com, ok markus@ deraadt@
+   - djm@cvs.openbsd.org 2010/03/13 21:45:46
+     [ssh-keygen.1]
+     Certificates are named *-cert.pub, not *_cert.pub; committing a diff
+     from stevesk@ ok me
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
