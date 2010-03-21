@@ -34,6 +34,9 @@
      [key.c key.h ssh-keygen.c]
      also print certificate type (user or host) for ssh-keygen -L
      ok djm kettenis
+   - stevesk@cvs.openbsd.org 2010/03/16 15:46:52
+     [auth-options.c]
+     spelling in error message. ok djm kettenis
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
