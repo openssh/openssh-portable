@@ -19,6 +19,10 @@
      [servconf.c]
      do not prepend AuthorizedKeysFile with getcwd(), unbreaks relative paths
      free() (not xfree()) the buffer returned by getcwd()
+   - djm@cvs.openbsd.org 2010/03/13 21:10:38
+     [clientloop.c]
+     protocol conformance fix: send language tag when disconnecting normally;
+     spotted by 1.41421 AT gmail.com, ok markus@ deraadt@
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
