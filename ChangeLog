@@ -41,6 +41,8 @@
      [version.h]
      crank version to openssh-5.5 since we have a few fixes since 5.4;
      requested deraadt@ kettenis@
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Crank version numbers
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
