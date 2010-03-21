@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.88 2010/03/08 00:28:55 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.89 2010/03/08 09:41:27 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -307,8 +307,15 @@ Please see the
 section for details.
 The constraints that are valid for user certificates are:
 .Bl -tag -width Ds
-.It Ic no-x11-forwarding
-Disable X11 forwarding (permitted by default).
+.It Ic clear
+Clear all enabled permissions.
+This is useful for clearing the default set of permissions so permissions may
+be added individually.
+.It Ic force-command Ns = Ns Ar command
+Forces the execution of
+.Ar command
+instead of any shell or command specified by the user when
+the certificate is used for authentication.
 .It Ic no-agent-forwarding
 Disable
 .Xr ssh-agent 1
@@ -323,12 +330,8 @@ Disable execution of
 by
 .Xr sshd 8
 (permitted by default).
-.It Ic clear
-Clear all enabled permissions.
-This is useful for clearing the default set of permissions so permissions may
-be added individually.
-.It Ic permit-x11-forwarding
-Allows X11 forwarding.
+.It Ic no-x11-forwarding
+Disable X11 forwarding (permitted by default).
 .It Ic permit-agent-forwarding
 Allows
 .Xr ssh-agent 1
@@ -342,12 +345,9 @@ Allows execution of
 .Pa ~/.ssh/rc
 by
 .Xr sshd 8 .
-.It Ic force-command=command
-Forces the execution of
-.Ar command
-instead of any shell or command specified by the user when
-the certificate is used for authentication.
-.It Ic source-address=address_list
+.It Ic permit-x11-forwarding
+Allows X11 forwarding.
+.It Ic source-address Ns = Ns Ar address_list
 Restrict the source addresses from which the certificate is considered valid
 from.
 The

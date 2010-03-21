@@ -1,3 +1,9 @@
+20100321
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/03/08 09:41:27
+     [ssh-keygen.1]
+     sort the list of constraints (to -O); ok djm
+
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
    compilation failure when !HAVE_DLOPEN. Reported by felix-mindrot
