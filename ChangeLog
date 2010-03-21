@@ -7,6 +7,10 @@
      [ssh-keygen.1]
      typos; from Ross Richardson
      closes prs 6334 and 6335
+   - djm@cvs.openbsd.org 2010/03/10 23:27:17
+     [auth2-pubkey.c]
+     correct certificate logging and make it more consistent between
+     authorized_keys and TrustedCAKeys; ok markus@
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
