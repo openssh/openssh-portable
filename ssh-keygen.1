@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.91 2010/03/13 21:45:46 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.92 2010/03/13 23:38:13 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -538,7 +538,7 @@ By default, generated certificates are valid for all users or hosts.
 To generate a certificate for a specified set of principals:
 .Pp
 .Dl $ ssh-keygen -s ca_key -I key_id -n user1,user2 user_key.pub
-.Dl $ ssh-keygen -s ca_key -I key_id -h -n host.domain user_key.pub
+.Dl "$ ssh-keygen -s ca_key -I key_id -h -n host.domain user_key.pub"
 .Pp
 Additional limitations on the validity and use of user certificates may
 be specified through certificate constraints.

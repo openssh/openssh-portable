@@ -27,6 +27,9 @@
      [ssh-keygen.1]
      Certificates are named *-cert.pub, not *_cert.pub; committing a diff
      from stevesk@ ok me
+   - jmc@cvs.openbsd.org 2010/03/13 23:38:13
+     [ssh-keygen.1]
+     fix a formatting error (args need quoted); noted by stevesk
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
