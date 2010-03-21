@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.205 2010/03/12 01:06:25 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.206 2010/03/12 11:37:40 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -478,7 +478,7 @@ derelativise_path(const char *path)
 	if ((cwd = getcwd(NULL, 0)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));
 	xasprintf(&ret, "%s/%s", cwd, expanded);
-	xfree(cwd);
+	free(cwd);
 	xfree(expanded);
 	return ret;
 }
@@ -1228,7 +1228,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			fatal("%s line %d: missing file name.",
 			    filename, linenum);
 		if (*activep && *charptr == NULL) {
-			*charptr = derelativise_path(arg);
+			*charptr = tilde_expand_filename(arg, getuid());
 			/* increase optional counter */
 			if (intptr != NULL)
 				*intptr = *intptr + 1;

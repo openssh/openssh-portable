@@ -15,6 +15,10 @@
      [servconf.c]
      unbreak AuthorizedKeys option with a $HOME-relative path; reported by
      vinschen AT redhat.com, ok dtucker@
+   - markus@cvs.openbsd.org 2010/03/12 11:37:40
+     [servconf.c]
+     do not prepend AuthorizedKeysFile with getcwd(), unbreaks relative paths
+     free() (not xfree()) the buffer returned by getcwd()
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
