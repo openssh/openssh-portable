@@ -37,6 +37,10 @@
    - stevesk@cvs.openbsd.org 2010/03/16 15:46:52
      [auth-options.c]
      spelling in error message. ok djm kettenis
+   - djm@cvs.openbsd.org 2010/03/16 16:36:49
+     [version.h]
+     crank version to openssh-5.5 since we have a few fixes since 5.4;
+     requested deraadt@ kettenis@
 
 20100314
  - (djm) [ssh-pkcs11-helper.c] Move #ifdef to after #defines to fix
