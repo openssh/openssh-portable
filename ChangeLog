@@ -1,3 +1,8 @@
+20100324
+ - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
+   containing the services file explicitely case-insensitive.  This allows to
+   tweak the Windows services file reliably.  Patch from vinschen at redhat.
+
 20100321
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2010/03/08 09:41:27
