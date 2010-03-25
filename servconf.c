@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.206 2010/03/12 11:37:40 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.207 2010/03/25 23:38:28 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -470,15 +470,14 @@ parse_token(const char *cp, const char *filename,
 char *
 derelativise_path(const char *path)
 {
-	char *expanded, *ret, *cwd;
+	char *expanded, *ret, cwd[MAXPATHLEN];
 
 	expanded = tilde_expand_filename(path, getuid());
 	if (*expanded == '/')
 		return expanded;
-	if ((cwd = getcwd(NULL, 0)) == NULL)
+	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));
 	xasprintf(&ret, "%s/%s", cwd, expanded);
-	free(cwd);
 	xfree(expanded);
 	return ret;
 }

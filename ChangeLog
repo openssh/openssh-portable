@@ -3,6 +3,11 @@
    for arc4random_buf() and arc4random_uniform(); from Josh Gilkerson
  - (dtucker) [configure.ac] Bug #1741: Add section for Haiku, patch originally
    by Ingo Weinhold via Scott McCreary, ok djm@
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/03/25 23:38:28
+     [servconf.c]
+     from portable: getcwd(NULL, 0) doesn't work on all platforms, so
+     use a stack buffer; ok dtucker@
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
