@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.445 2010/03/09 09:42:31 dtucker Exp $
+# $Id: configure.ac,v 1.446 2010/03/25 23:27:33 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.445 $)
+AC_REVISION($Revision: 1.446 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -488,6 +488,12 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
 	;;
+*-*-haiku*) 
+    LIBS="$LIBS -lbsd "
+    AC_CHECK_LIB(network, socket)
+    AC_DEFINE(HAVE_U_INT64_T)
+    MANTYPE=man 
+    ;; 
 *-*-hpux*)
 	# first we define all of the options common to all HP-UX releases
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"

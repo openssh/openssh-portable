@@ -1,6 +1,8 @@
 20100326
  - (djm) [openbsd-compat/bsd-arc4random.c] Fix preprocessor detection
    for arc4random_buf() and arc4random_uniform(); from Josh Gilkerson
+ - (dtucker) [configure.ac] Bug #1741: Add section for Haiku, patch originally
+   by Ingo Weinhold via Scott McCreary, ok djm@
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
