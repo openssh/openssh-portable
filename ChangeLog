@@ -11,6 +11,8 @@
  - (djm) [session.c] Allow ChrootDirectory to work on SELinux platforms -
    set up SELinux execution context before chroot() call. From Russell
    Coker via Colin watson; bz#1726 ok dtucker@
+ - (djm) [channels.c] Check for EPFNOSUPPORT as a socket() errno; bz#1721
+   ok dtucker@
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
