@@ -8,6 +8,9 @@
      [servconf.c]
      from portable: getcwd(NULL, 0) doesn't work on all platforms, so
      use a stack buffer; ok dtucker@
+ - (djm) [session.c] Allow ChrootDirectory to work on SELinux platforms -
+   set up SELinux execution context before chroot() call. From Russell
+   Coker via Colin watson; bz#1726 ok dtucker@
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
