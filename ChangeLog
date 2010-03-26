@@ -20,6 +20,12 @@
    pkg-config, patch from Colin Watson.  Needed for newer linkers (ie gold).
  - (djm) [contrib/ssh-copy-id] Don't blow up when the agent has no keys;
    bz#1723 patch from Adeodato Simóvia Colin Watson; ok dtucker@
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2010/03/26 01:06:13
+     [ssh_config.5]
+     Reformat default value of PreferredAuthentications entry (current
+     formatting implies ", " is acceptable as a separator, which it's not.
+     ok djm@
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
