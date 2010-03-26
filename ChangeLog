@@ -8,6 +8,9 @@
      [servconf.c]
      from portable: getcwd(NULL, 0) doesn't work on all platforms, so
      use a stack buffer; ok dtucker@
+   - djm@cvs.openbsd.org 2010/03/26 00:26:58
+     [ssh.1]
+     mention that -S none disables connection sharing; from Colin Watson
  - (djm) [session.c] Allow ChrootDirectory to work on SELinux platforms -
    set up SELinux execution context before chroot() call. From Russell
    Coker via Colin watson; bz#1726 ok dtucker@
