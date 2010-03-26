@@ -13,6 +13,8 @@
    Coker via Colin watson; bz#1726 ok dtucker@
  - (djm) [channels.c] Check for EPFNOSUPPORT as a socket() errno; bz#1721
    ok dtucker@
+ - (dtucker) Bug #1725: explicitly link libX11 into gnome-ssh-askpass2 using
+   pkg-config, patch from Colin Watson.  Needed for newer linkers (ie gold).
 
 20100324
  - (dtucker) [contrib/cygwin/ssh-host-config] Mount the Windows directory
