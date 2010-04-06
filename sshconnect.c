@@ -249,6 +249,12 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	/* Set the connection file descriptors. */
 	packet_set_connection(pout[0], pin[1]);
 
+	if(options.obfuscate_handshake) {
+   		if(options.obfuscate_keyword)
+      			obfuscate_set_keyword(options.obfuscate_keyword);
+		packet_enable_obfuscation();
+	}
+
 	/* Indicate OK return */
 	return 0;
 }
