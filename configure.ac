@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.446 2010/03/25 23:27:33 dtucker Exp $
+# $Id: configure.ac,v 1.447 2010/04/09 04:04:36 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.446 $)
+AC_REVISION($Revision: 1.447 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1254,7 +1254,18 @@ LIBEDIT_MSG="no"
 AC_ARG_WITH(libedit,
 	[  --with-libedit[[=PATH]]   Enable libedit support for sftp],
 	[ if test "x$withval" != "xno" ; then
-		if test "x$withval" != "xyes"; then
+		if test "x$withval" = "xyes" ; then
+			AC_PATH_PROG(PKGCONFIG, pkg-config, no)
+			if test "x$PKGCONFIG" != "xno"; then
+				AC_MSG_CHECKING(if $PKGCONFIG knows about libedit)
+			 	if "$PKGCONFIG" libedit; then
+					AC_MSG_RESULT(yes)
+					use_pkgconfig_for_libedit=yes
+				else
+					AC_MSG_RESULT(no)
+				fi
+			fi
+		else
 			CPPFLAGS="$CPPFLAGS -I${withval}/include"
 			if test -n "${need_dash_r}"; then
 				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
@@ -1262,14 +1273,20 @@ AC_ARG_WITH(libedit,
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
 		fi
+		if test "x$use_pkgconfig_for_libedit" == "xyes"; then
+			LIBEDIT=`$PKGCONFIG --libs-only-l libedit`
+			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libedit`"
+		else
+			LIBEDIT="-ledit -lcurses"
+		fi
+		OTHERLIBS=`echo $LIBEDIT | sed 's/-ledit//'`
 		AC_CHECK_LIB(edit, el_init,
 			[ AC_DEFINE(USE_LIBEDIT, 1, [Use libedit for sftp])
-			  LIBEDIT="-ledit -lcurses"
 			  LIBEDIT_MSG="yes"
 			  AC_SUBST(LIBEDIT)
 			],
 			[ AC_MSG_ERROR(libedit not found) ],
-			[ -lcurses ]
+			[ $OTHERLIBS ]
 		)
 		AC_MSG_CHECKING(if libedit version is compatible)
 		AC_COMPILE_IFELSE(

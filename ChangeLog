@@ -1,6 +1,9 @@
 20100409
  - (dtucker) [contrib/cygwin/Makefile] Don't overwrite files with the wrong
    ones.  Based on a patch from Roumen Petrov.
+ - (dtucker) [configure.ac] Bug #1744: use pkg-config for libedit flags if we
+   have it and the path is not provided to --with-libedit.  Based on a patch
+   from Iain Morgan.
 
 20100326
  - (djm) [openbsd-compat/bsd-arc4random.c] Fix preprocessor detection
