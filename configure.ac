@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.447 2010/04/09 04:04:36 dtucker Exp $
+# $Id: configure.ac,v 1.448 2010/04/09 08:13:27 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.447 $)
+AC_REVISION($Revision: 1.448 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1557,8 +1557,8 @@ dnl    Checks for utmp functions
 AC_CHECK_FUNCS(endutent getutent getutid getutline pututline setutent)
 AC_CHECK_FUNCS(utmpname)
 dnl    Checks for utmpx functions
-AC_CHECK_FUNCS(endutxent getutxent getutxid getutxline pututxline )
-AC_CHECK_FUNCS(setutxent utmpxname)
+AC_CHECK_FUNCS(endutxent getutxent getutxid getutxline getutxuser pututxline)
+AC_CHECK_FUNCS(setutxdb setutxent utmpxname)
 dnl    Checks for lastlog functions
 AC_CHECK_FUNCS(getlastlogxbyname)
 
@@ -4086,34 +4086,6 @@ if test -n "$conf_wtmp_location"; then
 		[Define if you want to specify the path to your wtmp file])
 fi
 
-
-dnl utmpx detection - I don't know any system so perverse as to require
-dnl  utmpx, but not define UTMPX_FILE (ditto wtmpx.) No doubt it's out
-dnl  there, though.
-AC_MSG_CHECKING([if your system defines UTMPX_FILE])
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <utmp.h>
-#ifdef HAVE_UTMPX_H
-#include <utmpx.h>
-#endif
-#ifdef HAVE_PATHS_H
-#  include <paths.h>
-#endif
-	],
-	[ char *utmpx = UTMPX_FILE; ],
-	[ AC_MSG_RESULT(yes) ],
-	[ AC_MSG_RESULT(no)
-	  system_utmpx_path=no ]
-)
-if test -z "$conf_utmpx_location"; then
-	if test x"$system_utmpx_path" = x"no" ; then
-		AC_DEFINE(DISABLE_UTMPX)
-	fi
-else
-	AC_DEFINE_UNQUOTED(CONF_UTMPX_FILE, "$conf_utmpx_location",
-		[Define if you want to specify the path to your utmpx file])
-fi
 
 dnl wtmpx detection
 AC_MSG_CHECKING([if your system defines WTMPX_FILE])

@@ -4,6 +4,8 @@
  - (dtucker) [configure.ac] Bug #1744: use pkg-config for libedit flags if we
    have it and the path is not provided to --with-libedit.  Based on a patch
    from Iain Morgan.
+ - (dtucker) [configure.ac defines.h loginrec.c logintest.c] Bug #1732: enable
+   utmpx support on FreeBSD where possible.  Patch from Ed Schouten, ok djm@
 
 20100326
  - (djm) [openbsd-compat/bsd-arc4random.c] Fix preprocessor detection
