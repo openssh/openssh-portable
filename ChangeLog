@@ -1,3 +1,7 @@
+20100410
+ - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
+   back so we disable the IPv6 tests if we don't have it.
+
 20100409
  - (dtucker) [contrib/cygwin/Makefile] Don't overwrite files with the wrong
    ones.  Based on a patch from Roumen Petrov.

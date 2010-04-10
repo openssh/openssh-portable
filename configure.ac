@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.448 2010/04/09 08:13:27 dtucker Exp $
+# $Id: configure.ac,v 1.449 2010/04/10 12:58:01 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.448 $)
+AC_REVISION($Revision: 1.449 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -4123,10 +4123,13 @@ dnl Adding -Werror to CFLAGS early prevents configure tests from running.
 dnl Add now.
 CFLAGS="$CFLAGS $werror_flags"
 
-AC_CHECK_DECL(BROKEN_GETADDRINFO,
-	AC_SUBST(TEST_SSH_IPV6, no),
-	AC_SUBST(TEST_SSH_IPV6, yes)
-)
+if test "x$ac_cv_func_getaddrinfo" != "xyes" ; then
+	TEST_SSH_IPV6=no
+else
+	TEST_SSH_IPV6=yes
+fi
+AC_CHECK_DECL(BROKEN_GETADDRINFO,  TEST_SSH_IPV6=no)
+AC_SUBST(TEST_SSH_IPV6, $TEST_SSH_IPV6)
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
