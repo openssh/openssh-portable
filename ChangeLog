@@ -15,6 +15,10 @@
      [ssh.c]
      bz#1746 - suppress spurious tty warning when using -O and stdin
      is not a tty; ok dtucker@ markus@
+   - djm@cvs.openbsd.org 2010/04/10 00:04:30
+     [sshconnect.c]
+     fix terminology: we didn't find a certificate in known_hosts, we found
+     a CA key
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
