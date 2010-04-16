@@ -29,6 +29,9 @@
      show the key type that we are offering in debug(), helps distinguish
      between certs and plain keys as the path to the private key is usually
      the same.
+   - djm@cvs.openbsd.org 2010/04/10 05:48:16
+     [mux.c]
+     fix NULL dereference; from matthew.haub AT alumni.adelaide.edu.au
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
