@@ -8,6 +8,9 @@
    - jmc@cvs.openbsd.org 2010/03/26 06:54:36
      [ssh.1]
      tweak previous;
+   - jmc@cvs.openbsd.org 2010/03/27 14:26:55
+     [ssh_config.5]
+     tweak previous; ok dtucker
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo

@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.130 2010/03/26 01:06:13 dtucker Exp $
-.Dd $Mdocdate: March 26 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.131 2010/03/27 14:26:55 jmc Exp $
+.Dd $Mdocdate: March 27 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -732,10 +732,12 @@ authentication methods.
 This allows a client to prefer one method (e.g.\&
 .Cm keyboard-interactive )
 over another method (e.g.\&
-.Cm password )
-The default for this option is:
-.Do gssapi-with-mic,hostbased,publickey,keyboard-interactive,password
-.Dc .
+.Cm password ) .
+The default is:
+.Bd -literal -offset indent
+gssapi-with-mic,hostbased,publickey,
+keyboard-interactive,password
+.Ed
 .It Cm Protocol
 Specifies the protocol versions
 .Xr ssh 1
