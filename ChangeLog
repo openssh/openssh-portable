@@ -19,6 +19,11 @@
      [sshconnect.c]
      fix terminology: we didn't find a certificate in known_hosts, we found
      a CA key
+   - djm@cvs.openbsd.org 2010/04/10 02:08:44
+     [clientloop.c]
+     bz#1698: kill channel when pty allocation requests fail. Fixed
+     stuck client if the server refuses pty allocation.
+     ok dtucker@ "think so" markus@
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo

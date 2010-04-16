@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.219 2010/03/13 21:10:38 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.220 2010/04/10 02:08:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1912,7 +1912,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			memset(&ws, 0, sizeof(ws));
 
 		channel_request_start(id, "pty-req", 1);
-		client_expect_confirm(id, "PTY allocation", 0);
+		client_expect_confirm(id, "PTY allocation", 1);
 		packet_put_cstring(term != NULL ? term : "");
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);
