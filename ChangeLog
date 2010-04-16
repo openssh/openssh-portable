@@ -32,6 +32,10 @@
    - djm@cvs.openbsd.org 2010/04/10 05:48:16
      [mux.c]
      fix NULL dereference; from matthew.haub AT alumni.adelaide.edu.au
+   - djm@cvs.openbsd.org 2010/04/14 22:27:42
+     [ssh_config.5 sshconnect.c]
+     expand %r => remote username in ssh_config:ProxyCommand;
+     ok deraadt markus
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo

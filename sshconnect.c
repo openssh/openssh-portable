@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.221 2010/04/10 00:04:30 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.222 2010/04/14 22:27:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -101,8 +101,8 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	 * (e.g. Solaris)
 	 */
 	xasprintf(&tmp, "exec %s", proxy_command);
-	command_string = percent_expand(tmp, "h", host,
-	    "p", strport, (char *)NULL);
+	command_string = percent_expand(tmp, "h", host, "p", strport,
+	    "u", options.user, (char *)NULL);
 	xfree(tmp);
 
 	/* Create pipes for communicating with the proxy. */

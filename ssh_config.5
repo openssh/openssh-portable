@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.131 2010/03/27 14:26:55 jmc Exp $
-.Dd $Mdocdate: March 27 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.132 2010/04/14 22:27:42 djm Exp $
+.Dd $Mdocdate: April 14 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -759,12 +759,14 @@ Specifies the command to use to connect to the server.
 The command
 string extends to the end of the line, and is executed with
 the user's shell.
-In the command string,
+In the command string, any occurance of
 .Ql %h
 will be substituted by the host name to
-connect and
+connect,
 .Ql %p
-by the port.
+by the port and
+.Ql %u
+by the remote user name.
 The command can be basically anything,
 and should read from its standard input and write to its standard output.
 It should eventually connect an
