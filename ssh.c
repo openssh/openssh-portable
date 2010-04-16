@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.335 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.336 2010/04/10 00:00:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -620,7 +620,7 @@ main(int ac, char **av)
 		tty_flag = 1;
 
 	/* Force no tty */
-	if (no_tty_flag)
+	if (no_tty_flag || muxclient_command != 0)
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
 	if ((!isatty(fileno(stdin)) || stdin_null_flag) && !force_tty_flag) {

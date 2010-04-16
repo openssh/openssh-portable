@@ -11,6 +11,10 @@
    - jmc@cvs.openbsd.org 2010/03/27 14:26:55
      [ssh_config.5]
      tweak previous; ok dtucker
+   - djm@cvs.openbsd.org 2010/04/10 00:00:16
+     [ssh.c]
+     bz#1746 - suppress spurious tty warning when using -O and stdin
+     is not a tty; ok dtucker@ markus@
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
