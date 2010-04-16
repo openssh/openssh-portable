@@ -24,6 +24,11 @@
      bz#1698: kill channel when pty allocation requests fail. Fixed
      stuck client if the server refuses pty allocation.
      ok dtucker@ "think so" markus@
+   - djm@cvs.openbsd.org 2010/04/10 02:10:56
+     [sshconnect2.c]
+     show the key type that we are offering in debug(), helps distinguish
+     between certs and plain keys as the path to the private key is usually
+     the same.
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
