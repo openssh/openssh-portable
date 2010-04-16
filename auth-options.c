@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.49 2010/03/16 15:46:52 stevesk Exp $ */
+/* $OpenBSD: auth-options.c,v 1.50 2010/04/16 01:47:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -27,10 +27,10 @@
 #include "canohost.h"
 #include "buffer.h"
 #include "channels.h"
-#include "auth-options.h"
 #include "servconf.h"
 #include "misc.h"
 #include "key.h"
+#include "auth-options.h"
 #include "hostfile.h"
 #include "auth.h"
 #ifdef GSSAPI
@@ -377,11 +377,11 @@ bad_option:
 }
 
 /*
- * Set options from certificate constraints. These supersede user key options
- * so this must be called after auth_parse_options().
+ * Set options from critical certificate options. These supersede user key
+ * options so this must be called after auth_parse_options().
  */
 int
-auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
+auth_cert_options(Key *k, struct passwd *pw)
 {
 	u_char *name = NULL, *data_blob = NULL;
 	u_int nlen, dlen, clen;
@@ -400,12 +400,13 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 
 	/* Make copy to avoid altering original */
 	buffer_init(&c);
-	buffer_append(&c, buffer_ptr(c_orig), buffer_len(c_orig));
+	buffer_append(&c,
+	    buffer_ptr(&k->cert->critical), buffer_len(&k->cert->critical));
 
 	while (buffer_len(&c) > 0) {
 		if ((name = buffer_get_string_ret(&c, &nlen)) == NULL ||
 		    (data_blob = buffer_get_string_ret(&c, &dlen)) == NULL) {
-			error("Certificate constraints corrupt");
+			error("Certificate options corrupt");
 			goto out;
 		}
 		buffer_append(&data, data_blob, dlen);
@@ -439,7 +440,7 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 			}
 			if (cert_forced_command != NULL) {
 				error("Certificate has multiple "
-				    "force-command constraints");
+				    "force-command options");
 				xfree(command);
 				goto out;
 			}
@@ -459,7 +460,7 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 			}
 			if (cert_source_address_done++) {
 				error("Certificate has multiple "
-				    "source-address constraints");
+				    "source-address options");
 				xfree(allowed);
 				goto out;
 			}
@@ -502,7 +503,7 @@ auth_cert_constraints(Buffer *c_orig, struct passwd *pw)
 		name = data_blob = NULL;
 	}
 
-	/* successfully parsed all constraints */
+	/* successfully parsed all options */
 	ret = 0;
 
 	no_port_forwarding_flag |= cert_no_port_forwarding_flag;

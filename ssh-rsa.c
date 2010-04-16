@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.40 2010/02/26 20:29:54 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.41 2010/04/16 01:47:26 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -46,9 +46,8 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 	int ok, nid;
 	Buffer b;
 
-	if (key == NULL ||
-	    (key->type != KEY_RSA && key->type != KEY_RSA_CERT) ||
-	    key->rsa == NULL) {
+	if (key == NULL || key->rsa == NULL || (key->type != KEY_RSA &&
+	    key->type != KEY_RSA_CERT && key->type != KEY_RSA_CERT_V00)) {
 		error("ssh_rsa_sign: no RSA key");
 		return -1;
 	}
@@ -115,9 +114,8 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	u_int len, dlen, modlen;
 	int rlen, ret, nid;
 
-	if (key == NULL ||
-	    (key->type != KEY_RSA && key->type != KEY_RSA_CERT) ||
-	    key->rsa == NULL) {
+	if (key == NULL || key->rsa == NULL || (key->type != KEY_RSA &&
+	    key->type != KEY_RSA_CERT && key->type != KEY_RSA_CERT_V00)) {
 		error("ssh_rsa_verify: no RSA key");
 		return -1;
 	}

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.222 2010/04/14 22:27:42 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.223 2010/04/16 01:47:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -586,9 +586,9 @@ check_host_cert(const char *host, const Key *host_key)
 		error("%s", reason);
 		return 0;
 	}
-	if (buffer_len(&host_key->cert->constraints) != 0) {
-		error("Certificate for %s contains unsupported constraint(s)",
-		    host);
+	if (buffer_len(&host_key->cert->critical) != 0) {
+		error("Certificate for %s contains unsupported "
+		    "critical options(s)", host);
 		return 0;
 	}
 	return 1;

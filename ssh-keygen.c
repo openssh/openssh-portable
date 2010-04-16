@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.185 2010/03/15 19:40:02 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.186 2010/04/16 01:47:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -105,6 +105,9 @@ char *identity_comment = NULL;
 /* Path to CA key when certifying keys. */
 char *ca_key_path = NULL;
 
+/* Certificate serial number */
+long long cert_serial = 0;
+
 /* Key type when certifying */
 u_int cert_key_type = SSH2_CERT_TYPE_USER;
 
@@ -118,18 +121,18 @@ char *cert_principals = NULL;
 u_int64_t cert_valid_from = 0;
 u_int64_t cert_valid_to = ~0ULL;
 
-/* Certificate constraints */
-#define CONSTRAINT_X_FWD	(1)
-#define CONSTRAINT_AGENT_FWD	(1<<1)
-#define CONSTRAINT_PORT_FWD	(1<<2)
-#define CONSTRAINT_PTY		(1<<3)
-#define CONSTRAINT_USER_RC	(1<<4)
-#define CONSTRAINT_DEFAULT	(CONSTRAINT_X_FWD|CONSTRAINT_AGENT_FWD| \
-				CONSTRAINT_PORT_FWD|CONSTRAINT_PTY| \
-				CONSTRAINT_USER_RC)
-u_int32_t constraint_flags = CONSTRAINT_DEFAULT;
-char *constraint_command = NULL;
-char *constraint_src_addr = NULL;
+/* Certificate options */
+#define CRITOPT_X_FWD	(1)
+#define CRITOPT_AGENT_FWD	(1<<1)
+#define CRITOPT_PORT_FWD	(1<<2)
+#define CRITOPT_PTY		(1<<3)
+#define CRITOPT_USER_RC	(1<<4)
+#define CRITOPT_DEFAULT	(CRITOPT_X_FWD|CRITOPT_AGENT_FWD| \
+				CRITOPT_PORT_FWD|CRITOPT_PTY| \
+				CRITOPT_USER_RC)
+u_int32_t critical_flags = CRITOPT_DEFAULT;
+char *critical_command = NULL;
+char *critical_src_addr = NULL;
 
 /* Dump public key file in format used by real and the original SSH 2 */
 int convert_to_ssh2 = 0;
@@ -161,9 +164,13 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_RSA1:
 			name = _PATH_SSH_CLIENT_IDENTITY;
 			break;
+		case KEY_DSA_CERT:
+		case KEY_DSA_CERT_V00:
 		case KEY_DSA:
 			name = _PATH_SSH_CLIENT_ID_DSA;
 			break;
+		case KEY_RSA_CERT:
+		case KEY_RSA_CERT_V00:
 		case KEY_RSA:
 			name = _PATH_SSH_CLIENT_ID_RSA;
 			break;
@@ -1104,7 +1111,7 @@ fmt_validity(u_int64_t valid_from, u_int64_t valid_to)
 }
 
 static void
-add_flag_constraint(Buffer *c, const char *name)
+add_flag_option(Buffer *c, const char *name)
 {
 	debug3("%s: %s", __func__, name);
 	buffer_put_cstring(c, name);
@@ -1112,7 +1119,7 @@ add_flag_constraint(Buffer *c, const char *name)
 }
 
 static void
-add_string_constraint(Buffer *c, const char *name, const char *value)
+add_string_option(Buffer *c, const char *name, const char *value)
 {
 	Buffer b;
 
@@ -1127,24 +1134,23 @@ add_string_constraint(Buffer *c, const char *name, const char *value)
 }
 
 static void
-prepare_constraint_buf(Buffer *c)
+prepare_options_buf(Buffer *c)
 {
-
 	buffer_clear(c);
-	if ((constraint_flags & CONSTRAINT_X_FWD) != 0)
-		add_flag_constraint(c, "permit-X11-forwarding");
-	if ((constraint_flags & CONSTRAINT_AGENT_FWD) != 0)
-		add_flag_constraint(c, "permit-agent-forwarding");
-	if ((constraint_flags & CONSTRAINT_PORT_FWD) != 0)
-		add_flag_constraint(c, "permit-port-forwarding");
-	if ((constraint_flags & CONSTRAINT_PTY) != 0)
-		add_flag_constraint(c, "permit-pty");
-	if ((constraint_flags & CONSTRAINT_USER_RC) != 0)
-		add_flag_constraint(c, "permit-user-rc");
-	if (constraint_command != NULL)
-		add_string_constraint(c, "force-command", constraint_command);
-	if (constraint_src_addr != NULL)
-		add_string_constraint(c, "source-address", constraint_src_addr);
+	if ((critical_flags & CRITOPT_X_FWD) != 0)
+		add_flag_option(c, "permit-X11-forwarding");
+	if ((critical_flags & CRITOPT_AGENT_FWD) != 0)
+		add_flag_option(c, "permit-agent-forwarding");
+	if ((critical_flags & CRITOPT_PORT_FWD) != 0)
+		add_flag_option(c, "permit-port-forwarding");
+	if ((critical_flags & CRITOPT_PTY) != 0)
+		add_flag_option(c, "permit-pty");
+	if ((critical_flags & CRITOPT_USER_RC) != 0)
+		add_flag_option(c, "permit-user-rc");
+	if (critical_command != NULL)
+		add_string_option(c, "force-command", critical_command);
+	if (critical_src_addr != NULL)
+		add_string_option(c, "source-address", critical_src_addr);
 }
 
 static void
@@ -1155,11 +1161,31 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 	Key *ca, *public;
 	char *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
+	int v00 = 0; /* legacy keys */
 
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
 	if ((ca = load_identity(tmp)) == NULL)
 		fatal("Couldn't load CA key \"%s\"", tmp);
 	xfree(tmp);
+
+	if (key_type_name != NULL) {
+		switch (key_type_from_name(key_type_name)) {
+		case KEY_RSA_CERT_V00:
+		case KEY_DSA_CERT_V00:
+			v00 = 1;
+			break;
+		case KEY_UNSPEC:
+			if (strcasecmp(key_type_name, "v00") == 0) {
+				v00 = 1;
+				break;
+			} else if (strcasecmp(key_type_name, "v01") == 0)
+				break;
+			/* FALLTHROUGH */
+		default:
+			fprintf(stderr, "unknown key type %s\n", key_type_name);
+			exit(1);
+		}
+	}
 
 	for (i = 0; i < argc; i++) {
 		/* Split list of principals */
@@ -1183,15 +1209,16 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			    __func__, tmp, key_type(public));
 
 		/* Prepare certificate to sign */
-		if (key_to_certified(public) != 0)
+		if (key_to_certified(public, v00) != 0)
 			fatal("Could not upgrade key %s to certificate", tmp);
 		public->cert->type = cert_key_type;
+		public->cert->serial = (u_int64_t)cert_serial;
 		public->cert->key_id = xstrdup(cert_key_id);
 		public->cert->nprincipals = n;
 		public->cert->principals = plist;
 		public->cert->valid_after = cert_valid_from;
 		public->cert->valid_before = cert_valid_to;
-		prepare_constraint_buf(&public->cert->constraints);
+		prepare_options_buf(&public->cert->critical);
 		public->cert->signature_key = key_from_private(ca);
 
 		if (key_certify(public, ca) != 0)
@@ -1212,13 +1239,14 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		fprintf(f, " %s\n", comment);
 		fclose(f);
 
-		if (!quiet)
-			logit("Signed %s key %s: id \"%s\"%s%s valid %s",
-			    cert_key_type == SSH2_CERT_TYPE_USER?"user":"host",
-			    out, cert_key_id,
+		if (!quiet) {
+			logit("Signed %s key %s: id \"%s\" serial %llu%s%s "
+			    "valid %s", key_cert_type(public), 
+			    out, public->cert->key_id, public->cert->serial,
 			    cert_principals != NULL ? " for " : "",
 			    cert_principals != NULL ? cert_principals : "",
 			    fmt_validity(cert_valid_from, cert_valid_to));
+		}
 
 		key_free(public);
 		xfree(out);
@@ -1321,50 +1349,50 @@ parse_cert_times(char *timespec)
 }
 
 static void
-add_cert_constraint(char *opt)
+add_cert_option(char *opt)
 {
 	char *val;
 
 	if (strcmp(opt, "clear") == 0)
-		constraint_flags = 0;
+		critical_flags = 0;
 	else if (strcasecmp(opt, "no-x11-forwarding") == 0)
-		constraint_flags &= ~CONSTRAINT_X_FWD;
+		critical_flags &= ~CRITOPT_X_FWD;
 	else if (strcasecmp(opt, "permit-x11-forwarding") == 0)
-		constraint_flags |= CONSTRAINT_X_FWD;
+		critical_flags |= CRITOPT_X_FWD;
 	else if (strcasecmp(opt, "no-agent-forwarding") == 0)
-		constraint_flags &= ~CONSTRAINT_AGENT_FWD;
+		critical_flags &= ~CRITOPT_AGENT_FWD;
 	else if (strcasecmp(opt, "permit-agent-forwarding") == 0)
-		constraint_flags |= CONSTRAINT_AGENT_FWD;
+		critical_flags |= CRITOPT_AGENT_FWD;
 	else if (strcasecmp(opt, "no-port-forwarding") == 0)
-		constraint_flags &= ~CONSTRAINT_PORT_FWD;
+		critical_flags &= ~CRITOPT_PORT_FWD;
 	else if (strcasecmp(opt, "permit-port-forwarding") == 0)
-		constraint_flags |= CONSTRAINT_PORT_FWD;
+		critical_flags |= CRITOPT_PORT_FWD;
 	else if (strcasecmp(opt, "no-pty") == 0)
-		constraint_flags &= ~CONSTRAINT_PTY;
+		critical_flags &= ~CRITOPT_PTY;
 	else if (strcasecmp(opt, "permit-pty") == 0)
-		constraint_flags |= CONSTRAINT_PTY;
+		critical_flags |= CRITOPT_PTY;
 	else if (strcasecmp(opt, "no-user-rc") == 0)
-		constraint_flags &= ~CONSTRAINT_USER_RC;
+		critical_flags &= ~CRITOPT_USER_RC;
 	else if (strcasecmp(opt, "permit-user-rc") == 0)
-		constraint_flags |= CONSTRAINT_USER_RC;
+		critical_flags |= CRITOPT_USER_RC;
 	else if (strncasecmp(opt, "force-command=", 14) == 0) {
 		val = opt + 14;
 		if (*val == '\0')
-			fatal("Empty force-command constraint");
-		if (constraint_command != NULL)
+			fatal("Empty force-command option");
+		if (critical_command != NULL)
 			fatal("force-command already specified");
-		constraint_command = xstrdup(val);
+		critical_command = xstrdup(val);
 	} else if (strncasecmp(opt, "source-address=", 15) == 0) {
 		val = opt + 15;
 		if (*val == '\0')
-			fatal("Empty source-address constraint");
-		if (constraint_src_addr != NULL)
+			fatal("Empty source-address option");
+		if (critical_src_addr != NULL)
 			fatal("source-address already specified");
 		if (addr_match_cidr_list(NULL, val) != 0)
 			fatal("Invalid source-address list");
-		constraint_src_addr = xstrdup(val);
+		critical_src_addr = xstrdup(val);
 	} else
-		fatal("Unsupported certificate constraint \"%s\"", opt);
+		fatal("Unsupported certificate option \"%s\"", opt);
 }
 
 static void
@@ -1373,9 +1401,9 @@ do_show_cert(struct passwd *pw)
 	Key *key;
 	struct stat st;
 	char *key_fp, *ca_fp;
-	Buffer constraints, constraint;
+	Buffer options, option;
 	u_char *name, *data;
-	u_int i, dlen;
+	u_int i, dlen, v00;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -1387,17 +1415,21 @@ do_show_cert(struct passwd *pw)
 		fatal("%s is not a public key", identity_file);
 	if (!key_is_cert(key))
 		fatal("%s is not a certificate", identity_file);
-	
+	v00 = key->type == KEY_RSA_CERT_V00 || key->type == KEY_DSA_CERT_V00;
+
 	key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
 	ca_fp = key_fingerprint(key->cert->signature_key,
 	    SSH_FP_MD5, SSH_FP_HEX);
 
 	printf("%s:\n", identity_file);
-	printf("        %s %s certificate %s\n", key_type(key),
-	    key_cert_type(key), key_fp);
-	printf("        Signed by %s CA %s\n",
+	printf("        Type: %s %s certificate\n", key_ssh_name(key),
+	    key_cert_type(key));
+	printf("        Public key: %s %s\n", key_type(key), key_fp);
+	printf("        Signing CA: %s %s\n",
 	    key_type(key->cert->signature_key), ca_fp);
-	printf("        Key ID \"%s\"\n", key->cert->key_id);
+	printf("        Key ID: \"%s\"\n", key->cert->key_id);
+	if (!v00)
+		printf("        Serial: %llu\n", key->cert->serial);
 	printf("        Valid: %s\n",
 	    fmt_validity(key->cert->valid_after, key->cert->valid_before));
 	printf("        Principals: ");
@@ -1409,20 +1441,20 @@ do_show_cert(struct passwd *pw)
 			    key->cert->principals[i]);
 		printf("\n");
 	}
-	printf("        Constraints: ");
-	if (buffer_len(&key->cert->constraints) == 0)
+	printf("        Critical Options: ");
+	if (buffer_len(&key->cert->critical) == 0)
 		printf("(none)\n");
 	else {
 		printf("\n");
-		buffer_init(&constraints);
-		buffer_append(&constraints,
-		    buffer_ptr(&key->cert->constraints),
-		    buffer_len(&key->cert->constraints));
-		buffer_init(&constraint);
-		while (buffer_len(&constraints) != 0) {
-			name = buffer_get_string(&constraints, NULL);
-			data = buffer_get_string_ptr(&constraints, &dlen);
-			buffer_append(&constraint, data, dlen);
+		buffer_init(&options);
+		buffer_append(&options,
+		    buffer_ptr(&key->cert->critical),
+		    buffer_len(&key->cert->critical));
+		buffer_init(&option);
+		while (buffer_len(&options) != 0) {
+			name = buffer_get_string(&options, NULL);
+			data = buffer_get_string_ptr(&options, &dlen);
+			buffer_append(&option, data, dlen);
 			printf("                %s", name);
 			if (strcmp(name, "permit-X11-forwarding") == 0 ||
 			    strcmp(name, "permit-agent-forwarding") == 0 ||
@@ -1432,22 +1464,43 @@ do_show_cert(struct passwd *pw)
 				printf("\n");
 			else if (strcmp(name, "force-command") == 0 ||
 			    strcmp(name, "source-address") == 0) {
-				data = buffer_get_string(&constraint, NULL);
+				data = buffer_get_string(&option, NULL);
 				printf(" %s\n", data);
 				xfree(data);
 			} else {
-				printf(" UNKNOWN CONSTRAINT (len %u)\n",
-				    buffer_len(&constraint));
-				buffer_clear(&constraint);
+				printf(" UNKNOWN OPTION (len %u)\n",
+				    buffer_len(&option));
+				buffer_clear(&option);
 			}
 			xfree(name);
-			if (buffer_len(&constraint) != 0)
-				fatal("Constraint corrupt: extra data at end");
+			if (buffer_len(&option) != 0)
+				fatal("Option corrupt: extra data at end");
 		}
-		buffer_free(&constraint);
-		buffer_free(&constraints);
+		buffer_free(&option);
+		buffer_free(&options);
 	}
-
+	if (!v00) {
+		printf("        Extensions: ");
+		if (buffer_len(&key->cert->extensions) == 0)
+			printf("(none)\n");
+		else {
+			printf("\n");
+			buffer_init(&options);
+			buffer_append(&options,
+			    buffer_ptr(&key->cert->extensions),
+			    buffer_len(&key->cert->extensions));
+			buffer_init(&option);
+			while (buffer_len(&options) != 0) {
+				name = buffer_get_string(&options, NULL);
+				(void)buffer_get_string_ptr(&options, &dlen);
+				printf("                %s UNKNOWN OPTION "
+				    "(len %u)\n", name, dlen);
+				xfree(name);
+			}
+			buffer_free(&option);
+			buffer_free(&options);
+		}
+	}
 	exit(0);
 }
 
@@ -1478,7 +1531,7 @@ usage(void)
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
-	fprintf(stderr, "  -O cnstr    Specify a certificate constraint.\n");
+	fprintf(stderr, "  -O cnstr    Specify a certificate option.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
 	fprintf(stderr, "  -q          Quiet.\n");
@@ -1541,7 +1594,7 @@ main(int argc, char **argv)
 	}
 
 	while ((opt = getopt(argc, argv, "degiqpclBHLhvxXyF:b:f:t:D:I:P:N:n:"
-	    "O:C:r:g:R:T:G:M:S:s:a:V:W:")) != -1) {
+	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = (u_int32_t)strtonum(optarg, 768, 32768, &errstr);
@@ -1597,7 +1650,7 @@ main(int argc, char **argv)
 			identity_new_passphrase = optarg;
 			break;
 		case 'O':
-			add_cert_constraint(optarg);
+			add_cert_option(optarg);
 			break;
 		case 'C':
 			identity_comment = optarg;
@@ -1612,7 +1665,7 @@ main(int argc, char **argv)
 			break;
 		case 'h':
 			cert_key_type = SSH2_CERT_TYPE_HOST;
-			constraint_flags = 0;
+			critical_flags = 0;
 			break;
 		case 'i':
 		case 'X':
@@ -1661,9 +1714,8 @@ main(int argc, char **argv)
 			break;
 		case 'M':
 			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
-			if (errstr) {
+			if (errstr)
 				fatal("Memory limit is %s: %s", errstr, optarg);
-			}
 			break;
 		case 'G':
 			do_gen_candidates = 1;
@@ -1684,6 +1736,11 @@ main(int argc, char **argv)
 			break;
 		case 'V':
 			parse_cert_times(optarg);
+			break;
+		case 'z':
+			cert_serial = strtonum(optarg, 0, LLONG_MAX, &errstr);
+			if (errstr)
+				fatal("Invalid serial number: %s", errstr);
 			break;
 		case '?':
 		default:

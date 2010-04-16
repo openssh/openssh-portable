@@ -41,6 +41,27 @@
      retry lookup for private key if there's no matching key with CKA_SIGN
      attribute enabled; this fixes fixes MuscleCard support (bugzilla #1736)
      ok djm@
+   - djm@cvs.openbsd.org 2010/04/16 01:47:26
+     [PROTOCOL.certkeys auth-options.c auth-options.h auth-rsa.c]
+     [auth2-pubkey.c authfd.c key.c key.h myproposal.h ssh-add.c]
+     [ssh-agent.c ssh-dss.c ssh-keygen.1 ssh-keygen.c ssh-rsa.c]
+     [sshconnect.c sshconnect2.c sshd.c]
+     revised certificate format ssh-{dss,rsa}-cert-v01@openssh.com with the
+     following changes:
+     
+     move the nonce field to the beginning of the certificate where it can
+     better protect against chosen-prefix attacks on the signature hash
+     
+     Rename "constraints" field to "critical options"
+     
+     Add a new non-critical "extensions" field
+     
+     Add a serial number
+     
+     The older format is still support for authentication and cert generation
+     (use "ssh-keygen -t v00 -s ca_key ..." to generate a v00 certificate)
+     
+     ok markus@
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.22 2010/03/10 23:27:17 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.23 2010/04/16 01:47:26 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -235,7 +235,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 		}
 		if (auth_parse_options(pw, key_options, file, linenum) != 1)
 			continue;
-		if (key->type == KEY_RSA_CERT || key->type == KEY_DSA_CERT) {
+		if (key_is_cert(key)) {
 			if (!key_is_cert_authority)
 				continue;
 			if (!key_equal(found, key->cert->signature_key))
@@ -251,8 +251,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 				auth_debug_add("%s", reason);
 				continue;
 			}
-			if (auth_cert_constraints(&key->cert->constraints,
-			    pw) != 0) {
+			if (auth_cert_options(key, pw) != 0) {
 				xfree(fp);
 				continue;
 			}
@@ -307,7 +306,7 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 		auth_debug_add("%s", reason);
 		goto out;
 	}
-	if (auth_cert_constraints(&key->cert->constraints, pw) != 0)
+	if (auth_cert_options(key, pw) != 0)
 		goto out;
 
 	verbose("Accepted certificate ID \"%s\" signed by %s CA %s via %s",
