@@ -36,6 +36,11 @@
      [ssh_config.5 sshconnect.c]
      expand %r => remote username in ssh_config:ProxyCommand;
      ok deraadt markus
+   - markus@cvs.openbsd.org 2010/04/15 20:32:55
+     [ssh-pkcs11.c]
+     retry lookup for private key if there's no matching key with CKA_SIGN
+     attribute enabled; this fixes fixes MuscleCard support (bugzilla #1736)
+     ok djm@
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo

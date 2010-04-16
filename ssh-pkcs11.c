@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.4 2010/02/24 06:12:53 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.5 2010/04/15 20:32:55 markus Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -187,6 +187,34 @@ pkcs11_rsa_finish(RSA *rsa)
 	return (rv);
 }
 
+/* find a single 'obj' for given attributes */
+static int
+pkcs11_find(struct pkcs11_provider *p, CK_ULONG slotidx, CK_ATTRIBUTE *attr,
+    CK_ULONG nattr, CK_OBJECT_HANDLE *obj)
+{
+	CK_FUNCTION_LIST	*f;
+	CK_SESSION_HANDLE	session;
+	CK_ULONG		nfound = 0;
+	CK_RV			rv;
+	int			ret = -1;
+
+	f = p->function_list;
+	session = p->slotinfo[slotidx].session;
+	if ((rv = f->C_FindObjectsInit(session, attr, nattr)) != CKR_OK) {
+		error("C_FindObjectsInit failed (nattr %lu): %lu", nattr, rv);
+		return (-1);
+	}
+	if ((rv = f->C_FindObjects(session, obj, 1, &nfound)) != CKR_OK ||
+	    nfound != 1) {
+		debug("C_FindObjects failed (nfound %lu nattr %lu): %lu",
+		    nfound, nattr, rv);
+	} else
+		ret = 0;
+	if ((rv = f->C_FindObjectsFinal(session)) != CKR_OK)
+		error("C_FindObjectsFinal failed: %lu", rv);
+	return (ret);
+}
+
 /* openssl callback doing the actual signing operation */
 static int
 pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
@@ -196,7 +224,7 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	struct pkcs11_slotinfo	*si;
 	CK_FUNCTION_LIST	*f;
 	CK_OBJECT_HANDLE	obj;
-	CK_ULONG		tlen = 0, nfound = 0;
+	CK_ULONG		tlen = 0;
 	CK_RV			rv;
 	CK_OBJECT_CLASS		private_key_class = CKO_PRIVATE_KEY;
 	CK_BBOOL		true_val = CK_TRUE;
@@ -247,13 +275,10 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	}
 	key_filter[1].pValue = k11->keyid;
 	key_filter[1].ulValueLen = k11->keyid_len;
-	if ((rv = f->C_FindObjectsInit(si->session, key_filter, 3)) != CKR_OK) {
-		error("C_FindObjectsInit failed: %lu", rv);
-		return (-1);
-	}
-	if ((rv = f->C_FindObjects(si->session, &obj, 1, &nfound)) != CKR_OK ||
-	    nfound != 1) {
-		error("C_FindObjects failed (%lu nfound): %lu", nfound, rv);
+	/* try to find object w/CKA_SIGN first, retry w/o */
+	if (pkcs11_find(k11->provider, k11->slotidx, key_filter, 3, &obj) < 0 &&
+	    pkcs11_find(k11->provider, k11->slotidx, key_filter, 2, &obj) < 0) {
+		error("cannot find private key");
 	} else if ((rv = f->C_SignInit(si->session, &mech, obj)) != CKR_OK) {
 		error("C_SignInit failed: %lu", rv);
 	} else {
@@ -265,8 +290,6 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 		else 
 			error("C_Sign failed: %lu", rv);
 	}
-	if ((rv = f->C_FindObjectsFinal(si->session)) != CKR_OK)
-		error("C_FindObjectsFinal failed: %lu", rv);
 	return (rval);
 }
 
