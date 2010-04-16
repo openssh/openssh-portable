@@ -5,6 +5,9 @@
      [bufaux.c]
      allow buffer_get_int_ret/buffer_get_int64_ret to take a NULL pointer
      argument to allow skipping past values in a buffer
+   - jmc@cvs.openbsd.org 2010/03/26 06:54:36
+     [ssh.1]
+     tweak previous;
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
