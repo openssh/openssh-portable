@@ -1,5 +1,10 @@
 20100416
  - (djm) Release openssh-5.5p1
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/03/26 03:13:17
+     [bufaux.c]
+     allow buffer_get_int_ret/buffer_get_int64_ret to take a NULL pointer
+     argument to allow skipping past values in a buffer
 
 20100410
  - (dtucker) [configure.ac] Put the check for the existence of getaddrinfo
