@@ -9,6 +9,10 @@
    - djm@cvs.openbsd.org 2010/04/16 21:14:27
      [sshconnect.c]
      oops, %r => remote username, not %u
+   - djm@cvs.openbsd.org 2010/04/16 01:58:45
+     [regress/cert-hostkey.sh regress/cert-userkey.sh]
+     regression tests for v01 certificate format
+     includes interop tests for v00 certs
 
 20100416
  - (djm) Release openssh-5.5p1

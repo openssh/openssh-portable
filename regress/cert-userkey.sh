@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.3 2010/03/04 10:38:23 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.4 2010/04/16 01:58:45 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -20,6 +20,12 @@ for ktype in rsa dsa ; do
 	    "regress user key for $USER" \
 	    -n $USER $OBJ/cert_user_key_${ktype} ||
 		fail "couldn't sign cert_user_key_${ktype}"
+	cp $OBJ/cert_user_key_${ktype} $OBJ/cert_user_key_${ktype}_v00
+	cp $OBJ/cert_user_key_${ktype}.pub $OBJ/cert_user_key_${ktype}_v00.pub
+	${SSHKEYGEN} -q -t v00 -s $OBJ/user_ca_key -I \
+	    "regress user key for $USER" \
+	    -n $USER $OBJ/cert_user_key_${ktype}_v00 ||
+		fail "couldn't sign cert_user_key_${ktype}_v00"
 done
 
 basic_tests() {
@@ -35,7 +41,7 @@ basic_tests() {
 		extra_sshd="TrustedUserCAKeys $OBJ/user_ca_key.pub"
 	fi
 	
-	for ktype in rsa dsa ; do 
+	for ktype in rsa dsa rsa_v00 dsa_v00 ; do 
 		for privsep in yes no ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
@@ -108,39 +114,41 @@ test_one() {
 	fi
 
 	for auth in $auth_choice ; do
-		cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
-		if test "x$auth" = "xauthorized_keys" ; then
-			# Add CA to authorized_keys
-			(
-				echon 'cert-authority '
-				cat $OBJ/user_ca_key.pub
-			) > $OBJ/authorized_keys_$USER
-		else
-			echo > $OBJ/authorized_keys_$USER
-			echo "TrustedUserCAKeys $OBJ/user_ca_key.pub" >> \
-			    $OBJ/sshd_proxy
-
-		fi
-		
-		verbose "$tid: $ident auth $auth expect $result"
-		${SSHKEYGEN} -q -s $OBJ/user_ca_key \
-		    -I "regress user key for $USER" \
-		    $sign_opts \
-		    $OBJ/cert_user_key_rsa ||
-			fail "couldn't sign cert_user_key_rsa"
+		for ktype in rsa rsa_v00 ; do
+			cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
+			if test "x$auth" = "xauthorized_keys" ; then
+				# Add CA to authorized_keys
+				(
+					echon 'cert-authority '
+					cat $OBJ/user_ca_key.pub
+				) > $OBJ/authorized_keys_$USER
+			else
+				echo > $OBJ/authorized_keys_$USER
+				echo "TrustedUserCAKeys $OBJ/user_ca_key.pub" \
+				    >> $OBJ/sshd_proxy
 	
-		${SSH} -2i $OBJ/cert_user_key_rsa -F $OBJ/ssh_proxy \
-		    somehost true >/dev/null 2>&1
-		rc=$?
-		if [ "x$result" = "xsuccess" ] ; then
-			if [ $rc -ne 0 ]; then
-				fail "$ident failed unexpectedly"
 			fi
-		else
-			if [ $rc -eq 0 ]; then
-				fail "$ident succeeded unexpectedly"
+			
+			verbose "$tid: $ident auth $auth expect $result $ktype"
+			${SSHKEYGEN} -q -s $OBJ/user_ca_key \
+			    -I "regress user key for $USER" \
+			    $sign_opts \
+			    $OBJ/cert_user_key_${ktype} ||
+				fail "couldn't sign cert_user_key_${ktype}"
+
+			${SSH} -2i $OBJ/cert_user_key_${ktype} \
+			    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+			rc=$?
+			if [ "x$result" = "xsuccess" ] ; then
+				if [ $rc -ne 0 ]; then
+					fail "$ident failed unexpectedly"
+				fi
+			else
+				if [ $rc -eq 0 ]; then
+					fail "$ident succeeded unexpectedly"
+				fi
 			fi
-		fi
+		done
 	done
 }
 
@@ -158,9 +166,13 @@ test_one "empty principals"	success "" authorized_keys
 test_one "empty principals"	failure "" TrustedUserCAKeys
 
 # Wrong certificate
-for ktype in rsa dsa ; do 
+for ktype in rsa dsa rsa_v00 dsa_v00 ; do 
+	case $ktype in
+	*_v00) args="-t v00" ;;
+	*) args="" ;;
+	esac
 	# Self-sign
-	${SSHKEYGEN} -q -s $OBJ/cert_user_key_${ktype} -I \
+	${SSHKEYGEN} $args -q -s $OBJ/cert_user_key_${ktype} -I \
 	    "regress user key for $USER" \
 	    -n $USER $OBJ/cert_user_key_${ktype} ||
 		fail "couldn't sign cert_user_key_${ktype}"
