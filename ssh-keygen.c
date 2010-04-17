@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.186 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.187 2010/04/16 06:47:04 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1531,7 +1531,7 @@ usage(void)
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
-	fprintf(stderr, "  -O cnstr    Specify a certificate option.\n");
+	fprintf(stderr, "  -O option   Specify a certificate option.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
 	fprintf(stderr, "  -q          Quiet.\n");
@@ -1545,6 +1545,7 @@ usage(void)
 	fprintf(stderr, "  -v          Verbose.\n");
 	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -y          Read private key file and print public key.\n");
+	fprintf(stderr, "  -z serial   Specify a serial number.\n");
 
 	exit(1);
 }

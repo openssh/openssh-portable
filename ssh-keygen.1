@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.93 2010/04/16 01:47:26 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.94 2010/04/16 06:47:04 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -506,7 +506,7 @@ that both ends of a connection share common moduli.
 supports signing of keys to produce certificates that may be used for
 user or host authentication.
 Certificates consist of a public key, some identity information, zero or
-more principal (user or host) names and an optional set of options that
+more principal (user or host) names and a set of options that
 are signed by a Certification Authority (CA) key.
 Clients or servers may then trust only the CA key and verify its signature
 on a certificate rather than trusting many user/host keys.
@@ -546,7 +546,7 @@ To generate a certificate for a specified set of principals:
 .Dl "$ ssh-keygen -s ca_key -I key_id -h -n host.domain user_key.pub"
 .Pp
 Additional limitations on the validity and use of user certificates may
-be specified through certificate options..
+be specified through certificate options.
 A certificate option may disable features of the SSH session, may be
 valid only when presented from particular source addresses or may
 force the use of a specific command.
