@@ -6,6 +6,9 @@
    - jmc@cvs.openbsd.org 2010/04/16 06:47:04
      [ssh-keygen.1 ssh-keygen.c]
      tweak previous; ok djm
+   - djm@cvs.openbsd.org 2010/04/16 21:14:27
+     [sshconnect.c]
+     oops, %r => remote username, not %u
 
 20100416
  - (djm) Release openssh-5.5p1
