@@ -13,6 +13,8 @@
      [regress/cert-hostkey.sh regress/cert-userkey.sh]
      regression tests for v01 certificate format
      includes interop tests for v00 certs
+ - (dtucker) [contrib/aix/buildbff.sh] Fix creation of ssh_prng_cmds.default
+   file.
 
 20100416
  - (djm) Release openssh-5.5p1
