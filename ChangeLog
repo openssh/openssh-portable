@@ -1,3 +1,8 @@
+20100423
+ - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
+   in the openssl install directory (some newer openssl versions do this on at
+   least some amd64 platforms).
+
 20100418
  - OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2010/04/16 06:45:01
