@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.188 2010/04/23 01:47:41 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.189 2010/04/23 22:48:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1563,6 +1563,7 @@ main(int argc, char **argv)
 	struct passwd *pw;
 	struct stat st;
 	int opt, type, fd;
+	u_int maxbits;
 	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	BIGNUM *start = NULL;
@@ -1869,6 +1870,12 @@ main(int argc, char **argv)
 	}
 	if (bits == 0)
 		bits = (type == KEY_DSA) ? DEFAULT_BITS_DSA : DEFAULT_BITS;
+	maxbits = (type == KEY_DSA) ?
+	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
+	if (bits > maxbits) {
+		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
+		exit(1);
+	}
 	if (type == KEY_DSA && bits != 1024)
 		fatal("DSA keys must be 1024 bits");
 	if (!quiet)
