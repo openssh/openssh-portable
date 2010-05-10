@@ -24,6 +24,9 @@
      bz#1502: authctxt.success is declared as an int, but passed by
      reference to function that accepts sig_atomic_t*. Convert it to
      the latter; ok markus@ dtucker@
+   - djm@cvs.openbsd.org 2010/05/01 02:50:50
+     [PROTOCOL.certkeys]
+     typo; jmeltzer@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir

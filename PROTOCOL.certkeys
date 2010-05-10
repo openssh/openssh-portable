@@ -103,7 +103,7 @@ p, q, g, y are the DSA parameters as described in FIPS-186-2.
 
 serial is an optional certificate serial number set by the CA to
 provide an abbreviated way to refer to certificates from that CA.
-If a CA does not with to number its certificates it must set this
+If a CA does not wish to number its certificates it must set this
 field to zero.
 
 type specifies whether this certificate is for identification of a user
@@ -205,4 +205,4 @@ source-address          string        Comma-separated list of source addresses
                                       certificates may be presented from any
                                       source address.
 
-$OpenBSD: PROTOCOL.certkeys,v 1.4 2010/04/16 01:47:25 djm Exp $
+$OpenBSD: PROTOCOL.certkeys,v 1.5 2010/05/01 02:50:50 djm Exp $
