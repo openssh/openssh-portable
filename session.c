@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.252 2010/03/07 11:57:13 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.253 2010/04/23 22:42:05 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -47,6 +47,7 @@
 #include <arpa/inet.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <grp.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
@@ -447,6 +448,9 @@ do_exec_no_pty(Session *s, const char *command)
 #ifdef USE_PIPES
 	int pin[2], pout[2], perr[2];
 
+	if (s == NULL)
+		fatal("do_exec_no_pty: no session");
+
 	/* Allocate pipes for communicating with the program. */
 	if (pipe(pin) < 0) {
 		error("%s: pipe in: %.100s", __func__, strerror(errno));
@@ -458,32 +462,58 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pin[1]);
 		return -1;
 	}
-	if (pipe(perr) < 0) {
-		error("%s: pipe err: %.100s", __func__, strerror(errno));
-		close(pin[0]);
-		close(pin[1]);
-		close(pout[0]);
-		close(pout[1]);
-		return -1;
+	if (s->is_subsystem) {
+	    	if ((perr[1] = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
+			error("%s: open(%s): %s", __func__, _PATH_DEVNULL,
+			    strerror(errno));
+			close(pin[0]);
+			close(pin[1]);
+			close(pout[0]);
+			close(pout[1]);
+			return -1;
+		}
+		perr[0] = -1;
+	} else {
+		if (pipe(perr) < 0) {
+			error("%s: pipe err: %.100s", __func__,
+			    strerror(errno));
+			close(pin[0]);
+			close(pin[1]);
+			close(pout[0]);
+			close(pout[1]);
+			return -1;
+		}
 	}
 #else
 	int inout[2], err[2];
+
+	if (s == NULL)
+		fatal("do_exec_no_pty: no session");
 
 	/* Uses socket pairs to communicate with the program. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, inout) < 0) {
 		error("%s: socketpair #1: %.100s", __func__, strerror(errno));
 		return -1;
 	}
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, err) < 0) {
-		error("%s: socketpair #2: %.100s", __func__, strerror(errno));
-		close(inout[0]);
-		close(inout[1]);
-		return -1;
+	if (s->is_subsystem) {
+	    	if ((err[0] = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
+			error("%s: open(%s): %s", __func__, _PATH_DEVNULL,
+			    strerror(errno));
+			close(inout[0]);
+			close(inout[1]);
+			return -1;
+		}
+		err[1] = -1;
+	} else {
+		if (socketpair(AF_UNIX, SOCK_STREAM, 0, err) < 0) {
+			error("%s: socketpair #2: %.100s", __func__,
+			    strerror(errno));
+			close(inout[0]);
+			close(inout[1]);
+			return -1;
+		}
 	}
 #endif
-
-	if (s == NULL)
-		fatal("do_exec_no_pty: no session");
 
 	session_proctitle(s);
 
@@ -496,13 +526,15 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pin[1]);
 		close(pout[0]);
 		close(pout[1]);
-		close(perr[0]);
+		if (perr[0] != -1)
+			close(perr[0]);
 		close(perr[1]);
 #else
 		close(inout[0]);
 		close(inout[1]);
 		close(err[0]);
-		close(err[1]);
+		if (err[1] != -1)
+			close(err[1]);
 #endif
 		return -1;
 	case 0:
@@ -536,7 +568,8 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pout[1]);
 
 		/* Redirect stderr. */
-		close(perr[0]);
+		if (perr[0] != -1)
+			close(perr[0]);
 		if (dup2(perr[1], 2) < 0)
 			perror("dup2 stderr");
 		close(perr[1]);
@@ -547,7 +580,8 @@ do_exec_no_pty(Session *s, const char *command)
 		 * seem to depend on it.
 		 */
 		close(inout[1]);
-		close(err[1]);
+		if (err[1] != -1)
+			close(err[1]);
 		if (dup2(inout[0], 0) < 0)	/* stdin */
 			perror("dup2 stdin");
 		if (dup2(inout[0], 1) < 0)	/* stdout (same as stdin) */
@@ -595,10 +629,6 @@ do_exec_no_pty(Session *s, const char *command)
 	close(perr[1]);
 
 	if (compat20) {
-		if (s->is_subsystem) {
-			close(perr[0]);
-			perr[0] = -1;
-		}
 		session_set_fds(s, pin[1], pout[0], perr[0], 0);
 	} else {
 		/* Enter the interactive session. */
@@ -615,10 +645,7 @@ do_exec_no_pty(Session *s, const char *command)
 	 * handle the case that fdin and fdout are the same.
 	 */
 	if (compat20) {
-		session_set_fds(s, inout[1], inout[1],
-		    s->is_subsystem ? -1 : err[1], 0);
-		if (s->is_subsystem)
-			close(err[1]);
+		session_set_fds(s, inout[1], inout[1], err[1], 0);
 	} else {
 		server_loop(pid, inout[1], inout[1], err[1]);
 		/* server_loop has closed inout[1] and err[1]. */

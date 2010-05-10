@@ -10,6 +10,11 @@
      set "detach_close" flag when registering channel cleanup callbacks.
      This causes the channel to close normally when its fds close and
      hangs when terminating a mux slave using ~. bz#1758; ok markus@
+   - djm@cvs.openbsd.org 2010/04/23 22:42:05
+     [session.c]
+     set stderr to /dev/null for subsystems rather than just closing it.
+     avoids hangs if a subsystem or shell initialisation writes to stderr.
+     bz#1750; ok markus@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
