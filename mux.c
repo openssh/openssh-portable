@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.15 2010/04/10 05:48:16 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.16 2010/04/23 22:27:38 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -454,7 +454,7 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 
 	channel_send_open(nc->self);
 	channel_register_open_confirm(nc->self, mux_session_confirm, cctx);
-	channel_register_cleanup(nc->self, mux_master_session_cleanup_cb, 0);
+	channel_register_cleanup(nc->self, mux_master_session_cleanup_cb, 1);
 
 	/* prepare reply */
 	/* XXX defer until mux_session_confirm() fires */
@@ -826,7 +826,7 @@ process_mux_stdio_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	debug2("%s: channel_new: %d linked to control channel %d",
 	    __func__, nc->self, nc->ctl_chan);
 
-	channel_register_cleanup(nc->self, mux_master_session_cleanup_cb, 0);
+	channel_register_cleanup(nc->self, mux_master_session_cleanup_cb, 1);
 
 	/* prepare reply */
 	/* XXX defer until channel confirmed */

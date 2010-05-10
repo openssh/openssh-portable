@@ -5,6 +5,11 @@
      bz#1740: display a more helpful error message when $HOME is
      inaccessible while trying to create .ssh directory. Based on patch
      from jchadima AT redhat.com; ok dtucker@
+   - djm@cvs.openbsd.org 2010/04/23 22:27:38
+     [mux.c]
+     set "detach_close" flag when registering channel cleanup callbacks.
+     This causes the channel to close normally when its fds close and
+     hangs when terminating a mux slave using ~. bz#1758; ok markus@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
