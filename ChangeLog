@@ -1,3 +1,11 @@
+20100510
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/04/23 01:47:41
+     [ssh-keygen.c]
+     bz#1740: display a more helpful error message when $HOME is
+     inaccessible while trying to create .ssh directory. Based on patch
+     from jchadima AT redhat.com; ok dtucker@
+
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
    in the openssl install directory (some newer openssl versions do this on at

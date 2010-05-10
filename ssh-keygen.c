@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.187 2010/04/16 06:47:04 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.188 2010/04/23 01:47:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1884,13 +1884,19 @@ main(int argc, char **argv)
 		ask_filename(pw, "Enter file in which to save the key");
 
 	/* Create ~/.ssh directory if it doesn't already exist. */
-	snprintf(dotsshdir, sizeof dotsshdir, "%s/%s", pw->pw_dir, _PATH_SSH_USER_DIR);
-	if (strstr(identity_file, dotsshdir) != NULL &&
-	    stat(dotsshdir, &st) < 0) {
-		if (mkdir(dotsshdir, 0700) < 0)
-			error("Could not create directory '%s'.", dotsshdir);
-		else if (!quiet)
-			printf("Created directory '%s'.\n", dotsshdir);
+	snprintf(dotsshdir, sizeof dotsshdir, "%s/%s",
+	    pw->pw_dir, _PATH_SSH_USER_DIR);
+	if (strstr(identity_file, dotsshdir) != NULL) {
+		if (stat(dotsshdir, &st) < 0) {
+			if (errno != ENOENT) {
+				error("Could not stat %s: %s", dotsshdir,
+				    strerror(errno));
+			} else if (mkdir(dotsshdir, 0700) < 0) {
+				error("Could not create directory '%s': %s",
+				    dotsshdir, strerror(errno));
+			} else if (!quiet)
+				printf("Created directory '%s'.\n", dotsshdir);
+		}
 	}
 	/* If the file already exists, ask the user to confirm. */
 	if (stat(identity_file, &st) >= 0) {
