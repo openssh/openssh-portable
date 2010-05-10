@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.123 2010/01/27 19:21:39 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.124 2010/05/05 04:22:09 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -181,6 +181,8 @@ static const struct CMD cmds[] = {
 	{ "ls",		I_LS,		REMOTE	},
 	{ "lumask",	I_LUMASK,	NOARGS	},
 	{ "mkdir",	I_MKDIR,	REMOTE	},
+	{ "mget",	I_GET,		REMOTE	},
+	{ "mput",	I_PUT,		LOCAL	},
 	{ "progress",	I_PROGRESS,	NOARGS	},
 	{ "put",	I_PUT,		LOCAL	},
 	{ "pwd",	I_PWD,		REMOTE	},

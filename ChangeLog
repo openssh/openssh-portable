@@ -27,6 +27,10 @@
    - djm@cvs.openbsd.org 2010/05/01 02:50:50
      [PROTOCOL.certkeys]
      typo; jmeltzer@
+   - dtucker@cvs.openbsd.org 2010/05/05 04:22:09
+     [sftp.c]
+     restore mput and mget which got lost in the tab-completion changes.
+     found by Kenneth Whitaker, ok djm@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
