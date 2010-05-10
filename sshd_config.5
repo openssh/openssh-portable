@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.121 2010/05/07 11:30:30 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.122 2010/05/07 12:49:17 jmc Exp $
 .Dd $Mdocdate: May 7 2010 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -189,7 +189,7 @@ After expansion,
 is taken to be an absolute path or one relative to the user's home
 directory.
 .Pp
-The default is not to use a principals file - in this case, the username
+The default is not to use a principals file \(en in this case, the username
 of the user must appear in a certificate's principals list for it to be
 accepted.
 Note that
@@ -203,7 +203,6 @@ though the
 key option offers a similar facility (see
 .Xr sshd 8
 for details).
-.Pp
 .It Cm Banner
 The contents of the specified file are sent to the remote user before
 authentication is allowed.

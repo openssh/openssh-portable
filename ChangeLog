@@ -53,6 +53,9 @@
      and "user@realm"-style naming policies in certificates.
      
      feedback and ok markus@
+   - jmc@cvs.openbsd.org 2010/05/07 12:49:17
+     [sshd_config.5]
+     tweak previous;
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
