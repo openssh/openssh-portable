@@ -19,6 +19,11 @@
      [ssh-keygen.c]
      refuse to generate keys longer than OPENSSL_[RD]SA_MAX_MODULUS_BITS,
      since we would refuse to use them anyway. bz#1516; ok dtucker@
+   - djm@cvs.openbsd.org 2010/04/26 22:28:24
+     [sshconnect2.c]
+     bz#1502: authctxt.success is declared as an int, but passed by
+     reference to function that accepts sig_atomic_t*. Convert it to
+     the latter; ok markus@ dtucker@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir
