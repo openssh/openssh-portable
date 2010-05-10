@@ -31,6 +31,28 @@
      [sftp.c]
      restore mput and mget which got lost in the tab-completion changes.
      found by Kenneth Whitaker, ok djm@
+   - djm@cvs.openbsd.org 2010/05/07 11:30:30
+     [auth-options.c auth-options.h auth.c auth.h auth2-pubkey.c]
+     [key.c servconf.c servconf.h sshd.8 sshd_config.5]
+     add some optional indirection to matching of principal names listed
+     in certificates. Currently, a certificate must include the a user's name
+     to be accepted for authentication. This change adds the ability to
+     specify a list of certificate principal names that are acceptable.
+     
+     When authenticating using a CA trusted through ~/.ssh/authorized_keys,
+     this adds a new principals="name1[,name2,...]" key option.
+     
+     For CAs listed through sshd_config's TrustedCAKeys option, a new config
+     option "AuthorizedPrincipalsFile" specifies a per-user file containing
+     the list of acceptable names.
+     
+     If either option is absent, the current behaviour of requiring the
+     username to appear in principals continues to apply.
+     
+     These options are useful for role accounts, disjoint account namespaces
+     and "user@realm"-style naming policies in certificates.
+     
+     feedback and ok markus@
 
 20100423
  - (dtucker) [configure.ac] Bug #1756: Check for the existence of a lib64 dir

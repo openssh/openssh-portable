@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.87 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: key.c,v 1.88 2010/05/07 11:30:29 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1623,7 +1623,7 @@ key_cert_check_authority(const Key *k, int want_host, int require_principal,
 			*reason = "Certificate lacks principal list";
 			return -1;
 		}
-	} else {
+	} else if (name != NULL) {
 		principal_matches = 0;
 		for (i = 0; i < k->cert->nprincipals; i++) {
 			if (strcmp(name, k->cert->principals[i]) == 0) {

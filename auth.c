@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.86 2010/03/05 02:58:11 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.87 2010/05/07 11:30:29 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -366,6 +366,14 @@ authorized_keys_file2(struct passwd *pw)
 	return expand_authorized_keys(options.authorized_keys_file2, pw);
 }
 
+char *
+authorized_principals_file(struct passwd *pw)
+{
+	if (options.authorized_principals_file == NULL)
+		return NULL;
+	return expand_authorized_keys(options.authorized_principals_file, pw);
+}
+
 /* return ok if key exists in sysfile or userfile */
 HostStatus
 check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
@@ -477,21 +485,18 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 	return 0;
 }
 
-FILE *
-auth_openkeyfile(const char *file, struct passwd *pw, int strict_modes)
+static FILE *
+auth_openfile(const char *file, struct passwd *pw, int strict_modes,
+    int log_missing, char *file_type)
 {
 	char line[1024];
 	struct stat st;
 	int fd;
 	FILE *f;
 
-	/*
-	 * Open the file containing the authorized keys
-	 * Fail quietly if file does not exist
-	 */
 	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
-		if (errno != ENOENT)
-			debug("Could not open keyfile '%s': %s", file,
+		if (log_missing || errno != ENOENT)
+			debug("Could not open %s '%s': %s", file_type, file,
 			   strerror(errno));
 		return NULL;
 	}
@@ -501,8 +506,8 @@ auth_openkeyfile(const char *file, struct passwd *pw, int strict_modes)
 		return NULL;
 	}
 	if (!S_ISREG(st.st_mode)) {
-		logit("User %s authorized keys %s is not a regular file",
-		    pw->pw_name, file);
+		logit("User %s %s %s is not a regular file",
+		    pw->pw_name, file_type, file);
 		close(fd);
 		return NULL;
 	}
@@ -519,6 +524,20 @@ auth_openkeyfile(const char *file, struct passwd *pw, int strict_modes)
 	}
 
 	return f;
+}
+
+
+FILE *
+auth_openkeyfile(const char *file, struct passwd *pw, int strict_modes)
+{
+	return auth_openfile(file, pw, strict_modes, 1, "authorized keys");
+}
+
+FILE *
+auth_openprincipals(const char *file, struct passwd *pw, int strict_modes)
+{
+	return auth_openfile(file, pw, strict_modes, 0,
+	    "authorized principals");
 }
 
 struct passwd *

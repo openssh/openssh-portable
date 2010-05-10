@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.120 2010/03/04 23:17:25 djm Exp $
-.Dd $Mdocdate: March 4 2010 $
+.\" $OpenBSD: sshd_config.5,v 1.121 2010/05/07 11:30:30 djm Exp $
+.Dd $Mdocdate: May 7 2010 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -167,6 +167,43 @@ is taken to be an absolute path or one relative to the user's home
 directory.
 The default is
 .Dq .ssh/authorized_keys .
+.It Cm AuthorizedPrincipalsFile
+Specifies a file that lists principal names that are accepted for
+certificate authentication.
+When using certificates signed by a key listed in
+.Cm TrustedUserCAKeys ,
+this file lists names, one of which must appear in the certificate for it
+to be accepted for authentication.
+Names are listed one per line; empty lines and comments starting with
+.Ql #
+are ignored.
+.Pp
+.Cm AuthorizedPrincipalsFile
+may contain tokens of the form %T which are substituted during connection
+setup.
+The following tokens are defined: %% is replaced by a literal '%',
+%h is replaced by the home directory of the user being authenticated, and
+%u is replaced by the username of that user.
+After expansion,
+.Cm AuthorizedPrincipalsFile
+is taken to be an absolute path or one relative to the user's home
+directory.
+.Pp
+The default is not to use a principals file - in this case, the username
+of the user must appear in a certificate's principals list for it to be
+accepted.
+Note that
+.Cm AuthorizedPrincipalsFile
+is only used when authentication proceeds using a CA listed in
+.Cm TrustedUserCAKeys
+and is not consulted for certification authorities trusted via
+.Pa ~/.ssh/authorized_keys ,
+though the
+.Cm principals=
+key option offers a similar facility (see
+.Xr sshd 8
+for details).
+.Pp
 .It Cm Banner
 The contents of the specified file are sent to the remote user before
 authentication is allowed.

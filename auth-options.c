@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.50 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.51 2010/05/07 11:30:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -55,6 +55,9 @@ struct envstring *custom_environment = NULL;
 /* "tunnel=" option. */
 int forced_tun_device = -1;
 
+/* "principals=" option. */
+char *authorized_principals = NULL;
+
 extern ServerOptions options;
 
 void
@@ -75,6 +78,10 @@ auth_clear_options(void)
 	if (forced_command) {
 		xfree(forced_command);
 		forced_command = NULL;
+	}
+	if (authorized_principals) {
+		xfree(authorized_principals);
+		authorized_principals = NULL;
 	}
 	forced_tun_device = -1;
 	channel_clear_permitted_opens();
@@ -141,6 +148,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 		cp = "command=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			opts += strlen(cp);
+			if (forced_command != NULL)
+				xfree(forced_command);
 			forced_command = xmalloc(strlen(opts) + 1);
 			i = 0;
 			while (*opts) {
@@ -164,6 +173,38 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			}
 			forced_command[i] = '\0';
 			auth_debug_add("Forced command: %.900s", forced_command);
+			opts++;
+			goto next_option;
+		}
+		cp = "principals=\"";
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
+			opts += strlen(cp);
+			if (authorized_principals != NULL)
+				xfree(authorized_principals);
+			authorized_principals = xmalloc(strlen(opts) + 1);
+			i = 0;
+			while (*opts) {
+				if (*opts == '"')
+					break;
+				if (*opts == '\\' && opts[1] == '"') {
+					opts += 2;
+					authorized_principals[i++] = '"';
+					continue;
+				}
+				authorized_principals[i++] = *opts++;
+			}
+			if (!*opts) {
+				debug("%.100s, line %lu: missing end quote",
+				    file, linenum);
+				auth_debug_add("%.100s, line %lu: missing end quote",
+				    file, linenum);
+				xfree(authorized_principals);
+				authorized_principals = NULL;
+				goto bad_option;
+			}
+			authorized_principals[i] = '\0';
+			auth_debug_add("principals: %.900s",
+			    authorized_principals);
 			opts++;
 			goto next_option;
 		}
