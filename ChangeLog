@@ -2,6 +2,9 @@
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve
    circular dependency problem on old or odd platforms.  From Tom Lane, ok
    djm@.
+ - (djm) [openbsd-compat/openssl-compat.h] Fix build breakage on older
+   libcrypto by defining OPENSSL_[DR]SA_MAX_MODULUS_BITS if they aren't
+   already. ok dtucker@
 
 20100510
  - OpenBSD CVS Sync
