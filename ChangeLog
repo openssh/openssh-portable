@@ -1,3 +1,10 @@
+20100521
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/05/07 11:31:26
+     [regress/Makefile regress/cert-userkey.sh]
+     regress tests for AuthorizedPrincipalsFile and "principals=" key option.
+     feedback and ok markus@
+
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve
    circular dependency problem on old or odd platforms.  From Tom Lane, ok
