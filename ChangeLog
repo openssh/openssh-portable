@@ -33,6 +33,14 @@
      [auth2-pubkey.c]
      fix logspam when key options (from="..." especially) deny non-matching
      keys; reported by henning@ also bz#1765; ok markus@ dtucker@
+   - djm@cvs.openbsd.org 2010/05/20 23:46:02
+     [PROTOCOL.certkeys auth-options.c ssh-keygen.c]
+     Move the permit-* options to the non-critical "extensions" field for v01
+     certificates. The logic is that if another implementation fails to
+     implement them then the connection just loses features rather than fails
+     outright.
+     
+     ok markus@
 
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve

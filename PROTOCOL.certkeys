@@ -131,7 +131,7 @@ must refuse to authorise a key that has an unrecognised option.
 
 extensions is a set of zero or more optional extensions. These extensions
 are not critical, and an implementation that encounters one that it does
-not recognise may safely ignore it. No extensions are defined at present.
+not recognise may safely ignore it.
 
 The reserved field is currently unused and is ignored in this version of
 the protocol.
@@ -172,6 +172,28 @@ force-command           string        Specifies a command that is executed
                                       ssh command-line) whenever this key is
                                       used for authentication.
 
+source-address          string        Comma-separated list of source addresses
+                                      from which this certificate is accepted
+                                      for authentication. Addresses are
+                                      specified in CIDR format (nn.nn.nn.nn/nn
+                                      or hhhh::hhhh/nn).
+                                      If this option is not present then
+                                      certificates may be presented from any
+                                      source address.
+
+Extensions
+----------
+
+The extensions section of the certificate specifies zero or more
+non-critical certificate extensions. The encoding of extensions in this
+field is identical to that of the critical options. If an implementation
+does not recognise an extension, then it should ignore it.
+
+The supported extensions and the contents and structure of their data
+fields are:
+
+Name                    Format        Description
+-----------------------------------------------------------------------------
 permit-X11-forwarding   empty         Flag indicating that X11 forwarding
                                       should be permitted. X11 forwarding will
                                       be refused if this option is absent.
@@ -196,13 +218,4 @@ permit-user-rc          empty         Flag indicating that execution of
                                       of this script will not be permitted if
                                       this option is not present.
 
-source-address          string        Comma-separated list of source addresses
-                                      from which this certificate is accepted
-                                      for authentication. Addresses are
-                                      specified in CIDR format (nn.nn.nn.nn/nn
-                                      or hhhh::hhhh/nn).
-                                      If this option is not present then
-                                      certificates may be presented from any
-                                      source address.
-
-$OpenBSD: PROTOCOL.certkeys,v 1.5 2010/05/01 02:50:50 djm Exp $
+$OpenBSD: PROTOCOL.certkeys,v 1.6 2010/05/20 23:46:02 djm Exp $

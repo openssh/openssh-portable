@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.189 2010/04/23 22:48:31 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.190 2010/05/20 23:46:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -122,17 +122,16 @@ u_int64_t cert_valid_from = 0;
 u_int64_t cert_valid_to = ~0ULL;
 
 /* Certificate options */
-#define CRITOPT_X_FWD	(1)
-#define CRITOPT_AGENT_FWD	(1<<1)
-#define CRITOPT_PORT_FWD	(1<<2)
-#define CRITOPT_PTY		(1<<3)
-#define CRITOPT_USER_RC	(1<<4)
-#define CRITOPT_DEFAULT	(CRITOPT_X_FWD|CRITOPT_AGENT_FWD| \
-				CRITOPT_PORT_FWD|CRITOPT_PTY| \
-				CRITOPT_USER_RC)
-u_int32_t critical_flags = CRITOPT_DEFAULT;
-char *critical_command = NULL;
-char *critical_src_addr = NULL;
+#define CERTOPT_X_FWD	(1)
+#define CERTOPT_AGENT_FWD	(1<<1)
+#define CERTOPT_PORT_FWD	(1<<2)
+#define CERTOPT_PTY		(1<<3)
+#define CERTOPT_USER_RC	(1<<4)
+#define CERTOPT_DEFAULT	(CERTOPT_X_FWD|CERTOPT_AGENT_FWD| \
+			 CERTOPT_PORT_FWD|CERTOPT_PTY|CERTOPT_USER_RC)
+u_int32_t certflags_flags = CERTOPT_DEFAULT;
+char *certflags_command = NULL;
+char *certflags_src_addr = NULL;
 
 /* Dump public key file in format used by real and the original SSH 2 */
 int convert_to_ssh2 = 0;
@@ -1133,24 +1132,33 @@ add_string_option(Buffer *c, const char *name, const char *value)
 	buffer_free(&b);
 }
 
+#define OPTIONS_CRITICAL	1
+#define OPTIONS_EXTENSIONS	2
 static void
-prepare_options_buf(Buffer *c)
+prepare_options_buf(Buffer *c, int which)
 {
 	buffer_clear(c);
-	if ((critical_flags & CRITOPT_X_FWD) != 0)
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_X_FWD) != 0)
 		add_flag_option(c, "permit-X11-forwarding");
-	if ((critical_flags & CRITOPT_AGENT_FWD) != 0)
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_AGENT_FWD) != 0)
 		add_flag_option(c, "permit-agent-forwarding");
-	if ((critical_flags & CRITOPT_PORT_FWD) != 0)
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_PORT_FWD) != 0)
 		add_flag_option(c, "permit-port-forwarding");
-	if ((critical_flags & CRITOPT_PTY) != 0)
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_PTY) != 0)
 		add_flag_option(c, "permit-pty");
-	if ((critical_flags & CRITOPT_USER_RC) != 0)
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_USER_RC) != 0)
 		add_flag_option(c, "permit-user-rc");
-	if (critical_command != NULL)
-		add_string_option(c, "force-command", critical_command);
-	if (critical_src_addr != NULL)
-		add_string_option(c, "source-address", critical_src_addr);
+	if ((which & OPTIONS_CRITICAL) != 0 &&
+	    certflags_command != NULL)
+		add_string_option(c, "force-command", certflags_command);
+	if ((which & OPTIONS_CRITICAL) != 0 &&
+	    certflags_src_addr != NULL)
+		add_string_option(c, "source-address", certflags_src_addr);
 }
 
 static void
@@ -1218,7 +1226,15 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		public->cert->principals = plist;
 		public->cert->valid_after = cert_valid_from;
 		public->cert->valid_before = cert_valid_to;
-		prepare_options_buf(&public->cert->critical);
+		if (v00) {
+			prepare_options_buf(&public->cert->critical,
+			    OPTIONS_CRITICAL|OPTIONS_EXTENSIONS);
+		} else {
+			prepare_options_buf(&public->cert->critical,
+			    OPTIONS_CRITICAL);
+			prepare_options_buf(&public->cert->extensions,
+			    OPTIONS_EXTENSIONS);
+		}
 		public->cert->signature_key = key_from_private(ca);
 
 		if (key_certify(public, ca) != 0)
@@ -1354,43 +1370,43 @@ add_cert_option(char *opt)
 	char *val;
 
 	if (strcmp(opt, "clear") == 0)
-		critical_flags = 0;
+		certflags_flags = 0;
 	else if (strcasecmp(opt, "no-x11-forwarding") == 0)
-		critical_flags &= ~CRITOPT_X_FWD;
+		certflags_flags &= ~CERTOPT_X_FWD;
 	else if (strcasecmp(opt, "permit-x11-forwarding") == 0)
-		critical_flags |= CRITOPT_X_FWD;
+		certflags_flags |= CERTOPT_X_FWD;
 	else if (strcasecmp(opt, "no-agent-forwarding") == 0)
-		critical_flags &= ~CRITOPT_AGENT_FWD;
+		certflags_flags &= ~CERTOPT_AGENT_FWD;
 	else if (strcasecmp(opt, "permit-agent-forwarding") == 0)
-		critical_flags |= CRITOPT_AGENT_FWD;
+		certflags_flags |= CERTOPT_AGENT_FWD;
 	else if (strcasecmp(opt, "no-port-forwarding") == 0)
-		critical_flags &= ~CRITOPT_PORT_FWD;
+		certflags_flags &= ~CERTOPT_PORT_FWD;
 	else if (strcasecmp(opt, "permit-port-forwarding") == 0)
-		critical_flags |= CRITOPT_PORT_FWD;
+		certflags_flags |= CERTOPT_PORT_FWD;
 	else if (strcasecmp(opt, "no-pty") == 0)
-		critical_flags &= ~CRITOPT_PTY;
+		certflags_flags &= ~CERTOPT_PTY;
 	else if (strcasecmp(opt, "permit-pty") == 0)
-		critical_flags |= CRITOPT_PTY;
+		certflags_flags |= CERTOPT_PTY;
 	else if (strcasecmp(opt, "no-user-rc") == 0)
-		critical_flags &= ~CRITOPT_USER_RC;
+		certflags_flags &= ~CERTOPT_USER_RC;
 	else if (strcasecmp(opt, "permit-user-rc") == 0)
-		critical_flags |= CRITOPT_USER_RC;
+		certflags_flags |= CERTOPT_USER_RC;
 	else if (strncasecmp(opt, "force-command=", 14) == 0) {
 		val = opt + 14;
 		if (*val == '\0')
 			fatal("Empty force-command option");
-		if (critical_command != NULL)
+		if (certflags_command != NULL)
 			fatal("force-command already specified");
-		critical_command = xstrdup(val);
+		certflags_command = xstrdup(val);
 	} else if (strncasecmp(opt, "source-address=", 15) == 0) {
 		val = opt + 15;
 		if (*val == '\0')
 			fatal("Empty source-address option");
-		if (critical_src_addr != NULL)
+		if (certflags_src_addr != NULL)
 			fatal("source-address already specified");
 		if (addr_match_cidr_list(NULL, val) != 0)
 			fatal("Invalid source-address list");
-		critical_src_addr = xstrdup(val);
+		certflags_src_addr = xstrdup(val);
 	} else
 		fatal("Unsupported certificate option \"%s\"", opt);
 }
@@ -1667,7 +1683,7 @@ main(int argc, char **argv)
 			break;
 		case 'h':
 			cert_key_type = SSH2_CERT_TYPE_HOST;
-			critical_flags = 0;
+			certflags_flags = 0;
 			break;
 		case 'i':
 		case 'X':
