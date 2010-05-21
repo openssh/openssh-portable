@@ -11,6 +11,18 @@
      [ssh-add.c]
      check that the certificate matches the corresponding private key before
      grafting it on
+   - djm@cvs.openbsd.org 2010/05/14 23:29:23
+     [channels.c channels.h mux.c ssh.c]
+     Pause the mux channel while waiting for reply from aynch callbacks.
+     Prevents misordering of replies if new requests arrive while waiting.
+     
+     Extend channel open confirm callback to allow signalling failure
+     conditions as well as success. Use this to 1) fix a memory leak, 2)
+     start using the above pause mechanism and 3) delay sending a success/
+     failure message on mux slave session open until we receive a reply from
+     the server.
+     
+     motivated by and with feedback from markus@
 
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve

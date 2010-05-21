@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.16 2010/04/23 22:27:38 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.17 2010/05/14 23:29:23 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -106,6 +106,7 @@ struct mux_session_confirm_ctx {
 	char *term;
 	struct termios tio;
 	char **env;
+	u_int rid;
 };
 
 /* fd to control socket */
@@ -149,7 +150,7 @@ struct mux_master_state {
 #define MUX_FWD_REMOTE  2
 #define MUX_FWD_DYNAMIC 3
 
-static void mux_session_confirm(int, void *);
+static void mux_session_confirm(int, int, void *);
 
 static int process_mux_master_hello(u_int, Channel *, Buffer *, Buffer *);
 static int process_mux_new_session(u_int, Channel *, Buffer *, Buffer *);
@@ -301,6 +302,7 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	/* Reply for SSHMUX_COMMAND_OPEN */
 	cctx = xcalloc(1, sizeof(*cctx));
 	cctx->term = NULL;
+	cctx->rid = rid;
 	cmd = reserved = NULL;
 	if ((reserved = buffer_get_string_ret(m, NULL)) == NULL ||
 	    buffer_get_int_ret(&cctx->want_tty, m) != 0 ||
@@ -454,14 +456,10 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 
 	channel_send_open(nc->self);
 	channel_register_open_confirm(nc->self, mux_session_confirm, cctx);
+	c->mux_pause = 1; /* stop handling messages until open_confirm done */
 	channel_register_cleanup(nc->self, mux_master_session_cleanup_cb, 1);
 
-	/* prepare reply */
-	/* XXX defer until mux_session_confirm() fires */
-	buffer_put_int(r, MUX_S_SESSION_OPENED);
-	buffer_put_int(r, rid);
-	buffer_put_int(r, nc->self);
-
+	/* reply is deferred, sent by mux_session_confirm */
 	return 0;
 }
 
@@ -1000,17 +998,31 @@ muxserver_listen(void)
 
 /* Callback on open confirmation in mux master for a mux client session. */
 static void
-mux_session_confirm(int id, void *arg)
+mux_session_confirm(int id, int success, void *arg)
 {
 	struct mux_session_confirm_ctx *cctx = arg;
 	const char *display;
-	Channel *c;
+	Channel *c, *cc;
 	int i;
+	Buffer reply;
 
 	if (cctx == NULL)
 		fatal("%s: cctx == NULL", __func__);
 	if ((c = channel_by_id(id)) == NULL)
 		fatal("%s: no channel for id %d", __func__, id);
+	if ((cc = channel_by_id(c->ctl_chan)) == NULL)
+		fatal("%s: channel %d lacks control channel %d", __func__,
+		    id, c->ctl_chan);
+
+	if (!success) {
+		debug3("%s: sending failure reply", __func__);
+		/* prepare reply */
+		buffer_init(&reply);
+		buffer_put_int(&reply, MUX_S_FAILURE);
+		buffer_put_int(&reply, cctx->rid);
+		buffer_put_cstring(&reply, "Session open refused by peer");
+		goto done;
+	}
 
 	display = getenv("DISPLAY");
 	if (cctx->want_x_fwd && options.forward_x11 && display != NULL) {
@@ -1033,6 +1045,21 @@ mux_session_confirm(int id, void *arg)
 	client_session2_setup(id, cctx->want_tty, cctx->want_subsys,
 	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env);
 
+	debug3("%s: sending success reply", __func__);
+	/* prepare reply */
+	buffer_init(&reply);
+	buffer_put_int(&reply, MUX_S_SESSION_OPENED);
+	buffer_put_int(&reply, cctx->rid);
+	buffer_put_int(&reply, c->self);
+
+ done:
+	/* Send reply */
+	buffer_put_string(&cc->output, buffer_ptr(&reply), buffer_len(&reply));
+	buffer_free(&reply);
+
+	if (cc->mux_pause <= 0)
+		fatal("%s: mux_pause %d", __func__, cc->mux_pause);
+	cc->mux_pause = 0; /* start processing messages again */
 	c->open_confirm_ctx = NULL;
 	buffer_free(&cctx->cmd);
 	xfree(cctx->term);

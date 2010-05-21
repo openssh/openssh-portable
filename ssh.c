@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.336 2010/04/10 00:00:16 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.337 2010/05/14 23:29:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1175,11 +1175,14 @@ ssh_session(void)
 
 /* request pty/x11/agent/tcpfwd/shell for channel */
 static void
-ssh_session2_setup(int id, void *arg)
+ssh_session2_setup(int id, int success, void *arg)
 {
 	extern char **environ;
 	const char *display;
 	int interactive = tty_flag;
+
+	if (!success)
+		return; /* No need for error message, channels code sens one */
 
 	display = getenv("DISPLAY");
 	if (options.forward_x11 && display != NULL) {

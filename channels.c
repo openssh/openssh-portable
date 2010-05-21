@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.303 2010/01/30 21:12:08 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.304 2010/05/14 23:29:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -330,6 +330,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->ctl_chan = -1;
 	c->mux_rcb = NULL;
 	c->mux_ctx = NULL;
+	c->mux_pause = 0;
 	c->delayed = 1;		/* prevent call to channel_post handler */
 	TAILQ_INIT(&c->status_confirms);
 	debug("channel %d: new [%s]", found, remote_name);
@@ -703,7 +704,7 @@ channel_register_status_confirm(int id, channel_confirm_cb *cb,
 }
 
 void
-channel_register_open_confirm(int id, channel_callback_fn *fn, void *ctx)
+channel_register_open_confirm(int id, channel_open_fn *fn, void *ctx)
 {
 	Channel *c = channel_lookup(id);
 
@@ -991,7 +992,7 @@ channel_pre_x11_open(Channel *c, fd_set *readset, fd_set *writeset)
 static void
 channel_pre_mux_client(Channel *c, fd_set *readset, fd_set *writeset)
 {
-	if (c->istate == CHAN_INPUT_OPEN &&
+	if (c->istate == CHAN_INPUT_OPEN && !c->mux_pause &&
 	    buffer_check_alloc(&c->input, CHAN_RBUF))
 		FD_SET(c->rfd, readset);
 	if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
@@ -1840,7 +1841,7 @@ channel_post_mux_client(Channel *c, fd_set *readset, fd_set *writeset)
 	if (!compat20)
 		fatal("%s: entered with !compat20", __func__);
 
-	if (c->rfd != -1 && FD_ISSET(c->rfd, readset) &&
+	if (c->rfd != -1 && !c->mux_pause && FD_ISSET(c->rfd, readset) &&
 	    (c->istate == CHAN_INPUT_OPEN ||
 	    c->istate == CHAN_INPUT_WAIT_DRAIN)) {
 		/*
@@ -2463,7 +2464,7 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 		c->remote_maxpacket = packet_get_int();
 		if (c->open_confirm) {
 			debug2("callback start");
-			c->open_confirm(c->self, c->open_confirm_ctx);
+			c->open_confirm(c->self, 1, c->open_confirm_ctx);
 			debug2("callback done");
 		}
 		debug2("channel %d: open confirm rwindow %u rmax %u", c->self,
@@ -2514,6 +2515,11 @@ channel_input_open_failure(int type, u_int32_t seq, void *ctxt)
 			xfree(msg);
 		if (lang != NULL)
 			xfree(lang);
+		if (c->open_confirm) {
+			debug2("callback start");
+			c->open_confirm(c->self, 0, c->open_confirm_ctx);
+			debug2("callback done");
+		}
 	}
 	packet_check_eom();
 	/* Schedule the channel for cleanup/deletion. */
