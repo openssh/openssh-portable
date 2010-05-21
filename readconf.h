@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.82 2010/02/08 10:50:20 markus Exp $ */
+/* $OpenBSD: readconf.h,v 1.83 2010/05/16 12:55:51 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -23,6 +23,7 @@ typedef struct {
 	int	  listen_port;		/* Port to forward. */
 	char	 *connect_host;		/* Host to connect. */
 	int	  connect_port;		/* Port to connect on connect_host. */
+	int	  allocated_port;	/* Dynamically allocated listen port */
 }       Forward;
 /* Data structure for representing option data. */
 

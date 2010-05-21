@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.23 2010/01/26 01:28:35 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.24 2010/05/16 12:55:51 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -63,6 +63,7 @@ void	 client_register_global_confirm(global_confirm_cb *, void *);
 #define SSHMUX_COMMAND_ALIVE_CHECK	2	/* Check master is alive */
 #define SSHMUX_COMMAND_TERMINATE	3	/* Ask master to exit */
 #define SSHMUX_COMMAND_STDIO_FWD	4	/* Open stdio fwd (ssh -W) */
+#define SSHMUX_COMMAND_FORWARD		5	/* Forward only, no command */
 
 void	muxserver_listen(void);
 void	muxclient(const char *);

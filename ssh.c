@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.337 2010/05/14 23:29:23 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.338 2010/05/16 12:55:51 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -327,6 +327,8 @@ main(int ac, char **av)
 				fatal("Multiplexing command already specified");
 			if (strcmp(optarg, "check") == 0)
 				muxclient_command = SSHMUX_COMMAND_ALIVE_CHECK;
+			else if (strcmp(optarg, "forward") == 0)
+				muxclient_command = SSHMUX_COMMAND_FORWARD;
 			else if (strcmp(optarg, "exit") == 0)
 				muxclient_command = SSHMUX_COMMAND_TERMINATE;
 			else
@@ -877,9 +879,10 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
 	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
 	if (type == SSH2_MSG_REQUEST_SUCCESS && rfwd->listen_port == 0) {
+		rfwd->allocated_port = packet_get_int();
 		logit("Allocated port %u for remote forward to %s:%d",
-			packet_get_int(),
-			rfwd->connect_host, rfwd->connect_port);
+		    rfwd->allocated_port,
+		    rfwd->connect_host, rfwd->connect_port);
 	}
 	
 	if (type == SSH2_MSG_REQUEST_FAILURE) {

@@ -23,6 +23,12 @@
      the server.
      
      motivated by and with feedback from markus@
+   - markus@cvs.openbsd.org 2010/05/16 12:55:51
+     [PROTOCOL.mux clientloop.h mux.c readconf.c readconf.h ssh.1 ssh.c]
+     mux support for remote forwarding with dynamic port allocation,
+     use with
+        LPORT=`ssh -S muxsocket -R0:localhost:25 -O forward somehost`
+     feedback and ok djm@
 
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve

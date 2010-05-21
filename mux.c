@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.17 2010/05/14 23:29:23 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.18 2010/05/16 12:55:51 markus Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -71,6 +71,7 @@
 #include "xmalloc.h"
 #include "log.h"
 #include "ssh.h"
+#include "ssh2.h"
 #include "pathnames.h"
 #include "misc.h"
 #include "match.h"
@@ -109,6 +110,13 @@ struct mux_session_confirm_ctx {
 	u_int rid;
 };
 
+/* Context for global channel callback */
+struct mux_channel_confirm_ctx {
+	u_int cid;	/* channel id */
+	u_int rid;	/* request id */
+	int fid;	/* forward id */
+};
+
 /* fd to control socket */
 int muxserver_sock = -1;
 
@@ -144,6 +152,7 @@ struct mux_master_state {
 #define MUX_S_EXIT_MESSAGE	0x80000004
 #define MUX_S_ALIVE		0x80000005
 #define MUX_S_SESSION_OPENED	0x80000006
+#define MUX_S_REMOTE_PORT	0x80000007
 
 /* type codes for MUX_C_OPEN_FWD and MUX_C_CLOSE_FWD */
 #define MUX_FWD_LOCAL   1
@@ -557,6 +566,61 @@ compare_forward(Forward *a, Forward *b)
 	return 1;
 }
 
+static void
+mux_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
+{
+	struct mux_channel_confirm_ctx *fctx = ctxt;
+	char *failmsg = NULL;
+	Forward *rfwd;
+	Channel *c;
+	Buffer out;
+
+	if ((c = channel_by_id(fctx->cid)) == NULL) {
+		/* no channel for reply */
+		error("%s: unknown channel", __func__);
+		return;
+	}
+	buffer_init(&out);
+	if (fctx->fid >= options.num_remote_forwards) {
+		xasprintf(&failmsg, "unknown forwarding id %d", fctx->fid);
+		goto fail;
+	}
+	rfwd = &options.remote_forwards[fctx->fid];
+	debug("%s: %s for: listen %d, connect %s:%d", __func__,
+	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
+	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
+	if (type == SSH2_MSG_REQUEST_SUCCESS) {
+		if (rfwd->listen_port == 0) {
+			rfwd->allocated_port = packet_get_int();
+			logit("Allocated port %u for mux remote forward"
+			    " to %s:%d", rfwd->allocated_port,
+			    rfwd->connect_host, rfwd->connect_port);
+			buffer_put_int(&out, MUX_S_REMOTE_PORT);
+			buffer_put_int(&out, fctx->rid);
+			buffer_put_int(&out, rfwd->allocated_port);
+		} else {
+			buffer_put_int(&out, MUX_S_OK);
+			buffer_put_int(&out, fctx->rid);
+		}
+		goto out;
+	} else {
+		xasprintf(&failmsg, "remote port forwarding failed for "
+		    "listen port %d", rfwd->listen_port);
+	}
+ fail:
+	error("%s: %s", __func__, failmsg);
+	buffer_put_int(&out, MUX_S_FAILURE);
+	buffer_put_int(&out, fctx->rid);
+	buffer_put_cstring(&out, failmsg);
+	xfree(failmsg);
+ out:
+	buffer_put_string(&c->output, buffer_ptr(&out), buffer_len(&out));
+	buffer_free(&out);
+	if (c->mux_pause <= 0)
+		fatal("%s: mux_pause %d", __func__, c->mux_pause);
+	c->mux_pause = 0; /* start processing messages again */
+}
+
 static int
 process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 {
@@ -592,15 +656,16 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	    ftype != MUX_FWD_DYNAMIC) {
 		logit("%s: invalid forwarding type %u", __func__, ftype);
  invalid:
-		xfree(fwd.listen_host);
-		xfree(fwd.connect_host);
+		if (fwd.listen_host)
+			xfree(fwd.listen_host);
+		if (fwd.connect_host)
+			xfree(fwd.connect_host);
 		buffer_put_int(r, MUX_S_FAILURE);
 		buffer_put_int(r, rid);
 		buffer_put_cstring(r, "Invalid forwarding request");
 		return 0;
 	}
-	/* XXX support rport0 forwarding with reply of port assigned */
-	if (fwd.listen_port == 0 || fwd.listen_port >= 65536) {
+	if (fwd.listen_port >= 65536) {
 		logit("%s: invalid listen port %u", __func__,
 		    fwd.listen_port);
 		goto invalid;
@@ -635,8 +700,17 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	case MUX_FWD_REMOTE:
 		for (i = 0; i < options.num_remote_forwards; i++) {
 			if (compare_forward(&fwd,
-			    options.remote_forwards + i))
-				goto exists;
+			    options.remote_forwards + i)) {
+				if (fwd.listen_port != 0)
+					goto exists;
+				debug2("%s: found allocated port",
+				    __func__);
+				buffer_put_int(r, MUX_S_REMOTE_PORT);
+				buffer_put_int(r, rid);
+				buffer_put_int(r,
+				    options.remote_forwards[i].allocated_port);
+				goto out;
+			}
 		}
 		break;
 	}
@@ -668,14 +742,24 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 		add_local_forward(&options, &fwd);
 		freefwd = 0;
 	} else {
-		/* XXX wait for remote to confirm */
+		struct mux_channel_confirm_ctx *fctx;
+
 		if (options.num_remote_forwards + 1 >=
 		    SSH_MAX_FORWARDS_PER_DIRECTION ||
 		    channel_request_remote_forwarding(fwd.listen_host,
 		    fwd.listen_port, fwd.connect_host, fwd.connect_port) < 0)
 			goto fail;
 		add_remote_forward(&options, &fwd);
+		fctx = xcalloc(1, sizeof(*fctx));
+		fctx->cid = c->self;
+		fctx->rid = rid;
+		fctx->fid = options.num_remote_forwards-1;
+		client_register_global_confirm(mux_confirm_remote_forward,
+		    fctx);
 		freefwd = 0;
+		c->mux_pause = 1; /* wait for mux_confirm_remote_forward */
+		/* delayed reply in mux_confirm_remote_forward */
+		goto out;
 	}
 	buffer_put_int(r, MUX_S_OK);
 	buffer_put_int(r, rid);
@@ -1392,6 +1476,15 @@ mux_client_request_forward(int fd, u_int ftype, Forward *fwd)
 	switch (type) {
 	case MUX_S_OK:
 		break;
+	case MUX_S_REMOTE_PORT:
+		fwd->allocated_port = buffer_get_int(&m);
+		logit("Allocated port %u for remote forward to %s:%d",
+		    fwd->allocated_port,
+		    fwd->connect_host ? fwd->connect_host : "",
+		    fwd->connect_port);
+		if (muxclient_command == SSHMUX_COMMAND_FORWARD)
+			fprintf(stdout, "%u\n", fwd->allocated_port);
+		break;
 	case MUX_S_PERMISSION_DENIED:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);
@@ -1757,6 +1850,10 @@ muxclient(const char *path)
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);
 		fprintf(stderr, "Exit request sent.\r\n");
+		exit(0);
+	case SSHMUX_COMMAND_FORWARD:
+		if (mux_client_request_forwards(sock) != 0)
+			fatal("%s: master forward request failed", __func__);
 		exit(0);
 	case SSHMUX_COMMAND_OPEN:
 		if (mux_client_request_forwards(sock) != 0) {
