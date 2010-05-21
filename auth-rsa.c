@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.75 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.76 2010/05/11 02:58:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -256,7 +256,8 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		 */
 		if (!auth_parse_options(pw, key_options, file, linenum))
 			continue;
-
+		if (key_is_cert_authority)
+			continue;
 		/* break out, this key is allowed */
 		allowed = 1;
 		break;

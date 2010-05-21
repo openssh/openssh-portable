@@ -4,6 +4,9 @@
      [regress/Makefile regress/cert-userkey.sh]
      regress tests for AuthorizedPrincipalsFile and "principals=" key option.
      feedback and ok markus@
+   - djm@cvs.openbsd.org 2010/05/11 02:58:04
+     [auth-rsa.c]
+     don't accept certificates marked as "cert-authority" here; ok markus@
 
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve
