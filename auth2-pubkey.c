@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.24 2010/05/07 11:30:29 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.25 2010/05/20 11:25:26 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -291,12 +291,13 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 				continue;
 			}
 		}
-		if (auth_parse_options(pw, key_options, file, linenum) != 1)
-			continue;
 		if (key_is_cert(key)) {
-			if (!key_is_cert_authority)
-				continue;
 			if (!key_equal(found, key->cert->signature_key))
+				continue;
+			if (auth_parse_options(pw, key_options, file,
+			    linenum) != 1)
+				continue;
+			if (!key_is_cert_authority)
 				continue;
 			fp = key_fingerprint(found, SSH_FP_MD5,
 			    SSH_FP_HEX);
@@ -332,7 +333,12 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 			xfree(fp);
 			found_key = 1;
 			break;
-		} else if (!key_is_cert_authority && key_equal(found, key)) {
+		} else if (key_equal(found, key)) {
+			if (auth_parse_options(pw, key_options, file,
+			    linenum) != 1)
+				continue;
+			if (key_is_cert_authority)
+				continue;
 			found_key = 1;
 			debug("matching key found: file %s, line %lu",
 			    file, linenum);

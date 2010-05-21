@@ -29,6 +29,10 @@
      use with
         LPORT=`ssh -S muxsocket -R0:localhost:25 -O forward somehost`
      feedback and ok djm@
+   - djm@cvs.openbsd.org 2010/05/20 11:25:26
+     [auth2-pubkey.c]
+     fix logspam when key options (from="..." especially) deny non-matching
+     keys; reported by henning@ also bz#1765; ok markus@ dtucker@
 
 20100511
  - (dtucker) [Makefile.in] Bug #1770: Link libopenbsd-compat twice to solve
