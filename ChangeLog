@@ -1,3 +1,8 @@
+20100617
+ - (tim) [contrib/cygwin/README] Remove a reference to the obsolete
+   minires-devel package, and to add the reference to the libedit-devel
+   package since CYgwin now provides libedit. Patch from Corinna Vinschen.
+
 20100521
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/05/07 11:31:26
