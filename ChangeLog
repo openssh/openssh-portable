@@ -1,3 +1,8 @@
+20100618
+ - (djm) [contrib/ssh-copy-id] Update key file explicitly under ~
+   rather than assuming that $CWD == $HOME. bz#1500, patch from
+   timothy AT gelter.com
+
 20100617
  - (tim) [contrib/cygwin/README] Remove a reference to the obsolete
    minires-devel package, and to add the reference to the libedit-devel
