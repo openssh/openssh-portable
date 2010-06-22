@@ -1,3 +1,7 @@
+20100622
+ - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
+   bz#1579; ok dtucker
+
 20100618
  - (djm) [contrib/ssh-copy-id] Update key file explicitly under ~
    rather than assuming that $CWD == $HOME. bz#1500, patch from
