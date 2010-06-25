@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.83 2010/05/16 12:55:51 markus Exp $ */
+/* $OpenBSD: readconf.h,v 1.84 2010/06/25 07:14:46 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -94,11 +94,11 @@ typedef struct {
 
 	/* Local TCP/IP forward requests. */
 	int     num_local_forwards;
-	Forward local_forwards[SSH_MAX_FORWARDS_PER_DIRECTION];
+	Forward *local_forwards;
 
 	/* Remote TCP/IP forward requests. */
 	int     num_remote_forwards;
-	Forward remote_forwards[SSH_MAX_FORWARDS_PER_DIRECTION];
+	Forward *remote_forwards;
 	int	clear_forwardings;
 
 	int	enable_ssh_keysign;

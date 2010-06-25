@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.184 2010/05/16 12:55:51 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.185 2010/06/25 07:14:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -255,8 +255,9 @@ add_local_forward(Options *options, const Forward *newfwd)
 	if (newfwd->listen_port < IPPORT_RESERVED && original_real_uid != 0)
 		fatal("Privileged ports can only be forwarded by root.");
 #endif
-	if (options->num_local_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
-		fatal("Too many local forwards (max %d).", SSH_MAX_FORWARDS_PER_DIRECTION);
+	options->local_forwards = xrealloc(options->local_forwards,
+	    options->num_local_forwards + 1,
+	    sizeof(*options->local_forwards));
 	fwd = &options->local_forwards[options->num_local_forwards++];
 
 	fwd->listen_host = newfwd->listen_host;
@@ -274,9 +275,10 @@ void
 add_remote_forward(Options *options, const Forward *newfwd)
 {
 	Forward *fwd;
-	if (options->num_remote_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
-		fatal("Too many remote forwards (max %d).",
-		    SSH_MAX_FORWARDS_PER_DIRECTION);
+
+	options->remote_forwards = xrealloc(options->remote_forwards,
+	    options->num_remote_forwards + 1,
+	    sizeof(*options->remote_forwards));
 	fwd = &options->remote_forwards[options->num_remote_forwards++];
 
 	fwd->listen_host = newfwd->listen_host;
@@ -296,11 +298,19 @@ clear_forwardings(Options *options)
 			xfree(options->local_forwards[i].listen_host);
 		xfree(options->local_forwards[i].connect_host);
 	}
+	if (options->num_local_forwards > 0) {
+		xfree(options->local_forwards);
+		options->local_forwards = NULL;
+	}
 	options->num_local_forwards = 0;
 	for (i = 0; i < options->num_remote_forwards; i++) {
 		if (options->remote_forwards[i].listen_host != NULL)
 			xfree(options->remote_forwards[i].listen_host);
 		xfree(options->remote_forwards[i].connect_host);
+	}
+	if (options->num_remote_forwards > 0) {
+		xfree(options->remote_forwards);
+		options->remote_forwards = NULL;
 	}
 	options->num_remote_forwards = 0;
 	options->tun_open = SSH_TUNMODE_NO;
@@ -1048,7 +1058,9 @@ initialize_options(Options * options)
 	options->user_hostfile = NULL;
 	options->system_hostfile2 = NULL;
 	options->user_hostfile2 = NULL;
+	options->local_forwards = NULL;
 	options->num_local_forwards = 0;
+	options->remote_forwards = NULL;
 	options->num_remote_forwards = 0;
 	options->clear_forwardings = -1;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;

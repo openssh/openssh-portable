@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.19 2010/06/17 07:07:30 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.20 2010/06/25 07:14:46 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -727,9 +727,7 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	}
 
 	if (ftype == MUX_FWD_LOCAL || ftype == MUX_FWD_DYNAMIC) {
-		if (options.num_local_forwards + 1 >=
-		    SSH_MAX_FORWARDS_PER_DIRECTION ||
-		    channel_setup_local_fwd_listener(fwd.listen_host,
+		if (channel_setup_local_fwd_listener(fwd.listen_host,
 		    fwd.listen_port, fwd.connect_host, fwd.connect_port,
 		    options.gateway_ports) < 0) {
  fail:
@@ -744,16 +742,14 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	} else {
 		struct mux_channel_confirm_ctx *fctx;
 
-		if (options.num_remote_forwards + 1 >=
-		    SSH_MAX_FORWARDS_PER_DIRECTION ||
-		    channel_request_remote_forwarding(fwd.listen_host,
+		if (channel_request_remote_forwarding(fwd.listen_host,
 		    fwd.listen_port, fwd.connect_host, fwd.connect_port) < 0)
 			goto fail;
 		add_remote_forward(&options, &fwd);
 		fctx = xcalloc(1, sizeof(*fctx));
 		fctx->cid = c->self;
 		fctx->rid = rid;
-		fctx->fid = options.num_remote_forwards-1;
+		fctx->fid = options.num_remote_forwards - 1;
 		client_register_global_confirm(mux_confirm_remote_forward,
 		    fctx);
 		freefwd = 0;
