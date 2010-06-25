@@ -7,6 +7,12 @@
      [ssh-pkcs11.c]
      check length of value returned  C_GetAttributValue for != 0
      from mdrtbugzilla@codefive.co.uk; bugzilla #1773; ok dtucker@
+   - djm@cvs.openbsd.org 2010/06/17 07:07:30
+     [mux.c]
+     Correct sizing of object to be allocated by calloc(), replacing
+     sizeof(state) with sizeof(*state). This worked by accident since
+     the struct contained a single int at present, but could have broken
+     in the future. patch from hyc AT symas.com
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

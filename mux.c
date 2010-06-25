@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.18 2010/05/16 12:55:51 markus Exp $ */
+/* $OpenBSD: mux.c,v 1.19 2010/06/17 07:07:30 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -931,7 +931,7 @@ mux_master_read_cb(Channel *c)
 
 	/* Setup ctx and  */
 	if (c->mux_ctx == NULL) {
-		state = xcalloc(1, sizeof(state));
+		state = xcalloc(1, sizeof(*state));
 		c->mux_ctx = state;
 		channel_register_cleanup(c->self,
 		    mux_master_control_cleanup_cb, 0);
