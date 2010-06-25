@@ -13,6 +13,10 @@
      sizeof(state) with sizeof(*state). This worked by accident since
      the struct contained a single int at present, but could have broken
      in the future. patch from hyc AT symas.com
+   - djm@cvs.openbsd.org 2010/06/18 00:58:39
+     [sftp.c]
+     unbreak ls in working directories that contains globbing characters in
+     their pathnames. bz#1655 reported by vgiffin AT apple.com
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
