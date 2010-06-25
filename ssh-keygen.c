@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.190 2010/05/20 23:46:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.191 2010/06/22 04:32:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -414,11 +414,8 @@ do_convert_from_ssh2(struct passwd *pw)
 		perror(identity_file);
 		exit(1);
 	}
-	fp = fopen(identity_file, "r");
-	if (fp == NULL) {
-		perror(identity_file);
-		exit(1);
-	}
+	if ((fp = fopen(identity_file, "r")) == NULL)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	encoded[0] = '\0';
 	while ((blen = get_line(fp, line, sizeof(line))) != -1) {
 		if (line[blen - 1] == '\\')
@@ -561,67 +558,68 @@ do_fingerprint(struct passwd *pw)
 		comment = NULL;
 	}
 
-	f = fopen(identity_file, "r");
-	if (f != NULL) {
-		while (fgets(line, sizeof(line), f)) {
-			if ((cp = strchr(line, '\n')) == NULL) {
-				error("line %d too long: %.40s...",
-				    num + 1, line);
-				skip = 1;
-				continue;
-			}
-			num++;
-			if (skip) {
-				skip = 0;
-				continue;
-			}
-			*cp = '\0';
+	if ((f = fopen(identity_file, "r")) == NULL)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 
-			/* Skip leading whitespace, empty and comment lines. */
-			for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
-				;
-			if (!*cp || *cp == '\n' || *cp == '#')
-				continue;
-			i = strtol(cp, &ep, 10);
-			if (i == 0 || ep == NULL || (*ep != ' ' && *ep != '\t')) {
-				int quoted = 0;
-				comment = cp;
-				for (; *cp && (quoted || (*cp != ' ' &&
-				    *cp != '\t')); cp++) {
-					if (*cp == '\\' && cp[1] == '"')
-						cp++;	/* Skip both */
-					else if (*cp == '"')
-						quoted = !quoted;
-				}
-				if (!*cp)
-					continue;
-				*cp++ = '\0';
-			}
-			ep = cp;
-			public = key_new(KEY_RSA1);
-			if (key_read(public, &cp) != 1) {
-				cp = ep;
-				key_free(public);
-				public = key_new(KEY_UNSPEC);
-				if (key_read(public, &cp) != 1) {
-					key_free(public);
-					continue;
-				}
-			}
-			comment = *cp ? cp : comment;
-			fp = key_fingerprint(public, fptype, rep);
-			ra = key_fingerprint(public, SSH_FP_MD5, SSH_FP_RANDOMART);
-			printf("%u %s %s (%s)\n", key_size(public), fp,
-			    comment ? comment : "no comment", key_type(public));
-			if (log_level >= SYSLOG_LEVEL_VERBOSE)
-				printf("%s\n", ra);
-			xfree(ra);
-			xfree(fp);
-			key_free(public);
-			invalid = 0;
+	while (fgets(line, sizeof(line), f)) {
+		if ((cp = strchr(line, '\n')) == NULL) {
+			error("line %d too long: %.40s...",
+			    num + 1, line);
+			skip = 1;
+			continue;
 		}
-		fclose(f);
+		num++;
+		if (skip) {
+			skip = 0;
+			continue;
+		}
+		*cp = '\0';
+
+		/* Skip leading whitespace, empty and comment lines. */
+		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
+			;
+		if (!*cp || *cp == '\n' || *cp == '#')
+			continue;
+		i = strtol(cp, &ep, 10);
+		if (i == 0 || ep == NULL || (*ep != ' ' && *ep != '\t')) {
+			int quoted = 0;
+			comment = cp;
+			for (; *cp && (quoted || (*cp != ' ' &&
+			    *cp != '\t')); cp++) {
+				if (*cp == '\\' && cp[1] == '"')
+					cp++;	/* Skip both */
+				else if (*cp == '"')
+					quoted = !quoted;
+			}
+			if (!*cp)
+				continue;
+			*cp++ = '\0';
+		}
+		ep = cp;
+		public = key_new(KEY_RSA1);
+		if (key_read(public, &cp) != 1) {
+			cp = ep;
+			key_free(public);
+			public = key_new(KEY_UNSPEC);
+			if (key_read(public, &cp) != 1) {
+				key_free(public);
+				continue;
+			}
+		}
+		comment = *cp ? cp : comment;
+		fp = key_fingerprint(public, fptype, rep);
+		ra = key_fingerprint(public, SSH_FP_MD5, SSH_FP_RANDOMART);
+		printf("%u %s %s (%s)\n", key_size(public), fp,
+		    comment ? comment : "no comment", key_type(public));
+		if (log_level >= SYSLOG_LEVEL_VERBOSE)
+			printf("%s\n", ra);
+		xfree(ra);
+		xfree(fp);
+		key_free(public);
+		invalid = 0;
 	}
+	fclose(f);
+
 	if (invalid) {
 		printf("%s is not a public key file.\n", identity_file);
 		exit(1);
@@ -676,7 +674,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 		have_identity = 1;
 	}
 	if ((in = fopen(identity_file, "r")) == NULL)
-		fatal("fopen: %s", strerror(errno));
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 
 	/*
 	 * Find hosts goes to stdout, hash and deletions happen in-place
@@ -1423,10 +1421,8 @@ do_show_cert(struct passwd *pw)
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0) {
-		perror(identity_file);
-		exit(1);
-	}
+	if (stat(identity_file, &st) < 0)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	if ((key = key_load_public(identity_file, NULL)) == NULL)
 		fatal("%s is not a public key", identity_file);
 	if (!key_is_cert(key))
