@@ -21,6 +21,10 @@
      [session.c]
      Missing check for chroot_director == "none" (we already checked against
      NULL); bz#1564 from Jan.Pechanec AT Sun.COM
+   - djm@cvs.openbsd.org 2010/06/18 04:43:08
+     [sftp-client.c]
+     fix memory leak in do_realpath() error path; bz#1771, patch from
+     anicka AT suse.cz
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.90 2009/10/11 10:41:26 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.91 2010/06/18 04:43:08 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -713,7 +713,8 @@ do_realpath(struct sftp_conn *conn, char *path)
 		u_int status = buffer_get_int(&msg);
 
 		error("Couldn't canonicalise: %s", fx2txt(status));
-		return(NULL);
+		buffer_free(&msg);
+		return NULL;
 	} else if (type != SSH2_FXP_NAME)
 		fatal("Expected SSH2_FXP_NAME(%u) packet, got %u",
 		    SSH2_FXP_NAME, type);
