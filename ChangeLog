@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2010/05/21 05:00:36
      [misc.c]
      colon() returns char*, so s/return (0)/return NULL/
+   - markus@cvs.openbsd.org 2010/06/08 21:32:19
+     [ssh-pkcs11.c]
+     check length of value returned  C_GetAttributValue for != 0
+     from mdrtbugzilla@codefive.co.uk; bugzilla #1773; ok dtucker@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

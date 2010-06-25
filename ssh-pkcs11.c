@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.5 2010/04/15 20:32:55 markus Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.6 2010/06/08 21:32:19 markus Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -433,7 +433,13 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx, Key ***keysp,
 			error("C_GetAttributeValue failed: %lu", rv);
 			continue;
 		}
-		/* allocate buffers for attributes, XXX check ulValueLen? */
+		/* check that none of the attributes are zero length */
+		if (attribs[0].ulValueLen == 0 ||
+		    attribs[1].ulValueLen == 0 ||
+		    attribs[2].ulValueLen == 0) {
+			continue;
+		}
+		/* allocate buffers for attributes */
 		for (i = 0; i < 3; i++)
 			attribs[i].pValue = xmalloc(attribs[i].ulValueLen);
 		/* retrieve ID, modulus and public exponent of RSA key */
