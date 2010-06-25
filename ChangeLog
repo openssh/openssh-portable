@@ -25,6 +25,12 @@
      [sftp-client.c]
      fix memory leak in do_realpath() error path; bz#1771, patch from
      anicka AT suse.cz
+   - djm@cvs.openbsd.org 2010/06/22 04:22:59
+     [servconf.c sshd_config.5]
+     expose some more sshd_config options inside Match blocks:
+       AuthorizedKeysFile AuthorizedPrincipalsFile
+       HostbasedUsesNameFromPacketOnly PermitTunnel
+     bz#1764; feedback from imorgan AT nas.nasa.gov; ok dtucker@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

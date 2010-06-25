@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.208 2010/05/07 11:30:29 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.209 2010/06/22 04:22:59 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -346,7 +346,7 @@ static struct {
 	{ "rhostsauthentication", sDeprecated, SSHCFG_GLOBAL },
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication, SSHCFG_ALL },
 	{ "hostbasedauthentication", sHostbasedAuthentication, SSHCFG_ALL },
-	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly, SSHCFG_GLOBAL },
+	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly, SSHCFG_ALL },
 	{ "rsaauthentication", sRSAAuthentication, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
 	{ "dsaauthentication", sPubkeyAuthentication, SSHCFG_GLOBAL }, /* alias */
@@ -421,11 +421,11 @@ static struct {
 	{ "reversemappingcheck", sDeprecated, SSHCFG_GLOBAL },
 	{ "clientaliveinterval", sClientAliveInterval, SSHCFG_GLOBAL },
 	{ "clientalivecountmax", sClientAliveCountMax, SSHCFG_GLOBAL },
-	{ "authorizedkeysfile", sAuthorizedKeysFile, SSHCFG_GLOBAL },
-	{ "authorizedkeysfile2", sAuthorizedKeysFile2, SSHCFG_GLOBAL },
+	{ "authorizedkeysfile", sAuthorizedKeysFile, SSHCFG_ALL },
+	{ "authorizedkeysfile2", sAuthorizedKeysFile2, SSHCFG_ALL },
 	{ "useprivilegeseparation", sUsePrivilegeSeparation, SSHCFG_GLOBAL},
 	{ "acceptenv", sAcceptEnv, SSHCFG_GLOBAL },
-	{ "permittunnel", sPermitTunnel, SSHCFG_GLOBAL },
+	{ "permittunnel", sPermitTunnel, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
@@ -433,7 +433,7 @@ static struct {
 	{ "hostcertificate", sHostCertificate, SSHCFG_GLOBAL },
 	{ "revokedkeys", sRevokedKeys, SSHCFG_ALL },
 	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
-	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_GLOBAL },
+	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1446,6 +1446,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(pubkey_authentication);
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
+	M_CP_INTOPT(hostbased_uses_name_from_packet_only);
 	M_CP_INTOPT(kbd_interactive_authentication);
 	M_CP_INTOPT(zero_knowledge_password_authentication);
 	M_CP_INTOPT(permit_root_login);
@@ -1453,6 +1454,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(allow_agent_forwarding);
+	M_CP_INTOPT(permit_tun);
 	M_CP_INTOPT(gateway_ports);
 	M_CP_INTOPT(x11_display_offset);
 	M_CP_INTOPT(x11_forwarding);
@@ -1467,6 +1469,9 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_STROPT(chroot_directory);
 	M_CP_STROPT(trusted_user_ca_keys);
 	M_CP_STROPT(revoked_keys_file);
+	M_CP_STROPT(authorized_keys_file);
+	M_CP_STROPT(authorized_keys_file2);
+	M_CP_STROPT(authorized_principals_file);
 }
 
 #undef M_CP_INTOPT
