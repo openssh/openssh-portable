@@ -50,6 +50,9 @@
      [session.c]
      include the user name on "subsystem request for ..." log messages;
      bz#1571; ok dtucker@
+   - djm@cvs.openbsd.org 2010/06/23 02:59:02
+     [ssh-keygen.c]
+     fix printing of extensions in v01 certificates that I broke in r1.190
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

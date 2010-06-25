@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.191 2010/06/22 04:32:06 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.192 2010/06/23 02:59:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1410,14 +1410,54 @@ add_cert_option(char *opt)
 }
 
 static void
+show_options(const Buffer *optbuf, int v00, int in_critical)
+{
+	u_char *name, *data;
+	u_int dlen;
+	Buffer options, option;
+
+	buffer_init(&options);
+	buffer_append(&options, buffer_ptr(optbuf), buffer_len(optbuf));
+
+	buffer_init(&option);
+	while (buffer_len(&options) != 0) {
+		name = buffer_get_string(&options, NULL);
+		data = buffer_get_string_ptr(&options, &dlen);
+		buffer_append(&option, data, dlen);
+		printf("                %s", name);
+		if ((v00 || !in_critical) && 
+		    (strcmp(name, "permit-X11-forwarding") == 0 ||
+		    strcmp(name, "permit-agent-forwarding") == 0 ||
+		    strcmp(name, "permit-port-forwarding") == 0 ||
+		    strcmp(name, "permit-pty") == 0 ||
+		    strcmp(name, "permit-user-rc") == 0))
+			printf("\n");
+		else if ((v00 || in_critical) &&
+		    (strcmp(name, "force-command") == 0 ||
+		    strcmp(name, "source-address") == 0)) {
+			data = buffer_get_string(&option, NULL);
+			printf(" %s\n", data);
+			xfree(data);
+		} else {
+			printf(" UNKNOWN OPTION (len %u)\n",
+			    buffer_len(&option));
+			buffer_clear(&option);
+		}
+		xfree(name);
+		if (buffer_len(&option) != 0)
+			fatal("Option corrupt: extra data at end");
+	}
+	buffer_free(&option);
+	buffer_free(&options);
+}
+
+static void
 do_show_cert(struct passwd *pw)
 {
 	Key *key;
 	struct stat st;
 	char *key_fp, *ca_fp;
-	Buffer options, option;
-	u_char *name, *data;
-	u_int i, dlen, v00;
+	u_int i, v00;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -1458,38 +1498,7 @@ do_show_cert(struct passwd *pw)
 		printf("(none)\n");
 	else {
 		printf("\n");
-		buffer_init(&options);
-		buffer_append(&options,
-		    buffer_ptr(&key->cert->critical),
-		    buffer_len(&key->cert->critical));
-		buffer_init(&option);
-		while (buffer_len(&options) != 0) {
-			name = buffer_get_string(&options, NULL);
-			data = buffer_get_string_ptr(&options, &dlen);
-			buffer_append(&option, data, dlen);
-			printf("                %s", name);
-			if (strcmp(name, "permit-X11-forwarding") == 0 ||
-			    strcmp(name, "permit-agent-forwarding") == 0 ||
-			    strcmp(name, "permit-port-forwarding") == 0 ||
-			    strcmp(name, "permit-pty") == 0 ||
-			    strcmp(name, "permit-user-rc") == 0)
-				printf("\n");
-			else if (strcmp(name, "force-command") == 0 ||
-			    strcmp(name, "source-address") == 0) {
-				data = buffer_get_string(&option, NULL);
-				printf(" %s\n", data);
-				xfree(data);
-			} else {
-				printf(" UNKNOWN OPTION (len %u)\n",
-				    buffer_len(&option));
-				buffer_clear(&option);
-			}
-			xfree(name);
-			if (buffer_len(&option) != 0)
-				fatal("Option corrupt: extra data at end");
-		}
-		buffer_free(&option);
-		buffer_free(&options);
+		show_options(&key->cert->critical, v00, 1);
 	}
 	if (!v00) {
 		printf("        Extensions: ");
@@ -1497,20 +1506,7 @@ do_show_cert(struct passwd *pw)
 			printf("(none)\n");
 		else {
 			printf("\n");
-			buffer_init(&options);
-			buffer_append(&options,
-			    buffer_ptr(&key->cert->extensions),
-			    buffer_len(&key->cert->extensions));
-			buffer_init(&option);
-			while (buffer_len(&options) != 0) {
-				name = buffer_get_string(&options, NULL);
-				(void)buffer_get_string_ptr(&options, &dlen);
-				printf("                %s UNKNOWN OPTION "
-				    "(len %u)\n", name, dlen);
-				xfree(name);
-			}
-			buffer_free(&option);
-			buffer_free(&options);
+			show_options(&key->cert->extensions, v00, 0);
 		}
 	}
 	exit(0);
