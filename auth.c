@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.87 2010/05/07 11:30:29 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.88 2010/06/22 04:49:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -397,6 +397,8 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 			logit("Authentication refused for %.100s: "
 			    "bad owner or modes for %.200s",
 			    pw->pw_name, user_hostfile);
+			auth_debug_add("Ignored %.200s: bad ownership or modes",
+			    user_hostfile);
 		} else {
 			temporarily_use_uid(pw);
 			host_status = check_host_in_hostfile(user_hostfile,
@@ -520,6 +522,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
 		fclose(f);
 		logit("Authentication refused: %s", line);
+		auth_debug_add("Ignored %s: %s", file_type, line);
 		return NULL;
 	}
 

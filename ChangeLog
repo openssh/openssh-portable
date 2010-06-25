@@ -36,6 +36,11 @@
      standardise error messages when attempting to open private key
      files to include "progname: filename: error reason"
      bz#1783; ok dtucker@
+   - djm@cvs.openbsd.org 2010/06/22 04:49:47
+     [auth.c]
+     queue auth debug messages for bad ownership or permissions on the user's
+     keyfiles. These messages will be sent after the user has successfully
+     authenticated (where our client will display them with LogLevel=debug).
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
