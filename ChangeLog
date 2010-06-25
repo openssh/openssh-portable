@@ -41,6 +41,11 @@
      queue auth debug messages for bad ownership or permissions on the user's
      keyfiles. These messages will be sent after the user has successfully
      authenticated (where our client will display them with LogLevel=debug).
+     bz#1554; ok dtucker@
+   - djm@cvs.openbsd.org 2010/06/22 04:54:30
+     [ssh-keyscan.c]
+     replace verbose and overflow-prone Linebuf code with read_keyfile_line()
+     based on patch from joachim AT joachimschipper.nl; bz#1565; ok dtucker@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
