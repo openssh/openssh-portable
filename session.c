@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.253 2010/04/23 22:42:05 djm Exp $ */
+/* $OpenBSD: session.c,v 1.254 2010/06/18 03:16:03 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1819,7 +1819,8 @@ do_child(Session *s, const char *command)
 #ifdef HAVE_LOGIN_CAP
 		r = login_getcapbool(lc, "requirehome", 0);
 #endif
-		if (r || options.chroot_directory == NULL)
+		if (r || options.chroot_directory == NULL ||
+		    strcasecmp(options.chroot_directory, "none") == 0)
 			fprintf(stderr, "Could not chdir to home "
 			    "directory %s: %s\n", pw->pw_dir,
 			    strerror(errno));
