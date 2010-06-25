@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.254 2010/06/18 03:16:03 djm Exp $ */
+/* $OpenBSD: session.c,v 1.255 2010/06/22 04:59:12 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2165,7 +2165,8 @@ session_subsystem_req(Session *s)
 	u_int i;
 
 	packet_check_eom();
-	logit("subsystem request for %.100s", subsys);
+	logit("subsystem request for %.100s by user %s", subsys,
+	    s->pw->pw_name);
 
 	for (i = 0; i < options.num_subsystems; i++) {
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {

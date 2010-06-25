@@ -46,6 +46,10 @@
      [ssh-keyscan.c]
      replace verbose and overflow-prone Linebuf code with read_keyfile_line()
      based on patch from joachim AT joachimschipper.nl; bz#1565; ok dtucker@
+   - djm@cvs.openbsd.org 2010/06/22 04:59:12
+     [session.c]
+     include the user name on "subsystem request for ..." log messages;
+     bz#1571; ok dtucker@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
