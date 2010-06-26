@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.133 2010/04/16 06:45:01 jmc Exp $
-.Dd $Mdocdate: April 16 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.134 2010/06/25 23:15:36 djm Exp $
+.Dd $Mdocdate: June 25 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -432,6 +432,16 @@ An attacker may then be able to perform activities such as keystroke monitoring
 if the
 .Cm ForwardX11Trusted
 option is also enabled.
+.It Cm ForwardX11Timeout
+Specify a timeout for untrusted X11 forwarding using the format described in
+.Sx TIME FORMATS
+section of
+.Xr sshd_config 5 .
+X11 connections received by
+.Xr ssh 1
+after this time will be refused.
+The default is to disable untrusted X11 forwarding after twenty minutes has
+elapsed.
 .It Cm ForwardX11Trusted
 If this option is set to
 .Dq yes ,

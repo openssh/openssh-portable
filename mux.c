@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.20 2010/06/25 07:14:46 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.21 2010/06/25 23:15:36 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1107,11 +1107,14 @@ mux_session_confirm(int id, int success, void *arg)
 	display = getenv("DISPLAY");
 	if (cctx->want_x_fwd && options.forward_x11 && display != NULL) {
 		char *proto, *data;
+
 		/* Get reasonable local authentication information. */
 		client_x11_get_proto(display, options.xauth_location,
-		    options.forward_x11_trusted, &proto, &data);
+		    options.forward_x11_trusted, options.forward_x11_timeout,
+		    &proto, &data);
 		/* Request forwarding with authentication spoofing. */
-		debug("Requesting X11 forwarding with authentication spoofing.");
+		debug("Requesting X11 forwarding with authentication "
+		    "spoofing.");
 		x11_request_forwarding_with_spoofing(id, display, proto, data);
 		/* XXX wait for reply */
 	}

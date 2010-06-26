@@ -74,6 +74,13 @@
      servers with trusted keys that accept authentication silently and
      automatically before presenting fake password/passphrase prompts;
      "nice!" markus@
+   - djm@cvs.openbsd.org 2010/06/25 23:10:30
+     [ssh.c]
+     log the hostname and address that we connected to at LogLevel=verbose
+     after authentication is successful to mitigate "phishing" attacks by
+     servers with trusted keys that accept authentication silently and
+     automatically before presenting fake password/passphrase prompts;
+     "nice!" markus@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

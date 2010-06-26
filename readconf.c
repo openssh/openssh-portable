@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.185 2010/06/25 07:14:46 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.186 2010/06/25 23:15:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -110,8 +110,8 @@
 
 typedef enum {
 	oBadOption,
-	oForwardAgent, oForwardX11, oForwardX11Trusted, oGatewayPorts,
-	oExitOnForwardFailure,
+	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
+	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
@@ -143,6 +143,7 @@ static struct {
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
 	{ "forwardx11trusted", oForwardX11Trusted },
+	{ "forwardx11timeout", oForwardX11Timeout },
 	{ "exitonforwardfailure", oExitOnForwardFailure },
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
@@ -414,6 +415,10 @@ parse_flag:
 	case oForwardX11Trusted:
 		intptr = &options->forward_x11_trusted;
 		goto parse_flag;
+	
+	case oForwardX11Timeout:
+		intptr = &options->forward_x11_timeout;
+		goto parse_time;
 
 	case oGatewayPorts:
 		intptr = &options->gateway_ports;
@@ -1018,6 +1023,7 @@ initialize_options(Options * options)
 	options->forward_agent = -1;
 	options->forward_x11 = -1;
 	options->forward_x11_trusted = -1;
+	options->forward_x11_timeout = -1;
 	options->exit_on_forward_failure = -1;
 	options->xauth_location = NULL;
 	options->gateway_ports = -1;
@@ -1104,6 +1110,8 @@ fill_default_options(Options * options)
 		options->forward_x11 = 0;
 	if (options->forward_x11_trusted == -1)
 		options->forward_x11_trusted = 0;
+	if (options->forward_x11_timeout == -1)
+		options->forward_x11_timeout = 1200;
 	if (options->exit_on_forward_failure == -1)
 		options->exit_on_forward_failure = 0;
 	if (options->xauth_location == NULL)

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.220 2010/04/10 02:08:44 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.221 2010/06/25 23:15:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -155,11 +155,12 @@ static int stdin_eof;		/* EOF has been encountered on stderr. */
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
 static Buffer stderr_buffer;	/* Buffer for stderr data. */
-static u_int buffer_high;/* Soft max buffer size. */
+static u_int buffer_high;	/* Soft max buffer size. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
-static int session_closed = 0;	/* In SSH2: login session closed. */
+static int session_closed;	/* In SSH2: login session closed. */
+static int x11_refuse_time;	/* If >0, refuse x11 opens after this time. */
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
@@ -254,7 +255,7 @@ get_current_time(void)
 #define SSH_X11_PROTO "MIT-MAGIC-COOKIE-1"
 void
 client_x11_get_proto(const char *display, const char *xauth_path,
-    u_int trusted, char **_proto, char **_data)
+    u_int trusted, u_int timeout, char **_proto, char **_data)
 {
 	char cmd[1024];
 	char line[512];
@@ -264,6 +265,7 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 	int got_data = 0, generated = 0, do_unlink = 0, i;
 	char *xauthdir, *xauthfile;
 	struct stat st;
+	u_int now;
 
 	xauthdir = xauthfile = NULL;
 	*_proto = proto;
@@ -299,11 +301,18 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 				    xauthdir);
 				snprintf(cmd, sizeof(cmd),
 				    "%s -f %s generate %s " SSH_X11_PROTO
-				    " untrusted timeout 1200 2>" _PATH_DEVNULL,
-				    xauth_path, xauthfile, display);
+				    " untrusted timeout %u 2>" _PATH_DEVNULL,
+				    xauth_path, xauthfile, display, timeout);
 				debug2("x11_get_proto: %s", cmd);
 				if (system(cmd) == 0)
 					generated = 1;
+				if (x11_refuse_time == 0) {
+					now = time(NULL) + 1;
+					if (UINT_MAX - timeout < now)
+						x11_refuse_time = UINT_MAX;
+					else
+						x11_refuse_time = now + timeout;
+				}
 			}
 		}
 
@@ -1684,6 +1693,11 @@ client_request_x11(const char *request_type, int rchan)
 		error("Warning: ssh server tried X11 forwarding.");
 		error("Warning: this is probably a break-in attempt by a "
 		    "malicious server.");
+		return NULL;
+	}
+	if (x11_refuse_time != 0 && time(NULL) >= x11_refuse_time) {
+		verbose("Rejected X11 connection after ForwardX11Timeout "
+		    "expired");
 		return NULL;
 	}
 	originator = packet_get_string(NULL);

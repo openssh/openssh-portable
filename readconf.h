@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.84 2010/06/25 07:14:46 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.85 2010/06/25 23:15:36 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -32,6 +32,7 @@ typedef struct {
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
 	int     forward_x11;	/* Forward X11 display. */
+	int     forward_x11_timeout;	/* Expiration for Cookies */
 	int     forward_x11_trusted;	/* Trust Forward X11 display. */
 	int     exit_on_forward_failure;	/* Exit if bind(2) fails for -L/-R */
 	char   *xauth_location;	/* Location for xauth program */
