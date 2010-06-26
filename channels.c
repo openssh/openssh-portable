@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.305 2010/06/25 07:14:45 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.306 2010/06/25 07:20:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -839,8 +839,9 @@ channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 		if (c->extended_usage == CHAN_EXTENDED_WRITE &&
 		    buffer_len(&c->extended) > 0)
 			FD_SET(c->efd, writeset);
-		else if (!(c->flags & CHAN_EOF_SENT) &&
-		    c->extended_usage == CHAN_EXTENDED_READ &&
+		else if (c->efd != -1 && !(c->flags & CHAN_EOF_SENT) &&
+		    (c->extended_usage == CHAN_EXTENDED_READ ||
+		    c->extended_usage == CHAN_EXTENDED_IGNORE) &&
 		    buffer_len(&c->extended) < c->remote_window)
 			FD_SET(c->efd, readset);
 	}
@@ -1756,7 +1757,9 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 				buffer_consume(&c->extended, len);
 				c->local_consumed += len;
 			}
-		} else if (c->extended_usage == CHAN_EXTENDED_READ &&
+		} else if (c->efd != -1 &&
+		    (c->extended_usage == CHAN_EXTENDED_READ ||
+		    c->extended_usage == CHAN_EXTENDED_IGNORE) &&
 		    (c->detach_close || FD_ISSET(c->efd, readset))) {
 			len = read(c->efd, buf, sizeof(buf));
 			debug2("channel %d: read %d from efd %d",
@@ -1769,7 +1772,11 @@ channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 				    c->self, c->efd);
 				channel_close_fd(&c->efd);
 			} else {
-				buffer_append(&c->extended, buf, len);
+				if (c->extended_usage == CHAN_EXTENDED_IGNORE) {
+					debug3("channel %d: discard efd",
+					    c->self);
+				} else
+					buffer_append(&c->extended, buf, len);
 			}
 		}
 	}

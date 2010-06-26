@@ -57,6 +57,12 @@
      [channels.c mux.c readconf.c readconf.h ssh.h]
      bz#1327: remove hardcoded limit of 100 permitopen clauses and port
      forwards per direction; ok markus@ stevesk@
+   - djm@cvs.openbsd.org 2010/06/25 07:20:04
+     [channels.c session.c]
+     bz#1750: fix requirement for /dev/null inside ChrootDirectory for
+     internal-sftp accidentally introduced in r1.253 by removing the code
+     that opens and dup /dev/null to stderr and modifying the channels code
+     to read stderr but discard it instead; ok markus@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512

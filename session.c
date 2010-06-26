@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.255 2010/06/22 04:59:12 djm Exp $ */
+/* $OpenBSD: session.c,v 1.256 2010/06/25 07:20:04 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -105,7 +105,7 @@
 /* func */
 
 Session *session_new(void);
-void	session_set_fds(Session *, int, int, int, int);
+void	session_set_fds(Session *, int, int, int, int, int);
 void	session_pty_cleanup(Session *);
 void	session_proctitle(Session *);
 int	session_setup_x11fwd(Session *);
@@ -462,27 +462,14 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pin[1]);
 		return -1;
 	}
-	if (s->is_subsystem) {
-	    	if ((perr[1] = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
-			error("%s: open(%s): %s", __func__, _PATH_DEVNULL,
-			    strerror(errno));
-			close(pin[0]);
-			close(pin[1]);
-			close(pout[0]);
-			close(pout[1]);
-			return -1;
-		}
-		perr[0] = -1;
-	} else {
-		if (pipe(perr) < 0) {
-			error("%s: pipe err: %.100s", __func__,
-			    strerror(errno));
-			close(pin[0]);
-			close(pin[1]);
-			close(pout[0]);
-			close(pout[1]);
-			return -1;
-		}
+	if (pipe(perr) < 0) {
+		error("%s: pipe err: %.100s", __func__,
+		    strerror(errno));
+		close(pin[0]);
+		close(pin[1]);
+		close(pout[0]);
+		close(pout[1]);
+		return -1;
 	}
 #else
 	int inout[2], err[2];
@@ -495,23 +482,12 @@ do_exec_no_pty(Session *s, const char *command)
 		error("%s: socketpair #1: %.100s", __func__, strerror(errno));
 		return -1;
 	}
-	if (s->is_subsystem) {
-	    	if ((err[0] = open(_PATH_DEVNULL, O_WRONLY)) == -1) {
-			error("%s: open(%s): %s", __func__, _PATH_DEVNULL,
-			    strerror(errno));
-			close(inout[0]);
-			close(inout[1]);
-			return -1;
-		}
-		err[1] = -1;
-	} else {
-		if (socketpair(AF_UNIX, SOCK_STREAM, 0, err) < 0) {
-			error("%s: socketpair #2: %.100s", __func__,
-			    strerror(errno));
-			close(inout[0]);
-			close(inout[1]);
-			return -1;
-		}
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, err) < 0) {
+		error("%s: socketpair #2: %.100s", __func__,
+		    strerror(errno));
+		close(inout[0]);
+		close(inout[1]);
+		return -1;
 	}
 #endif
 
@@ -526,15 +502,13 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pin[1]);
 		close(pout[0]);
 		close(pout[1]);
-		if (perr[0] != -1)
-			close(perr[0]);
+		close(perr[0]);
 		close(perr[1]);
 #else
 		close(inout[0]);
 		close(inout[1]);
 		close(err[0]);
-		if (err[1] != -1)
-			close(err[1]);
+		close(err[1]);
 #endif
 		return -1;
 	case 0:
@@ -568,8 +542,7 @@ do_exec_no_pty(Session *s, const char *command)
 		close(pout[1]);
 
 		/* Redirect stderr. */
-		if (perr[0] != -1)
-			close(perr[0]);
+		close(perr[0]);
 		if (dup2(perr[1], 2) < 0)
 			perror("dup2 stderr");
 		close(perr[1]);
@@ -580,8 +553,7 @@ do_exec_no_pty(Session *s, const char *command)
 		 * seem to depend on it.
 		 */
 		close(inout[1]);
-		if (err[1] != -1)
-			close(err[1]);
+		close(err[1]);
 		if (dup2(inout[0], 0) < 0)	/* stdin */
 			perror("dup2 stdin");
 		if (dup2(inout[0], 1) < 0)	/* stdout (same as stdin) */
@@ -629,7 +601,8 @@ do_exec_no_pty(Session *s, const char *command)
 	close(perr[1]);
 
 	if (compat20) {
-		session_set_fds(s, pin[1], pout[0], perr[0], 0);
+		session_set_fds(s, pin[1], pout[0], perr[0],
+		    s->is_subsystem, 0);
 	} else {
 		/* Enter the interactive session. */
 		server_loop(pid, pin[1], pout[0], perr[0]);
@@ -645,7 +618,8 @@ do_exec_no_pty(Session *s, const char *command)
 	 * handle the case that fdin and fdout are the same.
 	 */
 	if (compat20) {
-		session_set_fds(s, inout[1], inout[1], err[1], 0);
+		session_set_fds(s, inout[1], inout[1], err[1],
+		    s->is_subsystem, 0);
 	} else {
 		server_loop(pid, inout[1], inout[1], err[1]);
 		/* server_loop has closed inout[1] and err[1]. */
@@ -767,7 +741,7 @@ do_exec_pty(Session *s, const char *command)
 	s->ptymaster = ptymaster;
 	packet_set_interactive(1);
 	if (compat20) {
-		session_set_fds(s, ptyfd, fdout, -1, 1);
+		session_set_fds(s, ptyfd, fdout, -1, 1, 1);
 	} else {
 		server_loop(pid, ptyfd, fdout, -1);
 		/* server_loop _has_ closed ptyfd and fdout. */
@@ -2348,7 +2322,8 @@ session_input_channel_req(Channel *c, const char *rtype)
 }
 
 void
-session_set_fds(Session *s, int fdin, int fdout, int fderr, int is_tty)
+session_set_fds(Session *s, int fdin, int fdout, int fderr, int ignore_fderr,
+    int is_tty)
 {
 	if (!compat20)
 		fatal("session_set_fds: called for proto != 2.0");
@@ -2360,7 +2335,7 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr, int is_tty)
 		fatal("no channel for session %d", s->self);
 	channel_set_fds(s->chanid,
 	    fdout, fdin, fderr,
-	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
+	    ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
 	    1, is_tty, CHAN_SES_WINDOW_DEFAULT);
 }
 
