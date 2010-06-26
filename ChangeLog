@@ -63,6 +63,10 @@
      internal-sftp accidentally introduced in r1.253 by removing the code
      that opens and dup /dev/null to stderr and modifying the channels code
      to read stderr but discard it instead; ok markus@
+   - djm@cvs.openbsd.org 2010/06/25 08:46:17
+     [auth1.c auth2-none.c]
+     skip the initial check for access with an empty password when
+     PermitEmptyPasswords=no; bz#1638; ok markus@
 
 20100622
  - (djm) [loginrec.c] crank LINFO_NAMESIZE (username length) to 512
