@@ -17,6 +17,9 @@
    - jmc@cvs.openbsd.org 2010/06/30 07:24:25
      [ssh-keygen.1]
      tweak previous;
+   - jmc@cvs.openbsd.org 2010/06/30 07:26:03
+     [ssh-keygen.c]
+     sort usage();
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs

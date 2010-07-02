@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.193 2010/06/29 23:15:30 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.194 2010/06/30 07:26:03 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1695,18 +1695,18 @@ usage(void)
 	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
 	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
-	fprintf(stderr, "  -m key_fmt  Conversion format for -e/-i (PEM|PKCS8|RFC4716).\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
-	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
+	fprintf(stderr, "  -m key_fmt  Conversion format for -e/-i (PEM|PKCS8|RFC4716).\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
+	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -O option   Specify a certificate option.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
 	fprintf(stderr, "  -q          Quiet.\n");
 	fprintf(stderr, "  -R hostname Remove host from known_hosts file.\n");
 	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
-	fprintf(stderr, "  -s ca_key   Certify keys with CA key.\n");
 	fprintf(stderr, "  -S start    Start point (hex) for generating DH-GEX moduli.\n");
+	fprintf(stderr, "  -s ca_key   Certify keys with CA key.\n");
 	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -t type     Specify type of key to create.\n");
 	fprintf(stderr, "  -V from:to  Specify certificate validity interval.\n");
