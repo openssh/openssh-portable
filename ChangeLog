@@ -23,6 +23,11 @@
    - jmc@cvs.openbsd.org 2010/06/30 07:28:34
      [sshd_config.5]
      tweak previous;
+   - millert@cvs.openbsd.org 2010/07/01 13:06:59
+     [scp.c]
+     Fix a longstanding problem where if you suspend scp at the
+     password/passphrase prompt the terminal mode is not restored.
+     OK djm@
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
