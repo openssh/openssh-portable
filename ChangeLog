@@ -14,6 +14,9 @@
      [auth2-pubkey.c sshd_config.5]
      allow key options (command="..." and friends) in AuthorizedPrincipals;
      ok markus@
+   - jmc@cvs.openbsd.org 2010/06/30 07:24:25
+     [ssh-keygen.1]
+     tweak previous;
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs

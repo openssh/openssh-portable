@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.95 2010/06/29 23:15:30 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.96 2010/06/30 07:24:25 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -37,7 +37,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: June 29 2010 $
+.Dd $Mdocdate: June 30 2010 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -222,7 +222,7 @@ print to stdout the key in one of the formats specified by the
 option.
 The default export format is
 .Dq RFC4716 .
-This option allows exporting OpenSSH key for use by other programs, including
+This option allows exporting OpenSSH keys for use by other programs, including
 several commercial SSH implementations.
 .It Fl F Ar hostname
 Search for the specified
@@ -293,15 +293,18 @@ tries to find the matching public key file and prints its fingerprint.
 If combined with
 .Fl v ,
 an ASCII art representation of the key is supplied with the fingerprint.
+.It Fl M Ar memory
+Specify the amount of memory to use (in megabytes) when generating
+candidate moduli for DH-GEX.
 .It Fl m Ar key_format
 Specify a key format for the
 .Fl i
 (import) or
 .Fl e
-(export) coversion options.
+(export) conversion options.
 The supported key formats are:
 .Dq RFC4716
-(RFC4716/SSH2 public or private key),
+(RFC 4716/SSH2 public or private key),
 .Dq PKCS8
 (PEM PKCS8 public key)
 or
@@ -309,9 +312,6 @@ or
 (PEM public key).
 The default conversion format is
 .Dq RFC4716 .
-.It Fl M Ar memory
-Specify the amount of memory to use (in megabytes) when generating
-candidate moduli for DH-GEX.
 .It Fl N Ar new_passphrase
 Provides the new passphrase.
 .It Fl n Ar principals
