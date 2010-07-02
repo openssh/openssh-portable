@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.25 2010/05/20 11:25:26 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.26 2010/06/29 23:16:46 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -198,10 +198,10 @@ match_principals_option(const char *principal_list, struct KeyCert *cert)
 }
 
 static int
-match_principals_file(const char *file, struct passwd *pw, struct KeyCert *cert)
+match_principals_file(char *file, struct passwd *pw, struct KeyCert *cert)
 {
 	FILE *f;
-	char line[SSH_MAX_PUBKEY_BYTES], *cp;
+	char line[SSH_MAX_PUBKEY_BYTES], *cp, *ep, *line_opts;
 	u_long linenum = 0;
 	u_int i;
 
@@ -212,17 +212,37 @@ match_principals_file(const char *file, struct passwd *pw, struct KeyCert *cert)
 		return 0;
 	}
 	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
-		/* Skip leading whitespace, empty and comment lines. */
+		/* Skip leading whitespace. */
 		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
 			;
-		if (!*cp || *cp == '\n' || *cp == '#')
+		/* Skip blank and comment lines. */
+		if ((ep = strchr(cp, '#')) != NULL)
+			*ep = '\0';
+		if (!*cp || *cp == '\n')
 			continue;
-		line[strcspn(line, "\n")] = '\0';
-
+		/* Trim trailing whitespace. */
+		ep = cp + strlen(cp) - 1;
+		while (ep > cp && (*ep == '\n' || *ep == ' ' || *ep == '\t'))
+			*ep-- = '\0';
+		/*
+		 * If the line has internal whitespace then assume it has
+		 * key options.
+		 */
+		line_opts = NULL;
+		if ((ep = strrchr(cp, ' ')) != NULL ||
+		    (ep = strrchr(cp, '\t')) != NULL) {
+			for (; *ep == ' ' || *ep == '\t'; ep++)
+				;;
+			line_opts = cp;
+			cp = ep;
+		}
 		for (i = 0; i < cert->nprincipals; i++) {
 			if (strcmp(cp, cert->principals[i]) == 0) {
 				debug3("matched principal from file \"%.100s\"",
 			    	    cert->principals[i]);
+				if (auth_parse_options(pw, line_opts,
+				    file, linenum) != 1)
+					continue;
 				fclose(f);
 				restore_uid();
 				return 1;

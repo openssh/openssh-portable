@@ -10,6 +10,10 @@
      [ssh-keygen.1 ssh-keygen.c]
      allow import (-i) and export (-e) of PEM and PKCS#8 encoded keys;
      bz#1749; ok markus@
+   - djm@cvs.openbsd.org 2010/06/29 23:16:46
+     [auth2-pubkey.c sshd_config.5]
+     allow key options (command="..." and friends) in AuthorizedPrincipals;
+     ok markus@
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
