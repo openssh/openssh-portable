@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.5 2010/05/07 11:31:26 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.6 2010/06/29 23:59:54 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -75,6 +75,36 @@ for ktype in rsa dsa rsa_v00 dsa_v00 ; do
 		echo mekmitasdigoat > $OBJ/authorized_principals_$USER
 		${SSH} -2i $OBJ/cert_user_key_${ktype} \
 		    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			fail "ssh cert connect failed"
+		fi
+
+		# authorized_principals with bad key option
+		verbose "$tid: ${_prefix} authorized_principals bad key opt"
+		echo 'blah mekmitasdigoat' > $OBJ/authorized_principals_$USER
+		${SSH} -2i $OBJ/cert_user_key_${ktype} \
+		    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			fail "ssh cert connect succeeded unexpectedly"
+		fi
+
+		# authorized_principals with command=false
+		verbose "$tid: ${_prefix} authorized_principals command=false"
+		echo 'command="false" mekmitasdigoat' > \
+		    $OBJ/authorized_principals_$USER
+		${SSH} -2i $OBJ/cert_user_key_${ktype} \
+		    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			fail "ssh cert connect succeeded unexpectedly"
+		fi
+
+
+		# authorized_principals with command=true
+		verbose "$tid: ${_prefix} authorized_principals command=true"
+		echo 'command="true" mekmitasdigoat' > \
+		    $OBJ/authorized_principals_$USER
+		${SSH} -2i $OBJ/cert_user_key_${ktype} \
+		    -F $OBJ/ssh_proxy somehost false >/dev/null 2>&1
 		if [ $? -ne 0 ]; then
 			fail "ssh cert connect failed"
 		fi

@@ -32,6 +32,9 @@
      [regress/Makefile]
      fix how we run the tests so we can successfully use SUDO='sudo -E'
      in our env
+   - djm@cvs.openbsd.org 2010/06/29 23:59:54
+     [cert-userkey.sh]
+     regress tests for key options in AuthorizedPrincipals
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
