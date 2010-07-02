@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.53 2010/05/07 11:31:26 djm Exp $
+#	$OpenBSD: Makefile,v 1.54 2010/06/27 19:19:56 phessler Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -113,13 +113,13 @@ t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO=${SUDO} TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO=${SUDO} TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
 

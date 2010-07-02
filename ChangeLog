@@ -28,6 +28,10 @@
      Fix a longstanding problem where if you suspend scp at the
      password/passphrase prompt the terminal mode is not restored.
      OK djm@
+   - phessler@cvs.openbsd.org 2010/06/27 19:19:56
+     [regress/Makefile]
+     fix how we run the tests so we can successfully use SUDO='sudo -E'
+     in our env
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
