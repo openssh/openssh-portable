@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.192 2010/06/23 02:59:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.193 2010/06/29 23:15:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -133,13 +133,19 @@ u_int32_t certflags_flags = CERTOPT_DEFAULT;
 char *certflags_command = NULL;
 char *certflags_src_addr = NULL;
 
-/* Dump public key file in format used by real and the original SSH 2 */
-int convert_to_ssh2 = 0;
-int convert_from_ssh2 = 0;
+/* Conversion to/from various formats */
+int convert_to = 0;
+int convert_from = 0;
+enum {
+	FMT_RFC4716,
+	FMT_PKCS8,
+	FMT_PEM
+} convert_format = FMT_RFC4716;
 int print_public = 0;
 int print_generic = 0;
 
 char *key_type_name = NULL;
+
 
 /* argv0 */
 extern char *__progname;
@@ -215,30 +221,12 @@ load_identity(char *filename)
 #define	SSH_COM_PRIVATE_KEY_MAGIC	0x3f6ff9eb
 
 static void
-do_convert_to_ssh2(struct passwd *pw)
+do_convert_to_ssh2(struct passwd *pw, Key *k)
 {
-	Key *k;
 	u_int len;
 	u_char *blob;
 	char comment[61];
-	struct stat st;
 
-	if (!have_identity)
-		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0) {
-		perror(identity_file);
-		exit(1);
-	}
-	if ((k = key_load_public(identity_file, NULL)) == NULL) {
-		if ((k = load_identity(identity_file)) == NULL) {
-			fprintf(stderr, "load failed\n");
-			exit(1);
-		}
-	}
-	if (k->type == KEY_RSA1) {
-		fprintf(stderr, "version 1 keys are not supported\n");
-		exit(1);
-	}
 	if (key_to_blob(k, &blob, &len) <= 0) {
 		fprintf(stderr, "key_to_blob failed\n");
 		exit(1);
@@ -255,6 +243,81 @@ do_convert_to_ssh2(struct passwd *pw)
 	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_END);
 	key_free(k);
 	xfree(blob);
+	exit(0);
+}
+
+static void
+do_convert_to_pkcs8(Key *k)
+{
+	switch (key_type_plain(k->type)) {
+	case KEY_RSA:
+		if (!PEM_write_RSA_PUBKEY(stdout, k->rsa))
+			fatal("PEM_write_RSA_PUBKEY failed");
+		break;
+	case KEY_DSA:
+		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
+			fatal("PEM_write_DSA_PUBKEY failed");
+		break;
+	default:
+		fatal("%s: unsupported key type %s", __func__, key_type(k));
+	}
+	exit(0);
+}
+
+static void
+do_convert_to_pem(Key *k)
+{
+	switch (key_type_plain(k->type)) {
+	case KEY_RSA:
+		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
+			fatal("PEM_write_RSAPublicKey failed");
+		break;
+#if notyet /* OpenSSH 0.9.8 lacks this function */
+	case KEY_DSA:
+		if (!PEM_write_DSAPublicKey(stdout, k->dsa))
+			fatal("PEM_write_DSAPublicKey failed");
+		break;
+#endif
+	default:
+		fatal("%s: unsupported key type %s", __func__, key_type(k));
+	}
+	exit(0);
+}
+
+static void
+do_convert_to(struct passwd *pw)
+{
+	Key *k;
+	struct stat st;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+	if ((k = key_load_public(identity_file, NULL)) == NULL) {
+		if ((k = load_identity(identity_file)) == NULL) {
+			fprintf(stderr, "load failed\n");
+			exit(1);
+		}
+	}
+	if (k->type == KEY_RSA1) {
+		fprintf(stderr, "version 1 keys are not supported\n");
+		exit(1);
+	}
+
+	switch (convert_format) {
+	case FMT_RFC4716:
+		do_convert_to_ssh2(pw, k);
+		break;
+	case FMT_PKCS8:
+		do_convert_to_pkcs8(k);
+		break;
+	case FMT_PEM:
+		do_convert_to_pem(k);
+		break;
+	default:
+		fatal("%s: unknown key format %d", __func__, convert_format);
+	}
 	exit(0);
 }
 
@@ -396,24 +459,16 @@ get_line(FILE *fp, char *line, size_t len)
 }
 
 static void
-do_convert_from_ssh2(struct passwd *pw)
+do_convert_from_ssh2(struct passwd *pw, Key **k, int *private)
 {
-	Key *k;
 	int blen;
 	u_int len;
 	char line[1024];
 	u_char blob[8096];
 	char encoded[8096];
-	struct stat st;
-	int escaped = 0, private = 0, ok;
+	int escaped = 0;
 	FILE *fp;
 
-	if (!have_identity)
-		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0) {
-		perror(identity_file);
-		exit(1);
-	}
 	if ((fp = fopen(identity_file, "r")) == NULL)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	encoded[0] = '\0';
@@ -423,7 +478,7 @@ do_convert_from_ssh2(struct passwd *pw)
 		if (strncmp(line, "----", 4) == 0 ||
 		    strstr(line, ": ") != NULL) {
 			if (strstr(line, SSH_COM_PRIVATE_BEGIN) != NULL)
-				private = 1;
+				*private = 1;
 			if (strstr(line, " END ") != NULL) {
 				break;
 			}
@@ -448,26 +503,130 @@ do_convert_from_ssh2(struct passwd *pw)
 		fprintf(stderr, "uudecode failed.\n");
 		exit(1);
 	}
-	k = private ?
+	*k = *private ?
 	    do_convert_private_ssh2_from_blob(blob, blen) :
 	    key_from_blob(blob, blen);
-	if (k == NULL) {
+	if (*k == NULL) {
 		fprintf(stderr, "decode blob failed.\n");
 		exit(1);
 	}
-	ok = private ?
-	    (k->type == KEY_DSA ?
-		 PEM_write_DSAPrivateKey(stdout, k->dsa, NULL, NULL, 0, NULL, NULL) :
-		 PEM_write_RSAPrivateKey(stdout, k->rsa, NULL, NULL, 0, NULL, NULL)) :
-	    key_write(k, stdout);
+	fclose(fp);
+}
+
+static void
+do_convert_from_pkcs8(Key **k, int *private)
+{
+	EVP_PKEY *pubkey;
+	FILE *fp;
+
+	if ((fp = fopen(identity_file, "r")) == NULL)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+	if ((pubkey = PEM_read_PUBKEY(fp, NULL, NULL, NULL)) == NULL) {
+		fatal("%s: %s is not a recognised public key format", __func__,
+		    identity_file);
+	}
+	fclose(fp);
+	switch (EVP_PKEY_type(pubkey->type)) {
+	case EVP_PKEY_RSA:
+		*k = key_new(KEY_UNSPEC);
+		(*k)->type = KEY_RSA;
+		(*k)->rsa = EVP_PKEY_get1_RSA(pubkey);
+		break;
+	case EVP_PKEY_DSA:
+		*k = key_new(KEY_UNSPEC);
+		(*k)->type = KEY_DSA;
+		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
+		break;
+	default:
+		fatal("%s: unsupported pubkey type %d", __func__,
+		    EVP_PKEY_type(pubkey->type));
+	}
+	EVP_PKEY_free(pubkey);
+	return;
+}
+
+static void
+do_convert_from_pem(Key **k, int *private)
+{
+	FILE *fp;
+	RSA *rsa;
+#ifdef notyet
+	DSA *dsa;
+#endif
+
+	if ((fp = fopen(identity_file, "r")) == NULL)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+	if ((rsa = PEM_read_RSAPublicKey(fp, NULL, NULL, NULL)) != NULL) {
+		*k = key_new(KEY_UNSPEC);
+		(*k)->type = KEY_RSA;
+		(*k)->rsa = rsa;
+		fclose(fp);
+		return;
+	}
+#if notyet /* OpenSSH 0.9.8 lacks this function */
+	rewind(fp);
+	if ((dsa = PEM_read_DSAPublicKey(fp, NULL, NULL, NULL)) != NULL) {
+		*k = key_new(KEY_UNSPEC);
+		(*k)->type = KEY_DSA;
+		(*k)->dsa = dsa;
+		fclose(fp);
+		return;
+	}
+#endif
+	fatal("%s: unrecognised raw private key format", __func__);
+}
+
+static void
+do_convert_from(struct passwd *pw)
+{
+	Key *k = NULL;
+	int private = 0, ok;
+	struct stat st;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+
+	switch (convert_format) {
+	case FMT_RFC4716:
+		do_convert_from_ssh2(pw, &k, &private);
+		break;
+	case FMT_PKCS8:
+		do_convert_from_pkcs8(&k, &private);
+		break;
+	case FMT_PEM:
+		do_convert_from_pem(&k, &private);
+		break;
+	default:
+		fatal("%s: unknown key format %d", __func__, convert_format);
+	}
+
+	if (!private)
+		ok = key_write(k, stdout);
+		if (ok)
+			fprintf(stdout, "\n");
+	else {
+		switch (k->type) {
+		case KEY_DSA:
+			ok = PEM_write_DSAPrivateKey(stdout, k->dsa, NULL,
+			    NULL, 0, NULL, NULL);
+			break;
+		case KEY_RSA:
+			ok = PEM_write_RSAPrivateKey(stdout, k->rsa, NULL,
+			    NULL, 0, NULL, NULL);
+			break;
+		default:
+			fatal("%s: unsupported key type %s", __func__,
+			    key_type(k));
+		}
+	}
+
 	if (!ok) {
 		fprintf(stderr, "key write failed\n");
 		exit(1);
 	}
 	key_free(k);
-	if (!private)
-		fprintf(stdout, "\n");
-	fclose(fp);
 	exit(0);
 }
 
@@ -1525,7 +1684,7 @@ usage(void)
 #ifdef ENABLE_PKCS11
 	fprintf(stderr, "  -D pkcs11   Download public key from pkcs11 token.\n");
 #endif
-	fprintf(stderr, "  -e          Convert OpenSSH to RFC 4716 key file.\n");
+	fprintf(stderr, "  -e          Export OpenSSH to foreign format key file.\n");
 	fprintf(stderr, "  -F hostname Find hostname in known hosts file.\n");
 	fprintf(stderr, "  -f filename Filename of the key file.\n");
 	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
@@ -1533,9 +1692,10 @@ usage(void)
 	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
 	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
 	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
-	fprintf(stderr, "  -i          Convert RFC 4716 to OpenSSH key file.\n");
+	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
 	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
+	fprintf(stderr, "  -m key_fmt  Conversion format for -e/-i (PEM|PKCS8|RFC4716).\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
@@ -1603,7 +1763,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv, "degiqpclBHLhvxXyF:b:f:t:D:I:P:N:n:"
+	while ((opt = getopt(argc, argv, "degiqpclBHLhvxXyF:b:f:t:D:I:P:m:N:n:"
 	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
 		switch (opt) {
 		case 'b':
@@ -1635,6 +1795,21 @@ main(int argc, char **argv)
 		case 'B':
 			print_bubblebabble = 1;
 			break;
+		case 'm':
+			if (strcasecmp(optarg, "RFC4716") == 0 ||
+			    strcasecmp(optarg, "ssh2") == 0) {
+				convert_format = FMT_RFC4716;
+				break;
+			}
+			if (strcasecmp(optarg, "PKCS8") == 0) {
+				convert_format = FMT_PKCS8;
+				break;
+			}
+			if (strcasecmp(optarg, "PEM") == 0) {
+				convert_format = FMT_PEM;
+				break;
+			}
+			fatal("Unsupported conversion format \"%s\"", optarg);
 		case 'n':
 			cert_principals = optarg;
 			break;
@@ -1671,7 +1846,7 @@ main(int argc, char **argv)
 		case 'e':
 		case 'x':
 			/* export key */
-			convert_to_ssh2 = 1;
+			convert_to = 1;
 			break;
 		case 'h':
 			cert_key_type = SSH2_CERT_TYPE_HOST;
@@ -1680,7 +1855,7 @@ main(int argc, char **argv)
 		case 'i':
 		case 'X':
 			/* import key */
-			convert_from_ssh2 = 1;
+			convert_from = 1;
 			break;
 		case 'y':
 			print_public = 1;
@@ -1796,10 +1971,10 @@ main(int argc, char **argv)
 		do_change_passphrase(pw);
 	if (change_comment)
 		do_change_comment(pw);
-	if (convert_to_ssh2)
-		do_convert_to_ssh2(pw);
-	if (convert_from_ssh2)
-		do_convert_from_ssh2(pw);
+	if (convert_to)
+		do_convert_to(pw);
+	if (convert_from)
+		do_convert_from(pw);
 	if (print_public)
 		do_print_public(pw);
 	if (rr_hostname != NULL) {

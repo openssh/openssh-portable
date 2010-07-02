@@ -6,6 +6,10 @@
    - djm@cvs.openbsd.org 2010/06/26 23:04:04
      [ssh.c]
      oops, forgot to #include <canohost.h>; spotted and patch from chl@
+   - djm@cvs.openbsd.org 2010/06/29 23:15:30
+     [ssh-keygen.1 ssh-keygen.c]
+     allow import (-i) and export (-e) of PEM and PKCS#8 encoded keys;
+     bz#1749; ok markus@
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
