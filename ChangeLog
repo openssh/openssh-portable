@@ -3,6 +3,9 @@
    - jmc@cvs.openbsd.org 2010/06/26 00:57:07
      [ssh_config.5]
      tweak previous;
+   - djm@cvs.openbsd.org 2010/06/26 23:04:04
+     [ssh.c]
+     oops, forgot to #include <canohost.h>; spotted and patch from chl@
 
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs

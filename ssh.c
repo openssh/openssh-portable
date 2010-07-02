@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.340 2010/06/25 23:15:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.341 2010/06/26 23:04:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -79,6 +79,7 @@
 #include "ssh.h"
 #include "ssh1.h"
 #include "ssh2.h"
+#include "canohost.h"
 #include "compat.h"
 #include "cipher.h"
 #include "packet.h"
