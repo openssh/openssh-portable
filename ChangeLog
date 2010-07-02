@@ -1,3 +1,9 @@
+20100702
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/06/26 00:57:07
+     [ssh_config.5]
+     tweak previous;
+
 20100627
  - (tim) [openbsd-compat/port-uw.c] Reorder includes. auth-options.h now needs
    key.h.
