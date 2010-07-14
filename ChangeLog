@@ -1,3 +1,7 @@
+20100714
+ - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass
+   (line 77) should have been for no_x11_askpass. 
+
 20100702
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2010/06/26 00:57:07
