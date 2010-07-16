@@ -33,6 +33,10 @@
      [auth-rsa.c channels.c jpake.c key.c misc.c misc.h monitor.c packet.c]
      [ssh-rsa.c]
      s/timing_safe_cmp/timingsafe_bcmp/g
+   - jmc@cvs.openbsd.org 2010/07/14 17:06:58
+     [ssh.1]
+     finally ssh synopsis looks nice again! this commit just removes a ton of
+     hacks we had in place to make it work with old groff;
 
 20100714
  - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass

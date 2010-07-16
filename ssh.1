@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.305 2010/05/16 12:55:51 markus Exp $
-.Dd $Mdocdate: May 16 2010 $
+.\" $OpenBSD: ssh.1,v 1.306 2010/07/14 17:06:58 jmc Exp $
+.Dd $Mdocdate: July 14 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -43,46 +43,28 @@
 .Nd OpenSSH SSH client (remote login program)
 .Sh SYNOPSIS
 .Nm ssh
+.Bk -words
 .Op Fl 1246AaCfgKkMNnqsTtVvXxYy
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
-.Oo Fl D\ \&
-.Sm off
-.Oo Ar bind_address : Oc
-.Ar port
-.Sm on
-.Oc
+.Op Fl D Oo Ar bind_address : Oc Ns Ar port
 .Op Fl e Ar escape_char
 .Op Fl F Ar configfile
 .Op Fl I Ar pkcs11
-.Bk -words
 .Op Fl i Ar identity_file
-.Ek
-.Oo Fl L\ \&
-.Sm off
-.Oo Ar bind_address : Oc
-.Ar port : host : hostport
-.Sm on
-.Oc
-.Bk -words
+.Op Fl L Oo Ar bind_address : Oc Ns Ar port : Ns Ar host : Ns Ar hostport
 .Op Fl l Ar login_name
-.Ek
 .Op Fl m Ar mac_spec
 .Op Fl O Ar ctl_cmd
 .Op Fl o Ar option
 .Op Fl p Ar port
-.Oo Fl R\ \&
-.Sm off
-.Oo Ar bind_address : Oc
-.Ar port : host : hostport
-.Sm on
-.Oc
+.Op Fl R Oo Ar bind_address : Oc Ns Ar port : Ns Ar host : Ns Ar hostport
 .Op Fl S Ar ctl_path
 .Op Fl W Ar host : Ns Ar port
-.Oo Fl w Ar local_tun Ns
-.Op : Ns Ar remote_tun Oc
+.Op Fl w Ar local_tun Ns Op : Ns Ar remote_tun
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
+.Ek
 .Sh DESCRIPTION
 .Nm
 (SSH client) is a program for logging into a remote machine and for
