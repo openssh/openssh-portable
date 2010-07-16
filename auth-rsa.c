@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.77 2010/07/13 11:52:06 djm Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.78 2010/07/13 23:13:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -116,7 +116,7 @@ auth_rsa_verify_response(Key *key, BIGNUM *challenge, u_char response[16])
 	MD5_Final(mdbuf, &md);
 
 	/* Verify that the response is the original challenge. */
-	if (timing_safe_cmp(response, mdbuf, 16) != 0) {
+	if (timingsafe_bcmp(response, mdbuf, 16) != 0) {
 		/* Wrong answer. */
 		return (0);
 	}

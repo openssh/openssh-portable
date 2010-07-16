@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.78 2010/07/13 11:52:06 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.79 2010/07/13 23:13:16 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -851,7 +851,7 @@ ms_to_timeval(struct timeval *tv, int ms)
 }
 
 int
-timing_safe_cmp(const void *_s1, const void *_s2, size_t n)
+timingsafe_bcmp(const void *_s1, const void *_s2, size_t n)
 {
 	u_char *s1 = (u_char *)_s1;
 	u_char *s2 = (u_char *)_s2;

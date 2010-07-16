@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.89 2010/07/13 11:52:06 djm Exp $ */
+/* $OpenBSD: key.c,v 1.90 2010/07/13 23:13:16 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -228,7 +228,7 @@ cert_compare(struct KeyCert *a, struct KeyCert *b)
 		return 0;
 	if (buffer_len(&a->certblob) != buffer_len(&b->certblob))
 		return 0;
-	if (timing_safe_cmp(buffer_ptr(&a->certblob), buffer_ptr(&b->certblob),
+	if (timingsafe_bcmp(buffer_ptr(&a->certblob), buffer_ptr(&b->certblob),
 	    buffer_len(&a->certblob)) != 0)
 		return 0;
 	return 1;

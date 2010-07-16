@@ -29,6 +29,10 @@
      timing information by short-circuiting like memcmp() and use it for
      some of the more sensitive comparisons (though nothing high-value was
      readily attackable anyway); "looks ok" markus@
+   - djm@cvs.openbsd.org 2010/07/13 23:13:16
+     [auth-rsa.c channels.c jpake.c key.c misc.c misc.h monitor.c packet.c]
+     [ssh-rsa.c]
+     s/timing_safe_cmp/timingsafe_bcmp/g
 
 20100714
  - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass

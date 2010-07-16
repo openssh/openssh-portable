@@ -1,4 +1,4 @@
-/* $OpenBSD: jpake.c,v 1.3 2010/07/13 11:52:06 djm Exp $ */
+/* $OpenBSD: jpake.c,v 1.4 2010/07/13 23:13:16 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -434,7 +434,7 @@ jpake_check_confirm(const BIGNUM *k,
 	if (peer_confirm_hash_len != expected_confirm_hash_len)
 		error("%s: confirmation length mismatch (my %u them %u)",
 		    __func__, expected_confirm_hash_len, peer_confirm_hash_len);
-	else if (timing_safe_cmp(peer_confirm_hash, expected_confirm_hash,
+	else if (timingsafe_bcmp(peer_confirm_hash, expected_confirm_hash,
 	    expected_confirm_hash_len) == 0)
 		success = 1;
 	bzero(expected_confirm_hash, expected_confirm_hash_len);
