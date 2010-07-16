@@ -10,6 +10,18 @@
      [ssh.c]
      Make ExitOnForwardFailure work with fork-after-authentication ("ssh -f")
      for protocol 2. ok markus@
+   - djm@cvs.openbsd.org 2010/07/12 22:41:13
+     [ssh.c ssh_config.5]
+     expand %h to the hostname in ssh_config Hostname options. While this
+     sounds useless, it is actually handy for working with unqualified
+     hostnames:
+     
+     Host *.*
+        Hostname %h
+     Host *
+        Hostname %h.example.org
+     
+     "I like it" markus@
 
 20100714
  - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass
