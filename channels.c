@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.306 2010/06/25 07:20:04 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.307 2010/07/13 11:52:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -917,7 +917,7 @@ x11_open_helper(Buffer *b)
 	}
 	/* Check if authentication data matches our fake data. */
 	if (data_len != x11_fake_data_len ||
-	    memcmp(ucp + 12 + ((proto_len + 3) & ~3),
+	    timing_safe_cmp(ucp + 12 + ((proto_len + 3) & ~3),
 		x11_fake_data, x11_fake_data_len) != 0) {
 		debug2("X11 auth data does not match fake data.");
 		return -1;
