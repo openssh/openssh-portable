@@ -37,6 +37,10 @@
      [ssh.1]
      finally ssh synopsis looks nice again! this commit just removes a ton of
      hacks we had in place to make it work with old groff;
+   - schwarze@cvs.openbsd.org 2010/07/15 21:20:38
+     [ssh-keygen.1]
+     repair incorrect block nesting, which screwed up indentation;
+     problem reported and fix OK by jmc@
 
 20100714
  - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass
