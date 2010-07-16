@@ -1,3 +1,12 @@
+20100716
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/07/02 04:32:44
+     [misc.c]
+     unbreak strdelim() skipping past quoted strings, e.g.
+     AllowUsers "blah blah" blah
+     was broken; report and fix in bz#1757 from bitman.zhou AT centrify.com
+     ok dtucker;
+
 20100714
  - (tim) [contrib/redhat/openssh.spec] Bug 1796: Test for skip_x11_askpass
    (line 77) should have been for no_x11_askpass. 

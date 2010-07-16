@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.76 2010/05/21 05:00:36 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.77 2010/07/02 04:32:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -178,6 +178,7 @@ strdelim(char **s)
 			return (NULL);		/* no matching quote */
 		} else {
 			*s[0] = '\0';
+			*s += strspn(*s + 1, WHITESPACE) + 1;
 			return (old);
 		}
 	}
