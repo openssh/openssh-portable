@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.341 2010/06/26 23:04:04 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.342 2010/07/12 22:38:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1301,8 +1301,13 @@ ssh_session2(void)
 	/* Start listening for multiplex clients */
 	muxserver_listen();
 
-	/* If requested, let ssh continue in the background. */
-	if (fork_after_authentication_flag) {
+	/*
+	 * If requested and we are not interested in replies to remote
+	 * forwarding requests, then let ssh continue in the background.
+	 */
+	if (fork_after_authentication_flag &&
+	    (!options.exit_on_forward_failure ||
+	    options.num_remote_forwards == 0)) {
 		fork_after_authentication_flag = 0;
 		if (daemon(1, 1) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
