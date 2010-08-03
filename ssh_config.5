@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.136 2010/07/12 22:41:13 djm Exp $
-.Dd $Mdocdate: July 12 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.137 2010/07/19 09:15:12 djm Exp $
+.Dd $Mdocdate: July 19 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -319,6 +319,28 @@ It is recommended that any
 used for opportunistic connection sharing include
 at least %h, %p, and %r.
 This ensures that shared connections are uniquely identified.
+.It Cm ControlPersist
+When used in conjunction with
+.Cm ControlMaster ,
+specifies that the master connection should remain open
+in the background (waiting for future client connections)
+after the initial client connection has been closed.
+If set to
+.Dq no ,
+then the master connection will not be placed into the background,
+and will close as soon as the initial client connection is closed.
+If set to
+.Dq yes ,
+then the master connection will remain in the background indefinitely
+(until killed or closed via a mechanism such as the
+.Xr ssh 1
+.Dq Fl O No exit
+option).
+If set to a time in seconds, or a time in any of the formats documented in
+.Xr sshd_config 5 ,
+then the backgrounded master connection will automatically terminate
+after it has remained idle (with no client connections) for the
+specified time.
 .It Cm DynamicForward
 Specifies that a TCP port on the local machine be forwarded
 over the secure channel, and the application

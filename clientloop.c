@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.221 2010/06/25 23:15:36 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.222 2010/07/19 09:15:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -145,6 +145,9 @@ static volatile sig_atomic_t received_signal = 0;
 /* Flag indicating whether the user's terminal is in non-blocking mode. */
 static int in_non_blocking_mode = 0;
 
+/* Time when backgrounded control master using ControlPersist should exit */
+static time_t control_persist_exit_time = 0;
+
 /* Common data for the client loop code. */
 volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
 static int escape_char1;	/* Escape character. (proto1 only) */
@@ -250,6 +253,34 @@ get_current_time(void)
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
+}
+
+/*
+ * Sets control_persist_exit_time to the absolute time when the
+ * backgrounded control master should exit due to expiry of the
+ * ControlPersist timeout.  Sets it to 0 if we are not a backgrounded
+ * control master process, or if there is no ControlPersist timeout.
+ */
+static void
+set_control_persist_exit_time(void)
+{
+	if (muxserver_sock == -1 || !options.control_persist
+	    || options.control_persist_timeout == 0)
+		/* not using a ControlPersist timeout */
+		control_persist_exit_time = 0;
+	else if (channel_still_open()) {
+		/* some client connections are still open */
+		if (control_persist_exit_time > 0)
+			debug2("%s: cancel scheduled exit", __func__);
+		control_persist_exit_time = 0;
+	} else if (control_persist_exit_time <= 0) {
+		/* a client connection has recently closed */
+		control_persist_exit_time = time(NULL) +
+			(time_t)options.control_persist_timeout;
+		debug2("%s: schedule exit in %d seconds", __func__,
+		    options.control_persist_timeout);
+	}
+	/* else we are already counting down to the timeout */
 }
 
 #define SSH_X11_PROTO "MIT-MAGIC-COOKIE-1"
@@ -533,6 +564,7 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
     int *maxfdp, u_int *nallocp, int rekeying)
 {
 	struct timeval tv, *tvp;
+	int timeout_secs;
 	int ret;
 
 	/* Add any selections by the channel mechanism. */
@@ -576,16 +608,27 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	/*
 	 * Wait for something to happen.  This will suspend the process until
 	 * some selected descriptor can be read, written, or has some other
-	 * event pending.
+	 * event pending, or a timeout expires.
 	 */
 
-	if (options.server_alive_interval == 0 || !compat20)
+	timeout_secs = INT_MAX; /* we use INT_MAX to mean no timeout */
+	if (options.server_alive_interval > 0 && compat20)
+		timeout_secs = options.server_alive_interval;
+	set_control_persist_exit_time();
+	if (control_persist_exit_time > 0) {
+		timeout_secs = MIN(timeout_secs,
+			control_persist_exit_time - time(NULL));
+		if (timeout_secs < 0)
+			timeout_secs = 0;
+	}
+	if (timeout_secs == INT_MAX)
 		tvp = NULL;
 	else {
-		tv.tv_sec = options.server_alive_interval;
+		tv.tv_sec = timeout_secs;
 		tv.tv_usec = 0;
 		tvp = &tv;
 	}
+
 	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
 	if (ret < 0) {
 		char buf[100];
@@ -1478,6 +1521,18 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		 */
 		if (FD_ISSET(connection_out, writeset))
 			packet_write_poll();
+
+		/*
+		 * If we are a backgrounded control master, and the
+		 * timeout has expired without any active client
+		 * connections, then quit.
+		 */
+		if (control_persist_exit_time > 0) {
+			if (time(NULL) >= control_persist_exit_time) {
+				debug("ControlPersist timeout expired");
+				break;
+			}
+		}
 	}
 	if (readset)
 		xfree(readset);

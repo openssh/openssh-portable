@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.186 2010/06/25 23:15:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.187 2010/07/19 09:15:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -128,7 +128,8 @@ typedef enum {
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
-	oSendEnv, oControlPath, oControlMaster, oHashKnownHosts,
+	oSendEnv, oControlPath, oControlMaster, oControlPersist,
+	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
 	oDeprecated, oUnsupported
@@ -225,6 +226,7 @@ static struct {
 	{ "sendenv", oSendEnv },
 	{ "controlpath", oControlPath },
 	{ "controlmaster", oControlMaster },
+	{ "controlpersist", oControlPersist },
 	{ "hashknownhosts", oHashKnownHosts },
 	{ "tunnel", oTunnel },
 	{ "tunneldevice", oTunnelDevice },
@@ -882,6 +884,30 @@ parse_int:
 			*intptr = value;
 		break;
 
+	case oControlPersist:
+		/* no/false/yes/true, or a time spec */
+		intptr = &options->control_persist;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing ControlPersist"
+			    " argument.", filename, linenum);
+		value = 0;
+		value2 = 0;	/* timeout */
+		if (strcmp(arg, "no") == 0 || strcmp(arg, "false") == 0)
+			value = 0;
+		else if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
+			value = 1;
+		else if ((value2 = convtime(arg)) >= 0)
+			value = 1;
+		else
+			fatal("%.200s line %d: Bad ControlPersist argument.",
+			    filename, linenum);
+		if (*activep && *intptr == -1) {
+			*intptr = value;
+			options->control_persist_timeout = value2;
+		}
+		break;
+
 	case oHashKnownHosts:
 		intptr = &options->hash_known_hosts;
 		goto parse_flag;
@@ -1083,6 +1109,8 @@ initialize_options(Options * options)
 	options->num_send_env = 0;
 	options->control_path = NULL;
 	options->control_master = -1;
+	options->control_persist = -1;
+	options->control_persist_timeout = 0;
 	options->hash_known_hosts = -1;
 	options->tun_open = -1;
 	options->tun_local = -1;
@@ -1218,6 +1246,10 @@ fill_default_options(Options * options)
 		options->server_alive_count_max = 3;
 	if (options->control_master == -1)
 		options->control_master = 0;
+	if (options->control_persist == -1) {
+		options->control_persist = 0;
+		options->control_persist_timeout = 0;
+	}
 	if (options->hash_known_hosts == -1)
 		options->hash_known_hosts = 0;
 	if (options->tun_open == -1)

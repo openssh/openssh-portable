@@ -16,6 +16,14 @@
      bz#1797: fix swapped args in upload_dir_internal(), breaking recursive
      upload depth checks and causing verbose printing of transfers to always
      be turned on; patch from imorgan AT nas.nasa.gov
+   - djm@cvs.openbsd.org 2010/07/19 09:15:12
+     [clientloop.c readconf.c readconf.h ssh.c ssh_config.5]
+     add a "ControlPersist" option that automatically starts a background
+     ssh(1) multiplex master when connecting. This connection can stay alive
+     indefinitely, or can be set to automatically close after a user-specified
+     duration of inactivity. bz#1330 - patch by dwmw2 AT infradead.org, but
+     further hacked on by wmertens AT cisco.com, apb AT cequrux.com,
+     martin-mindrot-bugzilla AT earth.li and myself; "looks ok" markus@
 
 20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more

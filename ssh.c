@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.343 2010/07/12 22:41:13 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.344 2010/07/19 09:15:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -126,6 +126,15 @@ int no_shell_flag = 0;
  * on the command line.
  */
 int stdin_null_flag = 0;
+
+/*
+ * Flag indicating that the current process should be backgrounded and
+ * a new slave launched in the foreground for ControlPersist.
+ */
+int need_controlpersist_detach = 0;
+
+/* Copies of flags for ControlPersist foreground slave */
+int ostdin_null_flag, ono_shell_flag, ono_tty_flag, otty_flag;
 
 /*
  * Flag indicating that ssh should fork after authentication.  This is useful
@@ -877,6 +886,50 @@ main(int ac, char **av)
 	return exit_status;
 }
 
+static void
+control_persist_detach(void)
+{
+	pid_t pid;
+
+	debug("%s: backgrounding master process", __func__);
+
+ 	/*
+ 	 * master (current process) into the background, and make the
+ 	 * foreground process a client of the backgrounded master.
+ 	 */
+	switch ((pid = fork())) {
+	case -1:
+		fatal("%s: fork: %s", __func__, strerror(errno));
+	case 0:
+		/* Child: master process continues mainloop */
+ 		break;
+ 	default:
+		/* Parent: set up mux slave to connect to backgrounded master */
+		debug2("%s: background process is %ld", __func__, (long)pid);
+		stdin_null_flag = ostdin_null_flag;
+		no_shell_flag = ono_shell_flag;
+		no_tty_flag = ono_tty_flag;
+		tty_flag = otty_flag;
+ 		close(muxserver_sock);
+ 		muxserver_sock = -1;
+ 		muxclient(options.control_path);
+		/* muxclient() doesn't return on success. */
+ 		fatal("Failed to connect to new control master");
+ 	}
+}
+
+/* Do fork() after authentication. Used by "ssh -f" */
+static void
+fork_postauth(void)
+{
+	if (need_controlpersist_detach)
+		control_persist_detach();
+	debug("forking to background");
+	fork_after_authentication_flag = 0;
+	if (daemon(1, 1) < 0)
+		fatal("daemon() failed: %.200s", strerror(errno));
+}
+
 /* Callback for remote forward global requests */
 static void
 ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
@@ -904,12 +957,8 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 	}
 	if (++remote_forward_confirms_received == options.num_remote_forwards) {
 		debug("All remote forwarding requests processed");
-		if (fork_after_authentication_flag) {
-			fork_after_authentication_flag = 0;
-			if (daemon(1, 1) < 0)
-				fatal("daemon() failed: %.200s",
-				    strerror(errno));
-		}
+		if (fork_after_authentication_flag)
+			fork_postauth();
 	}
 }
 
@@ -1153,12 +1202,13 @@ ssh_session(void)
 	 * If requested and we are not interested in replies to remote
 	 * forwarding requests, then let ssh continue in the background.
 	 */
-	if (fork_after_authentication_flag &&
-	    (!options.exit_on_forward_failure ||
-	    options.num_remote_forwards == 0)) {
-		fork_after_authentication_flag = 0;
-		if (daemon(1, 1) < 0)
-			fatal("daemon() failed: %.200s", strerror(errno));
+	if (fork_after_authentication_flag) {
+		if (options.exit_on_forward_failure &&
+		    options.num_remote_forwards > 0) {
+			debug("deferring postauth fork until remote forward "
+			    "confirmation received");
+		} else
+			fork_postauth();
 	}
 
 	/*
@@ -1281,6 +1331,31 @@ ssh_session2(void)
 	/* XXX should be pre-session */
 	ssh_init_forwarding();
 
+	/* Start listening for multiplex clients */
+	muxserver_listen();
+
+ 	/*
+	 * If we are in control persist mode, then prepare to background
+	 * ourselves and have a foreground client attach as a control
+	 * slave. NB. we must save copies of the flags that we override for
+	 * the backgrounding, since we defer attachment of the slave until
+	 * after the connection is fully established (in particular,
+	 * async rfwd replies have been received for ExitOnForwardFailure).
+	 */
+ 	if (options.control_persist && muxserver_sock != -1) {
+		ostdin_null_flag = stdin_null_flag;
+		ono_shell_flag = no_shell_flag;
+		ono_tty_flag = no_tty_flag;
+		otty_flag = tty_flag;
+ 		stdin_null_flag = 1;
+ 		no_shell_flag = 1;
+ 		no_tty_flag = 1;
+ 		tty_flag = 0;
+		if (!fork_after_authentication_flag)
+			need_controlpersist_detach = 1;
+		fork_after_authentication_flag = 1;
+ 	}
+
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
 
@@ -1299,19 +1374,17 @@ ssh_session2(void)
 	    options.permit_local_command)
 		ssh_local_cmd(options.local_command);
 
-	/* Start listening for multiplex clients */
-	muxserver_listen();
-
 	/*
 	 * If requested and we are not interested in replies to remote
 	 * forwarding requests, then let ssh continue in the background.
 	 */
-	if (fork_after_authentication_flag &&
-	    (!options.exit_on_forward_failure ||
-	    options.num_remote_forwards == 0)) {
-		fork_after_authentication_flag = 0;
-		if (daemon(1, 1) < 0)
-			fatal("daemon() failed: %.200s", strerror(errno));
+	if (fork_after_authentication_flag) {
+		if (options.exit_on_forward_failure &&
+		    options.num_remote_forwards > 0) {
+			debug("deferring postauth fork until remote forward "
+			    "confirmation received");
+		} else
+			fork_postauth();
 	}
 
 	if (options.use_roaming)
