@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.306 2010/07/14 17:06:58 jmc Exp $
-.Dd $Mdocdate: July 14 2010 $
+.\" $OpenBSD: ssh.1,v 1.307 2010/07/23 08:49:25 dtucker Exp $
+.Dd $Mdocdate: July 23 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -176,7 +176,9 @@ is a comma-separated list of ciphers
 listed in order of preference.
 See the
 .Cm Ciphers
-keyword for more information.
+keyword in
+.Xr ssh_config 5
+for more information.
 .It Fl D Xo
 .Sm off
 .Oo Ar bind_address : Oc
