@@ -11,6 +11,11 @@
      more timing paranoia - compare all parts of the expected decrypted
      data before returning. AFAIK not exploitable in the SSH protocol.
      "groovy" deraadt@
+   - djm@cvs.openbsd.org 2010/07/19 03:16:33
+     [sftp-client.c]
+     bz#1797: fix swapped args in upload_dir_internal(), breaking recursive
+     upload depth checks and causing verbose printing of transfers to always
+     be turned on; patch from imorgan AT nas.nasa.gov
 
 20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more
