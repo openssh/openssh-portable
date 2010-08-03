@@ -1,4 +1,9 @@
-20100919
+20100903
+ - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
+   PAM to sane values in case the PAM method doesn't write to them.  Spotted by
+   Bitman Zhou, ok djm@.
+
+20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more
    details about its behaviour WRT existing directories.  Patch from
    asguthrie at gmail com, ok djm.

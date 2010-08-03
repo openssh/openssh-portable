@@ -922,8 +922,8 @@ mm_answer_pam_init_ctx(int sock, Buffer *m)
 int
 mm_answer_pam_query(int sock, Buffer *m)
 {
-	char *name, *info, **prompts;
-	u_int i, num, *echo_on;
+	char *name = NULL, *info = NULL, **prompts = NULL;
+	u_int i, num = 0, *echo_on = 0;
 	int ret;
 
 	debug3("%s", __func__);
