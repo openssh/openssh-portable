@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.194 2010/06/30 07:26:03 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.195 2010/07/16 04:45:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -580,7 +580,7 @@ static void
 do_convert_from(struct passwd *pw)
 {
 	Key *k = NULL;
-	int private = 0, ok;
+	int private = 0, ok = 0;
 	struct stat st;
 
 	if (!have_identity)

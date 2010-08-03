@@ -2,6 +2,10 @@
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
    PAM to sane values in case the PAM method doesn't write to them.  Spotted by
    Bitman Zhou, ok djm@.
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/07/16 04:45:30
+     [ssh-keygen.c]
+     avoid bogus compiler warning
 
 20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more
