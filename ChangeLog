@@ -6,6 +6,11 @@
    - djm@cvs.openbsd.org 2010/07/16 04:45:30
      [ssh-keygen.c]
      avoid bogus compiler warning
+   - djm@cvs.openbsd.org 2010/07/16 14:07:35
+     [ssh-rsa.c]
+     more timing paranoia - compare all parts of the expected decrypted
+     data before returning. AFAIK not exploitable in the SSH protocol.
+     "groovy" deraadt@
 
 20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.43 2010/07/13 23:13:16 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.44 2010/07/16 14:07:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -211,7 +211,7 @@ openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
     u_char *sigbuf, u_int siglen, RSA *rsa)
 {
 	u_int ret, rsasize, oidlen = 0, hlen = 0;
-	int len;
+	int len, oidmatch, hashmatch;
 	const u_char *oid = NULL;
 	u_char *decrypted = NULL;
 
@@ -250,11 +250,13 @@ openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
 		error("bad decrypted len: %d != %d + %d", len, hlen, oidlen);
 		goto done;
 	}
-	if (timingsafe_bcmp(decrypted, oid, oidlen) != 0) {
+	oidmatch = timingsafe_bcmp(decrypted, oid, oidlen) == 0;
+	hashmatch = timingsafe_bcmp(decrypted + oidlen, hash, hlen) == 0;
+	if (!oidmatch) {
 		error("oid mismatch");
 		goto done;
 	}
-	if (timingsafe_bcmp(decrypted + oidlen, hash, hlen) != 0) {
+	if (!hashmatch) {
 		error("hash mismatch");
 		goto done;
 	}
