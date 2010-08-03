@@ -24,6 +24,9 @@
      duration of inactivity. bz#1330 - patch by dwmw2 AT infradead.org, but
      further hacked on by wmertens AT cisco.com, apb AT cequrux.com,
      martin-mindrot-bugzilla AT earth.li and myself; "looks ok" markus@
+   - djm@cvs.openbsd.org 2010/07/21 02:10:58
+     [misc.c]
+     sync timingsafe_bcmp() with the one dempsky@ committed to sys/lib/libkern
 
 20100819
  - (dtucker) [contrib/ssh-copy-ud.1] Bug #1786: update ssh-copy-id.1 with more
