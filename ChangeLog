@@ -1,3 +1,11 @@
+20100905
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/08/04 05:37:01
+     [ssh.1 ssh_config.5 sshd.8]
+     Remove mentions of weird "addr/port" alternate address format for IPv6
+     addresses combinations. It hasn't worked for ages and we have supported
+     the more commen "[addr]:port" format for a long time. ok jmc@ markus@
+
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
    PAM to sane values in case the PAM method doesn't write to them.  Spotted by

@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.307 2010/07/23 08:49:25 dtucker Exp $
-.Dd $Mdocdate: July 23 2010 $
+.\" $OpenBSD: ssh.1,v 1.308 2010/08/04 05:37:01 djm Exp $
+.Dd $Mdocdate: August 4 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -202,14 +202,7 @@ will act as a SOCKS server.
 Only root can forward privileged ports.
 Dynamic port forwardings can also be specified in the configuration file.
 .Pp
-IPv6 addresses can be specified with an alternative syntax:
-.Sm off
-.Xo
-.Op Ar bind_address No /
-.Ar port
-.Xc
-.Sm on
-or by enclosing the address in square brackets.
+IPv6 addresses can be specified by enclosing the address in square brackets.
 Only the superuser can forward privileged ports.
 By default, the local port is bound in accordance with the
 .Cm GatewayPorts
@@ -320,15 +313,7 @@ port
 .Ar hostport
 from the remote machine.
 Port forwardings can also be specified in the configuration file.
-IPv6 addresses can be specified with an alternative syntax:
-.Sm off
-.Xo
-.Op Ar bind_address No /
-.Ar port No / Ar host No /
-.Ar hostport
-.Xc
-.Sm on
-or by enclosing the address in square brackets.
+IPv6 addresses can be specified by enclosing the address in square brackets.
 Only the superuser can forward privileged ports.
 By default, the local port is bound in accordance with the
 .Cm GatewayPorts
@@ -511,15 +496,7 @@ from the local machine.
 Port forwardings can also be specified in the configuration file.
 Privileged ports can be forwarded only when
 logging in as root on the remote machine.
-IPv6 addresses can be specified by enclosing the address in square braces or
-using an alternative syntax:
-.Sm off
-.Xo
-.Op Ar bind_address No /
-.Ar host No / Ar port No /
-.Ar hostport
-.Xc .
-.Sm on
+IPv6 addresses can be specified by enclosing the address in square braces.
 .Pp
 By default, the listening socket on the server will be bound to the loopback
 interface only.
