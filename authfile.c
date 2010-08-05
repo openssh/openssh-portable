@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.81 2010/08/04 05:42:47 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.82 2010/08/04 05:49:22 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -698,13 +698,15 @@ Key *
 key_load_cert(const char *filename)
 {
 	Key *pub;
-	char file[MAXPATHLEN];
+	char *file;
 
 	pub = key_new(KEY_UNSPEC);
-	if ((strlcpy(file, filename, sizeof file) < sizeof(file)) &&
-	    (strlcat(file, "-cert.pub", sizeof file) < sizeof(file)) &&
-	    (key_try_load_public(pub, file, NULL) == 1))
+	xasprintf(&file, "%s-cert.pub", filename);
+	if (key_try_load_public(pub, file, NULL) == 1) {
+		xfree(file);
 		return pub;
+	}
+	xfree(file);
 	key_free(pub);
 	return NULL;
 }

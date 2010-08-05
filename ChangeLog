@@ -14,6 +14,11 @@
      [ssh-keysign.c ssh.c]
      enable certificates for hostbased authentication, from Iain Morgan;
      "looks ok" markus@
+   - djm@cvs.openbsd.org 2010/08/04 05:49:22
+     [authfile.c]
+     commited the wrong version of the hostbased certificate diff; this
+     version replaces some strlc{py,at} verbosity with xasprintf() at
+     the request of markus@
 
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
