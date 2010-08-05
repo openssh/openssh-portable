@@ -25,6 +25,26 @@
    - djm@cvs.openbsd.org 2010/08/04 06:08:40
      [ssh-keysign.c]
      clean for -Wuninitialized (Id sync only; portable had this change)
+   - djm@cvs.openbsd.org 2010/08/05 13:08:42
+     [channels.c]
+     Fix a trio of bugs in the local/remote window calculation for datagram
+     data channels (i.e. TunnelForward):
+     
+     Calculate local_consumed correctly in channel_handle_wfd() by measuring
+     the delta to buffer_len(c->output) from when we start to when we finish.
+     The proximal problem here is that the output_filter we use in portable
+     modified the length of the dequeued datagram (to futz with the headers
+     for !OpenBSD).
+     
+     In channel_output_poll(), don't enqueue datagrams that won't fit in the
+     peer's advertised packet size (highly unlikely to ever occur) or which
+     won't fit in the peer's remaining window (more likely).
+     
+     In channel_input_data(), account for the 4-byte string header in
+     datagram packets that we accept from the peer and enqueue in c->output.
+     
+     report, analysis and testing 2/3 cases from wierbows AT us.ibm.com;
+     "looks good" markus@
 
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
