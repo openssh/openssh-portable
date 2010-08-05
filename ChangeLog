@@ -19,6 +19,9 @@
      commited the wrong version of the hostbased certificate diff; this
      version replaces some strlc{py,at} verbosity with xasprintf() at
      the request of markus@
+   - djm@cvs.openbsd.org 2010/08/04 06:07:11
+     [ssh-keygen.1 ssh-keygen.c]
+     Support CA keys in PKCS#11 tokens; feedback and ok markus@
 
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from

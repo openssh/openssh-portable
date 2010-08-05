@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.196 2010/08/04 05:40:39 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.197 2010/08/04 06:07:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -146,6 +146,8 @@ int print_generic = 0;
 
 char *key_type_name = NULL;
 
+/* Load key from this PKCS#11 provider */
+char *pkcs11provider = NULL;
 
 /* argv0 */
 extern char *__progname;
@@ -655,7 +657,7 @@ do_print_public(struct passwd *pw)
 }
 
 static void
-do_download(struct passwd *pw, char *pkcs11provider)
+do_download(struct passwd *pw)
 {
 #ifdef ENABLE_PKCS11
 	Key **keys = NULL;
@@ -1318,6 +1320,35 @@ prepare_options_buf(Buffer *c, int which)
 		add_string_option(c, "source-address", certflags_src_addr);
 }
 
+static Key *
+load_pkcs11_key(char *path)
+{
+#ifdef ENABLE_PKCS11
+	Key **keys = NULL, *public, *private = NULL;
+	int i, nkeys;
+
+	if ((public = key_load_public(path, NULL)) == NULL)
+		fatal("Couldn't load CA public key \"%s\"", path);
+
+	nkeys = pkcs11_add_provider(pkcs11provider, identity_passphrase, &keys);
+	debug3("%s: %d keys", __func__, nkeys);
+	if (nkeys <= 0)
+		fatal("cannot read public key from pkcs11");
+	for (i = 0; i < nkeys; i++) {
+		if (key_equal_public(public, keys[i])) {
+			private = keys[i];
+			continue;
+		}
+		key_free(keys[i]);
+	}
+	xfree(keys);
+	key_free(public);
+	return private;
+#else
+	fatal("no pkcs11 support");
+#endif /* ENABLE_PKCS11 */
+}
+
 static void
 do_ca_sign(struct passwd *pw, int argc, char **argv)
 {
@@ -1327,11 +1358,6 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 	char *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
 	int v00 = 0; /* legacy keys */
-
-	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
-	if ((ca = load_identity(tmp)) == NULL)
-		fatal("Couldn't load CA key \"%s\"", tmp);
-	xfree(tmp);
 
 	if (key_type_name != NULL) {
 		switch (key_type_from_name(key_type_name)) {
@@ -1351,6 +1377,15 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			exit(1);
 		}
 	}
+
+	pkcs11_init(1);
+	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
+	if (pkcs11provider != NULL) {
+		if ((ca = load_pkcs11_key(tmp)) == NULL)
+			fatal("No PKCS#11 key matching %s found", ca_key_path);
+	} else if ((ca = load_identity(tmp)) == NULL)
+		fatal("Couldn't load CA key \"%s\"", tmp);
+	xfree(tmp);
 
 	for (i = 0; i < argc; i++) {
 		/* Split list of principals */
@@ -1424,6 +1459,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		key_free(public);
 		xfree(out);
 	}
+	pkcs11_terminate();
 	exit(0);
 }
 
@@ -1725,8 +1761,7 @@ int
 main(int argc, char **argv)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
-	char out_file[MAXPATHLEN], *pkcs11provider = NULL;
-	char *rr_hostname = NULL;
+	char out_file[MAXPATHLEN], *rr_hostname = NULL;
 	Key *private, *public;
 	struct passwd *pw;
 	struct stat st;
@@ -2001,7 +2036,7 @@ main(int argc, char **argv)
 		}
 	}
 	if (pkcs11provider != NULL)
-		do_download(pw, pkcs11provider);
+		do_download(pw);
 
 	if (do_gen_candidates) {
 		FILE *out = fopen(out_file, "w");
