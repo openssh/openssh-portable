@@ -157,6 +157,9 @@ is a sequence of zero or more tuples:
     string       name
     string       data
 
+Options must be lexically ordered by "name" if they appear in the
+sequence.
+
 The name field identifies the option and the data field encodes
 option-specific information (see below). All options are
 "critical", if an implementation does not recognise a option
@@ -185,9 +188,10 @@ Extensions
 ----------
 
 The extensions section of the certificate specifies zero or more
-non-critical certificate extensions. The encoding of extensions in this
-field is identical to that of the critical options. If an implementation
-does not recognise an extension, then it should ignore it.
+non-critical certificate extensions. The encoding and ordering of
+extensions in this field is identical to that of the critical options.
+If an implementation does not recognise an extension, then it should
+ignore it.
 
 The supported extensions and the contents and structure of their data
 fields are:
@@ -218,4 +222,4 @@ permit-user-rc          empty         Flag indicating that execution of
                                       of this script will not be permitted if
                                       this option is not present.
 
-$OpenBSD: PROTOCOL.certkeys,v 1.6 2010/05/20 23:46:02 djm Exp $
+$OpenBSD: PROTOCOL.certkeys,v 1.7 2010/08/04 05:40:39 djm Exp $

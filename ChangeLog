@@ -5,6 +5,10 @@
      Remove mentions of weird "addr/port" alternate address format for IPv6
      addresses combinations. It hasn't worked for ages and we have supported
      the more commen "[addr]:port" format for a long time. ok jmc@ markus@
+   - djm@cvs.openbsd.org 2010/08/04 05:40:39
+     [PROTOCOL.certkeys ssh-keygen.c]
+     tighten the rules for certificate encoding by requiring that options
+     appear in lexical order and make our ssh-keygen comply. ok markus@
 
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
