@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.88 2010/06/22 04:49:47 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.89 2010/08/04 05:42:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -385,7 +385,7 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 	HostStatus host_status;
 
 	/* Check if we know the host and its host key. */
-	found = key_new(key->type);
+	found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
 	host_status = check_host_in_hostfile(sysfile, host, key, found, NULL);
 
 	if (host_status != HOST_OK && userfile != NULL) {

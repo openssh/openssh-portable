@@ -9,6 +9,11 @@
      [PROTOCOL.certkeys ssh-keygen.c]
      tighten the rules for certificate encoding by requiring that options
      appear in lexical order and make our ssh-keygen comply. ok markus@
+   - djm@cvs.openbsd.org 2010/08/04 05:42:47
+     [auth.c auth2-hostbased.c authfile.c authfile.h ssh-keysign.8]
+     [ssh-keysign.c ssh.c]
+     enable certificates for hostbased authentication, from Iain Morgan;
+     "looks ok" markus@
 
 20100903
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from

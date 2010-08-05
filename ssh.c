@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.344 2010/07/19 09:15:12 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.345 2010/08/04 05:42:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -774,26 +774,34 @@ main(int ac, char **av)
 	sensitive_data.external_keysign = 0;
 	if (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication) {
-		sensitive_data.nkeys = 3;
+		sensitive_data.nkeys = 5;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
 
 		PRIV_START;
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[1] = key_load_private_type(KEY_DSA,
+		sensitive_data.keys[1] = key_load_private_cert(KEY_DSA,
+		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
+		sensitive_data.keys[2] = key_load_private_cert(KEY_RSA,
+		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
+		sensitive_data.keys[3] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[2] = key_load_private_type(KEY_RSA,
+		sensitive_data.keys[4] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
 		    sensitive_data.keys[0] == NULL &&
-		    sensitive_data.keys[1] == NULL &&
-		    sensitive_data.keys[2] == NULL) {
-			sensitive_data.keys[1] = key_load_public(
+		    sensitive_data.keys[3] == NULL &&
+		    sensitive_data.keys[4] == NULL) {
+			sensitive_data.keys[1] = key_load_cert(
+			    _PATH_HOST_DSA_KEY_FILE);
+			sensitive_data.keys[2] = key_load_cert(
+			    _PATH_HOST_RSA_KEY_FILE);
+			sensitive_data.keys[3] = key_load_public(
 			    _PATH_HOST_DSA_KEY_FILE, NULL);
-			sensitive_data.keys[2] = key_load_public(
+			sensitive_data.keys[4] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}
