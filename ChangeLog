@@ -1,4 +1,4 @@
-20100905
+20100805
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/08/04 05:37:01
      [ssh.1 ssh_config.5 sshd.8]
@@ -46,7 +46,7 @@
      report, analysis and testing 2/3 cases from wierbows AT us.ibm.com;
      "looks good" markus@
 
-20100903
+20100803
  - (dtucker) [monitor.c] Bug #1795: Initialize the values to be returned from
    PAM to sane values in case the PAM method doesn't write to them.  Spotted by
    Bitman Zhou, ok djm@.
