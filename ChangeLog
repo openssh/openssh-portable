@@ -1,3 +1,9 @@
+20100809
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/08/08 16:26:42
+     [version.h]
+     crank to 5.6
+
 20100805
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/08/04 05:37:01
