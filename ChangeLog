@@ -3,6 +3,8 @@
    - djm@cvs.openbsd.org 2010/08/08 16:26:42
      [version.h]
      crank to 5.6
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Crank version numbers
 
 20100805
  - OpenBSD CVS Sync
