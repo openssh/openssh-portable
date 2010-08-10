@@ -1,4 +1,9 @@
 20100809
+ - (djm) bz#1561: don't bother setting IFF_UP on tun(4) device if it is
+   already set. Makes FreeBSD user openable tunnels useful; patch from
+   richard.burakowski+ossh AT mrburak.net, ok dtucker@
+
+20100809
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/08/08 16:26:42
      [version.h]
