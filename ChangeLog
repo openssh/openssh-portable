@@ -1,3 +1,10 @@
+20100812
+ - (tim) [regress/login-timeout.sh regress/reconfigure.sh regress/reexec.sh
+   regress/test-exec.sh] Under certain conditions when testing with sudo
+   tests would fail because the pidfile could not be read by a regular user.
+   "cat: cannot open ...../regress/pidfile: Permission denied (error 13)"
+   Make sure cat is run by $SUDO.  no objection from me. djm@
+
 20100809
  - (djm) bz#1561: don't bother setting IFF_UP on tun(4) device if it is
    already set. Makes FreeBSD user openable tunnels useful; patch from
