@@ -143,7 +143,7 @@ allowed_user(struct passwd * pw)
 			locked = 1;
 #endif
 #ifdef USE_LIBIAF
-		free(passwd);
+		free((void *) passwd);
 #endif /* USE_LIBIAF */
 		if (locked) {
 			logit("User %.100s not allowed because account is locked",
