@@ -16,6 +16,7 @@
      by this.
      
      "please commit" markus@
+ - (djm) [regress/README.regress] typo
 
 20100812
  - (tim) [regress/login-timeout.sh regress/reconfigure.sh regress/reexec.sh
