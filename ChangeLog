@@ -3,6 +3,19 @@
    openbsd-compat/openbsd-compat.h openbsd-compat/strptime.c] Add strptime to
    the compat library which helps on platforms like old IRIX.  Based on work
    by djm, tested by Tom Christensen.
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/08/12 21:49:44
+     [ssh.c]
+     close any extra file descriptors inherited from parent at start and
+     reopen stdin/stdout to /dev/null when forking for ControlPersist.
+     
+     prevents tools that fork and run a captive ssh for communication from
+     failing to exit when the ssh completes while they wait for these fds to
+     close. The inherited fds may persist arbitrarily long if a background
+     mux master has been started by ControlPersist. cvs and scp were effected
+     by this.
+     
+     "please commit" markus@
 
 20100812
  - (tim) [regress/login-timeout.sh regress/reconfigure.sh regress/reexec.sh

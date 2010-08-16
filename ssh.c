@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.345 2010/08/04 05:42:47 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.346 2010/08/12 21:49:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -236,6 +236,12 @@ main(int ac, char **av)
 
 	__progname = ssh_get_progname(av[0]);
 	init_rng();
+
+	/*
+	 * Discard other fds that are hanging around. These can cause problem
+	 * with backgrounded ssh processes started by ControlPersist.
+	 */
+	closefrom(STDERR_FILENO + 1);
 
 	/*
 	 * Save the original real uid.  It will be needed later (uid-swapping
@@ -898,6 +904,7 @@ static void
 control_persist_detach(void)
 {
 	pid_t pid;
+	int devnull;
 
 	debug("%s: backgrounding master process", __func__);
 
@@ -924,6 +931,16 @@ control_persist_detach(void)
 		/* muxclient() doesn't return on success. */
  		fatal("Failed to connect to new control master");
  	}
+	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+		error("%s: open(\"/dev/null\"): %s", __func__,
+		    strerror(errno));
+	} else {
+		if (dup2(devnull, STDIN_FILENO) == -1 ||
+		    dup2(devnull, STDOUT_FILENO) == -1)
+			error("%s: dup2: %s", __func__, strerror(errno));
+		if (devnull > STDERR_FILENO)
+			close(devnull);
+	}
 }
 
 /* Do fork() after authentication. Used by "ssh -f" */
