@@ -1,3 +1,9 @@
+20100816
+ - (dtucker) [configure.ac openbsd-compat/Makefile.in
+   openbsd-compat/openbsd-compat.h openbsd-compat/strptime.c] Add strptime to
+   the compat library which helps on platforms like old IRIX.  Based on work
+   by djm, tested by Tom Christensen.
+
 20100812
  - (tim) [regress/login-timeout.sh regress/reconfigure.sh regress/reexec.sh
    regress/test-exec.sh] Under certain conditions when testing with sudo
