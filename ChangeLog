@@ -1,3 +1,6 @@
+20100823
+ - (djm) Release OpenSSH-5.6p1
+
 20100816
  - (dtucker) [configure.ac openbsd-compat/Makefile.in
    openbsd-compat/openbsd-compat.h openbsd-compat/strptime.c] Add strptime to
