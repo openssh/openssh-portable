@@ -48,6 +48,7 @@
      subject to change.
      
      feedback and ok markus@
+ - (djm) [Makefile.in] Add new ECC files
 
 20100827
  - (dtucker) [contrib/redhat/sshd.init] Bug #1810: initlog is deprecated,
