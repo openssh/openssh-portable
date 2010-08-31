@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.97 2010/08/12 23:34:38 tedu Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.98 2010/08/16 04:06:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -372,7 +372,7 @@ main(int argc, char **argv)
 	init_rng();
 	seed_rng();
 
-	OpenSSL_add_all_algorithms();
+	SSLeay_add_all_algorithms();
 
 	/* At first, get a connection to the authentication agent. */
 	ac = ssh_get_authentication_connection();

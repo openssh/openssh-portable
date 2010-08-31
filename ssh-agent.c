@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.167 2010/08/12 23:34:38 tedu Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.168 2010/08/16 04:06:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1092,7 +1092,7 @@ main(int ac, char **av)
 	prctl(PR_SET_DUMPABLE, 0);
 #endif
 
-	OpenSSL_add_all_algorithms();
+	SSLeay_add_all_algorithms();
 
 	__progname = ssh_get_progname(av[0]);
 	init_rng();
