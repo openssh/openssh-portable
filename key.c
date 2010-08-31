@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.91 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: key.c,v 1.92 2010/08/31 11:54:45 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -78,6 +78,8 @@ key_new(int type)
 	DSA *dsa;
 	k = xcalloc(1, sizeof(*k));
 	k->type = type;
+	k->ecdsa = NULL;
+	k->ecdsa_nid = -1;
 	k->dsa = NULL;
 	k->rsa = NULL;
 	k->cert = NULL;
@@ -108,6 +110,10 @@ key_new(int type)
 		if ((dsa->pub_key = BN_new()) == NULL)
 			fatal("key_new: BN_new failed");
 		k->dsa = dsa;
+		break;
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		/* Cannot do anything until we know the group */
 		break;
 	case KEY_UNSPEC:
 		break;
@@ -148,6 +154,10 @@ key_add_private(Key *k)
 	case KEY_DSA_CERT:
 		if ((k->dsa->priv_key = BN_new()) == NULL)
 			fatal("key_new_private: BN_new failed");
+		break;
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		/* Cannot do anything until we know the group */
 		break;
 	case KEY_UNSPEC:
 		break;
@@ -204,6 +214,12 @@ key_free(Key *k)
 			DSA_free(k->dsa);
 		k->dsa = NULL;
 		break;
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		if (k->ecdsa != NULL)
+			EC_KEY_free(k->ecdsa);
+		k->ecdsa = NULL;
+		break;
 	case KEY_UNSPEC:
 		break;
 	default:
@@ -241,6 +257,8 @@ cert_compare(struct KeyCert *a, struct KeyCert *b)
 int
 key_equal_public(const Key *a, const Key *b)
 {
+	BN_CTX *bnctx;
+
 	if (a == NULL || b == NULL ||
 	    key_type_plain(a->type) != key_type_plain(b->type))
 		return 0;
@@ -261,6 +279,24 @@ key_equal_public(const Key *a, const Key *b)
 		    BN_cmp(a->dsa->q, b->dsa->q) == 0 &&
 		    BN_cmp(a->dsa->g, b->dsa->g) == 0 &&
 		    BN_cmp(a->dsa->pub_key, b->dsa->pub_key) == 0;
+	case KEY_ECDSA_CERT:
+	case KEY_ECDSA:
+		if (a->ecdsa == NULL || b->ecdsa == NULL ||
+		    EC_KEY_get0_public_key(a->ecdsa) == NULL ||
+		    EC_KEY_get0_public_key(b->ecdsa) == NULL)
+			return 0;
+		if ((bnctx = BN_CTX_new()) == NULL)
+			fatal("%s: BN_CTX_new failed", __func__);
+		if (EC_GROUP_cmp(EC_KEY_get0_group(a->ecdsa),
+		    EC_KEY_get0_group(b->ecdsa), bnctx) != 0 ||
+		    EC_POINT_cmp(EC_KEY_get0_group(a->ecdsa),
+		    EC_KEY_get0_public_key(a->ecdsa),
+		    EC_KEY_get0_public_key(b->ecdsa), bnctx) != 0) {
+			BN_CTX_free(bnctx);
+			return 0;
+		}
+		BN_CTX_free(bnctx);
+		return 1;
 	default:
 		fatal("key_equal: bad key type %d", a->type);
 	}
@@ -312,12 +348,14 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, u_int *dgst_raw_length)
 		BN_bn2bin(k->rsa->e, blob + nlen);
 		break;
 	case KEY_DSA:
+	case KEY_ECDSA:
 	case KEY_RSA:
 		key_to_blob(k, &blob, &len);
 		break;
 	case KEY_DSA_CERT_V00:
 	case KEY_RSA_CERT_V00:
 	case KEY_DSA_CERT:
+	case KEY_ECDSA_CERT:
 	case KEY_RSA_CERT:
 		/* We want a fingerprint of the _key_ not of the cert */
 		otype = k->type;
@@ -612,7 +650,7 @@ key_read(Key *ret, char **cpp)
 	Key *k;
 	int success = -1;
 	char *cp, *space;
-	int len, n, type;
+	int len, n, type, curve_nid = -1;
 	u_int bits;
 	u_char *blob;
 
@@ -644,9 +682,11 @@ key_read(Key *ret, char **cpp)
 	case KEY_UNSPEC:
 	case KEY_RSA:
 	case KEY_DSA:
+	case KEY_ECDSA:
 	case KEY_DSA_CERT_V00:
 	case KEY_RSA_CERT_V00:
 	case KEY_DSA_CERT:
+	case KEY_ECDSA_CERT:
 	case KEY_RSA_CERT:
 		space = strchr(cp, ' ');
 		if (space == NULL) {
@@ -655,6 +695,11 @@ key_read(Key *ret, char **cpp)
 		}
 		*space = '\0';
 		type = key_type_from_name(cp);
+		if (key_type_plain(type) == KEY_ECDSA &&
+		    (curve_nid = key_ecdsa_nid_from_name(cp)) == -1) {
+			debug("key_read: invalid curve");
+			return -1;
+		}
 		*space = ' ';
 		if (type == KEY_UNSPEC) {
 			debug3("key_read: missing keytype");
@@ -691,6 +736,12 @@ key_read(Key *ret, char **cpp)
 			key_free(k);
 			return -1;
 		}
+		if (key_type_plain(type) == KEY_ECDSA &&
+		    curve_nid != k->ecdsa_nid) {
+			error("key_read: type mismatch: EC curve mismatch");
+			key_free(k);
+			return -1;
+		}
 /*XXXX*/
 		if (key_is_cert(ret)) {
 			if (!key_is_cert(k)) {
@@ -719,6 +770,17 @@ key_read(Key *ret, char **cpp)
 			k->dsa = NULL;
 #ifdef DEBUG_PK
 			DSA_print_fp(stderr, ret->dsa, 8);
+#endif
+		}
+		if (key_type_plain(ret->type) == KEY_ECDSA) {
+			if (ret->ecdsa != NULL)
+				EC_KEY_free(ret->ecdsa);
+			ret->ecdsa = k->ecdsa;
+			ret->ecdsa_nid = k->ecdsa_nid;
+			k->ecdsa = NULL;
+			k->ecdsa_nid = -1;
+#ifdef DEBUG_PK
+			key_dump_ec_key(ret->ecdsa);
 #endif
 		}
 		success = 1;
@@ -777,6 +839,11 @@ key_write(const Key *key, FILE *f)
 		if (key->dsa == NULL)
 			return 0;
 		break;
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		if (key->ecdsa == NULL)
+			return 0;
+		break;
 	case KEY_RSA:
 	case KEY_RSA_CERT_V00:
 	case KEY_RSA_CERT:
@@ -810,6 +877,8 @@ key_type(const Key *k)
 		return "RSA";
 	case KEY_DSA:
 		return "DSA";
+	case KEY_ECDSA:
+		return "ECDSA";
 	case KEY_RSA_CERT_V00:
 		return "RSA-CERT-V00";
 	case KEY_DSA_CERT_V00:
@@ -818,6 +887,8 @@ key_type(const Key *k)
 		return "RSA-CERT";
 	case KEY_DSA_CERT:
 		return "DSA-CERT";
+	case KEY_ECDSA_CERT:
+		return "ECDSA-CERT";
 	}
 	return "unknown";
 }
@@ -835,10 +906,10 @@ key_cert_type(const Key *k)
 	}
 }
 
-const char *
-key_ssh_name(const Key *k)
+static const char *
+key_ssh_name_from_type_nid(int type, int nid)
 {
-	switch (k->type) {
+	switch (type) {
 	case KEY_RSA:
 		return "ssh-rsa";
 	case KEY_DSA:
@@ -851,8 +922,45 @@ key_ssh_name(const Key *k)
 		return "ssh-rsa-cert-v01@openssh.com";
 	case KEY_DSA_CERT:
 		return "ssh-dss-cert-v01@openssh.com";
+	case KEY_ECDSA:
+		switch (nid) {
+		case NID_X9_62_prime256v1:
+			return "ecdsa-sha2-nistp256";
+		case NID_secp384r1:
+			return "ecdsa-sha2-nistp384";
+		case NID_secp521r1:
+			return "ecdsa-sha2-nistp521";
+		default:
+			break;
+		}
+		break;
+	case KEY_ECDSA_CERT:
+		switch (nid) {
+		case NID_X9_62_prime256v1:
+			return "ecdsa-sha2-nistp256-cert-v01@openssh.com";
+		case NID_secp384r1:
+			return "ecdsa-sha2-nistp384-cert-v01@openssh.com";
+		case NID_secp521r1:
+			return "ecdsa-sha2-nistp521-cert-v01@openssh.com";
+		default:
+			break;
+		}
+		break;
 	}
 	return "ssh-unknown";
+}
+
+const char *
+key_ssh_name(const Key *k)
+{
+	return key_ssh_name_from_type_nid(k->type, k->ecdsa_nid);
+}
+
+const char *
+key_ssh_name_plain(const Key *k)
+{
+	return key_ssh_name_from_type_nid(key_type_plain(k->type),
+	    k->ecdsa_nid);
 }
 
 u_int
@@ -868,6 +976,19 @@ key_size(const Key *k)
 	case KEY_DSA_CERT_V00:
 	case KEY_DSA_CERT:
 		return BN_num_bits(k->dsa->p);
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		switch (k->ecdsa_nid) {
+		case NID_X9_62_prime256v1:
+			return 256;
+		case NID_secp384r1:
+			return 384;
+		case NID_secp521r1:
+			return 521;
+		default:
+			break;
+		}
+		break;
 	}
 	return 0;
 }
@@ -897,6 +1018,69 @@ dsa_generate_private_key(u_int bits)
 	return private;
 }
 
+int
+key_ecdsa_bits_to_nid(int bits)
+{
+	switch (bits) {
+	case 256:
+		return NID_X9_62_prime256v1;
+	case 384:
+		return NID_secp384r1;
+	case 521:
+		return NID_secp521r1;
+	default:
+		return -1;
+	}
+}
+
+/*
+ * This is horrid, but OpenSSL's PEM_read_PrivateKey seems not to restore
+ * the EC_GROUP nid when loading a key...
+ */
+int
+key_ecdsa_group_to_nid(const EC_GROUP *g)
+{
+	EC_GROUP *eg;
+	int nids[] = {
+		NID_X9_62_prime256v1,
+		NID_secp384r1,
+		NID_secp521r1,
+		-1
+	};
+	u_int i;
+	BN_CTX *bnctx;
+
+	if ((bnctx = BN_CTX_new()) == NULL)
+		fatal("%s: BN_CTX_new() failed", __func__);
+	for (i = 0; nids[i] != -1; i++) {
+		if ((eg = EC_GROUP_new_by_curve_name(nids[i])) == NULL)
+			fatal("%s: EC_GROUP_new_by_curve_name failed",
+			    __func__);
+		if (EC_GROUP_cmp(g, eg, bnctx) == 0) {
+			EC_GROUP_free(eg);
+			break;
+		}
+		EC_GROUP_free(eg);
+	}
+	BN_CTX_free(bnctx);
+	debug3("%s: nid = %d", __func__, nids[i]);
+	return nids[i];
+}
+
+static EC_KEY*
+ecdsa_generate_private_key(u_int bits, int *nid)
+{
+	EC_KEY *private;
+
+	if ((*nid = key_ecdsa_bits_to_nid(bits)) == -1)
+		fatal("%s: invalid key length", __func__);
+	if ((private = EC_KEY_new_by_curve_name(*nid)) == NULL)
+		fatal("%s: EC_KEY_new_by_curve_name failed", __func__);
+	if (EC_KEY_generate_key(private) != 1)
+		fatal("%s: EC_KEY_generate_key failed", __func__);
+	return private;
+}
+
 Key *
 key_generate(int type, u_int bits)
 {
@@ -904,6 +1088,9 @@ key_generate(int type, u_int bits)
 	switch (type) {
 	case KEY_DSA:
 		k->dsa = dsa_generate_private_key(bits);
+		break;
+	case KEY_ECDSA:
+		k->ecdsa = ecdsa_generate_private_key(bits, &k->ecdsa_nid);
 		break;
 	case KEY_RSA:
 	case KEY_RSA1:
@@ -981,6 +1168,16 @@ key_from_private(const Key *k)
 		    (BN_copy(n->dsa->pub_key, k->dsa->pub_key) == NULL))
 			fatal("key_from_private: BN_copy failed");
 		break;
+	case KEY_ECDSA:
+	case KEY_ECDSA_CERT:
+		n = key_new(k->type);
+		n->ecdsa_nid = k->ecdsa_nid;
+		if ((n->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid)) == NULL)
+			fatal("%s: EC_KEY_new_by_curve_name failed", __func__);
+		if (EC_KEY_set_public_key(n->ecdsa,
+		    EC_KEY_get0_public_key(k->ecdsa)) != 1)
+			fatal("%s: EC_KEY_set_public_key failed", __func__);
+		break;
 	case KEY_RSA:
 	case KEY_RSA1:
 	case KEY_RSA_CERT_V00:
@@ -1012,6 +1209,11 @@ key_type_from_name(char *name)
 		return KEY_RSA;
 	} else if (strcmp(name, "ssh-dss") == 0) {
 		return KEY_DSA;
+	} else if (strcmp(name, "ecdsa") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp256") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp384") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp521") == 0) {
+		return KEY_ECDSA;
 	} else if (strcmp(name, "ssh-rsa-cert-v00@openssh.com") == 0) {
 		return KEY_RSA_CERT_V00;
 	} else if (strcmp(name, "ssh-dss-cert-v00@openssh.com") == 0) {
@@ -1020,9 +1222,30 @@ key_type_from_name(char *name)
 		return KEY_RSA_CERT;
 	} else if (strcmp(name, "ssh-dss-cert-v01@openssh.com") == 0) {
 		return KEY_DSA_CERT;
-	}
+	} else if (strcmp(name, "ecdsa-sha2-nistp256-cert-v01@openssh.com") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp384-cert-v01@openssh.com") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp521-cert-v01@openssh.com") == 0)
+		return KEY_ECDSA_CERT;
+
 	debug2("key_type_from_name: unknown key type '%s'", name);
 	return KEY_UNSPEC;
+}
+
+int
+key_ecdsa_nid_from_name(const char *name)
+{
+	if (strcmp(name, "ecdsa-sha2-nistp256") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp256-cert-v01@openssh.com") == 0)
+		return NID_X9_62_prime256v1;
+	if (strcmp(name, "ecdsa-sha2-nistp384") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp384-cert-v01@openssh.com") == 0)
+		return NID_secp384r1;
+	if (strcmp(name, "ecdsa-sha2-nistp521") == 0 ||
+	    strcmp(name, "ecdsa-sha2-nistp521-cert-v01@openssh.com") == 0)
+		return NID_secp521r1;
+
+	debug2("%s: unknown/non-ECDSA key type '%s'", __func__, name);
+	return -1;
 }
 
 int
@@ -1146,7 +1369,8 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 		goto out;
 	}
 	if (key->cert->signature_key->type != KEY_RSA &&
-	    key->cert->signature_key->type != KEY_DSA) {
+	    key->cert->signature_key->type != KEY_DSA &&
+	    key->cert->signature_key->type != KEY_ECDSA) {
 		error("%s: Invalid signature key type %s (%d)", __func__,
 		    key_type(key->cert->signature_key),
 		    key->cert->signature_key->type);
@@ -1186,9 +1410,10 @@ Key *
 key_from_blob(const u_char *blob, u_int blen)
 {
 	Buffer b;
-	int rlen, type;
-	char *ktype = NULL;
+	int rlen, type, nid = -1;
+	char *ktype = NULL, *curve = NULL;
 	Key *key = NULL;
+	EC_POINT *q = NULL;
 
 #ifdef DEBUG_PK
 	dump_base64(stderr, blob, blen);
@@ -1201,6 +1426,8 @@ key_from_blob(const u_char *blob, u_int blen)
 	}
 
 	type = key_type_from_name(ktype);
+	if (key_type_plain(type) == KEY_ECDSA)
+		nid = key_ecdsa_nid_from_name(ktype);
 
 	switch (type) {
 	case KEY_RSA_CERT:
@@ -1238,6 +1465,41 @@ key_from_blob(const u_char *blob, u_int blen)
 		DSA_print_fp(stderr, key->dsa, 8);
 #endif
 		break;
+	case KEY_ECDSA_CERT:
+		(void)buffer_get_string_ptr_ret(&b, NULL); /* Skip nonce */
+		/* FALLTHROUGH */
+	case KEY_ECDSA:
+		key = key_new(type);
+		key->ecdsa_nid = nid;
+		if ((curve = buffer_get_string_ret(&b, NULL)) == NULL) {
+			error("key_from_blob: can't read ecdsa curve");
+			goto badkey;
+		}
+		if (key->ecdsa_nid != key_curve_name_to_nid(curve)) {
+			error("key_from_blob: ecdsa curve doesn't match type");
+			goto badkey;
+		}
+		if (key->ecdsa != NULL)
+			EC_KEY_free(key->ecdsa);
+		if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid))
+		    == NULL)
+			fatal("key_from_blob: EC_KEY_new_by_curve_name failed");
+		if ((q = EC_POINT_new(EC_KEY_get0_group(key->ecdsa))) == NULL)
+			fatal("key_from_blob: EC_POINT_new failed");
+		if (buffer_get_ecpoint_ret(&b, EC_KEY_get0_group(key->ecdsa),
+		    q) == -1) {
+			error("key_from_blob: can't read ecdsa key point");
+			goto badkey;
+		}
+		if (key_ec_validate_public(EC_KEY_get0_group(key->ecdsa),
+		    q) != 0)
+			goto badkey;
+		if (EC_KEY_set_public_key(key->ecdsa, q) != 1)
+			fatal("key_from_blob: EC_KEY_set_public_key failed");
+#ifdef DEBUG_PK
+		key_dump_ec_point(EC_KEY_get0_group(key->ecdsa), q);
+#endif
+		break;
 	case KEY_UNSPEC:
 		key = key_new(type);
 		break;
@@ -1255,6 +1517,10 @@ key_from_blob(const u_char *blob, u_int blen)
  out:
 	if (ktype != NULL)
 		xfree(ktype);
+	if (curve != NULL)
+		xfree(curve);
+	if (q != NULL)
+		EC_POINT_free(q);
 	buffer_free(&b);
 	return key;
 }
@@ -1274,6 +1540,7 @@ key_to_blob(const Key *key, u_char **blobp, u_int *lenp)
 	case KEY_DSA_CERT_V00:
 	case KEY_RSA_CERT_V00:
 	case KEY_DSA_CERT:
+	case KEY_ECDSA_CERT:
 	case KEY_RSA_CERT:
 		/* Use the existing blob */
 		buffer_append(&b, buffer_ptr(&key->cert->certblob),
@@ -1285,6 +1552,12 @@ key_to_blob(const Key *key, u_char **blobp, u_int *lenp)
 		buffer_put_bignum2(&b, key->dsa->q);
 		buffer_put_bignum2(&b, key->dsa->g);
 		buffer_put_bignum2(&b, key->dsa->pub_key);
+		break;
+	case KEY_ECDSA:
+		buffer_put_cstring(&b, key_ssh_name(key));
+		buffer_put_cstring(&b, key_curve_nid_to_name(key->ecdsa_nid));
+		buffer_put_ecpoint(&b, EC_KEY_get0_group(key->ecdsa),
+		    EC_KEY_get0_public_key(key->ecdsa));
 		break;
 	case KEY_RSA:
 		buffer_put_cstring(&b, key_ssh_name(key));
@@ -1319,6 +1592,9 @@ key_sign(
 	case KEY_DSA_CERT:
 	case KEY_DSA:
 		return ssh_dss_sign(key, sigp, lenp, data, datalen);
+	case KEY_ECDSA_CERT:
+	case KEY_ECDSA:
+		return ssh_ecdsa_sign(key, sigp, lenp, data, datalen);
 	case KEY_RSA_CERT_V00:
 	case KEY_RSA_CERT:
 	case KEY_RSA:
@@ -1347,6 +1623,9 @@ key_verify(
 	case KEY_DSA_CERT:
 	case KEY_DSA:
 		return ssh_dss_verify(key, signature, signaturelen, data, datalen);
+	case KEY_ECDSA_CERT:
+	case KEY_ECDSA:
+		return ssh_ecdsa_verify(key, signature, signaturelen, data, datalen);
 	case KEY_RSA_CERT_V00:
 	case KEY_RSA_CERT:
 	case KEY_RSA:
@@ -1366,7 +1645,9 @@ key_demote(const Key *k)
 	pk = xcalloc(1, sizeof(*pk));
 	pk->type = k->type;
 	pk->flags = k->flags;
+	pk->ecdsa_nid = k->ecdsa_nid;
 	pk->dsa = NULL;
+	pk->ecdsa = NULL;
 	pk->rsa = NULL;
 
 	switch (k->type) {
@@ -1399,6 +1680,16 @@ key_demote(const Key *k)
 		if ((pk->dsa->pub_key = BN_dup(k->dsa->pub_key)) == NULL)
 			fatal("key_demote: BN_dup failed");
 		break;
+	case KEY_ECDSA_CERT:
+		key_cert_copy(k, pk);
+		/* FALLTHROUGH */
+	case KEY_ECDSA:
+		if ((pk->ecdsa = EC_KEY_new_by_curve_name(pk->ecdsa_nid)) == NULL)
+			fatal("key_demote: EC_KEY_new_by_curve_name failed");
+		if (EC_KEY_set_public_key(pk->ecdsa,
+		    EC_KEY_get0_public_key(k->ecdsa)) != 1)
+			fatal("key_demote: EC_KEY_set_public_key failed");
+		break;
 	default:
 		fatal("key_free: bad key type %d", k->type);
 		break;
@@ -1417,6 +1708,7 @@ key_is_cert(const Key *k)
 	case KEY_DSA_CERT_V00:
 	case KEY_RSA_CERT:
 	case KEY_DSA_CERT:
+	case KEY_ECDSA_CERT:
 		return 1;
 	default:
 		return 0;
@@ -1434,6 +1726,8 @@ key_type_plain(int type)
 	case KEY_DSA_CERT_V00:
 	case KEY_DSA_CERT:
 		return KEY_DSA;
+	case KEY_ECDSA_CERT:
+		return KEY_ECDSA;
 	default:
 		return type;
 	}
@@ -1451,6 +1745,10 @@ key_to_certified(Key *k, int legacy)
 	case KEY_DSA:
 		k->cert = cert_new();
 		k->type = legacy ? KEY_DSA_CERT_V00 : KEY_DSA_CERT;
+		return 0;
+	case KEY_ECDSA:
+		k->cert = cert_new();
+		k->type = KEY_ECDSA_CERT;
 		return 0;
 	default:
 		error("%s: key has incorrect type %s", __func__, key_type(k));
@@ -1473,13 +1771,20 @@ key_drop_cert(Key *k)
 		cert_free(k->cert);
 		k->type = KEY_DSA;
 		return 0;
+	case KEY_ECDSA_CERT:
+		cert_free(k->cert);
+		k->type = KEY_ECDSA;
+		return 0;
 	default:
 		error("%s: key has incorrect type %s", __func__, key_type(k));
 		return -1;
 	}
 }
 
-/* Sign a KEY_RSA_CERT or KEY_DSA_CERT, (re-)generating the signed certblob */
+/*
+ * Sign a KEY_RSA_CERT, KEY_DSA_CERT or KEY_ECDSA_CERT, (re-)generating
+ * the signed certblob
+ */
 int
 key_certify(Key *k, Key *ca)
 {
@@ -1498,7 +1803,8 @@ key_certify(Key *k, Key *ca)
 		return -1;
 	}
 
-	if (ca->type != KEY_RSA && ca->type != KEY_DSA) {
+	if (ca->type != KEY_RSA && ca->type != KEY_DSA &&
+	    ca->type != KEY_ECDSA) {
 		error("%s: CA key has unsupported type %s", __func__,
 		    key_type(ca));
 		return -1;
@@ -1510,7 +1816,7 @@ key_certify(Key *k, Key *ca)
 	buffer_put_cstring(&k->cert->certblob, key_ssh_name(k));
 
 	/* -v01 certs put nonce first */
-	if (k->type == KEY_DSA_CERT || k->type == KEY_RSA_CERT) {
+	if (!key_cert_is_legacy(k)) {
 		arc4random_buf(&nonce, sizeof(nonce));
 		buffer_put_string(&k->cert->certblob, nonce, sizeof(nonce));
 	}
@@ -1522,6 +1828,13 @@ key_certify(Key *k, Key *ca)
 		buffer_put_bignum2(&k->cert->certblob, k->dsa->q);
 		buffer_put_bignum2(&k->cert->certblob, k->dsa->g);
 		buffer_put_bignum2(&k->cert->certblob, k->dsa->pub_key);
+		break;
+	case KEY_ECDSA_CERT:
+		buffer_put_cstring(&k->cert->certblob,
+		    key_curve_nid_to_name(k->ecdsa_nid));
+		buffer_put_ecpoint(&k->cert->certblob,
+		    EC_KEY_get0_group(k->ecdsa),
+		    EC_KEY_get0_public_key(k->ecdsa));
 		break;
 	case KEY_RSA_CERT_V00:
 	case KEY_RSA_CERT:
@@ -1536,7 +1849,7 @@ key_certify(Key *k, Key *ca)
 	}
 
 	/* -v01 certs have a serial number next */
-	if (k->type == KEY_DSA_CERT || k->type == KEY_RSA_CERT)
+	if (!key_cert_is_legacy(k))
 		buffer_put_int64(&k->cert->certblob, k->cert->serial);
 
 	buffer_put_int(&k->cert->certblob, k->cert->type);
@@ -1555,14 +1868,14 @@ key_certify(Key *k, Key *ca)
 	    buffer_ptr(&k->cert->critical), buffer_len(&k->cert->critical));
 
 	/* -v01 certs have non-critical options here */
-	if (k->type == KEY_DSA_CERT || k->type == KEY_RSA_CERT) {
+	if (!key_cert_is_legacy(k)) {
 		buffer_put_string(&k->cert->certblob,
 		    buffer_ptr(&k->cert->extensions),
 		    buffer_len(&k->cert->extensions));
 	}
 
 	/* -v00 certs put the nonce at the end */
-	if (k->type == KEY_DSA_CERT_V00 || k->type == KEY_RSA_CERT_V00)
+	if (key_cert_is_legacy(k))
 		buffer_put_string(&k->cert->certblob, nonce, sizeof(nonce));
 
 	buffer_put_string(&k->cert->certblob, NULL, 0); /* reserved */
@@ -1647,3 +1960,201 @@ key_cert_is_legacy(Key *k)
 		return 0;
 	}
 }
+
+int
+key_curve_name_to_nid(const char *name)
+{
+	if (strcmp(name, "nistp256") == 0)
+		return NID_X9_62_prime256v1;
+	else if (strcmp(name, "nistp384") == 0)
+		return NID_secp384r1;
+	else if (strcmp(name, "nistp521") == 0)
+		return NID_secp521r1;
+
+	debug("%s: unsupported EC curve name \"%.100s\"", __func__, name);
+	return -1;
+}
+
+const char *
+key_curve_nid_to_name(int nid)
+{
+	if (nid == NID_X9_62_prime256v1)
+		return "nistp256";
+	else if (nid == NID_secp384r1)
+		return "nistp384";
+	else if (nid == NID_secp521r1)
+		return "nistp521";
+
+	error("%s: unsupported EC curve nid %d", __func__, nid);
+	return NULL;
+}
+
+int
+key_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
+{
+	BN_CTX *bnctx;
+	EC_POINT *nq = NULL;
+	BIGNUM *order, *x, *y, *tmp;
+	int ret = -1;
+
+	if ((bnctx = BN_CTX_new()) == NULL)
+		fatal("%s: BN_CTX_new failed", __func__);
+	BN_CTX_start(bnctx);
+
+	/*
+	 * We shouldn't ever hit this case because bignum_get_ecpoint()
+	 * refuses to load GF2m points.
+	 */
+	if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
+	    NID_X9_62_prime_field) {
+		error("%s: group is not a prime field", __func__);
+		goto out;
+	}
+
+	/* Q != infinity */
+	if (EC_POINT_is_at_infinity(group, public)) {
+		error("%s: received degenerate public key (infinity)",
+		    __func__);
+		goto out;
+	}
+
+	if ((x = BN_CTX_get(bnctx)) == NULL ||
+	    (y = BN_CTX_get(bnctx)) == NULL ||
+	    (order = BN_CTX_get(bnctx)) == NULL ||
+	    (tmp = BN_CTX_get(bnctx)) == NULL)
+		fatal("%s: BN_CTX_get failed", __func__);
+
+	/* log2(x) > log2(order)/2, log2(y) > log2(order)/2 */
+	if (EC_GROUP_get_order(group, order, bnctx) != 1)
+		fatal("%s: EC_GROUP_get_order failed", __func__);
+	if (EC_POINT_get_affine_coordinates_GFp(group, public,
+	    x, y, bnctx) != 1)
+		fatal("%s: EC_POINT_get_affine_coordinates_GFp", __func__);
+	if (BN_num_bits(x) <= BN_num_bits(order) / 2) {
+		error("%s: public key x coordinate too small: "
+		    "bits(x) = %d, bits(order)/2 = %d", __func__,
+		    BN_num_bits(x), BN_num_bits(order) / 2);
+		goto out;
+	}
+	if (BN_num_bits(y) <= BN_num_bits(order) / 2) {
+		error("%s: public key y coordinate too small: "
+		    "bits(y) = %d, bits(order)/2 = %d", __func__,
+		    BN_num_bits(x), BN_num_bits(order) / 2);
+		goto out;
+	}
+
+	/* nQ == infinity (n == order of subgroup) */
+	if ((nq = EC_POINT_new(group)) == NULL)
+		fatal("%s: BN_CTX_tmp failed", __func__);
+	if (EC_POINT_mul(group, nq, NULL, public, order, bnctx) != 1)
+		fatal("%s: EC_GROUP_mul failed", __func__);
+	if (EC_POINT_is_at_infinity(group, nq) != 1) {
+		error("%s: received degenerate public key (nQ != infinity)",
+		    __func__);
+		goto out;
+	}
+
+	/* x < order - 1, y < order - 1 */
+	if (!BN_sub(tmp, order, BN_value_one()))
+		fatal("%s: BN_sub failed", __func__);
+	if (BN_cmp(x, tmp) >= 0) {
+		error("%s: public key x coordinate >= group order - 1",
+		    __func__);
+		goto out;
+	}
+	if (BN_cmp(y, tmp) >= 0) {
+		error("%s: public key y coordinate >= group order - 1",
+		    __func__);
+		goto out;
+	}
+	ret = 0;
+ out:
+	BN_CTX_free(bnctx);
+	EC_POINT_free(nq);
+	return ret;
+}
+
+int
+key_ec_validate_private(const EC_KEY *key)
+{
+	BN_CTX *bnctx;
+	BIGNUM *order, *tmp;
+	int ret = -1;
+
+	if ((bnctx = BN_CTX_new()) == NULL)
+		fatal("%s: BN_CTX_new failed", __func__);
+	BN_CTX_start(bnctx);
+
+	if ((order = BN_CTX_get(bnctx)) == NULL ||
+	    (tmp = BN_CTX_get(bnctx)) == NULL)
+		fatal("%s: BN_CTX_get failed", __func__);
+
+	/* log2(private) > log2(order)/2 */
+	if (EC_GROUP_get_order(EC_KEY_get0_group(key), order, bnctx) != 1)
+		fatal("%s: EC_GROUP_get_order failed", __func__);
+	if (BN_num_bits(EC_KEY_get0_private_key(key)) <=
+	    BN_num_bits(order) / 2) {
+		error("%s: private key too small: "
+		    "bits(y) = %d, bits(order)/2 = %d", __func__,
+		    BN_num_bits(EC_KEY_get0_private_key(key)),
+		    BN_num_bits(order) / 2);
+		goto out;
+	}
+
+	/* private < order - 1 */
+	if (!BN_sub(tmp, order, BN_value_one()))
+		fatal("%s: BN_sub failed", __func__);
+	if (BN_cmp(EC_KEY_get0_private_key(key), tmp) >= 0) {
+		error("%s: private key >= group order - 1", __func__);
+		goto out;
+	}
+	ret = 0;
+ out:
+	BN_CTX_free(bnctx);
+	return ret;
+}
+
+#if defined(DEBUG_KEXECDH) || defined(DEBUG_PK)
+void
+key_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
+{
+	BIGNUM *x, *y;
+	BN_CTX *bnctx;
+
+	if (point == NULL) {
+		fputs("point=(NULL)\n", stderr);
+		return;
+	}
+	if ((bnctx = BN_CTX_new()) == NULL)
+		fatal("%s: BN_CTX_new failed", __func__);
+	BN_CTX_start(bnctx);
+	if ((x = BN_CTX_get(bnctx)) == NULL || (y = BN_CTX_get(bnctx)) == NULL)
+		fatal("%s: BN_CTX_get failed", __func__);
+	if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
+	    NID_X9_62_prime_field)
+		fatal("%s: group is not a prime field", __func__);
+	if (EC_POINT_get_affine_coordinates_GFp(group, point, x, y, bnctx) != 1)
+		fatal("%s: EC_POINT_get_affine_coordinates_GFp", __func__);
+	fputs("x=", stderr);
+	BN_print_fp(stderr, x);
+	fputs("\ny=", stderr);
+	BN_print_fp(stderr, y);
+	fputs("\n", stderr);
+	BN_CTX_free(bnctx);
+}
+
+void
+key_dump_ec_key(const EC_KEY *key)
+{
+	const BIGNUM *exponent;
+
+	key_dump_ec_point(EC_KEY_get0_group(key), EC_KEY_get0_public_key(key));
+	fputs("exponent=", stderr);
+	if ((exponent = EC_KEY_get0_private_key(key)) == NULL)
+		fputs("(NULL)", stderr);
+	else
+		BN_print_fp(stderr, EC_KEY_get0_private_key(key));
+	fputs("\n", stderr);
+}
+#endif /* defined(DEBUG_KEXECDH) || defined(DEBUG_PK) */
+

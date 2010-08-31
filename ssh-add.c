@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.98 2010/08/16 04:06:06 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.99 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -70,6 +70,7 @@ extern char *__progname;
 static char *default_files[] = {
 	_PATH_SSH_CLIENT_ID_RSA,
 	_PATH_SSH_CLIENT_ID_DSA,
+	_PATH_SSH_CLIENT_ID_ECDSA,
 	_PATH_SSH_CLIENT_IDENTITY,
 	NULL
 };

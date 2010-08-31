@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.169 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.170 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -639,6 +639,12 @@ void
 packet_put_bignum2(BIGNUM * value)
 {
 	buffer_put_bignum2(&active_state->outgoing_packet, value);
+}
+
+void
+packet_put_ecpoint(const EC_GROUP *curve, const EC_POINT *point)
+{
+	buffer_put_ecpoint(&active_state->outgoing_packet, curve, point);
 }
 
 /*
@@ -1509,6 +1515,12 @@ void
 packet_get_bignum2(BIGNUM * value)
 {
 	buffer_get_bignum2(&active_state->incoming_packet, value);
+}
+
+void
+packet_get_ecpoint(const EC_GROUP *curve, EC_POINT *point)
+{
+	buffer_get_ecpoint(&active_state->incoming_packet, curve, point);
 }
 
 void *

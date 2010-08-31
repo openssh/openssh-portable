@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.82 2010/06/22 04:54:30 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.83 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -52,9 +52,10 @@ int IPv4or6 = AF_UNSPEC;
 
 int ssh_port = SSH_DEFAULT_PORT;
 
-#define KT_RSA1	1
-#define KT_DSA	2
-#define KT_RSA	4
+#define KT_RSA1		1
+#define KT_DSA		2
+#define KT_RSA		4
+#define KT_ECDSA	8
 
 int get_keytypes = KT_RSA;	/* Get only RSA keys by default */
 
@@ -251,6 +252,7 @@ keygrab_ssh2(con *c)
 	c->c_kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	c->c_kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
+	c->c_kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
 	c->c_kex->verify_host_key = hostjump;
 
 	if (!(j = setjmp(kexjmp))) {
@@ -672,6 +674,9 @@ main(int argc, char **argv)
 					break;
 				case KEY_DSA:
 					get_keytypes |= KT_DSA;
+					break;
+				case KEY_ECDSA:
+					get_keytypes |= KT_ECDSA;
 					break;
 				case KEY_RSA:
 					get_keytypes |= KT_RSA;

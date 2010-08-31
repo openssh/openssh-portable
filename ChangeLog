@@ -25,6 +25,29 @@
      * actually, we allow a single one at the end of the string for now because
      we don't know how many deployed implementations get this wrong, but don't
      count on this to remain indefinitely.
+   - djm@cvs.openbsd.org 2010/08/31 11:54:45
+     [PROTOCOL PROTOCOL.agent PROTOCOL.certkeys auth2-jpake.c authfd.c]
+     [authfile.c buffer.h dns.c kex.c kex.h key.c key.h monitor.c]
+     [monitor_wrap.c myproposal.h packet.c packet.h pathnames.h readconf.c]
+     [ssh-add.1 ssh-add.c ssh-agent.1 ssh-agent.c ssh-keygen.1 ssh-keygen.c]
+     [ssh-keyscan.1 ssh-keyscan.c ssh-keysign.8 ssh.1 ssh.c ssh2.h]
+     [ssh_config.5 sshconnect.c sshconnect2.c sshd.8 sshd.c sshd_config.5]
+     [uuencode.c uuencode.h bufec.c kexecdh.c kexecdhc.c kexecdhs.c ssh-ecdsa.c]
+     Implement Elliptic Curve Cryptography modes for key exchange (ECDH) and
+     host/user keys (ECDSA) as specified by RFC5656. ECDH and ECDSA offer
+     better performance than plain DH and DSA at the same equivalent symmetric
+     key length, as well as much shorter keys.
+     
+     Only the mandatory sections of RFC5656 are implemented, specifically the
+     three REQUIRED curves nistp256, nistp384 and nistp521 and only ECDH and
+     ECDSA. Point compression (optional in RFC5656 is NOT implemented).
+     
+     Certificate host and user keys using the new ECDSA key types are supported.
+     
+     Note that this code has not been tested for interoperability and may be
+     subject to change.
+     
+     feedback and ok markus@
 
 20100827
  - (dtucker) [contrib/redhat/sshd.init] Bug #1810: initlog is deprecated,

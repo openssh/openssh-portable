@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.348 2010/08/16 04:06:06 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.349 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -780,7 +780,7 @@ main(int ac, char **av)
 	sensitive_data.external_keysign = 0;
 	if (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication) {
-		sensitive_data.nkeys = 5;
+		sensitive_data.nkeys = 7;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
 
@@ -789,25 +789,34 @@ main(int ac, char **av)
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
 		sensitive_data.keys[1] = key_load_private_cert(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
-		sensitive_data.keys[2] = key_load_private_cert(KEY_RSA,
+		sensitive_data.keys[2] = key_load_private_cert(KEY_ECDSA,
+		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
+		sensitive_data.keys[3] = key_load_private_cert(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
-		sensitive_data.keys[3] = key_load_private_type(KEY_DSA,
+		sensitive_data.keys[4] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[4] = key_load_private_type(KEY_RSA,
+		sensitive_data.keys[5] = key_load_private_type(KEY_ECDSA,
+		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[6] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
 		    sensitive_data.keys[0] == NULL &&
-		    sensitive_data.keys[3] == NULL &&
-		    sensitive_data.keys[4] == NULL) {
+		    sensitive_data.keys[4] == NULL &&
+		    sensitive_data.keys[5] == NULL &&
+		    sensitive_data.keys[6] == NULL) {
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_DSA_KEY_FILE);
 			sensitive_data.keys[2] = key_load_cert(
+			    _PATH_HOST_ECDSA_KEY_FILE);
+			sensitive_data.keys[3] = key_load_cert(
 			    _PATH_HOST_RSA_KEY_FILE);
-			sensitive_data.keys[3] = key_load_public(
-			    _PATH_HOST_DSA_KEY_FILE, NULL);
 			sensitive_data.keys[4] = key_load_public(
+			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			sensitive_data.keys[5] = key_load_public(
+			    _PATH_HOST_ECDSA_KEY_FILE, NULL);
+			sensitive_data.keys[6] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}

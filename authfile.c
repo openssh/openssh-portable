@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.82 2010/08/04 05:49:22 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.83 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -213,6 +213,10 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 		success = PEM_write_DSAPrivateKey(fp, key->dsa,
 		    cipher, passphrase, len, NULL, NULL);
 		break;
+	case KEY_ECDSA:
+		success = PEM_write_ECPrivateKey(fp, key->ecdsa,
+		    cipher, passphrase, len, NULL, NULL);
+		break;
 	case KEY_RSA:
 		success = PEM_write_RSAPrivateKey(fp, key->rsa,
 		    cipher, passphrase, len, NULL, NULL);
@@ -231,6 +235,7 @@ key_save_private(Key *key, const char *filename, const char *passphrase,
 		return key_save_private_rsa1(key, filename, passphrase,
 		    comment);
 	case KEY_DSA:
+	case KEY_ECDSA:
 	case KEY_RSA:
 		return key_save_private_pem(key, filename, passphrase,
 		    comment);
@@ -510,6 +515,29 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 #ifdef DEBUG_PK
 		DSA_print_fp(stderr, prv->dsa, 8);
 #endif
+	} else if (pk->type == EVP_PKEY_EC &&
+	    (type == KEY_UNSPEC||type==KEY_ECDSA)) {
+		prv = key_new(KEY_UNSPEC);
+		prv->ecdsa = EVP_PKEY_get1_EC_KEY(pk);
+		prv->type = KEY_ECDSA;
+		prv->ecdsa_nid = key_ecdsa_group_to_nid(
+		    EC_KEY_get0_group(prv->ecdsa));
+		if (key_curve_nid_to_name(prv->ecdsa_nid) == NULL) {
+			key_free(prv);
+			prv = NULL;
+		}
+		if (key_ec_validate_public(EC_KEY_get0_group(prv->ecdsa),
+		    EC_KEY_get0_public_key(prv->ecdsa)) != 0 ||
+		    key_ec_validate_private(prv->ecdsa) != 0) {
+			error("%s: bad ECDSA key", __func__);
+			key_free(prv);
+			prv = NULL;
+		}
+		name = "dsa w/o comment";
+#ifdef DEBUG_PK
+		if (prv->ecdsa != NULL)
+			key_dump_ec_key(prv->ecdsa);
+#endif
 	} else {
 		error("PEM_read_PrivateKey: mismatch or "
 		    "unknown EVP_PKEY save_type %d", pk->save_type);
@@ -581,6 +609,7 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 		    commentp);
 		/* closes fd */
 	case KEY_DSA:
+	case KEY_ECDSA:
 	case KEY_RSA:
 	case KEY_UNSPEC:
 		return key_load_private_pem(fd, type, passphrase, commentp);
@@ -721,6 +750,7 @@ key_load_private_cert(int type, const char *filename, const char *passphrase,
 	switch (type) {
 	case KEY_RSA:
 	case KEY_DSA:
+	case KEY_ECDSA:
 		break;
 	default:
 		error("%s: unsupported key type", __func__);

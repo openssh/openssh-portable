@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.258 2010/08/08 19:36:30 jmc Exp $
-.Dd $Mdocdate: August 8 2010 $
+.\" $OpenBSD: sshd.8,v 1.259 2010/08/31 11:54:45 djm Exp $
+.Dd $Mdocdate: August 31 2010 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -170,9 +170,10 @@ host key files are normally not readable by anyone but root).
 The default is
 .Pa /etc/ssh/ssh_host_key
 for protocol version 1, and
-.Pa /etc/ssh/ssh_host_rsa_key
+.Pa /etc/ssh/ssh_host_dsa_key ,
+.Pa /etc/ssh/ssh_host_ecdsa_key
 and
-.Pa /etc/ssh/ssh_host_dsa_key
+.Pa /etc/ssh/ssh_host_rsa_key
 for protocol version 2.
 It is possible to have multiple host key files for
 the different protocol versions and host key algorithms.
@@ -275,7 +276,7 @@ though this can be changed via the
 .Cm Protocol
 option in
 .Xr sshd_config 5 .
-Protocol 2 supports both RSA and DSA keys;
+Protocol 2 supports DSA, ECDSA and RSA keys;
 protocol 1 only supports RSA keys.
 For both protocols,
 each host has a host-specific key,
@@ -483,6 +484,9 @@ protocol version 1; the
 comment field is not used for anything (but may be convenient for the
 user to identify the key).
 For protocol version 2 the keytype is
+.Dq ecdsa-sha2-nistp256 ,
+.Dq ecdsa-sha2-nistp384 ,
+.Dq ecdsa-sha2-nistp521 ,
 .Dq ssh-dss
 or
 .Dq ssh-rsa .
@@ -494,6 +498,7 @@ keys up to 16 kilobits.
 You don't want to type them in; instead, copy the
 .Pa identity.pub ,
 .Pa id_dsa.pub ,
+.Pa id_ecdsa.pub ,
 or the
 .Pa id_rsa.pub
 file and edit it.
@@ -792,7 +797,8 @@ secret, but the recommended permissions are read/write/execute for the user,
 and not accessible by others.
 .Pp
 .It Pa ~/.ssh/authorized_keys
-Lists the public keys (RSA/DSA) that can be used for logging in as this user.
+Lists the public keys (DSA/ECDSA/RSA) that can be used for logging in
+as this user.
 The format of this file is described above.
 The content of the file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
@@ -871,6 +877,7 @@ rlogin/rsh.
 .Pp
 .It Pa /etc/ssh/ssh_host_key
 .It Pa /etc/ssh/ssh_host_dsa_key
+.It Pa /etc/ssh/ssh_host_ecdsa_key
 .It Pa /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys.
 These files should only be owned by root, readable only by root, and not
@@ -881,6 +888,7 @@ does not start if these files are group/world-accessible.
 .Pp
 .It Pa /etc/ssh/ssh_host_key.pub
 .It Pa /etc/ssh/ssh_host_dsa_key.pub
+.It Pa /etc/ssh/ssh_host_ecdsa_key.pub
 .It Pa /etc/ssh/ssh_host_rsa_key.pub
 These three files contain the public parts of the host keys.
 These files should be world-readable but writable only by

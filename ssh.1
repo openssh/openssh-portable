@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.309 2010/08/08 19:36:30 jmc Exp $
-.Dd $Mdocdate: August 8 2010 $
+.\" $OpenBSD: ssh.1,v 1.310 2010/08/31 11:54:45 djm Exp $
+.Dd $Mdocdate: August 31 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -269,13 +269,14 @@ should use to communicate with a PKCS#11 token providing the user's
 private RSA key.
 .It Fl i Ar identity_file
 Selects a file from which the identity (private key) for
-RSA or DSA authentication is read.
+public key authentication is read.
 The default is
 .Pa ~/.ssh/identity
 for protocol version 1, and
-.Pa ~/.ssh/id_rsa
+.Pa ~/.ssh/id_dsa ,
+.Pa ~/.ssh/id_ecdsa
 and
-.Pa ~/.ssh/id_dsa
+.Pa ~/.ssh/id_rsa
 for protocol version 2.
 Identity files may also be specified on
 a per-host basis in the configuration file.
@@ -721,9 +722,9 @@ key pair for authentication purposes.
 The server knows the public key, and only the user knows the private key.
 .Nm
 implements public key authentication protocol automatically,
-using either the RSA or DSA algorithms.
+using one of the DSA, ECDSA or RSA algorithms.
 Protocol 1 is restricted to using only RSA keys,
-but protocol 2 may use either.
+but protocol 2 may use any.
 The
 .Sx HISTORY
 section of
@@ -748,6 +749,8 @@ This stores the private key in
 (protocol 1),
 .Pa ~/.ssh/id_dsa
 (protocol 2 DSA),
+.Pa ~/.ssh/id_ecdsa
+(protocol 2 ECDSA),
 or
 .Pa ~/.ssh/id_rsa
 (protocol 2 RSA)
@@ -756,6 +759,8 @@ and stores the public key in
 (protocol 1),
 .Pa ~/.ssh/id_dsa.pub
 (protocol 2 DSA),
+.Pa ~/.ssh/id_ecdsa.pub
+(protocol 2 ECDSA),
 or
 .Pa ~/.ssh/id_rsa.pub
 (protocol 2 RSA)
@@ -1277,7 +1282,8 @@ secret, but the recommended permissions are read/write/execute for the user,
 and not accessible by others.
 .Pp
 .It Pa ~/.ssh/authorized_keys
-Lists the public keys (RSA/DSA) that can be used for logging in as this user.
+Lists the public keys (DSA/ECDSA/RSA) that can be used for logging in as
+this user.
 The format of this file is described in the
 .Xr sshd 8
 manual page.
@@ -1298,6 +1304,7 @@ above.
 .Pp
 .It Pa ~/.ssh/identity
 .It Pa ~/.ssh/id_dsa
+.It Pa ~/.ssh/id_ecdsa
 .It Pa ~/.ssh/id_rsa
 Contains the private key for authentication.
 These files
@@ -1311,6 +1318,7 @@ sensitive part of this file using 3DES.
 .Pp
 .It Pa ~/.ssh/identity.pub
 .It Pa ~/.ssh/id_dsa.pub
+.It Pa ~/.ssh/id_ecdsa.pub
 .It Pa ~/.ssh/id_rsa.pub
 Contains the public key for authentication.
 These files are not
@@ -1349,6 +1357,7 @@ The file format and configuration options are described in
 .Pp
 .It Pa /etc/ssh/ssh_host_key
 .It Pa /etc/ssh/ssh_host_dsa_key
+.It Pa /etc/ssh/ssh_host_ecdsa_key
 .It Pa /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys
 and are used for host-based authentication.

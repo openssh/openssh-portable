@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.30 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: key.h,v 1.31 2010/08/31 11:54:45 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -29,14 +29,17 @@
 #include "buffer.h"
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+#include <openssl/ec.h>
 
 typedef struct Key Key;
 enum types {
 	KEY_RSA1,
 	KEY_RSA,
 	KEY_DSA,
+	KEY_ECDSA,
 	KEY_RSA_CERT,
 	KEY_DSA_CERT,
+	KEY_ECDSA_CERT,
 	KEY_RSA_CERT_V00,
 	KEY_DSA_CERT_V00,
 	KEY_UNSPEC
@@ -73,6 +76,8 @@ struct Key {
 	int	 flags;
 	RSA	*rsa;
 	DSA	*dsa;
+	int	 ecdsa_nid;	/* NID of curve */
+	EC_KEY	*ecdsa;
 	struct KeyCert *cert;
 };
 
@@ -104,9 +109,18 @@ int	 key_cert_check_authority(const Key *, int, int, const char *,
 	    const char **);
 int	 key_cert_is_legacy(Key *);
 
+int		 key_ecdsa_nid_from_name(const char *);
+int		 key_curve_name_to_nid(const char *);
+const char *	 key_curve_nid_to_name(int);
+int		 key_ecdsa_bits_to_nid(int);
+int		 key_ecdsa_group_to_nid(const EC_GROUP *);
+int		 key_ec_validate_public(const EC_GROUP *, const EC_POINT *);
+int		 key_ec_validate_private(const EC_KEY *);
+
 Key		*key_from_blob(const u_char *, u_int);
 int		 key_to_blob(const Key *, u_char **, u_int *);
 const char	*key_ssh_name(const Key *);
+const char	*key_ssh_name_plain(const Key *);
 int		 key_names_valid2(const char *);
 
 int	 key_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
@@ -114,7 +128,14 @@ int	 key_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
 
 int	 ssh_dss_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
 int	 ssh_dss_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
+int	 ssh_ecdsa_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
+int	 ssh_ecdsa_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
 int	 ssh_rsa_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
 int	 ssh_rsa_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
+
+#if defined(DEBUG_KEXECDH) || defined(DEBUG_PK)
+void	key_dump_ec_point(const EC_GROUP *, const EC_POINT *);
+void	key_dump_ec_key(const EC_KEY *);
+#endif
 
 #endif

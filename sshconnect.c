@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.224 2010/04/16 21:14:27 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.225 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1173,7 +1173,7 @@ show_key_from_file(const char *file, const char *host, int keytype)
 static int
 show_other_keys(const char *host, Key *key)
 {
-	int type[] = { KEY_RSA1, KEY_RSA, KEY_DSA, -1};
+	int type[] = { KEY_RSA1, KEY_RSA, KEY_DSA, KEY_ECDSA, -1};
 	int i, found = 0;
 
 	for (i = 0; type[i] != -1; i++) {

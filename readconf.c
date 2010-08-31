@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.187 2010/07/19 09:15:12 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.188 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1214,6 +1214,12 @@ fill_default_options(Options * options)
 			    xmalloc(len);
 			snprintf(options->identity_files[options->num_identity_files++],
 			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_DSA);
+
+			len = 2 + strlen(_PATH_SSH_CLIENT_ID_ECDSA) + 1;
+			options->identity_files[options->num_identity_files] =
+			    xmalloc(len);
+			snprintf(options->identity_files[options->num_identity_files++],
+			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_ECDSA);
 		}
 	}
 	if (options->escape_char == -1)

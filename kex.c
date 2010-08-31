@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.83 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.84 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -325,6 +325,10 @@ choose_kex(Kex *k, char *client, char *server)
 	} else if (strcmp(k->name, KEX_DHGEX_SHA256) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA256;
 		k->evp_md = evp_ssh_sha256();
+	} else if (strncmp(k->name, KEX_ECDH_SHA256,
+	    sizeof(KEX_ECDH_SHA256) - 1) == 0) {
+		k->kex_type = KEX_ECDH_SHA2;
+		k->evp_md = evp_ssh_sha256();
 #endif
 	} else
 		fatal("bad kex alg %s", k->name);
@@ -559,11 +563,11 @@ derive_ssh1_session_id(BIGNUM *host_modulus, BIGNUM *server_modulus,
 	memset(&md, 0, sizeof(md));
 }
 
-#if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)
+#if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void
 dump_digest(char *msg, u_char *digest, int len)
 {
-	u_int i;
+	int i;
 
 	fprintf(stderr, "%s\n", msg);
 	for (i = 0; i < len; i++) {

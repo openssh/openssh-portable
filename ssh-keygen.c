@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.199 2010/08/16 04:06:06 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.200 2010/08/31 11:54:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -57,6 +57,7 @@
 /* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
 #define DEFAULT_BITS		2048
 #define DEFAULT_BITS_DSA	1024
+#define DEFAULT_BITS_ECDSA	521
 u_int32_t bits = 0;
 
 /*
@@ -176,6 +177,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_DSA:
 			name = _PATH_SSH_CLIENT_ID_DSA;
 			break;
+		case KEY_ECDSA_CERT:
+		case KEY_ECDSA:
+			name = _PATH_SSH_CLIENT_ID_ECDSA;
+			break;
 		case KEY_RSA_CERT:
 		case KEY_RSA_CERT_V00:
 		case KEY_RSA:
@@ -260,6 +265,10 @@ do_convert_to_pkcs8(Key *k)
 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
 			fatal("PEM_write_DSA_PUBKEY failed");
 		break;
+	case KEY_ECDSA:
+		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
+			fatal("PEM_write_EC_PUBKEY failed");
+		break;
 	default:
 		fatal("%s: unsupported key type %s", __func__, key_type(k));
 	}
@@ -280,6 +289,7 @@ do_convert_to_pem(Key *k)
 			fatal("PEM_write_DSAPublicKey failed");
 		break;
 #endif
+	/* XXX ECDSA? */
 	default:
 		fatal("%s: unsupported key type %s", __func__, key_type(k));
 	}
@@ -539,6 +549,13 @@ do_convert_from_pkcs8(Key **k, int *private)
 		(*k)->type = KEY_DSA;
 		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
 		break;
+	case EVP_PKEY_EC:
+		*k = key_new(KEY_UNSPEC);
+		(*k)->type = KEY_ECDSA;
+		(*k)->ecdsa = EVP_PKEY_get1_EC_KEY(pubkey);
+		(*k)->ecdsa_nid = key_ecdsa_group_to_nid(
+		    EC_KEY_get0_group((*k)->ecdsa));
+		break;
 	default:
 		fatal("%s: unsupported pubkey type %d", __func__,
 		    EVP_PKEY_type(pubkey->type));
@@ -574,6 +591,7 @@ do_convert_from_pem(Key **k, int *private)
 		fclose(fp);
 		return;
 	}
+	/* XXX ECDSA */
 #endif
 	fatal("%s: unrecognised raw private key format", __func__);
 }
@@ -612,6 +630,10 @@ do_convert_from(struct passwd *pw)
 		switch (k->type) {
 		case KEY_DSA:
 			ok = PEM_write_DSAPrivateKey(stdout, k->dsa, NULL,
+			    NULL, 0, NULL, NULL);
+			break;
+		case KEY_ECDSA:
+			ok = PEM_write_ECPrivateKey(stdout, k->ecdsa, NULL,
 			    NULL, 0, NULL, NULL);
 			break;
 		case KEY_RSA:
@@ -1404,7 +1426,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
 		if ((public = key_load_public(tmp, &comment)) == NULL)
 			fatal("%s: unable to open \"%s\"", __func__, tmp);
-		if (public->type != KEY_RSA && public->type != KEY_DSA)
+		if (public->type != KEY_RSA && public->type != KEY_DSA &&
+		    public->type != KEY_ECDSA)
 			fatal("%s: key \"%s\" type %s cannot be certified",
 			    __func__, tmp, key_type(public));
 
@@ -2086,8 +2109,14 @@ main(int argc, char **argv)
 		fprintf(stderr, "unknown key type %s\n", key_type_name);
 		exit(1);
 	}
-	if (bits == 0)
-		bits = (type == KEY_DSA) ? DEFAULT_BITS_DSA : DEFAULT_BITS;
+	if (bits == 0) {
+		if (type == KEY_DSA)
+			bits = DEFAULT_BITS_DSA;
+		else if (type == KEY_ECDSA)
+			bits = DEFAULT_BITS_ECDSA;
+		else
+			bits = DEFAULT_BITS;
+	}
 	maxbits = (type == KEY_DSA) ?
 	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
 	if (bits > maxbits) {
@@ -2096,6 +2125,9 @@ main(int argc, char **argv)
 	}
 	if (type == KEY_DSA && bits != 1024)
 		fatal("DSA keys must be 1024 bits");
+	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(bits) == -1)
+		fatal("Invalid ECDSA key length - valid lengths are "
+		    "256, 384 or 521 bits");
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n", key_type_name);
 	private = key_generate(type, bits);
