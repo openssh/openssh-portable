@@ -1,3 +1,10 @@
+20100931
+ - OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2010/08/08 19:36:30
+     [ssh-keysign.8 ssh.1 sshd.8]
+     use the same template for all FILES sections; i.e. -compact/.Pp where we
+     have multiple items, and .Pa for path names;
+
 20100827
  - (dtucker) [contrib/redhat/sshd.init] Bug #1810: initlog is deprecated,
    remove.  Patch from martynas at venck us 
