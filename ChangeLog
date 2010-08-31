@@ -4,6 +4,10 @@
      [ssh-keysign.8 ssh.1 sshd.8]
      use the same template for all FILES sections; i.e. -compact/.Pp where we
      have multiple items, and .Pa for path names;
+   - tedu@cvs.openbsd.org 2010/08/12 23:34:39
+     [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keysign.c ssh.c sshd.c]
+     OpenSSL_add_all_algorithms is the name of the function we have a man page
+     for, so use that.  ok djm
 
 20100827
  - (dtucker) [contrib/redhat/sshd.init] Bug #1810: initlog is deprecated,

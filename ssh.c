@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.346 2010/08/12 21:49:44 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.347 2010/08/12 23:34:39 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -599,7 +599,7 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
-	SSLeay_add_all_algorithms();
+	OpenSSL_add_all_algorithms();
 	ERR_load_crypto_strings();
 
 	/* Initialize the command to execute on remote host. */

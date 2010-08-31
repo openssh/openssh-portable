@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.197 2010/08/04 06:07:11 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.198 2010/08/12 23:34:38 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1781,7 +1781,7 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
-	SSLeay_add_all_algorithms();
+	OpenSSL_add_all_algorithms();
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	init_rng();

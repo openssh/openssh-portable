@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.375 2010/04/16 01:47:26 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.376 2010/08/12 23:34:39 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1464,7 +1464,7 @@ main(int ac, char **av)
 	else
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
 
-	SSLeay_add_all_algorithms();
+	OpenSSL_add_all_algorithms();
 
 	/*
 	 * Force logging to stderr until we have loaded the private host
