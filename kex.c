@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.82 2009/10/24 11:13:54 andreas Exp $ */
+/* $OpenBSD: kex.c,v 1.83 2010/08/31 09:58:37 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -98,7 +98,7 @@ kex_buf2prop(Buffer *raw, int *first_kex_follows)
 		buffer_get_char(&b);
 	/* extract kex init proposal strings */
 	for (i = 0; i < PROPOSAL_MAX; i++) {
-		proposal[i] = buffer_get_string(&b,NULL);
+		proposal[i] = buffer_get_cstring(&b,NULL);
 		debug2("kex_parse_kexinit: %s", proposal[i]);
 	}
 	/* first kex follows / reserved */

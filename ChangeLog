@@ -11,6 +11,20 @@
    - djm@cvs.openbsd.org 2010/08/16 04:06:06
      [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keysign.c ssh.c sshd.c]
      backout previous temporarily; discussed with deraadt@
+   - djm@cvs.openbsd.org 2010/08/31 09:58:37
+     [auth-options.c auth1.c auth2.c bufaux.c buffer.h kex.c key.c packet.c]
+     [packet.h ssh-dss.c ssh-rsa.c]
+     Add buffer_get_cstring() and related functions that verify that the
+     string extracted from the buffer contains no embedded \0 characters*
+     This prevents random (possibly malicious) crap from being appended to
+     strings where it would not be noticed if the string is used with
+     a string(3) function.
+     
+     Use the new API in a few sensitive places.
+     
+     * actually, we allow a single one at the end of the string for now because
+     we don't know how many deployed implementations get this wrong, but don't
+     count on this to remain indefinitely.
 
 20100827
  - (dtucker) [contrib/redhat/sshd.init] Bug #1810: initlog is deprecated,

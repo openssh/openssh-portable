@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.52 2010/05/20 23:46:02 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.53 2010/08/31 09:58:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -444,7 +444,7 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 	buffer_append(&c, optblob, optblob_len);
 
 	while (buffer_len(&c) > 0) {
-		if ((name = buffer_get_string_ret(&c, &nlen)) == NULL ||
+		if ((name = buffer_get_cstring_ret(&c, &nlen)) == NULL ||
 		    (data_blob = buffer_get_string_ret(&c, &dlen)) == NULL) {
 			error("Certificate options corrupt");
 			goto out;
@@ -479,7 +479,7 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 		}
 		if (!found && (which & OPTIONS_CRITICAL) != 0) {
 			if (strcmp(name, "force-command") == 0) {
-				if ((command = buffer_get_string_ret(&data,
+				if ((command = buffer_get_cstring_ret(&data,
 				    &clen)) == NULL) {
 					error("Certificate constraint \"%s\" "
 					    "corrupt", name);
@@ -500,7 +500,7 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 				found = 1;
 			}
 			if (strcmp(name, "source-address") == 0) {
-				if ((allowed = buffer_get_string_ret(&data,
+				if ((allowed = buffer_get_cstring_ret(&data,
 				    &clen)) == NULL) {
 					error("Certificate constraint "
 					    "\"%s\" corrupt", name);

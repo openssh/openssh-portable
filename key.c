@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.90 2010/07/13 23:13:16 djm Exp $ */
+/* $OpenBSD: key.c,v 1.91 2010/08/31 09:58:37 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1067,7 +1067,7 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	principals = exts = critical = sig_key = sig = NULL;
 	if ((!v00 && buffer_get_int64_ret(&key->cert->serial, b) != 0) ||
 	    buffer_get_int_ret(&key->cert->type, b) != 0 ||
-	    (key->cert->key_id = buffer_get_string_ret(b, &kidlen)) == NULL ||
+	    (key->cert->key_id = buffer_get_cstring_ret(b, &kidlen)) == NULL ||
 	    (principals = buffer_get_string_ret(b, &plen)) == NULL ||
 	    buffer_get_int64_ret(&key->cert->valid_after, b) != 0 ||
 	    buffer_get_int64_ret(&key->cert->valid_before, b) != 0 ||
@@ -1105,13 +1105,8 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 			error("%s: Too many principals", __func__);
 			goto out;
 		}
-		if ((principal = buffer_get_string_ret(&tmp, &plen)) == NULL) {
+		if ((principal = buffer_get_cstring_ret(&tmp, &plen)) == NULL) {
 			error("%s: Principals data invalid", __func__);
-			goto out;
-		}
-		if (strlen(principal) != plen) {
-			error("%s: Principal contains \\0 character",
-			    __func__);
 			goto out;
 		}
 		key->cert->principals = xrealloc(key->cert->principals,
@@ -1200,7 +1195,7 @@ key_from_blob(const u_char *blob, u_int blen)
 #endif
 	buffer_init(&b);
 	buffer_append(&b, blob, blen);
-	if ((ktype = buffer_get_string_ret(&b, NULL)) == NULL) {
+	if ((ktype = buffer_get_cstring_ret(&b, NULL)) == NULL) {
 		error("key_from_blob: can't read key type");
 		goto out;
 	}
