@@ -12,6 +12,9 @@
    - jmc@cvs.openbsd.org 2010/08/31 17:40:54
      [ssh-agent.1]
      fix some macro abuse;
+   - jmc@cvs.openbsd.org 2010/08/31 21:14:58
+     [ssh.1]
+     small text tweak to accommodate previous;
 
 20100831
  - OpenBSD CVS Sync
