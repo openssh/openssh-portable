@@ -18,6 +18,9 @@
    - naddy@cvs.openbsd.org 2010/09/01 15:21:35
      [servconf.c]
      pick up ECDSA host key by default; ok djm@
+  - markus@cvs.openbsd.org 2010/09/02 16:07:25
+     [ssh-keygen.c]
+     permit -b 256, 384 or 521 as key size for ECDSA; ok djm@
 
 20100831
  - OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.201 2010/08/31 12:33:38 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.202 2010/09/02 16:07:25 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1825,7 +1825,7 @@ main(int argc, char **argv)
 	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
 		switch (opt) {
 		case 'b':
-			bits = (u_int32_t)strtonum(optarg, 768, 32768, &errstr);
+			bits = (u_int32_t)strtonum(optarg, 256, 32768, &errstr);
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",
 					optarg, errstr);
@@ -2125,6 +2125,8 @@ main(int argc, char **argv)
 	}
 	if (type == KEY_DSA && bits != 1024)
 		fatal("DSA keys must be 1024 bits");
+	else if (type != KEY_ECDSA && bits < 768)
+		fatal("Key must at least be 768 bits");
 	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(bits) == -1)
 		fatal("Invalid ECDSA key length - valid lengths are "
 		    "256, 384 or 521 bits");
