@@ -43,6 +43,12 @@
    - djm@cvs.openbsd.org 2010/09/08 03:54:36
      [authfile.c]
      typo
+   - deraadt@cvs.openbsd.org 2010/09/08 04:13:31
+     [compress.c]
+     work around name-space collisions some buggy compilers (looking at you
+     gcc, at least in earlier versions, but this does not forgive your current
+     transgressions) seen between zlib and openssl
+     ok djm
 
 20100831
  - OpenBSD CVS Sync
