@@ -21,6 +21,9 @@
   - markus@cvs.openbsd.org 2010/09/02 16:07:25
      [ssh-keygen.c]
      permit -b 256, 384 or 521 as key size for ECDSA; ok djm@
+  - markus@cvs.openbsd.org 2010/09/02 16:08:39
+     [ssh.c]
+     unbreak ControlPersist=yes for ControlMaster=yes; ok djm@
 
 20100831
  - OpenBSD CVS Sync
