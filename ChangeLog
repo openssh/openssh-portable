@@ -1,7 +1,14 @@
-2010910
+20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
    return code since it can apparently return -1 under some conditions.  From
    openssh bugs werbittewas de, ok djm@
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/08/31 12:33:38
+     [ssh-add.c ssh-agent.c ssh-keygen.c ssh-keysign.c ssh.c sshd.c]
+     reintroduce commit from tedu@, which I pulled out for release
+     engineering:
+       OpenSSL_add_all_algorithms is the name of the function we have a
+       man page for, so use that.  ok djm
 
 20100831
  - OpenBSD CVS Sync
