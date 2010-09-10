@@ -468,8 +468,10 @@ process_add_identity(SocketEntry *e, int version)
 	int type, success = 0, death = 0, confirm = 0;
 	char *type_name, *comment, *curve;
 	Key *k = NULL;
+#ifdef OPENSSL_HAS_ECC
 	BIGNUM *exponent;
 	EC_POINT *q;
+#endif
 	u_char *cert;
 	u_int len;
 
@@ -510,6 +512,7 @@ process_add_identity(SocketEntry *e, int version)
 			key_add_private(k);
 			buffer_get_bignum2(&e->request, k->dsa->priv_key);
 			break;
+#ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA:
 			k = key_new_private(type);
 			k->ecdsa_nid = key_ecdsa_nid_from_name(type_name);
@@ -561,6 +564,7 @@ process_add_identity(SocketEntry *e, int version)
 				fatal("%s: bad ECDSA key", __func__);
 			BN_clear_free(exponent);
 			break;
+#endif /* OPENSSL_HAS_ECC */
 		case KEY_RSA:
 			k = key_new_private(type);
 			buffer_get_bignum2(&e->request, k->rsa->n);

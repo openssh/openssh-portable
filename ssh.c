@@ -783,20 +783,26 @@ main(int ac, char **av)
 		sensitive_data.nkeys = 7;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
+		for (i = 0; i < sensitive_data.nkeys; i++)
+			sensitive_data.keys[i] = NULL;
 
 		PRIV_START;
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
 		sensitive_data.keys[1] = key_load_private_cert(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
+#ifdef OPENSSL_HAS_ECC
 		sensitive_data.keys[2] = key_load_private_cert(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
+#endif
 		sensitive_data.keys[3] = key_load_private_cert(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
 		sensitive_data.keys[4] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
+#ifdef OPENSSL_HAS_ECC
 		sensitive_data.keys[5] = key_load_private_type(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL, NULL);
+#endif
 		sensitive_data.keys[6] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
@@ -808,14 +814,18 @@ main(int ac, char **av)
 		    sensitive_data.keys[6] == NULL) {
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_DSA_KEY_FILE);
+#ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[2] = key_load_cert(
 			    _PATH_HOST_ECDSA_KEY_FILE);
+#endif
 			sensitive_data.keys[3] = key_load_cert(
 			    _PATH_HOST_RSA_KEY_FILE);
 			sensitive_data.keys[4] = key_load_public(
 			    _PATH_HOST_DSA_KEY_FILE, NULL);
+#ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[5] = key_load_public(
 			    _PATH_HOST_ECDSA_KEY_FILE, NULL);
+#endif
 			sensitive_data.keys[6] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;

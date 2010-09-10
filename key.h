@@ -29,7 +29,9 @@
 #include "buffer.h"
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+#ifdef OPENSSL_HAS_ECC
 #include <openssl/ec.h>
+#endif
 
 typedef struct Key Key;
 enum types {
@@ -77,7 +79,11 @@ struct Key {
 	RSA	*rsa;
 	DSA	*dsa;
 	int	 ecdsa_nid;	/* NID of curve */
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY	*ecdsa;
+#else
+	void	*ecdsa;
+#endif
 	struct KeyCert *cert;
 };
 
@@ -114,10 +120,12 @@ int		 key_curve_name_to_nid(const char *);
 const char *	 key_curve_nid_to_name(int);
 u_int		 key_curve_nid_to_bits(int);
 int		 key_ecdsa_bits_to_nid(int);
+#ifdef OPENSSL_HAS_ECC
 int		 key_ecdsa_group_to_nid(const EC_GROUP *);
 const EVP_MD *	 key_ec_nid_to_evpmd(int nid);
 int		 key_ec_validate_public(const EC_GROUP *, const EC_POINT *);
 int		 key_ec_validate_private(const EC_KEY *);
+#endif
 
 Key		*key_from_blob(const u_char *, u_int);
 int		 key_to_blob(const Key *, u_char **, u_int *);
@@ -135,7 +143,7 @@ int	 ssh_ecdsa_verify(const Key *, const u_char *, u_int, const u_char *, u_int)
 int	 ssh_rsa_sign(const Key *, u_char **, u_int *, const u_char *, u_int);
 int	 ssh_rsa_verify(const Key *, const u_char *, u_int, const u_char *, u_int);
 
-#if defined(DEBUG_KEXECDH) || defined(DEBUG_PK)
+#if defined(OPENSSL_HAS_ECC) && (defined(DEBUG_KEXECDH) || defined(DEBUG_PK))
 void	key_dump_ec_point(const EC_GROUP *, const EC_POINT *);
 void	key_dump_ec_key(const EC_KEY *);
 #endif

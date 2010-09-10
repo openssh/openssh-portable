@@ -213,10 +213,12 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 		success = PEM_write_DSAPrivateKey(fp, key->dsa,
 		    cipher, passphrase, len, NULL, NULL);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		success = PEM_write_ECPrivateKey(fp, key->ecdsa,
 		    cipher, passphrase, len, NULL, NULL);
 		break;
+#endif
 	case KEY_RSA:
 		success = PEM_write_RSAPrivateKey(fp, key->rsa,
 		    cipher, passphrase, len, NULL, NULL);
@@ -515,6 +517,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 #ifdef DEBUG_PK
 		DSA_print_fp(stderr, prv->dsa, 8);
 #endif
+#ifdef OPENSSL_HAS_ECC
 	} else if (pk->type == EVP_PKEY_EC &&
 	    (type == KEY_UNSPEC||type==KEY_ECDSA)) {
 		prv = key_new(KEY_UNSPEC);
@@ -538,6 +541,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 		if (prv->ecdsa != NULL)
 			key_dump_ec_key(prv->ecdsa);
 #endif
+#endif /* OPENSSL_HAS_ECC */
 	} else {
 		error("PEM_read_PrivateKey: mismatch or "
 		    "unknown EVP_PKEY save_type %d", pk->save_type);

@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#ifdef OPENSSL_HAS_ECC
+
 #include <sys/types.h>
 
 #include <openssl/bn.h>
@@ -162,3 +164,5 @@ ssh_ecdsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	    ret == 1 ? "correct" : ret == 0 ? "incorrect" : "error");
 	return ret;
 }
+
+#endif /* OPENSSL_HAS_ECC */

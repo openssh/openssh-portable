@@ -265,10 +265,12 @@ do_convert_to_pkcs8(Key *k)
 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
 			fatal("PEM_write_DSA_PUBKEY failed");
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
 			fatal("PEM_write_EC_PUBKEY failed");
 		break;
+#endif
 	default:
 		fatal("%s: unsupported key type %s", __func__, key_type(k));
 	}
@@ -549,6 +551,7 @@ do_convert_from_pkcs8(Key **k, int *private)
 		(*k)->type = KEY_DSA;
 		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case EVP_PKEY_EC:
 		*k = key_new(KEY_UNSPEC);
 		(*k)->type = KEY_ECDSA;
@@ -556,6 +559,7 @@ do_convert_from_pkcs8(Key **k, int *private)
 		(*k)->ecdsa_nid = key_ecdsa_group_to_nid(
 		    EC_KEY_get0_group((*k)->ecdsa));
 		break;
+#endif
 	default:
 		fatal("%s: unsupported pubkey type %d", __func__,
 		    EVP_PKEY_type(pubkey->type));
@@ -632,10 +636,12 @@ do_convert_from(struct passwd *pw)
 			ok = PEM_write_DSAPrivateKey(stdout, k->dsa, NULL,
 			    NULL, 0, NULL, NULL);
 			break;
+#ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA:
 			ok = PEM_write_ECPrivateKey(stdout, k->ecdsa, NULL,
 			    NULL, 0, NULL, NULL);
 			break;
+#endif
 		case KEY_RSA:
 			ok = PEM_write_RSAPrivateKey(stdout, k->rsa, NULL,
 			    NULL, 0, NULL, NULL);

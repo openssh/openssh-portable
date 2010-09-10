@@ -86,11 +86,13 @@ char	*buffer_get_cstring_ret(Buffer *, u_int *);
 void	*buffer_get_string_ptr_ret(Buffer *, u_int *);
 int	buffer_get_char_ret(char *, Buffer *);
 
+#ifdef OPENSSL_HAS_ECC
 #include <openssl/ec.h>
 
 int	buffer_put_ecpoint_ret(Buffer *, const EC_GROUP *, const EC_POINT *);
 void	buffer_put_ecpoint(Buffer *, const EC_GROUP *, const EC_POINT *);
 int	buffer_get_ecpoint_ret(Buffer *, const EC_GROUP *, EC_POINT *);
 void	buffer_get_ecpoint(Buffer *, const EC_GROUP *, EC_POINT *);
+#endif
 
 #endif				/* BUFFER_H */

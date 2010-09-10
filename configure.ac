@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.451 2010/08/16 03:15:23 dtucker Exp $
+# $Id: configure.ac,v 1.452 2010/09/10 01:39:27 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.451 $)
+AC_REVISION($Revision: 1.452 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2157,6 +2157,28 @@ fi
 
 # Search for SHA256 support in libc and/or OpenSSL
 AC_CHECK_FUNCS(SHA256_Update EVP_sha256)
+
+# Check complete ECC support in OpenSSL
+AC_MSG_CHECKING([whether OpenSSL has complete ECC support])
+AC_LINK_IFELSE(
+	[AC_LANG_SOURCE([[
+#include <openssl/ec.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main(void) {
+	EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
+	const EVP_MD *m = EVP_sha512(); /* We need this too */
+}
+	]])],
+	[
+		AC_MSG_RESULT(yes)
+		AC_DEFINE(OPENSSL_HAS_ECC, 1,
+		    [libcrypto includes complete ECC support])
+	],
+	[
+		AC_MSG_RESULT(no)
+	]
+)
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(iaf, ia_openinfo, [

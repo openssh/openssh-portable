@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#ifdef OPENSSL_HAS_ECC
+
 #include <sys/types.h>
 
 #include <signal.h>
@@ -116,3 +118,4 @@ kex_ecdh_hash(
 	*hashlen = EVP_MD_size(evp_md);
 }
 
+#endif /* OPENSSL_HAS_ECC */

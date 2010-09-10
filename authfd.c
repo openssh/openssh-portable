@@ -509,6 +509,7 @@ ssh_encode_identity_ssh2(Buffer *b, Key *key, const char *comment)
 		    buffer_len(&key->cert->certblob));
 		buffer_put_bignum2(b, key->dsa->priv_key);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		buffer_put_cstring(b, key_curve_nid_to_name(key->ecdsa_nid));
 		buffer_put_ecpoint(b, EC_KEY_get0_group(key->ecdsa),
@@ -522,6 +523,7 @@ ssh_encode_identity_ssh2(Buffer *b, Key *key, const char *comment)
 		    buffer_len(&key->cert->certblob));
 		buffer_put_bignum2(b, EC_KEY_get0_private_key(key->ecdsa));
 		break;
+#endif
 	}
 	buffer_put_cstring(b, comment);
 }

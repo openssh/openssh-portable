@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+#ifdef OPENSSL_HAS_ECC
+
 #include <sys/types.h>
 
 #include <openssl/bn.h>
@@ -141,3 +143,4 @@ buffer_get_ecpoint(Buffer *buffer, const EC_GROUP *curve,
 		fatal("%s: buffer error", __func__);
 }
 
+#endif /* OPENSSL_HAS_ECC */

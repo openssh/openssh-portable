@@ -1214,12 +1214,13 @@ fill_default_options(Options * options)
 			    xmalloc(len);
 			snprintf(options->identity_files[options->num_identity_files++],
 			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_DSA);
-
+#ifdef OPENSSL_HAS_ECC
 			len = 2 + strlen(_PATH_SSH_CLIENT_ID_ECDSA) + 1;
 			options->identity_files[options->num_identity_files] =
 			    xmalloc(len);
 			snprintf(options->identity_files[options->num_identity_files++],
 			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_ECDSA);
+#endif
 		}
 	}
 	if (options->escape_char == -1)

@@ -159,13 +159,16 @@ void
 kexgex_hash(const EVP_MD *, char *, char *, char *, int, char *,
     int, u_char *, int, int, int, int, BIGNUM *, BIGNUM *, BIGNUM *,
     BIGNUM *, BIGNUM *, u_char **, u_int *);
+#ifdef OPENSSL_HAS_ECC
 void
 kex_ecdh_hash(const EVP_MD *, const EC_GROUP *, char *, char *, char *, int,
     char *, int, u_char *, int, const EC_POINT *, const EC_POINT *,
     const BIGNUM *, u_char **, u_int *);
-
 int	kex_ecdh_name_to_nid(const char *);
 const EVP_MD *kex_ecdh_name_to_evpmd(const char *);
+#else
+# define kex_ecdh_name_to_evpmd(x) NULL
+#endif
 
 void
 derive_ssh1_session_id(BIGNUM *, BIGNUM *, u_int8_t[8], u_int8_t[16]);
