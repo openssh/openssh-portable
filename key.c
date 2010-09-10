@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.92 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: key.c,v 1.93 2010/09/09 10:45:45 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -978,17 +978,7 @@ key_size(const Key *k)
 		return BN_num_bits(k->dsa->p);
 	case KEY_ECDSA:
 	case KEY_ECDSA_CERT:
-		switch (k->ecdsa_nid) {
-		case NID_X9_62_prime256v1:
-			return 256;
-		case NID_secp384r1:
-			return 384;
-		case NID_secp521r1:
-			return 521;
-		default:
-			break;
-		}
-		break;
+		return key_curve_nid_to_bits(k->ecdsa_nid);
 	}
 	return 0;
 }
@@ -1961,6 +1951,7 @@ key_cert_is_legacy(Key *k)
 	}
 }
 
+/* XXX: these are really begging for a table-driven approach */
 int
 key_curve_name_to_nid(const char *name)
 {
@@ -1975,6 +1966,22 @@ key_curve_name_to_nid(const char *name)
 	return -1;
 }
 
+u_int
+key_curve_nid_to_bits(int nid)
+{
+	switch (nid) {
+	case NID_X9_62_prime256v1:
+		return 256;
+	case NID_secp384r1:
+		return 384;
+	case NID_secp521r1:
+		return 521;
+	default:
+		error("%s: unsupported EC curve nid %d", __func__, nid);
+		return 0;
+	}
+}
+
 const char *
 key_curve_nid_to_name(int nid)
 {
@@ -1987,6 +1994,22 @@ key_curve_nid_to_name(int nid)
 
 	error("%s: unsupported EC curve nid %d", __func__, nid);
 	return NULL;
+}
+
+const EVP_MD *
+key_ec_nid_to_evpmd(int nid)
+{
+	int kbits = key_curve_nid_to_bits(nid);
+
+	if (kbits == 0)
+		fatal("%s: invalid nid %d", __func__, nid);
+	/* RFC5656 section 6.2.1 */
+	if (kbits <= 256)
+		return EVP_sha256();
+	else if (kbits <= 384)
+		return EVP_sha384();
+	else
+		return EVP_sha512();
 }
 
 int

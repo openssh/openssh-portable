@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.109 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.110 2010/09/09 10:45:45 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -590,10 +590,10 @@ mm_answer_sign(int sock, Buffer *m)
 	p = buffer_get_string(m, &datlen);
 
 	/*
-	 * Supported KEX types will only return SHA1 (20 byte) or
-	 * SHA256 (32 byte) hashes
+	 * Supported KEX types use SHA1 (20 bytes), SHA256 (32 bytes),
+	 * SHA384 (48 bytes) and SHA512 (64 bytes).
 	 */
-	if (datlen != 20 && datlen != 32)
+	if (datlen != 20 && datlen != 32 && datlen != 48 && datlen != 64)
 		fatal("%s: data length incorrect: %u", __func__, datlen);
 
 	/* save session id, it will be passed on the first call */

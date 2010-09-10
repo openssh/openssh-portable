@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.50 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.51 2010/09/09 10:45:45 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -39,7 +39,7 @@
 #define	KEX_DHGEX_SHA256	"diffie-hellman-group-exchange-sha256"
 #define	KEX_RESUME		"resume@appgate.com"
 /* The following represents the family of ECDH methods */
-#define	KEX_ECDH_SHA256		"ecdh-sha2-"
+#define	KEX_ECDH_SHA2_STEM	"ecdh-sha2-"
 
 #define COMP_NONE	0
 #define COMP_ZLIB	1
@@ -165,6 +165,7 @@ kex_ecdh_hash(const EVP_MD *, const EC_GROUP *, char *, char *, char *, int,
     const BIGNUM *, u_char **, u_int *);
 
 int	kex_ecdh_name_to_nid(const char *);
+const EVP_MD *kex_ecdh_name_to_evpmd(const char *);
 
 void
 derive_ssh1_session_id(BIGNUM *, BIGNUM *, u_int8_t[8], u_int8_t[16]);

@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.31 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: key.h,v 1.32 2010/09/09 10:45:45 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -112,8 +112,10 @@ int	 key_cert_is_legacy(Key *);
 int		 key_ecdsa_nid_from_name(const char *);
 int		 key_curve_name_to_nid(const char *);
 const char *	 key_curve_nid_to_name(int);
+u_int		 key_curve_nid_to_bits(int);
 int		 key_ecdsa_bits_to_nid(int);
 int		 key_ecdsa_group_to_nid(const EC_GROUP *);
+const EVP_MD *	 key_ec_nid_to_evpmd(int nid);
 int		 key_ec_validate_public(const EC_GROUP *, const EC_POINT *);
 int		 key_ec_validate_private(const EC_KEY *);
 

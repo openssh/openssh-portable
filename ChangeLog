@@ -49,6 +49,19 @@
      gcc, at least in earlier versions, but this does not forgive your current
      transgressions) seen between zlib and openssl
      ok djm
+   - djm@cvs.openbsd.org 2010/09/09 10:45:45
+     [kex.c kex.h kexecdh.c key.c key.h monitor.c ssh-ecdsa.c]
+     ECDH/ECDSA compliance fix: these methods vary the hash function they use
+     (SHA256/384/512) depending on the length of the curve in use. The previous
+     code incorrectly used SHA256 in all cases.
+     
+     This fix will cause authentication failure when using 384 or 521-bit curve
+     keys if one peer hasn't been upgraded and the other has. (256-bit curve
+     keys work ok). In particular you may need to specify HostkeyAlgorithms
+     when connecting to a server that has not been upgraded from an upgraded
+     client.
+     
+     ok naddy@
 
 20100831
  - OpenBSD CVS Sync

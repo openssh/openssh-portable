@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.84 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.85 2010/09/09 10:45:45 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -325,10 +325,10 @@ choose_kex(Kex *k, char *client, char *server)
 	} else if (strcmp(k->name, KEX_DHGEX_SHA256) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA256;
 		k->evp_md = evp_ssh_sha256();
-	} else if (strncmp(k->name, KEX_ECDH_SHA256,
-	    sizeof(KEX_ECDH_SHA256) - 1) == 0) {
-		k->kex_type = KEX_ECDH_SHA2;
-		k->evp_md = evp_ssh_sha256();
+	} else if (strncmp(k->name, KEX_ECDH_SHA2_STEM,
+	    sizeof(KEX_ECDH_SHA2_STEM) - 1) == 0) {
+ 		k->kex_type = KEX_ECDH_SHA2;
+		k->evp_md = kex_ecdh_name_to_evpmd(k->name);
 #endif
 	} else
 		fatal("bad kex alg %s", k->name);

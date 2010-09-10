@@ -1,4 +1,4 @@
-/* $OpenBSD$ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.4 2010/09/10 01:04:10 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -46,7 +46,7 @@ ssh_ecdsa_sign(const Key *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen)
 {
 	ECDSA_SIG *sig;
-	const EVP_MD *evp_md = EVP_sha256();
+	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
 	u_char digest[EVP_MAX_MD_SIZE];
 	u_int len, dlen;
@@ -57,6 +57,7 @@ ssh_ecdsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 		error("%s: no ECDSA key", __func__);
 		return -1;
 	}
+	evp_md = key_ec_nid_to_evpmd(key->ecdsa_nid);
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
 	EVP_DigestFinal(&md, digest, &dlen);
@@ -94,21 +95,22 @@ ssh_ecdsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
     const u_char *data, u_int datalen)
 {
 	ECDSA_SIG *sig;
-	const EVP_MD *evp_md = EVP_sha256();
+	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
 	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
 	u_int len, dlen;
 	int rlen, ret;
 	Buffer b, bb;
+	char *ktype;
 
 	if (key == NULL || key->ecdsa == NULL ||
 	    (key->type != KEY_ECDSA && key->type != KEY_ECDSA_CERT)) {
 		error("%s: no ECDSA key", __func__);
 		return -1;
 	}
+	evp_md = key_ec_nid_to_evpmd(key->ecdsa_nid);
 
 	/* fetch signature */
-	char *ktype;
 	buffer_init(&b);
 	buffer_append(&b, signature, signaturelen);
 	ktype = buffer_get_string(&b, NULL);
