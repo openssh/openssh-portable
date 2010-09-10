@@ -35,6 +35,11 @@
    - jmc@cvs.openbsd.org 2010/09/04 09:38:34
      [ssh-add.1 ssh.1]
      two more EXIT STATUS sections;
+   - naddy@cvs.openbsd.org 2010/09/06 17:10:19
+     [sshd_config]
+     add ssh_host_ecdsa_key to /etc; from Mattieu Baptiste
+     <mattieu.b@gmail.com>
+     ok deraadt@
 
 20100831
  - OpenBSD CVS Sync
