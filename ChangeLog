@@ -40,6 +40,9 @@
      add ssh_host_ecdsa_key to /etc; from Mattieu Baptiste
      <mattieu.b@gmail.com>
      ok deraadt@
+   - djm@cvs.openbsd.org 2010/09/08 03:54:36
+     [authfile.c]
+     typo
 
 20100831
  - OpenBSD CVS Sync

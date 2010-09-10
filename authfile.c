@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.83 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.84 2010/09/08 03:54:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -533,7 +533,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 			key_free(prv);
 			prv = NULL;
 		}
-		name = "dsa w/o comment";
+		name = "ecdsa w/o comment";
 #ifdef DEBUG_PK
 		if (prv->ecdsa != NULL)
 			key_dump_ec_key(prv->ecdsa);
