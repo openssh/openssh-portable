@@ -24,6 +24,11 @@
   - markus@cvs.openbsd.org 2010/09/02 16:08:39
      [ssh.c]
      unbreak ControlPersist=yes for ControlMaster=yes; ok djm@
+   - naddy@cvs.openbsd.org 2010/09/02 17:21:50
+     [ssh-keygen.c]
+     Switch ECDSA default key size to 256 bits, which according to RFC5656
+     should still be better than our current RSA-2048 default.
+     ok djm@, markus@
 
 20100831
  - OpenBSD CVS Sync
