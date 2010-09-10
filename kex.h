@@ -29,7 +29,9 @@
 #include <signal.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#ifdef OPENSSL_HAS_ECC
 #include <openssl/ec.h>
+#endif
 
 #define KEX_COOKIE_LEN	16
 

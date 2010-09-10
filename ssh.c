@@ -849,10 +849,19 @@ main(int ac, char **av)
 	 */
 	r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
 	    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
-	if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0)
+	if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
+#ifdef WITH_SELINUX
+		char *scon;
+
+		matchpathcon(buf, 0700, &scon);
+		setfscreatecon(scon);
+#endif
 		if (mkdir(buf, 0700) < 0)
 			error("Could not create directory '%.200s'.", buf);
-
+#ifdef WITH_SELINUX
+		setfscreatecon(NULL);
+#endif
+	}
 	/* load options.identity_files */
 	load_public_identity_files();
 

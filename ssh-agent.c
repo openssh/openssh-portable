@@ -466,11 +466,12 @@ process_add_identity(SocketEntry *e, int version)
 	Idtab *tab = idtab_lookup(version);
 	Identity *id;
 	int type, success = 0, death = 0, confirm = 0;
-	char *type_name, *comment, *curve;
+	char *type_name, *comment;
 	Key *k = NULL;
 #ifdef OPENSSL_HAS_ECC
 	BIGNUM *exponent;
 	EC_POINT *q;
+	int *curve;
 #endif
 	u_char *cert;
 	u_int len;

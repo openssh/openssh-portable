@@ -66,6 +66,8 @@
    [kexecdhc.c kexecdhs.c key.c key.h myproposal.h packet.c readconf.c]
    [ssh-agent.c ssh-ecdsa.c ssh-keygen.c ssh.c] Disable ECDH and ECDSA on
    platforms that don't have the requisite OpenSSL support. ok dtucker@
+ - (dtucker) [kex.h key.c packet.h ssh-agent.c ssh.c] A few more ECC ifdefs
+   for missing headers and compiler warnings.
 
 20100831
  - OpenBSD CVS Sync

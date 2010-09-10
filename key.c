@@ -261,7 +261,9 @@ cert_compare(struct KeyCert *a, struct KeyCert *b)
 int
 key_equal_public(const Key *a, const Key *b)
 {
+#ifdef OPENSSL_HAS_ECC
 	BN_CTX *bnctx;
+#endif
 
 	if (a == NULL || b == NULL ||
 	    key_type_plain(a->type) != key_type_plain(b->type))
@@ -656,9 +658,12 @@ key_read(Key *ret, char **cpp)
 	Key *k;
 	int success = -1;
 	char *cp, *space;
-	int len, n, type, curve_nid = -1;
+	int len, n, type;
 	u_int bits;
 	u_char *blob;
+#ifdef OPENSSL_HAS_ECC
+	int curve_nid = -1;
+#endif
 
 	cp = *cpp;
 
@@ -1437,11 +1442,12 @@ Key *
 key_from_blob(const u_char *blob, u_int blen)
 {
 	Buffer b;
-	int rlen, type, nid = -1;
+	int rlen, type;
 	char *ktype = NULL, *curve = NULL;
 	Key *key = NULL;
 #ifdef OPENSSL_HAS_ECC
 	EC_POINT *q = NULL;
+	int nid = -1;
 #endif
 
 #ifdef DEBUG_PK
