@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.311 2010/08/31 21:14:58 jmc Exp $
-.Dd $Mdocdate: August 31 2010 $
+.\" $OpenBSD: ssh.1,v 1.312 2010/09/04 09:38:34 jmc Exp $
+.Dd $Mdocdate: September 4 2010 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -647,10 +647,6 @@ may additionally obtain configuration data from
 a per-user configuration file and a system-wide configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
-.Pp
-.Nm
-exits with the exit status of the remote command or with 255
-if an error occurred.
 .Sh AUTHENTICATION
 The OpenSSH SSH client supports SSH protocols 1 and 2.
 The default is to use protocol 2 only,
@@ -1394,6 +1390,10 @@ See the
 .Xr sshd 8
 manual page for more information.
 .El
+.Sh EXIT STATUS
+.Nm
+exits with the exit status of the remote command or with 255
+if an error occurred.
 .Sh SEE ALSO
 .Xr scp 1 ,
 .Xr sftp 1 ,

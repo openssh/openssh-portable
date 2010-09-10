@@ -32,6 +32,9 @@
    - jmc@cvs.openbsd.org 2010/09/03 11:09:29
      [scp.1]
      add an EXIT STATUS section for /usr/bin;
+   - jmc@cvs.openbsd.org 2010/09/04 09:38:34
+     [ssh-add.1 ssh.1]
+     two more EXIT STATUS sections;
 
 20100831
  - OpenBSD CVS Sync
