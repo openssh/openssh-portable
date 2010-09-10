@@ -9,6 +9,9 @@
      engineering:
        OpenSSL_add_all_algorithms is the name of the function we have a
        man page for, so use that.  ok djm
+   - jmc@cvs.openbsd.org 2010/08/31 17:40:54
+     [ssh-agent.1]
+     fix some macro abuse;
 
 20100831
  - OpenBSD CVS Sync
