@@ -18,10 +18,10 @@
    - naddy@cvs.openbsd.org 2010/09/01 15:21:35
      [servconf.c]
      pick up ECDSA host key by default; ok djm@
-  - markus@cvs.openbsd.org 2010/09/02 16:07:25
+   - markus@cvs.openbsd.org 2010/09/02 16:07:25
      [ssh-keygen.c]
      permit -b 256, 384 or 521 as key size for ECDSA; ok djm@
-  - markus@cvs.openbsd.org 2010/09/02 16:08:39
+   - markus@cvs.openbsd.org 2010/09/02 16:08:39
      [ssh.c]
      unbreak ControlPersist=yes for ControlMaster=yes; ok djm@
    - naddy@cvs.openbsd.org 2010/09/02 17:21:50
@@ -29,6 +29,9 @@
      Switch ECDSA default key size to 256 bits, which according to RFC5656
      should still be better than our current RSA-2048 default.
      ok djm@, markus@
+   - jmc@cvs.openbsd.org 2010/09/03 11:09:29
+     [scp.1]
+     add an EXIT STATUS section for /usr/bin;
 
 20100831
  - OpenBSD CVS Sync
