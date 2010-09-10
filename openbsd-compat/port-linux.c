@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.8 2010/03/01 04:52:50 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.9 2010/09/10 00:30:25 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -45,7 +45,7 @@ ssh_selinux_enabled(void)
 	static int enabled = -1;
 
 	if (enabled == -1) {
-		enabled = is_selinux_enabled();
+		enabled = (is_selinux_enabled() == 1);
 		debug("SELinux support %s", enabled ? "enabled" : "disabled");
 	}
 

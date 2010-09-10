@@ -1,4 +1,9 @@
-20100931
+2010910
+ - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
+   return code since it can apparently return -1 under some conditions.  From
+   openssh bugs werbittewas de, ok djm@
+
+20100831
  - OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2010/08/08 19:36:30
      [ssh-keysign.8 ssh.1 sshd.8]
