@@ -15,6 +15,9 @@
    - jmc@cvs.openbsd.org 2010/08/31 21:14:58
      [ssh.1]
      small text tweak to accommodate previous;
+   - naddy@cvs.openbsd.org 2010/09/01 15:21:35
+     [servconf.c]
+     pick up ECDSA host key by default; ok djm@
 
 20100831
  - OpenBSD CVS Sync
