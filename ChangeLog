@@ -20,6 +20,9 @@
      check that received values are smaller than the group size in the
      disabled and unfinished J-PAKE code.
      avoids catastrophic security failure found by Sebastien Martini
+   - djm@cvs.openbsd.org 2010/09/20 04:54:07
+     [jpake.c]
+     missing #include
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact

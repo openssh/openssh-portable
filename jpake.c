@@ -1,4 +1,4 @@
-/* $OpenBSD: jpake.c,v 1.5 2010/09/20 04:50:53 djm Exp $ */
+/* $OpenBSD: jpake.c,v 1.6 2010/09/20 04:54:07 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -45,6 +45,7 @@
 #include "packet.h"
 #include "dispatch.h"
 #include "log.h"
+#include "misc.h"
 
 #include "jpake.h"
 #include "schnorr.h"
