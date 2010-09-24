@@ -6,6 +6,9 @@
      * less repetition in FILES section
      * SSHv1 keys are still encrypted with 3DES
      help and ok jmc@
+   - djm@cvs.openbsd.org 2010/09/11 21:44:20
+     [ssh.1]
+     mention RFC 5656 for ECC stuff
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
