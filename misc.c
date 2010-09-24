@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.80 2010/07/21 02:10:58 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.81 2010/09/22 22:58:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -859,6 +859,70 @@ timingsafe_bcmp(const void *b1, const void *b2, size_t n)
 	for (; n > 0; n--)
 		ret |= *p1++ ^ *p2++;
 	return (ret != 0);
+}
+
+void
+bandwidth_limit_init(struct bwlimit *bw, u_int64_t kbps, size_t buflen)
+{
+	bw->buflen = buflen;
+	bw->rate = kbps;
+	bw->thresh = bw->rate;
+	bw->lamt = 0;
+	timerclear(&bw->bwstart);
+	timerclear(&bw->bwend);
+}	
+
+/* Callback from read/write loop to insert bandwidth-limiting delays */
+void
+bandwidth_limit(struct bwlimit *bw, size_t read_len)
+{
+	u_int64_t waitlen;
+	struct timespec ts, rm;
+
+	if (!timerisset(&bw->bwstart)) {
+		gettimeofday(&bw->bwstart, NULL);
+		return;
+	}
+
+	bw->lamt += read_len;
+	if (bw->lamt < bw->thresh)
+		return;
+
+	gettimeofday(&bw->bwend, NULL);
+	timersub(&bw->bwend, &bw->bwstart, &bw->bwend);
+	if (!timerisset(&bw->bwend))
+		return;
+
+	bw->lamt *= 8;
+	waitlen = (double)1000000L * bw->lamt / bw->rate;
+
+	bw->bwstart.tv_sec = waitlen / 1000000L;
+	bw->bwstart.tv_usec = waitlen % 1000000L;
+
+	if (timercmp(&bw->bwstart, &bw->bwend, >)) {
+		timersub(&bw->bwstart, &bw->bwend, &bw->bwend);
+
+		/* Adjust the wait time */
+		if (bw->bwend.tv_sec) {
+			bw->thresh /= 2;
+			if (bw->thresh < bw->buflen / 4)
+				bw->thresh = bw->buflen / 4;
+		} else if (bw->bwend.tv_usec < 10000) {
+			bw->thresh *= 2;
+			if (bw->thresh > bw->buflen * 8)
+				bw->thresh = bw->buflen * 8;
+		}
+
+		TIMEVAL_TO_TIMESPEC(&bw->bwend, &ts);
+		while (nanosleep(&ts, &rm) == -1) {
+			if (errno != EINTR)
+				break;
+			ts = rm;
+		}
+	}
+
+	bw->lamt = 0;
+	gettimeofday(&bw->bwstart, NULL);
 }
 void
 sock_set_v6only(int s)

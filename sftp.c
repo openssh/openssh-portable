@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.125 2010/06/18 00:58:39 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.126 2010/09/22 22:58:51 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2073,6 +2073,7 @@ main(int argc, char **argv)
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
+	const char *errstr;
 	LogLevel ll = SYSLOG_LEVEL_INFO;
 	arglist args;
 	extern int optind;
@@ -2080,6 +2081,7 @@ main(int argc, char **argv)
 	struct sftp_conn *conn;
 	size_t copy_buffer_len = DEFAULT_COPY_BUFLEN;
 	size_t num_requests = DEFAULT_NUM_REQUESTS;
+	long long limit_kbps = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -2097,7 +2099,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246hpqrvCc:D:i:o:s:S:b:B:F:P:R:")) != -1) {
+	    "1246hpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2157,6 +2159,13 @@ main(int argc, char **argv)
 			break;
 		case 'D':
 			sftp_direct = optarg;
+			break;
+		case 'l':
+			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
+			    &errstr);
+			if (errstr != NULL)
+				usage();
+			limit_kbps *= 1024; /* kbps */
 			break;
 		case 'r':
 			global_rflag = 1;
@@ -2235,7 +2244,7 @@ main(int argc, char **argv)
 	}
 	freeargs(&args);
 
-	conn = do_init(in, out, copy_buffer_len, num_requests);
+	conn = do_init(in, out, copy_buffer_len, num_requests, limit_kbps);
 	if (conn == NULL)
 		fatal("Couldn't initialise connection to server");
 

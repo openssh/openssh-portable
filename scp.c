@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.166 2010/07/01 13:06:59 millert Exp $ */
+/* $OpenBSD: scp.c,v 1.167 2010/09/22 22:58:51 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -120,13 +120,12 @@ extern char *__progname;
 
 int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout);
 
-void bwlimit(int);
-
 /* Struct for addargs */
 arglist args;
 
 /* Bandwidth limit */
-off_t limit_rate = 0;
+long long limit_kbps = 0;
+struct bwlimit bwlimit;
 
 /* Name of current file being transferred. */
 char *curfile;
@@ -312,15 +311,14 @@ void sink(int, char *[]);
 void source(int, char *[]);
 void tolocal(int, char *[]);
 void toremote(char *, int, char *[]);
-size_t scpio(ssize_t (*)(int, void *, size_t), int, void *, size_t, off_t *);
 void usage(void);
 
 int
 main(int argc, char **argv)
 {
 	int ch, fflag, tflag, status, n;
-	double speed;
-	char *targ, *endp, **newargv;
+	char *targ, **newargv;
+	const char *errstr;
 	extern char *optarg;
 	extern int optind;
 
@@ -369,10 +367,12 @@ main(int argc, char **argv)
 			addargs(&args, "-oBatchmode yes");
 			break;
 		case 'l':
-			speed = strtod(optarg, &endp);
-			if (speed <= 0 || *endp != '\0')
+			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
+			    &errstr);
+			if (errstr != NULL)
 				usage();
-			limit_rate = speed * 1024;
+			limit_kbps *= 1024; /* kbps */
+			bandwidth_limit_init(&bwlimit, limit_kbps, COPY_BUFLEN);
 			break;
 		case 'p':
 			pflag = 1;
@@ -474,41 +474,16 @@ main(int argc, char **argv)
 	exit(errs != 0);
 }
 
-/*
- * atomicio-like wrapper that also applies bandwidth limits and updates
- * the progressmeter counter.
- */
-size_t
-scpio(ssize_t (*f)(int, void *, size_t), int fd, void *_p, size_t l, off_t *c)
+/* Callback from atomicio6 to update progress meter and limit bandwidth */
+static int
+scpio(void *_cnt, size_t s)
 {
-	u_char *p = (u_char *)_p;
-	size_t offset;
-	ssize_t r;
-	struct pollfd pfd;
+	off_t *cnt = (off_t *)_cnt;
 
-	pfd.fd = fd;
-	pfd.events = f == read ? POLLIN : POLLOUT;
-	for (offset = 0; offset < l;) {
-		r = f(fd, p + offset, l - offset);
-		if (r == 0) {
-			errno = EPIPE;
-			return offset;
-		}
-		if (r < 0) {
-			if (errno == EINTR)
-				continue;
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				(void)poll(&pfd, 1, -1); /* Ignore errors */
-				continue;
-			}
-			return offset;
-		}
-		offset += (size_t)r;
-		*c += (off_t)r;
-		if (limit_rate)
-			bwlimit(r);
-	}
-	return offset;
+	*cnt += s;
+	if (limit_kbps > 0)
+		bandwidth_limit(&bwlimit, s);
+	return 0;
 }
 
 void
@@ -750,7 +725,7 @@ next:			if (fd != -1) {
 				(void)atomicio(vwrite, remout, bp->buf, amt);
 				continue;
 			}
-			if (scpio(vwrite, remout, bp->buf, amt,
+			if (atomicio6(vwrite, remout, bp->buf, amt, scpio,
 			    &statbytes) != amt)
 				haderr = errno;
 		}
@@ -822,60 +797,6 @@ rsource(char *name, struct stat *statp)
 	(void) closedir(dirp);
 	(void) atomicio(vwrite, remout, "E\n", 2);
 	(void) response();
-}
-
-void
-bwlimit(int amount)
-{
-	static struct timeval bwstart, bwend;
-	static int lamt, thresh = 16384;
-	u_int64_t waitlen;
-	struct timespec ts, rm;
-
-	if (!timerisset(&bwstart)) {
-		gettimeofday(&bwstart, NULL);
-		return;
-	}
-
-	lamt += amount;
-	if (lamt < thresh)
-		return;
-
-	gettimeofday(&bwend, NULL);
-	timersub(&bwend, &bwstart, &bwend);
-	if (!timerisset(&bwend))
-		return;
-
-	lamt *= 8;
-	waitlen = (double)1000000L * lamt / limit_rate;
-
-	bwstart.tv_sec = waitlen / 1000000L;
-	bwstart.tv_usec = waitlen % 1000000L;
-
-	if (timercmp(&bwstart, &bwend, >)) {
-		timersub(&bwstart, &bwend, &bwend);
-
-		/* Adjust the wait time */
-		if (bwend.tv_sec) {
-			thresh /= 2;
-			if (thresh < 2048)
-				thresh = 2048;
-		} else if (bwend.tv_usec < 10000) {
-			thresh *= 2;
-			if (thresh > COPY_BUFLEN * 4)
-				thresh = COPY_BUFLEN * 4;
-		}
-
-		TIMEVAL_TO_TIMESPEC(&bwend, &ts);
-		while (nanosleep(&ts, &rm) == -1) {
-			if (errno != EINTR)
-				break;
-			ts = rm;
-		}
-	}
-
-	lamt = 0;
-	gettimeofday(&bwstart, NULL);
 }
 
 void
@@ -1071,7 +992,8 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				amt = size - i;
 			count += amt;
 			do {
-				j = scpio(read, remin, cp, amt, &statbytes);
+				j = atomicio6(read, remin, cp, amt,
+				    scpio, &statbytes);
 				if (j == 0) {
 					run_err("%s", j != EPIPE ?
 					    strerror(errno) :

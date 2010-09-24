@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.18 2009/08/18 18:36:20 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.19 2010/09/22 22:58:51 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -51,7 +51,7 @@ struct sftp_statvfs {
  * Initialise a SSH filexfer connection. Returns NULL on error or
  * a pointer to a initialized sftp_conn struct on success.
  */
-struct sftp_conn *do_init(int, int, u_int, u_int);
+struct sftp_conn *do_init(int, int, u_int, u_int, u_int64_t);
 
 u_int sftp_proto_version(struct sftp_conn *);
 

@@ -44,6 +44,16 @@
      ssh_config.5: format the kexalgorithms in a more consistent
      (prettier!) way
      ok djm
+   - djm@cvs.openbsd.org 2010/09/22 22:58:51
+     [atomicio.c atomicio.h misc.c misc.h scp.c sftp-client.c]
+     [sftp-client.h sftp.1 sftp.c]
+     add an option per-read/write callback to atomicio
+
+     factor out bandwidth limiting code from scp(1) into a generic bandwidth
+     limiter that can be attached using the atomicio callback mechanism
+
+     add a bandwidth limit option to sftp(1) using the above
+     "very nice" markus@
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
