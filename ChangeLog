@@ -23,6 +23,14 @@
    - djm@cvs.openbsd.org 2010/09/20 04:54:07
      [jpake.c]
      missing #include
+   - djm@cvs.openbsd.org 2010/09/20 07:19:27
+     [mux.c]
+     "atomically" create the listening mux socket by binding it on a temorary
+     name and then linking it into position after listen() has succeeded.
+     this allows the mux clients to determine that the server socket is
+     either ready or stale without races. stale server sockets are now
+     automatically removed
+     ok deraadt
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
