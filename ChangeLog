@@ -38,6 +38,12 @@
      selection of which key exchange methods are used by ssh(1) and sshd(8)
      and their order of preference.
      ok markus@
+   - jmc@cvs.openbsd.org 2010/09/22 08:30:08
+     [ssh.1 ssh_config.5]
+     ssh.1: add kexalgorithms to the -o list
+     ssh_config.5: format the kexalgorithms in a more consistent
+     (prettier!) way
+     ok djm
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
