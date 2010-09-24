@@ -54,6 +54,9 @@
 
      add a bandwidth limit option to sftp(1) using the above
      "very nice" markus@
+   - jmc@cvs.openbsd.org 2010/09/23 13:34:43
+     [sftp.c]
+     add [-l limit] to usage();
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
