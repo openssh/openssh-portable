@@ -1,4 +1,4 @@
-/* $OpenBSD: schnorr.c,v 1.3 2009/03/05 07:18:19 djm Exp $ */
+/* $OpenBSD: schnorr.c,v 1.4 2010/09/20 04:50:53 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -138,6 +138,10 @@ schnorr_sign(const BIGNUM *grp_p, const BIGNUM *grp_q, const BIGNUM *grp_g,
 		error("%s: g_x < 1", __func__);
 		return -1;
 	}
+	if (BN_cmp(g_x, grp_p) >= 0) {
+		error("%s: g_x > g", __func__);
+		return -1;
+	}
 
 	h = g_v = r = tmp = v = NULL;
 	if ((bn_ctx = BN_CTX_new()) == NULL) {
@@ -262,6 +266,10 @@ schnorr_verify(const BIGNUM *grp_p, const BIGNUM *grp_q, const BIGNUM *grp_g,
 	/* Avoid degenerate cases: g^0 yields a spoofable signature */
 	if (BN_cmp(g_x, BN_value_one()) <= 0) {
 		error("%s: g_x < 1", __func__);
+		return -1;
+	}
+	if (BN_cmp(g_x, grp_p) >= 0) {
+		error("%s: g_x >= p", __func__);
 		return -1;
 	}
 

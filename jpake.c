@@ -1,4 +1,4 @@
-/* $OpenBSD: jpake.c,v 1.4 2010/07/13 23:13:16 djm Exp $ */
+/* $OpenBSD: jpake.c,v 1.5 2010/09/20 04:50:53 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -257,8 +257,12 @@ jpake_step2(struct modp_group *grp, BIGNUM *s,
 	/* Validate peer's step 1 values */
 	if (BN_cmp(theirpub1, BN_value_one()) <= 0)
 		fatal("%s: theirpub1 <= 1", __func__);
+	if (BN_cmp(theirpub1, grp->p) >= 0)
+		fatal("%s: theirpub1 >= p", __func__);
 	if (BN_cmp(theirpub2, BN_value_one()) <= 0)
 		fatal("%s: theirpub2 <= 1", __func__);
+	if (BN_cmp(theirpub2, grp->p) >= 0)
+		fatal("%s: theirpub2 >= p", __func__);
 
 	if (schnorr_verify_buf(grp->p, grp->q, grp->g, theirpub1,
 	    theirid, theirid_len, theirpub1_proof, theirpub1_proof_len) != 1)
@@ -363,6 +367,8 @@ jpake_key_confirm(struct modp_group *grp, BIGNUM *s, BIGNUM *step2_val,
 	/* Validate step 2 values */
 	if (BN_cmp(step2_val, BN_value_one()) <= 0)
 		fatal("%s: step2_val <= 1", __func__);
+	if (BN_cmp(step2_val, grp->p) >= 0)
+		fatal("%s: step2_val >= p", __func__);
 
 	/*
 	 * theirpriv2_s_proof is calculated with a different generator:

@@ -15,6 +15,11 @@
    - djm@cvs.openbsd.org 2010/09/20 04:41:47
      [ssh.c]
      install a SIGCHLD handler to reap expiried child process; ok markus@
+   - djm@cvs.openbsd.org 2010/09/20 04:50:53
+     [jpake.c schnorr.c]
+     check that received values are smaller than the group size in the
+     disabled and unfinished J-PAKE code.
+     avoids catastrophic security failure found by Sebastien Martini
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
