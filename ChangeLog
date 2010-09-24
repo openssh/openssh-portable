@@ -1,3 +1,12 @@
+20100924
+ - (djm) OpenBSD CVS Sync
+   - naddy@cvs.openbsd.org 2010/09/10 15:19:29
+     [ssh-keygen.1]
+     * mention ECDSA in more places
+     * less repetition in FILES section
+     * SSHv1 keys are still encrypted with 3DES
+     help and ok jmc@
+
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
    return code since it can apparently return -1 under some conditions.  From
