@@ -57,6 +57,9 @@
    - jmc@cvs.openbsd.org 2010/09/23 13:34:43
      [sftp.c]
      add [-l limit] to usage();
+   - jmc@cvs.openbsd.org 2010/09/23 13:36:46
+     [scp.1 sftp.1]
+     add KexAlgorithms to the -o list;
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
