@@ -12,6 +12,9 @@
    - jmc@cvs.openbsd.org 2010/09/19 21:30:05
      [sftp.1]
      more wacky macro fixing;
+   - djm@cvs.openbsd.org 2010/09/20 04:41:47
+     [ssh.c]
+     install a SIGCHLD handler to reap expiried child process; ok markus@
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact

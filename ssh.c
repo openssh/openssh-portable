@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.351 2010/09/02 16:08:39 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.352 2010/09/20 04:41:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,6 +50,7 @@
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -210,6 +211,7 @@ usage(void)
 static int ssh_session(void);
 static int ssh_session2(void);
 static void load_public_identity_files(void);
+static void main_sigchld_handler(int);
 
 /* from muxclient.c */
 void muxclient(const char *);
@@ -877,6 +879,7 @@ main(int ac, char **av)
 	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
 
 	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
+	signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
 	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr,
@@ -1545,3 +1548,19 @@ load_public_identity_files(void)
 	bzero(pwdir, strlen(pwdir));
 	xfree(pwdir);
 }
+
+static void
+main_sigchld_handler(int sig)
+{
+	int save_errno = errno;
+	pid_t pid;
+	int status;
+
+	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
+	    (pid < 0 && errno == EINTR))
+		;
+
+	signal(sig, main_sigchld_handler);
+	errno = save_errno;
+}
+
