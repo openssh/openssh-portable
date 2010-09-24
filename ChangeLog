@@ -9,6 +9,9 @@
    - djm@cvs.openbsd.org 2010/09/11 21:44:20
      [ssh.1]
      mention RFC 5656 for ECC stuff
+   - jmc@cvs.openbsd.org 2010/09/19 21:30:05
+     [sftp.1]
+     more wacky macro fixing;
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact
