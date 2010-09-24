@@ -31,6 +31,13 @@
      either ready or stale without races. stale server sockets are now
      automatically removed
      ok deraadt
+   - djm@cvs.openbsd.org 2010/09/22 05:01:30
+     [kex.c kex.h kexecdh.c kexecdhc.c kexecdhs.c readconf.c readconf.h]
+     [servconf.c servconf.h ssh_config.5 sshconnect2.c sshd.c sshd_config.5]
+     add a KexAlgorithms knob to the client and server configuration to allow
+     selection of which key exchange methods are used by ssh(1) and sshd(8)
+     and their order of preference.
+     ok markus@
 
 20100910
  - (dtucker) [openbsd-compat/port-linux.c] Check is_selinux_enabled for exact

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.188 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.189 2010/09/22 05:01:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -132,6 +132,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
+	oKexAlgorithms,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -240,6 +241,7 @@ static struct {
 #else
 	{ "zeroknowledgepasswordauthentication", oUnsupported },
 #endif
+	{ "kexalgorithms", oKexAlgorithms },
 
 	{ NULL, oBadOption }
 };
@@ -699,6 +701,18 @@ parse_int:
 			options->macs = xstrdup(arg);
 		break;
 
+	case oKexAlgorithms:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		if (!kex_names_valid(arg))
+			fatal("%.200s line %d: Bad SSH2 KexAlgorithms '%s'.",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (*activep && options->kex_algorithms == NULL)
+			options->kex_algorithms = xstrdup(arg);
+		break;
+
 	case oHostKeyAlgorithms:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
@@ -1078,6 +1092,7 @@ initialize_options(Options * options)
 	options->cipher = -1;
 	options->ciphers = NULL;
 	options->macs = NULL;
+	options->kex_algorithms = NULL;
 	options->hostkeyalgorithms = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
@@ -1191,6 +1206,7 @@ fill_default_options(Options * options)
 		options->cipher = SSH_CIPHER_NOT_SET;
 	/* options->ciphers, default set in myproposals.h */
 	/* options->macs, default set in myproposals.h */
+	/* options->kex_algorithms, default set in myproposals.h */
 	/* options->hostkeyalgorithms, default set in myproposals.h */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_2;

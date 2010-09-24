@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.93 2010/05/07 11:30:30 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.94 2010/09/22 05:01:29 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -72,6 +72,7 @@ typedef struct {
 	int     tcp_keep_alive;	/* If true, set SO_KEEPALIVE. */
 	char   *ciphers;	/* Supported SSH2 ciphers. */
 	char   *macs;		/* Supported SSH2 macs. */
+	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
 	int	protocol;	/* Supported protocol versions. */
 	int     gateway_ports;	/* If true, allow remote connects to forwarded ports. */
 	SyslogFacility log_facility;	/* Facility for system logging. */

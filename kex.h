@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.51 2010/09/09 10:45:45 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.52 2010/09/22 05:01:29 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -138,6 +138,8 @@ struct Kex {
 	void	(*kex[KEX_MAX])(Kex *);
 };
 
+int	 kex_names_valid(const char *);
+
 Kex	*kex_setup(char *[PROPOSAL_MAX]);
 void	 kex_finish(Kex *);
 
@@ -169,7 +171,8 @@ kex_ecdh_hash(const EVP_MD *, const EC_GROUP *, char *, char *, char *, int,
 int	kex_ecdh_name_to_nid(const char *);
 const EVP_MD *kex_ecdh_name_to_evpmd(const char *);
 #else
-# define kex_ecdh_name_to_evpmd(x) NULL
+# define kex_ecdh_name_to_nid(x) (-1)
+# define kex_ecdh_name_to_evpmd(x) (NULL)
 #endif
 
 void

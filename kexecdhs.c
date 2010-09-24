@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhs.c,v 1.1 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: kexecdhs.c,v 1.2 2010/09/22 05:01:29 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -61,7 +61,8 @@ kexecdh_server(Kex *kex)
 	u_int klen, slen, sbloblen, hashlen;
 	int curve_nid;
 
-	curve_nid = kex_ecdh_name_to_nid(kex->name);
+	if ((curve_nid = kex_ecdh_name_to_nid(kex->name)) == -1)
+		fatal("%s: unsupported ECDH curve \"%s\"", __func__, kex->name);
 	if ((server_key = EC_KEY_new_by_curve_name(curve_nid)) == NULL)
 		fatal("%s: EC_KEY_new_by_curve_name failed", __func__);
 	if (EC_KEY_generate_key(server_key) != 1)

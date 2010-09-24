@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdh.c,v 1.2 2010/09/09 10:45:45 djm Exp $ */
+/* $OpenBSD: kexecdh.c,v 1.3 2010/09/22 05:01:29 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -48,15 +48,9 @@
 int
 kex_ecdh_name_to_nid(const char *kexname)
 {
-	int ret;
-
 	if (strlen(kexname) < sizeof(KEX_ECDH_SHA2_STEM) - 1)
 		fatal("%s: kexname too short \"%s\"", __func__, kexname);
-	ret = key_curve_name_to_nid(kexname + sizeof(KEX_ECDH_SHA2_STEM) - 1);
-	if (ret == -1)
-		fatal("%s: unsupported curve negotiated \"%s\"", __func__,
-		    kexname);
-	return ret;
+	return key_curve_name_to_nid(kexname + sizeof(KEX_ECDH_SHA2_STEM) - 1);
 }
 
 const EVP_MD *
@@ -64,6 +58,8 @@ kex_ecdh_name_to_evpmd(const char *kexname)
 {
 	int nid = kex_ecdh_name_to_nid(kexname);
 
+	if (nid == -1)
+		fatal("%s: unsupported ECDH curve \"%s\"", __func__, kexname);
 	return key_ec_nid_to_evpmd(nid);
 }
 

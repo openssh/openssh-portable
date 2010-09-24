@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.139 2010/08/31 11:54:45 djm Exp $
-.Dd $Mdocdate: August 31 2010 $
+.\" $OpenBSD: ssh_config.5,v 1.140 2010/09/22 05:01:29 djm Exp $
+.Dd $Mdocdate: September 22 2010 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -646,6 +646,17 @@ it may be zero or more of:
 .Dq pam ,
 and
 .Dq skey .
+.It Cm KexAlgorithms
+Specifies the available KEX (Key Exchange) algorithms.
+Multiple algorithms must be comma-separated.
+The default is
+.Dq ecdh-sha2-nistp256 ,
+.Dq ecdh-sha2-nistp384 ,
+.Dq ecdh-sha2-nistp521 ,
+.Dq diffie-hellman-group-exchange-sha256 , 
+.Dq diffie-hellman-group-exchange-sha1 ,
+.Dq diffie-hellman-group14-sha1 ,
+.Dq diffie-hellman-group1-sha1 .
 .It Cm LocalCommand
 Specifies a command to execute on the local machine after successfully
 connecting to the server.

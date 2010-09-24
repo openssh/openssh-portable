@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.86 2010/07/19 09:15:12 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.87 2010/09/22 05:01:29 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -73,6 +73,7 @@ typedef struct {
 	char   *ciphers;	/* SSH2 ciphers in order of preference. */
 	char   *macs;		/* SSH2 macs in order of preference. */
 	char   *hostkeyalgorithms;	/* SSH2 server key types in order of preference. */
+	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
 	int	protocol;	/* Protocol in order of preference. */
 	char   *hostname;	/* Real host to connect. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */

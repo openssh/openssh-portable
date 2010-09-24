@@ -34,8 +34,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.126 2010/08/31 11:54:45 djm Exp $
-.Dd $Mdocdate: August 31 2010 $
+.\" $OpenBSD: sshd_config.5,v 1.127 2010/09/22 05:01:30 djm Exp $
+.Dd $Mdocdate: September 22 2010 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -538,6 +538,17 @@ Specifies whether to automatically destroy the user's ticket cache
 file on logout.
 The default is
 .Dq yes .
+.It Cm KexAlgorithms
+Specifies the available KEX (Key Exchange) algorithms.
+Multiple algorithms must be comma-separated.
+The default is
+.Dq ecdh-sha2-nistp256 ,
+.Dq ecdh-sha2-nistp384 ,
+.Dq ecdh-sha2-nistp521 ,
+.Dq diffie-hellman-group-exchange-sha256 , 
+.Dq diffie-hellman-group-exchange-sha1 ,
+.Dq diffie-hellman-group14-sha1 ,
+.Dq diffie-hellman-group1-sha1 .
 .It Cm KeyRegenerationInterval
 In protocol version 1, the ephemeral server key is automatically regenerated
 after this many seconds (if it has been used).

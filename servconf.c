@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.210 2010/09/01 15:21:35 naddy Exp $ */
+/* $OpenBSD: servconf.c,v 1.211 2010/09/22 05:01:29 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -109,6 +109,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_deny_groups = 0;
 	options->ciphers = NULL;
 	options->macs = NULL;
+	options->kex_algorithms = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->gateway_ports = -1;
 	options->num_subsystems = 0;
@@ -314,6 +315,7 @@ typedef enum {
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sZeroKnowledgePasswordAuthentication, sHostCertificate,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
+	sKexAlgorithms,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -436,6 +438,7 @@ static struct {
 	{ "revokedkeys", sRevokedKeys, SSHCFG_ALL },
 	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
 	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
+	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1129,6 +1132,18 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (options->macs == NULL)
 			options->macs = xstrdup(arg);
+		break;
+
+	case sKexAlgorithms:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing argument.",
+			    filename, linenum);
+		if (!kex_names_valid(arg))
+			fatal("%s line %d: Bad SSH2 KexAlgorithms '%s'.",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (options->kex_algorithms == NULL)
+			options->kex_algorithms = xstrdup(arg);
 		break;
 
 	case sProtocol:

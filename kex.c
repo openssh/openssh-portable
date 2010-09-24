@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.85 2010/09/09 10:45:45 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.86 2010/09/22 05:01:29 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -61,6 +61,34 @@ extern const EVP_MD *evp_ssh_sha256(void);
 /* prototype */
 static void kex_kexinit_finish(Kex *);
 static void kex_choose_conf(Kex *);
+
+/* Validate KEX method name list */
+int
+kex_names_valid(const char *names)
+{
+	char *s, *cp, *p;
+
+	if (names == NULL || strcmp(names, "") == 0)
+		return 0;
+	s = cp = xstrdup(names);
+	for ((p = strsep(&cp, ",")); p && *p != '\0';
+	    (p = strsep(&cp, ","))) {
+	    	if (strcmp(p, KEX_DHGEX_SHA256) != 0 &&
+		    strcmp(p, KEX_DHGEX_SHA1) != 0 &&
+		    strcmp(p, KEX_DH14) != 0 &&
+		    strcmp(p, KEX_DH1) != 0 &&
+		    (strncmp(p, KEX_ECDH_SHA2_STEM,
+		    sizeof(KEX_ECDH_SHA2_STEM) - 1) != 0 ||
+		    kex_ecdh_name_to_nid(p) == -1)) {
+			error("Unsupported KEX algorithm \"%.100s\"", p);
+			xfree(s);
+			return 0;
+		}
+	}
+	debug3("kex names ok: [%s]", names);
+	xfree(s);
+	return 1;
+}
 
 /* put algorithm proposal into buffer */
 static void
