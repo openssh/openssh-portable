@@ -471,7 +471,7 @@ process_add_identity(SocketEntry *e, int version)
 #ifdef OPENSSL_HAS_ECC
 	BIGNUM *exponent;
 	EC_POINT *q;
-	int *curve;
+	char *curve;
 #endif
 	u_char *cert;
 	u_int len;
