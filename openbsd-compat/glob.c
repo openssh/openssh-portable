@@ -804,7 +804,7 @@ globextend(const Char *path, glob_t *pglob, size_t *limitp, struct stat *sb)
 	pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
 
 	if ((pglob->gl_flags & GLOB_LIMIT) &&
-	    (newn * sizeof(*pathv)) + *limitp >= ARG_MAX) {
+	    (newn * sizeof(*pathv)) + *limitp >= (u_int) get_arg_max()) {
 		errno = 0;
 		return(GLOB_NOSPACE);
 	}

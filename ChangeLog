@@ -37,6 +37,7 @@
    - djm@cvs.openbsd.org 2010/10/06 21:10:21
      [sshconnect.c]
      swapped args to kill(2)
+ - (djm) [openbsd-compat/glob.c] restore ARG_MAX compat code.
 
 20100924
  - (djm) OpenBSD CVS Sync
