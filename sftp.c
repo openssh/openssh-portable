@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.128 2010/09/25 09:30:16 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.129 2010/09/26 22:26:33 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -758,11 +758,12 @@ static int
 do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
     int lflag)
 {
-	glob_t g;
-	u_int i, c = 1, colspace = 0, columns = 1;
 	Attrib *a = NULL;
-	int err;
 	char *fname, *lname;
+	glob_t g;
+	int err;
+	struct winsize ws;
+	u_int i, c = 1, colspace = 0, columns = 1, m = 0, width = 80;
 
 	memset(&g, 0, sizeof(g));
 
@@ -789,16 +790,13 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		return err;
 	}
 
-	if (!(lflag & LS_SHORT_VIEW)) {
-		u_int m = 0, width = 80;
-		struct winsize ws;
+	if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
+		width = ws.ws_col;
 
+	if (!(lflag & LS_SHORT_VIEW)) {
 		/* Count entries for sort and find longest filename */
 		for (i = 0; g.gl_pathv[i]; i++)
 			m = MAX(m, strlen(g.gl_pathv[i]));
-
-		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
-			width = ws.ws_col;
 
 		columns = width / (m + 2);
 		columns = MAX(columns, 1);

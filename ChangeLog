@@ -13,6 +13,11 @@
      rountrips to fetch per-file stat(2) information.
      NB. update openbsd-compat/ glob(3) implementation from OpenBSD libc to
      match.
+   - djm@cvs.openbsd.org 2010/09/26 22:26:33
+     [sftp.c]
+     when performing an "ls" in columnated (short) mode, only call
+     ioctl(TIOCGWINSZ) once to get the window width instead of per-
+     filename
 
 20100924
  - (djm) OpenBSD CVS Sync
