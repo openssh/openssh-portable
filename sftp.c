@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.129 2010/09/26 22:26:33 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.130 2010/10/05 05:13:18 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -269,7 +269,7 @@ local_do_shell(const char *args)
 	if (!*args)
 		args = NULL;
 
-	if ((shell = getenv("SHELL")) == NULL)
+	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
 
 	if ((pid = fork()) == -1)

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.225 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.226 2010/10/05 05:13:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -87,7 +87,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	pid_t pid;
 	char *shell, strport[NI_MAXSERV];
 
-	if ((shell = getenv("SHELL")) == NULL)
+	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
 
 	/* Convert the port number into a string. */
@@ -1237,7 +1237,7 @@ ssh_local_cmd(const char *args)
 	    args == NULL || !*args)
 		return (1);
 
-	if ((shell = getenv("SHELL")) == NULL)
+	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
 
 	pid = fork();

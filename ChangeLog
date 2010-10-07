@@ -27,6 +27,9 @@
      [cipher-3des1.c cipher-bf1.c cipher-ctr.c openbsd-compat/openssl-compat.h]
      adapt to API changes in openssl-1.0.0a
      NB. contains compat code to select correct API for older OpenSSL
+   - djm@cvs.openbsd.org 2010/10/05 05:13:18
+     [sftp.c sshconnect.c]
+     use default shell /bin/sh if $SHELL is ""; ok markus@
 
 20100924
  - (djm) OpenBSD CVS Sync
