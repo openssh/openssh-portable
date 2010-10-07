@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.211 2010/09/22 05:01:29 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.212 2010/09/30 11:04:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -259,12 +259,12 @@ fill_default_server_options(ServerOptions *options)
 	if (options->authorized_keys_file2 == NULL) {
 		/* authorized_keys_file2 falls back to authorized_keys_file */
 		if (options->authorized_keys_file != NULL)
-			options->authorized_keys_file2 = options->authorized_keys_file;
+			options->authorized_keys_file2 = xstrdup(options->authorized_keys_file);
 		else
-			options->authorized_keys_file2 = _PATH_SSH_USER_PERMITTED_KEYS2;
+			options->authorized_keys_file2 = xstrdup(_PATH_SSH_USER_PERMITTED_KEYS2);
 	}
 	if (options->authorized_keys_file == NULL)
-		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
+		options->authorized_keys_file = xstrdup(_PATH_SSH_USER_PERMITTED_KEYS);
 	if (options->permit_tun == -1)
 		options->permit_tun = SSH_TUNMODE_NO;
 	if (options->zero_knowledge_password_authentication == -1)

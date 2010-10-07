@@ -18,6 +18,10 @@
      when performing an "ls" in columnated (short) mode, only call
      ioctl(TIOCGWINSZ) once to get the window width instead of per-
      filename
+   - djm@cvs.openbsd.org 2010/09/30 11:04:51
+     [servconf.c]
+     prevent free() of string in .rodata when overriding AuthorizedKeys in
+     a Match block; patch from rein AT basefarm.no
 
 20100924
  - (djm) OpenBSD CVS Sync
