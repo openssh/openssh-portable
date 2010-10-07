@@ -38,7 +38,7 @@
 /* OPENBSD ORIGINAL: include/glob.h */
 
 #if !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC) || \
-    !defined(GLOB_HAS_GL_MATCHC) || !define(GLOB_HAS_GL_STATV) \
+    !defined(GLOB_HAS_GL_MATCHC) || !define(GLOB_HAS_GL_STATV) || \
     !defined(HAVE_DECL_GLOB_NOMATCH) || HAVE_DECL_GLOB_NOMATCH == 0 || \
     defined(BROKEN_GLOB)
 
