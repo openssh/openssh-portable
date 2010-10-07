@@ -39,6 +39,7 @@
      swapped args to kill(2)
  - (djm) [openbsd-compat/glob.c] restore ARG_MAX compat code.
  - (djm) [cipher-acss.c] Add missing header.
+ - (djm) [openbsd-compat/Makefile.in] Actually link timingsafe_bcmp
 
 20100924
  - (djm) OpenBSD CVS Sync
