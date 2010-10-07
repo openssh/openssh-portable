@@ -7,6 +7,12 @@
      kernel in kern(9), and remove it from OpenSSH.
      ok deraadt@, djm@
      NB. re-added under openbsd-compat/ for portable OpenSSH
+   - djm@cvs.openbsd.org 2010/09/25 09:30:16
+     [sftp.c configure.ac openbsd-compat/glob.c openbsd-compat/glob.h]
+     make use of new glob(3) GLOB_KEEPSTAT extension to save extra server
+     rountrips to fetch per-file stat(2) information.
+     NB. update openbsd-compat/ glob(3) implementation from OpenBSD libc to
+     match.
 
 20100924
  - (djm) OpenBSD CVS Sync

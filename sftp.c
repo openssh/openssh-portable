@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.127 2010/09/23 13:34:43 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.128 2010/09/25 09:30:16 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -761,15 +761,18 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	glob_t g;
 	u_int i, c = 1, colspace = 0, columns = 1;
 	Attrib *a = NULL;
+	int err;
+	char *fname, *lname;
 
 	memset(&g, 0, sizeof(g));
 
-	if (remote_glob(conn, path, GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE,
-	    NULL, &g) || (g.gl_pathc && !g.gl_matchc)) {
+	if (remote_glob(conn, path,
+	    GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE|GLOB_KEEPSTAT, NULL, &g) ||
+	    (g.gl_pathc && !g.gl_matchc)) {
 		if (g.gl_pathc)
 			globfree(&g);
 		error("Can't ls: \"%s\" not found", path);
-		return (-1);
+		return -1;
 	}
 
 	if (interrupted)
@@ -779,19 +782,11 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	 * If the glob returns a single match and it is a directory,
 	 * then just list its contents.
 	 */
-	if (g.gl_matchc == 1) {
-		if ((a = do_lstat(conn, g.gl_pathv[0], 1)) == NULL) {
-			globfree(&g);
-			return (-1);
-		}
-		if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
-		    S_ISDIR(a->perm)) {
-			int err;
-
-			err = do_ls_dir(conn, g.gl_pathv[0], strip_path, lflag);
-			globfree(&g);
-			return (err);
-		}
+	if (g.gl_matchc == 1 && g.gl_statv[0] != NULL &&
+	    S_ISDIR(g.gl_statv[0]->st_mode)) {
+		err = do_ls_dir(conn, g.gl_pathv[0], strip_path, lflag);
+		globfree(&g);
+		return err;
 	}
 
 	if (!(lflag & LS_SHORT_VIEW)) {
@@ -811,27 +806,14 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	}
 
 	for (i = 0; g.gl_pathv[i] && !interrupted; i++, a = NULL) {
-		char *fname;
-
 		fname = path_strip(g.gl_pathv[i], strip_path);
-
 		if (lflag & LS_LONG_VIEW) {
-			char *lname;
-			struct stat sb;
-
-			/*
-			 * XXX: this is slow - 1 roundtrip per path
-			 * A solution to this is to fork glob() and
-			 * build a sftp specific version which keeps the
-			 * attribs (which currently get thrown away)
-			 * that the server returns as well as the filenames.
-			 */
-			memset(&sb, 0, sizeof(sb));
-			if (a == NULL)
-				a = do_lstat(conn, g.gl_pathv[i], 1);
-			if (a != NULL)
-				attrib_to_stat(a, &sb);
-			lname = ls_file(fname, &sb, 1, (lflag & LS_SI_UNITS));
+			if (g.gl_statv[i] == NULL) {
+				error("no stat information for %s", fname);
+				continue;
+			}
+			lname = ls_file(fname, g.gl_statv[i], 1,
+			    (lflag & LS_SI_UNITS));
 			printf("%s\n", lname);
 			xfree(lname);
 		} else {
@@ -852,7 +834,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	if (g.gl_pathc)
 		globfree(&g);
 
-	return (0);
+	return 0;
 }
 
 static int

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.453 2010/10/07 10:25:28 djm Exp $
+# $Id: configure.ac,v 1.454 2010/10/07 10:39:17 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.453 $)
+AC_REVISION($Revision: 1.454 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1111,6 +1111,28 @@ AC_TRY_COMPILE(
 		AC_DEFINE(GLOB_HAS_GL_MATCHC, 1,
 			[Define if your system glob() function has
 			gl_matchc options in glob_t])
+		AC_MSG_RESULT(yes)
+	],
+	[
+		AC_MSG_RESULT(no)
+	]
+)
+
+# Check for g.gl_statv glob() extension
+AC_MSG_CHECKING(for gl_statv and GLOB_KEEPSTAT extensions for glob)
+AC_TRY_COMPILE(
+	[ #include <glob.h> ],
+	[
+#ifndef GLOB_KEEPSTAT
+#error "glob does not support GLOB_KEEPSTAT extension"
+#endif
+glob_t g;
+g.gl_statv = NULL;
+],
+	[
+		AC_DEFINE(GLOB_HAS_GL_STATV, 1,
+			[Define if your system glob() function has
+			gl_statv options in glob_t])
 		AC_MSG_RESULT(yes)
 	],
 	[
