@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.222 2010/07/19 09:15:12 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.223 2010/10/06 06:39:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2129,5 +2129,6 @@ cleanup_exit(int i)
 	leave_non_blocking();
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
+	ssh_kill_proxy_command();
 	_exit(i);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.352 2010/09/20 04:41:47 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.353 2010/10/06 06:39:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -182,9 +182,6 @@ int subsystem_flag = 0;
 
 /* # of replies received for global requests */
 static int remote_forward_confirms_received = 0;
-
-/* pid of proxycommand child process */
-pid_t proxy_command_pid = 0;
 
 /* mux.c */
 extern int muxserver_sock;
@@ -921,12 +918,8 @@ main(int ac, char **av)
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
 
-	/*
-	 * Send SIGHUP to proxy command if used. We don't wait() in
-	 * case it hangs and instead rely on init to reap the child
-	 */
-	if (proxy_command_pid > 1)
-		kill(proxy_command_pid, SIGHUP);
+	/* Kill ProxyCommand if it is running. */
+	ssh_kill_proxy_command();
 
 	return exit_status;
 }

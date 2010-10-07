@@ -30,6 +30,10 @@
    - djm@cvs.openbsd.org 2010/10/05 05:13:18
      [sftp.c sshconnect.c]
      use default shell /bin/sh if $SHELL is ""; ok markus@
+   - djm@cvs.openbsd.org 2010/10/06 06:39:28
+     [clientloop.c ssh.c sshconnect.c sshconnect.h]
+     kill proxy command on fatal() (we already kill it on clean exit);
+     ok markus@
 
 20100924
  - (djm) OpenBSD CVS Sync

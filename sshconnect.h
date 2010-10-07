@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.25 2009/05/27 06:38:16 andreas Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.26 2010/10/06 06:39:28 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -34,6 +34,7 @@ struct Sensitive {
 int
 ssh_connect(const char *, struct sockaddr_storage *, u_short, int, int,
     int *, int, int, const char *);
+void	 ssh_kill_proxy_command(void);
 
 void
 ssh_login(Sensitive *, const char *, struct sockaddr *, struct passwd *, int);

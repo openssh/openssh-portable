@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.226 2010/10/05 05:13:18 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.227 2010/10/06 06:39:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -66,12 +66,13 @@ char *server_version_string = NULL;
 
 static int matching_host_key_dns = 0;
 
+static pid_t proxy_command_pid = 0;
+
 /* import */
 extern Options options;
 extern char *__progname;
 extern uid_t original_real_uid;
 extern uid_t original_effective_uid;
-extern pid_t proxy_command_pid;
 
 static int show_other_keys(const char *, Key *);
 static void warn_changed_key(Key *);
@@ -165,6 +166,17 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 	/* Indicate OK return */
 	return 0;
+}
+
+void
+ssh_kill_proxy_command(void)
+{
+	/*
+	 * Send SIGHUP to proxy command if used. We don't wait() in
+	 * case it hangs and instead rely on init to reap the child
+	 */
+	if (proxy_command_pid > 1)
+		kill(SIGHUP, proxy_command_pid);
 }
 
 /*
