@@ -38,6 +38,7 @@
      [sshconnect.c]
      swapped args to kill(2)
  - (djm) [openbsd-compat/glob.c] restore ARG_MAX compat code.
+ - (djm) [cipher-acss.c] Add missing header.
 
 20100924
  - (djm) OpenBSD CVS Sync

@@ -23,6 +23,7 @@
 #if !defined(EVP_CTRL_SET_ACSS_MODE) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 
 #include "acss.h"
+#include "openbsd-compat/openssl-compat.h"
 
 #define data(ctx) ((EVP_ACSS_KEY *)(ctx)->cipher_data)
 
