@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.227 2010/10/06 06:39:28 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.228 2010/10/06 21:10:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -176,7 +176,7 @@ ssh_kill_proxy_command(void)
 	 * case it hangs and instead rely on init to reap the child
 	 */
 	if (proxy_command_pid > 1)
-		kill(SIGHUP, proxy_command_pid);
+		kill(proxy_command_pid, SIGHUP);
 }
 
 /*

@@ -34,6 +34,9 @@
      [clientloop.c ssh.c sshconnect.c sshconnect.h]
      kill proxy command on fatal() (we already kill it on clean exit);
      ok markus@
+   - djm@cvs.openbsd.org 2010/10/06 21:10:21
+     [sshconnect.c]
+     swapped args to kill(2)
 
 20100924
  - (djm) OpenBSD CVS Sync
