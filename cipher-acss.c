@@ -43,7 +43,7 @@ acss_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 
 static int
 acss_ciph(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in,
-    unsigned int inl)
+    LIBCRYPTO_EVP_INL_TYPE inl)
 {
 	acss(&data(ctx)->ks,inl,in,out);
 	return 1;

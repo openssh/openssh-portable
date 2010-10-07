@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.15 2010/05/12 07:50:02 djm Exp $ */
+/* $Id: openssl-compat.h,v 1.16 2010/10/07 11:06:44 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -17,6 +17,7 @@
  */
 
 #include "includes.h"
+#include <openssl/opensslv.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -37,6 +38,12 @@
 #if OPENSSL_VERSION_NUMBER < 0x00906000L
 # define SSH_OLD_EVP
 # define EVP_CIPHER_CTX_get_app_data(e)		((e)->app_data)
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x1000000fL
+# define LIBCRYPTO_EVP_INL_TYPE unsigned int
+#else
+# define LIBCRYPTO_EVP_INL_TYPE size_t
 #endif
 
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L) || defined(OPENSSL_LOBOTOMISED_AES)

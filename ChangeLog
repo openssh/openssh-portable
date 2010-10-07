@@ -1,4 +1,5 @@
 20101007
+ - (djm) [ssh-agent.c] Fix type for curve name.
  - (djm) OpenBSD CVS Sync
    - matthew@cvs.openbsd.org 2010/09/24 13:33:00
      [misc.c misc.h configure.ac openbsd-compat/openbsd-compat.h]
@@ -22,6 +23,10 @@
      [servconf.c]
      prevent free() of string in .rodata when overriding AuthorizedKeys in
      a Match block; patch from rein AT basefarm.no
+   - djm@cvs.openbsd.org 2010/10/01 23:05:32
+     [cipher-3des1.c cipher-bf1.c cipher-ctr.c openbsd-compat/openssl-compat.h]
+     adapt to API changes in openssl-1.0.0a
+     NB. contains compat code to select correct API for older OpenSSL
 
 20100924
  - (djm) OpenBSD CVS Sync
