@@ -1,3 +1,13 @@
+20101007
+ - (djm) OpenBSD CVS Sync
+   - matthew@cvs.openbsd.org 2010/09/24 13:33:00
+     [misc.c misc.h configure.ac openbsd-compat/openbsd-compat.h]
+     [openbsd-compat/timingsafe_bcmp.c]
+     Add timingsafe_bcmp(3) to libc, mention that it's already in the
+     kernel in kern(9), and remove it from OpenSSH.
+     ok deraadt@, djm@
+     NB. re-added under openbsd-compat/ for portable OpenSSH
+
 20100924
  - (djm) OpenBSD CVS Sync
    - naddy@cvs.openbsd.org 2010/09/10 15:19:29

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.452 2010/09/10 01:39:27 djm Exp $
+# $Id: configure.ac,v 1.453 2010/10/07 10:25:28 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.452 $)
+AC_REVISION($Revision: 1.453 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1434,6 +1434,7 @@ AC_CHECK_FUNCS( \
 	swap32 \
 	sysconf \
 	tcgetpgrp \
+	timingsafe_bcmp \
 	truncate \
 	unsetenv \
 	updwtmpx \
