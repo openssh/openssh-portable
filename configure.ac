@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.454 2010/10/07 10:39:17 djm Exp $
+# $Id: configure.ac,v 1.455 2010/10/11 11:35:23 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.454 $)
+AC_REVISION($Revision: 1.455 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1295,7 +1295,7 @@ AC_ARG_WITH(libedit,
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
 		fi
-		if test "x$use_pkgconfig_for_libedit" == "xyes"; then
+		if test "x$use_pkgconfig_for_libedit" = "xyes"; then
 			LIBEDIT=`$PKGCONFIG --libs-only-l libedit`
 			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libedit`"
 		else
