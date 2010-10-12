@@ -1,4 +1,8 @@
 20101011
+ - (djm) [canohost.c] Zero a4 instead of addr to better match type.
+   bz#1825, reported by foo AT mailinator.com
+
+20101011
  - (djm) [configure.ac] Use = instead of == in shell tests. Patch from
    dr AT vasco.com
 
