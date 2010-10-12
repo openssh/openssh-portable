@@ -1,6 +1,7 @@
 20101011
  - (djm) [canohost.c] Zero a4 instead of addr to better match type.
    bz#1825, reported by foo AT mailinator.com
+ - (djm) [sshconnect.c] Need signal.h for prototype for kill(2)
 
 20101011
  - (djm) [configure.ac] Use = instead of == in shell tests. Patch from
