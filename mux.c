@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.22 2010/09/20 07:19:27 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.23 2010/10/12 02:22:24 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -879,7 +879,7 @@ process_mux_stdio_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
 	    options.control_master == SSHCTL_MASTER_AUTO_ASK) {
-		if (!ask_permission("Allow forward to to %s:%u? ",
+		if (!ask_permission("Allow forward to %s:%u? ",
 		    chost, cport)) {
 			debug2("%s: stdio fwd refused by user", __func__);
 			/* prepare reply */

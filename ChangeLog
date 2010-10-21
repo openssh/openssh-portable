@@ -1,3 +1,10 @@
+20101021
+ - OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2010/10/12 02:22:24
+     [mux.c]
+     Typo in confirmation message.  bz#1827, patch from imorgan at
+     nas nasa gov
+
 20101011
  - (djm) [canohost.c] Zero a4 instead of addr to better match type.
    bz#1825, reported by foo AT mailinator.com
