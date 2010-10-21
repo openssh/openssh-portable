@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.6 2010/06/29 23:59:54 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.7 2010/08/31 12:24:09 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -11,7 +11,7 @@ ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/user_ca_key ||\
 	fail "ssh-keygen of user_ca_key failed"
 
 # Generate and sign user keys
-for ktype in rsa dsa ; do 
+for ktype in rsa dsa ecdsa ; do 
 	verbose "$tid: sign user ${ktype} cert"
 	${SSHKEYGEN} -q -N '' -t ${ktype} \
 	    -f $OBJ/cert_user_key_${ktype} || \
@@ -20,6 +20,8 @@ for ktype in rsa dsa ; do
 	    "regress user key for $USER" \
 	    -n ${USER},mekmitasdigoat $OBJ/cert_user_key_${ktype} ||
 		fail "couldn't sign cert_user_key_${ktype}"
+	# v00 ecdsa certs do not exist
+	test "{ktype}" = "ecdsa" && continue
 	cp $OBJ/cert_user_key_${ktype} $OBJ/cert_user_key_${ktype}_v00
 	cp $OBJ/cert_user_key_${ktype}.pub $OBJ/cert_user_key_${ktype}_v00.pub
 	${SSHKEYGEN} -q -t v00 -s $OBJ/user_ca_key -I \
@@ -29,7 +31,7 @@ for ktype in rsa dsa ; do
 done
 
 # Test explicitly-specified principals
-for ktype in rsa dsa rsa_v00 dsa_v00 ; do 
+for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
 	for privsep in yes no ; do
 		_prefix="${ktype} privsep $privsep"
 
@@ -155,7 +157,7 @@ basic_tests() {
 		extra_sshd="TrustedUserCAKeys $OBJ/user_ca_key.pub"
 	fi
 	
-	for ktype in rsa dsa rsa_v00 dsa_v00 ; do 
+	for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
 		for privsep in yes no ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
@@ -230,6 +232,11 @@ test_one() {
 
 	for auth in $auth_choice ; do
 		for ktype in rsa rsa_v00 ; do
+			case $ktype in
+			*_v00) keyv="-t v00" ;;
+			*) keyv="" ;;
+			esac
+
 			cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
 			if test "x$auth" = "xauthorized_keys" ; then
 				# Add CA to authorized_keys
@@ -249,7 +256,7 @@ test_one() {
 			verbose "$tid: $ident auth $auth expect $result $ktype"
 			${SSHKEYGEN} -q -s $OBJ/user_ca_key \
 			    -I "regress user key for $USER" \
-			    $sign_opts \
+			    $sign_opts $keyv \
 			    $OBJ/cert_user_key_${ktype} ||
 				fail "couldn't sign cert_user_key_${ktype}"
 
@@ -302,7 +309,7 @@ test_one "principals key option no principals" failure "" \
 
 # Wrong certificate
 cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
-for ktype in rsa dsa rsa_v00 dsa_v00 ; do 
+for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
 	case $ktype in
 	*_v00) args="-t v00" ;;
 	*) args="" ;;

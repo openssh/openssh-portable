@@ -4,6 +4,9 @@
      [mux.c]
      Typo in confirmation message.  bz#1827, patch from imorgan at
      nas nasa gov
+   - djm@cvs.openbsd.org 2010/08/31 12:24:09
+     [regress/cert-hostkey.sh regress/cert-userkey.sh]
+     tests for ECDSA certificates
 
 20101011
  - (djm) [canohost.c] Zero a4 instead of addr to better match type.
