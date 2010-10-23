@@ -1,3 +1,6 @@
+20101024
+ - (dtucker) [includes.h] Add missing ifdef GLOB_HAS_GL_STATV to fix build.
+
 20101021
  - OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2010/10/12 02:22:24
