@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.130 2010/10/05 05:13:18 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.131 2010/10/23 22:06:12 sthen Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1725,6 +1725,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 			case '"':
 			case '\\':
 			case '\t':
+			case '[':
 			case ' ':
 				if (quote == '\0' || tmp2[i] == quote) {
 					if (el_insertstr(el, ins) == -1)
@@ -1854,7 +1855,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 
 		/* Tab Completion */
 		el_set(el, EL_ADDFN, "ftp-complete", 
-		    "Context senstive argument completion", complete);
+		    "Context sensitive argument completion", complete);
 		complete_ctx.conn = conn;
 		complete_ctx.remote_pathp = &remote_path;
 		el_set(el, EL_CLIENTDATA, (void*)&complete_ctx);
