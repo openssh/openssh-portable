@@ -4,6 +4,8 @@
    which don't have ECC support in libcrypto.
  - (dtucker) [regress/cert-userkey.sh] Disable ECC-based tests on platforms
    which don't have ECC support in libcrypto.
+ - (dtucker) [defines.h] Add SIZE_MAX for the benefit of platforms that don't
+   have it.
  - (dtucker) OpenBSD CVS Sync
    - sthen@cvs.openbsd.org 2010/10/23 22:06:12
      [sftp.c]
