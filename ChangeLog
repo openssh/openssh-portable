@@ -1,5 +1,7 @@
 20101024
  - (dtucker) [includes.h] Add missing ifdef GLOB_HAS_GL_STATV to fix build.
+ - (dtucker) [regress/cert-hostkey.sh] Disable ECC-based tests on platforms
+   which don't have ECC support in libcrypto.
  - (dtucker) OpenBSD CVS Sync
    - sthen@cvs.openbsd.org 2010/10/23 22:06:12
      [sftp.c]

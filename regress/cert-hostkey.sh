@@ -3,6 +3,13 @@
 
 tid="certified host keys"
 
+# used to disable ECC based tests on platforms without ECC
+ecdsa=""
+if grep "#define.*OPENSSL_HAS_ECC" ${BUILDDIR}/config.h >/dev/null 2>&1
+then
+	ecdsa=ecdsa
+fi
+
 rm -f $OBJ/known_hosts-cert $OBJ/host_ca_key* $OBJ/cert_host_key*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
@@ -18,7 +25,7 @@ ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/host_ca_key ||\
 ) > $OBJ/known_hosts-cert
 
 # Generate and sign host keys
-for ktype in rsa dsa ecdsa ; do 
+for ktype in rsa dsa $ecdsa ; do 
 	verbose "$tid: sign host ${ktype} cert"
 	# Generate and sign a host key
 	${SSHKEYGEN} -q -N '' -t ${ktype} \
@@ -40,7 +47,7 @@ done
 
 # Basic connect tests
 for privsep in yes no ; do
-	for ktype in rsa dsa ecdsa rsa_v00 dsa_v00; do 
+	for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00; do 
 		verbose "$tid: host ${ktype} cert connect privsep $privsep"
 		(
 			cat $OBJ/sshd_proxy_bak
@@ -80,7 +87,7 @@ done
 	cat $OBJ/cert_host_key_dsa_v00.pub
 ) > $OBJ/known_hosts-cert
 for privsep in yes no ; do
-	for ktype in rsa dsa ecdsa rsa_v00 dsa_v00; do 
+	for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00; do 
 		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
 		(
 			cat $OBJ/sshd_proxy_bak
@@ -107,7 +114,7 @@ done
 	echon "* "
 	cat $OBJ/host_ca_key.pub
 ) > $OBJ/known_hosts-cert
-for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
+for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00 ; do 
 	verbose "$tid: host ${ktype} revoked cert"
 	(
 		cat $OBJ/sshd_proxy_bak
@@ -178,7 +185,7 @@ test_one "cert has constraints"	failure "-h -Oforce-command=false"
 
 # Check downgrade of cert to raw key when no CA found
 for v in v01 v00 ;  do 
-	for ktype in rsa dsa ecdsa ; do 
+	for ktype in rsa dsa $ecdsa ; do 
 		# v00 ecdsa certs do not exist.
 		test "${v}${ktype}" = "v00ecdsa" && continue
 		rm -f $OBJ/known_hosts-cert $OBJ/cert_host_key*
@@ -217,7 +224,7 @@ done
 	cat $OBJ/host_ca_key.pub
 ) > $OBJ/known_hosts-cert
 for v in v01 v00 ;  do 
-	for kt in rsa dsa ecdsa ; do 
+	for kt in rsa dsa $ecdsa ; do 
 		# v00 ecdsa certs do not exist.
 		test "${v}${ktype}" = "v00ecdsa" && continue
 		rm -f $OBJ/cert_host_key*
