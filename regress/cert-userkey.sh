@@ -3,6 +3,13 @@
 
 tid="certified user keys"
 
+# used to disable ECC based tests on platforms without ECC
+ecdsa=""
+if grep "#define.*OPENSSL_HAS_ECC" ${BUILDDIR}/config.h >/dev/null 2>&1
+then
+	ecdsa=ecdsa
+fi
+
 rm -f $OBJ/authorized_keys_$USER $OBJ/user_ca_key* $OBJ/cert_user_key*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
@@ -11,7 +18,7 @@ ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/user_ca_key ||\
 	fail "ssh-keygen of user_ca_key failed"
 
 # Generate and sign user keys
-for ktype in rsa dsa ecdsa ; do 
+for ktype in rsa dsa $ecdsa ; do 
 	verbose "$tid: sign user ${ktype} cert"
 	${SSHKEYGEN} -q -N '' -t ${ktype} \
 	    -f $OBJ/cert_user_key_${ktype} || \
@@ -31,7 +38,7 @@ for ktype in rsa dsa ecdsa ; do
 done
 
 # Test explicitly-specified principals
-for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
+for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00 ; do 
 	for privsep in yes no ; do
 		_prefix="${ktype} privsep $privsep"
 
@@ -157,7 +164,7 @@ basic_tests() {
 		extra_sshd="TrustedUserCAKeys $OBJ/user_ca_key.pub"
 	fi
 	
-	for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
+	for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00 ; do 
 		for privsep in yes no ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
@@ -309,7 +316,7 @@ test_one "principals key option no principals" failure "" \
 
 # Wrong certificate
 cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
-for ktype in rsa dsa ecdsa rsa_v00 dsa_v00 ; do 
+for ktype in rsa dsa $ecdsa rsa_v00 dsa_v00 ; do 
 	case $ktype in
 	*_v00) args="-t v00" ;;
 	*) args="" ;;
