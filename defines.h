@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.161 2010/10/24 00:58:44 dtucker Exp $ */
+/* $Id: defines.h,v 1.162 2010/10/25 05:54:28 dtucker Exp $ */
 
 
 /* Constants */
@@ -250,15 +250,15 @@ typedef unsigned char u_char;
 #define SIZE_T_MAX ULONG_MAX
 #endif /* SIZE_T_MAX */
 
-#ifndef SIZE_MAX
-#define SIZE_MAX UINT_MAX
-#endif
-
 #ifndef HAVE_SIZE_T
 typedef unsigned int size_t;
 # define HAVE_SIZE_T
 # define SIZE_T_MAX UINT_MAX
 #endif /* HAVE_SIZE_T */
+
+#ifndef SIZE_MAX
+#define SIZE_MAX SIZE_T_MAX
+#endif
 
 #ifndef HAVE_SSIZE_T
 typedef int ssize_t;

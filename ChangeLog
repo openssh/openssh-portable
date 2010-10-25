@@ -2,6 +2,8 @@
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
    1.12 to unbreak Solaris build.
    ok djm@
+ - (dtucker) [defines.h] Use SIZE_T_MAX for SIZE_MAX for platforms that have a
+   native one.
 
 20101024
  - (dtucker) [includes.h] Add missing ifdef GLOB_HAS_GL_STATV to fix build.
