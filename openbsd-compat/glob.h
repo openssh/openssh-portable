@@ -45,7 +45,6 @@
 #ifndef _GLOB_H_
 #define	_GLOB_H_
 
-#include <sys/cdefs.h>
 #include <sys/stat.h>
 
 struct stat;
