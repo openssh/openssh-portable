@@ -1,3 +1,9 @@
+20101105
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/09/22 12:26:05
+     [regress/Makefile regress/kextype.sh]
+     regress test for each of the key exchange algorithms that we support
+
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
    1.12 to unbreak Solaris build.
