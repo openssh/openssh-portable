@@ -3,6 +3,14 @@
    - djm@cvs.openbsd.org 2010/09/22 12:26:05
      [regress/Makefile regress/kextype.sh]
      regress test for each of the key exchange algorithms that we support
+   - djm@cvs.openbsd.org 2010/10/28 11:22:09
+     [authfile.c key.c key.h ssh-keygen.c]
+     fix a possible NULL deref on loading a corrupt ECDH key
+     
+     store ECDH group information in private keys files as "named groups"
+     rather than as a set of explicit group parameters (by setting
+     the OPENSSL_EC_NAMED_CURVE flag). This makes for shorter key files and
+     retrieves the group's OpenSSL NID that we need for various things.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with

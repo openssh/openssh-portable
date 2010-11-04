@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.84 2010/09/08 03:54:36 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.85 2010/10/28 11:22:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -523,13 +523,9 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 		prv = key_new(KEY_UNSPEC);
 		prv->ecdsa = EVP_PKEY_get1_EC_KEY(pk);
 		prv->type = KEY_ECDSA;
-		prv->ecdsa_nid = key_ecdsa_group_to_nid(
-		    EC_KEY_get0_group(prv->ecdsa));
-		if (key_curve_nid_to_name(prv->ecdsa_nid) == NULL) {
-			key_free(prv);
-			prv = NULL;
-		}
-		if (key_ec_validate_public(EC_KEY_get0_group(prv->ecdsa),
+		if ((prv->ecdsa_nid = key_ecdsa_key_to_nid(prv->ecdsa)) == -1 ||
+		    key_curve_nid_to_name(prv->ecdsa_nid) == NULL ||
+		    key_ec_validate_public(EC_KEY_get0_group(prv->ecdsa),
 		    EC_KEY_get0_public_key(prv->ecdsa)) != 0 ||
 		    key_ec_validate_private(prv->ecdsa) != 0) {
 			error("%s: bad ECDSA key", __func__);
@@ -538,7 +534,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 		}
 		name = "ecdsa w/o comment";
 #ifdef DEBUG_PK
-		if (prv->ecdsa != NULL)
+		if (prv != NULL && prv->ecdsa != NULL)
 			key_dump_ec_key(prv->ecdsa);
 #endif
 #endif /* OPENSSL_HAS_ECC */

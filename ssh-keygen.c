@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.203 2010/09/02 17:21:50 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.204 2010/10/28 11:22:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -556,8 +556,7 @@ do_convert_from_pkcs8(Key **k, int *private)
 		*k = key_new(KEY_UNSPEC);
 		(*k)->type = KEY_ECDSA;
 		(*k)->ecdsa = EVP_PKEY_get1_EC_KEY(pubkey);
-		(*k)->ecdsa_nid = key_ecdsa_group_to_nid(
-		    EC_KEY_get0_group((*k)->ecdsa));
+		(*k)->ecdsa_nid = key_ecdsa_key_to_nid((*k)->ecdsa);
 		break;
 #endif
 	default:

@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.93 2010/09/09 10:45:45 djm Exp $ */
+/* $OpenBSD: key.c,v 1.94 2010/10/28 11:22:09 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1053,12 +1053,8 @@ key_ecdsa_bits_to_nid(int bits)
 }
 
 #ifdef OPENSSL_HAS_ECC
-/*
- * This is horrid, but OpenSSL's PEM_read_PrivateKey seems not to restore
- * the EC_GROUP nid when loading a key...
- */
 int
-key_ecdsa_group_to_nid(const EC_GROUP *g)
+key_ecdsa_key_to_nid(EC_KEY *k)
 {
 	EC_GROUP *eg;
 	int nids[] = {
@@ -1067,23 +1063,39 @@ key_ecdsa_group_to_nid(const EC_GROUP *g)
 		NID_secp521r1,
 		-1
 	};
+	int nid;
 	u_int i;
 	BN_CTX *bnctx;
+	const EC_GROUP *g = EC_KEY_get0_group(k);
 
+	/*
+	 * The group may be stored in a ASN.1 encoded private key in one of two
+	 * ways: as a "named group", which is reconstituted by ASN.1 object ID
+	 * or explicit group parameters encoded into the key blob. Only the
+	 * "named group" case sets the group NID for us, but we can figure
+	 * it out for the other case by comparing against all the groups that
+	 * are supported.
+	 */
+	if ((nid = EC_GROUP_get_curve_name(g)) > 0)
+		return nid;
 	if ((bnctx = BN_CTX_new()) == NULL)
 		fatal("%s: BN_CTX_new() failed", __func__);
 	for (i = 0; nids[i] != -1; i++) {
 		if ((eg = EC_GROUP_new_by_curve_name(nids[i])) == NULL)
 			fatal("%s: EC_GROUP_new_by_curve_name failed",
 			    __func__);
-		if (EC_GROUP_cmp(g, eg, bnctx) == 0) {
-			EC_GROUP_free(eg);
+		if (EC_GROUP_cmp(g, eg, bnctx) == 0)
 			break;
-		}
 		EC_GROUP_free(eg);
 	}
 	BN_CTX_free(bnctx);
 	debug3("%s: nid = %d", __func__, nids[i]);
+	if (nids[i] != -1) {
+		/* Use the group with the NID attached */
+		EC_GROUP_set_asn1_flag(eg, OPENSSL_EC_NAMED_CURVE);
+		if (EC_KEY_set_group(k, eg) != 1)
+			fatal("%s: EC_KEY_set_group", __func__);
+	}
 	return nids[i];
 }
 
@@ -1098,6 +1110,7 @@ ecdsa_generate_private_key(u_int bits, int *nid)
 		fatal("%s: EC_KEY_new_by_curve_name failed", __func__);
 	if (EC_KEY_generate_key(private) != 1)
 		fatal("%s: EC_KEY_generate_key failed", __func__);
+	EC_KEY_set_asn1_flag(private, OPENSSL_EC_NAMED_CURVE);
 	return private;
 }
 #endif /* OPENSSL_HAS_ECC */
