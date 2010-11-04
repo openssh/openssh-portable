@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.91 2010/01/13 01:40:16 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.92 2010/11/04 02:45:34 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1377,8 +1377,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	ssize_t len, olen, set_size;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	char *cp, buf[4*4096];
-	const char *errmsg;
-	mode_t mask;
+	long mask;
 
 	extern char *optarg;
 	extern char *__progname;
@@ -1412,11 +1411,12 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 				error("Invalid log facility \"%s\"", optarg);
 			break;
 		case 'u':
-			mask = (mode_t)strtonum(optarg, 0, 0777, &errmsg);
-			if (errmsg != NULL)
-				fatal("Invalid umask \"%s\": %s",
-				    optarg, errmsg);
-			(void)umask(mask);
+			errno = 0;
+			mask = strtol(optarg, &cp, 8);
+			if (mask < 0 || mask > 0777 || *cp != '\0' ||
+			    cp == optarg || (mask == 0 && errno != 0))
+				fatal("Invalid umask \"%s\"", optarg);
+			(void)umask((mode_t)mask);
 			break;
 		case 'h':
 		default:
