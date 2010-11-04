@@ -273,7 +273,7 @@ login_logout(struct logininfo *li)
  *                try to retrieve lastlog information from wtmp/wtmpx.
  */
 unsigned int
-login_get_lastlog_time(const int uid)
+login_get_lastlog_time(const uid_t uid)
 {
 	struct logininfo li;
 
@@ -297,7 +297,7 @@ login_get_lastlog_time(const int uid)
  *  0  on failure (will use OpenSSH's logging facilities for diagnostics)
  */
 struct logininfo *
-login_get_lastlog(struct logininfo *li, const int uid)
+login_get_lastlog(struct logininfo *li, const uid_t uid)
 {
 	struct passwd *pw;
 
@@ -311,7 +311,8 @@ login_get_lastlog(struct logininfo *li, const int uid)
 	 */
 	pw = getpwuid(uid);
 	if (pw == NULL)
-		fatal("%s: Cannot find account for uid %i", __func__, uid);
+		fatal("%s: Cannot find account for uid %ld", __func__,
+		    (long)uid);
 
 	/* No MIN_SIZEOF here - we absolutely *must not* truncate the
 	 * username (XXX - so check for trunc!) */
@@ -335,7 +336,7 @@ login_get_lastlog(struct logininfo *li, const int uid)
  * allocation fails, the program halts.
  */
 struct
-logininfo *login_alloc_entry(int pid, const char *username,
+logininfo *login_alloc_entry(pid_t pid, const char *username,
     const char *hostname, const char *line)
 {
 	struct logininfo *newli;
@@ -363,7 +364,7 @@ login_free_entry(struct logininfo *li)
  * Returns: 1
  */
 int
-login_init_entry(struct logininfo *li, int pid, const char *username,
+login_init_entry(struct logininfo *li, pid_t pid, const char *username,
     const char *hostname, const char *line)
 {
 	struct passwd *pw;
@@ -1496,7 +1497,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 
 	if (S_ISREG(st.st_mode)) {
 		/* find this uid's offset in the lastlog file */
-		offset = (off_t) ((long)li->uid * sizeof(struct lastlog));
+		offset = (off_t) ((u_long)li->uid * sizeof(struct lastlog));
 
 		if (lseek(*fd, offset, SEEK_SET) != offset) {
 			logit("%s: %s->lseek(): %s", __func__,
