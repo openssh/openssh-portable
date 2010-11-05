@@ -29,6 +29,8 @@
  - (dtucker) [platform.c session.c] Move the AIX setpcred+chroot hack into
    platform.c
  - (dtucker) [platform.c session.c] Move the BSDI setpgrp into platform.c.
+ - (dtucker) [platform.c] Only call setpgrp on BSDI if running as root to
+   retain previous behavior.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
