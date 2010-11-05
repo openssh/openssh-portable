@@ -42,6 +42,7 @@
    non-LOGIN_CAP case into platform.c.
  - (dtucker) [platform.c platform.h session.c] Move the Cygwin special-case
    check into platform.c
+ - (dtucker) [regress/keytype.sh] Import new test.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
