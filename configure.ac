@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.455 2010/10/11 11:35:23 djm Exp $
+# $Id: configure.ac,v 1.456 2010/11/05 01:03:05 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.455 $)
+AC_REVISION($Revision: 1.456 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -333,6 +333,7 @@ AC_CHECK_HEADERS(sys/mount.h, [], [], [
 # Messages for features tested for in target-specific section
 SIA_MSG="no"
 SPC_MSG="no"
+SP_MSG="no"
 
 # Check for some target-specific stuff
 case "$host" in
@@ -702,6 +703,17 @@ mips-sony-bsd|mips-sony-newsos4)
 			  SSHDLIBS="$SSHDLIBS -lcontract"
 			  AC_SUBST(SSHDLIBS)
 			  SPC_MSG="yes" ], )
+		],
+	)
+	AC_ARG_WITH(solaris-projects,
+		[  --with-solaris-projects Enable Solaris projects (experimental)],
+		[
+		AC_CHECK_LIB(project, setproject,
+			[ AC_DEFINE(USE_SOLARIS_PROJECTS, 1,
+				[Define if you have Solaris projects])
+			SSHDLIBS="$SSHDLIBS -lproject"
+			AC_SUBST(SSHDLIBS)
+			SP_MSG="yes" ], )
 		],
 	)
 	;;
@@ -4236,6 +4248,7 @@ echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"
 echo "                   libedit support: $LIBEDIT_MSG"
 echo "  Solaris process contract support: $SPC_MSG"
+echo "           Solaris project support: $SP_MSG"
 echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"

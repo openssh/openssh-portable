@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.3 2009/12/20 23:49:22 dtucker Exp $ */
+/* $Id: platform.c,v 1.4 2010/11/05 01:03:05 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -54,6 +54,16 @@ platform_post_fork_child(void)
 #endif
 #ifdef LINUX_OOM_ADJUST
 	oom_adjust_restore();
+#endif
+}
+
+void
+platform_setusercontext(struct passwd *pw)
+{
+#ifdef USE_SOLARIS_PROJECTS
+	/* if solaris projects were detected, set the default now */
+	if (getuid() == 0 || geteuid() == 0)
+		solaris_set_default_project(pw);
 #endif
 }
 

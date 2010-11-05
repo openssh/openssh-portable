@@ -1469,6 +1469,8 @@ do_setusercontext(struct passwd *pw)
 {
 	char *chroot_path, *tmp;
 
+	platform_setusercontext(pw);
+
 #ifdef WITH_SELINUX
 	/* Cache selinux status for later use */
 	(void)ssh_selinux_enabled();
