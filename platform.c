@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.8 2010/11/05 01:50:41 dtucker Exp $ */
+/* $Id: platform.c,v 1.9 2010/11/05 02:00:05 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -20,6 +20,8 @@
 #include "platform.h"
 
 #include "openbsd-compat/openbsd-compat.h"
+
+extern int use_privsep;
 
 void
 platform_pre_listen(void)
@@ -79,6 +81,18 @@ platform_setusercontext(struct passwd *pw)
 	if (getuid() == 0 || geteuid() == 0)
 		setpgid(0, 0);
 # endif
+
+#if defined(HAVE_LOGIN_CAP) && defined(USE_PAM)
+	/*
+	 * If we have both LOGIN_CAP and PAM, we want to establish creds
+	 * before calling setusercontext (in session.c:do_setusercontext).
+	 */
+	if (getuid() == 0 || geteuid() == 0) {
+		if (options.use_pam) {
+			do_pam_setcred(use_privsep);
+		}
+	}
+# endif /* USE_PAM */
 }
 
 /*

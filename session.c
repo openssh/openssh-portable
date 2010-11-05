@@ -1476,11 +1476,6 @@ do_setusercontext(struct passwd *pw)
 #endif /* HAVE_CYGWIN */
 	{
 #ifdef HAVE_LOGIN_CAP
-# ifdef USE_PAM
-		if (options.use_pam) {
-			do_pam_setcred(use_privsep);
-		}
-# endif /* USE_PAM */
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~(LOGIN_SETPATH|LOGIN_SETUSER))) < 0) {
 			perror("unable to set user context");

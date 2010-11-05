@@ -31,6 +31,8 @@
  - (dtucker) [platform.c session.c] Move the BSDI setpgrp into platform.c.
  - (dtucker) [platform.c] Only call setpgrp on BSDI if running as root to
    retain previous behavior.
+ - (dtucker) [platform.c session.c] Move the PAM credential establishment for
+   the LOGIN_CAP case into platform.c.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
