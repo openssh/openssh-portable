@@ -46,6 +46,7 @@
  - (dtucker) [Makefile configure.ac regress/Makefile regress/keytype.sh]
    Import recent changes to regress/Makefile, pass a flag to enable ECC tests
    from configure through to regress/Makefile and use it in the tests.
+ - (dtucker) [regress/kextype.sh] Add missing "test".
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
