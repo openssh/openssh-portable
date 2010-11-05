@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.14 2010/11/05 03:47:01 dtucker Exp $ */
+/* $Id: platform.c,v 1.15 2010/11/05 07:56:08 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -19,13 +19,19 @@
 #include "config.h"
 
 #include <sys/types.h>
+
+#include <stdarg.h>
 #include <unistd.h>
 
+#include "log.h"
+#include "buffer.h"
+#include "servconf.h"
 #include "platform.h"
 
 #include "openbsd-compat/openbsd-compat.h"
 
 extern int use_privsep;
+extern ServerOptions options;
 
 void
 platform_pre_listen(void)
