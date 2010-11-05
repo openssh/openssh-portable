@@ -26,6 +26,8 @@
    ok djm@
  - (dtucker) [platform.c platform.h session.c] Add a platform hook to run
    after the user's groups are established and move the selinux calls into it.
+ - (dtucker) [platform.c session.c] Move the AIX setpcred+chroot hack into
+   platform.c
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with

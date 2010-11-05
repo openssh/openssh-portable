@@ -1530,24 +1530,6 @@ do_setusercontext(struct passwd *pw)
 		}
 # endif /* USE_LIBIAF */
 #endif
-#ifdef HAVE_SETPCRED
-		/*
-		 * If we have a chroot directory, we set all creds except real
-		 * uid which we will need for chroot.  If we don't have a
-		 * chroot directory, we don't override anything.
-		 */
-		{
-			char **creds = NULL, *chroot_creds[] =
-			    { "REAL_USER=root", NULL };
-
-			if (options.chroot_directory != NULL &&
-			    strcasecmp(options.chroot_directory, "none") != 0)
-				creds = chroot_creds;
-
-			if (setpcred(pw->pw_name, creds) == -1)
-				fatal("Failed to set process credentials");
-		}
-#endif /* HAVE_SETPCRED */
 
 		platform_setusercontext_post_groups(pw);
 

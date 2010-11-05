@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.5 2010/11/05 01:36:15 dtucker Exp $ */
+/* $Id: platform.c,v 1.6 2010/11/05 01:41:13 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -83,6 +83,24 @@ platform_setusercontext(struct passwd *pw)
 void
 platform_setusercontext_post_groups(struct passwd *pw)
 {
+#ifdef HAVE_SETPCRED
+	/*
+	 * If we have a chroot directory, we set all creds except real
+	 * uid which we will need for chroot.  If we don't have a
+	 * chroot directory, we don't override anything.
+	 */
+	{
+		char **creds = NULL, *chroot_creds[] =
+		    { "REAL_USER=root", NULL };
+
+		if (options.chroot_directory != NULL &&
+		    strcasecmp(options.chroot_directory, "none") != 0)
+			creds = chroot_creds;
+
+		if (setpcred(pw->pw_name, creds) == -1)
+			fatal("Failed to set process credentials");
+	}
+#endif /* HAVE_SETPCRED */
 #ifdef WITH_SELINUX
 	ssh_selinux_setup_exec_context(pw->pw_name);
 #endif
