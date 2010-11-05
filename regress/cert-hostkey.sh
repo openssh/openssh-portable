@@ -5,8 +5,7 @@ tid="certified host keys"
 
 # used to disable ECC based tests on platforms without ECC
 ecdsa=""
-if grep "#define.*OPENSSL_HAS_ECC" ${BUILDDIR}/config.h >/dev/null 2>&1
-then
+if "$TEST_SSH_ECC" = "yes"; then
 	ecdsa=ecdsa
 fi
 

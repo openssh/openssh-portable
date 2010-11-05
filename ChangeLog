@@ -43,6 +43,9 @@
  - (dtucker) [platform.c platform.h session.c] Move the Cygwin special-case
    check into platform.c
  - (dtucker) [regress/keytype.sh] Import new test.
+ - (dtucker) [Makefile configure.ac regress/Makefile regress/keytype.sh]
+   Import recent changes to regress/Makefile, pass a flag to enable ECC tests
+   from configure through to regress/Makefile and use it in the tests.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with

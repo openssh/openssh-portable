@@ -7,7 +7,10 @@ TIME=/usr/bin/time
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
-ktypes="dsa-1024 rsa-2048 ecdsa-256 rsa-3072 ecdsa-384 ecdsa-521"
+ktypes="dsa-1024 rsa-2048 rsa-3072"
+if test "$TEST_SSH_ECC" = "yes"; then
+	ktypes="$ktypes ecdsa-256 ecdsa-384 ecdsa-521"
+fi
 
 for kt in $ktypes; do 
 	rm -f $OBJ/key.$kt

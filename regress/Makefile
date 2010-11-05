@@ -53,11 +53,15 @@ LTESTS= 	connect \
 		localcommand \
 		forcecommand \
 		portnum \
+		keytype \
+		kextype \
 		cert-hostkey \
 		cert-userkey
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
+
+#LTESTS= 	cipher-speed
 
 USER!=		id -un
 CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
@@ -78,6 +82,10 @@ TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
 
 t1:
 	ssh-keygen -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
+	tr '\n' '\r' <${.CURDIR}/rsa_ssh2.prv > ${.OBJDIR}/rsa_ssh2_cr.prv
+	ssh-keygen -if ${.OBJDIR}/rsa_ssh2_cr.prv | diff - ${.CURDIR}/rsa_openssh.prv
+	awk '{print $$0 "\r"}' ${.CURDIR}/rsa_ssh2.prv > ${.OBJDIR}/rsa_ssh2_crnl.prv
+	ssh-keygen -if ${.OBJDIR}/rsa_ssh2_crnl.prv | diff - ${.CURDIR}/rsa_openssh.prv
 
 t2:
 	cat ${.CURDIR}/rsa_openssh.prv > $(OBJ)/t2.out
@@ -110,6 +118,23 @@ t7: $(OBJ)/t7.out
 	ssh-keygen -lf $(OBJ)/t7.out > /dev/null
 	ssh-keygen -Bf $(OBJ)/t7.out > /dev/null
 
+t8.out:
+	ssh-keygen -q -t dsa -N '' -f $@
+
+t8: t8.out
+	ssh-keygen -lf t8.out > /dev/null
+	ssh-keygen -Bf t8.out > /dev/null
+
+t9.out:
+	test "${TEST_SSH_ECC}" != yes || \
+	ssh-keygen -q -t ecdsa -N '' -f
+
+t9: t9.out
+	test "${TEST_SSH_ECC}" != yes || \
+	ssh-keygen -lf t9.out > /dev/null
+	test "${TEST_SSH_ECC}" != yes || \
+	ssh-keygen -Bf t9.out > /dev/null
+
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
@@ -124,3 +149,5 @@ t-exec-interop:	${INTEROP_TESTS:=.sh}
 		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
 
+# Not run by default
+interop: ${INTEROP_TARGETS}

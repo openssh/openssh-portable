@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.456 2010/11/05 01:03:05 dtucker Exp $
+# $Id: configure.ac,v 1.457 2010/11/05 07:23:38 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.456 $)
+AC_REVISION($Revision: 1.457 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2209,11 +2209,14 @@ int main(void) {
 		AC_MSG_RESULT(yes)
 		AC_DEFINE(OPENSSL_HAS_ECC, 1,
 		    [libcrypto includes complete ECC support])
+		TEST_SSH_ECC=yes
 	],
 	[
 		AC_MSG_RESULT(no)
+		TEST_SSH_ECC=no
 	]
 )
+AC_SUBST(TEST_SSH_ECC)
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(iaf, ia_openinfo, [

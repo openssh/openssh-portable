@@ -7,7 +7,9 @@ TIME=/usr/bin/time
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
-kextypes="ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521"
+if "$TEST_SSH_ECC" = "yes"; then
+	kextypes="ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521"
+fi
 kextypes="$kextypes diffie-hellman-group-exchange-sha256"
 kextypes="$kextypes diffie-hellman-group-exchange-sha1"
 kextypes="$kextypes diffie-hellman-group14-sha1"
