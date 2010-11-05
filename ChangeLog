@@ -47,6 +47,9 @@
    Import recent changes to regress/Makefile, pass a flag to enable ECC tests
    from configure through to regress/Makefile and use it in the tests.
  - (dtucker) [regress/kextype.sh] Add missing "test".
+ - (dtucker) [regress/kextype.sh] Make sha256 test depend on ECC.  This is not
+   strictly correct since while ECC requires sha256 the reverse is not true
+   however it does prevent spurious test failures.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
