@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.6 2010/11/05 01:41:13 dtucker Exp $ */
+/* $Id: platform.c,v 1.7 2010/11/05 01:45:18 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -74,6 +74,10 @@ platform_setusercontext(struct passwd *pw)
 	if (getuid() == 0 || geteuid() == 0)
 		solaris_set_default_project(pw);
 #endif
+
+#if defined(HAVE_LOGIN_CAP) && defined (__bsdi__)
+	setpgid(0, 0);
+# endif
 }
 
 /*

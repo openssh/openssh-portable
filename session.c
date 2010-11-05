@@ -1476,9 +1476,6 @@ do_setusercontext(struct passwd *pw)
 #endif /* HAVE_CYGWIN */
 	{
 #ifdef HAVE_LOGIN_CAP
-# ifdef __bsdi__
-		setpgid(0, 0);
-# endif
 # ifdef USE_PAM
 		if (options.use_pam) {
 			do_pam_setcred(use_privsep);
