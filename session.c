@@ -1471,10 +1471,7 @@ do_setusercontext(struct passwd *pw)
 
 	platform_setusercontext(pw);
 
-#ifndef HAVE_CYGWIN
-	if (getuid() == 0 || geteuid() == 0)
-#endif /* HAVE_CYGWIN */
-	{
+	if (platform_privileged_uidswap()) {
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~(LOGIN_SETPATH|LOGIN_SETUSER))) < 0) {

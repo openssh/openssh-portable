@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.13 2010/11/05 02:32:53 dtucker Exp $ */
+/* $Id: platform.c,v 1.14 2010/11/05 03:47:01 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -17,6 +17,10 @@
  */
 
 #include "config.h"
+
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "platform.h"
 
 #include "openbsd-compat/openbsd-compat.h"
@@ -56,6 +60,18 @@ platform_post_fork_child(void)
 #endif
 #ifdef LINUX_OOM_ADJUST
 	oom_adjust_restore();
+#endif
+}
+
+/* return 1 if we are running with privilege to swap UIDs, 0 otherwise */
+int
+platform_privileged_uidswap(void)
+{
+#ifdef HAVE_CYGWIN
+	/* uid 0 is not special on Cygwin so always try */
+	return 1;
+#else
+	return (getuid() == 0 || geteuid() == 0);
 #endif
 }
 
