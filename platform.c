@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.12 2010/11/05 02:29:25 dtucker Exp $ */
+/* $Id: platform.c,v 1.13 2010/11/05 02:32:53 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -102,6 +102,17 @@ platform_setusercontext(struct passwd *pw)
 void
 platform_setusercontext_post_groups(struct passwd *pw)
 {
+#if !defined(HAVE_LOGIN_CAP) && defined(USE_PAM)
+	/*
+	 * PAM credentials may take the form of supplementary groups.
+	 * These will have been wiped by the above initgroups() call.
+	 * Reestablish them here.
+	 */
+	if (options.use_pam) {
+		do_pam_setcred(use_privsep);
+	}
+#endif /* USE_PAM */
+
 #if !defined(HAVE_LOGIN_CAP) && (defined(WITH_IRIX_PROJECT) || \
     defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY))
 	irix_setusercontext(pw);

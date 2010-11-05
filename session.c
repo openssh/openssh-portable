@@ -1500,16 +1500,6 @@ do_setusercontext(struct passwd *pw)
 			exit(1);
 		}
 		endgrent();
-# ifdef USE_PAM
-		/*
-		 * PAM credentials may take the form of supplementary groups.
-		 * These will have been wiped by the above initgroups() call.
-		 * Reestablish them here.
-		 */
-		if (options.use_pam) {
-			do_pam_setcred(use_privsep);
-		}
-# endif /* USE_PAM */
 #endif
 
 		platform_setusercontext_post_groups(pw);
