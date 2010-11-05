@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.4 2010/11/05 01:03:05 dtucker Exp $ */
+/* $Id: platform.c,v 1.5 2010/11/05 01:36:15 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -57,13 +57,34 @@ platform_post_fork_child(void)
 #endif
 }
 
+/*
+ * This gets called before switching UIDs, and is called even when sshd is
+ * not running as root.
+ */
 void
 platform_setusercontext(struct passwd *pw)
 {
+#ifdef WITH_SELINUX
+	/* Cache selinux status for later use */
+	(void)ssh_selinux_enabled();
+#endif
+
 #ifdef USE_SOLARIS_PROJECTS
 	/* if solaris projects were detected, set the default now */
 	if (getuid() == 0 || geteuid() == 0)
 		solaris_set_default_project(pw);
+#endif
+}
+
+/*
+ * This gets called after we've established the user's groups, and is only
+ * called if sshd is running as root.
+ */
+void
+platform_setusercontext_post_groups(struct passwd *pw)
+{
+#ifdef WITH_SELINUX
+	ssh_selinux_setup_exec_context(pw->pw_name);
 #endif
 }
 

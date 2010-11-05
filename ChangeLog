@@ -24,6 +24,8 @@
    openbsd-compat/port-solaris.{c,h}] Bug #1824: Add Solaris Project support.
    Patch from cory.erickson at csu mnscu edu with a bit of rework from me.
    ok djm@
+ - (dtucker) [platform.c platform.h session.c] Add a platform hook to run
+   after the user's groups are established and move the selinux calls into it.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with

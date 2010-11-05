@@ -1471,11 +1471,6 @@ do_setusercontext(struct passwd *pw)
 
 	platform_setusercontext(pw);
 
-#ifdef WITH_SELINUX
-	/* Cache selinux status for later use */
-	(void)ssh_selinux_enabled();
-#endif
-
 #ifndef HAVE_CYGWIN
 	if (getuid() == 0 || geteuid() == 0)
 #endif /* HAVE_CYGWIN */
@@ -1554,9 +1549,7 @@ do_setusercontext(struct passwd *pw)
 		}
 #endif /* HAVE_SETPCRED */
 
-#ifdef WITH_SELINUX
-		ssh_selinux_setup_exec_context(pw->pw_name);
-#endif
+		platform_setusercontext_post_groups(pw);
 
 		if (options.chroot_directory != NULL &&
 		    strcasecmp(options.chroot_directory, "none") != 0) {
