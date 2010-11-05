@@ -35,7 +35,9 @@
    the LOGIN_CAP case into platform.c.
  - (dtucker) platform.c session.c] Move the USE_LIBIAF fragment into
    platform.c
- - (dtucker) platform.c session.c] Move aix_usrinfo frament into platform.c.
+ - (dtucker) [platform.c session.c] Move aix_usrinfo frament into platform.c.
+ - (dtucker) [platform.c session.c] Move irix setusercontext fragment into
+   platform.c.
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with

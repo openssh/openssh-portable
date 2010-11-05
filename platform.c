@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.11 2010/11/05 02:11:04 dtucker Exp $ */
+/* $Id: platform.c,v 1.12 2010/11/05 02:29:25 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -102,6 +102,11 @@ platform_setusercontext(struct passwd *pw)
 void
 platform_setusercontext_post_groups(struct passwd *pw)
 {
+#if !defined(HAVE_LOGIN_CAP) && (defined(WITH_IRIX_PROJECT) || \
+    defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY))
+	irix_setusercontext(pw);
+#endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
+
 #ifdef _AIX
 	aix_usrinfo(pw);
 #endif /* _AIX */

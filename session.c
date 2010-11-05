@@ -1510,9 +1510,6 @@ do_setusercontext(struct passwd *pw)
 			do_pam_setcred(use_privsep);
 		}
 # endif /* USE_PAM */
-# if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
-		irix_setusercontext(pw);
-# endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
 #endif
 
 		platform_setusercontext_post_groups(pw);
