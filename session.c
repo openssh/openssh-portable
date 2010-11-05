@@ -1513,9 +1513,6 @@ do_setusercontext(struct passwd *pw)
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 		irix_setusercontext(pw);
 # endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
-# ifdef _AIX
-		aix_usrinfo(pw);
-# endif /* _AIX */
 #endif
 
 		platform_setusercontext_post_groups(pw);

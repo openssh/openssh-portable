@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.10 2010/11/05 02:07:25 dtucker Exp $ */
+/* $Id: platform.c,v 1.11 2010/11/05 02:11:04 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -102,6 +102,10 @@ platform_setusercontext(struct passwd *pw)
 void
 platform_setusercontext_post_groups(struct passwd *pw)
 {
+#ifdef _AIX
+	aix_usrinfo(pw);
+#endif /* _AIX */
+
 #if !defined(HAVE_LOGIN_CAP) && defined(USE_LIBIAF)
 	if (set_id(pw->pw_name) != 0) {
 		exit(1);
