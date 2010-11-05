@@ -1516,11 +1516,6 @@ do_setusercontext(struct passwd *pw)
 # ifdef _AIX
 		aix_usrinfo(pw);
 # endif /* _AIX */
-# ifdef USE_LIBIAF
-		if (set_id(pw->pw_name) != 0) {
-			exit(1);
-		}
-# endif /* USE_LIBIAF */
 #endif
 
 		platform_setusercontext_post_groups(pw);

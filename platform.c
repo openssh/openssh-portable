@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.9 2010/11/05 02:00:05 dtucker Exp $ */
+/* $Id: platform.c,v 1.10 2010/11/05 02:07:25 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -102,6 +102,12 @@ platform_setusercontext(struct passwd *pw)
 void
 platform_setusercontext_post_groups(struct passwd *pw)
 {
+#if !defined(HAVE_LOGIN_CAP) && defined(USE_LIBIAF)
+	if (set_id(pw->pw_name) != 0) {
+		exit(1);
+	}
+# endif /* USE_LIBIAF */
+
 #ifdef HAVE_SETPCRED
 	/*
 	 * If we have a chroot directory, we set all creds except real

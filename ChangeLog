@@ -33,6 +33,8 @@
    retain previous behavior.
  - (dtucker) [platform.c session.c] Move the PAM credential establishment for
    the LOGIN_CAP case into platform.c.
+ - (dtucker) platform.c session.c] Move the USE_LIBIAF fragment into
+   platform.c
 
 20101025
  - (tim) [openbsd-compat/glob.h] Remove sys/cdefs.h include that came with
