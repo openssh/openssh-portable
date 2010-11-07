@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.15 2010/11/05 07:56:08 dtucker Exp $ */
+/* $Id: platform.c,v 1.16 2010/11/07 07:05:54 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "config.h"
+#include "includes.h"
 
 #include <sys/types.h>
 

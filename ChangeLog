@@ -1,3 +1,7 @@
+20101107
+ - (dtucker) [platform.c] includes.h instead of defines.h so that we get
+   the correct typedefs.
+
 20101105
  - (djm) [loginrec.c loginrec.h] Use correct uid_t/pid_t types instead of
    int. Should fix bz#1817 cleanly; ok dtucker@
