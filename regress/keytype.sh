@@ -14,8 +14,8 @@ fi
 
 for kt in $ktypes; do 
 	rm -f $OBJ/key.$kt
-	bits=${kt#*-}
-	type=${kt%-*} 
+	bits=`echo ${kt} | awk -F- '{print $2}'`
+	type=`echo ${kt}  | awk -F- '{print $1}'`
 	printf "keygen $type, $bits bits:\t"
 	${TIME} ${SSHKEYGEN} -b $bits -q -N '' -t $type  -f $OBJ/key.$kt ||\
 		fail "ssh-keygen for type $type, $bits bits failed"
