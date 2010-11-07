@@ -118,22 +118,22 @@ t7: $(OBJ)/t7.out
 	ssh-keygen -lf $(OBJ)/t7.out > /dev/null
 	ssh-keygen -Bf $(OBJ)/t7.out > /dev/null
 
-t8.out:
+$(OBJ)/t8.out:
 	ssh-keygen -q -t dsa -N '' -f $@
 
-t8: t8.out
-	ssh-keygen -lf t8.out > /dev/null
-	ssh-keygen -Bf t8.out > /dev/null
+t8: $(OBJ)/t8.out
+	ssh-keygen -lf $(OBJ)/t8.out > /dev/null
+	ssh-keygen -Bf $(OBJ)/t8.out > /dev/null
 
-t9.out:
+$(OBJ)/t9.out:
 	test "${TEST_SSH_ECC}" != yes || \
-	ssh-keygen -q -t ecdsa -N '' -f
+	ssh-keygen -q -t ecdsa -N '' -f $@
 
-t9: t9.out
+t9: $(OBJ)/t9.out
 	test "${TEST_SSH_ECC}" != yes || \
-	ssh-keygen -lf t9.out > /dev/null
+	ssh-keygen -lf $(OBJ)/t9.out > /dev/null
 	test "${TEST_SSH_ECC}" != yes || \
-	ssh-keygen -Bf t9.out > /dev/null
+	ssh-keygen -Bf $(OBJ)/t9.out > /dev/null
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \

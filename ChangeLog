@@ -1,3 +1,7 @@
+20101108
+ - (tim) [regress/Makefile] Fixes to allow building/testing outside source
+   tree.
+
 20101107
  - (dtucker) [platform.c] includes.h instead of defines.h so that we get
    the correct typedefs.
