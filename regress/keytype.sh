@@ -3,7 +3,11 @@
 
 tid="login with different key types"
 
-TIME=/usr/bin/time
+TIME=`which time` 2>/dev/null
+if test ! -x "$TIME"; then
+	TIME=""
+fi
+
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 

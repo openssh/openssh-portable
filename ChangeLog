@@ -1,3 +1,7 @@
+20101109
+ - (tim) [regress/kextype.sh] Not all platforms have time in /usr/bin.
+   Feedback from dtucker@
+
 20101108
  - (tim) [regress/Makefile] Fixes to allow building/testing outside source
    tree.
