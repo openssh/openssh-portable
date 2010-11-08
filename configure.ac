@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.457 2010/11/05 07:23:38 dtucker Exp $
+# $Id: configure.ac,v 1.458 2010/11/08 22:26:23 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.457 $)
+AC_REVISION($Revision: 1.458 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1478,6 +1478,17 @@ AC_CHECK_FUNCS( \
 	vsnprintf \
 	waitpid \
 )
+
+AC_LINK_IFELSE(
+[
+#include <ctype.h>
+int main(void)
+{
+	return (isblank('a'));
+}
+],
+	[AC_DEFINE(HAVE_ISBLANK, 1, [Define if you have isblank(3C).])
+])
 
 # PKCS#11 support requires dlopen() and co
 AC_SEARCH_LIBS(dlopen, dl,

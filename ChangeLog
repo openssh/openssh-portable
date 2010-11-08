@@ -1,6 +1,8 @@
 20101109
  - (tim) [regress/kextype.sh] Not all platforms have time in /usr/bin.
    Feedback from dtucker@
+ - (tim) [configure.ac openbsd-compat/bsd-misc.h openbsd-compat/bsd-misc.c] Add
+   support for platforms missing isblank(). ok djm@
 
 20101108
  - (tim) [regress/Makefile] Fixes to allow building/testing outside source
