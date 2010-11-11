@@ -70,7 +70,9 @@ extern char *__progname;
 static char *default_files[] = {
 	_PATH_SSH_CLIENT_ID_RSA,
 	_PATH_SSH_CLIENT_ID_DSA,
+#ifdef OPENSSL_HAS_ECC
 	_PATH_SSH_CLIENT_ID_ECDSA,
+#endif
 	_PATH_SSH_CLIENT_IDENTITY,
 	NULL
 };

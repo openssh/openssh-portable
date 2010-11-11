@@ -155,8 +155,10 @@ fill_default_server_options(ServerOptions *options)
 			    _PATH_HOST_RSA_KEY_FILE;
 			options->host_key_files[options->num_host_key_files++] =
 			    _PATH_HOST_DSA_KEY_FILE;
+#ifdef OPENSSL_HAS_ECC
 			options->host_key_files[options->num_host_key_files++] =
 			    _PATH_HOST_ECDSA_KEY_FILE;
+#endif
 		}
 	}
 	/* No certificates by default */

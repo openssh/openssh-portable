@@ -1,3 +1,8 @@
+20101111
+ - (djm) [servconf.c ssh-add.c ssh-keygen.c] don't look for ECDSA keys on
+   platforms that don't support ECC. Fixes some spurious warnings reported
+   by tim@
+
 20101109
  - (tim) [regress/kextype.sh] Not all platforms have time in /usr/bin.
    Feedback from dtucker@

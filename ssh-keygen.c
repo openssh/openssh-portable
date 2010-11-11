@@ -177,10 +177,12 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_DSA:
 			name = _PATH_SSH_CLIENT_ID_DSA;
 			break;
+#ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA_CERT:
 		case KEY_ECDSA:
 			name = _PATH_SSH_CLIENT_ID_ECDSA;
 			break;
+#endif
 		case KEY_RSA_CERT:
 		case KEY_RSA_CERT_V00:
 		case KEY_RSA:
