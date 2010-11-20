@@ -1,3 +1,9 @@
+20101120
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/11/05 02:46:47
+     [packet.c]
+     whitespace KNF
+
 20101111
  - (djm) [servconf.c ssh-add.c ssh-keygen.c] don't look for ECDSA keys on
    platforms that don't support ECC. Fixes some spurious warnings reported

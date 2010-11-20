@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.170 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.171 2010/11/05 02:46:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,13 +199,13 @@ static struct session_state *active_state, *backup_state;
 static struct session_state *
 alloc_session_state(void)
 {
-    struct session_state *s = xcalloc(1, sizeof(*s));
+	struct session_state *s = xcalloc(1, sizeof(*s));
 
-    s->connection_in = -1;
-    s->connection_out = -1;
-    s->max_packet_size = 32768;
-    s->packet_timeout_ms = -1;
-    return s;
+	s->connection_in = -1;
+	s->connection_out = -1;
+	s->max_packet_size = 32768;
+	s->packet_timeout_ms = -1;
+	return s;
 }
 
 /*
@@ -391,8 +391,8 @@ packet_get_ssh1_cipher(void)
 }
 
 void
-packet_get_state(int mode, u_int32_t *seqnr, u_int64_t *blocks, u_int32_t *packets,
-    u_int64_t *bytes)
+packet_get_state(int mode, u_int32_t *seqnr, u_int64_t *blocks,
+    u_int32_t *packets, u_int64_t *bytes)
 {
 	struct packet_state *state;
 
@@ -547,8 +547,7 @@ packet_start_compression(int level)
  */
 
 void
-packet_set_encryption_key(const u_char *key, u_int keylen,
-    int number)
+packet_set_encryption_key(const u_char *key, u_int keylen, int number)
 {
 	Cipher *cipher = cipher_by_number(number);
 
