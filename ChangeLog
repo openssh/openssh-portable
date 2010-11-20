@@ -17,6 +17,9 @@
    - jmc@cvs.openbsd.org 2010/11/15 07:40:14
      [ssh_config.5]
      libary -> library;
+   - jmc@cvs.openbsd.org 2010/11/18 15:01:00
+     [scp.1 sftp.1 ssh.1 sshd_config.5]
+     add IPQoS to the various -o lists, and zap some trailing whitespace;
 
 20101111
  - (djm) [servconf.c ssh-add.c ssh-keygen.c] don't look for ECDSA keys on
