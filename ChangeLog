@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2010/11/05 02:46:47
      [packet.c]
      whitespace KNF
+   - djm@cvs.openbsd.org 2010/11/10 01:33:07
+     [kexdhc.c kexdhs.c kexgexc.c kexgexs.c key.c moduli.c]
+     use only libcrypto APIs that are retained with OPENSSL_NO_DEPRECATED.
+     these have been around for years by this time. ok markus
 
 20101111
  - (djm) [servconf.c ssh-add.c ssh-keygen.c] don't look for ECDSA keys on

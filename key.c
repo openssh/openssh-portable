@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.94 2010/10/28 11:22:09 djm Exp $ */
+/* $OpenBSD: key.c,v 1.95 2010/11/10 01:33:07 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1013,25 +1013,33 @@ key_size(const Key *k)
 static RSA *
 rsa_generate_private_key(u_int bits)
 {
-	RSA *private;
+	RSA *private = RSA_new();
+	BIGNUM *f4 = BN_new();
 
-	private = RSA_generate_key(bits, RSA_F4, NULL, NULL);
 	if (private == NULL)
-		fatal("rsa_generate_private_key: key generation failed.");
+		fatal("%s: RSA_new failed", __func__);
+	if (f4 == NULL)
+		fatal("%s: BN_new failed", __func__);
+	if (!BN_set_word(f4, RSA_F4))
+		fatal("%s: BN_new failed", __func__);
+	if (!RSA_generate_key_ex(private, bits, f4, NULL))
+		fatal("%s: key generation failed.", __func__);
+	BN_free(f4);
 	return private;
 }
 
 static DSA*
 dsa_generate_private_key(u_int bits)
 {
-	DSA *private = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
+	DSA *private = DSA_new();
 
 	if (private == NULL)
-		fatal("dsa_generate_private_key: DSA_generate_parameters failed");
+		fatal("%s: DSA_new failed", __func__);
+	if (!DSA_generate_parameters_ex(private, bits, NULL, 0, NULL,
+	    NULL, NULL))
+		fatal("%s: DSA_generate_parameters failed", __func__);
 	if (!DSA_generate_key(private))
-		fatal("dsa_generate_private_key: DSA_generate_key failed.");
-	if (private == NULL)
-		fatal("dsa_generate_private_key: NULL.");
+		fatal("%s: DSA_generate_key failed.", __func__);
 	return private;
 }
 
