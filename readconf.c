@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.189 2010/09/22 05:01:29 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.190 2010/11/13 23:27:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -19,6 +19,8 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -132,7 +134,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
-	oKexAlgorithms,
+	oKexAlgorithms, oIPQoS,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -242,6 +244,7 @@ static struct {
 	{ "zeroknowledgepasswordauthentication", oUnsupported },
 #endif
 	{ "kexalgorithms", oKexAlgorithms },
+	{ "ipqos", oIPQoS },
 
 	{ NULL, oBadOption }
 };
@@ -973,6 +976,23 @@ parse_int:
 		intptr = &options->visual_host_key;
 		goto parse_flag;
 
+	case oIPQoS:
+		arg = strdelim(&s);
+		if ((value = parse_ipqos(arg)) == -1)
+			fatal("%s line %d: Bad IPQoS value: %s",
+			    filename, linenum, arg);
+		arg = strdelim(&s);
+		if (arg == NULL)
+			value2 = value;
+		else if ((value2 = parse_ipqos(arg)) == -1)
+			fatal("%s line %d: Bad IPQoS value: %s",
+			    filename, linenum, arg);
+		if (*activep) {
+			options->ip_qos_interactive = value;
+			options->ip_qos_bulk = value2;
+		}
+		break;
+
 	case oUseRoaming:
 		intptr = &options->use_roaming;
 		goto parse_flag;
@@ -1135,6 +1155,8 @@ initialize_options(Options * options)
 	options->use_roaming = -1;
 	options->visual_host_key = -1;
 	options->zero_knowledge_password_authentication = -1;
+	options->ip_qos_interactive = -1;
+	options->ip_qos_bulk = -1;
 }
 
 /*
@@ -1289,6 +1311,10 @@ fill_default_options(Options * options)
 		options->visual_host_key = 0;
 	if (options->zero_knowledge_password_authentication == -1)
 		options->zero_knowledge_password_authentication = 0;
+	if (options->ip_qos_interactive == -1)
+		options->ip_qos_interactive = IPTOS_LOWDELAY;
+	if (options->ip_qos_bulk == -1)
+		options->ip_qos_bulk = IPTOS_THROUGHPUT;
 	/* options->local_command should not be set by default */
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */

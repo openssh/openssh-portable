@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.45 2010/09/24 13:33:00 matthew Exp $ */
+/* $OpenBSD: misc.h,v 1.46 2010/11/13 23:27:50 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -88,6 +88,7 @@ struct bwlimit {
 void bandwidth_limit_init(struct bwlimit *, u_int64_t, size_t);
 void bandwidth_limit(struct bwlimit *, size_t);
 
+int parse_ipqos(const char *);
 
 /* readpass.c */
 

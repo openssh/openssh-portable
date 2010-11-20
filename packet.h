@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.54 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.55 2010/11/13 23:27:50 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -34,7 +34,7 @@ u_int	 packet_get_encryption_key(u_char *);
 void     packet_set_protocol_flags(u_int);
 u_int	 packet_get_protocol_flags(void);
 void     packet_start_compression(int);
-void     packet_set_interactive(int);
+void     packet_set_interactive(int, int, int);
 int      packet_is_interactive(void);
 void     packet_set_server(void);
 void     packet_set_authenticated(void);

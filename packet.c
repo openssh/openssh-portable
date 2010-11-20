@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.171 2010/11/05 02:46:47 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.172 2010/11/13 23:27:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1750,7 +1750,7 @@ packet_not_very_much_data_to_write(void)
 }
 
 static void
-packet_set_tos(int interactive)
+packet_set_tos(int tos)
 {
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 	int tos = interactive ? IPTOS_LOWDELAY : IPTOS_THROUGHPUT;
@@ -1758,6 +1758,7 @@ packet_set_tos(int interactive)
 	if (!packet_connection_is_on_socket() ||
 	    !packet_connection_is_ipv4())
 		return;
+	debug3("%s: set IP_TOS 0x%02x", __func__, tos);
 	if (setsockopt(active_state->connection_in, IPPROTO_IP, IP_TOS, &tos,
 	    sizeof(tos)) < 0)
 		error("setsockopt IP_TOS %d: %.100s:",
@@ -1768,7 +1769,7 @@ packet_set_tos(int interactive)
 /* Informs that the current session is interactive.  Sets IP flags for that. */
 
 void
-packet_set_interactive(int interactive)
+packet_set_interactive(int interactive, int qos_interactive, int qos_bulk)
 {
 	if (active_state->set_interactive_called)
 		return;
@@ -1781,7 +1782,7 @@ packet_set_interactive(int interactive)
 	if (!packet_connection_is_on_socket())
 		return;
 	set_nodelay(active_state->connection_in);
-	packet_set_tos(interactive);
+	packet_set_tos(interactive ? qos_interactive : qos_bulk);
 }
 
 /* Returns true if the current connection is interactive. */

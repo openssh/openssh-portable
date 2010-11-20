@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.223 2010/10/06 06:39:28 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.224 2010/11/13 23:27:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1972,6 +1972,9 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 
 	if ((c = channel_lookup(id)) == NULL)
 		fatal("client_session2_setup: channel %d: unknown channel", id);
+
+	packet_set_interactive(want_tty,
+	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	if (want_tty) {
 		struct winsize ws;

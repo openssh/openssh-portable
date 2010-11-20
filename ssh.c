@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.353 2010/10/06 06:39:28 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.354 2010/11/13 23:27:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1224,7 +1224,8 @@ ssh_session(void)
 		}
 	}
 	/* Tell the packet module whether this is an interactive session. */
-	packet_set_interactive(interactive);
+	packet_set_interactive(interactive,
+	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	/* Request authentication agent forwarding if appropriate. */
 	check_agent_present();
@@ -1322,8 +1323,6 @@ ssh_session2_setup(int id, int success, void *arg)
 
 	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
 	    NULL, fileno(stdin), &command, environ);
-
-	packet_set_interactive(interactive);
 }
 
 /* open new channel for a session */

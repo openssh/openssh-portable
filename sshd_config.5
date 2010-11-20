@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.128 2010/10/28 18:33:28 jmc Exp $
-.Dd $Mdocdate: October 28 2010 $
+.\" $OpenBSD: sshd_config.5,v 1.129 2010/11/13 23:27:51 djm Exp $
+.Dd $Mdocdate: November 13 2010 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -512,6 +512,43 @@ or
 .Cm HostbasedAuthentication .
 The default is
 .Dq no .
+.It Cm IPQoS
+Specifies the IPv4 type-of-service or DSCP class for the connection.
+Accepted values are
+.Dq af11 ,
+.Dq af12 ,
+.Dq af13 ,
+.Dq af14 ,
+.Dq af22 ,
+.Dq af23 ,
+.Dq af31 ,
+.Dq af32 ,
+.Dq af33 ,
+.Dq af41 ,
+.Dq af42 ,
+.Dq af43 ,
+.Dq cs0 ,
+.Dq cs1 ,
+.Dq cs2 ,
+.Dq cs3 ,
+.Dq cs4 ,
+.Dq cs5 ,
+.Dq cs6 ,
+.Dq cs7 ,
+.Dq ef ,
+.Dq lowdelay ,
+.Dq throughput ,
+.Dq reliability ,
+or a numeric value.
+This option may take one or two arguments.
+If one argument is specified, it is used as the packet class unconditionally.
+If two values are specified, the first is automatically selected for
+interactive sessions and the second for non-interactive sessions.
+The default is
+.Dq lowdelay
+for interactive sessions and
+.Dq throughput
+for non-interactive sessions.
 .It Cm KerberosAuthentication
 Specifies whether the password provided by the user for
 .Cm PasswordAuthentication
