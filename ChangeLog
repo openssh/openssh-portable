@@ -14,6 +14,9 @@
      hardcoding lowdelay/throughput.
      
      bz#1733 patch from philipp AT redfish-solutions.com; ok markus@ deraadt@
+   - jmc@cvs.openbsd.org 2010/11/15 07:40:14
+     [ssh_config.5]
+     libary -> library;
 
 20101111
  - (djm) [servconf.c ssh-add.c ssh-keygen.c] don't look for ECDSA keys on
