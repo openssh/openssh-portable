@@ -1,3 +1,7 @@
+20101122
+ - (dtucker) Bug #1840: fix warning when configuring --with-ssl-engine, patch
+   from vapier at gentoo org.
+
 20101120
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/11/05 02:46:47

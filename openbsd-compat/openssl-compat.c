@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.9 2010/01/28 23:54:11 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.10 2010/11/22 06:59:00 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -20,6 +20,7 @@
 
 #ifdef USE_OPENSSL_ENGINE
 # include <openssl/engine.h>
+# include <openssl/conf.h>
 #endif
 
 #define SSH_DONT_OVERLOAD_OPENSSL_FUNCS
