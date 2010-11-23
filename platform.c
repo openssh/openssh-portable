@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.16 2010/11/07 07:05:54 dtucker Exp $ */
+/* $Id: platform.c,v 1.17 2010/11/23 23:09:13 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -115,6 +115,14 @@ platform_setusercontext(struct passwd *pw)
 		}
 	}
 # endif /* USE_PAM */
+
+#if !defined(HAVE_LOGIN_CAP) && defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
+	if (getuid() == 0 || geteuid() == 0) {
+		/* Sets login uid for accounting */
+		if (getluid() == -1 && setluid(pw->pw_uid) == -1)
+			error("setluid: %s", strerror(errno));
+	}
+#endif
 }
 
 /*

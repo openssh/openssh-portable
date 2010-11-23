@@ -1481,12 +1481,6 @@ do_setusercontext(struct passwd *pw)
 			exit(1);
 		}
 #else
-# if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
-		/* Sets login uid for accounting */
-		if (getluid() == -1 && setluid(pw->pw_uid) == -1)
-			error("setluid: %s", strerror(errno));
-# endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
-
 		if (setlogin(pw->pw_name) < 0)
 			error("setlogin failed: %s", strerror(errno));
 		if (setgid(pw->pw_gid) < 0) {

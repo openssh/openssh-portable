@@ -1,3 +1,7 @@
+20101124
+ - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
+   into the platform-specific code  Only affects SCO, tested by and ok tim@.
+
 20101122
  - (dtucker) Bug #1840: fix warning when configuring --with-ssl-engine, patch
    from vapier at gentoo org.
