@@ -1673,7 +1673,7 @@ record_failed_login(const char *username, const char *hostname,
 		    strerror(errno));
 		goto out;
 	}
-	if((fst.st_mode & (S_IRWXG | S_IRWXO)) || (fst.st_uid != 0)){
+	if((fst.st_mode & (S_IXGRP | S_IRWXO)) || (fst.st_uid != 0)){
 		logit("Excess permission or bad ownership on file %s",
 		    _PATH_BTMP);
 		goto out;
