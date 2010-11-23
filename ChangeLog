@@ -4,6 +4,7 @@
  - (djm) [loginrec.c] Relax permission requirement on btmp logs to allow
    group read/write. ok dtucker@
  - (dtucker) [packet.c] Remove redundant local declaration of "int tos".
+ - (djm) [defines.h] Add IP DSCP defines
 
 20101122
  - (dtucker) Bug #1840: fix warning when configuring --with-ssl-engine, patch
