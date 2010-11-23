@@ -1753,8 +1753,6 @@ static void
 packet_set_tos(int tos)
 {
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-	int tos = interactive ? IPTOS_LOWDELAY : IPTOS_THROUGHPUT;
-
 	if (!packet_connection_is_on_socket() ||
 	    !packet_connection_is_ipv4())
 		return;
