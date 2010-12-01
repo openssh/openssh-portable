@@ -3,6 +3,10 @@
    - deraadt@cvs.openbsd.org 2010/11/20 05:12:38
      [auth2-pubkey.c]
      clean up cases of ;;
+   - djm@cvs.openbsd.org 2010/11/21 01:01:13
+     [clientloop.c misc.c misc.h ssh-agent.1 ssh-agent.c]
+     honour $TMPDIR for client xauth and ssh-agent temporary directories;
+     feedback and ok markus@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and

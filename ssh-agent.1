@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.52 2010/08/31 17:40:54 jmc Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.53 2010/11/21 01:01:13 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: August 31 2010 $
+.Dd $Mdocdate: November 21 2010 $
 .Dt SSH-AGENT 1
 .Os
 .Sh NAME
@@ -72,7 +72,7 @@ Bind the agent to the
 socket
 .Ar bind_address .
 The default is
-.Pa /tmp/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt .
+.Pa $TMPDIR/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt .
 .It Fl c
 Generate C-shell commands on
 .Dv stdout .
@@ -192,7 +192,7 @@ Contains the protocol version 2 DSA authentication identity of the user.
 Contains the protocol version 2 ECDSA authentication identity of the user.
 .It Pa ~/.ssh/id_rsa
 Contains the protocol version 2 RSA authentication identity of the user.
-.It Pa /tmp/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt
+.It Pa $TMPDIR/ssh-XXXXXXXXXX/agent.\*(Ltppid\*(Gt
 .Ux Ns -domain
 sockets used to contain the connection to the authentication agent.
 These sockets should only be readable by the owner.

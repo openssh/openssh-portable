@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.83 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.84 2010/11/21 01:01:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -914,6 +914,23 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 
 	bw->lamt = 0;
 	gettimeofday(&bw->bwstart, NULL);
+}
+
+/* Make a template filename for mk[sd]temp() */
+void
+mktemp_proto(char *s, size_t len)
+{
+	const char *tmpdir;
+	int r;
+
+	if ((tmpdir = getenv("TMPDIR")) != NULL) {
+		r = snprintf(s, len, "%s/ssh-XXXXXXXXXXXX", tmpdir);
+		if (r > 0 && (size_t)r < len)
+			return;
+	}
+	r = snprintf(s, len, "/tmp/ssh-XXXXXXXXXXXX");
+	if (r < 0 || (size_t)r >= len)
+		fatal("%s: template string too short", __func__);
 }
 
 static const struct {

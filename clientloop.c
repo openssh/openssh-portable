@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.224 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.225 2010/11/21 01:01:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -325,7 +325,7 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 		if (trusted == 0) {
 			xauthdir = xmalloc(MAXPATHLEN);
 			xauthfile = xmalloc(MAXPATHLEN);
-			strlcpy(xauthdir, "/tmp/ssh-XXXXXXXXXX", MAXPATHLEN);
+			mktemp_proto(xauthdir, MAXPATHLEN);
 			if (mkdtemp(xauthdir) != NULL) {
 				do_unlink = 1;
 				snprintf(xauthfile, MAXPATHLEN, "%s/xauthfile",
