@@ -12,6 +12,10 @@
      Refactor internals of private key loading and saving to work on memory
      buffers rather than directly on files. This will make a few things
      easier to do in the future; ok markus@
+   - djm@cvs.openbsd.org 2010/11/23 02:35:50
+     [auth.c]
+     use strict_modes already passed as function argument over referencing
+     global options.strict_modes
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and

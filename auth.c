@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.89 2010/08/04 05:42:47 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.90 2010/11/23 02:35:50 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -518,7 +518,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 		close(fd);
 		return NULL;
 	}
-	if (options.strict_modes &&
+	if (strict_modes &&
 	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
 		fclose(f);
 		logit("Authentication refused: %s", line);
