@@ -16,6 +16,10 @@
      [auth.c]
      use strict_modes already passed as function argument over referencing
      global options.strict_modes
+   - djm@cvs.openbsd.org 2010/11/23 23:57:24
+     [clientloop.c]
+     avoid NULL deref on receiving a channel request on an unknown or invalid
+     channel; report bz#1842 from jchadima AT redhat.com; ok dtucker@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
