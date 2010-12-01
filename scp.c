@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.167 2010/09/22 22:58:51 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.168 2010/11/26 05:52:49 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -122,6 +122,7 @@ int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout);
 
 /* Struct for addargs */
 arglist args;
+arglist remote_remote_args;
 
 /* Bandwidth limit */
 long long limit_kbps = 0;
@@ -334,12 +335,13 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 
 	memset(&args, '\0', sizeof(args));
-	args.list = NULL;
+	memset(&remote_remote_args, '\0', sizeof(remote_remote_args));
+	args.list = remote_remote_args.list = NULL;
 	addargs(&args, "%s", ssh_program);
 	addargs(&args, "-x");
-	addargs(&args, "-oForwardAgent no");
-	addargs(&args, "-oPermitLocalCommand no");
-	addargs(&args, "-oClearAllForwardings yes");
+	addargs(&args, "-oForwardAgent=no");
+	addargs(&args, "-oPermitLocalCommand=no");
+	addargs(&args, "-oClearAllForwardings=yes");
 
 	fflag = tflag = 0;
 	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q1246S:o:F:")) != -1)
@@ -351,20 +353,26 @@ main(int argc, char **argv)
 		case '6':
 		case 'C':
 			addargs(&args, "-%c", ch);
+			addargs(&remote_remote_args, "-%c", ch);
 			break;
 		case 'o':
 		case 'c':
 		case 'i':
 		case 'F':
+			addargs(&remote_remote_args, "-%c", ch);
+			addargs(&remote_remote_args, "%s", optarg);
 			addargs(&args, "-%c", ch);
 			addargs(&args, "%s", optarg);
 			break;
 		case 'P':
+			addargs(&remote_remote_args, "-p");
+			addargs(&remote_remote_args, "%s", optarg);
 			addargs(&args, "-p");
 			addargs(&args, "%s", optarg);
 			break;
 		case 'B':
-			addargs(&args, "-oBatchmode yes");
+			addargs(&remote_remote_args, "-oBatchmode=yes");
+			addargs(&args, "-oBatchmode=yes");
 			break;
 		case 'l':
 			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
@@ -385,10 +393,12 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			addargs(&args, "-v");
+			addargs(&remote_remote_args, "-v");
 			verbose_mode = 1;
 			break;
 		case 'q':
 			addargs(&args, "-q");
+			addargs(&remote_remote_args, "-q");
 			showprogress = 0;
 			break;
 
@@ -492,6 +502,7 @@ toremote(char *targ, int argc, char **argv)
 	char *bp, *host, *src, *suser, *thost, *tuser, *arg;
 	arglist alist;
 	int i;
+	u_int j;
 
 	memset(&alist, '\0', sizeof(alist));
 	alist.list = NULL;
@@ -522,12 +533,13 @@ toremote(char *targ, int argc, char **argv)
 		if (src) {	/* remote to remote */
 			freeargs(&alist);
 			addargs(&alist, "%s", ssh_program);
-			if (verbose_mode)
-				addargs(&alist, "-v");
 			addargs(&alist, "-x");
-			addargs(&alist, "-oClearAllForwardings yes");
+			addargs(&alist, "-oClearAllForwardings=yes");
 			addargs(&alist, "-n");
-
+			for (j = 0; j < remote_remote_args.num; j++) {
+				addargs(&alist, "%s",
+				    remote_remote_args.list[j]);
+			}
 			*src++ = 0;
 			if (*src == 0)
 				src = ".";

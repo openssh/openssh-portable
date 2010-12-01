@@ -29,6 +29,11 @@
      [session.c]
      replace close() loop for fds 3->64 with closefrom();
      ok markus deraadt dtucker
+   - djm@cvs.openbsd.org 2010/11/26 05:52:49
+     [scp.c]
+     Pass through ssh command-line flags and options when doing remote-remote
+     transfers, e.g. to enable agent forwarding which is particularly useful
+     in this case; bz#1837 ok dtucker@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
