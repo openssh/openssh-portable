@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.257 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: session.c,v 1.258 2010/11/25 04:10:09 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1569,8 +1569,6 @@ launch_login(struct passwd *pw, const char *hostname)
 static void
 child_close_fds(void)
 {
-	int i;
-
 	if (packet_get_connection_in() == packet_get_connection_out())
 		close(packet_get_connection_in());
 	else {
@@ -1596,8 +1594,7 @@ child_close_fds(void)
 	 * initgroups, because at least on Solaris 2.3 it leaves file
 	 * descriptors open.
 	 */
-	for (i = 3; i < 64; i++)
-		close(i);
+	closefrom(STDERR_FILENO + 1);
 }
 
 /*
