@@ -7,6 +7,11 @@
      [clientloop.c misc.c misc.h ssh-agent.1 ssh-agent.c]
      honour $TMPDIR for client xauth and ssh-agent temporary directories;
      feedback and ok markus@
+   - djm@cvs.openbsd.org 2010/11/21 10:57:07
+     [authfile.c]
+     Refactor internals of private key loading and saving to work on memory
+     buffers rather than directly on files. This will make a few things
+     easier to do in the future; ok markus@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
