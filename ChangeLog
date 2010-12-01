@@ -20,6 +20,11 @@
      [clientloop.c]
      avoid NULL deref on receiving a channel request on an unknown or invalid
      channel; report bz#1842 from jchadima AT redhat.com; ok dtucker@
+   - djm@cvs.openbsd.org 2010/11/24 01:24:14
+     [channels.c]
+     remove a debug() that pollutes stderr on client connecting to a server
+     in debug mode (channel_close_fds is called transitively from the session
+     code post-fork); bz#1719, ok dtucker
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
