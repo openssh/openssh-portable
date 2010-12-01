@@ -38,6 +38,13 @@
      [authfile.c]
      correctly load comment for encrypted rsa1 keys;
      report/fix Joachim Schipper; ok djm@
+   - djm@cvs.openbsd.org 2010/11/29 23:45:51
+     [auth.c hostfile.c hostfile.h ssh.c ssh_config.5 sshconnect.c]
+     [sshconnect.h sshconnect2.c]
+     automatically order the hostkeys requested by the client based on
+     which hostkeys are already recorded in known_hosts. This avoids
+     hostkey warnings when connecting to servers with new ECDSA keys
+     that are preferred by default; with markus@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and
