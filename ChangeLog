@@ -34,6 +34,10 @@
      Pass through ssh command-line flags and options when doing remote-remote
      transfers, e.g. to enable agent forwarding which is particularly useful
      in this case; bz#1837 ok dtucker@
+   - markus@cvs.openbsd.org 2010/11/29 18:57:04
+     [authfile.c]
+     correctly load comment for encrypted rsa1 keys;
+     report/fix Joachim Schipper; ok djm@
 
 20101124
  - (dtucker) [platform.c session.c] Move the getluid call out of session.c and

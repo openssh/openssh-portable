@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.86 2010/11/21 10:57:07 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.87 2010/11/29 18:57:04 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -710,8 +710,9 @@ key_load_private(const char *filename, const char *passphrase,
 			*commentp = xstrdup(filename);
 	} else {
 		key_free(pub);
+		/* key_parse_public_rsa1() has already loaded the comment */
 		prv = key_parse_private_type(&buffer, KEY_RSA1, passphrase,
-		    commentp);
+		    NULL);
 	}
 	buffer_free(&buffer);
 	return prv;
