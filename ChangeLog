@@ -1,3 +1,7 @@
+20101204
+ - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
+   instead of (arc4random() % range)
+
 20101201
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2010/11/20 05:12:38
