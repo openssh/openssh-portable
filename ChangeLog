@@ -18,6 +18,9 @@
      behaviour of creating a symlink is available using its "-s" option
      or through the preexisting "symlink" command; based on a patch from
      miklos AT szeredi.hu in bz#1555; ok markus@
+   - djm@cvs.openbsd.org 2010/12/04 13:31:37
+     [hostfile.c]
+     fix fd leak; spotted and ok dtucker
 
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
