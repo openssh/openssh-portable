@@ -1,6 +1,12 @@
 20101205
  - (dtucker) openbsd-compat/openssl-compat.c] remove sleep leftover from
    debugging.  Spotted by djm.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/12/03 23:49:26
+     [schnorr.c]
+     check that g^x^q === 1 mod p; recommended by JPAKE author Feng Hao
+     (this code is still disabled, but apprently people are treating it as
+     a reference implementation)
 
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
