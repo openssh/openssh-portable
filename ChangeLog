@@ -21,6 +21,7 @@
    - djm@cvs.openbsd.org 2010/12/04 13:31:37
      [hostfile.c]
      fix fd leak; spotted and ok dtucker
+ - (dtucker) [regress/Makefile] Id sync.
 
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
