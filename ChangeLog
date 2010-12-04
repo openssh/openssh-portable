@@ -21,6 +21,9 @@
    - djm@cvs.openbsd.org 2010/12/04 13:31:37
      [hostfile.c]
      fix fd leak; spotted and ok dtucker
+   - djm@cvs.openbsd.org 2010/12/04 00:21:19
+     [regress/sftp-cmds.sh]
+     adjust for hard-link support
  - (dtucker) [regress/Makefile] Id sync.
 
 20101204
