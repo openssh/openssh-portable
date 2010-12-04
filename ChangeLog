@@ -11,6 +11,13 @@
      [auth-rsa.c]
      move check for revoked keys to run earlier (in auth_rsa_key_allowed)
      bz#1829; patch from ldv AT altlinux.org; ok markus@
+   - djm@cvs.openbsd.org 2010/12/04 00:18:01
+     [sftp-server.c sftp.1 sftp-client.h sftp.c PROTOCOL sftp-client.c]
+     add a protocol extension to support a hard link operation. It is
+     available through the "ln" command in the client. The old "ln"
+     behaviour of creating a symlink is available using its "-s" option
+     or through the preexisting "symlink" command; based on a patch from
+     miklos AT szeredi.hu in bz#1555; ok markus@
 
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)

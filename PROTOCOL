@@ -275,4 +275,20 @@ The values of the f_flag bitmask are as follows:
 Both the "statvfs@openssh.com" and "fstatvfs@openssh.com" extensions are
 advertised in the SSH_FXP_VERSION hello with version "2".
 
-$OpenBSD: PROTOCOL,v 1.16 2010/08/31 11:54:45 djm Exp $
+10. sftp: Extension request "hardlink@openssh.com"
+
+This request is for creating a hard link to a regular file. This
+request is implemented as a SSH_FXP_EXTENDED request with the
+following format:
+
+	uint32		id
+	string		"hardlink@openssh.com"
+	string		oldpath
+	string		newpath
+
+On receiving this request the server will perform the operation
+link(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
+$OpenBSD: PROTOCOL,v 1.17 2010/12/04 00:18:01 djm Exp $

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.92 2010/11/04 02:45:34 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.93 2010/12/04 00:18:01 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -535,6 +535,9 @@ process_init(void)
 	/* fstatvfs extension */
 	buffer_put_cstring(&msg, "fstatvfs@openssh.com");
 	buffer_put_cstring(&msg, "2"); /* version */
+	/* hardlink extension */
+	buffer_put_cstring(&msg, "hardlink@openssh.com");
+	buffer_put_cstring(&msg, "1"); /* version */
 	send_msg(&msg);
 	buffer_free(&msg);
 }
@@ -1223,6 +1226,27 @@ process_extended_fstatvfs(u_int32_t id)
 }
 
 static void
+process_extended_hardlink(u_int32_t id)
+{
+	char *oldpath, *newpath;
+	int ret, status;
+
+	oldpath = get_string(NULL);
+	newpath = get_string(NULL);
+	debug3("request %u: hardlink", id);
+	logit("hardlink old \"%s\" new \"%s\"", oldpath, newpath);
+	if (readonly)
+		status = SSH2_FX_PERMISSION_DENIED;
+	else {
+		ret = link(oldpath, newpath);
+		status = (ret == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	}
+	send_status(id, status);
+	xfree(oldpath);
+	xfree(newpath);
+}
+
+static void
 process_extended(void)
 {
 	u_int32_t id;
@@ -1236,6 +1260,8 @@ process_extended(void)
 		process_extended_statvfs(id);
 	else if (strcmp(request, "fstatvfs@openssh.com") == 0)
 		process_extended_fstatvfs(id);
+	else if (strcmp(request, "hardlink@openssh.com") == 0)
+		process_extended_hardlink(id);
 	else
 		send_status(id, SSH2_FX_OP_UNSUPPORTED);	/* MUST */
 	xfree(request);
