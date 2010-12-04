@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.11 2010/12/04 12:20:50 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.12 2010/12/04 21:46:05 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -81,7 +81,6 @@ RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *bn_e, void *cb)
 	RSA *new_rsa, tmp_rsa;
 	unsigned long e;
 
-	sleep(1);
 	if (cb != NULL)
 		fatal("%s: callback args not supported", __func__);
 	e = BN_get_word(bn_e);

@@ -1,3 +1,7 @@
+20101205
+ - (dtucker) openbsd-compat/openssl-compat.c] remove sleep leftover from
+   debugging.  Spotted by djm.
+
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
    instead of (arc4random() % range)
