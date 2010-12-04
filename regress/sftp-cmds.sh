@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.10 2010/12/04 00:21:19 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.11 2010/12/04 00:21:19 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
