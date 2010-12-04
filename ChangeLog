@@ -7,6 +7,10 @@
      check that g^x^q === 1 mod p; recommended by JPAKE author Feng Hao
      (this code is still disabled, but apprently people are treating it as
      a reference implementation)
+   - djm@cvs.openbsd.org 2010/12/03 23:55:27
+     [auth-rsa.c]
+     move check for revoked keys to run earlier (in auth_rsa_key_allowed)
+     bz#1829; patch from ldv AT altlinux.org; ok markus@
 
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
