@@ -54,6 +54,8 @@
 #include "dh.h"
 #include "log.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 /*
  * File output defines
  */

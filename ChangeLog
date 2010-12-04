@@ -1,6 +1,9 @@
 20101204
  - (djm) [openbsd-compat/bindresvport.c] Use arc4random_uniform(range)
    instead of (arc4random() % range)
+ - (dtucker) [configure.ac moduli.c openbsd-compat/openssl-compat.{c,h}]  Add
+   shims for the new, non-deprecated OpenSSL key generation functions for
+   platforms that don't have the new interfaces.
 
 20101201
  - OpenBSD CVS Sync

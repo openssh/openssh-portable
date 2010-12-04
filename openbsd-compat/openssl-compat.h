@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.16 2010/10/07 11:06:44 djm Exp $ */
+/* $Id: openssl-compat.h,v 1.17 2010/12/04 12:20:50 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -106,6 +106,19 @@ extern const EVP_CIPHER *evp_acss(void);
 #   undef SSLeay_add_all_algorithms
 #  endif
 #  define SSLeay_add_all_algorithms()  ssh_SSLeay_add_all_algorithms()
+# endif
+
+# ifndef HAVE_BN_IS_PRIME_EX
+int BN_is_prime_ex(const BIGNUM *, int, BN_CTX *, void *);
+# endif
+
+# ifndef HAVE_DSA_GENERATE_PARAMETERS_EX
+int DSA_generate_parameters_ex(DSA *, int, const unsigned char *, int, int *,
+    unsigned long *, void *);
+# endif
+
+# ifndef HAVE_RSA_GENERATE_KEY_EX
+int RSA_generate_key_ex(RSA *, int, BIGNUM *, void *);
 # endif
 
 int ssh_EVP_CipherInit(EVP_CIPHER_CTX *, const EVP_CIPHER *, unsigned char *,
