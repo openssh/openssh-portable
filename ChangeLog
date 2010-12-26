@@ -1,3 +1,10 @@
+20101226
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2010/12/08 04:02:47
+     [ssh_config.5 sshd_config.5]
+     explain that IPQoS arguments are separated by whitespace; iirc requested
+     by jmc@ a while back
+
 20101205
  - (dtucker) openbsd-compat/openssl-compat.c] remove sleep leftover from
    debugging.  Spotted by djm.
