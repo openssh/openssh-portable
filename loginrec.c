@@ -873,11 +873,13 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		pos = (off_t)tty * sizeof(struct utmp);
 		if ((ret = lseek(fd, pos, SEEK_SET)) == -1) {
 			logit("%s: lseek: %s", __func__, strerror(errno));
+			close(fd);
 			return (0);
 		}
 		if (ret != pos) {
 			logit("%s: Couldn't seek to tty %d slot in %s",
 			    __func__, tty, UTMP_FILE);
+			close(fd);
 			return (0);
 		}
 		/*
@@ -893,16 +895,20 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 
 		if ((ret = lseek(fd, pos, SEEK_SET)) == -1) {
 			logit("%s: lseek: %s", __func__, strerror(errno));
+			close(fd);
 			return (0);
 		}
 		if (ret != pos) {
 			logit("%s: Couldn't seek to tty %d slot in %s",
 			    __func__, tty, UTMP_FILE);
+			close(fd);
 			return (0);
 		}
 		if (atomicio(vwrite, fd, ut, sizeof(*ut)) != sizeof(*ut)) {
 			logit("%s: error writing %s: %s", __func__,
 			    UTMP_FILE, strerror(errno));
+			close(fd);
+			return (0);
 		}
 
 		close(fd);
@@ -1206,7 +1212,7 @@ wtmp_get_entry(struct logininfo *li)
 			close (fd);
 			return (0);
 		}
-		if ( wtmp_islogin(li, &ut) ) {
+		if (wtmp_islogin(li, &ut) ) {
 			found = 1;
 			/*
 			 * We've already checked for a time in struct
@@ -1502,6 +1508,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 		if (lseek(*fd, offset, SEEK_SET) != offset) {
 			logit("%s: %s->lseek(): %s", __func__,
 			    lastlog_file, strerror(errno));
+			close(*fd);
 			return (0);
 		}
 	}

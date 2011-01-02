@@ -1,3 +1,6 @@
+20110102
+ - (djm) [loginrec.c] Fix some fd leaks on error paths. ok dtucker
+
 20101226
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2010/12/08 04:02:47
