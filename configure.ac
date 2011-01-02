@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.459 2010/12/04 12:20:50 dtucker Exp $
+# $Id: configure.ac,v 1.460 2011/01/02 10:53:09 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.459 $)
+AC_REVISION($Revision: 1.460 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3516,10 +3516,12 @@ AC_ARG_WITH(kerberos5,
 				       [ char *tmp = heimdal_version; ],
 				       [ AC_MSG_RESULT(yes)
 					 AC_DEFINE(HEIMDAL)
-					 K5LIBS="-lkrb5 -ldes"
+					 K5LIBS="-lkrb5"
 					 K5LIBS="$K5LIBS -lcom_err -lasn1"
 					 AC_CHECK_LIB(roken, net_write,
 					   [K5LIBS="$K5LIBS -lroken"])
+					 AC_CHECK_LIB(des, des_cbc_encrypt,
+					   [K5LIBS="$K5LIBS -ldes"])
 				       ],
 				       [ AC_MSG_RESULT(no)
 					 K5LIBS="-lkrb5 -lk5crypto -lcom_err"

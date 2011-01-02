@@ -1,5 +1,8 @@
 20110102
  - (djm) [loginrec.c] Fix some fd leaks on error paths. ok dtucker
+ - (djm) [configure.ac] Check whether libdes is needed when building
+   with Heimdal krb5 support. On OpenBSD this library no longer exists,
+   so linking it unconditionally causes a build failure; ok dtucker
 
 20101226
  - (dtucker) OpenBSD CVS Sync
