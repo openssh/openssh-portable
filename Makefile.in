@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.313 2011/01/03 03:48:16 djm Exp $
+# $Id: Makefile.in,v 1.314 2011/01/03 21:16:29 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -58,6 +58,7 @@ ENT=@ENT@
 XAUTH_PATH=@XAUTH_PATH@
 LDFLAGS=-L. -Lopenbsd-compat/ @LDFLAGS@
 EXEEXT=@EXEEXT@
+MANFMT=@MANFMT@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
@@ -230,7 +231,7 @@ catman-do:
 	@for f in $(MANPAGES_IN) ; do \
 		base=`echo $$f | sed 's/\..*$$//'` ; \
 		echo "$$f -> $$base.0" ; \
-		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
+		$(MANFMT) $$f | cat -v | sed -e 's/.\^H//g' \
 			>$$base.0 ; \
 	done
 

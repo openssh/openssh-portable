@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.460 2011/01/02 10:53:09 djm Exp $
+# $Id: configure.ac,v 1.461 2011/01/03 21:16:29 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.460 $)
+AC_REVISION($Revision: 1.461 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -41,7 +41,23 @@ AC_PATH_PROG(TEST_MINUS_S_SH, bash)
 AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
 AC_PATH_PROG(SH, sh)
+AC_PATH_PROG(GROFF, groff)
+AC_PATH_PROG(NROFF, nroff)
+AC_PATH_PROG(MANDOC, mandoc)
 AC_SUBST(TEST_SHELL,sh)
+
+dnl select manpage formatter
+if test "x$MANDOC" != "x" ; then
+	MANFMT="$MANDOC"
+elif test "x$NROFF" != "x" ; then
+	MANFMT="$NROFF -mandoc"
+elif test "x$GROFF" != "x" ; then
+	MANFMT="$GROFF -mandoc -Tascii"
+else
+	AC_MSG_WARN([no manpage formatted found])
+	MANFMT="false"
+fi
+AC_SUBST(MANFMT)
 
 dnl for buildpkg.sh
 AC_PATH_PROG(PATH_GROUPADD_PROG, groupadd, groupadd,

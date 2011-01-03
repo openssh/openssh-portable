@@ -1,4 +1,10 @@
-20110102
+20110104
+ - (djm) [configure.ac Makefile.in] Use mandoc as preferred manpage
+   formatter if it is present, followed by nroff and groff respectively.
+   Fixes distprep target on OpenBSD (which has bumped groff/nroff to ports
+   in favour of mandoc). feedback and ok tim
+
+20110103
  - (djm) [Makefile.in] revert local hack I didn't intend to commit
 
 20110102
