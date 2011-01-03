@@ -1,4 +1,7 @@
 20110102
+ - (djm) [Makefile.in] revert local hack I didn't intend to commit
+
+20110102
  - (djm) [loginrec.c] Fix some fd leaks on error paths. ok dtucker
  - (djm) [configure.ac] Check whether libdes is needed when building
    with Heimdal krb5 support. On OpenBSD this library no longer exists,

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.312 2011/01/02 10:53:08 djm Exp $
+# $Id: Makefile.in,v 1.313 2011/01/03 03:48:16 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -230,7 +230,7 @@ catman-do:
 	@for f in $(MANPAGES_IN) ; do \
 		base=`echo $$f | sed 's/\..*$$//'` ; \
 		echo "$$f -> $$base.0" ; \
-		mandoc $$f | cat -v | sed -e 's/.\^H//g' \
+		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
 			>$$base.0 ; \
 	done
 
