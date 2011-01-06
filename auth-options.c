@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.53 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.54 2010/12/24 21:41:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -172,7 +172,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				goto bad_option;
 			}
 			forced_command[i] = '\0';
-			auth_debug_add("Forced command: %.900s", forced_command);
+			auth_debug_add("Forced command.");
 			opts++;
 			goto next_option;
 		}
