@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.57 2010/09/22 12:26:05 djm Exp $
+#	$OpenBSD: Makefile,v 1.58 2011/01/06 22:46:21 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -56,7 +56,8 @@ LTESTS= 	connect \
 		keytype \
 		kextype \
 		cert-hostkey \
-		cert-userkey
+		cert-userkey \
+		host-expand
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
@@ -75,7 +76,7 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv \
 		known_hosts-cert host_ca_key* cert_host_key* \
 		putty.rsa2 sshd_proxy_orig \
-		authorized_principals_${USER}
+		authorized_principals_${USER} expect actual
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"

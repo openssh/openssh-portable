@@ -9,6 +9,10 @@
      [clientloop.c]
      when exiting due to ServerAliveTimeout, mention the hostname that caused
      it (useful with backgrounded controlmaster)
+   - djm@cvs.openbsd.org 2011/01/06 22:46:21
+     [regress/Makefile regress/host-expand.sh]
+     regress test for LocalCommand %n expansion from bert.wesarg AT
+     googlemail.com; ok markus@
 
 20110106
  - (djm) OpenBSD CVS Sync
