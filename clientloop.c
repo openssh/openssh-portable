@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.226 2010/11/23 23:57:24 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.227 2011/01/06 22:23:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -544,7 +544,7 @@ static void
 server_alive_check(void)
 {
 	if (packet_inc_alive_timeouts() > options.server_alive_count_max) {
-		logit("Timeout, server not responding.");
+		logit("Timeout, server %s not responding.", options.hostname);
 		cleanup_exit(255);
 	}
 	packet_start(SSH2_MSG_GLOBAL_REQUEST);

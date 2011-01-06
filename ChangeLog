@@ -5,6 +5,10 @@
      [ssh.c]
      unbreak %n expansion in LocalCommand; patch from bert.wesarg AT
      googlemail.com; ok markus@
+   - djm@cvs.openbsd.org 2011/01/06 22:23:02
+     [clientloop.c]
+     when exiting due to ServerAliveTimeout, mention the hostname that caused
+     it (useful with backgrounded controlmaster)
 
 20110106
  - (djm) OpenBSD CVS Sync
