@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.355 2010/11/29 23:45:51 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.356 2011/01/06 22:23:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -221,7 +221,7 @@ int
 main(int ac, char **av)
 {
 	int i, r, opt, exit_status, use_syslog;
-	char *p, *cp, *line, *argv0, buf[MAXPATHLEN];
+	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg;
 	struct stat st;
 	struct passwd *pw;
 	int dummy, timeout_ms;
@@ -693,6 +693,8 @@ main(int ac, char **av)
 		options.port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
 	}
 
+	/* preserve host name given on command line for %n expansion */
+	host_arg = host;
 	if (options.hostname != NULL) {
 		host = percent_expand(options.hostname,
 		    "h", host, (char *)NULL);
@@ -707,7 +709,7 @@ main(int ac, char **av)
 		debug3("expanding LocalCommand: %s", options.local_command);
 		cp = options.local_command;
 		options.local_command = percent_expand(cp, "d", pw->pw_dir,
-		    "h", host, "l", thishost, "n", host, "r", options.user,
+		    "h", host, "l", thishost, "n", host_arg, "r", options.user,
 		    "p", buf, "u", pw->pw_name, (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);
 		xfree(cp);
