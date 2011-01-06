@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.230 2010/12/14 11:59:06 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.231 2011/01/06 23:01:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1259,6 +1259,7 @@ ssh_local_cmd(const char *args)
 	char *shell;
 	pid_t pid;
 	int status;
+	void (*osighand)(int);
 
 	if (!options.permit_local_command ||
 	    args == NULL || !*args)
@@ -1267,6 +1268,7 @@ ssh_local_cmd(const char *args)
 	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
 
+	osighand = signal(SIGCHLD, SIG_DFL);
 	pid = fork();
 	if (pid == 0) {
 		debug3("Executing %s -c \"%s\"", shell, args);
@@ -1279,6 +1281,7 @@ ssh_local_cmd(const char *args)
 	while (waitpid(pid, &status, 0) == -1)
 		if (errno != EINTR)
 			fatal("Couldn't wait for child: %s", strerror(errno));
+	signal(SIGCHLD, osighand);
 
 	if (!WIFEXITED(status))
 		return (1);

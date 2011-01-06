@@ -13,6 +13,10 @@
      [regress/Makefile regress/host-expand.sh]
      regress test for LocalCommand %n expansion from bert.wesarg AT
      googlemail.com; ok markus@
+   - djm@cvs.openbsd.org 2011/01/06 23:01:35
+     [sshconnect.c]
+     reset SIGCHLD handler to SIG_DFL when execuring LocalCommand;
+     ok markus@
 
 20110106
  - (djm) OpenBSD CVS Sync
