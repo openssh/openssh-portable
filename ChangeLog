@@ -22,6 +22,9 @@
    - djm@cvs.openbsd.org 2010/12/24 21:41:48
      [auth-options.c]
      don't send the actual forced command in a debug message; ok markus deraadt
+   - otto@cvs.openbsd.org 2011/01/04 20:44:13
+     [ssh-keyscan.c]
+     handle ecdsa-sha2 with various key lengths; hint and ok djm@
 
 20110104
  - (djm) [configure.ac Makefile.in] Use mandoc as preferred manpage
