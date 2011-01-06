@@ -5,7 +5,7 @@ tid="certified user keys"
 
 # used to disable ECC based tests on platforms without ECC
 ecdsa=""
-if "$TEST_SSH_ECC" = "yes"; then
+if test "x$TEST_SSH_ECC" = "xyes"; then
 	ecdsa=ecdsa
 fi
 

@@ -1,3 +1,7 @@
+20110107
+ - (djm) [regress/cert-hostkey.sh regress/cert-userkey.sh] fix shell test
+   for no-ECC case. Patch from cristian.ionescu-idbohrn AT axis.com
+
 20110106
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2010/12/08 22:46:03
