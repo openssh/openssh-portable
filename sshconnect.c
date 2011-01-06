@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.229 2010/11/29 23:45:51 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.230 2010/12/14 11:59:06 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1234,7 +1234,6 @@ static void
 warn_changed_key(Key *host_key)
 {
 	char *fp;
-	const char *type = key_type(host_key);
 
 	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 
@@ -1243,9 +1242,9 @@ warn_changed_key(Key *host_key)
 	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	error("IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!");
 	error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
-	error("It is also possible that the %s host key has just been changed.", type);
+	error("It is also possible that a host key has just been changed.");
 	error("The fingerprint for the %s key sent by the remote host is\n%s.",
-	    type, fp);
+	    key_type(host_key), fp);
 	error("Please contact your system administrator.");
 
 	xfree(fp);

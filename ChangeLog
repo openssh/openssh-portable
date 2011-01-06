@@ -9,6 +9,10 @@
      [scp.1 scp.c]
      scp.1: grammer fix
      scp.c: add -3 to usage()
+   - markus@cvs.openbsd.org 2010/12/14 11:59:06
+     [sshconnect.c]
+     don't mention key type in key-changed-warning, since we also print
+     this warning if a new key type appears. ok djm@
 
 20110104
  - (djm) [configure.ac Makefile.in] Use mandoc as preferred manpage
