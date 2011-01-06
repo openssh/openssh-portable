@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.54 2010/11/18 15:01:00 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.55 2010/12/08 22:46:03 markus Exp $
 .\"
-.Dd $Mdocdate: November 18 2010 $
+.Dd $Mdocdate: December 8 2010 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -19,7 +19,7 @@
 .Sh SYNOPSIS
 .Nm scp
 .Bk -words
-.Op Fl 1246BCpqrv
+.Op Fl 12346BCpqrv
 .Op Fl c Ar cipher
 .Op Fl F Ar ssh_config
 .Op Fl i Ar identity_file
@@ -75,6 +75,11 @@ to use protocol 1.
 Forces
 .Nm
 to use protocol 2.
+.It Fl 3
+Copies between two remote hosts are transferred through the local host.
+Without this option the data is copied directly between the two remote
+hosts.
+Note that this options disables the progress meter.
 .It Fl 4
 Forces
 .Nm

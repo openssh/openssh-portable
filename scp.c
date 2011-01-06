@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.168 2010/11/26 05:52:49 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.169 2010/12/08 22:46:03 markus Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -119,6 +119,7 @@ extern char *__progname;
 #define COPY_BUFLEN	16384
 
 int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout);
+int do_cmd2(char *host, char *remuser, char *cmd, int fdin, int fdout);
 
 /* Struct for addargs */
 arglist args;
@@ -136,6 +137,12 @@ int verbose_mode = 0;
 
 /* This is set to zero if the progressmeter is not desired. */
 int showprogress = 1;
+
+/*
+ * This is set to non-zero if remote-remote copy should be piped
+ * through this process.
+ */
+int throughlocal = 0;
 
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
@@ -287,6 +294,50 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 	return 0;
 }
 
+/*
+ * This functions executes a command simlar to do_cmd(), but expects the
+ * input and output descriptors to be setup by a previous call to do_cmd().
+ * This way the input and output of two commands can be connected.
+ */
+int
+do_cmd2(char *host, char *remuser, char *cmd, int fdin, int fdout)
+{
+	pid_t pid;
+	int status;
+
+	if (verbose_mode)
+		fprintf(stderr,
+		    "Executing: 2nd program %s host %s, user %s, command %s\n",
+		    ssh_program, host,
+		    remuser ? remuser : "(unspecified)", cmd);
+
+	/* Fork a child to execute the command on the remote host using ssh. */
+	pid = fork();
+	if (pid == 0) {
+		dup2(fdin, 0);
+		dup2(fdout, 1);
+
+		replacearg(&args, 0, "%s", ssh_program);
+		if (remuser != NULL) {
+			addargs(&args, "-l");
+			addargs(&args, "%s", remuser);
+		}
+		addargs(&args, "--");
+		addargs(&args, "%s", host);
+		addargs(&args, "%s", cmd);
+
+		execvp(ssh_program, args.list);
+		perror(ssh_program);
+		exit(1);
+	} else if (pid == -1) {
+		fatal("fork: %s", strerror(errno));
+	}
+	while (waitpid(pid, &status, 0) == -1)
+		if (errno != EINTR)
+			fatal("do_cmd2: waitpid: %s", strerror(errno));
+	return 0;
+}
+
 typedef struct {
 	size_t cnt;
 	char *buf;
@@ -344,7 +395,7 @@ main(int argc, char **argv)
 	addargs(&args, "-oClearAllForwardings=yes");
 
 	fflag = tflag = 0;
-	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q1246S:o:F:")) != -1)
+	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q12346S:o:F:")) != -1)
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -354,6 +405,9 @@ main(int argc, char **argv)
 		case 'C':
 			addargs(&args, "-%c", ch);
 			addargs(&remote_remote_args, "-%c", ch);
+			break;
+		case '3':
+			throughlocal = 1;
 			break;
 		case 'o':
 		case 'c':
@@ -530,7 +584,36 @@ toremote(char *targ, int argc, char **argv)
 
 	for (i = 0; i < argc - 1; i++) {
 		src = colon(argv[i]);
-		if (src) {	/* remote to remote */
+		if (src && throughlocal) {	/* extended remote to remote */
+			*src++ = 0;
+			if (*src == 0)
+				src = ".";
+			host = strrchr(argv[i], '@');
+			if (host) {
+				*host++ = 0;
+				host = cleanhostname(host);
+				suser = argv[i];
+				if (*suser == '\0')
+					suser = pwd->pw_name;
+				else if (!okname(suser))
+					continue;
+			} else {
+				host = cleanhostname(argv[i]);
+				suser = NULL;
+			}
+			xasprintf(&bp, "%s -f -- %s", cmd, src);
+			if (do_cmd(host, suser, bp, &remin, &remout) < 0)
+				exit(1);
+			(void) xfree(bp);
+			host = cleanhostname(thost);
+			xasprintf(&bp, "%s -t -- %s", cmd, targ);
+			if (do_cmd2(host, tuser, bp, remin, remout) < 0)
+				exit(1);
+			(void) xfree(bp);
+			(void) close(remin);
+			(void) close(remout);
+			remin = remout = -1;
+		} else if (src) {	/* standard remote to remote */
 			freeargs(&alist);
 			addargs(&alist, "%s", ssh_program);
 			addargs(&alist, "-x");
