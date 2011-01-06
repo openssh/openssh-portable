@@ -5,6 +5,10 @@
      add a new -3 option to scp: Copies between two remote hosts are
      transferred through the local host.  Without this option the data
      is copied directly between the two remote hosts. ok djm@ (bugzilla #1837)
+   - jmc@cvs.openbsd.org 2010/12/09 14:13:33
+     [scp.1 scp.c]
+     scp.1: grammer fix
+     scp.c: add -3 to usage()
 
 20110104
  - (djm) [configure.ac Makefile.in] Use mandoc as preferred manpage
