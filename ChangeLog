@@ -1,3 +1,7 @@
+20110109
+ - (djm) [Makefile.in] list ssh_host_ecdsa key in PATHSUBS; spotted by
+   openssh AT roumenpetrov.info
+
 20110108
  - (djm) [regress/keytype.sh] s/echo -n/echon/ to repair failing regress
    test on OSX and others. Reported by imorgan AT nas.nasa.gov
