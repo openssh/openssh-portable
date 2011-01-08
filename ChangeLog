@@ -1,3 +1,7 @@
+20110108
+ - (djm) [regress/keytype.sh] s/echo -n/echon/ to repair failing regress
+   test on OSX and others. Reported by imorgan AT nas.nasa.gov
+
 20110107
  - (djm) [regress/cert-hostkey.sh regress/cert-userkey.sh] fix shell test
    for no-ECC case. Patch from cristian.ionescu-idbohrn AT axis.com

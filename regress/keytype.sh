@@ -40,7 +40,7 @@ for ut in $ktypes; do
 			echo IdentityFile $OBJ/key.$ut 
 		) > $OBJ/ssh_proxy
 		(
-			echo -n 'localhost-with-alias,127.0.0.1,::1 '
+			echon 'localhost-with-alias,127.0.0.1,::1 '
 			cat $OBJ/key.$ht.pub
 		) > $OBJ/known_hosts
 		cat $OBJ/key.$ut.pub > $OBJ/authorized_keys_$USER
