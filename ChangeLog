@@ -1,3 +1,7 @@
+20110111
+ - (tim) [regress/host-expand.sh] Fix for building outside of read only
+   source tree.
+
 20110109
  - (djm) [Makefile.in] list ssh_host_ecdsa key in PATHSUBS; spotted by
    openssh AT roumenpetrov.info
