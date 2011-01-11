@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.204 2010/10/28 11:22:09 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.205 2011/01/11 06:13:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1480,7 +1480,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		if (!quiet) {
 			logit("Signed %s key %s: id \"%s\" serial %llu%s%s "
 			    "valid %s", key_cert_type(public), 
-			    out, public->cert->key_id, public->cert->serial,
+			    out, public->cert->key_id,
+			    (unsigned long long)public->cert->serial,
 			    cert_principals != NULL ? " for " : "",
 			    cert_principals != NULL ? cert_principals : "",
 			    fmt_validity(cert_valid_from, cert_valid_to));
@@ -1705,8 +1706,10 @@ do_show_cert(struct passwd *pw)
 	printf("        Signing CA: %s %s\n",
 	    key_type(key->cert->signature_key), ca_fp);
 	printf("        Key ID: \"%s\"\n", key->cert->key_id);
-	if (!v00)
-		printf("        Serial: %llu\n", key->cert->serial);
+	if (!v00) {
+		printf("        Serial: %llu\n",
+		    (unsigned long long)key->cert->serial);
+	}
 	printf("        Valid: %s\n",
 	    fmt_validity(key->cert->valid_after, key->cert->valid_before));
 	printf("        Principals: ");

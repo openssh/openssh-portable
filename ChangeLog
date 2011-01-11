@@ -12,6 +12,10 @@
      fd leak on error paths; from zinovik@
      NB. Id sync only; we use loginrec.c that was also audited and fixed
      recently
+   - djm@cvs.openbsd.org 2011/01/11 06:13:10
+     [clientloop.c ssh-keygen.c sshd.c]
+     some unsigned long long casts that make things a bit easier for
+     portable without resorting to dropping PRIu64 formats everywhere
 
 20110109
  - (djm) [Makefile.in] list ssh_host_ecdsa key in PATHSUBS; spotted by

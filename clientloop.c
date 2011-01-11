@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.228 2011/01/08 10:51:51 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.229 2011/01/11 06:13:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1622,7 +1622,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	packet_get_state(MODE_IN, NULL, NULL, NULL, &ibytes);
 	packet_get_state(MODE_OUT, NULL, NULL, NULL, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
-	    obytes, ibytes, total_time);
+	    (unsigned long long)obytes, (unsigned long long)ibytes, total_time);
 	if (total_time > 0)
 		verbose("Bytes per second: sent %.1f, received %.1f",
 		    obytes / total_time, ibytes / total_time);
