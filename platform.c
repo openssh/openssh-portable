@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.17 2010/11/23 23:09:13 dtucker Exp $ */
+/* $Id: platform.c,v 1.18 2011/01/11 06:02:25 djm Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -26,6 +26,10 @@
 #include "log.h"
 #include "buffer.h"
 #include "servconf.h"
+#include "key.h"
+#include "hostfile.h"
+#include "auth.h"
+#include "auth-pam.h"
 #include "platform.h"
 
 #include "openbsd-compat/openbsd-compat.h"
