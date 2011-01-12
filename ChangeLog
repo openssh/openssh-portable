@@ -1,3 +1,14 @@
+20110212
+ - OpenBSD CVS Sync
+   - nicm@cvs.openbsd.org 2010/10/08 21:48:42
+     [openbsd-compat/glob.c]
+     Extend GLOB_LIMIT to cover readdir and stat and bump the malloc limit
+     from ARG_MAX to 64K.
+     Fixes glob-using programs (notably ftp) able to be triggered to hit
+     resource limits.
+     Idea from a similar NetBSD change, original problem reported by jasper@.
+     ok millert tedu jasper
+
 20110111
  - (tim) [regress/host-expand.sh] Fix for building outside of read only
    source tree.
