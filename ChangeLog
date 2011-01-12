@@ -15,6 +15,9 @@
      "looks ok" tedu@ feedback guenther@
  - (djm) [configure.ac] Turn on -Wno-unused-result for gcc >= 4.4 to avoid
    silly warnings on write() calls we don't care succeed or not.
+ - (djm) [configure.ac] Fix broken test for gcc >= 4.4 with per-compiler
+   flag tests that don't depend on gcc version at all; suggested by and
+   ok dtucker@
 
 20110111
  - (tim) [regress/host-expand.sh] Fix for building outside of read only
