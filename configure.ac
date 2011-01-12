@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.461 2011/01/03 21:16:29 djm Exp $
+# $Id: configure.ac,v 1.462 2011/01/12 02:34:02 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.461 $)
+AC_REVISION($Revision: 1.462 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -124,7 +124,8 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		     ;;
 		2.*) no_attrib_nonnull=1 ;;
 		3.*) CFLAGS="$CFLAGS -Wsign-compare -Wformat-security" ;;
-		4.*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign -Wformat-security -fno-strict-aliasing" ;;
+		4.[0123]|4.[0123].*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign -Wformat-security -fno-strict-aliasing" ;;
+		4.*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign -Wformat-security -fno-strict-aliasing -Wno-unused-result" ;;
 		*) ;;
 	esac
 
