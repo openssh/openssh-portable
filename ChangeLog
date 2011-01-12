@@ -8,6 +8,11 @@
      resource limits.
      Idea from a similar NetBSD change, original problem reported by jasper@.
      ok millert tedu jasper
+   - djm@cvs.openbsd.org 2011/01/12 01:53:14
+     avoid some integer overflows mostly with GLOB_APPEND and GLOB_DOOFFS
+     and sanity check arguments (these will be unnecessary when we switch
+     struct glob members from being type into to size_t in the future);
+     "looks ok" tedu@ feedback guenther@
 
 20110111
  - (tim) [regress/host-expand.sh] Fix for building outside of read only

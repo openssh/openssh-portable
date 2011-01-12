@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.34 2010/10/08 21:48:42 nicm Exp $ */
+/*	$OpenBSD: glob.c,v 1.35 2011/01/12 01:53:14 djm Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -183,6 +183,11 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int),
 	pglob->gl_flags = flags & ~GLOB_MAGCHAR;
 	pglob->gl_errfunc = errfunc;
 	pglob->gl_matchc = 0;
+
+	if (pglob->gl_offs < 0 || pglob->gl_pathc < 0 ||
+	    pglob->gl_offs >= INT_MAX || pglob->gl_pathc >= INT_MAX ||
+	    pglob->gl_pathc >= INT_MAX - pglob->gl_offs - 1)
+		return GLOB_NOSPACE;
 
 	bufnext = patbuf;
 	bufend = bufnext + MAXPATHLEN - 1;
@@ -752,10 +757,13 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 	struct stat **statv;
 
 	newn = 2 + pglob->gl_pathc + pglob->gl_offs;
-	if (SIZE_MAX / sizeof(*pathv) <= newn ||
+	if (pglob->gl_offs >= INT_MAX ||
+	    pglob->gl_pathc >= INT_MAX ||
+	    newn >= INT_MAX ||
+	    SIZE_MAX / sizeof(*pathv) <= newn ||
 	    SIZE_MAX / sizeof(*statv) <= newn) {
  nospace:
-		for (i = pglob->gl_offs; i < newn - 2; i++) {
+		for (i = pglob->gl_offs; i < (ssize_t)(newn - 2); i++) {
 			if (pglob->gl_pathv && pglob->gl_pathv[i])
 				free(pglob->gl_pathv[i]);
 			if ((pglob->gl_flags & GLOB_KEEPSTAT) != 0 &&
@@ -870,7 +878,7 @@ match(Char *name, Char *pat, Char *patend)
 				++pat;
 			while (((c = *pat++) & M_MASK) != M_END) {
 				if ((c & M_MASK) == M_CLASS) {
-					int idx = *pat & M_MASK;
+					Char idx = *pat & M_MASK;
 					if (idx < NCCLASSES &&
 					    cclasses[idx].isctype(k))
 						ok = 1;
