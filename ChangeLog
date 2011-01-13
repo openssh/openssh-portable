@@ -7,6 +7,9 @@
    gcc warning on platforms where it defaults to int
  - (djm) [regress/Makefile] add a few more generated files to the clean
    target
+ - (djm) [myproposal.h] Fix reversed OPENSSL_VERSION_NUMBER test and bad
+   #define that was causing diffie-hellman-group-exchange-sha256 to be
+   incorrectly disabled
 
 20110212
  - OpenBSD CVS Sync
