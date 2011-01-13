@@ -75,7 +75,7 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		scp-ssh-wrapper.scp ssh_proxy_envpass remote_pid \
 		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv \
 		known_hosts-cert host_ca_key* cert_host_key* \
-		putty.rsa2 sshd_proxy_orig \
+		putty.rsa2 sshd_proxy_orig ssh_proxy_bak key.[rd]sa-* \
 		authorized_principals_${USER} expect actual
 
 # Enable all malloc(3) randomisations and checks

@@ -5,6 +5,8 @@
    ecdsa keys. ok djm.
  - (djm) [entropy.c] cast OPENSSL_VERSION_NUMBER to u_long to avoid
    gcc warning on platforms where it defaults to int
+ - (djm) [regress/Makefile] add a few more generated files to the clean
+   target
 
 20110212
  - OpenBSD CVS Sync
