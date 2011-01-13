@@ -3,6 +3,8 @@
  - (tim) [Makefile.in] test the ECC bits if we have the capability. ok djm
  - (tim) [Makefile.in configure.ac opensshd.init.in] Add support for generating
    ecdsa keys. ok djm.
+ - (djm) [entropy.c] cast OPENSSL_VERSION_NUMBER to u_long to avoid
+   gcc warning on platforms where it defaults to int
 
 20110212
  - OpenBSD CVS Sync
