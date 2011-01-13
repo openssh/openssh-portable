@@ -1,5 +1,6 @@
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype
+ - (tim) [Makefile.in] test the ECC bits if we have the capability. ok djm
 
 20110212
  - OpenBSD CVS Sync
