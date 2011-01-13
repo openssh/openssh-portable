@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.463 2011/01/12 05:00:39 djm Exp $
+# $Id: configure.ac,v 1.464 2011/01/13 06:35:46 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.463 $)
+AC_REVISION($Revision: 1.464 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -2258,13 +2258,16 @@ int main(void) {
 		AC_DEFINE(OPENSSL_HAS_ECC, 1,
 		    [libcrypto includes complete ECC support])
 		TEST_SSH_ECC=yes
+		COMMENT_OUT_ECC=""
 	],
 	[
 		AC_MSG_RESULT(no)
 		TEST_SSH_ECC=no
+		COMMENT_OUT_ECC="#no ecc#"
 	]
 )
 AC_SUBST(TEST_SSH_ECC)
+AC_SUBST(COMMENT_OUT_ECC)
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(iaf, ia_openinfo, [

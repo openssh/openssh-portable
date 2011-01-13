@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.316 2011/01/13 03:06:38 tim Exp $
+# $Id: Makefile.in,v 1.317 2011/01/13 06:35:46 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -326,20 +326,27 @@ install-sysconf:
 
 host-key: ssh-keygen$(EXEEXT)
 	@if [ -z "$(DESTDIR)" ] ; then \
-		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
-			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
+		if [ -f "$(sysconfdir)/ssh_host_key" ] ; then \
+			echo "$(sysconfdir)/ssh_host_key already exists, skipping." ; \
 		else \
-			./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
+			./ssh-keygen -t rsa1 -f $(sysconfdir)/ssh_host_key -N "" ; \
 		fi ; \
-		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
-			echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
+		if [ -f $(sysconfdir)/ssh_host_dsa_key ] ; then \
+			echo "$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
 		else \
-			./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+			./ssh-keygen -t dsa -f $(sysconfdir)/ssh_host_dsa_key -N "" ; \
 		fi ; \
-		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key ] ; then \
-			echo "$(DESTDIR)$(sysconfdir)/ssh_host_rsa_key already exists, skipping." ; \
+		if [ -f $(sysconfdir)/ssh_host_rsa_key ] ; then \
+			echo "$(sysconfdir)/ssh_host_rsa_key already exists, skipping." ; \
 		else \
-			./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N "" ; \
+			./ssh-keygen -t rsa -f $(sysconfdir)/ssh_host_rsa_key -N "" ; \
+		fi ; \
+		if [ -z "@COMMENT_OUT_ECC@" ] ; then \
+		    if [ -f $(sysconfdir)/ssh_host_ecdsa_key ] ; then \
+			echo "$(sysconfdir)/ssh_host_ecdsa_key already exists, skipping." ; \
+		    else \
+			./ssh-keygen -t ecdsa -f $(sysconfdir)/ssh_host_ecdsa_key -N "" ; \
+		    fi ; \
 		fi ; \
 	fi ;
 
@@ -347,6 +354,7 @@ host-key-force: ssh-keygen$(EXEEXT)
 	./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
 	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
+@COMMENT_OUT_ECC@	./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
