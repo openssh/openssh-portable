@@ -10,6 +10,8 @@
  - (djm) [myproposal.h] Fix reversed OPENSSL_VERSION_NUMBER test and bad
    #define that was causing diffie-hellman-group-exchange-sha256 to be
    incorrectly disabled
+ - (djm) [regress/kextype.sh] Testing diffie-hellman-group-exchange-sha256
+   should not depend on ECC support
 
 20110212
  - OpenBSD CVS Sync
