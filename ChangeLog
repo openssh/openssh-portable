@@ -12,6 +12,8 @@
    comment so that the Makefile.in is still a syntactically valid Makefile
    (useful to run the distprep target)
  - (tim) [regress/cert-hostkey.sh] Typo. Missing $ on variable name.
+ - (tim) [regress/cert-hostkey.sh] Add missing TEST_SSH_ECC guard around some
+   ecdsa bits.
 
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype

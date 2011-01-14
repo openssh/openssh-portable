@@ -72,9 +72,11 @@ done
 	echon '@revoked '
 	echon "* "
 	cat $OBJ/cert_host_key_rsa.pub
-	echon '@revoked '
-	echon "* "
-	cat $OBJ/cert_host_key_ecdsa.pub
+	if test "x$TEST_SSH_ECC" = "xyes"; then
+		echon '@revoked '
+		echon "* "
+		cat $OBJ/cert_host_key_ecdsa.pub
+	fi
 	echon '@revoked '
 	echon "* "
 	cat $OBJ/cert_host_key_dsa.pub
