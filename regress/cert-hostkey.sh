@@ -35,7 +35,7 @@ for ktype in rsa dsa $ecdsa ; do
 	    -n $HOSTS $OBJ/cert_host_key_${ktype} ||
 		fail "couldn't sign cert_host_key_${ktype}"
 	# v00 ecdsa certs do not exist
-	test "{ktype}" = "ecdsa" && continue
+	test "${ktype}" = "ecdsa" && continue
 	cp $OBJ/cert_host_key_${ktype} $OBJ/cert_host_key_${ktype}_v00
 	cp $OBJ/cert_host_key_${ktype}.pub $OBJ/cert_host_key_${ktype}_v00.pub
 	${SSHKEYGEN} -t v00 -h -q -s $OBJ/host_ca_key \

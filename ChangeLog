@@ -11,6 +11,7 @@
    host-key-force target rather than a substitution that is replaced with a
    comment so that the Makefile.in is still a syntactically valid Makefile
    (useful to run the distprep target)
+ - (tim) [regress/cert-hostkey.sh] Typo. Missing $ on variable name.
 
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype
