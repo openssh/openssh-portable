@@ -7,6 +7,10 @@
      [PROTOCOL.mux]
      correct protocol names and add a couple of missing protocol number
      defines; patch from bert.wesarg AT googlemail.com
+ - (djm) [Makefile.in] Use shell test to disable ecdsa key generating in
+   host-key-force target rather than a substitution that is replaced with a
+   comment so that the Makefile.in is still a syntactically valid Makefile
+   (useful to run the distprep target)
 
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype
