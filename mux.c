@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.23 2010/10/12 02:22:24 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.24 2011/01/13 21:54:53 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1530,7 +1530,7 @@ mux_client_request_forward(int fd, u_int ftype, Forward *fwd)
 	case MUX_S_FAILURE:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);
-		error("%s: session request failed: %s", __func__, e);
+		error("%s: forwarding request failed: %s", __func__, e);
 		return -1;
 	default:
 		fatal("%s: unexpected response from master 0x%08x",
@@ -1649,12 +1649,12 @@ mux_client_request_session(int fd)
 	case MUX_S_PERMISSION_DENIED:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);
-		error("Master refused forwarding request: %s", e);
+		error("Master refused session request: %s", e);
 		return -1;
 	case MUX_S_FAILURE:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);
-		error("%s: forwarding request failed: %s", __func__, e);
+		error("%s: session request failed: %s", __func__, e);
 		return -1;
 	default:
 		buffer_free(&m);
@@ -1781,7 +1781,7 @@ mux_client_request_stdio_fwd(int fd)
 	case MUX_S_PERMISSION_DENIED:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);
-		fatal("Master refused forwarding request: %s", e);
+		fatal("Master refused stdio forwarding request: %s", e);
 	case MUX_S_FAILURE:
 		e = buffer_get_string(&m, NULL);
 		buffer_free(&m);

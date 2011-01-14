@@ -1,3 +1,9 @@
+20110214
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/01/13 21:54:53
+     [mux.c]
+     correct error messages; patch from bert.wesarg AT googlemail.com
+
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype
  - (tim) [Makefile.in] test the ECC bits if we have the capability. ok djm
