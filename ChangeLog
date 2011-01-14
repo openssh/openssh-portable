@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2011/01/13 21:54:53
      [mux.c]
      correct error messages; patch from bert.wesarg AT googlemail.com
+   - djm@cvs.openbsd.org 2011/01/13 21:55:25
+     [PROTOCOL.mux]
+     correct protocol names and add a couple of missing protocol number
+     defines; patch from bert.wesarg AT googlemail.com
 
 20110213
  - (djm) [misc.c] include time.h for nanosleep() prototype
