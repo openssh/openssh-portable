@@ -11,6 +11,11 @@
      [sshconnect.c]
      reset the SIGPIPE handler when forking to execute child processes;
      ok dtucker@
+   - djm@cvs.openbsd.org 2011/01/16 12:05:59
+     [clientloop.c]
+     a couple more tweaks to the post-close protocol 1 stderr/stdout flush:
+     now that we use atomicio(), convert them from while loops to if statements
+     add test and cast to compile cleanly with -Wsigned
 
 20110114
  - OpenBSD CVS Sync
