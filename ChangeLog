@@ -1,3 +1,7 @@
+20110116
+ - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based
+   on configurations that don't have it.
+
 20110114
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/01/13 21:54:53

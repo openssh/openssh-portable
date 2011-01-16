@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.318 2011/01/14 03:47:40 djm Exp $
+# $Id: Makefile.in,v 1.319 2011/01/16 07:28:10 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -416,6 +416,7 @@ tests interop-tests:	$(TARGETS)
 	TEST_SSH_CONCH="conch"; \
 	TEST_SSH_IPV6="@TEST_SSH_IPV6@" ; \
 	TEST_SSH_ECC="@TEST_SSH_ECC@" ; \
+	TEST_SSH_SHA256="@TEST_SSH_SHA256@" ; \
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
@@ -438,6 +439,7 @@ tests interop-tests:	$(TARGETS)
 		TEST_SSH_CONCH="$${TEST_SSH_CONCH}" \
 		TEST_SSH_IPV6="$${TEST_SSH_IPV6}" \
 		TEST_SSH_ECC="$${TEST_SSH_ECC}" \
+		TEST_SSH_SHA256="$${TEST_SSH_SHA256}" \
 		EXEEXT="$(EXEEXT)" \
 		$@ && echo all tests passed
 

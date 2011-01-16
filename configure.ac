@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.464 2011/01/13 06:35:46 tim Exp $
+# $Id: configure.ac,v 1.465 2011/01/16 07:28:12 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.464 $)
+AC_REVISION($Revision: 1.465 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -2239,7 +2239,9 @@ if test "x$check_for_libcrypt_later" = "x1"; then
 fi
 
 # Search for SHA256 support in libc and/or OpenSSL
-AC_CHECK_FUNCS(SHA256_Update EVP_sha256)
+AC_CHECK_FUNCS(SHA256_Update EVP_sha256, [TEST_SSH_SHA256=yes],
+    [TEST_SSH_SHA256=no])
+AC_SUBST(TEST_SSH_SHA256)
 
 # Check complete ECC support in OpenSSL
 AC_MSG_CHECKING([whether OpenSSL has complete ECC support])

@@ -10,7 +10,9 @@ cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 if test "$TEST_SSH_ECC" = "yes"; then
 	kextypes="ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521"
 fi
-kextypes="$kextypes diffie-hellman-group-exchange-sha256"
+if test "$TEST_SSH_SHA256" = "yes"; then
+	kextypes="$kextypes diffie-hellman-group-exchange-sha256"
+fi
 kextypes="$kextypes diffie-hellman-group-exchange-sha1"
 kextypes="$kextypes diffie-hellman-group14-sha1"
 kextypes="$kextypes diffie-hellman-group1-sha1"
