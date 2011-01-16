@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.229 2011/01/11 06:13:10 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.230 2011/01/16 11:50:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1591,9 +1591,9 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Output any buffered data for stdout. */
 	while (buffer_len(&stdout_buffer) > 0) {
-		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
-		    buffer_len(&stdout_buffer));
-		if (len <= 0) {
+		len = atomicio(vwrite, fileno(stdout),
+		    buffer_ptr(&stdout_buffer), buffer_len(&stdout_buffer));
+		if (len != buffer_len(&stdout_buffer)) {
 			error("Write failed flushing stdout buffer.");
 			break;
 		}
@@ -1602,9 +1602,9 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Output any buffered data for stderr. */
 	while (buffer_len(&stderr_buffer) > 0) {
-		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
-		    buffer_len(&stderr_buffer));
-		if (len <= 0) {
+		len = atomicio(vwrite, fileno(stderr),
+		    buffer_ptr(&stderr_buffer), buffer_len(&stderr_buffer));
+		if (len != buffer_len(&stderr_buffer)) {
 			error("Write failed flushing stderr buffer.");
 			break;
 		}

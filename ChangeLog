@@ -1,6 +1,12 @@
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based
    on configurations that don't have it.
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/01/16 11:50:05
+     [clientloop.c]
+     Use atomicio when flushing protocol 1 std{out,err} buffers at
+     session close. This was a latent bug exposed by setting a SIGCHLD
+     handler and spotted by kevin.brott AT gmail.com; ok dtucker@
 
 20110114
  - OpenBSD CVS Sync
