@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.231 2011/01/06 23:01:35 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.232 2011/01/16 11:50:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -143,6 +143,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 		/* Execute the proxy command.  Note that we gave up any
 		   extra privileges above. */
+		signal(SIGPIPE, SIG_DFL);
 		execv(argv[0], argv);
 		perror(argv[0]);
 		exit(1);
@@ -1271,6 +1272,7 @@ ssh_local_cmd(const char *args)
 	osighand = signal(SIGCHLD, SIG_DFL);
 	pid = fork();
 	if (pid == 0) {
+		signal(SIGPIPE, SIG_DFL);
 		debug3("Executing %s -c \"%s\"", shell, args);
 		execl(shell, shell, "-c", args, (char *)NULL);
 		error("Couldn't execute %s -c \"%s\": %s",

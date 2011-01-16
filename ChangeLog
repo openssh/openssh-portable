@@ -7,6 +7,10 @@
      Use atomicio when flushing protocol 1 std{out,err} buffers at
      session close. This was a latent bug exposed by setting a SIGCHLD
      handler and spotted by kevin.brott AT gmail.com; ok dtucker@
+   - djm@cvs.openbsd.org 2011/01/16 11:50:36
+     [sshconnect.c]
+     reset the SIGPIPE handler when forking to execute child processes;
+     ok dtucker@
 
 20110114
  - OpenBSD CVS Sync
