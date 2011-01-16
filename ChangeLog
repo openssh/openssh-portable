@@ -1,4 +1,4 @@
-20110214
+20110114
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/01/13 21:54:53
      [mux.c]
@@ -15,7 +15,7 @@
  - (tim) [regress/cert-hostkey.sh] Add missing TEST_SSH_ECC guard around some
    ecdsa bits.
 
-20110213
+20110113
  - (djm) [misc.c] include time.h for nanosleep() prototype
  - (tim) [Makefile.in] test the ECC bits if we have the capability. ok djm
  - (tim) [Makefile.in configure.ac opensshd.init.in] Add support for generating
@@ -30,7 +30,7 @@
  - (djm) [regress/kextype.sh] Testing diffie-hellman-group-exchange-sha256
    should not depend on ECC support
 
-20110212
+20110112
  - OpenBSD CVS Sync
    - nicm@cvs.openbsd.org 2010/10/08 21:48:42
      [openbsd-compat/glob.c]
