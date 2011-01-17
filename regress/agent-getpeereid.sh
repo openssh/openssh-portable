@@ -7,7 +7,9 @@ UNPRIV=nobody
 ASOCK=${OBJ}/agent
 SSH_AUTH_SOCK=/nonexistent
 
-if ! config_defined HAVE_GETPEEREID HAVE_GETPEERUCRED HAVE_SO_PEERCRED ; then
+if config_defined HAVE_GETPEEREID HAVE_GETPEERUCRED HAVE_SO_PEERCRED ; then
+	:
+else
 	echo "skipped (not supported on this platform)"
 	exit 0
 fi
