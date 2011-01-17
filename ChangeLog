@@ -4,6 +4,8 @@
    roumenpetrov.info; ok dtucker@
  - (djm) [regress/agent-ptrace.sh] Fix false failure on OS X by adding
    its unique snowflake of a gdb error to the ones we look for.
+ - (djm) [regress/agent-getpeereid.sh] leave stdout attached when running
+   ssh-add to avoid $SUDO failures on Linux
 
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based

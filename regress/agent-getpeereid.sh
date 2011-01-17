@@ -34,7 +34,7 @@ else
 		fail "ssh-add failed with $r != 1"
 	fi
 
-	< /dev/null ${SUDO} -S -u ${UNPRIV} ssh-add -l > /dev/null 2>&1
+	< /dev/null ${SUDO} -S -u ${UNPRIV} ssh-add -l 2>/dev/null
 	r=$?
 	if [ $r -lt 2 ]; then
 		fail "ssh-add did not fail for ${UNPRIV}: $r < 2"
