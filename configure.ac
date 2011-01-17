@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.465 2011/01/16 07:28:12 dtucker Exp $
+# $Id: configure.ac,v 1.466 2011/01/17 05:17:09 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.465 $)
+AC_REVISION($Revision: 1.466 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -483,6 +483,7 @@ int main(void) { exit(0); }
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
 	AC_DEFINE(SSH_IOBUFSZ, 65535, [Windows is sensitive to read buffer size])
+	AC_DEFINE(FILESYSTEM_NO_BACKSLASH, 1, [File names may not contain backslash characters]) 
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN, 1,

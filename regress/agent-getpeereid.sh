@@ -7,10 +7,7 @@ UNPRIV=nobody
 ASOCK=${OBJ}/agent
 SSH_AUTH_SOCK=/nonexistent
 
-if grep "#undef.*HAVE_GETPEEREID" ${BUILDDIR}/config.h >/dev/null 2>&1 && \
-	grep "#undef.*HAVE_GETPEERUCRED" ${BUILDDIR}/config.h >/dev/null && \
-	grep "#undef.*HAVE_SO_PEERCRED" ${BUILDDIR}/config.h >/dev/null
-then
+if ! config_defined HAVE_GETPEEREID HAVE_GETPEERUCRED HAVE_SO_PEERCRED ; then
 	echo "skipped (not supported on this platform)"
 	exit 0
 fi

@@ -9,6 +9,16 @@
  - (dtucker) [openbsd-compat/port-linux.c] Bug #1838: Add support for the new
    Linux OOM-killer magic values that changed in 2.6.36 kernels, with fallback
    to the old values.  Feedback from vapier at gentoo org and djm, ok djm.
+ - (djm) [configure.ac regress/agent-getpeereid.sh regress/multiplex.sh]
+   [regress/sftp-glob.sh regress/test-exec.sh] Rework how feature tests are
+   disabled on platforms that do not support them; add a "config_defined()"
+   shell function that greps for defines in config.h and use them to decide
+   on feature tests.
+   Convert a couple of existing grep's over config.h to use the new function
+   Add a define "FILESYSTEM_NO_BACKSLASH" for filesystem that can't represent
+   backslash characters in filenames, enable it for Cygwin and use it to turn
+   of tests for quotes backslashes in sftp-glob.sh.
+   based on discussion with vinschen AT redhat.com and dtucker@; ok dtucker@
 
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based
