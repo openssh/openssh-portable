@@ -20,6 +20,8 @@
    of tests for quotes backslashes in sftp-glob.sh.
    based on discussion with vinschen AT redhat.com and dtucker@; ok dtucker@
  - (tim) [regress/agent-getpeereid.sh] shell portability fix.
+ - (dtucker) [openbsd-compat/port-linux.c] Fix minor bug caught by -Werror on
+   the tinderbox.
 
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based

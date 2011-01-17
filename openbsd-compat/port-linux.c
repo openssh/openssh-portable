@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.10 2011/01/17 00:56:00 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.11 2011/01/17 07:50:24 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -266,7 +266,7 @@ oom_adjust_restore(void)
 	FILE *fp;
 
 	debug3("%s", __func__);
-	if (oom_adj_save == INT_MIN || oom_adj_save == NULL ||
+	if (oom_adj_save == INT_MIN || oom_adj_path == NULL ||
 	    (fp = fopen(oom_adj_path, "w")) == NULL)
 		return;
 
