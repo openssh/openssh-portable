@@ -2,6 +2,8 @@
  - (djm) [regress/Makefile] use $TEST_SSH_KEYGEN instead of the one in
    $PATH, fix cleanup of droppings; reported by openssh AT
    roumenpetrov.info; ok dtucker@
+ - (djm) [regress/agent-ptrace.sh] Fix false failure on OS X by adding
+   its unique snowflake of a gdb error to the ones we look for.
 
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based
