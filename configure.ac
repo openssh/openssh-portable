@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.466 2011/01/17 05:17:09 djm Exp $
+# $Id: configure.ac,v 1.467 2011/01/17 10:15:30 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.466 $)
+AC_REVISION($Revision: 1.467 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -1378,7 +1378,7 @@ int main(void)
 
 AUDIT_MODULE=none
 AC_ARG_WITH(audit,
-	[  --with-audit=module     Enable EXPERIMENTAL audit support (modules=debug,bsm)],
+	[  --with-audit=module     Enable audit support (modules=debug,bsm,linux)],
 	[
 	  AC_MSG_CHECKING(for supported audit module)
 	  case "$withval" in
@@ -1402,10 +1402,18 @@ AC_ARG_WITH(audit,
 		AC_CHECK_FUNCS(getaudit_addr aug_get_machine)
 		AC_DEFINE(USE_BSM_AUDIT, 1, [Use BSM audit module])
 		;;
+	  linux)
+		AC_MSG_RESULT(linux)
+		AUDIT_MODULE=linux
+		dnl    Checks for headers, libs and functions
+		AC_CHECK_HEADERS(libaudit.h)
+		SSHDLIBS="$SSHDLIBS -laudit"
+		AC_DEFINE(USE_LINUX_AUDIT, 1, [Use Linux audit module])
+		;;
 	  debug)
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT(debug)
-		AC_DEFINE(SSH_AUDIT_EVENTS, 1, Use audit debugging module)
+		AC_DEFINE(SSH_AUDIT_EVENTS, 1, [Use audit debugging module])
 		;;
 	  no)
 		AC_MSG_RESULT(no)

@@ -469,9 +469,9 @@ login_write(struct logininfo *li)
 #endif
 #ifdef SSH_AUDIT_EVENTS
 	if (li->type == LTYPE_LOGIN)
-		audit_session_open(li->line);
+		audit_session_open(li);
 	else if (li->type == LTYPE_LOGOUT)
-		audit_session_close(li->line);
+		audit_session_close(li);
 #endif
 	return (0);
 }

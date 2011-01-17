@@ -22,6 +22,9 @@
  - (tim) [regress/agent-getpeereid.sh] shell portability fix.
  - (dtucker) [openbsd-compat/port-linux.c] Fix minor bug caught by -Werror on
    the tinderbox.
+ - (dtucker) [LICENCE Makefile.in audit-bsm.c audit-linux.c audit.c audit.h
+   configure.ac defines.h loginrec.c]  Bug #1402: add linux audit subsystem
+   support, based on patches from Tomas Mraz and jchadima at redhat.
 
 20110116
  - (dtucker) [Makefile.in configure.ac regress/kextype.sh] Skip sha256-based

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.163 2010/11/23 23:50:05 djm Exp $ */
+/* $Id: defines.h,v 1.164 2011/01/17 10:15:31 dtucker Exp $ */
 
 
 /* Constants */
@@ -603,6 +603,11 @@ struct winsize {
 #endif
 
 #ifdef USE_BSM_AUDIT
+# define SSH_AUDIT_EVENTS
+# define CUSTOM_SSH_AUDIT_EVENTS
+#endif
+
+#ifdef USE_LINUX_AUDIT
 # define SSH_AUDIT_EVENTS
 # define CUSTOM_SSH_AUDIT_EVENTS
 #endif
