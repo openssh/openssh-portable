@@ -1,3 +1,7 @@
+20110119
+ - (tim) [contrib/caldera/openssh.spec] Use CFLAGS from Makefile instead
+   of RPM so build completes. Signatures were changed to .asc since 4.1p1.
+
 20110117
  - (djm) [regress/Makefile] use $TEST_SSH_KEYGEN instead of the one in
    $PATH, fix cleanup of droppings; reported by openssh AT
