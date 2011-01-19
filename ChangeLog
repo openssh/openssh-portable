@@ -1,6 +1,10 @@
 20110119
  - (tim) [contrib/caldera/openssh.spec] Use CFLAGS from Makefile instead
    of RPM so build completes. Signatures were changed to .asc since 4.1p1.
+ - (djm) [configure.ac] Disable ECC on OpenSSL <0.9.8g. Releases prior to
+   0.9.8 lacked it, and 0.9.8a through 0.9.8d have proven buggy in pre-
+   release testing (random crashes and failure to load ECC keys).
+   ok dtucker@
 
 20110117
  - (djm) [regress/Makefile] use $TEST_SSH_KEYGEN instead of the one in

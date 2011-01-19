@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.467 2011/01/17 10:15:30 dtucker Exp $
+# $Id: configure.ac,v 1.468 2011/01/19 12:12:30 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.467 $)
+AC_REVISION($Revision: 1.468 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -2257,8 +2257,14 @@ AC_MSG_CHECKING([whether OpenSSL has complete ECC support])
 AC_LINK_IFELSE(
 	[AC_LANG_SOURCE([[
 #include <openssl/ec.h>
+#include <openssl/ecdh.h>
+#include <openssl/ecdsa.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER < 0x0090807f /* 0.9.8g */
+# error "OpenSSL < 0.9.8g has unreliable ECC code"
+#endif
 int main(void) {
 	EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
 	const EVP_MD *m = EVP_sha512(); /* We need this too */
