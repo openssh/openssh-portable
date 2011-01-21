@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.12 2010/12/04 21:46:05 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.13 2011/01/21 22:37:06 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -24,6 +24,10 @@
 #ifdef USE_OPENSSL_ENGINE
 # include <openssl/engine.h>
 # include <openssl/conf.h>
+#endif
+
+#ifndef HAVE_RSA_GET_DEFAULT_METHOD
+# include <openssl/rsa.h>
 #endif
 
 #include "log.h"
@@ -117,6 +121,14 @@ DSA_generate_parameters_ex(DSA *dsa, int bits, const unsigned char *seed,
 	*new_dsa = tmp_dsa;
 	DSA_free(new_dsa);
 	return 1;
+}
+#endif
+
+#ifndef HAVE_RSA_GET_DEFAULT_METHOD
+RSA_METHOD *
+RSA_get_default_method(void)
+{
+	return RSA_PKCS1_SSLeay();
 }
 #endif
 

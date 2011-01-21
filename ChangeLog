@@ -1,3 +1,9 @@
+20110122
+ - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}] Add
+   RSA_get_default_method() for the benefit of openssl versions that don't
+   have it (at least openssl-engine-0.9.6b).  Found and tested by Kevin Brott,
+   ok djm@.
+
 20110119
  - (tim) [contrib/caldera/openssh.spec] Use CFLAGS from Makefile instead
    of RPM so build completes. Signatures were changed to .asc since 4.1p1.

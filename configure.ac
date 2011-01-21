@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.468 2011/01/19 12:12:30 djm Exp $
+# $Id: configure.ac,v 1.469 2011/01/21 22:37:05 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.468 $)
+AC_REVISION($Revision: 1.469 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 # local macros
@@ -2180,7 +2180,7 @@ int main(void) { SSLeay_add_all_algorithms(); }
 	]
 )
 
-AC_CHECK_FUNCS(RSA_generate_key_ex DSA_generate_parameters_ex BN_is_prime_ex)
+AC_CHECK_FUNCS(RSA_generate_key_ex DSA_generate_parameters_ex BN_is_prime_ex RSA_get_default_method)
 
 AC_ARG_WITH(ssl-engine,
 	[  --with-ssl-engine       Enable OpenSSL (hardware) ENGINE support ],

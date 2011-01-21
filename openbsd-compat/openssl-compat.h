@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.17 2010/12/04 12:20:50 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.18 2011/01/21 22:37:06 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -76,6 +76,10 @@ extern const EVP_CIPHER *evp_acss(void);
 /* OpenSSL 0.9.8e returns cipher key len not context key len */
 #if (OPENSSL_VERSION_NUMBER == 0x0090805fL)
 # define EVP_CIPHER_CTX_key_length(c) ((c)->key_len)
+#endif
+
+#ifndef HAVE_RSA_GET_DEFAULT_METHOD
+RSA_METHOD *RSA_get_default_method(void);
 #endif
 
 /*
