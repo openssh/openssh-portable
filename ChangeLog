@@ -3,6 +3,10 @@
    RSA_get_default_method() for the benefit of openssl versions that don't
    have it (at least openssl-engine-0.9.6b).  Found and tested by Kevin Brott,
    ok djm@.
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/01/22 09:18:53
+     [version.h]
+     crank to OpenSSH-5.7
 
 20110119
  - (tim) [contrib/caldera/openssh.spec] Use CFLAGS from Makefile instead
