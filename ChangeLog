@@ -7,6 +7,8 @@
    - djm@cvs.openbsd.org 2011/01/22 09:18:53
      [version.h]
      crank to OpenSSH-5.7
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] update versions in docs and spec files.
 
 20110119
  - (tim) [contrib/caldera/openssh.spec] Use CFLAGS from Makefile instead
