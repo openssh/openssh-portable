@@ -1,3 +1,10 @@
+20110125
+ - (djm) [configure.ac Makefile.in ssh.c openbsd-compat/port-linux.c
+   openbsd-compat/port-linux.h] Move SELinux-specific code from ssh.c to
+   port-linux.c to avoid compilation errors. Add -lselinux to ssh when
+   building with SELinux support to avoid linking failure; report from
+   amk AT spamfence.net; ok dtucker
+
 20110122
  - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}] Add
    RSA_get_default_method() for the benefit of openssl versions that don't
