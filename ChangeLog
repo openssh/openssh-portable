@@ -1,5 +1,10 @@
 20110127
  - (tim) [config.guess config.sub] Sync with upstream.
+ - (tim) [configure.ac] Consistent M4 quoting throughout, updated obsolete
+   AC_TRY_COMPILE with AC_COMPILE_IFELSE, updated obsolete AC_TRY_LINK with
+   AC_LINK_IFELSE, updated obsolete AC_TRY_RUN with AC_RUN_IFELSE, misc white
+   space changes for consistency/readability. Makes autoconf 2.68 happy.
+   "Nice work" djm
 
 20110125
  - (djm) [configure.ac Makefile.in ssh.c openbsd-compat/port-linux.c
