@@ -1,3 +1,9 @@
+20110128
+ - (djm) [openbsd-compat/port-linux.c] Check whether SELinux is enabled
+   before attempting setfscreatecon(). Check whether matchpathcon()
+   succeeded before using its result. Patch from cjwatson AT debian.org;
+   bz#1851
+
 20110127
  - (tim) [config.guess config.sub] Sync with upstream.
  - (tim) [configure.ac] Consistent M4 quoting throughout, updated obsolete
