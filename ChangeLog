@@ -1,3 +1,9 @@
+20110204
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/01/31 21:42:15
+     [PROTOCOL.mux]
+     cut'n'pasto; from bert.wesarg AT googlemail.com
+
 20110128
  - (djm) [openbsd-compat/port-linux.c] Check whether SELinux is enabled
    before attempting setfscreatecon(). Check whether matchpathcon()
