@@ -6,6 +6,9 @@
    - djm@cvs.openbsd.org 2011/02/04 00:44:21
      [key.c]
      fix uninitialised nonce variable; reported by Mateusz Kocielski
+   - djm@cvs.openbsd.org 2011/02/04 00:44:43
+     [version.h]
+     openssh-5.8
 
 20110128
  - (djm) [openbsd-compat/port-linux.c] Check whether SELinux is enabled
