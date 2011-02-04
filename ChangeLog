@@ -1,3 +1,9 @@
+20110128
+ - (djm) [openbsd-compat/port-linux.c] Check whether SELinux is enabled
+   before attempting setfscreatecon(). Check whether matchpathcon()
+   succeeded before using its result. Patch from cjwatson AT debian.org;
+   bz#1851
+
 20110125
  - (djm) [configure.ac Makefile.in ssh.c openbsd-compat/port-linux.c
    openbsd-compat/port-linux.h] Move SELinux-specific code from ssh.c to
