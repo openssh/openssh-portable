@@ -63,6 +63,12 @@ create_host_keys() {
     csih_inform "Generating ${SYSCONFDIR}/ssh_host_dsa_key"
     ssh-keygen -t dsa -f ${SYSCONFDIR}/ssh_host_dsa_key -N '' > /dev/null
   fi
+
+  if [ ! -f "${SYSCONFDIR}/ssh_host_ecdsa_key" ]
+  then
+    csih_inform "Generating ${SYSCONFDIR}/ssh_host_ecdsa_key"
+    ssh-keygen -t ecdsa -f ${SYSCONFDIR}/ssh_host_ecdsa_key -N '' > /dev/null
+  fi
 } # --- End of create_host_keys --- #
 
 # ======================================================================

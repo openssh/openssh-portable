@@ -1,6 +1,8 @@
 20110206
  - (dtucker) [openbsd-compat/port-linux.c] Bug #1851: fix syntax error in
    selinux code.  Patch from Leonardo Chiquitto 
+ - (dtucker) [contrib/cygwin/ssh-{host,user}-config]  Add ECDSA key
+   generation and simplify.  Patch from Corinna Vinschen.
 
 20110204
  - OpenBSD CVS Sync
