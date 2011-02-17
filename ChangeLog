@@ -1,3 +1,10 @@
+20110218
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/02/16 00:31:14
+     [ssh-keysign.c]
+     make hostbased auth with ECDSA keys work correctly. Based on patch
+     by harvey.eneman AT oracle.com in bz#1858; ok markus@ (pre-lock)
+
 20110206
  - (dtucker) [openbsd-compat/port-linux.c] Bug #1851: fix syntax error in
    selinux code.  Patch from Leonardo Chiquitto 
