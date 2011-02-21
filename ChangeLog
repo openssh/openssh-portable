@@ -1,3 +1,14 @@
+20110221
+ - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
+   Cygwin-specific service installer script ssh-host-config.  The actual
+   functionality is the same, the revisited version is just more
+   exact when it comes to check for problems which disallow to run
+   certain aspects of the script.  So, part of this script and the also
+   rearranged service helper script library "csih" is to check if all
+   the tools required to run the script are available on the system.
+   The new script also is more thorough to inform the user why the
+   script failed.  Patch from vinschen at redhat com.
+
 20110218
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/02/16 00:31:14
