@@ -606,7 +606,7 @@ key_perm_ok(int fd, const char *filename)
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("Permissions 0%3.3o for '%s' are too open.",
 		    (u_int)st.st_mode & 0777, filename);
-		error("It is recommended that your private key files are NOT accessible by others.");
+		error("It is required that your private key files are NOT accessible by others.");
 		error("This private key will be ignored.");
 		return 0;
 	}
