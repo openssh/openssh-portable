@@ -1,3 +1,7 @@
+20110329
+ - (djm) closefrom() before running ssh-rand-helper; leftover fds noticed
+   by tmraz AT redhat.com
+
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
    Cygwin-specific service installer script ssh-host-config.  The actual
