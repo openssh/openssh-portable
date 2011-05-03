@@ -1,7 +1,11 @@
-20110329
- - (djm) closefrom() before running ssh-rand-helper; leftover fds noticed
-   by tmraz AT redhat.com
+20110403
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Prepare for 5.8p2 release.
 
+20110329
+ - (djm) [entropy.c] closefrom() before running ssh-rand-helper; leftover fds
+   noticed by tmraz AT redhat.com
+ 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
    Cygwin-specific service installer script ssh-host-config.  The actual
