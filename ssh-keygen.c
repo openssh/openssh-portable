@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.209 2011/04/12 04:23:50 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.210 2011/04/18 00:46:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1454,6 +1454,9 @@ prepare_options_buf(Buffer *c, int which)
 	    certflags_command != NULL)
 		add_string_option(c, "force-command", certflags_command);
 	if ((which & OPTIONS_EXTENSIONS) != 0 &&
+	    (certflags_flags & CERTOPT_X_FWD) != 0)
+		add_flag_option(c, "permit-X11-forwarding");
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
 	    (certflags_flags & CERTOPT_AGENT_FWD) != 0)
 		add_flag_option(c, "permit-agent-forwarding");
 	if ((which & OPTIONS_EXTENSIONS) != 0 &&
@@ -1465,9 +1468,6 @@ prepare_options_buf(Buffer *c, int which)
 	if ((which & OPTIONS_EXTENSIONS) != 0 &&
 	    (certflags_flags & CERTOPT_USER_RC) != 0)
 		add_flag_option(c, "permit-user-rc");
-	if ((which & OPTIONS_EXTENSIONS) != 0 &&
-	    (certflags_flags & CERTOPT_X_FWD) != 0)
-		add_flag_option(c, "permit-X11-forwarding");
 	if ((which & OPTIONS_CRITICAL) != 0 &&
 	    certflags_src_addr != NULL)
 		add_string_option(c, "source-address", certflags_src_addr);

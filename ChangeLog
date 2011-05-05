@@ -65,6 +65,9 @@
      certificate options are supposed to be packed in lexical order of
      option name (though we don't actually enforce this at present).
      Move one up that was out of sequence
+   - djm@cvs.openbsd.org 2011/05/04 21:15:29
+     [authfile.c authfile.h ssh-add.c]
+     allow "ssh-add - < key"; feedback and ok markus@
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
