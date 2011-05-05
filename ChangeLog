@@ -68,6 +68,8 @@
    - djm@cvs.openbsd.org 2011/05/04 21:15:29
      [authfile.c authfile.h ssh-add.c]
      allow "ssh-add - < key"; feedback and ok markus@
+ - (tim) [configure.ac] Add AC_LANG_SOURCE to OPENSSH_CHECK_CFLAG_COMPILE
+   so autoreconf 2.68 is happy.
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

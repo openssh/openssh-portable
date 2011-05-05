@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.472 2011/05/05 03:48:37 djm Exp $
+# $Id: configure.ac,v 1.473 2011/05/05 04:44:25 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.472 $)
+AC_REVISION($Revision: 1.473 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -24,7 +24,7 @@ AC_DEFUN([OPENSSH_CHECK_CFLAG_COMPILE], [{
 	AC_MSG_CHECKING([if $CC supports $1])
 	saved_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $1"
-	AC_COMPILE_IFELSE([void main(void) { return 0; }],
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[void main(void) { return 0; }]])],
 		[ AC_MSG_RESULT([yes]) ],
 		[ AC_MSG_RESULT([no])
 		  CFLAGS="$saved_CFLAGS" ]
