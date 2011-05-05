@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.205 2011/01/11 06:13:10 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.206 2011/03/23 15:16:22 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -158,6 +158,38 @@ char hostname[MAXHOSTNAMELEN];
 /* moduli.c */
 int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
 int prime_test(FILE *, FILE *, u_int32_t, u_int32_t);
+
+static void
+type_bits_valid(int type, u_int32_t *bits)
+{
+	u_int maxbits;
+
+	if (type == KEY_UNSPEC) {
+		fprintf(stderr, "unknown key type %s\n", key_type_name);
+		exit(1);
+	}
+	if (*bits == 0) {
+		if (type == KEY_DSA)
+			*bits = DEFAULT_BITS_DSA;
+		else if (type == KEY_ECDSA)
+			*bits = DEFAULT_BITS_ECDSA;
+		else
+			*bits = DEFAULT_BITS;
+	}
+	maxbits = (type == KEY_DSA) ?
+	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
+	if (*bits > maxbits) {
+		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
+		exit(1);
+	}
+	if (type == KEY_DSA && *bits != 1024)
+		fatal("DSA keys must be 1024 bits");
+	else if (type != KEY_ECDSA && *bits < 768)
+		fatal("Key must at least be 768 bits");
+	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(*bits) == -1)
+		fatal("Invalid ECDSA key length - valid lengths are "
+		    "256, 384 or 521 bits");
+}
 
 static void
 ask_filename(struct passwd *pw, const char *prompt)
@@ -815,6 +847,98 @@ do_fingerprint(struct passwd *pw)
 		exit(1);
 	}
 	exit(0);
+}
+
+static void
+do_gen_all_hostkeys(struct passwd *pw)
+{
+	struct {
+		char *key_type;
+		char *key_type_display;
+		char *path;
+	} key_types[] = {
+		{ "rsa1", "RSA1", _PATH_HOST_KEY_FILE },
+		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
+		{ "dsa", "DSA", _PATH_HOST_DSA_KEY_FILE },
+		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
+		{ NULL, NULL, NULL }
+	};
+
+	int first = 0;
+	struct stat st;
+	Key *private, *public;
+	char comment[1024];
+	int i, type, fd;
+	FILE *f;
+
+	for (i = 0; key_types[i].key_type; i++) {
+		if (stat(key_types[i].path, &st) == 0)
+			continue;
+		if (errno != ENOENT) {
+			printf("Could not stat %s: %s", key_types[i].path,
+			    strerror(errno));
+			first = 0;
+			continue;
+		}
+
+		if (first == 0) {
+			first = 1;
+			printf("%s: generating new host keys: ", __progname);
+		}
+		printf("%s ", key_types[i].key_type_display);
+		fflush(stdout);
+		arc4random_stir();
+		type = key_type_from_name(key_types[i].key_type);
+		strlcpy(identity_file, key_types[i].path, sizeof(identity_file));
+		bits = 0;
+		type_bits_valid(type, &bits);
+		private = key_generate(type, bits);
+		if (private == NULL) {
+			fprintf(stderr, "key_generate failed\n");
+			first = 0;
+			continue;
+		}
+		public  = key_from_private(private);
+		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name,
+		    hostname);
+		if (!key_save_private(private, identity_file, "", comment)) {
+			printf("Saving the key failed: %s.\n", identity_file);
+			key_free(private);
+			key_free(public);
+			first = 0;
+			continue;
+		}
+		key_free(private);
+		arc4random_stir();
+		strlcat(identity_file, ".pub", sizeof(identity_file));
+		fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd == -1) {
+			printf("Could not save your public key in %s\n",
+			    identity_file);
+			key_free(public);
+			first = 0;
+			continue;
+		}
+		f = fdopen(fd, "w");
+		if (f == NULL) {
+			printf("fdopen %s failed\n", identity_file);
+			key_free(public);
+			first = 0;
+			continue;
+		}
+		if (!key_write(public, f)) {
+			fprintf(stderr, "write key failed\n");
+			key_free(public);
+			first = 0;
+			continue;
+		}
+		fprintf(f, " %s\n", comment);
+		fclose(f);
+		key_free(public);
+
+	}
+	if (first != 0)
+		printf("\n");
 }
 
 static void
@@ -1745,6 +1869,7 @@ usage(void)
 {
 	fprintf(stderr, "usage: %s [options]\n", __progname);
 	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "  -A          Generate non-existent host keys for all key types.\n");
 	fprintf(stderr, "  -a trials   Number of trials for screening DH-GEX moduli.\n");
 	fprintf(stderr, "  -B          Show bubblebabble digest of key file.\n");
 	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
@@ -1799,9 +1924,9 @@ main(int argc, char **argv)
 	struct passwd *pw;
 	struct stat st;
 	int opt, type, fd;
-	u_int maxbits;
 	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
+	int gen_all_hostkeys = 0;
 	BIGNUM *start = NULL;
 	FILE *f;
 	const char *errstr;
@@ -1830,9 +1955,12 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv, "degiqpclBHLhvxXyF:b:f:t:D:I:P:m:N:n:"
+	while ((opt = getopt(argc, argv, "AdegiqpclBHLhvxXyF:b:f:t:D:I:P:m:N:n:"
 	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
 		switch (opt) {
+		case 'A':
+			gen_all_hostkeys = 1;
+			break;
 		case 'b':
 			bits = (u_int32_t)strtonum(optarg, 256, 32768, &errstr);
 			if (errstr)
@@ -2108,37 +2236,19 @@ main(int argc, char **argv)
 		return (0);
 	}
 
+	if (gen_all_hostkeys) {
+		do_gen_all_hostkeys(pw);
+		return (0);
+	}
+
 	arc4random_stir();
 
 	if (key_type_name == NULL)
 		key_type_name = "rsa";
 
 	type = key_type_from_name(key_type_name);
-	if (type == KEY_UNSPEC) {
-		fprintf(stderr, "unknown key type %s\n", key_type_name);
-		exit(1);
-	}
-	if (bits == 0) {
-		if (type == KEY_DSA)
-			bits = DEFAULT_BITS_DSA;
-		else if (type == KEY_ECDSA)
-			bits = DEFAULT_BITS_ECDSA;
-		else
-			bits = DEFAULT_BITS;
-	}
-	maxbits = (type == KEY_DSA) ?
-	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
-	if (bits > maxbits) {
-		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
-		exit(1);
-	}
-	if (type == KEY_DSA && bits != 1024)
-		fatal("DSA keys must be 1024 bits");
-	else if (type != KEY_ECDSA && bits < 768)
-		fatal("Key must at least be 768 bits");
-	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(bits) == -1)
-		fatal("Invalid ECDSA key length - valid lengths are "
-		    "256, 384 or 521 bits");
+	type_bits_valid(type, &bits);
+
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n", key_type_name);
 	private = key_generate(type, bits);

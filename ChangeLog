@@ -18,6 +18,14 @@
      [ssh-keyscan.c]
      use timerclear macro
      ok djm@
+   - stevesk@cvs.openbsd.org 2011/03/23 15:16:22
+     [ssh-keygen.1 ssh-keygen.c]
+     Add -A option.  For each of the key types (rsa1, rsa, dsa and ecdsa)
+     for which host keys do not exist, generate the host keys with the
+     default key file path, an empty passphrase, default bits for the key
+     type, and default comment.  This will be used by /etc/rc to generate
+     new host keys.  Idea from deraadt.
+     ok deraadt
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
