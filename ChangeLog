@@ -60,6 +60,11 @@
      allow graceful shutdown of multiplexing: request that a mux server
      removes its listener socket and refuse future multiplexing requests;
      ok markus@
+   - djm@cvs.openbsd.org 2011/04/18 00:46:05
+     [ssh-keygen.c]
+     certificate options are supposed to be packed in lexical order of
+     option name (though we don't actually enforce this at present).
+     Move one up that was out of sequence
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
