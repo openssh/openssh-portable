@@ -26,6 +26,9 @@
      type, and default comment.  This will be used by /etc/rc to generate
      new host keys.  Idea from deraadt.
      ok deraadt
+   - stevesk@cvs.openbsd.org 2011/03/23 16:24:56
+     [ssh-keygen.1]
+     -q not used in /etc/rc now so remove statement.
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
