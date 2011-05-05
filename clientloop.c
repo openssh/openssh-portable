@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.231 2011/01/16 12:05:59 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.232 2011/04/17 22:42:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -265,10 +265,10 @@ static void
 set_control_persist_exit_time(void)
 {
 	if (muxserver_sock == -1 || !options.control_persist
-	    || options.control_persist_timeout == 0)
+	    || options.control_persist_timeout == 0) {
 		/* not using a ControlPersist timeout */
 		control_persist_exit_time = 0;
-	else if (channel_still_open()) {
+	} else if (channel_still_open()) {
 		/* some client connections are still open */
 		if (control_persist_exit_time > 0)
 			debug2("%s: cancel scheduled exit", __func__);
@@ -1419,14 +1419,17 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	if (compat20) {
 		session_ident = ssh2_chan_id;
-		if (escape_char_arg != SSH_ESCAPECHAR_NONE)
-			channel_register_filter(session_ident,
-			    client_simple_escape_filter, NULL,
-			    client_filter_cleanup,
-			    client_new_escape_filter_ctx(escape_char_arg));
-		if (session_ident != -1)
+		if (session_ident != -1) {
+			if (escape_char_arg != SSH_ESCAPECHAR_NONE) {
+				channel_register_filter(session_ident,
+				    client_simple_escape_filter, NULL,
+				    client_filter_cleanup,
+				    client_new_escape_filter_ctx(
+				    escape_char_arg));
+			}
 			channel_register_cleanup(session_ident,
 			    client_channel_closed, 0);
+		}
 	} else {
 		/* Check if we should immediately send eof on stdin. */
 		client_check_initial_eof_on_stdin();
@@ -2120,6 +2123,19 @@ client_init_dispatch(void)
 		client_init_dispatch_13();
 	else
 		client_init_dispatch_15();
+}
+
+void
+client_stop_mux(void)
+{
+	if (options.control_path != NULL && muxserver_sock != -1)
+		unlink(options.control_path);
+	/*
+	 * If we are in persist mode, signal that we should close when all
+	 * active channels are closed.
+	 */
+	if (options.control_persist)
+		session_closed = 1;
 }
 
 /* client specific fatal cleanup */

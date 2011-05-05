@@ -55,6 +55,11 @@
    - djm@cvs.openbsd.org 2011/04/13 04:09:37
      [ssh-keygen.1]
      mention valid -b sizes for ECDSA keys; bz#1862
+   - djm@cvs.openbsd.org 2011/04/17 22:42:42
+     [PROTOCOL.mux clientloop.c clientloop.h mux.c ssh.1 ssh.c]
+     allow graceful shutdown of multiplexing: request that a mux server
+     removes its listener socket and refuse future multiplexing requests;
+     ok markus@
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

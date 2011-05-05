@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.24 2011/01/13 21:54:53 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.25 2011/04/17 22:42:41 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -146,6 +146,7 @@ struct mux_master_state {
 #define MUX_C_OPEN_FWD		0x10000006
 #define MUX_C_CLOSE_FWD		0x10000007
 #define MUX_C_NEW_STDIO_FWD	0x10000008
+#define MUX_C_STOP_LISTENING	0x10000009
 #define MUX_S_OK		0x80000001
 #define MUX_S_PERMISSION_DENIED	0x80000002
 #define MUX_S_FAILURE		0x80000003
@@ -168,6 +169,7 @@ static int process_mux_terminate(u_int, Channel *, Buffer *, Buffer *);
 static int process_mux_open_fwd(u_int, Channel *, Buffer *, Buffer *);
 static int process_mux_close_fwd(u_int, Channel *, Buffer *, Buffer *);
 static int process_mux_stdio_fwd(u_int, Channel *, Buffer *, Buffer *);
+static int process_mux_stop_listening(u_int, Channel *, Buffer *, Buffer *);
 
 static const struct {
 	u_int type;
@@ -180,6 +182,7 @@ static const struct {
 	{ MUX_C_OPEN_FWD, process_mux_open_fwd },
 	{ MUX_C_CLOSE_FWD, process_mux_close_fwd },
 	{ MUX_C_NEW_STDIO_FWD, process_mux_stdio_fwd },
+	{ MUX_C_STOP_LISTENING, process_mux_stop_listening },
 	{ 0, NULL }
 };
 
@@ -911,6 +914,39 @@ process_mux_stdio_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	buffer_put_int(r, MUX_S_SESSION_OPENED);
 	buffer_put_int(r, rid);
 	buffer_put_int(r, nc->self);
+
+	return 0;
+}
+
+static int
+process_mux_stop_listening(u_int rid, Channel *c, Buffer *m, Buffer *r)
+{
+	debug("%s: channel %d: stop listening", __func__, c->self);
+
+	if (options.control_master == SSHCTL_MASTER_ASK ||
+	    options.control_master == SSHCTL_MASTER_AUTO_ASK) {
+		if (!ask_permission("Disable further multiplexing on shared "
+		    "connection to %s? ", host)) {
+			debug2("%s: stop listen refused by user", __func__);
+			buffer_put_int(r, MUX_S_PERMISSION_DENIED);
+			buffer_put_int(r, rid);
+			buffer_put_cstring(r, "Permission denied");
+			return 0;
+		}
+	}
+
+	if (mux_listener_channel != NULL) {
+		channel_free(mux_listener_channel);
+		client_stop_mux();
+		xfree(options.control_path);
+		options.control_path = NULL;
+		mux_listener_channel = NULL;
+		muxserver_sock = -1;
+	}
+
+	/* prepare reply */
+	buffer_put_int(r, MUX_S_OK);
+	buffer_put_int(r, rid);
 
 	return 0;
 }
@@ -1813,6 +1849,50 @@ mux_client_request_stdio_fwd(int fd)
 	fatal("%s: master returned unexpected message %u", __func__, type);
 }
 
+static void
+mux_client_request_stop_listening(int fd)
+{
+	Buffer m;
+	char *e;
+	u_int type, rid;
+
+	debug3("%s: entering", __func__);
+
+	buffer_init(&m);
+	buffer_put_int(&m, MUX_C_STOP_LISTENING);
+	buffer_put_int(&m, muxclient_request_id);
+
+	if (mux_client_write_packet(fd, &m) != 0)
+		fatal("%s: write packet: %s", __func__, strerror(errno));
+
+	buffer_clear(&m);
+
+	/* Read their reply */
+	if (mux_client_read_packet(fd, &m) != 0)
+		fatal("%s: read from master failed: %s",
+		    __func__, strerror(errno));
+
+	type = buffer_get_int(&m);
+	if ((rid = buffer_get_int(&m)) != muxclient_request_id)
+		fatal("%s: out of sequence reply: my id %u theirs %u",
+		    __func__, muxclient_request_id, rid);
+	switch (type) {
+	case MUX_S_OK:
+		break;
+	case MUX_S_PERMISSION_DENIED:
+		e = buffer_get_string(&m, NULL);
+		fatal("Master refused stop listening request: %s", e);
+	case MUX_S_FAILURE:
+		e = buffer_get_string(&m, NULL);
+		fatal("%s: stop listening request failed: %s", __func__, e);
+	default:
+		fatal("%s: unexpected response from master 0x%08x",
+		    __func__, type);
+	}
+	buffer_free(&m);
+	muxclient_request_id++;
+}
+
 /* Multiplex client main loop. */
 void
 muxclient(const char *path)
@@ -1905,6 +1985,10 @@ muxclient(const char *path)
 		return;
 	case SSHMUX_COMMAND_STDIO_FWD:
 		mux_client_request_stdio_fwd(sock);
+		exit(0);
+	case SSHMUX_COMMAND_STOP:
+		mux_client_request_stop_listening(sock);
+		fprintf(stderr, "Stop listening request sent.\r\n");
 		exit(0);
 	default:
 		fatal("unrecognised muxclient_command %d", muxclient_command);
