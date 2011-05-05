@@ -35,6 +35,9 @@
    - jmc@cvs.openbsd.org 2011/03/24 15:29:30
      [ssh-keygen.1]
      zap trailing whitespace;
+   - stevesk@cvs.openbsd.org 2011/03/24 22:14:54
+     [ssh-keygen.c]
+     use strcasecmp() for "clear" cert permission option also; ok djm
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

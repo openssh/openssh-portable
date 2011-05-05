@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.207 2011/03/23 16:50:04 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.208 2011/03/24 22:14:54 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1717,7 +1717,7 @@ add_cert_option(char *opt)
 {
 	char *val;
 
-	if (strcmp(opt, "clear") == 0)
+	if (strcasecmp(opt, "clear") == 0)
 		certflags_flags = 0;
 	else if (strcasecmp(opt, "no-x11-forwarding") == 0)
 		certflags_flags &= ~CERTOPT_X_FWD;
