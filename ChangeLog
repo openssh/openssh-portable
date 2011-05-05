@@ -29,6 +29,9 @@
    - stevesk@cvs.openbsd.org 2011/03/23 16:24:56
      [ssh-keygen.1]
      -q not used in /etc/rc now so remove statement.
+   - stevesk@cvs.openbsd.org 2011/03/23 16:50:04
+     [ssh-keygen.c]
+     remove -d, documentation removed >10 years ago; ok markus
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

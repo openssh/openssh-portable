@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.206 2011/03/23 15:16:22 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.207 2011/03/23 16:50:04 stevesk Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1955,7 +1955,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv, "AdegiqpclBHLhvxXyF:b:f:t:D:I:P:m:N:n:"
+	while ((opt = getopt(argc, argv, "AegiqpclBHLhvxXyF:b:f:t:D:I:P:m:N:n:"
 	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
 		switch (opt) {
 		case 'A':
@@ -2054,9 +2054,6 @@ main(int argc, char **argv)
 			break;
 		case 'y':
 			print_public = 1;
-			break;
-		case 'd':
-			key_type_name = "dsa";
 			break;
 		case 's':
 			ca_key_path = optarg;
