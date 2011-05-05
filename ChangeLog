@@ -52,6 +52,9 @@
    - djm@cvs.openbsd.org 2011/04/13 04:02:48
      [ssh-keygen.1]
      improve wording; bz#1861
+   - djm@cvs.openbsd.org 2011/04/13 04:09:37
+     [ssh-keygen.1]
+     mention valid -b sizes for ECDSA keys; bz#1862
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
