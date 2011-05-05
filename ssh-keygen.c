@@ -1817,7 +1817,6 @@ main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
-	init_rng();
 	seed_rng();
 
 	/* we need this for the home * directory.  */

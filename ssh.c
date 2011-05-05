@@ -234,7 +234,6 @@ main(int ac, char **av)
 	sanitise_stdfd();
 
 	__progname = ssh_get_progname(av[0]);
-	init_rng();
 
 	/*
 	 * Discard other fds that are hanging around. These can cause problem

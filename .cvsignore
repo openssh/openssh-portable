@@ -22,8 +22,6 @@ ssh-keygen
 ssh-keyscan
 ssh-keysign
 ssh-pkcs11-helper
-ssh-rand-helper
-ssh_prng_cmds
 sshd
 stamp-h.in
 survey

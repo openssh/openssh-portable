@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.471 2011/01/26 20:38:58 tim Exp $
+# $Id: configure.ac,v 1.472 2011/05/05 03:48:37 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.471 $)
+AC_REVISION($Revision: 1.472 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2299,17 +2299,100 @@ AC_RUN_IFELSE(
 	],
 	[
 		AC_MSG_RESULT([no])
-		# Default to use of the rand helper if OpenSSL doesn't
-		# seed itself
-		USE_RAND_HELPER=yes
 	],
 	[
 		AC_MSG_WARN([cross compiling: assuming yes])
-		# This is safe, since all recent OpenSSL versions will
-		# complain at runtime if not seeded correctly.
+		# This is safe, since we will fatal() at runtime if
+		# OpenSSL is not seeded correctly.
 		OPENSSL_SEEDS_ITSELF=yes
 	]
 )
+
+# PRNGD TCP socket
+AC_ARG_WITH([prngd-port],
+	[  --with-prngd-port=PORT  read entropy from PRNGD/EGD TCP localhost:PORT],
+	[
+		case "$withval" in
+		no)
+			withval=""
+			;;
+		[[0-9]]*)
+			;;
+		*)
+			AC_MSG_ERROR([You must specify a numeric port number for --with-prngd-port])
+			;;
+		esac
+		if test ! -z "$withval" ; then
+			PRNGD_PORT="$withval"
+			AC_DEFINE_UNQUOTED([PRNGD_PORT], [$PRNGD_PORT],
+				[Port number of PRNGD/EGD random number socket])
+		fi
+	]
+)
+
+# PRNGD Unix domain socket
+AC_ARG_WITH([prngd-socket],
+	[  --with-prngd-socket=FILE read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
+	[
+		case "$withval" in
+		yes)
+			withval="/var/run/egd-pool"
+			;;
+		no)
+			withval=""
+			;;
+		/*)
+			;;
+		*)
+			AC_MSG_ERROR([You must specify an absolute path to the entropy socket])
+			;;
+		esac
+
+		if test ! -z "$withval" ; then
+			if test ! -z "$PRNGD_PORT" ; then
+				AC_MSG_ERROR([You may not specify both a PRNGD/EGD port and socket])
+			fi
+			if test ! -r "$withval" ; then
+				AC_MSG_WARN([Entropy socket is not readable])
+			fi
+			PRNGD_SOCKET="$withval"
+			AC_DEFINE_UNQUOTED([PRNGD_SOCKET], ["$PRNGD_SOCKET"],
+				[Location of PRNGD/EGD random number socket])
+		fi
+	],
+	[
+		# Check for existing socket only if we don't have a random device already
+		if test "x$OPENSSL_SEEDS_ITSELF" != "xyes" ; then
+			AC_MSG_CHECKING([for PRNGD/EGD socket])
+			# Insert other locations here
+			for sock in /var/run/egd-pool /dev/egd-pool /etc/entropy; do
+				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
+					PRNGD_SOCKET="$sock"
+					AC_DEFINE_UNQUOTED([PRNGD_SOCKET], ["$PRNGD_SOCKET"])
+					break;
+				fi
+			done
+			if test ! -z "$PRNGD_SOCKET" ; then
+				AC_MSG_RESULT([$PRNGD_SOCKET])
+			else
+				AC_MSG_RESULT([not found])
+			fi
+		fi
+	]
+)
+
+# Which randomness source do we use?
+if test ! -z "$PRNGD_PORT" ; then
+	RAND_MSG="PRNGd port $PRNGD_PORT"
+elif test ! -z "$PRNGD_SOCKET" ; then
+	RAND_MSG="PRNGd socket $PRNGD_SOCKET"
+elif test ! -z "$OPENSSL_SEEDS_ITSELF" ; then
+	AC_DEFINE([OPENSSL_PRNG_ONLY], [1],
+		[Define if you want OpenSSL's internally seeded PRNG only])
+	RAND_MSG="OpenSSL internal ONLY"
+else
+	AC_MSG_ERROR([OpenSSH has no source of random numbers. Please configure OpenSSL with an entropy source or re-run configure using one of the --with-prngd-port or --with-prngd-socket options])
+fi
 
 # Check for PAM libs
 PAM_MSG="no"
@@ -2372,127 +2455,6 @@ if test "x$PAM_MSG" = "xyes" ; then
 	])
 fi
 
-# Do we want to force the use of the rand helper?
-AC_ARG_WITH([rand-helper],
-	[  --with-rand-helper      Use subprocess to gather strong randomness ],
-	[
-		if test "x$withval" = "xno" ; then
-			# Force use of OpenSSL's internal RNG, even if
-			# the previous test showed it to be unseeded.
-			if test -z "$OPENSSL_SEEDS_ITSELF" ; then
-				AC_MSG_WARN([*** Forcing use of OpenSSL's non-self-seeding PRNG])
-				OPENSSL_SEEDS_ITSELF=yes
-				USE_RAND_HELPER=""
-			fi
-		else
-			USE_RAND_HELPER=yes
-		fi
-	],
-)
-
-# Which randomness source do we use?
-if test ! -z "$OPENSSL_SEEDS_ITSELF" && test -z "$USE_RAND_HELPER" ; then
-	# OpenSSL only
-	AC_DEFINE([OPENSSL_PRNG_ONLY], [1],
-		[Define if you want OpenSSL's internally seeded PRNG only])
-	RAND_MSG="OpenSSL internal ONLY"
-	INSTALL_SSH_RAND_HELPER=""
-elif test ! -z "$USE_RAND_HELPER" ; then
-	# install rand helper
-	RAND_MSG="ssh-rand-helper"
-	INSTALL_SSH_RAND_HELPER="yes"
-fi
-AC_SUBST([INSTALL_SSH_RAND_HELPER])
-
-### Configuration of ssh-rand-helper
-
-# PRNGD TCP socket
-AC_ARG_WITH([prngd-port],
-	[  --with-prngd-port=PORT  read entropy from PRNGD/EGD TCP localhost:PORT],
-	[
-		case "$withval" in
-		no)
-			withval=""
-			;;
-		[[0-9]]*)
-			;;
-		*)
-			AC_MSG_ERROR([You must specify a numeric port number for --with-prngd-port])
-			;;
-		esac
-		if test ! -z "$withval" ; then
-			PRNGD_PORT="$withval"
-			AC_DEFINE_UNQUOTED([PRNGD_PORT], [$PRNGD_PORT],
-				[Port number of PRNGD/EGD random number socket])
-		fi
-	]
-)
-
-# PRNGD Unix domain socket
-AC_ARG_WITH([prngd-socket],
-	[  --with-prngd-socket=FILE read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
-	[
-		case "$withval" in
-		yes)
-			withval="/var/run/egd-pool"
-			;;
-		no)
-			withval=""
-			;;
-		/*)
-			;;
-		*)
-			AC_MSG_ERROR([You must specify an absolute path to the entropy socket])
-			;;
-		esac
-
-		if test ! -z "$withval" ; then
-			if test ! -z "$PRNGD_PORT" ; then
-				AC_MSG_ERROR([You may not specify both a PRNGD/EGD port and socket])
-			fi
-			if test ! -r "$withval" ; then
-				AC_MSG_WARN([Entropy socket is not readable])
-			fi
-			PRNGD_SOCKET="$withval"
-			AC_DEFINE_UNQUOTED([PRNGD_SOCKET], ["$PRNGD_SOCKET"],
-				[Location of PRNGD/EGD random number socket])
-		fi
-	],
-	[
-		# Check for existing socket only if we don't have a random device already
-		if test "$USE_RAND_HELPER" = yes ; then
-			AC_MSG_CHECKING([for PRNGD/EGD socket])
-			# Insert other locations here
-			for sock in /var/run/egd-pool /dev/egd-pool /etc/entropy; do
-				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
-					PRNGD_SOCKET="$sock"
-					AC_DEFINE_UNQUOTED([PRNGD_SOCKET], ["$PRNGD_SOCKET"])
-					break;
-				fi
-			done
-			if test ! -z "$PRNGD_SOCKET" ; then
-				AC_MSG_RESULT([$PRNGD_SOCKET])
-			else
-				AC_MSG_RESULT([not found])
-			fi
-		fi
-	]
-)
-
-# Change default command timeout for hashing entropy source
-entropy_timeout=200
-AC_ARG_WITH([entropy-timeout],
-	[  --with-entropy-timeout  Specify entropy gathering command timeout (msec)],
-	[
-		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
-		    test "x${withval}" != "xyes"; then
-			entropy_timeout=$withval
-		fi
-	]
-)
-AC_DEFINE_UNQUOTED([ENTROPY_TIMEOUT_MSEC], [$entropy_timeout],
-	[Builtin PRNG command timeout])
-
 SSH_PRIVSEP_USER=sshd
 AC_ARG_WITH([privsep-user],
 	[  --with-privsep-user=user Specify non-privileged user for privilege separation],
@@ -2506,56 +2468,6 @@ AC_ARG_WITH([privsep-user],
 AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], ["$SSH_PRIVSEP_USER"],
 	[non-privileged user for privilege separation])
 AC_SUBST([SSH_PRIVSEP_USER])
-
-# We do this little dance with the search path to insure
-# that programs that we select for use by installed programs
-# (which may be run by the super-user) come from trusted
-# locations before they come from the user's private area.
-# This should help avoid accidentally configuring some
-# random version of a program in someone's personal bin.
-
-OPATH=$PATH
-PATH=/bin:/usr/bin
-test -h /bin 2> /dev/null && PATH=/usr/bin
-test -d /sbin && PATH=$PATH:/sbin
-test -d /usr/sbin && PATH=$PATH:/usr/sbin
-PATH=$PATH:/etc:$OPATH
-
-# These programs are used by the command hashing source to gather entropy
-OSSH_PATH_ENTROPY_PROG([PROG_LS], [ls])
-OSSH_PATH_ENTROPY_PROG([PROG_NETSTAT], [netstat])
-OSSH_PATH_ENTROPY_PROG([PROG_ARP], [arp])
-OSSH_PATH_ENTROPY_PROG([PROG_IFCONFIG], [ifconfig])
-OSSH_PATH_ENTROPY_PROG([PROG_JSTAT], [jstat])
-OSSH_PATH_ENTROPY_PROG([PROG_PS], [ps])
-OSSH_PATH_ENTROPY_PROG([PROG_SAR], [sar])
-OSSH_PATH_ENTROPY_PROG([PROG_W], [w])
-OSSH_PATH_ENTROPY_PROG([PROG_WHO], [who])
-OSSH_PATH_ENTROPY_PROG([PROG_LAST], [last])
-OSSH_PATH_ENTROPY_PROG([PROG_LASTLOG], [lastlog])
-OSSH_PATH_ENTROPY_PROG([PROG_DF], [df])
-OSSH_PATH_ENTROPY_PROG([PROG_VMSTAT], [vmstat])
-OSSH_PATH_ENTROPY_PROG([PROG_UPTIME], [uptime])
-OSSH_PATH_ENTROPY_PROG([PROG_IPCS], [ipcs])
-OSSH_PATH_ENTROPY_PROG([PROG_TAIL], [tail])
-# restore PATH
-PATH=$OPATH
-
-# Where does ssh-rand-helper get its randomness from?
-INSTALL_SSH_PRNG_CMDS=""
-if test ! -z "$INSTALL_SSH_RAND_HELPER" ; then
-	if test ! -z "$PRNGD_PORT" ; then
-		RAND_HELPER_MSG="TCP localhost:$PRNGD_PORT"
-	elif test ! -z "$PRNGD_SOCKET" ; then
-		RAND_HELPER_MSG="Unix domain socket \"$PRNGD_SOCKET\""
-	else
-		RAND_HELPER_MSG="Command hashing (timeout $entropy_timeout)"
-		RAND_HELPER_CMDHASH=yes
-		INSTALL_SSH_PRNG_CMDS="yes"
-	fi
-fi
-AC_SUBST([INSTALL_SSH_PRNG_CMDS])
-
 
 # Cheap hack to ensure NEWS-OS libraries are arranged right.
 if test ! -z "$SONY" ; then
@@ -4157,7 +4069,7 @@ AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \
 	openbsd-compat/Makefile openbsd-compat/regress/Makefile \
-	ssh_prng_cmds survey.sh])
+	survey.sh])
 AC_OUTPUT
 
 # Print summary of options
@@ -4212,9 +4124,6 @@ echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"
 echo "              Random number source: $RAND_MSG"
-if test ! -z "$USE_RAND_HELPER" ; then
-echo "     ssh-rand-helper collects from: $RAND_HELPER_MSG"
-fi
 
 echo ""
 
@@ -4243,14 +4152,6 @@ if test "x$PAM_MSG" = "xyes" ; then
 	echo "for sshd, otherwise password authentication may fail. "
 	echo "Example PAM control files can be found in the contrib/ "
 	echo "subdirectory"
-	echo ""
-fi
-
-if test ! -z "$RAND_HELPER_CMDHASH" ; then
-	echo "WARNING: you are using the builtin random number collection "
-	echo "service. Please read WARNING.RNG and request that your OS "
-	echo "vendor includes kernel-based random number collection in "
-	echo "future versions of your OS."
 	echo ""
 fi
 

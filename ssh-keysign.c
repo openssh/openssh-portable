@@ -178,7 +178,6 @@ main(int argc, char **argv)
 
 	permanently_set_uid(pw);
 
-	init_rng();
 	seed_rng();
 	arc4random_stir();
 

@@ -620,7 +620,6 @@ main(int argc, char **argv)
 	extern char *optarg;
 
 	__progname = ssh_get_progname(argv[0]);
-	init_rng();
 	seed_rng();
 	TAILQ_INIT(&tq);
 

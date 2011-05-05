@@ -1,4 +1,4 @@
-dnl $Id: aclocal.m4,v 1.6 2005/09/19 16:33:39 tim Exp $
+dnl $Id: aclocal.m4,v 1.7 2011/05/05 03:48:37 djm Exp $
 dnl
 dnl OpenSSH-specific autoconf macros
 dnl
@@ -31,16 +31,6 @@ AC_DEFUN(OSSH_CHECK_HEADER_FOR_FIELD, [
 	else
 		AC_MSG_RESULT(no)
 	fi
-])
-
-dnl OSSH_PATH_ENTROPY_PROG(variablename, command):
-dnl Tidiness function, sets 'undef' if not found, and does the AC_SUBST
-AC_DEFUN(OSSH_PATH_ENTROPY_PROG, [
-	AC_PATH_PROG($1, $2)
-	if test -z "[$]$1" ; then
-		$1="undef"
-	fi
-	AC_SUBST($1)
 ])
 
 dnl Check for socklen_t: historically on BSD it is an int, and in

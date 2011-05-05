@@ -1154,7 +1154,6 @@ main(int ac, char **av)
 	OpenSSL_add_all_algorithms();
 
 	__progname = ssh_get_progname(av[0]);
-	init_rng();
 	seed_rng();
 
 	while ((ch = getopt(ac, av, "cdksa:t:")) != -1) {
