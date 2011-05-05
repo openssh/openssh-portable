@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.208 2011/03/24 22:14:54 stevesk Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.209 2011/04/12 04:23:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -160,7 +160,7 @@ int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
 int prime_test(FILE *, FILE *, u_int32_t, u_int32_t);
 
 static void
-type_bits_valid(int type, u_int32_t *bits)
+type_bits_valid(int type, u_int32_t *bitsp)
 {
 	u_int maxbits;
 
@@ -168,25 +168,25 @@ type_bits_valid(int type, u_int32_t *bits)
 		fprintf(stderr, "unknown key type %s\n", key_type_name);
 		exit(1);
 	}
-	if (*bits == 0) {
+	if (*bitsp == 0) {
 		if (type == KEY_DSA)
-			*bits = DEFAULT_BITS_DSA;
+			*bitsp = DEFAULT_BITS_DSA;
 		else if (type == KEY_ECDSA)
-			*bits = DEFAULT_BITS_ECDSA;
+			*bitsp = DEFAULT_BITS_ECDSA;
 		else
-			*bits = DEFAULT_BITS;
+			*bitsp = DEFAULT_BITS;
 	}
 	maxbits = (type == KEY_DSA) ?
 	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
-	if (*bits > maxbits) {
+	if (*bitsp > maxbits) {
 		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
 		exit(1);
 	}
-	if (type == KEY_DSA && *bits != 1024)
+	if (type == KEY_DSA && *bitsp != 1024)
 		fatal("DSA keys must be 1024 bits");
-	else if (type != KEY_ECDSA && *bits < 768)
+	else if (type != KEY_ECDSA && *bitsp < 768)
 		fatal("Key must at least be 768 bits");
-	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(*bits) == -1)
+	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(*bitsp) == -1)
 		fatal("Invalid ECDSA key length - valid lengths are "
 		    "256, 384 or 521 bits");
 }
