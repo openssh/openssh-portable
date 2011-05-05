@@ -46,6 +46,9 @@
    - djm@cvs.openbsd.org 2011/04/12 04:23:50
      [ssh-keygen.c]
      fix -Wshadow
+   - djm@cvs.openbsd.org 2011/04/12 05:32:49
+     [sshd.c]
+     exit with 0 status on SIGTERM; bz#1879
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

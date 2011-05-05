@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.381 2011/01/11 06:13:10 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.382 2011/04/12 05:32:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1115,7 +1115,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			    (int) received_sigterm);
 			close_listen_socks();
 			unlink(options.pid_file);
-			exit(255);
+			exit(received_sigterm == SIGTERM ? 0 : 255);
 		}
 		if (key_used && key_do_regen) {
 			generate_ephemeral_server_key();
