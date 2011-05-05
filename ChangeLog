@@ -70,6 +70,7 @@
      allow "ssh-add - < key"; feedback and ok markus@
  - (tim) [configure.ac] Add AC_LANG_SOURCE to OPENSSH_CHECK_CFLAG_COMPILE
    so autoreconf 2.68 is happy.
+ - (tim) [defines.h] Deal with platforms that do not have S_IFSOCK ok djm@
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the

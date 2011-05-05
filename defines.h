@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.165 2011/05/05 01:19:15 djm Exp $ */
+/* $Id: defines.h,v 1.166 2011/05/05 06:06:59 tim Exp $ */
 
 
 /* Constants */
@@ -130,6 +130,10 @@ enum
 #if defined(HAVE_DECL_O_NONBLOCK) && HAVE_DECL_O_NONBLOCK == 0
 # define O_NONBLOCK      00004	/* Non Blocking Open */
 #endif
+
+#ifndef S_IFSOCK
+# define S_IFSOCK 0
+#endif /* S_IFSOCK */
 
 #ifndef S_ISDIR
 # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
