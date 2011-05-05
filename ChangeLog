@@ -14,6 +14,10 @@
      allow GSSAPI authentication to detect when a server-side failure causes
      authentication failure and don't count such failures against MaxAuthTries;
      bz#1244 from simon AT sxw.org.uk; ok markus@ before lock
+   - okan@cvs.openbsd.org 2011/03/15 10:36:02
+     [ssh-keyscan.c]
+     use timerclear macro
+     ok djm@
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
