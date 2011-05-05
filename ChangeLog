@@ -10,7 +10,7 @@
    Thanks to tim@ for testing on affected platforms.
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/03/10 02:52:57
-     [auth2-gss.c auth2.c]
+     [auth2-gss.c auth2.c auth.h]
      allow GSSAPI authentication to detect when a server-side failure causes
      authentication failure and don't count such failures against MaxAuthTries;
      bz#1244 from simon AT sxw.org.uk; ok markus@ before lock
