@@ -1,3 +1,7 @@
+20110505
+ - (djm) [defines.h] Move up include of netinet/ip.h for IPTOS
+   definitions. From des AT des.no
+
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
    Cygwin-specific service installer script ssh-host-config.  The actual
