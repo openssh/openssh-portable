@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.213 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.214 2011/03/29 18:54:17 stevesk Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1775,7 +1775,8 @@ dump_config(ServerOptions *o)
 		}
 	dump_cfg_string(sPermitTunnel, s);
 
-	printf("ipqos 0x%02x 0x%02x\n", o->ip_qos_interactive, o->ip_qos_bulk);
+	printf("ipqos %s ", iptos2str(o->ip_qos_interactive));
+	printf("%s\n", iptos2str(o->ip_qos_bulk));
 
 	channel_print_adm_permitted_opens();
 }

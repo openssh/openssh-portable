@@ -38,6 +38,11 @@
    - stevesk@cvs.openbsd.org 2011/03/24 22:14:54
      [ssh-keygen.c]
      use strcasecmp() for "clear" cert permission option also; ok djm
+   - stevesk@cvs.openbsd.org 2011/03/29 18:54:17
+     [misc.c misc.h servconf.c]
+     print ipqos friendly string for sshd -T; ok markus
+     # sshd -Tf sshd_config|grep ipqos
+     ipqos lowdelay throughput
 
 20110221
  - (dtucker) [contrib/cygwin/ssh-host-config] From Corinna: revamp of the
