@@ -1,3 +1,7 @@
+20110506
+ - (dtucker) [openbsd-compat/regress/closefromtest.c] Bug #1875: add prototype
+   for closefrom() in test code.  Report from Dan Wallis via Gentoo.
+
 20110505
  - (djm) [defines.h] Move up include of netinet/ip.h for IPTOS
    definitions. From des AT des.no
