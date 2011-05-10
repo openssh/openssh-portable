@@ -1,3 +1,8 @@
+20110510
+ - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
+   --with-ssl-engine which was broken with the change from deprecated
+   SSLeay_add_all_algorithms().  ok djm
+
 20110506
  - (dtucker) [openbsd-compat/regress/closefromtest.c] Bug #1875: add prototype
    for closefrom() in test code.  Report from Dan Wallis via Gentoo.
