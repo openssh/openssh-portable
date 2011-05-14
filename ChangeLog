@@ -23,6 +23,15 @@
      [ssh.c ssh_config.5]
      add a %L expansion (short-form of the local host name) for ControlPath;
      sync some more expansions with LocalCommand; ok markus@
+   - djm@cvs.openbsd.org 2011/05/06 21:31:38
+     [readconf.c ssh_config.5]
+     support negated Host matching, e.g.
+     
+     Host *.example.org !c.example.org
+        User mekmitasdigoat
+     
+     Will match "a.example.org", "b.example.org", but not "c.example.org"
+     ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix

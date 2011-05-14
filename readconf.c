@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.190 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.191 2011/05/06 21:31:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -354,7 +354,7 @@ process_config_line(Options *options, const char *host,
 		    int *activep)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2, fwdarg[256];
-	int opcode, *intptr, value, value2, scale;
+	int negated, opcode, *intptr, value, value2, scale;
 	LogLevel *log_level_ptr;
 	long long orig, val64;
 	size_t len;
@@ -793,12 +793,28 @@ parse_int:
 
 	case oHost:
 		*activep = 0;
-		while ((arg = strdelim(&s)) != NULL && *arg != '\0')
+		arg2 = NULL;
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			negated = *arg == '!';
+			if (negated)
+				arg++;
 			if (match_pattern(host, arg)) {
-				debug("Applying options for %.100s", arg);
+				if (negated) {
+					debug("%.200s line %d: Skipping Host "
+					    "block because of negated match "
+					    "for %.100s", filename, linenum,
+					    arg);
+					*activep = 0;
+					break;
+				}
+				if (!*activep)
+					arg2 = arg; /* logged below */
 				*activep = 1;
-				break;
 			}
+		}
+		if (*activep)
+			debug("%.200s line %d: Applying options for %.100s",
+			    filename, linenum, arg2);
 		/* Avoid garbage check below, as strdelim is done. */
 		return 0;
 

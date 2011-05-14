@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.147 2011/05/06 21:18:02 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.148 2011/05/06 21:31:38 djm Exp $
 .Dd $Mdocdate: May 6 2011 $
 .Dt SSH_CONFIG 5
 .Os
@@ -111,6 +111,15 @@ The host is the
 .Ar hostname
 argument given on the command line (i.e. the name is not converted to
 a canonicalized host name before matching).
+.Pp
+A pattern entry may be negated by prefixing it with an exclamation mark
+.Pq Sq !\& .
+If a negated entry is matched, then the
+.Cm Host
+entry is ignored, regardless of whether any other patterns on the line
+match.
+Negated matches are therefore useful to provide exceptions for wildcard
+matches.
 .Pp
 See
 .Sx PATTERNS
