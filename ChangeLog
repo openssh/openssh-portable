@@ -32,6 +32,10 @@
      
      Will match "a.example.org", "b.example.org", but not "c.example.org"
      ok markus@
+   - djm@cvs.openbsd.org 2011/05/06 21:34:32
+     [clientloop.c mux.c readconf.c readconf.h ssh.c ssh_config.5]
+     Add a RequestTTY ssh_config option to allow configuration-based
+     control over tty allocation (like -t/-T); ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix

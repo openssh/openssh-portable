@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.232 2011/04/17 22:42:41 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.233 2011/05/06 21:34:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -129,9 +129,6 @@ extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
  * configuration file.
  */
 extern char *host;
-
-/* Force TTY allocation */
-extern int force_tty_flag;
 
 /*
  * Flag to indicate that we have received a window change signal which has
@@ -662,7 +659,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 		atomicio(vwrite, fileno(stderr), buffer_ptr(berr),
 		    buffer_len(berr));
 
-	leave_raw_mode(force_tty_flag);
+	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	/*
 	 * Free (and clear) the buffer to reduce the amount of data that gets
@@ -683,7 +680,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 	buffer_init(bout);
 	buffer_init(berr);
 
-	enter_raw_mode(force_tty_flag);
+	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 }
 
 static void
@@ -826,7 +823,7 @@ process_cmdline(void)
 	bzero(&fwd, sizeof(fwd));
 	fwd.listen_host = fwd.connect_host = NULL;
 
-	leave_raw_mode(force_tty_flag);
+	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 	handler = signal(SIGINT, SIG_IGN);
 	cmd = s = read_passphrase("\r\nssh> ", RP_ECHO);
 	if (s == NULL)
@@ -930,7 +927,7 @@ process_cmdline(void)
 
 out:
 	signal(SIGINT, handler);
-	enter_raw_mode(force_tty_flag);
+	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 	if (cmd)
 		xfree(cmd);
 	if (fwd.listen_host != NULL)
@@ -1049,7 +1046,8 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				 * more new connections).
 				 */
 				/* Restore tty modes. */
-				leave_raw_mode(force_tty_flag);
+				leave_raw_mode(
+				    options.request_tty == REQUEST_TTY_FORCE);
 
 				/* Stop listening for new connections. */
 				channel_stop_listening();
@@ -1344,7 +1342,7 @@ client_channel_closed(int id, void *arg)
 {
 	channel_cancel_cleanup(id);
 	session_closed = 1;
-	leave_raw_mode(force_tty_flag);
+	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 }
 
 /*
@@ -1415,7 +1413,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	signal(SIGWINCH, window_change_handler);
 
 	if (have_pty)
-		enter_raw_mode(force_tty_flag);
+		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	if (compat20) {
 		session_ident = ssh2_chan_id;
@@ -1559,7 +1557,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	channel_free_all();
 
 	if (have_pty)
-		leave_raw_mode(force_tty_flag);
+		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	/* restore blocking io */
 	if (!isatty(fileno(stdin)))
@@ -2142,7 +2140,7 @@ client_stop_mux(void)
 void
 cleanup_exit(int i)
 {
-	leave_raw_mode(force_tty_flag);
+	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 	leave_non_blocking();
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);

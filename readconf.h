@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.88 2010/11/13 23:27:50 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.89 2011/05/06 21:34:32 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -132,6 +132,7 @@ typedef struct {
 
 	int	use_roaming;
 
+	int	request_tty;
 }       Options;
 
 #define SSHCTL_MASTER_NO	0
@@ -139,6 +140,11 @@ typedef struct {
 #define SSHCTL_MASTER_AUTO	2
 #define SSHCTL_MASTER_ASK	3
 #define SSHCTL_MASTER_AUTO_ASK	4
+
+#define REQUEST_TTY_AUTO	0
+#define REQUEST_TTY_NO		1
+#define REQUEST_TTY_YES		2
+#define REQUEST_TTY_FORCE	3
 
 void     initialize_options(Options *);
 void     fill_default_options(Options *);

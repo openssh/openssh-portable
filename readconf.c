@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.191 2011/05/06 21:31:38 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.192 2011/05/06 21:34:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -134,7 +134,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
-	oKexAlgorithms, oIPQoS,
+	oKexAlgorithms, oIPQoS, oRequestTTY,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -245,6 +245,7 @@ static struct {
 #endif
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
+	{ "requesttty", oRequestTTY },
 
 	{ NULL, oBadOption }
 };
@@ -1013,6 +1014,26 @@ parse_int:
 		intptr = &options->use_roaming;
 		goto parse_flag;
 
+	case oRequestTTY:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing argument.",
+			    filename, linenum);
+		intptr = &options->request_tty;
+		if (strcasecmp(arg, "yes") == 0)
+			value = REQUEST_TTY_YES;
+		else if (strcasecmp(arg, "no") == 0)
+			value = REQUEST_TTY_NO;
+		else if (strcasecmp(arg, "force") == 0)
+			value = REQUEST_TTY_FORCE;
+		else if (strcasecmp(arg, "auto") == 0)
+			value = REQUEST_TTY_AUTO;
+		else
+			fatal("Unsupported RequestTTY \"%s\"", arg);
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1173,6 +1194,7 @@ initialize_options(Options * options)
 	options->zero_knowledge_password_authentication = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
+	options->request_tty = -1;
 }
 
 /*
@@ -1331,6 +1353,8 @@ fill_default_options(Options * options)
 		options->ip_qos_interactive = IPTOS_LOWDELAY;
 	if (options->ip_qos_bulk == -1)
 		options->ip_qos_bulk = IPTOS_THROUGHPUT;
+	if (options->request_tty == -1)
+		options->request_tty = REQUEST_TTY_AUTO;
 	/* options->local_command should not be set by default */
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */

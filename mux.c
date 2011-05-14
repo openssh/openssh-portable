@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.26 2011/05/05 05:12:08 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.27 2011/05/06 21:34:32 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -87,7 +87,6 @@
 
 /* from ssh.c */
 extern int tty_flag;
-extern int force_tty_flag;
 extern Options options;
 extern int stdin_null_flag;
 extern char *host;
@@ -1710,7 +1709,7 @@ mux_client_request_session(int fd)
 	signal(SIGWINCH, control_client_sigrelay);
 
 	if (tty_flag)
-		enter_raw_mode(force_tty_flag);
+		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	/*
 	 * Stick around until the controlee closes the client_fd.
@@ -1739,7 +1738,7 @@ mux_client_request_session(int fd)
 	}
 
 	close(fd);
-	leave_raw_mode(force_tty_flag);
+	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	if (muxclient_terminate) {
 		debug2("Exiting on signal %d", muxclient_terminate);

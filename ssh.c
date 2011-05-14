@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.358 2011/05/06 21:18:02 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.359 2011/05/06 21:34:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -114,10 +114,8 @@ extern char *__progname;
 /* Flag indicating whether debug mode is on.  May be set on the command line. */
 int debug_flag = 0;
 
-/* Flag indicating whether a tty should be allocated */
+/* Flag indicating whether a tty should be requested */
 int tty_flag = 0;
-int no_tty_flag = 0;
-int force_tty_flag = 0;
 
 /* don't exec a shell */
 int no_shell_flag = 0;
@@ -135,7 +133,7 @@ int stdin_null_flag = 0;
 int need_controlpersist_detach = 0;
 
 /* Copies of flags for ControlPersist foreground slave */
-int ostdin_null_flag, ono_shell_flag, ono_tty_flag, otty_flag;
+int ostdin_null_flag, ono_shell_flag, otty_flag, orequest_tty;
 
 /*
  * Flag indicating that ssh should fork after authentication.  This is useful
@@ -389,9 +387,10 @@ main(int ac, char **av)
 #endif
 			break;
 		case 't':
-			if (tty_flag)
-				force_tty_flag = 1;
-			tty_flag = 1;
+			if (options.request_tty == REQUEST_TTY_YES)
+				options.request_tty = REQUEST_TTY_FORCE;
+			else
+				options.request_tty = REQUEST_TTY_YES;
 			break;
 		case 'v':
 			if (debug_flag == 0) {
@@ -434,7 +433,7 @@ main(int ac, char **av)
 				    optarg);
 				exit(255);
 			}
-			no_tty_flag = 1;
+			options.request_tty = REQUEST_TTY_NO;
 			no_shell_flag = 1;
 			options.clear_forwardings = 1;
 			options.exit_on_forward_failure = 1;
@@ -543,10 +542,10 @@ main(int ac, char **av)
 			break;
 		case 'N':
 			no_shell_flag = 1;
-			no_tty_flag = 1;
+			options.request_tty = REQUEST_TTY_NO;
 			break;
 		case 'T':
-			no_tty_flag = 1;
+			options.request_tty = REQUEST_TTY_NO;
 			break;
 		case 'o':
 			dummy = 1;
@@ -606,6 +605,10 @@ main(int ac, char **av)
 	/* Initialize the command to execute on remote host. */
 	buffer_init(&command);
 
+	if (options.request_tty == REQUEST_TTY_YES ||
+	    options.request_tty == REQUEST_TTY_FORCE)
+		tty_flag = 1;
+
 	/*
 	 * Save the command to execute on the remote host in a buffer. There
 	 * is no limit on the length of the command, except by the maximum
@@ -613,7 +616,7 @@ main(int ac, char **av)
 	 */
 	if (!ac) {
 		/* No command specified - execute shell on a tty. */
-		tty_flag = 1;
+		tty_flag = options.request_tty != REQUEST_TTY_NO;
 		if (subsystem_flag) {
 			fprintf(stderr,
 			    "You must specify a subsystem to invoke.\n");
@@ -636,13 +639,14 @@ main(int ac, char **av)
 
 	/* Allocate a tty by default if no command specified. */
 	if (buffer_len(&command) == 0)
-		tty_flag = 1;
+		tty_flag = options.request_tty != REQUEST_TTY_NO;
 
 	/* Force no tty */
-	if (no_tty_flag || muxclient_command != 0)
+	if (options.request_tty == REQUEST_TTY_NO || muxclient_command != 0)
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
-	if ((!isatty(fileno(stdin)) || stdin_null_flag) && !force_tty_flag) {
+	if ((!isatty(fileno(stdin)) || stdin_null_flag) &&
+	    options.request_tty != REQUEST_TTY_FORCE) {
 		if (tty_flag)
 			logit("Pseudo-terminal will not be allocated because "
 			    "stdin is not a terminal.");
@@ -946,8 +950,7 @@ control_persist_detach(void)
 		/* Parent: set up mux slave to connect to backgrounded master */
 		debug2("%s: background process is %ld", __func__, (long)pid);
 		stdin_null_flag = ostdin_null_flag;
-		no_shell_flag = ono_shell_flag;
-		no_tty_flag = ono_tty_flag;
+		options.request_tty = orequest_tty;
 		tty_flag = otty_flag;
  		close(muxserver_sock);
  		muxserver_sock = -1;
@@ -1394,11 +1397,11 @@ ssh_session2(void)
  	if (options.control_persist && muxserver_sock != -1) {
 		ostdin_null_flag = stdin_null_flag;
 		ono_shell_flag = no_shell_flag;
-		ono_tty_flag = no_tty_flag;
+		orequest_tty = options.request_tty;
 		otty_flag = tty_flag;
  		stdin_null_flag = 1;
  		no_shell_flag = 1;
- 		no_tty_flag = 1;
+ 		options.request_tty == REQUEST_TTY_NO;
  		tty_flag = 0;
 		if (!fork_after_authentication_flag)
 			need_controlpersist_detach = 1;

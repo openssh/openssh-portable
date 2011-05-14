@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.148 2011/05/06 21:31:38 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.149 2011/05/06 21:34:32 djm Exp $
 .Dd $Mdocdate: May 6 2011 $
 .Dt SSH_CONFIG 5
 .Os
@@ -959,6 +959,23 @@ will only succeed if the server's
 .Cm GatewayPorts
 option is enabled (see
 .Xr sshd_config 5 ) .
+.It Cm RequestTTY
+Specifies whether to request a pseudo-tty for the session.
+The argument may be one of:
+.Dq no
+(never request a TTY),
+.Dq yes
+(always request a TTY when standard input is a TTY),
+.Dq force
+(always request a TTY) or
+.Dq auto
+(request a TTY when opening a login session).
+This option mirrors the
+.Fl t
+and
+.Fl T
+flags for
+.Xr ssh 1 .
 .It Cm RhostsRSAAuthentication
 Specifies whether to try rhosts based authentication with RSA host
 authentication.
