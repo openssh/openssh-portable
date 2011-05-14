@@ -47,6 +47,9 @@
      - tweak previous
      - come consistency fixes
      ok djm
+   - jmc@cvs.openbsd.org 2011/05/07 23:20:25
+     [ssh.1]
+     +.It RequestTTY
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
