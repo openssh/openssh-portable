@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.359 2011/05/06 21:34:32 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.360 2011/05/06 21:38:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1401,7 +1401,6 @@ ssh_session2(void)
 		otty_flag = tty_flag;
  		stdin_null_flag = 1;
  		no_shell_flag = 1;
- 		options.request_tty == REQUEST_TTY_NO;
  		tty_flag = 0;
 		if (!fork_after_authentication_flag)
 			need_controlpersist_detach = 1;
