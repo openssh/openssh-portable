@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.357 2011/04/17 22:42:42 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.358 2011/05/06 21:18:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -222,6 +222,7 @@ main(int ac, char **av)
 {
 	int i, r, opt, exit_status, use_syslog;
 	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg;
+	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 	struct stat st;
 	struct passwd *pw;
 	int dummy, timeout_ms;
@@ -701,17 +702,19 @@ main(int ac, char **av)
 		    "h", host, (char *)NULL);
 	}
 
-	if (options.local_command != NULL) {
-		char thishost[NI_MAXHOST];
+	if (gethostname(thishost, sizeof(thishost)) == -1)
+		fatal("gethostname: %s", strerror(errno));
+	strlcpy(shorthost, thishost, sizeof(shorthost));
+	shorthost[strcspn(thishost, ".")] = '\0';
+	snprintf(portstr, sizeof(portstr), "%d", options.port);
 
-		if (gethostname(thishost, sizeof(thishost)) == -1)
-			fatal("gethostname: %s", strerror(errno));
-		snprintf(buf, sizeof(buf), "%d", options.port);
+	if (options.local_command != NULL) {
 		debug3("expanding LocalCommand: %s", options.local_command);
 		cp = options.local_command;
 		options.local_command = percent_expand(cp, "d", pw->pw_dir,
 		    "h", host, "l", thishost, "n", host_arg, "r", options.user,
-		    "p", buf, "u", pw->pw_name, (char *)NULL);
+		    "p", portstr, "u", pw->pw_name, "L", shorthost,
+		    (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);
 		xfree(cp);
 	}
@@ -735,16 +738,13 @@ main(int ac, char **av)
 	}
 
 	if (options.control_path != NULL) {
-		char thishost[NI_MAXHOST];
-
-		if (gethostname(thishost, sizeof(thishost)) == -1)
-			fatal("gethostname: %s", strerror(errno));
-		snprintf(buf, sizeof(buf), "%d", options.port);
 		cp = tilde_expand_filename(options.control_path,
 		    original_real_uid);
 		xfree(options.control_path);
-		options.control_path = percent_expand(cp, "p", buf, "h", host,
-		    "r", options.user, "l", thishost, (char *)NULL);
+		options.control_path = percent_expand(cp, "h", host,
+		    "l", thishost, "n", host_arg, "r", options.user,
+		    "p", portstr, "u", pw->pw_name, "L", shorthost,
+		    (char *)NULL);
 		xfree(cp);
 	}
 	if (muxclient_command != 0 && options.control_path == NULL)

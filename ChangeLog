@@ -19,6 +19,10 @@
      set traffic class for IPv6 traffic as we do for IPv4 TOS;
      patch from lionel AT mamane.lu via Colin Watson in bz#1855;
      ok markus@
+   - djm@cvs.openbsd.org 2011/05/06 21:18:02
+     [ssh.c ssh_config.5]
+     add a %L expansion (short-form of the local host name) for ControlPath;
+     sync some more expansions with LocalCommand; ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
