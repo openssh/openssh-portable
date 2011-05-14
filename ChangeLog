@@ -1,3 +1,10 @@
+20110515
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/05/05 05:12:08
+     [mux.c]
+     gracefully fall back when ControlPath is too large for a
+     sockaddr_un. ok markus@ as part of a larger diff
+
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
    --with-ssl-engine which was broken with the change from deprecated

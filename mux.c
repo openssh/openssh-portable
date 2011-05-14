@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.25 2011/04/17 22:42:41 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.26 2011/05/05 05:12:08 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1095,21 +1095,25 @@ muxserver_listen(void)
 	    strlen(options.control_path) + 1;
 
 	if (strlcpy(addr.sun_path, options.control_path,
-	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
-		fatal("ControlPath too long");
+	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path)) {
+		error("ControlPath \"%s\" too long for Unix domain socket",
+		    options.control_path);
+		goto disable_mux_master;
+	}
 
 	if ((muxserver_sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
 	old_umask = umask(0177);
 	if (bind(muxserver_sock, (struct sockaddr *)&addr, sun_len) == -1) {
-		muxserver_sock = -1;
 		if (errno == EINVAL || errno == EADDRINUSE) {
 			error("ControlSocket %s already exists, "
 			    "disabling multiplexing", options.control_path);
  disable_mux_master:
-			close(muxserver_sock);
-			muxserver_sock = -1;
+			if (muxserver_sock != -1) {
+				close(muxserver_sock);
+				muxserver_sock = -1;
+			}
 			xfree(options.control_path);
 			options.control_path = NULL;
 			options.control_master = SSHCTL_MASTER_NO;
