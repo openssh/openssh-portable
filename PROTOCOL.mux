@@ -180,7 +180,7 @@ The MUX_S_PERMISSION_DENIED and MUX_S_FAILURE include a reason:
 	uint32	client request id
 	string	reason
 
-9. Protocol numbers
+10. Protocol numbers
 
 #define MUX_MSG_HELLO		0x00000001
 #define MUX_C_NEW_SESSION	0x10000002
@@ -211,4 +211,4 @@ XXX server->client error/warning notifications
 XXX port0 rfwd (need custom response message)
 XXX send signals via mux
 
-$OpenBSD: PROTOCOL.mux,v 1.5 2011/04/17 22:42:41 djm Exp $
+$OpenBSD: PROTOCOL.mux,v 1.6 2011/05/06 22:20:10 djm Exp $

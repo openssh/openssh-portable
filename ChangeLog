@@ -39,6 +39,9 @@
    - djm@cvs.openbsd.org 2011/05/06 21:38:58
      [ssh.c]
      fix dropping from previous diff
+   - djm@cvs.openbsd.org 2011/05/06 22:20:10
+     [PROTOCOL.mux]
+     fix numbering; from bert.wesarg AT googlemail.com
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
