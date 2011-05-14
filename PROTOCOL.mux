@@ -73,6 +73,13 @@ non-multiplexed ssh(1) connection. Two additional cases that the
 client must cope with are it receiving a signal itself and the
 server disconnecting without sending an exit message.
 
+A master may also send a MUX_S_TTY_ALLOC_FAIL before MUX_S_EXIT_MESSAGE
+if remote TTY allocation was unsuccessful. The client may use this to
+return its local tty to "cooked" mode.
+
+	uint32	MUX_S_TTY_ALLOC_FAIL
+	uint32	session id
+
 3. Health checks
 
 The client may request a health check/PID report from a server:
@@ -197,6 +204,7 @@ The MUX_S_PERMISSION_DENIED and MUX_S_FAILURE include a reason:
 #define MUX_S_ALIVE		0x80000005
 #define MUX_S_SESSION_OPENED	0x80000006
 #define MUX_S_REMOTE_PORT	0x80000007
+#define MUX_S_TTY_ALLOC_FAIL	0x80000008
 
 #define MUX_FWD_LOCAL	1
 #define MUX_FWD_REMOTE	2
@@ -208,7 +216,6 @@ XXX lock (maybe)
 XXX watch in/out traffic (pre/post crypto)
 XXX inject packet (what about replies)
 XXX server->client error/warning notifications
-XXX port0 rfwd (need custom response message)
 XXX send signals via mux
 
-$OpenBSD: PROTOCOL.mux,v 1.6 2011/05/06 22:20:10 djm Exp $
+$OpenBSD: PROTOCOL.mux,v 1.7 2011/05/08 12:52:01 djm Exp $

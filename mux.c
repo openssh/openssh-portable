@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.27 2011/05/06 21:34:32 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.28 2011/05/08 12:52:01 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -153,6 +153,7 @@ struct mux_master_state {
 #define MUX_S_ALIVE		0x80000005
 #define MUX_S_SESSION_OPENED	0x80000006
 #define MUX_S_REMOTE_PORT	0x80000007
+#define MUX_S_TTY_ALLOC_FAIL	0x80000008
 
 /* type codes for MUX_C_OPEN_FWD and MUX_C_CLOSE_FWD */
 #define MUX_FWD_LOCAL   1
@@ -1054,6 +1055,27 @@ mux_exit_message(Channel *c, int exitval)
 	buffer_free(&m);
 }
 
+void
+mux_tty_alloc_failed(Channel *c)
+{
+	Buffer m;
+	Channel *mux_chan;
+
+	debug3("%s: channel %d: TTY alloc failed", __func__, c->self);
+
+	if ((mux_chan = channel_by_id(c->ctl_chan)) == NULL)
+		fatal("%s: channel %d missing mux channel %d",
+		    __func__, c->self, c->ctl_chan);
+
+	/* Append exit message packet to control socket output queue */
+	buffer_init(&m);
+	buffer_put_int(&m, MUX_S_TTY_ALLOC_FAIL);
+	buffer_put_int(&m, c->self);
+
+	buffer_put_string(&mux_chan->output, buffer_ptr(&m), buffer_len(&m));
+	buffer_free(&m);
+}
+
 /* Prepare a mux master to listen on a Unix domain socket. */
 void
 muxserver_listen(void)
@@ -1612,7 +1634,7 @@ mux_client_request_session(int fd)
 	char *e, *term;
 	u_int i, rid, sid, esid, exitval, type, exitval_seen;
 	extern char **environ;
-	int devnull;
+	int devnull, rawmode;
 
 	debug3("%s: entering", __func__);
 
@@ -1708,6 +1730,7 @@ mux_client_request_session(int fd)
 	signal(SIGTERM, control_client_sighandler);
 	signal(SIGWINCH, control_client_sigrelay);
 
+	rawmode = tty_flag;
 	if (tty_flag)
 		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
@@ -1723,22 +1746,35 @@ mux_client_request_session(int fd)
 		if (mux_client_read_packet(fd, &m) != 0)
 			break;
 		type = buffer_get_int(&m);
-		if (type != MUX_S_EXIT_MESSAGE) {
+		switch (type) {
+		case MUX_S_TTY_ALLOC_FAIL:
+			if ((esid = buffer_get_int(&m)) != sid)
+				fatal("%s: tty alloc fail on unknown session: "
+				    "my id %u theirs %u",
+				    __func__, sid, esid);
+			leave_raw_mode(options.request_tty ==
+			    REQUEST_TTY_FORCE);
+			rawmode = 0;
+			continue;
+		case MUX_S_EXIT_MESSAGE:
+			if ((esid = buffer_get_int(&m)) != sid)
+				fatal("%s: exit on unknown session: "
+				    "my id %u theirs %u",
+				    __func__, sid, esid);
+			if (exitval_seen)
+				fatal("%s: exitval sent twice", __func__);
+			exitval = buffer_get_int(&m);
+			exitval_seen = 1;
+			continue;
+		default:
 			e = buffer_get_string(&m, NULL);
 			fatal("%s: master returned error: %s", __func__, e);
 		}
-		if ((esid = buffer_get_int(&m)) != sid)
-			fatal("%s: exit on unknown session: my id %u theirs %u",
-			    __func__, sid, esid);
-		debug("%s: master session id: %u", __func__, sid);
-		if (exitval_seen)
-			fatal("%s: exitval sent twice", __func__);
-		exitval = buffer_get_int(&m);
-		exitval_seen = 1;
 	}
 
 	close(fd);
-	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+	if (rawmode)
+		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	if (muxclient_terminate) {
 		debug2("Exiting on signal %d", muxclient_terminate);

@@ -50,6 +50,18 @@
    - jmc@cvs.openbsd.org 2011/05/07 23:20:25
      [ssh.1]
      +.It RequestTTY
+   - djm@cvs.openbsd.org 2011/05/08 12:52:01
+     [PROTOCOL.mux clientloop.c clientloop.h mux.c]
+     improve our behaviour when TTY allocation fails: if we are in
+     RequestTTY=auto mode (the default), then do not treat at TTY
+     allocation error as fatal but rather just restore the local TTY
+     to cooked mode and continue. This is more graceful on devices that
+     never allocate TTYs.
+     
+     If RequestTTY is set to "yes" or "force", then failure to allocate
+     a TTY is fatal.
+     
+     ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix

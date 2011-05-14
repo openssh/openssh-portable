@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.26 2011/04/17 22:42:41 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.27 2011/05/08 12:52:01 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -70,3 +70,5 @@ void	 client_register_global_confirm(global_confirm_cb *, void *);
 void	muxserver_listen(void);
 void	muxclient(const char *);
 void	mux_exit_message(Channel *, int);
+void	mux_tty_alloc_failed(Channel *);
+
