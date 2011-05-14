@@ -62,6 +62,10 @@
      a TTY is fatal.
      
      ok markus@
+   - djm@cvs.openbsd.org 2011/05/10 05:46:46
+     [authfile.c]
+     despam debug() logs by detecting that we are trying to load a private key
+     in key_try_load_public() and returning early; ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix

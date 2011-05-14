@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.88 2011/05/04 21:15:29 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.89 2011/05/10 05:46:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -765,6 +765,9 @@ key_try_load_public(Key *k, const char *filename, char **commentp)
 			case '\0':
 				continue;
 			}
+			/* Abort loading if this looks like a private key */
+			if (strncmp(cp, "-----BEGIN", 10) == 0)
+				break;
 			/* Skip leading whitespace. */
 			for (; *cp && (*cp == ' ' || *cp == '\t'); cp++)
 				;
