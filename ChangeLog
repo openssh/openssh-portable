@@ -74,6 +74,7 @@
    - djm@cvs.openbsd.org 2011/05/13 00:05:36
      [authfile.c]
      warn on unexpected key type in key_parse_private_type()
+ - (djm) [packet.c] unbreak portability #endif
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix

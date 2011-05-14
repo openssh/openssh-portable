@@ -1771,8 +1771,8 @@ packet_set_tos(int tos)
 			error("setsockopt IPV6_TCLASS %d: %.100s:",
 			    tos, strerror(errno));
 		break;
-	}
 # endif /* IPV6_TCLASS */
+	}
 #endif /* IP_TOS_IS_BROKEN */
 }
 
