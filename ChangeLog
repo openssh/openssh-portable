@@ -14,6 +14,11 @@
    - djm@cvs.openbsd.org 2011/05/06 02:05:41
      [sshconnect2.c]
      fix memory leak; bz#1849 ok dtucker@
+   - djm@cvs.openbsd.org 2011/05/06 21:14:05
+     [packet.c packet.h]
+     set traffic class for IPv6 traffic as we do for IPv4 TOS;
+     patch from lionel AT mamane.lu via Colin Watson in bz#1855;
+     ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
