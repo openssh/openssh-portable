@@ -1,4 +1,4 @@
-/* $OpenBSD: pathnames.h,v 1.20 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: pathnames.h,v 1.21 2011/05/11 04:47:06 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -95,9 +95,6 @@
  * running as root.)
  */
 #define _PATH_SSH_USER_PERMITTED_KEYS	".ssh/authorized_keys"
-
-/* backward compat for protocol v2 */
-#define _PATH_SSH_USER_PERMITTED_KEYS2	".ssh/authorized_keys2"
 
 /*
  * Per-user and system-wide ssh "rc" files.  These files are executed with

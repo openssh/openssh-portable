@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.214 2011/03/29 18:54:17 stevesk Exp $ */
+/* $OpenBSD: servconf.c,v 1.215 2011/05/11 04:47:06 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -127,7 +127,6 @@ initialize_server_options(ServerOptions *options)
 	options->client_alive_interval = -1;
 	options->client_alive_count_max = -1;
 	options->authorized_keys_file = NULL;
-	options->authorized_keys_file2 = NULL;
 	options->num_accept_env = 0;
 	options->permit_tun = -1;
 	options->num_permitted_opens = -1;
@@ -264,13 +263,6 @@ fill_default_server_options(ServerOptions *options)
 		options->client_alive_interval = 0;
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
-	if (options->authorized_keys_file2 == NULL) {
-		/* authorized_keys_file2 falls back to authorized_keys_file */
-		if (options->authorized_keys_file != NULL)
-			options->authorized_keys_file2 = xstrdup(options->authorized_keys_file);
-		else
-			options->authorized_keys_file2 = xstrdup(_PATH_SSH_USER_PERMITTED_KEYS2);
-	}
 	if (options->authorized_keys_file == NULL)
 		options->authorized_keys_file = xstrdup(_PATH_SSH_USER_PERMITTED_KEYS);
 	if (options->permit_tun == -1)
@@ -1252,9 +1244,6 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sAuthorizedKeysFile:
 		charptr = &options->authorized_keys_file;
 		goto parse_tilde_filename;
-	case sAuthorizedKeysFile2:
-		charptr = &options->authorized_keys_file2;
-		goto parse_tilde_filename;
 	case sAuthorizedPrincipalsFile:
 		charptr = &options->authorized_principals_file;
  parse_tilde_filename:
@@ -1519,7 +1508,6 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_STROPT(trusted_user_ca_keys);
 	M_CP_STROPT(revoked_keys_file);
 	M_CP_STROPT(authorized_keys_file);
-	M_CP_STROPT(authorized_keys_file2);
 	M_CP_STROPT(authorized_principals_file);
 }
 
@@ -1737,7 +1725,6 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sMacs, o->macs);
 	dump_cfg_string(sBanner, o->banner);
 	dump_cfg_string(sAuthorizedKeysFile, o->authorized_keys_file);
-	dump_cfg_string(sAuthorizedKeysFile2, o->authorized_keys_file2);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
 	dump_cfg_string(sTrustedUserCAKeys, o->trusted_user_ca_keys);

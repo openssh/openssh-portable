@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.67 2011/03/10 11:34:25 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.68 2011/05/11 04:47:06 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -169,7 +169,6 @@ int	verify_response(Authctxt *, const char *);
 void	abandon_challenge_response(Authctxt *);
 
 char	*authorized_keys_file(struct passwd *);
-char	*authorized_keys_file2(struct passwd *);
 char	*authorized_principals_file(struct passwd *);
 
 FILE	*auth_openkeyfile(const char *, struct passwd *, int);

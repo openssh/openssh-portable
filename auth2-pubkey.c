@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.27 2010/11/20 05:12:38 deraadt Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.28 2011/05/11 04:47:06 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -451,13 +451,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 	file = authorized_keys_file(pw);
 	success = user_key_allowed2(pw, key, file);
 	xfree(file);
-	if (success)
-		return success;
 
-	/* try suffix "2" for backward compat, too */
-	file = authorized_keys_file2(pw);
-	success = user_key_allowed2(pw, key, file);
-	xfree(file);
 	return success;
 }
 

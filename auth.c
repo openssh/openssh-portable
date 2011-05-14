@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.91 2010/11/29 23:45:51 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.92 2011/05/11 04:47:06 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -358,12 +358,6 @@ char *
 authorized_keys_file(struct passwd *pw)
 {
 	return expand_authorized_keys(options.authorized_keys_file, pw);
-}
-
-char *
-authorized_keys_file2(struct passwd *pw)
-{
-	return expand_authorized_keys(options.authorized_keys_file2, pw);
 }
 
 char *

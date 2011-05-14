@@ -66,6 +66,11 @@
      [authfile.c]
      despam debug() logs by detecting that we are trying to load a private key
      in key_try_load_public() and returning early; ok markus@
+   - djm@cvs.openbsd.org 2011/05/11 04:47:06
+     [auth.c auth.h auth2-pubkey.c pathnames.h servconf.c servconf.h]
+     remove support for authorized_keys2; it is a relic from the early days
+     of protocol v.2 support and has been undocumented for many years;
+     ok markus@
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
