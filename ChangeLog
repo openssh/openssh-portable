@@ -42,6 +42,11 @@
    - djm@cvs.openbsd.org 2011/05/06 22:20:10
      [PROTOCOL.mux]
      fix numbering; from bert.wesarg AT googlemail.com
+   - jmc@cvs.openbsd.org 2011/05/07 23:19:39
+     [ssh_config.5]
+     - tweak previous
+     - come consistency fixes
+     ok djm
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
