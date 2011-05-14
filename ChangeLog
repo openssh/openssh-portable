@@ -7,6 +7,10 @@
    - dtucker@cvs.openbsd.org 2011/05/06 01:03:35
      [sshd_config]
      clarify language about overriding defaults.  bz#1892, from Petr Cerny
+   - djm@cvs.openbsd.org 2011/05/06 01:09:53
+     [sftp.1]
+     mention that IPv6 addresses must be enclosed in square brackets;
+     bz#1845
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
