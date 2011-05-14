@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.186 2010/11/29 23:45:51 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.187 2011/05/06 02:05:41 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1888,9 +1888,12 @@ authmethod_get(char *authlist)
 		    authmethod_is_enabled(current)) {
 			debug3("authmethod_is_enabled %s", name);
 			debug("Next authentication method: %s", name);
+			xfree(name);
 			return current;
 		}
 	}
+	if (name != NULL)
+		xfree(name);
 }
 
 static char *
