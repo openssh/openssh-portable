@@ -4,6 +4,9 @@
      [mux.c]
      gracefully fall back when ControlPath is too large for a
      sockaddr_un. ok markus@ as part of a larger diff
+   - dtucker@cvs.openbsd.org 2011/05/06 01:03:35
+     [sshd_config]
+     clarify language about overriding defaults.  bz#1892, from Petr Cerny
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
