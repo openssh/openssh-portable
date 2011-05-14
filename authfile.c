@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.89 2011/05/10 05:46:46 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.90 2011/05/13 00:05:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -643,6 +643,7 @@ key_parse_private_type(Buffer *blob, int type, const char *passphrase,
 	case KEY_UNSPEC:
 		return key_parse_private_pem(blob, type, passphrase, commentp);
 	default:
+		error("%s: cannot parse key type %d", __func__, type);
 		break;
 	}
 	return NULL;

@@ -71,6 +71,9 @@
      remove support for authorized_keys2; it is a relic from the early days
      of protocol v.2 support and has been undocumented for many years;
      ok markus@
+   - djm@cvs.openbsd.org 2011/05/13 00:05:36
+     [authfile.c]
+     warn on unexpected key type in key_parse_private_type()
 
 20110510
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Bug #1882: fix
