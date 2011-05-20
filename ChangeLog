@@ -11,6 +11,10 @@
    - djm@cvs.openbsd.org 2011/05/15 08:09:01
      [authfd.c monitor.c serverloop.c]
      use FD_CLOEXEC consistently; patch from zion AT x96.org
+   - djm@cvs.openbsd.org 2011/05/17 07:13:31
+     [key.c]
+     fatal() if asked to generate a legacy ECDSA cert (these don't exist)
+     and fix the regress test that was trying to generate them :)
 
 20110515
  - (djm) OpenBSD CVS Sync
