@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.70 2010/08/31 11:54:45 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.71 2011/05/20 03:25:45 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -245,8 +245,15 @@ out:
 	newopts = buffer_get_string(&m, &len);
 	if (len != sizeof(*newopts))
 		fatal("%s: option block size mismatch", __func__);
-	if (newopts->banner != NULL)
-		newopts->banner = buffer_get_string(&m, NULL);
+
+#define M_CP_STROPT(x) do { \
+		if (newopts->x != NULL) \
+			newopts->x = buffer_get_string(&m, NULL); \
+	} while (0)
+	/* See comment in servconf.h */
+	COPY_MATCH_STRING_OPTS();
+#undef M_CP_STROPT
+
 	copy_set_server_options(&options, newopts, 1);
 	xfree(newopts);
 

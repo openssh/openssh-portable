@@ -23,6 +23,13 @@
    - dtucker@cvs.openbsd.org 2011/05/20 02:00:19
      [servconf.c]
      Add comment documenting what should be after the preauth check.  ok djm
+   - djm@cvs.openbsd.org 2011/05/20 03:25:45
+     [monitor.c monitor_wrap.c servconf.c servconf.h]
+     use a macro to define which string options to copy between configs
+     for Match. This avoids problems caused by forgetting to keep three
+     code locations in perfect sync and ordering
+     
+     "this is at once beautiful and horrible" + ok dtucker@
 
 20110515
  - (djm) OpenBSD CVS Sync

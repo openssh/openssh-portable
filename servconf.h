@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.96 2011/05/11 04:47:06 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.97 2011/05/20 03:25:45 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -160,6 +160,20 @@ typedef struct {
 	char   *trusted_user_ca_keys;
 	char   *authorized_principals_file;
 }       ServerOptions;
+
+/*
+ * These are string config options that must be copied between the
+ * Match sub-config and the main config, and must be sent from the
+ * privsep slave to the privsep master. We use a macro to ensure all
+ * the options are copied and the copies are done in the correct order.
+ */
+#define COPY_MATCH_STRING_OPTS() do { \
+		M_CP_STROPT(banner); \
+		M_CP_STROPT(trusted_user_ca_keys); \
+		M_CP_STROPT(revoked_keys_file); \
+		M_CP_STROPT(authorized_keys_file); \
+		M_CP_STROPT(authorized_principals_file); \
+	} while (0)
 
 void	 initialize_server_options(ServerOptions *);
 void	 fill_default_server_options(ServerOptions *);

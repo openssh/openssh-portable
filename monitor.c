@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.111 2011/05/15 08:09:01 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.112 2011/05/20 03:25:45 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -671,8 +671,15 @@ mm_answer_pwnamallow(int sock, Buffer *m)
 
  out:
 	buffer_put_string(m, &options, sizeof(options));
-	if (options.banner != NULL)
-		buffer_put_cstring(m, options.banner);
+
+#define M_CP_STROPT(x) do { \
+		if (options.x != NULL) \
+			buffer_put_cstring(m, options.x); \
+	} while (0)
+	/* See comment in servconf.h */
+	COPY_MATCH_STRING_OPTS();
+#undef M_CP_STROPT
+	
 	debug3("%s: sending MONITOR_ANS_PWNAM: %d", __func__, allowed);
 	mm_request_send(sock, MONITOR_ANS_PWNAM, m);
 

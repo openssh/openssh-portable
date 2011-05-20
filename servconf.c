@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.217 2011/05/20 02:00:19 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.218 2011/05/20 03:25:45 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1499,11 +1499,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(ip_qos_interactive);
 	M_CP_INTOPT(ip_qos_bulk);
 
-	M_CP_STROPT(banner);
-	M_CP_STROPT(trusted_user_ca_keys);
-	M_CP_STROPT(revoked_keys_file);
-	M_CP_STROPT(authorized_keys_file);
-	M_CP_STROPT(authorized_principals_file);
+	/* See comment in servconf.h */
+	COPY_MATCH_STRING_OPTS();
 
 	/*
 	 * The only things that should be below this point are string options
