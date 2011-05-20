@@ -38,6 +38,9 @@
      [cert-hostkey.sh]
      another attempt to generate a v00 ECDSA key that broke the test
      ID sync only - portable already had this somehow
+   - dtucker@cvs.openbsd.org 2011/05/20 05:19:50
+     [dynamic-forward.sh]
+     Prevent races in dynamic forwarding test; ok djm
 
 20110515
  - (djm) OpenBSD CVS Sync
