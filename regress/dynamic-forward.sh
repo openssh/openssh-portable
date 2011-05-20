@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.5 2011/05/20 05:19:50 dtucker Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.6 2011/05/20 06:32:30 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
@@ -31,7 +31,7 @@ for p in 1 2; do
 	while test ! -f $OBJ/remote_pid; do
 		sleep 1
 		n=`expr $n + 1`
-		if test $n > 60; then
+		if test $n -gt 60; then
 			kill $client_pid
 			fail "Timed out waiting for client to connect"
 		fi
