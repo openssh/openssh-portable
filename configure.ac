@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.473 2011/05/05 04:44:25 tim Exp $
+# $Id: configure.ac,v 1.474 2011/05/20 01:45:25 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,21 +15,9 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.473 $)
+AC_REVISION($Revision: 1.474 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
-
-# local macros
-AC_DEFUN([OPENSSH_CHECK_CFLAG_COMPILE], [{
-	AC_MSG_CHECKING([if $CC supports $1])
-	saved_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $1"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[void main(void) { return 0; }]])],
-		[ AC_MSG_RESULT([yes]) ],
-		[ AC_MSG_RESULT([no])
-		  CFLAGS="$saved_CFLAGS" ]
-	)
-}])
 
 AC_CONFIG_HEADER([config.h])
 AC_PROG_CC
@@ -128,14 +116,14 @@ AC_ARG_WITH([stackprotect],
 
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wall])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wsign-compare])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wformat-security])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wno-pointer-sign])
-	OPENSSH_CHECK_CFLAG_COMPILE([-Wno-unused-result])
-	OPENSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
+	OSSH_CHECK_CFLAG_COMPILE([-Wall])
+	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
+	OSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
+	OSSH_CHECK_CFLAG_COMPILE([-Wsign-compare])
+	OSSH_CHECK_CFLAG_COMPILE([-Wformat-security])
+	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-sign], [-Wno-pointer-sign])
+	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
+	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
 	AC_MSG_CHECKING([gcc version])
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
 	case $GCC_VER in

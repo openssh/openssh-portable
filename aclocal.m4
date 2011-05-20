@@ -1,7 +1,25 @@
-dnl $Id: aclocal.m4,v 1.7 2011/05/05 03:48:37 djm Exp $
+dnl $Id: aclocal.m4,v 1.8 2011/05/20 01:45:25 djm Exp $
 dnl
 dnl OpenSSH-specific autoconf macros
 dnl
+
+dnl OSSH_CHECK_CFLAG_COMPILE(check_flag[, define_flag])
+dnl Check that $CC accepts a flag 'check_flag'. If it is supported append
+dnl 'define_flag' to $CFLAGS. If 'define_flag' is not specified, then append
+dnl 'check_flag'.
+AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
+	AC_MSG_CHECKING([if $CC supports $1])
+	saved_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $1"
+	_define_flag="$2"
+	test "x$_define_flag" = "x" && _define_flag="$1"
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
+		[ AC_MSG_RESULT([yes])
+		  CFLAGS="$saved_CFLAGS $_define_flag"],
+		[ AC_MSG_RESULT([no])
+		  CFLAGS="$saved_CFLAGS" ]
+	)
+}])
 
 
 dnl OSSH_CHECK_HEADER_FOR_FIELD(field, header, symbol)
