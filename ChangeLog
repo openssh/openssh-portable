@@ -30,6 +30,10 @@
      code locations in perfect sync and ordering
      
      "this is at once beautiful and horrible" + ok dtucker@
+   - djm@cvs.openbsd.org 2011/05/17 07:13:31
+     [regress/cert-userkey.sh]
+     fatal() if asked to generate a legacy ECDSA cert (these don't exist)
+     and fix the regress test that was trying to generate them :)
 
 20110515
  - (djm) OpenBSD CVS Sync
