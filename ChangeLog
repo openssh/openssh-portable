@@ -6,6 +6,7 @@
    whether it is accepted.  Also includes a warning fix on the program
    fragment uses (bad main() return type).
    bz#1900 and bz#1901 reported by g.esp AT free.fr; ok dtucker@
+ - (djm) [servconf.c] remove leftover droppings of AuthorizedKeysFile2
 
 20110515
  - (djm) OpenBSD CVS Sync
