@@ -34,6 +34,10 @@
      [regress/cert-userkey.sh]
      fatal() if asked to generate a legacy ECDSA cert (these don't exist)
      and fix the regress test that was trying to generate them :)
+   - djm@cvs.openbsd.org 2011/05/20 02:43:36
+     [cert-hostkey.sh]
+     another attempt to generate a v00 ECDSA key that broke the test
+     ID sync only - portable already had this somehow
 
 20110515
  - (djm) OpenBSD CVS Sync
