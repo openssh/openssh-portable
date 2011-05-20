@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.215 2011/05/11 04:47:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.216 2011/05/20 00:55:02 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1500,14 +1500,15 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(ip_qos_bulk);
 
 	M_CP_STROPT(banner);
-	if (preauth)
-		return;
-	M_CP_STROPT(adm_forced_command);
-	M_CP_STROPT(chroot_directory);
 	M_CP_STROPT(trusted_user_ca_keys);
 	M_CP_STROPT(revoked_keys_file);
 	M_CP_STROPT(authorized_keys_file);
 	M_CP_STROPT(authorized_principals_file);
+
+	if (preauth)
+		return;
+	M_CP_STROPT(adm_forced_command);
+	M_CP_STROPT(chroot_directory);
 }
 
 #undef M_CP_INTOPT
