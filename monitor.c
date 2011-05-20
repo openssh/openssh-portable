@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.110 2010/09/09 10:45:45 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.111 2011/05/15 08:09:01 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1834,7 +1834,7 @@ mm_init_compression(struct mm_master *mm)
 /* XXX */
 
 #define FD_CLOSEONEXEC(x) do { \
-	if (fcntl(x, F_SETFD, 1) == -1) \
+	if (fcntl(x, F_SETFD, FD_CLOEXEC) == -1) \
 		fatal("fcntl(%d, F_SETFD)", x); \
 } while (0)
 

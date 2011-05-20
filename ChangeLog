@@ -7,6 +7,10 @@
    fragment uses (bad main() return type).
    bz#1900 and bz#1901 reported by g.esp AT free.fr; ok dtucker@
  - (djm) [servconf.c] remove leftover droppings of AuthorizedKeysFile2
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/05/15 08:09:01
+     [authfd.c monitor.c serverloop.c]
+     use FD_CLOEXEC consistently; patch from zion AT x96.org
 
 20110515
  - (djm) OpenBSD CVS Sync
