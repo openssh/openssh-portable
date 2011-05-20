@@ -20,6 +20,9 @@
      the options TrustedUserCAKeys, RevokedKeysFile, AuthorizedKeysFile
      and AuthorizedPrincipalsFile were not being correctly applied in
      Match blocks, despite being overridable there; ok dtucker@
+   - dtucker@cvs.openbsd.org 2011/05/20 02:00:19
+     [servconf.c]
+     Add comment documenting what should be after the preauth check.  ok djm
 
 20110515
  - (djm) OpenBSD CVS Sync

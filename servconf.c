@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.216 2011/05/20 00:55:02 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.217 2011/05/20 02:00:19 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1505,6 +1505,10 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_STROPT(authorized_keys_file);
 	M_CP_STROPT(authorized_principals_file);
 
+	/*
+	 * The only things that should be below this point are string options
+	 * which are only used after authentication.
+	 */
 	if (preauth)
 		return;
 	M_CP_STROPT(adm_forced_command);
