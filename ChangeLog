@@ -1,6 +1,11 @@
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
    changes; bz#1891 reported by jchadima AT redhat.com; ok dtucker@
+ - (djm) [aclocal.m4 configure.ac] since gcc-4.x ignores all -Wno-options
+   options, we should corresponding -W-option when trying to determine
+   whether it is accepted.  Also includes a warning fix on the program
+   fragment uses (bad main() return type).
+   bz#1900 and bz#1901 reported by g.esp AT free.fr; ok dtucker@
 
 20110515
  - (djm) OpenBSD CVS Sync
