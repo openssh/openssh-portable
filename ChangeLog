@@ -19,6 +19,11 @@
    - jmc@cvs.openbsd.org 2011/05/23 07:10:21
      [sshd.8 sshd_config.5]
      tweak previous; ok djm
+   - djm@cvs.openbsd.org 2011/05/23 07:24:57
+     [authfile.c]
+     read in key comments for v.2 keys (though note that these are not
+     passed over the agent protocol); bz#439, based on patch from binder
+     AT arago.de; ok markus@
 
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
