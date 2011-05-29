@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.71 2011/05/20 03:25:45 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.72 2011/05/23 03:30:07 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -211,7 +211,7 @@ mm_getpwnamallow(const char *username)
 {
 	Buffer m;
 	struct passwd *pw;
-	u_int len;
+	u_int len, i;
 	ServerOptions *newopts;
 
 	debug3("%s entering", __func__);
@@ -250,9 +250,14 @@ out:
 		if (newopts->x != NULL) \
 			newopts->x = buffer_get_string(&m, NULL); \
 	} while (0)
+#define M_CP_STRARRAYOPT(x, nx) do { \
+		for (i = 0; i < newopts->nx; i++) \
+			newopts->x[i] = buffer_get_string(&m, NULL); \
+	} while (0)
 	/* See comment in servconf.h */
 	COPY_MATCH_STRING_OPTS();
 #undef M_CP_STROPT
+#undef M_CP_STRARRAYOPT
 
 	copy_set_server_options(&options, newopts, 1);
 	xfree(newopts);

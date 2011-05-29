@@ -1,3 +1,16 @@
+20110529
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/05/23 03:30:07
+     [auth-rsa.c auth.c auth.h auth2-pubkey.c monitor.c monitor_wrap.c]
+     [pathnames.h servconf.c servconf.h sshd.8 sshd_config sshd_config.5]
+     allow AuthorizedKeysFile to specify multiple files, separated by spaces.
+     Bring back authorized_keys2 as a default search path (to avoid breaking
+     existing users of this file), but override this in sshd_config so it will
+     be no longer used on fresh installs. Maybe in 2015 we can remove it
+     entierly :)
+     
+     feedback and ok markus@ dtucker@
+
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
    changes; bz#1891 reported by jchadima AT redhat.com; ok dtucker@

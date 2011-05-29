@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.92 2011/05/11 04:47:06 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.93 2011/05/23 03:30:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -331,7 +331,7 @@ auth_root_allowed(char *method)
  *
  * This returns a buffer allocated by xmalloc.
  */
-static char *
+char *
 expand_authorized_keys(const char *filename, struct passwd *pw)
 {
 	char *file, ret[MAXPATHLEN];
@@ -352,12 +352,6 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 		fatal("expand_authorized_keys: path too long");
 	xfree(file);
 	return (xstrdup(ret));
-}
-
-char *
-authorized_keys_file(struct passwd *pw)
-{
-	return expand_authorized_keys(options.authorized_keys_file, pw);
 }
 
 char *

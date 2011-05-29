@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.97 2011/05/20 03:25:45 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.98 2011/05/23 03:30:07 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -27,6 +27,7 @@
 #define MAX_HOSTCERTS		256	/* Max # host certificates. */
 #define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
 #define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
+#define MAX_AUTHKEYS_FILES	256	/* Max # of authorized_keys files. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -145,7 +146,8 @@ typedef struct {
 					 * disconnect the session
 					 */
 
-	char   *authorized_keys_file;	/* File containing public keys */
+	u_int num_authkeys_files;	/* Files containing public keys */
+	char   *authorized_keys_files[MAX_AUTHKEYS_FILES];
 
 	char   *adm_forced_command;
 
@@ -171,8 +173,8 @@ typedef struct {
 		M_CP_STROPT(banner); \
 		M_CP_STROPT(trusted_user_ca_keys); \
 		M_CP_STROPT(revoked_keys_file); \
-		M_CP_STROPT(authorized_keys_file); \
 		M_CP_STROPT(authorized_principals_file); \
+		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 	} while (0)
 
 void	 initialize_server_options(ServerOptions *);
