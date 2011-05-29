@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.89 2011/05/06 21:34:32 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.90 2011/05/24 07:15:47 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -27,7 +27,8 @@ typedef struct {
 }       Forward;
 /* Data structure for representing option data. */
 
-#define MAX_SEND_ENV	256
+#define MAX_SEND_ENV		256
+#define SSH_MAX_HOSTS_FILES	256
 
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
@@ -83,10 +84,10 @@ typedef struct {
 	char   *user;		/* User to log in as. */
 	int     escape_char;	/* Escape character; -2 = none */
 
-	char   *system_hostfile;/* Path for /etc/ssh/ssh_known_hosts. */
-	char   *user_hostfile;	/* Path for $HOME/.ssh/known_hosts. */
-	char   *system_hostfile2;
-	char   *user_hostfile2;
+	u_int	num_system_hostfiles;	/* Paths for /etc/ssh/ssh_known_hosts */
+	char   *system_hostfiles[SSH_MAX_HOSTS_FILES];
+	u_int	num_user_hostfiles;	/* Path for $HOME/.ssh/known_hosts */
+	char   *user_hostfiles[SSH_MAX_HOSTS_FILES];
 	char   *preferred_authentications;
 	char   *bind_address;	/* local socket address for connection to sshd */
 	char   *pkcs11_provider; /* PKCS#11 provider */

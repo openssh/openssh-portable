@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.360 2011/05/06 21:38:58 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.361 2011/05/24 07:15:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -211,6 +211,20 @@ static void main_sigchld_handler(int);
 /* from muxclient.c */
 void muxclient(const char *);
 void muxserver_listen(void);
+
+/* ~/ expand a list of paths. NB. assumes path[n] is heap-allocated. */
+static void
+tilde_expand_paths(char **paths, u_int num_paths)
+{
+	u_int i;
+	char *cp;
+
+	for (i = 0; i < num_paths; i++) {
+		cp = tilde_expand_filename(paths[i], original_real_uid);
+		xfree(paths[i]);
+		paths[i] = cp;
+	}
+}
 
 /*
  * Main program for the ssh client.
@@ -869,15 +883,9 @@ main(int ac, char **av)
 	load_public_identity_files();
 
 	/* Expand ~ in known host file names. */
-	/* XXX mem-leaks: */
-	options.system_hostfile =
-	    tilde_expand_filename(options.system_hostfile, original_real_uid);
-	options.user_hostfile =
-	    tilde_expand_filename(options.user_hostfile, original_real_uid);
-	options.system_hostfile2 =
-	    tilde_expand_filename(options.system_hostfile2, original_real_uid);
-	options.user_hostfile2 =
-	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
+	tilde_expand_paths(options.system_hostfiles,
+	    options.num_system_hostfiles);
+	tilde_expand_paths(options.user_hostfiles, options.num_user_hostfiles);
 
 	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 	signal(SIGCHLD, main_sigchld_handler);

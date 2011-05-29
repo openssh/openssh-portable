@@ -24,6 +24,12 @@
      read in key comments for v.2 keys (though note that these are not
      passed over the agent protocol); bz#439, based on patch from binder
      AT arago.de; ok markus@
+   - djm@cvs.openbsd.org 2011/05/24 07:15:47
+     [readconf.c readconf.h ssh.c ssh_config.5 sshconnect.c sshconnect2.c]
+     Remove undocumented legacy options UserKnownHostsFile2 and
+     GlobalKnownHostsFile2 by making UserKnownHostsFile/GlobalKnownHostsFile
+     accept multiple paths per line and making their defaults include
+     known_hosts2; ok markus
 
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
