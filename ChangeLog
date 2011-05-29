@@ -13,6 +13,9 @@
    - djm@cvs.openbsd.org 2011/05/23 03:33:38
      [auth.c]
      make secure_filename() spam debug logs less
+   - djm@cvs.openbsd.org 2011/05/23 03:52:55
+     [sshconnect.c]
+     remove extra newline
 
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.232 2011/01/16 11:50:36 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.233 2011/05/23 03:52:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1111,7 +1111,6 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 	/* XXX certs are not yet supported for DNS */
 	if (!key_is_cert(host_key) && options.verify_host_key_dns &&
 	    verify_host_key_dns(host, hostaddr, host_key, &flags) == 0) {
-
 		if (flags & DNS_VERIFY_FOUND) {
 
 			if (options.verify_host_key_dns == 1 &&
