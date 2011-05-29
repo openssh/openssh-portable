@@ -30,6 +30,10 @@
      GlobalKnownHostsFile2 by making UserKnownHostsFile/GlobalKnownHostsFile
      accept multiple paths per line and making their defaults include
      known_hosts2; ok markus
+   - djm@cvs.openbsd.org 2011/05/23 03:31:31
+     [regress/cfgmatch.sh]
+     include testing of multiple/overridden AuthorizedKeysFiles
+     refactor to simply daemon start/stop and get rid of racy constructs
 
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
