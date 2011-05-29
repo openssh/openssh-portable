@@ -16,6 +16,9 @@
    - djm@cvs.openbsd.org 2011/05/23 03:52:55
      [sshconnect.c]
      remove extra newline
+   - jmc@cvs.openbsd.org 2011/05/23 07:10:21
+     [sshd.8 sshd_config.5]
+     tweak previous; ok djm
 
 20110520
  - (djm) [session.c] call setexeccon() before executing passwd for pw
