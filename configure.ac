@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.475 2011/06/03 01:17:49 tim Exp $
+# $Id: configure.ac,v 1.476 2011/06/03 02:11:38 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.475 $)
+AC_REVISION($Revision: 1.476 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -512,6 +512,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([LASTLOG_WRITE_PUTUTXLINE], [1],
 	    [Define if pututxline updates lastlog too])
 	)
+	AC_DEFINE([SPT_TYPE], [SPT_REUSEARGV],
+		[Define to a Set Process Title type if your system is
+		supported by bsd-setproctitle.c])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
