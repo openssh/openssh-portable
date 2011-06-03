@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.361 2011/05/24 07:15:47 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.362 2011/06/03 00:54:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -110,6 +110,11 @@
 #endif
 
 extern char *__progname;
+
+/* Saves a copy of argv for setproctitle emulation */
+#ifndef HAVE_SETPROCTITLE
+static char **saved_av;
+#endif
 
 /* Flag indicating whether debug mode is on.  May be set on the command line. */
 int debug_flag = 0;
@@ -240,6 +245,7 @@ main(int ac, char **av)
 	int dummy, timeout_ms;
 	extern int optind, optreset;
 	extern char *optarg;
+
 	struct servent *sp;
 	Forward fwd;
 
@@ -247,6 +253,17 @@ main(int ac, char **av)
 	sanitise_stdfd();
 
 	__progname = ssh_get_progname(av[0]);
+
+#ifndef HAVE_SETPROCTITLE
+	/* Prepare for later setproctitle emulation */
+	/* Save argv so it isn't clobbered by setproctitle() emulation */
+	saved_av = xcalloc(ac + 1, sizeof(*saved_av));
+	for (i = 0; i < ac; i++)
+		saved_av[i] = xstrdup(av[i]);
+	saved_av[i] = NULL;
+	compat_init_setproctitle(ac, av);
+	av = saved_av;
+#endif
 
 	/*
 	 * Discard other fds that are hanging around. These can cause problem
@@ -977,6 +994,7 @@ control_persist_detach(void)
 		if (devnull > STDERR_FILENO)
 			close(devnull);
 	}
+	setproctitle("%s [mux]", options.control_path);
 }
 
 /* Do fork() after authentication. Used by "ssh -f" */

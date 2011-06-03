@@ -9,6 +9,12 @@
  - (dtucker) [monitor.c] Remove the !HAVE_SOCKETPAIR case.  We use socketpair
    unconditionally in other places and the survey data we have does not show
    any systems that use it.  "nuke it" djm@
+   - djm@cvs.openbsd.org 2011/06/03 00:54:38
+     [ssh.c]
+     bz#1883 - setproctitle() to identify mux master; patch from Bert.Wesarg
+     AT googlemail.com; ok dtucker@
+     NB. includes additional portability code to enable setproctitle emulation
+     on platforms that don't support it.
 
 20110529
  - (djm) OpenBSD CVS Sync
