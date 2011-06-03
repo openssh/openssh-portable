@@ -1,3 +1,8 @@
+20110603
+ - (dtucker) [README version.h contrib/caldera/openssh.spec
+   contrib/redhat/openssh.spec contrib/suse/openssh.spec] Pull the version
+   bumps from the 5.8p2 branch into HEAD.  ok djm.
+
 20110529
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/05/23 03:30:07
