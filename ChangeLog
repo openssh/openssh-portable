@@ -17,6 +17,12 @@
      AT googlemail.com; ok dtucker@
      NB. includes additional portability code to enable setproctitle emulation
      on platforms that don't support it.
+   - dtucker@cvs.openbsd.org 2011/06/03 01:37:40
+     [ssh-agent.c]
+     Check current parent process ID against saved one to determine if the parent
+     has exited, rather than attempting to send a zero signal, since the latter
+     won't work if the parent has changed privs.  bz#1905, patch from Daniel Kahn
+     Gillmor, ok djm@
 
 20110529
  - (djm) OpenBSD CVS Sync
