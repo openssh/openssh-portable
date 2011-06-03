@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.166 2011/05/05 06:06:59 tim Exp $ */
+/* $Id: defines.h,v 1.167 2011/06/03 01:17:49 tim Exp $ */
 
 
 /* Constants */
@@ -389,17 +389,14 @@ struct winsize {
 # define _PATH_DEVNULL "/dev/null"
 #endif
 
-#ifndef MAIL_DIRECTORY
-# define MAIL_DIRECTORY "/var/spool/mail"
-#endif
+/* user may have set a different path */
+#if defined(_PATH_MAILDIR) && defined(MAIL_DIRECTORY)
+# undef _PATH_MAILDIR MAILDIR
+#endif /* defined(_PATH_MAILDIR) && defined(MAIL_DIRECTORY) */
 
-#ifndef MAILDIR
-# define MAILDIR MAIL_DIRECTORY
+#ifdef MAIL_DIRECTORY
+# define _PATH_MAILDIR MAIL_DIRECTORY
 #endif
-
-#if !defined(_PATH_MAILDIR) && defined(MAILDIR)
-# define _PATH_MAILDIR MAILDIR
-#endif /* !defined(_PATH_MAILDIR) && defined(MAILDIR) */
 
 #ifndef _PATH_NOLOGIN
 # define _PATH_NOLOGIN "/etc/nologin"

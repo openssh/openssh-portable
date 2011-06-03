@@ -2,6 +2,10 @@
  - (dtucker) [README version.h contrib/caldera/openssh.spec
    contrib/redhat/openssh.spec contrib/suse/openssh.spec] Pull the version
    bumps from the 5.8p2 branch into HEAD.  ok djm.
+ - (tim) [configure.ac defines.h] Run test program to detect system mail
+   directory. Add --with-maildir option to override. Fixed OpenServer 6
+   getting it wrong. Fixed many systems having MAIL=/var/mail//username
+   ok dtucker
 
 20110529
  - (djm) OpenBSD CVS Sync

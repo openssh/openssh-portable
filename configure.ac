@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.474 2011/05/20 01:45:25 djm Exp $
+# $Id: configure.ac,v 1.475 2011/06/03 01:17:49 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.474 $)
+AC_REVISION($Revision: 1.475 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -533,7 +533,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*"],
 		[String used in /etc/passwd to denote locked account])
 	AC_DEFINE([SPT_TYPE], [SPT_PSTAT])
-	MAIL="/var/mail/username"
+	maildir="/var/mail"
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB([xnet], [t_error], ,
 	    [AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***])])
@@ -674,7 +674,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	conf_lastlog_location="/usr/adm/lastlog"
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/usr/adm/wtmp
-	MAIL=/usr/spool/mail
+	maildir=/usr/spool/mail
 	AC_DEFINE([HAVE_NEXT], [1], [Define if you are on NeXT])
 	AC_DEFINE([BROKEN_REALPATH])
 	AC_DEFINE([USE_PIPES])
@@ -797,6 +797,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([PASSWD_NEEDS_USERNAME])
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
+		maildir=/var/spool/mail
 		TEST_SHELL=/u95/bin/sh
 		AC_DEFINE([BROKEN_LIBIAF], [1],
 			[ia_uinfo routines not supported by OS yet])
@@ -3479,12 +3480,87 @@ else
 	AC_SUBST([XAUTH_PATH])
 fi
 
-# Check for mail directory (last resort if we cannot get it from headers)
-if test ! -z "$MAIL" ; then
-	maildir=`dirname $MAIL`
-	AC_DEFINE_UNQUOTED([MAIL_DIRECTORY], ["$maildir"],
-		[Set this to your mail directory if you don't have maillock.h])
-fi
+dnl # --with-maildir=/path/to/mail gets top priority.
+dnl # if maildir is set in the platform case statement above we use that.
+dnl # Otherwise we run a program to get the dir from system headers.
+dnl # We first look for _PATH_MAILDIR then MAILDIR then _PATH_MAIL
+dnl # If we find _PATH_MAILDIR we do nothing because that is what
+dnl # session.c expects anyway. Otherwise we set to the value found
+dnl # stripping any trailing slash. If for some strage reason our program
+dnl # does not find what it needs, we default to /var/spool/mail.
+# Check for mail directory
+AC_ARG_WITH([maildir],
+    [  --with-maildir=/path/to/mail    Specify your system mail directory],
+    [
+	if test "X$withval" != X  &&  test "x$withval" != xno  &&  \
+	    test "x${withval}" != xyes; then
+		AC_DEFINE_UNQUOTED([MAIL_DIRECTORY], ["$withval"],
+            [Set this to your mail directory if you do not have _PATH_MAILDIR])
+	    fi
+     ],[
+	if test "X$maildir" != "X"; then
+	    AC_DEFINE_UNQUOTED([MAIL_DIRECTORY], ["$maildir"])
+	else
+	    AC_MSG_CHECKING([Discovering system mail directory])
+	    AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <stdio.h>
+#include <string.h>
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif
+#ifdef HAVE_MAILLOCK_H
+#include <maillock.h>
+#endif
+#define DATA "conftest.maildir"
+	]], [[
+	FILE *fd;
+	int rc;
+
+	fd = fopen(DATA,"w");
+	if(fd == NULL)
+		exit(1);
+
+#if defined (_PATH_MAILDIR)
+	if ((rc = fprintf(fd ,"_PATH_MAILDIR:%s\n", _PATH_MAILDIR)) <0)
+		exit(1);
+#elif defined (MAILDIR)
+	if ((rc = fprintf(fd ,"MAILDIR:%s\n", MAILDIR)) <0)
+		exit(1);
+#elif defined (_PATH_MAIL)
+	if ((rc = fprintf(fd ,"_PATH_MAIL:%s\n", _PATH_MAIL)) <0)
+		exit(1);
+#else
+	exit (2);
+#endif
+
+	exit(0);
+		]])],
+		[
+	 	    maildir_what=`awk -F: '{print $1}' conftest.maildir`
+		    maildir=`awk -F: '{print $2}' conftest.maildir \
+			| sed 's|/$||'`
+		    AC_MSG_RESULT([Using: $maildir from $maildir_what])
+		    if test "x$maildir_what" != "x_PATH_MAILDIR"; then
+			AC_DEFINE_UNQUOTED([MAIL_DIRECTORY], ["$maildir"])
+		    fi
+		],
+		[
+		    if test "X$ac_status" = "X2";then
+# our test program didn't find it. Default to /var/spool/mail
+			AC_MSG_RESULT([Using: default value of /var/spool/mail])
+			AC_DEFINE_UNQUOTED([MAIL_DIRECTORY], ["/var/spool/mail"])
+		     else
+			AC_MSG_RESULT([*** not found ***])
+		     fi
+		],
+		[
+			AC_MSG_WARN([cross compiling: use --with-maildir=/path/to/mail])
+		]
+	    )
+	fi
+    ]
+) # maildir
 
 if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes"; then
 	AC_MSG_WARN([cross compiling: Disabling /dev/ptmx test])
