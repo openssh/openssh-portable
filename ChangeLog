@@ -6,6 +6,9 @@
    directory. Add --with-maildir option to override. Fixed OpenServer 6
    getting it wrong. Fixed many systems having MAIL=/var/mail//username
    ok dtucker
+ - (dtucker) [monitor.c] Remove the !HAVE_SOCKETPAIR case.  We use socketpair
+   unconditionally in other places and the survey data we have does not show
+   any systems that use it.  "nuke it" djm@
 
 20110529
  - (djm) OpenBSD CVS Sync
