@@ -23,6 +23,9 @@
      has exited, rather than attempting to send a zero signal, since the latter
      won't work if the parent has changed privs.  bz#1905, patch from Daniel Kahn
      Gillmor, ok djm@
+    - dtucker@cvs.openbsd.org 2011/05/31 02:01:58
+     [regress/dynamic-forward.sh]
+     back out revs 1.6 and 1.5 since it's not reliable
 
 20110529
  - (djm) OpenBSD CVS Sync
