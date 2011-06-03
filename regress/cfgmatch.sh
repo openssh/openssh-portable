@@ -7,8 +7,8 @@ pidfile=$OBJ/remote_pid
 fwdport=3301
 fwd="-L $fwdport:127.0.0.1:$PORT"
 
-echo "ExitOnForwardFailure=yes" >> ssh_config
-echo "ExitOnForwardFailure=yes" >> ssh_proxy
+echo "ExitOnForwardFailure=yes" >> $OBJ/ssh_config
+echo "ExitOnForwardFailure=yes" >> $OBJ/ssh_proxy
 
 start_client()
 {
