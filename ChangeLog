@@ -26,6 +26,9 @@
     - dtucker@cvs.openbsd.org 2011/05/31 02:01:58
      [regress/dynamic-forward.sh]
      back out revs 1.6 and 1.5 since it's not reliable
+   - dtucker@cvs.openbsd.org 2011/05/31 02:03:34
+     [regress/dynamic-forward.sh]
+     work around startup and teardown races; caught by deraadt
 
 20110529
  - (djm) OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.7 2011/05/31 02:01:58 dtucker Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.8 2011/05/31 02:03:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
@@ -21,7 +21,8 @@ start_sshd
 
 for p in 1 2; do
 	trace "start dynamic forwarding, fork to background"
-	${SSH} -$p -F $OBJ/ssh_config -f -D $FWDPORT -q somehost \
+	${SSH} -$p -F $OBJ/ssh_config -f -D $FWDPORT -q \
+		-oExitOnForwardFailure=yes somehost \
 		exec sh -c \'"echo \$\$ > $OBJ/remote_pid; exec sleep 444"\'
 
 	for s in 4 5; do
@@ -41,6 +42,7 @@ for p in 1 2; do
 		if [ $remote -gt 1 ]; then
 			kill -HUP $remote
 		fi
+		sleep 1
 	else
 		fail "no pid file: $OBJ/remote_pid"
 	fi
