@@ -29,6 +29,11 @@
    - dtucker@cvs.openbsd.org 2011/05/31 02:03:34
      [regress/dynamic-forward.sh]
      work around startup and teardown races; caught by deraadt
+   - dtucker@cvs.openbsd.org 2011/06/03 00:29:52
+     [regress/dynamic-forward.sh]
+     Retry establishing the port forwarding after a small delay, should make
+     the tests less flaky when the previous test is slow to shut down and free
+     up the port.
 
 20110529
  - (djm) OpenBSD CVS Sync
