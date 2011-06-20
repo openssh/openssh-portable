@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.91 2011/05/23 07:24:57 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.92 2011/06/14 22:49:18 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -279,6 +279,7 @@ static Key *
 key_parse_public_rsa1(Buffer *blob, char **commentp)
 {
 	Key *pub;
+	Buffer copy;
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (buffer_len(blob) < sizeof(authfile_id_string)) {
@@ -295,21 +296,23 @@ key_parse_public_rsa1(Buffer *blob, char **commentp)
 		debug3("Incorrect RSA1 identifier");
 		return NULL;
 	}
-	buffer_consume(blob, sizeof(authfile_id_string));
+	buffer_init(&copy);
+	buffer_append(&copy, buffer_ptr(blob), buffer_len(blob));
+	buffer_consume(&copy, sizeof(authfile_id_string));
 
 	/* Skip cipher type and reserved data. */
-	(void) buffer_get_char(blob);	/* cipher type */
-	(void) buffer_get_int(blob);		/* reserved */
+	(void) buffer_get_char(&copy);		/* cipher type */
+	(void) buffer_get_int(&copy);		/* reserved */
 
 	/* Read the public key from the buffer. */
-	(void) buffer_get_int(blob);
+	(void) buffer_get_int(&copy);
 	pub = key_new(KEY_RSA1);
-	buffer_get_bignum(blob, pub->rsa->n);
-	buffer_get_bignum(blob, pub->rsa->e);
+	buffer_get_bignum(&copy, pub->rsa->n);
+	buffer_get_bignum(&copy, pub->rsa->e);
 	if (commentp)
-		*commentp = buffer_get_string(blob, NULL);
+		*commentp = buffer_get_string(&copy, NULL);
 	/* The encrypted private part is not parsed by this function. */
-	buffer_clear(blob);
+	buffer_free(&copy);
 
 	return pub;
 }
@@ -420,6 +423,7 @@ key_parse_private_rsa1(Buffer *blob, const char *passphrase, char **commentp)
 	CipherContext ciphercontext;
 	Cipher *cipher;
 	Key *prv = NULL;
+	Buffer copy;
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (buffer_len(blob) < sizeof(authfile_id_string)) {
@@ -436,41 +440,44 @@ key_parse_private_rsa1(Buffer *blob, const char *passphrase, char **commentp)
 		debug3("Incorrect RSA1 identifier");
 		return NULL;
 	}
-	buffer_consume(blob, sizeof(authfile_id_string));
+	buffer_init(&copy);
+	buffer_append(&copy, buffer_ptr(blob), buffer_len(blob));
+	buffer_consume(&copy, sizeof(authfile_id_string));
 
 	/* Read cipher type. */
-	cipher_type = buffer_get_char(blob);
-	(void) buffer_get_int(blob);	/* Reserved data. */
+	cipher_type = buffer_get_char(&copy);
+	(void) buffer_get_int(&copy);	/* Reserved data. */
 
 	/* Read the public key from the buffer. */
-	(void) buffer_get_int(blob);
+	(void) buffer_get_int(&copy);
 	prv = key_new_private(KEY_RSA1);
 
-	buffer_get_bignum(blob, prv->rsa->n);
-	buffer_get_bignum(blob, prv->rsa->e);
+	buffer_get_bignum(&copy, prv->rsa->n);
+	buffer_get_bignum(&copy, prv->rsa->e);
 	if (commentp)
-		*commentp = buffer_get_string(blob, NULL);
+		*commentp = buffer_get_string(&copy, NULL);
 	else
-		(void)buffer_get_string_ptr(blob, NULL);
+		(void)buffer_get_string_ptr(&copy, NULL);
 
 	/* Check that it is a supported cipher. */
 	cipher = cipher_by_number(cipher_type);
 	if (cipher == NULL) {
 		debug("Unsupported RSA1 cipher %d", cipher_type);
+		buffer_free(&copy);
 		goto fail;
 	}
 	/* Initialize space for decrypted data. */
 	buffer_init(&decrypted);
-	cp = buffer_append_space(&decrypted, buffer_len(blob));
+	cp = buffer_append_space(&decrypted, buffer_len(&copy));
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
 	cipher_set_key_string(&ciphercontext, cipher, passphrase,
 	    CIPHER_DECRYPT);
 	cipher_crypt(&ciphercontext, cp,
-	    buffer_ptr(blob), buffer_len(blob));
+	    buffer_ptr(&copy), buffer_len(&copy));
 	cipher_cleanup(&ciphercontext);
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
-	buffer_clear(blob);
+	buffer_free(&copy);
 
 	check1 = buffer_get_char(&decrypted);
 	check2 = buffer_get_char(&decrypted);
@@ -692,13 +699,9 @@ key_parse_private(Buffer *buffer, const char *filename,
     const char *passphrase, char **commentp)
 {
 	Key *pub, *prv;
-	Buffer pubcopy;
 
-	buffer_init(&pubcopy);
-	buffer_append(&pubcopy, buffer_ptr(buffer), buffer_len(buffer));
 	/* it's a SSH v1 key if the public key part is readable */
-	pub = key_parse_public_rsa1(&pubcopy, commentp);
-	buffer_free(&pubcopy);
+	pub = key_parse_public_rsa1(buffer, commentp);
 	if (pub == NULL) {
 		prv = key_parse_private_type(buffer, KEY_UNSPEC,
 		    passphrase, NULL);

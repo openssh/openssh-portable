@@ -4,6 +4,11 @@
      [ssh_config.5]
      explain IdentifyFile's semantics a little better, prompted by bz#1898
      ok dtucker jmc
+   - markus@cvs.openbsd.org 2011/06/14 22:49:18
+     [authfile.c]
+     make sure key_parse_public/private_rsa1() no longer consumes its input
+     buffer.  fixes ssh-add for passphrase-protected ssh1-keys;
+     noted by naddy@; ok djm@
 
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec
