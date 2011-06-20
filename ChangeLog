@@ -1,3 +1,10 @@
+20110620
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/06/04 00:10:26
+     [ssh_config.5]
+     explain IdentifyFile's semantics a little better, prompted by bz#1898
+     ok dtucker jmc
+
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec
    contrib/redhat/openssh.spec contrib/suse/openssh.spec] Pull the version
