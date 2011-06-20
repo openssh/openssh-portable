@@ -9,6 +9,10 @@
      make sure key_parse_public/private_rsa1() no longer consumes its input
      buffer.  fixes ssh-add for passphrase-protected ssh1-keys;
      noted by naddy@; ok djm@
+   - djm@cvs.openbsd.org 2011/06/17 21:44:31
+     [log.c log.h monitor.c monitor.h monitor_wrap.c monitor_wrap.h sshd.c]
+     make the pre-auth privsep slave log via a socketpair shared with the
+     monitor rather than /var/empty/dev/log; ok dtucker@ deraadt@ markus@
 
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec

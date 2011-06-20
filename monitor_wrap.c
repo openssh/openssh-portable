@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.72 2011/05/23 03:30:07 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.73 2011/06/17 21:44:31 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -87,6 +87,32 @@ extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
 extern Buffer loginmsg;
 extern ServerOptions options;
+
+void
+mm_log_handler(LogLevel level, const char *msg, void *ctx)
+{
+	Buffer log_msg;
+	struct monitor *mon = (struct monitor *)ctx;
+
+	if (mon->m_log_sendfd == -1)
+		fatal("%s: no log channel", __func__);
+
+	buffer_init(&log_msg);
+	/*
+	 * Placeholder for packet length. Will be filled in with the actual
+	 * packet length once the packet has been constucted. This saves
+	 * fragile math.
+	 */
+	buffer_put_int(&log_msg, 0);
+
+	buffer_put_int(&log_msg, level);
+	buffer_put_cstring(&log_msg, msg);
+	put_u32(buffer_ptr(&log_msg), buffer_len(&log_msg) - 4);
+	if (atomicio(vwrite, mon->m_log_sendfd, buffer_ptr(&log_msg),
+	    buffer_len(&log_msg)) != buffer_len(&log_msg))
+		fatal("%s: write: %s", __func__, strerror(errno));
+	buffer_free(&log_msg);
+}
 
 int
 mm_is_monitor(void)

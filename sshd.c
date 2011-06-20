@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.382 2011/04/12 05:32:49 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.383 2011/06/17 21:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -636,10 +636,8 @@ privsep_preauth(Authctxt *authctxt)
 	} else if (pid != 0) {
 		debug2("Network child is on pid %ld", (long)pid);
 
-		close(pmonitor->m_recvfd);
 		pmonitor->m_pid = pid;
 		monitor_child_preauth(authctxt, pmonitor);
-		close(pmonitor->m_sendfd);
 
 		/* Sync memory */
 		monitor_sync(pmonitor);
@@ -651,8 +649,11 @@ privsep_preauth(Authctxt *authctxt)
 		return (1);
 	} else {
 		/* child */
-
 		close(pmonitor->m_sendfd);
+		close(pmonitor->m_log_recvfd);
+
+		/* Arrange for logging to be sent to the monitor */
+		set_log_handler(mm_log_handler, pmonitor);
 
 		/* Demote the child */
 		if (getuid() == 0 || geteuid() == 0)
@@ -685,7 +686,6 @@ privsep_postauth(Authctxt *authctxt)
 		fatal("fork of unprivileged child failed");
 	else if (pmonitor->m_pid != 0) {
 		verbose("User child is on pid %ld", (long)pmonitor->m_pid);
-		close(pmonitor->m_recvfd);
 		buffer_clear(&loginmsg);
 		monitor_child_postauth(pmonitor);
 
@@ -693,7 +693,10 @@ privsep_postauth(Authctxt *authctxt)
 		exit(0);
 	}
 
+	/* child */
+
 	close(pmonitor->m_sendfd);
+	pmonitor->m_sendfd = -1;
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
