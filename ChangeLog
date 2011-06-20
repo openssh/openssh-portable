@@ -13,6 +13,10 @@
      [log.c log.h monitor.c monitor.h monitor_wrap.c monitor_wrap.h sshd.c]
      make the pre-auth privsep slave log via a socketpair shared with the
      monitor rather than /var/empty/dev/log; ok dtucker@ deraadt@ markus@
+   - djm@cvs.openbsd.org 2011/06/17 21:46:16
+     [sftp-server.c]
+     the protocol version should be unsigned; bz#1913 reported by mb AT
+     smartftp.com
 
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec
