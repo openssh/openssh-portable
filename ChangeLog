@@ -21,6 +21,10 @@
      [servconf.c]
      factor out multi-choice option parsing into a parse_multistate label
      and some support structures; ok dtucker@
+   - djm@cvs.openbsd.org 2011/06/17 21:57:25
+     [clientloop.c]
+     setproctitle for a mux master that has been gracefully stopped;
+     bz#1911 from Bert.Wesarg AT googlemail.com
 
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.234 2011/05/08 12:52:01 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.235 2011/06/17 21:57:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2157,8 +2157,10 @@ client_stop_mux(void)
 	 * If we are in persist mode, signal that we should close when all
 	 * active channels are closed.
 	 */
-	if (options.control_persist)
+	if (options.control_persist) {
 		session_closed = 1;
+		setproctitle("[stopped mux]");
+	}
 }
 
 /* client specific fatal cleanup */
