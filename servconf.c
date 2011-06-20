@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.219 2011/05/23 03:30:07 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.220 2011/06/17 21:47:35 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -671,6 +671,37 @@ match_cfg_line(char **condition, int line, const char *user, const char *host,
 
 #define WHITESPACE " \t\r\n"
 
+/* Multistate option parsing */
+struct multistate {
+	char *key;
+	int value;
+};
+static const struct multistate multistate_addressfamily[] = {
+	{ "inet",			AF_INET },
+	{ "inet6",			AF_INET6 },
+	{ "any",			AF_UNSPEC },
+	{ NULL, -1 }
+};
+static const struct multistate multistate_permitrootlogin[] = {
+	{ "without-password",		PERMIT_NO_PASSWD },
+	{ "forced-commands-only",	PERMIT_FORCED_ONLY },
+	{ "yes",			PERMIT_YES },
+	{ "no",				PERMIT_NO },
+	{ NULL, -1 }
+};
+static const struct multistate multistate_compression[] = {
+	{ "delayed",			COMP_DELAYED },
+	{ "yes",			COMP_ZLIB },
+	{ "no",				COMP_NONE },
+	{ NULL, -1 }
+};
+static const struct multistate multistate_gatewayports[] = {
+	{ "clientspecified",		2 },
+	{ "yes",			1 },
+	{ "no",				0 },
+	{ NULL, -1 }
+};
+
 int
 process_server_config_line(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep, const char *user,
@@ -684,6 +715,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	int port;
 	u_int i, flags = 0;
 	size_t len;
+	const struct multistate *multistate_ptr;
 
 	cp = line;
 	if ((arg = strdelim(&cp)) == NULL)
@@ -799,24 +831,27 @@ process_server_config_line(ServerOptions *options, char *line,
 		break;
 
 	case sAddressFamily:
+		intptr = &options->address_family;
+		multistate_ptr = multistate_addressfamily;
+		if (options->listen_addrs != NULL)
+			fatal("%s line %d: address family must be specified "
+			    "before ListenAddress.", filename, linenum);
+ parse_multistate:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing address family.",
+			fatal("%s line %d: missing argument.",
 			    filename, linenum);
-		intptr = &options->address_family;
-		if (options->listen_addrs != NULL)
-			fatal("%s line %d: address family must be specified before "
-			    "ListenAddress.", filename, linenum);
-		if (strcasecmp(arg, "inet") == 0)
-			value = AF_INET;
-		else if (strcasecmp(arg, "inet6") == 0)
-			value = AF_INET6;
-		else if (strcasecmp(arg, "any") == 0)
-			value = AF_UNSPEC;
-		else
-			fatal("%s line %d: unsupported address family \"%s\".",
+		value = -1;
+		for (i = 0; multistate_ptr[i].key != NULL; i++) {
+			if (strcasecmp(arg, multistate_ptr[i].key) == 0) {
+				value = multistate_ptr[i].value;
+				break;
+			}
+		}
+		if (value == -1)
+			fatal("%s line %d: unsupported option \"%s\".",
 			    filename, linenum, arg);
-		if (*intptr == -1)
+		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
 
@@ -855,27 +890,8 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sPermitRootLogin:
 		intptr = &options->permit_root_login;
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing yes/"
-			    "without-password/forced-commands-only/no "
-			    "argument.", filename, linenum);
-		value = 0;	/* silence compiler */
-		if (strcmp(arg, "without-password") == 0)
-			value = PERMIT_NO_PASSWD;
-		else if (strcmp(arg, "forced-commands-only") == 0)
-			value = PERMIT_FORCED_ONLY;
-		else if (strcmp(arg, "yes") == 0)
-			value = PERMIT_YES;
-		else if (strcmp(arg, "no") == 0)
-			value = PERMIT_NO;
-		else
-			fatal("%s line %d: Bad yes/"
-			    "without-password/forced-commands-only/no "
-			    "argument: %s", filename, linenum, arg);
-		if (*activep && *intptr == -1)
-			*intptr = value;
-		break;
+		multistate_ptr = multistate_permitrootlogin;
+		goto parse_multistate;
 
 	case sIgnoreRhosts:
 		intptr = &options->ignore_rhosts;
@@ -1006,43 +1022,13 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sCompression:
 		intptr = &options->compression;
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing yes/no/delayed "
-			    "argument.", filename, linenum);
-		value = 0;	/* silence compiler */
-		if (strcmp(arg, "delayed") == 0)
-			value = COMP_DELAYED;
-		else if (strcmp(arg, "yes") == 0)
-			value = COMP_ZLIB;
-		else if (strcmp(arg, "no") == 0)
-			value = COMP_NONE;
-		else
-			fatal("%s line %d: Bad yes/no/delayed "
-			    "argument: %s", filename, linenum, arg);
-		if (*intptr == -1)
-			*intptr = value;
-		break;
+		multistate_ptr = multistate_compression;
+		goto parse_multistate;
 
 	case sGatewayPorts:
 		intptr = &options->gateway_ports;
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing yes/no/clientspecified "
-			    "argument.", filename, linenum);
-		value = 0;	/* silence compiler */
-		if (strcmp(arg, "clientspecified") == 0)
-			value = 2;
-		else if (strcmp(arg, "yes") == 0)
-			value = 1;
-		else if (strcmp(arg, "no") == 0)
-			value = 0;
-		else
-			fatal("%s line %d: Bad yes/no/clientspecified "
-			    "argument: %s", filename, linenum, arg);
-		if (*activep && *intptr == -1)
-			*intptr = value;
-		break;
+		multistate_ptr = multistate_gatewayports;
+		goto parse_multistate;
 
 	case sUseDNS:
 		intptr = &options->use_dns;

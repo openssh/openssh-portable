@@ -17,6 +17,10 @@
      [sftp-server.c]
      the protocol version should be unsigned; bz#1913 reported by mb AT
      smartftp.com
+   - djm@cvs.openbsd.org 2011/06/17 21:47:35
+     [servconf.c]
+     factor out multi-choice option parsing into a parse_multistate label
+     and some support structures; ok dtucker@
 
 20110603
  - (dtucker) [README version.h contrib/caldera/openssh.spec
