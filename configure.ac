@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.476 2011/06/03 02:11:38 djm Exp $
+# $Id: configure.ac,v 1.477 2011/06/22 22:30:03 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.476 $)
+AC_REVISION($Revision: 1.477 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -106,6 +106,16 @@ AC_SUBST([LD])
 AC_C_INLINE
 
 AC_CHECK_DECL([LLONG_MAX], [have_llong_max=1], , [#include <limits.h>])
+AC_CHECK_DECL([SYSTR_POLICY_KILL], [have_systr_policy_kill=1], , [
+	#include <sys/types.h>
+	#include <sys/param.h>
+	#include <dev/systrace.h>
+])
+AC_CHECK_DECL([RLIMIT_NPROC],
+    [AC_DEFINE([HAVE_RLIMIT_NPROC], [], [sys/resource.h has RLIMIT_NPROC])], , [
+	#include <sys/types.h>
+	#include <sys/resource.h>
+])
 
 use_stack_protector=1
 AC_ARG_WITH([stackprotect],
@@ -2461,6 +2471,34 @@ AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], ["$SSH_PRIVSEP_USER"],
 	[non-privileged user for privilege separation])
 AC_SUBST([SSH_PRIVSEP_USER])
 
+# Decide which sandbox style to use
+sandbox_arg=""
+AC_ARG_WITH([sandbox],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, rlimit, systrace)],
+	[
+		if test "x$withval" = "xyes" ; then
+			sandbox_arg=""
+		else
+			sandbox_arg="$withval"
+		fi
+	]
+)
+if test "x$sandbox_arg" = "xsystrace" || \
+   ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
+	SANDBOX_STYLE="systrace"
+	AC_DEFINE([SANDBOX_SYSTRACE], [1], [Sandbox using systrace(4)])
+elif test "x$sandbox_arg" = "xrlimit" || \
+     ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" ) ; then
+	SANDBOX_STYLE="rlimit"
+	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
+elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
+     test "x$sandbox_arg" = "xnone" || test "x$sandbox_arg" = "xnull" ; then
+	SANDBOX_STYLE="none"
+	AC_DEFINE([SANDBOX_NULL], [1], [no privsep sandboxing])
+else
+	AC_MSG_ERROR([unsupported -with-sandbox])
+fi
+
 # Cheap hack to ensure NEWS-OS libraries are arranged right.
 if test ! -z "$SONY" ; then
   LIBS="$LIBS -liberty";
@@ -4191,6 +4229,7 @@ echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"
 echo "              Random number source: $RAND_MSG"
+echo "             Privsep sandbox style: $SANDBOX_STYLE"
 
 echo ""
 

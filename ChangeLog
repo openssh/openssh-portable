@@ -3,6 +3,26 @@
    - djm@cvs.openbsd.org 2011/06/22 21:47:28
      [servconf.c]
      reuse the multistate option arrays to pretty-print options for "sshd -T"
+   - djm@cvs.openbsd.org 2011/06/22 21:57:01
+     [servconf.c servconf.h sshd.c sshd_config.5]
+     [configure.ac Makefile.in]
+     introduce sandboxing of the pre-auth privsep child using systrace(4).
+     
+     This introduces a new "UsePrivilegeSeparation=sandbox" option for
+     sshd_config that applies mandatory restrictions on the syscalls the
+     privsep child can perform. This prevents a compromised privsep child
+     from being used to attack other hosts (by opening sockets and proxying)
+     or probing local kernel attack surface.
+     
+     The sandbox is implemented using systrace(4) in unsupervised "fast-path"
+     mode, where a list of permitted syscalls is supplied. Any syscall not
+     on the list results in SIGKILL being sent to the privsep child. Note
+     that this requires a kernel with the new SYSTR_POLICY_KILL option.
+     
+     UsePrivilegeSeparation=sandbox will become the default in the future
+     so please start testing it now.
+     
+     feedback dtucker@; ok markus@
 
 20110620
  - OpenBSD CVS Sync

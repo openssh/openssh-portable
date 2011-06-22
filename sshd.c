@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.383 2011/06/17 21:44:31 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.384 2011/06/22 21:57:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -118,6 +118,7 @@
 #endif
 #include "monitor_wrap.h"
 #include "roaming.h"
+#include "sandbox.h"
 #include "version.h"
 
 #ifdef LIBWRAP
@@ -624,18 +625,23 @@ privsep_preauth(Authctxt *authctxt)
 {
 	int status;
 	pid_t pid;
+	struct ssh_sandbox *box = NULL;
 
 	/* Set up unprivileged child process to deal with network data */
 	pmonitor = monitor_init();
 	/* Store a pointer to the kex for later rekeying */
 	pmonitor->m_pkex = &xxx_kex;
 
+	if (use_privsep == PRIVSEP_SANDBOX)
+		box = ssh_sandbox_init();
 	pid = fork();
 	if (pid == -1) {
 		fatal("fork of unprivileged child failed");
 	} else if (pid != 0) {
 		debug2("Network child is on pid %ld", (long)pid);
 
+		if (box != NULL)
+			ssh_sandbox_parent_preauth(box, pid);
 		pmonitor->m_pid = pid;
 		monitor_child_preauth(authctxt, pmonitor);
 
@@ -643,10 +649,21 @@ privsep_preauth(Authctxt *authctxt)
 		monitor_sync(pmonitor);
 
 		/* Wait for the child's exit status */
-		while (waitpid(pid, &status, 0) < 0)
+		while (waitpid(pid, &status, 0) < 0) {
 			if (errno != EINTR)
-				break;
-		return (1);
+				fatal("%s: waitpid: %s", __func__,
+				    strerror(errno));
+		}
+		if (WIFEXITED(status)) {
+			if (WEXITSTATUS(status) != 0)
+				fatal("%s: preauth child exited with status %d",
+				    __func__, WEXITSTATUS(status));
+		} else if (WIFSIGNALED(status))
+			fatal("%s: preauth child terminated by signal %d",
+			    __func__, WTERMSIG(status));
+		if (box != NULL)
+			ssh_sandbox_parent_finish(box);
+		return 1;
 	} else {
 		/* child */
 		close(pmonitor->m_sendfd);
@@ -659,8 +676,11 @@ privsep_preauth(Authctxt *authctxt)
 		if (getuid() == 0 || geteuid() == 0)
 			privsep_preauth_child();
 		setproctitle("%s", "[net]");
+		if (box != NULL)
+			ssh_sandbox_child(box);
+
+		return 0;
 	}
-	return (0);
 }
 
 static void
