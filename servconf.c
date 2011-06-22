@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.220 2011/06/17 21:47:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.221 2011/06/22 21:47:28 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1549,31 +1549,32 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 }
 
 static const char *
+fmt_multistate_int(int val, const struct multistate *m)
+{
+	u_int i;
+
+	for (i = 0; m[i].key != NULL; i++) {
+		if (m[i].value == val)
+			return m[i].key;
+	}
+	return "UNKNOWN";
+}
+
+static const char *
 fmt_intarg(ServerOpCodes code, int val)
 {
-	if (code == sAddressFamily) {
-		switch (val) {
-		case AF_INET:
-			return "inet";
-		case AF_INET6:
-			return "inet6";
-		case AF_UNSPEC:
-			return "any";
-		default:
-			return "UNKNOWN";
-		}
-	}
-	if (code == sPermitRootLogin) {
-		switch (val) {
-		case PERMIT_NO_PASSWD:
-			return "without-password";
-		case PERMIT_FORCED_ONLY:
-			return "forced-commands-only";
-		case PERMIT_YES:
-			return "yes";
-		}
-	}
-	if (code == sProtocol) {
+	if (val == -1)
+		return "unset";
+	switch (code) {
+	case sAddressFamily:
+		return fmt_multistate_int(val, multistate_addressfamily);
+	case sPermitRootLogin:
+		return fmt_multistate_int(val, multistate_permitrootlogin);
+	case sGatewayPorts:
+		return fmt_multistate_int(val, multistate_gatewayports);
+	case sCompression:
+		return fmt_multistate_int(val, multistate_compression);
+	case sProtocol:
 		switch (val) {
 		case SSH_PROTO_1:
 			return "1";
@@ -1584,20 +1585,16 @@ fmt_intarg(ServerOpCodes code, int val)
 		default:
 			return "UNKNOWN";
 		}
+	default:
+		switch (val) {
+		case 0:
+			return "no";
+		case 1:
+			return "yes";
+		default:
+			return "UNKNOWN";
+		}
 	}
-	if (code == sGatewayPorts && val == 2)
-		return "clientspecified";
-	if (code == sCompression && val == COMP_DELAYED)
-		return "delayed";
-	switch (val) {
-	case -1:
-		return "unset";
-	case 0:
-		return "no";
-	case 1:
-		return "yes";
-	}
-	return "UNKNOWN";
 }
 
 static const char *

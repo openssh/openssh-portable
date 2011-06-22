@@ -1,3 +1,9 @@
+20110623
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/06/22 21:47:28
+     [servconf.c]
+     reuse the multistate option arrays to pretty-print options for "sshd -T"
+
 20110620
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/06/04 00:10:26
