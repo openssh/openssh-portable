@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.h,v 1.27 2011/05/08 12:52:01 djm Exp $ */
+/* $OpenBSD: clientloop.h,v 1.28 2011/06/22 22:08:42 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -55,6 +55,10 @@ int	 client_simple_escape_filter(Channel *, char *, int);
 /* Global request confirmation callbacks */
 typedef void global_confirm_cb(int, u_int32_t seq, void *);
 void	 client_register_global_confirm(global_confirm_cb *, void *);
+
+/* Channel request confirmation callbacks */
+enum confirm_action { CONFIRM_WARN = 0, CONFIRM_CLOSE, CONFIRM_TTY };
+void client_expect_confirm(int, const char *, enum confirm_action);
 
 /* Multiplexing protocol version */
 #define SSHMUX_VER			4

@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.28 2011/05/08 12:52:01 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.29 2011/06/22 22:08:42 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1214,8 +1214,10 @@ mux_session_confirm(int id, int success, void *arg)
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication "
 		    "spoofing.");
-		x11_request_forwarding_with_spoofing(id, display, proto, data);
-		/* XXX wait for reply */
+		x11_request_forwarding_with_spoofing(id, display, proto,
+		    data, 1);
+		client_expect_confirm(id, "X11 forwarding", CONFIRM_WARN);
+		/* XXX exit_on_forward_failure */
 	}
 
 	if (cctx->want_agent_fwd && options.forward_agent) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.235 2011/06/17 21:57:25 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.236 2011/06/22 22:08:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -174,7 +174,6 @@ struct escape_filter_ctx {
 };
 
 /* Context for channel confirmation replies */
-enum confirm_action { CONFIRM_WARN = 0, CONFIRM_CLOSE, CONFIRM_TTY };
 struct channel_reply_ctx {
 	const char *request_type;
 	int id;
@@ -801,7 +800,7 @@ client_abandon_status_confirm(Channel *c, void *ctx)
 	xfree(ctx);
 }
 
-static void
+void
 client_expect_confirm(int id, const char *request,
     enum confirm_action action)
 {

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.362 2011/06/03 00:54:38 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.363 2011/06/22 22:08:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1239,8 +1239,8 @@ ssh_session(void)
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication "
 		    "spoofing.");
-		x11_request_forwarding_with_spoofing(0, display, proto, data);
-
+		x11_request_forwarding_with_spoofing(0, display, proto,
+		    data, 0);
 		/* Read response from the server. */
 		type = packet_read();
 		if (type == SSH_SMSG_SUCCESS) {
@@ -1338,9 +1338,11 @@ ssh_session2_setup(int id, int success, void *arg)
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication "
 		    "spoofing.");
-		x11_request_forwarding_with_spoofing(id, display, proto, data);
+		x11_request_forwarding_with_spoofing(id, display, proto,
+		    data, 1);
+		client_expect_confirm(id, "X11 forwarding", CONFIRM_WARN);
+		/* XXX exit_on_forward_failure */
 		interactive = 1;
-		/* XXX wait for reply */
 	}
 
 	check_agent_present();
