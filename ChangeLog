@@ -27,6 +27,8 @@
      [channels.c channels.h clientloop.c clientloop.h mux.c ssh.c]
      hook up a channel confirm callback to warn the user then requested X11
      forwarding was refused by the server; ok markus@
+ - (djm) [sandbox-null.c] Dummy sandbox for platforms that don't support
+   setrlimit(2)
 
 20110620
  - OpenBSD CVS Sync
