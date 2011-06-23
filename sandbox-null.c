@@ -1,3 +1,4 @@
+/* $OpenBSD$ */
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -28,7 +29,7 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "sandbox.h"
+#include "ssh-sandbox.h"
 #include "xmalloc.h"
 
 /* dummy sandbox */

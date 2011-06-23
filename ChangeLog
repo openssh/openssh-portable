@@ -27,6 +27,10 @@
      [channels.c channels.h clientloop.c clientloop.h mux.c ssh.c]
      hook up a channel confirm callback to warn the user then requested X11
      forwarding was refused by the server; ok markus@
+   - djm@cvs.openbsd.org 2011/06/23 09:34:13
+     [sshd.c ssh-sandbox.h sandbox.h sandbox-rlimit.c sandbox-systrace.c]
+     [sandbox-null.c]
+     rename sandbox.h => ssh-sandbox.h to make things easier for portable
  - (djm) [sandbox-null.c] Dummy sandbox for platforms that don't support
    setrlimit(2)
 
