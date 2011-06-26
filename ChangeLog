@@ -1,3 +1,8 @@
+20110624
+ - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
+   Darwin/OS X using sandbox_init() + setrlimit(); feedback and testing
+   markus@
+
 20110623
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/06/22 21:47:28

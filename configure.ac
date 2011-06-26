@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.477 2011/06/22 22:30:03 djm Exp $
+# $Id: configure.ac,v 1.478 2011/06/26 21:18:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.477 $)
+AC_REVISION($Revision: 1.478 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -525,6 +525,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([SPT_TYPE], [SPT_REUSEARGV],
 		[Define to a Set Process Title type if your system is
 		supported by bsd-setproctitle.c])
+	AC_CHECK_FUNCS([sandbox_init])
+	AC_CHECK_HEADERS([sandbox.h])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
@@ -2487,6 +2489,11 @@ if test "x$sandbox_arg" = "xsystrace" || \
    ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
 	SANDBOX_STYLE="systrace"
 	AC_DEFINE([SANDBOX_SYSTRACE], [1], [Sandbox using systrace(4)])
+elif test "x$sandbox_arg" = "xdarwin" || \
+     ( test -z "$sandbox_arg" && test "x$ac_cv_func_sandbox_init" = "xyes" && \
+       test "x$ac_cv_header_sandbox_h" = "xyes") ; then
+	SANDBOX_STYLE="darwin"
+	AC_DEFINE([SANDBOX_DARWIN], [1], [Sandbox using Darwin sandbox_init(3)])
 elif test "x$sandbox_arg" = "xrlimit" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" ) ; then
 	SANDBOX_STYLE="rlimit"
