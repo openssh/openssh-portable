@@ -13,6 +13,10 @@
      fail open(2) with EPERM rather than SIGKILLing the whole process. libc
      will call open() to do strerror() when NLS is enabled;
      feedback and ok markus@
+   - markus@cvs.openbsd.org 2011/08/01 19:18:15
+     [gss-serv.c]
+     prevent post-auth resource exhaustion (int overflow leading to 4GB malloc);
+     report Adam Zabrock; ok djm@, deraadt@
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
