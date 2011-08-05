@@ -22,6 +22,9 @@
      Add new SHA256 and SHA512 based HMAC modes from
      http://www.ietf.org/id/draft-dbider-sha2-mac-for-ssh-02.txt
      Patch from mdb AT juniper.net; feedback and ok markus@
+   - djm@cvs.openbsd.org 2011/08/02 23:13:01
+     [version.h]
+     crank now, release later
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
