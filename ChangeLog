@@ -17,6 +17,11 @@
      [gss-serv.c]
      prevent post-auth resource exhaustion (int overflow leading to 4GB malloc);
      report Adam Zabrock; ok djm@, deraadt@
+   - djm@cvs.openbsd.org 2011/08/02 01:22:11
+     [mac.c myproposal.h ssh.1 ssh_config.5 sshd.8 sshd_config.5]
+     Add new SHA256 and SHA512 based HMAC modes from
+     http://www.ietf.org/id/draft-dbider-sha2-mac-for-ssh-02.txt
+     Patch from mdb AT juniper.net; feedback and ok markus@
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
