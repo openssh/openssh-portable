@@ -8,6 +8,11 @@
      bzero the agent address.  the kernel was for a while very cranky about
      these things.  evne though that's fixed, always good to initialize
      memory.  ok deraadt djm
+   - djm@cvs.openbsd.org 2011/07/29 14:42:45
+     [sandbox-systrace.c]
+     fail open(2) with EPERM rather than SIGKILLing the whole process. libc
+     will call open() to do strerror() when NLS is enabled;
+     feedback and ok markus@
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for

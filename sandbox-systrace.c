@@ -1,4 +1,4 @@
-/* $OpenBSD: sandbox-systrace.c,v 1.3 2011/06/23 09:34:13 djm Exp $ */
+/* $OpenBSD: sandbox-systrace.c,v 1.4 2011/07/29 14:42:45 djm Exp $ */
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -41,22 +41,30 @@
 #include "ssh-sandbox.h"
 #include "xmalloc.h"
 
-static const int preauth_policy[] = {
-	SYS___sysctl,
-	SYS_close,
-	SYS_exit,
-	SYS_getpid,
-	SYS_gettimeofday,
-	SYS_madvise,
-	SYS_mmap,
-	SYS_mprotect,
-	SYS_poll,
-	SYS_munmap,
-	SYS_read,
-	SYS_select,
-	SYS_sigprocmask,
-	SYS_write,
-	-1
+struct sandbox_policy {
+	int syscall;
+	int action;
+};
+
+/* Permitted syscalls in preauth. Unlisted syscalls get SYSTR_POLICY_KILL */
+static const struct sandbox_policy preauth_policy[] = {
+	{ SYS_open, SYSTR_POLICY_NEVER },
+
+	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
+	{ SYS_close, SYSTR_POLICY_PERMIT },
+	{ SYS_exit, SYSTR_POLICY_PERMIT },
+	{ SYS_getpid, SYSTR_POLICY_PERMIT },
+	{ SYS_gettimeofday, SYSTR_POLICY_PERMIT },
+	{ SYS_madvise, SYSTR_POLICY_PERMIT },
+	{ SYS_mmap, SYSTR_POLICY_PERMIT },
+	{ SYS_mprotect, SYSTR_POLICY_PERMIT },
+	{ SYS_poll, SYSTR_POLICY_PERMIT },
+	{ SYS_munmap, SYSTR_POLICY_PERMIT },
+	{ SYS_read, SYSTR_POLICY_PERMIT },
+	{ SYS_select, SYSTR_POLICY_PERMIT },
+	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
+	{ SYS_write, SYSTR_POLICY_PERMIT },
+	{ -1, -1 }
 };
 
 struct ssh_sandbox {
@@ -64,7 +72,6 @@ struct ssh_sandbox {
 	int parent_sock;
 	int systrace_fd;
 	pid_t child_pid;
-	struct systrace_policy policy;
 };
 
 struct ssh_sandbox *
@@ -104,10 +111,11 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 
 static void
 ssh_sandbox_parent(struct ssh_sandbox *box, pid_t child_pid,
-    const int *allowed_syscalls)
+    const struct sandbox_policy *allowed_syscalls)
 {
 	int dev_systrace, i, j, found;
 	char whatever = 0;
+	struct systrace_policy policy;
 
 	debug3("%s: wait for child %ld", __func__, (long)child_pid);
 	box->child_pid = child_pid;
@@ -131,33 +139,35 @@ ssh_sandbox_parent(struct ssh_sandbox *box, pid_t child_pid,
 		    box->systrace_fd, child_pid, strerror(errno));
 
 	/* Allocate and assign policy */
-	bzero(&box->policy, sizeof(box->policy));
-	box->policy.strp_op = SYSTR_POLICY_NEW;
-	box->policy.strp_maxents = SYS_MAXSYSCALL;
-	if (ioctl(box->systrace_fd, STRIOCPOLICY, &box->policy) == -1)
+	bzero(&policy, sizeof(policy));
+	policy.strp_op = SYSTR_POLICY_NEW;
+	policy.strp_maxents = SYS_MAXSYSCALL;
+	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1)
 		fatal("%s: ioctl(%d, STRIOCPOLICY (new)): %s", __func__,
 		    box->systrace_fd, strerror(errno));
 
-	box->policy.strp_op = SYSTR_POLICY_ASSIGN;
-	box->policy.strp_pid = box->child_pid;
-	if (ioctl(box->systrace_fd, STRIOCPOLICY, &box->policy) == -1)
+	policy.strp_op = SYSTR_POLICY_ASSIGN;
+	policy.strp_pid = box->child_pid;
+	if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1)
 		fatal("%s: ioctl(%d, STRIOCPOLICY (assign)): %s",
 		    __func__, box->systrace_fd, strerror(errno));
 
 	/* Set per-syscall policy */
 	for (i = 0; i < SYS_MAXSYSCALL; i++) {
-		for (j = found = 0; allowed_syscalls[j] != -1 && !found; j++) {
-			if (allowed_syscalls[j] == i)
+		found = 0;
+		for (j = 0; allowed_syscalls[j].syscall != -1; j++) {
+			if (allowed_syscalls[j].syscall == i) {
 				found = 1;
+				break;
+			}
 		}
-		box->policy.strp_op = SYSTR_POLICY_MODIFY;
-		box->policy.strp_code = i;
-		box->policy.strp_policy = found ?
-		    SYSTR_POLICY_PERMIT : SYSTR_POLICY_KILL;
+		policy.strp_op = SYSTR_POLICY_MODIFY;
+		policy.strp_code = i;
+		policy.strp_policy = found ?
+		    allowed_syscalls[j].action : SYSTR_POLICY_KILL;
 		if (found)
 			debug3("%s: policy: enable syscall %d", __func__, i);
-		if (ioctl(box->systrace_fd, STRIOCPOLICY,
-		    &box->policy) == -1)
+		if (ioctl(box->systrace_fd, STRIOCPOLICY, &policy) == -1)
 			fatal("%s: ioctl(%d, STRIOCPOLICY (modify)): %s",
 			    __func__, box->systrace_fd, strerror(errno));
 	}
