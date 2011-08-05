@@ -3,6 +3,11 @@
    - djm@cvs.openbsd.org 2011/06/23 23:35:42
      [monitor.c]
      ignore EINTR errors from poll()
+   - tedu@cvs.openbsd.org 2011/07/06 18:09:21
+     [authfd.c]
+     bzero the agent address.  the kernel was for a while very cranky about
+     these things.  evne though that's fixed, always good to initialize
+     memory.  ok deraadt djm
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
