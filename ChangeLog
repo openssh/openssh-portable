@@ -1,3 +1,9 @@
+20110805
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/06/23 23:35:42
+     [monitor.c]
+     ignore EINTR errors from poll()
+
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
    Darwin/OS X using sandbox_init() + setrlimit(); feedback and testing

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.114 2011/06/17 21:44:30 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.115 2011/06/23 23:35:42 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -554,8 +554,11 @@ monitor_read(struct monitor *pmonitor, struct mon_table *ent,
 		pfd[0].events = POLLIN;
 		pfd[1].fd = pmonitor->m_log_recvfd;
 		pfd[1].events = pfd[1].fd == -1 ? 0 : POLLIN;
-		if (poll(pfd, pfd[1].fd == -1 ? 1 : 2, -1) == -1)
+		if (poll(pfd, pfd[1].fd == -1 ? 1 : 2, -1) == -1) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
 			fatal("%s: poll: %s", __func__, strerror(errno));
+		}
 		if (pfd[1].revents) {
 			/*
 			 * Drain all log messages before processing next
