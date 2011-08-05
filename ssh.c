@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.363 2011/06/22 22:08:42 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.364 2011/08/02 23:15:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -706,7 +706,7 @@ main(int ac, char **av)
 		if (r > 0 && (size_t)r < sizeof(buf))
 			(void)read_config_file(buf, host, &options, 1);
 
-		/* Read systemwide configuration file after use config. */
+		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host,
 		    &options, 0);
 	}

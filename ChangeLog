@@ -25,6 +25,9 @@
    - djm@cvs.openbsd.org 2011/08/02 23:13:01
      [version.h]
      crank now, release later
+   - djm@cvs.openbsd.org 2011/08/02 23:15:03
+     [ssh.c]
+     typo in comment
 
 20110624
  - (djm) [configure.ac Makefile.in sandbox-darwin.c] Add a sandbox for
