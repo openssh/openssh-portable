@@ -3,6 +3,11 @@
    - jmc@cvs.openbsd.org 2008/06/26 06:59:39
      [moduli.5]
      tweak previous;
+   - sobrado@cvs.openbsd.org 2009/10/28 08:56:54
+     [moduli.5]
+     "Diffie-Hellman" is the usual spelling for the cryptographic protocol
+     first published by Whitfield Diffie and Martin Hellman in 1976.
+     ok jmc@
 
 20110805
  - OpenBSD CVS Sync
