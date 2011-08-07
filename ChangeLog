@@ -11,6 +11,9 @@
    - jmc@cvs.openbsd.org 2010/10/14 20:41:28
      [moduli.5]
      probabalistic -> probabilistic; from naddy
+   - dtucker@cvs.openbsd.org 2011/08/07 12:55:30
+     [sftp.1]
+     typo, fix from Laurent Gautrot
 
 20110805
  - OpenBSD CVS Sync
