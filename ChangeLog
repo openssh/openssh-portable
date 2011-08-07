@@ -8,6 +8,9 @@
      "Diffie-Hellman" is the usual spelling for the cryptographic protocol
      first published by Whitfield Diffie and Martin Hellman in 1976.
      ok jmc@
+   - jmc@cvs.openbsd.org 2010/10/14 20:41:28
+     [moduli.5]
+     probabalistic -> probabilistic; from naddy
 
 20110805
  - OpenBSD CVS Sync
