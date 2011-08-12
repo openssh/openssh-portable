@@ -4,7 +4,10 @@
    jchadima at redhat.
  - (djm) [contrib/redhat/openssh.spec contrib/redhat/sshd.init]
    [contrib/suse/openssh.spec contrib/suse/rc.sshd] Updated RHEL and SLES
-   init scrips from imorgan AT nas.nasa.gov
+   init scrips from imorgan AT nas.nasa.gov; bz#1920
+ - (djm) [contrib/ssh-copy-id] Fix failure for cases where the path to the
+   identify file contained whitespace. bz#1828 patch from gwenael.lambrouin
+   AT gmail.com; ok dtucker@
 
 20110807
  - (dtucker) OpenBSD CVS Sync
