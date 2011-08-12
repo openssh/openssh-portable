@@ -1,4 +1,4 @@
-/* $Id: port-linux.c,v 1.14 2011/02/06 02:24:35 dtucker Exp $ */
+/* $Id: port-linux.c,v 1.15 2011/08/12 00:12:55 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Daniel Walsh <dwalsh@redhat.com>
@@ -201,7 +201,8 @@ ssh_selinux_change_context(const char *newname)
 	debug3("%s: setting context from '%s' to '%s'", __func__, oldctx,
 	    newctx);
 	if (setcon(newctx) < 0)
-		logit("%s: setcon failed with %s", __func__, strerror (errno));
+		logit("%s: setcon %s from %s failed with %s", __func__, newctx,
+		    oldctx, strerror (errno));
 	xfree(oldctx);
 	xfree(newctx);
 }

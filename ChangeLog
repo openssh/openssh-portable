@@ -1,3 +1,8 @@
+20110812
+ - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
+   change error by reporting old and new context names  Patch from
+   jchadima at redhat.
+
 20110807
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2008/06/26 06:59:39
