@@ -2,6 +2,9 @@
  - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
    change error by reporting old and new context names  Patch from
    jchadima at redhat.
+ - (djm) [contrib/redhat/openssh.spec contrib/redhat/sshd.init]
+   [contrib/suse/openssh.spec contrib/suse/rc.sshd] Updated RHEL and SLES
+   init scrips from imorgan AT nas.nasa.gov
 
 20110807
  - (dtucker) OpenBSD CVS Sync
