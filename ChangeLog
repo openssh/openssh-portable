@@ -11,6 +11,9 @@
    - dtucker@cvs.openbsd.org 2011/06/03 05:35:10
      [regress/cfgmatch.sh]
      use OBJ to find test configs, patch from Tim Rice
+   - markus@cvs.openbsd.org 2011/06/30 22:44:43
+     [regress/connect-privsep.sh]
+     test with sandbox enabled; ok djm@
 
 20110812
  - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
