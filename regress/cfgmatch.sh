@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatch.sh,v 1.5 2011/05/23 03:31:31 djm Exp $
+#	$OpenBSD: cfgmatch.sh,v 1.6 2011/06/03 05:35:10 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config match"
