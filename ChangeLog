@@ -5,6 +5,8 @@
    binary_pipe is no longer required on Cygwin; patch from Corinna Vinschen
  - (djm) [configure.ac] error out if the host lacks the necessary bits for
    an explicitly requested sandbox type
+ - (djm) [contrib/ssh-copy-id] Missing backlslash; spotted by
+   bisson AT archlinux.org
 
 20110812
  - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
