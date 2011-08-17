@@ -1,3 +1,7 @@
+20110817
+ - (tim) [mac.c myproposal.h] Wrap SHA256 and SHA512 in ifdefs for
+   OpenSSL 0.9.7. ok djm
+
 20110812
  - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
    change error by reporting old and new context names  Patch from

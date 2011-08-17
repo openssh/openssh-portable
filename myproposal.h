@@ -75,14 +75,20 @@
 	"arcfour256,arcfour128," \
 	"aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc," \
 	"aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"
+#ifdef HAVE_EVP_SHA256
+#define	SHA2_HMAC_MODES \
+	"hmac-sha2-256," \
+	"hmac-sha2-256-96," \
+	"hmac-sha2-512," \
+	"hmac-sha2-512-96,"
+#else
+# define SHA2_HMAC_MODES
+#endif
 #define	KEX_DEFAULT_MAC \
 	"hmac-md5," \
 	"hmac-sha1," \
 	"umac-64@openssh.com," \
-	"hmac-sha2-256," \
-	"hmac-sha2-256-96," \
-	"hmac-sha2-512," \
-	"hmac-sha2-512-96," \
+	SHA2_HMAC_MODES \
 	"hmac-ripemd160," \
 	"hmac-ripemd160@openssh.com," \
 	"hmac-sha1-96," \
