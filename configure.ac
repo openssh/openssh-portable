@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.478 2011/06/26 21:18:20 djm Exp $
+# $Id: configure.ac,v 1.479 2011/08/17 01:59:26 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.478 $)
+AC_REVISION($Revision: 1.479 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2476,7 +2476,7 @@ AC_SUBST([SSH_PRIVSEP_USER])
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
-	[  --with-sandbox=style    Specify privilege separation sandbox (no, rlimit, systrace)],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, darwin, rlimit, systrace)],
 	[
 		if test "x$withval" = "xyes" ; then
 			sandbox_arg=""
@@ -2487,15 +2487,22 @@ AC_ARG_WITH([sandbox],
 )
 if test "x$sandbox_arg" = "xsystrace" || \
    ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
+	test "x$have_systr_policy_kill" != "x1" && \
+		AC_MSG_ERROR([systrace sandbox requires systrace headers and SYSTR_POLICY_KILL support])
 	SANDBOX_STYLE="systrace"
 	AC_DEFINE([SANDBOX_SYSTRACE], [1], [Sandbox using systrace(4)])
 elif test "x$sandbox_arg" = "xdarwin" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_sandbox_init" = "xyes" && \
        test "x$ac_cv_header_sandbox_h" = "xyes") ; then
+	test "x$ac_cv_func_sandbox_init" != "xyes" -o \
+	     "x$ac_cv_header_sandbox_h" != "xyes" && \
+		AC_MSG_ERROR([Darwin seatbelt sandbox requires sandbox.h and sandbox_init function])
 	SANDBOX_STYLE="darwin"
 	AC_DEFINE([SANDBOX_DARWIN], [1], [Sandbox using Darwin sandbox_init(3)])
 elif test "x$sandbox_arg" = "xrlimit" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" ) ; then
+	test "x$ac_cv_func_setrlimit" != "xyes" && \
+		AC_MSG_ERROR([rlimit sandbox requires setrlimit function])
 	SANDBOX_STYLE="rlimit"
 	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
 elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
