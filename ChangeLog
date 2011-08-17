@@ -17,6 +17,8 @@
    - djm@cvs.openbsd.org 2011/08/02 01:23:41
      [regress/cipher-speed.sh regress/try-ciphers.sh]
      add SHA256/SHA512 based HMAC modes
+ - (djm) [regress/cipher-speed.sh regress/try-ciphers.sh] disable HMAC-SHA2
+   MAC tests for platforms that hack EVP_SHA2 support
 
 20110812
  - (dtucker) [openbsd-compat/port-linux.c] Bug 1924: Improve selinux context
