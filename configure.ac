@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.479 2011/08/17 01:59:26 djm Exp $
+# $Id: configure.ac,v 1.480 2011/08/18 04:48:24 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.479 $)
+AC_REVISION($Revision: 1.480 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2510,7 +2510,7 @@ elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
 	SANDBOX_STYLE="none"
 	AC_DEFINE([SANDBOX_NULL], [1], [no privsep sandboxing])
 else
-	AC_MSG_ERROR([unsupported -with-sandbox])
+	AC_MSG_ERROR([unsupported --with-sandbox])
 fi
 
 # Cheap hack to ensure NEWS-OS libraries are arranged right.

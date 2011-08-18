@@ -1,3 +1,6 @@
+20110818
+ - (tim) [configure.ac] Typo in error message spotted by Andy Tsouladze
+
 20110817
  - (tim) [mac.c myproposal.h] Wrap SHA256 and SHA512 in ifdefs for
    OpenSSL 0.9.7. ok djm
