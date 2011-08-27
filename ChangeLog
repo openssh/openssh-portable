@@ -1,3 +1,6 @@
+20110827
+ - (dtucker) [auth-skey.c] Add log.h to fix build --with-skey.
+
 20110818
  - (tim) [configure.ac] Typo in error message spotted by Andy Tsouladze
 
