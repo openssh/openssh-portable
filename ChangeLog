@@ -1,3 +1,8 @@
+20110829
+ - (djm) [openbsd-compat/port-linux.c] Suppress logging when attempting
+   to switch SELinux context away from unconfined_t, based on patch from
+   Jan Chadima; bz#1919 ok dtucker@
+
 20110827
  - (dtucker) [auth-skey.c] Add log.h to fix build --with-skey.
 
