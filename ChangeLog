@@ -1,6 +1,8 @@
 20110904
  - (djm) [regress/connect-privsep.sh regress/test-exec.sh] demote fatal
    regress errors for the sandbox to warnings. ok tim dtucker
+ - (dtucker) [ssh-keygen.c ssh-pkcs11.c] Bug #1929: add null implementations
+   ofsh-pkcs11.cpkcs_init and pkcs_terminate for building without dlopen support.
 
 20110829
  - (djm) [openbsd-compat/port-linux.c] Suppress logging when attempting

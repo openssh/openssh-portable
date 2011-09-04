@@ -49,10 +49,7 @@
 #include "hostfile.h"
 #include "dns.h"
 #include "ssh2.h"
-
-#ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
-#endif
 
 /* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
 #define DEFAULT_BITS		2048
