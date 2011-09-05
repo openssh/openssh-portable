@@ -1,6 +1,7 @@
 20110905
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update version numbers.
+ - (djm) Release OpenSSH-5.9
 
 20110904
  - (djm) [regress/connect-privsep.sh regress/test-exec.sh] demote fatal
