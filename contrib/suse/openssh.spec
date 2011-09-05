@@ -13,7 +13,7 @@
 
 Summary:	OpenSSH, a free Secure Shell (SSH) protocol implementation
 Name:		openssh
-Version:	5.8p2
+Version:	5.9p1
 URL:		http://www.openssh.com/
 Release:	1
 Source0:	openssh-%{version}.tar.gz
