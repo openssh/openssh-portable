@@ -1,3 +1,6 @@
+20110906
+ - (djm) [README version.h] Correct version
+
 20110905
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update version numbers.
