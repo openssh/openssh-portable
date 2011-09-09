@@ -1,3 +1,7 @@
+20110909
+ - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
+   Colin Watson.
+
 20110906
  - (djm) [README version.h] Correct version
  - (djm) [contrib/redhat/openssh.spec] Correct restorcon => restorecon
