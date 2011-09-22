@@ -70,6 +70,10 @@
    - markus@cvs.openbsd.org 2011/09/12 08:46:15
      [sftp-client.c]
      fix leak in do_lsreaddir(); ok djm
+   - djm@cvs.openbsd.org 2011/09/22 06:29:03
+     [sftp.c]
+     don't let remote_glob() implicitly sort its results in do_globbed_ls() -
+     in all likelihood, they will be resorted anyway
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
