@@ -20,6 +20,10 @@
      [ssh.1]
      Add some missing ssh_config(5) options that can be used in ssh(1)'s
      -o argument. Patch from duclare AT guu.fi
+   - djm@cvs.openbsd.org 2011/09/05 05:56:13
+     [scp.1 sftp.1]
+     mention ControlPersist and KbdInteractiveAuthentication in the -o
+     verbiage in these pages too (prompted by jmc@)
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
