@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.94 2010/12/04 00:18:01 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.95 2011/09/11 16:07:26 markus Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -805,15 +805,15 @@ do_hardlink(struct sftp_conn *conn, char *oldpath, char *newpath)
 	Buffer msg;
 	u_int status, id;
 
-	buffer_init(&msg);
-
-	/* Send link request */
-	id = conn->msg_id++;
 	if ((conn->exts & SFTP_EXT_HARDLINK) == 0) {
 		error("Server does not support hardlink@openssh.com extension");
 		return -1;
 	}
 
+	buffer_init(&msg);
+
+	/* Send link request */
+	id = conn->msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_EXTENDED);
 	buffer_put_int(&msg, id);
 	buffer_put_cstring(&msg, "hardlink@openssh.com");
@@ -889,6 +889,7 @@ do_readlink(struct sftp_conn *conn, char *path)
 		u_int status = buffer_get_int(&msg);
 
 		error("Couldn't readlink: %s", fx2txt(status));
+		buffer_free(&msg);
 		return(NULL);
 	} else if (type != SSH2_FXP_NAME)
 		fatal("Expected SSH2_FXP_NAME(%u) packet, got %u",

@@ -63,6 +63,10 @@
    - okan@cvs.openbsd.org 2011/09/11 06:59:05
      [ssh.1]
      document new -O cancel command; ok djm@
+   - markus@cvs.openbsd.org 2011/09/11 16:07:26
+     [sftp-client.c]
+     fix leaks in do_hardlink() and do_readlink(); bz#1921
+     from Loganaden Velvindron
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
