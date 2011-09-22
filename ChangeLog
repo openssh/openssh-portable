@@ -42,6 +42,11 @@
      [PROTOCOL.mux]
      MUX_C_CLOSE_FWD includes forward type in message (though it isn't
      implemented anyway)
+   - djm@cvs.openbsd.org 2011/09/09 22:37:01
+     [scp.c]
+     suppress adding '--' to remote commandlines when the first argument
+     does not start with '-'. saves breakage on some difficult-to-upgrade
+     embedded/router platforms; feedback & ok dtucker ok markus
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
