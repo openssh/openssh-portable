@@ -31,6 +31,9 @@
    - jmc@cvs.openbsd.org 2011/09/05 07:01:44
      [scp.1]
      knock out a useless Ns;
+   - deraadt@cvs.openbsd.org 2011/09/07 02:18:31
+     [ssh-keygen.1]
+     typo (they vs the) found by Lawrence Teo
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
