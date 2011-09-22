@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.36 2011/05/12 07:15:10 pyr Exp $ */
+/*	$OpenBSD: glob.c,v 1.37 2011/09/20 10:18:46 stsp Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -66,6 +66,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -138,6 +139,9 @@ struct glob_lim {
 	size_t	glim_readdir;
 };
 
+/* Limit of recursion during matching attempts. */
+#define GLOB_LIMIT_RECUR	64
+
 static int	 compare(const void *, const void *);
 static int	 g_Ctoc(const Char *, char *, u_int);
 static int	 g_lstat(Char *, struct stat *, glob_t *);
@@ -158,7 +162,7 @@ static const Char *
 static int	 globexp1(const Char *, glob_t *, struct glob_lim *);
 static int	 globexp2(const Char *, const Char *, glob_t *,
 		    struct glob_lim *);
-static int	 match(Char *, Char *, Char *);
+static int	 match(Char *, Char *, Char *, int);
 #ifdef DEBUG
 static void	 qprintf(const char *, Char *);
 #endif
@@ -171,6 +175,9 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int),
 	int c;
 	Char *bufnext, *bufend, patbuf[MAXPATHLEN];
 	struct glob_lim limit = { 0, 0, 0 };
+
+	if (strnlen(pattern, PATH_MAX) == PATH_MAX)
+		return(GLOB_NOMATCH);
 
 	patnext = (u_char *) pattern;
 	if (!(flags & GLOB_APPEND)) {
@@ -714,7 +721,7 @@ glob3(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 			break;
 		}
 
-		if (!match(pathend, pattern, restpattern)) {
+		if (!match(pathend, pattern, restpattern, GLOB_LIMIT_RECUR)) {
 			*pathend = EOS;
 			continue;
 		}
@@ -851,19 +858,24 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
  * pattern causes a recursion level.
  */
 static int
-match(Char *name, Char *pat, Char *patend)
+match(Char *name, Char *pat, Char *patend, int recur)
 {
 	int ok, negate_range;
 	Char c, k;
+
+	if (recur-- == 0)
+		return(GLOB_NOSPACE);
 
 	while (pat < patend) {
 		c = *pat++;
 		switch (c & M_MASK) {
 		case M_ALL:
+			while (pat < patend && (*pat & M_MASK) == M_ALL)
+				pat++;	/* eat consecutive '*' */
 			if (pat == patend)
 				return(1);
 			do {
-			    if (match(name, pat, patend))
+			    if (match(name, pat, patend, recur))
 				    return(1);
 			} while (*name++ != EOS);
 			return(0);

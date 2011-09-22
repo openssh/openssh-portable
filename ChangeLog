@@ -6,6 +6,11 @@
      an error is returned but closedir() is not called.
      spotted and fix provided by Frank Denis obsd-tech@pureftpd.org
      ok otto@, millert@
+   - stsp@cvs.openbsd.org 2011/09/20 10:18:46
+     [glob.c]
+     In glob(3), limit recursion during matching attempts. Similar to
+     fnmatch fix. Also collapse consecutive '*' (from NetBSD).
+     ok miod deraadt
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
