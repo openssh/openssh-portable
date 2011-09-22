@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.312 2011/09/09 22:46:44 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.313 2011/09/10 22:26:34 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2844,7 +2844,7 @@ channel_cancel_rport_listener(const char *host, u_short port)
 
 int
 channel_cancel_lport_listener(const char *lhost, u_short lport,
-    u_short cport, int gateway_ports)
+    int cport, int gateway_ports)
 {
 	u_int i;
 	int found = 0;
@@ -2854,8 +2854,16 @@ channel_cancel_lport_listener(const char *lhost, u_short lport,
 		Channel *c = channels[i];
 		if (c == NULL || c->type != SSH_CHANNEL_PORT_LISTENER)
 			continue;
-		if (c->listening_port != lport || c->host_port != cport)
+		if (c->listening_port != lport)
 			continue;
+		if (cport == CHANNEL_CANCEL_PORT_STATIC) {
+			/* skip dynamic forwardings */
+			if (c->host_port == 0)
+				continue;
+		} else {
+			if (c->host_port != cport)
+				continue;
+		}
 		if ((c->listening_addr == NULL && addr != NULL) ||
 		    (c->listening_addr != NULL && addr == NULL))
 			continue;

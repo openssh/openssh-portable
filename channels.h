@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.106 2011/09/09 22:46:44 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.107 2011/09/10 22:26:34 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -56,6 +56,8 @@
 #define SSH_CHANNEL_MUX_LISTENER	15	/* Listener for mux conn. */
 #define SSH_CHANNEL_MUX_CLIENT		16	/* Conn. to mux slave */
 #define SSH_CHANNEL_MAX_TYPE		17
+
+#define CHANNEL_CANCEL_PORT_STATIC	-1
 
 struct Channel;
 typedef struct Channel Channel;
@@ -265,7 +267,7 @@ int	 channel_setup_local_fwd_listener(const char *, u_short,
 int	 channel_request_rforward_cancel(const char *host, u_short port);
 int	 channel_setup_remote_fwd_listener(const char *, u_short, int *, int);
 int	 channel_cancel_rport_listener(const char *, u_short);
-int	 channel_cancel_lport_listener(const char *, u_short, u_short, int);
+int	 channel_cancel_lport_listener(const char *, u_short, int, int);
 
 /* x11 forwarding */
 

@@ -56,6 +56,10 @@
      support for cancelling local and remote port forwards via the multiplex
      socket. Use ssh -O cancel -L xx:xx:xx -R yy:yy:yy user@host" to request
      the cancellation of the specified forwardings; ok markus@
+   - markus@cvs.openbsd.org 2011/09/10 22:26:34
+     [channels.c channels.h clientloop.c ssh.1]
+     support cancellation of local/dynamic forwardings from ~C commandline;
+     ok & feedback djm@
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
