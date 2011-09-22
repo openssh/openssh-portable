@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.95 2011/09/11 16:07:26 markus Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.96 2011/09/12 08:46:15 markus Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -462,12 +462,12 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 	buffer_put_cstring(&msg, path);
 	send_msg(conn, &msg);
 
-	buffer_clear(&msg);
-
 	handle = get_handle(conn, id, &handle_len,
 	    "remote readdir(\"%s\")", path);
-	if (handle == NULL)
+	if (handle == NULL) {
+		buffer_free(&msg);
 		return -1;
+	}
 
 	if (dir) {
 		ents = 0;
@@ -510,6 +510,7 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 				    fx2txt(status));
 				do_close(conn, handle, handle_len);
 				xfree(handle);
+				buffer_free(&msg);
 				return(status);
 			}
 		} else if (type != SSH2_FXP_NAME)

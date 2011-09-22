@@ -67,6 +67,9 @@
      [sftp-client.c]
      fix leaks in do_hardlink() and do_readlink(); bz#1921
      from Loganaden Velvindron
+   - markus@cvs.openbsd.org 2011/09/12 08:46:15
+     [sftp-client.c]
+     fix leak in do_lsreaddir(); ok djm
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
