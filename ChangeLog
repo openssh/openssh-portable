@@ -16,6 +16,10 @@
      fix GLOB_KEEPSTAT without GLOB_NOSORT; the implicit sort was being
      applied only to the gl_pathv vector and not the corresponding gl_statv
      array. reported in OpenSSH bz#1935; feedback and okay matthew@
+   - djm@cvs.openbsd.org 2011/08/26 01:45:15
+     [ssh.1]
+     Add some missing ssh_config(5) options that can be used in ssh(1)'s
+     -o argument. Patch from duclare AT guu.fi
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
