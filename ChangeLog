@@ -34,6 +34,10 @@
    - deraadt@cvs.openbsd.org 2011/09/07 02:18:31
      [ssh-keygen.1]
      typo (they vs the) found by Lawrence Teo
+   - djm@cvs.openbsd.org 2011/09/09 00:43:00
+     [ssh_config.5 sshd_config.5]
+     fix typo in IPQoS parsing: there is no "AF14" class, but there is
+     an "AF21" class. Spotted by giesen AT snickers.org; ok markus stevesk
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
