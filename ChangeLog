@@ -51,6 +51,11 @@
      [sshd.c]
      kill the preauth privsep child on fatal errors in the monitor;
      ok markus@
+   - djm@cvs.openbsd.org 2011/09/09 22:46:44
+     [channels.c channels.h clientloop.h mux.c ssh.c]
+     support for cancelling local and remote port forwards via the multiplex
+     socket. Use ssh -O cancel -L xx:xx:xx -R yy:yy:yy user@host" to request
+     the cancellation of the specified forwardings; ok markus@
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From

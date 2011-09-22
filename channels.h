@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.105 2011/06/22 22:08:42 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.106 2011/09/09 22:46:44 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -116,6 +116,7 @@ struct Channel {
 	char    *path;
 		/* path for unix domain sockets, or host name for forwards */
 	int     listening_port;	/* port being listened for forwards */
+	char   *listening_addr;	/* addr being listened for forwards */
 	int     host_port;	/* remote port to connect for forwards */
 	char   *remote_name;	/* remote hostname */
 
@@ -261,9 +262,10 @@ int	 channel_request_remote_forwarding(const char *, u_short,
 	     const char *, u_short);
 int	 channel_setup_local_fwd_listener(const char *, u_short,
 	     const char *, u_short, int);
-void	 channel_request_rforward_cancel(const char *host, u_short port);
+int	 channel_request_rforward_cancel(const char *host, u_short port);
 int	 channel_setup_remote_fwd_listener(const char *, u_short, int *, int);
 int	 channel_cancel_rport_listener(const char *, u_short);
+int	 channel_cancel_lport_listener(const char *, u_short, u_short, int);
 
 /* x11 forwarding */
 
