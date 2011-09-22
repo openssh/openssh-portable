@@ -11,6 +11,11 @@
      In glob(3), limit recursion during matching attempts. Similar to
      fnmatch fix. Also collapse consecutive '*' (from NetBSD).
      ok miod deraadt
+   - djm@cvs.openbsd.org 2011/09/22 06:27:29
+     [glob.c]
+     fix GLOB_KEEPSTAT without GLOB_NOSORT; the implicit sort was being
+     applied only to the gl_pathv vector and not the corresponding gl_statv
+     array. reported in OpenSSH bz#1935; feedback and okay matthew@
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From

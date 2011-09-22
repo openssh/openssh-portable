@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.37 2011/09/20 10:18:46 stsp Exp $ */
+/*	$OpenBSD: glob.c,v 1.38 2011/09/22 06:27:29 djm Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -133,16 +133,22 @@ typedef char Char;
 #define	GLOB_LIMIT_STAT		128
 #define	GLOB_LIMIT_READDIR	16384
 
+/* Limit of recursion during matching attempts. */
+#define GLOB_LIMIT_RECUR	64
+
 struct glob_lim {
 	size_t	glim_malloc;
 	size_t	glim_stat;
 	size_t	glim_readdir;
 };
 
-/* Limit of recursion during matching attempts. */
-#define GLOB_LIMIT_RECUR	64
+struct glob_path_stat {
+	char		*gps_path;
+	struct stat	*gps_stat;
+};
 
 static int	 compare(const void *, const void *);
+static int	 compare_gps(const void *, const void *);
 static int	 g_Ctoc(const Char *, char *, u_int);
 static int	 g_lstat(Char *, struct stat *, glob_t *);
 static DIR	*g_opendir(Char *, glob_t *);
@@ -555,9 +561,32 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 		else
 			return(GLOB_NOMATCH);
 	}
-	if (!(pglob->gl_flags & GLOB_NOSORT))
-		qsort(pglob->gl_pathv + pglob->gl_offs + oldpathc,
-		    pglob->gl_pathc - oldpathc, sizeof(char *), compare);
+	if (!(pglob->gl_flags & GLOB_NOSORT)) {
+		if ((pglob->gl_flags & GLOB_KEEPSTAT)) {
+			/* Keep the paths and stat info synced during sort */
+			struct glob_path_stat *path_stat;
+			int i;
+			int n = pglob->gl_pathc - oldpathc;
+			int o = pglob->gl_offs + oldpathc;
+
+			if ((path_stat = calloc(n, sizeof(*path_stat))) == NULL)
+				return GLOB_NOSPACE;
+			for (i = 0; i < n; i++) {
+				path_stat[i].gps_path = pglob->gl_pathv[o + i];
+				path_stat[i].gps_stat = pglob->gl_statv[o + i];
+			}
+			qsort(path_stat, n, sizeof(*path_stat), compare_gps);
+			for (i = 0; i < n; i++) {
+				pglob->gl_pathv[o + i] = path_stat[i].gps_path;
+				pglob->gl_statv[o + i] = path_stat[i].gps_stat;
+			}
+			free(path_stat);
+		} else {
+			qsort(pglob->gl_pathv + pglob->gl_offs + oldpathc,
+			    pglob->gl_pathc - oldpathc, sizeof(char *),
+			    compare);
+		}
+	}
 	return(0);
 }
 
@@ -565,6 +594,15 @@ static int
 compare(const void *p, const void *q)
 {
 	return(strcmp(*(char **)p, *(char **)q));
+}
+
+static int
+compare_gps(const void *_p, const void *_q)
+{
+	const struct glob_path_stat *p = (const struct glob_path_stat *)_p;
+	const struct glob_path_stat *q = (const struct glob_path_stat *)_q;
+
+	return(strcmp(p->gps_path, q->gps_path));
 }
 
 static int
