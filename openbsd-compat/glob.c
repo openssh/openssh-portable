@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.35 2011/01/12 01:53:14 djm Exp $ */
+/*	$OpenBSD: glob.c,v 1.36 2011/05/12 07:15:10 pyr Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -697,7 +697,8 @@ glob3(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 			errno = 0;
 			*pathend++ = SEP;
 			*pathend = EOS;
-			return(GLOB_NOSPACE);
+			err = GLOB_NOSPACE;
+			break;
 		}
 
 		/* Initial DOT must be matched literally. */

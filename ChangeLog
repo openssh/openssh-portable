@@ -1,3 +1,12 @@
+20110922
+ - OpenBSD CVS Sync
+   - pyr@cvs.openbsd.org 2011/05/12 07:15:10
+     [openbsd-compat/glob.c]
+     When the max number of items for a directory has reached GLOB_LIMIT_READDIR
+     an error is returned but closedir() is not called.
+     spotted and fix provided by Frank Denis obsd-tech@pureftpd.org
+     ok otto@, millert@
+
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
    Colin Watson.
