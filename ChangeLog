@@ -60,6 +60,9 @@
      [channels.c channels.h clientloop.c ssh.1]
      support cancellation of local/dynamic forwardings from ~C commandline;
      ok & feedback djm@
+   - okan@cvs.openbsd.org 2011/09/11 06:59:05
+     [ssh.1]
+     document new -O cancel command; ok djm@
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
