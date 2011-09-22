@@ -24,6 +24,10 @@
      [scp.1 sftp.1]
      mention ControlPersist and KbdInteractiveAuthentication in the -o
      verbiage in these pages too (prompted by jmc@)
+   - djm@cvs.openbsd.org 2011/09/05 05:59:08
+     [misc.c]
+     fix typo in IPQoS parsing: there is no "AF14" class, but there is
+     an "AF21" class. Spotted by giesen AT snickers.org; ok markus stevesk
 
 20110909
  - (dtucker) [entropy.h] Bug #1932: remove old definition of init_rng.  From
