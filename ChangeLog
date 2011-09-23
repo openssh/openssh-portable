@@ -1,3 +1,10 @@
+20110923
+ - OpenBSD CVS Sync
+   - millert@cvs.openbsd.org 2006/05/05 15:27:38
+     [strlcpy.c]
+     Convert do {} while loop -> while {} for clarity.  No binary change
+     on most architectures.  From Oliver Smith.  OK deraadt@ and henning@
+
 20110922
  - OpenBSD CVS Sync
    - pyr@cvs.openbsd.org 2011/05/12 07:15:10
