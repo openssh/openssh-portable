@@ -2,6 +2,8 @@
  - (djm) [openbsd-compat/getcwd.c] Remove OpenBSD rcsid marker since we no
    longer want to sync this file (OpenBSD uses a __getcwd syscall now, we
    want this longhand version)
+ - (djm) [openbsd-compat/getgrouplist.c] Remove OpenBSD rcsid marker: the
+   upstream version is YPified and we don't want this
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2006/05/05 15:27:38
      [openbsd-compat/strlcpy.c]
