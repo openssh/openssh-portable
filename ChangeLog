@@ -9,6 +9,8 @@
  - (djm) [openbsd-compat/sha2.c openbsd-compat/sha2.h] Remove OpenBSD rcsid
    marker. The upstream API has changed (function and structure names)
    enough to put it out of sync with other providers of this interface.
+ - (djm) [openbsd-compat/setenv.c] Forklift upgrade, including inclusion
+   of static __findenv() function from upstream setenv.c
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2006/05/05 15:27:38
      [openbsd-compat/strlcpy.c]
