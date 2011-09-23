@@ -7,6 +7,11 @@
      [openbsd-compat/strlcpy.c]
      Convert do {} while loop -> while {} for clarity.  No binary change
      on most architectures.  From Oliver Smith.  OK deraadt@ and henning@
+   - tobias@cvs.openbsd.org 2007/10/21 11:09:30
+     [mktemp.c]
+     Comment fix about time consumption of _gettemp.
+     FreeBSD did this in revision 1.20.
+     OK deraadt@, krw@
 
 20110922
  - OpenBSD CVS Sync

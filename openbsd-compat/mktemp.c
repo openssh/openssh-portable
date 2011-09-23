@@ -1,7 +1,7 @@
 /* THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL OPENBSD SOURCE */
 /* Changes: Removed mktemp */
 
-/*	$OpenBSD: mktemp.c,v 1.19 2005/08/08 08:05:36 espie Exp $ */
+/*	$OpenBSD: mktemp.c,v 1.20 2007/10/21 11:09:30 tobias Exp $ */
 /*
  * Copyright (c) 1987, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -112,10 +112,7 @@ _gettemp(path, doopen, domkdir, slen)
 	}
 	start = trv + 1;
 
-	/*
-	 * check the target directory; if you have six X's and it
-	 * doesn't exist this runs for a *very* long time.
-	 */
+	/* Check the target directory. */
 	if (doopen || domkdir) {
 		for (;; --trv) {
 			if (trv <= path)
