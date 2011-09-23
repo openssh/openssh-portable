@@ -17,6 +17,10 @@
    - deraadt@cvs.openbsd.org 2008/07/22 21:47:45
      [mktemp.c]
      use arc4random_uniform(); ok djm millert
+   - millert@cvs.openbsd.org 2008/08/21 16:54:44
+     [mktemp.c]
+     Remove useless code, the kernel will set errno appropriately if an
+     element in the path does not exist.  OK deraadt@ pvalchev@
 
 20110922
  - OpenBSD CVS Sync
