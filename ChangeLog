@@ -1,7 +1,10 @@
 20110923
+ - (djm) [openbsd-compat/getcwd.c] Remove OpenBSD rcsid marker since we no
+   longer want to sync this file (OpenBSD uses a __getcwd syscall now, we
+   want this longhand version)
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2006/05/05 15:27:38
-     [strlcpy.c]
+     [openbsd-compat/strlcpy.c]
      Convert do {} while loop -> while {} for clarity.  No binary change
      on most architectures.  From Oliver Smith.  OK deraadt@ and henning@
 
