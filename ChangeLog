@@ -1,3 +1,7 @@
+20110929
+ - (djm) [configure.ac defines.h] No need to detect sizeof(char); patch
+   from des AT des.no
+
 20110923
  - (djm) [openbsd-compat/getcwd.c] Remove OpenBSD rcsid marker since we no
    longer want to sync this file (OpenBSD uses a __getcwd syscall now, we

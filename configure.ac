@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.480 2011/08/18 04:48:24 tim Exp $
+# $Id: configure.ac,v 1.481 2011/09/29 01:11:55 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.480 $)
+AC_REVISION($Revision: 1.481 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2522,7 +2522,6 @@ fi
 AC_CHECK_TYPES([long long, unsigned long long, long double])
 
 # Check datatype sizes
-AC_CHECK_SIZEOF([char], [1])
 AC_CHECK_SIZEOF([short int], [2])
 AC_CHECK_SIZEOF([int], [4])
 AC_CHECK_SIZEOF([long int], [4])
