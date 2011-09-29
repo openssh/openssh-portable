@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.481 2011/09/29 01:11:55 djm Exp $
+# $Id: configure.ac,v 1.482 2011/09/29 13:17:21 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.481 $)
+AC_REVISION($Revision: 1.482 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1501,6 +1501,7 @@ AC_CHECK_FUNCS([ \
 	strlcat \
 	strlcpy \
 	strmode \
+	strnlen \
 	strnvis \
 	strptime \
 	strtonum \
@@ -2505,6 +2506,51 @@ elif test "x$sandbox_arg" = "xrlimit" || \
 		AC_MSG_ERROR([rlimit sandbox requires setrlimit function])
 	SANDBOX_STYLE="rlimit"
 	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
+
+	AC_MSG_CHECKING([if select works with zero available fds])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <sys/time.h>
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#include <sys/resource.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+		]], [[
+	struct rlimit rl_zero;
+	int fd, r;
+	fd_set fds;
+
+	fd = open("/dev/null", O_RDWR);
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+	setrlimit(RLIMIT_FSIZE, &rl_zero);
+	setrlimit(RLIMIT_NOFILE, &rl_zero);
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	r = select(fd+1, &fds, NULL, NULL, NULL);
+	if (r == -1)
+		exit(1);
+	exit(0);
+		]])], [
+			AC_MSG_RESULT(yes)
+			AC_DEFINE([SELECT_REQUIRED_FDS], [0],
+			    [number of available fds required for select])
+		], [
+			AC_MSG_RESULT(no)
+			AC_DEFINE([SELECT_REQUIRED_FDS], [1],
+			    [number of available fds required for select])
+		], [
+			AC_MSG_RESULT([cross-compiling, assuming yes])
+			AC_DEFINE([SELECT_REQUIRED_FDS], [0],
+			    [assuming select works with zero free fds])
+		]
+	)
 elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
      test "x$sandbox_arg" = "xnone" || test "x$sandbox_arg" = "xnull" ; then
 	SANDBOX_STYLE="none"
