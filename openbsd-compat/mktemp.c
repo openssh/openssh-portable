@@ -54,7 +54,7 @@ mktemp_internal(char *path, int slen, int mode)
 	int fd;
 
 	len = strlen(path);
-	if (len == 0 || slen >= len) {
+	if (len == 0 || slen < 0 || (size_t)slen >= len) {
 		errno = EINVAL;
 		return(-1);
 	}
