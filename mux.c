@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.30 2011/09/09 22:46:44 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.31 2011/09/23 07:45:05 markus Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -601,12 +601,16 @@ mux_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 			buffer_put_int(&out, MUX_S_REMOTE_PORT);
 			buffer_put_int(&out, fctx->rid);
 			buffer_put_int(&out, rfwd->allocated_port);
+			channel_update_permitted_opens(rfwd->handle,
+			   rfwd->allocated_port);
 		} else {
 			buffer_put_int(&out, MUX_S_OK);
 			buffer_put_int(&out, fctx->rid);
 		}
 		goto out;
 	} else {
+		if (rfwd->listen_port == 0)
+			channel_update_permitted_opens(rfwd->handle, -1);
 		xasprintf(&failmsg, "remote port forwarding failed for "
 		    "listen port %d", rfwd->listen_port);
 	}
@@ -745,8 +749,9 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	} else {
 		struct mux_channel_confirm_ctx *fctx;
 
-		if (channel_request_remote_forwarding(fwd.listen_host,
-		    fwd.listen_port, fwd.connect_host, fwd.connect_port) < 0)
+		fwd.handle = channel_request_remote_forwarding(fwd.listen_host,
+		    fwd.listen_port, fwd.connect_host, fwd.connect_port);
+		if (fwd.handle < 0)
 			goto fail;
 		add_remote_forward(&options, &fwd);
 		fctx = xcalloc(1, sizeof(*fctx));
@@ -781,7 +786,7 @@ process_mux_close_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	char *fwd_desc = NULL;
 	const char *error_reason = NULL;
 	u_int ftype;
-	int i, ret = 0;
+	int i, listen_port, ret = 0;
 
 	fwd.listen_host = fwd.connect_host = NULL;
 	if (buffer_get_int_ret(&ftype, m) != 0 ||
@@ -836,9 +841,13 @@ process_mux_close_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 		/*
 		 * This shouldn't fail unless we confused the host/port
 		 * between options.remote_forwards and permitted_opens.
+		 * However, for dynamic allocated listen ports we need
+		 * to lookup the actual listen port.
 		 */
+	        listen_port = (fwd.listen_port == 0) ?
+		    found_fwd->allocated_port : fwd.listen_port;
 		if (channel_request_rforward_cancel(fwd.listen_host,
-		    fwd.listen_port) == -1)
+		    listen_port) == -1)
 			error_reason = "port not in permitted opens";
 	} else {	/* local and dynamic forwards */
 		/* Ditto */

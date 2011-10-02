@@ -5,6 +5,16 @@
      [channels.c auth-options.c servconf.c channels.h sshd.8]
      Add wildcard support to PermitOpen, allowing things like "PermitOpen
      localhost:*".  bz #1857, ok djm markus.
+   - markus@cvs.openbsd.org 2011/09/23 07:45:05
+     [mux.c readconf.h channels.h compat.h compat.c ssh.c readconf.c channels.c
+     version.h]
+     unbreak remote portforwarding with dynamic allocated listen ports:
+     1) send the actual listen port in the open message (instead of 0).
+        this allows multiple forwardings with a dynamic listen port
+     2) update the matching permit-open entry, so we can identify where
+        to connect to
+     report: den at skbkontur.ru and P. Szczygielski
+     feedback and ok djm@
 
 20110929
  - (djm) [configure.ac defines.h] No need to detect sizeof(char); patch
