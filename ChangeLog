@@ -19,6 +19,9 @@
      [auth2-pubkey.c]
      improve the AuthorizedPrincipalsFile debug log message to include
      file and line number
+   - dtucker@cvs.openbsd.org 2011/09/30 00:47:37
+     [sshd.c]
+     don't attempt privsep cleanup when not using privsep; ok markus@
 
 20110929
  - (djm) [configure.ac defines.h] No need to detect sizeof(char); patch
