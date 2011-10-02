@@ -22,6 +22,9 @@
    - dtucker@cvs.openbsd.org 2011/09/30 00:47:37
      [sshd.c]
      don't attempt privsep cleanup when not using privsep; ok markus@
+   - djm@cvs.openbsd.org 2011/09/30 21:22:49
+     [sshd.c]
+     fix inverted test that caused logspam; spotted by henning@
 
 20110929
  - (djm) [configure.ac defines.h] No need to detect sizeof(char); patch
