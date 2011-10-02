@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.313 2011/09/10 22:26:34 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.314 2011/09/23 00:22:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -124,6 +124,9 @@ static int num_permitted_opens = 0;
 
 /* Number of permitted host/port pair in the array permitted by the admin. */
 static int num_adm_permitted_opens = 0;
+
+/* special-case port number meaning allow any port */
+#define FWD_PERMIT_ANY_PORT	0
 
 /*
  * If this is true, all opens are permitted.  This is the case on the server
@@ -3135,6 +3138,28 @@ channel_print_adm_permitted_opens(void)
 	printf("\n");
 }
 
+/* returns port number, FWD_PERMIT_ANY_PORT or -1 on error */
+int
+permitopen_port(const char *p)
+{
+	int port;
+
+	if (strcmp(p, "*") == 0)
+		return FWD_PERMIT_ANY_PORT;
+	if ((port = a2port(p)) > 0)
+		return port;
+	return -1;
+}
+
+static int
+port_match(u_short allowedport, u_short requestedport)
+{
+	if (allowedport == FWD_PERMIT_ANY_PORT ||
+	    allowedport == requestedport)
+		return 1;
+	return 0;
+}
+
 /* Try to start non-blocking connect to next host in cctx list */
 static int
 connect_next(struct channel_connect *cctx)
@@ -3237,7 +3262,7 @@ channel_connect_by_listen_address(u_short listen_port, char *ctype, char *rname)
 
 	for (i = 0; i < num_permitted_opens; i++) {
 		if (permitted_opens[i].host_to_connect != NULL &&
-		    permitted_opens[i].listen_port == listen_port) {
+		    port_match(permitted_opens[i].listen_port, listen_port)) {
 			return connect_to(
 			    permitted_opens[i].host_to_connect,
 			    permitted_opens[i].port_to_connect, ctype, rname);
@@ -3258,7 +3283,7 @@ channel_connect_to(const char *host, u_short port, char *ctype, char *rname)
 	if (!permit) {
 		for (i = 0; i < num_permitted_opens; i++)
 			if (permitted_opens[i].host_to_connect != NULL &&
-			    permitted_opens[i].port_to_connect == port &&
+			    port_match(permitted_opens[i].port_to_connect, port) &&
 			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
 				permit = 1;
 	}
@@ -3267,7 +3292,7 @@ channel_connect_to(const char *host, u_short port, char *ctype, char *rname)
 		permit_adm = 0;
 		for (i = 0; i < num_adm_permitted_opens; i++)
 			if (permitted_adm_opens[i].host_to_connect != NULL &&
-			    permitted_adm_opens[i].port_to_connect == port &&
+			    port_match(permitted_adm_opens[i].port_to_connect, port) &&
 			    strcmp(permitted_adm_opens[i].host_to_connect, host)
 			    == 0)
 				permit_adm = 1;

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.54 2010/12/24 21:41:48 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.55 2011/09/23 00:22:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -341,7 +341,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				goto bad_option;
 			}
 			host = cleanhostname(host);
-			if (p == NULL || (port = a2port(p)) <= 0) {
+			if (p == NULL || (port = permitopen_port(p)) < 0) {
 				debug("%.100s, line %lu: Bad permitopen port "
 				    "<%.100s>", file, linenum, p ? p : "");
 				auth_debug_add("%.100s, line %lu: "
