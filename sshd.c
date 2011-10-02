@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.386 2011/09/09 22:38:21 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.387 2011/09/30 00:47:37 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2366,7 +2366,7 @@ cleanup_exit(int i)
 {
 	if (the_authctxt) {
 		do_cleanup(the_authctxt);
-		if (privsep_is_preauth && pmonitor->m_pid > 1) {
+		if (use_privsep && privsep_is_preauth && pmonitor->m_pid > 1) {
 			debug("Killing privsep child %d", pmonitor->m_pid);
 			if (kill(pmonitor->m_pid, SIGKILL) != 0 &&
 			    errno == ESRCH)
