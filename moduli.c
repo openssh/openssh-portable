@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.23 2011/10/16 11:02:46 dtucker Exp $ */
+/* $OpenBSD: moduli.c,v 1.24 2011/10/16 15:51:39 stsp Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -39,11 +39,13 @@
 
 #include "includes.h"
 
+#include <sys/param.h>
 #include <sys/types.h>
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

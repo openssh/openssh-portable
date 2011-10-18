@@ -9,6 +9,9 @@
    - jmc@cvs.openbsd.org 2011/10/16 15:02:41
      [ssh-keygen.c]
      put -K in the right place (usage());
+   - stsp@cvs.openbsd.org 2011/10/16 15:51:39
+     [moduli.c]
+     add missing includes to unbreak tree; fix from rpointel
 
 20111001
  - (dtucker) [openbsd-compat/mktemp.c] Fix compiler warning.  ok djm
