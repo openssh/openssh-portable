@@ -12,6 +12,10 @@
    - stsp@cvs.openbsd.org 2011/10/16 15:51:39
      [moduli.c]
      add missing includes to unbreak tree; fix from rpointel
+   - djm@cvs.openbsd.org 2011/10/18 04:58:26
+     [auth-options.c key.c]
+     remove explict search for \0 in packet strings, this job is now done
+     implicitly by buffer_get_cstring; ok markus
 
 20111001
  - (dtucker) [openbsd-compat/mktemp.c] Fix compiler warning.  ok djm

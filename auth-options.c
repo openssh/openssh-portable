@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.55 2011/09/23 00:22:04 dtucker Exp $ */
+/* $OpenBSD: auth-options.c,v 1.56 2011/10/18 04:58:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -452,10 +452,6 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 		buffer_append(&data, data_blob, dlen);
 		debug3("found certificate option \"%.100s\" len %u",
 		    name, dlen);
-		if (strlen(name) != nlen) {
-			error("Certificate constraint name contains \\0");
-			goto out;
-		}
 		found = 0;
 		if ((which & OPTIONS_EXTENSIONS) != 0) {
 			if (strcmp(name, "permit-X11-forwarding") == 0) {
@@ -485,11 +481,6 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 					    "corrupt", name);
 					goto out;
 				}
-				if (strlen(command) != clen) {
-					error("force-command constraint "
-					    "contains \\0");
-					goto out;
-				}
 				if (*cert_forced_command != NULL) {
 					error("Certificate has multiple "
 					    "force-command options");
@@ -504,11 +495,6 @@ parse_option_list(u_char *optblob, size_t optblob_len, struct passwd *pw,
 				    &clen)) == NULL) {
 					error("Certificate constraint "
 					    "\"%s\" corrupt", name);
-					goto out;
-				}
-				if (strlen(allowed) != clen) {
-					error("source-address constraint "
-					    "contains \\0");
 					goto out;
 				}
 				if ((*cert_source_address_done)++) {
