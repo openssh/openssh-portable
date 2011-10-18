@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.22 2010/11/10 01:33:07 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.23 2011/10/16 11:02:46 dtucker Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -49,6 +49,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 #include "dh.h"
@@ -137,7 +138,7 @@ static u_int32_t largebits, largememory;	/* megabytes */
 static BIGNUM *largebase;
 
 int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
-int prime_test(FILE *, FILE *, u_int32_t, u_int32_t);
+int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *);
 
 /*
  * print moduli out in consistent form,
@@ -438,6 +439,52 @@ gen_candidates(FILE *out, u_int32_t memory, u_int32_t power, BIGNUM *start)
 	return (ret);
 }
 
+static void
+write_checkpoint(char *cpfile, u_int32_t lineno)
+{
+	FILE *fp;
+	char tmpfile[MAXPATHLEN];
+	int r;
+
+	r = snprintf(tmpfile, sizeof(tmpfile), "%s.XXXXXXXXXX", cpfile);
+	if (r == -1 || r >= MAXPATHLEN) {
+		logit("write_checkpoint: temp pathname too long");
+		return;
+	}
+	if ((r = mkstemp(tmpfile)) == -1) {
+		logit("mkstemp(%s): %s", tmpfile, strerror(errno));
+		return;
+	}
+	if ((fp = fdopen(r, "w")) == NULL) {
+		logit("write_checkpoint: fdopen: %s", strerror(errno));
+		close(r);
+		return;
+	}
+	if (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0 && fclose(fp) == 0
+	    && rename(tmpfile, cpfile) == 0)
+		debug3("wrote checkpoint line %lu to '%s'",
+		    (unsigned long)lineno, cpfile);
+	else
+		logit("failed to write to checkpoint file '%s': %s", cpfile,
+		    strerror(errno));
+}
+
+static unsigned long
+read_checkpoint(char *cpfile)
+{
+	FILE *fp;
+	unsigned long lineno = 0;
+
+	if ((fp = fopen(cpfile, "r")) == NULL)
+		return 0;
+	if (fscanf(fp, "%lu\n", &lineno) < 1)
+		logit("Failed to load checkpoint from '%s'", cpfile);
+	else
+		logit("Loaded checkpoint from '%s' line %lu", cpfile, lineno);
+	fclose(fp);
+	return lineno;
+}
+
 /*
  * perform a Miller-Rabin primality test
  * on the list of candidates
@@ -445,13 +492,15 @@ gen_candidates(FILE *out, u_int32_t memory, u_int32_t power, BIGNUM *start)
  * The result is a list of so-call "safe" primes
  */
 int
-prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted)
+prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
+    char *checkpoint_file)
 {
 	BIGNUM *q, *p, *a;
 	BN_CTX *ctx;
 	char *cp, *lp;
 	u_int32_t count_in = 0, count_out = 0, count_possible = 0;
 	u_int32_t generator_known, in_tests, in_tries, in_type, in_size;
+	unsigned long last_processed = 0;
 	time_t time_start, time_stop;
 	int res;
 
@@ -472,10 +521,21 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted)
 	debug2("%.24s Final %u Miller-Rabin trials (%x generator)",
 	    ctime(&time_start), trials, generator_wanted);
 
+	if (checkpoint_file != NULL)
+		last_processed = read_checkpoint(checkpoint_file);
+
 	res = 0;
 	lp = xmalloc(QLINESIZE + 1);
 	while (fgets(lp, QLINESIZE + 1, in) != NULL) {
 		count_in++;
+		if (checkpoint_file != NULL) {
+			if (count_in <= last_processed) {
+				debug3("skipping line %u, before checkpoint",
+				    count_in);
+				continue;
+			}
+			write_checkpoint(checkpoint_file, count_in);
+		}
 		if (strlen(lp) < 14 || *lp == '!' || *lp == '#') {
 			debug2("%10u: comment or short line", count_in);
 			continue;
@@ -643,6 +703,9 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted)
 	BN_free(p);
 	BN_free(q);
 	BN_CTX_free(ctx);
+
+	if (checkpoint_file != NULL)
+		unlink(checkpoint_file);
 
 	logit("%.24s Found %u safe primes of %u candidates in %ld seconds",
 	    ctime(&time_stop), count_out, count_possible,

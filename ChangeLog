@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2011/10/04 14:17:32
      [sftp-glob.c]
      silence error spam for "ls */foo" in directory with files; bz#1683
+   - dtucker@cvs.openbsd.org 2011/10/16 11:02:46
+     [moduli.c ssh-keygen.1 ssh-keygen.c]
+     Add optional checkpoints for moduli screening.  feedback & ok deraadt
 
 20111001
  - (dtucker) [openbsd-compat/mktemp.c] Fix compiler warning.  ok djm
