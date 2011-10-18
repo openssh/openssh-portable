@@ -16,6 +16,10 @@
      [auth-options.c key.c]
      remove explict search for \0 in packet strings, this job is now done
      implicitly by buffer_get_cstring; ok markus
+   - djm@cvs.openbsd.org 2011/10/18 05:00:48
+     [ssh-add.1 ssh-add.c]
+     new "ssh-add -k" option to load plain keys (skipping certificates);
+     "looks ok" markus@
 
 20111001
  - (dtucker) [openbsd-compat/mktemp.c] Fix compiler warning.  ok djm
