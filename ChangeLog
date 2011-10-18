@@ -6,6 +6,9 @@
    - dtucker@cvs.openbsd.org 2011/10/16 11:02:46
      [moduli.c ssh-keygen.1 ssh-keygen.c]
      Add optional checkpoints for moduli screening.  feedback & ok deraadt
+   - jmc@cvs.openbsd.org 2011/10/16 15:02:41
+     [ssh-keygen.c]
+     put -K in the right place (usage());
 
 20111001
  - (dtucker) [openbsd-compat/mktemp.c] Fix compiler warning.  ok djm

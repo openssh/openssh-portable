@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.211 2011/10/16 11:02:46 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.212 2011/10/16 15:02:41 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1881,10 +1881,10 @@ usage(void)
 	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
 	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
 	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
-	fprintf(stderr, "  -K checkpt  Write checkpoints to this file.\n");
 	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
 	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
 	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
+	fprintf(stderr, "  -K checkpt  Write checkpoints to this file.\n");
 	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
 	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
