@@ -9,6 +9,9 @@
    - djm@cvs.openbsd.org 2011/10/19 00:06:10
      [moduli.c]
      s/tmpfile/tmp/ to make this -Wshadow clean
+   - djm@cvs.openbsd.org 2011/10/19 10:39:48
+     [umac.c]
+     typo in comment; patch from Michael W. Bombardieri
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
