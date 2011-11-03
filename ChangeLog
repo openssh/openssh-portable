@@ -1,3 +1,9 @@
+20111104
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/10/18 05:15:28
+     [ssh.c]
+     ssh(1): skip attempting to create ~/.ssh when -F is passed; ok markus@
+
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
    fails.  Patch from Corinna Vinschen.

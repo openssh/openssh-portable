@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.366 2011/09/23 07:45:05 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.367 2011/10/18 05:15:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -886,17 +886,20 @@ main(int ac, char **av)
 	 * Now that we are back to our own permissions, create ~/.ssh
 	 * directory if it doesn't already exist.
 	 */
-	r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
-	    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
-	if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
+	if (config == NULL) {
+		r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
+		    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
+		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
 #ifdef WITH_SELINUX
-		ssh_selinux_setfscreatecon(buf);
+			ssh_selinux_setfscreatecon(buf);
 #endif
-		if (mkdir(buf, 0700) < 0)
-			error("Could not create directory '%.200s'.", buf);
+			if (mkdir(buf, 0700) < 0)
+				error("Could not create directory '%.200s'.",
+				    buf);
 #ifdef WITH_SELINUX
-		ssh_selinux_setfscreatecon(NULL);
+			ssh_selinux_setfscreatecon(NULL);
 #endif
+		}
 	}
 	/* load options.identity_files */
 	load_public_identity_files();
