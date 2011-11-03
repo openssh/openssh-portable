@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.367 2011/10/18 05:15:28 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.368 2011/10/24 02:10:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1059,25 +1059,26 @@ client_cleanup_stdio_fwd(int id, void *arg)
 	cleanup_exit(0);
 }
 
-static int
-client_setup_stdio_fwd(const char *host_to_connect, u_short port_to_connect)
+static void
+ssh_init_stdio_forwarding(void)
 {
 	Channel *c;
 	int in, out;
 
-	debug3("client_setup_stdio_fwd %s:%d", host_to_connect,
-	    port_to_connect);
+	if (stdio_forward_host == NULL)
+		return;
+	if (!compat20) 
+		fatal("stdio forwarding require Protocol 2");
 
-	in = dup(STDIN_FILENO);
-	out = dup(STDOUT_FILENO);
-	if (in < 0 || out < 0)
+	debug3("%s: %s:%d", __func__, stdio_forward_host, stdio_forward_port);
+
+	if ((in = dup(STDIN_FILENO)) < 0 ||
+	    (out = dup(STDOUT_FILENO)) < 0)
 		fatal("channel_connect_stdio_fwd: dup() in/out failed");
-
-	if ((c = channel_connect_stdio_fwd(host_to_connect, port_to_connect,
-	    in, out)) == NULL)
-		return 0;
+	if ((c = channel_connect_stdio_fwd(stdio_forward_host,
+	    stdio_forward_port, in, out)) == NULL)
+		fatal("%s: channel_connect_stdio_fwd failed", __func__);
 	channel_register_cleanup(c->self, client_cleanup_stdio_fwd, 0);
-	return 1;
 }
 
 static void
@@ -1085,15 +1086,6 @@ ssh_init_forwarding(void)
 {
 	int success = 0;
 	int i;
-
-	if (stdio_forward_host != NULL) {
-		if (!compat20) {
-			fatal("stdio forwarding require Protocol 2");
-		}
-		if (!client_setup_stdio_fwd(stdio_forward_host,
-		    stdio_forward_port))
-			fatal("Failed to connect in stdio forward mode.");
-	}
 
 	/* Initiate local TCP/IP port forwardings. */
 	for (i = 0; i < options.num_local_forwards; i++) {
@@ -1285,6 +1277,7 @@ ssh_session(void)
 	}
 
 	/* Initiate port forwardings. */
+	ssh_init_stdio_forwarding();
 	ssh_init_forwarding();
 
 	/* Execute a local command */
@@ -1423,15 +1416,18 @@ ssh_session2(void)
 	int id = -1;
 
 	/* XXX should be pre-session */
+	if (!options.control_persist)
+		ssh_init_stdio_forwarding();
 	ssh_init_forwarding();
 
 	/* Start listening for multiplex clients */
 	muxserver_listen();
 
  	/*
-	 * If we are in control persist mode, then prepare to background
-	 * ourselves and have a foreground client attach as a control
-	 * slave. NB. we must save copies of the flags that we override for
+	 * If we are in control persist mode and have a working mux listen
+	 * socket, then prepare to background ourselves and have a foreground
+	 * client attach as a control slave.
+	 * NB. we must save copies of the flags that we override for
 	 * the backgrounding, since we defer attachment of the slave until
 	 * after the connection is fully established (in particular,
 	 * async rfwd replies have been received for ExitOnForwardFailure).
@@ -1448,6 +1444,12 @@ ssh_session2(void)
 			need_controlpersist_detach = 1;
 		fork_after_authentication_flag = 1;
  	}
+	/*
+	 * ControlPersist mux listen socket setup failed, attempt the
+	 * stdio forward setup that we skipped earlier.
+	 */
+	if (options.control_persist && muxserver_sock == -1)
+		ssh_init_stdio_forwarding();
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
