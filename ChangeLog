@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2011/10/18 05:15:28
      [ssh.c]
      ssh(1): skip attempting to create ~/.ssh when -F is passed; ok markus@
+   - djm@cvs.openbsd.org 2011/10/18 23:37:42
+     [ssh-add.c]
+     add -k to usage(); reminded by jmc@
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
