@@ -17,6 +17,10 @@
      bz#1943: unbreak stdio forwarding when ControlPersist is in user - ssh
      was incorrectly requesting the forward in both the control master and
      slave. skip requesting it in the master to fix. ok markus@
+   - djm@cvs.openbsd.org 2011/10/24 02:13:13
+     [session.c]
+     bz#1859: send tty break to pty master instead of (probably already
+     closed) slave side; "looks good" markus@
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
