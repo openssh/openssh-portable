@@ -6,6 +6,9 @@
    - djm@cvs.openbsd.org 2011/10/18 23:37:42
      [ssh-add.c]
      add -k to usage(); reminded by jmc@
+   - djm@cvs.openbsd.org 2011/10/19 00:06:10
+     [moduli.c]
+     s/tmpfile/tmp/ to make this -Wshadow clean
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file

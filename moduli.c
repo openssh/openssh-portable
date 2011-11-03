@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.24 2011/10/16 15:51:39 stsp Exp $ */
+/* $OpenBSD: moduli.c,v 1.25 2011/10/19 00:06:10 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -445,16 +445,16 @@ static void
 write_checkpoint(char *cpfile, u_int32_t lineno)
 {
 	FILE *fp;
-	char tmpfile[MAXPATHLEN];
+	char tmp[MAXPATHLEN];
 	int r;
 
-	r = snprintf(tmpfile, sizeof(tmpfile), "%s.XXXXXXXXXX", cpfile);
+	r = snprintf(tmp, sizeof(tmp), "%s.XXXXXXXXXX", cpfile);
 	if (r == -1 || r >= MAXPATHLEN) {
 		logit("write_checkpoint: temp pathname too long");
 		return;
 	}
-	if ((r = mkstemp(tmpfile)) == -1) {
-		logit("mkstemp(%s): %s", tmpfile, strerror(errno));
+	if ((r = mkstemp(tmp)) == -1) {
+		logit("mkstemp(%s): %s", tmp, strerror(errno));
 		return;
 	}
 	if ((fp = fdopen(r, "w")) == NULL) {
@@ -463,7 +463,7 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 		return;
 	}
 	if (fprintf(fp, "%lu\n", (unsigned long)lineno) > 0 && fclose(fp) == 0
-	    && rename(tmpfile, cpfile) == 0)
+	    && rename(tmp, cpfile) == 0)
 		debug3("wrote checkpoint line %lu to '%s'",
 		    (unsigned long)lineno, cpfile);
 	else
