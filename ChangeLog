@@ -21,6 +21,9 @@
      [session.c]
      bz#1859: send tty break to pty master instead of (probably already
      closed) slave side; "looks good" markus@
+   - dtucker@cvs.openbsd.org 011/11/04 00:09:39
+     [moduli]
+     regenerated moduli file; ok deraadt
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
