@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.483 2011/10/02 07:49:24 dtucker Exp $
+# $Id: configure.ac,v 1.484 2011/11/04 00:25:25 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.483 $)
+AC_REVISION($Revision: 1.484 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1317,6 +1317,41 @@ int deny_severity = 0, allow_severity = 0;
 			LIBS="$saved_LIBS"
 		fi
 	]
+)
+
+# Check whether user wants to use ldns
+LDNS_MSG="no"
+AC_ARG_WITH(ldns,
+	[  --with-ldns[[=PATH]]      Use ldns for DNSSEC support (optionally in PATH)],
+    [
+        if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
+            AC_DEFINE(HAVE_LDNS, 1, [Define if you want ldns support])
+            LIBS="-lldns $LIBS"
+            LDNS_MSG="yes"
+
+            AC_MSG_CHECKING([for ldns support])
+            AC_LINK_IFELSE(
+                [AC_LANG_SOURCE([[
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <ldns/ldns.h>
+int main() { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); status=LDNS_STATUS_OK; exit(0); }
+                                ]])
+                ],
+				[AC_MSG_RESULT(yes)],
+				[
+					AC_MSG_RESULT(no)
+					AC_MSG_ERROR([** Incomplete or missing ldns libraries.])
+				])
+        fi
+    ]
 )
 
 # Check whether user wants libedit support

@@ -24,6 +24,11 @@
    - dtucker@cvs.openbsd.org 011/11/04 00:09:39
      [moduli]
      regenerated moduli file; ok deraadt
+ - (dtucker) [INSTALL LICENCE configure.ac openbsd-compat/Makefile.in
+   openbsd-compat/getrrsetbyname-ldns.c openbsd-compat/getrrsetbyname.c]
+   bz 1320: Add optional support for LDNS, a BSD licensed DNS resolver library
+   which supports DNSSEC.  Patch from Simon Vallet (svallet at genoscope cns fr)
+   with some rework from myself and djm.  ok djm.
 
 20111025
  - (dtucker) [contrib/cygwin/Makefile] Continue if installing a doc file
