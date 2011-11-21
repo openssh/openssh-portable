@@ -1,3 +1,6 @@
+20111121
+ - (dtucker) [configure.ac] Set _FORTIFY_SOURCE.  ok djm@
+
 20111104
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/10/18 05:15:28
