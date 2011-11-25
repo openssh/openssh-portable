@@ -1,3 +1,11 @@
+20111125
+ - OpenBSD CVS Sync
+   - oga@cvs.openbsd.org 2011/11/16 12:24:28
+     [sftp.c]
+     Don't leak list in complete_cmd_parse if there are no commands found.
+     Discovered when I was ``borrowing'' this code for something else.
+     ok djm@
+
 20111121
  - (dtucker) [configure.ac] Set _FORTIFY_SOURCE.  ok djm@
 
