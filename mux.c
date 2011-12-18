@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.32 2011/12/02 00:41:56 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.33 2011/12/04 23:16:12 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -95,7 +95,6 @@ extern Buffer command;
 extern volatile sig_atomic_t quit_pending;
 extern char *stdio_forward_host;
 extern int stdio_forward_port;
-extern int fork_after_authentication_flag;
 
 /* Context for session open confirmation callback */
 struct mux_session_confirm_ctx {
@@ -1803,8 +1802,6 @@ mux_client_request_session(int fd)
 	if (tty_flag)
 		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
-	if (fork_after_authentication_flag)
-		daemon(1, 1);
 	/*
 	 * Stick around until the controlee closes the client_fd.
 	 * Before it does, it is expected to write an exit message.
