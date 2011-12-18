@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.173 2011/05/06 21:14:05 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.174 2011/12/07 05:44:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -242,7 +242,7 @@ packet_set_connection(int fd_in, int fd_out)
 void
 packet_set_timeout(int timeout, int count)
 {
-	if (timeout == 0 || count == 0) {
+	if (timeout <= 0 || count <= 0) {
 		active_state->packet_timeout_ms = -1;
 		return;
 	}

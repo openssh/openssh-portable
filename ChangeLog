@@ -17,6 +17,10 @@
      > fix bz#1948: ssh -f doesn't fork for multiplexed connection.
      > ok dtucker@
      it interacts badly with ControlPersist
+   - djm@cvs.openbsd.org 2011/12/07 05:44:38
+     [auth2.c dh.c packet.c roaming.h roaming_client.c roaming_common.c]
+     fix some harmless and/or unreachable int overflows;
+     reported Xi Wang, ok markus@
 
 20111125
  - OpenBSD CVS Sync
