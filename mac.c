@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.16 2011/08/02 01:22:11 djm Exp $ */
+/* $OpenBSD: mac.c,v 1.17 2011/12/02 00:43:57 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -116,6 +116,7 @@ mac_init(Mac *mac)
 	case SSH_EVP:
 		if (mac->evp_md == NULL)
 			return -1;
+		HMAC_CTX_init(&mac->evp_ctx);
 		HMAC_Init(&mac->evp_ctx, mac->key, mac->key_len, mac->evp_md);
 		return 0;
 	case SSH_UMAC:

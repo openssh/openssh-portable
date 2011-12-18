@@ -4,6 +4,11 @@
      [mux.c]
      fix bz#1948: ssh -f doesn't fork for multiplexed connection.
      ok dtucker@
+   - djm@cvs.openbsd.org 2011/12/02 00:43:57
+     [mac.c]
+     fix bz#1934: newer OpenSSL versions will require HMAC_CTX_Init before
+     HMAC_init (this change in policy seems insane to me)
+     ok dtucker@
 
 20111125
  - OpenBSD CVS Sync
