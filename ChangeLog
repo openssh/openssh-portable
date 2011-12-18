@@ -1,3 +1,10 @@
+20111219
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/12/02 00:41:56
+     [mux.c]
+     fix bz#1948: ssh -f doesn't fork for multiplexed connection.
+     ok dtucker@
+
 20111125
  - OpenBSD CVS Sync
    - oga@cvs.openbsd.org 2011/11/16 12:24:28
