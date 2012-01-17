@@ -44,6 +44,8 @@
 
 #include "umac.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 #define SSH_EVP		1	/* OpenSSL EVP-based MAC */
 #define SSH_UMAC	2	/* UMAC (not integrated with OpenSSL) */
 

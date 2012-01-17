@@ -1,3 +1,8 @@
+20120117
+ - (dtucker) [configure.ac mac.c openbsd-compat/openssl-compat.h]  Add
+   null implementation of HMAC_CTX_init for the benefit of old versions
+   of OpenSSL that don't have it.
+
 20111219
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2011/12/02 00:41:56
