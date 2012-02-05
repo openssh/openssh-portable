@@ -1,7 +1,6 @@
-20120117
- - (dtucker) [configure.ac mac.c openbsd-compat/openssl-compat.h]  Add
-   null implementation of HMAC_CTX_init for the benefit of old versions
-   of OpenSSL that don't have it.
+20120206
+ - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
+   that don't support ECC. Patch from Phil Oleson
 
 20111219
  - OpenBSD CVS Sync

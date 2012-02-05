@@ -857,7 +857,9 @@ do_gen_all_hostkeys(struct passwd *pw)
 		{ "rsa1", "RSA1", _PATH_HOST_KEY_FILE },
 		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
 		{ "dsa", "DSA", _PATH_HOST_DSA_KEY_FILE },
+#ifdef OPENSSL_HAS_ECC
 		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
+#endif
 		{ NULL, NULL, NULL }
 	};
 
