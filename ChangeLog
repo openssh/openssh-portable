@@ -10,6 +10,11 @@
      [ssh-ecdsa.c]
      Fix memory leak in ssh_ecdsa_verify(); from Loganaden Velvindron,
      ok markus@
+   - miod@cvs.openbsd.org 2012/01/16 20:34:09
+     [ssh-pkcs11-client.c]
+     Fix a memory leak in pkcs11_rsa_private_encrypt(), reported by Jan Klemkow.
+     While there, be sure to buffer_clear() between send_msg() and recv_msg().
+     ok markus@
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
