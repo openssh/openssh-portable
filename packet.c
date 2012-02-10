@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.175 2012/01/25 19:26:43 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.176 2012/01/25 19:40:09 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1448,12 +1448,6 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 			}
 		}
 	}
-}
-
-int
-packet_read_poll(void)
-{
-	return packet_read_poll_seqnr(NULL);
 }
 
 /*

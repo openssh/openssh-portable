@@ -27,6 +27,9 @@
    - markus@cvs.openbsd.org 2012/01/25 19:36:31
      [authfile.c]
      memleak in key_load_file(); from Jan Klemkow
+   - markus@cvs.openbsd.org 2012/01/25 19:40:09
+     [packet.c packet.h]
+     packet_read_poll() is not used anymore.
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
