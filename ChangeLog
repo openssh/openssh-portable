@@ -6,6 +6,10 @@
    - djm@cvs.openbsd.org 2012/01/07 21:11:36
      [mux.c]
      fix double-free in new session handler
+   - miod@cvs.openbsd.org 2012/01/08 13:17:11
+     [ssh-ecdsa.c]
+     Fix memory leak in ssh_ecdsa_verify(); from Loganaden Velvindron,
+     ok markus@
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
