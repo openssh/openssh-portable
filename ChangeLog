@@ -15,6 +15,11 @@
      Fix a memory leak in pkcs11_rsa_private_encrypt(), reported by Jan Klemkow.
      While there, be sure to buffer_clear() between send_msg() and recv_msg().
      ok markus@
+   - dtucker@cvs.openbsd.org 2012/01/18 21:46:43
+     [clientloop.c]
+     Ensure that $DISPLAY contains only valid characters before using it to
+     extract xauth data so that it can't be used to play local shell
+     metacharacter games.  Report from r00t_ati at ihteam.net, ok markus.
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms

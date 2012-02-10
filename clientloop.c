@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.237 2011/09/10 22:26:34 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.238 2012/01/18 21:46:43 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -281,6 +281,23 @@ set_control_persist_exit_time(void)
 	/* else we are already counting down to the timeout */
 }
 
+#define SSH_X11_VALID_DISPLAY_CHARS ":/.-_"
+static int
+client_x11_display_valid(const char *display)
+{
+	size_t i, dlen;
+
+	dlen = strlen(display);
+	for (i = 0; i < dlen; i++) {
+		if (!isalnum(display[i]) &&
+		    strchr(SSH_X11_VALID_DISPLAY_CHARS, display[i]) == NULL) {
+			debug("Invalid character '%c' in DISPLAY", display[i]);
+			return 0;
+		}
+	}
+	return 1;
+}
+
 #define SSH_X11_PROTO "MIT-MAGIC-COOKIE-1"
 void
 client_x11_get_proto(const char *display, const char *xauth_path,
@@ -303,6 +320,9 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 
 	if (xauth_path == NULL ||(stat(xauth_path, &st) == -1)) {
 		debug("No xauth program.");
+	} else if (!client_x11_display_valid(display)) {
+		logit("DISPLAY '%s' invalid, falling back to fake xauth data",
+		    display);
 	} else {
 		if (display == NULL) {
 			debug("x11_get_proto: DISPLAY not set");
