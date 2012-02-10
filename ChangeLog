@@ -20,6 +20,10 @@
      Ensure that $DISPLAY contains only valid characters before using it to
      extract xauth data so that it can't be used to play local shell
      metacharacter games.  Report from r00t_ati at ihteam.net, ok markus.
+   - markus@cvs.openbsd.org 2012/01/25 19:26:43
+     [packet.c]
+     do not permit SSH2_MSG_SERVICE_REQUEST/ACCEPT during rekeying;
+     ok dtucker@, djm@
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
