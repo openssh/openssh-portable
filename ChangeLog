@@ -24,6 +24,9 @@
      [packet.c]
      do not permit SSH2_MSG_SERVICE_REQUEST/ACCEPT during rekeying;
      ok dtucker@, djm@
+   - markus@cvs.openbsd.org 2012/01/25 19:36:31
+     [authfile.c]
+     memleak in key_load_file(); from Jan Klemkow
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
