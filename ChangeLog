@@ -1,3 +1,9 @@
+20120211
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2012/01/05 00:16:56
+     [monitor.c]
+     memleak on error path
+
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
    that don't support ECC. Patch from Phil Oleson
