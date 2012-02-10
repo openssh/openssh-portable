@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.33 2011/12/04 23:16:12 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.34 2012/01/07 21:11:36 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -341,10 +341,8 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	env_len = 0;
 	while (buffer_len(m) > 0) {
 #define MUX_MAX_ENV_VARS	4096
-		if ((cp = buffer_get_string_ret(m, &len)) == NULL) {
-			xfree(cmd);
+		if ((cp = buffer_get_string_ret(m, &len)) == NULL)
 			goto malf;
-		}
 		if (!env_permitted(cp)) {
 			xfree(cp);
 			continue;

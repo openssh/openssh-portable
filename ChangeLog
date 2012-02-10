@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2012/01/05 00:16:56
      [monitor.c]
      memleak on error path
+   - djm@cvs.openbsd.org 2012/01/07 21:11:36
+     [mux.c]
+     fix double-free in new session handler
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
