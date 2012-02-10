@@ -30,6 +30,9 @@
    - markus@cvs.openbsd.org 2012/01/25 19:40:09
      [packet.c packet.h]
      packet_read_poll() is not used anymore.
+   - markus@cvs.openbsd.org 2012/02/09 20:00:18
+     [version.h]
+     move from 6.0-beta to 6.0
 
 20120206
  - (djm) [ssh-keygen.c] Don't fail in do_gen_all_hostkeys on platforms
