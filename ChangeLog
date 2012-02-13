@@ -1,3 +1,7 @@
+20120214
+ - (djm) [openbsd-compat/bsd-cygwin_util.c] Add PROGRAMFILES to list of
+   preserved Cygwin environment variables; from Corinna Vinschen
+
 20120211
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2012/01/05 00:16:56
