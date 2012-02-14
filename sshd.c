@@ -1511,7 +1511,7 @@ main(int ac, char **av)
 	 * root's environment
 	 */
 	if (getenv("KRB5CCNAME") != NULL)
-		unsetenv("KRB5CCNAME");
+		(void) unsetenv("KRB5CCNAME");
 
 #ifdef _UNICOS
 	/* Cray can define user privs drop all privs now!
