@@ -4,6 +4,8 @@
    ok dtucker@
  - (tim) [defines.h] move chunk introduced in 1.125 before MAXPATHLEN so
    it actually works.
+ - (tim) [regress/keytype.sh] stderr redirection needs to be inside back quote
+   to work. Spotted by Angel Gonzalez
 
 20120214
  - (djm) [openbsd-compat/bsd-cygwin_util.c] Add PROGRAMFILES to list of
