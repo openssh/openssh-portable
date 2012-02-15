@@ -2,6 +2,8 @@
  - (tim) [openbsd-compat/bsd-misc.h sshd.c] Fix conflicting return type for
    unsetenv due to rev 1.14 change to setenv.c. Cast unsetenv to void in sshd.c
    ok dtucker@
+ - (tim) [defines.h] move chunk introduced in 1.125 before MAXPATHLEN so
+   it actually works.
 
 20120214
  - (djm) [openbsd-compat/bsd-cygwin_util.c] Add PROGRAMFILES to list of

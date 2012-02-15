@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.168 2011/09/29 01:11:56 djm Exp $ */
+/* $Id: defines.h,v 1.169 2012/02/15 04:13:06 tim Exp $ */
 
 
 /* Constants */
@@ -87,6 +87,12 @@ enum
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
 
+#ifndef PATH_MAX
+# ifdef _POSIX_PATH_MAX
+# define PATH_MAX _POSIX_PATH_MAX
+# endif
+#endif
+
 #ifndef MAXPATHLEN
 # ifdef PATH_MAX
 #  define MAXPATHLEN PATH_MAX
@@ -98,12 +104,6 @@ enum
 #  endif /* BROKEN_REALPATH */
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
-
-#ifndef PATH_MAX
-# ifdef _POSIX_PATH_MAX
-# define PATH_MAX _POSIX_PATH_MAX
-# endif
-#endif
 
 #if defined(HAVE_DECL_MAXSYMLINKS) && HAVE_DECL_MAXSYMLINKS == 0
 # define MAXSYMLINKS 5
