@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.486 2012/01/17 03:03:37 dtucker Exp $
+# $Id: configure.ac,v 1.487 2012/02/23 23:40:43 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.486 $)
+AC_REVISION($Revision: 1.487 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1434,6 +1434,11 @@ AC_ARG_WITH([audit],
 		# These are optional
 		AC_CHECK_FUNCS([getaudit_addr aug_get_machine])
 		AC_DEFINE([USE_BSM_AUDIT], [1], [Use BSM audit module])
+		if test "$sol2ver" -eq 11; then
+		   	SSHDLIBS="$SSHDLIBS -lscf"
+                   	AC_DEFINE([BROKEN_BSM_API], [1], 
+		        	  [The system has incomplete BSM API])
+		fi
 		;;
 	  linux)
 		AC_MSG_RESULT([linux])
