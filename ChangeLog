@@ -2,6 +2,8 @@
  - (djm) [openbsd-compat/port-linux.c] bz#1960: fix crash on SELinux 
    systems where sshd is run in te wrong context. Patch from Sven
    Vermeulen; ok dtucker@
+ - (djm) [packet.c] bz#1963: Fix IPQoS not being set on non-mapped v4-in-v6
+   addressed connections. ok dtucker@
 
 20120224
  - (dtucker) [audit-bsm.c configure.ac] bug #1968: enable workarounds for BSM
