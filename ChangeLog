@@ -1,3 +1,7 @@
+20120330
+ - (dtucker) [contrib/redhat/openssh.spec] Bug #1992: remove now-gone WARNING
+   file from spec file.  From crighter at nuclioss com.
+
 20120309
  - (djm) [openbsd-compat/port-linux.c] bz#1960: fix crash on SELinux 
    systems where sshd is run in te wrong context. Patch from Sven
