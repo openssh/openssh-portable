@@ -1,6 +1,9 @@
 20120330
  - (dtucker) [contrib/redhat/openssh.spec] Bug #1992: remove now-gone WARNING
    file from spec file.  From crighter at nuclioss com.
+ - (djm) [entropy.c] bz#1991: relax OpenSSL version test to allow running
+   openssh binaries on a newer fix release than they were compiled on.
+   with and ok dtucker@
 
 20120309
  - (djm) [openbsd-compat/port-linux.c] bz#1960: fix crash on SELinux 
