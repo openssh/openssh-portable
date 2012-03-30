@@ -4,6 +4,8 @@
  - (djm) [entropy.c] bz#1991: relax OpenSSL version test to allow running
    openssh binaries on a newer fix release than they were compiled on.
    with and ok dtucker@
+ - (djm) [openbsd-compat/bsd-cygwin_util.h] #undef _WIN32 to avoid incorrect
+   assumptions when building on Cygwin; patch from Corinna Vinschen
 
 20120309
  - (djm) [openbsd-compat/port-linux.c] bz#1960: fix crash on SELinux 
