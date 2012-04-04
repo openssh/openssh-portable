@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.487 2012/02/23 23:40:43 dtucker Exp $
+# $Id: configure.ac,v 1.488 2012/04/04 01:27:57 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.487 $)
+AC_REVISION($Revision: 1.488 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -116,6 +116,35 @@ AC_CHECK_DECL([RLIMIT_NPROC],
 	#include <sys/types.h>
 	#include <sys/resource.h>
 ])
+AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
+	#include <sys/types.h>
+	#include <linux/prctl.h>
+])
+if test "x$have_linux_no_new_privs" = "x1" ; then
+AC_CHECK_DECL([SECCOMP_MODE_FILTER], [have_seccomp_filter=1], , [
+	#include <sys/types.h>
+	#include <linux/seccomp.h>
+])
+fi
+if test "x$have_seccomp_filter" = "x1" ; then
+AC_MSG_CHECKING([kernel for seccomp_filter support])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+		#include <errno.h>
+		#include <linux/seccomp.h>
+		#include <stdlib.h>
+		#include <sys/prctl.h>
+	]],
+	[[ errno = 0;
+	   prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
+	   exit(errno == EFAULT ? 0 : 1); ]])],
+	[ AC_MSG_RESULT([yes]) ], [
+		AC_MSG_RESULT([no])
+		# Disable seccomp filter as a target
+		have_seccomp_filter=0
+	],
+	[ AC_MSG_RESULT([cross-compiling, assuming yes]) ]
+)
+fi
 
 use_stack_protector=1
 AC_ARG_WITH([stackprotect],
@@ -657,6 +686,22 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 		    [Prepend the address family to IP tunnel traffic])
 	fi
+	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h])
+	AC_CHECK_FUNCS([prctl])
+	have_seccomp_audit_arch=1
+	case "$host" in
+	x86_64-*)
+		AC_DEFINE([SECCOMP_AUDIT_ARCH], [AUDIT_ARCH_X86_64],
+		    [Specify the system call convention in use])
+		;;
+	i*86-*)
+		AC_DEFINE([SECCOMP_AUDIT_ARCH], [AUDIT_ARCH_I386],
+		    [Specify the system call convention in use])
+		;;
+	*)
+		have_seccomp_audit_arch=0
+		;;
+	esac
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to acquire controlling tty])
@@ -2518,7 +2563,7 @@ AC_SUBST([SSH_PRIVSEP_USER])
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
-	[  --with-sandbox=style    Specify privilege separation sandbox (no, darwin, rlimit, systrace)],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, darwin, rlimit, systrace, seccomp_filter)],
 	[
 		if test "x$withval" = "xyes" ; then
 			sandbox_arg=""
@@ -2541,6 +2586,23 @@ elif test "x$sandbox_arg" = "xdarwin" || \
 		AC_MSG_ERROR([Darwin seatbelt sandbox requires sandbox.h and sandbox_init function])
 	SANDBOX_STYLE="darwin"
 	AC_DEFINE([SANDBOX_DARWIN], [1], [Sandbox using Darwin sandbox_init(3)])
+elif test "x$sandbox_arg" = "xseccomp_filter" || \
+     ( test -z "$sandbox_arg" && \
+       test "x$have_seccomp_filter" == "x1" && \
+       test "x$ac_cv_header_linux_audit_h" = "xyes" && \
+       test "x$have_seccomp_audit_arch" = "x1" && \
+       test "x$have_linux_no_new_privs" = "x1" && \
+       test "x$ac_cv_func_prctl" = "xyes" ) ; then
+	test "x$have_seccomp_audit_arch" != "x1" && \
+		AC_MSG_ERROR([seccomp_filter sandbox not supported on $host])
+	test "x$have_linux_no_new_privs" != "x1" && \
+		AC_MSG_ERROR([seccomp_filter sandbox requires PR_SET_NO_NEW_PRIVS])
+	test "x$have_seccomp_filter" != "x1" && \
+		AC_MSG_ERROR([seccomp_filter sandbox requires seccomp headers])
+	test "x$ac_cv_func_prctl" != "xyes" && \
+		AC_MSG_ERROR([seccomp_filter sandbox requires prctl function])
+	SANDBOX_STYLE="seccomp_filter"
+	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xrlimit" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" ) ; then
 	test "x$ac_cv_func_setrlimit" != "xyes" && \

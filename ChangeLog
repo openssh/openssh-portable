@@ -1,3 +1,8 @@
+20120404
+ - (djm) [Makefile.in configure.ac sandbox-seccomp-filter.c] Add sandbox
+   mode for Linux's new seccomp filter; patch from Will Drewry; feedback
+   and ok dtucker@
+
 20120330
  - (dtucker) [contrib/redhat/openssh.spec] Bug #1992: remove now-gone WARNING
    file from spec file.  From crighter at nuclioss com.
