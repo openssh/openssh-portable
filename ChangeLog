@@ -1,3 +1,7 @@
+20120419
+ - (djm) [configure.ac] Fix compilation error on FreeBSD, whose libutil
+   contains openpty() but not login()
+
 20120404
  - (djm) [Makefile.in configure.ac sandbox-seccomp-filter.c] Add sandbox
    mode for Linux's new seccomp filter; patch from Will Drewry; feedback

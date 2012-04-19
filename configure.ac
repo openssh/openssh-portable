@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.488 2012/04/04 01:27:57 djm Exp $
+# $Id: configure.ac,v 1.489 2012/04/19 11:46:38 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.488 $)
+AC_REVISION($Revision: 1.489 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1170,9 +1170,13 @@ AC_CHECK_FUNCS([utimes],
 
 dnl    Checks for libutil functions
 AC_CHECK_HEADERS([libutil.h])
-AC_SEARCH_LIBS([login], [util bsd], [AC_DEFINE([HAVE_LOGIN], [1],
-	[Define if your libraries define login()])])
-AC_CHECK_FUNCS([fmt_scaled logout updwtmp logwtmp])
+AC_SEARCH_LIBS([fmt_scaled], [util bsd])
+AC_SEARCH_LIBS([login], [util bsd])
+AC_SEARCH_LIBS([logout], [util bsd])
+AC_SEARCH_LIBS([logwtmp], [util bsd])
+AC_SEARCH_LIBS([openpty], [util bsd])
+AC_SEARCH_LIBS([updwtmp], [util bsd])
+AC_CHECK_FUNCS([fmt_scaled login logout openpty updwtmp logwtmp])
 
 AC_FUNC_STRFTIME
 
@@ -1552,7 +1556,6 @@ AC_CHECK_FUNCS([ \
 	nsleep \
 	ogetaddrinfo \
 	openlog_r \
-	openpty \
 	poll \
 	prctl \
 	pstat \
