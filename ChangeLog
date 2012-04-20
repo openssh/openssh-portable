@@ -1,6 +1,7 @@
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update for release 6.0
+ - (djm) [README] Update URL to release notes.
 
 20120419
  - (djm) [configure.ac] Fix compilation error on FreeBSD, whose libutil
