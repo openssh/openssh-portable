@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.85 2012/04/12 02:42:32 djm Exp $
+#	$OpenBSD: sshd_config,v 1.86 2012/04/12 02:43:55 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -48,6 +48,8 @@
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile	.ssh/authorized_keys
+
+#AuthorizedPrincipalsFile none
 
 # For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
 #RhostsRSAAuthentication no

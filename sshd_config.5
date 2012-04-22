@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.137 2012/04/12 02:42:32 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.138 2012/04/12 02:43:55 djm Exp $
 .Dd $Mdocdate: April 12 2012 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -198,7 +198,9 @@ After expansion,
 is taken to be an absolute path or one relative to the user's home
 directory.
 .Pp
-The default is not to use a principals file \(en in this case, the username
+The default is
+.Dq none ,
+i.e. not to use a principals file \(en in this case, the username
 of the user must appear in a certificate's principals list for it to be
 accepted.
 Note that

@@ -37,6 +37,9 @@
      [servconf.c servconf.h sshd.c sshd_config sshd_config.5]
      VersionAddendum option to allow server operators to append some arbitrary
      text to the SSH-... banner; ok deraadt@ "don't care" markus@
+   - djm@cvs.openbsd.org 2012/04/12 02:43:55
+     [sshd_config sshd_config.5]
+     mention AuthorizedPrincipalsFile=none default
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
