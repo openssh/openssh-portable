@@ -29,6 +29,10 @@
      [sshd.c]
      don't spin in accept() when out of fds (ENFILE/ENFILE) - back off for a
      while; ok deraadt@ markus@
+   - djm@cvs.openbsd.org 2012/04/11 13:34:17
+     [ssh-keyscan.1 ssh-keyscan.c]
+     now that sshd defaults to offering ECDSA keys, ssh-keyscan should also
+     look for them by default; bz#1971
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
