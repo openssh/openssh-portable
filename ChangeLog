@@ -33,6 +33,10 @@
      [ssh-keyscan.1 ssh-keyscan.c]
      now that sshd defaults to offering ECDSA keys, ssh-keyscan should also
      look for them by default; bz#1971
+   - djm@cvs.openbsd.org 2012/04/12 02:42:32
+     [servconf.c servconf.h sshd.c sshd_config sshd_config.5]
+     VersionAddendum option to allow server operators to append some arbitrary
+     text to the SSH-... banner; ok deraadt@ "don't care" markus@
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]

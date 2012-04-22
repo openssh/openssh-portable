@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.84 2011/05/23 03:30:07 djm Exp $
+#	$OpenBSD: sshd_config,v 1.85 2012/04/12 02:42:32 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -107,6 +107,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #MaxStartups 10
 #PermitTunnel no
 #ChrootDirectory none
+#VersionAddendum none
 
 # no default banner path
 #Banner none

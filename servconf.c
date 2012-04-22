@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.224 2012/03/29 23:54:36 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.225 2012/04/12 02:42:32 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -138,6 +138,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_principals_file = NULL;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
+	options->version_addendum = NULL;
 }
 
 void
@@ -277,7 +278,8 @@ fill_default_server_options(ServerOptions *options)
 		options->ip_qos_interactive = IPTOS_LOWDELAY;
 	if (options->ip_qos_bulk == -1)
 		options->ip_qos_bulk = IPTOS_THROUGHPUT;
-
+	if (options->version_addendum == NULL)
+		options->version_addendum = xstrdup("");
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
 		use_privsep = PRIVSEP_ON;
@@ -323,7 +325,7 @@ typedef enum {
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sZeroKnowledgePasswordAuthentication, sHostCertificate,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
-	sKexAlgorithms, sIPQoS,
+	sKexAlgorithms, sIPQoS, sVersionAddendum,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -448,6 +450,7 @@ static struct {
 	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
+	{ "versionaddendum", sVersionAddendum, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1403,6 +1406,22 @@ process_server_config_line(ServerOptions *options, char *line,
 		}
 		break;
 
+	case sVersionAddendum:
+		if (cp == NULL)
+			fatal("%.200s line %d: Missing argument.", filename,
+			    linenum);
+		len = strspn(cp, WHITESPACE);
+		if (*activep && options->version_addendum == NULL) {
+			if (strcasecmp(cp + len, "none") == 0)
+				options->version_addendum = xstrdup("");
+			else if (strchr(cp + len, '\r') != NULL)
+				fatal("%.200s line %d: Invalid argument",
+				    filename, linenum);
+			else
+				options->version_addendum = xstrdup(cp + len);
+		}
+		return 0;
+
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
@@ -1766,6 +1785,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sRevokedKeys, o->revoked_keys_file);
 	dump_cfg_string(sAuthorizedPrincipalsFile,
 	    o->authorized_principals_file);
+	dump_cfg_string(sVersionAddendum, o->version_addendum);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
