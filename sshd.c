@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.388 2011/09/30 21:22:49 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.389 2012/04/11 13:26:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1174,7 +1174,10 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			if (*newsock < 0) {
 				if (errno != EINTR && errno != EAGAIN &&
 				    errno != EWOULDBLOCK)
-					error("accept: %.100s", strerror(errno));
+					error("accept: %.100s",
+					    strerror(errno));
+				if (errno == EMFILE || errno == ENFILE)
+					usleep(100 * 1000);
 				continue;
 			}
 			if (unset_nonblock(*newsock) == -1) {
