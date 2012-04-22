@@ -21,6 +21,10 @@
      [channels.c channels.h clientloop.c serverloop.c]
      don't spin in accept() when out of fds (ENFILE/ENFILE) - back off for a
      while; ok deraadt@ markus@
+   - djm@cvs.openbsd.org 2012/04/11 13:17:54
+     [auth.c]
+     Support "none" as an argument for AuthorizedPrincipalsFile to indicate
+     no file should be read.
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.94 2011/05/23 03:33:38 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.95 2012/04/11 13:17:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -357,7 +357,8 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 char *
 authorized_principals_file(struct passwd *pw)
 {
-	if (options.authorized_principals_file == NULL)
+	if (options.authorized_principals_file == NULL ||
+	    strcasecmp(options.authorized_principals_file, "none") == 0)
 		return NULL;
 	return expand_authorized_keys(options.authorized_principals_file, pw);
 }
