@@ -43,6 +43,9 @@
    - djm@cvs.openbsd.org 2012/04/20 03:24:23
      [sftp.c]
      setlinebuf(3) is more readable than setvbuf(.., _IOLBF, ...)
+   - jmc@cvs.openbsd.org 2012/04/20 16:26:22
+     [ssh.1]
+     use "brackets" instead of "braces", for consistency;
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
