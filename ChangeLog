@@ -3,6 +3,12 @@
    - djm@cvs.openbsd.org 2012/02/29 11:21:26
      [ssh-keygen.c]
      allow conversion of RSA1 keys to public PEM and PKCS8; "nice" markus@
+   - guenther@cvs.openbsd.org 2012/03/15 03:10:27
+     [session.c]
+     root should always be excluded from the test for /etc/nologin instead
+     of having it always enforced even when marked as ignorenologin.  This
+     regressed when the logic was incompletely flipped around in rev 1.251
+     ok halex@ millert@
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
