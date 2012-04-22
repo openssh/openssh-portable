@@ -40,6 +40,9 @@
    - djm@cvs.openbsd.org 2012/04/12 02:43:55
      [sshd_config sshd_config.5]
      mention AuthorizedPrincipalsFile=none default
+   - djm@cvs.openbsd.org 2012/04/20 03:24:23
+     [sftp.c]
+     setlinebuf(3) is more readable than setvbuf(.., _IOLBF, ...)
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]

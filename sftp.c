@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.134 2011/11/16 12:24:28 oga Exp $ */
+/* $OpenBSD: sftp.c,v 1.135 2012/04/20 03:24:23 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1934,13 +1934,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		xfree(dir);
 	}
 
-#if defined(HAVE_SETVBUF) && !defined(BROKEN_SETVBUF)
-	setvbuf(stdout, NULL, _IOLBF, 0);
-	setvbuf(infile, NULL, _IOLBF, 0);
-#else
 	setlinebuf(stdout);
 	setlinebuf(infile);
-#endif
 
 	interactive = !batchmode && isatty(STDIN_FILENO);
 	err = 0;
