@@ -9,6 +9,10 @@
      of having it always enforced even when marked as ignorenologin.  This
      regressed when the logic was incompletely flipped around in rev 1.251
      ok halex@ millert@
+   - djm@cvs.openbsd.org 2012/03/28 07:23:22
+     [PROTOCOL.certkeys]
+     explain certificate extensions/crit split rationale. Mention requirement
+     that each appear at most once per cert.
 
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
