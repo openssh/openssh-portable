@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.110 2012/03/29 23:54:36 dtucker Exp $ */
+/* $OpenBSD: channels.h,v 1.111 2012/04/11 13:16:19 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -105,6 +105,7 @@ struct Channel {
 	int     wfd_isatty;	/* wfd is a tty */
 	int	client_tty;	/* (client) TTY has been requested */
 	int     force_drain;	/* force close on iEOF */
+	time_t	notbefore;	/* Pause IO until deadline (time_t) */
 	int     delayed;	/* post-select handlers for newly created
 				 * channels are delayed until the first call
 				 * to a matching pre-select handler. 
@@ -238,7 +239,8 @@ void	 channel_input_status_confirm(int, u_int32_t, void *);
 
 /* file descriptor handling (read/write) */
 
-void	 channel_prepare_select(fd_set **, fd_set **, int *, u_int*, int);
+void	 channel_prepare_select(fd_set **, fd_set **, int *, u_int*,
+	     time_t*, int);
 void     channel_after_select(fd_set *, fd_set *);
 void     channel_output_poll(void);
 
