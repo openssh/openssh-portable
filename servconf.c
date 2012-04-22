@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.223 2011/09/23 00:22:04 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.224 2012/03/29 23:54:36 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1330,6 +1330,14 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (*activep && n == -1) {
 				channel_clear_adm_permitted_opens();
 				options->num_permitted_opens = 0;
+			}
+			break;
+		}
+		if (strcmp(arg, "none") == 0) {
+			if (*activep && n == -1) {
+				channel_clear_adm_permitted_opens();
+				options->num_permitted_opens = 1;
+				channel_disable_adm_local_opens();
 			}
 			break;
 		}

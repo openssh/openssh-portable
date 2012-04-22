@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.315 2011/09/23 07:45:05 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.316 2012/03/29 23:54:36 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3127,6 +3127,17 @@ channel_add_adm_permitted_opens(char *host, int port)
 }
 
 void
+channel_disable_adm_local_opens(void)
+{
+	if (num_adm_permitted_opens == 0) {
+		permitted_adm_opens = xmalloc(sizeof(*permitted_adm_opens));
+		permitted_adm_opens[num_adm_permitted_opens].host_to_connect
+		   = NULL;
+		num_adm_permitted_opens = 1;
+	}
+}
+
+void
 channel_clear_permitted_opens(void)
 {
 	int i;
@@ -3167,7 +3178,9 @@ channel_print_adm_permitted_opens(void)
 		return;
 	}
 	for (i = 0; i < num_adm_permitted_opens; i++)
-		if (permitted_adm_opens[i].host_to_connect != NULL)
+		if (permitted_adm_opens[i].host_to_connect == NULL)
+			printf(" none");
+		else
 			printf(" %s:%d", permitted_adm_opens[i].host_to_connect,
 			    permitted_adm_opens[i].port_to_connect);
 	printf("\n");
