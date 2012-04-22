@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.212 2011/10/16 15:02:41 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.213 2012/02/29 11:21:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -265,6 +265,10 @@ do_convert_to_ssh2(struct passwd *pw, Key *k)
 	u_char *blob;
 	char comment[61];
 
+	if (k->type == KEY_RSA1) {
+		fprintf(stderr, "version 1 keys are not supported\n");
+		exit(1);
+	}
 	if (key_to_blob(k, &blob, &len) <= 0) {
 		fprintf(stderr, "key_to_blob failed\n");
 		exit(1);
@@ -288,6 +292,7 @@ static void
 do_convert_to_pkcs8(Key *k)
 {
 	switch (key_type_plain(k->type)) {
+	case KEY_RSA1:
 	case KEY_RSA:
 		if (!PEM_write_RSA_PUBKEY(stdout, k->rsa))
 			fatal("PEM_write_RSA_PUBKEY failed");
@@ -312,6 +317,7 @@ static void
 do_convert_to_pem(Key *k)
 {
 	switch (key_type_plain(k->type)) {
+	case KEY_RSA1:
 	case KEY_RSA:
 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
 			fatal("PEM_write_RSAPublicKey failed");
@@ -344,10 +350,6 @@ do_convert_to(struct passwd *pw)
 			fprintf(stderr, "load failed\n");
 			exit(1);
 		}
-	}
-	if (k->type == KEY_RSA1) {
-		fprintf(stderr, "version 1 keys are not supported\n");
-		exit(1);
 	}
 
 	switch (convert_format) {

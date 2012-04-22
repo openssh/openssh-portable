@@ -1,3 +1,9 @@
+20120422
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2012/02/29 11:21:26
+     [ssh-keygen.c]
+     allow conversion of RSA1 keys to public PEM and PKCS8; "nice" markus@
+
 20120420
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update for release 6.0
