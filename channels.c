@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.317 2012/04/11 13:16:19 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.318 2012/04/23 08:18:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2134,7 +2134,7 @@ channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset,
  */
 void
 channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    u_int *nallocp, int *minwait_secs, int rekeying)
+    u_int *nallocp, time_t *minwait_secs, int rekeying)
 {
 	u_int n, sz, nfdset;
 
