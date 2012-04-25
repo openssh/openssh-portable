@@ -1,3 +1,7 @@
+20120426
+ - (djm) [auth-passwd.c] Handle crypt() returning NULL; from Paul Wouters
+   via Niels
+
 20120423
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2012/04/23 08:18:17
