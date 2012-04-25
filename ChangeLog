@@ -1,6 +1,8 @@
 20120426
  - (djm) [auth-passwd.c] Handle crypt() returning NULL; from Paul Wouters
    via Niels
+ - (djm) [auth-krb5.c] Save errno across calls that might modify it;
+   ok dtucker@
 
 20120423
  - OpenBSD CVS Sync
