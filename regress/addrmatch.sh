@@ -33,13 +33,14 @@ run_trial user 19.0.0.1 somehost no		"deny, no match"
 run_trial user 10.255.255.254 somehost yes	"permit, list middle"
 run_trial user 192.168.30.1 192.168.0.1 no	"deny, faked IP in hostname"
 run_trial user 1.1.1.1 somehost.example.com yes	"permit, bare IP4 address"
-test "$TEST_SSH_IPV6" = "no" && exit
+if test "$TEST_SSH_IPV6" != "no"; then
 run_trial user ::1 somehost.example.com	 yes	"permit, bare IP6 address"
 run_trial user ::2 somehost.exaple.com no	"deny IPv6"
 run_trial user ::3 somehost no			"deny IP6 negated"
 run_trial user ::4 somehost no			"deny, IP6 no match"
 run_trial user 2000::1 somehost yes		"permit, IP6 network"
 run_trial user 2001::1 somehost no		"deny, IP6 network"
+fi
 
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 rm $OBJ/sshd_proxy_bak

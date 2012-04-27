@@ -1,3 +1,8 @@
+20120427
+ - (dtucker) [regress/addrmatch.sh] skip tests when running on a non-ipv6
+   platform rather than exiting early, so that we still clean up and return
+   success or failure to test-exec.sh
+
 20120426
  - (djm) [auth-passwd.c] Handle crypt() returning NULL; from Paul Wouters
    via Niels
