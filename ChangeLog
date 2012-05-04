@@ -1,3 +1,8 @@
+20120504
+ - (dtucker) [configure.ac] Include <sys/param.h> rather than <sys/types.h>
+   to fix building on some plaforms.  Fom bowman at math utah edu and
+   des at des no.
+
 20120427
  - (dtucker) [regress/addrmatch.sh] skip tests when running on a non-ipv6
    platform rather than exiting early, so that we still clean up and return
