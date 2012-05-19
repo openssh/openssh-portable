@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.138 2012/04/12 02:43:55 djm Exp $
-.Dd $Mdocdate: April 12 2012 $
+.\" $OpenBSD: sshd_config.5,v 1.139 2012/05/13 01:42:32 dtucker Exp $
+.Dd $Mdocdate: May 13 2012 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -677,6 +677,8 @@ The available criteria are
 .Cm User ,
 .Cm Group ,
 .Cm Host ,
+.Cm LocalAddress ,
+.Cm LocalPort ,
 and
 .Cm Address .
 The match patterns may consist of single entries or comma-separated

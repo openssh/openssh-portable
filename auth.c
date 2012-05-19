@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.95 2012/04/11 13:17:54 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.96 2012/05/13 01:42:32 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -545,9 +545,10 @@ getpwnamallow(const char *user)
 #endif
 #endif
 	struct passwd *pw;
+	struct connection_info *ci = get_connection_info(1, options.use_dns);
 
-	parse_server_match_config(&options, user,
-	    get_canonical_hostname(options.use_dns), get_remote_ipaddr());
+	ci->user = user;
+	parse_server_match_config(&options, ci);
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);

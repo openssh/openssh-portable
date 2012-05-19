@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.100 2012/04/12 02:42:32 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.101 2012/05/13 01:42:32 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -170,6 +170,16 @@ typedef struct {
 	char   *version_addendum;	/* Appended to SSH banner */
 }       ServerOptions;
 
+/* Information about the incoming connection as used by Match */
+struct connection_info {
+	const char *user;
+	const char *host;	/* possibly resolved hostname */
+	const char *address; 	/* remote address */
+	const char *laddress;	/* local address */
+	int lport;		/* local port */
+};
+
+
 /*
  * These are string config options that must be copied between the
  * Match sub-config and the main config, and must be sent from the
@@ -184,15 +194,17 @@ typedef struct {
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 	} while (0)
 
+struct connection_info *get_connection_info(int, int);
 void	 initialize_server_options(ServerOptions *);
 void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int,
-	     int *, const char *, const char *, const char *);
+	     int *, struct connection_info *);
 void	 load_server_config(const char *, Buffer *);
 void	 parse_server_config(ServerOptions *, const char *, Buffer *,
-	     const char *, const char *, const char *);
-void	 parse_server_match_config(ServerOptions *, const char *, const char *,
-	     const char *);
+	     struct connection_info *);
+void	 parse_server_match_config(ServerOptions *, struct connection_info *);
+int	 parse_server_match_testspec(struct connection_info *, char *);
+int	 server_match_spec_complete(struct connection_info *);
 void	 copy_set_server_options(ServerOptions *, ServerOptions *, int);
 void	 dump_config(ServerOptions *);
 char	*derelativise_path(const char *);

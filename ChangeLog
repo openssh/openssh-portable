@@ -4,6 +4,11 @@
  - (dtucker) [configure.ac contrib/Makefile] bz#1996: use AC_PATH_TOOL to find
    pkg-config so it does the right thing when cross-compiling.  Patch from
    cjwatson at debian org.
+- (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/05/13 01:42:32
+     [servconf.h servconf.c sshd.8 sshd.c auth.c sshd_config.5]
+     Add "Match LocalAddress" and "Match LocalPort" to sshd and adjust tests
+     to match.  Feedback and ok djm@ markus@.
 
 20120504
  - (dtucker) [configure.ac] Include <sys/param.h> rather than <sys/types.h>
