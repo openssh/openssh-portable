@@ -1,6 +1,9 @@
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
    from cjwatson at debian org.
+ - (dtucker) [configure.ac contrib/Makefile] bz#1996: use AC_PATH_TOOL to find
+   pkg-config so it does the right thing when cross-compiling.  Patch from
+   cjwatson at debian org.
 
 20120504
  - (dtucker) [configure.ac] Include <sys/param.h> rather than <sys/types.h>
