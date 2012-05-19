@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.490 2012/05/04 01:05:45 dtucker Exp $
+# $Id: configure.ac,v 1.491 2012/05/19 04:25:42 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.490 $)
+AC_REVISION($Revision: 1.491 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2591,7 +2591,7 @@ elif test "x$sandbox_arg" = "xdarwin" || \
 	AC_DEFINE([SANDBOX_DARWIN], [1], [Sandbox using Darwin sandbox_init(3)])
 elif test "x$sandbox_arg" = "xseccomp_filter" || \
      ( test -z "$sandbox_arg" && \
-       test "x$have_seccomp_filter" == "x1" && \
+       test "x$have_seccomp_filter" = "x1" && \
        test "x$ac_cv_header_linux_audit_h" = "xyes" && \
        test "x$have_seccomp_audit_arch" = "x1" && \
        test "x$have_linux_no_new_privs" = "x1" && \
