@@ -1,3 +1,7 @@
+20120519
+ - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
+   from cjwatson at debian org.
+
 20120504
  - (dtucker) [configure.ac] Include <sys/param.h> rather than <sys/types.h>
    to fix building on some plaforms.  Fom bowman at math utah edu and
