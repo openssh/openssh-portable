@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.226 2012/05/13 01:42:32 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.227 2012/06/19 18:25:27 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -420,10 +420,10 @@ static struct {
 	{ "keepalive", sTCPKeepAlive, SSHCFG_GLOBAL },	/* obsolete alias */
 	{ "allowtcpforwarding", sAllowTcpForwarding, SSHCFG_ALL },
 	{ "allowagentforwarding", sAllowAgentForwarding, SSHCFG_ALL },
-	{ "allowusers", sAllowUsers, SSHCFG_GLOBAL },
-	{ "denyusers", sDenyUsers, SSHCFG_GLOBAL },
-	{ "allowgroups", sAllowGroups, SSHCFG_GLOBAL },
-	{ "denygroups", sDenyGroups, SSHCFG_GLOBAL },
+	{ "allowusers", sAllowUsers, SSHCFG_ALL },
+	{ "denyusers", sDenyUsers, SSHCFG_ALL },
+	{ "allowgroups", sAllowGroups, SSHCFG_ALL },
+	{ "denygroups", sDenyGroups, SSHCFG_ALL },
 	{ "ciphers", sCiphers, SSHCFG_GLOBAL },
 	{ "macs", sMacs, SSHCFG_GLOBAL },
 	{ "protocol", sProtocol, SSHCFG_GLOBAL },
@@ -441,7 +441,7 @@ static struct {
 	{ "authorizedkeysfile", sAuthorizedKeysFile, SSHCFG_ALL },
 	{ "authorizedkeysfile2", sDeprecated, SSHCFG_ALL },
 	{ "useprivilegeseparation", sUsePrivilegeSeparation, SSHCFG_GLOBAL},
-	{ "acceptenv", sAcceptEnv, SSHCFG_GLOBAL },
+	{ "acceptenv", sAcceptEnv, SSHCFG_ALL },
 	{ "permittunnel", sPermitTunnel, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
@@ -1148,6 +1148,8 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_allow_users >= MAX_ALLOW_USERS)
 				fatal("%s line %d: too many allow users.",
 				    filename, linenum);
+			if (!*activep)
+				continue;
 			options->allow_users[options->num_allow_users++] =
 			    xstrdup(arg);
 		}
@@ -1158,6 +1160,8 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_deny_users >= MAX_DENY_USERS)
 				fatal("%s line %d: too many deny users.",
 				    filename, linenum);
+			if (!*activep)
+				continue;
 			options->deny_users[options->num_deny_users++] =
 			    xstrdup(arg);
 		}
@@ -1168,6 +1172,8 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
 				fatal("%s line %d: too many allow groups.",
 				    filename, linenum);
+			if (!*activep)
+				continue;
 			options->allow_groups[options->num_allow_groups++] =
 			    xstrdup(arg);
 		}
@@ -1178,7 +1184,10 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_deny_groups >= MAX_DENY_GROUPS)
 				fatal("%s line %d: too many deny groups.",
 				    filename, linenum);
-			options->deny_groups[options->num_deny_groups++] = xstrdup(arg);
+			if (!*activep)
+				continue;
+			options->deny_groups[options->num_deny_groups++] =
+			    xstrdup(arg);
 		}
 		break;
 
@@ -1352,7 +1361,7 @@ process_server_config_line(ServerOptions *options, char *line,
 				fatal("%s line %d: too many allow env.",
 				    filename, linenum);
 			if (!*activep)
-				break;
+				continue;
 			options->accept_env[options->num_accept_env++] =
 			    xstrdup(arg);
 		}

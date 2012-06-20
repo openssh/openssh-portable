@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.101 2012/05/13 01:42:32 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.102 2012/06/19 18:25:28 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -192,6 +192,11 @@ struct connection_info {
 		M_CP_STROPT(revoked_keys_file); \
 		M_CP_STROPT(authorized_principals_file); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
+		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
+		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
+		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
+		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
+		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);
