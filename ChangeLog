@@ -28,6 +28,9 @@
      [mux.c]
      fix memory leak when mux socket creation fails; bz#2002 from bert.wesarg
      AT googlemail.com
+   - dtucker@cvs.openbsd.org 2012/06/18 11:43:53
+     [jpake.c]
+     correct sizeof usage.  patch from saw at online.de, ok deraadt
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
