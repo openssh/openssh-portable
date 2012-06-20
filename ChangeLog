@@ -34,6 +34,10 @@
    - dtucker@cvs.openbsd.org 2012/06/18 11:49:58
      [ssh_config.5]
      RSA instead of DSA twice.  From Steve.McClellan at radisys com
+   - dtucker@cvs.openbsd.org 2012/06/18 12:07:07
+     [ssh.1 sshd.8]
+     Remove mention of 'three' key files since there are now four.  From
+     Steve.McClellan at radisys com.
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
