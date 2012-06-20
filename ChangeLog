@@ -50,6 +50,10 @@
    - jmc@cvs.openbsd.org 2012/06/19 21:35:54
      [sshd_config.5]
      tweak previous; ok markus
+   - djm@cvs.openbsd.org 2012/06/20 04:42:58
+     [clientloop.c serverloop.c]
+     initialise accept() backoff timer to avoid EINVAL from select(2) in
+     rekeying
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch

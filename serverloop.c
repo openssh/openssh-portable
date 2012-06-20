@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.161 2012/04/11 13:16:19 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.162 2012/06/20 04:42:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -281,7 +281,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 {
 	struct timeval tv, *tvp;
 	int ret;
-	time_t minwait_secs;
+	time_t minwait_secs = 0;
 	int client_alive_scheduled = 0;
 	int program_alive_scheduled = 0;
 
