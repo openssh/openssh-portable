@@ -38,6 +38,10 @@
      [ssh.1 sshd.8]
      Remove mention of 'three' key files since there are now four.  From
      Steve.McClellan at radisys com.
+   - dtucker@cvs.openbsd.org 2012/06/18 12:17:18
+     [ssh.1]
+     Clarify description of -W.  Noted by Steve.McClellan at radisys com,
+     ok jmc
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
