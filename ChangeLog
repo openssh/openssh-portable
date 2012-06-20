@@ -47,6 +47,9 @@
      sshd_config: extend Match to allow AcceptEnv and {Allow,Deny}{Users,Groups}
      this allows 'Match LocalPort 1022' combined with 'AllowUser bauer'
      ok djm@ (back in March)
+   - jmc@cvs.openbsd.org 2012/06/19 21:35:54
+     [sshd_config.5]
+     tweak previous; ok markus
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch

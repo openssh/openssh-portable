@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.141 2012/06/19 18:25:28 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.142 2012/06/19 21:35:54 jmc Exp $
 .Dd $Mdocdate: June 19 2012 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -707,9 +707,9 @@ Only a subset of keywords may be used on the lines following a
 .Cm Match
 keyword.
 Available keywords are
-.Cm AcceptEnv
+.Cm AcceptEnv ,
 .Cm AllowAgentForwarding ,
-.Cm AllowGroups .
+.Cm AllowGroups ,
 .Cm AllowTcpForwarding ,
 .Cm AllowUsers ,
 .Cm AuthorizedKeysFile ,
@@ -719,8 +719,8 @@ Available keywords are
 .Cm DenyGroups ,
 .Cm DenyUsers ,
 .Cm ForceCommand ,
-.Cm GSSAPIAuthentication ,
 .Cm GatewayPorts ,
+.Cm GSSAPIAuthentication ,
 .Cm HostbasedAuthentication ,
 .Cm HostbasedUsesNameFromPacketOnly ,
 .Cm KbdInteractiveAuthentication ,
@@ -733,8 +733,8 @@ Available keywords are
 .Cm PermitRootLogin ,
 .Cm PermitTunnel ,
 .Cm PubkeyAuthentication ,
-.Cm RSAAuthentication ,
 .Cm RhostsRSAAuthentication ,
+.Cm RSAAuthentication ,
 .Cm X11DisplayOffset ,
 .Cm X11Forwarding
 and
