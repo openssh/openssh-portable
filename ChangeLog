@@ -16,6 +16,10 @@
      [mux.c]
      fix double-free in new session handler
      NB. Id sync only
+   - djm@cvs.openbsd.org 2012/05/23 03:28:28
+     [dns.c dns.h key.c key.h ssh-keygen.c]
+     add support for RFC6594 SSHFP DNS records for ECDSA key types.
+     patch from bugzilla-m67 AT nulld.me in bz#1978; ok + tweak markus@
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch

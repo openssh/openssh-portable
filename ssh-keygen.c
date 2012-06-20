@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.213 2012/02/29 11:21:26 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.214 2012/05/23 03:28:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2194,6 +2194,8 @@ main(int argc, char **argv)
 			    _PATH_HOST_RSA_KEY_FILE, rr_hostname);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_DSA_KEY_FILE, rr_hostname);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname);
 
 			if (n == 0)
 				fatal("no keys found.");
