@@ -12,6 +12,10 @@
      > fix bz#1948: ssh -f doesn't fork for multiplexed connection.
      > ok dtucker@
      it interacts badly with ControlPersist
+   - djm@cvs.openbsd.org 2012/01/07 21:11:36
+     [mux.c]
+     fix double-free in new session handler
+     NB. Id sync only
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
