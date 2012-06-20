@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.34 2012/01/07 21:11:36 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.35 2012/06/01 01:01:22 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1195,6 +1195,7 @@ muxserver_listen(void)
 				close(muxserver_sock);
 				muxserver_sock = -1;
 			}
+			xfree(orig_control_path);
 			xfree(options.control_path);
 			options.control_path = NULL;
 			options.control_master = SSHCTL_MASTER_NO;
@@ -1216,7 +1217,6 @@ muxserver_listen(void)
 		}
 		error("ControlSocket %s already exists, disabling multiplexing",
 		    orig_control_path);
-		xfree(orig_control_path);
 		unlink(options.control_path);
 		goto disable_mux_master;
 	}

@@ -24,6 +24,10 @@
      [PROTOCOL.mux]
      correct types of port numbers (integers, not strings); bz#2004 from
      bert.wesarg AT googlemail.com
+   - djm@cvs.openbsd.org 2012/06/01 01:01:22
+     [mux.c]
+     fix memory leak when mux socket creation fails; bz#2002 from bert.wesarg
+     AT googlemail.com
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
