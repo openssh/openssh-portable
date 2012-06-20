@@ -4,7 +4,14 @@
      [mux.c]
      fix bz#1948: ssh -f doesn't fork for multiplexed connection.
      ok dtucker@
-
+   - djm@cvs.openbsd.org 2011/12/04 23:16:12
+     [mux.c]
+     revert:
+     > revision 1.32
+     > date: 2011/12/02 00:41:56;  author: djm;  state: Exp;  lines: +4 -1
+     > fix bz#1948: ssh -f doesn't fork for multiplexed connection.
+     > ok dtucker@
+     it interacts badly with ControlPersist
 
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
