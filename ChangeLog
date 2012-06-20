@@ -1,3 +1,11 @@
+20120620
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2011/12/02 00:41:56
+     [mux.c]
+     fix bz#1948: ssh -f doesn't fork for multiplexed connection.
+     ok dtucker@
+
+
 20120519
  - (dtucker) [configure.ac] bz#2010: fix non-portable shell construct.  Patch
    from cjwatson at debian org.
