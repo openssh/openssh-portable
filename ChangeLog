@@ -1,3 +1,8 @@
+20120628
+ - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
+   pointer deref in the client when built with LDNS and using DNSSEC with a
+   CNAME.  Patch from gregdlg+mr at hochet info.
+
 20120622
  - (dtucker) [contrib/cygwin/ssh-host-config] Ensure that user sshd runs as
    can logon as a service.  Patch from vinschen at redhat com.
