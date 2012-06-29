@@ -11,6 +11,10 @@
      [sftp.c]
      Remove unused variable leftover from tab-completion changes.
      From Steve.McClellan at radisys com, ok markus@
+   - dtucker@cvs.openbsd.org 2012/06/26 11:02:30
+     [sandbox-systrace.c]
+     Add mquery to the list of allowed syscalls for "UsePrivilegeSeparation
+     sandbox" since malloc now uses it.  From johnw.mail at gmail com.
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
