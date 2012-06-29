@@ -15,6 +15,11 @@
      [sandbox-systrace.c]
      Add mquery to the list of allowed syscalls for "UsePrivilegeSeparation
      sandbox" since malloc now uses it.  From johnw.mail at gmail com.
+   - dtucker@cvs.openbsd.org 2012/06/28 05:07:45
+     [mac.c myproposal.h ssh_config.5 sshd_config.5]
+     Remove hmac-sha2-256-96 and hmac-sha2-512-96 MACs since they were removed
+     from draft6 of the spec and will not be in the RFC when published.  Patch
+     from mdb at juniper net via bz#2023, ok markus.
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
