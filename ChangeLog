@@ -3,6 +3,10 @@
    - dtucker@cvs.openbsd.org 2012/06/21 00:16:07
      [addrmatch.c]
      fix strlcpy truncation check.  from carsten at debian org, ok markus
+   - dtucker@cvs.openbsd.org 2012/06/22 12:30:26
+     [monitor.c sshconnect2.c]
+     remove dead code following 'for (;;)' loops.
+     From Steve.McClellan at radisys com, ok markus@
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
