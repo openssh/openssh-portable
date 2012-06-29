@@ -1,3 +1,9 @@
+20120629
+ - OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/06/21 00:16:07
+     [addrmatch.c]
+     fix strlcpy truncation check.  from carsten at debian org, ok markus
+
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
    pointer deref in the client when built with LDNS and using DNSSEC with a
