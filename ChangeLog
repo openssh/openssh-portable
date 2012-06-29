@@ -7,6 +7,10 @@
      [monitor.c sshconnect2.c]
      remove dead code following 'for (;;)' loops.
      From Steve.McClellan at radisys com, ok markus@
+   - dtucker@cvs.openbsd.org 2012/06/22 14:36:33
+     [sftp.c]
+     Remove unused variable leftover from tab-completion changes.
+     From Steve.McClellan at radisys com, ok markus@
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null

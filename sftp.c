@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.135 2012/04/20 03:24:23 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.136 2012/06/22 14:36:33 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -783,7 +783,6 @@ static int
 do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
     int lflag)
 {
-	Attrib *a = NULL;
 	char *fname, *lname;
 	glob_t g;
 	int err;
@@ -829,7 +828,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		colspace = width / columns;
 	}
 
-	for (i = 0; g.gl_pathv[i] && !interrupted; i++, a = NULL) {
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 		fname = path_strip(g.gl_pathv[i], strip_path);
 		if (lflag & LS_LONG_VIEW) {
 			if (g.gl_statv[i] == NULL) {
