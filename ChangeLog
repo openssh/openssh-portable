@@ -20,6 +20,9 @@
      Remove hmac-sha2-256-96 and hmac-sha2-512-96 MACs since they were removed
      from draft6 of the spec and will not be in the RFC when published.  Patch
      from mdb at juniper net via bz#2023, ok markus.
+   - naddy@cvs.openbsd.org 2012/06/29 13:57:25
+     [ssh_config.5 sshd_config.5]
+     match the documented MAC order of preference to the actual one; ok dtucker@
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
