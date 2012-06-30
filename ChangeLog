@@ -27,6 +27,10 @@
      [regress/addrmatch.sh]
      Add "Match LocalAddress" and "Match LocalPort" to sshd and adjust tests
      to match.  Feedback and ok djm@ markus@.
+   - djm@cvs.openbsd.org 2012/06/01 00:47:35
+     [multiplex.sh forwarding.sh]
+     append to rather than truncate test log; bz#2013 from openssh AT
+     roumenpetrov.info
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
