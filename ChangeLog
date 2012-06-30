@@ -23,6 +23,10 @@
    - naddy@cvs.openbsd.org 2012/06/29 13:57:25
      [ssh_config.5 sshd_config.5]
      match the documented MAC order of preference to the actual one; ok dtucker@
+   - dtucker@cvs.openbsd.org 2012/05/13 01:42:32
+     [regress/addrmatch.sh]
+     Add "Match LocalAddress" and "Match LocalPort" to sshd and adjust tests
+     to match.  Feedback and ok djm@ markus@.
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
