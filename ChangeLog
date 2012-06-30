@@ -44,6 +44,8 @@
      from draft6 of the spec and will not be in the RFC when published.  Patch
      from mdb at juniper net via bz#2023, ok markus.
  - (dtucker) [myproposal.h] Remove trailing backslash to fix compile error.
+ - (dtucker) [key.c] ifdef out sha256 key types on platforms that don't have
+   the required functions in libcrypto.
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
