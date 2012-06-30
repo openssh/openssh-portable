@@ -78,7 +78,7 @@
 #ifdef HAVE_EVP_SHA256
 #define	SHA2_HMAC_MODES \
 	"hmac-sha2-256," \
-	"hmac-sha2-512," \
+	"hmac-sha2-512,"
 #else
 # define SHA2_HMAC_MODES
 #endif
