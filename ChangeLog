@@ -31,6 +31,10 @@
      [multiplex.sh forwarding.sh]
      append to rather than truncate test log; bz#2013 from openssh AT
      roumenpetrov.info
+   - djm@cvs.openbsd.org 2012/06/01 00:52:52
+     [sftp-cmds.sh]
+     don't delete .* on cleanup due to unintended env expansion; pointed out in
+     bz#2014 by openssh AT roumenpetrov.info
 
 20120628
  - (dtucker) [openbsd-compat/getrrsetbyname-ldns.c] bz #2022: prevent null
