@@ -1,4 +1,4 @@
-#	$OpenBSD: connect-privsep.sh,v 1.3 2012/06/26 12:06:59 dtucker Exp $
+#	$OpenBSD: connect-privsep.sh,v 1.4 2012/07/02 14:37:06 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="proxy connect with privsep"
@@ -34,5 +34,3 @@ for m in '' A F G H J P R S X Z '<' '>'; do
 	fi
     done
 done
-
-exit

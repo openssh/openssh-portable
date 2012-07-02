@@ -16,6 +16,9 @@
    - dtucker@cvs.openbsd.org 2012/07/02 12:13:26
      [ssh-pkcs11-helper.c sftp-client.c]
      fix a couple of "assigned but not used" warnings.  ok markus@
+   - dtucker@cvs.openbsd.org 2012/07/02 14:37:06
+     [regress/connect-privsep.sh]
+     remove exit from end of test since it prevents reporting failure
 
 20120629
  - OpenBSD CVS Sync
