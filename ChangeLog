@@ -21,6 +21,7 @@
      remove exit from end of test since it prevents reporting failure
  - (dtucker) [regress/reexec.sh regress/sftp-cmds.sh regress/test-exec.sh]
    Move cygwin detection to test-exec and use to skip reexec test on cygwin.
+ - (dtucker) [regress/test-exec.sh] Correct uname for cygwin/w2k.
 
 20120629
  - OpenBSD CVS Sync

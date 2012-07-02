@@ -12,7 +12,7 @@ OSF1*)
 	BIN_SH=xpg4
 	export BIN_SH
 	;;
-CYGWIN_5.0)
+CYGWIN_NT-5.0)
 	os=cygwin
 	TEST_SSH_IPV6=no
 	;;
