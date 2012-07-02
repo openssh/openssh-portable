@@ -10,6 +10,9 @@
      the read-syscall and wait forever for systrace-answers) by replacing
      the read/write synchronisation with SIGSTOP/SIGCONT;
      report and help hshoexer@; ok djm@, dtucker@
+   - dtucker@cvs.openbsd.org 2012/07/02 08:50:03
+     [ssh.c]
+     set interactive ToS for forwarded X11 sessions.  ok djm@
 
 20120629
  - OpenBSD CVS Sync
