@@ -17,20 +17,6 @@ do
 	fi
 done
 
-if have_prog uname
-then
-	case `uname` in
-	CYGWIN*)
-		os=cygwin
-		;;
-	*)
-		os=`uname`
-		;;
-	esac
-else
-	os="unknown"
-fi
-
 # Path with embedded quote
 QUOTECOPY=${COPY}".\"blah\""
 QUOTECOPY_ARG=${COPY}'.\"blah\"'

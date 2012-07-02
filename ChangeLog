@@ -19,6 +19,8 @@
    - dtucker@cvs.openbsd.org 2012/07/02 14:37:06
      [regress/connect-privsep.sh]
      remove exit from end of test since it prevents reporting failure
+ - (dtucker) [regress/reexec.sh regress/sftp-cmds.sh regress/test-exec.sh]
+   Move cygwin detection to test-exec and use to skip reexec test on cygwin.
 
 20120629
  - OpenBSD CVS Sync
