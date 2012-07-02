@@ -1,3 +1,10 @@
+20120702
+- (dtucker) OpenBSD CVS Sync
+   - naddy@cvs.openbsd.org 2012/06/29 13:57:25
+     [ssh_config.5 sshd_config.5]
+     match the documented MAC order of preference to the actual one;
+     ok dtucker@
+
 20120629
  - OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2012/06/21 00:16:07
