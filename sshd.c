@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.391 2012/05/13 01:42:32 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.392 2012/06/30 14:35:09 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -643,9 +643,9 @@ privsep_preauth(Authctxt *authctxt)
 	} else if (pid != 0) {
 		debug2("Network child is on pid %ld", (long)pid);
 
+		pmonitor->m_pid = pid;
 		if (box != NULL)
 			ssh_sandbox_parent_preauth(box, pid);
-		pmonitor->m_pid = pid;
 		monitor_child_preauth(authctxt, pmonitor);
 
 		/* Sync memory */

@@ -4,6 +4,12 @@
      [ssh_config.5 sshd_config.5]
      match the documented MAC order of preference to the actual one;
      ok dtucker@
+   - markus@cvs.openbsd.org 2012/06/30 14:35:09
+     [sandbox-systrace.c sshd.c]
+     fix a during the load of the sandbox policies (child can still make
+     the read-syscall and wait forever for systrace-answers) by replacing
+     the read/write synchronisation with SIGSTOP/SIGCONT;
+     report and help hshoexer@; ok djm@, dtucker@
 
 20120629
  - OpenBSD CVS Sync
