@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.492 2012/05/19 05:24:37 dtucker Exp $
+# $Id: configure.ac,v 1.493 2012/07/03 04:31:18 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.492 $)
+AC_REVISION($Revision: 1.493 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -686,7 +686,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 		    [Prepend the address family to IP tunnel traffic])
 	fi
-	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h])
+	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
+	    [], [#include <linux/types.h>])
 	AC_CHECK_FUNCS([prctl])
 	have_seccomp_audit_arch=1
 	case "$host" in
@@ -2575,6 +2576,45 @@ AC_ARG_WITH([sandbox],
 		fi
 	]
 )
+
+# Some platforms (seems to be the ones that have a kernel poll(2)-type
+# function with which they implement select(2)) use an extra file descriptor
+# when calling select(2), which means we can't use the rlimit sandbox.
+AC_MSG_CHECKING([if select works with descriptor rlimit])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#include <sys/resource.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
+	]],[[
+	struct rlimit rl_zero;
+	int fd, r;
+	fd_set fds;
+
+	fd = open("/dev/null", O_RDONLY);
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+	setrlimit(RLIMIT_FSIZE, &rl_zero);
+	setrlimit(RLIMIT_NOFILE, &rl_zero);
+	r = select(fd+1, &fds, NULL, NULL, NULL);
+	exit (r == -1 ? 1 : 0);
+	]])],
+	[AC_MSG_RESULT([yes])
+	 select_works_with_rlimit=yes],
+	[AC_MSG_RESULT([no])
+	 select_works_with_rlimit=no],
+	[AC_MSG_WARN([cross compiling: assuming yes])]
+)
+
 if test "x$sandbox_arg" = "xsystrace" || \
    ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
 	test "x$have_systr_policy_kill" != "x1" && \
@@ -2607,9 +2647,12 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	SANDBOX_STYLE="seccomp_filter"
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xrlimit" || \
-     ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" ) ; then
+     ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" && \
+       test "x$select_works_with_rlimit" == "xyes" ) ; then
 	test "x$ac_cv_func_setrlimit" != "xyes" && \
 		AC_MSG_ERROR([rlimit sandbox requires setrlimit function])
+	test "x$select_works_with_rlimit" != "xyes" && \
+		AC_MSG_ERROR([rlimit sandbox requires select to work with rlimit])
 	SANDBOX_STYLE="rlimit"
 	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
 elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \

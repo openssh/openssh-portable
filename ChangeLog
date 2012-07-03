@@ -1,3 +1,7 @@
+20120703
+ - (dtucker) [configure.ac] Detect platforms that can't use select(2) with
+   setrlimit(RLIMIT_NOFILE, rl_zero) and disable the rlimit sandbox on those.
+
 20120702
 - (dtucker) OpenBSD CVS Sync
    - naddy@cvs.openbsd.org 2012/06/29 13:57:25
