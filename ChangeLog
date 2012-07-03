@@ -1,3 +1,7 @@
+20120704
+ - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for
+   platforms that don't have it.  "looks good" tim@
+
 20120703
  - (dtucker) [configure.ac] Detect platforms that can't use select(2) with
    setrlimit(RLIMIT_NOFILE, rl_zero) and disable the rlimit sandbox on those.
