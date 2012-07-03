@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.493 2012/07/03 04:31:18 dtucker Exp $
+# $Id: configure.ac,v 1.494 2012/07/03 12:48:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.493 $)
+AC_REVISION($Revision: 1.494 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2612,6 +2612,25 @@ AC_RUN_IFELSE(
 	 select_works_with_rlimit=yes],
 	[AC_MSG_RESULT([no])
 	 select_works_with_rlimit=no],
+	[AC_MSG_WARN([cross compiling: assuming yes])]
+)
+
+AC_MSG_CHECKING([if setrlimit RLIMIT_FSIZE works])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <stdlib.h>
+	]],[[
+		struct rlimit rl_zero;
+
+		rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+		exit(setrlimit(RLIMIT_FSIZE, &rl_zero) != 0);
+	]])],
+	[AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])
+	 AC_DEFINE(SANDBOX_SKIP_RLIMIT_FSIZE, 1,
+	    [setrlimit RLIMIT_FSIZE works])],
 	[AC_MSG_WARN([cross compiling: assuming yes])]
 )
 
