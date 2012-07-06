@@ -16,6 +16,11 @@
      fix memory leak of passed-in environment variables and connection
      context when new session message is malformed; bz#2003 from Bert.Wesarg
      AT googlemail.com
+   - djm@cvs.openbsd.org 2012/07/06 01:47:38
+     [ssh.c]
+     move setting of tty_flag to after config parsing so RequestTTY options
+     are correctly picked up. bz#1995 patch from przemoc AT gmail.com;
+     ok dtucker@
 
 20120704
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for
