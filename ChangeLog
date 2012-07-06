@@ -1,3 +1,8 @@
+20120706
+ - (djm) [sandbox-seccomp-filter.c] fallback to rlimit if seccomp filter is
+   not available. Allows use of sshd compiled on host with a filter-capable
+   kernel on hosts that lack the support. bz#2011 ok dtucker@
+
 20120704
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for
    platforms that don't have it.  "looks good" tim@
