@@ -11,6 +11,11 @@
      Add options to specify starting line number and number of lines to process
      when screening moduli candidates.  This allows processing of different
      parts of a candidate moduli file in parallel.  man page help jmc@, ok djm@
+   - djm@cvs.openbsd.org 2012/07/06 01:37:21
+     [mux.c]
+     fix memory leak of passed-in environment variables and connection
+     context when new session message is malformed; bz#2003 from Bert.Wesarg
+     AT googlemail.com
 
 20120704
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for

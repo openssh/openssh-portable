@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.35 2012/06/01 01:01:22 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.36 2012/07/06 01:37:21 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -316,6 +316,8 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	cctx->term = NULL;
 	cctx->rid = rid;
 	cmd = reserved = NULL;
+	cctx->env = NULL;
+	env_len = 0;
 	if ((reserved = buffer_get_string_ret(m, NULL)) == NULL ||
 	    buffer_get_int_ret(&cctx->want_tty, m) != 0 ||
 	    buffer_get_int_ret(&cctx->want_x_fwd, m) != 0 ||
@@ -329,16 +331,19 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 			xfree(cmd);
 		if (reserved != NULL)
 			xfree(reserved);
+		for (j = 0; j < env_len; j++)
+			xfree(cctx->env[j]);
+		if (env_len > 0)
+			xfree(cctx->env);
 		if (cctx->term != NULL)
 			xfree(cctx->term);
+		xfree(cctx);
 		error("%s: malformed message", __func__);
 		return -1;
 	}
 	xfree(reserved);
 	reserved = NULL;
 
-	cctx->env = NULL;
-	env_len = 0;
 	while (buffer_len(m) > 0) {
 #define MUX_MAX_ENV_VARS	4096
 		if ((cp = buffer_get_string_ret(m, &len)) == NULL)
@@ -413,6 +418,7 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 			xfree(cctx->env);
 		}
 		buffer_free(&cctx->cmd);
+		xfree(cctx);
 		return 0;
 	}
 
