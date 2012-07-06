@@ -5,6 +5,12 @@
  - (djm) [configure.ac] Recursively expand $(bindir) to ensure it has no
    unexpanded $(prefix) embedded. bz#2007 patch from nix-corp AT
    esperi.org.uk; ok dtucker@
+- (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/07/06 00:41:59
+     [moduli.c ssh-keygen.1 ssh-keygen.c]
+     Add options to specify starting line number and number of lines to process
+     when screening moduli candidates.  This allows processing of different
+     parts of a candidate moduli file in parallel.  man page help jmc@, ok djm@
 
 20120704
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for

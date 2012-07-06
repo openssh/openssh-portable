@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.214 2012/05/23 03:28:28 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.215 2012/07/06 00:41:59 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -154,7 +154,8 @@ char hostname[MAXHOSTNAMELEN];
 
 /* moduli.c */
 int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
-int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *);
+int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
+    unsigned long);
 
 static void
 type_bits_valid(int type, u_int32_t *bitsp)
@@ -1888,6 +1889,8 @@ usage(void)
 	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
 	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
 	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
+	fprintf(stderr, "  -J number   Screen this number of moduli lines\n");
+	fprintf(stderr, "  -j number   Start screening moduli at specified line.\n");
 	fprintf(stderr, "  -K checkpt  Write checkpoints to this file.\n");
 	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
@@ -1930,6 +1933,7 @@ main(int argc, char **argv)
 	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	int gen_all_hostkeys = 0;
+	unsigned long start_lineno = 0, lines_to_process = 0;
 	BIGNUM *start = NULL;
 	FILE *f;
 	const char *errstr;
@@ -1958,8 +1962,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	while ((opt = getopt(argc, argv, "AegiqpclBHLhvxXyF:b:f:t:D:I:K:P:m:N:n:"
-	    "O:C:r:g:R:T:G:M:S:s:a:V:W:z:")) != -1) {
+	while ((opt = getopt(argc, argv, "AegiqpclBHLhvxXyF:b:f:t:D:I:J:j:K:P:"
+	    "m:N:n:O:C:r:g:R:T:G:M:S:s:a:V:W:z")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -1980,6 +1984,12 @@ main(int argc, char **argv)
 		case 'I':
 			cert_key_id = optarg;
 			break;
+		case 'J':
+			lines_to_process = strtoul(optarg, NULL, 10);
+                        break;
+		case 'j':
+			start_lineno = strtoul(optarg, NULL, 10);
+                        break;
 		case 'R':
 			delete_host = 1;
 			rr_hostname = optarg;
@@ -2238,8 +2248,8 @@ main(int argc, char **argv)
 			fatal("Couldn't open moduli file \"%s\": %s",
 			    out_file, strerror(errno));
 		}
-		if (prime_test(in, out, trials, generator_wanted, checkpoint)
-		    != 0)
+		if (prime_test(in, out, trials, generator_wanted, checkpoint,
+		    start_lineno, lines_to_process) != 0)
 			fatal("modulus screening failed");
 		return (0);
 	}
