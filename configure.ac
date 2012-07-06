@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.495 2012/07/03 22:50:10 dtucker Exp $
+# $Id: configure.ac,v 1.496 2012/07/06 01:49:29 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.495 $)
+AC_REVISION($Revision: 1.496 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -4005,13 +4005,16 @@ otherwise scp will not work.])
 		[ user_path="/usr/bin:/bin:/usr/sbin:/sbin" ]
 	)
 # make sure $bindir is in USER_PATH so scp will work
-		t_bindir=`eval echo ${bindir}`
-		case $t_bindir in
-			NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$prefix~"` ;;
-		esac
-		case $t_bindir in
-			NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$ac_default_prefix~"` ;;
-		esac
+		t_bindir="${bindir}"
+		while echo "${t_bindir}" | egrep '\$\{|NONE/' >/dev/null 2>&1; do
+			t_bindir=`eval echo ${t_bindir}`
+			case $t_bindir in
+				NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$prefix~"` ;;
+			esac
+			case $t_bindir in
+				NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$ac_default_prefix~"` ;;
+			esac
+		done
 		echo $user_path | grep ":$t_bindir"  > /dev/null 2>&1
 		if test $? -ne 0  ; then
 			echo $user_path | grep "^$t_bindir"  > /dev/null 2>&1

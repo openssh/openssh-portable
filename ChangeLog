@@ -2,6 +2,9 @@
  - (djm) [sandbox-seccomp-filter.c] fallback to rlimit if seccomp filter is
    not available. Allows use of sshd compiled on host with a filter-capable
    kernel on hosts that lack the support. bz#2011 ok dtucker@
+ - (djm) [configure.ac] Recursively expand $(bindir) to ensure it has no
+   unexpanded $(prefix) embedded. bz#2007 patch from nix-corp AT
+   esperi.org.uk; ok dtucker@
 
 20120704
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] Add setlinebuf for
