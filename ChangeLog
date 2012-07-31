@@ -1,3 +1,9 @@
+20120731
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2012/07/06 06:38:03
+     [ssh-keygen.c]
+     missing full stop in usage();
+
 20120720
  - (dtucker) Import regened moduli file.
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.215 2012/07/06 00:41:59 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.216 2012/07/06 06:38:03 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1889,7 +1889,7 @@ usage(void)
 	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
 	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
 	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
-	fprintf(stderr, "  -J number   Screen this number of moduli lines\n");
+	fprintf(stderr, "  -J number   Screen this number of moduli lines.\n");
 	fprintf(stderr, "  -j number   Start screening moduli at specified line.\n");
 	fprintf(stderr, "  -K checkpt  Write checkpoints to this file.\n");
 	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
