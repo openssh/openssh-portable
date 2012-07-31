@@ -9,6 +9,9 @@
      by shipping a config that overrides the current UsePrivilegeSeparation=yes
      default. Make it easier to flip the default in the future by adding too.
      prodded markus@ feedback dtucker@ "get it in" deraadt@
+   - dtucker@cvs.openbsd.org 2012/07/13 01:35:21
+     [servconf.c]
+     handle long comments in config files better.  bz#2025, ok markus
 
 20120720
  - (dtucker) Import regened moduli file.
