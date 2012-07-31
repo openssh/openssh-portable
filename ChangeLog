@@ -12,6 +12,9 @@
    - dtucker@cvs.openbsd.org 2012/07/13 01:35:21
      [servconf.c]
      handle long comments in config files better.  bz#2025, ok markus
+   - markus@cvs.openbsd.org 2012/07/22 18:19:21
+     [version.h]
+     openssh 6.1
 
 20120720
  - (dtucker) Import regened moduli file.
