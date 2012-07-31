@@ -3,6 +3,11 @@
    - jmc@cvs.openbsd.org 2012/07/06 06:38:03
      [ssh-keygen.c]
      missing full stop in usage();
+   - djm@cvs.openbsd.org 2012/07/10 02:19:15
+     [servconf.c servconf.h sshd.c sshd_config]
+     Turn on systrace sandboxing of pre-auth sshd by default for new installs
+     by shipping a config that overrides the current UsePrivilegeSeparation=yes
+     default. Make it easier to flip the default in the future by adding too.
 
 20120720
  - (dtucker) Import regened moduli file.

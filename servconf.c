@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.227 2012/06/19 18:25:27 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.228 2012/07/10 02:19:15 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -285,7 +285,7 @@ fill_default_server_options(ServerOptions *options)
 		options->version_addendum = xstrdup("");
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
-		use_privsep = PRIVSEP_ON;
+		use_privsep = PRIVSEP_NOSANDBOX;
 
 #ifndef HAVE_MMAP
 	if (use_privsep && options->compression == 1) {
@@ -770,8 +770,9 @@ static const struct multistate multistate_gatewayports[] = {
 	{ NULL, -1 }
 };
 static const struct multistate multistate_privsep[] = {
-	{ "sandbox",			PRIVSEP_SANDBOX },
-	{ "yes",			PRIVSEP_ON },
+	{ "yes",			PRIVSEP_NOSANDBOX },
+	{ "sandbox",			PRIVSEP_ON },
+	{ "nosandbox",			PRIVSEP_NOSANDBOX },
 	{ "no",				PRIVSEP_OFF },
 	{ NULL, -1 }
 };

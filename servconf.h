@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.102 2012/06/19 18:25:28 markus Exp $ */
+/* $OpenBSD: servconf.h,v 1.103 2012/07/10 02:19:15 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -39,7 +39,7 @@
 /* use_privsep */
 #define PRIVSEP_OFF		0
 #define PRIVSEP_ON		1
-#define PRIVSEP_SANDBOX		2
+#define PRIVSEP_NOSANDBOX	2
 
 #define DEFAULT_AUTH_FAIL_MAX	6	/* Default for MaxAuthTries */
 #define DEFAULT_SESSIONS_MAX	10	/* Default for MaxSessions */
