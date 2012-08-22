@@ -1,3 +1,7 @@
+20120822
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Update version numbers
+
 20120731
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2012/07/06 06:38:03
