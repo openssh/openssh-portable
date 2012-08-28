@@ -1,3 +1,8 @@
+20120828
+ - (dtucker) [openbsd-compat/bsd-cygwin_util.h] define WIN32_LEAN_AND_MEAN
+   for compatibility with future mingw-w64 headers.  Patch from vinschen at
+   redhat com.
+
 20120822
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update version numbers
