@@ -1,4 +1,7 @@
 20120828
+ - (djm) Release openssh-6.1
+
+20120828
  - (dtucker) [openbsd-compat/bsd-cygwin_util.h] define WIN32_LEAN_AND_MEAN
    for compatibility with future mingw-w64 headers.  Patch from vinschen at
    redhat com.
