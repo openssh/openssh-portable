@@ -1,3 +1,10 @@
+20120906
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2012/08/15 18:25:50
+     [ssh-keygen.1]
+     a little more info on certificate validity;
+     requested by Ross L Richardson, and provided by djm
+
 20120830
  - (dtucker) [moduli] Import new moduli file.
 
