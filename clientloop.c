@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.240 2012/06/20 04:42:58 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.241 2012/08/17 00:45:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1046,6 +1046,8 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				if (c && c->ctl_chan != -1) {
 					chan_read_failed(c);
 					chan_write_failed(c);
+					mux_master_session_cleanup_cb(c->self,
+					    NULL);
 					return 0;
 				} else
 					quit_pending = 1;

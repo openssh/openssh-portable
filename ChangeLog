@@ -4,6 +4,11 @@
      [ssh-keygen.1]
      a little more info on certificate validity;
      requested by Ross L Richardson, and provided by djm
+   - dtucker@cvs.openbsd.org 2012/08/17 00:45:45
+     [clientloop.c clientloop.h mux.c]
+     Force a clean shutdown of ControlMaster client sessions when the ~. escape
+     sequence is used.  This means that ~. should now work in mux clients even
+     if the server is no longer responding.  Found by tedu, ok djm.
 
 20120830
  - (dtucker) [moduli] Import new moduli file.
