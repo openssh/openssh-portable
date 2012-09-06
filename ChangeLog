@@ -22,6 +22,10 @@
      Send client banner immediately, rather than waiting for the server to
      move first for SSH protocol 2 connections (the default). Patch based on
      one in bz#1999 by tls AT panix.com, feedback dtucker@ ok markus@
+   - dtucker@cvs.openbsd.org 2012/09/06 04:37:39
+     [clientloop.c log.c ssh.1 log.h]
+     Add ~v and ~V escape sequences to raise and lower the logging level
+     respectively. Man page help from jmc, ok deraadt jmc
 
 20120830
  - (dtucker) [moduli] Import new moduli file.

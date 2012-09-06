@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.241 2012/08/17 00:45:45 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.242 2012/09/06 04:37:38 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1099,6 +1099,31 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				}
 				continue;
 
+			case 'V':
+				/* FALLTHROUGH */
+			case 'v':
+				if (c && c->ctl_chan != -1)
+					goto noescape;
+				if (!log_is_on_stderr()) {
+					snprintf(string, sizeof string,
+					    "%c%c [Logging to syslog]\r\n",
+					     escape_char, ch);
+					buffer_append(berr, string,
+					    strlen(string));
+					continue;
+				}
+				if (ch == 'V' && options.log_level >
+				    SYSLOG_LEVEL_QUIET)
+					log_change_level(--options.log_level);
+				if (ch == 'v' && options.log_level <
+				    SYSLOG_LEVEL_DEBUG3)
+					log_change_level(++options.log_level);
+				snprintf(string, sizeof string,
+				    "%c%c [LogLevel %s]\r\n", escape_char, ch,
+				    log_level_name(options.log_level));
+				buffer_append(berr, string, strlen(string));
+				continue;
+
 			case '&':
 				if (c && c->ctl_chan != -1)
 					goto noescape;
@@ -1175,12 +1200,15 @@ Supported escape sequences:\r\n\
   %cB  - send a BREAK to the remote system\r\n\
   %cC  - open a command line\r\n\
   %cR  - Request rekey (SSH protocol 2 only)\r\n\
+  %cV  - Increase verbosity (LogLevel)\r\n\
+  %cv  - Decrease verbosity (LogLevel)\r\n\
   %c^Z - suspend ssh\r\n\
   %c#  - list forwarded connections\r\n\
   %c&  - background ssh (when waiting for connections to terminate)\r\n\
   %c?  - this message\r\n\
   %c%c  - send the escape character by typing it twice\r\n\
 (Note that escapes are only recognized immediately after newline.)\r\n",
+					    escape_char, escape_char,
 					    escape_char, escape_char,
 					    escape_char, escape_char,
 					    escape_char, escape_char,
