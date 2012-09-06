@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.242 2012/09/06 04:37:38 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.243 2012/09/06 06:25:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1200,8 +1200,8 @@ Supported escape sequences:\r\n\
   %cB  - send a BREAK to the remote system\r\n\
   %cC  - open a command line\r\n\
   %cR  - Request rekey (SSH protocol 2 only)\r\n\
-  %cV  - Increase verbosity (LogLevel)\r\n\
-  %cv  - Decrease verbosity (LogLevel)\r\n\
+  %cV  - Decrease verbosity (LogLevel)\r\n\
+  %cv  - Increase verbosity (LogLevel)\r\n\
   %c^Z - suspend ssh\r\n\
   %c#  - list forwarded connections\r\n\
   %c&  - background ssh (when waiting for connections to terminate)\r\n\
