@@ -13,6 +13,10 @@
      [kex.c]
      add some comments about better handling first-KEX-follows notifications
      from the server. Nothing uses these right now. No binary change
+   - djm@cvs.openbsd.org 2012/08/17 01:25:58
+     [ssh-keygen.c]
+     print details of which host lines were deleted when using
+     "ssh-keygen -R host"; ok markus@
 
 20120830
  - (dtucker) [moduli] Import new moduli file.
