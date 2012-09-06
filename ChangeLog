@@ -17,6 +17,11 @@
      [ssh-keygen.c]
      print details of which host lines were deleted when using
      "ssh-keygen -R host"; ok markus@
+   - djm@cvs.openbsd.org 2012/08/17 01:30:00
+     [compat.c sshconnect.c]
+     Send client banner immediately, rather than waiting for the server to
+     move first for SSH protocol 2 connections (the default). Patch based on
+     one in bz#1999 by tls AT panix.com, feedback dtucker@ ok markus@
 
 20120830
  - (dtucker) [moduli] Import new moduli file.
