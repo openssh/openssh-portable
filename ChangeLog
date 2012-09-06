@@ -9,6 +9,10 @@
      Force a clean shutdown of ControlMaster client sessions when the ~. escape
      sequence is used.  This means that ~. should now work in mux clients even
      if the server is no longer responding.  Found by tedu, ok djm.
+   - djm@cvs.openbsd.org 2012/08/17 01:22:56
+     [kex.c]
+     add some comments about better handling first-KEX-follows notifications
+     from the server. Nothing uses these right now. No binary change
 
 20120830
  - (dtucker) [moduli] Import new moduli file.
