@@ -10,6 +10,9 @@
    - dtucker@cvs.openbsd.org 2012/09/07 00:30:19
      [clientloop.c]
      Print '^Z' instead of a raw ^Z when the sequence is not supported.  ok djm@
+   - dtucker@cvs.openbsd.org 2012/09/07 01:10:21
+     [clientloop.c]
+     Merge escape help text for ~v and ~V; ok djm@
 
 20120906
  - (dtucker) OpenBSD CVS Sync

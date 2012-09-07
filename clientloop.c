@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.245 2012/09/07 00:30:19 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.246 2012/09/07 01:10:21 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1014,8 +1014,7 @@ static struct escape_help_text esc_txt[] = {
     {"B",  "send a BREAK to the remote system", SUPPRESS_PROTO1},
     {"C",  "open a command line", SUPPRESS_MUXCLIENT},
     {"R",  "request rekey", SUPPRESS_PROTO1},
-    {"V",  "decrease verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
-    {"v",  "increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
+    {"V/v",  "decrease/increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
     {"^Z", "suspend ssh", SUPPRESS_MUXCLIENT},
     {"#",  "list forwarded connections", SUPPRESS_NEVER},
     {"&",  "background ssh (when waiting for connections to terminate)",
@@ -1042,13 +1041,13 @@ print_escape_help(Buffer *b, int escape_char, int protocol2, int mux_client,
 	for (i = 0; i < sizeof(esc_txt)/sizeof(esc_txt[0]); i++) {
 		if (esc_txt[i].flags & suppress_flags)
 			continue;
-		snprintf(string, sizeof string, " %c%-2s - %s\r\n",
+		snprintf(string, sizeof string, " %c%-3s - %s\r\n",
 		    escape_char, esc_txt[i].cmd, esc_txt[i].text);
 		buffer_append(b, string, strlen(string));
 	}
 
 	snprintf(string, sizeof string,
-	    " %c%c  - send the escape character by typing it twice\r\n"
+	    " %c%c   - send the escape character by typing it twice\r\n"
 	    "(Note that escapes are only recognized immediately after "
 	    "newline.)\r\n", escape_char, escape_char);
 	buffer_append(b, string, strlen(string));
