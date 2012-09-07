@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.243 2012/09/06 06:25:41 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.244 2012/09/06 09:50:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -996,6 +996,64 @@ out:
 		xfree(fwd.connect_host);
 }
 
+/* reasons to suppress output of an escape command in help output */
+#define SUPPRESS_NEVER		0	/* never suppress, always show */
+#define SUPPRESS_PROTO1		1	/* don't show in protocol 1 sessions */
+#define SUPPRESS_MUXCLIENT	2	/* don't show in mux client sessions */
+#define SUPPRESS_MUXMASTER	4	/* don't show in mux master sessions */
+#define SUPPRESS_SYSLOG		8	/* don't show when logging to syslog */
+struct escape_help_text {
+	const char *cmd;
+	const char *text;
+	unsigned int flags;
+};
+static struct escape_help_text esc_txt[] = {
+    {".",  "terminate session", SUPPRESS_MUXMASTER},
+    {".",  "terminate connection (and any multiplexed sessions)",
+	SUPPRESS_MUXCLIENT},
+    {"B",  "send a BREAK to the remote system", SUPPRESS_PROTO1},
+    {"C",  "open a command line", SUPPRESS_MUXCLIENT},
+    {"R",  "request rekey", SUPPRESS_PROTO1},
+    {"V",  "decrease verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
+    {"v",  "increase verbosity (LogLevel)", SUPPRESS_MUXCLIENT},
+    {"^Z", "suspend ssh", SUPPRESS_MUXCLIENT},
+    {"#",  "list forwarded connections", SUPPRESS_NEVER},
+    {"&",  "background ssh (when waiting for connections to terminate)",
+	SUPPRESS_MUXCLIENT},
+    {"?", "this message", SUPPRESS_NEVER},
+};
+
+static void
+print_escape_help(Buffer *b, int escape_char, int protocol2, int mux_client,
+    int using_stderr)
+{
+	unsigned int i, suppress_flags;
+	char string[1024];
+
+	snprintf(string, sizeof string, "%c?\r\n"
+	    "Supported escape sequences:\r\n", escape_char);
+	buffer_append(b, string, strlen(string));
+
+	suppress_flags = (protocol2 ? 0 : SUPPRESS_PROTO1) |
+	    (mux_client ? SUPPRESS_MUXCLIENT : 0) |
+	    (mux_client ? 0 : SUPPRESS_MUXMASTER) |
+	    (using_stderr ? 0 : SUPPRESS_SYSLOG);
+
+	for (i = 0; i < sizeof(esc_txt)/sizeof(esc_txt[0]); i++) {
+		if (esc_txt[i].flags & suppress_flags)
+			continue;
+		snprintf(string, sizeof string, " %c%-2s - %s\r\n",
+		    escape_char, esc_txt[i].cmd, esc_txt[i].text);
+		buffer_append(b, string, strlen(string));
+	}
+
+	snprintf(string, sizeof string,
+	    " %c%c  - send the escape character by typing it twice\r\n"
+	    "(Note that escapes are only recognized immediately after "
+	    "newline.)\r\n", escape_char, escape_char);
+	buffer_append(b, string, strlen(string));
+}
+
 /* 
  * Process the characters one by one, call with c==NULL for proto1 case.
  */
@@ -1177,46 +1235,9 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			case '?':
-				if (c && c->ctl_chan != -1) {
-					snprintf(string, sizeof string,
-"%c?\r\n\
-Supported escape sequences:\r\n\
-  %c.  - terminate session\r\n\
-  %cB  - send a BREAK to the remote system\r\n\
-  %cR  - Request rekey (SSH protocol 2 only)\r\n\
-  %c#  - list forwarded connections\r\n\
-  %c?  - this message\r\n\
-  %c%c  - send the escape character by typing it twice\r\n\
-(Note that escapes are only recognized immediately after newline.)\r\n",
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char);
-				} else {
-					snprintf(string, sizeof string,
-"%c?\r\n\
-Supported escape sequences:\r\n\
-  %c.  - terminate connection (and any multiplexed sessions)\r\n\
-  %cB  - send a BREAK to the remote system\r\n\
-  %cC  - open a command line\r\n\
-  %cR  - Request rekey (SSH protocol 2 only)\r\n\
-  %cV  - Decrease verbosity (LogLevel)\r\n\
-  %cv  - Increase verbosity (LogLevel)\r\n\
-  %c^Z - suspend ssh\r\n\
-  %c#  - list forwarded connections\r\n\
-  %c&  - background ssh (when waiting for connections to terminate)\r\n\
-  %c?  - this message\r\n\
-  %c%c  - send the escape character by typing it twice\r\n\
-(Note that escapes are only recognized immediately after newline.)\r\n",
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char, escape_char,
-					    escape_char);
-				}
-				buffer_append(berr, string, strlen(string));
+				print_escape_help(berr, escape_char, compat20,
+				    (c && c->ctl_chan != -1),
+				    log_is_on_stderr());
 				continue;
 
 			case '#':

@@ -1,3 +1,10 @@
+20120907
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/09/06 09:50:13
+     [clientloop.c]
+     Make the escape command help (~?) context sensitive so that only commands
+     that will work in the current session are shown.  ok markus@
+
 20120906
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2012/08/15 18:25:50
@@ -26,10 +33,6 @@
      [clientloop.c log.c ssh.1 log.h]
      Add ~v and ~V escape sequences to raise and lower the logging level
      respectively. Man page help from jmc, ok deraadt jmc
-   - dtucker@cvs.openbsd.org 2012/09/06 09:50:13
-     [clientloop.c]
-     Make the escape command help (~?) context sensitive so that only commands
-     that will work in the current session are shown.  ok markus@
 
 20120830
  - (dtucker) [moduli] Import new moduli file.
