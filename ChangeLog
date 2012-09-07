@@ -7,6 +7,9 @@
    - jmc@cvs.openbsd.org 2012/09/06 13:57:42
      [ssh.1]
      missing letter in previous;
+   - dtucker@cvs.openbsd.org 2012/09/07 00:30:19
+     [clientloop.c]
+     Print '^Z' instead of a raw ^Z when the sequence is not supported.  ok djm@
 
 20120906
  - (dtucker) OpenBSD CVS Sync

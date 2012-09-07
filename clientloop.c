@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.244 2012/09/06 09:50:13 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.245 2012/09/07 00:30:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1114,11 +1114,16 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 			case 'Z' - 64:
 				/* XXX support this for mux clients */
 				if (c && c->ctl_chan != -1) {
+					char b[16];
  noescape:
+					if (ch == 'Z' - 64)
+						snprintf(b, sizeof b, "^Z");
+					else
+						snprintf(b, sizeof b, "%c", ch);
 					snprintf(string, sizeof string,
-					    "%c%c escape not available to "
+					    "%c%s escape not available to "
 					    "multiplexed sessions\r\n",
-					    escape_char, ch);
+					    escape_char, b);
 					buffer_append(berr, string,
 					    strlen(string));
 					continue;
