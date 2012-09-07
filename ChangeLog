@@ -4,6 +4,9 @@
      [clientloop.c]
      Make the escape command help (~?) context sensitive so that only commands
      that will work in the current session are shown.  ok markus@
+   - jmc@cvs.openbsd.org 2012/09/06 13:57:42
+     [ssh.1]
+     missing letter in previous;
 
 20120906
  - (dtucker) OpenBSD CVS Sync
