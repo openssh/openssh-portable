@@ -13,6 +13,10 @@
    - dtucker@cvs.openbsd.org 2012/09/07 01:10:21
      [clientloop.c]
      Merge escape help text for ~v and ~V; ok djm@
+   - dtucker@cvs.openbsd.org 2012/09/07 06:34:21
+     [clientloop.c]
+     when muxmaster is run with -N, make it shut down gracefully when a client
+     sends it "-O stop" rather than hanging around (bz#1985).  ok djm@
 
 20120906
  - (dtucker) OpenBSD CVS Sync

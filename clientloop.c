@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.246 2012/09/07 01:10:21 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.247 2012/09/07 06:34:21 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2244,10 +2244,10 @@ client_stop_mux(void)
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
 	/*
-	 * If we are in persist mode, signal that we should close when all
-	 * active channels are closed.
+	 * If we are in persist mode, or don't have a shell, signal that we
+	 * should close when all active channels are closed.
 	 */
-	if (options.control_persist) {
+	if (options.control_persist || no_shell_flag) {
 		session_closed = 1;
 		setproctitle("[stopped mux]");
 	}
