@@ -3,6 +3,9 @@
    - dtucker@cvs.openbsd.org 2012/09/13 23:37:36
      [servconf.c]
      Fix comment line length
+   - markus@cvs.openbsd.org 2012/09/14 16:51:34
+     [sshconnect.c]
+     remove unused variable
 
 20120907
  - (dtucker) OpenBSD CVS Sync

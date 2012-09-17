@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.235 2012/08/17 01:30:00 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.236 2012/09/14 16:51:34 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -432,8 +432,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 static void
 send_client_banner(int connection_out, int minor1)
 {
-	char buf[256];
-
 	/* Send our own protocol version identification. */
 	if (compat20) {
 		xasprintf(&client_version_string, "SSH-%d.%d-%.100s\r\n",
