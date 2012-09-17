@@ -1,3 +1,9 @@
+20120917
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/09/13 23:37:36
+     [servconf.c]
+     Fix comment line length
+
 20120907
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2012/09/06 09:50:13

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.229 2012/07/13 01:35:21 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.230 2012/09/13 23:37:36 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -618,8 +618,9 @@ out:
 }
 
 /*
- * All of the attributes on a single Match line are ANDed together, so we need to check every
- * attribute and set the result to zero if any attribute does not match.
+ * All of the attributes on a single Match line are ANDed together, so we need
+ * to check every * attribute and set the result to zero if any attribute does
+ * not match.
  */
 static int
 match_cfg_line(char **condition, int line, struct connection_info *ci)
