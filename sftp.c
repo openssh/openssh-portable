@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.138 2012/09/18 10:36:12 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.139 2012/09/21 10:53:07 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1699,7 +1699,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 {
 	glob_t g;
 	char *tmp, *tmp2, ins[3];
-	u_int i, hadglob, pwdlen, len, tmplen, filelen;
+	u_int i, hadglob, pwdlen, len, tmplen, filelen, isabs;
 	const LineInfo *lf;
 	
 	/* Glob from "file" location */
@@ -1707,6 +1707,9 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		tmp = xstrdup("*");
 	else
 		xasprintf(&tmp, "%s*", file);
+
+	/* Check if the path is absolute. */
+	isabs = tmp[0] == '/';
 
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {
@@ -1742,7 +1745,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		goto out;
 
 	tmp2 = complete_ambiguous(file, g.gl_pathv, g.gl_matchc);
-	tmp = path_strip(tmp2, remote_path);
+	tmp = path_strip(tmp2, isabs ? NULL : remote_path);
 	xfree(tmp2);
 
 	if (tmp == NULL)

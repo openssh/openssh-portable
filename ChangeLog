@@ -10,6 +10,10 @@
      [sftp.c]
      Add bounds check on sftp tab-completion.  Part of a patch from from
      Jean-Marc Robert via tech@, ok djm
+   - dtucker@cvs.openbsd.org 2012/09/21 10:53:07
+     [sftp.c]
+     Fix improper handling of absolute paths when PWD is part of the completed
+     path.  Patch from Jean-Marc Robert via tech@, ok djm.
 
 20120917
  - (dtucker) OpenBSD CVS Sync
