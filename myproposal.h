@@ -86,7 +86,7 @@
 	"hmac-md5," \
 	"hmac-sha1," \
 	"umac-64@openssh.com," \
-+	"umac-128@openssh.com," \
+	"umac-128@openssh.com," \
 	SHA2_HMAC_MODES \
 	"hmac-ripemd160," \
 	"hmac-ripemd160@openssh.com," \
