@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.139 2012/09/21 10:53:07 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.140 2012/09/21 10:55:04 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1699,7 +1699,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 {
 	glob_t g;
 	char *tmp, *tmp2, ins[3];
-	u_int i, hadglob, pwdlen, len, tmplen, filelen, isabs;
+	u_int i, hadglob, pwdlen, len, tmplen, filelen, cesc, isesc, isabs;
 	const LineInfo *lf;
 	
 	/* Glob from "file" location */
@@ -1754,8 +1754,18 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 	tmplen = strlen(tmp);
 	filelen = strlen(file);
 
-	if (tmplen > filelen)  {
-		tmp2 = tmp + filelen;
+	/* Count the number of escaped characters in the input string. */
+	cesc = isesc = 0;
+	for (i = 0; i < filelen; i++) {
+		if (!isesc && file[i] == '\\' && i + 1 < filelen){
+			isesc = 1;
+			cesc++;
+		} else
+			isesc = 0;
+	}
+
+	if (tmplen > (filelen - cesc)) {
+		tmp2 = tmp + filelen - cesc;
 		len = strlen(tmp2); 
 		/* quote argument on way out */
 		for (i = 0; i < len; i++) {
@@ -1769,6 +1779,8 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 			case '\t':
 			case '[':
 			case ' ':
+			case '#':
+			case '*':
 				if (quote == '\0' || tmp2[i] == quote) {
 					if (el_insertstr(el, ins) == -1)
 						fatal("el_insertstr "
