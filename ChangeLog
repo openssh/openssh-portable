@@ -18,6 +18,10 @@
      [sftp.c]
      Fix handling of filenames containing escaped globbing characters and
      escape "#" and "*".  Patch from Jean-Marc Robert via tech@, ok djm.
+   - jmc@cvs.openbsd.org 2012/09/26 16:12:13
+     [ssh.1]
+     last stage of rfc changes, using consistent Rs/Re blocks, and moving the
+     references into a STANDARDS section;
 
 20120917
  - (dtucker) OpenBSD CVS Sync
