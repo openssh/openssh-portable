@@ -42,6 +42,10 @@
      Log -O cmd output to the log file and make logging consistent with the
      other tests.  Test clean shutdown of an existing channel when testing
      "stop".
+   - dtucker@cvs.openbsd.org 2012/09/10 01:51:19
+     [regress/multiplex.sh]
+     use -Ocheck and waiting for completions by PID to make multiplexing test
+     less racy and (hopefully) more reliable on slow hardware.
  - [Makefile umac.c] Add special-case target to build umac128.o.
 
 20120917

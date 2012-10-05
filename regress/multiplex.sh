@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.15 2012/09/10 00:49:21 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.16 2012/09/10 01:51:19 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -13,14 +13,22 @@ fi
 DATA=/bin/ls${EXEEXT}
 COPY=$OBJ/ls.copy
 
+wait_for_mux_master_ready()
+{
+	for i in 1 2 3 4 5; do
+		${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost \
+		    >/dev/null 2>&1 && return 0
+		sleep $i
+	done
+	fatal "mux master never becomes ready"
+}
+
 start_sshd
 
 trace "start master, fork to background"
 ${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
 MASTER_PID=$!
-
-# Wait for master to start and authenticate
-sleep 5
+wait_for_mux_master_ready
 
 verbose "test $tid: envpass"
 trace "env passing over multiplexed connection"
@@ -87,21 +95,26 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_SSH_LOGFILE 2>&1 \
     || fail "send exit command failed" 
 
 # Wait for master to exit
-sleep 2
-
-kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed"
+wait $MASTER_PID
+kill -0 $MASTER_PID >/dev/null && fail "exit command failed"
 
 # Restart master and test -O stop command with master using -N
-trace "start master, fork to background"
+verbose "test $tid: cmd stop"
+trace "restart master, fork to background"
 ${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
 MASTER_PID=$!
-sleep 5 # Wait for master to start and authenticate
-verbose "test $tid: cmd stop"
-${SSH} -F $OBJ/ssh_config -S $CTL otherhost "sleep 10; exit 0" &
+wait_for_mux_master_ready
+
+# start a long-running command then immediately request a stop
+${SSH} -F $OBJ/ssh_config -S $CTL otherhost "sleep 10; exit 0" \
+     >>$TEST_SSH_LOGFILE 2>&1 &
 SLEEP_PID=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost >>$TEST_SSH_LOGFILE 2>&1 \
     || fail "send stop command failed"
-sleep 12 # Wait for master to exit
+
+# wait until both long-running command and master have exited.
 wait $SLEEP_PID
-[ $! != 0 ] || fail "stop with concurrent command"
-ps -p $MASTER_PID >/dev/null && fail "stop command failed"
+[ $! != 0 ] || fail "waiting for concurrent command"
+wait $MASTER_PID
+[ $! != 0 ] || fail "waiting for master stop"
+kill -0 $MASTER_PID >/dev/null && fail "stop command failed"
