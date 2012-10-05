@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.29 2012/06/28 05:07:45 dtucker Exp $ */
+/* $OpenBSD: myproposal.h,v 1.30 2012/10/04 13:21:50 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -86,6 +86,7 @@
 	"hmac-md5," \
 	"hmac-sha1," \
 	"umac-64@openssh.com," \
++	"umac-128@openssh.com," \
 	SHA2_HMAC_MODES \
 	"hmac-ripemd160," \
 	"hmac-ripemd160@openssh.com," \

@@ -28,6 +28,9 @@
    - djm@cvs.openbsd.org 2012/10/02 07:07:45
      [ssh-keygen.c]
      fix -z option, broken in revision 1.215
+   - markus@cvs.openbsd.org 2012/10/04 13:21:50
+     [myproposal.h ssh_config.5 umac.h sshd_config.5 ssh.1 sshd.8 mac.c]
+     add umac128 variant; ok djm@ at n2k12
 
 20120917
  - (dtucker) OpenBSD CVS Sync
