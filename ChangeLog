@@ -47,6 +47,7 @@
      use -Ocheck and waiting for completions by PID to make multiplexing test
      less racy and (hopefully) more reliable on slow hardware.
  - [Makefile umac.c] Add special-case target to build umac128.o.
+ - [umac.c] Enforce allowed umac output sizes.  From djm@.
 
 20120917
  - (dtucker) OpenBSD CVS Sync
