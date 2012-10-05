@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.13 2012/06/01 00:47:36 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.14 2012/09/09 11:51:25 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -87,4 +87,14 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost || fail "send exit command fa
 # Wait for master to exit
 sleep 2
 
-kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed" 
+kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed"
+
+# Restart master and test -O stop command with master using -N
+trace "start master, fork to background"
+${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
+MASTER_PID=$!
+sleep 5 # Wait for master to start and authenticate
+trace "test stop command"
+${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost || fail "send stop command failed"
+sleep 2 # Wait for master to exit
+ps -p $MASTER_PID >/dev/null && fail "stop command failed"

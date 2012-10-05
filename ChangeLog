@@ -34,6 +34,9 @@
   - dtucker@cvs.openbsd.org 2012/09/06 04:11:07
      [regress/try-ciphers.sh]
      Restore missing space.  (Id sync only).
+   - dtucker@cvs.openbsd.org 2012/09/09 11:51:25
+     [regress/multiplex.sh]
+     Add test for ssh -Ostop
  - [Makefile umac.c] Add special-case target to build umac128.o.
 
 20120917
