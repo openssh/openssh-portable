@@ -25,6 +25,9 @@
    - naddy@cvs.openbsd.org 2012/10/01 13:59:51
      [monitor_wrap.c]
      pasto; ok djm@
+   - djm@cvs.openbsd.org 2012/10/02 07:07:45
+     [ssh-keygen.c]
+     fix -z option, broken in revision 1.215
 
 20120917
  - (dtucker) OpenBSD CVS Sync
