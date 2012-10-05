@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.136 2012/06/22 14:36:33 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.137 2012/09/17 09:54:44 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1917,6 +1917,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 				return (-1);
 			}
 		} else {
+			/* XXX this is wrong wrt quoting */
 			if (file2 == NULL)
 				snprintf(cmd, sizeof cmd, "get %s", dir);
 			else

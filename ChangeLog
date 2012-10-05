@@ -1,3 +1,9 @@
+20121005
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2012/09/17 09:54:44
+     [sftp.c]
+     an XXX for later
+
 20120917
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2012/09/13 23:37:36
