@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2012/09/17 09:54:44
      [sftp.c]
      an XXX for later
+   - markus@cvs.openbsd.org 2012/09/17 13:04:11
+     [packet.c]
+     clear old keys on rekeing; ok djm
 
 20120917
  - (dtucker) OpenBSD CVS Sync
