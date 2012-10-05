@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.14 2012/09/09 11:51:25 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.15 2012/09/10 00:49:21 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -78,11 +78,13 @@ for s in 0 1 4 5 44; do
 	fi
 done
 
-trace "test check command"
-${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost || fail "check command failed" 
+verbose "test $tid: cmd check"
+${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost >>$TEST_SSH_LOGFILE 2>&1 \
+    || fail "check command failed" 
 
-trace "test exit command"
-${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost || fail "send exit command failed" 
+verbose "test $tid: cmd exit"
+${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_SSH_LOGFILE 2>&1 \
+    || fail "send exit command failed" 
 
 # Wait for master to exit
 sleep 2
@@ -94,7 +96,12 @@ trace "start master, fork to background"
 ${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
 MASTER_PID=$!
 sleep 5 # Wait for master to start and authenticate
-trace "test stop command"
-${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost || fail "send stop command failed"
-sleep 2 # Wait for master to exit
+verbose "test $tid: cmd stop"
+${SSH} -F $OBJ/ssh_config -S $CTL otherhost "sleep 10; exit 0" &
+SLEEP_PID=$!
+${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost >>$TEST_SSH_LOGFILE 2>&1 \
+    || fail "send stop command failed"
+sleep 12 # Wait for master to exit
+wait $SLEEP_PID
+[ $! != 0 ] || fail "stop with concurrent command"
 ps -p $MASTER_PID >/dev/null && fail "stop command failed"

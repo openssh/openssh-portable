@@ -37,6 +37,11 @@
    - dtucker@cvs.openbsd.org 2012/09/09 11:51:25
      [regress/multiplex.sh]
      Add test for ssh -Ostop
+   - dtucker@cvs.openbsd.org 2012/09/10 00:49:21
+     [regress/multiplex.sh]
+     Log -O cmd output to the log file and make logging consistent with the
+     other tests.  Test clean shutdown of an existing channel when testing
+     "stop".
  - [Makefile umac.c] Add special-case target to build umac128.o.
 
 20120917
