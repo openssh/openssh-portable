@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2012/09/17 13:04:11
      [packet.c]
      clear old keys on rekeing; ok djm
+   - dtucker@cvs.openbsd.org 2012/09/18 10:36:12
+     [sftp.c]
+     Add bounds check on sftp tab-completion.  Part of a patch from from
+     Jean-Marc Robert via tech@, ok djm
 
 20120917
  - (dtucker) OpenBSD CVS Sync

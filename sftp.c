@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.137 2012/09/17 09:54:44 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.138 2012/09/18 10:36:12 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -991,6 +991,10 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 	state = MA_START;
 	i = j = 0;
 	for (;;) {
+		if (argc >= sizeof(argv) / sizeof(*argv)){
+			error("Too many arguments.");
+			return NULL;
+		}
 		if (isspace(arg[i])) {
 			if (state == MA_UNQUOTED) {
 				/* Terminate current argument */
