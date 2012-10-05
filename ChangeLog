@@ -31,6 +31,9 @@
    - markus@cvs.openbsd.org 2012/10/04 13:21:50
      [myproposal.h ssh_config.5 umac.h sshd_config.5 ssh.1 sshd.8 mac.c]
      add umac128 variant; ok djm@ at n2k12
+  - dtucker@cvs.openbsd.org 2012/09/06 04:11:07
+     [regress/try-ciphers.sh]
+     Restore missing space.  (Id sync only).
  - [Makefile umac.c] Add special-case target to build umac128.o.
 
 20120917

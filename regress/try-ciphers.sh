@@ -1,4 +1,4 @@
-#	$OpenBSD: try-ciphers.sh,v 1.13 2012/06/28 05:07:45 dtucker Exp $
+#	$OpenBSD: try-ciphers.sh,v 1.14 2012/09/06 04:11:07 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="try ciphers"
