@@ -22,6 +22,9 @@
      [ssh.1]
      last stage of rfc changes, using consistent Rs/Re blocks, and moving the
      references into a STANDARDS section;
+   - naddy@cvs.openbsd.org 2012/10/01 13:59:51
+     [monitor_wrap.c]
+     pasto; ok djm@
 
 20120917
  - (dtucker) OpenBSD CVS Sync

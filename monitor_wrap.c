@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.73 2011/06/17 21:44:31 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.74 2012/10/01 13:59:51 naddy Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -621,7 +621,7 @@ mm_send_keystate(struct monitor *monitor)
 		ivlen = packet_get_keyiv_len(MODE_OUT);
 		packet_get_keyiv(MODE_OUT, iv, ivlen);
 		buffer_put_string(&m, iv, ivlen);
-		ivlen = packet_get_keyiv_len(MODE_OUT);
+		ivlen = packet_get_keyiv_len(MODE_IN);
 		packet_get_keyiv(MODE_IN, iv, ivlen);
 		buffer_put_string(&m, iv, ivlen);
 		goto skip;
