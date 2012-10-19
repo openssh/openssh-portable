@@ -1,3 +1,7 @@
+20121019
+ - (tim) [buildpkg.sh.in] Double up on some backslashes so they end up in
+   the generated file as intended.
+
 20121005
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2012/09/17 09:54:44
