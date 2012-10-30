@@ -3,6 +3,16 @@
    - markus@cvs.openbsd.org 2012/10/05 12:34:39
      [sftp.c]
      fix signed vs unsigned warning; feedback & ok: djm@
+   - djm@cvs.openbsd.org 2012/10/30 21:29:55
+     [auth-rsa.c auth.c auth.h auth2-pubkey.c servconf.c servconf.h]
+     [sshd.c sshd_config sshd_config.5]
+     new sshd_config option AuthorizedKeysCommand to support fetching
+     authorized_keys from a command in addition to (or instead of) from
+     the filesystem. The command is run as the target server user unless
+     another specified via a new AuthorizedKeysCommandUser option.
+     
+     patch originally by jchadima AT redhat.com, reworked by me; feedback
+     and ok markus@
 
 20121019
  - (tim) [buildpkg.sh.in] Double up on some backslashes so they end up in

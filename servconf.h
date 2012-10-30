@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.103 2012/07/10 02:19:15 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.104 2012/10/30 21:29:55 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -166,6 +166,8 @@ typedef struct {
 	char   *revoked_keys_file;
 	char   *trusted_user_ca_keys;
 	char   *authorized_principals_file;
+	char   *authorized_keys_command;
+	char   *authorized_keys_command_user;
 
 	char   *version_addendum;	/* Appended to SSH banner */
 }       ServerOptions;

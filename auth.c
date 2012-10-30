@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.96 2012/05/13 01:42:32 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.97 2012/10/30 21:29:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -409,41 +409,42 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 	return host_status;
 }
 
-
 /*
- * Check a given file for security. This is defined as all components
+ * Check a given path for security. This is defined as all components
  * of the path to the file must be owned by either the owner of
  * of the file or root and no directories must be group or world writable.
  *
  * XXX Should any specific check be done for sym links ?
  *
- * Takes an open file descriptor, the file name, a uid and and
+ * Takes an the file name, its stat information (preferably from fstat() to
+ * avoid races), the uid of the expected owner, their home directory and an
  * error buffer plus max size as arguments.
  *
  * Returns 0 on success and -1 on failure
  */
-static int
-secure_filename(FILE *f, const char *file, struct passwd *pw,
-    char *err, size_t errlen)
+int
+auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
+    uid_t uid, char *err, size_t errlen)
 {
-	uid_t uid = pw->pw_uid;
 	char buf[MAXPATHLEN], homedir[MAXPATHLEN];
 	char *cp;
 	int comparehome = 0;
 	struct stat st;
 
-	if (realpath(file, buf) == NULL) {
-		snprintf(err, errlen, "realpath %s failed: %s", file,
+	if (realpath(name, buf) == NULL) {
+		snprintf(err, errlen, "realpath %s failed: %s", name,
 		    strerror(errno));
 		return -1;
 	}
-	if (realpath(pw->pw_dir, homedir) != NULL)
+	if (pw_dir != NULL && realpath(pw_dir, homedir) != NULL)
 		comparehome = 1;
 
-	/* check the open file to avoid races */
-	if (fstat(fileno(f), &st) < 0 ||
-	    (st.st_uid != 0 && st.st_uid != uid) ||
-	    (st.st_mode & 022) != 0) {
+	if (!S_ISREG(stp->st_mode)) {
+		snprintf(err, errlen, "%s is not a regular file", buf);
+		return -1;
+	}
+	if ((stp->st_uid != 0 && stp->st_uid != uid) ||
+	    (stp->st_mode & 022) != 0) {
 		snprintf(err, errlen, "bad ownership or modes for file %s",
 		    buf);
 		return -1;
@@ -477,6 +478,28 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			break;
 	}
 	return 0;
+}
+
+/*
+ * Version of secure_path() that accepts an open file descriptor to
+ * avoid races.
+ *
+ * Returns 0 on success and -1 on failure
+ */
+static int
+secure_filename(FILE *f, const char *file, struct passwd *pw,
+    char *err, size_t errlen)
+{
+	char buf[MAXPATHLEN];
+	struct stat st;
+
+	/* check the open file to avoid races */
+	if (fstat(fileno(f), &st) < 0) {
+		snprintf(err, errlen, "cannot stat file %s: %s",
+		    buf, strerror(errno));
+		return -1;
+	}
+	return auth_secure_path(file, &st, pw->pw_dir, pw->pw_uid, err, errlen);
 }
 
 static FILE *

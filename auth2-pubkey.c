@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.30 2011/09/25 05:44:47 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.31 2012/10/30 21:29:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -27,9 +27,13 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
+#include <errno.h>
 #include <fcntl.h>
+#include <paths.h>
 #include <pwd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -240,7 +244,7 @@ match_principals_file(char *file, struct passwd *pw, struct KeyCert *cert)
 			if (strcmp(cp, cert->principals[i]) == 0) {
 				debug3("matched principal \"%.100s\" "
 				    "from file \"%s\" on line %lu",
-			    	    cert->principals[i], file, linenum);
+				    cert->principals[i], file, linenum);
 				if (auth_parse_options(pw, line_opts,
 				    file, linenum) != 1)
 					continue;
@@ -253,30 +257,21 @@ match_principals_file(char *file, struct passwd *pw, struct KeyCert *cert)
 	fclose(f);
 	restore_uid();
 	return 0;
-}	
+}
 
-/* return 1 if user allows given key */
+/*
+ * Checks whether key is allowed in authorized_keys-format file,
+ * returns 1 if the key is allowed or 0 otherwise.
+ */
 static int
-user_key_allowed2(struct passwd *pw, Key *key, char *file)
+check_authkeys_file(FILE *f, char *file, Key* key, struct passwd *pw)
 {
 	char line[SSH_MAX_PUBKEY_BYTES];
 	const char *reason;
 	int found_key = 0;
-	FILE *f;
 	u_long linenum = 0;
 	Key *found;
 	char *fp;
-
-	/* Temporarily use the user's uid. */
-	temporarily_use_uid(pw);
-
-	debug("trying public key file %s", file);
-	f = auth_openkeyfile(file, pw, options.strict_modes);
-
-	if (!f) {
-		restore_uid();
-		return 0;
-	}
 
 	found_key = 0;
 	found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
@@ -370,8 +365,6 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 			break;
 		}
 	}
-	restore_uid();
-	fclose(f);
 	key_free(found);
 	if (!found_key)
 		debug2("key not found");
@@ -433,7 +426,172 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 	return ret;
 }
 
-/* check whether given key is in .ssh/authorized_keys* */
+/*
+ * Checks whether key is allowed in file.
+ * returns 1 if the key is allowed or 0 otherwise.
+ */
+static int
+user_key_allowed2(struct passwd *pw, Key *key, char *file)
+{
+	FILE *f;
+	int found_key = 0;
+
+	/* Temporarily use the user's uid. */
+	temporarily_use_uid(pw);
+
+	debug("trying public key file %s", file);
+	if ((f = auth_openkeyfile(file, pw, options.strict_modes)) != NULL) {
+		found_key = check_authkeys_file(f, file, key, pw);
+		fclose(f);
+	}
+
+	restore_uid();
+	return found_key;
+}
+
+/*
+ * Checks whether key is allowed in output of command.
+ * returns 1 if the key is allowed or 0 otherwise.
+ */
+static int
+user_key_command_allowed2(struct passwd *user_pw, Key *key)
+{
+	FILE *f;
+	int ok, found_key = 0;
+	struct passwd *pw;
+	struct stat st;
+	int status, devnull, p[2], i;
+	pid_t pid;
+	char errmsg[512];
+
+	if (options.authorized_keys_command == NULL ||
+	    options.authorized_keys_command[0] != '/')
+		return 0;
+
+	/* If no user specified to run commands the default to target user */
+	if (options.authorized_keys_command_user == NULL)
+		pw = user_pw;
+	else {
+		pw = getpwnam(options.authorized_keys_command_user);
+		if (pw == NULL) {
+			error("AuthorizedKeyCommandUser \"%s\" not found: %s",
+			    options.authorized_keys_command, strerror(errno));
+			return 0;
+		}
+	}
+
+	temporarily_use_uid(pw);
+
+	if (stat(options.authorized_keys_command, &st) < 0) {
+		error("Could not stat AuthorizedKeysCommand \"%s\": %s",
+		    options.authorized_keys_command, strerror(errno));
+		goto out;
+	}
+	if (auth_secure_path(options.authorized_keys_command, &st, NULL, 0,
+	    errmsg, sizeof(errmsg)) != 0) {
+		error("Unsafe AuthorizedKeysCommand: %s", errmsg);
+		goto out;
+	}
+
+	if (pipe(p) != 0) {
+		error("%s: pipe: %s", __func__, strerror(errno));
+		goto out;
+	}
+
+	debug3("Running AuthorizedKeysCommand: \"%s\" as \"%s\"",
+	    options.authorized_keys_command, pw->pw_name);
+
+	/*
+	 * Don't want to call this in the child, where it can fatal() and
+	 * run cleanup_exit() code.
+	 */
+	restore_uid();
+
+	switch ((pid = fork())) {
+	case -1: /* error */
+		error("%s: fork: %s", __func__, strerror(errno));
+		close(p[0]);
+		close(p[1]);
+		return 0;
+	case 0: /* child */
+		for (i = 0; i < NSIG; i++)
+			signal(i, SIG_DFL);
+
+		/* Don't use permanently_set_uid() here to avoid fatal() */
+		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
+			error("setresgid %u: %s", (u_int)pw->pw_gid,
+			    strerror(errno));
+			_exit(1);
+		}
+		if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) != 0) {
+			error("setresuid %u: %s", (u_int)pw->pw_uid,
+			    strerror(errno));
+			_exit(1);
+		}
+
+		close(p[0]);
+		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+			error("%s: open %s: %s", __func__, _PATH_DEVNULL,
+			    strerror(errno));
+			_exit(1);
+		}
+		if (dup2(devnull, STDIN_FILENO) == -1 ||
+		    dup2(p[1], STDOUT_FILENO) == -1 ||
+		    dup2(devnull, STDERR_FILENO) == -1) {
+			error("%s: dup2: %s", __func__, strerror(errno));
+			_exit(1);
+		}
+		closefrom(STDERR_FILENO + 1);
+
+		execl(options.authorized_keys_command,
+		    options.authorized_keys_command, pw->pw_name, NULL);
+
+		error("AuthorizedKeysCommand %s exec failed: %s",
+		    options.authorized_keys_command, strerror(errno));
+		_exit(127);
+	default: /* parent */
+		break;
+	}
+
+	temporarily_use_uid(pw);
+
+	close(p[1]);
+	if ((f = fdopen(p[0], "r")) == NULL) {
+		error("%s: fdopen: %s", __func__, strerror(errno));
+		close(p[0]);
+		/* Don't leave zombie child */
+		kill(pid, SIGTERM);
+		while (waitpid(pid, NULL, 0) == -1 && errno == EINTR)
+			;
+		goto out;
+	}
+	ok = check_authkeys_file(f, options.authorized_keys_command, key, pw);
+	fclose(f);
+
+	while (waitpid(pid, &status, 0) == -1) {
+		if (errno != EINTR) {
+			error("%s: waitpid: %s", __func__, strerror(errno));
+			goto out;
+		}
+	}
+	if (WIFSIGNALED(status)) {
+		error("AuthorizedKeysCommand %s exited on signal %d",
+		    options.authorized_keys_command, WTERMSIG(status));
+		goto out;
+	} else if (WEXITSTATUS(status) != 0) {
+		error("AuthorizedKeysCommand %s returned status %d",
+		    options.authorized_keys_command, WEXITSTATUS(status));
+		goto out;
+	}
+	found_key = ok;
+ out:
+	restore_uid();
+	return found_key;
+}
+
+/*
+ * Check whether key authenticates and authorises the user.
+ */
 int
 user_key_allowed(struct passwd *pw, Key *key)
 {
@@ -449,9 +607,17 @@ user_key_allowed(struct passwd *pw, Key *key)
 	if (success)
 		return success;
 
+	success = user_key_command_allowed2(pw, key);
+	if (success > 0)
+		return success;
+
 	for (i = 0; !success && i < options.num_authkeys_files; i++) {
+
+		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
+			continue;
 		file = expand_authorized_keys(
 		    options.authorized_keys_files[i], pw);
+
 		success = user_key_allowed2(pw, key, file);
 		xfree(file);
 	}

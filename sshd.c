@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.393 2012/07/10 02:19:15 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.394 2012/10/30 21:29:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -358,6 +358,15 @@ grace_alarm_handler(int sig)
 {
 	if (use_privsep && pmonitor != NULL && pmonitor->m_pid > 0)
 		kill(pmonitor->m_pid, SIGALRM);
+
+	/*
+	 * Try to kill any processes that we have spawned, E.g. authorized
+	 * keys command helpers.
+	 */
+	if (getpgid(0) == getpid()) {
+		signal(SIGTERM, SIG_IGN);
+		killpg(0, SIGTERM);
+	}
 
 	/* Log error and exit. */
 	sigdie("Timeout before authentication for %s", get_remote_ipaddr());
