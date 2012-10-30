@@ -1,3 +1,9 @@
+20121030
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2012/10/05 12:34:39
+     [sftp.c]
+     fix signed vs unsigned warning; feedback & ok: djm@
+
 20121019
  - (tim) [buildpkg.sh.in] Double up on some backslashes so they end up in
    the generated file as intended.
