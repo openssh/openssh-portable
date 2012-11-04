@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.148 2012/11/04 10:38:43 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.149 2012/11/04 11:09:15 djm Exp $
 .Dd $Mdocdate: November 4 2012 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -151,6 +151,28 @@ See
 in
 .Xr ssh_config 5
 for more information on patterns.
+.It Cm AuthenticationMethods
+Specifies the authentication methods that must be successfully completed
+for a user to be granted access.
+This option must be followed by one or more comma-separated lists of
+authentication method names.
+Successful authentication requires completion of every method in at least
+one of these lists.
+.Pp
+For example, an argument of
+.Dq publickey,password publickey,keyboard-interactive
+would require the user to complete public key authentication, followed by
+either password or keyboard interactive authentication.
+Only methods that are next in one or more lists are offered at each stage,
+so for this example, it would not be possible to attempt password or
+keyboard-interactive authentication before public key.
+.Pp
+This option is only available for SSH protocol 2 and will yield a fatal
+error if enabled if protocol 1 is also enabled.
+Note that each authentication method listed should also be explicitly enabled
+in the configuration.
+The default is not to require multiple authentication; successful completion
+of a single authentication method is sufficient.
 .It Cm AuthorizedKeysCommand
 Specifies a program to be used to look up the user's public keys.
 The program will be invoked with a single argument of the username
@@ -728,6 +750,7 @@ Available keywords are
 .Cm AllowGroups ,
 .Cm AllowTcpForwarding ,
 .Cm AllowUsers ,
+.Cm AuthenticationMethods ,
 .Cm AuthorizedKeysCommand ,
 .Cm AuthorizedKeysCommandUser ,
 .Cm AuthorizedKeysFile ,

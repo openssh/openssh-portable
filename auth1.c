@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.75 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: auth1.c,v 1.76 2012/11/04 11:09:15 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -405,6 +405,11 @@ do_authentication(Authctxt *authctxt)
 		debug("do_authentication: invalid user %s", user);
 		authctxt->pw = fakepw();
 	}
+
+	/* Configuration may have changed as a result of Match */
+	if (options.num_auth_methods != 0)
+		fatal("AuthenticationMethods is not supported with SSH "
+		    "protocol 1");
 
 	setproctitle("%s%s", authctxt->valid ? user : "unknown",
 	    use_privsep ? " [net]" : "");

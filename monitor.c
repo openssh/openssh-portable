@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.117 2012/06/22 12:30:26 dtucker Exp $ */
+/* $OpenBSD: monitor.c,v 1.118 2012/11/04 11:09:15 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -381,6 +381,21 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 	while (!authenticated) {
 		auth_method = "unknown";
 		authenticated = (monitor_read(pmonitor, mon_dispatch, &ent) == 1);
+
+		/* Special handling for multiple required authentications */
+		if (options.num_auth_methods != 0) {
+			if (!compat20)
+				fatal("AuthenticationMethods is not supported"
+				    "with SSH protocol 1");
+			if (authenticated &&
+			    !auth2_update_methods_lists(authctxt,
+			    auth_method)) {
+				debug3("%s: method %s: partial", __func__,
+				    auth_method);
+				authenticated = 0;
+			}
+		}
+
 		if (authenticated) {
 			if (!(ent->flags & MON_AUTHDECIDE))
 				fatal("%s: unexpected authentication from %d",
@@ -401,7 +416,6 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 			}
 #endif
 		}
-
 		if (ent->flags & (MON_AUTHDECIDE|MON_ALOG)) {
 			auth_log(authctxt, authenticated, auth_method,
 			    compat20 ? " ssh2" : "");
@@ -781,7 +795,17 @@ mm_answer_pwnamallow(int sock, Buffer *m)
 	COPY_MATCH_STRING_OPTS();
 #undef M_CP_STROPT
 #undef M_CP_STRARRAYOPT
-	
+
+	/* Create valid auth method lists */
+	if (compat20 && auth2_setup_methods_lists(authctxt) != 0) {
+		/*
+		 * The monitor will continue long enough to let the child
+		 * run to it's packet_disconnect(), but it must not allow any
+		 * authentication to succeed.
+		 */
+		debug("%s: no valid authentication method lists", __func__);
+	}
+
 	debug3("%s: sending MONITOR_ANS_PWNAM: %d", __func__, allowed);
 	mm_request_send(sock, MONITOR_ANS_PWNAM, m);
 
@@ -918,7 +942,10 @@ mm_answer_bsdauthrespond(int sock, Buffer *m)
 	debug3("%s: sending authenticated: %d", __func__, authok);
 	mm_request_send(sock, MONITOR_ANS_BSDAUTHRESPOND, m);
 
-	auth_method = "bsdauth";
+	if (compat20)
+		auth_method = "keyboard-interactive";
+	else
+		auth_method = "bsdauth";
 
 	return (authok != 0);
 }

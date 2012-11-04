@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.70 2012/10/30 21:29:54 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.71 2012/11/04 11:09:15 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -64,6 +64,8 @@ struct Authctxt {
 #ifdef BSD_AUTH
 	auth_session_t	*as;
 #endif
+	char		**auth_methods;	/* modified from server config */
+	u_int		 num_auth_methods;
 #ifdef KRB5
 	krb5_context	 krb5_ctx;
 	krb5_ccache	 krb5_fwd_ccache;
@@ -152,6 +154,9 @@ void	userauth_send_banner(const char *);
 int	auth_root_allowed(char *);
 
 char	*auth2_read_banner(void);
+int	 auth2_methods_valid(const char *, int);
+int	 auth2_update_methods_lists(Authctxt *, const char *);
+int	 auth2_setup_methods_lists(Authctxt *);
 
 void	privsep_challenge_enable(void);
 

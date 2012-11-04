@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.104 2012/10/30 21:29:55 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.105 2012/11/04 11:09:15 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -28,6 +28,7 @@
 #define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
 #define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
 #define MAX_AUTHKEYS_FILES	256	/* Max # of authorized_keys files. */
+#define MAX_AUTH_METHODS	256	/* Max # of AuthenticationMethods. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -170,6 +171,9 @@ typedef struct {
 	char   *authorized_keys_command_user;
 
 	char   *version_addendum;	/* Appended to SSH banner */
+
+	u_int	num_auth_methods;
+	char   *auth_methods[MAX_AUTH_METHODS];
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
@@ -199,6 +203,7 @@ struct connection_info {
 		M_CP_STRARRAYOPT(allow_groups, num_allow_groups); \
 		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
+		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);

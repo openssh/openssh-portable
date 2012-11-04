@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.395 2012/11/04 10:38:43 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.396 2012/11/04 11:09:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1337,6 +1337,7 @@ main(int ac, char **av)
 	int remote_port;
 	char *line;
 	int config_s[2] = { -1 , -1 };
+	u_int n;
 	u_int64_t ibytes, obytes;
 	mode_t new_umask;
 	Key *key;
@@ -1565,6 +1566,26 @@ main(int ac, char **av)
 	    strcasecmp(options.authorized_keys_command, "none") != 0))
 		fatal("AuthorizedKeysCommand set without "
 		    "AuthorizedKeysCommandUser");
+
+	/*
+	 * Check whether there is any path through configured auth methods.
+	 * Unfortunately it is not possible to verify this generally before
+	 * daemonisation in the presence of Match block, but this catches
+	 * and warns for trivial misconfigurations that could break login.
+	 */
+	if (options.num_auth_methods != 0) {
+		if ((options.protocol & SSH_PROTO_1))
+			fatal("AuthenticationMethods is not supported with "
+			    "SSH protocol 1");
+		for (n = 0; n < options.num_auth_methods; n++) {
+			if (auth2_methods_valid(options.auth_methods[n],
+			    1) == 0)
+				break;
+		}
+		if (n >= options.num_auth_methods)
+			fatal("AuthenticationMethods cannot be satisfied by "
+			    "enabled authentication methods");
+	}
 
 	/* set default channel AF */
 	channel_set_af(options.address_family);
