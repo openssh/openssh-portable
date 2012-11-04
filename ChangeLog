@@ -3,6 +3,10 @@
    - jmc@cvs.openbsd.org 2012/10/31 08:04:50
      [sshd_config.5]
      tweak previous;
+   - djm@cvs.openbsd.org 2012/11/04 10:38:43
+     [auth2-pubkey.c sshd.c sshd_config.5]
+     Remove default of AuthorizedCommandUser. Administrators are now expected
+     to explicitly specify a user. feedback and ok markus@
 
 20121030
  - (djm) OpenBSD CVS Sync

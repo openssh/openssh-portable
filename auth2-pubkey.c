@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.31 2012/10/30 21:29:54 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.32 2012/11/04 10:38:43 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -462,23 +462,27 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 	struct stat st;
 	int status, devnull, p[2], i;
 	pid_t pid;
-	char errmsg[512];
+	char *username, errmsg[512];
 
 	if (options.authorized_keys_command == NULL ||
 	    options.authorized_keys_command[0] != '/')
 		return 0;
 
-	/* If no user specified to run commands the default to target user */
-	if (options.authorized_keys_command_user == NULL)
-		pw = user_pw;
-	else {
-		pw = getpwnam(options.authorized_keys_command_user);
-		if (pw == NULL) {
-			error("AuthorizedKeyCommandUser \"%s\" not found: %s",
-			    options.authorized_keys_command, strerror(errno));
-			return 0;
-		}
+	if (options.authorized_keys_command_user == NULL) {
+		error("No user for AuthorizedKeysCommand specified, skipping");
+		return 0;
 	}
+
+	username = percent_expand(options.authorized_keys_command_user,
+	    "u", user_pw->pw_name, (char *)NULL);
+	pw = getpwnam(username);
+	if (pw == NULL) {
+		error("AuthorizedKeyCommandUser \"%s\" not found: %s",
+		    options.authorized_keys_command, strerror(errno));
+		free(username);
+		return 0;
+	}
+	free(username);
 
 	temporarily_use_uid(pw);
 
@@ -517,6 +521,7 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 		for (i = 0; i < NSIG; i++)
 			signal(i, SIG_DFL);
 
+		closefrom(STDERR_FILENO + 1);
 		/* Don't use permanently_set_uid() here to avoid fatal() */
 		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
 			error("setresgid %u: %s", (u_int)pw->pw_gid,
@@ -541,7 +546,6 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 			error("%s: dup2: %s", __func__, strerror(errno));
 			_exit(1);
 		}
-		closefrom(STDERR_FILENO + 1);
 
 		execl(options.authorized_keys_command,
 		    options.authorized_keys_command, pw->pw_name, NULL);
