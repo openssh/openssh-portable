@@ -4,6 +4,8 @@
    openbsd-compat/openbsd-compat.h]  Move the fallback code for setting uids
    and gids from uidswap.c to the compat library, which allows it to work with
    the new setresuid calls in auth2-pubkey.  with tim@, ok djm@
+ - (dtucker) [auth2-pubkey.c] wrap paths.h in an ifdef for platforms that
+   don't have it.  Spotted by tim@.
 
 20121104
  - (djm) OpenBSD CVS Sync
