@@ -1,3 +1,10 @@
+20121105
+ - (dtucker) [uidswap.c openbsd-compat/Makefile.in
+   openbsd-compat/bsd-setres_id.c openbsd-compat/bsd-setres_id.h
+   openbsd-compat/openbsd-compat.h]  Move the fallback code for setting uids
+   and gids from uidswap.c to the compat library, which allows it to work with
+   the new setresuid calls in auth2-pubkey.  with tim@, ok djm@
+
 20121104
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2012/10/31 08:04:50
