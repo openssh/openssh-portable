@@ -4,6 +4,10 @@
      [moduli.5]
      fix formula
      ok djm@
+   - jmc@cvs.openbsd.org 2012/09/26 17:34:38
+     [moduli.5]
+     last stage of rfc changes, using consistent Rs/Re blocks, and moving the
+     references into a STANDARDS section;
 
 20121105
  - (dtucker) [uidswap.c openbsd-compat/Makefile.in
