@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.32 2012/11/04 10:38:43 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.33 2012/11/14 02:24:27 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -504,8 +504,8 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 		goto out;
 	}
 
-	debug3("Running AuthorizedKeysCommand: \"%s\" as \"%s\"",
-	    options.authorized_keys_command, pw->pw_name);
+	debug3("Running AuthorizedKeysCommand: \"%s %s\" as \"%s\"",
+	    options.authorized_keys_command, user_pw->pw_name, pw->pw_name);
 
 	/*
 	 * Don't want to call this in the child, where it can fatal() and
@@ -523,7 +523,19 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 		for (i = 0; i < NSIG; i++)
 			signal(i, SIG_DFL);
 
+		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+			error("%s: open %s: %s", __func__, _PATH_DEVNULL,
+			    strerror(errno));
+			_exit(1);
+		}
+		/* Keep stderr around a while longer to catch errors */
+		if (dup2(devnull, STDIN_FILENO) == -1 ||
+		    dup2(p[1], STDOUT_FILENO) == -1) {
+			error("%s: dup2: %s", __func__, strerror(errno));
+			_exit(1);
+		}
 		closefrom(STDERR_FILENO + 1);
+
 		/* Don't use permanently_set_uid() here to avoid fatal() */
 		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
 			error("setresgid %u: %s", (u_int)pw->pw_gid,
@@ -535,22 +547,14 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 			    strerror(errno));
 			_exit(1);
 		}
-
-		close(p[0]);
-		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
-			error("%s: open %s: %s", __func__, _PATH_DEVNULL,
-			    strerror(errno));
-			_exit(1);
-		}
-		if (dup2(devnull, STDIN_FILENO) == -1 ||
-		    dup2(p[1], STDOUT_FILENO) == -1 ||
-		    dup2(devnull, STDERR_FILENO) == -1) {
+		/* stdin is pointed to /dev/null at this point */
+		if (dup2(STDIN_FILENO, STDERR_FILENO) == -1) {
 			error("%s: dup2: %s", __func__, strerror(errno));
 			_exit(1);
 		}
 
 		execl(options.authorized_keys_command,
-		    options.authorized_keys_command, pw->pw_name, NULL);
+		    options.authorized_keys_command, user_pw->pw_name, NULL);
 
 		error("AuthorizedKeysCommand %s exec failed: %s",
 		    options.authorized_keys_command, strerror(errno));
