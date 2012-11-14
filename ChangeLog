@@ -5,7 +5,9 @@
      fix username passed to helper program
      prepare stdio fds before closefrom()
      spotted by landry@
-
+   - djm@cvs.openbsd.org 2012/11/14 02:32:15
+     [ssh-keygen.c]
+     allow the full range of unsigned serial numbers; 'fine' deraadt@
 
 20121107
  - (djm) OpenBSD CVS Sync
