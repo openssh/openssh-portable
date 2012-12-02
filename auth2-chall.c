@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.34 2008/12/09 04:32:22 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.35 2012/12/02 20:34:09 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -283,7 +283,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	KbdintAuthctxt *kbdintctxt;
 	int authenticated = 0, res;
 	u_int i, nresp;
-	char **response = NULL, *method;
+	char *devicename = NULL, **response = NULL;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_info_response: no authctxt");
@@ -329,9 +329,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 		/* Failure! */
 		break;
 	}
-
-	xasprintf(&method, "keyboard-interactive/%s", kbdintctxt->device->name);
-
+	devicename = kbdintctxt->device->name;
 	if (!authctxt->postponed) {
 		if (authenticated) {
 			auth2_challenge_stop(authctxt);
@@ -341,8 +339,8 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 			auth2_challenge_start(authctxt);
 		}
 	}
-	userauth_finish(authctxt, authenticated, method);
-	xfree(method);
+	userauth_finish(authctxt, authenticated, "keyboard-interactive",
+	    devicename);
 }
 
 void

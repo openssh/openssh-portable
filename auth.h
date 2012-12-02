@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.71 2012/11/04 11:09:15 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.72 2012/12/02 20:34:09 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -148,10 +148,12 @@ void disable_forwarding(void);
 void	do_authentication(Authctxt *);
 void	do_authentication2(Authctxt *);
 
-void	auth_log(Authctxt *, int, char *, char *);
-void	userauth_finish(Authctxt *, int, char *);
+void	auth_log(Authctxt *, int, int, const char *, const char *,
+    const char *);
+void	userauth_finish(Authctxt *, int, const char *, const char *);
+int	auth_root_allowed(const char *);
+
 void	userauth_send_banner(const char *);
-int	auth_root_allowed(char *);
 
 char	*auth2_read_banner(void);
 int	 auth2_methods_valid(const char *, int);

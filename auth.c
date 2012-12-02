@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.97 2012/10/30 21:29:54 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.98 2012/12/02 20:34:09 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -251,7 +251,8 @@ allowed_user(struct passwd * pw)
 }
 
 void
-auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
+auth_log(Authctxt *authctxt, int authenticated, int partial,
+    const char *method, const char *submethod, const char *info)
 {
 	void (*authlog) (const char *fmt,...) = verbose;
 	char *authmsg;
@@ -268,12 +269,15 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 
 	if (authctxt->postponed)
 		authmsg = "Postponed";
+	else if (partial)
+		authmsg = "Partial";
 	else
 		authmsg = authenticated ? "Accepted" : "Failed";
 
-	authlog("%s %s for %s%.100s from %.200s port %d%s",
+	authlog("%s %s%s%s for %s%.100s from %.200s port %d%s",
 	    authmsg,
 	    method,
+	    submethod != NULL ? "/" : "", submethod == NULL ? "" : submethod,
 	    authctxt->valid ? "" : "invalid user ",
 	    authctxt->user,
 	    get_remote_ipaddr(),
@@ -303,7 +307,7 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
  * Check whether root logins are disallowed.
  */
 int
-auth_root_allowed(char *method)
+auth_root_allowed(const char *method)
 {
 	switch (options.permit_root_login) {
 	case PERMIT_YES:

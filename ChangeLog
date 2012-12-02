@@ -29,6 +29,20 @@
    - djm@cvs.openbsd.org 2012/11/14 02:32:15
      [ssh-keygen.c]
      allow the full range of unsigned serial numbers; 'fine' deraadt@
+   - djm@cvs.openbsd.org 2012/12/02 20:34:10
+     [auth.c auth.h auth1.c auth2-chall.c auth2-gss.c auth2-jpake.c auth2.c]
+     [monitor.c monitor.h]
+     Fixes logging of partial authentication when privsep is enabled
+     Previously, we recorded "Failed xxx" since we reset authenticated before
+     calling auth_log() in auth2.c. This adds an explcit "Partial" state.
+     
+     Add a "submethod" to auth_log() to report which submethod is used
+     for keyboard-interactive.
+     
+     Fix multiple authentication when one of the methods is
+     keyboard-interactive.
+     
+     ok markus@
 
 20121107
  - (djm) OpenBSD CVS Sync
