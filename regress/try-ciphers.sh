@@ -1,4 +1,4 @@
-#	$OpenBSD: try-ciphers.sh,v 1.14 2012/09/06 04:11:07 dtucker Exp $
+#	$OpenBSD: try-ciphers.sh,v 1.15 2012/10/05 02:20:48 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="try ciphers"
@@ -7,7 +7,8 @@ ciphers="aes128-cbc 3des-cbc blowfish-cbc cast128-cbc
 	arcfour128 arcfour256 arcfour 
 	aes192-cbc aes256-cbc rijndael-cbc@lysator.liu.se
 	aes128-ctr aes192-ctr aes256-ctr"
-macs="hmac-sha1 hmac-md5 umac-64@openssh.com hmac-sha1-96 hmac-md5-96"
+macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
+	hmac-sha1-96 hmac-md5-96"
 config_defined HAVE_EVP_SHA256 &&
     macs="$macs hmac-sha2-256 hmac-sha2-512"
 

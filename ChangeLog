@@ -18,6 +18,9 @@
      make AllowTcpForwarding accept "local" and "remote" in addition to its
      current "yes"/"no" to allow the server to specify whether just local or
      remote TCP forwarding is enabled. ok markus@
+   - dtucker@cvs.openbsd.org 2012/10/05 02:20:48
+     [regress/cipher-speed.sh regress/try-ciphers.sh]
+     Add umac-128@openssh.com to the list of MACs to be tested
 
 20121114
  - (djm) OpenBSD CVS Sync
