@@ -7,6 +7,11 @@
      Make IdentitiesOnly apply to keys obtained from a PKCS11Provider.
      This allows control of which keys are offered from tokens using
      IdentityFile. ok markus@
+   - djm@cvs.openbsd.org 2012/12/02 20:42:15
+     [ssh-add.1 ssh-add.c]
+     make deleting explicit keys "ssh-add -d" symmetric with adding keys -
+     try to delete the corresponding certificate too and respect the -k option
+     to allow deleting of the key only; feedback and ok markus@
 
 20121114
  - (djm) OpenBSD CVS Sync
