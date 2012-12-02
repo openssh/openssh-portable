@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.58 2011/01/06 22:46:21 djm Exp $
+#	$OpenBSD: Makefile,v 1.59 2012/11/22 22:49:30 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -57,7 +57,8 @@ LTESTS= 	connect \
 		kextype \
 		cert-hostkey \
 		cert-userkey \
-		host-expand
+		host-expand \
+		keys-command
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp

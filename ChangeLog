@@ -24,6 +24,9 @@
    - djm@cvs.openbsd.org 2012/10/19 05:10:42
      [regress/cert-userkey.sh]
      include a serial number when generating certs
+   - djm@cvs.openbsd.org 2012/11/22 22:49:30
+     [regress/Makefile regress/keys-command.sh]
+     regress for AuthorizedKeysCommand; hints from markus@
 
 20121114
  - (djm) OpenBSD CVS Sync
