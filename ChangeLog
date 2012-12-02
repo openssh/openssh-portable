@@ -1,6 +1,12 @@
 20121203
  - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD to get
    TAILQ_FOREACH_SAFE needed for upcoming changes.
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2012/12/02 20:26:11
+     [ssh_config.5 sshconnect2.c]
+     Make IdentitiesOnly apply to keys obtained from a PKCS11Provider.
+     This allows control of which keys are offered from tokens using
+     IdentityFile. ok markus@
 
 20121114
  - (djm) OpenBSD CVS Sync

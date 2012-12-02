@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.189 2012/06/22 12:30:26 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.190 2012/12/02 20:26:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1359,7 +1359,7 @@ load_identity_file(char *filename)
 static void
 pubkey_prepare(Authctxt *authctxt)
 {
-	Identity *id;
+	Identity *id, *id2, *tmp;
 	Idlist agent, files, *preferred;
 	Key *key;
 	AuthenticationConnection *ac;
@@ -1371,7 +1371,7 @@ pubkey_prepare(Authctxt *authctxt)
 	preferred = &authctxt->keys;
 	TAILQ_INIT(preferred);	/* preferred order of keys */
 
-	/* list of keys stored in the filesystem */
+	/* list of keys stored in the filesystem and PKCS#11 */
 	for (i = 0; i < options.num_identity_files; i++) {
 		key = options.identity_keys[i];
 		if (key && key->type == KEY_RSA1)
@@ -1383,6 +1383,29 @@ pubkey_prepare(Authctxt *authctxt)
 		id->key = key;
 		id->filename = xstrdup(options.identity_files[i]);
 		TAILQ_INSERT_TAIL(&files, id, next);
+	}
+	/* Prefer PKCS11 keys that are explicitly listed */
+	TAILQ_FOREACH_SAFE(id, &files, next, tmp) {
+		if (id->key == NULL || (id->key->flags & KEY_FLAG_EXT) == 0)
+			continue;
+		found = 0;
+		TAILQ_FOREACH(id2, &files, next) {
+			if (id2->key == NULL ||
+			    (id2->key->flags & KEY_FLAG_EXT) != 0)
+				continue;
+			if (key_equal(id->key, id2->key)) {
+				TAILQ_REMOVE(&files, id, next);
+				TAILQ_INSERT_TAIL(preferred, id, next);
+				found = 1;
+				break;
+			}
+		}
+		/* If IdentitiesOnly set and key not found then don't use it */
+		if (!found && options.identities_only) {
+			TAILQ_REMOVE(&files, id, next);
+			bzero(id, sizeof(id));
+			free(id);
+		}
 	}
 	/* list of keys supported by the agent */
 	if ((ac = ssh_get_authentication_connection())) {
