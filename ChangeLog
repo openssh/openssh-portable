@@ -27,6 +27,9 @@
    - djm@cvs.openbsd.org 2012/11/22 22:49:30
      [regress/Makefile regress/keys-command.sh]
      regress for AuthorizedKeysCommand; hints from markus@
+   - djm@cvs.openbsd.org 2012/12/02 20:47:48
+     [Makefile regress/forward-control.sh]
+     regress for AllowTcpForwarding local/remote; ok markus@
 
 20121114
  - (djm) OpenBSD CVS Sync
