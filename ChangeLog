@@ -1,3 +1,7 @@
+20121203
+ - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD to get
+   TAILQ_FOREACH_SAFE needed for upcoming changes.
+
 20121114
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2012/11/14 02:24:27
