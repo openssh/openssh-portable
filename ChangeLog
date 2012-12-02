@@ -43,6 +43,9 @@
      keyboard-interactive.
      
      ok markus@
+   - dtucker@cvs.openbsd.org 2012/10/05 02:05:30
+     [regress/multiplex.sh]
+     Use 'kill -0' to test for the presence of a pid since it's more portable
 
 20121107
  - (djm) OpenBSD CVS Sync

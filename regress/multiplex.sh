@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.16 2012/09/10 01:51:19 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.17 2012/10/05 02:05:30 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -96,7 +96,7 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_SSH_LOGFILE 2>&1 \
 
 # Wait for master to exit
 wait $MASTER_PID
-kill -0 $MASTER_PID >/dev/null && fail "exit command failed"
+kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed"
 
 # Restart master and test -O stop command with master using -N
 verbose "test $tid: cmd stop"
@@ -117,4 +117,4 @@ wait $SLEEP_PID
 [ $! != 0 ] || fail "waiting for concurrent command"
 wait $MASTER_PID
 [ $! != 0 ] || fail "waiting for master stop"
-kill -0 $MASTER_PID >/dev/null && fail "stop command failed"
+kill -0 $MASTER_PID >/dev/null 2>&1 && fail "stop command failed"
