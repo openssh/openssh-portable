@@ -21,6 +21,9 @@
    - dtucker@cvs.openbsd.org 2012/10/05 02:20:48
      [regress/cipher-speed.sh regress/try-ciphers.sh]
      Add umac-128@openssh.com to the list of MACs to be tested
+   - djm@cvs.openbsd.org 2012/10/19 05:10:42
+     [regress/cert-userkey.sh]
+     include a serial number when generating certs
 
 20121114
  - (djm) OpenBSD CVS Sync

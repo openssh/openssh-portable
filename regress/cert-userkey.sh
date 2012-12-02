@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.8 2011/05/17 07:13:31 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.9 2012/10/19 05:10:42 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -22,9 +22,8 @@ for ktype in rsa dsa $ecdsa ; do
 	${SSHKEYGEN} -q -N '' -t ${ktype} \
 	    -f $OBJ/cert_user_key_${ktype} || \
 		fail "ssh-keygen of cert_user_key_${ktype} failed"
-	${SSHKEYGEN} -q -s $OBJ/user_ca_key -I \
-	    "regress user key for $USER" \
-	    -n ${USER},mekmitasdigoat $OBJ/cert_user_key_${ktype} ||
+	${SSHKEYGEN} -q -s $OBJ/user_ca_key -I "regress user key for $USER" \
+	    -z $$ -n ${USER},mekmitasdigoat $OBJ/cert_user_key_${ktype} ||
 		fail "couldn't sign cert_user_key_${ktype}"
 	# v00 ecdsa certs do not exist
 	test "${ktype}" = "ecdsa" && continue
