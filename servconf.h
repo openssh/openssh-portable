@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.105 2012/11/04 11:09:15 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.106 2012/12/02 20:46:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -41,6 +41,12 @@
 #define PRIVSEP_OFF		0
 #define PRIVSEP_ON		1
 #define PRIVSEP_NOSANDBOX	2
+
+/* AllowTCPForwarding */
+#define FORWARD_DENY		0
+#define FORWARD_REMOTE		(1)
+#define FORWARD_LOCAL		(1<<1)
+#define FORWARD_ALLOW		(FORWARD_REMOTE|FORWARD_LOCAL)
 
 #define DEFAULT_AUTH_FAIL_MAX	6	/* Default for MaxAuthTries */
 #define DEFAULT_SESSIONS_MAX	10	/* Default for MaxSessions */
@@ -116,7 +122,7 @@ typedef struct {
 	int     permit_user_env;	/* If true, read ~/.ssh/environment */
 	int     use_login;	/* If true, login(1) is used */
 	int     compression;	/* If true, compression is allowed */
-	int	allow_tcp_forwarding;
+	int	allow_tcp_forwarding; /* One of FORWARD_* */
 	int	allow_agent_forwarding;
 	u_int num_allow_users;
 	char   *allow_users[MAX_ALLOW_USERS];

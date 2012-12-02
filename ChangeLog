@@ -12,6 +12,12 @@
      make deleting explicit keys "ssh-add -d" symmetric with adding keys -
      try to delete the corresponding certificate too and respect the -k option
      to allow deleting of the key only; feedback and ok markus@
+   - djm@cvs.openbsd.org 2012/12/02 20:46:11
+     [auth-options.c channels.c servconf.c servconf.h serverloop.c session.c]
+     [sshd_config.5]
+     make AllowTcpForwarding accept "local" and "remote" in addition to its
+     current "yes"/"no" to allow the server to specify whether just local or
+     remote TCP forwarding is enabled. ok markus@
 
 20121114
  - (djm) OpenBSD CVS Sync
