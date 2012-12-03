@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.35 2012/12/02 20:34:09 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.36 2012/12/03 00:14:06 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -283,7 +283,8 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	KbdintAuthctxt *kbdintctxt;
 	int authenticated = 0, res;
 	u_int i, nresp;
-	char *devicename = NULL, **response = NULL;
+	const char *devicename = NULL;
+	char **response = NULL;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_info_response: no authctxt");
