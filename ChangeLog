@@ -35,6 +35,8 @@
      Fix compilation with -Wall -Werror (trivial type fixes)
  - (djm) [configure.ac] Turn on -g for gcc compilers. Helps pre-installation
    debugging. ok dtucker@
+ - (djm) [configure.ac] Revert previous. configure.ac already does this
+   for us.
 
 20121114
  - (djm) OpenBSD CVS Sync
