@@ -33,6 +33,8 @@
    - djm@cvs.openbsd.org 2012/12/03 00:14:06
      [auth2-chall.c ssh-keygen.c]
      Fix compilation with -Wall -Werror (trivial type fixes)
+ - (djm) [configure.ac] Turn on -g for gcc compilers. Helps pre-installation
+   debugging. ok dtucker@
 
 20121114
  - (djm) OpenBSD CVS Sync

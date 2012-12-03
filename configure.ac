@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.496 2012/07/06 01:49:29 djm Exp $
+# $Id: configure.ac,v 1.497 2012/12/03 00:55:54 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.496 $)
+AC_REVISION($Revision: 1.497 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -155,6 +155,7 @@ AC_ARG_WITH([stackprotect],
 
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
+	OSSH_CHECK_CFLAG_COMPILE([-g])
 	OSSH_CHECK_CFLAG_COMPILE([-Wall])
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
 	OSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
