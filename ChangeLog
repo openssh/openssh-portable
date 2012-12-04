@@ -1,3 +1,6 @@
+20121205
+ - (tim) [defines.h] Some platforms are missing ULLONG_MAX. Feedback djm@.
+
 20121203
  - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD to get
    TAILQ_FOREACH_SAFE needed for upcoming changes.
