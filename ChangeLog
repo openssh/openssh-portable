@@ -1,3 +1,15 @@
+20121207
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2012/12/06 06:06:54
+     [regress/keys-command.sh]
+     Fix some problems with the keys-command test:
+      - use string comparison rather than numeric comparison
+      - check for existing KEY_COMMAND file and don't clobber if it exists
+      - clean up KEY_COMMAND file if we do create it.
+      - check that KEY_COMMAND is executable (which it won't be if eg /var/run
+        is mounted noexec).
+     ok djm.
+
 20121205
  - (tim) [defines.h] Some platforms are missing ULLONG_MAX. Feedback djm@.
 
