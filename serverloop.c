@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.163 2012/12/02 20:46:11 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.164 2012/12/07 01:51:35 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -708,7 +708,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		    &nalloc, max_time_milliseconds);
 
 		if (received_sigterm) {
-			logit("Exiting on signal %d", received_sigterm);
+			logit("Exiting on signal %d", (int)received_sigterm);
 			/* Clean up sessions, utmp, etc. */
 			cleanup_exit(255);
 		}
@@ -858,7 +858,7 @@ server_loop2(Authctxt *authctxt)
 		    &nalloc, 0);
 
 		if (received_sigterm) {
-			logit("Exiting on signal %d", received_sigterm);
+			logit("Exiting on signal %d", (int)received_sigterm);
 			/* Clean up sessions, utmp, etc. */
 			cleanup_exit(255);
 		}
