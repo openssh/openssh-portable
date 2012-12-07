@@ -12,6 +12,9 @@
    - jmc@cvs.openbsd.org 2012/12/03 08:33:03
      [ssh-add.1 sshd_config.5]
      tweak previous;
+   - markus@cvs.openbsd.org 2012/12/05 15:42:52
+     [ssh-add.c]
+     prevent double-free of comment; ok djm@
 
 20121205
  - (tim) [defines.h] Some platforms are missing ULLONG_MAX. Feedback djm@.

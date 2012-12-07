@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.104 2012/12/02 20:42:15 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.105 2012/12/05 15:42:52 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -118,6 +118,7 @@ delete_file(AuthenticationConnection *ac, const char *filename, int key_only)
 
 	/* Now try to delete the corresponding certificate too */
 	free(comment);
+	comment = NULL;
 	xasprintf(&certpath, "%s-cert.pub", filename);
 	if ((cert = key_load_public(certpath, &comment)) == NULL)
 		goto out;
