@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.119 2012/12/02 20:34:10 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.120 2012/12/11 22:16:21 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -438,10 +438,6 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 #endif
 	}
 
-	/* Drain any buffered messages from the child */
-	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
-		;
-
 	if (!authctxt->valid)
 		fatal("%s: authenticated invalid user", __func__);
 	if (strcmp(auth_method, "unknown") == 0)
@@ -451,6 +447,10 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 	    __func__, authctxt->user);
 
 	mm_get_keystate(pmonitor);
+
+	/* Drain any buffered messages from the child */
+	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
+		;
 
 	close(pmonitor->m_sendfd);
 	close(pmonitor->m_log_recvfd);
