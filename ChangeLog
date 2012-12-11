@@ -12,6 +12,9 @@
      message (including the packet size) instead of the plaintext data;
      these EtM modes are considered more secure and used by default.
      feedback and ok djm@
+   - sthen@cvs.openbsd.org 2012/12/11 22:51:45
+     [mac.c]
+     fix typo, s/tem/etm in hmac-ripemd160-tem. ok markus@
 
 20121207
  - (dtucker) OpenBSD CVS Sync

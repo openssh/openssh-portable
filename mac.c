@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.20 2012/12/11 22:31:18 markus Exp $ */
+/* $OpenBSD: mac.c,v 1.21 2012/12/11 22:51:45 sthen Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -81,7 +81,7 @@ struct {
 #endif
 	{ "hmac-md5-etm@openssh.com",		SSH_EVP, EVP_md5, 0, 0, 0, 1 },
 	{ "hmac-md5-96-etm@openssh.com",	SSH_EVP, EVP_md5, 96, 0, 0, 1 },
-	{ "hmac-ripemd160-tem@openssh.com",	SSH_EVP, EVP_ripemd160, 0, 0, 0, 1 },
+	{ "hmac-ripemd160-etm@openssh.com",	SSH_EVP, EVP_ripemd160, 0, 0, 0, 1 },
 	{ "umac-64-etm@openssh.com",		SSH_UMAC, NULL, 0, 128, 64, 1 },
 	{ "umac-128-etm@openssh.com",		SSH_UMAC128, NULL, 0, 128, 128, 1 },
 
