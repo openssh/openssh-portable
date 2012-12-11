@@ -21,6 +21,9 @@
    - markus@cvs.openbsd.org 2012/12/11 22:42:11
      [regress/Makefile regress/modpipe.c regress/integrity.sh]
      test the integrity of the packets; with djm@
+   - markus@cvs.openbsd.org 2012/12/11 23:12:13
+     [try-ciphers.sh]
+     add hmac-ripemd160-etm@openssh.com
 
 20121207
  - (dtucker) OpenBSD CVS Sync
