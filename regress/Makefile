@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.60 2012/12/02 20:47:48 djm Exp $
+#	$OpenBSD: Makefile,v 1.61 2012/12/11 22:42:11 markus Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -59,7 +59,8 @@ LTESTS= 	connect \
 		cert-userkey \
 		host-expand \
 		keys-command \
-		forward-control
+		forward-control \
+		integrity
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
@@ -142,7 +143,9 @@ t9: $(OBJ)/t9.out
 	test "${TEST_SSH_ECC}" != yes || \
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t9.out > /dev/null
 
-t-exec:	${LTESTS:=.sh}
+modpipe: modpipe.c
+
+t-exec:	modpipe ${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \

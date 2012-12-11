@@ -18,6 +18,9 @@
    - markus@cvs.openbsd.org 2012/12/11 22:32:56
      [regress/try-ciphers.sh]
      add etm modes
+   - markus@cvs.openbsd.org 2012/12/11 22:42:11
+     [regress/Makefile regress/modpipe.c regress/integrity.sh]
+     test the integrity of the packets; with djm@
 
 20121207
  - (dtucker) OpenBSD CVS Sync
