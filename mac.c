@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.19 2012/10/04 13:21:50 markus Exp $ */
+/* $OpenBSD: mac.c,v 1.20 2012/12/11 22:31:18 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -58,19 +58,34 @@ struct {
 	int		key_len;	/* just for UMAC */
 	int		len;		/* just for UMAC */
 } macs[] = {
-	{ "hmac-sha1",			SSH_EVP, EVP_sha1, 0, -1, -1 },
-	{ "hmac-sha1-96",		SSH_EVP, EVP_sha1, 96, -1, -1 },
+	/* Encrypt-and-MAC (encrypt-and-authenticate) variants */
+	{ "hmac-sha1",				SSH_EVP, EVP_sha1, 0, 0, 0, 0 },
+	{ "hmac-sha1-96",			SSH_EVP, EVP_sha1, 96, 0, 0, 0 },
 #ifdef HAVE_EVP_SHA256
-	{ "hmac-sha2-256",		SSH_EVP, EVP_sha256, 0, -1, -1 },
-	{ "hmac-sha2-512",		SSH_EVP, EVP_sha512, 0, -1, -1 },
+	{ "hmac-sha2-256",			SSH_EVP, EVP_sha256, 0, 0, 0, 0 },
+	{ "hmac-sha2-512",			SSH_EVP, EVP_sha512, 0, 0, 0, 0 },
 #endif
-	{ "hmac-md5",			SSH_EVP, EVP_md5, 0, -1, -1 },
-	{ "hmac-md5-96",		SSH_EVP, EVP_md5, 96, -1, -1 },
-	{ "hmac-ripemd160",		SSH_EVP, EVP_ripemd160, 0, -1, -1 },
-	{ "hmac-ripemd160@openssh.com",	SSH_EVP, EVP_ripemd160, 0, -1, -1 },
-	{ "umac-64@openssh.com",	SSH_UMAC, NULL, 0, 128, 64 },
-	{ "umac-128@openssh.com",	SSH_UMAC128, NULL, 0, 128, 128 },
-	{ NULL,				0, NULL, 0, -1, -1 }
+	{ "hmac-md5",				SSH_EVP, EVP_md5, 0, 0, 0, 0 },
+	{ "hmac-md5-96",			SSH_EVP, EVP_md5, 96, 0, 0, 0 },
+	{ "hmac-ripemd160",			SSH_EVP, EVP_ripemd160, 0, 0, 0, 0 },
+	{ "hmac-ripemd160@openssh.com",		SSH_EVP, EVP_ripemd160, 0, 0, 0, 0 },
+	{ "umac-64@openssh.com",		SSH_UMAC, NULL, 0, 128, 64, 0 },
+	{ "umac-128@openssh.com",		SSH_UMAC128, NULL, 0, 128, 128, 0 },
+
+	/* Encrypt-then-MAC variants */
+	{ "hmac-sha1-etm@openssh.com",		SSH_EVP, EVP_sha1, 0, 0, 0, 1 },
+	{ "hmac-sha1-96-etm@openssh.com",	SSH_EVP, EVP_sha1, 96, 0, 0, 1 },
+#ifdef HAVE_EVP_SHA256
+	{ "hmac-sha2-256-etm@openssh.com",	SSH_EVP, EVP_sha256, 0, 0, 0, 1 },
+	{ "hmac-sha2-512-etm@openssh.com",	SSH_EVP, EVP_sha512, 0, 0, 0, 1 },
+#endif
+	{ "hmac-md5-etm@openssh.com",		SSH_EVP, EVP_md5, 0, 0, 0, 1 },
+	{ "hmac-md5-96-etm@openssh.com",	SSH_EVP, EVP_md5, 96, 0, 0, 1 },
+	{ "hmac-ripemd160-tem@openssh.com",	SSH_EVP, EVP_ripemd160, 0, 0, 0, 1 },
+	{ "umac-64-etm@openssh.com",		SSH_UMAC, NULL, 0, 128, 64, 1 },
+	{ "umac-128-etm@openssh.com",		SSH_UMAC128, NULL, 0, 128, 128, 1 },
+
+	{ NULL,					0, NULL, 0, 0, 0, 0 }
 };
 
 static void
@@ -90,6 +105,7 @@ mac_setup_by_id(Mac *mac, int which)
 	}
 	if (macs[which].truncatebits != 0)
 		mac->mac_len = macs[which].truncatebits / 8;
+	mac->etm = macs[which].etm;
 }
 
 int

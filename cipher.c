@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.82 2009/01/26 09:58:15 markus Exp $ */
+/* $OpenBSD: cipher.c,v 1.83 2012/12/11 22:31:18 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -273,13 +273,25 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	}
 }
 
+/*
+ * cipher_crypt() operates as following:
+ * Copy 'aadlen' bytes (without en/decryption) from 'src' to 'dest'.
+ * Theses bytes are treated as additional authenticated data for
+ * authenticated encryption modes.
+ * En/Decrypt 'len' bytes at offset 'aadlen' from 'src' to 'dest'.
+ * Both 'aadlen' and 'authlen' can be set to 0.
+ */
 void
-cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
+cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src,
+    u_int len, u_int aadlen)
 {
+	if (aadlen)
+		memcpy(dest, src, aadlen);
 	if (len % cc->cipher->block_size)
-		fatal("cipher_encrypt: bad plaintext length %d", len);
-	if (EVP_Cipher(&cc->evp, dest, (u_char *)src, len) == 0)
-		fatal("evp_crypt: EVP_Cipher failed");
+		fatal("%s: bad plaintext length %d", __func__, len);
+	if (EVP_Cipher(&cc->evp, dest + aadlen, (u_char *)src + aadlen,
+	    len) < 0)
+		fatal("%s: EVP_Cipher failed", __func__);
 }
 
 void

@@ -4,6 +4,14 @@
      [monitor.c]
      drain the log messages after receiving the keystate from the unpriv
      child. otherwise it might block while sending. ok djm@
+   - markus@cvs.openbsd.org 2012/12/11 22:31:18
+     [PROTOCOL authfile.c cipher.c cipher.h kex.h mac.c myproposal.h]
+     [packet.c ssh_config.5 sshd_config.5]
+     add encrypt-then-mac (EtM) modes to openssh by defining new mac algorithms
+     that change the packet format and compute the MAC over the encrypted
+     message (including the packet size) instead of the plaintext data;
+     these EtM modes are considered more secure and used by default.
+     feedback and ok djm@
 
 20121207
  - (dtucker) OpenBSD CVS Sync

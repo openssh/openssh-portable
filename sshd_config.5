@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.151 2012/12/03 08:33:03 jmc Exp $
-.Dd $Mdocdate: December 3 2012 $
+.\" $OpenBSD: sshd_config.5,v 1.152 2012/12/11 22:31:18 markus Exp $
+.Dd $Mdocdate: December 11 2012 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -706,8 +706,17 @@ Specifies the available MAC (message authentication code) algorithms.
 The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
+The algorithms that contain
+.Dq -etm
+calculate the MAC after encryption (encrypt-then-mac).
+These are considered safer and their use recommended.
 The default is:
 .Bd -literal -offset indent
+hmac-md5-etm@openssh.com,hmac-sha1-etm@openssh.com,
+umac-64-etm@openssh.com,umac-128-etm@openssh.com,
+hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,
+hmac-ripemd160-etm@openssh.com,hmac-sha1-96-etm@openssh.com,
+hmac-md5-96-etm@openssh.com,
 hmac-md5,hmac-sha1,umac-64@openssh.com,umac-128@openssh.com,
 hmac-sha2-256,hmac-sha2-512,hmac-ripemd160,
 hmac-sha1-96,hmac-md5-96

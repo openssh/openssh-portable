@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.30 2012/10/04 13:21:50 markus Exp $ */
+/* $OpenBSD: myproposal.h,v 1.31 2012/12/11 22:31:18 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -83,6 +83,15 @@
 # define SHA2_HMAC_MODES
 #endif
 #define	KEX_DEFAULT_MAC \
+	"hmac-md5-etm@openssh.com," \
+	"hmac-sha1-etm@openssh.com," \
+	"umac-64-etm@openssh.com," \
+	"umac-128-etm@openssh.com," \
+	"hmac-sha2-256-etm@openssh.com," \
+	"hmac-sha2-512-etm@openssh.com," \
+	"hmac-ripemd160-etm@openssh.com," \
+	"hmac-sha1-96-etm@openssh.com," \
+	"hmac-md5-96-etm@openssh.com," \
 	"hmac-md5," \
 	"hmac-sha1," \
 	"umac-64@openssh.com," \
