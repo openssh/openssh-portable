@@ -25,6 +25,9 @@
      [try-ciphers.sh]
      add hmac-ripemd160-etm@openssh.com
  - (djm) [mac.c] fix merge botch
+ - (djm) [regress/Makefile regress/integrity.sh] Make the integrity.sh test
+   work on platforms without 'jot'
+ - (djm) [regress/integrity.sh] Fix awk quoting, packet length skip
 
 20121207
  - (dtucker) OpenBSD CVS Sync

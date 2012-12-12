@@ -19,9 +19,9 @@ macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 cmd="sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy"
 
 jot() {
-	awk 'BEGIN { for (i = $2; i < $2 + $1; i++) { printf "%d\n", i } }'
+	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } }"
 }
-set -x
+
 for m in $macs; do
 	trace "test $tid: mac $m"
 	elen=0
@@ -46,7 +46,7 @@ for m in $macs; do
 		output=$(echo $output | tr -s '\r\n' '.')
 		verbose "test $tid: $m @$off $output"
 		case "$output" in
-		Bad?packet*)	elen=$((elen+1)); skip=2;;
+		Bad?packet*)	elen=$((elen+1)); skip=3;;
 		Corrupted?MAC*) emac=$((emac+1)); skip=0;;
 		padding*)	epad=$((epad+1)); skip=0;;
 		*)		fail "unexpected error mac $m at $off";;
