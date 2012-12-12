@@ -1,7 +1,7 @@
 #	$OpenBSD: Makefile,v 1.61 2012/12/11 22:42:11 markus Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
-tests:		$(REGRESS_TARGETS)
+tests:		prereq $(REGRESS_TARGETS)
 
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
@@ -143,14 +143,16 @@ t9: $(OBJ)/t9.out
 	test "${TEST_SSH_ECC}" != yes || \
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t9.out > /dev/null
 
-t-exec:	${LTESTS:=.sh} modpipe
+prereq: modpipe
+
+modpipe: modpipe.c
+
+t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
 		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
-
-modpipe: modpipe.c
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \

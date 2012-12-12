@@ -28,6 +28,7 @@
  - (djm) [regress/Makefile regress/integrity.sh] Make the integrity.sh test
    work on platforms without 'jot'
  - (djm) [regress/integrity.sh] Fix awk quoting, packet length skip
+ - (djm) [regress/Makefile] fix t-exec rule
 
 20121207
  - (dtucker) OpenBSD CVS Sync
