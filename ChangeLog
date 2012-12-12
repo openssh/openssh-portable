@@ -11,6 +11,7 @@
      counter mode code; ok djm@
  - (djm) [configure.ac cipher-ctr.c] Adapt EVP AES CTR change to retain our
    compat code for older OpenSSL
+ - (djm) [cipher.c] Fix missing prototype for compat code
 
 20121212
  - (djm) OpenBSD CVS Sync

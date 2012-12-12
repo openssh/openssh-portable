@@ -58,6 +58,7 @@ extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
 #define EVP_aes_128_ctr evp_aes_128_ctr
 #define EVP_aes_192_ctr evp_aes_128_ctr
 #define EVP_aes_256_ctr evp_aes_128_ctr
+extern const EVP_CIPHER *evp_aes_128_ctr(void);
 extern void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
 #endif
 
