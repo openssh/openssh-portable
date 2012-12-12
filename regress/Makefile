@@ -81,7 +81,7 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		putty.rsa2 sshd_proxy_orig ssh_proxy_bak \
 		key.rsa-* key.dsa-* key.ecdsa-* \
 		authorized_principals_${USER} expect actual ready \
-		sshd_proxy.* authorized_keys_${USER}.*
+		sshd_proxy.* authorized_keys_${USER}.* modpipe
 
 
 # Enable all malloc(3) randomisations and checks
@@ -143,14 +143,14 @@ t9: $(OBJ)/t9.out
 	test "${TEST_SSH_ECC}" != yes || \
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t9.out > /dev/null
 
-modpipe: modpipe.c
-
-t-exec:	modpipe ${LTESTS:=.sh}
+t-exec:	${LTESTS:=.sh} modpipe
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
 		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} sh ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
 	done
+
+modpipe: modpipe.c
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \

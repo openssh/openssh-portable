@@ -18,6 +18,10 @@ macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 # sshd-command for proxy (see test-exec.sh)
 cmd="sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy"
 
+jot() {
+	awk 'BEGIN { for (i = $2; i < $2 + $1; i++) { printf "%d\n", i } }'
+}
+set -x
 for m in $macs; do
 	trace "test $tid: mac $m"
 	elen=0
@@ -26,7 +30,8 @@ for m in $macs; do
 	ecnt=0
 	skip=0
 	for off in $(jot $tries $startoffset); do
-		if [ $((skip--)) -gt 0 ]; then
+		skip=$((skip - 1))
+		if [ $skip -gt 0 ]; then
 			# avoid modifying the high bytes of the length
 			continue
 		fi
