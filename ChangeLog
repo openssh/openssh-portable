@@ -1,3 +1,11 @@
+20121213
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2012/12/12 16:45:52
+     [packet.c]
+     reset incoming_packet buffer for each new packet in EtM-case, too;
+     this happens if packets are parsed only parially (e.g. ignore
+     messages sent when su/sudo turn off echo); noted by sthen/millert
+
 20121212
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2012/12/11 22:16:21

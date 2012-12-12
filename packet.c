@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.178 2012/12/11 22:31:18 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.179 2012/12/12 16:45:52 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1278,6 +1278,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 			logit("Bad packet length %u.", active_state->packlen);
 			packet_disconnect("Packet corrupt");
 		}
+		buffer_clear(&active_state->incoming_packet);
 	} else if (active_state->packlen == 0) {
 		/*
 		 * check if input size is less than the cipher block size,
