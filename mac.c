@@ -57,6 +57,7 @@ struct {
 	int		truncatebits;	/* truncate digest if != 0 */
 	int		key_len;	/* just for UMAC */
 	int		len;		/* just for UMAC */
+	int		etm;		/* Encrypt-then-MAC */
 } macs[] = {
 	/* Encrypt-and-MAC (encrypt-and-authenticate) variants */
 	{ "hmac-sha1",				SSH_EVP, EVP_sha1, 0, 0, 0, 0 },
