@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.498 2012/12/03 01:35:55 djm Exp $
+# $Id: configure.ac,v 1.499 2012/12/12 21:18:56 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.498 $)
+AC_REVISION($Revision: 1.499 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2296,6 +2296,27 @@ AC_LINK_IFELSE(
 		AC_MSG_RESULT([yes])
 		AC_DEFINE([OPENSSL_LOBOTOMISED_AES], [1],
 		    [libcrypto is missing AES 192 and 256 bit functions])
+	]
+)
+
+# Check for OpenSSL with EVP_aes_*ctr
+AC_MSG_CHECKING([whether OpenSSL has AES CTR via EVP])
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <string.h>
+#include <openssl/evp.h>
+	]], [[
+	exit(EVP_aes_128_ctr() == NULL ||
+	    EVP_aes_192_cbc() == NULL ||
+	    EVP_aes_256_cbc() == NULL);
+	]])],
+	[
+		AC_MSG_RESULT([yes])
+		AC_DEFINE([OPENSSL_HAVE_EVPCTR], [1],
+		    [libcrypto has EVP AES CTR])
+	],
+	[
+		AC_MSG_RESULT([no])
 	]
 )
 

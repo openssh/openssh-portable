@@ -5,6 +5,12 @@
      reset incoming_packet buffer for each new packet in EtM-case, too;
      this happens if packets are parsed only parially (e.g. ignore
      messages sent when su/sudo turn off echo); noted by sthen/millert
+   - naddy@cvs.openbsd.org 2012/12/12 16:46:10
+     [cipher.c]
+     use OpenSSL's EVP_aes_{128,192,256}_ctr() API and remove our hand-rolled
+     counter mode code; ok djm@
+ - (djm) [configure.ac cipher-ctr.c] Adapt EVP AES CTR change to retain our
+   compat code for older OpenSSL
 
 20121212
  - (djm) OpenBSD CVS Sync

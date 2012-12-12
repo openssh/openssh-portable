@@ -16,6 +16,7 @@
  */
 #include "includes.h"
 
+#ifndef OPENSSL_HAVE_EVPCTR
 #include <sys/types.h>
 
 #include <stdarg.h>
@@ -144,3 +145,5 @@ evp_aes_128_ctr(void)
 #endif
 	return (&aes_ctr);
 }
+
+#endif /* OPENSSL_HAVE_EVPCTR */
