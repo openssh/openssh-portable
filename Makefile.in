@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.328 2012/10/05 05:41:07 dtucker Exp $
+# $Id: Makefile.in,v 1.329 2012/12/17 04:59:43 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -384,6 +384,9 @@ tests interop-tests:	$(TARGETS)
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	[ -f `pwd`/regress/Makefile ]  || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile ; \
+	[ -f `pwd`/regress/modpipe.c ]  || \
+	    ln -s `cd $(srcdir) && pwd`/regress/modpipe.c `pwd`/regress/modpipe.c; \
+	(cd regress && make prereq); \
 	TEST_SHELL="@TEST_SHELL@"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
 	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
