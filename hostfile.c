@@ -58,11 +58,6 @@
 #include "digest.h"
 #include "hmac.h"
 
-struct hostkeys {
-	struct hostkey_entry *entries;
-	u_int num_entries;
-};
-
 static int
 extract_salt(const char *s, u_int l, u_char *salt, size_t salt_len)
 {
@@ -242,20 +237,22 @@ init_hostkeys(void)
 }
 
 void
-load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
+load_hostkeys(struct hostkeys *hostkeys, const char *lookup_host,
+    const Key *lookup_key, const char *path)
 {
 	FILE *f;
 	char line[8192];
 	u_long linenum = 0, num_loaded = 0;
 	char *cp, *cp2, *hashed_host;
+	const char *current_host;
 	HostkeyMarker marker;
 	Key *key;
 	int kbits;
 
 	if ((f = fopen(path, "r")) == NULL)
 		return;
-	debug3("%s: loading entries for host \"%.100s\" from file \"%s\"",
-	    __func__, host, path);
+	debug3("%s: loading entries for host \"%.100s\"%s from file \"%s\"",
+	    __func__, lookup_host, (lookup_key ? " and key" : ""), path);
 	while (read_keyfile_line(f, path, line, sizeof(line), &linenum) == 0) {
 		cp = line;
 
@@ -275,11 +272,11 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 		for (cp2 = cp; *cp2 && *cp2 != ' ' && *cp2 != '\t'; cp2++)
 			;
 
-		/* Check if the host name matches. */
-		if (match_hostname(host, cp, (u_int) (cp2 - cp)) != 1) {
+		/* Check if the host name matches if we're looking for a host. */
+		if (lookup_host && match_hostname(lookup_host, cp, (u_int) (cp2 - cp)) != 1) {
 			if (*cp != HASH_DELIM)
 				continue;
-			hashed_host = host_hash(host, cp, (u_int) (cp2 - cp));
+			hashed_host = host_hash(lookup_host, cp, (u_int) (cp2 - cp));
 			if (hashed_host == NULL) {
 				debug("Invalid hashed host line %lu of %s",
 				    linenum, path);
@@ -289,7 +286,17 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 				continue;
 		}
 
-		/* Got a match.  Skip host name. */
+		/* If we're looking for a key grab the hostname and ignore hashed entries. */
+		if (lookup_key) {
+			if (*cp == HASH_DELIM)
+				continue;
+			*cp2++ = 0;
+			current_host = cp;
+		} else {
+			current_host = lookup_host;
+		}
+
+		/* Move pointer past the hostname. */
 		cp = cp2;
 
 		/*
@@ -309,7 +316,14 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 			continue;
 #endif
 		}
-		if (!hostfile_check_key(kbits, key, host, path, linenum))
+
+		/* Check if the key matches if we're looking for a key. */
+		if (lookup_key) {
+		        if (!key_equal(lookup_key, key))
+		                continue;
+		}
+
+		if (!hostfile_check_key(kbits, key, current_host, path, linenum))
 			continue;
 
 		debug3("%s: found %skey type %s in file %s:%lu", __func__,
@@ -318,7 +332,7 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 		    key_type(key), path, linenum);
 		hostkeys->entries = xrealloc(hostkeys->entries,
 		    hostkeys->num_entries + 1, sizeof(*hostkeys->entries));
-		hostkeys->entries[hostkeys->num_entries].host = xstrdup(host);
+		hostkeys->entries[hostkeys->num_entries].host = xstrdup(current_host);
 		hostkeys->entries[hostkeys->num_entries].file = xstrdup(path);
 		hostkeys->entries[hostkeys->num_entries].line = linenum;
 		hostkeys->entries[hostkeys->num_entries].key = key;

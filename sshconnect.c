@@ -811,13 +811,13 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	Key *raw_key = NULL;
 	char *ip = NULL, *host = NULL;
 	char hostline[1000], *hostp, *fp, *ra;
-	char msg[1024];
+	char msg[2048];
 	const char *type;
 	const struct hostkey_entry *host_found, *ip_found;
 	int len, cancelled_forwarding = 0;
 	int local = sockaddr_is_local(hostaddr);
 	int r, want_cert = key_is_cert(host_key), host_ip_differ = 0;
-	struct hostkeys *host_hostkeys, *ip_hostkeys;
+	struct hostkeys *host_hostkeys, *ip_hostkeys, *key_hostkeys = NULL;
 	u_int i;
 
 	/*
@@ -851,17 +851,17 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 
 	host_hostkeys = init_hostkeys();
 	for (i = 0; i < num_user_hostfiles; i++)
-		load_hostkeys(host_hostkeys, host, user_hostfiles[i]);
+		load_hostkeys(host_hostkeys, host, NULL, user_hostfiles[i]);
 	for (i = 0; i < num_system_hostfiles; i++)
-		load_hostkeys(host_hostkeys, host, system_hostfiles[i]);
+		load_hostkeys(host_hostkeys, host, NULL, system_hostfiles[i]);
 
 	ip_hostkeys = NULL;
 	if (!want_cert && options.check_host_ip) {
 		ip_hostkeys = init_hostkeys();
 		for (i = 0; i < num_user_hostfiles; i++)
-			load_hostkeys(ip_hostkeys, ip, user_hostfiles[i]);
+			load_hostkeys(ip_hostkeys, ip, NULL, user_hostfiles[i]);
 		for (i = 0; i < num_system_hostfiles; i++)
-			load_hostkeys(ip_hostkeys, ip, system_hostfiles[i]);
+			load_hostkeys(ip_hostkeys, ip, NULL, system_hostfiles[i]);
 	}
 
  retry:
@@ -971,6 +971,29 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 					snprintf(msg2, sizeof(msg2),
 					    "No matching host key fingerprint"
 					    " found in DNS.\n");
+			}
+			/* Has this key been accepted for other hostnames? */
+			key_hostkeys = init_hostkeys();
+			for (i = 0; i < num_user_hostfiles; i++)
+				load_hostkeys(key_hostkeys, NULL, host_key,
+				    user_hostfiles[i]);
+			for (i = 0; i < num_system_hostfiles; i++)
+				load_hostkeys(key_hostkeys, NULL, host_key,
+				    system_hostfiles[i]);
+			if (key_hostkeys->num_entries > 0) {
+				strlcat(msg2, "You have previously accepted "
+				    "this key for the following hostnames:",
+				    sizeof(msg2));
+				for (i = 0; i < key_hostkeys->num_entries; i++) {
+					strlcat(msg2, "\n\t", sizeof(msg2));
+					strlcat(msg2, key_hostkeys->entries[i].host,
+					    sizeof(msg2));
+				}
+				if (strlcat(msg2, "\n", sizeof(msg2)) >=
+				    sizeof(msg2)) {
+					/* truncate at last newline. */
+					*(strrchr(msg2, '\n') + 1) = 0;
+				}
 			}
 			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
@@ -1190,6 +1213,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		free_hostkeys(host_hostkeys);
 	if (ip_hostkeys != NULL)
 		free_hostkeys(ip_hostkeys);
+	if (key_hostkeys != NULL)
+		free_hostkeys(key_hostkeys);
 	return 0;
 
 fail:
@@ -1213,6 +1238,8 @@ fail:
 		free_hostkeys(host_hostkeys);
 	if (ip_hostkeys != NULL)
 		free_hostkeys(ip_hostkeys);
+	if (key_hostkeys != NULL)
+		free_hostkeys(key_hostkeys);
 	return -1;
 }
 

@@ -29,10 +29,14 @@ struct hostkey_entry {
 	Key *key;
 	HostkeyMarker marker;
 };
-struct hostkeys;
+
+struct hostkeys {
+	struct hostkey_entry *entries;
+	u_int num_entries;
+};
 
 struct hostkeys *init_hostkeys(void);
-void	 load_hostkeys(struct hostkeys *, const char *, const char *);
+void	 load_hostkeys(struct hostkeys *, const char *, const Key *, const char *);
 void	 free_hostkeys(struct hostkeys *);
 
 HostStatus check_key_in_hostkeys(struct hostkeys *, Key *,
