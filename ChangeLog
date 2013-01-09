@@ -27,6 +27,11 @@
      [ssh-keygen.c]
      allow fingerprinting of keys hosted in PKCS#11 tokens: ssh-keygen -lD ...
      ok markus@
+   - jmc@cvs.openbsd.org 2013/01/04 19:26:38
+     [sftp-server.8 sftp-server.c]
+     sftp-server.8: add argument name to -d
+     sftp-server.c: add -d to usage()
+     ok djm
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress
