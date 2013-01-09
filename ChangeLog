@@ -32,6 +32,11 @@
      sftp-server.8: add argument name to -d
      sftp-server.c: add -d to usage()
      ok djm
+   - markus@cvs.openbsd.org 2013/01/08 18:49:04
+     [PROTOCOL authfile.c cipher.c cipher.h kex.c kex.h monitor_wrap.c]
+     [myproposal.h packet.c ssh_config.5 sshd_config.5]
+     support AES-GCM as defined in RFC 5647 (but with simpler KEX handling)
+     ok and feedback djm@
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress

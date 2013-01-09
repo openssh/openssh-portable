@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.84 2012/12/12 16:46:10 naddy Exp $ */
+/* $OpenBSD: cipher.c,v 1.85 2013/01/08 18:49:04 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -71,29 +71,38 @@ struct Cipher {
 	u_int	cbc_mode;
 	const EVP_CIPHER	*(*evptype)(void);
 } ciphers[] = {
-	{ "none",		SSH_CIPHER_NONE, 8, 0, 0, 0, EVP_enc_null },
-	{ "des",		SSH_CIPHER_DES, 8, 8, 0, 1, EVP_des_cbc },
-	{ "3des",		SSH_CIPHER_3DES, 8, 16, 0, 1, evp_ssh1_3des },
-	{ "blowfish",		SSH_CIPHER_BLOWFISH, 8, 32, 0, 1, evp_ssh1_bf },
-
-	{ "3des-cbc",		SSH_CIPHER_SSH2, 8, 24, 0, 1, EVP_des_ede3_cbc },
-	{ "blowfish-cbc",	SSH_CIPHER_SSH2, 8, 16, 0, 1, EVP_bf_cbc },
-	{ "cast128-cbc",	SSH_CIPHER_SSH2, 8, 16, 0, 1, EVP_cast5_cbc },
-	{ "arcfour",		SSH_CIPHER_SSH2, 8, 16, 0, 0, EVP_rc4 },
-	{ "arcfour128",		SSH_CIPHER_SSH2, 8, 16, 1536, 0, EVP_rc4 },
-	{ "arcfour256",		SSH_CIPHER_SSH2, 8, 32, 1536, 0, EVP_rc4 },
-	{ "aes128-cbc",		SSH_CIPHER_SSH2, 16, 16, 0, 1, EVP_aes_128_cbc },
-	{ "aes192-cbc",		SSH_CIPHER_SSH2, 16, 24, 0, 1, EVP_aes_192_cbc },
-	{ "aes256-cbc",		SSH_CIPHER_SSH2, 16, 32, 0, 1, EVP_aes_256_cbc },
-	{ "rijndael-cbc@lysator.liu.se",
-				SSH_CIPHER_SSH2, 16, 32, 0, 1, EVP_aes_256_cbc },
-	{ "aes128-ctr",		SSH_CIPHER_SSH2, 16, 16, 0, 0, EVP_aes_128_ctr },
-	{ "aes192-ctr",		SSH_CIPHER_SSH2, 16, 24, 0, 0, EVP_aes_192_ctr },
-	{ "aes256-ctr",		SSH_CIPHER_SSH2, 16, 32, 0, 0, EVP_aes_256_ctr },
-#ifdef USE_CIPHER_ACSS
-	{ "acss@openssh.org",	SSH_CIPHER_SSH2, 16, 5, 0, 0, EVP_acss },
-#endif
 	{ NULL,			SSH_CIPHER_INVALID, 0, 0, 0, 0, NULL }
+
+	{ "none",	SSH_CIPHER_NONE, 8, 0, 0, 0, 0, 0, EVP_enc_null },
+	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
+	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
+	{ "blowfish",	SSH_CIPHER_BLOWFISH, 8, 32, 0, 0, 0, 1, evp_ssh1_bf },
+
+	{ "3des-cbc",	SSH_CIPHER_SSH2, 8, 24, 0, 0, 0, 1, EVP_des_ede3_cbc },
+	{ "blowfish-cbc",
+			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_bf_cbc },
+	{ "cast128-cbc",
+			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_cast5_cbc },
+	{ "arcfour",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 0, EVP_rc4 },
+	{ "arcfour128",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 1536, 0, EVP_rc4 },
+	{ "arcfour256",	SSH_CIPHER_SSH2, 8, 32, 0, 0, 1536, 0, EVP_rc4 },
+	{ "aes128-cbc",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, 1, EVP_aes_128_cbc },
+	{ "aes192-cbc",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, 1, EVP_aes_192_cbc },
+	{ "aes256-cbc",	SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 1, EVP_aes_256_cbc },
+	{ "rijndael-cbc@lysator.liu.se",
+			SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 1, EVP_aes_256_cbc },
+	{ "aes128-ctr",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, 0, EVP_aes_128_ctr },
+	{ "aes192-ctr",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, 0, EVP_aes_192_ctr },
+	{ "aes256-ctr",	SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 0, EVP_aes_256_ctr },
+	{ "aes128-gcm@openssh.com",
+			SSH_CIPHER_SSH2, 16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
+	{ "aes256-gcm@openssh.com",
+			SSH_CIPHER_SSH2, 16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
+#ifdef USE_CIPHER_ACSS
+	{ "acss@openssh.org",
+			SSH_CIPHER_SSH2, 16, 5, 0, 0, 0, 0, EVP_acss },
+#endif
+	{ NULL,		SSH_CIPHER_INVALID, 0, 0, 0, 0, 0, 0, NULL }
 };
 
 /*--*/
@@ -108,6 +117,18 @@ u_int
 cipher_keylen(const Cipher *c)
 {
 	return (c->key_len);
+}
+
+u_int
+cipher_authlen(const Cipher *c)
+{
+	return (c->auth_len);
+}
+
+u_int
+cipher_ivlen(const Cipher *c)
+{
+	return (c->iv_len ? c->iv_len : c->block_size);
 }
 
 u_int
@@ -229,11 +250,12 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 			keylen = 8;
 	}
 	cc->plaintext = (cipher->number == SSH_CIPHER_NONE);
+	cc->encrypt = do_encrypt;
 
 	if (keylen < cipher->key_len)
 		fatal("cipher_init: key length %d is insufficient for %s.",
 		    keylen, cipher->name);
-	if (iv != NULL && ivlen < cipher->block_size)
+	if (iv != NULL && ivlen < cipher_ivlen(cipher))
 		fatal("cipher_init: iv length %d is insufficient for %s.",
 		    ivlen, cipher->name);
 	cc->cipher = cipher;
@@ -253,6 +275,11 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	if (EVP_CipherInit(&cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0)
 		fatal("cipher_init: EVP_CipherInit failed for %s",
+		    cipher->name);
+	if (cipher_authlen(cipher) &&
+	    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_SET_IV_FIXED,
+	    -1, (u_char *)iv))
+		fatal("cipher_init: EVP_CTRL_GCM_SET_IV_FIXED failed for %s",
 		    cipher->name);
 	klen = EVP_CIPHER_CTX_key_length(&cc->evp);
 	if (klen > 0 && keylen != (u_int)klen) {
@@ -284,19 +311,49 @@ cipher_init(CipherContext *cc, Cipher *cipher,
  * Theses bytes are treated as additional authenticated data for
  * authenticated encryption modes.
  * En/Decrypt 'len' bytes at offset 'aadlen' from 'src' to 'dest'.
+ * Use 'authlen' bytes at offset 'len'+'aadlen' as the authentication tag.
+ * This tag is written on encryption and verified on decryption.
  * Both 'aadlen' and 'authlen' can be set to 0.
  */
 void
 cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src,
-    u_int len, u_int aadlen)
+    u_int len, u_int aadlen, u_int authlen)
 {
-	if (aadlen)
+	if (authlen) {
+		u_char lastiv[1];
+
+		if (authlen != cipher_authlen(cc->cipher))
+			fatal("%s: authlen mismatch %d", __func__, authlen);
+		/* increment IV */
+		if (!EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_IV_GEN,
+		    1, lastiv))
+			fatal("%s: EVP_CTRL_GCM_IV_GEN", __func__);
+		/* set tag on decyption */
+		if (!cc->encrypt &&
+		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_SET_TAG,
+		    authlen, (u_char *)src + aadlen + len))
+			fatal("%s: EVP_CTRL_GCM_SET_TAG", __func__);
+	}
+	if (aadlen) {
+		if (authlen &&
+		    EVP_Cipher(&cc->evp, NULL, (u_char *)src, aadlen) < 0)
+			fatal("%s: EVP_Cipher(aad) failed", __func__);
 		memcpy(dest, src, aadlen);
+	}
 	if (len % cc->cipher->block_size)
 		fatal("%s: bad plaintext length %d", __func__, len);
 	if (EVP_Cipher(&cc->evp, dest + aadlen, (u_char *)src + aadlen,
 	    len) < 0)
 		fatal("%s: EVP_Cipher failed", __func__);
+	if (authlen) {
+		/* compute tag (on encrypt) or verify tag (on decrypt) */
+		if (EVP_Cipher(&cc->evp, NULL, NULL, 0) < 0)
+			fatal("%s: EVP_Cipher(finish) failed", __func__);
+		if (cc->encrypt &&
+		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_GET_TAG,
+		    authlen, dest + aadlen + len))
+			fatal("%s: EVP_CTRL_GCM_GET_TAG", __func__);
+	}
 }
 
 void

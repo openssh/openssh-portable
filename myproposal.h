@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.31 2012/12/11 22:31:18 markus Exp $ */
+/* $OpenBSD: myproposal.h,v 1.32 2013/01/08 18:49:04 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -73,6 +73,7 @@
 #define	KEX_DEFAULT_ENCRYPT \
 	"aes128-ctr,aes192-ctr,aes256-ctr," \
 	"arcfour256,arcfour128," \
+	"aes128-gcm@openssh.com,aes256-gcm@openssh.com," \
 	"aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc," \
 	"aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"
 #ifdef HAVE_EVP_SHA256

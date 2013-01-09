@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.179 2012/12/12 16:45:52 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.180 2013/01/08 18:49:04 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -709,7 +709,7 @@ packet_send1(void)
 	    buffer_len(&active_state->outgoing_packet));
 	cipher_crypt(&active_state->send_context, cp,
 	    buffer_ptr(&active_state->outgoing_packet),
-	    buffer_len(&active_state->outgoing_packet), 0);
+	    buffer_len(&active_state->outgoing_packet), 0, 0);
 
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "encrypted: ");
@@ -757,7 +757,7 @@ set_newkeys(int mode)
 		mac  = &active_state->newkeys[mode]->mac;
 		comp = &active_state->newkeys[mode]->comp;
 		mac_clear(mac);
-		memset(enc->iv,  0, enc->block_size);
+		memset(enc->iv,  0, enc->iv_len);
 		memset(enc->key, 0, enc->key_len);
 		memset(mac->key, 0, mac->key_len);
 		xfree(enc->name);
@@ -774,11 +774,11 @@ set_newkeys(int mode)
 	enc  = &active_state->newkeys[mode]->enc;
 	mac  = &active_state->newkeys[mode]->mac;
 	comp = &active_state->newkeys[mode]->comp;
-	if (mac_init(mac) == 0)
+	if (cipher_authlen(enc->cipher) == 0 && mac_init(mac) == 0)
 		mac->enabled = 1;
 	DBG(debug("cipher_init_context: %d", mode));
 	cipher_init(cc, enc->cipher, enc->key, enc->key_len,
-	    enc->iv, enc->block_size, crypt_type);
+	    enc->iv, enc->iv_len, crypt_type);
 	/* Deleting the keys does not gain extra security */
 	/* memset(enc->iv,  0, enc->block_size);
 	   memset(enc->key, 0, enc->key_len);
@@ -846,7 +846,7 @@ packet_send2_wrapped(void)
 {
 	u_char type, *cp, *macbuf = NULL;
 	u_char padlen, pad = 0;
-	u_int i, len, aadlen = 0;
+	u_int i, len, authlen = 0, aadlen = 0;
 	u_int32_t rnd = 0;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
@@ -857,9 +857,12 @@ packet_send2_wrapped(void)
 		enc  = &active_state->newkeys[MODE_OUT]->enc;
 		mac  = &active_state->newkeys[MODE_OUT]->mac;
 		comp = &active_state->newkeys[MODE_OUT]->comp;
+		/* disable mac for authenticated encryption */
+		if ((authlen = cipher_authlen(enc->cipher)) != 0)
+			mac = NULL;
 	}
 	block_size = enc ? enc->block_size : 8;
-	aadlen = mac && mac->enabled && mac->etm ? 4 : 0;
+	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	cp = buffer_ptr(&active_state->outgoing_packet);
 	type = cp[5];
@@ -936,10 +939,10 @@ packet_send2_wrapped(void)
 		DBG(debug("done calc MAC out #%d", active_state->p_send.seqnr));
 	}
 	/* encrypt packet and append to output buffer. */
-	cp = buffer_append_space(&active_state->output, len);
+	cp = buffer_append_space(&active_state->output, len + authlen);
 	cipher_crypt(&active_state->send_context, cp,
 	    buffer_ptr(&active_state->outgoing_packet),
-	    len - aadlen, aadlen);
+	    len - aadlen, aadlen, authlen);
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
 		if (mac->etm) {
@@ -1199,7 +1202,7 @@ packet_read_poll1(void)
 	buffer_clear(&active_state->incoming_packet);
 	cp = buffer_append_space(&active_state->incoming_packet, padded_len);
 	cipher_crypt(&active_state->receive_context, cp,
-	    buffer_ptr(&active_state->input), padded_len, 0);
+	    buffer_ptr(&active_state->input), padded_len, 0, 0);
 
 	buffer_consume(&active_state->input, padded_len);
 
@@ -1248,7 +1251,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 {
 	u_int padlen, need;
 	u_char *macbuf = NULL, *cp, type;
-	u_int maclen, aadlen = 0, block_size;
+	u_int maclen, authlen = 0, aadlen = 0, block_size;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
 	Comp *comp = NULL;
@@ -1260,10 +1263,13 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		enc  = &active_state->newkeys[MODE_IN]->enc;
 		mac  = &active_state->newkeys[MODE_IN]->mac;
 		comp = &active_state->newkeys[MODE_IN]->comp;
+		/* disable mac for authenticated encryption */
+		if ((authlen = cipher_authlen(enc->cipher)) != 0)
+			mac = NULL;
 	}
 	maclen = mac && mac->enabled ? mac->mac_len : 0;
 	block_size = enc ? enc->block_size : 8;
-	aadlen = mac && mac->enabled && mac->etm ? 4 : 0;
+	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	if (aadlen && active_state->packlen == 0) {
 		if (buffer_len(&active_state->input) < 4)
@@ -1290,7 +1296,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		cp = buffer_append_space(&active_state->incoming_packet,
 		    block_size);
 		cipher_crypt(&active_state->receive_context, cp,
-		    buffer_ptr(&active_state->input), block_size, 0);
+		    buffer_ptr(&active_state->input), block_size, 0, 0);
 		cp = buffer_ptr(&active_state->incoming_packet);
 		active_state->packlen = get_u32(cp);
 		if (active_state->packlen < 1 + 4 ||
@@ -1316,8 +1322,8 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		 */
 		need = 4 + active_state->packlen - block_size;
 	}
-	DBG(debug("partial packet: block %d, need %d, maclen %d, aadlen %d",
-	    block_size, need, maclen, aadlen));
+	DBG(debug("partial packet: block %d, need %d, maclen %d, authlen %d,"
+	    " aadlen %d", block_size, need, maclen, authlen, aadlen));
 	if (need % block_size != 0) {
 		logit("padding error: need %d block %d mod %d",
 		    need, block_size, need % block_size);
@@ -1329,10 +1335,11 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	 * check if the entire packet has been received and
 	 * decrypt into incoming_packet:
 	 * 'aadlen' bytes are unencrypted, but authenticated.
-	 * 'need' bytes are encrypted, followed by
+	 * 'need' bytes are encrypted, followed by either
+	 * 'authlen' bytes of authentication tag or
 	 * 'maclen' bytes of message authentication code.
 	 */
-	if (buffer_len(&active_state->input) < aadlen + need + maclen)
+	if (buffer_len(&active_state->input) < aadlen + need + authlen + maclen)
 		return SSH_MSG_NONE;
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "read_poll enc/full: ");
@@ -1344,8 +1351,8 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		    buffer_ptr(&active_state->input), aadlen + need);
 	cp = buffer_append_space(&active_state->incoming_packet, aadlen + need);
 	cipher_crypt(&active_state->receive_context, cp,
-	    buffer_ptr(&active_state->input), need, aadlen);
-	buffer_consume(&active_state->input, aadlen + need);
+	    buffer_ptr(&active_state->input), need, aadlen, authlen);
+	buffer_consume(&active_state->input, aadlen + need + authlen);
 	/*
 	 * compute MAC over seqnr and packet,
 	 * increment sequence number for incoming packet

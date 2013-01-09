@@ -79,6 +79,18 @@ contains:
       byte[n1]  payload; n1 = packet_length - padding_length - 1
       byte[n2]  random padding; n2 = padding_length
 
+1.6 transport: AES-GCM
+
+OpenSSH supports the AES-GCM algorithm as specified in RFC 5647.
+Because of problems with the specification of the key exchange
+the behaviour of OpenSSH differs from the RFC as follows:
+
+AES-GCM is only negotiated as the cipher algorithms
+"aes128-gcm@openssh.com" or "aes256-gcm@openssh.com" and never as
+an MAC algorithm. Additionally, if AES-GCM is selected as the cipher
+the exchanged MAC algorithms are ignored and there doesn't have to be
+a matching MAC.
+
 2. Connection protocol changes
 
 2.1. connection: Channel write close extension "eow@openssh.com"
@@ -319,4 +331,4 @@ link(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-$OpenBSD: PROTOCOL,v 1.19 2013/01/03 12:49:01 djm Exp $
+$OpenBSD: PROTOCOL,v 1.20 2013/01/08 18:49:04 markus Exp $
