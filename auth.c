@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.98 2012/12/02 20:34:09 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.99 2012/12/14 05:26:43 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -494,13 +494,12 @@ static int
 secure_filename(FILE *f, const char *file, struct passwd *pw,
     char *err, size_t errlen)
 {
-	char buf[MAXPATHLEN];
 	struct stat st;
 
 	/* check the open file to avoid races */
 	if (fstat(fileno(f), &st) < 0) {
 		snprintf(err, errlen, "cannot stat file %s: %s",
-		    buf, strerror(errno));
+		    file, strerror(errno));
 		return -1;
 	}
 	return auth_secure_path(file, &st, pw->pw_dir, pw->pw_uid, err, errlen);
