@@ -23,6 +23,10 @@
      [sftp-server.8 sftp-server.c]
      allow specification of an alternate start directory for sftp-server(8)
      "I like this" markus@
+   - djm@cvs.openbsd.org 2013/01/03 23:22:58
+     [ssh-keygen.c]
+     allow fingerprinting of keys hosted in PKCS#11 tokens: ssh-keygen -lD ...
+     ok markus@
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress
