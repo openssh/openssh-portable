@@ -19,6 +19,10 @@
    - djm@cvs.openbsd.org 2013/01/03 12:49:01
      [PROTOCOL]
      fix description of MAC calculation for EtM modes; ok markus@
+   - djm@cvs.openbsd.org 2013/01/03 12:54:49
+     [sftp-server.8 sftp-server.c]
+     allow specification of an alternate start directory for sftp-server(8)
+     "I like this" markus@
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress
