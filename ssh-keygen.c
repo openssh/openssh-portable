@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.221 2013/01/03 23:22:58 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.222 2013/01/09 05:40:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -726,6 +726,9 @@ do_download(struct passwd *pw)
 	enum fp_rep rep;
 	enum fp_type fptype;
 	char *fp, *ra;
+
+	fptype = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
+	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
 
 	pkcs11_init(0);
 	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys);

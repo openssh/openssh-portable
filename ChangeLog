@@ -37,6 +37,9 @@
      [myproposal.h packet.c ssh_config.5 sshd_config.5]
      support AES-GCM as defined in RFC 5647 (but with simpler KEX handling)
      ok and feedback djm@
+   - djm@cvs.openbsd.org 2013/01/09 05:40:17
+     [ssh-keygen.c]
+     correctly initialise fingerprint type for fingerprinting PKCS#11 keys
  - (djm) [cipher.c configure.ac openbsd-compat/openssl-compat.h]
    Fix merge botch, automatically detect AES-GCM in OpenSSL, move a little
    cipher compat code to openssl-compat.h
