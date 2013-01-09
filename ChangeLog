@@ -7,6 +7,10 @@
      [clientloop.c mux.c]
      channel_setup_local_fwd_listener() returns 0 on failure, not -ve
      bz#2055 reported by mathieu.lacage AT gmail.com
+   - djm@cvs.openbsd.org 2013/01/02 00:33:49
+     [PROTOCOL.agent]
+     correct format description for SSH_AGENTC_ADD_RSA_ID_CONSTRAINED
+     bz#2051 from david AT lechnology.com
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress
