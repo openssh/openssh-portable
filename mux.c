@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.37 2012/08/17 00:45:45 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.38 2013/01/02 00:32:07 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -738,9 +738,9 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	}
 
 	if (ftype == MUX_FWD_LOCAL || ftype == MUX_FWD_DYNAMIC) {
-		if (channel_setup_local_fwd_listener(fwd.listen_host,
+		if (!channel_setup_local_fwd_listener(fwd.listen_host,
 		    fwd.listen_port, fwd.connect_host, fwd.connect_port,
-		    options.gateway_ports) < 0) {
+		    options.gateway_ports)) {
  fail:
 			logit("slave-requested %s failed", fwd_desc);
 			buffer_put_int(r, MUX_S_FAILURE);

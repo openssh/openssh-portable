@@ -3,6 +3,10 @@
    - dtucker@cvs.openbsd.org 2012/12/14 05:26:43
      [auth.c]
      use correct string in error message; from rustybsd at gmx.fr
+   - djm@cvs.openbsd.org 2013/01/02 00:32:07
+     [clientloop.c mux.c]
+     channel_setup_local_fwd_listener() returns 0 on failure, not -ve
+     bz#2055 reported by mathieu.lacage AT gmail.com
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress
