@@ -11,6 +11,11 @@
      [PROTOCOL.agent]
      correct format description for SSH_AGENTC_ADD_RSA_ID_CONSTRAINED
      bz#2051 from david AT lechnology.com
+   - djm@cvs.openbsd.org 2013/01/03 05:49:36
+     [servconf.h]
+     add a couple of ServerOptions members that should be copied to the privsep
+     child (for consistency, in this case they happen only to be accessed in
+     the monitor); ok dtucker@
 
 20121217
  - (dtucker) [Makefile.in] Add some scaffolding so that the new regress

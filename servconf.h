@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.106 2012/12/02 20:46:11 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.107 2013/01/03 05:49:36 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -203,6 +203,8 @@ struct connection_info {
 		M_CP_STROPT(trusted_user_ca_keys); \
 		M_CP_STROPT(revoked_keys_file); \
 		M_CP_STROPT(authorized_principals_file); \
+		M_CP_STROPT(authorized_keys_command); \
+		M_CP_STROPT(authorized_keys_command_user); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \
