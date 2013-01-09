@@ -70,9 +70,10 @@ verified without decrypting unauthenticated data.
 
 As such, the MAC covers:
 
-      mac = MAC(key, sequence_number || encrypted_packet)
+      mac = MAC(key, sequence_number || packet_length || encrypted_packet)
 
-where "encrypted_packet" contains:
+where "packet_length" is encoded as a uint32 and "encrypted_packet"
+contains:
 
       byte      padding_length
       byte[n1]  payload; n1 = packet_length - padding_length - 1
@@ -318,4 +319,4 @@ link(oldpath, newpath) and will respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-$OpenBSD: PROTOCOL,v 1.18 2012/12/11 22:31:18 markus Exp $
+$OpenBSD: PROTOCOL,v 1.19 2013/01/03 12:49:01 djm Exp $
