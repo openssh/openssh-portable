@@ -54,25 +54,18 @@
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
-#ifndef OPENSSL_HAVE_EVPCTR
-#define EVP_aes_128_ctr evp_aes_128_ctr
-#define EVP_aes_192_ctr evp_aes_128_ctr
-#define EVP_aes_256_ctr evp_aes_128_ctr
-extern const EVP_CIPHER *evp_aes_128_ctr(void);
-extern void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
-#endif
 
 struct Cipher {
 	char	*name;
 	int	number;		/* for ssh1 only */
 	u_int	block_size;
 	u_int	key_len;
+	u_int	iv_len;		/* defaults to block_size */
+	u_int	auth_len;
 	u_int	discard_len;
 	u_int	cbc_mode;
 	const EVP_CIPHER	*(*evptype)(void);
 } ciphers[] = {
-	{ NULL,			SSH_CIPHER_INVALID, 0, 0, 0, 0, NULL }
-
 	{ "none",	SSH_CIPHER_NONE, 8, 0, 0, 0, 0, 0, EVP_enc_null },
 	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
 	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
@@ -94,10 +87,12 @@ struct Cipher {
 	{ "aes128-ctr",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, 0, EVP_aes_192_ctr },
 	{ "aes256-ctr",	SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 0, EVP_aes_256_ctr },
+#ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
+#endif
 #ifdef USE_CIPHER_ACSS
 	{ "acss@openssh.org",
 			SSH_CIPHER_SSH2, 16, 5, 0, 0, 0, 0, EVP_acss },
@@ -472,14 +467,6 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 		fatal("%s: bad cipher %d", __func__, c->number);
 	}
 }
-
-#if OPENSSL_VERSION_NUMBER < 0x00907000L
-#define EVP_X_STATE(evp)	&(evp).c
-#define EVP_X_STATE_LEN(evp)	sizeof((evp).c)
-#else
-#define EVP_X_STATE(evp)	(evp).cipher_data
-#define EVP_X_STATE_LEN(evp)	(evp).cipher->ctx_size
-#endif
 
 int
 cipher_get_keycontext(const CipherContext *cc, u_char *dat)

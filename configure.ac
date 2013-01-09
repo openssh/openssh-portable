@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.499 2012/12/12 21:18:56 djm Exp $
+# $Id: configure.ac,v 1.500 2013/01/09 05:42:47 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.499 $)
+AC_REVISION($Revision: 1.500 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2314,6 +2314,26 @@ AC_LINK_IFELSE(
 		AC_MSG_RESULT([yes])
 		AC_DEFINE([OPENSSL_HAVE_EVPCTR], [1],
 		    [libcrypto has EVP AES CTR])
+	],
+	[
+		AC_MSG_RESULT([no])
+	]
+)
+
+# Check for OpenSSL with EVP_aes_*gcm
+AC_MSG_CHECKING([whether OpenSSL has AES GCM via EVP])
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <string.h>
+#include <openssl/evp.h>
+	]], [[
+	exit(EVP_aes_128_gcm() == NULL ||
+	    EVP_aes_256_gcm() == NULL);
+	]])],
+	[
+		AC_MSG_RESULT([yes])
+		AC_DEFINE([OPENSSL_HAVE_EVPGCM], [1],
+		    [libcrypto has EVP AES GCM])
 	],
 	[
 		AC_MSG_RESULT([no])
