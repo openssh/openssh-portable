@@ -56,6 +56,7 @@ for m in $macs; do
 		case "$output" in
 		Bad?packet*)	elen=$((elen+1)); skip=3;;
 		Corrupted?MAC* | Decryption?integrity?check?failed*)
+				emac=$((emac+1)); skip=0;;
 		padding*)	epad=$((epad+1)); skip=0;;
 		*)		fail "unexpected error mac $m at $off";;
 		esac

@@ -6,6 +6,7 @@
    - djm@cvs.openbsd.org 2013/01/12 11:23:53
      [regress/cipher-speed.sh regress/integrity.sh regress/try-ciphers.sh]
      test AES-GCM modes; feedback markus@
+ - (djm) [regress/integrity.sh] repair botched merge
 
 20130109
  - (djm) OpenBSD CVS Sync
