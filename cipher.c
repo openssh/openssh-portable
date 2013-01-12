@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.85 2013/01/08 18:49:04 markus Exp $ */
+/* $OpenBSD: cipher.c,v 1.86 2013/01/12 11:22:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -342,8 +342,12 @@ cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src,
 		fatal("%s: EVP_Cipher failed", __func__);
 	if (authlen) {
 		/* compute tag (on encrypt) or verify tag (on decrypt) */
-		if (EVP_Cipher(&cc->evp, NULL, NULL, 0) < 0)
-			fatal("%s: EVP_Cipher(finish) failed", __func__);
+		if (EVP_Cipher(&cc->evp, NULL, NULL, 0) < 0) {
+			if (cc->encrypt)
+				fatal("%s: EVP_Cipher(final) failed", __func__);
+			else
+				fatal("Decryption integrity check failed");
+		}
 		if (cc->encrypt &&
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_GET_TAG,
 		    authlen, dest + aadlen + len))
