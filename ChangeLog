@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2013/01/12 11:22:04
      [cipher.c]
      improve error message for integrity failure in AES-GCM modes; ok markus@
+   - djm@cvs.openbsd.org 2013/01/12 11:23:53
+     [regress/cipher-speed.sh regress/integrity.sh regress/try-ciphers.sh]
+     test AES-GCM modes; feedback markus@
 
 20130109
  - (djm) OpenBSD CVS Sync

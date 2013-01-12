@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.1 2012/12/11 22:42:11 markus Exp $
+#	$OpenBSD: integrity.sh,v 1.2 2013/01/12 11:23:53 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -14,6 +14,10 @@ macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 	umac-64-etm@openssh.com umac-128-etm@openssh.com
 	hmac-sha1-96-etm@openssh.com hmac-md5-96-etm@openssh.com
 	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+# The following are not MACs, but ciphers with integrated integrity. They are
+# handled specially below.
+config_defined OPENSSL_HAVE_EVPGCM &&
+	macs="$macs aes128-gcm@openssh.com aes256-gcm@openssh.com"
 
 # sshd-command for proxy (see test-exec.sh)
 cmd="sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy"
@@ -37,7 +41,11 @@ for m in $macs; do
 		fi
 		# modify output from sshd at offset $off
 		pxy="proxycommand=$cmd | $OBJ/modpipe -m xor:$off:1"
-		output=$(${SSH} -m $m -2F $OBJ/ssh_proxy -o "$pxy" \
+		case $m in
+			aes*gcm*)	macopt="-c $m";;
+			*)		macopt="-m $m";;
+		esac
+		output=$(${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
 		    999.999.999.999 true 2>&1)
 		if [ $? -eq 0 ]; then
 			fail "ssh -m $m succeeds with bit-flip at $off"
@@ -47,7 +55,7 @@ for m in $macs; do
 		verbose "test $tid: $m @$off $output"
 		case "$output" in
 		Bad?packet*)	elen=$((elen+1)); skip=3;;
-		Corrupted?MAC*) emac=$((emac+1)); skip=0;;
+		Corrupted?MAC* | Decryption?integrity?check?failed*)
 		padding*)	epad=$((epad+1)); skip=0;;
 		*)		fail "unexpected error mac $m at $off";;
 		esac
