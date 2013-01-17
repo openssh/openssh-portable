@@ -16,7 +16,7 @@ macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
-config_defined OPENSSL_HAVE_EVPGCM &&
+config_defined OPENSSL_HAVE_EVPGCM && \
 	macs="$macs aes128-gcm@openssh.com aes256-gcm@openssh.com"
 
 # sshd-command for proxy (see test-exec.sh)

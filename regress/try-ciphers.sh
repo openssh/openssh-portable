@@ -6,8 +6,9 @@ tid="try ciphers"
 ciphers="aes128-cbc 3des-cbc blowfish-cbc cast128-cbc 
 	arcfour128 arcfour256 arcfour 
 	aes192-cbc aes256-cbc rijndael-cbc@lysator.liu.se
-	aes128-ctr aes192-ctr aes256-ctr
-	aes128-gcm@openssh.com aes256-gcm@openssh.com"
+	aes128-ctr aes192-ctr aes256-ctr"
+config_defined OPENSSL_HAVE_EVPGCM && \
+	ciphers="$ciphers aes128-gcm@openssh.com aes256-gcm@openssh.com"
 macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 	hmac-sha1-96 hmac-md5-96
 	hmac-sha1-etm@openssh.com hmac-md5-etm@openssh.com
