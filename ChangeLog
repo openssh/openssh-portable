@@ -1,3 +1,14 @@
+20130118
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/01/17 23:00:01
+     [auth.c key.c key.h ssh-keygen.1 ssh-keygen.c sshd_config.5]
+     [krl.c krl.h PROTOCOL.krl]
+     add support for Key Revocation Lists (KRLs). These are a compact way to
+     represent lists of revoked keys and certificates, taking as little as
+     a single bit of incremental cost to revoke a certificate by serial number.
+     KRLs are loaded via the existing RevokedKeys sshd_config option.
+     feedback and ok markus@
+
 20130117
  - (djm) [regress/cipher-speed.sh regress/integrity.sh regress/try-ciphers.sh]
    check for GCM support before testing GCM ciphers.

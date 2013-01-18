@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.99 2012/12/14 05:26:43 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.100 2013/01/17 23:00:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -71,6 +71,7 @@
 #endif
 #include "authfile.h"
 #include "monitor_wrap.h"
+#include "krl.h"
 
 /* import */
 extern ServerOptions options;
@@ -640,7 +641,16 @@ auth_key_is_revoked(Key *key)
 
 	if (options.revoked_keys_file == NULL)
 		return 0;
-
+	switch (ssh_krl_file_contains_key(options.revoked_keys_file, key)) {
+	case 0:
+		return 0;	/* Not revoked */
+	case -2:
+		break;		/* Not a KRL */
+	default:
+		goto revoked;
+	}
+	debug3("%s: treating %s as a key list", __func__,
+	    options.revoked_keys_file);
 	switch (key_in_file(key, options.revoked_keys_file, 0)) {
 	case 0:
 		/* key not revoked */
@@ -651,6 +661,7 @@ auth_key_is_revoked(Key *key)
 		    "authentication");
 		return 1;
 	case 1:
+ revoked:
 		/* Key revoked */
 		key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
 		error("WARNING: authentication attempt with a revoked "
