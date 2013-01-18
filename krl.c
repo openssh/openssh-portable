@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.2 2013/01/18 00:24:58 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.3 2013/01/18 03:00:32 djm Exp $ */
 
 #include "includes.h"
 
@@ -595,7 +595,7 @@ revoked_certs_generate(struct revoked_certs *rc, Buffer *buf)
 		/* Perform section-specific processing */
 		switch (state) {
 		case KRL_SECTION_CERT_SERIAL_LIST:
-			for (i = rs->lo; i < contig; i++)
+			for (i = 0; i < contig; i++)
 				buffer_put_int64(&sect, rs->lo + i);
 			break;
 		case KRL_SECTION_CERT_SERIAL_RANGE:
