@@ -18,6 +18,9 @@
    - jmc@cvs.openbsd.org 2013/01/18 21:48:43
      [ssh-keygen.1]
      command-line (adj.) -> command line (n.);
+   - jmc@cvs.openbsd.org 2013/01/19 07:13:25
+     [ssh-keygen.1]
+     fix some formatting; ok djm
 
 20130118
  - (djm) OpenBSD CVS Sync
