@@ -15,6 +15,9 @@
    - jmc@cvs.openbsd.org 2013/01/18 08:39:04
      [ssh-keygen.1]
      add -Q to the options list; ok djm
+   - jmc@cvs.openbsd.org 2013/01/18 21:48:43
+     [ssh-keygen.1]
+     command-line (adj.) -> command line (n.);
 
 20130118
  - (djm) OpenBSD CVS Sync

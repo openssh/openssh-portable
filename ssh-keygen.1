@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.113 2013/01/18 08:39:04 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.114 2013/01/18 21:48:43 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -346,7 +346,7 @@ In this mode,
 .Nm
 will generate a KRL file at the location specified via the
 .Fl f
-flag that revokes every key or certificate presented on the command-line.
+flag that revokes every key or certificate presented on the command line.
 Keys/certificates to be revoked may be specified by public key file or
 using the format described in the
 .Sx KEY REVOCATION LISTS
@@ -506,7 +506,7 @@ for protocol version 2.
 Update a KRL.
 When specified with
 .Fl k ,
-keys listed via the command-line are added to the existing KRL rather than
+keys listed via the command line are added to the existing KRL rather than
 a new KRL being created.
 .It Fl V Ar validity_interval
 Specify a validity interval when signing a certificate.
@@ -698,7 +698,7 @@ revoked by serial number.
 KRLs may be generated using the
 .Fl k
 flag.
-This option reads one or more files from the command-line and generates a new
+This option reads one or more files from the command line and generates a new
 KRL.
 The files may either contain a KRL specification (see below) or public keys,
 listed one per line.
@@ -721,14 +721,14 @@ If two serial numbers are specified separated by a hyphen, then the range
 of serial numbers including and between each is revoked.
 The CA key must have been specified on the
 .Nm
-command-line using the
+command line using the
 .Fl s
 option.
 .It Cm id : Ar key_id
 Revokes a certificate with the specified key ID string.
 The CA key must have been specified on the
 .Nm
-command-line using the
+command line using the
 .Fl s
 option.
 .It Cm key : Ar public_key
@@ -742,7 +742,7 @@ KRLs may be updated using the
 .Fl u
 flag in addition to
 .Fl k .
-When this option is specified, keys listed via the command-line are merged into
+When this option is specified, keys listed via the command line are merged into
 the KRL, adding to those already there.
 .Pp
 It is also possible, given a KRL, to test whether it revokes a particular key
@@ -750,7 +750,7 @@ It is also possible, given a KRL, to test whether it revokes a particular key
 The
 .Fl Q
 flag will query an existing KRL, testing each key specified on the commandline.
-If any key listed on the command-line has been revoked (or an error encountered)
+If any key listed on the command line has been revoked (or an error encountered)
 then
 .Nm
 will exit with a non-zero exit status.
