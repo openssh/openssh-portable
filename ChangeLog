@@ -24,6 +24,8 @@
    - markus@cvs.openbsd.org 2013/01/19 12:34:55
      [krl.c]
      RB_INSERT does not remove existing elments; ok djm@
+ - (djm) [openbsd-compat/sys-tree.h] Sync with OpenBSD. krl.c needs newer
+   version.
 
 20130118
  - (djm) OpenBSD CVS Sync
