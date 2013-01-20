@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.112 2013/01/18 07:57:47 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.113 2013/01/18 08:39:04 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -455,6 +455,8 @@ creating a new private key.
 The program will prompt for the file
 containing the private key, for the old passphrase, and twice for the
 new passphrase.
+.It Fl Q
+Test whether keys have been revoked in a KRL.
 .It Fl q
 Silence
 .Nm ssh-keygen .

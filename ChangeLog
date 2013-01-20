@@ -12,6 +12,9 @@
    - jmc@cvs.openbsd.org 2013/01/18 08:00:49
      [sshd_config.5]
      tweak previous;
+   - jmc@cvs.openbsd.org 2013/01/18 08:39:04
+     [ssh-keygen.1]
+     add -Q to the options list; ok djm
 
 20130118
  - (djm) OpenBSD CVS Sync
