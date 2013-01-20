@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.111 2013/01/17 23:00:01 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.112 2013/01/18 07:57:47 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 17 2013 $
+.Dd $Mdocdate: January 18 2013 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -126,8 +126,8 @@
 .Fl k
 .Fl f Ar krl_file
 .Op Fl u
-.Op Fl s ca_public
-.Op Fl z version_number
+.Op Fl s Ar ca_public
+.Op Fl z Ar version_number
 .Ar
 .Nm ssh-keygen
 .Fl Q
@@ -158,7 +158,8 @@ section for details.
 Finally,
 .Nm
 can be used to generate and update Key Revocation Lists, and to test whether
-given keys have been revoked by one. See the
+given keys have been revoked by one.
+See the
 .Sx KEY REVOCATION LISTS
 section for details.
 .Pp
@@ -480,7 +481,7 @@ section for details.
 .Pp
 When generating a KRL,
 .Fl s
-specifies a path to a CA public key file used to revoke certificated directly
+specifies a path to a CA public key file used to revoke certificates directly
 by key ID or serial number.
 See the
 .Sx KEY REVOCATION LISTS
@@ -499,6 +500,12 @@ for protocol version 1 and
 or
 .Dq rsa
 for protocol version 2.
+.It Fl u
+Update a KRL.
+When specified with
+.Fl k ,
+keys listed via the command-line are added to the existing KRL rather than
+a new KRL being created.
 .It Fl V Ar validity_interval
 Specify a validity interval when signing a certificate.
 A validity interval may consist of a single time, indicating that the
@@ -522,12 +529,6 @@ For example:
 (valid from 12:30 PM, January 1st, 2010 to 12:30 PM, January 1st, 2011),
 .Dq -1d:20110101
 (valid from yesterday to midnight, January 1st, 2011).
-.It Fl u
-Update a KRL.
-When specified with
-.Fl k ,
-keys listed via the command-line are added to the existing KRL rather than
-a new KRL being created.
 .It Fl v
 Verbose mode.
 Causes
@@ -689,7 +690,7 @@ Please refer to those manual pages for details.
 .Nm
 is able to manage OpenSSH format Key Revocation Lists (KRLs).
 These binary files specify keys or certificates to be revoked using a
-compact format; taking as little a one bit per certificate if they are being
+compact format, taking as little a one bit per certificate if they are being
 revoked by serial number.
 .Pp
 KRLs may be generated using the
@@ -712,7 +713,7 @@ followed by a colon and some directive-specific information.
 .Bl -tag -width Ds
 .It Cm serial : Ar serial_number Op -serial_number
 Revokes a certificate with the specified serial number.
-Serial numbers are 64 bit values, not including zero and may be expressed
+Serial numbers are 64-bit values, not including zero and may be expressed
 in decimal, hex or octal.
 If two serial numbers are specified separated by a hyphen, then the range
 of serial numbers including and between each is revoked.
@@ -730,7 +731,7 @@ command-line using the
 option.
 .It Cm key : Ar public_key
 Revokes the specified key.
-In a certificate is listed, then it is revoked as a plain public key.
+If a certificate is listed, then it is revoked as a plain public key.
 .It Cm sha1 : Ar public_key
 Revokes the specified key by its SHA1 hash.
 .El
