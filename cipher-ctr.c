@@ -34,9 +34,6 @@
 #include <openssl/aes.h>
 #endif
 
-const EVP_CIPHER *evp_aes_128_ctr(void);
-void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
-
 struct ssh_aes_ctr_ctx
 {
 	AES_KEY		aes_ctx;

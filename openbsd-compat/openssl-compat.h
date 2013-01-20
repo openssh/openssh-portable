@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.21 2013/01/09 05:42:49 djm Exp $ */
+/* $Id: openssl-compat.h,v 1.22 2013/01/20 11:31:37 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -40,7 +40,7 @@
 # define EVP_CIPHER_CTX_get_app_data(e)		((e)->app_data)
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x1000000fL
+#if OPENSSL_VERSION_NUMBER < 0x10000001L
 # define LIBCRYPTO_EVP_INL_TYPE unsigned int
 #else
 # define LIBCRYPTO_EVP_INL_TYPE size_t
@@ -59,16 +59,16 @@
 # define EVP_aes_128_cbc evp_rijndael
 # define EVP_aes_192_cbc evp_rijndael
 # define EVP_aes_256_cbc evp_rijndael
-extern const EVP_CIPHER *evp_rijndael(void);
-extern void ssh_rijndael_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
+const EVP_CIPHER *evp_rijndael(void);
+void ssh_rijndael_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
 #endif
 
 #ifndef OPENSSL_HAVE_EVPCTR
 #define EVP_aes_128_ctr evp_aes_128_ctr
 #define EVP_aes_192_ctr evp_aes_128_ctr
 #define EVP_aes_256_ctr evp_aes_128_ctr
-extern const EVP_CIPHER *evp_aes_128_ctr(void);
-extern void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
+const EVP_CIPHER *evp_aes_128_ctr(void);
+void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 #endif
 
 /* Avoid some #ifdef. Code that uses these is unreachable without GCM */
