@@ -9,6 +9,9 @@
    - jmc@cvs.openbsd.org 2013/01/18 07:59:46
      [ssh-keygen.c]
      -u before -V in usage();
+   - jmc@cvs.openbsd.org 2013/01/18 08:00:49
+     [sshd_config.5]
+     tweak previous;
 
 20130118
  - (djm) OpenBSD CVS Sync
