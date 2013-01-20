@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.3 2013/01/18 03:00:32 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.4 2013/01/19 12:34:55 markus Exp $ */
 
 #include "includes.h"
 
@@ -252,7 +252,7 @@ insert_serial_range(struct revoked_serial_tree *rt, u_int64_t lo, u_int64_t hi)
 		if (ers != NULL) {
 			KRL_DBG(("%s: bad: ers != NULL", __func__));
 			/* Shouldn't happen */
-			free(ers);
+			free(irs);
 			return -1;
 		}
 		ers = irs;
