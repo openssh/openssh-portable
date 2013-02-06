@@ -1,3 +1,8 @@
+20100207
+ - (djm) [configure.ac] Don't probe seccomp capability of running kernel
+   at configure time; the seccomp sandbox will fall back to rlimit at
+   runtime anyway. Patch from plautrba AT redhat.com in bz#2011
+
 20130120
  - (djm) [cipher-aes.c cipher-ctr.c openbsd-compat/openssl-compat.h]
    Move prototypes for replacement ciphers to openssl-compat.h; fix EVP

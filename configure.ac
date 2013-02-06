@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.500 2013/01/09 05:42:47 djm Exp $
+# $Id: configure.ac,v 1.501 2013/02/06 23:11:05 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.500 $)
+AC_REVISION($Revision: 1.501 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -128,7 +128,7 @@ AC_CHECK_DECL([SECCOMP_MODE_FILTER], [have_seccomp_filter=1], , [
 fi
 if test "x$have_seccomp_filter" = "x1" ; then
 AC_MSG_CHECKING([kernel for seccomp_filter support])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 		#include <errno.h>
 		#include <linux/seccomp.h>
 		#include <stdlib.h>
@@ -141,8 +141,7 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 		AC_MSG_RESULT([no])
 		# Disable seccomp filter as a target
 		have_seccomp_filter=0
-	],
-	[ AC_MSG_RESULT([cross-compiling, assuming yes]) ]
+	]
 )
 fi
 
