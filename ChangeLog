@@ -1,4 +1,8 @@
-20100207
+20130208
+ - (djm) [contrib/redhat/sshd.init] treat RETVAL as an integer;
+   patch from Iain Morgan in bz#2059
+
+20130207
  - (djm) [configure.ac] Don't probe seccomp capability of running kernel
    at configure time; the seccomp sandbox will fall back to rlimit at
    runtime anyway. Patch from plautrba AT redhat.com in bz#2011
