@@ -1,6 +1,8 @@
 20130208
  - (djm) [contrib/redhat/sshd.init] treat RETVAL as an integer;
    patch from Iain Morgan in bz#2059
+ - (dtucker) [configure.ac openbsd-compat/sys-tree.h] Test if compiler allows
+   __attribute__ on return values and work around if necessary.  ok djm@
 
 20130207
  - (djm) [configure.ac] Don't probe seccomp capability of running kernel

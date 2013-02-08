@@ -26,6 +26,11 @@
 
 /* OPENBSD ORIGINAL: sys/sys/tree.h */
 
+#include "config.h"
+#ifdef NO_ATTRIBUTE_ON_RETURN_TYPE
+# define __attribute__(x)
+#endif
+
 #ifndef	_SYS_TREE_H_
 #define	_SYS_TREE_H_
 
