@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.502 2013/02/08 00:50:09 dtucker Exp $
+# $Id: configure.ac,v 1.503 2013/02/10 23:39:13 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.502 $)
+AC_REVISION($Revision: 1.503 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2339,7 +2339,12 @@ AC_LINK_IFELSE(
 #include <openssl/evp.h>
 	]], [[
 	exit(EVP_aes_128_gcm() == NULL ||
-	    EVP_aes_256_gcm() == NULL);
+	    EVP_aes_256_gcm() == NULL ||
+	    EVP_CTRL_GCM_SET_IV_FIXED == 0 ||
+	    EVP_CTRL_GCM_IV_GEN == 0 ||
+	    EVP_CTRL_GCM_SET_TAG == 0 ||
+	    EVP_CTRL_GCM_GET_TAG == 0 ||
+	    EVP_CIPHER_CTX_ctrl(NULL, 0, 0, NULL) == 0);
 	]])],
 	[
 		AC_MSG_RESULT([yes])
@@ -2350,6 +2355,10 @@ AC_LINK_IFELSE(
 		AC_MSG_RESULT([no])
 	]
 )
+
+AC_SEARCH_LIBS([EVP_CIPHER_CTX_ctrl], [crypto],
+	[AC_DEFINE([HAVE_EVP_CIPHER_CTX_CTRL], [1],
+	    [Define if libcrypto has EVP_CIPHER_CTX_ctrl])])
 
 AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
 AC_LINK_IFELSE(

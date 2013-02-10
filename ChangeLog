@@ -1,3 +1,7 @@
+20130211
+ - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
+   libcrypto that lacks EVP_CIPHER_CTX_ctrl
+
 20130208
  - (djm) [contrib/redhat/sshd.init] treat RETVAL as an integer;
    patch from Iain Morgan in bz#2059

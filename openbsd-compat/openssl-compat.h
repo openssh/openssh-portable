@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.22 2013/01/20 11:31:37 djm Exp $ */
+/* $Id: openssl-compat.h,v 1.23 2013/02/10 23:39:15 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -77,6 +77,15 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 # define EVP_CTRL_GCM_IV_GEN -1
 # define EVP_CTRL_GCM_SET_TAG -1
 # define EVP_CTRL_GCM_GET_TAG -1
+#endif
+
+/* Replace missing EVP_CIPHER_CTX_ctrl() with something that returns failure */
+#ifndef HAVE_EVP_CIPHER_CTX_CTRL
+# ifdef OPENSSL_HAVE_EVPGCM
+#  error AES-GCM enabled without EVP_CIPHER_CTX_ctrl /* shouldn't happen */
+# else
+# define EVP_CIPHER_CTX_ctrl(a,b,c,d) (0)
+# endif
 #endif
 
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
