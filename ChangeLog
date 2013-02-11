@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2013/01/24 21:45:37
      [krl.c]
      fix handling of (unused) KRL signatures; skip string in correct buffer
+   - djm@cvs.openbsd.org 2013/01/24 22:08:56
+     [krl.c]
+     skip serial lookup when cert's serial number is zero
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
