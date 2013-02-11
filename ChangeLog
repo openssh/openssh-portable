@@ -10,6 +10,11 @@
      [krl.c]
      Revert last. Breaks due to likely typo. Let djm@ fix later.
      ok djm@ via dlg@
+   - djm@cvs.openbsd.org 2013/01/25 10:22:19
+     [krl.c]
+     redo last commit without the vi-vomit that snuck in:
+     skip serial lookup when cert's serial number is zero
+     (now with 100% better comment)
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
