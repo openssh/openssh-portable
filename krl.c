@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.4 2013/01/19 12:34:55 markus Exp $ */
+/* $OpenBSD: krl.c,v 1.5 2013/01/24 21:45:37 djm Exp $ */
 
 #include "includes.h"
 
@@ -1031,7 +1031,7 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 		case KRL_SECTION_SIGNATURE:
 			/* Handled above, but still need to stay in synch */
 			buffer_clear(&sect);
-			if ((blob = buffer_get_string_ptr_ret(&sect,
+			if ((blob = buffer_get_string_ptr_ret(&copy,
 			    &blen)) == NULL) {
 				error("%s: buffer error", __func__);
 				goto out;
