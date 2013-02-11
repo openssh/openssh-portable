@@ -6,6 +6,10 @@
    - djm@cvs.openbsd.org 2013/01/24 22:08:56
      [krl.c]
      skip serial lookup when cert's serial number is zero
+   - krw@cvs.openbsd.org 2013/01/25 05:00:27
+     [krl.c]
+     Revert last. Breaks due to likely typo. Let djm@ fix later.
+     ok djm@ via dlg@
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
