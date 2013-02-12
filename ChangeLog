@@ -28,6 +28,9 @@
      drop at 10 connections up to 100 connections.  This will make it harder
      to DoS as CPUs have come a long way since the original value was set
      back in 2000.  Prompted by nion at debian org, ok markus@
+   - dtucker@cvs.openbsd.org 2013/02/06 00:22:21
+     [auth.c]
+     Fix comment, from jfree.e1 at gmail
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
