@@ -46,10 +46,3 @@ for c in $ciphers; do
 	fi
 done
 
-if ${SSH} -oCiphers=acss@openssh.org 2>&1 | grep "Bad SSH2 cipher" >/dev/null
-then
-	:
-else
-
-
-fi

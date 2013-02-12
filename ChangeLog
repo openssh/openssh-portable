@@ -55,6 +55,7 @@
    - djm@cvs.openbsd.org 2013/02/11 23:58:51
      [regress/try-ciphers.sh]
      remove acss here too
+ - (djm) [regress/try-ciphers.sh] clean up CVS merge botch
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
