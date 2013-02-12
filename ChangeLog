@@ -19,6 +19,9 @@
      [Makefile.in acss.c acss.h cipher-acss.c cipher.c]
      [openbsd-compat/openssl-compat.h]
      remove ACSS, now that it is gone from libcrypto too
+   - djm@cvs.openbsd.org 2013/01/27 10:06:12
+     [krl.c]
+     actually use the xrealloc() return value; spotted by xi.wang AT gmail.com
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
