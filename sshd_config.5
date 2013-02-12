@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.155 2013/01/18 08:00:49 jmc Exp $
-.Dd $Mdocdate: January 18 2013 $
+.\" $OpenBSD: sshd_config.5,v 1.156 2013/02/06 00:20:42 dtucker Exp $
+.Dd $Mdocdate: February 6 2013 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -820,7 +820,7 @@ SSH daemon.
 Additional connections will be dropped until authentication succeeds or the
 .Cm LoginGraceTime
 expires for a connection.
-The default is 10.
+The default is 10:30:100.
 .Pp
 Alternatively, random early drop can be enabled by specifying
 the three colon separated values

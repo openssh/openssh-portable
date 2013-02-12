@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.88 2012/10/30 21:29:55 djm Exp $
+#	$OpenBSD: sshd_config,v 1.89 2013/02/06 00:20:42 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -109,7 +109,7 @@ UsePrivilegeSeparation sandbox		# Default for new installations.
 #ClientAliveCountMax 3
 #UseDNS yes
 #PidFile /var/run/sshd.pid
-#MaxStartups 10
+#MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
 #VersionAddendum none

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.233 2012/12/02 20:46:11 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.234 2013/02/06 00:20:42 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -256,11 +256,11 @@ fill_default_server_options(ServerOptions *options)
 	if (options->gateway_ports == -1)
 		options->gateway_ports = 0;
 	if (options->max_startups == -1)
-		options->max_startups = 10;
+		options->max_startups = 100;
 	if (options->max_startups_rate == -1)
-		options->max_startups_rate = 100;		/* 100% */
+		options->max_startups_rate = 30;		/* 30% */
 	if (options->max_startups_begin == -1)
-		options->max_startups_begin = options->max_startups;
+		options->max_startups_begin = 10;
 	if (options->max_authtries == -1)
 		options->max_authtries = DEFAULT_AUTH_FAIL_MAX;
 	if (options->max_sessions == -1)
