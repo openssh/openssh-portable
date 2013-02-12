@@ -36,6 +36,9 @@
      fix NULL deref when built without libedit and control characters
      entered as command; debugging and patch from Iain Morgan an
      Loganaden Velvindron in bz#1956
+   - markus@cvs.openbsd.org 2013/02/10 21:19:34
+     [version.h]
+     openssh 6.2
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
