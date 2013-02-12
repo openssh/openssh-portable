@@ -49,6 +49,9 @@
      record "Received disconnect" messages at ERROR rather than INFO priority,
      since they are abnormal and result in a non-zero ssh exit status; patch
      from Iain Morgan in bz#2057; ok dtucker@
+   - dtucker@cvs.openbsd.org 2013/02/11 21:21:58
+     [sshd.c]
+     Add openssl version to debug output similar to the client.  ok markus@
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
