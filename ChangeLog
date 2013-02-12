@@ -15,6 +15,10 @@
      redo last commit without the vi-vomit that snuck in:
      skip serial lookup when cert's serial number is zero
      (now with 100% better comment)
+   - djm@cvs.openbsd.org 2013/01/26 06:11:05
+     [Makefile.in acss.c acss.h cipher-acss.c cipher.c]
+     [openbsd-compat/openssl-compat.h]
+     remove ACSS, now that it is gone from libcrypto too
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old

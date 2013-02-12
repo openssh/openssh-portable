@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.23 2013/02/10 23:39:15 djm Exp $ */
+/* $Id: openssl-compat.h,v 1.24 2013/02/12 00:00:40 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -94,16 +94,6 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 #else
 #define EVP_X_STATE(evp)	(evp).cipher_data
 #define EVP_X_STATE_LEN(evp)	(evp).cipher->ctx_size
-#endif
-
-#if !defined(EVP_CTRL_SET_ACSS_MODE)
-# if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
-#  define USE_CIPHER_ACSS 1
-extern const EVP_CIPHER *evp_acss(void);
-#  define EVP_acss evp_acss
-# else
-#  define EVP_acss NULL
-# endif
 #endif
 
 /* OpenSSL 0.9.8e returns cipher key len not context key len */

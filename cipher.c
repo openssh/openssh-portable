@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.86 2013/01/12 11:22:04 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.87 2013/01/26 06:11:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -92,10 +92,6 @@ struct Cipher {
 			SSH_CIPHER_SSH2, 16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
-#endif
-#ifdef USE_CIPHER_ACSS
-	{ "acss@openssh.org",
-			SSH_CIPHER_SSH2, 16, 5, 0, 0, 0, 0, EVP_acss },
 #endif
 	{ NULL,		SSH_CIPHER_INVALID, 0, 0, 0, 0, 0, 0, NULL }
 };
@@ -478,7 +474,7 @@ cipher_get_keycontext(const CipherContext *cc, u_char *dat)
 	Cipher *c = cc->cipher;
 	int plen = 0;
 
-	if (c->evptype == EVP_rc4 || c->evptype == EVP_acss) {
+	if (c->evptype == EVP_rc4) {
 		plen = EVP_X_STATE_LEN(cc->evp);
 		if (dat == NULL)
 			return (plen);
@@ -493,7 +489,7 @@ cipher_set_keycontext(CipherContext *cc, u_char *dat)
 	Cipher *c = cc->cipher;
 	int plen;
 
-	if (c->evptype == EVP_rc4 || c->evptype == EVP_acss) {
+	if (c->evptype == EVP_rc4) {
 		plen = EVP_X_STATE_LEN(cc->evp);
 		memcpy(EVP_X_STATE(cc->evp), dat, plen);
 	}
