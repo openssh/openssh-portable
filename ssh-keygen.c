@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.224 2013/01/18 07:59:46 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.225 2013/02/10 23:32:10 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2508,7 +2508,7 @@ main(int argc, char **argv)
 
 	if (do_screen_candidates) {
 		FILE *in;
-		FILE *out = fopen(out_file, "w");
+		FILE *out = fopen(out_file, "a");
 
 		if (have_identity && strcmp(identity_file, "-") != 0) {
 			if ((in = fopen(identity_file, "r")) == NULL) {
