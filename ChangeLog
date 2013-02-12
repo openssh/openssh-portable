@@ -31,6 +31,11 @@
    - dtucker@cvs.openbsd.org 2013/02/06 00:22:21
      [auth.c]
      Fix comment, from jfree.e1 at gmail
+   - djm@cvs.openbsd.org 2013/02/08 00:41:12
+     [sftp.c]
+     fix NULL deref when built without libedit and control characters
+     entered as command; debugging and patch from Iain Morgan an
+     Loganaden Velvindron in bz#1956
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
