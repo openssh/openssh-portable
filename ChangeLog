@@ -44,6 +44,11 @@
      append to moduli file when screening candidates rather than overwriting.
      allows resumption of interrupted screen; patch from Christophe Garault
      in bz#1957; ok dtucker@
+   - djm@cvs.openbsd.org 2013/02/10 23:35:24
+     [packet.c]
+     record "Received disconnect" messages at ERROR rather than INFO priority,
+     since they are abnormal and result in a non-zero ssh exit status; patch
+     from Iain Morgan in bz#2057; ok dtucker@
 
 20130211
  - (djm) [configure.ac openbsd-compat/openssl-compat.h] Repair build on old
