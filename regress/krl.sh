@@ -3,13 +3,19 @@
 
 tid="key revocation lists"
 
+# If we don't support ecdsa keys then this tell will be much slower.
+ECDSA=ecdsa
+if test "x$TEST_SSH_ECC" != "xyes"; then
+	$ECDSA=rsa
+fi
+
 # Do most testing with ssh-keygen; it uses the same verification code as sshd.
 
 # Old keys will interfere with ssh-keygen.
 rm -f $OBJ/revoked-* $OBJ/krl-*
 
 # Generate a CA key
-$SSHKEYGEN -t ecdsa -f $OBJ/revoked-ca  -C "" -N "" > /dev/null ||
+$SSHKEYGEN -t $ECDSA -f $OBJ/revoked-ca  -C "" -N "" > /dev/null ||
 	fatal "$SSHKEYGEN CA failed"
 
 # A specification that revokes some certificates by serial numbers
@@ -48,7 +54,7 @@ keygen() {
 	N=$1
 	f=$OBJ/revoked-`printf "%04d" $N`
 	# Vary the keytype. We use mostly ECDSA since this is fastest by far.
-	keytype=ecdsa
+	keytype=$ECDSA
 	case $N in
 	2 | 10 | 510 | 1001)	keytype=rsa;;
 	4 | 30 | 520 | 1002)	keytype=dsa;;
