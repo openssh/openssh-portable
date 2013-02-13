@@ -1,5 +1,6 @@
 20130214
  - (djm) [regress/krl.sh] Don't use ecdsa keys in environment that lack ECC.
+ - (djm) [regress/krl.sh] typo; found by Iain Morgan
 
 20130212
  - (djm) OpenBSD CVS Sync

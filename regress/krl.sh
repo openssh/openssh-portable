@@ -6,7 +6,7 @@ tid="key revocation lists"
 # If we don't support ecdsa keys then this tell will be much slower.
 ECDSA=ecdsa
 if test "x$TEST_SSH_ECC" != "xyes"; then
-	$ECDSA=rsa
+	ECDSA=rsa
 fi
 
 # Do most testing with ssh-keygen; it uses the same verification code as sshd.
