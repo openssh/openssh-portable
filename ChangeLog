@@ -1,6 +1,9 @@
 20130214
  - (djm) [regress/krl.sh] Don't use ecdsa keys in environment that lack ECC.
  - (djm) [regress/krl.sh] typo; found by Iain Morgan
+ - (djm) [regress/integrity.sh] Start fuzzing from offset 2500 (instead
+   of 2300) to avoid clobbering the end of (non-MAC'd) KEX. Verified by
+   Iain Morgan
 
 20130212
  - (djm) OpenBSD CVS Sync

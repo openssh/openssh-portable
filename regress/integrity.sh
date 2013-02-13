@@ -3,11 +3,11 @@
 
 tid="integrity"
 
-# start at byte 2300 (i.e. after kex) and corrupt at different offsets
+# start at byte 2500 (i.e. after kex) and corrupt at different offsets
 # XXX the test hangs if we modify the low bytes of the packet length
 # XXX and ssh tries to read...
 tries=10
-startoffset=2300
+startoffset=2500
 macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
 	hmac-sha1-96 hmac-md5-96 hmac-sha2-256 hmac-sha2-512
 	hmac-sha1-etm@openssh.com hmac-md5-etm@openssh.com
