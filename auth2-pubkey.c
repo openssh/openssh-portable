@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.33 2012/11/14 02:24:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.34 2013/02/14 21:35:59 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -479,8 +479,8 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 	    "u", user_pw->pw_name, (char *)NULL);
 	pw = getpwnam(username);
 	if (pw == NULL) {
-		error("AuthorizedKeyCommandUser \"%s\" not found: %s",
-		    options.authorized_keys_command, strerror(errno));
+		error("AuthorizedKeysCommandUser \"%s\" not found: %s",
+		    username, strerror(errno));
 		free(username);
 		return 0;
 	}

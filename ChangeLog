@@ -1,6 +1,11 @@
 20130215
  - (djm) [contrib/suse/rc.sshd] Use SSHD_BIN consistently; bz#2056 from
    Iain Morgan
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/02/14 21:35:59
+     [auth2-pubkey.c]
+     Correct error message that had a typo and was logging the wrong thing;
+     patch from Petr Lautrbach
 
 20130214
  - (djm) [regress/krl.sh] Don't use ecdsa keys in environment that lack ECC.
