@@ -1,6 +1,8 @@
 20130215
  - (djm) [contrib/suse/rc.sshd] Use SSHD_BIN consistently; bz#2056 from
    Iain Morgan
+ - (dtucker) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
+   Use getpgrp() if we don't have getpgid() (old BSDs, maybe others).
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/14 21:35:59
      [auth2-pubkey.c]

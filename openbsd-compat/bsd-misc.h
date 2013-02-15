@@ -1,4 +1,4 @@
-/* $Id: bsd-misc.h,v 1.21 2012/07/03 22:50:10 dtucker Exp $ */
+/* $Id: bsd-misc.h,v 1.22 2013/02/15 00:41:36 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
@@ -100,6 +100,10 @@ mysig_t mysignal(int sig, mysig_t act);
 
 #ifndef HAVE_ISBLANK
 int	isblank(int);
+#endif
+
+#ifndef HAVE_GETPGID
+pid_t getpgid(pid_t);
 #endif
 
 #endif /* _BSD_MISC_H */

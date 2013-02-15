@@ -247,3 +247,16 @@ int isblank(int c)
 	return (c == ' ' || c == '\t');
 }
 #endif
+
+#ifndef HAVE_GETPGID
+pid_t
+getpgid(pid_t pid)
+{
+#ifdef HAVE_GETPGRP
+	if (pid == 0)
+		return getpgrp();
+#endif
+	errno = ESRCH;
+	return -1;
+}
+#endif
