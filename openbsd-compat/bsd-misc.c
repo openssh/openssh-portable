@@ -242,7 +242,8 @@ strdup(const char *str)
 #endif
 
 #ifndef HAVE_ISBLANK
-int isblank(int c)
+int
+isblank(int c)
 {
 	return (c == ' ' || c == '\t');
 }
