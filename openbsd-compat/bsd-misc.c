@@ -253,10 +253,13 @@ isblank(int c)
 pid_t
 getpgid(pid_t pid)
 {
-#ifdef HAVE_GETPGRP
+#if defined(HAVE_GETPGRP) && !defined(GETPGRP_VOID)
+	return getpgrp(pid);
+#elif defined(HAVE_GETPGRP)
 	if (pid == 0)
 		return getpgrp();
 #endif
+
 	errno = ESRCH;
 	return -1;
 }

@@ -8,6 +8,8 @@
    platforms that don't have it.
  - (dtucker) [openbsd-compat/openbsd-compat.h] Add prototype for strtoul,
    group strto* function prototypes together.
+ - (dtucker) [openbsd-compat/bsd-misc.c] Handle the case where setpgrp() takes
+   an argument.  Pointed out by djm.
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/14 21:35:59
      [auth2-pubkey.c]
