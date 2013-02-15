@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.54 2013/02/15 01:13:02 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.55 2013/02/15 01:20:42 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -190,6 +190,14 @@ int snprintf(char *, size_t, SNPRINTF_CONST char *, ...);
 long long strtoll(const char *, char **, int);
 #endif
 
+#ifndef HAVE_STRTOUL
+unsigned long strtoul(const char *, char **, int);
+#endif
+
+#ifndef HAVE_STRTOULL
+unsigned long long strtoull(const char *, char **, int);
+#endif
+
 #ifndef HAVE_STRTONUM
 long long strtonum(const char *, long long, long long, const char **);
 #endif
@@ -216,10 +224,6 @@ char *group_from_gid(gid_t, int);
 
 #ifndef HAVE_TIMINGSAFE_BCMP
 int timingsafe_bcmp(const void *, const void *, size_t);
-#endif
-
-#ifndef HAVE_STRTOULL
-unsigned long long strtoull(const char *, char **, int);
 #endif
 
 void *xmmap(size_t size);

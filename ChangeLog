@@ -6,6 +6,8 @@
  - (dtucker) [configure.ac openbsd-compat/Makefile.in openbsd-compat/strtoull.c
    openbsd-compat/openbsd-compat.h] Add strtoull to compat library for
    platforms that don't have it.
+ - (dtucker) [openbsd-compat/openbsd-compat.h] Add prototype for strtoul,
+   group strto* function prototypes together.
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/14 21:35:59
      [auth2-pubkey.c]
