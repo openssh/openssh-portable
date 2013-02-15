@@ -11,6 +11,10 @@
      [auth2-pubkey.c]
      Correct error message that had a typo and was logging the wrong thing;
      patch from Petr Lautrbach
+   - dtucker@cvs.openbsd.org 2013/02/15 00:21:01
+     [sshconnect2.c]
+     Warn more loudly if an IdentityFile provided by the user cannot be read.
+     bz #1981, ok djm@
 
 20130214
  - (djm) [regress/krl.sh] Don't use ecdsa keys in environment that lack ECC.
