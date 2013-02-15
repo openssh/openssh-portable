@@ -3,6 +3,9 @@
    Iain Morgan
  - (dtucker) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Use getpgrp() if we don't have getpgid() (old BSDs, maybe others).
+ - (dtucker) [configure.ac openbsd-compat/Makefile.in openbsd-compat/strtoull.c
+   openbsd-compat/openbsd-compat.h] Add strtoull to compat library for
+   platforms that don't have it.
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/14 21:35:59
      [auth2-pubkey.c]

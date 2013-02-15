@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.504 2013/02/15 00:41:35 dtucker Exp $
+# $Id: configure.ac,v 1.505 2013/02/15 01:13:01 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.504 $)
+AC_REVISION($Revision: 1.505 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1611,6 +1611,7 @@ AC_CHECK_FUNCS([ \
 	strtonum \
 	strtoll \
 	strtoul \
+	strtoull \
 	swap32 \
 	sysconf \
 	tcgetpgrp \
