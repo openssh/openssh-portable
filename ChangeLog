@@ -1,3 +1,12 @@
+20130216
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/02/16 06:08:45
+     [integrity.sh]
+     make sure the fuzz offset is actually past the end of KEX for all KEX
+     types. diffie-hellman-group-exchange-sha256 requires an offset around
+     2700. Noticed via test failures in portable OpenSSH on platforms that
+     lack ECC and this the more byte-frugal ECDH KEX algorithms.
+
 20130215
  - (djm) [contrib/suse/rc.sshd] Use SSHD_BIN consistently; bz#2056 from
    Iain Morgan
