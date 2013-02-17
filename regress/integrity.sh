@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.3 2013/02/16 06:08:45 djm Exp $
+#	$OpenBSD: integrity.sh,v 1.4 2013/02/17 23:16:55 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -46,7 +46,7 @@ for m in $macs; do
 			*)		macopt="-m $m";;
 		esac
 		output=$(${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
-		    999.999.999.999 true 2>&1)
+		    999.999.999.999 'printf "%2048s" " "' 2>&1)
 		if [ $? -eq 0 ]; then
 			fail "ssh -m $m succeeds with bit-flip at $off"
 		fi
