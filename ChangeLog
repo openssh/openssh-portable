@@ -1,3 +1,10 @@
+20130219
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/02/18 22:26:47
+     [integrity.sh]
+     crank the offset yet again; it was still fuzzing KEX one of Darren's
+     portable test hosts at 2800
+
 20130217
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/17 23:16:55
