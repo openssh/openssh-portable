@@ -90,6 +90,8 @@ TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
 
 TEST_SSH_SSHKEYGEN?=ssh-keygen
 
+CPPFLAGS=-I..
+
 t1:
 	${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
 	tr '\n' '\r' <${.CURDIR}/rsa_ssh2.prv > ${.OBJDIR}/rsa_ssh2_cr.prv

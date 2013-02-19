@@ -4,6 +4,10 @@
      [integrity.sh]
      crank the offset yet again; it was still fuzzing KEX one of Darren's
      portable test hosts at 2800
+   - djm@cvs.openbsd.org 2013/02/19 02:14:09
+     [integrity.sh]
+     oops, forgot to increase the output of the ssh command to ensure that
+     we actually reach $offset
 
 20130217
  - OpenBSD CVS Sync

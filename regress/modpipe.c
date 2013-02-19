@@ -14,15 +14,43 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: modpipe.c,v 1.1 2012/12/11 23:54:40 djm Exp $ */
+/* $Id: modpipe.c,v 1.2 2013/02/19 02:15:08 djm Exp $ */
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdlib.h>
-#include <err.h>
 #include <errno.h>
+
+static void err(int, const char *, ...) __attribute__((format(printf, 2, 3)));
+static void errx(int, const char *, ...) __attribute__((format(printf, 2, 3)));
+
+static void
+err(int r, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	fprintf(stderr, "%s: ", strerror(errno));
+	vfprintf(stderr, fmt, args);
+	fputc('\n', stderr);
+	va_end(args);
+	exit(r);
+}
+
+static void
+errx(int r, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	fputc('\n', stderr);
+	va_end(args);
+	exit(r);
+}
 
 static void
 usage(void)
