@@ -9,11 +9,13 @@ tid="integrity"
 tries=10
 startoffset=2900
 macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
-	hmac-sha1-96 hmac-md5-96 hmac-sha2-256 hmac-sha2-512
+	hmac-sha1-96 hmac-md5-96 
 	hmac-sha1-etm@openssh.com hmac-md5-etm@openssh.com
 	umac-64-etm@openssh.com umac-128-etm@openssh.com
-	hmac-sha1-96-etm@openssh.com hmac-md5-96-etm@openssh.com
-	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+	hmac-sha1-96-etm@openssh.com hmac-md5-96-etm@openssh.com"
+config_defined HAVE_EVP_SHA256 &&
+	macs="$macs hmac-sha2-256 hmac-sha2-512
+		hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
 config_defined OPENSSL_HAVE_EVPGCM && \

@@ -8,6 +8,8 @@
      [integrity.sh]
      oops, forgot to increase the output of the ssh command to ensure that
      we actually reach $offset
+ - (djm) [regress/integrity.sh] Skip SHA2-based MACs on configurations that
+   lack support for SHA2.
 
 20130217
  - OpenBSD CVS Sync
