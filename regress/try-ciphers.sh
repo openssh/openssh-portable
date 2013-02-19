@@ -32,7 +32,7 @@ for c in $ciphers; do
 		case $c in
 		aes*-gcm@openssh.com)	test $n -gt 0 && break;;
 		esac
-		n=$(($n + 1))
+		n=`expr $n + 1`
 	done
 done
 

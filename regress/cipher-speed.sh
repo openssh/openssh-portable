@@ -40,7 +40,7 @@ for c in $ciphers; do n=0; for m in $macs; do
 	case $c in
 	aes*-gcm@openssh.com)	test $n -gt 0 && break;;
 	esac
-	n=$(($n + 1))
+	n=`expr $n + 1`
 done; done
 
 ciphers="3des blowfish"
