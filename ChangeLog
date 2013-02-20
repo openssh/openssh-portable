@@ -2,6 +2,13 @@
  - (tim) [regress/cipher-speed.sh regress/try-ciphers.sh] shell portability fix.
  - (tim) [krl.c Makefile.in regress/Makefile regress/modpipe.c] remove unneeded
    err.h include from krl.c. Additional portability fixes for modpipe. OK djm
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/02/20 08:27:50
+     [regress/integrity.sh regress/modpipe.c]
+     Add an option to modpipe that warns if the modification offset it not
+     reached in it's stream and turn it on for t-integrity. This should catch
+     cases where the session is not fuzzed for being too short (cf. my last
+     "oops" commit)
 
 20130219
  - OpenBSD CVS Sync
