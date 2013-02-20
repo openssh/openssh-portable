@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: modpipe.c,v 1.4 2013/02/20 10:13:29 djm Exp $ */
+/* $OpenBSD: modpipe.c,v 1.4 2013/02/20 08:29:27 djm Exp $ */
 
 #include <sys/types.h>
 #include <unistd.h>
