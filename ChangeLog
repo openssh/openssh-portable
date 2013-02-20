@@ -1,5 +1,7 @@
 20130220
  - (tim) [regress/cipher-speed.sh regress/try-ciphers.sh] shell portability fix.
+ - (tim) [krl.c Makefile.in regress/Makefile regress/modpipe.c] remove unneeded
+   err.h include from krl.c. Additional portability fixes for modpipe. OK djm
 
 20130219
  - OpenBSD CVS Sync
@@ -13,6 +15,8 @@
      we actually reach $offset
  - (djm) [regress/integrity.sh] Skip SHA2-based MACs on configurations that
    lack support for SHA2.
+ - (djm) [regress/modpipe.c] Add local err, and errx functions for platforms
+   that do not have them.
 
 20130217
  - OpenBSD CVS Sync

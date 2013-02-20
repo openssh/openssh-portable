@@ -33,7 +33,6 @@
 #include "buffer.h"
 #include "key.h"
 #include "authfile.h"
-#include "err.h"
 #include "misc.h"
 #include "log.h"
 #include "xmalloc.h"

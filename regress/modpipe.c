@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: modpipe.c,v 1.2 2013/02/19 02:15:08 djm Exp $ */
+/* $Id: modpipe.c,v 1.3 2013/02/20 03:01:52 tim Exp $ */
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "openbsd-compat/getopt.c"
 
 static void err(int, const char *, ...) __attribute__((format(printf, 2, 3)));
 static void errx(int, const char *, ...) __attribute__((format(printf, 2, 3)));
