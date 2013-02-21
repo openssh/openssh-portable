@@ -11,7 +11,7 @@ READY=$OBJ/ready
 wait_for_file_to_appear() {
 	_path=$1
 	_n=0
-	while test ! -e $_path ; do
+	while test ! -f $_path ; do
 		test $_n -eq 1 && trace "waiting for $_path to appear"
 		_n=`expr $_n + 1`
 		test $_n -ge 5 && return 1

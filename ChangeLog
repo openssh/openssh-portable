@@ -1,3 +1,6 @@
+20130221
+ - (tim) [regress/forward-control.sh] shell portability fix.
+
 20130220
  - (tim) [regress/cipher-speed.sh regress/try-ciphers.sh] shell portability fix.
  - (tim) [krl.c Makefile.in regress/Makefile regress/modpipe.c] remove unneeded
