@@ -1,6 +1,8 @@
 20120222
  - (dtucker) [Makefile.in configure.ac] bz#2072: don't link krb5 libs to
-   ssh(1) since they're not needed.  Patch from Pierre Ossman.
+   ssh(1) since they're not needed.  Patch from Pierre Ossman, ok djm.
+ - (dtucker) [configure.ac] bz#2073: look for Solaris' differently-named
+   libgss too.  Patch from Pierre Ossman, ok djm.
 
 20130221
  - (tim) [regress/forward-control.sh] shell portability fix.

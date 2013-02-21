@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.506 2013/02/21 23:40:00 dtucker Exp $
+# $Id: configure.ac,v 1.507 2013/02/21 23:43:16 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.506 $)
+AC_REVISION($Revision: 1.507 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3675,7 +3675,11 @@ AC_ARG_WITH([kerberos5],
 				[ AC_CHECK_LIB([gssapi], [gss_init_sec_context],
 					[ AC_DEFINE([GSSAPI])
 					  GSSLIBS="-lgssapi" ],
-					AC_MSG_WARN([Cannot find any suitable gss-api library - build may fail]))
+					[ AC_CHECK_LIB([gss], [gss_init_sec_context],
+						[ AC_DEFINE([GSSAPI])
+						  GSSLIBS="-lgss" ],
+						AC_MSG_WARN([Cannot find any suitable gss-api library - build may fail]))
+					])
 				])
 
 			AC_CHECK_HEADER([gssapi.h], ,
