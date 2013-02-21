@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.505 2013/02/15 01:13:01 dtucker Exp $
+# $Id: configure.ac,v 1.506 2013/02/21 23:40:00 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.505 $)
+AC_REVISION($Revision: 1.506 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3624,6 +3624,9 @@ AC_ARG_WITH([kerberos5],
 			     [$KRB5ROOT/bin/krb5-config],
 			     [$KRB5ROOT/bin:$PATH])
 		if test -x $KRB5CONF ; then
+			K5CFLAGS="`$KRB5CONF --cflags`"
+			K5LIBS="`$KRB5CONF --libs`"
+			CPPFLAGS="$CPPFLAGS $K5CFLAGS"
 
 			AC_MSG_CHECKING([for gssapi support])
 			if $KRB5CONF | grep gssapi >/dev/null ; then
@@ -3631,14 +3634,12 @@ AC_ARG_WITH([kerberos5],
 				AC_DEFINE([GSSAPI], [1],
 					[Define this if you want GSSAPI
 					support in the version 2 protocol])
-				k5confopts=gssapi
+				GSSCFLAGS="`$KRB5CONF --cflags gssapi`"
+				GSSLIBS="`$KRB5CONF --libs gssapi`"
+				CPPFLAGS="$CPPFLAGS $GSSCFLAGS"
 			else
 				AC_MSG_RESULT([no])
-				k5confopts=""
 			fi
-			K5CFLAGS="`$KRB5CONF --cflags $k5confopts`"
-			K5LIBS="`$KRB5CONF --libs $k5confopts`"
-			CPPFLAGS="$CPPFLAGS $K5CFLAGS"
 			AC_MSG_CHECKING([whether we are using Heimdal])
 			AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <krb5.h>
 				]], [[ char *tmp = heimdal_version; ]])],
@@ -3670,14 +3671,12 @@ AC_ARG_WITH([kerberos5],
 
 			AC_CHECK_LIB([gssapi_krb5], [gss_init_sec_context],
 				[ AC_DEFINE([GSSAPI])
-				  K5LIBS="-lgssapi_krb5 $K5LIBS" ],
+				  GSSLIBS="-lgssapi_krb5" ],
 				[ AC_CHECK_LIB([gssapi], [gss_init_sec_context],
 					[ AC_DEFINE([GSSAPI])
-					  K5LIBS="-lgssapi $K5LIBS" ],
-					AC_MSG_WARN([Cannot find any suitable gss-api library - build may fail]),
-					$K5LIBS)
-				],
-				$K5LIBS)
+					  GSSLIBS="-lgssapi" ],
+					AC_MSG_WARN([Cannot find any suitable gss-api library - build may fail]))
+				])
 
 			AC_CHECK_HEADER([gssapi.h], ,
 				[ unset ac_cv_header_gssapi_h
@@ -3705,12 +3704,13 @@ AC_ARG_WITH([kerberos5],
 		AC_CHECK_HEADERS([gssapi_krb5.h gssapi/gssapi_krb5.h])
 		AC_CHECK_HEADERS([gssapi_generic.h gssapi/gssapi_generic.h])
 
-		LIBS="$LIBS $K5LIBS"
 		AC_SEARCH_LIBS([k_hasafs], [kafs], [AC_DEFINE([USE_AFS], [1],
 			[Define this if you want to use libkafs' AFS support])])
 	fi
 	]
 )
+AC_SUBST([GSSLIBS])
+AC_SUBST([K5LIBS])
 
 # Looking for programs, paths and files
 
