@@ -63,10 +63,6 @@
 # include <util.h>
 #endif
 
-#ifdef HAVE_LIBUTIL_H
-# include <libutil.h>
-#endif
-
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "log.h"

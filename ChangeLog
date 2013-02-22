@@ -1,3 +1,8 @@
+20120223
+ - (djm) [configure.ac includes.h loginrec.c mux.c sftp.c] Prefer
+   bsd/libutil.h to libutil.h to avoid deprecation warnings on Ubuntu.
+   ok tim
+
 20120222
  - (dtucker) [Makefile.in configure.ac] bz#2072: don't link krb5 libs to
    ssh(1) since they're not needed.  Patch from Pierre Ossman, ok djm.

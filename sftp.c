@@ -54,10 +54,6 @@ typedef void EditLine;
 # include <util.h>
 #endif
 
-#ifdef HAVE_LIBUTIL_H
-# include <libutil.h>
-#endif
-
 #include "xmalloc.h"
 #include "log.h"
 #include "pathnames.h"
