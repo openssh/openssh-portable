@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.507 2013/02/21 23:43:16 dtucker Exp $
+# $Id: configure.ac,v 1.508 2013/02/22 00:37:00 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.507 $)
+AC_REVISION($Revision: 1.508 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -120,31 +120,6 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <sys/types.h>
 	#include <linux/prctl.h>
 ])
-if test "x$have_linux_no_new_privs" = "x1" ; then
-AC_CHECK_DECL([SECCOMP_MODE_FILTER], [have_seccomp_filter=1], , [
-	#include <sys/types.h>
-	#include <linux/seccomp.h>
-])
-fi
-if test "x$have_seccomp_filter" = "x1" ; then
-AC_MSG_CHECKING([kernel for seccomp_filter support])
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-		#include <errno.h>
-		#include <linux/seccomp.h>
-		#include <stdlib.h>
-		#include <sys/prctl.h>
-	]],
-	[[ errno = 0;
-	   prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
-	   exit(errno == EFAULT ? 0 : 1); ]])],
-	[ AC_MSG_RESULT([yes]) ], [
-		AC_MSG_RESULT([no])
-		# Disable seccomp filter as a target
-		have_seccomp_filter=0
-	]
-)
-fi
-
 use_stack_protector=1
 AC_ARG_WITH([stackprotect],
     [  --without-stackprotect  Don't use compiler's stack protection], [
@@ -321,6 +296,7 @@ AC_CHECK_HEADERS([ \
 	crypto/sha2.h \
 	dirent.h \
 	endian.h \
+	elf.h \
 	features.h \
 	fcntl.h \
 	floatingpoint.h \
@@ -700,20 +676,26 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
 	    [], [#include <linux/types.h>])
 	AC_CHECK_FUNCS([prctl])
-	have_seccomp_audit_arch=1
+	AC_MSG_CHECKING([for seccomp architecture])
+	seccomp_audit_arch=
 	case "$host" in
 	x86_64-*)
-		AC_DEFINE([SECCOMP_AUDIT_ARCH], [AUDIT_ARCH_X86_64],
-		    [Specify the system call convention in use])
+		seccomp_audit_arch=AUDIT_ARCH_X86_64
 		;;
 	i*86-*)
-		AC_DEFINE([SECCOMP_AUDIT_ARCH], [AUDIT_ARCH_I386],
-		    [Specify the system call convention in use])
+		seccomp_audit_arch=AUDIT_ARCH_I386
 		;;
-	*)
-		have_seccomp_audit_arch=0
-		;;
+        arm*-*)
+		seccomp_audit_arch=AUDIT_ARCH_ARM
+                ;;
 	esac
+	if test "x$seccomp_audit_arch" != "x" ; then
+		AC_MSG_RESULT(["$seccomp_audit_arch"])
+                AC_DEFINE_UNQUOTED([SECCOMP_AUDIT_ARCH], [$seccomp_audit_arch],
+                    [Specify the system call convention in use])
+	else
+		AC_MSG_RESULT([architecture not supported])
+	fi
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to acquire controlling tty])
@@ -2629,6 +2611,34 @@ AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], ["$SSH_PRIVSEP_USER"],
 	[non-privileged user for privilege separation])
 AC_SUBST([SSH_PRIVSEP_USER])
 
+if test "x$have_linux_no_new_privs" = "x1" ; then
+AC_CHECK_DECL([SECCOMP_MODE_FILTER], [have_seccomp_filter=1], , [
+	#include <sys/types.h>
+	#include <linux/seccomp.h>
+])
+fi
+if test "x$have_seccomp_filter" = "x1" ; then
+AC_MSG_CHECKING([kernel for seccomp_filter support])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+		#include <errno.h>
+		#include <elf.h>
+		#include <linux/audit.h>
+		#include <linux/seccomp.h>
+		#include <stdlib.h>
+		#include <sys/prctl.h>
+	]],
+	[[ int i = $seccomp_audit_arch;
+	   errno = 0;
+	   prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
+	   exit(errno == EFAULT ? 0 : 1); ]])],
+	[ AC_MSG_RESULT([yes]) ], [
+		AC_MSG_RESULT([no])
+		# Disable seccomp filter as a target
+		have_seccomp_filter=0
+	]
+)
+fi
+
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
@@ -2716,11 +2726,13 @@ elif test "x$sandbox_arg" = "xdarwin" || \
 elif test "x$sandbox_arg" = "xseccomp_filter" || \
      ( test -z "$sandbox_arg" && \
        test "x$have_seccomp_filter" = "x1" && \
+       test "x$ac_cv_header_elf_h" = "xyes" && \
        test "x$ac_cv_header_linux_audit_h" = "xyes" && \
-       test "x$have_seccomp_audit_arch" = "x1" && \
+       test "x$ac_cv_header_linux_filter_h" = "xyes" && \
+       test "x$seccomp_audit_arch" != "x" && \
        test "x$have_linux_no_new_privs" = "x1" && \
        test "x$ac_cv_func_prctl" = "xyes" ) ; then
-	test "x$have_seccomp_audit_arch" != "x1" && \
+	test "x$seccomp_audit_arch" = "x" && \
 		AC_MSG_ERROR([seccomp_filter sandbox not supported on $host])
 	test "x$have_linux_no_new_privs" != "x1" && \
 		AC_MSG_ERROR([seccomp_filter sandbox requires PR_SET_NO_NEW_PRIVS])

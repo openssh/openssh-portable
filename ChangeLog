@@ -3,6 +3,9 @@
    ssh(1) since they're not needed.  Patch from Pierre Ossman, ok djm.
  - (dtucker) [configure.ac] bz#2073: look for Solaris' differently-named
    libgss too.  Patch from Pierre Ossman, ok djm.
+ - (djm) [configure.ac sandbox-seccomp-filter.c] Support for Linux
+   seccomp-bpf sandbox on ARM. Patch from shawnlandden AT gmail.com;
+   ok dtucker
 
 20130221
  - (tim) [regress/forward-control.sh] shell portability fix.
