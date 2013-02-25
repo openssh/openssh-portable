@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.509 2013/02/22 22:12:24 djm Exp $
+# $Id: configure.ac,v 1.510 2013/02/25 00:24:44 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.509 $)
+AC_REVISION($Revision: 1.510 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3722,6 +3722,20 @@ AC_ARG_WITH([kerberos5],
 
 		AC_SEARCH_LIBS([k_hasafs], [kafs], [AC_DEFINE([USE_AFS], [1],
 			[Define this if you want to use libkafs' AFS support])])
+
+		AC_CHECK_DECLS([GSS_C_NT_HOSTBASED_SERVICE], [], [], [[
+#ifdef HAVE_GSSAPI_H
+# include <gssapi.h>
+#elif defined(HAVE_GSSAPI_GSSAPI_H)
+# include <gssapi/gssapi.h>
+#endif
+
+#ifdef HAVE_GSSAPI_GENERIC_H
+# include <gssapi_generic.h>
+#elif defined(HAVE_GSSAPI_GSSAPI_GENERIC_H)
+# include <gssapi/gssapi_generic.h>
+#endif
+		]])
 	fi
 	]
 )

@@ -1,3 +1,7 @@
+20130225
+ - (dtucker) [configure.ac ssh-gss.h] bz#2073: additional #includes needed
+   to use Solaris native GSS libs.  Patch from Pierre Ossman.
+
 20130223
  - (djm) [configure.ac includes.h loginrec.c mux.c sftp.c] Prefer
    bsd/libutil.h to libutil.h to avoid deprecation warnings on Ubuntu.
