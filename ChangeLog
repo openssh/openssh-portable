@@ -1,3 +1,7 @@
+20130227
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Crank version numbers
+
 20130226
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/02/20 08:27:50
