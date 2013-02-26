@@ -1,3 +1,12 @@
+20130226
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/02/20 08:27:50
+     [integrity.sh]
+     Add an option to modpipe that warns if the modification offset it not
+     reached in it's stream and turn it on for t-integrity. This should catch
+     cases where the session is not fuzzed for being too short (cf. my last
+     "oops" commit)
+
 20130225
  - (dtucker) [configure.ac ssh-gss.h] bz#2073: additional #includes needed
    to use Solaris native GSS libs.  Patch from Pierre Ossman.

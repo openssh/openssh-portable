@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.6 2013/02/19 02:14:09 djm Exp $
+#	$OpenBSD: integrity.sh,v 1.7 2013/02/20 08:27:50 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -42,7 +42,7 @@ for m in $macs; do
 			continue
 		fi
 		# modify output from sshd at offset $off
-		pxy="proxycommand=$cmd | $OBJ/modpipe -m xor:$off:1"
+		pxy="proxycommand=$cmd | $OBJ/modpipe -wm xor:$off:1"
 		case $m in
 			aes*gcm*)	macopt="-c $m";;
 			*)		macopt="-m $m";;
