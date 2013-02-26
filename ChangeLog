@@ -6,6 +6,8 @@
      reached in it's stream and turn it on for t-integrity. This should catch
      cases where the session is not fuzzed for being too short (cf. my last
      "oops" commit)
+ - (djm) [regress/integrity.sh] Run sshd via $SUDO; fixes tinderbox breakage
+   for UsePAM=yes configuration
 
 20130225
  - (dtucker) [configure.ac ssh-gss.h] bz#2073: additional #includes needed
