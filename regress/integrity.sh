@@ -25,7 +25,7 @@ config_defined OPENSSL_HAVE_EVPGCM && \
 cmd="$SUDO sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy"
 
 jot() {
-	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } }"
+	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
 }
 
 for m in $macs; do
