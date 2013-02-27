@@ -41,7 +41,7 @@ check_lfwd() {
 	${SSH} -oProtocol=$_proto -F $OBJ/ssh_proxy \
 	    -L$LFWD_PORT:127.0.0.1:$PORT \
 	    -o ExitOnForwardFailure=yes \
-	    -n host "sleep 60 & echo \$! > $READY ; wait " \
+	    -n host exec sh -c \'"sleep 60 & echo \$! > $READY ; wait "\' \
 	    >/dev/null 2>&1 &
 	_sshpid=$!
 	wait_for_file_to_appear $READY || \
@@ -71,7 +71,7 @@ check_rfwd() {
 	${SSH} -oProtocol=$_proto -F $OBJ/ssh_proxy \
 	    -R$RFWD_PORT:127.0.0.1:$PORT \
 	    -o ExitOnForwardFailure=yes \
-	    -n host "sleep 60 & echo \$! > $READY ; wait " \
+	    -n host exec sh -c \'"sleep 60 & echo \$! > $READY ; wait "\' \
 	    >/dev/null 2>&1 &
 	_sshpid=$!
 	wait_for_file_to_appear $READY
