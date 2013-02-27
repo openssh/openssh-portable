@@ -2,6 +2,7 @@
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
  - (tim) [regress/forward-control.sh] use sh in case login shell is csh.
+ - (tim) [regress/integrity.sh] shell portability fix.
 
 20130226
  - OpenBSD CVS Sync

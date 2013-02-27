@@ -35,8 +35,8 @@ for m in $macs; do
 	emac=0
 	ecnt=0
 	skip=0
-	for off in $(jot $tries $startoffset); do
-		skip=$((skip - 1))
+	for off in `jot $tries $startoffset`; do
+		skip=`expr $skip - 1`
 		if [ $skip -gt 0 ]; then
 			# avoid modifying the high bytes of the length
 			continue
@@ -47,19 +47,19 @@ for m in $macs; do
 			aes*gcm*)	macopt="-c $m";;
 			*)		macopt="-m $m";;
 		esac
-		output=$(${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
-		    999.999.999.999 'printf "%4096s" " "' 2>&1)
+		output=`${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
+		    999.999.999.999 'printf "%4096s" " "' 2>&1`
 		if [ $? -eq 0 ]; then
 			fail "ssh -m $m succeeds with bit-flip at $off"
 		fi
-		ecnt=$((ecnt+1))
-		output=$(echo $output | tr -s '\r\n' '.')
+		ecnt=`expr $ecnt + 1`
+		output=`echo $output | tr -s '\r\n' '.'`
 		verbose "test $tid: $m @$off $output"
 		case "$output" in
-		Bad?packet*)	elen=$((elen+1)); skip=3;;
+		Bad?packet*)	elen=`expr $elen + 1`; skip=3;;
 		Corrupted?MAC* | Decryption?integrity?check?failed*)
-				emac=$((emac+1)); skip=0;;
-		padding*)	epad=$((epad+1)); skip=0;;
+				emac=`expr $emac + 1`; skip=0;;
+		padding*)	epad=`expr $epad + 1`; skip=0;;
 		*)		fail "unexpected error mac $m at $off";;
 		esac
 	done
@@ -67,7 +67,7 @@ for m in $macs; do
 	if [ $emac -eq 0 ]; then
 		fail "$m: no mac errors"
 	fi
-	expect=$((ecnt-epad-elen))
+	expect=`expr $ecnt - $epad - $elen`
 	if [ $emac -ne $expect ]; then
 		fail "$m: expected $expect mac errors, got $emac"
 	fi
