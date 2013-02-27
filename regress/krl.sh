@@ -40,7 +40,7 @@ serial: 599-701
 EOF
 
 jot() {
-	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } }"
+	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
 }
 
 # A specification that revokes some certificated by key ID.

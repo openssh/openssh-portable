@@ -4,6 +4,7 @@
  - (tim) [regress/forward-control.sh] use sh in case login shell is csh.
  - (tim) [regress/integrity.sh] shell portability fix.
  - (tim) [regress/integrity.sh] keep old solaris awk from hanging.
+ - (tim) [regress/krl.sh] keep old solaris awk from hanging.
 
 20130226
  - OpenBSD CVS Sync
