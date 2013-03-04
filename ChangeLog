@@ -1,3 +1,7 @@
+20130305
+ - (djm) [regress/modpipe.c] Compilation fix for AIX and parsing fix for
+   HP/UX. Spotted by Kevin Brott
+
 20130227
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers

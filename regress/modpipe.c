@@ -16,6 +16,8 @@
 
 /* $OpenBSD: modpipe.c,v 1.4 2013/02/20 08:29:27 djm Exp $ */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -74,20 +76,29 @@ static void
 parse_modification(const char *s, struct modification *m)
 {
 	char what[16+1];
-	int n;
+	int n, m1, m2;
 
 	bzero(m, sizeof(*m));
-	if ((n = sscanf(s, "%16[^:]%*[:]%lli%*[:]%hhi%*[:]%hhi",
-	    what, &m->offset, &m->m1, &m->m2)) < 3)
+	if ((n = sscanf(s, "%16[^:]%*[:]%lli%*[:]%i%*[:]%i",
+	    what, &m->offset, &m1, &m2)) < 3)
 		errx(1, "Invalid modification spec \"%s\"", s);
 	if (strcasecmp(what, "xor") == 0) {
-		m->what = MOD_XOR;
 		if (n > 3)
 			errx(1, "Invalid modification spec \"%s\"", s);
+		if (m1 < 0 || m1 > 0xff)
+			errx(1, "Invalid XOR modification value");
+		m->what = MOD_XOR;
+		m->m1 = m1;
 	} else if (strcasecmp(what, "andor") == 0) {
-		m->what = MOD_AND_OR;
 		if (n != 4)
 			errx(1, "Invalid modification spec \"%s\"", s);
+		if (m1 < 0 || m1 > 0xff)
+			errx(1, "Invalid AND modification value");
+		if (m2 < 0 || m2 > 0xff)
+			errx(1, "Invalid OR modification value");
+		m->what = MOD_AND_OR;
+		m->m1 = m1;
+		m->m2 = m2;
 	} else
 		errx(1, "Invalid modification type \"%s\"", what);
 }
