@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.334 2013/03/05 10:50:09 dtucker Exp $
+# $Id: Makefile.in,v 1.335 2013/03/05 22:23:59 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -381,7 +381,7 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-pkcs11-helper.8
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 
-regress/modpipe: $(srcdir)/regress/modpipe.c
+regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	$(CC) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)

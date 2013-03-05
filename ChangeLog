@@ -6,6 +6,7 @@
  - (dtucker) [Makefile.in] Remove trailing "\" on PATHS, which caused obscure
    build breakage on (at least) HP-UX 11.11.  Found by Amit Kulkarni and Kevin
    Brott.
+ - (tim) [Makefile.in] Add missing $(EXEEXT). Found by Roumen Petrov.
 
 20130227
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
