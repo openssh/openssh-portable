@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.510 2013/02/25 00:24:44 dtucker Exp $
+# $Id: configure.ac,v 1.511 2013/03/05 08:57:39 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.510 $)
+AC_REVISION($Revision: 1.511 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2744,7 +2744,7 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xrlimit" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" && \
-       test "x$select_works_with_rlimit" == "xyes" ) ; then
+       test "x$select_works_with_rlimit" = "xyes" ) ; then
 	test "x$ac_cv_func_setrlimit" != "xyes" && \
 		AC_MSG_ERROR([rlimit sandbox requires setrlimit function])
 	test "x$select_works_with_rlimit" != "xyes" && \
