@@ -3,6 +3,9 @@
    HP/UX. Spotted by Kevin Brott
  - (dtucker) [configure.ac] use "=" for shell test and not "==".  Spotted by
    Amit Kulkarni and Kevin Brott.
+ - (dtucker) [Makefile.in] Remove trailing "\" on PATHS, which caused obscure
+   build breakage on (at least) HP-UX 11.11.  Found by Amit Kulkarni and Kevin
+   Brott.
 
 20130227
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
