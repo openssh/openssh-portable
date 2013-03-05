@@ -2,7 +2,7 @@
  - (djm) [regress/modpipe.c] Compilation fix for AIX and parsing fix for
    HP/UX. Spotted by Kevin Brott
  - (dtucker) [configure.ac] use "=" for shell test and not "==".  Spotted by
-   Kevin Brott.
+   Amit Kulkarni and Kevin Brott.
 
 20130227
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
