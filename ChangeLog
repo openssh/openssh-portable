@@ -1,3 +1,7 @@
+20130306
+ - (dtucker) [regress/forward-control.sh] Wait longer for the forwarding
+  connection to start so that the test works on slower machines.
+
 20130305
  - (djm) [regress/modpipe.c] Compilation fix for AIX and parsing fix for
    HP/UX. Spotted by Kevin Brott

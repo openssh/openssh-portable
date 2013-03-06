@@ -14,7 +14,7 @@ wait_for_file_to_appear() {
 	while test ! -f $_path ; do
 		test $_n -eq 1 && trace "waiting for $_path to appear"
 		_n=`expr $_n + 1`
-		test $_n -ge 5 && return 1
+		test $_n -ge 20 && return 1
 		sleep 1
 	done
 	return 0
@@ -26,7 +26,7 @@ wait_for_process_to_exit() {
 	while kill -0 $_pid 2>/dev/null ; do
 		test $_n -eq 1 && trace "waiting for $_pid to exit"
 		_n=`expr $_n + 1`
-		test $_n -ge 5 && return 1
+		test $_n -ge 20 && return 1
 		sleep 1
 	done
 	return 0
