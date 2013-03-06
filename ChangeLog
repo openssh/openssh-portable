@@ -1,6 +1,9 @@
 20130306
  - (dtucker) [regress/forward-control.sh] Wait longer for the forwarding
   connection to start so that the test works on slower machines.
+ - (dtucker) [configure.ac] test that we can set number of file descriptors
+   to zero with setrlimit before enabling the rlimit sandbox.  This affects
+   (at least) HPUX 11.11.
 
 20130305
  - (djm) [regress/modpipe.c] Compilation fix for AIX and parsing fix for

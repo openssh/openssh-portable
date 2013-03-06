@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.511 2013/03/05 08:57:39 dtucker Exp $
+# $Id: configure.ac,v 1.512 2013/03/06 06:48:48 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.511 $)
+AC_REVISION($Revision: 1.512 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2690,6 +2690,32 @@ AC_RUN_IFELSE(
 	[AC_MSG_WARN([cross compiling: assuming yes])]
 )
 
+AC_MSG_CHECKING([if setrlimit(RLIMIT_NOFILE,{0,0}) works])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#include <sys/resource.h>
+#include <errno.h>
+#include <stdlib.h>
+	]],[[
+	struct rlimit rl_zero;
+	int fd, r;
+	fd_set fds;
+
+	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+	r = setrlimit(RLIMIT_NOFILE, &rl_zero);
+	exit (r == -1 ? 1 : 0);
+	]])],
+	[AC_MSG_RESULT([yes])
+	 rlimit_nofile_zero_works=yes],
+	[AC_MSG_RESULT([no])
+	 rlimit_nofile_zero_works=no],
+	[AC_MSG_WARN([cross compiling: assuming yes])]
+)
+
 AC_MSG_CHECKING([if setrlimit RLIMIT_FSIZE works])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
@@ -2744,7 +2770,8 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xrlimit" || \
      ( test -z "$sandbox_arg" && test "x$ac_cv_func_setrlimit" = "xyes" && \
-       test "x$select_works_with_rlimit" = "xyes" ) ; then
+       test "x$select_works_with_rlimit" = "xyes" && \
+       test "x$rlimit_nofile_zero_works" = "xyes" ) ; then
 	test "x$ac_cv_func_setrlimit" != "xyes" && \
 		AC_MSG_ERROR([rlimit sandbox requires setrlimit function])
 	test "x$select_works_with_rlimit" != "xyes" && \
