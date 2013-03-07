@@ -1,6 +1,8 @@
 20130307
  - (dtucker) [INSTALL] Bump documented autoconf version to what we're
    currently using.
+ - (dtucker) [defines.h] Remove SIZEOF_CHAR bits since the test for it is
+   was removed in configure.ac rev 1.481 as it was redundant.
 
 20130306
  - (dtucker) [regress/forward-control.sh] Wait longer for the forwarding
