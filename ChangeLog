@@ -1,3 +1,7 @@
+20130307
+ - (dtucker) [INSTALL] Bump documented autoconf version to what we're
+   currently using.
+
 20130306
  - (dtucker) [regress/forward-control.sh] Wait longer for the forwarding
   connection to start so that the test works on slower machines.
