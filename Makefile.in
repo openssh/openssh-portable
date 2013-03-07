@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.335 2013/03/05 22:23:59 tim Exp $
+# $Id: Makefile.in,v 1.336 2013/03/07 15:37:13 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -386,7 +386,7 @@ regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c
 	$(CC) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-tests interop-tests:	$(TARGETS) regress/modpipe
+tests interop-tests:	$(TARGETS) regress/modpipe$(EXEEXT)
 	BUILDDIR=`pwd`; \
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	[ -f `pwd`/regress/Makefile ]  || \
