@@ -5,6 +5,8 @@
    was removed in configure.ac rev 1.481 as it was redundant.
  - (tim) [Makefile.in] Add another missing $(EXEEXT) I should have seen 3 days
    ago.
+ - (djm) [configure.ac] Add a timeout to the select/rlimit test to give it a
+   chance to complete on broken systems; ok dtucker@
 
 20130306
  - (dtucker) [regress/forward-control.sh] Wait longer for the forwarding

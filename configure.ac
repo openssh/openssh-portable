@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.512 2013/03/06 06:48:48 dtucker Exp $
+# $Id: configure.ac,v 1.513 2013/03/08 01:14:23 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.512 $)
+AC_REVISION($Revision: 1.513 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2673,6 +2673,7 @@ AC_RUN_IFELSE(
 	struct rlimit rl_zero;
 	int fd, r;
 	fd_set fds;
+	struct timeval tv;
 
 	fd = open("/dev/null", O_RDONLY);
 	FD_ZERO(&fds);
@@ -2680,7 +2681,9 @@ AC_RUN_IFELSE(
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 	setrlimit(RLIMIT_FSIZE, &rl_zero);
 	setrlimit(RLIMIT_NOFILE, &rl_zero);
-	r = select(fd+1, &fds, NULL, NULL, NULL);
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	r = select(fd+1, &fds, NULL, NULL, &tv);
 	exit (r == -1 ? 1 : 0);
 	]])],
 	[AC_MSG_RESULT([yes])
