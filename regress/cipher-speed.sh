@@ -5,12 +5,11 @@ tid="cipher speed"
 
 getbytes ()
 {
-	sed -n '/transferred/s/.*secs (\(.* bytes.sec\).*/\1/p'
+	sed -n -e '/transferred/s/.*secs (\(.* bytes.sec\).*/\1/p' \
+	    -e '/copied/s/.*s, \(.* MB.s\).*/\1/p'
 }
 
 tries="1 2"
-DATA=/bin/ls
-DATA=/bsd
 
 ciphers="aes128-cbc 3des-cbc blowfish-cbc cast128-cbc 
 	arcfour128 arcfour256 arcfour 
@@ -26,7 +25,7 @@ config_defined HAVE_EVP_SHA256 && \
 for c in $ciphers; do n=0; for m in $macs; do
 	trace "proto 2 cipher $c mac $m"
 	for x in $tries; do
-		echon "$c/$m:\t"
+		printf "%-60s" "$c/$m:"
 		( ${SSH} -o 'compression no' \
 			-F $OBJ/ssh_proxy -2 -m $m -c $c somehost \
 			exec sh -c \'"dd of=/dev/null obs=32k"\' \
@@ -47,7 +46,7 @@ ciphers="3des blowfish"
 for c in $ciphers; do
 	trace "proto 1 cipher $c"
 	for x in $tries; do
-		echon "$c:\t"
+		printf "%-60s" "$c:"
 		( ${SSH} -o 'compression no' \
 			-F $OBJ/ssh_proxy -1 -c $c somehost \
 			exec sh -c \'"dd of=/dev/null obs=32k"\' \
