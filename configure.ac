@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.513 2013/03/08 01:14:23 djm Exp $
+# $Id: configure.ac,v 1.514 2013/03/12 00:31:05 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.513 $)
+AC_REVISION($Revision: 1.514 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -480,6 +480,7 @@ case "$host" in
 	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
 	    [AIX 5.2 and 5.3 (and presumably newer) require this])
 	AC_DEFINE([PTY_ZEROREAD], [1], [read(1) can return 0 for a non-closed fd])
+	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
 	;;
 *-*-cygwin*)
 	check_for_libcrypt_later=1
@@ -565,6 +566,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*"],
 		[String used in /etc/passwd to denote locked account])
 	AC_DEFINE([SPT_TYPE], [SPT_PSTAT])
+	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
 	maildir="/var/mail"
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB([xnet], [t_error], ,

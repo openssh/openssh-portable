@@ -2,6 +2,9 @@
  - (dtucker) [regress/Makefile regress/cipher-speed.sh regress/test-exec.sh]
    Improve portability of cipher-speed test, based mostly on a patch from
    Iain Morgan.
+ - (dtucker) [auth.c configure.ac platform.c platform.h] Accept uid 2 ("bin")
+   in addition to root as an owner of system directories on AIX and HP-UX.
+   ok djm@
 
 20130307
  - (dtucker) [INSTALL] Bump documented autoconf version to what we're

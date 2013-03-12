@@ -448,7 +448,7 @@ auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
 		snprintf(err, errlen, "%s is not a regular file", buf);
 		return -1;
 	}
-	if ((stp->st_uid != 0 && stp->st_uid != uid) ||
+	if ((!platform_sys_dir_uid(stp->st_uid) && stp->st_uid != uid) ||
 	    (stp->st_mode & 022) != 0) {
 		snprintf(err, errlen, "bad ownership or modes for file %s",
 		    buf);
@@ -464,7 +464,7 @@ auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
 		strlcpy(buf, cp, sizeof(buf));
 
 		if (stat(buf, &st) < 0 ||
-		    (st.st_uid != 0 && st.st_uid != uid) ||
+		    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
 			snprintf(err, errlen,
 			    "bad ownership or modes for directory %s", buf);
