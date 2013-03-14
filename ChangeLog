@@ -1,3 +1,8 @@
+20120316
+ - (djm) [configure.ac] Disable utmp, wtmp and/or lastlog if the platform
+   is unable to successfully compile them. Based on patch from des AT
+   des.no
+
 20120312
  - (dtucker) [regress/Makefile regress/cipher-speed.sh regress/test-exec.sh]
    Improve portability of cipher-speed test, based mostly on a patch from

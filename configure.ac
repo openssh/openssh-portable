@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.514 2013/03/12 00:31:05 dtucker Exp $
+# $Id: configure.ac,v 1.515 2013/03/14 23:23:07 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.514 $)
+AC_REVISION($Revision: 1.515 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -4439,7 +4439,6 @@ if test -n "$conf_wtmp_location"; then
 		[Define if you want to specify the path to your wtmp file])
 fi
 
-
 dnl wtmpx detection
 AC_MSG_CHECKING([if your system defines WTMPX_FILE])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -4470,6 +4469,41 @@ if test ! -z "$blibpath" ; then
 	LDFLAGS="$LDFLAGS $blibflags$blibpath"
 	AC_MSG_WARN([Please check and edit blibpath in LDFLAGS in Makefile])
 fi
+
+AC_CHECK_MEMBER([struct lastlog.ll_line], [], [
+	AC_DEFINE([DISABLE_LASTLOG])
+	], [
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UTMP_H
+#include <utmp.h>
+#endif
+#ifdef HAVE_UTMPX_H
+#include <utmpx.h>
+#endif
+#ifdef HAVE_LASTLOG_H
+#include <lastlog.h>
+#endif
+	])
+
+AC_CHECK_MEMBER([struct utmp.ut_line], [], [
+	AC_DEFINE([DISABLE_UTMP])
+	AC_DEFINE([DISABLE_WTMP])
+	], [
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UTMP_H
+#include <utmp.h>
+#endif
+#ifdef HAVE_UTMPX_H
+#include <utmpx.h>
+#endif
+#ifdef HAVE_LASTLOG_H
+#include <lastlog.h>
+#endif
+	])
 
 dnl Adding -Werror to CFLAGS early prevents configure tests from running.
 dnl Add now.
