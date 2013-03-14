@@ -1,4 +1,4 @@
-/* $Id: bsd-misc.h,v 1.22 2013/02/15 00:41:36 dtucker Exp $ */
+/* $Id: bsd-misc.h,v 1.23 2013/03/14 23:34:27 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
@@ -78,6 +78,10 @@ struct timespec {
 };
 #endif
 int nanosleep(const struct timespec *, struct timespec *);
+#endif
+
+#ifndef HAVE_USLEEP
+int usleep(unsigned int useconds);
 #endif
 
 #ifndef HAVE_TCGETPGRP

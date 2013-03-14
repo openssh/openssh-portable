@@ -2,6 +2,8 @@
  - (djm) [configure.ac] Disable utmp, wtmp and/or lastlog if the platform
    is unable to successfully compile them. Based on patch from des AT
    des.no
+ - (djm) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
+   Add a usleep replacement for platforms that lack it; ok dtucker
 
 20120312
  - (dtucker) [regress/Makefile regress/cipher-speed.sh regress/test-exec.sh]
