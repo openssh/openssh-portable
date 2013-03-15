@@ -4,6 +4,9 @@
    des.no
  - (djm) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a usleep replacement for platforms that lack it; ok dtucker
+ - (djm) [session.c] FreeBSD needs setusercontext(..., LOGIN_SETUMASK) to
+   occur after UID switch; patch from John Marshall via des AT des.no;
+   ok dtucker@
 
 20120312
  - (dtucker) [regress/Makefile regress/cipher-speed.sh regress/test-exec.sh]

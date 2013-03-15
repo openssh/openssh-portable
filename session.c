@@ -1520,6 +1520,11 @@ do_setusercontext(struct passwd *pw)
 			perror("unable to set user context (setuser)");
 			exit(1);
 		}
+		/* 
+		 * FreeBSD's setusercontext() will not apply the user's
+		 * own umask setting unless running with the user's UID.
+		 */
+		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUMASK);
 #else
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
