@@ -1,3 +1,7 @@
+20120317
+ - (tim) [configure.ac] OpenServer 5 wants lastlog even though it has none
+   of the bits the configure test looks for.
+
 20120316
  - (djm) [configure.ac] Disable utmp, wtmp and/or lastlog if the platform
    is unable to successfully compile them. Based on patch from des AT

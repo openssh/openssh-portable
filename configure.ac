@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.516 2013/03/14 23:34:25 djm Exp $
+# $Id: configure.ac,v 1.517 2013/03/17 03:55:47 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.516 $)
+AC_REVISION($Revision: 1.517 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -897,6 +897,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_FUNCS([getluid setluid])
 	MANTYPE=man
 	TEST_SHELL=ksh
+	SKIP_DISABLE_LASTLOG_DEFINE=yes
 	;;
 *-*-unicosmk*)
 	AC_DEFINE([NO_SSH_LASTLOG], [1],
@@ -4472,7 +4473,9 @@ if test ! -z "$blibpath" ; then
 fi
 
 AC_CHECK_MEMBER([struct lastlog.ll_line], [], [
+    if test x$SKIP_DISABLE_LASTLOG_DEFINE != "xyes" ; then
 	AC_DEFINE([DISABLE_LASTLOG])
+    fi
 	], [
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
