@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.517 2013/03/17 03:55:47 tim Exp $
+# $Id: configure.ac,v 1.518 2013/03/20 01:55:15 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.517 $)
+AC_REVISION($Revision: 1.518 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -721,6 +721,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
 	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
+	AC_DEFINE([BROKEN_STRNVIS], [1], [FreeBSD strnvis does not do what we need])
 	;;
 *-*-bsdi*)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])

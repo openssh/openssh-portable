@@ -40,7 +40,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H)
+#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 #include <vis.h>
 #endif
 

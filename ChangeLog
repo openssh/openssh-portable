@@ -1,3 +1,8 @@
+20120318
+ - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
+   [openbsd-compat/vis.h] FreeBSD's strnvis isn't compatible with OpenBSD's
+   so mark it as broken. Patch from des AT des.no
+
 20120317
  - (tim) [configure.ac] OpenServer 5 wants lastlog even though it has none
    of the bits the configure test looks for.
