@@ -1,3 +1,7 @@
+20120322
+ - (djm) [contrib/ssh-copy-id contrib/ssh-copy-id.1] Updated to Phil
+   Hands' greatly revised version.
+
 20120318
  - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
    [openbsd-compat/vis.h] FreeBSD's strnvis isn't compatible with OpenBSD's
