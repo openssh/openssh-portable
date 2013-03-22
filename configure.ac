@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.518 2013/03/20 01:55:15 djm Exp $
+# $Id: configure.ac,v 1.519 2013/03/22 01:49:15 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.518 $)
+AC_REVISION($Revision: 1.519 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1120,6 +1120,7 @@ AC_ARG_WITH([zlib-version-check],
 AC_MSG_CHECKING([for possibly buggy zlib])
 AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <zlib.h>
 	]],
 	[[

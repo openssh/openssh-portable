@@ -2,6 +2,7 @@
  - (djm) [contrib/ssh-copy-id contrib/ssh-copy-id.1] Updated to Phil
    Hands' greatly revised version.
  - (djm) Release 6.2p1
+ - (dtucker) [configure.ac] Add stdlib.h to zlib check for exit() prototype.
 
 20120318
  - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
