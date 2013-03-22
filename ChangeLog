@@ -3,6 +3,8 @@
    Hands' greatly revised version.
  - (djm) Release 6.2p1
  - (dtucker) [configure.ac] Add stdlib.h to zlib check for exit() prototype.
+ - (dtucker) [includes.h] Check if _GNU_SOURCE is already defined before
+   defining it again.  Prevents warnings if someone, eg, sets it in CFLAGS.
 
 20120318
  - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
