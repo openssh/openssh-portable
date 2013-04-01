@@ -1,3 +1,8 @@
+20130401
+ - (dtucker) [openbsd-compat/bsd-cygwin_util.{c,h}] Don't include windows.h
+   to avoid conflicting definitions of __int64, adding the required bits.
+   Patch from Corinna Vinschen.
+
 20120323
  - (tim) [Makefile.in] remove some duplication introduced in 20130220 commit.
 
