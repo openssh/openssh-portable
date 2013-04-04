@@ -3,16 +3,10 @@
    to avoid conflicting definitions of __int64, adding the required bits.
    Patch from Corinna Vinschen.
 
-20120323
- - (tim) [Makefile.in] remove some duplication introduced in 20130220 commit.
-
 20120322
  - (djm) [contrib/ssh-copy-id contrib/ssh-copy-id.1] Updated to Phil
    Hands' greatly revised version.
  - (djm) Release 6.2p1
- - (dtucker) [configure.ac] Add stdlib.h to zlib check for exit() prototype.
- - (dtucker) [includes.h] Check if _GNU_SOURCE is already defined before
-   defining it again.  Prevents warnings if someone, eg, sets it in CFLAGS.
 
 20120318
  - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
