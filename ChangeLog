@@ -12,6 +12,9 @@
      [ssh.c readconf.c readconf.h]
      Don't complain if IdentityFiles specified in system-wide configs are
      missing.  ok djm, deraadt.
+   - markus@cvs.openbsd.org 2013/02/22 19:13:56
+     [sshconnect.c]
+     support ProxyCommand=- (stdin/out already point to the proxy); ok djm@
 
 20130401
  - (dtucker) [openbsd-compat/bsd-cygwin_util.{c,h}] Don't include windows.h
