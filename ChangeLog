@@ -1,3 +1,11 @@
+20130404
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/02/17 23:16:57
+     [readconf.c ssh.c readconf.h sshconnect2.c]
+     Keep track of which IndentityFile options were manually supplied and which
+     were default options, and don't warn if the latter are missing.
+     ok markus@
+
 20130401
  - (dtucker) [openbsd-compat/bsd-cygwin_util.{c,h}] Don't include windows.h
    to avoid conflicting definitions of __int64, adding the required bits.
