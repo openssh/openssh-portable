@@ -5,6 +5,9 @@
      Keep track of which IndentityFile options were manually supplied and which
      were default options, and don't warn if the latter are missing.
      ok markus@
+   - dtucker@cvs.openbsd.org 2013/02/19 02:12:47
+     [krl.c]
+     Remove bogus include.  ok djm
 
 20130401
  - (dtucker) [openbsd-compat/bsd-cygwin_util.{c,h}] Don't include windows.h
