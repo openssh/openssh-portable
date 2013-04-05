@@ -15,6 +15,10 @@
    - markus@cvs.openbsd.org 2013/02/22 19:13:56
      [sshconnect.c]
      support ProxyCommand=- (stdin/out already point to the proxy); ok djm@
+   - djm@cvs.openbsd.org 2013/02/22 22:09:01
+     [ssh.c]
+     Allow IdenityFile=none; ok markus deraadt (and dtucker for an earlier
+     version)
 
 20130401
  - (dtucker) [openbsd-compat/bsd-cygwin_util.{c,h}] Don't include windows.h

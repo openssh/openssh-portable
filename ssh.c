@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.372 2013/02/22 04:45:09 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.373 2013/02/22 22:09:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1536,7 +1536,8 @@ load_public_identity_files(void)
 		fatal("load_public_identity_files: gethostname: %s",
 		    strerror(errno));
 	for (i = 0; i < options.num_identity_files; i++) {
-		if (n_ids >= SSH_MAX_IDENTITY_FILES) {
+		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
+		    strcasecmp(options.identity_files[i], "none") == 0) {
 			xfree(options.identity_files[i]);
 			continue;
 		}
