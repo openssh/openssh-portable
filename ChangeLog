@@ -1,3 +1,7 @@
+20130418
+ - (djm) [config.guess config.sub] Update to last versions before they switch
+   to GPL3. ok dtucker@
+
 20130404
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2013/02/17 23:16:57
