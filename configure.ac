@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.519 2013/03/22 01:49:15 dtucker Exp $
+# $Id: configure.ac,v 1.520 2013/04/18 11:36:20 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.519 $)
+AC_REVISION($Revision: 1.520 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -137,6 +137,7 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-sign], [-Wno-pointer-sign])
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
+	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
 	AC_MSG_CHECKING([gcc version])
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`

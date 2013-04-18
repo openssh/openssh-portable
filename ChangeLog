@@ -1,6 +1,8 @@
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
    to GPL3. ok dtucker@
+ - (dtucker) [configure.ac] Use -Qunused-arguments to suppress warnings from
+   unused argument warnings (in particular, -fno-builtin-memset) from clang.
 
 20130404
  - (dtucker) OpenBSD CVS Sync
