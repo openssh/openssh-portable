@@ -78,6 +78,9 @@
    - djm@cvs.openbsd.org 2013/04/19 11:10:18
      [ssh.c]
      add -Q to usage; reminded by jmc@
+   - djm@cvs.openbsd.org 2013/04/19 12:07:08
+     [kex.c]
+     remove duplicated list entry pointed out by naddy@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
