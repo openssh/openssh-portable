@@ -56,6 +56,11 @@
    - djm@cvs.openbsd.org 2013/04/18 02:16:07
      [sftp.c]
      make "sftp -q" do what it says on the sticker: hush everything but errors;
+     ok dtucker@
+   - djm@cvs.openbsd.org 2013/04/19 01:00:10
+     [sshd_config.5]
+     document the requirment that the AuthorizedKeysCommand be owned by root;
+     ok dtucker@ markus@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
