@@ -43,6 +43,9 @@
      [log.c log.h ssh.1 ssh.c sshd.8 sshd.c]
      Add -E option to ssh and sshd to append debugging logs to a specified file
      instead of stderr or syslog.  ok markus@, man page help jmc@
+   - dtucker@cvs.openbsd.org 2013/04/07 09:40:27
+     [sshd.8]
+     clarify -e text. suggested by & ok jmc@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
