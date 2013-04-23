@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.261 2012/12/02 20:46:11 djm Exp $ */
+/* $OpenBSD: session.c,v 1.262 2013/03/06 23:35:23 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1529,7 +1529,9 @@ do_setusercontext(struct passwd *pw)
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
 #endif
-	}
+	} else if (options.chroot_directory != NULL &&
+	    strcasecmp(options.chroot_directory, "none") != 0)
+		fatal("server lacks privileges to chroot to ChrootDirectory");
 
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 		fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);

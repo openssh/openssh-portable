@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2013/03/05 20:16:09
      [sshconnect2.c]
      reset pubkey order on partial success; ok djm@
+   - djm@cvs.openbsd.org 2013/03/06 23:35:23
+     [session.c]
+     fatal() when ChrootDirectory specified by running without root privileges;
+     ok markus@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
