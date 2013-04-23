@@ -64,6 +64,11 @@
    - djm@cvs.openbsd.org 2013/04/19 01:01:00
      [ssh-keygen.c]
      fix some memory leaks; bz#2088 ok dtucker@
+   - djm@cvs.openbsd.org 2013/04/19 01:03:01
+     [session.c]
+     reintroduce 1.262 without the connection-killing bug:
+     fatal() when ChrootDirectory specified by running without root privileges;
+     ok markus@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
