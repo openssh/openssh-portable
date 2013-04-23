@@ -46,6 +46,10 @@
    - dtucker@cvs.openbsd.org 2013/04/07 09:40:27
      [sshd.8]
      clarify -e text. suggested by & ok jmc@
+   - djm@cvs.openbsd.org 2013/04/11 02:27:50
+     [packet.c]
+     quiet disconnect notifications on the server from error() back to logit()
+     if it is a normal client closure; bz#2057 ok+feedback dtucker@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
