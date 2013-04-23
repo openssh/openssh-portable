@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.21 2012/12/11 22:51:45 sthen Exp $ */
+/* $OpenBSD: mac.c,v 1.22 2013/04/19 01:06:50 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -50,7 +50,7 @@
 #define SSH_UMAC	2	/* UMAC (not integrated with OpenSSL) */
 #define SSH_UMAC128	3
 
-struct {
+struct macalg {
 	char		*name;
 	int		type;
 	const EVP_MD *	(*mdfunc)(void);
@@ -58,7 +58,9 @@ struct {
 	int		key_len;	/* just for UMAC */
 	int		len;		/* just for UMAC */
 	int		etm;		/* Encrypt-then-MAC */
-} macs[] = {
+};
+
+static const struct macalg macs[] = {
 	/* Encrypt-and-MAC (encrypt-and-authenticate) variants */
 	{ "hmac-sha1",				SSH_EVP, EVP_sha1, 0, 0, 0, 0 },
 	{ "hmac-sha1-96",			SSH_EVP, EVP_sha1, 96, 0, 0, 0 },
@@ -89,38 +91,58 @@ struct {
 	{ NULL,					0, NULL, 0, 0, 0, 0 }
 };
 
+/* Returns a comma-separated list of supported MACs. */
+char *
+mac_alg_list(void)
+{
+	char *ret = NULL;
+	size_t nlen, rlen = 0;
+	const struct macalg *m;
+
+	for (m = macs; m->name != NULL; m++) {
+		if (ret != NULL)
+			ret[rlen++] = '\n';
+		nlen = strlen(m->name);
+		ret = xrealloc(ret, 1, rlen + nlen + 2);
+		memcpy(ret + rlen, m->name, nlen + 1);
+		rlen += nlen;
+	}
+	return ret;
+}
+
 static void
-mac_setup_by_id(Mac *mac, int which)
+mac_setup_by_alg(Mac *mac, const struct macalg *macalg)
 {
 	int evp_len;
-	mac->type = macs[which].type;
+
+	mac->type = macalg->type;
 	if (mac->type == SSH_EVP) {
-		mac->evp_md = (*macs[which].mdfunc)();
+		mac->evp_md = macalg->mdfunc();
 		if ((evp_len = EVP_MD_size(mac->evp_md)) <= 0)
 			fatal("mac %s len %d", mac->name, evp_len);
 		mac->key_len = mac->mac_len = (u_int)evp_len;
 	} else {
-		mac->mac_len = macs[which].len / 8;
-		mac->key_len = macs[which].key_len / 8;
+		mac->mac_len = macalg->len / 8;
+		mac->key_len = macalg->key_len / 8;
 		mac->umac_ctx = NULL;
 	}
-	if (macs[which].truncatebits != 0)
-		mac->mac_len = macs[which].truncatebits / 8;
-	mac->etm = macs[which].etm;
+	if (macalg->truncatebits != 0)
+		mac->mac_len = macalg->truncatebits / 8;
+	mac->etm = macalg->etm;
 }
 
 int
 mac_setup(Mac *mac, char *name)
 {
-	int i;
+	const struct macalg *m;
 
-	for (i = 0; macs[i].name; i++) {
-		if (strcmp(name, macs[i].name) == 0) {
-			if (mac != NULL)
-				mac_setup_by_id(mac, i);
-			debug2("mac_setup: found %s", name);
-			return (0);
-		}
+	for (m = macs; m->name != NULL; m++) {
+		if (strcmp(name, m->name) != 0)
+			continue;
+		if (mac != NULL)
+			mac_setup_by_alg(mac, m);
+		debug2("mac_setup: found %s", name);
+		return (0);
 	}
 	debug2("mac_setup: unknown %s", name);
 	return (-1);

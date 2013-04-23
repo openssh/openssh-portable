@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.100 2013/01/17 23:00:01 djm Exp $ */
+/* $OpenBSD: key.c,v 1.101 2013/04/19 01:06:50 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -892,36 +892,6 @@ key_write(const Key *key, FILE *f)
 }
 
 const char *
-key_type(const Key *k)
-{
-	switch (k->type) {
-	case KEY_RSA1:
-		return "RSA1";
-	case KEY_RSA:
-		return "RSA";
-	case KEY_DSA:
-		return "DSA";
-#ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-		return "ECDSA";
-#endif
-	case KEY_RSA_CERT_V00:
-		return "RSA-CERT-V00";
-	case KEY_DSA_CERT_V00:
-		return "DSA-CERT-V00";
-	case KEY_RSA_CERT:
-		return "RSA-CERT";
-	case KEY_DSA_CERT:
-		return "DSA-CERT";
-#ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA_CERT:
-		return "ECDSA-CERT";
-#endif
-	}
-	return "unknown";
-}
-
-const char *
 key_cert_type(const Key *k)
 {
 	switch (k->cert->type) {
@@ -934,48 +904,59 @@ key_cert_type(const Key *k)
 	}
 }
 
+struct keytype {
+	char *name;
+	char *shortname;
+	int type;
+	int nid;
+	int cert;
+};
+static const struct keytype keytypes[] = {
+	{ NULL, "RSA1", KEY_RSA1, 0, 0 },
+	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0 },
+	{ "ssh-dss", "DSA", KEY_DSA, 0, 0 },
+#ifdef OPENSSL_HAS_ECC
+	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0 },
+	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0 },
+	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0 },
+#endif /* OPENSSL_HAS_ECC */
+	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1 },
+	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1 },
+#ifdef OPENSSL_HAS_ECC
+	{ "ecdsa-sha2-nistp256-cert-v01@openssh.com", "ECDSA-CERT",
+	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1 },
+	{ "ecdsa-sha2-nistp384-cert-v01@openssh.com", "ECDSA-CERT",
+	    KEY_ECDSA_CERT, NID_secp384r1, 1 },
+	{ "ecdsa-sha2-nistp521-cert-v01@openssh.com", "ECDSA-CERT",
+	    KEY_ECDSA_CERT, NID_secp521r1, 1 },
+#endif /* OPENSSL_HAS_ECC */
+	{ "ssh-rsa-cert-v00@openssh.com", "RSA-CERT-V00",
+	    KEY_RSA_CERT_V00, 0, 1 },
+	{ "ssh-dss-cert-v00@openssh.com", "DSA-CERT-V00",
+	    KEY_DSA_CERT_V00, 0, 1 },
+	{ NULL, NULL, -1, -1, 0 }
+};
+
+const char *
+key_type(const Key *k)
+{
+	const struct keytype *kt;
+
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->type == k->type)
+			return kt->shortname;
+	}
+	return "unknown";
+}
+
 static const char *
 key_ssh_name_from_type_nid(int type, int nid)
 {
-	switch (type) {
-	case KEY_RSA:
-		return "ssh-rsa";
-	case KEY_DSA:
-		return "ssh-dss";
-	case KEY_RSA_CERT_V00:
-		return "ssh-rsa-cert-v00@openssh.com";
-	case KEY_DSA_CERT_V00:
-		return "ssh-dss-cert-v00@openssh.com";
-	case KEY_RSA_CERT:
-		return "ssh-rsa-cert-v01@openssh.com";
-	case KEY_DSA_CERT:
-		return "ssh-dss-cert-v01@openssh.com";
-#ifdef OPENSSL_HAS_ECC
-	case KEY_ECDSA:
-		switch (nid) {
-		case NID_X9_62_prime256v1:
-			return "ecdsa-sha2-nistp256";
-		case NID_secp384r1:
-			return "ecdsa-sha2-nistp384";
-		case NID_secp521r1:
-			return "ecdsa-sha2-nistp521";
-		default:
-			break;
-		}
-		break;
-	case KEY_ECDSA_CERT:
-		switch (nid) {
-		case NID_X9_62_prime256v1:
-			return "ecdsa-sha2-nistp256-cert-v01@openssh.com";
-		case NID_secp384r1:
-			return "ecdsa-sha2-nistp384-cert-v01@openssh.com";
-		case NID_secp521r1:
-			return "ecdsa-sha2-nistp521-cert-v01@openssh.com";
-		default:
-			break;
-		}
-		break;
-#endif /* OPENSSL_HAS_ECC */
+	const struct keytype *kt;
+
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->type == type && (kt->nid == 0 || kt->nid == nid))
+			return kt->name;
 	}
 	return "ssh-unknown";
 }
@@ -991,6 +972,56 @@ key_ssh_name_plain(const Key *k)
 {
 	return key_ssh_name_from_type_nid(key_type_plain(k->type),
 	    k->ecdsa_nid);
+}
+
+int
+key_type_from_name(char *name)
+{
+	const struct keytype *kt;
+
+	for (kt = keytypes; kt->type != -1; kt++) {
+		/* Only allow shortname matches for plain key types */
+		if ((kt->name != NULL && strcmp(name, kt->name) == 0) ||
+		    (!kt->cert && strcasecmp(kt->shortname, name) == 0))
+			return kt->type;
+	}
+	debug2("key_type_from_name: unknown key type '%s'", name);
+	return KEY_UNSPEC;
+}
+
+int
+key_ecdsa_nid_from_name(const char *name)
+{
+	const struct keytype *kt;
+
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->type != KEY_ECDSA && kt->type != KEY_ECDSA_CERT)
+			continue;
+		if (kt->name != NULL && strcmp(name, kt->name) == 0)
+			return kt->nid;
+	}
+	debug2("%s: unknown/non-ECDSA key type '%s'", __func__, name);
+	return -1;
+}
+
+char *
+key_alg_list(void)
+{
+	char *ret = NULL;
+	size_t nlen, rlen = 0;
+	const struct keytype *kt;
+
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->name == NULL)
+			continue;
+		if (ret != NULL)
+			ret[rlen++] = '\n';
+		nlen = strlen(kt->name);
+		ret = xrealloc(ret, 1, rlen + nlen + 2);
+		memcpy(ret + rlen, kt->name, nlen + 1);
+		rlen += nlen;
+	}
+	return ret;
 }
 
 u_int
@@ -1245,65 +1276,6 @@ key_from_private(const Key *k)
 	if (key_is_cert(k))
 		key_cert_copy(k, n);
 	return n;
-}
-
-int
-key_type_from_name(char *name)
-{
-	if (strcmp(name, "rsa1") == 0) {
-		return KEY_RSA1;
-	} else if (strcmp(name, "rsa") == 0) {
-		return KEY_RSA;
-	} else if (strcmp(name, "dsa") == 0) {
-		return KEY_DSA;
-	} else if (strcmp(name, "ssh-rsa") == 0) {
-		return KEY_RSA;
-	} else if (strcmp(name, "ssh-dss") == 0) {
-		return KEY_DSA;
-#ifdef OPENSSL_HAS_ECC
-	} else if (strcmp(name, "ecdsa") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp256") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp384") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp521") == 0) {
-		return KEY_ECDSA;
-#endif
-	} else if (strcmp(name, "ssh-rsa-cert-v00@openssh.com") == 0) {
-		return KEY_RSA_CERT_V00;
-	} else if (strcmp(name, "ssh-dss-cert-v00@openssh.com") == 0) {
-		return KEY_DSA_CERT_V00;
-	} else if (strcmp(name, "ssh-rsa-cert-v01@openssh.com") == 0) {
-		return KEY_RSA_CERT;
-	} else if (strcmp(name, "ssh-dss-cert-v01@openssh.com") == 0) {
-		return KEY_DSA_CERT;
-#ifdef OPENSSL_HAS_ECC
-	} else if (strcmp(name, "ecdsa-sha2-nistp256-cert-v01@openssh.com") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp384-cert-v01@openssh.com") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp521-cert-v01@openssh.com") == 0) {
-		return KEY_ECDSA_CERT;
-#endif
-	}
-
-	debug2("key_type_from_name: unknown key type '%s'", name);
-	return KEY_UNSPEC;
-}
-
-int
-key_ecdsa_nid_from_name(const char *name)
-{
-#ifdef OPENSSL_HAS_ECC
-	if (strcmp(name, "ecdsa-sha2-nistp256") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp256-cert-v01@openssh.com") == 0)
-		return NID_X9_62_prime256v1;
-	if (strcmp(name, "ecdsa-sha2-nistp384") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp384-cert-v01@openssh.com") == 0)
-		return NID_secp384r1;
-	if (strcmp(name, "ecdsa-sha2-nistp521") == 0 ||
-	    strcmp(name, "ecdsa-sha2-nistp521-cert-v01@openssh.com") == 0)
-		return NID_secp521r1;
-#endif /* OPENSSL_HAS_ECC */
-
-	debug2("%s: unknown/non-ECDSA key type '%s'", __func__, name);
-	return -1;
 }
 
 int

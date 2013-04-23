@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.182 2013/04/11 02:27:50 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.183 2013/04/19 01:06:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -215,7 +215,7 @@ alloc_session_state(void)
 void
 packet_set_connection(int fd_in, int fd_out)
 {
-	Cipher *none = cipher_by_name("none");
+	const Cipher *none = cipher_by_name("none");
 
 	if (none == NULL)
 		fatal("packet_set_connection: cannot load cipher 'none'");
@@ -545,7 +545,7 @@ packet_start_compression(int level)
 void
 packet_set_encryption_key(const u_char *key, u_int keylen, int number)
 {
-	Cipher *cipher = cipher_by_number(number);
+	const Cipher *cipher = cipher_by_number(number);
 
 	if (cipher == NULL)
 		fatal("packet_set_encryption_key: unknown cipher number %d", number);

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.375 2013/04/07 02:10:33 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.376 2013/04/19 01:06:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -327,7 +327,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:E:F:I:KL:MNO:PR:S:TVw:W:XYy")) != -1) {
+	    "ACD:E:F:I:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -388,6 +388,22 @@ main(int ac, char **av)
 			break;
 		case 'P':	/* deprecated */
 			options.use_privileged_port = 0;
+			break;
+		case 'Q':	/* deprecated */
+			cp = NULL;
+			if (strcasecmp(optarg, "cipher") == 0)
+				cp = cipher_alg_list();
+			else if (strcasecmp(optarg, "mac") == 0)
+				cp = mac_alg_list();
+			else if (strcasecmp(optarg, "kex") == 0)
+				cp = kex_alg_list();
+			else if (strcasecmp(optarg, "key") == 0)
+				cp = key_alg_list();
+			if (cp == NULL)
+				fatal("Unsupported query \"%s\"", optarg);
+			printf("%s\n", cp);
+			free(cp);
+			exit(0);
 			break;
 		case 'a':
 			options.forward_agent = 0;

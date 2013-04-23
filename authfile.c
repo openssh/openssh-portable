@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.95 2013/01/08 18:49:04 markus Exp $ */
+/* $OpenBSD: authfile.c,v 1.96 2013/04/19 01:06:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -89,7 +89,7 @@ key_private_rsa1_to_blob(Key *key, Buffer *blob, const char *passphrase,
 	u_char buf[100], *cp;
 	int i, cipher_num;
 	CipherContext ciphercontext;
-	Cipher *cipher;
+	const Cipher *cipher;
 	u_int32_t rnd;
 
 	/*
@@ -421,7 +421,7 @@ key_parse_private_rsa1(Buffer *blob, const char *passphrase, char **commentp)
 	Buffer decrypted;
 	u_char *cp;
 	CipherContext ciphercontext;
-	Cipher *cipher;
+	const Cipher *cipher;
 	Key *prv = NULL;
 	Buffer copy;
 
