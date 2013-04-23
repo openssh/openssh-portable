@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.376 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.377 2013/04/19 11:10:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,7 +199,7 @@ usage(void)
 "usage: ssh [-1246AaCfgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
 "           [-D [bind_address:]port] [-E log_file] [-e escape_char]\n"
 "           [-F configfile] [-I pkcs11] [-i identity_file]\n"
-"           [-L [bind_address:]port:host:hostport]\n"
+"           [-L [bind_address:]port:host:hostport] [-Q protocol_feature]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
 "           [-W host:port] [-w local_tun[:remote_tun]]\n"

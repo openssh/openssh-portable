@@ -75,6 +75,9 @@
      add the ability to query supported ciphers, MACs, key type and KEX
      algorithms to ssh. Includes some refactoring of KEX and key type handling
      to be table-driven; ok markus@
+   - djm@cvs.openbsd.org 2013/04/19 11:10:18
+     [ssh.c]
+     add -Q to usage; reminded by jmc@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
