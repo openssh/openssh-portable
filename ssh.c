@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.374 2013/03/08 06:32:58 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.375 2013/04/07 02:10:33 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -197,8 +197,8 @@ usage(void)
 {
 	fprintf(stderr,
 "usage: ssh [-1246AaCfgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
-"           [-D [bind_address:]port] [-e escape_char] [-F configfile]\n"
-"           [-I pkcs11] [-i identity_file]\n"
+"           [-D [bind_address:]port] [-E log_file] [-e escape_char]\n"
+"           [-F configfile] [-I pkcs11] [-i identity_file]\n"
 "           [-L [bind_address:]port:host:hostport]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
@@ -238,7 +238,7 @@ int
 main(int ac, char **av)
 {
 	int i, r, opt, exit_status, use_syslog;
-	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg;
+	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 	struct stat st;
 	struct passwd *pw;
@@ -322,11 +322,12 @@ main(int ac, char **av)
 	/* Parse command-line arguments. */
 	host = NULL;
 	use_syslog = 0;
+	logfile = NULL;
 	argv0 = av[0];
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:F:I:KL:MNO:PR:S:TVw:W:XYy")) != -1) {
+	    "ACD:E:F:I:KL:MNO:PR:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -355,6 +356,9 @@ main(int ac, char **av)
 			break;
 		case 'y':
 			use_syslog = 1;
+			break;
+		case 'E':
+			logfile = xstrdup(optarg);
 			break;
 		case 'Y':
 			options.forward_x11 = 1;
@@ -427,9 +431,8 @@ main(int ac, char **av)
 			} else {
 				if (options.log_level < SYSLOG_LEVEL_DEBUG3)
 					options.log_level++;
-				break;
 			}
-			/* FALLTHROUGH */
+			break;
 		case 'V':
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE, SSLeay_version(SSLEAY_VERSION));
@@ -663,11 +666,20 @@ main(int ac, char **av)
 
 	/*
 	 * Initialize "log" output.  Since we are the client all output
-	 * actually goes to stderr.
+	 * goes to stderr unless otherwise specified by -y or -E.
 	 */
+	if (use_syslog && logfile != NULL)
+		fatal("Can't specify both -y and -E");
+	if (logfile != NULL) {
+		log_redirect_stderr_to(logfile);
+		xfree(logfile);
+	}
 	log_init(argv0,
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    SYSLOG_FACILITY_USER, !use_syslog);
+
+	if (debug_flag)
+		logit("%s, %s", SSH_VERSION, SSLeay_version(SSLEAY_VERSION));
 
 	/*
 	 * Read per-user configuration file.  Ignore the system wide config

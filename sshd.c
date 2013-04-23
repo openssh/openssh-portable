@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.398 2013/04/06 16:07:00 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.399 2013/04/07 02:10:33 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -900,8 +900,9 @@ usage(void)
 	    SSH_RELEASE, SSLeay_version(SSLEAY_VERSION));
 	fprintf(stderr,
 "usage: sshd [-46DdeiqTt] [-b bits] [-C connection_spec] [-c host_cert_file]\n"
-"            [-f config_file] [-g login_grace_time] [-h host_key_file]\n"
-"            [-k key_gen_time] [-o option] [-p port] [-u len]\n"
+"            [-E log_file] [-f config_file] [-g login_grace_time]\n"
+"            [-h host_key_file] [-k key_gen_time] [-o option] [-p port]\n"
+"            [-u len]\n"
 	);
 	exit(1);
 }
@@ -1335,7 +1336,7 @@ main(int ac, char **av)
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
-	char *line;
+	char *line, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
 	u_int n;
 	u_int64_t ibytes, obytes;
@@ -1373,7 +1374,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:C:dDeiqrtQRT46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:C:dDeE:iqrtQRT46")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
@@ -1402,6 +1403,9 @@ main(int ac, char **av)
 		case 'D':
 			no_daemon_flag = 1;
 			break;
+		case 'E':
+			logfile = xstrdup(optarg);
+			/* FALLTHROUGH */
 		case 'e':
 			log_stderr = 1;
 			break;
@@ -1499,6 +1503,11 @@ main(int ac, char **av)
 
 	OpenSSL_add_all_algorithms();
 
+	/* If requested, redirect the logs to the specified logfile. */
+	if (logfile != NULL) {
+		log_redirect_stderr_to(logfile);
+		xfree(logfile);
+	}
 	/*
 	 * Force logging to stderr until we have loaded the private host
 	 * key (unless started from inetd)

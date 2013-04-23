@@ -39,6 +39,10 @@
    - markus@cvs.openbsd.org 2013/04/06 16:07:00
      [channels.c sshd.c]
      handle ECONNABORTED for accept(); ok deraadt some time ago...
+   - dtucker@cvs.openbsd.org 2013/04/07 02:10:33
+     [log.c log.h ssh.1 ssh.c sshd.8 sshd.c]
+     Add -E option to ssh and sshd to append debugging logs to a specified file
+     instead of stderr or syslog.  ok markus@, man page help jmc@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
