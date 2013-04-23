@@ -61,6 +61,9 @@
      [sshd_config.5]
      document the requirment that the AuthorizedKeysCommand be owned by root;
      ok dtucker@ markus@
+   - djm@cvs.openbsd.org 2013/04/19 01:01:00
+     [ssh-keygen.c]
+     fix some memory leaks; bz#2088 ok dtucker@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
