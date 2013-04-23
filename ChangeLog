@@ -32,6 +32,10 @@
      [pathnames.h]
      use the existing _PATH_SSH_USER_RC define to construct the other
      pathnames; bz#2077, ok dtucker@ (no binary change)
+   - djm@cvs.openbsd.org 2013/04/05 00:58:51
+     [mux.c]
+     cleanup mux-created channels that are in SSH_CHANNEL_OPENING state too
+     (in addition to ones already in OPEN); bz#2079, ok dtucker@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
