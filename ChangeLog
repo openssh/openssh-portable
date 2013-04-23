@@ -50,6 +50,9 @@
      [packet.c]
      quiet disconnect notifications on the server from error() back to logit()
      if it is a normal client closure; bz#2057 ok+feedback dtucker@
+   - dtucker@cvs.openbsd.org 2013/04/17 09:04:09
+     [session.c]
+     revert rev 1.262; it fails because uid is already set here.  ok djm@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
