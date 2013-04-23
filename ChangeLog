@@ -81,6 +81,9 @@
    - djm@cvs.openbsd.org 2013/04/19 12:07:08
      [kex.c]
      remove duplicated list entry pointed out by naddy@
+   - dtucker@cvs.openbsd.org 2013/04/22 01:17:18
+     [mux.c]
+     typo in debug output: evitval->exitval
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch

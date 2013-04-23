@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.39 2013/04/05 00:58:51 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.40 2013/04/22 01:17:18 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1101,7 +1101,7 @@ mux_exit_message(Channel *c, int exitval)
 	Buffer m;
 	Channel *mux_chan;
 
-	debug3("%s: channel %d: exit message, evitval %d", __func__, c->self,
+	debug3("%s: channel %d: exit message, exitval %d", __func__, c->self,
 	    exitval);
 
 	if ((mux_chan = channel_by_id(c->ctl_chan)) == NULL)
