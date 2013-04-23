@@ -25,6 +25,9 @@
    - djm@cvs.openbsd.org 2013/03/08 06:32:58
      [ssh.c]
      allow "ssh -f none ..." ok markus@
+   - djm@cvs.openbsd.org 2013/04/05 00:14:00
+     [auth2-gss.c krl.c sshconnect2.c]
+     hush some {unused, printf type} warnings
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch

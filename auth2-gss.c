@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.18 2012/12/02 20:34:09 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.19 2013/04/05 00:14:00 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -229,13 +229,10 @@ static void
 input_gssapi_exchange_complete(int type, u_int32_t plen, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
-	Gssctxt *gssctxt;
 	int authenticated;
 
 	if (authctxt == NULL || (authctxt->methoddata == NULL && !use_privsep))
 		fatal("No authentication or GSSAPI context");
-
-	gssctxt = authctxt->methoddata;
 
 	/*
 	 * We don't need to check the status, because we're only enabled in

@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.10 2013/02/19 02:12:47 dtucker Exp $ */
+/* $OpenBSD: krl.c,v 1.11 2013/04/05 00:14:00 djm Exp $ */
 
 #include "includes.h"
 
@@ -502,8 +502,11 @@ choose_next_state(int current_state, u_int64_t contig, int final,
 	}
 	debug3("%s: contig %llu last_gap %llu next_gap %llu final %d, costs:"
 	    "list %llu range %llu bitmap %llu new bitmap %llu, "
-	    "selected 0x%02x%s", __func__, contig, last_gap, next_gap, final,
-	    cost_list, cost_range, cost_bitmap, cost_bitmap_restart, new_state,
+	    "selected 0x%02x%s", __func__, (long long unsigned)contig,
+	    (long long unsigned)last_gap, (long long unsigned)next_gap, final,
+	    (long long unsigned)cost_list, (long long unsigned)cost_range,
+	    (long long unsigned)cost_bitmap,
+	    (long long unsigned)cost_bitmap_restart, new_state,
 	    *force_new_section ? " restart" : "");
 	return new_state;
 }
@@ -539,7 +542,8 @@ revoked_certs_generate(struct revoked_certs *rc, Buffer *buf)
 	     rs != NULL;
 	     rs = RB_NEXT(revoked_serial_tree, &rc->revoked_serials, rs)) {
 		debug3("%s: serial %llu:%llu state 0x%02x", __func__,
-		    rs->lo, rs->hi, state);
+		    (long long unsigned)rs->lo, (long long unsigned)rs->hi,
+		    state);
 
 		/* Check contiguous length and gap to next section (if any) */
 		nrs = RB_NEXT(revoked_serial_tree, &rc->revoked_serials, rs);
@@ -928,8 +932,9 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 	}
 
 	format_timestamp(krl->generated_date, timestamp, sizeof(timestamp));
-	debug("KRL version %llu generated at %s%s%s", krl->krl_version,
-	    timestamp, *krl->comment ? ": " : "", krl->comment);
+	debug("KRL version %llu generated at %s%s%s",
+	    (long long unsigned)krl->krl_version, timestamp,
+	    *krl->comment ? ": " : "", krl->comment);
 
 	/*
 	 * 1st pass: verify signatures, if any. This is done to avoid
