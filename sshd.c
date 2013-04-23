@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.397 2013/02/11 21:21:58 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.398 2013/04/06 16:07:00 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1183,8 +1183,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			*newsock = accept(listen_socks[i],
 			    (struct sockaddr *)&from, &fromlen);
 			if (*newsock < 0) {
-				if (errno != EINTR && errno != EAGAIN &&
-				    errno != EWOULDBLOCK)
+				if (errno != EINTR && errno != EWOULDBLOCK &&
+				    errno != ECONNABORTED && errno != EAGAIN)
 					error("accept: %.100s",
 					    strerror(errno));
 				if (errno == EMFILE || errno == ENFILE)

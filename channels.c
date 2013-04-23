@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.319 2012/12/02 20:46:11 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.320 2013/04/06 16:07:00 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1324,7 +1324,7 @@ channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
 	struct sockaddr_storage addr;
-	int newsock;
+	int newsock, oerrno;
 	socklen_t addrlen;
 	char buf[16384], *remote_ipaddr;
 	int remote_port;
@@ -1334,12 +1334,16 @@ channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
 		if (c->single_connection) {
+			oerrno = errno;
 			debug2("single_connection: closing X11 listener.");
 			channel_close_fd(&c->sock);
 			chan_mark_dead(c);
+			errno = oerrno;
 		}
 		if (newsock < 0) {
-			error("accept: %.100s", strerror(errno));
+			if (errno != EINTR && errno != EWOULDBLOCK &&
+			    errno != ECONNABORTED)
+				error("accept: %.100s", strerror(errno));
 			if (errno == EMFILE || errno == ENFILE)
 				c->notbefore = time(NULL) + 1;
 			return;
@@ -1484,7 +1488,9 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, (struct sockaddr *)&addr, &addrlen);
 		if (newsock < 0) {
-			error("accept: %.100s", strerror(errno));
+			if (errno != EINTR && errno != EWOULDBLOCK &&
+			    errno != ECONNABORTED)
+				error("accept: %.100s", strerror(errno));
 			if (errno == EMFILE || errno == ENFILE)
 				c->notbefore = time(NULL) + 1;
 			return;

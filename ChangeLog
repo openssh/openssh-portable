@@ -36,6 +36,9 @@
      [mux.c]
      cleanup mux-created channels that are in SSH_CHANNEL_OPENING state too
      (in addition to ones already in OPEN); bz#2079, ok dtucker@
+   - markus@cvs.openbsd.org 2013/04/06 16:07:00
+     [channels.c sshd.c]
+     handle ECONNABORTED for accept(); ok deraadt some time ago...
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
