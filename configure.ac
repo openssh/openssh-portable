@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.520 2013/04/18 11:36:20 dtucker Exp $
+# $Id: configure.ac,v 1.521 2013/04/23 04:25:53 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.520 $)
+AC_REVISION($Revision: 1.521 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3303,9 +3303,16 @@ OSSH_CHECK_HEADER_FOR_FIELD([ut_time], [utmpx.h], [HAVE_TIME_IN_UTMPX])
 OSSH_CHECK_HEADER_FOR_FIELD([ut_tv], [utmpx.h], [HAVE_TV_IN_UTMPX])
 
 AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_CHECK_MEMBERS([struct passwd.pw_gecos, struct passwd.pw_class,
+struct passwd.pw_change, struct passwd.pw_expire],
+[], [], [[
+#include <sys/types.h>
+#include <pwd.h>
+]])
+
 AC_CHECK_MEMBER([struct __res_state.retrans], [], [AC_DEFINE([__res_state], [state],
 	[Define if we don't have struct __res_state in resolv.h])],
-[
+[[
 #include <stdio.h>
 #if HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -3313,7 +3320,7 @@ AC_CHECK_MEMBER([struct __res_state.retrans], [], [AC_DEFINE([__res_state], [sta
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
-])
+]])
 
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [
@@ -3341,45 +3348,6 @@ AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
 if test "x$ac_cv_have___ss_family_in_struct_ss" = "xyes" ; then
 	AC_DEFINE([HAVE___SS_FAMILY_IN_SS], [1],
 		[Fields in struct sockaddr_storage])
-fi
-
-AC_CACHE_CHECK([for pw_class field in struct passwd],
-		ac_cv_have_pw_class_in_struct_passwd, [
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
-	[[ struct passwd p; p.pw_class = 0; ]])],
-	[ ac_cv_have_pw_class_in_struct_passwd="yes" ],
-	[ ac_cv_have_pw_class_in_struct_passwd="no" 
-	])
-])
-if test "x$ac_cv_have_pw_class_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE([HAVE_PW_CLASS_IN_PASSWD], [1],
-		[Define if your password has a pw_class field])
-fi
-
-AC_CACHE_CHECK([for pw_expire field in struct passwd],
-		ac_cv_have_pw_expire_in_struct_passwd, [
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
-	[[ struct passwd p; p.pw_expire = 0; ]])],
-	[ ac_cv_have_pw_expire_in_struct_passwd="yes" ],
-	[ ac_cv_have_pw_expire_in_struct_passwd="no" 
-	])
-])
-if test "x$ac_cv_have_pw_expire_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE([HAVE_PW_EXPIRE_IN_PASSWD], [1],
-		[Define if your password has a pw_expire field])
-fi
-
-AC_CACHE_CHECK([for pw_change field in struct passwd],
-		ac_cv_have_pw_change_in_struct_passwd, [
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
-	[[ struct passwd p; p.pw_change = 0; ]])],
-	[ ac_cv_have_pw_change_in_struct_passwd="yes" ],
-	[ ac_cv_have_pw_change_in_struct_passwd="no" 
-	])
-])
-if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE([HAVE_PW_CHANGE_IN_PASSWD], [1],
-		[Define if your password has a pw_change field])
 fi
 
 dnl make sure we're using the real structure members and not defines

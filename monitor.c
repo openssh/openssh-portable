@@ -778,8 +778,10 @@ mm_answer_pwnamallow(int sock, Buffer *m)
 	buffer_put_string(m, pwent, sizeof(struct passwd));
 	buffer_put_cstring(m, pwent->pw_name);
 	buffer_put_cstring(m, "*");
+#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
 	buffer_put_cstring(m, pwent->pw_gecos);
-#ifdef HAVE_PW_CLASS_IN_PASSWD
+#endif
+#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
 	buffer_put_cstring(m, pwent->pw_class);
 #endif
 	buffer_put_cstring(m, pwent->pw_dir);

@@ -1,3 +1,8 @@
+20130423
+ - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support
+   platforms, such as Android, that lack struct passwd.pw_gecos. Report
+   and initial patch from Nathan Osman bz#2086; feedback tim@ ok dtucker@
+
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
    to GPL3. ok dtucker@
