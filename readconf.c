@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.196 2013/02/22 04:45:08 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.197 2013/03/06 23:36:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1232,8 +1232,6 @@ initialize_options(Options * options)
 void
 fill_default_options(Options * options)
 {
-	int len;
-
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
