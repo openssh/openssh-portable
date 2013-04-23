@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.34 2013/02/14 21:35:59 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.35 2013/03/07 00:19:59 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -75,7 +75,7 @@ userauth_pubkey(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg;
+	char *pkalg, *userstyle;
 	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int have_sig, pktype;
@@ -127,7 +127,11 @@ userauth_pubkey(Authctxt *authctxt)
 		}
 		/* reconstruct packet */
 		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
-		buffer_put_cstring(&b, authctxt->user);
+		xasprintf(&userstyle, "%s%s%s", authctxt->user,
+		    authctxt->style ? ":" : "",
+		    authctxt->style ? authctxt->style : "");
+		buffer_put_cstring(&b, userstyle);
+		free(userstyle);
 		buffer_put_cstring(&b,
 		    datafellows & SSH_BUG_PKSERVICE ?
 		    "ssh-userauth" :

@@ -13,6 +13,12 @@
    - djm@cvs.openbsd.org 2013/03/06 23:36:53
      [readconf.c]
      g/c unused variable (-Wunused)
+   - djm@cvs.openbsd.org 2013/03/07 00:19:59
+     [auth2-pubkey.c monitor.c]
+     reconstruct the original username that was sent by the client, which may
+     have included a style (e.g. "root:skey") when checking public key
+     signatures. Fixes public key and hostbased auth when the client specified
+     a style; ok markus@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch

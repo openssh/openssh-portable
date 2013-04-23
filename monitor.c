@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.120 2012/12/11 22:16:21 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.121 2013/03/07 00:19:59 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1237,7 +1237,7 @@ static int
 monitor_valid_userblob(u_char *data, u_int datalen)
 {
 	Buffer b;
-	char *p;
+	char *p, *userstyle;
 	u_int len;
 	int fail = 0;
 
@@ -1262,19 +1262,23 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 	}
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
-	p = buffer_get_string(&b, NULL);
-	if (strcmp(authctxt->user, p) != 0) {
+	p = buffer_get_cstring(&b, NULL);
+	xasprintf(&userstyle, "%s%s%s", authctxt->user,
+	    authctxt->style ? ":" : "",
+	    authctxt->style ? authctxt->style : "");
+	if (strcmp(userstyle, p) != 0) {
 		logit("wrong user name passed to monitor: expected %s != %.100s",
-		    authctxt->user, p);
+		    userstyle, p);
 		fail++;
 	}
+	xfree(userstyle);
 	xfree(p);
 	buffer_skip_string(&b);
 	if (datafellows & SSH_BUG_PKAUTH) {
 		if (!buffer_get_char(&b))
 			fail++;
 	} else {
-		p = buffer_get_string(&b, NULL);
+		p = buffer_get_cstring(&b, NULL);
 		if (strcmp("publickey", p) != 0)
 			fail++;
 		xfree(p);
@@ -1294,7 +1298,7 @@ monitor_valid_hostbasedblob(u_char *data, u_int datalen, char *cuser,
     char *chost)
 {
 	Buffer b;
-	char *p;
+	char *p, *userstyle;
 	u_int len;
 	int fail = 0;
 
@@ -1310,15 +1314,19 @@ monitor_valid_hostbasedblob(u_char *data, u_int datalen, char *cuser,
 
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
-	p = buffer_get_string(&b, NULL);
-	if (strcmp(authctxt->user, p) != 0) {
+	p = buffer_get_cstring(&b, NULL);
+	xasprintf(&userstyle, "%s%s%s", authctxt->user,
+	    authctxt->style ? ":" : "",
+	    authctxt->style ? authctxt->style : "");
+	if (strcmp(userstyle, p) != 0) {
 		logit("wrong user name passed to monitor: expected %s != %.100s",
-		    authctxt->user, p);
+		    userstyle, p);
 		fail++;
 	}
+	free(userstyle);
 	xfree(p);
 	buffer_skip_string(&b);	/* service */
-	p = buffer_get_string(&b, NULL);
+	p = buffer_get_cstring(&b, NULL);
 	if (strcmp(p, "hostbased") != 0)
 		fail++;
 	xfree(p);
