@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.142 2013/02/08 00:41:12 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.143 2013/04/18 02:16:07 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -75,6 +75,9 @@ int batchmode = 0;
 
 /* PID of ssh transport process */
 static pid_t sshpid = -1;
+
+/* Suppress diagnositic messages */
+int quiet = 0;
 
 /* This is set to 0 if the progressmeter is not desired. */
 int showprogress = 1;
@@ -565,7 +568,8 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		}
 		xfree(tmp);
 
-		printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
+		if (!quiet)
+			printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL, 
 			    pflag || global_pflag, 1) == -1)
@@ -650,7 +654,8 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		}
 		xfree(tmp);
 
-		printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
+		if (!quiet)
+			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (upload_dir(conn, g.gl_pathv[i], abs_dst,
 			    pflag || global_pflag, 1) == -1)
@@ -1335,7 +1340,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-			printf("Removing %s\n", g.gl_pathv[i]);
+			if (!quiet)
+				printf("Removing %s\n", g.gl_pathv[i]);
 			err = do_rm(conn, g.gl_pathv[i]);
 			if (err != 0 && err_abort)
 				break;
@@ -1431,7 +1437,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		a.perm = n_arg;
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-			printf("Changing mode on %s\n", g.gl_pathv[i]);
+			if (!quiet)
+				printf("Changing mode on %s\n", g.gl_pathv[i]);
 			err = do_setstat(conn, g.gl_pathv[i], &a);
 			if (err != 0 && err_abort)
 				break;
@@ -1460,10 +1467,14 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 			}
 			aa->flags &= SSH2_FILEXFER_ATTR_UIDGID;
 			if (cmdnum == I_CHOWN) {
-				printf("Changing owner on %s\n", g.gl_pathv[i]);
+				if (!quiet)
+					printf("Changing owner on %s\n",
+					    g.gl_pathv[i]);
 				aa->uid = n_arg;
 			} else {
-				printf("Changing group on %s\n", g.gl_pathv[i]);
+				if (!quiet)
+					printf("Changing group on %s\n",
+					    g.gl_pathv[i]);
 				aa->gid = n_arg;
 			}
 			err = do_setstat(conn, g.gl_pathv[i], aa);
@@ -1922,7 +1933,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		dir = make_absolute(dir, remote_path);
 
 		if (remote_is_dir(conn, dir) && file2 == NULL) {
-			printf("Changing to: %s\n", dir);
+			if (!quiet)
+				printf("Changing to: %s\n", dir);
 			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
 			if (parse_dispatch_command(conn, cmd,
 			    &remote_path, 1) != 0) {
@@ -2143,6 +2155,8 @@ main(int argc, char **argv)
 			addargs(&args, "%s", optarg);
 			break;
 		case 'q':
+			ll = SYSLOG_LEVEL_ERROR;
+			quiet = 1;
 			showprogress = 0;
 			addargs(&args, "-%c", ch);
 			break;
@@ -2178,7 +2192,7 @@ main(int argc, char **argv)
 			    (infile = fopen(optarg, "r")) == NULL)
 				fatal("%s (%s).", strerror(errno), optarg);
 			showprogress = 0;
-			batchmode = 1;
+			quiet = batchmode = 1;
 			addargs(&args, "-obatchmode yes");
 			break;
 		case 'p':
@@ -2275,7 +2289,7 @@ main(int argc, char **argv)
 	if (conn == NULL)
 		fatal("Couldn't initialise connection to server");
 
-	if (!batchmode) {
+	if (!quiet) {
 		if (sftp_direct == NULL)
 			fprintf(stderr, "Connected to %s.\n", host);
 		else

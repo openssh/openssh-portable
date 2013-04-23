@@ -53,6 +53,9 @@
    - dtucker@cvs.openbsd.org 2013/04/17 09:04:09
      [session.c]
      revert rev 1.262; it fails because uid is already set here.  ok djm@
+   - djm@cvs.openbsd.org 2013/04/18 02:16:07
+     [sftp.c]
+     make "sftp -q" do what it says on the sticker: hush everything but errors;
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
