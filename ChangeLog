@@ -2,6 +2,10 @@
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support
    platforms, such as Android, that lack struct passwd.pw_gecos. Report
    and initial patch from Nathan Osman bz#2086; feedback tim@ ok dtucker@
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2013/03/05 20:16:09
+     [sshconnect2.c]
+     reset pubkey order on partial success; ok djm@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
