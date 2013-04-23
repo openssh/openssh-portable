@@ -22,6 +22,9 @@
    - markus@cvs.openbsd.org 2013/03/07 19:27:25
      [auth.h auth2-chall.c auth2.c monitor.c sshd_config.5]
      add submethod support to AuthenticationMethods; ok and freedback djm@
+   - djm@cvs.openbsd.org 2013/03/08 06:32:58
+     [ssh.c]
+     allow "ssh -f none ..." ok markus@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch

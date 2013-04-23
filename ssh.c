@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.373 2013/02/22 22:09:01 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.374 2013/03/08 06:32:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -674,7 +674,8 @@ main(int ac, char **av)
 	 * file if the user specifies a config file on the command line.
 	 */
 	if (config != NULL) {
-		if (!read_config_file(config, host, &options, SSHCONF_USERCONF))
+		if (strcasecmp(config, "none") != 0 &&
+		    !read_config_file(config, host, &options, SSHCONF_USERCONF))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
