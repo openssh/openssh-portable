@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.156 2013/02/06 00:20:42 dtucker Exp $
-.Dd $Mdocdate: February 6 2013 $
+.\" $OpenBSD: sshd_config.5,v 1.157 2013/03/07 19:27:25 markus Exp $
+.Dd $Mdocdate: March 7 2013 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -179,6 +179,20 @@ either password or keyboard interactive authentication.
 Only methods that are next in one or more lists are offered at each stage,
 so for this example, it would not be possible to attempt password or
 keyboard-interactive authentication before public key.
+.Pp
+For keyboard interactive authentication it is also possible to
+restrict authentication to a specific device by appending a
+colon followed by the device identifier
+.Dq bsdauth ,
+.Dq pam ,
+or
+.Dq skey ,
+depending on the server configuration.
+For example,
+.Dq keyboard-interactive:bsdauth
+would restrict keyboard interactive authentication to the
+.Dq bsdauth
+device.
 .Pp
 This option is only available for SSH protocol 2 and will yield a fatal
 error if enabled if protocol 1 is also enabled.

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.121 2013/03/07 00:19:59 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.122 2013/03/07 19:27:25 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -392,7 +392,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 				    "with SSH protocol 1");
 			if (authenticated &&
 			    !auth2_update_methods_lists(authctxt,
-			    auth_method)) {
+			    auth_method, auth_submethod)) {
 				debug3("%s: method %s: partial", __func__,
 				    auth_method);
 				authenticated = 0;
@@ -949,9 +949,10 @@ mm_answer_bsdauthrespond(int sock, Buffer *m)
 	debug3("%s: sending authenticated: %d", __func__, authok);
 	mm_request_send(sock, MONITOR_ANS_BSDAUTHRESPOND, m);
 
-	if (compat20)
-		auth_method = "keyboard-interactive"; /* XXX auth_submethod */
-	else
+	if (compat20) {
+		auth_method = "keyboard-interactive";
+		auth_submethod = "bsdauth";
+	} else
 		auth_method = "bsdauth";
 
 	return (authok != 0);

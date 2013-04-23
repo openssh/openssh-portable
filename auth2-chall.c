@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.36 2012/12/03 00:14:06 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.37 2013/03/07 19:27:25 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -155,7 +155,7 @@ kbdint_free(KbdintAuthctxt *kbdintctxt)
 }
 /* get next device */
 static int
-kbdint_next_device(KbdintAuthctxt *kbdintctxt)
+kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 {
 	size_t len;
 	char *t;
@@ -169,9 +169,13 @@ kbdint_next_device(KbdintAuthctxt *kbdintctxt)
 
 		if (len == 0)
 			break;
-		for (i = 0; devices[i]; i++)
+		for (i = 0; devices[i]; i++) {
+			if (!auth2_method_allowed(authctxt,
+			    "keyboard-interactive", devices[i]->name))
+				continue;
 			if (strncmp(kbdintctxt->devices, devices[i]->name, len) == 0)
 				kbdintctxt->device = devices[i];
+		}
 		t = kbdintctxt->devices;
 		kbdintctxt->devices = t[len] ? xstrdup(t+len+1) : NULL;
 		xfree(t);
@@ -221,7 +225,7 @@ auth2_challenge_start(Authctxt *authctxt)
 	debug2("auth2_challenge_start: devices %s",
 	    kbdintctxt->devices ?  kbdintctxt->devices : "<empty>");
 
-	if (kbdint_next_device(kbdintctxt) == 0) {
+	if (kbdint_next_device(authctxt, kbdintctxt) == 0) {
 		auth2_challenge_stop(authctxt);
 		return 0;
 	}

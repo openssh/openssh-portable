@@ -19,6 +19,9 @@
      have included a style (e.g. "root:skey") when checking public key
      signatures. Fixes public key and hostbased auth when the client specified
      a style; ok markus@
+   - markus@cvs.openbsd.org 2013/03/07 19:27:25
+     [auth.h auth2-chall.c auth2.c monitor.c sshd_config.5]
+     add submethod support to AuthenticationMethods; ok and freedback djm@
 
 20130418
  - (djm) [config.guess config.sub] Update to last versions before they switch
