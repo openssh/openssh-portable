@@ -3,6 +3,8 @@
    supports it.  Mentioned by Colin Watson in bz#2100, ok djm.
  - (dtucker) [openbsd-compat/getopt.c] Factor out portibility changes to
    getopt.c.  Preprocessed source is identical other than line numbers.
+ - (dtucker) [openbsd-compat/getopt_long.c] Import from OpenBSD.  No
+   portability changes yet.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support
