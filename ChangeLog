@@ -1,3 +1,10 @@
+20130510
+ - (djm) OpenBSD CVS Cherrypick
+   - djm@cvs.openbsd.org 2013/04/11 02:27:50
+     [packet.c]
+     quiet disconnect notifications on the server from error() back to logit()
+     if it is a normal client closure; bz#2057 ok+feedback dtucker@
+
 20130404
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2013/02/17 23:16:57
