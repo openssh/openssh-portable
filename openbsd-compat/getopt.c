@@ -32,6 +32,14 @@
 #include "includes.h"
 #if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
 
+/* some defines to make it easier to keep the code in sync with upstream */
+/* #define getopt BSDgetopt is in defines.h */
+#define opterr		BSDopterr
+#define optind		BSDoptind
+#define optopt		BSDoptopt
+#define optreset	BSDoptreset
+#define optarg		BSDoptarg
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char *rcsid = "$OpenBSD: getopt.c,v 1.5 2003/06/02 20:18:37 millert Exp $";
 #endif /* LIBC_SCCS and not lint */
@@ -40,11 +48,11 @@ static char *rcsid = "$OpenBSD: getopt.c,v 1.5 2003/06/02 20:18:37 millert Exp $
 #include <stdlib.h>
 #include <string.h>
 
-int	BSDopterr = 1,		/* if error message should be printed */
-	BSDoptind = 1,		/* index into parent argv vector */
-	BSDoptopt,		/* character checked for validity */
-	BSDoptreset;		/* reset getopt */
-char	*BSDoptarg;		/* argument associated with option */
+int	opterr = 1,		/* if error message should be printed */
+	optind = 1,		/* index into parent argv vector */
+	optopt,			/* character checked for validity */
+	optreset;		/* reset getopt */
+char	*optarg;		/* argument associated with option */
 
 #define	BADCH	(int)'?'
 #define	BADARG	(int)':'
@@ -55,7 +63,7 @@ char	*BSDoptarg;		/* argument associated with option */
  *	Parse argc/argv argument vector.
  */
 int
-BSDgetopt(nargc, nargv, ostr)
+getopt(nargc, nargv, ostr)
 	int nargc;
 	char * const *nargv;
 	const char *ostr;
@@ -67,57 +75,57 @@ BSDgetopt(nargc, nargv, ostr)
 	if (ostr == NULL)
 		return (-1);
 
-	if (BSDoptreset || !*place) {		/* update scanning pointer */
-		BSDoptreset = 0;
-		if (BSDoptind >= nargc || *(place = nargv[BSDoptind]) != '-') {
+	if (optreset || !*place) {		/* update scanning pointer */
+		optreset = 0;
+		if (optind >= nargc || *(place = nargv[optind]) != '-') {
 			place = EMSG;
 			return (-1);
 		}
 		if (place[1] && *++place == '-') {	/* found "--" */
-			++BSDoptind;
+			++optind;
 			place = EMSG;
 			return (-1);
 		}
 	}					/* option letter okay? */
-	if ((BSDoptopt = (int)*place++) == (int)':' ||
-	    !(oli = strchr(ostr, BSDoptopt))) {
+	if ((optopt = (int)*place++) == (int)':' ||
+	    !(oli = strchr(ostr, optopt))) {
 		/*
 		 * if the user didn't specify '-' as an option,
 		 * assume it means -1.
 		 */
-		if (BSDoptopt == (int)'-')
+		if (optopt == (int)'-')
 			return (-1);
 		if (!*place)
-			++BSDoptind;
-		if (BSDopterr && *ostr != ':')
+			++optind;
+		if (opterr && *ostr != ':')
 			(void)fprintf(stderr,
-			    "%s: illegal option -- %c\n", __progname, BSDoptopt);
+			    "%s: illegal option -- %c\n", __progname, optopt);
 		return (BADCH);
 	}
 	if (*++oli != ':') {			/* don't need argument */
-		BSDoptarg = NULL;
+		optarg = NULL;
 		if (!*place)
-			++BSDoptind;
+			++optind;
 	}
 	else {					/* need an argument */
 		if (*place)			/* no white space */
-			BSDoptarg = place;
-		else if (nargc <= ++BSDoptind) {	/* no arg */
+			optarg = place;
+		else if (nargc <= ++optind) {	/* no arg */
 			place = EMSG;
 			if (*ostr == ':')
 				return (BADARG);
-			if (BSDopterr)
+			if (opterr)
 				(void)fprintf(stderr,
 				    "%s: option requires an argument -- %c\n",
-				    __progname, BSDoptopt);
+				    __progname, optopt);
 			return (BADCH);
 		}
 	 	else				/* white space */
-			BSDoptarg = nargv[BSDoptind];
+			optarg = nargv[optind];
 		place = EMSG;
-		++BSDoptind;
+		++optind;
 	}
-	return (BSDoptopt);			/* dump back option letter */
+	return (optopt);			/* dump back option letter */
 }
 
 #endif /* !defined(HAVE_GETOPT) || !defined(HAVE_OPTRESET) */

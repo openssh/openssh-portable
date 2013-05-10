@@ -1,6 +1,8 @@
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
    supports it.  Mentioned by Colin Watson in bz#2100, ok djm.
+ - (dtucker) [openbsd-compat/getopt.c] Factor out portibility changes to
+   getopt.c.  Preprocessed source is identical other than line numbers.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support
