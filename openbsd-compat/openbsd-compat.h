@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.55 2013/02/15 01:20:42 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.56 2013/05/10 08:08:49 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -139,6 +139,7 @@ int getgrouplist(const char *, gid_t, gid_t *, int *);
 
 #if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
 int BSDgetopt(int argc, char * const *argv, const char *opts);
+#include "openbsd-compat/getopt.h"
 #endif
 
 #if defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0

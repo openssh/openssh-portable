@@ -9,6 +9,9 @@
    openbsd-compat/getopt_long.c regress/modpipe.c] Remove getopt.c, add
    portability code to getopt_long.c and switch over Makefile and the ugly
    hack in modpipe.c.  Fixes bz#1448.
+ - (dtucker) [openbsd-compat/getopt.h openbsd-compat/getopt_long.c
+   openbsd-compat/openbsd-compat.h] pull in getopt.h from openbsd and plumb
+   in to use it when we're using our own getopt.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support

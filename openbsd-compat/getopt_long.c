@@ -53,7 +53,6 @@
 #include "includes.h"
 
 #if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
-#include "log.h"
 
 /*
  * Some defines to make it easier to keep the code in sync with upstream.
@@ -64,11 +63,14 @@
 
 #if 0
 #include <err.h>
+#include <getopt.h>
 #endif
 #include <errno.h>
-#include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
+#include "log.h"
 
 int	opterr = 1;		/* if error message should be printed */
 int	optind = 1;		/* index into parent argv vector */
