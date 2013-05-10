@@ -14,6 +14,10 @@
    in to use it when we're using our own getopt.
  - (dtucker) [kex.c] Only include sha256 and ECC key exchange methods when the
    underlying libraries support them.
+ - (dtucker) [configure.ac] Add -Werror to the -Qunused-arguments test so
+   we don't get a warning on compilers that *don't* support it.  Add
+   -Wno-unknown-warning-option.  Move both to the start of the list for
+   maximum noise suppression.  Tested with gcc 4.6.3, gcc 2.95.4 and clang 2.9.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support

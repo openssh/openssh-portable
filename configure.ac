@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.522 2013/05/10 03:54:23 dtucker Exp $
+# $Id: configure.ac,v 1.523 2013/05/10 08:53:14 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.522 $)
+AC_REVISION($Revision: 1.523 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -129,6 +129,10 @@ AC_ARG_WITH([stackprotect],
 
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
+	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments -Werror],
+	    [-Qunused-arguments])
+	OSSH_CHECK_CFLAG_COMPILE([-Wunknown-warning-option -Werror],
+	    [-Wno-unknown-warning-option])
 	OSSH_CHECK_CFLAG_COMPILE([-Wall])
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
 	OSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
@@ -138,7 +142,6 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-sign], [-Wno-pointer-sign])
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
-	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
 	AC_MSG_CHECKING([gcc version])
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
