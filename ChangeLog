@@ -4,6 +4,8 @@
      [packet.c]
      quiet disconnect notifications on the server from error() back to logit()
      if it is a normal client closure; bz#2057 ok+feedback dtucker@
+ - (djm) [version.h contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Crank version numbers for release.
 
 20130404
  - (dtucker) OpenBSD CVS Sync
