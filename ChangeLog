@@ -6,6 +6,7 @@
      if it is a normal client closure; bz#2057 ok+feedback dtucker@
  - (djm) [version.h contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers for release.
+ - (djm) [README] Update release notes URL
 
 20130404
  - (dtucker) OpenBSD CVS Sync
