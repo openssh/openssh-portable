@@ -5,6 +5,10 @@
    getopt.c.  Preprocessed source is identical other than line numbers.
  - (dtucker) [openbsd-compat/getopt_long.c] Import from OpenBSD.  No
    portability changes yet.
+ - (dtucker) [openbsd-compat/Makefile.in openbsd-compat/getopt.c
+   openbsd-compat/getopt_long.c regress/modpipe.c] Remove getopt.c, add
+   portability code to getopt_long.c and switch over Makefile and the ugly
+   hack in modpipe.c.  Fixes bz#1448.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support

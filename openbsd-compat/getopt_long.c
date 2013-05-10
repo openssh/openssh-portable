@@ -49,7 +49,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* OPENBSD ORIGINAL: lib/libc/stdlib/getopt_long.c */
+#include "includes.h"
+
+#if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
+#include "log.h"
+
+/*
+ * Some defines to make it easier to keep the code in sync with upstream.
+ * getopt opterr optind optopt optreset optarg are all in defines.h which is
+ * pulled in by includes.h.
+ */
+#define warnx		logit
+
+#if 0
 #include <err.h>
+#endif
 #include <errno.h>
 #include <getopt.h>
 #include <stdlib.h>
@@ -484,6 +499,7 @@ getopt(int nargc, char * const *nargv, const char *options)
 	return (getopt_internal(nargc, nargv, options, NULL, NULL, 0));
 }
 
+#if 0
 /*
  * getopt_long --
  *	Parse argc/argv argument vector.
@@ -509,3 +525,6 @@ getopt_long_only(int nargc, char * const *nargv, const char *options,
 	return (getopt_internal(nargc, nargv, options, long_options, idx,
 	    FLAG_PERMUTE|FLAG_LONGONLY));
 }
+#endif
+
+#endif /* !defined(HAVE_GETOPT) || !defined(HAVE_OPTRESET) */

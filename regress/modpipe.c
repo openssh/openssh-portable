@@ -25,7 +25,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "openbsd-compat/getopt.c"
+#include "openbsd-compat/getopt_long.c"
 
 static void err(int, const char *, ...) __attribute__((format(printf, 2, 3)));
 static void errx(int, const char *, ...) __attribute__((format(printf, 2, 3)));
