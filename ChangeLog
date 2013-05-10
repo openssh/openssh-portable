@@ -12,6 +12,8 @@
  - (dtucker) [openbsd-compat/getopt.h openbsd-compat/getopt_long.c
    openbsd-compat/openbsd-compat.h] pull in getopt.h from openbsd and plumb
    in to use it when we're using our own getopt.
+ - (dtucker) [kex.c] Only include sha256 and ECC key exchange methods when the
+   underlying libraries support them.
 
 20130423
  - (djm) [auth.c configure.ac misc.c monitor.c monitor_wrap.c] Support
