@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: modpipe.c,v 1.4 2013/02/20 08:29:27 djm Exp $ */
+/* $OpenBSD: modpipe.c,v 1.5 2013/05/10 03:46:14 djm Exp $ */
 
 #include "includes.h"
 

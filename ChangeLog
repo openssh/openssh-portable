@@ -27,6 +27,9 @@
    - dtucker@cvs.openbsd.org 2013/04/22 07:23:08
      [regress/multiplex.sh]
      Write mux master logs to regress.log instead of ssh.log to keep separate
+   - djm@cvs.openbsd.org 2013/05/10 03:46:14
+     [modpipe.c]
+     sync some portability changes from portable OpenSSH (id sync only)
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
