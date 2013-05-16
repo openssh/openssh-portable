@@ -14,6 +14,7 @@
    - djm@cvs.openbsd.org 2013/05/10 03:40:07
      [sshconnect2.c]
      fix bzero(ptr_to_struct, sizeof(ptr_to_struct)); bz#2100 from
+     Colin Watson
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
