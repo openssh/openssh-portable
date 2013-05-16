@@ -8,6 +8,9 @@
    - tedu@cvs.openbsd.org 2013/04/24 16:01:46
      [misc.c]
      remove extra parens noticed by nicm
+   - dtucker@cvs.openbsd.org 2013/05/06 07:35:12
+     [sftp-server.8]
+     Reference the version of the sftp draft we actually implement.  ok djm@
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
