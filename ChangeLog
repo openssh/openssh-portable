@@ -15,6 +15,10 @@
      [sshconnect2.c]
      fix bzero(ptr_to_struct, sizeof(ptr_to_struct)); bz#2100 from
      Colin Watson
+   - djm@cvs.openbsd.org 2013/05/10 04:08:01
+     [key.c]
+     memleak in cert_free(), wasn't actually freeing the struct;
+     bz#2096 from shm AT digitalsun.pl
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler

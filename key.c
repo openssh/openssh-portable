@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.101 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: key.c,v 1.102 2013/05/10 04:08:01 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -195,6 +195,7 @@ cert_free(struct KeyCert *cert)
 		xfree(cert->principals);
 	if (cert->signature_key != NULL)
 		key_free(cert->signature_key);
+	xfree(cert);
 }
 
 void
