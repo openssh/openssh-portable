@@ -1,3 +1,9 @@
+ 20130517
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/03/07 00:20:34
+     [regress/proxy-connect.sh]
+     repeat test with a style appended to the username
+
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
     executed if mktemp failed; bz#2105 ok dtucker@
