@@ -1,3 +1,7 @@
+20130516
+ - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
+    executed if mktemp failed; bz#2105 ok dtucker@
+
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
    supports it.  Mentioned by Colin Watson in bz#2100, ok djm.
