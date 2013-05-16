@@ -11,6 +11,9 @@
    - dtucker@cvs.openbsd.org 2013/05/06 07:35:12
      [sftp-server.8]
      Reference the version of the sftp draft we actually implement.  ok djm@
+   - djm@cvs.openbsd.org 2013/05/10 03:40:07
+     [sshconnect2.c]
+     fix bzero(ptr_to_struct, sizeof(ptr_to_struct)); bz#2100 from
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
