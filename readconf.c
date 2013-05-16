@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.200 2013/05/16 09:12:31 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.201 2013/05/16 10:43:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -385,9 +385,9 @@ process_config_line(Options *options, const char *host,
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
-	int negated, opcode, *intptr, value, value2, scale;
+	int negated, opcode, *intptr, value, value2;
 	LogLevel *log_level_ptr;
-	long long orig, val64;
+	long long val64;
 	size_t len;
 	Forward fwd;
 

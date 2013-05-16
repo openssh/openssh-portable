@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.236 2013/05/16 09:12:31 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.237 2013/05/16 10:43:34 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -812,13 +812,13 @@ process_server_config_line(ServerOptions *options, char *line,
     struct connection_info *connectinfo)
 {
 	char *cp, **charptr, *arg, *p, *endofnumber;
-	int cmdline = 0, *intptr, value, value2, n, port, scale;
+	int cmdline = 0, *intptr, value, value2, n, port;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
 	u_int i, flags = 0;
 	size_t len;
-	long long orig, val64;
+	long long val64;
 	const struct multistate *multistate_ptr;
 
 	cp = line;
