@@ -19,6 +19,9 @@
      [key.c]
      memleak in cert_free(), wasn't actually freeing the struct;
      bz#2096 from shm AT digitalsun.pl
+   - dtucker@cvs.openbsd.org 2013/05/10 10:13:50
+     [ssh-pkcs11-helper.c]
+     remove unused extern optarg.  ok markus@
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
