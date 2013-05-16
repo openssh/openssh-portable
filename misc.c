@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.86 2011/09/05 05:59:08 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.87 2013/04/23 17:49:45 tedu Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -517,8 +517,8 @@ freeargs(arglist *args)
 char *
 tilde_expand_filename(const char *filename, uid_t uid)
 {
-	const char *path;
-	char user[128], ret[MAXPATHLEN];
+	const char *path, *sep;
+	char user[128], *ret;
 	struct passwd *pw;
 	u_int len, slash;
 
@@ -538,22 +538,21 @@ tilde_expand_filename(const char *filename, uid_t uid)
 	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
 		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
 
-	if (strlcpy(ret, pw->pw_dir, sizeof(ret)) >= sizeof(ret))
-		fatal("tilde_expand_filename: Path too long");
-
 	/* Make sure directory has a trailing '/' */
 	len = strlen(pw->pw_dir);
-	if ((len == 0 || pw->pw_dir[len - 1] != '/') &&
-	    strlcat(ret, "/", sizeof(ret)) >= sizeof(ret))
-		fatal("tilde_expand_filename: Path too long");
+	if ((len == 0 || pw->pw_dir[len - 1] != '/'))
+		sep = "/";
+	else
+		sep = "";
 
 	/* Skip leading '/' from specified path */
 	if (path != NULL)
 		filename = path + 1;
-	if (strlcat(ret, filename, sizeof(ret)) >= sizeof(ret))
+
+	if (xasprintf(&ret, "%s%s%s", pw->pw_dir, sep, filename) >= MAXPATHLEN)
 		fatal("tilde_expand_filename: Path too long");
 
-	return (xstrdup(ret));
+	return (ret);
 }
 
 /*
