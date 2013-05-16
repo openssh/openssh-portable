@@ -47,6 +47,9 @@
      [log.c scp.c sshd.c serverloop.c schnorr.c sftp.c]
      Fix some "unused result" warnings found via clang and -portable.
      ok markus@
+   - dtucker@cvs.openbsd.org 2013/05/16 09:12:31
+     [readconf.c servconf.c]
+     switch RekeyLimit traffic volume parsing to scan_scaled.  ok djm@
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler

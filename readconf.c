@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.199 2013/05/16 04:27:50 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.200 2013/05/16 09:12:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <util.h>
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -579,33 +580,11 @@ parse_yesnoask:
 		if (strcmp(arg, "default") == 0) {
 			val64 = 0;
 		} else {
-			if (arg[0] < '0' || arg[0] > '9')
-				fatal("%.200s line %d: Bad number.", filename,
-				    linenum);
-			orig = val64 = strtoll(arg, &endofnumber, 10);
-			if (arg == endofnumber)
-				fatal("%.200s line %d: Bad number.", filename,
-			 linenum);
-	 		switch (toupper(*endofnumber)) {
-			case '\0':
-				scale = 1;
-				break;
-			case 'K':
-				scale = 1<<10;
-				break;
-			case 'M':
-				scale = 1<<20;
-				break;
-			case 'G':
-				scale = 1<<30;
-				break;
-			default:
-				fatal("%.200s line %d: Invalid RekeyLimit "
-				    "suffix", filename, linenum);
-			}
-			val64 *= scale;
-			/* detect integer wrap and too-large limits */
-			if ((val64 / scale) != orig || val64 > UINT_MAX)
+			if (scan_scaled(arg, &val64) == -1)
+				fatal("%.200s line %d: Bad number '%s': %s",
+				    filename, linenum, arg, strerror(errno));
+			/* check for too-large or too-small limits */
+			if (val64 > UINT_MAX)
 				fatal("%.200s line %d: RekeyLimit too large",
 				    filename, linenum);
 			if (val64 != 0 && val64 < 16)
