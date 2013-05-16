@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.2 2013/04/06 06:00:22 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.3 2013/04/07 02:16:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey during transfer data"
@@ -16,8 +16,7 @@ for s in 16 1k 128k 256k; do
 	rm -f ${COPY}
 	cat $DATA | \
 		${SSH} -oCompression=no -oRekeyLimit=$s \
-			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}" \
-		2> ${LOG}
+			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
 	fi

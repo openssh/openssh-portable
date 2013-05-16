@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.39 2013/04/06 06:00:22 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.40 2013/04/07 02:16:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -159,6 +159,15 @@ fi
 DATA=$OBJ/testdata
 cat $SSHD${EXEEXT} $SSHD${EXEEXT} $SSHD${EXEEXT} $SSHD${EXEEXT} >$DATA
 
+# Create wrapper ssh with logging.  We can't just specify "SSH=ssh -E..."
+# because sftp and scp don't handle spaces in arguments.
+SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
+echo "#!/bin/sh" > $SSHLOGWRAP
+echo "exec ${SSH} -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
+
+chmod a+rx $OBJ/ssh-log-wrapper.sh
+SSH="$SSHLOGWRAP"
+
 # these should be used in tests
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
@@ -214,9 +223,26 @@ cleanup ()
 	fi
 }
 
+start_debug_log ()
+{
+	echo "trace: $@" >$TEST_REGRESS_LOGFILE
+	echo "trace: $@" >$TEST_SSH_LOGFILE
+	echo "trace: $@" >$TEST_SSHD_LOGFILE
+}
+
+save_debug_log ()
+{
+	echo $@ >>$TEST_REGRESS_LOGFILE
+	echo $@ >>$TEST_SSH_LOGFILE
+	echo $@ >>$TEST_SSHD_LOGFILE
+	(cat $TEST_REGRESS_LOGFILE; echo) >>$OBJ/failed-regress.log
+	(cat $TEST_SSH_LOGFILE; echo) >>$OBJ/failed-ssh.log
+	(cat $TEST_SSHD_LOGFILE; echo) >>$OBJ/failed-sshd.log
+}
+
 trace ()
 {
-	echo "trace: $@" >>$TEST_REGRESS_LOGFILE
+	start_debug_log $@
 	if [ "X$TEST_SSH_TRACE" = "Xyes" ]; then
 		echo "$@"
 	fi
@@ -224,7 +250,7 @@ trace ()
 
 verbose ()
 {
-	echo "verbose: $@" >>$TEST_REGRESS_LOGFILE
+	start_debug_log $@
 	if [ "X$TEST_SSH_QUIET" != "Xyes" ]; then
 		echo "$@"
 	fi
@@ -238,15 +264,16 @@ warn ()
 
 fail ()
 {
-	echo "FAIL: $@" >>$TEST_REGRESS_LOGFILE
+	save_debug_log "FAIL: $@"
 	RESULT=1
 	echo "$@"
+
 }
 
 fatal ()
 {
-	echo "FATAL: $@" >>$TEST_REGRESS_LOGFILE
-	echon "FATAL: "
+	save_debug_log "FATAL: $@"
+	echo -n "FATAL: "
 	fail "$@"
 	cleanup
 	exit $RESULT
@@ -278,7 +305,7 @@ cat << EOF > $OBJ/sshd_config
 	#ListenAddress		::1
 	PidFile			$PIDFILE
 	AuthorizedKeysFile	$OBJ/authorized_keys_%u
-	LogLevel		VERBOSE
+	LogLevel		DEBUG3
 	AcceptEnv		_XXX_TEST_*
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
@@ -312,6 +339,7 @@ Host *
 	PasswordAuthentication	no
 	BatchMode		yes
 	StrictHostKeyChecking	yes
+	LogLevel		DEBUG3
 EOF
 
 if [ ! -z "$TEST_SSH_SSH_CONFOPTS" ]; then
@@ -405,7 +433,7 @@ start_sshd ()
 {
 	# start sshd
 	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
-	$SUDO ${SSHD} -f $OBJ/sshd_config -e "$@" >>$TEST_SSHD_LOGFILE 2>&1
+	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
 
 	trace "wait for sshd"
 	i=0;

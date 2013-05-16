@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.8 2013/04/06 06:00:22 dtucker Exp $
+#	$OpenBSD: integrity.sh,v 1.9 2013/04/07 02:16:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -47,14 +47,15 @@ for m in $macs; do
 			aes*gcm*)	macopt="-c $m";;
 			*)		macopt="-m $m";;
 		esac
-		output=`${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
-		    999.999.999.999 'printf "%4096s" " "' 2>&1`
+		verbose "test $tid: $m @$off $output"
+		${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
+		    999.999.999.999 'printf "%4096s" " "' >/dev/null
 		if [ $? -eq 0 ]; then
 			fail "ssh -m $m succeeds with bit-flip at $off"
 		fi
 		ecnt=`expr $ecnt + 1`
-		output=`echo $output | tr -s '\r\n' '.'`
-		verbose "test $tid: $m @$off $output"
+		output=$(tail -2 $TEST_SSH_LOGFILE | egrep -v "^debug" | \
+		     tr -s '\r\n' '.')
 		case "$output" in
 		Bad?packet*)	elen=`expr $elen + 1`; skip=3;;
 		Corrupted?MAC* | Decryption?integrity?check?failed*)

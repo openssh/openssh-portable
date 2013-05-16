@@ -14,6 +14,13 @@
      Split the regress log into 3 parts: the debug output from ssh, the debug
      log from sshd and the output from the client command (ssh, scp or sftp).
      Somewhat functional now, will become more useful when ssh/sshd -E is added.
+   - dtucker@cvs.openbsd.org 2013/04/07 02:16:03
+     [regress/Makefile regress/rekey.sh regress/integrity.sh
+     regress/sshd-log-wrapper.sh regress/forwarding.sh regress/test-exec.sh]
+     use -E option for ssh and sshd to write debuging logs to ssh{,d}.log and
+     save the output from any failing tests.  If a test fails the debug output
+     from ssh and sshd for the failing tests (and only the failing tests) should
+     be available in failed-ssh{,d}.log.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
