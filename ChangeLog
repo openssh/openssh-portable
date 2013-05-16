@@ -53,6 +53,9 @@
    - dtucker@cvs.openbsd.org 2013/05/16 10:43:34
      [servconf.c readconf.c]
      remove now-unused variables
+   - dtucker@cvs.openbsd.org 2013/05/16 10:44:06
+     [servconf.c]
+     remove another now-unused variable
  - (dtucker) [configure.ac readconf.c servconf.c
      openbsd-compat/openbsd-compat.h] Add compat bits for scan_scaled.
 
