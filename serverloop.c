@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.164 2012/12/07 01:51:35 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.165 2013/05/16 04:09:14 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -277,7 +277,7 @@ client_alive_check(void)
  */
 static void
 wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    u_int *nallocp, u_int max_time_milliseconds)
+    u_int *nallocp, u_int64_t max_time_milliseconds)
 {
 	struct timeval tv, *tvp;
 	int ret;
@@ -563,7 +563,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	int wait_status;	/* Status returned by wait(). */
 	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
-	u_int max_time_milliseconds;
+	u_int64_t max_time_milliseconds;
 	u_int previous_stdout_buffer_bytes;
 	u_int stdout_buffer_bytes;
 	int type;
@@ -826,6 +826,7 @@ server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
 	int rekeying = 0, max_fd, nalloc = 0;
+	u_int64_t rekey_timeout_ms = 0;
 
 	debug("Entering interactive session for SSH2.");
 
@@ -854,8 +855,13 @@ server_loop2(Authctxt *authctxt)
 
 		if (!rekeying && packet_not_very_much_data_to_write())
 			channel_output_poll();
+		if (options.rekey_interval > 0 && compat20 && !rekeying)
+			rekey_timeout_ms = packet_get_rekey_timeout() * 1000;
+		else
+			rekey_timeout_ms = 0;
+
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
-		    &nalloc, 0);
+		    &nalloc, rekey_timeout_ms);
 
 		if (received_sigterm) {
 			logit("Exiting on signal %d", (int)received_sigterm);

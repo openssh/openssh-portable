@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.184 2013/05/16 02:00:34 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.185 2013/05/16 04:09:13 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1966,7 +1966,7 @@ packet_get_rekey_timeout(void)
 
 	seconds = active_state->rekey_time + active_state->rekey_interval -
 	    time(NULL);
-	return (seconds < 0 ? 0 : seconds);
+	return (seconds <= 0 ? 1 : seconds);
 }
 
 void

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.399 2013/04/07 02:10:33 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.400 2013/05/16 04:09:14 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2363,6 +2363,10 @@ do_ssh2_kex(void)
 	}
 	if (options.kex_algorithms != NULL)
 		myproposal[PROPOSAL_KEX_ALGS] = options.kex_algorithms;
+
+	if (options.rekey_limit || options.rekey_interval)
+		packet_set_rekey_limits((u_int32_t)options.rekey_limit,
+		    (time_t)options.rekey_interval);
 
 	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = list_hostkey_types();
 

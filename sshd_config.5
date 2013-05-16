@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.158 2013/04/19 01:00:10 djm Exp $
-.Dd $Mdocdate: April 19 2013 $
+.\" $OpenBSD: sshd_config.5,v 1.159 2013/05/16 04:09:14 dtucker Exp $
+.Dd $Mdocdate: May 16 2013 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -814,6 +814,7 @@ Available keywords are
 .Cm PermitRootLogin ,
 .Cm PermitTunnel ,
 .Cm PubkeyAuthentication ,
+.Cm RekeyLimit ,
 .Cm RhostsRSAAuthentication ,
 .Cm RSAAuthentication ,
 .Cm X11DisplayOffset ,
@@ -1008,6 +1009,33 @@ Specifies whether public key authentication is allowed.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
+.It Cm RekeyLimit
+Specifies the maximum amount of data that may be transmitted before the
+session key is renegotiated, optionally followed a maximum amount of
+time that may pass before the session key is renegotiated.
+The first argument is specified in bytes and may have a suffix of
+.Sq K ,
+.Sq M ,
+or
+.Sq G
+to indicate Kilobytes, Megabytes, or Gigabytes, respectively.
+The default is between
+.Sq 1G
+and
+.Sq 4G ,
+depending on the cipher.
+The optional second value is specified in seconds and may use any of the
+units documented in the
+.Sx TIME FORMATS
+section of
+.Xr sshd_config 5 .
+The default value for
+.Cm RekeyLimit
+is
+.Dq default none ,
+which means that rekeying is performed after the cipher's default amount
+of data has been sent or received and no time based rekeying is done.
+This option applies to protocol version 2 only.
 .It Cm RevokedKeys
 Specifies revoked public keys.
 Keys listed in this file will be refused for public key authentication.

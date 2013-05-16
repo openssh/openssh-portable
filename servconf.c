@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.234 2013/02/06 00:20:42 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.235 2013/05/16 04:09:14 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -20,6 +20,7 @@
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 
+#include <ctype.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -110,6 +111,8 @@ initialize_server_options(ServerOptions *options)
 	options->permit_user_env = -1;
 	options->use_login = -1;
 	options->compression = -1;
+	options->rekey_limit = -1;
+	options->rekey_interval = -1;
 	options->allow_tcp_forwarding = -1;
 	options->allow_agent_forwarding = -1;
 	options->num_allow_users = 0;
@@ -249,6 +252,10 @@ fill_default_server_options(ServerOptions *options)
 		options->use_login = 0;
 	if (options->compression == -1)
 		options->compression = COMP_DELAYED;
+	if (options->rekey_limit == -1)
+		options->rekey_limit = 0;
+	if (options->rekey_interval == -1)
+		options->rekey_interval = 0;
 	if (options->allow_tcp_forwarding == -1)
 		options->allow_tcp_forwarding = FORWARD_ALLOW;
 	if (options->allow_agent_forwarding == -1)
@@ -320,7 +327,7 @@ typedef enum {
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
-	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
+	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem,
 	sMaxStartups, sMaxAuthTries, sMaxSessions,
@@ -422,6 +429,7 @@ static struct {
 	{ "permituserenvironment", sPermitUserEnvironment, SSHCFG_GLOBAL },
 	{ "uselogin", sUseLogin, SSHCFG_GLOBAL },
 	{ "compression", sCompression, SSHCFG_GLOBAL },
+	{ "rekeylimit", sRekeyLimit, SSHCFG_ALL },
 	{ "tcpkeepalive", sTCPKeepAlive, SSHCFG_GLOBAL },
 	{ "keepalive", sTCPKeepAlive, SSHCFG_GLOBAL },	/* obsolete alias */
 	{ "allowtcpforwarding", sAllowTcpForwarding, SSHCFG_ALL },
@@ -800,14 +808,14 @@ process_server_config_line(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
     struct connection_info *connectinfo)
 {
-	char *cp, **charptr, *arg, *p;
-	int cmdline = 0, *intptr, value, value2, n;
+	char *cp, **charptr, *arg, *p, *endofnumber;
+	int cmdline = 0, *intptr, value, value2, n, port, scale;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
-	int port;
 	u_int i, flags = 0;
 	size_t len;
+	long long orig, val64;
 	const struct multistate *multistate_ptr;
 
 	cp = line;
@@ -1117,6 +1125,59 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->compression;
 		multistate_ptr = multistate_compression;
 		goto parse_multistate;
+
+	case sRekeyLimit:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.", filename,
+			    linenum);
+		if (strcmp(arg, "default") == 0) {
+			val64 = 0;
+		} else {
+			if (arg[0] < '0' || arg[0] > '9')
+				fatal("%.200s line %d: Bad number.", filename,
+				    linenum);
+			orig = val64 = strtoll(arg, &endofnumber, 10);
+			if (arg == endofnumber)
+				fatal("%.200s line %d: Bad number.", filename,
+			 linenum);
+	 		switch (toupper(*endofnumber)) {
+			case '\0':
+				scale = 1;
+				break;
+			case 'K':
+				scale = 1<<10;
+				break;
+			case 'M':
+				scale = 1<<20;
+				break;
+			case 'G':
+				scale = 1<<30;
+				break;
+			default:
+				fatal("%.200s line %d: Invalid RekeyLimit "
+				    "suffix", filename, linenum);
+			}
+			val64 *= scale;
+			/* detect integer wrap and too-large limits */
+			if ((val64 / scale) != orig || val64 > UINT_MAX)
+				fatal("%.200s line %d: RekeyLimit too large",
+				    filename, linenum);
+			if (val64 != 0 && val64 < 16)
+				fatal("%.200s line %d: RekeyLimit too small",
+				    filename, linenum);
+		}
+		if (*activep && options->rekey_limit == -1)
+			options->rekey_limit = (u_int32_t)val64;
+		if (cp != NULL) { /* optional rekey interval present */
+			if (strcmp(cp, "none") == 0) {
+				(void)strdelim(&cp);	/* discard */
+				break;
+			}
+			intptr = &options->rekey_interval;
+			goto parse_time;
+		}
+		break;
 
 	case sGatewayPorts:
 		intptr = &options->gateway_ports;
@@ -1718,6 +1779,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(max_authtries);
 	M_CP_INTOPT(ip_qos_interactive);
 	M_CP_INTOPT(ip_qos_bulk);
+	M_CP_INTOPT(rekey_limit);
+	M_CP_INTOPT(rekey_interval);
 
 	/* See comment in servconf.h */
 	COPY_MATCH_STRING_OPTS();
@@ -2005,6 +2068,8 @@ dump_config(ServerOptions *o)
 
 	printf("ipqos %s ", iptos2str(o->ip_qos_interactive));
 	printf("%s\n", iptos2str(o->ip_qos_bulk));
+
+	printf("rekeylimit %lld %d\n", o->rekey_limit, o->rekey_interval);
 
 	channel_print_adm_permitted_opens();
 }

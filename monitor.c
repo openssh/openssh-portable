@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.122 2013/03/07 19:27:25 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.123 2013/05/16 04:09:13 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1809,6 +1809,10 @@ monitor_apply_keystate(struct monitor *pmonitor)
 	/* Update with new address */
 	if (options.compression)
 		mm_init_compression(pmonitor->m_zlib);
+
+	if (options.rekey_limit || options.rekey_interval)
+		packet_set_rekey_limits((u_int32_t)options.rekey_limit,
+		    (time_t)options.rekey_interval);
 
 	/* Network I/O buffers */
 	/* XXX inefficient for large buffers, need: buffer_init_from_string */
