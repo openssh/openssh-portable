@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.197 2013/03/06 23:36:53 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.198 2013/05/16 02:00:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -562,39 +562,54 @@ parse_yesnoask:
 	case oRekeyLimit:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
-			fatal("%.200s line %d: Bad number.", filename, linenum);
-		orig = val64 = strtoll(arg, &endofnumber, 10);
-		if (arg == endofnumber)
-			fatal("%.200s line %d: Bad number.", filename, linenum);
-		switch (toupper(*endofnumber)) {
-		case '\0':
-			scale = 1;
-			break;
-		case 'K':
-			scale = 1<<10;
-			break;
-		case 'M':
-			scale = 1<<20;
-			break;
-		case 'G':
-			scale = 1<<30;
-			break;
-		default:
-			fatal("%.200s line %d: Invalid RekeyLimit suffix",
-			    filename, linenum);
+			fatal("%.200s line %d: Missing argument.", filename,
+			    linenum);
+		if (strcmp(arg, "default") == 0) {
+			val64 = 0;
+		} else {
+			if (arg[0] < '0' || arg[0] > '9')
+				fatal("%.200s line %d: Bad number.", filename,
+				    linenum);
+			orig = val64 = strtoll(arg, &endofnumber, 10);
+			if (arg == endofnumber)
+				fatal("%.200s line %d: Bad number.", filename,
+			 linenum);
+	 		switch (toupper(*endofnumber)) {
+			case '\0':
+				scale = 1;
+				break;
+			case 'K':
+				scale = 1<<10;
+				break;
+			case 'M':
+				scale = 1<<20;
+				break;
+			case 'G':
+				scale = 1<<30;
+				break;
+			default:
+				fatal("%.200s line %d: Invalid RekeyLimit "
+				    "suffix", filename, linenum);
+			}
+			val64 *= scale;
+			/* detect integer wrap and too-large limits */
+			if ((val64 / scale) != orig || val64 > UINT_MAX)
+				fatal("%.200s line %d: RekeyLimit too large",
+				    filename, linenum);
+			if (val64 != 0 && val64 < 16)
+				fatal("%.200s line %d: RekeyLimit too small",
+				    filename, linenum);
 		}
-		val64 *= scale;
-		/* detect integer wrap and too-large limits */
-		if ((val64 / scale) != orig || val64 > UINT_MAX)
-			fatal("%.200s line %d: RekeyLimit too large",
-			    filename, linenum);
-		if (val64 < 16)
-			fatal("%.200s line %d: RekeyLimit too small",
-			    filename, linenum);
 		if (*activep && options->rekey_limit == -1)
 			options->rekey_limit = (u_int32_t)val64;
+		if (s != NULL) { /* optional rekey interval present */
+			if (strcmp(s, "none") == 0) {
+				(void)strdelim(&s);	/* discard */
+				break;
+			}
+			intptr = &options->rekey_interval;
+			goto parse_time;
+		}
 		break;
 
 	case oIdentityFile:
@@ -1202,6 +1217,7 @@ initialize_options(Options * options)
 	options->no_host_authentication_for_localhost = - 1;
 	options->identities_only = - 1;
 	options->rekey_limit = - 1;
+	options->rekey_interval = -1;
 	options->verify_host_key_dns = -1;
 	options->server_alive_interval = -1;
 	options->server_alive_count_max = -1;
@@ -1337,6 +1353,8 @@ fill_default_options(Options * options)
 		options->enable_ssh_keysign = 0;
 	if (options->rekey_limit == -1)
 		options->rekey_limit = 0;
+	if (options->rekey_interval == -1)
+		options->rekey_interval = 0;
 	if (options->verify_host_key_dns == -1)
 		options->verify_host_key_dns = 0;
 	if (options->server_alive_interval == -1)

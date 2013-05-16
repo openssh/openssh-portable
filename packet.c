@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.183 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.184 2013/05/16 02:00:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -58,6 +58,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -165,8 +166,13 @@ struct session_state {
 	Newkeys *newkeys[MODE_MAX];
 	struct packet_state p_read, p_send;
 
+	/* Volume-based rekeying */
 	u_int64_t max_blocks_in, max_blocks_out;
 	u_int32_t rekey_limit;
+
+	/* Time-based rekeying */
+	time_t rekey_interval;	/* how often in seconds */
+	time_t rekey_time;	/* time of last rekeying */
 
 	/* Session key for protocol v1 */
 	u_char ssh1_key[SSH_SESSION_KEY_LENGTH];
@@ -1009,6 +1015,7 @@ packet_send2(void)
 	/* after a NEWKEYS message we can send the complete queue */
 	if (type == SSH2_MSG_NEWKEYS) {
 		active_state->rekeying = 0;
+		active_state->rekey_time = time(NULL);
 		while ((p = TAILQ_FIRST(&active_state->outgoing))) {
 			type = p->type;
 			debug("dequeue packet: %u", type);
@@ -1933,13 +1940,33 @@ packet_need_rekeying(void)
 	    (active_state->max_blocks_out &&
 	        (active_state->p_send.blocks > active_state->max_blocks_out)) ||
 	    (active_state->max_blocks_in &&
-	        (active_state->p_read.blocks > active_state->max_blocks_in));
+	        (active_state->p_read.blocks > active_state->max_blocks_in)) ||
+	    (active_state->rekey_interval != 0 && active_state->rekey_time +
+		 active_state->rekey_interval <= time(NULL));
 }
 
 void
-packet_set_rekey_limit(u_int32_t bytes)
+packet_set_rekey_limits(u_int32_t bytes, time_t seconds)
 {
+	debug3("rekey after %lld bytes, %d seconds", (long long)bytes,
+	    (int)seconds);
 	active_state->rekey_limit = bytes;
+	active_state->rekey_interval = seconds;
+	/*
+	 * We set the time here so that in post-auth privsep slave we count
+	 * from the completion of the authentication.
+	 */
+	active_state->rekey_time = time(NULL);
+}
+
+time_t
+packet_get_rekey_timeout(void)
+{
+	time_t seconds;
+
+	seconds = active_state->rekey_time + active_state->rekey_interval -
+	    time(NULL);
+	return (seconds < 0 ? 0 : seconds);
 }
 
 void

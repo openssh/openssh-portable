@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.57 2012/01/25 19:40:09 markus Exp $ */
+/* $OpenBSD: packet.h,v 1.58 2013/05/16 02:00:34 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -115,7 +115,8 @@ do { \
 } while (0)
 
 int	 packet_need_rekeying(void);
-void	 packet_set_rekey_limit(u_int32_t);
+void	 packet_set_rekey_limits(u_int32_t, time_t);
+time_t	 packet_get_rekey_timeout(void);
 
 void	 packet_backup_state(void);
 void	 packet_restore_state(void);

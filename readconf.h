@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.93 2013/02/22 04:45:09 dtucker Exp $ */
+/* $OpenBSD: readconf.h,v 1.94 2013/05/16 02:00:34 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -110,6 +110,7 @@ typedef struct {
 
 	int	enable_ssh_keysign;
 	int64_t rekey_limit;
+	int	rekey_interval;
 	int	no_host_authentication_for_localhost;
 	int	identities_only;
 	int	server_alive_interval;

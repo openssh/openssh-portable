@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.248 2013/01/02 00:32:07 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.249 2013/05/16 02:00:34 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -583,7 +583,7 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 {
 	struct timeval tv, *tvp;
 	int timeout_secs;
-	time_t minwait_secs = 0;
+	time_t minwait_secs = 0, server_alive_time = 0, now = time(NULL);
 	int ret;
 
 	/* Add any selections by the channel mechanism. */
@@ -632,12 +632,16 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	 */
 
 	timeout_secs = INT_MAX; /* we use INT_MAX to mean no timeout */
-	if (options.server_alive_interval > 0 && compat20)
+	if (options.server_alive_interval > 0 && compat20) {
 		timeout_secs = options.server_alive_interval;
+		server_alive_time = now + options.server_alive_interval;
+	}
+	if (options.rekey_interval > 0 && compat20 && !rekeying)
+		timeout_secs = MIN(timeout_secs, packet_get_rekey_timeout());
 	set_control_persist_exit_time();
 	if (control_persist_exit_time > 0) {
 		timeout_secs = MIN(timeout_secs,
-			control_persist_exit_time - time(NULL));
+			control_persist_exit_time - now);
 		if (timeout_secs < 0)
 			timeout_secs = 0;
 	}
@@ -669,8 +673,15 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		snprintf(buf, sizeof buf, "select: %s\r\n", strerror(errno));
 		buffer_append(&stderr_buffer, buf, strlen(buf));
 		quit_pending = 1;
-	} else if (ret == 0)
-		server_alive_check();
+	} else if (ret == 0) {
+		/*
+		 * Timeout.  Could have been either keepalive or rekeying.
+		 * Keepalive we check here, rekeying is checked in clientloop.
+		 */
+		if (server_alive_time != 0 && server_alive_time <= time(NULL))
+			server_alive_check();
+	}
+
 }
 
 static void

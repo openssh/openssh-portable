@@ -22,6 +22,12 @@
    - dtucker@cvs.openbsd.org 2013/05/10 10:13:50
      [ssh-pkcs11-helper.c]
      remove unused extern optarg.  ok markus@
+   - dtucker@cvs.openbsd.org 2013/05/16 02:00:34
+     [ssh_config sshconnect2.c packet.c readconf.h readconf.c clientloop.c
+     ssh_config.5 packet.h]
+     Add an optional second argument to RekeyLimit in the client to allow
+     rekeying based on elapsed time in addition to amount of traffic.
+     with djm@ jmc@, ok djm
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler

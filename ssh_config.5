@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.161 2013/01/08 18:49:04 markus Exp $
-.Dd $Mdocdate: January 8 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.162 2013/05/16 02:00:34 dtucker Exp $
+.Dd $Mdocdate: May 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -931,8 +931,9 @@ The default is
 This option applies to protocol version 2 only.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted before the
-session key is renegotiated.
-The argument is the number of bytes, with an optional suffix of
+session key is renegotiated, optionally followed a maximum amount of
+time that may pass before the session key is renegotiated.
+The first argument is specified in bytes and may have a suffix of
 .Sq K ,
 .Sq M ,
 or
@@ -943,6 +944,17 @@ The default is between
 and
 .Sq 4G ,
 depending on the cipher.
+The optional second value is specified in seconds and may use any of the
+units documented in the
+.Sx TIME FORMATS
+section of
+.Xr sshd_config 5 .
+The default value for
+.Cm RekeyLimit
+is
+.Dq default none ,
+which means that rekeying is performed after the cipher's default amount
+of data has been sent or received and no time based rekeying is done.
 This option applies to protocol version 2 only.
 .It Cm RemoteForward
 Specifies that a TCP port on the remote machine be forwarded over
