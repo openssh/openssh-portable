@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.523 2013/05/10 08:53:14 dtucker Exp $
+# $Id: configure.ac,v 1.524 2013/05/16 10:47:32 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.523 $)
+AC_REVISION($Revision: 1.524 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1175,12 +1175,13 @@ AC_CHECK_FUNCS([utimes],
 dnl    Checks for libutil functions
 AC_CHECK_HEADERS([bsd/libutil.h libutil.h])
 AC_SEARCH_LIBS([fmt_scaled], [util bsd])
+AC_SEARCH_LIBS([scan_scaled], [util bsd])
 AC_SEARCH_LIBS([login], [util bsd])
 AC_SEARCH_LIBS([logout], [util bsd])
 AC_SEARCH_LIBS([logwtmp], [util bsd])
 AC_SEARCH_LIBS([openpty], [util bsd])
 AC_SEARCH_LIBS([updwtmp], [util bsd])
-AC_CHECK_FUNCS([fmt_scaled login logout openpty updwtmp logwtmp])
+AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 
 AC_FUNC_STRFTIME
 

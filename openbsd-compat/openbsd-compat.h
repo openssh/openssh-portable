@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.56 2013/05/10 08:08:49 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.57 2013/05/16 10:47:32 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -109,6 +109,10 @@ char *dirname(const char *path);
 #ifndef HAVE_FMT_SCALED
 #define	FMT_SCALED_STRSIZE	7
 int	fmt_scaled(long long number, char *result);
+#endif
+
+#ifndef HAVE_SCAN_SCALED
+int	scan_scaled(char *, long long *);
 #endif
 
 #if defined(BROKEN_INET_NTOA) || !defined(HAVE_INET_NTOA)

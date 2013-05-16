@@ -50,6 +50,8 @@
    - dtucker@cvs.openbsd.org 2013/05/16 09:12:31
      [readconf.c servconf.c]
      switch RekeyLimit traffic volume parsing to scan_scaled.  ok djm@
+ - (dtucker) [configure.ac readconf.c servconf.c
+     openbsd-compat/openbsd-compat.h] Add compat bits for scan_scaled.
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler

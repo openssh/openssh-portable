@@ -30,7 +30,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef HAVE_UTIL_H
 #include <util.h>
+#endif
 
 #include "xmalloc.h"
 #include "ssh.h"
