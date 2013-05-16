@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.163 2013/05/16 04:27:50 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.164 2013/05/16 06:28:45 jmc Exp $
 .Dd $Mdocdate: May 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -597,17 +597,6 @@ The default is the name given on the command line.
 Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
-.It Cm IgnoreUnknown
-Specifies a pattern-list of unknown options to be ignored if they are
-encountered in configuration parsing.
-This may be used to suppress errors if
-.Nm
-contains options that are unrecognised by
-.Xr ssh 1 .
-It is recommended that
-.Cm IgnoreUnknown
-be listed early in the configuration file as it will not be applied
-to unknown options that appear before it.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
@@ -668,6 +657,17 @@ Multiple
 .Cm IdentityFile
 directives will add to the list of identities tried (this behaviour
 differs from that of other configuration directives).
+.It Cm IgnoreUnknown
+Specifies a pattern-list of unknown options to be ignored if they are
+encountered in configuration parsing.
+This may be used to suppress errors if
+.Nm
+contains options that are unrecognised by
+.Xr ssh 1 .
+It is recommended that
+.Cm IgnoreUnknown
+be listed early in the configuration file as it will not be applied
+to unknown options that appear before it.
 .It Cm IPQoS
 Specifies the IPv4 type-of-service or DSCP class for connections.
 Accepted values are

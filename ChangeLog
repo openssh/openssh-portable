@@ -37,6 +37,9 @@
      [ssh_config.5 readconf.h readconf.c]
      add the ability to ignore specific unrecognised ssh_config options;
      bz#866; ok markus@
+   - jmc@cvs.openbsd.org 2013/05/16 06:28:45
+     [ssh_config.5]
+     put IgnoreUnknown in the right place;
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
