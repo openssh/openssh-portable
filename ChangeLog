@@ -21,6 +21,9 @@
      save the output from any failing tests.  If a test fails the debug output
      from ssh and sshd for the failing tests (and only the failing tests) should
      be available in failed-ssh{,d}.log.
+   - djm@cvs.openbsd.org 2013/04/18 02:46:12
+     [Makefile regress/sftp-chroot.sh]
+     test sshd ChrootDirectory+internal-sftp; feedback & ok dtucker@
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
