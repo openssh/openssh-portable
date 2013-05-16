@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.18 2013/04/06 06:00:22 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.19 2013/04/22 07:23:08 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -25,10 +25,16 @@ wait_for_mux_master_ready()
 
 start_sshd
 
-trace "start master, fork to background"
-${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
-MASTER_PID=$!
-wait_for_mux_master_ready
+start_mux_master()
+{
+	trace "start master, fork to background"
+	${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost \
+	    -E $TEST_REGRESS_LOGFILE 2>&1 &
+	MASTER_PID=$!
+	wait_for_mux_master_ready
+}
+
+start_mux_master
 
 verbose "test $tid: envpass"
 trace "env passing over multiplexed connection"
@@ -101,9 +107,7 @@ kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed"
 # Restart master and test -O stop command with master using -N
 verbose "test $tid: cmd stop"
 trace "restart master, fork to background"
-${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost &
-MASTER_PID=$!
-wait_for_mux_master_ready
+start_mux_master
 
 # start a long-running command then immediately request a stop
 ${SSH} -F $OBJ/ssh_config -S $CTL otherhost "sleep 10; exit 0" \

@@ -22,8 +22,11 @@
      from ssh and sshd for the failing tests (and only the failing tests) should
      be available in failed-ssh{,d}.log.
    - djm@cvs.openbsd.org 2013/04/18 02:46:12
-     [Makefile regress/sftp-chroot.sh]
+     [regress/Makefile regress/sftp-chroot.sh]
      test sshd ChrootDirectory+internal-sftp; feedback & ok dtucker@
+   - dtucker@cvs.openbsd.org 2013/04/22 07:23:08
+     [multiplex.sh]
+     Write mux master logs to regress.log instead of ssh.log to keep separate
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
