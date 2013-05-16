@@ -1,7 +1,7 @@
-#	$OpenBSD: rekey.sh,v 1.6 2013/05/16 04:26:10 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.7 2013/05/16 05:48:31 dtucker Exp $
 #	Placed in the Public Domain.
 
-tid="rekey during transfer data"
+tid="rekey"
 
 DATA=${OBJ}/data
 COPY=${OBJ}/copy
@@ -77,6 +77,37 @@ for s in 5 10; do
 	if [ $n -lt 1 ]; then
 		fail "no rekeying occured"
 	fi
+done
+
+verbose "rekeylimit parsing"
+for size in 16 1k 1K 1m 1M 1g 1G; do
+    for time in 1 1m 1M 1h 1H 1d 1D 1w 1W; do
+	case $size in
+		16)	bytes=16 ;;
+		1k|1K)	bytes=1024 ;;
+		1m|1M)	bytes=1048576 ;;
+		1g|1G)	bytes=1073741824 ;;
+	esac
+	case $time in
+		1)	seconds=1 ;;
+		1m|1M)	seconds=60 ;;
+		1h|1H)	seconds=3600 ;;
+		1d|1D)	seconds=86400 ;;
+		1w|1W)	seconds=604800 ;;
+	esac
+
+	b=`$SUDO ${SSHD} -T -o "rekeylimit $size $time" -f $OBJ/sshd_proxy | \
+	    awk '/rekeylimit/{print $2}'`
+	s=`$SUDO ${SSHD} -T -o "rekeylimit $size $time" -f $OBJ/sshd_proxy | \
+	    awk '/rekeylimit/{print $3}'`
+
+	if [ "$bytes" != "$b" ]; then
+		fatal "rekeylimit size: expected $bytes got $b"
+	fi
+	if [ "$seconds" != "$s" ]; then
+		fatal "rekeylimit time: expected $time got $s"
+	fi
+    done
 done
 
 rm -f ${COPY} ${DATA}
