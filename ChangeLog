@@ -30,6 +30,9 @@
    - djm@cvs.openbsd.org 2013/05/10 03:46:14
      [modpipe.c]
      sync some portability changes from portable OpenSSH (id sync only)
+   - dtucker@cvs.openbsd.org 2013/05/16 02:10:35
+     [rekey.sh]
+     Add test for time-based rekeying
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
