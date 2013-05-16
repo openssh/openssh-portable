@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.400 2013/05/16 04:09:14 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.401 2013/05/16 09:08:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1815,7 +1815,8 @@ main(int ac, char **av)
 
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
-	chdir("/");
+	if (chdir("/") == -1)
+		error("chdir(\"/\"): %s", strerror(errno));
 
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);

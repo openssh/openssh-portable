@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.171 2011/09/09 22:37:01 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.172 2013/05/16 09:08:41 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1325,7 +1325,7 @@ void
 lostconn(int signo)
 {
 	if (!iamremote)
-		write(STDERR_FILENO, "lost connection\n", 16);
+		(void)write(STDERR_FILENO, "lost connection\n", 16);
 	if (signo)
 		_exit(1);
 	else

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.165 2013/05/16 04:09:14 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.166 2013/05/16 09:08:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -148,7 +148,7 @@ static void
 notify_parent(void)
 {
 	if (notify_pipe[1] != -1)
-		write(notify_pipe[1], "", 1);
+		(void)write(notify_pipe[1], "", 1);
 }
 static void
 notify_prepare(fd_set *readset)

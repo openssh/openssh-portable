@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.143 2013/04/18 02:16:07 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.144 2013/05/16 09:08:41 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -218,7 +218,7 @@ cmd_interrupt(int signo)
 	const char msg[] = "\rInterrupt  \n";
 	int olderrno = errno;
 
-	write(STDERR_FILENO, msg, sizeof(msg) - 1);
+	(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
 	interrupted = 1;
 	errno = olderrno;
 }

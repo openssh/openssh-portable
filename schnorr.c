@@ -1,4 +1,4 @@
-/* $OpenBSD: schnorr.c,v 1.5 2010/12/03 23:49:26 djm Exp $ */
+/* $OpenBSD: schnorr.c,v 1.6 2013/05/16 09:08:41 dtucker Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -488,12 +488,13 @@ debug3_bn(const BIGNUM *n, const char *fmt, ...)
 {
 	char *out, *h;
 	va_list args;
+	int ret;
 
 	out = NULL;
 	va_start(args, fmt);
-	vasprintf(&out, fmt, args);
+	ret = vasprintf(&out, fmt, args);
 	va_end(args);
-	if (out == NULL)
+	if (ret == -1 || out == NULL)
 		fatal("%s: vasprintf failed", __func__);
 
 	if (n == NULL)
@@ -513,12 +514,13 @@ debug3_buf(const u_char *buf, u_int len, const char *fmt, ...)
 	char *out, h[65];
 	u_int i, j;
 	va_list args;
+	int ret;
 
 	out = NULL;
 	va_start(args, fmt);
-	vasprintf(&out, fmt, args);
+	ret = vasprintf(&out, fmt, args);
 	va_end(args);
-	if (out == NULL)
+	if (ret == -1 || out == NULL)
 		fatal("%s: vasprintf failed", __func__);
 
 	debug3("%s length %u%s", out, len, buf == NULL ? " (null)" : "");
