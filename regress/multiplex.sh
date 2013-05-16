@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.19 2013/04/22 07:23:08 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.20 2013/04/22 07:28:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -12,6 +12,7 @@ fi
 
 DATA=/bin/ls${EXEEXT}
 COPY=$OBJ/ls.copy
+P=3301  # test port
 
 wait_for_mux_master_ready()
 {
@@ -95,6 +96,26 @@ done
 verbose "test $tid: cmd check"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ocheck otherhost >>$TEST_REGRESS_LOGFILE 2>&1 \
     || fail "check command failed" 
+
+verbose "test $tid: cmd forward local"
+${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L $P:localhost:$PORT otherhost \
+     || fail "request local forward failed"
+${SSH} -F $OBJ/ssh_config -p$P otherhost true \
+     || fail "connect to local forward port failed"
+${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -L $P:localhost:$PORT otherhost \
+     || fail "cancel local forward failed"
+${SSH} -F $OBJ/ssh_config -p$P otherhost true \
+     && fail "local forward port still listening"
+
+verbose "test $tid: cmd forward remote"
+${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R $P:localhost:$PORT otherhost \
+     || fail "request remote forward failed"
+${SSH} -F $OBJ/ssh_config -p$P otherhost true \
+     || fail "connect to remote forwarded port failed"
+${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -R $P:localhost:$PORT otherhost \
+     || fail "cancel remote forward failed"
+${SSH} -F $OBJ/ssh_config -p$P otherhost true \
+     && fail "remote forward port still listening"
 
 verbose "test $tid: cmd exit"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_REGRESS_LOGFILE 2>&1 \

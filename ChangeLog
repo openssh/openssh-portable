@@ -25,7 +25,7 @@
      [regress/Makefile regress/sftp-chroot.sh]
      test sshd ChrootDirectory+internal-sftp; feedback & ok dtucker@
    - dtucker@cvs.openbsd.org 2013/04/22 07:23:08
-     [multiplex.sh]
+     [regress/multiplex.sh]
      Write mux master logs to regress.log instead of ssh.log to keep separate
 
 20130516
