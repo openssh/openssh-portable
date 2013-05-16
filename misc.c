@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.87 2013/04/23 17:49:45 tedu Exp $ */
+/* $OpenBSD: misc.c,v 1.88 2013/04/24 16:01:46 tedu Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -540,7 +540,7 @@ tilde_expand_filename(const char *filename, uid_t uid)
 
 	/* Make sure directory has a trailing '/' */
 	len = strlen(pw->pw_dir);
-	if ((len == 0 || pw->pw_dir[len - 1] != '/'))
+	if (len == 0 || pw->pw_dir[len - 1] != '/')
 		sep = "/";
 	else
 		sep = "";

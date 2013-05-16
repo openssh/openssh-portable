@@ -5,6 +5,9 @@
    - tedu@cvs.openbsd.org 2013/04/23 17:49:45
      [misc.c]
      use xasprintf instead of a series of strlcats and strdup. ok djm
+   - tedu@cvs.openbsd.org 2013/04/24 16:01:46
+     [misc.c]
+     remove extra parens noticed by nicm
 
 20130510
  - (dtucker) [configure.ac] Enable -Wsizeof-pointer-memaccess if the compiler
