@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.62 2013/01/18 00:45:29 djm Exp $
+#	$OpenBSD: Makefile,v 1.63 2013/04/06 06:00:22 dtucker Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -82,8 +82,8 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		putty.rsa2 sshd_proxy_orig ssh_proxy_bak \
 		key.rsa-* key.dsa-* key.ecdsa-* \
 		authorized_principals_${USER} expect actual ready \
-		sshd_proxy.* authorized_keys_${USER}.* modpipe revoked-* krl-*
-
+		sshd_proxy.* authorized_keys_${USER}.* modpipe revoked-* krl-* \
+		ssh.log sshd.log regress.log
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"

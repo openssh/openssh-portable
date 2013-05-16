@@ -4,10 +4,16 @@
      [regress/proxy-connect.sh]
      repeat test with a style appended to the username
    - dtucker@cvs.openbsd.org 2013/03/23 11:09:43
-     [test-exec.sh]
+     [regress/test-exec.sh]
      Only regenerate host keys if they don't exist or if ssh-keygen has changed
      since they were.  Reduces test runtime by 5-30% depending on machine
      speed.
+   - dtucker@cvs.openbsd.org 2013/04/06 06:00:22
+     [regress/rekey.sh regress/test-exec.sh regress/integrity.sh
+     regress/multiplex.sh Makefile regress/cfgmatch.sh]
+     Split the regress log into 3 parts: the debug output from ssh, the debug
+     log from sshd and the output from the client command (ssh, scp or sftp).
+     Somewhat functional now, will become more useful when ssh/sshd -E is added.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 

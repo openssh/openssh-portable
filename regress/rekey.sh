@@ -1,11 +1,11 @@
-#	$OpenBSD: rekey.sh,v 1.1 2003/03/28 13:58:28 markus Exp $
+#	$OpenBSD: rekey.sh,v 1.2 2013/04/06 06:00:22 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey during transfer data"
 
 DATA=${OBJ}/data
 COPY=${OBJ}/copy
-LOG=${OBJ}/log
+LOG=${TEST_SSH_LOGFILE}
 
 rm -f ${COPY} ${LOG} ${DATA}
 touch ${DATA}
@@ -29,4 +29,4 @@ for s in 16 1k 128k 256k; do
 		fail "no rekeying occured"
 	fi
 done
-rm -f ${COPY} ${LOG} ${DATA}
+rm -f ${COPY} ${DATA}

@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.7 2013/02/20 08:27:50 djm Exp $
+#	$OpenBSD: integrity.sh,v 1.8 2013/04/06 06:00:22 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -22,7 +22,7 @@ config_defined OPENSSL_HAVE_EVPGCM && \
 	macs="$macs aes128-gcm@openssh.com aes256-gcm@openssh.com"
 
 # sshd-command for proxy (see test-exec.sh)
-cmd="$SUDO sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy"
+cmd="$SUDO sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSHD_LOGFILE} -i -f $OBJ/sshd_proxy"
 
 jot() {
 	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
