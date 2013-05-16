@@ -1,3 +1,7 @@
+20130516
+ - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be
+   executed if mktemp failed; bz#2105 ok dtucker@
+
 20130510
  - (djm) OpenBSD CVS Cherrypick
    - djm@cvs.openbsd.org 2013/04/11 02:27:50
