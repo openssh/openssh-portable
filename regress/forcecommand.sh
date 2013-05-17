@@ -1,4 +1,4 @@
-#	$OpenBSD: forcecommand.sh,v 1.1 2006/07/19 13:09:28 dtucker Exp $
+#	$OpenBSD: forcecommand.sh,v 1.2 2013/05/17 00:37:40 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="forced command"
