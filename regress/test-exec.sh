@@ -177,6 +177,7 @@ rm -f ${COPY}
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
+# Portable specific functions
 have_prog()
 {
 	saved_IFS="$IFS"
@@ -191,6 +192,11 @@ have_prog()
 	IFS="$saved_IFS"
 	return 1
 }
+
+jot() {
+	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
+}
+# End of portable specific functions
 
 cleanup ()
 {

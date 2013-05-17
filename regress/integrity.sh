@@ -29,10 +29,6 @@ echo "KexAlgorithms diffie-hellman-group14-sha1,diffie-hellman-group1-sha1" \
 # sshd-command for proxy (see test-exec.sh)
 cmd="$SUDO sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSHD_LOGFILE} -i -f $OBJ/sshd_proxy"
 
-jot() {
-	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
-}
-
 for m in $macs; do
 	trace "test $tid: mac $m"
 	elen=0

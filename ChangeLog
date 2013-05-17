@@ -78,6 +78,8 @@
  - (dtucker) [openbsd-compat/getopt.h] Remove unneeded bits.
  - (dtucker) [regress/cfgmatch.sh] Resync config file setup with openbsd.
  - (dtucker) [regress/agent-getpeereid.sh] Resync spaces with openbsd.
+ - (dtucker) [regress/integrity.sh regress/krl.sh regress/test-exec.sh]
+   Move the jot helper function to portable-specific part of test-exec.sh.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
