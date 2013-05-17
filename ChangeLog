@@ -42,6 +42,8 @@
    - dtucker@cvs.openbsd.org 2013/05/16 05:48:31
      [regress/rekey.sh]
      add tests for RekeyLimit parsing
+ - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
+   in portable and it's long gone in openbsd.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
