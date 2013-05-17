@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp.sh,v 1.4 2013/05/17 04:29:14 dtucker Exp $
+#	$OpenBSD: sftp.sh,v 1.5 2013/05/17 10:28:11 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="basic sftp put/get"
