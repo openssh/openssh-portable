@@ -84,6 +84,7 @@
    together and add a couple of missing lines from openbsd.
  - (dtucker) [regress/stderr-after-eof.sh regress/test-exec.sh] Move the md5
    helper function to the portable part of test-exec.sh.
+ - (dtucker) [regress/runtests.sh] Remove obsolete test driver script.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
