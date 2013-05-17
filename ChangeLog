@@ -86,6 +86,10 @@
    - dtucker@cvs.openbsd.org 2013/05/17 10:28:11
      [regress/sftp.sh]
      only compare copied data if sftp succeeds.  from portable (id sync only)
+   - dtucker@cvs.openbsd.org 2013/05/17 10:30:07
+     [regress/test-exec.sh]
+     wait a bit longer for startup and use case for absolute path.
+     from portable (id sync only)
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange
