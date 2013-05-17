@@ -68,6 +68,10 @@
      regress/sftp-chroot.sh regress/forwarding.sh regress/transfer.sh
      regress/multiplex.sh]
      Move the setting of DATA and COPY into test-exec.sh
+   - dtucker@cvs.openbsd.org 2013/05/17 10:16:26
+     [regress/try-ciphers.sh]
+     use expr for math to keep diffs vs portable down
+     (id sync only)
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange
