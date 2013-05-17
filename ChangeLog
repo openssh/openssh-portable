@@ -55,6 +55,9 @@
       - TIMEOUT is a read-only variable in some shells
       - not all greps have -q so redirect to /dev/null instead.
      (ID sync only)
+   - dtucker@cvs.openbsd.org 2013/05/17 01:32:11
+     [regress/integrity.sh]
+     don't print output from ssh before getting it (it's available in ssh.log)
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange
