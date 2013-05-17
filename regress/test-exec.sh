@@ -207,6 +207,20 @@ config_defined ()
 	done
 	egrep "^#define.*($str)" ${BUILDDIR}/config.h >/dev/null 2>&1
 }
+
+md5 () {
+	if have_prog md5sum; then
+		md5sum
+	elif have_prog openssl; then
+		openssl md5
+	elif have_prog cksum; then
+		cksum
+	elif have_prog sum; then
+		sum
+	else
+		wc -c
+	fi
+}
 # End of portable specific functions
 
 # helper
