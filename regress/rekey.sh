@@ -1,15 +1,11 @@
-#	$OpenBSD: rekey.sh,v 1.7 2013/05/16 05:48:31 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.8 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
 
-DATA=${OBJ}/data
-COPY=${OBJ}/copy
 LOG=${TEST_SSH_LOGFILE}
 
-rm -f ${COPY} ${LOG} ${DATA}
-touch ${DATA}
-dd if=/bin/ls${EXEEXT} of=${DATA} bs=1k seek=511 count=1 > /dev/null 2>&1
+rm -f ${LOG}
 
 for s in 16 1k 128k 256k; do
 	verbose "client rekeylimit ${s}"

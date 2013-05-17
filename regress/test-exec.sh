@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.41 2013/05/17 00:37:40 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.42 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -155,10 +155,6 @@ fi
 >$TEST_SSHD_LOGFILE
 >$TEST_REGRESS_LOGFILE
 
-# Some data for test copies
-DATA=$OBJ/testdata
-cat $SSHD${EXEEXT} $SSHD${EXEEXT} $SSHD${EXEEXT} $SSHD${EXEEXT} >$DATA
-
 # Create wrapper ssh with logging.  We can't just specify "SSH=ssh -E..."
 # because sftp and scp don't handle spaces in arguments.
 SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
@@ -167,6 +163,15 @@ echo "exec ${SSH} -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
 
 chmod a+rx $OBJ/ssh-log-wrapper.sh
 SSH="$SSHLOGWRAP"
+
+# Some test data.  We make a copy because some tests will overwrite it.
+# The tests may assume that $DATA exists and is writable and $COPY does
+# not exist.
+DATA=$OBJ/data
+cat $SSHD $SSHD $SSHD $SSHD >${DATA}
+chmod u+w ${DATA}
+COPY=$OBJ/copy
+rm -f ${COPY}
 
 # these should be used in tests
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP

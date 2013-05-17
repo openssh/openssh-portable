@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.12 2012/06/01 00:52:52 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.13 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -7,8 +7,6 @@
 
 tid="sftp commands"
 
-DATA=/bin/ls${EXEEXT}
-COPY=${OBJ}/copy
 # test that these files are readable!
 for i in `(cd /bin;echo l*)`
 do

@@ -58,6 +58,16 @@
    - dtucker@cvs.openbsd.org 2013/05/17 01:32:11
      [regress/integrity.sh]
      don't print output from ssh before getting it (it's available in ssh.log)
+   - dtucker@cvs.openbsd.org 2013/05/17 04:29:14
+     [regress/sftp.sh regress/putty-ciphers.sh regress/cipher-speed.sh
+     regress/test-exec.sh regress/sftp-batch.sh regress/dynamic-forward.sh
+     regress/putty-transfer.sh regress/conch-ciphers.sh regress/sftp-cmds.sh
+     regress/scp.sh regress/ssh-com-sftp.sh regress/rekey.sh
+     regress/putty-kex.sh regress/stderr-data.sh regress/stderr-after-eof.sh
+     regress/sftp-badcmds.sh regress/reexec.sh regress/ssh-com-client.sh
+     regress/sftp-chroot.sh regress/forwarding.sh regress/transfer.sh
+     regress/multiplex.sh]
+     Move the setting of DATA and COPY into test-exec.sh
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange

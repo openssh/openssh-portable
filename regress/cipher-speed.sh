@@ -1,4 +1,4 @@
-#	$OpenBSD: cipher-speed.sh,v 1.8 2013/05/17 00:37:40 dtucker Exp $
+#	$OpenBSD: cipher-speed.sh,v 1.9 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="cipher speed"

@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.20 2013/04/22 07:28:53 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.21 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -10,8 +10,6 @@ if config_defined DISABLE_FD_PASSING ; then
 	exit 0
 fi
 
-DATA=/bin/ls${EXEEXT}
-COPY=$OBJ/ls.copy
 P=3301  # test port
 
 wait_for_mux_master_ready()
