@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.40 2013/04/07 02:16:03 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.41 2013/05/17 00:37:40 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -172,18 +172,6 @@ SSH="$SSHLOGWRAP"
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
-# helper
-echon()
-{
-       if [ "x`echo -n`" = "x" ]; then
-               echo -n "$@"
-       elif [ "x`echo '\c'`" = "x" ]; then
-               echo "$@\c"
-       else
-               fatal "Don't know how to echo without newline."
-       fi
-}
-
 have_prog()
 {
 	saved_IFS="$IFS"
@@ -273,7 +261,7 @@ fail ()
 fatal ()
 {
 	save_debug_log "FATAL: $@"
-	echo -n "FATAL: "
+	printf "FATAL: "
 	fail "$@"
 	cleanup
 	exit $RESULT
@@ -360,7 +348,7 @@ for t in rsa rsa1; do
 
 	# known hosts file for client
 	(
-		echon 'localhost-with-alias,127.0.0.1,::1 '
+		printf 'localhost-with-alias,127.0.0.1,::1 '
 		cat $OBJ/$t.pub
 	) >> $OBJ/known_hosts
 

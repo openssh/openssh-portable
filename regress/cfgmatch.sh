@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatch.sh,v 1.7 2013/04/06 06:00:22 dtucker Exp $
+#	$OpenBSD: cfgmatch.sh,v 1.8 2013/05/17 00:37:40 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config match"
@@ -75,9 +75,9 @@ for p in 1 2; do
 done
 
 # Retry previous with key option, should also be denied.
-echon 'permitopen="127.0.0.1:'$PORT'" ' >$OBJ/authorized_keys_$USER
+printf 'permitopen="127.0.0.1:'$PORT'" ' >$OBJ/authorized_keys_$USER
 cat $OBJ/rsa.pub >> $OBJ/authorized_keys_$USER
-echon 'permitopen="127.0.0.1:'$PORT'" ' >>$OBJ/authorized_keys_$USER
+printf 'permitopen="127.0.0.1:'$PORT'" ' >>$OBJ/authorized_keys_$USER
 cat $OBJ/rsa1.pub >> $OBJ/authorized_keys_$USER
 for p in 1 2; do
 	trace "match permitopen proxy w/key opts proto $p"
