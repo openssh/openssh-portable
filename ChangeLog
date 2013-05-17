@@ -77,6 +77,9 @@
      Use SUDO when cat'ing pid files and running the sshd log wrapper so that
      it works with a restrictive umask and the pid files are not world readable.
      Changes from -portable.  (id sync only)
+   - dtucker@cvs.openbsd.org 2013/05/17 10:24:48
+     [localcommand.sh]
+     use backticks for portability. (id sync only)
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange
