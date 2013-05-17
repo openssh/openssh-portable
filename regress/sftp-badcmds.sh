@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-badcmds.sh,v 1.5 2013/05/17 04:29:14 dtucker Exp $
+#	$OpenBSD: sftp-badcmds.sh,v 1.6 2013/05/17 10:26:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sftp invalid commands"
