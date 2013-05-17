@@ -196,8 +196,20 @@ have_prog()
 jot() {
 	awk "BEGIN { for (i = $2; i < $2 + $1; i++) { printf \"%d\n\", i } exit }"
 }
+
+# Check whether preprocessor symbols are defined in config.h.
+config_defined ()
+{
+	str=$1
+	while test "x$2" != "x" ; do
+		str="$str|$2"
+		shift
+	done
+	egrep "^#define.*($str)" ${BUILDDIR}/config.h >/dev/null 2>&1
+}
 # End of portable specific functions
 
+# helper
 cleanup ()
 {
 	if [ -f $PIDFILE ]; then
@@ -278,17 +290,6 @@ fatal ()
 	exit $RESULT
 }
 
-# Check whether preprocessor symbols are defined in config.h.
-config_defined ()
-{
-	str=$1
-	while test "x$2" != "x" ; do
-		str="$str|$2"
-		shift
-	done
-	egrep "^#define.*($str)" ${BUILDDIR}/config.h >/dev/null 2>&1
-}
-
 RESULT=0
 PIDFILE=$OBJ/pidfile
 
@@ -336,6 +337,7 @@ Host *
 	ChallengeResponseAuthentication	no
 	HostbasedAuthentication	no
 	PasswordAuthentication	no
+	RhostsRSAAuthentication	no
 	BatchMode		yes
 	StrictHostKeyChecking	yes
 	LogLevel		DEBUG3
