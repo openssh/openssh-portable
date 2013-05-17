@@ -96,6 +96,10 @@
    - dtucker@cvs.openbsd.org 2013/05/17 10:34:30
      [regress/portnum.sh]
      use a more portable negated if structure.  from portable (id sync only)
+   - dtucker@cvs.openbsd.org 2013/05/17 10:35:43
+     [regress/scp.sh]
+     use a file extention that's not special on some platforms.  from portable
+     (id sync only)
  - (dtucker) [regress/bsd.regress.mk] Remove unused file.  We've never used it
    in portable and it's long gone in openbsd.
  - (dtucker) [regress/integrity.sh].  Force fixed Diffie-Hellman key exchange
