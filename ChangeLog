@@ -77,6 +77,7 @@
    traffic and we get different errors to what the tests look for.
  - (dtucker) [openbsd-compat/getopt.h] Remove unneeded bits.
  - (dtucker) [regress/cfgmatch.sh] Resync config file setup with openbsd.
+ - (dtucker) [regress/agent-getpeereid.sh] Resync spaces with openbsd.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 

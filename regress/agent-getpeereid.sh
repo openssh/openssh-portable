@@ -18,7 +18,6 @@ if [ -z "$SUDO" ]; then
 	exit 0
 fi
 
-
 trace "start agent"
 eval `${SSHAGENT} -s -a ${ASOCK}` > /dev/null
 r=$?
