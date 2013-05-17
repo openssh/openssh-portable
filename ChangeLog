@@ -76,6 +76,7 @@
    mean that the tests flip bits in the initial exchange rather than the MACed
    traffic and we get different errors to what the tests look for.
  - (dtucker) [openbsd-compat/getopt.h] Remove unneeded bits.
+ - (dtucker) [regress/cfgmatch.sh] Resync config file setup with openbsd.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
