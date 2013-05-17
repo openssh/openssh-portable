@@ -75,6 +75,7 @@
    the list is DH group exchange, but that causes a bit more traffic which can
    mean that the tests flip bits in the initial exchange rather than the MACed
    traffic and we get different errors to what the tests look for.
+ - (dtucker) [openbsd-compat/getopt.h] Remove unneeded bits.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
