@@ -85,6 +85,8 @@
  - (dtucker) [regress/stderr-after-eof.sh regress/test-exec.sh] Move the md5
    helper function to the portable part of test-exec.sh.
  - (dtucker) [regress/runtests.sh] Remove obsolete test driver script.
+ - (dtucker) [regress/cfgmatch.sh] Remove unneeded sleep renderd obsolete by
+   rev 1.6 which calls wait.
 
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be 
