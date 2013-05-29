@@ -1,3 +1,7 @@
+ 20130529
+  - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null
+    implementation of endgrent for platforms that don't have it (eg Android).
+    Loosely based on a patch from Nathan Osman, ok djm
  20130517
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/03/07 00:20:34

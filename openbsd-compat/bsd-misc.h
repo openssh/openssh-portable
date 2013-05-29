@@ -1,4 +1,4 @@
-/* $Id: bsd-misc.h,v 1.23 2013/03/14 23:34:27 djm Exp $ */
+/* $Id: bsd-misc.h,v 1.24 2013/05/29 22:29:09 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
@@ -108,6 +108,10 @@ int	isblank(int);
 
 #ifndef HAVE_GETPGID
 pid_t getpgid(pid_t);
+#endif
+
+#ifndef HAVE_ENDGRENT
+# define endgrent() {}
 #endif
 
 #endif /* _BSD_MISC_H */
