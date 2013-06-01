@@ -35,6 +35,9 @@
      Pushing all logging onto a single line simplifies log analysis as it is
      no longer necessary to relate information scattered across multiple log
      entries. "I like it" markus@
+   - dtucker@cvs.openbsd.org 2013/05/31 12:28:10
+     [ssh-agent.c]
+     Use time_t where appropriate.  ok djm
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null

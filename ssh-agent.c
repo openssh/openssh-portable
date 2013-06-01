@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.173 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.174 2013/05/31 12:28:10 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -106,7 +106,7 @@ typedef struct identity {
 	Key *key;
 	char *comment;
 	char *provider;
-	u_int death;
+	time_t death;
 	u_int confirm;
 } Identity;
 
@@ -134,8 +134,8 @@ char *lock_passwd = NULL;
 
 extern char *__progname;
 
-/* Default lifetime (0 == forever) */
-static int lifetime = 0;
+/* Default lifetime in seconds (0 == forever) */
+static long lifetime = 0;
 
 static void
 close_socket(SocketEntry *e)
@@ -428,10 +428,10 @@ process_remove_all_identities(SocketEntry *e, int version)
 }
 
 /* removes expired keys and returns number of seconds until the next expiry */
-static u_int
+static time_t
 reaper(void)
 {
-	u_int deadline = 0, now = time(NULL);
+	time_t deadline = 0, now = time(NULL);
 	Identity *id, *nxt;
 	int version;
 	Idtab *tab;
@@ -463,8 +463,9 @@ process_add_identity(SocketEntry *e, int version)
 {
 	Idtab *tab = idtab_lookup(version);
 	Identity *id;
-	int type, success = 0, death = 0, confirm = 0;
+	int type, success = 0, confirm = 0;
 	char *type_name, *comment;
+	time_t death = 0;
 	Key *k = NULL;
 #ifdef OPENSSL_HAS_ECC
 	BIGNUM *exponent;
@@ -699,7 +700,8 @@ static void
 process_add_smartcard_key(SocketEntry *e)
 {
 	char *provider = NULL, *pin;
-	int i, type, version, count = 0, success = 0, death = 0, confirm = 0;
+	int i, type, version, count = 0, success = 0, confirm = 0;
+	time_t death = 0;
 	Key **keys = NULL, *k;
 	Identity *id;
 	Idtab *tab;
@@ -926,9 +928,10 @@ static int
 prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl, u_int *nallocp,
     struct timeval **tvpp)
 {
-	u_int i, sz, deadline;
+	u_int i, sz;
 	int n = 0;
 	static struct timeval tv;
+	time_t deadline;
 
 	for (i = 0; i < sockets_alloc; i++) {
 		switch (sockets[i].type) {
