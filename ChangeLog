@@ -1,6 +1,6 @@
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
-   using openssl's DES_crpyt function on platorms that don't have a native
+   using openssl's DES_crypt function on platorms that don't have a native
    one, eg Android.  Based on a patch from Nathan Osman.
  - (dtucker) [configure.ac defines.h] Test for fd_mask, howmany and NFDBITS
    rather than trying to enumerate the plaforms that don't have them.
