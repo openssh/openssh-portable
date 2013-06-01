@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.81 2012/10/30 21:29:54 djm Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.82 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -281,7 +281,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		file = expand_authorized_keys(
 		    options.authorized_keys_files[i], pw);
 		allowed = rsa_key_allowed_in_file(pw, file, client_n, rkey);
-		xfree(file);
+		free(file);
 	}
 
 	restore_uid();
@@ -331,7 +331,7 @@ auth_rsa(Authctxt *authctxt, BIGNUM *client_n)
 	fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
 	verbose("Found matching %s key: %s",
 	    key_type(key), fp);
-	xfree(fp);
+	free(fp);
 	key_free(key);
 
 	packet_send_debug("RSA authentication accepted.");

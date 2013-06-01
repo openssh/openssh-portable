@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.238 2013/05/16 10:44:06 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.239 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -520,7 +520,7 @@ derelativise_path(const char *path)
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));
 	xasprintf(&ret, "%s/%s", cwd, expanded);
-	xfree(expanded);
+	free(expanded);
 	return ret;
 }
 
@@ -1713,8 +1713,7 @@ int server_match_spec_complete(struct connection_info *ci)
 } while (0)
 #define M_CP_STROPT(n) do {\
 	if (src->n != NULL) { \
-		if (dst->n != NULL) \
-			xfree(dst->n); \
+		free(dst->n); \
 		dst->n = src->n; \
 	} \
 } while(0)
@@ -1798,7 +1797,7 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 		    linenum++, &active, connectinfo) != 0)
 			bad_options++;
 	}
-	xfree(obuf);
+	free(obuf);
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.101 2013/02/06 00:22:21 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.102 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -165,17 +165,17 @@ allowed_user(struct passwd * pw)
 		if (stat(shell, &st) != 0) {
 			logit("User %.100s not allowed because shell %.100s "
 			    "does not exist", pw->pw_name, shell);
-			xfree(shell);
+			free(shell);
 			return 0;
 		}
 		if (S_ISREG(st.st_mode) == 0 ||
 		    (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)) == 0) {
 			logit("User %.100s not allowed because shell %.100s "
 			    "is not executable", pw->pw_name, shell);
-			xfree(shell);
+			free(shell);
 			return 0;
 		}
-		xfree(shell);
+		free(shell);
 	}
 
 	if (options.num_deny_users > 0 || options.num_allow_users > 0 ||
@@ -355,7 +355,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
 	if (i < 0 || (size_t)i >= sizeof(ret))
 		fatal("expand_authorized_keys: path too long");
-	xfree(file);
+	free(file);
 	return (xstrdup(ret));
 }
 
@@ -397,7 +397,7 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 			load_hostkeys(hostkeys, host, user_hostfile);
 			restore_uid();
 		}
-		xfree(user_hostfile);
+		free(user_hostfile);
 	}
 	host_status = check_key_in_hostkeys(hostkeys, key, &found);
 	if (host_status == HOST_REVOKED)
@@ -666,7 +666,7 @@ auth_key_is_revoked(Key *key)
 		key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
 		error("WARNING: authentication attempt with a revoked "
 		    "%s key %s ", key_type(key), key_fp);
-		xfree(key_fp);
+		free(key_fp);
 		return 1;
 	}
 	fatal("key_in_file returned junk");
@@ -697,7 +697,7 @@ auth_debug_send(void)
 	while (buffer_len(&auth_debug)) {
 		msg = buffer_get_string(&auth_debug, NULL);
 		packet_send_debug("%s", msg);
-		xfree(msg);
+		free(msg);
 	}
 }
 

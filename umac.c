@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.4 2011/10/19 10:39:48 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.5 2013/05/17 00:13:14 djm Exp $ */
 /* -----------------------------------------------------------------------
  * 
  * umac.c -- C Implementation UMAC Message Authentication
@@ -1209,7 +1209,7 @@ int umac_delete(struct umac_ctx *ctx)
     if (ctx) {
         if (ALLOC_BOUNDARY)
             ctx = (struct umac_ctx *)ctx->free_ptr;
-        xfree(ctx);
+        free(ctx);
     }
     return (1);
 }

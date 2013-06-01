@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.88 2013/04/24 16:01:46 tedu Exp $ */
+/* $OpenBSD: misc.c,v 1.89 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -253,13 +253,13 @@ a2tun(const char *s, int *remote)
 		*remote = SSH_TUNID_ANY;
 		sp = xstrdup(s);
 		if ((ep = strchr(sp, ':')) == NULL) {
-			xfree(sp);
+			free(sp);
 			return (a2tun(s, NULL));
 		}
 		ep[0] = '\0'; ep++;
 		*remote = a2tun(ep, NULL);
 		tun = a2tun(sp, NULL);
-		xfree(sp);
+		free(sp);
 		return (*remote == SSH_TUNID_ERR ? *remote : tun);
 	}
 
@@ -492,7 +492,7 @@ replacearg(arglist *args, u_int which, char *fmt, ...)
 	if (which >= args->num)
 		fatal("replacearg: tried to replace invalid arg %d >= %d",
 		    which, args->num);
-	xfree(args->list[which]);
+	free(args->list[which]);
 	args->list[which] = cp;
 }
 
@@ -503,8 +503,8 @@ freeargs(arglist *args)
 
 	if (args->list != NULL) {
 		for (i = 0; i < args->num; i++)
-			xfree(args->list[i]);
-		xfree(args->list);
+			free(args->list[i]);
+		free(args->list);
 		args->nalloc = args->num = 0;
 		args->list = NULL;
 	}

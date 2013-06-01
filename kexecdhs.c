@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhs.c,v 1.3 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: kexecdhs.c,v 1.4 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -112,7 +112,7 @@ kexecdh_server(Kex *kex)
 	if (BN_bin2bn(kbuf, klen, shared_secret) == NULL)
 		fatal("%s: BN_bin2bn failed", __func__);
 	memset(kbuf, 0, klen);
-	xfree(kbuf);
+	free(kbuf);
 
 	/* calc H */
 	key_to_blob(server_host_public, &server_host_key_blob, &sbloblen);
@@ -152,8 +152,8 @@ kexecdh_server(Kex *kex)
 	packet_put_string(signature, slen);
 	packet_send();
 
-	xfree(signature);
-	xfree(server_host_key_blob);
+	free(signature);
+	free(server_host_key_blob);
 	/* have keys, free server key */
 	EC_KEY_free(server_key);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.249 2013/05/16 02:00:34 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.250 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -393,10 +393,8 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 		unlink(xauthfile);
 		rmdir(xauthdir);
 	}
-	if (xauthdir)
-		xfree(xauthdir);
-	if (xauthfile)
-		xfree(xauthfile);
+	free(xauthdir);
+	free(xauthfile);
 
 	/*
 	 * If we didn't get authentication data, just make up some
@@ -552,7 +550,7 @@ client_global_request_reply(int type, u_int32_t seq, void *ctxt)
 	if (--gc->ref_count <= 0) {
 		TAILQ_REMOVE(&global_confirms, gc, entry);
 		bzero(gc, sizeof(*gc));
-		xfree(gc);
+		free(gc);
 	}
 
 	packet_set_alive_timeouts(0);
@@ -826,13 +824,13 @@ client_status_confirm(int type, Channel *c, void *ctx)
 			chan_write_failed(c);
 		}
 	}
-	xfree(cr);
+	free(cr);
 }
 
 static void
 client_abandon_status_confirm(Channel *c, void *ctx)
 {
-	xfree(ctx);
+	free(ctx);
 }
 
 void
@@ -999,12 +997,9 @@ process_cmdline(void)
 out:
 	signal(SIGINT, handler);
 	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
-	if (cmd)
-		xfree(cmd);
-	if (fwd.listen_host != NULL)
-		xfree(fwd.listen_host);
-	if (fwd.connect_host != NULL)
-		xfree(fwd.connect_host);
+	free(cmd);
+	free(fwd.listen_host);
+	free(fwd.connect_host);
 }
 
 /* reasons to suppress output of an escape command in help output */
@@ -1261,7 +1256,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				buffer_append(berr, string, strlen(string));
 				s = channel_open_message();
 				buffer_append(berr, s, strlen(s));
-				xfree(s);
+				free(s);
 				continue;
 
 			case 'C':
@@ -1450,7 +1445,7 @@ client_new_escape_filter_ctx(int escape_char)
 void
 client_filter_cleanup(int cid, void *ctx)
 {
-	xfree(ctx);
+	free(ctx);
 }
 
 int
@@ -1661,10 +1656,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			}
 		}
 	}
-	if (readset)
-		xfree(readset);
-	if (writeset)
-		xfree(writeset);
+	free(readset);
+	free(writeset);
 
 	/* Terminate the session. */
 
@@ -1766,7 +1759,7 @@ client_input_stdout_data(int type, u_int32_t seq, void *ctxt)
 	packet_check_eom();
 	buffer_append(&stdout_buffer, data, data_len);
 	memset(data, 0, data_len);
-	xfree(data);
+	free(data);
 }
 static void
 client_input_stderr_data(int type, u_int32_t seq, void *ctxt)
@@ -1776,7 +1769,7 @@ client_input_stderr_data(int type, u_int32_t seq, void *ctxt)
 	packet_check_eom();
 	buffer_append(&stderr_buffer, data, data_len);
 	memset(data, 0, data_len);
-	xfree(data);
+	free(data);
 }
 static void
 client_input_exit_status(int type, u_int32_t seq, void *ctxt)
@@ -1856,8 +1849,8 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	c = channel_connect_by_listen_address(listen_port,
 	    "forwarded-tcpip", originator_address);
 
-	xfree(originator_address);
-	xfree(listen_address);
+	free(originator_address);
+	free(listen_address);
 	return c;
 }
 
@@ -1891,7 +1884,7 @@ client_request_x11(const char *request_type, int rchan)
 	/* XXX check permission */
 	debug("client_request_x11: request from %s %d", originator,
 	    originator_port);
-	xfree(originator);
+	free(originator);
 	sock = x11_connect_display();
 	if (sock < 0)
 		return NULL;
@@ -2018,7 +2011,7 @@ client_input_channel_open(int type, u_int32_t seq, void *ctxt)
 		}
 		packet_send();
 	}
-	xfree(ctype);
+	free(ctype);
 }
 static void
 client_input_channel_req(int type, u_int32_t seq, void *ctxt)
@@ -2064,7 +2057,7 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 		packet_put_int(c->remote_id);
 		packet_send();
 	}
-	xfree(rtype);
+	free(rtype);
 }
 static void
 client_input_global_request(int type, u_int32_t seq, void *ctxt)
@@ -2083,7 +2076,7 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 		packet_send();
 		packet_write_wait();
 	}
-	xfree(rtype);
+	free(rtype);
 }
 
 void
@@ -2133,7 +2126,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			/* Split */
 			name = xstrdup(env[i]);
 			if ((val = strchr(name, '=')) == NULL) {
-				xfree(name);
+				free(name);
 				continue;
 			}
 			*val++ = '\0';
@@ -2147,7 +2140,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			}
 			if (!matched) {
 				debug3("Ignored env %s", name);
-				xfree(name);
+				free(name);
 				continue;
 			}
 
@@ -2156,7 +2149,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			packet_put_cstring(name);
 			packet_put_cstring(val);
 			packet_send();
-			xfree(name);
+			free(name);
 		}
 	}
 

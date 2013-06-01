@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.377 2013/04/19 11:10:18 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.378 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -226,7 +226,7 @@ tilde_expand_paths(char **paths, u_int num_paths)
 
 	for (i = 0; i < num_paths; i++) {
 		cp = tilde_expand_filename(paths[i], original_real_uid);
-		xfree(paths[i]);
+		free(paths[i]);
 		paths[i] = cp;
 	}
 }
@@ -473,7 +473,7 @@ main(int ac, char **av)
 			if (parse_forward(&fwd, optarg, 1, 0)) {
 				stdio_forward_host = fwd.listen_host;
 				stdio_forward_port = fwd.listen_port;
-				xfree(fwd.connect_host);
+				free(fwd.connect_host);
 			} else {
 				fprintf(stderr,
 				    "Bad stdio forwarding specification '%s'\n",
@@ -601,7 +601,7 @@ main(int ac, char **av)
 			    line, "command-line", 0, &dummy, SSHCONF_USERCONF)
 			    != 0)
 				exit(255);
-			xfree(line);
+			free(line);
 			break;
 		case 's':
 			subsystem_flag = 1;
@@ -688,7 +688,7 @@ main(int ac, char **av)
 		fatal("Can't specify both -y and -E");
 	if (logfile != NULL) {
 		log_redirect_stderr_to(logfile);
-		xfree(logfile);
+		free(logfile);
 	}
 	log_init(argv0,
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
@@ -778,7 +778,7 @@ main(int ac, char **av)
 		    "p", portstr, "u", pw->pw_name, "L", shorthost,
 		    (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);
-		xfree(cp);
+		free(cp);
 	}
 
 	/* force lowercase for hostkey matching */
@@ -790,24 +790,24 @@ main(int ac, char **av)
 
 	if (options.proxy_command != NULL &&
 	    strcmp(options.proxy_command, "none") == 0) {
-		xfree(options.proxy_command);
+		free(options.proxy_command);
 		options.proxy_command = NULL;
 	}
 	if (options.control_path != NULL &&
 	    strcmp(options.control_path, "none") == 0) {
-		xfree(options.control_path);
+		free(options.control_path);
 		options.control_path = NULL;
 	}
 
 	if (options.control_path != NULL) {
 		cp = tilde_expand_filename(options.control_path,
 		    original_real_uid);
-		xfree(options.control_path);
+		free(options.control_path);
 		options.control_path = percent_expand(cp, "h", host,
 		    "l", thishost, "n", host_arg, "r", options.user,
 		    "p", portstr, "u", pw->pw_name, "L", shorthost,
 		    (char *)NULL);
-		xfree(cp);
+		free(cp);
 	}
 	if (muxclient_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");
@@ -958,13 +958,11 @@ main(int ac, char **av)
 				sensitive_data.keys[i] = NULL;
 			}
 		}
-		xfree(sensitive_data.keys);
+		free(sensitive_data.keys);
 	}
 	for (i = 0; i < options.num_identity_files; i++) {
-		if (options.identity_files[i]) {
-			xfree(options.identity_files[i]);
-			options.identity_files[i] = NULL;
-		}
+		free(options.identity_files[i]);
+		options.identity_files[i] = NULL;
 		if (options.identity_keys[i]) {
 			key_free(options.identity_keys[i]);
 			options.identity_keys[i] = NULL;
@@ -1554,7 +1552,7 @@ load_public_identity_files(void)
 			    xstrdup(options.pkcs11_provider); /* XXX */
 			n_ids++;
 		}
-		xfree(keys);
+		free(keys);
 	}
 #endif /* ENABLE_PKCS11 */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
@@ -1567,7 +1565,7 @@ load_public_identity_files(void)
 	for (i = 0; i < options.num_identity_files; i++) {
 		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
 		    strcasecmp(options.identity_files[i], "none") == 0) {
-			xfree(options.identity_files[i]);
+			free(options.identity_files[i]);
 			continue;
 		}
 		cp = tilde_expand_filename(options.identity_files[i],
@@ -1575,11 +1573,11 @@ load_public_identity_files(void)
 		filename = percent_expand(cp, "d", pwdir,
 		    "u", pwname, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
-		xfree(cp);
+		free(cp);
 		public = key_load_public(filename, NULL);
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);
-		xfree(options.identity_files[i]);
+		free(options.identity_files[i]);
 		identity_files[n_ids] = filename;
 		identity_keys[n_ids] = public;
 
@@ -1592,14 +1590,14 @@ load_public_identity_files(void)
 		debug("identity file %s type %d", cp,
 		    public ? public->type : -1);
 		if (public == NULL) {
-			xfree(cp);
+			free(cp);
 			continue;
 		}
 		if (!key_is_cert(public)) {
 			debug("%s: key %s type %s is not a certificate",
 			    __func__, cp, key_type(public));
 			key_free(public);
-			xfree(cp);
+			free(cp);
 			continue;
 		}
 		identity_keys[n_ids] = public;
@@ -1612,9 +1610,9 @@ load_public_identity_files(void)
 	memcpy(options.identity_keys, identity_keys, sizeof(identity_keys));
 
 	bzero(pwname, strlen(pwname));
-	xfree(pwname);
+	free(pwname);
 	bzero(pwdir, strlen(pwdir));
-	xfree(pwdir);
+	free(pwdir);
 }
 
 static void

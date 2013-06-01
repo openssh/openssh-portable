@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.127 2013/03/07 19:27:25 markus Exp $ */
+/* $OpenBSD: auth2.c,v 1.128 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -130,7 +130,7 @@ auth2_read_banner(void)
 	close(fd);
 
 	if (n != len) {
-		xfree(banner);
+		free(banner);
 		return (NULL);
 	}
 	banner[n] = '\0';
@@ -166,8 +166,7 @@ userauth_banner(void)
 	userauth_send_banner(banner);
 
 done:
-	if (banner)
-		xfree(banner);
+	free(banner);
 }
 
 /*
@@ -212,7 +211,7 @@ input_service_request(int type, u_int32_t seq, void *ctxt)
 		debug("bad service request %s", service);
 		packet_disconnect("bad service request %s", service);
 	}
-	xfree(service);
+	free(service);
 }
 
 /*ARGSUSED*/
@@ -292,9 +291,9 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 	}
 	userauth_finish(authctxt, authenticated, method, NULL);
 
-	xfree(service);
-	xfree(user);
-	xfree(method);
+	free(service);
+	free(user);
+	free(method);
 }
 
 void
@@ -382,7 +381,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 		packet_put_char(partial);
 		packet_send();
 		packet_write_wait();
-		xfree(methods);
+		free(methods);
 	}
 }
 

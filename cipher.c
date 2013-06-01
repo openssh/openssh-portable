@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.88 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.89 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -205,14 +205,14 @@ ciphers_valid(const char *names)
 		c = cipher_by_name(p);
 		if (c == NULL || c->number != SSH_CIPHER_SSH2) {
 			debug("bad cipher %s [%s]", p, names);
-			xfree(cipher_list);
+			free(cipher_list);
 			return 0;
 		} else {
 			debug3("cipher ok: %s [%s]", p, names);
 		}
 	}
 	debug3("ciphers ok: [%s]", names);
-	xfree(cipher_list);
+	free(cipher_list);
 	return 1;
 }
 
@@ -314,8 +314,8 @@ cipher_init(CipherContext *cc, const Cipher *cipher,
 		    cipher->discard_len) == 0)
 			fatal("evp_crypt: EVP_Cipher failed during discard");
 		memset(discard, 0, cipher->discard_len);
-		xfree(junk);
-		xfree(discard);
+		free(junk);
+		free(discard);
 	}
 }
 

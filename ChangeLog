@@ -5,6 +5,23 @@
  - (dtucker) [configure.ac defines.h] Test for fd_mask, howmany and NFDBITS
    rather than trying to enumerate the plaforms that don't have them.
    Based on a patch from Nathan Osman, with help from tim@.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/05/17 00:13:13
+     [xmalloc.h cipher.c sftp-glob.c ssh-keyscan.c ssh.c sftp-common.c
+     ssh-ecdsa.c auth2-chall.c compat.c readconf.c kexgexs.c monitor.c
+     gss-genr.c cipher-3des1.c kex.c monitor_wrap.c ssh-pkcs11-client.c
+     auth-options.c rsa.c auth2-pubkey.c sftp.c hostfile.c auth2.c
+     servconf.c auth.c authfile.c xmalloc.c uuencode.c sftp-client.c
+     auth2-gss.c sftp-server.c bufaux.c mac.c session.c jpake.c kexgexc.c
+     sshconnect.c auth-chall.c auth2-passwd.c sshconnect1.c buffer.c
+     kexecdhs.c kexdhs.c ssh-rsa.c auth1.c ssh-pkcs11.c auth2-kbdint.c
+     kexdhc.c sshd.c umac.c ssh-dss.c auth2-jpake.c bufbn.c clientloop.c
+     monitor_mm.c scp.c roaming_client.c serverloop.c key.c auth-rsa.c
+     ssh-pkcs11-helper.c ssh-keysign.c ssh-keygen.c match.c channels.c
+     sshconnect2.c addrmatch.c mux.c canohost.c kexecdhc.c schnorr.c
+     ssh-add.c misc.c auth2-hostbased.c ssh-agent.c bufec.c groupaccess.c
+     dns.c packet.c readpass.c authfd.c moduli.c]
+     bye, bye xfree(); ok markus@
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null

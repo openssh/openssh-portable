@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.144 2013/05/16 09:08:41 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.145 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -309,7 +309,7 @@ local_do_ls(const char *args)
 		/* XXX: quoting - rip quoting code from ftp? */
 		snprintf(buf, len, _PATH_LS " %s", args);
 		local_do_shell(buf);
-		xfree(buf);
+		free(buf);
 	}
 }
 
@@ -340,7 +340,7 @@ make_absolute(char *p, char *pwd)
 	/* Derelativise */
 	if (p && p[0] != '/') {
 		abs_str = path_append(pwd, p);
-		xfree(p);
+		free(p);
 		return(abs_str);
 	} else
 		return(p);
@@ -550,7 +550,7 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		tmp = xstrdup(g.gl_pathv[i]);
 		if ((filename = basename(tmp)) == NULL) {
 			error("basename %s: %s", tmp, strerror(errno));
-			xfree(tmp);
+			free(tmp);
 			err = -1;
 			goto out;
 		}
@@ -566,7 +566,7 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		} else {
 			abs_dst = xstrdup(filename);
 		}
-		xfree(tmp);
+		free(tmp);
 
 		if (!quiet)
 			printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
@@ -579,12 +579,12 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 			    pflag || global_pflag) == -1)
 				err = -1;
 		}
-		xfree(abs_dst);
+		free(abs_dst);
 		abs_dst = NULL;
 	}
 
 out:
-	xfree(abs_src);
+	free(abs_src);
 	globfree(&g);
 	return(err);
 }
@@ -636,7 +636,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		tmp = xstrdup(g.gl_pathv[i]);
 		if ((filename = basename(tmp)) == NULL) {
 			error("basename %s: %s", tmp, strerror(errno));
-			xfree(tmp);
+			free(tmp);
 			err = -1;
 			goto out;
 		}
@@ -652,7 +652,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		} else {
 			abs_dst = make_absolute(xstrdup(filename), pwd);
 		}
-		xfree(tmp);
+		free(tmp);
 
 		if (!quiet)
 			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
@@ -668,10 +668,8 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 	}
 
 out:
-	if (abs_dst)
-		xfree(abs_dst);
-	if (tmp_dst)
-		xfree(tmp_dst);
+	free(abs_dst);
+	free(tmp_dst);
 	globfree(&g);
 	return(err);
 }
@@ -719,7 +717,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		/* Add any subpath that also needs to be counted */
 		tmp = path_strip(path, strip_path);
 		m += strlen(tmp);
-		xfree(tmp);
+		free(tmp);
 
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
 			width = ws.ws_col;
@@ -745,7 +743,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 
 		tmp = path_append(path, d[n]->filename);
 		fname = path_strip(tmp, strip_path);
-		xfree(tmp);
+		free(tmp);
 
 		if (lflag & LS_LONG_VIEW) {
 			if (lflag & (LS_NUMERIC_VIEW|LS_SI_UNITS)) {
@@ -757,7 +755,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 				lname = ls_file(fname, &sb, 1,
 				    (lflag & LS_SI_UNITS));
 				printf("%s\n", lname);
-				xfree(lname);
+				free(lname);
 			} else
 				printf("%s\n", d[n]->longname);
 		} else {
@@ -769,7 +767,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 				c++;
 		}
 
-		xfree(fname);
+		free(fname);
 	}
 
 	if (!(lflag & LS_LONG_VIEW) && (c != 1))
@@ -839,7 +837,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 			lname = ls_file(fname, g.gl_statv[i], 1,
 			    (lflag & LS_SI_UNITS));
 			printf("%s\n", lname);
-			xfree(lname);
+			free(lname);
 		} else {
 			printf("%-*s", colspace, fname);
 			if (c >= columns) {
@@ -848,7 +846,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 			} else
 				c++;
 		}
-		xfree(fname);
+		free(fname);
 	}
 
 	if (!(lflag & LS_LONG_VIEW) && (c != 1))
@@ -1365,24 +1363,24 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 			break;
 		}
 		if ((aa = do_stat(conn, tmp, 0)) == NULL) {
-			xfree(tmp);
+			free(tmp);
 			err = 1;
 			break;
 		}
 		if (!(aa->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)) {
 			error("Can't change directory: Can't check target");
-			xfree(tmp);
+			free(tmp);
 			err = 1;
 			break;
 		}
 		if (!S_ISDIR(aa->perm)) {
 			error("Can't change directory: \"%s\" is not "
 			    "a directory", tmp);
-			xfree(tmp);
+			free(tmp);
 			err = 1;
 			break;
 		}
-		xfree(*pwd);
+		free(*pwd);
 		*pwd = tmp;
 		break;
 	case I_LS:
@@ -1515,10 +1513,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 
 	if (g.gl_pathc)
 		globfree(&g);
-	if (path1)
-		xfree(path1);
-	if (path2)
-		xfree(path2);
+	free(path1);
+	free(path2);
 
 	/* If an unignored error occurs in batch mode we should abort. */
 	if (err_abort && err != 0)
@@ -1628,8 +1624,8 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 		complete_display(list, 0);
 
 		for (y = 0; list[y] != NULL; y++)  
-			xfree(list[y]);	
-		xfree(list);
+			free(list[y]);	
+		free(list);
 		return count;
 	}
 
@@ -1642,7 +1638,7 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 	list[count] = NULL;
 
 	if (count == 0) {
-		xfree(list);
+		free(list);
 		return 0;
 	}
 
@@ -1652,8 +1648,8 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 		complete_display(list, 0);
 
 	for (y = 0; list[y]; y++)  
-		xfree(list[y]);	
-	xfree(list);
+		free(list[y]);	
+	free(list);
 
 	if (tmp != NULL) {
 		tmplen = strlen(tmp);
@@ -1674,7 +1670,7 @@ complete_cmd_parse(EditLine *el, char *cmd, int lastarg, char quote,
 			if (y > 0 && el_insertstr(el, argterm) == -1)
 				fatal("el_insertstr failed.");
 		}
-		xfree(tmp);
+		free(tmp);
 	}
 
 	return count;
@@ -1738,7 +1734,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		if (tmp[tmplen] == '/')
 			pwdlen = tmplen + 1;	/* track last seen '/' */
 	}
-	xfree(tmp);
+	free(tmp);
 
 	if (g.gl_matchc == 0) 
 		goto out;
@@ -1753,7 +1749,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 
 	tmp2 = complete_ambiguous(file, g.gl_pathv, g.gl_matchc);
 	tmp = path_strip(tmp2, isabs ? NULL : remote_path);
-	xfree(tmp2);
+	free(tmp2);
 
 	if (tmp == NULL)
 		goto out;
@@ -1815,7 +1811,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		if (i > 0 && el_insertstr(el, ins) == -1)
 			fatal("el_insertstr failed.");
 	}
-	xfree(tmp);
+	free(tmp);
 
  out:
 	globfree(&g);
@@ -1841,7 +1837,7 @@ complete(EditLine *el, int ch)
 	memcpy(line, lf->buffer, cursor);
 	line[cursor] = '\0';
 	argv = makeargv(line, &carg, 1, &quote, &terminated);
-	xfree(line);
+	free(line);
 
 	/* Get all the arguments on the line */
 	len = lf->lastchar - lf->buffer;
@@ -1853,7 +1849,7 @@ complete(EditLine *el, int ch)
 	/* Ensure cursor is at EOL or a argument boundary */
 	if (line[cursor] != ' ' && line[cursor] != '\0' &&
 	    line[cursor] != '\n') {
-		xfree(line);
+		free(line);
 		return ret;
 	}
 
@@ -1881,7 +1877,7 @@ complete(EditLine *el, int ch)
 			ret = CC_REDISPLAY;
 	}
 
-	xfree(line);	
+	free(line);	
 	return ret;
 }
 #endif /* USE_LIBEDIT */
@@ -1938,9 +1934,9 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
 			if (parse_dispatch_command(conn, cmd,
 			    &remote_path, 1) != 0) {
-				xfree(dir);
-				xfree(remote_path);
-				xfree(conn);
+				free(dir);
+				free(remote_path);
+				free(conn);
 				return (-1);
 			}
 		} else {
@@ -1953,12 +1949,12 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 
 			err = parse_dispatch_command(conn, cmd,
 			    &remote_path, 1);
-			xfree(dir);
-			xfree(remote_path);
-			xfree(conn);
+			free(dir);
+			free(remote_path);
+			free(conn);
 			return (err);
 		}
-		xfree(dir);
+		free(dir);
 	}
 
 	setlinebuf(stdout);
@@ -2016,8 +2012,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		if (err != 0)
 			break;
 	}
-	xfree(remote_path);
-	xfree(conn);
+	free(remote_path);
+	free(conn);
 
 #ifdef USE_LIBEDIT
 	if (el != NULL)

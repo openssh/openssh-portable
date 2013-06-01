@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.14 2010/11/10 01:33:07 djm Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.15 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -155,7 +155,7 @@ kexgex_server(Kex *kex)
 	if (BN_bin2bn(kbuf, kout, shared_secret) == NULL)
 		fatal("kexgex_server: BN_bin2bn failed");
 	memset(kbuf, 0, klen);
-	xfree(kbuf);
+	free(kbuf);
 
 	key_to_blob(server_host_public, &server_host_key_blob, &sbloblen);
 
@@ -201,8 +201,8 @@ kexgex_server(Kex *kex)
 	packet_put_string(signature, slen);
 	packet_send();
 
-	xfree(signature);
-	xfree(server_host_key_blob);
+	free(signature);
+	free(server_host_key_blob);
 	/* have keys, free DH */
 	DH_free(dh);
 

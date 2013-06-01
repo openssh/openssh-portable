@@ -1,4 +1,4 @@
-/* $OpenBSD: schnorr.c,v 1.6 2013/05/16 09:08:41 dtucker Exp $ */
+/* $OpenBSD: schnorr.c,v 1.7 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
  *
@@ -102,7 +102,7 @@ schnorr_hash(const BIGNUM *p, const BIGNUM *q, const BIGNUM *g,
  out:
 	buffer_free(&b);
 	bzero(digest, digest_len);
-	xfree(digest);
+	free(digest);
 	digest_len = 0;
 	if (success == 0)
 		return h;
@@ -573,7 +573,7 @@ modp_group_free(struct modp_group *grp)
 	if (grp->q != NULL)
 		BN_clear_free(grp->q);
 	bzero(grp, sizeof(*grp));
-	xfree(grp);
+	free(grp);
 }
 
 /* main() function for self-test */
@@ -608,7 +608,7 @@ schnorr_selftest_one(const BIGNUM *grp_p, const BIGNUM *grp_q,
 	if (schnorr_verify_buf(grp_p, grp_q, grp_g, g_x, "junk", 4,
 	    sig, siglen) != 0)
 		fatal("%s: verify should have failed (bit error)", __func__);
-	xfree(sig);
+	free(sig);
 	BN_free(g_x);
 	BN_CTX_free(bn_ctx);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.14 2010/08/04 05:42:47 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.15 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -128,11 +128,11 @@ done:
 	debug2("userauth_hostbased: authenticated %d", authenticated);
 	if (key != NULL)
 		key_free(key);
-	xfree(pkalg);
-	xfree(pkblob);
-	xfree(cuser);
-	xfree(chost);
-	xfree(sig);
+	free(pkalg);
+	free(pkblob);
+	free(cuser);
+	free(chost);
+	free(sig);
 	return authenticated;
 }
 
@@ -207,7 +207,7 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 			verbose("Accepted %s public key %s from %s@%s",
 			    key_type(key), fp, cuser, lookup);
 		}
-		xfree(fp);
+		free(fp);
 	}
 
 	return (host_status == HOST_OK);

@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.50 2010/12/04 13:31:37 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.51 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -96,7 +96,7 @@ extract_salt(const char *s, u_int l, char *salt, size_t salt_len)
 	b64salt[b64len] = '\0';
 
 	ret = __b64_pton(b64salt, salt, salt_len);
-	xfree(b64salt);
+	free(b64salt);
 	if (ret == -1) {
 		debug2("extract_salt: salt decode error");
 		return (-1);
@@ -327,16 +327,14 @@ free_hostkeys(struct hostkeys *hostkeys)
 	u_int i;
 
 	for (i = 0; i < hostkeys->num_entries; i++) {
-		xfree(hostkeys->entries[i].host);
-		xfree(hostkeys->entries[i].file);
+		free(hostkeys->entries[i].host);
+		free(hostkeys->entries[i].file);
 		key_free(hostkeys->entries[i].key);
 		bzero(hostkeys->entries + i, sizeof(*hostkeys->entries));
 	}
-	if (hostkeys->entries != NULL)
-		xfree(hostkeys->entries);
-	hostkeys->entries = NULL;
-	hostkeys->num_entries = 0;
-	xfree(hostkeys);
+	free(hostkeys->entries);
+	bzero(hostkeys, sizeof(*hostkeys));
+	free(hostkeys);
 }
 
 static int

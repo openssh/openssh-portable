@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.102 2013/05/10 04:08:01 djm Exp $ */
+/* $OpenBSD: key.c,v 1.103 2013/05/17 00:13:13 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -187,15 +187,13 @@ cert_free(struct KeyCert *cert)
 	buffer_free(&cert->certblob);
 	buffer_free(&cert->critical);
 	buffer_free(&cert->extensions);
-	if (cert->key_id != NULL)
-		xfree(cert->key_id);
+	free(cert->key_id);
 	for (i = 0; i < cert->nprincipals; i++)
-		xfree(cert->principals[i]);
-	if (cert->principals != NULL)
-		xfree(cert->principals);
+		free(cert->principals[i]);
+	free(cert->principals);
 	if (cert->signature_key != NULL)
 		key_free(cert->signature_key);
-	xfree(cert);
+	free(cert);
 }
 
 void
@@ -239,7 +237,7 @@ key_free(Key *k)
 		k->cert = NULL;
 	}
 
-	xfree(k);
+	free(k);
 }
 
 static int
@@ -389,7 +387,7 @@ key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
 		EVP_DigestUpdate(&ctx, blob, len);
 		EVP_DigestFinal(&ctx, retval, dgst_raw_length);
 		memset(blob, 0, len);
-		xfree(blob);
+		free(blob);
 	} else {
 		fatal("key_fingerprint_raw: blob is null");
 	}
@@ -596,7 +594,7 @@ key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 		break;
 	}
 	memset(dgst_raw, 0, dgst_raw_len);
-	xfree(dgst_raw);
+	free(dgst_raw);
 	return retval;
 }
 
@@ -741,11 +739,11 @@ key_read(Key *ret, char **cpp)
 		n = uudecode(cp, blob, len);
 		if (n < 0) {
 			error("key_read: uudecode %s failed", cp);
-			xfree(blob);
+			free(blob);
 			return -1;
 		}
 		k = key_from_blob(blob, (u_int)n);
-		xfree(blob);
+		free(blob);
 		if (k == NULL) {
 			error("key_read: key_from_blob %s failed", cp);
 			return -1;
@@ -886,8 +884,8 @@ key_write(const Key *key, FILE *f)
 		fprintf(f, "%s %s", key_ssh_name(key), uu);
 		success = 1;
 	}
-	xfree(blob);
-	xfree(uu);
+	free(blob);
+	free(uu);
 
 	return success;
 }
@@ -1292,12 +1290,12 @@ key_names_valid2(const char *names)
 		switch (key_type_from_name(p)) {
 		case KEY_RSA1:
 		case KEY_UNSPEC:
-			xfree(s);
+			free(s);
 			return 0;
 		}
 	}
 	debug3("key names ok: [%s]", names);
-	xfree(s);
+	free(s);
 	return 1;
 }
 
@@ -1419,16 +1417,11 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 
  out:
 	buffer_free(&tmp);
-	if (principals != NULL)
-		xfree(principals);
-	if (critical != NULL)
-		xfree(critical);
-	if (exts != NULL)
-		xfree(exts);
-	if (sig_key != NULL)
-		xfree(sig_key);
-	if (sig != NULL)
-		xfree(sig);
+	free(principals);
+	free(critical);
+	free(exts);
+	free(sig_key);
+	free(sig);
 	return ret;
 }
 
@@ -1548,10 +1541,8 @@ key_from_blob(const u_char *blob, u_int blen)
 	if (key != NULL && rlen != 0)
 		error("key_from_blob: remaining bytes in key blob %d", rlen);
  out:
-	if (ktype != NULL)
-		xfree(ktype);
-	if (curve != NULL)
-		xfree(curve);
+	free(ktype);
+	free(curve);
 #ifdef OPENSSL_HAS_ECC
 	if (q != NULL)
 		EC_POINT_free(q);
@@ -1901,7 +1892,7 @@ key_certify(Key *k, Key *ca)
 	default:
 		error("%s: key has incorrect type %s", __func__, key_type(k));
 		buffer_clear(&k->cert->certblob);
-		xfree(ca_blob);
+		free(ca_blob);
 		return -1;
 	}
 
@@ -1937,7 +1928,7 @@ key_certify(Key *k, Key *ca)
 
 	buffer_put_string(&k->cert->certblob, NULL, 0); /* reserved */
 	buffer_put_string(&k->cert->certblob, ca_blob, ca_len);
-	xfree(ca_blob);
+	free(ca_blob);
 
 	/* Sign the whole mess */
 	if (key_sign(ca, &sig_blob, &sig_len, buffer_ptr(&k->cert->certblob),
@@ -1948,7 +1939,7 @@ key_certify(Key *k, Key *ca)
 	}
 	/* Append signature and we are done */
 	buffer_put_string(&k->cert->certblob, sig_blob, sig_len);
-	xfree(sig_blob);
+	free(sig_blob);
 
 	return 0;
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.172 2011/06/03 01:37:40 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.173 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -172,10 +172,9 @@ static void
 free_identity(Identity *id)
 {
 	key_free(id->key);
-	if (id->provider != NULL)
-		xfree(id->provider);
-	xfree(id->comment);
-	xfree(id);
+	free(id->provider);
+	free(id->comment);
+	free(id);
 }
 
 /* return matching private key for given public key */
@@ -203,7 +202,7 @@ confirm_key(Identity *id)
 	if (ask_permission("Allow use of key %s?\nKey fingerprint %s.",
 	    id->comment, p))
 		ret = 0;
-	xfree(p);
+	free(p);
 
 	return (ret);
 }
@@ -230,7 +229,7 @@ process_request_identities(SocketEntry *e, int version)
 			u_int blen;
 			key_to_blob(id->key, &blob, &blen);
 			buffer_put_string(&msg, blob, blen);
-			xfree(blob);
+			free(blob);
 		}
 		buffer_put_cstring(&msg, id->comment);
 	}
@@ -348,10 +347,9 @@ process_sign_request2(SocketEntry *e)
 	buffer_append(&e->output, buffer_ptr(&msg),
 	    buffer_len(&msg));
 	buffer_free(&msg);
-	xfree(data);
-	xfree(blob);
-	if (signature != NULL)
-		xfree(signature);
+	free(data);
+	free(blob);
+	free(signature);
 	datafellows = odatafellows;
 }
 
@@ -378,7 +376,7 @@ process_remove_identity(SocketEntry *e, int version)
 	case 2:
 		blob = buffer_get_string(&e->request, &blen);
 		key = key_from_blob(blob, blen);
-		xfree(blob);
+		free(blob);
 		break;
 	}
 	if (key != NULL) {
@@ -509,7 +507,7 @@ process_add_identity(SocketEntry *e, int version)
 			cert = buffer_get_string(&e->request, &len);
 			if ((k = key_from_blob(cert, len)) == NULL)
 				fatal("Certificate parse failed");
-			xfree(cert);
+			free(cert);
 			key_add_private(k);
 			buffer_get_bignum2(&e->request, k->dsa->priv_key);
 			break;
@@ -520,7 +518,7 @@ process_add_identity(SocketEntry *e, int version)
 			curve = buffer_get_string(&e->request, NULL);
 			if (k->ecdsa_nid != key_curve_name_to_nid(curve))
 				fatal("%s: curve names mismatch", __func__);
-			xfree(curve);
+			free(curve);
 			k->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid);
 			if (k->ecdsa == NULL)
 				fatal("%s: EC_KEY_new_by_curve_name failed",
@@ -551,7 +549,7 @@ process_add_identity(SocketEntry *e, int version)
 			cert = buffer_get_string(&e->request, &len);
 			if ((k = key_from_blob(cert, len)) == NULL)
 				fatal("Certificate parse failed");
-			xfree(cert);
+			free(cert);
 			key_add_private(k);
 			if ((exponent = BN_new()) == NULL)
 				fatal("%s: BN_new failed", __func__);
@@ -583,7 +581,7 @@ process_add_identity(SocketEntry *e, int version)
 			cert = buffer_get_string(&e->request, &len);
 			if ((k = key_from_blob(cert, len)) == NULL)
 				fatal("Certificate parse failed");
-			xfree(cert);
+			free(cert);
 			key_add_private(k);
 			buffer_get_bignum2(&e->request, k->rsa->d);
 			buffer_get_bignum2(&e->request, k->rsa->iqmp);
@@ -591,11 +589,11 @@ process_add_identity(SocketEntry *e, int version)
 			buffer_get_bignum2(&e->request, k->rsa->q);
 			break;
 		default:
-			xfree(type_name);
+			free(type_name);
 			buffer_clear(&e->request);
 			goto send;
 		}
-		xfree(type_name);
+		free(type_name);
 		break;
 	}
 	/* enable blinding */
@@ -613,7 +611,7 @@ process_add_identity(SocketEntry *e, int version)
 	}
 	comment = buffer_get_string(&e->request, NULL);
 	if (k == NULL) {
-		xfree(comment);
+		free(comment);
 		goto send;
 	}
 	while (buffer_len(&e->request)) {
@@ -627,7 +625,7 @@ process_add_identity(SocketEntry *e, int version)
 		default:
 			error("process_add_identity: "
 			    "Unknown constraint type %d", type);
-			xfree(comment);
+			free(comment);
 			key_free(k);
 			goto send;
 		}
@@ -643,7 +641,7 @@ process_add_identity(SocketEntry *e, int version)
 		tab->nentries++;
 	} else {
 		key_free(k);
-		xfree(id->comment);
+		free(id->comment);
 	}
 	id->comment = comment;
 	id->death = death;
@@ -665,7 +663,7 @@ process_lock_agent(SocketEntry *e, int lock)
 	if (locked && !lock && strcmp(passwd, lock_passwd) == 0) {
 		locked = 0;
 		memset(lock_passwd, 0, strlen(lock_passwd));
-		xfree(lock_passwd);
+		free(lock_passwd);
 		lock_passwd = NULL;
 		success = 1;
 	} else if (!locked && lock) {
@@ -674,7 +672,7 @@ process_lock_agent(SocketEntry *e, int lock)
 		success = 1;
 	}
 	memset(passwd, 0, strlen(passwd));
-	xfree(passwd);
+	free(passwd);
 
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
@@ -747,12 +745,9 @@ process_add_smartcard_key(SocketEntry *e)
 		keys[i] = NULL;
 	}
 send:
-	if (pin)
-		xfree(pin);
-	if (provider)
-		xfree(provider);
-	if (keys)
-		xfree(keys);
+	free(pin);
+	free(provider);
+	free(keys);
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
@@ -768,7 +763,7 @@ process_remove_smartcard_key(SocketEntry *e)
 
 	provider = buffer_get_string(&e->request, NULL);
 	pin = buffer_get_string(&e->request, NULL);
-	xfree(pin);
+	free(pin);
 
 	for (version = 1; version < 3; version++) {
 		tab = idtab_lookup(version);
@@ -786,7 +781,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	else
 		error("process_remove_smartcard_key:"
 		    " pkcs11_del_provider failed");
-	xfree(provider);
+	free(provider);
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
@@ -951,10 +946,8 @@ prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl, u_int *nallocp,
 
 	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
 	if (*fdrp == NULL || sz > *nallocp) {
-		if (*fdrp)
-			xfree(*fdrp);
-		if (*fdwp)
-			xfree(*fdwp);
+		free(*fdrp);
+		free(*fdwp);
 		*fdrp = xmalloc(sz);
 		*fdwp = xmalloc(sz);
 		*nallocp = sz;

@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.172 2013/05/16 09:08:41 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.173 2013/05/17 00:13:14 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -578,7 +578,7 @@ toremote(char *targ, int argc, char **argv)
 	}
 
 	if (tuser != NULL && !okname(tuser)) {
-		xfree(arg);
+		free(arg);
 		return;
 	}
 
@@ -605,13 +605,13 @@ toremote(char *targ, int argc, char **argv)
 			    *src == '-' ? "-- " : "", src);
 			if (do_cmd(host, suser, bp, &remin, &remout) < 0)
 				exit(1);
-			(void) xfree(bp);
+			free(bp);
 			host = cleanhostname(thost);
 			xasprintf(&bp, "%s -t %s%s", cmd,
 			    *targ == '-' ? "-- " : "", targ);
 			if (do_cmd2(host, tuser, bp, remin, remout) < 0)
 				exit(1);
-			(void) xfree(bp);
+			free(bp);
 			(void) close(remin);
 			(void) close(remout);
 			remin = remout = -1;
@@ -662,12 +662,12 @@ toremote(char *targ, int argc, char **argv)
 					exit(1);
 				if (response() < 0)
 					exit(1);
-				(void) xfree(bp);
+				free(bp);
 			}
 			source(1, argv + i);
 		}
 	}
-	xfree(arg);
+	free(arg);
 }
 
 void
@@ -711,11 +711,11 @@ tolocal(int argc, char **argv)
 		xasprintf(&bp, "%s -f %s%s",
 		    cmd, *src == '-' ? "-- " : "", src);
 		if (do_cmd(host, suser, bp, &remin, &remout) < 0) {
-			(void) xfree(bp);
+			free(bp);
 			++errs;
 			continue;
 		}
-		xfree(bp);
+		free(bp);
 		sink(1, argv + argc - 1);
 		(void) close(remin);
 		remin = remout = -1;
@@ -1023,8 +1023,7 @@ sink(int argc, char **argv)
 
 			need = strlen(targ) + strlen(cp) + 250;
 			if (need > cursize) {
-				if (namebuf)
-					xfree(namebuf);
+				free(namebuf);
 				namebuf = xmalloc(need);
 				cursize = need;
 			}
@@ -1063,8 +1062,7 @@ sink(int argc, char **argv)
 			}
 			if (mod_flag)
 				(void) chmod(vect[0], mode);
-			if (vect[0])
-				xfree(vect[0]);
+			free(vect[0]);
 			continue;
 		}
 		omode = mode;

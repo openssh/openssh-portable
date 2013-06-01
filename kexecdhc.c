@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhc.c,v 1.3 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: kexecdhc.c,v 1.4 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -120,7 +120,7 @@ kexecdh_client(Kex *kex)
 	if (BN_bin2bn(kbuf, klen, shared_secret) == NULL)
 		fatal("%s: BN_bin2bn failed", __func__);
 	memset(kbuf, 0, klen);
-	xfree(kbuf);
+	free(kbuf);
 
 	/* calc and verify H */
 	kex_ecdh_hash(
@@ -136,14 +136,14 @@ kexecdh_client(Kex *kex)
 	    shared_secret,
 	    &hash, &hashlen
 	);
-	xfree(server_host_key_blob);
+	free(server_host_key_blob);
 	EC_POINT_clear_free(server_public);
 	EC_KEY_free(client_key);
 
 	if (key_verify(server_host_key, signature, slen, hash, hashlen) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
-	xfree(signature);
+	free(signature);
 
 	/* save session id */
 	if (kex->session_id == NULL) {

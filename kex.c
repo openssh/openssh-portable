@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.90 2013/04/19 12:07:08 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.91 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -126,12 +126,12 @@ kex_names_valid(const char *names)
 	    (p = strsep(&cp, ","))) {
 		if (kex_alg_by_name(p) == NULL) {
 			error("Unsupported KEX algorithm \"%.100s\"", p);
-			xfree(s);
+			free(s);
 			return 0;
 		}
 	}
 	debug3("kex names ok: [%s]", names);
-	xfree(s);
+	free(s);
 	return 1;
 }
 
@@ -191,8 +191,8 @@ kex_prop_free(char **proposal)
 	u_int i;
 
 	for (i = 0; i < PROPOSAL_MAX; i++)
-		xfree(proposal[i]);
-	xfree(proposal);
+		free(proposal[i]);
+	free(proposal);
 }
 
 /* ARGSUSED */
@@ -229,7 +229,7 @@ kex_finish(Kex *kex)
 	buffer_clear(&kex->peer);
 	/* buffer_clear(&kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
-	xfree(kex->name);
+	free(kex->name);
 	kex->name = NULL;
 }
 
@@ -286,7 +286,7 @@ kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 	for (i = 0; i < KEX_COOKIE_LEN; i++)
 		packet_get_char();
 	for (i = 0; i < PROPOSAL_MAX; i++)
-		xfree(packet_get_string(NULL));
+		free(packet_get_string(NULL));
 	/*
 	 * XXX RFC4253 sec 7: "each side MAY guess" - currently no supported
 	 * KEX method has the server move first, but a server might be using
@@ -414,7 +414,7 @@ choose_hostkeyalg(Kex *k, char *client, char *server)
 	k->hostkey_type = key_type_from_name(hostkeyalg);
 	if (k->hostkey_type == KEY_UNSPEC)
 		fatal("bad hostkey alg '%s'", hostkeyalg);
-	xfree(hostkeyalg);
+	free(hostkeyalg);
 }
 
 static int
@@ -468,7 +468,7 @@ kex_choose_conf(Kex *kex)
 		roaming = match_list(KEX_RESUME, peer[PROPOSAL_KEX_ALGS], NULL);
 		if (roaming) {
 			kex->roaming = 1;
-			xfree(roaming);
+			free(roaming);
 		}
 	}
 

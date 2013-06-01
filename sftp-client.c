@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.97 2012/07/02 12:13:26 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.98 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -394,8 +394,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		} else {
 			debug2("Unrecognised server extension \"%s\"", name);
 		}
-		xfree(name);
-		xfree(value);
+		free(name);
+		free(value);
 	}
 
 	buffer_free(&msg);
@@ -509,7 +509,7 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 				error("Couldn't read directory: %s",
 				    fx2txt(status));
 				do_close(conn, handle, handle_len);
-				xfree(handle);
+				free(handle);
 				buffer_free(&msg);
 				return(status);
 			}
@@ -552,14 +552,14 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 				(*dir)[++ents] = NULL;
 			}
  next:
-			xfree(filename);
-			xfree(longname);
+			free(filename);
+			free(longname);
 		}
 	}
 
 	buffer_free(&msg);
 	do_close(conn, handle, handle_len);
-	xfree(handle);
+	free(handle);
 
 	/* Don't return partial matches on interrupt */
 	if (interrupted && dir != NULL && *dir != NULL) {
@@ -582,11 +582,11 @@ void free_sftp_dirents(SFTP_DIRENT **s)
 	int i;
 
 	for (i = 0; s[i]; i++) {
-		xfree(s[i]->filename);
-		xfree(s[i]->longname);
-		xfree(s[i]);
+		free(s[i]->filename);
+		free(s[i]->longname);
+		free(s[i]);
 	}
-	xfree(s);
+	free(s);
 }
 
 int
@@ -760,7 +760,7 @@ do_realpath(struct sftp_conn *conn, char *path)
 	debug3("SSH_FXP_REALPATH %s -> %s size %lu", path, filename,
 	    (unsigned long)a->size);
 
-	xfree(longname);
+	free(longname);
 
 	buffer_free(&msg);
 
@@ -907,7 +907,7 @@ do_readlink(struct sftp_conn *conn, char *path)
 
 	debug3("SSH_FXP_READLINK %s -> %s", path, filename);
 
-	xfree(longname);
+	free(longname);
 
 	buffer_free(&msg);
 
@@ -1057,7 +1057,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		    local_path, strerror(errno));
 		do_close(conn, handle, handle_len);
 		buffer_free(&msg);
-		xfree(handle);
+		free(handle);
 		return(-1);
 	}
 
@@ -1121,7 +1121,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				read_error = 1;
 			max_req = 0;
 			TAILQ_REMOVE(&requests, req, tq);
-			xfree(req);
+			free(req);
 			num_req--;
 			break;
 		case SSH2_FXP_DATA:
@@ -1140,11 +1140,11 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				max_req = 0;
 			}
 			progress_counter += len;
-			xfree(data);
+			free(data);
 
 			if (len == req->len) {
 				TAILQ_REMOVE(&requests, req, tq);
-				xfree(req);
+				free(req);
 				num_req--;
 			} else {
 				/* Resend the request for the missing data */
@@ -1220,7 +1220,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	}
 	close(local_fd);
 	buffer_free(&msg);
-	xfree(handle);
+	free(handle);
 
 	return(status);
 }
@@ -1292,8 +1292,8 @@ download_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 		} else
 			logit("%s: not a regular file\n", new_src);
 
-		xfree(new_dst);
-		xfree(new_src);
+		free(new_dst);
+		free(new_src);
 	}
 
 	if (pflag) {
@@ -1329,7 +1329,7 @@ download_dir(struct sftp_conn *conn, char *src, char *dst,
 
 	ret = download_dir_internal(conn, src_canon, dst,
 	    dirattrib, pflag, printflag, 0);
-	xfree(src_canon);
+	free(src_canon);
 	return ret;
 }
 
@@ -1481,7 +1481,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 			debug3("In write loop, ack for %u %u bytes at %lld",
 			    ack->id, ack->len, (long long)ack->offset);
 			++ackid;
-			xfree(ack);
+			free(ack);
 		}
 		offset += len;
 		if (offset < 0)
@@ -1491,7 +1491,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 	if (showprogress)
 		stop_progress_meter();
-	xfree(data);
+	free(data);
 
 	if (status != SSH2_FX_OK) {
 		error("Couldn't write to remote file \"%s\": %s",
@@ -1511,7 +1511,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 	if (do_close(conn, handle, handle_len) != SSH2_FX_OK)
 		status = -1;
-	xfree(handle);
+	free(handle);
 
 	return status;
 }
@@ -1597,8 +1597,8 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 			}
 		} else
 			logit("%s: not a regular file\n", filename);
-		xfree(new_dst);
-		xfree(new_src);
+		free(new_dst);
+		free(new_src);
 	}
 
 	do_setstat(conn, dst, &a);
@@ -1620,7 +1620,7 @@ upload_dir(struct sftp_conn *conn, char *src, char *dst, int printflag,
 	}
 
 	ret = upload_dir_internal(conn, src, dst_canon, pflag, printflag, 0);
-	xfree(dst_canon);
+	free(dst_canon);
 	return ret;
 }
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.96 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.97 2013/05/17 00:13:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -509,8 +509,8 @@ key_parse_private_rsa1(Buffer *blob, const char *passphrase, char **commentp)
 	return prv;
 
 fail:
-	if (commentp)
-		xfree(*commentp);
+	if (commentp != NULL)
+		free(*commentp);
 	key_free(prv);
 	return NULL;
 }
@@ -832,10 +832,10 @@ key_load_cert(const char *filename)
 	pub = key_new(KEY_UNSPEC);
 	xasprintf(&file, "%s-cert.pub", filename);
 	if (key_try_load_public(pub, file, NULL) == 1) {
-		xfree(file);
+		free(file);
 		return pub;
 	}
-	xfree(file);
+	free(file);
 	key_free(pub);
 	return NULL;
 }

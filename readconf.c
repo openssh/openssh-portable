@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.201 2013/05/16 10:43:34 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.202 2013/05/17 00:13:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -308,22 +308,20 @@ clear_forwardings(Options *options)
 	int i;
 
 	for (i = 0; i < options->num_local_forwards; i++) {
-		if (options->local_forwards[i].listen_host != NULL)
-			xfree(options->local_forwards[i].listen_host);
-		xfree(options->local_forwards[i].connect_host);
+		free(options->local_forwards[i].listen_host);
+		free(options->local_forwards[i].connect_host);
 	}
 	if (options->num_local_forwards > 0) {
-		xfree(options->local_forwards);
+		free(options->local_forwards);
 		options->local_forwards = NULL;
 	}
 	options->num_local_forwards = 0;
 	for (i = 0; i < options->num_remote_forwards; i++) {
-		if (options->remote_forwards[i].listen_host != NULL)
-			xfree(options->remote_forwards[i].listen_host);
-		xfree(options->remote_forwards[i].connect_host);
+		free(options->remote_forwards[i].listen_host);
+		free(options->remote_forwards[i].connect_host);
 	}
 	if (options->num_remote_forwards > 0) {
-		xfree(options->remote_forwards);
+		free(options->remote_forwards);
 		options->remote_forwards = NULL;
 	}
 	options->num_remote_forwards = 0;
@@ -1456,7 +1454,7 @@ parse_forward(Forward *fwd, const char *fwdspec, int dynamicfwd, int remotefwd)
 		i = 0; /* failure */
 	}
 
-	xfree(p);
+	free(p);
 
 	if (dynamicfwd) {
 		if (!(i == 1 || i == 2))
@@ -1482,13 +1480,9 @@ parse_forward(Forward *fwd, const char *fwdspec, int dynamicfwd, int remotefwd)
 	return (i);
 
  fail_free:
-	if (fwd->connect_host != NULL) {
-		xfree(fwd->connect_host);
-		fwd->connect_host = NULL;
-	}
-	if (fwd->listen_host != NULL) {
-		xfree(fwd->listen_host);
-		fwd->listen_host = NULL;
-	}
+	free(fwd->connect_host);
+	fwd->connect_host = NULL;
+	free(fwd->listen_host);
+	fwd->listen_host = NULL;
 	return (0);
 }
