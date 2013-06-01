@@ -57,7 +57,7 @@ struct AuthMethod1 {
 	int type;
 	char *name;
 	int *enabled;
-+	int (*method)(Authctxt *);
+	int (*method)(Authctxt *);
 };
 
 const struct AuthMethod1 auth1_methods[] = {
