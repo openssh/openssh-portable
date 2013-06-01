@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.526 2013/06/01 20:28:04 dtucker Exp $
+# $Id: configure.ac,v 1.527 2013/06/01 21:18:48 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.526 $)
+AC_REVISION($Revision: 1.527 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -979,9 +979,6 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-nto-qnx*)
 	AC_DEFINE([USE_PIPES])
 	AC_DEFINE([NO_X11_UNIX_SOCKETS])
-	AC_DEFINE([MISSING_NFDBITS], [1], [Define on *nto-qnx systems])
-	AC_DEFINE([MISSING_HOWMANY], [1], [Define on *nto-qnx systems])
-	AC_DEFINE([MISSING_FD_MASK], [1], [Define on *nto-qnx systems])
 	AC_DEFINE([DISABLE_LASTLOG])
 	AC_DEFINE([SSHD_ACQUIRES_CTTY])
 	AC_DEFINE([BROKEN_SHADOW_EXPIRE], [1], [QNX shadow support is broken])
@@ -1002,7 +999,6 @@ mips-sony-bsd|mips-sony-newsos4)
 
 *-*-lynxos)
         CFLAGS="$CFLAGS -D__NO_INCLUDE_WARN__"
-	AC_DEFINE([MISSING_HOWMANY])
         AC_DEFINE([BROKEN_SETVBUF], [1], [LynxOS has broken setvbuf() implementation])
         ;;
 esac
@@ -1702,6 +1698,37 @@ AC_CHECK_DECLS([MAXSYMLINKS], , , [
 AC_CHECK_DECLS([offsetof], , , [
 #include <stddef.h>
 	])
+
+# extra bits for select(2)
+AC_CHECK_DECLS([howmany, NFDBITS], [], [], [[
+#include <sys/param.h>
+#include <sys/types.h>
+#ifdef HAVE_SYS_SYSMACROS_H
+#include <sys/sysmacros.h>
+#endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+	]])
+AC_CHECK_TYPES([fd_mask], [], [], [[
+#include <sys/param.h>
+#include <sys/types.h>
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+	]])
 
 AC_CHECK_FUNCS([setresuid], [
 	dnl Some platorms have setresuid that isn't implemented, test for this

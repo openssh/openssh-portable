@@ -2,6 +2,9 @@
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
    using openssl's DES_crpyt function on platorms that don't have a native
    one, eg Android.  Based on a patch from Nathan Osman.
+ - (dtucker) [configure.ac defines.h] Test for fd_mask, howmany and NFDBITS
+   rather than trying to enumerate the plaforms that don't have them.
+   Based on a patch from Nathan Osman, with help from tim@.
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null
