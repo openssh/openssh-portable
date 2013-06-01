@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.527 2013/06/01 21:18:48 dtucker Exp $
+# $Id: configure.ac,v 1.528 2013/06/01 22:18:32 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.527 $)
+AC_REVISION($Revision: 1.528 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1647,6 +1647,9 @@ const char *gai_strerror(int);
 
 AC_SEARCH_LIBS([nanosleep], [rt posix4], [AC_DEFINE([HAVE_NANOSLEEP], [1],
 	[Some systems put nanosleep outside of libc])])
+
+AC_SEARCH_LIBS([clock_gettime], [rt],
+	[AC_DEFINE([HAVE_CLOCK_GETTIME], [1], [Have clock_gettime])])
 
 dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL([getrusage], [AC_CHECK_FUNCS([getrusage])])

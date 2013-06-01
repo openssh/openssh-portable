@@ -857,12 +857,16 @@ ms_to_timeval(struct timeval *tv, int ms)
 time_t
 monotime(void)
 {
+#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 	struct timespec ts;
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
 		fatal("clock_gettime: %s", strerror(errno));
 
 	return (ts.tv_sec);
+#else
+	return time(NULL);
+#endif
 }
 
 void

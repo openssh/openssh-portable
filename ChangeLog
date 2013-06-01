@@ -54,6 +54,8 @@
    openbsd-compat/getrrsetbyname-ldns.c openbsd-compat/port-aix.c
    openbsd-compat/port-linux.c] Replace portable-specific instances of xfree
    with the equivalent calls to free.
+ - (dtucker) [configure.ac misc.c] Look for clock_gettime in librt and fall
+   back to time(NULL) if we can't find it anywhere.
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null
