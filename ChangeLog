@@ -48,6 +48,10 @@
      [scp.c sftp-client.c]
      Replace S_IWRITE, which isn't standardized, with S_IWUSR, which is.  Patch
      from Nathan Osman via bz#2085.  ok deraadt.
+   - dtucker@cvs.openbsd.org 2013/06/01 22:34:50
+     [sftp-client.c]
+     Update progressmeter when data is acked, not when it's sent.  bz#2108, from
+     Debian via Colin Watson, ok djm@
  - (dtucker) [M auth-chall.c auth-krb5.c auth-pam.c cipher-aes.c cipher-ctr.c
    groupaccess.c loginrec.c monitor.c monitor_wrap.c session.c sshd.c
    sshlogin.c uidswap.c openbsd-compat/bsd-cygwin_util.c

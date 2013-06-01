@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.99 2013/06/01 20:59:25 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.100 2013/06/01 22:34:50 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1340,7 +1340,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	int local_fd;
 	int status = SSH2_FX_OK;
 	u_int handle_len, id, type;
-	off_t offset;
+	off_t offset, progress_counter;
 	char *handle, *data;
 	Buffer msg;
 	struct stat sb;
@@ -1408,9 +1408,10 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	data = xmalloc(conn->transfer_buflen);
 
 	/* Read from local and write to remote */
-	offset = 0;
+	offset = progress_counter = 0;
 	if (showprogress)
-		start_progress_meter(local_path, sb.st_size, &offset);
+		start_progress_meter(local_path, sb.st_size,
+		    &progress_counter);
 
 	for (;;) {
 		int len;
@@ -1481,6 +1482,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 			debug3("In write loop, ack for %u %u bytes at %lld",
 			    ack->id, ack->len, (long long)ack->offset);
 			++ackid;
+			progress_counter += ack->len;
 			free(ack);
 		}
 		offset += len;
