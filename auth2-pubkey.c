@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.36 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.37 2013/05/19 02:38:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -147,6 +147,8 @@ userauth_pubkey(Authctxt *authctxt)
 #ifdef DEBUG_PK
 		buffer_dump(&b);
 #endif
+		pubkey_auth_info(authctxt, key);
+
 		/* test for correct signature */
 		authenticated = 0;
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key)) &&
@@ -185,6 +187,26 @@ done:
 	free(pkalg);
 	free(pkblob);
 	return authenticated;
+}
+
+void
+pubkey_auth_info(Authctxt *authctxt, const Key *key)
+{
+	char *fp;
+
+	if (key_is_cert(key)) {
+		fp = key_fingerprint(key->cert->signature_key,
+		    SSH_FP_MD5, SSH_FP_HEX);
+		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s", 
+		    key_type(key), key->cert->key_id,
+		    (unsigned long long)key->cert->serial,
+		    key_type(key->cert->signature_key), fp);
+		free(fp);
+	} else {
+		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		auth_info(authctxt, "%s %s", key_type(key), fp);
+		free(fp);
+	}
 }
 
 static int
@@ -280,11 +302,13 @@ check_authkeys_file(FILE *f, char *file, Key* key, struct passwd *pw)
 	char *fp;
 
 	found_key = 0;
-	found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
 
+	found = NULL;
 	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
 		char *cp, *key_options = NULL;
-
+		if (found != NULL)
+			key_free(found);
+		found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
 		auth_clear_options();
 
 		/* Skip leading whitespace, empty and comment lines. */
@@ -362,16 +386,15 @@ check_authkeys_file(FILE *f, char *file, Key* key, struct passwd *pw)
 			if (key_is_cert_authority)
 				continue;
 			found_key = 1;
-			debug("matching key found: file %s, line %lu",
-			    file, linenum);
 			fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
-			verbose("Found matching %s key: %s",
-			    key_type(found), fp);
+			debug("matching key found: file %s, line %lu %s %s",
+			    file, linenum, key_type(found), fp);
 			free(fp);
 			break;
 		}
 	}
-	key_free(found);
+	if (found != NULL)
+		key_free(found);
 	if (!found_key)
 		debug2("key not found");
 	return found_key;

@@ -22,6 +22,10 @@
      ssh-add.c misc.c auth2-hostbased.c ssh-agent.c bufec.c groupaccess.c
      dns.c packet.c readpass.c authfd.c moduli.c]
      bye, bye xfree(); ok markus@
+   - djm@cvs.openbsd.org 2013/05/19 02:38:28
+     [auth2-pubkey.c]
+     fix failure to recognise cert-authority keys if a key of a different type
+     appeared in authorized_keys before it; ok markus@
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null
