@@ -60,6 +60,7 @@
    with the equivalent calls to free.
  - (dtucker) [configure.ac misc.c] Look for clock_gettime in librt and fall
    back to time(NULL) if we can't find it anywhere.
+ - (dtucker) [sandbox-seccomp-filter.c] Allow clock_gettimeofday.
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null
