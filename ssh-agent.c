@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.174 2013/05/31 12:28:10 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.175 2013/06/01 13:15:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -431,7 +431,7 @@ process_remove_all_identities(SocketEntry *e, int version)
 static time_t
 reaper(void)
 {
-	time_t deadline = 0, now = time(NULL);
+	time_t deadline = 0, now = monotime();
 	Identity *id, *nxt;
 	int version;
 	Idtab *tab;
@@ -618,7 +618,7 @@ process_add_identity(SocketEntry *e, int version)
 	while (buffer_len(&e->request)) {
 		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
-			death = time(NULL) + buffer_get_int(&e->request);
+			death = monotime() + buffer_get_int(&e->request);
 			break;
 		case SSH_AGENT_CONSTRAIN_CONFIRM:
 			confirm = 1;
@@ -633,7 +633,7 @@ process_add_identity(SocketEntry *e, int version)
 	}
 	success = 1;
 	if (lifetime && !death)
-		death = time(NULL) + lifetime;
+		death = monotime() + lifetime;
 	if ((id = lookup_identity(k, version)) == NULL) {
 		id = xcalloc(1, sizeof(Identity));
 		id->key = k;
@@ -712,7 +712,7 @@ process_add_smartcard_key(SocketEntry *e)
 	while (buffer_len(&e->request)) {
 		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
-			death = time(NULL) + buffer_get_int(&e->request);
+			death = monotime() + buffer_get_int(&e->request);
 			break;
 		case SSH_AGENT_CONSTRAIN_CONFIRM:
 			confirm = 1;
@@ -724,7 +724,7 @@ process_add_smartcard_key(SocketEntry *e)
 		}
 	}
 	if (lifetime && !death)
-		death = time(NULL) + lifetime;
+		death = monotime() + lifetime;
 
 	count = pkcs11_add_provider(provider, pin, &keys);
 	for (i = 0; i < count; i++) {

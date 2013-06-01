@@ -38,6 +38,12 @@
    - dtucker@cvs.openbsd.org 2013/05/31 12:28:10
      [ssh-agent.c]
      Use time_t where appropriate.  ok djm
+   - dtucker@cvs.openbsd.org 2013/06/01 13:15:52
+     [ssh-agent.c clientloop.c misc.h packet.c progressmeter.c misc.c
+     channels.c sandbox-systrace.c]
+     Use clock_gettime(CLOCK_MONOTONIC ...) for ssh timers so that things like
+     keepalives and rekeying will work properly over clock steps.  Suggested by
+     markus@, "looks good" djm@.
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null

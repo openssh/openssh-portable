@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.37 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.38 2013/06/01 13:15:52 dtucker Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -131,7 +131,7 @@ refresh_progress_meter(void)
 
 	transferred = *counter - cur_pos;
 	cur_pos = *counter;
-	now = time(NULL);
+	now = monotime();
 	bytes_left = end_pos - cur_pos;
 
 	if (bytes_left > 0)
@@ -249,7 +249,7 @@ update_progress_meter(int ignore)
 void
 start_progress_meter(char *f, off_t filesize, off_t *ctr)
 {
-	start = last_update = time(NULL);
+	start = last_update = monotime();
 	file = f;
 	end_pos = filesize;
 	cur_pos = 0;

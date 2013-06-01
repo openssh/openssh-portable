@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.186 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.187 2013/06/01 13:15:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1015,7 +1015,7 @@ packet_send2(void)
 	/* after a NEWKEYS message we can send the complete queue */
 	if (type == SSH2_MSG_NEWKEYS) {
 		active_state->rekeying = 0;
-		active_state->rekey_time = time(NULL);
+		active_state->rekey_time = monotime();
 		while ((p = TAILQ_FIRST(&active_state->outgoing))) {
 			type = p->type;
 			debug("dequeue packet: %u", type);
@@ -1942,7 +1942,7 @@ packet_need_rekeying(void)
 	    (active_state->max_blocks_in &&
 	        (active_state->p_read.blocks > active_state->max_blocks_in)) ||
 	    (active_state->rekey_interval != 0 && active_state->rekey_time +
-		 active_state->rekey_interval <= time(NULL));
+		 active_state->rekey_interval <= monotime());
 }
 
 void
@@ -1956,7 +1956,7 @@ packet_set_rekey_limits(u_int32_t bytes, time_t seconds)
 	 * We set the time here so that in post-auth privsep slave we count
 	 * from the completion of the authentication.
 	 */
-	active_state->rekey_time = time(NULL);
+	active_state->rekey_time = monotime();
 }
 
 time_t
@@ -1965,7 +1965,7 @@ packet_get_rekey_timeout(void)
 	time_t seconds;
 
 	seconds = active_state->rekey_time + active_state->rekey_interval -
-	    time(NULL);
+	    monotime();
 	return (seconds <= 0 ? 1 : seconds);
 }
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.321 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.322 2013/06/01 13:15:51 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1335,7 +1335,7 @@ channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 			    errno != ECONNABORTED)
 				error("accept: %.100s", strerror(errno));
 			if (errno == EMFILE || errno == ENFILE)
-				c->notbefore = time(NULL) + 1;
+				c->notbefore = monotime() + 1;
 			return;
 		}
 		set_nodelay(newsock);
@@ -1482,7 +1482,7 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 			    errno != ECONNABORTED)
 				error("accept: %.100s", strerror(errno));
 			if (errno == EMFILE || errno == ENFILE)
-				c->notbefore = time(NULL) + 1;
+				c->notbefore = monotime() + 1;
 			return;
 		}
 		set_nodelay(newsock);
@@ -1518,7 +1518,7 @@ channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 			error("accept from auth socket: %.100s",
 			    strerror(errno));
 			if (errno == EMFILE || errno == ENFILE)
-				c->notbefore = time(NULL) + 1;
+				c->notbefore = monotime() + 1;
 			return;
 		}
 		nc = channel_new("accepted auth socket",
@@ -1922,7 +1922,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 	    &addrlen)) == -1) {
 		error("%s accept: %s", __func__, strerror(errno));
 		if (errno == EMFILE || errno == ENFILE)
-			c->notbefore = time(NULL) + 1;
+			c->notbefore = monotime() + 1;
 		return;
 	}
 
@@ -2085,7 +2085,7 @@ channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset,
 		channel_handler_init();
 		did_init = 1;
 	}
-	now = time(NULL);
+	now = monotime();
 	if (unpause_secs != NULL)
 		*unpause_secs = 0;
 	for (i = 0, oalloc = channels_alloc; i < oalloc; i++) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.89 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.90 2013/06/01 13:15:52 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -852,6 +852,17 @@ ms_to_timeval(struct timeval *tv, int ms)
 		ms = 0;
 	tv->tv_sec = ms / 1000;
 	tv->tv_usec = (ms % 1000) * 1000;
+}
+
+time_t
+monotime(void)
+{
+	struct timespec ts;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+		fatal("clock_gettime: %s", strerror(errno));
+
+	return (ts.tv_sec);
 }
 
 void
