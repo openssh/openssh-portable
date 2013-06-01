@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.525 2013/05/29 22:29:09 dtucker Exp $
+# $Id: configure.ac,v 1.526 2013/06/01 20:28:04 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.525 $)
+AC_REVISION($Revision: 1.526 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2388,6 +2388,7 @@ fi
 if test "x$check_for_libcrypt_later" = "x1"; then
 	AC_CHECK_LIB([crypt], [crypt], [LIBS="$LIBS -lcrypt"])
 fi
+AC_CHECK_FUNCS([crypt DES_crypt])
 
 # Search for SHA256 support in libc and/or OpenSSL
 AC_CHECK_FUNCS([SHA256_Update EVP_sha256], [TEST_SSH_SHA256=yes],
