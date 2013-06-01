@@ -102,11 +102,11 @@ verify_response(Authctxt *authctxt, const char *response)
 			authenticated = 1;
 
 		for (i = 0; i < numprompts; i++)
-			xfree(prompts[i]);
-		xfree(prompts);
-		xfree(name);
-		xfree(echo_on);
-		xfree(info);
+			free(prompts[i]);
+		free(prompts);
+		free(name);
+		free(echo_on);
+		free(info);
 		break;
 	}
 	device->free_ctx(authctxt->kbdintctxt);

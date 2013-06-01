@@ -69,7 +69,7 @@ ga_init(const char *user, gid_t base)
 	for (i = 0, j = 0; i < ngroups; i++)
 		if ((gr = getgrgid(groups_bygid[i])) != NULL)
 			groups_byname[j++] = xstrdup(gr->gr_name);
-	xfree(groups_bygid);
+	free(groups_bygid);
 	return (ngroups = j);
 }
 
@@ -125,6 +125,6 @@ ga_free(void)
 		for (i = 0; i < ngroups; i++)
 			free(groups_byname[i]);
 		ngroups = 0;
-		xfree(groups_byname);
+		free(groups_byname);
 	}
 }

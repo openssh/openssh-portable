@@ -805,7 +805,7 @@ mm_do_pam_account(void)
 	ret = buffer_get_int(&m);
 	msg = buffer_get_string(&m, NULL);
 	buffer_append(&loginmsg, msg, strlen(msg));
-	xfree(msg);
+	free(msg);
 
 	buffer_free(&m);
 
@@ -1035,7 +1035,7 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 	mm_chall_setup(name, infotxt, numprompts, prompts, echo_on);
 
 	xasprintf(*prompts, "%s%s", challenge, SKEY_PROMPT);
-	xfree(challenge);
+	free(challenge);
 
 	return (0);
 }

@@ -1092,8 +1092,8 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 			umask((mode_t)mask);
 
 	for (i = 0; tmpenv[i] != NULL; i++)
-		xfree(tmpenv[i]);
-	xfree(tmpenv);
+		free(tmpenv[i]);
+	free(tmpenv);
 }
 #endif /* HAVE_ETC_DEFAULT_LOGIN */
 
@@ -1109,7 +1109,7 @@ copy_environment(char **source, char ***env, u_int *envsize)
 	for(i = 0; source[i] != NULL; i++) {
 		var_name = xstrdup(source[i]);
 		if ((var_val = strstr(var_name, "=")) == NULL) {
-			xfree(var_name);
+			free(var_name);
 			continue;
 		}
 		*var_val++ = '\0';
@@ -1117,7 +1117,7 @@ copy_environment(char **source, char ***env, u_int *envsize)
 		debug3("Copy environment: %s=%s", var_name, var_val);
 		child_set_env(env, envsize, var_name, var_val);
 
-		xfree(var_name);
+		free(var_name);
 	}
 }
 

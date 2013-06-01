@@ -1616,7 +1616,7 @@ main(int ac, char **av)
 	} else {
 		memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
 		privsep_pw = pwcopy(privsep_pw);
-		xfree(privsep_pw->pw_passwd);
+		free(privsep_pw->pw_passwd);
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();

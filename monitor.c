@@ -988,7 +988,7 @@ mm_answer_skeyrespond(int sock, Buffer *m)
 	    skey_haskey(authctxt->pw->pw_name) == 0 &&
 	    skey_passcheck(authctxt->pw->pw_name, response) != -1);
 
-	xfree(response);
+	free(response);
 
 	buffer_clear(m);
 	buffer_put_int(m, authok);
@@ -1073,19 +1073,17 @@ mm_answer_pam_query(int sock, Buffer *m)
 	buffer_clear(m);
 	buffer_put_int(m, ret);
 	buffer_put_cstring(m, name);
-	xfree(name);
+	free(name);
 	buffer_put_cstring(m, info);
-	xfree(info);
+	free(info);
 	buffer_put_int(m, num);
 	for (i = 0; i < num; ++i) {
 		buffer_put_cstring(m, prompts[i]);
-		xfree(prompts[i]);
+		free(prompts[i]);
 		buffer_put_int(m, echo_on[i]);
 	}
-	if (prompts != NULL)
-		xfree(prompts);
-	if (echo_on != NULL)
-		xfree(echo_on);
+	free(prompts);
+	free(echo_on);
 	auth_method = "keyboard-interactive";
 	auth_submethod = "pam";
 	mm_request_send(sock, MONITOR_ANS_PAM_QUERY, m);
@@ -1108,8 +1106,8 @@ mm_answer_pam_respond(int sock, Buffer *m)
 			resp[i] = buffer_get_string(m, NULL);
 		ret = (sshpam_device.respond)(sshpam_ctxt, num, resp);
 		for (i = 0; i < num; ++i)
-			xfree(resp[i]);
-		xfree(resp);
+			free(resp[i]);
+		free(resp);
 	} else {
 		ret = (sshpam_device.respond)(sshpam_ctxt, num, NULL);
 	}
@@ -1764,7 +1762,7 @@ mm_answer_audit_command(int socket, Buffer *m)
 	cmd = buffer_get_string(m, &len);
 	/* sanity check command, if so how? */
 	audit_run_command(cmd);
-	xfree(cmd);
+	free(cmd);
 	return (0);
 }
 #endif /* SSH_AUDIT_EVENTS */

@@ -48,6 +48,12 @@
      [scp.c sftp-client.c]
      Replace S_IWRITE, which isn't standardized, with S_IWUSR, which is.  Patch
      from Nathan Osman via bz#2085.  ok deraadt.
+ - (dtucker) [M auth-chall.c auth-krb5.c auth-pam.c cipher-aes.c cipher-ctr.c
+   groupaccess.c loginrec.c monitor.c monitor_wrap.c session.c sshd.c
+   sshlogin.c uidswap.c openbsd-compat/bsd-cygwin_util.c
+   openbsd-compat/getrrsetbyname-ldns.c openbsd-compat/port-aix.c
+   openbsd-compat/port-linux.c] Replace portable-specific instances of xfree
+   with the equivalent calls to free.
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null

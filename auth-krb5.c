@@ -181,8 +181,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
  out:
 	restore_uid();
 	
-	if (platform_client != NULL)
-		xfree(platform_client);
+	free(platform_client);
 
 	if (problem) {
 		if (ccache)
