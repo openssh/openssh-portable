@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.103 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: key.c,v 1.104 2013/05/19 02:42:42 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -569,7 +569,7 @@ key_fingerprint_randomart(u_char *dgst_raw, u_int dgst_raw_len, const Key *k)
 }
 
 char *
-key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
+key_fingerprint(const Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 {
 	char *retval = NULL;
 	u_char *dgst_raw;

@@ -26,6 +26,15 @@
      [auth2-pubkey.c]
      fix failure to recognise cert-authority keys if a key of a different type
      appeared in authorized_keys before it; ok markus@
+   - djm@cvs.openbsd.org 2013/05/19 02:42:42
+     [auth.h auth.c key.c monitor.c auth-rsa.c auth2.c auth1.c key.h]
+     Standardise logging of supplemental information during userauth. Keys
+     and ruser is now logged in the auth success/failure message alongside
+     the local username, remote host/port and protocol in use. Certificates
+     contents and CA are logged too.
+     Pushing all logging onto a single line simplifies log analysis as it is
+     no longer necessary to relate information scattered across multiple log
+     entries. "I like it" markus@
 
 20130529
   - (dtucker) [configure.ac openbsd-compat/bsd-misc.h] bz#2087: Add a null

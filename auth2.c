@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.128 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.129 2013/05/19 02:42:42 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -326,7 +326,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 	}
 
 	/* Log before sending the reply */
-	auth_log(authctxt, authenticated, partial, method, submethod, " ssh2");
+	auth_log(authctxt, authenticated, partial, method, submethod);
 
 	if (authctxt->postponed)
 		return;

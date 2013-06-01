@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.73 2013/03/07 19:27:25 markus Exp $ */
+/* $OpenBSD: auth.h,v 1.74 2013/05/19 02:42:42 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -60,6 +60,7 @@ struct Authctxt {
 	struct passwd	*pw;		/* set if 'valid' */
 	char		*style;
 	void		*kbdintctxt;
+	char		*info;		/* Extra info for next auth_log */
 	void		*jpake_ctx;
 #ifdef BSD_AUTH
 	auth_session_t	*as;
@@ -121,6 +122,7 @@ int	 auth_rsa_key_allowed(struct passwd *, BIGNUM *, Key **);
 int	 auth_rhosts_rsa_key_allowed(struct passwd *, char *, char *, Key *);
 int	 hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 int	 user_key_allowed(struct passwd *, Key *);
+void	 pubkey_auth_info(Authctxt *, const Key *);
 
 struct stat;
 int	 auth_secure_path(const char *, struct stat *, const char *, uid_t,
@@ -148,8 +150,10 @@ void disable_forwarding(void);
 void	do_authentication(Authctxt *);
 void	do_authentication2(Authctxt *);
 
-void	auth_log(Authctxt *, int, int, const char *, const char *,
-    const char *);
+void	auth_info(Authctxt *authctxt, const char *, ...)
+	    __attribute__((__format__ (printf, 2, 3)))
+	    __attribute__((__nonnull__ (2)));
+void	auth_log(Authctxt *, int, int, const char *, const char *);
 void	userauth_finish(Authctxt *, int, const char *, const char *);
 int	auth_root_allowed(const char *);
 
