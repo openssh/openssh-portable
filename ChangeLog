@@ -5,6 +5,9 @@
    - dtucker@cvs.openbsd.org 2013/06/02 13:33:05
      [progressmeter.c]
      Add misc.h for monotime prototype. (ID sync only).
+   - dtucker@cvs.openbsd.org 2013/06/02 13:35:58
+     [ssh-agent.c]
+     Make parent_alive_interval time_t to avoid signed/unsigned comparison
 
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
