@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.531 2013/06/02 21:05:49 tim Exp $
+# $Id: configure.ac,v 1.532 2013/06/02 23:30:45 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.531 $)
+AC_REVISION($Revision: 1.532 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -388,6 +388,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [], [
 # Android requires sys/socket.h to be included before sys/un.h
 AC_CHECK_HEADERS([sys/un.h], [], [], [
 #include <sys/socket.h>
+#include <sys/types.h>
 ])
 
 # Messages for features tested for in target-specific section
