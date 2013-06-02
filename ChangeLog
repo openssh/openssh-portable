@@ -1,6 +1,10 @@
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
    linking regress/modpipe.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/06/02 13:33:05
+     [progressmeter.c]
+     Add misc.h for monotime prototype. (ID sync only).
 
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
