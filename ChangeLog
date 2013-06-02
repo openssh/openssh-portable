@@ -1,3 +1,7 @@
+20130602
+ - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
+   linking regress/modpipe.
+
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
    using openssl's DES_crypt function on platorms that don't have a native
