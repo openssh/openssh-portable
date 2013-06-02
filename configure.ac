@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.529 2013/06/02 15:59:13 dtucker Exp $
+# $Id: configure.ac,v 1.530 2013/06/02 16:03:26 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.529 $)
+AC_REVISION($Revision: 1.530 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -490,6 +490,10 @@ case "$host" in
 	    [AIX 5.2 and 5.3 (and presumably newer) require this])
 	AC_DEFINE([PTY_ZEROREAD], [1], [read(1) can return 0 for a non-closed fd])
 	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
+	;;
+*-*-android*)
+	AC_DEFINE([DISABLE_UTMP], [1], [Define if you don't want to use utmp])
+	AC_DEFINE([DISABLE_WTMP], [1], [Define if you don't want to use wtmp])
 	;;
 *-*-cygwin*)
 	check_for_libcrypt_later=1
