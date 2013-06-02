@@ -8,7 +8,8 @@ FILENAME=testdata_${USER}
 PRIVDATA=${CHROOT}/${FILENAME}
 
 if [ -z "$SUDO" ]; then
-	fatal "need SUDO to create file in /var/run, test won't work without"
+  echo "skipped: need SUDO to create file in /var/run, test won't work without"
+  exit 0
 fi
 
 $SUDO sh -c "echo mekmitastdigoat > $PRIVDATA" || \
