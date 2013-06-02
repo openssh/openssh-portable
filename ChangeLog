@@ -16,6 +16,8 @@
    need a shell that can handle "[ file1 -nt file2 ]". Rather than keep
    dealing with shell portability issues in regression tests, we let
    configure find us a capable shell on those platforms with an old /bin/sh.
+ - (tim) [aclocal.m4] Enhance OSSH_CHECK_CFLAG_COMPILE to check stderr.
+   feedback and ok dtucker
 
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
