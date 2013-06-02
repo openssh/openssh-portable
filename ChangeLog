@@ -8,6 +8,8 @@
    - dtucker@cvs.openbsd.org 2013/06/02 13:35:58
      [ssh-agent.c]
      Make parent_alive_interval time_t to avoid signed/unsigned comparison
+ - (dtucker) [configure.ac]  sys/un.h needs sys/socket.h on some platforms
+   to prevent noise from configure. Patch from Nathan Osman.
 
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to

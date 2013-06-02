@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.528 2013/06/01 22:18:32 dtucker Exp $
+# $Id: configure.ac,v 1.529 2013/06/02 15:59:13 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.528 $)
+AC_REVISION($Revision: 1.529 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -348,7 +348,6 @@ AC_CHECK_HEADERS([ \
 	sys/sysmacros.h \
 	sys/time.h \
 	sys/timers.h \
-	sys/un.h \
 	time.h \
 	tmpdir.h \
 	ttyent.h \
@@ -384,6 +383,11 @@ AC_CHECK_HEADERS([login_cap.h], [], [], [
 # older BSDs need sys/param.h before sys/mount.h
 AC_CHECK_HEADERS([sys/mount.h], [], [], [
 #include <sys/param.h>
+])
+
+# Android requires sys/socket.h to be included before sys/un.h
+AC_CHECK_HEADERS([sys/un.h], [], [], [
+#include <sys/socket.h>
 ])
 
 # Messages for features tested for in target-specific section
