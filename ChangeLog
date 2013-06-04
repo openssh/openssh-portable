@@ -20,6 +20,8 @@
    feedback and ok dtucker
  - (tim) [regress/sftp-chroot.sh] skip if no sudo. ok dtucker
  - (dtucker) [configure.ac] Some platforms need sys/types.h before sys/un.h.
+ - (dtucker) [configure.ac] Some other platforms need sys/types.h before
+   sys/socket.h.
 
 20130601
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] bz#2112: fall back to
