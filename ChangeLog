@@ -13,6 +13,10 @@
    - dtucker@cvs.openbsd.org 2013/06/02 21:01:51
      [channels.h]
      typo in comment
+   - dtucker@cvs.openbsd.org 2013/06/02 23:36:29
+     [clientloop.h clientloop.c mux.c]
+     No need for the mux cleanup callback to be visible so restore it to static
+     and call it through the detach_user function pointer.  ok djm@
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
