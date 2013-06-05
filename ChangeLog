@@ -9,6 +9,10 @@
    this is.
  - (dtucker) [Makefile.in] append $CFLAGS to compiler options when building
    modpipe in case there's anything in there we need.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/06/02 21:01:51
+     [channels.h]
+     typo in comment
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy

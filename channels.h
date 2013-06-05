@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.111 2012/04/11 13:16:19 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.112 2013/06/02 21:01:51 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -110,7 +110,7 @@ struct Channel {
 				 * channels are delayed until the first call
 				 * to a matching pre-select handler. 
 				 * this way post-select handlers are not
-				 * accidenly called if a FD gets reused */
+				 * accidentally called if a FD gets reused */
 	Buffer  input;		/* data read from socket, to be sent over
 				 * encrypted connection */
 	Buffer  output;		/* data received over encrypted connection for
