@@ -1,6 +1,8 @@
 20130605
- - (dtucker) Enable sha256 kex methods based on the presence of the necessary
-   functions, not from the openssl version.
+ - (dtucker) [myproposal.h] Enable sha256 kex methods based on the presence of
+   the necessary functions, not from the openssl version.
+ - (dtucker) [contrib/ssh-copy-id] bz#2117: Use portable operator in test.
+   Patch from cjwatson at debian.
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
