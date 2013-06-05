@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.402 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.403 2013/06/05 02:27:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1024,7 +1024,9 @@ server_accept_inetd(int *sock_in, int *sock_out)
 	if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
 		dup2(fd, STDIN_FILENO);
 		dup2(fd, STDOUT_FILENO);
-		if (fd > STDOUT_FILENO)
+		if (!log_stderr)
+			dup2(fd, STDERR_FILENO);
+		if (fd > (log_stderr ? STDERR_FILENO : STDOUT_FILENO))
 			close(fd);
 	}
 	debug("inetd sockets after dupping: %d, %d", *sock_in, *sock_out);

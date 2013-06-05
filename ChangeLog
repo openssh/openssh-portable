@@ -35,6 +35,11 @@
      [mux.c]
      fix leaks in mux error paths, from Zhenbo Xu, found by Melton. bz#1967,
      ok djm
+   - dtucker@cvs.openbsd.org 2013/06/05 02:27:50
+     [sshd.c]
+     When running sshd -D, close stderr unless we have explicitly requesting
+     logging to stderr. From james.hunt at ubuntu.com via bz#1976, djm's patch
+     so, err, ok dtucker.
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
