@@ -43,6 +43,9 @@
    - dtucker@cvs.openbsd.org 2013/06/05 12:52:38
      [sshconnect2.c]
      Fix memory leaks found by Zhenbo Xu and the Melton tool.  bz#1967, ok djm
+   - dtucker@cvs.openbsd.org 2013/06/05 22:00:28
+     [readconf.c]
+     plug another memleak.  bz#1967, from Zhenbo Xu, detected by Melton, ok djm
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy

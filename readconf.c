@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.202 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.203 2013/06/05 22:00:28 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -820,6 +820,8 @@ parse_int:
 			else if (opcode == oRemoteForward)
 				add_remote_forward(options, &fwd);
 		}
+		free(fwd.connect_host);
+		free(fwd.listen_host);
 		break;
 
 	case oClearAllForwardings:
