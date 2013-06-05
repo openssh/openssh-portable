@@ -3,6 +3,10 @@
    the necessary functions, not from the openssl version.
  - (dtucker) [contrib/ssh-copy-id] bz#2117: Use portable operator in test.
    Patch from cjwatson at debian.
+ - (dtucker) [regress/forwarding.sh] For (as yet unknown) reason, the
+   forwarding test is extremely slow copying data on some machines so switch
+   back to copying the much smaller ls binary until we can figure out why
+   this is.
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy

@@ -3,6 +3,8 @@
 
 tid="local and remote forwarding"
 
+DATA=/bin/ls${EXEEXT}
+
 start_sshd
 
 base=33
