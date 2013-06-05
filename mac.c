@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.23 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: mac.c,v 1.24 2013/06/03 00:03:18 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -174,12 +174,15 @@ mac_init(Mac *mac)
 u_char *
 mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 {
-	static u_char m[EVP_MAX_MD_SIZE];
+	static union {
+		u_char m[EVP_MAX_MD_SIZE];
+		u_int64_t for_align;
+	} u;
 	u_char b[4], nonce[8];
 
-	if (mac->mac_len > sizeof(m))
+	if (mac->mac_len > sizeof(u))
 		fatal("mac_compute: mac too long %u %lu",
-		    mac->mac_len, (u_long)sizeof(m));
+		    mac->mac_len, (u_long)sizeof(u));
 
 	switch (mac->type) {
 	case SSH_EVP:
@@ -188,22 +191,22 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 		HMAC_Init(&mac->evp_ctx, NULL, 0, NULL);
 		HMAC_Update(&mac->evp_ctx, b, sizeof(b));
 		HMAC_Update(&mac->evp_ctx, data, datalen);
-		HMAC_Final(&mac->evp_ctx, m, NULL);
+		HMAC_Final(&mac->evp_ctx, u.m, NULL);
 		break;
 	case SSH_UMAC:
 		put_u64(nonce, seqno);
 		umac_update(mac->umac_ctx, data, datalen);
-		umac_final(mac->umac_ctx, m, nonce);
+		umac_final(mac->umac_ctx, u.m, nonce);
 		break;
 	case SSH_UMAC128:
 		put_u64(nonce, seqno);
 		umac128_update(mac->umac_ctx, data, datalen);
-		umac128_final(mac->umac_ctx, m, nonce);
+		umac128_final(mac->umac_ctx, u.m, nonce);
 		break;
 	default:
 		fatal("mac_compute: unknown MAC type");
 	}
-	return (m);
+	return (u.m);
 }
 
 void

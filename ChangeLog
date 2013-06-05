@@ -17,6 +17,11 @@
      [clientloop.h clientloop.c mux.c]
      No need for the mux cleanup callback to be visible so restore it to static
      and call it through the detach_user function pointer.  ok djm@
+   - dtucker@cvs.openbsd.org 2013/06/03 00:03:18
+     [mac.c]
+     force the MAC output to be 64-bit aligned so umac won't see unaligned
+     accesses on strict-alignment architectures.  bz#2101, patch from
+     tomas.kuthan at oracle.com, ok djm@
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
