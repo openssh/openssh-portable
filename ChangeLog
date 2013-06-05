@@ -25,6 +25,12 @@
    - dtucker@cvs.openbsd.org 2013/06/04 19:12:23
      [scp.c]
      use MAXPATHLEN for buffer size instead of fixed value.  ok markus
+   - dtucker@cvs.openbsd.org 2013/06/04 20:42:36
+     [sftp.c]
+     Make sftp's libedit interface marginally multibyte aware by building up
+     the quoted string by character instead of by byte.  Prevents failures
+     when linked against a libedit built with wide character support (bz#1990).
+     "looks ok" djm
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
