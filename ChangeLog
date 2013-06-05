@@ -1,3 +1,7 @@
+20130605
+ - (dtucker) Enable sha256 kex methods based on the presence of the necessary
+   functions, not from the openssl version.
+
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
    linking regress/modpipe.

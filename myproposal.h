@@ -46,7 +46,7 @@
 #endif
 
 /* Old OpenSSL doesn't support what we need for DHGEX-sha256 */
-#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+#ifdef HAVE_EVP_SHA256
 # define KEX_SHA256_METHODS \
 	"diffie-hellman-group-exchange-sha256,"
 #else
