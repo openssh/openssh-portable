@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.174 2013/06/01 20:59:25 dtucker Exp $ */
+/* $OpenBSD: scp.c,v 1.175 2013/06/04 19:12:23 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -850,7 +850,7 @@ rsource(char *name, struct stat *statp)
 {
 	DIR *dirp;
 	struct dirent *dp;
-	char *last, *vect[1], path[1100];
+	char *last, *vect[1], path[MAXPATHLEN];
 
 	if (!(dirp = opendir(name))) {
 		run_err("%s: %s", name, strerror(errno));

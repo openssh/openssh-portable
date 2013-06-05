@@ -22,6 +22,9 @@
      force the MAC output to be 64-bit aligned so umac won't see unaligned
      accesses on strict-alignment architectures.  bz#2101, patch from
      tomas.kuthan at oracle.com, ok djm@
+   - dtucker@cvs.openbsd.org 2013/06/04 19:12:23
+     [scp.c]
+     use MAXPATHLEN for buffer size instead of fixed value.  ok markus
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
