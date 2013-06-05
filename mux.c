@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.42 2013/06/02 23:36:29 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.43 2013/06/05 02:07:29 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -288,6 +288,7 @@ process_mux_master_hello(u_int rid, Channel *c, Buffer *m, Buffer *r)
 
 		if (name == NULL || value == NULL) {
 			free(name);
+			free(value);
 			goto malf;
 		}
 		debug2("Unrecognised slave extension \"%s\"", name);
@@ -1427,7 +1428,9 @@ mux_client_read_packet(int fd, Buffer *m)
 	buffer_init(&queue);
 	if (mux_client_read(fd, &queue, 4) != 0) {
 		if ((oerrno = errno) == EPIPE)
-		debug3("%s: read header failed: %s", __func__, strerror(errno));
+			debug3("%s: read header failed: %s", __func__,
+			    strerror(errno));
+		buffer_free(&queue);
 		errno = oerrno;
 		return -1;
 	}
@@ -1435,6 +1438,7 @@ mux_client_read_packet(int fd, Buffer *m)
 	if (mux_client_read(fd, &queue, need) != 0) {
 		oerrno = errno;
 		debug3("%s: read body failed: %s", __func__, strerror(errno));
+		buffer_free(&queue);
 		errno = oerrno;
 		return -1;
 	}
