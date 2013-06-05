@@ -40,6 +40,9 @@
      When running sshd -D, close stderr unless we have explicitly requesting
      logging to stderr. From james.hunt at ubuntu.com via bz#1976, djm's patch
      so, err, ok dtucker.
+   - dtucker@cvs.openbsd.org 2013/06/05 12:52:38
+     [sshconnect2.c]
+     Fix memory leaks found by Zhenbo Xu and the Melton tool.  bz#1967, ok djm
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy

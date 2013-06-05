@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.197 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.198 2013/06/05 12:52:38 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1322,8 +1322,11 @@ load_identity_file(char *filename, int userprovided)
 		return NULL;
 	}
 	private = key_load_private_type(KEY_UNSPEC, filename, "", NULL, &perm_ok);
-	if (!perm_ok)
+	if (!perm_ok) {
+		if (private != NULL)
+			key_free(private);
 		return NULL;
+	}
 	if (private == NULL) {
 		if (options.batch_mode)
 			return NULL;
@@ -1915,6 +1918,7 @@ authmethod_get(char *authlist)
 			free(name);
 			return current;
 		}
+		free(name);
 	}
 }
 
