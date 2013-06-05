@@ -46,6 +46,9 @@
    - dtucker@cvs.openbsd.org 2013/06/05 22:00:28
      [readconf.c]
      plug another memleak.  bz#1967, from Zhenbo Xu, detected by Melton, ok djm
+ - (dtucker) [configure.ac sftp.c openbsd-compat/openbsd-compat.h] Cater for
+    platforms that don't have multibyte character support (specifically,
+    mblen).
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy

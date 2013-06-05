@@ -38,7 +38,9 @@
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
 #endif
-#include <locale.h>
+#ifdef HAVE_LOCALE_H
+# include <locale.h>
+#endif
 #ifdef USE_LIBEDIT
 #include <histedit.h>
 #else

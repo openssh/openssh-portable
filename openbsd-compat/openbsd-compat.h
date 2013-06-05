@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.57 2013/05/16 10:47:32 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.58 2013/06/05 22:30:21 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -205,6 +205,11 @@ unsigned long long strtoull(const char *, char **, int);
 
 #ifndef HAVE_STRTONUM
 long long strtonum(const char *, long long, long long, const char **);
+#endif
+
+/* multibyte character support */
+#ifndef HAVE_MBLEN
+# define mblen(x, y)	1
 #endif
 
 #if !defined(HAVE_VASPRINTF) || !defined(HAVE_VSNPRINTF)

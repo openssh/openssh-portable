@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.533 2013/06/04 02:55:24 dtucker Exp $
+# $Id: configure.ac,v 1.534 2013/06/05 22:30:21 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.533 $)
+AC_REVISION($Revision: 1.534 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -310,6 +310,7 @@ AC_CHECK_HEADERS([ \
 	ia.h \
 	iaf.h \
 	limits.h \
+	locale.h \
 	login.h \
 	maillock.h \
 	ndir.h \
@@ -1563,6 +1564,7 @@ AC_CHECK_FUNCS([ \
 	inet_ntop \
 	innetgr \
 	login_getcapbool \
+	mblen \
 	md5_crypt \
 	memmove \
 	mkdtemp \
