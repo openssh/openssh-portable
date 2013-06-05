@@ -7,6 +7,8 @@
    forwarding test is extremely slow copying data on some machines so switch
    back to copying the much smaller ls binary until we can figure out why
    this is.
+ - (dtucker) [Makefile.in] append $CFLAGS to compiler options when building
+   modpipe in case there's anything in there we need.
 
 20130602
  - (tim) [Makefile.in] Make Solaris, UnixWare, & OpenServer linkers happy
