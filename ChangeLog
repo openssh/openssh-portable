@@ -1,3 +1,15 @@
+20130610
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/06/07 15:37:52
+     [channels.c channels.h clientloop.c]
+     Add an "ABANDONED" channel state and use for mux sessions that are
+     disconnected via the ~. escape sequence.  Channels in this state will
+     be able to close if the server responds, but do not count as active channels.
+     This means that if you ~. all of the mux clients when using ControlPersist
+     on a broken network, the backgrounded mux master will exit when the
+     Control Persist time expires rather than hanging around indefinitely.
+     bz#1917, also reported and tested by tedu@.  ok djm@ markus@.
+
 20130605
  - (dtucker) [myproposal.h] Enable sha256 kex methods based on the presence of
    the necessary functions, not from the openssl version.

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.322 2013/06/01 13:15:51 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.323 2013/06/07 15:37:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -213,6 +213,7 @@ channel_lookup(int id)
 	case SSH_CHANNEL_OPEN:
 	case SSH_CHANNEL_INPUT_DRAINING:
 	case SSH_CHANNEL_OUTPUT_DRAINING:
+	case SSH_CHANNEL_ABANDONED:
 		return (c);
 	}
 	logit("Non-public channel %d, type %d.", id, c->type);
@@ -530,6 +531,7 @@ channel_still_open(void)
 		case SSH_CHANNEL_DYNAMIC:
 		case SSH_CHANNEL_CONNECTING:
 		case SSH_CHANNEL_ZOMBIE:
+		case SSH_CHANNEL_ABANDONED:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 			if (!compat20)
@@ -575,6 +577,7 @@ channel_find_open(void)
 		case SSH_CHANNEL_OPENING:
 		case SSH_CHANNEL_CONNECTING:
 		case SSH_CHANNEL_ZOMBIE:
+		case SSH_CHANNEL_ABANDONED:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 		case SSH_CHANNEL_AUTH_SOCKET:
@@ -622,6 +625,7 @@ channel_open_message(void)
 		case SSH_CHANNEL_CLOSED:
 		case SSH_CHANNEL_AUTH_SOCKET:
 		case SSH_CHANNEL_ZOMBIE:
+		case SSH_CHANNEL_ABANDONED:
 		case SSH_CHANNEL_MUX_CLIENT:
 		case SSH_CHANNEL_MUX_LISTENER:
 			continue;
@@ -2491,7 +2495,7 @@ channel_input_close_confirmation(int type, u_int32_t seq, void *ctxt)
 	if (c == NULL)
 		packet_disconnect("Received close confirmation for "
 		    "out-of-range channel %d.", id);
-	if (c->type != SSH_CHANNEL_CLOSED)
+	if (c->type != SSH_CHANNEL_CLOSED && c->type != SSH_CHANNEL_ABANDONED)
 		packet_disconnect("Received close confirmation for "
 		    "non-closed channel %d (type %d).", id, c->type);
 	channel_free(c);

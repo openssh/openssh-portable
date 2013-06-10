@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.252 2013/06/02 23:36:29 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.253 2013/06/07 15:37:52 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1111,6 +1111,9 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					chan_write_failed(c);
 					if (c->detach_user)
 						c->detach_user(c->self, NULL);
+					c->type = SSH_CHANNEL_ABANDONED;
+					buffer_clear(&c->input);
+					chan_ibuf_empty(c);
 					return 0;
 				} else
 					quit_pending = 1;
