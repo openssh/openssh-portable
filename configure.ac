@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.534 2013/06/05 22:30:21 dtucker Exp $
+# $Id: configure.ac,v 1.535 2013/06/11 01:26:10 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.534 $)
+AC_REVISION($Revision: 1.535 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2394,6 +2394,8 @@ AC_LINK_IFELSE(
 	],
 	[
 		AC_MSG_RESULT([no])
+		unsupported_algorithms="$unsupported_cipers \
+		   aes128-gcm@openssh.com aes256-gcm@openssh.com"
 	]
 )
 
@@ -2434,8 +2436,15 @@ fi
 AC_CHECK_FUNCS([crypt DES_crypt])
 
 # Search for SHA256 support in libc and/or OpenSSL
-AC_CHECK_FUNCS([SHA256_Update EVP_sha256], [TEST_SSH_SHA256=yes],
-    [TEST_SSH_SHA256=no])
+AC_CHECK_FUNCS([SHA256_Update EVP_sha256],
+    [TEST_SSH_SHA256=yes],
+    [TEST_SSH_SHA256=no
+     unsupported_algorithms="$unsupported_algorithms \
+	hmac-sha2-256 hmac-sha2-512 \
+	diffie-hellman-group-exchange-sha256 \
+	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+     ]
+)
 AC_SUBST([TEST_SSH_SHA256])
 
 # Check complete ECC support in OpenSSL
@@ -2466,6 +2475,12 @@ AC_LINK_IFELSE(
 		AC_MSG_RESULT([no])
 		TEST_SSH_ECC=no
 		COMMENT_OUT_ECC="#no ecc#"
+     		unsupported_algorithms="$unsupported_algorithms \
+		    ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521 \
+		    ecdsa-sha2-nistp256-cert-v01@openssh.com \
+		    ecdsa-sha2-nistp384-cert-v01@openssh.com \
+		    ecdsa-sha2-nistp521-cert-v01@openssh.com \
+		    ecdsa-sha2-nistp256 ecdsa-sha2-nistp384 ecdsa-sha2-nistp521"
 	]
 )
 AC_SUBST([TEST_SSH_ECC])
@@ -4541,6 +4556,7 @@ else
 fi
 AC_CHECK_DECL([BROKEN_GETADDRINFO],  [TEST_SSH_IPV6=no])
 AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
+AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \

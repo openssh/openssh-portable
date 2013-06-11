@@ -9,6 +9,8 @@
      on a broken network, the backgrounded mux master will exit when the
      Control Persist time expires rather than hanging around indefinitely.
      bz#1917, also reported and tested by tedu@.  ok djm@ markus@.
+ - (dtucker) [Makefile.in configure.ac fixalgorithms] Remove unsupported
+   algorithms (Ciphers, MACs and HostKeyAlgorithms) from man pages.
 
 20130605
  - (dtucker) [myproposal.h] Enable sha256 kex methods based on the presence of
