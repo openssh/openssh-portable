@@ -1,3 +1,7 @@
+20130610
+ - (dtucker) [myproposal.h] Do not advertise AES GSM ciphers if we don't have
+   the required OpenSSL support.  Patch from naddy at freebsd.
+
 20130516
  - (djm) [contrib/ssh-copy-id] Fix bug that could cause "rm *" to be
    executed if mktemp failed; bz#2105 ok dtucker@
