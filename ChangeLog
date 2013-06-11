@@ -13,6 +13,8 @@
    algorithms (Ciphers, MACs and HostKeyAlgorithms) from man pages.
  - (dtucker) [myproposal.h] Do not advertise AES GSM ciphers if we don't have
    the required OpenSSL support.  Patch from naddy at freebsd.
+ - (dtucker) [myproposal.h] Make the conditional algorithm support consistent
+   and add some comments so it's clear what goes where.
 
 20130605
  - (dtucker) [myproposal.h] Enable sha256 kex methods based on the presence of
