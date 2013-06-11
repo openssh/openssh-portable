@@ -11,6 +11,8 @@
      bz#1917, also reported and tested by tedu@.  ok djm@ markus@.
  - (dtucker) [Makefile.in configure.ac fixalgorithms] Remove unsupported
    algorithms (Ciphers, MACs and HostKeyAlgorithms) from man pages.
+ - (dtucker) [myproposal.h] Do not advertise AES GSM ciphers if we don't have
+   the required OpenSSL support.  Patch from naddy at freebsd.
 
 20130605
  - (dtucker) [myproposal.h] Enable sha256 kex methods based on the presence of

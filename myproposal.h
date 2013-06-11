@@ -45,6 +45,13 @@
 # define HOSTKEY_ECDSA_METHODS
 #endif
 
+#ifdef OPENSSL_HAVE_EVPGCM
+# define AESGCM_CIPHER_MODES \
+	"aes128-gcm@openssh.com,aes256-gcm@openssh.com,"
+#else
+# define AESGCM_CIPHER_MODES
+#endif
+
 /* Old OpenSSL doesn't support what we need for DHGEX-sha256 */
 #ifdef HAVE_EVP_SHA256
 # define KEX_SHA256_METHODS \
@@ -73,7 +80,7 @@
 #define	KEX_DEFAULT_ENCRYPT \
 	"aes128-ctr,aes192-ctr,aes256-ctr," \
 	"arcfour256,arcfour128," \
-	"aes128-gcm@openssh.com,aes256-gcm@openssh.com," \
+	AESGCM_CIPHER_MODES \
 	"aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc," \
 	"aes192-cbc,aes256-cbc,arcfour,rijndael-cbc@lysator.liu.se"
 #ifdef HAVE_EVP_SHA256
