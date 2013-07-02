@@ -1,3 +1,10 @@
+20130702
+ - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
+   contrib/cygwin/ssh-user-config] Modernizes and improve readability of
+   the Cygwin README file (which hasn't been updated for ages), drop
+   unsupported OSes from the ssh-host-config help text, and drop an
+   unneeded option from ssh-user-config.  Patch from vinschen at redhat com.
+
 20130610
  - (djm) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2013/06/07 15:37:52
