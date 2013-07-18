@@ -57,6 +57,9 @@
    - djm@cvs.openbsd.org 2013/07/12 05:48:55
      [ssh.c]
      set TCP nodelay for connections started with -N; bz#2124 ok dtucker@
+   - schwarze@cvs.openbsd.org 2013/07/16 00:07:52
+     [scp.1 sftp-server.8 ssh-keyscan.1 ssh-keysign.8 ssh-pkcs11-helper.8]
+     use .Mt for email addresses; from Jan Stary <hans at stare dot cz>; ok jmc@
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
