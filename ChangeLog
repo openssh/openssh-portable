@@ -23,6 +23,9 @@
    - djm@cvs.openbsd.org 2013/06/21 05:42:32
      [dh.c]
      sprinkle in some error() to explain moduli(5) parse failures
+   - djm@cvs.openbsd.org 2013/06/21 05:43:10
+     [scp.c]
+     make this -Wsign-compare clean after time_t conversion
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
