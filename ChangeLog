@@ -29,6 +29,11 @@
    - djm@cvs.openbsd.org 2013/06/22 06:31:57
      [scp.c]
      improved time_t overflow check suggested by guenther@
+   - jmc@cvs.openbsd.org 2013/06/27 14:05:37
+     [ssh-keygen.1 ssh.1 ssh_config.5 sshd.8 sshd_config.5]
+     do not use Sx for sections outwith the man page - ingo informs me that
+     stuff like html will render with broken links;
+     issue reported by Eric S. Raymond, via djm
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config

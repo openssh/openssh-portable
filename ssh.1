@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.332 2013/04/19 01:06:50 djm Exp $
-.Dd $Mdocdate: April 19 2013 $
+.\" $OpenBSD: ssh.1,v 1.333 2013/06/27 14:05:37 jmc Exp $
+.Dd $Mdocdate: June 27 2013 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -754,9 +754,7 @@ implements public key authentication protocol automatically,
 using one of the DSA, ECDSA or RSA algorithms.
 Protocol 1 is restricted to using only RSA keys,
 but protocol 2 may use any.
-The
-.Sx HISTORY
-section of
+The HISTORY section of
 .Xr ssl 8
 contains a brief discussion of the DSA and RSA algorithms.
 .Pp
@@ -812,9 +810,7 @@ instead of a set of public/private keys,
 signed certificates are used.
 This has the advantage that a single trusted certification authority
 can be used in place of many public/private keys.
-See the
-.Sx CERTIFICATES
-section of
+See the CERTIFICATES section of
 .Xr ssh-keygen 1
 for more information.
 .Pp
