@@ -1,3 +1,9 @@
+20130718
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/06/10 19:19:44
+     [readconf.c]
+     revert 1.203 while we investigate crashes reported by okan@
+
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
    contrib/cygwin/ssh-user-config] Modernizes and improve readability of
