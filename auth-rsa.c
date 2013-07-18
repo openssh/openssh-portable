@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.83 2013/05/19 02:42:42 djm Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.84 2013/06/21 00:34:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -332,7 +332,7 @@ auth_rsa(Authctxt *authctxt, BIGNUM *client_n)
 	 * options; this will be reset if the options cause the
 	 * authentication to be rejected.
 	 */
-	pubkey_auth_info(authctxt, key);
+	pubkey_auth_info(authctxt, key, NULL);
 
 	packet_send_debug("RSA authentication accepted.");
 	return (1);

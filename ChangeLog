@@ -12,6 +12,10 @@
    - markus@cvs.openbsd.org 2013/06/20 19:15:06
      [krl.c]
      don't leak the rdata blob on errors; ok djm@
+   - djm@cvs.openbsd.org 2013/06/21 00:34:49
+     [auth-rsa.c auth.h auth2-hostbased.c auth2-pubkey.c monitor.c]
+     for hostbased authentication, print the client host and user on
+     the auth success/failure line; bz#2064, ok dtucker@
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config

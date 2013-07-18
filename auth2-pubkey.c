@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.37 2013/05/19 02:38:28 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.38 2013/06/21 00:34:49 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -147,7 +147,7 @@ userauth_pubkey(Authctxt *authctxt)
 #ifdef DEBUG_PK
 		buffer_dump(&b);
 #endif
-		pubkey_auth_info(authctxt, key);
+		pubkey_auth_info(authctxt, key, NULL);
 
 		/* test for correct signature */
 		authenticated = 0;
@@ -190,23 +190,37 @@ done:
 }
 
 void
-pubkey_auth_info(Authctxt *authctxt, const Key *key)
+pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 {
-	char *fp;
+	char *fp, *extra;
+	va_list ap;
+	int i;
+
+	extra = NULL;
+	if (fmt != NULL) {
+		va_start(ap, fmt);
+		i = vasprintf(&extra, fmt, ap);
+		va_end(ap);
+		if (i < 0 || extra == NULL)
+			fatal("%s: vasprintf failed", __func__);	
+	}
 
 	if (key_is_cert(key)) {
 		fp = key_fingerprint(key->cert->signature_key,
 		    SSH_FP_MD5, SSH_FP_HEX);
-		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s", 
+		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s%s%s", 
 		    key_type(key), key->cert->key_id,
 		    (unsigned long long)key->cert->serial,
-		    key_type(key->cert->signature_key), fp);
+		    key_type(key->cert->signature_key), fp,
+		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
 		free(fp);
 	} else {
 		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
-		auth_info(authctxt, "%s %s", key_type(key), fp);
+		auth_info(authctxt, "%s %s%s%s", key_type(key), fp,
+		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
 		free(fp);
 	}
+	free(extra);
 }
 
 static int
