@@ -20,6 +20,9 @@
      [ssh_config.5]
      explicitly mention that IdentitiesOnly can be used with IdentityFile
      to control which keys are offered from an agent.
+   - djm@cvs.openbsd.org 2013/06/21 05:42:32
+     [dh.c]
+     sprinkle in some error() to explain moduli(5) parse failures
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
