@@ -44,6 +44,11 @@
    - djm@cvs.openbsd.org 2013/07/12 00:20:00
      [sftp.c ssh-keygen.c ssh-pkcs11.c]
      fix pointer-signedness warnings from clang/llvm-3.3; "seems nice" deraadt@
+   - djm@cvs.openbsd.org 2013/07/12 00:43:50
+     [misc.c]
+     in ssh_gai_strerror() don't fallback to strerror for EAI_SYSTEM when
+     errno == 0. Avoids confusing error message in some broken resolver
+     cases. bz#2122 patch from plautrba AT redhat.com; ok dtucker
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
