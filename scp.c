@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.177 2013/06/21 05:43:10 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.178 2013/06/22 06:31:57 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -976,7 +976,8 @@ sink(int argc, char **argv)
 			ull = strtoull(cp, &cp, 10);
 			if (!cp || *cp++ != ' ')
 				SCREWUP("mtime.sec not delimited");
-			if ((time_t)ull < 0 || ull > LLONG_MAX)
+			if ((time_t)ull < 0 ||
+			    (unsigned long long)(time_t)ull != ull)
 				setimes = 0;	/* out of range */
 			mtime.tv_sec = ull;
 			mtime.tv_usec = strtol(cp, &cp, 10);
@@ -988,7 +989,8 @@ sink(int argc, char **argv)
 			ull = strtoull(cp, &cp, 10);
 			if (!cp || *cp++ != ' ')
 				SCREWUP("atime.sec not delimited");
-			if ((time_t)ull < 0 || ull > LLONG_MAX)
+			if ((time_t)ull < 0 ||
+			    (unsigned long long)(time_t)ull != ull)
 				setimes = 0;	/* out of range */
 			atime.tv_sec = ull;
 			atime.tv_usec = strtol(cp, &cp, 10);
