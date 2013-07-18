@@ -34,6 +34,9 @@
      do not use Sx for sections outwith the man page - ingo informs me that
      stuff like html will render with broken links;
      issue reported by Eric S. Raymond, via djm
+   - markus@cvs.openbsd.org 2013/07/02 12:31:43
+     [dh.c]
+     remove extra whitespace
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config

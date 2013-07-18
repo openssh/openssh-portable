@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.50 2013/06/21 05:42:32 djm Exp $ */
+/* $OpenBSD: dh.c,v 1.51 2013/07/02 12:31:43 markus Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -48,7 +48,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	const char *errstr = NULL;
 	long long n;
 
-	dhg->p = dhg-> g = NULL;
+	dhg->p = dhg->g = NULL;
 	cp = line;
 	if ((arg = strdelim(&cp)) == NULL)
 		return 0;
