@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.11 2013/04/05 00:14:00 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.12 2013/06/20 19:15:06 markus Exp $ */
 
 #include "includes.h"
 
@@ -887,9 +887,10 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 	char timestamp[64];
 	int ret = -1, r, sig_seen;
 	Key *key = NULL, **ca_used = NULL;
-	u_char type, *blob;
-	u_int i, j, sig_off, sects_off, blen, format_version, nca_used = 0;
+	u_char type, *blob, *rdata = NULL;
+	u_int i, j, sig_off, sects_off, rlen, blen, format_version, nca_used;
 
+	nca_used = 0;
 	*krlp = NULL;
 	if (buffer_len(buf) < sizeof(KRL_MAGIC) - 1 ||
 	    memcmp(buffer_ptr(buf), KRL_MAGIC, sizeof(KRL_MAGIC) - 1) != 0) {
@@ -1015,21 +1016,22 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 		case KRL_SECTION_EXPLICIT_KEY:
 		case KRL_SECTION_FINGERPRINT_SHA1:
 			while (buffer_len(&sect) > 0) {
-				if ((blob = buffer_get_string_ret(&sect,
-				    &blen)) == NULL) {
+				if ((rdata = buffer_get_string_ret(&sect,
+				    &rlen)) == NULL) {
 					error("%s: buffer error", __func__);
 					goto out;
 				}
 				if (type == KRL_SECTION_FINGERPRINT_SHA1 &&
-				    blen != 20) {
+				    rlen != 20) {
 					error("%s: bad SHA1 length", __func__);
 					goto out;
 				}
 				if (revoke_blob(
 				    type == KRL_SECTION_EXPLICIT_KEY ?
 				    &krl->revoked_keys : &krl->revoked_sha1s,
-				    blob, blen) != 0)
-					goto out; /* revoke_blob frees blob */
+				    rdata, rlen) != 0)
+					goto out;
+				rdata = NULL; /* revoke_blob frees blob */
 			}
 			break;
 		case KRL_SECTION_SIGNATURE:
@@ -1095,6 +1097,7 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 			key_free(ca_used[i]);
 	}
 	free(ca_used);
+	free(rdata);
 	if (key != NULL)
 		key_free(key);
 	buffer_free(&copy);

@@ -9,6 +9,9 @@
      parsing them from remote servers.
      Improve error checking in parsing of 'T' lines.
      ok dtucker@ deraadt@
+   - markus@cvs.openbsd.org 2013/06/20 19:15:06
+     [krl.c]
+     don't leak the rdata blob on errors; ok djm@
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
