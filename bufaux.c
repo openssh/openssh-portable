@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.51 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.52 2013/07/12 00:19:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -285,7 +285,7 @@ buffer_put_cstring(Buffer *buffer, const char *s)
  * Returns a character from the buffer (0 - 255).
  */
 int
-buffer_get_char_ret(char *ret, Buffer *buffer)
+buffer_get_char_ret(u_char *ret, Buffer *buffer)
 {
 	if (buffer_get_ret(buffer, ret, 1) == -1) {
 		error("buffer_get_char_ret: buffer_get_ret failed");
@@ -297,11 +297,11 @@ buffer_get_char_ret(char *ret, Buffer *buffer)
 int
 buffer_get_char(Buffer *buffer)
 {
-	char ch;
+	u_char ch;
 
 	if (buffer_get_char_ret(&ch, buffer) == -1)
 		fatal("buffer_get_char: buffer error");
-	return (u_char) ch;
+	return ch;
 }
 
 /*

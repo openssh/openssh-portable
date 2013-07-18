@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.43 2013/06/05 02:07:29 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.44 2013/07/12 00:19:58 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -630,19 +630,22 @@ process_mux_open_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	Forward fwd;
 	char *fwd_desc = NULL;
 	u_int ftype;
+	u_int lport, cport;
 	int i, ret = 0, freefwd = 1;
 
 	fwd.listen_host = fwd.connect_host = NULL;
 	if (buffer_get_int_ret(&ftype, m) != 0 ||
 	    (fwd.listen_host = buffer_get_string_ret(m, NULL)) == NULL ||
-	    buffer_get_int_ret(&fwd.listen_port, m) != 0 ||
+	    buffer_get_int_ret(&lport, m) != 0 ||
 	    (fwd.connect_host = buffer_get_string_ret(m, NULL)) == NULL ||
-	    buffer_get_int_ret(&fwd.connect_port, m) != 0) {
+	    buffer_get_int_ret(&cport, m) != 0 ||
+	    lport > 65535 || cport > 65535) {
 		error("%s: malformed message", __func__);
 		ret = -1;
 		goto out;
 	}
-
+	fwd.listen_port = lport;
+	fwd.connect_port = cport;
 	if (*fwd.listen_host == '\0') {
 		free(fwd.listen_host);
 		fwd.listen_host = NULL;
@@ -778,17 +781,21 @@ process_mux_close_fwd(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	const char *error_reason = NULL;
 	u_int ftype;
 	int i, listen_port, ret = 0;
+	u_int lport, cport;
 
 	fwd.listen_host = fwd.connect_host = NULL;
 	if (buffer_get_int_ret(&ftype, m) != 0 ||
 	    (fwd.listen_host = buffer_get_string_ret(m, NULL)) == NULL ||
-	    buffer_get_int_ret(&fwd.listen_port, m) != 0 ||
+	    buffer_get_int_ret(&lport, m) != 0 ||
 	    (fwd.connect_host = buffer_get_string_ret(m, NULL)) == NULL ||
-	    buffer_get_int_ret(&fwd.connect_port, m) != 0) {
+	    buffer_get_int_ret(&cport, m) != 0 ||
+	    lport > 65535 || cport > 65535) {
 		error("%s: malformed message", __func__);
 		ret = -1;
 		goto out;
 	}
+	fwd.listen_port = lport;
+	fwd.connect_port = cport;
 
 	if (*fwd.listen_host == '\0') {
 		free(fwd.listen_host);

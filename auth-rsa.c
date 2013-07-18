@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.84 2013/06/21 00:34:49 djm Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.85 2013/07/12 00:19:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -165,8 +165,7 @@ rsa_key_allowed_in_file(struct passwd *pw, char *file,
     const BIGNUM *client_n, Key **rkey)
 {
 	char *fp, line[SSH_MAX_PUBKEY_BYTES];
-	int allowed = 0;
-	u_int bits;
+	int allowed = 0, bits;
 	FILE *f;
 	u_long linenum = 0;
 	Key *key;
@@ -227,7 +226,7 @@ rsa_key_allowed_in_file(struct passwd *pw, char *file,
 
 		/* check the real bits  */
 		keybits = BN_num_bits(key->rsa->n);
-		if (keybits < 0 || bits != (u_int)keybits)
+		if (keybits < 0 || bits != keybits)
 			logit("Warning: %s, line %lu: keysize mismatch: "
 			    "actual %d vs. announced %d.",
 			    file, linenum, BN_num_bits(key->rsa->n), bits);
