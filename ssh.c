@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.378 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.379 2013/07/12 05:48:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1480,6 +1480,11 @@ ssh_session2(void)
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
+	else {
+		packet_set_interactive(
+		    options.control_master == SSHCTL_MASTER_NO,
+		    options.ip_qos_interactive, options.ip_qos_bulk);
+	}
 
 	/* If we don't expect to open a new session, then disallow it */
 	if (options.control_master == SSHCTL_MASTER_NO &&

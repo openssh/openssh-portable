@@ -54,6 +54,9 @@
      do_print_resource_record() can never be called with a NULL filename, so
      don't attempt (and bungle) asking for one if it has not been specified
      bz#2127 ok dtucker@
+   - djm@cvs.openbsd.org 2013/07/12 05:48:55
+     [ssh.c]
+     set TCP nodelay for connections started with -N; bz#2124 ok dtucker@
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
