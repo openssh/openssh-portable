@@ -16,6 +16,10 @@
      [auth-rsa.c auth.h auth2-hostbased.c auth2-pubkey.c monitor.c]
      for hostbased authentication, print the client host and user on
      the auth success/failure line; bz#2064, ok dtucker@
+   - djm@cvs.openbsd.org 2013/06/21 00:37:49
+     [ssh_config.5]
+     explicitly mention that IdentitiesOnly can be used with IdentityFile
+     to control which keys are offered from an agent.
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config

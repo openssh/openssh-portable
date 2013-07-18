@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.164 2013/05/16 06:28:45 jmc Exp $
-.Dd $Mdocdate: May 16 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.165 2013/06/21 00:37:49 djm Exp $
+.Dd $Mdocdate: June 21 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -628,7 +628,9 @@ and
 .Pa ~/.ssh/id_rsa
 for protocol version 2.
 Additionally, any identities represented by the authentication agent
-will be used for authentication.
+will be used for authentication unless
+.Cm IdentitiesOnly
+is set.
 .Xr ssh 1
 will try to load certificate information from the filename obtained by
 appending
@@ -657,6 +659,11 @@ Multiple
 .Cm IdentityFile
 directives will add to the list of identities tried (this behaviour
 differs from that of other configuration directives).
+.Pp
+.Cm IdentityFile
+may be used in conjunction with
+.Cm IdentitiesOnly
+to select which identities in an agent are offered during authentication.
 .It Cm IgnoreUnknown
 Specifies a pattern-list of unknown options to be ignored if they are
 encountered in configuration parsing.
