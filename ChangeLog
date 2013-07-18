@@ -60,6 +60,9 @@
    - schwarze@cvs.openbsd.org 2013/07/16 00:07:52
      [scp.1 sftp-server.8 ssh-keyscan.1 ssh-keysign.8 ssh-pkcs11-helper.8]
      use .Mt for email addresses; from Jan Stary <hans at stare dot cz>; ok jmc@
+   - djm@cvs.openbsd.org 2013/07/18 01:12:26
+     [ssh.1]
+     be more exact wrt perms for ~/.ssh/config; bz#2078
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config
