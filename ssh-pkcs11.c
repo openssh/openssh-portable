@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.7 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.8 2013/07/12 00:20:00 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -263,8 +263,8 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 		pin = read_passphrase(prompt, RP_ALLOW_EOF);
 		if (pin == NULL)
 			return (-1);	/* bail out */
-		if ((rv = f->C_Login(si->session, CKU_USER, pin, strlen(pin)))
-		    != CKR_OK) {
+		if ((rv = f->C_Login(si->session, CKU_USER,
+		    (u_char *)pin, strlen(pin))) != CKR_OK) {
 			free(pin);
 			error("C_Login failed: %lu", rv);
 			return (-1);
@@ -328,7 +328,7 @@ pkcs11_rsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 
 /* remove trailing spaces */
 static void
-rmspace(char *buf, size_t len)
+rmspace(u_char *buf, size_t len)
 {
 	size_t i;
 
@@ -366,8 +366,8 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin)
 		return (-1);
 	}
 	if (login_required && pin) {
-		if ((rv = f->C_Login(session, CKU_USER, pin, strlen(pin)))
-		    != CKR_OK) {
+		if ((rv = f->C_Login(session, CKU_USER,
+		    (u_char *)pin, strlen(pin))) != CKR_OK) {
 			error("C_Login failed: %lu", rv);
 			if ((rv = f->C_CloseSession(session)) != CKR_OK)
 				error("C_CloseSession failed: %lu", rv);

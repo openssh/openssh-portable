@@ -41,6 +41,9 @@
      [auth-options.c auth-rsa.c bufaux.c buffer.h channels.c hostfile.c]
      [hostfile.h mux.c packet.c packet.h roaming_common.c serverloop.c]
      fix pointer-signedness warnings from clang/llvm-3.3; "seems nice" deraadt@
+   - djm@cvs.openbsd.org 2013/07/12 00:20:00
+     [sftp.c ssh-keygen.c ssh-pkcs11.c]
+     fix pointer-signedness warnings from clang/llvm-3.3; "seems nice" deraadt@
 
 20130702
  - (dtucker) [contrib/cygwin/README contrib/cygwin/ssh-host-config

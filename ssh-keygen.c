@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.227 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.228 2013/07/12 00:20:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -524,7 +524,7 @@ do_convert_from_ssh2(struct passwd *pw, Key **k, int *private)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	encoded[0] = '\0';
 	while ((blen = get_line(fp, line, sizeof(line))) != -1) {
-		if (line[blen - 1] == '\\')
+		if (blen > 0 && line[blen - 1] == '\\')
 			escaped++;
 		if (strncmp(line, "----", 4) == 0 ||
 		    strstr(line, ": ") != NULL) {
@@ -1797,7 +1797,8 @@ add_cert_option(char *opt)
 static void
 show_options(const Buffer *optbuf, int v00, int in_critical)
 {
-	u_char *name, *data;
+	char *name;
+	u_char *data;
 	u_int dlen;
 	Buffer options, option;
 
