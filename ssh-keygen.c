@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.228 2013/07/12 00:20:00 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.229 2013/07/12 05:42:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1301,7 +1301,7 @@ do_print_resource_record(struct passwd *pw, char *fname, char *hname)
 	struct stat st;
 
 	if (fname == NULL)
-		ask_filename(pw, "Enter file in which the key is");
+		fatal("%s: no filename", __func__);
 	if (stat(fname, &st) < 0) {
 		if (errno == ENOENT)
 			return 0;
