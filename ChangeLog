@@ -16,6 +16,9 @@
      [ssh-agent.c]
      call cleanup_handler on SIGINT when in debug mode to ensure sockets
      are cleaned up on manual exit; bz#2120
+   - djm@cvs.openbsd.org 2013/07/20 01:55:13
+     [auth-krb5.c gss-serv-krb5.c gss-serv.c]
+     fix kerberos/GSSAPI deprecation warnings and linking; "looks okay" millert@
 
 20130718
  - (djm) OpenBSD CVS Sync

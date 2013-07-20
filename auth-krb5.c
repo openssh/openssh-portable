@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-krb5.c,v 1.19 2006/08/03 03:34:41 deraadt Exp $ */
+/* $OpenBSD: auth-krb5.c,v 1.20 2013/07/20 01:55:13 djm Exp $ */
 /*
  *    Kerberos v5 authentication and ticket-passing routines.
  *
@@ -79,6 +79,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	krb5_ccache ccache = NULL;
 	int len;
 	char *client, *platform_client;
+	const char *errmsg;
 
 	/* get platform-specific kerberos client principal name (if it exists) */
 	platform_client = platform_krb5_get_principal_name(authctxt->pw->pw_name);
@@ -96,7 +97,8 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		goto out;
 
 #ifdef HEIMDAL
-	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_mcc_ops, &ccache);
+	problem = krb5_cc_new_unique(authctxt->krb5_ctx,
+	     krb5_mcc_ops.prefix, NULL, &ccache);
 	if (problem)
 		goto out;
 
@@ -115,8 +117,8 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	if (problem)
 		goto out;
 
-	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_fcc_ops,
-	    &authctxt->krb5_fwd_ccache);
+	problem = krb5_cc_new_unique(authctxt->krb5_ctx,
+	     krb5_fcc_ops.prefix, NULL, &authctxt->krb5_fwd_ccache);
 	if (problem)
 		goto out;
 
@@ -187,10 +189,13 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		if (ccache)
 			krb5_cc_destroy(authctxt->krb5_ctx, ccache);
 
-		if (authctxt->krb5_ctx != NULL && problem!=-1)
-			debug("Kerberos password authentication failed: %s",
-			    krb5_get_err_text(authctxt->krb5_ctx, problem));
-		else
+		if (authctxt->krb5_ctx != NULL && problem!=-1) {
+			errmsg = krb5_get_error_message(authctxt->krb5_ctx,
+			    problem);
+ 			debug("Kerberos password authentication failed: %s",
+			    errmsg);
+			krb5_free_error_message(authctxt->krb5_ctx, errmsg);
+		} else
 			debug("Kerberos password authentication failed: %d",
 			    problem);
 
