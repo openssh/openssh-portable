@@ -9,6 +9,9 @@
    - djm@cvs.openbsd.org 2013/07/20 01:43:46
      [umac.c]
      use a union to ensure correct alignment; ok deraadt
+   - djm@cvs.openbsd.org 2013/07/20 01:44:37
+     [ssh-keygen.c ssh.c]
+     More useful error message on missing current user in /etc/passwd
 
 20130718
  - (djm) OpenBSD CVS Sync

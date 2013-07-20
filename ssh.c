@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.379 2013/07/12 05:48:55 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.380 2013/07/20 01:44:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -299,7 +299,7 @@ main(int ac, char **av)
 	/* Get user data. */
 	pw = getpwuid(original_real_uid);
 	if (!pw) {
-		logit("You don't exist, go away!");
+		logit("No user exists for uid %lu", (u_long)original_real_uid);
 		exit(255);
 	}
 	/* Take a copy of the returned structure. */
