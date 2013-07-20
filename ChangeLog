@@ -6,6 +6,9 @@
      add ssh-agent(1) support to sshd(8); allows encrypted hostkeys,
      or hostkeys on smartcards; most of the work by Zev Weiss; bz #1974
      ok djm@
+   - djm@cvs.openbsd.org 2013/07/20 01:43:46
+     [umac.c]
+     use a union to ensure correct alignment; ok deraadt
 
 20130718
  - (djm) OpenBSD CVS Sync

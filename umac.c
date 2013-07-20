@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.5 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.6 2013/07/20 01:43:46 djm Exp $ */
 /* -----------------------------------------------------------------------
  * 
  * umac.c -- C Implementation UMAC Message Authentication
@@ -254,19 +254,21 @@ static void pdf_gen_xor(pdf_ctx *pc, UINT8 nonce[8], UINT8 buf[8])
 #elif (UMAC_OUTPUT_LEN > 8)
 #define LOW_BIT_MASK 0
 #endif
-
-    UINT8 tmp_nonce_lo[4];
+    union {
+        UINT8 tmp_nonce_lo[4];
+        UINT32 align;
+    } t;
 #if LOW_BIT_MASK != 0
     int ndx = nonce[7] & LOW_BIT_MASK;
 #endif
-    *(UINT32 *)tmp_nonce_lo = ((UINT32 *)nonce)[1];
-    tmp_nonce_lo[3] &= ~LOW_BIT_MASK; /* zero last bit */
+    *(UINT32 *)t.tmp_nonce_lo = ((UINT32 *)nonce)[1];
+    t.tmp_nonce_lo[3] &= ~LOW_BIT_MASK; /* zero last bit */
     
-    if ( (((UINT32 *)tmp_nonce_lo)[0] != ((UINT32 *)pc->nonce)[1]) ||
+    if ( (((UINT32 *)t.tmp_nonce_lo)[0] != ((UINT32 *)pc->nonce)[1]) ||
          (((UINT32 *)nonce)[0] != ((UINT32 *)pc->nonce)[0]) )
     {
         ((UINT32 *)pc->nonce)[0] = ((UINT32 *)nonce)[0];
-        ((UINT32 *)pc->nonce)[1] = ((UINT32 *)tmp_nonce_lo)[0];
+        ((UINT32 *)pc->nonce)[1] = ((UINT32 *)t.tmp_nonce_lo)[0];
         aes_encryption(pc->nonce, pc->cache, pc->prf_key);
     }
     
