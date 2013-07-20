@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.239 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.240 2013/07/19 07:37:48 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -79,6 +79,7 @@ initialize_server_options(ServerOptions *options)
 	options->address_family = -1;
 	options->num_host_key_files = 0;
 	options->num_host_cert_files = 0;
+	options->host_key_agent = NULL;
 	options->pid_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
@@ -344,7 +345,7 @@ typedef enum {
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
 	sKexAlgorithms, sIPQoS, sVersionAddendum,
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
-	sAuthenticationMethods,
+	sAuthenticationMethods, sHostKeyAgent,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -369,6 +370,7 @@ static struct {
 	{ "port", sPort, SSHCFG_GLOBAL },
 	{ "hostkey", sHostKeyFile, SSHCFG_GLOBAL },
 	{ "hostdsakey", sHostKeyFile, SSHCFG_GLOBAL },		/* alias */
+	{ "hostkeyagent", sHostKeyAgent, SSHCFG_GLOBAL },
 	{ "pidfile", sPidFile, SSHCFG_GLOBAL },
 	{ "serverkeybits", sServerKeyBits, SSHCFG_GLOBAL },
 	{ "logingracetime", sLoginGraceTime, SSHCFG_GLOBAL },
@@ -976,6 +978,17 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (intptr != NULL)
 				*intptr = *intptr + 1;
 		}
+		break;
+
+	case sHostKeyAgent:
+		charptr = &options->host_key_agent;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing socket name.",
+			    filename, linenum);
+		if (*activep && *charptr == NULL)
+			*charptr = !strcmp(arg, SSH_AUTHSOCKET_ENV_NAME) ?
+			    xstrdup(arg) : derelativise_path(arg);
 		break;
 
 	case sHostCertificate:
@@ -2011,6 +2024,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sVersionAddendum, o->version_addendum);
 	dump_cfg_string(sAuthorizedKeysCommand, o->authorized_keys_command);
 	dump_cfg_string(sAuthorizedKeysCommandUser, o->authorized_keys_command_user);
+	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));

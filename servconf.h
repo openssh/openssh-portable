@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.108 2013/05/16 04:09:14 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.109 2013/07/19 07:37:48 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -65,6 +65,7 @@ typedef struct {
 	int     num_host_key_files;     /* Number of files for host keys. */
 	char   *host_cert_files[MAX_HOSTCERTS];	/* Files containing host certs. */
 	int     num_host_cert_files;     /* Number of files for host certs. */
+	char   *host_key_agent;		 /* ssh-agent socket for host keys. */
 	char   *pid_file;	/* Where to put our pid */
 	int     server_key_bits;/* Size of the server key. */
 	int     login_grace_time;	/* Disconnect if no auth in this time

@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.265 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: session.c,v 1.266 2013/07/19 07:37:48 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -80,6 +80,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
+#include "authfd.h"
 #include "pathnames.h"
 #include "log.h"
 #include "servconf.h"
@@ -1589,6 +1590,13 @@ launch_login(struct passwd *pw, const char *hostname)
 static void
 child_close_fds(void)
 {
+	extern AuthenticationConnection *auth_conn;
+
+	if (auth_conn) {
+		ssh_close_authentication_connection(auth_conn);
+		auth_conn = NULL;
+	}
+
 	if (packet_get_connection_in() == packet_get_connection_out())
 		close(packet_get_connection_in());
 	else {

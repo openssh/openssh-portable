@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.126 2013/06/21 00:34:49 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.127 2013/07/19 07:37:48 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -97,6 +97,7 @@
 #include "ssh2.h"
 #include "jpake.h"
 #include "roaming.h"
+#include "authfd.h"
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
@@ -686,6 +687,8 @@ mm_answer_moduli(int sock, Buffer *m)
 	return (0);
 }
 
+extern AuthenticationConnection *auth_conn;
+
 int
 mm_answer_sign(int sock, Buffer *m)
 {
@@ -714,10 +717,16 @@ mm_answer_sign(int sock, Buffer *m)
 		memcpy(session_id2, p, session_id2_len);
 	}
 
-	if ((key = get_hostkey_by_index(keyid)) == NULL)
+	if ((key = get_hostkey_by_index(keyid)) != NULL) {
+		if (key_sign(key, &signature, &siglen, p, datlen) < 0)
+			fatal("%s: key_sign failed", __func__);
+	} else if ((key = get_hostkey_public_by_index(keyid)) != NULL &&
+	    auth_conn != NULL) {
+		if (ssh_agent_sign(auth_conn, key, &signature, &siglen, p,
+		    datlen) < 0)
+			fatal("%s: ssh_agent_sign failed", __func__);
+	} else
 		fatal("%s: no hostkey from index %d", __func__, keyid);
-	if (key_sign(key, &signature, &siglen, p, datlen) < 0)
-		fatal("%s: key_sign failed", __func__);
 
 	debug3("%s: signature %p(%u)", __func__, signature, siglen);
 
@@ -1864,6 +1873,7 @@ mm_get_kex(Buffer *m)
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;
+	kex->sign = sshd_hostkey_sign;
 
 	return (kex);
 }

@@ -1,3 +1,12 @@
+20130720
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2013/07/19 07:37:48
+     [auth.h kex.h kexdhs.c kexecdhs.c kexgexs.c monitor.c servconf.c]
+     [servconf.h session.c sshd.c sshd_config.5]
+     add ssh-agent(1) support to sshd(8); allows encrypted hostkeys,
+     or hostkeys on smartcards; most of the work by Zev Weiss; bz #1974
+     ok djm@
+
 20130718
  - (djm) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2013/06/10 19:19:44
