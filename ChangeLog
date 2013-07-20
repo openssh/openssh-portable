@@ -12,6 +12,10 @@
    - djm@cvs.openbsd.org 2013/07/20 01:44:37
      [ssh-keygen.c ssh.c]
      More useful error message on missing current user in /etc/passwd
+   - djm@cvs.openbsd.org 2013/07/20 01:50:20
+     [ssh-agent.c]
+     call cleanup_handler on SIGINT when in debug mode to ensure sockets
+     are cleaned up on manual exit; bz#2120
 
 20130718
  - (djm) OpenBSD CVS Sync
