@@ -1,3 +1,9 @@
+20130725
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/07/20 22:20:42
+     [krl.c]
+     fix verification error in (as-yet usused) KRL signature checking path
+
 20130720
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2013/07/19 07:37:48

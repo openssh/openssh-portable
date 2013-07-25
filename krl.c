@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.12 2013/06/20 19:15:06 markus Exp $ */
+/* $OpenBSD: krl.c,v 1.13 2013/07/20 22:20:42 djm Exp $ */
 
 #include "includes.h"
 
@@ -973,7 +973,7 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 		}
 		/* Check signature over entire KRL up to this point */
 		if (key_verify(key, blob, blen,
-		    buffer_ptr(buf), buffer_len(buf) - sig_off) == -1) {
+		    buffer_ptr(buf), buffer_len(buf) - sig_off) != 1) {
 			error("bad signaure on KRL");
 			goto out;
 		}
