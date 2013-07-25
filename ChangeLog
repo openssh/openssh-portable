@@ -11,6 +11,10 @@
      [umac.h]
      oops, forgot to commit corresponding header change;
      spotted by jsg and jasper
+   - djm@cvs.openbsd.org 2013/07/25 00:29:10
+     [ssh.c]
+     daemonise backgrounded (ControlPersist'ed) multiplexing master to ensure
+     it is fully detached from its controlling terminal. based on debugging
 
 20130720
  - (djm) OpenBSD CVS Sync
