@@ -15,6 +15,10 @@
      [ssh.c]
      daemonise backgrounded (ControlPersist'ed) multiplexing master to ensure
      it is fully detached from its controlling terminal. based on debugging
+   - djm@cvs.openbsd.org 2013/07/25 00:56:52
+     [sftp-client.c sftp-client.h sftp.1 sftp.c]
+     sftp support for resuming partial downloads; patch mostly by Loganaden
+     Velvindron/AfriNIC with some tweaks by me; feedback and ok dtucker@
 
 20130720
  - (djm) OpenBSD CVS Sync

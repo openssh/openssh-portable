@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.100 2013/06/01 22:34:50 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.101 2013/07/25 00:56:51 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -112,7 +112,7 @@ send_msg(struct sftp_conn *conn, Buffer *m)
 	iov[1].iov_len = buffer_len(m);
 
 	if (atomiciov6(writev, conn->fd_out, iov, 2,
-	    conn->limit_kbps > 0 ? sftpio : NULL, &conn->bwlimit_out) != 
+	    conn->limit_kbps > 0 ? sftpio : NULL, &conn->bwlimit_out) !=
 	    buffer_len(m) + sizeof(mlen))
 		fatal("Couldn't send packet: %s", strerror(errno));
 
@@ -988,16 +988,17 @@ send_read_request(struct sftp_conn *conn, u_int id, u_int64_t offset,
 
 int
 do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
-    Attrib *a, int pflag)
+    Attrib *a, int pflag, int resume)
 {
 	Attrib junk;
 	Buffer msg;
 	char *handle;
-	int local_fd, status = 0, write_error;
-	int read_error, write_errno;
-	u_int64_t offset, size;
+	int local_fd = -1, status = 0, write_error;
+	int read_error, write_errno, reordered = 0;
+	u_int64_t offset = 0, size, highwater;
 	u_int handle_len, mode, type, id, buflen, num_req, max_req;
 	off_t progress_counter;
+	struct stat st;
 	struct request {
 		u_int id;
 		u_int len;
@@ -1050,21 +1051,36 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		return(-1);
 	}
 
-	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC,
+	local_fd = open(local_path, O_WRONLY | O_CREAT | (resume ? : O_TRUNC),
 	    mode | S_IWUSR);
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
 		    local_path, strerror(errno));
-		do_close(conn, handle, handle_len);
-		buffer_free(&msg);
-		free(handle);
-		return(-1);
+		goto fail;
+	}
+	offset = highwater = 0;
+	if (resume) {
+		if (fstat(local_fd, &st) == -1) {
+			error("Unable to stat local file \"%s\": %s",
+			    local_path, strerror(errno));
+			goto fail;
+		}
+		if ((size_t)st.st_size > size) {
+			error("Unable to resume download of \"%s\": "
+			    "local file is larger than remote", local_path);
+ fail:
+			do_close(conn, handle, handle_len);
+			buffer_free(&msg);
+			free(handle);
+			return -1;
+		}
+		offset = highwater = st.st_size;
 	}
 
 	/* Read from remote and write to local */
-	write_error = read_error = write_errno = num_req = offset = 0;
+	write_error = read_error = write_errno = num_req = 0;
 	max_req = 1;
-	progress_counter = 0;
+	progress_counter = offset;
 
 	if (showprogress && size != 0)
 		start_progress_meter(remote_path, size, &progress_counter);
@@ -1139,6 +1155,10 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				write_error = 1;
 				max_req = 0;
 			}
+			else if (!reordered && req->offset <= highwater)
+				highwater = req->offset + len;
+			else if (!reordered && req->offset > highwater)
+				reordered = 1;
 			progress_counter += len;
 			free(data);
 
@@ -1187,7 +1207,15 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	/* Sanity check */
 	if (TAILQ_FIRST(&requests) != NULL)
 		fatal("Transfer complete, but requests still in queue");
-
+	/* Truncate at highest contiguous point to avoid holes on interrupt */
+	if (read_error || write_error || interrupted) {
+		if (reordered && resume) {
+			error("Unable to resume download of \"%s\": "
+			    "server reordered requests", local_path);
+		}
+		debug("truncating at %llu", (unsigned long long)highwater);
+		ftruncate(local_fd, highwater);
+	}
 	if (read_error) {
 		error("Couldn't read from remote file \"%s\" : %s",
 		    remote_path, fx2txt(status));
@@ -1199,7 +1227,8 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		do_close(conn, handle, handle_len);
 	} else {
 		status = do_close(conn, handle, handle_len);
-
+		if (interrupted)
+			status = -1;
 		/* Override umask and utimes if asked */
 #ifdef HAVE_FCHMOD
 		if (pflag && fchmod(local_fd, mode) == -1)
@@ -1227,7 +1256,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 
 static int
 download_dir_internal(struct sftp_conn *conn, char *src, char *dst,
-    Attrib *dirattrib, int pflag, int printflag, int depth)
+    Attrib *dirattrib, int pflag, int printflag, int depth, int resume)
 {
 	int i, ret = 0;
 	SFTP_DIRENT **dir_entries;
@@ -1280,11 +1309,11 @@ download_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 				continue;
 			if (download_dir_internal(conn, new_src, new_dst,
 			    &(dir_entries[i]->a), pflag, printflag,
-			    depth + 1) == -1)
+			    depth + 1, resume) == -1)
 				ret = -1;
 		} else if (S_ISREG(dir_entries[i]->a.perm) ) {
 			if (do_download(conn, new_src, new_dst,
-			    &(dir_entries[i]->a), pflag) == -1) {
+			    &(dir_entries[i]->a), pflag, resume) == -1) {
 				error("Download of file %s to %s failed",
 				    new_src, new_dst);
 				ret = -1;
@@ -1317,7 +1346,7 @@ download_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 
 int
 download_dir(struct sftp_conn *conn, char *src, char *dst,
-    Attrib *dirattrib, int pflag, int printflag)
+    Attrib *dirattrib, int pflag, int printflag, int resume)
 {
 	char *src_canon;
 	int ret;
@@ -1328,7 +1357,7 @@ download_dir(struct sftp_conn *conn, char *src, char *dst,
 	}
 
 	ret = download_dir_internal(conn, src_canon, dst,
-	    dirattrib, pflag, printflag, 0);
+	    dirattrib, pflag, printflag, 0, resume);
 	free(src_canon);
 	return ret;
 }
@@ -1553,7 +1582,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 	a.perm &= 01777;
 	if (!pflag)
 		a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
-	
+
 	status = do_mkdir(conn, dst, &a, 0);
 	/*
 	 * we lack a portable status for errno EEXIST,
@@ -1563,7 +1592,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 	if (status != SSH2_FX_OK) {
 		if (status != SSH2_FX_FAILURE)
 			return -1;
-		if (do_stat(conn, dst, 0) == NULL) 
+		if (do_stat(conn, dst, 0) == NULL)
 			return -1;
 	}
 
@@ -1571,7 +1600,7 @@ upload_dir_internal(struct sftp_conn *conn, char *src, char *dst,
 		error("Failed to open dir \"%s\": %s", src, strerror(errno));
 		return -1;
 	}
-	
+
 	while (((dp = readdir(dirp)) != NULL) && !interrupted) {
 		if (dp->d_ino == 0)
 			continue;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.147 2013/07/12 00:20:00 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.148 2013/07/25 00:56:52 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -88,6 +88,9 @@ int showprogress = 1;
 /* When this option is set, we always recursively download/upload directories */
 int global_rflag = 0;
 
+/* When this option is set, we resume download if possible */
+int global_aflag = 0;
+
 /* When this option is set, the file transfers will always preserve times */
 int global_pflag = 0;
 
@@ -151,6 +154,7 @@ extern char *__progname;
 #define I_SYMLINK	21
 #define I_VERSION	22
 #define I_PROGRESS	23
+#define I_REGET		26
 
 struct CMD {
 	const char *c;
@@ -190,6 +194,7 @@ static const struct CMD cmds[] = {
 	{ "put",	I_PUT,		LOCAL	},
 	{ "pwd",	I_PWD,		REMOTE	},
 	{ "quit",	I_QUIT,		NOARGS	},
+	{ "reget",	I_REGET,	REMOTE	},
 	{ "rename",	I_RENAME,	REMOTE	},
 	{ "rm",		I_RM,		REMOTE	},
 	{ "rmdir",	I_RMDIR,	REMOTE	},
@@ -239,6 +244,7 @@ help(void)
 	    "                                   filesystem containing 'path'\n"
 	    "exit                               Quit sftp\n"
 	    "get [-Ppr] remote [local]          Download file\n"
+	    "reget remote [local]		Resume download file\n"
 	    "help                               Display this help text\n"
 	    "lcd path                           Change local directory to 'path'\n"
 	    "lls [ls-options [path]]            Display local directory listing\n"
@@ -350,8 +356,8 @@ make_absolute(char *p, char *pwd)
 }
 
 static int
-parse_getput_flags(const char *cmd, char **argv, int argc, int *pflag,
-    int *rflag)
+parse_getput_flags(const char *cmd, char **argv, int argc,
+    int *aflag, int *pflag, int *rflag)
 {
 	extern int opterr, optind, optopt, optreset;
 	int ch;
@@ -359,9 +365,12 @@ parse_getput_flags(const char *cmd, char **argv, int argc, int *pflag,
 	optind = optreset = 1;
 	opterr = 0;
 
-	*rflag = *pflag = 0;
-	while ((ch = getopt(argc, argv, "PpRr")) != -1) {
+	*aflag = *rflag = *pflag = 0;
+	while ((ch = getopt(argc, argv, "aPpRr")) != -1) {
 		switch (ch) {
+		case 'a':
+			*aflag = 1;
+			break;
 		case 'p':
 		case 'P':
 			*pflag = 1;
@@ -519,7 +528,7 @@ pathname_is_dir(char *pathname)
 
 static int
 process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
-    int pflag, int rflag)
+    int pflag, int rflag, int resume)
 {
 	char *abs_src = NULL;
 	char *abs_dst = NULL;
@@ -571,15 +580,18 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		}
 		free(tmp);
 
-		if (!quiet)
+		resume |= global_aflag;
+		if (!quiet && resume)
+			printf("Resuming %s to %s\n", g.gl_pathv[i], abs_dst);
+		else if (!quiet && !resume)
 			printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
-			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL, 
-			    pflag || global_pflag, 1) == -1)
+			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
+			    pflag || global_pflag, 1, resume) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag || global_pflag) == -1)
+			    pflag || global_pflag, resume) == -1)
 				err = -1;
 		}
 		free(abs_dst);
@@ -1118,8 +1130,9 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 }
 
 static int
-parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag,
-    int *hflag, int *sflag, unsigned long *n_arg, char **path1, char **path2)
+parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
+    int *pflag, int *rflag, int *sflag, unsigned long *n_arg,
+    char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
 	char *cp2, **argv;
@@ -1163,14 +1176,15 @@ parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag,
 	}
 
 	/* Get arguments and parse flags */
-	*lflag = *pflag = *rflag = *hflag = *n_arg = 0;
+	*aflag = *lflag = *pflag = *rflag = *hflag = *n_arg = 0;
 	*path1 = *path2 = NULL;
 	optidx = 1;
 	switch (cmdnum) {
 	case I_GET:
+	case I_REGET:
 	case I_PUT:
 		if ((optidx = parse_getput_flags(cmd, argv, argc,
-		    pflag, rflag)) == -1)
+		    aflag, pflag, rflag)) == -1)
 			return -1;
 		/* Get first pathname (mandatory) */
 		if (argc - optidx < 1) {
@@ -1184,6 +1198,11 @@ parse_args(const char **cpp, int *pflag, int *rflag, int *lflag, int *iflag,
 			*path2 = xstrdup(argv[optidx + 1]);
 			/* Destination is not globbed */
 			undo_glob_escape(*path2);
+		}
+		if (*aflag && cmdnum == I_PUT) {
+			/* XXX implement resume for uploads */
+			error("Resume is not supported for uploads");
+			return -1;
 		}
 		break;
 	case I_LINK:
@@ -1293,7 +1312,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
     int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int pflag = 0, rflag = 0, lflag = 0, iflag = 0, hflag = 0, sflag = 0;
+	int aflag = 0, hflag = 0, iflag = 0, lflag = 0, pflag = 0;
+	int rflag = 0, sflag = 0;
 	int cmdnum, i;
 	unsigned long n_arg = 0;
 	Attrib a, *aa;
@@ -1302,9 +1322,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	glob_t g;
 
 	path1 = path2 = NULL;
-	cmdnum = parse_args(&cmd, &pflag, &rflag, &lflag, &iflag, &hflag,
-	    &sflag, &n_arg, &path1, &path2);
-
+	cmdnum = parse_args(&cmd, &aflag, &hflag, &iflag, &lflag, &pflag,
+	    &rflag, &sflag, &n_arg, &path1, &path2);
 	if (iflag != 0)
 		err_abort = 0;
 
@@ -1319,8 +1338,12 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		/* Unrecognized command */
 		err = -1;
 		break;
+	case I_REGET:
+		aflag = 1;
+		/* FALLTHROUGH */
 	case I_GET:
-		err = process_get(conn, path1, path2, *pwd, pflag, rflag);
+		err = process_get(conn, path1, path2, *pwd, pflag,
+		    rflag, aflag);
 		break;
 	case I_PUT:
 		err = process_put(conn, path1, path2, *pwd, pflag, rflag);
@@ -1949,12 +1972,10 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 			}
 		} else {
 			/* XXX this is wrong wrt quoting */
-			if (file2 == NULL)
-				snprintf(cmd, sizeof cmd, "get %s", dir);
-			else
-				snprintf(cmd, sizeof cmd, "get %s %s", dir,
-				    file2);
-
+			snprintf(cmd, sizeof cmd, "get%s %s%s%s",
+			    global_aflag ? " -a" : "", dir,
+			    file2 == NULL ? "" : " ",
+			    file2 == NULL ? "" : file2);
 			err = parse_dispatch_command(conn, cmd,
 			    &remote_path, 1);
 			free(dir);
@@ -2143,7 +2164,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246hpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
+	    "1246ahpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2182,6 +2203,9 @@ main(int argc, char **argv)
 			break;
 		case '2':
 			sshver = 2;
+			break;
+		case 'a':
+			global_aflag = 1;
 			break;
 		case 'B':
 			copy_buffer_len = strtol(optarg, &cp, 10);
