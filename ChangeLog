@@ -7,6 +7,10 @@
      [umac.c]
      make MAC key, data to be hashed and nonce for final hash const;
      checked with -Wcast-qual
+   - djm@cvs.openbsd.org 2013/07/22 12:20:02
+     [umac.h]
+     oops, forgot to commit corresponding header change;
+     spotted by jsg and jasper
 
 20130720
  - (djm) OpenBSD CVS Sync
