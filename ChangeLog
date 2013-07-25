@@ -34,6 +34,7 @@
      unbreak sftp-cmds for renamed test data (s/ls/data/)
  - (tim) [sftp-client.c] Use of a gcc extension trips up native compilers on
    Solaris and UnixWare. Feedback and OK djm@
+ - (tim) [regress/forwarding.sh] Fix for building outside read only source tree.
 
 20130720
  - (djm) OpenBSD CVS Sync
