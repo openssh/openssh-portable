@@ -19,6 +19,10 @@
      [sftp-client.c sftp-client.h sftp.1 sftp.c]
      sftp support for resuming partial downloads; patch mostly by Loganaden
      Velvindron/AfriNIC with some tweaks by me; feedback and ok dtucker@
+     "Just be careful" deraadt@
+   - djm@cvs.openbsd.org 2013/07/25 00:57:37
+     [version.h]
+     openssh-6.3 for release
 
 20130720
  - (djm) OpenBSD CVS Sync
