@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.10 2013/05/17 04:29:14 dtucker Exp $
+#	$OpenBSD: forwarding.sh,v 1.11 2013/06/10 21:56:43 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -103,4 +103,19 @@ for p in 2; do
 	if [ $? != 0 ]; then
 		fail "stdio forwarding proto $p"
 	fi
+done
+
+echo "LocalForward ${base}01 127.0.0.1:$PORT" >> ssh_config
+echo "RemoteForward ${base}02 127.0.0.1:${base}01" >> ssh_config
+for p in 1 2; do
+	trace "config file: start forwarding, fork to background"
+	${SSH} -$p -F $OBJ/ssh_config -f somehost sleep 10
+
+	trace "config file: transfer over forwarded channels and check result"
+	${SSH} -F $OBJ/ssh_config -p${base}02 -o 'ConnectionAttempts=4' \
+		somehost cat ${DATA} > ${COPY}
+	test -f ${COPY}		|| fail "failed copy of ${DATA}"
+	cmp ${DATA} ${COPY}	|| fail "corrupted copy of ${DATA}"
+
+	wait
 done

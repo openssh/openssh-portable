@@ -26,6 +26,9 @@
    - dtucker@cvs.openbsd.org 2013/05/30 20:12:32
      [regress/test-exec.sh]
      use ssh and sshd as testdata since it needs to be >256k for the rekey test
+   - dtucker@cvs.openbsd.org 2013/06/10 21:56:43
+     [regress/forwarding.sh]
+     Add test for forward config parsing
 
 20130720
  - (djm) OpenBSD CVS Sync
