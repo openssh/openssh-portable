@@ -32,6 +32,8 @@
    - djm@cvs.openbsd.org 2013/06/21 02:26:26
      [regress/sftp-cmds.sh regress/test-exec.sh]
      unbreak sftp-cmds for renamed test data (s/ls/data/)
+ - (tim) [sftp-client.c] Use of a gcc extension trips up native compilers on
+   Solaris and UnixWare. Feedback and OK djm@
 
 20130720
  - (djm) OpenBSD CVS Sync

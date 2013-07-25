@@ -1051,7 +1051,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		return(-1);
 	}
 
-	local_fd = open(local_path, O_WRONLY | O_CREAT | (resume ? : O_TRUNC),
+	local_fd = open(local_path, O_WRONLY | O_CREAT | (resume ? 0 : O_TRUNC),
 	    mode | S_IWUSR);
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
