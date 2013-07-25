@@ -29,6 +29,9 @@
    - dtucker@cvs.openbsd.org 2013/06/10 21:56:43
      [regress/forwarding.sh]
      Add test for forward config parsing
+   - djm@cvs.openbsd.org 2013/06/21 02:26:26
+     [regress/sftp-cmds.sh regress/test-exec.sh]
+     unbreak sftp-cmds for renamed test data (s/ls/data/)
 
 20130720
  - (djm) OpenBSD CVS Sync
