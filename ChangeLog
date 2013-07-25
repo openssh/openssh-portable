@@ -23,6 +23,9 @@
    - djm@cvs.openbsd.org 2013/07/25 00:57:37
      [version.h]
      openssh-6.3 for release
+   - dtucker@cvs.openbsd.org 2013/05/30 20:12:32
+     [regress/test-exec.sh]
+     use ssh and sshd as testdata since it needs to be >256k for the rekey test
 
 20130720
  - (djm) OpenBSD CVS Sync
