@@ -4,6 +4,7 @@
    otherwise have been retrievable via getsockopt(). A hack to limit writes
    to TTYs on AIX was triggering this. Since only AIX needs the hack, wrap
    it in an #ifdef. Diagnosis and patch from Ivo Raisr.
+ - (djm) [sshlogin.h] Fix prototype merge botch from 2006; bz#2134
 
 20130725
  - (djm) OpenBSD CVS Sync
