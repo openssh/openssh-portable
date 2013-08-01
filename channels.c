@@ -248,7 +248,10 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 
 	if ((c->isatty = is_tty) != 0)
 		debug2("channel %d: rfd %d isatty", c->self, c->rfd);
+#ifdef _AIX
+	/* XXX: Later AIX versions can't push as much data to tty */
 	c->wfd_isatty = is_tty || isatty(c->wfd);
+#endif
 
 	/* enable nonblocking mode */
 	if (nonblock) {

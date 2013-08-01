@@ -103,7 +103,9 @@ struct Channel {
 	int     sock;		/* sock fd */
 	int     ctl_chan;	/* control channel (multiplexed connections) */
 	int     isatty;		/* rfd is a tty */
+#ifdef _AIX
 	int     wfd_isatty;	/* wfd is a tty */
+#endif
 	int	client_tty;	/* (client) TTY has been requested */
 	int     force_drain;	/* force close on iEOF */
 	time_t	notbefore;	/* Pause IO until deadline (time_t) */

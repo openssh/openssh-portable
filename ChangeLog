@@ -1,3 +1,10 @@
+20130801
+ - (djm) [channels.c channels.h] bz#2135: On Solaris, isatty() on a non-
+   blocking connecting socket will clear any stored errno that might
+   otherwise have been retrievable via getsockopt(). A hack to limit writes
+   to TTYs on AIX was triggering this. Since only AIX needs the hack, wrap
+   it in an #ifdef. Diagnosis and patch from Ivo Raisr.
+
 20130725
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/07/20 22:20:42
