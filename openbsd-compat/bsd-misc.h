@@ -1,4 +1,4 @@
-/* $Id: bsd-misc.h,v 1.24 2013/05/29 22:29:09 dtucker Exp $ */
+/* $Id: bsd-misc.h,v 1.25 2013/08/04 11:48:41 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
@@ -112,6 +112,14 @@ pid_t getpgid(pid_t);
 
 #ifndef HAVE_ENDGRENT
 # define endgrent() {}
+#endif
+
+#ifndef HAVE_KRB5_GET_ERROR_MESSAGE
+# define krb5_get_error_message krb5_get_err_text
+#endif
+
+#ifndef HAVE_KRB5_FREE_ERROR_MESSAGE
+# define krb5_free_error_message(a,b) while(0)
 #endif
 
 #endif /* _BSD_MISC_H */

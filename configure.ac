@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.535 2013/06/11 01:26:10 dtucker Exp $
+# $Id: configure.ac,v 1.536 2013/08/04 11:48:41 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.535 $)
+AC_REVISION($Revision: 1.536 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3806,6 +3806,11 @@ AC_ARG_WITH([kerberos5],
 # include <gssapi/gssapi_generic.h>
 #endif
 		]])
+		saved_LIBS="$LIBS"
+		LIBS="$LIBS $K5LIBS"
+		AC_CHECK_FUNCS([krb5_cc_new_unique krb5_get_error_message krb5_free_error_message])
+		LIBS="$saved_LIBS"
+
 	fi
 	]
 )

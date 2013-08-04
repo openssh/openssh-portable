@@ -1,3 +1,7 @@
+20130804
+ - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support
+   for building with older Heimdal versions.  ok djm.
+
 20130801
  - (djm) [channels.c channels.h] bz#2135: On Solaris, isatty() on a non-
    blocking connecting socket will clear any stored errno that might
