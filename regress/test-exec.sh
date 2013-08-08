@@ -368,7 +368,7 @@ rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 trace "generate keys"
 for t in rsa rsa1; do
 	# generate user key
-	if [ ! -f $OBJ/$t ]; then
+	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t
 		${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\
 			fail "ssh-keygen for $t failed"

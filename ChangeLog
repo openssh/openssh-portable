@@ -8,6 +8,9 @@
    by Kevin Brott, ok djm.
  - (dtucker) [misc.c] Remove define added for fallback testing that was
    mistakenly included in the previous commit.
+ - (dtucker) [regress/Makefile regress/test-exec.sh] Roll back the -nt
+   removal.  The "make clean" removes modpipe which is built by the top-level
+   directory before running the tests.  Spotted by tim@
 
 20130804
  - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support

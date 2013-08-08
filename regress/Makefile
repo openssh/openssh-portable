@@ -1,7 +1,7 @@
 #	$OpenBSD: Makefile,v 1.65 2013/04/18 02:46:12 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t-exec
-tests:		clean $(REGRESS_TARGETS)
+tests:		$(REGRESS_TARGETS)
 
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
