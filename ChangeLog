@@ -1,3 +1,8 @@
+20130808
+ - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
+   since some platforms (eg really old FreeBSD) don't have it.  Instead,
+   run "make clean" before a complete regress run.  ok djm.
+
 20130804
  - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support
    for building with older Heimdal versions.  ok djm.
