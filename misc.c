@@ -854,8 +854,6 @@ ms_to_timeval(struct timeval *tv, int ms)
 	tv->tv_usec = (ms % 1000) * 1000;
 }
 
-#define clock_gettime(a,b) -1
-
 time_t
 monotime(void)
 {

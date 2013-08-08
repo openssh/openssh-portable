@@ -6,6 +6,8 @@
    CLOCK_MONOTONIC...) fails.  Some older versions of RHEL have the
    CLOCK_MONOTONIC define but don't actually support it.  Found and tested
    by Kevin Brott, ok djm.
+ - (dtucker) [misc.c] Remove define added for fallback testing that was
+   mistakenly included in the previous commit.
 
 20130804
  - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support
