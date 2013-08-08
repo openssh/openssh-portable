@@ -2,6 +2,10 @@
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
    since some platforms (eg really old FreeBSD) don't have it.  Instead,
    run "make clean" before a complete regress run.  ok djm.
+ - (dtucker) [misc.c] Fall back to time(2) at runtime if clock_gettime(
+   CLOCK_MONOTONIC...) fails.  Some older versions of RHEL have the
+   CLOCK_MONOTONIC define but don't actually support it.  Found and tested
+   by Kevin Brott, ok djm.
 
 20130804
  - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support

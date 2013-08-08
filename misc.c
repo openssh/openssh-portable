@@ -854,19 +854,24 @@ ms_to_timeval(struct timeval *tv, int ms)
 	tv->tv_usec = (ms % 1000) * 1000;
 }
 
+#define clock_gettime(a,b) -1
+
 time_t
 monotime(void)
 {
 #if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 	struct timespec ts;
+	static int gettime_failed = 0;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
-		fatal("clock_gettime: %s", strerror(errno));
-
-	return (ts.tv_sec);
-#else
-	return time(NULL);
+	if (!gettime_failed) {
+		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+			return (ts.tv_sec);
+		debug3("clock_gettime: %s", strerror(errno));
+		gettime_failed = 1;
+	}
 #endif
+
+	return time(NULL);
 }
 
 void
