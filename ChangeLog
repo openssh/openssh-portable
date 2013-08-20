@@ -15,6 +15,10 @@
    - jmc@cvs.openbsd.org 2013/08/07 06:24:51
      [sftp.1 sftp.c]
      sort -a;
+   - djm@cvs.openbsd.org 2013/08/08 04:52:04
+     [sftp.c]
+     fix two year old regression: symlinking a file would incorrectly
+     canonicalise the target path. bz#2129 report from delphij AT freebsd.org
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt

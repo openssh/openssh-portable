@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.150 2013/08/07 06:24:51 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.151 2013/08/08 04:52:04 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1358,7 +1358,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_SYMLINK:
 		sflag = 1;
 	case I_LINK:
-		path1 = make_absolute(path1, *pwd);
+		if (!sflag)
+			path1 = make_absolute(path1, *pwd);
 		path2 = make_absolute(path2, *pwd);
 		err = (sflag ? do_symlink : do_hardlink)(conn, path1, path2);
 		break;
