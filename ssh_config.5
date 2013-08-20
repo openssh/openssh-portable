@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.167 2013/08/20 00:11:38 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.168 2013/08/20 06:56:07 jmc Exp $
 .Dd $Mdocdate: August 20 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -938,10 +938,10 @@ For example, the following directive would connect via an HTTP proxy at
 ProxyCommand /usr/bin/nc -X connect -x 192.0.2.0:8080 %h %p
 .Ed
 .It Cm ProxyUseFdpass
-Specifies that the a
+Specifies that
 .Cm ProxyCommand
 will pass a connected file descriptor back to
-.Nm ssh
+.Xr ssh 1
 instead of continuing to execute and pass data.
 The default is
 .Dq no .
