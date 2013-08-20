@@ -36,6 +36,10 @@
      being initialised so was starting at a random value from the heap
      (harmless, but confusing). 2) some error conditions were not being
      propagated back to the caller
+   - djm@cvs.openbsd.org 2013/08/09 03:56:42
+     [sftp.c]
+     enable ctrl-left-arrow and ctrl-right-arrow to move forward/back a word;
+     matching ksh's relatively recent change.
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt

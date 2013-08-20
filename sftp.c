@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.153 2013/08/09 03:37:25 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.154 2013/08/09 03:56:42 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2008,6 +2008,11 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		complete_ctx.remote_pathp = &remote_path;
 		el_set(el, EL_CLIENTDATA, (void*)&complete_ctx);
 		el_set(el, EL_BIND, "^I", "ftp-complete", NULL);
+		/* enable ctrl-left-arrow and ctrl-right-arrow */
+		el_set(el, EL_BIND, "\\e[1;5C", "em-next-word", NULL);
+		el_set(el, EL_BIND, "\\e[5C", "em-next-word", NULL);
+		el_set(el, EL_BIND, "\\e[1;5D", "ed-prev-word", NULL);
+		el_set(el, EL_BIND, "\\e\\e[D", "ed-prev-word", NULL);
 	}
 #endif /* USE_LIBEDIT */
 
