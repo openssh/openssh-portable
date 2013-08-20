@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.149 2013/08/06 23:03:49 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.150 2013/08/07 06:24:51 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2118,7 +2118,7 @@ usage(void)
 	extern char *__progname;
 
 	fprintf(stderr,
-	    "usage: %s [-1246Capqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
+	    "usage: %s [-1246aCpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
 	    "          [-D sftp_server_path] [-F ssh_config] "
 	    "[-i identity_file] [-l limit]\n"
 	    "          [-o ssh_option] [-P port] [-R num_requests] "

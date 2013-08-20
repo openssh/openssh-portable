@@ -12,6 +12,9 @@
    - djm@cvs.openbsd.org 2013/08/06 23:06:01
      [servconf.c]
      add cast to avoid format warning; from portable
+   - jmc@cvs.openbsd.org 2013/08/07 06:24:51
+     [sftp.1 sftp.c]
+     sort -a;
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
