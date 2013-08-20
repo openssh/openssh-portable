@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.151 2013/08/08 04:52:04 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.152 2013/08/08 05:04:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -404,6 +404,30 @@ parse_link_flags(const char *cmd, char **argv, int argc, int *sflag)
 		switch (ch) {
 		case 's':
 			*sflag = 1;
+			break;
+		default:
+			error("%s: Invalid flag -%c", cmd, optopt);
+			return -1;
+		}
+	}
+
+	return optind;
+}
+
+static int
+parse_rename_flags(const char *cmd, char **argv, int argc, int *lflag)
+{
+	extern int opterr, optind, optopt, optreset;
+	int ch;
+
+	optind = optreset = 1;
+	opterr = 0;
+
+	*lflag = 0;
+	while ((ch = getopt(argc, argv, "l")) != -1) {
+		switch (ch) {
+		case 'l':
+			*lflag = 1;
 			break;
 		default:
 			error("%s: Invalid flag -%c", cmd, optopt);
@@ -1210,8 +1234,13 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	case I_LINK:
 		if ((optidx = parse_link_flags(cmd, argv, argc, sflag)) == -1)
 			return -1;
-	case I_SYMLINK:
+		goto parse_two_paths;
 	case I_RENAME:
+		if ((optidx = parse_rename_flags(cmd, argv, argc, lflag)) == -1)
+			return -1;
+		goto parse_two_paths;
+	case I_SYMLINK:
+ parse_two_paths:
 		if (argc - optidx < 2) {
 			error("You must specify two paths after a %s "
 			    "command.", cmd);
@@ -1353,7 +1382,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
 		path2 = make_absolute(path2, *pwd);
-		err = do_rename(conn, path1, path2);
+		err = do_rename(conn, path1, path2, lflag);
 		break;
 	case I_SYMLINK:
 		sflag = 1;

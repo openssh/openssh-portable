@@ -19,7 +19,13 @@
      [sftp.c]
      fix two year old regression: symlinking a file would incorrectly
      canonicalise the target path. bz#2129 report from delphij AT freebsd.org
+   - djm@cvs.openbsd.org 2013/08/08 05:04:03
+     [sftp-client.c sftp-client.h sftp.c]
+     add a "-l" flag for the rename command to force it to use the silly
+     standard SSH_FXP_RENAME command instead of the POSIX-rename- like
+     posix-rename@openssh.com extension.
 
+     intended for use in regress tests, so no documentation.
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
    since some platforms (eg really old FreeBSD) don't have it.  Instead,

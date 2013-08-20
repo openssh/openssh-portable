@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.101 2013/07/25 00:56:51 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.102 2013/08/08 05:04:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -768,16 +768,18 @@ do_realpath(struct sftp_conn *conn, char *path)
 }
 
 int
-do_rename(struct sftp_conn *conn, char *oldpath, char *newpath)
+do_rename(struct sftp_conn *conn, char *oldpath, char *newpath,
+    int force_legacy)
 {
 	Buffer msg;
 	u_int status, id;
+	int use_ext = (conn->exts & SFTP_EXT_POSIX_RENAME) && !force_legacy;
 
 	buffer_init(&msg);
 
 	/* Send rename request */
 	id = conn->msg_id++;
-	if ((conn->exts & SFTP_EXT_POSIX_RENAME)) {
+	if (use_ext) {
 		buffer_put_char(&msg, SSH2_FXP_EXTENDED);
 		buffer_put_int(&msg, id);
 		buffer_put_cstring(&msg, "posix-rename@openssh.com");
@@ -789,8 +791,8 @@ do_rename(struct sftp_conn *conn, char *oldpath, char *newpath)
 	buffer_put_cstring(&msg, newpath);
 	send_msg(conn, &msg);
 	debug3("Sent message %s \"%s\" -> \"%s\"",
-	    (conn->exts & SFTP_EXT_POSIX_RENAME) ? "posix-rename@openssh.com" :
-	    "SSH2_FXP_RENAME", oldpath, newpath);
+	    use_ext ? "posix-rename@openssh.com" : "SSH2_FXP_RENAME",
+	    oldpath, newpath);
 	buffer_free(&msg);
 
 	status = get_status(conn, id);
