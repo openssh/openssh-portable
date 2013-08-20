@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.204 2013/06/10 19:19:44 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.205 2013/08/20 00:11:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -137,7 +137,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
-	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown,
+	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -249,6 +249,7 @@ static struct {
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
+	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -1072,6 +1073,10 @@ parse_int:
 		charptr = &options->ignored_unknown;
 		goto parse_string;
 
+	case oProxyUseFdpass:
+		intptr = &options->proxy_use_fdpass;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1233,6 +1238,7 @@ initialize_options(Options * options)
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
+	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 }
 
@@ -1385,6 +1391,8 @@ fill_default_options(Options * options)
 		options->ip_qos_bulk = IPTOS_THROUGHPUT;
 	if (options->request_tty == -1)
 		options->request_tty = REQUEST_TTY_AUTO;
+	if (options->proxy_use_fdpass == -1)
+		options->proxy_use_fdpass = 0;
 	/* options->local_command should not be set by default */
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */

@@ -50,6 +50,14 @@
      [scp.1 ssh.1]
      some Bx/Ox conversion;
      From: Jan Stary
+   - djm@cvs.openbsd.org 2013/08/20 00:11:38
+     [readconf.c readconf.h ssh_config.5 sshconnect.c]
+     Add a ssh_config ProxyUseFDPass option that supports the use of
+     ProxyCommands that establish a connection and then pass a connected
+     file descriptor back to ssh(1). This allows the ProxyCommand to exit
+     rather than have to shuffle data back and forth and enables ssh to use
+     getpeername, etc. to obtain address information just like it does with
+     regular directly-connected sockets. ok markus@
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.95 2013/05/16 04:27:50 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.96 2013/08/20 00:11:38 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -137,6 +137,8 @@ typedef struct {
 	int	use_roaming;
 
 	int	request_tty;
+
+	int	proxy_use_fdpass;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

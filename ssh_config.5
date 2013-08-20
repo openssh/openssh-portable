@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.166 2013/06/27 14:05:37 jmc Exp $
-.Dd $Mdocdate: June 27 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.167 2013/08/20 00:11:38 djm Exp $
+.Dd $Mdocdate: August 20 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -937,6 +937,14 @@ For example, the following directive would connect via an HTTP proxy at
 .Bd -literal -offset 3n
 ProxyCommand /usr/bin/nc -X connect -x 192.0.2.0:8080 %h %p
 .Ed
+.It Cm ProxyUseFdpass
+Specifies that the a
+.Cm ProxyCommand
+will pass a connected file descriptor back to
+.Nm ssh
+instead of continuing to execute and pass data.
+The default is
+.Dq no .
 .It Cm PubkeyAuthentication
 Specifies whether to try public key authentication.
 The argument to this keyword must be

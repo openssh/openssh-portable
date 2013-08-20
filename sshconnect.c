@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.238 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.239 2013/08/20 00:11:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -59,6 +59,7 @@
 #include "misc.h"
 #include "dns.h"
 #include "roaming.h"
+#include "monitor_fdpass.h"
 #include "ssh2.h"
 #include "version.h"
 
@@ -78,16 +79,113 @@ extern uid_t original_effective_uid;
 static int show_other_keys(struct hostkeys *, Key *);
 static void warn_changed_key(Key *);
 
+/* Expand a proxy command */
+static char *
+expand_proxy_command(const char *proxy_command, const char *user,
+    const char *host, int port)
+{
+	char *tmp, *ret, strport[NI_MAXSERV];
+
+	snprintf(strport, sizeof strport, "%hu", port);
+	xasprintf(&tmp, "exec %s", proxy_command);
+	ret = percent_expand(tmp, "h", host, "p", strport,
+	    "r", options.user, (char *)NULL);
+	free(tmp);
+	return ret;
+}
+
+/*
+ * Connect to the given ssh server using a proxy command that passes a
+ * a connected fd back to us.
+ */
+static int
+ssh_proxy_fdpass_connect(const char *host, u_short port,
+    const char *proxy_command)
+{
+	char *command_string;
+	int sp[2], sock;
+	pid_t pid;
+	char *shell;
+
+	if ((shell = getenv("SHELL")) == NULL)
+		shell = _PATH_BSHELL;
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sp) < 0)
+		fatal("Could not create socketpair to communicate with "
+		    "proxy dialer: %.100s", strerror(errno));
+
+	command_string = expand_proxy_command(proxy_command, options.user,
+	    host, port);
+	debug("Executing proxy dialer command: %.500s", command_string);
+
+	/* Fork and execute the proxy command. */
+	if ((pid = fork()) == 0) {
+		char *argv[10];
+
+		/* Child.  Permanently give up superuser privileges. */
+		permanently_drop_suid(original_real_uid);
+
+		close(sp[1]);
+		/* Redirect stdin and stdout. */
+		if (sp[0] != 0) {
+			if (dup2(sp[0], 0) < 0)
+				perror("dup2 stdin");
+		}
+		if (sp[0] != 1) {
+			if (dup2(sp[0], 1) < 0)
+				perror("dup2 stdout");
+		}
+		if (sp[0] >= 2)
+			close(sp[0]);
+
+		/*
+		 * Stderr is left as it is so that error messages get
+		 * printed on the user's terminal.
+		 */
+		argv[0] = shell;
+		argv[1] = "-c";
+		argv[2] = command_string;
+		argv[3] = NULL;
+
+		/*
+		 * Execute the proxy command.
+		 * Note that we gave up any extra privileges above.
+		 */
+		execv(argv[0], argv);
+		perror(argv[0]);
+		exit(1);
+	}
+	/* Parent. */
+	if (pid < 0)
+		fatal("fork failed: %.100s", strerror(errno));
+	close(sp[0]);
+	free(command_string);
+
+	if ((sock = mm_receive_fd(sp[1])) == -1)
+		fatal("proxy dialer did not pass back a connection");
+
+	while (waitpid(pid, NULL, 0) == -1)
+		if (errno != EINTR)
+			fatal("Couldn't wait for child: %s", strerror(errno));
+
+	/* Set the connection file descriptors. */
+	packet_set_connection(sock, sock);
+	packet_set_timeout(options.server_alive_interval,
+	    options.server_alive_count_max);
+
+	return 0;
+}
+
 /*
  * Connect to the given ssh server using a proxy command.
  */
 static int
 ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 {
-	char *command_string, *tmp;
+	char *command_string;
 	int pin[2], pout[2];
 	pid_t pid;
-	char *shell, strport[NI_MAXSERV];
+	char *shell;
 
 	if (!strcmp(proxy_command, "-")) {
 		packet_set_connection(STDIN_FILENO, STDOUT_FILENO);
@@ -96,29 +194,19 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 		return 0;
 	}
 
+	if (options.proxy_use_fdpass)
+		return ssh_proxy_fdpass_connect(host, port, proxy_command);
+
 	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
-
-	/* Convert the port number into a string. */
-	snprintf(strport, sizeof strport, "%hu", port);
-
-	/*
-	 * Build the final command string in the buffer by making the
-	 * appropriate substitutions to the given proxy command.
-	 *
-	 * Use "exec" to avoid "sh -c" processes on some platforms
-	 * (e.g. Solaris)
-	 */
-	xasprintf(&tmp, "exec %s", proxy_command);
-	command_string = percent_expand(tmp, "h", host, "p", strport,
-	    "r", options.user, (char *)NULL);
-	free(tmp);
 
 	/* Create pipes for communicating with the proxy. */
 	if (pipe(pin) < 0 || pipe(pout) < 0)
 		fatal("Could not create pipes to communicate with the proxy: %.100s",
 		    strerror(errno));
 
+	command_string = expand_proxy_command(proxy_command, options.user,
+	    host, port);
 	debug("Executing proxy command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
