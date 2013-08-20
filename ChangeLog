@@ -43,6 +43,9 @@
    - djm@cvs.openbsd.org 2013/08/13 18:32:08
      [ssh-keygen.c]
      typo in error message; from Stephan Rickauer
+   - djm@cvs.openbsd.org 2013/08/13 18:33:08
+     [ssh-keygen.c]
+     another of the same typo
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
