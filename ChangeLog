@@ -9,6 +9,9 @@
      [sftp.1]
      document top-level -a option (the -a option to 'get' was already
      documented)
+   - djm@cvs.openbsd.org 2013/08/06 23:06:01
+     [servconf.c]
+     add cast to avoid format warning; from portable
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt

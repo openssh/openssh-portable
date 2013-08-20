@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.240 2013/07/19 07:37:48 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.241 2013/08/06 23:06:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2063,7 +2063,8 @@ dump_config(ServerOptions *o)
 	printf("ipqos %s ", iptos2str(o->ip_qos_interactive));
 	printf("%s\n", iptos2str(o->ip_qos_bulk));
 
-	printf("rekeylimit %lld %d\n", o->rekey_limit, o->rekey_interval);
+	printf("rekeylimit %lld %d\n", (long long)o->rekey_limit,
+	    o->rekey_interval);
 
 	channel_print_adm_permitted_opens();
 }
