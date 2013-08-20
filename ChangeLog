@@ -30,6 +30,12 @@
      [sftp.c]
      do getopt parsing for all sftp commands (with an empty optstring for
      commands without arguments) to ensure consistent behaviour
+   - djm@cvs.openbsd.org 2013/08/09 03:39:13
+     [sftp-client.c]
+     two problems found by a to-be-committed regress test: 1) msg_id was not
+     being initialised so was starting at a random value from the heap
+     (harmless, but confusing). 2) some error conditions were not being
+     propagated back to the caller
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt

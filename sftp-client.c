@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.102 2013/08/08 05:04:03 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.103 2013/08/09 03:39:13 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -337,7 +337,8 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 	Buffer msg;
 	struct sftp_conn *ret;
 
-	ret = xmalloc(sizeof(*ret));
+	ret = xcalloc(1, sizeof(*ret));
+	ret->msg_id = 1;
 	ret->fd_in = fd_in;
 	ret->fd_out = fd_out;
 	ret->transfer_buflen = transfer_buflen;
@@ -1221,6 +1222,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	if (read_error) {
 		error("Couldn't read from remote file \"%s\" : %s",
 		    remote_path, fx2txt(status));
+		status = -1;
 		do_close(conn, handle, handle_len);
 	} else if (write_error) {
 		error("Couldn't write to \"%s\": %s", local_path,
@@ -1229,7 +1231,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		do_close(conn, handle, handle_len);
 	} else {
 		status = do_close(conn, handle, handle_len);
-		if (interrupted)
+		if (interrupted || status != SSH2_FX_OK)
 			status = -1;
 		/* Override umask and utimes if asked */
 #ifdef HAVE_FCHMOD
