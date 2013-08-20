@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.152 2013/08/08 05:04:03 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.153 2013/08/09 03:37:25 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -509,6 +509,26 @@ parse_df_flags(const char *cmd, char **argv, int argc, int *hflag, int *iflag)
 		case 'i':
 			*iflag = 1;
 			break;
+		default:
+			error("%s: Invalid flag -%c", cmd, optopt);
+			return -1;
+		}
+	}
+
+	return optind;
+}
+
+static int
+parse_no_flags(const char *cmd, char **argv, int argc)
+{
+	extern int opterr, optind, optopt, optreset;
+	int ch;
+
+	optind = optreset = 1;
+	opterr = 0;
+
+	while ((ch = getopt(argc, argv, "")) != -1) {
+		switch (ch) {
 		default:
 			error("%s: Invalid flag -%c", cmd, optopt);
 			return -1;
@@ -1240,6 +1260,8 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 			return -1;
 		goto parse_two_paths;
 	case I_SYMLINK:
+		if ((optidx = parse_no_flags(cmd, argv, argc)) == -1)
+			return -1;
  parse_two_paths:
 		if (argc - optidx < 2) {
 			error("You must specify two paths after a %s "
@@ -1258,6 +1280,8 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	case I_CHDIR:
 	case I_LCHDIR:
 	case I_LMKDIR:
+		if ((optidx = parse_no_flags(cmd, argv, argc)) == -1)
+			return -1;
 		/* Get pathname (mandatory) */
 		if (argc - optidx < 1) {
 			error("You must specify a path after a %s command.",
@@ -1299,6 +1323,8 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 		base = 8;
 	case I_CHOWN:
 	case I_CHGRP:
+		if ((optidx = parse_no_flags(cmd, argv, argc)) == -1)
+			return -1;
 		/* Get numeric arg (mandatory) */
 		if (argc - optidx < 1)
 			goto need_num_arg;
@@ -1329,6 +1355,8 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	case I_HELP:
 	case I_VERSION:
 	case I_PROGRESS:
+		if ((optidx = parse_no_flags(cmd, argv, argc)) == -1)
+			return -1;
 		break;
 	default:
 		fatal("Command not implemented");

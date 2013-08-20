@@ -26,6 +26,11 @@
      posix-rename@openssh.com extension.
 
      intended for use in regress tests, so no documentation.
+   - djm@cvs.openbsd.org 2013/08/09 03:37:25
+     [sftp.c]
+     do getopt parsing for all sftp commands (with an empty optstring for
+     commands without arguments) to ensure consistent behaviour
+
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
    since some platforms (eg really old FreeBSD) don't have it.  Instead,
