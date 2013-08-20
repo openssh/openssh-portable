@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.230 2013/07/20 01:44:37 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.231 2013/08/13 18:32:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1963,7 +1963,7 @@ update_krl_from_file(struct passwd *pw, const char *file, const Key *ca,
 			continue;
 		if (strncasecmp(cp, "serial:", 7) == 0) {
 			if (ca == NULL) {
-				fatal("revoking certificated by serial number "
+				fatal("revoking certificates by serial number "
 				    "requires specification of a CA key");
 			}
 			cp += 7;

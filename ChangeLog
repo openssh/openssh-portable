@@ -40,6 +40,9 @@
      [sftp.c]
      enable ctrl-left-arrow and ctrl-right-arrow to move forward/back a word;
      matching ksh's relatively recent change.
+   - djm@cvs.openbsd.org 2013/08/13 18:32:08
+     [ssh-keygen.c]
+     typo in error message; from Stephan Rickauer
 
 20130808
  - (dtucker) [regress/Makefile regress/test-exec.sh] Don't try to use test -nt
