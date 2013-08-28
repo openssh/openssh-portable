@@ -2,6 +2,8 @@
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the
    'j' (intmax_t/uintmax_t) and 'z' (size_t/ssize_t) conversions in case we
    start to use them in the future.
+ - (djm) [openbsd-compat/bsd-snprintf.c] #ifdef noytet for intmax_t bits
+   until we have configure support.
 
 20130821
  - (djm) OpenBSD CVS Sync

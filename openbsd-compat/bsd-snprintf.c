@@ -344,8 +344,10 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 					value = (long)va_arg (args, unsigned LLONG);
 				else if (cflags == DP_C_SIZE)
 					value = va_arg (args, size_t);
+#ifdef notyet
 				else if (cflags == DP_C_INTMAX)
 					value = va_arg (args, uintmax_t);
+#endif
 				else
 					value = (long)va_arg (args, unsigned int);
 				if (fmtint(buffer, &currlen, maxlen, value,
@@ -362,8 +364,10 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 					value = (LLONG)va_arg (args, unsigned LLONG);
 				else if (cflags == DP_C_SIZE)
 					value = va_arg (args, size_t);
+#ifdef notyet
 				else if (cflags == DP_C_INTMAX)
 					value = va_arg (args, uintmax_t);
+#endif
 				else
 					value = (long)va_arg (args, unsigned int);
 				if (fmtint(buffer, &currlen, maxlen, value,
@@ -382,8 +386,10 @@ dopr(char *buffer, size_t maxlen, const char *format, va_list args_in)
 					value = (LLONG)va_arg (args, unsigned LLONG);
 				else if (cflags == DP_C_SIZE)
 					value = va_arg (args, size_t);
+#ifdef notyet
 				else if (cflags == DP_C_INTMAX)
 					value = va_arg (args, uintmax_t);
+#endif
 				else
 					value = (long)va_arg (args, unsigned int);
 				if (fmtint(buffer, &currlen, maxlen, value,
