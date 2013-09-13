@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.404 2013/07/19 07:37:48 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.405 2013/08/22 19:02:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -613,6 +613,7 @@ privsep_preauth_child(void)
 	arc4random_stir();
 	arc4random_buf(rnd, sizeof(rnd));
 	RAND_seed(rnd, sizeof(rnd));
+	bzero(rnd, sizeof(rnd));
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
@@ -747,6 +748,7 @@ privsep_postauth(Authctxt *authctxt)
 	arc4random_stir();
 	arc4random_buf(rnd, sizeof(rnd));
 	RAND_seed(rnd, sizeof(rnd));
+	bzero(rnd, sizeof(rnd));
 
 	/* Drop privileges */
 	do_setusercontext(authctxt->pw);
@@ -1139,6 +1141,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	struct sockaddr_storage from;
 	socklen_t fromlen;
 	pid_t pid;
+	u_char rnd[256];
 
 	/* setup fd set for accept */
 	fdset = NULL;
@@ -1339,6 +1342,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * from that of the child
 			 */
 			arc4random_stir();
+			arc4random_buf(rnd, sizeof(rnd));
+			RAND_seed(rnd, sizeof(rnd));
+			bzero(rnd, sizeof(rnd));
 		}
 
 		/* child process check (or debug mode) */

@@ -1,3 +1,11 @@
+20130914
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/08/22 19:02:21
+     [sshd.c]
+     Stir PRNG after post-accept fork. The child gets a different PRNG state
+     anyway via rexec and explicit privsep reseeds, but it's good to be sure.
+     ok markus@
+
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the
    'j' (intmax_t/uintmax_t) and 'z' (size_t/ssize_t) conversions in case we
