@@ -5,6 +5,12 @@
      Stir PRNG after post-accept fork. The child gets a different PRNG state
      anyway via rexec and explicit privsep reseeds, but it's good to be sure.
      ok markus@
+   - mikeb@cvs.openbsd.org 2013/08/28 12:34:27
+     [ssh-keygen.c]
+     improve batch processing a bit by making use of the quite flag a bit
+     more often and exit with a non zero code if asked to find a hostname
+     in a known_hosts file and it wasn't there;
+     originally from reyk@,  ok djm
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the
