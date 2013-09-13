@@ -32,6 +32,11 @@
      [clientloop.c]
      fix connection crash when sending break (~B) on ControlPersist'd session;
      ok dtucker@
+   - djm@cvs.openbsd.org 2013/09/13 06:54:34
+     [channels.c]
+     avoid unaligned access in code that reused a buffer to send a
+     struct in_addr in a reply; simpler just use use buffer_put_int();
+     from portable; spotted by and ok dtucker@
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the

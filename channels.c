@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.324 2013/07/12 00:19:58 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.325 2013/09/13 06:54:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1239,11 +1239,10 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	s5_rsp.command = SSH_SOCKS5_SUCCESS;
 	s5_rsp.reserved = 0;			/* ignored */
 	s5_rsp.atyp = SSH_SOCKS5_IPV4;
-	((struct in_addr *)&dest_addr)->s_addr = INADDR_ANY;
 	dest_port = 0;				/* ignored */
 
 	buffer_append(&c->output, &s5_rsp, sizeof(s5_rsp));
-	buffer_append(&c->output, &dest_addr, sizeof(struct in_addr));
+	buffer_put_int(&c->output, ntohl(INADDR_ANY)); /* bind address */
 	buffer_append(&c->output, &dest_port, sizeof(dest_port));
 	return 1;
 }
