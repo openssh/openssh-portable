@@ -82,6 +82,7 @@
  - (dtucker) [regress/Makefile regress/test-exec.sh] Roll back the -nt
    removal.  The "make clean" removes modpipe which is built by the top-level
    directory before running the tests.  Spotted by tim@
+ - (djm) Release 6.3p1
 
 20130804
  - (dtucker) [auth-krb5.c configure.ac openbsd-compat/bsd-misc.h] Add support
