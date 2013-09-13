@@ -28,6 +28,10 @@
      kerberos support is currently not enabled in ssh in OpenBSD. Discussed with
      various people; ok deraadt@
      ID SYNC ONLY for portable; kerberos/gssapi is still pretty popular
+   - djm@cvs.openbsd.org 2013/09/12 01:41:12
+     [clientloop.c]
+     fix connection crash when sending break (~B) on ControlPersist'd session;
+     ok dtucker@
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the

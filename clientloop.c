@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.253 2013/06/07 15:37:52 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.254 2013/09/12 01:41:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1153,7 +1153,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					    "%cB\r\n", escape_char);
 					buffer_append(berr, string,
 					    strlen(string));
-					channel_request_start(session_ident,
+					channel_request_start(c->self,
 					    "break", 0);
 					packet_put_int(1000);
 					packet_send();
