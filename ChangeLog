@@ -14,6 +14,14 @@
    - djm@cvs.openbsd.org 2013/08/31 00:13:54
      [sftp.c]
      make ^w match ksh behaviour (delete previous word instead of entire line)
+   - deraadt@cvs.openbsd.org 2013/09/02 22:00:34
+     [ssh-keygen.c sshconnect1.c sshd.c]
+     All the instances of arc4random_stir() are bogus, since arc4random()
+     does this itself, inside itself, and has for a very long time..  Actually,
+     this was probably reducing the entropy available.
+     ok djm
+     ID SYNC ONLY for portable; we don't trust other arc4random implementations
+     to do this right.
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the
