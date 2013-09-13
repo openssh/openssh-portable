@@ -1,6 +1,7 @@
 20130913
  - (djm) [channels.c] Fix unaligned access on sparc machines in SOCKS5 code;
    ok dtucker@
+ - (djm) [channels.c] sigh, typo s/buffet_/buffer_/
  - (djm) Release 6.3p1
 
 20130808

@@ -1242,7 +1242,7 @@ channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 	dest_port = 0;				/* ignored */
 
 	buffer_append(&c->output, &s5_rsp, sizeof(s5_rsp));
-	buffet_put_int(&c->output, ntohl(INADDR_ANY));
+	buffer_put_int(&c->output, ntohl(INADDR_ANY)); /* bind address */
 	buffer_append(&c->output, &dest_port, sizeof(dest_port));
 	return 1;
 }
