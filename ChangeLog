@@ -11,6 +11,9 @@
      more often and exit with a non zero code if asked to find a hostname
      in a known_hosts file and it wasn't there;
      originally from reyk@,  ok djm
+   - djm@cvs.openbsd.org 2013/08/31 00:13:54
+     [sftp.c]
+     make ^w match ksh behaviour (delete previous word instead of entire line)
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the

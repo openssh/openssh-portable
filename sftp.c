@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.154 2013/08/09 03:56:42 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.155 2013/08/31 00:13:54 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2013,6 +2013,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		el_set(el, EL_BIND, "\\e[5C", "em-next-word", NULL);
 		el_set(el, EL_BIND, "\\e[1;5D", "ed-prev-word", NULL);
 		el_set(el, EL_BIND, "\\e\\e[D", "ed-prev-word", NULL);
+		/* make ^w match ksh behaviour */
+		el_set(el, EL_BIND, "^w", "ed-delete-prev-word", NULL);
 	}
 #endif /* USE_LIBEDIT */
 
