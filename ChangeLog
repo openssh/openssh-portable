@@ -22,6 +22,12 @@
      ok djm
      ID SYNC ONLY for portable; we don't trust other arc4random implementations
      to do this right.
+   - sthen@cvs.openbsd.org 2013/09/07 13:53:11
+     [sshd_config]
+     Remove commented-out kerberos/gssapi config options from sample config,
+     kerberos support is currently not enabled in ssh in OpenBSD. Discussed with
+     various people; ok deraadt@
+     ID SYNC ONLY for portable; kerberos/gssapi is still pretty popular
 
 20130828
  - (djm) [openbsd-compat/bsd-snprintf.c] teach our local snprintf code the
