@@ -1,4 +1,4 @@
-/* $Id: platform.c,v 1.19 2013/03/12 00:31:05 dtucker Exp $ */
+/* $Id: platform.c,v 1.20 2013/09/22 09:02:40 dtucker Exp $ */
 
 /*
  * Copyright (c) 2006 Darren Tucker.  All rights reserved.
@@ -51,6 +51,14 @@ platform_pre_fork(void)
 {
 #ifdef USE_SOLARIS_PROCESS_CONTRACTS
 	solaris_contract_pre_fork();
+#endif
+}
+
+void
+platform_pre_restart(void)
+{
+#ifdef LINUX_OOM_ADJUST
+	oom_adjust_restore();
 #endif
 }
 

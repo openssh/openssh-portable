@@ -1,3 +1,8 @@
+20130922
+ - (dtucker) [platform.c platform.h sshd.c] bz#2156: restore Linux oom_adj
+   setting when handling SIGHUP to maintain behaviour over retart.  Patch
+   from Matthew Ife.
+
 20130918
  - (dtucker) [sshd_config] Trailing whitespace; from jstjohn at purdue edu.
 

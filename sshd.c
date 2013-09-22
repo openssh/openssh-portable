@@ -315,6 +315,7 @@ static void
 sighup_restart(void)
 {
 	logit("Received SIGHUP; restarting.");
+	platform_pre_restart();
 	close_listen_socks();
 	close_startup_pipes();
 	alarm(0);  /* alarm timer persists across exec */
