@@ -1,3 +1,8 @@
+20131009
+ - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull
+   in OpenBSD implementation of arc4random, shortly to replace the existing
+   bsd-arc4random.c
+
 20130922
  - (dtucker) [platform.c platform.h sshd.c] bz#2156: restore Linux oom_adj
    setting when handling SIGHUP to maintain behaviour over retart.  Patch
