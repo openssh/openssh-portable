@@ -1,3 +1,5 @@
+/* OPENBSD ORIGINAL: lib/libc/crypto/arc4random.c */
+
 /*	$OpenBSD: arc4random.c,v 1.25 2013/10/01 18:34:57 markus Exp $	*/
 
 /*
@@ -22,16 +24,19 @@
  * ChaCha based random number generator for OpenBSD.
  */
 
-#include <fcntl.h>
-#include <limits.h>
+#include "includes.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/param.h>
-#include <sys/time.h>
-#include <sys/sysctl.h>
-#include "thread_private.h"
+
+#ifndef HAVE_ARC4RANDOM
+
+#include <openssl/rand.h>
+#include <openssl/err.h>
+
+#include "log.h"
 
 #define KEYSTREAM_ONLY
 #include "chacha_private.h"
@@ -41,6 +46,10 @@
 #else				/* !__GNUC__ */
 #define inline
 #endif				/* !__GNUC__ */
+
+/* OpenSSH isn't multithreaded */
+#define _ARC4_LOCK()
+#define _ARC4_UNLOCK()
 
 #define KEYSZ	32
 #define IVSZ	8
@@ -67,15 +76,11 @@ _rs_init(u_char *buf, size_t n)
 static void
 _rs_stir(void)
 {
-	int     mib[2];
-	size_t	len;
 	u_char rnd[KEYSZ + IVSZ];
 
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_ARND;
-
-	len = sizeof(rnd);
-	sysctl(mib, 2, rnd, &len, NULL, 0);
+	if (RAND_bytes(rnd, sizeof(rnd)) <= 0)
+		fatal("Couldn't obtain random bytes (error %ld)",
+		    ERR_get_error());
 
 	if (!rs_initialized) {
 		rs_initialized = 1;
@@ -194,6 +199,11 @@ arc4random(void)
 	return val;
 }
 
+/*
+ * If we are providing arc4random, then we can provide a more efficient 
+ * arc4random_buf().
+ */
+# ifndef HAVE_ARC4RANDOM_BUF
 void
 arc4random_buf(void *buf, size_t n)
 {
@@ -201,7 +211,29 @@ arc4random_buf(void *buf, size_t n)
 	_rs_random_buf(buf, n);
 	_ARC4_UNLOCK();
 }
+# endif /* !HAVE_ARC4RANDOM_BUF */
+#endif /* !HAVE_ARC4RANDOM */
 
+/* arc4random_buf() that uses platform arc4random() */
+#if !defined(HAVE_ARC4RANDOM_BUF) && defined(HAVE_ARC4RANDOM)
+void
+arc4random_buf(void *_buf, size_t n)
+{
+	size_t i;
+	u_int32_t r = 0;
+	char *buf = (char *)_buf;
+
+	for (i = 0; i < n; i++) {
+		if (i % 4 == 0)
+			r = arc4random();
+		buf[i] = r & 0xff;
+		r >>= 8;
+	}
+	i = r = 0;
+}
+#endif /* !defined(HAVE_ARC4RANDOM_BUF) && defined(HAVE_ARC4RANDOM) */
+
+#ifndef HAVE_ARC4RANDOM_UNIFORM
 /*
  * Calculate a uniformly distributed random number less than upper_bound
  * avoiding "modulo bias".
@@ -237,6 +269,7 @@ arc4random_uniform(u_int32_t upper_bound)
 
 	return r % upper_bound;
 }
+#endif /* !HAVE_ARC4RANDOM_UNIFORM */
 
 #if 0
 /*-------- Test code for i386 --------*/
