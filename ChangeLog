@@ -765,10 +765,10 @@
    to avoid conflicting definitions of __int64, adding the required bits.
    Patch from Corinna Vinschen.
 
-20120323
+20130323
  - (tim) [Makefile.in] remove some duplication introduced in 20130220 commit.
 
-20120322
+20130322
  - (djm) [contrib/ssh-copy-id contrib/ssh-copy-id.1] Updated to Phil
    Hands' greatly revised version.
  - (djm) Release 6.2p1
@@ -776,16 +776,16 @@
  - (dtucker) [includes.h] Check if _GNU_SOURCE is already defined before
    defining it again.  Prevents warnings if someone, eg, sets it in CFLAGS.
 
-20120318
+20130318
  - (djm) [configure.ac log.c scp.c sshconnect2.c openbsd-compat/vis.c]
    [openbsd-compat/vis.h] FreeBSD's strnvis isn't compatible with OpenBSD's
    so mark it as broken. Patch from des AT des.no
 
-20120317
+20130317
  - (tim) [configure.ac] OpenServer 5 wants lastlog even though it has none
    of the bits the configure test looks for.
 
-20120316
+20130316
  - (djm) [configure.ac] Disable utmp, wtmp and/or lastlog if the platform
    is unable to successfully compile them. Based on patch from des AT
    des.no
@@ -795,7 +795,7 @@
    occur after UID switch; patch from John Marshall via des AT des.no;
    ok dtucker@
 
-20120312
+20130312
  - (dtucker) [regress/Makefile regress/cipher-speed.sh regress/test-exec.sh]
    Improve portability of cipher-speed test, based mostly on a patch from
    Iain Morgan.
