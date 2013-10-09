@@ -17,6 +17,10 @@
      bz#1297 - tell the client (via packet_send_debug) when their preferred
      listen address has been overridden by the server's GatewayPorts;
      ok dtucker@
+   - djm@cvs.openbsd.org 2013/09/19 01:26:29
+     [sshconnect.c]
+     bz#1211: make BindAddress work with UsePrivilegedPort=yes; patch from
+     swp AT swp.pp.ru; ok dtucker@
 
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull

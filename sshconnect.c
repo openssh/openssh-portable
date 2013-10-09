@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.239 2013/08/20 00:11:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.240 2013/09/19 01:26:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -282,34 +282,18 @@ ssh_kill_proxy_command(void)
 static int
 ssh_create_socket(int privileged, struct addrinfo *ai)
 {
-	int sock, gaierr;
+	int sock, r, gaierr;
 	struct addrinfo hints, *res;
 
-	/*
-	 * If we are running as root and want to connect to a privileged
-	 * port, bind our own socket to a privileged port.
-	 */
-	if (privileged) {
-		int p = IPPORT_RESERVED - 1;
-		PRIV_START;
-		sock = rresvport_af(&p, ai->ai_family);
-		PRIV_END;
-		if (sock < 0)
-			error("rresvport: af=%d %.100s", ai->ai_family,
-			    strerror(errno));
-		else
-			debug("Allocated local port %d.", p);
-		return sock;
-	}
 	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (sock < 0) {
-		error("socket: %.100s", strerror(errno));
+		error("socket: %s", strerror(errno));
 		return -1;
 	}
 	fcntl(sock, F_SETFD, FD_CLOEXEC);
 
 	/* Bind the socket to an alternative local IP address */
-	if (options.bind_address == NULL)
+	if (options.bind_address == NULL && !privileged)
 		return sock;
 
 	memset(&hints, 0, sizeof(hints));
@@ -324,11 +308,28 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 		close(sock);
 		return -1;
 	}
-	if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
-		error("bind: %s: %s", options.bind_address, strerror(errno));
-		close(sock);
-		freeaddrinfo(res);
-		return -1;
+	/*
+	 * If we are running as root and want to connect to a privileged
+	 * port, bind our own socket to a privileged port.
+	 */
+	if (privileged) {
+		PRIV_START;
+		r = bindresvport_sa(sock, res->ai_addr);
+		PRIV_END;
+		if (r < 0) {
+			error("bindresvport_sa: af=%d %s", ai->ai_family,
+			    strerror(errno));
+			goto fail;
+		}
+	} else {
+		if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
+			error("bind: %s: %s", options.bind_address,
+			    strerror(errno));
+ fail:
+			close(sock);
+			freeaddrinfo(res);
+			return -1;
+		}
 	}
 	freeaddrinfo(res);
 	return sock;
