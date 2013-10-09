@@ -9,6 +9,9 @@
      [progressmeter.c]
      store the initial file offset so the progress meter doesn't freak out
      when resuming sftp transfers. bz#2137; patch from Iain Morgan; ok dtucker@`
+   - djm@cvs.openbsd.org 2013/09/19 00:49:12
+     [sftp-client.c]
+     fix swapped pflag and printflag in sftp upload_dir; from Iain Morgan
 
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull
