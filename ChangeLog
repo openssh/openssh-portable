@@ -1,3 +1,11 @@
+20131010
+ - (dtucker) OpenBSD CVS Sync
+   - sthen@cvs.openbsd.org 2013/09/16 11:35:43
+     [ssh_config]
+     Remove gssapi config parts from ssh_config, as was already done for
+     sshd_config.  Req by/ok ajacoutot@
+     ID SYNC ONLY for portable; kerberos/gssapi is still pretty popular
+
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull
    in OpenBSD implementation of arc4random, shortly to replace the existing
