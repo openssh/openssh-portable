@@ -21,6 +21,12 @@
      [sshconnect.c]
      bz#1211: make BindAddress work with UsePrivilegedPort=yes; patch from
      swp AT swp.pp.ru; ok dtucker@
+   - dtucker@cvs.openbsd.org 2013/10/08 11:42:13
+     [dh.c dh.h]
+     Increase the size of the Diffie-Hellman groups requested for a each
+     symmetric key size.  New values from NIST Special Publication 800-57 with
+     the upper limit specified by RFC4419.  Pointed out by Peter Backes, ok
+     djm@.
 
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull

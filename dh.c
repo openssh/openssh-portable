@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.51 2013/07/02 12:31:43 markus Exp $ */
+/* $OpenBSD: dh.c,v 1.52 2013/10/08 11:42:13 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -352,17 +352,20 @@ dh_new_group14(void)
 
 /*
  * Estimates the group order for a Diffie-Hellman group that has an
- * attack complexity approximately the same as O(2**bits).  Estimate
- * with:  O(exp(1.9223 * (ln q)^(1/3) (ln ln q)^(2/3)))
+ * attack complexity approximately the same as O(2**bits).
+ * Values from NIST Special Publication 800-57: Recommendation for Key
+ * Management Part 1 (rev 3) limited by the recommended maximum value
+ * from RFC4419 section 3.
  */
 
 int
 dh_estimate(int bits)
 {
-
+	if (bits <= 112)
+		return 2048;
 	if (bits <= 128)
-		return (1024);	/* O(2**86) */
+		return 3072;
 	if (bits <= 192)
-		return (2048);	/* O(2**116) */
-	return (4096);		/* O(2**156) */
+		return 7680;
+	return 8192;
 }
