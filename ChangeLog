@@ -5,6 +5,10 @@
      Remove gssapi config parts from ssh_config, as was already done for
      sshd_config.  Req by/ok ajacoutot@
      ID SYNC ONLY for portable; kerberos/gssapi is still pretty popular
+   - djm@cvs.openbsd.org 2013/09/19 00:24:52
+     [progressmeter.c]
+     store the initial file offset so the progress meter doesn't freak out
+     when resuming sftp transfers. bz#2137; patch from Iain Morgan; ok dtucker@`
 
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull
