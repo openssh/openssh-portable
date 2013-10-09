@@ -12,6 +12,11 @@
    - djm@cvs.openbsd.org 2013/09/19 00:49:12
      [sftp-client.c]
      fix swapped pflag and printflag in sftp upload_dir; from Iain Morgan
+   - djm@cvs.openbsd.org 2013/09/19 01:24:46
+     [channels.c]
+     bz#1297 - tell the client (via packet_send_debug) when their preferred
+     listen address has been overridden by the server's GatewayPorts;
+     ok dtucker@
 
 20131009
  - (djm) [openbsd-compat/arc4random.c openbsd-compat/chacha_private.h] Pull

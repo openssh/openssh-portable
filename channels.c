@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.325 2013/09/13 06:54:34 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.326 2013/09/19 01:24:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2710,8 +2710,20 @@ channel_fwd_bind_addr(const char *listen_addr, int *wildcardp,
 		if (((datafellows & SSH_OLD_FORWARD_ADDR) &&
 		    strcmp(listen_addr, "0.0.0.0") == 0 && is_client == 0) ||
 		    *listen_addr == '\0' || strcmp(listen_addr, "*") == 0 ||
-		    (!is_client && gateway_ports == 1))
+		    (!is_client && gateway_ports == 1)) {
 			wildcard = 1;
+			/*
+			 * Notify client if they requested a specific listen
+			 * address and it was overridden.
+			 */
+			if (*listen_addr != '\0' &&
+			    strcmp(listen_addr, "0.0.0.0") != 0 &&
+			    strcmp(listen_addr, "*") != 0) {
+				packet_send_debug("Forwarding listen address "
+				    "\"%s\" overridden by server "
+				    "GatewayPorts", listen_addr);
+			}
+		}
 		else if (strcmp(listen_addr, "localhost") != 0)
 			addr = listen_addr;
 	}
