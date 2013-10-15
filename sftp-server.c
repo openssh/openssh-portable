@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.98 2013/10/09 23:42:17 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.99 2013/10/10 00:53:25 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1392,7 +1392,8 @@ sftp_server_usage(void)
 
 	fprintf(stderr,
 	    "usage: %s [-ehR] [-d start_directory] [-f log_facility] "
-	    "[-l log_level]\n\t[-u umask]\n",
+	    "[-l log_level]\n\t[-p request_whitelist] [-P request_blacklist] "
+	    "[-Q feature] [-u umask]\n",
 	    __progname);
 	exit(1);
 }

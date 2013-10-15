@@ -6,6 +6,9 @@
      Refactor dispatch loop and consolidate read-only mode checks.
      Make global variables static, since sftp-server is linked into sshd(8).
      ok dtucker@
+   - djm@cvs.openbsd.org 2013/10/10 00:53:25
+     [sftp-server.c]
+     add -Q, -P and -p to usage() before jmc@ catches me
 
 20131010
  - (dtucker) OpenBSD CVS Sync
