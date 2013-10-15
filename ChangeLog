@@ -46,6 +46,9 @@
      add a lowercase() function and use it instead of explicit tolower() in
      loops
      part of a larger diff that was ok markus@
+   - djm@cvs.openbsd.org 2013/10/14 23:31:01
+     [ssh.c]
+     whitespace at EOL; pointed out by markus@
 
 20131010
  - (dtucker) OpenBSD CVS Sync

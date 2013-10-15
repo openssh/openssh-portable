@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.383 2013/10/14 23:28:23 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.384 2013/10/14 23:31:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -807,7 +807,7 @@ main(int ac, char **av)
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
 	    options.address_family, options.connection_attempts, &timeout_ms,
-	    options.tcp_keep_alive, 
+	    options.tcp_keep_alive,
 #ifdef HAVE_CYGWIN
 	    options.use_privileged_port,
 #else
@@ -1079,7 +1079,7 @@ ssh_init_stdio_forwarding(void)
 
 	if (stdio_forward_host == NULL)
 		return;
-	if (!compat20) 
+	if (!compat20)
 		fatal("stdio forwarding require Protocol 2");
 
 	debug3("%s: %s:%d", __func__, stdio_forward_host, stdio_forward_port);
@@ -1251,7 +1251,7 @@ ssh_session(void)
 		char *proto, *data;
 		/* Get reasonable local authentication information. */
 		client_x11_get_proto(display, options.xauth_location,
-		    options.forward_x11_trusted, 
+		    options.forward_x11_trusted,
 		    options.forward_x11_timeout,
 		    &proto, &data);
 		/* Request forwarding with authentication spoofing. */
