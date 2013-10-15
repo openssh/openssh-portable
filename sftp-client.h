@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.22 2013/08/08 05:04:03 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.23 2013/10/11 02:53:45 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
@@ -99,8 +99,6 @@ int do_hardlink(struct sftp_conn *, char *, char *);
 
 /* Rename 'oldpath' to 'newpath' */
 int do_symlink(struct sftp_conn *, char *, char *);
-
-/* XXX: add callbacks to do_download/do_upload so we can do progress meter */
 
 /*
  * Download 'remote_path' to 'local_path'. Preserve permissions and times

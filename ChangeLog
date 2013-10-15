@@ -22,6 +22,9 @@
    - djm@cvs.openbsd.org 2013/10/11 02:52:23
      [sftp-client.c]
      missed one arg reorder
+   - djm@cvs.openbsd.org 2013/10/11 02:53:45
+     [sftp-client.h]
+     obsolete comment
 
 20131010
  - (dtucker) OpenBSD CVS Sync
