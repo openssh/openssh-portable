@@ -245,8 +245,6 @@ main(int ac, char **av)
 	int timeout_ms;
 	extern int optind, optreset;
 	extern char *optarg;
-
-	struct servent *sp;
 	Forward fwd;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
