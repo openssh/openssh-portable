@@ -13,6 +13,12 @@
      [sshd.c]
      bz#2139: fix re-exec fallback by ensuring that startup_pipe is correctly
      updated; ok dtucker@
+   - djm@cvs.openbsd.org 2013/10/11 02:45:36
+     [sftp-client.c]
+     rename flag arguments to be more clear and consistent.
+     reorder some internal function arguments to make adding additional flags
+     easier.
+     no functional change
 
 20131010
  - (dtucker) OpenBSD CVS Sync
