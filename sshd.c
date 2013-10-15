@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.406 2013/09/02 22:00:34 deraadt Exp $ */
+/* $OpenBSD: sshd.c,v 1.407 2013/10/10 01:43:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1940,13 +1940,14 @@ main(int ac, char **av)
 		dup2(STDIN_FILENO, STDOUT_FILENO);
 		if (startup_pipe == -1)
 			close(REEXEC_STARTUP_PIPE_FD);
-		else
+		else if (startup_pipe != REEXEC_STARTUP_PIPE_FD) {
 			dup2(startup_pipe, REEXEC_STARTUP_PIPE_FD);
+			close(startup_pipe);
+			startup_pipe = REEXEC_STARTUP_PIPE_FD;
+		}
 
 		dup2(config_s[1], REEXEC_CONFIG_PASS_FD);
 		close(config_s[1]);
-		if (startup_pipe != -1)
-			close(startup_pipe);
 
 		execv(rexec_argv[0], rexec_argv);
 
@@ -1957,8 +1958,6 @@ main(int ac, char **av)
 		    options.log_facility, log_stderr);
 
 		/* Clean up fds */
-		startup_pipe = REEXEC_STARTUP_PIPE_FD;
-		close(config_s[1]);
 		close(REEXEC_CONFIG_PASS_FD);
 		newsock = sock_out = sock_in = dup(STDIN_FILENO);
 		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {

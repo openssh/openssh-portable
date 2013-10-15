@@ -9,6 +9,10 @@
    - djm@cvs.openbsd.org 2013/10/10 00:53:25
      [sftp-server.c]
      add -Q, -P and -p to usage() before jmc@ catches me
+   - djm@cvs.openbsd.org 2013/10/10 01:43:03
+     [sshd.c]
+     bz#2139: fix re-exec fallback by ensuring that startup_pipe is correctly
+     updated; ok dtucker@
 
 20131010
  - (dtucker) OpenBSD CVS Sync
