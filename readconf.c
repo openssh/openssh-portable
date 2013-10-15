@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.205 2013/08/20 00:11:37 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.206 2013/10/14 22:22:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
@@ -24,7 +25,10 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
+#include <paths.h>
+#include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -47,6 +51,7 @@
 #include "buffer.h"
 #include "kex.h"
 #include "mac.h"
+#include "uidswap.h"
 
 /* Format of the configuration file:
 
@@ -115,12 +120,13 @@
 
 typedef enum {
 	oBadOption,
+	oHost, oMatch,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
-	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
+	oUser, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oTCPKeepAlive, oNumberOfPasswordPrompts,
@@ -194,6 +200,7 @@ static struct {
 	{ "localforward", oLocalForward },
 	{ "user", oUser },
 	{ "host", oHost },
+	{ "match", oMatch },
 	{ "escapechar", oEscapeChar },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
 	{ "globalknownhostsfile2", oDeprecated },
@@ -349,10 +356,188 @@ add_identity_file(Options *options, const char *dir, const char *filename,
 	options->identity_files[options->num_identity_files++] = path;
 }
 
+int
+default_ssh_port(void)
+{
+	static int port;
+	struct servent *sp;
+
+	if (port == 0) {
+		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
+		port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+	}
+	return port;
+}
+
+/*
+ * Execute a command in a shell.
+ * Return its exit status or -1 on abnormal exit.
+ */
+static int
+execute_in_shell(const char *cmd)
+{
+	char *shell, *command_string;
+	pid_t pid;
+	int devnull, status;
+	extern uid_t original_real_uid;
+
+	if ((shell = getenv("SHELL")) == NULL)
+		shell = _PATH_BSHELL;
+
+	/*
+	 * Use "exec" to avoid "sh -c" processes on some platforms
+	 * (e.g. Solaris)
+	 */
+	xasprintf(&command_string, "exec %s", cmd);
+
+	/* Need this to redirect subprocess stdin/out */
+	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
+		fatal("open(/dev/null): %s", strerror(errno));
+
+	debug("Executing command: '%.500s'", cmd);
+
+	/* Fork and execute the command. */
+	if ((pid = fork()) == 0) {
+		char *argv[4];
+
+		/* Child.  Permanently give up superuser privileges. */
+		permanently_drop_suid(original_real_uid);
+
+		/* Redirect child stdin and stdout. Leave stderr */
+		if (dup2(devnull, STDIN_FILENO) == -1)
+			fatal("dup2: %s", strerror(errno));
+		if (dup2(devnull, STDOUT_FILENO) == -1)
+			fatal("dup2: %s", strerror(errno));
+		if (devnull > STDERR_FILENO)
+			close(devnull);
+		closefrom(STDERR_FILENO + 1);
+
+		argv[0] = shell;
+		argv[1] = "-c";
+		argv[2] = command_string;
+		argv[3] = NULL;
+
+		execv(argv[0], argv);
+		error("Unable to execute '%.100s': %s", cmd, strerror(errno));
+		/* Die with signal to make this error apparent to parent. */
+		signal(SIGTERM, SIG_DFL);
+		kill(getpid(), SIGTERM);
+		_exit(1);
+	}
+	/* Parent. */
+	if (pid < 0)
+		fatal("%s: fork: %.100s", __func__, strerror(errno));
+
+	close(devnull);
+	free(command_string);
+
+	while (waitpid(pid, &status, 0) == -1) {
+		if (errno != EINTR && errno != EAGAIN)
+			fatal("%s: waitpid: %s", __func__, strerror(errno));
+	}
+	if (!WIFEXITED(status)) {
+		error("command '%.100s' exited abnormally", cmd);
+		return -1;
+	} 
+	debug3("command returned status %d", WEXITSTATUS(status));
+	return WEXITSTATUS(status);
+}
+
+/*
+ * Parse and execute a Match directive.
+ */
+static int
+match_cfg_line(Options *options, char **condition, struct passwd *pw,
+    const char *host_arg, const char *filename, int linenum)
+{
+	char *arg, *attrib, *cmd, *cp = *condition;
+	const char *ruser, *host;
+	int r, port, result = 1;
+	size_t len;
+	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
+
+	/*
+	 * Configuration is likely to be incomplete at this point so we
+	 * must be prepared to use default values.
+	 */
+	port = options->port <= 0 ? default_ssh_port() : options->port;
+	ruser = options->user == NULL ? pw->pw_name : options->user;
+	host = options->hostname == NULL ? host_arg : options->hostname;
+
+	debug3("checking match for '%s' host %s", cp, host);
+	while ((attrib = strdelim(&cp)) && *attrib != '\0') {
+		if ((arg = strdelim(&cp)) == NULL || *arg == '\0') {
+			error("Missing Match criteria for %s", attrib);
+			return -1;
+		}
+		len = strlen(arg);
+		if (strcasecmp(attrib, "host") == 0) {
+			if (match_hostname(host, arg, len) != 1)
+				result = 0;
+			else
+				debug("%.200s line %d: matched 'Host %.100s' ",
+				    filename, linenum, host);
+		} else if (strcasecmp(attrib, "originalhost") == 0) {
+			if (match_hostname(host_arg, arg, len) != 1)
+				result = 0;
+			else
+				debug("%.200s line %d: matched "
+				    "'OriginalHost %.100s' ",
+				    filename, linenum, host_arg);
+		} else if (strcasecmp(attrib, "user") == 0) {
+			if (match_pattern_list(ruser, arg, len, 0) != 1)
+				result = 0;
+			else
+				debug("%.200s line %d: matched 'User %.100s' ",
+				    filename, linenum, ruser);
+		} else if (strcasecmp(attrib, "localuser") == 0) {
+			if (match_pattern_list(pw->pw_name, arg, len, 0) != 1)
+				result = 0;
+			else
+				debug("%.200s line %d: matched "
+				    "'LocalUser %.100s' ",
+				    filename, linenum, pw->pw_name);
+		} else if (strcasecmp(attrib, "command") == 0) {
+			if (gethostname(thishost, sizeof(thishost)) == -1)
+				fatal("gethostname: %s", strerror(errno));
+			strlcpy(shorthost, thishost, sizeof(shorthost));
+			shorthost[strcspn(thishost, ".")] = '\0';
+			snprintf(portstr, sizeof(portstr), "%d", port);
+
+			cmd = percent_expand(arg,
+			    "L", shorthost,
+			    "d", pw->pw_dir,
+			    "h", host,
+			    "l", thishost,
+			    "n", host_arg,
+			    "p", portstr,
+			    "r", ruser,
+			    "u", pw->pw_name,
+			    (char *)NULL);
+			r = execute_in_shell(cmd);
+			if (r == -1) {
+				fatal("%.200s line %d: match command '%.100s' "
+				    "error", filename, linenum, cmd);
+			} else if (r == 0) {
+				debug("%.200s line %d: matched "
+				    "'Command \"%.100s\"' ",
+				    filename, linenum, cmd);
+			} else
+				result = 0;
+			free(cmd);
+		} else {
+			error("Unsupported Match attribute %s", attrib);
+			return -1;
+		}
+	}
+	debug3("match %sfound", result ? "" : "not ");
+	*condition = cp;
+	return result;
+}
+
 /*
  * Returns the number of the token pointed to by cp or oBadOption.
  */
-
 static OpCodes
 parse_token(const char *cp, const char *filename, int linenum,
     const char *ignored_unknown)
@@ -375,20 +560,23 @@ parse_token(const char *cp, const char *filename, int linenum,
  * only sets those values that have not already been set.
  */
 #define WHITESPACE " \t\r\n"
-
 int
-process_config_line(Options *options, const char *host,
-		    char *line, const char *filename, int linenum,
-		    int *activep, int userconfig)
+process_config_line(Options *options, struct passwd *pw, const char *host,
+    char *line, const char *filename, int linenum, int *activep, int userconfig)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
-	int negated, opcode, *intptr, value, value2;
+	int negated, opcode, *intptr, value, value2, cmdline = 0;
 	LogLevel *log_level_ptr;
 	long long val64;
 	size_t len;
 	Forward fwd;
+
+	if (activep == NULL) { /* We are processing a command line directive */
+		cmdline = 1;
+		activep = &cmdline;
+	}
 
 	/* Strip trailing whitespace */
 	for (len = strlen(line) - 1; len > 0; len--) {
@@ -828,6 +1016,9 @@ parse_int:
 		goto parse_flag;
 
 	case oHost:
+		if (cmdline)
+			fatal("Host directive not supported as a command-line "
+			    "option");
 		*activep = 0;
 		arg2 = NULL;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
@@ -853,6 +1044,18 @@ parse_int:
 			    filename, linenum, arg2);
 		/* Avoid garbage check below, as strdelim is done. */
 		return 0;
+
+	case oMatch:
+		if (cmdline)
+			fatal("Host directive not supported as a command-line "
+			    "option");
+		value = match_cfg_line(options, &s, pw, host,
+		    filename, linenum);
+		if (value < 0)
+			fatal("%.200s line %d: Bad Match condition", filename,
+			    linenum);
+		*activep = value;
+		break;
 
 	case oEscapeChar:
 		intptr = &options->escape_char;
@@ -1107,8 +1310,8 @@ parse_int:
  */
 
 int
-read_config_file(const char *filename, const char *host, Options *options,
-    int flags)
+read_config_file(const char *filename, struct passwd *pw, const char *host,
+    Options *options, int flags)
 {
 	FILE *f;
 	char line[1024];
@@ -1139,8 +1342,8 @@ read_config_file(const char *filename, const char *host, Options *options,
 	while (fgets(line, sizeof(line), f)) {
 		/* Update line number counter. */
 		linenum++;
-		if (process_config_line(options, host, line, filename, linenum,
-		    &active, flags & SSHCONF_USERCONF) != 0)
+		if (process_config_line(options, pw, host, line, filename,
+		    linenum, &active, flags & SSHCONF_USERCONF) != 0)
 			bad_options++;
 	}
 	fclose(f);

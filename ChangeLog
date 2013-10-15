@@ -33,6 +33,10 @@
      [session.c session.h]
      Add logging of session starts in a useful format; ok markus@ feedback and
      ok dtucker@
+   - djm@cvs.openbsd.org 2013/10/14 22:22:05
+     [readconf.c readconf.h ssh-keysign.c ssh.c ssh_config.5]
+     add a "Match" keyword to ssh_config that allows matching on hostname,
+     user and result of arbitrary commands. "nice work" markus@
 
 20131010
  - (dtucker) OpenBSD CVS Sync
