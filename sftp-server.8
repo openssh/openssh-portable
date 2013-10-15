@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp-server.8,v 1.23 2013/07/16 00:07:52 schwarze Exp $
+.\" $OpenBSD: sftp-server.8,v 1.24 2013/10/09 23:42:17 djm Exp $
 .\"
 .\" Copyright (c) 2000 Markus Friedl.  All rights reserved.
 .\"
@@ -22,7 +22,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: July 16 2013 $
+.Dd $Mdocdate: October 9 2013 $
 .Dt SFTP-SERVER 8
 .Os
 .Sh NAME
@@ -30,11 +30,15 @@
 .Nd SFTP server subsystem
 .Sh SYNOPSIS
 .Nm sftp-server
+.Bk -words
 .Op Fl ehR
 .Op Fl d Ar start_directory
 .Op Fl f Ar log_facility
 .Op Fl l Ar log_level
 .Op Fl u Ar umask
+.Ek
+.Nm
+.Fl Q Ar protocol_feature
 .Sh DESCRIPTION
 .Nm
 is a program that speaks the server side of SFTP protocol
@@ -93,6 +97,36 @@ performs on behalf of the client.
 DEBUG and DEBUG1 are equivalent.
 DEBUG2 and DEBUG3 each specify higher levels of debugging output.
 The default is ERROR.
+.It Fl P Ar blacklisted_requests
+Specify a comma-separated list of sftp protocol requests that are banned by
+the server.
+.Nm
+will reply to any blacklisted request with a failure.
+The
+.Fl Q
+flag allows querying
+.Nm
+to determine the supported request types.
+If both a blacklist and a whitelist are specified, then the blacklist is
+applied before the whitelist.
+.It Fl p Ar whitelisted_requests
+Specify a comma-separated list of sftp protocol requests that are permitted
+by the server.
+All request types that are not on the whitelist will be logged and replied
+to with a failure message.
+.Pp
+Care must be taken when using this feature to ensure that requests made
+implicitly by sftp clients are permitted.
+.It Fl Q Ar protocol_feature
+Query protocol features supported by
+.Nm .
+At present the only feature that may be queried is
+.Dq requests ,
+that may be used for whitelisting or blacklisting (flags
+.Fl p
+and
+.Fl P
+respectively.)
 .It Fl R
 Places this instance of
 .Nm

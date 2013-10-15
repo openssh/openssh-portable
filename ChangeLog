@@ -1,3 +1,12 @@
+20131015
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/10/09 23:42:17
+     [sftp-server.8 sftp-server.c]
+     Add ability to whitelist and/or blacklist sftp protocol requests by name.
+     Refactor dispatch loop and consolidate read-only mode checks.
+     Make global variables static, since sftp-server is linked into sshd(8).
+     ok dtucker@
+
 20131010
  - (dtucker) OpenBSD CVS Sync
    - sthen@cvs.openbsd.org 2013/09/16 11:35:43
