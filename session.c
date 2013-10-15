@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.266 2013/07/19 07:37:48 markus Exp $ */
+/* $OpenBSD: session.c,v 1.267 2013/10/14 21:20:52 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -794,26 +794,49 @@ int
 do_exec(Session *s, const char *command)
 {
 	int ret;
+	const char *forced = NULL;
+	char session_type[1024], *tty = NULL;
 
 	if (options.adm_forced_command) {
 		original_command = command;
 		command = options.adm_forced_command;
-		if (IS_INTERNAL_SFTP(command)) {
-			s->is_subsystem = s->is_subsystem ?
-			    SUBSYSTEM_INT_SFTP : SUBSYSTEM_INT_SFTP_ERROR;
-		} else if (s->is_subsystem)
-			s->is_subsystem = SUBSYSTEM_EXT;
-		debug("Forced command (config) '%.900s'", command);
+		forced = "(config)";
 	} else if (forced_command) {
 		original_command = command;
 		command = forced_command;
+		forced = "(key-option)";
+	}
+	if (forced != NULL) {
 		if (IS_INTERNAL_SFTP(command)) {
 			s->is_subsystem = s->is_subsystem ?
 			    SUBSYSTEM_INT_SFTP : SUBSYSTEM_INT_SFTP_ERROR;
 		} else if (s->is_subsystem)
 			s->is_subsystem = SUBSYSTEM_EXT;
-		debug("Forced command (key option) '%.900s'", command);
+		snprintf(session_type, sizeof(session_type),
+		    "forced-command %s '%.900s'", forced, command);
+	} else if (s->is_subsystem) {
+		snprintf(session_type, sizeof(session_type),
+		    "subsystem '%.900s'", s->subsys);
+	} else if (command == NULL) {
+		snprintf(session_type, sizeof(session_type), "shell");
+	} else {
+		/* NB. we don't log unforced commands to preserve privacy */
+		snprintf(session_type, sizeof(session_type), "command");
 	}
+
+	if (s->ttyfd != -1) {
+		tty = s->tty;
+		if (strncmp(tty, "/dev/", 5) == 0)
+			tty += 5;
+	}
+
+	verbose("Starting session: %s%s%s for %s from %.200s port %d",
+	    session_type,
+	    tty == NULL ? "" : " on ",
+	    tty == NULL ? "" : tty,
+	    s->pw->pw_name,
+	    get_remote_ipaddr(),
+	    get_remote_port());
 
 #ifdef SSH_AUDIT_EVENTS
 	if (command != NULL)
@@ -2100,15 +2123,16 @@ session_subsystem_req(Session *s)
 	struct stat st;
 	u_int len;
 	int success = 0;
-	char *prog, *cmd, *subsys = packet_get_string(&len);
+	char *prog, *cmd;
 	u_int i;
 
+	s->subsys = packet_get_string(&len);
 	packet_check_eom();
-	logit("subsystem request for %.100s by user %s", subsys,
+	debug2("subsystem request for %.100s by user %s", s->subsys,
 	    s->pw->pw_name);
 
 	for (i = 0; i < options.num_subsystems; i++) {
-		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
+		if (strcmp(s->subsys, options.subsystem_name[i]) == 0) {
 			prog = options.subsystem_command[i];
 			cmd = options.subsystem_args[i];
 			if (strcmp(INTERNAL_SFTP_NAME, prog) == 0) {
@@ -2127,10 +2151,9 @@ session_subsystem_req(Session *s)
 	}
 
 	if (!success)
-		logit("subsystem request for %.100s failed, subsystem not found",
-		    subsys);
+		logit("subsystem request for %.100s by user %s failed, "
+		    "subsystem not found", s->subsys, s->pw->pw_name);
 
-	free(subsys);
 	return success;
 }
 
@@ -2481,6 +2504,7 @@ session_close(Session *s)
 	free(s->auth_display);
 	free(s->auth_data);
 	free(s->auth_proto);
+	free(s->subsys);
 	if (s->env != NULL) {
 		for (i = 0; i < s->num_env; i++) {
 			free(s->env[i].name);

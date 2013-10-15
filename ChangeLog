@@ -29,6 +29,10 @@
      [sftp-server.8 sftp-server.c]
      tweak previous;
      ok djm
+   - djm@cvs.openbsd.org 2013/10/14 21:20:52
+     [session.c session.h]
+     Add logging of session starts in a useful format; ok markus@ feedback and
+     ok dtucker@
 
 20131010
  - (dtucker) OpenBSD CVS Sync
