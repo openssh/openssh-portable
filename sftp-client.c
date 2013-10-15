@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.105 2013/10/11 02:45:36 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.106 2013/10/11 02:52:23 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1656,8 +1656,8 @@ upload_dir(struct sftp_conn *conn, char *src, char *dst, int preserve_flag,
 		return -1;
 	}
 
-	ret = upload_dir_internal(conn, src, dst_canon, preserve_flag,
-	    print_flag, 0);
+	ret = upload_dir_internal(conn, src, dst_canon, 0, preserve_flag,
+	    print_flag);
 	free(dst_canon);
 	return ret;
 }

@@ -19,6 +19,9 @@
      reorder some internal function arguments to make adding additional flags
      easier.
      no functional change
+   - djm@cvs.openbsd.org 2013/10/11 02:52:23
+     [sftp-client.c]
+     missed one arg reorder
 
 20131010
  - (dtucker) OpenBSD CVS Sync
