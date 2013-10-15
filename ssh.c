@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.382 2013/10/14 22:22:04 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.383 2013/10/14 23:28:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -723,6 +723,14 @@ main(int ac, char **av)
 
 	channel_set_af(options.address_family);
 
+	/* Tidy and check options */
+	if (options.host_key_alias != NULL)
+		lowercase(options.host_key_alias);
+	if (options.proxy_command != NULL &&
+	    strcmp(options.proxy_command, "-") == 0 &&
+	    options.proxy_use_fdpass)
+		fatal("ProxyCommand=- and ProxyUseFDPass are incompatible");
+
 	/* reinit */
 	log_init(argv0, options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
 
@@ -777,24 +785,6 @@ main(int ac, char **av)
 		    (char *)NULL);
 		debug3("expanded LocalCommand: %s", options.local_command);
 		free(cp);
-	}
-
-	/* force lowercase for hostkey matching */
-	if (options.host_key_alias != NULL) {
-		for (p = options.host_key_alias; *p; p++)
-			if (isupper(*p))
-				*p = (char)tolower(*p);
-	}
-
-	if (options.proxy_command != NULL &&
-	    strcmp(options.proxy_command, "none") == 0) {
-		free(options.proxy_command);
-		options.proxy_command = NULL;
-	}
-	if (options.control_path != NULL &&
-	    strcmp(options.control_path, "none") == 0) {
-		free(options.control_path);
-		options.control_path = NULL;
 	}
 
 	if (options.control_path != NULL) {

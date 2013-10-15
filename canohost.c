@@ -1,4 +1,4 @@
-/* $OpenBSD: canohost.c,v 1.67 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: canohost.c,v 1.68 2013/10/14 23:28:22 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -48,7 +48,6 @@ static char *
 get_remote_hostname(int sock, int use_dns)
 {
 	struct sockaddr_storage from;
-	int i;
 	socklen_t fromlen;
 	struct addrinfo hints, *ai, *aitop;
 	char name[NI_MAXHOST], ntop[NI_MAXHOST], ntop2[NI_MAXHOST];
@@ -99,13 +98,9 @@ get_remote_hostname(int sock, int use_dns)
 		return xstrdup(ntop);
 	}
 
-	/*
-	 * Convert it to all lowercase (which is expected by the rest
-	 * of this software).
-	 */
-	for (i = 0; name[i]; i++)
-		if (isupper(name[i]))
-			name[i] = (char)tolower(name[i]);
+	/* Names are stores in lowercase. */
+	lowercase(name);
+
 	/*
 	 * Map it back to an IP address and check that the given
 	 * address actually is an address of this host.  This is

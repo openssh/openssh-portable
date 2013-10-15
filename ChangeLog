@@ -37,6 +37,15 @@
      [readconf.c readconf.h ssh-keysign.c ssh.c ssh_config.5]
      add a "Match" keyword to ssh_config that allows matching on hostname,
      user and result of arbitrary commands. "nice work" markus@
+   - djm@cvs.openbsd.org 2013/10/14 23:28:23
+     [canohost.c misc.c misc.h readconf.c sftp-server.c ssh.c]
+     refactor client config code a little:
+     add multistate option partsing to readconf.c, similar to servconf.c's
+     existing code.
+     move checking of options that accept "none" as an argument to readconf.c
+     add a lowercase() function and use it instead of explicit tolower() in
+     loops
+     part of a larger diff that was ok markus@
 
 20131010
  - (dtucker) OpenBSD CVS Sync

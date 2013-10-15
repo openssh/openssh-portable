@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.100 2013/10/14 14:18:56 jmc Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.101 2013/10/14 23:28:23 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -230,6 +230,8 @@ flags_from_portable(int pflags)
 	} else if (pflags & SSH2_FXF_WRITE) {
 		flags = O_WRONLY;
 	}
+	if (pflags & SSH2_FXF_APPEND)
+		flags |= O_APPEND;
 	if (pflags & SSH2_FXF_CREAT)
 		flags |= O_CREAT;
 	if (pflags & SSH2_FXF_TRUNC)
@@ -256,6 +258,8 @@ string_from_portable(int pflags)
 		PAPPEND("READ")
 	if (pflags & SSH2_FXF_WRITE)
 		PAPPEND("WRITE")
+	if (pflags & SSH2_FXF_APPEND)
+		PAPPEND("APPEND")
 	if (pflags & SSH2_FXF_CREAT)
 		PAPPEND("CREATE")
 	if (pflags & SSH2_FXF_TRUNC)
@@ -279,6 +283,7 @@ struct Handle {
 	int use;
 	DIR *dirp;
 	int fd;
+	int flags;
 	char *name;
 	u_int64_t bytes_read, bytes_write;
 	int next_unused;
@@ -302,7 +307,7 @@ static void handle_unused(int i)
 }
 
 static int
-handle_new(int use, const char *name, int fd, DIR *dirp)
+handle_new(int use, const char *name, int fd, int flags, DIR *dirp)
 {
 	int i;
 
@@ -320,6 +325,7 @@ handle_new(int use, const char *name, int fd, DIR *dirp)
 	handles[i].use = use;
 	handles[i].dirp = dirp;
 	handles[i].fd = fd;
+	handles[i].flags = flags;
 	handles[i].name = xstrdup(name);
 	handles[i].bytes_read = handles[i].bytes_write = 0;
 
@@ -380,6 +386,14 @@ handle_to_fd(int handle)
 	if (handle_is_ok(handle, HANDLE_FILE))
 		return handles[handle].fd;
 	return -1;
+}
+
+static int
+handle_to_flags(int handle)
+{
+	if (handle_is_ok(handle, HANDLE_FILE))
+		return handles[handle].flags;
+	return 0;
 }
 
 static void
@@ -668,7 +682,7 @@ process_open(u_int32_t id)
 		if (fd < 0) {
 			status = errno_to_portable(errno);
 		} else {
-			handle = handle_new(HANDLE_FILE, name, fd, NULL);
+			handle = handle_new(HANDLE_FILE, name, fd, flags, NULL);
 			if (handle < 0) {
 				close(fd);
 			} else {
@@ -754,7 +768,8 @@ process_write(u_int32_t id)
 	if (fd < 0)
 		status = SSH2_FX_FAILURE;
 	else {
-		if (lseek(fd, off, SEEK_SET) < 0) {
+		if (!(handle_to_flags(handle) & O_APPEND) &&
+				lseek(fd, off, SEEK_SET) < 0) {
 			status = errno_to_portable(errno);
 			error("process_write: seek failed");
 		} else {
@@ -971,7 +986,7 @@ process_opendir(u_int32_t id)
 	if (dirp == NULL) {
 		status = errno_to_portable(errno);
 	} else {
-		handle = handle_new(HANDLE_DIR, path, 0, dirp);
+		handle = handle_new(HANDLE_DIR, path, 0, 0, dirp);
 		if (handle < 0) {
 			closedir(dirp);
 		} else {
