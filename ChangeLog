@@ -49,6 +49,7 @@
    - djm@cvs.openbsd.org 2013/10/14 23:31:01
      [ssh.c]
      whitespace at EOL; pointed out by markus@
+ - [ssh.c] g/c unused variable.
 
 20131010
  - (dtucker) OpenBSD CVS Sync
