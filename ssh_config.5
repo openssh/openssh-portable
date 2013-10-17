@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.171 2013/10/16 02:31:46 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.172 2013/10/16 06:42:25 jmc Exp $
 .Dd $Mdocdate: October 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -201,15 +201,15 @@ Note that this option does not work if
 is set to
 .Dq yes .
 .It Cm CanonicalDomains
-when
+When
 .Cm CanonicaliseHostname
 is enabled, this option specifies the list of domain suffixes in which to
 search for the specified destination host.
 .It Cm CanonicaliseFallbackLocal
-specified whether to fail with an error when hostname canonicalisation fails.
-The default of
-.Dq no
-will attempt to lookup the unqualified hostname using the system resolver's
+Specifies whether to fail with an error when hostname canonicalisation fails.
+The default,
+.Dq no ,
+will attempt to look up the unqualified hostname using the system resolver's
 search rules.
 A value of
 .Dq yes
@@ -221,9 +221,9 @@ is enabled and the target hostname cannot be found in any of the domains
 specified by
 .Cm CanonicalDomains .
 .It Cm CanonicaliseHostname
-controls whether explicit hostname canonicalisation is performed.
-The default
-.Dq no
+Controls whether explicit hostname canonicalisation is performed.
+The default,
+.Dq no ,
 is not to perform any name rewriting and let the system resolver handle all
 hostname lookups.
 If set to
@@ -241,26 +241,24 @@ If
 .Cm CanonicaliseHostname
 is set to
 .Dq always ,
-then canonicalisation is applied to proxied connections to.
+then canonicalisation is applied to proxied connections too.
 .It Cm CanonicaliseMaxDots
-specifies the maximum number of dot characters in a hostname name before
+Specifies the maximum number of dot characters in a hostname before
 canonicalisation is disabled.
-The default of
-.Dq 1
-allows a single dot (i.e. hostname.subdomain)
+The default,
+.Dq 1 ,
+allows a single dot (i.e. hostname.subdomain).
 .It Cm CanonicalisePermittedCNAMEs
-specifies rules to determine whether CNAMEs should be followed when
+Specifies rules to determine whether CNAMEs should be followed when
 canonicalising hostnames.
 The rules consist of one or more arguments of
-.Sm off
-.Ar source_domain_list : Ar target_domain_list
-.Sm on
+.Ar source_domain_list : Ns Ar target_domain_list ,
 where
 .Ar source_domain_list
-is a pattern-list of domains that are may follow CNAMEs in canonicalisation
+is a pattern-list of domains that may follow CNAMEs in canonicalisation,
 and
 .Ar target_domain_list
-is a pattern-list of domains that they may resove to.
+is a pattern-list of domains that they may resolve to.
 .Pp
 For example,
 .Dq *.a.example.com:*.b.example.com,*.c.example.com
