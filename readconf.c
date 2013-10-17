@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.208 2013/10/16 02:31:45 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.209 2013/10/16 22:49:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -144,8 +144,8 @@ typedef enum {
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
-	oCanonicalDomains, oCanonicaliseHostname, oCanonicaliseMaxDots,
-	oCanonicaliseFallbackLocal, oCanonicalisePermittedCNAMEs,
+	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
+	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -260,10 +260,10 @@ static struct {
 	{ "requesttty", oRequestTTY },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
-	{ "canonicalisefallbacklocal", oCanonicaliseFallbackLocal },
-	{ "canonicalisehostname", oCanonicaliseHostname },
-	{ "canonicalisemaxdots", oCanonicaliseMaxDots },
-	{ "canonicalisepermittedcnames", oCanonicalisePermittedCNAMEs },
+	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
+	{ "canonicalizehostname", oCanonicalizeHostname },
+	{ "canonicalizemaxdots", oCanonicalizeMaxDots },
+	{ "canonicalizepermittedcnames", oCanonicalizePermittedCNAMEs },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -644,7 +644,7 @@ static const struct multistate multistate_requesttty[] = {
 	{ "auto",			REQUEST_TTY_AUTO },
 	{ NULL, -1 }
 };
-static const struct multistate multistate_canonicalisehostname[] = {
+static const struct multistate multistate_canonicalizehostname[] = {
 	{ "true",			SSH_CANONICALISE_YES },
 	{ "false",			SSH_CANONICALISE_NO },
 	{ "yes",			SSH_CANONICALISE_YES },
@@ -1321,7 +1321,7 @@ parse_int:
 		}
 		break;
 
-	case oCanonicalisePermittedCNAMEs:
+	case oCanonicalizePermittedCNAMEs:
 		value = options->num_permitted_cnames != 0;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
 			/* Either '*' for everything or 'list:list' */
@@ -1350,17 +1350,17 @@ parse_int:
 		}
 		break;
 
-	case oCanonicaliseHostname:
-		intptr = &options->canonicalise_hostname;
-		multistate_ptr = multistate_canonicalisehostname;
+	case oCanonicalizeHostname:
+		intptr = &options->canonicalize_hostname;
+		multistate_ptr = multistate_canonicalizehostname;
 		goto parse_multistate;
 
-	case oCanonicaliseMaxDots:
-		intptr = &options->canonicalise_max_dots;
+	case oCanonicalizeMaxDots:
+		intptr = &options->canonicalize_max_dots;
 		goto parse_int;
 
-	case oCanonicaliseFallbackLocal:
-		intptr = &options->canonicalise_fallback_local;
+	case oCanonicalizeFallbackLocal:
+		intptr = &options->canonicalize_fallback_local;
 		goto parse_flag;
 
 	case oDeprecated:
@@ -1528,9 +1528,9 @@ initialize_options(Options * options)
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
 	options->num_permitted_cnames = 0;
-	options->canonicalise_max_dots = -1;
-	options->canonicalise_fallback_local = -1;
-	options->canonicalise_hostname = -1;
+	options->canonicalize_max_dots = -1;
+	options->canonicalize_fallback_local = -1;
+	options->canonicalize_hostname = -1;
 }
 
 /*
@@ -1684,12 +1684,12 @@ fill_default_options(Options * options)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->proxy_use_fdpass == -1)
 		options->proxy_use_fdpass = 0;
-	if (options->canonicalise_max_dots == -1)
-		options->canonicalise_max_dots = 1;
-	if (options->canonicalise_fallback_local == -1)
-		options->canonicalise_fallback_local = 1;
-	if (options->canonicalise_hostname == -1)
-		options->canonicalise_hostname = SSH_CANONICALISE_NO;
+	if (options->canonicalize_max_dots == -1)
+		options->canonicalize_max_dots = 1;
+	if (options->canonicalize_fallback_local == -1)
+		options->canonicalize_fallback_local = 1;
+	if (options->canonicalize_hostname == -1)
+		options->canonicalize_hostname = SSH_CANONICALISE_NO;
 #define CLEAR_ON_NONE(v) \
 	do { \
 		if (v != NULL && strcasecmp(v, "none") == 0) { \

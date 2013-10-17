@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.98 2013/10/16 02:31:46 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.99 2013/10/16 22:49:38 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -148,9 +148,9 @@ typedef struct {
 
 	int	num_canonical_domains;
 	char	*canonical_domains[MAX_CANON_DOMAINS];
-	int	canonicalise_hostname;
-	int	canonicalise_max_dots;
-	int	canonicalise_fallback_local;
+	int	canonicalize_hostname;
+	int	canonicalize_max_dots;
+	int	canonicalize_fallback_local;
 	int	num_permitted_cnames;
 	struct allowed_cname permitted_cnames[MAX_CANON_DOMAINS];
 

@@ -16,6 +16,10 @@
    - jmc@cvs.openbsd.org 2013/10/16 06:42:25
      [ssh_config.5]
      tweak previous;
+   - djm@cvs.openbsd.org 2013/10/16 22:49:39
+     [readconf.c readconf.h ssh.1 ssh.c ssh_config.5]
+     s/canonicalise/canonicalize/ for consistency with existing spelling,
+     e.g. authorized_keys; pointed out by naddy@
 
 20131015
  - (djm) OpenBSD CVS Sync

@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.172 2013/10/16 06:42:25 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.173 2013/10/16 22:49:39 djm Exp $
 .Dd $Mdocdate: October 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -202,10 +202,10 @@ is set to
 .Dq yes .
 .It Cm CanonicalDomains
 When
-.Cm CanonicaliseHostname
+.Cm CanonicalizeHostname
 is enabled, this option specifies the list of domain suffixes in which to
 search for the specified destination host.
-.It Cm CanonicaliseFallbackLocal
+.It Cm CanonicalizeFallbackLocal
 Specifies whether to fail with an error when hostname canonicalisation fails.
 The default,
 .Dq no ,
@@ -216,11 +216,11 @@ A value of
 will cause
 .Xr ssh 1
 to fail instantly if
-.Cm CanonicaliseHostname
+.Cm CanonicalizeHostname
 is enabled and the target hostname cannot be found in any of the domains
 specified by
 .Cm CanonicalDomains .
-.It Cm CanonicaliseHostname
+.It Cm CanonicalizeHostname
 Controls whether explicit hostname canonicalisation is performed.
 The default,
 .Dq no ,
@@ -231,26 +231,26 @@ If set to
 then, for connections that do not use a
 .Cm ProxyCommand ,
 .Xr ssh 1
-will attempt to canonicalise the hostname specified on the command line
+will attempt to canonicalize the hostname specified on the command line
 using the
 .Cm CanonicalDomains
 suffixes and
-.Cm CanonicalisePermittedCNAMEs
+.Cm CanonicalizePermittedCNAMEs
 rules.
 If
-.Cm CanonicaliseHostname
+.Cm CanonicalizeHostname
 is set to
 .Dq always ,
 then canonicalisation is applied to proxied connections too.
-.It Cm CanonicaliseMaxDots
+.It Cm CanonicalizeMaxDots
 Specifies the maximum number of dot characters in a hostname before
 canonicalisation is disabled.
 The default,
 .Dq 1 ,
 allows a single dot (i.e. hostname.subdomain).
-.It Cm CanonicalisePermittedCNAMEs
+.It Cm CanonicalizePermittedCNAMEs
 Specifies rules to determine whether CNAMEs should be followed when
-canonicalising hostnames.
+canonicalizing hostnames.
 The rules consist of one or more arguments of
 .Ar source_domain_list : Ns Ar target_domain_list ,
 where
@@ -264,7 +264,7 @@ For example,
 .Dq *.a.example.com:*.b.example.com,*.c.example.com
 will allow hostnames matching
 .Dq *.a.example.com
-to be canonicalised to names in the
+to be canonicalized to names in the
 .Dq *.b.example.com
 or
 .Dq *.c.example.com
