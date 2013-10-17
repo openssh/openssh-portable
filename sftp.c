@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.155 2013/08/31 00:13:54 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.156 2013/10/17 00:30:13 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -93,6 +93,9 @@ int global_aflag = 0;
 
 /* When this option is set, the file transfers will always preserve times */
 int global_pflag = 0;
+
+/* When this option is set, transfers will have fsync() called on each file */
+int global_fflag = 0;
 
 /* SIGINT received during command processing */
 volatile sig_atomic_t interrupted = 0;
@@ -359,7 +362,7 @@ make_absolute(char *p, char *pwd)
 
 static int
 parse_getput_flags(const char *cmd, char **argv, int argc,
-    int *aflag, int *pflag, int *rflag)
+    int *aflag, int *fflag, int *pflag, int *rflag)
 {
 	extern int opterr, optind, optopt, optreset;
 	int ch;
@@ -367,11 +370,14 @@ parse_getput_flags(const char *cmd, char **argv, int argc,
 	optind = optreset = 1;
 	opterr = 0;
 
-	*aflag = *rflag = *pflag = 0;
-	while ((ch = getopt(argc, argv, "aPpRr")) != -1) {
+	*aflag = *fflag = *rflag = *pflag = 0;
+	while ((ch = getopt(argc, argv, "afPpRr")) != -1) {
 		switch (ch) {
 		case 'a':
 			*aflag = 1;
+			break;
+		case 'f':
+			*fflag = 1;
 			break;
 		case 'p':
 		case 'P':
@@ -574,7 +580,7 @@ pathname_is_dir(char *pathname)
 
 static int
 process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
-    int pflag, int rflag, int resume)
+    int pflag, int rflag, int resume, int fflag)
 {
 	char *abs_src = NULL;
 	char *abs_dst = NULL;
@@ -633,11 +639,13 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 			printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (download_dir(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag || global_pflag, 1, resume) == -1)
+			    pflag || global_pflag, 1, resume,
+			    fflag || global_fflag) == -1)
 				err = -1;
 		} else {
 			if (do_download(conn, g.gl_pathv[i], abs_dst, NULL,
-			    pflag || global_pflag, resume) == -1)
+			    pflag || global_pflag, resume,
+			    fflag || global_fflag) == -1)
 				err = -1;
 		}
 		free(abs_dst);
@@ -652,7 +660,7 @@ out:
 
 static int
 process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
-    int pflag, int rflag)
+    int pflag, int rflag, int fflag)
 {
 	char *tmp_dst = NULL;
 	char *abs_dst = NULL;
@@ -719,11 +727,13 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (upload_dir(conn, g.gl_pathv[i], abs_dst,
-			    pflag || global_pflag, 1) == -1)
+			    pflag || global_pflag, 1,
+			    fflag || global_fflag) == -1)
 				err = -1;
 		} else {
 			if (do_upload(conn, g.gl_pathv[i], abs_dst,
-			    pflag || global_pflag) == -1)
+			    pflag || global_pflag,
+			    fflag || global_fflag) == -1)
 				err = -1;
 		}
 	}
@@ -1176,9 +1186,9 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 }
 
 static int
-parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
-    int *pflag, int *rflag, int *sflag, unsigned long *n_arg,
-    char **path1, char **path2)
+parse_args(const char **cpp, int *ignore_errors, int *aflag, int *fflag,
+    int *hflag, int *iflag, int *lflag, int *pflag, int *rflag, int *sflag,
+    unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
 	char *cp2, **argv;
@@ -1190,9 +1200,9 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	cp = cp + strspn(cp, WHITESPACE);
 
 	/* Check for leading '-' (disable error processing) */
-	*iflag = 0;
+	*ignore_errors = 0;
 	if (*cp == '-') {
-		*iflag = 1;
+		*ignore_errors = 1;
 		cp++;
 		cp = cp + strspn(cp, WHITESPACE);
 	}
@@ -1222,7 +1232,8 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	}
 
 	/* Get arguments and parse flags */
-	*aflag = *lflag = *pflag = *rflag = *hflag = *n_arg = 0;
+	*aflag = *fflag = *hflag = *iflag = *lflag = *pflag = 0;
+	*rflag = *sflag = 0;
 	*path1 = *path2 = NULL;
 	optidx = 1;
 	switch (cmdnum) {
@@ -1230,7 +1241,7 @@ parse_args(const char **cpp, int *aflag, int *hflag, int *iflag, int *lflag,
 	case I_REGET:
 	case I_PUT:
 		if ((optidx = parse_getput_flags(cmd, argv, argc,
-		    aflag, pflag, rflag)) == -1)
+		    aflag, fflag, pflag, rflag)) == -1)
 			return -1;
 		/* Get first pathname (mandatory) */
 		if (argc - optidx < 1) {
@@ -1371,8 +1382,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
     int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int aflag = 0, hflag = 0, iflag = 0, lflag = 0, pflag = 0;
-	int rflag = 0, sflag = 0;
+	int ignore_errors = 0, aflag = 0, fflag = 0, hflag = 0, iflag = 0;
+	int lflag = 0, pflag = 0, rflag = 0, sflag = 0;
 	int cmdnum, i;
 	unsigned long n_arg = 0;
 	Attrib a, *aa;
@@ -1381,9 +1392,9 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	glob_t g;
 
 	path1 = path2 = NULL;
-	cmdnum = parse_args(&cmd, &aflag, &hflag, &iflag, &lflag, &pflag,
-	    &rflag, &sflag, &n_arg, &path1, &path2);
-	if (iflag != 0)
+	cmdnum = parse_args(&cmd, &ignore_errors, &aflag, &fflag, &hflag,
+	    &iflag, &lflag, &pflag, &rflag, &sflag, &n_arg, &path1, &path2);
+	if (ignore_errors != 0)
 		err_abort = 0;
 
 	memset(&g, 0, sizeof(g));
@@ -1402,10 +1413,11 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		/* FALLTHROUGH */
 	case I_GET:
 		err = process_get(conn, path1, path2, *pwd, pflag,
-		    rflag, aflag);
+		    rflag, aflag, fflag);
 		break;
 	case I_PUT:
-		err = process_put(conn, path1, path2, *pwd, pflag, rflag);
+		err = process_put(conn, path1, path2, *pwd, pflag,
+		    rflag, fflag);
 		break;
 	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
@@ -2231,7 +2243,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246ahpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
+	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2290,6 +2302,9 @@ main(int argc, char **argv)
 			showprogress = 0;
 			quiet = batchmode = 1;
 			addargs(&args, "-obatchmode yes");
+			break;
+		case 'f':
+			global_fflag = 1;
 			break;
 		case 'p':
 			global_pflag = 1;

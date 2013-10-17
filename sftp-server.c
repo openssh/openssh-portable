@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.101 2013/10/14 23:28:23 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.102 2013/10/17 00:30:13 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -112,6 +112,7 @@ static void process_extended_posix_rename(u_int32_t id);
 static void process_extended_statvfs(u_int32_t id);
 static void process_extended_fstatvfs(u_int32_t id);
 static void process_extended_hardlink(u_int32_t id);
+static void process_extended_fsync(u_int32_t id);
 static void process_extended(u_int32_t id);
 
 struct sftp_handler {
@@ -152,6 +153,7 @@ struct sftp_handler extended_handlers[] = {
 	{ "statvfs", "statvfs@openssh.com", 0, process_extended_statvfs, 0 },
 	{ "fstatvfs", "fstatvfs@openssh.com", 0, process_extended_fstatvfs, 0 },
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
+	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
@@ -651,6 +653,9 @@ process_init(void)
 	buffer_put_cstring(&msg, "2"); /* version */
 	/* hardlink extension */
 	buffer_put_cstring(&msg, "hardlink@openssh.com");
+	buffer_put_cstring(&msg, "1"); /* version */
+	/* fsync extension */
+	buffer_put_cstring(&msg, "fsync@openssh.com");
 	buffer_put_cstring(&msg, "1"); /* version */
 	send_msg(&msg);
 	buffer_free(&msg);
@@ -1295,6 +1300,23 @@ process_extended_hardlink(u_int32_t id)
 	send_status(id, status);
 	free(oldpath);
 	free(newpath);
+}
+
+static void
+process_extended_fsync(u_int32_t id)
+{
+	int handle, fd, ret, status = SSH2_FX_OP_UNSUPPORTED;
+
+	handle = get_handle();
+	debug3("request %u: fsync (handle %u)", id, handle);
+	verbose("fsync \"%s\"", handle_to_name(handle));
+	if ((fd = handle_to_fd(handle)) < 0)
+		status = SSH2_FX_NO_SUCH_FILE;
+	else if (handle_is_ok(handle, HANDLE_FILE)) {
+		ret = fsync(fd);
+		status = (ret == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	}
+	send_status(id, status);
 }
 
 static void

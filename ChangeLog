@@ -23,6 +23,12 @@
    - djm@cvs.openbsd.org 2013/10/16 22:58:01
      [ssh.c ssh_config.5]
      one I missed in previous: s/isation/ization/
+   - djm@cvs.openbsd.org 2013/10/17 00:30:13
+     [PROTOCOL sftp-client.c sftp-client.h sftp-server.c sftp.1 sftp.c]
+     fsync@openssh.com protocol extension for sftp-server
+     client support to allow calling fsync() faster successful transfer
+     patch mostly by imorgan AT nas.nasa.gov; bz#1798
+     "fine" markus@ "grumble OK" deraadt@ "doesn't sound bad to me" millert@
 
 20131015
  - (djm) OpenBSD CVS Sync
