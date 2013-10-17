@@ -6,6 +6,9 @@
    - jmc@cvs.openbsd.org 2013/10/17 07:35:48
      [sftp.1 sftp.c]
      tweak previous;
+   - djm@cvs.openbsd.org 2013/10/17 22:08:04
+     [sshd.c]
+     include remote port in bad banner message; bz#2162
 
 20131017
  - (djm) OpenBSD CVS Sync
