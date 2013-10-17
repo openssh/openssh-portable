@@ -29,6 +29,10 @@
      client support to allow calling fsync() faster successful transfer
      patch mostly by imorgan AT nas.nasa.gov; bz#1798
      "fine" markus@ "grumble OK" deraadt@ "doesn't sound bad to me" millert@
+   - djm@cvs.openbsd.org 2013/10/17 00:46:49
+     [ssh.c]
+     rearrange check to reduce diff against -portable
+     (Id sync only)
 
 20131015
  - (djm) OpenBSD CVS Sync
