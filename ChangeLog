@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2013/10/09 23:44:14
      [regress/Makefile regress/sftp-perm.sh]
      regression test for sftp request white/blacklisting and readonly mode.
+   - jmc@cvs.openbsd.org 2013/10/17 07:35:48
+     [sftp.1 sftp.c]
+     tweak previous;
 
 20131017
  - (djm) OpenBSD CVS Sync
