@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.386 2013/10/16 22:49:39 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.387 2013/10/16 22:58:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -303,8 +303,8 @@ check_follow_cname(char **namep, const char *cname)
 
 /*
  * Attempt to resolve the supplied hostname after applying the user's
- * canonicalisation rules. Returns the address list for the host or NULL
- * if no name was found after canonicalisation.
+ * canonicalization rules. Returns the address list for the host or NULL
+ * if no name was found after canonicalization.
  */
 static struct addrinfo *
 resolve_canonicalize(char **hostp, u_int port)
@@ -322,7 +322,7 @@ resolve_canonicalize(char **hostp, u_int port)
 	if (options.proxy_command != NULL &&
 	    options.canonicalize_hostname != SSH_CANONICALISE_ALWAYS)
 		return NULL;
-	/* Don't apply canonicalisation to sufficiently-qualified hostnames */
+	/* Don't apply canonicalization to sufficiently-qualified hostnames */
 	ndots = 0;
 	for (cp = *hostp; *cp != '\0'; cp++) {
 		if (*cp == '.')
@@ -906,11 +906,11 @@ main(int ac, char **av)
 		host = cp;
 	}
 
-	/* If canonicalisation requested then try to apply it */
+	/* If canonicalization requested then try to apply it */
 	if (options.canonicalize_hostname != SSH_CANONICALISE_NO)
 		addrs = resolve_canonicalize(&host, options.port);
 	/*
-	 * If canonicalisation not requested, or if it failed then try to
+	 * If canonicalization not requested, or if it failed then try to
 	 * resolve the bare hostname name using the system resolver's usual
 	 * search rules.
 	 */

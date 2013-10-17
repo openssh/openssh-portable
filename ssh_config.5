@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.173 2013/10/16 22:49:39 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.174 2013/10/16 22:58:01 djm Exp $
 .Dd $Mdocdate: October 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -206,7 +206,7 @@ When
 is enabled, this option specifies the list of domain suffixes in which to
 search for the specified destination host.
 .It Cm CanonicalizeFallbackLocal
-Specifies whether to fail with an error when hostname canonicalisation fails.
+Specifies whether to fail with an error when hostname canonicalization fails.
 The default,
 .Dq no ,
 will attempt to look up the unqualified hostname using the system resolver's
@@ -221,7 +221,7 @@ is enabled and the target hostname cannot be found in any of the domains
 specified by
 .Cm CanonicalDomains .
 .It Cm CanonicalizeHostname
-Controls whether explicit hostname canonicalisation is performed.
+Controls whether explicit hostname canonicalization is performed.
 The default,
 .Dq no ,
 is not to perform any name rewriting and let the system resolver handle all
@@ -241,10 +241,10 @@ If
 .Cm CanonicalizeHostname
 is set to
 .Dq always ,
-then canonicalisation is applied to proxied connections too.
+then canonicalization is applied to proxied connections too.
 .It Cm CanonicalizeMaxDots
 Specifies the maximum number of dot characters in a hostname before
-canonicalisation is disabled.
+canonicalization is disabled.
 The default,
 .Dq 1 ,
 allows a single dot (i.e. hostname.subdomain).
@@ -255,7 +255,7 @@ The rules consist of one or more arguments of
 .Ar source_domain_list : Ns Ar target_domain_list ,
 where
 .Ar source_domain_list
-is a pattern-list of domains that may follow CNAMEs in canonicalisation,
+is a pattern-list of domains that may follow CNAMEs in canonicalization,
 and
 .Ar target_domain_list
 is a pattern-list of domains that they may resolve to.
@@ -1423,7 +1423,7 @@ Patterns within pattern-lists may be negated
 by preceding them with an exclamation mark
 .Pq Sq !\& .
 For example,
-to allow a key to be used from anywhere within an organisation
+to allow a key to be used from anywhere within an organization
 except from the
 .Dq dialup
 pool,

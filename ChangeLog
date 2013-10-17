@@ -20,6 +20,9 @@
      [readconf.c readconf.h ssh.1 ssh.c ssh_config.5]
      s/canonicalise/canonicalize/ for consistency with existing spelling,
      e.g. authorized_keys; pointed out by naddy@
+   - djm@cvs.openbsd.org 2013/10/16 22:58:01
+     [ssh.c ssh_config.5]
+     one I missed in previous: s/isation/ization/
 
 20131015
  - (djm) OpenBSD CVS Sync
