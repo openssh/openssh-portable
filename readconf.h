@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.97 2013/10/14 22:22:03 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.98 2013/10/16 02:31:46 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -29,7 +29,13 @@ typedef struct {
 /* Data structure for representing option data. */
 
 #define MAX_SEND_ENV		256
-#define SSH_MAX_HOSTS_FILES	256
+#define SSH_MAX_HOSTS_FILES	32
+#define MAX_CANON_DOMAINS	32
+
+struct allowed_cname {
+	char *source_list;
+	char *target_list;
+};
 
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
@@ -140,8 +146,20 @@ typedef struct {
 
 	int	proxy_use_fdpass;
 
+	int	num_canonical_domains;
+	char	*canonical_domains[MAX_CANON_DOMAINS];
+	int	canonicalise_hostname;
+	int	canonicalise_max_dots;
+	int	canonicalise_fallback_local;
+	int	num_permitted_cnames;
+	struct allowed_cname permitted_cnames[MAX_CANON_DOMAINS];
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
+
+#define SSH_CANONICALISE_NO	0
+#define SSH_CANONICALISE_YES	1
+#define SSH_CANONICALISE_ALWAYS	2
 
 #define SSHCTL_MASTER_NO	0
 #define SSHCTL_MASTER_YES	1

@@ -1,4 +1,4 @@
-/* $OpenBSD: roaming_client.c,v 1.5 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: roaming_client.c,v 1.6 2013/10/16 02:31:46 djm Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
@@ -259,10 +259,10 @@ wait_for_roaming_reconnect(void)
 		if (c != '\n' && c != '\r')
 			continue;
 
-		if (ssh_connect(host, &hostaddr, options.port,
+		if (ssh_connect(host, NULL, &hostaddr, options.port,
 		    options.address_family, 1, &timeout_ms,
-		    options.tcp_keep_alive, options.use_privileged_port,
-		    options.proxy_command) == 0 && roaming_resume() == 0) {
+		    options.tcp_keep_alive, options.use_privileged_port) == 0 &&
+		    roaming_resume() == 0) {
 			packet_restore_state();
 			reenter_guard = 0;
 			fprintf(stderr, "[connection resumed]\n");

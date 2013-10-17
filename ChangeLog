@@ -3,6 +3,16 @@
    - jmc@cvs.openbsd.org 2013/10/15 14:10:25
      [ssh.1 ssh_config.5]
      tweak previous;
+   - djm@cvs.openbsd.org 2013/10/16 02:31:47
+     [readconf.c readconf.h roaming_client.c ssh.1 ssh.c ssh_config.5]
+     [sshconnect.c sshconnect.h]
+     Implement client-side hostname canonicalisation to allow an explicit
+     search path of domain suffixes to use to convert unqualified host names
+     to fully-qualified ones for host key matching.
+     This is particularly useful for host certificates, which would otherwise
+     need to list unqualified names alongside fully-qualified ones (and this
+     causes a number of problems).
+     "looks fine" markus@
 
 20131015
  - (djm) OpenBSD CVS Sync

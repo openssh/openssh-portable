@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.240 2013/09/19 01:26:29 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.241 2013/10/16 02:31:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,7 @@ expand_proxy_command(const char *proxy_command, const char *user,
 {
 	char *tmp, *ret, strport[NI_MAXSERV];
 
-	snprintf(strport, sizeof strport, "%hu", port);
+	snprintf(strport, sizeof strport, "%d", port);
 	xasprintf(&tmp, "exec %s", proxy_command);
 	ret = percent_expand(tmp, "h", host, "p", strport,
 	    "r", options.user, (char *)NULL);
@@ -170,8 +170,6 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 
 	/* Set the connection file descriptors. */
 	packet_set_connection(sock, sock);
-	packet_set_timeout(options.server_alive_interval,
-	    options.server_alive_count_max);
 
 	return 0;
 }
@@ -186,16 +184,6 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	int pin[2], pout[2];
 	pid_t pid;
 	char *shell;
-
-	if (!strcmp(proxy_command, "-")) {
-		packet_set_connection(STDIN_FILENO, STDOUT_FILENO);
-		packet_set_timeout(options.server_alive_interval,
-		    options.server_alive_count_max);
-		return 0;
-	}
-
-	if (options.proxy_use_fdpass)
-		return ssh_proxy_fdpass_connect(host, port, proxy_command);
 
 	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
@@ -258,8 +246,6 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 	/* Set the connection file descriptors. */
 	packet_set_connection(pout[0], pin[1]);
-	packet_set_timeout(options.server_alive_interval,
-	    options.server_alive_count_max);
 
 	/* Indicate OK return */
 	return 0;
@@ -429,32 +415,17 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
  * and %p substituted for host and port, respectively) to use to contact
  * the daemon.
  */
-int
-ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
-    u_short port, int family, int connection_attempts, int *timeout_ms,
-    int want_keepalive, int needpriv, const char *proxy_command)
+static int
+ssh_connect_direct(const char *host, struct addrinfo *aitop,
+    struct sockaddr_storage *hostaddr, u_short port, int family,
+    int connection_attempts, int *timeout_ms, int want_keepalive, int needpriv)
 {
-	int gaierr;
 	int on = 1;
 	int sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
-	struct addrinfo hints, *ai, *aitop;
+	struct addrinfo *ai;
 
 	debug2("ssh_connect: needpriv %d", needpriv);
-
-	/* If a proxy command is given, connect using it. */
-	if (proxy_command != NULL)
-		return ssh_proxy_connect(host, port, proxy_command);
-
-	/* No proxy command. */
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = family;
-	hints.ai_socktype = SOCK_STREAM;
-	snprintf(strport, sizeof strport, "%u", port);
-	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)
-		fatal("%s: Could not resolve hostname %.100s: %s", __progname,
-		    host, ssh_gai_strerror(gaierr));
 
 	for (attempt = 0; attempt < connection_attempts; attempt++) {
 		if (attempt > 0) {
@@ -467,7 +438,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 		 * sequence until the connection succeeds.
 		 */
 		for (ai = aitop; ai; ai = ai->ai_next) {
-			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+			if (ai->ai_family != AF_INET &&
+			    ai->ai_family != AF_INET6)
 				continue;
 			if (getnameinfo(ai->ai_addr, ai->ai_addrlen,
 			    ntop, sizeof(ntop), strport, sizeof(strport),
@@ -500,8 +472,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 			break;	/* Successful connection. */
 	}
 
-	freeaddrinfo(aitop);
-
 	/* Return failure if we didn't get a successful connection. */
 	if (sock == -1) {
 		error("ssh: connect to host %s port %s: %s",
@@ -519,10 +489,26 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 	/* Set the connection. */
 	packet_set_connection(sock, sock);
-	packet_set_timeout(options.server_alive_interval,
-	    options.server_alive_count_max);
 
 	return 0;
+}
+
+int
+ssh_connect(const char *host, struct addrinfo *addrs,
+    struct sockaddr_storage *hostaddr, u_short port, int family,
+    int connection_attempts, int *timeout_ms, int want_keepalive, int needpriv)
+{
+	if (options.proxy_command == NULL) {
+		return ssh_connect_direct(host, addrs, hostaddr, port, family,
+		    connection_attempts, timeout_ms, want_keepalive, needpriv);
+	} else if (strcmp(options.proxy_command, "-") == 0) {
+		packet_set_connection(STDIN_FILENO, STDOUT_FILENO);
+		return 0; /* Always succeeds */
+	} else if (options.proxy_use_fdpass) {
+		return ssh_proxy_fdpass_connect(host, port,
+		    options.proxy_command);
+	}
+	return ssh_proxy_connect(host, port, options.proxy_command);
 }
 
 static void
@@ -1265,7 +1251,7 @@ void
 ssh_login(Sensitive *sensitive, const char *orighost,
     struct sockaddr *hostaddr, u_short port, struct passwd *pw, int timeout_ms)
 {
-	char *host, *cp;
+	char *host;
 	char *server_user, *local_user;
 
 	local_user = xstrdup(pw->pw_name);
@@ -1273,9 +1259,7 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 
 	/* Convert the user-supplied hostname into all lowercase. */
 	host = xstrdup(orighost);
-	for (cp = host; *cp; cp++)
-		if (isupper(*cp))
-			*cp = (char)tolower(*cp);
+	lowercase(host);
 
 	/* Exchange protocol version identification strings with the server. */
 	ssh_exchange_identification(timeout_ms);

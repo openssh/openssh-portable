@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.170 2013/10/15 14:10:25 jmc Exp $
-.Dd $Mdocdate: October 15 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.171 2013/10/16 02:31:46 djm Exp $
+.Dd $Mdocdate: October 16 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -200,6 +200,77 @@ Note that this option does not work if
 .Cm UsePrivilegedPort
 is set to
 .Dq yes .
+.It Cm CanonicalDomains
+when
+.Cm CanonicaliseHostname
+is enabled, this option specifies the list of domain suffixes in which to
+search for the specified destination host.
+.It Cm CanonicaliseFallbackLocal
+specified whether to fail with an error when hostname canonicalisation fails.
+The default of
+.Dq no
+will attempt to lookup the unqualified hostname using the system resolver's
+search rules.
+A value of
+.Dq yes
+will cause
+.Xr ssh 1
+to fail instantly if
+.Cm CanonicaliseHostname
+is enabled and the target hostname cannot be found in any of the domains
+specified by
+.Cm CanonicalDomains .
+.It Cm CanonicaliseHostname
+controls whether explicit hostname canonicalisation is performed.
+The default
+.Dq no
+is not to perform any name rewriting and let the system resolver handle all
+hostname lookups.
+If set to
+.Dq yes
+then, for connections that do not use a
+.Cm ProxyCommand ,
+.Xr ssh 1
+will attempt to canonicalise the hostname specified on the command line
+using the
+.Cm CanonicalDomains
+suffixes and
+.Cm CanonicalisePermittedCNAMEs
+rules.
+If
+.Cm CanonicaliseHostname
+is set to
+.Dq always ,
+then canonicalisation is applied to proxied connections to.
+.It Cm CanonicaliseMaxDots
+specifies the maximum number of dot characters in a hostname name before
+canonicalisation is disabled.
+The default of
+.Dq 1
+allows a single dot (i.e. hostname.subdomain)
+.It Cm CanonicalisePermittedCNAMEs
+specifies rules to determine whether CNAMEs should be followed when
+canonicalising hostnames.
+The rules consist of one or more arguments of
+.Sm off
+.Ar source_domain_list : Ar target_domain_list
+.Sm on
+where
+.Ar source_domain_list
+is a pattern-list of domains that are may follow CNAMEs in canonicalisation
+and
+.Ar target_domain_list
+is a pattern-list of domains that they may resove to.
+.Pp
+For example,
+.Dq *.a.example.com:*.b.example.com,*.c.example.com
+will allow hostnames matching
+.Dq *.a.example.com
+to be canonicalised to names in the
+.Dq *.b.example.com
+or
+.Dq *.c.example.com
+domains.
 .It Cm ChallengeResponseAuthentication
 Specifies whether to use challenge-response authentication.
 The argument to this keyword must be

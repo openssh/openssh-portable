@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.384 2013/10/14 23:31:01 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.385 2013/10/16 02:31:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -231,6 +231,134 @@ tilde_expand_paths(char **paths, u_int num_paths)
 	}
 }
 
+static struct addrinfo *
+resolve_host(const char *name, u_int port, int logerr, char *cname, size_t clen)
+{
+	char strport[NI_MAXSERV];
+	struct addrinfo hints, *res;
+	int gaierr, loglevel = SYSLOG_LEVEL_DEBUG1;
+
+	snprintf(strport, sizeof strport, "%u", port);
+	bzero(&hints, sizeof(hints));
+	hints.ai_family = options.address_family;
+	hints.ai_socktype = SOCK_STREAM;
+	if (cname != NULL)
+		hints.ai_flags = AI_CANONNAME;
+	if ((gaierr = getaddrinfo(name, strport, &hints, &res)) != 0) {
+		if (logerr || (gaierr != EAI_NONAME && gaierr != EAI_NODATA))
+			loglevel = SYSLOG_LEVEL_ERROR;
+		do_log2(loglevel, "%s: Could not resolve hostname %.100s: %s",
+		    __progname, name, ssh_gai_strerror(gaierr));
+		return NULL;
+	}
+	if (cname != NULL && res->ai_canonname != NULL) {
+		if (strlcpy(cname, res->ai_canonname, clen) >= clen) {
+			error("%s: host \"%s\" cname \"%s\" too long (max %lu)",
+			    __func__, name,  res->ai_canonname, (u_long)clen);
+			if (clen > 0)
+				*cname = '\0';
+		}
+	}
+	return res;
+}
+
+/*
+ * Check whether the cname is a permitted replacement for the hostname
+ * and perform the replacement if it is.
+ */
+static int
+check_follow_cname(char **namep, const char *cname)
+{
+	int i;
+	struct allowed_cname *rule;
+
+	if (*cname == '\0' || options.num_permitted_cnames == 0 ||
+	    strcmp(*namep, cname) == 0)
+		return 0;
+	if (options.canonicalise_hostname == SSH_CANONICALISE_NO)
+		return 0;
+	/*
+	 * Don't attempt to canonicalise names that will be interpreted by
+	 * a proxy unless the user specifically requests so.
+	 */
+	if (options.proxy_command != NULL &&
+	    options.canonicalise_hostname != SSH_CANONICALISE_ALWAYS)
+		return 0;
+	debug3("%s: check \"%s\" CNAME \"%s\"", __func__, *namep, cname);
+	for (i = 0; i < options.num_permitted_cnames; i++) {
+		rule = options.permitted_cnames + i;
+		if (match_pattern_list(*namep, rule->source_list,
+		    strlen(rule->source_list), 1) != 1 ||
+		    match_pattern_list(cname, rule->target_list,
+		    strlen(rule->target_list), 1) != 1)
+			continue;
+		verbose("Canonicalised DNS aliased hostname "
+		    "\"%s\" => \"%s\"", *namep, cname);
+		free(*namep);
+		*namep = xstrdup(cname);
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Attempt to resolve the supplied hostname after applying the user's
+ * canonicalisation rules. Returns the address list for the host or NULL
+ * if no name was found after canonicalisation.
+ */
+static struct addrinfo *
+resolve_canonicalise(char **hostp, u_int port)
+{
+	int i, ndots;
+	char *cp, *fullhost, cname_target[NI_MAXHOST];
+	struct addrinfo *addrs;
+
+	if (options.canonicalise_hostname == SSH_CANONICALISE_NO)
+		return NULL;
+	/*
+	 * Don't attempt to canonicalise names that will be interpreted by
+	 * a proxy unless the user specifically requests so.
+	 */
+	if (options.proxy_command != NULL &&
+	    options.canonicalise_hostname != SSH_CANONICALISE_ALWAYS)
+		return NULL;
+	/* Don't apply canonicalisation to sufficiently-qualified hostnames */
+	ndots = 0;
+	for (cp = *hostp; *cp != '\0'; cp++) {
+		if (*cp == '.')
+			ndots++;
+	}
+	if (ndots > options.canonicalise_max_dots) {
+		debug3("%s: not canonicalising hostname \"%s\" (max dots %d)",
+		    __func__, *hostp, options.canonicalise_max_dots);
+		return NULL;
+	}
+	/* Attempt each supplied suffix */
+	for (i = 0; i < options.num_canonical_domains; i++) {
+		*cname_target = '\0';
+		xasprintf(&fullhost, "%s.%s.", *hostp,
+		    options.canonical_domains[i]);
+		if ((addrs = resolve_host(fullhost, options.port, 0,
+		    cname_target, sizeof(cname_target))) == NULL) {
+			free(fullhost);
+			continue;
+		}
+		/* Remove trailing '.' */
+		fullhost[strlen(fullhost) - 1] = '\0';
+		/* Follow CNAME if requested */
+		if (!check_follow_cname(&fullhost, cname_target)) {
+			debug("Canonicalised hostname \"%s\" => \"%s\"",
+			    *hostp, fullhost);
+		}
+		free(*hostp);
+		*hostp = fullhost;
+		return addrs;
+	}
+	if (!options.canonicalise_fallback_local)
+		fatal("%s: Could not resolve host \"%s\"", __progname, host);
+	return NULL;
+}
+
 /*
  * Main program for the ssh client.
  */
@@ -240,12 +368,14 @@ main(int ac, char **av)
 	int i, r, opt, exit_status, use_syslog;
 	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
+	char cname[NI_MAXHOST];
 	struct stat st;
 	struct passwd *pw;
 	int timeout_ms;
 	extern int optind, optreset;
 	extern char *optarg;
 	Forward fwd;
+	struct addrinfo *addrs = NULL;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -630,9 +760,9 @@ main(int ac, char **av)
 				usage();
 			options.user = p;
 			*cp = '\0';
-			host = ++cp;
+			host = xstrdup(++cp);
 		} else
-			host = *av;
+			host = xstrdup(*av);
 		if (ac > 1) {
 			optind = optreset = 1;
 			goto again;
@@ -643,6 +773,9 @@ main(int ac, char **av)
 	/* Check that we got a host name. */
 	if (!host)
 		usage();
+
+	lowercase(host);
+	host_arg = xstrdup(host);
 
 	OpenSSL_add_all_algorithms();
 	ERR_load_crypto_strings();
@@ -728,6 +861,10 @@ main(int ac, char **av)
 	    strcmp(options.proxy_command, "-") == 0 &&
 	    options.proxy_use_fdpass)
 		fatal("ProxyCommand=- and ProxyUseFDPass are incompatible");
+#ifndef HAVE_CYGWIN
+	if (original_effective_uid != 0)
+		options.use_privileged_port = 0;
+#endif
 
 	/* reinit */
 	log_init(argv0, options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
@@ -762,10 +899,26 @@ main(int ac, char **av)
 		options.port = default_ssh_port();
 
 	/* preserve host name given on command line for %n expansion */
-	host_arg = host;
 	if (options.hostname != NULL) {
-		host = percent_expand(options.hostname,
+		cp = percent_expand(options.hostname,
 		    "h", host, (char *)NULL);
+		free(host);
+		host = cp;
+	}
+
+	/* If canonicalisation requested then try to apply it */
+	if (options.canonicalise_hostname != SSH_CANONICALISE_NO)
+		addrs = resolve_canonicalise(&host, options.port);
+	/*
+	 * If canonicalisation not requested, or if it failed then try to
+	 * resolve the bare hostname name using the system resolver's usual
+	 * search rules.
+	 */
+	if (addrs == NULL) {
+		if ((addrs = resolve_host(host, options.port, 1,
+		    cname, sizeof(cname))) == NULL)
+			cleanup_exit(255); /* resolve_host logs the error */
+		check_follow_cname(&host, cname);
 	}
 
 	if (gethostname(thishost, sizeof(thishost)) == -1)
@@ -803,16 +956,15 @@ main(int ac, char **av)
 	timeout_ms = options.connection_timeout * 1000;
 
 	/* Open a connection to the remote host. */
-	if (ssh_connect(host, &hostaddr, options.port,
-	    options.address_family, options.connection_attempts, &timeout_ms,
-	    options.tcp_keep_alive,
-#ifdef HAVE_CYGWIN
-	    options.use_privileged_port,
-#else
-	    original_effective_uid == 0 && options.use_privileged_port,
-#endif
-	    options.proxy_command) != 0)
-		exit(255);
+	if (ssh_connect(host, addrs, &hostaddr, options.port,
+	    options.address_family, options.connection_attempts,
+	    &timeout_ms, options.tcp_keep_alive,
+	    options.use_privileged_port) != 0)
+ 		exit(255);
+
+	freeaddrinfo(addrs);
+	packet_set_timeout(options.server_alive_interval,
+	    options.server_alive_count_max);
 
 	if (timeout_ms > 0)
 		debug3("timeout: %d ms remain after connect", timeout_ms);
@@ -1621,4 +1773,3 @@ main_sigchld_handler(int sig)
 	signal(sig, main_sigchld_handler);
 	errno = save_errno;
 }
-

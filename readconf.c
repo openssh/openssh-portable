@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.207 2013/10/14 23:28:23 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.208 2013/10/16 02:31:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -144,6 +144,8 @@ typedef enum {
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
+	oCanonicalDomains, oCanonicaliseHostname, oCanonicaliseMaxDots,
+	oCanonicaliseFallbackLocal, oCanonicalisePermittedCNAMEs,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -257,6 +259,11 @@ static struct {
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
 	{ "proxyusefdpass", oProxyUseFdpass },
+	{ "canonicaldomains", oCanonicalDomains },
+	{ "canonicalisefallbacklocal", oCanonicaliseFallbackLocal },
+	{ "canonicalisehostname", oCanonicaliseHostname },
+	{ "canonicalisemaxdots", oCanonicaliseMaxDots },
+	{ "canonicalisepermittedcnames", oCanonicalisePermittedCNAMEs },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -535,6 +542,34 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	return result;
 }
 
+/* Check and prepare a domain name: removes trailing '.' and lowercases */
+static void
+valid_domain(char *name, const char *filename, int linenum)
+{
+	size_t i, l = strlen(name);
+	u_char c, last = '\0';
+
+	if (l == 0)
+		fatal("%s line %d: empty hostname suffix", filename, linenum);
+	if (!isalpha((u_char)name[0]) && !isdigit((u_char)name[0]))
+		fatal("%s line %d: hostname suffix \"%.100s\" "
+		    "starts with invalid character", filename, linenum, name);
+	for (i = 0; i < l; i++) {
+		c = tolower((u_char)name[i]);
+		name[i] = (char)c;
+		if (last == '.' && c == '.')
+			fatal("%s line %d: hostname suffix \"%.100s\" contains "
+			    "consecutive separators", filename, linenum, name);
+		if (c != '.' && c != '-' && !isalnum(c) &&
+		    c != '_') /* technically invalid, but common */
+			fatal("%s line %d: hostname suffix \"%.100s\" contains "
+			    "invalid characters", filename, linenum, name);
+		last = c;
+	}
+	if (name[l - 1] == '.')
+		name[l - 1] = '\0';
+}
+
 /*
  * Returns the number of the token pointed to by cp or oBadOption.
  */
@@ -609,6 +644,14 @@ static const struct multistate multistate_requesttty[] = {
 	{ "auto",			REQUEST_TTY_AUTO },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_canonicalisehostname[] = {
+	{ "true",			SSH_CANONICALISE_YES },
+	{ "false",			SSH_CANONICALISE_NO },
+	{ "yes",			SSH_CANONICALISE_YES },
+	{ "no",				SSH_CANONICALISE_NO },
+	{ "always",			SSH_CANONICALISE_ALWAYS },
+	{ NULL, -1 }
+};
 
 /*
  * Processes a single option line as used in the configuration files. This
@@ -628,6 +671,7 @@ process_config_line(Options *options, struct passwd *pw, const char *host,
 	size_t len;
 	Forward fwd;
 	const struct multistate *multistate_ptr;
+	struct allowed_cname *cname;
 
 	if (activep == NULL) { /* We are processing a command line directive */
 		cmdline = 1;
@@ -1263,6 +1307,62 @@ parse_int:
 		intptr = &options->proxy_use_fdpass;
 		goto parse_flag;
 
+	case oCanonicalDomains:
+		value = options->num_canonical_domains != 0;
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			valid_domain(arg, filename, linenum);
+			if (!*activep || value)
+				continue;
+			if (options->num_canonical_domains >= MAX_CANON_DOMAINS)
+				fatal("%s line %d: too many hostname suffixes.",
+				    filename, linenum);
+			options->canonical_domains[
+			    options->num_canonical_domains++] = xstrdup(arg);
+		}
+		break;
+
+	case oCanonicalisePermittedCNAMEs:
+		value = options->num_permitted_cnames != 0;
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			/* Either '*' for everything or 'list:list' */
+			if (strcmp(arg, "*") == 0)
+				arg2 = arg;
+			else {
+				lowercase(arg);
+				if ((arg2 = strchr(arg, ':')) == NULL ||
+				    arg2[1] == '\0') {
+					fatal("%s line %d: "
+					    "Invalid permitted CNAME \"%s\"",
+					    filename, linenum, arg);
+				}
+				*arg2 = '\0';
+				arg2++;
+			}
+			if (!*activep || value)
+				continue;
+			if (options->num_permitted_cnames >= MAX_CANON_DOMAINS)
+				fatal("%s line %d: too many permitted CNAMEs.",
+				    filename, linenum);
+			cname = options->permitted_cnames +
+			    options->num_permitted_cnames++;
+			cname->source_list = xstrdup(arg);
+			cname->target_list = xstrdup(arg2);
+		}
+		break;
+
+	case oCanonicaliseHostname:
+		intptr = &options->canonicalise_hostname;
+		multistate_ptr = multistate_canonicalisehostname;
+		goto parse_multistate;
+
+	case oCanonicaliseMaxDots:
+		intptr = &options->canonicalise_max_dots;
+		goto parse_int;
+
+	case oCanonicaliseFallbackLocal:
+		intptr = &options->canonicalise_fallback_local;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1426,6 +1526,11 @@ initialize_options(Options * options)
 	options->request_tty = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
+	options->num_canonical_domains = 0;
+	options->num_permitted_cnames = 0;
+	options->canonicalise_max_dots = -1;
+	options->canonicalise_fallback_local = -1;
+	options->canonicalise_hostname = -1;
 }
 
 /*
@@ -1579,6 +1684,12 @@ fill_default_options(Options * options)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->proxy_use_fdpass == -1)
 		options->proxy_use_fdpass = 0;
+	if (options->canonicalise_max_dots == -1)
+		options->canonicalise_max_dots = 1;
+	if (options->canonicalise_fallback_local == -1)
+		options->canonicalise_fallback_local = 1;
+	if (options->canonicalise_hostname == -1)
+		options->canonicalise_hostname = SSH_CANONICALISE_NO;
 #define CLEAR_ON_NONE(v) \
 	do { \
 		if (v != NULL && strcasecmp(v, "none") == 0) { \
