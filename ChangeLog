@@ -1,3 +1,9 @@
+20131017
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2013/10/15 14:10:25
+     [ssh.1 ssh_config.5]
+     tweak previous;
+
 20131015
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/10/09 23:42:17
