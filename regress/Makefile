@@ -44,6 +44,7 @@ LTESTS= 	connect \
 		sftp-badcmds \
 		sftp-batch \
 		sftp-glob \
+		sftp-perm \
 		reconfigure \
 		dynamic-forward \
 		forwarding \
@@ -86,7 +87,8 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		authorized_principals_${USER} expect actual ready \
 		sshd_proxy.* authorized_keys_${USER}.* modpipe revoked-* krl-* \
 		ssh.log failed-ssh.log sshd.log failed-sshd.log \
-		regress.log failed-regress.log ssh-log-wrapper.sh
+		regress.log failed-regress.log ssh-log-wrapper.sh \
+		sftp-server.sh sftp-server.log sftp.log
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 
