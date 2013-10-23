@@ -9,6 +9,9 @@
      "exec"; it's shorter, clearer in intent and we might want to add the
      ability to match against the command being executed at the remote end in
      the future.
+   - djm@cvs.openbsd.org 2013/10/20 09:51:26
+     [scp.1 sftp.1]
+     add canonicalisation options to -o lists
 
 20131018
  - (djm) OpenBSD CVS Sync
