@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.388 2013/10/17 00:46:49 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.389 2013/10/23 03:05:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -900,6 +900,7 @@ main(int ac, char **av)
 
 	/* preserve host name given on command line for %n expansion */
 	if (options.hostname != NULL) {
+		/* NB. Please keep in sync with readconf.c:match_cfg_line() */
 		cp = percent_expand(options.hostname,
 		    "h", host, (char *)NULL);
 		free(host);
