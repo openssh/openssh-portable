@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.176 2013/10/20 06:19:28 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.177 2013/10/20 18:00:13 jmc Exp $
 .Dd $Mdocdate: October 20 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -143,9 +143,9 @@ The available keywords are:
 and
 .Cm localuser .
 .Pp
-The criteria for the
+The
 .Cm exec
-keyword is command that is executed under the user's shell..
+keyword executes the specified command under the user's shell.
 If the command returns a zero exit status then the condition is considered true.
 Commands containing whitespace characters must be quoted.
 The following character sequences in the command will be expanded prior to

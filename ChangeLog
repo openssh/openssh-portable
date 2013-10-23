@@ -12,6 +12,9 @@
    - djm@cvs.openbsd.org 2013/10/20 09:51:26
      [scp.1 sftp.1]
      add canonicalisation options to -o lists
+   - jmc@cvs.openbsd.org 2013/10/20 18:00:13
+     [ssh_config.5]
+     tweak the "exec" description, as worded by djm;
 
 20131018
  - (djm) OpenBSD CVS Sync
