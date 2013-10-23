@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.209 2013/10/16 22:49:38 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.210 2013/10/20 06:19:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -504,7 +504,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 				debug("%.200s line %d: matched "
 				    "'LocalUser %.100s' ",
 				    filename, linenum, pw->pw_name);
-		} else if (strcasecmp(attrib, "command") == 0) {
+		} else if (strcasecmp(attrib, "exec") == 0) {
 			if (gethostname(thishost, sizeof(thishost)) == -1)
 				fatal("gethostname: %s", strerror(errno));
 			strlcpy(shorthost, thishost, sizeof(shorthost));
@@ -523,11 +523,11 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    (char *)NULL);
 			r = execute_in_shell(cmd);
 			if (r == -1) {
-				fatal("%.200s line %d: match command '%.100s' "
+				fatal("%.200s line %d: match exec '%.100s' "
 				    "error", filename, linenum, cmd);
 			} else if (r == 0) {
 				debug("%.200s line %d: matched "
-				    "'Command \"%.100s\"' ",
+				    "'exec \"%.100s\"' ",
 				    filename, linenum, cmd);
 			} else
 				result = 0;

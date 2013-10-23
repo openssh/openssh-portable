@@ -3,6 +3,12 @@
    - djm@cvs.openbsd.org 2013/10/20 04:39:28
      [ssh_config.5]
      document % expansions performed by "Match command ..."
+   - djm@cvs.openbsd.org 2013/10/20 06:19:28
+     [readconf.c ssh_config.5]
+     rename "command" subclause of the recently-added "Match" keyword to
+     "exec"; it's shorter, clearer in intent and we might want to add the
+     ability to match against the command being executed at the remote end in
+     the future.
 
 20131018
  - (djm) OpenBSD CVS Sync

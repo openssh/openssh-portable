@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.175 2013/10/20 04:39:28 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.176 2013/10/20 06:19:28 djm Exp $
 .Dd $Mdocdate: October 20 2013 $
 .Dt SSH_CONFIG 5
 .Os
@@ -136,7 +136,7 @@ keyword) to be used only when the conditions following the
 keyword are satisfied.
 Match conditions are specified using one or more keyword/criteria pairs.
 The available keywords are:
-.Cm command ,
+.Cm exec ,
 .Cm host ,
 .Cm originalhost ,
 .Cm user ,
@@ -144,8 +144,8 @@ and
 .Cm localuser .
 .Pp
 The criteria for the
-.Cm command
-keyword is a path to a command that is executed.
+.Cm exec
+keyword is command that is executed under the user's shell..
 If the command returns a zero exit status then the condition is considered true.
 Commands containing whitespace characters must be quoted.
 The following character sequences in the command will be expanded prior to
@@ -158,7 +158,7 @@ will be substituted by the local host name (including any domain name),
 will be substituted by the target host name,
 .Ql %n
 will be substituted by the original target host name
-specified on the command line,
+specified on the command-line,
 .Ql %p
 the destination port,
 .Ql %r
