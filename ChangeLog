@@ -22,6 +22,11 @@
    - djm@cvs.openbsd.org 2013/10/23 03:05:19
      [readconf.c ssh.c]
      comment
+   - djm@cvs.openbsd.org 2013/10/23 04:16:22
+     [ssh-keygen.c]
+     Make code match documentation: relative-specified certificate expiry time
+     should be relative to current time and not the validity start time.
+     Reported by Petr Lautrbach; ok deraadt@
 
 20131018
  - (djm) OpenBSD CVS Sync
