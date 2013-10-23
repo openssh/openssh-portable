@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.210 2013/10/20 06:19:27 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.211 2013/10/23 03:03:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -457,8 +457,8 @@ static int
 match_cfg_line(Options *options, char **condition, struct passwd *pw,
     const char *host_arg, const char *filename, int linenum)
 {
-	char *arg, *attrib, *cmd, *cp = *condition;
-	const char *ruser, *host;
+	char *arg, *attrib, *cmd, *cp = *condition, *host;
+	const char *ruser;
 	int r, port, result = 1;
 	size_t len;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
@@ -469,13 +469,18 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	 */
 	port = options->port <= 0 ? default_ssh_port() : options->port;
 	ruser = options->user == NULL ? pw->pw_name : options->user;
-	host = options->hostname == NULL ? host_arg : options->hostname;
+	if (options->hostname != NULL) {
+		host = percent_expand(options->hostname,
+		    "h", host_arg, (char *)NULL);
+	} else
+		host = xstrdup(host_arg);
 
 	debug3("checking match for '%s' host %s", cp, host);
 	while ((attrib = strdelim(&cp)) && *attrib != '\0') {
 		if ((arg = strdelim(&cp)) == NULL || *arg == '\0') {
 			error("Missing Match criteria for %s", attrib);
-			return -1;
+			result = -1;
+			goto out;
 		}
 		len = strlen(arg);
 		if (strcasecmp(attrib, "host") == 0) {
@@ -534,11 +539,14 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			free(cmd);
 		} else {
 			error("Unsupported Match attribute %s", attrib);
-			return -1;
+			result = -1;
+			goto out;
 		}
 	}
 	debug3("match %sfound", result ? "" : "not ");
 	*condition = cp;
+ out:
+	free(host);
 	return result;
 }
 
