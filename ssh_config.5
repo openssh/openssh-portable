@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.174 2013/10/16 22:58:01 djm Exp $
-.Dd $Mdocdate: October 16 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.175 2013/10/20 04:39:28 djm Exp $
+.Dd $Mdocdate: October 20 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -148,6 +148,24 @@ The criteria for the
 keyword is a path to a command that is executed.
 If the command returns a zero exit status then the condition is considered true.
 Commands containing whitespace characters must be quoted.
+The following character sequences in the command will be expanded prior to
+execution:
+.Ql %L
+will be substituted by the first component of the local host name,
+.Ql %l
+will be substituted by the local host name (including any domain name),
+.Ql %h
+will be substituted by the target host name,
+.Ql %n
+will be substituted by the original target host name
+specified on the command line,
+.Ql %p
+the destination port,
+.Ql %r
+by the remote login username, and
+.Ql %u
+by the username of the user running
+.Xr ssh 1 .
 .Pp
 The other keywords' criteria must be single entries or comma-separated
 lists and may use the wildcard and negation operators described in the
@@ -444,7 +462,7 @@ will be substituted by the target host name,
 will be substituted by the original target host name
 specified on the command line,
 .Ql %p
-the port,
+the destination port,
 .Ql %r
 by the remote login username, and
 .Ql %u

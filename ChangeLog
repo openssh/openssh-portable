@@ -1,3 +1,9 @@
+20131023
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/10/20 04:39:28
+     [ssh_config.5]
+     document % expansions performed by "Match command ..."
+
 20131018
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/10/09 23:44:14
