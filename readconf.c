@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.212 2013/10/23 03:05:19 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.213 2013/10/24 00:51:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -459,7 +459,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 {
 	char *arg, *attrib, *cmd, *cp = *condition, *host;
 	const char *ruser;
-	int r, port, result = 1;
+	int r, port, result = 1, attributes = 0;
 	size_t len;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 
@@ -478,6 +478,19 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 
 	debug3("checking match for '%s' host %s", cp, host);
 	while ((attrib = strdelim(&cp)) && *attrib != '\0') {
+		attributes++;
+		if (strcasecmp(attrib, "all") == 0) {
+			if (attributes != 1 ||
+			    ((arg = strdelim(&cp)) != NULL && *arg != '\0')) {
+				error("'all' cannot be combined with other "
+				    "Match attributes");
+				result = -1;
+				goto out;
+			}
+			*condition = cp;
+			result = 1;
+			goto out;
+		}
 		if ((arg = strdelim(&cp)) == NULL || *arg == '\0') {
 			error("Missing Match criteria for %s", attrib);
 			result = -1;
@@ -543,6 +556,11 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			result = -1;
 			goto out;
 		}
+	}
+	if (attributes == 0) {
+		error("One or more attributes required for Match");
+		result = -1;
+		goto out;
 	}
 	debug3("match %sfound", result ? "" : "not ");
 	*condition = cp;

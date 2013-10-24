@@ -14,6 +14,10 @@
      [moduli.c]
      Periodically print progress and, if possible, expected time to completion
      when screening moduli for DH groups.  ok deraadt djm
+   - dtucker@cvs.openbsd.org 2013/10/24 00:51:48
+     [readconf.c servconf.c ssh_config.5 sshd_config.5]
+     Disallow empty Match statements and add "Match all" which matches
+     everything.  ok djm, man page help jmc@
 
 20131023
  - (djm) OpenBSD CVS Sync
