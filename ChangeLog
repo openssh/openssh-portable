@@ -23,6 +23,7 @@
      fix bug introduced in hostname canonicalisation commit: don't try to
      resolve hostnames when a ProxyCommand is set unless the user has forced
      canonicalisation; spotted by Iain Morgan
+ - (tim) [regress/sftp-perm.sh] We need a shell that understands "! somecmd"
 
 20131023
  - (djm) OpenBSD CVS Sync

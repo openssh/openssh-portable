@@ -29,7 +29,7 @@ postcondition() {
 	_title="$1"
 	_check="$2"
 	test -z "$_check" && return
-	sh -c "$_check" || fail "postcondition check failed: $_title"
+	${TEST_SHELL} -c "$_check" || fail "postcondition check failed: $_title"
 }
 
 ro_test() {
