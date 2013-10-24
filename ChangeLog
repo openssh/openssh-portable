@@ -18,6 +18,11 @@
      [readconf.c servconf.c ssh_config.5 sshd_config.5]
      Disallow empty Match statements and add "Match all" which matches
      everything.  ok djm, man page help jmc@
+   - djm@cvs.openbsd.org 2013/10/24 08:19:36
+     [ssh.c]
+     fix bug introduced in hostname canonicalisation commit: don't try to
+     resolve hostnames when a ProxyCommand is set unless the user has forced
+     canonicalisation; spotted by Iain Morgan
 
 20131023
  - (djm) OpenBSD CVS Sync

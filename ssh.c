@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.389 2013/10/23 03:05:19 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.390 2013/10/24 08:19:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -913,9 +913,11 @@ main(int ac, char **av)
 	/*
 	 * If canonicalization not requested, or if it failed then try to
 	 * resolve the bare hostname name using the system resolver's usual
-	 * search rules.
+	 * search rules. Skip the lookup if a ProxyCommand is being used
+	 * unless the user has specifically requested canonicalisation.
 	 */
-	if (addrs == NULL) {
+	if (addrs == NULL && (options.proxy_command == NULL ||
+            options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
 		if ((addrs = resolve_host(host, options.port, 1,
 		    cname, sizeof(cname))) == NULL)
 			cleanup_exit(255); /* resolve_host logs the error */
