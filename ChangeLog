@@ -6,6 +6,10 @@
    - dtucker@cvs.openbsd.org 2013/10/23 05:40:58
      [servconf.c]
      fix comment
+   - djm@cvs.openbsd.org 2013/10/23 23:35:32
+     [sshd.c]
+     include local address and port in "Connection from ..." message (only
+     shown at loglevel>=verbose)
 
 20131023
  - (djm) OpenBSD CVS Sync

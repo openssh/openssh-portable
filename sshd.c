@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.408 2013/10/17 22:08:04 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.409 2013/10/23 23:35:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2040,7 +2040,9 @@ main(int ac, char **av)
 #endif /* LIBWRAP */
 
 	/* Log the connection. */
-	verbose("Connection from %.500s port %d", remote_ip, remote_port);
+	verbose("Connection from %s port %d on %s port %d",
+	    remote_ip, remote_port,
+	    get_local_ipaddr(sock_in), get_local_port());
 
 	/*
 	 * We don't want to listen forever unless the other side
