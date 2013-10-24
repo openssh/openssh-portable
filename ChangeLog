@@ -10,6 +10,10 @@
      [sshd.c]
      include local address and port in "Connection from ..." message (only
      shown at loglevel>=verbose)
+   - dtucker@cvs.openbsd.org 2013/10/24 00:49:49
+     [moduli.c]
+     Periodically print progress and, if possible, expected time to completion
+     when screening moduli for DH groups.  ok deraadt djm
 
 20131023
  - (djm) OpenBSD CVS Sync
