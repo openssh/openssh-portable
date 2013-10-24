@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.241 2013/08/06 23:06:01 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.242 2013/10/23 05:40:58 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -641,7 +641,7 @@ out:
 
 /*
  * All of the attributes on a single Match line are ANDed together, so we need
- * to check every * attribute and set the result to zero if any attribute does
+ * to check every attribute and set the result to zero if any attribute does
  * not match.
  */
 static int
