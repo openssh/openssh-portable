@@ -542,9 +542,6 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 
 	derive_ssh1_session_id(host_key->rsa->n, server_key->rsa->n, cookie, session_id);
 
-	/* Generate a session key. */
-	arc4random_stir();
-
 	/*
 	 * Generate an encryption key for the session.   The key is a 256 bit
 	 * random number, interpreted as a 32-byte key, with the least

@@ -910,7 +910,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 		}
 		printf("%s ", key_types[i].key_type_display);
 		fflush(stdout);
-		arc4random_stir();
 		type = key_type_from_name(key_types[i].key_type);
 		strlcpy(identity_file, key_types[i].path, sizeof(identity_file));
 		bits = 0;
@@ -932,7 +931,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 			continue;
 		}
 		key_free(private);
-		arc4random_stir();
 		strlcat(identity_file, ".pub", sizeof(identity_file));
 		fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1) {
@@ -2543,8 +2541,6 @@ main(int argc, char **argv)
 		return (0);
 	}
 
-	arc4random_stir();
-
 	if (key_type_name == NULL)
 		key_type_name = "rsa";
 
@@ -2638,7 +2634,6 @@ passphrase_again:
 
 	/* Clear the private key and the random number generator. */
 	key_free(private);
-	arc4random_stir();
 
 	if (!quiet)
 		printf("Your identification has been saved in %s.\n", identity_file);

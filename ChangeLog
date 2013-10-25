@@ -1,3 +1,9 @@
+20131025
+ - (djm) [ssh-keygen.c ssh-keysign.c sshconnect1.c sshd.c] Remove
+   unnecessary arc4random_stir() calls. The only ones left are to ensure
+   that the PRNG gets a different state after fork() for platforms that
+   have broken the API.
+
 20131024
  - (djm) [auth-krb5.c] bz#2032 - use local username in krb5_kuserok check
    rather than full client name which may be of form user@REALM;

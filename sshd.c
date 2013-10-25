@@ -398,7 +398,6 @@ generate_ephemeral_server_key(void)
 	verbose("RSA key generation complete.");
 
 	arc4random_buf(sensitive_data.ssh1_cookie, SSH_SESSION_KEY_LENGTH);
-	arc4random_stir();
 }
 
 /*ARGSUSED*/
@@ -1866,9 +1865,6 @@ main(int ac, char **av)
 	}
 	/* Reinitialize the log (because of the fork above). */
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
-
-	/* Initialize the random number generator. */
-	arc4random_stir();
 
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
