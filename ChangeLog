@@ -1,3 +1,10 @@
+20131026
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/10/25 23:04:51
+     [ssh.c]
+     fix crash when using ProxyCommand caused by previous commit - was calling
+     freeaddrinfo(NULL); spotted by sthen@ and Tim Ruehsen, patch by sthen@
+
 20131025
  - (djm) [ssh-keygen.c ssh-keysign.c sshconnect1.c sshd.c] Remove
    unnecessary arc4random_stir() calls. The only ones left are to ensure

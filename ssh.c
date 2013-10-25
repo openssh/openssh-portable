@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.390 2013/10/24 08:19:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.391 2013/10/25 23:04:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -965,7 +965,9 @@ main(int ac, char **av)
 	    options.use_privileged_port) != 0)
  		exit(255);
 
-	freeaddrinfo(addrs);
+	if (addrs != NULL)
+		freeaddrinfo(addrs);
+
 	packet_set_timeout(options.server_alive_interval,
 	    options.server_alive_count_max);
 
