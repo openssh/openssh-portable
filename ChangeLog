@@ -4,6 +4,11 @@
      [key.c key.h]
      fix potential stack exhaustion caused by nested certificates;
      report by Mateusz Kocielski; ok dtucker@ markus@
+   - djm@cvs.openbsd.org 2013/10/29 09:48:02
+     [servconf.c servconf.h session.c sshd_config sshd_config.5]
+     shd_config PermitTTY to disallow TTY allocation, mirroring the
+     longstanding no-pty authorized_keys option;
+     bz#2070, patch from Teran McKinney; ok markus@
 
 20131026
  - (djm) OpenBSD CVS Sync

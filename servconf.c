@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.243 2013/10/24 00:51:48 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.244 2013/10/29 09:48:02 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -92,6 +92,7 @@ initialize_server_options(ServerOptions *options)
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
 	options->x11_use_localhost = -1;
+	options->permit_tty = -1;
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->tcp_keep_alive = -1;
@@ -212,6 +213,8 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_use_localhost = 1;
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
+	if (options->permit_tty == -1)
+		options->permit_tty = 1;
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
 	if (options->tcp_keep_alive == -1)
@@ -329,7 +332,7 @@ typedef enum {
 	sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
-	sStrictModes, sEmptyPasswd, sTCPKeepAlive,
+	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
@@ -462,6 +465,7 @@ static struct {
 	{ "useprivilegeseparation", sUsePrivilegeSeparation, SSHCFG_GLOBAL},
 	{ "acceptenv", sAcceptEnv, SSHCFG_ALL },
 	{ "permittunnel", sPermitTunnel, SSHCFG_ALL },
+	{ "permittty", sPermitTTY, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
@@ -1132,6 +1136,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		charptr = &options->xauth_location;
 		goto parse_filename;
 
+	case sPermitTTY:
+		intptr = &options->permit_tty;
+		goto parse_flag;
+
 	case sStrictModes:
 		intptr = &options->strict_modes;
 		goto parse_flag;
@@ -1783,6 +1791,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(x11_display_offset);
 	M_CP_INTOPT(x11_forwarding);
 	M_CP_INTOPT(x11_use_localhost);
+	M_CP_INTOPT(permit_tty);
 	M_CP_INTOPT(max_sessions);
 	M_CP_INTOPT(max_authtries);
 	M_CP_INTOPT(ip_qos_interactive);
@@ -2013,6 +2022,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sPrintLastLog, o->print_lastlog);
 	dump_cfg_fmtint(sX11Forwarding, o->x11_forwarding);
 	dump_cfg_fmtint(sX11UseLocalhost, o->x11_use_localhost);
+	dump_cfg_fmtint(sPermitTTY, o->permit_tty);
 	dump_cfg_fmtint(sStrictModes, o->strict_modes);
 	dump_cfg_fmtint(sTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(sEmptyPasswd, o->permit_empty_passwd);
