@@ -1,3 +1,10 @@
+20131030
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/10/29 09:42:11
+     [key.c key.h]
+     fix potential stack exhaustion caused by nested certificates;
+     report by Mateusz Kocielski; ok dtucker@ markus@
+
 20131026
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/10/25 23:04:51

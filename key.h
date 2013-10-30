@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.37 2013/05/19 02:42:42 djm Exp $ */
+/* $OpenBSD: key.h,v 1.38 2013/10/29 09:42:11 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -107,6 +107,7 @@ Key	*key_generate(int, u_int);
 Key	*key_from_private(const Key *);
 int	 key_type_from_name(char *);
 int	 key_is_cert(const Key *);
+int	 key_type_is_cert(int);
 int	 key_type_plain(int);
 int	 key_to_certified(Key *, int);
 int	 key_drop_cert(Key *);
