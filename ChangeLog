@@ -2,6 +2,8 @@
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.
    From OpenSMTPD where it prevents "implicit declaration" warnings (it's
    a no-op in OpenSSH).  From chl at openbsd.
+ - (dtucker) [openbsd-compat/setproctitle.c] Handle error case form the 2nd
+   vsnprintf.  From eric at openbsd via chl@.
 
 20131030
  - (djm) OpenBSD CVS Sync
