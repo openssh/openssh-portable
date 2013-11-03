@@ -8,6 +8,9 @@
      [kex.c kex.h myproposal.h ssh-keyscan.c sshconnect2.c sshd.c]
      use curve25519 for default key exchange (curve25519-sha256@libssh.org);
      initial patch from Aris Adamantiadis; ok djm@
+   - markus@cvs.openbsd.org 2013/11/02 22:10:15
+     [kexdhs.c kexecdhs.c]
+     no need to include monitor_wrap.h
 
 20131103
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.
