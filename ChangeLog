@@ -20,6 +20,10 @@
    - markus@cvs.openbsd.org 2013/11/02 22:39:19
      [ssh_config.5 sshd_config.5]
      the default kex is now curve25519-sha256@libssh.org
+   - djm@cvs.openbsd.org 2013/11/03 10:37:19
+     [roaming_common.c]
+     fix a couple of function definitions foo() -> foo(void)
+     (-Wold-style-definition)
 
 20131103
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.

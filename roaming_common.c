@@ -1,4 +1,4 @@
-/* $OpenBSD: roaming_common.c,v 1.10 2013/07/12 00:19:59 djm Exp $ */
+/* $OpenBSD: roaming_common.c,v 1.11 2013/11/03 10:37:19 djm Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
@@ -49,7 +49,7 @@ int roaming_enabled = 0;
 int resume_in_progress = 0;
 
 int
-get_snd_buf_size()
+get_snd_buf_size(void)
 {
 	int fd = packet_get_connection_out();
 	int optval;
@@ -61,7 +61,7 @@ get_snd_buf_size()
 }
 
 int
-get_recv_buf_size()
+get_recv_buf_size(void)
 {
 	int fd = packet_get_connection_in();
 	int optval;
