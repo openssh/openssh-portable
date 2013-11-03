@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.172 2013/06/01 21:18:48 dtucker Exp $ */
+/* $Id: defines.h,v 1.173 2013/11/03 07:43:55 dtucker Exp $ */
 
 
 /* Constants */
@@ -267,6 +267,14 @@ typedef unsigned long int u_int64_t;
 typedef unsigned long long int u_int64_t;
 #  endif
 # endif
+#endif
+
+#ifndef HAVE_INTMAX_T
+typedef long long intmax_t;
+#endif
+
+#ifndef HAVE_UINTMAX_T
+typedef unsigned long long uintmax_t;
 #endif
 
 #ifndef HAVE_U_CHAR

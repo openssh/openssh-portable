@@ -4,6 +4,8 @@
    a no-op in OpenSSH).  From chl at openbsd.
  - (dtucker) [openbsd-compat/setproctitle.c] Handle error case form the 2nd
    vsnprintf.  From eric at openbsd via chl@.
+ - (dtucker) [configure.ac defines.h] Add typedefs for intmax_t and uintmax_t
+   for platforms that don't have them.
 
 20131030
  - (djm) OpenBSD CVS Sync

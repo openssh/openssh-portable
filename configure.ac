@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.536 2013/08/04 11:48:41 dtucker Exp $
+# $Id: configure.ac,v 1.537 2013/11/03 07:43:55 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.536 $)
+AC_REVISION($Revision: 1.537 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3136,6 +3136,11 @@ AC_CACHE_CHECK([for u_char], ac_cv_have_u_char, [
 if test "x$ac_cv_have_u_char" = "xyes" ; then
 	AC_DEFINE([HAVE_U_CHAR], [1], [define if you have u_char data type])
 fi
+
+AC_CHECK_TYPES([intmax_t, uintmax_t], , , [
+#include <sys/types.h>
+#include <stdint.h>
+])
 
 TYPE_SOCKLEN_T
 
