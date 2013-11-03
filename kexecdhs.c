@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhs.c,v 1.6 2013/11/02 22:10:15 markus Exp $ */
+/* $OpenBSD: kexecdhs.c,v 1.7 2013/11/02 22:24:24 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -38,9 +38,6 @@
 #include "log.h"
 #include "packet.h"
 #include "ssh2.h"
-#ifdef GSSAPI
-#include "ssh-gss.h"
-#endif
 
 #ifdef OPENSSL_HAS_ECC
 

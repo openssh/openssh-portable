@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.15 2013/11/02 22:10:15 markus Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.16 2013/11/02 22:24:24 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -42,9 +42,6 @@
 #include "packet.h"
 #include "dh.h"
 #include "ssh2.h"
-#ifdef GSSAPI
-#include "ssh-gss.h"
-#endif
 
 void
 kexdh_server(Kex *kex)
