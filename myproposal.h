@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.32 2013/01/08 18:49:04 markus Exp $ */
+/* $OpenBSD: myproposal.h,v 1.33 2013/11/02 21:59:15 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -66,6 +66,7 @@
 #endif
 
 # define KEX_DEFAULT_KEX \
+	"curve25519-sha256@libssh.org," \
 	KEX_ECDH_METHODS \
 	KEX_SHA256_METHODS \
 	"diffie-hellman-group-exchange-sha1," \

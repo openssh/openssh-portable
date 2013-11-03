@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.340 2013/06/11 01:26:10 dtucker Exp $
+# $Id: Makefile.in,v 1.341 2013/11/03 21:26:53 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -73,7 +73,7 @@ LIBSSH_OBJS=authfd.o authfile.o bufaux.o bufbn.o buffer.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-rsa.o dh.o \
 	kexdh.o kexgex.o kexdhc.o kexgexc.o bufec.o kexecdh.o kexecdhc.o \
 	msg.o progressmeter.o dns.o entropy.o gss-genr.o umac.o umac128.o \
-	jpake.o schnorr.o ssh-pkcs11.o krl.o
+	jpake.o schnorr.o ssh-pkcs11.o krl.o smult_curve25519_ref.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o mux.o \

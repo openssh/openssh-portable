@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.198 2013/06/05 12:52:38 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.199 2013/11/02 21:59:15 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -208,6 +208,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 	kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
+	kex->kex[KEX_C25519_SHA256] = kexc25519_client;
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->verify_host_key=&verify_host_key_callback;

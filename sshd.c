@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.409 2013/10/23 23:35:32 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.410 2013/11/02 21:59:15 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2451,6 +2451,7 @@ do_ssh2_kex(void)
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 	kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+	kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 	kex->server = 1;
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;

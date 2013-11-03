@@ -4,6 +4,10 @@
      [ssh-pkcs11.c]
      support pkcs#11 tokes that only provide x509 zerts instead of raw pubkeys;
      fixes bz#1908; based on patch from Laurent Barbe; ok djm
+   - markus@cvs.openbsd.org 2013/11/02 21:59:15
+     [kex.c kex.h myproposal.h ssh-keyscan.c sshconnect2.c sshd.c]
+     use curve25519 for default key exchange (curve25519-sha256@libssh.org);
+     initial patch from Aris Adamantiadis; ok djm@
 
 20131103
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.

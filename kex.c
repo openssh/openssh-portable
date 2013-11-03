@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.91 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.92 2013/11/02 21:59:15 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -80,6 +80,7 @@ static const struct kexalg kexalgs[] = {
 	{ KEX_ECDH_SHA2_NISTP384, KEX_ECDH_SHA2, NID_secp384r1, EVP_sha384 },
 	{ KEX_ECDH_SHA2_NISTP521, KEX_ECDH_SHA2, NID_secp521r1, EVP_sha512 },
 #endif
+	{ KEX_CURVE25519_SHA256, KEX_C25519_SHA256, 0, EVP_sha256 },
 	{ NULL, -1, -1, NULL},
 };
 
