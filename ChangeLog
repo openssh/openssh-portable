@@ -14,6 +14,9 @@
    - markus@cvs.openbsd.org 2013/11/02 22:24:24
      [kexdhs.c kexecdhs.c]
      no need to include ssh-gss.h
+   - markus@cvs.openbsd.org 2013/11/02 22:34:01
+     [auth-options.c]
+     no need to include monitor_wrap.h and ssh-gss.h
 
 20131103
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.

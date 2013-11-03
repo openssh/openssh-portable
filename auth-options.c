@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.59 2013/07/12 00:19:58 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.60 2013/11/02 22:34:01 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -33,10 +33,6 @@
 #include "auth-options.h"
 #include "hostfile.h"
 #include "auth.h"
-#ifdef GSSAPI
-#include "ssh-gss.h"
-#endif
-#include "monitor_wrap.h"
 
 /* Flags set authorized_keys flags */
 int no_port_forwarding_flag = 0;
