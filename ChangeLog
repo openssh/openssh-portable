@@ -24,6 +24,8 @@
      [roaming_common.c]
      fix a couple of function definitions foo() -> foo(void)
      (-Wold-style-definition)
+ - (djm) [kexc25519.c kexc25519c.c kexc25519s.c] Import missed files from
+   KEX/curve25519 change
 
 20131103
  - (dtucker) [openbsd-compat/bsd-misc.c] Include time.h for nanosleep.
