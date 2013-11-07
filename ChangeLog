@@ -10,6 +10,9 @@
      [monitor.c]
      fix rekeying for KEX_C25519_SHA256; noted by dtucker@
      RCSID sync only; I thought this was a merge botch and fixed it already
+   - markus@cvs.openbsd.org 2013/11/06 16:52:11
+     [monitor_wrap.c]
+     fix rekeying for AES-GCM modes; ok deraadt
 
 20131104
  - (djm) OpenBSD CVS Sync
