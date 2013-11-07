@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.8 2013/05/17 04:29:14 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.9 2013/11/04 12:27:42 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -7,11 +7,17 @@ LOG=${TEST_SSH_LOGFILE}
 
 rm -f ${LOG}
 
+kexalgs="curve25519-sha256@libssh.org ecdh-sha2-nistp256 \
+ecdh-sha2-nistp384 ecdh-sha2-nistp521 diffie-hellman-group-exchange-sha256 \
+diffie-hellman-group-exchange-sha1 diffie-hellman-group14-sha1 \
+diffie-hellman-group1-sha1"
+
 for s in 16 1k 128k 256k; do
-	verbose "client rekeylimit ${s}"
+    for a in $kexalgs; do
+	verbose "client rekeylimit ${s} ${a}"
 	rm -f ${COPY} ${LOG}
 	cat $DATA | \
-		${SSH} -oCompression=no -oRekeyLimit=$s \
+		${SSH} -oCompression=no -oRekeyLimit=$s -oKexAlgorithms=$a \
 			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
@@ -23,6 +29,7 @@ for s in 16 1k 128k 256k; do
 	if [ $n -lt 1 ]; then
 		fail "no rekeying occured"
 	fi
+    done
 done
 
 for s in 5 10; do
