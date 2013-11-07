@@ -1855,6 +1855,7 @@ mm_get_kex(Buffer *m)
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 	kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+	kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 	kex->server = 1;
 	kex->hostkey_type = buffer_get_int(m);
 	kex->kex_type = buffer_get_int(m);

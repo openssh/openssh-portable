@@ -1,6 +1,7 @@
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
    that got lost in recent merge.
+ - (djm) [Makefile.in monitor.c] Missed chunks of curve25519 KEX diff
 
 20131104
  - (djm) OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.341 2013/11/03 21:26:53 djm Exp $
+# $Id: Makefile.in,v 1.342 2013/11/07 01:00:24 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -73,7 +73,8 @@ LIBSSH_OBJS=authfd.o authfile.o bufaux.o bufbn.o buffer.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-rsa.o dh.o \
 	kexdh.o kexgex.o kexdhc.o kexgexc.o bufec.o kexecdh.o kexecdhc.o \
 	msg.o progressmeter.o dns.o entropy.o gss-genr.o umac.o umac128.o \
-	jpake.o schnorr.o ssh-pkcs11.o krl.o smult_curve25519_ref.o
+	jpake.o schnorr.o ssh-pkcs11.o krl.o smult_curve25519_ref.o \
+	kexc25519.o kexc25519c.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o mux.o \
@@ -87,7 +88,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
 	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
 	auth2-none.o auth2-passwd.o auth2-pubkey.o auth2-jpake.o \
 	monitor_mm.o monitor.o monitor_wrap.o kexdhs.o kexgexs.o kexecdhs.o \
-	auth-krb5.o \
+	kexc25519s.o auth-krb5.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o md5crypt.o \
 	sftp-server.o sftp-common.o \
