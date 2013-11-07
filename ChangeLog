@@ -27,6 +27,10 @@
    - dtucker@cvs.openbsd.org 2013/11/04 12:27:42
      [regress/rekey.sh]
      Test rekeying with all KexAlgorithms.
+   - dtucker@cvs.openbsd.org 2013/11/07 00:12:05
+     [regress/rekey.sh]
+     Test rekeying for every Cipher, MAC and KEX, plus test every KEX with
+     the GCM ciphers.
 
 20131104
  - (djm) OpenBSD CVS Sync

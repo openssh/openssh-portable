@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.9 2013/11/04 12:27:42 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.10 2013/11/07 00:12:05 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -7,17 +7,44 @@ LOG=${TEST_SSH_LOGFILE}
 
 rm -f ${LOG}
 
-kexalgs="curve25519-sha256@libssh.org ecdh-sha2-nistp256 \
-ecdh-sha2-nistp384 ecdh-sha2-nistp521 diffie-hellman-group-exchange-sha256 \
-diffie-hellman-group-exchange-sha1 diffie-hellman-group14-sha1 \
-diffie-hellman-group1-sha1"
+opts=""
+for i in `${SSH} -Q kex`; do
+	opts="$opts KexAlgorithms=$i"
+done
+for i in `${SSH} -Q cipher`; do
+	opts="$opts Ciphers=$i"
+done
+for i in `${SSH} -Q mac`; do
+	opts="$opts MACs=$i"
+done
 
-for s in 16 1k 128k 256k; do
-    for a in $kexalgs; do
-	verbose "client rekeylimit ${s} ${a}"
+for opt in $opts; do
+	verbose "client rekey $opt"
 	rm -f ${COPY} ${LOG}
 	cat $DATA | \
-		${SSH} -oCompression=no -oRekeyLimit=$s -oKexAlgorithms=$a \
+		${SSH} -oCompression=no -oRekeyLimit=16 -o$opt \
+			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
+	if [ $? -ne 0 ]; then
+		fail "ssh failed"
+	fi
+	cmp $DATA ${COPY}		|| fail "corrupted copy"
+	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
+	n=`expr $n - 1`
+	trace "$n rekeying(s)"
+	if [ $n -lt 1 ]; then
+		fail "no rekeying occured"
+	fi
+done
+
+# GCM is magical so test with all KexAlgorithms
+if ${SSH} -Q cipher | grep gcm@openssh.com >/dev/null ; then
+  for c in `${SSH} -Q cipher | grep gcm@openssh.com`; do
+    for kex in `${SSH} -Q kex`; do
+	verbose "client rekey $c $kex"
+	rm -f ${COPY} ${LOG}
+	cat $DATA | \
+		${SSH} -oCompression=no -oRekeyLimit=16 \
+			-oCiphers=$c -oKexAlgorithms=$kex \
 			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
 	if [ $? -ne 0 ]; then
 		fail "ssh failed"
@@ -30,6 +57,25 @@ for s in 16 1k 128k 256k; do
 		fail "no rekeying occured"
 	fi
     done
+  done
+fi
+
+for s in 16 1k 128k 256k; do
+	verbose "client rekeylimit ${s}"
+	rm -f ${COPY} ${LOG}
+	cat $DATA | \
+		${SSH} -oCompression=no -oRekeyLimit=$s \
+			-v -F $OBJ/ssh_proxy somehost "cat > ${COPY}"
+	if [ $? -ne 0 ]; then
+		fail "ssh failed"
+	fi
+	cmp $DATA ${COPY}		|| fail "corrupted copy"
+	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
+	n=`expr $n - 1`
+	trace "$n rekeying(s)"
+	if [ $n -lt 1 ]; then
+		fail "no rekeying occured"
+	fi
 done
 
 for s in 5 10; do
