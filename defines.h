@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.173 2013/11/03 07:43:55 dtucker Exp $ */
+/* $Id: defines.h,v 1.174 2013/11/07 02:28:16 djm Exp $ */
 
 
 /* Constants */
@@ -808,6 +808,15 @@ struct winsize {
 # else
 #  define _NSIG 128
 # endif
+#endif
+
+/*
+ * Platforms that have arc4random_uniform() and not arc4random_stir()
+ * shouldn't need the latter.
+ */
+#if defined(HAVE_ARC4RANDOM) && defined(HAVE_ARC4RANDOM_UNIFORM) && \
+    !defined(HAVE_ARC4RANDOM_STIR)
+# define arc4random_stir()
 #endif
 
 #endif /* _DEFINES_H */

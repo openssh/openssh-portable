@@ -3,6 +3,8 @@
    that got lost in recent merge.
  - (djm) [Makefile.in monitor.c] Missed chunks of curve25519 KEX diff
  - (djm) [regress/modpipe.c regress/rekey.sh] Never intended to commit these
+ - (djm) [configure.ac defines.h] Skip arc4random_stir() calls on platforms
+   that lack it but have arc4random_uniform()
 
 20131104
  - (djm) OpenBSD CVS Sync
