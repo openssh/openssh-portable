@@ -40,6 +40,9 @@
    - dtucker@cvs.openbsd.org 2013/11/07 03:55:41
      [regress/kextype.sh]
      Use ssh -Q to get kex types instead of a static list.
+   - dtucker@cvs.openbsd.org 2013/11/07 04:26:56
+     [regress/kextype.sh]
+     trailing space
 
 20131104
  - (djm) OpenBSD CVS Sync
