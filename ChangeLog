@@ -1,3 +1,7 @@
+20131107
+ - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
+   that got lost in recent merge.
+
 20131104
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2013/11/02 20:03:54
