@@ -21,6 +21,9 @@
    - djm@cvs.openbsd.org 2013/10/09 23:44:14
      [regress/Makefile] (ID sync only)
      regression test for sftp request white/blacklisting and readonly mode.
+   - markus@cvs.openbsd.org 2013/11/02 22:39:53
+     [regress/kextype.sh]
+     add curve25519-sha256@libssh.org
 
 20131104
  - (djm) OpenBSD CVS Sync

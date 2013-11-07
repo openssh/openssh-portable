@@ -1,4 +1,4 @@
-#	$OpenBSD: kextype.sh,v 1.1 2010/09/22 12:26:05 djm Exp $
+#	$OpenBSD: kextype.sh,v 1.2 2013/11/02 22:39:53 markus Exp $
 #	Placed in the Public Domain.
 
 tid="login with different key exchange algorithms"
@@ -16,6 +16,7 @@ fi
 kextypes="$kextypes diffie-hellman-group-exchange-sha1"
 kextypes="$kextypes diffie-hellman-group14-sha1"
 kextypes="$kextypes diffie-hellman-group1-sha1"
+kextypes="$kextypes curve25519-sha256@libssh.org"
 
 tries="1 2 3 4"
 for k in $kextypes; do 
