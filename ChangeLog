@@ -13,6 +13,10 @@
    - markus@cvs.openbsd.org 2013/11/06 16:52:11
      [monitor_wrap.c]
      fix rekeying for AES-GCM modes; ok deraadt
+   - djm@cvs.openbsd.org 2013/11/06 23:05:59
+     [ssh-pkcs11.c]
+     from portable: s/true/true_val/ to avoid name collisions on dump platforms
+     RCSID sync only
 
 20131104
  - (djm) OpenBSD CVS Sync
