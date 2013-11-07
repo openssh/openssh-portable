@@ -5,6 +5,11 @@
  - (djm) [regress/modpipe.c regress/rekey.sh] Never intended to commit these
  - (djm) [configure.ac defines.h] Skip arc4random_stir() calls on platforms
    that lack it but have arc4random_uniform()
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2013/11/04 11:51:16
+     [monitor.c]
+     fix rekeying for KEX_C25519_SHA256; noted by dtucker@
+     RCSID sync only; I thought this was a merge botch and fixed it already
 
 20131104
  - (djm) OpenBSD CVS Sync
