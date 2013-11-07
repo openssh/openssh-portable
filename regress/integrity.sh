@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.10 2013/05/17 01:32:11 dtucker Exp $
+#	$OpenBSD: integrity.sh,v 1.11 2013/11/07 02:48:38 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -8,18 +8,10 @@ tid="integrity"
 # XXX and ssh tries to read...
 tries=10
 startoffset=2900
-macs="hmac-sha1 hmac-md5 umac-64@openssh.com umac-128@openssh.com
-	hmac-sha1-96 hmac-md5-96 
-	hmac-sha1-etm@openssh.com hmac-md5-etm@openssh.com
-	umac-64-etm@openssh.com umac-128-etm@openssh.com
-	hmac-sha1-96-etm@openssh.com hmac-md5-96-etm@openssh.com"
-config_defined HAVE_EVP_SHA256 &&
-	macs="$macs hmac-sha2-256 hmac-sha2-512
-		hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+macs=`${SSH} -Q mac`
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
-config_defined OPENSSL_HAVE_EVPGCM && \
-	macs="$macs aes128-gcm@openssh.com aes256-gcm@openssh.com"
+macs="$macs `${SSH} -Q cipher | grep gcm@openssh.com`"
 
 # avoid DH group exchange as the extra traffic makes it harder to get the
 # offset into the stream right.
