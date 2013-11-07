@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.538 2013/11/07 02:28:16 djm Exp $
+# $Id: configure.ac,v 1.539 2013/11/07 11:33:48 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.538 $)
+AC_REVISION($Revision: 1.539 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2437,16 +2437,13 @@ fi
 AC_CHECK_FUNCS([crypt DES_crypt])
 
 # Search for SHA256 support in libc and/or OpenSSL
-AC_CHECK_FUNCS([SHA256_Update EVP_sha256],
-    [TEST_SSH_SHA256=yes],
-    [TEST_SSH_SHA256=no
-     unsupported_algorithms="$unsupported_algorithms \
+AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
+    [unsupported_algorithms="$unsupported_algorithms \
 	hmac-sha2-256 hmac-sha2-512 \
 	diffie-hellman-group-exchange-sha256 \
 	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
      ]
 )
-AC_SUBST([TEST_SSH_SHA256])
 
 # Check complete ECC support in OpenSSL
 AC_MSG_CHECKING([whether OpenSSL has complete ECC support])

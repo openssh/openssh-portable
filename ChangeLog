@@ -43,6 +43,9 @@
    - dtucker@cvs.openbsd.org 2013/11/07 04:26:56
      [regress/kextype.sh]
      trailing space
+ - (dtucker) [Makefile.in configure.ac] Remove TEST_SSH_SHA256 environment
+   variable.  It's no longer used now that we get the supported MACs from
+   ssh -Q.
 
 20131104
  - (djm) OpenBSD CVS Sync
