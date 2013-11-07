@@ -1,8 +1,6 @@
 #	$OpenBSD: rekey.sh,v 1.8 2013/05/17 04:29:14 dtucker Exp $
 #	Placed in the Public Domain.
 
-set -x
-
 tid="rekey"
 
 LOG=${TEST_SSH_LOGFILE}
