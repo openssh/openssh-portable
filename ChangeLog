@@ -10,6 +10,9 @@
      use calloc for all structure allocations; from markus@
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] update version numbers
+   - djm@cvs.openbsd.org 2013/11/08 01:38:11
+     [version.h]
+     openssh-6.4
 
 20130913
  - (djm) [channels.c] Fix unaligned access on sparc machines in SOCKS5 code;
