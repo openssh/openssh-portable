@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.539 2013/11/07 11:33:48 dtucker Exp $
+# $Id: configure.ac,v 1.540 2013/11/08 13:17:41 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.539 $)
+AC_REVISION($Revision: 1.540 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -563,6 +563,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
+	TEST_MALLOC_OPTIONS="AFGJPRX"
 	;;
 *-*-haiku*) 
     LIBS="$LIBS -lbsd "
@@ -728,6 +729,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
 	AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 	    [Prepend the address family to IP tunnel traffic])
+	TEST_MALLOC_OPTIONS="AJRX"
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
@@ -736,7 +738,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
 	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
-	AC_DEFINE([BROKEN_STRNVIS], [1], [FreeBSD strnvis does not do what we need])
+	 AC_DEFINE([BROKEN_STRNVIS], [1], [FreeBSD strnvis does not do what we need])
+	TEST_MALLOC_OPTIONS="AJRX"
 	;;
 *-*-bsdi*)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
@@ -759,6 +762,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SSH_TUN_OPENBSD], [1], [Open tunnel devices the OpenBSD way])
 	AC_DEFINE([SYSLOG_R_SAFE_IN_SIGHAND], [1],
 	    [syslog_r function is safe to use in in a signal handler])
+	TEST_MALLOC_OPTIONS="AFGJPRX"
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
@@ -4564,6 +4568,7 @@ else
 fi
 AC_CHECK_DECL([BROKEN_GETADDRINFO],  [TEST_SSH_IPV6=no])
 AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
+AC_SUBST([TEST_MALLOC_OPTIONS], [$TEST_MALLOC_OPTIONS])
 AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 
 AC_EXEEXT
