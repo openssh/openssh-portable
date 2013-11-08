@@ -27,8 +27,11 @@
  - (dtucker) [openbsd-compat/bsd-poll.c] Add headers to prevent compile
    warnings.
  - (dtucker) [Makefile.in configure.ac] Set MALLOC_OPTIONS per platform
-   and pass in TEST_ENV.  Unknown options cause stderr to get polluted
+   and pass in TEST_ENV.  use stderr to get polluted
    and the stderr-data test to fail.
+ - (dtucker) [contrib/cygwin/ssh-host-config] Simplify host key generation:
+   rather than testing and generating each key, call ssh-keygen -A.
+   Patch from vinschen at redhat.com.
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
