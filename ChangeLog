@@ -8,6 +8,8 @@
      [clientloop.c gss-genr.c monitor_mm.c packet.c schnorr.c umac.c]
      [sftp-client.c sftp-glob.c]
      use calloc for all structure allocations; from markus@
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] update version numbers
 
 20130913
  - (djm) [channels.c] Fix unaligned access on sparc machines in SOCKS5 code;
