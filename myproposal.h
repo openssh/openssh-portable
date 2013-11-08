@@ -57,16 +57,19 @@
 #ifdef HAVE_EVP_SHA256
 # define KEX_SHA256_METHODS \
 	"diffie-hellman-group-exchange-sha256,"
+#define KEX_CURVE25519_METHODS \
+	"curve25519-sha256@libssh.org,"
 #define	SHA2_HMAC_MODES \
 	"hmac-sha2-256," \
 	"hmac-sha2-512,"
 #else
 # define KEX_SHA256_METHODS
+# define KEX_CURVE25519_METHODS
 # define SHA2_HMAC_MODES
 #endif
 
 # define KEX_DEFAULT_KEX \
-	"curve25519-sha256@libssh.org," \
+	KEX_CURVE25519_METHODS \
 	KEX_ECDH_METHODS \
 	KEX_SHA256_METHODS \
 	"diffie-hellman-group-exchange-sha1," \

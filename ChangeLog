@@ -23,6 +23,7 @@
    arc4random_stir (right now this is only OpenBSD -current).
  - (dtucker) [kex.c] Only enable CURVE25519_SHA256 if we actually have
    EVP_sha256.
+ - (dtucker) [myproposal.h] Conditionally enable CURVE25519_SHA256.
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
