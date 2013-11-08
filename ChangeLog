@@ -3,6 +3,11 @@
    - markus@cvs.openbsd.org 2013/11/06 16:52:11
      [monitor_wrap.c]
      fix rekeying for AES-GCM modes; ok deraadt
+   - djm@cvs.openbsd.org 2013/11/08 00:39:15
+     [auth-options.c auth2-chall.c authfd.c channels.c cipher-3des1.c]
+     [clientloop.c gss-genr.c monitor_mm.c packet.c schnorr.c umac.c]
+     [sftp-client.c sftp-glob.c]
+     use calloc for all structure allocations; from markus@
 
 20130913
  - (djm) [channels.c] Fix unaligned access on sparc machines in SOCKS5 code;
