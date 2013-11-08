@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.11 2013/11/07 01:12:51 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.12 2013/11/08 01:06:14 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -39,7 +39,7 @@ done
 
 for opt in $opts; do
 	verbose "client rekey $opt"
-	ssh_data_rekeying -oRekeyLimit=16 -o$opt
+	ssh_data_rekeying -oRekeyLimit=256k -o$opt
 done
 
 # GCM is magical so test with all KexAlgorithms
@@ -47,7 +47,7 @@ if ${SSH} -Q cipher | grep gcm@openssh.com >/dev/null ; then
   for c in `${SSH} -Q cipher | grep gcm@openssh.com`; do
     for kex in `${SSH} -Q kex`; do
 	verbose "client rekey $c $kex"
-	ssh_data_rekeying -oRekeyLimit=16 -oCiphers=$c -oKexAlgorithms=$kex
+	ssh_data_rekeying -oRekeyLimit=256k -oCiphers=$c -oKexAlgorithms=$kex
     done
   done
 fi
