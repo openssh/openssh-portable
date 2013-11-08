@@ -1,3 +1,9 @@
+20131108
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2013/11/06 16:52:11
+     [monitor_wrap.c]
+     fix rekeying for AES-GCM modes; ok deraadt
+
 20130913
  - (djm) [channels.c] Fix unaligned access on sparc machines in SOCKS5 code;
    ok dtucker@
