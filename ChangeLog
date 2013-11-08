@@ -16,6 +16,8 @@
    - djm@cvs.openbsd.org 2013/11/08 01:38:11
      [version.h]
      openssh-6.4
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Update version numbers following release.
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
