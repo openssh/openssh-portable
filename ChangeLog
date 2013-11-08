@@ -8,6 +8,11 @@
      [cipher.c cipher.h kex.c kex.h mac.c mac.h servconf.c ssh.c]
      Output the effective values of Ciphers, MACs and KexAlgorithms when
      the default has not been overridden.  ok markus@
+   - djm@cvs.openbsd.org 2013/11/08 00:39:15
+     [auth-options.c auth2-chall.c authfd.c channels.c cipher-3des1.c]
+     [clientloop.c gss-genr.c monitor_mm.c packet.c schnorr.c umac.c]
+     [sftp-client.c sftp-glob.c]
+     use calloc for all structure allocations; from markus@
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)

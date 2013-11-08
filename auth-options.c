@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.60 2013/11/02 22:34:01 markus Exp $ */
+/* $OpenBSD: auth-options.c,v 1.61 2013/11/08 00:39:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -235,7 +235,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			auth_debug_add("Adding to environment: %.900s", s);
 			debug("Adding to environment: %.900s", s);
 			opts++;
-			new_envstring = xmalloc(sizeof(struct envstring));
+			new_envstring = xcalloc(1, sizeof(struct envstring));
 			new_envstring->s = s;
 			new_envstring->next = custom_environment;
 			custom_environment = new_envstring;
