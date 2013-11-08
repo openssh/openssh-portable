@@ -80,7 +80,9 @@ static const struct kexalg kexalgs[] = {
 	{ KEX_ECDH_SHA2_NISTP384, KEX_ECDH_SHA2, NID_secp384r1, EVP_sha384 },
 	{ KEX_ECDH_SHA2_NISTP521, KEX_ECDH_SHA2, NID_secp521r1, EVP_sha512 },
 #endif
+#ifdef HAVE_EVP_SHA256
 	{ KEX_CURVE25519_SHA256, KEX_C25519_SHA256, 0, EVP_sha256 },
+#endif
 	{ NULL, -1, -1, NULL},
 };
 

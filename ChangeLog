@@ -21,6 +21,8 @@
  - (dtucker) [openbsd-compat/openbsd-compat.h] Add null implementation of
    arc4random_stir for platforms that have arc4random but don't have
    arc4random_stir (right now this is only OpenBSD -current).
+ - (dtucker) [kex.c] Only enable CURVE25519_SHA256 if we actually have
+   EVP_sha256.
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
