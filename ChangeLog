@@ -18,6 +18,9 @@
      openssh-6.4
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update version numbers following release.
+ - (dtucker) [openbsd-compat/openbsd-compat.h] Add null implementation of
+   arc4random_stir for platforms that have arc4random but don't have
+   arc4random_stir (right now this is only OpenBSD -current).
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)

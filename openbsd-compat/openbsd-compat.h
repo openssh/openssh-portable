@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.58 2013/06/05 22:30:21 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.59 2013/11/08 07:54:39 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -161,9 +161,13 @@ int writev(int, struct iovec *, int);
 
 #ifndef HAVE_GETPEEREID
 int getpeereid(int , uid_t *, gid_t *);
-#endif 
+#endif
 
-#ifndef HAVE_ARC4RANDOM
+#ifdef HAVE_ARC4RANDOM
+# ifndef HAVE_ARC4RANDOM_STIR
+#  define arc4random_stir()
+# endif
+#else
 unsigned int arc4random(void);
 void arc4random_stir(void);
 #endif /* !HAVE_ARC4RANDOM */
