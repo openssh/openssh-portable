@@ -13,6 +13,9 @@
      [clientloop.c gss-genr.c monitor_mm.c packet.c schnorr.c umac.c]
      [sftp-client.c sftp-glob.c]
      use calloc for all structure allocations; from markus@
+   - djm@cvs.openbsd.org 2013/11/08 01:38:11
+     [version.h]
+     openssh-6.4
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)
