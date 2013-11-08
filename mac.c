@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.24 2013/06/03 00:03:18 dtucker Exp $ */
+/* $OpenBSD: mac.c,v 1.25 2013/11/07 11:58:27 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -91,9 +91,9 @@ static const struct macalg macs[] = {
 	{ NULL,					0, NULL, 0, 0, 0, 0 }
 };
 
-/* Returns a comma-separated list of supported MACs. */
+/* Returns a list of supported MACs separated by the specified char. */
 char *
-mac_alg_list(void)
+mac_alg_list(char sep)
 {
 	char *ret = NULL;
 	size_t nlen, rlen = 0;
@@ -101,7 +101,7 @@ mac_alg_list(void)
 
 	for (m = macs; m->name != NULL; m++) {
 		if (ret != NULL)
-			ret[rlen++] = '\n';
+			ret[rlen++] = sep;
 		nlen = strlen(m->name);
 		ret = xrealloc(ret, 1, rlen + nlen + 2);
 		memcpy(ret + rlen, m->name, nlen + 1);

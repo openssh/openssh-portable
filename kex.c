@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.92 2013/11/02 21:59:15 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.93 2013/11/07 11:58:27 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -85,7 +85,7 @@ static const struct kexalg kexalgs[] = {
 };
 
 char *
-kex_alg_list(void)
+kex_alg_list(char sep)
 {
 	char *ret = NULL;
 	size_t nlen, rlen = 0;
@@ -93,7 +93,7 @@ kex_alg_list(void)
 
 	for (k = kexalgs; k->name != NULL; k++) {
 		if (ret != NULL)
-			ret[rlen++] = '\n';
+			ret[rlen++] = sep;
 		nlen = strlen(k->name);
 		ret = xrealloc(ret, 1, rlen + nlen + 2);
 		memcpy(ret + rlen, k->name, nlen + 1);

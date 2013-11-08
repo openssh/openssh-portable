@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.89 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.90 2013/11/07 11:58:27 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -100,9 +100,9 @@ static const struct Cipher ciphers[] = {
 
 /*--*/
 
-/* Returns a comma-separated list of supported ciphers. */
+/* Returns a list of supported ciphers separated by the specified char. */
 char *
-cipher_alg_list(void)
+cipher_alg_list(char sep)
 {
 	char *ret = NULL;
 	size_t nlen, rlen = 0;
@@ -112,7 +112,7 @@ cipher_alg_list(void)
 		if (c->number != SSH_CIPHER_SSH2)
 			continue;
 		if (ret != NULL)
-			ret[rlen++] = '\n';
+			ret[rlen++] = sep;
 		nlen = strlen(c->name);
 		ret = xrealloc(ret, 1, rlen + nlen + 2);
 		memcpy(ret + rlen, c->name, nlen + 1);

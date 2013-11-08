@@ -3,6 +3,11 @@
     - dtucker@cvs.openbsd.org 2013/11/08 01:06:14
       [regress/rekey.sh]
       Rekey less frequently during tests to speed them up
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/11/07 11:58:27
+     [cipher.c cipher.h kex.c kex.h mac.c mac.h servconf.c ssh.c]
+     Output the effective values of Ciphers, MACs and KexAlgorithms when
+     the default has not been overridden.  ok markus@
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)

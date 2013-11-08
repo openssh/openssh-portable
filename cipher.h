@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.40 2013/04/19 01:06:50 djm Exp $ */
+/* $OpenBSD: cipher.h,v 1.41 2013/11/07 11:58:27 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -75,7 +75,7 @@ const Cipher	*cipher_by_number(int);
 int	 cipher_number(const char *);
 char	*cipher_name(int);
 int	 ciphers_valid(const char *);
-char	*cipher_alg_list(void);
+char	*cipher_alg_list(char);
 void	 cipher_init(CipherContext *, const Cipher *, const u_char *, u_int,
     const u_char *, u_int, int);
 void	 cipher_crypt(CipherContext *, u_char *, const u_char *,
