@@ -8,6 +8,7 @@
    NID_X9_62_prime256v1, NID_secp384r1 and NID_secp521r1 and test that the
    latter actually works before using it.  Fedora (at least) has NID_secp521r1
    that doesn't work (see https://bugzilla.redhat.com/show_bug.cgi?id=1021897).
+ - (dtucker) [configure.ac] Fix brackets in NID_secp521r1 test.
 
 20131108
  - (dtucker) OpenBSD CVS Sync

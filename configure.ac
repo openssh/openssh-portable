@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.541 2013/11/09 07:39:25 dtucker Exp $
+# $Id: configure.ac,v 1.542 2013/11/09 11:02:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.541 $)
+AC_REVISION($Revision: 1.542 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2526,9 +2526,9 @@ AC_LINK_IFELSE(
 		[ AC_MSG_RESULT([yes])
 		  enable_nistp521=1 ],
 		[ AC_MSG_RESULT([no]) ],
-		[ AC_MSG_WARN([cross-compiling, assuming yes])
+		[ AC_MSG_WARN([cross-compiling: assuming yes])
 		  enable_nistp521=1 ]
-	])
+	  )],
 	AC_MSG_RESULT([no])
 )
 
