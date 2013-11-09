@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.542 2013/11/09 11:02:31 dtucker Exp $
+# $Id: configure.ac,v 1.543 2013/11/09 11:32:51 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.542 $)
+AC_REVISION($Revision: 1.543 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2536,7 +2536,7 @@ COMMENT_OUT_ECC="#no ecc#"
 TEST_SSH_ECC=no
 
 if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
-    x$enable_nistp521 = x1; then
+    test x$enable_nistp521 = x1; then
 	AC_DEFINE(OPENSSL_HAS_ECC, [1], [OpenSSL has ECC])
 fi
 if test x$enable_nistp256 = x1; then
