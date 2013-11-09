@@ -1,3 +1,10 @@
+20131109
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/11/09 05:41:34
+     [regress/test-exec.sh regress/rekey.sh]
+     Use smaller test data files to speed up tests.  Grow test datafiles
+     where necessary for a specific test.
+
 20131108
  - (dtucker) OpenBSD CVS Sync
     - dtucker@cvs.openbsd.org 2013/11/08 01:06:14
@@ -32,6 +39,11 @@
  - (dtucker) [contrib/cygwin/ssh-host-config] Simplify host key generation:
    rather than testing and generating each key, call ssh-keygen -A.
    Patch from vinschen at redhat.com.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/11/09 05:41:34
+     [regress/test-exec.sh regress/rekey.sh]
+     Use smaller test data files to speed up tests.  Grow test datafiles
+     where necessary for a specific test.
 
 20131107
  - (djm) [ssh-pkcs11.c] Bring back "non-constant initialiser" fix (rev 1.5)

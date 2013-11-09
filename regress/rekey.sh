@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.12 2013/11/08 01:06:14 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.13 2013/11/09 05:41:34 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -25,6 +25,8 @@ ssh_data_rekeying()
 		fail "no rekeying occured ($@)"
 	fi
 }
+
+increase_datafile_size 300
 
 opts=""
 for i in `${SSH} -Q kex`; do
