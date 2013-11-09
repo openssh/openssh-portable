@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.540 2013/11/08 13:17:41 dtucker Exp $
+# $Id: configure.ac,v 1.541 2013/11/09 07:39:25 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.540 $)
+AC_REVISION($Revision: 1.541 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2450,7 +2450,49 @@ AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
 )
 
 # Check complete ECC support in OpenSSL
-AC_MSG_CHECKING([whether OpenSSL has complete ECC support])
+AC_MSG_CHECKING([whether OpenSSL has NID_X9_62_prime256v1])
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <openssl/ec.h>
+#include <openssl/ecdh.h>
+#include <openssl/ecdsa.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER < 0x0090807f /* 0.9.8g */
+# error "OpenSSL < 0.9.8g has unreliable ECC code"
+#endif
+	]], [[
+	EC_KEY *e = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+	const EVP_MD *m = EVP_sha256(); /* We need this too */
+	]])],
+	[ AC_MSG_RESULT([yes])
+	  enable_nistp256=1 ],
+	[ AC_MSG_RESULT([no]) ]
+)
+
+AC_MSG_CHECKING([whether OpenSSL has NID_secp384r1])
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <openssl/ec.h>
+#include <openssl/ecdh.h>
+#include <openssl/ecdsa.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER < 0x0090807f /* 0.9.8g */
+# error "OpenSSL < 0.9.8g has unreliable ECC code"
+#endif
+	]], [[
+	EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp384r1);
+	const EVP_MD *m = EVP_sha384(); /* We need this too */
+	]])],
+	[ AC_MSG_RESULT([yes])
+	  enable_nistp384=1 ],
+	[ AC_MSG_RESULT([no]) ]
+)
+
+AC_MSG_CHECKING([whether OpenSSL has NID_secp521r1])
 AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <openssl/ec.h>
@@ -2466,25 +2508,63 @@ AC_LINK_IFELSE(
 	EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
 	const EVP_MD *m = EVP_sha512(); /* We need this too */
 	]])],
-	[
-		AC_MSG_RESULT([yes])
-		AC_DEFINE([OPENSSL_HAS_ECC], [1],
-		    [libcrypto includes complete ECC support])
-		TEST_SSH_ECC=yes
-		COMMENT_OUT_ECC=""
-	],
-	[
-		AC_MSG_RESULT([no])
-		TEST_SSH_ECC=no
-		COMMENT_OUT_ECC="#no ecc#"
-     		unsupported_algorithms="$unsupported_algorithms \
-		    ecdh-sha2-nistp256 ecdh-sha2-nistp384 ecdh-sha2-nistp521 \
-		    ecdsa-sha2-nistp256-cert-v01@openssh.com \
-		    ecdsa-sha2-nistp384-cert-v01@openssh.com \
-		    ecdsa-sha2-nistp521-cert-v01@openssh.com \
-		    ecdsa-sha2-nistp256 ecdsa-sha2-nistp384 ecdsa-sha2-nistp521"
-	]
+	[ AC_MSG_RESULT([yes])
+	  AC_MSG_CHECKING([if OpenSSL's NID_secp521r1 is functional])
+	  AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <openssl/ec.h>
+#include <openssl/ecdh.h>
+#include <openssl/ecdsa.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+#include <openssl/opensslv.h>
+		]],[[
+		EC_KEY *e = EC_KEY_new_by_curve_name(NID_secp521r1);
+		const EVP_MD *m = EVP_sha512(); /* We need this too */
+		exit(e == NULL || m == NULL);
+		]])],
+		[ AC_MSG_RESULT([yes])
+		  enable_nistp521=1 ],
+		[ AC_MSG_RESULT([no]) ],
+		[ AC_MSG_WARN([cross-compiling, assuming yes])
+		  enable_nistp521=1 ]
+	])
+	AC_MSG_RESULT([no])
 )
+
+COMMENT_OUT_ECC="#no ecc#"
+TEST_SSH_ECC=no
+
+if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
+    x$enable_nistp521 = x1; then
+	AC_DEFINE(OPENSSL_HAS_ECC, [1], [OpenSSL has ECC])
+fi
+if test x$enable_nistp256 = x1; then
+	AC_DEFINE([OPENSSL_HAS_NISTP256], [1],
+	    [libcrypto has NID_X9_62_prime256v1])
+	TEST_SSH_ECC=yes
+	COMMENT_OUT_ECC=""
+else
+	unsupported_algorithms="$unsupported_algorithms ecdsa-sha2-nistp256 \
+	    ecdh-sha2-nistp256 ecdsa-sha2-nistp256-cert-v01@openssh.com"
+fi
+if test x$enable_nistp384 = x1; then
+	AC_DEFINE([OPENSSL_HAS_NISTP384], [1], [libcrypto has NID_secp384r1])
+	TEST_SSH_ECC=yes
+	COMMENT_OUT_ECC=""
+else
+	unsupported_algorithms="$unsupported_algorithms ecdsa-sha2-nistp384 \
+	    ecdh-sha2-nistp384 ecdsa-sha2-nistp384-cert-v01@openssh.com"
+fi
+if test x$enable_nistp521 = x1; then
+	AC_DEFINE([OPENSSL_HAS_NISTP521], [1], [libcrypto has NID_secp521r1])
+	TEST_SSH_ECC=yes
+	COMMENT_OUT_ECC=""
+else
+	unsupported_algorithms="$unsupported_algorithms ecdh-sha2-nistp521 \
+	    ecdsa-sha2-nistp521 ecdsa-sha2-nistp521-cert-v01@openssh.com"
+fi
+
 AC_SUBST([TEST_SSH_ECC])
 AC_SUBST([COMMENT_OUT_ECC])
 

@@ -29,6 +29,7 @@
 /* conditional algorithm support */
 
 #ifdef OPENSSL_HAS_ECC
+#ifdef OPENSSL_HAS_NISTP521
 # define KEX_ECDH_METHODS \
 	"ecdh-sha2-nistp256," \
 	"ecdh-sha2-nistp384," \
@@ -41,6 +42,17 @@
 	"ecdsa-sha2-nistp256," \
 	"ecdsa-sha2-nistp384," \
 	"ecdsa-sha2-nistp521,"
+#else
+# define KEX_ECDH_METHODS \
+	"ecdh-sha2-nistp256," \
+	"ecdh-sha2-nistp384,"
+# define HOSTKEY_ECDSA_CERT_METHODS \
+	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
+	"ecdsa-sha2-nistp384-cert-v01@openssh.com,"
+# define HOSTKEY_ECDSA_METHODS \
+	"ecdsa-sha2-nistp256," \
+	"ecdsa-sha2-nistp384,"
+#endif
 #else
 # define KEX_ECDH_METHODS
 # define HOSTKEY_ECDSA_CERT_METHODS

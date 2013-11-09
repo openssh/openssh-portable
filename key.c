@@ -918,7 +918,9 @@ static const struct keytype keytypes[] = {
 #ifdef OPENSSL_HAS_ECC
 	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0 },
 	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0 },
+# ifdef OPENSSL_HAS_NISTP521
 	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0 },
+# endif
 #endif /* OPENSSL_HAS_ECC */
 	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1 },
 	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1 },
@@ -927,8 +929,10 @@ static const struct keytype keytypes[] = {
 	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1 },
 	{ "ecdsa-sha2-nistp384-cert-v01@openssh.com", "ECDSA-CERT",
 	    KEY_ECDSA_CERT, NID_secp384r1, 1 },
+# ifdef OPENSSL_HAS_NISTP521
 	{ "ecdsa-sha2-nistp521-cert-v01@openssh.com", "ECDSA-CERT",
 	    KEY_ECDSA_CERT, NID_secp521r1, 1 },
+# endif
 #endif /* OPENSSL_HAS_ECC */
 	{ "ssh-rsa-cert-v00@openssh.com", "RSA-CERT-V00",
 	    KEY_RSA_CERT_V00, 0, 1 },
@@ -1100,8 +1104,10 @@ key_ecdsa_bits_to_nid(int bits)
 		return NID_X9_62_prime256v1;
 	case 384:
 		return NID_secp384r1;
+# ifdef HAVE_OPENSSL_NISTP521
 	case 521:
 		return NID_secp521r1;
+# endif
 #endif
 	default:
 		return -1;
@@ -1116,7 +1122,9 @@ key_ecdsa_key_to_nid(EC_KEY *k)
 	int nids[] = {
 		NID_X9_62_prime256v1,
 		NID_secp384r1,
+# ifdef OPENSSL_HAS_NISTP521
 		NID_secp521r1,
+# endif
 		-1
 	};
 	int nid;
@@ -2031,8 +2039,10 @@ key_curve_name_to_nid(const char *name)
 		return NID_X9_62_prime256v1;
 	else if (strcmp(name, "nistp384") == 0)
 		return NID_secp384r1;
+# ifdef OPENSSL_HAS_NISTP521
 	else if (strcmp(name, "nistp521") == 0)
 		return NID_secp521r1;
+# endif
 #endif
 
 	debug("%s: unsupported EC curve name \"%.100s\"", __func__, name);
@@ -2048,8 +2058,10 @@ key_curve_nid_to_bits(int nid)
 		return 256;
 	case NID_secp384r1:
 		return 384;
+# ifdef OPENSSL_NAS_NISTP521
 	case NID_secp521r1:
 		return 521;
+# endif
 #endif
 	default:
 		error("%s: unsupported EC curve nid %d", __func__, nid);
@@ -2065,8 +2077,10 @@ key_curve_nid_to_name(int nid)
 		return "nistp256";
 	else if (nid == NID_secp384r1)
 		return "nistp384";
+# ifdef OPENSSL_HAS_NISTP521
 	else if (nid == NID_secp521r1)
 		return "nistp521";
+# endif
 #endif
 	error("%s: unsupported EC curve nid %d", __func__, nid);
 	return NULL;
