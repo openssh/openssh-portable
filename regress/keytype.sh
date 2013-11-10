@@ -12,9 +12,13 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
 ktypes="dsa-1024 rsa-2048 rsa-3072"
-if test "$TEST_SSH_ECC" = "yes"; then
-	ktypes="$ktypes ecdsa-256 ecdsa-384 ecdsa-521"
-fi
+for i in `$SSH -Q key`; do
+	case "$i" in
+		ecdsa-sha2-nistp256)	ktype="$ktype ecdsa-256" ;;
+		ecdsa-sha2-nistp384)	ktype="$ktype ecdsa-384" ;;
+		ecdsa-sha2-nistp521)	ktype="$ktype ecdsa-521" ;;
+	esac
+done
 
 for kt in $ktypes; do 
 	rm -f $OBJ/key.$kt

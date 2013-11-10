@@ -1,3 +1,7 @@
+20131110
+ - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
+   querying the ones that are compiled in.
+
 20131109
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2013/11/09 05:41:34
