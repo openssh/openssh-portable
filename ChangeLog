@@ -10,6 +10,7 @@
    that doesn't work (see https://bugzilla.redhat.com/show_bug.cgi?id=1021897).
  - (dtucker) [configure.ac] Fix brackets in NID_secp521r1 test.
  - (dtucker) [configure.ac] Add missing "test".
+ - (dtucker) [key.c] Check for the correct defines for NID_secp521r1.
 
 20131108
  - (dtucker) OpenBSD CVS Sync

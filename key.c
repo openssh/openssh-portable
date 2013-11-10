@@ -1104,7 +1104,7 @@ key_ecdsa_bits_to_nid(int bits)
 		return NID_X9_62_prime256v1;
 	case 384:
 		return NID_secp384r1;
-# ifdef HAVE_OPENSSL_NISTP521
+# ifdef OPENSSL_HAS_NISTP521
 	case 521:
 		return NID_secp521r1;
 # endif
@@ -2058,7 +2058,7 @@ key_curve_nid_to_bits(int nid)
 		return 256;
 	case NID_secp384r1:
 		return 384;
-# ifdef OPENSSL_NAS_NISTP521
+# ifdef OPENSSL_HAS_NISTP521
 	case NID_secp521r1:
 		return 521;
 # endif
