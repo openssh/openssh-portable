@@ -1,4 +1,4 @@
-/* $OpenBSD: canohost.c,v 1.68 2013/10/14 23:28:22 djm Exp $ */
+/* $OpenBSD: canohost.c,v 1.69 2013/11/20 20:54:10 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,7 +20,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
 #include <stdio.h>

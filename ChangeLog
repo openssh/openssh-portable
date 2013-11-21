@@ -15,6 +15,10 @@
      [scp.c]
      unsigned casts for ctype macros where neccessary
      ok guenther millert markus
+   - deraadt@cvs.openbsd.org 2013/11/20 20:54:10
+     [canohost.c clientloop.c match.c readconf.c sftp.c]
+     unsigned casts for ctype macros where neccessary
+     ok guenther millert markus
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
