@@ -47,6 +47,15 @@
      [regress/modpipe.c]
      use unsigned long long instead of u_int64_t here to avoid warnings
      on some systems portable OpenSSH is built on.
+   - djm@cvs.openbsd.org 2013/11/21 03:18:51
+     [regress/cipher-speed.sh regress/integrity.sh regress/rekey.sh]
+     [regress/try-ciphers.sh]
+     use new "ssh -Q cipher-auth" query to obtain lists of authenticated
+     encryption ciphers instead of specifying them manually; ensures that
+     the new chacha20poly1305@openssh.com mode is tested;
+     
+     ok markus@ and naddy@ as part of the diff to add
+     chacha20poly1305@openssh.com
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by

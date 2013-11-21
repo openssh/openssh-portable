@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.13 2013/11/09 05:41:34 dtucker Exp $
+#	$OpenBSD: rekey.sh,v 1.14 2013/11/21 03:18:51 djm Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -44,9 +44,9 @@ for opt in $opts; do
 	ssh_data_rekeying -oRekeyLimit=256k -o$opt
 done
 
-# GCM is magical so test with all KexAlgorithms
-if ${SSH} -Q cipher | grep gcm@openssh.com >/dev/null ; then
-  for c in `${SSH} -Q cipher | grep gcm@openssh.com`; do
+# AEAD ciphers are magical so test with all KexAlgorithms
+if ${SSH} -Q cipher-auth | grep '^.*$' >/dev/null 2>&1 ; then
+  for c in `${SSH} -Q cipher-auth`; do
     for kex in `${SSH} -Q kex`; do
 	verbose "client rekey $c $kex"
 	ssh_data_rekeying -oRekeyLimit=256k -oCiphers=$c -oKexAlgorithms=$kex
@@ -131,10 +131,10 @@ for size in 16 1k 1K 1m 1M 1g 1G; do
 	    awk '/rekeylimit/{print $3}'`
 
 	if [ "$bytes" != "$b" ]; then
-		fatal "rekeylimit size: expected $bytes got $b"
+		fatal "rekeylimit size: expected $bytes bytes got $b"
 	fi
 	if [ "$seconds" != "$s" ]; then
-		fatal "rekeylimit time: expected $time got $s"
+		fatal "rekeylimit time: expected $time seconds got $s"
 	fi
     done
 done

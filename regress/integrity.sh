@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.11 2013/11/07 02:48:38 dtucker Exp $
+#	$OpenBSD: integrity.sh,v 1.12 2013/11/21 03:18:51 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -11,7 +11,7 @@ startoffset=2900
 macs=`${SSH} -Q mac`
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
-macs="$macs `${SSH} -Q cipher | grep gcm@openssh.com`"
+macs="$macs `${SSH} -Q cipher-auth`"
 
 # avoid DH group exchange as the extra traffic makes it harder to get the
 # offset into the stream right.
@@ -36,12 +36,14 @@ for m in $macs; do
 		fi
 		# modify output from sshd at offset $off
 		pxy="proxycommand=$cmd | $OBJ/modpipe -wm xor:$off:1"
-		case $m in
-			aes*gcm*)	macopt="-c $m";;
-			*)		macopt="-m $m";;
-		esac
+		if ssh -Q cipher-auth | grep "^${m}\$" >/dev/null 2>&1 ; then
+			macopt="-c $m"
+		else
+			macopt="-m $m -c aes128-ctr"
+		fi
 		verbose "test $tid: $m @$off"
 		${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
+		    -oServerAliveInterval=1 -oServerAliveCountMax=30 \
 		    999.999.999.999 'printf "%4096s" " "' >/dev/null
 		if [ $? -eq 0 ]; then
 			fail "ssh -m $m succeeds with bit-flip at $off"

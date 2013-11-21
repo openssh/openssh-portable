@@ -1,4 +1,4 @@
-#	$OpenBSD: cipher-speed.sh,v 1.10 2013/11/07 02:48:38 dtucker Exp $
+#	$OpenBSD: cipher-speed.sh,v 1.11 2013/11/21 03:18:51 djm Exp $
 #	Placed in the Public Domain.
 
 tid="cipher speed"
@@ -24,10 +24,10 @@ for c in `${SSH} -Q cipher`; do n=0; for m in `${SSH} -Q mac`; do
 			fail "ssh -2 failed with mac $m cipher $c"
 		fi
 	done
-	# No point trying all MACs for GCM since they are ignored.
-	case $c in
-	aes*-gcm@openssh.com)	test $n -gt 0 && break;;
-	esac
+	# No point trying all MACs for AEAD ciphers since they are ignored.
+	if ssh -Q cipher-auth | grep "^${c}\$" >/dev/null 2>&1 ; then
+		break
+	fi
 	n=`expr $n + 1`
 done; done
 
