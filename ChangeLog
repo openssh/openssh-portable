@@ -40,6 +40,9 @@
      [regress/forward-control.sh]
      bump timeout to 10 seconds to allow slow machines (e.g. Alpha PC164)
      to successfully run this; ok djm@
+   - djm@cvs.openbsd.org 2013/11/21 03:15:46
+     [regress/krl.sh]
+     add some reminders for additional tests that I'd like to implement
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
