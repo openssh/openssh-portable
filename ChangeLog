@@ -11,6 +11,10 @@
      delay closure of in/out fds until after "Bad protocol version
      identification..." message, as get_remote_ipaddr/get_remote_port
      require them open.
+   - deraadt@cvs.openbsd.org 2013/11/20 20:53:10
+     [scp.c]
+     unsigned casts for ctype macros where neccessary
+     ok guenther millert markus
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
