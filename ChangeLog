@@ -36,6 +36,10 @@
      
      Feedback markus@, naddy@; manpage bits Loganden Velvindron @ AfriNIC
      ok markus@ naddy@
+   - naddy@cvs.openbsd.org 2013/11/18 05:09:32
+     [regress/forward-control.sh]
+     bump timeout to 10 seconds to allow slow machines (e.g. Alpha PC164)
+     to successfully run this; ok djm@
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
