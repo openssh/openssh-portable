@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.410 2013/11/02 21:59:15 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.411 2013/11/20 02:19:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -480,11 +480,11 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	    &remote_major, &remote_minor, remote_version) != 3) {
 		s = "Protocol mismatch.\n";
 		(void) atomicio(vwrite, sock_out, s, strlen(s));
-		close(sock_in);
-		close(sock_out);
 		logit("Bad protocol version identification '%.100s' "
 		    "from %s port %d", client_version_string,
 		    get_remote_ipaddr(), get_remote_port());
+		close(sock_in);
+		close(sock_out);
 		cleanup_exit(255);
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",

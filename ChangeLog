@@ -6,6 +6,11 @@
    - markus@cvs.openbsd.org 2013/11/13 13:48:20
      [ssh-pkcs11.c]
      add missing braces found by pedro
+   - djm@cvs.openbsd.org 2013/11/20 02:19:01
+     [sshd.c]
+     delay closure of in/out fds until after "Bad protocol version
+     identification..." message, as get_remote_ipaddr/get_remote_port
+     require them open.
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
