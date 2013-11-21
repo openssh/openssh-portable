@@ -91,6 +91,11 @@ an MAC algorithm. Additionally, if AES-GCM is selected as the cipher
 the exchanged MAC algorithms are ignored and there doesn't have to be
 a matching MAC.
 
+1.7 transport: chacha20-poly1305@openssh.com authenticated encryption
+
+OpenSSH supports authenticated encryption using ChaCha20 and Poly1305
+as described in PROTOCOL.chacha20poly1305.
+
 2. Connection protocol changes
 
 2.1. connection: Channel write close extension "eow@openssh.com"
@@ -345,4 +350,4 @@ respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-$OpenBSD: PROTOCOL,v 1.21 2013/10/17 00:30:13 djm Exp $
+$OpenBSD: PROTOCOL,v 1.22 2013/11/21 00:45:43 djm Exp $

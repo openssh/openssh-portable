@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.392 2013/11/07 11:58:27 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.393 2013/11/21 00:45:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -520,7 +520,9 @@ main(int ac, char **av)
 		case 'Q':	/* deprecated */
 			cp = NULL;
 			if (strcasecmp(optarg, "cipher") == 0)
-				cp = cipher_alg_list('\n');
+				cp = cipher_alg_list('\n', 0);
+			else if (strcasecmp(optarg, "cipher-auth") == 0)
+				cp = cipher_alg_list('\n', 1);
 			else if (strcasecmp(optarg, "mac") == 0)
 				cp = mac_alg_list('\n');
 			else if (strcasecmp(optarg, "kex") == 0)

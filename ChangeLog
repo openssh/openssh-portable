@@ -19,6 +19,23 @@
      [canohost.c clientloop.c match.c readconf.c sftp.c]
      unsigned casts for ctype macros where neccessary
      ok guenther millert markus
+   - djm@cvs.openbsd.org 2013/11/21 00:45:44
+     [Makefile.in PROTOCOL PROTOCOL.chacha20poly1305 authfile.c chacha.c]
+     [chacha.h cipher-chachapoly.c cipher-chachapoly.h cipher.c cipher.h]
+     [dh.c myproposal.h packet.c poly1305.c poly1305.h servconf.c ssh.1]
+     [ssh.c ssh_config.5 sshd_config.5] Add a new protocol 2 transport
+     cipher "chacha20-poly1305@openssh.com" that combines Daniel
+     Bernstein's ChaCha20 stream cipher and Poly1305 MAC to build an
+     authenticated encryption mode.
+     
+     Inspired by and similar to Adam Langley's proposal for TLS:
+     http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
+     but differs in layout used for the MAC calculation and the use of a
+     second ChaCha20 instance to separately encrypt packet lengths.
+     Details are in the PROTOCOL.chacha20poly1305 file.
+     
+     Feedback markus@, naddy@; manpage bits Loganden Velvindron @ AfriNIC
+     ok markus@ naddy@
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by

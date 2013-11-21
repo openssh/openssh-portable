@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.41 2013/11/07 11:58:27 dtucker Exp $ */
+/* $OpenBSD: cipher.h,v 1.42 2013/11/21 00:45:44 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -38,6 +38,8 @@
 #define CIPHER_H
 
 #include <openssl/evp.h>
+#include "cipher-chachapoly.h"
+
 /*
  * Cipher types for SSH-1.  New types can be added, but old types should not
  * be removed for compatibility.  The maximum allowed value is 31.
@@ -66,6 +68,7 @@ struct CipherContext {
 	int	plaintext;
 	int	encrypt;
 	EVP_CIPHER_CTX evp;
+	struct chachapoly_ctx cp_ctx; /* XXX union with evp? */
 	const Cipher *cipher;
 };
 
@@ -75,11 +78,13 @@ const Cipher	*cipher_by_number(int);
 int	 cipher_number(const char *);
 char	*cipher_name(int);
 int	 ciphers_valid(const char *);
-char	*cipher_alg_list(char);
+char	*cipher_alg_list(char, int);
 void	 cipher_init(CipherContext *, const Cipher *, const u_char *, u_int,
     const u_char *, u_int, int);
-void	 cipher_crypt(CipherContext *, u_char *, const u_char *,
+void	 cipher_crypt(CipherContext *, u_int, u_char *, const u_char *,
     u_int, u_int, u_int);
+int	 cipher_get_length(CipherContext *, u_int *, u_int,
+    const u_char *, u_int);
 void	 cipher_cleanup(CipherContext *);
 void	 cipher_set_key_string(CipherContext *, const Cipher *, const char *, int);
 u_int	 cipher_blocksize(const Cipher *);

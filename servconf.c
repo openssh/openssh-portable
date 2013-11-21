@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.245 2013/11/07 11:58:27 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.246 2013/11/21 00:45:44 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2038,7 +2038,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sPidFile, o->pid_file);
 	dump_cfg_string(sXAuthLocation, o->xauth_location);
 	dump_cfg_string(sCiphers, o->ciphers ? o->ciphers :
-	    cipher_alg_list(','));
+	    cipher_alg_list(',', 0));
 	dump_cfg_string(sMacs, o->macs ? o->macs : mac_alg_list(','));
 	dump_cfg_string(sBanner, o->banner);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);

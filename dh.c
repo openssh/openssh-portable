@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.52 2013/10/08 11:42:13 dtucker Exp $ */
+/* $OpenBSD: dh.c,v 1.53 2013/11/21 00:45:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -254,33 +254,19 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 void
 dh_gen_key(DH *dh, int need)
 {
-	int i, bits_set, tries = 0;
+	int pbits;
 
-	if (need < 0)
-		fatal("dh_gen_key: need < 0");
+	if (need <= 0)
+		fatal("%s: need <= 0", __func__);
 	if (dh->p == NULL)
-		fatal("dh_gen_key: dh->p == NULL");
-	if (need > INT_MAX / 2 || 2 * need >= BN_num_bits(dh->p))
-		fatal("dh_gen_key: group too small: %d (2*need %d)",
-		    BN_num_bits(dh->p), 2*need);
-	do {
-		if (dh->priv_key != NULL)
-			BN_clear_free(dh->priv_key);
-		if ((dh->priv_key = BN_new()) == NULL)
-			fatal("dh_gen_key: BN_new failed");
-		/* generate a 2*need bits random private exponent */
-		if (!BN_rand(dh->priv_key, 2*need, 0, 0))
-			fatal("dh_gen_key: BN_rand failed");
-		if (DH_generate_key(dh) == 0)
-			fatal("DH_generate_key");
-		for (i = 0, bits_set = 0; i <= BN_num_bits(dh->priv_key); i++)
-			if (BN_is_bit_set(dh->priv_key, i))
-				bits_set++;
-		debug2("dh_gen_key: priv key bits set: %d/%d",
-		    bits_set, BN_num_bits(dh->priv_key));
-		if (tries++ > 10)
-			fatal("dh_gen_key: too many bad keys: giving up");
-	} while (!dh_pub_is_valid(dh, dh->pub_key));
+		fatal("%s: dh->p == NULL", __func__);
+	if ((pbits = BN_num_bits(dh->p)) <= 0)
+		fatal("%s: bits(p) <= 0", __func__);
+	dh->length = MIN(need * 2, pbits - 1);
+	if (DH_generate_key(dh) == 0)
+		fatal("%s: key generation failed", __func__);
+	if (!dh_pub_is_valid(dh, dh->pub_key))
+		fatal("%s: generated invalid key", __func__);
 }
 
 DH *
