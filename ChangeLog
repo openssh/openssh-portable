@@ -1,3 +1,9 @@
+20131121
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2013/11/08 11:15:19
+     [bufaux.c bufbn.c buffer.c sftp-client.c sftp-common.c sftp-glob.c]
+     [uidswap.c] Include stdlib.h for free() as per the man page.
+
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by
    querying the ones that are compiled in.

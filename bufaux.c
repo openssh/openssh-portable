@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.52 2013/07/12 00:19:58 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.53 2013/11/08 11:15:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -45,6 +45,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "xmalloc.h"
 #include "buffer.h"
