@@ -3,6 +3,9 @@
    - dtucker@cvs.openbsd.org 2013/11/08 11:15:19
      [bufaux.c bufbn.c buffer.c sftp-client.c sftp-common.c sftp-glob.c]
      [uidswap.c] Include stdlib.h for free() as per the man page.
+   - markus@cvs.openbsd.org 2013/11/13 13:48:20
+     [ssh-pkcs11.c]
+     add missing braces found by pedro
 
 20131110
  - (dtucker) [regress/keytype.sh] Populate ECDSA key types to be tested by

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.10 2013/11/06 23:05:59 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.11 2013/11/13 13:48:20 markus Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -427,7 +427,7 @@ pkcs11_key_included(Key ***keysp, int *nkeys, Key *key)
 	int i;
 
 	for (i = 0; i < *nkeys; i++)
-		if (key_equal(key, *keysp[i]))
+		if (key_equal(key, (*keysp)[i]))
 			return (1);
 	return (0);
 }
