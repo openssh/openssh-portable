@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.105 2013/10/29 09:42:11 djm Exp $ */
+/* $OpenBSD: key.c,v 1.106 2013/12/02 03:09:22 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1587,6 +1587,10 @@ to_blob(const Key *key, u_char **blobp, u_int *lenp, int force_plain)
 	Buffer b;
 	int len, type;
 
+	if (blobp != NULL)
+		*blobp = NULL;
+	if (lenp != NULL)
+		*lenp = 0;
 	if (key == NULL) {
 		error("key_to_blob: key == NULL");
 		return 0;
