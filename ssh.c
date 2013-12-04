@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.393 2013/11/21 00:45:44 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.394 2013/11/25 18:04:21 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,9 +199,9 @@ usage(void)
 "usage: ssh [-1246AaCfgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
 "           [-D [bind_address:]port] [-E log_file] [-e escape_char]\n"
 "           [-F configfile] [-I pkcs11] [-i identity_file]\n"
-"           [-L [bind_address:]port:host:hostport] [-Q protocol_feature]\n"
-"           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
-"           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
+"           [-L [bind_address:]port:host:hostport] [-l login_name] [-m mac_spec]\n"
+"           [-O ctl_cmd] [-o option] [-p port] [-R [bind_address:]port:host:hostport]\n"
+"           [-S ctl_path] [-Q cipher | cipher-auth | mac | kex | key]\n"
 "           [-W host:port] [-w local_tun[:remote_tun]]\n"
 "           [user@]hostname [command]\n"
 	);
@@ -517,17 +517,17 @@ main(int ac, char **av)
 		case 'P':	/* deprecated */
 			options.use_privileged_port = 0;
 			break;
-		case 'Q':	/* deprecated */
+		case 'Q':
 			cp = NULL;
-			if (strcasecmp(optarg, "cipher") == 0)
+			if (strcmp(optarg, "cipher") == 0)
 				cp = cipher_alg_list('\n', 0);
-			else if (strcasecmp(optarg, "cipher-auth") == 0)
+			else if (strcmp(optarg, "cipher-auth") == 0)
 				cp = cipher_alg_list('\n', 1);
-			else if (strcasecmp(optarg, "mac") == 0)
+			else if (strcmp(optarg, "mac") == 0)
 				cp = mac_alg_list('\n');
-			else if (strcasecmp(optarg, "kex") == 0)
+			else if (strcmp(optarg, "kex") == 0)
 				cp = kex_alg_list('\n');
-			else if (strcasecmp(optarg, "key") == 0)
+			else if (strcmp(optarg, "key") == 0)
 				cp = key_alg_list();
 			if (cp == NULL)
 				fatal("Unsupported query \"%s\"", optarg);

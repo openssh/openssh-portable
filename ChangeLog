@@ -3,6 +3,11 @@
    - jmc@cvs.openbsd.org 2013/11/21 08:05:09
      [ssh_config.5 sshd_config.5]
      no need for .Pp before displays;
+   - deraadt@cvs.openbsd.org 2013/11/25 18:04:21
+     [ssh.1 ssh.c]
+     improve -Q usage and such.  One usage change is that the option is now
+     case-sensitive
+     ok dtucker markus djm
 
 20131121
  - (djm) OpenBSD CVS Sync
