@@ -33,6 +33,12 @@
      [key.c]
      make key_to_blob() return a NULL blob on failure; part of
      bz#2175 from Loganaden Velvindron @ AfriNIC
+   - djm@cvs.openbsd.org 2013/12/02 03:13:14
+     [cipher.c]
+     correct bzero of chacha20+poly1305 key context. bz#2177 from
+     Loganaden Velvindron @ AfriNIC
+     
+     Also make it a memset for consistency with the rest of cipher.c
 
 20131121
  - (djm) OpenBSD CVS Sync

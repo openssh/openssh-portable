@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.91 2013/11/21 00:45:44 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.92 2013/12/02 03:13:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -414,7 +414,7 @@ void
 cipher_cleanup(CipherContext *cc)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		bzero(&cc->cp_ctx, sizeof(&cc->cp_ctx));
+		memset(&cc->cp_ctx, 0, sizeof(cc->cp_ctx));
 	else if (EVP_CIPHER_CTX_cleanup(&cc->evp) == 0)
 		error("cipher_cleanup: EVP_CIPHER_CTX_cleanup failed");
 }
