@@ -47,7 +47,7 @@ cipher by decrypting and using the packet length prior to checking
 the MAC. By using an independently-keyed cipher instance to encrypt the
 length, an active attacker seeking to exploit the packet input handling
 as a decryption oracle can learn nothing about the payload contents or
-its MAC (assuming key derivation, ChaCha20 and Poly1306 are secure).
+its MAC (assuming key derivation, ChaCha20 and Poly1305 are secure).
 
 The AEAD is constructed as follows: for each packet, generate a Poly1305
 key by taking the first 256 bits of ChaCha20 stream output generated
@@ -101,5 +101,5 @@ References
 [3] "ChaCha20 and Poly1305 based Cipher Suites for TLS", Adam Langley
     http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
 
-$OpenBSD: PROTOCOL.chacha20poly1305,v 1.1 2013/11/21 00:45:43 djm Exp $
+$OpenBSD: PROTOCOL.chacha20poly1305,v 1.2 2013/12/02 02:50:27 djm Exp $
 

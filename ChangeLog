@@ -23,6 +23,9 @@
    - djm@cvs.openbsd.org 2013/12/01 23:19:05
      [PROTOCOL]
      mention curve25519-sha256@libssh.org key exchange algorithm
+   - djm@cvs.openbsd.org 2013/12/02 02:50:27
+     [PROTOCOL.chacha20poly1305]
+     typo; from Jon Cave
 
 20131121
  - (djm) OpenBSD CVS Sync
