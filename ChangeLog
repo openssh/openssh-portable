@@ -20,6 +20,9 @@
      [pkcs11.h]
      cleanup 1 << 31 idioms.  Resurrection of this issue pointed out by
      Eitan Adler ok markus for ssh, implies same change in kerberosV
+   - djm@cvs.openbsd.org 2013/12/01 23:19:05
+     [PROTOCOL]
+     mention curve25519-sha256@libssh.org key exchange algorithm
 
 20131121
  - (djm) OpenBSD CVS Sync
