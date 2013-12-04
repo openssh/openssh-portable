@@ -26,6 +26,9 @@
    - djm@cvs.openbsd.org 2013/12/02 02:50:27
      [PROTOCOL.chacha20poly1305]
      typo; from Jon Cave
+   - djm@cvs.openbsd.org 2013/12/02 02:56:17
+     [ssh-pkcs11-helper.c]
+     use-after-free; bz#2175 patch from Loganaden Velvindron @ AfriNIC
 
 20131121
  - (djm) OpenBSD CVS Sync
