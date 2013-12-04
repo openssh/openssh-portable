@@ -8,6 +8,14 @@
      improve -Q usage and such.  One usage change is that the option is now
      case-sensitive
      ok dtucker markus djm
+   - jmc@cvs.openbsd.org 2013/11/26 12:14:54
+     [ssh.1 ssh.c]
+     - put -Q in the right place
+     - Ar was a poor choice for the arguments to -Q. i've chosen an
+       admittedly equally poor Cm, at least consistent with the rest
+       of the docs. also no need for multiple instances
+     - zap a now redundant Nm
+     - usage() sync
 
 20131121
  - (djm) OpenBSD CVS Sync
