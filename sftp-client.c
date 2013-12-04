@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.109 2013/11/08 11:15:19 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.110 2013/12/04 04:20:01 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1111,6 +1111,8 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			do_close(conn, handle, handle_len);
 			buffer_free(&msg);
 			free(handle);
+			if (local_fd != -1)
+				close(local_fd);
 			return -1;
 		}
 		offset = highwater = st.st_size;

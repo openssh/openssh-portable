@@ -39,6 +39,10 @@
      Loganaden Velvindron @ AfriNIC
      
      Also make it a memset for consistency with the rest of cipher.c
+   - djm@cvs.openbsd.org 2013/12/04 04:20:01
+     [sftp-client.c]
+     bz#2171: don't leak local_fd on error; from Loganaden Velvindron @
+     AfriNIC
 
 20131121
  - (djm) OpenBSD CVS Sync
