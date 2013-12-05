@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.543 2013/11/09 11:32:51 dtucker Exp $
+# $Id: configure.ac,v 1.544 2013/12/05 00:00:16 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.543 $)
+AC_REVISION($Revision: 1.544 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1446,7 +1446,7 @@ AC_ARG_WITH([libedit],
 			fi
 		fi
 		if test "x$use_pkgconfig_for_libedit" = "xyes"; then
-			LIBEDIT=`$PKGCONFIG --libs-only-l libedit`
+			LIBEDIT=`$PKGCONFIG --libs libedit`
 			CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libedit`"
 		else
 			LIBEDIT="-ledit -lcurses"

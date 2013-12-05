@@ -43,6 +43,8 @@
      [sftp-client.c]
      bz#2171: don't leak local_fd on error; from Loganaden Velvindron @
      AfriNIC
+ - (dtucker) [configure.ac] bz#2173: use pkg-config --libs to include correct
+   -L location for libedit.  Patch from Serge van den Boom.
 
 20131121
  - (djm) OpenBSD CVS Sync
