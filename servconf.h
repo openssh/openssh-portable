@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.110 2013/10/29 09:48:02 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.111 2013/12/05 01:16:41 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -202,6 +202,9 @@ struct connection_info {
  * Match sub-config and the main config, and must be sent from the
  * privsep slave to the privsep master. We use a macro to ensure all
  * the options are copied and the copies are done in the correct order.
+ *
+ * NB. an option must appear in servconf.c:copy_set_server_options() or
+ * COPY_MATCH_STRING_OPTS here but never both.
  */
 #define COPY_MATCH_STRING_OPTS() do { \
 		M_CP_STROPT(banner); \

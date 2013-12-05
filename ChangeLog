@@ -43,6 +43,11 @@
      [sftp-client.c]
      bz#2171: don't leak local_fd on error; from Loganaden Velvindron @
      AfriNIC
+   - djm@cvs.openbsd.org 2013/12/05 01:16:41
+     [servconf.c servconf.h]
+     bz#2161 - fix AuthorizedKeysCommand inside a Match block and
+     rearrange things so the same error is harder to make next time;
+     with and ok dtucker@
  - (dtucker) [configure.ac] bz#2173: use pkg-config --libs to include correct
    -L location for libedit.  Patch from Serge van den Boom.
 
