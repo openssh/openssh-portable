@@ -9,6 +9,9 @@
      remove duplicated character ('g') in getopt() string;
      document the (few) remaining option characters so we don't have to
      rummage next time.
+   - markus@cvs.openbsd.org 2013/12/06 13:30:08
+     [authfd.c key.c key.h ssh-agent.c]
+     move private key (de)serialization to key.c; ok djm
 
 20131205
  - (djm) OpenBSD CVS Sync

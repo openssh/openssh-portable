@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.106 2013/12/02 03:09:22 djm Exp $ */
+/* $OpenBSD: key.c,v 1.107 2013/12/06 13:30:08 markus Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2276,3 +2276,194 @@ key_dump_ec_key(const EC_KEY *key)
 }
 #endif /* defined(DEBUG_KEXECDH) || defined(DEBUG_PK) */
 #endif /* OPENSSL_HAS_ECC */
+
+void
+key_private_serialize(const Key *key, Buffer *b)
+{
+	buffer_put_cstring(b, key_ssh_name(key));
+	switch (key->type) {
+	case KEY_RSA:
+		buffer_put_bignum2(b, key->rsa->n);
+		buffer_put_bignum2(b, key->rsa->e);
+		buffer_put_bignum2(b, key->rsa->d);
+		buffer_put_bignum2(b, key->rsa->iqmp);
+		buffer_put_bignum2(b, key->rsa->p);
+		buffer_put_bignum2(b, key->rsa->q);
+		break;
+	case KEY_RSA_CERT_V00:
+	case KEY_RSA_CERT:
+		if (key->cert == NULL || buffer_len(&key->cert->certblob) == 0)
+			fatal("%s: no cert/certblob", __func__);
+		buffer_put_string(b, buffer_ptr(&key->cert->certblob),
+		    buffer_len(&key->cert->certblob));
+		buffer_put_bignum2(b, key->rsa->d);
+		buffer_put_bignum2(b, key->rsa->iqmp);
+		buffer_put_bignum2(b, key->rsa->p);
+		buffer_put_bignum2(b, key->rsa->q);
+		break;
+	case KEY_DSA:
+		buffer_put_bignum2(b, key->dsa->p);
+		buffer_put_bignum2(b, key->dsa->q);
+		buffer_put_bignum2(b, key->dsa->g);
+		buffer_put_bignum2(b, key->dsa->pub_key);
+		buffer_put_bignum2(b, key->dsa->priv_key);
+		break;
+	case KEY_DSA_CERT_V00:
+	case KEY_DSA_CERT:
+		if (key->cert == NULL || buffer_len(&key->cert->certblob) == 0)
+			fatal("%s: no cert/certblob", __func__);
+		buffer_put_string(b, buffer_ptr(&key->cert->certblob),
+		    buffer_len(&key->cert->certblob));
+		buffer_put_bignum2(b, key->dsa->priv_key);
+		break;
+#ifdef OPENSSL_HAS_ECC
+	case KEY_ECDSA:
+		buffer_put_cstring(b, key_curve_nid_to_name(key->ecdsa_nid));
+		buffer_put_ecpoint(b, EC_KEY_get0_group(key->ecdsa),
+		    EC_KEY_get0_public_key(key->ecdsa));
+		buffer_put_bignum2(b, EC_KEY_get0_private_key(key->ecdsa));
+		break;
+	case KEY_ECDSA_CERT:
+		if (key->cert == NULL || buffer_len(&key->cert->certblob) == 0)
+			fatal("%s: no cert/certblob", __func__);
+		buffer_put_string(b, buffer_ptr(&key->cert->certblob),
+		    buffer_len(&key->cert->certblob));
+		buffer_put_bignum2(b, EC_KEY_get0_private_key(key->ecdsa));
+		break;
+#endif /* OPENSSL_HAS_ECC */
+	}
+}
+
+Key *
+key_private_deserialize(Buffer *blob)
+{
+	char *type_name;
+	Key *k = NULL;
+	u_char *cert;
+	u_int len;
+	int type;
+#ifdef OPENSSL_HAS_ECC
+	char *curve;
+	BIGNUM *exponent;
+	EC_POINT *q;
+#endif
+
+	type_name = buffer_get_string(blob, NULL);
+	type = key_type_from_name(type_name);
+	switch (type) {
+	case KEY_DSA:
+		k = key_new_private(type);
+		buffer_get_bignum2(blob, k->dsa->p);
+		buffer_get_bignum2(blob, k->dsa->q);
+		buffer_get_bignum2(blob, k->dsa->g);
+		buffer_get_bignum2(blob, k->dsa->pub_key);
+		buffer_get_bignum2(blob, k->dsa->priv_key);
+		break;
+	case KEY_DSA_CERT_V00:
+	case KEY_DSA_CERT:
+		cert = buffer_get_string(blob, &len);
+		if ((k = key_from_blob(cert, len)) == NULL)
+			fatal("Certificate parse failed");
+		free(cert);
+		key_add_private(k);
+		buffer_get_bignum2(blob, k->dsa->priv_key);
+		break;
+#ifdef OPENSSL_HAS_ECC
+	case KEY_ECDSA:
+		k = key_new_private(type);
+		k->ecdsa_nid = key_ecdsa_nid_from_name(type_name);
+		curve = buffer_get_string(blob, NULL);
+		if (k->ecdsa_nid != key_curve_name_to_nid(curve))
+			fatal("%s: curve names mismatch", __func__);
+		free(curve);
+		k->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid);
+		if (k->ecdsa == NULL)
+			fatal("%s: EC_KEY_new_by_curve_name failed",
+			    __func__);
+		q = EC_POINT_new(EC_KEY_get0_group(k->ecdsa));
+		if (q == NULL)
+			fatal("%s: BN_new failed", __func__);
+		if ((exponent = BN_new()) == NULL)
+			fatal("%s: BN_new failed", __func__);
+		buffer_get_ecpoint(blob,
+			EC_KEY_get0_group(k->ecdsa), q);
+		buffer_get_bignum2(blob, exponent);
+		if (EC_KEY_set_public_key(k->ecdsa, q) != 1)
+			fatal("%s: EC_KEY_set_public_key failed",
+			    __func__);
+		if (EC_KEY_set_private_key(k->ecdsa, exponent) != 1)
+			fatal("%s: EC_KEY_set_private_key failed",
+			    __func__);
+		if (key_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
+		    EC_KEY_get0_public_key(k->ecdsa)) != 0)
+			fatal("%s: bad ECDSA public key", __func__);
+		if (key_ec_validate_private(k->ecdsa) != 0)
+			fatal("%s: bad ECDSA private key", __func__);
+		BN_clear_free(exponent);
+		EC_POINT_free(q);
+		break;
+	case KEY_ECDSA_CERT:
+		cert = buffer_get_string(blob, &len);
+		if ((k = key_from_blob(cert, len)) == NULL)
+			fatal("Certificate parse failed");
+		free(cert);
+		key_add_private(k);
+		if ((exponent = BN_new()) == NULL)
+			fatal("%s: BN_new failed", __func__);
+		buffer_get_bignum2(blob, exponent);
+		if (EC_KEY_set_private_key(k->ecdsa, exponent) != 1)
+			fatal("%s: EC_KEY_set_private_key failed",
+			    __func__);
+		if (key_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
+		    EC_KEY_get0_public_key(k->ecdsa)) != 0 ||
+		    key_ec_validate_private(k->ecdsa) != 0)
+			fatal("%s: bad ECDSA key", __func__);
+		BN_clear_free(exponent);
+		break;
+#endif
+	case KEY_RSA:
+		k = key_new_private(type);
+		buffer_get_bignum2(blob, k->rsa->n);
+		buffer_get_bignum2(blob, k->rsa->e);
+		buffer_get_bignum2(blob, k->rsa->d);
+		buffer_get_bignum2(blob, k->rsa->iqmp);
+		buffer_get_bignum2(blob, k->rsa->p);
+		buffer_get_bignum2(blob, k->rsa->q);
+
+		/* Generate additional parameters */
+		rsa_generate_additional_parameters(k->rsa);
+		break;
+	case KEY_RSA_CERT_V00:
+	case KEY_RSA_CERT:
+		cert = buffer_get_string(blob, &len);
+		if ((k = key_from_blob(cert, len)) == NULL)
+			fatal("Certificate parse failed");
+		free(cert);
+		key_add_private(k);
+		buffer_get_bignum2(blob, k->rsa->d);
+		buffer_get_bignum2(blob, k->rsa->iqmp);
+		buffer_get_bignum2(blob, k->rsa->p);
+		buffer_get_bignum2(blob, k->rsa->q);
+		break;
+	default:
+		free(type_name);
+		buffer_clear(blob);
+		return NULL;
+	}
+	free(type_name);
+
+	/* enable blinding */
+	switch (k->type) {
+	case KEY_RSA:
+	case KEY_RSA_CERT_V00:
+	case KEY_RSA_CERT:
+	case KEY_RSA1:
+		if (RSA_blinding_on(k->rsa, NULL) != 1) {
+			error("%s: RSA_blinding_on failed", __func__);
+			key_free(k);
+			return NULL;
+		}
+		break;
+	}
+	return k;
+}
