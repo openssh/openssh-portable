@@ -4,6 +4,11 @@
      [sftp-client.c]
      fix memory leak in error path in do_readdir(); pointed out by
      Loganaden Velvindron @ AfriNIC in bz#2163
+   - djm@cvs.openbsd.org 2013/12/06 03:40:51
+     [ssh-keygen.c]
+     remove duplicated character ('g') in getopt() string;
+     document the (few) remaining option characters so we don't have to
+     rummage next time.
 
 20131205
  - (djm) OpenBSD CVS Sync

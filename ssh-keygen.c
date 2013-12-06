@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.235 2013/10/23 04:16:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.236 2013/12/06 03:40:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2225,8 +2225,9 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	/* Remaining characters: EUYZdow */
 	while ((opt = getopt(argc, argv, "ABHLQXceghiklpquvxy"
-	    "C:D:F:G:I:J:K:M:N:O:P:R:S:T:V:W:a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
+	    "C:D:F:G:I:J:K:M:N:O:P:R:S:T:V:W:a:b:f:j:m:n:r:s:t:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
