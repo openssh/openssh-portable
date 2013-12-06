@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.107 2013/12/06 13:30:08 markus Exp $ */
+/* $OpenBSD: key.c,v 1.108 2013/12/06 13:34:54 markus Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1892,6 +1892,7 @@ key_certify(Key *k, Key *ca)
 	if (!key_cert_is_legacy(k))
 		buffer_put_string(&k->cert->certblob, nonce, sizeof(nonce));
 
+	/* XXX this substantially duplicates to_blob(); refactor */
 	switch (k->type) {
 	case KEY_DSA_CERT_V00:
 	case KEY_DSA_CERT:

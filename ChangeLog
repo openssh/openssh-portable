@@ -12,6 +12,11 @@
    - markus@cvs.openbsd.org 2013/12/06 13:30:08
      [authfd.c key.c key.h ssh-agent.c]
      move private key (de)serialization to key.c; ok djm
+   - markus@cvs.openbsd.org 2013/12/06 13:34:54
+     [authfile.c authfile.h cipher.c cipher.h key.c packet.c ssh-agent.c]
+     [ssh-keygen.c PROTOCOL.key] new private key format, bcrypt as KDF by
+     default; details in PROTOCOL.key; feedback and lots help from djm;
+     ok djm@
 
 20131205
  - (djm) OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.236 2013/12/06 03:40:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.237 2013/12/06 13:34:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -149,6 +149,18 @@ char *key_type_name = NULL;
 
 /* Load key from this PKCS#11 provider */
 char *pkcs11provider = NULL;
+
+/* Use new OpenSSH private key format when writing SSH2 keys instead of PEM */
+int use_new_format = 0;
+
+/* Cipher for new-format private keys */
+char *new_format_cipher = NULL;
+
+/*
+ * Number of KDF rounds to derive new format keys /
+ * number of primality trials when screening moduli.
+ */
+int rounds = 0;
 
 /* argv0 */
 extern char *__progname;
@@ -923,7 +935,8 @@ do_gen_all_hostkeys(struct passwd *pw)
 		public  = key_from_private(private);
 		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name,
 		    hostname);
-		if (!key_save_private(private, identity_file, "", comment)) {
+		if (!key_save_private(private, identity_file, "", comment,
+		    use_new_format, new_format_cipher, rounds)) {
 			printf("Saving the key failed: %s.\n", identity_file);
 			key_free(private);
 			key_free(public);
@@ -1275,7 +1288,8 @@ do_change_passphrase(struct passwd *pw)
 	}
 
 	/* Save the file using the new passphrase. */
-	if (!key_save_private(private, identity_file, passphrase1, comment)) {
+	if (!key_save_private(private, identity_file, passphrase1, comment,
+	    use_new_format, new_format_cipher, rounds)) {
 		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase1, 0, strlen(passphrase1));
 		free(passphrase1);
@@ -1385,7 +1399,8 @@ do_change_comment(struct passwd *pw)
 	}
 
 	/* Save the file using the new passphrase. */
-	if (!key_save_private(private, identity_file, passphrase, new_comment)) {
+	if (!key_save_private(private, identity_file, passphrase, new_comment,
+	    use_new_format, new_format_cipher, rounds)) {
 		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase, 0, strlen(passphrase));
 		free(passphrase);
@@ -2132,7 +2147,7 @@ usage(void)
 	fprintf(stderr, "usage: %s [options]\n", __progname);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -A          Generate non-existent host keys for all key types.\n");
-	fprintf(stderr, "  -a trials   Number of trials for screening DH-GEX moduli.\n");
+	fprintf(stderr, "  -a number   Number of KDF rounds for new key format or moduli primality tests.\n");
 	fprintf(stderr, "  -B          Show bubblebabble digest of key file.\n");
 	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
 	fprintf(stderr, "  -C comment  Provide new comment.\n");
@@ -2160,6 +2175,7 @@ usage(void)
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
 	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
 	fprintf(stderr, "  -O option   Specify a certificate option.\n");
+	fprintf(stderr, "  -o          Enforce new private key format.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
 	fprintf(stderr, "  -Q          Test whether key(s) are revoked in KRL.\n");
@@ -2176,6 +2192,7 @@ usage(void)
 	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -y          Read private key file and print public key.\n");
 	fprintf(stderr, "  -z serial   Specify a serial number.\n");
+	fprintf(stderr, "  -Z cipher   Specify a cipher for new private key format.\n");
 
 	exit(1);
 }
@@ -2193,7 +2210,7 @@ main(int argc, char **argv)
 	struct passwd *pw;
 	struct stat st;
 	int opt, type, fd;
-	u_int32_t memory = 0, generator_wanted = 0, trials = 100;
+	u_int32_t memory = 0, generator_wanted = 0;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	unsigned long start_lineno = 0, lines_to_process = 0;
@@ -2225,9 +2242,9 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Remaining characters: EUYZdow */
-	while ((opt = getopt(argc, argv, "ABHLQXceghiklpquvxy"
-	    "C:D:F:G:I:J:K:M:N:O:P:R:S:T:V:W:a:b:f:j:m:n:r:s:t:z:")) != -1) {
+	/* Remaining characters: EUYdw */
+	while ((opt = getopt(argc, argv, "ABHLQXceghiklopquvxy"
+	    "C:D:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Z:a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -2285,6 +2302,9 @@ main(int argc, char **argv)
 		case 'n':
 			cert_principals = optarg;
 			break;
+		case 'o':
+			use_new_format = 1;
+			break;
 		case 'p':
 			change_passphrase = 1;
 			break;
@@ -2311,6 +2331,9 @@ main(int argc, char **argv)
 			break;
 		case 'O':
 			add_cert_option(optarg);
+			break;
+		case 'Z':
+			new_format_cipher = optarg;
 			break;
 		case 'C':
 			identity_comment = optarg;
@@ -2370,9 +2393,9 @@ main(int argc, char **argv)
 					optarg, errstr);
 			break;
 		case 'a':
-			trials = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
+			rounds = (int)strtonum(optarg, 1, INT_MAX, &errstr);
 			if (errstr)
-				fatal("Invalid number of trials: %s (%s)",
+				fatal("Invalid number: %s (%s)",
 					optarg, errstr);
 			break;
 		case 'M':
@@ -2531,7 +2554,8 @@ main(int argc, char **argv)
 			fatal("Couldn't open moduli file \"%s\": %s",
 			    out_file, strerror(errno));
 		}
-		if (prime_test(in, out, trials, generator_wanted, checkpoint,
+		if (prime_test(in, out, rounds == 0 ? 100 : rounds,
+		    generator_wanted, checkpoint,
 		    start_lineno, lines_to_process) != 0)
 			fatal("modulus screening failed");
 		return (0);
@@ -2623,7 +2647,8 @@ passphrase_again:
 	}
 
 	/* Save the key with the given passphrase and comment. */
-	if (!key_save_private(private, identity_file, passphrase1, comment)) {
+	if (!key_save_private(private, identity_file, passphrase1, comment,
+	    use_new_format, new_format_cipher, rounds)) {
 		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase1, 0, strlen(passphrase1));
 		free(passphrase1);

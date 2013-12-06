@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.190 2013/11/21 00:45:44 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.191 2013/12/06 13:34:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -713,9 +713,10 @@ packet_send1(void)
 	buffer_append(&active_state->output, buf, 4);
 	cp = buffer_append_space(&active_state->output,
 	    buffer_len(&active_state->outgoing_packet));
-	cipher_crypt(&active_state->send_context, 0, cp,
+	if (cipher_crypt(&active_state->send_context, 0, cp,
 	    buffer_ptr(&active_state->outgoing_packet),
-	    buffer_len(&active_state->outgoing_packet), 0, 0);
+	    buffer_len(&active_state->outgoing_packet), 0, 0) != 0)
+		fatal("%s: cipher_crypt failed", __func__);
 
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "encrypted: ");
@@ -946,9 +947,10 @@ packet_send2_wrapped(void)
 	}
 	/* encrypt packet and append to output buffer. */
 	cp = buffer_append_space(&active_state->output, len + authlen);
-	cipher_crypt(&active_state->send_context, active_state->p_send.seqnr,
+	if (cipher_crypt(&active_state->send_context, active_state->p_send.seqnr,
 	    cp, buffer_ptr(&active_state->outgoing_packet),
-	    len - aadlen, aadlen, authlen);
+	    len - aadlen, aadlen, authlen) != 0)
+		fatal("%s: cipher_crypt failed", __func__);
 	/* append unencrypted MAC */
 	if (mac && mac->enabled) {
 		if (mac->etm) {
@@ -1208,8 +1210,9 @@ packet_read_poll1(void)
 	/* Decrypt data to incoming_packet. */
 	buffer_clear(&active_state->incoming_packet);
 	cp = buffer_append_space(&active_state->incoming_packet, padded_len);
-	cipher_crypt(&active_state->receive_context, 0, cp,
-	    buffer_ptr(&active_state->input), padded_len, 0, 0);
+	if (cipher_crypt(&active_state->receive_context, 0, cp,
+	    buffer_ptr(&active_state->input), padded_len, 0, 0) != 0)
+		fatal("%s: cipher_crypt failed", __func__);
 
 	buffer_consume(&active_state->input, padded_len);
 
@@ -1304,9 +1307,10 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		buffer_clear(&active_state->incoming_packet);
 		cp = buffer_append_space(&active_state->incoming_packet,
 		    block_size);
-		cipher_crypt(&active_state->receive_context,
+		if (cipher_crypt(&active_state->receive_context,
 		    active_state->p_read.seqnr, cp,
-		    buffer_ptr(&active_state->input), block_size, 0, 0);
+		    buffer_ptr(&active_state->input), block_size, 0, 0) != 0)
+			fatal("Decryption integrity check failed");
 		cp = buffer_ptr(&active_state->incoming_packet);
 		active_state->packlen = get_u32(cp);
 		if (active_state->packlen < 1 + 4 ||
@@ -1360,9 +1364,10 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		macbuf = mac_compute(mac, active_state->p_read.seqnr,
 		    buffer_ptr(&active_state->input), aadlen + need);
 	cp = buffer_append_space(&active_state->incoming_packet, aadlen + need);
-	cipher_crypt(&active_state->receive_context,
+	if (cipher_crypt(&active_state->receive_context,
 	    active_state->p_read.seqnr, cp,
-	    buffer_ptr(&active_state->input), need, aadlen, authlen);
+	    buffer_ptr(&active_state->input), need, aadlen, authlen) != 0)
+		fatal("Decryption integrity check failed");
 	buffer_consume(&active_state->input, aadlen + need + authlen);
 	/*
 	 * compute MAC over seqnr and packet,

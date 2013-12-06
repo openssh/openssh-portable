@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.92 2013/12/02 03:13:14 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.93 2013/12/06 13:34:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -344,17 +344,16 @@ cipher_init(CipherContext *cc, const Cipher *cipher,
  * Use 'authlen' bytes at offset 'len'+'aadlen' as the authentication tag.
  * This tag is written on encryption and verified on decryption.
  * Both 'aadlen' and 'authlen' can be set to 0.
+ * cipher_crypt() returns 0 on success and -1 if the decryption integrity
+ * check fails.
  */
-void
+int
 cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
     u_int len, u_int aadlen, u_int authlen)
 {
-	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		if (chachapoly_crypt(&cc->cp_ctx, seqnr, dest, src, len, aadlen,
-		    authlen, cc->encrypt) != 0)
-			fatal("Decryption integrity check failed");
-		return;
-	}
+	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
+		return chachapoly_crypt(&cc->cp_ctx, seqnr, dest, src, len,
+		    aadlen, authlen, cc->encrypt);
 	if (authlen) {
 		u_char lastiv[1];
 
@@ -387,13 +386,14 @@ cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
 			if (cc->encrypt)
 				fatal("%s: EVP_Cipher(final) failed", __func__);
 			else
-				fatal("Decryption integrity check failed");
+				return -1;
 		}
 		if (cc->encrypt &&
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_GET_TAG,
 		    authlen, dest + aadlen + len))
 			fatal("%s: EVP_CTRL_GCM_GET_TAG", __func__);
 	}
+	return 0;
 }
 
 /* Extract the packet length, including any decryption necessary beforehand */
