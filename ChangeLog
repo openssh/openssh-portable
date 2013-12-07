@@ -35,6 +35,7 @@
      set k->cert = NULL after freeing it
  - [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
    [ge25519_base.data hash.c sc25519.c sc25519.h verify.c] Fix RCS idents
+ - [Makefile.in] Add ed25519 sources
 
 20131205
  - (djm) OpenBSD CVS Sync
