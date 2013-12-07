@@ -33,6 +33,10 @@
    - djm@cvs.openbsd.org 2013/12/07 00:19:15
      [key.c]
      set k->cert = NULL after freeing it
+   - markus@cvs.openbsd.org 2013/12/06 13:52:46
+     [regress/Makefile regress/agent.sh regress/cert-hostkey.sh]
+     [regress/cert-userkey.sh regress/keytype.sh]
+     test ed25519 support; from djm@
  - (djm) [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
    [ge25519_base.data hash.c sc25519.c sc25519.h verify.c] Fix RCS idents
  - (djm) [Makefile.in] Add ed25519 sources

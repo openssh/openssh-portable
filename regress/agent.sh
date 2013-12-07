@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.8 2013/05/17 00:37:40 dtucker Exp $
+#	$OpenBSD: agent.sh,v 1.9 2013/12/06 13:52:46 markus Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -20,7 +20,7 @@ else
 	fi
 	trace "overwrite authorized keys"
 	printf '' > $OBJ/authorized_keys_$USER
-	for t in rsa rsa1; do
+	for t in ed25519 rsa rsa1; do
 		# generate user key for agent
 		rm -f $OBJ/$t-agent
 		${SSHKEYGEN} -q -N '' -t $t -f $OBJ/$t-agent ||\
