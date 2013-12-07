@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.89 2013/12/06 13:30:08 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.90 2013/12/06 13:39:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -508,6 +508,8 @@ ssh_add_identity_constrained(AuthenticationConnection *auth, Key *key,
 	case KEY_DSA_CERT_V00:
 	case KEY_ECDSA:
 	case KEY_ECDSA_CERT:
+	case KEY_ED25519:
+	case KEY_ED25519_CERT:
 		type = constrained ?
 		    SSH2_AGENTC_ADD_ID_CONSTRAINED :
 		    SSH2_AGENTC_ADD_IDENTITY;

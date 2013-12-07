@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.237 2013/12/06 13:34:54 markus Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.238 2013/12/06 13:39:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -197,7 +197,7 @@ type_bits_valid(int type, u_int32_t *bitsp)
 	}
 	if (type == KEY_DSA && *bitsp != 1024)
 		fatal("DSA keys must be 1024 bits");
-	else if (type != KEY_ECDSA && *bitsp < 768)
+	else if (type != KEY_ECDSA && type != KEY_ED25519 && *bitsp < 768)
 		fatal("Key must at least be 768 bits");
 	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(*bitsp) == -1)
 		fatal("Invalid ECDSA key length - valid lengths are "
@@ -232,6 +232,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_RSA_CERT_V00:
 		case KEY_RSA:
 			name = _PATH_SSH_CLIENT_ID_RSA;
+			break;
+		case KEY_ED25519:
+		case KEY_ED25519_CERT:
+			name = _PATH_SSH_CLIENT_ID_ED25519;
 			break;
 		default:
 			fprintf(stderr, "bad key type\n");
@@ -896,6 +900,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 #ifdef OPENSSL_HAS_ECC
 		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
 #endif
+		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
 		{ NULL, NULL, NULL }
 	};
 
@@ -1611,7 +1616,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		if ((public = key_load_public(tmp, &comment)) == NULL)
 			fatal("%s: unable to open \"%s\"", __func__, tmp);
 		if (public->type != KEY_RSA && public->type != KEY_DSA &&
-		    public->type != KEY_ECDSA)
+		    public->type != KEY_ECDSA && public->type != KEY_ED25519)
 			fatal("%s: key \"%s\" type %s cannot be certified",
 			    __func__, tmp, key_type(public));
 

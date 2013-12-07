@@ -17,6 +17,16 @@
      [ssh-keygen.c PROTOCOL.key] new private key format, bcrypt as KDF by
      default; details in PROTOCOL.key; feedback and lots help from djm;
      ok djm@
+   - markus@cvs.openbsd.org 2013/12/06 13:39:49
+     [authfd.c authfile.c key.c key.h myproposal.h pathnames.h readconf.c]
+     [servconf.c ssh-agent.c ssh-keygen.c ssh-keyscan.1 ssh-keyscan.c]
+     [ssh-keysign.c ssh.c ssh_config.5 sshd.8 sshd.c verify.c ssh-ed25519.c]
+     [sc25519.h sc25519.c hash.c ge25519_base.data ge25519.h ge25519.c]
+     [fe25519.h fe25519.c ed25519.c crypto_api.h blocks.c]
+     support ed25519 keys (hostkeys and user identities) using the public
+     domain ed25519 reference code from SUPERCOP, see
+     http://ed25519.cr.yp.to/software.html
+     feedback, help & ok djm@
 
 20131205
  - (djm) OpenBSD CVS Sync

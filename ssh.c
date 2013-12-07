@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.395 2013/11/26 12:14:54 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.396 2013/12/06 13:39:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -528,7 +528,11 @@ main(int ac, char **av)
 			else if (strcmp(optarg, "kex") == 0)
 				cp = kex_alg_list('\n');
 			else if (strcmp(optarg, "key") == 0)
-				cp = key_alg_list();
+				cp = key_alg_list(0, 0);
+			else if (strcmp(optarg, "key-cert") == 0)
+				cp = key_alg_list(1, 0);
+			else if (strcmp(optarg, "key-plain") == 0)
+				cp = key_alg_list(0, 1);
 			if (cp == NULL)
 				fatal("Unsupported query \"%s\"", optarg);
 			printf("%s\n", cp);
@@ -989,7 +993,7 @@ main(int ac, char **av)
 	sensitive_data.external_keysign = 0;
 	if (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication) {
-		sensitive_data.nkeys = 7;
+		sensitive_data.nkeys = 8;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(Key));
 		for (i = 0; i < sensitive_data.nkeys; i++)
@@ -1014,13 +1018,16 @@ main(int ac, char **av)
 #endif
 		sensitive_data.keys[6] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[7] = key_load_private_type(KEY_ED25519,
+		    _PATH_HOST_ED25519_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
 		    sensitive_data.keys[0] == NULL &&
 		    sensitive_data.keys[4] == NULL &&
 		    sensitive_data.keys[5] == NULL &&
-		    sensitive_data.keys[6] == NULL) {
+		    sensitive_data.keys[6] == NULL &&
+		    sensitive_data.keys[7] == NULL) {
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
@@ -1037,6 +1044,8 @@ main(int ac, char **av)
 #endif
 			sensitive_data.keys[6] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
+			sensitive_data.keys[7] = key_load_public(
+			    _PATH_HOST_ED25519_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}
 	}

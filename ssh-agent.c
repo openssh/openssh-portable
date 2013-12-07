@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.179 2013/12/06 13:34:54 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.180 2013/12/06 13:39:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -484,6 +484,7 @@ process_add_identity(SocketEntry *e, int version)
 		/* Generate additional parameters */
 		rsa_generate_additional_parameters(k->rsa);
 
+		/* enable blinding */
 		if (RSA_blinding_on(k->rsa, NULL) != 1) {
 			error("process_add_identity: RSA_blinding_on failed");
 			key_free(k);
