@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.108 2013/12/06 13:34:54 markus Exp $ */
+/* $OpenBSD: key.c,v 1.110 2013/12/07 00:19:15 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1955,6 +1955,7 @@ key_drop_cert(Key *k)
 		return -1;
 	}
 	cert_free(k->cert);
+	k->cert = NULL;
 	k->type = key_type_plain(k->type);
 	return 0;
 }

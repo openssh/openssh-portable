@@ -30,6 +30,9 @@
    - jmc@cvs.openbsd.org 2013/12/06 15:29:07
      [sshd.8]
      missing comma;
+   - djm@cvs.openbsd.org 2013/12/07 00:19:15
+     [key.c]
+     set k->cert = NULL after freeing it
  - [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
    [ge25519_base.data hash.c sc25519.c sc25519.h verify.c] Fix RCS idents
 
