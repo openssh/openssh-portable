@@ -49,6 +49,8 @@
    [openbsd-compat/bcrypt_pbkdf.c] Make ed25519/new key format compile on
    Linux
  - (djm) [regress/cert-hostkey.sh] Fix merge botch
+ - (djm) [Makefile.in] PATHSUBS and keygen bits for Ed25519; from
+   Loganaden Velvindron @ AfriNIC in bz#2179
 
 20131205
  - (djm) OpenBSD CVS Sync

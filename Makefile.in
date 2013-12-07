@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.346 2013/12/07 00:35:37 djm Exp $
+# $Id: Makefile.in,v 1.347 2013/12/07 10:43:47 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -115,6 +115,7 @@ PATHSUBS	= \
 	-e 's|/etc/ssh/ssh_host_ecdsa_key|$(sysconfdir)/ssh_host_ecdsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
 	-e 's|/etc/ssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
+	-e 's|/etc/ssh/ssh_host_ed25519_key|$(sysconfdir)/ssh_host_ed25519_key|g' \
 	-e 's|/var/run/sshd.pid|$(piddir)/sshd.pid|g' \
 	-e 's|/etc/moduli|$(sysconfdir)/moduli|g' \
 	-e 's|/etc/ssh/moduli|$(sysconfdir)/moduli|g' \
@@ -335,6 +336,11 @@ host-key: ssh-keygen$(EXEEXT)
 		else \
 			./ssh-keygen -t rsa -f $(sysconfdir)/ssh_host_rsa_key -N "" ; \
 		fi ; \
+		if [ -f $(sysconfdir)/ssh_host_ed25519_key ] ; then \
+			echo "$(sysconfdir)/ssh_host_ed25519_key already exists, skipping." ; \
+		else \
+			./ssh-keygen -t ed25519 -f $(sysconfdir)/ssh_host_ed25519_key -N "" ; \
+		fi ; \
 		if [ -z "@COMMENT_OUT_ECC@" ] ; then \
 		    if [ -f $(sysconfdir)/ssh_host_ecdsa_key ] ; then \
 			echo "$(sysconfdir)/ssh_host_ecdsa_key already exists, skipping." ; \
@@ -348,6 +354,7 @@ host-key-force: ssh-keygen$(EXEEXT)
 	./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
 	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
+	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
 	test -z "@COMMENT_OUT_ECC@" && ./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""
 
 uninstallall:	uninstall
