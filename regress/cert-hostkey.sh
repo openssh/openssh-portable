@@ -76,6 +76,8 @@ done
 	printf "* "
 	cat $OBJ/cert_host_key_rsa.pub
 	if test "x$TEST_SSH_ECC" = "xyes"; then
+		printf '@revoked '
+		printf "* "
 		cat $OBJ/cert_host_key_ecdsa-sha2-nistp256.pub
 		printf '@revoked '
 		printf "* "
@@ -83,10 +85,10 @@ done
 		printf '@revoked '
 		printf "* "
 		cat $OBJ/cert_host_key_ecdsa-sha2-nistp521.pub
-		printf '@revoked '
-		printf "* "
-		cat $OBJ/cert_host_key_ed25519.pub
 	fi
+	printf '@revoked '
+	printf "* "
+	cat $OBJ/cert_host_key_ed25519.pub
 	printf '@revoked '
 	printf "* "
 	cat $OBJ/cert_host_key_dsa.pub

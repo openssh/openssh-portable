@@ -48,6 +48,7 @@
  - (djm) [ed25519.c ssh-ed25519.c openbsd-compat/Makefile.in]
    [openbsd-compat/bcrypt_pbkdf.c] Make ed25519/new key format compile on
    Linux
+ - (djm) [regress/cert-hostkey.sh] Fix merge botch
 
 20131205
  - (djm) OpenBSD CVS Sync
