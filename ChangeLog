@@ -27,6 +27,9 @@
      domain ed25519 reference code from SUPERCOP, see
      http://ed25519.cr.yp.to/software.html
      feedback, help & ok djm@
+   - jmc@cvs.openbsd.org 2013/12/06 15:29:07
+     [sshd.8]
+     missing comma;
 
 20131205
  - (djm) OpenBSD CVS Sync
