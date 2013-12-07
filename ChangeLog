@@ -37,6 +37,10 @@
    [ge25519_base.data hash.c sc25519.c sc25519.h verify.c] Fix RCS idents
  - [Makefile.in] Add ed25519 sources
  - [authfile.c] Conditionalise inclusion of util.h
+ - [configure.ac openbsd-compat/Makefile.in openbsd-compat/bcrypt_pbkdf.c]
+   [openbsd-compat/blf.h openbsd-compat/blowfish.c]
+   [openbsd-compat/openbsd-compat.h] Start at supporting bcrypt_pbkdf in
+   portable.
 
 20131205
  - (djm) OpenBSD CVS Sync

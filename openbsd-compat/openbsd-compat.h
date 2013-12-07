@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.59 2013/11/08 07:54:39 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.60 2013/12/07 00:51:54 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -44,6 +44,7 @@
 #include "vis.h"
 #include "getrrsetbyname.h"
 #include "sha2.h"
+#include "blf.h"
 
 #ifndef HAVE_BASENAME
 char *basename(const char *path);
@@ -238,6 +239,11 @@ char *group_from_gid(gid_t, int);
 
 #ifndef HAVE_TIMINGSAFE_BCMP
 int timingsafe_bcmp(const void *, const void *, size_t);
+#endif
+
+#ifndef HAVE_BCRYPT_PBKDF
+int	bcrypt_pbkdf(const char *, size_t, const u_int8_t *, size_t,
+    u_int8_t *, size_t, unsigned int);
 #endif
 
 void *xmmap(size_t size);
