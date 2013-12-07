@@ -33,14 +33,17 @@
    - djm@cvs.openbsd.org 2013/12/07 00:19:15
      [key.c]
      set k->cert = NULL after freeing it
- - [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
+ - (djm) [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
    [ge25519_base.data hash.c sc25519.c sc25519.h verify.c] Fix RCS idents
- - [Makefile.in] Add ed25519 sources
- - [authfile.c] Conditionalise inclusion of util.h
- - [configure.ac openbsd-compat/Makefile.in openbsd-compat/bcrypt_pbkdf.c]
+ - (djm) [Makefile.in] Add ed25519 sources
+ - (djm) [authfile.c] Conditionalise inclusion of util.h
+ - (djm) [configure.ac openbsd-compat/Makefile.in openbsd-compat/bcrypt_pbkdf.c]
    [openbsd-compat/blf.h openbsd-compat/blowfish.c]
    [openbsd-compat/openbsd-compat.h] Start at supporting bcrypt_pbkdf in
    portable.
+ - (djm) [ed25519.c ssh-ed25519.c openbsd-compat/Makefile.in]
+   [openbsd-compat/bcrypt_pbkdf.c] Make ed25519/new key format compile on
+   Linux
 
 20131205
  - (djm) OpenBSD CVS Sync
