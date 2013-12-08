@@ -88,7 +88,7 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sshd_proxy.* authorized_keys_${USER}.* modpipe revoked-* krl-* \
 		ssh.log failed-ssh.log sshd.log failed-sshd.log \
 		regress.log failed-regress.log ssh-log-wrapper.sh \
-		sftp-server.sh sftp-server.log sftp.log
+		sftp-server.sh sftp-server.log sftp.log setuid-allowed
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 

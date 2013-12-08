@@ -1,6 +1,9 @@
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna
    Vinschen
+ - (djm) [Makefile.in regress/Makefile regress/agent-ptrace.sh]
+   [regress/setuid-allowed.c] Check that ssh-agent is not on a no-setuid
+   filesystem before running agent-ptrace.sh; ok dtucker
 
 20131207
  - (djm) OpenBSD CVS Sync

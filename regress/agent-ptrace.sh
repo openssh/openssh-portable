@@ -19,6 +19,13 @@ else
 	exit 0
 fi
 
+if $OBJ/setuid-allowed ${SSHAGENT} ; then
+	: ok
+else
+	echo "skipped (${SSHAGENT} is mounted on a no-setuid filesystem)"
+	exit 0
+fi
+
 if test -z "$SUDO" ; then
 	echo "skipped (SUDO not set)"
 	exit 0
