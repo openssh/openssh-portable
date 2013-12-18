@@ -28,6 +28,10 @@
    - djm@cvs.openbsd.org 2013/12/15 21:42:35
      [cipher-chachapoly.c]
      add some comments and constify a constant
+   - markus@cvs.openbsd.org 2013/12/17 10:36:38
+     [crypto_api.h]
+     I've assempled the header file by cut&pasting from generated headers
+     and the source files.
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna

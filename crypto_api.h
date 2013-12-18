@@ -1,6 +1,9 @@
-/* $OpenBSD: crypto_api.h,v 1.2 2013/12/09 11:08:17 markus Exp $ */
+/* $OpenBSD: crypto_api.h,v 1.3 2013/12/17 10:36:38 markus Exp $ */
 
-/* Placed in the public domain. */
+/*
+ * Assembled from generated headers and source files by Markus Friedl.
+ * Placed in the public domain.
+ */
 
 #ifndef crypto_api_h
 #define crypto_api_h
