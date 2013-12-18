@@ -18,6 +18,9 @@
         All of the NaCl software is in the public domain.
      and http://ed25519.cr.yp.to/software.html
         The Ed25519 software is in the public domain.
+   - markus@cvs.openbsd.org 2013/12/09 11:08:17
+     [crypto_api.h]
+     remove unused defines
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna

@@ -1,4 +1,4 @@
-/* $OpenBSD: crypto_api.h,v 1.1 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: crypto_api.h,v 1.2 2013/12/09 11:08:17 markus Exp $ */
 
 /* Placed in the public domain. */
 
@@ -25,10 +25,6 @@ int	crypto_hash_sha512(unsigned char *, const unsigned char *,
     unsigned long long);
 
 int	crypto_verify_32(const unsigned char *, const unsigned char *);
-
-#define crypto_sign_BYTES crypto_sign_ed25519_BYTES
-#define crypto_sign_PUBLICKEYBYTES crypto_sign_ed25519_PUBLICKEYBYTES
-#define crypto_sign_SECRETKEYBYTES crypto_sign_ed25519_SECRETKEYBYTES
 
 #define crypto_sign_ed25519_SECRETKEYBYTES 64U
 #define crypto_sign_ed25519_PUBLICKEYBYTES 32U
