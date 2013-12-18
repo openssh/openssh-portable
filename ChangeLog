@@ -21,6 +21,10 @@
    - markus@cvs.openbsd.org 2013/12/09 11:08:17
      [crypto_api.h]
      remove unused defines
+   - pascal@cvs.openbsd.org 2013/12/15 18:17:26
+     [ssh-add.c]
+     Make ssh-add also add .ssh/id_ed25519; fixes lie in manual page.
+     ok markus@
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna
