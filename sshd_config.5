@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.169 2013/12/07 11:58:46 naddy Exp $
-.Dd $Mdocdate: December 7 2013 $
+.\" $OpenBSD: sshd_config.5,v 1.170 2013/12/08 09:53:27 dtucker Exp $
+.Dd $Mdocdate: December 8 2013 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -662,14 +662,14 @@ The default is
 Specifies the available KEX (Key Exchange) algorithms.
 Multiple algorithms must be comma-separated.
 The default is
-.Dq curve25519-sha256@libssh.org ,
-.Dq ecdh-sha2-nistp256 ,
-.Dq ecdh-sha2-nistp384 ,
-.Dq ecdh-sha2-nistp521 ,
-.Dq diffie-hellman-group-exchange-sha256 ,
-.Dq diffie-hellman-group-exchange-sha1 ,
-.Dq diffie-hellman-group14-sha1 ,
-.Dq diffie-hellman-group1-sha1 .
+.Bd -literal -offset indent
+curve25519-sha256@libssh.org,
+ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
+diffie-hellman-group-exchange-sha256,
+diffie-hellman-group-exchange-sha1,
+diffie-hellman-group14-sha1,
+diffie-hellman-group1-sha1
+.Ed
 .It Cm KeyRegenerationInterval
 In protocol version 1, the ephemeral server key is automatically regenerated
 after this many seconds (if it has been used).

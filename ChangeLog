@@ -7,6 +7,9 @@
      [ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh-keysign.8 ssh.1]
      [ssh_config.5 sshd.8 sshd_config.5]
      add missing mentions of ed25519; ok djm@
+   - dtucker@cvs.openbsd.org 2013/12/08 09:53:27
+     [sshd_config.5]
+     Use a literal for the default value of KEXAlgorithms.  ok deraadt jmc
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna
