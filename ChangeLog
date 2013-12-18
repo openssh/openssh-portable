@@ -25,6 +25,9 @@
      [ssh-add.c]
      Make ssh-add also add .ssh/id_ed25519; fixes lie in manual page.
      ok markus@
+   - djm@cvs.openbsd.org 2013/12/15 21:42:35
+     [cipher-chachapoly.c]
+     add some comments and constify a constant
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna

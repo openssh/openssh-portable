@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: cipher-chachapoly.c,v 1.2 2013/11/21 02:50:00 djm Exp $ */
+/* $OpenBSD: cipher-chachapoly.c,v 1.3 2013/12/15 21:42:35 djm Exp $ */
 
 #include "includes.h"
 
@@ -38,20 +38,19 @@ void chachapoly_init(struct chachapoly_ctx *ctx,
 
 /*
  * chachapoly_crypt() operates as following:
- * Copy 'aadlen' bytes (without en/decryption) from 'src' to 'dest'.
- * Theses bytes are treated as additional authenticated data.
- * En/Decrypt 'len' bytes at offset 'aadlen' from 'src' to 'dest'.
- * Use POLY1305_TAGLEN bytes at offset 'len'+'aadlen' as the
- * authentication tag.
- * This tag is written on encryption and verified on decryption.
- * Both 'aadlen' and 'authlen' can be set to 0.
+ * En/decrypt with header key 'aadlen' bytes from 'src', storing result
+ * to 'dest'. The ciphertext here is treated as additional authenticated
+ * data for MAC calculation.
+ * En/decrypt 'len' bytes at offset 'aadlen' from 'src' to 'dest'. Use
+ * POLY1305_TAGLEN bytes at offset 'len'+'aadlen' as the authentication
+ * tag. This tag is written on encryption and verified on decryption.
  */
 int
 chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
     const u_char *src, u_int len, u_int aadlen, u_int authlen, int do_encrypt)
 {
 	u_char seqbuf[8];
-	u_char one[8] = { 1, 0, 0, 0, 0, 0, 0, 0 }; /* NB. little-endian */
+	const u_char one[8] = { 1, 0, 0, 0, 0, 0, 0, 0 }; /* NB little-endian */
 	u_char expected_tag[POLY1305_TAGLEN], poly_key[POLY1305_KEYLEN];
 	int r = -1;
 
@@ -76,7 +75,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 			goto out;
 	}
 	/* Crypt additional data */
-        if (aadlen) {
+	if (aadlen) {
 		chacha_ivsetup(&ctx->header_ctx, seqbuf, NULL);
 		chacha_encrypt_bytes(&ctx->header_ctx, src, dest, aadlen);
 	}
@@ -97,6 +96,7 @@ chachapoly_crypt(struct chachapoly_ctx *ctx, u_int seqnr, u_char *dest,
 	return r;
 }
 
+/* Decrypt and extract the encrypted packet length */
 int
 chachapoly_get_length(struct chachapoly_ctx *ctx,
     u_int *plenp, u_int seqnr, const u_char *cp, u_int len)
