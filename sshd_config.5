@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.168 2013/11/21 08:05:09 jmc Exp $
-.Dd $Mdocdate: November 21 2013 $
+.\" $OpenBSD: sshd_config.5,v 1.169 2013/12/07 11:58:46 naddy Exp $
+.Dd $Mdocdate: December 7 2013 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -540,7 +540,8 @@ The default is
 .Pa /etc/ssh/ssh_host_key
 for protocol version 1, and
 .Pa /etc/ssh/ssh_host_dsa_key ,
-.Pa /etc/ssh/ssh_host_ecdsa_key
+.Pa /etc/ssh/ssh_host_ecdsa_key ,
+.Pa /etc/ssh/ssh_host_ed25519_key
 and
 .Pa /etc/ssh/ssh_host_rsa_key
 for protocol version 2.
@@ -551,7 +552,8 @@ It is possible to have multiple host key files.
 .Dq rsa1
 keys are used for version 1 and
 .Dq dsa ,
-.Dq ecdsa
+.Dq ecdsa ,
+.Dq ed25519
 or
 .Dq rsa
 are used for version 2 of the SSH protocol.

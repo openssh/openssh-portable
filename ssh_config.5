@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.182 2013/12/06 13:39:49 markus Exp $
-.Dd $Mdocdate: December 6 2013 $
+.\" $OpenBSD: ssh_config.5,v 1.183 2013/12/07 11:58:46 naddy Exp $
+.Dd $Mdocdate: December 7 2013 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -718,6 +718,7 @@ The default for this option is:
 ecdsa-sha2-nistp256-cert-v01@openssh.com,
 ecdsa-sha2-nistp384-cert-v01@openssh.com,
 ecdsa-sha2-nistp521-cert-v01@openssh.com,
+ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,ssh-dss-cert-v01@openssh.com,
 ssh-rsa-cert-v00@openssh.com,ssh-dss-cert-v00@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
@@ -763,13 +764,14 @@ offers many different identities.
 The default is
 .Dq no .
 .It Cm IdentityFile
-Specifies a file from which the user's DSA, ECDSA or RSA authentication
+Specifies a file from which the user's DSA, ECDSA, ED25519 or RSA authentication
 identity is read.
 The default is
 .Pa ~/.ssh/identity
 for protocol version 1, and
 .Pa ~/.ssh/id_dsa ,
-.Pa ~/.ssh/id_ecdsa
+.Pa ~/.ssh/id_ecdsa ,
+.Pa ~/.ssh/id_ed25519
 and
 .Pa ~/.ssh/id_rsa
 for protocol version 2.

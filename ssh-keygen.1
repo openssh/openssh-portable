@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.117 2013/12/07 08:08:26 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.118 2013/12/07 11:58:46 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -139,8 +139,8 @@
 generates, manages and converts authentication keys for
 .Xr ssh 1 .
 .Nm
-can create RSA keys for use by SSH protocol version 1 and DSA, ECDSA or RSA
-keys for use by SSH protocol version 2.
+can create RSA keys for use by SSH protocol version 1 and
+DSA, ECDSA, ED25519 or RSA keys for use by SSH protocol version 2.
 The type of key to be generated is specified with the
 .Fl t
 option.
@@ -167,8 +167,9 @@ Normally each user wishing to use SSH
 with public key authentication runs this once to create the authentication
 key in
 .Pa ~/.ssh/identity ,
+.Pa ~/.ssh/id_dsa ,
 .Pa ~/.ssh/id_ecdsa ,
-.Pa ~/.ssh/id_dsa
+.Pa ~/.ssh/id_ed25519
 or
 .Pa ~/.ssh/id_rsa .
 Additionally, the system administrator may use this to generate host keys,
@@ -216,7 +217,8 @@ should be placed to be activated.
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl A
-For each of the key types (rsa1, rsa, dsa and ecdsa) for which host keys
+For each of the key types (rsa1, rsa, dsa, ecdsa and ed25519)
+for which host keys
 do not exist, generate the host keys with the default key file path,
 an empty passphrase, default bits for the key type, and default comment.
 This is used by
@@ -249,6 +251,9 @@ flag determines the key length by selecting from one of three elliptic
 curve sizes: 256, 384 or 521 bits.
 Attempting to use bit lengths other than these three values for ECDSA keys
 will fail.
+ED25519 keys have a fixed length and the
+.Fl b
+flag will be ignored.
 .It Fl C Ar comment
 Provides a new comment.
 .It Fl c
@@ -515,7 +520,8 @@ The possible values are
 .Dq rsa1
 for protocol version 1 and
 .Dq dsa ,
-.Dq ecdsa
+.Dq ecdsa ,
+.Dq ed25519 ,
 or
 .Dq rsa
 for protocol version 2.
@@ -795,8 +801,10 @@ There is no need to keep the contents of this file secret.
 .Pp
 .It Pa ~/.ssh/id_dsa
 .It Pa ~/.ssh/id_ecdsa
+.It Pa ~/.ssh/id_ed25519
 .It Pa ~/.ssh/id_rsa
-Contains the protocol version 2 DSA, ECDSA or RSA authentication identity of the user.
+Contains the protocol version 2 DSA, ECDSA, ED25519 or RSA
+authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
 specify a passphrase when generating the key; that passphrase will be
@@ -809,8 +817,10 @@ will read this file when a login attempt is made.
 .Pp
 .It Pa ~/.ssh/id_dsa.pub
 .It Pa ~/.ssh/id_ecdsa.pub
+.It Pa ~/.ssh/id_ed25519.pub
 .It Pa ~/.ssh/id_rsa.pub
-Contains the protocol version 2 DSA, ECDSA or RSA public key for authentication.
+Contains the protocol version 2 DSA, ECDSA, ED25519 or RSA
+public key for authentication.
 The contents of this file should be added to
 .Pa ~/.ssh/authorized_keys
 on all machines
