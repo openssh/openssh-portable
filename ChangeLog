@@ -10,6 +10,14 @@
    - dtucker@cvs.openbsd.org 2013/12/08 09:53:27
      [sshd_config.5]
      Use a literal for the default value of KEXAlgorithms.  ok deraadt jmc
+   - markus@cvs.openbsd.org 2013/12/09 11:03:45
+     [blocks.c ed25519.c fe25519.c fe25519.h ge25519.c ge25519.h]
+     [ge25519_base.data hash.c sc25519.c sc25519.h verify.c]
+     Add Authors for the public domain ed25519/nacl code.
+     see also http://nacl.cr.yp.to/features.html
+        All of the NaCl software is in the public domain.
+     and http://ed25519.cr.yp.to/software.html
+        The Ed25519 software is in the public domain.
 
 20131208
  - (djm) [openbsd-compat/bsd-setres_id.c] Missing header; from Corinna

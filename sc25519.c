@@ -1,6 +1,10 @@
-/* $OpenBSD: sc25519.c,v 1.2 2013/12/07 00:26:37 djm Exp $ */
+/* $OpenBSD: sc25519.c,v 1.3 2013/12/09 11:03:45 markus Exp $ */
 
-/* Public Domain, from supercop-20130419/crypto_sign/ed25519/ref/sc25519.c */
+/*
+ * Public Domain, Authors: Daniel J. Bernstein, Niels Duif, Tanja Lange,
+ * Peter Schwabe, Bo-Yin Yang.
+ * Copied from supercop-20130419/crypto_sign/ed25519/ref/sc25519.c
+ */
 
 #include "sc25519.h"
 

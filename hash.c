@@ -1,6 +1,6 @@
-/* $OpenBSD: hash.c,v 1.2 2013/12/07 00:26:37 djm Exp $ */
+/* $OpenBSD: hash.c,v 1.3 2013/12/09 11:03:45 markus Exp $ */
 
-/* Public Domain, from supercop-20130419/crypto_hash/sha512/ref/hash.c */
+/* Copied from nacl-20110221/crypto_hash/sha512/ref/hash.c */
 
 /*
 20080913

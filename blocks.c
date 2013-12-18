@@ -1,6 +1,9 @@
-/* $OpenBSD: blocks.c,v 1.2 2013/12/07 00:26:37 djm Exp $ */
+/* $OpenBSD: blocks.c,v 1.3 2013/12/09 11:03:45 markus Exp $ */
 
-/* Public Domain, from supercop-20130419/crypto_hashblocks/sha512/ref/blocks.c */
+/*
+ * Public Domain, Author: Daniel J. Bernstein
+ * Copied from nacl-20110221/crypto_hashblocks/sha512/ref/blocks.c
+ */
 
 #include "crypto_api.h"
 
