@@ -1,6 +1,8 @@
 20131219
  - (dtucker) [configure.ac] bz#2178: Don't try to use BSM on Solaris versions
    greater than 11 either rather than just 11.  Patch from Tomas Kuthan.
+ - (dtucker) [auth-pam.c] bz#2163: check return value from pam_get_item().
+   Patch from Loganaden Velvindron.
 
 20131218
  - (djm) OpenBSD CVS Sync
