@@ -1,3 +1,7 @@
+20131219
+ - (dtucker) [configure.ac] bz#2178: Don't try to use BSM on Solaris versions
+   greater than 11 either rather than just 11.  Patch from Tomas Kuthan.
+
 20131218
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/12/07 08:08:26
