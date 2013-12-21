@@ -11,12 +11,14 @@ fi
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
+# Traditional and builtin key types.
 ktypes="dsa-1024 rsa-2048 rsa-3072 ed25519-512"
+# Types not present in all OpenSSL versions.
 for i in `$SSH -Q key`; do
 	case "$i" in
-		ecdsa-sha2-nistp256)	ktype="$ktype ecdsa-256" ;;
-		ecdsa-sha2-nistp384)	ktype="$ktype ecdsa-384" ;;
-		ecdsa-sha2-nistp521)	ktype="$ktype ecdsa-521" ;;
+		ecdsa-sha2-nistp256)	ktypes="$ktypes ecdsa-256" ;;
+		ecdsa-sha2-nistp384)	ktypes="$ktypes ecdsa-384" ;;
+		ecdsa-sha2-nistp521)	ktypes="$ktypes ecdsa-521" ;;
 	esac
 done
 

@@ -1,3 +1,6 @@
+20131221
+ - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
+
 20131219
  - (dtucker) [configure.ac] bz#2178: Don't try to use BSM on Solaris versions
    greater than 11 either rather than just 11.  Patch from Tomas Kuthan.
