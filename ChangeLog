@@ -43,6 +43,9 @@
    - djm@cvs.openbsd.org 2013/12/27 22:37:18
      [ssh-rsa.c]
      correct comment
+   - djm@cvs.openbsd.org 2013/12/29 02:28:10
+     [key.c]
+     allow ed25519 keys to appear as certificate authorities
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.

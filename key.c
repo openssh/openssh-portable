@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.110 2013/12/07 00:19:15 djm Exp $ */
+/* $OpenBSD: key.c,v 1.111 2013/12/29 02:28:10 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1481,7 +1481,8 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 	}
 	if (key->cert->signature_key->type != KEY_RSA &&
 	    key->cert->signature_key->type != KEY_DSA &&
-	    key->cert->signature_key->type != KEY_ECDSA) {
+	    key->cert->signature_key->type != KEY_ECDSA &&
+	    key->cert->signature_key->type != KEY_ED25519) {
 		error("%s: Invalid signature key type %s (%d)", __func__,
 		    key_type(key->cert->signature_key),
 		    key->cert->signature_key->type);
