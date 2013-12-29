@@ -66,6 +66,9 @@
    - djm@cvs.openbsd.org 2013/12/29 05:42:16
      [ssh.c]
      don't forget to load Ed25519 certs too
+   - djm@cvs.openbsd.org 2013/12/29 05:57:02
+     [sshconnect.c]
+     when showing other hostkeys, don't forget Ed25519 keys
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.

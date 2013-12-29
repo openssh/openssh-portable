@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.241 2013/10/16 02:31:46 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.242 2013/12/29 05:57:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1301,7 +1301,14 @@ ssh_put_password(char *password)
 static int
 show_other_keys(struct hostkeys *hostkeys, Key *key)
 {
-	int type[] = { KEY_RSA1, KEY_RSA, KEY_DSA, KEY_ECDSA, -1};
+	int type[] = {
+		KEY_RSA1,
+		KEY_RSA,
+		KEY_DSA,
+		KEY_ECDSA,
+		KEY_ED25519,
+		-1
+	};
 	int i, ret = 0;
 	char *fp, *ra;
 	const struct hostkey_entry *found;
