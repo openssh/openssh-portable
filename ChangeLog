@@ -14,6 +14,15 @@
    - djm@cvs.openbsd.org 2013/12/19 00:27:57
      [auth-options.c]
      simplify freeing of source-address certificate restriction
+   - djm@cvs.openbsd.org 2013/12/19 01:04:36
+     [channels.c]
+     bz#2147: fix multiple remote forwardings with dynamically assigned
+     listen ports. In the s->c message to open the channel we were sending
+     zero (the magic number to request a dynamic port) instead of the actual
+     listen port. The client therefore had no way of discriminating between
+     them.
+     
+     Diagnosis and fix by ronf AT timeheart.net
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
