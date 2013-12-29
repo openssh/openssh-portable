@@ -1,9 +1,9 @@
 /* 
- * Public Domain poly1305 from Andrew M.
+ * Public Domain poly1305 from Andrew Moon
  * poly1305-donna-unrolled.c from https://github.com/floodyberry/poly1305-donna
  */
 
-/* $OpenBSD: poly1305.c,v 1.2 2013/11/21 02:50:00 djm Exp $ */
+/* $OpenBSD: poly1305.c,v 1.3 2013/12/19 22:57:13 djm Exp $ */
 
 #include "includes.h"
 

@@ -28,6 +28,9 @@
      bz#2186: don't crash (NULL deref) when deleting PKCS#11 keys from an agent
      that has a mix of normal and PKCS#11 keys; fix from jay AT slushpupie.com;
      ok dtucker
+   - djm@cvs.openbsd.org 2013/12/19 22:57:13
+     [poly1305.c poly1305.h]
+     use full name for author, with his permission
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.

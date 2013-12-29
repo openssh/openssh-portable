@@ -1,7 +1,7 @@
-/* $OpenBSD: poly1305.h,v 1.1 2013/11/21 00:45:44 djm Exp $ */
+/* $OpenBSD: poly1305.h,v 1.2 2013/12/19 22:57:13 djm Exp $ */
 
 /* 
- * Public Domain poly1305 from Andrew M.
+ * Public Domain poly1305 from Andrew Moon
  * poly1305-donna-unrolled.c from https://github.com/floodyberry/poly1305-donna
  */
 
