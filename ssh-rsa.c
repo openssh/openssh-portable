@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.47 2013/12/27 22:30:17 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.48 2013/12/27 22:37:18 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -202,8 +202,8 @@ static const u_char id_sha1[] = {
  */
 static const u_char id_md5[] = {
 	0x30, 0x20, /* type Sequence, length 0x20 (32) */
-	0x30, 0x0c, /* type Sequence, length 0x09 */
-	0x06, 0x08, /* type OID, length 0x05 */
+	0x30, 0x0c, /* type Sequence, length 0x0c (12) */
+	0x06, 0x08, /* type OID, length 0x08 */
 	0x2a, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x05, /* id-md5 */
 	0x05, 0x00, /* NULL */
 	0x04, 0x10  /* Octet string, length 0x10 (16), followed by md5 hash */

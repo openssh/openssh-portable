@@ -40,6 +40,9 @@
      the ECDSA/Ed25519 ones: use key_type_plain() when checking the key type
      rather than tediously listing all variants, use __func__ for debug/
      error messages
+   - djm@cvs.openbsd.org 2013/12/27 22:37:18
+     [ssh-rsa.c]
+     correct comment
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
