@@ -52,6 +52,11 @@
    - djm@cvs.openbsd.org 2013/12/29 02:49:52
      [key.c]
      correct comment for key_drop_cert()
+   - djm@cvs.openbsd.org 2013/12/29 04:20:04
+     [key.c]
+     to make sure we don't omit any key types as valid CA keys again,
+     factor the valid key type check into a key_type_is_valid_ca()
+     function
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.

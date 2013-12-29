@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.113 2013/12/29 02:49:52 djm Exp $ */
+/* $OpenBSD: key.c,v 1.114 2013/12/29 04:20:04 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1091,6 +1091,20 @@ key_type_is_cert(int type)
 	return 0;
 }
 
+static int
+key_type_is_valid_ca(int type)
+{
+	switch (type) {
+	case KEY_RSA:
+	case KEY_DSA:
+	case KEY_ECDSA:
+	case KEY_ED25519:
+		return 1;
+	default:
+		return 0;
+	}
+}
+
 u_int
 key_size(const Key *k)
 {
@@ -1479,10 +1493,7 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 		error("%s: Signature key invalid", __func__);
 		goto out;
 	}
-	if (key->cert->signature_key->type != KEY_RSA &&
-	    key->cert->signature_key->type != KEY_DSA &&
-	    key->cert->signature_key->type != KEY_ECDSA &&
-	    key->cert->signature_key->type != KEY_ED25519) {
+	if (!key_type_is_valid_ca(key->cert->signature_key->type)) {
 		error("%s: Invalid signature key type %s (%d)", __func__,
 		    key_type(key->cert->signature_key),
 		    key->cert->signature_key->type);
@@ -1980,8 +1991,7 @@ key_certify(Key *k, Key *ca)
 		return -1;
 	}
 
-	if (ca->type != KEY_RSA && ca->type != KEY_DSA &&
-	    ca->type != KEY_ECDSA && ca->type != KEY_ED25519) {
+	if (!key_type_is_valid_ca(ca->type)) {
 		error("%s: CA key has unsupported type %s", __func__,
 		    key_type(ca));
 		return -1;
