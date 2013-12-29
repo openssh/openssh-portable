@@ -11,6 +11,9 @@
      Cast client_alive_interval to u_int64_t before assinging to
      max_time_milliseconds to avoid potential integer overflow in the timeout.
      bz#2170, patch from Loganaden Velvindron, ok djm@
+   - djm@cvs.openbsd.org 2013/12/19 00:27:57
+     [auth-options.c]
+     simplify freeing of source-address certificate restriction
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
