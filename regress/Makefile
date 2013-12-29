@@ -73,7 +73,7 @@ INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 
 USER!=		id -un
 CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
-		t8.out t8.out.pub t9.out t9.out.pub \
+		t8.out t8.out.pub t9.out t9.out.pub t10.out t10.out.pub \
 		authorized_keys_${USER} known_hosts pidfile testdata \
 		ssh_config sshd_config.orig ssh_proxy sshd_config sshd_proxy \
 		rsa.pub rsa rsa1.pub rsa1 host.rsa host.rsa1 \
@@ -88,7 +88,9 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sshd_proxy.* authorized_keys_${USER}.* modpipe revoked-* krl-* \
 		ssh.log failed-ssh.log sshd.log failed-sshd.log \
 		regress.log failed-regress.log ssh-log-wrapper.sh \
-		sftp-server.sh sftp-server.log sftp.log setuid-allowed
+		sftp-server.sh sftp-server.log sftp.log setuid-allowed \
+		data ed25519-agent ed25519-agent.pub key.ed25519-512 \
+		key.ed25519-512.pub
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 

@@ -1,6 +1,7 @@
 20131229
  - (djm) [loginrec.c] Check for username truncation when looking up lastlog
    entries
+ - (djm) [regress/Makefile] Add some generated files for cleaning
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2013/12/19 00:10:30
      [ssh-add.c]
