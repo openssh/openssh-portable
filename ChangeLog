@@ -31,6 +31,9 @@
    - djm@cvs.openbsd.org 2013/12/19 22:57:13
      [poly1305.c poly1305.h]
      use full name for author, with his permission
+   - tedu@cvs.openbsd.org 2013/12/21 07:10:47
+     [ssh-keygen.1]
+     small typo
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
