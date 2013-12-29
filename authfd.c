@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.90 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.91 2013/12/29 04:29:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -557,9 +557,7 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
 		buffer_put_bignum(&msg, key->rsa->e);
 		buffer_put_bignum(&msg, key->rsa->n);
-	} else if (key_type_plain(key->type) == KEY_DSA ||
-	    key_type_plain(key->type) == KEY_RSA ||
-	    key_type_plain(key->type) == KEY_ECDSA) {
+	} else if (key->type != KEY_UNSPEC) {
 		key_to_blob(key, &blob, &blen);
 		buffer_put_char(&msg, SSH2_AGENTC_REMOVE_IDENTITY);
 		buffer_put_string(&msg, blob, blen);
