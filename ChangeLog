@@ -63,6 +63,9 @@
    - djm@cvs.openbsd.org 2013/12/29 04:35:50
      [authfile.c]
      don't refuse to load Ed25519 certificates
+   - djm@cvs.openbsd.org 2013/12/29 05:42:16
+     [ssh.c]
+     don't forget to load Ed25519 certs too
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
