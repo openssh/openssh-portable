@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.111 2013/12/29 02:28:10 djm Exp $ */
+/* $OpenBSD: key.c,v 1.112 2013/12/29 02:37:04 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1914,7 +1914,7 @@ key_type_plain(int type)
 	}
 }
 
-/* Convert a KEY_RSA or KEY_DSA to their _CERT equivalent */
+/* Convert a plain key to their _CERT equivalent */
 int
 key_to_certified(Key *k, int legacy)
 {
