@@ -23,6 +23,11 @@
      them.
      
      Diagnosis and fix by ronf AT timeheart.net
+   - djm@cvs.openbsd.org 2013/12/19 01:19:41
+     [ssh-agent.c]
+     bz#2186: don't crash (NULL deref) when deleting PKCS#11 keys from an agent
+     that has a mix of normal and PKCS#11 keys; fix from jay AT slushpupie.com;
+     ok dtucker
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.

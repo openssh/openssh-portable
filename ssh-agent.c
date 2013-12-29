@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.180 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.181 2013/12/19 01:19:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -660,6 +660,9 @@ process_remove_smartcard_key(SocketEntry *e)
 		tab = idtab_lookup(version);
 		for (id = TAILQ_FIRST(&tab->idlist); id; id = nxt) {
 			nxt = TAILQ_NEXT(id, next);
+			/* Skip file--based keys */
+			if (id->provider == NULL)
+				continue;
 			if (!strcmp(provider, id->provider)) {
 				TAILQ_REMOVE(&tab->idlist, id, next);
 				free_identity(id);
