@@ -1,3 +1,7 @@
+20131229
+ - (djm) [loginrec.c] Check for username truncation when looking up lastlog
+   entries
+
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
 
