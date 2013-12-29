@@ -60,6 +60,9 @@
    - djm@cvs.openbsd.org 2013/12/29 04:29:25
      [authfd.c]
      allow deletion of ed25519 keys from the agent
+   - djm@cvs.openbsd.org 2013/12/29 04:35:50
+     [authfile.c]
+     don't refuse to load Ed25519 certificates
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
