@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.112 2013/12/29 02:37:04 djm Exp $ */
+/* $OpenBSD: key.c,v 1.113 2013/12/29 02:49:52 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1947,7 +1947,7 @@ key_to_certified(Key *k, int legacy)
 	}
 }
 
-/* Convert a KEY_RSA_CERT or KEY_DSA_CERT to their raw key equivalent */
+/* Convert a certificate to its raw key equivalent */
 int
 key_drop_cert(Key *k)
 {

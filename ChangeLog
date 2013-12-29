@@ -49,6 +49,9 @@
    - djm@cvs.openbsd.org 2013/12/29 02:37:04
      [key.c]
      correct comment for key_to_certified()
+   - djm@cvs.openbsd.org 2013/12/29 02:49:52
+     [key.c]
+     correct comment for key_drop_cert()
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
