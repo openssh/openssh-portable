@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.28 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.29 2013/12/27 22:30:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -53,11 +53,12 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
 	u_int rlen, slen, len, dlen;
 	Buffer b;
 
-	if (key == NULL || key->dsa == NULL || (key->type != KEY_DSA &&
-	    key->type != KEY_DSA_CERT && key->type != KEY_DSA_CERT_V00)) {
-		error("ssh_dss_sign: no DSA key");
+	if (key == NULL || key_type_plain(key->type) != KEY_DSA ||
+	    key->dsa == NULL) {
+		error("%s: no DSA key", __func__);
 		return -1;
 	}
+
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
 	EVP_DigestFinal(&md, digest, &dlen);
@@ -117,9 +118,9 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	int rlen, ret;
 	Buffer b;
 
-	if (key == NULL || key->dsa == NULL || (key->type != KEY_DSA &&
-	    key->type != KEY_DSA_CERT && key->type != KEY_DSA_CERT_V00)) {
-		error("ssh_dss_verify: no DSA key");
+	if (key == NULL || key_type_plain(key->type) != KEY_DSA ||
+	    key->dsa == NULL) {
+		error("%s: no DSA key", __func__);
 		return -1;
 	}
 
@@ -135,7 +136,7 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		buffer_append(&b, signature, signaturelen);
 		ktype = buffer_get_cstring(&b, NULL);
 		if (strcmp("ssh-dss", ktype) != 0) {
-			error("ssh_dss_verify: cannot handle type %s", ktype);
+			error("%s: cannot handle type %s", __func__, ktype);
 			buffer_free(&b);
 			free(ktype);
 			return -1;
@@ -145,8 +146,8 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		rlen = buffer_len(&b);
 		buffer_free(&b);
 		if (rlen != 0) {
-			error("ssh_dss_verify: "
-			    "remaining bytes in signature %d", rlen);
+			error("%s: remaining bytes in signature %d",
+			    __func__, rlen);
 			free(sigblob);
 			return -1;
 		}
@@ -158,14 +159,14 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 
 	/* parse signature */
 	if ((sig = DSA_SIG_new()) == NULL)
-		fatal("ssh_dss_verify: DSA_SIG_new failed");
+		fatal("%s: DSA_SIG_new failed", __func__);
 	if ((sig->r = BN_new()) == NULL)
-		fatal("ssh_dss_verify: BN_new failed");
+		fatal("%s: BN_new failed", __func__);
 	if ((sig->s = BN_new()) == NULL)
 		fatal("ssh_dss_verify: BN_new failed");
 	if ((BN_bin2bn(sigblob, INTBLOB_LEN, sig->r) == NULL) ||
 	    (BN_bin2bn(sigblob+ INTBLOB_LEN, INTBLOB_LEN, sig->s) == NULL))
-		fatal("ssh_dss_verify: BN_bin2bn failed");
+		fatal("%s: BN_bin2bn failed", __func__);
 
 	/* clean up */
 	memset(sigblob, 0, len);
@@ -181,7 +182,7 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 
 	DSA_SIG_free(sig);
 
-	debug("ssh_dss_verify: signature %s",
+	debug("%s: signature %s", __func__,
 	    ret == 1 ? "correct" : ret == 0 ? "incorrect" : "error");
 	return ret;
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.46 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.47 2013/12/27 22:30:17 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -47,14 +47,15 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 	int ok, nid;
 	Buffer b;
 
-	if (key == NULL || key->rsa == NULL || (key->type != KEY_RSA &&
-	    key->type != KEY_RSA_CERT && key->type != KEY_RSA_CERT_V00)) {
-		error("ssh_rsa_sign: no RSA key");
+	if (key == NULL || key_type_plain(key->type) != KEY_RSA ||
+	    key->rsa == NULL) {
+		error("%s: no RSA key", __func__);
 		return -1;
 	}
+
 	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
-		error("ssh_rsa_sign: EVP_get_digestbynid %d failed", nid);
+		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
 		return -1;
 	}
 	EVP_DigestInit(&md, evp_md);
@@ -70,7 +71,7 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 	if (ok != 1) {
 		int ecode = ERR_get_error();
 
-		error("ssh_rsa_sign: RSA_sign failed: %s",
+		error("%s: RSA_sign failed: %s", __func__,
 		    ERR_error_string(ecode, NULL));
 		free(sig);
 		return -1;
@@ -81,7 +82,7 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 		memmove(sig + diff, sig, len);
 		memset(sig, 0, diff);
 	} else if (len > slen) {
-		error("ssh_rsa_sign: slen %u slen2 %u", slen, len);
+		error("%s: slen %u slen2 %u", __func__, slen, len);
 		free(sig);
 		return -1;
 	}
@@ -115,21 +116,23 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	u_int len, dlen, modlen;
 	int rlen, ret, nid;
 
-	if (key == NULL || key->rsa == NULL || (key->type != KEY_RSA &&
-	    key->type != KEY_RSA_CERT && key->type != KEY_RSA_CERT_V00)) {
-		error("ssh_rsa_verify: no RSA key");
+	if (key == NULL || key_type_plain(key->type) != KEY_RSA ||
+	    key->rsa == NULL) {
+		error("%s: no RSA key", __func__);
 		return -1;
 	}
+
 	if (BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
-		error("ssh_rsa_verify: RSA modulus too small: %d < minimum %d bits",
-		    BN_num_bits(key->rsa->n), SSH_RSA_MINIMUM_MODULUS_SIZE);
+		error("%s: RSA modulus too small: %d < minimum %d bits",
+		    __func__, BN_num_bits(key->rsa->n),
+		    SSH_RSA_MINIMUM_MODULUS_SIZE);
 		return -1;
 	}
 	buffer_init(&b);
 	buffer_append(&b, signature, signaturelen);
 	ktype = buffer_get_cstring(&b, NULL);
 	if (strcmp("ssh-rsa", ktype) != 0) {
-		error("ssh_rsa_verify: cannot handle type %s", ktype);
+		error("%s: cannot handle type %s", __func__, ktype);
 		buffer_free(&b);
 		free(ktype);
 		return -1;
@@ -139,19 +142,19 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	rlen = buffer_len(&b);
 	buffer_free(&b);
 	if (rlen != 0) {
-		error("ssh_rsa_verify: remaining bytes in signature %d", rlen);
+		error("%s: remaining bytes in signature %d", __func__, rlen);
 		free(sigblob);
 		return -1;
 	}
 	/* RSA_verify expects a signature of RSA_size */
 	modlen = RSA_size(key->rsa);
 	if (len > modlen) {
-		error("ssh_rsa_verify: len %u > modlen %u", len, modlen);
+		error("%s: len %u > modlen %u", __func__, len, modlen);
 		free(sigblob);
 		return -1;
 	} else if (len < modlen) {
 		u_int diff = modlen - len;
-		debug("ssh_rsa_verify: add padding: modlen %u > len %u",
+		debug("%s: add padding: modlen %u > len %u", __func__,
 		    modlen, len);
 		sigblob = xrealloc(sigblob, 1, modlen);
 		memmove(sigblob + diff, sigblob, len);
@@ -160,7 +163,7 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	}
 	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
-		error("ssh_rsa_verify: EVP_get_digestbynid %d failed", nid);
+		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
 		free(sigblob);
 		return -1;
 	}
@@ -172,7 +175,7 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	memset(digest, 'd', sizeof(digest));
 	memset(sigblob, 's', len);
 	free(sigblob);
-	debug("ssh_rsa_verify: signature %scorrect", (ret==0) ? "in" : "");
+	debug("%s: signature %scorrect", __func__, (ret == 0) ? "in" : "");
 	return ret;
 }
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.6 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.7 2013/12/27 22:30:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -54,11 +54,12 @@ ssh_ecdsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 	u_int len, dlen;
 	Buffer b, bb;
 
-	if (key == NULL || key->ecdsa == NULL ||
-	    (key->type != KEY_ECDSA && key->type != KEY_ECDSA_CERT)) {
+	if (key == NULL || key_type_plain(key->type) != KEY_ECDSA ||
+	    key->ecdsa == NULL) {
 		error("%s: no ECDSA key", __func__);
 		return -1;
 	}
+
 	evp_md = key_ec_nid_to_evpmd(key->ecdsa_nid);
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
@@ -105,11 +106,12 @@ ssh_ecdsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	Buffer b, bb;
 	char *ktype;
 
-	if (key == NULL || key->ecdsa == NULL ||
-	    (key->type != KEY_ECDSA && key->type != KEY_ECDSA_CERT)) {
+	if (key == NULL || key_type_plain(key->type) != KEY_ECDSA ||
+	    key->ecdsa == NULL) {
 		error("%s: no ECDSA key", __func__);
 		return -1;
 	}
+
 	evp_md = key_ec_nid_to_evpmd(key->ecdsa_nid);
 
 	/* fetch signature */

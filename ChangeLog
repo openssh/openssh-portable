@@ -34,6 +34,12 @@
    - tedu@cvs.openbsd.org 2013/12/21 07:10:47
      [ssh-keygen.1]
      small typo
+   - djm@cvs.openbsd.org 2013/12/27 22:30:17
+     [ssh-dss.c ssh-ecdsa.c ssh-rsa.c]
+     make the original RSA and DSA signing/verification code look more like
+     the ECDSA/Ed25519 ones: use key_type_plain() when checking the key type
+     rather than tediously listing all variants, use __func__ for debug/
+     error messages
 
 20131221
  - (dtucker) [regress/keytype.sh] Actually test ecdsa key types.
