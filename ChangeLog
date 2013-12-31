@@ -1,3 +1,13 @@
+20131231
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2013/12/30 23:52:28
+     [auth2-hostbased.c auth2-pubkey.c compat.c compat.h ssh-rsa.c]
+     [sshconnect.c sshconnect2.c sshd.c]
+     refuse RSA keys from old proprietary clients/servers that use the
+     obsolete RSA+MD5 signature scheme. it will still be possible to connect
+     with these clients/servers but only DSA keys will be accepted, and we'll
+     deprecate them entirely in a future release. ok markus@
+
 20131229
  - (djm) [loginrec.c] Check for username truncation when looking up lastlog
    entries

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.199 2013/11/02 21:59:15 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.200 2013/12/30 23:52:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -188,11 +188,12 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	}
 	if (options.hostkeyalgorithms != NULL)
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    options.hostkeyalgorithms;
+		    compat_pkalg_proposal(options.hostkeyalgorithms);
 	else {
 		/* Prefer algorithms that we already have keys for */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    order_hostkeyalgs(host, hostaddr, port);
+		    compat_pkalg_proposal(
+		    order_hostkeyalgs(host, hostaddr, port));
 	}
 	if (options.kex_algorithms != NULL)
 		myproposal[PROPOSAL_KEX_ALGS] = options.kex_algorithms;
@@ -1489,17 +1490,31 @@ userauth_pubkey(Authctxt *authctxt)
 		 * encrypted keys we cannot do this and have to load the
 		 * private key instead
 		 */
-		if (id->key && id->key->type != KEY_RSA1) {
-			debug("Offering %s public key: %s", key_type(id->key),
-			    id->filename);
-			sent = send_pubkey_test(authctxt, id);
-		} else if (id->key == NULL) {
+		if (id->key != NULL) {
+			if (key_type_plain(id->key->type) == KEY_RSA &&
+			    (datafellows & SSH_BUG_RSASIGMD5) != 0) {
+				debug("Skipped %s key %s for RSA/MD5 server",
+				    key_type(id->key), id->filename);
+			} else if (id->key->type != KEY_RSA1) {
+				debug("Offering %s public key: %s",
+				    key_type(id->key), id->filename);
+				sent = send_pubkey_test(authctxt, id);
+			}
+		} else {
 			debug("Trying private key: %s", id->filename);
 			id->key = load_identity_file(id->filename,
 			    id->userprovided);
 			if (id->key != NULL) {
 				id->isprivate = 1;
-				sent = sign_and_send_pubkey(authctxt, id);
+				if (key_type_plain(id->key->type) == KEY_RSA &&
+				    (datafellows & SSH_BUG_RSASIGMD5) != 0) {
+					debug("Skipped %s key %s for RSA/MD5 "
+					    "server", key_type(id->key),
+					    id->filename);
+				} else {
+					sent = sign_and_send_pubkey(
+					    authctxt, id);
+				}
 				key_free(id->key);
 				id->key = NULL;
 			}

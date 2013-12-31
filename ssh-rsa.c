@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.48 2013/12/27 22:37:18 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.49 2013/12/30 23:52:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -53,7 +53,7 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 
-	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
+	nid = NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
 		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
 		return -1;
@@ -161,7 +161,7 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		memset(sigblob, 0, diff);
 		len = modlen;
 	}
-	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
+	nid = NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
 		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
 		free(sigblob);
@@ -196,18 +196,6 @@ static const u_char id_sha1[] = {
 	0x05, 0x00, /* NULL */
 	0x04, 0x14  /* Octet string, length 0x14 (20), followed by sha1 hash */
 };
-/*
- * id-md5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)
- *	rsadsi(113549) digestAlgorithm(2) 5 }
- */
-static const u_char id_md5[] = {
-	0x30, 0x20, /* type Sequence, length 0x20 (32) */
-	0x30, 0x0c, /* type Sequence, length 0x0c (12) */
-	0x06, 0x08, /* type OID, length 0x08 */
-	0x2a, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x05, /* id-md5 */
-	0x05, 0x00, /* NULL */
-	0x04, 0x10  /* Octet string, length 0x10 (16), followed by md5 hash */
-};
 
 static int
 openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
@@ -224,11 +212,6 @@ openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
 		oid = id_sha1;
 		oidlen = sizeof(id_sha1);
 		hlen = 20;
-		break;
-	case NID_md5:
-		oid = id_md5;
-		oidlen = sizeof(id_md5);
-		hlen = 16;
 		break;
 	default:
 		goto done;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.412 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.413 2013/12/30 23:52:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -492,17 +492,19 @@ sshd_exchange_identification(int sock_in, int sock_out)
 
 	compat_datafellows(remote_version);
 
-	if (datafellows & SSH_BUG_PROBE) {
+	if ((datafellows & SSH_BUG_PROBE) != 0) {
 		logit("probed from %s with %s.  Don't panic.",
 		    get_remote_ipaddr(), client_version_string);
 		cleanup_exit(255);
 	}
-
-	if (datafellows & SSH_BUG_SCANNER) {
+	if ((datafellows & SSH_BUG_SCANNER) != 0) {
 		logit("scanned from %s with %s.  Don't panic.",
 		    get_remote_ipaddr(), client_version_string);
 		cleanup_exit(255);
 	}
+	if ((datafellows & SSH_BUG_RSASIGMD5) != 0)
+		logit("Client version \"%.100s\" uses unsafe RSA signature "
+		    "scheme; disabling use of RSA keys", remote_version);
 
 	mismatch = 0;
 	switch (remote_major) {
@@ -2446,7 +2448,8 @@ do_ssh2_kex(void)
 		packet_set_rekey_limits((u_int32_t)options.rekey_limit,
 		    (time_t)options.rekey_interval);
 
-	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = list_hostkey_types();
+	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = compat_pkalg_proposal(
+	    list_hostkey_types());
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);
