@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.25 2013/11/07 11:58:27 dtucker Exp $ */
+/* $OpenBSD: mac.c,v 1.26 2014/01/04 17:50:55 tedu Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -181,8 +181,8 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 	u_char b[4], nonce[8];
 
 	if (mac->mac_len > sizeof(u))
-		fatal("mac_compute: mac too long %u %lu",
-		    mac->mac_len, (u_long)sizeof(u));
+		fatal("mac_compute: mac too long %u %zu",
+		    mac->mac_len, sizeof(u));
 
 	switch (mac->type) {
 	case SSH_EVP:

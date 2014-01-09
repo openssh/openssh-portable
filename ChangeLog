@@ -1,3 +1,9 @@
+20140110
+ - (djm) OpenBSD CVS Sync
+   - tedu@cvs.openbsd.org 2014/01/04 17:50:55
+     [mac.c monitor_mm.c monitor_mm.h xmalloc.c]
+     use standard types and formats for size_t like variables. ok dtucker
+
 20140108
  - (djm) [regress/.cvsignore] Ignore regress test droppings; ok dtucker@
 
