@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhc.c,v 1.4 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: kexecdhc.c,v 1.5 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -124,7 +124,7 @@ kexecdh_client(Kex *kex)
 
 	/* calc and verify H */
 	kex_ecdh_hash(
-	    kex->evp_md,
+	    kex->hash_alg,
 	    group,
 	    kex->client_version_string,
 	    kex->server_version_string,

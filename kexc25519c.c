@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519c.c,v 1.2 2013/11/02 22:02:14 markus Exp $ */
+/* $OpenBSD: kexc25519c.c,v 1.3 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -97,7 +97,7 @@ kexc25519_client(Kex *kex)
 
 	/* calc and verify H */
 	kex_c25519_hash(
-	    kex->evp_md,
+	    kex->hash_alg,
 	    kex->client_version_string,
 	    kex->server_version_string,
 	    buffer_ptr(&kex->my), buffer_len(&kex->my),

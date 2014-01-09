@@ -1,4 +1,4 @@
-/* $OpenBSD: roaming_client.c,v 1.6 2013/10/16 02:31:46 djm Exp $ */
+/* $OpenBSD: roaming_client.c,v 1.7 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2004-2009 AppGate Network Security AB
  *
@@ -48,6 +48,7 @@
 #include "roaming.h"
 #include "ssh2.h"
 #include "sshconnect.h"
+#include "digest.h"
 
 /* import */
 extern Options options;
@@ -90,10 +91,8 @@ request_roaming(void)
 static void
 roaming_auth_required(void)
 {
-	u_char digest[SHA_DIGEST_LENGTH];
-	EVP_MD_CTX md;
+	u_char digest[SSH_DIGEST_MAX_LENGTH];
 	Buffer b;
-	const EVP_MD *evp_md = EVP_sha1();
 	u_int64_t chall, oldchall;
 
 	chall = packet_get_int64();
@@ -107,14 +106,13 @@ roaming_auth_required(void)
 	buffer_init(&b);
 	buffer_put_int64(&b, cookie);
 	buffer_put_int64(&b, chall);
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
-	EVP_DigestFinal(&md, digest, NULL);
+	if (ssh_digest_buffer(SSH_DIGEST_SHA1, &b, digest, sizeof(digest)) != 0)
+		fatal("%s: ssh_digest_buffer failed", __func__);
 	buffer_free(&b);
 
 	packet_start(SSH2_MSG_KEX_ROAMING_AUTH);
 	packet_put_int64(key1 ^ get_recv_bytes());
-	packet_put_raw(digest, sizeof(digest));
+	packet_put_raw(digest, ssh_digest_bytes(SSH_DIGEST_SHA1));
 	packet_send();
 
 	oldkey1 = key1;

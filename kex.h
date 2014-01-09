@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.58 2013/11/07 11:58:27 dtucker Exp $ */
+/* $OpenBSD: kex.h,v 1.59 2014/01/09 23:20:00 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -133,7 +133,7 @@ struct Kex {
 	Buffer	peer;
 	sig_atomic_t done;
 	int	flags;
-	const EVP_MD *evp_md;
+	int	hash_alg;
 	int	ec_nid;
 	char	*client_version_string;
 	char	*server_version_string;
@@ -170,17 +170,17 @@ void
 kex_dh_hash(char *, char *, char *, int, char *, int, u_char *, int,
     BIGNUM *, BIGNUM *, BIGNUM *, u_char **, u_int *);
 void
-kexgex_hash(const EVP_MD *, char *, char *, char *, int, char *,
+kexgex_hash(int, char *, char *, char *, int, char *,
     int, u_char *, int, int, int, int, BIGNUM *, BIGNUM *, BIGNUM *,
     BIGNUM *, BIGNUM *, u_char **, u_int *);
 #ifdef OPENSSL_HAS_ECC
 void
-kex_ecdh_hash(const EVP_MD *, const EC_GROUP *, char *, char *, char *, int,
+kex_ecdh_hash(int, const EC_GROUP *, char *, char *, char *, int,
     char *, int, u_char *, int, const EC_POINT *, const EC_POINT *,
     const BIGNUM *, u_char **, u_int *);
 #endif
 void
-kex_c25519_hash(const EVP_MD *, char *, char *, char *, int,
+kex_c25519_hash(int, char *, char *, char *, int,
     char *, int, u_char *, int, const u_char *, const u_char *,
     const BIGNUM *, u_char **, u_int *);
 

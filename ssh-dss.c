@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-dss.c,v 1.29 2013/12/27 22:30:17 djm Exp $ */
+/* $OpenBSD: ssh-dss.c,v 1.30 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -38,6 +38,7 @@
 #include "compat.h"
 #include "log.h"
 #include "key.h"
+#include "digest.h"
 
 #define INTBLOB_LEN	20
 #define SIGBLOB_LEN	(2*INTBLOB_LEN)
@@ -47,10 +48,8 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen)
 {
 	DSA_SIG *sig;
-	const EVP_MD *evp_md = EVP_sha1();
-	EVP_MD_CTX md;
-	u_char digest[EVP_MAX_MD_SIZE], sigblob[SIGBLOB_LEN];
-	u_int rlen, slen, len, dlen;
+	u_char digest[SSH_DIGEST_MAX_LENGTH], sigblob[SIGBLOB_LEN];
+	u_int rlen, slen, len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
 	Buffer b;
 
 	if (key == NULL || key_type_plain(key->type) != KEY_DSA ||
@@ -59,9 +58,11 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, &dlen);
+	if (ssh_digest_memory(SSH_DIGEST_SHA1, data, datalen,
+	    digest, sizeof(digest)) != 0) {
+		error("%s: ssh_digest_memory failed", __func__);
+		return -1;
+	}
 
 	sig = DSA_do_sign(digest, dlen, key->dsa);
 	memset(digest, 'd', sizeof(digest));
@@ -111,10 +112,8 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
     const u_char *data, u_int datalen)
 {
 	DSA_SIG *sig;
-	const EVP_MD *evp_md = EVP_sha1();
-	EVP_MD_CTX md;
-	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
-	u_int len, dlen;
+	u_char digest[SSH_DIGEST_MAX_LENGTH], *sigblob;
+	u_int len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
 	int rlen, ret;
 	Buffer b;
 
@@ -173,9 +172,11 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	free(sigblob);
 
 	/* sha1 the data */
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, &dlen);
+	if (ssh_digest_memory(SSH_DIGEST_SHA1, data, datalen,
+	    digest, sizeof(digest)) != 0) {
+		error("%s: digest_memory failed", __func__);
+		return -1;
+	}
 
 	ret = DSA_do_verify(digest, dlen, sig, key->dsa);
 	memset(digest, 'd', sizeof(digest));

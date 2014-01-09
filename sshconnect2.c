@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.200 2013/12/30 23:52:28 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.201 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1006,7 +1006,7 @@ jpake_password_to_secret(Authctxt *authctxt, const char *crypt_scheme,
 	debug3("%s: crypted = %s", __func__, crypted);
 #endif
 
-	if (hash_buffer(crypted, strlen(crypted), EVP_sha256(),
+	if (hash_buffer(crypted, strlen(crypted), SSH_DIGEST_SHA1,
 	    &secret, &secret_len) != 0)
 		fatal("%s: hash_buffer", __func__);
 

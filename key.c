@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.114 2013/12/29 04:20:04 djm Exp $ */
+/* $OpenBSD: key.c,v 1.115 2014/01/09 23:20:00 djm Exp $ */
 /*
  * read_bignum():
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -56,6 +56,7 @@
 #include "log.h"
 #include "misc.h"
 #include "ssh2.h"
+#include "digest.h"
 
 static int to_blob(const Key *, u_char **, u_int *, int);
 static Key *key_from_blob2(const u_char *, u_int, int);
@@ -358,30 +359,26 @@ u_char*
 key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
     u_int *dgst_raw_length)
 {
-	const EVP_MD *md = NULL;
-	EVP_MD_CTX ctx;
 	u_char *blob = NULL;
 	u_char *retval = NULL;
 	u_int len = 0;
-	int nlen, elen;
+	int nlen, elen, hash_alg = -1;
 
 	*dgst_raw_length = 0;
 
+	/* XXX switch to DIGEST_* directly? */
 	switch (dgst_type) {
 	case SSH_FP_MD5:
-		md = EVP_md5();
+		hash_alg = SSH_DIGEST_MD5;
 		break;
 	case SSH_FP_SHA1:
-		md = EVP_sha1();
+		hash_alg = SSH_DIGEST_SHA1;
 		break;
-#ifdef HAVE_EVP_SHA256
 	case SSH_FP_SHA256:
-		md = EVP_sha256();
+		hash_alg = SSH_DIGEST_SHA256;
 		break;
-#endif
 	default:
-		fatal("key_fingerprint_raw: bad digest type %d",
-		    dgst_type);
+		fatal("%s: bad digest type %d", __func__, dgst_type);
 	}
 	switch (k->type) {
 	case KEY_RSA1:
@@ -410,18 +407,19 @@ key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
 	case KEY_UNSPEC:
 		return retval;
 	default:
-		fatal("key_fingerprint_raw: bad key type %d", k->type);
+		fatal("%s: bad key type %d", __func__, k->type);
 		break;
 	}
 	if (blob != NULL) {
-		retval = xmalloc(EVP_MAX_MD_SIZE);
-		EVP_DigestInit(&ctx, md);
-		EVP_DigestUpdate(&ctx, blob, len);
-		EVP_DigestFinal(&ctx, retval, dgst_raw_length);
+		retval = xmalloc(SSH_DIGEST_MAX_LENGTH);
+		if ((ssh_digest_memory(hash_alg, blob, len,
+		    retval, SSH_DIGEST_MAX_LENGTH)) != 0)
+			fatal("%s: digest_memory failed", __func__);
 		memset(blob, 0, len);
 		free(blob);
+		*dgst_raw_length = ssh_digest_bytes(hash_alg);
 	} else {
-		fatal("key_fingerprint_raw: blob is null");
+		fatal("%s: blob is null", __func__);
 	}
 	return retval;
 }
@@ -2211,8 +2209,8 @@ key_curve_nid_to_name(int nid)
 }
 
 #ifdef OPENSSL_HAS_ECC
-const EVP_MD *
-key_ec_nid_to_evpmd(int nid)
+int
+key_ec_nid_to_hash_alg(int nid)
 {
 	int kbits = key_curve_nid_to_bits(nid);
 
@@ -2220,11 +2218,11 @@ key_ec_nid_to_evpmd(int nid)
 		fatal("%s: invalid nid %d", __func__, nid);
 	/* RFC5656 section 6.2.1 */
 	if (kbits <= 256)
-		return EVP_sha256();
+		return SSH_DIGEST_SHA256;
 	else if (kbits <= 384)
-		return EVP_sha384();
+		return SSH_DIGEST_SHA384;
 	else
-		return EVP_sha512();
+		return SSH_DIGEST_SHA512;
 }
 
 int

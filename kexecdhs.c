@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhs.c,v 1.7 2013/11/02 22:24:24 markus Exp $ */
+/* $OpenBSD: kexecdhs.c,v 1.8 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -109,7 +109,7 @@ kexecdh_server(Kex *kex)
 	/* calc H */
 	key_to_blob(server_host_public, &server_host_key_blob, &sbloblen);
 	kex_ecdh_hash(
-	    kex->evp_md,
+	    kex->hash_alg,
 	    group,
 	    kex->client_version_string,
 	    kex->server_version_string,

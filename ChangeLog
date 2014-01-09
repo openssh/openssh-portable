@@ -9,6 +9,15 @@
      with the year, and rearrange a comparison to avoid a potentional signed
      arithmetic overflow that would give the wrong result.
      ok djm@
+   - djm@cvs.openbsd.org 2014/01/09 23:20:00
+     [digest.c digest.h hostfile.c kex.c kex.h kexc25519.c kexc25519c.c]
+     [kexc25519s.c kexdh.c kexecdh.c kexecdhc.c kexecdhs.c kexgex.c kexgexc.c]
+     [kexgexs.c key.c key.h roaming_client.c roaming_common.c schnorr.c]
+     [schnorr.h ssh-dss.c ssh-ecdsa.c ssh-rsa.c sshconnect2.c]
+     Introduce digest API and use it to perform all hashing operations
+     rather than calling OpenSSL EVP_Digest* directly. Will make it easier
+     to build a reduced-feature OpenSSH without OpenSSL in future;
+     feedback, ok markus@
 
 20140108
  - (djm) [regress/.cvsignore] Ignore regress test droppings; ok dtucker@

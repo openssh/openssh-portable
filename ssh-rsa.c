@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.49 2013/12/30 23:52:27 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.50 2014/01/09 23:20:00 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -32,6 +32,7 @@
 #include "compat.h"
 #include "misc.h"
 #include "ssh.h"
+#include "digest.h"
 
 static int openssh_RSA_verify(int, u_char *, u_int, u_char *, u_int, RSA *);
 
@@ -40,9 +41,8 @@ int
 ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen)
 {
-	const EVP_MD *evp_md;
-	EVP_MD_CTX md;
-	u_char digest[EVP_MAX_MD_SIZE], *sig;
+	int hash_alg;
+	u_char digest[SSH_DIGEST_MAX_LENGTH], *sig;
 	u_int slen, dlen, len;
 	int ok, nid;
 	Buffer b;
@@ -53,14 +53,18 @@ ssh_rsa_sign(const Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 
+	/* hash the data */
+	hash_alg = SSH_DIGEST_SHA1;
 	nid = NID_sha1;
-	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
-		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
+	if ((dlen = ssh_digest_bytes(hash_alg)) == 0) {
+		error("%s: bad hash algorithm %d", __func__, hash_alg);
 		return -1;
 	}
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, &dlen);
+	if (ssh_digest_memory(hash_alg, data, datalen,
+	    digest, sizeof(digest)) != 0) {
+		error("%s: ssh_digest_memory failed", __func__);
+		return -1;
+	}
 
 	slen = RSA_size(key->rsa);
 	sig = xmalloc(slen);
@@ -109,12 +113,11 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
     const u_char *data, u_int datalen)
 {
 	Buffer b;
-	const EVP_MD *evp_md;
-	EVP_MD_CTX md;
+	int hash_alg;
 	char *ktype;
-	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
+	u_char digest[SSH_DIGEST_MAX_LENGTH], *sigblob;
 	u_int len, dlen, modlen;
-	int rlen, ret, nid;
+	int rlen, ret;
 
 	if (key == NULL || key_type_plain(key->type) != KEY_RSA ||
 	    key->rsa == NULL) {
@@ -161,17 +164,20 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		memset(sigblob, 0, diff);
 		len = modlen;
 	}
-	nid = NID_sha1;
-	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
-		error("%s: EVP_get_digestbynid %d failed", __func__, nid);
-		free(sigblob);
+	/* hash the data */
+	hash_alg = SSH_DIGEST_SHA1;
+	if ((dlen = ssh_digest_bytes(hash_alg)) == 0) {
+		error("%s: bad hash algorithm %d", __func__, hash_alg);
 		return -1;
 	}
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, &dlen);
+	if (ssh_digest_memory(hash_alg, data, datalen,
+	    digest, sizeof(digest)) != 0) {
+		error("%s: ssh_digest_memory failed", __func__);
+		return -1;
+	}
 
-	ret = openssh_RSA_verify(nid, digest, dlen, sigblob, len, key->rsa);
+	ret = openssh_RSA_verify(hash_alg, digest, dlen, sigblob, len,
+	    key->rsa);
 	memset(digest, 'd', sizeof(digest));
 	memset(sigblob, 's', len);
 	free(sigblob);
@@ -198,7 +204,7 @@ static const u_char id_sha1[] = {
 };
 
 static int
-openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
+openssh_RSA_verify(int hash_alg, u_char *hash, u_int hashlen,
     u_char *sigbuf, u_int siglen, RSA *rsa)
 {
 	u_int ret, rsasize, oidlen = 0, hlen = 0;
@@ -207,8 +213,8 @@ openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
 	u_char *decrypted = NULL;
 
 	ret = 0;
-	switch (type) {
-	case NID_sha1:
+	switch (hash_alg) {
+	case SSH_DIGEST_SHA1:
 		oid = id_sha1;
 		oidlen = sizeof(id_sha1);
 		hlen = 20;

@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.40 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: key.h,v 1.41 2014/01/09 23:20:00 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -131,7 +131,7 @@ u_int		 key_curve_nid_to_bits(int);
 int		 key_ecdsa_bits_to_nid(int);
 #ifdef OPENSSL_HAS_ECC
 int		 key_ecdsa_key_to_nid(EC_KEY *);
-const EVP_MD	*key_ec_nid_to_evpmd(int nid);
+int		 key_ec_nid_to_hash_alg(int nid);
 int		 key_ec_validate_public(const EC_GROUP *, const EC_POINT *);
 int		 key_ec_validate_private(const EC_KEY *);
 #endif
