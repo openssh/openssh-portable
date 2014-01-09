@@ -3,6 +3,12 @@
    - tedu@cvs.openbsd.org 2014/01/04 17:50:55
      [mac.c monitor_mm.c monitor_mm.h xmalloc.c]
      use standard types and formats for size_t like variables. ok dtucker
+   - guenther@cvs.openbsd.org 2014/01/09 03:26:00
+     [sftp-common.c]
+     When formating the time for "ls -l"-style output, show dates in the future
+     with the year, and rearrange a comparison to avoid a potentional signed
+     arithmetic overflow that would give the wrong result.
+     ok djm@
 
 20140108
  - (djm) [regress/.cvsignore] Ignore regress test droppings; ok dtucker@
