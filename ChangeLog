@@ -18,6 +18,10 @@
      rather than calling OpenSSL EVP_Digest* directly. Will make it easier
      to build a reduced-feature OpenSSH without OpenSSL in future;
      feedback, ok markus@
+   - djm@cvs.openbsd.org 2014/01/09 23:26:48
+     [sshconnect.c sshd.c]
+     ban clients/servers that suffer from SSH_BUG_DERIVEKEY, they are ancient,
+     deranged and might make some attacks on KEX easier; ok markus@
 
 20140108
  - (djm) [regress/.cvsignore] Ignore regress test droppings; ok dtucker@
