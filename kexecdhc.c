@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhc.c,v 1.5 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kexecdhc.c,v 1.6 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -152,7 +152,7 @@ kexecdh_client(Kex *kex)
 		memcpy(kex->session_id, hash, kex->session_id_len);
 	}
 
-	kex_derive_keys(kex, hash, hashlen, shared_secret);
+	kex_derive_keys_bn(kex, hash, hashlen, shared_secret);
 	BN_clear_free(shared_secret);
 	kex_finish(kex);
 }

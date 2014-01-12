@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.3 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.4 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001, 2013 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -58,23 +58,19 @@ kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
 	crypto_scalarmult_curve25519(pub, key, basepoint);
 }
 
-BIGNUM *
+void
 kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
-    const u_char pub[CURVE25519_SIZE])
+    const u_char pub[CURVE25519_SIZE], Buffer *out)
 {
 	u_char shared_key[CURVE25519_SIZE];
-	BIGNUM *shared_secret;
 
 	crypto_scalarmult_curve25519(shared_key, key, pub);
 #ifdef DEBUG_KEXECDH
 	dump_digest("shared secret", shared_key, CURVE25519_SIZE);
 #endif
-	if ((shared_secret = BN_new()) == NULL)
-		fatal("%s: BN_new failed", __func__);
-	if (BN_bin2bn(shared_key, sizeof(shared_key), shared_secret) == NULL)
-		fatal("%s: BN_bin2bn failed", __func__);
+	buffer_clear(out);
+	buffer_put_bignum2_from_string(out, shared_key, CURVE25519_SIZE);
 	memset(shared_key, 0, CURVE25519_SIZE);	/* XXX explicit_bzero() */
-	return (shared_secret);
 }
 
 void
@@ -87,7 +83,7 @@ kex_c25519_hash(
     u_char *serverhostkeyblob, int sbloblen,
     const u_char client_dh_pub[CURVE25519_SIZE],
     const u_char server_dh_pub[CURVE25519_SIZE],
-    const BIGNUM *shared_secret,
+    const u_char *shared_secret, u_int secretlen,
     u_char **hash, u_int *hashlen)
 {
 	Buffer b;
@@ -108,7 +104,7 @@ kex_c25519_hash(
 	buffer_put_string(&b, serverhostkeyblob, sbloblen);
 	buffer_put_string(&b, client_dh_pub, CURVE25519_SIZE);
 	buffer_put_string(&b, server_dh_pub, CURVE25519_SIZE);
-	buffer_put_bignum2(&b, shared_secret);
+	buffer_append(&b, shared_secret, secretlen);
 
 #ifdef DEBUG_KEX
 	buffer_dump(&b);

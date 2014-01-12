@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519c.c,v 1.3 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kexc25519c.c,v 1.4 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -45,7 +45,6 @@
 void
 kexc25519_client(Kex *kex)
 {
-	BIGNUM *shared_secret;
 	Key *server_host_key;
 	u_char client_key[CURVE25519_SIZE];
 	u_char client_pubkey[CURVE25519_SIZE];
@@ -53,6 +52,7 @@ kexc25519_client(Kex *kex)
 	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char *hash;
 	u_int slen, sbloblen, hashlen;
+	Buffer shared_secret;
 
 	kexc25519_keygen(client_key, client_pubkey);
 
@@ -93,7 +93,8 @@ kexc25519_client(Kex *kex)
 	signature = packet_get_string(&slen);
 	packet_check_eom();
 
-	shared_secret = kexc25519_shared_key(client_key, server_pubkey);
+	buffer_init(&shared_secret);
+	kexc25519_shared_key(client_key, server_pubkey, &shared_secret);
 
 	/* calc and verify H */
 	kex_c25519_hash(
@@ -105,7 +106,7 @@ kexc25519_client(Kex *kex)
 	    server_host_key_blob, sbloblen,
 	    client_pubkey,
 	    server_pubkey,
-	    shared_secret,
+	    buffer_ptr(&shared_secret), buffer_len(&shared_secret),
 	    &hash, &hashlen
 	);
 	free(server_host_key_blob);
@@ -121,8 +122,8 @@ kexc25519_client(Kex *kex)
 		kex->session_id = xmalloc(kex->session_id_len);
 		memcpy(kex->session_id, hash, kex->session_id_len);
 	}
-
-	kex_derive_keys(kex, hash, hashlen, shared_secret);
-	BN_clear_free(shared_secret);
+	kex_derive_keys(kex, hash, hashlen,
+	    buffer_ptr(&shared_secret), buffer_len(&shared_secret));
+	buffer_free(&shared_secret);
 	kex_finish(kex);
 }

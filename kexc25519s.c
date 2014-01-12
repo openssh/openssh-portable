@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519s.c,v 1.3 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kexc25519s.c,v 1.4 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -42,7 +42,6 @@
 void
 kexc25519_server(Kex *kex)
 {
-	BIGNUM *shared_secret;
 	Key *server_host_private, *server_host_public;
 	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char server_key[CURVE25519_SIZE];
@@ -50,6 +49,7 @@ kexc25519_server(Kex *kex)
 	u_char server_pubkey[CURVE25519_SIZE];
 	u_char *hash;
 	u_int slen, sbloblen, hashlen;
+	Buffer shared_secret;
 
 	/* generate private key */
 	kexc25519_keygen(server_key, server_pubkey);
@@ -76,7 +76,8 @@ kexc25519_server(Kex *kex)
 	dump_digest("client public key:", client_pubkey, CURVE25519_SIZE);
 #endif
 
-	shared_secret = kexc25519_shared_key(server_key, client_pubkey);
+	buffer_init(&shared_secret);
+	kexc25519_shared_key(server_key, client_pubkey, &shared_secret);
 
 	/* calc H */
 	key_to_blob(server_host_public, &server_host_key_blob, &sbloblen);
@@ -89,7 +90,7 @@ kexc25519_server(Kex *kex)
 	    server_host_key_blob, sbloblen,
 	    client_pubkey,
 	    server_pubkey,
-	    shared_secret,
+	    buffer_ptr(&shared_secret), buffer_len(&shared_secret),
 	    &hash, &hashlen
 	);
 
@@ -117,7 +118,9 @@ kexc25519_server(Kex *kex)
 	free(server_host_key_blob);
 	/* have keys, free server key */
 	free(client_pubkey);
-	kex_derive_keys(kex, hash, hashlen, shared_secret);
-	BN_clear_free(shared_secret);
+
+	kex_derive_keys(kex, hash, hashlen,
+	    buffer_ptr(&shared_secret), buffer_len(&shared_secret));
+	buffer_free(&shared_secret);
 	kex_finish(kex);
 }

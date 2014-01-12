@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.59 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.60 2014/01/12 08:13:13 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -153,7 +153,8 @@ void	 kex_finish(Kex *);
 
 void	 kex_send_kexinit(Kex *);
 void	 kex_input_kexinit(int, u_int32_t, void *);
-void	 kex_derive_keys(Kex *, u_char *, u_int, BIGNUM *);
+void	 kex_derive_keys(Kex *, u_char *, u_int, const u_char *, u_int);
+void	 kex_derive_keys_bn(Kex *, u_char *, u_int, const BIGNUM *);
 
 Newkeys *kex_get_newkeys(int);
 
@@ -182,14 +183,14 @@ kex_ecdh_hash(int, const EC_GROUP *, char *, char *, char *, int,
 void
 kex_c25519_hash(int, char *, char *, char *, int,
     char *, int, u_char *, int, const u_char *, const u_char *,
-    const BIGNUM *, u_char **, u_int *);
+    const u_char *, u_int, u_char **, u_int *);
 
 #define CURVE25519_SIZE 32
 void	kexc25519_keygen(u_char[CURVE25519_SIZE], u_char[CURVE25519_SIZE])
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
-BIGNUM *kexc25519_shared_key(const u_char[CURVE25519_SIZE],
-    const u_char[CURVE25519_SIZE])
+void kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
+    const u_char pub[CURVE25519_SIZE], Buffer *out)
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
 

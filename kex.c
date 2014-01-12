@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.94 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.95 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -534,7 +534,7 @@ kex_choose_conf(Kex *kex)
 
 static u_char *
 derive_key(Kex *kex, int id, u_int need, u_char *hash, u_int hashlen,
-    BIGNUM *shared_secret)
+    const u_char *shared_secret, u_int slen)
 {
 	Buffer b;
 	struct ssh_digest_ctx *hashctx;
@@ -548,7 +548,7 @@ derive_key(Kex *kex, int id, u_int need, u_char *hash, u_int hashlen,
 	digest = xmalloc(roundup(need, mdsz));
 
 	buffer_init(&b);
-	buffer_put_bignum2(&b, shared_secret);
+	buffer_append(&b, shared_secret, slen);
 
 	/* K1 = HASH(K || H || "A" || session_id) */
 	if ((hashctx = ssh_digest_start(kex->hash_alg)) == NULL)
@@ -591,14 +591,15 @@ Newkeys *current_keys[MODE_MAX];
 
 #define NKEYS	6
 void
-kex_derive_keys(Kex *kex, u_char *hash, u_int hashlen, BIGNUM *shared_secret)
+kex_derive_keys(Kex *kex, u_char *hash, u_int hashlen,
+    const u_char *shared_secret, u_int slen)
 {
 	u_char *keys[NKEYS];
 	u_int i, mode, ctos;
 
 	for (i = 0; i < NKEYS; i++) {
 		keys[i] = derive_key(kex, 'A'+i, kex->we_need, hash, hashlen,
-		    shared_secret);
+		    shared_secret, slen);
 	}
 
 	debug2("kex_derive_keys");
@@ -611,6 +612,18 @@ kex_derive_keys(Kex *kex, u_char *hash, u_int hashlen, BIGNUM *shared_secret)
 		current_keys[mode]->enc.key = keys[ctos ? 2 : 3];
 		current_keys[mode]->mac.key = keys[ctos ? 4 : 5];
 	}
+}
+
+void
+kex_derive_keys_bn(Kex *kex, u_char *hash, u_int hashlen, const BIGNUM *secret)
+{
+	Buffer shared_secret;
+
+	buffer_init(&shared_secret);
+	buffer_put_bignum2(&shared_secret, secret);
+	kex_derive_keys(kex, hash, hashlen,
+	    buffer_ptr(&shared_secret), buffer_len(&shared_secret));
+	buffer_free(&shared_secret);
 }
 
 Newkeys *

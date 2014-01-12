@@ -3,6 +3,14 @@
    - djm@cvs.openbsd.org 2014/01/10 05:59:19
      [sshd_config]
      the /etc/ssh/ssh_host_ed25519_key is loaded by default too
+   - djm@cvs.openbsd.org 2014/01/12 08:13:13
+     [bufaux.c buffer.h kex.c kex.h kexc25519.c kexc25519c.c kexc25519s.c]
+     [kexdhc.c kexdhs.c kexecdhc.c kexecdhs.c kexgexc.c kexgexs.c]
+     avoid use of OpenSSL BIGNUM type and functions for KEX with
+     Curve25519 by adding a buffer_put_bignum2_from_string() that stores
+     a string using the bignum encoding rules. Will make it easier to
+     build a reduced-feature OpenSSH without OpenSSL in the future;
+     ok markus@
 
 20140110
  - (djm) OpenBSD CVS Sync

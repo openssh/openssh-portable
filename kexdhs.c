@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.16 2013/11/02 22:24:24 markus Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.17 2014/01/12 08:13:13 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -154,7 +154,7 @@ kexdh_server(Kex *kex)
 	/* have keys, free DH */
 	DH_free(dh);
 
-	kex_derive_keys(kex, hash, hashlen, shared_secret);
+	kex_derive_keys_bn(kex, hash, hashlen, shared_secret);
 	BN_clear_free(shared_secret);
 	kex_finish(kex);
 }
