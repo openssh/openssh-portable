@@ -1,3 +1,9 @@
+20140112
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/01/10 05:59:19
+     [sshd_config]
+     the /etc/ssh/ssh_host_ed25519_key is loaded by default too
+
 20140110
  - (djm) OpenBSD CVS Sync
    - tedu@cvs.openbsd.org 2014/01/04 17:50:55
