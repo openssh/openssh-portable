@@ -4,6 +4,9 @@
      [sftp-client.c]
      needless and incorrect cast to size_t can break resumption of
      large download; patch from tobias@
+   - djm@cvs.openbsd.org 2014/01/16 07:32:00
+     [version.h]
+     openssh-6.5
 
 20140112
  - (djm) OpenBSD CVS Sync
