@@ -1,4 +1,4 @@
-dnl $Id: aclocal.m4,v 1.9 2013/06/02 21:31:27 tim Exp $
+dnl $Id: aclocal.m4,v 1.10 2014/01/16 22:53:24 dtucker Exp $
 dnl
 dnl OpenSSH-specific autoconf macros
 dnl
@@ -10,7 +10,7 @@ dnl 'check_flag'.
 AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
 	AC_MSG_CHECKING([if $CC supports $1])
 	saved_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $1"
+	CFLAGS="$CFLAGS $WERROR $1"
 	_define_flag="$2"
 	test "x$_define_flag" = "x" && _define_flag="$1"
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
@@ -28,6 +28,23 @@ fi],
 	)
 }])
 
+dnl OSSH_CHECK_CFLAG_LINK(check_flag[, define_flag])
+dnl Check that $LD accepts a flag 'check_flag'. If it is supported append
+dnl 'define_flag' to $LDFLAGS. If 'define_flag' is not specified, then append
+dnl 'check_flag'.
+AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
+	AC_MSG_CHECKING([if $LD supports $1])
+	saved_LDFLAGS="$LDFLAGS"
+	LDFLAGS="$LDFLAGS $WERROR $1"
+	_define_flag="$2"
+	test "x$_define_flag" = "x" && _define_flag="$1"
+	AC_LINK_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
+		[ AC_MSG_RESULT([yes])
+		  LDFLAGS="$saved_LDFLAGS $_define_flag"],
+		[ AC_MSG_RESULT([no])
+		  LDFLAGS="$saved_LDFLAGS" ]
+	)
+}])
 
 dnl OSSH_CHECK_HEADER_FOR_FIELD(field, header, symbol)
 dnl Does AC_EGREP_HEADER on 'header' for the string 'field'

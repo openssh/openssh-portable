@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.547 2013/12/19 00:00:12 dtucker Exp $
+# $Id: configure.ac,v 1.548 2014/01/16 22:53:24 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.547 $)
+AC_REVISION($Revision: 1.548 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -121,18 +121,35 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <linux/prctl.h>
 ])
 use_stack_protector=1
+use_toolchain_hardening=1
 AC_ARG_WITH([stackprotect],
     [  --without-stackprotect  Don't use compiler's stack protection], [
     if test "x$withval" = "xno"; then
 	use_stack_protector=0
     fi ])
+AC_ARG_WITH([hardening],
+    [  --without-hardening     Don't use toolchain hardening flags], [
+    if test "x$withval" = "xno"; then
+	use_stack_protector=0
+	use_toolchain_hardening=0
+    fi ])
 
+# We use -Werror for the tests only so that we catch warnings like "this is
+# on by default" for things like -fPIE.
+AC_MSG_CHECKING([if $CC supports -Werror])
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Werror"
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
+	[ AC_MSG_RESULT([yes])
+	  WERROR="-Werror"],
+	[ AC_MSG_RESULT([no])
+	  WERROR="" ]
+)
+CFLAGS="$saved_CFLAGS"
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
-	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments -Werror],
-	    [-Qunused-arguments])
-	OSSH_CHECK_CFLAG_COMPILE([-Wunknown-warning-option -Werror],
-	    [-Wno-unknown-warning-option])
+	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments])
+	OSSH_CHECK_CFLAG_COMPILE([-Wunknown-warning-option])
 	OSSH_CHECK_CFLAG_COMPILE([-Wall])
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
 	OSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
@@ -143,6 +160,14 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
+    if test "x$use_toolchain_hardening" = "x1"; then
+	OSSH_CHECK_CFLAG_COMPILE([-ftrapv])
+	OSSH_CHECK_CFLAG_COMPILE([-fPIE])
+	OSSH_CHECK_LDFLAG_LINK([-pie])
+	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
+	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
+	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,noexecstack])
+    fi
 	AC_MSG_CHECKING([gcc version])
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
 	case $GCC_VER in
@@ -169,7 +194,8 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	# and/or platforms, so we test if we can.  If it's not supported
 	# on a given platform gcc will emit a warning so we use -Werror.
 	if test "x$use_stack_protector" = "x1"; then
-	    for t in -fstack-protector-all -fstack-protector; do
+	    for t in -fstack-protector-strong -fstack-protector-all \
+		    -fstack-protector; do
 		AC_MSG_CHECKING([if $CC supports $t])
 		saved_CFLAGS="$CFLAGS"
 		saved_LDFLAGS="$LDFLAGS"

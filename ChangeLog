@@ -1,3 +1,9 @@
+20140117
+ - (dtucker) [aclocal.m4 configure.ac] Add some additional compiler/toolchain
+   hardening flags including -fstack-protector-strong.  These default to on
+   if the toolchain supports them, but there is a configure-time knob
+   (--without-hardening) to disable them if necessary.  ok djm@
+
 20140118
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/01/16 07:31:09
