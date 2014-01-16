@@ -9,6 +9,7 @@
      openssh-6.5
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank RPM spec version numbers.
+ - (djm) [README] update release notes URL.
 
 20140112
  - (djm) OpenBSD CVS Sync
