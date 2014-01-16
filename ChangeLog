@@ -1,3 +1,10 @@
+20140118
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/01/16 07:31:09
+     [sftp-client.c]
+     needless and incorrect cast to size_t can break resumption of
+     large download; patch from tobias@
+
 20140112
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/01/10 05:59:19
