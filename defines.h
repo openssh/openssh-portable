@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.175 2014/01/17 03:20:05 dtucker Exp $ */
+/* $Id: defines.h,v 1.176 2014/01/17 13:12:38 dtucker Exp $ */
 
 
 /* Constants */
@@ -249,13 +249,6 @@ typedef unsigned long  u_int32_t;
 #define __BIT_TYPES_DEFINED__
 #endif
 
-#ifndef HAVE_UINTXX_T
-typedef u_int8_t uint8_t;
-typedef u_int16_t uint16_t;
-typedef u_int32_t uint32_t;
-typedef u_int64_t uint64_t;
-#endif
-
 /* 64-bit types */
 #ifndef HAVE_INT64_T
 # if (SIZEOF_LONG_INT == 8)
@@ -274,6 +267,13 @@ typedef unsigned long int u_int64_t;
 typedef unsigned long long int u_int64_t;
 #  endif
 # endif
+#endif
+
+#ifndef HAVE_UINTXX_T
+typedef u_int8_t uint8_t;
+typedef u_int16_t uint16_t;
+typedef u_int32_t uint32_t;
+typedef u_int64_t uint64_t;
 #endif
 
 #ifndef HAVE_INTMAX_T

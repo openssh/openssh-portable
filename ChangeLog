@@ -43,6 +43,9 @@
    stack-protector since that has a separate flag that's been around a while.
  - (dtucker) [readconf.c] Wrap paths.h inside an ifdef.  Allows building on
    Solaris.
+ - (dtucker) [defines.h] Move our definitions of uintXX_t types down to after
+   they're defined if we have to define them ourselves.  Fixes builds on old
+   AIX.
 
 20140118
  - (djm) OpenBSD CVS Sync
