@@ -8,7 +8,9 @@
 #ifndef crypto_api_h
 #define crypto_api_h
 
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 #include <stdlib.h>
 
 typedef int32_t crypto_int32;
