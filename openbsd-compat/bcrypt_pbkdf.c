@@ -22,7 +22,9 @@
 #include <sys/types.h>
 #include <sys/param.h>
 
-#include <stdlib.h>
+#ifdef HAVE_STDLIB_H
+# include <stdlib.h>
+#endif
 #include <string.h>
 
 #ifdef HAVE_BLF_H
