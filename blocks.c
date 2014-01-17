@@ -5,6 +5,8 @@
  * Copied from nacl-20110221/crypto_hashblocks/sha512/ref/blocks.c
  */
 
+#include "includes.h"
+
 #include "crypto_api.h"
 
 typedef unsigned long long uint64;

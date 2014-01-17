@@ -8,6 +8,8 @@ D. J. Bernstein
 Public domain.
 */
 
+#include "includes.h"
+
 #include "crypto_api.h"
 
 #define blocks crypto_hashblocks_sha512

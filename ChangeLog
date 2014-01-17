@@ -8,6 +8,8 @@
     specification to prevent warnings.
  - (dtucker) [crypto_api.h] Wrap stdlib.h include inside #ifdef HAVE_STDINT_H.
  - (dtucker) [poly1305.c] Wrap stdlib.h include inside #ifdef HAVE_STDINT_H.
+ - (dtucker) [blocks.c fe25519.c ge25519.c hash.c sc25519.c verify.c] Include
+   includes.h to pull in all of the compatibility stuff.
 
 20140118
  - (djm) OpenBSD CVS Sync

@@ -6,6 +6,8 @@
  * Copied from supercop-20130419/crypto_sign/ed25519/ref/fe25519.c
  */
 
+#include "includes.h"
+
 #define WINDOWSIZE 1 /* Should be 1,2, or 4 */
 #define WINDOWMASK ((1<<WINDOWSIZE)-1)
 

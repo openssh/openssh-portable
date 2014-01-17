@@ -5,6 +5,8 @@
  * Copied from nacl-20110221/crypto_verify/32/ref/verify.c
  */
 
+#include "includes.h"
+
 #include "crypto_api.h"
 
 int crypto_verify_32(const unsigned char *x,const unsigned char *y)
