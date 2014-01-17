@@ -36,6 +36,8 @@
    openbsd-compat/bsd-statvfs.h] Implement enough of statvfs on top of statfs
    to be useful (and for the regression tests to pass) on platforms that
    have statfs and fstatfs.  ok djm@
+ - (dtucker) [openbsd-compat/bsd-statvfs.h] Only start including headers if we
+   need them to cut down on the name collisions.
 
 20140118
  - (djm) OpenBSD CVS Sync
