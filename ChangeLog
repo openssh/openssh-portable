@@ -16,6 +16,10 @@
    don't have them.
  - (dtucker) [configure.ac] Split AC_CHECK_FUNCS for OpenSSL functions into
    separate lines and alphabetize for easier diffing of changes.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/01/17 00:21:06
+     [sftp-client.c]
+     signed/unsigned comparison warning fix; from portable (Id sync only)
 
 20140118
  - (djm) OpenBSD CVS Sync
