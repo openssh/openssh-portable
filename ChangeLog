@@ -7,6 +7,7 @@
  - (dtucker) [loginrec.c] Cast to the types specfied in the format
     specification to prevent warnings.
  - (dtucker) [crypto_api.h] Wrap stdlib.h include inside #ifdef HAVE_STDINT_H.
+ - (dtucker) [poly1305.c] Wrap stdlib.h include inside #ifdef HAVE_STDINT_H.
 
 20140118
  - (djm) OpenBSD CVS Sync

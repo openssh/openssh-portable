@@ -8,7 +8,9 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 #include "poly1305.h"
 
