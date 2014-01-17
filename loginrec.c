@@ -313,7 +313,8 @@ login_get_lastlog(struct logininfo *li, const uid_t uid)
 	if (strlcpy(li->username, pw->pw_name, sizeof(li->username)) >=
 	    sizeof(li->username)) {
 		error("%s: username too long (%lu > max %lu)", __func__,
-		    strlen(pw->pw_name), sizeof(li->username) - 1);
+		    (unsigned long)strlen(pw->pw_name),
+		    (unsigned long)sizeof(li->username) - 1);
 		return NULL;
 	}
 
