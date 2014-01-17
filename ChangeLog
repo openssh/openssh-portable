@@ -23,6 +23,11 @@
    - dtucker@cvs.openbsd.org 2014/01/17 05:26:41
      [digest.c]
      remove unused includes.  ok djm@
+ - (djm) [Makefile.in configure.ac sandbox-capsicum.c sandbox-darwin.c]
+   [sandbox-null.c sandbox-rlimit.c sandbox-seccomp-filter.c]
+   [sandbox-systrace.c ssh-sandbox.h sshd.c] Support preauth sandboxing
+   using the Capsicum API introduced in FreeBSD 10. Patch by Dag-Erling
+   Smorgrav, updated by Loganaden Velvindron @ AfriNIC; ok dtucker@
 
 20140118
  - (djm) OpenBSD CVS Sync

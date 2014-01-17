@@ -660,7 +660,7 @@ privsep_preauth(Authctxt *authctxt)
 	pmonitor->m_pkex = &xxx_kex;
 
 	if (use_privsep == PRIVSEP_ON)
-		box = ssh_sandbox_init();
+		box = ssh_sandbox_init(pmonitor);
 	pid = fork();
 	if (pid == -1) {
 		fatal("fork of unprivileged child failed");

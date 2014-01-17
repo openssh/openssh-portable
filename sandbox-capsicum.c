@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
+ * Copyright (c) 2011 Dag-Erling Smorgrav
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,11 +16,13 @@
 
 #include "includes.h"
 
-#ifdef SANDBOX_DARWIN
+#ifdef SANDBOX_CAPSICUM
 
 #include <sys/types.h>
-
-#include <sandbox.h>
+#include <sys/param.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/capability.h>
 
 #include <errno.h>
 #include <stdarg.h>
@@ -30,12 +32,18 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "sandbox.h"
+#include "monitor.h"
+#include "ssh-sandbox.h"
 #include "xmalloc.h"
 
-/* Darwin/OS X sandbox */
+/*
+ * Capsicum sandbox that sets zero nfiles, nprocs and filesize rlimits,
+ * limits rights on stdout, stdin, stderr, monitor and switches to
+ * capability mode.
+ */
 
 struct ssh_sandbox {
+	struct monitor *monitor;
 	pid_t child_pid;
 };
 
@@ -48,8 +56,9 @@ ssh_sandbox_init(struct monitor *monitor)
 	 * Strictly, we don't need to maintain any state here but we need
 	 * to return non-NULL to satisfy the API.
 	 */
-	debug3("%s: preparing Darwin sandbox", __func__);
+	debug3("%s: preparing capsicum sandbox", __func__);
 	box = xcalloc(1, sizeof(*box));
+	box->monitor = monitor;
 	box->child_pid = 0;
 
 	return box;
@@ -58,19 +67,11 @@ ssh_sandbox_init(struct monitor *monitor)
 void
 ssh_sandbox_child(struct ssh_sandbox *box)
 {
-	char *errmsg;
 	struct rlimit rl_zero;
+	cap_rights_t rights;
 
-	debug3("%s: starting Darwin sandbox", __func__);
-	if (sandbox_init(kSBXProfilePureComputation, SANDBOX_NAMED,
-	    &errmsg) == -1)
-		fatal("%s: sandbox_init: %s", __func__, errmsg);
-
-	/*
-	 * The kSBXProfilePureComputation still allows sockets, so
-	 * we must disable these using rlimit.
-	 */
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+
 	if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
 		fatal("%s: setrlimit(RLIMIT_FSIZE, { 0, 0 }): %s",
 			__func__, strerror(errno));
@@ -80,6 +81,25 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		fatal("%s: setrlimit(RLIMIT_NPROC, { 0, 0 }): %s",
 			__func__, strerror(errno));
+
+	cap_rights_init(&rights);
+
+	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && errno != ENOSYS)
+		fatal("can't limit stdin: %m");
+	if (cap_rights_limit(STDOUT_FILENO, &rights) < 0 && errno != ENOSYS)
+		fatal("can't limit stdin: %m");
+	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && errno != ENOSYS)
+		fatal("can't limit stdin: %m");
+
+	cap_rights_init(&rights, CAP_READ, CAP_WRITE);
+	if (cap_rights_limit(box->monitor->m_recvfd, &rights) == -1)
+		fatal("%s: failed to limit the network socket", __func__);
+	cap_rights_init(&rights, CAP_WRITE);
+	if (cap_rights_limit(box->monitor->m_log_sendfd, &rights) == -1)
+		fatal("%s: failed to limit the logging socket", __func__);
+	if (cap_enter() != 0 && errno != ENOSYS)
+		fatal("%s: failed to enter capability mode", __func__);
+
 }
 
 void
@@ -95,4 +115,4 @@ ssh_sandbox_parent_preauth(struct ssh_sandbox *box, pid_t child_pid)
 	box->child_pid = child_pid;
 }
 
-#endif /* SANDBOX_DARWIN */
+#endif /* SANDBOX_CAPSICUM */

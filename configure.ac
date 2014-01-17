@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.549 2014/01/17 04:12:16 dtucker Exp $
+# $Id: configure.ac,v 1.550 2014/01/17 05:47:04 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.549 $)
+AC_REVISION($Revision: 1.550 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -120,6 +120,10 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <sys/types.h>
 	#include <linux/prctl.h>
 ])
+AC_CHECK_DECL([cap_enter], [have_cap_enter=1], , [
+	#include <sys/capability.h>
+])
+
 use_stack_protector=1
 use_toolchain_hardening=1
 AC_ARG_WITH([stackprotect],
@@ -2835,7 +2839,7 @@ fi
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
-	[  --with-sandbox=style    Specify privilege separation sandbox (no, darwin, rlimit, systrace, seccomp_filter)],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, darwin, rlimit, systrace, seccomp_filter, capsicum)],
 	[
 		if test "x$withval" = "xyes" ; then
 			sandbox_arg=""
@@ -2974,6 +2978,13 @@ elif test "x$sandbox_arg" = "xrlimit" || \
 		AC_MSG_ERROR([rlimit sandbox requires select to work with rlimit])
 	SANDBOX_STYLE="rlimit"
 	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
+elif test "x$sandbox_arg" = "xcapsicum" || \
+     ( test -z "$sandbox_arg" && \
+       test "x$have_cap_enter" = "x1") ; then
+       test "x$have_cap_enter" != "x1" && \
+		AC_MSG_ERROR([capsicum sandbox requires cap_enter function])
+       SANDBOX_STYLE="capsicum"
+       AC_DEFINE([SANDBOX_CAPSICUM], [1], [Sandbox using capsicum])
 elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
      test "x$sandbox_arg" = "xnone" || test "x$sandbox_arg" = "xnull" ; then
 	SANDBOX_STYLE="none"
