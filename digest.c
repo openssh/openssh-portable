@@ -24,6 +24,8 @@
 
 #include <openssl/evp.h>
 
+#include "openbsd-compat/openssl-compat.h"
+
 #include "buffer.h"
 #include "digest.h"
 

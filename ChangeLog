@@ -28,6 +28,9 @@
    [sandbox-systrace.c ssh-sandbox.h sshd.c] Support preauth sandboxing
    using the Capsicum API introduced in FreeBSD 10. Patch by Dag-Erling
    Smorgrav, updated by Loganaden Velvindron @ AfriNIC; ok dtucker@
+ - (dtucker) [configure.ac digest.c openbsd-compat/openssl-compat.c
+   openbsd-compat/openssl-compat.h]  Add compatibility layer for older
+   openssl versions.  ok djm@
 
 20140118
  - (djm) OpenBSD CVS Sync

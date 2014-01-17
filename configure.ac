@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.550 2014/01/17 05:47:04 djm Exp $
+# $Id: configure.ac,v 1.551 2014/01/17 06:32:30 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.550 $)
+AC_REVISION($Revision: 1.551 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2357,6 +2357,10 @@ AC_LINK_IFELSE(
 AC_CHECK_FUNCS([ \
 	BN_is_prime_ex \
 	DSA_generate_parameters_ex \
+	EVP_DigestInit_ex \
+	EVP_DigestFinal_ex \
+	EVP_MD_CTX_init \
+	EVP_MD_CTX_cleanup \
 	HMAC_CTX_init \
 	RSA_generate_key_ex \
 	RSA_get_default_method \
