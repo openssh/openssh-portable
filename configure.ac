@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.548 2014/01/16 22:53:24 dtucker Exp $
+# $Id: configure.ac,v 1.549 2014/01/17 04:12:16 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.548 $)
+AC_REVISION($Revision: 1.549 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2350,7 +2350,13 @@ AC_LINK_IFELSE(
 	]
 )
 
-AC_CHECK_FUNCS([RSA_generate_key_ex DSA_generate_parameters_ex BN_is_prime_ex RSA_get_default_method HMAC_CTX_init])
+AC_CHECK_FUNCS([ \
+	BN_is_prime_ex \
+	DSA_generate_parameters_ex \
+	HMAC_CTX_init \
+	RSA_generate_key_ex \
+	RSA_get_default_method \
+])
 
 AC_ARG_WITH([ssl-engine],
 	[  --with-ssl-engine       Enable OpenSSL (hardware) ENGINE support ],

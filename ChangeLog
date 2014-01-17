@@ -14,6 +14,8 @@
    #ifdef HAVE_STDINT_H.
  - (dtucker) [defines.h] Add typedefs for uintXX_t types for platforms that
    don't have them.
+ - (dtucker) [configure.ac] Split AC_CHECK_FUNCS for OpenSSL functions into
+   separate lines and alphabetize for easier diffing of changes.
 
 20140118
  - (djm) OpenBSD CVS Sync
