@@ -41,6 +41,8 @@
  - (dtucker) [configure.ac] Also look in inttypes.h for uintXX_t types.
  - (dtucker) [configure.ac] Have --without-hardening not turn off
    stack-protector since that has a separate flag that's been around a while.
+ - (dtucker) [readconf.c] Wrap paths.h inside an ifdef.  Allows building on
+   Solaris.
 
 20140118
  - (djm) OpenBSD CVS Sync
