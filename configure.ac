@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.552 2014/01/17 07:10:58 dtucker Exp $
+# $Id: configure.ac,v 1.553 2014/01/17 08:17:35 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.552 $)
+AC_REVISION($Revision: 1.553 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -340,6 +340,7 @@ AC_CHECK_HEADERS([ \
 	glob.h \
 	ia.h \
 	iaf.h \
+	inttypes.h \
 	limits.h \
 	locale.h \
 	login.h \
@@ -3236,6 +3237,17 @@ fi
 if test -z "$have_uintxx_t" ; then
     AC_MSG_CHECKING([for uintXX_t types in stdint.h])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <stdint.h> ]],
+	[[ uint8_t a; uint16_t b; uint32_t c; a = b = c = 1;]])],
+		[
+			AC_DEFINE([HAVE_UINTXX_T])
+			AC_MSG_RESULT([yes])
+		], [ AC_MSG_RESULT([no]) 
+	])
+fi
+
+if test -z "$have_uintxx_t" ; then
+    AC_MSG_CHECKING([for uintXX_t types in inttypes.h])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <inttypes.h> ]],
 	[[ uint8_t a; uint16_t b; uint32_t c; a = b = c = 1;]])],
 		[
 			AC_DEFINE([HAVE_UINTXX_T])

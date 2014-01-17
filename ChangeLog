@@ -38,6 +38,7 @@
    have statfs and fstatfs.  ok djm@
  - (dtucker) [openbsd-compat/bsd-statvfs.h] Only start including headers if we
    need them to cut down on the name collisions.
+ - (dtucker) [configure.ac] Also look in inttypes.h for uintXX_t types.
 
 20140118
  - (djm) OpenBSD CVS Sync
