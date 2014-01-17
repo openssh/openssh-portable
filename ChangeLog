@@ -20,6 +20,9 @@
    - djm@cvs.openbsd.org 2014/01/17 00:21:06
      [sftp-client.c]
      signed/unsigned comparison warning fix; from portable (Id sync only)
+   - dtucker@cvs.openbsd.org 2014/01/17 05:26:41
+     [digest.c]
+     remove unused includes.  ok djm@
 
 20140118
  - (djm) OpenBSD CVS Sync

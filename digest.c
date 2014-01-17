@@ -1,4 +1,4 @@
-/* $OpenBSD: digest.c,v 1.1 2014/01/09 23:20:00 djm Exp $ */
+/* $OpenBSD: digest.c,v 1.2 2014/01/17 05:26:41 dtucker Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -22,8 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <openssl/bn.h> /* for buffer.h */
-#include <openssl/ec.h> /* for buffer.h */
 #include <openssl/evp.h>
 
 #include "buffer.h"
