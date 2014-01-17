@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.15 2014/01/17 06:32:31 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.16 2014/01/17 07:00:41 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -74,7 +74,7 @@ EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *md, void *engine)
 }
 #endif
 
-#ifndef HAVE_EVP_DISESTFINAL_EX
+#ifndef HAVE_EVP_DIGESTFINAL_EX
 int
 EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s)
 {

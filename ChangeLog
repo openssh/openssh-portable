@@ -31,6 +31,7 @@
  - (dtucker) [configure.ac digest.c openbsd-compat/openssl-compat.c
    openbsd-compat/openssl-compat.h]  Add compatibility layer for older
    openssl versions.  ok djm@
+ - (dtucker) Fix typo in #ifndef.
 
 20140118
  - (djm) OpenBSD CVS Sync
