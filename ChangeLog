@@ -12,6 +12,8 @@
    includes.h to pull in all of the compatibility stuff.
  - (dtucker) [openbsd-compat/bcrypt_pbkdf.c] Wrap stdlib.h include inside
    #ifdef HAVE_STDINT_H.
+ - (dtucker) [defines.h] Add typedefs for uintXX_t types for platforms that
+   don't have them.
 
 20140118
  - (djm) OpenBSD CVS Sync
