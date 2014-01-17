@@ -1104,7 +1104,11 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			    local_path, strerror(errno));
 			goto fail;
 		}
-		if (st.st_size > size) {
+		if (st.st_size < 0) {
+			error("\"%s\" has negative size", local_path);
+			goto fail;
+		}
+		if ((u_int64_t)st.st_size > size) {
 			error("Unable to resume download of \"%s\": "
 			    "local file is larger than remote", local_path);
  fail:

@@ -3,6 +3,7 @@
    hardening flags including -fstack-protector-strong.  These default to on
    if the toolchain supports them, but there is a configure-time knob
    (--without-hardening) to disable them if necessary.  ok djm@
+ - (djm) [sftp-client.c] signed/unsigned comparison fix
 
 20140118
  - (djm) OpenBSD CVS Sync
