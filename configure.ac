@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.553 2014/01/17 08:17:35 dtucker Exp $
+# $Id: configure.ac,v 1.554 2014/01/17 10:54:32 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.553 $)
+AC_REVISION($Revision: 1.554 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -134,7 +134,6 @@ AC_ARG_WITH([stackprotect],
 AC_ARG_WITH([hardening],
     [  --without-hardening     Don't use toolchain hardening flags], [
     if test "x$withval" = "xno"; then
-	use_stack_protector=0
 	use_toolchain_hardening=0
     fi ])
 

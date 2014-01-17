@@ -39,6 +39,8 @@
  - (dtucker) [openbsd-compat/bsd-statvfs.h] Only start including headers if we
    need them to cut down on the name collisions.
  - (dtucker) [configure.ac] Also look in inttypes.h for uintXX_t types.
+ - (dtucker) [configure.ac] Have --without-hardening not turn off
+   stack-protector since that has a separate flag that's been around a while.
 
 20140118
  - (djm) OpenBSD CVS Sync
