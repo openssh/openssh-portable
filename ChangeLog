@@ -5,6 +5,15 @@
    declarations that stopped being included when we stopped including
    <windows.h> from openbsd-compat/bsd-cygwin_util.h.  Patch from vinschen at
    redhat.com.
+ - (dtucker) [configure.ac] On Cygwin the getopt variables (like optargs,
+   optind) are defined in getopt.h already.  Unfortunately they are defined as
+   "declspec(dllimport)" for historical reasons, because the GNU linker didn't
+   allow auto-import on PE/COFF targets way back when.  The problem is the
+   dllexport attributes collide with the definitions in the various source
+   files in OpenSSH, which obviousy define the variables without
+   declspec(dllimport).  The least intrusive way to get rid of these warnings
+   is to disable warnings for GCC compiler attributes when building on Cygwin.
+   Patch from vinschen at redhat.com.
 
 20140117
  - (dtucker) [aclocal.m4 configure.ac] Add some additional compiler/toolchain

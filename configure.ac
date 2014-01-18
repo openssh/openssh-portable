@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.554 2014/01/17 10:54:32 dtucker Exp $
+# $Id: configure.ac,v 1.555 2014/01/18 10:12:43 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.554 $)
+AC_REVISION($Revision: 1.555 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -544,7 +544,10 @@ case "$host" in
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
 	AC_DEFINE([SSH_IOBUFSZ], [65535], [Windows is sensitive to read buffer size])
-	AC_DEFINE([FILESYSTEM_NO_BACKSLASH], [1], [File names may not contain backslash characters]) 
+	AC_DEFINE([FILESYSTEM_NO_BACKSLASH], [1], [File names may not contain backslash characters])
+	# Cygwin defines optargs, optargs as declspec(dllimport) for historical
+	# reasons which cause compile warnings, so we disable those warnings.
+	OSSH_CHECK_CFLAG_COMPILE([-Wno-attributes])
 	;;
 *-*-dgux*)
 	AC_DEFINE([IP_TOS_IS_BROKEN], [1],
