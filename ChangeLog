@@ -14,6 +14,9 @@
    declspec(dllimport).  The least intrusive way to get rid of these warnings
    is to disable warnings for GCC compiler attributes when building on Cygwin.
    Patch from vinschen at redhat.com.
+ - (dtucker) [sandbox-capsicum.c] Correct some error messages and make the
+   return value check for cap_enter() consistent with the other uses in
+   FreeBSD.  From by Loganaden Velvindron @ AfriNIC via bz#2140.
 
 20140117
  - (dtucker) [aclocal.m4 configure.ac] Add some additional compiler/toolchain

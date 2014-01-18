@@ -87,9 +87,9 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 	if (cap_rights_limit(STDIN_FILENO, &rights) < 0 && errno != ENOSYS)
 		fatal("can't limit stdin: %m");
 	if (cap_rights_limit(STDOUT_FILENO, &rights) < 0 && errno != ENOSYS)
-		fatal("can't limit stdin: %m");
+		fatal("can't limit stdout: %m");
 	if (cap_rights_limit(STDERR_FILENO, &rights) < 0 && errno != ENOSYS)
-		fatal("can't limit stdin: %m");
+		fatal("can't limit stderr: %m");
 
 	cap_rights_init(&rights, CAP_READ, CAP_WRITE);
 	if (cap_rights_limit(box->monitor->m_recvfd, &rights) == -1)
@@ -97,7 +97,7 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 	cap_rights_init(&rights, CAP_WRITE);
 	if (cap_rights_limit(box->monitor->m_log_sendfd, &rights) == -1)
 		fatal("%s: failed to limit the logging socket", __func__);
-	if (cap_enter() != 0 && errno != ENOSYS)
+	if (cap_enter() < 0 && errno != ENOSYS)
 		fatal("%s: failed to enter capability mode", __func__);
 
 }
