@@ -134,7 +134,9 @@ temporarily_use_uid(struct passwd *pw)
 void
 permanently_drop_suid(uid_t uid)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
+#endif
 
 	debug("permanently_drop_suid: %u", (u_int)uid);
 	if (setresuid(uid, uid, uid) < 0)
@@ -197,8 +199,10 @@ restore_uid(void)
 void
 permanently_set_uid(struct passwd *pw)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
 	gid_t old_gid = getgid();
+#endif
 
 	if (pw == NULL)
 		fatal("permanently_set_uid: no user given");

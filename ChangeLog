@@ -1,3 +1,7 @@
+20140118
+ - (dtucker) [uidswap.c] Prevent unused variable warnings on Cygwin.  Patch
+   from vinschen at redhat.com
+
 20140117
  - (dtucker) [aclocal.m4 configure.ac] Add some additional compiler/toolchain
    hardening flags including -fstack-protector-strong.  These default to on
