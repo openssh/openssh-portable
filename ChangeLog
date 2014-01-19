@@ -3,6 +3,10 @@
    - dtucker@cvs.openbsd.org 2014/01/17 06:23:24
      [sftp-server.c]
      fix log message statvfs.  ok djm
+   - dtucker@cvs.openbsd.org 2014/01/18 09:36:26
+     [session.c]
+     explicitly define USE_PIPES to 1 to prevent redefinition warnings in
+     portable on platforms that use pipes for everything.
 
 20140118
  - (dtucker) [uidswap.c] Prevent unused variable warnings on Cygwin.  Patch

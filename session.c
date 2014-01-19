@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.268 2013/10/29 09:48:02 djm Exp $ */
+/* $OpenBSD: session.c,v 1.269 2014/01/18 09:36:26 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -441,7 +441,7 @@ do_authenticated1(Authctxt *authctxt)
 	}
 }
 
-#define USE_PIPES
+#define USE_PIPES 1
 /*
  * This is called to fork and execute a command when we have no tty.  This
  * will call do_child from the child, and server_loop from the parent after
