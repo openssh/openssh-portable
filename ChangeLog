@@ -6,7 +6,13 @@
    - dtucker@cvs.openbsd.org 2014/01/18 09:36:26
      [session.c]
      explicitly define USE_PIPES to 1 to prevent redefinition warnings in
-     portable on platforms that use pipes for everything.
+     portable on platforms that use pipes for everything.  From vinschen at
+     redhat.
+   - dtucker@cvs.openbsd.org 2014/01/19 04:17:29
+     [canohost.c addrmatch.c]
+     Cast socklen_t when comparing to size_t and use socklen_t to iterate over
+     the ip options, both to prevent signed/unsigned comparison warnings.
+     Patch from vinschen at redhat via portable openssh, begrudging ok deraadt.
 
 20140118
  - (dtucker) [uidswap.c] Prevent unused variable warnings on Cygwin.  Patch
