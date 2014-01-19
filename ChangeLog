@@ -16,6 +16,10 @@
    - djm@cvs.openbsd.org 2014/01/19 04:48:08
      [ssh_config.5]
      fix inverted meaning of 'no' and 'yes' for CanonicalizeFallbackLocal
+   - dtucker@cvs.openbsd.org 2014/01/19 11:21:51
+     [addrmatch.c]
+     Cast the sizeof to socklen_t so it'll work even if the supplied len is
+     negative.  Suggested by and ok djm, ok deraadt.
 
 20140118
  - (dtucker) [uidswap.c] Prevent unused variable warnings on Cygwin.  Patch
