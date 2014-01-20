@@ -2,6 +2,8 @@
  - (dtucker) [gss-serv-krb5.c] Fall back to krb5_cc_gen_new if the Kerberos
    implementation does not have krb5_cc_new_unique, similar to what we do
    in auth-krb5.c.
+ - (djm) [regress/cert-hostkey.sh] Fix regress failure on platforms that
+   skip one or more key types (e.g. RHEL/CentOS 6.5); ok dtucker@
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/01/20 00:08:48
      [digest.c]

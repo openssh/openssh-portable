@@ -72,32 +72,10 @@ done
 	printf '@cert-authority '
 	printf "$HOSTS "
 	cat $OBJ/host_ca_key.pub
-	printf '@revoked '
-	printf "* "
-	cat $OBJ/cert_host_key_rsa.pub
-	if test "x$TEST_SSH_ECC" = "xyes"; then
-		printf '@revoked '
-		printf "* "
-		cat $OBJ/cert_host_key_ecdsa-sha2-nistp256.pub
-		printf '@revoked '
-		printf "* "
-		cat $OBJ/cert_host_key_ecdsa-sha2-nistp384.pub
-		printf '@revoked '
-		printf "* "
-		cat $OBJ/cert_host_key_ecdsa-sha2-nistp521.pub
-	fi
-	printf '@revoked '
-	printf "* "
-	cat $OBJ/cert_host_key_ed25519.pub
-	printf '@revoked '
-	printf "* "
-	cat $OBJ/cert_host_key_dsa.pub
-	printf '@revoked '
-	printf "* "
-	cat $OBJ/cert_host_key_rsa_v00.pub
-	printf '@revoked '
-	printf "* "
-	cat $OBJ/cert_host_key_dsa_v00.pub
+	for ktype in $PLAIN_TYPES rsa_v00 dsa_v00; do
+		test -f "$OBJ/cert_host_key_${ktype}.pub" || fatal "no pubkey"
+		printf "@revoked * `cat $OBJ/cert_host_key_${ktype}.pub`\n"
+	done
 ) > $OBJ/known_hosts-cert
 for privsep in yes no ; do
 	for ktype in $PLAIN_TYPES rsa_v00 dsa_v00; do 
