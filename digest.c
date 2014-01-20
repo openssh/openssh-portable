@@ -1,4 +1,4 @@
-/* $OpenBSD: digest.c,v 1.2 2014/01/17 05:26:41 dtucker Exp $ */
+/* $OpenBSD: digest.c,v 1.3 2014/01/20 00:08:48 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -125,6 +125,7 @@ ssh_digest_free(struct ssh_digest_ctx *ctx)
 {
 	EVP_MD_CTX_cleanup(&ctx->mdctx);
 	memset(ctx, 0, sizeof(*ctx));
+	free(ctx);
 }
 
 int
