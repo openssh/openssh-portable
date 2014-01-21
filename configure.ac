@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.555 2014/01/18 10:12:43 dtucker Exp $
+# $Id: configure.ac,v 1.556 2014/01/21 01:48:52 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.555 $)
+AC_REVISION($Revision: 1.556 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -165,8 +165,6 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
     if test "x$use_toolchain_hardening" = "x1"; then
 	OSSH_CHECK_CFLAG_COMPILE([-ftrapv])
-	OSSH_CHECK_CFLAG_COMPILE([-fPIE])
-	OSSH_CHECK_LDFLAG_LINK([-pie])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,noexecstack])
@@ -557,6 +555,7 @@ case "$host" in
 	AC_DEFINE([BROKEN_SETREGID])
 	;;
 *-*-darwin*)
+	use_pie=1
 	AC_MSG_CHECKING([if we have working getaddrinfo])
 	AC_RUN_IFELSE([AC_LANG_SOURCE([[ #include <mach-o/dyld.h>
 main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
@@ -695,6 +694,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
+	use_pie=1
 	check_for_libcrypt_later=1
 	check_for_openpty_ctty_bug=1
 	AC_DEFINE([PAM_TTY_KLUDGE], [1],
@@ -791,6 +791,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([BROKEN_SAVED_UIDS], [1], [Needed for NeXT])
 	;;
 *-*-openbsd*)
+	use_pie=1
 	AC_DEFINE([HAVE_ATTRIBUTE__SENTINEL__], [1], [OpenBSD's gcc has sentinel])
 	AC_DEFINE([HAVE_ATTRIBUTE__BOUNDED__], [1], [OpenBSD's gcc has bounded])
 	AC_DEFINE([SSH_TUN_OPENBSD], [1], [Open tunnel devices the OpenBSD way])
@@ -1561,6 +1562,22 @@ AC_ARG_WITH([audit],
 		;;
 	esac ]
 )
+
+AC_ARG_WITH([pie],
+    [  --with-pie           Build Position Independent Executables if possible], [
+	if test "x$withval" = "xno"; then
+		use_pie=0
+	fi
+	if test "x$withval" = "xyes"; then
+		use_pie=1
+	fi
+    ]
+)
+
+if test "x$use_toolchain_hardening" = "x1" && test "x$use_pie" = "x1"; then
+	OSSH_CHECK_CFLAG_COMPILE([-fPIE])
+	OSSH_CHECK_LDFLAG_LINK([-pie])
+fi
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \
