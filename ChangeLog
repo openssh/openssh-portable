@@ -5,6 +5,8 @@
    -ftrapv (it seems to work but fails when trying to link ssh).  ok djm@
  - (dtucker) [aclocal.m4] Differentiate between compile-time and link-time
    tests in the configure output.  ok djm.
+ - (tim) [platform.c session.c] Fix bug affecting SVR5 platforms introduced
+   with sftp chroot support. Move set_id call after chroot.
 
 20140120
  - (dtucker) [gss-serv-krb5.c] Fall back to krb5_cc_gen_new if the Kerberos

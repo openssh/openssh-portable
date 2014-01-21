@@ -1552,6 +1552,11 @@ do_setusercontext(struct passwd *pw)
 		 */
 		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUMASK);
 #else
+# ifdef USE_LIBIAF
+	if (set_id(pw->pw_name) != 0) {
+		exit(1);
+	}
+# endif /* USE_LIBIAF */
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
 #endif
