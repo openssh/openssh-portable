@@ -3,6 +3,8 @@
    to on platforms where it's known to be reliably detected and off elsewhere.
    Works around platforms such as FreeBSD 9.1 where it does not interop with
    -ftrapv (it seems to work but fails when trying to link ssh).  ok djm@
+ - (dtucker) [aclocal.m4] Differentiate between compile-time and link-time
+   tests in the configure output.  ok djm.
 
 20140120
  - (dtucker) [gss-serv-krb5.c] Fall back to krb5_cc_gen_new if the Kerberos

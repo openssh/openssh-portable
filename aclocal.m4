@@ -1,4 +1,4 @@
-dnl $Id: aclocal.m4,v 1.10 2014/01/16 22:53:24 dtucker Exp $
+dnl $Id: aclocal.m4,v 1.11 2014/01/21 01:50:46 dtucker Exp $
 dnl
 dnl OpenSSH-specific autoconf macros
 dnl
@@ -8,7 +8,7 @@ dnl Check that $CC accepts a flag 'check_flag'. If it is supported append
 dnl 'define_flag' to $CFLAGS. If 'define_flag' is not specified, then append
 dnl 'check_flag'.
 AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
-	AC_MSG_CHECKING([if $CC supports $1])
+	AC_MSG_CHECKING([if $CC supports compile flag $1])
 	saved_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $WERROR $1"
 	_define_flag="$2"
@@ -33,7 +33,7 @@ dnl Check that $LD accepts a flag 'check_flag'. If it is supported append
 dnl 'define_flag' to $LDFLAGS. If 'define_flag' is not specified, then append
 dnl 'check_flag'.
 AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
-	AC_MSG_CHECKING([if $LD supports $1])
+	AC_MSG_CHECKING([if $LD supports link flag $1])
 	saved_LDFLAGS="$LDFLAGS"
 	LDFLAGS="$LDFLAGS $WERROR $1"
 	_define_flag="$2"
