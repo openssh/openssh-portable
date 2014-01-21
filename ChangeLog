@@ -7,6 +7,9 @@
    tests in the configure output.  ok djm.
  - (tim) [platform.c session.c] Fix bug affecting SVR5 platforms introduced
    with sftp chroot support. Move set_id call after chroot.
+ - (djm) [aclocal.m4] Flesh out the code run in the OSSH_CHECK_CFLAG_COMPILE
+   and OSSH_CHECK_LDFLAG_LINK tests to give them a better chance of
+   detecting toolchain-related problems; ok dtucker
 
 20140120
  - (dtucker) [gss-serv-krb5.c] Fall back to krb5_cc_gen_new if the Kerberos

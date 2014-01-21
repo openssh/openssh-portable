@@ -1,4 +1,4 @@
-dnl $Id: aclocal.m4,v 1.11 2014/01/21 01:50:46 dtucker Exp $
+dnl $Id: aclocal.m4,v 1.12 2014/01/21 02:10:27 djm Exp $
 dnl
 dnl OpenSSH-specific autoconf macros
 dnl
@@ -13,7 +13,18 @@ AC_DEFUN([OSSH_CHECK_CFLAG_COMPILE], [{
 	CFLAGS="$CFLAGS $WERROR $1"
 	_define_flag="$2"
 	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <stdlib.h>
+#include <stdio.h>
+int main(int argc, char **argv) {
+	/* Some math to catch -ftrapv problems in the toolchain */
+	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
+	float l = i * 2.1;
+	double m = l / 0.5;
+	printf("%d %d %d %f %f\n", i, j, k, l, m);
+	exit(0);
+}
+	]])],
 		[
 if `grep -i "unrecognized option" conftest.err >/dev/null`
 then
@@ -28,7 +39,7 @@ fi],
 	)
 }])
 
-dnl OSSH_CHECK_CFLAG_LINK(check_flag[, define_flag])
+dnl OSSH_CHECK_LDFLAG_LINK(check_flag[, define_flag])
 dnl Check that $LD accepts a flag 'check_flag'. If it is supported append
 dnl 'define_flag' to $LDFLAGS. If 'define_flag' is not specified, then append
 dnl 'check_flag'.
@@ -38,7 +49,18 @@ AC_DEFUN([OSSH_CHECK_LDFLAG_LINK], [{
 	LDFLAGS="$LDFLAGS $WERROR $1"
 	_define_flag="$2"
 	test "x$_define_flag" = "x" && _define_flag="$1"
-	AC_LINK_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])],
+	AC_LINK_IFELSE([AC_LANG_SOURCE([[
+#include <stdlib.h>
+#include <stdio.h>
+int main(int argc, char **argv) {
+	/* Some math to catch -ftrapv problems in the toolchain */
+	int i = 123 * argc, j = 456 + argc, k = 789 - argc;
+	float l = i * 2.1;
+	double m = l / 0.5;
+	printf("%d %d %d %f %f\n", i, j, k, l, m);
+	exit(0);
+}
+		]])],
 		[ AC_MSG_RESULT([yes])
 		  LDFLAGS="$saved_LDFLAGS $_define_flag"],
 		[ AC_MSG_RESULT([no])
