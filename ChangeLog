@@ -2,6 +2,8 @@
  - (djm) [openbsd-compat/setproctitle.c] Don't fail to compile if a
    platform that is expected to use the reuse-argv style setproctitle
    hack surprises us by providing a setproctitle in libc; ok dtucker
+ - (djm) [configure.ac] Unless specifically requested, only attempt
+   to build Position Independent Executables on gcc >= 4.x; ok dtucker
 
 20140121
  - (dtucker) [configure.ac] Make PIE a configure-time option which defaults

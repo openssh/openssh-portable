@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.556 2014/01/21 01:48:52 dtucker Exp $
+# $Id: configure.ac,v 1.557 2014/01/22 05:31:18 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.556 $)
+AC_REVISION($Revision: 1.557 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -555,7 +555,7 @@ case "$host" in
 	AC_DEFINE([BROKEN_SETREGID])
 	;;
 *-*-darwin*)
-	use_pie=1
+	use_pie=auto
 	AC_MSG_CHECKING([if we have working getaddrinfo])
 	AC_RUN_IFELSE([AC_LANG_SOURCE([[ #include <mach-o/dyld.h>
 main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
@@ -694,7 +694,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
-	use_pie=1
+	use_pie=auto
 	check_for_libcrypt_later=1
 	check_for_openpty_ctty_bug=1
 	AC_DEFINE([PAM_TTY_KLUDGE], [1],
@@ -791,7 +791,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([BROKEN_SAVED_UIDS], [1], [Needed for NeXT])
 	;;
 *-*-openbsd*)
-	use_pie=1
+	use_pie=auto
 	AC_DEFINE([HAVE_ATTRIBUTE__SENTINEL__], [1], [OpenBSD's gcc has sentinel])
 	AC_DEFINE([HAVE_ATTRIBUTE__BOUNDED__], [1], [OpenBSD's gcc has bounded])
 	AC_DEFINE([SSH_TUN_OPENBSD], [1], [Open tunnel devices the OpenBSD way])
@@ -1566,15 +1566,34 @@ AC_ARG_WITH([audit],
 AC_ARG_WITH([pie],
     [  --with-pie           Build Position Independent Executables if possible], [
 	if test "x$withval" = "xno"; then
-		use_pie=0
+		use_pie=no
 	fi
 	if test "x$withval" = "xyes"; then
-		use_pie=1
+		use_pie=yes
 	fi
     ]
 )
-
-if test "x$use_toolchain_hardening" = "x1" && test "x$use_pie" = "x1"; then
+if test "x$use_pie" = "x"; then
+	use_pie=no
+fi
+if test "x$use_toolchain_hardening" != "x1" && test "x$use_pie" = "xauto"; then
+	# Turn off automatic PIE when toolchain hardening is off.
+	use_pie=no
+fi
+if test "x$use_pie" == "xauto"; then
+	# Automatic PIE requires gcc >= 4.x
+	AC_MSG_CHECKING([for gcc >= 4.x])
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#if !defined(__GNUC__) || __GNUC__ < 4
+#error gcc is too old
+#endif
+]])],
+	[ AC_MSG_RESULT([yes]) ],
+	[ AC_MSG_RESULT([no])
+	  use_pie=no ]
+)
+fi
+if test "x$use_pie" != "xno"; then
 	OSSH_CHECK_CFLAG_COMPILE([-fPIE])
 	OSSH_CHECK_LDFLAG_LINK([-pie])
 fi
