@@ -67,7 +67,8 @@ static size_t argv_env_len = 0;
 void
 compat_init_setproctitle(int argc, char *argv[])
 {
-#if defined(SPT_TYPE) && SPT_TYPE == SPT_REUSEARGV
+#if !defined(HAVE_SETPROCTITLE) && \
+    defined(SPT_TYPE) && SPT_TYPE == SPT_REUSEARGV
 	extern char **environ;
 	char *lastargv = NULL;
 	char **envp = environ;
