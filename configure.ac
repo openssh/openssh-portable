@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.557 2014/01/22 05:31:18 djm Exp $
+# $Id: configure.ac,v 1.558 2014/01/22 10:30:13 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.557 $)
+AC_REVISION($Revision: 1.558 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -164,10 +164,15 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
     if test "x$use_toolchain_hardening" = "x1"; then
-	OSSH_CHECK_CFLAG_COMPILE([-ftrapv])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,noexecstack])
+	# NB. -ftrapv expects certain support functions to be present in
+	# the compiler library (libgcc or similar) to detect integer operations
+	# that can overflow. We must check that the result of enabling it
+	# actually links. The test program compiled/linked includes a number
+	# of integer operations that should exercise this.
+	OSSH_CHECK_CFLAG_LINK([-ftrapv])
     fi
 	AC_MSG_CHECKING([gcc version])
 	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
@@ -1594,8 +1599,20 @@ if test "x$use_pie" == "xauto"; then
 )
 fi
 if test "x$use_pie" != "xno"; then
+	SAVED_CFLAGS="$CFLAGS"
+	SAVED_LDFLAGS="$LDFLAGS"
 	OSSH_CHECK_CFLAG_COMPILE([-fPIE])
 	OSSH_CHECK_LDFLAG_LINK([-pie])
+	# We use both -fPIE and -pie or neither.
+	AC_MSG_CHECKING([whether both -fPIE and -pie are supported])
+	if echo "x $CFLAGS"  | grep ' -fPIE' >/dev/null 2>&1 && \
+	   echo "x $LDFLAGS" | grep ' -pie'  >/dev/null 2>&1 ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+		CFLAGS="$SAVED_CFLAGS"
+		LDFLAGS="$SAVED_LDFLAGS"
+	fi
 fi
 
 dnl    Checks for library functions. Please keep in alphabetical order

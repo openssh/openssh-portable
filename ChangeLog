@@ -4,6 +4,11 @@
    hack surprises us by providing a setproctitle in libc; ok dtucker
  - (djm) [configure.ac] Unless specifically requested, only attempt
    to build Position Independent Executables on gcc >= 4.x; ok dtucker
+ - (djm) [configure.ac aclocal.m4] More tests to detect fallout from
+   platform hardening options: include some long long int arithmatic
+   to detect missing support functions for -ftrapv in libgcc and
+   equivalents, actually test linking when -ftrapv is supplied and
+   set either both -pie/-fPIE or neither. feedback and ok dtucker@
 
 20140121
  - (dtucker) [configure.ac] Make PIE a configure-time option which defaults
