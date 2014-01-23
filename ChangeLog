@@ -1,3 +1,6 @@
+20130123
+ - (tim) [session.c] Improve error reporting on set_id().
+
 20130122
  - (djm) [openbsd-compat/setproctitle.c] Don't fail to compile if a
    platform that is expected to use the reuse-argv style setproctitle

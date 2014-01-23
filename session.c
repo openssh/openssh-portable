@@ -1554,7 +1554,7 @@ do_setusercontext(struct passwd *pw)
 #else
 # ifdef USE_LIBIAF
 	if (set_id(pw->pw_name) != 0) {
-		exit(1);
+		fatal("set_id(%s) Failed", pw->pw_name);
 	}
 # endif /* USE_LIBIAF */
 		/* Permanently switch to the desired uid. */
