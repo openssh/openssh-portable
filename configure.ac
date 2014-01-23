@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.558 2014/01/22 10:30:13 djm Exp $
+# $Id: configure.ac,v 1.559 2014/01/23 12:14:40 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.558 $)
+AC_REVISION($Revision: 1.559 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -769,6 +769,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 	    [Prepend the address family to IP tunnel traffic])
 	TEST_MALLOC_OPTIONS="AJRX"
+	AC_DEFINE([BROKEN_STRNVIS], [1],
+	    [NetBSD strnvis argument order is swapped compared to OpenBSD])
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
@@ -777,7 +779,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
 	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
-	 AC_DEFINE([BROKEN_STRNVIS], [1], [FreeBSD strnvis does not do what we need])
+	AC_DEFINE([BROKEN_STRNVIS], [1],
+	    [FreeBSD strnvis argument order is swapped compared to OpenBSD])
 	TEST_MALLOC_OPTIONS="AJRX"
 	;;
 *-*-bsdi*)

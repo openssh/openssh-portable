@@ -1,5 +1,8 @@
 20130123
  - (tim) [session.c] Improve error reporting on set_id().
+ - (dtucker) [configure.ac] NetBSD's (and FreeBSD's) strnvis is gratuitously
+   incompatible with OpenBSD's despite post-dating it by more than a decade.
+   Declare it as broken, and document FreeBSD's as the same.  ok djm@
 
 20130122
  - (djm) [openbsd-compat/setproctitle.c] Don't fail to compile if a
