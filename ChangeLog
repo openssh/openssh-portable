@@ -1,3 +1,8 @@
+20130124
+ - (djm) [Makefile.in regress/scp-ssh-wrapper.sh regress/scp.sh] Make
+   the scp regress test actually test the built scp rather than the one
+   in $PATH. ok dtucker@
+
 20130123
  - (tim) [session.c] Improve error reporting on set_id().
  - (dtucker) [configure.ac] NetBSD's (and FreeBSD's) strnvis is gratuitously
