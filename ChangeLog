@@ -1,3 +1,6 @@
+20130125
+ - (djm) [configure.ac] Fix detection of capsicum sandbox on FreeBSD
+
 20130124
  - (djm) [Makefile.in regress/scp-ssh-wrapper.sh regress/scp.sh] Make
    the scp regress test actually test the built scp rather than the one
