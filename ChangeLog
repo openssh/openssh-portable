@@ -4,6 +4,8 @@
    sys/capability.h exists and cap_rights_limit is in libc. Fixes
    build on FreeBSD9x which provides the header but not the libc
    support.
+ - (djm) [configure.ac] autoconf sets finds to 'yes' not '1', so test
+   against the correct thing.
 
 20130124
  - (djm) [Makefile.in regress/scp-ssh-wrapper.sh regress/scp.sh] Make

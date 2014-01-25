@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.561 2014/01/25 02:12:29 djm Exp $
+# $Id: configure.ac,v 1.562 2014/01/25 02:16:59 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.561 $)
+AC_REVISION($Revision: 1.562 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3033,11 +3033,11 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xcapsicum" || \
      ( test -z "$sandbox_arg" && \
-       test "x$ac_cv_header_sys_capability_h" = "x1" && \
-       test "x$ac_cv_func_cap_rights_limit" = "x1") ; then
-       test "x$ac_cv_header_sys_capability_h" != "x1" && \
+       test "x$ac_cv_header_sys_capability_h" = "xyes" && \
+       test "x$ac_cv_func_cap_rights_limit" = "xyes") ; then
+       test "x$ac_cv_header_sys_capability_h" != "xyes" && \
 		AC_MSG_ERROR([capsicum sandbox requires sys/capability.h header])
-       test "x$ac_cv_func_cap_rights_limit" != "x1" && \
+       test "x$ac_cv_func_cap_rights_limit" != "xyes" && \
 		AC_MSG_ERROR([capsicum sandbox requires cap_rights_limit function])
        SANDBOX_STYLE="capsicum"
        AC_DEFINE([SANDBOX_CAPSICUM], [1], [Sandbox using capsicum])
