@@ -1,5 +1,9 @@
 20130125
  - (djm) [configure.ac] Fix detection of capsicum sandbox on FreeBSD
+ - (djm) [configure.ac] Do not attempt to use capsicum sandbox unless
+   sys/capability.h exists and cap_rights_limit is in libc. Fixes
+   build on FreeBSD9x which provides the header but not the libc
+   support.
 
 20130124
  - (djm) [Makefile.in regress/scp-ssh-wrapper.sh regress/scp.sh] Make

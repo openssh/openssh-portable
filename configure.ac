@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.560 2014/01/25 01:34:39 djm Exp $
+# $Id: configure.ac,v 1.561 2014/01/25 02:12:29 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.560 $)
+AC_REVISION($Revision: 1.561 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -119,9 +119,6 @@ AC_CHECK_DECL([RLIMIT_NPROC],
 AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <sys/types.h>
 	#include <linux/prctl.h>
-])
-AC_CHECK_DECL([cap_enter], [have_cap_enter=1], , [
-	#include <sys/capability.h>
 ])
 
 use_stack_protector=1
@@ -367,6 +364,7 @@ AC_CHECK_HEADERS([ \
 	sys/audit.h \
 	sys/bitypes.h \
 	sys/bsdtty.h \
+	sys/capability.h \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
@@ -1637,6 +1635,7 @@ AC_CHECK_FUNCS([ \
 	bcrypt_pbkdf \
 	bindresvport_sa \
 	blf_enc \
+	cap_rights_limit \
 	clock \
 	closefrom \
 	dirfd \
@@ -3034,9 +3033,12 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xcapsicum" || \
      ( test -z "$sandbox_arg" && \
-       test "x$have_cap_enter" = "x1") ; then
-       test "x$have_cap_enter" != "x1" && \
-		AC_MSG_ERROR([capsicum sandbox requires cap_enter function])
+       test "x$ac_cv_header_sys_capability_h" = "x1" && \
+       test "x$ac_cv_func_cap_rights_limit" = "x1") ; then
+       test "x$ac_cv_header_sys_capability_h" != "x1" && \
+		AC_MSG_ERROR([capsicum sandbox requires sys/capability.h header])
+       test "x$ac_cv_func_cap_rights_limit" != "x1" && \
+		AC_MSG_ERROR([capsicum sandbox requires cap_rights_limit function])
        SANDBOX_STYLE="capsicum"
        AC_DEFINE([SANDBOX_CAPSICUM], [1], [Sandbox using capsicum])
 elif test "x$sandbox_arg" = "xrlimit" || \
