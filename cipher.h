@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.43 2013/12/06 13:34:54 markus Exp $ */
+/* $OpenBSD: cipher.h,v 1.44 2014/01/25 10:12:50 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -89,6 +89,7 @@ void	 cipher_cleanup(CipherContext *);
 void	 cipher_set_key_string(CipherContext *, const Cipher *, const char *, int);
 u_int	 cipher_blocksize(const Cipher *);
 u_int	 cipher_keylen(const Cipher *);
+u_int	 cipher_seclen(const Cipher *);
 u_int	 cipher_authlen(const Cipher *);
 u_int	 cipher_ivlen(const Cipher *);
 u_int	 cipher_is_cbc(const Cipher *);

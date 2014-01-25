@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.95 2014/01/12 08:13:13 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.96 2014/01/25 10:12:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -458,7 +458,7 @@ kex_choose_conf(Kex *kex)
 	char **my, **peer;
 	char **cprop, **sprop;
 	int nenc, nmac, ncomp;
-	u_int mode, ctos, need, authlen;
+	u_int mode, ctos, need, dh_need, authlen;
 	int first_kex_follows, type;
 
 	my   = kex_buf2prop(&kex->my, NULL);
@@ -506,7 +506,7 @@ kex_choose_conf(Kex *kex)
 	choose_kex(kex, cprop[PROPOSAL_KEX_ALGS], sprop[PROPOSAL_KEX_ALGS]);
 	choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
 	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS]);
-	need = 0;
+	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = kex->newkeys[mode];
 		if (need < newkeys->enc.key_len)
@@ -517,9 +517,12 @@ kex_choose_conf(Kex *kex)
 			need = newkeys->enc.iv_len;
 		if (need < newkeys->mac.key_len)
 			need = newkeys->mac.key_len;
+		if (dh_need < cipher_seclen(newkeys->enc.cipher))
+			dh_need = cipher_seclen(newkeys->enc.cipher);
 	}
 	/* XXX need runden? */
 	kex->we_need = need;
+	kex->dh_need = dh_need;
 
 	/* ignore the next message if the proposals do not match */
 	if (first_kex_follows && !proposals_match(my, peer) &&

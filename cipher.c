@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.93 2013/12/06 13:34:54 markus Exp $ */
+/* $OpenBSD: cipher.c,v 1.94 2014/01/25 10:12:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -139,6 +139,14 @@ u_int
 cipher_keylen(const Cipher *c)
 {
 	return (c->key_len);
+}
+
+u_int
+cipher_seclen(const Cipher *c)
+{
+	if (strcmp("3des-cbc", c->name) == 0)
+		return 14;
+	return cipher_keylen(c);
 }
 
 u_int

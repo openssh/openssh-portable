@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.15 2014/01/12 08:13:13 djm Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.16 2014/01/25 10:12:50 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -58,7 +58,7 @@ kexgex_client(Kex *kex)
 	int min, max, nbits;
 	DH *dh;
 
-	nbits = dh_estimate(kex->we_need * 8);
+	nbits = dh_estimate(kex->dh_need * 8);
 
 	if (datafellows & SSH_OLD_DHGEX) {
 		/* Old GEX request */
