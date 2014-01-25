@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.562 2014/01/25 02:16:59 djm Exp $
+# $Id: configure.ac,v 1.563 2014/01/25 22:39:53 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.562 $)
+AC_REVISION($Revision: 1.563 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -780,6 +780,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([BROKEN_STRNVIS], [1],
 	    [FreeBSD strnvis argument order is swapped compared to OpenBSD])
 	TEST_MALLOC_OPTIONS="AJRX"
+	# Preauth crypto occasionally uses file descriptors for crypto offload
+	# and will crash if they cannot be opened.
+	AC_DEFINE([SANDBOX_SKIP_RLIMIT_NOFILE])
 	;;
 *-*-bsdi*)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])

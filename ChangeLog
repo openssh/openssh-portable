@@ -12,6 +12,10 @@
      [kex.c]
      dh_need needs to be set to max(seclen, blocksize, ivlen, mac_len)
      ok dtucker@, noted by mancha
+  - (djm) [configure.ac sandbox-capsicum.c sandbox-rlimit.c] Disable
+    RLIMIT_NOFILE pseudo-sandbox on FreeBSD. In some configurations,
+    libc will attempt to open additional file descriptors for crypto
+    offload and crash if they cannot be opened.
 
 20130125
  - (djm) [configure.ac] Fix detection of capsicum sandbox on FreeBSD
