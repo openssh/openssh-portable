@@ -8,6 +8,10 @@
      than 4k but also don't use the largest group size it does support as
      specified in the RFC.  Based on a patch from Petr Lautrbach at Redhat,
      reduced by me with input from Markus.  ok djm@ markus@
+   - markus@cvs.openbsd.org 2014/01/25 20:35:37
+     [kex.c]
+     dh_need needs to be set to max(seclen, blocksize, ivlen, mac_len)
+     ok dtucker@, noted by mancha
 
 20130125
  - (djm) [configure.ac] Fix detection of capsicum sandbox on FreeBSD

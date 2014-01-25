@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.96 2014/01/25 10:12:50 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.97 2014/01/25 20:35:37 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -509,16 +509,14 @@ kex_choose_conf(Kex *kex)
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = kex->newkeys[mode];
-		if (need < newkeys->enc.key_len)
-			need = newkeys->enc.key_len;
-		if (need < newkeys->enc.block_size)
-			need = newkeys->enc.block_size;
-		if (need < newkeys->enc.iv_len)
-			need = newkeys->enc.iv_len;
-		if (need < newkeys->mac.key_len)
-			need = newkeys->mac.key_len;
-		if (dh_need < cipher_seclen(newkeys->enc.cipher))
-			dh_need = cipher_seclen(newkeys->enc.cipher);
+		need = MAX(need, newkeys->enc.key_len);
+		need = MAX(need, newkeys->enc.block_size);
+		need = MAX(need, newkeys->enc.iv_len);
+		need = MAX(need, newkeys->mac.key_len);
+		dh_need = MAX(dh_need, cipher_seclen(newkeys->enc.cipher));
+		dh_need = MAX(dh_need, newkeys->enc.block_size);
+		dh_need = MAX(dh_need, newkeys->enc.iv_len);
+		dh_need = MAX(dh_need, newkeys->mac.key_len);
 	}
 	/* XXX need runden? */
 	kex->we_need = need;
