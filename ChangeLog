@@ -1,3 +1,7 @@
+20140127
+ - (dtucker) [Makefile.in] Remove trailing backslash which some make
+   implementations (eg older Solaris) do not cope with.
+
 20140126
  - OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2014/01/25 10:12:50
