@@ -372,7 +372,7 @@ grace_alarm_handler(int sig)
 	 */
 	if (getpgid(0) == getpid()) {
 		signal(SIGTERM, SIG_IGN);
-		killpg(0, SIGTERM);
+		kill(0, SIGTERM);
 	}
 
 	/* Log error and exit. */

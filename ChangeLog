@@ -1,6 +1,9 @@
 20140128
  - (djm) [configure.ac] Search for inet_ntop in libnsl and libresovl;
    ok dtucker
+ - (djm) [sshd.c] Use kill(0, ...) instead of killpg(0, ...); the
+   latter being specified to have undefined behaviour in SUSv3;
+   ok dtucker
 
 20140127
  - (dtucker) [Makefile.in] Remove trailing backslash which some make
