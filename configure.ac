@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.564 2014/01/25 22:46:54 djm Exp $
+# $Id: configure.ac,v 1.565 2014/01/28 04:07:10 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.564 $)
+AC_REVISION($Revision: 1.565 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1239,6 +1239,9 @@ AC_SEARCH_LIBS([logwtmp], [util bsd])
 AC_SEARCH_LIBS([openpty], [util bsd])
 AC_SEARCH_LIBS([updwtmp], [util bsd])
 AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
+
+# On some platforms, inet_ntop may be found in libresolv or libnsl.
+AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
 
 AC_FUNC_STRFTIME
 
