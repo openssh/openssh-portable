@@ -4,6 +4,9 @@
  - (djm) [sshd.c] Use kill(0, ...) instead of killpg(0, ...); the
    latter being specified to have undefined behaviour in SUSv3;
    ok dtucker
+ - (tim) [regress/agent.sh regress/agent-ptrace.sh] Assign $? to a variable
+   when used as an error message inside an if statement so we display the
+   correct into. agent.sh patch from Petr Lautrbach.
 
 20140127
  - (dtucker) [Makefile.in] Remove trailing backslash which some make
