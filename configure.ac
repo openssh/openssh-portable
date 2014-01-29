@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.565 2014/01/28 04:07:10 djm Exp $
+# $Id: configure.ac,v 1.566 2014/01/29 10:01:33 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.565 $)
+AC_REVISION($Revision: 1.566 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1593,7 +1593,7 @@ if test "x$use_toolchain_hardening" != "x1" && test "x$use_pie" = "xauto"; then
 	# Turn off automatic PIE when toolchain hardening is off.
 	use_pie=no
 fi
-if test "x$use_pie" == "xauto"; then
+if test "x$use_pie" = "xauto"; then
 	# Automatic PIE requires gcc >= 4.x
 	AC_MSG_CHECKING([for gcc >= 4.x])
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
