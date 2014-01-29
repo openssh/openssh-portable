@@ -1,4 +1,9 @@
-20130129
+20140130
+ - (djm) [configure.ac] Only check for width-specified integer types
+   in headers that actually exist. patch from Tom G. Christensen;
+   ok dtucker@
+
+20140129
  - (djm) [configure.ac] Fix broken shell test '==' vs '='; patch from
    Tom G. Christensen
 

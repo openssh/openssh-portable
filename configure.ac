@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.566 2014/01/29 10:01:33 djm Exp $
+# $Id: configure.ac,v 1.567 2014/01/29 23:21:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.566 $)
+AC_REVISION($Revision: 1.567 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -3271,7 +3271,9 @@ if test "x$ac_cv_have_u_int64_t" = "xyes" ; then
 	have_u_int64_t=1
 fi
 
-if test -z "$have_u_int64_t" ; then
+if (test -z "$have_u_int64_t" && \
+	   test "x$ac_cv_header_sys_bitypes_h" = "xyes")
+then
     AC_MSG_CHECKING([for u_int64_t type in sys/bitypes.h])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <sys/bitypes.h> ]],
 	[[ u_int64_t a; a = 1]])],
@@ -3301,7 +3303,9 @@ if test -z "$have_u_intxx_t" ; then
 	fi
 fi
 
-if test -z "$have_uintxx_t" ; then
+if (test -z "$have_uintxx_t" && \
+	   test "x$ac_cv_header_stdint_h" = "xyes")
+then
     AC_MSG_CHECKING([for uintXX_t types in stdint.h])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <stdint.h> ]],
 	[[ uint8_t a; uint16_t b; uint32_t c; a = b = c = 1;]])],
@@ -3312,7 +3316,9 @@ if test -z "$have_uintxx_t" ; then
 	])
 fi
 
-if test -z "$have_uintxx_t" ; then
+if (test -z "$have_uintxx_t" && \
+	   test "x$ac_cv_header_inttypes_h" = "xyes")
+then
     AC_MSG_CHECKING([for uintXX_t types in inttypes.h])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <inttypes.h> ]],
 	[[ uint8_t a; uint16_t b; uint32_t c; a = b = c = 1;]])],
