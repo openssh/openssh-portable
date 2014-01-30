@@ -98,6 +98,7 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(read),
 	SC_ALLOW(write),
 	SC_ALLOW(close),
+	SC_ALLOW(shutdown),
 	SC_ALLOW(brk),
 	SC_ALLOW(poll),
 #ifdef __NR__newselect

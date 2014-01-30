@@ -1,3 +1,7 @@
+20140131
+ - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
+   syscall from sandboxes; it may be called by packet_close.
+
 20140130
  - (djm) [configure.ac] Only check for width-specified integer types
    in headers that actually exist. patch from Tom G. Christensen;

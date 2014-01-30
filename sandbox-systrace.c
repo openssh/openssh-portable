@@ -66,6 +66,7 @@ static const struct sandbox_policy preauth_policy[] = {
 	{ SYS_munmap, SYSTR_POLICY_PERMIT },
 	{ SYS_read, SYSTR_POLICY_PERMIT },
 	{ SYS_select, SYSTR_POLICY_PERMIT },
+	{ SYS_shutdown, SYSTR_POLICY_PERMIT },
 	{ SYS_sigprocmask, SYSTR_POLICY_PERMIT },
 	{ SYS_write, SYSTR_POLICY_PERMIT },
 	{ -1, -1 }
