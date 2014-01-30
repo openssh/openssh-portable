@@ -6,6 +6,7 @@
    different symbols for 'read' when various compiler flags are
    in use, causing atomicio.c comparisons against it to break and
    read/write operations to hang; ok dtucker
+ - (djm) Release openssh-6.5p1
 
 20140129
  - (djm) [configure.ac] Fix broken shell test '==' vs '='; patch from
