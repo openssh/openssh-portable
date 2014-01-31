@@ -1,6 +1,8 @@
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
    syscall from sandboxes; it may be called by packet_close.
+ - (dtucker) [readconf.c] Include <arpa/inet.h> for the hton macros.  Fixes
+   build with HP-UX's compiler.  Patch from Kevin Brott.
 
 20140130
  - (djm) [configure.ac] Only check for width-specified integer types
