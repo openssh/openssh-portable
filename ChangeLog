@@ -53,6 +53,10 @@
      [ssh-keygen.c ssh-rsa.c sshconnect.c sshconnect1.c sshconnect2.c]
      [sshd.c]
      convert memset of potentially-private data to explicit_bzero()
+   - djm@cvs.openbsd.org 2014/02/03 23:28:00
+     [ssh-ecdsa.c]
+     fix memory leak; ECDSA_SIG_new() allocates 'r' and 's' for us, unlike
+     DSA_SIG_new. Reported by Batz Spear; ok markus@
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)

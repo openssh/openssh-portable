@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa.c,v 1.9 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa.c,v 1.10 2014/02/03 23:28:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -140,9 +140,6 @@ ssh_ecdsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	/* parse signature */
 	if ((sig = ECDSA_SIG_new()) == NULL)
 		fatal("%s: ECDSA_SIG_new failed", __func__);
-	if ((sig->r = BN_new()) == NULL ||
-	    (sig->s = BN_new()) == NULL)
-		fatal("%s: BN_new failed", __func__);
 
 	buffer_init(&bb);
 	buffer_append(&bb, sigblob, len);
