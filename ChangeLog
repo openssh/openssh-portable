@@ -31,6 +31,11 @@
      requested From: Ross L Richardson
      
      dtucker/markus helped explain its workings;
+   - djm@cvs.openbsd.org 2014/01/30 22:26:14
+     [sandbox-systrace.c]
+     allow shutdown(2) syscall in sandbox - it may be called by packet_close()
+     from portable
+     (Id sync only; change is already in portable)
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
