@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.269 2014/01/18 09:36:26 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.270 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1889,7 +1889,7 @@ session_unused(int id)
 		fatal("%s: insane session id %d (max %d nalloc %d)",
 		    __func__, id, options.max_sessions, sessions_nalloc);
 	}
-	bzero(&sessions[id], sizeof(*sessions));
+	memset(&sessions[id], 0, sizeof(*sessions));
 	sessions[id].self = id;
 	sessions[id].used = 0;
 	sessions[id].chanid = -1;

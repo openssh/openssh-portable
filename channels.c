@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.328 2013/12/19 01:04:36 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.329 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -423,7 +423,7 @@ channel_free(Channel *c)
 		if (cc->abandon_cb != NULL)
 			cc->abandon_cb(c, cc->ctx);
 		TAILQ_REMOVE(&c->status_confirms, cc, entry);
-		bzero(cc, sizeof(*cc));
+		explicit_bzero(cc, sizeof(*cc));
 		free(cc);
 	}
 	if (c->filter_cleanup != NULL && c->filter_ctx != NULL)
@@ -2671,7 +2671,7 @@ channel_input_status_confirm(int type, u_int32_t seq, void *ctxt)
 		return;
 	cc->cb(type, c, cc->ctx);
 	TAILQ_REMOVE(&c->status_confirms, cc, entry);
-	bzero(cc, sizeof(*cc));
+	explicit_bzero(cc, sizeof(*cc));
 	free(cc);
 }
 
@@ -3304,9 +3304,7 @@ channel_connect_ctx_free(struct channel_connect *cctx)
 	free(cctx->host);
 	if (cctx->aitop)
 		freeaddrinfo(cctx->aitop);
-	bzero(cctx, sizeof(*cctx));
-	cctx->host = NULL;
-	cctx->ai = cctx->aitop = NULL;
+	memset(cctx, 0, sizeof(*cctx));
 }
 
 /* Return CONNECTING channel to remote host, port */

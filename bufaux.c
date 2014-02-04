@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.54 2014/01/12 08:13:13 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.55 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -216,7 +216,7 @@ buffer_get_cstring_ret(Buffer *buffer, u_int *length_ptr)
 		if (cp == ret + length - 1)
 			error("buffer_get_cstring_ret: string contains \\0");
 		else {
-			bzero(ret, length);
+			explicit_bzero(ret, length);
 			free(ret);
 			return NULL;
 		}

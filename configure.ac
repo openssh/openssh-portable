@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.568 2014/01/30 00:26:46 djm Exp $
+# $Id: configure.ac,v 1.569 2014/02/04 00:18:21 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.568 $)
+AC_REVISION($Revision: 1.569 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1649,6 +1649,7 @@ AC_CHECK_FUNCS([ \
 	closefrom \
 	dirfd \
 	endgrent \
+	explicit_bzero \
 	fchmod \
 	fchown \
 	freeaddrinfo \

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.256 2013/11/20 20:54:10 deraadt Exp $ */
+/* $OpenBSD: clientloop.c,v 1.257 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -549,7 +549,7 @@ client_global_request_reply(int type, u_int32_t seq, void *ctxt)
 		gc->cb(type, seq, gc->ctx);
 	if (--gc->ref_count <= 0) {
 		TAILQ_REMOVE(&global_confirms, gc, entry);
-		bzero(gc, sizeof(*gc));
+		explicit_bzero(gc, sizeof(*gc));
 		free(gc);
 	}
 
@@ -876,7 +876,7 @@ process_cmdline(void)
 	int cancel_port, ok;
 	Forward fwd;
 
-	bzero(&fwd, sizeof(fwd));
+	memset(&fwd, 0, sizeof(fwd));
 	fwd.listen_host = fwd.connect_host = NULL;
 
 	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);

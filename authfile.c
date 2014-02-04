@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.101 2013/12/29 04:35:50 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.102 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -703,17 +703,17 @@ key_load_file(int fd, const char *filename, Buffer *blob)
 			    __func__, filename == NULL ? "" : filename,
 			    filename == NULL ? "" : " ", strerror(errno));
 			buffer_clear(blob);
-			bzero(buf, sizeof(buf));
+			explicit_bzero(buf, sizeof(buf));
 			return 0;
 		}
 		buffer_append(blob, buf, len);
 		if (buffer_len(blob) > MAX_KEY_FILE_SIZE) {
 			buffer_clear(blob);
-			bzero(buf, sizeof(buf));
+			explicit_bzero(buf, sizeof(buf));
 			goto toobig;
 		}
 	}
-	bzero(buf, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 	if ((st.st_mode & (S_IFSOCK|S_IFCHR|S_IFIFO)) == 0 &&
 	    st.st_size != buffer_len(blob)) {
 		debug("%s: key file %.200s%schanged size while reading",

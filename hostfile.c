@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.54 2014/01/27 18:58:14 markus Exp $ */
+/* $OpenBSD: hostfile.c,v 1.55 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -333,10 +333,10 @@ free_hostkeys(struct hostkeys *hostkeys)
 		free(hostkeys->entries[i].host);
 		free(hostkeys->entries[i].file);
 		key_free(hostkeys->entries[i].key);
-		bzero(hostkeys->entries + i, sizeof(*hostkeys->entries));
+		explicit_bzero(hostkeys->entries + i, sizeof(*hostkeys->entries));
 	}
 	free(hostkeys->entries);
-	bzero(hostkeys, sizeof(*hostkeys));
+	explicit_bzero(hostkeys, sizeof(*hostkeys));
 	free(hostkeys);
 }
 

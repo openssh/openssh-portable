@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.129 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.130 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -544,7 +544,7 @@ monitor_read(struct monitor *pmonitor, struct mon_table *ent,
 	struct pollfd pfd[2];
 
 	for (;;) {
-		bzero(&pfd, sizeof(pfd));
+		memset(&pfd, 0, sizeof(pfd));
 		pfd[0].fd = pmonitor->m_sendfd;
 		pfd[0].events = POLLIN;
 		pfd[1].fd = pmonitor->m_log_recvfd;

@@ -36,6 +36,14 @@
      allow shutdown(2) syscall in sandbox - it may be called by packet_close()
      from portable
      (Id sync only; change is already in portable)
+   - tedu@cvs.openbsd.org 2014/01/31 16:39:19
+     [auth2-chall.c authfd.c authfile.c bufaux.c bufec.c canohost.c]
+     [channels.c cipher-chachapoly.c clientloop.c configure.ac hostfile.c]
+     [kexc25519.c krl.c monitor.c sandbox-systrace.c session.c]
+     [sftp-client.c ssh-keygen.c ssh.c sshconnect2.c sshd.c sshlogin.c]
+     [openbsd-compat/explicit_bzero.c openbsd-compat/openbsd-compat.h]
+     replace most bzero with explicit_bzero, except a few that cna be memset
+     ok djm dtucker
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)

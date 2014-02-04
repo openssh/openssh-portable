@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.238 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.239 2014/01/31 16:39:19 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1716,7 +1716,7 @@ parse_absolute_time(const char *s)
 		fatal("Invalid certificate time format %s", s);
 	}
 
-	bzero(&tm, sizeof(tm));
+	memset(&tm, 0, sizeof(tm));
 	if (strptime(buf, fmt, &tm) == NULL)
 		fatal("Invalid certificate time %s", s);
 	if ((tt = mktime(&tm)) < 0)
