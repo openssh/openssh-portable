@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.398 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: ssh.c,v 1.399 2014/02/04 00:24:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -780,7 +780,6 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
-	lowercase(host);
 	host_arg = xstrdup(host);
 
 	OpenSSL_add_all_algorithms();
@@ -914,6 +913,7 @@ main(int ac, char **av)
 	}
 
 	/* If canonicalization requested then try to apply it */
+	lowercase(host);
 	if (options.canonicalize_hostname != SSH_CANONICALISE_NO)
 		addrs = resolve_canonicalize(&host, options.port);
 	/*
