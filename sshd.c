@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.414 2014/01/09 23:26:48 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.415 2014/01/27 19:18:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -74,7 +74,6 @@
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
-#include <openssl/md5.h>
 #include <openssl/rand.h>
 #include "openbsd-compat/openssl-compat.h"
 
@@ -96,6 +95,7 @@
 #include "uidswap.h"
 #include "compat.h"
 #include "cipher.h"
+#include "digest.h"
 #include "key.h"
 #include "kex.h"
 #include "dh.h"
@@ -2360,19 +2360,25 @@ do_ssh1_kex(void)
 	if (rsafail) {
 		int bytes = BN_num_bytes(session_key_int);
 		u_char *buf = xmalloc(bytes);
-		MD5_CTX md;
+		struct ssh_digest_ctx *md;
 
 		logit("do_connection: generating a fake encryption key");
 		BN_bn2bin(session_key_int, buf);
-		MD5_Init(&md);
-		MD5_Update(&md, buf, bytes);
-		MD5_Update(&md, sensitive_data.ssh1_cookie, SSH_SESSION_KEY_LENGTH);
-		MD5_Final(session_key, &md);
-		MD5_Init(&md);
-		MD5_Update(&md, session_key, 16);
-		MD5_Update(&md, buf, bytes);
-		MD5_Update(&md, sensitive_data.ssh1_cookie, SSH_SESSION_KEY_LENGTH);
-		MD5_Final(session_key + 16, &md);
+		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
+		    ssh_digest_update(md, buf, bytes) < 0 ||
+		    ssh_digest_update(md, sensitive_data.ssh1_cookie,
+		    SSH_SESSION_KEY_LENGTH) < 0 ||
+		    ssh_digest_final(md, session_key, sizeof(session_key)) < 0)
+			fatal("%s: md5 failed", __func__);
+		ssh_digest_free(md);
+		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
+		    ssh_digest_update(md, session_key, 16) < 0 ||
+		    ssh_digest_update(md, sensitive_data.ssh1_cookie,
+		    SSH_SESSION_KEY_LENGTH) < 0 ||
+		    ssh_digest_final(md, session_key + 16,
+		    sizeof(session_key) - 16) < 0)
+			fatal("%s: md5 failed", __func__);
+		ssh_digest_free(md);
 		memset(buf, 0, bytes);
 		free(buf);
 		for (i = 0; i < 16; i++)

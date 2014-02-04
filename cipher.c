@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.94 2014/01/25 10:12:50 dtucker Exp $ */
+/* $OpenBSD: cipher.c,v 1.95 2014/01/27 19:18:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -39,8 +39,6 @@
 
 #include <sys/types.h>
 
-#include <openssl/md5.h>
-
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -49,6 +47,8 @@
 #include "log.h"
 #include "misc.h"
 #include "cipher.h"
+#include "buffer.h"
+#include "digest.h"
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
@@ -436,17 +436,15 @@ void
 cipher_set_key_string(CipherContext *cc, const Cipher *cipher,
     const char *passphrase, int do_encrypt)
 {
-	MD5_CTX md;
 	u_char digest[16];
 
-	MD5_Init(&md);
-	MD5_Update(&md, (const u_char *)passphrase, strlen(passphrase));
-	MD5_Final(digest, &md);
+	if (ssh_digest_memory(SSH_DIGEST_MD5, passphrase, strlen(passphrase),
+	    digest, sizeof(digest)) < 0)
+		fatal("%s: md5 failed", __func__);
 
 	cipher_init(cc, cipher, digest, 16, NULL, 0, do_encrypt);
 
 	memset(digest, 0, sizeof(digest));
-	memset(&md, 0, sizeof(md));
 }
 
 /*

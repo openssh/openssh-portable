@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect1.c,v 1.72 2013/09/02 22:00:34 deraadt Exp $ */
+/* $OpenBSD: sshconnect1.c,v 1.73 2014/01/27 19:18:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -19,7 +19,6 @@
 #include <sys/socket.h>
 
 #include <openssl/bn.h>
-#include <openssl/md5.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -47,6 +46,7 @@
 #include "canohost.h"
 #include "hostfile.h"
 #include "auth.h"
+#include "digest.h"
 
 /* Session id for the current session. */
 u_char session_id[16];
@@ -161,7 +161,7 @@ static void
 respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 {
 	u_char buf[32], response[16];
-	MD5_CTX md;
+	struct ssh_digest_ctx *md;
 	int i, len;
 
 	/* Decrypt the challenge using the private key. */
@@ -179,10 +179,12 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 
 	memset(buf, 0, sizeof(buf));
 	BN_bn2bin(challenge, buf + sizeof(buf) - len);
-	MD5_Init(&md);
-	MD5_Update(&md, buf, 32);
-	MD5_Update(&md, session_id, 16);
-	MD5_Final(response, &md);
+	if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
+	    ssh_digest_update(md, buf, 32) < 0 ||
+	    ssh_digest_update(md, session_id, 16) < 0 ||
+	    ssh_digest_final(md, response, sizeof(response)) < 0)
+		fatal("%s: md5 failed", __func__);
+	ssh_digest_free(md);
 
 	debug("Sending response to host key RSA challenge.");
 

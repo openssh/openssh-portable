@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.181 2013/12/19 01:19:41 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.182 2014/01/27 19:18:54 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,7 +50,6 @@
 #include "openbsd-compat/sys-queue.h"
 
 #include <openssl/evp.h>
-#include <openssl/md5.h>
 #include "openbsd-compat/openssl-compat.h"
 
 #include <errno.h>
@@ -75,6 +74,7 @@
 #include "compat.h"
 #include "log.h"
 #include "misc.h"
+#include "digest.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -248,7 +248,7 @@ process_authentication_challenge1(SocketEntry *e)
 	Identity *id;
 	int i, len;
 	Buffer msg;
-	MD5_CTX md;
+	struct ssh_digest_ctx *md;
 	Key *key;
 
 	buffer_init(&msg);
@@ -284,10 +284,12 @@ process_authentication_challenge1(SocketEntry *e)
 		}
 		memset(buf, 0, 32);
 		BN_bn2bin(challenge, buf + 32 - len);
-		MD5_Init(&md);
-		MD5_Update(&md, buf, 32);
-		MD5_Update(&md, session_id, 16);
-		MD5_Final(mdbuf, &md);
+		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
+		    ssh_digest_update(md, buf, 32) < 0 ||
+		    ssh_digest_update(md, session_id, 16) < 0 ||
+		    ssh_digest_final(md, mdbuf, sizeof(mdbuf)) < 0)
+			fatal("%s: md5 failed", __func__);
+		ssh_digest_free(md);
 
 		/* Send the response. */
 		buffer_put_char(&msg, SSH_AGENT_RSA_RESPONSE);
