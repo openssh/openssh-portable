@@ -1,4 +1,4 @@
-/* $OpenBSD: digest.c,v 1.4 2014/01/27 18:58:14 markus Exp $ */
+/* $OpenBSD: digest-openssl.c,v 1.1 2014/01/28 20:13:46 markus Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *

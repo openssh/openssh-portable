@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2014/01/27 19:18:54
      [auth-rsa.c cipher.c ssh-agent.c sshconnect1.c sshd.c]
      replace openssl MD5 with our ssh_digest_*; ok djm@
+   - markus@cvs.openbsd.org 2014/01/27 20:13:46
+     [digest.c digest-openssl.c digest-libc.c Makefile.in]
+     rename digest.c to digest-openssl.c and add libc variant; ok djm@
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
