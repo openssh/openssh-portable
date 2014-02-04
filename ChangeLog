@@ -66,6 +66,7 @@
      canonicalisation to unbreak case-sensitive matching of ssh_config;
      reported by Ike Devolder; ok markus@
  - (djm) [openbsd-compat/Makefile.in] Add missing explicit_bzero.o
+ - (djm) [regress/setuid-allowed.c] Missing string.h for strerror()
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
