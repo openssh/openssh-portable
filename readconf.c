@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.215 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.216 2014/01/29 06:18:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -145,7 +145,7 @@ typedef enum {
 	oSendEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
-	oVisualHostKey, oUseRoaming, oZeroKnowledgePasswordAuthentication,
+	oVisualHostKey, oUseRoaming,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
@@ -252,12 +252,6 @@ static struct {
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
 	{ "useroaming", oUseRoaming },
-#ifdef JPAKE
-	{ "zeroknowledgepasswordauthentication",
-	    oZeroKnowledgePasswordAuthentication },
-#else
-	{ "zeroknowledgepasswordauthentication", oUnsupported },
-#endif
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
@@ -802,10 +796,6 @@ parse_time:
 
 	case oPasswordAuthentication:
 		intptr = &options->password_authentication;
-		goto parse_flag;
-
-	case oZeroKnowledgePasswordAuthentication:
-		intptr = &options->zero_knowledge_password_authentication;
 		goto parse_flag;
 
 	case oKbdInteractiveAuthentication:
@@ -1550,7 +1540,6 @@ initialize_options(Options * options)
 	options->permit_local_command = -1;
 	options->use_roaming = -1;
 	options->visual_host_key = -1;
-	options->zero_knowledge_password_authentication = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
@@ -1706,8 +1695,6 @@ fill_default_options(Options * options)
 		options->use_roaming = 1;
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
-	if (options->zero_knowledge_password_authentication == -1)
-		options->zero_knowledge_password_authentication = 0;
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_LOWDELAY;
 	if (options->ip_qos_bulk == -1)

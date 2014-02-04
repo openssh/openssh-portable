@@ -20,6 +20,11 @@
      they are equivalent, but SUSv2 describes the latter as having undefined
      behaviour; from portable; ok dtucker
      (Id sync only; change is already in portable)
+   - djm@cvs.openbsd.org 2014/01/29 06:18:35
+     [Makefile.in auth.h auth2-jpake.c auth2.c jpake.c jpake.h monitor.c]
+     [monitor.h monitor_wrap.c monitor_wrap.h readconf.c readconf.h]
+     [schnorr.c schnorr.h servconf.c servconf.h ssh2.h sshconnect2.c]
+     remove experimental, never-enabled JPAKE code; ok markus@
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
