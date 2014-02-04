@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.257 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: clientloop.c,v 1.258 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1761,7 +1761,7 @@ client_input_stdout_data(int type, u_int32_t seq, void *ctxt)
 	char *data = packet_get_string(&data_len);
 	packet_check_eom();
 	buffer_append(&stdout_buffer, data, data_len);
-	memset(data, 0, data_len);
+	explicit_bzero(data, data_len);
 	free(data);
 }
 static void
@@ -1771,7 +1771,7 @@ client_input_stderr_data(int type, u_int32_t seq, void *ctxt)
 	char *data = packet_get_string(&data_len);
 	packet_check_eom();
 	buffer_append(&stderr_buffer, data, data_len);
-	memset(data, 0, data_len);
+	explicit_bzero(data, data_len);
 	free(data);
 }
 static void

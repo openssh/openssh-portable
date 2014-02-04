@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.203 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.204 2014/02/02 03:44:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -869,7 +869,7 @@ userauth_passwd(Authctxt *authctxt)
 	packet_put_cstring(authctxt->method->name);
 	packet_put_char(0);
 	packet_put_cstring(password);
-	memset(password, 0, strlen(password));
+	explicit_bzero(password, strlen(password));
 	free(password);
 	packet_add_padding(64);
 	packet_send();
@@ -915,7 +915,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	    authctxt->server_user, host);
 	password = read_passphrase(prompt, 0);
 	packet_put_cstring(password);
-	memset(password, 0, strlen(password));
+	explicit_bzero(password, strlen(password));
 	free(password);
 	password = NULL;
 	while (password == NULL) {
@@ -932,16 +932,16 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 		    authctxt->server_user, host);
 		retype = read_passphrase(prompt, 0);
 		if (strcmp(password, retype) != 0) {
-			memset(password, 0, strlen(password));
+			explicit_bzero(password, strlen(password));
 			free(password);
 			logit("Mismatch; try again, EOF to quit.");
 			password = NULL;
 		}
-		memset(retype, 0, strlen(retype));
+		explicit_bzero(retype, strlen(retype));
 		free(retype);
 	}
 	packet_put_cstring(password);
-	memset(password, 0, strlen(password));
+	explicit_bzero(password, strlen(password));
 	free(password);
 	packet_add_padding(64);
 	packet_send();
@@ -1126,7 +1126,7 @@ load_identity_file(char *filename, int userprovided)
 				debug2("no passphrase given, try next key");
 				quit = 1;
 			}
-			memset(passphrase, 0, strlen(passphrase));
+			explicit_bzero(passphrase, strlen(passphrase));
 			free(passphrase);
 			if (private != NULL || quit)
 				break;
@@ -1385,7 +1385,7 @@ input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 		response = read_passphrase(prompt, echo ? RP_ECHO : 0);
 
 		packet_put_cstring(response);
-		memset(response, 0, strlen(response));
+		explicit_bzero(response, strlen(response));
 		free(response);
 		free(prompt);
 	}
@@ -1555,7 +1555,7 @@ userauth_hostbased(Authctxt *authctxt)
 	packet_put_cstring(chost);
 	packet_put_cstring(authctxt->local_user);
 	packet_put_string(signature, slen);
-	memset(signature, 's', slen);
+	explicit_bzero(signature, slen);
 	free(signature);
 	free(chost);
 	free(pkalg);

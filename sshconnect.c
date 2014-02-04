@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.244 2014/01/09 23:26:48 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.245 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1299,7 +1299,7 @@ ssh_put_password(char *password)
 	padded = xcalloc(1, size);
 	strlcpy(padded, password, size);
 	packet_put_string(padded, size);
-	memset(padded, 0, size);
+	explicit_bzero(padded, size);
 	free(padded);
 }
 

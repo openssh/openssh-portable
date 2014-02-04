@@ -44,6 +44,15 @@
      [openbsd-compat/explicit_bzero.c openbsd-compat/openbsd-compat.h]
      replace most bzero with explicit_bzero, except a few that cna be memset
      ok djm dtucker
+   - djm@cvs.openbsd.org 2014/02/02 03:44:32
+     [auth1.c auth2-chall.c auth2-passwd.c authfile.c bufaux.c bufbn.c]
+     [buffer.c cipher-3des1.c cipher.c clientloop.c gss-serv.c kex.c]
+     [kexdhc.c kexdhs.c kexecdhc.c kexgexc.c kexecdhs.c kexgexs.c key.c]
+     [monitor.c monitor_wrap.c packet.c readpass.c rsa.c serverloop.c]
+     [ssh-add.c ssh-agent.c ssh-dss.c ssh-ecdsa.c ssh-ed25519.c]
+     [ssh-keygen.c ssh-rsa.c sshconnect.c sshconnect1.c sshconnect2.c]
+     [sshd.c]
+     convert memset of potentially-private data to explicit_bzero()
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)

@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.55 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: bufaux.c,v 1.56 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -346,7 +346,7 @@ buffer_get_bignum2_as_string_ret(Buffer *buffer, u_int *length_ptr)
 	}
 	ret = xmalloc(len);
 	memcpy(ret, p, len);
-	memset(p, '\0', len);
+	explicit_bzero(p, len);
 	free(bin);
 	return ret;
 }
@@ -383,7 +383,7 @@ buffer_put_bignum2_from_string(Buffer *buffer, const u_char *s, u_int l)
 	}
 	memcpy(p, s, l);
 	buffer_put_string(buffer, buf, l + pad);
-	memset(buf, '\0', l + pad);
+	explicit_bzero(buf, l + pad);
 	free(buf);
 }
 

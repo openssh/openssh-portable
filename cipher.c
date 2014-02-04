@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.95 2014/01/27 19:18:54 markus Exp $ */
+/* $OpenBSD: cipher.c,v 1.96 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -337,7 +337,7 @@ cipher_init(CipherContext *cc, const Cipher *cipher,
 		if (EVP_Cipher(&cc->evp, discard, junk,
 		    cipher->discard_len) == 0)
 			fatal("evp_crypt: EVP_Cipher failed during discard");
-		memset(discard, 0, cipher->discard_len);
+		explicit_bzero(discard, cipher->discard_len);
 		free(junk);
 		free(discard);
 	}
@@ -422,7 +422,7 @@ void
 cipher_cleanup(CipherContext *cc)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		memset(&cc->cp_ctx, 0, sizeof(cc->cp_ctx));
+		explicit_bzero(&cc->cp_ctx, sizeof(cc->cp_ctx));
 	else if (EVP_CIPHER_CTX_cleanup(&cc->evp) == 0)
 		error("cipher_cleanup: EVP_CIPHER_CTX_cleanup failed");
 }
@@ -444,7 +444,7 @@ cipher_set_key_string(CipherContext *cc, const Cipher *cipher,
 
 	cipher_init(cc, cipher, digest, 16, NULL, 0, do_encrypt);
 
-	memset(digest, 0, sizeof(digest));
+	explicit_bzero(digest, sizeof(digest));
 }
 
 /*

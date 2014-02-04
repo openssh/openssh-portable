@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect1.c,v 1.73 2014/01/27 19:18:54 markus Exp $ */
+/* $OpenBSD: sshconnect1.c,v 1.74 2014/02/02 03:44:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -120,7 +120,7 @@ try_agent_authentication(void)
 			 * return a wrong value.
 			 */
 			logit("Authentication agent failed to decrypt challenge.");
-			memset(response, 0, sizeof(response));
+			explicit_bzero(response, sizeof(response));
 		}
 		key_free(key);
 		debug("Sending response to RSA challenge.");
@@ -195,9 +195,9 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 	packet_send();
 	packet_write_wait();
 
-	memset(buf, 0, sizeof(buf));
-	memset(response, 0, sizeof(response));
-	memset(&md, 0, sizeof(md));
+	explicit_bzero(buf, sizeof(buf));
+	explicit_bzero(response, sizeof(response));
+	explicit_bzero(&md, sizeof(md));
 }
 
 /*
@@ -271,7 +271,7 @@ try_rsa_authentication(int idx)
 				debug2("no passphrase given, try next key");
 				quit = 1;
 			}
-			memset(passphrase, 0, strlen(passphrase));
+			explicit_bzero(passphrase, strlen(passphrase));
 			free(passphrase);
 			if (private != NULL || quit)
 				break;
@@ -427,7 +427,7 @@ try_challenge_response_authentication(void)
 		}
 		packet_start(SSH_CMSG_AUTH_TIS_RESPONSE);
 		ssh_put_password(response);
-		memset(response, 0, strlen(response));
+		explicit_bzero(response, strlen(response));
 		free(response);
 		packet_send();
 		packet_write_wait();
@@ -460,7 +460,7 @@ try_password_authentication(char *prompt)
 		password = read_passphrase(prompt, 0);
 		packet_start(SSH_CMSG_AUTH_PASSWORD);
 		ssh_put_password(password);
-		memset(password, 0, strlen(password));
+		explicit_bzero(password, strlen(password));
 		free(password);
 		packet_send();
 		packet_write_wait();
@@ -652,8 +652,11 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	/* Set the encryption key. */
 	packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, options.cipher);
 
-	/* We will no longer need the session key here.  Destroy any extra copies. */
-	memset(session_key, 0, sizeof(session_key));
+	/*
+	 * We will no longer need the session key here.
+	 * Destroy any extra copies.
+	 */
+	explicit_bzero(session_key, sizeof(session_key));
 
 	/*
 	 * Expect a success message from the server.  Note that this message

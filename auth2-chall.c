@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.40 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.41 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -312,7 +312,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	res = kbdintctxt->device->respond(kbdintctxt->ctxt, nresp, response);
 
 	for (i = 0; i < nresp; i++) {
-		memset(response[i], 'r', strlen(response[i]));
+		explicit_bzero(response[i], strlen(response[i]));
 		free(response[i]);
 	}
 	free(response);

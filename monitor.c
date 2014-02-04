@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.130 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: monitor.c,v 1.131 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -858,7 +858,7 @@ mm_answer_authpassword(int sock, Buffer *m)
 	/* Only authenticate if the context is valid */
 	authenticated = options.password_authentication &&
 	    auth_password(authctxt, passwd);
-	memset(passwd, 0, strlen(passwd));
+	explicit_bzero(passwd, strlen(passwd));
 	free(passwd);
 
 	buffer_clear(m);
@@ -1800,13 +1800,13 @@ monitor_apply_keystate(struct monitor *pmonitor)
 	/* XXX inefficient for large buffers, need: buffer_init_from_string */
 	buffer_clear(packet_get_input());
 	buffer_append(packet_get_input(), child_state.input, child_state.ilen);
-	memset(child_state.input, 0, child_state.ilen);
+	explicit_bzero(child_state.input, child_state.ilen);
 	free(child_state.input);
 
 	buffer_clear(packet_get_output());
 	buffer_append(packet_get_output(), child_state.output,
 		      child_state.olen);
-	memset(child_state.output, 0, child_state.olen);
+	explicit_bzero(child_state.output, child_state.olen);
 	free(child_state.output);
 
 	/* Roaming */

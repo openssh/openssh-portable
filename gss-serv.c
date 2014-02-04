@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-serv.c,v 1.24 2013/07/20 01:55:13 djm Exp $ */
+/* $OpenBSD: gss-serv.c,v 1.25 2014/02/02 03:44:31 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -346,7 +346,8 @@ ssh_gssapi_userok(char *user)
 			gss_release_buffer(&lmin, &gssapi_client.displayname);
 			gss_release_buffer(&lmin, &gssapi_client.exportedname);
 			gss_release_cred(&lmin, &gssapi_client.creds);
-			memset(&gssapi_client, 0, sizeof(ssh_gssapi_client));
+			explicit_bzero(&gssapi_client,
+			    sizeof(ssh_gssapi_client));
 			return 0;
 		}
 	else

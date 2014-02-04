@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.102 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: authfile.c,v 1.103 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -131,7 +131,7 @@ key_private_to_blob2(Key *prv, Buffer *blob, const char *passphrase,
 		buffer_put_int(&kdf, rounds);
 	}
 	cipher_init(&ctx, c, key, keylen, key + keylen , ivlen, 1);
-	memset(key, 0, keylen + ivlen);
+	explicit_bzero(key, keylen + ivlen);
 	free(key);
 
 	buffer_init(&encoded);
@@ -143,7 +143,7 @@ key_private_to_blob2(Key *prv, Buffer *blob, const char *passphrase,
 	key_to_blob(prv, &cp, &len);			/* public key */
 	buffer_put_string(&encoded, cp, len);
 
-	memset(cp, 0, len);
+	explicit_bzero(cp, len);
 	free(cp);
 
 	buffer_free(&kdf);
@@ -409,7 +409,7 @@ key_parse_private2(Buffer *blob, int type, const char *passphrase,
 	free(salt);
 	free(comment);
 	if (key)
-		memset(key, 0, keylen + ivlen);
+		explicit_bzero(key, keylen + ivlen);
 	free(key);
 	buffer_free(&encoded);
 	buffer_free(&copy);
@@ -496,10 +496,10 @@ key_private_rsa1_to_blob(Key *key, Buffer *blob, const char *passphrase,
 	    buffer_ptr(&buffer), buffer_len(&buffer), 0, 0) != 0)
 		fatal("%s: cipher_crypt failed", __func__);
 	cipher_cleanup(&ciphercontext);
-	memset(&ciphercontext, 0, sizeof(ciphercontext));
+	explicit_bzero(&ciphercontext, sizeof(ciphercontext));
 
 	/* Destroy temporary data. */
-	memset(buf, 0, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 	buffer_free(&buffer);
 
 	buffer_append(blob, buffer_ptr(&encrypted), buffer_len(&encrypted));
@@ -831,7 +831,7 @@ key_parse_private_rsa1(Buffer *blob, const char *passphrase, char **commentp)
 	    buffer_ptr(&copy), buffer_len(&copy), 0, 0) != 0)
 		fatal("%s: cipher_crypt failed", __func__);
 	cipher_cleanup(&ciphercontext);
-	memset(&ciphercontext, 0, sizeof(ciphercontext));
+	explicit_bzero(&ciphercontext, sizeof(ciphercontext));
 	buffer_free(&copy);
 
 	check1 = buffer_get_char(&decrypted);

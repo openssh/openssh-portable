@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.182 2014/01/27 19:18:54 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.183 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -554,7 +554,7 @@ process_lock_agent(SocketEntry *e, int lock)
 	passwd = buffer_get_string(&e->request, NULL);
 	if (locked && !lock && strcmp(passwd, lock_passwd) == 0) {
 		locked = 0;
-		memset(lock_passwd, 0, strlen(lock_passwd));
+		explicit_bzero(lock_passwd, strlen(lock_passwd));
 		free(lock_passwd);
 		lock_passwd = NULL;
 		success = 1;
@@ -563,7 +563,7 @@ process_lock_agent(SocketEntry *e, int lock)
 		lock_passwd = xstrdup(passwd);
 		success = 1;
 	}
-	memset(passwd, 0, strlen(passwd));
+	explicit_bzero(passwd, strlen(passwd));
 	free(passwd);
 
 	buffer_put_int(&e->output, 1);

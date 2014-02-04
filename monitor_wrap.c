@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.78 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.79 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -572,7 +572,7 @@ mm_newkeys_to_blob(int mode, u_char **blobp, u_int *lenp)
 		*blobp = xmalloc(len);
 		memcpy(*blobp, buffer_ptr(&b), len);
 	}
-	memset(buffer_ptr(&b), 0, len);
+	explicit_bzero(buffer_ptr(&b), len);
 	buffer_free(&b);
 	return len;
 }
@@ -616,7 +616,7 @@ mm_send_keystate(struct monitor *monitor)
 		key = xmalloc(keylen+1);	/* add 1 if keylen == 0 */
 		keylen = packet_get_encryption_key(key);
 		buffer_put_string(&m, key, keylen);
-		memset(key, 0, keylen);
+		explicit_bzero(key, keylen);
 		free(key);
 
 		ivlen = packet_get_keyiv_len(MODE_OUT);
