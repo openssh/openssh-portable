@@ -5,6 +5,8 @@
 *.pub
 actual
 authorized_keys_*
+batch
+copy.dd*
 data
 expect
 host.rsa*
