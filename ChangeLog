@@ -14,6 +14,12 @@
      [ssh-keyscan.1]
      kill some bad Pa;
      From: Jan Stary
+   - djm@cvs.openbsd.org 2014/01/29 00:19:26
+     [sshd.c]
+     use kill(0, ...) instead of killpg(0, ...); on most operating systems
+     they are equivalent, but SUSv2 describes the latter as having undefined
+     behaviour; from portable; ok dtucker
+     (Id sync only; change is already in portable)
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
