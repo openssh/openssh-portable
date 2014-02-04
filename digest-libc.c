@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-libc.c,v 1.1 2014/01/28 20:13:46 markus Exp $ */
+/* $OpenBSD: digest-libc.c,v 1.2 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
@@ -209,9 +209,9 @@ ssh_digest_free(struct ssh_digest_ctx *ctx)
 	if (ctx != NULL) {
 		digest = ssh_digest_by_alg(ctx->alg);
 		if (digest) {
-			memset(ctx->mdctx, 0, digest->ctx_len);
+			explicit_bzero(ctx->mdctx, digest->ctx_len);
 			free(ctx->mdctx);
-			memset(ctx, 0, sizeof(*ctx));
+			explicit_bzero(ctx, sizeof(*ctx));
 			free(ctx);
 		}
 	}

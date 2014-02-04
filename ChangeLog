@@ -57,6 +57,9 @@
      [ssh-ecdsa.c]
      fix memory leak; ECDSA_SIG_new() allocates 'r' and 's' for us, unlike
      DSA_SIG_new. Reported by Batz Spear; ok markus@
+   - djm@cvs.openbsd.org 2014/02/02 03:44:31
+     [digest-libc.c digest-openssl.c]
+     convert memset of potentially-private data to explicit_bzero()
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)

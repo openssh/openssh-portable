@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-openssl.c,v 1.1 2014/01/28 20:13:46 markus Exp $ */
+/* $OpenBSD: digest-openssl.c,v 1.2 2014/02/02 03:44:31 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -140,7 +140,7 @@ ssh_digest_free(struct ssh_digest_ctx *ctx)
 {
 	if (ctx != NULL) {
 		EVP_MD_CTX_cleanup(&ctx->mdctx);
-		memset(ctx, 0, sizeof(*ctx));
+		explicit_bzero(ctx, sizeof(*ctx));
 		free(ctx);
 	}
 }
