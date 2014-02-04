@@ -10,6 +10,10 @@
    - markus@cvs.openbsd.org 2014/01/27 20:13:46
      [digest.c digest-openssl.c digest-libc.c Makefile.in]
      rename digest.c to digest-openssl.c and add libc variant; ok djm@
+   - jmc@cvs.openbsd.org 2014/01/28 14:13:39
+     [ssh-keyscan.1]
+     kill some bad Pa;
+     From: Jan Stary
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
