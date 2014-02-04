@@ -1,3 +1,10 @@
+20140204
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2014/01/27 18:58:14
+     [Makefile.in digest.c digest.h hostfile.c kex.h mac.c hmac.c hmac.h]
+     replace openssl HMAC with an implementation based on our ssh_digest_*
+     ok and feedback djm@
+
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
    syscall from sandboxes; it may be called by packet_close.
