@@ -25,6 +25,12 @@
      [monitor.h monitor_wrap.c monitor_wrap.h readconf.c readconf.h]
      [schnorr.c schnorr.h servconf.c servconf.h ssh2.h sshconnect2.c]
      remove experimental, never-enabled JPAKE code; ok markus@
+   - jmc@cvs.openbsd.org 2014/01/29 14:04:51
+     [sshd_config.5]
+     document kbdinteractiveauthentication;
+     requested From: Ross L Richardson
+     
+     dtucker/markus helped explain its workings;
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
