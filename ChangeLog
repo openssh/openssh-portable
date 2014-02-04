@@ -60,6 +60,11 @@
    - djm@cvs.openbsd.org 2014/02/02 03:44:31
      [digest-libc.c digest-openssl.c]
      convert memset of potentially-private data to explicit_bzero()
+   - djm@cvs.openbsd.org 2014/02/04 00:24:29
+     [ssh.c]
+     delay lowercasing of hostname until right before hostname
+     canonicalisation to unbreak case-sensitive matching of ssh_config;
+     reported by Ike Devolder; ok markus@
 
 20140131
  - (djm) [sandbox-seccomp-filter.c sandbox-systrace.c] Allow shutdown(2)
