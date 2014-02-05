@@ -1,3 +1,7 @@
+20140206
+ - (dtucker) [openbsd-compat/bsd-poll.c] Don't bother checking for non-NULL
+   before freeing since free(NULL) is a no-op.  ok djm.
+
 20140205
  - (djm) [sandbox-capsicum.c] Don't fatal if Capsicum is offered by
    headers/libc but not supported by the kernel. Patch from Loganaden
