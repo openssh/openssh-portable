@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.245 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.246 2014/02/06 22:21:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -269,7 +269,7 @@ static int
 ssh_create_socket(int privileged, struct addrinfo *ai)
 {
 	int sock, r, gaierr;
-	struct addrinfo hints, *res;
+	struct addrinfo hints, *res = NULL;
 
 	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (sock < 0) {
@@ -282,17 +282,19 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	if (options.bind_address == NULL && !privileged)
 		return sock;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = ai->ai_family;
-	hints.ai_socktype = ai->ai_socktype;
-	hints.ai_protocol = ai->ai_protocol;
-	hints.ai_flags = AI_PASSIVE;
-	gaierr = getaddrinfo(options.bind_address, NULL, &hints, &res);
-	if (gaierr) {
-		error("getaddrinfo: %s: %s", options.bind_address,
-		    ssh_gai_strerror(gaierr));
-		close(sock);
-		return -1;
+	if (options.bind_address) {
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = ai->ai_family;
+		hints.ai_socktype = ai->ai_socktype;
+		hints.ai_protocol = ai->ai_protocol;
+		hints.ai_flags = AI_PASSIVE;
+		gaierr = getaddrinfo(options.bind_address, NULL, &hints, &res);
+		if (gaierr) {
+			error("getaddrinfo: %s: %s", options.bind_address,
+			    ssh_gai_strerror(gaierr));
+			close(sock);
+			return -1;
+		}
 	}
 	/*
 	 * If we are running as root and want to connect to a privileged
@@ -300,7 +302,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	 */
 	if (privileged) {
 		PRIV_START;
-		r = bindresvport_sa(sock, res->ai_addr);
+		r = bindresvport_sa(sock, res ? res->ai_addr : NULL);
 		PRIV_END;
 		if (r < 0) {
 			error("bindresvport_sa: af=%d %s", ai->ai_family,
@@ -317,7 +319,8 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 			return -1;
 		}
 	}
-	freeaddrinfo(res);
+	if (res != NULL)
+		freeaddrinfo(res);
 	return sock;
 }
 

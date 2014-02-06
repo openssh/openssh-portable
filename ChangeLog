@@ -4,6 +4,11 @@
      [ssh-keygen.1 ssh-keygen.c]
      tweak synopsis: calling ssh-keygen without any arguments is fine; ok jmc@
      while here, fix ordering in usage(); requested by jmc@
+   - djm@cvs.openbsd.org 2014/02/06 22:21:01
+     [sshconnect.c]
+     in ssh_create_socket(), only do the getaddrinfo for BindAddress when
+     BindAddress is actually specified. Fixes regression in 6.5 for
+     UsePrivilegedPort=yes; patch from Corinna Vinschen
 
 20140206
  - (dtucker) [openbsd-compat/bsd-poll.c] Don't bother checking for non-NULL
