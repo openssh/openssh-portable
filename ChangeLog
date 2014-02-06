@@ -1,3 +1,10 @@
+20140207
+ - OpenBSD CVS Sync
+   - naddy@cvs.openbsd.org 2014/02/05 20:13:25
+     [ssh-keygen.1 ssh-keygen.c]
+     tweak synopsis: calling ssh-keygen without any arguments is fine; ok jmc@
+     while here, fix ordering in usage(); requested by jmc@
+
 20140206
  - (dtucker) [openbsd-compat/bsd-poll.c] Don't bother checking for non-NULL
    before freeing since free(NULL) is a no-op.  ok djm.

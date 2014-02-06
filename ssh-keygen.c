@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.240 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.241 2014/02/05 20:13:25 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2196,8 +2196,8 @@ usage(void)
 	fprintf(stderr, "  -v          Verbose.\n");
 	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
 	fprintf(stderr, "  -y          Read private key file and print public key.\n");
-	fprintf(stderr, "  -z serial   Specify a serial number.\n");
 	fprintf(stderr, "  -Z cipher   Specify a cipher for new private key format.\n");
+	fprintf(stderr, "  -z serial   Specify a serial number.\n");
 
 	exit(1);
 }
