@@ -1,6 +1,8 @@
 20140206
  - (dtucker) [openbsd-compat/bsd-poll.c] Don't bother checking for non-NULL
    before freeing since free(NULL) is a no-op.  ok djm.
+ - (djm) [sandbox-seccomp-filter.c] Not all Linux architectures define
+   __NR_shutdown; some go via the socketcall(2) multiplexer.
 
 20140205
  - (djm) [sandbox-capsicum.c] Don't fatal if Capsicum is offered by
