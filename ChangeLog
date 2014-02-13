@@ -1,3 +1,7 @@
+20140213
+ - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]  Add compat
+   code for older OpenSSL versions that don't have EVP_MD_CTX_copy_ex.
+
 20140207
  - OpenBSD CVS Sync
    - naddy@cvs.openbsd.org 2014/02/05 20:13:25
