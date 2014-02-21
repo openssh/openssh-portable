@@ -1,3 +1,6 @@
+20140221
+ - (tim) [configure.ac]  Fix cut-and-paste error. Patch from Bryan Drewery.
+
 20140213
  - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]  Add compat
    code for older OpenSSL versions that don't have EVP_MD_CTX_copy_ex.

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.570 2014/02/13 05:38:33 dtucker Exp $
+# $Id: configure.ac,v 1.571 2014/02/21 17:09:34 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.570 $)
+AC_REVISION($Revision: 1.571 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -785,7 +785,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	# Preauth crypto occasionally uses file descriptors for crypto offload
 	# and will crash if they cannot be opened.
 	AC_DEFINE([SANDBOX_SKIP_RLIMIT_NOFILE], [1],
-	    [define if setrlimit RLIMIT_NOFILE breaks things])],
+	    [define if setrlimit RLIMIT_NOFILE breaks things])
 	;;
 *-*-bsdi*)
 	AC_DEFINE([SETEUID_BREAKS_SETUID])
