@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.216 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.217 2014/02/22 01:32:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -537,16 +537,27 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    "r", ruser,
 			    "u", pw->pw_name,
 			    (char *)NULL);
-			r = execute_in_shell(cmd);
-			if (r == -1) {
-				fatal("%.200s line %d: match exec '%.100s' "
-				    "error", filename, linenum, cmd);
-			} else if (r == 0) {
-				debug("%.200s line %d: matched "
-				    "'exec \"%.100s\"' ",
+			if (result != 1) {
+				/* skip execution if prior predicate failed */
+				debug("%.200s line %d: skipped exec \"%.100s\"",
 				    filename, linenum, cmd);
-			} else
-				result = 0;
+			} else {
+				r = execute_in_shell(cmd);
+				if (r == -1) {
+					fatal("%.200s line %d: match exec "
+					    "'%.100s' error", filename,
+					    linenum, cmd);
+				} else if (r == 0) {
+					debug("%.200s line %d: matched "
+					    "'exec \"%.100s\"'", filename,
+					    linenum, cmd);
+				} else {
+					debug("%.200s line %d: no match "
+					    "'exec \"%.100s\"'", filename,
+					    linenum, cmd);
+					result = 0;
+				}
+			}
 			free(cmd);
 		} else {
 			error("Unsupported Match attribute %s", attrib);

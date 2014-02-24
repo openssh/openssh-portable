@@ -8,9 +8,10 @@
      [channels.c]
      avoid spurious "getsockname failed: Bad file descriptor" errors in ssh -W;
      bz#2200, debian#738692 via Colin Watson; ok dtucker@
-
-20140221
- - (tim) [configure.ac]  Fix cut-and-paste error. Patch from Bryan Drewery.
+   - djm@cvs.openbsd.org 2014/02/22 01:32:19
+     [readconf.c]
+     when processing Match blocks, skip 'exec' clauses if previous predicates
+     failed to match; ok markus@
 
 20140213
  - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]  Add compat
