@@ -16,6 +16,22 @@
      [ssh-ed25519.c]
      check for unsigned overflow; not reachable in OpenSSH but others might
      copy our code...
+   - djm@cvs.openbsd.org 2014/02/23 20:11:36
+     [readconf.c readconf.h ssh.c ssh_config.5]
+     reparse ssh_config and ~/.ssh/config if hostname canonicalisation changes
+     the hostname. This allows users to write configurations that always
+     refer to canonical hostnames, e.g.
+     
+     CanonicalizeHostname yes
+     CanonicalDomains int.example.org example.org
+     CanonicalizeFallbackLocal no
+     
+     Host *.int.example.org
+         Compression off
+     Host *.example.org
+         User djm
+     
+     ok markus@
 
 20140213
  - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]  Add compat
