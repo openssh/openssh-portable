@@ -12,6 +12,10 @@
      [readconf.c]
      when processing Match blocks, skip 'exec' clauses if previous predicates
      failed to match; ok markus@
+   - djm@cvs.openbsd.org 2014/02/23 20:03:42
+     [ssh-ed25519.c]
+     check for unsigned overflow; not reachable in OpenSSH but others might
+     copy our code...
 
 20140213
  - (dtucker) [configure.ac openbsd-compat/openssl-compat.{c,h}]  Add compat
