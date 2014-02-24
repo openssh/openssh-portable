@@ -4,6 +4,10 @@
      [cipher.c mac.c]
      remove some logging that makes ssh debugging output very verbose;
      ok markus
+   - djm@cvs.openbsd.org 2014/02/15 23:05:36
+     [channels.c]
+     avoid spurious "getsockname failed: Bad file descriptor" errors in ssh -W;
+     bz#2200, debian#738692 via Colin Watson; ok dtucker@
 
 20140221
  - (tim) [configure.ac]  Fix cut-and-paste error. Patch from Bryan Drewery.
