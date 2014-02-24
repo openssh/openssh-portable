@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.27 2014/01/27 18:58:14 markus Exp $ */
+/* $OpenBSD: mac.c,v 1.28 2014/02/07 06:55:54 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -136,9 +136,10 @@ mac_setup(Mac *mac, char *name)
 	for (m = macs; m->name != NULL; m++) {
 		if (strcmp(name, m->name) != 0)
 			continue;
-		if (mac != NULL)
+		if (mac != NULL) {
 			mac_setup_by_alg(mac, m);
-		debug2("mac_setup: found %s", name);
+			debug2("mac_setup: setup %s", name);
+		}
 		return (0);
 	}
 	debug2("mac_setup: unknown %s", name);
@@ -149,7 +150,7 @@ int
 mac_init(Mac *mac)
 {
 	if (mac->key == NULL)
-		fatal("mac_init: no key");
+		fatal("%s: no key", __func__);
 	switch (mac->type) {
 	case SSH_DIGEST:
 		if (mac->hmac_ctx == NULL ||
@@ -237,8 +238,6 @@ mac_valid(const char *names)
 			debug("bad mac %s [%s]", p, names);
 			free(maclist);
 			return (0);
-		} else {
-			debug3("mac ok: %s [%s]", p, names);
 		}
 	}
 	debug3("macs ok: [%s]", names);

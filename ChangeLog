@@ -1,3 +1,10 @@
+20140224
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/02/07 06:55:54
+     [cipher.c mac.c]
+     remove some logging that makes ssh debugging output very verbose;
+     ok markus
+
 20140221
  - (tim) [configure.ac]  Fix cut-and-paste error. Patch from Bryan Drewery.
 
