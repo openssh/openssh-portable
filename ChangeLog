@@ -1,3 +1,10 @@
+20140227
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/02/26 20:18:37
+     [ssh.c]
+     bz#2205: avoid early hostname lookups unless canonicalisation is enabled;
+     ok dtucker@ markus@
+
 20140224
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/02/07 06:55:54

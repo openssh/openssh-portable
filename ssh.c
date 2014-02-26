@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.400 2014/02/23 20:11:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.401 2014/02/26 20:18:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -899,12 +899,20 @@ main(int ac, char **av)
 		addrs = resolve_canonicalize(&host, options.port);
 
 	/*
-	 * If canonicalization not requested, or if it failed then try to
-	 * resolve the bare hostname name using the system resolver's usual
-	 * search rules. Skip the lookup if a ProxyCommand is being used
-	 * unless the user has specifically requested canonicalisation.
+	 * If CanonicalizePermittedCNAMEs have been specified but
+	 * other canonicalization did not happen (by not being requested
+	 * or by failing with fallback) then the hostname may still be changed
+	 * as a result of CNAME following. 
+	 *
+	 * Try to resolve the bare hostname name using the system resolver's
+	 * usual search rules and then apply the CNAME follow rules.
+	 *
+	 * Skip the lookup if a ProxyCommand is being used unless the user
+	 * has specifically requested canonicalisation for this case via
+	 * CanonicalizeHostname=always
 	 */
-	if (addrs == NULL && (option_clear_or_none(options.proxy_command) ||
+	if (addrs == NULL && options.num_permitted_cnames != 0 &&
+	    (option_clear_or_none(options.proxy_command) ||
             options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
 		if ((addrs = resolve_host(host, options.port, 1,
 		    cname, sizeof(cname))) == NULL)
@@ -999,6 +1007,16 @@ main(int ac, char **av)
 		fatal("No ControlPath specified for \"-O\" command");
 	if (options.control_path != NULL)
 		muxclient(options.control_path);
+
+	/*
+	 * If hostname canonicalisation was not enabled, then we may not
+	 * have yet resolved the hostname. Do so now.
+	 */
+	if (addrs == NULL && options.proxy_command == NULL) {
+		if ((addrs = resolve_host(host, options.port, 1,
+		    cname, sizeof(cname))) == NULL)
+			cleanup_exit(255); /* resolve_host logs the error */
+	}
 
 	timeout_ms = options.connection_timeout * 1000;
 
