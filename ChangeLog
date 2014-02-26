@@ -9,6 +9,10 @@
      bz#2107 - cache OIDs of supported GSSAPI mechanisms before privsep
      sandboxing, as running this code in the sandbox can cause violations;
      ok markus@
+   - djm@cvs.openbsd.org 2014/02/26 20:29:29
+     [channels.c]
+     don't assume that the socks4 username is \0 terminated;
+     spotted by Ben Hawkes; ok markus@
 
 20140224
  - OpenBSD CVS Sync
