@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.419 2014/02/26 20:28:44 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.420 2014/02/26 21:53:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -618,9 +618,11 @@ privsep_preauth_child(void)
 	/* Enable challenge-response authentication for privilege separation */
 	privsep_challenge_enable();
 
+#ifdef GSSAPI
 	/* Cache supported mechanism OIDs for later use */
 	if (options.gss_authentication)
 		ssh_gssapi_prepare_supported_oids();
+#endif
 
 	arc4random_stir();
 	arc4random_buf(rnd, sizeof(rnd));

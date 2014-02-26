@@ -13,6 +13,9 @@
      [channels.c]
      don't assume that the socks4 username is \0 terminated;
      spotted by Ben Hawkes; ok markus@
+   - markus@cvs.openbsd.org 2014/02/26 21:53:37
+     [sshd.c]
+     ssh_gssapi_prepare_supported_oids needs GSSAPI
 
 20140224
  - OpenBSD CVS Sync
