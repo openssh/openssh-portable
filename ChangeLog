@@ -4,6 +4,9 @@
      [bufbn.c]
      fix unsigned overflow that could lead to reading a short ssh protocol
      1 bignum value; found by Ben Hawkes; ok deraadt@
+   - djm@cvs.openbsd.org 2014/02/27 08:25:09
+     [bufbn.c]
+     off by one in range check
 
 20140227
  - OpenBSD CVS Sync

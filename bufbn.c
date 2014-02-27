@@ -1,4 +1,4 @@
-/* $OpenBSD: bufbn.c,v 1.10 2014/02/27 00:41:49 djm Exp $*/
+/* $OpenBSD: bufbn.c,v 1.11 2014/02/27 08:25:09 djm Exp $*/
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -108,7 +108,7 @@ buffer_get_bignum_ret(Buffer *buffer, BIGNUM *value)
 		return (-1);
 	}
 	bits = get_u16(buf);
-	if (bits > 65536-7) {
+	if (bits > 65535-7) {
 		error("buffer_get_bignum_ret: cannot handle BN of size %d",
 		    bits);
 		return (-1);
