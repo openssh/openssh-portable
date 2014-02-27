@@ -19,8 +19,11 @@
      Don't use -q on sftp as it suppresses logging, instead redirect the
      output to the regress logfile.
    - dtucker@cvs.openbsd.org 2014/01/20 00:00:30
-     [sftp-chroot.sh]
+     [sregress/ftp-chroot.sh]
      append to rather than truncating the log file
+   - dtucker@cvs.openbsd.org 2014/01/25 04:35:32
+     [regress/Makefile regress/dhgex.sh]
+     Add a test for DH GEX sizes
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
 
