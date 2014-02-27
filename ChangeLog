@@ -34,6 +34,10 @@
      make sure $SCP is tested on the remote end rather than whichever one
      happens to be in $PATH; from portable
      (Id sync only)
+   - djm@cvs.openbsd.org 2014/02/27 20:04:16
+     [login-timeout.sh]
+     remove any existing LoginGraceTime from sshd_config before adding
+     a specific one for the test back in
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
 
