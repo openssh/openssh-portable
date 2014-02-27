@@ -45,6 +45,7 @@
      (Id sync only)
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
+ - (djm) [regress/host-expand.sh] Add RCS Id
 
 20140227
  - OpenBSD CVS Sync
