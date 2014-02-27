@@ -38,6 +38,11 @@
      [login-timeout.sh]
      remove any existing LoginGraceTime from sshd_config before adding
      a specific one for the test back in
+   - djm@cvs.openbsd.org 2014/02/27 21:21:25
+     [agent-ptrace.sh agent.sh]
+     keep return values that are printed in error messages;
+     from portable
+     (Id sync only)
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
 
