@@ -29,6 +29,11 @@
      automatically generate revoked keys from listed keys rather than
      manually specifying each type; from portable
      (Id sync only)
+   - djm@cvs.openbsd.org 2014/01/26 10:49:17
+     [scp-ssh-wrapper.sh scp.sh]
+     make sure $SCP is tested on the remote end rather than whichever one
+     happens to be in $PATH; from portable
+     (Id sync only)
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
 
