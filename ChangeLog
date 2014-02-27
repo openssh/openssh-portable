@@ -24,6 +24,11 @@
    - dtucker@cvs.openbsd.org 2014/01/25 04:35:32
      [regress/Makefile regress/dhgex.sh]
      Add a test for DH GEX sizes
+   - djm@cvs.openbsd.org 2014/01/26 10:22:10
+     [regress/cert-hostkey.sh]
+     automatically generate revoked keys from listed keys rather than
+     manually specifying each type; from portable
+     (Id sync only)
  - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Crank version numbers
 
