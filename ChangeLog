@@ -1,3 +1,10 @@
+20140228
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/02/27 00:41:49
+     [bufbn.c]
+     fix unsigned overflow that could lead to reading a short ssh protocol
+     1 bignum value; found by Ben Hawkes; ok deraadt@
+
 20140227
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/02/26 20:18:37
