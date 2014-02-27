@@ -11,6 +11,9 @@
      [sshd_config.5]
      bz#2184 clarify behaviour of a keyword that appears in multiple
      matching Match blocks; ok dtucker@
+   - djm@cvs.openbsd.org 2014/02/27 22:57:40
+     [version.h]
+     openssh-6.6
 
 20140227
  - OpenBSD CVS Sync
