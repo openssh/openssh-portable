@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-chroot.sh,v 1.3 2014/01/19 23:43:02 dtucker Exp $
+#	$OpenBSD: sftp-chroot.sh,v 1.4 2014/01/20 00:00:30 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sftp in chroot"
@@ -19,7 +19,7 @@ start_sshd -oChrootDirectory=$CHROOT -oForceCommand="internal-sftp -d /"
 
 verbose "test $tid: get"
 ${SFTP} -S "$SSH" -F $OBJ/ssh_config host:/${FILENAME} $COPY \
-    >$TEST_REGRESS_LOGFILE 2>&1 || \
+    >>$TEST_REGRESS_LOGFILE 2>&1 || \
 	fatal "Fetch ${FILENAME} failed"
 cmp $PRIVDATA $COPY || fail "$PRIVDATA $COPY differ"
 
