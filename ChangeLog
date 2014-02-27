@@ -14,6 +14,8 @@
    - djm@cvs.openbsd.org 2014/02/27 22:57:40
      [version.h]
      openssh-6.6
+ - (djm) [README contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+   [contrib/suse/openssh.spec] Crank version numbers
 
 20140227
  - OpenBSD CVS Sync
