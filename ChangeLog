@@ -7,6 +7,10 @@
    - djm@cvs.openbsd.org 2014/02/27 08:25:09
      [bufbn.c]
      off by one in range check
+   - djm@cvs.openbsd.org 2014/02/27 22:47:07
+     [sshd_config.5]
+     bz#2184 clarify behaviour of a keyword that appears in multiple
+     matching Match blocks; ok dtucker@
 
 20140227
  - OpenBSD CVS Sync
