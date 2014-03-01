@@ -1,3 +1,7 @@
+20140301
+ - (djm) [regress/Makefile] Disable dhgex regress test; it breaks when
+   no moduli file exists at the expected location.
+
 20140228
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/02/27 00:41:49
