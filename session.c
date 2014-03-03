@@ -978,6 +978,11 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 	u_int envsize;
 	u_int i, namelen;
 
+	if (strchr(name, '=') != NULL) {
+		error("Invalid environment variable \"%.100s\"", name);
+		return;
+	}
+
 	/*
 	 * If we're passed an uninitialized list, allocate a single null
 	 * entry before continuing.
@@ -2225,8 +2230,8 @@ session_env_req(Session *s)
 	char *name, *val;
 	u_int name_len, val_len, i;
 
-	name = packet_get_string(&name_len);
-	val = packet_get_string(&val_len);
+	name = packet_get_cstring(&name_len);
+	val = packet_get_cstring(&val_len);
 	packet_check_eom();
 
 	/* Don't set too many environment variables */

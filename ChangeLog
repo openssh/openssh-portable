@@ -1,3 +1,10 @@
+20140304
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/03/03 22:22:30
+     [session.c]
+     ignore enviornment variables with embedded '=' or '\0' characters;
+     spotted by Jann Horn; ok deraadt@
+
 20140301
  - (djm) [regress/Makefile] Disable dhgex regress test; it breaks when
    no moduli file exists at the expected location.
