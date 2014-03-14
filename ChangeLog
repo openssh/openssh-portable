@@ -1,3 +1,6 @@
+20140314
+ - (tim) [opensshd.init.in] Add support for ed25519
+
 20140313
  - (djm) Release OpenSSH 6.6
 
