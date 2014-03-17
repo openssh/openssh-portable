@@ -1,3 +1,7 @@
+20140317
+ - (djm) [sandbox-seccomp-filter.c] Soft-fail stat() syscalls. Add XXX to
+   remind myself to add sandbox violation logging via the log socket.
+
 20140314
  - (tim) [opensshd.init.in] Add support for ed25519
 
