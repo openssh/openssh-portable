@@ -1,3 +1,7 @@
+20140401
+ - (djm) On platforms that support it, use prctl() to prevent sftp-server
+   from accessing /proc/self/{mem,maps}; patch from jann AT thejh.net
+
 20140317
  - (djm) [sandbox-seccomp-filter.c] Soft-fail stat() syscalls. Add XXX to
    remind myself to add sandbox violation logging via the log socket.
