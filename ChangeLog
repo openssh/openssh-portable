@@ -5,6 +5,9 @@
      ignore enviornment variables with embedded '=' or '\0' characters;
      spotted by Jann Horn; ok deraadt@
      Id sync only - portable already has this.
+   - djm@cvs.openbsd.org 2014/03/12 04:44:58
+     [ssh-keyscan.c]
+     scan for Ed25519 keys by default too
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

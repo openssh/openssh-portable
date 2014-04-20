@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.89 2013/12/06 13:39:49 markus Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.90 2014/03/12 04:44:58 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -58,7 +58,7 @@ int ssh_port = SSH_DEFAULT_PORT;
 #define KT_ECDSA	8
 #define KT_ED25519	16
 
-int get_keytypes = KT_RSA|KT_ECDSA;/* Get RSA and ECDSA keys by default */
+int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519;
 
 int hash_hosts = 0;		/* Hash hostname on output */
 
