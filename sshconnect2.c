@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.204 2014/02/02 03:44:32 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.205 2014/03/27 23:01:27 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -156,6 +156,7 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port)
 void
 ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 {
+	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	Kex *kex;
 
 	xxx_host = host;

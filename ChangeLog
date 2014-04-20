@@ -32,6 +32,25 @@
      [scp.1]
      there is no need for rcp anymore
      ok deraadt millert
+   - markus@cvs.openbsd.org 2014/03/25 09:40:03
+     [myproposal.h]
+     trimm default proposals.
+     
+     This commit removes the weaker pre-SHA2 hashes, the broken ciphers
+     (arcfour), and the broken modes (CBC) from the default configuration
+     (the patch only changes the default, all the modes are still available
+     for the config files).
+     
+     ok djm@, reminded by tedu@ & naddy@ and discussed with many
+   - deraadt@cvs.openbsd.org 2014/03/26 17:16:26
+     [myproposal.h]
+     The current sharing of myproposal[] between both client and server code
+     makes the previous diff highly unpallatable.  We want to go in that
+     direction for the server, but not for the client.  Sigh.
+     Brought up by naddy.
+   - markus@cvs.openbsd.org 2014/03/27 23:01:27
+     [myproposal.h ssh-keyscan.c sshconnect2.c sshd.c]
+     disable weak proposals in sshd, but keep them in ssh; ok djm@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
