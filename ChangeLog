@@ -18,6 +18,13 @@
    - naddy@cvs.openbsd.org 2014/03/12 13:06:59
      [ssh-keyscan.1]
      scan for Ed25519 keys by default too
+   - deraadt@cvs.openbsd.org 2014/03/15 17:28:26
+     [ssh-agent.c ssh-keygen.1 ssh-keygen.c]
+     Improve usage() and documentation towards the standard form. 
+     In particular, this line saves a lot of man page reading time.
+       usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa | rsa1]
+                         [-N new_passphrase] [-C comment] [-f output_keyfile]
+     ok schwarze jmc
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

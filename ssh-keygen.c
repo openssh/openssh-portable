@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.242 2014/03/12 04:50:32 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.243 2014/03/15 17:28:26 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2149,56 +2149,35 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [options]\n", __progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -A          Generate non-existent host keys for all key types.\n");
-	fprintf(stderr, "  -a number   Number of KDF rounds for new key format or moduli primality tests.\n");
-	fprintf(stderr, "  -B          Show bubblebabble digest of key file.\n");
-	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
-	fprintf(stderr, "  -C comment  Provide new comment.\n");
-	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
+	fprintf(stderr,
+	    "usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa | rsa1]\n"
+	    "                  [-N new_passphrase] [-C comment] [-f output_keyfile]\n"
+	    "       ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]\n"
+	    "       ssh-keygen -i [-m key_format] [-f input_keyfile]\n"
+	    "       ssh-keygen -e [-m key_format] [-f input_keyfile]\n"
+	    "       ssh-keygen -y [-f input_keyfile]\n"
+	    "       ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]\n"
+	    "       ssh-keygen -l [-f input_keyfile]\n"
+	    "       ssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
-	fprintf(stderr, "  -D pkcs11   Download public key from pkcs11 token.\n");
+	fprintf(stderr,
+	    "       ssh-keygen -D pkcs11\n");
 #endif
-	fprintf(stderr, "  -e          Export OpenSSH to foreign format key file.\n");
-	fprintf(stderr, "  -F hostname Find hostname in known hosts file.\n");
-	fprintf(stderr, "  -f filename Filename of the key file.\n");
-	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
-	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
-	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
-	fprintf(stderr, "  -h          Generate host certificate instead of a user certificate.\n");
-	fprintf(stderr, "  -I key_id   Key identifier to include in certificate.\n");
-	fprintf(stderr, "  -i          Import foreign format to OpenSSH key file.\n");
-	fprintf(stderr, "  -J number   Screen this number of moduli lines.\n");
-	fprintf(stderr, "  -j number   Start screening moduli at specified line.\n");
-	fprintf(stderr, "  -K checkpt  Write checkpoints to this file.\n");
-	fprintf(stderr, "  -k          Generate a KRL file.\n");
-	fprintf(stderr, "  -L          Print the contents of a certificate.\n");
-	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
-	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
-	fprintf(stderr, "  -m key_fmt  Conversion format for -e/-i (PEM|PKCS8|RFC4716).\n");
-	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
-	fprintf(stderr, "  -n name,... User/host principal names to include in certificate\n");
-	fprintf(stderr, "  -O option   Specify a certificate option.\n");
-	fprintf(stderr, "  -o          Enforce new private key format.\n");
-	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
-	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
-	fprintf(stderr, "  -Q          Test whether key(s) are revoked in KRL.\n");
-	fprintf(stderr, "  -q          Quiet.\n");
-	fprintf(stderr, "  -R hostname Remove host from known_hosts file.\n");
-	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
-	fprintf(stderr, "  -S start    Start point (hex) for generating DH-GEX moduli.\n");
-	fprintf(stderr, "  -s ca_key   Certify keys with CA key.\n");
-	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli.\n");
-	fprintf(stderr, "  -t type     Specify type of key to create.\n");
-	fprintf(stderr, "  -u          Update KRL rather than creating a new one.\n");
-	fprintf(stderr, "  -V from:to  Specify certificate validity interval.\n");
-	fprintf(stderr, "  -v          Verbose.\n");
-	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
-	fprintf(stderr, "  -y          Read private key file and print public key.\n");
-	fprintf(stderr, "  -Z cipher   Specify a cipher for new private key format.\n");
-	fprintf(stderr, "  -z serial   Specify a serial number.\n");
-
+	fprintf(stderr,
+	    "       ssh-keygen -F hostname [-f known_hosts_file] [-l]\n"
+	    "       ssh-keygen -H [-f known_hosts_file]\n"
+	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
+	    "       ssh-keygen -r hostname [-f input_keyfile] [-g]\n"
+	    "       ssh-keygen -G output_file [-v] [-b bits] [-M memory] [-S start_point]\n"
+	    "       ssh-keygen -T output_file -f input_file [-v] [-a rounds] [-J num_lines]\n"
+	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
+	    "       ssh-keygen -s ca_key -I certificate_identity [-h] [-n principals]\n"
+	    "                  [-O option] [-V validity_interval] [-z serial_number] file ...\n"
+	    "       ssh-keygen -L [-f input_keyfile]\n"
+	    "       ssh-keygen -A\n"
+	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
+	    "                  file ...\n"
+	    "       ssh-keygen -Q -f krl_file file ...\n");
 	exit(1);
 }
 

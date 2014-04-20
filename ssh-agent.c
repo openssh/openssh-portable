@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.183 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.184 2014/03/15 17:28:26 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1001,15 +1001,10 @@ check_parent_exists(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [options] [command [arg ...]]\n",
-	    __progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -c          Generate C-shell commands on stdout.\n");
-	fprintf(stderr, "  -s          Generate Bourne shell commands on stdout.\n");
-	fprintf(stderr, "  -k          Kill the current agent.\n");
-	fprintf(stderr, "  -d          Debug mode.\n");
-	fprintf(stderr, "  -a socket   Bind agent socket to given name.\n");
-	fprintf(stderr, "  -t life     Default identity lifetime (seconds).\n");
+	fprintf(stderr,
+	    "usage: ssh-agent [-c | -s] [-d] [-a bind_address] [-t life]\n"
+	    "                 [command [arg ...]]\n"
+	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
 
