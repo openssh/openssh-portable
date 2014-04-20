@@ -25,6 +25,13 @@
        usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa | rsa1]
                          [-N new_passphrase] [-C comment] [-f output_keyfile]
      ok schwarze jmc
+   - tedu@cvs.openbsd.org 2014/03/17 19:44:10
+     [ssh.1]
+     old descriptions of des and blowfish are old. maybe ok deraadt
+   - tedu@cvs.openbsd.org 2014/03/19 14:42:44
+     [scp.1]
+     there is no need for rcp anymore
+     ok deraadt millert
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
