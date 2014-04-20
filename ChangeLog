@@ -89,6 +89,10 @@
      [sshd.c]
      avoid crash at exit: check that pmonitor!=NULL before dereferencing;
      bz#2225, patch from kavi AT juniper.net
+   - djm@cvs.openbsd.org 2014/04/16 23:22:45
+     [bufaux.c]
+     skip leading zero bytes in buffer_put_bignum2_from_string();
+     reported by jan AT mojzis.com; ok markus@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
