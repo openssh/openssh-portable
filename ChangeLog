@@ -61,6 +61,10 @@
    - tedu@cvs.openbsd.org 2014/03/26 19:58:37
      [sshd.8 sshd.c]
      remove libwrap support. ok deraadt djm mfriedl
+   - naddy@cvs.openbsd.org 2014/03/28 05:17:11
+     [ssh_config.5 sshd_config.5]
+     sync available and default algorithms, improve algorithm list formatting
+     help from jmc@ and schwarze@, ok deraadt@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
