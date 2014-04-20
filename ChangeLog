@@ -126,6 +126,10 @@
      [misc.c misc.h umac.c]
      use get/put_u32 to load values rather than *((UINT32 *)p) that breaks on
      strict-alignment architectures; reported by and ok stsp@
+   - djm@cvs.openbsd.org 2014/04/20 02:49:32
+     [compat.c]
+     add a canonical 6.6 + curve25519 bignum fix fake version that I can
+     recommend people use ahead of the openssh-6.7 release
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
