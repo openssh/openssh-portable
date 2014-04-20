@@ -1,3 +1,11 @@
+20140420
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/03/03 22:22:30
+     [session.c]
+     ignore enviornment variables with embedded '=' or '\0' characters;
+     spotted by Jann Horn; ok deraadt@
+     Id sync only - portable already has this.
+
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
    from accessing /proc/self/{mem,maps}; patch from jann AT thejh.net
