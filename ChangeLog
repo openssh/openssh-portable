@@ -108,6 +108,9 @@
      versions.
      
      reported by Aris Adamantiadis; ok markus@
+   - djm@cvs.openbsd.org 2014/04/19 05:54:59
+     [compat.c]
+     missing wildcard; pointed out by naddy@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

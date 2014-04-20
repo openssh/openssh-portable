@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.83 2014/04/18 23:52:25 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.84 2014/04/19 05:54:59 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -96,7 +96,7 @@ compat_datafellows(const char *version)
 		{ "OpenSSH_4*",		0 },
 		{ "OpenSSH_5*",		SSH_NEW_OPENSSH|SSH_BUG_DYNAMIC_RPORT},
 		{ "OpenSSH_6.5*,"
-		  "OpenSSH_6.6",	SSH_NEW_OPENSSH|SSH_BUG_CURVE25519PAD},
+		  "OpenSSH_6.6*",	SSH_NEW_OPENSSH|SSH_BUG_CURVE25519PAD},
 		{ "OpenSSH*",		SSH_NEW_OPENSSH },
 		{ "*MindTerm*",		0 },
 		{ "2.1.0*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
