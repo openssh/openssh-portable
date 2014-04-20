@@ -98,6 +98,16 @@
      remove the identity files from this manpage - ssh-agent doesn't deal
      with them at all and the same information is duplicated in ssh-add.1
      (which does deal with them); prodded by deraadt@
+   - djm@cvs.openbsd.org 2014/04/18 23:52:25
+     [compat.c compat.h sshconnect2.c sshd.c version.h]
+     OpenSSH 6.5 and 6.6 have a bug that causes ~0.2% of connections
+     using the curve25519-sha256@libssh.org KEX exchange method to fail
+     when connecting with something that implements the spec properly.
+     
+     Disable this KEX method when speaking to one of the affected
+     versions.
+     
+     reported by Aris Adamantiadis; ok markus@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
