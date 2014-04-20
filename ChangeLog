@@ -65,6 +65,10 @@
      [ssh_config.5 sshd_config.5]
      sync available and default algorithms, improve algorithm list formatting
      help from jmc@ and schwarze@, ok deraadt@
+   - jmc@cvs.openbsd.org 2014/03/31 13:39:34
+     [ssh-keygen.1]
+     the text for the -K option was inserted in the wrong place in -r1.108;
+     fix From: Matthew Clarke
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
