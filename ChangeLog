@@ -15,6 +15,9 @@
    - djm@cvs.openbsd.org 2014/03/12 04:51:12
      [authfile.c]
      correct test that kdf name is not "none" or "bcrypt"
+   - naddy@cvs.openbsd.org 2014/03/12 13:06:59
+     [ssh-keyscan.1]
+     scan for Ed25519 keys by default too
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
