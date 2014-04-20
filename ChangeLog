@@ -73,6 +73,15 @@
      [ssh-keysign.c]
      include fingerprint of key not found
      use arc4random_buf() instead of loop+arc4random()
+   - djm@cvs.openbsd.org 2014/04/01 03:34:10
+     [sshconnect.c]
+     When using VerifyHostKeyDNS with a DNSSEC resolver, down-convert any
+     certificate keys to plain keys and attempt SSHFP resolution.
+     
+     Prevents a server from skipping SSHFP lookup and forcing a new-hostkey
+     dialog by offering only certificate keys.
+     
+     Reported by mcv21 AT cam.ac.uk
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
