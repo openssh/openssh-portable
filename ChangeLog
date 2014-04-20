@@ -8,6 +8,10 @@
    - djm@cvs.openbsd.org 2014/03/12 04:44:58
      [ssh-keyscan.c]
      scan for Ed25519 keys by default too
+   - djm@cvs.openbsd.org 2014/03/12 04:50:32
+     [auth-bsdauth.c ssh-keygen.c]
+     don't count on things that accept arguments by reference to clear
+     things for us on error; most things do, but it's unsafe form.
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.241 2014/02/05 20:13:25 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.242 2014/03/12 04:50:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -408,7 +408,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 	Buffer b;
 	Key *key = NULL;
 	char *type, *cipher;
-	u_char *sig, data[] = "abcde12345";
+	u_char *sig = NULL, data[] = "abcde12345";
 	int magic, rlen, ktype, i1, i2, i3, i4;
 	u_int slen;
 	u_long e;
