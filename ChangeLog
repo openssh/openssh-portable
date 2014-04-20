@@ -93,6 +93,11 @@
      [bufaux.c]
      skip leading zero bytes in buffer_put_bignum2_from_string();
      reported by jan AT mojzis.com; ok markus@
+   - djm@cvs.openbsd.org 2014/04/16 23:28:12
+     [ssh-agent.1]
+     remove the identity files from this manpage - ssh-agent doesn't deal
+     with them at all and the same information is duplicated in ssh-add.1
+     (which does deal with them); prodded by deraadt@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
