@@ -69,6 +69,10 @@
      [ssh-keygen.1]
      the text for the -K option was inserted in the wrong place in -r1.108;
      fix From: Matthew Clarke
+   - djm@cvs.openbsd.org 2014/04/01 02:05:27
+     [ssh-keysign.c]
+     include fingerprint of key not found
+     use arc4random_buf() instead of loop+arc4random()
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
