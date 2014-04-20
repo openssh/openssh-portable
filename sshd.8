@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.273 2013/12/07 11:58:46 naddy Exp $
-.Dd $Mdocdate: December 7 2013 $
+.\" $OpenBSD: sshd.8,v 1.274 2014/03/26 19:58:37 tedu Exp $
+.Dd $Mdocdate: March 26 2014 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -851,12 +851,6 @@ the user's home directory becomes accessible.
 This file should be writable only by the user, and need not be
 readable by anyone else.
 .Pp
-.It Pa /etc/hosts.allow
-.It Pa /etc/hosts.deny
-Access controls that should be enforced by tcp-wrappers are defined here.
-Further details are described in
-.Xr hosts_access 5 .
-.Pp
 .It Pa /etc/hosts.equiv
 This file is for host-based authentication (see
 .Xr ssh 1 ) .
@@ -960,7 +954,6 @@ The content of this file is not sensitive; it can be world-readable.
 .Xr ssh-keygen 1 ,
 .Xr ssh-keyscan 1 ,
 .Xr chroot 2 ,
-.Xr hosts_access 5 ,
 .Xr login.conf 5 ,
 .Xr moduli 5 ,
 .Xr sshd_config 5 ,

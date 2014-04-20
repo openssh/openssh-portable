@@ -58,6 +58,9 @@
      longform __attribute__(__bounded(...));
      
      for brevity and a warning free compilation with llvm/clang
+   - tedu@cvs.openbsd.org 2014/03/26 19:58:37
+     [sshd.8 sshd.c]
+     remove libwrap support. ok deraadt djm mfriedl
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
