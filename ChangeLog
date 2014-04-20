@@ -85,6 +85,10 @@
    - djm@cvs.openbsd.org 2014/04/01 05:32:57
      [packet.c]
      demote a debug3 to PACKET_DEBUG; ok markus@
+   - djm@cvs.openbsd.org 2014/04/12 04:55:53
+     [sshd.c]
+     avoid crash at exit: check that pmonitor!=NULL before dereferencing;
+     bz#2225, patch from kavi AT juniper.net
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
