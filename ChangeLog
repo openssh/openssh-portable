@@ -12,6 +12,9 @@
      [auth-bsdauth.c ssh-keygen.c]
      don't count on things that accept arguments by reference to clear
      things for us on error; most things do, but it's unsafe form.
+   - djm@cvs.openbsd.org 2014/03/12 04:51:12
+     [authfile.c]
+     correct test that kdf name is not "none" or "bcrypt"
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

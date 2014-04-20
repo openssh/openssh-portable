@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.103 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.104 2014/03/12 04:51:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -281,7 +281,7 @@ key_parse_private2(Buffer *blob, int type, const char *passphrase,
 	}
 	kdfname = buffer_get_cstring_ret(&copy, NULL);
 	if (kdfname == NULL ||
-	    (!strcmp(kdfname, "none") && !strcmp(kdfname, "bcrypt"))) {
+	    (strcmp(kdfname, "none") != 0 && strcmp(kdfname, "bcrypt") != 0)) {
 		error("%s: unknown kdf name", __func__);
 		goto out;
 	}
