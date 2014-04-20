@@ -118,6 +118,10 @@
    - tedu@cvs.openbsd.org 2014/04/19 18:15:16
      [sshd.8]
      remove some really old rsh references
+   - tedu@cvs.openbsd.org 2014/04/19 18:42:19
+     [ssh.1]
+     delete .xr to hosts.equiv. there's still an unfortunate amount of
+     documentation referring to rhosts equivalency in here.
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
