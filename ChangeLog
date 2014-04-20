@@ -1,3 +1,14 @@
+20140420
+ - (djm) [bufaux.c compat.c compat.h sshconnect2.c sshd.c version.h]
+   OpenSSH 6.5 and 6.6 sometimes encode a value used in the curve25519
+   key exchange incorrectly, causing connection failures about 0.2% of
+   the time when this method is used against a peer that implements
+   the method properly.
+
+   Fix the problem and disable the curve25519 KEX when speaking to
+   OpenSSH 6.5 or 6.6. This version will identify itself as 6.6.1
+   to enable the compatability code.
+
 20140313
  - (djm) Release OpenSSH 6.6
 
