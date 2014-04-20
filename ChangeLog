@@ -115,6 +115,9 @@
      [ssh-keysign.c sshd.c]
      Delete futile calls to RAND_seed. ok djm
      NB. Id sync only. This only applies to OpenBSD's libcrypto slashathon
+   - tedu@cvs.openbsd.org 2014/04/19 18:15:16
+     [sshd.8]
+     remove some really old rsh references
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

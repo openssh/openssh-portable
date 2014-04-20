@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.274 2014/03/26 19:58:37 tedu Exp $
-.Dd $Mdocdate: March 26 2014 $
+.\" $OpenBSD: sshd.8,v 1.275 2014/04/19 18:15:16 tedu Exp $
+.Dd $Mdocdate: April 19 2014 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -60,10 +60,7 @@
 .Nm
 (OpenSSH Daemon) is the daemon program for
 .Xr ssh 1 .
-Together these programs replace
-.Xr rlogin 1
-and
-.Xr rsh 1 ,
+Together these programs replace rlogin and rsh,
 and provide secure encrypted communications between two untrusted hosts
 over an insecure network.
 .Pp
@@ -970,14 +967,3 @@ Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 Niels Provos and Markus Friedl contributed support
 for privilege separation.
-.Sh CAVEATS
-System security is not improved unless
-.Nm rshd ,
-.Nm rlogind ,
-and
-.Nm rexecd
-are disabled (thus completely disabling
-.Xr rlogin
-and
-.Xr rsh
-into the machine).
