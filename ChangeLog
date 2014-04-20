@@ -51,6 +51,13 @@
    - markus@cvs.openbsd.org 2014/03/27 23:01:27
      [myproposal.h ssh-keyscan.c sshconnect2.c sshd.c]
      disable weak proposals in sshd, but keep them in ssh; ok djm@
+   - djm@cvs.openbsd.org 2014/03/26 04:55:35
+     [chacha.h cipher-chachapoly.h digest.h hmac.h kex.h kexc25519.c
+     [misc.h poly1305.h ssh-pkcs11.c]
+     use __bounded(...) attribute recently added to sys/cdefs.h instead of
+     longform __attribute__(__bounded(...));
+     
+     for brevity and a warning free compilation with llvm/clang
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server

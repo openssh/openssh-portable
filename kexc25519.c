@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.5 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.6 2014/03/26 04:55:35 djm Exp $ */
 /*
  * Copyright (c) 2001, 2013 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -45,9 +45,9 @@
 
 extern int crypto_scalarmult_curve25519(u_char a[CURVE25519_SIZE],
     const u_char b[CURVE25519_SIZE], const u_char c[CURVE25519_SIZE])
-	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
-	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)))
-	__attribute__((__bounded__(__minbytes__, 3, CURVE25519_SIZE)));
+	__bounded((__minbytes__, 1, CURVE25519_SIZE))
+	__bounded((__minbytes__, 2, CURVE25519_SIZE))
+	__bounded((__minbytes__, 3, CURVE25519_SIZE));
 
 void
 kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])

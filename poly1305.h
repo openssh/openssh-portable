@@ -1,4 +1,4 @@
-/* $OpenBSD: poly1305.h,v 1.2 2013/12/19 22:57:13 djm Exp $ */
+/* $OpenBSD: poly1305.h,v 1.3 2014/03/26 04:55:35 djm Exp $ */
 
 /* 
  * Public Domain poly1305 from Andrew Moon
@@ -15,8 +15,8 @@
 
 void poly1305_auth(u_char out[POLY1305_TAGLEN], const u_char *m, size_t inlen,
     const u_char key[POLY1305_KEYLEN])
-    __attribute__((__bounded__(__minbytes__, 1, POLY1305_TAGLEN)))
-    __attribute__((__bounded__(__buffer__, 2, 3)))
-    __attribute__((__bounded__(__minbytes__, 4, POLY1305_KEYLEN)));
+    __bounded((__minbytes__, 1, POLY1305_TAGLEN))
+    __bounded((__buffer__, 2, 3))
+    __bounded((__minbytes__, 4, POLY1305_KEYLEN));
 
 #endif	/* POLY1305_H */

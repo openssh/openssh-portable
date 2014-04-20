@@ -1,4 +1,4 @@
-/* $OpenBSD: hmac.h,v 1.6 2014/01/27 18:58:14 markus Exp $ */
+/* $OpenBSD: hmac.h,v 1.7 2014/03/26 04:55:35 djm Exp $ */
 /*
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
  *
@@ -26,12 +26,12 @@ struct ssh_hmac_ctx *ssh_hmac_start(int alg);
 
 /* Sets the state of the HMAC or resets the state if key == NULL */
 int ssh_hmac_init(struct ssh_hmac_ctx *ctx, const void *key, size_t klen)
-	__attribute__((__bounded__(__buffer__, 2, 3)));
+	__bounded((__buffer__, 2, 3));
 int ssh_hmac_update(struct ssh_hmac_ctx *ctx, const void *m, size_t mlen)
-	__attribute__((__bounded__(__buffer__, 2, 3)));
+	__bounded((__buffer__, 2, 3));
 int ssh_hmac_update_buffer(struct ssh_hmac_ctx *ctx, const Buffer *b);
 int ssh_hmac_final(struct ssh_hmac_ctx *ctx, u_char *d, size_t dlen)
-	__attribute__((__bounded__(__buffer__, 2, 3)));
+	__bounded((__buffer__, 2, 3));
 void ssh_hmac_free(struct ssh_hmac_ctx *ctx);
 
 #endif /* _HMAC_H */

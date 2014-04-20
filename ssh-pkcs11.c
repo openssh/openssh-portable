@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.11 2013/11/13 13:48:20 markus Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.12 2014/03/26 04:55:35 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -386,7 +386,7 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin)
  */
 static int pkcs11_fetch_keys_filter(struct pkcs11_provider *, CK_ULONG,
     CK_ATTRIBUTE [], CK_ATTRIBUTE [3], Key ***, int *)
-	__attribute__((__bounded__(__minbytes__,4, 3 * sizeof(CK_ATTRIBUTE))));
+	__bounded((__minbytes__,4, 3 * sizeof(CK_ATTRIBUTE)));
 
 static int
 pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
