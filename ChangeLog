@@ -82,6 +82,9 @@
      dialog by offering only certificate keys.
      
      Reported by mcv21 AT cam.ac.uk
+   - djm@cvs.openbsd.org 2014/04/01 05:32:57
+     [packet.c]
+     demote a debug3 to PACKET_DEBUG; ok markus@
 
 20140401
  - (djm) On platforms that support it, use prctl() to prevent sftp-server
