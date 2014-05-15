@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.218 2014/02/23 20:11:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.219 2014/04/23 12:42:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -345,6 +345,7 @@ add_identity_file(Options *options, const char *dir, const char *filename,
     int userprovided)
 {
 	char *path;
+	int i;
 
 	if (options->num_identity_files >= SSH_MAX_IDENTITY_FILES)
 		fatal("Too many identity files specified (max %d)",
@@ -354,6 +355,16 @@ add_identity_file(Options *options, const char *dir, const char *filename,
 		path = xstrdup(filename);
 	else
 		(void)xasprintf(&path, "%.100s%.100s", dir, filename);
+
+	/* Avoid registering duplicates */
+	for (i = 0; i < options->num_identity_files; i++) {
+		if (options->identity_file_userprovided[i] == userprovided &&
+		    strcmp(options->identity_files[i], path) == 0) {
+			debug2("%s: ignoring duplicate key %s", __func__, path);
+			free(path);
+			return;
+		}
+	}
 
 	options->identity_file_userprovided[options->num_identity_files] =
 	    userprovided;
