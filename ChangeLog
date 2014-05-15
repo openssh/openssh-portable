@@ -91,6 +91,12 @@
    portability glue to support building without libcrypto
  - (djm) [Makefile.in configure.ac sshbuf-getput-basic.c]
    [sshbuf-getput-crypto.c sshbuf.c] compilation and portability fixes
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/03/13 20:44:49
+     [login-timeout.sh]
+     this test is a sorry mess of race conditions; add another sleep
+     to avoid a failure on slow machines (at least until I find a
+     better way)
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
