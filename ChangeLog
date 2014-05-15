@@ -1,6 +1,11 @@
 20140519
  - (djm) [rijndael.c rijndael.h] Sync with newly-ressurected versions ine
    OpenBSD
+ - OpenBSD CVS Sync
+   - logan@cvs.openbsd.org 2014/04/20 09:24:26
+     [dns.c dns.h ssh-keygen.c]
+     Add support for SSHFP DNS records for ED25519 key types.
+     OK from djm@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
