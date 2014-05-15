@@ -19,6 +19,9 @@
      [sftp.1]
      Document sftp upload resume.
      OK from djm@, with feedback from okan@.
+   - jmc@cvs.openbsd.org 2014/04/22 14:16:30
+     [sftp.1]
+     zap eol whitespace;
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

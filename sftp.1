@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.98 2014/04/22 12:42:04 logan Exp $
+.\" $OpenBSD: sftp.1,v 1.99 2014/04/22 14:16:30 jmc Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -108,9 +108,9 @@ Forces
 .Nm
 to use IPv6 addresses only.
 .It Fl a
-Attempt to continue interrupted transfers rather than overwriting 
+Attempt to continue interrupted transfers rather than overwriting
 existing partial or complete copies of files.
-If the partial contents differ from those being transferred, 
+If the partial contents differ from those being transferred,
 then the resultant file is likely to be corrupt.
 .It Fl B Ar buffer_size
 Specify the size of the buffer that
@@ -515,10 +515,10 @@ is specified, then
 must specify a directory.
 .Pp
 If the
-.Fl a 
+.Fl a
 flag is specified, then attempt to resume partial
 transfers of existing files.
-Note that resumption assumes that any partial copy of the remote file 
+Note that resumption assumes that any partial copy of the remote file
 matches the local copy.
 If the local file contents differ from the remote local copy then
 the resultant file is likely to be corrupt.
@@ -570,7 +570,7 @@ Resume upload of
 .Op Ar local-path .
 Equivalent to
 .Ic put
-with the  
+with the
 .Fl a
 flag set.
 .It Ic rename Ar oldpath Ar newpath
