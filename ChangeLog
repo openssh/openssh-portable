@@ -6,6 +6,11 @@
      [dns.c dns.h ssh-keygen.c]
      Add support for SSHFP DNS records for ED25519 key types.
      OK from djm@
+   - logan@cvs.openbsd.org 2014/04/21 14:36:16
+     [sftp-client.c sftp-client.h sftp.c]
+     Implement sftp upload resume support.
+     OK from djm@, with input from guenther@, mlarkin@ and
+     okan@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

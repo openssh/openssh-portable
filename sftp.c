@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.158 2013/11/20 20:54:10 deraadt Exp $ */
+/* $OpenBSD: sftp.c,v 1.159 2014/04/21 14:36:16 logan Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -88,7 +88,7 @@ int showprogress = 1;
 /* When this option is set, we always recursively download/upload directories */
 int global_rflag = 0;
 
-/* When this option is set, we resume download if possible */
+/* When this option is set, we resume download or upload if possible */
 int global_aflag = 0;
 
 /* When this option is set, the file transfers will always preserve times */
@@ -159,6 +159,7 @@ enum sftp_command {
 	I_VERSION,
 	I_PROGRESS,
 	I_REGET,
+	I_REPUT
 };
 
 struct CMD {
@@ -201,6 +202,7 @@ static const struct CMD cmds[] = {
 	{ "quit",	I_QUIT,		NOARGS	},
 	{ "reget",	I_REGET,	REMOTE	},
 	{ "rename",	I_RENAME,	REMOTE	},
+	{ "reput",      I_REPUT,        LOCAL   },
 	{ "rm",		I_RM,		REMOTE	},
 	{ "rmdir",	I_RMDIR,	REMOTE	},
 	{ "symlink",	I_SYMLINK,	REMOTE	},
@@ -250,6 +252,7 @@ help(void)
 	    "exit                               Quit sftp\n"
 	    "get [-Ppr] remote [local]          Download file\n"
 	    "reget remote [local]		Resume download file\n"
+	    "reput [local] remote               Resume upload file\n"
 	    "help                               Display this help text\n"
 	    "lcd path                           Change local directory to 'path'\n"
 	    "lls [ls-options [path]]            Display local directory listing\n"
@@ -660,7 +663,7 @@ out:
 
 static int
 process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
-    int pflag, int rflag, int fflag)
+    int pflag, int rflag, int resume, int fflag)
 {
 	char *tmp_dst = NULL;
 	char *abs_dst = NULL;
@@ -723,16 +726,20 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 		}
 		free(tmp);
 
-		if (!quiet)
+                resume |= global_aflag;
+		if (!quiet && resume)
+			printf("Resuming upload of  %s to %s\n", g.gl_pathv[i], 
+				abs_dst);
+		else if (!quiet && !resume)
 			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
 		if (pathname_is_dir(g.gl_pathv[i]) && (rflag || global_rflag)) {
 			if (upload_dir(conn, g.gl_pathv[i], abs_dst,
-			    pflag || global_pflag, 1,
+			    pflag || global_pflag, 1, resume,
 			    fflag || global_fflag) == -1)
 				err = -1;
 		} else {
 			if (do_upload(conn, g.gl_pathv[i], abs_dst,
-			    pflag || global_pflag,
+			    pflag || global_pflag, resume,
 			    fflag || global_fflag) == -1)
 				err = -1;
 		}
@@ -1186,8 +1193,9 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 }
 
 static int
-parse_args(const char **cpp, int *ignore_errors, int *aflag, int *fflag,
-    int *hflag, int *iflag, int *lflag, int *pflag, int *rflag, int *sflag,
+parse_args(const char **cpp, int *ignore_errors, int *aflag,
+	  int *fflag, int *hflag, int *iflag, int *lflag, int *pflag, 
+	  int *rflag, int *sflag,
     unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
@@ -1239,6 +1247,7 @@ parse_args(const char **cpp, int *ignore_errors, int *aflag, int *fflag,
 	switch (cmdnum) {
 	case I_GET:
 	case I_REGET:
+	case I_REPUT:
 	case I_PUT:
 		if ((optidx = parse_getput_flags(cmd, argv, argc,
 		    aflag, fflag, pflag, rflag)) == -1)
@@ -1255,11 +1264,6 @@ parse_args(const char **cpp, int *ignore_errors, int *aflag, int *fflag,
 			*path2 = xstrdup(argv[optidx + 1]);
 			/* Destination is not globbed */
 			undo_glob_escape(*path2);
-		}
-		if (*aflag && cmdnum == I_PUT) {
-			/* XXX implement resume for uploads */
-			error("Resume is not supported for uploads");
-			return -1;
 		}
 		break;
 	case I_LINK:
@@ -1382,7 +1386,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
     int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int ignore_errors = 0, aflag = 0, fflag = 0, hflag = 0, iflag = 0;
+	int ignore_errors = 0, aflag = 0, fflag = 0, hflag = 0, 
+	iflag = 0;
 	int lflag = 0, pflag = 0, rflag = 0, sflag = 0;
 	int cmdnum, i;
 	unsigned long n_arg = 0;
@@ -1415,9 +1420,12 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		err = process_get(conn, path1, path2, *pwd, pflag,
 		    rflag, aflag, fflag);
 		break;
+	case I_REPUT:
+		aflag = 1;
+		/* FALLTHROUGH */
 	case I_PUT:
 		err = process_put(conn, path1, path2, *pwd, pflag,
-		    rflag, fflag);
+		    rflag, aflag, fflag);
 		break;
 	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
