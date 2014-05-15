@@ -31,6 +31,11 @@
      buffer_get_string_ptr's return should be const to remind
      callers that futzing with it will futz with the actual buffer
      contents
+   - djm@cvs.openbsd.org 2014/04/29 13:10:30
+     [clientloop.c serverloop.c]
+     bz#1818 - don't send channel success/failre replies on channels that
+     have sent a close already; analysis and patch from Simon Tatham;
+     ok markus@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
