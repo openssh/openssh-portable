@@ -17,6 +17,8 @@
 
 /* Utility functions/framework for regress tests */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/param.h>
 
@@ -30,7 +32,9 @@
 
 #include <openssl/bn.h>
 
-#include <vis.h>
+#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
+# include <vis.h>
+#endif
 
 #include "test_helper.h"
 

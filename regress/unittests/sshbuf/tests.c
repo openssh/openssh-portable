@@ -5,7 +5,7 @@
  * Placed in the public domain
  */
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 void sshbuf_tests(void);
 void sshbuf_getput_basic_tests(void);

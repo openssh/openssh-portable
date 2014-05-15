@@ -5,6 +5,9 @@
  * Placed in the public domain
  */
 
+#define SSHBUF_INTERNAL 1	/* access internals for testing */
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdio.h>
@@ -12,10 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 #include "ssherr.h"
-#define SSHBUF_INTERNAL 1	/* access internals for testing */
 #include "sshbuf.h"
 
 void sshbuf_tests(void);

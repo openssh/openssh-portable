@@ -5,6 +5,8 @@
  * Placed in the public domain
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <stdio.h>
@@ -16,7 +18,7 @@
 #include <openssl/ec.h>
 #include <openssl/objects.h>
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 #include "ssherr.h"
 #include "sshbuf.h"
 

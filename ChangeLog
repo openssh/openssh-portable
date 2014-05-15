@@ -127,6 +127,18 @@
    [regress/unittests/test_helper/test_helper.c]
    [regress/unittests/test_helper/test_helper.h]
    Import new unit tests from OpenBSD; not yet hooked up to build.
+ - (djm) [regress/Makefile Makefile.in]
+   [regress/unittests/sshbuf/test_sshbuf.c
+   [regress/unittests/sshbuf/test_sshbuf_fixed.c]
+   [regress/unittests/sshbuf/test_sshbuf_fuzz.c]
+   [regress/unittests/sshbuf/test_sshbuf_getput_basic.c]
+   [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c]
+   [regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c]
+   [regress/unittests/sshbuf/test_sshbuf_misc.c]
+   [regress/unittests/sshbuf/tests.c]
+   [regress/unittests/test_helper/fuzz.c]
+   [regress/unittests/test_helper/test_helper.c]
+   Hook new unit tests into the build and "make tests"
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

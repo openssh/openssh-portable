@@ -1,6 +1,6 @@
 #	$OpenBSD: Makefile,v 1.68 2014/01/25 04:35:32 dtucker Exp $
 
-REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t-exec
+REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t-exec
 tests:		$(REGRESS_TARGETS)
 
 # Interop tests are not run by default
@@ -180,3 +180,7 @@ t-exec-interop:	${INTEROP_TESTS:=.sh}
 
 # Not run by default
 interop: ${INTEROP_TARGETS}
+
+# Unit tests, built by top-level Makefile
+unit:
+	${.OBJDIR}/unittests/sshbuf/test_sshbuf

@@ -17,6 +17,8 @@
 
 /* Utility functions/framework for fuzz tests */
 
+#include "includes.h"
+
 #include <sys/types.h>
 
 #include <assert.h>
