@@ -1,7 +1,8 @@
-#	$OpenBSD: integrity.sh,v 1.12 2013/11/21 03:18:51 djm Exp $
+#	$OpenBSD: integrity.sh,v 1.13 2014/04/21 22:15:37 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
+cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
 # start at byte 2900 (i.e. after kex) and corrupt at different offsets
 # XXX the test hangs if we modify the low bytes of the packet length
@@ -34,11 +35,15 @@ for m in $macs; do
 			# avoid modifying the high bytes of the length
 			continue
 		fi
+		cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 		# modify output from sshd at offset $off
 		pxy="proxycommand=$cmd | $OBJ/modpipe -wm xor:$off:1"
 		if ssh -Q cipher-auth | grep "^${m}\$" >/dev/null 2>&1 ; then
+			echo "Ciphers=$m" >> $OBJ/sshd_proxy
 			macopt="-c $m"
 		else
+			echo "Ciphers=aes128-ctr" >> $OBJ/sshd_proxy
+			echo "MACs=$m" >> $OBJ/sshd_proxy
 			macopt="-m $m -c aes128-ctr"
 		fi
 		verbose "test $tid: $m @$off"

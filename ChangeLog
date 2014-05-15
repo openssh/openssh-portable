@@ -97,6 +97,11 @@
      this test is a sorry mess of race conditions; add another sleep
      to avoid a failure on slow machines (at least until I find a
      better way)
+   - djm@cvs.openbsd.org 2014/04/21 22:15:37
+     [dhgex.sh integrity.sh kextype.sh rekey.sh try-ciphers.sh]
+     repair regress tests broken by server-side default cipher/kex/mac changes
+     by ensuring that the option under test is included in the server's
+     algorithm list
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
