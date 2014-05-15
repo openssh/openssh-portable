@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.52 2014/04/20 02:30:25 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.53 2014/05/02 03:27:54 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -70,23 +70,23 @@ int	 tun_open(int, int);
 
 /* Functions to extract or store big-endian words of various sizes */
 u_int64_t	get_u64(const void *)
-    __bounded(( __minbytes__, 1, 8));
+    __attribute__((__bounded__( __minbytes__, 1, 8)));
 u_int32_t	get_u32(const void *)
-    __bounded(( __minbytes__, 1, 4));
+    __attribute__((__bounded__( __minbytes__, 1, 4)));
 u_int16_t	get_u16(const void *)
-    __bounded(( __minbytes__, 1, 2));
+    __attribute__((__bounded__( __minbytes__, 1, 2)));
 void		put_u64(void *, u_int64_t)
-    __bounded(( __minbytes__, 1, 8));
+    __attribute__((__bounded__( __minbytes__, 1, 8)));
 void		put_u32(void *, u_int32_t)
-    __bounded(( __minbytes__, 1, 4));
+    __attribute__((__bounded__( __minbytes__, 1, 4)));
 void		put_u16(void *, u_int16_t)
-    __bounded(( __minbytes__, 1, 2));
+    __attribute__((__bounded__( __minbytes__, 1, 2)));
 
 /* Little-endian store/load, used by umac.c */
 u_int32_t	get_u32_le(const void *)
-    __bounded(( __minbytes__, 1, 4));
+    __attribute__((__bounded__(__minbytes__, 1, 4)));
 void		put_u32_le(void *, u_int32_t)
-    __bounded(( __minbytes__, 1, 4));
+    __attribute__((__bounded__(__minbytes__, 1, 4)));
 
 struct bwlimit {
 	size_t buflen;

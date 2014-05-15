@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.178 2014/04/30 16:24:35 dtucker Exp $ */
+/* $Id: defines.h,v 1.179 2014/05/15 04:37:04 djm Exp $ */
 
 
 /* Constants */
@@ -825,23 +825,5 @@ struct winsize {
     !defined(HAVE_ARC4RANDOM_STIR)
 # define arc4random_stir()
 #endif
-
-/* Macro to test if we're using a specific version of gcc or later. */
-#if defined(__GNUC__) && !defined(__GNUC_PREREQ__)
-#define __GNUC_PREREQ__(ma, mi) \
-	((__GNUC__ > (ma)) || (__GNUC__ == (ma) && __GNUC_MINOR__ >= (mi)))
-#else
-#define __GNUC_PREREQ__(ma, mi) 0
-#endif
-
-/* __bounded macro */
-#ifndef __bounded
-# if defined(__GNUC__) && __GNUC_PREREQ__(3,3) && !defined(__clang__)
-#  define __bounded(args)	__attribute__ ((__bounded__ args ))
-# else
-#  define __bounded(args)	/* delete */
-# endif /* __GNUC_PREREQ__(3,3) && !defined(__clang__) */
-#endif
-
 
 #endif /* _DEFINES_H */

@@ -71,6 +71,11 @@
      UMAC can use our local fallback implementation of AES when OpenSSL isn't
      available.  Glue code straight from Ted Krovetz's original umac.c.
      ok markus@
+   - djm@cvs.openbsd.org 2014/05/02 03:27:54
+     [chacha.h cipher-chachapoly.h digest.h hmac.h kex.h kexc25519.c]
+     [misc.h poly1305.h ssh-pkcs11.c defines.h]
+     revert __bounded change; it causes way more problems for portable than
+     it solves; pointed out by dtucker@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

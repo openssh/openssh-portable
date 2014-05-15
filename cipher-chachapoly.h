@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher-chachapoly.h,v 1.2 2014/03/26 04:55:35 djm Exp $ */
+/* $OpenBSD: cipher-chachapoly.h,v 1.3 2014/05/02 03:27:54 djm Exp $ */
 
 /*
  * Copyright (c) Damien Miller 2013 <djm@mindrot.org>
@@ -30,12 +30,12 @@ struct chachapoly_ctx {
 
 void	chachapoly_init(struct chachapoly_ctx *cpctx,
     const u_char *key, u_int keylen)
-    __bounded((__buffer__, 2, 3));
+    __attribute__((__bounded__(__buffer__, 2, 3)));
 int	chachapoly_crypt(struct chachapoly_ctx *cpctx, u_int seqnr,
     u_char *dest, const u_char *src, u_int len, u_int aadlen, u_int authlen,
     int do_encrypt);
 int	chachapoly_get_length(struct chachapoly_ctx *cpctx,
     u_int *plenp, u_int seqnr, const u_char *cp, u_int len)
-    __bounded((__buffer__, 4, 5));
+    __attribute__((__bounded__(__buffer__, 4, 5)));
 
 #endif /* CHACHA_POLY_AEAD_H */
