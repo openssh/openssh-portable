@@ -87,6 +87,8 @@
      Zap extra whitespace.
      
      OK from djm@ and dtucker@
+ - (djm) [configure.ac] Unconditionally define WITH_OPENSSL until we write
+   portability glue to support building without libcrypto
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
