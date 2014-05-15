@@ -52,6 +52,20 @@
      Don't attempt to append a nul quote char to the filename.  Should prevent
      fatal'ing with "el_insertstr failed" when there's a single quote char
      somewhere in the string.  bz#2238, ok markus@
+   - djm@cvs.openbsd.org 2014/04/30 05:29:56
+     [bufaux.c bufbn.c bufec.c buffer.c buffer.h sshbuf-getput-basic.c]
+     [sshbuf-getput-crypto.c sshbuf-misc.c sshbuf.c sshbuf.h ssherr.c]
+     [ssherr.h]
+     New buffer API; the first installment of the conversion/replacement
+     of OpenSSH's internals to make them usable as a standalone library.
+     
+     This includes a set of wrappers to make it compatible with the
+     existing buffer API so replacement can occur incrementally.
+     
+     With and ok markus@
+     
+     Thanks also to Ben Hawkes, David Tomaschik, Ivan Fratric, Matthew
+     Dempsky and Ron Bowes for a detailed review.
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
