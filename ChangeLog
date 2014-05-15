@@ -82,6 +82,11 @@
      post-auth child. the new buffer code is more strict, and requires
      buffer_init() while the old code was happy after a bzero();
      originally from djm@
+   - logan@cvs.openbsd.org 2014/05/05 07:02:30
+     [sftp.c]
+     Zap extra whitespace.
+     
+     OK from djm@ and dtucker@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

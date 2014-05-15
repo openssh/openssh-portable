@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.162 2014/04/29 20:36:51 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.163 2014/05/05 07:02:30 logan Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -728,7 +728,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 
                 resume |= global_aflag;
 		if (!quiet && resume)
-			printf("Resuming upload of  %s to %s\n", g.gl_pathv[i], 
+			printf("Resuming upload of %s to %s\n", g.gl_pathv[i], 
 				abs_dst);
 		else if (!quiet && !resume)
 			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
