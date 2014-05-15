@@ -89,6 +89,8 @@
      OK from djm@ and dtucker@
  - (djm) [configure.ac] Unconditionally define WITH_OPENSSL until we write
    portability glue to support building without libcrypto
+ - (djm) [Makefile.in configure.ac sshbuf-getput-basic.c]
+   [sshbuf-getput-crypto.c sshbuf.c] compilation and portability fixes
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

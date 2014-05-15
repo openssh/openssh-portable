@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.572 2014/05/15 04:43:38 djm Exp $
+# $Id: configure.ac,v 1.573 2014/05/15 04:58:08 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.572 $)
+AC_REVISION($Revision: 1.573 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2359,6 +2359,7 @@ AC_RUN_IFELSE(
 
 # XXX make --without-openssl work
 AC_DEFINE_UNQUOTED([WITH_OPENSSL], [1], [use libcrypto for cryptography])
+AC_DEFINE_UNQUOTED([WITH_SSH1], [1], [include SSH protocol version 1 support])
 
 AC_ARG_WITH([openssl-header-check],
 	[  --without-openssl-header-check Disable OpenSSL version consistency check],
