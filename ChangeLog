@@ -11,6 +11,10 @@
      Implement sftp upload resume support.
      OK from djm@, with input from guenther@, mlarkin@ and
      okan@
+   - logan@cvs.openbsd.org 2014/04/22 10:07:12
+     [sftp.c]
+     Sort the sftp command list.
+     OK from djm@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

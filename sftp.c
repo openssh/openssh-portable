@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.159 2014/04/21 14:36:16 logan Exp $ */
+/* $OpenBSD: sftp.c,v 1.160 2014/04/22 10:07:12 logan Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -151,15 +151,15 @@ enum sftp_command {
 	I_PUT,
 	I_PWD,
 	I_QUIT,
+	I_REGET,
 	I_RENAME,
+	I_REPUT,
 	I_RM,
 	I_RMDIR,
 	I_SHELL,
 	I_SYMLINK,
 	I_VERSION,
 	I_PROGRESS,
-	I_REGET,
-	I_REPUT
 };
 
 struct CMD {
