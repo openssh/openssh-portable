@@ -102,6 +102,9 @@
      repair regress tests broken by server-side default cipher/kex/mac changes
      by ensuring that the option under test is included in the server's
      algorithm list
+   - dtucker@cvs.openbsd.org 2014/05/03 18:46:14
+     [proxy-connect.sh]
+     Add tests for with and without compression, with and without privsep.
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
