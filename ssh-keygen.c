@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.244 2014/04/20 09:24:26 logan Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.245 2014/04/28 03:09:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1820,8 +1820,8 @@ add_cert_option(char *opt)
 static void
 show_options(const Buffer *optbuf, int v00, int in_critical)
 {
-	char *name;
-	u_char *data;
+	char *name, *arg;
+	const u_char *data;
 	u_int dlen;
 	Buffer options, option;
 
@@ -1844,9 +1844,9 @@ show_options(const Buffer *optbuf, int v00, int in_critical)
 		else if ((v00 || in_critical) &&
 		    (strcmp(name, "force-command") == 0 ||
 		    strcmp(name, "source-address") == 0)) {
-			data = buffer_get_string(&option, NULL);
-			printf(" %s\n", data);
-			free(data);
+			arg = buffer_get_cstring(&option, NULL);
+			printf(" %s\n", arg);
+			free(arg);
 		} else {
 			printf(" UNKNOWN OPTION (len %u)\n",
 			    buffer_len(&option));

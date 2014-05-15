@@ -1,4 +1,4 @@
-/* $OpenBSD: buffer.h,v 1.23 2014/01/12 08:13:13 djm Exp $ */
+/* $OpenBSD: buffer.h,v 1.24 2014/04/28 03:09:18 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -66,7 +66,7 @@ int     buffer_get_char(Buffer *);
 void    buffer_put_char(Buffer *, int);
 
 void   *buffer_get_string(Buffer *, u_int *);
-void   *buffer_get_string_ptr(Buffer *, u_int *);
+const void *buffer_get_string_ptr(Buffer *, u_int *);
 void    buffer_put_string(Buffer *, const void *, u_int);
 char   *buffer_get_cstring(Buffer *, u_int *);
 void	buffer_put_cstring(Buffer *, const char *);
@@ -83,7 +83,7 @@ int	buffer_get_int_ret(u_int *, Buffer *);
 int	buffer_get_int64_ret(u_int64_t *, Buffer *);
 void	*buffer_get_string_ret(Buffer *, u_int *);
 char	*buffer_get_cstring_ret(Buffer *, u_int *);
-void	*buffer_get_string_ptr_ret(Buffer *, u_int *);
+const void *buffer_get_string_ptr_ret(Buffer *, u_int *);
 int	buffer_get_char_ret(u_char *, Buffer *);
 
 void *buffer_get_bignum2_as_string_ret(Buffer *, u_int *);

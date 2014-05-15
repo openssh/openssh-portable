@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.104 2014/03/12 04:51:12 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.105 2014/04/28 03:09:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -204,7 +204,8 @@ key_parse_private2(Buffer *blob, int type, const char *passphrase,
     char **commentp)
 {
 	u_char *key = NULL, *cp, *salt = NULL, pad, last;
-	char *comment = NULL, *ciphername = NULL, *kdfname = NULL, *kdfp;
+	char *comment = NULL, *ciphername = NULL, *kdfname = NULL;
+	const u_char *kdfp;
 	u_int keylen = 0, ivlen, blocksize, slen, klen, len, rounds, nkeys;
 	u_int check1, check2, m1len, m2len;
 	size_t authlen;

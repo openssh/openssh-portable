@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.14 2014/01/31 16:39:19 tedu Exp $ */
+/* $OpenBSD: krl.c,v 1.15 2014/04/28 03:09:18 djm Exp $ */
 
 #include "includes.h"
 
@@ -753,7 +753,8 @@ static int
 parse_revoked_certs(Buffer *buf, struct ssh_krl *krl)
 {
 	int ret = -1, nbits;
-	u_char type, *blob;
+	u_char type;
+	const u_char *blob;
 	u_int blen;
 	Buffer subsect;
 	u_int64_t serial, serial_lo, serial_hi;
@@ -887,7 +888,8 @@ ssh_krl_from_blob(Buffer *buf, struct ssh_krl **krlp,
 	char timestamp[64];
 	int ret = -1, r, sig_seen;
 	Key *key = NULL, **ca_used = NULL;
-	u_char type, *blob, *rdata = NULL;
+	u_char type, *rdata = NULL;
+	const u_char *blob;
 	u_int i, j, sig_off, sects_off, rlen, blen, format_version, nca_used;
 
 	nca_used = 0;

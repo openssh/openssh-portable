@@ -1,4 +1,4 @@
-/* $OpenBSD: bufaux.c,v 1.57 2014/04/16 23:22:45 djm Exp $ */
+/* $OpenBSD: bufaux.c,v 1.58 2014/04/28 03:09:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -236,7 +236,7 @@ buffer_get_cstring(Buffer *buffer, u_int *length_ptr)
 	return ret;
 }
 
-void *
+const void *
 buffer_get_string_ptr_ret(Buffer *buffer, u_int *length_ptr)
 {
 	void *ptr;
@@ -255,10 +255,10 @@ buffer_get_string_ptr_ret(Buffer *buffer, u_int *length_ptr)
 	return (ptr);
 }
 
-void *
+const void *
 buffer_get_string_ptr(Buffer *buffer, u_int *length_ptr)
 {
-	void *ret;
+	const void *ret;
 
 	if ((ret = buffer_get_string_ptr_ret(buffer, length_ptr)) == NULL)
 		fatal("buffer_get_string_ptr: buffer error");

@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.44 2013/07/12 00:19:58 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.45 2014/04/28 03:09:18 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1010,7 +1010,7 @@ mux_master_read_cb(Channel *c)
 {
 	struct mux_master_state *state = (struct mux_master_state *)c->mux_ctx;
 	Buffer in, out;
-	void *ptr;
+	const u_char *ptr;
 	u_int type, rid, have, i;
 	int ret = -1;
 
@@ -1429,7 +1429,7 @@ mux_client_read_packet(int fd, Buffer *m)
 {
 	Buffer queue;
 	u_int need, have;
-	void *ptr;
+	const u_char *ptr;
 	int oerrno;
 
 	buffer_init(&queue);

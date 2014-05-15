@@ -25,6 +25,12 @@
    - djm@cvs.openbsd.org 2014/04/23 12:42:34
      [readconf.c]
      don't record duplicate IdentityFiles
+   - djm@cvs.openbsd.org 2014/04/28 03:09:18
+     [authfile.c bufaux.c buffer.h channels.c krl.c mux.c packet.c packet.h]
+     [ssh-keygen.c]
+     buffer_get_string_ptr's return should be const to remind
+     callers that futzing with it will futz with the actual buffer
+     contents
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
