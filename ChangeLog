@@ -105,6 +105,12 @@
    - dtucker@cvs.openbsd.org 2014/05/03 18:46:14
      [proxy-connect.sh]
      Add tests for with and without compression, with and without privsep.
+   - logan@cvs.openbsd.org 2014/05/04 10:40:59
+     [connect-privsep.sh]
+     Remove the Z flag from the list of malloc options as it
+     was removed from malloc.c 10 days ago.
+     
+     OK from miod@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
