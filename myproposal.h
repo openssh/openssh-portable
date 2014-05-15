@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.39 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: myproposal.h,v 1.40 2014/04/30 19:07:48 naddy Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -146,8 +146,12 @@
 	"aes128-ctr,aes192-ctr,aes256-ctr," \
 	"chacha20-poly1305@openssh.com"
 #define	KEX_SERVER_MAC \
+	"umac-64-etm@openssh.com," \
+	"umac-128-etm@openssh.com," \
 	"hmac-sha2-256-etm@openssh.com," \
 	"hmac-sha2-512-etm@openssh.com," \
+	"umac-64@openssh.com," \
+	"umac-128@openssh.com," \
 	"hmac-sha2-256," \
 	"hmac-sha2-512"
 

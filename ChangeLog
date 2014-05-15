@@ -66,6 +66,11 @@
      
      Thanks also to Ben Hawkes, David Tomaschik, Ivan Fratric, Matthew
      Dempsky and Ron Bowes for a detailed review.
+   - naddy@cvs.openbsd.org 2014/04/30 19:07:48
+     [mac.c myproposal.h umac.c]
+     UMAC can use our local fallback implementation of AES when OpenSSL isn't
+     available.  Glue code straight from Ted Krovetz's original umac.c.
+     ok markus@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

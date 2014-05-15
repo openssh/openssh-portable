@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.29 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: mac.c,v 1.30 2014/04/30 19:07:48 naddy Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -72,10 +72,8 @@ static const struct macalg macs[] = {
 	{ "hmac-md5-96",			SSH_DIGEST, SSH_DIGEST_MD5, 96, 0, 0, 0 },
 	{ "hmac-ripemd160",			SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 0 },
 	{ "hmac-ripemd160@openssh.com",		SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 0 },
-#ifdef WITH_OPENSSL
 	{ "umac-64@openssh.com",		SSH_UMAC, 0, 0, 128, 64, 0 },
 	{ "umac-128@openssh.com",		SSH_UMAC128, 0, 0, 128, 128, 0 },
-#endif
 
 	/* Encrypt-then-MAC variants */
 	{ "hmac-sha1-etm@openssh.com",		SSH_DIGEST, SSH_DIGEST_SHA1, 0, 0, 0, 1 },
@@ -87,10 +85,8 @@ static const struct macalg macs[] = {
 	{ "hmac-md5-etm@openssh.com",		SSH_DIGEST, SSH_DIGEST_MD5, 0, 0, 0, 1 },
 	{ "hmac-md5-96-etm@openssh.com",	SSH_DIGEST, SSH_DIGEST_MD5, 96, 0, 0, 1 },
 	{ "hmac-ripemd160-etm@openssh.com",	SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 1 },
-#ifdef WITH_OPENSSL
 	{ "umac-64-etm@openssh.com",		SSH_UMAC, 0, 0, 128, 64, 1 },
 	{ "umac-128-etm@openssh.com",		SSH_UMAC128, 0, 0, 128, 128, 1 },
-#endif
 
 	{ NULL,					0, 0, 0, 0, 0, 0 }
 };
@@ -123,11 +119,9 @@ mac_setup_by_alg(Mac *mac, const struct macalg *macalg)
 			fatal("ssh_hmac_start(alg=%d) failed", macalg->alg);
 		mac->key_len = mac->mac_len = ssh_hmac_bytes(macalg->alg);
 	} else {
-#ifdef WITH_OPENSSL
 		mac->mac_len = macalg->len / 8;
 		mac->key_len = macalg->key_len / 8;
 		mac->umac_ctx = NULL;
-#endif
 	}
 	if (macalg->truncatebits != 0)
 		mac->mac_len = macalg->truncatebits / 8;
@@ -163,14 +157,12 @@ mac_init(Mac *mac)
 		    ssh_hmac_init(mac->hmac_ctx, mac->key, mac->key_len) < 0)
 			return -1;
 		return 0;
-#ifdef WITH_OPENSSL
 	case SSH_UMAC:
 		mac->umac_ctx = umac_new(mac->key);
 		return 0;
 	case SSH_UMAC128:
 		mac->umac_ctx = umac128_new(mac->key);
 		return 0;
-#endif
 	default:
 		return -1;
 	}
@@ -184,9 +176,7 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 		u_int64_t for_align;
 	} u;
 	u_char b[4];
-#ifdef WITH_OPENSSL
 	u_char nonce[8];
-#endif
 
 	if (mac->mac_len > sizeof(u))
 		fatal("mac_compute: mac too long %u %zu",
@@ -202,7 +192,6 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 		    ssh_hmac_final(mac->hmac_ctx, u.m, sizeof(u.m)) < 0)
 			fatal("ssh_hmac failed");
 		break;
-#ifdef WITH_OPENSSL
 	case SSH_UMAC:
 		put_u64(nonce, seqno);
 		umac_update(mac->umac_ctx, data, datalen);
@@ -213,7 +202,6 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 		umac128_update(mac->umac_ctx, data, datalen);
 		umac128_final(mac->umac_ctx, u.m, nonce);
 		break;
-#endif
 	default:
 		fatal("mac_compute: unknown MAC type");
 	}
@@ -223,7 +211,6 @@ mac_compute(Mac *mac, u_int32_t seqno, u_char *data, int datalen)
 void
 mac_clear(Mac *mac)
 {
-#ifdef WITH_OPENSSL
 	if (mac->type == SSH_UMAC) {
 		if (mac->umac_ctx != NULL)
 			umac_delete(mac->umac_ctx);
@@ -231,7 +218,6 @@ mac_clear(Mac *mac)
 		if (mac->umac_ctx != NULL)
 			umac128_delete(mac->umac_ctx);
 	} else if (mac->hmac_ctx != NULL)
-#endif
 		ssh_hmac_free(mac->hmac_ctx);
 	mac->hmac_ctx = NULL;
 	mac->umac_ctx = NULL;

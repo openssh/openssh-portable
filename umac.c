@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.9 2014/04/20 02:30:25 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.10 2014/04/30 19:07:48 naddy Exp $ */
 /* -----------------------------------------------------------------------
  * 
  * umac.c -- C Implementation UMAC Message Authentication
@@ -154,6 +154,7 @@ typedef unsigned int	UWORD;  /* Register */
 #define AES_BLOCK_LEN  16
 
 /* OpenSSL's AES */
+#ifdef WITH_OPENSSL
 #include "openbsd-compat/openssl-compat.h"
 #ifndef USE_BUILTIN_RIJNDAEL
 # include <openssl/aes.h>
@@ -163,6 +164,16 @@ typedef AES_KEY aes_int_key[1];
   AES_encrypt((u_char *)(in),(u_char *)(out),(AES_KEY *)int_key)
 #define aes_key_setup(key,int_key)                      \
   AES_set_encrypt_key((const u_char *)(key),UMAC_KEY_LEN*8,int_key)
+#else
+#include "rijndael.h"
+#define AES_ROUNDS ((UMAC_KEY_LEN / 4) + 6)
+typedef UINT8 aes_int_key[AES_ROUNDS+1][4][4];	/* AES internal */
+#define aes_encryption(in,out,int_key) \
+  rijndaelEncrypt((u32 *)(int_key), AES_ROUNDS, (u8 *)(in), (u8 *)(out))
+#define aes_key_setup(key,int_key) \
+  rijndaelKeySetupEnc((u32 *)(int_key), (const unsigned char *)(key), \
+  UMAC_KEY_LEN*8)
+#endif
 
 /* The user-supplied UMAC key is stretched using AES in a counter
  * mode to supply all random bits needed by UMAC. The kdf function takes
