@@ -44,6 +44,9 @@
      make compiling against OpenSSL optional (make OPENSSL=no);
      reduces algorithms to curve25519, aes-ctr, chacha, ed25519;
      allows us to explore further options; with and ok djm
+   - dtucker@cvs.openbsd.org 2014/04/29 19:58:50
+     [sftp.c]
+     Move nulling of variable next to where it's freed.  ok markus@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
