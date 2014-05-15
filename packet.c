@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.195 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.196 2014/05/03 17:20:34 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2057,5 +2057,25 @@ packet_restore_state(void)
 		buffer_append(&active_state->input, buf, len);
 		buffer_clear(&backup_state->input);
 		add_recv_bytes(len);
+	}
+}
+
+/* Reset after_authentication and reset compression in post-auth privsep */
+void
+packet_set_postauth(void)
+{
+	Comp *comp;
+	int mode;
+
+	debug("%s: called", __func__);
+	/* This was set in net child, but is not visible in user child */
+	active_state->after_authentication = 1;
+	active_state->rekeying = 0;
+	for (mode = 0; mode < MODE_MAX; mode++) {
+		if (active_state->newkeys[mode] == NULL)
+			continue;
+		comp = &active_state->newkeys[mode]->comp;
+		if (comp && comp->enabled)
+			packet_init_compression();
 	}
 }

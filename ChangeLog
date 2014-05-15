@@ -76,6 +76,12 @@
      [misc.h poly1305.h ssh-pkcs11.c defines.h]
      revert __bounded change; it causes way more problems for portable than
      it solves; pointed out by dtucker@
+   - markus@cvs.openbsd.org 2014/05/03 17:20:34
+     [monitor.c packet.c packet.h]
+     unbreak compression, by re-init-ing the compression code in the
+     post-auth child. the new buffer code is more strict, and requires
+     buffer_init() while the old code was happy after a bzero();
+     originally from djm@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
