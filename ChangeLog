@@ -47,6 +47,11 @@
    - dtucker@cvs.openbsd.org 2014/04/29 19:58:50
      [sftp.c]
      Move nulling of variable next to where it's freed.  ok markus@
+   - dtucker@cvs.openbsd.org 2014/04/29 20:36:51
+     [sftp.c]
+     Don't attempt to append a nul quote char to the filename.  Should prevent
+     fatal'ing with "el_insertstr failed" when there's a single quote char
+     somewhere in the string.  bz#2238, ok markus@
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.161 2014/04/29 19:58:50 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.162 2014/04/29 20:36:51 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1912,7 +1912,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 	lf = el_line(el);
 	if (g.gl_matchc == 1) {
 		i = 0;
-		if (!terminated)
+		if (!terminated && quote != '\0')
 			ins[i++] = quote;
 		if (*(lf->cursor - 1) != '/' &&
 		    (lastarg || *(lf->cursor) != ' '))
