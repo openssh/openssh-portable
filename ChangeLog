@@ -139,6 +139,7 @@
    [regress/unittests/test_helper/fuzz.c]
    [regress/unittests/test_helper/test_helper.c]
    Hook new unit tests into the build and "make tests"
+ - (djm) [sshbuf.c] need __predict_false
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

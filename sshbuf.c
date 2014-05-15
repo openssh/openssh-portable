@@ -28,6 +28,16 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 
+/* XXX move to defines.h? */
+#if defined(__GNUC__) && \
+    ((__GNUC__ > (2)) || (__GNUC__ == (2) && __GNUC_MINOR__ >= (96)))
+#define __predict_true(exp)     __builtin_expect(((exp) != 0), 1)
+#define __predict_false(exp)    __builtin_expect(((exp) != 0), 0)
+#else
+#define __predict_true(exp)     ((exp) != 0)
+#define __predict_false(exp)    ((exp) != 0)
+#endif
+
 static inline int
 sshbuf_check_sanity(const struct sshbuf *buf)
 {
