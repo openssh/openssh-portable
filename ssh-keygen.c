@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.245 2014/04/28 03:09:18 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.246 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -195,6 +195,7 @@ type_bits_valid(int type, u_int32_t *bitsp)
 		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
 		exit(1);
 	}
+#ifdef WITH_OPENSSL
 	if (type == KEY_DSA && *bitsp != 1024)
 		fatal("DSA keys must be 1024 bits");
 	else if (type != KEY_ECDSA && type != KEY_ED25519 && *bitsp < 768)
@@ -202,6 +203,7 @@ type_bits_valid(int type, u_int32_t *bitsp)
 	else if (type == KEY_ECDSA && key_ecdsa_bits_to_nid(*bitsp) == -1)
 		fatal("Invalid ECDSA key length - valid lengths are "
 		    "256, 384 or 521 bits");
+#endif
 }
 
 static void
@@ -278,6 +280,7 @@ load_identity(char *filename)
 #define SSH_COM_PRIVATE_BEGIN		"---- BEGIN SSH2 ENCRYPTED PRIVATE KEY ----"
 #define	SSH_COM_PRIVATE_KEY_MAGIC	0x3f6ff9eb
 
+#ifdef WITH_OPENSSL
 static void
 do_convert_to_ssh2(struct passwd *pw, Key *k)
 {
@@ -711,6 +714,7 @@ do_convert_from(struct passwd *pw)
 	key_free(k);
 	exit(0);
 }
+#endif
 
 static void
 do_print_public(struct passwd *pw)
@@ -1589,7 +1593,9 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		}
 	}
 
+#ifdef ENABLE_PKCS11
 	pkcs11_init(1);
+#endif
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
 	if (pkcs11provider != NULL) {
 		if ((ca = load_pkcs11_key(tmp)) == NULL)
@@ -1672,7 +1678,9 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		key_free(public);
 		free(out);
 	}
+#ifdef ENABLE_PKCS11
 	pkcs11_terminate();
+#endif
 	exit(0);
 }
 
@@ -1923,6 +1931,7 @@ do_show_cert(struct passwd *pw)
 	exit(0);
 }
 
+#ifdef WITH_OPENSSL
 static void
 load_krl(const char *path, struct ssh_krl **krlp)
 {
@@ -2145,6 +2154,7 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	ssh_krl_free(krl);
 	exit(ret);
 }
+#endif
 
 static void
 usage(void)
@@ -2448,6 +2458,7 @@ main(int argc, char **argv)
 		printf("Cannot use -l with -H or -R.\n");
 		usage();
 	}
+#ifdef WITH_OPENSSL
 	if (gen_krl) {
 		do_gen_krl(pw, update_krl, argc, argv);
 		return (0);
@@ -2456,6 +2467,7 @@ main(int argc, char **argv)
 		do_check_krl(pw, argc, argv);
 		return (0);
 	}
+#endif
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");
@@ -2473,10 +2485,12 @@ main(int argc, char **argv)
 		do_change_passphrase(pw);
 	if (change_comment)
 		do_change_comment(pw);
+#ifdef WITH_OPENSSL
 	if (convert_to)
 		do_convert_to(pw);
 	if (convert_from)
 		do_convert_from(pw);
+#endif
 	if (print_public)
 		do_print_public(pw);
 	if (rr_hostname != NULL) {

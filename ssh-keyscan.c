@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.91 2014/03/27 23:01:27 markus Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.92 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -182,6 +182,7 @@ strnnsep(char **stringp, char *delim)
 	return (tok);
 }
 
+#ifdef WITH_SSH1
 static Key *
 keygrab_ssh1(con *c)
 {
@@ -215,6 +216,7 @@ keygrab_ssh1(con *c)
 
 	return (rsa);
 }
+#endif
 
 static int
 hostjump(Key *hostkey)
@@ -253,11 +255,13 @@ keygrab_ssh2(con *c)
 	    (c->c_keytype == KT_ED25519 ? "ssh-ed25519" :
 	    "ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521"));
 	c->c_kex = kex_setup(myproposal);
+#ifdef WITH_OPENSSL
 	c->c_kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	c->c_kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 	c->c_kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
+#endif
 	c->c_kex->kex[KEX_C25519_SHA256] = kexc25519_client;
 	c->c_kex->verify_host_key = hostjump;
 
@@ -507,10 +511,12 @@ conread(int s)
 			c->c_data = xmalloc(c->c_len);
 			c->c_status = CS_KEYS;
 			break;
+#ifdef WITH_SSH1
 		case CS_KEYS:
 			keyprint(c, keygrab_ssh1(c));
 			confree(s);
 			return;
+#endif
 		default:
 			fatal("conread: invalid status %d", c->c_status);
 			break;

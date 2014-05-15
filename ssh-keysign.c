@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.41 2014/04/19 14:53:48 tedu Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.42 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -209,8 +209,11 @@ main(int argc, char **argv)
 		keys[i] = NULL;
 		if (key_fd[i] == -1)
 			continue;
+#ifdef WITH_OPENSSL
+/* XXX wrong api */
 		keys[i] = key_load_private_pem(key_fd[i], KEY_UNSPEC,
 		    NULL, NULL);
+#endif
 		close(key_fd[i]);
 		if (keys[i] != NULL)
 			found = 1;

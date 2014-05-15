@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.194 2014/04/28 03:09:18 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.195 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -630,6 +630,7 @@ packet_put_raw(const void *buf, u_int len)
 	buffer_append(&active_state->outgoing_packet, buf, len);
 }
 
+#ifdef WITH_OPENSSL
 void
 packet_put_bignum(BIGNUM * value)
 {
@@ -641,6 +642,7 @@ packet_put_bignum2(BIGNUM * value)
 {
 	buffer_put_bignum2(&active_state->outgoing_packet, value);
 }
+#endif
 
 #ifdef OPENSSL_HAS_ECC
 void
@@ -1569,6 +1571,7 @@ packet_get_int64(void)
  * must have been initialized before this call.
  */
 
+#ifdef WITH_OPENSSL
 void
 packet_get_bignum(BIGNUM * value)
 {
@@ -1598,6 +1601,7 @@ packet_get_raw(u_int *length_ptr)
 		*length_ptr = bytes;
 	return buffer_ptr(&active_state->incoming_packet);
 }
+#endif
 
 int
 packet_remaining(void)

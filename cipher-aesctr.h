@@ -1,6 +1,6 @@
-/* $OpenBSD: ssh-pkcs11.h,v 1.3 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: cipher-aesctr.h,v 1.1 2014/04/29 15:39:33 markus Exp $ */
 /*
- * Copyright (c) 2010 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2014 Markus Friedl
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,11 +14,22 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-int	pkcs11_init(int);
-void	pkcs11_terminate(void);
-int	pkcs11_add_provider(char *, char *, Key ***);
-int	pkcs11_del_provider(char *);
 
-#if !defined(WITH_OPENSSL) && defined(ENABLE_PKCS11)
-#undef ENABLE_PKCS11
+#ifndef OPENSSH_AESCTR_H
+#define OPENSSH_AESCTR_H
+
+#include "rijndael.h"
+
+#define AES_BLOCK_SIZE 16
+
+typedef struct aesctr_ctx {
+	int	rounds;				/* keylen-dependent #rounds */
+	u32	ek[4*(AES_MAXROUNDS + 1)];	/* encrypt key schedule */
+	u8	ctr[AES_BLOCK_SIZE];		/* counter */
+} aesctr_ctx;
+
+void aesctr_keysetup(aesctr_ctx *x,const u8 *k,u32 kbits,u32 ivbits);
+void aesctr_ivsetup(aesctr_ctx *x,const u8 *iv);
+void aesctr_encrypt_bytes(aesctr_ctx *x,const u8 *m,u8 *c,u32 bytes);
+
 #endif

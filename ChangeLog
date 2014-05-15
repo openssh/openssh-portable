@@ -36,6 +36,14 @@
      bz#1818 - don't send channel success/failre replies on channels that
      have sent a close already; analysis and patch from Simon Tatham;
      ok markus@
+   - markus@cvs.openbsd.org 2014/04/29 18:01:49
+     [auth.c authfd.c authfile.c bufaux.c cipher.c cipher.h hostfile.c]
+     [kex.c key.c mac.c monitor.c monitor_wrap.c myproposal.h packet.c]
+     [roaming_client.c ssh-agent.c ssh-keygen.c ssh-keyscan.c ssh-keysign.c]
+     [ssh-pkcs11.h ssh.c sshconnect.c sshconnect2.c sshd.c]
+     make compiling against OpenSSL optional (make OPENSSL=no);
+     reduces algorithms to curve25519, aes-ctr, chacha, ed25519;
+     allows us to explore further options; with and ok djm
 
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already

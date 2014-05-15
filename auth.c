@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.103 2013/05/19 02:42:42 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.104 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -659,6 +659,7 @@ getpwnamallow(const char *user)
 int
 auth_key_is_revoked(Key *key)
 {
+#ifdef WITH_OPENSSL
 	char *key_fp;
 
 	if (options.revoked_keys_file == NULL)
@@ -671,6 +672,7 @@ auth_key_is_revoked(Key *key)
 	default:
 		goto revoked;
 	}
+#endif
 	debug3("%s: treating %s as a key list", __func__,
 	    options.revoked_keys_file);
 	switch (key_in_file(key, options.revoked_keys_file, 0)) {
@@ -682,6 +684,7 @@ auth_key_is_revoked(Key *key)
 		error("Revoked keys file is unreadable: refusing public key "
 		    "authentication");
 		return 1;
+#ifdef WITH_OPENSSL
 	case 1:
  revoked:
 		/* Key revoked */
@@ -690,6 +693,7 @@ auth_key_is_revoked(Key *key)
 		    "%s key %s ", key_type(key), key_fp);
 		free(key_fp);
 		return 1;
+#endif
 	}
 	fatal("key_in_file returned junk");
 }
