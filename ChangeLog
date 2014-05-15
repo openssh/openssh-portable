@@ -1,3 +1,7 @@
+20140519
+ - (djm) [rijndael.c rijndael.h] Sync with newly-ressurected versions ine
+   OpenBSD
+
 20140430
  - (dtucker) [defines.h] Define __GNUC_PREREQ__ macro if we don't already
    have it.  Only attempt to use __attribute__(__bounded__) for gcc.
