@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.358 2014/05/15 08:01:01 djm Exp $
+# $Id: Makefile.in,v 1.359 2014/05/21 22:23:59 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -412,11 +412,11 @@ uninstall:
 
 regress-prep:
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress
-	[ -d `pwd`/regress/unitests ]  ||  mkdir -p `pwd`/regress/unitests
-	[ -d `pwd`/regress/unitests/test_helper ]  || \
-		mkdir -p `pwd`/regress/unitests/test_helper
-	[ -d `pwd`/regress/unitests/sshbuf ]  || \
-		mkdir -p `pwd`/regress/unitests/sshbuf
+	[ -d `pwd`/regress/unittests ]  ||  mkdir -p `pwd`/regress/unittests
+	[ -d `pwd`/regress/unittests/test_helper ]  || \
+		mkdir -p `pwd`/regress/unittests/test_helper
+	[ -d `pwd`/regress/unittests/sshbuf ]  || \
+		mkdir -p `pwd`/regress/unittests/sshbuf
 	[ -f `pwd`/regress/Makefile ]  || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
