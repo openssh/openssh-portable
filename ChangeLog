@@ -2,6 +2,10 @@
  - (djm) [commit configure.ac defines.h sshpty.c] don't attempt to use
    vhangup on Linux. It doens't work for non-root users, and for them
    it just messes up the tty settings.
+ - (djm) [misc.c] Use CLOCK_BOOTTIME in preference to CLOCK_MONOTONIC
+   when it is available. It takes into account time spent suspended,
+   thereby ensuring timeouts (e.g. for expiring agent keys) fire
+   correctly. bz#2228 reported by John Haxby
 
 20140519
  - (djm) [rijndael.c rijndael.h] Sync with newly-ressurected versions ine
