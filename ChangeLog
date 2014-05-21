@@ -1,3 +1,8 @@
+20140521
+ - (djm) [commit configure.ac defines.h sshpty.c] don't attempt to use
+   vhangup on Linux. It doens't work for non-root users, and for them
+   it just messes up the tty settings.
+
 20140519
  - (djm) [rijndael.c rijndael.h] Sync with newly-ressurected versions ine
    OpenBSD

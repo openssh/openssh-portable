@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.179 2014/05/15 04:37:04 djm Exp $ */
+/* $Id: defines.h,v 1.180 2014/05/21 07:06:47 djm Exp $ */
 
 
 /* Constants */
@@ -602,10 +602,6 @@ struct winsize {
 #if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)
 # define memmove(s1, s2, n) bcopy((s2), (s1), (n))
 #endif /* !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY) */
-
-#if defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX)
-#  define USE_VHANGUP
-#endif /* defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX) */
 
 #ifndef GETPGRP_VOID
 # include <unistd.h>
