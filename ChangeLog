@@ -1,5 +1,8 @@
 20140527
  - (djm) [cipher.c] Fix merge botch.
+ - (djm) [contrib/cygwin/ssh-host-config] Updated Cygwin ssh-host-config
+   from Corinna Vinschen, fixing a number of bugs and preparing for
+   Cygwin 1.7.30.
 
 20140522
  - (djm) [Makefile.in] typo in path
