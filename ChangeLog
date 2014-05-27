@@ -1,3 +1,6 @@
+20140527
+ - (djm) [cipher.c] Fix merge botch.
+
 20140522
  - (djm) [Makefile.in] typo in path
 

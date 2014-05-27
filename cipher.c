@@ -553,7 +553,12 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 			ssh_aes_ctr_iv(&cc->evp, 0, iv, len);
 		else
 #endif /* OPENSSL_HAVE_EVPCTR */
-		memcpy(iv, cc->evp.iv, len);
+		if (cipher_authlen(c)) {
+			if (!EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_IV_GEN,
+			    len, iv))
+				fatal("%s: EVP_CTRL_GCM_IV_GEN", __func__);
+                } else
+			memcpy(iv, cc->evp.iv, len);
 		break;
 #endif /* WITH_OPENSSL */
 #ifdef WITH_SSH1
@@ -597,7 +602,13 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 			ssh_aes_ctr_iv(&cc->evp, 1, iv, evplen);
 		else
 #endif /* OPENSSL_HAVE_EVPCTR */
-		memcpy(cc->evp.iv, iv, evplen);
+		if (cipher_authlen(c)) {
+			if (!EVP_CIPHER_CTX_ctrl(&cc->evp,
+			    EVP_CTRL_GCM_SET_IV_FIXED, -1, iv))
+				fatal("%s: EVP_CTRL_GCM_SET_IV_FIXED failed",
+				    __func__);
+			} else
+				memcpy(cc->evp.iv, iv, evplen);
 		break;
 #endif /* WITH_OPENSSL */
 #ifdef WITH_SSH1
