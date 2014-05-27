@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.574 2014/05/21 07:06:47 djm Exp $
+# $Id: configure.ac,v 1.575 2014/05/27 04:34:43 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.574 $)
+AC_REVISION($Revision: 1.575 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2871,7 +2871,14 @@ if test "x$PAM_MSG" = "xyes" ; then
 	])
 fi
 
-SSH_PRIVSEP_USER=sshd
+case "$host" in
+*-*-cygwin*)
+	SSH_PRIVSEP_USER=CYGWIN_SSH_PRIVSEP_USER
+	;;
+*)
+	SSH_PRIVSEP_USER=sshd
+	;;
+esac
 AC_ARG_WITH([privsep-user],
 	[  --with-privsep-user=user Specify non-privileged user for privilege separation],
 	[
@@ -2881,8 +2888,13 @@ AC_ARG_WITH([privsep-user],
 		fi
 	]
 )
-AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], ["$SSH_PRIVSEP_USER"],
-	[non-privileged user for privilege separation])
+if test "x$SSH_PRIVSEP_USER" = "xCYGWIN_SSH_PRIVSEP_USER" ; then
+	AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], [CYGWIN_SSH_PRIVSEP_USER],
+		[Cygwin function to fetch non-privileged user for privilege separation])
+else
+	AC_DEFINE_UNQUOTED([SSH_PRIVSEP_USER], ["$SSH_PRIVSEP_USER"],
+		[non-privileged user for privilege separation])
+fi
 AC_SUBST([SSH_PRIVSEP_USER])
 
 if test "x$have_linux_no_new_privs" = "x1" ; then

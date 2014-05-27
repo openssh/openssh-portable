@@ -3,6 +3,10 @@
  - (djm) [contrib/cygwin/ssh-host-config] Updated Cygwin ssh-host-config
    from Corinna Vinschen, fixing a number of bugs and preparing for
    Cygwin 1.7.30.
+ - (djm) [configure.ac openbsd-compat/bsd-cygwin_util.c]
+   [openbsd-compat/bsd-cygwin_util.h] On Cygwin, determine privilege
+   separation user at runtime, since it may need to be a domain account.
+   Patch from Corinna Vinschen.
 
 20140522
  - (djm) [Makefile.in] typo in path
