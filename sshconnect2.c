@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.207 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.208 2014/06/05 22:17:50 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1183,7 +1183,7 @@ pubkey_prepare(Authctxt *authctxt)
 		found = 0;
 		TAILQ_FOREACH(id2, &files, next) {
 			if (id2->key == NULL ||
-			    (id2->key->flags & KEY_FLAG_EXT) != 0)
+			    (id2->key->flags & KEY_FLAG_EXT) == 0)
 				continue;
 			if (key_equal(id->key, id2->key)) {
 				TAILQ_REMOVE(&files, id, next);

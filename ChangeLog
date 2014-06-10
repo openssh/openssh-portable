@@ -6,6 +6,11 @@
    the proposal if the version of OpenSSL we're using doesn't support ECC.
  - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c] ifdef
    ECC variable too.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/06/05 22:17:50
+     [sshconnect2.c]
+     fix inverted test that caused PKCS#11 keys that were explicitly listed
+     not to be preferred. Reported by Dirk-Willem van Gulik
 
 20140527
  - (djm) [cipher.c] Fix merge botch.
