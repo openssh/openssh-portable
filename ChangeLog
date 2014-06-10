@@ -15,6 +15,8 @@
      [sshbuf.h]
      Group ECC functions together to make things a little easier in -portable.
      "doesn't bother me" deraadt@
+ - (dtucker) [sshbuf.h] Only declare ECC functions if building without
+   OpenSSL or if OpenSSL has ECC.
 
 20140527
  - (djm) [cipher.c] Fix merge botch.
