@@ -1,3 +1,8 @@
+20140610
+ - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c
+   regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c] Only do NISTP256
+   curve tests if OpenSSL has them.
+
 20140527
  - (djm) [cipher.c] Fix merge botch.
  - (djm) [contrib/cygwin/ssh-host-config] Updated Cygwin ssh-host-config

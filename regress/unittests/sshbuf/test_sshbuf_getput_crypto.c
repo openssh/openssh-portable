@@ -44,6 +44,7 @@ sshbuf_getput_crypto_tests(void)
 		0x70, 0x60, 0x50, 0x40, 0x30, 0x20, 0x10, 0x00,
 		0x7f, 0xff, 0x11
 	};
+#ifdef OPENSSL_HAS_NISTP256
 	int ec256_nid = NID_X9_62_prime256v1;
 	char *ec256_x = "0C828004839D0106AA59575216191357"
 		        "34B451459DADB586677EF9DF55784999";
@@ -62,6 +63,7 @@ sshbuf_getput_crypto_tests(void)
 	};
 	EC_KEY *eck;
 	EC_POINT *ecp;
+#endif
 	int r;
 
 #define MKBN(b, bnn) \
@@ -345,6 +347,7 @@ sshbuf_getput_crypto_tests(void)
 	sshbuf_free(p1);
 	TEST_DONE();
 
+#ifdef OPENSSL_HAS_NISTP256
 	TEST_START("sshbuf_put_ec");
 	eck = EC_KEY_new_by_curve_name(ec256_nid);
 	ASSERT_PTR_NE(eck, NULL);
@@ -396,5 +399,6 @@ sshbuf_getput_crypto_tests(void)
 	BN_free(bn);
 	BN_free(bn2);
 	TEST_DONE();
+#endif
 }
 
