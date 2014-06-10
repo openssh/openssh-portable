@@ -11,6 +11,10 @@
      [sshconnect2.c]
      fix inverted test that caused PKCS#11 keys that were explicitly listed
      not to be preferred. Reported by Dirk-Willem van Gulik
+   - dtucker@cvs.openbsd.org 2014/06/10 21:46:11
+     [sshbuf.h]
+     Group ECC functions together to make things a little easier in -portable.
+     "doesn't bother me" deraadt@
 
 20140527
  - (djm) [cipher.c] Fix merge botch.
