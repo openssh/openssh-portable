@@ -4,6 +4,8 @@
    curve tests if OpenSSL has them.
  - (dtucker) [myprosal.h] Don't include curve25519-sha256@libssh.org in
    the proposal if the version of OpenSSL we're using doesn't support ECC.
+ - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c] ifdef
+   ECC variable too.
 
 20140527
  - (djm) [cipher.c] Fix merge botch.

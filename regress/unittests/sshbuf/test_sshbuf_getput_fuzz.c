@@ -29,7 +29,9 @@ attempt_parse_blob(u_char *blob, size_t len)
 {
 	struct sshbuf *p1;
 	BIGNUM *bn;
+#ifdef OPENSSL_HAS_NISTP256
 	EC_KEY *eck;
+#endif
 	u_char *s;
 	size_t l;
 	u_int8_t u8;
