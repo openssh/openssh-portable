@@ -2,6 +2,8 @@
  - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c
    regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c] Only do NISTP256
    curve tests if OpenSSL has them.
+ - (dtucker) [myprosal.h] Don't include curve25519-sha256@libssh.org in
+   the proposal if the version of OpenSSL we're using doesn't support ECC.
 
 20140527
  - (djm) [cipher.c] Fix merge botch.

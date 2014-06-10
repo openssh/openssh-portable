@@ -78,8 +78,13 @@
 #endif
 
 #ifdef WITH_OPENSSL
-#define KEX_SERVER_KEX          \
-	"curve25519-sha256@libssh.org," \
+# ifdef OPENSSL_HAS_ECC
+#  define KEX_CURVE25519_METHODS "curve25519-sha256@libssh.org,"
+# else
+#  define KEX_CURVE25519_METHODS ""
+# endif
+#define KEX_SERVER_KEX \
+	KEX_CURVE25519_METHODS \
 	KEX_ECDH_METHODS \
 	KEX_SHA256_METHODS \
 	"diffie-hellman-group14-sha1"
