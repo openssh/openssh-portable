@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.180 2014/05/21 07:06:47 djm Exp $ */
+/* $Id: defines.h,v 1.181 2014/06/11 19:22:50 dtucker Exp $ */
 
 
 /* Constants */
@@ -820,6 +820,14 @@ struct winsize {
 #if defined(HAVE_ARC4RANDOM) && defined(HAVE_ARC4RANDOM_UNIFORM) && \
     !defined(HAVE_ARC4RANDOM_STIR)
 # define arc4random_stir()
+#endif
+
+#ifndef HAVE_VA_COPY
+# ifdef HAVE___VA_COPY
+#  define va_copy(dest, src) __va_copy(dest, src)
+# else
+#  define va_copy(dest, src) (dest) = (src)
+# endif
 #endif
 
 #endif /* _DEFINES_H */
