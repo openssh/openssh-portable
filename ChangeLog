@@ -19,6 +19,8 @@
    OpenSSL or if OpenSSL has ECC.
  - (dtucker) [openbsd-compat/arc4random.c] Use explicit_bzero instead of an
    assigment that might get optimized out.  ok djm@
+ - (dtucker) [bufaux.c bufbn.c bufec.c buffer.c] Pull in includes.h for
+   compat stuff, specifically whether or not OpenSSL has ECC.
 
 20140527
  - (djm) [cipher.c] Fix merge botch.

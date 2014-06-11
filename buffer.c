@@ -18,6 +18,8 @@
 
 /* Emulation wrappers for legacy OpenSSH buffer API atop sshbuf */
 
+#include "includes.h"
+
 #include <sys/types.h>
 
 #include "buffer.h"
