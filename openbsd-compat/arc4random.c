@@ -229,7 +229,7 @@ arc4random_buf(void *_buf, size_t n)
 		buf[i] = r & 0xff;
 		r >>= 8;
 	}
-	i = r = 0;
+	explicit_bzero(&r, sizeof(r));
 }
 #endif /* !defined(HAVE_ARC4RANDOM_BUF) && defined(HAVE_ARC4RANDOM) */
 

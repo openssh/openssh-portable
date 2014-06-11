@@ -17,6 +17,8 @@
      "doesn't bother me" deraadt@
  - (dtucker) [sshbuf.h] Only declare ECC functions if building without
    OpenSSL or if OpenSSL has ECC.
+ - (dtucker) [openbsd-compat/arc4random.c] Use explicit_bzero instead of an
+   assigment that might get optimized out.  ok djm@
 
 20140527
  - (djm) [cipher.c] Fix merge botch.
