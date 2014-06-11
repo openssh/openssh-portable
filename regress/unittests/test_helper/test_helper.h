@@ -21,7 +21,9 @@
 #define _TEST_HELPER_H
 
 #include <sys/types.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 #include <openssl/bn.h>
 #include <openssl/err.h>

@@ -1,6 +1,8 @@
 20140611
  - (dtucker) [defines.h] Add va_copy if we don't already have it, taken from
    openbsd-compat/bsd-asprintf.c.
+ - (dtucker) [regress/unittests/sshbuf/*.c regress/unittests/test_helper/*]
+   Wrap stdlib.h include an ifdef for platforms that don't have it.
 
 20140610
  - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c
