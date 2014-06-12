@@ -20,6 +20,8 @@
 #ifndef _TEST_HELPER_H
 #define _TEST_HELPER_H
 
+#include "includes.h"
+
 #include <sys/types.h>
 #ifdef HAVE_STDINT_H
 # include <stdint.h>

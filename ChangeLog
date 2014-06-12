@@ -3,6 +3,8 @@
    openbsd-compat/bsd-asprintf.c.
  - (dtucker) [regress/unittests/sshbuf/*.c regress/unittests/test_helper/*]
    Wrap stdlib.h include an ifdef for platforms that don't have it.
+ - (tim) [regress/unittests/test_helper/test_helper.h] Add includes.h for
+   u_intXX_t types.
 
 20140610
  - (dtucker) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c
