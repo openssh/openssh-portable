@@ -1,3 +1,7 @@
+20140612
+ - (dtucker) [configure.ac] Remove tcpwrappers support, support has already
+   been removed from sshd.c.
+
 20140611
  - (dtucker) [defines.h] Add va_copy if we don't already have it, taken from
    openbsd-compat/bsd-asprintf.c.
