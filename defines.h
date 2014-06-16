@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.181 2014/06/11 19:22:50 dtucker Exp $ */
+/* $Id: defines.h,v 1.182 2014/06/16 12:50:56 dtucker Exp $ */
 
 
 /* Constants */
@@ -405,7 +405,7 @@ struct winsize {
 
 /* user may have set a different path */
 #if defined(_PATH_MAILDIR) && defined(MAIL_DIRECTORY)
-# undef _PATH_MAILDIR MAILDIR
+# undef _PATH_MAILDIR
 #endif /* defined(_PATH_MAILDIR) && defined(MAIL_DIRECTORY) */
 
 #ifdef MAIL_DIRECTORY

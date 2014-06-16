@@ -1,3 +1,7 @@
+20140616
+ - (dtucker) [defines.h] Fix undef of _PATH_MAILDIR.  From rak at debian via
+   OpenSMTPD and chl@
+
 20140612
  - (dtucker) [configure.ac] Remove tcpwrappers support, support has already
    been removed from sshd.c.
