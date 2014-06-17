@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.17 2014/02/13 05:38:33 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.18 2014/06/17 13:06:08 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -34,6 +34,41 @@
 
 #define SSH_DONT_OVERLOAD_OPENSSL_FUNCS
 #include "openssl-compat.h"
+
+/*
+ * OpenSSL version numbers: MNNFFPPS: major minor fix patch status
+ * We match major, minor, fix and status (not patch) for <1.0.0.
+ * After that, we acceptable compatible fix versions (so we
+ * allow 1.0.1 to work with 1.0.0). Going backwards is only allowed
+ * within a patch series.
+ */
+
+int
+ssh_compatible_openssl(long headerver, long libver)
+{
+	long mask, hfix, lfix;
+
+	/* exact match is always OK */
+	if (headerver == libver)
+		return 1;
+
+	/* for versions < 1.0.0, major,minor,fix,status must match */
+	if (headerver < 0x1000000f) {
+		mask = 0xfffff00fL; /* major,minor,fix,status */
+		return (headerver & mask) == (libver & mask);
+	}
+	
+	/*
+	 * For versions >= 1.0.0, major,minor,status must match and library
+	 * fix version must be equal to or newer than the header.
+	 */
+	mask = 0xfff0000fL; /* major,minor,status */
+	hfix = (headerver & 0x000ff000) >> 12;
+	lfix = (libver & 0x000ff000) >> 12;
+	if ( (headerver & mask) == (libver & mask) && lfix >= hfix)
+		return 1;
+	return 0;
+}
 
 #ifdef SSH_OLD_EVP
 int

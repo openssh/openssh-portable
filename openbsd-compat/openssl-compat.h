@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.26 2014/02/13 05:38:33 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.27 2014/06/17 13:06:08 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -21,6 +21,8 @@
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
+
+int ssh_compatible_openssl(long, long);
 
 /* Only in 0.9.8 */
 #ifndef OPENSSL_DSA_MAX_MODULUS_BITS

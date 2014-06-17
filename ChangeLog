@@ -1,3 +1,11 @@
+20140617
+ - (dtucker) [entropy.c openbsd-compat/openssl-compat.{c,h}
+   openbsd-compat/regress/{.cvsignore,Makefile.in,opensslvertest.c}]
+   Move the OpenSSL header/library version test into its own function and add
+   tests for it. Fix it to allow fix version upgrades (but not downgrades).
+   Prompted by chl@ via OpenSMTPD (issue #462) and Debian (bug #748150).
+   ok djm@ chl@
+
 20140616
  - (dtucker) [defines.h] Fix undef of _PATH_MAILDIR.  From rak at debian via
    OpenSMTPD and chl@
