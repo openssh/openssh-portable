@@ -1505,6 +1505,9 @@ void
 do_setusercontext(struct passwd *pw)
 {
 	char *chroot_path, *tmp;
+#ifdef USE_LIBIAF
+	int doing_chroot = 0;
+#endif
 
 	platform_setusercontext(pw);
 
@@ -1544,6 +1547,9 @@ do_setusercontext(struct passwd *pw)
 			/* Make sure we don't attempt to chroot again */
 			free(options.chroot_directory);
 			options.chroot_directory = NULL;
+#ifdef USE_LIBIAF
+			doing_chroot = 1;
+#endif
 		}
 
 #ifdef HAVE_LOGIN_CAP
@@ -1558,7 +1564,14 @@ do_setusercontext(struct passwd *pw)
 		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUMASK);
 #else
 # ifdef USE_LIBIAF
-	if (set_id(pw->pw_name) != 0) {
+/* In a chroot environment, the set_id() will always fail; typically 
+ * because of the lack of necessary authentication services and runtime
+ * such as ./usr/lib/libiaf.so, ./usr/lib/libpam.so.1, and ./etc/passwd
+ * We skip it in the internal sftp chroot case.
+ * We'll lose auditing and ACLs but permanently_set_uid will
+ * take care of the rest.
+ */
+	if ((doing_chroot == 0) && set_id(pw->pw_name) != 0) {
 		fatal("set_id(%s) Failed", pw->pw_name);
 	}
 # endif /* USE_LIBIAF */
