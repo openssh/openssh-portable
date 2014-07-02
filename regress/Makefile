@@ -185,5 +185,6 @@ interop: ${INTEROP_TARGETS}
 unit:
 	set -e ; if test -z "${SKIP_UNIT}" ; then \
 		${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
-		${.OBJDIR}/unittests/sshkey/test_sshkey ; \
+		${.OBJDIR}/unittests/sshkey/test_sshkey \
+			-d  ${.CURDIR}//unittests/sshkey/testdata ; \
 	fi
