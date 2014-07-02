@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.360 2014/07/02 05:28:03 djm Exp $
+# $Id: Makefile.in,v 1.361 2014/07/02 07:38:32 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -66,10 +66,10 @@ TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keys
 LIBOPENSSH_OBJS=\
 	ssherr.o \
 	sshbuf.o \
+	sshkey.o \
 	sshbuf-getput-basic.o \
 	sshbuf-misc.o \
-	sshbuf-getput-crypto.o \
-	sshkey.o
+	sshbuf-getput-crypto.o
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o bufaux.o bufbn.o buffer.o \
@@ -227,6 +227,8 @@ clean:	regressclean
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/sshbuf/*.o
 	rm -f regress/unittests/sshbuf/test_sshbuf
+	rm -f regress/unittests/sshkey/*.o
+	rm -f regress/unittests/sshkey/test_sshkey
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -239,6 +241,8 @@ distclean:	regressclean
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/sshbuf/*.o
 	rm -f regress/unittests/sshbuf/test_sshbuf
+	rm -f regress/unittests/sshkey/*.o
+	rm -f regress/unittests/sshkey/test_sshkey
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
@@ -418,6 +422,8 @@ regress-prep:
 		mkdir -p `pwd`/regress/unittests/test_helper
 	[ -d `pwd`/regress/unittests/sshbuf ]  || \
 		mkdir -p `pwd`/regress/unittests/sshbuf
+	[ -d `pwd`/regress/unittests/sshkey ]  || \
+		mkdir -p `pwd`/regress/unittests/sshkey
 	[ -f `pwd`/regress/Makefile ]  || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
@@ -448,15 +454,29 @@ UNITTESTS_TEST_SSHBUF_OBJS=\
 	regress/unittests/sshbuf/test_sshbuf_fixed.o
 
 regress/unittests/sshbuf/test_sshbuf$(EXEEXT): ${UNITTESTS_TEST_SSHBUF_OBJS} \
-    regress/unittests/test_helper/libtest_helper.a
+    regress/unittests/test_helper/libtest_helper.a libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_SSHBUF_OBJS) \
+	    -L regress/unittests/test_helper -ltest_helper \
+	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
+
+UNITTESTS_TEST_SSHKEY_OBJS=\
+	regress/unittests/sshkey/test_fuzz.o \
+	regress/unittests/sshkey/tests.o \
+	regress/unittests/sshkey/common.o \
+	regress/unittests/sshkey/test_file.o \
+	regress/unittests/sshkey/test_sshkey.o
+
+regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
+    regress/unittests/test_helper/libtest_helper.a libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_SSHKEY_OBJS) \
 	    -L regress/unittests/test_helper -ltest_helper \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
 REGRESS_BINARIES=\
 	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
-	regress/unittests/sshbuf/test_sshbuf$(EXEEXT)
+	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
+	regress/unittests/sshkey/test_sshkey$(EXEEXT)
 
 tests interop-tests: regress-prep $(TARGETS) $(REGRESS_BINARIES)
 	BUILDDIR=`pwd`; \

@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.69 2014/04/30 05:32:00 djm Exp $
+#	$OpenBSD: Makefile,v 1.70 2014/06/24 01:14:17 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -102,9 +102,6 @@ TEST_SSH_SSHKEYGEN?=ssh-keygen
 
 CPPFLAGS=-I..
 
-unit:
-	(set -e ; cd ${.CURDIR}/unittests ; make)
-
 t1:
 	${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
 	tr '\n' '\r' <${.CURDIR}/rsa_ssh2.prv > ${.OBJDIR}/rsa_ssh2_cr.prv
@@ -186,4 +183,7 @@ interop: ${INTEROP_TARGETS}
 
 # Unit tests, built by top-level Makefile
 unit:
-	${.OBJDIR}/unittests/sshbuf/test_sshbuf
+	set -e ; if test -z "${SKIP_UNIT}" ; then \
+		${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
+		${.OBJDIR}/unittests/sshkey/test_sshkey ; \
+	fi
