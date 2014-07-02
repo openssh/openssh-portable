@@ -65,6 +65,18 @@
    - markus@cvs.openbsd.org 2014/06/27 18:50:39
      [ssh-add.c]
      fix loading of private keys
+   - djm@cvs.openbsd.org 2014/06/30 12:54:39
+     [key.c]
+     suppress spurious error message when loading key with a passphrase;
+     reported by kettenis@ ok markus@
+   - djm@cvs.openbsd.org 2014/07/02 04:59:06
+     [cipher-3des1.c]
+     fix ssh protocol 1 on the server that regressed with the sshkey change
+     (sometimes fatal() after auth completed), make file return useful status
+     codes.
+     NB. Id sync only for these two. They were bundled into the sshkey merge
+     above, since it was easier to sync the entire file and then apply
+     portable-specific changed atop it.
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare

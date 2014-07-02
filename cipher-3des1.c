@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher-3des1.c,v 1.10 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: cipher-3des1.c,v 1.11 2014/07/02 04:59:06 djm Exp $ */
 /*
  * Copyright (c) 2003 Markus Friedl.  All rights reserved.
  *
