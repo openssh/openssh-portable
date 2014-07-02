@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.68 2014/01/25 04:35:32 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.69 2014/04/30 05:32:00 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -101,6 +101,9 @@ TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
 TEST_SSH_SSHKEYGEN?=ssh-keygen
 
 CPPFLAGS=-I..
+
+unit:
+	(set -e ; cd ${.CURDIR}/unittests ; make)
 
 t1:
 	${TEST_SSH_SSHKEYGEN} -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv

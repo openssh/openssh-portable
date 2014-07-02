@@ -77,6 +77,10 @@
      NB. Id sync only for these two. They were bundled into the sshkey merge
      above, since it was easier to sync the entire file and then apply
      portable-specific changed atop it.
+   - djm@cvs.openbsd.org 2014/04/30 05:32:00
+     [regress/Makefile]
+     unit tests for new buffer API; including basic fuzz testing
+     NB. Id sync only.
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
