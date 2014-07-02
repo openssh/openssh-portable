@@ -1,3 +1,10 @@
+20140702
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2014/06/13 08:26:29
+     [sandbox-systrace.c]
+     permit SYS_getentropy
+     from matthew
+
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
 
