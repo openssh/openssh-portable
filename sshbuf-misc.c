@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.1 2014/04/30 05:29:56 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.2 2014/06/24 01:13:21 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -33,12 +33,11 @@
 #include "sshbuf.h"
 
 void
-sshbuf_dump(struct sshbuf *buf, FILE *f)
+sshbuf_dump_data(const void *s, size_t len, FILE *f)
 {
-	const u_char *p = sshbuf_ptr(buf);
-	size_t i, j, len = sshbuf_len(buf);
+	size_t i, j;
+	const u_char *p = (const u_char *)s;
 
-	fprintf(f, "buffer %p len = %zu\n", buf, len);
 	for (i = 0; i < len; i += 16) {
 		fprintf(f, "%.4zd: ", i);
 		for (j = i; j < i + 16; j++) {
@@ -58,6 +57,13 @@ sshbuf_dump(struct sshbuf *buf, FILE *f)
 		}
 		fprintf(f, "\n");
 	}
+}
+
+void
+sshbuf_dump(struct sshbuf *buf, FILE *f)
+{
+	fprintf(f, "buffer %p len = %zu\n", buf, sshbuf_len(buf));
+	sshbuf_dump_data(sshbuf_ptr(buf), sshbuf_len(buf), f);
 }
 
 char *

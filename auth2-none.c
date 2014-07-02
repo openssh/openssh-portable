@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-none.c,v 1.16 2010/06/25 08:46:17 djm Exp $ */
+/* $OpenBSD: auth2-none.c,v 1.17 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -30,9 +30,10 @@
 #include <sys/uio.h>
 
 #include <fcntl.h>
-#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "atomicio.h"
 #include "xmalloc.h"

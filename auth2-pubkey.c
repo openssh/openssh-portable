@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.39 2013/12/30 23:52:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.40 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -230,7 +230,7 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 }
 
 static int
-match_principals_option(const char *principal_list, struct KeyCert *cert)
+match_principals_option(const char *principal_list, struct sshkey_cert *cert)
 {
 	char *result;
 	u_int i;
@@ -250,7 +250,7 @@ match_principals_option(const char *principal_list, struct KeyCert *cert)
 }
 
 static int
-match_principals_file(char *file, struct passwd *pw, struct KeyCert *cert)
+match_principals_file(char *file, struct passwd *pw, struct sshkey_cert *cert)
 {
 	FILE *f;
 	char line[SSH_MAX_PUBKEY_BYTES], *cp, *ep, *line_opts;

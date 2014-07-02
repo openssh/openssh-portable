@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.185 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.186 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -278,7 +278,7 @@ process_authentication_challenge1(SocketEntry *e)
 	if (id != NULL && (!id->confirm || confirm_key(id) == 0)) {
 		Key *private = id->key;
 		/* Decrypt the challenge using the private key. */
-		if (rsa_private_decrypt(challenge, challenge, private->rsa) <= 0)
+		if (rsa_private_decrypt(challenge, challenge, private->rsa) != 0)
 			goto failure;
 
 		/* The response is MD5 of decrypted challenge plus session id. */
@@ -365,12 +365,16 @@ process_sign_request2(SocketEntry *e)
 static void
 process_remove_identity(SocketEntry *e, int version)
 {
-	u_int blen, bits;
+	u_int blen;
 	int success = 0;
 	Key *key = NULL;
 	u_char *blob;
+#ifdef WITH_SSH1
+	u_int bits;
+#endif /* WITH_SSH1 */
 
 	switch (version) {
+#ifdef WITH_SSH1
 	case 1:
 		key = key_new(KEY_RSA1);
 		bits = buffer_get_int(&e->request);
@@ -381,6 +385,7 @@ process_remove_identity(SocketEntry *e, int version)
 			logit("Warning: identity keysize mismatch: actual %u, announced %u",
 			    key_size(key), bits);
 		break;
+#endif /* WITH_SSH1 */
 	case 2:
 		blob = buffer_get_string(&e->request, &blen);
 		key = key_from_blob(blob, blen);
@@ -477,6 +482,7 @@ process_add_identity(SocketEntry *e, int version)
 	Key *k = NULL;
 
 	switch (version) {
+#ifdef WITH_SSH1
 	case 1:
 		k = key_new_private(KEY_RSA1);
 		(void) buffer_get_int(&e->request);		/* ignored */
@@ -490,7 +496,9 @@ process_add_identity(SocketEntry *e, int version)
 		buffer_get_bignum(&e->request, k->rsa->p);	/* q */
 
 		/* Generate additional parameters */
-		rsa_generate_additional_parameters(k->rsa);
+		if (rsa_generate_additional_parameters(k->rsa) != 0)
+			fatal("%s: rsa_generate_additional_parameters "
+			    "error", __func__);
 
 		/* enable blinding */
 		if (RSA_blinding_on(k->rsa, NULL) != 1) {
@@ -499,6 +507,7 @@ process_add_identity(SocketEntry *e, int version)
 			goto send;
 		}
 		break;
+#endif /* WITH_SSH1 */
 	case 2:
 		k = key_private_deserialize(&e->request);
 		if (k == NULL) {
@@ -507,11 +516,10 @@ process_add_identity(SocketEntry *e, int version)
 		}
 		break;
 	}
-	comment = buffer_get_string(&e->request, NULL);
-	if (k == NULL) {
-		free(comment);
+	if (k == NULL)
 		goto send;
-	}
+	comment = buffer_get_string(&e->request, NULL);
+
 	while (buffer_len(&e->request)) {
 		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:

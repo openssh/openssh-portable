@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.16 2014/06/24 00:52:02 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.17 2014/06/24 01:13:21 djm Exp $ */
 
 #include "includes.h"
 
@@ -366,7 +366,7 @@ plain_key_blob(const Key *key, u_char **blob, u_int *blen)
 	}
 	r = key_to_blob(kcopy, blob, blen);
 	free(kcopy);
-	return r == 0 ? -1 : 0;
+	return r;
 }
 
 /* Revoke a key blob. Ownership of blob is transferred to the tree */
@@ -394,7 +394,7 @@ ssh_krl_revoke_key_explicit(struct ssh_krl *krl, const Key *key)
 	u_int len;
 
 	debug3("%s: revoke type %s", __func__, key_type(key));
-	if (plain_key_blob(key, &blob, &len) != 0)
+	if (plain_key_blob(key, &blob, &len) < 0)
 		return -1;
 	return revoke_blob(&krl->revoked_keys, blob, len);
 }
@@ -1130,7 +1130,7 @@ is_key_revoked(struct ssh_krl *krl, const Key *key)
 
 	/* Next, explicit keys */
 	memset(&rb, 0, sizeof(rb));
-	if (plain_key_blob(key, &rb.blob, &rb.len) != 0)
+	if (plain_key_blob(key, &rb.blob, &rb.len) < 0)
 		return -1;
 	erb = RB_FIND(revoked_blob_tree, &krl->revoked_keys, &rb);
 	free(rb.blob);

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.359 2014/05/21 22:23:59 djm Exp $
+# $Id: Makefile.in,v 1.360 2014/07/02 05:28:03 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -68,7 +68,8 @@ LIBOPENSSH_OBJS=\
 	sshbuf.o \
 	sshbuf-getput-basic.o \
 	sshbuf-misc.o \
-	sshbuf-getput-crypto.o
+	sshbuf-getput-crypto.o \
+	sshkey.o
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o bufaux.o bufbn.o buffer.o \

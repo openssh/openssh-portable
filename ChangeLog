@@ -24,6 +24,26 @@
      
      Readers of a broken KRL caused by this bug will fail closed, so no
      should-have-been-revoked key will be accepted.
+   - djm@cvs.openbsd.org 2014/06/24 01:13:21
+     [Makefile.in auth-bsdauth.c auth-chall.c auth-options.c auth-rsa.c
+     [auth2-none.c auth2-pubkey.c authfile.c authfile.h cipher-3des1.c
+     [cipher-chachapoly.c cipher-chachapoly.h cipher.c cipher.h
+     [digest-libc.c digest-openssl.c digest.h dns.c entropy.c hmac.h
+     [hostfile.c key.c key.h krl.c monitor.c packet.c rsa.c rsa.h
+     [ssh-add.c ssh-agent.c ssh-dss.c ssh-ecdsa.c ssh-ed25519.c
+     [ssh-keygen.c ssh-pkcs11-client.c ssh-pkcs11-helper.c ssh-pkcs11.c
+     [ssh-rsa.c sshbuf-misc.c sshbuf.h sshconnect.c sshconnect1.c
+     [sshconnect2.c sshd.c sshkey.c sshkey.h
+     [openbsd-compat/openssl-compat.c openbsd-compat/openssl-compat.h]
+     New key API: refactor key-related functions to be more library-like,
+     existing API is offered as a set of wrappers.
+     
+     with and ok markus@
+     
+     Thanks also to Ben Hawkes, David Tomaschik, Ivan Fratric, Matthew
+     Dempsky and Ron Bowes for a detailed review a few months ago.
+     NB. This commit also removes portable OpenSSH support for OpenSSL
+     <0.9.8e.
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare

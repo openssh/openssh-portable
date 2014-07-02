@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.196 2014/05/03 17:20:34 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.197 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -78,6 +78,7 @@
 #include "canohost.h"
 #include "misc.h"
 #include "ssh.h"
+#include "ssherr.h"
 #include "roaming.h"
 
 #ifdef PACKET_DEBUG
@@ -222,6 +223,7 @@ void
 packet_set_connection(int fd_in, int fd_out)
 {
 	const Cipher *none = cipher_by_name("none");
+	int r;
 
 	if (none == NULL)
 		fatal("packet_set_connection: cannot load cipher 'none'");
@@ -229,10 +231,11 @@ packet_set_connection(int fd_in, int fd_out)
 		active_state = alloc_session_state();
 	active_state->connection_in = fd_in;
 	active_state->connection_out = fd_out;
-	cipher_init(&active_state->send_context, none, (const u_char *)"",
-	    0, NULL, 0, CIPHER_ENCRYPT);
-	cipher_init(&active_state->receive_context, none, (const u_char *)"",
-	    0, NULL, 0, CIPHER_DECRYPT);
+	if ((r = cipher_init(&active_state->send_context, none,
+	    (const u_char *)"", 0, NULL, 0, CIPHER_ENCRYPT)) != 0 ||
+	    (r = cipher_init(&active_state->receive_context, none,
+	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0)
+		fatal("%s: cipher_init: %s", __func__, ssh_err(r));
 	active_state->newkeys[MODE_IN] = active_state->newkeys[MODE_OUT] = NULL;
 	if (!active_state->initialized) {
 		active_state->initialized = 1;
@@ -329,13 +332,15 @@ void
 packet_get_keyiv(int mode, u_char *iv, u_int len)
 {
 	CipherContext *cc;
+	int r;
 
 	if (mode == MODE_OUT)
 		cc = &active_state->send_context;
 	else
 		cc = &active_state->receive_context;
 
-	cipher_get_keyiv(cc, iv, len);
+	if ((r = cipher_get_keyiv(cc, iv, len)) != 0)
+		fatal("%s: cipher_get_keyiv: %s", __func__, ssh_err(r));
 }
 
 int
@@ -381,13 +386,15 @@ void
 packet_set_iv(int mode, u_char *dat)
 {
 	CipherContext *cc;
+	int r;
 
 	if (mode == MODE_OUT)
 		cc = &active_state->send_context;
 	else
 		cc = &active_state->receive_context;
 
-	cipher_set_keyiv(cc, dat);
+	if ((r = cipher_set_keyiv(cc, dat)) != 0)
+		fatal("%s: cipher_set_keyiv: %s", __func__, ssh_err(r));
 }
 
 int
@@ -552,6 +559,7 @@ void
 packet_set_encryption_key(const u_char *key, u_int keylen, int number)
 {
 	const Cipher *cipher = cipher_by_number(number);
+	int r;
 
 	if (cipher == NULL)
 		fatal("packet_set_encryption_key: unknown cipher number %d", number);
@@ -561,10 +569,11 @@ packet_set_encryption_key(const u_char *key, u_int keylen, int number)
 		fatal("packet_set_encryption_key: keylen too big: %d", keylen);
 	memcpy(active_state->ssh1_key, key, keylen);
 	active_state->ssh1_keylen = keylen;
-	cipher_init(&active_state->send_context, cipher, key, keylen, NULL,
-	    0, CIPHER_ENCRYPT);
-	cipher_init(&active_state->receive_context, cipher, key, keylen, NULL,
-	    0, CIPHER_DECRYPT);
+	if ((r = cipher_init(&active_state->send_context, cipher,
+	    key, keylen, NULL, 0, CIPHER_ENCRYPT)) != 0 ||
+	    (r = cipher_init(&active_state->receive_context, cipher,
+	    key, keylen, NULL, 0, CIPHER_DECRYPT)) != 0)
+		fatal("%s: cipher_init: %s", __func__, ssh_err(r));
 }
 
 u_int
@@ -744,7 +753,7 @@ set_newkeys(int mode)
 	Comp *comp;
 	CipherContext *cc;
 	u_int64_t *max_blocks;
-	int crypt_type;
+	int r, crypt_type;
 
 	debug2("set_newkeys: mode %d", mode);
 
@@ -786,8 +795,9 @@ set_newkeys(int mode)
 	if (cipher_authlen(enc->cipher) == 0 && mac_init(mac) == 0)
 		mac->enabled = 1;
 	DBG(debug("cipher_init_context: %d", mode));
-	cipher_init(cc, enc->cipher, enc->key, enc->key_len,
-	    enc->iv, enc->iv_len, crypt_type);
+	if ((r = cipher_init(cc, enc->cipher, enc->key, enc->key_len,
+	    enc->iv, enc->iv_len, crypt_type)) != 0)
+		fatal("%s: cipher_init: %s", __func__, ssh_err(r));
 	/* Deleting the keys does not gain extra security */
 	/* explicit_bzero(enc->iv,  enc->block_size);
 	   explicit_bzero(enc->key, enc->key_len);

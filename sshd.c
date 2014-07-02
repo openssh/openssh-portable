@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.426 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.427 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1031,8 +1031,10 @@ recv_rexec_state(int fd, Buffer *conf)
 		buffer_get_bignum(&m, sensitive_data.server_key->rsa->iqmp);
 		buffer_get_bignum(&m, sensitive_data.server_key->rsa->p);
 		buffer_get_bignum(&m, sensitive_data.server_key->rsa->q);
-		rsa_generate_additional_parameters(
-		    sensitive_data.server_key->rsa);
+		if (rsa_generate_additional_parameters(
+		    sensitive_data.server_key->rsa) != 0)
+			fatal("%s: rsa_generate_additional_parameters "
+			    "error", __func__);
 #else
 		fatal("ssh1 not supported");
 #endif
@@ -2215,10 +2217,10 @@ ssh1_session_key(BIGNUM *session_key_int)
 			    SSH_KEY_BITS_RESERVED);
 		}
 		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa) <= 0)
+		    sensitive_data.server_key->rsa) != 0)
 			rsafail++;
 		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa) <= 0)
+		    sensitive_data.ssh1_host_key->rsa) != 0)
 			rsafail++;
 	} else {
 		/* Host key has bigger modulus (or they are equal). */
@@ -2233,10 +2235,10 @@ ssh1_session_key(BIGNUM *session_key_int)
 			    SSH_KEY_BITS_RESERVED);
 		}
 		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa) < 0)
+		    sensitive_data.ssh1_host_key->rsa) != 0)
 			rsafail++;
 		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa) < 0)
+		    sensitive_data.server_key->rsa) != 0)
 			rsafail++;
 	}
 	return (rsafail);

@@ -43,6 +43,8 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 
+#include "openbsd-compat/openssl-compat.h"
+
 #include "ssh.h"
 #include "misc.h"
 #include "xmalloc.h"

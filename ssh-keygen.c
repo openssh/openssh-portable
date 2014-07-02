@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.246 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.247 2014/06/24 01:13:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -482,7 +482,9 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 		buffer_get_bignum_bits(&b, key->rsa->iqmp);
 		buffer_get_bignum_bits(&b, key->rsa->q);
 		buffer_get_bignum_bits(&b, key->rsa->p);
-		rsa_generate_additional_parameters(key->rsa);
+		if (rsa_generate_additional_parameters(key->rsa) != 0)
+			fatal("%s: rsa_generate_additional_parameters "
+			    "error", __func__);
 		break;
 	}
 	rlen = buffer_len(&b);
@@ -1637,12 +1639,12 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		public->cert->valid_after = cert_valid_from;
 		public->cert->valid_before = cert_valid_to;
 		if (v00) {
-			prepare_options_buf(&public->cert->critical,
+			prepare_options_buf(public->cert->critical,
 			    OPTIONS_CRITICAL|OPTIONS_EXTENSIONS);
 		} else {
-			prepare_options_buf(&public->cert->critical,
+			prepare_options_buf(public->cert->critical,
 			    OPTIONS_CRITICAL);
-			prepare_options_buf(&public->cert->extensions,
+			prepare_options_buf(public->cert->extensions,
 			    OPTIONS_EXTENSIONS);
 		}
 		public->cert->signature_key = key_from_private(ca);
@@ -1913,19 +1915,19 @@ do_show_cert(struct passwd *pw)
 		printf("\n");
 	}
 	printf("        Critical Options: ");
-	if (buffer_len(&key->cert->critical) == 0)
+	if (buffer_len(key->cert->critical) == 0)
 		printf("(none)\n");
 	else {
 		printf("\n");
-		show_options(&key->cert->critical, v00, 1);
+		show_options(key->cert->critical, v00, 1);
 	}
 	if (!v00) {
 		printf("        Extensions: ");
-		if (buffer_len(&key->cert->extensions) == 0)
+		if (buffer_len(key->cert->extensions) == 0)
 			printf("(none)\n");
 		else {
 			printf("\n");
-			show_options(&key->cert->extensions, v00, 0);
+			show_options(key->cert->extensions, v00, 0);
 		}
 	}
 	exit(0);
