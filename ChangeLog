@@ -50,6 +50,10 @@
      ProxyCommand in use; continue and allow the ProxyCommand to
      connect anyway (e.g. to a host with a name outside the DNS
      behind a bastion)
+   - djm@cvs.openbsd.org 2014/06/24 02:21:01
+     [scp.c]
+     when copying local->remote fails during read, don't send uninitialised
+     heap to the remote end. Reported by Jann Horn
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
