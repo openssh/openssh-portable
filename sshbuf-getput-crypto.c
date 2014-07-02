@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.1 2014/04/30 05:29:56 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.2 2014/06/18 15:42:09 naddy Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -38,10 +38,12 @@ sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM *v)
 
 	if ((r = sshbuf_peek_string_direct(buf, &d, &len)) < 0)
 		return r;
-	/* Refuse negative (MSB set) and overlong bignums */
+	/* Refuse negative (MSB set) bignums */
 	if ((len != 0 && (*d & 0x80) != 0))
 		return SSH_ERR_BIGNUM_IS_NEGATIVE;
-	if (len > SSHBUF_MAX_BIGNUM)
+	/* Refuse overlong bignums, allow prepended \0 to avoid MSB set */
+	if (len > SSHBUF_MAX_BIGNUM + 1 ||
+	    (len == SSHBUF_MAX_BIGNUM + 1 && *d != 0))
 		return SSH_ERR_BIGNUM_TOO_LARGE;
 	if (v != NULL && BN_bin2bn(d, len, v) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
@@ -67,7 +69,7 @@ sshbuf_get_bignum1(struct sshbuf *buf, BIGNUM *v)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	len_bits = PEEK_U16(d);
 	len_bytes = (len_bits + 7) >> 3;
-	if (len_bytes > SSHBUF_MAX_BIGNUM + 1)
+	if (len_bytes > SSHBUF_MAX_BIGNUM)
 		return SSH_ERR_BIGNUM_TOO_LARGE;
 	if (sshbuf_len(buf) < 2 + len_bytes)
 		return SSH_ERR_MESSAGE_INCOMPLETE;

@@ -11,6 +11,12 @@
      sandbox.
      
      ok djm
+   - naddy@cvs.openbsd.org 2014/06/18 15:42:09
+     [sshbuf-getput-crypto.c]
+     The ssh_get_bignum functions must accept the same range of bignums
+     the corresponding ssh_put_bignum functions create.  This fixes the
+     use of 16384-bit RSA keys (bug reported by Eivind Evensen).
+     ok djm@
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
