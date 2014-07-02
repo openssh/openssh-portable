@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.402 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.403 2014/06/24 02:19:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -930,10 +930,14 @@ main(int ac, char **av)
 	if (addrs == NULL && options.num_permitted_cnames != 0 &&
 	    (option_clear_or_none(options.proxy_command) ||
             options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
-		if ((addrs = resolve_host(host, options.port, 1,
-		    cname, sizeof(cname))) == NULL)
-			cleanup_exit(255); /* resolve_host logs the error */
-		check_follow_cname(&host, cname);
+		if ((addrs = resolve_host(host, options.port,
+		    option_clear_or_none(options.proxy_command),
+		    cname, sizeof(cname))) == NULL) {
+			/* Don't fatal proxied host names not in the DNS */
+			if (option_clear_or_none(options.proxy_command))
+				cleanup_exit(255); /* logged in resolve_host */
+		} else
+			check_follow_cname(&host, cname);
 	}
 
 	/*

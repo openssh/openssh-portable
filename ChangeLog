@@ -44,6 +44,12 @@
      Dempsky and Ron Bowes for a detailed review a few months ago.
      NB. This commit also removes portable OpenSSH support for OpenSSL
      <0.9.8e.
+   - djm@cvs.openbsd.org 2014/06/24 02:19:48
+     [ssh.c]
+     don't fatal() when hostname canonicalisation fails with a
+     ProxyCommand in use; continue and allow the ProxyCommand to
+     connect anyway (e.g. to a host with a name outside the DNS
+     behind a bastion)
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
