@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.110 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.111 2014/06/27 18:50:39 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -202,14 +202,14 @@ add_file(AuthenticationConnection *ac, const char *filename, int key_only)
 	close(fd);
 
 	/* At first, try empty passphrase */
-	if ((r = sshkey_parse_private_fileblob(&keyblob, filename, "",
+	if ((r = sshkey_parse_private_fileblob(&keyblob, "", filename,
 	    &private, &comment)) != 0 && r != SSH_ERR_KEY_WRONG_PASSPHRASE)
-			fatal("Cannot parse %s: %s", filename, ssh_err(r));
+		fatal("Cannot parse %s: %s", filename, ssh_err(r));
 	if (comment == NULL)
 		comment = xstrdup(filename);
 	/* try last */
 	if (private == NULL && pass != NULL) {
-		if ((r = sshkey_parse_private_fileblob(&keyblob, filename, pass,
+		if ((r = sshkey_parse_private_fileblob(&keyblob, pass, filename,
 		    &private, &comment)) != 0 &&
 		    r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 			fatal("Cannot parse %s: %s", filename, ssh_err(r));
@@ -228,7 +228,7 @@ add_file(AuthenticationConnection *ac, const char *filename, int key_only)
 				return -1;
 			}
 			if ((r = sshkey_parse_private_fileblob(&keyblob,
-			     filename, pass, &private, &comment)) != 0 &&
+			     pass, filename, &private, NULL)) != 0 &&
 			    r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				fatal("Cannot parse %s: %s",
 					    filename, ssh_err(r));

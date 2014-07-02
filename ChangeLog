@@ -62,6 +62,9 @@
      [channels.c channels.h clientloop.c ssh.c]
      fix remote fwding with same listen port but different listen address
      with gerhard@, ok djm@
+   - markus@cvs.openbsd.org 2014/06/27 18:50:39
+     [ssh-add.c]
+     fix loading of private keys
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
