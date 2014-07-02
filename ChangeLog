@@ -175,6 +175,7 @@
      [regress/unittests/sshkey/testdata/rsa_n]
      [regress/unittests/sshkey/testdata/rsa_n_pw]
      unit and fuzz tests for new key API
+ - (djm) [sshkey.c] Conditionalise inclusion of util.h
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare

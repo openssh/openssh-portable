@@ -39,7 +39,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_UTIL_H
 #include <util.h>
+#endif /* HAVE_UTIL_H */
 
 #include "ssh2.h"
 #include "ssherr.h"
