@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.403 2014/06/24 02:19:48 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.404 2014/06/27 16:41:56 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1279,8 +1279,10 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 	Forward *rfwd = (Forward *)ctxt;
 
 	/* XXX verbose() on failure? */
-	debug("remote forward %s for: listen %d, connect %s:%d",
+	debug("remote forward %s for: listen %s%s%d, connect %s:%d",
 	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
+	    rfwd->listen_host == NULL ? "" : rfwd->listen_host,
+	    rfwd->listen_host == NULL ? "" : ":",
 	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
 	if (rfwd->listen_port == 0) {
 		if (type == SSH2_MSG_REQUEST_SUCCESS) {

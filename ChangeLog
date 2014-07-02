@@ -58,6 +58,10 @@
      [sshbuf.c]
      unblock SIGSEGV before raising it
      ok djm
+   - markus@cvs.openbsd.org 2014/06/27 16:41:56
+     [channels.c channels.h clientloop.c ssh.c]
+     fix remote fwding with same listen port but different listen address
+     with gerhard@, ok djm@
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare

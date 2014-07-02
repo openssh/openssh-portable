@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.332 2014/04/28 03:09:18 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.333 2014/06/27 16:41:56 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -110,7 +110,8 @@ static int channel_max_fd = 0;
 typedef struct {
 	char *host_to_connect;		/* Connect to 'host'. */
 	u_short port_to_connect;	/* Connect to 'port'. */
-	u_short listen_port;		/* Remote side should listen port number. */
+	char *listen_host;		/* Remote side should listen address. */
+	u_short listen_port;		/* Remote side should listen port. */
 } ForwardPermission;
 
 /* List of all permitted host/port pairs to connect by the user. */
@@ -3032,9 +3033,50 @@ channel_request_remote_forwarding(const char *listen_host, u_short listen_port,
 		idx = num_permitted_opens++;
 		permitted_opens[idx].host_to_connect = xstrdup(host_to_connect);
 		permitted_opens[idx].port_to_connect = port_to_connect;
+		permitted_opens[idx].listen_host = listen_host ?
+		    xstrdup(listen_host) : NULL;
 		permitted_opens[idx].listen_port = listen_port;
 	}
 	return (idx);
+}
+
+static int
+open_match(ForwardPermission *allowed_open, const char *requestedhost,
+    u_short requestedport)
+{
+	if (allowed_open->host_to_connect == NULL)
+		return 0;
+	if (allowed_open->port_to_connect != FWD_PERMIT_ANY_PORT &&
+	    allowed_open->port_to_connect != requestedport)
+		return 0;
+	if (strcmp(allowed_open->host_to_connect, requestedhost) != 0)
+		return 0;
+	return 1;
+}
+
+/*
+ * Note that in he listen host/port case
+ * we don't support FWD_PERMIT_ANY_PORT and
+ * need to translate between the configured-host (listen_host)
+ * and what we've sent to the remote server (channel_rfwd_bind_host)
+ */
+static int
+open_listen_match(ForwardPermission *allowed_open, const char *requestedhost,
+    u_short requestedport, int translate)
+{
+	const char *allowed_host;
+
+	if (allowed_open->host_to_connect == NULL)
+		return 0;
+	if (allowed_open->listen_port != requestedport)
+		return 0;
+	allowed_host = translate ?
+	    channel_rfwd_bind_host(allowed_open->listen_host) :
+	    allowed_open->listen_host;
+	if (allowed_host == NULL ||
+	    strcmp(allowed_host, requestedhost) != 0)
+		return 0;
+	return 1;
 }
 
 /*
@@ -3050,8 +3092,7 @@ channel_request_rforward_cancel(const char *host, u_short port)
 		return -1;
 
 	for (i = 0; i < num_permitted_opens; i++) {
-		if (permitted_opens[i].host_to_connect != NULL &&
-		    permitted_opens[i].listen_port == port)
+		if (open_listen_match(&permitted_opens[i], host, port, 0))
 			break;
 	}
 	if (i >= num_permitted_opens) {
@@ -3065,10 +3106,12 @@ channel_request_rforward_cancel(const char *host, u_short port)
 	packet_put_int(port);
 	packet_send();
 
-	permitted_opens[i].listen_port = 0;
 	permitted_opens[i].port_to_connect = 0;
+	permitted_opens[i].listen_port = 0;
 	free(permitted_opens[i].host_to_connect);
 	permitted_opens[i].host_to_connect = NULL;
+	free(permitted_opens[i].listen_host);
+	permitted_opens[i].listen_host = NULL;
 
 	return 0;
 }
@@ -3134,6 +3177,8 @@ channel_add_permitted_opens(char *host, int port)
 	    num_permitted_opens + 1, sizeof(*permitted_opens));
 	permitted_opens[num_permitted_opens].host_to_connect = xstrdup(host);
 	permitted_opens[num_permitted_opens].port_to_connect = port;
+	permitted_opens[num_permitted_opens].listen_host = NULL;
+	permitted_opens[num_permitted_opens].listen_port = 0;
 	num_permitted_opens++;
 
 	all_opens_permitted = 0;
@@ -3165,6 +3210,8 @@ channel_update_permitted_opens(int idx, int newport)
 		permitted_opens[idx].port_to_connect = 0;
 		free(permitted_opens[idx].host_to_connect);
 		permitted_opens[idx].host_to_connect = NULL;
+		free(permitted_opens[idx].listen_host);
+		permitted_opens[idx].listen_host = NULL;
 	}
 }
 
@@ -3178,6 +3225,8 @@ channel_add_adm_permitted_opens(char *host, int port)
 	permitted_adm_opens[num_adm_permitted_opens].host_to_connect
 	     = xstrdup(host);
 	permitted_adm_opens[num_adm_permitted_opens].port_to_connect = port;
+	permitted_adm_opens[num_adm_permitted_opens].listen_host = NULL;
+	permitted_adm_opens[num_adm_permitted_opens].listen_port = 0;
 	return ++num_adm_permitted_opens;
 }
 
@@ -3195,8 +3244,10 @@ channel_clear_permitted_opens(void)
 {
 	int i;
 
-	for (i = 0; i < num_permitted_opens; i++)
+	for (i = 0; i < num_permitted_opens; i++) {
 		free(permitted_opens[i].host_to_connect);
+		free(permitted_opens[i].listen_host);
+	}
 	free(permitted_opens);
 	permitted_opens = NULL;
 	num_permitted_opens = 0;
@@ -3207,8 +3258,10 @@ channel_clear_adm_permitted_opens(void)
 {
 	int i;
 
-	for (i = 0; i < num_adm_permitted_opens; i++)
+	for (i = 0; i < num_adm_permitted_opens; i++) {
 		free(permitted_adm_opens[i].host_to_connect);
+		free(permitted_adm_opens[i].listen_host);
+	}
 	free(permitted_adm_opens);
 	permitted_adm_opens = NULL;
 	num_adm_permitted_opens = 0;
@@ -3244,15 +3297,6 @@ permitopen_port(const char *p)
 	if ((port = a2port(p)) > 0)
 		return port;
 	return -1;
-}
-
-static int
-port_match(u_short allowedport, u_short requestedport)
-{
-	if (allowedport == FWD_PERMIT_ANY_PORT ||
-	    allowedport == requestedport)
-		return 1;
-	return 0;
 }
 
 /* Try to start non-blocking connect to next host in cctx list */
@@ -3349,13 +3393,14 @@ connect_to(const char *host, u_short port, char *ctype, char *rname)
 }
 
 Channel *
-channel_connect_by_listen_address(u_short listen_port, char *ctype, char *rname)
+channel_connect_by_listen_address(const char *listen_host,
+    u_short listen_port, char *ctype, char *rname)
 {
 	int i;
 
 	for (i = 0; i < num_permitted_opens; i++) {
-		if (permitted_opens[i].host_to_connect != NULL &&
-		    port_match(permitted_opens[i].listen_port, listen_port)) {
+		if (open_listen_match(&permitted_opens[i], listen_host,
+		    listen_port, 1)) {
 			return connect_to(
 			    permitted_opens[i].host_to_connect,
 			    permitted_opens[i].port_to_connect, ctype, rname);
@@ -3375,20 +3420,19 @@ channel_connect_to(const char *host, u_short port, char *ctype, char *rname)
 	permit = all_opens_permitted;
 	if (!permit) {
 		for (i = 0; i < num_permitted_opens; i++)
-			if (permitted_opens[i].host_to_connect != NULL &&
-			    port_match(permitted_opens[i].port_to_connect, port) &&
-			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
+			if (open_match(&permitted_opens[i], host, port)) {
 				permit = 1;
+				break;
+			}
 	}
 
 	if (num_adm_permitted_opens > 0) {
 		permit_adm = 0;
 		for (i = 0; i < num_adm_permitted_opens; i++)
-			if (permitted_adm_opens[i].host_to_connect != NULL &&
-			    port_match(permitted_adm_opens[i].port_to_connect, port) &&
-			    strcmp(permitted_adm_opens[i].host_to_connect, host)
-			    == 0)
+			if (open_match(&permitted_adm_opens[i], host, port)) {
 				permit_adm = 1;
+				break;
+			}
 	}
 
 	if (!permit || !permit_adm) {

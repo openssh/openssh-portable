@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.259 2014/04/29 13:10:30 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.260 2014/06/27 16:41:56 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1849,7 +1849,7 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	    "originator %s port %d", listen_address, listen_port,
 	    originator_address, originator_port);
 
-	c = channel_connect_by_listen_address(listen_port,
+	c = channel_connect_by_listen_address(listen_address, listen_port,
 	    "forwarded-tcpip", originator_address);
 
 	free(originator_address);
