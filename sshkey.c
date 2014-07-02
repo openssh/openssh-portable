@@ -1026,7 +1026,7 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 	 * intersects with itself.  Matter of taste.
 	 */
 	char	*augmentation_string = " .o+=*BOX@%&#/^SE";
-	char	*retval, *p;
+	char	*retval, *p, key_details[FLDSIZE_X + 1];
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
 	size_t	 i;
 	u_int	 b;
@@ -1035,6 +1035,8 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 
 	if ((retval = calloc((FLDSIZE_X + 3), (FLDSIZE_Y + 2))) == NULL)
 		return NULL;
+
+	p = retval;
 
 	/* initialize field */
 	memset(field, 0, FLDSIZE_X * FLDSIZE_Y * sizeof(char));
@@ -1068,12 +1070,16 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len - 1;
 	field[x][y] = len;
 
-	/* fill in retval */
-	snprintf(retval, FLDSIZE_X, "+--[%4s %4u]",
-	    sshkey_type(k), sshkey_size(k));
-	p = strchr(retval, '\0');
+	/* assemble key detail string */
+	snprintf(key_details, FLDSIZE_X, "[%s %u]",
+		sshkey_type(k), sshkey_size(k));
 
 	/* output upper border */
+	*p++ = '+';
+	for (i = 0; i < (FLDSIZE_X - strlen(key_details)) / 2; i++)
+		*p++ = '-';
+	for (i = 0; key_details[i] != 0; i++)
+		*p++ = key_details[i];
 	for (i = p - retval - 1; i < FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
