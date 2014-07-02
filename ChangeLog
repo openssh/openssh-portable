@@ -54,6 +54,10 @@
      [scp.c]
      when copying local->remote fails during read, don't send uninitialised
      heap to the remote end. Reported by Jann Horn
+   - deraadt@cvs.openbsd.org 2014/06/25 14:16:09
+     [sshbuf.c]
+     unblock SIGSEGV before raising it
+     ok djm
 
 20140618
  - (tim) [openssh/session.c] Work around to get chroot sftp working on UnixWare
