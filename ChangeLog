@@ -58,6 +58,11 @@
    - jmc@cvs.openbsd.org 2014/07/03 07:45:27
      [ssh_config.5]
      escape %C since groff thinks it part of an Rs/Re block;
+   - djm@cvs.openbsd.org 2014/07/03 11:16:55
+     [auth.c auth.h auth1.c auth2.c]
+     make the "Too many authentication failures" message include the
+     user, source address, port and protocol in a format similar to the
+     authentication success / failure messages; bz#2199, ok dtucker
 
 20140702
  - OpenBSD CVS Sync

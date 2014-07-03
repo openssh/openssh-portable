@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.80 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: auth1.c,v 1.81 2014/07/03 11:16:55 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -363,7 +363,7 @@ do_authloop(Authctxt *authctxt)
 #ifdef SSH_AUDIT_EVENTS
 			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
-			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+			auth_maxtries_exceeded(authctxt);
 		}
 
 		packet_start(SSH_SMSG_FAILURE);
