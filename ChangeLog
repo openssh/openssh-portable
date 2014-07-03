@@ -37,6 +37,10 @@
    - djm@cvs.openbsd.org 2014/07/03 04:36:45
      [digest.h]
      forward-declare struct sshbuf so consumers don't need to include sshbuf.h
+   - djm@cvs.openbsd.org 2014/07/03 05:32:36
+     [ssh_config.5]
+     mention '%%' escape sequence in HostName directives and how it may
+     be used to specify IPv6 link-local addresses
 
 20140702
  - OpenBSD CVS Sync
