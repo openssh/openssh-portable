@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.2 2014/06/27 18:50:39 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.3 2014/07/03 01:45:38 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1026,11 +1026,11 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 	 * intersects with itself.  Matter of taste.
 	 */
 	char	*augmentation_string = " .o+=*BOX@%&#/^SE";
-	char	*retval, *p;
+	char	*retval, *p, title[FLDSIZE_X];
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
-	size_t	 i;
+	size_t	 i, tlen;
 	u_int	 b;
-	int	 x, y;
+	int	 x, y, r;
 	size_t	 len = strlen(augmentation_string) - 1;
 
 	if ((retval = calloc((FLDSIZE_X + 3), (FLDSIZE_Y + 2))) == NULL)
@@ -1068,12 +1068,21 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = len - 1;
 	field[x][y] = len;
 
-	/* fill in retval */
-	snprintf(retval, FLDSIZE_X, "+--[%4s %4u]",
-	    sshkey_type(k), sshkey_size(k));
-	p = strchr(retval, '\0');
+	/* assemble title */
+	r = snprintf(title, sizeof(title), "[%s %u]",
+		sshkey_type(k), sshkey_size(k));
+	/* If [type size] won't fit, then try [type]; fits "[ED25519-CERT]" */
+	if (r < 0 || r > (int)sizeof(title))
+		snprintf(title, sizeof(title), "[%s]", sshkey_type(k));
+	tlen = strlen(title);
 
 	/* output upper border */
+	p = retval;
+	*p++ = '+';
+	for (i = 0; i < (FLDSIZE_X - tlen) / 2; i++)
+		*p++ = '-';
+	memcpy(p, title, tlen);
+	p += tlen;
 	for (i = p - retval - 1; i < FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';

@@ -3,6 +3,11 @@
    doesn't support it.
  - (djm) [monitor_fdpass.c] Use sys/poll.h if poll.h doesn't exist;
    bz#2237
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/07/03 01:45:38
+     [sshkey.c]
+     make Ed25519 keys' title fit properly in the randomart border; bz#2247
+     based on patch from Christian Hesse
 
 20140702
  - OpenBSD CVS Sync
