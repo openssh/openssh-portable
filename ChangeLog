@@ -1,6 +1,8 @@
 20140703
  - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto
    doesn't support it.
+ - (djm) [monitor_fdpass.c] Use sys/poll.h if poll.h doesn't exist;
+   bz#2237
 
 20140702
  - OpenBSD CVS Sync
