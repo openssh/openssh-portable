@@ -45,6 +45,16 @@
      [ssh.1]
      document that -g will only work in the multiplexed case if applied to
      the mux master
+   - djm@cvs.openbsd.org 2014/07/03 06:39:19
+     [ssh.c ssh_config.5]
+     Add a %C escape sequence for LocalCommand and ControlPath that expands
+     to a unique identifer based on a has of the tuple of (local host,
+     remote user, hostname, port).
+     
+     Helps avoid exceeding sockaddr_un's miserly pathname limits for mux
+     control paths.
+     
+     bz#2220, based on patch from mancha1 AT zoho.com; ok markus@
 
 20140702
  - OpenBSD CVS Sync
