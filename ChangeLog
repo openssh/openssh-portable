@@ -20,6 +20,11 @@
      ssh-add fatal()s part-way through (e.g. when listing keys from an
      agent that supports key types that ssh-add doesn't);
      bz#2234, reported by Phil Pennock
+   - djm@cvs.openbsd.org 2014/07/03 03:26:43
+     [digest-openssl.c]
+     use EVP_Digest() for one-shot hash instead of creating, updating,
+     finalising and destroying a context.
+     bz#2231, based on patch from Timo Teras
 
 20140702
  - OpenBSD CVS Sync

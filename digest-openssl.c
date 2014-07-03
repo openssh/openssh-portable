@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-openssl.c,v 1.3 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: digest-openssl.c,v 1.4 2014/07/03 03:26:43 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -153,15 +153,18 @@ ssh_digest_free(struct ssh_digest_ctx *ctx)
 int
 ssh_digest_memory(int alg, const void *m, size_t mlen, u_char *d, size_t dlen)
 {
-	struct ssh_digest_ctx *ctx = ssh_digest_start(alg);
-	int r;
+	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
+	u_int mdlen;
 
-	if (ctx == NULL)
+	if (digest == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if ((r = ssh_digest_update(ctx, m, mlen) != 0) ||
-	    (r = ssh_digest_final(ctx, d, dlen) != 0))
-		return r;
-	ssh_digest_free(ctx);
+	if (dlen > UINT_MAX)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (dlen < digest->digest_len)
+		return SSH_ERR_INVALID_ARGUMENT;
+	mdlen = dlen;
+	if (!EVP_Digest(m, mlen, d, &mdlen, digest->mdfunc(), NULL))
+		return SSH_ERR_LIBCRYPTO_ERROR;
 	return 0;
 }
 
