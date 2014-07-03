@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.188 2014/07/03 06:39:19 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.189 2014/07/03 07:45:27 jmc Exp $
 .Dd $Mdocdate: July 3 2014 $
 .Dt SSH_CONFIG 5
 .Os
@@ -503,7 +503,7 @@ by the remote login username,
 .Ql %u
 by the username of the user running
 .Xr ssh 1 , and
-.Ql %C
+.Ql \&%C
 by a hash of the concatenation: %l%h%p%r.
 It is recommended that any
 .Cm ControlPath
@@ -942,7 +942,7 @@ The following escape character substitutions will be performed:
 (remote user name) or
 .Ql %u
 (local user name) or
-.Ql %C
+.Ql \&%C
 by a hash of the concatenation: %l%h%p%r.
 .Pp
 The command is run synchronously and does not have access to the

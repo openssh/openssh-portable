@@ -55,6 +55,9 @@
      control paths.
      
      bz#2220, based on patch from mancha1 AT zoho.com; ok markus@
+   - jmc@cvs.openbsd.org 2014/07/03 07:45:27
+     [ssh_config.5]
+     escape %C since groff thinks it part of an Rs/Re block;
 
 20140702
  - OpenBSD CVS Sync
