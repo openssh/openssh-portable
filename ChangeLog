@@ -14,6 +14,12 @@
      subprocesses it may have started (e.g. forked askpass). Fixes
      agent sockets being zapped when askpass processes fatal();
      bz#2236 patch from Dmitry V. Levin
+   - djm@cvs.openbsd.org 2014/07/03 03:15:01
+     [ssh-add.c]
+     make stdout line-buffered; saves partial output getting lost when
+     ssh-add fatal()s part-way through (e.g. when listing keys from an
+     agent that supports key types that ssh-add doesn't);
+     bz#2234, reported by Phil Pennock
 
 20140702
  - OpenBSD CVS Sync
