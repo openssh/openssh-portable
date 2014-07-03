@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.576 2014/06/13 01:06:04 dtucker Exp $
+# $Id: configure.ac,v 1.577 2014/07/03 01:54:19 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.576 $)
+AC_REVISION($Revision: 1.577 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2510,6 +2510,14 @@ AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
 	hmac-sha2-256 hmac-sha2-512 \
 	diffie-hellman-group-exchange-sha256 \
 	hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+     ]
+)
+# Search for RIPE-MD support in OpenSSL
+AC_CHECK_FUNCS([EVP_ripemd160], ,
+    [unsupported_algorithms="$unsupported_algorithms \
+	hmac-ripemd160
+	hmac-ripemd160@openssh.com
+	hmac-ripemd160-etm@openssh.com"
      ]
 )
 

@@ -1,3 +1,7 @@
+20140703
+ - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto
+   doesn't support it.
+
 20140702
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2014/06/13 08:26:29
