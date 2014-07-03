@@ -8,6 +8,12 @@
      [sshkey.c]
      make Ed25519 keys' title fit properly in the randomart border; bz#2247
      based on patch from Christian Hesse
+   - djm@cvs.openbsd.org 2014/07/03 03:11:03
+     [ssh-agent.c]
+     Only cleanup agent socket in the main agent process and not in any
+     subprocesses it may have started (e.g. forked askpass). Fixes
+     agent sockets being zapped when askpass processes fatal();
+     bz#2236 patch from Dmitry V. Levin
 
 20140702
  - OpenBSD CVS Sync

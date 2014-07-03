@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.186 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.187 2014/07/03 03:11:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -125,6 +125,9 @@ int max_fd = 0;
 /* pid of shell == parent of agent */
 pid_t parent_pid = -1;
 time_t parent_alive_interval = 0;
+
+/* pid of process for which cleanup_socket is applicable */
+pid_t cleanup_pid = 0;
 
 /* pathname and directory for AUTH_SOCKET */
 char socket_name[MAXPATHLEN];
@@ -976,6 +979,9 @@ after_select(fd_set *readset, fd_set *writeset)
 static void
 cleanup_socket(void)
 {
+	if (cleanup_pid != 0 && getpid() != cleanup_pid)
+		return;
+	debug("%s: cleanup", __func__);
 	if (socket_name[0])
 		unlink(socket_name);
 	if (socket_dir[0])
@@ -1243,6 +1249,8 @@ main(int ac, char **av)
 #endif
 
 skip:
+
+	cleanup_pid = getpid();
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(0);
