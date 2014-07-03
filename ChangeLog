@@ -29,6 +29,11 @@
      [gss-serv.c session.c ssh-keygen.c]
      standardise on NI_MAXHOST for gethostname() string lengths; about
      1/2 the cases were using it already. Fixes bz#2239 en passant
+   - djm@cvs.openbsd.org 2014/07/03 03:47:27
+     [ssh-keygen.c]
+     When hashing or removing hosts using ssh-keygen, don't choke on
+     @revoked markers and don't remove @cert-authority markers;
+     bz#2241, reported by mlindgren AT runelind.net
 
 20140702
  - OpenBSD CVS Sync
