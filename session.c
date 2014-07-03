@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.272 2014/07/03 03:34:09 djm Exp $ */
+/* $OpenBSD: session.c,v 1.273 2014/07/03 22:40:43 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1359,7 +1359,8 @@ do_rc_files(Session *s, const char *shell)
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&
-	    !no_user_rc && stat(_PATH_SSH_USER_RC, &st) >= 0) {
+	    !no_user_rc && options.permit_user_rc &&
+	    stat(_PATH_SSH_USER_RC, &st) >= 0) {
 		snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
 		    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
 		if (debug_flag)

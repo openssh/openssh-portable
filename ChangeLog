@@ -15,6 +15,11 @@
      allow explicit ::1 and 127.0.0.1 forwarding bind addresses when
      GatewayPorts=no; allows client to choose address family;
      bz#2222 ok markus@
+   - djm@cvs.openbsd.org 2014/07/03 22:40:43
+     [servconf.c servconf.h session.c sshd.8 sshd_config.5]
+     Add a sshd_config PermitUserRC option to control whether ~/.ssh/rc is
+     executed, mirroring the no-user-rc authorized_keys option;
+     bz#2160; ok markus@
 
 20140703
  - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto

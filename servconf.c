@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.249 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.250 2014/07/03 22:40:43 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -93,6 +93,7 @@ initialize_server_options(ServerOptions *options)
 	options->x11_display_offset = -1;
 	options->x11_use_localhost = -1;
 	options->permit_tty = -1;
+	options->permit_user_rc = -1;
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->tcp_keep_alive = -1;
@@ -216,6 +217,8 @@ fill_default_server_options(ServerOptions *options)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->permit_tty == -1)
 		options->permit_tty = 1;
+	if (options->permit_user_rc == -1)
+		options->permit_user_rc = 1;
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
 	if (options->tcp_keep_alive == -1)
@@ -347,7 +350,7 @@ typedef enum {
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
 	sKexAlgorithms, sIPQoS, sVersionAddendum,
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
-	sAuthenticationMethods, sHostKeyAgent,
+	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -460,6 +463,7 @@ static struct {
 	{ "acceptenv", sAcceptEnv, SSHCFG_ALL },
 	{ "permittunnel", sPermitTunnel, SSHCFG_ALL },
 	{ "permittty", sPermitTTY, SSHCFG_ALL },
+	{ "permituserrc", sPermitUserRC, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
@@ -1130,6 +1134,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->permit_tty;
 		goto parse_flag;
 
+	case sPermitUserRC:
+		intptr = &options->permit_user_rc;
+		goto parse_flag;
+
 	case sStrictModes:
 		intptr = &options->strict_modes;
 		goto parse_flag;
@@ -1766,6 +1774,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(x11_forwarding);
 	M_CP_INTOPT(x11_use_localhost);
 	M_CP_INTOPT(permit_tty);
+	M_CP_INTOPT(permit_user_rc);
 	M_CP_INTOPT(max_sessions);
 	M_CP_INTOPT(max_authtries);
 	M_CP_INTOPT(ip_qos_interactive);
@@ -2007,6 +2016,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sX11Forwarding, o->x11_forwarding);
 	dump_cfg_fmtint(sX11UseLocalhost, o->x11_use_localhost);
 	dump_cfg_fmtint(sPermitTTY, o->permit_tty);
+	dump_cfg_fmtint(sPermitUserRC, o->permit_user_rc);
 	dump_cfg_fmtint(sStrictModes, o->strict_modes);
 	dump_cfg_fmtint(sTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(sEmptyPasswd, o->permit_empty_passwd);
