@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.249 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.250 2014/07/03 22:23:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -65,6 +65,7 @@
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
+Key *previous_host_key = NULL;
 
 static int matching_host_key_dns = 0;
 
@@ -1217,13 +1218,18 @@ fail:
 int
 verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 {
-	int flags = 0;
+	int r = -1, flags = 0;
 	char *fp;
 	Key *plain = NULL;
 
 	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 	debug("Server host key: %s %s", key_type(host_key), fp);
 	free(fp);
+
+	if (key_equal(previous_host_key, host_key)) {
+		debug("%s: server host key matches cached key", __func__);
+		return 0;
+	}
 
 	if (options.verify_host_key_dns) {
 		/*
@@ -1239,7 +1245,8 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 				    flags & DNS_VERIFY_MATCH &&
 				    flags & DNS_VERIFY_SECURE) {
 					key_free(plain);
-					return 0;
+					r = 0;
+					goto done;
 				}
 				if (flags & DNS_VERIFY_MATCH) {
 					matching_host_key_dns = 1;
@@ -1254,9 +1261,17 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 		key_free(plain);
 	}
 
-	return check_host_key(host, hostaddr, options.port, host_key, RDRW,
+	r = check_host_key(host, hostaddr, options.port, host_key, RDRW,
 	    options.user_hostfiles, options.num_user_hostfiles,
 	    options.system_hostfiles, options.num_system_hostfiles);
+
+done:
+	if (r == 0 && host_key != NULL) {
+		key_free(previous_host_key);
+		previous_host_key = key_from_private(host_key);
+	}
+
+	return r;
 }
 
 /*

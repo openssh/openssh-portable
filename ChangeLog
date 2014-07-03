@@ -6,7 +6,10 @@
      makes it easier to verify that chacha_encrypt_bytes() is only called once
      per chacha_ivsetup() call.
      ok djm@
-
+   - djm@cvs.openbsd.org 2014/07/03 22:23:46
+     [sshconnect.c]
+     when rekeying, skip file/DNS lookup if it is the same as the key sent
+     during initial key exchange. bz#2154 patch from Iain Morgan; ok markus@
 
 20140703
  - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto
