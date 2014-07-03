@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.345 2014/04/19 18:42:19 tedu Exp $
-.Dd $Mdocdate: April 19 2014 $
+.\" $OpenBSD: ssh.1,v 1.346 2014/07/03 05:38:17 djm Exp $
+.Dd $Mdocdate: July 3 2014 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -250,6 +250,8 @@ will wait for all remote port forwards to be successfully established
 before placing itself in the background.
 .It Fl g
 Allows remote hosts to connect to local forwarded ports.
+If used on a multiplexed connection, then this option must be specified
+on the master process.
 .It Fl I Ar pkcs11
 Specify the PKCS#11 shared library
 .Nm

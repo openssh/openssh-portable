@@ -41,6 +41,10 @@
      [ssh_config.5]
      mention '%%' escape sequence in HostName directives and how it may
      be used to specify IPv6 link-local addresses
+   - djm@cvs.openbsd.org 2014/07/03 05:38:17
+     [ssh.1]
+     document that -g will only work in the multiplexed case if applied to
+     the mux master
 
 20140702
  - OpenBSD CVS Sync
