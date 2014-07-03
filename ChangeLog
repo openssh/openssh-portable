@@ -25,6 +25,10 @@
      use EVP_Digest() for one-shot hash instead of creating, updating,
      finalising and destroying a context.
      bz#2231, based on patch from Timo Teras
+   - djm@cvs.openbsd.org 2014/07/03 03:34:09
+     [gss-serv.c session.c ssh-keygen.c]
+     standardise on NI_MAXHOST for gethostname() string lengths; about
+     1/2 the cases were using it already. Fixes bz#2239 en passant
 
 20140702
  - OpenBSD CVS Sync

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.247 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.248 2014/07/03 03:34:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -165,7 +165,7 @@ int rounds = 0;
 /* argv0 */
 extern char *__progname;
 
-char hostname[MAXHOSTNAMELEN];
+char hostname[NI_MAXHOST];
 
 /* moduli.c */
 int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
