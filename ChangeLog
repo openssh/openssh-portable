@@ -10,6 +10,11 @@
      [sshconnect.c]
      when rekeying, skip file/DNS lookup if it is the same as the key sent
      during initial key exchange. bz#2154 patch from Iain Morgan; ok markus@
+   - djm@cvs.openbsd.org 2014/07/03 22:33:41
+     [channels.c]
+     allow explicit ::1 and 127.0.0.1 forwarding bind addresses when
+     GatewayPorts=no; allows client to choose address family;
+     bz#2222 ok markus@
 
 20140703
  - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto

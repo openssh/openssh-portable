@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.333 2014/06/27 16:41:56 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.334 2014/07/03 22:33:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2701,6 +2701,7 @@ channel_set_af(int af)
  * "0.0.0.0"               -> wildcard v4/v6 if SSH_OLD_FORWARD_ADDR
  * "" (empty string), "*"  -> wildcard v4/v6
  * "localhost"             -> loopback v4/v6
+ * "127.0.0.1" / "::1"     -> accepted even if gateway_ports isn't set
  */
 static const char *
 channel_fwd_bind_addr(const char *listen_addr, int *wildcardp,
@@ -2730,9 +2731,20 @@ channel_fwd_bind_addr(const char *listen_addr, int *wildcardp,
 				    "\"%s\" overridden by server "
 				    "GatewayPorts", listen_addr);
 			}
-		}
-		else if (strcmp(listen_addr, "localhost") != 0)
+		} else if (strcmp(listen_addr, "localhost") != 0 ||
+		    strcmp(listen_addr, "127.0.0.1") == 0 ||
+		    strcmp(listen_addr, "::1") == 0) {
+			/* Accept localhost address when GatewayPorts=yes */
 			addr = listen_addr;
+		}
+	} else if (strcmp(listen_addr, "127.0.0.1") == 0 ||
+	    strcmp(listen_addr, "::1") == 0) {
+		/*
+		 * If a specific IPv4/IPv6 localhost address has been
+		 * requested then accept it even if gateway_ports is in
+		 * effect. This allows the client to prefer IPv4 or IPv6.
+		 */
+		addr = listen_addr;
 	}
 	if (wildcardp != NULL)
 		*wildcardp = wildcard;
