@@ -34,6 +34,9 @@
      When hashing or removing hosts using ssh-keygen, don't choke on
      @revoked markers and don't remove @cert-authority markers;
      bz#2241, reported by mlindgren AT runelind.net
+   - djm@cvs.openbsd.org 2014/07/03 04:36:45
+     [digest.h]
+     forward-declare struct sshbuf so consumers don't need to include sshbuf.h
 
 20140702
  - OpenBSD CVS Sync

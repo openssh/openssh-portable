@@ -1,4 +1,4 @@
-/* $OpenBSD: digest.h,v 1.5 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: digest.h,v 1.6 2014/07/03 04:36:45 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -30,6 +30,7 @@
 #define SSH_DIGEST_SHA512	5
 #define SSH_DIGEST_MAX		6
 
+struct sshbuf;
 struct ssh_digest_ctx;
 
 /* Returns the algorithm's digest length in bytes or 0 for invalid algorithm */
