@@ -1,3 +1,13 @@
+20140704
+ - OpenBSD CVS Sync
+   - jsing@cvs.openbsd.org 2014/07/03 12:42:16
+     [cipher-chachapoly.c]
+     Call chacha_ivsetup() immediately before chacha_encrypt_bytes() - this
+     makes it easier to verify that chacha_encrypt_bytes() is only called once
+     per chacha_ivsetup() call.
+     ok djm@
+
+
 20140703
  - (djm) [digest-openssl.c configure.ac] Disable RIPEMD160 if libcrypto
    doesn't support it.
