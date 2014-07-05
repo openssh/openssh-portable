@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2014/07/03 23:18:35
      [authfile.h]
      remove leakmalloc droppings
+   - djm@cvs.openbsd.org 2014/07/05 23:11:48
+     [channels.c]
+     fix remote-forward cancel regression; ok markus@
 
 20140704
  - OpenBSD CVS Sync
