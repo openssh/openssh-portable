@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.h,v 1.18 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: authfile.h,v 1.19 2014/07/03 23:18:35 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
@@ -26,10 +26,6 @@
 
 #ifndef AUTHFILE_H
 #define AUTHFILE_H
-
-#ifdef WITH_LEAKMALLOC
-#include "leakmalloc.h"
-#endif
 
 struct sshbuf;
 struct sshkey;

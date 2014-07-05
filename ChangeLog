@@ -1,3 +1,9 @@
+20140706
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2014/07/03 23:18:35
+     [authfile.h]
+     remove leakmalloc droppings
+
 20140704
  - OpenBSD CVS Sync
    - jsing@cvs.openbsd.org 2014/07/03 12:42:16
