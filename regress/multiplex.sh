@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.21 2013/05/17 04:29:14 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.22 2014/07/06 07:42:03 djm Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
@@ -29,7 +29,8 @@ start_mux_master()
 	trace "start master, fork to background"
 	${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost \
 	    -E $TEST_REGRESS_LOGFILE 2>&1 &
-	MASTER_PID=$!
+	# NB. $SSH_PID will be killed by test-exec.sh:cleanup on fatal errors.
+	SSH_PID=$!
 	wait_for_mux_master_ready
 }
 
@@ -43,6 +44,8 @@ EOF
 if [ $? -ne 0 ]; then
 	fail "environment not found"
 fi
+
+fatal ok
 
 verbose "test $tid: transfer"
 rm -f ${COPY}
@@ -120,8 +123,8 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Oexit otherhost >>$TEST_REGRESS_LOGFILE 2>&1 
     || fail "send exit command failed" 
 
 # Wait for master to exit
-wait $MASTER_PID
-kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed"
+wait $SSH_PID
+kill -0 $SSH_PID >/dev/null 2>&1 && fail "exit command failed"
 
 # Restart master and test -O stop command with master using -N
 verbose "test $tid: cmd stop"
@@ -138,6 +141,8 @@ ${SSH} -F $OBJ/ssh_config -S $CTL -Ostop otherhost >>$TEST_REGRESS_LOGFILE 2>&1 
 # wait until both long-running command and master have exited.
 wait $SLEEP_PID
 [ $! != 0 ] || fail "waiting for concurrent command"
-wait $MASTER_PID
+wait $SSH_PID
 [ $! != 0 ] || fail "waiting for master stop"
-kill -0 $MASTER_PID >/dev/null 2>&1 && fail "stop command failed"
+kill -0 $SSH_PID >/dev/null 2>&1 && fatal "stop command failed"
+SSH_PID="" # Already gone, so don't kill in cleanup
+

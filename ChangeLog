@@ -12,6 +12,12 @@
      [key.c]
      downgrade more error() to debug() to better match what old authfile.c
      did; suppresses spurious errors with hostbased authentication enabled
+   - djm@cvs.openbsd.org 2014/07/06 07:42:03
+     [multiplex.sh test-exec.sh]
+     add a hook to the cleanup() function to kill $SSH_PID if it is set
+     
+     use it to kill the mux master started in multiplex.sh (it was being left
+     around on fatal failures)
 
 20140706
  - OpenBSD CVS Sync
