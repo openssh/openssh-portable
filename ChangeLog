@@ -18,6 +18,10 @@
      
      use it to kill the mux master started in multiplex.sh (it was being left
      around on fatal failures)
+   - djm@cvs.openbsd.org 2014/07/07 08:15:26
+     [multiplex.sh]
+     remove forced-fatal that I stuck in there to test the new cleanup
+     logic and forgot to remove...
 
 20140706
  - OpenBSD CVS Sync
