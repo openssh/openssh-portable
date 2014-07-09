@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.163 2014/05/05 07:02:30 logan Exp $ */
+/* $OpenBSD: sftp.c,v 1.164 2014/07/09 01:45:10 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -589,15 +589,19 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 	char *abs_dst = NULL;
 	glob_t g;
 	char *filename, *tmp=NULL;
-	int i, err = 0;
+	int i, r, err = 0;
 
 	abs_src = xstrdup(src);
 	abs_src = make_absolute(abs_src, pwd);
 	memset(&g, 0, sizeof(g));
 
 	debug3("Looking up %s", abs_src);
-	if (remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) {
-		error("File \"%s\" not found.", abs_src);
+	if ((r = remote_glob(conn, abs_src, GLOB_MARK, NULL, &g)) != 0) {
+		if (r == GLOB_NOSPACE) {
+			error("Too many matches for \"%s\".", abs_src);
+		} else {
+			error("File \"%s\" not found.", abs_src);
+		}
 		err = -1;
 		goto out;
 	}
@@ -862,19 +866,23 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 {
 	char *fname, *lname;
 	glob_t g;
-	int err;
+	int err, r;
 	struct winsize ws;
 	u_int i, c = 1, colspace = 0, columns = 1, m = 0, width = 80;
 
 	memset(&g, 0, sizeof(g));
 
-	if (remote_glob(conn, path,
+	if ((r = remote_glob(conn, path,
 	    GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE|GLOB_KEEPSTAT|GLOB_NOSORT,
-	    NULL, &g) ||
+	    NULL, &g)) != 0 ||
 	    (g.gl_pathc && !g.gl_matchc)) {
 		if (g.gl_pathc)
 			globfree(&g);
-		error("Can't ls: \"%s\" not found", path);
+		if (r == GLOB_NOSPACE) {
+			error("Can't ls: Too many matches for \"%s\"", path);
+		} else {
+			error("Can't ls: \"%s\" not found", path);
+		}
 		return -1;
 	}
 

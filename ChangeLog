@@ -4,6 +4,10 @@
      [ssh_config.5]
      mention that ProxyCommand is executed using shell "exec" to avoid
      a lingering process; bz#1977
+   - djm@cvs.openbsd.org 2014/07/09 01:45:10
+     [sftp.c]
+     more useful error message when GLOB_NOSPACE occurs;
+     bz#2254, patch from Orion Poplawski
 
 20140706
  - OpenBSD CVS Sync
