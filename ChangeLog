@@ -8,6 +8,10 @@
      [sftp.c]
      more useful error message when GLOB_NOSPACE occurs;
      bz#2254, patch from Orion Poplawski
+   - djm@cvs.openbsd.org 2014/07/09 03:02:15
+     [key.c]
+     downgrade more error() to debug() to better match what old authfile.c
+     did; suppresses spurious errors with hostbased authentication enabled
 
 20140706
  - OpenBSD CVS Sync

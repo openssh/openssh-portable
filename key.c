@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.119 2014/06/30 12:54:39 djm Exp $ */
+/* $OpenBSD: key.c,v 1.120 2014/07/09 03:02:15 djm Exp $ */
 /*
  * placed in the public domain
  */
@@ -345,7 +345,8 @@ key_load_cert(const char *filename)
 
 	if ((r = sshkey_load_cert(filename, &ret)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT)
+		/* Old authfile.c ignored all file errors. */
+		if (r == SSH_ERR_SYSTEM_ERROR)
 			debug("%s: %s", __func__, ssh_err(r));
 		else
 			error("%s: %s", __func__, ssh_err(r));
@@ -363,7 +364,8 @@ key_load_public(const char *filename, char **commentp)
 
 	if ((r = sshkey_load_public(filename, &ret, commentp)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT)
+		/* Old authfile.c ignored all file errors. */
+		if (r == SSH_ERR_SYSTEM_ERROR)
 			debug("%s: %s", __func__, ssh_err(r));
 		else
 			error("%s: %s", __func__, ssh_err(r));
@@ -381,7 +383,8 @@ key_load_private(const char *path, const char *passphrase,
 
 	if ((r = sshkey_load_private(path, passphrase, &ret, commentp)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT)
+		/* Old authfile.c ignored all file errors. */
+		if (r == SSH_ERR_SYSTEM_ERROR)
 			debug("%s: %s", __func__, ssh_err(r));
 		else
 			error("%s: %s", __func__, ssh_err(r));
@@ -400,7 +403,8 @@ key_load_private_cert(int type, const char *filename, const char *passphrase,
 	if ((r = sshkey_load_private_cert(type, filename, passphrase,
 	    &ret, perm_ok)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT)
+		/* Old authfile.c ignored all file errors. */
+		if (r == SSH_ERR_SYSTEM_ERROR)
 			debug("%s: %s", __func__, ssh_err(r));
 		else
 			error("%s: %s", __func__, ssh_err(r));
@@ -419,7 +423,8 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 	if ((r = sshkey_load_private_type(type, filename, passphrase,
 	    &ret, commentp, perm_ok)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if ((r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) ||
+		/* Old authfile.c ignored all file errors. */
+		if (r == SSH_ERR_SYSTEM_ERROR ||
 		    (r == SSH_ERR_KEY_WRONG_PASSPHRASE))
 			debug("%s: %s", __func__, ssh_err(r));
 		else
