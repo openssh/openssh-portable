@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.112 2014/07/03 03:15:01 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.113 2014/07/09 14:15:56 benno Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -205,8 +205,6 @@ add_file(AuthenticationConnection *ac, const char *filename, int key_only)
 	if ((r = sshkey_parse_private_fileblob(&keyblob, "", filename,
 	    &private, &comment)) != 0 && r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 		fatal("Cannot parse %s: %s", filename, ssh_err(r));
-	if (comment == NULL)
-		comment = xstrdup(filename);
 	/* try last */
 	if (private == NULL && pass != NULL) {
 		if ((r = sshkey_parse_private_fileblob(&keyblob, pass, filename,
@@ -214,6 +212,8 @@ add_file(AuthenticationConnection *ac, const char *filename, int key_only)
 		    r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 			fatal("Cannot parse %s: %s", filename, ssh_err(r));
 	}
+	if (comment == NULL)
+		comment = xstrdup(filename);
 	if (private == NULL) {
 		/* clear passphrase since it did not work */
 		clear_pass();

@@ -1,3 +1,10 @@
+20140711
+ - OpenBSD CVS Sync
+   - benno@cvs.openbsd.org 2014/07/09 14:15:56
+     [ssh-add.c]
+     fix ssh-add crash while loading more than one key
+     ok markus@
+
 20140709
  - OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2014/07/07 08:19:12
