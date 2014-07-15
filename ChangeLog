@@ -1,3 +1,7 @@
+20140715
+ - (djm) [configure.ac] Delay checks for arc4random* until after libcrypto
+   has been located; fixes builds agains libressl-portable
+
 20140420
  - (djm) [bufaux.c compat.c compat.h sshconnect2.c sshd.c version.h]
    OpenSSH 6.5 and 6.6 sometimes encode a value used in the curve25519
