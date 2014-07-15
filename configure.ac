@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.577 2014/07/03 01:54:19 djm Exp $
+# $Id: configure.ac,v 1.578 2014/07/15 00:41:39 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.577 $)
+AC_REVISION($Revision: 1.578 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1575,10 +1575,6 @@ AC_CHECK_FUNCS([ \
 	Blowfish_expandstate \
 	Blowfish_expand0state \
 	Blowfish_stream2word \
-	arc4random \
-	arc4random_buf \
-	arc4random_stir \
-	arc4random_uniform \
 	asprintf \
 	b64_ntop \
 	__b64_ntop \
@@ -2639,6 +2635,13 @@ fi
 
 AC_SUBST([TEST_SSH_ECC])
 AC_SUBST([COMMENT_OUT_ECC])
+
+AC_CHECK_FUNCS([ \
+	arc4random \
+	arc4random_buf \
+	arc4random_stir \
+	arc4random_uniform \
+])
 
 saved_LIBS="$LIBS"
 AC_CHECK_LIB([iaf], [ia_openinfo], [

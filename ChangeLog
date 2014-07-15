@@ -1,3 +1,7 @@
+20140715
+ - (djm) [configure.ac] Delay checks for arc4random* until after libcrypto
+   has been located; fixes builds agains libressl-portable
+
 20140711
  - OpenBSD CVS Sync
    - benno@cvs.openbsd.org 2014/07/09 14:15:56
