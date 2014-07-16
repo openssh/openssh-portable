@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.40 2014/04/30 19:07:48 naddy Exp $ */
+/* $OpenBSD: myproposal.h,v 1.41 2014/07/11 13:54:34 tedu Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -122,19 +122,19 @@
 	"umac-128-etm@openssh.com," \
 	"hmac-sha2-256-etm@openssh.com," \
 	"hmac-sha2-512-etm@openssh.com," \
+	"hmac-sha1-etm@openssh.com," \
 	"umac-64@openssh.com," \
 	"umac-128@openssh.com," \
 	"hmac-sha2-256," \
-	"hmac-sha2-512"
+	"hmac-sha2-512," \
+	"hmac-sha1"
 
 #define KEX_CLIENT_MAC KEX_SERVER_MAC "," \
 	"hmac-md5-etm@openssh.com," \
-	"hmac-sha1-etm@openssh.com," \
 	"hmac-ripemd160-etm@openssh.com," \
 	"hmac-sha1-96-etm@openssh.com," \
 	"hmac-md5-96-etm@openssh.com," \
 	"hmac-md5," \
-	"hmac-sha1," \
 	"hmac-ripemd160," \
 	"hmac-ripemd160@openssh.com," \
 	"hmac-sha1-96," \
@@ -155,16 +155,16 @@
 	"umac-128-etm@openssh.com," \
 	"hmac-sha2-256-etm@openssh.com," \
 	"hmac-sha2-512-etm@openssh.com," \
+	"hmac-sha1-etm@openssh.com," \
 	"umac-64@openssh.com," \
 	"umac-128@openssh.com," \
 	"hmac-sha2-256," \
-	"hmac-sha2-512"
+	"hmac-sha2-512," \
+	"hmac-sha1"
 
 #define KEX_CLIENT_KEX KEX_SERVER_KEX
 #define	KEX_CLIENT_ENCRYPT KEX_SERVER_ENCRYPT
-#define KEX_CLIENT_MAC KEX_SERVER_MAC "," \
-	"hmac-sha1-etm@openssh.com," \
-	"hmac-sha1"
+#define KEX_CLIENT_MAC KEX_SERVER_MAC
 
 #endif /* WITH_OPENSSL */
 

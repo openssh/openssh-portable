@@ -7,6 +7,10 @@
      Permit use of SYS_sendsyslog from inside the sandbox.  Clock is ticking,
      update your kernels and sshd soon.. libc will start using sendsyslog()
      in about 4 days.
+   - tedu@cvs.openbsd.org 2014/07/11 13:54:34
+     [myproposal.h]
+     by popular demand, add back hamc-sha1 to server proposal for better compat
+     with many clients still in use. ok deraadt
 
 20140715
  - (djm) [configure.ac] Delay checks for arc4random* until after libcrypto
