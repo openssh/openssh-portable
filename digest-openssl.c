@@ -30,6 +30,15 @@
 #include "digest.h"
 #include "ssherr.h"
 
+#ifndef HAVE_EVP_RIPEMD160
+# define EVP_ripemd160 NULL
+#endif /* HAVE_EVP_RIPEMD160 */
+#ifndef HAVE_EVP_SHA256
+# define EVP_sha256 NULL
+# define EVP_sha384 NULL
+# define EVP_sha512 NULL
+#endif /* HAVE_EVP_SHA256 */
+
 struct ssh_digest_ctx {
 	int alg;
 	EVP_MD_CTX mdctx;
@@ -45,15 +54,11 @@ struct ssh_digest {
 /* NB. Indexed directly by algorithm number */
 const struct ssh_digest digests[] = {
 	{ SSH_DIGEST_MD5,	"MD5",	 	16,	EVP_md5 },
-#ifdef HAVE_EVP_RIPEMD160 /* XXX replace with local if missing */
 	{ SSH_DIGEST_RIPEMD160,	"RIPEMD160",	20,	EVP_ripemd160 },
-#endif
 	{ SSH_DIGEST_SHA1,	"SHA1",	 	20,	EVP_sha1 },
-#ifdef HAVE_EVP_SHA256 /* XXX replace with local if missing */
 	{ SSH_DIGEST_SHA256,	"SHA256", 	32,	EVP_sha256 },
 	{ SSH_DIGEST_SHA384,	"SHA384",	48,	EVP_sha384 },
 	{ SSH_DIGEST_SHA512,	"SHA512", 	64,	EVP_sha512 },
-#endif
 	{ -1,			NULL,		0,	NULL },
 };
 
@@ -63,6 +68,8 @@ ssh_digest_by_alg(int alg)
 	if (alg < 0 || alg >= SSH_DIGEST_MAX)
 		return NULL;
 	if (digests[alg].id != alg) /* sanity */
+		return NULL;
+	if (digests[alg].mdfunc == NULL)
 		return NULL;
 	return &(digests[alg]);
 }

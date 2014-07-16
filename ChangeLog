@@ -1,3 +1,7 @@
+20140717
+ - (djm) [digest-openssl.c] Preserve array order when disabling digests.
+   Reported by Petr Lautrbach.
+
 20140715
  - (djm) [configure.ac] Delay checks for arc4random* until after libcrypto
    has been located; fixes builds agains libressl-portable
