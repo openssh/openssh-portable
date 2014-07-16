@@ -1,6 +1,12 @@
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
    Reported by Petr Lautrbach.
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2014/07/11 08:09:54
+     [sandbox-systrace.c]
+     Permit use of SYS_sendsyslog from inside the sandbox.  Clock is ticking,
+     update your kernels and sshd soon.. libc will start using sendsyslog()
+     in about 4 days.
 
 20140715
  - (djm) [configure.ac] Delay checks for arc4random* until after libcrypto
