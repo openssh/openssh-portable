@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.46 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: mux.c,v 1.47 2014/07/17 00:10:18 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1177,6 +1177,7 @@ muxserver_listen(void)
 	char *orig_control_path = options.control_path;
 	char rbuf[16+1];
 	u_int i, r;
+	int oerrno;
 
 	if (options.control_path == NULL ||
 	    options.control_master == SSHCTL_MASTER_NO)
@@ -1203,9 +1204,10 @@ muxserver_listen(void)
 
 	old_umask = umask(0177);
 	muxserver_sock = unix_listener(options.control_path, 64, 0);
+	oerrno = errno;
 	umask(old_umask);
 	if (muxserver_sock < 0) {
-		if (errno == EINVAL || errno == EADDRINUSE) {
+		if (oerrno == EINVAL || oerrno == EADDRINUSE) {
 			error("ControlSocket %s already exists, "
 			    "disabling multiplexing", options.control_path);
  disable_mux_master:

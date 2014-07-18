@@ -22,6 +22,9 @@
    - djm@cvs.openbsd.org 2014/07/17 00:10:56
      [sandbox-systrace.c]
      ifdef SYS_sendsyslog so this will compile without patching on -stable
+   - djm@cvs.openbsd.org 2014/07/17 00:10:18
+     [mux.c]
+     preserve errno across syscall
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
