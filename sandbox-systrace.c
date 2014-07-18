@@ -1,4 +1,4 @@
-/* $OpenBSD: sandbox-systrace.c,v 1.12 2014/07/11 08:09:54 deraadt Exp $ */
+/* $OpenBSD: sandbox-systrace.c,v 1.13 2014/07/17 00:10:56 djm Exp $ */
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -60,7 +60,9 @@ static const struct sandbox_policy preauth_policy[] = {
 	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
 #endif
 
-//	{ SYS_sendsyslog, SYSTR_POLICY_PERMIT },
+#ifdef SYS_sendsyslog
+ 	{ SYS_sendsyslog, SYSTR_POLICY_PERMIT },
+#endif
 	{ SYS_close, SYSTR_POLICY_PERMIT },
 	{ SYS_exit, SYSTR_POLICY_PERMIT },
 	{ SYS_getpid, SYSTR_POLICY_PERMIT },
