@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.405 2014/07/03 06:39:19 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.406 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -96,9 +96,9 @@
 #include "dispatch.h"
 #include "clientloop.h"
 #include "log.h"
+#include "misc.h"
 #include "readconf.h"
 #include "sshconnect.h"
-#include "misc.h"
 #include "kex.h"
 #include "mac.h"
 #include "sshpty.h"
@@ -423,7 +423,7 @@ main(int ac, char **av)
 	int timeout_ms;
 	extern int optind, optreset;
 	extern char *optarg;
-	Forward fwd;
+	struct Forward fwd;
 	struct addrinfo *addrs = NULL;
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
@@ -545,7 +545,7 @@ main(int ac, char **av)
 			options.forward_x11_trusted = 1;
 			break;
 		case 'g':
-			options.gateway_ports = 1;
+			options.fwd_opts.gateway_ports = 1;
 			break;
 		case 'O':
 			if (stdio_forward_host != NULL)
@@ -1305,15 +1305,17 @@ fork_postauth(void)
 static void
 ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 {
-	Forward *rfwd = (Forward *)ctxt;
+	struct Forward *rfwd = (struct Forward *)ctxt;
 
 	/* XXX verbose() on failure? */
 	debug("remote forward %s for: listen %s%s%d, connect %s:%d",
 	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
-	    rfwd->listen_host == NULL ? "" : rfwd->listen_host,
-	    rfwd->listen_host == NULL ? "" : ":",
-	    rfwd->listen_port, rfwd->connect_host, rfwd->connect_port);
-	if (rfwd->listen_port == 0) {
+	    rfwd->listen_path ? rfwd->listen_path :
+	    rfwd->listen_host ? rfwd->listen_host : "",
+	    (rfwd->listen_path || rfwd->listen_host) ? ":" : "",
+	    rfwd->listen_port, rfwd->connect_path ? rfwd->connect_path :
+	    rfwd->connect_host, rfwd->connect_port);
+	if (rfwd->listen_path == NULL && rfwd->listen_port == 0) {
 		if (type == SSH2_MSG_REQUEST_SUCCESS) {
 			rfwd->allocated_port = packet_get_int();
 			logit("Allocated port %u for remote forward to %s:%d",
@@ -1327,12 +1329,21 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 	}
 	
 	if (type == SSH2_MSG_REQUEST_FAILURE) {
-		if (options.exit_on_forward_failure)
-			fatal("Error: remote port forwarding failed for "
-			    "listen port %d", rfwd->listen_port);
-		else
-			logit("Warning: remote port forwarding failed for "
-			    "listen port %d", rfwd->listen_port);
+		if (options.exit_on_forward_failure) {
+			if (rfwd->listen_path != NULL)
+				fatal("Error: remote port forwarding failed "
+				    "for listen path %s", rfwd->listen_path);
+			else
+				fatal("Error: remote port forwarding failed "
+				    "for listen port %d", rfwd->listen_port);
+		} else {
+			if (rfwd->listen_path != NULL)
+				logit("Warning: remote port forwarding failed "
+				    "for listen path %s", rfwd->listen_path);
+			else
+				logit("Warning: remote port forwarding failed "
+				    "for listen port %d", rfwd->listen_port);
+		}
 	}
 	if (++remote_forward_confirms_received == options.num_remote_forwards) {
 		debug("All remote forwarding requests processed");
@@ -1380,18 +1391,18 @@ ssh_init_forwarding(void)
 	for (i = 0; i < options.num_local_forwards; i++) {
 		debug("Local connections to %.200s:%d forwarded to remote "
 		    "address %.200s:%d",
+		    (options.local_forwards[i].listen_path != NULL) ?
+		    options.local_forwards[i].listen_path :
 		    (options.local_forwards[i].listen_host == NULL) ?
-		    (options.gateway_ports ? "*" : "LOCALHOST") :
+		    (options.fwd_opts.gateway_ports ? "*" : "LOCALHOST") :
 		    options.local_forwards[i].listen_host,
 		    options.local_forwards[i].listen_port,
+		    (options.local_forwards[i].connect_path != NULL) ?
+		    options.local_forwards[i].connect_path :
 		    options.local_forwards[i].connect_host,
 		    options.local_forwards[i].connect_port);
 		success += channel_setup_local_fwd_listener(
-		    options.local_forwards[i].listen_host,
-		    options.local_forwards[i].listen_port,
-		    options.local_forwards[i].connect_host,
-		    options.local_forwards[i].connect_port,
-		    options.gateway_ports);
+		    &options.local_forwards[i], &options.fwd_opts);
 	}
 	if (i > 0 && success != i && options.exit_on_forward_failure)
 		fatal("Could not request local forwarding.");
@@ -1402,17 +1413,18 @@ ssh_init_forwarding(void)
 	for (i = 0; i < options.num_remote_forwards; i++) {
 		debug("Remote connections from %.200s:%d forwarded to "
 		    "local address %.200s:%d",
+		    (options.remote_forwards[i].listen_path != NULL) ?
+		    options.remote_forwards[i].listen_path :
 		    (options.remote_forwards[i].listen_host == NULL) ?
 		    "LOCALHOST" : options.remote_forwards[i].listen_host,
 		    options.remote_forwards[i].listen_port,
+		    (options.remote_forwards[i].connect_path != NULL) ?
+		    options.remote_forwards[i].connect_path :
 		    options.remote_forwards[i].connect_host,
 		    options.remote_forwards[i].connect_port);
 		options.remote_forwards[i].handle =
 		    channel_request_remote_forwarding(
-		    options.remote_forwards[i].listen_host,
-		    options.remote_forwards[i].listen_port,
-		    options.remote_forwards[i].connect_host,
-		    options.remote_forwards[i].connect_port);
+		    &options.remote_forwards[i]);
 		if (options.remote_forwards[i].handle < 0) {
 			if (options.exit_on_forward_failure)
 				fatal("Could not request remote forwarding.");

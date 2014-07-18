@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect1.c,v 1.75 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: sshconnect1.c,v 1.76 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -38,11 +38,11 @@
 #include "kex.h"
 #include "uidswap.h"
 #include "log.h"
+#include "misc.h"
 #include "readconf.h"
 #include "authfd.h"
 #include "sshconnect.h"
 #include "authfile.h"
-#include "misc.h"
 #include "canohost.h"
 #include "hostfile.h"
 #include "auth.h"

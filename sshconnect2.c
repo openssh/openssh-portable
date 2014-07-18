@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.209 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.210 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -61,8 +61,8 @@
 #include "dh.h"
 #include "authfd.h"
 #include "log.h"
-#include "readconf.h"
 #include "misc.h"
+#include "readconf.h"
 #include "match.h"
 #include "dispatch.h"
 #include "canohost.h"

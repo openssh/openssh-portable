@@ -60,7 +60,7 @@ static const struct sandbox_policy preauth_policy[] = {
 	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
 #endif
 
-	{ SYS_sendsyslog, SYSTR_POLICY_PERMIT },
+//	{ SYS_sendsyslog, SYSTR_POLICY_PERMIT },
 	{ SYS_close, SYSTR_POLICY_PERMIT },
 	{ SYS_exit, SYSTR_POLICY_PERMIT },
 	{ SYS_getpid, SYSTR_POLICY_PERMIT },

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.105 2014/07/03 11:16:55 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.106 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -56,6 +56,7 @@
 #include "groupaccess.h"
 #include "log.h"
 #include "buffer.h"
+#include "misc.h"
 #include "servconf.h"
 #include "key.h"
 #include "hostfile.h"
@@ -63,7 +64,6 @@
 #include "auth-options.h"
 #include "canohost.h"
 #include "uidswap.h"
-#include "misc.h"
 #include "packet.h"
 #include "loginrec.h"
 #ifdef GSSAPI

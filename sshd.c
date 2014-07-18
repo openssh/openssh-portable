@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.427 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.428 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -93,6 +93,7 @@
 #include "packet.h"
 #include "log.h"
 #include "buffer.h"
+#include "misc.h"
 #include "servconf.h"
 #include "uidswap.h"
 #include "compat.h"
@@ -108,7 +109,6 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "authfd.h"
-#include "misc.h"
 #include "msg.h"
 #include "dispatch.h"
 #include "channels.h"

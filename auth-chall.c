@@ -37,6 +37,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "log.h"
+#include "misc.h"
 #include "servconf.h"
 
 /* limited protocol v1 interface to kbd-interactive authentication */

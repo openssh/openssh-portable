@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.81 2014/07/03 11:16:55 djm Exp $ */
+/* $OpenBSD: auth1.c,v 1.82 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -27,6 +27,7 @@
 #include "packet.h"
 #include "buffer.h"
 #include "log.h"
+#include "misc.h"
 #include "servconf.h"
 #include "compat.h"
 #include "key.h"

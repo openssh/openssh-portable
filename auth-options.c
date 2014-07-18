@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.63 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.64 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -26,9 +26,9 @@
 #include "log.h"
 #include "canohost.h"
 #include "buffer.h"
+#include "misc.h"
 #include "channels.h"
 #include "servconf.h"
-#include "misc.h"
 #include "key.h"
 #include "auth-options.h"
 #include "hostfile.h"
@@ -325,6 +325,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			patterns[i] = '\0';
 			opts++;
 			p = patterns;
+			/* XXX - add streamlocal support */
 			host = hpdelim(&p);
 			if (host == NULL || strlen(host) >= NI_MAXHOST) {
 				debug("%.100s, line %lu: Bad permitopen "

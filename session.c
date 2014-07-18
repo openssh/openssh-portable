@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.273 2014/07/03 22:40:43 djm Exp $ */
+/* $OpenBSD: session.c,v 1.274 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -84,11 +84,11 @@
 #include "authfd.h"
 #include "pathnames.h"
 #include "log.h"
+#include "misc.h"
 #include "servconf.h"
 #include "sshlogin.h"
 #include "serverloop.h"
 #include "canohost.h"
-#include "misc.h"
 #include "session.h"
 #include "kex.h"
 #include "monitor_wrap.h"
@@ -183,7 +183,6 @@ auth_input_request_forwarding(struct passwd * pw)
 {
 	Channel *nc;
 	int sock = -1;
-	struct sockaddr_un sunaddr;
 
 	if (auth_sock_name != NULL) {
 		error("authentication forwarding requested twice.");
@@ -209,33 +208,15 @@ auth_input_request_forwarding(struct passwd * pw)
 	xasprintf(&auth_sock_name, "%s/agent.%ld",
 	    auth_sock_dir, (long) getpid());
 
-	/* Create the socket. */
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0) {
-		error("socket: %.100s", strerror(errno));
-		restore_uid();
-		goto authsock_err;
-	}
-
-	/* Bind it to the name. */
-	memset(&sunaddr, 0, sizeof(sunaddr));
-	sunaddr.sun_family = AF_UNIX;
-	strlcpy(sunaddr.sun_path, auth_sock_name, sizeof(sunaddr.sun_path));
-
-	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
-		error("bind: %.100s", strerror(errno));
-		restore_uid();
-		goto authsock_err;
-	}
+	/* Start a Unix listener on auth_sock_name. */
+	sock = unix_listener(auth_sock_name, SSH_LISTEN_BACKLOG, 0);
 
 	/* Restore the privileged uid. */
 	restore_uid();
 
-	/* Start listening on the socket. */
-	if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
-		error("listen: %.100s", strerror(errno));
+	/* Check for socket/bind/listen failure. */
+	if (sock < 0)
 		goto authsock_err;
-	}
 
 	/* Allocate a channel for the authentication agent socket. */
 	nc = channel_new("auth socket",
@@ -274,6 +255,7 @@ do_authenticated(Authctxt *authctxt)
 	setproctitle("%s", authctxt->pw->pw_name);
 
 	/* setup the channel layer */
+	/* XXX - streamlocal? */
 	if (no_port_forwarding_flag ||
 	    (options.allow_tcp_forwarding & FORWARD_LOCAL) == 0)
 		channel_disable_adm_local_opens();
@@ -393,7 +375,7 @@ do_authenticated1(Authctxt *authctxt)
 			}
 			debug("Received TCP/IP port forwarding request.");
 			if (channel_input_port_forward_request(s->pw->pw_uid == 0,
-			    options.gateway_ports) < 0) {
+			    &options.fwd_opts) < 0) {
 				debug("Port forwarding failed.");
 				break;
 			}

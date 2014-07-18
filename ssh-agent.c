@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.187 2014/07/03 03:11:03 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.188 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1038,11 +1038,9 @@ main(int ac, char **av)
 	u_int nalloc;
 	char *shell, *format, *pidstr, *agentsocket = NULL;
 	fd_set *readsetp = NULL, *writesetp = NULL;
-	struct sockaddr_un sunaddr;
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
 #endif
-	int prev_mask;
 	extern int optind;
 	extern char *optarg;
 	pid_t pid;
@@ -1161,25 +1159,10 @@ main(int ac, char **av)
 	 * Create socket early so it will exist before command gets run from
 	 * the parent.
 	 */
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	sock = unix_listener(socket_name, SSH_LISTEN_BACKLOG, 0);
 	if (sock < 0) {
-		perror("socket");
+		/* XXX - unix_listener() calls error() not perror() */
 		*socket_name = '\0'; /* Don't unlink any existing file */
-		cleanup_exit(1);
-	}
-	memset(&sunaddr, 0, sizeof(sunaddr));
-	sunaddr.sun_family = AF_UNIX;
-	strlcpy(sunaddr.sun_path, socket_name, sizeof(sunaddr.sun_path));
-	prev_mask = umask(0177);
-	if (bind(sock, (struct sockaddr *) &sunaddr, sizeof(sunaddr)) < 0) {
-		perror("bind");
-		*socket_name = '\0'; /* Don't unlink any existing file */
-		umask(prev_mask);
-		cleanup_exit(1);
-	}
-	umask(prev_mask);
-	if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
-		perror("listen");
 		cleanup_exit(1);
 	}
 

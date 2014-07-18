@@ -1,3 +1,20 @@
+20140718
+ - OpenBSD CVS Sync
+   - millert@cvs.openbsd.org 2014/07/15 15:54:14
+     [PROTOCOL auth-options.c auth-passwd.c auth-rh-rsa.c auth-rhosts.c]
+     [auth-rsa.c auth.c auth1.c auth2-hostbased.c auth2-kbdint.c auth2-none.c]
+     [auth2-passwd.c auth2-pubkey.c auth2.c canohost.c channels.c channels.h]
+     [clientloop.c misc.c misc.h monitor.c mux.c packet.c readconf.c]
+     [readconf.h servconf.c servconf.h serverloop.c session.c ssh-agent.c]
+     [ssh.c ssh_config.5 sshconnect.c sshconnect1.c sshconnect2.c sshd.c]
+     [sshd_config.5 sshlogin.c]
+     Add support for Unix domain socket forwarding.  A remote TCP port
+     may be forwarded to a local Unix domain socket and vice versa or
+     both ends may be a Unix domain socket.  This is a reimplementation
+     of the streamlocal patches by William Ahern from:
+         http://www.25thandclement.com/~william/projects/streamlocal.html
+     OK djm@ markus@
+
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
    Reported by Petr Lautrbach.

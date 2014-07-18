@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.197 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.198 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -66,7 +66,6 @@
 #include "crc32.h"
 #include "compress.h"
 #include "deattack.h"
-#include "channels.h"
 #include "compat.h"
 #include "ssh1.h"
 #include "ssh2.h"
@@ -77,6 +76,7 @@
 #include "log.h"
 #include "canohost.h"
 #include "misc.h"
+#include "channels.h"
 #include "ssh.h"
 #include "ssherr.h"
 #include "roaming.h"

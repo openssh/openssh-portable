@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.113 2014/07/03 22:40:43 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.114 2014/07/15 15:54:14 millert Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -92,7 +92,7 @@ typedef struct {
 	char   *macs;		/* Supported SSH2 macs. */
 	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
 	int	protocol;	/* Supported protocol versions. */
-	int     gateway_ports;	/* If true, allow remote connects to forwarded ports. */
+	struct ForwardOptions fwd_opts;	/* forwarding options */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for system logging. */
 	int     rhosts_rsa_authentication;	/* If true, permit rhosts RSA
@@ -124,6 +124,7 @@ typedef struct {
 	int     use_login;	/* If true, login(1) is used */
 	int     compression;	/* If true, compression is allowed */
 	int	allow_tcp_forwarding; /* One of FORWARD_* */
+	int	allow_streamlocal_forwarding; /* One of FORWARD_* */
 	int	allow_agent_forwarding;
 	u_int num_allow_users;
 	char   *allow_users[MAX_ALLOW_USERS];
