@@ -37,6 +37,8 @@
      [ssh-agent.c]
      restore umask around listener socket creation (dropped in streamlocal patch
      merge)
+ - (dtucker) [auth2-gss.c gss-serv-krb5.c] Include misc.h for fwd_opts, used
+   in servconf.h.
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
