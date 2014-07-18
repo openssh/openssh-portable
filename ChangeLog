@@ -14,6 +14,11 @@
      of the streamlocal patches by William Ahern from:
          http://www.25thandclement.com/~william/projects/streamlocal.html
      OK djm@ markus@
+   - jmc@cvs.openbsd.org 2014/07/16 14:48:57
+     [ssh.1]
+     add the streamlocal* options to ssh's -o list; millert says they're
+     irrelevant for scp/sftp;
+     ok markus millert
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
