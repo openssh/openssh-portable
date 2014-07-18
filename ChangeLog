@@ -33,6 +33,10 @@
      reflect stdio-forward ("ssh -W host:port ...") failures in exit status.
      previously we were always returning 0. bz#2255 reported by Brendan
      Germain; ok dtucker
+   - djm@cvs.openbsd.org 2014/07/18 02:46:01
+     [ssh-agent.c]
+     restore umask around listener socket creation (dropped in streamlocal patch
+     merge)
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
