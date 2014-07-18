@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.406 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: ssh.c,v 1.407 2014/07/17 07:22:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1360,6 +1360,13 @@ client_cleanup_stdio_fwd(int id, void *arg)
 }
 
 static void
+ssh_stdio_confirm(int id, int success, void *arg)
+{
+	if (!success)
+		fatal("stdio forwarding failed");
+}
+
+static void
 ssh_init_stdio_forwarding(void)
 {
 	Channel *c;
@@ -1379,6 +1386,7 @@ ssh_init_stdio_forwarding(void)
 	    stdio_forward_port, in, out)) == NULL)
 		fatal("%s: channel_connect_stdio_fwd failed", __func__);
 	channel_register_cleanup(c->self, client_cleanup_stdio_fwd, 0);
+	channel_register_open_confirm(c->self, ssh_stdio_confirm, NULL);
 }
 
 static void

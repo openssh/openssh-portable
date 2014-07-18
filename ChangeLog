@@ -28,6 +28,11 @@
    - djm@cvs.openbsd.org 2014/07/17 00:12:03
      [key.c]
      silence "incorrect passphrase" error spam; reported and ok dtucker@
+   - djm@cvs.openbsd.org 2014/07/17 07:22:19
+     [mux.c ssh.c]
+     reflect stdio-forward ("ssh -W host:port ...") failures in exit status.
+     previously we were always returning 0. bz#2255 reported by Brendan
+     Germain; ok dtucker
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.
