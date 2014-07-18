@@ -41,6 +41,7 @@
    in servconf.h.
  - (dtucker) [Makefile.in] Add a t-exec target to run just the executable
    tests.
+ - (dtucker) [key.c sshkey.c] Put new ecdsa bits inside ifdef OPENSSL_HAS_ECC.
 
 20140717
  - (djm) [digest-openssl.c] Preserve array order when disabling digests.

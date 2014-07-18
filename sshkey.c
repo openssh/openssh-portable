@@ -762,6 +762,7 @@ to_blob_buf(const struct sshkey *key, struct sshbuf *b, int force_plain)
 		    (ret = sshbuf_put_bignum2(b, key->dsa->pub_key)) != 0)
 			return ret;
 		break;
+# ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (key->ecdsa == NULL)
 			return SSH_ERR_INVALID_ARGUMENT;
@@ -771,6 +772,7 @@ to_blob_buf(const struct sshkey *key, struct sshbuf *b, int force_plain)
 		    (ret = sshbuf_put_eckey(b, key->ecdsa)) != 0)
 			return ret;
 		break;
+# endif
 	case KEY_RSA:
 		if (key->rsa == NULL)
 			return SSH_ERR_INVALID_ARGUMENT;
