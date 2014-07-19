@@ -1,3 +1,7 @@
+20140719
+ - (tim) [openbsd-compat/port-uw.c] Include misc.h for fwd_opts, used
+   in servconf.h.
+
 20140718
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2014/07/15 15:54:14
