@@ -49,6 +49,8 @@
 #include "ssherr.h"
 #include "digest.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 #ifdef WITH_SSH1
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
@@ -545,6 +547,11 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 			return SSH_ERR_LIBCRYPTO_ERROR;
 		if ((u_int)evplen != len)
 			return SSH_ERR_INVALID_ARGUMENT;
+#ifndef OPENSSL_HAVE_EVPCTR
+		if (c->evptype == evp_aes_128_ctr)
+			ssh_aes_ctr_iv(&cc->evp, 0, iv, len);
+		else
+#endif
 		if (cipher_authlen(c)) {
 			if (!EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_IV_GEN,
 			   len, iv))

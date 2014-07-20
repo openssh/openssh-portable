@@ -1,3 +1,7 @@
+20140721
+ - (dtucker) [cipher.c openbsd-compat/openssl-compat.h] Restore the bits
+   needed to build AES CTR mode against OpenSSL 0.9.8f and above.  ok djm
+
 20140719
  - (tim) [openbsd-compat/port-uw.c] Include misc.h for fwd_opts, used
    in servconf.h.
