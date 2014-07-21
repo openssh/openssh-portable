@@ -8,6 +8,7 @@
      of the streamlocal patches by William Ahern from:
          http://www.25thandclement.com/~william/projects/streamlocal.html
      OK djm@ markus@
+ - (djm) [regress/multiplex.sh] Not all netcat accept the -N option.
 
 20140721
  - (dtucker) [cipher.c openbsd-compat/openssl-compat.h] Restore the bits
