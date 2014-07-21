@@ -39,7 +39,7 @@ start_sshd
 start_mux_master()
 {
 	trace "start master, fork to background"
-	${SSH} -n2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost \
+	${SSH} -Nn2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" somehost \
 	    -E $TEST_REGRESS_LOGFILE 2>&1 &
 	# NB. $SSH_PID will be killed by test-exec.sh:cleanup on fatal errors.
 	SSH_PID=$!

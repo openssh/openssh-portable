@@ -1,3 +1,7 @@
+20140722
+ - (djm) [regress/multiplex.sh] ssh mux master lost -N somehow;
+   put it back
+
 20140721
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2014/07/15 15:54:15
