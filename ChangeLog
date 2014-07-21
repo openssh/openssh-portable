@@ -9,6 +9,8 @@
          http://www.25thandclement.com/~william/projects/streamlocal.html
      OK djm@ markus@
  - (djm) [regress/multiplex.sh] Not all netcat accept the -N option.
+ - (dtucker) [sshkey.c] ifdef out unused variable when compiling without
+   OPENSSL_HAS_ECC.
 
 20140721
  - (dtucker) [cipher.c openbsd-compat/openssl-compat.h] Restore the bits

@@ -657,9 +657,9 @@ cert_compare(struct sshkey_cert *a, struct sshkey_cert *b)
 int
 sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 {
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 	BN_CTX *bnctx;
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 
 	if (a == NULL || b == NULL ||
 	    sshkey_type_plain(a->type) != sshkey_type_plain(b->type))
