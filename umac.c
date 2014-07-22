@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.10 2014/04/30 19:07:48 naddy Exp $ */
+/* $OpenBSD: umac.c,v 1.11 2014/07/22 07:13:42 guenther Exp $ */
 /* -----------------------------------------------------------------------
  * 
  * umac.c -- C Implementation UMAC Message Authentication

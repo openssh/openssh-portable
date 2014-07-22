@@ -10,6 +10,11 @@
    - dtucker@cvs.openbsd.org 2014/07/22 01:18:50
      [key.c]
      Prevent spam from key_load_private_pem during hostbased auth.  ok djm@
+   - guenther@cvs.openbsd.org 2014/07/22 07:13:42
+     [umac.c]
+     Convert from <sys/endian.h> to the shiney new <endian.h>
+     ok dtucker@, who also confirmed that -portable handles this already
+     (ID sync only, includes.h pulls in endian.h if available.)
 
 20140721
  - OpenBSD CVS Sync
