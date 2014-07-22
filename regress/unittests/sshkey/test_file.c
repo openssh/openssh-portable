@@ -283,6 +283,7 @@ sshkey_file_tests(void)
 
 	sshkey_free(k1);
 
+#ifdef OPENSSL_HAS_ECC
 	TEST_START("parse ECDSA from private");
 	buf = load_file("ecdsa_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", "ecdsa_1",
@@ -381,6 +382,7 @@ sshkey_file_tests(void)
 	TEST_DONE();
 
 	sshkey_free(k1);
+#endif /* OPENSSL_HAS_ECC */
 
 	TEST_START("parse Ed25519 from private");
 	buf = load_file("ed25519_1");

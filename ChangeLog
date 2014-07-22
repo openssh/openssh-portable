@@ -4,6 +4,8 @@
  - (djm) [regress/multiplex.sh] change the test for still-open Unix
    domain sockets to be robust against nc implementations that produce
    error messages.
+ - (dtucker) [regress/unittests/sshkey/test_{file,fuzz,sshkey}.c] Wrap ecdsa-
+   specific tests inside OPENSSL_HAS_ECC.
 
 20140721
  - OpenBSD CVS Sync

@@ -215,6 +215,7 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(kd->dsa->priv_key, NULL);
 	TEST_DONE();
 
+#ifdef OPENSSL_HAS_ECC
 	TEST_START("generate KEY_ECDSA");
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 256, &ke), 0);
 	ASSERT_PTR_NE(ke, NULL);
@@ -222,6 +223,7 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(EC_KEY_get0_public_key(ke->ecdsa), NULL);
 	ASSERT_PTR_NE(EC_KEY_get0_private_key(ke->ecdsa), NULL);
 	TEST_DONE();
+#endif
 
 	TEST_START("generate KEY_ED25519");
 	ASSERT_INT_EQ(sshkey_generate(KEY_ED25519, 256, &kf), 0);
@@ -262,6 +264,7 @@ sshkey_tests(void)
 	sshkey_free(k1);
 	TEST_DONE();
 
+#ifdef OPENSSL_HAS_ECC
 	TEST_START("demote KEY_ECDSA");
 	ASSERT_INT_EQ(sshkey_demote(ke, &k1), 0);
 	ASSERT_PTR_NE(k1, NULL);
@@ -277,6 +280,7 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_equal(ke, k1), 1);
 	sshkey_free(k1);
 	TEST_DONE();
+#endif
 
 	TEST_START("demote KEY_ED25519");
 	ASSERT_INT_EQ(sshkey_demote(kf, &k1), 0);
@@ -294,9 +298,11 @@ sshkey_tests(void)
 
 	TEST_START("equal mismatched key types");
 	ASSERT_INT_EQ(sshkey_equal(kd, kr), 0);
+#ifdef OPENSSL_HAS_ECC
 	ASSERT_INT_EQ(sshkey_equal(kd, ke), 0);
 	ASSERT_INT_EQ(sshkey_equal(kr, ke), 0);
 	ASSERT_INT_EQ(sshkey_equal(ke, kf), 0);
+#endif
 	ASSERT_INT_EQ(sshkey_equal(kd, kf), 0);
 	TEST_DONE();
 
@@ -307,9 +313,11 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 1024, &k1), 0);
 	ASSERT_INT_EQ(sshkey_equal(kd, k1), 0);
 	sshkey_free(k1);
+#ifdef OPENSSL_HAS_ECC
 	ASSERT_INT_EQ(sshkey_generate(KEY_ECDSA, 256, &k1), 0);
 	ASSERT_INT_EQ(sshkey_equal(ke, k1), 0);
 	sshkey_free(k1);
+#endif
 	ASSERT_INT_EQ(sshkey_generate(KEY_ED25519, 256, &k1), 0);
 	ASSERT_INT_EQ(sshkey_equal(kf, k1), 0);
 	sshkey_free(k1);
@@ -317,7 +325,9 @@ sshkey_tests(void)
 
 	sshkey_free(kr);
 	sshkey_free(kd);
+#ifdef OPENSSL_HAS_ECC
 	sshkey_free(ke);
+#endif
 	sshkey_free(kf);
 
 /* XXX certify test */
