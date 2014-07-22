@@ -1,6 +1,9 @@
 20140722
  - (djm) [regress/multiplex.sh] ssh mux master lost -N somehow;
    put it back
+ - (djm) [regress/multiplex.sh] change the test for still-open Unix
+   domain sockets to be robust against nc implementations that produce
+   error messages.
 
 20140721
  - OpenBSD CVS Sync
