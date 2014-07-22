@@ -6,6 +6,10 @@
    error messages.
  - (dtucker) [regress/unittests/sshkey/test_{file,fuzz,sshkey}.c] Wrap ecdsa-
    specific tests inside OPENSSL_HAS_ECC.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2014/07/22 01:18:50
+     [key.c]
+     Prevent spam from key_load_private_pem during hostbased auth.  ok djm@
 
 20140721
  - OpenBSD CVS Sync

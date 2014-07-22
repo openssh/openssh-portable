@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.121 2014/07/17 00:12:03 djm Exp $ */
+/* $OpenBSD: key.c,v 1.122 2014/07/22 01:18:50 dtucker Exp $ */
 /*
  * placed in the public domain
  */
@@ -447,7 +447,10 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 	if ((r = sshkey_load_private_pem(fd, type, passphrase,
 	     &ret, commentp)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		error("%s: %s", __func__, ssh_err(r));
+		if (r == SSH_ERR_KEY_WRONG_PASSPHRASE)
+			debug("%s: %s", __func__, ssh_err(r));
+		else
+			error("%s: %s", __func__, ssh_err(r));
 		return NULL;
 	}
 	return ret;
