@@ -1,4 +1,5 @@
 #!/bin/sh
+# $OpenBSD: mktestdata.sh,v 1.3 2014/07/22 23:57:40 dtucker Exp $
 
 PW=mekmitasdigoat
 
