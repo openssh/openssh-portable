@@ -150,13 +150,13 @@ ssh-keygen -s rsa_2 -I hugo -n user1,user2 \
     -Oforce-command=/bin/ls -Ono-port-forwarding -Osource-address=10.0.0.0/8 \
     -V 19990101:20110101 -z 4 ed25519_1.pub
 
-ssh-keygen -s ecdsa_1 -I julius -n host1,host2 -h \
+ssh-keygen -s ed25519_1 -I julius -n host1,host2 -h \
     -V 19990101:20110101 -z 5 rsa_1.pub
-ssh-keygen -s ecdsa_1 -I julius -n host1,host2 -h \
+ssh-keygen -s ed25519_1 -I julius -n host1,host2 -h \
     -V 19990101:20110101 -z 6 dsa_1.pub
 ssh-keygen -s ecdsa_1 -I julius -n host1,host2 -h \
     -V 19990101:20110101 -z 7 ecdsa_1.pub
-ssh-keygen -s ecdsa_1 -I julius -n host1,host2 -h \
+ssh-keygen -s ed25519_1 -I julius -n host1,host2 -h \
     -V 19990101:20110101 -z 8 ed25519_1.pub
 
 ssh-keygen -lf rsa1_1 | awk '{print $2}' > rsa1_1.fp
