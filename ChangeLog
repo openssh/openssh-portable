@@ -27,6 +27,10 @@
    - dtucker@cvs.openbsd.org 2014/07/22 23:57:40
      [regress/unittests/sshkey/mktestdata.sh]
      Add $OpenBSD tag to make syncs easier
+   - dtucker@cvs.openbsd.org 2014/07/22 23:35:38
+     [regress/unittests/sshkey/testdata/*]
+     Regenerate test keys with certs signed with ed25519 instead of ecdsa.
+     These can be used in -portable on platforms that don't support ECDSA.
 
 20140721
  - OpenBSD CVS Sync
