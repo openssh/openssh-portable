@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.24 2014/07/15 15:54:15 millert Exp $
+#	$OpenBSD: multiplex.sh,v 1.25 2014/07/22 01:32:12 djm Exp $
 #	Placed in the Public Domain.
 
 CTL=/tmp/openssh.regress.ctl-sock.$$
