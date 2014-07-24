@@ -1,3 +1,7 @@
+20140725
+ - (djm) [regress/multiplex.sh] restore incorrectly deleted line;
+   pointed out by Christian Hesse
+
 20140722
  - (djm) [regress/multiplex.sh] ssh mux master lost -N somehow;
    put it back
