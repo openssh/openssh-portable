@@ -1,3 +1,9 @@
+20140730
+ - OpenBSD CVS Sync
+   - millert@cvs.openbsd.org 2014/07/24 22:57:10
+     [ssh.1]
+     Mention UNIX-domain socket forwarding too.  OK jmc@ deraadt@
+
 20140725
  - (djm) [regress/multiplex.sh] restore incorrectly deleted line;
    pointed out by Christian Hesse
