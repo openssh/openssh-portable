@@ -9,6 +9,11 @@
      left in memory after they have been expired or deleted in some cases
      (but note that ssh-agent is setgid so you would still need root to
      access them).  Pointed out by Kevin Burns, ok deraadt
+   - schwarze@cvs.openbsd.org 2014/07/28 15:40:08
+     [sftp-server.8 sshd_config.5]
+     some systems no longer need /dev/log;
+     issue noticed by jirib;
+     ok deraadt
 
 20140725
  - (djm) [regress/multiplex.sh] restore incorrectly deleted line;
