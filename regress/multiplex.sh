@@ -8,11 +8,15 @@ tid="connection multiplexing"
 if have_prog nc ; then
 	if nc -h 2>&1 | grep -- -N >/dev/null; then
 		NC="nc -N";
-        else
+        elif nc -h 2>&1 | grep -- "-U.*Use UNIX" >/dev/null ; then
                 NC="nc"
-        fi
-else
-	echo "skipped (no nc found)"
+        else
+		echo "nc is incompatible"
+	fi
+fi
+
+if test -z "$NC" ; then
+	echo "skipped (no compatible nc found)"
 	exit 0
 fi
 

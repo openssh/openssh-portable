@@ -1,3 +1,7 @@
+20130801
+ - (djm) [regress/multiplex.sh] Skip test for non-OpenBSD netcat. We need
+   a better solution, but this will have to do for now.
+
 20140730
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2014/07/24 22:57:10
