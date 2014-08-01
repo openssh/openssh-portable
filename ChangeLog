@@ -3,6 +3,8 @@
    a better solution, but this will have to do for now.
  - (djm) [regress/multiplex.sh] Instruct nc not to quit as soon as stdin
    is closed; avoid regress failures when stdin is /dev/null
+ - (djm) [regress/multiplex.sh] Use -d (detach stdin) flag to disassociate
+   nc from stdin, it's more portable
 
 20140730
  - OpenBSD CVS Sync
