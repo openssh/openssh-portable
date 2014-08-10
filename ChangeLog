@@ -1,3 +1,7 @@
+20130810
+ - (djm) [README contrib/caldera/openssh.spec]
+   [contrib/redhat/openssh.spec contrib/suse/openssh.spec] Update versions
+
 20130801
  - (djm) [regress/multiplex.sh] Skip test for non-OpenBSD netcat. We need
    a better solution, but this will have to do for now.
