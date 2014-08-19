@@ -1,8 +1,15 @@
-20130810
+20140819
+ - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen
+
+20140811
+ - (djm) [myproposal.h] Make curve25519 KEX dependent on
+   HAVE_EVP_SHA256 instead of OPENSSL_HAS_ECC.
+
+20140810
  - (djm) [README contrib/caldera/openssh.spec]
    [contrib/redhat/openssh.spec contrib/suse/openssh.spec] Update versions
 
-20130801
+20140801
  - (djm) [regress/multiplex.sh] Skip test for non-OpenBSD netcat. We need
    a better solution, but this will have to do for now.
  - (djm) [regress/multiplex.sh] Instruct nc not to quit as soon as stdin
