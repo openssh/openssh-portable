@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.164 2014/07/09 01:45:10 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.165 2014/08/19 23:57:18 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1519,6 +1519,9 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		err = do_df(conn, path1, hflag, iflag);
 		break;
 	case I_LCHDIR:
+		tmp = tilde_expand_filename(path1, getuid())
+		free(path1);
+		path1 = tmp;
 		if (chdir(path1) == -1) {
 			error("Couldn't change local directory to "
 			    "\"%s\": %s", path1, strerror(errno));
