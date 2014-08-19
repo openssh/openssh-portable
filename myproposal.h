@@ -78,7 +78,7 @@
 #endif
 
 #ifdef WITH_OPENSSL
-# ifdef OPENSSL_HAS_ECC
+# ifdef HAVE_EVP_SHA256
 #  define KEX_CURVE25519_METHODS "curve25519-sha256@libssh.org,"
 # else
 #  define KEX_CURVE25519_METHODS ""
