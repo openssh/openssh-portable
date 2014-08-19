@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.251 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: servconf.c,v 1.252 2014/08/19 23:58:28 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -54,6 +54,7 @@
 #include "packet.h"
 #include "hostfile.h"
 #include "auth.h"
+#include "myproposal.h"
 
 static void add_listen_addr(ServerOptions *, char *, int);
 static void add_one_listen_addr(ServerOptions *, char *, int);
@@ -2070,9 +2071,8 @@ dump_config(ServerOptions *o)
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);
 	dump_cfg_string(sXAuthLocation, o->xauth_location);
-	dump_cfg_string(sCiphers, o->ciphers ? o->ciphers :
-	    cipher_alg_list(',', 0));
-	dump_cfg_string(sMacs, o->macs ? o->macs : mac_alg_list(','));
+	dump_cfg_string(sCiphers, o->ciphers ? o->ciphers : KEX_SERVER_ENCRYPT);
+	dump_cfg_string(sMacs, o->macs ? o->macs : KEX_SERVER_MAC);
 	dump_cfg_string(sBanner, o->banner);
 	dump_cfg_string(sForceCommand, o->adm_forced_command);
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
@@ -2084,8 +2084,8 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sAuthorizedKeysCommand, o->authorized_keys_command);
 	dump_cfg_string(sAuthorizedKeysCommandUser, o->authorized_keys_command_user);
 	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
-	dump_cfg_string(sKexAlgorithms, o->kex_algorithms ? o->kex_algorithms :
-	    kex_alg_list(','));
+	dump_cfg_string(sKexAlgorithms,
+  	    o->kex_algorithms ? o->kex_algorithms : KEX_SERVER_KEX);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
