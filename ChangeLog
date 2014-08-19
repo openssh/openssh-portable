@@ -1,5 +1,6 @@
 20140819
  - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen
+ - (djm) [sshbuf.h] Fix compilation on systems without OPENSSL_HAS_ECC.
 
 20140811
  - (djm) [myproposal.h] Make curve25519 KEX dependent on

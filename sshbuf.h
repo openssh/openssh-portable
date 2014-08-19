@@ -21,8 +21,12 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <openssl/bn.h>
-#include <openssl/ec.h>
+#ifdef WITH_OPENSSL
+# include <openssl/bn.h>
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 
 #define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */
@@ -204,17 +208,19 @@ int	sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
  * Functions to extract or store SSH wire encoded bignums and elliptic
  * curve points.
  */
+int	sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len);
+#ifdef WITH_OPENSSL
 int	sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM *v);
 int	sshbuf_get_bignum1(struct sshbuf *buf, BIGNUM *v);
 int	sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v);
 int	sshbuf_put_bignum1(struct sshbuf *buf, const BIGNUM *v);
-int	sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len);
-#if !defined(WITH_OPENSSL) || defined(OPENSSL_HAS_ECC)
+# ifdef OPENSSL_HAS_ECC
 int	sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v);
 int	sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_put_eckey(struct sshbuf *buf, const EC_KEY *v);
-#endif
+# endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 
 /* Dump the contents of the buffer in a human-readable format */
 void	sshbuf_dump(struct sshbuf *buf, FILE *f);
