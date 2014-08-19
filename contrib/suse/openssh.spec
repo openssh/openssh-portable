@@ -28,11 +28,9 @@ Provides:	ssh
 # (Build[ing] Prereq[uisites] only work for RPM 2.95 and newer.)
 # building prerequisites -- stuff for
 #   OpenSSL (openssl-devel),
-#   TCP Wrappers (tcpd-devel),
 #   and Gnome (glibdev, gtkdev, and gnlibsd)
 #
 BuildPrereq:	openssl
-BuildPrereq:	tcpd-devel
 BuildPrereq:	zlib-devel
 #BuildPrereq:	glibdev
 #BuildPrereq:	gtkdev
@@ -140,7 +138,6 @@ CFLAGS="$RPM_OPT_FLAGS" \
 		--mandir=%{_mandir} \
 		--with-privsep-path=/var/lib/empty \
 		--with-pam \
-		--with-tcp-wrappers \
 		--libexecdir=%{_libdir}/ssh
 make
 

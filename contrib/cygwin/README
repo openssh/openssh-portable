@@ -77,7 +77,6 @@ with the aforementioned cygport script:
   zlib
   crypt
   openssl-devel
-  libwrap-devel
   libedit-devel
   libkrb5-devel
 
