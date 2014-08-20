@@ -31,13 +31,19 @@
 #ifdef WITH_OPENSSL
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
-#include <openssl/ec.h>
-#else /* OPENSSL */
-#define RSA		void
-#define DSA		void
-#define EC_KEY		void
-#define EC_GROUP	void
-#define EC_POINT	void
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# else /* OPENSSL_HAS_ECC */
+#  define EC_KEY	void
+#  define EC_GROUP	void
+#  define EC_POINT	void
+# endif /* OPENSSL_HAS_ECC */
+#else /* WITH_OPENSSL */
+# define RSA		void
+# define DSA		void
+# define EC_KEY		void
+# define EC_GROUP	void
+# define EC_POINT	void
 #endif /* WITH_OPENSSL */
 
 #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
@@ -211,12 +217,16 @@ int ssh_ed25519_verify(const struct sshkey *key,
     const u_char *data, size_t datalen, u_int compat);
 #endif
 
-#ifndef WITH_OPENSSL
-#undef RSA
-#undef DSA
-#undef EC_KEY
-#undef EC_GROUP
-#undef EC_POINT
-#endif /* WITH_OPENSSL */
+#if !defined(WITH_OPENSSL)
+# undef RSA
+# undef DSA
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
+#elif !defined(OPENSSL_HAS_ECC)
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
+#endif
 
 #endif /* SSHKEY_H */

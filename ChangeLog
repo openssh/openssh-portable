@@ -3,6 +3,7 @@
    suggested by Kevin Brott
  - (djm) [Makefile.in] refer to libtest_helper.a by explicit path rather than
    -L/-l; fixes linking problems on some platforms
+ - (djm) [sshkey.h] Fix compilation when OpenSSL lacks ECC
 
 20140819
  - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen
