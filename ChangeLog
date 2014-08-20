@@ -1,6 +1,8 @@
 2014020
  - (djm) [configure.ac] Check OpenSSL version is supported at configure time;
    suggested by Kevin Brott
+ - (djm) [Makefile.in] refer to libtest_helper.a by explicit path rather than
+   -L/-l; fixes linking problems on some platforms
 
 20140819
  - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen

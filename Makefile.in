@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.362 2014/07/18 20:33:12 dtucker Exp $
+# $Id: Makefile.in,v 1.363 2014/08/20 01:06:21 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -456,7 +456,7 @@ UNITTESTS_TEST_SSHBUF_OBJS=\
 regress/unittests/sshbuf/test_sshbuf$(EXEEXT): ${UNITTESTS_TEST_SSHBUF_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_SSHBUF_OBJS) \
-	    -L regress/unittests/test_helper -ltest_helper \
+	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
 UNITTESTS_TEST_SSHKEY_OBJS=\
