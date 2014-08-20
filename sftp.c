@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.165 2014/08/19 23:57:18 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.166 2014/08/20 01:28:55 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1519,7 +1519,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		err = do_df(conn, path1, hflag, iflag);
 		break;
 	case I_LCHDIR:
-		tmp = tilde_expand_filename(path1, getuid())
+		tmp = tilde_expand_filename(path1, getuid());
 		free(path1);
 		path1 = tmp;
 		if (chdir(path1) == -1) {
