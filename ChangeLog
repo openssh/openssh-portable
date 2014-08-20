@@ -1,3 +1,7 @@
+2014020
+ - (djm) [configure.ac] Check OpenSSL version is supported at configure time;
+   suggested by Kevin Brott
+
 20140819
  - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen
  - (djm) [sshbuf.h] Fix compilation on systems without OPENSSL_HAS_ECC.
