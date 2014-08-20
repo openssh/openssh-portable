@@ -4,6 +4,7 @@
  - (djm) [Makefile.in] refer to libtest_helper.a by explicit path rather than
    -L/-l; fixes linking problems on some platforms
  - (djm) [sshkey.h] Fix compilation when OpenSSL lacks ECC
+ - (djm) [contrib/cygwin/README] Correct build instructions; from Corinna
 
 20140819
  - (djm) [serverloop.c] Fix syntax error on Cygwin; from Corinna Vinschen
