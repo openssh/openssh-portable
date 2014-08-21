@@ -1,4 +1,7 @@
-2014020
+20140821
+ - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.
+
+20140820
  - (djm) [configure.ac] Check OpenSSL version is supported at configure time;
    suggested by Kevin Brott
  - (djm) [Makefile.in] refer to libtest_helper.a by explicit path rather than
