@@ -1,5 +1,6 @@
 20140821
  - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.
+ - (djm) [key.h] Fix ifdefs for no-ECC OpenSSL
 
 20140820
  - (djm) [configure.ac] Check OpenSSL version is supported at configure time;
