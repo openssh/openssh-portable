@@ -117,6 +117,19 @@ main(int argc, char **argv)
 {
 	int ch;
 
+	/* Handle systems without __progname */
+	if (__progname == NULL) {
+		__progname = strrchr(argv[0], '/');
+		if (__progname == NULL || __progname[1] == '\0')
+			__progname = argv[0];	
+		else
+			__progname++;
+		if ((__progname = strdup(__progname)) == NULL) {
+			fprintf(stderr, "strdup failed\n");
+			exit(1);
+		}
+	}
+
 	while ((ch = getopt(argc, argv, "vqd:")) != -1) {
 		switch (ch) {
 		case 'd':

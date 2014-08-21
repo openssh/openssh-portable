@@ -1,6 +1,8 @@
 20140821
  - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.
  - (djm) [key.h] Fix ifdefs for no-ECC OpenSSL
+ - (djm) [regress/unittests/test_helper/test_helper.c] Fix for systems that
+   don't set __progname. Diagnosed by Tom Christensen.
 
 20140820
  - (djm) [configure.ac] Check OpenSSL version is supported at configure time;
