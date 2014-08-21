@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.28 2013/10/24 00:49:49 dtucker Exp $ */
+/* $OpenBSD: moduli.c,v 1.29 2014/08/21 01:08:52 doug Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -461,6 +461,7 @@ write_checkpoint(char *cpfile, u_int32_t lineno)
 	}
 	if ((fp = fdopen(r, "w")) == NULL) {
 		logit("write_checkpoint: fdopen: %s", strerror(errno));
+		unlink(tmp);
 		close(r);
 		return;
 	}
