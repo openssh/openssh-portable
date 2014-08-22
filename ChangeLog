@@ -2,6 +2,8 @@
  - (djm) [configure.ac] include leading zero characters in OpenSSL version
    number; fixes test for unsupported versions
  - (djm) [sshbuf-getput-crypto.c] Fix compilation when OpenSSL lacks ECC
+ - (djm) [openbsd-compat/bsd-snprintf.c] Fix compilation failure (prototype/
+   definition mismatch) and warning for broken/missing snprintf case.
 
 20140821
  - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.
