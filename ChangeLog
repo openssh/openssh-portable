@@ -1,3 +1,7 @@
+20140823
+ - (djm) [sshd.c] Ignore SIGXFSZ in preauth monitor child; can explode on
+   lastlog writing on platforms with high UIDs; bz#2263
+
 20140822
  - (djm) [configure.ac] include leading zero characters in OpenSSL version
    number; fixes test for unsupported versions

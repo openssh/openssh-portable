@@ -647,6 +647,10 @@ privsep_preauth_child(void)
 		fatal("setgroups: %.100s", strerror(errno));
 	permanently_set_uid(privsep_pw);
 #endif
+
+#ifdef SIGXFSZ
+	signal(SIGXFSZ, SIG_IGN);
+#endif
 }
 
 static int
