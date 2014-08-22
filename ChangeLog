@@ -4,6 +4,7 @@
  - (djm) [sshbuf-getput-crypto.c] Fix compilation when OpenSSL lacks ECC
  - (djm) [openbsd-compat/bsd-snprintf.c] Fix compilation failure (prototype/
    definition mismatch) and warning for broken/missing snprintf case.
+ - (djm) [configure.ac] double braces to appease autoconf
 
 20140821
  - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.

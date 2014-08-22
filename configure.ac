@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.580 2014/08/22 07:36:20 djm Exp $
+# $Id: configure.ac,v 1.581 2014/08/22 08:06:21 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.580 $)
+AC_REVISION($Revision: 1.581 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2288,7 +2288,7 @@ AC_RUN_IFELSE(
 		ssl_library_ver=`cat conftest.ssllibver`
 		# Check version is supported.
 		case "$ssl_library_ver" in
-			0090[0-7]*|009080[0-5]*)
+			0090[[0-7]]*|009080[[0-5]]*)
 				AC_MSG_ERROR([OpenSSL >= 0.9.8f required])
 		                ;;
 		        *) ;;
