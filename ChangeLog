@@ -1,3 +1,7 @@
+20140822
+ - (djm) [configure.ac] include leading zero characters in OpenSSL version
+   number; fixes test for unsupported versions
+
 20140821
  - (djm) [Makefile.in] fix reference to libtest_helper.a in sshkey test too.
  - (djm) [key.h] Fix ifdefs for no-ECC OpenSSL

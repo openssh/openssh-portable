@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.579 2014/08/20 01:05:03 djm Exp $
+# $Id: configure.ac,v 1.580 2014/08/22 07:36:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.579 $)
+AC_REVISION($Revision: 1.580 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -2243,7 +2243,7 @@ AC_RUN_IFELSE(
 	if(fd == NULL)
 		exit(1);
 
-	if ((rc = fprintf(fd ,"%x (%s)\n", OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
+	if ((rc = fprintf(fd ,"%08x (%s)\n", OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
 		exit(1);
 
 	exit(0);
@@ -2278,7 +2278,7 @@ AC_RUN_IFELSE(
 	if(fd == NULL)
 		exit(1);
 
-	if ((rc = fprintf(fd ,"%x (%s)\n", SSLeay(),
+	if ((rc = fprintf(fd ,"%08x (%s)\n", SSLeay(),
 	    SSLeay_version(SSLEAY_VERSION))) <0)
 		exit(1);
 
