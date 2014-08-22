@@ -24,7 +24,9 @@
 #include <string.h>
 
 #include <openssl/bn.h>
-#include <openssl/ec.h>
+#ifdef OPENSSL_HAS_ECC
+# include <openssl/ec.h>
+#endif /* OPENSSL_HAS_ECC */
 
 #include "ssherr.h"
 #include "sshbuf.h"
