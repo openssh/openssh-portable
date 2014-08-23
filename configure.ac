@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.581 2014/08/22 08:06:21 djm Exp $
+# $Id: configure.ac,v 1.582 2014/08/23 07:06:49 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT([OpenSSH], [Portable], [openssh-unix-dev@mindrot.org])
-AC_REVISION($Revision: 1.581 $)
+AC_REVISION($Revision: 1.582 $)
 AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
@@ -1887,11 +1887,9 @@ if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	)
 fi
 
-# If we don't have a working asprintf, then we strongly depend on vsnprintf
-# returning the right thing on overflow: the number of characters it tried to
-# create (as per SUSv3)
-if test "x$ac_cv_func_asprintf" != "xyes" && \
-   test "x$ac_cv_func_vsnprintf" = "xyes" ; then
+# We depend on vsnprintf returning the right thing on overflow: the
+# number of characters it tried to create (as per SUSv3)
+if test "x$ac_cv_func_vsnprintf" = "xyes" ; then
 	AC_MSG_CHECKING([whether vsnprintf returns correct values on overflow])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
@@ -1899,15 +1897,23 @@ if test "x$ac_cv_func_asprintf" != "xyes" && \
 #include <stdio.h>
 #include <stdarg.h>
 
-int x_snprintf(char *str,size_t count,const char *fmt,...)
+int x_snprintf(char *str, size_t count, const char *fmt, ...)
 {
-	size_t ret; va_list ap;
-	va_start(ap, fmt); ret = vsnprintf(str, count, fmt, ap); va_end(ap);
+	size_t ret;
+	va_list ap;
+
+	va_start(ap, fmt);
+	ret = vsnprintf(str, count, fmt, ap);
+	va_end(ap);
 	return ret;
 }
 		]], [[
-	char x[1];
-	exit(x_snprintf(x, 1, "%s %d", "hello", 12345) == 11 ? 0 : 1);
+char x[1];
+if (x_snprintf(x, 1, "%s %d", "hello", 12345) != 11)
+	return 1;
+if (x_snprintf(NULL, 0, "%s %d", "hello", 12345) != 11)
+	return 1;
+return 0;
 		]])],
 		[AC_MSG_RESULT([yes])],
 		[
