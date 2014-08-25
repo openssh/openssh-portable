@@ -26,6 +26,8 @@
 #include "log.h"
 #include "ssherr.h"
 
+#ifdef OPENSSL_HAS_ECC
+
 int
 buffer_put_ecpoint_ret(Buffer *buffer, const EC_GROUP *curve,
     const EC_POINT *point)
@@ -68,4 +70,5 @@ buffer_get_ecpoint(Buffer *buffer, const EC_GROUP *curve,
 		fatal("%s: buffer error", __func__);
 }
 
+#endif /* OPENSSL_HAS_ECC */
 
