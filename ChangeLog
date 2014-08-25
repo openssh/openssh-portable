@@ -1,5 +1,7 @@
 20140825
  - (djm) [bufec.c] Skip this file on !ECC OpenSSL
+ - (djm) [INSTALL] Recommend libcrypto be built -fPIC, mention LibreSSL,
+   update OpenSSL version requirement.
 
 20140824
  - (djm) [sftp-server.c] Some systems (e.g. Irix) have prctl() but not
