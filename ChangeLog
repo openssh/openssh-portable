@@ -1,4 +1,13 @@
 20140825
+ - (djm) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c]
+   [regress/unittests/sshbuf/test_sshbuf_getput_fuzz.c]
+   [regress/unittests/sshkey/common.c]
+   [regress/unittests/sshkey/test_file.c]
+   [regress/unittests/sshkey/test_fuzz.c]
+   [regress/unittests/sshkey/test_sshkey.c] Don't include openssl/ec.h
+   on !ECC OpenSSL systems
+
+20140825
  - (djm) [bufec.c] Skip this file on !ECC OpenSSL
  - (djm) [INSTALL] Recommend libcrypto be built -fPIC, mention LibreSSL,
    update OpenSSL version requirement.

@@ -17,8 +17,10 @@
 #include <string.h>
 
 #include <openssl/bn.h>
-#include <openssl/ec.h>
 #include <openssl/objects.h>
+#ifdef OPENSSL_HAS_NISTP256
+# include <openssl/ec.h>
+#endif
 
 #include "../test_helper/test_helper.h"
 #include "ssherr.h"
@@ -32,7 +34,7 @@ sshbuf_getput_crypto_tests(void)
 	struct sshbuf *p1;
 	const u_char *d;
 	size_t s;
-	BIGNUM *bn, *bn2, *bn_x, *bn_y;
+	BIGNUM *bn, *bn2;
 	/* This one has num_bits != num_bytes * 8 to test bignum1 encoding */
 	const char *hexbn1 = "0102030405060708090a0b0c0d0e0f10";
 	/* This one has MSB set to test bignum2 encoding negative-avoidance */
@@ -47,6 +49,7 @@ sshbuf_getput_crypto_tests(void)
 		0x7f, 0xff, 0x11
 	};
 #ifdef OPENSSL_HAS_NISTP256
+	BIGNUM *bn_x, *bn_y;
 	int ec256_nid = NID_X9_62_prime256v1;
 	char *ec256_x = "0C828004839D0106AA59575216191357"
 		        "34B451459DADB586677EF9DF55784999";

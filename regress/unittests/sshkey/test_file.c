@@ -20,10 +20,12 @@
 #include <unistd.h>
 
 #include <openssl/bn.h>
-#include <openssl/ec.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
+#ifdef OPENSSL_HAS_NISTP256
+# include <openssl/ec.h>
+#endif
 
 #include "../test_helper/test_helper.h"
 
