@@ -8,6 +8,10 @@
    on !ECC OpenSSL systems
  - (djm) [monitor.c sshd.c] SIGXFSZ needs to be ignored in postauth
    monitor, not preauth; bz#2263
+ - (djm) [openbsd-compat/explicit_bzero.c] implement explicit_bzero()
+   using memset_s() where possible; improve fallback to indirect bzero
+   via a volatile pointer to give it more of a chance to avoid being
+   optimised away.
 
 20140825
  - (djm) [bufec.c] Skip this file on !ECC OpenSSL
