@@ -471,6 +471,9 @@ monitor_child_postauth(struct monitor *pmonitor)
 	signal(SIGHUP, &monitor_child_handler);
 	signal(SIGTERM, &monitor_child_handler);
 	signal(SIGINT, &monitor_child_handler);
+#ifdef SIGXFSZ
+	signal(SIGXFSZ, SIG_IGN);
+#endif
 
 	if (compat20) {
 		mon_dispatch = mon_dispatch_postauth20;
