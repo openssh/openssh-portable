@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.29 2014/07/20 16:24:59 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.30 2014/08/29 16:30:30 djm Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -32,6 +32,13 @@ int ssh_compatible_openssl(long, long);
 # define LIBCRYPTO_EVP_INL_TYPE unsigned int
 #else
 # define LIBCRYPTO_EVP_INL_TYPE size_t
+#endif
+
+#ifndef OPENSSL_RSA_MAX_MODULUS_BITS
+# define OPENSSL_RSA_MAX_MODULUS_BITS	16384
+#endif
+#ifndef OPENSSL_DSA_MAX_MODULUS_BITS
+# define OPENSSL_DSA_MAX_MODULUS_BITS	10000
 #endif
 
 #ifndef OPENSSL_HAVE_EVPCTR
