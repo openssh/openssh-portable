@@ -1103,6 +1103,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	}
 	return sock;
 }
+
 void
 sock_set_v6only(int s)
 {

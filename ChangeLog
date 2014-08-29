@@ -1,6 +1,7 @@
 20140830
  - (djm) [openbsd-compat/openssl-compat.h] add
    OPENSSL_[RD]SA_MAX_MODULUS_BITS defines for OpenSSL that lacks them
+ - (djm) [misc.c] Missing newline between functions
 
 20140827
  - (djm) [regress/unittests/sshbuf/test_sshbuf_getput_crypto.c]
