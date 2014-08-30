@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.364 2014/08/21 00:47:55 djm Exp $
+# $Id: Makefile.in,v 1.365 2014/08/30 06:23:07 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -29,6 +29,7 @@ SSH_PKCS11_HELPER=$(libexecdir)/ssh-pkcs11-helper
 PRIVSEP_PATH=@PRIVSEP_PATH@
 SSH_PRIVSEP_USER=@SSH_PRIVSEP_USER@
 STRIP_OPT=@STRIP_OPT@
+TEST_SHELL=@TEST_SHELL@
 
 PATHS= -DSSHDIR=\"$(sysconfdir)\" \
 	-D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" \
@@ -480,7 +481,6 @@ REGRESS_BINARIES=\
 
 tests interop-tests t-exec: regress-prep $(TARGETS) $(REGRESS_BINARIES)
 	BUILDDIR=`pwd`; \
-	TEST_SHELL="@TEST_SHELL@"; \
 	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
 	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
@@ -504,7 +504,6 @@ tests interop-tests t-exec: regress-prep $(TARGETS) $(REGRESS_BINARIES)
 		OBJ="$${BUILDDIR}/regress/" \
 		PATH="$${BUILDDIR}:$${PATH}" \
 		TEST_ENV=MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
-		TEST_SHELL="$${TEST_SHELL}" \
 		TEST_SSH_SCP="$${TEST_SSH_SCP}" \
 		TEST_SSH_SSH="$${TEST_SSH_SSH}" \
 		TEST_SSH_SSHD="$${TEST_SSH_SSHD}" \
@@ -520,6 +519,7 @@ tests interop-tests t-exec: regress-prep $(TARGETS) $(REGRESS_BINARIES)
 		TEST_SSH_CONCH="$${TEST_SSH_CONCH}" \
 		TEST_SSH_IPV6="$${TEST_SSH_IPV6}" \
 		TEST_SSH_ECC="$${TEST_SSH_ECC}" \
+		TEST_SHELL="${TEST_SHELL}" \
 		EXEEXT="$(EXEEXT)" \
 		$@ && echo all tests passed
 
