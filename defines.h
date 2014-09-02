@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.182 2014/06/16 12:50:56 dtucker Exp $ */
+/* $Id: defines.h,v 1.183 2014/09/02 19:33:26 djm Exp $ */
 
 
 /* Constants */
@@ -829,5 +829,16 @@ struct winsize {
 #  define va_copy(dest, src) (dest) = (src)
 # endif
 #endif
+
+#ifndef __predict_true
+# if defined(__GNUC__) && \
+     ((__GNUC__ > (2)) || (__GNUC__ == (2) && __GNUC_MINOR__ >= (96)))
+#  define __predict_true(exp)     __builtin_expect(((exp) != 0), 1)
+#  define __predict_false(exp)    __builtin_expect(((exp) != 0), 0)
+# else
+#  define __predict_true(exp)     ((exp) != 0)
+#  define __predict_false(exp)    ((exp) != 0)
+# endif /* gcc version */
+#endif /* __predict_true */
 
 #endif /* _DEFINES_H */

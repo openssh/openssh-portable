@@ -1,3 +1,7 @@
+20140903
+ - (djm) [defines.h sshbuf.c] Move __predict_true|false to defines.h and
+   conditionalise to avoid duplicate definition.
+
 20140830
  - (djm) [openbsd-compat/openssl-compat.h] add
    OPENSSL_[RD]SA_MAX_MODULUS_BITS defines for OpenSSL that lacks them
