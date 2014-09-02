@@ -1,6 +1,8 @@
 20140903
  - (djm) [defines.h sshbuf.c] Move __predict_true|false to defines.h and
    conditionalise to avoid duplicate definition.
+ - (djm) [contrib/cygwin/ssh-host-config] Fix old code leading to
+   permissions/ACLs; from Corinna Vinschen
 
 20140830
  - (djm) [openbsd-compat/openssl-compat.h] add

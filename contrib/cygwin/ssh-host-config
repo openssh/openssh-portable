@@ -37,7 +37,6 @@ declare -a csih_required_commands=(
   /usr/bin/mkpasswd cygwin
   /usr/bin/mount cygwin
   /usr/bin/ps cygwin
-  /usr/bin/setfacl cygwin
   /usr/bin/umount cygwin
   /usr/bin/cmp diffutils
   /usr/bin/grep grep
@@ -651,32 +650,6 @@ echo
 
 warning_cnt=0
 
-# Check for ${SYSCONFDIR} directory
-csih_make_dir "${SYSCONFDIR}" "Cannot create global configuration files."
-if ! /usr/bin/chmod 775 "${SYSCONFDIR}" >/dev/null 2>&1
-then
-  csih_warning "Can't set permissions on ${SYSCONFDIR}!"
-  let ++warning_cnt
-fi
-if ! /usr/bin/setfacl -m u:system:rwx "${SYSCONFDIR}" >/dev/null 2>&1
-then
-  csih_warning "Can't set extended permissions on ${SYSCONFDIR}!"
-  let ++warning_cnt
-fi
-
-# Check for /var/log directory
-csih_make_dir "${LOCALSTATEDIR}/log" "Cannot create log directory."
-if ! /usr/bin/chmod 775 "${LOCALSTATEDIR}/log" >/dev/null 2>&1
-then
-  csih_warning "Can't set permissions on ${LOCALSTATEDIR}/log!"
-  let ++warning_cnt
-fi
-if ! /usr/bin/setfacl -m u:system:rwx "${LOCALSTATEDIR}/log" >/dev/null 2>&1
-then
-  csih_warning "Can't set extended permissions on ${LOCALSTATEDIR}/log!"
-  let ++warning_cnt
-fi
-
 # Create /var/log/lastlog if not already exists
 if [ -e ${LOCALSTATEDIR}/log/lastlog -a ! -f ${LOCALSTATEDIR}/log/lastlog ]
 then
@@ -699,11 +672,6 @@ csih_make_dir "${LOCALSTATEDIR}/empty" "Cannot create ${LOCALSTATEDIR}/empty dir
 if ! /usr/bin/chmod 755 "${LOCALSTATEDIR}/empty" >/dev/null 2>&1
 then
   csih_warning "Can't set permissions on ${LOCALSTATEDIR}/empty!"
-  let ++warning_cnt
-fi
-if ! /usr/bin/setfacl -m u:system:rwx "${LOCALSTATEDIR}/empty" >/dev/null 2>&1
-then
-  csih_warning "Can't set extended permissions on ${LOCALSTATEDIR}/empty!"
   let ++warning_cnt
 fi
 
