@@ -1,3 +1,6 @@
+20140904
+ - (djm) [openbsd-compat/arc4random.c] Zero seed after keying PRNG
+
 20140903
  - (djm) [defines.h sshbuf.c] Move __predict_true|false to defines.h and
    conditionalise to avoid duplicate definition.

@@ -87,7 +87,7 @@ _rs_stir(void)
 		_rs_init(rnd, sizeof(rnd));
 	} else
 		_rs_rekey(rnd, sizeof(rnd));
-	memset(rnd, 0, sizeof(rnd));
+	explicit_bzero(rnd, sizeof(rnd));
 
 	/* invalidate rs_buf */
 	rs_have = 0;
