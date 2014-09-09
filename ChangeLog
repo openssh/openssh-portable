@@ -1,3 +1,7 @@
+20140910
+ - (djm) [sandbox-seccomp-filter.c] Allow mremap and exit for DietLibc;
+   patch from Felix von Leitner; ok dtucker
+
 20140908
  - (dtucker) [INSTALL] Update info about egd.  ok djm@
 

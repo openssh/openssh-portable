@@ -118,6 +118,10 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_mmap
 	SC_ALLOW(mmap),
 #endif
+#ifdef __dietlibc__
+	SC_ALLOW(mremap),
+	SC_ALLOW(exit),
+#endif
 	SC_ALLOW(munmap),
 	SC_ALLOW(exit_group),
 #ifdef __NR_rt_sigprocmask
