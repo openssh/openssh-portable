@@ -31,10 +31,10 @@ http://prngd.sourceforge.net/
 
 EGD:
 
-The Entropy Gathering Daemon (EGD) is supported if you have a system which
-lacks /dev/random and don't want to use OpenSSH's internal entropy collection.
+If the kernel lacks /dev/random the Entropy Gathering Daemon (EGD) is
+supported only if libcrypto supports it.
 
-http://www.lothar.com/tech/crypto/
+http://egd.sourceforge.net/
 
 PAM:
 
@@ -259,4 +259,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.90 2014/08/25 23:27:29 djm Exp $
+$Id: INSTALL,v 1.91 2014/09/09 02:23:11 dtucker Exp $

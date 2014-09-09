@@ -1,3 +1,6 @@
+20140908
+ - (dtucker) [INSTALL] Update info about egd.  ok djm@
+
 20140904
  - (djm) [openbsd-compat/arc4random.c] Zero seed after keying PRNG
 
