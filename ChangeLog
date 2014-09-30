@@ -1,3 +1,9 @@
+20141001
+ - (djm) [openbsd-compat/Makefile.in openbsd-compat/kludge-fd_set.c]
+   [openbsd-compat/openbsd-compat.h] Kludge around bad glibc
+   _FORTIFY_SOURCE check that doesn't grok heap-allocated fd_sets;
+   ok dtucker@
+
 20140910
  - (djm) [sandbox-seccomp-filter.c] Allow mremap and exit for DietLibc;
    patch from Felix von Leitner; ok dtucker
