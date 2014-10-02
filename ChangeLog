@@ -1,3 +1,6 @@
+20141003
+ - (djm) [sshd_config.5] typo; from Iain Morgan
+
 20141001
  - (djm) [openbsd-compat/Makefile.in openbsd-compat/kludge-fd_set.c]
    [openbsd-compat/openbsd-compat.h] Kludge around bad glibc
