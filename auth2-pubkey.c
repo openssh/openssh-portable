@@ -529,10 +529,11 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 	FILE *f;
 	int ok, found_key = 0;
 	struct passwd *pw;
+	uid_t owneruid = 0;
 	struct stat st;
 	int status, devnull, p[2], i;
 	pid_t pid;
-	char *username, errmsg[512];
+	char *ownername, *username, errmsg[512];
 
 	if (options.authorized_keys_command == NULL ||
 	    options.authorized_keys_command[0] != '/')
@@ -541,6 +542,21 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 	if (options.authorized_keys_command_user == NULL) {
 		error("No user for AuthorizedKeysCommand specified, skipping");
 		return 0;
+	}
+
+	if (options.authorized_keys_command_owner != NULL) {
+		struct passwd *ownerpw;
+		ownername = percent_expand(options.authorized_keys_command_owner,
+		    "u", user_pw->pw_name, (char *)NULL);
+		ownerpw = getpwnam(ownername);
+		if (ownerpw == NULL) {
+			error("AuthorizedKeysCommandOwner \"%s\" not found: %s",
+			    ownername, strerror(errno));
+			free(ownername);
+			return 0;
+		}
+		free(ownername);
+		owneruid = ownerpw->pw_uid;
 	}
 
 	username = percent_expand(options.authorized_keys_command_user,
@@ -561,7 +577,7 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 		    options.authorized_keys_command, strerror(errno));
 		goto out;
 	}
-	if (auth_secure_path(options.authorized_keys_command, &st, NULL, 0,
+	if (auth_secure_path(options.authorized_keys_command, &st, NULL, owneruid,
 	    errmsg, sizeof(errmsg)) != 0) {
 		error("Unsafe AuthorizedKeysCommand: %s", errmsg);
 		goto out;

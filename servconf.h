@@ -178,6 +178,7 @@ typedef struct {
 	char   *trusted_user_ca_keys;
 	char   *authorized_principals_file;
 	char   *authorized_keys_command;
+	char   *authorized_keys_command_owner;
 	char   *authorized_keys_command_user;
 
 	int64_t rekey_limit;
@@ -216,6 +217,7 @@ struct connection_info {
 		M_CP_STROPT(revoked_keys_file); \
 		M_CP_STROPT(authorized_principals_file); \
 		M_CP_STROPT(authorized_keys_command); \
+		M_CP_STROPT(authorized_keys_command_owner); \
 		M_CP_STROPT(authorized_keys_command_user); \
 		M_CP_STROPT(hostbased_key_types); \
 		M_CP_STROPT(pubkey_key_types); \

@@ -56,6 +56,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #AuthorizedPrincipalsFile none
 
 #AuthorizedKeysCommand none
+#AuthorizedKeysCommandOwner root
 #AuthorizedKeysCommandUser nobody
 
 # For this to work you will also need host keys in /etc/ssh/ssh_known_hosts

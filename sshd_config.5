@@ -230,7 +230,9 @@ The default is not to require multiple authentication; successful completion
 of a single authentication method is sufficient.
 .It Cm AuthorizedKeysCommand
 Specifies a program to be used to look up the user's public keys.
-The program must be owned by root and not writable by group or others.
+The program must be owned by value of
+.Cm AuthorizedKeysCommandOwner
+and not writable by group or others.
 It will be invoked with a single argument of the username
 being authenticated, and should produce on standard output zero or
 more lines of authorized_keys output (see AUTHORIZED_KEYS in
@@ -240,6 +242,9 @@ and authorize the user then public key authentication continues using the usual
 .Cm AuthorizedKeysFile
 files.
 By default, no AuthorizedKeysCommand is run.
+.It Cm AuthorizedKeysCommandOwner
+Specifies the user who should own the file referred by
+AuthorizedKeysCommand. By default, root.
 .It Cm AuthorizedKeysCommandUser
 Specifies the user under whose account the AuthorizedKeysCommand is run.
 It is recommended to use a dedicated user that has no other role on the host
