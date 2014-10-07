@@ -16,6 +16,8 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
+#include "misc.h"
+
 #define MAX_PORTS		256	/* Max # ports. */
 
 #define MAX_ALLOW_USERS		256	/* Max # users on allow list. */
