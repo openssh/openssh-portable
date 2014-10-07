@@ -83,6 +83,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_host_key_files = 0;
 	options->num_host_cert_files = 0;
 	options->host_key_agent = NULL;
+	options->moduli_file = NULL;
 	options->pid_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
@@ -207,6 +208,8 @@ fill_default_server_options(ServerOptions *options)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
 	if (options->listen_addrs == NULL)
 		add_listen_addr(options, NULL, 0);
+	if (options->moduli_file == NULL)
+		options->moduli_file = _PATH_DH_MODULI;
 	if (options->pid_file == NULL)
 		options->pid_file = xstrdup(_PATH_SSH_DAEMON_PID_FILE);
 	if (options->server_key_bits == -1)
@@ -385,7 +388,7 @@ typedef enum {
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
+	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sModuliFile, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedKeyTypes,
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
@@ -426,6 +429,7 @@ static struct {
 	{ "hostkey", sHostKeyFile, SSHCFG_GLOBAL },
 	{ "hostdsakey", sHostKeyFile, SSHCFG_GLOBAL },		/* alias */
 	{ "hostkeyagent", sHostKeyAgent, SSHCFG_GLOBAL },
+	{ "modulifile", sModuliFile, SSHCFG_GLOBAL },
 	{ "pidfile", sPidFile, SSHCFG_GLOBAL },
 	{ "serverkeybits", sServerKeyBits, SSHCFG_GLOBAL },
 	{ "logingracetime", sLoginGraceTime, SSHCFG_GLOBAL },
@@ -1075,6 +1079,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		charptr = &options->host_cert_files[*intptr];
 		goto parse_filename;
 		break;
+
+	case sModuliFile:
+		charptr = &options->moduli_file;
+		goto parse_filename;
 
 	case sPidFile:
 		charptr = &options->pid_file;
@@ -2152,6 +2160,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 
 	/* string arguments */
+	dump_cfg_string(sModuliFile, o->moduli_file);
 	dump_cfg_string(sPidFile, o->pid_file);
 	dump_cfg_string(sXAuthLocation, o->xauth_location);
 	dump_cfg_string(sCiphers, o->ciphers ? o->ciphers : KEX_SERVER_ENCRYPT);

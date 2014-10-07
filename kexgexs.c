@@ -53,9 +53,12 @@
 #include "dispatch.h"
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "servconf.h"
 
 static int input_kex_dh_gex_request(int, u_int32_t, void *);
 static int input_kex_dh_gex_init(int, u_int32_t, void *);
+
+/*extern ServerOptions options;*/
 
 int
 kexgex_server(struct ssh *ssh)
@@ -114,7 +117,7 @@ input_kex_dh_gex_request(int type, u_int32_t seq, void *ctxt)
 	}
 
 	/* Contact privileged parent */
-	kex->dh = PRIVSEP(choose_dh(min, nbits, max));
+	kex->dh = PRIVSEP(choose_dh(min, nbits, max, NULL/*options.moduli_file*/));
 	if (kex->dh == NULL) {
 		sshpkt_disconnect(ssh, "no matching DH grp found");
 		r = SSH_ERR_ALLOC_FAIL;

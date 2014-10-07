@@ -143,7 +143,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 }
 
 DH *
-choose_dh(int min, int wantbits, int max)
+choose_dh(int min, int wantbits, int max, const char *moduli_file)
 {
 	FILE *f;
 	char line[4096];
@@ -151,10 +151,13 @@ choose_dh(int min, int wantbits, int max)
 	int linenum;
 	struct dhgroup dhg;
 
-	if ((f = fopen(_PATH_DH_MODULI, "r")) == NULL &&
+	if (moduli_file == NULL)
+		moduli_file = _PATH_DH_MODULI;
+
+	if ((f = fopen(moduli_file, "r")) == NULL &&
 	    (f = fopen(_PATH_DH_PRIMES, "r")) == NULL) {
 		logit("WARNING: %s does not exist, using fixed modulus",
-		    _PATH_DH_MODULI);
+		    moduli_file);
 		return (dh_new_group14());
 	}
 

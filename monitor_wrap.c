@@ -184,7 +184,7 @@ mm_request_receive_expect(int sock, enum monitor_reqtype type, Buffer *m)
 
 #ifdef WITH_OPENSSL
 DH *
-mm_choose_dh(int min, int nbits, int max)
+mm_choose_dh(int min, int nbits, int max, const char *moduli_file)
 {
 	BIGNUM *p, *g;
 	int success = 0;
@@ -194,6 +194,7 @@ mm_choose_dh(int min, int nbits, int max)
 	buffer_put_int(&m, min);
 	buffer_put_int(&m, nbits);
 	buffer_put_int(&m, max);
+	buffer_put_string(&m, moduli_file, strlen(moduli_file)+1);
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_MODULI, &m);
 
