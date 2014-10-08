@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.192 2014/08/30 15:33:50 sobrado Exp $
-.Dd $Mdocdate: August 30 2014 $
+.\" $OpenBSD: ssh_config.5,v 1.193 2014/10/08 22:20:25 djm Exp $
+.Dd $Mdocdate: October 8 2014 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -65,7 +65,10 @@ The configuration files contain sections separated by
 .Dq Host
 specifications, and that section is only applied for hosts that
 match one of the patterns given in the specification.
-The matched host name is the one given on the command line.
+The matched host name is usually the one given on the command line
+(see the
+.Cm CanonicalizeHostname
+option for exceptions.)
 .Pp
 Since the first obtained value for each parameter is used, more
 host-specific declarations should be given near the beginning of the
@@ -109,10 +112,12 @@ A single
 .Ql *
 as a pattern can be used to provide global
 defaults for all hosts.
-The host is the
+The host is usually the
 .Ar hostname
-argument given on the command line (i.e. the name is not converted to
-a canonicalized host name before matching).
+argument given on the command line
+(see the
+.Cm CanonicalizeHostname
+option for exceptions.)
 .Pp
 A pattern entry may be negated by prefixing it with an exclamation mark
 .Pq Sq !\& .
@@ -134,18 +139,39 @@ or
 keyword) to be used only when the conditions following the
 .Cm Match
 keyword are satisfied.
-Match conditions are specified using one or more keyword/criteria pairs
+Match conditions are specified using one or more critera
 or the single token
 .Cm all
-which matches all criteria.
-The available keywords are:
+which always matches.
+The available criteria keywords are:
+.Cm canonical ,
 .Cm exec ,
 .Cm host ,
 .Cm originalhost ,
 .Cm user ,
 and
 .Cm localuser .
+The
+.Cm all
+criteria must appear alone or immediately after
+.Cm canonical.
+Other criteria may be combined arbitrarily.
+All criteria but
+.Cm all
+and
+.Cm canonical
+require an argument.
+Criteria may be negated by prepending an exclamation mark
+.Pq Sq !\& .
 .Pp
+The
+.Cm canonical
+keywork matches only when the configuration file is being re-parsed
+after hostname canonicalization (see the
+.Cm CanonicalizeHostname
+option.)
+This may be useful to specify conditions that work with canonical host
+names only.
 The
 .Cm exec
 keyword executes the specified command under the user's shell.
@@ -179,7 +205,9 @@ The criteria for the
 keyword are matched against the target hostname, after any substitution
 by the
 .Cm Hostname
-option.
+or
+.Cm CanonicalizeHostname
+options.
 The
 .Cm originalhost
 keyword matches against the hostname as it was specified on the command-line.
@@ -264,10 +292,11 @@ is set to
 .Dq always ,
 then canonicalization is applied to proxied connections too.
 .Pp
-If this option is enabled and canonicalisation results in the target hostname
-changing, then the configuration files are processed again using the new
-target name to pick up any new configuration in matching
+If this option is enabled, then the configuration files are processed
+again using the new target name to pick up any new configuration in matching
 .Cm Host
+and
+.Cm Match
 stanzas.
 .It Cm CanonicalizeMaxDots
 Specifies the maximum number of dot characters in a hostname before

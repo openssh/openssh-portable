@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.407 2014/07/17 07:22:19 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.408 2014/10/08 22:20:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -384,27 +384,49 @@ resolve_canonicalize(char **hostp, int port)
  * file if the user specifies a config file on the command line.
  */
 static void
-process_config_files(struct passwd *pw)
+process_config_files(const char *host_arg, struct passwd *pw, int post_canon)
 {
 	char buf[MAXPATHLEN];
 	int r;
 
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
-		    !read_config_file(config, pw, host, &options,
-		    SSHCONF_USERCONF))
+		    !read_config_file(config, pw, host, host_arg, &options,
+		    SSHCONF_USERCONF | (post_canon ? SSHCONF_POSTCANON : 0)))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
 		r = snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir,
 		    _PATH_SSH_USER_CONFFILE);
 		if (r > 0 && (size_t)r < sizeof(buf))
-			(void)read_config_file(buf, pw, host, &options,
-			     SSHCONF_CHECKPERM|SSHCONF_USERCONF);
+			(void)read_config_file(buf, pw, host, host_arg,
+			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
+			    (post_canon ? SSHCONF_POSTCANON : 0));
 
 		/* Read systemwide configuration file after user config. */
-		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, host,
-		    &options, 0);
+		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
+		    host, host_arg, &options,
+		    post_canon ? SSHCONF_POSTCANON : 0);
+	}
+}
+
+/* Rewrite the port number in an addrinfo list of addresses */
+static void
+set_addrinfo_port(struct addrinfo *addrs, int port)
+{
+	struct addrinfo *addr;
+
+	for (addr = addrs; addr != NULL; addr = addr->ai_next) {
+		switch (addr->ai_family) {
+		case AF_INET:
+			((struct sockaddr_in *)addr->ai_addr)->
+			    sin_port = htons(port);
+			break;
+		case AF_INET6:
+			((struct sockaddr_in6 *)addr->ai_addr)->
+			    sin6_port = htons(port);
+			break;
+		}
 	}
 }
 
@@ -414,7 +436,7 @@ process_config_files(struct passwd *pw)
 int
 main(int ac, char **av)
 {
-	int i, r, opt, exit_status, use_syslog;
+	int i, r, opt, exit_status, use_syslog, config_test = 0;
 	char *p, *cp, *line, *argv0, buf[MAXPATHLEN], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 	char cname[NI_MAXHOST];
@@ -507,7 +529,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:E:F:I:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
+	    "ACD:E:F:GI:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -539,6 +561,9 @@ main(int ac, char **av)
 			break;
 		case 'E':
 			logfile = xstrdup(optarg);
+			break;
+		case 'G':
+			config_test = 1;
 			break;
 		case 'Y':
 			options.forward_x11 = 1;
@@ -788,9 +813,9 @@ main(int ac, char **av)
 			break;
 		case 'o':
 			line = xstrdup(optarg);
-			if (process_config_line(&options, pw, host ? host : "",
-			    line, "command-line", 0, NULL, SSHCONF_USERCONF)
-			    != 0)
+			if (process_config_line(&options, pw,
+			    host ? host : "", host ? host : "", line,
+			    "command-line", 0, NULL, SSHCONF_USERCONF) != 0)
 				exit(255);
 			free(line);
 			break;
@@ -899,7 +924,7 @@ main(int ac, char **av)
 		);
 
 	/* Parse the configuration files */
-	process_config_files(pw);
+	process_config_files(host_arg, pw, 0);
 
 	/* Hostname canonicalisation needs a few options filled. */
 	fill_default_options_for_canonicalization(&options);
@@ -911,6 +936,8 @@ main(int ac, char **av)
 		    "h", host, (char *)NULL);
 		free(host);
 		host = cp;
+		free(options.hostname);
+		options.hostname = xstrdup(host);
 	}
 
 	/* If canonicalization requested then try to apply it */
@@ -945,12 +972,22 @@ main(int ac, char **av)
 	}
 
 	/*
-	 * If the target hostname has changed as a result of canonicalisation
-	 * then re-parse the configuration files as new stanzas may match.
+	 * If canonicalisation is enabled then re-parse the configuration
+	 * files as new stanzas may match.
 	 */
-	if (strcasecmp(host_arg, host) != 0) {
-		debug("Hostname has changed; re-reading configuration");
-		process_config_files(pw);
+	if (options.canonicalize_hostname != 0) {
+		debug("Re-reading configuration after hostname "
+		    "canonicalisation");
+		free(options.hostname);
+		options.hostname = xstrdup(host);
+		process_config_files(host_arg, pw, 1);
+		/*
+		 * Address resolution happens early with canonicalisation
+		 * enabled and the port number may have changed since, so
+		 * reset it in address list
+		 */
+		if (addrs != NULL && options.port > 0)
+			set_addrinfo_port(addrs, options.port);
 	}
 
 	/* Fill configuration defaults. */
@@ -1051,6 +1088,11 @@ main(int ac, char **av)
 		free(cp);
 	}
 	free(conn_hash_hex);
+
+	if (config_test) {
+		dump_client_config(&options, host);
+		exit(0);
+	}
 
 	if (muxclient_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.42 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.43 2014/10/08 22:20:25 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -187,7 +187,7 @@ main(int argc, char **argv)
 
 	/* verify that ssh-keysign is enabled by the admin */
 	initialize_options(&options);
-	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", &options, 0);
+	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", "", &options, 0);
 	fill_default_options(&options);
 	if (options.enable_ssh_keysign != 1)
 		fatal("ssh-keysign not enabled in %s",

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.102 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: readconf.h,v 1.103 2014/10/08 22:20:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -164,17 +164,19 @@ typedef struct {
 
 #define SSHCONF_CHECKPERM	1  /* check permissions on config file */
 #define SSHCONF_USERCONF	2  /* user provided config file not system */
+#define SSHCONF_POSTCANON	4  /* After hostname canonicalisation */
 
 void     initialize_options(Options *);
 void     fill_default_options(Options *);
 void	 fill_default_options_for_canonicalization(Options *);
-int	 process_config_line(Options *, struct passwd *, const char *, char *,
-    const char *, int, int *, int);
+int	 process_config_line(Options *, struct passwd *, const char *,
+    const char *, char *, const char *, int, int *, int);
 int	 read_config_file(const char *, struct passwd *, const char *,
-    Options *, int);
+    const char *, Options *, int);
 int	 parse_forward(struct Forward *, const char *, int, int);
 int	 default_ssh_port(void);
 int	 option_clear_or_none(const char *);
+void	 dump_client_config(Options *o, const char *host);
 
 void	 add_local_forward(Options *, const struct Forward *);
 void	 add_remote_forward(Options *, const struct Forward *);
