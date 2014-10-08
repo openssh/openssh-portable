@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.85 2014/04/20 02:49:32 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.86 2014/10/08 22:15:27 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -234,7 +234,7 @@ filter_proposal(char *proposal, const char *filter)
 			debug2("Compat: skipping algorithm \"%s\"", cp);
 	}
 	buffer_append(&b, "\0", 1);
-	fix_prop = xstrdup(buffer_ptr(&b));
+	fix_prop = xstrdup((char *)buffer_ptr(&b));
 	buffer_free(&b);
 	free(orig_prop);
 
