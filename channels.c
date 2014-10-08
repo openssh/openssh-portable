@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.336 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: channels.c,v 1.337 2014/10/08 22:15:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -669,7 +669,7 @@ channel_open_message(void)
 		}
 	}
 	buffer_append(&buffer, "\0", 1);
-	cp = xstrdup(buffer_ptr(&buffer));
+	cp = xstrdup((char *)buffer_ptr(&buffer));
 	buffer_free(&buffer);
 	return cp;
 }
@@ -1055,7 +1055,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	len = sizeof(s4_req);
 	if (have < len)
 		return 0;
-	p = buffer_ptr(&c->input);
+	p = (char *)buffer_ptr(&c->input);
 
 	need = 1;
 	/* SOCKS4A uses an invalid IP address 0.0.0.x */
@@ -1085,7 +1085,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	buffer_get(&c->input, (char *)&s4_req.dest_port, 2);
 	buffer_get(&c->input, (char *)&s4_req.dest_addr, 4);
 	have = buffer_len(&c->input);
-	p = buffer_ptr(&c->input);
+	p = (char *)buffer_ptr(&c->input);
 	if (memchr(p, '\0', have) == NULL)
 		fatal("channel %d: decode socks4: user not nul terminated",
 		    c->self);
@@ -1105,7 +1105,7 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 		c->path = xstrdup(host);
 	} else {				/* SOCKS4A: two strings */
 		have = buffer_len(&c->input);
-		p = buffer_ptr(&c->input);
+		p = (char *)buffer_ptr(&c->input);
 		len = strlen(p);
 		debug2("channel %d: decode socks4a: host %s/%d",
 		    c->self, p, len);
