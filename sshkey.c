@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.3 2014/07/03 01:45:38 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.4 2014/10/08 21:45:48 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -181,12 +181,12 @@ sshkey_ecdsa_nid_from_name(const char *name)
 {
 	const struct keytype *kt;
 
-        for (kt = keytypes; kt->type != -1; kt++) {
-                if (kt->type != KEY_ECDSA && kt->type != KEY_ECDSA_CERT)
-                        continue;
-                if (kt->name != NULL && strcmp(name, kt->name) == 0)
-                        return kt->nid;
-        }
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->type != KEY_ECDSA && kt->type != KEY_ECDSA_CERT)
+			continue;
+		if (kt->name != NULL && strcmp(name, kt->name) == 0)
+			return kt->nid;
+	}
 	return -1;
 }
 
@@ -1769,32 +1769,24 @@ static int
 cert_parse(struct sshbuf *b, struct sshkey *key, const u_char *blob,
     size_t blen)
 {
-	u_char *principals = NULL, *critical = NULL, *exts = NULL;
+	struct sshbuf *principals = NULL, *crit = NULL, *exts = NULL;
 	u_char *sig_key = NULL, *sig = NULL;
-	size_t signed_len, plen, clen, sklen, slen, kidlen, elen;
-	struct sshbuf *tmp;
-	char *principal;
+	size_t signed_len = 0, sklen = 0, slen = 0, kidlen = 0;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	int v00 = sshkey_cert_is_legacy(key);
-	char **oprincipals;
-
-	if ((tmp = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
 
 	/* Copy the entire key blob for verification and later serialisation */
 	if ((ret = sshbuf_put(key->cert->certblob, blob, blen)) != 0)
 		return ret;
 
-	elen = 0; /* Not touched for v00 certs */
-	principals = exts = critical = sig_key = sig = NULL;
 	if ((!v00 && (ret = sshbuf_get_u64(b, &key->cert->serial)) != 0) ||
 	    (ret = sshbuf_get_u32(b, &key->cert->type)) != 0 ||
 	    (ret = sshbuf_get_cstring(b, &key->cert->key_id, &kidlen)) != 0 ||
-	    (ret = sshbuf_get_string(b, &principals, &plen)) != 0 ||
+	    (ret = sshbuf_froms(b, &principals)) != 0 ||
 	    (ret = sshbuf_get_u64(b, &key->cert->valid_after)) != 0 ||
 	    (ret = sshbuf_get_u64(b, &key->cert->valid_before)) != 0 ||
-	    (ret = sshbuf_get_string(b, &critical, &clen)) != 0 ||
-	    (!v00 && (ret = sshbuf_get_string(b, &exts, &elen)) != 0) ||
+	    (ret = sshbuf_froms(b, &crit)) != 0 ||
+	    (!v00 && (ret = sshbuf_froms(b, &exts)) != 0) ||
 	    (v00 && (ret = sshbuf_get_string_direct(b, NULL, NULL)) != 0) ||
 	    (ret = sshbuf_get_string_direct(b, NULL, NULL)) != 0 ||
 	    (ret = sshbuf_get_string(b, &sig_key, &sklen)) != 0) {
@@ -1817,14 +1809,17 @@ cert_parse(struct sshbuf *b, struct sshkey *key, const u_char *blob,
 		goto out;
 	}
 
-	if ((ret = sshbuf_put(tmp, principals, plen)) != 0)
-		goto out;
-	while (sshbuf_len(tmp) > 0) {
+	/* Parse principals section */
+	while (sshbuf_len(principals) > 0) {
+		char *principal = NULL;
+		char **oprincipals = NULL;
+
 		if (key->cert->nprincipals >= SSHKEY_CERT_MAX_PRINCIPALS) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
-		if ((ret = sshbuf_get_cstring(tmp, &principal, &plen)) != 0) {
+		if ((ret = sshbuf_get_cstring(principals, &principal,
+		    NULL)) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
@@ -1841,36 +1836,37 @@ cert_parse(struct sshbuf *b, struct sshkey *key, const u_char *blob,
 		key->cert->principals[key->cert->nprincipals++] = principal;
 	}
 
-	sshbuf_reset(tmp);
-
-	if ((ret = sshbuf_put(key->cert->critical, critical, clen)) != 0 ||
-	    (ret = sshbuf_put(tmp, critical, clen)) != 0)
+	/*
+	 * Stash a copies of the critical options and extensions sections
+	 * for later use.
+	 */
+	if ((ret = sshbuf_putb(key->cert->critical, crit)) != 0 ||
+	    (exts != NULL &&
+	    (ret = sshbuf_putb(key->cert->extensions, exts)) != 0))
 		goto out;
 
-	/* validate structure */
-	while (sshbuf_len(tmp) != 0) {
-		if ((ret = sshbuf_get_string_direct(tmp, NULL, NULL)) != 0 ||
-		    (ret = sshbuf_get_string_direct(tmp, NULL, NULL)) != 0) {
+	/*
+	 * Validate critical options and extensions sections format.
+	 * NB. extensions are not present in v00 certs.
+	 */
+	while (sshbuf_len(crit) != 0) {
+		if ((ret = sshbuf_get_string_direct(crit, NULL, NULL)) != 0 ||
+		    (ret = sshbuf_get_string_direct(crit, NULL, NULL)) != 0) {
+			sshbuf_reset(key->cert->critical);
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
 	}
-	sshbuf_reset(tmp);
-
-	if ((ret = sshbuf_put(key->cert->extensions, exts, elen)) != 0 ||
-	    (ret = sshbuf_put(tmp, exts, elen)) != 0)
-		goto out;
-
-	/* validate structure */
-	while (sshbuf_len(tmp) != 0) {
-		if ((ret = sshbuf_get_string_direct(tmp, NULL, NULL)) != 0 ||
-		    (ret = sshbuf_get_string_direct(tmp, NULL, NULL)) != 0) {
+	while (exts != NULL && sshbuf_len(exts) != 0) {
+		if ((ret = sshbuf_get_string_direct(exts, NULL, NULL)) != 0 ||
+		    (ret = sshbuf_get_string_direct(exts, NULL, NULL)) != 0) {
+			sshbuf_reset(key->cert->extensions);
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
 	}
-	sshbuf_reset(tmp);
 
+	/* Parse CA key and check signature */
 	if (sshkey_from_blob_internal(sig_key, sklen,
 	    &key->cert->signature_key, 0) != 0) {
 		ret = SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
@@ -1880,17 +1876,16 @@ cert_parse(struct sshbuf *b, struct sshkey *key, const u_char *blob,
 		ret = SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
 		goto out;
 	}
-
 	if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
 	    sshbuf_ptr(key->cert->certblob), signed_len, 0)) != 0)
 		goto out;
-	ret = 0;
 
+	/* Success */
+	ret = 0;
  out:
-	sshbuf_free(tmp);
-	free(principals);
-	free(critical);
-	free(exts);
+	sshbuf_free(crit);
+	sshbuf_free(exts);
+	sshbuf_free(principals);
 	free(sig_key);
 	free(sig);
 	return ret;
@@ -2952,8 +2947,9 @@ sshkey_private_to_blob2(const struct sshkey *prv, struct sshbuf *blob,
     const char *passphrase, const char *comment, const char *ciphername,
     int rounds)
 {
-	u_char *cp, *b64 = NULL, *key = NULL, *pubkeyblob = NULL;
+	u_char *cp, *key = NULL, *pubkeyblob = NULL;
 	u_char salt[SALT_LEN];
+	char *b64 = NULL;
 	size_t i, pubkeylen, keylen, ivlen, blocksize, authlen;
 	u_int check;
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -3165,7 +3161,7 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	}
 
 	/* decode base64 */
-	if ((r = sshbuf_b64tod(decoded, sshbuf_ptr(encoded))) != 0)
+	if ((r = sshbuf_b64tod(decoded, (char *)sshbuf_ptr(encoded))) != 0)
 		goto out;
 
 	/* check magic */
