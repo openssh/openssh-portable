@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.408 2014/10/08 22:20:25 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.409 2014/10/09 06:21:31 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,7 +199,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-1246AaCfgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
+"usage: ssh [-1246AaCfGgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
 "           [-D [bind_address:]port] [-E log_file] [-e escape_char]\n"
 "           [-F configfile] [-I pkcs11] [-i identity_file]\n"
 "           [-L [bind_address:]port:host:hostport] [-l login_name] [-m mac_spec]\n"
