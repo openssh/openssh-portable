@@ -1271,6 +1271,12 @@ sessions may hang indefinitely on the server, leaving
 .Dq ghost
 users and consuming server resources.
 .Pp
+Alternatively (or additionally) client alive messages can be used by
+setting
+.Cm ClientAliveInterval
+and
+.Cm ClientAliveCountMax .
+.Pp
 The default is
 .Dq yes
 (to send TCP keepalive messages), and the server will notice
