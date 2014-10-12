@@ -89,7 +89,6 @@ static const struct kexalg kexalgs[] = {
 	    SSH_DIGEST_SHA512 },
 # endif /* OPENSSL_HAS_NISTP521 */
 #endif /* OPENSSL_HAS_ECC */
-	{ KEX_DH1, KEX_DH_GRP1_SHA1, 0, SSH_DIGEST_SHA1 },
 #endif /* WITH_OPENSSL */
 #ifdef HAVE_EVP_SHA256
 	{ KEX_CURVE25519_SHA256, KEX_C25519_SHA256, 0, SSH_DIGEST_SHA256 },
