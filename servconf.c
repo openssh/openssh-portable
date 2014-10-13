@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.252 2014/08/19 23:58:28 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.253 2014/10/13 00:38:35 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2085,7 +2085,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sAuthorizedKeysCommandUser, o->authorized_keys_command_user);
 	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
 	dump_cfg_string(sKexAlgorithms,
-  	    o->kex_algorithms ? o->kex_algorithms : KEX_SERVER_KEX);
+	    o->kex_algorithms ? o->kex_algorithms : KEX_SERVER_KEX);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
