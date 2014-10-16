@@ -673,14 +673,14 @@ if the
 .Cm ForwardX11Trusted
 option is also enabled.
 .It Cm ForwardX11Timeout
-Specify a timeout for untrusted X11 forwarding
+Specifies a timeout for untrusted X11 forwarding
 using the format described in the
 TIME FORMATS section of
 .Xr sshd_config 5 .
 X11 connections received by
 .Xr ssh 1
 after this time will be refused.
-The default is to disable untrusted X11 forwarding after twenty minutes has
+The default is to disable untrusted X11 forwarding after twenty minutes have
 elapsed.
 .It Cm ForwardX11Trusted
 If this option is set to
@@ -694,8 +694,10 @@ from stealing or tampering with data belonging to trusted X11
 clients.
 Furthermore, the
 .Xr xauth 1
-token used for the session will be set to expire after 20 minutes.
-Remote clients will be refused access after this time.
+token used for the session will be set to expire after
+20 minutes (unless something else has been set via
+.Cm ForwardX11Timeout )
+and remote clients will be refused access after this time.
 .Pp
 The default is
 .Dq no .
