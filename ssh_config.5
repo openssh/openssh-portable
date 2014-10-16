@@ -487,10 +487,10 @@ to listen for control connections, but require confirmation using the
 program before they are accepted (see
 .Xr ssh-add 1
 for details).
-If the
-.Cm ControlPath
-cannot be opened,
-ssh will continue without connecting to a master instance.
+If another 
+.Xr ssh 1
+is rejected to use the master instance, it will continue normally without
+using it.
 .Pp
 X11 and
 .Xr ssh-agent 1
@@ -508,25 +508,32 @@ and
 The latter requires confirmation like the
 .Dq ask
 option.
+.Pp
+Unless
+.Cm ControlPersist
+is set to have the master connection backrounded, it will remain open (and thus
+the master
+.Xr ssh 1
+process will not terminate even after its session has ended) until all other
+instances using it have been closed.
 .It Cm ControlPath
-Specify the path to the control socket used for connection sharing as described
+Specifies the path to the control socket used for connection sharing as described
 in the
 .Cm ControlMaster
 section above or the string
 .Dq none
-to disable connection sharing.
+(the default) to disable connection sharing.
 In the path,
 .Ql %L
 will be substituted by the first component of the local host name,
 .Ql %l
-will be substituted by the local host name (including any domain name),
+by the local host name (including any domain name),
 .Ql %h
-will be substituted by the target host name,
+by the target host name,
 .Ql %n
-will be substituted by the original target host name
-specified on the command line,
+by the original target host name specified on the command line,
 .Ql %p
-the destination port,
+by the destination port,
 .Ql %r
 by the remote login username,
 .Ql %u
@@ -536,19 +543,28 @@ by the username of the user running
 by a hash of the concatenation: %l%h%p%r.
 It is recommended that any
 .Cm ControlPath
-used for opportunistic connection sharing include
+used for opportunistic connection sharing includes
 at least %h, %p, and %r (or alternatively %C).
 This ensures that shared connections are uniquely identified.
 .It Cm ControlPersist
 When used in conjunction with
 .Cm ControlMaster ,
-specifies that the master connection should remain open
+specifies whether and how the master connection should remain open
 in the background (waiting for future client connections)
 after the initial client connection has been closed.
+.Pp
 If set to
-.Dq no ,
-then the master connection will not be placed into the background,
-and will close as soon as the initial client connection is closed.
+.Dq no 
+(the default), then the master connection will not be placed into the
+background and will close as soon as it is no longer used by any client
+connection (both, the initial or later ones). Thus the master
+.Xr ssh 1
+process will not terminate (even after its session has ended) until all other
+instances using it have been closed. Even after the master
+.Xr ssh 1
+process’ session has ended, new clients can still connect to the master
+connection as long as it is open.
+.Pp
 If set to
 .Dq yes ,
 then the master connection will remain in the background indefinitely
@@ -556,6 +572,7 @@ then the master connection will remain in the background indefinitely
 .Xr ssh 1
 .Dq Fl O No exit
 option).
+.Pp
 If set to a time in seconds, or a time in any of the formats documented in
 .Xr sshd_config 5 ,
 then the backgrounded master connection will automatically terminate
