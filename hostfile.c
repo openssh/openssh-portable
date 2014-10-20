@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.57 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.58 2014/10/20 03:43:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -329,7 +329,7 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 	debug3("%s: loaded %lu keys", __func__, num_loaded);
 	fclose(f);
 	return;
-}	
+}
 
 void
 free_hostkeys(struct hostkeys *hostkeys)
@@ -439,7 +439,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 	}
 	return end_return;
 }
-	
+
 HostStatus
 check_key_in_hostkeys(struct hostkeys *hostkeys, Key *key,
     const struct hostkey_entry **found)
