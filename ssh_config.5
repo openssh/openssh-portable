@@ -1041,15 +1041,19 @@ hmac-md5,hmac-sha1,hmac-ripemd160,
 hmac-sha1-96,hmac-md5-96
 .Ed
 .It Cm NoHostAuthenticationForLocalhost
-This option can be used if the home directory is shared across machines.
-In this case localhost will refer to a different machine on each of
-the machines and the user will get many warnings about changed host keys.
-However, this option disables host authentication for localhost.
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-The default is to check the host key for localhost.
+If set to
+.Dq yes ,
+then no host authentication will be performed for any target
+.Ar hostname
+(for example localhost or ip6-localhost) that resolves to a
+loopback network interface (that is addresses 127.0.0.0/8 for IPv4
+respectively ::1/128 for IPv6). The default of
+.Dq no
+is to always check the host key of all SSH servers.
+.Pp
+This option can for example be used when the home directory is shared across
+machines. In this case the name localhost will refer to a different machine
+on each of the machines and the user will get many warnings about changed host keys.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
