@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519.c,v 1.4 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: ssh-ed25519.c,v 1.5 2014/10/14 03:09:59 daniel Exp $ */
 /*
  * Copyright (c) 2013 Markus Friedl <markus@openbsd.org>
  *
@@ -128,8 +128,10 @@ ssh_ed25519_verify(const struct sshkey *key,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if (datalen >= SIZE_MAX - len)
-		return SSH_ERR_INVALID_ARGUMENT;
+	if (datalen >= SIZE_MAX - len) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	smlen = len + datalen;
 	mlen = smlen;
 	if ((sm = malloc(smlen)) == NULL || (m = xmalloc(mlen)) == NULL) {
