@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.253 2014/10/13 00:38:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.254 2014/10/24 02:01:20 lteo Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
