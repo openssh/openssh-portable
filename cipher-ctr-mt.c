@@ -59,8 +59,16 @@
 /* Collect thread stats and print at cancellation when in debug mode */
 /* #define CIPHER_THREAD_STATS */
 
-/* Use single-byte XOR instead of 8-byte XOR */
-/* #define CIPHER_BYTE_XOR */
+/* Can the system do unaligned loads natively? */
+#if defined(__aarch64__) || \
+    defined(__i386__)    || \
+    defined(__powerpc__) || \
+    defined(__x86_64__)
+# define CIPHER_UNALIGNED_OK
+#endif
+#if defined(__SIZEOF_INT128__)
+# define CIPHER_INT128_OK
+#endif
 /*-------------------- END TUNABLES --------------------*/
 
 
@@ -287,6 +295,18 @@ static int
 ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
     LIBCRYPTO_EVP_INL_TYPE len)
 {
+	typedef union {
+#ifdef CIPHER_INT128_OK
+		__uint128_t *u128;
+#endif
+		uint64_t *u64;
+		uint32_t *u32;
+		uint8_t *u8;
+		const uint8_t *cu8;
+		uintptr_t u;
+	} ptrs_t;
+	ptrs_t destp, srcp, bufp;
+	uintptr_t align;
 	struct ssh_aes_ctr_ctx *c;
 	struct kq *q, *oldq;
 	int ridx;
@@ -301,35 +321,41 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	ridx = c->ridx;
 
 	/* src already padded to block multiple */
+	srcp.cu8 = src;
+	destp.u8 = dest;
 	while (len > 0) {
 		buf = q->keys[ridx];
+		bufp.u8 = buf;
 
-#ifdef CIPHER_BYTE_XOR
-		dest[0] = src[0] ^ buf[0];
-		dest[1] = src[1] ^ buf[1];
-		dest[2] = src[2] ^ buf[2];
-		dest[3] = src[3] ^ buf[3];
-		dest[4] = src[4] ^ buf[4];
-		dest[5] = src[5] ^ buf[5];
-		dest[6] = src[6] ^ buf[6];
-		dest[7] = src[7] ^ buf[7];
-		dest[8] = src[8] ^ buf[8];
-		dest[9] = src[9] ^ buf[9];
-		dest[10] = src[10] ^ buf[10];
-		dest[11] = src[11] ^ buf[11];
-		dest[12] = src[12] ^ buf[12];
-		dest[13] = src[13] ^ buf[13];
-		dest[14] = src[14] ^ buf[14];
-		dest[15] = src[15] ^ buf[15];
+		/* figure out the alignment on the fly */
+#ifdef CIPHER_UNALIGNED_OK
+		align = 0;
 #else
-		*(uint64_t *)dest = *(uint64_t *)src ^ *(uint64_t *)buf;
-		*(uint64_t *)(dest + 8) = *(uint64_t *)(src + 8) ^
-						*(uint64_t *)(buf + 8);
+		align = destp.u | srcp.u | bufp.u;
 #endif
 
-		dest += 16;
-		src += 16;
-		len -= 16;
+#ifdef CIPHER_INT128_OK
+		if ((align & 0xf) == 0) {
+			destp.u128[0] = srcp.u128[0] ^ bufp.u128[0];
+		} else
+#endif
+		if ((align & 0x7) == 0) {
+			destp.u64[0] = srcp.u64[0] ^ bufp.u64[0];
+			destp.u64[1] = srcp.u64[1] ^ bufp.u64[1];
+		} else if ((align & 0x3) == 0) {
+			destp.u32[0] = srcp.u32[0] ^ bufp.u32[0];
+			destp.u32[1] = srcp.u32[1] ^ bufp.u32[1];
+			destp.u32[2] = srcp.u32[2] ^ bufp.u32[2];
+			destp.u32[3] = srcp.u32[3] ^ bufp.u32[3];
+		} else {
+			size_t i;
+			for (i = 0; i < AES_BLOCK_SIZE; ++i)
+				dest[i] = src[i] ^ buf[i];
+		}
+
+		destp.u += AES_BLOCK_SIZE;
+		srcp.u += AES_BLOCK_SIZE;
+		len -= AES_BLOCK_SIZE;
 		ssh_ctr_inc(ctx->iv, AES_BLOCK_SIZE);
 
 		/* Increment read index, switch queues on rollover */
