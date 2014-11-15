@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.277 2014/08/30 15:33:50 sobrado Exp $
-.Dd $Mdocdate: August 30 2014 $
+.\" $OpenBSD: sshd.8,v 1.278 2014/11/15 14:41:03 bentley Exp $
+.Dd $Mdocdate: November 15 2014 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -604,10 +604,10 @@ Disables execution of
 Forbids X11 forwarding when this key is used for authentication.
 Any X11 forward requests by the client will return an error.
 .It Cm permitopen="host:port"
-Limit local
-.Li ``ssh -L''
-port forwarding such that it may only connect to the specified host and
-port.
+Limit local port forwarding with
+.Xr ssh 1
+.Fl L
+such that it may only connect to the specified host and port.
 IPv6 addresses can be specified by enclosing the address in square brackets.
 Multiple
 .Cm permitopen
