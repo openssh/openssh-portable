@@ -158,6 +158,8 @@ void	 ssh_packet_restore_state(struct ssh *, struct ssh *);
 
 void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
+void	*ssh_packet_get_receive_context(struct ssh *);
+void	*ssh_packet_get_send_context(struct ssh *);
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);

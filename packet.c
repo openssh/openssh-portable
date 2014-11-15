@@ -269,7 +269,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -2282,6 +2282,19 @@ ssh_packet_get_output(struct ssh *ssh)
 }
 
 /* XXX TODO update roaming to new API (does not work anyway) */
+
+void *
+ssh_packet_get_receive_context(struct ssh *ssh)
+{
+	return (void *)&ssh->state->receive_context;
+}
+
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+	return (void *)&ssh->state->send_context;
+}
+
 /*
  * Save the state for the real connection, and use a separate state when
  * resuming a suspended connection.
