@@ -134,8 +134,10 @@ struct Channel {
 	u_int	local_window_max;
 	u_int	local_consumed;
 	u_int	local_maxpacket;
+	int	dynamic_window;
 	int     extended_usage;
 	int	single_connection;
+	u_int	tcpwinsz;
 
 	char   *ctype;		/* type */
 
@@ -310,5 +312,8 @@ void	 chan_ibuf_empty(Channel *);
 void	 chan_rcvd_ieof(Channel *);
 void	 chan_write_failed(Channel *);
 void	 chan_obuf_empty(Channel *);
+
+/* hpn handler */
+void     channel_set_hpn(int, int);
 
 #endif

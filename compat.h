@@ -60,6 +60,7 @@
 #define SSH_NEW_OPENSSH		0x04000000
 #define SSH_BUG_DYNAMIC_RPORT	0x08000000
 #define SSH_BUG_CURVE25519PAD	0x10000000
+#define SSH_BUG_LARGEWINDOW	0x20000000
 
 void     enable_compat13(void);
 void     enable_compat20(void);
