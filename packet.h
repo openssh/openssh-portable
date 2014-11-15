@@ -168,6 +168,7 @@ time_t	 ssh_packet_get_rekey_timeout(struct ssh *);
 
 void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
+void	*ssh_packet_get_send_context(struct ssh *);
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);

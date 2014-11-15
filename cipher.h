@@ -65,8 +65,11 @@
 struct sshcipher;
 struct sshcipher_ctx;
 
+void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); // defined in cipher-ctr-mt.c
+void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx);
+
 u_int	 cipher_mask_ssh1(int);
-const struct sshcipher *cipher_by_name(const char *);
+struct sshcipher *cipher_by_name(const char *);
 const struct sshcipher *cipher_by_number(int);
 int	 cipher_number(const char *);
 char	*cipher_name(int);
@@ -88,7 +91,9 @@ u_int	 cipher_seclen(const struct sshcipher *);
 u_int	 cipher_authlen(const struct sshcipher *);
 u_int	 cipher_ivlen(const struct sshcipher *);
 u_int	 cipher_is_cbc(const struct sshcipher *);
+void	 cipher_reset_multithreaded(void);
 
+const char *cipher_ctx_name(const struct sshcipher_ctx *);
 u_int	 cipher_ctx_is_plaintext(struct sshcipher_ctx *);
 u_int	 cipher_ctx_get_number(struct sshcipher_ctx *);
 

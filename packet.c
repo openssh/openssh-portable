@@ -290,7 +290,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -1046,6 +1046,16 @@ void
 packet_request_rekeying(void)
 {
 	rekey_requested = 1;
+}
+
+/* this determines if authentciation has happened as of yet. Needed for
+ * NONE cipher switching. */
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
 }
 
 #define MAX_PACKETS	(1U<<31)
@@ -2440,14 +2450,6 @@ ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
 	}
 }
 
-int
-packet_authentication_state(const struct ssh *ssh)
-{
-	struct session_state *state = ssh->state;
-
-	return state->after_authentication;
-}
-
 void
 ssh_packet_set_rekey_limits(struct ssh *ssh, u_int64_t bytes, u_int32_t seconds)
 {
@@ -3076,4 +3078,11 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 {
 	ssh->state->extra_pad = pad;
 	return 0;
+}
+
+/* need this for the moment for the aes-ctr cipher */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+	return ssh->state->send_context;
 }
