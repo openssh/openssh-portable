@@ -57,6 +57,13 @@ extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern int ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
 #endif
 
+/* for multi-threaded aes-ctr cipher */
+extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+
+/* no longer needed. replaced by evp pointer swap */
+/* extern void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); */
+/* extern void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx); */
+
 struct sshcipher {
 	char	*name;
 	int	number;		/* for ssh1 only */
@@ -77,7 +84,7 @@ struct sshcipher {
 #endif
 };
 
-static const struct sshcipher ciphers[] = {
+static struct sshcipher ciphers[] = {
 #ifdef WITH_SSH1
 	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
 	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
@@ -148,6 +155,29 @@ cipher_alg_list(char sep, int auth_only)
 	return ret;
 }
 
+/* used to get the cipher name so when force rekeying to handle the
+ * single to multithreaded ctr cipher swap we only rekey when appropriate
+ */
+const char *
+cipher_return_name(const struct sshcipher *c)
+{
+	return c->name;
+}
+
+/* in order to get around sandbox and forking issues with a threaded cipher
+ * we set the initial pre-auth aes-ctr cipher to the default OpenSSH cipher
+ * post auth we set them to the new evp as defined by cipher-ctr-mt
+ */
+#ifdef WITH_OPENSSL
+void
+cipher_reset_multithreaded(void)
+{
+	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt;
+	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt;
+	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt;
+}
+#endif
+
 u_int
 cipher_blocksize(const struct sshcipher *c)
 {
@@ -209,10 +239,10 @@ cipher_mask_ssh1(int client)
 	return mask;
 }
 
-const struct sshcipher *
+struct sshcipher *
 cipher_by_name(const char *name)
 {
-	const struct sshcipher *c;
+	struct sshcipher *c;
 	for (c = ciphers; c->name != NULL; c++)
 		if (strcmp(c->name, name) == 0)
 			return c;
