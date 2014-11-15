@@ -885,6 +885,10 @@ main(int ac, char **av)
 			break;
 		case 'T':
 			options.request_tty = REQUEST_TTY_NO;
+			/* ensure that the user doesn't try to backdoor a */
+			/* null cipher switch on an interactive session */
+			/* so explicitly disable it no matter what */
+			options.none_switch=0;
 			break;
 		case 'o':
 			line = xstrdup(optarg);

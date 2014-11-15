@@ -125,6 +125,9 @@ UsePrivilegeSeparation sandbox		# Default for new installations.
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server
 
+# allow the use of the none cipher
+#NoneEnabled no
+
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
 #	X11Forwarding no

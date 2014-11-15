@@ -244,7 +244,8 @@ ciphers_valid(const char *names)
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
-		if (c == NULL || c->number != SSH_CIPHER_SSH2) {
+		if (c == NULL || (c->number != SSH_CIPHER_SSH2 &&
+				  c->number != SSH_CIPHER_NONE)) {
 			free(cipher_list);
 			return 0;
 		}
@@ -545,6 +546,7 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 
 	switch (c->number) {
 #ifdef WITH_OPENSSL
+	case SSH_CIPHER_NONE:
 	case SSH_CIPHER_SSH2:
 	case SSH_CIPHER_DES:
 	case SSH_CIPHER_BLOWFISH:
@@ -593,6 +595,7 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 
 	switch (c->number) {
 #ifdef WITH_OPENSSL
+	case SSH_CIPHER_NONE:
 	case SSH_CIPHER_SSH2:
 	case SSH_CIPHER_DES:
 	case SSH_CIPHER_BLOWFISH:

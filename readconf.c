@@ -151,6 +151,7 @@ typedef enum {
 	oSendEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
+	oNoneEnabled, oNoneSwitch,
 	oVisualHostKey, oUseRoaming,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
@@ -263,6 +264,8 @@ static struct {
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
+	{ "noneenabled", oNoneEnabled },
+	{ "noneswitch", oNoneSwitch },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -903,6 +906,24 @@ parse_time:
 	case oCheckHostIP:
 		intptr = &options->check_host_ip;
 		goto parse_flag;
+
+	case oNoneEnabled:
+		intptr = &options->none_enabled;
+		goto parse_flag;
+ 
+	/* we check to see if the command comes from the */
+	/* command line or not. If it does then enable it */
+	/* otherwise fail. NONE should never be a default configuration */
+	case oNoneSwitch:
+		if (strcmp(filename,"command-line") == 0) {
+			intptr = &options->none_switch;
+			goto parse_flag;
+		} else {
+			error("NoneSwitch is found in %.200s.\nYou may only use this configuration option from the command line", filename);
+			error("Continuing...");
+			debug("NoneSwitch directive found in %.200s.", filename);
+			return 0;
+		}
 
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;
@@ -1665,6 +1686,8 @@ initialize_options(Options * options)
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
+	options->none_switch = -1;
+	options->none_enabled = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -1819,6 +1842,10 @@ fill_default_options(Options * options)
 		options->server_alive_interval = 0;
 	if (options->server_alive_count_max == -1)
 		options->server_alive_count_max = 3;
+	if (options->none_switch == -1)
+		options->none_switch = 0;
+	if (options->none_enabled == -1)
+		options->none_enabled = 0;
 	if (options->control_master == -1)
 		options->control_master = 0;
 	if (options->control_persist == -1) {

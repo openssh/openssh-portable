@@ -2199,6 +2199,14 @@ ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
 	}
 }
 
+/* this supports the forced rekeying required for the NONE cipher */
+int rekey_requested = 0;
+void
+packet_request_rekeying(void)
+{
+	rekey_requested = 1;
+}
+
 #define MAX_PACKETS	(1U<<31)
 int
 ssh_packet_need_rekeying(struct ssh *ssh)
@@ -2207,6 +2215,10 @@ ssh_packet_need_rekeying(struct ssh *ssh)
 
 	if (ssh->compat & SSH_BUG_NOREKEY)
 		return 0;
+	if (rekey_requested == 1) {
+		rekey_requested = 0;
+		return 1;
+	}
 	return
 	    (state->p_send.packets > MAX_PACKETS) ||
 	    (state->p_read.packets > MAX_PACKETS) ||
@@ -2216,6 +2228,14 @@ ssh_packet_need_rekeying(struct ssh *ssh)
 	        (state->p_read.blocks > state->max_blocks_in)) ||
 	    (state->rekey_interval != 0 && state->rekey_time +
 		 state->rekey_interval <= monotime());
+}
+
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
 }
 
 void
