@@ -57,6 +57,7 @@
 #include "auth.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "sshbuf.h"
 
 static void add_listen_addr(ServerOptions *, char *, int);
 static void add_one_listen_addr(ServerOptions *, char *, int);
@@ -161,6 +162,9 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_principals_command_user = NULL;
 	options->none_enabled = -1;
 	options->disable_multithreaded = -1,
+	options->tcp_rcv_buf_poll = -1;
+	options->hpn_disabled = -1;
+	options->hpn_buffer_size = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->version_addendum = NULL;
@@ -193,6 +197,10 @@ void
 fill_default_server_options(ServerOptions *options)
 {
 	int i;
+	/* needed for hpn socket tests */
+	int sock;
+	int socksize;
+	int socksizelen = sizeof(int);
 
 	/* Portable-specific options */
 	if (options->use_pam == -1)
@@ -325,6 +333,41 @@ fill_default_server_options(ServerOptions *options)
 		options->none_enabled = 0;
 	if (options->disable_multithreaded == -1)
 		options->disable_multithreaded = 0;
+	if (options->hpn_disabled == -1)
+		options->hpn_disabled = 0;
+
+	if (options->hpn_buffer_size == -1) {
+		/* option not explicitly set. Now we have to figure out */
+		/* what value to use */
+		if (options->hpn_disabled == 1) {
+			options->hpn_buffer_size = CHAN_SES_WINDOW_DEFAULT;
+		} else {
+			/* get the current RCV size and set it to that */
+			/*create a socket but don't connect it */
+			/* we use that the get the rcv socket size */
+			sock = socket(AF_INET, SOCK_STREAM, 0);
+			getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+				   &socksize, &socksizelen);
+			close(sock);
+			options->hpn_buffer_size = socksize;
+			debug("HPN Buffer Size: %d", options->hpn_buffer_size);
+		}
+	} else {
+		/* we have to do this in case the user sets both values in a contradictory */
+		/* manner. hpn_disabled overrrides hpn_buffer_size*/
+		if (options->hpn_disabled <= 0) {
+			if (options->hpn_buffer_size == 0)
+				options->hpn_buffer_size = 1;
+			/* limit the maximum buffer to SSHBUF_SIZE_MAX (currently 256MB) */
+			if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
+				options->hpn_buffer_size = SSHBUF_SIZE_MAX;
+			} else {
+				options->hpn_buffer_size *= 1024;
+			}
+		} else
+			options->hpn_buffer_size = CHAN_TCP_WINDOW_DEFAULT;
+	}
+
 	if (options->ip_qos_interactive == -1)
 		options->ip_qos_interactive = IPTOS_LOWDELAY;
 	if (options->ip_qos_bulk == -1)
@@ -403,6 +446,7 @@ typedef enum {
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sNoneEnabled,
 	sDisableMTAES,
+	sTcpRcvBufPoll, sHPNDisabled, sHPNBufferSize,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
@@ -558,6 +602,9 @@ static struct {
 	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
 	{ "noneenabled", sNoneEnabled, SSHCFG_ALL },
 	{ "disableMTAES", sDisableMTAES, SSHCFG_ALL },
+	{ "hpndisabled", sHPNDisabled, SSHCFG_ALL },
+	{ "hpnbuffersize", sHPNBufferSize, SSHCFG_ALL },
+	{ "tcprcvbufpoll", sTcpRcvBufPoll, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
 	{ "authorizedkeyscommand", sAuthorizedKeysCommand, SSHCFG_ALL },
@@ -1167,6 +1214,18 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
+
+	case sTcpRcvBufPoll:
+		intptr = &options->tcp_rcv_buf_poll;
+		goto parse_flag;
+
+	case sHPNDisabled:
+		intptr = &options->hpn_disabled;
+		goto parse_flag;
+
+	case sHPNBufferSize:
+		intptr = &options->hpn_buffer_size;
+		goto parse_int;
 
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;

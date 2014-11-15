@@ -62,6 +62,7 @@
 #define SSH_BUG_CURVE25519PAD	0x10000000
 #define SSH_BUG_HOSTKEYS	0x20000000
 #define SSH_BUG_DHGEX_LARGE	0x40000000
+#define SSH_BUG_LARGEWINDOW	0x80000000
 
 void     enable_compat13(void);
 void     enable_compat20(void);
