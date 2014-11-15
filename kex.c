@@ -53,6 +53,7 @@
 
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "canohost.h"
 #include "digest.h"
 
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
@@ -587,6 +588,7 @@ kex_choose_conf(struct ssh *ssh)
 	int nenc, nmac, ncomp;
 	u_int mode, ctos, need, dh_need, authlen;
 	int r, first_kex_follows;
+	int log_flag = 0;
 
 	if ((r = kex_buf2prop(kex->my, NULL, &my)) != 0 ||
 	    (r = kex_buf2prop(kex->peer, &first_kex_follows, &peer)) != 0)
@@ -640,6 +642,20 @@ kex_choose_conf(struct ssh *ssh)
 		    newkeys->enc.name,
 		    authlen == 0 ? newkeys->mac.name : "<implicit>",
 		    newkeys->comp.name);
+		/* client starts withctos = 0 && log flag = 0 and no log*/
+		/* 2nd client pass ctos=1 and flag = 1 so no log*/
+		/* server starts with ctos =1 && log_flag = 0 so log */
+		/* 2nd sever pass ctos = 1 && log flag = 1 so no log*/
+		/* -cjr*/
+		if (ctos && !log_flag) {
+			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
+			      get_remote_ipaddr(),
+			      get_remote_port(),
+			      newkeys->enc.name,
+			      newkeys->mac.name,
+			      newkeys->comp.name);
+		}
+		log_flag = 1;
 	}
 	if ((r = choose_kex(kex, cprop[PROPOSAL_KEX_ALGS],
 	    sprop[PROPOSAL_KEX_ALGS])) != 0 ||

@@ -94,10 +94,10 @@ static int fdin;		/* Descriptor for stdin (for writing) */
 static int fdout;		/* Descriptor for stdout (for reading);
 				   May be same number as fdin. */
 static int fderr;		/* Descriptor for stderr.  May be -1. */
-static long stdin_bytes = 0;	/* Number of bytes written to stdin. */
-static long stdout_bytes = 0;	/* Number of stdout bytes sent to client. */
-static long stderr_bytes = 0;	/* Number of stderr bytes sent to client. */
-static long fdout_bytes = 0;	/* Number of stdout bytes read from program. */
+static u_long stdin_bytes = 0;	/* Number of bytes written to stdin. */
+static u_long stdout_bytes = 0;	/* Number of stdout bytes sent to client. */
+static u_long stderr_bytes = 0;	/* Number of stderr bytes sent to client. */
+static u_long fdout_bytes = 0;	/* Number of stdout bytes read from program. */
 static int stdin_eof = 0;	/* EOF message received from client. */
 static int fdout_eof = 0;	/* EOF encountered reading from fdout. */
 static int fderr_eof = 0;	/* EOF encountered readung from fderr. */
@@ -120,6 +120,20 @@ static volatile sig_atomic_t received_sigterm = 0;
 
 /* prototypes */
 static void server_init_dispatch(void);
+
+/*
+ * Returns current time in seconds from Jan 1, 1970 with the maximum
+ * available resolution.
+ */
+
+static double
+get_current_time(void)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
+}
+
 
 /*
  * we write to this pipe if a SIGCHLD is caught in order to avoid
@@ -421,6 +435,7 @@ process_input(fd_set *readset)
 		} else {
 			/* Buffer any received data. */
 			packet_process_incoming(buf, len);
+			fdout_bytes += len;
 		}
 	}
 	if (compat20)
@@ -443,6 +458,7 @@ process_input(fd_set *readset)
 		} else {
 			buffer_append(&stdout_buffer, buf, len);
 			fdout_bytes += len;
+			debug ("FD out now: %ld", fdout_bytes);
 		}
 	}
 	/* Read and buffer any available stderr data from the program. */
@@ -510,7 +526,7 @@ process_output(fd_set *writeset)
 	}
 	/* Send any buffered packet data to the client. */
 	if (FD_ISSET(connection_out, writeset))
-		packet_write_poll();
+		stdin_bytes += packet_write_poll();
 }
 
 /*
@@ -824,11 +840,13 @@ void
 server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
+	double start_time, total_time;
 	int rekeying = 0, max_fd;
 	u_int nalloc = 0;
 	u_int64_t rekey_timeout_ms = 0;
 
 	debug("Entering interactive session for SSH2.");
+	start_time = get_current_time();
 
 	mysignal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
@@ -893,6 +911,11 @@ server_loop2(Authctxt *authctxt)
 
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(NULL);
+	total_time = get_current_time() - start_time;
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      get_remote_ipaddr(), get_remote_port(),
+	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
+	      fdout_bytes / total_time);
 }
 
 static int

@@ -484,6 +484,9 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
 	    remote_major, remote_minor, remote_version);
+	logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
+	      get_remote_ipaddr(), get_remote_port(),
+	    remote_major, remote_minor, remote_version);
 
 	active_state->compat = compat_datafellows(remote_version);
 
