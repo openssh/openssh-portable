@@ -193,11 +193,6 @@ environment.
 CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 %endif
 
-%if %{kerberos5}
-K5DIR=`rpm -ql krb5-devel | grep 'include/krb5\.h' | sed 's,\/include\/krb5.h,,'`
-echo K5DIR=$K5DIR
-%endif
-
 %configure \
 	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
@@ -417,6 +412,7 @@ fi
 - Add 'dist' option to 'ver' so package names reflect OS at build time
 - Always include x11-ssh-askpass tarball in SRPM
 - Add openssh-x11-aspass BuildRequires for libXT-devel, imake, gtk2-devel
+- Discard 'K5DIR' reporting, not usable inside 'mock' for RHEL 5 compatibility
 - Discard obsolete '--with-rsh' configure option
 - Update openssl-devel dependency to 0.9.8f, as found in autoconf
 
