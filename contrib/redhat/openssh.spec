@@ -201,6 +201,8 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
 	--with-privsep-path=%{_var}/empty/sshd \
 	--with-md5-passwords \
+	--mandir=%{_mandir} \
+	--with-mantype=man \
 %if %{scard}
 	--with-smartcard \
 %endif
@@ -409,6 +411,7 @@ fi
 
 %changelog
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
+- Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
 - Add 'dist' option to 'ver' so package names reflect OS at build time
 - Always include x11-ssh-askpass tarball in SRPM
 - Add openssh-x11-aspass BuildRequires for libXT-devel, imake, gtk2-devel
