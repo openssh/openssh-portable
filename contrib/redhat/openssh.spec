@@ -74,9 +74,7 @@ Release: %{rel}
 %endif
 URL: https://www.openssh.com/portable.html
 Source0: https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{version}.tar.gz
-%if ! %{no_x11_askpass}
 Source1: http://www.jmknoble.net/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
-%endif
 License: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
@@ -403,6 +401,9 @@ fi
 %endif
 
 %changelog
+* Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
+- Always include for x11-ssh-askpass tarball in SRPM
+
 * Wed Jul 14 2010 Tim Rice <tim@multitalents.net>
 - test for skip_x11_askpass (line 77) should have been for no_x11_askpass
 
