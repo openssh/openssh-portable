@@ -1,5 +1,5 @@
 %define ver 7.6p1
-%define rel 1
+%define rel 1%{?dist}
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -414,6 +414,7 @@ fi
 
 %changelog
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
+- Add 'dist' option to 'ver' so package names reflect OS at build time
 - Always include x11-ssh-askpass tarball in SRPM
 - Add openssh-x11-aspass BuildRequires for libXT-devel, imake, gtk2-devel
 - Discard obsolete '--with-rsh' configure option
