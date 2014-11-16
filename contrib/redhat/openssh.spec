@@ -23,8 +23,13 @@
 # Use GTK2 instead of GNOME in gnome-ssh-askpass
 %define gtk2 1
 
-# Is this build for RHL 6.x?
+# Use build6x options for older RHEL builds
+# RHEL 7 and Fedora not yet supported
+%if %{?rhel} > 6
 %define build6x 0
+%else
+%define build6x 1
+%endif
 
 # Do we want kerberos5 support (1=yes 0=no)
 %define kerberos5 1
@@ -84,7 +89,8 @@ PreReq: initscripts >= 5.00
 %else
 Requires: initscripts >= 5.20
 %endif
-BuildRequires: perl, openssl-devel
+BuildRequires: perl
+BuildRequires: openssl-devel >= 0.9.8f
 BuildRequires: /bin/login
 %if ! %{build6x}
 BuildRequires: glibc-devel, pam
@@ -409,7 +415,9 @@ fi
 %changelog
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
 - Always include x11-ssh-askpass tarball in SRPM
-- Add BuildRequires for libXT-devel, imake, gtk2-devel for openssh-x11-aspass
+- Add openssh-x11-aspass BuildRequires for libXT-devel, imake, gtk2-devel
+- Discard obsolete '--with-rsh' configure option
+- Update openssl-devel dependency to 0.9.8f, as found in autoconf
 
 * Wed Jul 14 2010 Tim Rice <tim@multitalents.net>
 - test for skip_x11_askpass (line 77) should have been for no_x11_askpass
