@@ -93,6 +93,12 @@ BuildRequires: /usr/include/security/pam_appl.h
 %endif
 %if ! %{no_x11_askpass}
 BuildRequires: /usr/include/X11/Xlib.h
+# Xt development tools
+BuildRequires: libXt-devel
+# Provides xmkmf
+BuildRequires: imake
+# Rely on relatively recent gtk
+BuildRequires: gtk2-devel
 %endif
 %if ! %{no_gnome_askpass}
 BuildRequires: pkgconfig
@@ -402,7 +408,8 @@ fi
 
 %changelog
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
-- Always include for x11-ssh-askpass tarball in SRPM
+- Always include x11-ssh-askpass tarball in SRPM
+- Add BuildRequires for libXT-devel, imake, gtk2-devel for openssh-x11-aspass
 
 * Wed Jul 14 2010 Tim Rice <tim@multitalents.net>
 - test for skip_x11_askpass (line 77) should have been for no_x11_askpass
