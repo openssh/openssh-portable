@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.3 2014/06/24 01:04:43 djm Exp $
+#	$OpenBSD: krl.sh,v 1.4 2014/11/17 00:21:40 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -17,6 +17,8 @@ rm -f $OBJ/revoked-* $OBJ/krl-*
 # Generate a CA key
 $SSHKEYGEN -t $ECDSA -f $OBJ/revoked-ca  -C "" -N "" > /dev/null ||
 	fatal "$SSHKEYGEN CA failed"
+$SSHKEYGEN -t ed25519 -f $OBJ/revoked-ca2  -C "" -N "" > /dev/null ||
+	fatal "$SSHKEYGEN CA2 failed"
 
 # A specification that revokes some certificates by serial numbers
 # The serial pattern is chosen to ensure the KRL includes list, range and
@@ -93,13 +95,17 @@ $SSHKEYGEN $OPTS -kf $OBJ/krl-all $REVOKED_KEYS $REVOKED_CERTS \
 	>/dev/null || fatal "$SSHKEYGEN KRL failed"
 $SSHKEYGEN $OPTS -kf $OBJ/krl-ca $OBJ/revoked-ca.pub \
 	>/dev/null || fatal "$SSHKEYGEN KRL failed"
-# KRLs from serial/key-id spec need the CA specified.
+# This should fail as KRLs from serial/key-id spec need the CA specified.
 $SSHKEYGEN $OPTS -kf $OBJ/krl-serial $OBJ/revoked-serials \
 	>/dev/null 2>&1 && fatal "$SSHKEYGEN KRL succeeded unexpectedly"
 $SSHKEYGEN $OPTS -kf $OBJ/krl-keyid $OBJ/revoked-keyid \
 	>/dev/null 2>&1 && fatal "$SSHKEYGEN KRL succeeded unexpectedly"
 $SSHKEYGEN $OPTS -kf $OBJ/krl-serial -s $OBJ/revoked-ca $OBJ/revoked-serials \
 	>/dev/null || fatal "$SSHKEYGEN KRL failed"
+# Revoke the same serials with the second CA key to ensure a multi-CA
+# KRL is generated.
+$SSHKEYGEN $OPTS -kf $OBJ/krl-serial -u -s $OBJ/revoked-ca2 \
+	$OBJ/revoked-serials >/dev/null || fatal "$SSHKEYGEN KRL failed"
 $SSHKEYGEN $OPTS -kf $OBJ/krl-keyid -s $OBJ/revoked-ca.pub $OBJ/revoked-keyid \
 	>/dev/null || fatal "$SSHKEYGEN KRL failed"
 }
