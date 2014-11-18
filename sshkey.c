@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.4 2014/10/08 21:45:48 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.5 2014/11/18 01:02:25 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1233,9 +1233,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 		cp = space+1;
 		if (*cp == '\0')
 			return SSH_ERR_INVALID_FORMAT;
-		if (ret->type == KEY_UNSPEC) {
-			ret->type = type;
-		} else if (ret->type != type)
+		if (ret->type != KEY_UNSPEC && ret->type != type)
 			return SSH_ERR_KEY_TYPE_MISMATCH;
 		if ((blob = sshbuf_new()) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -1262,7 +1260,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			sshkey_free(k);
 			return SSH_ERR_EC_CURVE_MISMATCH;
 		}
-/*XXXX*/
+		ret->type = type;
 		if (sshkey_is_cert(ret)) {
 			if (!sshkey_is_cert(k)) {
 				sshkey_free(k);
