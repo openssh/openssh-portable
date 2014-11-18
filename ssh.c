@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.409 2014/10/09 06:21:31 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.410 2014/11/18 20:54:28 krw Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
