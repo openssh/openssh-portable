@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.179 2014/11/22 18:15:41 deraadt Exp $
+.\" $OpenBSD: sshd_config.5,v 1.180 2014/11/22 19:21:03 jmc Exp $
 .Dd $Mdocdate: November 22 2014 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -336,6 +336,7 @@ nodes such as
 .Xr stdin 4 ,
 .Xr stdout 4 ,
 .Xr stderr 4 ,
+and
 .Xr tty 4
 devices.
 For file transfer sessions using
@@ -751,18 +752,18 @@ The following forms may be used:
 .It
 .Cm ListenAddress
 .Sm off
-.Ar host No | Ar IPv4_addr No | Ar IPv6_addr
+.Ar host | Ar IPv4_addr | Ar IPv6_addr
 .Sm on
 .It
 .Cm ListenAddress
 .Sm off
-.Ar host No | Ar IPv4_addr No : Ar port
+.Ar host | Ar IPv4_addr : Ar port
 .Sm on
 .It
 .Cm ListenAddress
 .Sm off
 .Oo
-.Ar host No | Ar IPv6_addr Oc : Ar port
+.Ar host | Ar IPv6_addr Oc : Ar port
 .Sm on
 .El
 .Pp
