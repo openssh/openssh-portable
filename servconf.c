@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.254 2014/10/24 02:01:20 lteo Exp $ */
+/* $OpenBSD: servconf.c,v 1.255 2014/11/24 03:39:22 jsg Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1612,6 +1612,9 @@ process_server_config_line(ServerOptions *options, char *line,
 		return 0;
 
 	case sAuthorizedKeysCommand:
+		if (cp == NULL)
+			fatal("%.200s line %d: Missing argument.", filename,
+			    linenum);
 		len = strspn(cp, WHITESPACE);
 		if (*activep && options->authorized_keys_command == NULL) {
 			if (cp[len] != '/' && strcasecmp(cp + len, "none") != 0)
@@ -1626,6 +1629,9 @@ process_server_config_line(ServerOptions *options, char *line,
 		charptr = &options->authorized_keys_command_user;
 
 		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing AuthorizedKeysCommandUser "
+			    "argument.", filename, linenum);
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
 		break;
