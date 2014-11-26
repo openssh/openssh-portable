@@ -630,10 +630,7 @@ then
   csih_warning "However, it seems your account does not have these privileges."
   csih_warning "Here's the list of groups in your user token:"
   echo
-  for i in $(/usr/bin/id -G)
-  do
-    /usr/bin/awk -F: "/[^:]*:[^:]*:$i:/{ print \"    \" \$1; }" /etc/group
-  done
+  /usr/bin/id -Gnz | xargs -0n1 echo "   "
   echo
   csih_warning "This usually means you're running this script from a non-admin"
   csih_warning "desktop session, or in a non-elevated shell under UAC control."
