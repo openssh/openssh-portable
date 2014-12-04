@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.106 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: auth.c,v 1.107 2014/12/04 02:24:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -71,7 +71,8 @@
 #endif
 #include "authfile.h"
 #include "monitor_wrap.h"
-#include "krl.h"
+#include "authfile.h"
+#include "ssherr.h"
 #include "compat.h"
 
 /* import */
@@ -673,43 +674,38 @@ getpwnamallow(const char *user)
 int
 auth_key_is_revoked(Key *key)
 {
-#ifdef WITH_OPENSSL
-	char *key_fp;
+	char *fp = NULL;
+	int r;
 
 	if (options.revoked_keys_file == NULL)
 		return 0;
-	switch (ssh_krl_file_contains_key(options.revoked_keys_file, key)) {
+	if ((fp = sshkey_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		error("%s: fingerprint key: %s", __func__, ssh_err(r));
+		goto out;
+	}
+
+	r = sshkey_check_revoked(key, options.revoked_keys_file);
+	switch (r) {
 	case 0:
-		return 0;	/* Not revoked */
-	case -2:
-		break;		/* Not a KRL */
+		break; /* not revoked */
+	case SSH_ERR_KEY_REVOKED:
+		error("Authentication key %s %s revoked by file %s",
+		    sshkey_type(key), fp, options.revoked_keys_file);
+		goto out;
 	default:
-		goto revoked;
+		error("Error checking authentication key %s %s in "
+		    "revoked keys file %s: %s", sshkey_type(key), fp,
+		    options.revoked_keys_file, ssh_err(r));
+		goto out;
 	}
-#endif
-	debug3("%s: treating %s as a key list", __func__,
-	    options.revoked_keys_file);
-	switch (key_in_file(key, options.revoked_keys_file, 0)) {
-	case 0:
-		/* key not revoked */
-		return 0;
-	case -1:
-		/* Error opening revoked_keys_file: refuse all keys */
-		error("Revoked keys file is unreadable: refusing public key "
-		    "authentication");
-		return 1;
-#ifdef WITH_OPENSSL
-	case 1:
- revoked:
-		/* Key revoked */
-		key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
-		error("WARNING: authentication attempt with a revoked "
-		    "%s key %s ", key_type(key), key_fp);
-		free(key_fp);
-		return 1;
-#endif
-	}
-	fatal("key_in_file returned junk");
+
+	/* Success */
+	r = 0;
+
+ out:
+	free(fp);
+	return r == 0 ? 0 : 1;
 }
 
 void

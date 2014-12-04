@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.222 2014/10/24 02:01:20 lteo Exp $ */
+/* $OpenBSD: readconf.c,v 1.223 2014/12/04 02:24:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -154,7 +154,7 @@ typedef enum {
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
-	oStreamLocalBindMask, oStreamLocalBindUnlink,
+	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -269,6 +269,7 @@ static struct {
 	{ "canonicalizepermittedcnames", oCanonicalizePermittedCNAMEs },
 	{ "streamlocalbindmask", oStreamLocalBindMask },
 	{ "streamlocalbindunlink", oStreamLocalBindUnlink },
+	{ "revokedhostkeys", oRevokedHostKeys },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -1455,6 +1456,10 @@ parse_int:
 		intptr = &options->fwd_opts.streamlocal_bind_unlink;
 		goto parse_flag;
 
+	case oRevokedHostKeys:
+		charptr = &options->revoked_host_keys;
+		goto parse_string;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1631,6 +1636,7 @@ initialize_options(Options * options)
 	options->canonicalize_max_dots = -1;
 	options->canonicalize_fallback_local = -1;
 	options->canonicalize_hostname = -1;
+	options->revoked_host_keys = NULL;
 }
 
 /*
@@ -1818,6 +1824,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->local_command);
 	CLEAR_ON_NONE(options->proxy_command);
 	CLEAR_ON_NONE(options->control_path);
+	CLEAR_ON_NONE(options->revoked_host_keys);
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */
 	/* options->host_key_alias should not be set by default */
@@ -2251,6 +2258,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
 	dump_cfg_string(oProxyCommand, o->proxy_command);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
+	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 
 	dump_cfg_forwards(oDynamicForward, o->num_local_forwards, o->local_forwards);
 	dump_cfg_forwards(oLocalForward, o->num_local_forwards, o->local_forwards);

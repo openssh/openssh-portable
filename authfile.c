@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.107 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.108 2014/12/04 02:24:32 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -48,6 +48,7 @@
 #include "atomicio.h"
 #include "sshbuf.h"
 #include "ssherr.h"
+#include "krl.h"
 
 #define MAX_KEY_FILE_SIZE	(1024 * 1024)
 
@@ -494,11 +495,14 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 /*
  * Returns success if the specified "key" is listed in the file "filename",
  * SSH_ERR_KEY_NOT_FOUND: if the key is not listed or another error.
- * If strict_type is set then the key type must match exactly,
+ * If "strict_type" is set then the key type must match exactly,
  * otherwise a comparison that ignores certficiate data is performed.
+ * If "check_ca" is set and "key" is a certificate, then its CA key is
+ * also checked and sshkey_in_file() will return success if either is found.
  */
 int
-sshkey_in_file(struct sshkey *key, const char *filename, int strict_type)
+sshkey_in_file(struct sshkey *key, const char *filename, int strict_type,
+    int check_ca)
 {
 	FILE *f;
 	char line[SSH_MAX_PUBKEY_BYTES];
@@ -509,12 +513,8 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type)
 	int (*sshkey_compare)(const struct sshkey *, const struct sshkey *) =
 	    strict_type ?  sshkey_equal : sshkey_equal_public;
 
-	if ((f = fopen(filename, "r")) == NULL) {
-		if (errno == ENOENT)
-			return SSH_ERR_KEY_NOT_FOUND;
-		else
-			return SSH_ERR_SYSTEM_ERROR;
-	}
+	if ((f = fopen(filename, "r")) == NULL)
+		return SSH_ERR_SYSTEM_ERROR;
 
 	while (read_keyfile_line(f, filename, line, sizeof(line),
 	    &linenum) != -1) {
@@ -538,7 +538,9 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type)
 		}
 		if ((r = sshkey_read(pub, &cp)) != 0)
 			goto out;
-		if (sshkey_compare(key, pub)) {
+		if (sshkey_compare(key, pub) ||
+		    (check_ca && sshkey_is_cert(key) &&
+		    sshkey_compare(key->cert->signature_key, pub))) {
 			r = 0;
 			goto out;
 		}
@@ -551,5 +553,41 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type)
 		sshkey_free(pub);
 	fclose(f);
 	return r;
+}
+
+/*
+ * Checks whether the specified key is revoked, returning 0 if not,
+ * SSH_ERR_KEY_REVOKED if it is or another error code if something
+ * unexpected happened.
+ * This will check both the key and, if it is a certificate, its CA key too.
+ * "revoked_keys_file" may be a KRL or a one-per-line list of public keys.
+ */
+int
+sshkey_check_revoked(struct sshkey *key, const char *revoked_keys_file)
+{
+	int r;
+
+#ifdef WITH_OPENSSL
+	r = ssh_krl_file_contains_key(revoked_keys_file, key);
+	/* If this was not a KRL to begin with then continue below */
+	if (r != SSH_ERR_KRL_BAD_MAGIC)
+		return r;
+#endif
+
+	/*
+	 * If the file is not a KRL or we can't handle KRLs then attempt to
+	 * parse the file as a flat list of keys.
+	 */
+	switch ((r = sshkey_in_file(key, revoked_keys_file, 0, 1))) {
+	case 0:
+		/* Key found => revoked */
+		return SSH_ERR_KEY_REVOKED;
+	case SSH_ERR_KEY_NOT_FOUND:
+		/* Key not found => not revoked */
+		return 0;
+	default:
+		/* Some other error occurred */
+		return r;
+	}
 }
 

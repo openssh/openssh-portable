@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.251 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.252 2014/12/04 02:24:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -62,6 +62,8 @@
 #include "monitor_fdpass.h"
 #include "ssh2.h"
 #include "version.h"
+#include "authfile.h"
+#include "ssherr.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
@@ -1219,16 +1221,44 @@ int
 verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 {
 	int r = -1, flags = 0;
-	char *fp;
-	Key *plain = NULL;
+	char *fp = NULL;
+	struct sshkey *plain = NULL;
 
-	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
-	debug("Server host key: %s %s", key_type(host_key), fp);
-	free(fp);
+	if ((fp = sshkey_fingerprint(host_key,
+	    SSH_FP_MD5, SSH_FP_HEX)) == NULL) {
+		error("%s: fingerprint host key: %s", __func__, ssh_err(r));
+		r = -1;
+		goto out;
+	}
 
-	if (key_equal(previous_host_key, host_key)) {
-		debug("%s: server host key matches cached key", __func__);
-		return 0;
+	debug("Server host key: %s %s", sshkey_type(host_key), fp);
+
+	if (sshkey_equal(previous_host_key, host_key)) {
+		debug2("%s: server host key %s %s matches cached key",
+		    __func__, sshkey_type(host_key), fp);
+		r = 0;
+		goto out;
+	}
+
+	/* Check in RevokedHostKeys file if specified */
+	if (options.revoked_host_keys != NULL) {
+		r = sshkey_check_revoked(host_key, options.revoked_host_keys);
+		switch (r) {
+		case 0:
+			break; /* not revoked */
+		case SSH_ERR_KEY_REVOKED:
+			error("Host key %s %s revoked by file %s",
+			    sshkey_type(host_key), fp,
+			    options.revoked_host_keys);
+			r = -1;
+			goto out;
+		default:
+			error("Error checking host key %s %s in "
+			    "revoked keys file %s: %s", sshkey_type(host_key),
+			    fp, options.revoked_host_keys, ssh_err(r));
+			r = -1;
+			goto out;
+		}
 	}
 
 	if (options.verify_host_key_dns) {
@@ -1236,17 +1266,17 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 		 * XXX certs are not yet supported for DNS, so downgrade
 		 * them and try the plain key.
 		 */
-		plain = key_from_private(host_key);
-		if (key_is_cert(plain))
-			key_drop_cert(plain);
+		if ((r = sshkey_from_private(host_key, &plain)) != 0)
+			goto out;
+		if (sshkey_is_cert(plain))
+			sshkey_drop_cert(plain);
 		if (verify_host_key_dns(host, hostaddr, plain, &flags) == 0) {
 			if (flags & DNS_VERIFY_FOUND) {
 				if (options.verify_host_key_dns == 1 &&
 				    flags & DNS_VERIFY_MATCH &&
 				    flags & DNS_VERIFY_SECURE) {
-					key_free(plain);
 					r = 0;
-					goto done;
+					goto out;
 				}
 				if (flags & DNS_VERIFY_MATCH) {
 					matching_host_key_dns = 1;
@@ -1258,14 +1288,14 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 				}
 			}
 		}
-		key_free(plain);
 	}
-
 	r = check_host_key(host, hostaddr, options.port, host_key, RDRW,
 	    options.user_hostfiles, options.num_user_hostfiles,
 	    options.system_hostfiles, options.num_system_hostfiles);
 
-done:
+out:
+	sshkey_free(plain);
+	free(fp);
 	if (r == 0 && host_key != NULL) {
 		key_free(previous_host_key);
 		previous_host_key = key_from_private(host_key);

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.41 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.42 2014/12/04 02:24:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -434,8 +434,8 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 	ca_fp = key_fingerprint(key->cert->signature_key,
 	    SSH_FP_MD5, SSH_FP_HEX);
 
-	if (key_in_file(key->cert->signature_key,
-	    options.trusted_user_ca_keys, 1) != 1) {
+	if (sshkey_in_file(key->cert->signature_key,
+	    options.trusted_user_ca_keys, 1, 0) != 0) {
 		debug2("%s: CA %s %s is not listed in %s", __func__,
 		    key_type(key->cert->signature_key), ca_fp,
 		    options.trusted_user_ca_keys);
