@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.122 2014/07/22 01:18:50 dtucker Exp $ */
+/* $OpenBSD: key.c,v 1.123 2014/12/04 20:47:36 djm Exp $ */
 /*
  * placed in the public domain
  */
@@ -463,17 +463,3 @@ key_perm_ok(int fd, const char *filename)
 	return sshkey_perm_ok(fd, filename) == 0 ? 1 : 0;
 }
 
-int
-key_in_file(Key *key, const char *filename, int strict_type)
-{
-	int r;
-
-	if ((r = sshkey_in_file(key, filename, strict_type)) != 0) {
-		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT)
-			return 0;
-		error("%s: %s", __func__, ssh_err(r));
-		return r == SSH_ERR_KEY_NOT_FOUND ? 0 : -1;
-	}
-	return 1;
-}
