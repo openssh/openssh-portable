@@ -1629,6 +1629,7 @@ AC_CHECK_FUNCS([ \
 	prctl \
 	pstat \
 	readpassphrase \
+	reallocarray \
 	realpath \
 	recvmsg \
 	rresvport_af \

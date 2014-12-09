@@ -62,6 +62,10 @@ void closefrom(int);
 char *getcwd(char *pt, size_t size);
 #endif 
 
+#ifndef HAVE_REALLOCARRAY
+void *reallocarray(void *, size_t, size_t);
+#endif
+
 #if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
 char *realpath(const char *path, char *resolved);
 #endif 
