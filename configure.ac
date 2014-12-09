@@ -2330,6 +2330,7 @@ AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <string.h>
 #include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 	]], [[
 	return SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1;
 	]])],
