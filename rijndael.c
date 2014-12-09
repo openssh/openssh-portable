@@ -708,25 +708,20 @@ rijndaelKeySetupEnc(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits)
 	return 0;
 }
 
+#if 0
 /**
  * Expand the cipher key into the decryption key schedule.
  *
  * @return	the number of rounds for the given cipher key size.
  */
 int
-rijndaelKeySetupDec(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits,
-    int have_encrypt)
+rijndaelKeySetupDec(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits)
 {
 	int Nr, i, j;
 	u32 temp;
 
 	/* expand the cipher key: */
-	if (have_encrypt > 0) {
-		/* Already done */
-		Nr = have_encrypt;
-	} else {
-		Nr = rijndaelKeySetupEnc(rk, cipherKey, keyBits);
-	}
+	Nr = rijndaelKeySetupEnc(rk, cipherKey, keyBits);
 
 	/* invert the order of the round keys: */
 	for (i = 0, j = 4*Nr; i < j; i += 4, j -= 4) {
@@ -761,6 +756,7 @@ rijndaelKeySetupDec(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits,
 	}
 	return Nr;
 }
+#endif
 
 void
 rijndaelEncrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 pt[16],
@@ -946,6 +942,7 @@ rijndaelEncrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 pt[16],
 	PUTU32(ct + 12, s3);
 }
 
+#if 0
 static void
 rijndaelDecrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 ct[16],
     u8 pt[16])
@@ -1129,29 +1126,4 @@ rijndaelDecrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 ct[16],
    		rk[3];
 	PUTU32(pt + 12, s3);
 }
-
-void
-rijndael_set_key(rijndael_ctx *ctx, u_char *key, int bits, int do_encrypt)
-{
-	ctx->Nr = rijndaelKeySetupEnc(ctx->ek, key, bits);
-	if (do_encrypt) {
-		ctx->decrypt = 0;
-		memset(ctx->dk, 0, sizeof(ctx->dk));
-	} else {
-		ctx->decrypt = 1;
-		memcpy(ctx->dk, ctx->ek, sizeof(ctx->dk));
-		rijndaelKeySetupDec(ctx->dk, key, bits, ctx->Nr);
-	}
-}
-
-void
-rijndael_decrypt(rijndael_ctx *ctx, u_char *src, u_char *dst)
-{
-	rijndaelDecrypt(ctx->dk, ctx->Nr, src, dst);
-}
-
-void
-rijndael_encrypt(rijndael_ctx *ctx, u_char *src, u_char *dst)
-{
-	rijndaelEncrypt(ctx->ek, ctx->Nr, src, dst);
-}
+#endif
