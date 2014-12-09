@@ -84,6 +84,8 @@
 #include <prot.h>
 #endif
 
+#include <sys/param.h>
+
 #include "xmalloc.h"
 #include "ssh.h"
 #include "ssh1.h"

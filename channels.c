@@ -62,6 +62,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/param.h>
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
