@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.5 2014/11/18 01:02:25 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.6 2014/12/10 01:24:09 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2124,10 +2124,7 @@ sshkey_verify(const struct sshkey *key,
     const u_char *sig, size_t siglen,
     const u_char *data, size_t dlen, u_int compat)
 {
-	if (siglen == 0)
-		return -1;
-
-	if (dlen > SSH_KEY_MAX_SIGN_DATA_SIZE)
+	if (siglen == 0 || dlen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
 	switch (key->type) {
 #ifdef WITH_OPENSSL
