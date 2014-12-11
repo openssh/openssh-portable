@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.428 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: sshd.c,v 1.429 2014/12/11 08:20:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -45,6 +45,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #ifdef HAVE_SYS_STAT_H

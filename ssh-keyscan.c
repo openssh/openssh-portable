@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.92 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.93 2014/12/11 08:20:09 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -9,6 +9,8 @@
 
 #include "includes.h"
  
+#include <sys/types.h>
+#include <sys/param.h>
 #include "openbsd-compat/sys-queue.h"
 #include <sys/resource.h>
 #ifdef HAVE_SYS_TIME_H

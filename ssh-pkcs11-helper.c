@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.8 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.9 2014/12/11 08:20:09 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -18,6 +18,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/param.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
