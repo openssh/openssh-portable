@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.210 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.211 2014/12/11 05:13:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1503,10 +1503,14 @@ userauth_hostbased(Authctxt *authctxt)
 		debug("No more client hostkeys for hostbased authentication.");
 		return 0;
 	}
+
+	debug("%s: trying hostkey type %s", __func__, key_type(private));
+
 	if (key_to_blob(private, &blob, &blen) == 0) {
 		key_free(private);
 		return 0;
 	}
+
 	/* figure out a name for the client host */
 	p = get_local_name(packet_get_connection_in());
 	if (p == NULL) {
