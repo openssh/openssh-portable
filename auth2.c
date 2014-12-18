@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.132 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: auth2.c,v 1.133 2014/12/18 23:58:04 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -356,7 +356,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 	} else {
 
 		/* Allow initial try of "none" auth without failure penalty */
-		if (!authctxt->server_caused_failure &&
+		if (!partial && !authctxt->server_caused_failure &&
 		    (authctxt->attempt > 1 || strcmp(method, "none") != 0))
 			authctxt->failures++;
 		if (authctxt->failures >= options.max_authtries) {
