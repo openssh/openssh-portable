@@ -390,6 +390,8 @@ blowfish-cbc
 cast128-cbc
 .It
 chacha20-poly1305@openssh.com
+.It
+rijndael-cbc@lysator.liu.se
 .El
 .Pp
 The default is:
@@ -402,7 +404,12 @@ chacha20-poly1305@openssh.com
 The list of available ciphers may also be obtained using the
 .Fl Q
 option of
-.Xr ssh 1 .
+.Xr ssh 1 
+with either
+.Cm cipher
+or
+.Cm cipher-auth
+as argument.
 .It Cm ClientAliveCountMax
 Sets the number of client alive messages (see below) which may be
 sent without
@@ -736,6 +743,14 @@ ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
 diffie-hellman-group-exchange-sha256,
 diffie-hellman-group14-sha1
 .Ed
+.Pp
+The list of available KEX algortihms may also be obtained using the
+.Fl Q
+option of
+.Xr ssh 1 
+with
+.Cm kex
+as argument.
 .It Cm KeyRegenerationInterval
 In protocol version 1, the ephemeral server key is automatically regenerated
 after this many seconds (if it has been used).
@@ -824,6 +839,8 @@ hmac-sha2-256
 .It
 hmac-sha2-512
 .It
+hmac-ripemd160@openssh.com
+.It
 umac-64@openssh.com
 .It
 umac-128@openssh.com
@@ -854,6 +871,14 @@ hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,
 umac-64@openssh.com,umac-128@openssh.com,
 hmac-sha2-256,hmac-sha2-512
 .Ed
+.Pp
+The list of available MAX algortihms may also be obtained using the
+.Fl Q
+option of
+.Xr ssh 1 
+with
+.Cm mac
+as argument.
 .It Cm Match
 Introduces a conditional block.
 If all of the criteria on the
