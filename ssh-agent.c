@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.192 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.193 2014/12/21 23:35:14 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1027,8 +1027,8 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-agent [-c | -s] [-d] [-a bind_address] [-t life]\n"
-	    "                 [-E fingerprint_hash] [command [arg ...]]\n"
+	    "usage: ssh-agent [-c | -s] [-d] [-a bind_address] [-E fingerprint_hash]\n"
+	    "                 [-t life] [command [arg ...]]\n"
 	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
