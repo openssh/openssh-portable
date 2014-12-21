@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-openssl.c,v 1.4 2014/07/03 03:26:43 djm Exp $ */
+/* $OpenBSD: digest-openssl.c,v 1.5 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -72,6 +72,26 @@ ssh_digest_by_alg(int alg)
 	if (digests[alg].mdfunc == NULL)
 		return NULL;
 	return &(digests[alg]);
+}
+
+int
+ssh_digest_alg_by_name(const char *name)
+{
+	int alg;
+
+	for (alg = 0; digests[alg].id != -1; alg++) {
+		if (strcasecmp(name, digests[alg].name) == 0)
+			return digests[alg].id;
+	}
+	return -1;
+}
+
+const char *
+ssh_digest_alg_name(int alg)
+{
+	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
+
+	return digest == NULL ? NULL : digest->name;
 }
 
 size_t

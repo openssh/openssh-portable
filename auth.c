@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.107 2014/12/04 02:24:32 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.108 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -679,7 +679,8 @@ auth_key_is_revoked(Key *key)
 
 	if (options.revoked_keys_file == NULL)
 		return 0;
-	if ((fp = sshkey_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX)) == NULL) {
+	if ((fp = sshkey_fingerprint(key, options.fingerprint_hash,
+	    SSH_FP_DEFAULT)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		error("%s: fingerprint key: %s", __func__, ssh_err(r));
 		goto out;

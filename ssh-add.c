@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.114 2014/11/26 18:34:51 millert Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.115 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -63,6 +63,7 @@
 #include "pathnames.h"
 #include "misc.h"
 #include "ssherr.h"
+#include "digest.h"
 
 /* argv0 */
 extern char *__progname;
@@ -78,6 +79,8 @@ static char *default_files[] = {
 	_PATH_SSH_CLIENT_IDENTITY,
 	NULL
 };
+
+static int fingerprint_hash = SSH_FP_HASH_DEFAULT;
 
 /* Default lifetime (0 == forever) */
 static int lifetime = 0;
@@ -340,8 +343,8 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 		    key = ssh_get_next_identity(ac, &comment, version)) {
 			had_identities = 1;
 			if (do_fp) {
-				fp = key_fingerprint(key, SSH_FP_MD5,
-				    SSH_FP_HEX);
+				fp = key_fingerprint(key, fingerprint_hash,
+				    SSH_FP_DEFAULT);
 				printf("%d %s %s (%s)\n",
 				    key_size(key), fp, comment, key_type(key));
 				free(fp);
@@ -408,6 +411,7 @@ usage(void)
 	fprintf(stderr, "usage: %s [options] [file ...]\n", __progname);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l          List fingerprints of all identities.\n");
+	fprintf(stderr, "  -E hash     Specify hash algorithm used for fingerprints.\n");
 	fprintf(stderr, "  -L          List public key parameters of all identities.\n");
 	fprintf(stderr, "  -k          Load only keys and not certificates.\n");
 	fprintf(stderr, "  -c          Require confirmation to sign using identities\n");
@@ -428,6 +432,7 @@ main(int argc, char **argv)
 	AuthenticationConnection *ac = NULL;
 	char *pkcs11provider = NULL;
 	int i, ch, deleting = 0, ret = 0, key_only = 0;
+	int xflag = 0, lflag = 0, Dflag = 0;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -446,21 +451,28 @@ main(int argc, char **argv)
 		    "Could not open a connection to your authentication agent.\n");
 		exit(2);
 	}
-	while ((ch = getopt(argc, argv, "klLcdDxXe:s:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "klLcdDxXE:e:s:t:")) != -1) {
 		switch (ch) {
+		case 'E':
+			fingerprint_hash = ssh_digest_alg_by_name(optarg);
+			if (fingerprint_hash == -1)
+				fatal("Invalid hash algorithm \"%s\"", optarg);
+			break;
 		case 'k':
 			key_only = 1;
 			break;
 		case 'l':
 		case 'L':
-			if (list_identities(ac, ch == 'l' ? 1 : 0) == -1)
-				ret = 1;
-			goto done;
+			if (lflag != 0)
+				fatal("-%c flag already specified", lflag);
+			lflag = ch;
+			break;
 		case 'x':
 		case 'X':
-			if (lock_agent(ac, ch == 'x' ? 1 : 0) == -1)
-				ret = 1;
-			goto done;
+			if (xflag != 0)
+				fatal("-%c flag already specified", xflag);
+			xflag = ch;
+			break;
 		case 'c':
 			confirm = 1;
 			break;
@@ -468,9 +480,8 @@ main(int argc, char **argv)
 			deleting = 1;
 			break;
 		case 'D':
-			if (delete_all(ac) == -1)
-				ret = 1;
-			goto done;
+			Dflag = 1;
+			break;
 		case 's':
 			pkcs11provider = optarg;
 			break;
@@ -491,6 +502,23 @@ main(int argc, char **argv)
 			goto done;
 		}
 	}
+
+	if ((xflag != 0) + (lflag != 0) + (Dflag != 0) > 1)
+		fatal("Invalid combination of actions");
+	else if (xflag) {
+		if (lock_agent(ac, xflag == 'x' ? 1 : 0) == -1)
+			ret = 1;
+		goto done;
+	} else if (lflag) {
+		if (list_identities(ac, lflag == 'l' ? 1 : 0) == -1)
+			ret = 1;
+		goto done;
+	} else if (Dflag) {
+		if (delete_all(ac) == -1)
+			ret = 1;
+		goto done;
+	}
+
 	argc -= optind;
 	argv += optind;
 	if (pkcs11provider != NULL) {

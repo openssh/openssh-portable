@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.250 2014/08/21 01:08:52 doug Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.251 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -53,6 +53,7 @@
 #include "ssh-pkcs11.h"
 #include "atomicio.h"
 #include "krl.h"
+#include "digest.h"
 
 /* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
 #define DEFAULT_BITS		2048
@@ -89,6 +90,9 @@ int show_cert = 0;
 /* Flag indicating that we just want to see the key fingerprint */
 int print_fingerprint = 0;
 int print_bubblebabble = 0;
+
+/* Hash algorithm to use for fingerprints. */
+int fingerprint_hash = SSH_FP_HASH_DEFAULT;
 
 /* The identity file name, given on the command line or entered by the user. */
 char identity_file[1024];
@@ -749,11 +753,11 @@ do_download(struct passwd *pw)
 	Key **keys = NULL;
 	int i, nkeys;
 	enum fp_rep rep;
-	enum fp_type fptype;
+	int fptype;
 	char *fp, *ra;
 
-	fptype = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
-	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
+	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
+	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 
 	pkcs11_init(0);
 	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys);
@@ -762,7 +766,7 @@ do_download(struct passwd *pw)
 	for (i = 0; i < nkeys; i++) {
 		if (print_fingerprint) {
 			fp = key_fingerprint(keys[i], fptype, rep);
-			ra = key_fingerprint(keys[i], SSH_FP_MD5,
+			ra = key_fingerprint(keys[i], fingerprint_hash,
 			    SSH_FP_RANDOMART);
 			printf("%u %s %s (PKCS11 key)\n", key_size(keys[i]),
 			    fp, key_type(keys[i]));
@@ -792,12 +796,11 @@ do_fingerprint(struct passwd *pw)
 	char *comment = NULL, *cp, *ep, line[16*1024], *fp, *ra;
 	int i, skip = 0, num = 0, invalid = 1;
 	enum fp_rep rep;
-	enum fp_type fptype;
+	int fptype;
 	struct stat st;
 
-	fptype = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
-	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
-
+	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
+	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
 	if (stat(identity_file, &st) < 0) {
@@ -807,7 +810,8 @@ do_fingerprint(struct passwd *pw)
 	public = key_load_public(identity_file, &comment);
 	if (public != NULL) {
 		fp = key_fingerprint(public, fptype, rep);
-		ra = key_fingerprint(public, SSH_FP_MD5, SSH_FP_RANDOMART);
+		ra = key_fingerprint(public, fingerprint_hash,
+		    SSH_FP_RANDOMART);
 		printf("%u %s %s (%s)\n", key_size(public), fp, comment,
 		    key_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -873,7 +877,8 @@ do_fingerprint(struct passwd *pw)
 		}
 		comment = *cp ? cp : comment;
 		fp = key_fingerprint(public, fptype, rep);
-		ra = key_fingerprint(public, SSH_FP_MD5, SSH_FP_RANDOMART);
+		ra = key_fingerprint(public, fingerprint_hash,
+		    SSH_FP_RANDOMART);
 		printf("%u %s %s (%s)\n", key_size(public), fp,
 		    comment ? comment : "no comment", key_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -993,13 +998,15 @@ printhost(FILE *f, const char *name, Key *public, int ca, int revoked, int hash)
 {
 	if (print_fingerprint) {
 		enum fp_rep rep;
-		enum fp_type fptype;
+		int fptype;
 		char *fp, *ra;
 
-		fptype = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
-		rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
+		fptype = print_bubblebabble ?
+		    SSH_DIGEST_SHA1 : fingerprint_hash;
+		rep = print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 		fp = key_fingerprint(public, fptype, rep);
-		ra = key_fingerprint(public, SSH_FP_MD5, SSH_FP_RANDOMART);
+		ra = key_fingerprint(public, fingerprint_hash,
+		    SSH_FP_RANDOMART);
 		printf("%u %s %s (%s)\n", key_size(public), fp, name,
 		    key_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -1908,9 +1915,9 @@ do_show_cert(struct passwd *pw)
 		fatal("%s is not a certificate", identity_file);
 	v00 = key->type == KEY_RSA_CERT_V00 || key->type == KEY_DSA_CERT_V00;
 
-	key_fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+	key_fp = key_fingerprint(key, fingerprint_hash, SSH_FP_DEFAULT);
 	ca_fp = key_fingerprint(key->cert->signature_key,
-	    SSH_FP_MD5, SSH_FP_HEX);
+	    fingerprint_hash, SSH_FP_DEFAULT);
 
 	printf("%s:\n", identity_file);
 	printf("        Type: %s %s certificate\n", key_ssh_name(key),
@@ -2189,7 +2196,7 @@ usage(void)
 	    "       ssh-keygen -e [-m key_format] [-f input_keyfile]\n"
 	    "       ssh-keygen -y [-f input_keyfile]\n"
 	    "       ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]\n"
-	    "       ssh-keygen -l [-f input_keyfile]\n"
+	    "       ssh-keygen -l [-E fingerprint_hash] [-f input_keyfile]\n"
 	    "       ssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
 	fprintf(stderr,
@@ -2258,9 +2265,10 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Remaining characters: EUYdw */
+	/* Remaining characters: UYdw */
 	while ((opt = getopt(argc, argv, "ABHLQXceghiklopquvxy"
-	    "C:D:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Z:a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
+	    "C:D:E:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Z:"
+	    "a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -2270,6 +2278,11 @@ main(int argc, char **argv)
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",
 					optarg, errstr);
+			break;
+		case 'E':
+			fingerprint_hash = ssh_digest_alg_by_name(optarg);
+			if (fingerprint_hash == -1)
+				fatal("Invalid hash algorithm \"%s\"", optarg);
 			break;
 		case 'F':
 			find_host = 1;
@@ -2702,8 +2715,9 @@ passphrase_again:
 	fclose(f);
 
 	if (!quiet) {
-		char *fp = key_fingerprint(public, SSH_FP_MD5, SSH_FP_HEX);
-		char *ra = key_fingerprint(public, SSH_FP_MD5,
+		char *fp = key_fingerprint(public, fingerprint_hash,
+		    SSH_FP_DEFAULT);
+		char *ra = key_fingerprint(public, fingerprint_hash,
 		    SSH_FP_RANDOMART);
 		printf("Your public key has been saved in %s.\n",
 		    identity_file);

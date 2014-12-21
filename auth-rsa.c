@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rsa.c,v 1.88 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: auth-rsa.c,v 1.89 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -236,7 +236,8 @@ rsa_key_allowed_in_file(struct passwd *pw, char *file,
 			    "actual %d vs. announced %d.",
 			    file, linenum, BN_num_bits(key->rsa->n), bits);
 
-		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		fp = key_fingerprint(key, options.fingerprint_hash,
+		    SSH_FP_DEFAULT);
 		debug("matching key found: file %s, line %lu %s %s",
 		    file, linenum, key_type(key), fp);
 		free(fp);

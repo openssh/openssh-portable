@@ -1,4 +1,4 @@
-/* $OpenBSD: digest-libc.c,v 1.3 2014/06/24 01:13:21 djm Exp $ */
+/* $OpenBSD: digest-libc.c,v 1.4 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  * Copyright (c) 2014 Markus Friedl.  All rights reserved.
@@ -124,6 +124,26 @@ ssh_digest_by_alg(int alg)
 	if (digests[alg].id != alg) /* sanity */
 		return NULL;
 	return &(digests[alg]);
+}
+
+int
+ssh_digest_alg_by_name(const char *name)
+{
+	int alg;
+
+	for (alg = 0; alg < SSH_DIGEST_MAX; alg++) {
+		if (strcasecmp(name, digests[alg].name) == 0)
+			return digests[alg].id;
+	}
+	return -1;
+}
+
+const char *
+ssh_digest_alg_name(int alg)
+{
+	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
+
+	return digest == NULL ? NULL : digest->name;
 }
 
 size_t

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.191 2014/11/18 20:54:28 krw Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.192 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -142,6 +142,8 @@ extern char *__progname;
 /* Default lifetime in seconds (0 == forever) */
 static long lifetime = 0;
 
+static int fingerprint_hash = SSH_FP_HASH_DEFAULT;
+
 static void
 close_socket(SocketEntry *e)
 {
@@ -203,7 +205,7 @@ confirm_key(Identity *id)
 	char *p;
 	int ret = -1;
 
-	p = key_fingerprint(id->key, SSH_FP_MD5, SSH_FP_HEX);
+	p = key_fingerprint(id->key, fingerprint_hash, SSH_FP_DEFAULT);
 	if (ask_permission("Allow use of key %s?\nKey fingerprint %s.",
 	    id->comment, p))
 		ret = 0;
@@ -1026,7 +1028,7 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: ssh-agent [-c | -s] [-d] [-a bind_address] [-t life]\n"
-	    "                 [command [arg ...]]\n"
+	    "                 [-E fingerprint_hash] [command [arg ...]]\n"
 	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
@@ -1069,8 +1071,13 @@ main(int ac, char **av)
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
 
-	while ((ch = getopt(ac, av, "cdksa:t:")) != -1) {
+	while ((ch = getopt(ac, av, "cdksE:a:t:")) != -1) {
 		switch (ch) {
+		case 'E':
+			fingerprint_hash = ssh_digest_alg_by_name(optarg);
+			if (fingerprint_hash == -1)
+				fatal("Invalid hash algorithm \"%s\"", optarg);
+			break;
 		case 'c':
 			if (s_flag)
 				usage();

@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.43 2014/12/04 20:47:36 djm Exp $ */
+/* $OpenBSD: key.h,v 1.44 2014/12/21 22:27:56 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -67,7 +67,7 @@ void	 key_add_private(Key *);
 Key	*key_new_private(int);
 void	 key_free(Key *);
 Key	*key_demote(const Key *);
-u_char	*key_fingerprint_raw(const Key *, enum fp_type, u_int *);
+u_char	*key_fingerprint_raw(const Key *, int, u_int *);
 int	 key_write(const Key *, FILE *);
 int	 key_read(Key *, char **);
 

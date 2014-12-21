@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.6 2014/12/10 01:24:09 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.7 2014/12/21 22:27:55 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -29,6 +29,7 @@
 
 #include <sys/param.h>
 #include <sys/types.h>
+#include <netinet/in.h>
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -852,29 +853,18 @@ sshkey_plain_to_blob(const struct sshkey *key, u_char **blobp, size_t *lenp)
 }
 
 int
-sshkey_fingerprint_raw(const struct sshkey *k, enum sshkey_fp_type dgst_type,
+sshkey_fingerprint_raw(const struct sshkey *k, int dgst_alg,
     u_char **retp, size_t *lenp)
 {
 	u_char *blob = NULL, *ret = NULL;
 	size_t blob_len = 0;
-	int hash_alg = -1, r = SSH_ERR_INTERNAL_ERROR;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
 	if (retp != NULL)
 		*retp = NULL;
 	if (lenp != NULL)
 		*lenp = 0;
-
-	switch (dgst_type) {
-	case SSH_FP_MD5:
-		hash_alg = SSH_DIGEST_MD5;
-		break;
-	case SSH_FP_SHA1:
-		hash_alg = SSH_DIGEST_SHA1;
-		break;
-	case SSH_FP_SHA256:
-		hash_alg = SSH_DIGEST_SHA256;
-		break;
-	default:
+	if (ssh_digest_bytes(dgst_alg) == 0) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
@@ -899,7 +889,7 @@ sshkey_fingerprint_raw(const struct sshkey *k, enum sshkey_fp_type dgst_type,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = ssh_digest_memory(hash_alg, blob, blob_len,
+	if ((r = ssh_digest_memory(dgst_alg, blob, blob_len,
 	    ret, SSH_DIGEST_MAX_LENGTH)) != 0)
 		goto out;
 	/* success */
@@ -908,7 +898,7 @@ sshkey_fingerprint_raw(const struct sshkey *k, enum sshkey_fp_type dgst_type,
 		ret = NULL;
 	}
 	if (lenp != NULL)
-		*lenp = ssh_digest_bytes(hash_alg);
+		*lenp = ssh_digest_bytes(dgst_alg);
 	r = 0;
  out:
 	free(ret);
@@ -920,21 +910,45 @@ sshkey_fingerprint_raw(const struct sshkey *k, enum sshkey_fp_type dgst_type,
 }
 
 static char *
-fingerprint_hex(u_char *dgst_raw, size_t dgst_raw_len)
+fingerprint_b64(const char *alg, u_char *dgst_raw, size_t dgst_raw_len)
 {
-	char *retval;
-	size_t i;
+	char *ret;
+	size_t plen = strlen(alg) + 1;
+	size_t rlen = ((dgst_raw_len + 2) / 3) * 4 + plen + 1;
+	int r;
 
-	if ((retval = calloc(1, dgst_raw_len * 3 + 1)) == NULL)
+	if (dgst_raw_len > 65536 || (ret = calloc(1, rlen)) == NULL)
 		return NULL;
-	for (i = 0; i < dgst_raw_len; i++) {
-		char hex[4];
-		snprintf(hex, sizeof(hex), "%02x:", dgst_raw[i]);
-		strlcat(retval, hex, dgst_raw_len * 3 + 1);
+	strlcpy(ret, alg, rlen);
+	strlcat(ret, ":", rlen);
+	if (dgst_raw_len == 0)
+		return ret;
+	if ((r = b64_ntop(dgst_raw, dgst_raw_len,
+	    ret + plen, rlen - plen)) == -1) {
+		explicit_bzero(ret, rlen);
+		free(ret);
+		return NULL;
 	}
+	/* Trim padding characters from end */
+	ret[strcspn(ret, "=")] = '\0';
+	return ret;
+}
 
-	/* Remove the trailing ':' character */
-	retval[(dgst_raw_len * 3) - 1] = '\0';
+static char *
+fingerprint_hex(const char *alg, u_char *dgst_raw, size_t dgst_raw_len)
+{
+	char *retval, hex[5];
+	size_t i, rlen = dgst_raw_len * 3 + strlen(alg) + 2;
+
+	if (dgst_raw_len > 65536 || (retval = calloc(1, rlen)) == NULL)
+		return NULL;
+	strlcpy(retval, alg, rlen);
+	strlcat(retval, ":", rlen);
+	for (i = 0; i < dgst_raw_len; i++) {
+		snprintf(hex, sizeof(hex), "%s%02x",
+		    i > 0 ? ":" : "", dgst_raw[i]);
+		strlcat(retval, hex, rlen);
+	}
 	return retval;
 }
 
@@ -1020,7 +1034,7 @@ fingerprint_bubblebabble(u_char *dgst_raw, size_t dgst_raw_len)
 #define	FLDSIZE_Y	(FLDBASE + 1)
 #define	FLDSIZE_X	(FLDBASE * 2 + 1)
 static char *
-fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
+fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
     const struct sshkey *k)
 {
 	/*
@@ -1028,9 +1042,9 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 	 * intersects with itself.  Matter of taste.
 	 */
 	char	*augmentation_string = " .o+=*BOX@%&#/^SE";
-	char	*retval, *p, title[FLDSIZE_X];
+	char	*retval, *p, title[FLDSIZE_X], hash[FLDSIZE_X];
 	u_char	 field[FLDSIZE_X][FLDSIZE_Y];
-	size_t	 i, tlen;
+	size_t	 i, tlen, hlen;
 	u_int	 b;
 	int	 x, y, r;
 	size_t	 len = strlen(augmentation_string) - 1;
@@ -1075,8 +1089,12 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 		sshkey_type(k), sshkey_size(k));
 	/* If [type size] won't fit, then try [type]; fits "[ED25519-CERT]" */
 	if (r < 0 || r > (int)sizeof(title))
-		snprintf(title, sizeof(title), "[%s]", sshkey_type(k));
-	tlen = strlen(title);
+		r = snprintf(title, sizeof(title), "[%s]", sshkey_type(k));
+	tlen = (r <= 0) ? 0 : strlen(title);
+
+	/* assemble hash ID. */
+	r = snprintf(hash, sizeof(hash), "[%s]", alg);
+	hlen = (r <= 0) ? 0 : strlen(hash);
 
 	/* output upper border */
 	p = retval;
@@ -1085,7 +1103,7 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 		*p++ = '-';
 	memcpy(p, title, tlen);
 	p += tlen;
-	for (i = p - retval - 1; i < FLDSIZE_X; i++)
+	for (i += tlen; i < FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 	*p++ = '\n';
@@ -1101,7 +1119,11 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 
 	/* output lower border */
 	*p++ = '+';
-	for (i = 0; i < FLDSIZE_X; i++)
+	for (i = 0; i < (FLDSIZE_X - hlen) / 2; i++)
+		*p++ = '-';
+	memcpy(p, hash, hlen);
+	p += hlen;
+	for (i += hlen; i < FLDSIZE_X; i++)
 		*p++ = '-';
 	*p++ = '+';
 
@@ -1109,24 +1131,39 @@ fingerprint_randomart(u_char *dgst_raw, size_t dgst_raw_len,
 }
 
 char *
-sshkey_fingerprint(const struct sshkey *k, enum sshkey_fp_type dgst_type,
+sshkey_fingerprint(const struct sshkey *k, int dgst_alg,
     enum sshkey_fp_rep dgst_rep)
 {
 	char *retval = NULL;
 	u_char *dgst_raw;
 	size_t dgst_raw_len;
 
-	if (sshkey_fingerprint_raw(k, dgst_type, &dgst_raw, &dgst_raw_len) != 0)
+	if (sshkey_fingerprint_raw(k, dgst_alg, &dgst_raw, &dgst_raw_len) != 0)
 		return NULL;
 	switch (dgst_rep) {
+	case SSH_FP_DEFAULT:
+		if (dgst_alg == SSH_DIGEST_MD5) {
+			retval = fingerprint_hex(ssh_digest_alg_name(dgst_alg),
+			    dgst_raw, dgst_raw_len);
+		} else {
+			retval = fingerprint_b64(ssh_digest_alg_name(dgst_alg),
+			    dgst_raw, dgst_raw_len);
+		}
+		break;
 	case SSH_FP_HEX:
-		retval = fingerprint_hex(dgst_raw, dgst_raw_len);
+		retval = fingerprint_hex(ssh_digest_alg_name(dgst_alg),
+		    dgst_raw, dgst_raw_len);
+		break;
+	case SSH_FP_BASE64:
+		retval = fingerprint_b64(ssh_digest_alg_name(dgst_alg),
+		    dgst_raw, dgst_raw_len);
 		break;
 	case SSH_FP_BUBBLEBABBLE:
 		retval = fingerprint_bubblebabble(dgst_raw, dgst_raw_len);
 		break;
 	case SSH_FP_RANDOMART:
-		retval = fingerprint_randomart(dgst_raw, dgst_raw_len, k);
+		retval = fingerprint_randomart(ssh_digest_alg_name(dgst_alg),
+		    dgst_raw, dgst_raw_len, k);
 		break;
 	default:
 		explicit_bzero(dgst_raw, dgst_raw_len);

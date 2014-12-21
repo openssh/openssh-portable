@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.253 2014/12/11 08:20:09 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.254 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -918,9 +918,10 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
 		} else if (options.visual_host_key) {
-			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
-			ra = key_fingerprint(host_key, SSH_FP_MD5,
-			    SSH_FP_RANDOMART);
+			fp = key_fingerprint(host_key,
+			    options.fingerprint_hash, SSH_FP_DEFAULT);
+			ra = key_fingerprint(host_key,
+			    options.fingerprint_hash, SSH_FP_RANDOMART);
 			logit("Host key fingerprint is %s\n%s\n", fp, ra);
 			free(ra);
 			free(fp);
@@ -959,9 +960,10 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			else
 				snprintf(msg1, sizeof(msg1), ".");
 			/* The default */
-			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
-			ra = key_fingerprint(host_key, SSH_FP_MD5,
-			    SSH_FP_RANDOMART);
+			fp = key_fingerprint(host_key,
+			    options.fingerprint_hash, SSH_FP_DEFAULT);
+			ra = key_fingerprint(host_key,
+			    options.fingerprint_hash, SSH_FP_RANDOMART);
 			msg2[0] = '\0';
 			if (options.verify_host_key_dns) {
 				if (matching_host_key_dns)
@@ -1226,7 +1228,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 	struct sshkey *plain = NULL;
 
 	if ((fp = sshkey_fingerprint(host_key,
-	    SSH_FP_MD5, SSH_FP_HEX)) == NULL) {
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
 		error("%s: fingerprint host key: %s", __func__, ssh_err(r));
 		r = -1;
 		goto out;
@@ -1387,8 +1389,10 @@ show_other_keys(struct hostkeys *hostkeys, Key *key)
 			continue;
 		if (!lookup_key_in_hostkeys_by_type(hostkeys, type[i], &found))
 			continue;
-		fp = key_fingerprint(found->key, SSH_FP_MD5, SSH_FP_HEX);
-		ra = key_fingerprint(found->key, SSH_FP_MD5, SSH_FP_RANDOMART);
+		fp = key_fingerprint(found->key,
+		    options.fingerprint_hash, SSH_FP_DEFAULT);
+		ra = key_fingerprint(found->key,
+		    options.fingerprint_hash, SSH_FP_RANDOMART);
 		logit("WARNING: %s key found for host %s\n"
 		    "in %s:%lu\n"
 		    "%s key fingerprint %s.",
@@ -1409,7 +1413,8 @@ warn_changed_key(Key *host_key)
 {
 	char *fp;
 
-	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
+	fp = key_fingerprint(host_key, options.fingerprint_hash,
+	    SSH_FP_DEFAULT);
 
 	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.255 2014/11/24 03:39:22 jsg Exp $ */
+/* $OpenBSD: servconf.c,v 1.256 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -55,6 +55,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "myproposal.h"
+#include "digest.h"
 
 static void add_listen_addr(ServerOptions *, char *, int);
 static void add_one_listen_addr(ServerOptions *, char *, int);
@@ -158,6 +159,7 @@ initialize_server_options(ServerOptions *options)
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->version_addendum = NULL;
+	options->fingerprint_hash = -1;
 }
 
 void
@@ -313,6 +315,8 @@ fill_default_server_options(ServerOptions *options)
 		options->fwd_opts.streamlocal_bind_mask = 0177;
 	if (options->fwd_opts.streamlocal_bind_unlink == -1)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
+	if (options->fingerprint_hash == -1)
+		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
 		use_privsep = PRIVSEP_NOSANDBOX;
@@ -362,7 +366,7 @@ typedef enum {
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
-	sAllowStreamLocalForwarding,
+	sAllowStreamLocalForwarding, sFingerprintHash,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -493,6 +497,7 @@ static struct {
 	{ "streamlocalbindmask", sStreamLocalBindMask, SSHCFG_ALL },
 	{ "streamlocalbindunlink", sStreamLocalBindUnlink, SSHCFG_ALL },
 	{ "allowstreamlocalforwarding", sAllowStreamLocalForwarding, SSHCFG_ALL },
+	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1670,6 +1675,18 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->fwd_opts.streamlocal_bind_unlink;
 		goto parse_flag;
 
+	case sFingerprintHash:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		if ((value = ssh_digest_alg_by_name(arg)) == -1)
+			fatal("%.200s line %d: Invalid hash algorithm \"%s\".",
+			    filename, linenum, arg);
+		if (*activep)
+			options->fingerprint_hash = value;
+		break;
+
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
@@ -1912,6 +1929,8 @@ fmt_intarg(ServerOpCodes code, int val)
 		return fmt_multistate_int(val, multistate_tcpfwd);
 	case sAllowStreamLocalForwarding:
 		return fmt_multistate_int(val, multistate_tcpfwd);
+	case sFingerprintHash:
+		return ssh_digest_alg_name(val);
 	case sProtocol:
 		switch (val) {
 		case SSH_PROTO_1:
@@ -2073,6 +2092,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sAllowTcpForwarding, o->allow_tcp_forwarding);
 	dump_cfg_fmtint(sAllowStreamLocalForwarding, o->allow_streamlocal_forwarding);
 	dump_cfg_fmtint(sUsePrivilegeSeparation, use_privsep);
+	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);

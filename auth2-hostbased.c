@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.18 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.19 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -208,13 +208,14 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 	if (host_status == HOST_OK) {
 		if (key_is_cert(key)) {
 			fp = key_fingerprint(key->cert->signature_key,
-			    SSH_FP_MD5, SSH_FP_HEX);
+			    options.fingerprint_hash, SSH_FP_DEFAULT);
 			verbose("Accepted certificate ID \"%s\" signed by "
 			    "%s CA %s from %s@%s", key->cert->key_id,
 			    key_type(key->cert->signature_key), fp,
 			    cuser, lookup);
 		} else {
-			fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+			fp = key_fingerprint(key, options.fingerprint_hash,
+			    SSH_FP_DEFAULT);
 			verbose("Accepted %s public key %s from %s@%s",
 			    key_type(key), fp, cuser, lookup);
 		}

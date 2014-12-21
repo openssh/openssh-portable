@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.20 2014/12/04 01:49:59 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.21 2014/12/21 22:27:56 djm Exp $ */
 
 #include "includes.h"
 
@@ -36,6 +36,7 @@
 #include "misc.h"
 #include "log.h"
 #include "ssherr.h"
+#include "digest.h"
 
 #include "krl.h"
 
@@ -411,7 +412,8 @@ ssh_krl_revoke_key_sha1(struct ssh_krl *krl, const struct sshkey *key)
 	int r;
 
 	debug3("%s: revoke type %s by sha1", __func__, sshkey_type(key));
-	if ((r = sshkey_fingerprint_raw(key, SSH_FP_SHA1, &blob, &len)) != 0)
+	if ((r = sshkey_fingerprint_raw(key, SSH_DIGEST_SHA1,
+	    &blob, &len)) != 0)
 		return r;
 	return revoke_blob(&krl->revoked_sha1s, blob, len);
 }
@@ -1151,7 +1153,7 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 
 	/* Check explicitly revoked hashes first */
 	memset(&rb, 0, sizeof(rb));
-	if ((r = sshkey_fingerprint_raw(key, SSH_FP_SHA1,
+	if ((r = sshkey_fingerprint_raw(key, SSH_DIGEST_SHA1,
 	    &rb.blob, &rb.len)) != 0)
 		return r;
 	erb = RB_FIND(revoked_blob_tree, &krl->revoked_sha1s, &rb);

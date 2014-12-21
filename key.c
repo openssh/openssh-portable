@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.123 2014/12/04 20:47:36 djm Exp $ */
+/* $OpenBSD: key.c,v 1.124 2014/12/21 22:27:56 djm Exp $ */
 /*
  * placed in the public domain
  */
@@ -40,8 +40,7 @@ key_new_private(int type)
 }
 
 u_char*
-key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
-    u_int *dgst_raw_length)
+key_fingerprint_raw(const Key *k, int dgst_alg, u_int *dgst_raw_length)
 {
 	u_char *ret = NULL;
 	size_t dlen;
@@ -49,7 +48,7 @@ key_fingerprint_raw(const Key *k, enum fp_type dgst_type,
 
 	if (dgst_raw_length != NULL)
 		*dgst_raw_length = 0;
-	if ((r = sshkey_fingerprint_raw(k, dgst_type, &ret, &dlen)) != 0)
+	if ((r = sshkey_fingerprint_raw(k, dgst_alg, &ret, &dlen)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 	if (dlen > INT_MAX)
 		fatal("%s: giant len %zu", __func__, dlen);

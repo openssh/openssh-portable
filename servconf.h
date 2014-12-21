@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.114 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: servconf.h,v 1.115 2014/12/21 22:27:56 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -185,6 +185,8 @@ typedef struct {
 
 	u_int	num_auth_methods;
 	char   *auth_methods[MAX_AUTH_METHODS];
+
+	int	fingerprint_hash;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */

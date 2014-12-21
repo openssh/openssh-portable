@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.223 2014/12/04 02:24:32 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.224 2014/12/21 22:27:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -60,6 +60,7 @@
 #include "mac.h"
 #include "uidswap.h"
 #include "myproposal.h"
+#include "digest.h"
 
 /* Format of the configuration file:
 
@@ -155,6 +156,7 @@ typedef enum {
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
+	oFingerprintHash,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -270,6 +272,7 @@ static struct {
 	{ "streamlocalbindmask", oStreamLocalBindMask },
 	{ "streamlocalbindunlink", oStreamLocalBindUnlink },
 	{ "revokedhostkeys", oRevokedHostKeys },
+	{ "fingerprinthash", oFingerprintHash },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -1460,6 +1463,18 @@ parse_int:
 		charptr = &options->revoked_host_keys;
 		goto parse_string;
 
+	case oFingerprintHash:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		if ((value = ssh_digest_alg_by_name(arg)) == -1)
+			fatal("%.200s line %d: Invalid hash algorithm \"%s\".",
+			    filename, linenum, arg);
+		if (*activep)
+			options->fingerprint_hash = value;
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1637,6 +1652,7 @@ initialize_options(Options * options)
 	options->canonicalize_fallback_local = -1;
 	options->canonicalize_hostname = -1;
 	options->revoked_host_keys = NULL;
+	options->fingerprint_hash = -1;
 }
 
 /*
@@ -1814,6 +1830,9 @@ fill_default_options(Options * options)
 		options->canonicalize_fallback_local = 1;
 	if (options->canonicalize_hostname == -1)
 		options->canonicalize_hostname = SSH_CANONICALISE_NO;
+	if (options->fingerprint_hash == -1)
+		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
+
 #define CLEAR_ON_NONE(v) \
 	do { \
 		if (option_clear_or_none(v)) { \
@@ -2071,6 +2090,8 @@ fmt_intarg(OpCodes code, int val)
 		return fmt_multistate_int(val, multistate_requesttty);
 	case oCanonicalizeHostname:
 		return fmt_multistate_int(val, multistate_canonicalizehostname);
+	case oFingerprintHash:
+		return ssh_digest_alg_name(val);
 	case oProtocol:
 		switch (val) {
 		case SSH_PROTO_1:
@@ -2205,6 +2226,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oControlMaster, o->control_master);
 	dump_cfg_fmtint(oEnableSSHKeysign, o->enable_ssh_keysign);
 	dump_cfg_fmtint(oExitOnForwardFailure, o->exit_on_forward_failure);
+	dump_cfg_fmtint(oFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(oForwardAgent, o->forward_agent);
 	dump_cfg_fmtint(oForwardX11, o->forward_x11);
 	dump_cfg_fmtint(oForwardX11Trusted, o->forward_x11_trusted);
