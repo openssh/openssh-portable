@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.186 2014/12/22 08:04:23 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.187 2014/12/22 08:24:17 jmc Exp $
 .Dd $Mdocdate: December 22 2014 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -212,7 +212,7 @@ device.
 .Pp
 If the
 .Dq publickey
-method is listed more than one,
+method is listed more than once,
 .Xr sshd 8
 verifies that keys that have been used successfully are not reused for
 subsequent authentications.
