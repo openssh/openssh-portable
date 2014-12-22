@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.185 2014/12/22 07:51:30 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.186 2014/12/22 08:04:23 djm Exp $
 .Dd $Mdocdate: December 22 2014 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -244,9 +244,13 @@ By default, no AuthorizedKeysCommand is run.
 Specifies the user under whose account the AuthorizedKeysCommand is run.
 It is recommended to use a dedicated user that has no other role on the host
 than running authorized keys commands.
-If no user is specified then
+If
 .Cm AuthorizedKeysCommand
-is ignored.
+is specified but
+.Cm AuthorizedKeysCommandUser
+is not, then
+.Xr sshd 8
+will refuse to start.
 .It Cm AuthorizedKeysFile
 Specifies the file that contains the public keys that can be used
 for user authentication.
