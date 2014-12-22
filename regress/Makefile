@@ -92,7 +92,7 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		regress.log failed-regress.log ssh-log-wrapper.sh \
 		sftp-server.sh sftp-server.log sftp.log setuid-allowed \
 		data ed25519-agent ed25519-agent.pub key.ed25519-512 \
-		key.ed25519-512.pub
+		key.ed25519-512.pub netcat
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 

@@ -436,6 +436,10 @@ regress/setuid-allowed$(EXEEXT): $(srcdir)/regress/setuid-allowed.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
+regress/netcat$(EXEEXT): $(srcdir)/regress/netcat.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
+	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
+
 UNITTESTS_TEST_HELPER_OBJS=\
 	regress/unittests/test_helper/test_helper.o \
 	regress/unittests/test_helper/fuzz.o
@@ -476,6 +480,7 @@ regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
 REGRESS_BINARIES=\
 	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
+	regress/netcat$(EXEEXT) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT)
 
