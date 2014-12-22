@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.135 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: monitor.c,v 1.136 2014/12/22 07:51:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1170,6 +1170,7 @@ mm_answer_keyallowed(int sock, Buffer *m)
 		switch (type) {
 		case MM_USERKEY:
 			allowed = options.pubkey_authentication &&
+			    !auth2_userkey_already_used(authctxt, key) &&
 			    user_key_allowed(authctxt->pw, key);
 			pubkey_auth_info(authctxt, key, NULL);
 			auth_method = "publickey";
@@ -1397,7 +1398,12 @@ mm_answer_keyverify(int sock, Buffer *m)
 	debug3("%s: key %p signature %s",
 	    __func__, key, (verified == 1) ? "verified" : "unverified");
 
-	key_free(key);
+	/* If auth was successful then record key to ensure it isn't reused */
+	if (verified == 1)
+		auth2_record_userkey(authctxt, key);
+	else
+		key_free(key);
+
 	free(blob);
 	free(signature);
 	free(data);

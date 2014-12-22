@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.43 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.44 2014/12/22 07:51:30 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -41,6 +41,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -122,6 +123,10 @@ userauth_pubkey(Authctxt *authctxt)
 		    "signature scheme");
 		goto done;
 	}
+	if (auth2_userkey_already_used(authctxt, key)) {
+		logit("refusing previously-used %s key", key_type(key));
+		goto done;
+	}
 	if (have_sig) {
 		sig = packet_get_string(&slen);
 		packet_check_eom();
@@ -159,8 +164,12 @@ userauth_pubkey(Authctxt *authctxt)
 		authenticated = 0;
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key)) &&
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
-		    buffer_len(&b))) == 1)
+		    buffer_len(&b))) == 1) {
 			authenticated = 1;
+			/* Record the successful key to prevent reuse */
+			auth2_record_userkey(authctxt, key);
+			key = NULL; /* Don't free below */
+		}
 		buffer_free(&b);
 		free(sig);
 	} else {
@@ -680,6 +689,35 @@ user_key_allowed(struct passwd *pw, Key *key)
 	}
 
 	return success;
+}
+
+/* Records a public key in the list of previously-successful keys */
+void
+auth2_record_userkey(Authctxt *authctxt, struct sshkey *key)
+{
+	struct sshkey **tmp;
+
+	if (authctxt->nprev_userkeys >= INT_MAX ||
+	    (tmp = reallocarray(authctxt->prev_userkeys,
+	    authctxt->nprev_userkeys + 1, sizeof(*tmp))) == NULL)
+		fatal("%s: reallocarray failed", __func__);
+	authctxt->prev_userkeys = tmp;
+	authctxt->prev_userkeys[authctxt->nprev_userkeys] = key;
+	authctxt->nprev_userkeys++;
+}
+
+/* Checks whether a key has already been used successfully for authentication */
+int
+auth2_userkey_already_used(Authctxt *authctxt, struct sshkey *key)
+{
+	u_int i;
+
+	for (i = 0; i < authctxt->nprev_userkeys; i++) {
+		if (sshkey_equal_public(key, authctxt->prev_userkeys[i])) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 Authmethod method_pubkey = {
