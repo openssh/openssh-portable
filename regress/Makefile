@@ -1,6 +1,6 @@
-#	$OpenBSD: Makefile,v 1.70 2014/06/24 01:14:17 djm Exp $
+#	$OpenBSD: Makefile,v 1.71 2014/12/22 02:15:52 djm Exp $
 
-REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t-exec
+REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t-exec
 tests:		$(REGRESS_TARGETS)
 
 # Interop tests are not run by default
@@ -119,7 +119,7 @@ t3:
 	${TEST_SSH_SSHKEYGEN} -if $(OBJ)/t3.out | diff - ${.CURDIR}/rsa_openssh.pub
 
 t4:
-	${TEST_SSH_SSHKEYGEN} -lf ${.CURDIR}/rsa_openssh.pub |\
+	${TEST_SSH_SSHKEYGEN} -E md5 -lf ${.CURDIR}/rsa_openssh.pub |\
 		awk '{print $$2}' | diff - ${.CURDIR}/t4.ok
 
 t5:
@@ -163,6 +163,10 @@ $(OBJ)/t10.out:
 t10: $(OBJ)/t10.out
 	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t10.out > /dev/null
 	${TEST_SSH_SSHKEYGEN} -Bf $(OBJ)/t10.out > /dev/null
+
+t11:
+	${TEST_SSH_SSHKEYGEN} -E sha256 -lf ${.CURDIR}/rsa_openssh.pub |\
+		awk '{print $$2}' | diff - ${.CURDIR}/t11.ok
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
