@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.256 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.257 2014/12/22 07:55:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -162,9 +162,18 @@ initialize_server_options(ServerOptions *options)
 	options->fingerprint_hash = -1;
 }
 
+/* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
+static int
+option_clear_or_none(const char *o)
+{
+	return o == NULL || strcasecmp(o, "none") == 0;
+}
+
 void
 fill_default_server_options(ServerOptions *options)
 {
+	int i;
+
 	/* Portable-specific options */
 	if (options->use_pam == -1)
 		options->use_pam = 0;
@@ -196,7 +205,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->listen_addrs == NULL)
 		add_listen_addr(options, NULL, 0);
 	if (options->pid_file == NULL)
-		options->pid_file = _PATH_SSH_DAEMON_PID_FILE;
+		options->pid_file = xstrdup(_PATH_SSH_DAEMON_PID_FILE);
 	if (options->server_key_bits == -1)
 		options->server_key_bits = 1024;
 	if (options->login_grace_time == -1)
@@ -220,7 +229,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->x11_use_localhost == -1)
 		options->x11_use_localhost = 1;
 	if (options->xauth_location == NULL)
-		options->xauth_location = _PATH_XAUTH;
+		options->xauth_location = xstrdup(_PATH_XAUTH);
 	if (options->permit_tty == -1)
 		options->permit_tty = 1;
 	if (options->permit_user_rc == -1)
@@ -320,6 +329,24 @@ fill_default_server_options(ServerOptions *options)
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
 		use_privsep = PRIVSEP_NOSANDBOX;
+
+#define CLEAR_ON_NONE(v) \
+	do { \
+		if (option_clear_or_none(v)) { \
+			free(v); \
+			v = NULL; \
+		} \
+	} while(0)
+	CLEAR_ON_NONE(options->pid_file);
+	CLEAR_ON_NONE(options->xauth_location);
+	CLEAR_ON_NONE(options->banner);
+	CLEAR_ON_NONE(options->trusted_user_ca_keys);
+	CLEAR_ON_NONE(options->revoked_keys_file);
+	for (i = 0; i < options->num_host_key_files; i++)
+		CLEAR_ON_NONE(options->host_key_files[i]);
+	for (i = 0; i < options->num_host_cert_files; i++)
+		CLEAR_ON_NONE(options->host_cert_files[i]);
+#undef CLEAR_ON_NONE
 
 #ifndef HAVE_MMAP
 	if (use_privsep && options->compression == 1) {
@@ -538,6 +565,8 @@ derelativise_path(const char *path)
 {
 	char *expanded, *ret, cwd[MAXPATHLEN];
 
+	if (strcasecmp(path, "none") == 0)
+		return xstrdup("none");
 	expanded = tilde_expand_filename(path, getuid());
 	if (*expanded == '/')
 		return expanded;
@@ -1982,7 +2011,8 @@ dump_cfg_string(ServerOpCodes code, const char *val)
 {
 	if (val == NULL)
 		return;
-	printf("%s %s\n", lookup_opcode_name(code), val);
+	printf("%s %s\n", lookup_opcode_name(code),
+	    val == NULL ? "none" : val);
 }
 
 static void

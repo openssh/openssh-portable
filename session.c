@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.274 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: session.c,v 1.275 2014/12/22 07:55:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2648,7 +2648,7 @@ session_setup_x11fwd(Session *s)
 		debug("X11 forwarding disabled in server configuration file.");
 		return 0;
 	}
-	if (!options.xauth_location ||
+	if (options.xauth_location == NULL ||
 	    (stat(options.xauth_location, &st) == -1)) {
 		packet_send_debug("No xauth program; cannot forward with spoofing.");
 		return 0;

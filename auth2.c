@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.133 2014/12/18 23:58:04 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.134 2014/12/22 07:55:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -151,9 +151,7 @@ userauth_banner(void)
 {
 	char *banner = NULL;
 
-	if (options.banner == NULL ||
-	    strcasecmp(options.banner, "none") == 0 ||
-	    (datafellows & SSH_BUG_BANNER) != 0)
+	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER) != 0)
 		return;
 
 	if ((banner = PRIVSEP(auth2_read_banner())) == NULL)

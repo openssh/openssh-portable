@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.429 2014/12/11 08:20:09 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.430 2014/12/22 07:55:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1208,7 +1208,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			logit("Received signal %d; terminating.",
 			    (int) received_sigterm);
 			close_listen_socks();
-			unlink(options.pid_file);
+			if (options.pid_file != NULL)
+				unlink(options.pid_file);
 			exit(received_sigterm == SIGTERM ? 0 : 255);
 		}
 		if (key_used && key_do_regen) {
@@ -1694,10 +1695,6 @@ main(int ac, char **av)
 	    sizeof(Key *));
 	sensitive_data.host_pubkeys = xcalloc(options.num_host_key_files,
 	    sizeof(Key *));
-	for (i = 0; i < options.num_host_key_files; i++) {
-		sensitive_data.host_keys[i] = NULL;
-		sensitive_data.host_pubkeys[i] = NULL;
-	}
 
 	if (options.host_key_agent) {
 		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
@@ -1707,6 +1704,8 @@ main(int ac, char **av)
 	}
 
 	for (i = 0; i < options.num_host_key_files; i++) {
+		if (options.host_key_files[i] == NULL)
+			continue;
 		key = key_load_private(options.host_key_files[i], "", NULL);
 		pubkey = key_load_public(options.host_key_files[i], NULL);
 		sensitive_data.host_keys[i] = key;
@@ -1765,6 +1764,8 @@ main(int ac, char **av)
 		sensitive_data.host_certificates[i] = NULL;
 
 	for (i = 0; i < options.num_host_cert_files; i++) {
+		if (options.host_cert_files[i] == NULL)
+			continue;
 		key = key_load_public(options.host_cert_files[i], NULL);
 		if (key == NULL) {
 			error("Could not load host certificate: %s",
@@ -1932,7 +1933,7 @@ main(int ac, char **av)
 		 * Write out the pid file after the sigterm handler
 		 * is setup and the listen sockets are bound
 		 */
-		if (!debug_flag) {
+		if (options.pid_file != NULL && !debug_flag) {
 			FILE *f = fopen(options.pid_file, "w");
 
 			if (f == NULL) {
