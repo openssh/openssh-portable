@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.19 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.20 2014/12/23 22:42:48 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -163,7 +163,7 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 	resolvedname = get_canonical_hostname(options.use_dns);
 	ipaddr = get_remote_ipaddr();
 
-	debug2("userauth_hostbased: chost %s resolvedname %s ipaddr %s",
+	debug2("%s: chost %s resolvedname %s ipaddr %s", __func__,
 	    chost, resolvedname, ipaddr);
 
 	if (((len = strlen(chost)) > 0) && chost[len - 1] == '.') {
@@ -172,19 +172,27 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 	}
 
 	if (options.hostbased_uses_name_from_packet_only) {
-		if (auth_rhosts2(pw, cuser, chost, chost) == 0)
+		if (auth_rhosts2(pw, cuser, chost, chost) == 0) {
+			debug2("%s: auth_rhosts2 refused "
+			    "user \"%.100s\" host \"%.100s\" (from packet)",
+			    __func__, cuser, chost);
 			return 0;
+		}
 		lookup = chost;
 	} else {
 		if (strcasecmp(resolvedname, chost) != 0)
 			logit("userauth_hostbased mismatch: "
 			    "client sends %s, but we resolve %s to %s",
 			    chost, ipaddr, resolvedname);
-		if (auth_rhosts2(pw, cuser, resolvedname, ipaddr) == 0)
+		if (auth_rhosts2(pw, cuser, resolvedname, ipaddr) == 0) {
+			debug2("%s: auth_rhosts2 refused "
+			    "user \"%.100s\" host \"%.100s\" addr \"%.100s\"",
+			    __func__, cuser, resolvedname, ipaddr);
 			return 0;
+		}
 		lookup = resolvedname;
 	}
-	debug2("userauth_hostbased: access allowed by auth_rhosts2");
+	debug2("%s: access allowed by auth_rhosts2", __func__);
 
 	if (key_is_cert(key) && 
 	    key_cert_check_authority(key, 1, 0, lookup, &reason)) {
