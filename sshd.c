@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.430 2014/12/22 07:55:51 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.431 2015/01/07 18:15:07 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2254,8 +2254,10 @@ do_ssh1_kex(void)
 {
 	int i, len;
 	int rsafail = 0;
-	BIGNUM *session_key_int;
+	BIGNUM *session_key_int, *fake_key_int, *real_key_int;
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
+	u_char fake_key_bytes[4096 / 8];
+	size_t fake_key_len;
 	u_char cookie[8];
 	u_int cipher_type, auth_mask, protocol_flags;
 
@@ -2333,74 +2335,61 @@ do_ssh1_kex(void)
 	debug("Encryption type: %.200s", cipher_name(cipher_type));
 
 	/* Get the encrypted integer. */
-	if ((session_key_int = BN_new()) == NULL)
+	if ((real_key_int = BN_new()) == NULL)
 		fatal("do_ssh1_kex: BN_new failed");
-	packet_get_bignum(session_key_int);
+	packet_get_bignum(real_key_int);
 
 	protocol_flags = packet_get_int();
 	packet_set_protocol_flags(protocol_flags);
 	packet_check_eom();
 
-	/* Decrypt session_key_int using host/server keys */
-	rsafail = PRIVSEP(ssh1_session_key(session_key_int));
+	/* Setup a fake key in case RSA decryption fails */
+	if ((fake_key_int = BN_new()) == NULL)
+		fatal("do_ssh1_kex: BN_new failed");
+	fake_key_len = BN_num_bytes(real_key_int);
+	if (fake_key_len > sizeof(fake_key_bytes))
+		fake_key_len = sizeof(fake_key_bytes);
+	arc4random_buf(fake_key_bytes, fake_key_len);
+	if (BN_bin2bn(fake_key_bytes, fake_key_len, fake_key_int) == NULL)
+		fatal("do_ssh1_kex: BN_bin2bn failed");
+
+	/* Decrypt real_key_int using host/server keys */
+	rsafail = PRIVSEP(ssh1_session_key(real_key_int));
+	/* If decryption failed, use the fake key. Else, the real key. */
+	if (rsafail)
+		session_key_int = fake_key_int;
+	else
+		session_key_int = real_key_int;
 
 	/*
 	 * Extract session key from the decrypted integer.  The key is in the
 	 * least significant 256 bits of the integer; the first byte of the
 	 * key is in the highest bits.
 	 */
-	if (!rsafail) {
-		(void) BN_mask_bits(session_key_int, sizeof(session_key) * 8);
-		len = BN_num_bytes(session_key_int);
-		if (len < 0 || (u_int)len > sizeof(session_key)) {
-			error("do_ssh1_kex: bad session key len from %s: "
-			    "session_key_int %d > sizeof(session_key) %lu",
-			    get_remote_ipaddr(), len, (u_long)sizeof(session_key));
-			rsafail++;
-		} else {
-			explicit_bzero(session_key, sizeof(session_key));
-			BN_bn2bin(session_key_int,
-			    session_key + sizeof(session_key) - len);
+	(void) BN_mask_bits(session_key_int, sizeof(session_key) * 8);
+	len = BN_num_bytes(session_key_int);
+	if (len < 0 || (u_int)len > sizeof(session_key)) {
+		error("do_ssh1_kex: bad session key len from %s: "
+		    "session_key_int %d > sizeof(session_key) %lu",
+		    get_remote_ipaddr(), len, (u_long)sizeof(session_key));
+		rsafail++;
+	} else {
+		explicit_bzero(session_key, sizeof(session_key));
+		BN_bn2bin(session_key_int,
+		    session_key + sizeof(session_key) - len);
 
-			derive_ssh1_session_id(
-			    sensitive_data.ssh1_host_key->rsa->n,
-			    sensitive_data.server_key->rsa->n,
-			    cookie, session_id);
-			/*
-			 * Xor the first 16 bytes of the session key with the
-			 * session id.
-			 */
-			for (i = 0; i < 16; i++)
-				session_key[i] ^= session_id[i];
-		}
-	}
-	if (rsafail) {
-		int bytes = BN_num_bytes(session_key_int);
-		u_char *buf = xmalloc(bytes);
-		struct ssh_digest_ctx *md;
-
-		logit("do_connection: generating a fake encryption key");
-		BN_bn2bin(session_key_int, buf);
-		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
-		    ssh_digest_update(md, buf, bytes) < 0 ||
-		    ssh_digest_update(md, sensitive_data.ssh1_cookie,
-		    SSH_SESSION_KEY_LENGTH) < 0 ||
-		    ssh_digest_final(md, session_key, sizeof(session_key)) < 0)
-			fatal("%s: md5 failed", __func__);
-		ssh_digest_free(md);
-		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
-		    ssh_digest_update(md, session_key, 16) < 0 ||
-		    ssh_digest_update(md, sensitive_data.ssh1_cookie,
-		    SSH_SESSION_KEY_LENGTH) < 0 ||
-		    ssh_digest_final(md, session_key + 16,
-		    sizeof(session_key) - 16) < 0)
-			fatal("%s: md5 failed", __func__);
-		ssh_digest_free(md);
-		explicit_bzero(buf, bytes);
-		free(buf);
+		derive_ssh1_session_id(
+		    sensitive_data.ssh1_host_key->rsa->n,
+		    sensitive_data.server_key->rsa->n,
+		    cookie, session_id);
+		/*
+		 * Xor the first 16 bytes of the session key with the
+		 * session id.
+		 */
 		for (i = 0; i < 16; i++)
-			session_id[i] = session_key[i] ^ session_key[i + 16];
+			session_key[i] ^= session_id[i];
 	}
+
 	/* Destroy the private and public keys. No longer. */
 	destroy_sensitive_data();
 
@@ -2408,7 +2397,8 @@ do_ssh1_kex(void)
 		mm_ssh1_session_id(session_id);
 
 	/* Destroy the decrypted integer.  It is no longer needed. */
-	BN_clear_free(session_key_int);
+	BN_clear_free(real_key_int);
+	BN_clear_free(fake_key_int);
 
 	/* Set the session key.  From this on all communications will be encrypted. */
 	packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, cipher_type);
