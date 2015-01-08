@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.224 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.225 2015/01/08 13:44:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1464,6 +1464,7 @@ parse_int:
 		goto parse_string;
 
 	case oFingerprintHash:
+		intptr = &options->fingerprint_hash;
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.",
@@ -1471,8 +1472,8 @@ parse_int:
 		if ((value = ssh_digest_alg_by_name(arg)) == -1)
 			fatal("%.200s line %d: Invalid hash algorithm \"%s\".",
 			    filename, linenum, arg);
-		if (*activep)
-			options->fingerprint_hash = value;
+		if (*activep && *intptr == -1)
+			*intptr = value;
 		break;
 
 	case oDeprecated:
