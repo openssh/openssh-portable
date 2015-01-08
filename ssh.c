@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.410 2014/11/18 20:54:28 krw Exp $ */
+/* $OpenBSD: ssh.c,v 1.411 2015/01/08 10:15:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1149,26 +1149,26 @@ main(int ac, char **av)
 		PRIV_START;
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[1] = key_load_private_cert(KEY_DSA,
-		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
 #ifdef OPENSSL_HAS_ECC
-		sensitive_data.keys[2] = key_load_private_cert(KEY_ECDSA,
+		sensitive_data.keys[1] = key_load_private_cert(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
 #endif
+		sensitive_data.keys[2] = key_load_private_cert(KEY_ED25519,
+		    _PATH_HOST_ED25519_KEY_FILE, "", NULL);
 		sensitive_data.keys[3] = key_load_private_cert(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
-		sensitive_data.keys[4] = key_load_private_cert(KEY_ED25519,
-		    _PATH_HOST_ED25519_KEY_FILE, "", NULL);
-		sensitive_data.keys[5] = key_load_private_type(KEY_DSA,
-		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[4] = key_load_private_cert(KEY_DSA,
+		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
 #ifdef OPENSSL_HAS_ECC
-		sensitive_data.keys[6] = key_load_private_type(KEY_ECDSA,
+		sensitive_data.keys[5] = key_load_private_type(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL, NULL);
 #endif
+		sensitive_data.keys[6] = key_load_private_type(KEY_ED25519,
+		    _PATH_HOST_ED25519_KEY_FILE, "", NULL, NULL);
 		sensitive_data.keys[7] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[8] = key_load_private_type(KEY_ED25519,
-		    _PATH_HOST_ED25519_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[8] = key_load_private_type(KEY_DSA,
+		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
@@ -1177,26 +1177,26 @@ main(int ac, char **av)
 		    sensitive_data.keys[6] == NULL &&
 		    sensitive_data.keys[7] == NULL &&
 		    sensitive_data.keys[8] == NULL) {
-			sensitive_data.keys[1] = key_load_cert(
-			    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
-			sensitive_data.keys[2] = key_load_cert(
+			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_ECDSA_KEY_FILE);
 #endif
+			sensitive_data.keys[2] = key_load_cert(
+			    _PATH_HOST_ED25519_KEY_FILE);
 			sensitive_data.keys[3] = key_load_cert(
 			    _PATH_HOST_RSA_KEY_FILE);
 			sensitive_data.keys[4] = key_load_cert(
-			    _PATH_HOST_ED25519_KEY_FILE);
-			sensitive_data.keys[5] = key_load_public(
-			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
-			sensitive_data.keys[6] = key_load_public(
+			sensitive_data.keys[5] = key_load_public(
 			    _PATH_HOST_ECDSA_KEY_FILE, NULL);
 #endif
+			sensitive_data.keys[6] = key_load_public(
+			    _PATH_HOST_ED25519_KEY_FILE, NULL);
 			sensitive_data.keys[7] = key_load_public(
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.keys[8] = key_load_public(
-			    _PATH_HOST_ED25519_KEY_FILE, NULL);
+			    _PATH_HOST_DSA_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}
 	}
