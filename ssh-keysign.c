@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.44 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.45 2015/01/08 10:14:08 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -52,6 +52,8 @@
 #include "pathnames.h"
 #include "readconf.h"
 #include "uidswap.h"
+#include "sshkey.h"
+#include "ssherr.h"
 
 /* XXX readconf.c needs these */
 uid_t original_real_uid;
@@ -69,6 +71,8 @@ valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
 	char *pkalg, *p;
 	int pktype, fail;
 
+	if (ret != NULL)
+		*ret = NULL;
 	fail = 0;
 
 	buffer_init(&b);
@@ -153,7 +157,7 @@ main(int argc, char **argv)
 #define NUM_KEYTYPES 4
 	Key *keys[NUM_KEYTYPES], *key = NULL;
 	struct passwd *pw;
-	int key_fd[NUM_KEYTYPES], i, found, version = 2, fd;
+	int r, key_fd[NUM_KEYTYPES], i, found, version = 2, fd;
 	u_char *signature, *data;
 	char *host, *fp;
 	u_int slen, dlen;
@@ -209,14 +213,15 @@ main(int argc, char **argv)
 		keys[i] = NULL;
 		if (key_fd[i] == -1)
 			continue;
-#ifdef WITH_OPENSSL
-/* XXX wrong api */
-		keys[i] = key_load_private_pem(key_fd[i], KEY_UNSPEC,
-		    NULL, NULL);
-#endif
+		r = sshkey_load_private_type_fd(key_fd[i], KEY_UNSPEC,
+		    NULL, &key, NULL);
 		close(key_fd[i]);
-		if (keys[i] != NULL)
+		if (r != 0)
+			debug("parse key %d: %s", i, ssh_err(r));
+		else if (key != NULL) {
+			keys[i] = key;
 			found = 1;
+		}
 	}
 	if (!found)
 		fatal("no hostkey found");

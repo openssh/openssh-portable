@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.21 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.22 2015/01/08 10:14:08 djm Exp $ */
 
 #include "includes.h"
 
@@ -1248,7 +1248,7 @@ ssh_krl_file_contains_key(const char *path, const struct sshkey *key)
 		oerrno = errno;
 		goto out;
 	}
-	if ((r = sshkey_load_file(fd, path, krlbuf)) != 0) {
+	if ((r = sshkey_load_file(fd, krlbuf)) != 0) {
 		oerrno = errno;
 		goto out;
 	}

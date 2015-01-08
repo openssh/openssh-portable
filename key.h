@@ -1,4 +1,4 @@
-/* $OpenBSD: key.h,v 1.44 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: key.h,v 1.45 2015/01/08 10:14:08 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -104,7 +104,6 @@ Key	*key_load_public(const char *, char **);
 Key	*key_load_private(const char *, const char *, char **);
 Key	*key_load_private_cert(int, const char *, const char *, int *);
 Key	*key_load_private_type(int, const char *, const char *, char **, int *);
-Key	*key_load_private_pem(int, int, const char *, char **);
 int	 key_perm_ok(int, const char *);
 
 #endif

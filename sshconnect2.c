@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.212 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.213 2015/01/08 10:14:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1488,6 +1488,8 @@ userauth_hostbased(Authctxt *authctxt)
 	const char *service;
 	u_int blen, slen;
 	int ok, i, found = 0;
+
+	/* XXX provide some way to allow user to specify key types attempted */
 
 	/* check for a useful key */
 	for (i = 0; i < sensitive->nkeys; i++) {

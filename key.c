@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.124 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: key.c,v 1.125 2015/01/08 10:14:08 djm Exp $ */
 /*
  * placed in the public domain
  */
@@ -328,7 +328,7 @@ key_load_file(int fd, const char *filename, struct sshbuf *blob)
 {
 	int r;
 
-	if ((r = sshkey_load_file(fd, filename, blob)) != 0) {
+	if ((r = sshkey_load_file(fd, blob)) != 0) {
 		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
 		error("%s: %s", __func__, ssh_err(r));
 		return 0;
@@ -434,27 +434,6 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 	}
 	return ret;
 }
-
-#ifdef WITH_OPENSSL
-Key *
-key_load_private_pem(int fd, int type, const char *passphrase,
-    char **commentp)
-{
-	int r;
-	Key *ret = NULL;
-
-	if ((r = sshkey_load_private_pem(fd, type, passphrase,
-	     &ret, commentp)) != 0) {
-		fatal_on_fatal_errors(r, __func__, SSH_ERR_LIBCRYPTO_ERROR);
-		if (r == SSH_ERR_KEY_WRONG_PASSPHRASE)
-			debug("%s: %s", __func__, ssh_err(r));
-		else
-			error("%s: %s", __func__, ssh_err(r));
-		return NULL;
-	}
-	return ret;
-}
-#endif /* WITH_OPENSSL */
 
 int
 key_perm_ok(int fd, const char *filename)

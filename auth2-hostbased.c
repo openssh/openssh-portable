@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.20 2014/12/23 22:42:48 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.21 2015/01/08 10:14:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -84,6 +84,7 @@ userauth_hostbased(Authctxt *authctxt)
 	buffer_dump(&b);
 	buffer_free(&b);
 #endif
+	/* XXX provide some way to allow admin to specify key types accepted */
 	pktype = key_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
 		/* this is perfectly legal */

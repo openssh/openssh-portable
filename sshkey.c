@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.7 2014/12/21 22:27:55 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.8 2015/01/08 10:14:08 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3719,20 +3719,16 @@ sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
 #endif /* WITH_SSH1 */
 
 #ifdef WITH_OPENSSL
-/* XXX make private once ssh-keysign.c fixed */
-int
+static int
 sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
-    const char *passphrase, struct sshkey **keyp, char **commentp)
+    const char *passphrase, struct sshkey **keyp)
 {
 	EVP_PKEY *pk = NULL;
 	struct sshkey *prv = NULL;
-	char *name = "<no key>";
 	BIO *bio = NULL;
 	int r;
 
 	*keyp = NULL;
-	if (commentp != NULL)
-		*commentp = NULL;
 
 	if ((bio = BIO_new(BIO_s_mem())) == NULL || sshbuf_len(blob) > INT_MAX)
 		return SSH_ERR_ALLOC_FAIL;
@@ -3755,7 +3751,6 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		}
 		prv->rsa = EVP_PKEY_get1_RSA(pk);
 		prv->type = KEY_RSA;
-		name = "rsa w/o comment";
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, prv->rsa, 8);
 #endif
@@ -3771,7 +3766,6 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		}
 		prv->dsa = EVP_PKEY_get1_DSA(pk);
 		prv->type = KEY_DSA;
-		name = "dsa w/o comment";
 #ifdef DEBUG_PK
 		DSA_print_fp(stderr, prv->dsa, 8);
 #endif
@@ -3793,7 +3787,6 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 			r = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
-		name = "ecdsa w/o comment";
 # ifdef DEBUG_PK
 		if (prv != NULL && prv->ecdsa != NULL)
 			sshkey_dump_ec_key(prv->ecdsa);
@@ -3801,11 +3794,6 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 #endif /* OPENSSL_HAS_ECC */
 	} else {
 		r = SSH_ERR_INVALID_FORMAT;
-		goto out;
-	}
-	if (commentp != NULL &&
-	    (*commentp = strdup(name)) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	r = 0;
@@ -3839,8 +3827,8 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 	case KEY_DSA:
 	case KEY_ECDSA:
 	case KEY_RSA:
-		return sshkey_parse_private_pem_fileblob(blob, type, passphrase,
-		    keyp, commentp);
+		return sshkey_parse_private_pem_fileblob(blob, type,
+		    passphrase, keyp);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 		return sshkey_parse_private2(blob, type, passphrase,
@@ -3850,8 +3838,8 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		    commentp)) == 0)
 			return 0;
 #ifdef WITH_OPENSSL
-		return sshkey_parse_private_pem_fileblob(blob, type, passphrase,
-		    keyp, commentp);
+		return sshkey_parse_private_pem_fileblob(blob, type,
+		    passphrase, keyp);
 #else
 		return SSH_ERR_INVALID_FORMAT;
 #endif /* WITH_OPENSSL */
