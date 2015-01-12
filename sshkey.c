@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.9 2015/01/12 13:29:27 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.10 2015/01/12 20:13:27 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1277,8 +1277,14 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			return SSH_ERR_ALLOC_FAIL;
 		/* trim comment */
 		space = strchr(cp, ' ');
-		if (space)
-			*space = '\0';
+		if (space) {
+			/* advance 'space': skip whitespace */
+			*space++ = '\0';
+			while (*space == ' ' || *space == '\t')
+				space++;
+			*cpp = space;
+		} else
+			*cpp = cp + strlen(cp);
 		if ((r = sshbuf_b64tod(blob, cp)) != 0) {
 			sshbuf_free(blob);
 			return r;
@@ -1355,12 +1361,6 @@ sshkey_read(struct sshkey *ret, char **cpp)
 		sshkey_free(k);
 		if (retval != 0)
 			break;
-		/* advance cp: skip whitespace and data */
-		while (*cp == ' ' || *cp == '\t')
-			cp++;
-		while (*cp != '\0' && *cp != ' ' && *cp != '\t')
-			cp++;
-		*cpp = cp;
 		break;
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
