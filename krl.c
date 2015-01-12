@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.23 2015/01/12 14:05:19 markus Exp $ */
+/* $OpenBSD: krl.c,v 1.24 2015/01/12 19:22:46 markus Exp $ */
 
 #include "includes.h"
 
@@ -716,7 +716,7 @@ ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
 	sshbuf_reset(sect);
 	RB_FOREACH(rb, revoked_blob_tree, &krl->revoked_keys) {
 		debug3("%s: key len %zu ", __func__, rb->len);
-		if ((sshbuf_put_string(sect, rb->blob, rb->len)) != 0)
+		if ((r = sshbuf_put_string(sect, rb->blob, rb->len)) != 0)
 			goto out;
 	}
 	if (sshbuf_len(sect) != 0) {
@@ -727,7 +727,7 @@ ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
 	sshbuf_reset(sect);
 	RB_FOREACH(rb, revoked_blob_tree, &krl->revoked_sha1s) {
 		debug3("%s: hash len %zu ", __func__, rb->len);
-		if ((sshbuf_put_string(sect, rb->blob, rb->len)) != 0)
+		if ((r = sshbuf_put_string(sect, rb->blob, rb->len)) != 0)
 			goto out;
 	}
 	if (sshbuf_len(sect) != 0) {
