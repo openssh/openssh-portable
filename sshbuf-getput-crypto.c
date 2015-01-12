@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.2 2014/06/18 15:42:09 naddy Exp $	*/
+/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.3 2015/01/12 15:18:07 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -195,7 +195,8 @@ sshbuf_put_bignum1(struct sshbuf *buf, const BIGNUM *v)
 		return r;
 	}
 	POKE_U16(dp, len_bits);
-	memcpy(dp + 2, d, len_bytes);
+	if (len_bytes != 0)
+		memcpy(dp + 2, d, len_bytes);
 	bzero(d, sizeof(d));
 	return 0;
 }
