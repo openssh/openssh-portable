@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.22 2015/01/08 10:14:08 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.23 2015/01/12 14:05:19 markus Exp $ */
 
 #include "includes.h"
 
@@ -369,7 +369,7 @@ plain_key_blob(const struct sshkey *key, u_char **blob, size_t *blen)
 		}
 	}
 	r = sshkey_to_blob(kcopy, blob, blen);
-	free(kcopy);
+	sshkey_free(kcopy);
 	return r;
 }
 
