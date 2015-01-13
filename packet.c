@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.199 2014/10/24 02:01:20 lteo Exp $ */
+/* $OpenBSD: packet.c,v 1.200 2015/01/13 19:31:40 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -72,6 +72,7 @@
 #include "cipher.h"
 #include "key.h"
 #include "kex.h"
+#include "digest.h"
 #include "mac.h"
 #include "log.h"
 #include "canohost.h"
@@ -275,7 +276,7 @@ packet_stop_discard(void)
 		(void) mac_compute(active_state->packet_discard_mac,
 		    active_state->p_read.seqnr,
 		    buffer_ptr(&active_state->incoming_packet),
-		    PACKET_MAX_SIZE);
+		    PACKET_MAX_SIZE, NULL, 0);
 	}
 	logit("Finished discarding for %.200s", get_remote_ipaddr());
 	cleanup_exit(255);
@@ -863,7 +864,7 @@ packet_enable_delayed_compress(void)
 static void
 packet_send2_wrapped(void)
 {
-	u_char type, *cp, *macbuf = NULL;
+	u_char type, *cp, macbuf[SSH_DIGEST_MAX_LENGTH];
 	u_char padlen, pad = 0;
 	u_int i, len, authlen = 0, aadlen = 0;
 	u_int32_t rnd = 0;
@@ -871,6 +872,7 @@ packet_send2_wrapped(void)
 	Mac *mac   = NULL;
 	Comp *comp = NULL;
 	int block_size;
+	int r;
 
 	if (active_state->newkeys[MODE_OUT] != NULL) {
 		enc  = &active_state->newkeys[MODE_OUT]->enc;
@@ -953,8 +955,10 @@ packet_send2_wrapped(void)
 
 	/* compute MAC over seqnr and packet(length fields, payload, padding) */
 	if (mac && mac->enabled && !mac->etm) {
-		macbuf = mac_compute(mac, active_state->p_send.seqnr,
-		    buffer_ptr(&active_state->outgoing_packet), len);
+		if ((r = mac_compute(mac, active_state->p_send.seqnr,
+		    buffer_ptr(&active_state->outgoing_packet), len,
+		    macbuf, sizeof(macbuf))) != 0)
+			fatal("%s: mac_compute: %s", __func__, ssh_err(r));
 		DBG(debug("done calc MAC out #%d", active_state->p_send.seqnr));
 	}
 	/* encrypt packet and append to output buffer. */
@@ -967,8 +971,10 @@ packet_send2_wrapped(void)
 	if (mac && mac->enabled) {
 		if (mac->etm) {
 			/* EtM: compute mac over aadlen + cipher text */
-			macbuf = mac_compute(mac,
-			    active_state->p_send.seqnr, cp, len);
+			if ((r = mac_compute(mac,
+			    active_state->p_send.seqnr, cp, len,
+			    macbuf, sizeof(macbuf))) != 0)
+				fatal("%s: mac_compute: %s", __func__, ssh_err(r));
 			DBG(debug("done calc MAC(EtM) out #%d",
 			    active_state->p_send.seqnr));
 		}
@@ -1272,8 +1278,9 @@ static int
 packet_read_poll2(u_int32_t *seqnr_p)
 {
 	u_int padlen, need;
-	u_char *macbuf = NULL, *cp, type;
+	u_char type, *cp, macbuf[SSH_DIGEST_MAX_LENGTH];
 	u_int maclen, authlen = 0, aadlen = 0, block_size;
+	int r;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
 	Comp *comp = NULL;
@@ -1373,8 +1380,10 @@ packet_read_poll2(u_int32_t *seqnr_p)
 #endif
 	/* EtM: compute mac over encrypted input */
 	if (mac && mac->enabled && mac->etm)
-		macbuf = mac_compute(mac, active_state->p_read.seqnr,
-		    buffer_ptr(&active_state->input), aadlen + need);
+		if ((r = mac_compute(mac, active_state->p_read.seqnr,
+		    buffer_ptr(&active_state->input), aadlen + need,
+		    macbuf, sizeof(macbuf))) != 0)
+			fatal("%s: mac_compute: %s", __func__, ssh_err(r));
 	cp = buffer_append_space(&active_state->incoming_packet, aadlen + need);
 	if (cipher_crypt(&active_state->receive_context,
 	    active_state->p_read.seqnr, cp,
@@ -1387,9 +1396,11 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	 */
 	if (mac && mac->enabled) {
 		if (!mac->etm)
-			macbuf = mac_compute(mac, active_state->p_read.seqnr,
+			if ((r = mac_compute(mac, active_state->p_read.seqnr,
 			    buffer_ptr(&active_state->incoming_packet),
-			    buffer_len(&active_state->incoming_packet));
+			    buffer_len(&active_state->incoming_packet),
+			    macbuf, sizeof(macbuf))) != 0)
+				fatal("%s: mac_compute: %s", __func__, ssh_err(r));
 		if (timingsafe_bcmp(macbuf, buffer_ptr(&active_state->input),
 		    mac->mac_len) != 0) {
 			logit("Corrupted MAC on input.");
