@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.h,v 1.3 2014/05/02 09:41:32 andre Exp $	*/
+/*	$OpenBSD: test_helper.h,v 1.4 2015/01/13 14:51:51 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -40,6 +40,7 @@ void tests(void);
 
 const char *test_data_file(const char *name);
 void test_start(const char *n);
+void test_info(char *s, size_t len);
 void set_onerror_func(test_onerror_func_t *f, void *ctx);
 void test_done(void);
 void ssl_err_check(const char *file, int line);

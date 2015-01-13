@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.2 2014/05/02 09:41:32 andre Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.3 2015/01/13 14:51:51 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
+#include <sys/uio.h>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -31,6 +32,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <openssl/bn.h>
 
@@ -39,6 +41,7 @@
 #endif
 
 #include "test_helper.h"
+#include "atomicio.h"
 
 #define TEST_CHECK_INT(r, pred) do {		\
 		switch (pred) {			\
@@ -180,6 +183,24 @@ test_data_file(const char *name)
 }
 
 void
+test_info(char *s, size_t len)
+{
+	snprintf(s, len, "In test %u - \"%s\"\n", test_number,
+	    active_test_name == NULL ? "<none>" : active_test_name);
+}
+
+#ifdef SIGINFO
+static void
+siginfo(int unused __unused)
+{
+	char buf[256];
+
+	test_info(buf, sizeof(buf));
+	atomicio(vwrite, STDERR_FILENO, buf, strlen(buf));
+}
+#endif
+
+void
 test_start(const char *n)
 {
 	assert(active_test_name == NULL);
@@ -187,6 +208,9 @@ test_start(const char *n)
 	if (verbose_mode)
 		printf("test %u - \"%s\": ", test_number, active_test_name);
 	test_number++;
+#ifdef SIGINFO
+	signal(SIGINFO, siginfo);
+#endif
 }
 
 void
