@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.257 2014/12/22 07:55:51 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.258 2015/01/13 07:39:19 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -104,8 +104,10 @@ initialize_server_options(ServerOptions *options)
 	options->rhosts_rsa_authentication = -1;
 	options->hostbased_authentication = -1;
 	options->hostbased_uses_name_from_packet_only = -1;
+	options->hostbased_key_types = NULL;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
+	options->pubkey_key_types = NULL;
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
@@ -248,10 +250,14 @@ fill_default_server_options(ServerOptions *options)
 		options->hostbased_authentication = 0;
 	if (options->hostbased_uses_name_from_packet_only == -1)
 		options->hostbased_uses_name_from_packet_only = 0;
+	if (options->hostbased_key_types == NULL)
+		options->hostbased_key_types = xstrdup("*");
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
+	if (options->pubkey_key_types == NULL)
+		options->pubkey_key_types = xstrdup("*");
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 0;
 	if (options->kerberos_or_local_passwd == -1)
@@ -365,8 +371,8 @@ typedef enum {
 	/* Portable-specific options */
 	sUsePAM,
 	/* Standard Options */
-	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
-	sPermitRootLogin, sLogFacility, sLogLevel,
+	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime,
+	sKeyRegenerationTime, sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
 	sKerberosGetAFSToken,
@@ -379,11 +385,11 @@ typedef enum {
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
-	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem,
-	sMaxStartups, sMaxAuthTries, sMaxSessions,
+	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedKeyTypes,
+	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
-	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
-	sClientAliveCountMax, sAuthorizedKeysFile,
+	sHostbasedUsesNameFromPacketOnly, sHostbasedAcceptedKeyTypes,
+	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sAcceptEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
@@ -430,8 +436,10 @@ static struct {
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication, SSHCFG_ALL },
 	{ "hostbasedauthentication", sHostbasedAuthentication, SSHCFG_ALL },
 	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly, SSHCFG_ALL },
+	{ "hostbasedacceptedkeytypes", sHostbasedAcceptedKeyTypes, SSHCFG_ALL },
 	{ "rsaauthentication", sRSAAuthentication, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
+	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedKeyTypes, SSHCFG_ALL },
 	{ "dsaauthentication", sPubkeyAuthentication, SSHCFG_GLOBAL }, /* alias */
 #ifdef KRB5
 	{ "kerberosauthentication", sKerberosAuthentication, SSHCFG_ALL },
@@ -1111,6 +1119,20 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->hostbased_uses_name_from_packet_only;
 		goto parse_flag;
 
+	case sHostbasedAcceptedKeyTypes:
+		charptr = &options->hostbased_key_types;
+ parse_keytypes:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing argument.",
+			    filename, linenum);
+		if (!sshkey_names_valid2(arg, 1))
+			fatal("%s line %d: Bad key types '%s'.",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
+
 	case sRSAAuthentication:
 		intptr = &options->rsa_authentication;
 		goto parse_flag;
@@ -1118,6 +1140,10 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
 		goto parse_flag;
+
+	case sPubkeyAcceptedKeyTypes:
+		charptr = &options->pubkey_key_types;
+		goto parse_keytypes;
 
 	case sKerberosAuthentication:
 		intptr = &options->kerberos_authentication;
@@ -2142,6 +2168,10 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
 	dump_cfg_string(sKexAlgorithms,
 	    o->kex_algorithms ? o->kex_algorithms : KEX_SERVER_KEX);
+	dump_cfg_string(sHostbasedAcceptedKeyTypes, o->hostbased_key_types ?
+	    o->hostbased_key_types : KEX_DEFAULT_PK_ALG);
+	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types ?
+	    o->pubkey_key_types : KEX_DEFAULT_PK_ALG);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));

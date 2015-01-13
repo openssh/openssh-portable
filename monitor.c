@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.136 2014/12/22 07:51:30 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.137 2015/01/13 07:39:19 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -100,6 +100,7 @@
 #include "ssh2.h"
 #include "roaming.h"
 #include "authfd.h"
+#include "match.h"
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
@@ -1167,10 +1168,18 @@ mm_answer_keyallowed(int sock, Buffer *m)
 	debug3("%s: key_from_blob: %p", __func__, key);
 
 	if (key != NULL && authctxt->valid) {
+		/* These should not make it past the privsep child */
+		if (key_type_plain(key->type) == KEY_RSA &&
+		    (datafellows & SSH_BUG_RSASIGMD5) != 0)
+			fatal("%s: passed a SSH_BUG_RSASIGMD5 key", __func__);
+
 		switch (type) {
 		case MM_USERKEY:
 			allowed = options.pubkey_authentication &&
 			    !auth2_userkey_already_used(authctxt, key) &&
+			    match_pattern_list(sshkey_ssh_name(key),
+			    options.pubkey_key_types,
+			    strlen(options.pubkey_key_types), 0) == 1 &&
 			    user_key_allowed(authctxt->pw, key);
 			pubkey_auth_info(authctxt, key, NULL);
 			auth_method = "publickey";
@@ -1179,6 +1188,9 @@ mm_answer_keyallowed(int sock, Buffer *m)
 			break;
 		case MM_HOSTKEY:
 			allowed = options.hostbased_authentication &&
+			    match_pattern_list(sshkey_ssh_name(key),
+			    options.hostbased_key_types,
+			    strlen(options.hostbased_key_types), 0) == 1 &&
 			    hostbased_key_allowed(authctxt->pw,
 			    cuser, chost, key);
 			pubkey_auth_info(authctxt, key,

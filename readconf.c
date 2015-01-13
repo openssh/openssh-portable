@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.225 2015/01/08 13:44:36 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.226 2015/01/13 07:39:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1116,7 +1116,7 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (!key_names_valid2(arg))
+		if (!sshkey_names_valid2(arg, 1))
 			fatal("%.200s line %d: Bad protocol 2 host key algorithms '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->hostkeyalgorithms == NULL)
