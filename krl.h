@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.h,v 1.3 2014/12/04 01:49:59 djm Exp $ */
+/* $OpenBSD: krl.h,v 1.4 2015/01/13 19:06:49 djm Exp $ */
 
 #ifndef _KRL_H
 #define _KRL_H
@@ -57,7 +57,7 @@ int ssh_krl_revoke_key(struct ssh_krl *krl, const struct sshkey *key);
 int ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
     const struct sshkey **sign_keys, u_int nsign_keys);
 int ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
-    const struct sshkey **sign_ca_keys, u_int nsign_ca_keys);
+    const struct sshkey **sign_ca_keys, size_t nsign_ca_keys);
 int ssh_krl_check_key(struct ssh_krl *krl, const struct sshkey *key);
 int ssh_krl_file_contains_key(const char *path, const struct sshkey *key);
 
