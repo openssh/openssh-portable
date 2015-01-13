@@ -121,6 +121,22 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 	#include <linux/prctl.h>
 ])
 
+ssh1=yes
+AC_ARG_WITH([ssh1],
+	[  --without-ssh1          Disable support for SSH protocol 1],
+	[  if test "x$withval" = "xno" ; then
+		ssh1=no
+	   fi
+	]
+)
+AC_MSG_CHECKING([whether SSH protocol 1 support is enabled])
+if test "x$ssh1" = "xyes" ; then
+	AC_MSG_RESULT([yes])
+	AC_DEFINE_UNQUOTED([WITH_SSH1], [1], [include SSH protocol version 1 support])
+else
+	AC_MSG_RESULT([no])
+fi
+
 use_stack_protector=1
 use_toolchain_hardening=1
 AC_ARG_WITH([stackprotect],
@@ -1523,7 +1539,7 @@ AC_ARG_WITH([audit],
 )
 
 AC_ARG_WITH([pie],
-    [  --with-pie           Build Position Independent Executables if possible], [
+    [  --with-pie              Build Position Independent Executables if possible], [
 	if test "x$withval" = "xno"; then
 		use_pie=no
 	fi
@@ -2314,7 +2330,6 @@ AC_RUN_IFELSE(
 
 # XXX make --without-openssl work
 AC_DEFINE_UNQUOTED([WITH_OPENSSL], [1], [use libcrypto for cryptography])
-AC_DEFINE_UNQUOTED([WITH_SSH1], [1], [include SSH protocol version 1 support])
 
 AC_ARG_WITH([openssl-header-check],
 	[  --without-openssl-header-check Disable OpenSSL version consistency check],

@@ -15,6 +15,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_SSH1
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -755,3 +757,5 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
  success:
 	return;	/* need statement after label */
 }
+
+#endif /* WITH_SSH1 */

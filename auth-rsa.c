@@ -16,6 +16,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_SSH1
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -342,3 +344,5 @@ auth_rsa(Authctxt *authctxt, BIGNUM *client_n)
 	packet_send_debug("RSA authentication accepted.");
 	return (1);
 }
+
+#endif /* WITH_SSH1 */
