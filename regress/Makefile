@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.73 2015/01/12 20:13:27 markus Exp $
+#	$OpenBSD: Makefile,v 1.74 2015/01/13 07:49:49 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -65,7 +65,10 @@ LTESTS= 	connect \
 		forward-control \
 		integrity \
 		krl \
-		multipubkey
+		multipubkey \
+		limit-keytype
+
+
 #		dhgex \
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
