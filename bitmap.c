@@ -154,7 +154,6 @@ bitmap_nbits(struct bitmap *b)
 		bits--;
 	}
 	return bits;
-			
 }
 
 size_t
@@ -181,7 +180,6 @@ bitmap_to_string(struct bitmap *b, void *p, size_t l)
 			s[need - 1 - k++] = (b->d[i] >> (j * 8)) & 0xff;
 		}
 	}
-		
 	return 0;
 }
 
