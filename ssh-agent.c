@@ -524,6 +524,7 @@ reaper(void)
 		return (deadline - now);
 }
 
+#ifdef WITH_SSH1
 /*
  * XXX this and the corresponding serialisation function probably belongs
  * in key.c
@@ -565,6 +566,7 @@ agent_decode_rsa1(struct sshbuf *m, struct sshkey **kp)
 		sshkey_free(k);
 	return r;
 }
+#endif
 
 static void
 process_add_identity(SocketEntry *e, int version)

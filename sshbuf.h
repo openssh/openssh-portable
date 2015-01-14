@@ -209,11 +209,11 @@ int	sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
  * curve points.
  */
 int	sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len);
+int	sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
+	    const u_char **valp, size_t *lenp);
 #ifdef WITH_OPENSSL
 int	sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM *v);
 int	sshbuf_get_bignum1(struct sshbuf *buf, BIGNUM *v);
-int	sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
-	    const u_char **valp, size_t *lenp);
 int	sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v);
 int	sshbuf_put_bignum1(struct sshbuf *buf, const BIGNUM *v);
 # ifdef OPENSSL_HAS_ECC

@@ -1964,7 +1964,6 @@ do_show_cert(struct passwd *pw)
 	exit(0);
 }
 
-#ifdef WITH_OPENSSL
 static void
 load_krl(const char *path, struct ssh_krl **krlp)
 {
@@ -2106,12 +2105,10 @@ update_krl_from_file(struct passwd *pw, const char *file, const Key *ca,
 		fclose(krl_spec);
 	free(path);
 }
-#endif /* WITH_OPENSSL */
 
 static void
 do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 {
-#ifdef WITH_OPENSSL
 	struct ssh_krl *krl;
 	struct stat sb;
 	Key *ca = NULL;
@@ -2161,15 +2158,11 @@ do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 	ssh_krl_free(krl);
 	if (ca != NULL)
 		key_free(ca);
-#else /* WITH_OPENSSL */
-	fatal("KRLs not supported without OpenSSL");
-#endif /* WITH_OPENSSL */
 }
 
 static void
 do_check_krl(struct passwd *pw, int argc, char **argv)
 {
-#ifdef WITH_OPENSSL
 	int i, r, ret = 0;
 	char *comment;
 	struct ssh_krl *krl;
@@ -2192,9 +2185,6 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	}
 	ssh_krl_free(krl);
 	exit(ret);
-#else /* WITH_OPENSSL */
-	fatal("KRLs not supported without OpenSSL");
-#endif /* WITH_OPENSSL */
 }
 
 static void

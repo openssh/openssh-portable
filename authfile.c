@@ -551,12 +551,10 @@ sshkey_check_revoked(struct sshkey *key, const char *revoked_keys_file)
 {
 	int r;
 
-#ifdef WITH_OPENSSL
 	r = ssh_krl_file_contains_key(revoked_keys_file, key);
 	/* If this was not a KRL to begin with then continue below */
 	if (r != SSH_ERR_KRL_BAD_MAGIC)
 		return r;
-#endif
 
 	/*
 	 * If the file is not a KRL or we can't handle KRLs then attempt to
