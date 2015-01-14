@@ -70,7 +70,9 @@ LIBOPENSSH_OBJS=\
 	sshkey.o \
 	sshbuf-getput-basic.o \
 	sshbuf-misc.o \
-	sshbuf-getput-crypto.o
+	sshbuf-getput-crypto.o \
+	krl.o \
+	bitmap.o
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o bufaux.o bufbn.o buffer.o \
@@ -83,7 +85,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-rsa.o dh.o \
 	kexdh.o kexgex.o kexdhc.o kexgexc.o bufec.o kexecdh.o kexecdhc.o \
 	msg.o progressmeter.o dns.o entropy.o gss-genr.o umac.o umac128.o \
-	ssh-pkcs11.o krl.o smult_curve25519_ref.o \
+	ssh-pkcs11.o smult_curve25519_ref.o \
 	kexc25519.o kexc25519c.o poly1305.o chacha.o cipher-chachapoly.o \
 	ssh-ed25519.o digest-openssl.o hmac.o \
 	sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o blocks.o

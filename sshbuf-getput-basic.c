@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-basic.c,v 1.3 2015/01/12 15:18:07 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-basic.c,v 1.4 2015/01/14 15:02:39 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -422,5 +422,41 @@ sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len)
 		d[4] = 0;
 	if (len != 0)
 		memcpy(d + 4 + prepend, s, len);
+	return 0;
+}
+
+int
+sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
+    const u_char **valp, size_t *lenp)
+{
+	const u_char *d;
+	size_t len, olen;
+	int r;
+
+	if ((r = sshbuf_peek_string_direct(buf, &d, &olen)) < 0)
+		return r;
+	len = olen;
+	/* Refuse negative (MSB set) bignums */
+	if ((len != 0 && (*d & 0x80) != 0))
+		return SSH_ERR_BIGNUM_IS_NEGATIVE;
+	/* Refuse overlong bignums, allow prepended \0 to avoid MSB set */
+	if (len > SSHBUF_MAX_BIGNUM + 1 ||
+	    (len == SSHBUF_MAX_BIGNUM + 1 && *d != 0))
+		return SSH_ERR_BIGNUM_TOO_LARGE;
+	/* Trim leading zeros */
+	while (len > 0 && *d == 0x00) {
+		d++;
+		len--;
+	}
+	if (valp != 0)
+		*valp = d;
+	if (lenp != NULL)
+		*lenp = len;
+	if (sshbuf_consume(buf, olen + 4) != 0) {
+		/* Shouldn't happen */
+		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
+		SSHBUF_ABORT();
+		return SSH_ERR_INTERNAL_ERROR;
+	}
 	return 0;
 }
