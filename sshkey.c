@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.11 2015/01/13 07:39:19 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.12 2015/01/14 10:46:28 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -31,9 +31,11 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#endif
 
 #include "crypto_api.h"
 
@@ -1954,7 +1956,7 @@ sshkey_from_blob_internal(const u_char *blob, size_t blen,
     struct sshkey **keyp, int allow_cert)
 {
 	struct sshbuf *b = NULL;
-	int type, nid = -1, ret = SSH_ERR_INTERNAL_ERROR;
+	int type, ret = SSH_ERR_INTERNAL_ERROR;
 	char *ktype = NULL, *curve = NULL;
 	struct sshkey *key = NULL;
 	size_t len;
@@ -1975,8 +1977,6 @@ sshkey_from_blob_internal(const u_char *blob, size_t blen,
 	}
 
 	type = sshkey_type_from_name(ktype);
-	if (sshkey_type_plain(type) == KEY_ECDSA)
-		nid = sshkey_ecdsa_nid_from_name(ktype);
 	if (!allow_cert && sshkey_type_is_cert(type)) {
 		ret = SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
 		goto out;
@@ -2039,7 +2039,7 @@ sshkey_from_blob_internal(const u_char *blob, size_t blen,
 			ret = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
-		key->ecdsa_nid = nid;
+		key->ecdsa_nid = sshkey_ecdsa_nid_from_name(ktype);
 		if (sshbuf_get_cstring(b, &curve, NULL) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
