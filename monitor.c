@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.137 2015/01/13 07:39:19 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.138 2015/01/14 20:05:27 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -101,6 +101,7 @@
 #include "roaming.h"
 #include "authfd.h"
 #include "match.h"
+#include "ssherr.h"
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;
@@ -685,28 +686,28 @@ mm_answer_moduli(int sock, Buffer *m)
 }
 #endif
 
-extern AuthenticationConnection *auth_conn;
-
 int
 mm_answer_sign(int sock, Buffer *m)
 {
-	Key *key;
+	extern int auth_sock;			/* XXX move to state struct? */
+	struct sshkey *key;
 	u_char *p;
 	u_char *signature;
-	u_int siglen, datlen;
-	int keyid;
+	size_t datlen, siglen;
+	int r, keyid;
 
 	debug3("%s", __func__);
 
-	keyid = buffer_get_int(m);
-	p = buffer_get_string(m, &datlen);
+	if ((r = sshbuf_get_u32(m, &keyid)) != 0 ||
+	    (r = sshbuf_get_string(m, &p, &datlen)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	/*
 	 * Supported KEX types use SHA1 (20 bytes), SHA256 (32 bytes),
 	 * SHA384 (48 bytes) and SHA512 (64 bytes).
 	 */
 	if (datlen != 20 && datlen != 32 && datlen != 48 && datlen != 64)
-		fatal("%s: data length incorrect: %u", __func__, datlen);
+		fatal("%s: data length incorrect: %zu", __func__, datlen);
 
 	/* save session id, it will be passed on the first call */
 	if (session_id2_len == 0) {
@@ -716,20 +717,25 @@ mm_answer_sign(int sock, Buffer *m)
 	}
 
 	if ((key = get_hostkey_by_index(keyid)) != NULL) {
-		if (key_sign(key, &signature, &siglen, p, datlen) < 0)
-			fatal("%s: key_sign failed", __func__);
+		if ((r = sshkey_sign(key, &signature, &siglen, p, datlen,
+		    datafellows)) != 0)
+			fatal("%s: sshkey_sign failed: %s",
+			    __func__, ssh_err(r));
 	} else if ((key = get_hostkey_public_by_index(keyid)) != NULL &&
-	    auth_conn != NULL) {
-		if (ssh_agent_sign(auth_conn, key, &signature, &siglen, p,
-		    datlen) < 0)
-			fatal("%s: ssh_agent_sign failed", __func__);
+	    auth_sock > 0) {
+		if ((r = ssh_agent_sign(auth_sock, key, &signature, &siglen,
+		    p, datlen, datafellows)) != 0) {
+			fatal("%s: ssh_agent_sign failed: %s",
+			    __func__, ssh_err(r));
+		}
 	} else
 		fatal("%s: no hostkey from index %d", __func__, keyid);
 
-	debug3("%s: signature %p(%u)", __func__, signature, siglen);
+	debug3("%s: signature %p(%zu)", __func__, signature, siglen);
 
-	buffer_clear(m);
-	buffer_put_string(m, signature, siglen);
+	sshbuf_reset(m);
+	if ((r = sshbuf_put_string(m, signature, siglen)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	free(p);
 	free(signature);

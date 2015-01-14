@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.261 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: clientloop.c,v 1.262 2015/01/14 20:05:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -110,6 +110,7 @@
 #include "match.h"
 #include "msg.h"
 #include "roaming.h"
+#include "ssherr.h"
 
 /* import options */
 extern Options options;
@@ -1782,7 +1783,7 @@ static void
 client_input_agent_open(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
-	int remote_id, sock;
+	int r, remote_id, sock;
 
 	/* Read the remote channel number from the message. */
 	remote_id = packet_get_int();
@@ -1792,7 +1793,11 @@ client_input_agent_open(int type, u_int32_t seq, void *ctxt)
 	 * Get a connection to the local authentication agent (this may again
 	 * get forwarded).
 	 */
-	sock = ssh_get_authentication_socket();
+	if ((r = ssh_get_authentication_socket(&sock)) != 0 &&
+	    r != SSH_ERR_AGENT_NOT_PRESENT)
+		debug("%s: ssh_get_authentication_socket: %s",
+		    __func__, ssh_err(r));
+
 
 	/*
 	 * If we could not connect the agent, send an error message back to
@@ -1910,7 +1915,7 @@ static Channel *
 client_request_agent(const char *request_type, int rchan)
 {
 	Channel *c = NULL;
-	int sock;
+	int r, sock;
 
 	if (!options.forward_agent) {
 		error("Warning: ssh server tried agent forwarding.");
@@ -1918,9 +1923,12 @@ client_request_agent(const char *request_type, int rchan)
 		    "malicious server.");
 		return NULL;
 	}
-	sock = ssh_get_authentication_socket();
-	if (sock < 0)
+	if ((r = ssh_get_authentication_socket(&sock)) != 0) {
+		if (r != SSH_ERR_AGENT_NOT_PRESENT)
+			debug("%s: ssh_get_authentication_socket: %s",
+			    __func__, ssh_err(r));
 		return NULL;
+	}
 	c = channel_new("authentication agent connection",
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,

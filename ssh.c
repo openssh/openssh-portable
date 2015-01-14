@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.411 2015/01/08 10:15:45 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.412 2015/01/14 20:05:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -107,6 +107,7 @@
 #include "uidswap.h"
 #include "roaming.h"
 #include "version.h"
+#include "ssherr.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -1502,10 +1503,16 @@ ssh_init_forwarding(void)
 static void
 check_agent_present(void)
 {
+	int r;
+
 	if (options.forward_agent) {
 		/* Clear agent forwarding if we don't have an agent. */
-		if (!ssh_agent_present())
+		if ((r = ssh_get_authentication_socket(NULL)) != 0) {
 			options.forward_agent = 0;
+			if (r != SSH_ERR_AGENT_NOT_PRESENT)
+				debug("ssh_get_authentication_socket: %s",
+				    ssh_err(r));
+		}
 	}
 }
 

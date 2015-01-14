@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.431 2015/01/07 18:15:07 tedu Exp $ */
+/* $OpenBSD: sshd.c,v 1.432 2015/01/14 20:05:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -123,6 +123,7 @@
 #include "roaming.h"
 #include "ssh-sandbox.h"
 #include "version.h"
+#include "ssherr.h"
 
 #ifndef O_NOCTTY
 #define O_NOCTTY	0
@@ -191,7 +192,7 @@ char *server_version_string = NULL;
 Kex *xxx_kex;
 
 /* Daemon's agent connection */
-AuthenticationConnection *auth_conn = NULL;
+int auth_sock = -1;
 int have_agent = 0;
 
 /*
@@ -655,7 +656,7 @@ privsep_preauth_child(void)
 static int
 privsep_preauth(Authctxt *authctxt)
 {
-	int status;
+	int status, r;
 	pid_t pid;
 	struct ssh_sandbox *box = NULL;
 
@@ -673,8 +674,14 @@ privsep_preauth(Authctxt *authctxt)
 		debug2("Network child is on pid %ld", (long)pid);
 
 		pmonitor->m_pid = pid;
-		if (have_agent)
-			auth_conn = ssh_get_authentication_connection();
+		if (have_agent) {
+			r = ssh_get_authentication_socket(&auth_sock);
+			if (r != 0) {
+				error("Could not get agent socket: %s",
+				    ssh_err(r));
+				have_agent = 0;
+			}
+		}
 		if (box != NULL)
 			ssh_sandbox_parent_preauth(box, pid);
 		monitor_child_preauth(authctxt, pmonitor);
@@ -1397,7 +1404,7 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, i, j, on = 1;
+	int r, opt, i, j, on = 1;
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
@@ -1706,7 +1713,7 @@ main(int ac, char **av)
 		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
 			setenv(SSH_AUTHSOCKET_ENV_NAME,
 			    options.host_key_agent, 1);
-		have_agent = ssh_agent_present();
+		have_agent = ssh_get_authentication_socket(NULL);
 	}
 
 	for (i = 0; i < options.num_host_key_files; i++) {
@@ -2103,8 +2110,12 @@ main(int ac, char **av)
 	if (use_privsep) {
 		if (privsep_preauth(authctxt) == 1)
 			goto authenticated;
-	} else if (compat20 && have_agent)
-		auth_conn = ssh_get_authentication_connection();
+	} else if (compat20 && have_agent) {
+		if ((r = ssh_get_authentication_socket(&auth_sock)) != 0) {
+			error("Unable to get agent socket: %s", ssh_err(r));
+			have_agent = -1;
+		}
+	}
 
 	/* perform the key exchange */
 	/* authenticate user and start session */
@@ -2425,6 +2436,8 @@ void
 sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, u_int *slen,
     u_char *data, u_int dlen)
 {
+	int r;
+
 	if (privkey) {
 		if (PRIVSEP(key_sign(privkey, signature, slen, data, dlen) < 0))
 			fatal("%s: key_sign failed", __func__);
@@ -2432,9 +2445,15 @@ sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, u_int *slen,
 		if (mm_key_sign(pubkey, signature, slen, data, dlen) < 0)
 			fatal("%s: pubkey_sign failed", __func__);
 	} else {
-		if (ssh_agent_sign(auth_conn, pubkey, signature, slen, data,
-		    dlen))
-			fatal("%s: ssh_agent_sign failed", __func__);
+		size_t xxx_slen;
+
+		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, &xxx_slen,
+		    data, dlen, datafellows)) != 0)
+			fatal("%s: ssh_agent_sign failed: %s",
+			    __func__, ssh_err(r));
+		/* XXX: Old API is u_int; new size_t */
+		if (slen != NULL)
+			*slen = xxx_slen;
 	}
 }
 
