@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.194 2015/01/14 13:09:09 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.195 2015/01/14 19:33:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -371,28 +371,37 @@ process_sign_request2(SocketEntry *e)
 	int r, ok = -1;
 	struct sshbuf *msg;
 	struct sshkey *key;
+	struct identity *id;
 
+	if ((msg = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_get_string(e->request, &blob, &blen)) != 0 ||
 	    (r = sshbuf_get_string(e->request, &data, &dlen)) != 0 ||
 	    (r = sshbuf_get_u32(e->request, &flags)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		compat = SSH_BUG_SIGBLOB;
-
-	if ((ok = sshkey_from_blob(blob, blen, &key)) != 0)
+	if ((r = sshkey_from_blob(blob, blen, &key)) != 0) {
 		error("%s: cannot parse key blob: %s", __func__, ssh_err(ok));
-	else {
-		Identity *id = lookup_identity(key, 2);
-		if (id != NULL && (!id->confirm || confirm_key(id) == 0)) {
-			if ((ok = sshkey_sign(id->key, &signature, &slen,
-			    data, dlen, compat)) != 0)
-				error("%s: sshkey_sign: %s",
-				    __func__, ssh_err(ok));
-		}
-		sshkey_free(key);
+		goto send;
 	}
-	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
+	if ((id = lookup_identity(key, 2)) == NULL) {
+		verbose("%s: %s key not found", __func__, sshkey_type(key));
+		goto send;
+	}
+	if (id->confirm && confirm_key(id) != 0) {
+		verbose("%s: user refused key", __func__);
+		goto send;
+	}
+	if ((r = sshkey_sign(id->key, &signature, &slen,
+	    data, dlen, compat)) != 0) {
+		error("%s: sshkey_sign: %s", __func__, ssh_err(ok));
+		goto send;
+	}
+	/* Success */
+	ok = 0;
+ send:
+	sshkey_free(key);
 	if (ok == 0) {
 		if ((r = sshbuf_put_u8(msg, SSH2_AGENT_SIGN_RESPONSE)) != 0 ||
 		    (r = sshbuf_put_string(msg, signature, slen)) != 0)
