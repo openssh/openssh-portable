@@ -26,7 +26,7 @@
 
 #include "includes.h"
 
-#ifdef OPENSSL_HAS_ECC
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 
 #include <sys/types.h>
 
@@ -94,4 +94,4 @@ kex_ecdh_hash(
 	*hash = digest;
 	*hashlen = ssh_digest_bytes(hash_alg);
 }
-#endif /* OPENSSL_HAS_ECC */
+#endif /* defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC) */

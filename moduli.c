@@ -39,6 +39,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/param.h>
 #include <sys/types.h>
 
@@ -802,3 +804,5 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 
 	return (res);
 }
+
+#endif /* WITH_OPENSSL */

@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
+
 #include <sys/types.h>
 #include <string.h>
 #include <signal.h>
@@ -38,8 +40,6 @@
 #include "log.h"
 #include "packet.h"
 #include "ssh2.h"
-
-#ifdef OPENSSL_HAS_ECC
 
 #include <openssl/ecdh.h>
 
@@ -152,10 +152,4 @@ kexecdh_server(Kex *kex)
 	BN_clear_free(shared_secret);
 	kex_finish(kex);
 }
-#else /* OPENSSL_HAS_ECC */
-void
-kexecdh_server(Kex *kex)
-{
-	fatal("ECC support is not enabled");
-}
-#endif /* OPENSSL_HAS_ECC */
+#endif /* defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC) */

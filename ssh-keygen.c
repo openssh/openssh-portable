@@ -19,9 +19,11 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -179,7 +181,9 @@ int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
 static void
 type_bits_valid(int type, u_int32_t *bitsp)
 {
+#ifdef WITH_OPENSSL
 	u_int maxbits;
+#endif
 
 	if (type == KEY_UNSPEC) {
 		fprintf(stderr, "unknown key type %s\n", key_type_name);
@@ -193,13 +197,13 @@ type_bits_valid(int type, u_int32_t *bitsp)
 		else
 			*bitsp = DEFAULT_BITS;
 	}
+#ifdef WITH_OPENSSL
 	maxbits = (type == KEY_DSA) ?
 	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
 	if (*bitsp > maxbits) {
 		fprintf(stderr, "key bits exceeds maximum %d\n", maxbits);
 		exit(1);
 	}
-#ifdef WITH_OPENSSL
 	if (type == KEY_DSA && *bitsp != 1024)
 		fatal("DSA keys must be 1024 bits");
 	else if (type != KEY_ECDSA && type != KEY_ED25519 && *bitsp < 768)
@@ -2102,10 +2106,12 @@ update_krl_from_file(struct passwd *pw, const char *file, const Key *ca,
 		fclose(krl_spec);
 	free(path);
 }
+#endif /* WITH_OPENSSL */
 
 static void
 do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 {
+#ifdef WITH_OPENSSL
 	struct ssh_krl *krl;
 	struct stat sb;
 	Key *ca = NULL;
@@ -2155,11 +2161,15 @@ do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 	ssh_krl_free(krl);
 	if (ca != NULL)
 		key_free(ca);
+#else /* WITH_OPENSSL */
+	fatal("KRLs not supported without OpenSSL");
+#endif /* WITH_OPENSSL */
 }
 
 static void
 do_check_krl(struct passwd *pw, int argc, char **argv)
 {
+#ifdef WITH_OPENSSL
 	int i, r, ret = 0;
 	char *comment;
 	struct ssh_krl *krl;
@@ -2182,8 +2192,10 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	}
 	ssh_krl_free(krl);
 	exit(ret);
+#else /* WITH_OPENSSL */
+	fatal("KRLs not supported without OpenSSL");
+#endif /* WITH_OPENSSL */
 }
-#endif
 
 static void
 usage(void)
@@ -2249,7 +2261,9 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
+#ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
+#endif
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	seed_rng();
@@ -2427,6 +2441,7 @@ main(int argc, char **argv)
 				fatal("Invalid number: %s (%s)",
 					optarg, errstr);
 			break;
+#ifdef WITH_OPENSSL
 		case 'M':
 			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
 			if (errstr)
@@ -2454,6 +2469,7 @@ main(int argc, char **argv)
 			if (BN_hex2bn(&start, optarg) == 0)
 				fatal("Invalid start point.");
 			break;
+#endif /* WITH_OPENSSL */
 		case 'V':
 			parse_cert_times(optarg);
 			break;
@@ -2493,7 +2509,6 @@ main(int argc, char **argv)
 		printf("Cannot use -l with -H or -R.\n");
 		usage();
 	}
-#ifdef WITH_OPENSSL
 	if (gen_krl) {
 		do_gen_krl(pw, update_krl, argc, argv);
 		return (0);
@@ -2502,7 +2517,6 @@ main(int argc, char **argv)
 		do_check_krl(pw, argc, argv);
 		return (0);
 	}
-#endif
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");

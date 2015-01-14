@@ -43,7 +43,10 @@
 #include "readpassphrase.h"
 #include "vis.h"
 #include "getrrsetbyname.h"
+#include "sha1.h"
 #include "sha2.h"
+#include "rmd160.h"
+#include "md5.h"
 #include "blf.h"
 
 #ifndef HAVE_BASENAME

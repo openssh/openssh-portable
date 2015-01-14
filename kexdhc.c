@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 
 #include <openssl/dh.h>
@@ -159,3 +161,4 @@ kexdh_client(Kex *kex)
 	BN_clear_free(shared_secret);
 	kex_finish(kex);
 }
+#endif /* WITH_OPENSSL */

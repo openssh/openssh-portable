@@ -1612,6 +1612,7 @@ packet_get_ecpoint(const EC_GROUP *curve, EC_POINT *point)
 	buffer_get_ecpoint(&active_state->incoming_packet, curve, point);
 }
 #endif
+#endif
 
 void *
 packet_get_raw(u_int *length_ptr)
@@ -1622,7 +1623,6 @@ packet_get_raw(u_int *length_ptr)
 		*length_ptr = bytes;
 	return buffer_ptr(&active_state->incoming_packet);
 }
-#endif
 
 int
 packet_remaining(void)

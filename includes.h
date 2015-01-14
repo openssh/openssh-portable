@@ -167,7 +167,9 @@
 # endif
 #endif
 
+#ifdef WITH_OPENSSL
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
+#endif
 
 #include "defines.h"
 

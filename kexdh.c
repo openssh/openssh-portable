@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 
 #include <signal.h>
@@ -85,3 +87,4 @@ kex_dh_hash(
 	*hash = digest;
 	*hashlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
 }
+#endif /* WITH_OPENSSL */

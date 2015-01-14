@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 
 #include <openssl/dh.h>
@@ -205,3 +207,4 @@ kexgex_client(Kex *kex)
 
 	kex_finish(kex);
 }
+#endif /* WITH_OPENSSL */

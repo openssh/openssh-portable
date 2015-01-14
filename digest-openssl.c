@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -200,3 +202,4 @@ ssh_digest_buffer(int alg, const struct sshbuf *b, u_char *d, size_t dlen)
 {
 	return ssh_digest_memory(alg, sshbuf_ptr(b), sshbuf_len(b), d, dlen);
 }
+#endif /* WITH_OPENSSL */

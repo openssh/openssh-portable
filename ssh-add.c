@@ -70,11 +70,13 @@ extern char *__progname;
 
 /* Default files to add */
 static char *default_files[] = {
+#ifdef WITH_OPENSSL
 	_PATH_SSH_CLIENT_ID_RSA,
 	_PATH_SSH_CLIENT_ID_DSA,
 #ifdef OPENSSL_HAS_ECC
 	_PATH_SSH_CLIENT_ID_ECDSA,
 #endif
+#endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
 	_PATH_SSH_CLIENT_IDENTITY,
 	NULL
@@ -440,7 +442,9 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
 
+#ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
+#endif
 
 	setvbuf(stdout, NULL, _IOLBF, 0);
 

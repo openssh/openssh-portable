@@ -623,7 +623,9 @@ privsep_preauth_child(void)
 
 	arc4random_stir();
 	arc4random_buf(rnd, sizeof(rnd));
+#ifdef WITH_OPENSSL
 	RAND_seed(rnd, sizeof(rnd));
+#endif
 	explicit_bzero(rnd, sizeof(rnd));
 
 	/* Demote the private keys to public keys. */
@@ -758,7 +760,9 @@ privsep_postauth(Authctxt *authctxt)
 
 	arc4random_stir();
 	arc4random_buf(rnd, sizeof(rnd));
+#ifdef WITH_OPENSSL
 	RAND_seed(rnd, sizeof(rnd));
+#endif
 	explicit_bzero(rnd, sizeof(rnd));
 
 	/* Drop privileges */
@@ -988,7 +992,7 @@ send_rexec_state(int fd, Buffer *conf)
 #endif
 		buffer_put_int(&m, 0);
 
-#ifndef OPENSSL_PRNG_ONLY
+#if defined(WITH_OPENSSL) && !defined(OPENSSL_PRNG_ONLY)
 	rexec_send_rng_seed(&m);
 #endif
 
@@ -1041,7 +1045,7 @@ recv_rexec_state(int fd, Buffer *conf)
 #endif
 	}
 
-#ifndef OPENSSL_PRNG_ONLY
+#if defined(WITH_OPENSSL) && !defined(OPENSSL_PRNG_ONLY)
 	rexec_recv_rng_seed(&m);
 #endif
 
@@ -1372,7 +1376,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 */
 			arc4random_stir();
 			arc4random_buf(rnd, sizeof(rnd));
+#ifdef WITH_OPENSSL
 			RAND_seed(rnd, sizeof(rnd));
+#endif
 			explicit_bzero(rnd, sizeof(rnd));
 		}
 

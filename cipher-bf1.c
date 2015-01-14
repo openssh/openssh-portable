@@ -20,6 +20,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 
 #include <stdarg.h>
@@ -98,3 +100,4 @@ evp_ssh1_bf(void)
 	ssh1_bf.key_len = 32;
 	return (&ssh1_bf);
 }
+#endif /* WITH_OPENSSL */

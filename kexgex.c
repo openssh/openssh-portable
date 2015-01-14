@@ -26,6 +26,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 
 #include <openssl/evp.h>
@@ -96,3 +98,4 @@ kexgex_hash(
 	*hash = digest;
 	*hashlen = ssh_digest_bytes(hash_alg);
 }
+#endif /* WITH_OPENSSL */

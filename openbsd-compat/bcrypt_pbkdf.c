@@ -32,6 +32,9 @@
 #endif
 
 #include "crypto_api.h"
+#ifdef SHA512_DIGEST_LENGTH
+# undef SHA512_DIGEST_LENGTH
+#endif
 #define SHA512_DIGEST_LENGTH crypto_hash_sha512_BYTES
 
 /*

@@ -18,6 +18,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL /* XXX just fix bignums and this is good */
+
 #include <sys/types.h>
 #include <sys/param.h>
 #include <openbsd-compat/sys-tree.h>
@@ -1282,3 +1284,4 @@ ssh_krl_file_contains_key(const char *path, const struct sshkey *key)
 		errno = oerrno;
 	return r;
 }
+#endif /* WITH_OPENSSL */
