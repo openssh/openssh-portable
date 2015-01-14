@@ -250,14 +250,18 @@ sys_tun_infilter(struct Channel *c, char *buf, int len)
 }
 
 u_char *
-sys_tun_outfilter(struct Channel *c, u_char **data, size_t *dlen)
+sys_tun_outfilter(struct Channel *c, u_char **data, u_int *dlen)
 {
 	u_char *buf;
 	u_int32_t *af;
 	int r;
+	size_t xxx_dlen;
 
-	if ((r = sshbuf_get_string(&c->output, data, dlen)) != 0)
+	/* XXX new API is incompatible with this signature. */
+	if ((r = sshbuf_get_string(&c->output, data, &xxx_dlen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (dlen != NULL)
+		*dlen = xxx_dlen;
 	if (*dlen < sizeof(*af))
 		return (NULL);
 	buf = *data;
