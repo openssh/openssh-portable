@@ -27,7 +27,7 @@ int	  sys_tun_open(int, int);
 #if defined(SSH_TUN_COMPAT_AF) || defined(SSH_TUN_PREPEND_AF)
 # define SSH_TUN_FILTER
 int	 sys_tun_infilter(struct Channel *, char *, int);
-u_char	*sys_tun_outfilter(struct Channel *, u_char **, u_int *);
+u_char	*sys_tun_outfilter(struct Channel *, u_char **, size_t *);
 #endif
 
 #endif
