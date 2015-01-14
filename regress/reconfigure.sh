@@ -1,4 +1,4 @@
-#	$OpenBSD: reconfigure.sh,v 1.3 2015/01/14 09:54:38 markus Exp $
+#	$OpenBSD: reconfigure.sh,v 1.4 2015/01/14 09:58:21 markus Exp $
 #	Placed in the Public Domain.
 
 tid="simple connect after reconfigure"
