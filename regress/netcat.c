@@ -719,11 +719,11 @@ local_listen(char *host, char *port, struct addrinfo hints)
 		    &rtableid, sizeof(rtableid)) == -1))
 			err(1, "setsockopt SO_RTABLE");
 #endif
-
+#ifdef SO_REUSEPORT
 		ret = setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &x, sizeof(x));
 		if (ret == -1)
 			err(1, NULL);
-
+#endif
 		set_common_sockopts(s);
 
 		if (bind(s, (struct sockaddr *)res0->ai_addr,
