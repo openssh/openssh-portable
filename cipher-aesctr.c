@@ -1,6 +1,6 @@
-/* $OpenBSD: cipher-aesctr.c,v 1.1 2014/04/29 15:39:33 markus Exp $ */
+/* $OpenBSD: cipher-aesctr.c,v 1.2 2015/01/14 10:24:42 markus Exp $ */
 /*
- * Copyright (c) 2003 Markus Friedl <markus@openbsd.org>
+ * Copyright (c) 2003 Markus Friedl.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
