@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.58 2014/10/20 03:43:01 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.59 2015/01/15 09:40:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -51,10 +51,11 @@
 
 #include "xmalloc.h"
 #include "match.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "log.h"
 #include "misc.h"
+#include "ssherr.h"
 #include "digest.h"
 #include "hmac.h"
 
@@ -155,15 +156,16 @@ host_hash(const char *host, const char *name_from_hostfile, u_int src_len)
  */
 
 int
-hostfile_read_key(char **cpp, int *bitsp, Key *ret)
+hostfile_read_key(char **cpp, u_int *bitsp, struct sshkey *ret)
 {
 	char *cp;
+	int r;
 
 	/* Skip leading whitespace. */
 	for (cp = *cpp; *cp == ' ' || *cp == '\t'; cp++)
 		;
 
-	if (key_read(ret, &cp) != 1)
+	if ((r = sshkey_read(ret, &cp)) != 0)
 		return 0;
 
 	/* Skip trailing whitespace. */
@@ -172,15 +174,13 @@ hostfile_read_key(char **cpp, int *bitsp, Key *ret)
 
 	/* Return results. */
 	*cpp = cp;
-	if (bitsp != NULL) {
-		if ((*bitsp = key_size(ret)) <= 0)
-			return 0;
-	}
+	if (bitsp != NULL)
+		*bitsp = sshkey_size(ret);
 	return 1;
 }
 
 static int
-hostfile_check_key(int bits, const Key *key, const char *host,
+hostfile_check_key(int bits, const struct sshkey *key, const char *host,
     const char *filename, u_long linenum)
 {
 #ifdef WITH_SSH1
@@ -249,8 +249,8 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 	u_long linenum = 0, num_loaded = 0;
 	char *cp, *cp2, *hashed_host;
 	HostkeyMarker marker;
-	Key *key;
-	int kbits;
+	struct sshkey *key;
+	u_int kbits;
 
 	if ((f = fopen(path, "r")) == NULL)
 		return;
@@ -296,13 +296,19 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 		 * Extract the key from the line.  This will skip any leading
 		 * whitespace.  Ignore badly formatted lines.
 		 */
-		key = key_new(KEY_UNSPEC);
+		if ((key = sshkey_new(KEY_UNSPEC)) == NULL) {
+			error("%s: sshkey_new failed", __func__);
+			break;
+		}
 		if (!hostfile_read_key(&cp, &kbits, key)) {
-			key_free(key);
+			sshkey_free(key);
 #ifdef WITH_SSH1
-			key = key_new(KEY_RSA1);
+			if ((key = sshkey_new(KEY_RSA1)) == NULL) {
+				error("%s: sshkey_new failed", __func__);
+				break;
+			}
 			if (!hostfile_read_key(&cp, &kbits, key)) {
-				key_free(key);
+				sshkey_free(key);
 				continue;
 			}
 #else
@@ -315,7 +321,7 @@ load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 		debug3("%s: found %skey type %s in file %s:%lu", __func__,
 		    marker == MRK_NONE ? "" :
 		    (marker == MRK_CA ? "ca " : "revoked "),
-		    key_type(key), path, linenum);
+		    sshkey_type(key), path, linenum);
 		hostkeys->entries = xrealloc(hostkeys->entries,
 		    hostkeys->num_entries + 1, sizeof(*hostkeys->entries));
 		hostkeys->entries[hostkeys->num_entries].host = xstrdup(host);
@@ -339,7 +345,7 @@ free_hostkeys(struct hostkeys *hostkeys)
 	for (i = 0; i < hostkeys->num_entries; i++) {
 		free(hostkeys->entries[i].host);
 		free(hostkeys->entries[i].file);
-		key_free(hostkeys->entries[i].key);
+		sshkey_free(hostkeys->entries[i].key);
 		explicit_bzero(hostkeys->entries + i, sizeof(*hostkeys->entries));
 	}
 	free(hostkeys->entries);
@@ -348,18 +354,18 @@ free_hostkeys(struct hostkeys *hostkeys)
 }
 
 static int
-check_key_not_revoked(struct hostkeys *hostkeys, Key *k)
+check_key_not_revoked(struct hostkeys *hostkeys, struct sshkey *k)
 {
-	int is_cert = key_is_cert(k);
+	int is_cert = sshkey_is_cert(k);
 	u_int i;
 
 	for (i = 0; i < hostkeys->num_entries; i++) {
 		if (hostkeys->entries[i].marker != MRK_REVOKE)
 			continue;
-		if (key_equal_public(k, hostkeys->entries[i].key))
+		if (sshkey_equal_public(k, hostkeys->entries[i].key))
 			return -1;
 		if (is_cert &&
-		    key_equal_public(k->cert->signature_key,
+		    sshkey_equal_public(k->cert->signature_key,
 		    hostkeys->entries[i].key))
 			return -1;
 	}
@@ -383,11 +389,11 @@ check_key_not_revoked(struct hostkeys *hostkeys, Key *k)
  */
 static HostStatus
 check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
-    Key *k, int keytype, const struct hostkey_entry **found)
+    struct sshkey *k, int keytype, const struct hostkey_entry **found)
 {
 	u_int i;
 	HostStatus end_return = HOST_NEW;
-	int want_cert = key_is_cert(k);
+	int want_cert = sshkey_is_cert(k);
 	HostkeyMarker want_marker = want_cert ? MRK_CA : MRK_NONE;
 	int proto = (k ? k->type : keytype) == KEY_RSA1 ? 1 : 2;
 
@@ -411,7 +417,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 			break;
 		}
 		if (want_cert) {
-			if (key_equal_public(k->cert->signature_key,
+			if (sshkey_equal_public(k->cert->signature_key,
 			    hostkeys->entries[i].key)) {
 				/* A matching CA exists */
 				end_return = HOST_OK;
@@ -420,7 +426,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 				break;
 			}
 		} else {
-			if (key_equal(k, hostkeys->entries[i].key)) {
+			if (sshkey_equal(k, hostkeys->entries[i].key)) {
 				end_return = HOST_OK;
 				if (found != NULL)
 					*found = hostkeys->entries + i;
@@ -441,7 +447,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 }
 
 HostStatus
-check_key_in_hostkeys(struct hostkeys *hostkeys, Key *key,
+check_key_in_hostkeys(struct hostkeys *hostkeys, struct sshkey *key,
     const struct hostkey_entry **found)
 {
 	if (key == NULL)
@@ -463,11 +469,11 @@ lookup_key_in_hostkeys_by_type(struct hostkeys *hostkeys, int keytype,
  */
 
 int
-add_host_to_hostfile(const char *filename, const char *host, const Key *key,
-    int store_hash)
+add_host_to_hostfile(const char *filename, const char *host,
+    const struct sshkey *key, int store_hash)
 {
 	FILE *f;
-	int success = 0;
+	int r, success = 0;
 	char *hashed_host = NULL;
 
 	if (key == NULL)
@@ -485,12 +491,12 @@ add_host_to_hostfile(const char *filename, const char *host, const Key *key,
 	}
 	fprintf(f, "%s ", store_hash ? hashed_host : host);
 
-	if (key_write(key, f)) {
+	if ((r = sshkey_write(key, f)) != 0) {
+		error("%s: saving key in %s failed: %s",
+		    __func__, filename, ssh_err(r));
+	} else
 		success = 1;
-	} else {
-		error("add_host_to_hostfile: saving key in %s failed", filename);
-	}
-	fprintf(f, "\n");
+	fputs("\n", f);
 	fclose(f);
 	return success;
 }

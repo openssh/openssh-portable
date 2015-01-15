@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.32 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.33 2015/01/15 09:40:00 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -38,7 +38,8 @@
 #include <stdlib.h>
 
 #include "xmalloc.h"
-#include "key.h"
+#include "sshkey.h"
+#include "ssherr.h"
 #include "dns.h"
 #include "log.h"
 #include "digest.h"
@@ -78,9 +79,9 @@ dns_result_totext(unsigned int res)
  */
 static int
 dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
-    u_char **digest, u_int *digest_len, Key *key)
+    u_char **digest, size_t *digest_len, struct sshkey *key)
 {
-	int success = 0;
+	int r, success = 0;
 	int fp_alg = -1;
 
 	switch (key->type) {
@@ -121,9 +122,10 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 	}
 
 	if (*algorithm && *digest_type) {
-		*digest = key_fingerprint_raw(key, fp_alg, digest_len);
-		if (*digest == NULL)
-			fatal("dns_read_key: null from key_fingerprint_raw()");
+		if ((r = sshkey_fingerprint_raw(key, fp_alg, digest,
+		    digest_len)) != 0)
+			fatal("%s: sshkey_fingerprint_raw: %s", __func__,
+			   ssh_err(r));
 		success = 1;
 	} else {
 		*digest = NULL;
@@ -139,7 +141,7 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
  */
 static int
 dns_read_rdata(u_int8_t *algorithm, u_int8_t *digest_type,
-    u_char **digest, u_int *digest_len, u_char *rdata, int rdata_len)
+    u_char **digest, size_t *digest_len, u_char *rdata, int rdata_len)
 {
 	int success = 0;
 
@@ -200,7 +202,7 @@ is_numeric_hostname(const char *hostname)
  */
 int
 verify_host_key_dns(const char *hostname, struct sockaddr *address,
-    Key *hostkey, int *flags)
+    struct sshkey *hostkey, int *flags)
 {
 	u_int counter;
 	int result;
@@ -209,12 +211,12 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	u_int8_t hostkey_algorithm;
 	u_int8_t hostkey_digest_type = SSHFP_HASH_RESERVED;
 	u_char *hostkey_digest;
-	u_int hostkey_digest_len;
+	size_t hostkey_digest_len;
 
 	u_int8_t dnskey_algorithm;
 	u_int8_t dnskey_digest_type;
 	u_char *dnskey_digest;
-	u_int dnskey_digest_len;
+	size_t dnskey_digest_len;
 
 	*flags = 0;
 
@@ -310,13 +312,13 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
  * Export the fingerprint of a key as a DNS resource record
  */
 int
-export_dns_rr(const char *hostname, Key *key, FILE *f, int generic)
+export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
 {
 	u_int8_t rdata_pubkey_algorithm = 0;
 	u_int8_t rdata_digest_type = SSHFP_HASH_RESERVED;
 	u_int8_t dtype;
 	u_char *rdata_digest;
-	u_int i, rdata_digest_len;
+	size_t i, rdata_digest_len;
 	int success = 0;
 
 	for (dtype = SSHFP_HASH_SHA1; dtype < SSHFP_HASH_MAX; dtype++) {
@@ -324,7 +326,7 @@ export_dns_rr(const char *hostname, Key *key, FILE *f, int generic)
 		if (dns_read_key(&rdata_pubkey_algorithm, &rdata_digest_type,
 		    &rdata_digest, &rdata_digest_len, key)) {
 			if (generic) {
-				fprintf(f, "%s IN TYPE%d \\# %d %02x %02x ",
+				fprintf(f, "%s IN TYPE%d \\# %zu %02x %02x ",
 				    hostname, DNS_RDATATYPE_SSHFP,
 				    2 + rdata_digest_len,
 				    rdata_pubkey_algorithm, rdata_digest_type);

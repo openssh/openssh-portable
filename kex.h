@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.65 2015/01/13 19:31:40 markus Exp $ */
+/* $OpenBSD: kex.h,v 1.66 2015/01/15 09:40:00 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -27,6 +27,8 @@
 #define KEX_H
 
 #include "mac.h"
+#include "buffer.h" /* XXX for typedef */
+#include "key.h" /* XXX for typedef */
 
 #if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
 #include <openssl/ec.h>

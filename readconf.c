@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.226 2015/01/13 07:39:19 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.227 2015/01/15 09:40:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -51,11 +51,10 @@
 #include "cipher.h"
 #include "pathnames.h"
 #include "log.h"
-#include "key.h"
+#include "sshkey.h"
 #include "misc.h"
 #include "readconf.h"
 #include "match.h"
-#include "buffer.h"
 #include "kex.h"
 #include "mac.h"
 #include "uidswap.h"

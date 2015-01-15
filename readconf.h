@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.105 2014/12/21 22:27:56 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.106 2015/01/15 09:40:00 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -93,7 +93,7 @@ typedef struct {
 	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
 	int    identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
-	Key    *identity_keys[SSH_MAX_IDENTITY_FILES];
+	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
 
 	/* Local TCP/IP forward requests. */
 	int     num_local_forwards;
