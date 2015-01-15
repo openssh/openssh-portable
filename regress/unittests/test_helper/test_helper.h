@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.h,v 1.4 2015/01/13 14:51:51 djm Exp $	*/
+/*	$OpenBSD: test_helper.h,v 1.5 2015/01/15 07:36:28 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -43,6 +43,8 @@ void test_start(const char *n);
 void test_info(char *s, size_t len);
 void set_onerror_func(test_onerror_func_t *f, void *ctx);
 void test_done(void);
+void test_subtest_info(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 void ssl_err_check(const char *file, int line);
 void assert_bignum(const char *file, int line,
     const char *a1, const char *a2,

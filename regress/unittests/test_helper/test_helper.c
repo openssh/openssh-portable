@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.3 2015/01/13 14:51:51 djm Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.4 2015/01/15 07:36:28 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -114,6 +114,7 @@ static u_int test_number = 0;
 static test_onerror_func_t *test_onerror = NULL;
 static void *onerror_ctx = NULL;
 static const char *data_dir = NULL;
+static char subtest_info[512];
 
 int
 main(int argc, char **argv)
@@ -185,8 +186,9 @@ test_data_file(const char *name)
 void
 test_info(char *s, size_t len)
 {
-	snprintf(s, len, "In test %u - \"%s\"\n", test_number,
-	    active_test_name == NULL ? "<none>" : active_test_name);
+	snprintf(s, len, "In test %u: \"%s\"%s%s\n", test_number,
+	    active_test_name == NULL ? "<none>" : active_test_name,
+	    *subtest_info != '\0' ? " - " : "", subtest_info);
 }
 
 #ifdef SIGINFO
@@ -205,6 +207,7 @@ test_start(const char *n)
 {
 	assert(active_test_name == NULL);
 	assert((active_test_name = strdup(n)) != NULL);
+	*subtest_info = '\0';
 	if (verbose_mode)
 		printf("test %u - \"%s\": ", test_number, active_test_name);
 	test_number++;
@@ -223,6 +226,7 @@ set_onerror_func(test_onerror_func_t *f, void *ctx)
 void
 test_done(void)
 {
+	*subtest_info = '\0';
 	assert(active_test_name != NULL);
 	free(active_test_name);
 	active_test_name = NULL;
@@ -232,6 +236,16 @@ test_done(void)
 		printf(".");
 		fflush(stdout);
 	}
+}
+
+void
+test_subtest_info(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(subtest_info, sizeof(subtest_info), fmt, ap);
+	va_end(ap);
 }
 
 void
@@ -280,8 +294,9 @@ static void
 test_header(const char *file, int line, const char *a1, const char *a2,
     const char *name, enum test_predicate pred)
 {
-	fprintf(stderr, "\n%s:%d test #%u \"%s\"\n", 
-	    file, line, test_number, active_test_name);
+	fprintf(stderr, "\n%s:%d test #%u \"%s\"%s%s\n", 
+	    file, line, test_number, active_test_name,
+	    *subtest_info != '\0' ? " - " : "", subtest_info);
 	fprintf(stderr, "ASSERT_%s_%s(%s%s%s) failed:\n",
 	    name, pred_name(pred), a1,
 	    a2 != NULL ? ", " : "", a2 != NULL ? a2 : "");
