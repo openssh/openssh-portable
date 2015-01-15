@@ -484,7 +484,7 @@ regress/unittests/sshkey/test_sshkey$(EXEEXT): ${UNITTESTS_TEST_SSHKEY_OBJS} \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
 UNITTESTS_TEST_BITMAP_OBJS=\
-	regress/unittests/sshkey/tests.o
+	regress/unittests/bitmap/tests.o
 
 regress/unittests/sshkey/test_bitmap$(EXEEXT): ${UNITTESTS_TEST_BITMAP_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
