@@ -1,4 +1,4 @@
-/* $OpenBSD: mac.c,v 1.31 2015/01/13 19:31:40 markus Exp $ */
+/* $OpenBSD: mac.c,v 1.32 2015/01/15 18:32:54 naddy Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -158,7 +158,8 @@ mac_init(struct sshmac *mac)
 			return SSH_ERR_ALLOC_FAIL;
 		return 0;
 	case SSH_UMAC128:
-		mac->umac_ctx = umac128_new(mac->key);
+		if ((mac->umac_ctx = umac128_new(mac->key)) == NULL)
+			return SSH_ERR_ALLOC_FAIL;
 		return 0;
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
