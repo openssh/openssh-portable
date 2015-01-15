@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.214 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.215 2015/01/15 11:04:36 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -402,6 +402,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	authctxt.methoddata = NULL;
 	authctxt.sensitive = sensitive;
 	authctxt.info_req_seen = 0;
+	authctxt.agent_fd = -1;
 	if (authctxt.method == NULL)
 		fatal("ssh_userauth2: internal error: cannot send userauth none request");
 
@@ -1108,7 +1109,7 @@ load_identity_file(char *filename, int userprovided)
 {
 	Key *private;
 	char prompt[300], *passphrase;
-	int r, perm_ok = 0, quit, i;
+	int r, perm_ok = 0, quit = 0, i;
 	struct stat st;
 
 	if (stat(filename, &st) < 0) {
@@ -1138,7 +1139,8 @@ load_identity_file(char *filename, int userprovided)
 				quit = 1;
 				break;
 			}
-			debug2("bad passphrase given, try again...");
+			if (i != 0)
+				debug2("bad passphrase given, try again...");
 			break;
 		case SSH_ERR_SYSTEM_ERROR:
 			if (errno == ENOENT) {
