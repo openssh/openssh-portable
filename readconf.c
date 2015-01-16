@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.227 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.228 2015/01/16 06:40:12 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <netdb.h>
 #ifdef HAVE_PATHS_H
 # include <paths.h>

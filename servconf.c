@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.258 2015/01/13 07:39:19 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.259 2015/01/16 06:40:12 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -28,6 +28,7 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <errno.h>
 #ifdef HAVE_UTIL_H
@@ -571,7 +572,7 @@ parse_token(const char *cp, const char *filename,
 char *
 derelativise_path(const char *path)
 {
-	char *expanded, *ret, cwd[MAXPATHLEN];
+	char *expanded, *ret, cwd[PATH_MAX];
 
 	if (strcasecmp(path, "none") == 0)
 		return xstrdup("none");

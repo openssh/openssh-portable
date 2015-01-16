@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.252 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.253 2015/01/16 06:40:12 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -17,7 +17,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #ifdef WITH_OPENSSL
 #include <openssl/evp.h>
@@ -37,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 #include "sshkey.h"
@@ -1065,7 +1065,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	FILE *in, *out = stdout;
 	struct sshkey *pub;
 	char *cp, *cp2, *kp, *kp2;
-	char line[16*1024], tmp[MAXPATHLEN], old[MAXPATHLEN];
+	char line[16*1024], tmp[PATH_MAX], old[PATH_MAX];
 	int c, skip = 0, inplace = 0, num = 0, invalid = 0, has_unhashed = 0;
 	int r, ca, revoked;
 	int found_key = 0;
@@ -2291,9 +2291,9 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
+	char dotsshdir[PATH_MAX], comment[1024], *passphrase1, *passphrase2;
 	char *checkpoint = NULL;
-	char out_file[MAXPATHLEN], *rr_hostname = NULL, *ep;
+	char out_file[PATH_MAX], *rr_hostname = NULL, *ep;
 	struct sshkey *private, *public;
 	struct passwd *pw;
 	struct stat st;
@@ -2513,7 +2513,7 @@ main(int argc, char **argv)
 				fatal("Output filename too long");
 			break;
 		case 'K':
-			if (strlen(optarg) >= MAXPATHLEN)
+			if (strlen(optarg) >= PATH_MAX)
 				fatal("Checkpoint filename too long");
 			checkpoint = xstrdup(optarg);
 			break;

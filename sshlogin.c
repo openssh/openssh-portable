@@ -1,4 +1,4 @@
-/* $OpenBSD: sshlogin.c,v 1.29 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: sshlogin.c,v 1.30 2015/01/16 06:40:12 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,7 +42,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
+#include <sys/param.h>	/* MAXHOSTNAMELEN */
 #include <sys/socket.h>
 
 #include <netinet/in.h>

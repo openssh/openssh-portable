@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.276 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: session.c,v 1.277 2015/01/16 06:40:12 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -60,6 +60,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -1437,7 +1438,7 @@ static void
 safely_chroot(const char *path, uid_t uid)
 {
 	const char *cp;
-	char component[MAXPATHLEN];
+	char component[PATH_MAX];
 	struct stat st;
 
 	if (*path != '/')
