@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.412 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.413 2015/01/16 07:19:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -277,6 +277,60 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 }
 
 /*
+ * Attempt to resolve a numeric host address / port to a single address.
+ * Returns a canonical address string.
+ * Returns NULL on failure.
+ * NB. this function must operate with a options having undefined members.
+ */
+static struct addrinfo *
+resolve_addr(const char *name, int port, char *caddr, size_t clen)
+{
+	char addr[NI_MAXHOST], strport[NI_MAXSERV];
+	struct addrinfo hints, *res;
+	int gaierr;
+
+	if (port <= 0)
+		port = default_ssh_port();
+	snprintf(strport, sizeof strport, "%u", port);
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = options.address_family == -1 ?
+	    AF_UNSPEC : options.address_family;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
+	if ((gaierr = getaddrinfo(name, strport, &hints, &res)) != 0) {
+		debug2("%s: could not resolve name %.100s as address: %s",
+		    __func__, name, ssh_gai_strerror(gaierr));
+		return NULL;
+	}
+	if (res == NULL) {
+		debug("%s: getaddrinfo %.100s returned no addresses",
+		 __func__, name);
+		return NULL;
+	}
+	if (res->ai_next != NULL) {
+		debug("%s: getaddrinfo %.100s returned multiple addresses",
+		    __func__, name);
+		goto fail;
+	}
+	if ((gaierr = getnameinfo(res->ai_addr, res->ai_addrlen,
+	    addr, sizeof(addr), NULL, 0, NI_NUMERICHOST)) != 0) {
+		debug("%s: Could not format address for name %.100s: %s",
+		    __func__, name, ssh_gai_strerror(gaierr));
+		goto fail;
+	}
+	if (strlcpy(caddr, addr, clen) >= clen) {
+		error("%s: host \"%s\" addr \"%s\" too long (max %lu)",
+		    __func__, name,  addr, (u_long)clen);
+		if (clen > 0)
+			*caddr = '\0';
+ fail:
+		freeaddrinfo(res);
+		return NULL;
+	}
+	return res;
+}
+
+/*
  * Check whether the cname is a permitted replacement for the hostname
  * and perform the replacement if it is.
  * NB. this function must operate with a options having undefined members.
@@ -326,7 +380,7 @@ static struct addrinfo *
 resolve_canonicalize(char **hostp, int port)
 {
 	int i, ndots;
-	char *cp, *fullhost, cname_target[NI_MAXHOST];
+	char *cp, *fullhost, newname[NI_MAXHOST];
 	struct addrinfo *addrs;
 
 	if (options.canonicalize_hostname == SSH_CANONICALISE_NO)
@@ -339,6 +393,19 @@ resolve_canonicalize(char **hostp, int port)
 	if (!option_clear_or_none(options.proxy_command) &&
 	    options.canonicalize_hostname != SSH_CANONICALISE_ALWAYS)
 		return NULL;
+
+	/* Try numeric hostnames first */
+	if ((addrs = resolve_addr(*hostp, port,
+	    newname, sizeof(newname))) != NULL) {
+		debug2("%s: hostname %.100s is address", __func__, *hostp);
+		if (strcasecmp(*hostp, newname) != 0) {
+			debug2("%s: canonicalised address \"%s\" => \"%s\"",
+			    __func__, *hostp, newname);
+			free(*hostp);
+			*hostp = xstrdup(newname);
+		}
+		return addrs;
+	}
 
 	/* Don't apply canonicalization to sufficiently-qualified hostnames */
 	ndots = 0;
@@ -353,20 +420,20 @@ resolve_canonicalize(char **hostp, int port)
 	}
 	/* Attempt each supplied suffix */
 	for (i = 0; i < options.num_canonical_domains; i++) {
-		*cname_target = '\0';
+		*newname = '\0';
 		xasprintf(&fullhost, "%s.%s.", *hostp,
 		    options.canonical_domains[i]);
 		debug3("%s: attempting \"%s\" => \"%s\"", __func__,
 		    *hostp, fullhost);
 		if ((addrs = resolve_host(fullhost, port, 0,
-		    cname_target, sizeof(cname_target))) == NULL) {
+		    newname, sizeof(newname))) == NULL) {
 			free(fullhost);
 			continue;
 		}
 		/* Remove trailing '.' */
 		fullhost[strlen(fullhost) - 1] = '\0';
 		/* Follow CNAME if requested */
-		if (!check_follow_cname(&fullhost, cname_target)) {
+		if (!check_follow_cname(&fullhost, newname)) {
 			debug("Canonicalized hostname \"%s\" => \"%s\"",
 			    *hostp, fullhost);
 		}
