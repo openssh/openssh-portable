@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.432 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.433 2015/01/17 18:53:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1713,7 +1713,11 @@ main(int ac, char **av)
 		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
 			setenv(SSH_AUTHSOCKET_ENV_NAME,
 			    options.host_key_agent, 1);
-		have_agent = ssh_get_authentication_socket(NULL);
+		if ((r = ssh_get_authentication_socket(NULL)) == 0)
+			have_agent = 1;
+		else
+			error("Could not connect to agent \"%s\": %s",
+			    options.host_key_agent, ssh_err(r));
 	}
 
 	for (i = 0; i < options.num_host_key_files; i++) {
@@ -2113,7 +2117,7 @@ main(int ac, char **av)
 	} else if (compat20 && have_agent) {
 		if ((r = ssh_get_authentication_socket(&auth_sock)) != 0) {
 			error("Unable to get agent socket: %s", ssh_err(r));
-			have_agent = -1;
+			have_agent = 0;
 		}
 	}
 
