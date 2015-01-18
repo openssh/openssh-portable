@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.60 2015/01/18 21:40:23 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.61 2015/01/18 21:48:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -244,100 +244,64 @@ init_hostkeys(void)
 	return ret;
 }
 
+struct load_callback_ctx {
+	const char *host;
+	u_long num_loaded;
+	struct hostkeys *hostkeys;
+};
+
+static int
+record_hostkey(struct hostkey_foreach_line *l, void *_ctx)
+{
+	struct load_callback_ctx *ctx = (struct load_callback_ctx *)_ctx;
+	struct hostkeys *hostkeys = ctx->hostkeys;
+	struct hostkey_entry *tmp;
+
+	if (l->status == HKF_STATUS_INVALID) {
+		error("%s:%ld: parse error in hostkeys file",
+		    l->path, l->linenum);
+		return 0;
+	}
+
+	debug3("%s: found %skey type %s in file %s:%lu", __func__,
+	    l->marker == MRK_NONE ? "" :
+	    (l->marker == MRK_CA ? "ca " : "revoked "),
+	    sshkey_type(l->key), l->path, l->linenum);
+	if ((tmp = reallocarray(hostkeys->entries,
+	    hostkeys->num_entries + 1, sizeof(*hostkeys->entries))) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	hostkeys->entries = tmp;
+	hostkeys->entries[hostkeys->num_entries].host = xstrdup(ctx->host);
+	hostkeys->entries[hostkeys->num_entries].file = xstrdup(l->path);
+	hostkeys->entries[hostkeys->num_entries].line = l->linenum;
+	hostkeys->entries[hostkeys->num_entries].key = l->key;
+	l->key = NULL; /* steal it */
+	hostkeys->entries[hostkeys->num_entries].marker = l->marker;
+	hostkeys->num_entries++;
+	ctx->num_loaded++;
+
+	return 0;
+}
+
 void
 load_hostkeys(struct hostkeys *hostkeys, const char *host, const char *path)
 {
-	FILE *f;
-	char line[8192];
-	u_long linenum = 0, num_loaded = 0;
-	char *cp, *cp2, *hashed_host;
-	HostkeyMarker marker;
-	struct sshkey *key;
-	u_int kbits;
+	int r;
+	struct load_callback_ctx ctx;
 
-	if ((f = fopen(path, "r")) == NULL)
-		return;
-	debug3("%s: loading entries for host \"%.100s\" from file \"%s\"",
-	    __func__, host, path);
-	while (read_keyfile_line(f, path, line, sizeof(line), &linenum) == 0) {
-		cp = line;
+	ctx.host = host;
+	ctx.num_loaded = 0;
+	ctx.hostkeys = hostkeys;
 
-		/* Skip any leading whitespace, comments and empty lines. */
-		for (; *cp == ' ' || *cp == '\t'; cp++)
-			;
-		if (!*cp || *cp == '#' || *cp == '\n')
-			continue;
-
-		if ((marker = check_markers(&cp)) == MRK_ERROR) {
-			verbose("%s: invalid marker at %s:%lu",
-			    __func__, path, linenum);
-			continue;
-		}
-
-		/* Find the end of the host name portion. */
-		for (cp2 = cp; *cp2 && *cp2 != ' ' && *cp2 != '\t'; cp2++)
-			;
-
-		/* Check if the host name matches. */
-		if (match_hostname(host, cp, (u_int) (cp2 - cp)) != 1) {
-			if (*cp != HASH_DELIM)
-				continue;
-			hashed_host = host_hash(host, cp, (u_int) (cp2 - cp));
-			if (hashed_host == NULL) {
-				debug("Invalid hashed host line %lu of %s",
-				    linenum, path);
-				continue;
-			}
-			if (strncmp(hashed_host, cp, (u_int) (cp2 - cp)) != 0)
-				continue;
-		}
-
-		/* Got a match.  Skip host name. */
-		cp = cp2;
-
-		/*
-		 * Extract the key from the line.  This will skip any leading
-		 * whitespace.  Ignore badly formatted lines.
-		 */
-		if ((key = sshkey_new(KEY_UNSPEC)) == NULL) {
-			error("%s: sshkey_new failed", __func__);
-			break;
-		}
-		if (!hostfile_read_key(&cp, &kbits, key)) {
-			sshkey_free(key);
-#ifdef WITH_SSH1
-			if ((key = sshkey_new(KEY_RSA1)) == NULL) {
-				error("%s: sshkey_new failed", __func__);
-				break;
-			}
-			if (!hostfile_read_key(&cp, &kbits, key)) {
-				sshkey_free(key);
-				continue;
-			}
-#else
-			continue;
-#endif
-		}
-		if (!hostfile_check_key(kbits, key, host, path, linenum))
-			continue;
-
-		debug3("%s: found %skey type %s in file %s:%lu", __func__,
-		    marker == MRK_NONE ? "" :
-		    (marker == MRK_CA ? "ca " : "revoked "),
-		    sshkey_type(key), path, linenum);
-		hostkeys->entries = xrealloc(hostkeys->entries,
-		    hostkeys->num_entries + 1, sizeof(*hostkeys->entries));
-		hostkeys->entries[hostkeys->num_entries].host = xstrdup(host);
-		hostkeys->entries[hostkeys->num_entries].file = xstrdup(path);
-		hostkeys->entries[hostkeys->num_entries].line = linenum;
-		hostkeys->entries[hostkeys->num_entries].key = key;
-		hostkeys->entries[hostkeys->num_entries].marker = marker;
-		hostkeys->num_entries++;
-		num_loaded++;
+	if ((r = hostkeys_foreach(path, record_hostkey, &ctx, host,
+	    HKF_WANT_MATCH_HOST|HKF_WANT_PARSE_KEY)) != 0) {
+		if (r != SSH_ERR_SYSTEM_ERROR && errno != ENOENT)
+			debug("%s: hostkeys_foreach failed for %s: %s",
+			    __func__, path, ssh_err(r));
 	}
-	debug3("%s: loaded %lu keys", __func__, num_loaded);
-	fclose(f);
-	return;
+	if (ctx.num_loaded != 0)
+		debug3("%s: loaded %lu keys from %s", __func__,
+		    ctx.num_loaded, host);
 }
 
 void
@@ -470,7 +434,6 @@ lookup_key_in_hostkeys_by_type(struct hostkeys *hostkeys, int keytype,
  * Appends an entry to the host file.  Returns false if the entry could not
  * be appended.
  */
-
 int
 add_host_to_hostfile(const char *filename, const char *host,
     const struct sshkey *key, int store_hash)
@@ -487,7 +450,7 @@ add_host_to_hostfile(const char *filename, const char *host,
 
 	if (store_hash) {
 		if ((hashed_host = host_hash(host, NULL, 0)) == NULL) {
-			error("add_host_to_hostfile: host_hash failed");
+			error("%s: host_hash failed", __func__);
 			fclose(f);
 			return 0;
 		}
