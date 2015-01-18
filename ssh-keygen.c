@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.256 2015/01/18 21:49:42 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.257 2015/01/18 21:51:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1032,9 +1032,11 @@ do_gen_all_hostkeys(struct passwd *pw)
 }
 
 struct known_hosts_ctx {
-	FILE *out;
-	const char *host;
-	int has_unhashed, found_key, inplace, invalid;
+	const char *host;	/* Hostname searched for in find/delete case */
+	FILE *out;		/* Output file, stdout for find_hosts case */
+	int has_unhashed;	/* When hashing, original had unhashed hosts */
+	int found_key;		/* For find/delete, host was found */
+	int invalid;		/* File contained invalid items; don't delete */
 };
 
 static int
@@ -1062,7 +1064,6 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 			fprintf(stderr, "%s:%ld: ignoring host name "
 			    "with wildcard: %.64s\n", l->path,
 			    l->linenum, l->hosts);
-			ctx->has_unhashed = 1;
 		}
 		return 0;
 	}
@@ -1133,7 +1134,7 @@ static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
 	char *cp, tmp[MAXPATHLEN], old[MAXPATHLEN];
-	int r, fd, oerrno;
+	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
 
 	if (!have_identity) {
@@ -1167,7 +1168,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 			unlink(tmp);
 			fatal("fdopen: %s", strerror(oerrno));
 		}
-		ctx.inplace = 1;
+		inplace = 1;
 	}
 
 	/* XXX support identity_file == "-" for stdin */
@@ -1176,13 +1177,13 @@ do_known_hosts(struct passwd *pw, const char *name)
 	    name, find_host ? HKF_WANT_MATCH_HOST : 0)) != 0)
 		fatal("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
 
-	if (ctx.inplace)
+	if (inplace)
 		fclose(ctx.out);
 
 	if (ctx.invalid) {
 		fprintf(stderr, "%s is not a valid known_hosts file.\n",
 		    identity_file);
-		if (ctx.inplace) {
+		if (inplace) {
 			fprintf(stderr, "Not replacing existing known_hosts "
 			    "file because of errors\n");
 			unlink(tmp);
@@ -1192,7 +1193,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 		fprintf(stderr, "Host %s not found in %s\n",
 		    name, identity_file);
 		unlink(tmp);
-	} else if (ctx.inplace) {
+	} else if (inplace) {
 		/* Backup existing file */
 		if (unlink(old) == -1 && errno != ENOENT)
 			fatal("unlink %.100s: %s", old, strerror(errno));
