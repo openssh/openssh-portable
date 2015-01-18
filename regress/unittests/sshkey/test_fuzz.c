@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.1 2014/06/24 01:14:18 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.2 2015/01/18 19:53:58 djm Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -87,8 +87,11 @@ sig_fuzz(struct sshkey *k)
 	free(sig);
 	TEST_ONERROR(onerror, fuzz);
 	for(; !fuzz_done(fuzz); fuzz_next(fuzz)) {
-		sshkey_verify(k, fuzz_ptr(fuzz), fuzz_len(fuzz),
-		    c, sizeof(c), 0);
+		/* Ensure 1-bit difference at least */
+		if (fuzz_matches_original(fuzz))
+			continue;
+		ASSERT_INT_NE(sshkey_verify(k, fuzz_ptr(fuzz), fuzz_len(fuzz),
+		    c, sizeof(c), 0), 0);
 	}
 	fuzz_cleanup(fuzz);
 }
