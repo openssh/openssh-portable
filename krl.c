@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.26 2015/01/14 15:02:39 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.27 2015/01/18 14:01:00 deraadt Exp $ */
 
 #include "includes.h"
 
@@ -793,7 +793,7 @@ format_timestamp(u_int64_t timestamp, char *ts, size_t nts)
 	t = timestamp;
 	tm = localtime(&t);
 	if (tm == NULL)
-		strlcpy(ts, "<INVALID>", sizeof(nts));
+		strlcpy(ts, "<INVALID>", nts);
 	else {
 		*ts = '\0';
 		strftime(ts, nts, "%Y%m%dT%H%M%S", tm);
