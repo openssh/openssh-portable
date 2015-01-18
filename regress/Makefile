@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.75 2015/01/18 19:47:55 djm Exp $
+#	$OpenBSD: Makefile,v 1.76 2015/01/18 22:00:18 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -67,7 +67,8 @@ LTESTS= 	connect \
 		krl \
 		multipubkey \
 		limit-keytype \
-		hostkey-agent
+		hostkey-agent \
+		keygen-knownhosts
 
 
 #		dhgex \
@@ -97,7 +98,8 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		regress.log failed-regress.log ssh-log-wrapper.sh \
 		sftp-server.sh sftp-server.log sftp.log setuid-allowed \
 		data ed25519-agent ed25519-agent.pub key.ed25519-512 \
-		key.ed25519-512.pub netcat host_krl_* host_revoked_* user_*key*
+		key.ed25519-512.pub netcat host_krl_* host_revoked_* \
+		kh.* user_*key*
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 
