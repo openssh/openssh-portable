@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.254 2015/01/16 15:55:07 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.255 2015/01/18 13:22:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,10 +180,11 @@ int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
     unsigned long);
 
 static void
-type_bits_valid(int type, u_int32_t *bitsp)
+type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 {
 #ifdef WITH_OPENSSL
 	u_int maxbits;
+	int nid;
 #endif
 
 	if (type == KEY_UNSPEC) {
@@ -193,8 +194,13 @@ type_bits_valid(int type, u_int32_t *bitsp)
 	if (*bitsp == 0) {
 		if (type == KEY_DSA)
 			*bitsp = DEFAULT_BITS_DSA;
-		else if (type == KEY_ECDSA)
-			*bitsp = DEFAULT_BITS_ECDSA;
+		else if (type == KEY_ECDSA) {
+			if (name != NULL &&
+			    (nid = sshkey_ecdsa_nid_from_name(name)) > 0)
+				*bitsp = sshkey_curve_nid_to_bits(nid);
+			if (*bitsp == 0)
+				*bitsp = DEFAULT_BITS_ECDSA;
+		}
 		else
 			*bitsp = DEFAULT_BITS;
 	}
@@ -971,7 +977,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 		type = sshkey_type_from_name(key_types[i].key_type);
 		strlcpy(identity_file, key_types[i].path, sizeof(identity_file));
 		bits = 0;
-		type_bits_valid(type, &bits);
+		type_bits_valid(type, NULL, &bits);
 		if ((r = sshkey_generate(type, bits, &private)) != 0) {
 			fprintf(stderr, "key_generate failed: %s\n",
 			    ssh_err(r));
@@ -2671,7 +2677,7 @@ main(int argc, char **argv)
 		key_type_name = "rsa";
 
 	type = sshkey_type_from_name(key_type_name);
-	type_bits_valid(type, &bits);
+	type_bits_valid(type, key_type_name, &bits);
 
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n",
