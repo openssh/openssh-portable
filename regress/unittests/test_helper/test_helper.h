@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.h,v 1.5 2015/01/15 07:36:28 djm Exp $	*/
+/*	$OpenBSD: test_helper.h,v 1.6 2015/01/18 19:52:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -283,6 +283,13 @@ void fuzz_cleanup(struct fuzz *fuzz);
 /* Prepare the next fuzz case in the series */
 void fuzz_next(struct fuzz *fuzz);
 
+/*
+ * Check whether this fuzz case is identical to the original
+ * This is slow, but useful if the caller needs to ensure that all tests
+ * generated change the input (e.g. when fuzzing signatures).
+ */
+int fuzz_matches_original(struct fuzz *fuzz);
+
 /* Determine whether the current fuzz sequence is exhausted (nonzero = yes) */
 int fuzz_done(struct fuzz *fuzz);
 
@@ -292,4 +299,5 @@ u_char *fuzz_ptr(struct fuzz *fuzz);
 
 /* Dump the current fuzz case to stderr */
 void fuzz_dump(struct fuzz *fuzz);
+
 #endif /* _TEST_HELPER_H */

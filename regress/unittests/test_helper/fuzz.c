@@ -1,4 +1,4 @@
-/*	$OpenBSD: fuzz.c,v 1.6 2015/01/18 19:50:55 djm Exp $	*/
+/*	$OpenBSD: fuzz.c,v 1.7 2015/01/18 19:52:44 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -375,6 +375,14 @@ fuzz_next(struct fuzz *fuzz)
 	FUZZ_DBG(("done, fuzz = %p, strategy = %s, strategies = 0x%lx, "
 	    "o1 = %zu, o2 = %zu, slen = %zu", fuzz, fuzz_ntop(fuzz->strategy),
 	    (u_long)fuzz->strategies, fuzz->o1, fuzz->o2, fuzz->slen));
+}
+
+int
+fuzz_matches_original(struct fuzz *fuzz)
+{
+	if (fuzz_len(fuzz) != fuzz->slen)
+		return 0;
+	return memcmp(fuzz_ptr(fuzz), fuzz->seed, fuzz->slen) == 0;
 }
 
 int
