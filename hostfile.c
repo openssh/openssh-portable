@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.59 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.60 2015/01/18 21:40:23 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,6 +42,7 @@
 
 #include <netinet/in.h>
 
+#include <errno.h>
 #include <resolv.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -63,6 +64,8 @@ struct hostkeys {
 	struct hostkey_entry *entries;
 	u_int num_entries;
 };
+
+/* XXX hmac is too easy to dictionary attack; use bcrypt? */
 
 static int
 extract_salt(const char *s, u_int l, u_char *salt, size_t salt_len)
@@ -496,7 +499,147 @@ add_host_to_hostfile(const char *filename, const char *host,
 		    __func__, filename, ssh_err(r));
 	} else
 		success = 1;
-	fputs("\n", f);
+	fputc('\n', f);
 	fclose(f);
 	return success;
+}
+
+static int
+match_maybe_hashed(const char *host, const char *names, int *was_hashed)
+{
+	int hashed = *names == HASH_DELIM;
+	const char *hashed_host;
+	size_t nlen = strlen(names);
+
+	if (was_hashed != NULL)
+		*was_hashed = hashed;
+	if (hashed) {
+		if ((hashed_host = host_hash(host, names, nlen)) == NULL)
+			return -1;
+		return nlen == strlen(hashed_host) &&
+		    strncmp(hashed_host, names, nlen) == 0;
+	}
+	return match_hostname(host, names, nlen) == 1;
+}
+
+int
+hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
+    const char *host, u_int options)
+{
+	FILE *f;
+	char line[8192], oline[8192];
+	u_long linenum = 0;
+	char *cp, *cp2;
+	u_int kbits;
+	int s, r = 0;
+	struct hostkey_foreach_line lineinfo;
+
+	memset(&lineinfo, 0, sizeof(lineinfo));
+	if (host == NULL && (options & HKF_WANT_MATCH_HOST) != 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if ((f = fopen(path, "r")) == NULL)
+		return SSH_ERR_SYSTEM_ERROR;
+
+	debug3("%s: reading file \"%s\"", __func__, path);
+	while (read_keyfile_line(f, path, line, sizeof(line), &linenum) == 0) {
+		line[strcspn(line, "\n")] = '\0';
+		strlcpy(oline, line, sizeof(oline));
+
+		sshkey_free(lineinfo.key);
+		memset(&lineinfo, 0, sizeof(lineinfo));
+		lineinfo.path = path;
+		lineinfo.linenum = linenum;
+		lineinfo.line = oline;
+		lineinfo.status = HKF_STATUS_OK;
+
+		/* Skip any leading whitespace, comments and empty lines. */
+		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
+			;
+		if (!*cp || *cp == '#' || *cp == '\n') {
+			if ((options & HKF_WANT_MATCH_HOST) == 0) {
+				lineinfo.status = HKF_STATUS_COMMENT;
+				if ((r = callback(&lineinfo, ctx)) != 0)
+					break;
+			}
+			continue;
+		}
+
+		if ((lineinfo.marker = check_markers(&cp)) == MRK_ERROR) {
+			verbose("%s: invalid marker at %s:%lu",
+			    __func__, path, linenum);
+			if ((options & HKF_WANT_MATCH_HOST) == 0)
+				goto bad;
+			continue;
+		}
+
+		/* Find the end of the host name portion. */
+		for (cp2 = cp; *cp2 && *cp2 != ' ' && *cp2 != '\t'; cp2++)
+			;
+		lineinfo.hosts = cp;
+		*cp2++ = '\0';
+
+		/* Check if the host name matches. */
+		if (host != NULL) {
+			s = match_maybe_hashed(host, lineinfo.hosts,
+			    &lineinfo.was_hashed);
+			if (s == 1)
+				lineinfo.status = HKF_STATUS_HOST_MATCHED;
+			else if ((options & HKF_WANT_MATCH_HOST) != 0)
+				continue;
+			else if (s == -1) {
+				debug2("%s: %s:%ld: bad host hash \"%.32s\"",
+				    __func__, path, linenum, lineinfo.hosts);
+				goto bad;
+			}
+		}
+
+		/* Got a match.  Skip host name and any following whitespace */
+		for (; *cp2 == ' ' || *cp2 == '\t'; cp2++)
+			;
+		if (*cp2 == '\0' || *cp2 == '#') {
+			debug2("%s:%ld: truncated before key", path, linenum);
+			goto bad;
+		}
+		lineinfo.rawkey = cp = cp2;
+
+		if ((options & HKF_WANT_PARSE_KEY) != 0) {
+			/*
+			 * Extract the key from the line.  This will skip
+			 * any leading whitespace.  Ignore badly formatted
+			 * lines.
+			 */
+			if ((lineinfo.key = sshkey_new(KEY_UNSPEC)) == NULL) {
+				error("%s: sshkey_new failed", __func__);
+				return SSH_ERR_ALLOC_FAIL;
+			}
+			if (!hostfile_read_key(&cp, &kbits, lineinfo.key)) {
+#ifdef WITH_SSH1
+				sshkey_free(lineinfo.key);
+				lineinfo.key = sshkey_new(KEY_RSA1);
+				if (lineinfo.key  == NULL) {
+					error("%s: sshkey_new fail", __func__);
+					return SSH_ERR_ALLOC_FAIL;
+				}
+				if (!hostfile_read_key(&cp, &kbits,
+				    lineinfo.key))
+					goto bad;
+#else
+				goto bad;
+#endif
+			}
+			if (!hostfile_check_key(kbits, lineinfo.key, host,
+			    path, linenum)) {
+ bad:
+				lineinfo.status = HKF_STATUS_INVALID;
+				if ((r = callback(&lineinfo, ctx)) != 0)
+					break;
+				continue;
+			}
+		}
+		if ((r = callback(&lineinfo, ctx)) != 0)
+			break;
+	}
+	sshkey_free(lineinfo.key);
+	fclose(f);
+	return r;
 }

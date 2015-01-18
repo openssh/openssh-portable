@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.h,v 1.21 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: hostfile.h,v 1.22 2015/01/18 21:40:24 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -51,5 +51,46 @@ int	 add_host_to_hostfile(const char *, const char *,
 #define REVOKE_MARKER	"@revoked"
 
 char	*host_hash(const char *, const char *, u_int);
+
+/*
+ * Iterate through a hostkeys file, optionally parsing keys and matching
+ * hostnames. Allows access to the raw keyfile lines to allow
+ * streaming edits to the file to take place.
+ */
+#define HKF_WANT_MATCH_HOST	(1)	/* return only matching hosts */
+#define HKF_WANT_PARSE_KEY	(1<<1)	/* need key parsed */
+
+#define HKF_STATUS_OK		1	/* Line parsed, didn't match host */
+#define HKF_STATUS_INVALID	2	/* line had parse error */
+#define HKF_STATUS_COMMENT	3	/* valid line contained no key */
+#define HKF_STATUS_HOST_MATCHED	4	/* hostname matched */
+
+/*
+ * The callback function receives this as an argument for each matching 
+ * hostkey line. The callback may "steal" the 'key' field by setting it to NULL.
+ * If a parse error occurred, then "hosts" and subsequent options may be NULL.
+ */
+struct hostkey_foreach_line {
+	const char *path; /* Path of file */
+	u_long linenum;	/* Line number */
+	int status;	/* One of HKF_STATUS_* */
+	char *line;	/* Entire key line; mutable by callback */
+	int marker;	/* CA/revocation markers; indicated by MRK_* value */
+	const char *hosts; /* Raw hosts text, may be hashed or list multiple */
+	int was_hashed;	/* Non-zero if hostname was hashed */
+	const char *rawkey; /* Text of key and any comment following it */
+	struct sshkey *key; /* Key, if parsed ok and HKF_WANT_MATCH_HOST set */
+	const char *comment; /* Any comment following the key */
+};
+
+/*
+ * Callback fires for each line (or matching line if a HKF_WANT_* option
+ * is set). The foreach loop will terminate if the callback returns a non-
+ * zero exit status.
+ */
+typedef int hostkeys_foreach_fn(struct hostkey_foreach_line *l, void *ctx);
+
+int hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
+    const char *host, u_int options);
 
 #endif
