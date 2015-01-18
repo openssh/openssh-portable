@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.215 2015/01/15 11:04:36 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.216 2015/01/18 13:33:34 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -141,7 +141,8 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port)
 			ALG_APPEND(last, alg);
 	}
 #undef ALG_APPEND
-	xasprintf(&ret, "%s%s%s", first, *first == '\0' ? "" : ",", last);
+	xasprintf(&ret, "%s%s%s", first,
+	    (*first == '\0' || *last == '\0') ? "" : ",", last);
 	if (*first != '\0')
 		debug3("%s: prefer hostkeyalgs: %s", __func__, first);
 
