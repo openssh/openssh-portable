@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.67 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: kex.h,v 1.68 2015/01/19 20:07:45 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -143,7 +143,7 @@ void	 kex_finish(Kex *);
 void     kex_free_newkeys(struct newkeys *);
 
 void	 kex_send_kexinit(Kex *);
-void	 kex_input_kexinit(int, u_int32_t, void *);
+int	 kex_input_kexinit(int, u_int32_t, void *);
 void	 kex_derive_keys(Kex *, u_char *, u_int, const u_char *, u_int);
 void	 kex_derive_keys_bn(Kex *, u_char *, u_int, const BIGNUM *);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.62 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: packet.h,v 1.63 2015/01/19 20:07:45 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -32,6 +32,8 @@ struct sshkey;
 struct sshbuf;
 struct session_state;	/* private session data */
 
+#include "dispatch.h"	/* typedef, DISPATCH_MAX */
+
 struct ssh {
 	/* Session state */
 	struct session_state *state;
@@ -42,6 +44,11 @@ struct ssh {
 	/* cached remote ip address and port*/
 	char *remote_ipaddr;
 	int remote_port;
+
+	/* Dispatcher table */
+	dispatch_fn *dispatch[DISPATCH_MAX];
+	/* number of packets to ignore in the dispatcher */
+	int dispatch_skip_packets;
 
 	/* datafellows */
 	int compat;

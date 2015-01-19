@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.217 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.218 2015/01/19 20:07:45 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -285,14 +285,14 @@ struct cauthmethod {
 	int	*batch_flag;	/* flag in option struct that disables method */
 };
 
-void	input_userauth_success(int, u_int32_t, void *);
-void	input_userauth_success_unexpected(int, u_int32_t, void *);
-void	input_userauth_failure(int, u_int32_t, void *);
-void	input_userauth_banner(int, u_int32_t, void *);
-void	input_userauth_error(int, u_int32_t, void *);
-void	input_userauth_info_req(int, u_int32_t, void *);
-void	input_userauth_pk_ok(int, u_int32_t, void *);
-void	input_userauth_passwd_changereq(int, u_int32_t, void *);
+int	input_userauth_success(int, u_int32_t, void *);
+int	input_userauth_success_unexpected(int, u_int32_t, void *);
+int	input_userauth_failure(int, u_int32_t, void *);
+int	input_userauth_banner(int, u_int32_t, void *);
+int	input_userauth_error(int, u_int32_t, void *);
+int	input_userauth_info_req(int, u_int32_t, void *);
+int	input_userauth_pk_ok(int, u_int32_t, void *);
+int	input_userauth_passwd_changereq(int, u_int32_t, void *);
 
 int	userauth_none(Authctxt *);
 int	userauth_pubkey(Authctxt *);
@@ -302,11 +302,11 @@ int	userauth_hostbased(Authctxt *);
 
 #ifdef GSSAPI
 int	userauth_gssapi(Authctxt *authctxt);
-void	input_gssapi_response(int type, u_int32_t, void *);
-void	input_gssapi_token(int type, u_int32_t, void *);
-void	input_gssapi_hash(int type, u_int32_t, void *);
-void	input_gssapi_error(int, u_int32_t, void *);
-void	input_gssapi_errtok(int, u_int32_t, void *);
+int	input_gssapi_response(int type, u_int32_t, void *);
+int	input_gssapi_token(int type, u_int32_t, void *);
+int	input_gssapi_hash(int type, u_int32_t, void *);
+int	input_gssapi_error(int, u_int32_t, void *);
+int	input_gssapi_errtok(int, u_int32_t, void *);
 #endif
 
 void	userauth(Authctxt *, char *);
@@ -455,15 +455,16 @@ userauth(Authctxt *authctxt, char *authlist)
 }
 
 /* ARGSUSED */
-void
+int
 input_userauth_error(int type, u_int32_t seq, void *ctxt)
 {
 	fatal("input_userauth_error: bad message during authentication: "
 	    "type %d", type);
+	return 0;
 }
 
 /* ARGSUSED */
-void
+int
 input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 {
 	char *msg, *raw, *lang;
@@ -482,10 +483,11 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 	}
 	free(raw);
 	free(lang);
+	return 0;
 }
 
 /* ARGSUSED */
-void
+int
 input_userauth_success(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -499,9 +501,10 @@ input_userauth_success(int type, u_int32_t seq, void *ctxt)
 	free(authctxt->methoddata);
 	authctxt->methoddata = NULL;
 	authctxt->success = 1;			/* break out */
+	return 0;
 }
 
-void
+int
 input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -511,10 +514,11 @@ input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
 
 	fatal("Unexpected authentication success during %s.",
 	    authctxt->method->name);
+	return 0;
 }
 
 /* ARGSUSED */
-void
+int
 input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -537,10 +541,11 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	debug("Authentications that can continue: %s", authlist);
 
 	userauth(authctxt, authlist);
+	return 0;
 }
 
 /* ARGSUSED */
-void
+int
 input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -608,6 +613,7 @@ done:
 	/* try another method if we did not send a packet */
 	if (sent == 0)
 		userauth(authctxt, NULL);
+	return 0;
 }
 
 #ifdef GSSAPI
@@ -891,7 +897,7 @@ userauth_passwd(Authctxt *authctxt)
  * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
  */
 /* ARGSUSED */
-void
+int
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -932,7 +938,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 		password = read_passphrase(prompt, RP_ALLOW_EOF);
 		if (password == NULL) {
 			/* bail out */
-			return;
+			return 0;
 		}
 		snprintf(prompt, sizeof(prompt),
 		    "Retype %.30s@%.128s's new password: ",
@@ -955,6 +961,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 
 	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
+	return 0;
 }
 
 static int
@@ -1379,7 +1386,7 @@ userauth_kbdint(Authctxt *authctxt)
 /*
  * parse INFO_REQUEST, prompt user and send INFO_RESPONSE
  */
-void
+int
 input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -1431,6 +1438,7 @@ input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 
 	packet_add_padding(64);
 	packet_send();
+	return 0;
 }
 
 static int
