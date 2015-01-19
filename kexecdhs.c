@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhs.c,v 1.10 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: kexecdhs.c,v 1.11 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -113,8 +113,8 @@ kexecdh_server(Kex *kex)
 	    group,
 	    kex->client_version_string,
 	    kex->server_version_string,
-	    buffer_ptr(&kex->peer), buffer_len(&kex->peer),
-	    buffer_ptr(&kex->my), buffer_len(&kex->my),
+	    buffer_ptr(kex->peer), buffer_len(kex->peer),
+	    buffer_ptr(kex->my), buffer_len(kex->my),
 	    server_host_key_blob, sbloblen,
 	    client_public,
 	    EC_KEY_get0_public_key(server_key),

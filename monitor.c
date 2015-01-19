@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.138 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.139 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -110,38 +110,13 @@ static Gssctxt *gsscontext = NULL;
 /* Imports */
 extern ServerOptions options;
 extern u_int utmp_len;
-extern Newkeys *current_keys[];
-extern z_stream incoming_stream;
-extern z_stream outgoing_stream;
 extern u_char session_id[];
 extern Buffer auth_debug;
 extern int auth_debug_init;
 extern Buffer loginmsg;
 
 /* State exported from the child */
-
-struct {
-	z_stream incoming;
-	z_stream outgoing;
-	u_char *keyin;
-	u_int keyinlen;
-	u_char *keyout;
-	u_int keyoutlen;
-	u_char *ivin;
-	u_int ivinlen;
-	u_char *ivout;
-	u_int ivoutlen;
-	u_char *ssh1key;
-	u_int ssh1keylen;
-	int ssh1cipher;
-	int ssh1protoflags;
-	u_char *input;
-	u_int ilen;
-	u_char *output;
-	u_int olen;
-	u_int64_t sent_bytes;
-	u_int64_t recv_bytes;
-} child_state;
+static struct sshbuf *child_state;
 
 /* Functions on the monitor that answer unprivileged requests */
 
@@ -504,6 +479,27 @@ monitor_sync(struct monitor *pmonitor)
 		/* The member allocation is not visible, so sync it */
 		mm_share_sync(&pmonitor->m_zlib, &pmonitor->m_zback);
 	}
+}
+
+/* Allocation functions for zlib */
+static void *
+mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
+{
+	size_t len = (size_t) size * ncount;
+	void *address;
+
+	if (len == 0 || ncount > SIZE_T_MAX / size)
+		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
+
+	address = mm_malloc(mm, len);
+
+	return (address);
+}
+
+static void
+mm_zfree(struct mm_master *mm, void *address)
+{
+	mm_free(mm, address);
 }
 
 static int
@@ -1807,105 +1803,41 @@ mm_answer_audit_command(int socket, Buffer *m)
 void
 monitor_apply_keystate(struct monitor *pmonitor)
 {
-	if (compat20) {
-		set_newkeys(MODE_IN);
-		set_newkeys(MODE_OUT);
-	} else {
-		packet_set_protocol_flags(child_state.ssh1protoflags);
-		packet_set_encryption_key(child_state.ssh1key,
-		    child_state.ssh1keylen, child_state.ssh1cipher);
-		free(child_state.ssh1key);
+	struct ssh *ssh = active_state;	/* XXX */
+	struct kex *kex;
+	int r;
+
+	debug3("%s: packet_set_state", __func__);
+	if ((r = ssh_packet_set_state(ssh, child_state)) != 0)
+                fatal("%s: packet_set_state: %s", __func__, ssh_err(r));
+	sshbuf_free(child_state);
+	child_state = NULL;
+
+	if ((kex = ssh->kex) != 0) {
+		/* XXX set callbacks */
+		kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
+		kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
+		kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
+		kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
+		kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+		kex->kex[KEX_C25519_SHA256] = kexc25519_server;
+		kex->load_host_public_key=&get_hostkey_public_by_type;
+		kex->load_host_private_key=&get_hostkey_private_by_type;
+		kex->host_key_index=&get_hostkey_index;
+		kex->sign = sshd_hostkey_sign;
 	}
-
-	/* for rc4 and other stateful ciphers */
-	packet_set_keycontext(MODE_OUT, child_state.keyout);
-	free(child_state.keyout);
-	packet_set_keycontext(MODE_IN, child_state.keyin);
-	free(child_state.keyin);
-
-	if (!compat20) {
-		packet_set_iv(MODE_OUT, child_state.ivout);
-		free(child_state.ivout);
-		packet_set_iv(MODE_IN, child_state.ivin);
-		free(child_state.ivin);
-	}
-
-	memcpy(&incoming_stream, &child_state.incoming,
-	    sizeof(incoming_stream));
-	memcpy(&outgoing_stream, &child_state.outgoing,
-	    sizeof(outgoing_stream));
 
 	/* Update with new address */
-	if (options.compression)
-		mm_init_compression(pmonitor->m_zlib);
-
-	packet_set_postauth();
+	if (options.compression) {
+		ssh_packet_set_compress_hooks(ssh, pmonitor->m_zlib,
+		    (ssh_packet_comp_alloc_func *)mm_zalloc,
+		    (ssh_packet_comp_free_func *)mm_zfree);
+	}
 
 	if (options.rekey_limit || options.rekey_interval)
-		packet_set_rekey_limits((u_int32_t)options.rekey_limit,
+		ssh_packet_set_rekey_limits(ssh,
+		    (u_int32_t)options.rekey_limit,
 		    (time_t)options.rekey_interval);
-
-	/* Network I/O buffers */
-	/* XXX inefficient for large buffers, need: buffer_init_from_string */
-	buffer_clear(packet_get_input());
-	buffer_append(packet_get_input(), child_state.input, child_state.ilen);
-	explicit_bzero(child_state.input, child_state.ilen);
-	free(child_state.input);
-
-	buffer_clear(packet_get_output());
-	buffer_append(packet_get_output(), child_state.output,
-		      child_state.olen);
-	explicit_bzero(child_state.output, child_state.olen);
-	free(child_state.output);
-
-	/* Roaming */
-	if (compat20)
-		roam_set_bytes(child_state.sent_bytes, child_state.recv_bytes);
-}
-
-static Kex *
-mm_get_kex(Buffer *m)
-{
-	Kex *kex;
-	void *blob;
-	u_int bloblen;
-
-	kex = xcalloc(1, sizeof(*kex));
-	kex->session_id = buffer_get_string(m, &kex->session_id_len);
-	if (session_id2 == NULL ||
-	    kex->session_id_len != session_id2_len ||
-	    timingsafe_bcmp(kex->session_id, session_id2, session_id2_len) != 0)
-		fatal("mm_get_get: internal error: bad session id");
-	kex->we_need = buffer_get_int(m);
-#ifdef WITH_OPENSSL
-	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
-	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
-	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
-	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
-	kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
-#endif
-	kex->kex[KEX_C25519_SHA256] = kexc25519_server;
-	kex->server = 1;
-	kex->hostkey_type = buffer_get_int(m);
-	kex->kex_type = buffer_get_int(m);
-	blob = buffer_get_string(m, &bloblen);
-	buffer_init(&kex->my);
-	buffer_append(&kex->my, blob, bloblen);
-	free(blob);
-	blob = buffer_get_string(m, &bloblen);
-	buffer_init(&kex->peer);
-	buffer_append(&kex->peer, blob, bloblen);
-	free(blob);
-	kex->done = 1;
-	kex->flags = buffer_get_int(m);
-	kex->client_version_string = buffer_get_string(m, NULL);
-	kex->server_version_string = buffer_get_string(m, NULL);
-	kex->load_host_public_key=&get_hostkey_public_by_type;
-	kex->load_host_private_key=&get_hostkey_private_by_type;
-	kex->host_key_index=&get_hostkey_index;
-	kex->sign = sshd_hostkey_sign;
-
-	return (kex);
 }
 
 /* This function requries careful sanity checking */
@@ -1913,117 +1845,15 @@ mm_get_kex(Buffer *m)
 void
 mm_get_keystate(struct monitor *pmonitor)
 {
-	Buffer m;
-	u_char *blob, *p;
-	u_int bloblen, plen;
-	u_int32_t seqnr, packets;
-	u_int64_t blocks, bytes;
-
 	debug3("%s: Waiting for new keys", __func__);
 
-	buffer_init(&m);
-	mm_request_receive_expect(pmonitor->m_sendfd, MONITOR_REQ_KEYEXPORT, &m);
-	if (!compat20) {
-		child_state.ssh1protoflags = buffer_get_int(&m);
-		child_state.ssh1cipher = buffer_get_int(&m);
-		child_state.ssh1key = buffer_get_string(&m,
-		    &child_state.ssh1keylen);
-		child_state.ivout = buffer_get_string(&m,
-		    &child_state.ivoutlen);
-		child_state.ivin = buffer_get_string(&m, &child_state.ivinlen);
-		goto skip;
-	} else {
-		/* Get the Kex for rekeying */
-		*pmonitor->m_pkex = mm_get_kex(&m);
-	}
-
-	blob = buffer_get_string(&m, &bloblen);
-	current_keys[MODE_OUT] = mm_newkeys_from_blob(blob, bloblen);
-	free(blob);
-
-	debug3("%s: Waiting for second key", __func__);
-	blob = buffer_get_string(&m, &bloblen);
-	current_keys[MODE_IN] = mm_newkeys_from_blob(blob, bloblen);
-	free(blob);
-
-	/* Now get sequence numbers for the packets */
-	seqnr = buffer_get_int(&m);
-	blocks = buffer_get_int64(&m);
-	packets = buffer_get_int(&m);
-	bytes = buffer_get_int64(&m);
-	packet_set_state(MODE_OUT, seqnr, blocks, packets, bytes);
-	seqnr = buffer_get_int(&m);
-	blocks = buffer_get_int64(&m);
-	packets = buffer_get_int(&m);
-	bytes = buffer_get_int64(&m);
-	packet_set_state(MODE_IN, seqnr, blocks, packets, bytes);
-
- skip:
-	/* Get the key context */
-	child_state.keyout = buffer_get_string(&m, &child_state.keyoutlen);
-	child_state.keyin  = buffer_get_string(&m, &child_state.keyinlen);
-
-	debug3("%s: Getting compression state", __func__);
-	/* Get compression state */
-	p = buffer_get_string(&m, &plen);
-	if (plen != sizeof(child_state.outgoing))
-		fatal("%s: bad request size", __func__);
-	memcpy(&child_state.outgoing, p, sizeof(child_state.outgoing));
-	free(p);
-
-	p = buffer_get_string(&m, &plen);
-	if (plen != sizeof(child_state.incoming))
-		fatal("%s: bad request size", __func__);
-	memcpy(&child_state.incoming, p, sizeof(child_state.incoming));
-	free(p);
-
-	/* Network I/O buffers */
-	debug3("%s: Getting Network I/O buffers", __func__);
-	child_state.input = buffer_get_string(&m, &child_state.ilen);
-	child_state.output = buffer_get_string(&m, &child_state.olen);
-
-	/* Roaming */
-	if (compat20) {
-		child_state.sent_bytes = buffer_get_int64(&m);
-		child_state.recv_bytes = buffer_get_int64(&m);
-	}
-
-	buffer_free(&m);
+	if ((child_state = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_receive_expect(pmonitor->m_sendfd, MONITOR_REQ_KEYEXPORT,
+	    child_state);
+	debug3("%s: GOT new keys", __func__);
 }
 
-
-/* Allocation functions for zlib */
-void *
-mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
-{
-	size_t len = (size_t) size * ncount;
-	void *address;
-
-	if (len == 0 || ncount > SIZE_T_MAX / size)
-		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
-
-	address = mm_malloc(mm, len);
-
-	return (address);
-}
-
-void
-mm_zfree(struct mm_master *mm, void *address)
-{
-	mm_free(mm, address);
-}
-
-void
-mm_init_compression(struct mm_master *mm)
-{
-	outgoing_stream.zalloc = (alloc_func)mm_zalloc;
-	outgoing_stream.zfree = (free_func)mm_zfree;
-	outgoing_stream.opaque = mm;
-
-	incoming_stream.zalloc = (alloc_func)mm_zalloc;
-	incoming_stream.zfree = (free_func)mm_zfree;
-	incoming_stream.opaque = mm;
-}
 
 /* XXX */
 
@@ -2060,6 +1890,7 @@ monitor_openfds(struct monitor *mon, int do_logfds)
 struct monitor *
 monitor_init(void)
 {
+	struct ssh *ssh = active_state;			/* XXX */
 	struct monitor *mon;
 
 	mon = xcalloc(1, sizeof(*mon));
@@ -2072,7 +1903,9 @@ monitor_init(void)
 		mon->m_zlib = mm_create(mon->m_zback, 20 * MM_MEMSIZE);
 
 		/* Compression needs to share state across borders */
-		mm_init_compression(mon->m_zlib);
+		ssh_packet_set_compress_hooks(ssh, mon->m_zlib,
+		    (ssh_packet_comp_alloc_func *)mm_zalloc,
+		    (ssh_packet_comp_free_func *)mm_zfree);
 	}
 
 	return mon;

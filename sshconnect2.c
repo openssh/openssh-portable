@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.216 2015/01/18 13:33:34 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.217 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -90,8 +90,6 @@ u_int session_id2_len = 0;
 
 char *xxx_host;
 struct sockaddr *xxx_hostaddr;
-
-Kex *xxx_kex = NULL;
 
 static int
 verify_host_key_callback(Key *hostkey)
@@ -207,6 +205,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);
+	active_state->kex = kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
@@ -218,8 +217,6 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->verify_host_key=&verify_host_key_callback;
-
-	xxx_kex = kex;
 
 	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
 

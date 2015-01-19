@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519c.c,v 1.4 2014/01/12 08:13:13 djm Exp $ */
+/* $OpenBSD: kexc25519c.c,v 1.5 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -101,8 +101,8 @@ kexc25519_client(Kex *kex)
 	    kex->hash_alg,
 	    kex->client_version_string,
 	    kex->server_version_string,
-	    buffer_ptr(&kex->my), buffer_len(&kex->my),
-	    buffer_ptr(&kex->peer), buffer_len(&kex->peer),
+	    buffer_ptr(kex->my), buffer_len(kex->my),
+	    buffer_ptr(kex->peer), buffer_len(kex->peer),
 	    server_host_key_blob, sbloblen,
 	    client_pubkey,
 	    server_pubkey,

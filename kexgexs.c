@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.19 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.20 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -165,8 +165,8 @@ kexgex_server(Kex *kex)
 	    kex->hash_alg,
 	    kex->client_version_string,
 	    kex->server_version_string,
-	    buffer_ptr(&kex->peer), buffer_len(&kex->peer),
-	    buffer_ptr(&kex->my), buffer_len(&kex->my),
+	    buffer_ptr(kex->peer), buffer_len(kex->peer),
+	    buffer_ptr(kex->my), buffer_len(kex->my),
 	    server_host_key_blob, sbloblen,
 	    omin, onbits, omax,
 	    dh->p, dh->g,

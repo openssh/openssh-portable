@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.262 2015/01/14 20:05:27 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.263 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -191,9 +191,6 @@ struct global_confirm {
 TAILQ_HEAD(global_confirms, global_confirm);
 static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
-
-/*XXX*/
-extern Kex *xxx_kex;
 
 void ssh_process_session2_setup(int, int, int, Buffer *);
 
@@ -1416,7 +1413,7 @@ static void
 client_process_buffered_input_packets(void)
 {
 	dispatch_run(DISPATCH_NONBLOCK, &quit_pending,
-	    compat20 ? xxx_kex : NULL);
+	    compat20 ? active_state->kex : NULL);
 }
 
 /* scan buf[] for '~' before sending data to the peer */
@@ -1555,7 +1552,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (compat20 && session_closed && !channel_still_open())
 			break;
 
-		rekeying = (xxx_kex != NULL && !xxx_kex->done);
+		rekeying = (active_state->kex != NULL && !active_state->kex->done);
 
 		if (rekeying) {
 			debug("rekeying in progress");
@@ -1599,8 +1596,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			channel_after_select(readset, writeset);
 			if (need_rekeying || packet_need_rekeying()) {
 				debug("need rekeying");
-				xxx_kex->done = 0;
-				kex_send_kexinit(xxx_kex);
+				active_state->kex->done = 0;
+				kex_send_kexinit(active_state->kex);
 				need_rekeying = 0;
 			}
 		}
@@ -1729,8 +1726,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Report bytes transferred, and transfer rates. */
 	total_time = get_current_time() - start_time;
-	packet_get_state(MODE_IN, NULL, NULL, NULL, &ibytes);
-	packet_get_state(MODE_OUT, NULL, NULL, NULL, &obytes);
+	packet_get_bytes(&ibytes, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
 	    (unsigned long long)obytes, (unsigned long long)ibytes, total_time);
 	if (total_time > 0)

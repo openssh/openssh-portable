@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.15 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.16 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -133,8 +133,8 @@ kexdh_client(Kex *kex)
 	kex_dh_hash(
 	    kex->client_version_string,
 	    kex->server_version_string,
-	    buffer_ptr(&kex->my), buffer_len(&kex->my),
-	    buffer_ptr(&kex->peer), buffer_len(&kex->peer),
+	    buffer_ptr(kex->my), buffer_len(kex->my),
+	    buffer_ptr(kex->peer), buffer_len(kex->peer),
 	    server_host_key_blob, sbloblen,
 	    dh->pub_key,
 	    dh_server_pub,

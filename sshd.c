@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.433 2015/01/17 18:53:34 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.434 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -187,9 +187,6 @@ int num_listen_socks = 0;
  */
 char *client_version_string = NULL;
 char *server_version_string = NULL;
-
-/* for rekeying XXX fixme */
-Kex *xxx_kex;
 
 /* Daemon's agent connection */
 int auth_sock = -1;
@@ -663,7 +660,7 @@ privsep_preauth(Authctxt *authctxt)
 	/* Set up unprivileged child process to deal with network data */
 	pmonitor = monitor_init();
 	/* Store a pointer to the kex for later rekeying */
-	pmonitor->m_pkex = &xxx_kex;
+	pmonitor->m_pkex = &active_state->kex;
 
 	if (use_privsep == PRIVSEP_ON)
 		box = ssh_sandbox_init(pmonitor);
@@ -2192,8 +2189,7 @@ main(int ac, char **av)
 	do_authenticated(authctxt);
 
 	/* The connection has been terminated. */
-	packet_get_state(MODE_IN, NULL, NULL, NULL, &ibytes);
-	packet_get_state(MODE_OUT, NULL, NULL, NULL, &obytes);
+	packet_get_bytes(&ibytes, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes",
 	    (unsigned long long)obytes, (unsigned long long)ibytes);
 
@@ -2505,6 +2501,7 @@ do_ssh2_kex(void)
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);
+	active_state->kex = kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
@@ -2520,8 +2517,6 @@ do_ssh2_kex(void)
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;
 	kex->sign = sshd_hostkey_sign;
-
-	xxx_kex = kex;
 
 	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
 

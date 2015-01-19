@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.99 2014/04/29 18:01:49 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.100 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -239,8 +239,8 @@ kex_finish(Kex *kex)
 	debug("SSH2_MSG_NEWKEYS received");
 
 	kex->done = 1;
-	buffer_clear(&kex->peer);
-	/* buffer_clear(&kex->my); */
+	buffer_clear(kex->peer);
+	/* buffer_clear(kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
 	free(kex->name);
 	kex->name = NULL;
@@ -264,9 +264,9 @@ kex_send_kexinit(Kex *kex)
 	kex->done = 0;
 
 	/* generate a random cookie */
-	if (buffer_len(&kex->my) < KEX_COOKIE_LEN)
+	if (buffer_len(kex->my) < KEX_COOKIE_LEN)
 		fatal("kex_send_kexinit: kex proposal too short");
-	cookie = buffer_ptr(&kex->my);
+	cookie = buffer_ptr(kex->my);
 	for (i = 0; i < KEX_COOKIE_LEN; i++) {
 		if (i % 4 == 0)
 			rnd = arc4random();
@@ -274,7 +274,7 @@ kex_send_kexinit(Kex *kex)
 		rnd >>= 8;
 	}
 	packet_start(SSH2_MSG_KEXINIT);
-	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));
+	packet_put_raw(buffer_ptr(kex->my), buffer_len(kex->my));
 	packet_send();
 	debug("SSH2_MSG_KEXINIT sent");
 	kex->flags |= KEX_INIT_SENT;
@@ -284,8 +284,9 @@ kex_send_kexinit(Kex *kex)
 void
 kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 {
-	char *ptr;
-	u_int i, dlen;
+	const char *ptr;
+	u_int i;
+	size_t dlen;
 	Kex *kex = (Kex *)ctxt;
 
 	debug("SSH2_MSG_KEXINIT received");
@@ -293,7 +294,7 @@ kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 		fatal("kex_input_kexinit: no kex, cannot rekey");
 
 	ptr = packet_get_raw(&dlen);
-	buffer_append(&kex->peer, ptr, dlen);
+	buffer_append(kex->peer, ptr, dlen);
 
 	/* discard packet */
 	for (i = 0; i < KEX_COOKIE_LEN; i++)
@@ -317,15 +318,49 @@ kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 	kex_kexinit_finish(kex);
 }
 
+void
+kex_free_newkeys(struct newkeys *newkeys)
+{
+	if (newkeys == NULL)
+		return;
+	if (newkeys->enc.key) {
+		explicit_bzero(newkeys->enc.key, newkeys->enc.key_len);
+		free(newkeys->enc.key);
+		newkeys->enc.key = NULL;
+	}
+	if (newkeys->enc.iv) {
+		explicit_bzero(newkeys->enc.iv, newkeys->enc.block_size);
+		free(newkeys->enc.iv);
+		newkeys->enc.iv = NULL;
+	}
+	free(newkeys->enc.name);
+	explicit_bzero(&newkeys->enc, sizeof(newkeys->enc));
+	free(newkeys->comp.name);
+	explicit_bzero(&newkeys->comp, sizeof(newkeys->comp));
+	mac_clear(&newkeys->mac);
+	if (newkeys->mac.key) {
+		explicit_bzero(newkeys->mac.key, newkeys->mac.key_len);
+		free(newkeys->mac.key);
+		newkeys->mac.key = NULL;
+	}
+	free(newkeys->mac.name);
+	explicit_bzero(&newkeys->mac, sizeof(newkeys->mac));
+	explicit_bzero(newkeys, sizeof(*newkeys));
+	free(newkeys);
+}
+
 Kex *
 kex_setup(char *proposal[PROPOSAL_MAX])
 {
-	Kex *kex;
+	struct kex *kex;
 
-	kex = xcalloc(1, sizeof(*kex));
-	buffer_init(&kex->peer);
-	buffer_init(&kex->my);
-	kex_prop2buf(&kex->my, proposal);
+	if ((kex = calloc(1, sizeof(*kex))) == NULL)
+		fatal("%s: calloc", __func__);
+	if ((kex->peer = sshbuf_new()) == NULL ||
+	    (kex->my = sshbuf_new()) == NULL) {
+		fatal("%s: sshbuf_new", __func__);
+	}
+	kex_prop2buf(kex->my, proposal);
 	kex->done = 0;
 
 	kex_send_kexinit(kex);					/* we start */
@@ -464,8 +499,8 @@ kex_choose_conf(Kex *kex)
 	u_int mode, ctos, need, dh_need, authlen;
 	int first_kex_follows, type;
 
-	my   = kex_buf2prop(&kex->my, NULL);
-	peer = kex_buf2prop(&kex->peer, &first_kex_follows);
+	my   = kex_buf2prop(kex->my, NULL);
+	peer = kex_buf2prop(kex->peer, &first_kex_follows);
 
 	if (kex->server) {
 		cprop=peer;
@@ -591,8 +626,6 @@ derive_key(Kex *kex, int id, u_int need, u_char *hash, u_int hashlen,
 	return digest;
 }
 
-Newkeys *current_keys[MODE_MAX];
-
 #define NKEYS	6
 void
 kex_derive_keys(Kex *kex, u_char *hash, u_int hashlen,
@@ -608,13 +641,11 @@ kex_derive_keys(Kex *kex, u_char *hash, u_int hashlen,
 
 	debug2("kex_derive_keys");
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		current_keys[mode] = kex->newkeys[mode];
-		kex->newkeys[mode] = NULL;
 		ctos = (!kex->server && mode == MODE_OUT) ||
 		    (kex->server && mode == MODE_IN);
-		current_keys[mode]->enc.iv  = keys[ctos ? 0 : 1];
-		current_keys[mode]->enc.key = keys[ctos ? 2 : 3];
-		current_keys[mode]->mac.key = keys[ctos ? 4 : 5];
+		kex->newkeys[mode]->enc.iv  = keys[ctos ? 0 : 1];
+		kex->newkeys[mode]->enc.key = keys[ctos ? 2 : 3];
+		kex->newkeys[mode]->mac.key = keys[ctos ? 4 : 5];
 	}
 }
 
@@ -631,16 +662,6 @@ kex_derive_keys_bn(Kex *kex, u_char *hash, u_int hashlen, const BIGNUM *secret)
 	buffer_free(&shared_secret);
 }
 #endif
-
-Newkeys *
-kex_get_newkeys(int mode)
-{
-	Newkeys *ret;
-
-	ret = current_keys[mode];
-	current_keys[mode] = NULL;
-	return ret;
-}
 
 #ifdef WITH_SSH1
 void

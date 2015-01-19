@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.66 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.67 2015/01/19 19:52:16 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -82,15 +82,15 @@ enum kex_exchange {
 
 #define KEX_INIT_SENT	0x0001
 
-typedef struct Kex Kex;
-typedef struct Comp Comp;
+typedef struct kex Kex;
+typedef struct sshcomp Comp;
 typedef struct sshmac Mac;
-typedef struct Enc Enc;
-typedef struct Newkeys Newkeys;
+typedef struct sshenc Enc;
+typedef struct newkeys Newkeys;
 
-struct Enc {
+struct sshenc {
 	char	*name;
-	const Cipher *cipher;
+	const struct sshcipher *cipher;
 	int	enabled;
 	u_int	key_len;
 	u_int	iv_len;
@@ -98,20 +98,20 @@ struct Enc {
 	u_char	*key;
 	u_char	*iv;
 };
-struct Comp {
-	int	type;
+struct sshcomp {
+	u_int	type;
 	int	enabled;
 	char	*name;
 };
-struct Newkeys {
-	Enc	enc;
-	Mac	mac;
-	Comp	comp;
+struct newkeys {
+	struct sshenc	enc;
+	struct sshmac	mac;
+	struct sshcomp	comp;
 };
-struct Kex {
+struct kex {
 	u_char	*session_id;
-	u_int	session_id_len;
-	Newkeys	*newkeys[MODE_MAX];
+	size_t	session_id_len;
+	struct newkeys	*newkeys[MODE_MAX];
 	u_int	we_need;
 	u_int	dh_need;
 	int	server;
@@ -119,8 +119,8 @@ struct Kex {
 	int	hostkey_type;
 	int	kex_type;
 	int	roaming;
-	Buffer	my;
-	Buffer	peer;
+	struct sshbuf *my;
+	struct sshbuf *peer;
 	sig_atomic_t done;
 	int	flags;
 	int	hash_alg;
@@ -140,13 +140,12 @@ char	*kex_alg_list(char);
 
 Kex	*kex_setup(char *[PROPOSAL_MAX]);
 void	 kex_finish(Kex *);
+void     kex_free_newkeys(struct newkeys *);
 
 void	 kex_send_kexinit(Kex *);
 void	 kex_input_kexinit(int, u_int32_t, void *);
 void	 kex_derive_keys(Kex *, u_char *, u_int, const u_char *, u_int);
 void	 kex_derive_keys_bn(Kex *, u_char *, u_int, const BIGNUM *);
-
-Newkeys *kex_get_newkeys(int);
 
 void	 kexdh_client(Kex *);
 void	 kexdh_server(Kex *);

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.172 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: serverloop.c,v 1.173 2015/01/19 19:52:16 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -83,7 +83,6 @@
 extern ServerOptions options;
 
 /* XXX */
-extern Kex *xxx_kex;
 extern Authctxt *the_authctxt;
 extern int use_privsep;
 
@@ -545,7 +544,7 @@ drain_output(void)
 static void
 process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, NULL, compat20 ? xxx_kex : NULL);
+	dispatch_run(DISPATCH_NONBLOCK, NULL, compat20 ? active_state->kex : NULL);
 }
 
 /*
@@ -851,7 +850,7 @@ server_loop2(Authctxt *authctxt)
 	for (;;) {
 		process_buffered_input_packets();
 
-		rekeying = (xxx_kex != NULL && !xxx_kex->done);
+		rekeying = (active_state->kex != NULL && !active_state->kex->done);
 
 		if (!rekeying && packet_not_very_much_data_to_write())
 			channel_output_poll();
@@ -874,8 +873,8 @@ server_loop2(Authctxt *authctxt)
 			channel_after_select(readset, writeset);
 			if (packet_need_rekeying()) {
 				debug("need rekeying");
-				xxx_kex->done = 0;
-				kex_send_kexinit(xxx_kex);
+				active_state->kex->done = 0;
+				kex_send_kexinit(active_state->kex);
 			}
 		}
 		process_input(readset);

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.24 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.25 2015/01/19 19:52:16 markus Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -87,7 +87,7 @@ void mm_ssh1_session_id(u_char *);
 int mm_ssh1_session_key(BIGNUM *);
 
 /* Key export functions */
-struct Newkeys *mm_newkeys_from_blob(u_char *, int);
+struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
 void monitor_apply_keystate(struct monitor *);
@@ -103,9 +103,6 @@ int mm_skey_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_skey_respond(void *, u_int, char **);
 
 /* zlib allocation hooks */
-
-void *mm_zalloc(struct mm_master *, u_int, u_int);
-void mm_zfree(struct mm_master *, void *);
 void mm_init_compression(struct mm_master *);
 
 #endif /* _MM_WRAP_H_ */
