@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.63 2015/01/19 20:07:45 markus Exp $ */
+/* $OpenBSD: packet.h,v 1.64 2015/01/19 20:30:23 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -34,6 +34,11 @@ struct session_state;	/* private session data */
 
 #include "dispatch.h"	/* typedef, DISPATCH_MAX */
 
+struct key_entry {
+	TAILQ_ENTRY(key_entry) next;
+	struct sshkey *key;
+};
+
 struct ssh {
 	/* Session state */
 	struct session_state *state;
@@ -52,6 +57,13 @@ struct ssh {
 
 	/* datafellows */
 	int compat;
+
+	/* Lists for private and public keys */
+	TAILQ_HEAD(, key_entry) private_keys;
+	TAILQ_HEAD(, key_entry) public_keys;
+
+	/* APP data */
+	void *app_data;
 };
 
 struct ssh *ssh_alloc_session_state(void);

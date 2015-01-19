@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.201 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.202 2015/01/19 20:30:23 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -233,6 +233,8 @@ ssh_alloc_session_state(void)
 	    (state->incoming_packet = sshbuf_new()) == NULL)
 		goto fail;
 	TAILQ_INIT(&state->outgoing);
+	TAILQ_INIT(&ssh->private_keys);
+	TAILQ_INIT(&ssh->public_keys);
 	state->connection_in = -1;
 	state->connection_out = -1;
 	state->max_packet_size = 32768;
