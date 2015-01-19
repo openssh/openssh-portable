@@ -498,13 +498,14 @@ regress/unittests/bitmap/test_bitmap$(EXEEXT): ${UNITTESTS_TEST_BITMAP_OBJS} \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-UNITTESTS_TEST_BITMAP_OBJS=\
+UNITTESTS_TEST_KEX_OBJS=\
 	regress/unittests/kex/tests.o \
-	regress/unittests/kex/test_kex.o
+	regress/unittests/kex/test_kex.o \
+	roaming_dummy.o
 
-regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_BITMAP_OBJS} \
+regress/unittests/kex/test_kex$(EXEEXT): ${UNITTESTS_TEST_KEX_OBJS} \
     regress/unittests/test_helper/libtest_helper.a libssh.a
-	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_BITMAP_OBJS) \
+	$(LD) -o $@ $(LDFLAGS) $(UNITTESTS_TEST_KEX_OBJS) \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
