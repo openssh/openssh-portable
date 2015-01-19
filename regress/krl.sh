@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.4 2014/11/17 00:21:40 djm Exp $
+#	$OpenBSD: krl.sh,v 1.5 2015/01/19 17:31:13 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -47,6 +47,7 @@ EOF
 # A specification that revokes some certificated by key ID.
 touch $OBJ/revoked-keyid
 for n in 1 2 3 4 10 15 30 50 `jot 500 300` 999 1000 1001 1002; do
+	test "x$n" = "x499" && continue
 	# Fill in by-ID revocation spec.
 	echo "id: revoked $n" >> $OBJ/revoked-keyid
 done
@@ -58,7 +59,7 @@ keygen() {
 	keytype=$ECDSA
 	case $N in
 	2 | 10 | 510 | 1001)	keytype=rsa;;
-	4 | 30 | 520 | 1002)	keytype=dsa;;
+	4 | 30 | 520 | 1002)	keytype=ed25519;;
 	esac
 	$SSHKEYGEN -t $keytype -f $f -C "" -N "" > /dev/null \
 		|| fatal "$SSHKEYGEN failed"
@@ -76,11 +77,12 @@ for n in $REVOKED_SERIALS ; do
 	REVOKED_KEYS="$REVOKED_KEYS ${f}.pub"
 	REVOKED_CERTS="$REVOKED_CERTS ${f}-cert.pub"
 done
-NOTREVOKED_SERIALS="5 9 14 16 29 30 49 51 499 800 1000 1001"
-NOTREVOKED=""
-for n in $NOTREVOKED_SERIALS ; do
-	NOTREVOKED_KEYS="$NOTREVOKED_KEYS ${f}.pub"
-	NOTREVOKED_CERTS="$NOTREVOKED_CERTS ${f}-cert.pub"
+UNREVOKED_SERIALS="5 9 14 16 29 49 51 499 800 1010 1011"
+UNREVOKED=""
+for n in $UNREVOKED_SERIALS ; do
+	f=`keygen $n`
+	UNREVOKED_KEYS="$UNREVOKED_KEYS ${f}.pub"
+	UNREVOKED_CERTS="$UNREVOKED_CERTS ${f}-cert.pub"
 done
 
 genkrls() {
