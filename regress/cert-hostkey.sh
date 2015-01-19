@@ -1,9 +1,9 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.10 2014/12/04 22:31:50 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.11 2015/01/19 06:01:32 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
 
-rm -f $OBJ/known_hosts-cert $OBJ/host_ca_key* $OBJ/host_revoked_*
+rm -f $OBJ/known_hosts-cert* $OBJ/host_ca_key* $OBJ/host_revoked_*
 rm -f $OBJ/cert_host_key* $OBJ/host_krl_*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
@@ -16,7 +16,8 @@ ${SSHKEYGEN} -q -N '' -t ed25519  -f $OBJ/host_ca_key ||\
 	printf '@cert-authority '
 	printf "$HOSTS "
 	cat $OBJ/host_ca_key.pub
-) > $OBJ/known_hosts-cert
+) > $OBJ/known_hosts-cert.orig
+cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 
 # Plain text revocation files
 touch $OBJ/host_revoked_empty
@@ -79,6 +80,7 @@ attempt_connect() {
 	_expect_success="$2"
 	shift; shift
 	verbose "$tid: $_ident expect success $_expect_success"
+	cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 	${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
 	    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
 	    "$@" -F $OBJ/ssh_proxy somehost true
@@ -135,7 +137,8 @@ done
 		test -f "$OBJ/cert_host_key_${ktype}.pub" || fatal "no pubkey"
 		printf "@revoked * `cat $OBJ/cert_host_key_${ktype}.pub`\n"
 	done
-) > $OBJ/known_hosts-cert
+) > $OBJ/known_hosts-cert.orig
+cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 for privsep in yes no ; do
 	for ktype in $PLAIN_TYPES rsa_v00 dsa_v00; do 
 		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
@@ -146,6 +149,7 @@ for privsep in yes no ; do
 			echo UsePrivilegeSeparation $privsep
 		) > $OBJ/sshd_proxy
 
+		cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 		${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
 		    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
 			-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
@@ -163,7 +167,8 @@ done
 	printf '@revoked '
 	printf "* "
 	cat $OBJ/host_ca_key.pub
-) > $OBJ/known_hosts-cert
+) > $OBJ/known_hosts-cert.orig
+cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 for ktype in $PLAIN_TYPES rsa_v00 dsa_v00 ; do 
 	verbose "$tid: host ${ktype} revoked cert"
 	(
@@ -171,6 +176,7 @@ for ktype in $PLAIN_TYPES rsa_v00 dsa_v00 ; do
 		echo HostKey $OBJ/cert_host_key_${ktype}
 		echo HostCertificate $OBJ/cert_host_key_${ktype}-cert.pub
 	) > $OBJ/sshd_proxy
+	cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 	${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
 	    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
 		-F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
@@ -184,7 +190,8 @@ done
 	printf '@cert-authority '
 	printf "$HOSTS "
 	cat $OBJ/host_ca_key.pub
-) > $OBJ/known_hosts-cert
+) > $OBJ/known_hosts-cert.orig
+cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 
 test_one() {
 	ident=$1
@@ -209,6 +216,7 @@ test_one() {
 			echo HostCertificate $OBJ/cert_host_key_${kt}-cert.pub
 		) > $OBJ/sshd_proxy
 	
+		cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 		${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
 		    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
 		    -F $OBJ/ssh_proxy somehost true >/dev/null 2>&1
@@ -271,7 +279,8 @@ done
 	printf '@cert-authority '
 	printf "$HOSTS "
 	cat $OBJ/host_ca_key.pub
-) > $OBJ/known_hosts-cert
+) > $OBJ/known_hosts-cert.orig
+cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 for v in v01 v00 ;  do 
 	for kt in $PLAIN_TYPES ; do 
 		type_has_legacy $kt || continue
@@ -291,6 +300,7 @@ for v in v01 v00 ;  do
 			echo HostCertificate $OBJ/cert_host_key_${kt}-cert.pub
 		) > $OBJ/sshd_proxy
 	
+		cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
 		${SSH} -2 -oUserKnownHostsFile=$OBJ/known_hosts-cert \
 		    -oGlobalKnownHostsFile=$OBJ/known_hosts-cert \
 			-F $OBJ/ssh_proxy -q somehost true >/dev/null 2>&1
@@ -300,4 +310,4 @@ for v in v01 v00 ;  do
 	done
 done
 
-rm -f $OBJ/known_hosts-cert $OBJ/host_ca_key* $OBJ/cert_host_key*
+rm -f $OBJ/known_hosts-cert* $OBJ/host_ca_key* $OBJ/cert_host_key*
