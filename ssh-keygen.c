@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.257 2015/01/18 21:51:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.258 2015/01/19 00:32:54 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1133,7 +1133,7 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
-	char *cp, tmp[MAXPATHLEN], old[MAXPATHLEN];
+	char *cp, tmp[PATH_MAX], old[PATH_MAX];
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
 
