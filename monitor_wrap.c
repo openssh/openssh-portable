@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.82 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.83 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -221,13 +221,13 @@ mm_choose_dh(int min, int nbits, int max)
 int
 mm_key_sign(Key *key, u_char **sigp, u_int *lenp, u_char *data, u_int datalen)
 {
-	Kex *kex = *pmonitor->m_pkex;
+	struct kex *kex = *pmonitor->m_pkex;
 	Buffer m;
 
 	debug3("%s entering", __func__);
 
 	buffer_init(&m);
-	buffer_put_int(&m, kex->host_key_index(key));
+	buffer_put_int(&m, kex->host_key_index(key, active_state));
 	buffer_put_string(&m, data, datalen);
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SIGN, &m);

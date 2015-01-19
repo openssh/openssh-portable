@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.139 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.140 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -717,7 +717,7 @@ mm_answer_sign(int sock, Buffer *m)
 		    datafellows)) != 0)
 			fatal("%s: sshkey_sign failed: %s",
 			    __func__, ssh_err(r));
-	} else if ((key = get_hostkey_public_by_index(keyid)) != NULL &&
+	} else if ((key = get_hostkey_public_by_index(keyid, active_state)) != NULL &&
 	    auth_sock > 0) {
 		if ((r = ssh_agent_sign(auth_sock, key, &signature, &siglen,
 		    p, datlen, datafellows)) != 0) {

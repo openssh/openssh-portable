@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.93 2014/12/11 08:20:09 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.94 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -100,7 +100,7 @@ typedef struct Connection {
 	char *c_namelist;	/* Pointer to other possible addresses */
 	char *c_output_name;	/* Hostname of connection for output */
 	char *c_data;		/* Data read from this fd */
-	Kex *c_kex;		/* The key-exchange struct for ssh2 */
+	struct kex *c_kex;	/* The key-exchange struct for ssh2 */
 	struct timeval c_tv;	/* Time at which connection gets aborted */
 	TAILQ_ENTRY(Connection) c_link;	/* List of connections in timeout order. */
 } con;
@@ -221,7 +221,7 @@ keygrab_ssh1(con *c)
 #endif
 
 static int
-hostjump(Key *hostkey)
+hostjump(Key *hostkey, struct ssh *ssh)
 {
 	kexjmp_key = hostkey;
 	longjmp(kexjmp, 1);
@@ -247,7 +247,7 @@ static Key *
 keygrab_ssh2(con *c)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	int j;
+	int r, j;
 
 	packet_set_connection(c->c_fd, c->c_fd);
 	enable_compat20();
@@ -256,7 +256,9 @@ keygrab_ssh2(con *c)
 	    (c->c_keytype == KT_RSA ? "ssh-rsa" :
 	    (c->c_keytype == KT_ED25519 ? "ssh-ed25519" :
 	    "ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521"));
-	c->c_kex = kex_setup(myproposal);
+	if ((r = kex_setup(active_state, myproposal)) < 0)
+		fatal("%s: kex_setup: %s", __func__, ssh_err(r));
+	c->c_kex = active_state->kex;
 #ifdef WITH_OPENSSL
 	c->c_kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
@@ -269,7 +271,7 @@ keygrab_ssh2(con *c)
 
 	if (!(j = setjmp(kexjmp))) {
 		nonfatal_fatal = 1;
-		dispatch_run(DISPATCH_BLOCK, &c->c_kex->done, c->c_kex);
+		dispatch_run(DISPATCH_BLOCK, &c->c_kex->done, active_state);
 		fprintf(stderr, "Impossible! dispatch_run() returned!\n");
 		exit(1);
 	}

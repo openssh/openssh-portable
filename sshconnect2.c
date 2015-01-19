@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.218 2015/01/19 20:07:45 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.219 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -92,7 +92,7 @@ char *xxx_host;
 struct sockaddr *xxx_hostaddr;
 
 static int
-verify_host_key_callback(Key *hostkey)
+verify_host_key_callback(Key *hostkey, struct ssh *ssh)
 {
 	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey) == -1)
 		fatal("Host key verification failed.");
@@ -157,7 +157,7 @@ void
 ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	Kex *kex;
+	struct kex *kex;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
@@ -204,8 +204,8 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 		    (time_t)options.rekey_interval);
 
 	/* start key exchange */
-	kex = kex_setup(myproposal);
-	active_state->kex = kex;
+	kex_setup(active_state, myproposal);
+	kex = active_state->kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
@@ -218,7 +218,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	kex->server_version_string=server_version_string;
 	kex->verify_host_key=&verify_host_key_callback;
 
-	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
+	dispatch_run(DISPATCH_BLOCK, &kex->done, active_state);
 
 	if (options.use_roaming && !kex->roaming) {
 		debug("Roaming not allowed by server");

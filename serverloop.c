@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.174 2015/01/19 20:07:45 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.175 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -544,7 +544,7 @@ drain_output(void)
 static void
 process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, NULL, compat20 ? active_state->kex : NULL);
+	dispatch_run(DISPATCH_NONBLOCK, NULL, active_state);
 }
 
 /*
@@ -874,7 +874,7 @@ server_loop2(Authctxt *authctxt)
 			if (packet_need_rekeying()) {
 				debug("need rekeying");
 				active_state->kex->done = 0;
-				kex_send_kexinit(active_state->kex);
+				kex_send_kexinit(active_state);
 			}
 		}
 		process_input(readset);

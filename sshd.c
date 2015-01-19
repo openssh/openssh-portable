@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.434 2015/01/19 19:52:16 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.435 2015/01/19 20:16:15 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -836,7 +836,7 @@ list_hostkey_types(void)
 }
 
 static Key *
-get_hostkey_by_type(int type, int need_private)
+get_hostkey_by_type(int type, int need_private, struct ssh *ssh)
 {
 	int i;
 	Key *key;
@@ -865,15 +865,15 @@ get_hostkey_by_type(int type, int need_private)
 }
 
 Key *
-get_hostkey_public_by_type(int type)
+get_hostkey_public_by_type(int type, struct ssh *ssh)
 {
-	return get_hostkey_by_type(type, 0);
+	return get_hostkey_by_type(type, 0, ssh);
 }
 
 Key *
-get_hostkey_private_by_type(int type)
+get_hostkey_private_by_type(int type, struct ssh *ssh)
 {
-	return get_hostkey_by_type(type, 1);
+	return get_hostkey_by_type(type, 1, ssh);
 }
 
 Key *
@@ -885,7 +885,7 @@ get_hostkey_by_index(int ind)
 }
 
 Key *
-get_hostkey_public_by_index(int ind)
+get_hostkey_public_by_index(int ind, struct ssh *ssh)
 {
 	if (ind < 0 || ind >= options.num_host_key_files)
 		return (NULL);
@@ -893,7 +893,7 @@ get_hostkey_public_by_index(int ind)
 }
 
 int
-get_hostkey_index(Key *key)
+get_hostkey_index(Key *key, struct ssh *ssh)
 {
 	int i;
 
@@ -2432,29 +2432,30 @@ do_ssh1_kex(void)
 }
 #endif
 
-void
-sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, u_int *slen,
-    u_char *data, u_int dlen)
+int
+sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
+    u_char *data, size_t dlen, u_int flag)
 {
 	int r;
+	u_int xxx_slen, xxx_dlen = dlen;
 
 	if (privkey) {
-		if (PRIVSEP(key_sign(privkey, signature, slen, data, dlen) < 0))
+		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen) < 0))
 			fatal("%s: key_sign failed", __func__);
+		if (slen)
+			*slen = xxx_slen;
 	} else if (use_privsep) {
-		if (mm_key_sign(pubkey, signature, slen, data, dlen) < 0)
+		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen) < 0)
 			fatal("%s: pubkey_sign failed", __func__);
+		if (slen)
+			*slen = xxx_slen;
 	} else {
-		size_t xxx_slen;
-
-		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, &xxx_slen,
+		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slen,
 		    data, dlen, datafellows)) != 0)
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));
-		/* XXX: Old API is u_int; new size_t */
-		if (slen != NULL)
-			*slen = xxx_slen;
 	}
+	return 0;
 }
 
 /*
@@ -2464,7 +2465,7 @@ static void
 do_ssh2_kex(void)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
-	Kex *kex;
+	struct kex *kex;
 
 	if (options.ciphers != NULL) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
@@ -2500,8 +2501,8 @@ do_ssh2_kex(void)
 	    list_hostkey_types());
 
 	/* start key exchange */
-	kex = kex_setup(myproposal);
-	active_state->kex = kex;
+	kex_setup(active_state, myproposal);
+	kex = active_state->kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
@@ -2518,7 +2519,7 @@ do_ssh2_kex(void)
 	kex->host_key_index=&get_hostkey_index;
 	kex->sign = sshd_hostkey_sign;
 
-	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
+	dispatch_run(DISPATCH_BLOCK, &kex->done, active_state);
 
 	session_id2 = kex->session_id;
 	session_id2_len = kex->session_id_len;
