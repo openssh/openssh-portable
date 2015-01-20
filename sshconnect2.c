@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.220 2015/01/20 07:56:44 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.221 2015/01/20 20:16:21 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -158,6 +158,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	struct kex *kex;
+	int r;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
@@ -204,7 +205,8 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 		    (time_t)options.rekey_interval);
 
 	/* start key exchange */
-	kex_setup(active_state, myproposal);
+	if ((r = kex_setup(active_state, myproposal)) != 0)
+		fatal("kex_setup: %s", ssh_err(r));
 	kex = active_state->kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.436 2015/01/19 20:20:20 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.437 2015/01/20 20:16:21 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2466,6 +2466,7 @@ do_ssh2_kex(void)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
 	struct kex *kex;
+	int r;
 
 	if (options.ciphers != NULL) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
@@ -2501,7 +2502,8 @@ do_ssh2_kex(void)
 	    list_hostkey_types());
 
 	/* start key exchange */
-	kex_setup(active_state, myproposal);
+	if ((r = kex_setup(active_state, myproposal)) != 0)
+		fatal("kex_setup: %s", ssh_err(r));
 	kex = active_state->kex;
 #ifdef WITH_OPENSSL
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
