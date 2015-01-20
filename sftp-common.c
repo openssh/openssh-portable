@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-common.c,v 1.27 2015/01/14 13:54:13 djm Exp $ */
+/* $OpenBSD: sftp-common.c,v 1.28 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -26,9 +26,9 @@
 
 #include "includes.h"
 
+#include <sys/param.h>	/* MAX */
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #include <grp.h>
 #include <pwd.h>

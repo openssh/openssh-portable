@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.140 2015/01/19 20:16:15 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.141 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -28,7 +28,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/socket.h>
 #include "openbsd-compat/sys-tree.h"
 #include <sys/wait.h>
@@ -42,6 +41,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>

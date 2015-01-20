@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.109 2015/01/08 10:14:08 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.110 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -27,7 +27,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 #include <sys/uio.h>
 
 #include <errno.h>
@@ -37,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "cipher.h"
 #include "key.h"
@@ -335,7 +335,7 @@ int
 sshkey_load_public(const char *filename, struct sshkey **keyp, char **commentp)
 {
 	struct sshkey *pub = NULL;
-	char file[MAXPATHLEN];
+	char file[PATH_MAX];
 	int r, fd;
 
 	if (keyp != NULL)

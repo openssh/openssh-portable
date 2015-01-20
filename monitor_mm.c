@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_mm.c,v 1.19 2014/01/04 17:50:55 tedu Exp $ */
+/* $OpenBSD: monitor_mm.c,v 1.20 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -30,7 +30,6 @@
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
-#include <sys/param.h>
 #include "openbsd-compat/sys-tree.h"
 
 #include <errno.h>
@@ -38,6 +37,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 #include "ssh.h"

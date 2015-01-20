@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.49 2014/12/22 07:24:11 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.50 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -33,7 +33,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>

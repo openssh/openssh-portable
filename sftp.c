@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.169 2015/01/14 13:54:13 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.170 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -17,6 +17,7 @@
 
 #include "includes.h"
 
+#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_STAT_H
@@ -46,6 +47,7 @@
 #else
 typedef void EditLine;
 #endif
+#include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1401,7 +1403,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	int cmdnum, i;
 	unsigned long n_arg = 0;
 	Attrib a, *aa;
-	char path_buf[MAXPATHLEN];
+	char path_buf[PATH_MAX];
 	int err = 0;
 	glob_t g;
 

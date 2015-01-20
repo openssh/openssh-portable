@@ -1,15 +1,15 @@
-/* $OpenBSD: key.c,v 1.125 2015/01/08 10:14:08 djm Exp $ */
+/* $OpenBSD: key.c,v 1.126 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * placed in the public domain
  */
 
 #include "includes.h"
 
-#include <sys/param.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <limits.h>
 
 #define SSH_KEY_NO_DEFINE
 #include "key.h"

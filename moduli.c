@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.29 2014/08/21 01:08:52 doug Exp $ */
+/* $OpenBSD: moduli.c,v 1.30 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -41,7 +41,7 @@
 
 #ifdef WITH_OPENSSL
 
-#include <sys/param.h>
+#include <sys/param.h>	/* MAX */
 #include <sys/types.h>
 
 #include <openssl/bn.h>
@@ -54,6 +54,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 #include "dh.h"
@@ -449,11 +450,11 @@ static void
 write_checkpoint(char *cpfile, u_int32_t lineno)
 {
 	FILE *fp;
-	char tmp[MAXPATHLEN];
+	char tmp[PATH_MAX];
 	int r;
 
 	r = snprintf(tmp, sizeof(tmp), "%s.XXXXXXXXXX", cpfile);
-	if (r == -1 || r >= MAXPATHLEN) {
+	if (r == -1 || r >= PATH_MAX) {
 		logit("write_checkpoint: temp pathname too long");
 		return;
 	}

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.102 2015/01/19 20:16:15 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.103 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -25,7 +25,7 @@
 
 #include "includes.h"
 
-#include <sys/param.h>
+#include <sys/param.h>	/* MAX roundup */
 
 #include <signal.h>
 #include <stdarg.h>

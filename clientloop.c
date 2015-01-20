@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.265 2015/01/19 20:16:15 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.266 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -61,9 +61,9 @@
 
 #include "includes.h"
 
+#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <sys/param.h>
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
@@ -85,6 +85,7 @@
 #include <termios.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -339,12 +340,12 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 			display = xdisplay;
 		}
 		if (trusted == 0) {
-			xauthdir = xmalloc(MAXPATHLEN);
-			xauthfile = xmalloc(MAXPATHLEN);
-			mktemp_proto(xauthdir, MAXPATHLEN);
+			xauthdir = xmalloc(PATH_MAX);
+			xauthfile = xmalloc(PATH_MAX);
+			mktemp_proto(xauthdir, PATH_MAX);
 			if (mkdtemp(xauthdir) != NULL) {
 				do_unlink = 1;
-				snprintf(xauthfile, MAXPATHLEN, "%s/xauthfile",
+				snprintf(xauthfile, PATH_MAX, "%s/xauthfile",
 				    xauthdir);
 				snprintf(cmd, sizeof(cmd),
 				    "%s -f %s generate %s " SSH_X11_PROTO

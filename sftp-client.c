@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.116 2015/01/14 13:54:13 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.117 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -22,8 +22,8 @@
 
 #include "includes.h"
 
+#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
-#include <sys/param.h>
 #ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
