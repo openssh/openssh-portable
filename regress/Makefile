@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.76 2015/01/18 22:00:18 djm Exp $
+#	$OpenBSD: Makefile,v 1.77 2015/01/20 22:58:57 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -205,4 +205,6 @@ unit:
 		${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
 		${.OBJDIR}/unittests/sshkey/test_sshkey \
 			-d  ${.CURDIR}//unittests/sshkey/testdata ; \
+		${.OBJDIR}/unittests/bitmap/test_bitmap ; \
+		${.OBJDIR}/unittests/kex/test_kex ; \
 	fi
