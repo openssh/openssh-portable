@@ -1,9 +1,9 @@
-#	$OpenBSD: hostkey-agent.sh,v 1.2 2015/01/19 06:01:32 djm Exp $
+#	$OpenBSD: hostkey-agent.sh,v 1.3 2015/01/20 08:02:33 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey agent"
 
-rm -f $OBJ/agent.* $OBJ/ssh_proxy.orig $OBJ/known_hosts.orig
+rm -f $OBJ/agent-key.* $OBJ/ssh_proxy.orig $OBJ/known_hosts.orig
 
 trace "start agent"
 eval `${SSHAGENT} -s` > /dev/null
@@ -15,16 +15,16 @@ echo "HostKeyAgent $SSH_AUTH_SOCK" >> $OBJ/sshd_proxy.orig
 
 trace "load hostkeys"
 for k in `${SSH} -Q key-plain` ; do
-	${SSHKEYGEN} -qt $k -f $OBJ/agent.$k -N '' || fatal "ssh-keygen $k"
+	${SSHKEYGEN} -qt $k -f $OBJ/agent-key.$k -N '' || fatal "ssh-keygen $k"
 	(
 		echo -n 'localhost-with-alias,127.0.0.1,::1 '
-		cat $OBJ/agent.$k.pub
+		cat $OBJ/agent-key.$k.pub
 	) >> $OBJ/known_hosts.orig
-	${SSHADD} $OBJ/agent.$k >/dev/null 2>&1 || \
-		fatal "couldn't load key $OBJ/agent.$k"
-	echo "Hostkey $OBJ/agent.${k}" >> sshd_proxy.orig
+	${SSHADD} $OBJ/agent-key.$k >/dev/null 2>&1 || \
+		fatal "couldn't load key $OBJ/agent-key.$k"
+	echo "Hostkey $OBJ/agent-key.${k}" >> sshd_proxy.orig
 	# Remove private key so the server can't use it.
-	rm $OBJ/agent.$k || fatal "couldn't rm $OBJ/agent.$k"
+	rm $OBJ/agent-key.$k || fatal "couldn't rm $OBJ/agent-key.$k"
 done
 cp $OBJ/known_hosts.orig $OBJ/known_hosts
 
