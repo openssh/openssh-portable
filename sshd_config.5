@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.189 2015/01/13 07:39:19 djm Exp $
-.Dd $Mdocdate: January 13 2015 $
+.\" $OpenBSD: sshd_config.5,v 1.190 2015/01/22 20:24:41 deraadt Exp $
+.Dd $Mdocdate: January 22 2015 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -330,8 +330,10 @@ The default is
 Specifies the pathname of a directory to
 .Xr chroot 2
 to after authentication.
-All components of the pathname must be root-owned directories that are
-not writable by any other user or group.
+At session startup
+.Xr sshd 8
+checks that all components of the pathname are root-owned directories
+which are not writable by any other user or group.
 After the chroot,
 .Xr sshd 8
 changes the working directory to the user's home directory.
@@ -367,6 +369,13 @@ though sessions which use logging may require
 inside the chroot directory on some operating systems (see
 .Xr sftp-server 8
 for details).
+.Pp
+For safety, it is very important that the directory heirarchy be
+prevented from modification by other processes on the system (especially
+those outside the jail).
+Misconfiguration can lead to unsafe environments which
+.Xr sshd 8
+cannot detect.
 .Pp
 The default is not to
 .Xr chroot 2 .
