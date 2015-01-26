@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.199 2014/12/22 09:24:59 jmc Exp $
-.Dd $Mdocdate: December 22 2014 $
+.\" $OpenBSD: ssh_config.5,v 1.200 2015/01/26 03:04:45 djm Exp $
+.Dd $Mdocdate: January 26 2015 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1492,6 +1492,28 @@ is not specified, it defaults to
 .Dq any .
 The default is
 .Dq any:any .
+.It Cm UpdateHostkeys
+Specifies whether
+.Xr ssh 1
+should accept notifications of additional hostkeys from the server sent
+after authentication has completed and add them to
+.Cm UserKnownHostsFile .
+The argument must be
+.Dq yes
+(the default)
+or
+.Dq no .
+Enabling this option allows learning alternate hostkeys for a server
+and supports graceful key rotation by allowing a server to public replacement
+keys before old ones are removed.
+Additional hostkeys are only accepted if the key used to authenticate the
+host was already trusted or explicity accepted by the user.
+.Pp
+Presently, only
+.Xr sshd 8
+from OpenSSH 6.8 and greater support the
+.Dq hostkeys@openssh.com
+protocol extension used to inform the client of all the server's hostkeys.
 .It Cm UsePrivilegedPort
 Specifies whether to use a privileged port for outgoing connections.
 The argument must be

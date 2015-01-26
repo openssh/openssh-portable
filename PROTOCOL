@@ -282,6 +282,28 @@ by the client cancel the forwarding of a Unix domain socket.
 	boolean		FALSE
 	string		socket path
 
+2.5. connection: hostkey update and rotation "hostkeys@openssh.com"
+
+OpenSSH supports a protocol extension allowing a server to inform
+a client of all its protocol v.2 hostkeys after user-authentication
+has completed.
+
+	byte		SSH_MSG_GLOBAL_REQUEST
+	string		"hostkeys@openssh.com"
+	string[]	hostkeys
+
+Upon receiving this message, a client may update its known_hosts
+file, adding keys that it has not seen before and deleting keys
+for the server host that are no longer offered.
+
+This extension allows a client to learn key types that it had
+not previously encountered, thereby allowing it to potentially
+upgrade from weaker key algorithms to better ones. It also
+supports graceful key rotation: a server may offer multiple keys
+of the same type for a period (to give clients an opportunity to
+learn them using this extension) before removing the deprecated
+key from those offered.
+
 3. SFTP protocol changes
 
 3.1. sftp: Reversal of arguments to SSH_FXP_SYMLINK
@@ -406,4 +428,4 @@ respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-$OpenBSD: PROTOCOL,v 1.24 2014/07/15 15:54:14 millert Exp $
+$OpenBSD: PROTOCOL,v 1.25 2015/01/26 03:04:45 djm Exp $

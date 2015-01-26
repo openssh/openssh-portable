@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.106 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.107 2015/01/26 03:04:45 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -146,7 +146,9 @@ typedef struct {
 
 	char	*revoked_host_keys;
 
-	int	fingerprint_hash;
+	int	 fingerprint_hash;
+
+	int	 update_hostkeys;
 
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;

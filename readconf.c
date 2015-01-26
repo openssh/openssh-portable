@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.228 2015/01/16 06:40:12 deraadt Exp $ */
+/* $OpenBSD: readconf.c,v 1.229 2015/01/26 03:04:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -156,7 +156,7 @@ typedef enum {
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
-	oFingerprintHash,
+	oFingerprintHash, oUpdateHostkeys,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -273,6 +273,7 @@ static struct {
 	{ "streamlocalbindunlink", oStreamLocalBindUnlink },
 	{ "revokedhostkeys", oRevokedHostKeys },
 	{ "fingerprinthash", oFingerprintHash },
+	{ "updatehostkeys", oUpdateHostkeys },
 	{ "ignoreunknown", oIgnoreUnknown },
 
 	{ NULL, oBadOption }
@@ -1476,6 +1477,10 @@ parse_int:
 			*intptr = value;
 		break;
 
+	case oUpdateHostkeys:
+		intptr = &options->update_hostkeys;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1654,6 +1659,7 @@ initialize_options(Options * options)
 	options->canonicalize_hostname = -1;
 	options->revoked_host_keys = NULL;
 	options->fingerprint_hash = -1;
+	options->update_hostkeys = -1;
 }
 
 /*
@@ -1833,6 +1839,8 @@ fill_default_options(Options * options)
 		options->canonicalize_hostname = SSH_CANONICALISE_NO;
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
+	if (options->update_hostkeys == -1)
+		options->update_hostkeys = 1;
 
 #define CLEAR_ON_NONE(v) \
 	do { \
@@ -2256,6 +2264,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oUsePrivilegedPort, o->use_privileged_port);
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
+	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.438 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: sshd.c,v 1.439 2015/01/26 03:04:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -911,6 +911,42 @@ get_hostkey_index(Key *key, struct ssh *ssh)
 	return (-1);
 }
 
+/* Inform the client of all hostkeys */
+static void
+notify_hostkeys(struct ssh *ssh)
+{
+	struct sshbuf *buf;
+	struct sshkey *key;
+	int i, nkeys, r;
+	char *fp;
+
+	if ((buf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new", __func__);
+	for (i = nkeys = 0; i < options.num_host_key_files; i++) {
+		key = get_hostkey_public_by_index(i, ssh);
+		if (key == NULL || key->type == KEY_UNSPEC ||
+		    key->type == KEY_RSA1 || sshkey_is_cert(key))
+			continue;
+		fp = sshkey_fingerprint(key, options.fingerprint_hash,
+		    SSH_FP_DEFAULT);
+		debug3("%s: key %d: %s %s", __func__, i,
+		    sshkey_ssh_name(key), fp);
+		free(fp);
+		if ((r = sshkey_puts(key, buf)) != 0)
+			fatal("%s: couldn't put hostkey %d: %s",
+			    __func__, i, ssh_err(r));
+		nkeys++;
+	}
+	if (nkeys == 0)
+		fatal("%s: no hostkeys", __func__);
+	debug3("%s: send %d hostkeys", __func__, nkeys);
+	packet_start(SSH2_MSG_GLOBAL_REQUEST);
+	packet_put_cstring("hostkeys@openssh.com");
+	packet_put_char(0); /* want-reply */
+	packet_put_string(sshbuf_ptr(buf), sshbuf_len(buf));
+	packet_send();
+}
+
 /*
  * returns 1 if connection should be dropped, 0 otherwise.
  * dropping starts at connection #max_startups_begin with a probability
@@ -1722,6 +1758,8 @@ main(int ac, char **av)
 			continue;
 		key = key_load_private(options.host_key_files[i], "", NULL);
 		pubkey = key_load_public(options.host_key_files[i], NULL);
+		if (pubkey == NULL && key != NULL)
+			pubkey = key_demote(key);
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
 
@@ -2184,6 +2222,10 @@ main(int ac, char **av)
 
 	packet_set_timeout(options.client_alive_interval,
 	    options.client_alive_count_max);
+
+	/* Try to send all our hostkeys to the client */
+	if (compat20)
+		notify_hostkeys(active_state);
 
 	/* Start session. */
 	do_authenticated(authctxt);

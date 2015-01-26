@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.61 2015/01/18 21:48:09 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.62 2015/01/26 03:04:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -39,6 +39,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <netinet/in.h>
 
@@ -49,6 +50,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "xmalloc.h"
 #include "match.h"
@@ -430,6 +432,29 @@ lookup_key_in_hostkeys_by_type(struct hostkeys *hostkeys, int keytype,
 	    found) == HOST_FOUND);
 }
 
+static int
+write_host_entry(FILE *f, const char *host,
+    const struct sshkey *key, int store_hash)
+{
+	int r, success = 0;
+	char *hashed_host = NULL;
+
+	if (store_hash) {
+		if ((hashed_host = host_hash(host, NULL, 0)) == NULL) {
+			error("%s: host_hash failed", __func__);
+			return 0;
+		}
+	}
+	fprintf(f, "%s ", store_hash ? hashed_host : host);
+
+	if ((r = sshkey_write(key, f)) == 0)
+		success = 1;
+	else
+		error("%s: sshkey_write failed: %s", __func__, ssh_err(r));
+	fputc('\n', f);
+	return success;
+}
+
 /*
  * Appends an entry to the host file.  Returns false if the entry could not
  * be appended.
@@ -439,32 +464,181 @@ add_host_to_hostfile(const char *filename, const char *host,
     const struct sshkey *key, int store_hash)
 {
 	FILE *f;
-	int r, success = 0;
-	char *hashed_host = NULL;
+	int success;
 
 	if (key == NULL)
 		return 1;	/* XXX ? */
 	f = fopen(filename, "a");
 	if (!f)
 		return 0;
-
-	if (store_hash) {
-		if ((hashed_host = host_hash(host, NULL, 0)) == NULL) {
-			error("%s: host_hash failed", __func__);
-			fclose(f);
-			return 0;
-		}
-	}
-	fprintf(f, "%s ", store_hash ? hashed_host : host);
-
-	if ((r = sshkey_write(key, f)) != 0) {
-		error("%s: saving key in %s failed: %s",
-		    __func__, filename, ssh_err(r));
-	} else
-		success = 1;
-	fputc('\n', f);
+	success = write_host_entry(f, host, key, store_hash);
 	fclose(f);
 	return success;
+}
+
+struct host_delete_ctx {
+	FILE *out;
+	int quiet;
+	const char *host;
+	int *skip_keys;
+	struct sshkey * const *keys;
+	size_t nkeys;
+};
+
+static int
+host_delete(struct hostkey_foreach_line *l, void *_ctx)
+{
+	struct host_delete_ctx *ctx = (struct host_delete_ctx *)_ctx;
+	int loglevel = ctx->quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO;
+	size_t i;
+
+	if (l->status == HKF_STATUS_HOST_MATCHED) {
+		if (l->marker != MRK_NONE) {
+			/* Don't remove CA and revocation lines */
+			fprintf(ctx->out, "%s\n", l->line);
+			return 0;
+		}
+
+		/* XXX might need a knob for this later */
+		/* Don't remove RSA1 keys */
+		if (l->key->type == KEY_RSA1) {
+			fprintf(ctx->out, "%s\n", l->line);
+			return 0;
+		}
+
+		/*
+		 * If this line contains one of the keys that we will be
+		 * adding later, then don't change it and mark the key for
+		 * skipping.
+		 */
+		for (i = 0; i < ctx->nkeys; i++) {
+			if (sshkey_equal(ctx->keys[i], l->key)) {
+				ctx->skip_keys[i] = 1;
+				fprintf(ctx->out, "%s\n", l->line);
+				debug3("%s: %s key already at %s:%ld", __func__,
+				    sshkey_type(l->key), l->path, l->linenum);
+				return 0;
+			}
+		}
+
+		/*
+		 * Hostname matches and has no CA/revoke marker, delete it
+		 * by *not* writing the line to ctx->out.
+		 */
+		do_log2(loglevel, "%s%s%s:%ld: Host %s removed",
+		    ctx->quiet ? __func__ : "", ctx->quiet ? ": " : "",
+		    l->path, l->linenum, ctx->host);
+		return 0;
+	}
+	/* Retain non-matching hosts and invalid lines when deleting */
+	if (l->status == HKF_STATUS_INVALID) {
+		do_log2(loglevel, "%s%s%s:%ld: invalid known_hosts entry",
+		    ctx->quiet ? __func__ : "", ctx->quiet ? ": " : "",
+		    l->path, l->linenum);
+	}
+	fprintf(ctx->out, "%s\n", l->line);
+	return 0;
+}
+
+int
+hostfile_replace_entries(const char *filename, const char *host,
+    struct sshkey **keys, size_t nkeys, int store_hash, int quiet)
+{
+	int r, fd, oerrno = 0;
+	int loglevel = quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO;
+	struct host_delete_ctx ctx;
+	char *temp = NULL, *back = NULL;
+	mode_t omask;
+	size_t i;
+
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.host = host;
+	ctx.quiet = quiet;
+	if ((ctx.skip_keys = calloc(nkeys, sizeof(*ctx.skip_keys))) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	ctx.keys = keys;
+	ctx.nkeys = nkeys;
+
+	/*
+	 * Prepare temporary file for in-place deletion.
+	 */
+	if ((r = asprintf(&temp, "%s.XXXXXXXXXXX", filename)) < 0 ||
+	    (r = asprintf(&back, "%s.old", filename)) < 0) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto fail;
+	}
+
+	omask = umask(077);
+	if ((fd = mkstemp(temp)) == -1) {
+		oerrno = errno;
+		error("%s: mkstemp: %s", __func__, strerror(oerrno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	if ((ctx.out = fdopen(fd, "w")) == NULL) {
+		oerrno = errno;
+		close(fd);
+		error("%s: fdopen: %s", __func__, strerror(oerrno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+
+	/* Remove all entries for the specified host from the file */
+	if ((r = hostkeys_foreach(filename, host_delete, &ctx, host,
+	    HKF_WANT_PARSE_KEY)) != 0) {
+		error("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
+		goto fail;
+	}
+
+	/* Add the requested keys */
+	for (i = 0; i < nkeys; i++) {
+		if (ctx.skip_keys[i])
+			continue;
+		do_log2(loglevel, "%s%sadd %s key to %s",
+		    quiet ? __func__ : "", quiet ? ": " : NULL,
+		    sshkey_type(keys[i]), filename);
+		if (!write_host_entry(ctx.out, host, keys[i], store_hash)) {
+			r = SSH_ERR_INTERNAL_ERROR;
+			goto fail;
+		}
+	}
+	fclose(ctx.out);
+	ctx.out = NULL;
+
+	/* Backup the original file and replace it with the temporary */
+	if (unlink(back) == -1 && errno != ENOENT) {
+		oerrno = errno;
+		error("%s: unlink %.100s: %s", __func__, back, strerror(errno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	if (link(filename, back) == -1) {
+		oerrno = errno;
+		error("%s: link %.100s to %.100s: %s", __func__, filename, back,
+		    strerror(errno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	if (rename(temp, filename) == -1) {
+		oerrno = errno;
+		error("%s: rename \"%s\" to \"%s\": %s", __func__,
+		    temp, filename, strerror(errno));
+		r = SSH_ERR_SYSTEM_ERROR;
+		goto fail;
+	}
+	/* success */
+	r = 0;
+ fail:
+	if (temp != NULL && r != 0)
+		unlink(temp);
+	free(temp);
+	free(back);
+	if (ctx.out != NULL)
+		fclose(ctx.out);
+	free(ctx.skip_keys);
+	if (r == SSH_ERR_SYSTEM_ERROR)
+		errno = oerrno;
+	return r;
 }
 
 static int
