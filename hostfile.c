@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.62 2015/01/26 03:04:45 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.63 2015/01/26 13:36:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -551,6 +551,8 @@ hostfile_replace_entries(const char *filename, const char *host,
 	mode_t omask;
 	size_t i;
 
+	omask = umask(077);
+
 	memset(&ctx, 0, sizeof(ctx));
 	ctx.host = host;
 	ctx.quiet = quiet;
@@ -568,7 +570,6 @@ hostfile_replace_entries(const char *filename, const char *host,
 		goto fail;
 	}
 
-	omask = umask(077);
 	if ((fd = mkstemp(temp)) == -1) {
 		oerrno = errno;
 		error("%s: mkstemp: %s", __func__, strerror(oerrno));
@@ -636,6 +637,7 @@ hostfile_replace_entries(const char *filename, const char *host,
 	if (ctx.out != NULL)
 		fclose(ctx.out);
 	free(ctx.skip_keys);
+	umask(omask);
 	if (r == SSH_ERR_SYSTEM_ERROR)
 		errno = oerrno;
 	return r;
