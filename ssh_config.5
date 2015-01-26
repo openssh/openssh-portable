@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.200 2015/01/26 03:04:45 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.201 2015/01/26 12:16:36 djm Exp $
 .Dd $Mdocdate: January 26 2015 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1492,7 +1492,7 @@ is not specified, it defaults to
 .Dq any .
 The default is
 .Dq any:any .
-.It Cm UpdateHostkeys
+.It Cm UpdateHostKeys
 Specifies whether
 .Xr ssh 1
 should accept notifications of additional hostkeys from the server sent
@@ -1504,8 +1504,8 @@ The argument must be
 or
 .Dq no .
 Enabling this option allows learning alternate hostkeys for a server
-and supports graceful key rotation by allowing a server to public replacement
-keys before old ones are removed.
+and supports graceful key rotation by allowing a server to send replacement
+public keys before old ones are removed.
 Additional hostkeys are only accepted if the key used to authenticate the
 host was already trusted or explicity accepted by the user.
 .Pp
