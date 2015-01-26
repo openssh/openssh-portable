@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.257 2015/01/26 03:04:46 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.258 2015/01/26 06:10:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1243,7 +1243,8 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 		goto out;
 	}
 
-	debug("Server host key: %s %s", sshkey_type(host_key), fp);
+	debug("Server host key: %s %s",
+	    compat20 ? sshkey_ssh_name(host_key) : sshkey_type(host_key), fp);
 
 	if (sshkey_equal(previous_host_key, host_key)) {
 		debug2("%s: server host key %s %s matches cached key",

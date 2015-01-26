@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.17 2015/01/19 20:16:15 markus Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.18 2015/01/26 06:10:03 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -114,7 +114,9 @@ input_kex_dh(int type, u_int32_t seq, void *ctxt)
 	    (r = sshkey_from_blob(server_host_key_blob, sbloblen,
 	    &server_host_key)) != 0)
 		goto out;
-	if (server_host_key->type != kex->hostkey_type) {
+	if (server_host_key->type != kex->hostkey_type ||
+	    (kex->hostkey_type == KEY_ECDSA &&
+	    server_host_key->ecdsa_nid != kex->hostkey_nid)) {
 		r = SSH_ERR_KEY_TYPE_MISMATCH;
 		goto out;
 	}

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.439 2015/01/26 03:04:46 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.440 2015/01/26 06:10:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -836,7 +836,7 @@ list_hostkey_types(void)
 }
 
 static Key *
-get_hostkey_by_type(int type, int need_private, struct ssh *ssh)
+get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 {
 	int i;
 	Key *key;
@@ -857,7 +857,8 @@ get_hostkey_by_type(int type, int need_private, struct ssh *ssh)
 				key = sensitive_data.host_pubkeys[i];
 			break;
 		}
-		if (key != NULL && key->type == type)
+		if (key != NULL && key->type == type &&
+		    (key->type != KEY_ECDSA || key->ecdsa_nid == nid))
 			return need_private ?
 			    sensitive_data.host_keys[i] : key;
 	}
@@ -865,15 +866,15 @@ get_hostkey_by_type(int type, int need_private, struct ssh *ssh)
 }
 
 Key *
-get_hostkey_public_by_type(int type, struct ssh *ssh)
+get_hostkey_public_by_type(int type, int nid, struct ssh *ssh)
 {
-	return get_hostkey_by_type(type, 0, ssh);
+	return get_hostkey_by_type(type, nid, 0, ssh);
 }
 
 Key *
-get_hostkey_private_by_type(int type, struct ssh *ssh)
+get_hostkey_private_by_type(int type, int nid, struct ssh *ssh)
 {
-	return get_hostkey_by_type(type, 1, ssh);
+	return get_hostkey_by_type(type, nid, 1, ssh);
 }
 
 Key *

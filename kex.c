@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.103 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: kex.c,v 1.104 2015/01/26 06:10:03 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -546,6 +546,7 @@ choose_hostkeyalg(struct kex *k, char *client, char *server)
 	k->hostkey_type = sshkey_type_from_name(hostkeyalg);
 	if (k->hostkey_type == KEY_UNSPEC)
 		return SSH_ERR_INTERNAL_ERROR;
+	k->hostkey_nid = sshkey_ecdsa_nid_from_name(hostkeyalg);
 	free(hostkeyalg);
 	return 0;
 }

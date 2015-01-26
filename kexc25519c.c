@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519c.c,v 1.6 2015/01/19 20:16:15 markus Exp $ */
+/* $OpenBSD: kexc25519c.c,v 1.7 2015/01/26 06:10:03 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -92,7 +92,9 @@ input_kex_c25519_reply(int type, u_int32_t seq, void *ctxt)
 	    (r = sshkey_from_blob(server_host_key_blob, sbloblen,
 	    &server_host_key)) != 0)
 		goto out;
-	if (server_host_key->type != kex->hostkey_type) {
+	if (server_host_key->type != kex->hostkey_type ||
+	    (kex->hostkey_type == KEY_ECDSA &&
+	    server_host_key->ecdsa_nid != kex->hostkey_nid)) {
 		r = SSH_ERR_KEY_TYPE_MISMATCH;
 		goto out;
 	}
