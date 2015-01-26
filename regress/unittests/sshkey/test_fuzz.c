@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.2 2015/01/18 19:53:58 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.3 2015/01/26 06:11:28 djm Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -53,7 +53,7 @@ public_fuzz(struct sshkey *k)
 	struct fuzz *fuzz;
 
 	ASSERT_PTR_NE(buf = sshbuf_new(), NULL);
-	ASSERT_INT_EQ(sshkey_to_blob_buf(k, buf), 0);
+	ASSERT_INT_EQ(sshkey_putb(k, buf), 0);
 	/* XXX need a way to run the tests in "slow, but complete" mode */
 	fuzz = fuzz_begin(FUZZ_1_BIT_FLIP | /* XXX too slow FUZZ_2_BIT_FLIP | */
 	    FUZZ_1_BYTE_FLIP | /* XXX too slow FUZZ_2_BYTE_FLIP | */

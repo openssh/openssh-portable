@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.2 2015/01/18 19:54:46 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.3 2015/01/26 06:11:28 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -60,7 +60,7 @@ build_cert(struct sshbuf *b, const struct sshkey *k, const char *type,
 
 	ca_buf = sshbuf_new();
 	ASSERT_PTR_NE(ca_buf, NULL);
-	ASSERT_INT_EQ(sshkey_to_blob_buf(ca_key, ca_buf), 0);
+	ASSERT_INT_EQ(sshkey_putb(ca_key, ca_buf), 0);
 
 	/*
 	 * Get the public key serialisation by rendering the key and skipping
@@ -68,7 +68,7 @@ build_cert(struct sshbuf *b, const struct sshkey *k, const char *type,
 	 */
 	pk = sshbuf_new();
 	ASSERT_PTR_NE(pk, NULL);
-	ASSERT_INT_EQ(sshkey_plain_to_blob_buf(k, pk), 0);
+	ASSERT_INT_EQ(sshkey_putb_plain(k, pk), 0);
 	ASSERT_INT_EQ(sshbuf_skip_string(pk), 0);
 
 	principals = sshbuf_new();
@@ -447,7 +447,7 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_certify(k1, k2), 0);
 	b = sshbuf_new();
 	ASSERT_PTR_NE(b, NULL);
-	ASSERT_INT_EQ(sshkey_to_blob_buf(k1, b), 0);
+	ASSERT_INT_EQ(sshkey_putb(k1, b), 0);
 	ASSERT_INT_EQ(sshkey_from_blob(sshbuf_ptr(b), sshbuf_len(b), &k3), 0);
 
 	sshkey_free(k1);
