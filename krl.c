@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.29 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: krl.c,v 1.30 2015/01/26 02:59:11 djm Exp $ */
 
 #include "includes.h"
 
@@ -555,12 +555,9 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 		return SSH_ERR_ALLOC_FAIL;
 
 	/* Store the header: CA scope key, reserved */
-	if ((r = sshkey_to_blob_buf(rc->ca_key, sect)) != 0 ||
-	    (r = sshbuf_put_stringb(buf, sect)) != 0 ||
+	if ((r = sshkey_puts(rc->ca_key, buf)) != 0 ||
 	    (r = sshbuf_put_string(buf, NULL, 0)) != 0)
 		goto out;
-
-	sshbuf_reset(sect);
 
 	/* Store the revoked serials.  */
 	for (rs = RB_MIN(revoked_serial_tree, &rc->revoked_serials);
@@ -759,14 +756,10 @@ ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
 	}
 
 	for (i = 0; i < nsign_keys; i++) {
-		sshbuf_reset(sect);
-		if ((r = sshkey_to_blob_buf(sign_keys[i], sect)) != 0)
-			goto out;
-
-		KRL_DBG(("%s: signature key len %zu", __func__,
-		    sshbuf_len(sect)));
+		KRL_DBG(("%s: signature key %s", __func__,
+		    sshkey_ssh_name(sign_keys[i])));
 		if ((r = sshbuf_put_u8(buf, KRL_SECTION_SIGNATURE)) != 0 ||
-		    (r = sshbuf_put_stringb(buf, sect)) != 0)
+		    (r = sshkey_puts(sign_keys[i], buf)) != 0)
 			goto out;
 
 		if ((r = sshkey_sign(sign_keys[i], &sblob, &slen,
