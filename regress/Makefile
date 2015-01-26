@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.77 2015/01/20 22:58:57 djm Exp $
+#	$OpenBSD: Makefile,v 1.78 2015/01/26 06:12:18 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -68,7 +68,8 @@ LTESTS= 	connect \
 		multipubkey \
 		limit-keytype \
 		hostkey-agent \
-		keygen-knownhosts
+		keygen-knownhosts \
+		hostkey-rotate
 
 
 #		dhgex \
