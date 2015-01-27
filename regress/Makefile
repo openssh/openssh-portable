@@ -100,7 +100,7 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sftp-server.sh sftp-server.log sftp.log setuid-allowed \
 		data ed25519-agent ed25519-agent.pub key.ed25519-512 \
 		key.ed25519-512.pub netcat host_krl_* host_revoked_* \
-		kh.* user_*key*
+		kh.* user_*key* agent-key.* known_hosts.* hkr.*
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 
@@ -178,10 +178,10 @@ t11:
 		awk '{print $$2}' | diff - ${.CURDIR}/t11.ok
 
 t12.out:
-	ssh-keygen -q -t ed25519 -N '' -C 'test-comment-1234' -f $@
+	${TEST_SSH_SSHKEYGEN} -q -t ed25519 -N '' -C 'test-comment-1234' -f $@
 
 t12: t12.out
-	ssh-keygen -lf t12.out.pub | grep -q test-comment-1234
+	${TEST_SSH_SSHKEYGEN} -lf t12.out.pub | grep -q test-comment-1234
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
