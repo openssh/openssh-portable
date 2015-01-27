@@ -57,6 +57,8 @@
 #include "sshkey.h"
 #include "ssherr.h"
 
+struct ssh *active_state = NULL; /* XXX needed for linking */
+
 /* XXX readconf.c needs these */
 uid_t original_real_uid;
 
