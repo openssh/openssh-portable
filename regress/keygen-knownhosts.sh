@@ -1,4 +1,4 @@
-#	$OpenBSD: keygen-knownhosts.sh,v 1.1 2015/01/18 22:00:18 djm Exp $
+#	$OpenBSD: keygen-knownhosts.sh,v 1.2 2015/01/27 12:01:36 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh-keygen known_hosts"
@@ -13,13 +13,13 @@ for x in host-a host-b host-c host-d host-e host-f host-a2 host-b2; do
 	echo "# $x" >> $OBJ/kh.hosts
 	(
 		case "$x" in
-		host-a|host-b)	echo -n "$x " ;;
-		host-c)		echo -n "@cert-authority $x " ;;
-		host-d)		echo -n "@revoked $x " ;;
-		host-e)		echo -n "host-e* " ;;
-		host-f)		echo -n "host-f,host-g,host-h " ;;
-		host-a2)	echo -n "host-a " ;;
-		host-b2)	echo -n "host-b " ;;
+		host-a|host-b)	printf "$x " ;;
+		host-c)		printf "@cert-authority $x " ;;
+		host-d)		printf "@revoked $x " ;;
+		host-e)		printf "host-e* " ;;
+		host-f)		printf "host-f,host-g,host-h " ;;
+		host-a2)	printf "host-a " ;;
+		host-b2)	printf "host-b " ;;
 		esac
 		cat $OBJ/kh.${x}.pub
 		# Blank line should be preserved.
@@ -47,7 +47,7 @@ expect_key() {
 	test "x$_mark" = "xREVOKED" && _marker="@revoked "
 	test "x$_line" != "x" &&
 	    echo "# Host $_host found: line $_line $_mark" >> $OBJ/kh.expect
-	echo -n "${_marker}$_hosts " >> $OBJ/kh.expect
+	printf "${_marker}$_hosts " >> $OBJ/kh.expect
 	cat $OBJ/kh.${_key}.pub >> $OBJ/kh.expect ||
 	    fatal "${_key}.pub missing"
 }

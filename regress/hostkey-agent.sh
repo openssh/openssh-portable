@@ -1,4 +1,4 @@
-#	$OpenBSD: hostkey-agent.sh,v 1.3 2015/01/20 08:02:33 djm Exp $
+#	$OpenBSD: hostkey-agent.sh,v 1.4 2015/01/27 12:01:36 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey agent"
@@ -17,7 +17,7 @@ trace "load hostkeys"
 for k in `${SSH} -Q key-plain` ; do
 	${SSHKEYGEN} -qt $k -f $OBJ/agent-key.$k -N '' || fatal "ssh-keygen $k"
 	(
-		echo -n 'localhost-with-alias,127.0.0.1,::1 '
+		printf 'localhost-with-alias,127.0.0.1,::1 '
 		cat $OBJ/agent-key.$k.pub
 	) >> $OBJ/known_hosts.orig
 	${SSHADD} $OBJ/agent-key.$k >/dev/null 2>&1 || \
