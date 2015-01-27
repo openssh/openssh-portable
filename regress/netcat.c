@@ -1144,11 +1144,13 @@ set_common_sockopts(int s)
 {
 	int x = 1;
 
+#ifdef TCP_MD5SIG
 	if (Sflag) {
 		if (setsockopt(s, IPPROTO_TCP, TCP_MD5SIG,
 			&x, sizeof(x)) == -1)
 			err(1, NULL);
 	}
+#endif
 	if (Dflag) {
 		if (setsockopt(s, SOL_SOCKET, SO_DEBUG,
 			&x, sizeof(x)) == -1)
