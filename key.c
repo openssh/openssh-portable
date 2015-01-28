@@ -1,4 +1,4 @@
-/* $OpenBSD: key.c,v 1.126 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: key.c,v 1.127 2015/01/28 22:36:00 djm Exp $ */
 /*
  * placed in the public domain
  */
@@ -36,23 +36,6 @@ key_new_private(int type)
 
 	if ((ret = sshkey_new_private(type)) == NULL)
 		fatal("%s: failed", __func__);
-	return ret;
-}
-
-u_char*
-key_fingerprint_raw(const Key *k, int dgst_alg, u_int *dgst_raw_length)
-{
-	u_char *ret = NULL;
-	size_t dlen;
-	int r;
-
-	if (dgst_raw_length != NULL)
-		*dgst_raw_length = 0;
-	if ((r = sshkey_fingerprint_raw(k, dgst_alg, &ret, &dlen)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
-	if (dlen > INT_MAX)
-		fatal("%s: giant len %zu", __func__, dlen);
-	*dgst_raw_length = dlen;
 	return ret;
 }
 

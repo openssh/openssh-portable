@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.258 2015/01/19 00:32:54 deraadt Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.259 2015/01/28 22:36:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -800,6 +800,8 @@ do_download(struct passwd *pw)
 			fp = sshkey_fingerprint(keys[i], fptype, rep);
 			ra = sshkey_fingerprint(keys[i], fingerprint_hash,
 			    SSH_FP_RANDOMART);
+			if (fp == NULL || ra == NULL)
+				fatal("%s: sshkey_fingerprint fail", __func__);
 			printf("%u %s %s (PKCS11 key)\n", sshkey_size(keys[i]),
 			    fp, sshkey_type(keys[i]));
 			if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -846,6 +848,8 @@ do_fingerprint(struct passwd *pw)
 		fp = sshkey_fingerprint(public, fptype, rep);
 		ra = sshkey_fingerprint(public, fingerprint_hash,
 		    SSH_FP_RANDOMART);
+		if (fp == NULL || ra == NULL)
+			fatal("%s: sshkey_fingerprint fail", __func__);
 		printf("%u %s %s (%s)\n", sshkey_size(public), fp, comment,
 		    sshkey_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -915,6 +919,8 @@ do_fingerprint(struct passwd *pw)
 		fp = sshkey_fingerprint(public, fptype, rep);
 		ra = sshkey_fingerprint(public, fingerprint_hash,
 		    SSH_FP_RANDOMART);
+		if (fp == NULL || ra == NULL)
+			fatal("%s: sshkey_fingerprint fail", __func__);
 		printf("%u %s %s (%s)\n", sshkey_size(public), fp,
 		    comment ? comment : "no comment", sshkey_type(public));
 		if (log_level >= SYSLOG_LEVEL_VERBOSE)
@@ -1902,6 +1908,8 @@ do_show_cert(struct passwd *pw)
 	key_fp = sshkey_fingerprint(key, fingerprint_hash, SSH_FP_DEFAULT);
 	ca_fp = sshkey_fingerprint(key->cert->signature_key,
 	    fingerprint_hash, SSH_FP_DEFAULT);
+	if (key_fp == NULL || ca_fp == NULL)
+		fatal("%s: sshkey_fingerprint fail", __func__);
 
 	printf("%s:\n", identity_file);
 	printf("        Type: %s %s certificate\n", sshkey_ssh_name(key),
@@ -2216,7 +2224,7 @@ main(int argc, char **argv)
 {
 	char dotsshdir[PATH_MAX], comment[1024], *passphrase1, *passphrase2;
 	char *checkpoint = NULL;
-	char out_file[PATH_MAX], *rr_hostname = NULL, *ep;
+	char out_file[PATH_MAX], *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
 	struct stat st;
@@ -2709,10 +2717,12 @@ passphrase_again:
 	fclose(f);
 
 	if (!quiet) {
-		char *fp = sshkey_fingerprint(public, fingerprint_hash,
+		fp = sshkey_fingerprint(public, fingerprint_hash,
 		    SSH_FP_DEFAULT);
-		char *ra = sshkey_fingerprint(public, fingerprint_hash,
+		ra = sshkey_fingerprint(public, fingerprint_hash,
 		    SSH_FP_RANDOMART);
+		if (fp == NULL || ra == NULL)
+			fatal("sshkey_fingerprint failed");
 		printf("Your public key has been saved in %s.\n",
 		    identity_file);
 		printf("The key fingerprint is:\n");

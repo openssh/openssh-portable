@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.258 2015/01/26 06:10:03 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.259 2015/01/28 22:36:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -770,7 +770,7 @@ get_hostfile_hostname_ipaddr(char *hostname, struct sockaddr *hostaddr,
 		if (options.proxy_command == NULL) {
 			if (getnameinfo(hostaddr, addrlen,
 			    ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST) != 0)
-			fatal("check_host_key: getnameinfo failed");
+			fatal("%s: getnameinfo failed", __func__);
 			*hostfile_ipaddr = put_host_port(ntop, port);
 		} else {
 			*hostfile_ipaddr = xstrdup("<no hostip for proxy "
@@ -919,10 +919,12 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
 		} else if (options.visual_host_key) {
-			fp = key_fingerprint(host_key,
+			fp = sshkey_fingerprint(host_key,
 			    options.fingerprint_hash, SSH_FP_DEFAULT);
-			ra = key_fingerprint(host_key,
+			ra = sshkey_fingerprint(host_key,
 			    options.fingerprint_hash, SSH_FP_RANDOMART);
+			if (fp == NULL || ra == NULL)
+				fatal("%s: sshkey_fingerprint fail", __func__);
 			logit("Host key fingerprint is %s\n%s\n", fp, ra);
 			free(ra);
 			free(fp);
@@ -962,10 +964,12 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			else
 				snprintf(msg1, sizeof(msg1), ".");
 			/* The default */
-			fp = key_fingerprint(host_key,
+			fp = sshkey_fingerprint(host_key,
 			    options.fingerprint_hash, SSH_FP_DEFAULT);
-			ra = key_fingerprint(host_key,
+			ra = sshkey_fingerprint(host_key,
 			    options.fingerprint_hash, SSH_FP_RANDOMART);
+			if (fp == NULL || ra == NULL)
+				fatal("%s: sshkey_fingerprint fail", __func__);
 			msg2[0] = '\0';
 			if (options.verify_host_key_dns) {
 				if (matching_host_key_dns)
@@ -1399,10 +1403,12 @@ show_other_keys(struct hostkeys *hostkeys, Key *key)
 			continue;
 		if (!lookup_key_in_hostkeys_by_type(hostkeys, type[i], &found))
 			continue;
-		fp = key_fingerprint(found->key,
+		fp = sshkey_fingerprint(found->key,
 		    options.fingerprint_hash, SSH_FP_DEFAULT);
-		ra = key_fingerprint(found->key,
+		ra = sshkey_fingerprint(found->key,
 		    options.fingerprint_hash, SSH_FP_RANDOMART);
+		if (fp == NULL || ra == NULL)
+			fatal("%s: sshkey_fingerprint fail", __func__);
 		logit("WARNING: %s key found for host %s\n"
 		    "in %s:%lu\n"
 		    "%s key fingerprint %s.",
@@ -1423,8 +1429,10 @@ warn_changed_key(Key *host_key)
 {
 	char *fp;
 
-	fp = key_fingerprint(host_key, options.fingerprint_hash,
+	fp = sshkey_fingerprint(host_key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT);
+	if (fp == NULL)
+		fatal("%s: sshkey_fingerprint fail", __func__);
 
 	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");

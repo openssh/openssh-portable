@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.46 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.47 2015/01/28 22:36:00 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -274,8 +274,9 @@ main(int argc, char **argv)
 		}
 	}
 	if (!found) {
-		fp = sshkey_fingerprint(key, options.fingerprint_hash,
-		    SSH_FP_DEFAULT);
+		if ((fp = sshkey_fingerprint(key, options.fingerprint_hash,
+		    SSH_FP_DEFAULT)) == NULL)
+			fatal("%s: sshkey_fingerprint failed", __func__);
 		fatal("no matching hostkey found for key %s %s",
 		    sshkey_type(key), fp ? fp : "");
 	}

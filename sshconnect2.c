@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.221 2015/01/20 20:16:21 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.222 2015/01/28 22:36:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -591,7 +591,9 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 		    key->type, pktype);
 		goto done;
 	}
-	fp = sshkey_fingerprint(key, options.fingerprint_hash, SSH_FP_DEFAULT);
+	if ((fp = sshkey_fingerprint(key, options.fingerprint_hash,
+	    SSH_FP_DEFAULT)) == NULL)
+		goto done;
 	debug2("input_userauth_pk_ok: fp %s", fp);
 	free(fp);
 
@@ -1009,7 +1011,9 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	int have_sig = 1;
 	char *fp;
 
-	fp = key_fingerprint(id->key, options.fingerprint_hash, SSH_FP_DEFAULT);
+	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
+	    SSH_FP_DEFAULT)) == NULL)
+		return 0;
 	debug3("sign_and_send_pubkey: %s %s", key_type(id->key), fp);
 	free(fp);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.33 2015/01/15 09:40:00 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.34 2015/01/28 22:36:00 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -294,7 +294,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		free(dnskey_digest);
 	}
 
-	free(hostkey_digest); /* from key_fingerprint_raw() */
+	free(hostkey_digest); /* from sshkey_fingerprint_raw() */
 	freerrset(fingerprints);
 
 	if (*flags & DNS_VERIFY_FOUND)
@@ -337,7 +337,7 @@ export_dns_rr(const char *hostname, struct sshkey *key, FILE *f, int generic)
 			for (i = 0; i < rdata_digest_len; i++)
 				fprintf(f, "%02x", rdata_digest[i]);
 			fprintf(f, "\n");
-			free(rdata_digest); /* from key_fingerprint_raw() */
+			free(rdata_digest); /* from sshkey_fingerprint_raw() */
 			success = 1;
 		}
 	}
