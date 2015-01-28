@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.23 2015/01/19 20:07:45 markus Exp $ */
+/* $OpenBSD: dispatch.c,v 1.24 2015/01/28 22:05:31 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -137,6 +137,18 @@ ssh_dispatch_run_fatal(struct ssh *ssh, int mode, volatile sig_atomic_t *done,
 {
 	int r;
 
-	if ((r = ssh_dispatch_run(ssh, mode, done, ctxt)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+	if ((r = ssh_dispatch_run(ssh, mode, done, ctxt)) != 0) {
+		switch (r) {
+		case SSH_ERR_CONN_CLOSED:
+			logit("Connection closed by %.200s",
+			    ssh_remote_ipaddr(ssh));
+			cleanup_exit(255);
+		case SSH_ERR_CONN_TIMEOUT:
+			logit("Connection to %.200s timed out while "
+			    "waiting to read", ssh_remote_ipaddr(ssh));
+			cleanup_exit(255);
+		default:
+			fatal("%s: %s", __func__, ssh_err(r));
+		}
+	}
 }
