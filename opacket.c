@@ -255,8 +255,20 @@ packet_read_seqnr(u_int32_t *seqnr)
 	u_char type;
 	int r;
 
-	if ((r = ssh_packet_read_seqnr(active_state, &type, seqnr)))
-		fatal("%s: %s", __func__, ssh_err(r));
+	if ((r = ssh_packet_read_seqnr(active_state, &type, seqnr)) != 0) {
+		switch (r) {
+		case SSH_ERR_CONN_CLOSED:
+			logit("Connection closed by %.200s",
+			    ssh_remote_ipaddr(active_state));
+			cleanup_exit(255);
+		case SSH_ERR_CONN_TIMEOUT:
+			logit("Connection to %.200s timed out while "
+			    "waiting to read", ssh_remote_ipaddr(active_state));
+			cleanup_exit(255);
+		default:
+			fatal("%s: %s", __func__, ssh_err(r));
+		}
+	}
 	return type;
 }
 
@@ -276,4 +288,13 @@ packet_close(void)
 {
 	ssh_packet_close(active_state);
 	active_state = NULL;
+}
+
+void
+packet_process_incoming(const char *buf, u_int len)
+{
+	int r;
+
+	if ((r = ssh_packet_process_incoming(active_state, buf, len)) != 0)
+		fatal("%s: %s", __func__, ssh_err(r));
 }

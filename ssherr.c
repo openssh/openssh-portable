@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssherr.c,v 1.1 2014/04/30 05:29:56 djm Exp $	*/
+/*	$OpenBSD: ssherr.c,v 1.2 2015/01/28 21:15:47 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -125,6 +125,10 @@ ssh_err(int n)
 		return "KRL file has invalid magic number";
 	case SSH_ERR_KEY_REVOKED:
 		return "Key is revoked";
+	case SSH_ERR_CONN_CLOSED:
+		return "Connection closed";
+	case SSH_ERR_CONN_TIMEOUT:
+		return "Connection timed out";
 	default:
 		return "unknown error";
 	}

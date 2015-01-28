@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.96 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.97 2015/01/28 21:15:47 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -319,8 +319,10 @@ tcpconnect(char *host)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = IPv4or6;
 	hints.ai_socktype = SOCK_STREAM;
-	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)
-		fatal("getaddrinfo %s: %s", host, ssh_gai_strerror(gaierr));
+	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0) {
+		error("getaddrinfo %s: %s", host, ssh_gai_strerror(gaierr));
+		return -1;
+	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (s < 0) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.203 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.204 2015/01/28 21:15:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1314,26 +1314,22 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 				break;
 			}
 		}
-		if (r == 0) {
-			logit("Connection to %.200s timed out while "
-			    "waiting to read", ssh_remote_ipaddr(ssh));
-			cleanup_exit(255);
-		}
+		if (r == 0)
+			return SSH_ERR_CONN_TIMEOUT;
 		/* Read data from the socket. */
 		do {
 			cont = 0;
 			len = roaming_read(state->connection_in, buf,
 			    sizeof(buf), &cont);
 		} while (len == 0 && cont);
-		if (len == 0) {
-			logit("Connection closed by %.200s",
-			    ssh_remote_ipaddr(ssh));
-			cleanup_exit(255);
-		}
+		if (len == 0)
+			return SSH_ERR_CONN_CLOSED;
 		if (len < 0)
-			fatal("Read from socket failed: %.100s", strerror(errno));
+			return SSH_ERR_SYSTEM_ERROR;
+
 		/* Append it to the buffer. */
-		ssh_packet_process_incoming(ssh, buf, len);
+		if ((r = ssh_packet_process_incoming(ssh, buf, len)) != 0)
+			return r;
 	}
 	free(setp);
 	return r;
@@ -1787,7 +1783,7 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
  * together with packet_read_poll.
  */
 
-void
+int
 ssh_packet_process_incoming(struct ssh *ssh, const char *buf, u_int len)
 {
 	struct session_state *state = ssh->state;
@@ -1797,14 +1793,15 @@ ssh_packet_process_incoming(struct ssh *ssh, const char *buf, u_int len)
 		state->keep_alive_timeouts = 0; /* ?? */
 		if (len >= state->packet_discard) {
 			if ((r = ssh_packet_stop_discard(ssh)) != 0)
-				fatal("%s: %s", __func__, ssh_err(r));
-			cleanup_exit(255);
+				return r;
 		}
 		state->packet_discard -= len;
-		return;
+		return 0;
 	}
 	if ((r = sshbuf_put(ssh->state->input, buf, len)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		return r;
+
+	return 0;
 }
 
 int

@@ -44,6 +44,7 @@ void	 packet_restore_state(void);
 void     packet_set_connection(int, int);
 int	 packet_read_seqnr(u_int32_t *);
 int	 packet_read_poll_seqnr(u_int32_t *);
+void	 packet_process_incoming(const char *buf, u_int len);
 #define packet_set_timeout(timeout, count) \
 	ssh_packet_set_timeout(active_state, (timeout), (count))
 #define packet_connection_is_on_socket() \
@@ -86,8 +87,6 @@ int	 packet_read_poll_seqnr(u_int32_t *);
 	ssh_packet_read(active_state)
 #define packet_read_expect(expected_type) \
 	ssh_packet_read_expect(active_state, (expected_type))
-#define packet_process_incoming(buf, len) \
-	ssh_packet_process_incoming(active_state, (buf), (len))
 #define packet_get_int64() \
 	ssh_packet_get_int64(active_state)
 #define packet_get_bignum(value) \
