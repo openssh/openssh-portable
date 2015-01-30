@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.201 2015/01/26 12:16:36 djm Exp $
-.Dd $Mdocdate: January 26 2015 $
+.\" $OpenBSD: ssh_config.5,v 1.202 2015/01/30 11:43:14 djm Exp $
+.Dd $Mdocdate: January 30 2015 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -777,6 +777,17 @@ The default is
 This option applies to protocol version 2 only and
 is similar to
 .Cm RhostsRSAAuthentication .
+.It Cm HostbasedKeyTypes
+Specifies the key types that will be used for hostbased authentication
+as a comma-separated pattern list.
+The default
+.Dq *
+will allow all key types.
+The
+.Fl Q
+option of
+.Xr ssh 1
+may be used to list supported key types.
 .It Cm HostKeyAlgorithms
 Specifies the protocol version 2 host key algorithms
 that the client wants to use in order of preference.
