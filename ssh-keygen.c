@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.260 2015/01/30 00:59:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.261 2015/01/30 01:10:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1973,7 +1973,7 @@ load_krl(const char *path, struct ssh_krl **krlp)
 }
 
 static void
-update_krl_from_file(struct passwd *pw, const char *file,
+update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
     const struct sshkey *ca, struct ssh_krl *krl)
 {
 	struct sshkey *key = NULL;
@@ -2015,7 +2015,7 @@ update_krl_from_file(struct passwd *pw, const char *file,
 		if (*cp == '\0')
 			continue;
 		if (strncasecmp(cp, "serial:", 7) == 0) {
-			if (ca == NULL) {
+			if (ca == NULL && !wild_ca) {
 				fatal("revoking certificates by serial number "
 				    "requires specification of a CA key");
 			}
@@ -2052,7 +2052,7 @@ update_krl_from_file(struct passwd *pw, const char *file,
 				    __func__);
 			}
 		} else if (strncasecmp(cp, "id:", 3) == 0) {
-			if (ca == NULL) {
+			if (ca == NULL && !wild_ca) {
 				fatal("revoking certificates by key ID "
 				    "requires specification of a CA key");
 			}
@@ -2103,7 +2103,7 @@ do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 	struct ssh_krl *krl;
 	struct stat sb;
 	struct sshkey *ca = NULL;
-	int fd, i, r;
+	int fd, i, r, wild_ca = 0;
 	char *tmp;
 	struct sshbuf *kbuf;
 
@@ -2117,11 +2117,15 @@ do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 			fatal("KRL \"%s\" does not exist", identity_file);
 	}
 	if (ca_key_path != NULL) {
-		tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
-		if ((r = sshkey_load_public(tmp, &ca, NULL)) != 0)
-			fatal("Cannot load CA public key %s: %s",
-			    tmp, ssh_err(r));
-		free(tmp);
+		if (strcasecmp(ca_key_path, "none") == 0)
+			wild_ca = 1;
+		else {
+			tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
+			if ((r = sshkey_load_public(tmp, &ca, NULL)) != 0)
+				fatal("Cannot load CA public key %s: %s",
+				    tmp, ssh_err(r));
+			free(tmp);
+		}
 	}
 
 	if (updating)
@@ -2135,7 +2139,7 @@ do_gen_krl(struct passwd *pw, int updating, int argc, char **argv)
 		ssh_krl_set_comment(krl, identity_comment);
 
 	for (i = 0; i < argc; i++)
-		update_krl_from_file(pw, argv[i], ca, krl);
+		update_krl_from_file(pw, argv[i], wild_ca, ca, krl);
 
 	if ((kbuf = sshbuf_new()) == NULL)
 		fatal("sshbuf_new failed");

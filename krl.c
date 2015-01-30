@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.30 2015/01/26 02:59:11 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.31 2015/01/30 01:10:33 djm Exp $ */
 
 #include "includes.h"
 
@@ -156,8 +156,7 @@ revoked_certs_free(struct revoked_certs *rc)
 		free(rki->key_id);
 		free(rki);
 	}
-	if (rc->ca_key != NULL)
-		sshkey_free(rc->ca_key);
+	sshkey_free(rc->ca_key);
 }
 
 void
@@ -214,7 +213,8 @@ revoked_certs_for_ca_key(struct ssh_krl *krl, const struct sshkey *ca_key,
 
 	*rcp = NULL;
 	TAILQ_FOREACH(rc, &krl->revoked_certs, entry) {
-		if (sshkey_equal(rc->ca_key, ca_key)) {
+		if ((ca_key == NULL && rc->ca_key == NULL) ||
+		    sshkey_equal(rc->ca_key, ca_key)) {
 			*rcp = rc;
 			return 0;
 		}
@@ -224,14 +224,17 @@ revoked_certs_for_ca_key(struct ssh_krl *krl, const struct sshkey *ca_key,
 	/* If this CA doesn't exist in the list then add it now */
 	if ((rc = calloc(1, sizeof(*rc))) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshkey_from_private(ca_key, &rc->ca_key)) != 0) {
+	if (ca_key == NULL)
+		rc->ca_key = NULL;
+	else if ((r = sshkey_from_private(ca_key, &rc->ca_key)) != 0) {
 		free(rc);
 		return r;
 	}
 	RB_INIT(&rc->revoked_serials);
 	RB_INIT(&rc->revoked_key_ids);
 	TAILQ_INSERT_TAIL(&krl->revoked_certs, rc, entry);
-	KRL_DBG(("%s: new CA %s", __func__, sshkey_type(ca_key)));
+	KRL_DBG(("%s: new CA %s", __func__,
+	    ca_key == NULL ? "*" : sshkey_type(ca_key)));
 	*rcp = rc;
 	return 0;
 }
@@ -554,9 +557,15 @@ revoked_certs_generate(struct revoked_certs *rc, struct sshbuf *buf)
 	if ((sect = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 
-	/* Store the header: CA scope key, reserved */
-	if ((r = sshkey_puts(rc->ca_key, buf)) != 0 ||
-	    (r = sshbuf_put_string(buf, NULL, 0)) != 0)
+	/* Store the header: optional CA scope key, reserved */
+	if (rc->ca_key == NULL) {
+		if ((r = sshbuf_put_string(buf, NULL, 0)) != 0)
+			goto out;
+	} else {
+		if ((r = sshkey_puts(rc->ca_key, buf)) != 0)
+			goto out;
+	}
+	if ((r = sshbuf_put_string(buf, NULL, 0)) != 0)
 		goto out;
 
 	/* Store the revoked serials.  */
@@ -813,7 +822,7 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 	if ((r = sshbuf_get_string_direct(buf, &blob, &blen)) != 0 ||
 	    (r = sshbuf_skip_string(buf)) != 0)
 		goto out;
-	if ((r = sshkey_from_blob(blob, blen, &ca_key)) != 0)
+	if (blen != 0 && (r = sshkey_from_blob(blob, blen, &ca_key)) != 0)
 		goto out;
 
 	while (sshbuf_len(buf) > 0) {
@@ -1154,13 +1163,45 @@ ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
 	return r;
 }
 
+/* Checks certificate serial number and key ID revocation */
+static int
+is_cert_revoked(const struct sshkey *key, struct revoked_certs *rc)
+{
+	struct revoked_serial rs, *ers;
+	struct revoked_key_id rki, *erki;
+
+	/* Check revocation by cert key ID */
+	memset(&rki, 0, sizeof(rki));
+	rki.key_id = key->cert->key_id;
+	erki = RB_FIND(revoked_key_id_tree, &rc->revoked_key_ids, &rki);
+	if (erki != NULL) {
+		KRL_DBG(("%s: revoked by key ID", __func__));
+		return SSH_ERR_KEY_REVOKED;
+	}
+
+	/*
+	 * Legacy cert formats lack serial numbers. Zero serials numbers
+	 * are ignored (it's the default when the CA doesn't specify one).
+	 */
+	if (sshkey_cert_is_legacy(key) || key->cert->serial == 0)
+		return 0;
+
+	memset(&rs, 0, sizeof(rs));
+	rs.lo = rs.hi = key->cert->serial;
+	ers = RB_FIND(revoked_serial_tree, &rc->revoked_serials, &rs);
+	if (ers != NULL) {
+		KRL_DBG(("%s: revoked serial %llu matched %llu:%llu", __func__,
+		    key->cert->serial, ers->lo, ers->hi));
+		return SSH_ERR_KEY_REVOKED;
+	}
+	return 0;
+}
+
 /* Checks whether a given key/cert is revoked. Does not check its CA */
 static int
 is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 {
 	struct revoked_blob rb, *erb;
-	struct revoked_serial rs, *ers;
-	struct revoked_key_id rki, *erki;
 	struct revoked_certs *rc;
 	int r;
 
@@ -1190,37 +1231,22 @@ is_key_revoked(struct ssh_krl *krl, const struct sshkey *key)
 	if (!sshkey_is_cert(key))
 		return 0;
 
-	/* Check cert revocation */
+	/* Check cert revocation for the specified CA */
 	if ((r = revoked_certs_for_ca_key(krl, key->cert->signature_key,
 	    &rc, 0)) != 0)
 		return r;
-	if (rc == NULL)
-		return 0; /* No entry for this CA */
-
-	/* Check revocation by cert key ID */
-	memset(&rki, 0, sizeof(rki));
-	rki.key_id = key->cert->key_id;
-	erki = RB_FIND(revoked_key_id_tree, &rc->revoked_key_ids, &rki);
-	if (erki != NULL) {
-		KRL_DBG(("%s: revoked by key ID", __func__));
-		return SSH_ERR_KEY_REVOKED;
+	if (rc != NULL) {
+		if ((r = is_cert_revoked(key, rc)) != 0)
+			return r;
+	}
+	/* Check cert revocation for the wildcard CA */
+	if ((r = revoked_certs_for_ca_key(krl, NULL, &rc, 0)) != 0)
+		return r;
+	if (rc != NULL) {
+		if ((r = is_cert_revoked(key, rc)) != 0)
+			return r;
 	}
 
-	/*
-	 * Legacy cert formats lack serial numbers. Zero serials numbers
-	 * are ignored (it's the default when the CA doesn't specify one).
-	 */
-	if (sshkey_cert_is_legacy(key) || key->cert->serial == 0)
-		return 0;
-
-	memset(&rs, 0, sizeof(rs));
-	rs.lo = rs.hi = key->cert->serial;
-	ers = RB_FIND(revoked_serial_tree, &rc->revoked_serials, &rs);
-	if (ers != NULL) {
-		KRL_DBG(("%s: revoked serial %llu matched %llu:%llu", __func__,
-		    key->cert->serial, ers->lo, ers->hi));
-		return SSH_ERR_KEY_REVOKED;
-	}
 	KRL_DBG(("%s: %llu no match", __func__, key->cert->serial));
 	return 0;
 }
