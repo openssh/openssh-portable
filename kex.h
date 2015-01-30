@@ -34,6 +34,20 @@
 #include "leakmalloc.h"
 #endif
 
+#ifdef WITH_OPENSSL
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# else /* OPENSSL_HAS_ECC */
+#  define EC_KEY	void
+#  define EC_GROUP	void
+#  define EC_POINT	void
+# endif /* OPENSSL_HAS_ECC */
+#else /* WITH_OPENSSL */
+# define EC_KEY		void
+# define EC_GROUP	void
+# define EC_POINT	void
+#endif /* WITH_OPENSSL */
+
 #define KEX_COOKIE_LEN	16
 
 #define	KEX_DH1			"diffie-hellman-group1-sha1"
@@ -202,6 +216,12 @@ derive_ssh1_session_id(BIGNUM *, BIGNUM *, u_int8_t[8], u_int8_t[16]);
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void	dump_digest(char *, u_char *, int);
+#endif
+
+#if !defined(WITH_OPENSSL) || !defined(OPENSSL_HAS_ECC)
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
 #endif
 
 #endif

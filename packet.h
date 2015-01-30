@@ -22,8 +22,18 @@
 # include <openssl/bn.h>
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
-# endif
-#endif
+# else /* OPENSSL_HAS_ECC */
+#  define EC_KEY	void
+#  define EC_GROUP	void
+#  define EC_POINT	void
+# endif /* OPENSSL_HAS_ECC */
+#else /* WITH_OPENSSL */
+# define BIGNUM		void
+# define EC_KEY		void
+# define EC_GROUP	void
+# define EC_POINT	void
+#endif /* WITH_OPENSSL */
+
 #include <sys/signal.h>
 #include <sys/queue.h>
 
@@ -181,5 +191,16 @@ const u_char	*sshpkt_ptr(struct ssh *, size_t *lenp);
 /* OLD API */
 extern struct ssh *active_state;
 #include "opacket.h"
+
+#if !defined(WITH_OPENSSL)
+# undef BIGNUM
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
+#elif !defined(OPENSSL_HAS_ECC)
+# undef EC_KEY
+# undef EC_GROUP
+# undef EC_POINT
+#endif
 
 #endif				/* PACKET_H */

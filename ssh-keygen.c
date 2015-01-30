@@ -192,6 +192,7 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		exit(1);
 	}
 	if (*bitsp == 0) {
+#ifdef WITH_OPENSSL
 		if (type == KEY_DSA)
 			*bitsp = DEFAULT_BITS_DSA;
 		else if (type == KEY_ECDSA) {
@@ -200,8 +201,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 				*bitsp = sshkey_curve_nid_to_bits(nid);
 			if (*bitsp == 0)
 				*bitsp = DEFAULT_BITS_ECDSA;
-		}
-		else
+		} else
+#endif
 			*bitsp = DEFAULT_BITS;
 	}
 #ifdef WITH_OPENSSL
