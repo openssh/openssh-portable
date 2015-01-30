@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssherr.h,v 1.2 2015/01/28 21:15:47 djm Exp $	*/
+/*	$OpenBSD: ssherr.h,v 1.3 2015/01/30 01:13:33 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -75,6 +75,8 @@
 #define SSH_ERR_KEY_REVOKED			-51
 #define SSH_ERR_CONN_CLOSED			-52
 #define SSH_ERR_CONN_TIMEOUT			-53
+#define SSH_ERR_CONN_CORRUPT			-54
+#define SSH_ERR_PROTOCOL_ERROR			-55
 
 /* Translate a numeric error code to a human-readable error string */
 const char *ssh_err(int n);

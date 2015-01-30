@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.65 2015/01/28 21:15:47 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.66 2015/01/30 01:13:33 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -90,7 +90,7 @@ int	 ssh_packet_send2_wrapped(struct ssh *);
 int	 ssh_packet_send2(struct ssh *);
 
 int      ssh_packet_read(struct ssh *);
-void     ssh_packet_read_expect(struct ssh *, int type);
+int	 ssh_packet_read_expect(struct ssh *, u_int type);
 int      ssh_packet_read_poll(struct ssh *);
 int ssh_packet_read_poll1(struct ssh *, u_char *);
 int ssh_packet_read_poll2(struct ssh *, u_char *, u_int32_t *seqnr_p);
@@ -112,8 +112,8 @@ typedef void (ssh_packet_comp_free_func)(void *, void *);
 void	 ssh_packet_set_compress_hooks(struct ssh *, void *,
     ssh_packet_comp_alloc_func *, ssh_packet_comp_free_func *);
 
-void     ssh_packet_write_poll(struct ssh *);
-void     ssh_packet_write_wait(struct ssh *);
+int	 ssh_packet_write_poll(struct ssh *);
+int	 ssh_packet_write_wait(struct ssh *);
 int      ssh_packet_have_data_to_write(struct ssh *);
 int      ssh_packet_not_very_much_data_to_write(struct ssh *);
 
@@ -148,8 +148,10 @@ void	*ssh_packet_get_output(struct ssh *);
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);
 int	sshpkt_send(struct ssh *ssh);
-int     sshpkt_disconnect(struct ssh *, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+int     sshpkt_disconnect(struct ssh *, const char *fmt, ...)
+	    __attribute__((format(printf, 2, 3)));
 int	sshpkt_add_padding(struct ssh *, u_char);
+void	sshpkt_fatal(struct ssh *ssh, const char *tag, int r);
 
 int	sshpkt_put(struct ssh *ssh, const void *v, size_t len);
 int	sshpkt_putb(struct ssh *ssh, const struct sshbuf *b);

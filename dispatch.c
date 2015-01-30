@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.24 2015/01/28 22:05:31 djm Exp $ */
+/* $OpenBSD: dispatch.c,v 1.25 2015/01/30 01:13:33 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -49,9 +49,9 @@ dispatch_protocol_error(int type, u_int32_t seq, void *ctx)
 		fatal("protocol error");
 	if ((r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, seq)) != 0 ||
-	    (r = sshpkt_send(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
-	ssh_packet_write_wait(ssh);
+	    (r = sshpkt_send(ssh)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
+		sshpkt_fatal(ssh, __func__, r);
 	return 0;
 }
 

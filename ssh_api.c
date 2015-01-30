@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.2 2015/01/26 06:10:03 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.3 2015/01/30 01:13:33 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -85,7 +85,8 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 		called = 1;
 	}
 
-	ssh = ssh_packet_set_connection(NULL, -1, -1);
+	if ((ssh = ssh_packet_set_connection(NULL, -1, -1)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
 	if (is_server)
 		ssh_packet_set_server(ssh);
 

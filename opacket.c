@@ -223,6 +223,8 @@ void
 packet_set_connection(int fd_in, int fd_out)
 {
 	active_state = ssh_packet_set_connection(active_state, fd_in, fd_out);
+	if (active_state == NULL)
+		fatal("%s: ssh_packet_set_connection failed", __func__);
 }
 
 void
@@ -255,20 +257,8 @@ packet_read_seqnr(u_int32_t *seqnr)
 	u_char type;
 	int r;
 
-	if ((r = ssh_packet_read_seqnr(active_state, &type, seqnr)) != 0) {
-		switch (r) {
-		case SSH_ERR_CONN_CLOSED:
-			logit("Connection closed by %.200s",
-			    ssh_remote_ipaddr(active_state));
-			cleanup_exit(255);
-		case SSH_ERR_CONN_TIMEOUT:
-			logit("Connection to %.200s timed out while "
-			    "waiting to read", ssh_remote_ipaddr(active_state));
-			cleanup_exit(255);
-		default:
-			fatal("%s: %s", __func__, ssh_err(r));
-		}
-	}
+	if ((r = ssh_packet_read_seqnr(active_state, &type, seqnr)) != 0)
+		sshpkt_fatal(active_state, __func__, r);
 	return type;
 }
 
@@ -279,7 +269,7 @@ packet_read_poll_seqnr(u_int32_t *seqnr)
 	int r;
 
 	if ((r = ssh_packet_read_poll_seqnr(active_state, &type, seqnr)))
-		fatal("%s: %s", __func__, ssh_err(r));
+		sshpkt_fatal(active_state, __func__, r);
 	return type;
 }
 
@@ -296,5 +286,32 @@ packet_process_incoming(const char *buf, u_int len)
 	int r;
 
 	if ((r = ssh_packet_process_incoming(active_state, buf, len)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		sshpkt_fatal(active_state, __func__, r);
+}
+
+void
+packet_write_wait(void)
+{
+	int r;
+
+	if ((r = ssh_packet_write_wait(active_state)) != 0)
+		sshpkt_fatal(active_state, __func__, r);
+}
+
+void
+packet_write_poll(void)
+{
+	int r;
+
+	if ((r = ssh_packet_write_poll(active_state)) != 0)
+		sshpkt_fatal(active_state, __func__, r);
+}
+
+void
+packet_read_expect(int expected_type)
+{
+	int r;
+
+	if ((r = ssh_packet_read_expect(active_state, expected_type)) != 0)
+		sshpkt_fatal(active_state, __func__, r);
 }

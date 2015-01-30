@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssherr.c,v 1.2 2015/01/28 21:15:47 djm Exp $	*/
+/*	$OpenBSD: ssherr.c,v 1.3 2015/01/30 01:13:33 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -129,6 +129,10 @@ ssh_err(int n)
 		return "Connection closed";
 	case SSH_ERR_CONN_TIMEOUT:
 		return "Connection timed out";
+	case SSH_ERR_CONN_CORRUPT:
+		return "Connection corrupted";
+	case SSH_ERR_PROTOCOL_ERROR:
+		return "Protocol error";
 	default:
 		return "unknown error";
 	}

@@ -45,6 +45,9 @@ void     packet_set_connection(int, int);
 int	 packet_read_seqnr(u_int32_t *);
 int	 packet_read_poll_seqnr(u_int32_t *);
 void	 packet_process_incoming(const char *buf, u_int len);
+void	 packet_write_wait(void);
+void	 packet_write_poll(void);
+void	 packet_read_expect(int expected_type);
 #define packet_set_timeout(timeout, count) \
 	ssh_packet_set_timeout(active_state, (timeout), (count))
 #define packet_connection_is_on_socket() \
@@ -85,8 +88,6 @@ void	 packet_process_incoming(const char *buf, u_int len);
 	ssh_packet_send(active_state)
 #define packet_read() \
 	ssh_packet_read(active_state)
-#define packet_read_expect(expected_type) \
-	ssh_packet_read_expect(active_state, (expected_type))
 #define packet_get_int64() \
 	ssh_packet_get_int64(active_state)
 #define packet_get_bignum(value) \
@@ -105,10 +106,6 @@ void	 packet_process_incoming(const char *buf, u_int len);
 	ssh_packet_send_debug(active_state, (fmt), ##args)
 #define packet_disconnect(fmt, args...) \
 	ssh_packet_disconnect(active_state, (fmt), ##args)
-#define packet_write_poll() \
-	ssh_packet_write_poll(active_state)
-#define packet_write_wait() \
-	ssh_packet_write_wait(active_state)
 #define packet_have_data_to_write() \
 	ssh_packet_have_data_to_write(active_state)
 #define packet_not_very_much_data_to_write() \
