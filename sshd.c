@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.440 2015/01/26 06:10:03 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.441 2015/01/31 20:30:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -795,7 +795,7 @@ list_hostkey_types(void)
 	buffer_init(&b);
 	for (i = 0; i < options.num_host_key_files; i++) {
 		key = sensitive_data.host_keys[i];
-		if (key == NULL)
+		if (key == NULL && have_agent)
 			key = sensitive_data.host_pubkeys[i];
 		if (key == NULL)
 			continue;
@@ -1442,7 +1442,7 @@ main(int ac, char **av)
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
-	char *line, *logfile = NULL;
+	char *fp, *line, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
 	u_int n;
 	u_int64_t ibytes, obytes;
@@ -1764,10 +1764,11 @@ main(int ac, char **av)
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
 
-		if (key == NULL && pubkey != NULL && pubkey->type != KEY_RSA1 &&
-		    have_agent) {
-			debug("will rely on agent for hostkey %s",
-			    options.host_key_files[i]);
+		if (key == NULL && pubkey != NULL && pubkey->type != KEY_RSA1) {
+			if (have_agent) {
+				debug("will rely on agent for hostkey %s",
+				    options.host_key_files[i]);
+			}
 			keytype = pubkey->type;
 		} else if (key != NULL) {
 			keytype = key->type;
@@ -1788,11 +1789,17 @@ main(int ac, char **av)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
-			sensitive_data.have_ssh2_key = 1;
+			if (have_agent || key != NULL)
+				sensitive_data.have_ssh2_key = 1;
 			break;
 		}
-		debug("private host key: #%d type %d %s", i, keytype,
-		    key_type(key ? key : pubkey));
+		if ((fp = sshkey_fingerprint(pubkey, options.fingerprint_hash,
+		    SSH_FP_DEFAULT)) == NULL)
+			fatal("sshkey_fingerprint failed");
+		debug("%s host key #%d: %s %s",
+		    key ? "private" : "public", i, keytype == KEY_RSA1 ?
+		    sshkey_type(pubkey) : sshkey_ssh_name(pubkey), fp);
+		free(fp);
 	}
 	if ((options.protocol & SSH_PROTO_1) && !sensitive_data.have_ssh1_key) {
 		logit("Disabling protocol version 1. Could not load host key");
