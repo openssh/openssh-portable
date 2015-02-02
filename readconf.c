@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.230 2015/01/30 11:43:14 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.231 2015/02/02 07:41:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1855,7 +1855,7 @@ fill_default_options(Options * options)
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	if (options->update_hostkeys == -1)
-		options->update_hostkeys = 1;
+		options->update_hostkeys = 0;
 	if (options->hostbased_key_types == NULL)
 		options->hostbased_key_types = xstrdup("*");
 

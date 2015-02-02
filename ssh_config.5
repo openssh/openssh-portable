@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.202 2015/01/30 11:43:14 djm Exp $
-.Dd $Mdocdate: January 30 2015 $
+.\" $OpenBSD: ssh_config.5,v 1.203 2015/02/02 07:41:40 djm Exp $
+.Dd $Mdocdate: February 2 2015 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1511,9 +1511,9 @@ after authentication has completed and add them to
 .Cm UserKnownHostsFile .
 The argument must be
 .Dq yes
-(the default)
 or
-.Dq no .
+.Dq no
+(the default).
 Enabling this option allows learning alternate hostkeys for a server
 and supports graceful key rotation by allowing a server to send replacement
 public keys before old ones are removed.
