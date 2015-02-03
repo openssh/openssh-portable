@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.16 2015/02/02 22:48:53 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.17 2015/02/03 08:07:20 deraadt Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -368,7 +368,7 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin)
 	}
 	if (login_required && pin) {
 		rv = f->C_Login(session, CKU_USER,
-		    (u_char *)pin, strlen(pin))
+		    (u_char *)pin, strlen(pin));
 		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
 			error("C_Login failed: %lu", rv);
 			if ((rv = f->C_CloseSession(session)) != CKR_OK)
