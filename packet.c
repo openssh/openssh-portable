@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.206 2015/02/09 23:22:37 jsg Exp $ */
+/* $OpenBSD: packet.c,v 1.207 2015/02/11 01:20:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -290,11 +290,15 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	    (r = cipher_init(&state->receive_context, none,
 	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0) {
 		error("%s: cipher_init failed: %s", __func__, ssh_err(r));
-		free(ssh);
 		return NULL;
 	}
 	state->newkeys[MODE_IN] = state->newkeys[MODE_OUT] = NULL;
 	deattack_init(&state->deattack);
+	/*
+	 * Cache the IP address of the remote connection for use in error
+	 * messages that might be generated after the connection has closed.
+	 */
+	(void)ssh_remote_ipaddr(ssh);
 	return ssh;
 }
 
@@ -1274,10 +1278,8 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	 * Since we are blocking, ensure that all written packets have
 	 * been sent.
 	 */
-	if ((r = ssh_packet_write_wait(ssh)) != 0) {
-		free(setp);
+	if ((r = ssh_packet_write_wait(ssh)) != 0)
 		return r;
-	}
 
 	/* Stay in the loop until we have received a complete packet. */
 	for (;;) {
