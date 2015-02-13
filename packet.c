@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.207 2015/02/11 01:20:38 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.208 2015/02/13 18:57:00 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -185,7 +185,7 @@ struct session_state {
 	u_int32_t rekey_limit;
 
 	/* Time-based rekeying */
-	time_t rekey_interval;	/* how often in seconds */
+	u_int32_t rekey_interval;	/* how often in seconds */
 	time_t rekey_time;	/* time of last rekeying */
 
 	/* Session key for protocol v1 */
@@ -2225,11 +2225,6 @@ ssh_packet_set_rekey_limits(struct ssh *ssh, u_int32_t bytes, time_t seconds)
 	    (int)seconds);
 	ssh->state->rekey_limit = bytes;
 	ssh->state->rekey_interval = seconds;
-	/*
-	 * We set the time here so that in post-auth privsep slave we count
-	 * from the completion of the authentication.
-	 */
-	ssh->state->rekey_time = monotime();
 }
 
 time_t
@@ -2437,6 +2432,8 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 		if ((r = kex_to_blob(m, ssh->kex)) != 0 ||
 		    (r = newkeys_to_blob(m, ssh, MODE_OUT)) != 0 ||
 		    (r = newkeys_to_blob(m, ssh, MODE_IN)) != 0 ||
+		    (r = sshbuf_put_u32(m, state->rekey_limit)) != 0 ||
+		    (r = sshbuf_put_u32(m, state->rekey_interval)) != 0 ||
 		    (r = sshbuf_put_u32(m, state->p_send.seqnr)) != 0 ||
 		    (r = sshbuf_put_u64(m, state->p_send.blocks)) != 0 ||
 		    (r = sshbuf_put_u32(m, state->p_send.packets)) != 0 ||
@@ -2624,6 +2621,8 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 		if ((r = kex_from_blob(m, &ssh->kex)) != 0 ||
 		    (r = newkeys_from_blob(m, ssh, MODE_OUT)) != 0 ||
 		    (r = newkeys_from_blob(m, ssh, MODE_IN)) != 0 ||
+		    (r = sshbuf_get_u32(m, &state->rekey_limit)) != 0 ||
+		    (r = sshbuf_get_u32(m, &state->rekey_interval)) != 0 ||
 		    (r = sshbuf_get_u32(m, &state->p_send.seqnr)) != 0 ||
 		    (r = sshbuf_get_u64(m, &state->p_send.blocks)) != 0 ||
 		    (r = sshbuf_get_u32(m, &state->p_send.packets)) != 0 ||
@@ -2633,6 +2632,11 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 		    (r = sshbuf_get_u32(m, &state->p_read.packets)) != 0 ||
 		    (r = sshbuf_get_u64(m, &state->p_read.bytes)) != 0)
 			return r;
+		/*
+		 * We set the time here so that in post-auth privsep slave we
+		 * count from the completion of the authentication.
+		 */
+		state->rekey_time = monotime();
 		/* XXX ssh_set_newkeys overrides p_read.packets? XXX */
 		if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0 ||
 		    (r = ssh_set_newkeys(ssh, MODE_OUT)) != 0)
