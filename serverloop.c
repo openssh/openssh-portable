@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.176 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: serverloop.c,v 1.177 2015/02/16 22:13:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -79,6 +79,7 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "roaming.h"
+#include "ssherr.h"
 
 extern ServerOptions options;
 
@@ -1150,11 +1151,82 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 }
 
 static int
+server_input_hostkeys_prove(struct sshbuf **respp)
+{
+	struct ssh *ssh = active_state; /* XXX */
+	struct sshbuf *resp = NULL;
+	struct sshbuf *sigbuf = NULL;
+	struct sshkey *key = NULL, *key_pub = NULL, *key_prv = NULL;
+	int r, ndx, success = 0;
+	const u_char *blob;
+	u_char *sig = 0;
+	size_t blen, slen;
+
+	if ((resp = sshbuf_new()) == NULL || (sigbuf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new", __func__);
+
+	while (ssh_packet_remaining(ssh) > 0) {
+		sshkey_free(key);
+		key = NULL;
+		if ((r = sshpkt_get_string_direct(ssh, &blob, &blen)) != 0 ||
+		    (r = sshkey_from_blob(blob, blen, &key)) != 0) {
+			error("%s: couldn't parse key: %s",
+			    __func__, ssh_err(r));
+			goto out;
+		}
+		/*
+		 * Better check that this is actually one of our hostkeys
+		 * before attempting to sign anything with it.
+		 */
+		if ((ndx = ssh->kex->host_key_index(key, 1, ssh)) == -1) {
+			error("%s: unknown host %s key",
+			    __func__, sshkey_type(key));
+			goto out;
+		}
+		/*
+		 * XXX refactor: make kex->sign just use an index rather
+		 * than passing in public and private keys
+		 */
+		if ((key_prv = get_hostkey_by_index(ndx)) == NULL &&
+		    (key_pub = get_hostkey_public_by_index(ndx, ssh)) == NULL) {
+			error("%s: can't retrieve hostkey %d", __func__, ndx);
+			goto out;
+		}
+		sshbuf_reset(sigbuf);
+		free(sig);
+		sig = NULL;
+		if ((r = sshbuf_put_string(sigbuf,
+		    ssh->kex->session_id, ssh->kex->session_id_len)) != 0 ||
+		    (r = sshbuf_put_cstring(sigbuf,
+		    "hostkeys-prove@openssh.com")) != 0 ||
+		    (r = sshkey_puts(key, sigbuf)) != 0 ||
+		    (r = ssh->kex->sign(key_prv, key_pub, &sig, &slen,
+		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), 0)) != 0 ||
+		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
+			error("%s: couldn't prepare signature: %s",
+			    __func__, ssh_err(r));
+			goto out;
+		}
+	}
+	/* Success */
+	*respp = resp;
+	resp = NULL; /* don't free it */
+	success = 1;
+ out:
+	free(sig);
+	sshbuf_free(resp);
+	sshbuf_free(sigbuf);
+	sshkey_free(key);
+	return success;
+}
+
+static int
 server_input_global_request(int type, u_int32_t seq, void *ctxt)
 {
 	char *rtype;
 	int want_reply;
-	int success = 0, allocated_listen_port = 0;
+	int r, success = 0, allocated_listen_port = 0;
+	struct sshbuf *resp = NULL;
 
 	rtype = packet_get_string(NULL);
 	want_reply = packet_get_char();
@@ -1191,6 +1263,10 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 			    &allocated_listen_port, &options.fwd_opts);
 		}
 		free(fwd.listen_host);
+		if ((resp = sshbuf_new()) == NULL)
+			fatal("%s: sshbuf_new", __func__);
+		if ((r = sshbuf_put_u32(resp, allocated_listen_port)) != 0)
+			fatal("%s: sshbuf_put_u32: %s", __func__, ssh_err(r));
 	} else if (strcmp(rtype, "cancel-tcpip-forward") == 0) {
 		struct Forward fwd;
 
@@ -1234,16 +1310,20 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 	} else if (strcmp(rtype, "no-more-sessions@openssh.com") == 0) {
 		no_more_sessions = 1;
 		success = 1;
+	} else if (strcmp(rtype, "hostkeys-prove@openssh.com") == 0) {
+		success = server_input_hostkeys_prove(&resp);
 	}
 	if (want_reply) {
 		packet_start(success ?
 		    SSH2_MSG_REQUEST_SUCCESS : SSH2_MSG_REQUEST_FAILURE);
-		if (success && allocated_listen_port > 0)
-			packet_put_int(allocated_listen_port);
+		if (success && resp != NULL)
+			ssh_packet_put_raw(active_state, sshbuf_ptr(resp),
+			    sshbuf_len(resp));
 		packet_send();
 		packet_write_wait();
 	}
 	free(rtype);
+	sshbuf_free(resp);
 	return 0;
 }
 

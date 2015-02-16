@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.203 2015/02/02 07:41:40 djm Exp $
-.Dd $Mdocdate: February 2 2015 $
+.\" $OpenBSD: ssh_config.5,v 1.204 2015/02/16 22:13:32 djm Exp $
+.Dd $Mdocdate: February 16 2015 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1510,15 +1510,20 @@ should accept notifications of additional hostkeys from the server sent
 after authentication has completed and add them to
 .Cm UserKnownHostsFile .
 The argument must be
-.Dq yes
-or
+.Dq yes ,
 .Dq no
-(the default).
+(the default) or
+.Dq ask .
 Enabling this option allows learning alternate hostkeys for a server
 and supports graceful key rotation by allowing a server to send replacement
 public keys before old ones are removed.
 Additional hostkeys are only accepted if the key used to authenticate the
 host was already trusted or explicity accepted by the user.
+If
+.Cm UpdateHostKeys
+is set to
+.Dq ask ,
+then the user is asked to confirm the modifications to the known_hosts file.
 .Pp
 Presently, only
 .Xr sshd 8

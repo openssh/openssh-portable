@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.268 2015/02/16 22:08:57 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.269 2015/02/16 22:13:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2089,6 +2089,216 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	return 0;
 }
 
+struct hostkeys_update_ctx {
+	/* The hostname and (optionally) IP address string for the server */
+	char *host_str, *ip_str;
+
+	/*
+	 * Keys received from the server and a flag for each indicating
+	 * whether they already exist in known_hosts.
+	 * keys_seen is filled in by hostkeys_find() and later (for new
+	 * keys) by client_global_hostkeys_private_confirm().
+	 */
+	struct sshkey **keys;
+	int *keys_seen;
+	size_t nkeys;
+
+	size_t nnew;
+
+	/*
+	 * Keys that are in known_hosts, but were not present in the update
+	 * from the server (i.e. scheduled to be deleted).
+	 * Filled in by hostkeys_find().
+	 */
+	struct sshkey **old_keys;
+	size_t nold;
+};
+
+static void
+hostkeys_update_ctx_free(struct hostkeys_update_ctx *ctx)
+{
+	size_t i;
+
+	if (ctx == NULL)
+		return;
+	for (i = 0; i < ctx->nkeys; i++)
+		sshkey_free(ctx->keys[i]);
+	free(ctx->keys);
+	free(ctx->keys_seen);
+	for (i = 0; i < ctx->nold; i++)
+		sshkey_free(ctx->old_keys[i]);
+	free(ctx->old_keys);
+	free(ctx->host_str);
+	free(ctx->ip_str);
+	free(ctx);
+}
+
+static int
+hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
+{
+	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
+	size_t i;
+	struct sshkey **tmp;
+
+	if (l->status != HKF_STATUS_MATCHED || l->key == NULL ||
+	    l->key->type == KEY_RSA1)
+		return 0;
+
+	/* Mark off keys we've already seen for this host */
+	for (i = 0; i < ctx->nkeys; i++) {
+		if (sshkey_equal(l->key, ctx->keys[i])) {
+			debug3("%s: found %s key at %s:%ld", __func__,
+			    sshkey_ssh_name(ctx->keys[i]), l->path, l->linenum);
+			ctx->keys_seen[i] = 1;
+			return 0;
+		}
+	}
+	/* This line contained a key that not offered by the server */
+	debug3("%s: deprecated %s key at %s:%ld", __func__,
+	    sshkey_ssh_name(l->key), l->path, l->linenum);
+	if ((tmp = reallocarray(ctx->old_keys, ctx->nold + 1,
+	    sizeof(*ctx->old_keys))) == NULL)
+		fatal("%s: reallocarray failed nold = %zu",
+		    __func__, ctx->nold);
+	ctx->old_keys = tmp;
+	ctx->old_keys[ctx->nold++] = l->key;
+	l->key = NULL;
+
+	return 0;
+}
+
+static void
+update_known_hosts(struct hostkeys_update_ctx *ctx)
+{
+	int r, loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
+	    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE;
+	char *fp, *response;
+	size_t i;
+
+	for (i = 0; i < ctx->nkeys; i++) {
+		if (ctx->keys_seen[i] != 2)
+			continue;
+		if ((fp = sshkey_fingerprint(ctx->keys[i],
+		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal("%s: sshkey_fingerprint failed", __func__);
+		do_log2(loglevel, "Learned new hostkey: %s %s",
+		    sshkey_type(ctx->keys[i]), fp);
+		free(fp);
+	}
+	for (i = 0; i < ctx->nold; i++) {
+		if ((fp = sshkey_fingerprint(ctx->old_keys[i],
+		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal("%s: sshkey_fingerprint failed", __func__);
+		do_log2(loglevel, "Deprecating obsolete hostkey: %s %s",
+		    sshkey_type(ctx->old_keys[i]), fp);
+		free(fp);
+	}
+	if (options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK) {
+		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+		response = NULL;
+		for (i = 0; !quit_pending && i < 3; i++) {
+			free(response);
+			response = read_passphrase("Accept updated hostkeys? "
+			    "(yes/no): ", RP_ECHO);
+			if (strcasecmp(response, "yes") == 0)
+				break;
+			else if (quit_pending || response == NULL ||
+			    strcasecmp(response, "no") == 0) {
+				options.update_hostkeys = 0;
+				break;
+			} else {
+				do_log2(loglevel, "Please enter "
+				    "\"yes\" or \"no\"");
+			}
+		}
+		if (quit_pending || i >= 3 || response == NULL)
+			options.update_hostkeys = 0;
+		free(response);
+		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+	}
+
+	/*
+	 * Now that all the keys are verified, we can go ahead and replace
+	 * them in known_hosts (assuming SSH_UPDATE_HOSTKEYS_ASK didn't
+	 * cancel the operation).
+	 */
+	if (options.update_hostkeys != 0 &&
+	    (r = hostfile_replace_entries(options.user_hostfiles[0],
+	    ctx->host_str, ctx->ip_str, ctx->keys, ctx->nkeys,
+	    options.hash_known_hosts, 0,
+	    options.fingerprint_hash)) != 0)
+		error("%s: hostfile_replace_entries failed: %s",
+		    __func__, ssh_err(r));
+}
+
+static void
+client_global_hostkeys_private_confirm(int type, u_int32_t seq, void *_ctx)
+{
+	struct ssh *ssh = active_state; /* XXX */
+	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
+	size_t i, ndone;
+	struct sshbuf *signdata;
+	int r;
+	const u_char *sig;
+	size_t siglen;
+
+	if (ctx->nnew == 0)
+		fatal("%s: ctx->nnew == 0", __func__); /* sanity */
+	if (type != SSH2_MSG_REQUEST_SUCCESS) {
+		error("Server failed to confirm ownership of "
+		    "private host keys");
+		hostkeys_update_ctx_free(ctx);
+		return;
+	}
+	if ((signdata = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	/* Don't want to accidentally accept an unbound signature */
+	if (ssh->kex->session_id_len == 0)
+		fatal("%s: ssh->kex->session_id_len == 0", __func__);
+	/*
+	 * Expect a signature for each of the ctx->nnew private keys we
+	 * haven't seen before. They will be in the same order as the
+	 * ctx->keys where the corresponding ctx->keys_seen[i] == 0.
+	 */
+	for (ndone = i = 0; i < ctx->nkeys; i++) {
+		if (ctx->keys_seen[i])
+			continue;
+		/* Prepare data to be signed: session ID, unique string, key */
+		sshbuf_reset(signdata);
+		if ((r = sshbuf_put_string(signdata, ssh->kex->session_id,
+		    ssh->kex->session_id_len)) != 0 ||
+		    (r = sshbuf_put_cstring(signdata,
+		    "hostkeys-prove@openssh.com")) != 0 ||
+		    (r = sshkey_puts(ctx->keys[i], signdata)) != 0)
+			fatal("%s: failed to prepare signature: %s",
+			    __func__, ssh_err(r));
+		/* Extract and verify signature */
+		if ((r = sshpkt_get_string_direct(ssh, &sig, &siglen)) != 0) {
+			error("%s: couldn't parse message: %s",
+			    __func__, ssh_err(r));
+			goto out;
+		}
+		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
+		    sshbuf_ptr(signdata), sshbuf_len(signdata), 0)) != 0) {
+			error("%s: server gave bad signature for %s key %zu",
+			    __func__, sshkey_type(ctx->keys[i]), i);
+			goto out;
+		}
+		/* Key is good. Mark it as 'seen' */
+		ctx->keys_seen[i] = 2;
+		ndone++;
+	}
+	if (ndone != ctx->nnew)
+		fatal("%s: ndone != ctx->nnew (%zu / %zu)", __func__,
+		    ndone, ctx->nnew);  /* Shouldn't happen */
+	ssh_packet_check_eom(ssh);
+
+	/* Make the edits to known_hosts */
+	update_known_hosts(ctx);
+ out:
+	hostkeys_update_ctx_free(ctx);
+}
+
 /*
  * Handle hostkeys@openssh.com global request to inform the client of all
  * the server's hostkeys. The keys are checked against the user's
@@ -2097,34 +2307,35 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 static int
 client_input_hostkeys(void)
 {
+	struct ssh *ssh = active_state; /* XXX */
 	const u_char *blob = NULL;
-	u_int i, len = 0, nkeys = 0;
+	size_t i, len = 0;
 	struct sshbuf *buf = NULL;
-	struct sshkey *key = NULL, **tmp, **keys = NULL;
-	int r, success = 1;
-	char *fp, *host_str = NULL, *ip_str = NULL;
+	struct sshkey *key = NULL, **tmp;
+	int r;
+	char *fp;
 	static int hostkeys_seen = 0; /* XXX use struct ssh */
 	extern struct sockaddr_storage hostaddr; /* XXX from ssh.c */
+	struct hostkeys_update_ctx *ctx;
 
-	/*
-	 * NB. Return success for all cases other than protocol error. The
-	 * server doesn't need to know what the client does with its hosts
-	 * file.
-	 */
-
-	blob = packet_get_string_ptr(&len);
-	packet_check_eom();
+	ctx = xcalloc(1, sizeof(*ctx));
 
 	if (hostkeys_seen)
 		fatal("%s: server already sent hostkeys", __func__);
+	if (options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK &&
+	    options.batch_mode)
+		return 1; /* won't ask in batchmode, so don't even try */
 	if (!options.update_hostkeys || options.num_user_hostfiles <= 0)
 		return 1;
-	if ((buf = sshbuf_from(blob, len)) == NULL)
-		fatal("%s: sshbuf_from failed", __func__);
-	while (sshbuf_len(buf) > 0) {
+	while (ssh_packet_remaining(ssh) > 0) {
 		sshkey_free(key);
 		key = NULL;
-		if ((r = sshkey_froms(buf, &key)) != 0)
+		if ((r = sshpkt_get_string_direct(ssh, &blob, &len)) != 0) {
+			error("%s: couldn't parse message: %s",
+			    __func__, ssh_err(r));
+			goto out;
+		}
+		if ((r = sshkey_from_blob(blob, len, &key)) != 0)
 			fatal("%s: parse key: %s", __func__, ssh_err(r));
 		fp = sshkey_fingerprint(key, options.fingerprint_hash,
 		    SSH_FP_DEFAULT);
@@ -2140,47 +2351,107 @@ client_input_hostkeys(void)
 			    __func__, sshkey_ssh_name(key));
 			continue;
 		}
-		if ((tmp = reallocarray(keys, nkeys + 1,
-		    sizeof(*keys))) == NULL)
-			fatal("%s: reallocarray failed nkeys = %u",
-			    __func__, nkeys);
-		keys = tmp;
-		keys[nkeys++] = key;
+		/* Skip certs */
+		if (sshkey_is_cert(key)) {
+			debug3("%s: %s key is a certificate; skipping",
+			    __func__, sshkey_ssh_name(key));
+			continue;
+		}
+		/* Ensure keys are unique */
+		for (i = 0; i < ctx->nkeys; i++) {
+			if (sshkey_equal(key, ctx->keys[i])) {
+				error("%s: received duplicated %s host key",
+				    __func__, sshkey_ssh_name(key));
+				goto out;
+			}
+		}
+		/* Key is good, record it */
+		if ((tmp = reallocarray(ctx->keys, ctx->nkeys + 1,
+		    sizeof(*ctx->keys))) == NULL)
+			fatal("%s: reallocarray failed nkeys = %zu",
+			    __func__, ctx->nkeys);
+		ctx->keys = tmp;
+		ctx->keys[ctx->nkeys++] = key;
 		key = NULL;
 	}
 
-	if (nkeys == 0) {
+	if (ctx->nkeys == 0) {
 		error("%s: server sent no hostkeys", __func__);
 		goto out;
 	}
+	if ((ctx->keys_seen = calloc(ctx->nkeys,
+	    sizeof(*ctx->keys_seen))) == NULL)
+		fatal("%s: calloc failed", __func__);
 
 	get_hostfile_hostname_ipaddr(host,
 	    options.check_host_ip ? (struct sockaddr *)&hostaddr : NULL,
-	    options.port, &host_str, options.check_host_ip ? &ip_str : NULL);
+	    options.port, &ctx->host_str,
+	    options.check_host_ip ? &ctx->ip_str : NULL);
 
-	debug3("%s: update known hosts for %s%s%s with %u keys from server",
-	    __func__, host_str,
-	    options.check_host_ip ? " " : "",
-	    options.check_host_ip ? ip_str : "", nkeys);
-
-	if ((r = hostfile_replace_entries(options.user_hostfiles[0],
-	    host_str, options.check_host_ip ? ip_str : NULL,
-	    keys, nkeys, options.hash_known_hosts, 0,
-	    options.fingerprint_hash)) != 0) {
-		error("%s: hostfile_replace_entries failed: %s",
-		    __func__, ssh_err(r));
+	/* Find which keys we already know about. */
+	if ((r = hostkeys_foreach(options.user_hostfiles[0], hostkeys_find,
+	    ctx, ctx->host_str, ctx->ip_str,
+	    HKF_WANT_PARSE_KEY|HKF_WANT_MATCH)) != 0) {
+		error("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
 		goto out;
+	}
+
+	/* Figure out if we have any new keys to add */
+	ctx->nnew = 0;
+	for (i = 0; i < ctx->nkeys; i++) {
+		if (!ctx->keys_seen[i])
+			ctx->nnew++;
+	}
+
+	debug3("%s: %zu keys from server: %zu new, %zu retained. %zu to remove",
+	    __func__, ctx->nkeys, ctx->nnew, ctx->nkeys - ctx->nnew, ctx->nold);
+
+	if (ctx->nnew == 0 && ctx->nold != 0) {
+		/* We have some keys to remove. Just do it. */
+		update_known_hosts(ctx);
+	} else if (ctx->nnew != 0) {
+		/*
+		 * We have received hitherto-unseen keys from the server.
+		 * Ask the server to confirm ownership of the private halves.
+		 */
+		debug3("%s: asking server to prove ownership for %zu keys",
+		    __func__, ctx->nnew);
+		if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
+		    (r = sshpkt_put_cstring(ssh,
+		    "hostkeys-prove@openssh.com")) != 0 ||
+		    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: want reply */
+			fatal("%s: cannot prepare packet: %s",
+			    __func__, ssh_err(r));
+		if ((buf = sshbuf_new()) == NULL)
+			fatal("%s: sshbuf_new", __func__);
+		for (i = 0; i < ctx->nkeys; i++) {
+			if (ctx->keys_seen[i])
+				continue;
+			sshbuf_reset(buf);
+			if ((r = sshkey_putb(ctx->keys[i], buf)) != 0)
+				fatal("%s: sshkey_putb: %s",
+				    __func__, ssh_err(r));
+			if ((r = sshpkt_put_stringb(ssh, buf)) != 0)
+				fatal("%s: sshpkt_put_string: %s",
+				    __func__, ssh_err(r));
+		}
+		if ((r = sshpkt_send(ssh)) != 0)
+			fatal("%s: sshpkt_send: %s", __func__, ssh_err(r));
+		client_register_global_confirm(
+		    client_global_hostkeys_private_confirm, ctx);
+		ctx = NULL;  /* will be freed in callback */
 	}
 
 	/* Success */
  out:
-	free(host_str);
-	free(ip_str);
+	hostkeys_update_ctx_free(ctx);
 	sshkey_free(key);
-	for (i = 0; i < nkeys; i++)
-		sshkey_free(keys[i]);
 	sshbuf_free(buf);
-	return success;
+	/*
+	 * NB. Return success for all cases. The server doesn't need to know
+	 * what the client does with its hosts file.
+	 */
+	return 1;
 }
 
 static int

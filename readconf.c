@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.231 2015/02/02 07:41:40 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.232 2015/02/16 22:13:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1480,7 +1480,8 @@ parse_int:
 
 	case oUpdateHostkeys:
 		intptr = &options->update_hostkeys;
-		goto parse_flag;
+		multistate_ptr = multistate_yesnoask;
+		goto parse_multistate;
 
 	case oHostbasedKeyTypes:
 		charptr = &options->hostbased_key_types;
@@ -2107,6 +2108,7 @@ fmt_intarg(OpCodes code, int val)
 		return fmt_multistate_int(val, multistate_addressfamily);
 	case oVerifyHostKeyDNS:
 	case oStrictHostKeyChecking:
+	case oUpdateHostkeys:
 		return fmt_multistate_int(val, multistate_yesnoask);
 	case oControlMaster:
 		return fmt_multistate_int(val, multistate_controlmaster);

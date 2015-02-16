@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.108 2015/01/30 11:43:14 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.109 2015/02/16 22:13:32 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -148,7 +148,7 @@ typedef struct {
 
 	int	 fingerprint_hash;
 
-	int	 update_hostkeys;
+	int	 update_hostkeys; /* one of SSH_UPDATE_HOSTKEYS_* */
 
 	char	*hostbased_key_types;
 
@@ -173,6 +173,10 @@ typedef struct {
 #define SSHCONF_CHECKPERM	1  /* check permissions on config file */
 #define SSHCONF_USERCONF	2  /* user provided config file not system */
 #define SSHCONF_POSTCANON	4  /* After hostname canonicalisation */
+
+#define SSH_UPDATE_HOSTKEYS_NO	0
+#define SSH_UPDATE_HOSTKEYS_YES	1
+#define SSH_UPDATE_HOSTKEYS_ASK	2
 
 void     initialize_options(Options *);
 void     fill_default_options(Options *);

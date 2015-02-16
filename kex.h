@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.70 2015/01/26 06:10:03 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.71 2015/02/16 22:13:32 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -130,9 +130,9 @@ struct kex {
 	int	(*verify_host_key)(struct sshkey *, struct ssh *);
 	struct sshkey *(*load_host_public_key)(int, int, struct ssh *);
 	struct sshkey *(*load_host_private_key)(int, int, struct ssh *);
-	int	(*host_key_index)(struct sshkey *, struct ssh *);
+	int	(*host_key_index)(struct sshkey *, int, struct ssh *);
 	int	(*sign)(struct sshkey *, struct sshkey *,
-	    u_char **, size_t *, u_char *, size_t, u_int);
+	    u_char **, size_t *, const u_char *, size_t, u_int);
 	int	(*kex[KEX_MAX])(struct ssh *);
 	/* kex specific state */
 	DH	*dh;			/* DH */
