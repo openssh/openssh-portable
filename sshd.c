@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.442 2015/02/16 22:13:32 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.443 2015/02/16 22:30:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -795,7 +795,7 @@ list_hostkey_types(void)
 	buffer_init(&b);
 	for (i = 0; i < options.num_host_key_files; i++) {
 		key = sensitive_data.host_keys[i];
-		if (key == NULL && have_agent)
+		if (key == NULL)
 			key = sensitive_data.host_pubkeys[i];
 		if (key == NULL)
 			continue;
@@ -1775,11 +1775,10 @@ main(int ac, char **av)
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
 
-		if (key == NULL && pubkey != NULL && pubkey->type != KEY_RSA1) {
-			if (have_agent) {
-				debug("will rely on agent for hostkey %s",
-				    options.host_key_files[i]);
-			}
+		if (key == NULL && pubkey != NULL && pubkey->type != KEY_RSA1 &&
+		    have_agent) {
+			debug("will rely on agent for hostkey %s",
+			    options.host_key_files[i]);
 			keytype = pubkey->type;
 		} else if (key != NULL) {
 			keytype = key->type;
@@ -1808,7 +1807,7 @@ main(int ac, char **av)
 		    SSH_FP_DEFAULT)) == NULL)
 			fatal("sshkey_fingerprint failed");
 		debug("%s host key #%d: %s %s",
-		    key ? "private" : "public", i, keytype == KEY_RSA1 ?
+		    key ? "private" : "agent", i, keytype == KEY_RSA1 ?
 		    sshkey_type(pubkey) : sshkey_ssh_name(pubkey), fp);
 		free(fp);
 	}
