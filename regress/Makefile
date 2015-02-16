@@ -205,7 +205,9 @@ unit:
 	set -e ; if test -z "${SKIP_UNIT}" ; then \
 		${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
 		${.OBJDIR}/unittests/sshkey/test_sshkey \
-			-d  ${.CURDIR}//unittests/sshkey/testdata ; \
+			-d ${.CURDIR}/unittests/sshkey/testdata ; \
 		${.OBJDIR}/unittests/bitmap/test_bitmap ; \
 		${.OBJDIR}/unittests/kex/test_kex ; \
+		${.OBJDIR}/unittests/hostkeys/test_hostkeys \
+			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
 	fi

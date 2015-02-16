@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 #include "sshkey.h"
 #include "authfile.h"
