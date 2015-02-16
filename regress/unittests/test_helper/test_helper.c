@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.4 2015/01/15 07:36:28 djm Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.5 2015/02/16 22:20:50 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -319,8 +319,13 @@ void
 assert_string(const char *file, int line, const char *a1, const char *a2,
     const char *aa1, const char *aa2, enum test_predicate pred)
 {
-	int r = strcmp(aa1, aa2);
+	int r;
 
+	/* Verify pointers are not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+	assert_ptr(file, line, a2, "NULL", aa2, NULL, TEST_NE);
+
+	r = strcmp(aa1, aa2);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, a2, "STRING", pred);
 	fprintf(stderr, "%12s = %s (len %zu)\n", a1, aa1, strlen(aa1));
@@ -349,8 +354,15 @@ void
 assert_mem(const char *file, int line, const char *a1, const char *a2,
     const void *aa1, const void *aa2, size_t l, enum test_predicate pred)
 {
-	int r = memcmp(aa1, aa2, l);
+	int r;
 
+	if (l == 0)
+		return;
+	/* If length is >0, then verify pointers are not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+	assert_ptr(file, line, a2, "NULL", aa2, NULL, TEST_NE);
+
+	r = memcmp(aa1, aa2, l);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, a2, "STRING", pred);
 	fprintf(stderr, "%12s = %s (len %zu)\n", a1, tohex(aa1, MIN(l, 256)), l);
@@ -377,11 +389,15 @@ assert_mem_filled(const char *file, int line, const char *a1,
     const void *aa1, u_char v, size_t l, enum test_predicate pred)
 {
 	size_t where = -1;
-	int r = memvalcmp(aa1, v, l, &where);
+	int r;
 	char tmp[64];
 
 	if (l == 0)
 		return;
+	/* If length is >0, then verify the pointer is not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+
+	r = memvalcmp(aa1, v, l, &where);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, NULL, "MEM_ZERO", pred);
 	fprintf(stderr, "%20s = %s%s (len %zu)\n", a1,
