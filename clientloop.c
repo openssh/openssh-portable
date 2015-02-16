@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.267 2015/01/26 03:04:45 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.268 2015/02/16 22:08:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2102,8 +2102,9 @@ client_input_hostkeys(void)
 	struct sshbuf *buf = NULL;
 	struct sshkey *key = NULL, **tmp, **keys = NULL;
 	int r, success = 1;
-	char *fp, *host_str = NULL;
+	char *fp, *host_str = NULL, *ip_str = NULL;
 	static int hostkeys_seen = 0; /* XXX use struct ssh */
+	extern struct sockaddr_storage hostaddr; /* XXX from ssh.c */
 
 	/*
 	 * NB. Return success for all cases other than protocol error. The
@@ -2148,16 +2149,24 @@ client_input_hostkeys(void)
 		key = NULL;
 	}
 
-	debug3("%s: received %u keys from server", __func__, nkeys);
 	if (nkeys == 0) {
 		error("%s: server sent no hostkeys", __func__);
 		goto out;
 	}
 
-	get_hostfile_hostname_ipaddr(host, NULL, options.port, &host_str, NULL);
+	get_hostfile_hostname_ipaddr(host,
+	    options.check_host_ip ? (struct sockaddr *)&hostaddr : NULL,
+	    options.port, &host_str, options.check_host_ip ? &ip_str : NULL);
 
-	if ((r = hostfile_replace_entries(options.user_hostfiles[0], host_str,
-	    keys, nkeys, options.hash_known_hosts, 1)) != 0) {
+	debug3("%s: update known hosts for %s%s%s with %u keys from server",
+	    __func__, host_str,
+	    options.check_host_ip ? " " : "",
+	    options.check_host_ip ? ip_str : "", nkeys);
+
+	if ((r = hostfile_replace_entries(options.user_hostfiles[0],
+	    host_str, options.check_host_ip ? ip_str : NULL,
+	    keys, nkeys, options.hash_known_hosts, 0,
+	    options.fingerprint_hash)) != 0) {
 		error("%s: hostfile_replace_entries failed: %s",
 		    __func__, ssh_err(r));
 		goto out;
@@ -2166,6 +2175,7 @@ client_input_hostkeys(void)
 	/* Success */
  out:
 	free(host_str);
+	free(ip_str);
 	sshkey_free(key);
 	for (i = 0; i < nkeys; i++)
 		sshkey_free(keys[i]);

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.261 2015/01/30 01:10:33 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.262 2015/02/16 22:08:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1052,40 +1052,47 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	char *hashed, *cp, *hosts, *ohosts;
 	int has_wild = l->hosts && strcspn(l->hosts, "*?!") != strlen(l->hosts);
 
-	/* Retain invalid lines when hashing, but mark file as invalid. */
-	if (l->status == HKF_STATUS_INVALID) {
+	switch (l->status) {
+	case HKF_STATUS_OK:
+	case HKF_STATUS_MATCHED:
+		/*
+		 * Don't hash hosts already already hashed, with wildcard
+		 * characters or a CA/revocation marker.
+		 */
+		if ((l->match & HKF_MATCH_HOST_HASHED) != 0 ||
+		    has_wild || l->marker != MRK_NONE) {
+			fprintf(ctx->out, "%s\n", l->line);
+			if (has_wild && !find_host) {
+				fprintf(stderr, "%s:%ld: ignoring host name "
+				    "with wildcard: %.64s\n", l->path,
+				    l->linenum, l->hosts);
+			}
+			return 0;
+		}
+		/*
+		 * Split any comma-separated hostnames from the host list,
+		 * hash and store separately.
+		 */
+		ohosts = hosts = xstrdup(l->hosts);
+		while ((cp = strsep(&hosts, ",")) != NULL && *cp != '\0') {
+			if ((hashed = host_hash(cp, NULL, 0)) == NULL)
+				fatal("hash_host failed");
+			fprintf(ctx->out, "%s %s\n", hashed, l->rawkey);
+			ctx->has_unhashed = 1;
+		}
+		free(ohosts);
+		return 0;
+	case HKF_STATUS_INVALID:
+		/* Retain invalid lines, but mark file as invalid. */
 		ctx->invalid = 1;
 		fprintf(stderr, "%s:%ld: invalid line\n", l->path, l->linenum);
+		/* FALLTHROUGH */
+	default:
 		fprintf(ctx->out, "%s\n", l->line);
 		return 0;
 	}
-
-	/*
-	 * Don't hash hosts already already hashed, with wildcard characters
-	 * or a CA/revocation marker.
-	 */
-	if (l->was_hashed || has_wild || l->marker != MRK_NONE) {
-		fprintf(ctx->out, "%s\n", l->line);
-		if (has_wild && !find_host) {
-			fprintf(stderr, "%s:%ld: ignoring host name "
-			    "with wildcard: %.64s\n", l->path,
-			    l->linenum, l->hosts);
-		}
-		return 0;
-	}
-	/*
-	 * Split any comma-separated hostnames from the host list,
-	 * hash and store separately.
-	 */
-	ohosts = hosts = xstrdup(l->hosts);
-	while ((cp = strsep(&hosts, ",")) != NULL && *cp != '\0') {
-		if ((hashed = host_hash(cp, NULL, 0)) == NULL)
-			fatal("hash_host failed");
-		fprintf(ctx->out, "%s %s\n", hashed, l->rawkey);
-		ctx->has_unhashed = 1;
-	}
-	free(ohosts);
-	return 0;
+	/* NOTREACHED */
+	return -1;
 }
 
 static int
@@ -1093,7 +1100,7 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 {
 	struct known_hosts_ctx *ctx = (struct known_hosts_ctx *)_ctx;
 
-	if (l->status == HKF_STATUS_HOST_MATCHED) {
+	if (l->status == HKF_STATUS_MATCHED) {
 		if (delete_host) {
 			if (l->marker != MRK_NONE) {
 				/* Don't remove CA and revocation lines */
@@ -1180,7 +1187,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	/* XXX support identity_file == "-" for stdin */
 	if ((r = hostkeys_foreach(identity_file,
 	    hash_hosts ? known_hosts_hash : known_hosts_find_delete, &ctx,
-	    name, find_host ? HKF_WANT_MATCH_HOST : 0)) != 0)
+	    name, NULL, find_host ? HKF_WANT_MATCH : 0)) != 0)
 		fatal("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
 
 	if (inplace)

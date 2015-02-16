@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.h,v 1.23 2015/01/26 03:04:45 djm Exp $ */
+/* $OpenBSD: hostfile.h,v 1.24 2015/02/16 22:08:57 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -44,8 +44,9 @@ int	 hostfile_read_key(char **, u_int *, struct sshkey *);
 int	 add_host_to_hostfile(const char *, const char *,
     const struct sshkey *, int);
 
-int	 hostfile_replace_entries(const char *filename, const char *host,
-    struct sshkey **keys, size_t nkeys, int store_hash, int quiet);
+int	 hostfile_replace_entries(const char *filename,
+    const char *host, const char *ip, struct sshkey **keys, size_t nkeys,
+    int store_hash, int quiet, int hash_alg);
 
 #define HASH_MAGIC	"|1|"
 #define HASH_DELIM	'|'
@@ -60,13 +61,19 @@ char	*host_hash(const char *, const char *, u_int);
  * hostnames. Allows access to the raw keyfile lines to allow
  * streaming edits to the file to take place.
  */
-#define HKF_WANT_MATCH_HOST	(1)	/* return only matching hosts */
+#define HKF_WANT_MATCH		(1)	/* return only matching hosts/addrs */
 #define HKF_WANT_PARSE_KEY	(1<<1)	/* need key parsed */
 
-#define HKF_STATUS_OK		1	/* Line parsed, didn't match host */
-#define HKF_STATUS_INVALID	2	/* line had parse error */
-#define HKF_STATUS_COMMENT	3	/* valid line contained no key */
-#define HKF_STATUS_HOST_MATCHED	4	/* hostname matched */
+#define HKF_STATUS_OK		0	/* Line parsed, didn't match host */
+#define HKF_STATUS_INVALID	1	/* line had parse error */
+#define HKF_STATUS_COMMENT	2	/* valid line contained no key */
+#define HKF_STATUS_MATCHED	3	/* hostname or IP matched */
+
+#define HKF_MATCH_HOST		(1)	/* hostname matched */
+#define HKF_MATCH_IP		(1<<1)	/* address matched */
+#define HKF_MATCH_HOST_HASHED	(1<<2)	/* hostname was hashed */
+#define HKF_MATCH_IP_HASHED	(1<<3)	/* address was hashed */
+/* XXX HKF_MATCH_KEY_TYPE? */
 
 /*
  * The callback function receives this as an argument for each matching 
@@ -76,12 +83,13 @@ char	*host_hash(const char *, const char *, u_int);
 struct hostkey_foreach_line {
 	const char *path; /* Path of file */
 	u_long linenum;	/* Line number */
-	int status;	/* One of HKF_STATUS_* */
+	u_int status;	/* One of HKF_STATUS_* */
+	u_int match;	/* Zero or more of HKF_MATCH_* OR'd together */
 	char *line;	/* Entire key line; mutable by callback */
 	int marker;	/* CA/revocation markers; indicated by MRK_* value */
 	const char *hosts; /* Raw hosts text, may be hashed or list multiple */
-	int was_hashed;	/* Non-zero if hostname was hashed */
 	const char *rawkey; /* Text of key and any comment following it */
+	int keytype;	/* Type of key; KEY_UNSPEC for invalid/comment lines */
 	struct sshkey *key; /* Key, if parsed ok and HKF_WANT_MATCH_HOST set */
 	const char *comment; /* Any comment following the key */
 };
@@ -93,7 +101,8 @@ struct hostkey_foreach_line {
  */
 typedef int hostkeys_foreach_fn(struct hostkey_foreach_line *l, void *ctx);
 
+/* Iterate over a hostkeys file */
 int hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
-    const char *host, u_int options);
+    const char *host, const char *ip, u_int options);
 
 #endif
