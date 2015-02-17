@@ -902,7 +902,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		debug("Found %s in %s:%lu", want_cert ? "CA key" : "key",
 		    host_found->file, host_found->line);
 		if (want_cert && !check_host_cert(hostname, host_key))
-			goto fail;
+			if (options.host_key_alias == NULL || !check_host_cert(options.host_key_alias, host_key))
+				goto fail;
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			if (readonly || want_cert)
 				logit("%s host key for IP address "
