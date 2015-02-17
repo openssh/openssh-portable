@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.46 2015/01/28 22:36:00 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.47 2015/02/17 00:14:05 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -234,14 +234,14 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 		    key_type(key), key->cert->key_id,
 		    (unsigned long long)key->cert->serial,
 		    key_type(key->cert->signature_key),
-		    fp == NULL ? "(null)" : "",
+		    fp == NULL ? "(null)" : fp,
 		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
 		free(fp);
 	} else {
 		fp = sshkey_fingerprint(key, options.fingerprint_hash,
 		    SSH_FP_DEFAULT);
 		auth_info(authctxt, "%s %s%s%s", key_type(key),
-		    fp == NULL ? "(null)" : "",
+		    fp == NULL ? "(null)" : fp,
 		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
 		free(fp);
 	}
