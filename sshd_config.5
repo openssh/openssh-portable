@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.192 2015/02/02 01:57:44 deraadt Exp $
-.Dd $Mdocdate: February 2 2015 $
+.\" $OpenBSD: sshd_config.5,v 1.193 2015/02/20 22:40:32 djm Exp $
+.Dd $Mdocdate: February 20 2015 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -968,6 +968,7 @@ Available keywords are
 .Cm AcceptEnv ,
 .Cm AllowAgentForwarding ,
 .Cm AllowGroups ,
+.Cm AllowStreamLocalForwarding ,
 .Cm AllowTcpForwarding ,
 .Cm AllowUsers ,
 .Cm AuthenticationMethods ,
@@ -980,11 +981,12 @@ Available keywords are
 .Cm DenyGroups ,
 .Cm DenyUsers ,
 .Cm ForceCommand ,
-.Cm GatewayPorts ,
 .Cm GSSAPIAuthentication ,
+.Cm GatewayPorts ,
 .Cm HostbasedAcceptedKeyTypes ,
 .Cm HostbasedAuthentication ,
 .Cm HostbasedUsesNameFromPacketOnly ,
+.Cm IPQoS ,
 .Cm KbdInteractiveAuthentication ,
 .Cm KerberosAuthentication ,
 .Cm MaxAuthTries ,
@@ -998,9 +1000,13 @@ Available keywords are
 .Cm PermitUserRC ,
 .Cm PubkeyAcceptedKeyTypes ,
 .Cm PubkeyAuthentication ,
-.Cm RekeyLimit ,
-.Cm RhostsRSAAuthentication ,
 .Cm RSAAuthentication ,
+.Cm RekeyLimit ,
+.Cm RevokedKeys ,
+.Cm RhostsRSAAuthentication ,
+.Cm StreamLocalBindMask ,
+.Cm StreamLocalBindUnlink ,
+.Cm TrustedUserCAKeys ,
 .Cm X11DisplayOffset ,
 .Cm X11Forwarding
 and
