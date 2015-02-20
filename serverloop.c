@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.177 2015/02/16 22:13:32 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.178 2015/02/20 22:17:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1195,10 +1195,10 @@ server_input_hostkeys_prove(struct sshbuf **respp)
 		sshbuf_reset(sigbuf);
 		free(sig);
 		sig = NULL;
-		if ((r = sshbuf_put_string(sigbuf,
+		if ((r = sshbuf_put_cstring(sigbuf,
+		    "hostkeys-prove-00@openssh.com")) != 0 ||
+		    (r = sshbuf_put_string(sigbuf,
 		    ssh->kex->session_id, ssh->kex->session_id_len)) != 0 ||
-		    (r = sshbuf_put_cstring(sigbuf,
-		    "hostkeys-prove@openssh.com")) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
 		    (r = ssh->kex->sign(key_prv, key_pub, &sig, &slen,
 		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), 0)) != 0 ||
@@ -1310,7 +1310,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 	} else if (strcmp(rtype, "no-more-sessions@openssh.com") == 0) {
 		no_more_sessions = 1;
 		success = 1;
-	} else if (strcmp(rtype, "hostkeys-prove@openssh.com") == 0) {
+	} else if (strcmp(rtype, "hostkeys-prove-00@openssh.com") == 0) {
 		success = server_input_hostkeys_prove(&resp);
 	}
 	if (want_reply) {

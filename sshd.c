@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.443 2015/02/16 22:30:03 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.444 2015/02/20 22:17:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -942,7 +942,7 @@ notify_hostkeys(struct ssh *ssh)
 		free(fp);
 		if (nkeys == 0) {
 			packet_start(SSH2_MSG_GLOBAL_REQUEST);
-			packet_put_cstring("hostkeys@openssh.com");
+			packet_put_cstring("hostkeys-00@openssh.com");
 			packet_put_char(0); /* want-reply */
 		}
 		sshbuf_reset(buf);

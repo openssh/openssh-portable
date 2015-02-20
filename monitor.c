@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.144 2015/02/16 22:13:32 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.145 2015/02/20 22:17:21 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -693,7 +693,7 @@ mm_answer_sign(int sock, Buffer *m)
 	u_char *signature;
 	size_t datlen, siglen;
 	int r, keyid, is_proof = 0;
-	const char proof_req[] = "hostkeys-prove@openssh.com";
+	const char proof_req[] = "hostkeys-prove-00@openssh.com";
 
 	debug3("%s", __func__);
 
@@ -723,9 +723,9 @@ mm_answer_sign(int sock, Buffer *m)
 			fatal("%s: no hostkey for index %d", __func__, keyid);
 		if ((sigbuf = sshbuf_new()) == NULL)
 			fatal("%s: sshbuf_new", __func__);
-		if ((r = sshbuf_put_string(sigbuf, session_id2,
+		if ((r = sshbuf_put_cstring(sigbuf, proof_req)) != 0 ||
+		    (r = sshbuf_put_string(sigbuf, session_id2,
 		    session_id2_len) != 0) ||
-		    (r = sshbuf_put_cstring(sigbuf, proof_req)) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0)
 			fatal("%s: couldn't prepare private key "
 			    "proof buffer: %s", __func__, ssh_err(r));

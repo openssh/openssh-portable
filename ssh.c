@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.414 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.415 2015/02/20 22:17:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1072,6 +1072,12 @@ main(int ac, char **av)
 	    strcmp(options.proxy_command, "-") == 0 &&
 	    options.proxy_use_fdpass)
 		fatal("ProxyCommand=- and ProxyUseFDPass are incompatible");
+	if (options.control_persist &&
+	    options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK) {
+		debug("UpdateHostKeys=ask is incompatible with ControlPersist; "
+		    "disabling");
+		options.update_hostkeys = 0;
+	}
 #ifndef HAVE_CYGWIN
 	if (original_effective_uid != 0)
 		options.use_privileged_port = 0;

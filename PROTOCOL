@@ -282,15 +282,15 @@ by the client cancel the forwarding of a Unix domain socket.
 	boolean		FALSE
 	string		socket path
 
-2.5. connection: hostkey update and rotation "hostkeys@openssh.com"
-and "hostkeys-prove@openssh.com"
+2.5. connection: hostkey update and rotation "hostkeys-00@openssh.com"
+and "hostkeys-prove-00@openssh.com"
 
 OpenSSH supports a protocol extension allowing a server to inform
 a client of all its protocol v.2 host keys after user-authentication
 has completed.
 
 	byte		SSH_MSG_GLOBAL_REQUEST
-	string		"hostkeys@openssh.com"
+	string		"hostkeys-00@openssh.com"
 	string[]	hostkeys
 
 Upon receiving this message, a client should check which of the
@@ -300,15 +300,15 @@ to request the server prove ownership of the private half of the
 key.
 
 	byte		SSH_MSG_GLOBAL_REQUEST
-	string		"hostkeys-prove@openssh.com"
+	string		"hostkeys-prove-00@openssh.com"
 	char		1 /* want-reply */
 	string[]	hostkeys
 
 When a server receives this message, it should generate a signature
 using each requested key over the following:
 
+	string		"hostkeys-prove-00@openssh.com"
 	string		session identifier
-	string		"hostkeys-prove@openssh.com"
 	string		hostkey
 
 These signatures should be included in the reply, in the order matching
@@ -453,4 +453,4 @@ respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
-$OpenBSD: PROTOCOL,v 1.26 2015/02/16 22:13:32 djm Exp $
+$OpenBSD: PROTOCOL,v 1.27 2015/02/20 22:17:21 djm Exp $

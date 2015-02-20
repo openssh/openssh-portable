@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.269 2015/02/16 22:13:32 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.270 2015/02/20 22:17:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2265,10 +2265,10 @@ client_global_hostkeys_private_confirm(int type, u_int32_t seq, void *_ctx)
 			continue;
 		/* Prepare data to be signed: session ID, unique string, key */
 		sshbuf_reset(signdata);
-		if ((r = sshbuf_put_string(signdata, ssh->kex->session_id,
+		if ( (r = sshbuf_put_cstring(signdata,
+		    "hostkeys-prove-00@openssh.com")) != 0 ||
+		    (r = sshbuf_put_string(signdata, ssh->kex->session_id,
 		    ssh->kex->session_id_len)) != 0 ||
-		    (r = sshbuf_put_cstring(signdata,
-		    "hostkeys-prove@openssh.com")) != 0 ||
 		    (r = sshkey_puts(ctx->keys[i], signdata)) != 0)
 			fatal("%s: failed to prepare signature: %s",
 			    __func__, ssh_err(r));
@@ -2300,7 +2300,7 @@ client_global_hostkeys_private_confirm(int type, u_int32_t seq, void *_ctx)
 }
 
 /*
- * Handle hostkeys@openssh.com global request to inform the client of all
+ * Handle hostkeys-00@openssh.com global request to inform the client of all
  * the server's hostkeys. The keys are checked against the user's
  * HostkeyAlgorithms preference before they are accepted.
  */
@@ -2335,8 +2335,10 @@ client_input_hostkeys(void)
 			    __func__, ssh_err(r));
 			goto out;
 		}
-		if ((r = sshkey_from_blob(blob, len, &key)) != 0)
-			fatal("%s: parse key: %s", __func__, ssh_err(r));
+		if ((r = sshkey_from_blob(blob, len, &key)) != 0) {
+			error("%s: parse key: %s", __func__, ssh_err(r));
+			goto out;
+		}
 		fp = sshkey_fingerprint(key, options.fingerprint_hash,
 		    SSH_FP_DEFAULT);
 		debug3("%s: received %s key %s", __func__,
@@ -2376,9 +2378,10 @@ client_input_hostkeys(void)
 	}
 
 	if (ctx->nkeys == 0) {
-		error("%s: server sent no hostkeys", __func__);
+		debug("%s: server sent no hostkeys", __func__);
 		goto out;
 	}
+
 	if ((ctx->keys_seen = calloc(ctx->nkeys,
 	    sizeof(*ctx->keys_seen))) == NULL)
 		fatal("%s: calloc failed", __func__);
@@ -2418,7 +2421,7 @@ client_input_hostkeys(void)
 		    __func__, ctx->nnew);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
 		    (r = sshpkt_put_cstring(ssh,
-		    "hostkeys-prove@openssh.com")) != 0 ||
+		    "hostkeys-prove-00@openssh.com")) != 0 ||
 		    (r = sshpkt_put_u8(ssh, 1)) != 0) /* bool: want reply */
 			fatal("%s: cannot prepare packet: %s",
 			    __func__, ssh_err(r));
@@ -2465,7 +2468,7 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 	want_reply = packet_get_char();
 	debug("client_input_global_request: rtype %s want_reply %d",
 	    rtype, want_reply);
-	if (strcmp(rtype, "hostkeys@openssh.com") == 0)
+	if (strcmp(rtype, "hostkeys-00@openssh.com") == 0)
 		success = client_input_hostkeys();
 	if (want_reply) {
 		packet_start(success ?
