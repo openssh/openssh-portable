@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.12 2014/07/15 15:54:15 millert Exp $
+#	$OpenBSD: forwarding.sh,v 1.13 2015/02/21 20:51:02 djm Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
