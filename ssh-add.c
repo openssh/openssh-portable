@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.119 2015/02/03 00:34:14 halex Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.120 2015/02/21 21:46:57 halex Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -128,18 +128,24 @@ delete_file(int agent_fd, const char *filename, int key_only)
 	free(comment);
 	comment = NULL;
 	xasprintf(&certpath, "%s-cert.pub", filename);
-	if ((r = sshkey_load_public(certpath, &cert, &comment)) == 0)
+	if ((r = sshkey_load_public(certpath, &cert, &comment)) != 0) {
+		if (r != SSH_ERR_SYSTEM_ERROR || errno != ENOENT)
+			error("Failed to load certificate \"%s\": %s",
+			    certpath, ssh_err(r));
 		goto out;
+	}
+
 	if (!sshkey_equal_public(cert, public))
 		fatal("Certificate %s does not match private key %s",
 		    certpath, filename);
 
-	if (ssh_remove_identity(agent_fd, cert)) {
+	if ((r = ssh_remove_identity(agent_fd, cert)) == 0) {
 		fprintf(stderr, "Identity removed: %s (%s)\n", certpath,
 		    comment);
 		ret = 0;
 	} else
-		fprintf(stderr, "Could not remove identity: %s\n", certpath);
+		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
+		    certpath, ssh_err(r));
 
  out:
 	if (cert != NULL)
