@@ -433,15 +433,19 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 
 regress-prep:
-	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress
-	[ -d `pwd`/regress/unittests ]  ||  mkdir -p `pwd`/regress/unittests
-	[ -d `pwd`/regress/unittests/test_helper ]  || \
+	[ -d `pwd`/regress ] || mkdir -p `pwd`/regress
+	[ -d `pwd`/regress/unittests ] || mkdir -p `pwd`/regress/unittests
+	[ -d `pwd`/regress/unittests/test_helper ] || \
 		mkdir -p `pwd`/regress/unittests/test_helper
-	[ -d `pwd`/regress/unittests/sshbuf ]  || \
+	[ -d `pwd`/regress/unittests/sshbuf ] || \
 		mkdir -p `pwd`/regress/unittests/sshbuf
-	[ -d `pwd`/regress/unittests/sshkey ]  || \
+	[ -d `pwd`/regress/unittests/sshkey ] || \
 		mkdir -p `pwd`/regress/unittests/sshkey
-	[ -f `pwd`/regress/Makefile ]  || \
+	[ -d `pwd`/regress/unittests/bitmap ] || \
+		mkdir -p `pwd`/regress/unittests/bitmap
+	[ -d `pwd`/regress/unittests/hostkeys ] || \
+		mkdir -p `pwd`/regress/unittests/hostkeys
+	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
 regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c
