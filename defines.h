@@ -594,6 +594,10 @@ struct winsize {
 # undef HAVE_GAI_STRERROR
 #endif
 
+#if defined(HAVE_GETADDRINFO) && !defined(HAVE_DECL_AI_NUMERICSERV)
+# define AI_NUMERICSERV	0
+#endif
+
 #if defined(BROKEN_UPDWTMPX) && defined(HAVE_UPDWTMPX)
 # undef HAVE_UPDWTMPX
 #endif

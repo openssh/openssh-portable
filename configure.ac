@@ -2197,6 +2197,13 @@ if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
 	)
 fi
 
+if test "x$ac_cv_func_getaddrinfo" = "xyes"; then
+	AC_CHECK_DECLS(AI_NUMERICSERV, , ,
+	    [#include <sys/types.h>
+	     #include <sys/socket.h>
+	     #include <netdb.h>])
+fi
+
 if test "x$check_for_conflicting_getspnam" = "x1"; then
 	AC_MSG_CHECKING([for conflicting getspnam in shadow.h])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <shadow.h> ]],
