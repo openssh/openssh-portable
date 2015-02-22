@@ -213,7 +213,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
+# ifdef OPENSSL_HAS_ECC
 	kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
+# endif
 #endif
 	kex->kex[KEX_C25519_SHA256] = kexc25519_client;
 	kex->client_version_string=client_version_string;

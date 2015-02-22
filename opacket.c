@@ -93,6 +93,7 @@ ssh_packet_put_bignum2(struct ssh *ssh, BIGNUM * value)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
 
+# ifdef OPENSSL_HAS_ECC
 void
 ssh_packet_put_ecpoint(struct ssh *ssh, const EC_GROUP *curve,
     const EC_POINT *point)
@@ -102,6 +103,7 @@ ssh_packet_put_ecpoint(struct ssh *ssh, const EC_GROUP *curve,
 	if ((r = sshpkt_put_ec(ssh, point, curve)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
+# endif
 #endif /* WITH_OPENSSL */
 
 void
@@ -165,6 +167,7 @@ ssh_packet_get_bignum2(struct ssh *ssh, BIGNUM * value)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
 
+# ifdef OPENSSL_HAS_ECC
 void
 ssh_packet_get_ecpoint(struct ssh *ssh, const EC_GROUP *curve, EC_POINT *point)
 {
@@ -173,6 +176,7 @@ ssh_packet_get_ecpoint(struct ssh *ssh, const EC_GROUP *curve, EC_POINT *point)
 	if ((r = sshpkt_get_ec(ssh, point, curve)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
+# endif
 #endif /* WITH_OPENSSL */
 
 void *

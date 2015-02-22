@@ -1853,7 +1853,9 @@ monitor_apply_keystate(struct monitor *pmonitor)
 		kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
 		kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 		kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
+# ifdef OPENSSL_HAS_ECC
 		kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+# endif
 #endif /* WITH_OPENSSL */
 		kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 		kex->load_host_public_key=&get_hostkey_public_by_type;

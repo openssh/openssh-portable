@@ -2570,7 +2570,9 @@ do_ssh2_kex(void)
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
+# ifdef OPENSSL_HAS_ECC
 	kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+# endif
 #endif
 	kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 	kex->server = 1;
