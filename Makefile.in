@@ -445,6 +445,8 @@ regress-prep:
 		mkdir -p `pwd`/regress/unittests/bitmap
 	[ -d `pwd`/regress/unittests/hostkeys ] || \
 		mkdir -p `pwd`/regress/unittests/hostkeys
+	[ -d `pwd`/regress/unittests/kex ] || \
+		mkdir -p `pwd`/regress/unittests/kex
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
