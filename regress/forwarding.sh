@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.13 2015/02/21 20:51:02 djm Exp $
+#	$OpenBSD: forwarding.sh,v 1.14 2015/02/23 20:32:15 djm Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -10,6 +10,9 @@ start_sshd
 base=33
 last=$PORT
 fwd=""
+CTL=$OBJ/ctl-sock
+rm -f $CTL
+
 for j in 0 1 2; do
 	for i in 0 1 2; do
 		a=$base$j$i
@@ -109,7 +112,7 @@ echo "LocalForward ${base}01 127.0.0.1:$PORT" >> $OBJ/ssh_config
 echo "RemoteForward ${base}02 127.0.0.1:${base}01" >> $OBJ/ssh_config
 for p in 1 2; do
 	trace "config file: start forwarding, fork to background"
-	${SSH} -$p -F $OBJ/ssh_config -f somehost sleep 10
+	${SSH} -S $CTL -M -$p -F $OBJ/ssh_config -f somehost sleep 10
 
 	trace "config file: transfer over forwarded channels and check result"
 	${SSH} -F $OBJ/ssh_config -p${base}02 -o 'ConnectionAttempts=4' \
@@ -117,7 +120,7 @@ for p in 1 2; do
 	test -s ${COPY}		|| fail "failed copy of ${DATA}"
 	cmp ${DATA} ${COPY}	|| fail "corrupted copy of ${DATA}"
 
-	wait
+	${SSH} -S $CTL -O exit somehost
 done
 
 for p in 2; do
