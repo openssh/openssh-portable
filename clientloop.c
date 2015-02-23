@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.270 2015/02/20 22:17:21 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.271 2015/02/23 16:33:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2170,7 +2170,8 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 static void
 update_known_hosts(struct hostkeys_update_ctx *ctx)
 {
-	int r, loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
+	int r, was_raw = 0;
+	int loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
 	    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE;
 	char *fp, *response;
 	size_t i;
@@ -2194,7 +2195,10 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 		free(fp);
 	}
 	if (options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK) {
-		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+		if (get_saved_tio() != NULL) {
+			leave_raw_mode(1);
+			was_raw = 1;
+		}
 		response = NULL;
 		for (i = 0; !quit_pending && i < 3; i++) {
 			free(response);
@@ -2214,7 +2218,8 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 		if (quit_pending || i >= 3 || response == NULL)
 			options.update_hostkeys = 0;
 		free(response);
-		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+		if (was_raw)
+			enter_raw_mode(1);
 	}
 
 	/*
