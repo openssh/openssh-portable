@@ -27,6 +27,8 @@
 #ifndef DISPATCH_H
 #define DISPATCH_H
 
+#include <signal.h> /* for sig_atomic_t */
+
 #define DISPATCH_MAX	255
 
 enum {
