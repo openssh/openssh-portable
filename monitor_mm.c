@@ -35,7 +35,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
