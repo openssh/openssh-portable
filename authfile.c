@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.110 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: authfile.c,v 1.111 2015/02/23 16:55:51 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -343,6 +343,8 @@ sshkey_load_public(const char *filename, struct sshkey **keyp, char **commentp)
 	if (commentp != NULL)
 		*commentp = NULL;
 
+	/* XXX should load file once and attempt to parse each format */
+
 	if ((fd = open(filename, O_RDONLY)) < 0)
 		goto skip;
 #ifdef WITH_SSH1
@@ -394,6 +396,7 @@ sshkey_load_public(const char *filename, struct sshkey **keyp, char **commentp)
 		return 0;
 	}
 	sshkey_free(pub);
+
 	return r;
 }
 
