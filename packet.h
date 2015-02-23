@@ -35,7 +35,7 @@
 #endif /* WITH_OPENSSL */
 
 #include <sys/signal.h>
-#include <sys/queue.h>
+#include "openbsd-compat/sys-queue.h"
 
 struct kex;
 struct sshkey;
