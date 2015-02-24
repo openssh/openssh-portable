@@ -34,7 +34,7 @@
 # define EC_POINT	void
 #endif /* WITH_OPENSSL */
 
-#include <sys/signal.h>
+#include <signal.h>
 #include "openbsd-compat/sys-queue.h"
 
 struct kex;
