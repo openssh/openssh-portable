@@ -102,10 +102,11 @@ void	 packet_read_expect(int expected_type);
 	ssh_packet_get_string_ptr(active_state, (length_ptr))
 #define packet_get_cstring(length_ptr) \
 	ssh_packet_get_cstring(active_state, (length_ptr))
-#define packet_send_debug(fmt, args...) \
-	ssh_packet_send_debug(active_state, (fmt), ##args)
-#define packet_disconnect(fmt, args...) \
-	ssh_packet_disconnect(active_state, (fmt), ##args)
+void	packet_send_debug(const char *, ...)
+	    __attribute__((format(printf, 1, 2)));
+void	packet_disconnect(const char *, ...)
+	    __attribute__((format(printf, 1, 2)))
+	    __attribute__((noreturn));
 #define packet_have_data_to_write() \
 	ssh_packet_have_data_to_write(active_state)
 #define packet_not_very_much_data_to_write() \

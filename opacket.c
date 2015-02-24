@@ -319,3 +319,27 @@ packet_read_expect(int expected_type)
 	if ((r = ssh_packet_read_expect(active_state, expected_type)) != 0)
 		sshpkt_fatal(active_state, __func__, r);
 }
+
+void
+packet_disconnect(const char *fmt, ...)
+{
+	char buf[1024];
+	va_list args;
+
+	va_start(args, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+	ssh_packet_disconnect(active_state, "%s", buf);
+}
+
+void
+packet_send_debug(const char *fmt, ...)
+{
+	char buf[1024];
+	va_list args;
+
+	va_start(args, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+	ssh_packet_send_debug(active_state, "%s", buf);
+}
