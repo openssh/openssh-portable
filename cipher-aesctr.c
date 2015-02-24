@@ -27,7 +27,7 @@
  * the counter is of size 'len' bytes and stored in network-byte-order.
  * (LSB at ctr[len-1], MSB at ctr[0])
  */
-static __inline__ void
+static inline void
 aesctr_inc(u8 *ctr, u32 len)
 {
 	ssize_t i;
