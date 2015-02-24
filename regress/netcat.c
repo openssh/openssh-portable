@@ -44,7 +44,6 @@
 #include <netinet/ip.h>
 #include <arpa/telnet.h>
 
-#include <err.h>
 #include <errno.h>
 #include <netdb.h>
 #include <poll.h>
@@ -121,6 +120,47 @@ void	report_connect(const struct sockaddr *, socklen_t);
 void	usage(int);
 ssize_t drainbuf(int, unsigned char *, size_t *);
 ssize_t fillbuf(int, unsigned char *, size_t *);
+
+static void err(int, const char *, ...) __attribute__((format(printf, 2, 3)));
+static void errx(int, const char *, ...) __attribute__((format(printf, 2, 3)));
+static void warn(const char *, ...) __attribute__((format(printf, 1, 2)));
+
+static void
+err(int r, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	fprintf(stderr, "%s: ", strerror(errno));
+	vfprintf(stderr, fmt, args);
+	fputc('\n', stderr);
+	va_end(args);
+	exit(r);
+}
+
+static void
+errx(int r, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	fputc('\n', stderr);
+	va_end(args);
+	exit(r);
+}
+
+static void
+warn(const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	fprintf(stderr, "%s: ", strerror(errno));
+	vfprintf(stderr, fmt, args);
+	fputc('\n', stderr);
+	va_end(args);
+}
 
 int
 main(int argc, char *argv[])
@@ -500,7 +540,7 @@ main(int argc, char *argv[])
 int
 unix_bind(char *path)
 {
-	struct sockaddr_un sun;
+	struct sockaddr_un sun_sa;
 	int s;
 
 	/* Create unix domain socket. */
@@ -508,17 +548,17 @@ unix_bind(char *path)
 	     0)) < 0)
 		return (-1);
 
-	memset(&sun, 0, sizeof(struct sockaddr_un));
-	sun.sun_family = AF_UNIX;
+	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
+	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun.sun_path, path, sizeof(sun.sun_path)) >=
-	    sizeof(sun.sun_path)) {
+	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
+	    sizeof(sun_sa.sun_path)) {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
 
-	if (bind(s, (struct sockaddr *)&sun, SUN_LEN(&sun)) < 0) {
+	if (bind(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -532,7 +572,7 @@ unix_bind(char *path)
 int
 unix_connect(char *path)
 {
-	struct sockaddr_un sun;
+	struct sockaddr_un sun_sa;
 	int s;
 
 	if (uflag) {
@@ -544,16 +584,16 @@ unix_connect(char *path)
 	}
 	(void)fcntl(s, F_SETFD, FD_CLOEXEC);
 
-	memset(&sun, 0, sizeof(struct sockaddr_un));
-	sun.sun_family = AF_UNIX;
+	memset(&sun_sa, 0, sizeof(struct sockaddr_un));
+	sun_sa.sun_family = AF_UNIX;
 
-	if (strlcpy(sun.sun_path, path, sizeof(sun.sun_path)) >=
-	    sizeof(sun.sun_path)) {
+	if (strlcpy(sun_sa.sun_path, path, sizeof(sun_sa.sun_path)) >=
+	    sizeof(sun_sa.sun_path)) {
 		close(s);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
-	if (connect(s, (struct sockaddr *)&sun, SUN_LEN(&sun)) < 0) {
+	if (connect(s, (struct sockaddr *)&sun_sa, SUN_LEN(&sun_sa)) < 0) {
 		close(s);
 		return (-1);
 	}
@@ -1331,7 +1371,6 @@ usage(int ret)
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <err.h>
 #include <errno.h>
 #include <netdb.h>
 #include <stdio.h>
