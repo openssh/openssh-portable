@@ -110,6 +110,8 @@ enum
 #  define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
 # elif defined(MAXHOSTNAMELEN)
 #  define HOST_NAME_MAX MAXHOSTNAMELEN
+# else
+#  define HOST_NAME_MAX	255
 # endif
 #endif /* HOST_NAME_MAX */
 
