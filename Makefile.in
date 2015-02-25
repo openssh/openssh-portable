@@ -460,7 +460,7 @@ regress/setuid-allowed$(EXEEXT): $(srcdir)/regress/setuid-allowed.c
 
 regress/netcat$(EXEEXT): $(srcdir)/regress/netcat.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
-	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat -lssh $(LIBS)
+	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
 UNITTESTS_TEST_HELPER_OBJS=\
 	regress/unittests/test_helper/test_helper.o \
