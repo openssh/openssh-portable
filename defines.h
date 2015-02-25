@@ -822,14 +822,6 @@ struct winsize {
 # define SSH_IOBUFSZ 8192
 #endif
 
-#ifndef _NSIG
-# ifdef NSIG
-#  define _NSIG NSIG
-# else
-#  define _NSIG 128
-# endif
-#endif
-
 /*
  * Platforms that have arc4random_uniform() and not arc4random_stir()
  * shouldn't need the latter.
