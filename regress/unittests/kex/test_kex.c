@@ -145,7 +145,9 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	server2->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
 	server2->kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	server2->kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
+#ifdef OPENSSL_HAS_ECC
 	server2->kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+#endif
 	server2->kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 	server2->kex->load_host_public_key = server->kex->load_host_public_key;
 	server2->kex->load_host_private_key = server->kex->load_host_private_key;
@@ -173,7 +175,9 @@ do_kex(char *kex)
 {
 	do_kex_with_key(kex, KEY_RSA, 2048);
 	do_kex_with_key(kex, KEY_DSA, 1024);
+#ifdef OPENSSL_HAS_ECC
 	do_kex_with_key(kex, KEY_ECDSA, 256);
+#endif
 	do_kex_with_key(kex, KEY_ED25519, 256);
 }
 
@@ -181,9 +185,11 @@ void
 kex_tests(void)
 {
 	do_kex("curve25519-sha256@libssh.org");
+#ifdef OPENSSL_HAS_ECC
 	do_kex("ecdh-sha2-nistp256");
 	do_kex("ecdh-sha2-nistp384");
 	do_kex("ecdh-sha2-nistp521");
+#endif
 	do_kex("diffie-hellman-group-exchange-sha256");
 	do_kex("diffie-hellman-group-exchange-sha1");
 	do_kex("diffie-hellman-group14-sha1");

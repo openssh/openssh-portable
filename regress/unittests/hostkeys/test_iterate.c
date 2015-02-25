@@ -165,6 +165,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"DSA #1",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_1.pub" , -1, -1, 0, HKF_MATCH_HOST, 0, 0, -1, {
 		NULL,
 		3,
@@ -178,6 +179,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #1",
 	} },
+#endif
 	{ "ed25519_1.pub" , -1, -1, 0, HKF_MATCH_HOST, 0, 0, -1, {
 		NULL,
 		4,
@@ -256,6 +258,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"DSA #2",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_2.pub" , -1, -1, HKF_MATCH_HOST, 0, HKF_MATCH_IP, HKF_MATCH_IP, -1, {
 		NULL,
 		10,
@@ -269,6 +272,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #2",
 	} },
+#endif
 	{ "ed25519_2.pub" , -1, -1, HKF_MATCH_HOST, 0, HKF_MATCH_IP, HKF_MATCH_IP, -1, {
 		NULL,
 		11,
@@ -347,6 +351,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"DSA #3",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_3.pub" , -1, -1, HKF_MATCH_HOST, HKF_MATCH_HOST, HKF_MATCH_IP, HKF_MATCH_IP, -1, {
 		NULL,
 		17,
@@ -360,6 +365,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #3",
 	} },
+#endif
 	{ "ed25519_3.pub" , -1, -1, HKF_MATCH_HOST, HKF_MATCH_HOST, HKF_MATCH_IP, HKF_MATCH_IP, -1, {
 		NULL,
 		18,
@@ -438,6 +444,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"DSA #5",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_5.pub" , -1, -1, 0, HKF_MATCH_HOST|HKF_MATCH_HOST_HASHED, 0, 0, -1, {
 		NULL,
 		24,
@@ -451,6 +458,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #5",
 	} },
+#endif
 	{ "ed25519_5.pub" , -1, -1, 0, HKF_MATCH_HOST|HKF_MATCH_HOST_HASHED, 0, 0, -1, {
 		NULL,
 		25,
@@ -547,6 +555,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"DSA #6",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_6.pub" , -1, -1, HKF_MATCH_HOST|HKF_MATCH_HOST_HASHED, 0, 0, 0, -1, {
 		NULL,
 		32,
@@ -586,6 +595,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #6",
 	} },
+#endif
 	{ "ed25519_6.pub" , -1, -1, HKF_MATCH_HOST|HKF_MATCH_HOST_HASHED, 0, 0, 0, -1, {
 		NULL,
 		35,
@@ -768,6 +778,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ED25519 #4",
 	} },
+#ifdef OPENSSL_HAS_ECC
 	{ "ecdsa_4.pub" , -1, -1, HKF_MATCH_HOST, 0, 0, 0, -1, {
 		NULL,
 		49,
@@ -781,6 +792,7 @@ struct expected expected_full[] = {
 		NULL,	/* filled at runtime */
 		"ECDSA #4",
 	} },
+#endif
 	{ "dsa_4.pub" , -1, -1, HKF_MATCH_HOST, HKF_MATCH_HOST, 0, 0, -1, {
 		NULL,
 		50,
