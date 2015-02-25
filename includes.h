@@ -27,7 +27,7 @@
 #include <sys/socket.h> /* For CMSG_* */
 
 #ifdef HAVE_LIMITS_H
-# include <limits.h> /* For PATH_MAX */
+# include <limits.h> /* For PATH_MAX, _POSIX_HOST_NAME_MAX */
 #endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
