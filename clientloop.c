@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.271 2015/02/23 16:33:25 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.272 2015/02/25 19:54:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2321,9 +2321,7 @@ client_input_hostkeys(void)
 	char *fp;
 	static int hostkeys_seen = 0; /* XXX use struct ssh */
 	extern struct sockaddr_storage hostaddr; /* XXX from ssh.c */
-	struct hostkeys_update_ctx *ctx;
-
-	ctx = xcalloc(1, sizeof(*ctx));
+	struct hostkeys_update_ctx *ctx = NULL;
 
 	if (hostkeys_seen)
 		fatal("%s: server already sent hostkeys", __func__);
@@ -2332,6 +2330,8 @@ client_input_hostkeys(void)
 		return 1; /* won't ask in batchmode, so don't even try */
 	if (!options.update_hostkeys || options.num_user_hostfiles <= 0)
 		return 1;
+
+	ctx = xcalloc(1, sizeof(*ctx));
 	while (ssh_packet_remaining(ssh) > 0) {
 		sshkey_free(key);
 		key = NULL;
