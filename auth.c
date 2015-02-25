@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.109 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: auth.c,v 1.110 2015/02/25 17:29:38 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -331,13 +331,14 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 void
 auth_maxtries_exceeded(Authctxt *authctxt)
 {
-	packet_disconnect("Too many authentication failures for "
+	error("maximum authentication attempts exceeded for "
 	    "%s%.100s from %.200s port %d %s",
 	    authctxt->valid ? "" : "invalid user ",
 	    authctxt->user,
 	    get_remote_ipaddr(),
 	    get_remote_port(),
 	    compat20 ? "ssh2" : "ssh1");
+	packet_disconnect("Too many authentication failures");
 	/* NOTREACHED */
 }
 
