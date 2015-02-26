@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.265 2015/02/24 15:24:05 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.266 2015/02/26 20:45:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1276,7 +1276,8 @@ do_change_passphrase(struct passwd *pw)
 		    identity_file, ssh_err(r));
 		exit(1);
 	}
-	printf("Key has comment '%s'\n", comment);
+	if (comment)
+		printf("Key has comment '%s'\n", comment);
 
 	/* Ask the new passphrase (twice). */
 	if (identity_new_passphrase) {
