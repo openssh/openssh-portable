@@ -203,11 +203,14 @@ interop: ${INTEROP_TARGETS}
 # Unit tests, built by top-level Makefile
 unit:
 	set -e ; if test -z "${SKIP_UNIT}" ; then \
-		${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
-		${.OBJDIR}/unittests/sshkey/test_sshkey \
+		V="" ; \
+		test "x${USE_VALGRIND}" != "x" && \
+		    V=${.CURDIR}/valgrind-unit.sh ; \
+		$$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
+		$$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
 			-d ${.CURDIR}/unittests/sshkey/testdata ; \
-		${.OBJDIR}/unittests/bitmap/test_bitmap ; \
-		${.OBJDIR}/unittests/kex/test_kex ; \
-		${.OBJDIR}/unittests/hostkeys/test_hostkeys \
+		$$V ${.OBJDIR}/unittests/bitmap/test_bitmap ; \
+		$$V ${.OBJDIR}/unittests/kex/test_kex ; \
+		$$V ${.OBJDIR}/unittests/hostkeys/test_hostkeys \
 			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
 	fi

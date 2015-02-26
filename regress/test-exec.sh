@@ -141,6 +141,55 @@ case "$SSHAGENT" in
 *) SSHAGENT=`which $SSHAGENT` ;;
 esac
 
+# Record the actual binaries used.
+SSH_BIN=${SSH}
+SSHD_BIN=${SSHD}
+SSHAGENT_BIN=${SSHAGENT}
+SSHADD_BIN=${SSHADD}
+SSHKEYGEN_BIN=${SSHKEYGEN}
+SSHKEYSCAN_BIN=${SSHKEYSCAN}
+SFTP_BIN=${SFTP}
+SFTPSERVER_BIN=${SFTPSERVER}
+SCP_BIN=${SCP}
+
+if [ "x$USE_VALGRIND" != "x" ]; then
+	mkdir -p $OBJ/valgrind-out
+	VG_TEST=`basename $SCRIPT .sh`
+
+	# Some tests are difficult to fix.
+	case "$VG_TEST" in
+	connect-privsep|reexec)
+		VG_SKIP=1 ;;
+	esac
+
+	if [ x"$VG_SKIP" = "x" ]; then
+		VG_IGNORE="/bin/*,/sbin/*,/usr/*,/var/*"
+		VG_LOG="$OBJ/valgrind-out/${VG_TEST}."
+		VG_OPTS="--track-origins=yes --leak-check=full"
+		VG_OPTS="$VG_OPTS --trace-children=yes"
+		VG_OPTS="$VG_OPTS --trace-children-skip=${VG_IGNORE}"
+		VG_PATH="valgrind"
+		if [ "x$VALGRIND_PATH" != "x" ]; then
+			VG_PATH="$VALGRIND_PATH"
+		fi
+		VG="$VG_PATH $VG_OPTS"
+		SSH="$VG --log-file=${VG_LOG}ssh.%p $SSH"
+		SSHD="$VG --log-file=${VG_LOG}sshd.%p $SSHD"
+		SSHAGENT="$VG --log-file=${VG_LOG}ssh-agent.%p $SSHAGENT"
+		SSHADD="$VG --log-file=${VG_LOG}ssh-add.%p $SSHADD"
+		SSHKEYGEN="$VG --log-file=${VG_LOG}ssh-keygen.%p $SSHKEYGEN"
+		SSHKEYSCAN="$VG --log-file=${VG_LOG}ssh-keyscan.%p $SSHKEYSCAN"
+		SFTP="$VG --log-file=${VG_LOG}sftp.%p ${SFTP}"
+		SCP="$VG --log-file=${VG_LOG}scp.%p $SCP"
+		cat > $OBJ/valgrind-sftp-server.sh << EOF
+#!/bin/sh
+exec $VG --log-file=${VG_LOG}sftp-server.%p $SFTPSERVER "\$@"
+EOF
+		chmod a+rx $OBJ/valgrind-sftp-server.sh
+		SFTPSERVER="$OBJ/valgrind-sftp-server.sh"
+	fi
+fi
+
 # Logfiles.
 # SSH_LOGFILE should be the debug output of ssh(1) only
 # SSHD_LOGFILE should be the debug output of sshd(8) only
@@ -175,7 +224,7 @@ SSH="$SSHLOGWRAP"
 # [kbytes] to ensure the file is at least that large.
 DATANAME=data
 DATA=$OBJ/${DATANAME}
-cat ${SSHAGENT} >${DATA}
+cat ${SSHAGENT_BIN} >${DATA}
 chmod u+w ${DATA}
 COPY=$OBJ/copy
 rm -f ${COPY}
@@ -183,7 +232,7 @@ rm -f ${COPY}
 increase_datafile_size()
 {
 	while [ `du -k ${DATA} | cut -f1` -lt $1 ]; do
-		cat ${SSHAGENT} >>${DATA}
+		cat ${SSHAGENT_BIN} >>${DATA}
 	done
 }
 
@@ -388,7 +437,7 @@ rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 trace "generate keys"
 for t in rsa rsa1; do
 	# generate user key
-	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN} -nt $OBJ/$t ]; then
+	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN_BIN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t
 		${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\
 			fail "ssh-keygen for $t failed"
@@ -451,7 +500,7 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "Hostname=127.0.0.1" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "PortNumber=$PORT" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyMethod=5" >> ${OBJ}/.putty/sessions/localhost_proxy
-	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSHD_LOGFILE} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
+	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 
 	REGRESS_INTEROP_PUTTY=yes
 fi
@@ -459,7 +508,7 @@ fi
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSHD_LOGFILE} -i -f $OBJ/sshd_proxy
+	echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
 ) > $OBJ/ssh_proxy
 
 # check proxy config

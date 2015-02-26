@@ -4,14 +4,16 @@
 tid="simple connect after reconfigure"
 
 # we need the full path to sshd for -HUP
-case $SSHD in
-/*)
-	# full path is OK 
-	;;
-*)
-	# otherwise make fully qualified
-	SSHD=$OBJ/$SSHD
-esac
+if test "x$USE_VALGRIND" = "x" ; then
+	case $SSHD in
+	/*)
+		# full path is OK
+		;;
+	*)
+		# otherwise make fully qualified
+		SSHD=$OBJ/$SSHD
+	esac
+fi
 
 start_sshd
 

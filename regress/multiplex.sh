@@ -90,7 +90,7 @@ $NC -N -Ul $OBJ/unix-1.fwd < ${DATA} > /dev/null &
 netcat_pid=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L$OBJ/unix-2.fwd:$OBJ/unix-1.fwd otherhost >>$TEST_SSH_LOGFILE 2>&1
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R$OBJ/unix-3.fwd:$OBJ/unix-2.fwd otherhost >>$TEST_SSH_LOGFILE 2>&1
-$NC -U $OBJ/unix-3.fwd < /dev/null > ${COPY}
+$NC -U $OBJ/unix-3.fwd < /dev/null > ${COPY} 2>/dev/null
 cmp ${DATA} ${COPY}		|| fail "ssh: corrupted copy of ${DATA}"
 kill $netcat_pid 2>/dev/null
 rm -f ${COPY} $OBJ/unix-[123].fwd
