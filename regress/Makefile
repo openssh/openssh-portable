@@ -1,10 +1,13 @@
 #	$OpenBSD: Makefile,v 1.78 2015/01/26 06:12:18 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
-tests:		$(REGRESS_TARGETS)
+tests:		prep $(REGRESS_TARGETS)
 
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
+
+prep:
+	test "x${USE_VALGRIND}" != "x" && mkdir -p $(OBJ)/valgrind-out
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
