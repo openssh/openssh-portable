@@ -1014,43 +1014,44 @@ fillbuf(int fd, unsigned char *buf, size_t *bufpos)
 void
 fdpass(int nfd)
 {
-	struct msghdr mh;
+#if defined(HAVE_SENDMSG) && (defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR))
+	struct msghdr msg;
+#ifndef HAVE_ACCRIGHTS_IN_MSGHDR
 	union {
 		struct cmsghdr hdr;
 		char buf[CMSG_SPACE(sizeof(int))];
 	} cmsgbuf;
 	struct cmsghdr *cmsg;
-	struct iovec iov;
-	char c = '\0';
-	ssize_t r;
+#endif
+	struct iovec vec;
+	char ch = '\0';
 	struct pollfd pfd;
+	ssize_t r;
 
-	/* Avoid obvious stupidity */
-	if (isatty(STDOUT_FILENO))
-		errx(1, "Cannot pass file descriptor to tty");
-
-	bzero(&mh, sizeof(mh));
-	bzero(&cmsgbuf, sizeof(cmsgbuf));
-	bzero(&iov, sizeof(iov));
-	bzero(&pfd, sizeof(pfd));
-
-	mh.msg_control = (caddr_t)&cmsgbuf.buf;
-	mh.msg_controllen = sizeof(cmsgbuf.buf);
-	cmsg = CMSG_FIRSTHDR(&mh);
+	memset(&msg, 0, sizeof(msg));
+#ifdef HAVE_ACCRIGHTS_IN_MSGHDR
+	msg.msg_accrights = (caddr_t)&nfd;
+	msg.msg_accrightslen = sizeof(nfd);
+#else
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
+	msg.msg_control = (caddr_t)&cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
 	*(int *)CMSG_DATA(cmsg) = nfd;
+#endif
 
-	iov.iov_base = &c;
-	iov.iov_len = 1;
-	mh.msg_iov = &iov;
-	mh.msg_iovlen = 1;
+	vec.iov_base = &ch;
+	vec.iov_len = 1;
+	msg.msg_iov = &vec;
+	msg.msg_iovlen = 1;
 
 	bzero(&pfd, sizeof(pfd));
 	pfd.fd = STDOUT_FILENO;
 	for (;;) {
-		r = sendmsg(STDOUT_FILENO, &mh, 0);
+		r = sendmsg(STDOUT_FILENO, &msg, 0);
 		if (r == -1) {
 			if (errno == EAGAIN || errno == EINTR) {
 				pfd.events = POLLOUT;
@@ -1065,6 +1066,9 @@ fdpass(int nfd)
 			break;
 	}
 	exit(0);
+#else
+	errx(1, "%s: file descriptor passing not supported", __func__);
+#endif
 }
 
 /* Deal with RFC 854 WILL/WONT DO/DONT negotiation. */
