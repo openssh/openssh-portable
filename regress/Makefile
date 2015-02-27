@@ -207,7 +207,7 @@ interop: ${INTEROP_TARGETS}
 unit:
 	set -e ; if test -z "${SKIP_UNIT}" ; then \
 		V="" ; \
-		test "x${USE_VALGRIND}" != "x" && \
+		test "x${USE_VALGRIND}" = "x" || \
 		    V=${.CURDIR}/valgrind-unit.sh ; \
 		$$V ${.OBJDIR}/unittests/sshbuf/test_sshbuf ; \
 		$$V ${.OBJDIR}/unittests/sshkey/test_sshkey \
