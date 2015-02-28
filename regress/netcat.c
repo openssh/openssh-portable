@@ -269,7 +269,7 @@ main(int argc, char *argv[])
 		case 'x':
 			xflag = 1;
 			if ((proxy = strdup(optarg)) == NULL)
-				err(1, NULL);
+				errx(1, "strdup");
 			break;
 		case 'z':
 			zflag = 1;
@@ -404,7 +404,7 @@ main(int argc, char *argv[])
 			if (family != AF_UNIX)
 				s = local_listen(host, uport, hints);
 			if (s < 0)
-				err(1, NULL);
+				err(1, "local_listen");
 			/*
 			 * For UDP and -k, don't connect the socket, let it
 			 * receive datagrams from multiple socket pairs.
@@ -629,7 +629,7 @@ remote_connect(const char *host, const char *port, struct addrinfo hints)
 {
 	struct addrinfo *res, *res0;
 	int s, error;
-#ifdef SO_RTABLE
+#if defined(SO_RTABLE) || defined(SO_BINDANY)
 	int on = 1;
 #endif
 
@@ -762,7 +762,7 @@ local_listen(char *host, char *port, struct addrinfo hints)
 #ifdef SO_REUSEPORT
 		ret = setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &x, sizeof(x));
 		if (ret == -1)
-			err(1, NULL);
+			err(1, "setsockopt");
 #endif
 		set_common_sockopts(s);
 
@@ -1137,7 +1137,7 @@ build_ports(char *p)
 		for (cp = lo; cp <= hi; cp++) {
 			portlist[x] = calloc(1, PORT_MAX_LEN);
 			if (portlist[x] == NULL)
-				err(1, NULL);
+				errx(1, "calloc");
 			snprintf(portlist[x], PORT_MAX_LEN, "%d", cp);
 			x++;
 		}
@@ -1160,7 +1160,7 @@ build_ports(char *p)
 			errx(1, "port number %s: %s", errstr, p);
 		portlist[0] = strdup(p);
 		if (portlist[0] == NULL)
-			err(1, NULL);
+			errx(1, "strdup");
 	}
 }
 
@@ -1192,13 +1192,13 @@ set_common_sockopts(int s)
 	if (Sflag) {
 		if (setsockopt(s, IPPROTO_TCP, TCP_MD5SIG,
 			&x, sizeof(x)) == -1)
-			err(1, NULL);
+			err(1, "setsockopt");
 	}
 #endif
 	if (Dflag) {
 		if (setsockopt(s, SOL_SOCKET, SO_DEBUG,
 			&x, sizeof(x)) == -1)
-			err(1, NULL);
+			err(1, "setsockopt");
 	}
 	if (Tflag != -1) {
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
