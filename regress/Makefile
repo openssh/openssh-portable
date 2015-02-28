@@ -7,7 +7,7 @@ tests:		prep $(REGRESS_TARGETS)
 interop interop-tests: t-exec-interop
 
 prep:
-	test "x${USE_VALGRIND}" != "x" && mkdir -p $(OBJ)/valgrind-out
+	test "x${USE_VALGRIND}" = "x" || mkdir -p $(OBJ)/valgrind-out
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
