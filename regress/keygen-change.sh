@@ -1,4 +1,4 @@
-#	$OpenBSD: keygen-change.sh,v 1.4 2015/01/13 08:23:26 djm Exp $
+#	$OpenBSD: keygen-change.sh,v 1.5 2015/03/03 22:35:19 markus Exp $
 #	Placed in the Public Domain.
 
 tid="change passphrase for key"
@@ -6,7 +6,12 @@ tid="change passphrase for key"
 S1="secret1"
 S2="2secret"
 
-for t in `${SSH} -Q key-plain` ; do
+KEYTYPES=`${SSH} -Q key-plain`
+if ssh_version 1; then
+	KEYTYPES="${KEYTYPES} rsa1"
+fi
+
+for t in $KEYTYPES; do
 	# generate user key for agent
 	trace "generating $t key"
 	rm -f $OBJ/$t-key

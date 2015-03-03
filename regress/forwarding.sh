@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.14 2015/02/23 20:32:15 djm Exp $
+#	$OpenBSD: forwarding.sh,v 1.15 2015/03/03 22:35:19 markus Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -23,8 +23,11 @@ for j in 0 1 2; do
 		last=$a
 	done
 done
-for p in 1 2; do
+for p in ${SSH_PROTOCOLS}; do
 	q=`expr 3 - $p`
+	if ! ssh_version $q; then
+		q=$p
+	fi
 	trace "start forwarding, fork to background"
 	${SSH} -$p -F $OBJ/ssh_config -f $fwd somehost sleep 10
 
@@ -37,7 +40,7 @@ for p in 1 2; do
 	sleep 10
 done
 
-for p in 1 2; do
+for p in ${SSH_PROTOCOLS}; do
 for d in L R; do
 	trace "exit on -$d forward failure, proto $p"
 
@@ -67,7 +70,7 @@ for d in L R; do
 done
 done
 
-for p in 1 2; do
+for p in ${SSH_PROTOCOLS}; do
 	trace "simple clear forwarding proto $p"
 	${SSH} -$p -F $OBJ/ssh_config -oClearAllForwardings=yes somehost true
 
@@ -110,7 +113,7 @@ done
 
 echo "LocalForward ${base}01 127.0.0.1:$PORT" >> $OBJ/ssh_config
 echo "RemoteForward ${base}02 127.0.0.1:${base}01" >> $OBJ/ssh_config
-for p in 1 2; do
+for p in ${SSH_PROTOCOLS}; do
 	trace "config file: start forwarding, fork to background"
 	${SSH} -S $CTL -M -$p -F $OBJ/ssh_config -f somehost sleep 10
 
