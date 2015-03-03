@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.415 2015/02/20 22:17:21 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.416 2015/03/03 06:48:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -678,6 +678,13 @@ main(int ac, char **av)
 				cp = key_alg_list(1, 0);
 			else if (strcmp(optarg, "key-plain") == 0)
 				cp = key_alg_list(0, 1);
+			else if (strcmp(optarg, "protocol-version") == 0) {
+#ifdef WITH_SSH1
+				cp = xstrdup("1\n2");
+#else
+				cp = xstrdup("2");
+#endif
+			}
 			if (cp == NULL)
 				fatal("Unsupported query \"%s\"", optarg);
 			printf("%s\n", cp);
