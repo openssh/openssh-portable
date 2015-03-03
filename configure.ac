@@ -2572,6 +2572,7 @@ if test "x$openssl" = "xyes" ; then
 	if test "x$check_for_libcrypt_later" = "x1"; then
 		AC_CHECK_LIB([crypt], [crypt], [LIBS="$LIBS -lcrypt"])
 	fi
+	AC_CHECK_FUNCS([crypt DES_crypt])
 
 	# Search for SHA256 support in libc and/or OpenSSL
 	AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
@@ -2710,7 +2711,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_SUBST([COMMENT_OUT_ECC])
 else
 	AC_CHECK_LIB([crypt], [crypt], [LIBS="$LIBS -lcrypt"])
-	AC_CHECK_FUNCS([crypt DES_crypt])
+	AC_CHECK_FUNCS([crypt])
 fi
 
 AC_CHECK_FUNCS([ \
