@@ -1,4 +1,4 @@
-/*	$OpenBSD: fuzz.c,v 1.7 2015/01/18 19:52:44 djm Exp $	*/
+/*	$OpenBSD: fuzz.c,v 1.8 2015/03/03 20:42:49 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -200,7 +200,7 @@ fuzz_dump(struct fuzz *fuzz)
 static struct fuzz *last_fuzz;
 
 static void
-siginfo(int unused __unused)
+siginfo(int unused __attribute__((__unused__)))
 {
 	char buf[256];
 
