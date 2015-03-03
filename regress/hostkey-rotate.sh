@@ -1,4 +1,4 @@
-#	$OpenBSD: hostkey-rotate.sh,v 1.1 2015/01/26 06:12:18 djm Exp $
+#	$OpenBSD: hostkey-rotate.sh,v 1.2 2015/03/03 17:53:40 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey rotate"
@@ -38,11 +38,10 @@ expect_nkeys() {
 check_key_present() {
 	_type=$1
 	_kfile=$2
-	_prog='print $2 " " $3'
 	test "x$_kfile" = "x" && _kfile="$OBJ/hkr.${_type}.pub"
-	_ktext=`awk "/ $_type / { $_prog }" < $OBJ/known_hosts` || \
+	_kpub=`awk "/$_type /"' { print $2 }' < $_kfile` || \
 		fatal "awk failed"
-	grep -q "$_ktext" $_kfile
+	fgrep "$_kpub" $OBJ/known_hosts > /dev/null
 }
 
 cp $OBJ/sshd_proxy.orig $OBJ/sshd_proxy
@@ -110,7 +109,7 @@ dossh -oStrictHostKeyChecking=yes -oHostKeyAlgorithms=ssh-rsa
 expect_nkeys 1 "learn hostkeys"
 check_key_present ssh-rsa || fail "didn't learn changed key"
 
-#	$OpenBSD: hostkey-rotate.sh,v 1.1 2015/01/26 06:12:18 djm Exp $
+#	$OpenBSD: hostkey-rotate.sh,v 1.2 2015/03/03 17:53:40 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey rotate"
