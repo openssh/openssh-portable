@@ -850,4 +850,8 @@ struct winsize {
 # endif /* gcc version */
 #endif /* __predict_true */
 
+#ifndef __unused
+# define __unused
+#endif
+
 #endif /* _DEFINES_H */
