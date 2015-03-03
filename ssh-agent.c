@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.197 2015/01/28 22:36:00 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.198 2015/03/03 21:21:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -541,6 +541,7 @@ reaper(void)
  * XXX this and the corresponding serialisation function probably belongs
  * in key.c
  */
+#ifdef WITH_SSH1
 static int
 agent_decode_rsa1(struct sshbuf *m, struct sshkey **kp)
 {
@@ -655,6 +656,7 @@ process_add_identity(SocketEntry *e, int version)
 send:
 	send_status(e, success);
 }
+#endif /* WITH_SSH1 */
 
 /* XXX todo: encrypt sensitive data with passphrase */
 static void
