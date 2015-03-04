@@ -1,5 +1,5 @@
 %define ver 6.7p1
-%define rel 1
+%define rel 1%{?dist}
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -23,8 +23,13 @@
 # Use GTK2 instead of GNOME in gnome-ssh-askpass
 %define gtk2 1
 
-# Is this build for RHL 6.x?
+# Use build6x options for older RHEL builds
+# RHEL 7 and Fedora not yet supported
+%if %{?rhel} > 6
 %define build6x 0
+%else
+%define build6x 1
+%endif
 
 # Do we want kerberos5 support (1=yes 0=no)
 %define kerberos5 1
@@ -74,9 +79,7 @@ Release: %{rel}
 %endif
 URL: http://www.openssh.com/portable.html
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{version}.tar.gz
-%if ! %{no_x11_askpass}
 Source1: http://www.jmknoble.net/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
-%endif
 License: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
@@ -86,7 +89,8 @@ PreReq: initscripts >= 5.00
 %else
 Requires: initscripts >= 5.20
 %endif
-BuildRequires: perl, openssl-devel
+BuildRequires: perl
+BuildRequires: openssl-devel >= 0.9.8f
 BuildRequires: /bin/login
 %if ! %{build6x}
 BuildPreReq: glibc-devel, pam
@@ -95,6 +99,12 @@ BuildRequires: /usr/include/security/pam_appl.h
 %endif
 %if ! %{no_x11_askpass}
 BuildRequires: /usr/include/X11/Xlib.h
+# Xt development tools
+BuildRequires: libXt-devel
+# Provides xmkmf
+BuildRequires: imake
+# Rely on relatively recent gtk
+BuildRequires: gtk2-devel
 %endif
 %if ! %{no_gnome_askpass}
 BuildRequires: pkgconfig
@@ -183,20 +193,16 @@ environment.
 CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 %endif
 
-%if %{kerberos5}
-K5DIR=`rpm -ql krb5-devel | grep include/krb5.h | sed 's,\/include\/krb5.h,,'`
-echo K5DIR=$K5DIR
-%endif
-
 %configure \
 	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
 	--datadir=%{_datadir}/openssh \
-	--with-rsh=%{_bindir}/rsh \
 	--with-default-path=/usr/local/bin:/bin:/usr/bin \
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
 	--with-privsep-path=%{_var}/empty/sshd \
 	--with-md5-passwords \
+	--mandir=%{_mandir} \
+	--with-mantype=man \
 %if %{scard}
 	--with-smartcard \
 %endif
@@ -406,6 +412,15 @@ fi
 %endif
 
 %changelog
+* Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
+- Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
+- Add 'dist' option to 'ver' so package names reflect OS at build time
+- Always include x11-ssh-askpass tarball in SRPM
+- Add openssh-x11-aspass BuildRequires for libXT-devel, imake, gtk2-devel
+- Discard 'K5DIR' reporting, not usable inside 'mock' for RHEL 5 compatibility
+- Discard obsolete '--with-rsh' configure option
+- Update openssl-devel dependency to 0.9.8f, as found in autoconf
+
 * Wed Jul 14 2010 Tim Rice <tim@multitalents.net>
 - test for skip_x11_askpass (line 77) should have been for no_x11_askpass
 
