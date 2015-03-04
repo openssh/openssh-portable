@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.198 2015/03/03 21:21:13 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.199 2015/03/04 21:12:59 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -866,10 +866,10 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_RSA_IDENTITY:
 		process_remove_identity(e, 1);
 		break;
-	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
-		process_remove_all_identities(e, 1);
-		break;
 #endif
+	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
+		process_remove_all_identities(e, 1); /* safe for !WITH_SSH1 */
+		break;
 	/* ssh2 */
 	case SSH2_AGENTC_SIGN_REQUEST:
 		process_sign_request2(e);
