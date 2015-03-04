@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.3 2015/01/26 06:11:28 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.4 2015/03/04 23:22:35 djm Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -104,6 +104,7 @@ sshkey_fuzz_tests(void)
 	struct fuzz *fuzz;
 	int r;
 
+#ifdef WITH_SSH1
 	TEST_START("fuzz RSA1 private");
 	buf = load_file("rsa1_1");
 	fuzz = fuzz_begin(FUZZ_1_BIT_FLIP | FUZZ_1_BYTE_FLIP |
@@ -147,6 +148,7 @@ sshkey_fuzz_tests(void)
 	sshbuf_free(fuzzed);
 	fuzz_cleanup(fuzz);
 	TEST_DONE();
+#endif
 
 	TEST_START("fuzz RSA private");
 	buf = load_file("rsa_1");
