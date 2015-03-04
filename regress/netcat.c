@@ -46,7 +46,6 @@
 
 #include <errno.h>
 #include <netdb.h>
-#include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +54,14 @@
 #include <fcntl.h>
 #include <limits.h>
 #include "atomicio.h"
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
+# ifdef HAVE_SYS_POLL_H
+#  include <sys/poll.h>
+# endif
+#endif
 
 #ifndef SUN_LEN
 #define SUN_LEN(su) \
