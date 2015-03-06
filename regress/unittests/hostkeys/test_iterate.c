@@ -141,8 +141,10 @@ prepare_expected(struct expected *expected, size_t n)
 	for (i = 0; i < n; i++) {
 		if (expected[i].key_file == NULL)
 			continue;
+#ifndef WITH_SSH1
 		if (expected[i].l.keytype == KEY_RSA1)
 			continue;
+#endif
 		ASSERT_INT_EQ(sshkey_load_public(
 		    test_data_file(expected[i].key_file), &expected[i].l.key,
 		    NULL), 0);
