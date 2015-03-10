@@ -19,7 +19,7 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
-#ifdef OPENSSL_HAS_NISTP256
+#if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
 # include <openssl/ec.h>
 #endif
 
@@ -174,7 +174,10 @@ get_private(const char *n)
 void
 sshkey_tests(void)
 {
-	struct sshkey *k1, *k2, *k3, *k4, *kr, *kd, *ke, *kf;
+	struct sshkey *k1, *k2, *k3, *k4, *kr, *kd, *kf;
+#ifdef OPENSSL_HAS_ECC
+	struct sshkey *ke;
+#endif
 	struct sshbuf *b;
 
 	TEST_START("new invalid");

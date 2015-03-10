@@ -432,9 +432,11 @@ kex_free(struct kex *kex)
 #ifdef WITH_OPENSSL
 	if (kex->dh)
 		DH_free(kex->dh);
+#ifdef OPENSSL_HAS_ECC
 	if (kex->ec_client_key)
 		EC_KEY_free(kex->ec_client_key);
-#endif
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		kex_free_newkeys(kex->newkeys[mode]);
 		kex->newkeys[mode] = NULL;
