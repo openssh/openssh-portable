@@ -184,7 +184,7 @@ t12.out:
 	${TEST_SSH_SSHKEYGEN} -q -t ed25519 -N '' -C 'test-comment-1234' -f $(OBJ)/$@
 
 t12: t12.out
-	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t12.out.pub | grep -q test-comment-1234
+	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t12.out.pub | grep test-comment-1234 >/dev/null
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \

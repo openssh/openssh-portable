@@ -381,7 +381,7 @@ fatal ()
 
 ssh_version ()
 {
-	echo ${SSH_PROTOCOLS} | grep -q "$1"
+	echo ${SSH_PROTOCOLS} | grep "$1" >/dev/null
 }
 
 RESULT=0
