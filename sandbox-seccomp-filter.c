@@ -104,6 +104,7 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_shutdown /* not defined on archs that go via socketcall(2) */
 	SC_ALLOW(shutdown),
 #endif
+	SC_ALLOW(getpeername),
 	SC_ALLOW(brk),
 	SC_ALLOW(poll),
 #ifdef __NR__newselect
