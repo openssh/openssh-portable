@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.266 2015/02/26 20:45:47 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.267 2015/03/23 06:06:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -948,12 +948,16 @@ do_gen_all_hostkeys(struct passwd *pw)
 		char *key_type_display;
 		char *path;
 	} key_types[] = {
+#ifdef WITH_OPENSSL
+#ifdef WITH_SSH1
 		{ "rsa1", "RSA1", _PATH_HOST_KEY_FILE },
+#endif /* WITH_SSH1 */
 		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
 		{ "dsa", "DSA", _PATH_HOST_DSA_KEY_FILE },
 #ifdef OPENSSL_HAS_ECC
 		{ "ecdsa", "ECDSA",_PATH_HOST_ECDSA_KEY_FILE },
-#endif
+#endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
 		{ NULL, NULL, NULL }
 	};
