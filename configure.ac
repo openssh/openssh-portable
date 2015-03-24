@@ -122,7 +122,7 @@ AC_CHECK_DECL([PR_SET_NO_NEW_PRIVS], [have_linux_no_new_privs=1], , [
 ])
 
 openssl=yes
-ssh1=yes
+ssh1=no
 AC_ARG_WITH([openssl],
 	[  --without-openssl       Disable use of OpenSSL; use only limited internal crypto **EXPERIMENTAL** ],
 	[  if test "x$withval" = "xno" ; then
@@ -140,12 +140,13 @@ else
 fi
 
 AC_ARG_WITH([ssh1],
-	[  --without-ssh1          Disable support for SSH protocol 1],
+	[  --with-ssh1             Enable support for SSH protocol 1],
 	[
-		if test "x$withval" = "xno" ; then
-			ssh1=no
-		elif test "x$openssl" = "xno" ; then
-			AC_MSG_ERROR([Cannot enable SSH protocol 1 with OpenSSL disabled])
+		if test "x$withval" = "xyes" ; then
+			if test "x$openssl" = "xno" ; then
+				AC_MSG_ERROR([Cannot enable SSH protocol 1 with OpenSSL disabled])
+			fi
+			ssh1=yes
 		fi
 	]
 )
