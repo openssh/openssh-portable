@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.95 2015/03/24 20:09:11 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.96 2015/03/25 19:21:48 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -469,7 +469,7 @@ ssh_agent_sign(int sock, struct sshkey *key,
 	}
 	if ((r = sshbuf_get_string(msg, sigp, &len)) != 0)
 		goto out;
-	if (*lenp != NULL)
+	if (lenp != NULL)
 		*lenp = len;
 	r = 0;
  out:
