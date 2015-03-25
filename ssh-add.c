@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.120 2015/02/21 21:46:57 halex Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.121 2015/03/25 19:29:58 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -164,11 +164,10 @@ delete_all(int agent_fd)
 {
 	int ret = -1;
 
-	if (ssh_remove_all_identities(agent_fd, 1) == 0)
+	if (ssh_remove_all_identities(agent_fd, 2) == 0)
 		ret = 0;
-	/* ignore error-code for ssh2 */
-	/* XXX revisit */
-	ssh_remove_all_identities(agent_fd, 2);
+	/* ignore error-code for ssh1 */
+	ssh_remove_all_identities(agent_fd, 1);
 
 	if (ret == 0)
 		fprintf(stderr, "All identities removed.\n");
@@ -364,11 +363,16 @@ static int
 list_identities(int agent_fd, int do_fp)
 {
 	char *fp;
-	int version, r, had_identities = 0;
+	int r, had_identities = 0;
 	struct ssh_identitylist *idlist;
 	size_t i;
+#ifdef WITH_SSH1
+	int version = 1;
+#else
+	int version = 2;
+#endif
 
-	for (version = 1; version <= 2; version++) {
+	for (; version <= 2; version++) {
 		if ((r = ssh_fetch_identitylist(agent_fd, version,
 		    &idlist)) != 0) {
 			if (r != SSH_ERR_AGENT_NO_IDENTITIES)
