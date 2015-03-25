@@ -660,14 +660,12 @@ kex_choose_conf(struct ssh *ssh)
 		/* 2nd sever pass ctos = 1 && log flag = 1 so no log*/
 		/* -cjr*/
 		if (ctos && !log_flag) {
-			char *ip = get_peer_ipaddr(ssh_packet_get_connection_in(ssh));
 			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
-			    ip,
-			    get_sock_port(ssh_packet_get_connection_in(ssh), 0),
+			    ssh_get_remote_ipaddr(ssh),
+			    ssh_get_remote_port(ssh),
 			    newkeys->enc.name,
 			    authlen == 0 ? newkeys->mac.name : "<implicit>",
 			    newkeys->comp.name);
-			free(ip);
 		}
 		log_flag = 1;
 	}

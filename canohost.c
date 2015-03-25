@@ -338,13 +338,13 @@ clear_cached_addr(void)
  */
 
 const char *
-get_remote_ipaddr(void)
+ssh_get_remote_ipaddr(struct ssh *ssh)
 {
 	/* Check whether we have cached the ipaddr. */
 	if (canonical_host_ip == NULL) {
-		if (packet_connection_is_on_socket()) {
+		if (ssh_packet_connection_is_on_socket(ssh)) {
 			canonical_host_ip =
-			    get_peer_ipaddr(packet_get_connection_in());
+			    get_peer_ipaddr(ssh_packet_get_connection_in(ssh));
 			if (canonical_host_ip == NULL)
 				cleanup_exit(255);
 		} else {
@@ -353,6 +353,12 @@ get_remote_ipaddr(void)
 		}
 	}
 	return canonical_host_ip;
+}
+
+const char *
+get_remote_ipaddr(void)
+{
+  return ssh_get_remote_ipaddr(active_state);
 }
 
 const char *
@@ -410,17 +416,17 @@ get_sock_port(int sock, int local)
 /* Returns remote/local port number for the current connection. */
 
 static int
-get_port(int local)
+get_port(struct ssh *ssh, int local)
 {
 	/*
 	 * If the connection is not a socket, return 65535.  This is
 	 * intentionally chosen to be an unprivileged port number.
 	 */
-	if (!packet_connection_is_on_socket())
+	if (!ssh_packet_connection_is_on_socket(ssh))
 		return 65535;
 
 	/* Get socket and return the port number. */
-	return get_sock_port(packet_get_connection_in(), local);
+	return get_sock_port(ssh_packet_get_connection_in(ssh), local);
 }
 
 int
@@ -430,17 +436,23 @@ get_peer_port(int sock)
 }
 
 int
-get_remote_port(void)
+ssh_get_remote_port(struct ssh *ssh)
 {
 	/* Cache to avoid getpeername() on a dead connection */
 	if (cached_port == -1)
-		cached_port = get_port(0);
+		cached_port = get_port(ssh, 0);
 
 	return cached_port;
 }
 
 int
+get_remote_port(void)
+{
+	return ssh_get_remote_port(active_state);
+}
+
+int
 get_local_port(void)
 {
-	return get_port(1);
+	return get_port(active_state, 1);
 }
