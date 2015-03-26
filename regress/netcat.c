@@ -1,4 +1,4 @@
-/* $OpenBSD: netcat.c,v 1.127 2015/02/14 22:40:22 jca Exp $ */
+/* $OpenBSD: netcat.c,v 1.128 2015/03/26 10:36:03 tobias Exp $ */
 /*
  * Copyright (c) 2001 Eric Jackson <ericj@monkey.org>
  *
@@ -1034,17 +1034,17 @@ fdpass(int nfd)
 
 	bzero(&pfd, sizeof(pfd));
 	pfd.fd = STDOUT_FILENO;
+	pfd.events = POLLOUT;
 	for (;;) {
 		r = sendmsg(STDOUT_FILENO, &msg, 0);
 		if (r == -1) {
 			if (errno == EAGAIN || errno == EINTR) {
-				pfd.events = POLLOUT;
 				if (poll(&pfd, 1, -1) == -1)
 					err(1, "poll");
 				continue;
 			}
 			err(1, "sendmsg");
-		} else if (r == -1)
+		} else if (r != 1)
 			errx(1, "sendmsg: unexpected return value %zd", r);
 		else
 			break;
