@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.96 2015/03/25 19:21:48 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.97 2015/03/26 19:32:19 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -438,10 +438,8 @@ ssh_agent_sign(int sock, struct sshkey *key,
 	u_int flags = 0;
 	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if (sigp != NULL)
-		*sigp = NULL;
-	if (lenp != NULL)
-		*lenp = 0;
+	*sigp = NULL;
+	*lenp = 0;
 
 	if (datalen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -469,8 +467,7 @@ ssh_agent_sign(int sock, struct sshkey *key,
 	}
 	if ((r = sshbuf_get_string(msg, sigp, &len)) != 0)
 		goto out;
-	if (lenp != NULL)
-		*lenp = len;
+	*lenp = len;
 	r = 0;
  out:
 	if (blob != NULL) {
