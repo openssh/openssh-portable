@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.121 2015/03/25 19:29:58 markus Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.122 2015/03/26 12:32:38 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -79,7 +79,9 @@ static char *default_files[] = {
 #endif
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
+#ifdef WITH_SSH1
 	_PATH_SSH_CLIENT_IDENTITY,
+#endif
 	NULL
 };
 
