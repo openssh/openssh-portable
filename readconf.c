@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.232 2015/02/16 22:13:32 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.233 2015/03/30 00:00:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -763,7 +763,9 @@ process_config_line(Options *options, struct passwd *pw, const char *host,
 	}
 
 	/* Strip trailing whitespace */
-	for (len = strlen(line) - 1; len > 0; len--) {
+	if ((len = strlen(line)) == 0)
+		return 0;
+	for (len--; len > 0; len--) {
 		if (strchr(WHITESPACE, line[len]) == NULL)
 			break;
 		line[len] = '\0';
