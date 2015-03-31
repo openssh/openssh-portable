@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.267 2015/03/23 06:06:38 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.268 2015/03/31 11:06:49 tobias Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1405,6 +1405,7 @@ do_change_comment(struct passwd *pw)
 	}
 	if (private->type != KEY_RSA1) {
 		fprintf(stderr, "Comments are only supported for RSA1 keys.\n");
+		explicit_bzero(passphrase, strlen(passphrase));
 		sshkey_free(private);
 		exit(1);
 	}
