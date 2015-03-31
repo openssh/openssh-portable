@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.64 2015/02/16 22:08:57 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.65 2015/03/31 22:57:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -242,7 +242,8 @@ record_hostkey(struct hostkey_foreach_line *l, void *_ctx)
 	struct hostkey_entry *tmp;
 
 	if (l->status == HKF_STATUS_INVALID) {
-		error("%s:%ld: parse error in hostkeys file",
+		/* XXX make this verbose() in the future */
+		debug("%s:%ld: parse error in hostkeys file",
 		    l->path, l->linenum);
 		return 0;
 	}
@@ -810,7 +811,7 @@ hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
 			memcpy(ktype, lineinfo.rawkey, l);
 			ktype[l] = '\0';
 			lineinfo.keytype = sshkey_type_from_name(ktype);
-#ifdef WITH_SSH1
+
 			/*
 			 * Assume RSA1 if the first component is a short
 			 * decimal number.
@@ -818,7 +819,7 @@ hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
 			if (lineinfo.keytype == KEY_UNSPEC && l < 8 &&
 			    strspn(ktype, "0123456789") == l)
 				lineinfo.keytype = KEY_RSA1;
-#endif
+
 			/*
 			 * Check that something other than whitespace follows
 			 * the key type. This won't catch all corruption, but
