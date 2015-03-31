@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.444 2015/02/20 22:17:21 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.445 2015/03/31 22:55:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1092,8 +1092,6 @@ recv_rexec_state(int fd, Buffer *conf)
 		    sensitive_data.server_key->rsa) != 0)
 			fatal("%s: rsa_generate_additional_parameters "
 			    "error", __func__);
-#else
-		fatal("ssh1 not supported");
 #endif
 	}
 
