@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.15 2015/03/06 01:40:56 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.16 2015/04/03 22:17:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2013,8 +2013,8 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 			ret = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
-		if (sshbuf_get_bignum2(b, key->rsa->e) == -1 ||
-		    sshbuf_get_bignum2(b, key->rsa->n) == -1) {
+		if (sshbuf_get_bignum2(b, key->rsa->e) != 0 ||
+		    sshbuf_get_bignum2(b, key->rsa->n) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
@@ -2035,10 +2035,10 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 			ret = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
-		if (sshbuf_get_bignum2(b, key->dsa->p) == -1 ||
-		    sshbuf_get_bignum2(b, key->dsa->q) == -1 ||
-		    sshbuf_get_bignum2(b, key->dsa->g) == -1 ||
-		    sshbuf_get_bignum2(b, key->dsa->pub_key) == -1) {
+		if (sshbuf_get_bignum2(b, key->dsa->p) != 0 ||
+		    sshbuf_get_bignum2(b, key->dsa->q) != 0 ||
+		    sshbuf_get_bignum2(b, key->dsa->g) != 0 ||
+		    sshbuf_get_bignum2(b, key->dsa->pub_key) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
 			goto out;
 		}
