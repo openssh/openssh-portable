@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.87 2015/01/19 20:20:20 markus Exp $ */
+/* $OpenBSD: compat.c,v 1.88 2015/04/07 23:00:42 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -199,9 +199,11 @@ proto_spec(const char *spec)
 	for ((p = strsep(&q, SEP)); p && *p != '\0'; (p = strsep(&q, SEP))) {
 		switch (atoi(p)) {
 		case 1:
+#ifdef WITH_SSH1
 			if (ret == SSH_PROTO_UNKNOWN)
 				ret |= SSH_PROTO_1_PREFERRED;
 			ret |= SSH_PROTO_1;
+#endif
 			break;
 		case 2:
 			ret |= SSH_PROTO_2;
