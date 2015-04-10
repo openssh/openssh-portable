@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.88 2015/04/07 23:00:42 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.89 2015/04/10 05:16:50 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -167,6 +167,17 @@ compat_datafellows(const char *version)
 					SSH_BUG_SCANNER },
 		{ "Probe-*",
 					SSH_BUG_PROBE },
+		{ "TeraTerm SSH*,"
+		  "TTSSH/1.5.*,"
+		  "TTSSH/2.1*,"
+		  "TTSSH/2.2*,"
+		  "TTSSH/2.3*,"
+		  "TTSSH/2.4*,"
+		  "TTSSH/2.5*,"
+		  "TTSSH/2.6*,"
+		  "TTSSH/2.70*,"
+		  "TTSSH/2.71*,"
+		  "TTSSH/2.72*",	SSH_BUG_HOSTKEYS },
 		{ NULL,			0 }
 	};
 
