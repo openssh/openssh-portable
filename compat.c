@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.89 2015/04/10 05:16:50 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.90 2015/04/13 02:04:08 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -165,6 +165,7 @@ compat_datafellows(const char *version)
 		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
+		{ "PuTTY*",		SSH_OLD_DHGEX },
 		{ "Probe-*",
 					SSH_BUG_PROBE },
 		{ "TeraTerm SSH*,"
@@ -284,15 +285,20 @@ compat_pkalg_proposal(char *pkalg_prop)
 }
 
 char *
-compat_kex_proposal(char *kex_prop)
+compat_kex_proposal(char *p)
 {
-	if (!(datafellows & SSH_BUG_CURVE25519PAD))
-		return kex_prop;
-	debug2("%s: original KEX proposal: %s", __func__, kex_prop);
-	kex_prop = filter_proposal(kex_prop, "curve25519-sha256@libssh.org");
-	debug2("%s: compat KEX proposal: %s", __func__, kex_prop);
-	if (*kex_prop == '\0')
+	if ((datafellows & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
+		return p;
+	debug2("%s: original KEX proposal: %s", __func__, p);
+	if ((datafellows & SSH_BUG_CURVE25519PAD) != 0)
+		p = filter_proposal(p, "curve25519-sha256@libssh.org");
+	if ((datafellows & SSH_OLD_DHGEX) != 0) {
+		p = filter_proposal(p, "diffie-hellman-group-exchange-sha256");
+		p = filter_proposal(p, "diffie-hellman-group-exchange-sha1");
+	}
+	debug2("%s: compat KEX proposal: %s", __func__, p);
+	if (*p == '\0')
 		fatal("No supported key exchange algorithms found");
-	return kex_prop;
+	return p;
 }
 
