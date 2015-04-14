@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.260 2015/03/24 01:11:12 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.261 2015/04/14 04:17:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1350,6 +1350,7 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 
 	/* key exchange */
 	/* authenticate user */
+	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
 	if (compat20) {
 		ssh_kex2(host, hostaddr, port);
 		ssh_userauth2(local_user, server_user, host, sensitive);
