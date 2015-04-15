@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.446 2015/04/10 05:16:50 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.447 2015/04/15 23:23:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1455,7 +1455,7 @@ main(int ac, char **av)
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
-	char *fp, *line, *logfile = NULL;
+	char *fp, *line, *laddr, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
 	u_int n;
 	u_int64_t ibytes, obytes;
@@ -2130,9 +2130,10 @@ main(int ac, char **av)
 #endif
 
 	/* Log the connection. */
+	laddr = get_local_ipaddr(sock_in);
 	verbose("Connection from %s port %d on %s port %d",
-	    remote_ip, remote_port,
-	    get_local_ipaddr(sock_in), get_local_port());
+	    remote_ip, remote_port, laddr,  get_local_port());
+	free(laddr);
 
 	/*
 	 * We don't want to listen forever unless the other side
