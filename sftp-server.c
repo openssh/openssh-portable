@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pwd.h>
 #include <time.h>
 #include <unistd.h>
 #include <stdarg.h>
