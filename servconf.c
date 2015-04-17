@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.260 2015/02/02 01:57:44 deraadt Exp $ */
+/* $OpenBSD: servconf.c,v 1.261 2015/04/17 04:12:35 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2056,6 +2056,8 @@ dump_cfg_strarray_oneline(ServerOpCodes code, u_int count, char **vals)
 {
 	u_int i;
 
+	if (count <= 0)
+		return;
 	printf("%s", lookup_opcode_name(code));
 	for (i = 0; i < count; i++)
 		printf(" %s",  vals[i]);
@@ -2104,6 +2106,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sMaxSessions, o->max_sessions);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
+	dump_cfg_int(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);
 
 	/* formatted integer arguments */
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);
@@ -2147,6 +2150,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sGatewayPorts, o->fwd_opts.gateway_ports);
 	dump_cfg_fmtint(sUseDNS, o->use_dns);
 	dump_cfg_fmtint(sAllowTcpForwarding, o->allow_tcp_forwarding);
+	dump_cfg_fmtint(sAllowAgentForwarding, o->allow_agent_forwarding);
 	dump_cfg_fmtint(sAllowStreamLocalForwarding, o->allow_streamlocal_forwarding);
 	dump_cfg_fmtint(sUsePrivilegeSeparation, use_privsep);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
@@ -2163,7 +2167,8 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sRevokedKeys, o->revoked_keys_file);
 	dump_cfg_string(sAuthorizedPrincipalsFile,
 	    o->authorized_principals_file);
-	dump_cfg_string(sVersionAddendum, o->version_addendum);
+	dump_cfg_string(sVersionAddendum, *o->version_addendum == '\0'
+	    ? "none" : o->version_addendum);
 	dump_cfg_string(sAuthorizedKeysCommand, o->authorized_keys_command);
 	dump_cfg_string(sAuthorizedKeysCommandUser, o->authorized_keys_command_user);
 	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
@@ -2183,7 +2188,7 @@ dump_config(ServerOptions *o)
 	    o->authorized_keys_files);
 	dump_cfg_strarray(sHostKeyFile, o->num_host_key_files,
 	     o->host_key_files);
-	dump_cfg_strarray(sHostKeyFile, o->num_host_cert_files,
+	dump_cfg_strarray(sHostCertificate, o->num_host_cert_files,
 	     o->host_cert_files);
 	dump_cfg_strarray(sAllowUsers, o->num_allow_users, o->allow_users);
 	dump_cfg_strarray(sDenyUsers, o->num_deny_users, o->deny_users);
