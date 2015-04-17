@@ -653,10 +653,13 @@ mm_answer_moduli(int sock, Buffer *m)
 {
 	DH *dh;
 	int min, want, max;
+	const char *moduli_file;
+	u_int datlen;
 
 	min = buffer_get_int(m);
 	want = buffer_get_int(m);
 	max = buffer_get_int(m);
+	moduli_file = buffer_get_string(m, &datlen);
 
 	debug3("%s: got parameters: %d %d %d",
 	    __func__, min, want, max);
@@ -667,7 +670,7 @@ mm_answer_moduli(int sock, Buffer *m)
 
 	buffer_clear(m);
 
-	dh = choose_dh(min, want, max);
+	dh = choose_dh(min, want, max, moduli_file);
 	if (dh == NULL) {
 		buffer_put_char(m, 0);
 		return (0);

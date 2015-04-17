@@ -16,6 +16,8 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
+#include "misc.h"
+
 #define MAX_PORTS		256	/* Max # ports. */
 
 #define MAX_ALLOW_USERS		256	/* Max # users on allow list. */
@@ -66,6 +68,7 @@ typedef struct {
 	char   *host_cert_files[MAX_HOSTCERTS];	/* Files containing host certs. */
 	int     num_host_cert_files;     /* Number of files for host certs. */
 	char   *host_key_agent;		 /* ssh-agent socket for host keys. */
+	char   *moduli_file;		 /* DH Moduli file. */
 	char   *pid_file;	/* Where to put our pid */
 	int     server_key_bits;/* Size of the server key. */
 	int     login_grace_time;	/* Disconnect if no auth in this time
