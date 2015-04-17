@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.145 2015/02/20 22:17:21 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.146 2015/04/17 04:32:31 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1473,6 +1473,9 @@ mm_record_login(Session *s, struct passwd *pw)
 {
 	socklen_t fromlen;
 	struct sockaddr_storage from;
+
+	if (options.use_login)
+		return;
 
 	/*
 	 * Get IP address of client. If the connection is not a socket, let
