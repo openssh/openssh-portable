@@ -2094,7 +2094,7 @@ dump_config(ServerOptions *o)
 
 	/* integer arguments */
 #ifdef USE_PAM
-	dump_cfg_int(sUsePAM, o->use_pam);
+	dump_cfg_fmtint(sUsePAM, o->use_pam);
 #endif
 	dump_cfg_int(sServerKeyBits, o->server_key_bits);
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
