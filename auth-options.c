@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.65 2015/01/14 10:30:34 markus Exp $ */
+/* $OpenBSD: auth-options.c,v 1.66 2015/04/22 01:24:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -603,7 +603,7 @@ auth_cert_options(struct sshkey *k, struct passwd *pw)
 		    &cert_source_address_done) == -1)
 			return -1;
 		if (parse_option_list(k->cert->extensions, pw,
-		    OPTIONS_EXTENSIONS, 1,
+		    OPTIONS_EXTENSIONS, 0,
 		    &cert_no_port_forwarding_flag,
 		    &cert_no_agent_forwarding_flag,
 		    &cert_no_x11_forwarding_flag,
