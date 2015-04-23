@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.262 2015/04/23 04:53:53 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.263 2015/04/23 04:59:10 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2028,6 +2028,12 @@ dump_cfg_int(ServerOpCodes code, int val)
 }
 
 static void
+dump_cfg_oct(ServerOpCodes code, int val)
+{
+	printf("%s 0%o\n", lookup_opcode_name(code), val);
+}
+
+static void
 dump_cfg_fmtint(ServerOpCodes code, int val)
 {
 	printf("%s %s\n", lookup_opcode_name(code), fmt_intarg(code, val));
@@ -2071,6 +2077,7 @@ dump_config(ServerOptions *o)
 	int ret;
 	struct addrinfo *ai;
 	char addr[NI_MAXHOST], port[NI_MAXSERV], *s = NULL;
+	char *laddr1 = xstrdup(""), *laddr2 = NULL;
 
 	/* these are usually at the top of the config */
 	for (i = 0; i < o->num_ports; i++)
@@ -2078,7 +2085,11 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sProtocol, o->protocol);
 	dump_cfg_fmtint(sAddressFamily, o->address_family);
 
-	/* ListenAddress must be after Port */
+	/*
+	 * ListenAddress must be after Port.  add_one_listen_addr pushes
+	 * addresses onto a stack, so to maintain ordering we need to
+	 * print these in reverse order.
+	 */
 	for (ai = o->listen_addrs; ai; ai = ai->ai_next) {
 		if ((ret = getnameinfo(ai->ai_addr, ai->ai_addrlen, addr,
 		    sizeof(addr), port, sizeof(port),
@@ -2087,12 +2098,18 @@ dump_config(ServerOptions *o)
 			    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
 			    strerror(errno));
 		} else {
+			laddr2 = laddr1;
 			if (ai->ai_family == AF_INET6)
-				printf("listenaddress [%s]:%s\n", addr, port);
+				xasprintf(&laddr1, "listenaddress [%s]:%s\n%s",
+				    addr, port, laddr2);
 			else
-				printf("listenaddress %s:%s\n", addr, port);
+				xasprintf(&laddr1, "listenaddress %s:%s\n%s",
+				    addr, port, laddr2);
+			free(laddr2);
 		}
 	}
+	printf("%s", laddr1);
+	free(laddr1);
 
 	/* integer arguments */
 #ifdef USE_PAM
@@ -2106,7 +2123,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sMaxSessions, o->max_sessions);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
-	dump_cfg_int(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);
+	dump_cfg_oct(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);
 
 	/* formatted integer arguments */
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);
