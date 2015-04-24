@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.341 2015/02/06 23:21:59 millert Exp $ */
+/* $OpenBSD: channels.c,v 1.342 2015/04/24 01:36:00 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -306,7 +306,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		if (channels_alloc > 10000)
 			fatal("channel_new: internal error: channels_alloc %d "
 			    "too big.", channels_alloc);
-		channels = xrealloc(channels, channels_alloc + 10,
+		channels = xreallocarray(channels, channels_alloc + 10,
 		    sizeof(Channel *));
 		channels_alloc += 10;
 		debug2("channel: expanding %d", channels_alloc);
@@ -2192,8 +2192,8 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 
 	/* perhaps check sz < nalloc/2 and shrink? */
 	if (*readsetp == NULL || sz > *nallocp) {
-		*readsetp = xrealloc(*readsetp, nfdset, sizeof(fd_mask));
-		*writesetp = xrealloc(*writesetp, nfdset, sizeof(fd_mask));
+		*readsetp = xreallocarray(*readsetp, nfdset, sizeof(fd_mask));
+		*writesetp = xreallocarray(*writesetp, nfdset, sizeof(fd_mask));
 		*nallocp = sz;
 	}
 	*maxfdp = n;
@@ -3237,7 +3237,7 @@ channel_request_remote_forwarding(struct Forward *fwd)
 	}
 	if (success) {
 		/* Record that connection to this host/port is permitted. */
-		permitted_opens = xrealloc(permitted_opens,
+		permitted_opens = xreallocarray(permitted_opens,
 		    num_permitted_opens + 1, sizeof(*permitted_opens));
 		idx = num_permitted_opens++;
 		if (fwd->connect_path != NULL) {
@@ -3468,7 +3468,7 @@ channel_add_permitted_opens(char *host, int port)
 {
 	debug("allow port forwarding to host %s port %d", host, port);
 
-	permitted_opens = xrealloc(permitted_opens,
+	permitted_opens = xreallocarray(permitted_opens,
 	    num_permitted_opens + 1, sizeof(*permitted_opens));
 	permitted_opens[num_permitted_opens].host_to_connect = xstrdup(host);
 	permitted_opens[num_permitted_opens].port_to_connect = port;
@@ -3518,7 +3518,7 @@ channel_add_adm_permitted_opens(char *host, int port)
 {
 	debug("config allows port forwarding to host %s port %d", host, port);
 
-	permitted_adm_opens = xrealloc(permitted_adm_opens,
+	permitted_adm_opens = xreallocarray(permitted_adm_opens,
 	    num_adm_permitted_opens + 1, sizeof(*permitted_adm_opens));
 	permitted_adm_opens[num_adm_permitted_opens].host_to_connect
 	     = xstrdup(host);

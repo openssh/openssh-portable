@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.199 2015/03/04 21:12:59 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.200 2015/04/24 01:36:01 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -929,7 +929,7 @@ new_socket(sock_type type, int fd)
 		}
 	old_alloc = sockets_alloc;
 	new_alloc = sockets_alloc + 10;
-	sockets = xrealloc(sockets, new_alloc, sizeof(sockets[0]));
+	sockets = xreallocarray(sockets, new_alloc, sizeof(sockets[0]));
 	for (i = old_alloc; i < new_alloc; i++)
 		sockets[i].type = AUTH_UNUSED;
 	sockets_alloc = new_alloc;

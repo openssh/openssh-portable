@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.117 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.118 2015/04/24 01:36:00 deraadt Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -621,7 +621,7 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 				error("Server sent suspect path \"%s\" "
 				    "during readdir of \"%s\"", filename, path);
 			} else if (dir) {
-				*dir = xrealloc(*dir, ents + 2, sizeof(**dir));
+				*dir = xreallocarray(*dir, ents + 2, sizeof(**dir));
 				(*dir)[ents] = xcalloc(1, sizeof(***dir));
 				(*dir)[ents]->filename = xstrdup(filename);
 				(*dir)[ents]->longname = xstrdup(longname);

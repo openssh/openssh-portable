@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.17 2015/02/03 08:07:20 deraadt Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.18 2015/04/24 01:36:01 deraadt Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -527,7 +527,7 @@ pkcs11_fetch_keys_filter(struct pkcs11_provider *p, CK_ULONG slotidx,
 				sshkey_free(key);
 			} else {
 				/* expand key array and add key */
-				*keysp = xrealloc(*keysp, *nkeys + 1,
+				*keysp = xreallocarray(*keysp, *nkeys + 1,
 				    sizeof(struct sshkey *));
 				(*keysp)[*nkeys] = key;
 				*nkeys = *nkeys + 1;

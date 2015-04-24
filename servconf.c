@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.263 2015/04/23 04:59:10 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.264 2015/04/24 01:36:00 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1444,7 +1444,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		len = strlen(p) + 1;
 		while ((arg = strdelim(&cp)) != NULL && *arg != '\0') {
 			len += 1 + strlen(arg);
-			p = xrealloc(p, 1, len);
+			p = xreallocarray(p, 1, len);
 			strlcat(p, " ", len);
 			strlcat(p, arg, len);
 		}

@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.50 2015/01/20 23:14:00 deraadt Exp $ */
+/* $OpenBSD: mux.c,v 1.51 2015/04/24 01:36:00 deraadt Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -350,7 +350,7 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 			free(cp);
 			continue;
 		}
-		cctx->env = xrealloc(cctx->env, env_len + 2,
+		cctx->env = xreallocarray(cctx->env, env_len + 2,
 		    sizeof(*cctx->env));
 		cctx->env[env_len++] = cp;
 		cctx->env[env_len] = NULL;

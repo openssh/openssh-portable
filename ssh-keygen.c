@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.269 2015/04/17 13:19:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.270 2015/04/24 01:36:01 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1592,7 +1592,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			otmp = tmp = xstrdup(cert_principals);
 			plist = NULL;
 			for (; (cp = strsep(&tmp, ",")) != NULL; n++) {
-				plist = xrealloc(plist, n + 1, sizeof(*plist));
+				plist = xreallocarray(plist, n + 1, sizeof(*plist));
 				if (*(plist[n] = xstrdup(cp)) == '\0')
 					fatal("Empty principal name");
 			}
