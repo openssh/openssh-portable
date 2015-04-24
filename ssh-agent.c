@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.200 2015/04/24 01:36:01 deraadt Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.201 2015/04/24 05:26:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1146,7 +1146,7 @@ usage(void)
 int
 main(int ac, char **av)
 {
-	int c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0;
+	int c_flag = 0, d_flag = 0, D_flag = 0, k_flag = 0, s_flag = 0;
 	int sock, fd, ch, result, saved_errno;
 	u_int nalloc;
 	char *shell, *format, *pidstr, *agentsocket = NULL;
@@ -1181,7 +1181,7 @@ main(int ac, char **av)
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
 
-	while ((ch = getopt(ac, av, "cdksE:a:t:")) != -1) {
+	while ((ch = getopt(ac, av, "cDdksE:a:t:")) != -1) {
 		switch (ch) {
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
@@ -1202,9 +1202,14 @@ main(int ac, char **av)
 			s_flag++;
 			break;
 		case 'd':
-			if (d_flag)
+			if (d_flag || D_flag)
 				usage();
 			d_flag++;
+			break;
+		case 'D':
+			if (d_flag || D_flag)
+				usage();
+			D_flag++;
 			break;
 		case 'a':
 			agentsocket = optarg;
@@ -1222,7 +1227,7 @@ main(int ac, char **av)
 	ac -= optind;
 	av += optind;
 
-	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag))
+	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag || D_flag))
 		usage();
 
 	if (ac == 0 && !c_flag && !s_flag) {
@@ -1291,8 +1296,10 @@ main(int ac, char **av)
 	 * Fork, and have the parent execute the command, if any, or present
 	 * the socket data.  The child continues as the authentication agent.
 	 */
-	if (d_flag) {
-		log_init(__progname, SYSLOG_LEVEL_DEBUG1, SYSLOG_FACILITY_AUTH, 1);
+	if (D_flag || d_flag) {
+		log_init(__progname,
+		    d_flag ? SYSLOG_LEVEL_DEBUG3 : SYSLOG_LEVEL_INFO,
+		    SYSLOG_FACILITY_AUTH, 1);
 		format = c_flag ? "setenv %s %s;\n" : "%s=%s; export %s;\n";
 		printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
 		    SSH_AUTHSOCKET_ENV_NAME);
@@ -1364,7 +1371,7 @@ skip:
 		parent_alive_interval = 10;
 	idtab_init();
 	signal(SIGPIPE, SIG_IGN);
-	signal(SIGINT, d_flag ? cleanup_handler : SIG_IGN);
+	signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	signal(SIGHUP, cleanup_handler);
 	signal(SIGTERM, cleanup_handler);
 	nalloc = 0;
