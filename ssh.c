@@ -1907,7 +1907,7 @@ ssh_session2_open(void)
 
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (tty_flag) {
-		window = 4*CHAN_SES_PACKET_DEFAULT;
+		window = CHAN_SES_WINDOW_DEFAULT;
 		window >>= 1;
 		packetmax >>= 1;
 	}
