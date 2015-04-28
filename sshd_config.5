@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.196 2015/04/27 21:42:48 djm Exp $
-.Dd $Mdocdate: April 27 2015 $
+.\" $OpenBSD: sshd_config.5,v 1.197 2015/04/28 10:17:58 dtucker Exp $
+.Dd $Mdocdate: April 28 2015 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -70,7 +70,11 @@ See
 in
 .Xr ssh_config 5
 for how to configure the client.
-Note that environment passing is only supported for protocol 2.
+Note that environment passing is only supported for protocol 2, and
+that the
+.Ev TERM
+enviroment variable is always sent whenever the client
+requests  apseudo-terminal is requested as it is required by the protocol.
 Variables are specified by name, which may contain the wildcard characters
 .Ql *
 and
