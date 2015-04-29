@@ -157,6 +157,7 @@ initialize_server_options(ServerOptions *options)
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
 	options->authorized_keys_command = NULL;
+	options->authorized_keys_command_owner = NULL;
 	options->authorized_keys_command_user = NULL;
 	options->revoked_keys_file = NULL;
 	options->trusted_user_ca_keys = NULL;
@@ -401,7 +402,7 @@ typedef enum {
 	sHostCertificate,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
 	sKexAlgorithms, sIPQoS, sVersionAddendum,
-	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
+	sAuthorizedKeysCommand, sAuthorizedKeysCommandOwner, sAuthorizedKeysCommandUser,
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash,
@@ -531,6 +532,7 @@ static struct {
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
 	{ "authorizedkeyscommand", sAuthorizedKeysCommand, SSHCFG_ALL },
+	{ "authorizedkeyscommandowner", sAuthorizedKeysCommandOwner, SSHCFG_ALL },
 	{ "authorizedkeyscommanduser", sAuthorizedKeysCommandUser, SSHCFG_ALL },
 	{ "versionaddendum", sVersionAddendum, SSHCFG_GLOBAL },
 	{ "authenticationmethods", sAuthenticationMethods, SSHCFG_ALL },
@@ -1725,6 +1727,14 @@ process_server_config_line(ServerOptions *options, char *line,
 		}
 		return 0;
 
+	case sAuthorizedKeysCommandOwner:
+		charptr = &options->authorized_keys_command_owner;
+
+		arg = strdelim(&cp);
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
+
 	case sAuthorizedKeysCommandUser:
 		charptr = &options->authorized_keys_command_user;
 
@@ -2227,6 +2237,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sVersionAddendum, *o->version_addendum == '\0'
 	    ? "none" : o->version_addendum);
 	dump_cfg_string(sAuthorizedKeysCommand, o->authorized_keys_command);
+	dump_cfg_string(sAuthorizedKeysCommandOwner, o->authorized_keys_command_owner);
 	dump_cfg_string(sAuthorizedKeysCommandUser, o->authorized_keys_command_user);
 	dump_cfg_string(sHostKeyAgent, o->host_key_agent);
 	dump_cfg_string(sKexAlgorithms,
