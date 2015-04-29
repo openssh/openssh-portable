@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.116 2015/01/13 07:39:19 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.117 2015/04/29 03:48:56 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -58,7 +58,9 @@ typedef struct {
 	u_int	num_ports;
 	u_int	ports_from_cmdline;
 	int	ports[MAX_PORTS];	/* Port number to listen on. */
-	char   *listen_addr;		/* Address on which the server listens. */
+	u_int	num_queued_listens;
+	char   **queued_listen_addrs;
+	int    *queued_listen_ports;
 	struct addrinfo *listen_addrs;	/* Addresses on which the server listens. */
 	int     address_family;		/* Address family used by the server. */
 	char   *host_key_files[MAX_HOSTKEYS];	/* Files containing host keys. */

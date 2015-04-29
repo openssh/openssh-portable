@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.265 2015/04/27 21:42:48 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.266 2015/04/29 03:48:56 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -78,6 +78,8 @@ initialize_server_options(ServerOptions *options)
 	/* Standard Options */
 	options->num_ports = 0;
 	options->ports_from_cmdline = 0;
+	options->queued_listen_addrs = NULL;
+	options->num_queued_listens = 0;
 	options->listen_addrs = NULL;
 	options->address_family = -1;
 	options->num_host_key_files = 0;
@@ -205,6 +207,8 @@ fill_default_server_options(ServerOptions *options)
 	/* No certificates by default */
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
+	if (options->address_family == -1)
+		options->address_family = AF_UNSPEC;
 	if (options->listen_addrs == NULL)
 		add_listen_addr(options, NULL, 0);
 	if (options->pid_file == NULL)
@@ -591,10 +595,6 @@ add_listen_addr(ServerOptions *options, char *addr, int port)
 {
 	u_int i;
 
-	if (options->num_ports == 0)
-		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
-	if (options->address_family == -1)
-		options->address_family = AF_UNSPEC;
 	if (port == 0)
 		for (i = 0; i < options->num_ports; i++)
 			add_one_listen_addr(options, addr, options->ports[i]);
@@ -622,6 +622,51 @@ add_one_listen_addr(ServerOptions *options, char *addr, int port)
 		;
 	ai->ai_next = options->listen_addrs;
 	options->listen_addrs = aitop;
+}
+
+/*
+ * Queue a ListenAddress to be processed once we have all of the Ports
+ * and AddressFamily options.
+ */
+static void
+queue_listen_addr(ServerOptions *options, char *addr, int port)
+{
+	options->queued_listen_addrs = xreallocarray(
+	    options->queued_listen_addrs, options->num_queued_listens + 1,
+	    sizeof(addr));
+	options->queued_listen_ports = xreallocarray(
+	    options->queued_listen_ports, options->num_queued_listens + 1,
+	    sizeof(port));
+	options->queued_listen_addrs[options->num_queued_listens] =
+	    xstrdup(addr);
+	options->queued_listen_ports[options->num_queued_listens] = port;
+	options->num_queued_listens++;
+}
+
+/*
+ * Process queued (text) ListenAddress entries.
+ */
+static void
+process_queued_listen_addrs(ServerOptions *options)
+{
+	u_int i;
+
+	if (options->num_ports == 0)
+		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
+	if (options->address_family == -1)
+		options->address_family = AF_UNSPEC;
+
+	for (i = 0; i < options->num_queued_listens; i++) {
+		add_listen_addr(options, options->queued_listen_addrs[i],
+		    options->queued_listen_ports[i]);
+		free(options->queued_listen_addrs[i]);
+		options->queued_listen_addrs[i] = NULL;
+	}
+	free(options->queued_listen_addrs);
+	options->queued_listen_addrs = NULL;
+	free(options->queued_listen_ports);
+	options->queued_listen_ports = NULL;
+	options->num_queued_listens = 0;
 }
 
 struct connection_info *
@@ -940,9 +985,6 @@ process_server_config_line(ServerOptions *options, char *line,
 		/* ignore ports from configfile if cmdline specifies ports */
 		if (options->ports_from_cmdline)
 			return 0;
-		if (options->listen_addrs != NULL)
-			fatal("%s line %d: ports must be specified before "
-			    "ListenAddress.", filename, linenum);
 		if (options->num_ports >= MAX_PORTS)
 			fatal("%s line %d: too many ports.",
 			    filename, linenum);
@@ -994,7 +1036,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		/* check for bare IPv6 address: no "[]" and 2 or more ":" */
 		if (strchr(arg, '[') == NULL && (p = strchr(arg, ':')) != NULL
 		    && strchr(p+1, ':') != NULL) {
-			add_listen_addr(options, arg, 0);
+			queue_listen_addr(options, arg, 0);
 			break;
 		}
 		p = hpdelim(&arg);
@@ -1007,16 +1049,13 @@ process_server_config_line(ServerOptions *options, char *line,
 		else if ((port = a2port(arg)) <= 0)
 			fatal("%s line %d: bad port number", filename, linenum);
 
-		add_listen_addr(options, p, port);
+		queue_listen_addr(options, p, port);
 
 		break;
 
 	case sAddressFamily:
 		intptr = &options->address_family;
 		multistate_ptr = multistate_addressfamily;
-		if (options->listen_addrs != NULL)
-			fatal("%s line %d: address family must be specified "
-			    "before ListenAddress.", filename, linenum);
  parse_multistate:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
@@ -1951,6 +1990,7 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);
+	process_queued_listen_addrs(options);
 }
 
 static const char *
