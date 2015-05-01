@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.211 2015/04/27 01:52:30 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.212 2015/05/01 07:10:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1920,9 +1920,19 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 		logit("Connection closed by %.200s", ssh_remote_ipaddr(ssh));
 		cleanup_exit(255);
 	case SSH_ERR_CONN_TIMEOUT:
-		logit("Connection to %.200s timed out while "
-		    "waiting to write", ssh_remote_ipaddr(ssh));
+		logit("Connection to %.200s timed out", ssh_remote_ipaddr(ssh));
 		cleanup_exit(255);
+	case SSH_ERR_DISCONNECTED:
+		logit("Disconnected from %.200s",
+		    ssh_remote_ipaddr(ssh));
+		cleanup_exit(255);
+	case SSH_ERR_SYSTEM_ERROR:
+		if (errno == ECONNRESET) {
+			logit("Connection reset by %.200s",
+			    ssh_remote_ipaddr(ssh));
+			cleanup_exit(255);
+		}
+		/* FALLTHROUGH */
 	default:
 		fatal("%s%sConnection to %.200s: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
