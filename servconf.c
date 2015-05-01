@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.267 2015/05/01 04:17:51 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.268 2015/05/01 07:08:08 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1018,7 +1018,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if ((value = convtime(arg)) == -1)
 			fatal("%s line %d: invalid time value.",
 			    filename, linenum);
-		if (*intptr == -1)
+		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
 
@@ -1596,7 +1596,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (value == -1)
 			fatal("%s line %d: Bad yes/point-to-point/ethernet/"
 			    "no argument: %s", filename, linenum, arg);
-		if (*intptr == -1)
+		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
 
@@ -1735,7 +1735,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		break;
 
 	case sAuthenticationMethods:
-		if (*activep && options->num_auth_methods == 0) {
+		if (options->num_auth_methods == 0) {
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_auth_methods >=
 				    MAX_AUTH_METHODS)
@@ -1746,6 +1746,8 @@ process_server_config_line(ServerOptions *options, char *line,
 					fatal("%s line %d: invalid "
 					    "authentication method list.",
 					    filename, linenum);
+				if (!*activep)
+					continue;
 				options->auth_methods[
 				    options->num_auth_methods++] = xstrdup(arg);
 			}
@@ -1755,13 +1757,14 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sStreamLocalBindMask:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing StreamLocalBindMask argument.",
-			    filename, linenum);
+			fatal("%s line %d: missing StreamLocalBindMask "
+			    "argument.", filename, linenum);
 		/* Parse mode in octal format */
 		value = strtol(arg, &p, 8);
 		if (arg == p || value < 0 || value > 0777)
 			fatal("%s line %d: Bad mask.", filename, linenum);
-		options->fwd_opts.streamlocal_bind_mask = (mode_t)value;
+		if (*activep)
+			options->fwd_opts.streamlocal_bind_mask = (mode_t)value;
 		break;
 
 	case sStreamLocalBindUnlink:
