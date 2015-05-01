@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.147 2015/04/27 01:52:30 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.148 2015/05/01 03:23:51 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1185,7 +1185,7 @@ mm_answer_keyallowed(int sock, Buffer *m)
 	Key *key;
 	char *cuser, *chost;
 	u_char *blob;
-	u_int bloblen;
+	u_int bloblen, pubkey_auth_attempt;
 	enum mm_keytype type = 0;
 	int allowed = 0;
 
@@ -1195,6 +1195,7 @@ mm_answer_keyallowed(int sock, Buffer *m)
 	cuser = buffer_get_string(m, NULL);
 	chost = buffer_get_string(m, NULL);
 	blob = buffer_get_string(m, &bloblen);
+	pubkey_auth_attempt = buffer_get_int(m);
 
 	key = key_from_blob(blob, bloblen);
 
@@ -1217,10 +1218,12 @@ mm_answer_keyallowed(int sock, Buffer *m)
 			    match_pattern_list(sshkey_ssh_name(key),
 			    options.pubkey_key_types,
 			    strlen(options.pubkey_key_types), 0) == 1 &&
-			    user_key_allowed(authctxt->pw, key);
+			    user_key_allowed(authctxt->pw, key,
+			    pubkey_auth_attempt);
 			pubkey_auth_info(authctxt, key, NULL);
 			auth_method = "publickey";
-			if (options.pubkey_authentication && allowed != 1)
+			if (options.pubkey_authentication &&
+			    (!pubkey_auth_attempt || allowed != 1))
 				auth_clear_options();
 			break;
 		case MM_HOSTKEY:
