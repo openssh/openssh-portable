@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.52 2015/05/01 04:01:58 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.53 2015/05/01 04:03:20 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -593,7 +593,9 @@ mux_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 		return;
 	}
 	buffer_init(&out);
-	if (fctx->fid >= options.num_remote_forwards) {
+	if (fctx->fid >= options.num_remote_forwards ||
+	    (options.remote_forwards[fctx->fid].connect_path == NULL &&
+	    options.remote_forwards[fctx->fid].connect_host == NULL)) {
 		xasprintf(&failmsg, "unknown forwarding id %d", fctx->fid);
 		goto fail;
 	}
@@ -627,6 +629,17 @@ mux_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 		else
 			xasprintf(&failmsg, "remote port forwarding failed for "
 			    "listen port %d", rfwd->listen_port);
+
+                debug2("%s: clearing registered forwarding for listen %d, "
+		    "connect %s:%d", __func__, rfwd->listen_port,
+		    rfwd->connect_path ? rfwd->connect_path :
+		    rfwd->connect_host, rfwd->connect_port);
+
+		free(rfwd->listen_host);
+		free(rfwd->listen_path);
+		free(rfwd->connect_host);
+		free(rfwd->connect_path);
+		memset(rfwd, 0, sizeof(*rfwd));
 	}
  fail:
 	error("%s: %s", __func__, failmsg);
