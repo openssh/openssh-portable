@@ -169,7 +169,7 @@ userauth_pubkey(Authctxt *authctxt)
 
 		/* test for correct signature */
 		authenticated = 0;
-		if (PRIVSEP(user_key_allowed(authctxt->pw, key)) &&
+		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
 		    buffer_len(&b))) == 1) {
 			authenticated = 1;
@@ -191,7 +191,7 @@ userauth_pubkey(Authctxt *authctxt)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (PRIVSEP(user_key_allowed(authctxt->pw, key))) {
+		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 0))) {
 			packet_start(SSH2_MSG_USERAUTH_PK_OK);
 			packet_put_string(pkalg, alen);
 			packet_put_string(pkblob, blen);
@@ -671,7 +671,7 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
  * Check whether key authenticates and authorises the user.
  */
 int
-user_key_allowed(struct passwd *pw, Key *key)
+user_key_allowed(struct passwd *pw, Key *key, int auth_attempt)
 {
 	u_int success, i;
 	char *file;
