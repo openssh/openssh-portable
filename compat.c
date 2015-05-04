@@ -192,8 +192,7 @@ compat_datafellows(const char *version)
 
 	/* process table, return first match */
 	for (i = 0; check[i].pat; i++) {
-		if (match_pattern_list(version, check[i].pat,
-		    strlen(check[i].pat), 0) == 1) {
+		if (match_pattern_list(version, check[i].pat, 0) == 1) {
 			debug("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
 			datafellows = check[i].bugs;	/* XXX for now */
@@ -251,7 +250,7 @@ filter_proposal(char *proposal, const char *filter)
 	buffer_init(&b);
 	tmp = orig_prop = xstrdup(proposal);
 	while ((cp = strsep(&tmp, ",")) != NULL) {
-		if (match_pattern_list(cp, filter, strlen(cp), 0) != 1) {
+		if (match_pattern_list(cp, filter, 0) != 1) {
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			buffer_append(&b, cp, strlen(cp));

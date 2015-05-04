@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.234 2015/04/24 01:36:00 deraadt Exp $ */
+/* $OpenBSD: readconf.c,v 1.235 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -492,7 +492,6 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	char *arg, *oattrib, *attrib, *cmd, *cp = *condition, *host, *criteria;
 	const char *ruser;
 	int r, port, this_result, result = 1, attributes = 0, negate;
-	size_t len;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 
 	/*
@@ -545,25 +544,24 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			result = -1;
 			goto out;
 		}
-		len = strlen(arg);
 		if (strcasecmp(attrib, "host") == 0) {
 			criteria = xstrdup(host);
-			r = match_hostname(host, arg, len) == 1;
+			r = match_hostname(host, arg) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "originalhost") == 0) {
 			criteria = xstrdup(original_host);
-			r = match_hostname(original_host, arg, len) == 1;
+			r = match_hostname(original_host, arg) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "user") == 0) {
 			criteria = xstrdup(ruser);
-			r = match_pattern_list(ruser, arg, len, 0) == 1;
+			r = match_pattern_list(ruser, arg, 0) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "localuser") == 0) {
 			criteria = xstrdup(pw->pw_name);
-			r = match_pattern_list(pw->pw_name, arg, len, 0) == 1;
+			r = match_pattern_list(pw->pw_name, arg, 0) == 1;
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 		} else if (strcasecmp(attrib, "exec") == 0) {
@@ -665,8 +663,8 @@ parse_token(const char *cp, const char *filename, int linenum,
 	for (i = 0; keywords[i].name; i++)
 		if (strcmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
-	if (ignored_unknown != NULL && match_pattern_list(cp, ignored_unknown,
-	    strlen(ignored_unknown), 1) == 1)
+	if (ignored_unknown != NULL &&
+	    match_pattern_list(cp, ignored_unknown, 1) == 1)
 		return oIgnoredUnknownOption;
 	error("%s: line %d: Bad configuration option: %s",
 	    filename, linenum, cp);

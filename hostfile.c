@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.65 2015/03/31 22:57:06 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.66 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -663,7 +663,7 @@ match_maybe_hashed(const char *host, const char *names, int *was_hashed)
 		return nlen == strlen(hashed_host) &&
 		    strncmp(hashed_host, names, nlen) == 0;
 	}
-	return match_hostname(host, names, nlen) == 1;
+	return match_hostname(host, names) == 1;
 }
 
 int

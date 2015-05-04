@@ -251,7 +251,7 @@ sshkey_names_valid2(const char *names, int allow_wildcard)
 					if (kt->type == KEY_RSA1)
 						continue;
 					if (match_pattern_list(kt->name,
-					    p, strlen(p), 0) != 0)
+					    p, 0) != 0)
 						break;
 				}
 				if (kt->type != -1)

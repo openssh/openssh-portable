@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.147 2015/04/27 01:52:30 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.149 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1215,9 +1215,9 @@ mm_answer_keyallowed(int sock, Buffer *m)
 			allowed = options.pubkey_authentication &&
 			    !auth2_userkey_already_used(authctxt, key) &&
 			    match_pattern_list(sshkey_ssh_name(key),
-			    options.pubkey_key_types,
-			    strlen(options.pubkey_key_types), 0) == 1 &&
-			    user_key_allowed(authctxt->pw, key);
+			    options.pubkey_key_types, 0) == 1 &&
+			    user_key_allowed(authctxt->pw, key,
+			    pubkey_auth_attempt);
 			pubkey_auth_info(authctxt, key, NULL);
 			auth_method = "publickey";
 			if (options.pubkey_authentication && allowed != 1)
@@ -1226,8 +1226,7 @@ mm_answer_keyallowed(int sock, Buffer *m)
 		case MM_HOSTKEY:
 			allowed = options.hostbased_authentication &&
 			    match_pattern_list(sshkey_ssh_name(key),
-			    options.hostbased_key_types,
-			    strlen(options.hostbased_key_types), 0) == 1 &&
+			    options.hostbased_key_types, 0) == 1 &&
 			    hostbased_key_allowed(authctxt->pw,
 			    cuser, chost, key);
 			pubkey_auth_info(authctxt, key,

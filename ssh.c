@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.417 2015/04/17 13:16:48 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.418 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -356,10 +356,8 @@ check_follow_cname(char **namep, const char *cname)
 	debug3("%s: check \"%s\" CNAME \"%s\"", __func__, *namep, cname);
 	for (i = 0; i < options.num_permitted_cnames; i++) {
 		rule = options.permitted_cnames + i;
-		if (match_pattern_list(*namep, rule->source_list,
-		    strlen(rule->source_list), 1) != 1 ||
-		    match_pattern_list(cname, rule->target_list,
-		    strlen(rule->target_list), 1) != 1)
+		if (match_pattern_list(*namep, rule->source_list, 1) != 1 ||
+		    match_pattern_list(cname, rule->target_list, 1) != 1)
 			continue;
 		verbose("Canonicalized DNS aliased hostname "
 		    "\"%s\" => \"%s\"", *namep, cname);
