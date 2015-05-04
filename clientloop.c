@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.272 2015/02/25 19:54:02 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.273 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2352,8 +2352,7 @@ client_input_hostkeys(void)
 		/* Check that the key is accepted in HostkeyAlgorithms */
 		if (options.hostkeyalgorithms != NULL &&
 		    match_pattern_list(sshkey_ssh_name(key),
-		    options.hostkeyalgorithms,
-		    strlen(options.hostkeyalgorithms), 0) != 1) {
+		    options.hostkeyalgorithms, 0) != 1) {
 			debug3("%s: %s key not permitted by HostkeyAlgorithms",
 			    __func__, sshkey_ssh_name(key));
 			continue;

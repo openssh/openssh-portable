@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.90 2015/04/13 02:04:08 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.91 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -184,8 +184,7 @@ compat_datafellows(const char *version)
 
 	/* process table, return first match */
 	for (i = 0; check[i].pat; i++) {
-		if (match_pattern_list(version, check[i].pat,
-		    strlen(check[i].pat), 0) == 1) {
+		if (match_pattern_list(version, check[i].pat, 0) == 1) {
 			debug("match: %s pat %s compat 0x%08x",
 			    version, check[i].pat, check[i].bugs);
 			datafellows = check[i].bugs;	/* XXX for now */
@@ -243,7 +242,7 @@ filter_proposal(char *proposal, const char *filter)
 	buffer_init(&b);
 	tmp = orig_prop = xstrdup(proposal);
 	while ((cp = strsep(&tmp, ",")) != NULL) {
-		if (match_pattern_list(cp, filter, strlen(cp), 0) != 1) {
+		if (match_pattern_list(cp, filter, 0) != 1) {
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			buffer_append(&b, cp, strlen(cp));

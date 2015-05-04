@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.16 2015/04/03 22:17:27 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.17 2015/05/04 06:10:48 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -251,7 +251,7 @@ sshkey_names_valid2(const char *names, int allow_wildcard)
 					if (kt->type == KEY_RSA1)
 						continue;
 					if (match_pattern_list(kt->name,
-					    p, strlen(p), 0) != 0)
+					    p, 0) != 0)
 						break;
 				}
 				if (kt->type != -1)
