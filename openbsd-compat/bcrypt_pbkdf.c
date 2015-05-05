@@ -1,4 +1,4 @@
-/* $OpenBSD: bcrypt_pbkdf.c,v 1.10 2014/12/30 01:41:43 djm Exp $ */
+/* $OpenBSD: bcrypt_pbkdf.c,v 1.12 2015/01/08 00:30:07 deraadt Exp $ */
 /*
  * Copyright (c) 2013 Ted Unangst <tedu@openbsd.org>
  *
@@ -36,6 +36,8 @@
 # undef SHA512_DIGEST_LENGTH
 #endif
 #define SHA512_DIGEST_LENGTH crypto_hash_sha512_BYTES
+
+#define	MINIMUM(a,b) (((a) < (b)) ? (a) : (b))
 
 /*
  * pkcs #5 pbkdf2 implementation using the "bcrypt" hash
@@ -158,7 +160,7 @@ bcrypt_pbkdf(const char *pass, size_t passlen, const u_int8_t *salt, size_t salt
 		/*
 		 * pbkdf2 deviation: output the key material non-linearly.
 		 */
-		amt = MIN(amt, keylen);
+		amt = MINIMUM(amt, keylen);
 		for (i = 0; i < amt; i++) {
 			size_t dest = i * stride + (count - 1);
 			if (dest >= origkeylen)
