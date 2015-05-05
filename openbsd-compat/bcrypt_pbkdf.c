@@ -161,7 +161,7 @@ bcrypt_pbkdf(const char *pass, size_t passlen, const u_int8_t *salt, size_t salt
 		amt = MIN(amt, keylen);
 		for (i = 0; i < amt; i++) {
 			size_t dest = i * stride + (count - 1);
-			if (dest >= origkeylen)
+			if (dest >= origkeylen || i >= BCRYPT_HASHSIZE)
 				break;
 			key[dest] = out[i];
 		}
