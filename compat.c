@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.92 2015/05/05 10:17:49 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.93 2015/05/06 04:07:18 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -165,7 +165,14 @@ compat_datafellows(const char *version)
 		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
-		{ "PuTTY*",		SSH_OLD_DHGEX },
+		{ "PuTTY-Release-0.5*," /* 0.50-0.57, DH-GEX in >=0.52 */
+		  "PuTTY_Release_0.5*,"	/* 0.58-0.59 */
+		  "PuTTY_Release_0.60*,"
+		  "PuTTY_Release_0.61*,"
+		  "PuTTY_Release_0.62*,"
+		  "PuTTY_Release_0.63*,"
+		  "PuTTY_Release_0.64*",
+					SSH_OLD_DHGEX },
 		{ "Probe-*",
 					SSH_BUG_PROBE },
 		{ "TeraTerm SSH*,"
