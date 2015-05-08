@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.16 2015/04/03 22:17:27 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.18 2015/05/08 03:17:49 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3201,7 +3201,7 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	const u_char *cp;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	size_t encoded_len;
-	size_t i, keylen = 0, ivlen = 0, slen = 0;
+	size_t i, keylen = 0, ivlen = 0, authlen = 0, slen = 0;
 	struct sshbuf *encoded = NULL, *decoded = NULL;
 	struct sshbuf *kdf = NULL, *decrypted = NULL;
 	struct sshcipher_ctx ciphercontext;
@@ -3311,6 +3311,7 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	/* setup key */
 	keylen = cipher_keylen(cipher);
 	ivlen = cipher_ivlen(cipher);
+	authlen = cipher_authlen(cipher);
 	if ((key = calloc(1, keylen + ivlen)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -3326,19 +3327,25 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 		}
 	}
 
+	/* check that an appropriate amount of auth data is present */
+	if (sshbuf_len(decoded) < encrypted_len + authlen) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+
 	/* decrypt private portion of key */
 	if ((r = sshbuf_reserve(decrypted, encrypted_len, &dp)) != 0 ||
 	    (r = cipher_init(&ciphercontext, cipher, key, keylen,
 	    key + keylen, ivlen, 0)) != 0)
 		goto out;
 	if ((r = cipher_crypt(&ciphercontext, 0, dp, sshbuf_ptr(decoded),
-	    sshbuf_len(decoded), 0, cipher_authlen(cipher))) != 0) {
+	    encrypted_len, 0, authlen)) != 0) {
 		/* an integrity error here indicates an incorrect passphrase */
 		if (r == SSH_ERR_MAC_INVALID)
 			r = SSH_ERR_KEY_WRONG_PASSPHRASE;
 		goto out;
 	}
-	if ((r = sshbuf_consume(decoded, encrypted_len)) != 0)
+	if ((r = sshbuf_consume(decoded, encrypted_len + authlen)) != 0)
 		goto out;
 	/* there should be no trailing data */
 	if (sshbuf_len(decoded) != 0) {
