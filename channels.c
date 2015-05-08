@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.342 2015/04/24 01:36:00 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.343 2015/05/08 03:25:07 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3533,7 +3533,7 @@ void
 channel_disable_adm_local_opens(void)
 {
 	channel_clear_adm_permitted_opens();
-	permitted_adm_opens = xmalloc(sizeof(*permitted_adm_opens));
+	permitted_adm_opens = xcalloc(sizeof(*permitted_adm_opens), 1);
 	permitted_adm_opens[num_adm_permitted_opens].host_to_connect = NULL;
 	num_adm_permitted_opens = 1;
 }
