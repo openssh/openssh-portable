@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.202 2015/04/24 06:26:49 jmc Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.203 2015/05/15 05:44:21 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -68,6 +68,7 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
+#include <util.h>
 
 #include "key.h"	/* XXX for typedef */
 #include "buffer.h"	/* XXX for typedef */
@@ -140,8 +141,12 @@ char socket_name[PATH_MAX];
 char socket_dir[PATH_MAX];
 
 /* locking */
+#define LOCK_SIZE	32
+#define LOCK_SALT_SIZE	16
+#define LOCK_ROUNDS	1
 int locked = 0;
-char *lock_passwd = NULL;
+char lock_passwd[LOCK_SIZE];
+char lock_salt[LOCK_SALT_SIZE];
 
 extern char *__progname;
 
@@ -660,23 +665,45 @@ send:
 static void
 process_lock_agent(SocketEntry *e, int lock)
 {
-	int r, success = 0;
-	char *passwd;
+	int r, success = 0, delay;
+	char *passwd, passwdhash[LOCK_SIZE];
+	static u_int fail_count = 0;
+	size_t pwlen;
 
-	if ((r = sshbuf_get_cstring(e->request, &passwd, NULL)) != 0)
+	if ((r = sshbuf_get_cstring(e->request, &passwd, &pwlen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (locked && !lock && strcmp(passwd, lock_passwd) == 0) {
-		locked = 0;
-		explicit_bzero(lock_passwd, strlen(lock_passwd));
-		free(lock_passwd);
-		lock_passwd = NULL;
-		success = 1;
+	if (pwlen == 0) {
+		debug("empty password not supported");
+	} else if (locked && !lock) {
+		if (bcrypt_pbkdf(passwd, pwlen, lock_salt, sizeof(lock_salt),
+		    passwdhash, sizeof(passwdhash), LOCK_ROUNDS) < 0)
+			fatal("bcrypt_pbkdf");
+		if (timingsafe_bcmp(passwdhash, lock_passwd, LOCK_SIZE) == 0) {
+			debug("agent unlocked");
+			locked = 0;
+			fail_count = 0;
+			explicit_bzero(lock_passwd, sizeof(lock_passwd));
+			success = 1;
+		} else {
+			/* delay in 0.1s increments up to 10s */
+			if (fail_count < 100)
+				fail_count++;
+			delay = 100000 * fail_count;
+			debug("unlock failed, delaying %0.1lf seconds",
+			    (double)delay/1000000);
+			usleep(delay);
+		}
+		explicit_bzero(passwdhash, sizeof(passwdhash));
 	} else if (!locked && lock) {
+		debug("agent locked");
 		locked = 1;
-		lock_passwd = xstrdup(passwd);
+		arc4random_buf(lock_salt, sizeof(lock_salt));
+		if (bcrypt_pbkdf(passwd, pwlen, lock_salt, sizeof(lock_salt),
+		    lock_passwd, sizeof(lock_passwd), LOCK_ROUNDS) < 0)
+			fatal("bcrypt_pbkdf");
 		success = 1;
 	}
-	explicit_bzero(passwd, strlen(passwd));
+	explicit_bzero(passwd, pwlen);
 	free(passwd);
 	send_status(e, success);
 }
