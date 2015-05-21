@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.201 2015/05/21 06:38:35 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.202 2015/05/21 06:43:31 djm Exp $
 .Dd $Mdocdate: May 21 2015 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -287,6 +287,42 @@ directory.
 Multiple files may be listed, separated by whitespace.
 The default is
 .Dq .ssh/authorized_keys .ssh/authorized_keys2 .
+.It Cm AuthorizedPrincipalsCommand
+Specifies a program to be used to generate the list of allowed
+certificate principals as per
+.Cm AuthorizedPrincipalsFile .
+The program must be owned by root, not writable by group or others and
+specified by an absolute path.
+.Pp
+Arguments to
+.Cm AuthorizedPrincipalsCommand
+may be provided using the following tokens, which will be expanded
+at runtime: %% is replaced by a literal '%', %u is replaced by the
+username being authenticated and %h is replaced by the home directory
+of the user being authenticated.
+.Pp
+The program should produce on standard output zero or
+more lines of
+.Cm AuthorizedPrincipalsFile
+output.
+If either
+.Cm AuthorizedPrincipalsCommand
+or
+.Cm AuthorizedPrincipalsFile
+is specified, then certificates offered by the client for authentication
+must contain a principal that is listed.
+By default, no AuthorizedPrincipalsCommand is run.
+.It Cm AuthorizedPrincipalsCommandUser
+Specifies the user under whose account the AuthorizedPrincipalsCommand is run.
+It is recommended to use a dedicated user that has no other role on the host
+than running authorized principals commands.
+If
+.Cm AuthorizedPrincipalsCommand
+is specified but
+.Cm AuthorizedPrincipalsCommandUser
+is not, then
+.Xr sshd 8
+will refuse to start.
 .It Cm AuthorizedPrincipalsFile
 Specifies a file that lists principal names that are accepted for
 certificate authentication.

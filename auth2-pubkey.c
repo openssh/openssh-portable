@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.50 2015/05/21 06:38:35 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.51 2015/05/21 06:43:30 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -554,19 +554,13 @@ match_principals_option(const char *principal_list, struct sshkey_cert *cert)
 }
 
 static int
-match_principals_file(char *file, struct passwd *pw, struct sshkey_cert *cert)
+process_principals(FILE *f, char *file, struct passwd *pw,
+    struct sshkey_cert *cert)
 {
-	FILE *f;
 	char line[SSH_MAX_PUBKEY_BYTES], *cp, *ep, *line_opts;
 	u_long linenum = 0;
 	u_int i;
 
-	temporarily_use_uid(pw);
-	debug("trying authorized principals file %s", file);
-	if ((f = auth_openprincipals(file, pw, options.strict_modes)) == NULL) {
-		restore_uid();
-		return 0;
-	}
 	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
 		/* Skip leading whitespace. */
 		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
@@ -594,23 +588,127 @@ match_principals_file(char *file, struct passwd *pw, struct sshkey_cert *cert)
 		}
 		for (i = 0; i < cert->nprincipals; i++) {
 			if (strcmp(cp, cert->principals[i]) == 0) {
-				debug3("matched principal \"%.100s\" "
-				    "from file \"%s\" on line %lu",
-				    cert->principals[i], file, linenum);
+				debug3("%s:%lu: matched principal \"%.100s\"",
+				    file == NULL ? "(command)" : file,
+				    linenum, cert->principals[i]);
 				if (auth_parse_options(pw, line_opts,
 				    file, linenum) != 1)
 					continue;
-				fclose(f);
-				restore_uid();
 				return 1;
 			}
 		}
 	}
-	fclose(f);
-	restore_uid();
 	return 0;
 }
 
+static int
+match_principals_file(char *file, struct passwd *pw, struct sshkey_cert *cert)
+{
+	FILE *f;
+	int success;
+
+	temporarily_use_uid(pw);
+	debug("trying authorized principals file %s", file);
+	if ((f = auth_openprincipals(file, pw, options.strict_modes)) == NULL) {
+		restore_uid();
+		return 0;
+	}
+	success = process_principals(f, file, pw, cert);
+	fclose(f);
+	restore_uid();
+	return success;
+}
+
+/*
+ * Checks whether principal is allowed in output of command.
+ * returns 1 if the principal is allowed or 0 otherwise.
+ */
+static int
+match_principals_command(struct passwd *user_pw, struct sshkey *key)
+{
+	FILE *f = NULL;
+	int ok, found_principal = 0;
+	struct passwd *pw;
+	int i, ac = 0, uid_swapped = 0;
+	pid_t pid;
+	char *tmp, *username = NULL, *command = NULL, **av = NULL;
+	void (*osigchld)(int);
+
+	if (options.authorized_principals_command == NULL)
+		return 0;
+	if (options.authorized_principals_command_user == NULL) {
+		error("No user for AuthorizedPrincipalsCommand specified, "
+		    "skipping");
+		return 0;
+	}
+
+	/*
+	 * NB. all returns later this function should go via "out" to
+	 * ensure the original SIGCHLD handler is restored properly.
+	 */
+	osigchld = signal(SIGCHLD, SIG_DFL);
+
+	/* Prepare and verify the user for the command */
+	username = percent_expand(options.authorized_principals_command_user,
+	    "u", user_pw->pw_name, (char *)NULL);
+	pw = getpwnam(username);
+	if (pw == NULL) {
+		error("AuthorizedPrincipalsCommandUser \"%s\" not found: %s",
+		    username, strerror(errno));
+		goto out;
+	}
+
+	/* Turn the command into an argument vector */
+	if (split_argv(options.authorized_principals_command, &ac, &av) != 0) {
+		error("AuthorizedPrincipalsCommand \"%s\" contains "
+		    "invalid quotes", command);
+		goto out;
+	}
+	if (ac == 0) {
+		error("AuthorizedPrincipalsCommand \"%s\" yielded no arguments",
+		    command);
+		goto out;
+	}
+	for (i = 1; i < ac; i++) {
+		tmp = percent_expand(av[i],
+		    "u", user_pw->pw_name,
+		    "h", user_pw->pw_dir,
+		    (char *)NULL);
+		if (tmp == NULL)
+			fatal("%s: percent_expand failed", __func__);
+		free(av[i]);
+		av[i] = tmp;
+	}
+	/* Prepare a printable command for logs, etc. */
+	command = assemble_argv(ac, av);
+
+	if ((pid = subprocess("AuthorizedPrincipalsCommand", pw, command,
+	    ac, av, &f)) == 0)
+		goto out;
+
+	uid_swapped = 1;
+	temporarily_use_uid(pw);
+
+	ok = process_principals(f, NULL, pw, key->cert);
+
+	if (exited_cleanly(pid, "AuthorizedPrincipalsCommand", command) != 0)
+		goto out;
+
+	/* Read completed successfully */
+	found_principal = ok;
+ out:
+	if (f != NULL)
+		fclose(f);
+	signal(SIGCHLD, osigchld);
+	for (i = 0; i < ac; i++)
+		free(av[i]);
+	free(av);
+	if (uid_swapped)
+		restore_uid();
+	free(command);
+	free(username);
+	return found_principal;
+}
 /*
  * Checks whether key is allowed in authorized_keys-format file,
  * returns 1 if the key is allowed or 0 otherwise.
@@ -733,7 +831,7 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 {
 	char *ca_fp, *principals_file = NULL;
 	const char *reason;
-	int ret = 0;
+	int ret = 0, found_principal = 0;
 
 	if (!key_is_cert(key) || options.trusted_user_ca_keys == NULL)
 		return 0;
@@ -755,14 +853,20 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 	 * against the username.
 	 */
 	if ((principals_file = authorized_principals_file(pw)) != NULL) {
-		if (!match_principals_file(principals_file, pw, key->cert)) {
-			reason = "Certificate does not contain an "
-			    "authorized principal";
+		if (match_principals_file(principals_file, pw, key->cert))
+			found_principal = 1;
+	}
+	/* Try querying command if specified */
+	if (!found_principal && match_principals_command(pw, key))
+		found_principal = 1;
+	/* If principals file or command specify, then require a match here */
+	if (!found_principal && (principals_file != NULL ||
+	    options.authorized_principals_command != NULL)) {
+		reason = "Certificate does not contain an authorized principal";
  fail_reason:
-			error("%s", reason);
-			auth_debug_add("%s", reason);
-			goto out;
-		}
+		error("%s", reason);
+		auth_debug_add("%s", reason);
+		goto out;
 	}
 	if (key_cert_check_authority(key, 0, 1,
 	    principals_file == NULL ? pw->pw_name : NULL, &reason) != 0)

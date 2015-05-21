@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.117 2015/04/29 03:48:56 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.118 2015/05/21 06:43:31 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -178,9 +178,11 @@ typedef struct {
 	char   *chroot_directory;
 	char   *revoked_keys_file;
 	char   *trusted_user_ca_keys;
-	char   *authorized_principals_file;
 	char   *authorized_keys_command;
 	char   *authorized_keys_command_user;
+	char   *authorized_principals_file;
+	char   *authorized_principals_command;
+	char   *authorized_principals_command_user;
 
 	int64_t rekey_limit;
 	int	rekey_interval;
@@ -216,9 +218,11 @@ struct connection_info {
 		M_CP_STROPT(banner); \
 		M_CP_STROPT(trusted_user_ca_keys); \
 		M_CP_STROPT(revoked_keys_file); \
-		M_CP_STROPT(authorized_principals_file); \
 		M_CP_STROPT(authorized_keys_command); \
 		M_CP_STROPT(authorized_keys_command_user); \
+		M_CP_STROPT(authorized_principals_file); \
+		M_CP_STROPT(authorized_principals_command); \
+		M_CP_STROPT(authorized_principals_command_user); \
 		M_CP_STROPT(hostbased_key_types); \
 		M_CP_STROPT(pubkey_key_types); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
