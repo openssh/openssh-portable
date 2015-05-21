@@ -68,7 +68,9 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
-#include <util.h>
+#ifdef HAVE_UTIL_H
+# include <util.h>
+#endif
 
 #include "key.h"	/* XXX for typedef */
 #include "buffer.h"	/* XXX for typedef */
