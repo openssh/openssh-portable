@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.271 2015/04/27 01:52:30 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.272 2015/05/21 12:01:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1078,6 +1078,12 @@ static int
 known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 {
 	struct known_hosts_ctx *ctx = (struct known_hosts_ctx *)_ctx;
+	enum sshkey_fp_rep rep;
+	int fptype;
+	char *fp;
+
+	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
+	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 
 	if (l->status == HKF_STATUS_MATCHED) {
 		if (delete_host) {
@@ -1106,7 +1112,12 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 			}
 			if (hash_hosts)
 				known_hosts_hash(l, ctx);
-			else
+			else if (print_fingerprint) {
+				fp = sshkey_fingerprint(l->key, fptype, rep);
+				printf("%s %s %s %s\n", ctx->host,
+				    sshkey_type(l->key), fp, l->comment);
+				free(fp);
+			} else
 				fprintf(ctx->out, "%s\n", l->line);
 			return 0;
 		}
@@ -1127,6 +1138,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
+	u_int foreach_options;
 
 	if (!have_identity) {
 		cp = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
@@ -1163,9 +1175,11 @@ do_known_hosts(struct passwd *pw, const char *name)
 	}
 
 	/* XXX support identity_file == "-" for stdin */
+	foreach_options = find_host ? HKF_WANT_MATCH : 0;
+	foreach_options |= print_fingerprint ? HKF_WANT_PARSE_KEY : 0;
 	if ((r = hostkeys_foreach(identity_file,
 	    hash_hosts ? known_hosts_hash : known_hosts_find_delete, &ctx,
-	    name, NULL, find_host ? HKF_WANT_MATCH : 0)) != 0)
+	    name, NULL, foreach_options)) != 0)
 		fatal("%s: hostkeys_foreach failed: %s", __func__, ssh_err(r));
 
 	if (inplace)
