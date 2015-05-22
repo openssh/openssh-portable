@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.202 2015/05/21 06:43:31 djm Exp $
-.Dd $Mdocdate: May 21 2015 $
+.\" $OpenBSD: sshd_config.5,v 1.203 2015/05/22 03:50:02 djm Exp $
+.Dd $Mdocdate: May 22 2015 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -622,6 +622,21 @@ on logout.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
+.It Cm GSSAPIStrictAcceptorCheck
+Determines whether to be strict about the identity of the GSSAPI acceptor
+a client authenticates against.
+If set to
+.Dq yes
+then the client must authenticate against the
+.Pa host
+service on the current hostname.
+If set to
+.Dq no
+then the client may authenticate against any service key stored in the
+machine's default store.
+This facility is provided to assist with operation on multi homed machines.
+The default is
+.Dq yes .
 .It Cm HostbasedAcceptedKeyTypes
 Specifies the key types that will be accepted for hostbased authentication
 as a comma-separated pattern list.
