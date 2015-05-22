@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.235 2015/05/04 06:10:48 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.236 2015/05/22 04:45:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1236,13 +1236,13 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] == '^' && arg[2] == 0 &&
+		if (strcmp(arg, "none") == 0)
+			value = SSH_ESCAPECHAR_NONE;
+		else if (arg[1] == '\0')
+			value = (u_char) arg[0];
+		else if (arg[0] == '^' && arg[2] == 0 &&
 		    (u_char) arg[1] >= 64 && (u_char) arg[1] < 128)
 			value = (u_char) arg[1] & 31;
-		else if (strlen(arg) == 1)
-			value = (u_char) arg[0];
-		else if (strcmp(arg, "none") == 0)
-			value = SSH_ESCAPECHAR_NONE;
 		else {
 			fatal("%.200s line %d: Bad escape character.",
 			    filename, linenum);
