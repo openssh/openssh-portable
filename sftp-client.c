@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.118 2015/04/24 01:36:00 deraadt Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.119 2015/05/23 14:28:37 jsg Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -408,6 +408,7 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests,
 		error("Invalid packet back from SSH2_FXP_INIT (type %u)",
 		    type);
 		sshbuf_free(msg);
+		free(ret);
 		return(NULL);
 	}
 	if ((r = sshbuf_get_u32(msg, &ret->version)) != 0)
