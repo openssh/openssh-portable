@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.449 2015/05/21 06:43:31 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.450 2015/05/24 23:39:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1495,7 +1495,8 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:C:dDeE:iqrtQRT46")) != -1) {
+	while ((opt = getopt(ac, av,
+	    "C:E:b:c:f:g:h:k:o:p:u:46DQRTdeiqrt")) != -1) {
 		switch (opt) {
 		case '4':
 			options.address_family = AF_INET;
