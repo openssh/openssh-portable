@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.43 2015/04/21 07:01:00 jsg Exp $ */
+/* $OpenBSD: myproposal.h,v 1.44 2015/05/27 23:51:10 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -83,14 +83,17 @@
 # else
 #  define KEX_CURVE25519_METHODS ""
 # endif
-#define KEX_SERVER_KEX \
+#define KEX_COMMON_KEX \
 	KEX_CURVE25519_METHODS \
 	KEX_ECDH_METHODS \
-	KEX_SHA256_METHODS \
-	"diffie-hellman-group14-sha1"
+	KEX_SHA256_METHODS
 
-#define KEX_CLIENT_KEX KEX_SERVER_KEX "," \
+#define KEX_SERVER_KEX KEX_COMMON_KEX "," \
+	"diffie-hellman-group14-sha1" \
+
+#define KEX_CLIENT_KEX KEX_COMMON_KEX "," \
 	"diffie-hellman-group-exchange-sha1," \
+	"diffie-hellman-group14-sha1," \
 	"diffie-hellman-group1-sha1"
 
 #define	KEX_DEFAULT_PK_ALG	\
