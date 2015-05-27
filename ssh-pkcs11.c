@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.18 2015/04/24 01:36:01 deraadt Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.19 2015/05/27 05:15:02 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -237,7 +237,7 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 		{CKA_ID, NULL, 0},
 		{CKA_SIGN, NULL, sizeof(true_val) }
 	};
-	char			*pin, prompt[1024];
+	char			*pin = NULL, prompt[1024];
 	int			rval = -1;
 
 	key_filter[0].pValue = &private_key_class;
@@ -255,22 +255,30 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	si = &k11->provider->slotinfo[k11->slotidx];
 	if ((si->token.flags & CKF_LOGIN_REQUIRED) && !si->logged_in) {
 		if (!pkcs11_interactive) {
-			error("need pin");
+			error("need pin entry%s", (si->token.flags &
+			    CKF_PROTECTED_AUTHENTICATION_PATH) ?
+			    " on reader keypad" : "");
 			return (-1);
 		}
-		snprintf(prompt, sizeof(prompt), "Enter PIN for '%s': ",
-		    si->token.label);
-		pin = read_passphrase(prompt, RP_ALLOW_EOF);
-		if (pin == NULL)
-			return (-1);	/* bail out */
-		rv = f->C_Login(si->session, CKU_USER,
-		    (u_char *)pin, strlen(pin));
-		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
+		if (si->token.flags & CKF_PROTECTED_AUTHENTICATION_PATH)
+			verbose("Deferring PIN entry to reader keypad.");
+		else {
+			snprintf(prompt, sizeof(prompt),
+			    "Enter PIN for '%s': ", si->token.label);
+			pin = read_passphrase(prompt, RP_ALLOW_EOF);
+			if (pin == NULL)
+				return (-1);	/* bail out */
+		}
+		rv = f->C_Login(si->session, CKU_USER, (u_char *)pin,
+		    (pin != NULL) ? strlen(pin) : 0);
+		if (pin != NULL) {
+			explicit_bzero(pin, strlen(pin));
 			free(pin);
+		}
+		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
 			error("C_Login failed: %lu", rv);
 			return (-1);
 		}
-		free(pin);
 		si->logged_in = 1;
 	}
 	key_filter[1].pValue = k11->keyid;
