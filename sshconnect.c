@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.261 2015/04/14 04:17:03 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.262 2015/05/28 05:41:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -912,7 +912,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			    host_key, options.hash_known_hosts))
 				logit("Failed to add the %s host key for IP "
 				    "address '%.128s' to the list of known "
-				    "hosts (%.30s).", type, ip,
+				    "hosts (%.500s).", type, ip,
 				    user_hostfiles[0]);
 			else
 				logit("Warning: Permanently added the %s host "
