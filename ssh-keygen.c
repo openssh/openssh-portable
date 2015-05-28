@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.272 2015/05/21 12:01:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.273 2015/05/28 04:40:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -57,6 +57,12 @@
 #include "atomicio.h"
 #include "krl.h"
 #include "digest.h"
+
+#ifdef WITH_OPENSSL
+# define DEFAULT_KEY_TYPE_NAME "rsa"
+#else
+# define DEFAULT_KEY_TYPE_NAME "ed25519"
+#endif
 
 /* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
 #define DEFAULT_BITS		2048
@@ -2580,7 +2586,7 @@ main(int argc, char **argv)
 	}
 
 	if (key_type_name == NULL)
-		key_type_name = "rsa";
+		key_type_name = DEFAULT_KEY_TYPE_NAME;
 
 	type = sshkey_type_from_name(key_type_name);
 	type_bits_valid(type, key_type_name, &bits);
