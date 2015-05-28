@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.273 2015/05/28 04:40:13 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.274 2015/05/28 07:37:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,16 +180,18 @@ extern char *__progname;
 
 char hostname[NI_MAXHOST];
 
+#ifdef WITH_OPENSSL
 /* moduli.c */
 int gen_candidates(FILE *, u_int32_t, u_int32_t, BIGNUM *);
 int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
     unsigned long);
+#endif
 
 static void
 type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 {
 #ifdef WITH_OPENSSL
- 	u_int maxbits, nid;
+	u_int maxbits, nid;
 #endif
 
 	if (type == KEY_UNSPEC)
@@ -2196,9 +2198,11 @@ usage(void)
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
 	    "       ssh-keygen -r hostname [-f input_keyfile] [-g]\n"
+#ifdef WITH_OPENSSL
 	    "       ssh-keygen -G output_file [-v] [-b bits] [-M memory] [-S start_point]\n"
 	    "       ssh-keygen -T output_file -f input_file [-v] [-a rounds] [-J num_lines]\n"
 	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
+#endif
 	    "       ssh-keygen -s ca_key -I certificate_identity [-h] [-n principals]\n"
 	    "                  [-O option] [-V validity_interval] [-z serial_number] file ...\n"
 	    "       ssh-keygen -L [-f input_keyfile]\n"
@@ -2216,19 +2220,22 @@ int
 main(int argc, char **argv)
 {
 	char dotsshdir[PATH_MAX], comment[1024], *passphrase1, *passphrase2;
-	char *checkpoint = NULL;
-	char out_file[PATH_MAX], *rr_hostname = NULL, *ep, *fp, *ra;
+	char *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
 	struct stat st;
 	int r, opt, type, fd;
-	u_int32_t memory = 0, generator_wanted = 0;
-	int do_gen_candidates = 0, do_screen_candidates = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
-	unsigned long start_lineno = 0, lines_to_process = 0;
-	BIGNUM *start = NULL;
 	FILE *f;
 	const char *errstr;
+#ifdef WITH_OPENSSL
+	/* Moduli generation/screening */
+	char out_file[PATH_MAX], *checkpoint = NULL;
+	u_int32_t memory = 0, generator_wanted = 0;
+	int do_gen_candidates = 0, do_screen_candidates = 0;
+	unsigned long start_lineno = 0, lines_to_process = 0;
+	BIGNUM *start = NULL;
+#endif
 
 	extern int optind;
 	extern char *optarg;
@@ -2281,12 +2288,6 @@ main(int argc, char **argv)
 		case 'I':
 			cert_key_id = optarg;
 			break;
-		case 'J':
-			lines_to_process = strtoul(optarg, NULL, 10);
-                        break;
-		case 'j':
-			start_lineno = strtoul(optarg, NULL, 10);
-                        break;
 		case 'R':
 			delete_host = 1;
 			rr_hostname = optarg;
@@ -2328,8 +2329,8 @@ main(int argc, char **argv)
 			change_comment = 1;
 			break;
 		case 'f':
-			if (strlcpy(identity_file, optarg, sizeof(identity_file)) >=
-			    sizeof(identity_file))
+			if (strlcpy(identity_file, optarg,
+			    sizeof(identity_file)) >= sizeof(identity_file))
 				fatal("Identity filename too long");
 			have_identity = 1;
 			break;
@@ -2401,6 +2402,24 @@ main(int argc, char **argv)
 		case 'r':
 			rr_hostname = optarg;
 			break;
+		case 'a':
+			rounds = (int)strtonum(optarg, 1, INT_MAX, &errstr);
+			if (errstr)
+				fatal("Invalid number: %s (%s)",
+					optarg, errstr);
+			break;
+		case 'V':
+			parse_cert_times(optarg);
+			break;
+		case 'z':
+			errno = 0;
+			cert_serial = strtoull(optarg, &ep, 10);
+			if (*optarg < '0' || *optarg > '9' || *ep != '\0' ||
+			    (errno == ERANGE && cert_serial == ULLONG_MAX))
+				fatal("Invalid serial number \"%s\"", optarg);
+			break;
+#ifdef WITH_OPENSSL
+		/* Moduli generation/screening */
 		case 'W':
 			generator_wanted = (u_int32_t)strtonum(optarg, 1,
 			    UINT_MAX, &errstr);
@@ -2408,13 +2427,6 @@ main(int argc, char **argv)
 				fatal("Desired generator has bad value: %s (%s)",
 					optarg, errstr);
 			break;
-		case 'a':
-			rounds = (int)strtonum(optarg, 1, INT_MAX, &errstr);
-			if (errstr)
-				fatal("Invalid number: %s (%s)",
-					optarg, errstr);
-			break;
-#ifdef WITH_OPENSSL
 		case 'M':
 			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
 			if (errstr)
@@ -2443,16 +2455,6 @@ main(int argc, char **argv)
 				fatal("Invalid start point.");
 			break;
 #endif /* WITH_OPENSSL */
-		case 'V':
-			parse_cert_times(optarg);
-			break;
-		case 'z':
-			errno = 0;
-			cert_serial = strtoull(optarg, &ep, 10);
-			if (*optarg < '0' || *optarg > '9' || *ep != '\0' ||
-			    (errno == ERANGE && cert_serial == ULLONG_MAX))
-				fatal("Invalid serial number \"%s\"", optarg);
-			break;
 		case '?':
 		default:
 			usage();
@@ -2540,6 +2542,7 @@ main(int argc, char **argv)
 		}
 	}
 
+#ifdef WITH_OPENSSL
 	if (do_gen_candidates) {
 		FILE *out = fopen(out_file, "w");
 
@@ -2579,6 +2582,7 @@ main(int argc, char **argv)
 			fatal("modulus screening failed");
 		return (0);
 	}
+#endif
 
 	if (gen_all_hostkeys) {
 		do_gen_all_hostkeys(pw);
