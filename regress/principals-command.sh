@@ -6,8 +6,10 @@ tid="authorized principals command"
 rm -f $OBJ/user_ca_key* $OBJ/cert_user_key*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 
-if [ -z "$SUDO" ]; then
-	fatal "need SUDO to create file in /var/run, test won't work without"
+if test -z "$SUDO" ; then
+	echo "skipped (SUDO not set)"
+	echo "need SUDO to create file in /var/run, test won't work without"
+	exit 0
 fi
 
 # Establish a AuthorizedPrincipalsCommand in /var/run where it will have
