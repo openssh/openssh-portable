@@ -88,10 +88,10 @@
 	KEX_ECDH_METHODS \
 	KEX_SHA256_METHODS
 
-#define KEX_SERVER_KEX KEX_COMMON_KEX "," \
+#define KEX_SERVER_KEX KEX_COMMON_KEX \
 	"diffie-hellman-group14-sha1" \
 
-#define KEX_CLIENT_KEX KEX_COMMON_KEX "," \
+#define KEX_CLIENT_KEX KEX_COMMON_KEX \
 	"diffie-hellman-group-exchange-sha1," \
 	"diffie-hellman-group14-sha1," \
 	"diffie-hellman-group1-sha1"
