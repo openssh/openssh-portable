@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgparse.sh,v 1.4 2015/05/04 01:51:39 dtucker Exp $
+#	$OpenBSD: cfgparse.sh,v 1.5 2015/05/29 03:05:13 djm Exp $
 #	Placed in the Public Domain.
 
 tid="config parse"
@@ -45,6 +45,7 @@ EOD
  fail "listenaddress order 1"
 # test 2: listenaddress first
 cat > $OBJ/sshd_config.1 <<EOD
+${SSHD_KEYS}
 listenaddress 1.2.3.4
 listenaddress ::1
 port 1234
