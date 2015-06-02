@@ -69,6 +69,7 @@ struct Authctxt {
 #endif
 	char		**auth_methods;	/* modified from server config */
 	u_int		 num_auth_methods;
+  char  *last_auth_methods;
 #ifdef KRB5
 	krb5_context	 krb5_ctx;
 	krb5_ccache	 krb5_fwd_ccache;

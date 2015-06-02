@@ -596,6 +596,7 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
     const char *submethod)
 {
 	u_int i, found = 0;
+  char * am_copy = NULL;
 
 	debug3("%s: updating methods list after \"%s\"", __func__, method);
 	for (i = 0; i < authctxt->num_auth_methods; i++) {
@@ -613,6 +614,20 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
 	/* This should not happen, but would be bad if it did */
 	if (!found)
 		fatal("%s: method not in AuthenticationMethods", __func__);
+
+  if (authctxt->last_auth_methods == NULL) {
+    authctxt->last_auth_methods = xcalloc(strlen(method) + 2, sizeof(char));
+  } else {
+    am_copy = xstrdup(authctxt->last_auth_methods);
+    free(authctxt->last_auth_methods);
+    authctxt->last_auth_methods = xcalloc(strlen(am_copy) + strlen(method) + 2, sizeof(char));
+    strcpy(authctxt->last_auth_methods, am_copy);
+    free(am_copy);
+  }
+
+  strcat(authctxt->last_auth_methods, method);
+  if (authctxt->num_auth_methods != 1)
+    strcat(authctxt->last_auth_methods, ",");
 	return 0;
 }
 
