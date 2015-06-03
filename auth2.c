@@ -616,18 +616,13 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
 		fatal("%s: method not in AuthenticationMethods", __func__);
 
   if (authctxt->last_auth_methods == NULL) {
-    authctxt->last_auth_methods = xcalloc(strlen(method) + 2, sizeof(char));
+    authctxt->last_auth_methods = xstrdup(method);
   } else {
-    am_copy = xstrdup(authctxt->last_auth_methods);
-    free(authctxt->last_auth_methods);
-    authctxt->last_auth_methods = xcalloc(strlen(am_copy) + strlen(method) + 2, sizeof(char));
-    strcpy(authctxt->last_auth_methods, am_copy);
+    am_copy = authctxt->last_auth_methods;
+    xasprintf(&authctxt->last_auth_methods, "%s,%s", am_copy, method);
     free(am_copy);
   }
 
-  strcat(authctxt->last_auth_methods, method);
-  if (authctxt->num_auth_methods != 1)
-    strcat(authctxt->last_auth_methods, ",");
 	return 0;
 }
 

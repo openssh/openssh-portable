@@ -2740,6 +2740,7 @@ do_cleanup(Authctxt *authctxt)
 		return;
 
   free(authctxt->last_auth_methods);
+  authctxt->last_auth_methods = NULL;
 
 #ifdef USE_PAM
 	if (options.use_pam) {
