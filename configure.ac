@@ -4356,7 +4356,7 @@ if test ! -z "$IPADDR_IN_DISPLAY" ; then
 else
 	DISPLAY_HACK_MSG="no"
 	AC_ARG_WITH([ipaddr-display],
-		[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
+		[  --with-ipaddr-display   Use ip address instead of hostname in $DISPLAY],
 		[
 			if test "x$withval" != "xno" ; then
 				AC_DEFINE([IPADDR_IN_DISPLAY])
@@ -4402,7 +4402,7 @@ fi
 # Whether to mess with the default path
 SERVER_PATH_MSG="(default)"
 AC_ARG_WITH([default-path],
-	[  --with-default-path=    Specify default \$PATH environment for server],
+	[  --with-default-path=    Specify default $PATH environment for server],
 	[
 		if test "x$external_path_file" = "x/etc/login.conf" ; then
 			AC_MSG_WARN([
