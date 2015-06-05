@@ -597,6 +597,9 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
 {
 	u_int i, found = 0;
   char * am_copy = NULL;
+  char * method_details = NULL;
+  char * fp = NULL;
+  Key * good_key = NULL;
 
 	debug3("%s: updating methods list after \"%s\"", __func__, method);
 	for (i = 0; i < authctxt->num_auth_methods; i++) {
@@ -615,15 +618,46 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
 	if (!found)
 		fatal("%s: method not in AuthenticationMethods", __func__);
 
-  if (authctxt->last_auth_methods == NULL) {
-    authctxt->last_auth_methods = xstrdup(method);
+  if (strcmp(method, "publickey") == 0 ||
+      strcmp(method, "hostbased") == 0) {
+    good_key = authctxt->prev_userkeys[authctxt->nprev_userkeys - 1];
+    if (key_is_cert(good_key)) {
+		  fp = sshkey_fingerprint(good_key->cert->signature_key,
+          options.fingerprint_hash, SSH_FP_DEFAULT);
+
+      xasprintf(&method_details, "%s ID %s (serial %llu) CA %s %s",
+		    key_type(good_key), good_key->cert->key_id,
+		    (unsigned long long) good_key->cert->serial,
+		    key_type(good_key->cert->signature_key),
+		    fp == NULL ? "(null)" : fp);
+	  } else {
+		  fp = sshkey_fingerprint(good_key, options.fingerprint_hash,
+		        SSH_FP_DEFAULT);
+		  xasprintf(&method_details, "%s %s", key_type(good_key),
+		    fp == NULL ? "(null)" : fp);
+	  }
+    free(fp);
+  }
+
+  if (!authctxt->last_auth_methods) {
+    if (method_details) {
+      xasprintf(&authctxt->last_auth_methods, "%s %s", method, method_details);
+    } else {
+      authctxt->last_auth_methods = xstrdup(method);
+    }
   } else {
     am_copy = authctxt->last_auth_methods;
-    xasprintf(&authctxt->last_auth_methods, "%s,%s", am_copy, method);
+    if (method_details) {
+      xasprintf(&authctxt->last_auth_methods, "%s,%s %s", am_copy, method, method_details);
+    } else {
+      xasprintf(&authctxt->last_auth_methods, "%s,%s", am_copy, method);
+    }
     free(am_copy);
   }
 
-	return 0;
+  free(method_details);
+
+  return 0;
 }
 
 
