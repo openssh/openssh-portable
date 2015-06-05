@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.343 2015/05/08 03:25:07 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.344 2015/06/05 15:13:13 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2805,17 +2805,21 @@ channel_setup_fwd_listener_tcpip(int type, struct Forward *fwd,
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	in_port_t *lport_p;
 
-	host = (type == SSH_CHANNEL_RPORT_LISTENER) ?
-	    fwd->listen_host : fwd->connect_host;
 	is_client = (type == SSH_CHANNEL_PORT_LISTENER);
 
-	if (host == NULL) {
-		error("No forward host name.");
-		return 0;
-	}
-	if (strlen(host) >= NI_MAXHOST) {
-		error("Forward host name too long.");
-		return 0;
+	if (is_client && fwd->connect_path != NULL) {
+		host = fwd->connect_path;
+	} else {
+		host = (type == SSH_CHANNEL_RPORT_LISTENER) ?
+		    fwd->listen_host : fwd->connect_host;
+		if (host == NULL) {
+			error("No forward host name.");
+			return 0;
+		}
+		if (strlen(host) >= NI_MAXHOST) {
+			error("Forward host name too long.");
+			return 0;
+		}
 	}
 
 	/* Determine the bind address, cf. channel_fwd_bind_addr() comment */
