@@ -588,7 +588,8 @@ remove_method(char **methods, const char *method, const char *submethod)
 /*
  * Called after successful authentication. Will remove the successful method
  * from the start of each list in which it occurs. If it was the last method
- * in any list, then authentication is deemed successful.
+ * in any list, then authentication is deemed successful. Updates the list of
+ * previously successful authentication methods that can be exposed to PAM.
  * Returns 1 if the method completed any authentication list or 0 otherwise.
  */
 int
@@ -596,9 +597,9 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
     const char *submethod)
 {
 	u_int i, found = 0;
-  char * am_copy = NULL;
-  char * method_details = NULL;
-  char * fp = NULL;
+  char *am_copy = NULL;
+  char *method_details = NULL;
+  char *fp = NULL;
   Key * good_key = NULL;
 
 	debug3("%s: updating methods list after \"%s\"", __func__, method);
@@ -639,7 +640,7 @@ auth2_update_methods_lists(Authctxt *authctxt, const char *method,
     free(fp);
   }
 
-  if (!authctxt->last_auth_methods) {
+  if (authctxt->last_auth_methods == NULL) {
     if (method_details) {
       xasprintf(&authctxt->last_auth_methods, "%s %s", method, method_details);
     } else {
