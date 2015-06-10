@@ -182,10 +182,10 @@ t11:
 	${TEST_SSH_SSHKEYGEN} -E sha256 -lf ${.CURDIR}/rsa_openssh.pub |\
 		awk '{print $$2}' | diff - ${.CURDIR}/t11.ok
 
-t12.out:
-	${TEST_SSH_SSHKEYGEN} -q -t ed25519 -N '' -C 'test-comment-1234' -f $(OBJ)/$@
+$(OBJ)/t12.out:
+	${TEST_SSH_SSHKEYGEN} -q -t ed25519 -N '' -C 'test-comment-1234' -f $@
 
-t12: t12.out
+t12: $(OBJ)/t12.out
 	${TEST_SSH_SSHKEYGEN} -lf $(OBJ)/t12.out.pub | grep test-comment-1234 >/dev/null
 
 t-exec:	${LTESTS:=.sh}
