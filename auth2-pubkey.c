@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.52 2015/06/15 18:42:19 jsing Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.53 2015/06/15 18:44:22 jsing Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -831,7 +831,7 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 {
 	char *ca_fp, *principals_file = NULL;
 	const char *reason;
-	int ret = 0, found_principal = 0;
+	int ret = 0, found_principal = 0, use_authorized_principals;
 
 	if (!key_is_cert(key) || options.trusted_user_ca_keys == NULL)
 		return 0;
@@ -859,9 +859,10 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 	/* Try querying command if specified */
 	if (!found_principal && match_principals_command(pw, key->cert))
 		found_principal = 1;
-	/* If principals file or command specify, then require a match here */
-	if (!found_principal && (principals_file != NULL ||
-	    options.authorized_principals_command != NULL)) {
+	/* If principals file or command is specified, then require a match */
+	use_authorized_principals = principals_file != NULL ||
+            options.authorized_principals_command != NULL;
+	if (!found_principal && use_authorized_principals) {
 		reason = "Certificate does not contain an authorized principal";
  fail_reason:
 		error("%s", reason);
@@ -869,7 +870,7 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 		goto out;
 	}
 	if (key_cert_check_authority(key, 0, 1,
-	    principals_file == NULL ? pw->pw_name : NULL, &reason) != 0)
+	    use_authorized_principals ? NULL : pw->pw_name, &reason) != 0)
 		goto fail_reason;
 	if (auth_cert_options(key, pw) != 0)
 		goto out;
