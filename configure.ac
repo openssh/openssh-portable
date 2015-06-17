@@ -781,14 +781,17 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	i*86-*)
 		seccomp_audit_arch=AUDIT_ARCH_I386
 		;;
-        arm*-*)
+	arm*-*)
 		seccomp_audit_arch=AUDIT_ARCH_ARM
-                ;;
+		;;
+	aarch64*-*)
+		seccomp_audit_arch=AUDIT_ARCH_AARCH64
+		;
 	esac
 	if test "x$seccomp_audit_arch" != "x" ; then
 		AC_MSG_RESULT(["$seccomp_audit_arch"])
-                AC_DEFINE_UNQUOTED([SECCOMP_AUDIT_ARCH], [$seccomp_audit_arch],
-                    [Specify the system call convention in use])
+		AC_DEFINE_UNQUOTED([SECCOMP_AUDIT_ARCH], [$seccomp_audit_arch],
+		    [Specify the system call convention in use])
 	else
 		AC_MSG_RESULT([architecture not supported])
 	fi
