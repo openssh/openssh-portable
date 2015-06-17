@@ -81,7 +81,7 @@
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 1), \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW)
 #define SC_ALLOW_ARG(_nr, _arg_nr, _arg_val) \
-	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 3), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 4), \
 	/* load first syscall argument */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
 	    offsetof(struct seccomp_data, args[(_arg_nr)])), \
