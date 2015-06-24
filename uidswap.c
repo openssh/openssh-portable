@@ -187,8 +187,7 @@ restore_uid(void)
 	setgid(getgid());
 #endif /* SAVED_IDS_WORK_WITH_SETEUID */
 
-	if (saved_egroupslen > 0 &&
-	    setgroups(saved_egroupslen, saved_egroups) < 0)
+	if (setgroups(saved_egroupslen, saved_egroups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
 	temporarily_use_uid_effective = 0;
 }
