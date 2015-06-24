@@ -168,6 +168,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_poll
 	SC_ALLOW(poll),
 #endif
+#ifdef __NR_pselect6
+	SC_ALLOW(pselect6),
+#endif
 #ifdef __NR_read
 	SC_ALLOW(read),
 #endif
