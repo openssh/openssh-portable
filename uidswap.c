@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.38 2015/06/22 12:29:57 dtucker Exp $ */
+/* $OpenBSD: uidswap.c,v 1.39 2015/06/24 01:49:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -113,7 +113,7 @@ temporarily_use_uid(struct passwd *pw)
 		}
 	}
 	/* Set the effective uid to the given (unprivileged) uid. */
-	if (user_groupslen > 0 && setgroups(user_groupslen, user_groups) < 0)
+	if (setgroups(user_groupslen, user_groups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
 #ifndef SAVED_IDS_WORK_WITH_SETEUID
 	/* Propagate the privileged gid to all of our gids. */
