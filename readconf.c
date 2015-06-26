@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.236 2015/05/22 04:45:52 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.237 2015/06/26 05:13:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1927,7 +1927,8 @@ parse_fwd_field(char **p, struct fwdarg *fwd)
 		switch (*cp) {
 		case '\\':
 			memmove(cp, cp + 1, strlen(cp + 1) + 1);
-			cp++;
+			if (*cp == '\0')
+				return -1;
 			break;
 		case '/':
 			ispath = 1;
