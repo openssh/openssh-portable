@@ -141,6 +141,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_exit_group
 	SC_ALLOW(exit_group),
 #endif
+#ifdef __NR_getpgid
+	SC_ALLOW(getpgid),
+#endif
 #ifdef __NR_getpid
 	SC_ALLOW(getpid),
 #endif
