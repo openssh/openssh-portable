@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.345 2015/06/30 05:23:25 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.346 2015/06/30 05:25:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2641,7 +2641,7 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c;
 	int id;
-	u_int adjust;
+	u_int adjust, tmp;
 
 	if (!compat20)
 		return 0;
@@ -2657,7 +2657,10 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 	adjust = packet_get_int();
 	packet_check_eom();
 	debug2("channel %d: rcvd adjust %u", id, adjust);
-	c->remote_window += adjust;
+	if ((tmp = c->remote_window + adjust) < c->remote_window)
+		fatal("channel %d: adjust %u overflows remote window %u",
+		    id, adjust, c->remote_window);
+	c->remote_window = tmp;
 	return 0;
 }
 
