@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.c,v 1.272 2015/07/01 01:55:00 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.273 2015/07/01 01:56:13 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -222,7 +222,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->key_regeneration_time == -1)
 		options->key_regeneration_time = 3600;
 	if (options->permit_root_login == PERMIT_NOT_SET)
-		options->permit_root_login = PERMIT_YES;
+		options->permit_root_login = PERMIT_NO;
 	if (options->ignore_rhosts == -1)
 		options->ignore_rhosts = 1;
 	if (options->ignore_user_known_hosts == -1)
