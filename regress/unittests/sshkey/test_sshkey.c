@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.4 2015/04/22 01:38:36 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.5 2015/07/03 04:39:23 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -424,7 +424,7 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_load_public(test_data_file("ed25519_1.pub"),
 	    &k1, NULL), 0);
 	k2 = get_private("ed25519_2");
-	ASSERT_INT_EQ(sshkey_to_certified(k1, 0), 0);
+	ASSERT_INT_EQ(sshkey_to_certified(k1), 0);
 	ASSERT_PTR_NE(k1->cert, NULL);
 	k1->cert->type = SSH2_CERT_TYPE_USER;
 	k1->cert->serial = 1234;
