@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.275 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.276 2015/07/03 03:49:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -217,8 +217,8 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		fatal("key bits exceeds maximum %d", maxbits);
 	if (type == KEY_DSA && *bitsp != 1024)
 		fatal("DSA keys must be 1024 bits");
-	else if (type != KEY_ECDSA && type != KEY_ED25519 && *bitsp < 768)
-		fatal("Key must at least be 768 bits");
+	else if (type != KEY_ECDSA && type != KEY_ED25519 && *bitsp < 1024)
+		fatal("Key must at least be 1024 bits");
 	else if (type == KEY_ECDSA && sshkey_ecdsa_bits_to_nid(*bitsp) == -1)
 		fatal("Invalid ECDSA key length - valid lengths are "
 		    "256, 384 or 521 bits");
