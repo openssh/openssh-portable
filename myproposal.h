@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.45 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.46 2015/07/03 03:47:00 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -93,8 +93,7 @@
 
 #define KEX_CLIENT_KEX KEX_COMMON_KEX \
 	"diffie-hellman-group-exchange-sha1," \
-	"diffie-hellman-group14-sha1," \
-	"diffie-hellman-group1-sha1"
+	"diffie-hellman-group14-sha1"
 
 #define	KEX_DEFAULT_PK_ALG	\
 	HOSTKEY_ECDSA_CERT_METHODS \

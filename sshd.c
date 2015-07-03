@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.451 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.452 2015/07/03 03:47:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2523,9 +2523,7 @@ sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
 	return 0;
 }
 
-/*
- * SSH2 key exchange: diffie-hellman-group1-sha1
- */
+/* SSH2 key exchange */
 static void
 do_ssh2_kex(void)
 {
