@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.114 2015/04/17 13:32:09 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.115 2015/07/03 03:43:18 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -467,7 +467,7 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 		goto out;
 	}
 
-	if ((r = sshkey_to_certified(key, sshkey_cert_is_legacy(cert))) != 0 ||
+	if ((r = sshkey_to_certified(key)) != 0 ||
 	    (r = sshkey_cert_copy(cert, key)) != 0)
 		goto out;
 	r = 0;
