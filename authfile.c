@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.115 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.116 2015/07/09 09:49:46 markus Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -39,13 +39,13 @@
 #include <limits.h>
 
 #include "cipher.h"
-#include "key.h"
 #include "ssh.h"
 #include "log.h"
 #include "authfile.h"
 #include "rsa.h"
 #include "misc.h"
 #include "atomicio.h"
+#include "sshkey.h"
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "krl.h"
@@ -448,8 +448,8 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	case KEY_RSA:
 	case KEY_DSA:
 	case KEY_ECDSA:
-	case KEY_ED25519:
 #endif /* WITH_OPENSSL */
+	case KEY_ED25519:
 	case KEY_UNSPEC:
 		break;
 	default:
