@@ -1,12 +1,18 @@
-#	$OpenBSD: cert-userkey.sh,v 1.13 2015/07/03 04:39:23 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.14 2015/07/10 06:23:25 markus Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
 
 rm -f $OBJ/authorized_keys_$USER $OBJ/user_ca_key* $OBJ/cert_user_key*
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
+cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
 PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
+
+kname() {
+	echo -n $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/'
+	echo "*,ssh-rsa*,ssh-ed25519*"
+}
 
 # Create a CA key
 ${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/user_ca_key ||\
@@ -25,6 +31,7 @@ done
 
 # Test explicitly-specified principals
 for ktype in $PLAIN_TYPES ; do 
+	t=$(kname $ktype)
 	for privsep in yes no ; do
 		_prefix="${ktype} privsep $privsep"
 
@@ -36,7 +43,12 @@ for ktype in $PLAIN_TYPES ; do
 			echo "AuthorizedPrincipalsFile " \
 			    "$OBJ/authorized_principals_%u"
 			echo "TrustedUserCAKeys $OBJ/user_ca_key.pub"
+			echo "PubkeyAcceptedKeyTypes ${t}"
 		) > $OBJ/sshd_proxy
+		(
+			cat $OBJ/ssh_proxy_bak
+			echo "PubkeyAcceptedKeyTypes ${t}"
+		) > $OBJ/ssh_proxy
 
 		# Missing authorized_principals
 		verbose "$tid: ${_prefix} missing authorized_principals"
@@ -109,7 +121,12 @@ for ktype in $PLAIN_TYPES ; do
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo "UsePrivilegeSeparation $privsep"
+			echo "PubkeyAcceptedKeyTypes ${t}"
 		) > $OBJ/sshd_proxy
+		(
+			cat $OBJ/ssh_proxy_bak
+			echo "PubkeyAcceptedKeyTypes ${t}"
+		) > $OBJ/ssh_proxy
 
 		# Wrong principals list
 		verbose "$tid: ${_prefix} wrong principals key option"
@@ -151,6 +168,7 @@ basic_tests() {
 	fi
 	
 	for ktype in $PLAIN_TYPES ; do 
+		t=$(kname $ktype)
 		for privsep in yes no ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
@@ -158,8 +176,13 @@ basic_tests() {
 			(
 				cat $OBJ/sshd_proxy_bak
 				echo "UsePrivilegeSeparation $privsep"
+				echo "PubkeyAcceptedKeyTypes ${t}"
 				echo "$extra_sshd"
 			) > $OBJ/sshd_proxy
+			(
+				cat $OBJ/ssh_proxy_bak
+				echo "PubkeyAcceptedKeyTypes ${t}"
+			) > $OBJ/ssh_proxy
 	
 			${SSH} -2i $OBJ/cert_user_key_${ktype} \
 			    -F $OBJ/ssh_proxy somehost true
@@ -173,6 +196,7 @@ basic_tests() {
 				cat $OBJ/sshd_proxy_bak
 				echo "UsePrivilegeSeparation $privsep"
 				echo "RevokedKeys $OBJ/cert_user_key_revoked"
+				echo "PubkeyAcceptedKeyTypes ${t}"
 				echo "$extra_sshd"
 			) > $OBJ/sshd_proxy
 			cp $OBJ/cert_user_key_${ktype}.pub \
@@ -205,6 +229,7 @@ basic_tests() {
 		(
 			cat $OBJ/sshd_proxy_bak
 			echo "RevokedKeys $OBJ/user_ca_key.pub"
+			echo "PubkeyAcceptedKeyTypes ${t}"
 			echo "$extra_sshd"
 		) > $OBJ/sshd_proxy
 		${SSH} -2i $OBJ/cert_user_key_${ktype} -F $OBJ/ssh_proxy \
@@ -217,6 +242,7 @@ basic_tests() {
 	verbose "$tid: $auth CA does not authenticate"
 	(
 		cat $OBJ/sshd_proxy_bak
+		echo "PubkeyAcceptedKeyTypes ${t}"
 		echo "$extra_sshd"
 	) > $OBJ/sshd_proxy
 	verbose "$tid: ensure CA key does not authenticate user"
@@ -253,6 +279,8 @@ test_one() {
 			else
 				echo > $OBJ/authorized_keys_$USER
 				echo "TrustedUserCAKeys $OBJ/user_ca_key.pub" \
+				    >> $OBJ/sshd_proxy
+				echo "PubkeyAcceptedKeyTypes ${t}*" \
 				    >> $OBJ/sshd_proxy
 				if test "x$auth_opt" != "x" ; then
 					echo $auth_opt >> $OBJ/sshd_proxy
@@ -315,6 +343,7 @@ test_one "principals key option no principals" failure "" \
 # Wrong certificate
 cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
 for ktype in $PLAIN_TYPES ; do 
+	t=$(kname $ktype)
 	# Self-sign
 	${SSHKEYGEN} -q -s $OBJ/cert_user_key_${ktype} -I \
 	    "regress user key for $USER" \

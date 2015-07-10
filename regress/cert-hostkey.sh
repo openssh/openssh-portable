@@ -1,11 +1,32 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.12 2015/07/03 04:39:23 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.13 2015/07/10 06:23:25 markus Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
 
 rm -f $OBJ/known_hosts-cert* $OBJ/host_ca_key* $OBJ/host_revoked_*
 rm -f $OBJ/cert_host_key* $OBJ/host_krl_*
+
+# Allow all hostkey/pubkey types, prefer certs for the client
+types=""
+for i in `$SSH -Q key`; do
+	if [ -z "$types" ]; then
+		types="$i"
+		continue
+	fi
+	case "$i" in
+	*cert*)	types="$i,$types";;
+	*)	types="$types,$i";;
+	esac
+done
+(
+	echo "HostKeyAlgorithms ${types}"
+	echo "PubkeyAcceptedKeyTypes *"
+) >> $OBJ/ssh_proxy
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
+(
+	echo "HostKeyAlgorithms *"
+	echo "PubkeyAcceptedKeyTypes *"
+) >> $OBJ/sshd_proxy_bak
 
 HOSTS='localhost-with-alias,127.0.0.1,::1'
 
