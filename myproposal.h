@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.46 2015/07/03 03:47:00 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.47 2015/07/10 06:21:53 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -99,11 +99,9 @@
 	HOSTKEY_ECDSA_CERT_METHODS \
 	"ssh-ed25519-cert-v01@openssh.com," \
 	"ssh-rsa-cert-v01@openssh.com," \
-	"ssh-dss-cert-v01@openssh.com," \
 	HOSTKEY_ECDSA_METHODS \
 	"ssh-ed25519," \
-	"ssh-rsa," \
-	"ssh-dss"
+	"ssh-rsa" \
 
 /* the actual algorithms */
 

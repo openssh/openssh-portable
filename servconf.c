@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.275 2015/07/01 02:39:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.276 2015/07/10 06:21:53 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -108,6 +108,7 @@ initialize_server_options(ServerOptions *options)
 	options->hostbased_authentication = -1;
 	options->hostbased_uses_name_from_packet_only = -1;
 	options->hostbased_key_types = NULL;
+	options->hostkeyalgorithms = NULL;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->pubkey_key_types = NULL;
@@ -259,13 +260,15 @@ fill_default_server_options(ServerOptions *options)
 	if (options->hostbased_uses_name_from_packet_only == -1)
 		options->hostbased_uses_name_from_packet_only = 0;
 	if (options->hostbased_key_types == NULL)
-		options->hostbased_key_types = xstrdup("*");
+		options->hostbased_key_types = xstrdup(KEX_DEFAULT_PK_ALG);
+	if (options->hostkeyalgorithms == NULL)
+		options->hostkeyalgorithms = xstrdup(KEX_DEFAULT_PK_ALG);
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
 	if (options->pubkey_key_types == NULL)
-		options->pubkey_key_types = xstrdup("*");
+		options->pubkey_key_types = xstrdup(KEX_DEFAULT_PK_ALG);
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 0;
 	if (options->kerberos_or_local_passwd == -1)
@@ -400,6 +403,7 @@ typedef enum {
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sHostbasedAcceptedKeyTypes,
+	sHostKeyAlgorithms,
 	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sGssStrictAcceptor,
 	sAcceptEnv, sPermitTunnel,
@@ -450,6 +454,7 @@ static struct {
 	{ "hostbasedauthentication", sHostbasedAuthentication, SSHCFG_ALL },
 	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly, SSHCFG_ALL },
 	{ "hostbasedacceptedkeytypes", sHostbasedAcceptedKeyTypes, SSHCFG_ALL },
+	{ "hostkeyalgorithms", sHostKeyAlgorithms, SSHCFG_GLOBAL },
 	{ "rsaauthentication", sRSAAuthentication, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
 	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedKeyTypes, SSHCFG_ALL },
@@ -1182,6 +1187,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
 		break;
+
+	case sHostKeyAlgorithms:
+		charptr = &options->hostkeyalgorithms;
+		goto parse_keytypes;
 
 	case sRSAAuthentication:
 		intptr = &options->rsa_authentication;
@@ -2280,6 +2289,8 @@ dump_config(ServerOptions *o)
 	    o->kex_algorithms ? o->kex_algorithms : KEX_SERVER_KEX);
 	dump_cfg_string(sHostbasedAcceptedKeyTypes, o->hostbased_key_types ?
 	    o->hostbased_key_types : KEX_DEFAULT_PK_ALG);
+	dump_cfg_string(sHostKeyAlgorithms, o->hostkeyalgorithms ?
+	    o->hostkeyalgorithms : KEX_DEFAULT_PK_ALG);
 	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types ?
 	    o->pubkey_key_types : KEX_DEFAULT_PK_ALG);
 
