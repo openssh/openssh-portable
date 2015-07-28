@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.95 2015/07/13 04:57:14 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.96 2015/07/28 23:20:42 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -152,7 +152,8 @@ compat_datafellows(const char *version)
 		  "1.2.22*",		SSH_BUG_IGNOREMSG },
 		{ "1.3.2*",		/* F-Secure */
 					SSH_BUG_IGNOREMSG },
-		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE },
+		{ "Cisco-1.*",		SSH_BUG_DHGEX_LARGE|
+					SSH_BUG_HOSTKEYS },
 		{ "*SSH Compatible Server*",			/* Netscreen */
 					SSH_BUG_PASSWORDPAD },
 		{ "*OSU_0*,"
