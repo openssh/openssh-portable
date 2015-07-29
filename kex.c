@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.106 2015/04/17 13:25:52 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.107 2015/07/29 04:43:06 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -448,6 +448,7 @@ kex_free(struct kex *kex)
 	free(kex->session_id);
 	free(kex->client_version_string);
 	free(kex->server_version_string);
+	free(kex->failed_choice);
 	free(kex);
 }
 
@@ -626,17 +627,26 @@ kex_choose_conf(struct ssh *ssh)
 		nmac  = ctos ? PROPOSAL_MAC_ALGS_CTOS  : PROPOSAL_MAC_ALGS_STOC;
 		ncomp = ctos ? PROPOSAL_COMP_ALGS_CTOS : PROPOSAL_COMP_ALGS_STOC;
 		if ((r = choose_enc(&newkeys->enc, cprop[nenc],
-		    sprop[nenc])) != 0)
+		    sprop[nenc])) != 0) {
+			kex->failed_choice = peer[nenc];
+			peer[nenc] = NULL;
 			goto out;
+		}
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&
 		    (r = choose_mac(ssh, &newkeys->mac, cprop[nmac],
-		    sprop[nmac])) != 0)
+		    sprop[nmac])) != 0) {
+			kex->failed_choice = peer[nmac];
+			peer[nmac] = NULL;
 			goto out;
+		}
 		if ((r = choose_comp(&newkeys->comp, cprop[ncomp],
-		    sprop[ncomp])) != 0)
+		    sprop[ncomp])) != 0) {
+			kex->failed_choice = peer[ncomp];
+			peer[ncomp] = NULL;
 			goto out;
+		}
 		debug("kex: %s %s %s %s",
 		    ctos ? "client->server" : "server->client",
 		    newkeys->enc.name,
@@ -644,10 +654,17 @@ kex_choose_conf(struct ssh *ssh)
 		    newkeys->comp.name);
 	}
 	if ((r = choose_kex(kex, cprop[PROPOSAL_KEX_ALGS],
-	    sprop[PROPOSAL_KEX_ALGS])) != 0 ||
-	    (r = choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
-	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS])) != 0)
+	    sprop[PROPOSAL_KEX_ALGS])) != 0) {
+		kex->failed_choice = peer[PROPOSAL_KEX_ALGS];
+		peer[PROPOSAL_KEX_ALGS] = NULL;
 		goto out;
+	}
+	if ((r = choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
+	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS])) != 0) {
+		kex->failed_choice = cprop[PROPOSAL_SERVER_HOST_KEY_ALGS];
+		cprop[PROPOSAL_SERVER_HOST_KEY_ALGS] = NULL;
+		goto out;
+	}
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = kex->newkeys[mode];
