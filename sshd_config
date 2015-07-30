@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.95 2015/04/27 21:42:48 djm Exp $
+#	$OpenBSD: sshd_config,v 1.96 2015/07/30 19:23:02 deraadt Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -41,7 +41,7 @@
 # Authentication:
 
 #LoginGraceTime 2m
-#PermitRootLogin no
+#PermitRootLogin without-password
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10

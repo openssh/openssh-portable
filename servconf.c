@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.277 2015/07/30 00:01:34 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.278 2015/07/30 19:23:02 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -89,7 +89,7 @@ initialize_server_options(ServerOptions *options)
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
 	options->key_regeneration_time = -1;
-	options->permit_root_login = PERMIT_NOT_SET;
+	options->permit_root_login = PERMIT_NO_PASSWD;
 	options->ignore_rhosts = -1;
 	options->ignore_user_known_hosts = -1;
 	options->print_motd = -1;
