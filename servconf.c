@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.276 2015/07/10 06:21:53 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.277 2015/07/30 00:01:34 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -259,16 +259,12 @@ fill_default_server_options(ServerOptions *options)
 		options->hostbased_authentication = 0;
 	if (options->hostbased_uses_name_from_packet_only == -1)
 		options->hostbased_uses_name_from_packet_only = 0;
-	if (options->hostbased_key_types == NULL)
-		options->hostbased_key_types = xstrdup(KEX_DEFAULT_PK_ALG);
 	if (options->hostkeyalgorithms == NULL)
 		options->hostkeyalgorithms = xstrdup(KEX_DEFAULT_PK_ALG);
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
-	if (options->pubkey_key_types == NULL)
-		options->pubkey_key_types = xstrdup(KEX_DEFAULT_PK_ALG);
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 0;
 	if (options->kerberos_or_local_passwd == -1)
@@ -345,6 +341,16 @@ fill_default_server_options(ServerOptions *options)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
+
+	if (kex_assemble_names(KEX_SERVER_ENCRYPT, &options->ciphers) != 0 ||
+	    kex_assemble_names(KEX_SERVER_MAC, &options->macs) != 0 ||
+	    kex_assemble_names(KEX_SERVER_KEX, &options->kex_algorithms) != 0 ||
+	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
+	    &options->hostbased_key_types) != 0 ||
+	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
+	    &options->pubkey_key_types) != 0)
+		fatal("%s: kex_assemble_names failed", __func__);
+
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
 		use_privsep = PRIVSEP_NOSANDBOX;
@@ -1181,7 +1187,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing argument.",
 			    filename, linenum);
-		if (!sshkey_names_valid2(arg, 1))
+		if (!sshkey_names_valid2(*arg == '+' ? arg + 1 : arg, 1))
 			fatal("%s line %d: Bad key types '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *charptr == NULL)
@@ -1434,7 +1440,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing argument.", filename, linenum);
-		if (!ciphers_valid(arg))
+		if (!ciphers_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%s line %d: Bad SSH2 cipher spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (options->ciphers == NULL)
@@ -1445,7 +1451,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing argument.", filename, linenum);
-		if (!mac_valid(arg))
+		if (!mac_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%s line %d: Bad SSH2 mac spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (options->macs == NULL)
@@ -1457,7 +1463,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing argument.",
 			    filename, linenum);
-		if (!kex_names_valid(arg))
+		if (!kex_names_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%s line %d: Bad SSH2 KexAlgorithms '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (options->kex_algorithms == NULL)

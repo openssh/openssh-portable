@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.108 2015/07/29 08:34:54 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.109 2015/07/30 00:01:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -153,6 +153,68 @@ kex_names_valid(const char *names)
 	debug3("kex names ok: [%s]", names);
 	free(s);
 	return 1;
+}
+
+/*
+ * Concatenate algorithm names, avoiding duplicates in the process.
+ * Caller must free returned string.
+ */
+char *
+kex_names_cat(const char *a, const char *b)
+{
+	char *ret = NULL, *tmp = NULL, *cp, *p;
+	size_t len;
+
+	if (a == NULL || *a == '\0')
+		return NULL;
+	if (b == NULL || *b == '\0')
+		return strdup(a);
+	if (strlen(b) > 1024*1024)
+		return NULL;
+	len = strlen(a) + strlen(b) + 2;
+	if ((tmp = cp = strdup(b)) == NULL ||
+	    (ret = calloc(1, len)) == NULL) {
+		free(tmp);
+		return NULL;
+	}
+	strlcpy(ret, a, len);
+	for ((p = strsep(&cp, ",")); p && *p != '\0'; (p = strsep(&cp, ","))) {
+		if (match_list(ret, p, NULL) != NULL)
+			continue; /* Algorithm already present */
+		if (strlcat(ret, ",", len) >= len ||
+		    strlcat(ret, p, len) >= len) {
+			free(tmp);
+			free(ret);
+			return NULL; /* Shouldn't happen */
+		}
+	}
+	free(tmp);
+	return ret;
+}
+
+/*
+ * Assemble a list of algorithms from a default list and a string from a
+ * configuration file. The user-provided string may begin with '+' to
+ * indicate that it should be appended to the default.
+ */
+int
+kex_assemble_names(const char *def, char **list)
+{
+	char *ret;
+
+	if (list == NULL || *list == NULL || **list == '\0') {
+		*list = strdup(def);
+		return 0;
+	}
+	if (**list != '+') {
+		return 0;
+	}
+
+	if ((ret = kex_names_cat(def, *list + 1)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	free(*list);
+	*list = ret;
+	return 0;
 }
 
 /* put algorithm proposal into buffer */

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.207 2015/07/20 00:30:01 djm Exp $
-.Dd $Mdocdate: July 20 2015 $
+.\" $OpenBSD: sshd_config.5,v 1.208 2015/07/30 00:01:34 djm Exp $
+.Dd $Mdocdate: July 30 2015 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -434,6 +434,11 @@ The default is not to
 .It Cm Ciphers
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.
+If the specified value begins with a
+.Sq +
+character, then the specified ciphers will be appended to the default set
+instead of replacing them.
+.Pp
 The supported ciphers are:
 .Pp
 .Bl -item -compact -offset indent
@@ -640,6 +645,10 @@ The default is
 .It Cm HostbasedAcceptedKeyTypes
 Specifies the key types that will be accepted for hostbased authentication
 as a comma-separated pattern list.
+Alternately if the specified value begins with a
+.Sq +
+character, then the specified key types will be appended to the default set
+instead of replacing them.
 The default for this option is:
 .Bd -literal -offset 3n
 ecdsa-sha2-nistp256-cert-v01@openssh.com,
@@ -855,6 +864,10 @@ The default is
 .It Cm KexAlgorithms
 Specifies the available KEX (Key Exchange) algorithms.
 Multiple algorithms must be comma-separated.
+Alternately if the specified value begins with a
+.Sq +
+character, then the specified methods will be appended to the default set
+instead of replacing them.
 The supported algorithms are:
 .Pp
 .Bl -item -compact -offset indent
@@ -953,6 +966,11 @@ Specifies the available MAC (message authentication code) algorithms.
 The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
+If the specified value begins with a
+.Sq +
+character, then the specified algorithms will be appended to the default set
+instead of replacing them.
+.Pp
 The algorithms that contain
 .Dq -etm
 calculate the MAC after encryption (encrypt-then-mac).
@@ -1313,6 +1331,10 @@ is identical to
 .It Cm PubkeyAcceptedKeyTypes
 Specifies the key types that will be accepted for public key authentication
 as a comma-separated pattern list.
+Alternately if the specified value begins with a
+.Sq +
+character, then the specified key types will be appended to the default set
+instead of replacing them.
 The default for this option is:
 .Bd -literal -offset 3n
 ecdsa-sha2-nistp256-cert-v01@openssh.com,
