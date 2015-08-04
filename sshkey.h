@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.8 2015/07/03 04:05:54 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.9 2015/08/04 05:23:06 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -46,7 +46,7 @@
 # define EC_POINT	void
 #endif /* WITH_OPENSSL */
 
-#define SSH_RSA_MINIMUM_MODULUS_SIZE	1024
+#define SSH_RSA_MINIMUM_MODULUS_SIZE	768
 #define SSH_KEY_MAX_SIGN_DATA_SIZE	(1 << 20)
 
 struct sshbuf;

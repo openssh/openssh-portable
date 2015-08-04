@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.80 2015/07/03 03:49:45 djm Exp $ */
+/* $OpenBSD: ssh.h,v 1.81 2015/08/04 05:23:06 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -93,7 +93,7 @@
 #endif
 
 /* Minimum modulus size (n) for RSA keys. */
-#define SSH_RSA_MINIMUM_MODULUS_SIZE	1024
+#define SSH_RSA_MINIMUM_MODULUS_SIZE	768
 
 /* Listen backlog for sshd, ssh-agent and forwarding sockets */
 #define SSH_LISTEN_BACKLOG		128
