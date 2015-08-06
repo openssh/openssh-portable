@@ -10,8 +10,8 @@ cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
 
 kname() {
-	echo -n $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/'
-	echo "*,ssh-rsa*,ssh-ed25519*"
+	n=`echo "$1" | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/'`
+	echo "$n*,ssh-rsa*,ssh-ed25519*"
 }
 
 # Create a CA key
