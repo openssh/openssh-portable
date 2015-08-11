@@ -1084,9 +1084,7 @@ extern KbdintDevice sshpam_device;
 int
 mm_answer_pam_init_ctx(int sock, Buffer *m)
 {
-
 	debug3("%s", __func__);
-	authctxt->user = buffer_get_string(m, NULL);
 	sshpam_ctxt = (sshpam_device.init_ctx)(authctxt);
 	sshpam_authok = NULL;
 	buffer_clear(m);
