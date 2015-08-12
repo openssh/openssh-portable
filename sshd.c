@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.450 2015/05/24 23:39:16 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.457 2015/07/30 00:01:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -95,6 +95,7 @@
 #include "log.h"
 #include "buffer.h"
 #include "misc.h"
+#include "match.h"
 #include "servconf.h"
 #include "uidswap.h"
 #include "compat.h"
@@ -800,8 +801,15 @@ list_hostkey_types(void)
 		key = sensitive_data.host_keys[i];
 		if (key == NULL)
 			key = sensitive_data.host_pubkeys[i];
-		if (key == NULL)
+		if (key == NULL || key->type == KEY_RSA1)
 			continue;
+		/* Check that the key is accepted in HostkeyAlgorithms */
+		if (match_pattern_list(sshkey_ssh_name(key),
+		    options.hostkeyalgorithms, 0) != 1) {
+			debug3("%s: %s key not permitted by HostkeyAlgorithms",
+			    __func__, sshkey_ssh_name(key));
+			continue;
+		}
 		switch (key->type) {
 		case KEY_RSA:
 		case KEY_DSA:
@@ -818,8 +826,6 @@ list_hostkey_types(void)
 		if (key == NULL)
 			continue;
 		switch (key->type) {
-		case KEY_RSA_CERT_V00:
-		case KEY_DSA_CERT_V00:
 		case KEY_RSA_CERT:
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
@@ -846,8 +852,6 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		switch (type) {
-		case KEY_RSA_CERT_V00:
-		case KEY_DSA_CERT_V00:
 		case KEY_RSA_CERT:
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
@@ -1888,8 +1892,8 @@ main(int ac, char **av)
 #ifdef WITH_SSH1
 	/* Check certain values for sanity. */
 	if (options.protocol & SSH_PROTO_1) {
-		if (options.server_key_bits < 512 ||
-		    options.server_key_bits > 32768) {
+		if (options.server_key_bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+		    options.server_key_bits > OPENSSL_RSA_MAX_MODULUS_BITS) {
 			fprintf(stderr, "Bad server key size.\n");
 			exit(1);
 		}
@@ -2276,10 +2280,10 @@ main(int ac, char **av)
 	 * so we repoint the define to the multithreaded evp. To start the threads we
 	 * then force a rekey
 	 */
-	CipherContext *ccsend = ssh_packet_get_send_context(active_state);
+	struct sshcipher_ctx *ccsend = ssh_packet_get_send_context(active_state);
 
 	/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
-	if (strstr(cipher_return_name((Cipher*)ccsend->cipher), "ctr")) {
+	if (strstr(cipher_return_name(ccsend->cipher), "ctr")) {
 		debug("Single to Multithreaded CTR cipher swap - server request");
 		cipher_reset_multithreaded();
 		packet_request_rekeying();
@@ -2558,9 +2562,7 @@ sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
 	return 0;
 }
 
-/*
- * SSH2 key exchange: diffie-hellman-group1-sha1
- */
+/* SSH2 key exchange */
 static void
 do_ssh2_kex(void)
 {
@@ -2568,23 +2570,20 @@ do_ssh2_kex(void)
 	struct kex *kex;
 	int r;
 
-	if (options.ciphers != NULL) {
-		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
-	} else if (options.none_enabled == 1) {
-		debug ("WARNING: None cipher enabled");
-		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-		    myproposal[PROPOSAL_ENC_ALGS_STOC] = KEX_ENCRYPT_INCLUDE_NONE;
+	char *ciphers = options.ciphers;
+	if (ciphers == NULL && options.none_enabled == 1) {
+		debug("WARNING: None cipher enabled");
+		ciphers = KEX_ENCRYPT_INCLUDE_NONE;
 	}
-	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    compat_cipher_proposal(myproposal[PROPOSAL_ENC_ALGS_CTOS]);
-	myproposal[PROPOSAL_ENC_ALGS_STOC] =
-	    compat_cipher_proposal(myproposal[PROPOSAL_ENC_ALGS_STOC]);
+	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(
+	    options.kex_algorithms);
+	myproposal[PROPOSAL_ENC_ALGS_CTOS] = compat_cipher_proposal(
+	    ciphers);
+	myproposal[PROPOSAL_ENC_ALGS_STOC] = compat_cipher_proposal(
+	    ciphers);
+	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
+	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 
-	if (options.macs != NULL) {
-		myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	}
 	if (options.compression == COMP_NONE) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
@@ -2592,11 +2591,6 @@ do_ssh2_kex(void)
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none,zlib@openssh.com";
 	}
-	if (options.kex_algorithms != NULL)
-		myproposal[PROPOSAL_KEX_ALGS] = options.kex_algorithms;
-
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(
-	    myproposal[PROPOSAL_KEX_ALGS]);
 
 	if (options.rekey_limit || options.rekey_interval)
 		packet_set_rekey_limits((u_int32_t)options.rekey_limit,

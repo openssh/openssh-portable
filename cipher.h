@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.47 2015/01/14 10:24:42 markus Exp $ */
+/* $OpenBSD: cipher.h,v 1.48 2015/07/08 19:09:25 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -71,9 +71,6 @@ struct sshcipher_ctx {
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
 };
-
-typedef struct sshcipher Cipher;
-typedef struct sshcipher_ctx CipherContext;
 
 void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); // defined in cipher-ctr-mt.c
 void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx);
