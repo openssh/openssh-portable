@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.150 2015/06/22 23:42:16 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.151 2015/08/21 23:29:31 deraadt Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -487,15 +487,10 @@ monitor_sync(struct monitor *pmonitor)
 static void *
 mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
 {
-	size_t len = (size_t) size * ncount;
-	void *address;
-
-	if (len == 0 || ncount > SIZE_MAX / size)
+	if (size == 0 || ncount == 0 || ncount > SIZE_MAX / size)
 		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
 
-	address = mm_malloc(mm, len);
-
-	return (address);
+	return mm_malloc(mm, size * ncount);
 }
 
 static void
