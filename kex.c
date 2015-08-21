@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.109 2015/07/30 00:01:34 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.110 2015/08/21 23:57:48 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -66,6 +66,19 @@ extern const EVP_MD *evp_ssh_sha256(void);
 /* prototype */
 static int kex_choose_conf(struct ssh *);
 static int kex_input_newkeys(int, u_int32_t, void *);
+
+static const char *proposal_names[PROPOSAL_MAX] = {
+	"KEX algorithms",
+	"host key algorithms",
+	"ciphers ctos",
+	"ciphers stoc",
+	"MACs ctos",
+	"MACs stoc",
+	"compression ctos",
+	"compression stoc",
+	"languages ctos",
+	"languages stoc",
+};
 
 struct kexalg {
 	char *name;
@@ -267,7 +280,7 @@ kex_buf2prop(struct sshbuf *raw, int *first_kex_follows, char ***propp)
 	for (i = 0; i < PROPOSAL_MAX; i++) {
 		if ((r = sshbuf_get_cstring(b, &(proposal[i]), NULL)) != 0)
 			goto out;
-		debug2("kex_parse_kexinit: %s", proposal[i]);
+		debug2("%s: %s", proposal_names[i], proposal[i]);
 	}
 	/* first kex follows / reserved */
 	if ((r = sshbuf_get_u8(b, &v)) != 0 ||
@@ -275,8 +288,8 @@ kex_buf2prop(struct sshbuf *raw, int *first_kex_follows, char ***propp)
 		goto out;
 	if (first_kex_follows != NULL)
 		*first_kex_follows = i;
-	debug2("kex_parse_kexinit: first_kex_follows %d ", v);
-	debug2("kex_parse_kexinit: reserved %u ", i);
+	debug2("first_kex_follows %d ", v);
+	debug2("reserved %u ", i);
 	r = 0;
 	*propp = proposal;
  out:
@@ -593,6 +606,7 @@ choose_kex(struct kex *k, char *client, char *server)
 
 	k->name = match_list(client, server, NULL);
 
+	debug("kex: algorithm: %s", k->name ? k->name : "(no match)");
 	if (k->name == NULL)
 		return SSH_ERR_NO_KEX_ALG_MATCH;
 	if ((kexalg = kex_alg_by_name(k->name)) == NULL)
@@ -608,6 +622,8 @@ choose_hostkeyalg(struct kex *k, char *client, char *server)
 {
 	char *hostkeyalg = match_list(client, server, NULL);
 
+	debug("kex: host key algorithm: %s",
+	    hostkeyalg ? hostkeyalg : "(no match)");
 	if (hostkeyalg == NULL)
 		return SSH_ERR_NO_HOSTKEY_ALG_MATCH;
 	k->hostkey_type = sshkey_type_from_name(hostkeyalg);
@@ -653,8 +669,11 @@ kex_choose_conf(struct ssh *ssh)
 	u_int mode, ctos, need, dh_need, authlen;
 	int r, first_kex_follows;
 
-	if ((r = kex_buf2prop(kex->my, NULL, &my)) != 0 ||
-	    (r = kex_buf2prop(kex->peer, &first_kex_follows, &peer)) != 0)
+	debug2("local %s KEXINIT proposal", kex->server ? "server" : "client");
+	if ((r = kex_buf2prop(kex->my, NULL, &my)) != 0)
+		goto out;
+	debug2("peer %s KEXINIT proposal", kex->server ? "client" : "server");
+	if ((r = kex_buf2prop(kex->peer, &first_kex_follows, &peer)) != 0)
 		goto out;
 
 	if (kex->server) {
@@ -677,6 +696,18 @@ kex_choose_conf(struct ssh *ssh)
 	}
 
 	/* Algorithm Negotiation */
+	if ((r = choose_kex(kex, cprop[PROPOSAL_KEX_ALGS],
+	    sprop[PROPOSAL_KEX_ALGS])) != 0) {
+		kex->failed_choice = peer[PROPOSAL_KEX_ALGS];
+		peer[PROPOSAL_KEX_ALGS] = NULL;
+		goto out;
+	}
+	if ((r = choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
+	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS])) != 0) {
+		kex->failed_choice = peer[PROPOSAL_SERVER_HOST_KEY_ALGS];
+		peer[PROPOSAL_SERVER_HOST_KEY_ALGS] = NULL;
+		goto out;
+	}
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		if ((newkeys = calloc(1, sizeof(*newkeys))) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
@@ -709,23 +740,11 @@ kex_choose_conf(struct ssh *ssh)
 			peer[ncomp] = NULL;
 			goto out;
 		}
-		debug("kex: %s %s %s %s",
+		debug("kex: %s cipher: %s MAC: %s compression: %s",
 		    ctos ? "client->server" : "server->client",
 		    newkeys->enc.name,
 		    authlen == 0 ? newkeys->mac.name : "<implicit>",
 		    newkeys->comp.name);
-	}
-	if ((r = choose_kex(kex, cprop[PROPOSAL_KEX_ALGS],
-	    sprop[PROPOSAL_KEX_ALGS])) != 0) {
-		kex->failed_choice = peer[PROPOSAL_KEX_ALGS];
-		peer[PROPOSAL_KEX_ALGS] = NULL;
-		goto out;
-	}
-	if ((r = choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
-	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS])) != 0) {
-		kex->failed_choice = peer[PROPOSAL_SERVER_HOST_KEY_ALGS];
-		peer[PROPOSAL_SERVER_HOST_KEY_ALGS] = NULL;
-		goto out;
 	}
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
