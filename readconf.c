@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.239 2015/07/30 00:01:34 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.240 2015/08/21 23:53:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2243,6 +2243,10 @@ dump_client_config(Options *o, const char *host)
 	int i;
 	char vbuf[5];
 
+	/* This is normally prepared in ssh_kex2 */
+	if (kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->hostkeyalgorithms) != 0)
+		fatal("%s: kex_assemble_names failed", __func__);
+
 	/* Most interesting options first: user, host, port */
 	dump_cfg_string(oUser, o->user);
 	dump_cfg_string(oHostName, host);
@@ -2303,7 +2307,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oBindAddress, o->bind_address);
 	dump_cfg_string(oCiphers, o->ciphers ? o->ciphers : KEX_CLIENT_ENCRYPT);
 	dump_cfg_string(oControlPath, o->control_path);
-	dump_cfg_string(oHostKeyAlgorithms, o->hostkeyalgorithms ? o->hostkeyalgorithms : KEX_DEFAULT_PK_ALG);
+	dump_cfg_string(oHostKeyAlgorithms, o->hostkeyalgorithms);
 	dump_cfg_string(oHostKeyAlias, o->host_key_alias);
 	dump_cfg_string(oHostbasedKeyTypes, o->hostbased_key_types);
 	dump_cfg_string(oKbdInteractiveDevices, o->kbd_interactive_devices);
