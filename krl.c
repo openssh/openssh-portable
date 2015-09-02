@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.33 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.34 2015/09/02 07:51:12 jsg Exp $ */
 
 #include "includes.h"
 
@@ -723,7 +723,7 @@ ssh_krl_to_blob(struct ssh_krl *krl, struct sshbuf *buf,
 	if ((r = sshbuf_put(buf, KRL_MAGIC, sizeof(KRL_MAGIC) - 1)) != 0 ||
 	    (r = sshbuf_put_u32(buf, KRL_FORMAT_VERSION)) != 0 ||
 	    (r = sshbuf_put_u64(buf, krl->krl_version)) != 0 ||
-	    (r = sshbuf_put_u64(buf, krl->generated_date) != 0) ||
+	    (r = sshbuf_put_u64(buf, krl->generated_date)) != 0 ||
 	    (r = sshbuf_put_u64(buf, krl->flags)) != 0 ||
 	    (r = sshbuf_put_string(buf, NULL, 0)) != 0 ||
 	    (r = sshbuf_put_cstring(buf, krl->comment)) != 0)
