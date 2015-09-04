@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.264 2015/09/04 03:57:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.265 2015/09/04 04:55:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -432,7 +432,7 @@ ssh_connect_direct(const char *host, struct addrinfo *aitop,
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
 
-	debug2("ssh_connect: needpriv %d", needpriv);
+	debug2("%s: needpriv %d", __func__, needpriv);
 
 	for (attempt = 0; attempt < connection_attempts; attempt++) {
 		if (attempt > 0) {
@@ -451,7 +451,7 @@ ssh_connect_direct(const char *host, struct addrinfo *aitop,
 			if (getnameinfo(ai->ai_addr, ai->ai_addrlen,
 			    ntop, sizeof(ntop), strport, sizeof(strport),
 			    NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
-				error("ssh_connect: getnameinfo failed");
+				error("%s: getnameinfo failed", __func__);
 				continue;
 			}
 			debug("Connecting to %.200s [%.100s] port %s.",
