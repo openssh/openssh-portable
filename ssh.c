@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.420 2015/07/30 00:01:34 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.421 2015/09/04 04:56:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1184,6 +1184,7 @@ main(int ac, char **av)
 	 * have yet resolved the hostname. Do so now.
 	 */
 	if (addrs == NULL && options.proxy_command == NULL) {
+		debug2("resolving \"%s\" port %d", host, options.port);
 		if ((addrs = resolve_host(host, options.port, 1,
 		    cname, sizeof(cname))) == NULL)
 			cleanup_exit(255); /* resolve_host logs the error */
