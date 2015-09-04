@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.152 2015/09/02 07:51:12 jsg Exp $ */
+/* $OpenBSD: monitor.c,v 1.153 2015/09/04 04:44:08 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1444,7 +1444,7 @@ mm_answer_keyverify(int sock, Buffer *m)
 	    __func__, key, (verified == 1) ? "verified" : "unverified");
 
 	/* If auth was successful then record key to ensure it isn't reused */
-	if (verified == 1)
+	if (verified == 1 && key_blobtype == MM_USERKEY)
 		auth2_record_userkey(authctxt, key);
 	else
 		key_free(key);
