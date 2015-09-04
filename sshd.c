@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.458 2015/08/20 22:32:42 deraadt Exp $ */
+/* $OpenBSD: sshd.c,v 1.459 2015/09/04 08:21:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1530,7 +1530,7 @@ main(int ac, char **av)
 			no_daemon_flag = 1;
 			break;
 		case 'E':
-			logfile = xstrdup(optarg);
+			logfile = optarg;
 			/* FALLTHROUGH */
 		case 'e':
 			log_stderr = 1;
@@ -1632,10 +1632,8 @@ main(int ac, char **av)
 #endif
 
 	/* If requested, redirect the logs to the specified logfile. */
-	if (logfile != NULL) {
+	if (logfile != NULL)
 		log_redirect_stderr_to(logfile);
-		free(logfile);
-	}
 	/*
 	 * Force logging to stderr until we have loaded the private host
 	 * key (unless started from inetd)
