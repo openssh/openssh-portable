@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.53 2015/06/15 01:32:50 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.54 2015/09/09 00:52:44 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -213,8 +213,8 @@ static int
 openssh_RSA_verify(int hash_alg, u_char *hash, size_t hashlen,
     u_char *sigbuf, size_t siglen, RSA *rsa)
 {
-	size_t ret, rsasize = 0, oidlen = 0, hlen = 0;
-	int len, oidmatch, hashmatch;
+	size_t rsasize = 0, oidlen = 0, hlen = 0;
+	int ret, len, oidmatch, hashmatch;
 	const u_char *oid = NULL;
 	u_char *decrypted = NULL;
 
