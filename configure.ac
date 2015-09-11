@@ -140,7 +140,7 @@ else
 fi
 
 AC_ARG_WITH([ssh1],
-	[  --without-ssh1          Enable support for SSH protocol 1],
+	[  --with-ssh1             Enable support for SSH protocol 1],
 	[
 		if test "x$withval" = "xyes" ; then
 			if test "x$openssl" = "xno" ; then
