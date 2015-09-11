@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.422 2015/09/04 08:21:47 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.423 2015/09/11 03:47:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -506,7 +506,7 @@ main(int ac, char **av)
 	int i, r, opt, exit_status, use_syslog, config_test = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
-	char cname[NI_MAXHOST];
+	char cname[NI_MAXHOST], uidstr[32], *conn_hash_hex;
 	struct stat st;
 	struct passwd *pw;
 	int timeout_ms;
@@ -516,7 +516,6 @@ main(int ac, char **av)
 	struct addrinfo *addrs = NULL;
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
-	char *conn_hash_hex;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1123,6 +1122,7 @@ main(int ac, char **av)
 	strlcpy(shorthost, thishost, sizeof(shorthost));
 	shorthost[strcspn(thishost, ".")] = '\0';
 	snprintf(portstr, sizeof(portstr), "%d", options.port);
+	snprintf(uidstr, sizeof(uidstr), "%d", pw->pw_uid);
 
 	if ((md = ssh_digest_start(SSH_DIGEST_SHA1)) == NULL ||
 	    ssh_digest_update(md, thishost, strlen(thishost)) < 0 ||
@@ -1165,6 +1165,7 @@ main(int ac, char **av)
 		    "p", portstr,
 		    "r", options.user,
 		    "u", pw->pw_name,
+		    "i", uidstr,
 		    (char *)NULL);
 		free(cp);
 	}
