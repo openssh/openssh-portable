@@ -3969,7 +3969,10 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <arpa/nameser.h>
 #include <resolv.h>
 extern struct __res_state _res;
-		]], [[ ]])],
+		]], [[
+struct __res_state *volatile p = &_res;  /* force resolution of _res */
+return 0;
+		]],)],
 		[AC_MSG_RESULT([yes])
 		 AC_DEFINE([HAVE__RES_EXTERN], [1],
 		    [Define if you have struct __res_state _res as an extern])
