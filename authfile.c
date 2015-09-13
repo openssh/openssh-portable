@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.116 2015/07/09 09:49:46 markus Exp $ */
+/* $OpenBSD: authfile.c,v 1.117 2015/09/13 14:39:16 tim Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -272,8 +272,8 @@ sshkey_load_private(const char *filename, const char *passphrase,
 		goto out;
 	}
 	if ((r = sshkey_load_file(fd, buffer)) != 0 ||
-	    (r = sshkey_parse_private_fileblob(buffer, passphrase, filename,
-	    keyp, commentp)) != 0)
+	    (r = sshkey_parse_private_fileblob(buffer, passphrase, keyp,
+	    commentp)) != 0)
 		goto out;
 	r = 0;
  out:

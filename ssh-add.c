@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.124 2015/09/13 13:48:19 tim Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.125 2015/09/13 14:39:16 tim Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -218,17 +218,16 @@ add_file(int agent_fd, const char *filename, int key_only)
 	close(fd);
 
 	/* At first, try empty passphrase */
-	if ((r = sshkey_parse_private_fileblob(keyblob, "", filename,
-	    &private, &comment)) != 0 && r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
+	if ((r = sshkey_parse_private_fileblob(keyblob, "", &private,
+	    &comment)) != 0 && r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
 		fprintf(stderr, "Error loading key \"%s\": %s\n",
 		    filename, ssh_err(r));
 		goto fail_load;
 	}
 	/* try last */
 	if (private == NULL && pass != NULL) {
-		if ((r = sshkey_parse_private_fileblob(keyblob, pass, filename,
-		    &private, &comment)) != 0 &&
-		    r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
+		if ((r = sshkey_parse_private_fileblob(keyblob, pass, &private,
+		    &comment)) != 0 && r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
 			fprintf(stderr, "Error loading key \"%s\": %s\n",
 			    filename, ssh_err(r));
 			goto fail_load;
@@ -244,7 +243,7 @@ add_file(int agent_fd, const char *filename, int key_only)
 			if (strcmp(pass, "") == 0)
 				goto fail_load;
 			if ((r = sshkey_parse_private_fileblob(keyblob, pass,
-			    filename, &private, &comment)) == 0)
+			    &private, &comment)) == 0)
 				break;
 			else if (r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
 				fprintf(stderr,

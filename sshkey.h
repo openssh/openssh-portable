@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.9 2015/08/04 05:23:06 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.10 2015/09/13 14:39:16 tim Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -186,8 +186,7 @@ int	sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 int	sshkey_parse_public_rsa1_fileblob(struct sshbuf *blob,
     struct sshkey **keyp, char **commentp);
 int	sshkey_parse_private_fileblob(struct sshbuf *buffer,
-    const char *passphrase, const char *filename, struct sshkey **keyp,
-    char **commentp);
+    const char *passphrase, struct sshkey **keyp, char **commentp);
 int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp);
 

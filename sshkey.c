@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.22 2015/09/02 07:51:12 jsg Exp $ */
+/* $OpenBSD: sshkey.c,v 1.23 2015/09/13 14:39:16 tim Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3833,8 +3833,6 @@ int
 sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp)
 {
-	int r;
-
 	*keyp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
@@ -3856,8 +3854,8 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		return sshkey_parse_private2(blob, type, passphrase,
 		    keyp, commentp);
 	case KEY_UNSPEC:
-		if ((r = sshkey_parse_private2(blob, type, passphrase, keyp,
-		    commentp)) == 0)
+		if (sshkey_parse_private2(blob, type, passphrase, keyp,
+		    commentp) == 0)
 			return 0;
 #ifdef WITH_OPENSSL
 		return sshkey_parse_private_pem_fileblob(blob, type,
@@ -3872,10 +3870,8 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 
 int
 sshkey_parse_private_fileblob(struct sshbuf *buffer, const char *passphrase,
-    const char *filename, struct sshkey **keyp, char **commentp)
+    struct sshkey **keyp, char **commentp)
 {
-	int r;
-
 	if (keyp != NULL)
 		*keyp = NULL;
 	if (commentp != NULL)
@@ -3883,13 +3879,11 @@ sshkey_parse_private_fileblob(struct sshbuf *buffer, const char *passphrase,
 
 #ifdef WITH_SSH1
 	/* it's a SSH v1 key if the public key part is readable */
-	if ((r = sshkey_parse_public_rsa1_fileblob(buffer, NULL, NULL)) == 0) {
+	if (sshkey_parse_public_rsa1_fileblob(buffer, NULL, NULL) == 0) {
 		return sshkey_parse_private_fileblob_type(buffer, KEY_RSA1,
 		    passphrase, keyp, commentp);
 	}
 #endif /* WITH_SSH1 */
-	if ((r = sshkey_parse_private_fileblob_type(buffer, KEY_UNSPEC,
-	    passphrase, keyp, commentp)) == 0)
-		return 0;
-	return r;
+	return sshkey_parse_private_fileblob_type(buffer, KEY_UNSPEC,
+	    passphrase, keyp, commentp);
 }
