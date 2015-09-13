@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.123 2015/07/03 03:43:18 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.124 2015/09/13 13:48:19 tim Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -93,7 +93,7 @@ static int lifetime = 0;
 /* User has to confirm key use */
 static int confirm = 0;
 
-/* we keep a cache of one passphrases */
+/* we keep a cache of one passphrase */
 static char *pass = NULL;
 static void
 clear_pass(void)
@@ -234,19 +234,17 @@ add_file(int agent_fd, const char *filename, int key_only)
 			goto fail_load;
 		}
 	}
-	if (comment == NULL)
-		comment = xstrdup(filename);
 	if (private == NULL) {
 		/* clear passphrase since it did not work */
 		clear_pass();
-		snprintf(msg, sizeof msg, "Enter passphrase for %.200s%s: ",
-		    comment, confirm ? " (will confirm each use)" : "");
+		snprintf(msg, sizeof msg, "Enter passphrase for %s%s: ",
+		    filename, confirm ? " (will confirm each use)" : "");
 		for (;;) {
 			pass = read_passphrase(msg, RP_ALLOW_STDIN);
 			if (strcmp(pass, "") == 0)
 				goto fail_load;
 			if ((r = sshkey_parse_private_fileblob(keyblob, pass,
-			    filename, &private, NULL)) == 0)
+			    filename, &private, &comment)) == 0)
 				break;
 			else if (r != SSH_ERR_KEY_WRONG_PASSPHRASE) {
 				fprintf(stderr,
@@ -254,16 +252,17 @@ add_file(int agent_fd, const char *filename, int key_only)
 				    filename, ssh_err(r));
  fail_load:
 				clear_pass();
-				free(comment);
 				sshbuf_free(keyblob);
 				return -1;
 			}
 			clear_pass();
 			snprintf(msg, sizeof msg,
-			    "Bad passphrase, try again for %.200s%s: ", comment,
+			    "Bad passphrase, try again for %s%s: ", filename,
 			    confirm ? " (will confirm each use)" : "");
 		}
 	}
+	if (comment == NULL || *comment == '\0')
+		comment = xstrdup(filename);
 	sshbuf_free(keyblob);
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
