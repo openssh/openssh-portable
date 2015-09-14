@@ -359,41 +359,19 @@ install-sysconf:
 
 host-key: ssh-keygen$(EXEEXT)
 	@if [ -z "$(DESTDIR)" ] ; then \
-		if [ -f "$(sysconfdir)/ssh_host_key" ] ; then \
-			echo "$(sysconfdir)/ssh_host_key already exists, skipping." ; \
-		else \
-			./ssh-keygen -t rsa1 -f $(sysconfdir)/ssh_host_key -N "" ; \
-		fi ; \
-		if [ -f $(sysconfdir)/ssh_host_dsa_key ] ; then \
-			echo "$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
-		else \
-			./ssh-keygen -t dsa -f $(sysconfdir)/ssh_host_dsa_key -N "" ; \
-		fi ; \
-		if [ -f $(sysconfdir)/ssh_host_rsa_key ] ; then \
-			echo "$(sysconfdir)/ssh_host_rsa_key already exists, skipping." ; \
-		else \
-			./ssh-keygen -t rsa -f $(sysconfdir)/ssh_host_rsa_key -N "" ; \
-		fi ; \
-		if [ -f $(sysconfdir)/ssh_host_ed25519_key ] ; then \
-			echo "$(sysconfdir)/ssh_host_ed25519_key already exists, skipping." ; \
-		else \
-			./ssh-keygen -t ed25519 -f $(sysconfdir)/ssh_host_ed25519_key -N "" ; \
-		fi ; \
-		if [ -z "@COMMENT_OUT_ECC@" ] ; then \
-		    if [ -f $(sysconfdir)/ssh_host_ecdsa_key ] ; then \
-			echo "$(sysconfdir)/ssh_host_ecdsa_key already exists, skipping." ; \
-		    else \
-			./ssh-keygen -t ecdsa -f $(sysconfdir)/ssh_host_ecdsa_key -N "" ; \
-		    fi ; \
-		fi ; \
-	fi ;
+		./ssh-keygen -A; \
+	fi
 
-host-key-force: ssh-keygen$(EXEEXT)
-	./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
+host-key-force: ssh-keygen$(EXEEXT) ssh$(EXEEXT)
+	if ./ssh -Q protocol-version | grep '^1$$' >/dev/null; then \
+		./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""; \
+	fi
 	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
 	./ssh-keygen -t ed25519 -f $(DESTDIR)$(sysconfdir)/ssh_host_ed25519_key -N ""
-	test -z "@COMMENT_OUT_ECC@" && ./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""
+	if ./ssh -Q key | grep ecdsa >/dev/null ; then \
+		./ssh-keygen -t ecdsa -f $(DESTDIR)$(sysconfdir)/ssh_host_ecdsa_key -N ""; \
+	fi
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
