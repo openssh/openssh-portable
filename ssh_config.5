@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.219 2015/09/11 06:51:39 jmc Exp $
-.Dd $Mdocdate: September 11 2015 $
+.\" $OpenBSD: ssh_config.5,v 1.220 2015/09/22 08:33:23 sobrado Exp $
+.Dd $Mdocdate: September 22 2015 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -139,7 +139,7 @@ or
 keyword) to be used only when the conditions following the
 .Cm Match
 keyword are satisfied.
-Match conditions are specified using one or more critera
+Match conditions are specified using one or more criteria
 or the single token
 .Cm all
 which always matches.
@@ -1585,7 +1585,7 @@ Enabling this option allows learning alternate hostkeys for a server
 and supports graceful key rotation by allowing a server to send replacement
 public keys before old ones are removed.
 Additional hostkeys are only accepted if the key used to authenticate the
-host was already trusted or explicity accepted by the user.
+host was already trusted or explicitly accepted by the user.
 If
 .Cm UpdateHostKeys
 is set to
