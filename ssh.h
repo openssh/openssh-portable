@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.81 2015/08/04 05:23:06 djm Exp $ */
+/* $OpenBSD: ssh.h,v 1.82 2015/09/24 06:15:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -17,6 +17,12 @@
 
 /* Default port number. */
 #define SSH_DEFAULT_PORT	22
+
+/*
+ * Maximum number of certificate files that can be specified
+ * in configuration files or on the command line.
+ */
+#define SSH_MAX_CERTIFICATE_FILES	100
 
 /*
  * Maximum number of RSA authentication identity files that can be specified

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.226 2015/07/30 00:01:34 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.227 2015/09/24 06:15:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1001,18 +1001,17 @@ static int
 sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 {
 	Buffer b;
+	Identity *private_id;
 	u_char *blob, *signature;
-	u_int bloblen;
 	size_t slen;
-	u_int skip = 0;
-	int ret = -1;
-	int have_sig = 1;
+	u_int bloblen, skip = 0;
+	int matched, ret = -1, have_sig = 1;
 	char *fp;
 
 	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
 		return 0;
-	debug3("sign_and_send_pubkey: %s %s", key_type(id->key), fp);
+	debug3("%s: %s %s", __func__, key_type(id->key), fp);
 	free(fp);
 
 	if (key_to_blob(id->key, &blob, &bloblen) == 0) {
@@ -1043,6 +1042,36 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 		buffer_put_cstring(&b, key_ssh_name(id->key));
 	}
 	buffer_put_string(&b, blob, bloblen);
+
+	/*
+	 * If the key is an certificate, try to find a matching private key
+	 * and use it to complete the signature.
+	 * If no such private key exists, return failure and continue with
+	 * other methods of authentication.
+	 */
+	if (key_is_cert(id->key)) {
+		matched = 0;
+		TAILQ_FOREACH(private_id, &authctxt->keys, next) {
+			if (sshkey_equal_public(id->key, private_id->key) &&
+			    id->key->type != private_id->key->type) {
+				id = private_id;
+				matched = 1;
+				break;
+			}
+		}
+		if (matched) {
+			debug2("%s: using private key \"%s\"%s for "
+			    "certificate", __func__, id->filename,
+			    id->agent_fd != -1 ? " from agent" : "");
+		} else {
+			/* XXX maybe verbose/error? */
+			debug("%s: no private key for certificate "
+			    "\"%s\"", __func__, id->filename);
+			free(blob);
+			buffer_free(&b);
+			return 0;
+		}
+	}
 
 	/* generate signature */
 	ret = identity_sign(id, &signature, &slen,
@@ -1180,9 +1209,11 @@ load_identity_file(char *filename, int userprovided)
 
 /*
  * try keys in the following order:
- *	1. agent keys that are found in the config file
- *	2. other agent keys
- *	3. keys that are only listed in the config file
+ * 	1. certificates listed in the config file
+ * 	2. other input certificates
+ *	3. agent keys that are found in the config file
+ *	4. other agent keys
+ *	5. keys that are only listed in the config file
  */
 static void
 pubkey_prepare(Authctxt *authctxt)
@@ -1235,6 +1266,18 @@ pubkey_prepare(Authctxt *authctxt)
 			explicit_bzero(id, sizeof(*id));
 			free(id);
 		}
+	}
+	/* list of certificates specified by user */
+	for (i = 0; i < options.num_certificate_files; i++) {
+		key = options.certificates[i];
+		if (!key_is_cert(key) || key->cert == NULL ||
+		    key->cert->type != SSH2_CERT_TYPE_USER)
+			continue;
+		id = xcalloc(1, sizeof(*id));
+		id->key = key;
+		id->filename = xstrdup(options.certificate_files[i]);
+		id->userprovided = options.certificate_file_userprovided[i];
+		TAILQ_INSERT_TAIL(preferred, id, next);
 	}
 	/* list of keys supported by the agent */
 	if ((r = ssh_get_authentication_socket(&agent_fd)) != 0) {

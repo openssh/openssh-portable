@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.110 2015/07/10 06:21:53 markus Exp $ */
+/* $OpenBSD: readconf.h,v 1.111 2015/09/24 06:15:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -94,6 +94,11 @@ typedef struct {
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
 	int    identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
 	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
+
+	int	num_certificate_files; /* Number of extra certificates for ssh. */
+	char	*certificate_files[SSH_MAX_CERTIFICATE_FILES];
+	int	certificate_file_userprovided[SSH_MAX_CERTIFICATE_FILES];
+	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 
 	/* Local TCP/IP forward requests. */
 	int     num_local_forwards;
@@ -194,5 +199,6 @@ void	 dump_client_config(Options *o, const char *host);
 void	 add_local_forward(Options *, const struct Forward *);
 void	 add_remote_forward(Options *, const struct Forward *);
 void	 add_identity_file(Options *, const char *, const char *, int);
+void	 add_certificate_file(Options *, const char *, int);
 
 #endif				/* READCONF_H */

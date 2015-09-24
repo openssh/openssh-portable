@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.425 2015/09/11 06:55:46 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.426 2015/09/24 06:15:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1354,6 +1354,10 @@ main(int ac, char **av)
 			options.identity_keys[i] = NULL;
 		}
 	}
+	for (i = 0; i < options.num_certificate_files; i++) {
+		free(options.certificate_files[i]);
+		options.certificate_files[i] = NULL;
+	}
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
@@ -1940,25 +1944,30 @@ ssh_session2(void)
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }
 
+/* Loads all IdentityFile and CertificateFile keys */
 static void
 load_public_identity_files(void)
 {
 	char *filename, *cp, thishost[NI_MAXHOST];
 	char *pwdir = NULL, *pwname = NULL;
-	int i = 0;
 	Key *public;
 	struct passwd *pw;
-	u_int n_ids;
+	int i;
+	u_int n_ids, n_certs;
 	char *identity_files[SSH_MAX_IDENTITY_FILES];
 	Key *identity_keys[SSH_MAX_IDENTITY_FILES];
+	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
+	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 #ifdef ENABLE_PKCS11
 	Key **keys;
 	int nkeys;
 #endif /* PKCS11 */
 
-	n_ids = 0;
+	n_ids = n_certs = 0;
 	memset(identity_files, 0, sizeof(identity_files));
 	memset(identity_keys, 0, sizeof(identity_keys));
+	memset(certificate_files, 0, sizeof(certificate_files));
+	memset(certificates, 0, sizeof(certificates));
 
 #ifdef ENABLE_PKCS11
 	if (options.pkcs11_provider != NULL &&
@@ -1990,6 +1999,7 @@ load_public_identity_files(void)
 		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
 		    strcasecmp(options.identity_files[i], "none") == 0) {
 			free(options.identity_files[i]);
+			options.identity_files[i] = NULL;
 			continue;
 		}
 		cp = tilde_expand_filename(options.identity_files[i],
@@ -2008,7 +2018,12 @@ load_public_identity_files(void)
 		if (++n_ids >= SSH_MAX_IDENTITY_FILES)
 			continue;
 
-		/* Try to add the certificate variant too */
+		/*
+		 * If no certificates have been explicitly listed then try
+		 * to add the default certificate variant too.
+		 */
+		if (options.num_certificate_files != 0)
+			continue;
 		xasprintf(&cp, "%s-cert", filename);
 		public = key_load_public(cp, NULL);
 		debug("identity file %s type %d", cp,
@@ -2025,13 +2040,49 @@ load_public_identity_files(void)
 			continue;
 		}
 		identity_keys[n_ids] = public;
-		/* point to the original path, most likely the private key */
-		identity_files[n_ids] = xstrdup(filename);
+		identity_files[n_ids] = cp;
 		n_ids++;
 	}
+
+	if (options.num_certificate_files > SSH_MAX_CERTIFICATE_FILES)
+		fatal("%s: too many certificates", __func__);
+	for (i = 0; i < options.num_certificate_files; i++) {
+		cp = tilde_expand_filename(options.certificate_files[i],
+		    original_real_uid);
+		filename = percent_expand(cp, "d", pwdir,
+		    "u", pwname, "l", thishost, "h", host,
+		    "r", options.user, (char *)NULL);
+		free(cp);
+
+		public = key_load_public(filename, NULL);
+		debug("certificate file %s type %d", filename,
+		    public ? public->type : -1);
+		free(options.certificate_files[i]);
+		options.certificate_files[i] = NULL;
+		if (public == NULL) {
+			free(filename);
+			continue;
+		}
+		if (!key_is_cert(public)) {
+			debug("%s: key %s type %s is not a certificate",
+			    __func__, filename, key_type(public));
+			key_free(public);
+			free(filename);
+			continue;
+		}
+		certificate_files[n_certs] = filename;
+		certificates[n_certs] = public;
+		++n_certs;
+	}
+
 	options.num_identity_files = n_ids;
 	memcpy(options.identity_files, identity_files, sizeof(identity_files));
 	memcpy(options.identity_keys, identity_keys, sizeof(identity_keys));
+
+	options.num_certificate_files = n_certs;
+	memcpy(options.certificate_files,
+	    certificate_files, sizeof(certificate_files));
+	memcpy(options.certificates, certificates, sizeof(certificates));
 
 	explicit_bzero(pwname, strlen(pwname));
 	free(pwname);

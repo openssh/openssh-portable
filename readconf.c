@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.240 2015/08/21 23:53:08 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.241 2015/09/24 06:15:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -135,6 +135,7 @@ typedef enum {
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
+	oCertificateFile,
 	oUser, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
@@ -202,6 +203,7 @@ static struct {
 	{ "identityfile", oIdentityFile },
 	{ "identityfile2", oIdentityFile },			/* obsolete */
 	{ "identitiesonly", oIdentitiesOnly },
+	{ "certificatefile", oCertificateFile },
 	{ "hostname", oHostName },
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
@@ -363,6 +365,30 @@ clear_forwardings(Options *options)
 	}
 	options->num_remote_forwards = 0;
 	options->tun_open = SSH_TUNMODE_NO;
+}
+
+void
+add_certificate_file(Options *options, const char *path, int userprovided)
+{
+	int i;
+
+	if (options->num_certificate_files >= SSH_MAX_CERTIFICATE_FILES)
+		fatal("Too many certificate files specified (max %d)",
+		    SSH_MAX_CERTIFICATE_FILES);
+
+	/* Avoid registering duplicates */
+	for (i = 0; i < options->num_certificate_files; i++) {
+		if (options->certificate_file_userprovided[i] == userprovided &&
+		    strcmp(options->certificate_files[i], path) == 0) {
+			debug2("%s: ignoring duplicate key %s", __func__, path);
+			return;
+		}
+	}
+
+	options->certificate_file_userprovided[options->num_certificate_files] =
+	    userprovided;
+	options->certificate_files[options->num_certificate_files++] =
+	    xstrdup(path);
 }
 
 void
@@ -978,6 +1004,24 @@ parse_time:
 				    filename, linenum, SSH_MAX_IDENTITY_FILES);
 			add_identity_file(options, NULL,
 			    arg, flags & SSHCONF_USERCONF);
+		}
+		break;
+
+	case oCertificateFile:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		if (*activep) {
+			intptr = &options->num_certificate_files;
+			if (*intptr >= SSH_MAX_CERTIFICATE_FILES) {
+				fatal("%.200s line %d: Too many certificate "
+				    "files specified (max %d).",
+				    filename, linenum,
+				    SSH_MAX_CERTIFICATE_FILES);
+			}
+			add_certificate_file(options, arg,
+			    flags & SSHCONF_USERCONF);
 		}
 		break;
 
@@ -1625,6 +1669,7 @@ initialize_options(Options * options)
 	options->hostkeyalgorithms = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
+	options->num_certificate_files = 0;
 	options->hostname = NULL;
 	options->host_key_alias = NULL;
 	options->proxy_command = NULL;
