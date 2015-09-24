@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-file.sh,v 1.1 2015/09/24 06:16:53 djm Exp $
+#	$OpenBSD: cert-file.sh,v 1.2 2015/09/24 07:15:39 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh with certificates"
@@ -42,7 +42,7 @@ for p in ${SSH_PROTOCOLS}; do
 	fi
 
 	# Keys with untrusted cert should fail.
-	opts3="$opts2 -z $OBJ/cert_user_key1_2.pub"
+	opts3="$opts2 -oCertificateFile=$OBJ/cert_user_key1_2.pub"
 	${SSH} $opts3 somehost exit 5$p
 	r=$?
 	if [ $r -eq 5$p ]; then
@@ -50,7 +50,8 @@ for p in ${SSH_PROTOCOLS}; do
 	fi
 
 	# Good cert with bad key should fail.
-	opts3="$opts -i $OBJ/user_key2 -z $OBJ/cert_user_key1_1.pub"
+	opts3="$opts -i $OBJ/user_key2"
+	opts3="$opts3 -oCertificateFile=$OBJ/cert_user_key1_1.pub"
 	${SSH} $opts3 somehost exit 5$p
 	r=$?
 	if [ $r -eq 5$p ]; then
@@ -58,7 +59,7 @@ for p in ${SSH_PROTOCOLS}; do
 	fi
 
 	# Keys with one trusted cert, should succeed.
-	opts3="$opts2 -z $OBJ/cert_user_key1_1.pub"
+	opts3="$opts2 -oCertificateFile=$OBJ/cert_user_key1_1.pub"
 	${SSH} $opts3 somehost exit 5$p
 	r=$?
 	if [ $r -ne 5$p ]; then
@@ -66,7 +67,8 @@ for p in ${SSH_PROTOCOLS}; do
 	fi
 
 	# Multiple certs and keys, with one trusted cert, should succeed.
-	opts3="$opts2 -z $OBJ/cert_user_key1_2.pub -z $OBJ/cert_user_key1_1.pub"
+	opts3="$opts2 -oCertificateFile=$OBJ/cert_user_key1_2.pub"
+	opts3="$opts3 -oCertificateFile=$OBJ/cert_user_key1_1.pub"
 	${SSH} $opts3 somehost exit 5$p
 	r=$?
 	if [ $r -ne 5$p ]; then
@@ -115,14 +117,14 @@ if [ $? -eq 52 ]; then
 fi
 
 #with an untrusted certificate, should fail
-opts="$opts -z $OBJ/cert_user_key1_2.pub"
+opts="$opts -oCertificateFile=$OBJ/cert_user_key1_2.pub"
 ${SSH} -2 $opts somehost exit 52
 if [ $? -eq 52 ]; then
 	fail "ssh connect with agent in protocol 2 succeeded with bad cert"
 fi
 
 #with an additional trusted certificate, should succeed
-opts="$opts -z $OBJ/cert_user_key1_1.pub"
+opts="$opts -oCertificateFile=$OBJ/cert_user_key1_1.pub"
 ${SSH} -2 $opts somehost exit 52
 if [ $? -ne 52 ]; then
 	fail "ssh connect with agent in protocol 2 failed with good cert"
