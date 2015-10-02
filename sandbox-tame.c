@@ -1,6 +1,6 @@
-/* $OpenBSD: sandbox-tame.c,v 1.1 2015/10/02 01:39:52 deraadt Exp $ */
+/* $OpenBSD: sandbox-tame.c,v 1.2 2015/10/02 15:52:55 deraadt Exp $ */
 /*
- * Copyright (c) 2015 Theo de Raadt <deraadt@mindrot.org>
+ * Copyright (c) 2015 Theo de Raadt <deraadt@openbsd.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
