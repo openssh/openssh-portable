@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.241 2015/09/24 06:15:11 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.242 2015/10/07 15:59:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2363,6 +2363,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
 	dump_cfg_string(oProxyCommand, o->proxy_command);
+	dump_cfg_string(oPubkeyAcceptedKeyTypes, o->pubkey_key_types);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
 
