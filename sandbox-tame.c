@@ -15,6 +15,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "includes.h"
+
+#ifdef SANDBOX_TAME
+
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/syscall.h>
@@ -38,7 +42,7 @@ struct ssh_sandbox {
 };
 
 struct ssh_sandbox *
-ssh_sandbox_init(void)
+ssh_sandbox_init(struct monitor *m)
 {
 	struct ssh_sandbox *box;
 
@@ -69,3 +73,5 @@ ssh_sandbox_parent_preauth(struct ssh_sandbox *box, pid_t child_pid)
 	box->child_pid = child_pid;
 	/* Nothing to do here */
 }
+
+#endif /* SANDBOX_TAME */
