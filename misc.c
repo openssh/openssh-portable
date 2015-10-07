@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.97 2015/04/24 01:36:00 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.98 2015/10/07 00:54:06 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -666,49 +666,60 @@ tun_open(int tun, int mode)
 		}
 	} else {
 		debug("%s: invalid tunnel %u", __func__, tun);
-		return (-1);
+		return -1;
 	}
 
 	if (fd < 0) {
-		debug("%s: %s open failed: %s", __func__, name, strerror(errno));
-		return (-1);
+		debug("%s: %s open: %s", __func__, name, strerror(errno));
+		return -1;
 	}
 
 	debug("%s: %s mode %d fd %d", __func__, name, mode, fd);
 
 	/* Set the tunnel device operation mode */
 	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "tun%d", tun);
-	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
+		error("%s: socket: %s", __func__, strerror(errno));
 		goto failed;
+	}
 
-	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
+	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1) {
+		debug("%s: get interface %s flags: %s", __func__,
+		    ifr.ifr_name, strerror(errno));
 		goto failed;
+	}
 
-	/* Set interface mode */
-	ifr.ifr_flags &= ~IFF_UP;
-	if (mode == SSH_TUNMODE_ETHERNET)
-		ifr.ifr_flags |= IFF_LINK0;
-	else
-		ifr.ifr_flags &= ~IFF_LINK0;
-	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
-		goto failed;
+	/* Set interface mode if not already in correct mode */
+	if ((mode == SSH_TUNMODE_ETHERNET && !(ifr.ifr_flags & IFF_LINK0)) ||
+	    (mode != SSH_TUNMODE_ETHERNET && (ifr.ifr_flags & IFF_LINK0))) {
+		ifr.ifr_flags &= ~IFF_UP;
+		ifr.ifr_flags ^= IFF_LINK0;
+		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1) {
+			debug("%s: reset interface %s flags: %s", __func__,
+			    ifr.ifr_name, strerror(errno));
+			goto failed;
+		}
+	}
 
-	/* Bring interface up */
-	ifr.ifr_flags |= IFF_UP;
-	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
-		goto failed;
+	/* Bring interface up if it is not already */
+	if (!(ifr.ifr_flags & IFF_UP)) {
+		ifr.ifr_flags |= IFF_UP;
+		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1) {
+			debug("%s: activate interface %s: %s", __func__,
+			    ifr.ifr_name, strerror(errno));
+			goto failed;
+		}
+	}
 
 	close(sock);
-	return (fd);
+	return fd;
 
  failed:
 	if (fd >= 0)
 		close(fd);
 	if (sock >= 0)
 		close(sock);
-	debug("%s: failed to set %s mode %d: %s", __func__, name,
-	    mode, strerror(errno));
-	return (-1);
+	return -1;
 #else
 	error("Tunnel interfaces are not supported on this platform");
 	return (-1);
