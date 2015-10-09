@@ -854,7 +854,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SYSLOG_R_SAFE_IN_SIGHAND], [1],
 	    [syslog_r function is safe to use in in a signal handler])
 	TEST_MALLOC_OPTIONS="AFGJPRX"
-	AC_CHECK_FUNCS([tame])
+	AC_CHECK_FUNCS([pledge])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
@@ -2998,7 +2998,7 @@ fi
 # Decide which sandbox style to use
 sandbox_arg=""
 AC_ARG_WITH([sandbox],
-	[  --with-sandbox=style    Specify privilege separation sandbox (no, capsicum, darwin, rlimit, seccomp_filter, systrace, tame)],
+	[  --with-sandbox=style    Specify privilege separation sandbox (no, capsicum, darwin, rlimit, seccomp_filter, systrace, pledge)],
 	[
 		if test "x$withval" = "xyes" ; then
 			sandbox_arg=""
@@ -3094,12 +3094,12 @@ AC_RUN_IFELSE(
 	[AC_MSG_WARN([cross compiling: assuming yes])]
 )
 
-if test "x$sandbox_arg" = "xtame" || \
-   ( test -z "$sandbox_arg" && test "x$ac_cv_func_tame" = "xyes" ) ; then
-	test "x$ac_cv_func_tame" != "xyes" && \
-		AC_MSG_ERROR([tame sandbox requires tame(2) support])
-	SANDBOX_STYLE="tame"
-	AC_DEFINE([SANDBOX_TAME], [1], [Sandbox using tame(2)])
+if test "x$sandbox_arg" = "xpledge" || \
+   ( test -z "$sandbox_arg" && test "x$ac_cv_func_pledge" = "xyes" ) ; then
+	test "x$ac_cv_func_pledge" != "xyes" && \
+		AC_MSG_ERROR([pledge sandbox requires pledge(2) support])
+	SANDBOX_STYLE="pledge"
+	AC_DEFINE([SANDBOX_TAME], [1], [Sandbox using pledge(2)])
 elif test "x$sandbox_arg" = "xsystrace" || \
    ( test -z "$sandbox_arg" && test "x$have_systr_policy_kill" = "x1" ) ; then
 	test "x$have_systr_policy_kill" != "x1" && \
