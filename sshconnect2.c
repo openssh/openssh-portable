@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.227 2015/09/24 06:15:11 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.228 2015/10/13 16:15:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1328,7 +1328,20 @@ pubkey_prepare(Authctxt *authctxt)
 		TAILQ_REMOVE(&files, id, next);
 		TAILQ_INSERT_TAIL(preferred, id, next);
 	}
-	TAILQ_FOREACH(id, preferred, next) {
+	/* finally, filter by PubkeyAcceptedKeyTypes */
+	TAILQ_FOREACH_SAFE(id, preferred, next, id2) {
+		if (id->key != NULL &&
+		    match_pattern_list(sshkey_ssh_name(id->key),
+		    options.pubkey_key_types, 0) != 1) {
+			debug("Skipping %s key %s - "
+			    "not in PubkeyAcceptedKeyTypes",
+			    sshkey_ssh_name(id->key), id->filename);
+			TAILQ_REMOVE(preferred, id, next);
+			sshkey_free(id->key);
+			free(id->filename);
+			memset(id, 0, sizeof(*id));
+			continue;
+		}
 		debug2("key: %s (%p),%s", id->filename, id->key,
 		    id->userprovided ? " explicit" : "");
 	}
@@ -1356,12 +1369,6 @@ try_identity(Identity *id)
 {
 	if (!id->key)
 		return (0);
-	if (match_pattern_list(sshkey_ssh_name(id->key),
-	    options.pubkey_key_types, 0) != 1) {
-		debug("Skipping %s key %s for not in PubkeyAcceptedKeyTypes",
-		    sshkey_ssh_name(id->key), id->filename);
-		return (0);
-	}
 	if (key_type_plain(id->key->type) == KEY_RSA &&
 	    (datafellows & SSH_BUG_RSASIGMD5) != 0) {
 		debug("Skipped %s key %s for RSA/MD5 server",
