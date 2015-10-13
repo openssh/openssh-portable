@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.110 2015/08/21 23:57:48 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.111 2015/10/13 00:21:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -481,7 +481,7 @@ kex_free_newkeys(struct newkeys *newkeys)
 		newkeys->enc.key = NULL;
 	}
 	if (newkeys->enc.iv) {
-		explicit_bzero(newkeys->enc.iv, newkeys->enc.block_size);
+		explicit_bzero(newkeys->enc.iv, newkeys->enc.iv_len);
 		free(newkeys->enc.iv);
 		newkeys->enc.iv = NULL;
 	}
