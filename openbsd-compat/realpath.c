@@ -1,4 +1,4 @@
-/*	$OpenBSD: realpath.c,v 1.14 2011/07/24 21:03:00 miod Exp $ */
+/*	$OpenBSD: realpath.c,v 1.15 2012/09/13 15:39:05 deraadt Exp $ */
 /*
  * Copyright (c) 2003 Constantin S. Svintsoff <kostik@iclub.nsu.ru>
  *
@@ -196,7 +196,7 @@ realpath(const char *path, char *resolved)
 					symlink[slen] = '/';
 					symlink[slen + 1] = 0;
 				}
-				left_len = strlcat(symlink, left, sizeof(left));
+				left_len = strlcat(symlink, left, sizeof(symlink));
 				if (left_len >= sizeof(left)) {
 					errno = ENAMETOOLONG;
 					goto err;
