@@ -1,4 +1,4 @@
-/*	$OpenBSD: realpath.c,v 1.16 2013/04/05 12:59:54 kurt Exp $ */
+/*	$OpenBSD: realpath.c,v 1.17 2014/10/18 20:43:52 doug Exp $ */
 /*
  * Copyright (c) 2003 Constantin S. Svintsoff <kostik@iclub.nsu.ru>
  *
@@ -62,6 +62,10 @@ realpath(const char *path, char *resolved)
 	int serrno, slen, mem_allocated;
 	char left[PATH_MAX], next_token[PATH_MAX], symlink[PATH_MAX];
 
+	if (path == NULL) {
+		errno = EINVAL;
+		return (NULL);
+	}
 	if (path[0] == '\0') {
 		errno = ENOENT;
 		return (NULL);
@@ -147,22 +151,15 @@ realpath(const char *path, char *resolved)
 		}
 
 		/*
-		 * Append the next path component and lstat() it. If
-		 * lstat() fails we still can return successfully if
-		 * there are no more path components left.
+		 * Append the next path component and lstat() it.
 		 */
 		resolved_len = strlcat(resolved, next_token, PATH_MAX);
 		if (resolved_len >= PATH_MAX) {
 			errno = ENAMETOOLONG;
 			goto err;
 		}
-		if (lstat(resolved, &sb) != 0) {
-			if (errno == ENOENT && p == NULL) {
-				errno = serrno;
-				return (resolved);
-			}
+		if (lstat(resolved, &sb) != 0)
 			goto err;
-		}
 		if (S_ISLNK(sb.st_mode)) {
 			if (symlinks++ > MAXSYMLINKS) {
 				errno = ELOOP;
@@ -205,6 +202,9 @@ realpath(const char *path, char *resolved)
 				}
 			}
 			left_len = strlcpy(left, symlink, sizeof(left));
+		} else if (!S_ISDIR(sb.st_mode) && p != NULL) {
+			errno = ENOTDIR;
+			goto err;
 		}
 	}
 
