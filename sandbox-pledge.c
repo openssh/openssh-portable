@@ -17,7 +17,7 @@
 
 #include "includes.h"
 
-#ifdef SANDBOX_TAME
+#ifdef SANDBOX_PLEDGE
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -74,4 +74,4 @@ ssh_sandbox_parent_preauth(struct ssh_sandbox *box, pid_t child_pid)
 	/* Nothing to do here */
 }
 
-#endif /* SANDBOX_TAME */
+#endif /* SANDBOX_PLEDGE */
