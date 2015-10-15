@@ -44,6 +44,10 @@
 #include <unistd.h>
 #include <limits.h>
 
+#ifndef SYMLOOP_MAX
+# define SYMLOOP_MAX 32
+#endif
+
 /* A slightly modified copy of this file exists in libexec/ld.so */
 
 /*
