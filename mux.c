@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.54 2015/08/19 23:18:26 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.55 2015/10/15 23:51:40 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1744,7 +1744,7 @@ mux_client_forward(int fd, int cancel_flag, u_int ftype, struct Forward *fwd)
 		    fwd->connect_host ? fwd->connect_host : "",
 		    fwd->connect_port);
 		if (muxclient_command == SSHMUX_COMMAND_FORWARD)
-			fprintf(stdout, "%u\n", fwd->allocated_port);
+			fprintf(stdout, "%i\n", fwd->allocated_port);
 		break;
 	case MUX_S_PERMISSION_DENIED:
 		e = buffer_get_string(&m, NULL);
@@ -2169,7 +2169,7 @@ muxclient(const char *path)
 	case SSHMUX_COMMAND_ALIVE_CHECK:
 		if ((pid = mux_client_request_alive(sock)) == 0)
 			fatal("%s: master alive check failed", __func__);
-		fprintf(stderr, "Master running (pid=%d)\r\n", pid);
+		fprintf(stderr, "Master running (pid=%u)\r\n", pid);
 		exit(0);
 	case SSHMUX_COMMAND_TERMINATE:
 		mux_client_request_terminate(sock);

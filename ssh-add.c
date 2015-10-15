@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.125 2015/09/13 14:39:16 tim Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.126 2015/10/15 23:51:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -384,7 +384,7 @@ list_identities(int agent_fd, int do_fp)
 			if (do_fp) {
 				fp = sshkey_fingerprint(idlist->keys[i],
 				    fingerprint_hash, SSH_FP_DEFAULT);
-				printf("%d %s %s (%s)\n",
+				printf("%u %s %s (%s)\n",
 				    sshkey_size(idlist->keys[i]),
 				    fp == NULL ? "(null)" : fp,
 				    idlist->comments[i],

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.426 2015/09/24 06:15:11 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.427 2015/10/15 23:51:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -250,7 +250,7 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 	if (port <= 0)
 		port = default_ssh_port();
 
-	snprintf(strport, sizeof strport, "%u", port);
+	snprintf(strport, sizeof strport, "%d", port);
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = options.address_family == -1 ?
 	    AF_UNSPEC : options.address_family;
