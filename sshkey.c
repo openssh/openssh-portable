@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.23 2015/09/13 14:39:16 tim Exp $ */
+/* $OpenBSD: sshkey.c,v 1.24 2015/10/15 23:08:23 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1758,9 +1758,7 @@ sshkey_from_private(const struct sshkey *k, struct sshkey **pkp)
 	struct sshkey *n = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
-	if (pkp != NULL)
-		*pkp = NULL;
-
+	*pkp = NULL;
 	switch (k->type) {
 #ifdef WITH_OPENSSL
 	case KEY_DSA:
@@ -2243,9 +2241,7 @@ sshkey_demote(const struct sshkey *k, struct sshkey **dkp)
 	struct sshkey *pk;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
-	if (dkp != NULL)
-		*dkp = NULL;
-
+	*dkp = NULL;
 	if ((pk = calloc(1, sizeof(*pk))) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	pk->type = k->type;
