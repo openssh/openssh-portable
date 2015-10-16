@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.427 2015/10/15 23:51:40 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.428 2015/10/16 18:40:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -404,6 +404,17 @@ resolve_canonicalize(char **hostp, int port)
 		return addrs;
 	}
 
+	/* If domain name is anchored, then resolve it now */
+	if ((*hostp)[strlen(*hostp) - 1] == '.') {
+		debug3("%s: name is fully qualified", __func__);
+		fullhost = xstrdup(*hostp);
+		if ((addrs = resolve_host(fullhost, port, 0,
+		    newname, sizeof(newname))) != NULL)
+			goto found;
+		free(fullhost);
+		goto notfound;
+	}
+
 	/* Don't apply canonicalization to sufficiently-qualified hostnames */
 	ndots = 0;
 	for (cp = *hostp; *cp != '\0'; cp++) {
@@ -427,6 +438,7 @@ resolve_canonicalize(char **hostp, int port)
 			free(fullhost);
 			continue;
 		}
+ found:
 		/* Remove trailing '.' */
 		fullhost[strlen(fullhost) - 1] = '\0';
 		/* Follow CNAME if requested */
@@ -438,6 +450,7 @@ resolve_canonicalize(char **hostp, int port)
 		*hostp = fullhost;
 		return addrs;
 	}
+ notfound:
 	if (!options.canonicalize_fallback_local)
 		fatal("%s: Could not resolve host \"%s\"", __progname, *hostp);
 	debug2("%s: host %s not found in any suffix", __func__, *hostp);
