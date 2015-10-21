@@ -499,7 +499,11 @@ static struct {
 	{ "listenaddress", sListenAddress, SSHCFG_GLOBAL },
 	{ "addressfamily", sAddressFamily, SSHCFG_GLOBAL },
 	{ "printmotd", sPrintMotd, SSHCFG_GLOBAL },
+#ifdef DISABLE_LASTLOG
+	{ "printlastlog", sUnsupported, SSHCFG_GLOBAL },
+#else
 	{ "printlastlog", sPrintLastLog, SSHCFG_GLOBAL },
+#endif
 	{ "ignorerhosts", sIgnoreRhosts, SSHCFG_GLOBAL },
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts, SSHCFG_GLOBAL },
 	{ "x11forwarding", sX11Forwarding, SSHCFG_ALL },
