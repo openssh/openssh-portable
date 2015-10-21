@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.215 2015/09/21 04:31:00 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.216 2015/10/21 11:33:03 gsoares Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2040,8 +2040,10 @@ ssh_packet_write_wait(struct ssh *ssh)
 	    NFDBITS), sizeof(fd_mask));
 	if (setp == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = ssh_packet_write_poll(ssh)) != 0)
+	if ((r = ssh_packet_write_poll(ssh)) != 0) {
+		free(setp);
 		return r;
+	}
 	while (ssh_packet_have_data_to_write(ssh)) {
 		memset(setp, 0, howmany(state->connection_out + 1,
 		    NFDBITS) * sizeof(fd_mask));
