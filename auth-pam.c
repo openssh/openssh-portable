@@ -334,6 +334,14 @@ import_environments(Buffer *b)
 #endif
 }
 
+/* Sets SSH_USER_AUTH PAM environment variable */
+static void
+sshpam_expose_auth_info()
+{
+  if (sshpam_authctxt->last_auth_methods != NULL)
+    do_pam_putenv("SSH_USER_AUTH", sshpam_authctxt->last_auth_methods);
+}
+
 /*
  * Conversation function for authentication thread.
  */
@@ -466,6 +474,9 @@ sshpam_thread(void *ctxtp)
 	    (const void *)&sshpam_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
+
+  sshpam_expose_auth_info();
+
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
@@ -1202,6 +1213,8 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: %s: failed to set PAM_CONV: %s", __func__,
 		    pam_strerror(sshpam_handle, sshpam_err));
+
+  sshpam_expose_auth_info();
 
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	sshpam_password = NULL;
