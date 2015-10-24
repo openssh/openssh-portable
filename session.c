@@ -160,6 +160,7 @@ login_cap_t *lc;
 #endif
 
 static int is_child = 0;
+static int in_chroot = 0;
 
 /* Name and directory of socket for authentication agent forwarding. */
 static char *auth_sock_name = NULL;
@@ -1490,9 +1491,6 @@ void
 do_setusercontext(struct passwd *pw)
 {
 	char *chroot_path, *tmp;
-#ifdef USE_LIBIAF
-	int doing_chroot = 0;
-#endif
 
 	platform_setusercontext(pw);
 
@@ -1520,7 +1518,7 @@ do_setusercontext(struct passwd *pw)
 
 		platform_setusercontext_post_groups(pw);
 
-		if (options.chroot_directory != NULL &&
+		if (!in_chroot && options.chroot_directory != NULL &&
 		    strcasecmp(options.chroot_directory, "none") != 0) {
                         tmp = tilde_expand_filename(options.chroot_directory,
 			    pw->pw_uid);
@@ -1532,9 +1530,7 @@ do_setusercontext(struct passwd *pw)
 			/* Make sure we don't attempt to chroot again */
 			free(options.chroot_directory);
 			options.chroot_directory = NULL;
-#ifdef USE_LIBIAF
-			doing_chroot = 1;
-#endif
+			in_chroot = 1;
 		}
 
 #ifdef HAVE_LOGIN_CAP
@@ -1549,16 +1545,16 @@ do_setusercontext(struct passwd *pw)
 		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETUMASK);
 #else
 # ifdef USE_LIBIAF
-/* In a chroot environment, the set_id() will always fail; typically 
- * because of the lack of necessary authentication services and runtime
- * such as ./usr/lib/libiaf.so, ./usr/lib/libpam.so.1, and ./etc/passwd
- * We skip it in the internal sftp chroot case.
- * We'll lose auditing and ACLs but permanently_set_uid will
- * take care of the rest.
- */
-	if ((doing_chroot == 0) && set_id(pw->pw_name) != 0) {
-		fatal("set_id(%s) Failed", pw->pw_name);
-	}
+		/*
+		 * In a chroot environment, the set_id() will always fail;
+		 * typically because of the lack of necessary authentication
+		 * services and runtime such as ./usr/lib/libiaf.so,
+		 * ./usr/lib/libpam.so.1, and ./etc/passwd We skip it in the
+		 * internal sftp chroot case.  We'll lose auditing and ACLs but
+		 * permanently_set_uid will take care of the rest.
+		 */
+		if (!in_chroot && set_id(pw->pw_name) != 0)
+			fatal("set_id(%s) Failed", pw->pw_name);
 # endif /* USE_LIBIAF */
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
@@ -1790,11 +1786,11 @@ do_child(Session *s, const char *command)
 #ifdef HAVE_LOGIN_CAP
 		r = login_getcapbool(lc, "requirehome", 0);
 #endif
-		if (r || options.chroot_directory == NULL ||
-		    strcasecmp(options.chroot_directory, "none") == 0)
+		if (r || !in_chroot) {
 			fprintf(stderr, "Could not chdir to home "
 			    "directory %s: %s\n", pw->pw_dir,
 			    strerror(errno));
+		}
 		if (r)
 			exit(1);
 	}
