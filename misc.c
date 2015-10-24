@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.98 2015/10/07 00:54:06 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.99 2015/10/24 08:34:09 sthen Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -653,14 +653,19 @@ tun_open(int tun, int mode)
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;
+	const char *tunbase = "tun";
+
+	if (mode == SSH_TUNMODE_ETHERNET)
+		tunbase = "tap";
 
 	/* Open the tunnel device */
 	if (tun <= SSH_TUNID_MAX) {
-		snprintf(name, sizeof(name), "/dev/tun%d", tun);
+		snprintf(name, sizeof(name), "/dev/%s%d", tunbase, tun);
 		fd = open(name, O_RDWR);
 	} else if (tun == SSH_TUNID_ANY) {
 		for (tun = 100; tun >= 0; tun--) {
-			snprintf(name, sizeof(name), "/dev/tun%d", tun);
+			snprintf(name, sizeof(name), "/dev/%s%d",
+			    tunbase, tun);
 			if ((fd = open(name, O_RDWR)) >= 0)
 				break;
 		}
@@ -676,12 +681,10 @@ tun_open(int tun, int mode)
 
 	debug("%s: %s mode %d fd %d", __func__, name, mode, fd);
 
-	/* Set the tunnel device operation mode */
-	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "tun%d", tun);
-	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
-		error("%s: socket: %s", __func__, strerror(errno));
+	/* Bring interface up if it is not already */
+	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s%d", tunbase, tun);
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
 		goto failed;
-	}
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1) {
 		debug("%s: get interface %s flags: %s", __func__,
@@ -689,19 +692,6 @@ tun_open(int tun, int mode)
 		goto failed;
 	}
 
-	/* Set interface mode if not already in correct mode */
-	if ((mode == SSH_TUNMODE_ETHERNET && !(ifr.ifr_flags & IFF_LINK0)) ||
-	    (mode != SSH_TUNMODE_ETHERNET && (ifr.ifr_flags & IFF_LINK0))) {
-		ifr.ifr_flags &= ~IFF_UP;
-		ifr.ifr_flags ^= IFF_LINK0;
-		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1) {
-			debug("%s: reset interface %s flags: %s", __func__,
-			    ifr.ifr_name, strerror(errno));
-			goto failed;
-		}
-	}
-
-	/* Bring interface up if it is not already */
 	if (!(ifr.ifr_flags & IFF_UP)) {
 		ifr.ifr_flags |= IFF_UP;
 		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1) {
