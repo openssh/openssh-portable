@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.242 2015/10/07 15:59:12 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.243 2015/10/25 23:14:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -442,19 +442,13 @@ default_ssh_port(void)
 static int
 execute_in_shell(const char *cmd)
 {
-	char *shell, *command_string;
+	char *shell;
 	pid_t pid;
 	int devnull, status;
 	extern uid_t original_real_uid;
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
-
-	/*
-	 * Use "exec" to avoid "sh -c" processes on some platforms
-	 * (e.g. Solaris)
-	 */
-	xasprintf(&command_string, "exec %s", cmd);
 
 	/* Need this to redirect subprocess stdin/out */
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
@@ -480,7 +474,7 @@ execute_in_shell(const char *cmd)
 
 		argv[0] = shell;
 		argv[1] = "-c";
-		argv[2] = command_string;
+		argv[2] = cmd;
 		argv[3] = NULL;
 
 		execv(argv[0], argv);
@@ -495,7 +489,6 @@ execute_in_shell(const char *cmd)
 		fatal("%s: fork: %.100s", __func__, strerror(errno));
 
 	close(devnull);
-	free(command_string);
 
 	while (waitpid(pid, &status, 0) == -1) {
 		if (errno != EINTR && errno != EAGAIN)
