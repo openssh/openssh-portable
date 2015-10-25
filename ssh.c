@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.428 2015/10/16 18:40:49 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.429 2015/10/25 23:42:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -714,13 +714,14 @@ main(int ac, char **av)
 			options.gss_deleg_creds = 1;
 			break;
 		case 'i':
-			if (stat(optarg, &st) < 0) {
+			p = tilde_expand_filename(optarg, original_real_uid);
+			if (stat(p, &st) < 0)
 				fprintf(stderr, "Warning: Identity file %s "
-				    "not accessible: %s.\n", optarg,
+				    "not accessible: %s.\n", p,
 				    strerror(errno));
-				break;
-			}
-			add_identity_file(&options, NULL, optarg, 1);
+			else
+				add_identity_file(&options, NULL, p, 1);
+			free(p);
 			break;
 		case 'I':
 #ifdef ENABLE_PKCS11
