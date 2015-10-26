@@ -1,4 +1,4 @@
-#	$OpenBSD: limit-keytype.sh,v 1.2 2015/09/24 06:16:53 djm Exp $
+#	$OpenBSD: limit-keytype.sh,v 1.3 2015/10/26 02:50:58 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="restrict pubkey type"
@@ -59,7 +59,7 @@ ${SSH} $opts -i $OBJ/user_key2 proxy true || fatal "key2 failed"
 # Allow plain Ed25519 and RSA. The certificate should fail.
 verbose "allow rsa,ed25519"
 prepare_config "PubkeyAcceptedKeyTypes ssh-rsa,ssh-ed25519"
-${SSH} $certopt proxy true && fatal "cert succeeded"
+${SSH} $certopts proxy true && fatal "cert succeeded"
 ${SSH} $opts -i $OBJ/user_key1 proxy true || fatal "key1 failed"
 ${SSH} $opts -i $OBJ/user_key2 proxy true || fatal "key2 failed"
 
