@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.244 2015/10/27 00:49:53 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.245 2015/10/27 08:54:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -458,7 +458,7 @@ execute_in_shell(const char *cmd)
 
 	/* Fork and execute the command. */
 	if ((pid = fork()) == 0) {
-		char *argv[] = { shell, "-c", xstrdup(cmd), NULL };
+		char *argv[4];
 
 		/* Child.  Permanently give up superuser privileges. */
 		permanently_drop_suid(original_real_uid);
@@ -471,6 +471,11 @@ execute_in_shell(const char *cmd)
 		if (devnull > STDERR_FILENO)
 			close(devnull);
 		closefrom(STDERR_FILENO + 1);
+
+		argv[0] = shell;
+		argv[1] = "-c";
+		argv[2] = xstrdup(cmd);
+		argv[3] = NULL;
 
 		execv(argv[0], argv);
 		error("Unable to execute '%.100s': %s", cmd, strerror(errno));
