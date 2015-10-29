@@ -1912,8 +1912,6 @@ ssh_session2_open(void)
 	if (!isatty(err))
 		set_nonblock(err);
 
-	hpn_options_init();
-
 	window = options.hpn_buffer_size;
 
 	packetmax = CHAN_SES_PACKET_DEFAULT;
@@ -1945,6 +1943,13 @@ static int
 ssh_session2(void)
 {
 	int id = -1;
+
+	/*
+	 * We need to initialize this early because the forwarding logic below
+	 * might open channels that use the hpn buffer sizes.  We can't send a
+	 * window of -1 (the default) to the server as it breaks things.
+	 */
+	hpn_options_init();
 
 	/* XXX should be pre-session */
 	if (!options.control_persist)
