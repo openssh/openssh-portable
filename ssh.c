@@ -1814,32 +1814,9 @@ ssh_session2_setup(int id, int success, void *arg)
 	    NULL, fileno(stdin), &command, environ);
 }
 
-/* open new channel for a session */
-static int
-ssh_session2_open(void)
+static void
+hpn_options_init(void)
 {
-	Channel *c;
-	int window, packetmax, in, out, err;
-
-	if (stdin_null_flag) {
-		in = open(_PATH_DEVNULL, O_RDONLY);
-	} else {
-		in = dup(STDIN_FILENO);
-	}
-	out = dup(STDOUT_FILENO);
-	err = dup(STDERR_FILENO);
-
-	if (in < 0 || out < 0 || err < 0)
-		fatal("dup() in/out/err failed");
-
-	/* enable nonblocking unless tty */
-	if (!isatty(in))
-		set_nonblock(in);
-	if (!isatty(out))
-		set_nonblock(out);
-	if (!isatty(err))
-		set_nonblock(err);
-
 	/*
 	 * We need to check to see if what they want to do about buffer
 	 * sizes here. In a hpn to nonhpn connection we want to limit
@@ -1861,7 +1838,7 @@ ssh_session2_open(void)
 	if (tty_flag)
 		options.hpn_buffer_size = CHAN_SES_WINDOW_DEFAULT;
 	else
-		options.hpn_buffer_size = 2*1024*1024;
+		options.hpn_buffer_size = 2 * 1024 * 1024;
 
 	if (datafellows & SSH_BUG_LARGEWINDOW) {
 		debug("HPN to Non-HPN Connection");
@@ -1906,9 +1883,38 @@ ssh_session2_open(void)
 
 	debug("Final hpn_buffer_size = %d", options.hpn_buffer_size);
 
-	window = options.hpn_buffer_size;
-
 	channel_set_hpn(options.hpn_disabled, options.hpn_buffer_size);
+}
+
+/* open new channel for a session */
+static int
+ssh_session2_open(void)
+{
+	Channel *c;
+	int window, packetmax, in, out, err;
+
+	if (stdin_null_flag) {
+		in = open(_PATH_DEVNULL, O_RDONLY);
+	} else {
+		in = dup(STDIN_FILENO);
+	}
+	out = dup(STDOUT_FILENO);
+	err = dup(STDERR_FILENO);
+
+	if (in < 0 || out < 0 || err < 0)
+		fatal("dup() in/out/err failed");
+
+	/* enable nonblocking unless tty */
+	if (!isatty(in))
+		set_nonblock(in);
+	if (!isatty(out))
+		set_nonblock(out);
+	if (!isatty(err))
+		set_nonblock(err);
+
+	hpn_options_init();
+
+	window = options.hpn_buffer_size;
 
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (tty_flag) {
