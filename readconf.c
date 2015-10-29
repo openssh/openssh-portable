@@ -61,6 +61,7 @@
 #include "uidswap.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "sshbuf.h"
 
 /* Format of the configuration file:
 
@@ -1876,10 +1877,10 @@ fill_default_options(Options * options)
 		/* if a user tries to set the size to 0 set it to 1KB */
 		if (options->hpn_buffer_size == 0)
 			options->hpn_buffer_size = 1;
-		/* limit the buffer to 64MB */
-		if (options->hpn_buffer_size > 64*1024) {
-			options->hpn_buffer_size = 64*1024*1024;
-			debug("User requested buffer larger than 64MB. Request reverted to 64MB");
+		/* limit the buffer to SSHBUF_SIZE_MAX (currently 256MB) */
+		if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
+			options->hpn_buffer_size = SSHBUF_SIZE_MAX;
+			debug("User requested buffer larger than 256MB. Request reverted to 256MB");
 		} else
 			options->hpn_buffer_size *= 1024;
 		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);

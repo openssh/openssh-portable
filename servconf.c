@@ -57,6 +57,7 @@
 #include "auth.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "sshbuf.h"
 
 static void add_listen_addr(ServerOptions *, char *, int);
 static void add_one_listen_addr(ServerOptions *, char *, int);
@@ -359,14 +360,14 @@ fill_default_server_options(ServerOptions *options)
 			debug ("HPN Buffer Size: %d", options->hpn_buffer_size);
 		}
 	} else {
-		/* we have to do this incase the user sets both values in a contradictory */
+		/* we have to do this in case the user sets both values in a contradictory */
 		/* manner. hpn_disabled overrrides hpn_buffer_size*/
 		if (options->hpn_disabled <= 0) {
 			if (options->hpn_buffer_size == 0)
 				options->hpn_buffer_size = 1;
-			/* limit the maximum buffer to 64MB */
-			if (options->hpn_buffer_size > 64*1024) {
-				options->hpn_buffer_size = 64*1024*1024;
+			/* limit the maximum buffer to SSHBUF_SIZE_MAX (currently 256MB) */
+			if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
+				options->hpn_buffer_size = SSHBUF_SIZE_MAX;
 			} else {
 				options->hpn_buffer_size *= 1024;
 			}

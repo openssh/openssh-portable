@@ -858,7 +858,7 @@ channel_tcpwinsz(void)
 
 	ret = getsockopt(packet_get_connection_in(),
 			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
-	/* return no more than 64MB */
+	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
