@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.281 2015/08/21 23:52:30 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.282 2015/10/29 08:05:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -178,6 +178,20 @@ option_clear_or_none(const char *o)
 	return o == NULL || strcasecmp(o, "none") == 0;
 }
 
+static void
+assemble_algorithms(ServerOptions *o)
+{
+	if (kex_assemble_names(KEX_SERVER_ENCRYPT, &o->ciphers) != 0 ||
+	    kex_assemble_names(KEX_SERVER_MAC, &o->macs) != 0 ||
+	    kex_assemble_names(KEX_SERVER_KEX, &o->kex_algorithms) != 0 ||
+	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
+	    &o->hostkeyalgorithms) != 0 ||
+	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
+	    &o->hostbased_key_types) != 0 ||
+	    kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->pubkey_key_types) != 0)
+		fatal("kex_assemble_names failed");
+}
+
 void
 fill_default_server_options(ServerOptions *options)
 {
@@ -340,16 +354,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 
-	if (kex_assemble_names(KEX_SERVER_ENCRYPT, &options->ciphers) != 0 ||
-	    kex_assemble_names(KEX_SERVER_MAC, &options->macs) != 0 ||
-	    kex_assemble_names(KEX_SERVER_KEX, &options->kex_algorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->hostkeyalgorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->hostbased_key_types) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->pubkey_key_types) != 0)
-		fatal("%s: kex_assemble_names failed", __func__);
+	assemble_algorithms(options);
 
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
@@ -2018,6 +2023,9 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 
 	/* See comment in servconf.h */
 	COPY_MATCH_STRING_OPTS();
+
+	/* Arguments that accept '+...' need to be expanded */
+	assemble_algorithms(dst);
 
 	/*
 	 * The only things that should be below this point are string options
