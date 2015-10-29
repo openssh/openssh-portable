@@ -1,4 +1,4 @@
-#	$OpenBSD: limit-keytype.sh,v 1.3 2015/10/26 02:50:58 dtucker Exp $
+#	$OpenBSD: limit-keytype.sh,v 1.4 2015/10/29 08:05:17 djm Exp $
 #	Placed in the Public Domain.
 
 tid="restrict pubkey type"
@@ -19,6 +19,8 @@ ${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/user_key1 || \
 ${SSHKEYGEN} -q -N '' -t rsa -f $OBJ/user_key2 || \
 	fatal "ssh-keygen failed"
 ${SSHKEYGEN} -q -N '' -t rsa -f $OBJ/user_key3 || \
+	fatal "ssh-keygen failed"
+${SSHKEYGEN} -q -N '' -t dsa -f $OBJ/user_key4 || \
 	fatal "ssh-keygen failed"
 ${SSHKEYGEN} -q -s $OBJ/user_ca_key -I "regress user key for $USER" \
 	-z $$ -n ${USER},mekmitasdigoat $OBJ/user_key3 ||
@@ -76,4 +78,20 @@ prepare_config "PubkeyAcceptedKeyTypes ssh-*-cert-v01@openssh.com"
 ${SSH} $certopts proxy true || fatal "cert failed"
 ${SSH} $opts -i $OBJ/user_key1 proxy true && fatal "key1 succeeded"
 ${SSH} $opts -i $OBJ/user_key2 proxy true && fatal "key2 succeeded"
+
+# Allow RSA in main config, Ed25519 for non-existent user.
+verbose "match w/ no match"
+prepare_config "PubkeyAcceptedKeyTypes ssh-rsa" \
+	"Match user x$USER" "PubkeyAcceptedKeyTypes +ssh-ed25519"
+${SSH} $certopts proxy true && fatal "cert succeeded"
+${SSH} $opts -i $OBJ/user_key1 proxy true && fatal "key1 succeeded"
+${SSH} $opts -i $OBJ/user_key2 proxy true || fatal "key2 failed"
+
+# Allow only DSA in main config, Ed25519 for user.
+verbose "match w/ matching"
+prepare_config "PubkeyAcceptedKeyTypes ssh-dss" \
+	"Match user $USER" "PubkeyAcceptedKeyTypes +ssh-ed25519"
+${SSH} $certopts proxy true || fatal "cert failed"
+${SSH} $opts -i $OBJ/user_key1 proxy true || fatal "key1 failed"
+${SSH} $opts -i $OBJ/user_key4 proxy true && fatal "key4 succeeded"
 
