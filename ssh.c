@@ -1820,9 +1820,6 @@ ssh_session2_open(void)
 {
 	Channel *c;
 	int window, packetmax, in, out, err;
-	int sock;
-	int socksize;
-	int socksizelen = sizeof(int);
 
 	if (stdin_null_flag) {
 		in = open(_PATH_DEVNULL, O_RDONLY);
@@ -1869,8 +1866,11 @@ ssh_session2_open(void)
 	if (datafellows & SSH_BUG_LARGEWINDOW) {
 		debug("HPN to Non-HPN Connection");
 	} else {
+		int sock, socksize;
+		socklen_t socksizelen;
 		if (options.tcp_rcv_buf_poll <= 0) {
 			sock = socket(AF_INET, SOCK_STREAM, 0);
+			socksizelen = sizeof(socksize);
 			getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
 				   &socksize, &socksizelen);
 			close(sock);
@@ -1888,9 +1888,12 @@ ssh_session2_open(void)
 				 * If they are using the tcp_rcv_buf option,
 				 * attempt to set the buffer size to that.
 				 */
-				if (options.tcp_rcv_buf)
-					setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void *)&options.tcp_rcv_buf,
-						   sizeof(options.tcp_rcv_buf));
+				if (options.tcp_rcv_buf) {
+					socksizelen = sizeof(options.tcp_rcv_buf);
+					setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+						   &options.tcp_rcv_buf, socksizelen);
+				}
+				socksizelen = sizeof(socksize);
 				getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
 					   &socksize, &socksizelen);
 				close(sock);
