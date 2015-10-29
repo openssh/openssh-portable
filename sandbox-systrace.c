@@ -68,7 +68,9 @@ static const struct sandbox_policy preauth_policy[] = {
 	/* Previous releases used sysctl(3)'s kern.arnd variable. */
 	{ SYS___sysctl, SYSTR_POLICY_PERMIT },
 #endif
+#ifdef SYS_sendsyslog
 	{ SYS_sendsyslog, SYSTR_POLICY_PERMIT },
+#endif
 
 	{ SYS_madvise, SYSTR_POLICY_PERMIT },
 	{ SYS_mmap, SYSTR_POLICY_PERMIT },
