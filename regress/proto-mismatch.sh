@@ -16,4 +16,3 @@ mismatch ()
 }
 
 mismatch	2	SSH-1.5-HALLO
-mismatch	1	SSH-2.0-HALLO

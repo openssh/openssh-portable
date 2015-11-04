@@ -39,9 +39,15 @@
 #include <unistd.h>
 #include <stddef.h> /* for offsetof */
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/crypto.h>
+#include <wolfssl/openssl/err.h>
+#else
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
+#endif
 
 #include "ssh.h"
 #include "misc.h"
@@ -185,7 +191,7 @@ rexec_send_rng_seed(Buffer *m)
 		error("Couldn't obtain random bytes (error %ld)",
 		    ERR_get_error());
 		buffer_put_string(m, "", 0);
-	} else 
+	} else
 		buffer_put_string(m, buf, sizeof(buf));
 }
 
@@ -216,12 +222,13 @@ seed_rng(void)
 	 * allow 1.0.1 to work with 1.0.0). Going backwards is only allowed
 	 * within a patch series.
 	 */
+#ifndef USING_WOLFSSL
 	u_long version_mask = SSLeay() >= 0x1000000f ?  ~0xffff0L : ~0xff0L;
 	if (((SSLeay() ^ OPENSSL_VERSION_NUMBER) & version_mask) ||
 	    (SSLeay() >> 12) < (OPENSSL_VERSION_NUMBER >> 12))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
 		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
-
+#endif
 #ifndef OPENSSL_PRNG_ONLY
 	if (RAND_status() == 1) {
 		debug3("RNG is ready, skipping seeding");

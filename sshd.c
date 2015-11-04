@@ -72,10 +72,17 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/crypto.h>
+#include <wolfssl/openssl/rand.h>
+#else
 #include <openssl/dh.h>
 #include <openssl/bn.h>
 #include <openssl/rand.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #ifdef HAVE_SECUREWARE
 #include <sys/security.h>
@@ -711,12 +718,18 @@ privsep_preauth(Authctxt *authctxt)
 		set_log_handler(mm_log_handler, pmonitor);
 
 		/* Demote the child */
+#ifdef APPLE_SANDBOX_NAMED_EXTERNAL
+		/* We need to do this before we chroot() so we can read sshd.sb */
+		if (box != NULL)
+			ssh_sandbox_child(box);
+#endif
 		if (getuid() == 0 || geteuid() == 0)
 			privsep_preauth_child();
 		setproctitle("%s", "[net]");
+#ifndef APPLE_SANDBOX_NAMED_EXTERNAL
 		if (box != NULL)
 			ssh_sandbox_child(box);
-
+#endif
 		return 0;
 	}
 }
@@ -1507,7 +1520,7 @@ main(int ac, char **av)
 				fprintf(stderr, "too many host keys.\n");
 				exit(1);
 			}
-			options.host_key_files[options.num_host_key_files++] = 
+			options.host_key_files[options.num_host_key_files++] =
 			   derelativise_path(optarg);
 			break;
 		case 't':
@@ -1551,6 +1564,12 @@ main(int ac, char **av)
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
 
 	OpenSSL_add_all_algorithms();
+
+#ifdef USING_WOLFSSL
+	wolfSSL_Debugging_ON();
+#else
+	ERR_load_crypto_strings();
+#endif
 
 	/* If requested, redirect the logs to the specified logfile. */
 	if (logfile != NULL) {

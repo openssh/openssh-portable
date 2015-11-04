@@ -32,8 +32,14 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/ec25519.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/evp.h>
+#endif /* USING_WOLFSSL */
 
 #include "buffer.h"
 #include "ssh2.h"
@@ -43,19 +49,30 @@
 #include "log.h"
 #include "digest.h"
 
+#ifndef USING_WOLFSSL
 extern int crypto_scalarmult_curve25519(u_char a[CURVE25519_SIZE],
     const u_char b[CURVE25519_SIZE], const u_char c[CURVE25519_SIZE])
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 3, CURVE25519_SIZE)));
+#endif /* USING_WOLFSSL */
 
 void
 kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
 {
+#ifdef USING_WOLFSSL
+    int ret, psize = CURVE25519_SIZE, ksize = CURVE25519_SIZE;
+
+    ret = wolfSSL_EC25519_generate_key(key, &ksize, pub, &psize);
+    if (ret != 1 || ksize != CURVE25519_SIZE || psize != CURVE25519_SIZE)
+        fatal("%s: wolfSSL_EC25519_generate_key failed (%d,%d,%d)",
+              __func__, ret, ksize, psize);
+#else
 	static const u_char basepoint[CURVE25519_SIZE] = {9};
 
 	arc4random_buf(key, CURVE25519_SIZE);
 	crypto_scalarmult_curve25519(pub, key, basepoint);
+#endif /* USING_WOLFSSL */
 }
 
 void
@@ -64,13 +81,23 @@ kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
 {
 	u_char shared_key[CURVE25519_SIZE];
 
-	crypto_scalarmult_curve25519(shared_key, key, pub);
+#ifdef USING_WOLFSSL
+    int ret, ssize = CURVE25519_SIZE;
+    ret = wolfSSL_EC25519_shared_key(shared_key, &ssize,
+                                     key, CURVE25519_SIZE,
+                                     pub, CURVE25519_SIZE);
+    if (ret != 1 || ssize != CURVE25519_SIZE)
+        fatal("%s: wolfSSL_EC25519_shared_key failed", __func__);
+#else
+    crypto_scalarmult_curve25519(shared_key, key, pub);
+#endif /* USING_WOLFSSL */
+
 #ifdef DEBUG_KEXECDH
-	dump_digest("shared secret", shared_key, CURVE25519_SIZE);
+    dump_digest("shared secret", shared_key, CURVE25519_SIZE);
 #endif
-	buffer_clear(out);
-	buffer_put_bignum2_from_string(out, shared_key, CURVE25519_SIZE);
-	explicit_bzero(shared_key, CURVE25519_SIZE);
+    buffer_clear(out);
+    buffer_put_bignum2_from_string(out, shared_key, CURVE25519_SIZE);
+    explicit_bzero(shared_key, CURVE25519_SIZE);
 }
 
 void

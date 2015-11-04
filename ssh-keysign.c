@@ -35,9 +35,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/rsa.h>
+#else
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#endif /* USING_WOLFSSL */
 
 #include "xmalloc.h"
 #include "log.h"

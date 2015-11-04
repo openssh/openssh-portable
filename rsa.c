@@ -131,6 +131,10 @@ rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 void
 rsa_generate_additional_parameters(RSA *rsa)
 {
+#ifdef USING_WOLFSSL
+	if (wolfSSL_RSA_GenAdd(rsa) < 0)
+		fatal("rsa_generate_additional_parameters: wolfSSL_RsaGenAdd failed");
+#else
 	BIGNUM *aux;
 	BN_CTX *ctx;
 
@@ -147,5 +151,6 @@ rsa_generate_additional_parameters(RSA *rsa)
 
 	BN_clear_free(aux);
 	BN_CTX_free(ctx);
+#endif /* USING_WOLFSSL */
 }
 

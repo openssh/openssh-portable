@@ -208,13 +208,13 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 		i = vasprintf(&extra, fmt, ap);
 		va_end(ap);
 		if (i < 0 || extra == NULL)
-			fatal("%s: vasprintf failed", __func__);	
+			fatal("%s: vasprintf failed", __func__);
 	}
 
 	if (key_is_cert(key)) {
 		fp = key_fingerprint(key->cert->signature_key,
 		    SSH_FP_MD5, SSH_FP_HEX);
-		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s%s%s", 
+		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s%s%s",
 		    key_type(key), key->cert->key_id,
 		    (unsigned long long)key->cert->serial,
 		    key_type(key->cert->signature_key), fp,

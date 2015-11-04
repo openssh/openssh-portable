@@ -58,7 +58,11 @@
 # endif
 
 # if !defined(HAVE_CRYPT) && defined(HAVE_DES_CRYPT)
+#ifdef USING_WOLFSSL
+#  include <wolfssl/openssl/des.h>
+#else
 #  include <openssl/des.h>
+#endif /* USING_WOLFSSL */
 #  define crypt DES_crypt
 # endif
 

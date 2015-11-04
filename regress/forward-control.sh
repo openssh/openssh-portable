@@ -99,7 +99,7 @@ cp ${OBJ}/sshd_proxy ${OBJ}/sshd_proxy.bak
 cp ${OBJ}/authorized_keys_${USER} ${OBJ}/authorized_keys_${USER}.bak
 
 # Sanity check: ensure the default config allows forwarding
-for p in 1 2 ; do
+for p in 2 ; do
 	check_lfwd $p Y "proto $p, default configuration"
 	check_rfwd $p Y "proto $p, default configuration"
 done
@@ -115,7 +115,7 @@ all_tests() {
 	_permit_rfwd=$7
 	_badfwd=127.0.0.1:22
 	_goodfwd=127.0.0.1:${PORT}
-	for _proto in 1 2 ; do
+	for _proto in 2 ; do
 		cp ${OBJ}/authorized_keys_${USER}.bak \
 		    ${OBJ}/authorized_keys_${USER}
 		_prefix="proto $_proto, AllowTcpForwarding=$_tcpfwd"

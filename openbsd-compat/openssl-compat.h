@@ -16,6 +16,8 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef USING_WOLFSSL
+
 #include "includes.h"
 #include <openssl/opensslv.h>
 #include <openssl/evp.h>
@@ -179,4 +181,6 @@ void ssh_OpenSSL_add_all_algorithms(void);
 # endif
 
 #endif	/* SSH_DONT_OVERLOAD_OPENSSL_FUNCS */
+
+#endif /* USING_WOLFSSL */
 

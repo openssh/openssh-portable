@@ -4,7 +4,7 @@
 tid="stderr data transfer"
 
 for n in '' -n; do
-for p in 1 2; do
+for p in 2; do
 	verbose "test $tid: proto $p ($n)"
 	${SSH} $n -$p -F $OBJ/ssh_proxy otherhost \
 		exec sh -c \'"exec > /dev/null; sleep 3; cat ${DATA} 1>&2 $s"\' \

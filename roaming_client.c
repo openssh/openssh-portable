@@ -28,8 +28,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/crypto.h>
+#include <wolfssl/openssl/sha.h>
+#else
 #include <openssl/crypto.h>
 #include <openssl/sha.h>
+#endif
 
 #include "xmalloc.h"
 #include "buffer.h"

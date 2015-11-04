@@ -49,8 +49,12 @@
 #endif
 #include "openbsd-compat/sys-queue.h"
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>

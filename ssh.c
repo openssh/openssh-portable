@@ -71,9 +71,15 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/crypto.h>
+#else
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif /* USING_WOLFSSL */
 #include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
@@ -829,7 +835,12 @@ main(int ac, char **av)
 	host_arg = xstrdup(host);
 
 	OpenSSL_add_all_algorithms();
+
+#ifdef USING_WOLFSSL
+	wolfSSL_Debugging_ON();
+#else
 	ERR_load_crypto_strings();
+#endif
 
 	/* Initialize the command to execute on remote host. */
 	buffer_init(&command);
@@ -902,7 +913,7 @@ main(int ac, char **av)
 	 * If CanonicalizePermittedCNAMEs have been specified but
 	 * other canonicalization did not happen (by not being requested
 	 * or by failing with fallback) then the hostname may still be changed
-	 * as a result of CNAME following. 
+	 * as a result of CNAME following.
 	 *
 	 * Try to resolve the bare hostname name using the system resolver's
 	 * usual search rules and then apply the CNAME follow rules.
@@ -1274,7 +1285,7 @@ ssh_confirm_remote_forward(int type, u_int32_t seq, void *ctxt)
 			channel_update_permitted_opens(rfwd->handle, -1);
 		}
 	}
-	
+
 	if (type == SSH2_MSG_REQUEST_FAILURE) {
 		if (options.exit_on_forward_failure)
 			fatal("Error: remote port forwarding failed for "
@@ -1383,7 +1394,7 @@ ssh_init_forwarding(void)
 			else
 				error("Could not request tunnel forwarding.");
 		}
-	}			
+	}
 }
 
 static void

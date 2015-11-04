@@ -28,7 +28,4 @@ check_version ()
 	fi
 }
 
-check_version	2,1	199
-check_version	1,2	199
 check_version	2	20
-check_version	1	15

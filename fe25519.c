@@ -8,6 +8,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #define WINDOWSIZE 1 /* Should be 1,2, or 4 */
 #define WINDOWMASK ((1<<WINDOWSIZE)-1)
 
@@ -335,3 +337,5 @@ void fe25519_pow2523(fe25519 *r, const fe25519 *x)
 	/* 2^252 - 2^2 */ fe25519_square(&t,&t);
 	/* 2^252 - 3 */ fe25519_mul(r,&t,x);
 }
+
+#endif /* USING_WOLFSSL */

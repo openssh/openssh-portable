@@ -33,10 +33,17 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/ec.h>
+#include <wolfssl/openssl/ecdh.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 #include <openssl/ec.h>
 #include <openssl/ecdh.h>
+#endif /* USING_WOLFSSL */
 
 #include "buffer.h"
 #include "ssh2.h"

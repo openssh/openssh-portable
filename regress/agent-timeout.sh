@@ -12,7 +12,7 @@ if [ $r -ne 0 ]; then
 	fail "could not start ssh-agent: exit code $r"
 else
 	trace "add keys with timeout"
-	for t in rsa rsa1; do
+	for t in rsa rsa-agent; do
 		${SSHADD} -t ${SSHAGENT_TIMEOUT} $OBJ/$t > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
 			fail "ssh-add did succeed exit code 0"

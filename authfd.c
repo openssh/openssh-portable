@@ -41,8 +41,13 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/crypto.h>
+#else
 #include <openssl/evp.h>
 #include <openssl/crypto.h>
+#endif
 
 #include <fcntl.h>
 #include <stdlib.h>

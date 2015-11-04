@@ -50,12 +50,22 @@
 #include "buffer.h"
 #include "digest.h"
 
+#ifdef USING_WOLFSSL
+#include "openbsd-compat/wolfssl-compat.h"
+
+#define evp_aes_128_ctr EVP_aes_128_ctr
+#define ssh_aes_ctr_iv  wolfSSL_aes_ctr_iv
+#define ssh1_3des_iv    wolfSSL_3des_iv
+
+#else /* USING_WOLFSSL */
+
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
 
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
+#endif /* USING_WOLFSSL */
 
 struct Cipher {
 	char	*name;
@@ -74,14 +84,17 @@ struct Cipher {
 static const struct Cipher ciphers[] = {
 	{ "none",	SSH_CIPHER_NONE, 8, 0, 0, 0, 0, 0, EVP_enc_null },
 	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
+#ifndef USING_WOLFSSL
 	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
 	{ "blowfish",	SSH_CIPHER_BLOWFISH, 8, 32, 0, 0, 0, 1, evp_ssh1_bf },
-
+#endif
 	{ "3des-cbc",	SSH_CIPHER_SSH2, 8, 24, 0, 0, 0, 1, EVP_des_ede3_cbc },
+#ifndef USING_WOLFSSL
 	{ "blowfish-cbc",
 			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_bf_cbc },
 	{ "cast128-cbc",
 			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_cast5_cbc },
+#endif
 	{ "arcfour",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 0, EVP_rc4 },
 	{ "arcfour128",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 1536, 0, EVP_rc4 },
 	{ "arcfour256",	SSH_CIPHER_SSH2, 8, 32, 0, 0, 1536, 0, EVP_rc4 },
@@ -93,12 +106,14 @@ static const struct Cipher ciphers[] = {
 	{ "aes128-ctr",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, 0, EVP_aes_192_ctr },
 	{ "aes256-ctr",	SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 0, EVP_aes_256_ctr },
+#ifndef USING_WOLFSSL
 #ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
 #endif
+#endif /* #ifndef USING_WOLFSSL*/
 	{ "chacha20-poly1305@openssh.com",
 			SSH_CIPHER_SSH2, 8, 64, 0, 16, 0, CFLAG_CHACHAPOLY, NULL },
 	{ NULL,		SSH_CIPHER_INVALID, 0, 0, 0, 0, 0, 0, NULL }
@@ -324,9 +339,16 @@ cipher_init(CipherContext *cc, const Cipher *cipher,
 			fatal("cipher_init: set keylen failed (%d -> %d)",
 			    klen, keylen);
 	}
+
+#ifdef USING_WOLFSSL
+	wolfSSL_StoreExternalIV(&cc->evp);
+#endif
 	if (EVP_CipherInit(&cc->evp, NULL, (u_char *)key, NULL, -1) == 0)
 		fatal("cipher_init: EVP_CipherInit: set key failed for %s",
 		    cipher->name);
+#ifdef USING_WOLFSSL
+	wolfSSL_SetInternalIV(&cc->evp);
+#endif
 #endif
 
 	if (cipher->discard_len > 0) {
@@ -361,6 +383,9 @@ cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
 		return chachapoly_crypt(&cc->cp_ctx, seqnr, dest, src, len,
 		    aadlen, authlen, cc->encrypt);
 	if (authlen) {
+#ifdef USING_WOLFSSL
+	fatal("%s: EVP_Cipher(authlen) not supported", __func__);
+#else
 		u_char lastiv[1];
 
 		if (authlen != cipher_authlen(cc->cipher))
@@ -374,6 +399,7 @@ cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_SET_TAG,
 		    authlen, (u_char *)src + aadlen + len))
 			fatal("%s: EVP_CTRL_GCM_SET_TAG", __func__);
+#endif /* USING_WOLFSSL */
 	}
 	if (aadlen) {
 		if (authlen &&
@@ -387,6 +413,9 @@ cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
 	    len) < 0)
 		fatal("%s: EVP_Cipher failed", __func__);
 	if (authlen) {
+#ifdef USING_WOLFSSL
+	fatal("%s: EVP_Cipher(authlen) not supported", __func__);
+#else
 		/* compute tag (on encrypt) or verify tag (on decrypt) */
 		if (EVP_Cipher(&cc->evp, NULL, NULL, 0) < 0) {
 			if (cc->encrypt)
@@ -398,6 +427,7 @@ cipher_crypt(CipherContext *cc, u_int seqnr, u_char *dest, const u_char *src,
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_GET_TAG,
 		    authlen, dest + aadlen + len))
 			fatal("%s: EVP_CTRL_GCM_GET_TAG", __func__);
+#endif /* USING_WOLFSSL */
 	}
 	return 0;
 }
@@ -477,6 +507,9 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 			fatal("%s: wrong iv length %d != %d", __func__, len, 0);
 		return;
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_StoreExternalIV(&cc->evp);
+#endif
 
 	switch (c->number) {
 	case SSH_CIPHER_SSH2:
@@ -542,6 +575,9 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 	default:
 		fatal("%s: bad cipher %d", __func__, c->number);
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_SetInternalIV(&cc->evp);
+#endif
 }
 
 int

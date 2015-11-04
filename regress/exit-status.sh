@@ -3,7 +3,7 @@
 
 tid="remote exit status"
 
-for p in 1 2; do
+for p in 2; do
 	for s in 0 1 4 5 44; do
 		trace "proto $p status $s"
 		verbose "test $tid: proto $p status $s"

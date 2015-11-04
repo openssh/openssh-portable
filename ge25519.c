@@ -8,6 +8,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #include "fe25519.h"
 #include "sc25519.h"
 #include "ge25519.h"
@@ -319,3 +321,5 @@ void ge25519_scalarmult_base(ge25519_p3 *r, const sc25519 *s)
     ge25519_mixadd2(r, &t);
   }
 }
+
+#endif /* USING_WOLFSSL */

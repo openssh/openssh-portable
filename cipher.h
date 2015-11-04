@@ -37,7 +37,11 @@
 #ifndef CIPHER_H
 #define CIPHER_H
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif
 #include "cipher-chachapoly.h"
 
 /*

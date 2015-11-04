@@ -6,6 +6,8 @@
  * Copied from supercop-20130419/crypto_sign/ed25519/ref/ge25519.h
  */
 
+#ifndef USING_WOLFSSL
+
 #ifndef GE25519_H
 #define GE25519_H
 
@@ -41,3 +43,5 @@ void ge25519_double_scalarmult_vartime(ge25519 *r, const ge25519 *p1, const sc25
 void ge25519_scalarmult_base(ge25519 *r, const sc25519 *s);
 
 #endif
+
+#endif /* USING_WOLFSSL */

@@ -46,7 +46,11 @@ int	 buffer_get_ret(Buffer *, void *, u_int);
 int	 buffer_consume_ret(Buffer *, u_int);
 int	 buffer_consume_end_ret(Buffer *, u_int);
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#else
 #include <openssl/bn.h>
+#endif
 
 void    buffer_put_bignum(Buffer *, const BIGNUM *);
 void    buffer_put_bignum2(Buffer *, const BIGNUM *);
@@ -90,13 +94,23 @@ void *buffer_get_bignum2_as_string_ret(Buffer *, u_int *);
 void *buffer_get_bignum2_as_string(Buffer *, u_int *);
 void  buffer_put_bignum2_from_string(Buffer *, const u_char *, u_int);
 
-#ifdef OPENSSL_HAS_ECC
-#include <openssl/ec.h>
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ec.h>
 
-int	buffer_put_ecpoint_ret(Buffer *, const EC_GROUP *, const EC_POINT *);
+int		buffer_put_ecpoint_ret(Buffer *, const EC_GROUP *, const EC_POINT *);
 void	buffer_put_ecpoint(Buffer *, const EC_GROUP *, const EC_POINT *);
-int	buffer_get_ecpoint_ret(Buffer *, const EC_GROUP *, EC_POINT *);
+int		buffer_get_ecpoint_ret(Buffer *, const EC_GROUP *, EC_POINT *);
 void	buffer_get_ecpoint(Buffer *, const EC_GROUP *, EC_POINT *);
-#endif
+
+#else /* USING_WOLFSSL */
+	#ifdef OPENSSL_HAS_ECC
+	#include <openssl/ec.h>
+
+	int	buffer_put_ecpoint_ret(Buffer *, const EC_GROUP *, const EC_POINT *);
+	void	buffer_put_ecpoint(Buffer *, const EC_GROUP *, const EC_POINT *);
+	int	buffer_get_ecpoint_ret(Buffer *, const EC_GROUP *, EC_POINT *);
+	void	buffer_get_ecpoint(Buffer *, const EC_GROUP *, EC_POINT *);
+	#endif /* OPENSSL_HAS_ECC */
+#endif /* USING_WOLFSSL */
 
 #endif				/* BUFFER_H */

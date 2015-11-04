@@ -3,7 +3,7 @@
 
 tid="transfer data"
 
-for p in 1 2; do
+for p in 2; do
 	verbose "$tid: proto $p"
 	rm -f ${COPY}
 	${SSH} -n -q -$p -F $OBJ/ssh_proxy somehost cat ${DATA} > ${COPY}

@@ -27,8 +27,13 @@
 
 #include <sys/param.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/dh.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -254,15 +259,18 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 void
 dh_gen_key(DH *dh, int need)
 {
+#ifndef USING_WOLFSSL
 	int pbits;
-
+#endif
 	if (need <= 0)
 		fatal("%s: need <= 0", __func__);
 	if (dh->p == NULL)
 		fatal("%s: dh->p == NULL", __func__);
+#ifndef USING_WOLFSSL
 	if ((pbits = BN_num_bits(dh->p)) <= 0)
 		fatal("%s: bits(p) <= 0", __func__);
 	dh->length = MIN(need * 2, pbits - 1);
+#endif
 	if (DH_generate_key(dh) == 0)
 		fatal("%s: key generation failed", __func__);
 	if (!dh_pub_is_valid(dh, dh->pub_key))

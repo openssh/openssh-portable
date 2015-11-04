@@ -6,7 +6,7 @@ tid="change passphrase for key"
 S1="secret1"
 S2="2secret"
 
-for t in rsa dsa rsa1; do
+for t in rsa dsa ecdsa; do
 	# generate user key for agent
 	trace "generating $t key"
 	rm -f $OBJ/$t-key

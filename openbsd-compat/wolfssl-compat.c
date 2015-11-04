@@ -16,8 +16,6 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef USING_WOLFSSL
-
 #include "includes.h"
 
 #include <stdarg.h>
@@ -29,13 +27,13 @@
 #endif
 
 #ifndef HAVE_RSA_GET_DEFAULT_METHOD
-# include <openssl/rsa.h>
+# include <wolfssl/openssl/rsa.h>
 #endif
 
 #include "log.h"
 
-#define SSH_DONT_OVERLOAD_OPENSSL_FUNCS
-#include "openssl-compat.h"
+#define SSH_DONT_OVERLOAD_WOLFSSL_FUNCS
+#include "wolfssl-compat.h"
 
 #ifdef SSH_OLD_EVP
 int
@@ -67,7 +65,7 @@ EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *md, void *engine)
 {
 	if (engine != NULL)
 		fatal("%s: ENGINE is not supported", __func__);
-# ifdef OPENSSL_EVP_DIGESTUPDATE_VOID
+# ifdef WOLFSSL_EVP_DIGESTUPDATE_VOID
 	EVP_DigestInit(ctx, md);
 	return 1;
 # else
@@ -80,7 +78,7 @@ EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *md, void *engine)
 int
 EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s)
 {
-# ifdef OPENSSL_EVP_DIGESTUPDATE_VOID
+# ifdef WOLFSSL_EVP_DIGESTUPDATE_VOID
 	EVP_DigestFinal(ctx, md, s);
 	return 1;
 # else
@@ -89,20 +87,12 @@ EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s)
 }
 #endif
 
-#ifdef OPENSSL_EVP_DIGESTUPDATE_VOID
+#ifdef WOLFSSL_EVP_DIGESTUPDATE_VOID
 int
 ssh_EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d, unsigned int cnt)
 {
 	EVP_DigestUpdate(ctx, d, cnt);
 	return 1;
-}
-#endif
-
-#ifndef HAVE_EVP_MD_CTX_COPY_EX
-int
-EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in)
-{
-	return EVP_MD_CTX_copy(out, in);
 }
 #endif
 
@@ -169,18 +159,3 @@ RSA_get_default_method(void)
 	return RSA_PKCS1_SSLeay();
 }
 #endif
-
-#ifdef	USE_OPENSSL_ENGINE
-void
-ssh_OpenSSL_add_all_algorithms(void)
-{
-	OpenSSL_add_all_algorithms();
-
-	/* Enable use of crypto hardware */
-	ENGINE_load_builtin_engines();
-	ENGINE_register_all_complete();
-	OPENSSL_config(NULL);
-}
-#endif
-
-#endif /* USING_WOLFSSL */

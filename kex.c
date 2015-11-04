@@ -33,7 +33,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/crypto.h>
+#else
 #include <openssl/crypto.h>
+#endif
 
 #include "xmalloc.h"
 #include "ssh2.h"

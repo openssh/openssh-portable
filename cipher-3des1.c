@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #include <sys/types.h>
 
 #include <openssl/evp.h>
@@ -181,3 +183,5 @@ evp_ssh1_3des(void)
 #endif
 	return (&ssh1_3des);
 }
+
+#endif /* USING_WOLFSSL */

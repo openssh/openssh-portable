@@ -19,7 +19,7 @@ start_sshd_copy ()
 copy_tests ()
 {
 	rm -f ${COPY}
-	for p in 1 2; do
+	for p in 2; do
 		verbose "$tid: proto $p"
 		${SSH} -nqo "Protocol=$p" -F $OBJ/ssh_config somehost \
 		    cat ${DATA} > ${COPY}

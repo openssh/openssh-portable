@@ -32,9 +32,13 @@
 #include <sys/types.h>
 
 #ifndef HAVE_ARC4RANDOM
-
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/err.h>
+#else
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#endif
 
 #include "log.h"
 
@@ -200,7 +204,7 @@ arc4random(void)
 }
 
 /*
- * If we are providing arc4random, then we can provide a more efficient 
+ * If we are providing arc4random, then we can provide a more efficient
  * arc4random_buf().
  */
 # ifndef HAVE_ARC4RANDOM_BUF

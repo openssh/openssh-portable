@@ -27,11 +27,17 @@
 #define KEX_H
 
 #include <signal.h>
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/hmac.h>
+#include <wolfssl/openssl/ec.h>
+#else /* USING_WOLFSSL */
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#ifdef OPENSSL_HAS_ECC
-#include <openssl/ec.h>
-#endif
+	#ifdef OPENSSL_HAS_ECC
+	#include <openssl/ec.h>
+	#endif
+#endif /* USING_WOLFSSL */
 
 #define KEX_COOKIE_LEN	16
 

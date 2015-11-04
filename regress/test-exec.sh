@@ -1,7 +1,7 @@
 #	$OpenBSD: test-exec.sh,v 1.47 2013/11/09 05:41:34 dtucker Exp $
 #	Placed in the Public Domain.
 
-#SUDO=sudo
+#SUDO=`which sudo`
 
 # Unbreak GNU head(1)
 _POSIX2_VERSION=199209
@@ -327,7 +327,7 @@ trap fatal 3 2
 cat << EOF > $OBJ/sshd_config
 	StrictModes		no
 	Port			$PORT
-	Protocol		2,1
+	Protocol		2
 	AddressFamily		inet
 	ListenAddress		127.0.0.1
 	#ListenAddress		::1
@@ -353,7 +353,7 @@ echo 'StrictModes no' >> $OBJ/sshd_proxy
 # create client config
 cat << EOF > $OBJ/ssh_config
 Host *
-	Protocol		2,1
+	Protocol		2
 	Hostname		127.0.0.1
 	HostKeyAlias		localhost-with-alias
 	Port			$PORT
@@ -379,7 +379,7 @@ fi
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
 trace "generate keys"
-for t in rsa rsa1; do
+for t in rsa; do
 	# generate user key
 	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t

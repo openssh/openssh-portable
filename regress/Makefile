@@ -13,7 +13,7 @@ clean:
 
 distclean:	clean
 
-LTESTS= 	connect \
+LTESTS=	connect \
 		proxy-connect \
 		connect-privsep \
 		proto-version \
@@ -77,8 +77,7 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		t8.out t8.out.pub t9.out t9.out.pub t10.out t10.out.pub \
 		authorized_keys_${USER} known_hosts pidfile testdata \
 		ssh_config sshd_config.orig ssh_proxy sshd_config sshd_proxy \
-		rsa.pub rsa rsa1.pub rsa1 host.rsa host.rsa1 \
-		rsa-agent rsa-agent.pub rsa1-agent rsa1-agent.pub \
+		rsa.pub rsa host.rsa rsa-agent rsa-agent.pub \
 		ls.copy banner.in banner.out empty.in \
 		scp-ssh-wrapper.scp ssh_proxy_envpass remote_pid \
 		sshd_proxy_bak rsa_ssh2_cr.prv rsa_ssh2_crnl.prv \

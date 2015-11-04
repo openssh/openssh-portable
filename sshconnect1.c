@@ -18,7 +18,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#else
 #include <openssl/bn.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>

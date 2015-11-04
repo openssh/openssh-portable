@@ -41,8 +41,12 @@
 
 #include "crypto_api.h"
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
 #include <openbsd-compat/openssl-compat.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1498,7 +1502,7 @@ cert_parse(Buffer *b, Key *key, const u_char *blob, u_int blen)
 		goto out;
 	}
 
-	switch (key_verify(key->cert->signature_key, sig, slen, 
+	switch (key_verify(key->cert->signature_key, sig, slen,
 	    buffer_ptr(&key->cert->certblob), signed_len)) {
 	case 1:
 		ret = 0;
@@ -2237,6 +2241,13 @@ key_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 		fatal("%s: BN_CTX_new failed", __func__);
 	BN_CTX_start(bnctx);
 
+#ifdef USING_WOLFSSL
+	/* check curve nid value */
+	if (key_curve_nid_to_bits(group->curve_nid) == 0) {
+		error("%s: group is not supported", __func__);
+		goto out;
+	}
+#else
 	/*
 	 * We shouldn't ever hit this case because bignum_get_ecpoint()
 	 * refuses to load GF2m points.
@@ -2246,6 +2257,7 @@ key_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 		error("%s: group is not a prime field", __func__);
 		goto out;
 	}
+#endif /* USING_WOLFSSL */
 
 	/* Q != infinity */
 	if (EC_POINT_is_at_infinity(group, public)) {
@@ -2355,12 +2367,16 @@ void
 key_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 {
 	BIGNUM *x, *y;
-	BN_CTX *bnctx;
+	BN_CTX *bnctx = NULL;
 
 	if (point == NULL) {
 		fputs("point=(NULL)\n", stderr);
 		return;
 	}
+#ifdef USING_WOLFSSL
+	if (key_curve_nid_to_bits(group->curve_nid) == 0)
+		fatal("%s: unsupported group", __func__);
+#else
 	if ((bnctx = BN_CTX_new()) == NULL)
 		fatal("%s: BN_CTX_new failed", __func__);
 	BN_CTX_start(bnctx);
@@ -2369,6 +2385,7 @@ key_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 	if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
 	    NID_X9_62_prime_field)
 		fatal("%s: group is not a prime field", __func__);
+#endif /* USING_WOLFSSL */
 	if (EC_POINT_get_affine_coordinates_GFp(group, point, x, y, bnctx) != 1)
 		fatal("%s: EC_POINT_get_affine_coordinates_GFp", __func__);
 	fputs("x=", stderr);

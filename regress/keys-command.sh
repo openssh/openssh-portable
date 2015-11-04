@@ -9,9 +9,9 @@ if test -z "$SUDO" ; then
 	exit 0
 fi
 
-# Establish a AuthorizedKeysCommand in /var/run where it will have
+# Establish a AuthorizedKeysCommand in /var/empty where it will have
 # acceptable directory permissions.
-KEY_COMMAND="/var/run/keycommand_${LOGNAME}"
+KEY_COMMAND="/var/empty/keycommand_${LOGNAME}"
 cat << _EOF | $SUDO sh -c "cat > '$KEY_COMMAND'"
 #!/bin/sh
 test "x\$1" != "x${LOGNAME}" && exit 1
@@ -33,7 +33,7 @@ if [ -x $KEY_COMMAND ]; then
 		fail "connect failed"
 	fi
 else
-	echo "SKIPPED: $KEY_COMMAND not executable (/var/run mounted noexec?)"
+	echo "SKIPPED: $KEY_COMMAND not executable (/var/empty mounted noexec?)"
 fi
 
 $SUDO rm -f $KEY_COMMAND

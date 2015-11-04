@@ -30,7 +30,11 @@
 
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rsa.h>
+#else
 #include <openssl/rsa.h>
+#endif
 
 #ifdef HAVE_LOGIN_CAP
 #include <login_cap.h>
@@ -53,7 +57,7 @@ struct Authctxt {
 	int		 valid;		/* user exists and is allowed to login */
 	int		 attempt;
 	int		 failures;
-	int		 server_caused_failure; 
+	int		 server_caused_failure;
 	int		 force_pwchange;
 	char		*user;		/* username sent by the client */
 	char		*service;

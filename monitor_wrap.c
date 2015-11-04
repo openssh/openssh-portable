@@ -38,9 +38,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/dh.h>
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 #include <openssl/evp.h>
+#endif /* USING_WOLFSSL */
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"

@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #include <sys/types.h>
 
 #include <openssl/evp.h>
@@ -106,3 +108,5 @@ evp_ssh1_bf(void)
 	ssh1_bf.key_len = 32;
 	return (&ssh1_bf);
 }
+
+#endif /* USING_WOLFSSL */

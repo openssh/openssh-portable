@@ -28,7 +28,11 @@
 
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif
 #include <signal.h>
 
 #include "buffer.h"

@@ -17,7 +17,7 @@ trace "will use ProxyCommand $proxycmd"
 
 start_sshd
 
-for p in 1 2; do
+for p in 2; do
 	n=0
 	error="1"
 	trace "start dynamic forwarding, fork to background"

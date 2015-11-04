@@ -44,7 +44,12 @@
 
 #ifdef OPENSSL_HAS_ECC
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ecdh.h>
+#else
 #include <openssl/ecdh.h>
+#endif
+
 
 void
 kexecdh_client(Kex *kex)

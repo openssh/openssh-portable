@@ -18,9 +18,17 @@
 
 #include <termios.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#else
 #include <openssl/bn.h>
+#endif
 #ifdef OPENSSL_HAS_ECC
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ec.h>
+#else
 #include <openssl/ec.h>
+#endif /* USING_WOLFSSL */
 #endif
 
 void     packet_set_connection(int, int);

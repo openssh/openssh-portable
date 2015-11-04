@@ -27,11 +27,21 @@
 #define KEY_H
 
 #include "buffer.h"
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dsa.h>
+#else
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
-#ifdef OPENSSL_HAS_ECC
-#include <openssl/ec.h>
 #endif
+
+#ifdef OPENSSL_HAS_ECC
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ec.h>
+#else /* USING_WOLFSSL */
+#include <openssl/ec.h>
+#endif /* USING_WOLFSSL */
+#endif /* OPENSSL_HAS_ECC */
 
 typedef struct Key Key;
 enum types {
@@ -94,6 +104,7 @@ struct Key {
 
 #define	ED25519_SK_SZ	crypto_sign_ed25519_SECRETKEYBYTES
 #define	ED25519_PK_SZ	crypto_sign_ed25519_PUBLICKEYBYTES
+#define	ED25519_SIG_SZ  crypto_sign_ed25519_BYTES
 
 Key		*key_new(int);
 void		 key_add_private(Key *);

@@ -4,7 +4,7 @@
 tid="proxy connect"
 
 verbose "plain username"
-for p in 1 2; do
+for p in 2; do
 	${SSH} -$p -F $OBJ/ssh_proxy 999.999.999.999 true
 	if [ $? -ne 0 ]; then
 		fail "ssh proxyconnect protocol $p failed"
@@ -19,7 +19,7 @@ for p in 1 2; do
 done
 
 verbose "username with style"
-for p in 1 2; do
+for p in 2; do
 	${SSH} -$p -F $OBJ/ssh_proxy ${USER}:style@999.999.999.999 true || \
 		fail "ssh proxyconnect protocol $p failed"
 done

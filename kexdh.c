@@ -29,7 +29,11 @@
 
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif
 
 #include "buffer.h"
 #include "ssh2.h"

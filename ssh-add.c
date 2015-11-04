@@ -41,8 +41,12 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <fcntl.h>
 #include <pwd.h>

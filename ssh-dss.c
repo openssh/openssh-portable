@@ -27,8 +27,13 @@
 
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/evp.h>
+#endif
 
 #include <stdarg.h>
 #include <string.h>
@@ -47,9 +52,14 @@ int
 ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen)
 {
+#ifdef USING_WOLFSSL
+	int ret;
+#else
 	DSA_SIG *sig;
+	u_int rlen, slen, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+#endif /* USING_WOLFSSL */
 	u_char digest[SSH_DIGEST_MAX_LENGTH], sigblob[SIGBLOB_LEN];
-	u_int rlen, slen, len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+	u_int len;
 	Buffer b;
 
 	if (key == NULL || key_type_plain(key->type) != KEY_DSA ||
@@ -64,6 +74,16 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 
+#ifdef USING_WOLFSSL
+	memset(sigblob, 0, SIGBLOB_LEN);
+	ret = wolfSSL_DSA_do_sign(digest, sigblob, key->dsa);
+	explicit_bzero(digest, sizeof(digest));
+
+	if (ret != 1) {
+		error("wolfSSL_DSA_do_sign: sign failed");
+		return -1;
+	}
+#else /* USING_WOLFSSL */
 	sig = DSA_do_sign(digest, dlen, key->dsa);
 	explicit_bzero(digest, sizeof(digest));
 
@@ -71,7 +91,9 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
 		error("ssh_dss_sign: sign failed");
 		return -1;
 	}
+#endif /* USING_WOLFSSL */
 
+#ifndef USING_WOLFSSL
 	rlen = BN_num_bytes(sig->r);
 	slen = BN_num_bytes(sig->s);
 	if (rlen > INTBLOB_LEN || slen > INTBLOB_LEN) {
@@ -83,6 +105,7 @@ ssh_dss_sign(const Key *key, u_char **sigp, u_int *lenp,
 	BN_bn2bin(sig->r, sigblob+ SIGBLOB_LEN - INTBLOB_LEN - rlen);
 	BN_bn2bin(sig->s, sigblob+ SIGBLOB_LEN - slen);
 	DSA_SIG_free(sig);
+#endif /* USING_WOLFSSL */
 
 	if (datafellows & SSH_BUG_SIGBLOB) {
 		if (lenp != NULL)
@@ -111,9 +134,14 @@ int
 ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
     const u_char *data, u_int datalen)
 {
+#ifdef USING_WOLFSSL
+	int dsacheck = 0;
+#else
 	DSA_SIG *sig;
+	u_int dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+#endif /* USING_WOLFSSL */
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sigblob;
-	u_int len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+	u_int len;
 	int rlen, ret;
 	Buffer b;
 
@@ -156,6 +184,7 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		fatal("bad sigbloblen %u != SIGBLOB_LEN", len);
 	}
 
+#ifndef USING_WOLFSSL
 	/* parse signature */
 	if ((sig = DSA_SIG_new()) == NULL)
 		fatal("%s: DSA_SIG_new failed", __func__);
@@ -170,6 +199,7 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 	/* clean up */
 	explicit_bzero(sigblob, len);
 	free(sigblob);
+#endif /* USING_WOLFSSL */
 
 	/* sha1 the data */
 	if (ssh_digest_memory(SSH_DIGEST_SHA1, data, datalen,
@@ -178,6 +208,13 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		return -1;
 	}
 
+#ifdef USING_WOLFSSL
+	ret = wolfSSL_DSA_do_verify(digest, sigblob, key->dsa, &dsacheck);
+	explicit_bzero(digest, sizeof(digest));
+
+	debug("%s: signature %s", __func__,
+	    (ret == 1 && dsacheck == 1) ? "correct" : ret == 1 ? "incorrect" : "error");
+#else
 	ret = DSA_do_verify(digest, dlen, sig, key->dsa);
 	explicit_bzero(digest, sizeof(digest));
 
@@ -185,5 +222,6 @@ ssh_dss_verify(const Key *key, const u_char *signature, u_int signaturelen,
 
 	debug("%s: signature %s", __func__,
 	    ret == 1 ? "correct" : ret == 0 ? "incorrect" : "error");
+#endif /* USING_WOLFSSL */
 	return ret;
 }

@@ -19,9 +19,15 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/pem.h>
+#include "openbsd-compat/wolfssl-compat.h"
+#else
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif /* USING_WOLFSSL */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -1589,12 +1595,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		}
 	}
 
-	pkcs11_init(1);
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
-	if (pkcs11provider != NULL) {
-		if ((ca = load_pkcs11_key(tmp)) == NULL)
-			fatal("No PKCS#11 key matching %s found", ca_key_path);
-	} else if ((ca = load_identity(tmp)) == NULL)
+	if ((ca = load_identity(tmp)) == NULL)
 		fatal("Couldn't load CA key \"%s\"", tmp);
 	free(tmp);
 
@@ -1611,7 +1613,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			}
 			free(otmp);
 		}
-	
+
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
 		if ((public = key_load_public(tmp, &comment)) == NULL)
 			fatal("%s: unable to open \"%s\"", __func__, tmp);
@@ -1661,7 +1663,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 
 		if (!quiet) {
 			logit("Signed %s key %s: id \"%s\" serial %llu%s%s "
-			    "valid %s", key_cert_type(public), 
+			    "valid %s", key_cert_type(public),
 			    out, public->cert->key_id,
 			    (unsigned long long)public->cert->serial,
 			    cert_principals != NULL ? " for " : "",
@@ -1672,7 +1674,6 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		key_free(public);
 		free(out);
 	}
-	pkcs11_terminate();
 	exit(0);
 }
 
@@ -1698,7 +1699,7 @@ parse_absolute_time(const char *s)
 	char buf[32], *fmt;
 
 	/*
-	 * POSIX strptime says "The application shall ensure that there 
+	 * POSIX strptime says "The application shall ensure that there
 	 * is white-space or other non-alphanumeric characters between
 	 * any two conversion specifications" so arrange things this way.
 	 */
@@ -1834,7 +1835,7 @@ show_options(const Buffer *optbuf, int v00, int in_critical)
 		data = buffer_get_string_ptr(&options, &dlen);
 		buffer_append(&option, data, dlen);
 		printf("                %s", name);
-		if ((v00 || !in_critical) && 
+		if ((v00 || !in_critical) &&
 		    (strcmp(name, "permit-X11-forwarding") == 0 ||
 		    strcmp(name, "permit-agent-forwarding") == 0 ||
 		    strcmp(name, "permit-port-forwarding") == 0 ||
@@ -2232,6 +2233,11 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 
 	OpenSSL_add_all_algorithms();
+
+#ifdef USING_WOLFSSL
+    wolfSSL_Debugging_ON();
+#endif
+
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	seed_rng();

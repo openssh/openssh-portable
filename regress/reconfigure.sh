@@ -28,7 +28,7 @@ done
 
 test -f $PIDFILE || fatal "sshd did not restart"
 
-for p in 1 2; do
+for p in 2; do
 	${SSH} -o "Protocol=$p" -F $OBJ/ssh_config somehost true
 	if [ $? -ne 0 ]; then
 		fail "ssh connect with protocol $p failed after reconfigure"

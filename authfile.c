@@ -43,12 +43,18 @@
 #include <sys/param.h>
 #include <sys/uio.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/pem.h>
+#else
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
+#endif /* USING_WOLFSSL */
 
 #include "crypto_api.h"
 
@@ -509,12 +515,13 @@ key_private_rsa1_to_blob(Key *key, Buffer *blob, const char *passphrase,
 }
 
 /* convert SSH v2 key in OpenSSL PEM format */
+#ifndef USING_WOLFSSL
 static int
 key_private_pem_to_blob(Key *key, Buffer *blob, const char *_passphrase,
     const char *comment)
 {
-	int success = 0;
-	int blen, len = strlen(_passphrase);
+    int success = 0;
+    int blen, len = strlen(_passphrase);
 	u_char *passphrase = (len > 0) ? (u_char *)_passphrase : NULL;
 #if (OPENSSL_VERSION_NUMBER < 0x00907000L)
 	const EVP_CIPHER *cipher = (len > 0) ? EVP_des_ede3_cbc() : NULL;
@@ -544,8 +551,8 @@ key_private_pem_to_blob(Key *key, Buffer *blob, const char *_passphrase,
 		break;
 #endif
 	case KEY_RSA:
-		success = PEM_write_bio_RSAPrivateKey(bio, key->rsa,
-		    cipher, passphrase, len, NULL, NULL);
+        success = PEM_write_bio_RSAPrivateKey(bio, key->rsa,
+            cipher, passphrase, len, NULL, NULL);
 		break;
 	}
 	if (success) {
@@ -555,8 +562,50 @@ key_private_pem_to_blob(Key *key, Buffer *blob, const char *_passphrase,
 			buffer_append(blob, bptr, blen);
 	}
 	BIO_free(bio);
-	return success;
+    return success;
 }
+#else /* USING_WOLFSSL */
+static int
+key_private_pem_to_blob(Key *key, Buffer *blob, const char *_passphrase,
+                        const char *comment)
+{
+    int success = 0;
+    int bptr_len = 0, len = strlen(_passphrase);
+    u_char *passphrase = (len > 0) ? (u_char *)_passphrase : NULL;
+    const EVP_CIPHER *cipher = (len > 0) ? EVP_aes_128_cbc() : NULL;
+    u_char *bptr;
+
+    if (len > 0 && len <= 4) {
+        error("passphrase too short: have %d bytes, need > 4", len);
+        return 0;
+    }
+
+    switch (key->type) {
+        case KEY_DSA:
+            success = wolfSSL_PEM_write_mem_DSAPrivateKey(key->dsa, cipher,
+                                                          passphrase, len,
+                                                          &bptr, &bptr_len);
+            break;
+#ifdef OPENSSL_HAS_ECC
+        case KEY_ECDSA:
+            success = wolfSSL_PEM_write_mem_ECPrivateKey(key->ecdsa, cipher,
+                                                         passphrase, len,
+                                                         &bptr, &bptr_len);
+            break;
+#endif
+        case KEY_RSA:
+            success = wolfSSL_PEM_write_mem_RSAPrivateKey(key->rsa, cipher,
+                                                          passphrase, len,
+                                                          &bptr, &bptr_len);
+            break;
+    }
+
+    if (success)
+        buffer_append(blob, bptr, bptr_len);
+
+    return success;
+}
+#endif /* USING_WOLFSSL */
 
 /* Save a key blob to a file */
 static int
@@ -870,6 +919,110 @@ fail:
 	return NULL;
 }
 
+#ifdef USING_WOLFSSL
+static Key *
+key_parse_private_pem(Buffer *blob, int type, const char *passphrase,
+  char **commentp)
+{
+	Key *prv = NULL;
+	unsigned char der[4096];
+	int ret = 0;
+	int gotKey = 0;
+	int derSz;
+	char *name = "<no key>";
+
+	if ( (derSz = wolfSSL_KeyPemToDer(buffer_ptr(blob), buffer_len(blob), der,
+									  sizeof(der), passphrase)) < 0) {
+		error("%s: wolfSSL_KeyPemToDer failed", __func__);
+		return NULL;
+	}
+
+	if (type == KEY_UNSPEC || type==KEY_RSA) {
+		RSA* rsa;
+
+		debug("trying RSA key type");
+
+		rsa = RSA_new();
+		if (rsa == NULL) {
+			error("%s: RSA_new failed", __func__);
+			return NULL;
+		}
+
+		ret = wolfSSL_RSA_LoadDer(rsa, der, derSz);
+		if (ret < 0) {
+			debug("%s: wolfSSL_RSA_LoadDer failed", __func__);
+			RSA_free(rsa);
+		}
+		else {
+			prv = key_new(KEY_UNSPEC);
+			prv->rsa = rsa;
+			prv->type = KEY_RSA;
+			name   = "rsa w/o comment";
+			gotKey = 1;
+		}
+	}
+
+	if (gotKey == 0 && (type == KEY_UNSPEC || type==KEY_DSA) ) {
+		DSA* dsa;
+
+		debug("trying DSA key type");
+
+		dsa = DSA_new();
+		if (dsa == NULL) {
+			error("%s: DSA_new failed", __func__);
+			return NULL;
+		}
+
+		ret = wolfSSL_DSA_LoadDer(dsa, der, derSz);
+		if (ret < 0) {
+			debug("%s: wolfSSL_DSA_LoadDer failed", __func__);
+			DSA_free(dsa);
+		}
+		else {
+			prv = key_new(KEY_UNSPEC);
+			prv->dsa = dsa;
+			prv->type = KEY_DSA;
+			name   = "Dsa w/o comment";
+			gotKey = 1;
+		}
+	}
+
+	if (gotKey == 0 && (type == KEY_UNSPEC || type==KEY_ECDSA) ) {
+		EC_KEY* eckey;
+
+		debug("trying EC_KEY type");
+
+		eckey = EC_KEY_new();
+		if (eckey == NULL) {
+			error("%s: EC_KEY_new failed", __func__);
+			return NULL;
+		}
+
+		ret = wolfSSL_EC_KEY_LoadDer(eckey, der, derSz);
+		if (ret < 0) {
+			debug("%s: wolfSSL_EC_KEY_LoadDer failed", __func__);
+			EC_KEY_free(eckey);
+		}
+		else {
+			prv = key_new(KEY_UNSPEC);
+			prv->ecdsa = eckey;
+			prv->type = KEY_ECDSA;
+			prv->ecdsa_nid = eckey->group->curve_nid;
+			name   = "ECDsa w/o comment";
+			gotKey = 1;
+		}
+	}
+
+	if (prv != NULL && commentp)
+		*commentp = xstrdup(name);
+	debug("read PEM private key done: type %s",
+		  prv ? key_type(prv) : "<unknown>");
+
+	return prv;
+}
+
+#else /* USING_WOLFSSL */
+
 static Key *
 key_parse_private_pem(Buffer *blob, int type, const char *passphrase,
     char **commentp)
@@ -884,7 +1037,7 @@ key_parse_private_pem(Buffer *blob, int type, const char *passphrase,
 		error("%s: BIO_new_mem_buf failed", __func__);
 		return NULL;
 	}
-	
+
 	pk = PEM_read_bio_PrivateKey(bio, NULL, NULL, (char *)passphrase);
 	BIO_free(bio);
 	if (pk == NULL) {
@@ -946,6 +1099,7 @@ key_parse_private_pem(Buffer *blob, int type, const char *passphrase,
 	    prv ? key_type(prv) : "<unknown>");
 	return prv;
 }
+#endif /*USING_WOLFSSL */
 
 Key *
 key_load_private_pem(int fd, int type, const char *passphrase,
@@ -1220,7 +1374,7 @@ key_load_private_cert(int type, const char *filename, const char *passphrase,
 		return NULL;
 	}
 
-	if ((key = key_load_private_type(type, filename, 
+	if ((key = key_load_private_type(type, filename,
 	    passphrase, NULL, perm_ok)) == NULL)
 		return NULL;
 

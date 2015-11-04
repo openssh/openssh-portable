@@ -21,13 +21,3 @@ for c in `${SSH} -Q cipher`; do
 	done
 done
 
-ciphers="3des blowfish"
-for c in $ciphers; do
-	trace "proto 1 cipher $c"
-	verbose "test $tid: proto 1 cipher $c"
-	${SSH} -F $OBJ/ssh_proxy -1 -c $c somehost true
-	if [ $? -ne 0 ]; then
-		fail "ssh -1 failed with cipher $c"
-	fi
-done
-

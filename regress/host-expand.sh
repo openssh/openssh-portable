@@ -11,7 +11,7 @@ somehost
 127.0.0.1
 EOE
 
-for p in 1 2; do
+for p in 2; do
 	verbose "test $tid: proto $p"
 	${SSH} -F $OBJ/ssh_proxy -$p somehost true >$OBJ/actual
 	diff $OBJ/expect $OBJ/actual || fail "$tid proto $p"

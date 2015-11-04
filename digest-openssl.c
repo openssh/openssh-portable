@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -164,3 +166,5 @@ ssh_digest_buffer(int alg, const Buffer *b, u_char *d, size_t dlen)
 {
 	return ssh_digest_memory(alg, buffer_ptr(b), buffer_len(b), d, dlen);
 }
+
+#endif /* USING_WOLFSSL */
