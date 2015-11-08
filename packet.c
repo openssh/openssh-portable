@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.216 2015/10/21 11:33:03 gsoares Exp $ */
+/* $OpenBSD: packet.c,v 1.217 2015/11/08 21:59:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1581,6 +1581,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			logit("Bad packet length %u.", state->packlen);
 			if ((r = sshpkt_disconnect(ssh, "Packet corrupt")) != 0)
 				return r;
+			return SSH_ERR_CONN_CORRUPT;
 		}
 		sshbuf_reset(state->incoming_packet);
 	} else if (state->packlen == 0) {
