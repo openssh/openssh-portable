@@ -83,9 +83,12 @@ ga_match(char * const *groups, int n)
 	int i, j;
 
 	for (i = 0; i < ngroups; i++)
-		for (j = 0; j < n; j++)
+		for (j = 0; j < n; j++) {
+			debug3("Does groups_byname[%d] '%s' match groups[%d] '%s'",
+			 i, groups_byname[i], j, groups[j]);
 			if (match_pattern(groups_byname[i], groups[j]))
 				return 1;
+		}
 	return 0;
 }
 
