@@ -2345,6 +2345,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([OpenSSL header version])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
+	#include <stdlib.h>
 	#include <stdio.h>
 	#include <string.h>
 	#include <openssl/opensslv.h>
@@ -2357,7 +2358,8 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
-		if ((rc = fprintf(fd ,"%08x (%s)\n", OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
+		if ((rc = fprintf(fd ,"%08lx (%s)\n",
+		    (unsigned long)OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
 			exit(1);
 
 		exit(0);
