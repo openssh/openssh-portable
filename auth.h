@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.84 2015/05/08 06:41:56 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.85 2015/11/11 01:48:01 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -180,8 +180,6 @@ int	auth2_challenge(Authctxt *, char *);
 void	auth2_challenge_stop(Authctxt *);
 int	bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int	bsdauth_respond(void *, u_int, char **);
-int	skey_query(void *, char **, char **, u_int *, char ***, u_int **);
-int	skey_respond(void *, u_int, char **);
 
 int	allowed_user(struct passwd *);
 struct passwd * getpwnamallow(const char *user);
