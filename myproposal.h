@@ -169,8 +169,6 @@
 #define	KEX_DEFAULT_COMP	"none,zlib@openssh.com,zlib"
 #define	KEX_DEFAULT_LANG	""
 
-#define KEX_ENCRYPT_INCLUDE_NONE KEX_SERVER_ENCRYPT ",none"
-
 #define KEX_CLIENT \
 	KEX_CLIENT_KEX, \
 	KEX_DEFAULT_PK_ALG, \
