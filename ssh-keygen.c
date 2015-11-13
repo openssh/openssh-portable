@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.277 2015/08/19 23:17:51 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.278 2015/11/13 04:34:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1851,23 +1851,10 @@ show_options(struct sshbuf *optbuf, int in_critical)
 }
 
 static void
-do_show_cert(struct passwd *pw)
+print_cert(struct sshkey *key)
 {
-	struct sshkey *key;
-	struct stat st;
 	char *key_fp, *ca_fp;
 	u_int i;
-	int r;
-
-	if (!have_identity)
-		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0)
-		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
-	if ((r = sshkey_load_public(identity_file, &key, NULL)) != 0)
-		fatal("Cannot load public key \"%s\": %s",
-		    identity_file, ssh_err(r));
-	if (!sshkey_is_cert(key))
-		fatal("%s is not a certificate", identity_file);
 
 	key_fp = sshkey_fingerprint(key, fingerprint_hash, SSH_FP_DEFAULT);
 	ca_fp = sshkey_fingerprint(key->cert->signature_key,
@@ -1875,7 +1862,6 @@ do_show_cert(struct passwd *pw)
 	if (key_fp == NULL || ca_fp == NULL)
 		fatal("%s: sshkey_fingerprint fail", __func__);
 
-	printf("%s:\n", identity_file);
 	printf("        Type: %s %s certificate\n", sshkey_ssh_name(key),
 	    sshkey_cert_type(key));
 	printf("        Public key: %s %s\n", sshkey_type(key), key_fp);
@@ -1908,7 +1894,60 @@ do_show_cert(struct passwd *pw)
 		printf("\n");
 		show_options(key->cert->extensions, 0);
 	}
-	exit(0);
+}
+
+static void
+do_show_cert(struct passwd *pw)
+{
+	struct sshkey *key = NULL;
+	struct stat st;
+	int r, is_stdin = 0, ok = 0;
+	FILE *f;
+	char *cp, line[2048];
+	const char *path;
+	long int lnum = 0;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (strcmp(identity_file, "-") != 0 && stat(identity_file, &st) < 0)
+		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+
+	path = identity_file;
+	if (strcmp(path, "-") == 0) {
+		f = stdin;
+		path = "(stdin)";
+		is_stdin = 1;
+	} else if ((f = fopen(identity_file, "r")) == NULL)
+		fatal("fopen %s: %s", identity_file, strerror(errno));
+
+	while (read_keyfile_line(f, path, line, sizeof(line), &lnum) == 0) {
+		sshkey_free(key);
+		key = NULL;
+		/* Trim leading space and comments */
+		cp = line + strspn(line, " \t");
+		if (*cp == '#' || *cp == '\0')
+			continue;
+		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
+			fatal("key_new");
+		if ((r = sshkey_read(key, &cp)) != 0) {
+			error("%s:%lu: invalid key: %s", path,
+			    lnum, ssh_err(r));
+			continue;
+		}
+		if (!sshkey_is_cert(key)) {
+			error("%s:%lu is not a certificate", path, lnum);
+			continue;
+		}
+		ok = 1;
+		if (!is_stdin && lnum == 1)
+			printf("%s:\n", path);
+		else
+			printf("%s:%lu:\n", path, lnum);
+		print_cert(key);
+	}
+	sshkey_free(key);
+	fclose(f);
+	exit(ok ? 0 : 1);
 }
 
 static void
