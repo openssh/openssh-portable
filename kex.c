@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.111 2015/10/13 00:21:27 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.112 2015/11/13 04:39:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -315,7 +315,14 @@ kex_prop_free(char **proposal)
 static int
 kex_protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	error("Hm, kex protocol error: type %d seq %u", type, seq);
+	struct ssh *ssh = active_state; /* XXX */
+	int r;
+
+	error("kex protocol error: type %d seq %u", type, seq);
+	if ((r = sshpkt_start(ssh, SSH2_MSG_UNIMPLEMENTED)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, seq)) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0)
+		return r;
 	return 0;
 }
 
