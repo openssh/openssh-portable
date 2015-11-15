@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.265 2015/09/04 04:55:24 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.266 2015/11/15 22:26:49 jcs Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -65,6 +65,7 @@
 #include "version.h"
 #include "authfile.h"
 #include "ssherr.h"
+#include "authfd.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
@@ -1486,4 +1487,31 @@ ssh_local_cmd(const char *args)
 		return (1);
 
 	return (WEXITSTATUS(status));
+}
+
+void
+maybe_add_key_to_agent(char *authfile, Key *private, char *comment,
+    char *passphrase)
+{
+	int auth_sock = -1, r;
+
+	if (options.add_keys_to_agent == 0)
+		return;
+
+	if ((r = ssh_get_authentication_socket(&auth_sock)) != 0) {
+		debug3("no authentication agent, not adding key");
+		return;
+	}
+
+	if (options.add_keys_to_agent == 2 &&
+	    !ask_permission("Add key %s (%s) to agent?", authfile, comment)) {
+		debug3("user denied adding this key");
+		return;
+	}
+
+	if ((r = ssh_add_identity_constrained(auth_sock, private, comment, 0,
+	    (options.add_keys_to_agent == 3))) == 0)
+		debug("identity added to agent: %s", authfile);
+	else
+		debug("could not add identity to agent: %s (%d)", authfile, r);
 }

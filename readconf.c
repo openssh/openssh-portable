@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.245 2015/10/27 08:54:52 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.246 2015/11/15 22:26:49 jcs Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -135,7 +135,7 @@ typedef enum {
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
-	oCertificateFile,
+	oCertificateFile, oAddKeysToAgent,
 	oUser, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
@@ -204,6 +204,7 @@ static struct {
 	{ "identityfile2", oIdentityFile },			/* obsolete */
 	{ "identitiesonly", oIdentitiesOnly },
 	{ "certificatefile", oCertificateFile },
+	{ "addkeystoagent", oAddKeysToAgent },
 	{ "hostname", oHostName },
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
@@ -710,6 +711,15 @@ static const struct multistate multistate_yesnoask[] = {
 	{ "yes",			1 },
 	{ "no",				0 },
 	{ "ask",			2 },
+	{ NULL, -1 }
+};
+static const struct multistate multistate_yesnoaskconfirm[] = {
+	{ "true",			1 },
+	{ "false",			0 },
+	{ "yes",			1 },
+	{ "no",				0 },
+	{ "ask",			2 },
+	{ "confirm",			3 },
 	{ NULL, -1 }
 };
 static const struct multistate multistate_addressfamily[] = {
@@ -1533,6 +1543,11 @@ parse_keytypes:
 		charptr = &options->pubkey_key_types;
 		goto parse_keytypes;
 
+	case oAddKeysToAgent:
+		intptr = &options->add_keys_to_agent;
+		multistate_ptr = multistate_yesnoaskconfirm;
+		goto parse_multistate;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1699,6 +1714,7 @@ initialize_options(Options * options)
 	options->local_command = NULL;
 	options->permit_local_command = -1;
 	options->use_roaming = -1;
+	options->add_keys_to_agent = -1;
 	options->visual_host_key = -1;
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
@@ -1803,6 +1819,8 @@ fill_default_options(Options * options)
 	/* options->hostkeyalgorithms, default set in myproposals.h */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_2;
+	if (options->add_keys_to_agent == -1)
+		options->add_keys_to_agent = 0;
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
 			add_identity_file(options, "~/",

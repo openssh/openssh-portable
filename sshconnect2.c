@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.228 2015/10/13 16:15:21 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.229 2015/11/15 22:26:49 jcs Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -313,7 +313,7 @@ void	userauth(Authctxt *, char *);
 static int sign_and_send_pubkey(Authctxt *, Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
-static Key *load_identity_file(char *, int);
+static Key *load_identity_file(Identity *);
 
 static Authmethod *authmethod_get(char *authlist);
 static Authmethod *authmethod_lookup(const char *name);
@@ -990,7 +990,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		return (sshkey_sign(id->key, sigp, lenp, data, datalen,
 		    compat));
 	/* load the private key from the file */
-	if ((prv = load_identity_file(id->filename, id->userprovided)) == NULL)
+	if ((prv = load_identity_file(id)) == NULL)
 		return (-1); /* XXX return decent error code */
 	ret = sshkey_sign(prv, sigp, lenp, data, datalen, compat);
 	sshkey_free(prv);
@@ -1147,20 +1147,20 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 }
 
 static Key *
-load_identity_file(char *filename, int userprovided)
+load_identity_file(Identity *id)
 {
 	Key *private;
-	char prompt[300], *passphrase;
+	char prompt[300], *passphrase, *comment;
 	int r, perm_ok = 0, quit = 0, i;
 	struct stat st;
 
-	if (stat(filename, &st) < 0) {
-		(userprovided ? logit : debug3)("no such identity: %s: %s",
-		    filename, strerror(errno));
+	if (stat(id->filename, &st) < 0) {
+		(id->userprovided ? logit : debug3)("no such identity: %s: %s",
+		    id->filename, strerror(errno));
 		return NULL;
 	}
 	snprintf(prompt, sizeof prompt,
-	    "Enter passphrase for key '%.100s': ", filename);
+	    "Enter passphrase for key '%.100s': ", id->filename);
 	for (i = 0; i <= options.number_of_password_prompts; i++) {
 		if (i == 0)
 			passphrase = "";
@@ -1172,8 +1172,8 @@ load_identity_file(char *filename, int userprovided)
 				break;
 			}
 		}
-		switch ((r = sshkey_load_private_type(KEY_UNSPEC, filename,
-		    passphrase, &private, NULL, &perm_ok))) {
+		switch ((r = sshkey_load_private_type(KEY_UNSPEC, id->filename,
+		    passphrase, &private, &comment, &perm_ok))) {
 		case 0:
 			break;
 		case SSH_ERR_KEY_WRONG_PASSPHRASE:
@@ -1187,20 +1187,26 @@ load_identity_file(char *filename, int userprovided)
 		case SSH_ERR_SYSTEM_ERROR:
 			if (errno == ENOENT) {
 				debug2("Load key \"%s\": %s",
-				    filename, ssh_err(r));
+				    id->filename, ssh_err(r));
 				quit = 1;
 				break;
 			}
 			/* FALLTHROUGH */
 		default:
-			error("Load key \"%s\": %s", filename, ssh_err(r));
+			error("Load key \"%s\": %s", id->filename, ssh_err(r));
 			quit = 1;
 			break;
 		}
+		if (!quit && private != NULL && !id->agent_fd &&
+		    !(id->key && id->isprivate))
+			maybe_add_key_to_agent(id->filename, private, comment,
+			    passphrase);
 		if (i > 0) {
 			explicit_bzero(passphrase, strlen(passphrase));
 			free(passphrase);
 		}
+		if (comment)
+			free(comment);
 		if (private != NULL || quit)
 			break;
 	}
@@ -1403,8 +1409,7 @@ userauth_pubkey(Authctxt *authctxt)
 			}
 		} else {
 			debug("Trying private key: %s", id->filename);
-			id->key = load_identity_file(id->filename,
-			    id->userprovided);
+			id->key = load_identity_file(id);
 			if (id->key != NULL) {
 				if (try_identity(id)) {
 					id->isprivate = 1;

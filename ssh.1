@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.365 2015/11/06 00:31:41 mmcc Exp $
-.Dd $Mdocdate: November 6 2015 $
+.\" $OpenBSD: ssh.1,v 1.366 2015/11/15 22:26:49 jcs Exp $
+.Dd $Mdocdate: November 15 2015 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -462,6 +462,7 @@ For full details of the options listed below, and their possible values, see
 .Xr ssh_config 5 .
 .Pp
 .Bl -tag -width Ds -offset indent -compact
+.It AddKeysToAgent
 .It AddressFamily
 .It BatchMode
 .It BindAddress
@@ -926,6 +927,10 @@ The most convenient way to use public key or certificate authentication
 may be with an authentication agent.
 See
 .Xr ssh-agent 1
+and (optionally) the
+.Cm AddKeysToAgent
+directive in
+.Xr ssh_config 5
 for more information.
 .Pp
 Challenge-response authentication works as follows:
