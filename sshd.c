@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.459 2015/09/04 08:21:47 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.460 2015/11/16 22:51:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -632,25 +632,23 @@ privsep_preauth_child(void)
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
 
-	/* Change our root directory */
-	if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
-		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
-		    strerror(errno));
-	if (chdir("/") == -1)
-		fatal("chdir(\"/\"): %s", strerror(errno));
+	/* Demote the child */
+	if (getuid() == 0 || geteuid() == 0) {
+		/* Change our root directory */
+		if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
+			fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
+			    strerror(errno));
+		if (chdir("/") == -1)
+			fatal("chdir(\"/\"): %s", strerror(errno));
 
-	/* Drop our privileges */
-	debug3("privsep user:group %u:%u", (u_int)privsep_pw->pw_uid,
-	    (u_int)privsep_pw->pw_gid);
-#if 0
-	/* XXX not ready, too heavy after chroot */
-	do_setusercontext(privsep_pw);
-#else
-	gidset[0] = privsep_pw->pw_gid;
-	if (setgroups(1, gidset) < 0)
-		fatal("setgroups: %.100s", strerror(errno));
-	permanently_set_uid(privsep_pw);
-#endif
+		/* Drop our privileges */
+		debug3("privsep user:group %u:%u", (u_int)privsep_pw->pw_uid,
+		    (u_int)privsep_pw->pw_gid);
+		gidset[0] = privsep_pw->pw_gid;
+		if (setgroups(1, gidset) < 0)
+			fatal("setgroups: %.100s", strerror(errno));
+		permanently_set_uid(privsep_pw);
+	}
 }
 
 static int
@@ -716,9 +714,7 @@ privsep_preauth(Authctxt *authctxt)
 		/* Arrange for logging to be sent to the monitor */
 		set_log_handler(mm_log_handler, pmonitor);
 
-		/* Demote the child */
-		if (getuid() == 0 || geteuid() == 0)
-			privsep_preauth_child();
+		privsep_preauth_child();
 		setproctitle("%s", "[net]");
 		if (box != NULL)
 			ssh_sandbox_child(box);
