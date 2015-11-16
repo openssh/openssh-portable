@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.25 2015/11/16 22:50:01 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.26 2015/11/16 23:47:52 millert Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1216,7 +1216,7 @@ read_decimal_bignum(char **cpp, BIGNUM *v)
 		return SSH_ERR_BIGNUM_TOO_LARGE;
 	if (cp[e] == '\0')
 		skip = 0;
-	else if (index(" \t\r\n", cp[e]) == NULL)
+	else if (strchr(" \t\r\n", cp[e]) == NULL)
 		return SSH_ERR_INVALID_FORMAT;
 	cp[e] = '\0';
 	if (BN_dec2bn(&v, cp) <= 0)
@@ -1246,7 +1246,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef WITH_SSH1
 		/* Get number of bits. */
 		bits = strtoul(cp, &ep, 10);
-		if (*cp == '\0' || index(" \t\r\n", *ep) == NULL ||
+		if (*cp == '\0' || strchr(" \t\r\n", *ep) == NULL ||
 		    bits == 0 || bits > SSHBUF_MAX_BIGNUM * 8)
 			return SSH_ERR_INVALID_FORMAT;	/* Bad bit count... */
 		/* Get public exponent, public modulus. */
