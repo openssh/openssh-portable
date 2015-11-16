@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.278 2015/11/13 04:34:15 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.279 2015/11/16 22:53:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -808,116 +808,155 @@ do_download(struct passwd *pw)
 #endif /* ENABLE_PKCS11 */
 }
 
+static struct sshkey *
+try_read_key(char **cpp)
+{
+	struct sshkey *ret;
+	int r;
+
+	if ((ret = sshkey_new(KEY_RSA1)) == NULL)
+		fatal("sshkey_new failed");
+	/* Try RSA1 */
+	if ((r = sshkey_read(ret, cpp)) == 0)
+		return ret;
+	/* Try modern */
+	sshkey_free(ret);
+	if ((ret = sshkey_new(KEY_UNSPEC)) == NULL)
+		fatal("sshkey_new failed");
+	if ((r = sshkey_read(ret, cpp)) == 0)
+		return ret;
+	/* Not a key */
+	sshkey_free(ret);
+	return NULL;
+}
+
+static void
+fingerprint_one_key(const struct sshkey *public, const char *comment)
+{
+	char *fp = NULL, *ra = NULL;
+	enum sshkey_fp_rep rep;
+	int fptype;
+
+	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
+	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
+	fp = sshkey_fingerprint(public, fptype, rep);
+	ra = sshkey_fingerprint(public, fingerprint_hash, SSH_FP_RANDOMART);
+	if (fp == NULL || ra == NULL)
+		fatal("%s: sshkey_fingerprint failed", __func__);
+	printf("%u %s %s (%s)\n", sshkey_size(public), fp,
+	    comment ? comment : "no comment", sshkey_type(public));
+	if (log_level >= SYSLOG_LEVEL_VERBOSE)
+		printf("%s\n", ra);
+	free(ra);
+	free(fp);
+}
+
+static void
+fingerprint_private(const char *path)
+{
+	struct stat st;
+	char *comment = NULL;
+	struct sshkey *public = NULL;
+	int r;
+
+	if (stat(identity_file, &st) < 0)
+		fatal("%s: %s", path, strerror(errno));
+	if ((r = sshkey_load_public(path, &public, &comment)) != 0)
+		fatal("Error loading public key \"%s\": %s", path, ssh_err(r));
+	fingerprint_one_key(public, comment);
+	sshkey_free(public);
+	free(comment);
+}
+
 static void
 do_fingerprint(struct passwd *pw)
 {
 	FILE *f;
-	struct sshkey *public;
-	char *comment = NULL, *cp, *ep, line[16*1024], *fp, *ra;
-	int r, i, skip = 0, num = 0, invalid = 1;
-	enum sshkey_fp_rep rep;
-	int fptype;
-	struct stat st;
+	struct sshkey *public = NULL;
+	char *comment = NULL, *cp, *ep, line[16*1024];
+	int i, invalid = 1;
+	const char *path;
+	long int lnum = 0;
 
-	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
-	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
-	if (stat(identity_file, &st) < 0)
-		fatal("%s: %s", identity_file, strerror(errno));
-	if ((r = sshkey_load_public(identity_file, &public, &comment)) != 0)
-		debug2("Error loading public key \"%s\": %s",
-		    identity_file, ssh_err(r));
-	else {
-		fp = sshkey_fingerprint(public, fptype, rep);
-		ra = sshkey_fingerprint(public, fingerprint_hash,
-		    SSH_FP_RANDOMART);
-		if (fp == NULL || ra == NULL)
-			fatal("%s: sshkey_fingerprint fail", __func__);
-		printf("%u %s %s (%s)\n", sshkey_size(public), fp, comment,
-		    sshkey_type(public));
-		if (log_level >= SYSLOG_LEVEL_VERBOSE)
-			printf("%s\n", ra);
-		sshkey_free(public);
-		free(comment);
-		free(ra);
-		free(fp);
-		exit(0);
-	}
-	if (comment) {
-		free(comment);
-		comment = NULL;
-	}
+	path = identity_file;
 
-	if ((f = fopen(identity_file, "r")) == NULL)
-		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
+	if (strcmp(identity_file, "-") == 0) {
+		f = stdin;
+		path = "(stdin)";
+	} else if ((f = fopen(path, "r")) == NULL)
+		fatal("%s: %s: %s", __progname, path, strerror(errno));
 
-	while (fgets(line, sizeof(line), f)) {
-		if ((cp = strchr(line, '\n')) == NULL) {
-			error("line %d too long: %.40s...",
-			    num + 1, line);
-			skip = 1;
+	while (read_keyfile_line(f, path, line, sizeof(line), &lnum) == 0) {
+		cp = line;
+		cp[strcspn(cp, "\n")] = '\0';
+		/* Trim leading space and comments */
+		cp = line + strspn(line, " \t");
+		if (*cp == '#' || *cp == '\0')
+			continue;
+
+		/*
+		 * Input may be plain keys, private keys, authorized_keys
+		 * or known_hosts.
+		 */
+
+		/*
+		 * Try private keys first. Assume a key is private if
+		 * "SSH PRIVATE KEY" appears on the first line and we're
+		 * not reading from stdin (XXX support private keys on stdin).
+		 */
+		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
+		    strstr(cp, "SSH PRIVATE KEY") != NULL) {
+			fclose(f);
+			fingerprint_private(path);
+			exit(0);
+		}
+
+		/*
+		 * If it's not a private key, then this must be prepared to
+		 * accept a public key prefixed with a hostname or options.
+		 * Try a bare key first, otherwise skip the leading stuff.
+		 */
+		if ((public = try_read_key(&cp)) == NULL) {
+			i = strtol(cp, &ep, 10);
+			if (i == 0 || ep == NULL ||
+			    (*ep != ' ' && *ep != '\t')) {
+				int quoted = 0;
+
+				comment = cp;
+				for (; *cp && (quoted || (*cp != ' ' &&
+				    *cp != '\t')); cp++) {
+					if (*cp == '\\' && cp[1] == '"')
+						cp++;	/* Skip both */
+					else if (*cp == '"')
+						quoted = !quoted;
+				}
+				if (!*cp)
+					continue;
+				*cp++ = '\0';
+			}
+		}
+		/* Retry after parsing leading hostname/key options */
+		if (public == NULL && (public = try_read_key(&cp)) == NULL) {
+			debug("%s:%ld: not a public key", path, lnum);
 			continue;
 		}
-		num++;
-		if (skip) {
-			skip = 0;
-			continue;
-		}
-		*cp = '\0';
 
-		/* Skip leading whitespace, empty and comment lines. */
-		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
+		/* Find trailing comment, if any */
+		for (; *cp == ' ' || *cp == '\t'; cp++)
 			;
-		if (!*cp || *cp == '\n' || *cp == '#')
-			continue;
-		i = strtol(cp, &ep, 10);
-		if (i == 0 || ep == NULL || (*ep != ' ' && *ep != '\t')) {
-			int quoted = 0;
+		if (*cp != '\0' && *cp != '#')
 			comment = cp;
-			for (; *cp && (quoted || (*cp != ' ' &&
-			    *cp != '\t')); cp++) {
-				if (*cp == '\\' && cp[1] == '"')
-					cp++;	/* Skip both */
-				else if (*cp == '"')
-					quoted = !quoted;
-			}
-			if (!*cp)
-				continue;
-			*cp++ = '\0';
-		}
-		ep = cp;
-		if ((public = sshkey_new(KEY_RSA1)) == NULL)
-			fatal("sshkey_new failed");
-		if ((r = sshkey_read(public, &cp)) != 0) {
-			cp = ep;
-			sshkey_free(public);
-			if ((public = sshkey_new(KEY_UNSPEC)) == NULL)
-				fatal("sshkey_new failed");
-			if ((r = sshkey_read(public, &cp)) != 0) {
-				sshkey_free(public);
-				continue;
-			}
-		}
-		comment = *cp ? cp : comment;
-		fp = sshkey_fingerprint(public, fptype, rep);
-		ra = sshkey_fingerprint(public, fingerprint_hash,
-		    SSH_FP_RANDOMART);
-		if (fp == NULL || ra == NULL)
-			fatal("%s: sshkey_fingerprint fail", __func__);
-		printf("%u %s %s (%s)\n", sshkey_size(public), fp,
-		    comment ? comment : "no comment", sshkey_type(public));
-		if (log_level >= SYSLOG_LEVEL_VERBOSE)
-			printf("%s\n", ra);
-		free(ra);
-		free(fp);
+
+		fingerprint_one_key(public, comment);
 		sshkey_free(public);
-		invalid = 0;
+		invalid = 0; /* One good key in the file is sufficient */
 	}
 	fclose(f);
 
 	if (invalid)
-		fatal("%s is not a public key file.", identity_file);
+		fatal("%s is not a public key file.", path);
 	exit(0);
 }
 
