@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.24 2015/10/15 23:08:23 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.25 2015/11/16 22:50:01 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1232,11 +1232,10 @@ sshkey_read(struct sshkey *ret, char **cpp)
 {
 	struct sshkey *k;
 	int retval = SSH_ERR_INVALID_FORMAT;
-	char *cp, *space;
+	char *ep, *cp, *space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
 #ifdef WITH_SSH1
-	char *ep;
 	u_long bits;
 #endif /* WITH_SSH1 */
 
@@ -1255,10 +1254,10 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			return r;
 		if ((r = read_decimal_bignum(&ep, ret->rsa->n)) < 0)
 			return r;
-		*cpp = ep;
 		/* validate the claimed number of bits */
 		if (BN_num_bits(ret->rsa->n) != (int)bits)
 			return SSH_ERR_KEY_BITS_MISMATCH;
+		*cpp = ep;
 		retval = 0;
 #endif /* WITH_SSH1 */
 		break;
@@ -1296,9 +1295,9 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			*space++ = '\0';
 			while (*space == ' ' || *space == '\t')
 				space++;
-			*cpp = space;
+			ep = space;
 		} else
-			*cpp = cp + strlen(cp);
+			ep = cp + strlen(cp);
 		if ((r = sshbuf_b64tod(blob, cp)) != 0) {
 			sshbuf_free(blob);
 			return r;
@@ -1329,8 +1328,9 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			ret->cert = k->cert;
 			k->cert = NULL;
 		}
+		switch (sshkey_type_plain(ret->type)) {
 #ifdef WITH_OPENSSL
-		if (sshkey_type_plain(ret->type) == KEY_RSA) {
+		case KEY_RSA:
 			if (ret->rsa != NULL)
 				RSA_free(ret->rsa);
 			ret->rsa = k->rsa;
@@ -1338,8 +1338,8 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef DEBUG_PK
 			RSA_print_fp(stderr, ret->rsa, 8);
 #endif
-		}
-		if (sshkey_type_plain(ret->type) == KEY_DSA) {
+			break;
+		case KEY_DSA:
 			if (ret->dsa != NULL)
 				DSA_free(ret->dsa);
 			ret->dsa = k->dsa;
@@ -1347,9 +1347,9 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef DEBUG_PK
 			DSA_print_fp(stderr, ret->dsa, 8);
 #endif
-		}
+			break;
 # ifdef OPENSSL_HAS_ECC
-		if (sshkey_type_plain(ret->type) == KEY_ECDSA) {
+		case KEY_ECDSA:
 			if (ret->ecdsa != NULL)
 				EC_KEY_free(ret->ecdsa);
 			ret->ecdsa = k->ecdsa;
@@ -1359,17 +1359,19 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef DEBUG_PK
 			sshkey_dump_ec_key(ret->ecdsa);
 #endif
-		}
+			break;
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
-		if (sshkey_type_plain(ret->type) == KEY_ED25519) {
+		case KEY_ED25519:
 			free(ret->ed25519_pk);
 			ret->ed25519_pk = k->ed25519_pk;
 			k->ed25519_pk = NULL;
 #ifdef DEBUG_PK
 			/* XXX */
 #endif
+			break;
 		}
+		*cpp = ep;
 		retval = 0;
 /*XXXX*/
 		sshkey_free(k);
