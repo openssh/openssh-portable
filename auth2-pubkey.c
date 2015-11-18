@@ -219,10 +219,35 @@ done:
 	return authenticated;
 }
 
+char *
+pubkey_format(const Key *key)
+{
+	char *fp, *result;
+
+	if (key_is_cert(key)) {
+		fp = sshkey_fingerprint(key->cert->signature_key,
+		    options.fingerprint_hash, SSH_FP_DEFAULT);
+		xasprintf(&result, "%s ID %s (serial %llu) CA %s %s",
+		    key_type(key), key->cert->key_id,
+		    (unsigned long long)key->cert->serial,
+		    key_type(key->cert->signature_key),
+		    fp == NULL ? "(null)" : fp);
+		free(fp);
+	} else {
+		fp = sshkey_fingerprint(key, options.fingerprint_hash,
+		    SSH_FP_DEFAULT);
+		xasprintf(&result, "%s %s", key_type(key),
+		    fp == NULL ? "(null)" : fp);
+		free(fp);
+	}
+
+	return result;
+}
+
 void
 pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 {
-	char *fp, *extra;
+	char *extra, *pubkey;
 	va_list ap;
 	int i;
 
@@ -232,27 +257,12 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 		i = vasprintf(&extra, fmt, ap);
 		va_end(ap);
 		if (i < 0 || extra == NULL)
-			fatal("%s: vasprintf failed", __func__);	
+			fatal("%s: vasprintf failed", __func__);
 	}
 
-	if (key_is_cert(key)) {
-		fp = sshkey_fingerprint(key->cert->signature_key,
-		    options.fingerprint_hash, SSH_FP_DEFAULT);
-		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s%s%s", 
-		    key_type(key), key->cert->key_id,
-		    (unsigned long long)key->cert->serial,
-		    key_type(key->cert->signature_key),
-		    fp == NULL ? "(null)" : fp,
-		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
-		free(fp);
-	} else {
-		fp = sshkey_fingerprint(key, options.fingerprint_hash,
-		    SSH_FP_DEFAULT);
-		auth_info(authctxt, "%s %s%s%s", key_type(key),
-		    fp == NULL ? "(null)" : fp,
-		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
-		free(fp);
-	}
+	pubkey = pubkey_format(key);
+	auth_info(authctxt, "%s%s%s", pubkey, extra == NULL ? "" : ", ",
+	    extra == NULL ? "" : extra);
 	free(extra);
 }
 
