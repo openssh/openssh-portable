@@ -79,7 +79,7 @@ userauth_pubkey(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg, *userstyle, *fp = NULL;
+	char *pkalg, *userstyle, *pubkey, *fp = NULL;
 	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int have_sig, pktype;
@@ -171,7 +171,8 @@ userauth_pubkey(Authctxt *authctxt)
 #ifdef DEBUG_PK
 		buffer_dump(&b);
 #endif
-		pubkey_auth_info(authctxt, key, NULL);
+		pubkey = pubkey_format(key);
+		auth_info(authctxt, "%s", pubkey);
 
 		/* test for correct signature */
 		authenticated = 0;
@@ -179,9 +180,12 @@ userauth_pubkey(Authctxt *authctxt)
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
 		    buffer_len(&b))) == 1) {
 			authenticated = 1;
+			authctxt->last_details = pubkey;
 			/* Record the successful key to prevent reuse */
 			auth2_record_userkey(authctxt, key);
 			key = NULL; /* Don't free below */
+		} else {
+			free(pubkey);
 		}
 		buffer_free(&b);
 		free(sig);
