@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.279 2015/11/16 22:53:07 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.280 2015/11/18 08:37:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -861,8 +861,15 @@ fingerprint_private(const char *path)
 
 	if (stat(identity_file, &st) < 0)
 		fatal("%s: %s", path, strerror(errno));
-	if ((r = sshkey_load_public(path, &public, &comment)) != 0)
-		fatal("Error loading public key \"%s\": %s", path, ssh_err(r));
+	if ((r = sshkey_load_public(path, &public, &comment)) != 0) {
+		debug("load public \"%s\": %s", path, ssh_err(r));
+		if ((r = sshkey_load_private(path, NULL,
+		    &public, &comment)) != 0) {
+			debug("load private \"%s\": %s", path, ssh_err(r));
+			fatal("%s is not a key file.", path);
+		}
+	}
+
 	fingerprint_one_key(public, comment);
 	sshkey_free(public);
 	free(comment);
@@ -907,7 +914,7 @@ do_fingerprint(struct passwd *pw)
 		 * not reading from stdin (XXX support private keys on stdin).
 		 */
 		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
-		    strstr(cp, "SSH PRIVATE KEY") != NULL) {
+		    strstr(cp, "PRIVATE KEY") != NULL) {
 			fclose(f);
 			fingerprint_private(path);
 			exit(0);
