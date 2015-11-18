@@ -2777,6 +2777,9 @@ do_cleanup(Authctxt *authctxt)
 	if (authctxt == NULL)
 		return;
 
+	free(authctxt->auth_details);
+	authctxt->auth_details = NULL;
+
 #ifdef USE_PAM
 	if (options.use_pam) {
 		sshpam_cleanup();
