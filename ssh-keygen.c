@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.280 2015/11/18 08:37:28 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.281 2015/11/19 01:08:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1487,44 +1487,6 @@ do_change_comment(struct passwd *pw)
 	exit(0);
 }
 
-static const char *
-fmt_validity(u_int64_t valid_from, u_int64_t valid_to)
-{
-	char from[32], to[32];
-	static char ret[64];
-	time_t tt;
-	struct tm *tm;
-
-	*from = *to = '\0';
-	if (valid_from == 0 && valid_to == 0xffffffffffffffffULL)
-		return "forever";
-
-	if (valid_from != 0) {
-		/* XXX revisit INT_MAX in 2038 :) */
-		tt = valid_from > INT_MAX ? INT_MAX : valid_from;
-		tm = localtime(&tt);
-		strftime(from, sizeof(from), "%Y-%m-%dT%H:%M:%S", tm);
-	}
-	if (valid_to != 0xffffffffffffffffULL) {
-		/* XXX revisit INT_MAX in 2038 :) */
-		tt = valid_to > INT_MAX ? INT_MAX : valid_to;
-		tm = localtime(&tt);
-		strftime(to, sizeof(to), "%Y-%m-%dT%H:%M:%S", tm);
-	}
-
-	if (valid_from == 0) {
-		snprintf(ret, sizeof(ret), "before %s", to);
-		return ret;
-	}
-	if (valid_to == 0xffffffffffffffffULL) {
-		snprintf(ret, sizeof(ret), "after %s", from);
-		return ret;
-	}
-
-	snprintf(ret, sizeof(ret), "from %s to %s", from, to);
-	return ret;
-}
-
 static void
 add_flag_option(struct sshbuf *c, const char *name)
 {
@@ -1618,7 +1580,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 	int r, i, fd;
 	u_int n;
 	struct sshkey *ca, *public;
-	char *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
+	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
 
 #ifdef ENABLE_PKCS11
@@ -1693,13 +1655,15 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		fclose(f);
 
 		if (!quiet) {
+			sshkey_format_cert_validity(public->cert, 
+			    valid, sizeof(valid));
 			logit("Signed %s key %s: id \"%s\" serial %llu%s%s "
 			    "valid %s", sshkey_cert_type(public), 
 			    out, public->cert->key_id,
 			    (unsigned long long)public->cert->serial,
 			    cert_principals != NULL ? " for " : "",
 			    cert_principals != NULL ? cert_principals : "",
-			    fmt_validity(cert_valid_from, cert_valid_to));
+			    valid);
 		}
 
 		sshkey_free(public);
@@ -1899,7 +1863,7 @@ show_options(struct sshbuf *optbuf, int in_critical)
 static void
 print_cert(struct sshkey *key)
 {
-	char *key_fp, *ca_fp;
+	char valid[64], *key_fp, *ca_fp;
 	u_int i;
 
 	key_fp = sshkey_fingerprint(key, fingerprint_hash, SSH_FP_DEFAULT);
@@ -1907,6 +1871,7 @@ print_cert(struct sshkey *key)
 	    fingerprint_hash, SSH_FP_DEFAULT);
 	if (key_fp == NULL || ca_fp == NULL)
 		fatal("%s: sshkey_fingerprint fail", __func__);
+	sshkey_format_cert_validity(key->cert, valid, sizeof(valid));
 
 	printf("        Type: %s %s certificate\n", sshkey_ssh_name(key),
 	    sshkey_cert_type(key));
@@ -1915,8 +1880,7 @@ print_cert(struct sshkey *key)
 	    sshkey_type(key->cert->signature_key), ca_fp);
 	printf("        Key ID: \"%s\"\n", key->cert->key_id);
 	printf("        Serial: %llu\n", (unsigned long long)key->cert->serial);
-	printf("        Valid: %s\n",
-	    fmt_validity(key->cert->valid_after, key->cert->valid_before));
+	printf("        Valid: %s\n", valid);
 	printf("        Principals: ");
 	if (key->cert->nprincipals == 0)
 		printf("(none)\n");

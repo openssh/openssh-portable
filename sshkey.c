@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.26 2015/11/16 23:47:52 millert Exp $ */
+/* $OpenBSD: sshkey.c,v 1.27 2015/11/19 01:08:55 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2534,6 +2534,43 @@ sshkey_cert_check_authority(const struct sshkey *k,
 		}
 	}
 	return 0;
+}
+
+size_t
+sshkey_format_cert_validity(const struct sshkey_cert *cert, char *s, size_t l)
+{
+	char from[32], to[32], ret[64];
+	time_t tt;
+	struct tm *tm;
+
+	*from = *to = '\0';
+	if (cert->valid_after == 0 &&
+	    cert->valid_before == 0xffffffffffffffffULL)
+		return strlcpy(s, "forever", l);
+
+	if (cert->valid_after != 0) {
+		/* XXX revisit INT_MAX in 2038 :) */
+		tt = cert->valid_after > INT_MAX ?
+		    INT_MAX : cert->valid_after;
+		tm = localtime(&tt);
+		strftime(from, sizeof(from), "%Y-%m-%dT%H:%M:%S", tm);
+	}
+	if (cert->valid_before != 0xffffffffffffffffULL) {
+		/* XXX revisit INT_MAX in 2038 :) */
+		tt = cert->valid_before > INT_MAX ?
+		    INT_MAX : cert->valid_before;
+		tm = localtime(&tt);
+		strftime(to, sizeof(to), "%Y-%m-%dT%H:%M:%S", tm);
+	}
+
+	if (cert->valid_after == 0)
+		snprintf(ret, sizeof(ret), "before %s", to);
+	else if (cert->valid_before == 0xffffffffffffffffULL)
+		snprintf(ret, sizeof(ret), "after %s", from);
+	else
+		snprintf(ret, sizeof(ret), "from %s to %s", from, to);
+
+	return strlcpy(s, ret, l);
 }
 
 int
