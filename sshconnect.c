@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.266 2015/11/15 22:26:49 jcs Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.267 2015/11/19 01:09:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1237,8 +1237,9 @@ fail:
 int
 verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 {
+	u_int i;
 	int r = -1, flags = 0;
-	char *fp = NULL;
+	char valid[64], *fp = NULL, *cafp = NULL;
 	struct sshkey *plain = NULL;
 
 	if ((fp = sshkey_fingerprint(host_key,
@@ -1248,8 +1249,30 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 		goto out;
 	}
 
-	debug("Server host key: %s %s",
-	    compat20 ? sshkey_ssh_name(host_key) : sshkey_type(host_key), fp);
+	if (sshkey_is_cert(host_key)) {
+		if ((cafp = sshkey_fingerprint(host_key->cert->signature_key,
+		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
+			error("%s: fingerprint CA key: %s",
+			    __func__, ssh_err(r));
+			r = -1;
+			goto out;
+		}
+		sshkey_format_cert_validity(host_key->cert,
+		    valid, sizeof(valid));
+		debug("Server host certificate: %s %s, serial %llu "
+		    "ID \"%s\" CA %s %s valid %s",
+		    sshkey_ssh_name(host_key), fp,
+		    host_key->cert->serial, host_key->cert->key_id,
+		    sshkey_ssh_name(host_key->cert->signature_key), cafp,
+		    valid);
+		for (i = 0; i < host_key->cert->nprincipals; i++) {
+			debug2("Server host certificate hostname: %s",
+			    host_key->cert->principals[i]);
+		}
+	} else {
+		debug("Server host key: %s %s", compat20 ?
+		    sshkey_ssh_name(host_key) : sshkey_type(host_key), fp);
+	}
 
 	if (sshkey_equal(previous_host_key, host_key)) {
 		debug2("%s: server host key %s %s matches cached key",
@@ -1314,6 +1337,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 out:
 	sshkey_free(plain);
 	free(fp);
+	free(cafp);
 	if (r == 0 && host_key != NULL) {
 		key_free(previous_host_key);
 		previous_host_key = key_from_private(host_key);
