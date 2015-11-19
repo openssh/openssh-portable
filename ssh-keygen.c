@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.281 2015/11/19 01:08:55 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.282 2015/11/19 01:12:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1655,10 +1655,10 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		fclose(f);
 
 		if (!quiet) {
-			sshkey_format_cert_validity(public->cert, 
+			sshkey_format_cert_validity(public->cert,
 			    valid, sizeof(valid));
 			logit("Signed %s key %s: id \"%s\" serial %llu%s%s "
-			    "valid %s", sshkey_cert_type(public), 
+			    "valid %s", sshkey_cert_type(public),
 			    out, public->cert->key_id,
 			    (unsigned long long)public->cert->serial,
 			    cert_principals != NULL ? " for " : "",
@@ -1697,7 +1697,7 @@ parse_absolute_time(const char *s)
 	char buf[32], *fmt;
 
 	/*
-	 * POSIX strptime says "The application shall ensure that there 
+	 * POSIX strptime says "The application shall ensure that there
 	 * is white-space or other non-alphanumeric characters between
 	 * any two conversion specifications" so arrange things this way.
 	 */
