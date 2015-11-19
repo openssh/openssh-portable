@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.429 2015/10/25 23:42:00 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.430 2015/11/19 08:23:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1096,6 +1096,8 @@ main(int ac, char **av)
 		    "disabling");
 		options.update_hostkeys = 0;
 	}
+	if (options.connection_attempts <= 0)
+		fatal("Invalid number of ConnectionAttempts");
 #ifndef HAVE_CYGWIN
 	if (original_effective_uid != 0)
 		options.use_privileged_port = 0;
