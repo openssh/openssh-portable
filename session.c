@@ -1336,6 +1336,10 @@ do_setup_env(Session *s, const char *shell)
 	}
 #endif /* USE_PAM */
 
+	if (s->authctxt->auth_details)
+		child_set_env(&env, &envsize, "SSH_USER_AUTH",
+		     s->authctxt->auth_details);
+
 	if (auth_sock_name != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
 		    auth_sock_name);
