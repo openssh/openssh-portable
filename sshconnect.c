@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.268 2015/11/19 08:23:27 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.269 2015/11/20 01:45:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1264,7 +1264,8 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 		debug("Server host certificate: %s %s, serial %llu "
 		    "ID \"%s\" CA %s %s valid %s",
 		    sshkey_ssh_name(host_key), fp,
-		    host_key->cert->serial, host_key->cert->key_id,
+		    (unsigned long long)host_key->cert->serial,
+		    host_key->cert->key_id,
 		    sshkey_ssh_name(host_key->cert->signature_key), cafp,
 		    valid);
 		for (i = 0; i < host_key->cert->nprincipals; i++) {
