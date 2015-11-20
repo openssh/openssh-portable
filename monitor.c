@@ -1035,7 +1035,8 @@ mm_answer_skeyrespond(int sock, Buffer *m)
 	debug3("%s: sending authenticated: %d", __func__, authok);
 	mm_request_send(sock, MONITOR_ANS_SKEYRESPOND, m);
 
-	auth_method = "skey";
+	auth_method = "keyboard-interactive";
+	auth_submethod = "skey";
 
 	return (authok != 0);
 }
