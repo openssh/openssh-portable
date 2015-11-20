@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.282 2015/11/19 01:12:32 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.283 2015/11/20 23:04:01 halex Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1429,9 +1429,11 @@ do_change_comment(struct passwd *pw)
 			    identity_file, ssh_err(r));
 		}
 	}
-	/* XXX what about new-format keys? */
-	if (private->type != KEY_RSA1) {
-		error("Comments are only supported for RSA1 keys.");
+
+	if (private->type != KEY_RSA1 && private->type != KEY_ED25519 &&
+	    !use_new_format) {
+		error("Comments are only supported for RSA1 or keys stored in "
+		    "the new format (-o).");
 		explicit_bzero(passphrase, strlen(passphrase));
 		sshkey_free(private);
 		exit(1);
