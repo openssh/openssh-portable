@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.178 2015/02/20 22:17:21 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.179 2015/11/28 06:41:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1265,7 +1265,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		free(fwd.listen_host);
 		if ((resp = sshbuf_new()) == NULL)
 			fatal("%s: sshbuf_new", __func__);
-		if ((r = sshbuf_put_u32(resp, allocated_listen_port)) != 0)
+		if (allocated_listen_port != 0 &&
+		    (r = sshbuf_put_u32(resp, allocated_listen_port)) != 0)
 			fatal("%s: sshbuf_put_u32: %s", __func__, ssh_err(r));
 	} else if (strcmp(rtype, "cancel-tcpip-forward") == 0) {
 		struct Forward fwd;
