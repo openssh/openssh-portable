@@ -98,6 +98,10 @@ void mm_send_keystate(struct monitor*);
 int mm_bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_bsdauth_respond(void *, u_int, char **);
 
+/* skey */
+int mm_skey_query(void *, char **, char **, u_int *, char ***, u_int **);
+int mm_skey_respond(void *, u_int, char **);
+
 /* zlib allocation hooks */
 void mm_init_compression(struct mm_master *);
 

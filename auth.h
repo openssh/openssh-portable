@@ -180,6 +180,8 @@ int	auth2_challenge(Authctxt *, char *);
 void	auth2_challenge_stop(Authctxt *);
 int	bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int	bsdauth_respond(void *, u_int, char **);
+int	skey_query(void *, char **, char **, u_int *, char ***, u_int **);
+int	skey_respond(void *, u_int, char **);
 
 int	allowed_user(struct passwd *);
 struct passwd * getpwnamallow(const char *user);
