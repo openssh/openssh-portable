@@ -854,7 +854,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SYSLOG_R_SAFE_IN_SIGHAND], [1],
 	    [syslog_r function is safe to use in in a signal handler])
 	TEST_MALLOC_OPTIONS="AFGJPRX"
-	AC_CHECK_FUNCS([pledge])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
@@ -1669,6 +1668,7 @@ AC_CHECK_FUNCS([ \
 	nsleep \
 	ogetaddrinfo \
 	openlog_r \
+	pledge \
 	poll \
 	prctl \
 	pstat \
