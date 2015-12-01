@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.204 2015/07/08 20:24:02 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.205 2015/12/01 23:29:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1401,6 +1401,9 @@ skip:
 	signal(SIGHUP, cleanup_handler);
 	signal(SIGTERM, cleanup_handler);
 	nalloc = 0;
+
+	if (pledge("stdio unix exec", NULL) != 0)
+		fatal("%s: pledge: %s", __progname, strerror(errno));
 
 	while (1) {
 		prepare_select(&readsetp, &writesetp, &max_fd, &nalloc, &tvp);
