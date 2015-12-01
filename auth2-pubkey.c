@@ -267,6 +267,7 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 	pubkey = pubkey_format(key);
 	auth_info(authctxt, "%s%s%s", pubkey, extra == NULL ? "" : ", ",
 	    extra == NULL ? "" : extra);
+	free(pubkey);
 	free(extra);
 }
 
