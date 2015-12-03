@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.55 2015/10/15 23:51:40 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.56 2015/12/03 17:00:18 semarie Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1851,6 +1851,9 @@ mux_client_request_session(int fd)
 	    mm_send_fd(fd, STDERR_FILENO) == -1)
 		fatal("%s: send fds failed", __func__);
 
+	if (pledge("stdio proc tty", NULL) == -1)
+		fatal("%s pledge(): %s", __func__, strerror(errno));
+
 	debug3("%s: session request sent", __func__);
 
 	/* Read their reply */
@@ -1995,6 +1998,9 @@ mux_client_request_stdio_fwd(int fd)
 	if (mm_send_fd(fd, STDIN_FILENO) == -1 ||
 	    mm_send_fd(fd, STDOUT_FILENO) == -1)
 		fatal("%s: send fds failed", __func__);
+
+	if (pledge("stdio proc tty", NULL) == -1)
+		fatal("%s pledge(): %s", __func__, strerror(errno));
 
 	debug3("%s: stdio forward request sent", __func__);
 
@@ -2158,6 +2164,9 @@ muxclient(const char *path)
 		return;
 	}
 	set_nonblock(sock);
+
+	if (pledge("stdio sendfd proc tty", NULL) == -1)
+		fatal("%s pledge(): %s", __func__, strerror(errno));
 
 	if (mux_client_hello_exchange(sock) != 0) {
 		error("%s: master hello exchange failed", __func__);
