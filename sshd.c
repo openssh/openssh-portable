@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.460 2015/11/16 22:51:05 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.461 2015/12/04 16:41:28 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -816,6 +816,12 @@ list_hostkey_types(void)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
 			buffer_append(&b, p, strlen(p));
+
+			/* for RSA we also support SHA2 signatures */
+			if (key->type == KEY_RSA) {
+				p = ",rsa-sha2-512,rsa-sha2-256";
+				buffer_append(&b, p, strlen(p));
+			}
 			break;
 		}
 		/* If the private key has a cert peer, then list that too */
@@ -2507,24 +2513,26 @@ do_ssh1_kex(void)
 
 int
 sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
-    const u_char *data, size_t dlen, u_int flag)
+    const u_char *data, size_t dlen, const char *alg, u_int flag)
 {
 	int r;
 	u_int xxx_slen, xxx_dlen = dlen;
 
 	if (privkey) {
-		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen) < 0))
+		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen,
+		    alg) < 0))
 			fatal("%s: key_sign failed", __func__);
 		if (slen)
 			*slen = xxx_slen;
 	} else if (use_privsep) {
-		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen) < 0)
+		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen,
+		    alg) < 0)
 			fatal("%s: pubkey_sign failed", __func__);
 		if (slen)
 			*slen = xxx_slen;
 	} else {
 		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slen,
-		    data, dlen, datafellows)) != 0)
+		    data, dlen, alg, datafellows)) != 0)
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));
 	}

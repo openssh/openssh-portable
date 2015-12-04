@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.207 2015/12/02 08:30:50 doug Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.208 2015/12/04 16:41:28 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -368,6 +368,18 @@ process_authentication_challenge1(SocketEntry *e)
 }
 #endif
 
+static char *
+agent_decode_alg(struct sshkey *key, u_int flags)
+{
+	if (key->type == KEY_RSA) {
+		if (flags & SSH_AGENT_RSA_SHA2_256)
+			return "rsa-sha2-256";
+		else if (flags & SSH_AGENT_RSA_SHA2_512)
+			return "rsa-sha2-512";
+	}
+	return NULL;
+}
+
 /* ssh2 only */
 static void
 process_sign_request2(SocketEntry *e)
@@ -401,7 +413,7 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 	if ((r = sshkey_sign(id->key, &signature, &slen,
-	    data, dlen, compat)) != 0) {
+	    data, dlen, agent_decode_alg(key, flags), compat)) != 0) {
 		error("%s: sshkey_sign: %s", __func__, ssh_err(ok));
 		goto send;
 	}

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.27 2015/11/19 01:08:55 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.28 2015/12/04 16:41:28 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -83,36 +83,39 @@ struct keytype {
 	int type;
 	int nid;
 	int cert;
+	int sigonly;
 };
 static const struct keytype keytypes[] = {
-	{ "ssh-ed25519", "ED25519", KEY_ED25519, 0, 0 },
+	{ "ssh-ed25519", "ED25519", KEY_ED25519, 0, 0, 0 },
 	{ "ssh-ed25519-cert-v01@openssh.com", "ED25519-CERT",
-	    KEY_ED25519_CERT, 0, 1 },
+	    KEY_ED25519_CERT, 0, 1, 0 },
 #ifdef WITH_OPENSSL
-	{ NULL, "RSA1", KEY_RSA1, 0, 0 },
-	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0 },
-	{ "ssh-dss", "DSA", KEY_DSA, 0, 0 },
+	{ NULL, "RSA1", KEY_RSA1, 0, 0, 0 },
+	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0, 0 },
+	{ "rsa-sha2-256", "RSA", KEY_RSA, 0, 0, 1 },
+	{ "rsa-sha2-512", "RSA", KEY_RSA, 0, 0, 1 },
+	{ "ssh-dss", "DSA", KEY_DSA, 0, 0, 0 },
 # ifdef OPENSSL_HAS_ECC
-	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0 },
-	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0 },
+	{ "ecdsa-sha2-nistp256", "ECDSA", KEY_ECDSA, NID_X9_62_prime256v1, 0, 0 },
+	{ "ecdsa-sha2-nistp384", "ECDSA", KEY_ECDSA, NID_secp384r1, 0, 0 },
 #  ifdef OPENSSL_HAS_NISTP521
-	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0 },
+	{ "ecdsa-sha2-nistp521", "ECDSA", KEY_ECDSA, NID_secp521r1, 0, 0 },
 #  endif /* OPENSSL_HAS_NISTP521 */
 # endif /* OPENSSL_HAS_ECC */
-	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1 },
-	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1 },
+	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", KEY_RSA_CERT, 0, 1, 0 },
+	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", KEY_DSA_CERT, 0, 1, 0 },
 # ifdef OPENSSL_HAS_ECC
 	{ "ecdsa-sha2-nistp256-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1 },
+	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1, 0 },
 	{ "ecdsa-sha2-nistp384-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_secp384r1, 1 },
+	    KEY_ECDSA_CERT, NID_secp384r1, 1, 0 },
 #  ifdef OPENSSL_HAS_NISTP521
 	{ "ecdsa-sha2-nistp521-cert-v01@openssh.com", "ECDSA-CERT",
-	    KEY_ECDSA_CERT, NID_secp521r1, 1 },
+	    KEY_ECDSA_CERT, NID_secp521r1, 1, 0 },
 #  endif /* OPENSSL_HAS_NISTP521 */
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
-	{ NULL, NULL, -1, -1, 0 }
+	{ NULL, NULL, -1, -1, 0, 0 }
 };
 
 const char *
@@ -200,7 +203,7 @@ key_alg_list(int certs_only, int plain_only)
 	const struct keytype *kt;
 
 	for (kt = keytypes; kt->type != -1; kt++) {
-		if (kt->name == NULL)
+		if (kt->name == NULL || kt->sigonly)
 			continue;
 		if ((certs_only && !kt->cert) || (plain_only && kt->cert))
 			continue;
@@ -2174,7 +2177,7 @@ sshkey_froms(struct sshbuf *buf, struct sshkey **keyp)
 int
 sshkey_sign(const struct sshkey *key,
     u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *data, size_t datalen, const char *alg, u_int compat)
 {
 	if (sigp != NULL)
 		*sigp = NULL;
@@ -2194,7 +2197,7 @@ sshkey_sign(const struct sshkey *key,
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_sign(key, sigp, lenp, data, datalen, compat);
+		return ssh_rsa_sign(key, sigp, lenp, data, datalen, alg);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
@@ -2226,7 +2229,7 @@ sshkey_verify(const struct sshkey *key,
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_verify(key, sig, siglen, data, dlen, compat);
+		return ssh_rsa_verify(key, sig, siglen, data, dlen);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
@@ -2460,7 +2463,7 @@ sshkey_certify(struct sshkey *k, struct sshkey *ca)
 
 	/* Sign the whole mess */
 	if ((ret = sshkey_sign(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
-	    sshbuf_len(cert), 0)) != 0)
+	    sshbuf_len(cert), NULL, 0)) != 0)
 		goto out;
 
 	/* Append signature and we are done */

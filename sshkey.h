@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.11 2015/11/19 01:08:55 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.12 2015/12/04 16:41:28 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -169,7 +169,7 @@ int	 sshkey_plain_to_blob(const struct sshkey *, u_char **, size_t *);
 int	 sshkey_putb_plain(const struct sshkey *, struct sshbuf *);
 
 int	 sshkey_sign(const struct sshkey *, u_char **, size_t *,
-    const u_char *, size_t, u_int);
+    const u_char *, size_t, const char *, u_int);
 int	 sshkey_verify(const struct sshkey *, const u_char *, size_t,
     const u_char *, size_t, u_int);
 
@@ -193,11 +193,11 @@ int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp);
 
 #ifdef SSHKEY_INTERNAL
-int ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, u_int compat);
+int ssh_rsa_sign(const struct sshkey *key,
+    u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
+    const char *ident);
 int ssh_rsa_verify(const struct sshkey *key,
-    const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat);
+    const u_char *sig, size_t siglen, const u_char *data, size_t datalen);
 int ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_dss_verify(const struct sshkey *key,

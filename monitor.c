@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.154 2015/10/20 23:24:25 mmcc Exp $ */
+/* $OpenBSD: monitor.c,v 1.155 2015/12/04 16:41:28 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -688,14 +688,16 @@ mm_answer_sign(int sock, Buffer *m)
 	struct sshbuf *sigbuf;
 	u_char *p;
 	u_char *signature;
-	size_t datlen, siglen;
+	char *alg;
+	size_t datlen, siglen, alglen;
 	int r, keyid, is_proof = 0;
 	const char proof_req[] = "hostkeys-prove-00@openssh.com";
 
 	debug3("%s", __func__);
 
 	if ((r = sshbuf_get_u32(m, &keyid)) != 0 ||
-	    (r = sshbuf_get_string(m, &p, &datlen)) != 0)
+	    (r = sshbuf_get_string(m, &p, &datlen)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &alg, &alglen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	/*
@@ -742,14 +744,14 @@ mm_answer_sign(int sock, Buffer *m)
 	}
 
 	if ((key = get_hostkey_by_index(keyid)) != NULL) {
-		if ((r = sshkey_sign(key, &signature, &siglen, p, datlen,
+		if ((r = sshkey_sign(key, &signature, &siglen, p, datlen, alg,
 		    datafellows)) != 0)
 			fatal("%s: sshkey_sign failed: %s",
 			    __func__, ssh_err(r));
 	} else if ((key = get_hostkey_public_by_index(keyid, ssh)) != NULL &&
 	    auth_sock > 0) {
 		if ((r = ssh_agent_sign(auth_sock, key, &signature, &siglen,
-		    p, datlen, datafellows)) != 0) {
+		    p, datlen, alg, datafellows)) != 0) {
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));
 		}
