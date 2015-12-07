@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.55 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.56 2015/12/07 20:04:09 markus Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -53,16 +53,12 @@ rsa_hash_alg_ident(int hash_alg)
 static int
 rsa_hash_alg_from_ident(const char *ident)
 {
-	if (ident == NULL || strlen(ident) == 0)
-		return SSH_DIGEST_SHA1;
 	if (strcmp(ident, "ssh-rsa") == 0)
 		return SSH_DIGEST_SHA1;
 	if (strcmp(ident, "rsa-sha2-256") == 0)
 		return SSH_DIGEST_SHA256;
 	if (strcmp(ident, "rsa-sha2-512") == 0)
 		return SSH_DIGEST_SHA512;
-	if (strncmp(ident, "ssh-rsa-cert", strlen("ssh-rsa-cert")) == 0)
-		return SSH_DIGEST_SHA1;
 	return -1;
 }
 
@@ -97,7 +93,11 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	if (sigp != NULL)
 		*sigp = NULL;
 
-	hash_alg = rsa_hash_alg_from_ident(alg_ident);
+	if (alg_ident == NULL || strlen(alg_ident) == 0 ||
+	    strncmp(alg_ident, "ssh-rsa-cert", strlen("ssh-rsa-cert")) == 0)
+		hash_alg = SSH_DIGEST_SHA1;
+	else
+		hash_alg = rsa_hash_alg_from_ident(alg_ident);
 	if (key == NULL || key->rsa == NULL || hash_alg == -1 ||
 	    sshkey_type_plain(key->type) != KEY_RSA ||
 	    BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
