@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.5 2015/10/06 01:20:59 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.6 2015/12/07 02:20:46 djm Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -72,13 +72,13 @@ public_fuzz(struct sshkey *k)
 }
 
 static void
-sig_fuzz(struct sshkey *k)
+sig_fuzz(struct sshkey *k, const char *sig_alg)
 {
 	struct fuzz *fuzz;
 	u_char *sig, c[] = "some junk to be signed";
 	size_t l;
 
-	ASSERT_INT_EQ(sshkey_sign(k, &sig, &l, c, sizeof(c), 0), 0);
+	ASSERT_INT_EQ(sshkey_sign(k, &sig, &l, c, sizeof(c), sig_alg, 0), 0);
 	ASSERT_SIZE_T_GT(l, 0);
 	fuzz = fuzz_begin(FUZZ_1_BIT_FLIP | /* too slow FUZZ_2_BIT_FLIP | */
 	    FUZZ_1_BYTE_FLIP | FUZZ_2_BYTE_FLIP |
@@ -352,7 +352,23 @@ sshkey_fuzz_tests(void)
 	buf = load_file("rsa_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
 	sshbuf_free(buf);
-	sig_fuzz(k1);
+	sig_fuzz(k1, "ssh-rsa");
+	sshkey_free(k1);
+	TEST_DONE();
+
+	TEST_START("fuzz RSA SHA256 sig");
+	buf = load_file("rsa_1");
+	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
+	sshbuf_free(buf);
+	sig_fuzz(k1, "rsa-sha2-256");
+	sshkey_free(k1);
+	TEST_DONE();
+
+	TEST_START("fuzz RSA SHA512 sig");
+	buf = load_file("rsa_1");
+	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
+	sshbuf_free(buf);
+	sig_fuzz(k1, "rsa-sha2-512");
 	sshkey_free(k1);
 	TEST_DONE();
 
@@ -360,7 +376,7 @@ sshkey_fuzz_tests(void)
 	buf = load_file("dsa_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
 	sshbuf_free(buf);
-	sig_fuzz(k1);
+	sig_fuzz(k1, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 
@@ -369,7 +385,7 @@ sshkey_fuzz_tests(void)
 	buf = load_file("ecdsa_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
 	sshbuf_free(buf);
-	sig_fuzz(k1);
+	sig_fuzz(k1, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 #endif
@@ -378,7 +394,7 @@ sshkey_fuzz_tests(void)
 	buf = load_file("ed25519_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
 	sshbuf_free(buf);
-	sig_fuzz(k1);
+	sig_fuzz(k1, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 
