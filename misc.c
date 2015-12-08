@@ -1110,7 +1110,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 void
 sock_set_v6only(int s)
 {
-#ifdef IPV6_V6ONLY
+#if defined(IPV6_V6ONLY) && !defined(__OpenBSD__)
 	int on = 1;
 
 	debug3("%s: set socket %d IPV6_V6ONLY", __func__, s);
