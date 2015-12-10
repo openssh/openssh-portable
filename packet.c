@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.218 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.219 2015/12/10 17:08:40 mmcc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -519,10 +519,8 @@ ssh_packet_close(struct ssh *ssh)
 		error("%s: cipher_cleanup failed: %s", __func__, ssh_err(r));
 	if ((r = cipher_cleanup(&state->receive_context)) != 0)
 		error("%s: cipher_cleanup failed: %s", __func__, ssh_err(r));
-	if (ssh->remote_ipaddr) {
-		free(ssh->remote_ipaddr);
-		ssh->remote_ipaddr = NULL;
-	}
+	free(ssh->remote_ipaddr);
+	ssh->remote_ipaddr = NULL;
 	free(ssh->state);
 	ssh->state = NULL;
 }
@@ -1784,8 +1782,7 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 				if ((r = sshpkt_get_u8(ssh, NULL)) != 0 ||
 				    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0 ||
 				    (r = sshpkt_get_string(ssh, NULL, NULL)) != 0) {
-					if (msg)
-						free(msg);
+					free(msg);
 					return r;
 				}
 				debug("Remote: %.900s", msg);
@@ -2570,8 +2567,7 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	newkey = NULL;
 	r = 0;
  out:
-	if (newkey != NULL)
-		free(newkey);
+	free(newkey);
 	if (b != NULL)
 		sshbuf_free(b);
 	return r;

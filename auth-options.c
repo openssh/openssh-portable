@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.69 2015/11/16 00:30:02 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.70 2015/12/10 17:08:40 mmcc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -75,14 +75,10 @@ auth_clear_options(void)
 		free(ce->s);
 		free(ce);
 	}
-	if (forced_command) {
-		free(forced_command);
-		forced_command = NULL;
-	}
-	if (authorized_principals) {
-		free(authorized_principals);
-		authorized_principals = NULL;
-	}
+	free(forced_command);
+	forced_command = NULL;
+	free(authorized_principals);
+	authorized_principals = NULL;
 	forced_tun_device = -1;
 	channel_clear_permitted_opens();
 }
@@ -175,8 +171,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 		cp = "command=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			opts += strlen(cp);
-			if (forced_command != NULL)
-				free(forced_command);
+			free(forced_command);
 			forced_command = xmalloc(strlen(opts) + 1);
 			i = 0;
 			while (*opts) {
@@ -206,8 +201,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 		cp = "principals=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			opts += strlen(cp);
-			if (authorized_principals != NULL)
-				free(authorized_principals);
+			free(authorized_principals);
 			authorized_principals = xmalloc(strlen(opts) + 1);
 			i = 0;
 			while (*opts) {
@@ -593,8 +587,7 @@ parse_option_list(struct sshbuf *oblob, struct passwd *pw,
 		free(*cert_forced_command);
 		*cert_forced_command = NULL;
 	}
-	if (name != NULL)
-		free(name);
+	free(name);
 	sshbuf_free(data);
 	sshbuf_free(c);
 	return ret;
@@ -638,8 +631,7 @@ auth_cert_options(struct sshkey *k, struct passwd *pw)
 	no_user_rc |= cert_no_user_rc;
 	/* CA-specified forced command supersedes key option */
 	if (cert_forced_command != NULL) {
-		if (forced_command != NULL)
-			free(forced_command);
+		free(forced_command);
 		forced_command = cert_forced_command;
 	}
 	return 0;

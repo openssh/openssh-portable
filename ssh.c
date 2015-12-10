@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.430 2015/11/19 08:23:27 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.431 2015/12/10 17:08:40 mmcc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -911,8 +911,7 @@ main(int ac, char **av)
 			subsystem_flag = 1;
 			break;
 		case 'S':
-			if (options.control_path != NULL)
-				free(options.control_path);
+			free(options.control_path);
 			options.control_path = xstrdup(optarg);
 			break;
 		case 'b':

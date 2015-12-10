@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.113 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.114 2015/12/10 17:08:40 mmcc Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -906,8 +906,7 @@ derive_key(struct ssh *ssh, int id, u_int need, u_char *hash, u_int hashlen,
 	digest = NULL;
 	r = 0;
  out:
-	if (digest)
-		free(digest);
+	free(digest);
 	ssh_digest_free(hashctx);
 	return r;
 }
