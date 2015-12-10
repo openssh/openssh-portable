@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.5 2015/11/11 04:56:39 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.6 2015/12/10 07:01:35 mmcc Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -120,12 +120,12 @@ size_t	sshbuf_len(const struct sshbuf *buf);
 size_t	sshbuf_avail(const struct sshbuf *buf);
 
 /*
- * Returns a read-only pointer to the start of the the data in buf
+ * Returns a read-only pointer to the start of the data in buf
  */
 const u_char *sshbuf_ptr(const struct sshbuf *buf);
 
 /*
- * Returns a mutable pointer to the start of the the data in buf, or
+ * Returns a mutable pointer to the start of the data in buf, or
  * NULL if the buffer is read-only.
  */
 u_char *sshbuf_mutable_ptr(const struct sshbuf *buf);
