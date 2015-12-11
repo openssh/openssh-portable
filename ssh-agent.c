@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.210 2015/12/11 02:29:03 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.211 2015/12/11 17:41:37 doug Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1415,7 +1415,7 @@ skip:
 	signal(SIGTERM, cleanup_handler);
 	nalloc = 0;
 
-	if (pledge("stdio cpath unix exec proc", NULL) != 0)
+	if (pledge("stdio cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 
 	while (1) {
