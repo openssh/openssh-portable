@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.82 2015/09/24 06:15:11 djm Exp $ */
+/* $OpenBSD: ssh.h,v 1.83 2015/12/11 03:19:09 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -35,7 +35,7 @@
  * Current value permits 16kbit RSA and RSA1 keys and 8kbit DSA keys, with
  * some room for options and comments.
  */
-#define SSH_MAX_PUBKEY_BYTES		8192
+#define SSH_MAX_PUBKEY_BYTES		16384
 
 /*
  * Major protocol version.  Different version indicates major incompatibility

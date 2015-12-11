@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.286 2015/12/11 02:31:47 mmcc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.287 2015/12/11 03:19:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -880,7 +880,7 @@ do_fingerprint(struct passwd *pw)
 {
 	FILE *f;
 	struct sshkey *public = NULL;
-	char *comment = NULL, *cp, *ep, line[16*1024];
+	char *comment = NULL, *cp, *ep, line[SSH_MAX_PUBKEY_BYTES];
 	int i, invalid = 1;
 	const char *path;
 	long int lnum = 0;
@@ -1918,7 +1918,7 @@ do_show_cert(struct passwd *pw)
 	struct stat st;
 	int r, is_stdin = 0, ok = 0;
 	FILE *f;
-	char *cp, line[2048];
+	char *cp, line[SSH_MAX_PUBKEY_BYTES];
 	const char *path;
 	long int lnum = 0;
 
