@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.219 2015/12/10 17:08:40 mmcc Exp $ */
+/* $OpenBSD: packet.c,v 1.220 2015/12/11 03:24:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -338,7 +338,8 @@ ssh_packet_stop_discard(struct ssh *ssh)
 		    sshbuf_ptr(state->incoming_packet), PACKET_MAX_SIZE,
 		    NULL, 0);
 	}
-	logit("Finished discarding for %.200s", ssh_remote_ipaddr(ssh));
+	logit("Finished discarding for %.200s port %d",
+	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 	return SSH_ERR_MAC_INVALID;
 }
 
@@ -455,14 +456,28 @@ ssh_packet_get_connection_out(struct ssh *ssh)
 const char *
 ssh_remote_ipaddr(struct ssh *ssh)
 {
+	const int sock = ssh->state->connection_in;
+
 	/* Check whether we have cached the ipaddr. */
-	if (ssh->remote_ipaddr == NULL)
-		ssh->remote_ipaddr = ssh_packet_connection_is_on_socket(ssh) ?
-		    get_peer_ipaddr(ssh->state->connection_in) :
-		    strdup("UNKNOWN");
-	if (ssh->remote_ipaddr == NULL)
-		return "UNKNOWN";
+	if (ssh->remote_ipaddr == NULL) {
+		if (ssh_packet_connection_is_on_socket(ssh)) {
+			ssh->remote_ipaddr = get_peer_ipaddr(sock);
+			ssh->remote_port = get_sock_port(sock, 0);
+		} else {
+			ssh->remote_ipaddr = strdup("UNKNOWN");
+			ssh->remote_port = 0;
+		}
+	}
 	return ssh->remote_ipaddr;
+}
+
+/* Returns the port number of the remote host. */
+
+int
+ssh_remote_port(struct ssh *ssh)
+{
+	(void)ssh_remote_ipaddr(ssh); /* Will lookup and cache. */
+	return ssh->remote_port;
 }
 
 /* Closes the connection and clears and frees internal data structures. */
@@ -1796,8 +1811,9 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 				do_log2(ssh->state->server_side &&
 				    reason == SSH2_DISCONNECT_BY_APPLICATION ?
 				    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
-				    "Received disconnect from %s: %u: %.400s",
-				    ssh_remote_ipaddr(ssh), reason, msg);
+				    "Received disconnect from %s port %d:"
+				    "%u: %.400s", ssh_remote_ipaddr(ssh),
+				    ssh_remote_port(ssh), reason, msg);
 				free(msg);
 				return SSH_ERR_DISCONNECTED;
 			case SSH2_MSG_UNIMPLEMENTED:
@@ -1825,8 +1841,9 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			case SSH_MSG_DISCONNECT:
 				if ((r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
 					return r;
-				error("Received disconnect from %s: %.400s",
-				    ssh_remote_ipaddr(ssh), msg);
+				error("Received disconnect from %s port %d: "
+				    "%.400s", ssh_remote_ipaddr(ssh),
+				    ssh_remote_port(ssh), msg);
 				free(msg);
 				return SSH_ERR_DISCONNECTED;
 			default:
@@ -1916,19 +1933,22 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 {
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
-		logit("Connection closed by %.200s", ssh_remote_ipaddr(ssh));
+		logit("Connection closed by %.200s port %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 		cleanup_exit(255);
 	case SSH_ERR_CONN_TIMEOUT:
-		logit("Connection to %.200s timed out", ssh_remote_ipaddr(ssh));
+		logit("Connection %s %.200s port %d timed out",
+		    ssh->state->server_side ? "from" : "to",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 		cleanup_exit(255);
 	case SSH_ERR_DISCONNECTED:
-		logit("Disconnected from %.200s",
-		    ssh_remote_ipaddr(ssh));
+		logit("Disconnected from %.200s port %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 		cleanup_exit(255);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
-			logit("Connection reset by %.200s",
-			    ssh_remote_ipaddr(ssh));
+			logit("Connection reset by %.200s port %d",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 			cleanup_exit(255);
 		}
 		/* FALLTHROUGH */
@@ -1938,15 +1958,17 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 	case SSH_ERR_NO_KEX_ALG_MATCH:
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
 		if (ssh && ssh->kex && ssh->kex->failed_choice) {
-			fatal("Unable to negotiate with %.200s: %s. "
+			fatal("Unable to negotiate with %.200s port %d: %s. "
 			    "Their offer: %s", ssh_remote_ipaddr(ssh),
-			    ssh_err(r), ssh->kex->failed_choice);
+			    ssh_remote_port(ssh), ssh_err(r),
+			    ssh->kex->failed_choice);
 		}
 		/* FALLTHROUGH */
 	default:
-		fatal("%s%sConnection to %.200s: %s",
+		fatal("%s%sConnection %s %.200s port %d: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
-		    ssh_remote_ipaddr(ssh), ssh_err(r));
+		    ssh->state->server_side ? "from" : "to",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), ssh_err(r));
 	}
 }
 

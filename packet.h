@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.66 2015/01/30 01:13:33 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.67 2015/12/11 03:24:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -143,6 +143,7 @@ int	 ssh_packet_get_state(struct ssh *, struct sshbuf *);
 int	 ssh_packet_set_state(struct ssh *, struct sshbuf *);
 
 const char *ssh_remote_ipaddr(struct ssh *);
+int	 ssh_remote_port(struct ssh *);
 
 int	 ssh_packet_need_rekeying(struct ssh *);
 void	 ssh_packet_set_rekey_limits(struct ssh *, u_int32_t, time_t);
