@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.232 2015/12/10 17:08:40 mmcc Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.233 2015/12/11 00:20:04 mmcc Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1622,7 +1622,7 @@ ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
 		closefrom(sock + 1);
 		debug3("%s: [child] pid=%ld, exec %s",
 		    __func__, (long)getpid(), _PATH_SSH_KEY_SIGN);
-		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *) 0);
+		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *)NULL);
 		fatal("%s: exec(%s): %s", __func__, _PATH_SSH_KEY_SIGN,
 		    strerror(errno));
 	}
