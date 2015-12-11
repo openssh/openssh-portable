@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.35 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: krl.c,v 1.36 2015/12/11 04:21:12 mmcc Exp $ */
 
 #include "includes.h"
 
@@ -826,10 +826,8 @@ parse_revoked_certs(struct sshbuf *buf, struct ssh_krl *krl)
 		goto out;
 
 	while (sshbuf_len(buf) > 0) {
-		if (subsect != NULL) {
-			sshbuf_free(subsect);
-			subsect = NULL;
-		}
+		sshbuf_free(subsect);
+		subsect = NULL;
 		if ((r = sshbuf_get_u8(buf, &type)) != 0 ||
 		    (r = sshbuf_froms(buf, &subsect)) != 0)
 			goto out;
@@ -1059,10 +1057,8 @@ ssh_krl_from_blob(struct sshbuf *buf, struct ssh_krl **krlp,
 	if ((r = sshbuf_consume(copy, sects_off)) != 0)
 		goto out;
 	while (sshbuf_len(copy) > 0) {
-		if (sect != NULL) {
-			sshbuf_free(sect);
-			sect = NULL;
-		}
+		sshbuf_free(sect);
+		sect = NULL;
 		if ((r = sshbuf_get_u8(copy, &type)) != 0 ||
 		    (r = sshbuf_froms(copy, &sect)) != 0)
 			goto out;

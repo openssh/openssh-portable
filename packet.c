@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.220 2015/12/11 03:24:25 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.221 2015/12/11 04:21:12 mmcc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2453,8 +2453,7 @@ newkeys_to_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 		goto out;
 	r = sshbuf_put_stringb(m, b);
  out:
-	if (b != NULL)
-		sshbuf_free(b);
+	sshbuf_free(b);
 	return r;
 }
 
@@ -2590,8 +2589,7 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	r = 0;
  out:
 	free(newkey);
-	if (b != NULL)
-		sshbuf_free(b);
+	sshbuf_free(b);
 	return r;
 }
 
@@ -2624,10 +2622,8 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
  out:
 	if (r != 0 || kexp == NULL) {
 		if (kex != NULL) {
-			if (kex->my != NULL)
-				sshbuf_free(kex->my);
-			if (kex->peer != NULL)
-				sshbuf_free(kex->peer);
+			sshbuf_free(kex->my);
+			sshbuf_free(kex->peer);
 			free(kex);
 		}
 		if (kexp != NULL)
