@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.431 2015/12/10 17:08:40 mmcc Exp $ */
+/* $OpenBSD: ssh.c,v 1.432 2015/12/11 03:20:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1243,8 +1243,10 @@ main(int ac, char **av)
 			sensitive_data.keys[i] = NULL;
 
 		PRIV_START;
+#if WITH_SSH1
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL, NULL);
+#endif
 #ifdef OPENSSL_HAS_ECC
 		sensitive_data.keys[1] = key_load_private_cert(KEY_ECDSA,
 		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
