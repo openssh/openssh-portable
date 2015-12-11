@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.209 2015/12/11 02:20:28 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.210 2015/12/11 02:29:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1342,6 +1342,7 @@ main(int ac, char **av)
 		printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
 		    SSH_AUTHSOCKET_ENV_NAME);
 		printf("echo Agent pid %ld;\n", (long)parent_pid);
+		fflush(stdout);
 		goto skip;
 	}
 	pid = fork();
