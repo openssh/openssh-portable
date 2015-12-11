@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.234 2015/12/11 02:20:28 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.235 2015/12/11 02:31:47 mmcc Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1418,8 +1418,7 @@ pubkey_cleanup(Authctxt *authctxt)
 	for (id = TAILQ_FIRST(&authctxt->keys); id;
 	    id = TAILQ_FIRST(&authctxt->keys)) {
 		TAILQ_REMOVE(&authctxt->keys, id, next);
-		if (id->key)
-			sshkey_free(id->key);
+		sshkey_free(id->key);
 		free(id->filename);
 		free(id);
 	}

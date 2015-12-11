@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.29 2015/12/10 17:08:40 mmcc Exp $ */
+/* $OpenBSD: sshkey.c,v 1.30 2015/12/11 02:31:47 mmcc Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -430,8 +430,7 @@ cert_free(struct sshkey_cert *cert)
 	for (i = 0; i < cert->nprincipals; i++)
 		free(cert->principals[i]);
 	free(cert->principals);
-	if (cert->signature_key != NULL)
-		sshkey_free(cert->signature_key);
+	sshkey_free(cert->signature_key);
 	explicit_bzero(cert, sizeof(*cert));
 	free(cert);
 }
@@ -3647,8 +3646,7 @@ sshkey_parse_public_rsa1_fileblob(struct sshbuf *blob,
  out:
 	if (copy != NULL)
 		sshbuf_free(copy);
-	if (pub != NULL)
-		sshkey_free(pub);
+	sshkey_free(pub);
 	return r;
 }
 
@@ -3761,8 +3759,7 @@ sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
  out:
 	explicit_bzero(&ciphercontext, sizeof(ciphercontext));
 	free(comment);
-	if (prv != NULL)
-		sshkey_free(prv);
+	sshkey_free(prv);
 	if (copy != NULL)
 		sshbuf_free(copy);
 	if (decrypted != NULL)
@@ -3856,8 +3853,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	BIO_free(bio);
 	if (pk != NULL)
 		EVP_PKEY_free(pk);
-	if (prv != NULL)
-		sshkey_free(prv);
+	sshkey_free(prv);
 	return r;
 }
 #endif /* WITH_OPENSSL */
