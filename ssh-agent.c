@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.208 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.209 2015/12/11 02:20:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -401,7 +401,7 @@ process_sign_request2(SocketEntry *e)
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		compat = SSH_BUG_SIGBLOB;
 	if ((r = sshkey_from_blob(blob, blen, &key)) != 0) {
-		error("%s: cannot parse key blob: %s", __func__, ssh_err(ok));
+		error("%s: cannot parse key blob: %s", __func__, ssh_err(r));
 		goto send;
 	}
 	if ((id = lookup_identity(key, 2)) == NULL) {
@@ -414,7 +414,7 @@ process_sign_request2(SocketEntry *e)
 	}
 	if ((r = sshkey_sign(id->key, &signature, &slen,
 	    data, dlen, agent_decode_alg(key, flags), compat)) != 0) {
-		error("%s: sshkey_sign: %s", __func__, ssh_err(ok));
+		error("%s: sshkey_sign: %s", __func__, ssh_err(r));
 		goto send;
 	}
 	/* Success */

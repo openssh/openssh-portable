@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.233 2015/12/11 00:20:04 mmcc Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.234 2015/12/11 02:20:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1129,6 +1129,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	ret = identity_sign(id, &signature, &slen,
 	    buffer_ptr(&b), buffer_len(&b), datafellows);
 	if (ret != 0) {
+		error("%s: signing failed: %s", __func__, ssh_err(ret));
 		free(blob);
 		buffer_free(&b);
 		return 0;
