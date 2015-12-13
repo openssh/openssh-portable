@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.114 2015/12/10 17:08:40 mmcc Exp $ */
+/* $OpenBSD: kex.c,v 1.115 2015/12/13 22:42:23 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -283,11 +283,11 @@ kex_buf2prop(struct sshbuf *raw, int *first_kex_follows, char ***propp)
 		debug2("%s: %s", proposal_names[i], proposal[i]);
 	}
 	/* first kex follows / reserved */
-	if ((r = sshbuf_get_u8(b, &v)) != 0 ||
-	    (r = sshbuf_get_u32(b, &i)) != 0)
+	if ((r = sshbuf_get_u8(b, &v)) != 0 ||	/* first_kex_follows */
+	    (r = sshbuf_get_u32(b, &i)) != 0)	/* reserved */
 		goto out;
 	if (first_kex_follows != NULL)
-		*first_kex_follows = i;
+		*first_kex_follows = v;
 	debug2("first_kex_follows %d ", v);
 	debug2("reserved %u ", i);
 	r = 0;
