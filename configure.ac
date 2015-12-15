@@ -2309,10 +2309,10 @@ openssl_engine=no
 AC_ARG_WITH([ssl-engine],
 	[  --with-ssl-engine       Enable OpenSSL (hardware) ENGINE support ],
 	[
-		if test "x$openssl" = "xno" ; then
-			AC_MSG_ERROR([cannot use --with-ssl-engine when OpenSSL disabled])
-		fi
 		if test "x$withval" != "xno" ; then
+			if test "x$openssl" = "xno" ; then
+				AC_MSG_ERROR([cannot use --with-ssl-engine when OpenSSL disabled])
+			fi
 			openssl_engine=yes
 		fi
 	]
