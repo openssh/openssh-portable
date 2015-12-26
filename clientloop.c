@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.277 2015/12/03 17:00:18 semarie Exp $ */
+/* $OpenBSD: clientloop.c,v 1.278 2015/12/26 07:46:03 semarie Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1485,7 +1485,14 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	debug("Entering interactive session.");
 
-	if (options.forward_x11 || options.permit_local_command) {
+	if (options.control_master &&
+	    ! option_clear_or_none(options.control_path)) {
+		debug("pledge: id");
+		if (pledge("stdio rpath wpath cpath unix inet dns proc exec id tty",
+		    NULL) == -1)
+			fatal("%s pledge(): %s", __func__, strerror(errno));
+
+	} else if (options.forward_x11 || options.permit_local_command) {
 		debug("pledge: exec");
 		if (pledge("stdio rpath wpath cpath unix inet dns proc exec tty",
 		    NULL) == -1)
@@ -1500,13 +1507,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	} else if (! option_clear_or_none(options.proxy_command)) {
 		debug("pledge: proc");
 		if (pledge("stdio cpath unix inet dns proc tty", NULL) == -1)
-			fatal("%s pledge(): %s", __func__, strerror(errno));
-
-	} else if (options.control_master &&
-	    ! option_clear_or_none(options.control_path)) {
-		debug("pledge: filesystem create");
-		if (pledge("stdio cpath unix inet dns tty",
-		    NULL) == -1)
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 
 	} else {
