@@ -283,7 +283,8 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
  */
 Channel *
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
-    u_int window, u_int maxpack, int extusage, char *remote_name, int nonblock)
+    u_int window, u_int maxpack, int extusage, char *remote_name, int nonblock,
+    int local_tun, int ip_fd)
 {
 	int found;
 	u_int i;
@@ -327,6 +328,8 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->ostate = CHAN_OUTPUT_OPEN;
 	c->istate = CHAN_INPUT_OPEN;
 	c->flags = 0;
+	c->local_tun = local_tun;
+	c->ip_fd = ip_fd;
 	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock, 0);
 	c->notbefore = 0;
 	c->self = found;
@@ -356,7 +359,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->mux_pause = 0;
 	c->delayed = 1;		/* prevent call to channel_post handler */
 	TAILQ_INIT(&c->status_confirms);
-	debug("channel %d: new [%s]", found, remote_name);
+	debug("%s: channel %d: new [%s]", __func__, found, remote_name);
 	return c;
 }
 
@@ -392,6 +395,10 @@ channel_close_fd(int *fdp)
 	return ret;
 }
 
+#if defined(SSH_TUN_DILOS)
+extern void sys_tun_delete(int, int, int);
+#endif
+
 /* Close all channel fd/socket. */
 static void
 channel_close_fds(Channel *c)
@@ -400,6 +407,11 @@ channel_close_fds(Channel *c)
 	channel_close_fd(&c->rfd);
 	channel_close_fd(&c->wfd);
 	channel_close_fd(&c->efd);
+#if defined(SSH_TUN_DILOS)
+	debug("%s: request delete ip_fd for tun%d", __func__, c->local_tun);
+	if (c->local_tun >= 0)
+		sys_tun_delete(c->local_tun, SSH_TUNMODE_POINTOPOINT, c->ip_fd);
+#endif
 }
 
 /* Free the channel and close its fd/socket. */
@@ -1289,7 +1301,7 @@ channel_connect_stdio_fwd(const char *host_to_connect, u_short port_to_connect,
 
 	c = channel_new("stdio-forward", SSH_CHANNEL_OPENING, in, out,
 	    -1, CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-	    0, "stdio-forward", /*nonblock*/0);
+	    0, "stdio-forward", /*nonblock*/0, -1, -1);
 
 	c->path = xstrdup(host_to_connect);
 	c->host_port = port_to_connect;
@@ -1384,7 +1396,7 @@ channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 
 		nc = channel_new("accepted x11 socket",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
-		    c->local_window_max, c->local_maxpacket, 0, buf, 1);
+		    c->local_window_max, c->local_maxpacket, 0, buf, 1, -1 , -1);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("x11");
@@ -1547,7 +1559,7 @@ channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		if (c->host_port != PORT_STREAMLOCAL)
 			set_nodelay(newsock);
 		nc = channel_new(rtype, nextstate, newsock, newsock, -1,
-		    c->local_window_max, c->local_maxpacket, 0, rtype, 1);
+		    c->local_window_max, c->local_maxpacket, 0, rtype, 1, -1 , -1);
 		nc->listening_port = c->listening_port;
 		nc->host_port = c->host_port;
 		if (c->path != NULL)
@@ -1584,7 +1596,7 @@ channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		nc = channel_new("accepted auth socket",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
-		    0, "accepted auth socket", 1);
+		    0, "accepted auth socket", 1, -1, -1);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("auth-agent@openssh.com");
@@ -2000,7 +2012,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 	}
 	nc = channel_new("multiplex client", SSH_CHANNEL_MUX_CLIENT,
 	    newsock, newsock, -1, c->local_window_max,
-	    c->local_maxpacket, 0, "mux-control", 1);
+	    c->local_maxpacket, 0, "mux-control", 1, -1, -1);
 	nc->mux_rcb = c->mux_rcb;
 	debug3("%s: new mux channel %d fd %d", __func__,
 	    nc->self, nc->sock);
@@ -2943,7 +2955,7 @@ channel_setup_fwd_listener_tcpip(int type, struct Forward *fwd,
 		/* Allocate a channel number for the socket. */
 		c = channel_new("port listener", type, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-		    0, "port listener", 1);
+		    0, "port listener", 1, -1, -1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -3027,7 +3039,7 @@ channel_setup_fwd_listener_streamlocal(int type, struct Forward *fwd,
 	/* Allocate a channel number for the socket. */
 	c = channel_new("unix listener", type, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-	    0, "unix listener", 1);
+	    0, "unix listener", 1, -1 , -1);
 	c->path = xstrdup(path);
 	c->host_port = port;
 	c->listening_port = PORT_STREAMLOCAL;
@@ -3755,7 +3767,7 @@ connect_to(const char *name, int port, char *ctype, char *rname)
 		return NULL;
 	}
 	c = channel_new(ctype, SSH_CHANNEL_CONNECTING, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1);
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, rname, 1, -1, -1);
 	c->connect_ctx = cctx;
 	return c;
 }
@@ -3978,7 +3990,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		nc = channel_new("x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-		    0, "X11 inet listener", 1);
+		    0, "X11 inet listener", 1, -1, -1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}
@@ -4154,7 +4166,7 @@ x11_input_open(int type, u_int32_t seq, void *ctxt)
 		/* Allocate a channel for this connection. */
 		c = channel_new("connected x11 socket",
 		    SSH_CHANNEL_X11_OPEN, sock, sock, -1, 0, 0, 0,
-		    remote_host, 1);
+		    remote_host, 1, -1, -1);
 		c->remote_id = remote_id;
 		c->force_drain = 1;
 	}

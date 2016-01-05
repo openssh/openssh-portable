@@ -81,6 +81,8 @@ struct Authctxt {
 
 	struct sshkey	**prev_userkeys;
 	u_int		 nprev_userkeys;
+
+	int		 chanid;	/*channel id*/
 };
 /*
  * Every authentication method has to handle authentication requests for

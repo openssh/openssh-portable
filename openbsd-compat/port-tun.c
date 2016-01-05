@@ -56,7 +56,7 @@
 #include <linux/if_tun.h>
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, int ip_fd)
 {
 	struct ifreq ifr;
 	int fd = -1;
@@ -116,7 +116,7 @@ sys_tun_open(int tun, int mode)
 #endif
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, int ip_fd)
 {
 	struct ifreq ifr;
 	char name[100];
@@ -193,6 +193,233 @@ sys_tun_open(int tun, int mode)
 	return (-1);
 }
 #endif /* SSH_TUN_FREEBSD */
+
+#if defined(SSH_TUN_DILOS)
+#include <net/if.h>
+#include <sys/sockio.h>
+#include <sys/stropts.h>
+#include <net/if_tun.h>
+
+#define IP_NODE "/dev/udp"
+#define NODE_LEN 30
+
+int
+sys_tun_open(int ppa, int mode, int ip_fd)
+{
+	struct lifreq ifr;
+	struct strioctl  strioc, strioc_if;
+	int newppa = 0;
+	char name[100];
+	int fd = -1;
+	int if_fd = -1;
+	int arp_fd = -1;
+	int ip_muxid = 0;
+	int arp_muxid = 0;
+	const char *tunbase = "tun";
+	char tunname[NODE_LEN];
+
+	if (mode == SSH_TUNMODE_ETHERNET) {
+#ifdef SSH_TUN_NO_L2
+		debug("%s: no layer 2 tunnelling support", __func__);
+		return (-1);
+#else
+		tunbase = "tap";
+#endif
+	}
+
+	/* Open the tunnel device */
+	if (ppa == SSH_TUNID_ANY) {
+		for (ppa = 0; ppa <= SSH_TUNID_MAX; ppa++) {
+			snprintf(name, sizeof(name), "/dev/ipnet/%s%d",
+			    tunbase, ppa);
+			if ((fd = open(name, O_RDWR)) >= 0) {
+				continue;
+			} else {
+				close(fd);
+				break;
+			}
+		}
+	}
+	if (ppa > SSH_TUNID_MAX) {
+		debug("%s: invalid tunnel %s%d", __func__, tunbase, ppa);
+		return (-1);
+	}
+
+	snprintf(tunname, sizeof(tunname), "%s%d", tunbase, ppa);
+	snprintf(name, sizeof(name), "/dev/%s", tunbase);
+	if ((fd = open(name, O_RDWR)) < 0) {
+		debug("%s: fd (%d) open failed: %s", __func__, if_fd,
+		    strerror(errno));
+		goto failed;
+	}
+
+	memset(&ifr, 0, sizeof(struct lifreq));
+
+	/* Assign a new PPA and get its unit number. */
+	strioc.ic_cmd = TUNNEWPPA;
+	strioc.ic_timout = 0;
+	strioc.ic_len = sizeof(ppa);
+	strioc.ic_dp = (char *)&ppa;
+	if ((newppa = ioctl (fd, I_STR, &strioc)) < 0){
+		debug("%s: (1) Can't create %s, newppa=%d, ppa:%d", __func__, name, newppa, ppa);
+		goto failed;
+        }
+
+	if(newppa != ppa){
+		debug("%s: (2) Can't create %s, newppa=%d, ppa=%d", __func__, name, newppa, ppa);
+		goto failed;
+	}
+
+	if ((if_fd = open (name, O_RDWR, 0)) < 0) {
+		debug("%s: (3) Can't open %sd", __func__, name);
+		goto failed;
+	}
+
+	/* push ip module to the stream */
+	if (ioctl(if_fd, I_PUSH, "ip") < 0) {
+		debug("%s: Can't push ip module to %s device", __func__, name);
+		goto failed;
+	}
+
+	if(mode != SSH_TUNMODE_ETHERNET) /* TUN */
+	{
+    		/* set unit number to the device */
+    		if (ioctl (if_fd, IF_UNITSEL, (char *) &ppa) < 0) {
+			debug("%s: Can't set unit number to %s device", __func__, name);
+			goto failed;
+    		}
+	}
+
+	if(mode == SSH_TUNMODE_ETHERNET) /* TAP */
+	{
+    		if (ioctl(if_fd, SIOCGLIFFLAGS, &ifr) < 0) {
+			debug("%s: Can't get flags (1)", __func__);
+			goto failed;
+    		}
+		strncpy (ifr.lifr_name, name, sizeof (ifr.lifr_name));
+    		ifr.lifr_ppa = ppa;
+    		/* assign ppa according to the unit number returned by tun device */
+    		if (ioctl (if_fd, SIOCSLIFNAME, &ifr) < 0) {
+			debug("%s: Can't set PPA %d", __func__, ppa);
+			goto failed;
+    		}
+    		if (ioctl(if_fd, SIOCGLIFFLAGS, &ifr) < 0) {
+			debug("%s: Can't get flags (2)", __func__);
+			goto failed;
+    		}
+
+    		/* push arp module to the device stream */
+    		if (ioctl(if_fd, I_PUSH, "arp") < 0) {
+			debug("%s: Can't push ARP module to device stream", __func__);
+			goto failed;
+    		}
+
+    		/* push arp module to the ip stream */
+    		if (ioctl(ip_fd, I_PUSH, "arp") < 0) {
+			debug("%s: Can't push ARP module to ip stream", __func__);
+			goto failed;
+    		}
+
+    		/* open arp fd */
+    		if((arp_fd = open(name, O_RDWR)) < 0){
+			debug("%s: Can't open '%s'", __func__, name);
+			goto failed;
+    		}
+    		/* push arp module to the stream */
+    		if (ioctl(arp_fd, I_PUSH, "arp") < 0) {
+			debug("%s: Can't push ARP module to arp stream", __func__);
+			goto failed;
+    		}
+
+    		/* set ifname to arp */
+    		strioc_if.ic_cmd = SIOCSLIFNAME;
+    		strioc_if.ic_timout = 0;
+    		strioc_if.ic_len = sizeof(ifr);
+    		strioc_if.ic_dp = (char *)&ifr;
+		/* set interface name to arp stream */
+    		if (ioctl(arp_fd, I_STR, &strioc_if) < 0){
+			debug("%s: Can't set ifname to arp stream", __func__);
+			goto failed;
+    		}
+	}
+
+	/* link interface stream to ip stream */
+	if ((ip_muxid = ioctl (ip_fd, I_PLINK, if_fd)) < 0){
+		debug("%s: Can't link %s device to ip", __func__, name);
+		goto failed;
+	}
+
+	if(mode == SSH_TUNMODE_ETHERNET) {
+    		if ((arp_muxid = ioctl (ip_fd, I_PLINK, arp_fd)) < 0){
+			debug("%s: Can't link %s device to ARP", __func__, name);
+			goto failed;
+    		}
+	}
+
+	memset((void *)&ifr, 0x0, sizeof(struct lifreq));
+	strncpy (ifr.lifr_name, tunname, sizeof (ifr.lifr_name));
+	ifr.lifr_ip_muxid  = ip_muxid;
+	ifr.lifr_arp_muxid  = 0;
+	if(mode == SSH_TUNMODE_ETHERNET) {
+    		ifr.lifr_arp_muxid  = arp_muxid;
+	}
+	if (ioctl (ip_fd, SIOCSLIFMUXID, &ifr) < 0){
+		if(mode == SSH_TUNMODE_ETHERNET) {
+			ioctl (ip_fd, I_PUNLINK, arp_muxid);
+		}
+		ioctl (ip_fd, I_PUNLINK, ip_muxid);
+		debug("%s: Can't set muxid of  %s device, ip_muxid=%d", __func__, name, ip_muxid);
+		goto failed;
+	}
+	return (fd);
+
+failed:
+	if (arp_fd >= 0)
+		close(arp_fd);
+	if (if_fd >= 0)
+		close(if_fd);
+	if (fd >= 0)
+		close(fd);
+	return (-1);
+}
+
+void
+sys_tun_delete(int ppa, int mode, int ip_fd)
+{
+	int arp_muxid = 0, ip_muxid = 0;
+	struct lifreq ifr;
+	char tunname[NODE_LEN];
+
+	snprintf(tunname, sizeof(tunname), "tun%d", ppa);
+
+	memset((void *)&ifr, 0x0, sizeof(struct lifreq));
+	strncpy (ifr.lifr_name, tunname, sizeof (ifr.lifr_name));
+
+	if (ioctl (ip_fd, SIOCGLIFFLAGS, &ifr) < 0){
+		debug("%s: (failed) Can't get flag", __func__);
+		return;
+	}
+
+	if (ioctl (ip_fd, SIOCGLIFMUXID, &ifr) < 0){
+		debug("%s: (failed) Can't get muxid", __func__);
+		return;
+	}
+
+	if(mode == SSH_TUNMODE_ETHERNET) {
+    		/* just in case, unlink arp's stream */
+    		arp_muxid = ifr.lifr_arp_muxid;
+    		if (ioctl (ip_fd, I_PUNLINK, arp_muxid) < 0){
+        	/* ignore err */
+    		}
+	}
+
+	ip_muxid = ifr.lifr_ip_muxid;
+	if (ioctl (ip_fd, I_PUNLINK, ip_muxid) < 0){
+		debug("%s: (failed) Can't unlink interface", __func__);
+		return;
+	}
+}
+#endif /* SSH_TUN_DILOS */
 
 /*
  * System-specific channel filters

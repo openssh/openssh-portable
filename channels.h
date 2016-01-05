@@ -162,6 +162,8 @@ struct Channel {
 	mux_callback_fn		*mux_rcb;
 	void			*mux_ctx;
 	int			mux_pause;
+	int			local_tun; /* tun id if it available, -1 for others*/
+	int			ip_fd; /* need for DILOS, -1 for others */
 };
 
 #define CHAN_EXTENDED_IGNORE		0
@@ -210,7 +212,8 @@ struct Channel {
 
 Channel	*channel_by_id(int);
 Channel	*channel_lookup(int);
-Channel *channel_new(char *, int, int, int, int, u_int, u_int, int, char *, int);
+Channel *channel_new(char *, int, int, int, int, u_int, u_int, int, char *, int,
+    int, int);
 void	 channel_set_fds(int, int, int, int, int, int, int, u_int);
 void	 channel_free(Channel *);
 void	 channel_free_all(void);

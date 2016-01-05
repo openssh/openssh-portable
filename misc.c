@@ -647,10 +647,10 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 }
 
 int
-tun_open(int tun, int mode)
+tun_open(int tun, int mode, int ip_fd)
 {
 #if defined(CUSTOM_SYS_TUN_OPEN)
-	return (sys_tun_open(tun, mode));
+	return (sys_tun_open(tun, mode, ip_fd));
 #elif defined(SSH_TUN_OPENBSD)
 	struct ifreq ifr;
 	char name[100];

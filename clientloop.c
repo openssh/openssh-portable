@@ -87,6 +87,10 @@
 #include <unistd.h>
 #include <limits.h>
 
+#if defined(SSH_TUN_DILOS)
+#include <sys/fcntl.h>
+#endif
+
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1850,7 +1854,7 @@ client_input_agent_open(int type, u_int32_t seq, void *ctxt)
 	 */
 	if (sock >= 0) {
 		c = channel_new("", SSH_CHANNEL_OPEN, sock, sock,
-		    -1, 0, 0, 0, "authentication agent connection", 1);
+		    -1, 0, 0, 0, "authentication agent connection", 1, -1, -1);
 		c->remote_id = remote_id;
 		c->force_drain = 1;
 	}
@@ -1950,7 +1954,7 @@ client_request_x11(const char *request_type, int rchan)
 		return NULL;
 	c = channel_new("x11",
 	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0, "x11", 1, -1, -1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1976,7 +1980,7 @@ client_request_agent(const char *request_type, int rchan)
 	c = channel_new("authentication agent connection",
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,
-	    "authentication agent connection", 1);
+	    "authentication agent connection", 1, -1, -1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1986,6 +1990,7 @@ client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
 {
 	Channel *c;
 	int fd;
+	int ip_fd = -1;
 
 	if (tun_mode == SSH_TUNMODE_NO)
 		return 0;
@@ -1997,14 +2002,25 @@ client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
 
 	debug("Requesting tun unit %d in mode %d", local_tun, tun_mode);
 
+#if defined(SSH_TUN_DILOS)
+	if ((ip_fd = open("/dev/udp", O_RDWR)) < 0) {
+		debug("%s: ip_fd (%d) open failed: %s", __func__, ip_fd,
+		    strerror(errno));
+		error("Tunnel forwarding failed for tun unit %d, ip_fd:%d",
+		    local_tune, ip_fd);
+		return -1;
+	}
+#endif
+
 	/* Open local tunnel device */
-	if ((fd = tun_open(local_tun, tun_mode)) == -1) {
+	if ((fd = tun_open(local_tun, tun_mode, ip_fd)) == -1) {
 		error("Tunnel device open failed.");
 		return -1;
 	}
 
 	c = channel_new("tun", SSH_CHANNEL_OPENING, fd, fd, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1,
+		local_tun, ip_fd);
 	c->datagram = 1;
 
 #if defined(SSH_TUN_FILTER)
