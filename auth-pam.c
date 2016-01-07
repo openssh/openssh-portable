@@ -67,7 +67,7 @@
 
 /* OpenGroup RFC86.0 and XSSO specify no "const" on arguments */
 #ifdef PAM_SUN_CODEBASE
-# define sshpam_const		/* Solaris, HP-UX, AIX */
+# define sshpam_const		/* Solaris, HP-UX, SunOS */
 #else
 # define sshpam_const	const	/* LinuxPAM, OpenPAM */
 #endif
