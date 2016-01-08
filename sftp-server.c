@@ -1598,6 +1598,9 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 		fatal("unable to make the process undumpable");
 #endif /* defined(HAVE_PRCTL) && defined(PR_SET_DUMPABLE) */
 
+	/* Drop any fine-grained privileges we don't need */
+	platform_pledge_sftp_server();
+
 	if ((cp = getenv("SSH_CONNECTION")) != NULL) {
 		client_addr = xstrdup(cp);
 		if ((cp = strchr(client_addr, ' ')) == NULL) {

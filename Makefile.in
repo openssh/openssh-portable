@@ -91,7 +91,8 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o blocks.o \
 	kex.o kexdh.o kexgex.o kexecdh.o kexc25519.o \
 	kexdhc.o kexgexc.o kexecdhc.o kexc25519c.o \
-	kexdhs.o kexgexs.o kexecdhs.o kexc25519s.o
+	kexdhs.o kexgexs.o kexecdhs.o kexc25519s.o \
+	platform-pledge.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o mux.o \
@@ -110,7 +111,8 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
 	sftp-server.o sftp-common.o \
 	roaming_common.o roaming_serv.o \
 	sandbox-null.o sandbox-rlimit.o sandbox-systrace.o sandbox-darwin.o \
-	sandbox-seccomp-filter.o sandbox-capsicum.o sandbox-pledge.o
+	sandbox-seccomp-filter.o sandbox-capsicum.o sandbox-pledge.o \
+	sandbox-solaris.o
 
 MANPAGES	= moduli.5.out scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out ssh-keysign.8.out ssh-pkcs11-helper.8.out sshd_config.5.out ssh_config.5.out
 MANPAGES_IN	= moduli.5 scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1 ssh-keysign.8 ssh-pkcs11-helper.8 sshd_config.5 ssh_config.5

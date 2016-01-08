@@ -1891,6 +1891,7 @@ mux_client_request_session(int fd)
 
 	if (pledge("stdio proc tty", NULL) == -1)
 		fatal("%s pledge(): %s", __func__, strerror(errno));
+	platform_pledge_mux();
 
 	signal(SIGHUP, control_client_sighandler);
 	signal(SIGINT, control_client_sighandler);
@@ -2001,6 +2002,7 @@ mux_client_request_stdio_fwd(int fd)
 
 	if (pledge("stdio proc tty", NULL) == -1)
 		fatal("%s pledge(): %s", __func__, strerror(errno));
+	platform_pledge_mux();
 
 	debug3("%s: stdio forward request sent", __func__);
 

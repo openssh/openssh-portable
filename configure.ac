@@ -469,6 +469,11 @@ AC_CHECK_HEADERS([sys/un.h], [], [], [
 SIA_MSG="no"
 SPC_MSG="no"
 SP_MSG="no"
+SPP_MSG="no"
+
+# Support for Solaris/Illumos privileges (this test is used by both
+# the --with-solaris-privs option and --with-sandbox=solaris).
+SOLARIS_PRIVS="no"
 
 # Check for some target-specific stuff
 case "$host" in
@@ -575,6 +580,8 @@ case "$host" in
 	LIBS="$LIBS /usr/lib/textreadmode.o"
 	AC_DEFINE([HAVE_CYGWIN], [1], [Define if you are on Cygwin])
 	AC_DEFINE([USE_PIPES], [1], [Use PIPES instead of a socketpair()])
+	AC_DEFINE([NO_UID_RESTORATION_TEST], [1],
+		[Define to disable UID restoration test])
 	AC_DEFINE([DISABLE_SHADOW], [1],
 		[Define if you want to disable shadow passwords])
 	AC_DEFINE([NO_X11_UNIX_SOCKETS], [1],
@@ -889,13 +896,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	else
 		AC_MSG_RESULT([no])
 	fi
+	AC_CHECK_FUNC([setppriv],
+		[ AC_CHECK_HEADERS([priv.h], [
+			SOLARIS_PRIVS="yes"
+		])
+	])
 	AC_ARG_WITH([solaris-contracts],
 		[  --with-solaris-contracts Enable Solaris process contracts (experimental)],
 		[
 		AC_CHECK_LIB([contract], [ct_tmpl_activate],
 			[ AC_DEFINE([USE_SOLARIS_PROCESS_CONTRACTS], [1],
 				[Define if you have Solaris process contracts])
-			  SSHDLIBS="$SSHDLIBS -lcontract"
+			  LIBS="$LIBS -lcontract"
 			  SPC_MSG="yes" ], )
 		],
 	)
@@ -905,8 +917,25 @@ mips-sony-bsd|mips-sony-newsos4)
 		AC_CHECK_LIB([project], [setproject],
 			[ AC_DEFINE([USE_SOLARIS_PROJECTS], [1],
 				[Define if you have Solaris projects])
-			SSHDLIBS="$SSHDLIBS -lproject"
+			LIBS="$LIBS -lproject"
 			SP_MSG="yes" ], )
+		],
+	)
+	AC_ARG_WITH([solaris-privs],
+		[  --with-solaris-privs    Enable Solaris/Illumos privileges (experimental)],
+		[
+		AC_MSG_CHECKING([for Solaris/Illumos privilege support])
+		if test "x$SOLARIS_PRIVS" = "xyes" ; then
+			AC_MSG_RESULT([found])
+			AC_DEFINE([NO_UID_RESTORATION_TEST], [1],
+				[Define to disable UID restoration test])
+			AC_DEFINE([USE_SOLARIS_PRIVS], [1],
+				[Define if you have Solaris privileges])
+			SPP_MSG="yes"
+		else
+			AC_MSG_RESULT([not found])
+			AC_MSG_ERROR([*** must have support for Solaris privileges to use --with-solaris-privs])
+		fi
 		],
 	)
 	TEST_SHELL=$SHELL	# let configure find us a capable shell
@@ -3156,6 +3185,10 @@ elif test "x$sandbox_arg" = "xrlimit" || \
 		AC_MSG_ERROR([rlimit sandbox requires select to work with rlimit])
 	SANDBOX_STYLE="rlimit"
 	AC_DEFINE([SANDBOX_RLIMIT], [1], [Sandbox using setrlimit(2)])
+elif test "x$sandbox_arg" = "xsolaris" || \
+   ( test -z "$sandbox_arg" && test "x$SOLARIS_PRIVS" = "xyes" ) ; then
+	SANDBOX_STYLE="solaris"
+	AC_DEFINE([SANDBOX_SOLARIS], [1], [Sandbox using Solaris/Illumos privileges])
 elif test -z "$sandbox_arg" || test "x$sandbox_arg" = "xno" || \
      test "x$sandbox_arg" = "xnone" || test "x$sandbox_arg" = "xnull" ; then
 	SANDBOX_STYLE="none"
@@ -4945,6 +4978,7 @@ echo "              MD5 password support: $MD5_MSG"
 echo "                   libedit support: $LIBEDIT_MSG"
 echo "  Solaris process contract support: $SPC_MSG"
 echo "           Solaris project support: $SP_MSG"
+echo "         Solaris privilege support: $SPP_MSG"
 echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"

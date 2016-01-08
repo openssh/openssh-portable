@@ -1417,6 +1417,7 @@ skip:
 
 	if (pledge("stdio cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
+	platform_pledge_agent();
 
 	while (1) {
 		prepare_select(&readsetp, &writesetp, &max_fd, &nalloc, &tvp);
