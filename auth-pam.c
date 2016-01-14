@@ -294,10 +294,11 @@ sshpam_password_change_required(int reqd)
 static void
 import_environments(Buffer *b)
 {
+#ifndef UNSUPPORTED_POSIX_THREADS_HACK
 	char *env;
 	u_int i, num_env;
 	int err;
-
+#endif
 	debug3("PAM: %s entering", __func__);
 
 #ifndef UNSUPPORTED_POSIX_THREADS_HACK
@@ -738,7 +739,7 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_PROMPT_ECHO_OFF:
 			*num = 1;
 			len = plen + mlen + 1;
-			**prompts = xrealloc(**prompts, 1, len);
+			**prompts = xreallocarray(**prompts, 1, len);
 			strlcpy(**prompts + plen, msg, len - plen);
 			plen += mlen;
 			**echo_on = (type == PAM_PROMPT_ECHO_ON);
@@ -748,7 +749,7 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_TEXT_INFO:
 			/* accumulate messages */
 			len = plen + mlen + 2;
-			**prompts = xrealloc(**prompts, 1, len);
+			**prompts = xreallocarray(**prompts, 1, len);
 			strlcpy(**prompts + plen, msg, len - plen);
 			plen += mlen;
 			strlcat(**prompts + plen, "\n", len - plen);

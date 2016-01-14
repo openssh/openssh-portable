@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.7 2013/12/02 02:56:17 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.11 2015/08/20 22:32:42 deraadt Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -16,6 +16,8 @@
  */
 
 #include "includes.h"
+
+
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
@@ -37,8 +39,7 @@
 #include "authfd.h"
 #include "ssh-pkcs11.h"
 
-#ifdef ENABLE_PKCS11
-
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 /* borrows code from sftp-server and ssh-agent */
 
 struct pkcs11_keyinfo {
@@ -169,7 +170,7 @@ process_sign(void)
 {
 	u_char *blob, *data, *signature = NULL;
 	u_int blen, dlen, slen = 0;
-	int ok = -1, ret;
+	int ok = -1;
 	Key *key, *found;
 	Buffer msg;
 
@@ -179,6 +180,9 @@ process_sign(void)
 
 	if ((key = key_from_blob(blob, blen)) != NULL) {
 		if ((found = lookup_key(key)) != NULL) {
+#ifdef WITH_OPENSSL
+			int ret;
+
 			slen = RSA_size(key->rsa);
 			signature = xmalloc(slen);
 			if ((ret = RSA_private_encrypt(dlen, data, signature,
@@ -186,6 +190,7 @@ process_sign(void)
 				slen = ret;
 				ok = 0;
 			}
+#endif /* WITH_OPENSSL */
 		}
 		key_free(key);
 	}
@@ -297,8 +302,8 @@ main(int argc, char **argv)
 	buffer_init(&oqueue);
 
 	set_size = howmany(max + 1, NFDBITS) * sizeof(fd_mask);
-	rset = (fd_set *)xmalloc(set_size);
-	wset = (fd_set *)xmalloc(set_size);
+	rset = xmalloc(set_size);
+	wset = xmalloc(set_size);
 
 	for (;;) {
 		memset(rset, 0, set_size);
@@ -357,7 +362,7 @@ main(int argc, char **argv)
 			process();
 	}
 }
-#else /* ENABLE_PKCS11 */
+#else /* ENABLE_PKCS11 && !USING_WOLFSSL */
 int
 main(int argc, char **argv)
 {
@@ -367,4 +372,4 @@ main(int argc, char **argv)
 	log_init(__progname, SYSLOG_LEVEL_ERROR, SYSLOG_FACILITY_AUTH, 0);
 	fatal("PKCS#11 support disabled at compile time");
 }
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */

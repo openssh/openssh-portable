@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.4 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.6 2015/12/11 00:20:04 mmcc Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #ifdef ENABLE_PKCS11
 
 #include <sys/types.h>
@@ -29,6 +31,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+
+#include <openssl/rsa.h>
 
 #include "pathnames.h"
 #include "xmalloc.h"
@@ -171,7 +175,7 @@ pkcs11_start_helper(void)
 		close(pair[0]);
 		close(pair[1]);
 		execlp(_PATH_SSH_PKCS11_HELPER, _PATH_SSH_PKCS11_HELPER,
-		    (char *) 0);
+		    (char *)NULL);
 		fprintf(stderr, "exec: %s: %s\n", _PATH_SSH_PKCS11_HELPER,
 		    strerror(errno));
 		_exit(1);
@@ -238,3 +242,4 @@ pkcs11_del_provider(char *name)
 }
 
 #endif /* ENABLE_PKCS11 */
+#endif /* USING_WOLFSSL */

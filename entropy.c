@@ -24,6 +24,8 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef HAVE_SYS_UN_H
@@ -43,11 +45,15 @@
 #include <wolfssl/openssl/rand.h>
 #include <wolfssl/openssl/crypto.h>
 #include <wolfssl/openssl/err.h>
+#include "openbsd-compat/wolfssl-compat.h"
 #else
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
+#include "openbsd-compat/openssl-compat.h"
 #endif
+
+
 
 #include "ssh.h"
 #include "misc.h"
@@ -215,20 +221,13 @@ seed_rng(void)
 #ifndef OPENSSL_PRNG_ONLY
 	unsigned char buf[RANDOM_SEED_SIZE];
 #endif
-	/*
-	 * OpenSSL version numbers: MNNFFPPS: major minor fix patch status
-	 * We match major, minor, fix and status (not patch) for <1.0.0.
-	 * After that, we acceptable compatible fix versions (so we
-	 * allow 1.0.1 to work with 1.0.0). Going backwards is only allowed
-	 * within a patch series.
-	 */
+
 #ifndef USING_WOLFSSL
-	u_long version_mask = SSLeay() >= 0x1000000f ?  ~0xffff0L : ~0xff0L;
-	if (((SSLeay() ^ OPENSSL_VERSION_NUMBER) & version_mask) ||
-	    (SSLeay() >> 12) < (OPENSSL_VERSION_NUMBER >> 12))
+	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER, SSLeay()))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
 		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
 #endif
+
 #ifndef OPENSSL_PRNG_ONLY
 	if (RAND_status() == 1) {
 		debug3("RNG is ready, skipping seeding");
@@ -244,3 +243,13 @@ seed_rng(void)
 	if (RAND_status() != 1)
 		fatal("PRNG is not seeded");
 }
+
+#else /* WITH_OPENSSL */
+
+/* Handled in arc4random() */
+void
+seed_rng(void)
+{
+}
+
+#endif /* WITH_OPENSSL || USING_WOLFSSL */

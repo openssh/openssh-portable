@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh2.h,v 1.15 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: ssh2.h,v 1.16 2015/12/04 16:41:28 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -80,6 +80,7 @@
 #define SSH2_MSG_DEBUG					4
 #define SSH2_MSG_SERVICE_REQUEST			5
 #define SSH2_MSG_SERVICE_ACCEPT				6
+#define SSH2_MSG_EXT_INFO				7
 
 /* transport layer: alg negotiation */
 

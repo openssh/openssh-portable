@@ -1,3 +1,19 @@
+/* $OpenBSD: digest-wolfssl.c,v 1.0 2015/11/13 09:56:12 djm Exp $ */
+/*
+ * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 /*
  * WolfSSL digest
  */
@@ -114,6 +130,23 @@ ssh_digest_by_alg(int alg)
 	return &(digests[alg]);
 }
 
+int
+ssh_digest_alg_by_name(const char* name)
+{
+    int alg;
+    for (alg = 0; alg < SSH_DIGEST_MAX; alg++) {
+        if (strcasecmp(name, digests[alg].name) == 0)
+            return digests[alg].id;
+    }
+    return -1;
+}
+
+const char*
+ssh_digest_alg_name(int alg)
+{
+    const struct ssh_digest* digest = ssh_digest_by_alg(alg);
+    return digest == NULL ? NULL : digest->name;
+}
 size_t
 ssh_digest_bytes(int alg)
 {

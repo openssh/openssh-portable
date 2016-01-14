@@ -26,19 +26,23 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
 
 #ifndef HAVE_ARC4RANDOM
 #ifdef USING_WOLFSSL
 #include <wolfssl/openssl/rand.h>
 #include <wolfssl/openssl/err.h>
 #else
-#include <openssl/rand.h>
-#include <openssl/err.h>
-#endif
+# ifdef WITH_OPENSSL
+# include <openssl/rand.h>
+# include <openssl/err.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "log.h"
 
@@ -77,21 +81,51 @@ _rs_init(u_char *buf, size_t n)
 	chacha_ivsetup(&rs, buf + KEYSZ);
 }
 
+#ifndef WITH_OPENSSL
+#define SSH_RANDOM_DEV "/dev/urandom"
+/* XXX use getrandom() if supported on Linux */
+static void
+getrnd(u_char *s, size_t len)
+{
+	int fd;
+	ssize_t r;
+	size_t o = 0;
+
+	if ((fd = open(SSH_RANDOM_DEV, O_RDONLY)) == -1)
+		fatal("Couldn't open %s: %s", SSH_RANDOM_DEV, strerror(errno));
+	while (o < len) {
+		r = read(fd, s + o, len - o);
+		if (r < 0) {
+			if (errno == EAGAIN || errno == EINTR ||
+			    errno == EWOULDBLOCK)
+				continue;
+			fatal("read %s: %s", SSH_RANDOM_DEV, strerror(errno));
+		}
+		o += r;
+	}
+	close(fd);
+}
+#endif
+
 static void
 _rs_stir(void)
 {
 	u_char rnd[KEYSZ + IVSZ];
 
+#ifdef WITH_OPENSSL
 	if (RAND_bytes(rnd, sizeof(rnd)) <= 0)
 		fatal("Couldn't obtain random bytes (error %ld)",
 		    ERR_get_error());
+#else
+	getrnd(rnd, sizeof(rnd));
+#endif
 
 	if (!rs_initialized) {
 		rs_initialized = 1;
 		_rs_init(rnd, sizeof(rnd));
 	} else
 		_rs_rekey(rnd, sizeof(rnd));
-	memset(rnd, 0, sizeof(rnd));
+	explicit_bzero(rnd, sizeof(rnd));
 
 	/* invalidate rs_buf */
 	rs_have = 0;
@@ -204,7 +238,7 @@ arc4random(void)
 }
 
 /*
- * If we are providing arc4random, then we can provide a more efficient
+ * If we are providing arc4random, then we can provide a more efficient 
  * arc4random_buf().
  */
 # ifndef HAVE_ARC4RANDOM_BUF
@@ -233,7 +267,7 @@ arc4random_buf(void *_buf, size_t n)
 		buf[i] = r & 0xff;
 		r >>= 8;
 	}
-	i = r = 0;
+	explicit_bzero(&r, sizeof(r));
 }
 #endif /* !defined(HAVE_ARC4RANDOM_BUF) && defined(HAVE_ARC4RANDOM) */
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.41 2014/02/02 03:44:31 djm Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.43 2015/07/18 07:57:14 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -41,6 +41,7 @@
 #include "packet.h"
 #include "dispatch.h"
 #include "log.h"
+#include "misc.h"
 #include "servconf.h"
 
 /* import */
@@ -48,7 +49,7 @@ extern ServerOptions options;
 
 static int auth2_challenge_start(Authctxt *);
 static int send_userauth_info_request(Authctxt *);
-static void input_userauth_info_response(int, u_int32_t, void *);
+static int input_userauth_info_response(int, u_int32_t, void *);
 
 #ifdef BSD_AUTH
 extern KbdintDevice bsdauth_device;
@@ -82,6 +83,7 @@ struct KbdintAuthctxt
 	void *ctxt;
 	KbdintDevice *device;
 	u_int nreq;
+	u_int devices_done;
 };
 
 #ifdef USE_PAM
@@ -168,11 +170,15 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
 		if (len == 0)
 			break;
 		for (i = 0; devices[i]; i++) {
-			if (!auth2_method_allowed(authctxt,
+			if ((kbdintctxt->devices_done & (1 << i)) != 0 ||
+			    !auth2_method_allowed(authctxt,
 			    "keyboard-interactive", devices[i]->name))
 				continue;
-			if (strncmp(kbdintctxt->devices, devices[i]->name, len) == 0)
+			if (strncmp(kbdintctxt->devices, devices[i]->name,
+			    len) == 0) {
 				kbdintctxt->device = devices[i];
+				kbdintctxt->devices_done |= 1 << i;
+			}
 		}
 		t = kbdintctxt->devices;
 		kbdintctxt->devices = t[len] ? xstrdup(t+len+1) : NULL;
@@ -278,7 +284,7 @@ send_userauth_info_request(Authctxt *authctxt)
 	return 1;
 }
 
-static void
+static int
 input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
@@ -343,6 +349,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	}
 	userauth_finish(authctxt, authenticated, "keyboard-interactive",
 	    devicename);
+	return 0;
 }
 
 void

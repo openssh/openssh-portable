@@ -12,6 +12,7 @@
 #ifdef USING_WOLFSSL
 #include "key.h"
 #include <wolfssl/openssl/ed25519.h>
+#include "log.h"
 #else
 #include "ge25519.h"
 #endif

@@ -3,7 +3,7 @@
 /*
  * FILE:	sha2.c
  * AUTHOR:	Aaron D. Gifford <me@aarongifford.com>
- *
+ * 
  * Copyright (c) 2000-2001, Aaron D. Gifford
  * All rights reserved.
  *
@@ -18,7 +18,7 @@
  * 3. Neither the name of the copyright holder nor the names of contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTOR(S) ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -44,11 +44,17 @@
 #include <openssl/opensslv.h>
 #endif
 
-#if !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
-    (OPENSSL_VERSION_NUMBER >= 0x00907000L)
-#include <sys/types.h>
+#ifdef WITH_OPENSSL
+# if !defined(HAVE_EVP_SHA256) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
+#  define _NEED_SHA2 1
+# endif
+#else
+# define _NEED_SHA2 1
+#endif
+
+#if defined(_NEED_SHA2) && !defined(HAVE_SHA256_UPDATE)
+
 #include <string.h>
-#include "sha2.h"
 
 /*
  * UNROLLED TRANSFORM LOOP NOTE:
@@ -81,7 +87,7 @@
  *
  * And for little-endian machines, add:
  *
- *   #define BYTE_ORDER LITTLE_ENDIAN
+ *   #define BYTE_ORDER LITTLE_ENDIAN 
  *
  * Or for big-endian machines:
  *
@@ -416,11 +422,11 @@ SHA256_Transform(u_int32_t state[8], const u_int8_t data[SHA256_BLOCK_LENGTH])
 		/* Part of the message block expansion: */
 		s0 = W256[(j+1)&0x0f];
 		s0 = sigma0_256(s0);
-		s1 = W256[(j+14)&0x0f];
+		s1 = W256[(j+14)&0x0f];	
 		s1 = sigma1_256(s1);
 
 		/* Apply the SHA-256 compression function to update a..h */
-		T1 = h + Sigma1_256(e) + Ch(e, f, g) + K256[j] +
+		T1 = h + Sigma1_256(e) + Ch(e, f, g) + K256[j] + 
 		     (W256[j&0x0f] += s1 + W256[(j+9)&0x0f] + s0);
 		T2 = Sigma0_256(a) + Maj(a, b, c);
 		h = g;
@@ -842,7 +848,6 @@ SHA512_Final(u_int8_t digest[SHA512_DIGEST_LENGTH], SHA512_CTX *context)
 }
 
 
-#if 0
 /*** SHA-384: *********************************************************/
 void
 SHA384_Init(SHA384_CTX *context)
@@ -855,9 +860,29 @@ SHA384_Init(SHA384_CTX *context)
 	context->bitcount[0] = context->bitcount[1] = 0;
 }
 
+#if 0
 __weak_alias(SHA384_Transform, SHA512_Transform);
 __weak_alias(SHA384_Update, SHA512_Update);
 __weak_alias(SHA384_Pad, SHA512_Pad);
+#endif
+
+void
+SHA384_Transform(u_int64_t state[8], const u_int8_t data[SHA512_BLOCK_LENGTH])
+{
+	return SHA512_Transform(state, data);
+}
+
+void
+SHA384_Update(SHA512_CTX *context, const u_int8_t *data, size_t len)
+{
+	SHA512_Update(context, data, len);
+}
+
+void
+SHA384_Pad(SHA512_CTX *context)
+{
+	SHA512_Pad(context);
+}
 
 void
 SHA384_Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA384_CTX *context)
@@ -880,7 +905,5 @@ SHA384_Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA384_CTX *context)
 	/* Zero out state data */
 	memset(context, 0, sizeof(*context));
 }
-#endif
 
-#endif /* !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
-    (OPENSSL_VERSION_NUMBER >= 0x00907000L) */
+#endif /* defined(_NEED_SHA2) && !defined(HAVE_SHA256_UPDATE) */

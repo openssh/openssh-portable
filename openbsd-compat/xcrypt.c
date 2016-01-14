@@ -61,7 +61,9 @@
 #ifdef USING_WOLFSSL
 #  include <wolfssl/openssl/des.h>
 #else
+# ifdef WITH_OPENSSL
 #  include <openssl/des.h>
+# endif
 #endif /* USING_WOLFSSL */
 #  define crypt DES_crypt
 # endif

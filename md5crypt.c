@@ -16,7 +16,7 @@
 #include <string.h>
 
 #ifdef USING_WOLFSSL
-#include <wolfssl/openssl/md5.h>
+#include <wolfssl/openssl/evp.h>
 #else
 #include <openssl/md5.h>
 #endif
