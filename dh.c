@@ -27,8 +27,13 @@
 
 #include <sys/param.h>	/* MIN */
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/dh.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -257,13 +262,21 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 int
 dh_gen_key(DH *dh, int need)
 {
+#ifndef USING_WOLFSSL
 	int pbits;
+#endif
 
-	if (need < 0 || dh->p == NULL ||
-	    (pbits = BN_num_bits(dh->p)) <= 0 ||
+	if (need <= 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (dh->p == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+#ifndef USING_WOLFSSL
+	if ( (pbits = BN_num_bits(dh->p)) <= 0 ||
 	    need > INT_MAX / 2 || 2 * need > pbits)
 		return SSH_ERR_INVALID_ARGUMENT;
 	dh->length = MIN(need * 2, pbits - 1);
+#endif /* USING_WOLFSSL */
+
 	if (DH_generate_key(dh) == 0 ||
 	    !dh_pub_is_valid(dh, dh->pub_key)) {
 		BN_clear_free(dh->priv_key);

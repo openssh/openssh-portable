@@ -227,7 +227,7 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 		i = vasprintf(&extra, fmt, ap);
 		va_end(ap);
 		if (i < 0 || extra == NULL)
-			fatal("%s: vasprintf failed", __func__);	
+			fatal("%s: vasprintf failed", __func__);
 	}
 
 	if (key_is_cert(key)) {

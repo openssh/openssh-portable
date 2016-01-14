@@ -16,7 +16,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#else
 #include <openssl/bn.h>
+#endif
 
 #include "../test_helper/test_helper.h"
 
@@ -27,12 +31,17 @@
 void
 tests(void)
 {
+#ifndef USING_WOLFSSL
 	struct bitmap *b;
 	BIGNUM *bn;
 	size_t len;
 	int i, j, k, n;
 	u_char bbuf[1024], bnbuf[1024];
 	int r;
+#else
+	struct bitmap *b;
+	BIGNUM *bn;
+#endif
 
 	TEST_START("bitmap_new");
 	b = bitmap_new();
@@ -42,12 +51,13 @@ tests(void)
 	TEST_DONE();
 
 	TEST_START("bitmap_set_bit / bitmap_test_bit");
+#ifndef USING_WOLFSSL
 	for (i = -1; i < NTESTS; i++) {
 		for (j = -1; j < NTESTS; j++) {
 			for (k = -1; k < NTESTS; k++) {
 				bitmap_zero(b);
+	/* wolfSSL does not have support for BN_clear at this time */
 				BN_clear(bn);
-
 				test_subtest_info("set %d/%d/%d", i, j, k);
 				/* Set bits */
 				if (i >= 0) {
@@ -111,14 +121,17 @@ tests(void)
 				}
 				if (i >= 0) {
 					bitmap_clear_bit(b, i);
+	/* wolfSSL does not have support for BN_clear_bit at this time */
 					BN_clear_bit(bn, i);
 				}
 				if (j >= 0) {
 					bitmap_clear_bit(b, j);
+	/* wolfSSL does not have support for BN_clear_bit at this time */
 					BN_clear_bit(bn, j);
 				}
 				if (k >= 0) {
 					bitmap_clear_bit(b, k);
+	/* wolfSSL does not have support for BN_clear_bit at this time */
 					BN_clear_bit(bn, k);
 				}
 				for (n = 0; n < NTESTS; n++) {
@@ -128,6 +141,7 @@ tests(void)
 			}
 		}
 	}
+#endif /* USING_WOLFSSL */
 	bitmap_free(b);
 	BN_free(bn);
 	TEST_DONE();

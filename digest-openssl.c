@@ -17,12 +17,13 @@
 
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && !defined(USING_WOLFSSL)
 
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 #include <openssl/evp.h>
 
@@ -33,7 +34,9 @@
 #include "ssherr.h"
 
 #ifndef HAVE_EVP_RIPEMD160
-# define EVP_ripemd160 NULL
+# ifndef USING_WOLFSSL
+#  define EVP_ripemd160 NULL
+# endif
 #endif /* HAVE_EVP_RIPEMD160 */
 #ifndef HAVE_EVP_SHA256
 # define EVP_sha256 NULL
@@ -202,4 +205,4 @@ ssh_digest_buffer(int alg, const struct sshbuf *b, u_char *d, size_t dlen)
 {
 	return ssh_digest_memory(alg, sshbuf_ptr(b), sshbuf_len(b), d, dlen);
 }
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL && !USING_WOLFSSL */

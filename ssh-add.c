@@ -40,8 +40,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -509,9 +513,11 @@ main(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "klLcdDxXE:e:s:t:")) != -1) {
 		switch (ch) {
 		case 'E':
+#ifndef USING_WOLFSSL
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
 			if (fingerprint_hash == -1)
 				fatal("Invalid hash algorithm \"%s\"", optarg);
+#endif
 			break;
 		case 'k':
 			key_only = 1;

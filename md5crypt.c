@@ -15,7 +15,11 @@
 
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/md5.h>
+#endif
 
 /* 0 ... 63 => ascii - 64 */
 static unsigned char itoa64[] =

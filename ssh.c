@@ -71,11 +71,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#endif
-#include "openbsd-compat/openssl-compat.h"
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/crypto.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include <openssl/err.h>
+# endif
+# include "openbsd-compat/openssl-compat.h"
+#endif /* USING_WOLFSSL */
 #include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
@@ -110,7 +116,7 @@
 #include "ssherr.h"
 #include "myproposal.h"
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 #include "ssh-pkcs11.h"
 #endif
 
@@ -724,7 +730,7 @@ main(int ac, char **av)
 			free(p);
 			break;
 		case 'I':
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 			free(options.pkcs11_provider);
 			options.pkcs11_provider = xstrdup(optarg);
 #else
@@ -954,7 +960,14 @@ main(int ac, char **av)
 
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
+#endif
+
+#ifdef USING_WOLFSSL
+	wolfSSL_Debugging_ON();
+#else
+# ifdef WITH_OPENSSL
 	ERR_load_crypto_strings();
+# endif
 #endif
 
 	/* Initialize the command to execute on remote host. */
@@ -1967,10 +1980,10 @@ load_public_identity_files(void)
 	Key *identity_keys[SSH_MAX_IDENTITY_FILES];
 	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	Key **keys;
 	int nkeys;
-#endif /* PKCS11 */
+#endif /* PKCS11 && !USING_WOLFSSL */
 
 	n_ids = n_certs = 0;
 	memset(identity_files, 0, sizeof(identity_files));
@@ -1978,7 +1991,7 @@ load_public_identity_files(void)
 	memset(certificate_files, 0, sizeof(certificate_files));
 	memset(certificates, 0, sizeof(certificates));
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	if (options.pkcs11_provider != NULL &&
 	    options.num_identity_files < SSH_MAX_IDENTITY_FILES &&
 	    (pkcs11_init(!options.batch_mode) == 0) &&
@@ -1996,7 +2009,7 @@ load_public_identity_files(void)
 		}
 		free(keys);
 	}
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
 		fatal("load_public_identity_files: getpwuid failed");
 	pwname = xstrdup(pw->pw_name);

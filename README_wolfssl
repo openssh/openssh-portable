@@ -1,0 +1,75 @@
+wolfSSL library can be used in replacement of OpenSSL in the OpenSSH 6.6-p1
+version. In that case, only the protocol version 2 is supported by OpenSSH. We
+describe here the installation procedure for wolfSSL and OpenSSH.
+
+-----------------------
+MAC OS X, Fedora 32bits
+-----------------------
+I. Make wolfSSL with the support of extra functions
+    1. configure wolfSSL:
+		a. ./autogen.sh
+        b. ./configure --enable-openssh --prefix=/usr/local
+    2. compile the library:
+        make clean && make
+    3. do the test suite:
+		make test
+    4. install the library:
+        sudo make install
+
+II. Make OpenSSH with the support of wolfSSL in replacement of OpenSSL
+    1. configure OpenSSH:
+        a. autoreconf
+		b. ./configure --with-wolfssl=/usr/local --with-pam
+    2. compile ssh tools:
+        make clean && make
+    3. do the test suite:
+        a. to activate tests that used SUDO, uncomment the line #SUDO=`which sudo` in regress/test-exec.sh
+		b. make tests
+    4. install the tools (optionnal)
+        sudo make install
+
+--------------------------------
+Extra configuration for MAC OS X
+--------------------------------
+The OS X sandbox for renderer processes does not allow /dev/urandom to be opened.
+wolfSSL relies on /dev/urandom for entropy, including the generation of keys used
+for the peer-to-peer SSH negotiation/session establishment. If you would use the
+sandboxing mechanism, you must explictly enable the access on /dev/urandom.
+
+Add the two lines :
+    (allow file-read* (literal \"/dev/random\")"
+    (literal \"/dev/urandom\"))"
+at the end of file '/System/Library/Sandbox/Profiles/org.openssh.sshd.sb'.
+
+Remark: The OpenSSH testsuite include a test (connect-privsep.sh) that use
+sandboxing. This one will failed if you don't update previously the MAC OS X
+system file
+
+--------------
+Fedora 64 bits
+--------------
+I. Make wolfSSL with the support of extra functions. It is required to the
+specifiy the library installation directory because the default one is not
+included in the LIBRARY_PATH of Fedora 64 bits
+
+    1. configure wolfSSL:
+		a. ./autogen.sh
+        b. ./configure --enable-openssh --prefix=/usr/local --libdir=/lib64
+    2. compile the library:
+        make clean && make
+    3. do the test suite:
+        make test
+    4. install the library:
+        sudo make install
+
+II. Make OpenSSH with the support of wolfSSL in replacement of OpenSSL
+    1. configure OpenSSH:
+        a. autoreconf
+		b. ./configure --with-wolfssl=/usr/local --with-pam
+    2. compile ssh tools:
+        make clean && make
+    3. do the test suite:
+        a. to activate tests that used SUDO, uncomment the line #SUDO=`which sudo` in regress/test-exec.sh
+		b. make tests
+    4. install the tools (optionnal)
+        sudo make install

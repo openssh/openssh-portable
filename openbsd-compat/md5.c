@@ -19,7 +19,7 @@
 
 #include "includes.h"
 
-#ifndef WITH_OPENSSL
+#if !defined(WITH_OPENSSL) && !defined(USING_WOLFSSL)
 
 #include <sys/types.h>
 #include <string.h>
@@ -248,4 +248,4 @@ MD5Transform(u_int32_t state[4], const u_int8_t block[MD5_BLOCK_LENGTH])
 	state[2] += c;
 	state[3] += d;
 }
-#endif /* !WITH_OPENSSL */
+#endif /* !WITH_OPENSSL && !USING_WOLFSSL */

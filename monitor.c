@@ -59,9 +59,13 @@
 #include <skey.h>
 #endif
 
-#ifdef WITH_OPENSSL
-#include <openssl/dh.h>
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/dh.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "openbsd-compat/sys-queue.h"
 #include "atomicio.h"

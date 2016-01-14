@@ -50,9 +50,13 @@
 #endif
 #include "openbsd-compat/sys-queue.h"
 
-#ifdef WITH_OPENSSL
-#include <openssl/evp.h>
-#include "openbsd-compat/openssl-compat.h"
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include "openbsd-compat/openssl-compat.h"
+# endif
 #endif
 
 #include <errno.h>
@@ -84,7 +88,7 @@
 #include "digest.h"
 #include "ssherr.h"
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 #include "ssh-pkcs11.h"
 #endif
 
@@ -737,7 +741,7 @@ no_identities(SocketEntry *e, u_int type)
 	sshbuf_free(msg);
 }
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 static void
 process_add_smartcard_key(SocketEntry *e)
 {
@@ -838,7 +842,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	free(provider);
 	send_status(e, success);
 }
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */
 
 /* dispatch incoming messages */
 
@@ -925,7 +929,7 @@ process_message(SocketEntry *e)
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
 		break;
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
 	case SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED:
 		process_add_smartcard_key(e);
@@ -933,7 +937,7 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:
 		process_remove_smartcard_key(e);
 		break;
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */
 	default:
 		/* Unknown message.  Respond with failure. */
 		error("Unknown message %d", type);
@@ -1151,7 +1155,7 @@ static void
 cleanup_handler(int sig)
 {
 	cleanup_socket();
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	pkcs11_terminate();
 #endif
 	_exit(2);
@@ -1402,7 +1406,7 @@ skip:
 
 	cleanup_pid = getpid();
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	pkcs11_init(0);
 #endif
 	new_socket(AUTH_SOCKET, sock);

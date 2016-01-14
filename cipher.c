@@ -49,13 +49,24 @@
 #include "ssherr.h"
 #include "digest.h"
 
+#ifdef USING_WOLFSSL
+#include "openbsd-compat/wolfssl-compat.h"
+
+#define evp_aes_128_ctr EVP_aes_128_ctr
+#define ssh_aes_ctr_iv  wolfSSL_aes_ctr_iv
+#define ssh1_3des_iv    wolfSSL_3des_iv
+
+#else /* USING_WOLFSSL */
+
+/* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
 
-#ifdef WITH_SSH1
+# ifdef WITH_SSH1
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern int ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
-#endif
+# endif
+#endif /* USING_WOLFSSL */
 
 struct sshcipher {
 	char	*name;
@@ -80,16 +91,20 @@ struct sshcipher {
 static const struct sshcipher ciphers[] = {
 #ifdef WITH_SSH1
 	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
+# ifndef USING_WOLFSSL
 	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
 	{ "blowfish",	SSH_CIPHER_BLOWFISH, 8, 32, 0, 0, 0, 1, evp_ssh1_bf },
+# endif /* USING_WOLFSSL*/
 #endif /* WITH_SSH1 */
 #ifdef WITH_OPENSSL
 	{ "none",	SSH_CIPHER_NONE, 8, 0, 0, 0, 0, 0, EVP_enc_null },
 	{ "3des-cbc",	SSH_CIPHER_SSH2, 8, 24, 0, 0, 0, 1, EVP_des_ede3_cbc },
+#ifndef USING_WOLFSSL
 	{ "blowfish-cbc",
 			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_bf_cbc },
 	{ "cast128-cbc",
 			SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 1, EVP_cast5_cbc },
+#endif
 	{ "arcfour",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 0, 0, EVP_rc4 },
 	{ "arcfour128",	SSH_CIPHER_SSH2, 8, 16, 0, 0, 1536, 0, EVP_rc4 },
 	{ "arcfour256",	SSH_CIPHER_SSH2, 8, 32, 0, 0, 1536, 0, EVP_rc4 },
@@ -101,12 +116,14 @@ static const struct sshcipher ciphers[] = {
 	{ "aes128-ctr",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, 0, EVP_aes_192_ctr },
 	{ "aes256-ctr",	SSH_CIPHER_SSH2, 16, 32, 0, 0, 0, 0, EVP_aes_256_ctr },
-# ifdef OPENSSL_HAVE_EVPGCM
+# ifndef USING_WOLFSSL
+#  ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
 			SSH_CIPHER_SSH2, 16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
-# endif /* OPENSSL_HAVE_EVPGCM */
+#  endif /* OPENSSL_HAVE_EVPGCM */
+# endif /* USING_WOLFSSL */
 #else /* WITH_OPENSSL */
 	{ "aes128-ctr",	SSH_CIPHER_SSH2, 16, 16, 0, 0, 0, CFLAG_AESCTR, NULL },
 	{ "aes192-ctr",	SSH_CIPHER_SSH2, 16, 24, 0, 0, 0, CFLAG_AESCTR, NULL },
@@ -345,10 +362,16 @@ cipher_init(struct sshcipher_ctx *cc, const struct sshcipher *cipher,
 			goto bad;
 		}
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_StoreExternalIV(&cc->evp);
+#endif
 	if (EVP_CipherInit(&cc->evp, NULL, (u_char *)key, NULL, -1) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto bad;
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_SetInternalIV(&cc->evp);
+#endif
 
 	if (cipher->discard_len > 0) {
 		if ((junk = malloc(cipher->discard_len)) == NULL ||
@@ -405,6 +428,9 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 	return SSH_ERR_INVALID_ARGUMENT;
 #else
 	if (authlen) {
+#ifdef USING_WOLFSSL
+	return SSH_ERR_LIBCRYPTO_ERROR;
+#else
 		u_char lastiv[1];
 
 		if (authlen != cipher_authlen(cc->cipher))
@@ -418,6 +444,7 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_SET_TAG,
 		    authlen, (u_char *)src + aadlen + len))
 			return SSH_ERR_LIBCRYPTO_ERROR;
+#endif /* USING_WOLFSSL */
 	}
 	if (aadlen) {
 		if (authlen &&
@@ -431,6 +458,9 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 	    len) < 0)
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	if (authlen) {
+#ifdef USING_WOLFSSL
+	return SSH_ERR_LIBCRYPTO_ERROR;
+#else
 		/* compute tag (on encrypt) or verify tag (on decrypt) */
 		if (EVP_Cipher(&cc->evp, NULL, NULL, 0) < 0)
 			return cc->encrypt ?
@@ -439,6 +469,7 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
 		    !EVP_CIPHER_CTX_ctrl(&cc->evp, EVP_CTRL_GCM_GET_TAG,
 		    authlen, dest + aadlen + len))
 			return SSH_ERR_LIBCRYPTO_ERROR;
+#endif /* USING_WOLFSSL */
 	}
 	return 0;
 #endif
@@ -533,6 +564,9 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 			return SSH_ERR_INVALID_ARGUMENT;
 		return 0;
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_StoreExternalIV(&cc->evp);
+#endif
 	if ((cc->cipher->flags & CFLAG_AESCTR) != 0) {
 		if (len != sizeof(cc->ac_ctx.ctr))
 			return SSH_ERR_INVALID_ARGUMENT;
@@ -614,10 +648,13 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
 	}
+#ifdef USING_WOLFSSL
+	wolfSSL_SetInternalIV(&cc->evp);
+#endif
 	return 0;
 }
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && !defined(USING_WOLFSSL)
 #define EVP_X_STATE(evp)	(evp).cipher_data
 #define EVP_X_STATE_LEN(evp)	(evp).cipher->ctx_size
 #endif

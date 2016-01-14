@@ -294,10 +294,11 @@ sshpam_password_change_required(int reqd)
 static void
 import_environments(Buffer *b)
 {
+#ifndef UNSUPPORTED_POSIX_THREADS_HACK
 	char *env;
 	u_int i, num_env;
 	int err;
-
+#endif
 	debug3("PAM: %s entering", __func__);
 
 #ifndef UNSUPPORTED_POSIX_THREADS_HACK

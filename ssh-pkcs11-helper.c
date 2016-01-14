@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+
+
 #include <sys/types.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -37,8 +39,7 @@
 #include "authfd.h"
 #include "ssh-pkcs11.h"
 
-#ifdef ENABLE_PKCS11
-
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 /* borrows code from sftp-server and ssh-agent */
 
 struct pkcs11_keyinfo {
@@ -361,7 +362,7 @@ main(int argc, char **argv)
 			process();
 	}
 }
-#else /* ENABLE_PKCS11 */
+#else /* ENABLE_PKCS11 && !USING_WOLFSSL */
 int
 main(int argc, char **argv)
 {
@@ -371,4 +372,4 @@ main(int argc, char **argv)
 	log_init(__progname, SYSLOG_LEVEL_ERROR, SYSLOG_FACILITY_AUTH, 0);
 	fatal("PKCS#11 support disabled at compile time");
 }
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */

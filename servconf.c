@@ -198,8 +198,13 @@ fill_default_server_options(ServerOptions *options)
 	int i;
 
 	/* Portable-specific options */
+#ifdef APPLE_SAPPLE_SANDBOX_NAMED_EXTERNAL
+	if (options->use_pam == -1)
+		options->use_pam = 1;
+#else
 	if (options->use_pam == -1)
 		options->use_pam = 0;
+#endif
 
 	/* Standard Options */
 	if (options->protocol == SSH_PROTO_UNKNOWN)

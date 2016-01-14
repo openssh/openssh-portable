@@ -17,6 +17,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #ifdef ENABLE_PKCS11
 
 #include <sys/types.h>
@@ -240,3 +242,4 @@ pkcs11_del_provider(char *name)
 }
 
 #endif /* ENABLE_PKCS11 */
+#endif /* USING_WOLFSSL */

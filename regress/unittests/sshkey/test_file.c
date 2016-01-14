@@ -19,13 +19,21 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dsa.h>
+#include <wolfssl/openssl/ssl.h>
+#include <wolfssl/openssl/ec.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
-#ifdef OPENSSL_HAS_NISTP256
-# include <openssl/ec.h>
-#endif
+# ifdef openssl_has_nistp256
+#  include <openssl/ec.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "../test_helper/test_helper.h"
 
@@ -289,7 +297,9 @@ sshkey_file_tests(void)
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
 	sshbuf_free(buf);
 	ASSERT_PTR_NE(k1, NULL);
+#ifndef USING_WOLFSSL
 	buf = load_text_file("ecdsa_1.param.curve");
+/* wolfSSL does not have support for OBJ_nid2sn at this time */
 	ASSERT_STRING_EQ((const char *)sshbuf_ptr(buf),
 	    OBJ_nid2sn(k1->ecdsa_nid));
 	sshbuf_free(buf);
@@ -304,6 +314,7 @@ sshkey_file_tests(void)
 	BN_free(a);
 	BN_free(b);
 	BN_free(c);
+#endif
 	TEST_DONE();
 
 	TEST_START("parse ECDSA from private w/ passphrase");

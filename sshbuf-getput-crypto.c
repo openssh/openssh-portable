@@ -23,10 +23,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/ec.h>
+#else
 #include <openssl/bn.h>
-#ifdef OPENSSL_HAS_ECC
-# include <openssl/ec.h>
-#endif /* OPENSSL_HAS_ECC */
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# endif /* OPENSSL_HAS_ECC */
+#endif /* USING_WOLFSSL */
 
 #include "ssherr.h"
 #include "sshbuf.h"
@@ -81,8 +86,13 @@ get_ec(const u_char *d, size_t len, EC_POINT *v, const EC_GROUP *g)
 	/* Only handle uncompressed points */
 	if (*d != POINT_CONVERSION_UNCOMPRESSED)
 		return SSH_ERR_INVALID_FORMAT;
+#ifdef USING_WOLFSSL
+    if (v != NULL && wolfSSL_ECPoint_d2i((unsigned char*) d, len, g, v) != 1)
+        return SSH_ERR_INVALID_FORMAT; /* XXX assumption */
+#else
 	if (v != NULL && EC_POINT_oct2point(g, v, d, len, NULL) != 1)
 		return SSH_ERR_INVALID_FORMAT; /* XXX assumption */
+#endif
 	return 0;
 }
 
@@ -192,10 +202,16 @@ int
 sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 {
 	u_char d[SSHBUF_MAX_ECPOINT];
+#ifndef USING_WOLFSSL
 	BN_CTX *bn_ctx;
 	size_t len;
+#else
+    int err;
+    unsigned int len;
+#endif
 	int ret;
 
+#ifndef USING_WOLFSSL
 	if ((bn_ctx = BN_CTX_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((len = EC_POINT_point2oct(g, v, POINT_CONVERSION_UNCOMPRESSED,
@@ -203,12 +219,29 @@ sshbuf_put_ec(struct sshbuf *buf, const EC_POINT *v, const EC_GROUP *g)
 		BN_CTX_free(bn_ctx);
 		return SSH_ERR_INVALID_ARGUMENT;
 	}
+#else /* !USING_WOLFSSL */
+    err = wolfSSL_ECPoint_i2d(g, v, NULL, &len);
+    if (err != 1 || len <= 0 || len > SSHBUF_MAX_ECPOINT) {
+        return SSH_ERR_INVALID_ARGUMENT;
+    }
+#endif /* !USING_WOLFSSL */
+
+#ifndef USING_WOLFSSL
 	if (EC_POINT_point2oct(g, v, POINT_CONVERSION_UNCOMPRESSED,
 	    d, len, bn_ctx) != len) {
 		BN_CTX_free(bn_ctx);
 		return SSH_ERR_INTERNAL_ERROR; /* Shouldn't happen */
 	}
+#else /* !USING_WOLFSSL */
+    err = wolfSSL_ECPoint_i2d(g, v, d, &len);
+    if (err != 1) {
+        return SSH_ERR_INTERNAL_ERROR;
+    }
+#endif /* !USING_WOLFSSL */
+
+#ifndef USING_WOLFSSL
 	BN_CTX_free(bn_ctx);
+#endif
 	ret = sshbuf_put_string(buf, d, len);
 	explicit_bzero(d, len);
 	return ret;

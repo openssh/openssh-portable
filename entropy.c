@@ -41,11 +41,19 @@
 #include <unistd.h>
 #include <stddef.h> /* for offsetof */
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/crypto.h>
+#include <wolfssl/openssl/err.h>
+#include "openbsd-compat/wolfssl-compat.h"
+#else
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
-
 #include "openbsd-compat/openssl-compat.h"
+#endif
+
+
 
 #include "ssh.h"
 #include "misc.h"
@@ -189,7 +197,7 @@ rexec_send_rng_seed(Buffer *m)
 		error("Couldn't obtain random bytes (error %ld)",
 		    ERR_get_error());
 		buffer_put_string(m, "", 0);
-	} else 
+	} else
 		buffer_put_string(m, buf, sizeof(buf));
 }
 
@@ -213,9 +221,12 @@ seed_rng(void)
 #ifndef OPENSSL_PRNG_ONLY
 	unsigned char buf[RANDOM_SEED_SIZE];
 #endif
+
+#ifndef USING_WOLFSSL
 	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER, SSLeay()))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
 		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
+#endif
 
 #ifndef OPENSSL_PRNG_ONLY
 	if (RAND_status() == 1) {
@@ -241,4 +252,4 @@ seed_rng(void)
 {
 }
 
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL || USING_WOLFSSL */

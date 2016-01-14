@@ -15,8 +15,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
 #ifdef ENABLE_PKCS11
 
 #include <sys/types.h>
@@ -691,3 +693,4 @@ pkcs11_terminate(void)
 }
 
 #endif /* ENABLE_PKCS11 */
+#endif /* USING_WOLFSSL */
