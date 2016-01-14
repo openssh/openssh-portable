@@ -357,7 +357,7 @@ fill_default_server_options(ServerOptions *options)
 				   &socksize, &socksizelen);
 			close(sock);
 			options->hpn_buffer_size = socksize;
-			debug ("HPN Buffer Size: %d", options->hpn_buffer_size);
+			debug("HPN Buffer Size: %d", options->hpn_buffer_size);
 		}
 	} else {
 		/* we have to do this in case the user sets both values in a contradictory */
@@ -639,7 +639,7 @@ parse_token(const char *cp, const char *filename,
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcasecmp(cp, keywords[i].name) == 0) {
-			debug ("Config token is %s", keywords[i].name);
+			debug("Config token is %s", keywords[i].name);
 			*flags = keywords[i].flags;
 			return keywords[i].opcode;
 		}

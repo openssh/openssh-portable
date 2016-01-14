@@ -458,7 +458,7 @@ process_input(fd_set *readset)
 		} else {
 			buffer_append(&stdout_buffer, buf, len);
 			fdout_bytes += len;
-			debug ("FD out now: %ld", fdout_bytes);
+			debug("FD out now: %ld", fdout_bytes);
 		}
 	}
 	/* Read and buffer any available stderr data from the program. */

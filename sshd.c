@@ -2583,17 +2583,17 @@ do_ssh2_kex(void)
 	struct kex *kex;
 	int r;
 
-        if (options.none_enabled == 1)
-                debug ("WARNING: None cipher enabled"); 
+	if (options.none_enabled == 1)
+		debug("WARNING: None cipher enabled");
 
 	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(
-            options.kex_algorithms);
+	    options.kex_algorithms);
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] = compat_cipher_proposal(
 	    options.ciphers);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] = compat_cipher_proposal(
 	    options.ciphers);
-        myproposal[PROPOSAL_MAC_ALGS_CTOS] =
-            myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
+	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
+	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 
 	if (options.compression == COMP_NONE) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =

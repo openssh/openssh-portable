@@ -657,7 +657,7 @@ kex_choose_conf(struct ssh *ssh)
 	int auth_flag;
 
 	auth_flag = packet_authentication_state(ssh);
-	debug ("AUTH STATE IS %d", auth_flag);
+	debug("AUTH STATE IS %d", auth_flag);
 
 	if ((r = kex_buf2prop(kex->my, NULL, &my)) != 0 ||
 	    (r = kex_buf2prop(kex->peer, &first_kex_follows, &peer)) != 0)
@@ -728,11 +728,13 @@ kex_choose_conf(struct ssh *ssh)
 		    newkeys->enc.name,
 		    authlen == 0 ? newkeys->mac.name : "<implicit>",
 		    newkeys->comp.name);
-		/* client starts withctos = 0 && log flag = 0 and no log*/
-		/* 2nd client pass ctos=1 and flag = 1 so no log*/
-		/* server starts with ctos =1 && log_flag = 0 so log */
-		/* 2nd sever pass ctos = 1 && log flag = 1 so no log*/
-		/* -cjr*/
+		/*
+		 * client starts with ctos = 0 && log flag = 0 and no log.
+		 * 2nd client pass ctos = 1 and flag = 1 so no log.
+		 * server starts with ctos = 1 && log_flag = 0 so log.
+		 * 2nd sever pass ctos = 1 && log flag = 1 so no log.
+		 * -cjr
+		 */
 		if (ctos && !log_flag) {
 			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
 			    ssh_get_remote_ipaddr(ssh),

@@ -919,12 +919,14 @@ parse_time:
 	case oNoneEnabled:
 		intptr = &options->none_enabled;
 		goto parse_flag;
- 
-	/* we check to see if the command comes from the */
-	/* command line or not. If it does then enable it */
-	/* otherwise fail. NONE should never be a default configuration */
+
+	/*
+	 * We check to see if the command comes from the command
+	 * line or not. If it does then enable it otherwise fail.
+	 *  NONE should never be a default configuration.
+	 */
 	case oNoneSwitch:
-		if (strcmp(filename,"command-line") == 0) {
+		if (strcmp(filename, "command-line") == 0) {
 			intptr = &options->none_switch;
 			goto parse_flag;
 		} else {
