@@ -8,6 +8,8 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
+
 #include "sc25519.h"
 
 /*Arithmetic modulo the group order m = 2^252 +  27742317777372353535851937790883648493 = 7237005577332262213973186563042994240857116359379907606001950938285454250989 */
@@ -306,3 +308,5 @@ void sc25519_2interleave2(unsigned char r[127], const sc25519 *s1, const sc25519
   r[125] = ((s1->v[31] >> 2) & 3) ^ (((s2->v[31] >> 2) & 3) << 2);
   r[126] = ((s1->v[31] >> 4) & 3) ^ (((s2->v[31] >> 4) & 3) << 2);
 }
+
+#endif /* USING_WOLFSSL */

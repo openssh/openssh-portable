@@ -35,7 +35,11 @@
 #include <string.h>
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#else
 #include <openssl/dh.h>
+#endif
 
 #include "sshkey.h"
 #include "cipher.h"

@@ -32,7 +32,11 @@
 #include <string.h>
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ecdh.h>
+#else
 #include <openssl/ecdh.h>
+#endif
 
 #include "sshkey.h"
 #include "cipher.h"
@@ -204,5 +208,5 @@ input_kex_ecdh_init(int type, u_int32_t seq, void *ctxt)
 	free(signature);
 	return r;
 }
-#endif /* defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC) */
+#endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 

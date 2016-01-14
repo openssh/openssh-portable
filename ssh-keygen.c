@@ -18,11 +18,17 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include "openbsd-compat/openssl-compat.h"
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/pem.h>
+#include "openbsd-compat/wolfssl-compat.h"
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include <openssl/pem.h>
+# include "openbsd-compat/openssl-compat.h"
+# endif
+#endif /* USING_WOLFSSL */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -767,7 +773,7 @@ do_print_public(struct passwd *pw)
 static void
 do_download(struct passwd *pw)
 {
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	struct sshkey **keys = NULL;
 	int i, nkeys;
 	enum sshkey_fp_rep rep;
@@ -805,7 +811,7 @@ do_download(struct passwd *pw)
 	exit(0);
 #else
 	fatal("no pkcs11 support");
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */
 }
 
 static struct sshkey *
@@ -1552,7 +1558,7 @@ prepare_options_buf(struct sshbuf *c, int which)
 static struct sshkey *
 load_pkcs11_key(char *path)
 {
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	struct sshkey **keys = NULL, *public, *private = NULL;
 	int r, i, nkeys;
 
@@ -1576,7 +1582,7 @@ load_pkcs11_key(char *path)
 	return private;
 #else
 	fatal("no pkcs11 support");
-#endif /* ENABLE_PKCS11 */
+#endif /* ENABLE_PKCS11 && !USING_WOLFSSL */
 }
 
 static void
@@ -1588,7 +1594,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
 
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	pkcs11_init(1);
 #endif
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
@@ -1674,7 +1680,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		sshkey_free(public);
 		free(out);
 	}
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	pkcs11_terminate();
 #endif
 	exit(0);
@@ -2210,7 +2216,7 @@ usage(void)
 	    "       ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
 	    "       ssh-keygen -B [-f input_keyfile]\n");
-#ifdef ENABLE_PKCS11
+#if defined(ENABLE_PKCS11) && !defined(USING_WOLFSSL)
 	fprintf(stderr,
 	    "       ssh-keygen -D pkcs11\n");
 #endif
@@ -2269,6 +2275,11 @@ main(int argc, char **argv)
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
 #endif
+
+#ifdef USING_WOLFSSL
+    wolfSSL_Debugging_ON();
+#endif
+
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	seed_rng();

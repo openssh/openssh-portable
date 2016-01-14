@@ -6,6 +6,8 @@
  * Copied from supercop-20130419/crypto_sign/ed25519/ref/sc25519.h
  */
 
+#ifndef USING_WOLFSSL
+
 #ifndef SC25519_H
 #define SC25519_H
 
@@ -78,3 +80,5 @@ void sc25519_window5(signed char r[51], const sc25519 *s);
 void sc25519_2interleave2(unsigned char r[127], const sc25519 *s1, const sc25519 *s2);
 
 #endif
+
+#endif /* USING_WOLFSSL */

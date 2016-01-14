@@ -73,12 +73,20 @@
 #include <unistd.h>
 #include <limits.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/dh.h>
-#include <openssl/bn.h>
-#include <openssl/rand.h>
-#include "openbsd-compat/openssl-compat.h"
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/crypto.h>
+#include <wolfssl/openssl/rand.h>
+#include "openbsd-compat/wolfssl-compat.h"
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/err.h>
+# include <openssl/dh.h>
+# include <openssl/bn.h>
+# include <openssl/rand.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #ifdef HAVE_SECUREWARE
 #include <sys/security.h>
@@ -1636,6 +1644,12 @@ main(int ac, char **av)
 
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
+#endif
+
+#ifdef USING_WOLFSSL
+	wolfSSL_Debugging_ON();
+#else
+	ERR_load_crypto_strings();
 #endif
 
 	/* If requested, redirect the logs to the specified logfile. */

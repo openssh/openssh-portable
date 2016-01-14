@@ -34,7 +34,7 @@
 #include "leakmalloc.h"
 #endif
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && !defined(USING_WOLFSSL)
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
 # else /* OPENSSL_HAS_ECC */
@@ -43,6 +43,10 @@
 #  define EC_POINT	void
 # endif /* OPENSSL_HAS_ECC */
 #else /* WITH_OPENSSL */
+# ifdef USING_WOLFSSL
+# include <wolfssl/openssl/ec.h>
+# include <wolfssl/openssl/dh.h>
+# endif /* USING_WOLFSSL */
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void

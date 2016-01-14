@@ -19,13 +19,21 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dsa.h>
+#include <wolfssl/openssl/ssl.h>
+#include <wolfssl/openssl/ec.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/objects.h>
-#ifdef OPENSSL_HAS_NISTP256
-# include <openssl/ec.h>
-#endif
+# ifdef OPENSSL_HAS_NISTP256
+#  include <openssl/ec.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "../test_helper/test_helper.h"
 

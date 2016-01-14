@@ -18,21 +18,32 @@
 
 #include <termios.h>
 
-#ifdef WITH_OPENSSL
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/ec.h>
+#define EC_KEY   void
+#define EC_GROUP void
+#define EC_POINT void
+#else
+# ifdef WITH_OPENSSL
 # include <openssl/bn.h>
-# ifdef OPENSSL_HAS_ECC
+#  ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
-# else /* OPENSSL_HAS_ECC */
+#  else /* OPENSSL_HAS_ECC */
 #  define EC_KEY	void
 #  define EC_GROUP	void
 #  define EC_POINT	void
-# endif /* OPENSSL_HAS_ECC */
-#else /* WITH_OPENSSL */
+#  endif /* OPENSSL_HAS_ECC */
+# else /* WITH_OPENSSL */
 # define BIGNUM		void
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void
-#endif /* WITH_OPENSSL */
+# endif /* WITH_OPENSSL */
+#endif /* USING_WOLFSSL */
+
+
+
 
 #include <signal.h>
 #include "openbsd-compat/sys-queue.h"

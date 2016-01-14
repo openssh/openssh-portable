@@ -102,4 +102,8 @@ Key	*key_load_private_cert(int, const char *, const char *, int *);
 Key	*key_load_private_type(int, const char *, const char *, char **, int *);
 int	 key_perm_ok(int, const char *);
 
+#ifdef USING_WOLFSSL
+#define ED25519_SIG_SZ  crypto_sign_ed25519_BYTES
+#endif
+
 #endif

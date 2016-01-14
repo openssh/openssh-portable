@@ -33,6 +33,17 @@
 #include "sandbox.h"
 #include "xmalloc.h"
 
+#ifdef APPLE_SANDBOX_NAMED_EXTERNAL
+
+#define APPLE_SANDBOX_FILE_NAME \
+    "/System/Library/Sandbox/Profiles/org.openssh.sshd.sb"
+
+#ifndef SANDBOX_NAMED_EXTERNAL
+    #define SANDBOX_NAMED_EXTERNAL (0x3)
+#endif
+
+#endif /* APPLE_SANDBOX_NAMED_EXTERNAL */
+
 /* Darwin/OS X sandbox */
 
 struct ssh_sandbox {
@@ -62,10 +73,32 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 	struct rlimit rl_zero;
 
 	debug3("%s: starting Darwin sandbox", __func__);
-	if (sandbox_init(kSBXProfilePureComputation, SANDBOX_NAMED,
-	    &errmsg) == -1)
-		fatal("%s: sandbox_init: %s", __func__, errmsg);
+#ifdef APPLE_SANDBOX_NAMED_EXTERNAL
+    if (sandbox_init(APPLE_SANDBOX_FILE_NAME,
+                     SANDBOX_NAMED_EXTERNAL, &errmsg) == -1)
+		fatal("%s: sandbox_init (apple): %s", __func__, errmsg);
 
+    rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+    if (setrlimit(RLIMIT_FSIZE, &rl_zero) == -1)
+        fatal("%s: setrlimit(RLIMIT_FSIZE, { 0, 0 }): %s",
+              __func__, strerror(errno));
+#ifdef USING_WOLFSSL
+    /* opening file is required for random entropy */
+    rl_zero.rlim_cur = rl_zero.rlim_max = 10;
+#else
+    rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+#endif
+    if (setrlimit(RLIMIT_NOFILE, &rl_zero) == -1)
+        fatal("%s: setrlimit(RLIMIT_NOFILE, { 10, 10 }): %s",
+              __func__, strerror(errno));
+    rl_zero.rlim_cur = rl_zero.rlim_max = 0;
+    if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
+        fatal("%s: setrlimit(RLIMIT_NPROC, { 0, 0 }): %s",
+              __func__, strerror(errno));
+#else /* APPLE_SANDBOX_NAMED_EXTERNAL */
+    if (sandbox_init(kSBXProfilePureComputation, SANDBOX_NAMED,
+                     &errmsg) == -1)
+        fatal("%s: sandbox_init: %s", __func__, errmsg);
 	/*
 	 * The kSBXProfilePureComputation still allows sockets, so
 	 * we must disable these using rlimit.
@@ -80,6 +113,7 @@ ssh_sandbox_child(struct ssh_sandbox *box)
 	if (setrlimit(RLIMIT_NPROC, &rl_zero) == -1)
 		fatal("%s: setrlimit(RLIMIT_NPROC, { 0, 0 }): %s",
 			__func__, strerror(errno));
+#endif /* APPLE_SANDBOX_NAMED_EXTERNAL */
 }
 
 void

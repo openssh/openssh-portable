@@ -44,8 +44,13 @@
 #include <sys/param.h>	/* MAX */
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/dh.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -61,7 +66,9 @@
 #include "log.h"
 #include "misc.h"
 
+#ifndef USING_WOLFSSL
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 /*
  * File output defines

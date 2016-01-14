@@ -17,9 +17,12 @@
  */
 
 #define SSH_DONT_OVERLOAD_OPENSSL_FUNCS
+
+#ifndef USING_WOLFSSL
+
 #include "includes.h"
 
-#ifdef WITH_OPENSSL
+# ifdef WITH_OPENSSL
 
 #include <stdarg.h>
 #include <string.h>
@@ -81,4 +84,5 @@ ssh_OpenSSL_add_all_algorithms(void)
 }
 #endif
 
-#endif /* WITH_OPENSSL */
+# endif /* WITH_OPENSSL */
+#endif /* USING_WOLFSSL */

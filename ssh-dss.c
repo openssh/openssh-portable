@@ -29,9 +29,15 @@
 
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/dsa.h>
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
 #include <openssl/evp.h>
+#endif
 
 #include <stdarg.h>
 #include <string.h>
@@ -50,9 +56,13 @@ int
 ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat)
 {
+#ifndef USING_WOLFSSL
 	DSA_SIG *sig = NULL;
+	size_t rlen, slen;
+#endif /* USING_WOLFSSL */
+	
 	u_char digest[SSH_DIGEST_MAX_LENGTH], sigblob[SIGBLOB_LEN];
-	size_t rlen, slen, len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+	size_t len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
 	struct sshbuf *b = NULL;
 	int ret = SSH_ERR_INVALID_ARGUMENT;
 
@@ -71,11 +81,24 @@ ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
+#ifdef USING_WOLFSSL
+	memset(sigblob, 0, SIGBLOB_LEN);
+	ret = wolfSSL_DSA_do_sign(digest, sigblob, key->dsa);
+	explicit_bzero(digest, sizeof(digest));
+
+	if (ret != 1) {
+        ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	} else
+		ret = 0;
+#else /* USING_WOLFSSL */
 	if ((sig = DSA_do_sign(digest, dlen, key->dsa)) == NULL) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+#endif /* USING_WOLFSSL */
 
+#ifndef USING_WOLFSSL
 	rlen = BN_num_bytes(sig->r);
 	slen = BN_num_bytes(sig->s);
 	if (rlen > INTBLOB_LEN || slen > INTBLOB_LEN) {
@@ -85,6 +108,7 @@ ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	explicit_bzero(sigblob, SIGBLOB_LEN);
 	BN_bn2bin(sig->r, sigblob + SIGBLOB_LEN - INTBLOB_LEN - rlen);
 	BN_bn2bin(sig->s, sigblob + SIGBLOB_LEN - slen);
+#endif /* USING_WOLFSSL */
 
 	if (compat & SSH_BUG_SIGBLOB) {
 		if (sigp != NULL) {
@@ -120,9 +144,12 @@ ssh_dss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
  out:
 	explicit_bzero(digest, sizeof(digest));
+#ifndef USING_WOLFSSL
 	if (sig != NULL)
 		DSA_SIG_free(sig);
-	sshbuf_free(b);
+#endif
+	if (b != NULL)
+		sshbuf_free(b);
 	return ret;
 }
 
@@ -131,12 +158,17 @@ ssh_dss_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
     const u_char *data, size_t datalen, u_int compat)
 {
+#ifdef USING_WOLFSSL
+	int dsacheck = 0;
+#else
 	DSA_SIG *sig = NULL;
+#endif /* USING_WOLFSSL */
+	size_t dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+    char *ktype = NULL;
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sigblob = NULL;
-	size_t len, dlen = ssh_digest_bytes(SSH_DIGEST_SHA1);
+	size_t len;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
-	char *ktype = NULL;
 
 	if (key == NULL || key->dsa == NULL ||
 	    sshkey_type_plain(key->type) != KEY_DSA)
@@ -174,6 +206,7 @@ ssh_dss_verify(const struct sshkey *key,
 		goto out;
 	}
 
+#ifndef USING_WOLFSSL
 	/* parse signature */
 	if ((sig = DSA_SIG_new()) == NULL ||
 	    (sig->r = BN_new()) == NULL ||
@@ -186,12 +219,29 @@ ssh_dss_verify(const struct sshkey *key,
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+#endif /* USING_WOLFSSL */
 
 	/* sha1 the data */
 	if ((ret = ssh_digest_memory(SSH_DIGEST_SHA1, data, datalen,
 	    digest, sizeof(digest))) != 0)
 		goto out;
 
+#ifdef USING_WOLFSSL
+	switch (wolfSSL_DSA_do_verify(digest, sigblob, key->dsa, &dsacheck)) {
+	case 1:
+		explicit_bzero(digest, sizeof(digest));
+		ret = 0;
+		break;
+	case 0:
+		explicit_bzero(digest, sizeof(digest));
+		ret = SSH_ERR_SIGNATURE_INVALID;
+		goto out;
+	default:
+		explicit_bzero(digest, sizeof(digest));
+		ret = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+#else
 	switch (DSA_do_verify(digest, dlen, sig, key->dsa)) {
 	case 1:
 		ret = 0;
@@ -208,7 +258,13 @@ ssh_dss_verify(const struct sshkey *key,
 	explicit_bzero(digest, sizeof(digest));
 	if (sig != NULL)
 		DSA_SIG_free(sig);
-	sshbuf_free(b);
+#endif /* USING_WOLFSSL */
+
+#ifdef USING_WOLFSSL
+out:
+#endif
+	if (b != NULL)
+		sshbuf_free(b);
 	free(ktype);
 	if (sigblob != NULL) {
 		explicit_bzero(sigblob, len);
@@ -216,4 +272,4 @@ ssh_dss_verify(const struct sshkey *key,
 	}
 	return ret;
 }
-#endif /* WITH_OPENSSL */
+#endif /* WITH_OPENSSL || USING_WOLFSSL */

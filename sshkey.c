@@ -31,11 +31,18 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/pem.h>
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/pem.h>
+#include "log.h"
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include <openssl/err.h>
+# include <openssl/pem.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "crypto_api.h"
 
@@ -2863,13 +2870,21 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 		return SSH_ERR_ALLOC_FAIL;
 	BN_CTX_start(bnctx);
 
-	/*
-	 * We shouldn't ever hit this case because bignum_get_ecpoint()
-	 * refuses to load GF2m points.
-	 */
-	if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
-	    NID_X9_62_prime_field)
-		goto out;
+#ifdef USING_WOLFSSL
+    /* check curve nid value */
+    if (sshkey_curve_nid_to_bits(group->curve_nid) == 0) {
+        goto out;
+    }
+#else
+    /*
+     * We shouldn't ever hit this case because bignum_get_ecpoint()
+     * refuses to load GF2m points.
+     */
+    if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
+        NID_X9_62_prime_field) {
+        goto out;
+    }
+#endif /* USING_WOLFSSL */
 
 	/* Q != infinity */
 	if (EC_POINT_is_at_infinity(group, public))
@@ -2963,13 +2978,25 @@ sshkey_ec_validate_private(const EC_KEY *key)
 void
 sshkey_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 {
+#ifdef USING_WOLFSSL
+    BIGNUM *x = NULL, *y = NULL;
+    BN_CTX *bnctx = NULL;
+#else
 	BIGNUM *x, *y;
 	BN_CTX *bnctx;
+#endif
 
 	if (point == NULL) {
 		fputs("point=(NULL)\n", stderr);
 		return;
 	}
+
+#ifdef USING_WOLFSSL
+    if (sshkey_curve_nid_to_bits(group->curve_nid) == 0) {
+        fprintf(stderr, "%s: unsupported group", __func__);
+        return;
+    }
+#else
 	if ((bnctx = BN_CTX_new()) == NULL) {
 		fprintf(stderr, "%s: BN_CTX_new failed\n", __func__);
 		return;
@@ -2985,6 +3012,9 @@ sshkey_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 		fprintf(stderr, "%s: group is not a prime field\n", __func__);
 		return;
 	}
+#endif /* USING_WOLFSSL */
+
+
 	if (EC_POINT_get_affine_coordinates_GFp(group, point, x, y,
 	    bnctx) != 1) {
 		fprintf(stderr, "%s: EC_POINT_get_affine_coordinates_GFp\n",
@@ -3492,6 +3522,7 @@ sshkey_private_rsa1_to_blob(struct sshkey *key, struct sshbuf *blob,
 
 #ifdef WITH_OPENSSL
 /* convert SSH v2 key in OpenSSL PEM format */
+# ifndef USING_WOLFSSL
 static int
 sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *blob,
     const char *_passphrase, const char *comment)
@@ -3546,6 +3577,57 @@ sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *blob,
 	BIO_free(bio);
 	return r;
 }
+# else /* !USING_WOLFSSL */
+static int
+sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *blob,
+    const char *_passphrase, const char *comment)
+{
+    int success = 0, r;
+    int blen = 0, len = strlen(_passphrase);
+    u_char *passphrase = (len > 0) ? (u_char *)_passphrase : NULL;
+    const EVP_CIPHER *cipher = (len > 0) ? EVP_aes_128_cbc() : NULL;
+    u_char *bptr;
+
+    if (len > 0 && len <= 4)
+        return SSH_ERR_PASSPHRASE_TOO_SHORT;
+
+    switch (key->type) {
+    case KEY_DSA:
+            success = wolfSSL_PEM_write_mem_DSAPrivateKey(key->dsa, cipher,
+                                                          passphrase, len,
+                                                          &bptr, &blen);
+            break;
+#ifdef OPENSSL_HAS_ECC
+    case KEY_ECDSA:
+            success = wolfSSL_PEM_write_mem_ECPrivateKey(key->ecdsa, cipher,
+                                                         passphrase, len,
+                                                         &bptr, &blen);
+            break;
+#endif
+    case KEY_RSA:
+            success = wolfSSL_PEM_write_mem_RSAPrivateKey(key->rsa, cipher,
+                                                          passphrase, len,
+                                                          &bptr, &blen);
+            break;
+    default:
+        success = 0;
+        break;
+    }
+
+    if (success == 0) {
+        r = SSH_ERR_LIBCRYPTO_ERROR;
+        goto out;
+    }
+    if ((r = sshbuf_put(blob, bptr, blen)) != 0)
+        goto out;
+
+    r = 0;
+
+ out:
+    return r;
+}
+
+# endif /* !USING_WOLFSSL */
 #endif /* WITH_OPENSSL */
 
 /* Serialise "key" to buffer "blob" */
@@ -3760,6 +3842,113 @@ sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
 #endif /* WITH_SSH1 */
 
 #ifdef WITH_OPENSSL
+# ifdef USING_WOLFSSL
+static int
+sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
+    const char *passphrase, struct sshkey **keyp)
+{
+    struct sshkey *prv = NULL;
+    unsigned char der[4096];
+    int gotKey = 0;
+    int derSz;
+    int r = 0;
+    /* char *name = "<no key>";           now deprecated in this function */
+
+    *keyp = NULL;
+    if ( (derSz = wolfSSL_KeyPemToDer(buffer_ptr(blob), buffer_len(blob), der,
+                                      sizeof(der), passphrase)) < 0) {
+        r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+        goto out; 
+    }
+
+
+    if (type == KEY_UNSPEC || type == KEY_RSA) {
+        RSA* rsa;
+
+        debug("trying RSA key type");
+
+        rsa = RSA_new();
+        if (rsa == NULL) {
+            r = SSH_ERR_LIBCRYPTO_ERROR;
+            goto out;
+        }
+
+        r = wolfSSL_RSA_LoadDer(rsa, der, derSz);
+        if (r < 0) { 
+            RSA_free(rsa);
+        }
+        else {
+            prv = sshkey_new(KEY_UNSPEC);
+            prv->rsa = rsa;
+            prv->type = KEY_RSA;
+            /* name = "rsa w/o comment";   now deprecated in this function */
+            gotKey = 1;
+        }
+    }
+
+    if (gotKey == 0 && (type == KEY_UNSPEC || type == KEY_DSA) ) {
+        DSA* dsa;
+
+        debug("trying DSA key type");
+
+        dsa = DSA_new();
+        if (dsa == NULL) {
+            r = SSH_ERR_LIBCRYPTO_ERROR;
+            goto out;
+        }
+
+        r = wolfSSL_DSA_LoadDer(dsa, der, derSz);
+        if (r < 0) {
+            DSA_free(dsa);
+        }
+        else {
+            prv = sshkey_new(KEY_UNSPEC);
+            prv->dsa = dsa;
+            prv->type = KEY_DSA;
+            /* name = "Dsa w/o comment";   now deprecated in this function */
+            gotKey = 1;
+        }
+    }
+    if (gotKey == 0 && (type == KEY_UNSPEC || type==KEY_ECDSA) ) {
+        EC_KEY* eckey;
+
+        debug("trying EC_KEY type");
+
+        eckey = EC_KEY_new();
+        if (eckey == NULL) {
+            r = SSH_ERR_LIBCRYPTO_ERROR;
+            goto out;
+        }
+
+        r = wolfSSL_EC_KEY_LoadDer(eckey, der, derSz);
+        if (r < 0) {
+            EC_KEY_free(eckey);
+        }
+        else {
+            prv = sshkey_new(KEY_UNSPEC);
+            prv->ecdsa = eckey;
+            prv->type = KEY_ECDSA;
+            prv->ecdsa_nid = eckey->group->curve_nid;
+            /* name = "ECDsa w/o comment";   now deprecated in this function */
+            gotKey = 1;
+        }
+    }
+
+    if (gotKey == 0) {
+	r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+	goto out;
+    }
+
+    r = 0;
+    *keyp = prv;
+    prv = NULL;
+
+ out:
+    if (prv != NULL)
+	sshkey_free(prv);
+    return r;
+}
+# else /* USING_WOLFSSL */
 static int
 sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp)
@@ -3847,6 +4036,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	sshkey_free(prv);
 	return r;
 }
+# endif /* USING_WOLFSSL  */
 #endif /* WITH_OPENSSL */
 
 int

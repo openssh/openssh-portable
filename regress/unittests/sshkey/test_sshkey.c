@@ -16,12 +16,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dsa.h>
+# if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
+#  include <wolfssl/openssl/ec.h>
+# endif
+#else /* USING_WOLFSSL */
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
-#if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
-# include <openssl/ec.h>
-#endif
+# if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
+#  include <openssl/ec.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "../test_helper/test_helper.h"
 
@@ -367,7 +376,10 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(k1->ecdsa, NULL);
 	ASSERT_INT_EQ(k1->ecdsa_nid, ke->ecdsa_nid);
 	ASSERT_PTR_NE(EC_KEY_get0_public_key(ke->ecdsa), NULL);
+# ifndef USING_WOLFSSL
+/* NULL != (nil) */
 	ASSERT_PTR_EQ(EC_KEY_get0_private_key(k1->ecdsa), NULL);
+# endif
 	TEST_DONE();
 
 	TEST_START("equal KEY_ECDSA/demoted KEY_ECDSA");

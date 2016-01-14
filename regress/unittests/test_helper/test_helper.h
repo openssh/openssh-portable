@@ -27,8 +27,13 @@
 # include <stdint.h>
 #endif
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/err.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/err.h>
+#endif
 
 enum test_predicate {
 	TEST_EQ, TEST_NE, TEST_LT, TEST_LE, TEST_GT, TEST_GE
