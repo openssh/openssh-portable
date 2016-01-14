@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.270 2016/01/14 16:17:40 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.271 2016/01/14 22:56:56 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -167,6 +167,7 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 
 	if ((sock = mm_receive_fd(sp[1])) == -1)
 		fatal("proxy dialer did not pass back a connection");
+	close(sp[1]);
 
 	while (waitpid(pid, NULL, 0) == -1)
 		if (errno != EINTR)

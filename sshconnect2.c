@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.236 2016/01/14 16:17:40 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.237 2016/01/14 22:56:56 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1344,6 +1344,7 @@ pubkey_prepare(Authctxt *authctxt)
 		if (r != SSH_ERR_AGENT_NO_IDENTITIES)
 			debug("%s: ssh_fetch_identitylist: %s",
 			    __func__, ssh_err(r));
+		close(agent_fd);
 	} else {
 		for (j = 0; j < idlist->nkeys; j++) {
 			found = 0;
