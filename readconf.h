@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.112 2015/11/15 22:26:49 jcs Exp $ */
+/* $OpenBSD: readconf.h,v 1.113 2016/01/14 16:17:40 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -136,8 +136,6 @@ typedef struct {
 	char	*local_command;
 	int	permit_local_command;
 	int	visual_host_key;
-
-	int	use_roaming;
 
 	int	request_tty;
 

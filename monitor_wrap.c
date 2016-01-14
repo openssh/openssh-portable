@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.86 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.87 2016/01/14 16:17:40 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -80,7 +80,6 @@
 #include "channels.h"
 #include "session.h"
 #include "servconf.h"
-#include "roaming.h"
 
 #include "ssherr.h"
 

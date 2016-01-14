@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.247 2016/01/14 14:34:34 deraadt Exp $ */
+/* $OpenBSD: readconf.c,v 1.248 2016/01/14 16:17:40 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -152,7 +152,7 @@ typedef enum {
 	oSendEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
-	oVisualHostKey, oUseRoaming,
+	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
@@ -263,7 +263,7 @@ static struct {
 	{ "localcommand", oLocalCommand },
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
-	{ "useroaming", oUseRoaming },
+	{ "useroaming", oDeprecated },
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
@@ -1425,10 +1425,6 @@ parse_keytypes:
 		}
 		break;
 
-	case oUseRoaming:
-		intptr = &options->use_roaming;
-		goto parse_flag;
-
 	case oRequestTTY:
 		intptr = &options->request_tty;
 		multistate_ptr = multistate_requesttty;
@@ -1713,7 +1709,6 @@ initialize_options(Options * options)
 	options->tun_remote = -1;
 	options->local_command = NULL;
 	options->permit_local_command = -1;
-	options->use_roaming = 0;
 	options->add_keys_to_agent = -1;
 	options->visual_host_key = -1;
 	options->ip_qos_interactive = -1;
@@ -1889,7 +1884,6 @@ fill_default_options(Options * options)
 		options->tun_remote = SSH_TUNID_ANY;
 	if (options->permit_local_command == -1)
 		options->permit_local_command = 0;
-	options->use_roaming = 0;
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
 	if (options->ip_qos_interactive == -1)

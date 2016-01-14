@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.74 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: kex.h,v 1.75 2016/01/14 16:17:39 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -54,7 +54,6 @@
 #define	KEX_DH14		"diffie-hellman-group14-sha1"
 #define	KEX_DHGEX_SHA1		"diffie-hellman-group-exchange-sha1"
 #define	KEX_DHGEX_SHA256	"diffie-hellman-group-exchange-sha256"
-#define	KEX_RESUME		"resume@appgate.com"
 #define	KEX_ECDH_SHA2_NISTP256	"ecdh-sha2-nistp256"
 #define	KEX_ECDH_SHA2_NISTP384	"ecdh-sha2-nistp384"
 #define	KEX_ECDH_SHA2_NISTP521	"ecdh-sha2-nistp521"
@@ -133,7 +132,6 @@ struct kex {
 	int	hostkey_type;
 	int	hostkey_nid;
 	u_int	kex_type;
-	int	roaming;
 	int	rsa_sha2;
 	int	ext_info_c;
 	struct sshbuf *my;

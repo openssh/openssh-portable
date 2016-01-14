@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.115 2015/12/13 22:42:23 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.116 2016/01/14 16:17:39 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -49,7 +49,6 @@
 #include "misc.h"
 #include "dispatch.h"
 #include "monitor.h"
-#include "roaming.h"
 
 #include "ssherr.h"
 #include "sshbuf.h"
@@ -746,17 +745,6 @@ kex_choose_conf(struct ssh *ssh)
 	} else {
 		cprop=my;
 		sprop=peer;
-	}
-
-	/* Check whether server offers roaming */
-	if (!kex->server) {
-		char *roaming = match_list(KEX_RESUME,
-		    peer[PROPOSAL_KEX_ALGS], NULL);
-
-		if (roaming) {
-			kex->roaming = 1;
-			free(roaming);
-		}
 	}
 
 	/* Check whether client supports ext_info_c */

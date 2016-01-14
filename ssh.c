@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.434 2016/01/14 14:34:34 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.435 2016/01/14 16:17:40 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -105,7 +105,6 @@
 #include "match.h"
 #include "msg.h"
 #include "uidswap.h"
-#include "roaming.h"
 #include "version.h"
 #include "ssherr.h"
 #include "myproposal.h"

@@ -39,8 +39,6 @@ do { \
 void	 packet_close(void);
 u_int	 packet_get_char(void);
 u_int	 packet_get_int(void);
-void	 packet_backup_state(void);
-void	 packet_restore_state(void);
 void     packet_set_connection(int, int);
 int	 packet_read_seqnr(u_int32_t *);
 int	 packet_read_poll_seqnr(u_int32_t *);

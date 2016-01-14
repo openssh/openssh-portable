@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.235 2015/12/11 02:31:47 mmcc Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.236 2016/01/14 16:17:40 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -219,10 +219,6 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 
 	dispatch_run(DISPATCH_BLOCK, &kex->done, active_state);
 
-	if (options.use_roaming && !kex->roaming) {
-		debug("Roaming not allowed by server");
-		options.use_roaming = 0;
-	}
 	/* remove ext-info from the KEX proposals for rekeying */
 	myproposal[PROPOSAL_KEX_ALGS] =
 	    compat_kex_proposal(options.kex_algorithms);
