@@ -1,4 +1,4 @@
-wolfSSL library can be used in replacement of OpenSSL in the OpenSSH 6.6-p1
+wolfSSL library can be used in replacement of OpenSSL in the OpenSSH 7.1-p1
 version. In that case, only the protocol version 2 is supported by OpenSSH. We
 describe here the installation procedure for wolfSSL and OpenSSH.
 
@@ -23,9 +23,10 @@ II. Make OpenSSH with the support of wolfSSL in replacement of OpenSSL
     2. compile ssh tools:
         make clean && make
     3. do the test suite:
-        a. to activate tests that used SUDO, uncomment the line #SUDO=`which sudo` in regress/test-exec.sh
-		b. make tests
-    4. install the tools (optionnal)
+        a. make tests
+        b. to re-run with tests that use SUDO, uncomment the line #SUDO=`which sudo` in regress/test-exec.sh
+		
+    4. install the tools (optional)
         sudo make install
 
 --------------------------------
@@ -71,5 +72,5 @@ II. Make OpenSSH with the support of wolfSSL in replacement of OpenSSL
     3. do the test suite:
         a. to activate tests that used SUDO, uncomment the line #SUDO=`which sudo` in regress/test-exec.sh
 		b. make tests
-    4. install the tools (optionnal)
+    4. install the tools (optional)
         sudo make install
