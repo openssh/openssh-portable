@@ -90,6 +90,7 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	TEST_START("sshkey_generate");
 	ASSERT_INT_EQ(sshkey_generate(keytype, bits, &private), 0);
 	TEST_DONE();
+
 	TEST_START("sshkey_from_private");
 	ASSERT_INT_EQ(sshkey_from_private(private, &public), 0);
 	TEST_DONE();
