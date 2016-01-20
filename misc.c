@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.100 2015/12/04 21:51:06 tobias Exp $ */
+/* $OpenBSD: misc.c,v 1.101 2016/01/20 09:22:39 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/un.h>
 
 #include <limits.h>
