@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.280 2016/01/14 16:17:39 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.281 2016/01/23 05:31:35 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1787,7 +1787,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	}
 
 	/* Clear and free any buffers. */
-	memset(buf, 0, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 	buffer_free(&stdin_buffer);
 	buffer_free(&stdout_buffer);
 	buffer_free(&stderr_buffer);
