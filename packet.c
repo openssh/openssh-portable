@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.224 2016/01/29 02:54:45 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.225 2016/01/29 03:31:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2254,21 +2254,16 @@ int
 ssh_packet_need_rekeying(struct ssh *ssh)
 {
 	struct session_state *state = ssh->state;
-	u_int32_t buf_in, buf_out;
 
 	if (ssh->compat & SSH_BUG_NOREKEY)
 		return 0;
-	buf_in = roundup(sshbuf_len(state->input),
-	    state->newkeys[MODE_IN]->enc.block_size);
-	buf_out = roundup(sshbuf_len(state->output),
-	    state->newkeys[MODE_OUT]->enc.block_size);
 	return
 	    (state->p_send.packets > MAX_PACKETS) ||
 	    (state->p_read.packets > MAX_PACKETS) ||
 	    (state->max_blocks_out &&
-	        (state->p_send.blocks + buf_out > state->max_blocks_out)) ||
+	        (state->p_send.blocks > state->max_blocks_out)) ||
 	    (state->max_blocks_in &&
-	        (state->p_read.blocks + buf_in > state->max_blocks_in)) ||
+	        (state->p_read.blocks > state->max_blocks_in)) ||
 	    (state->rekey_interval != 0 && state->rekey_time +
 		 state->rekey_interval <= monotime());
 }
