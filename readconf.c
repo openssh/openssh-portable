@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.248 2016/01/14 16:17:40 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.249 2016/01/29 02:54:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -976,16 +976,12 @@ parse_time:
 			if (scan_scaled(arg, &val64) == -1)
 				fatal("%.200s line %d: Bad number '%s': %s",
 				    filename, linenum, arg, strerror(errno));
-			/* check for too-large or too-small limits */
-			if (val64 > UINT_MAX)
-				fatal("%.200s line %d: RekeyLimit too large",
-				    filename, linenum);
 			if (val64 != 0 && val64 < 16)
 				fatal("%.200s line %d: RekeyLimit too small",
 				    filename, linenum);
 		}
 		if (*activep && options->rekey_limit == -1)
-			options->rekey_limit = (u_int32_t)val64;
+			options->rekey_limit = val64;
 		if (s != NULL) { /* optional rekey interval present */
 			if (strcmp(s, "none") == 0) {
 				(void)strdelim(&s);	/* discard */
@@ -2436,8 +2432,8 @@ dump_client_config(Options *o, const char *host)
 	printf("%s\n", iptos2str(o->ip_qos_bulk));
 
 	/* oRekeyLimit */
-	printf("rekeylimit %lld %d\n",
-	    (long long)o->rekey_limit, o->rekey_interval);
+	printf("rekeylimit %llu %d\n",
+	    (unsigned long long)o->rekey_limit, o->rekey_interval);
 
 	/* oStreamLocalBindMask */
 	printf("streamlocalbindmask 0%o\n",

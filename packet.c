@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.223 2016/01/29 02:42:46 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.224 2016/01/29 02:54:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,8 +180,7 @@ struct session_state {
 	struct packet_state p_read, p_send;
 
 	/* Volume-based rekeying */
-	u_int64_t max_blocks_in, max_blocks_out;
-	u_int32_t rekey_limit;
+	u_int64_t max_blocks_in, max_blocks_out, rekey_limit;
 
 	/* Time-based rekeying */
 	u_int32_t rekey_interval;	/* how often in seconds */
@@ -953,7 +952,10 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		max_blocks = &state->max_blocks_in;
 	}
 	if (state->newkeys[mode] != NULL) {
-		debug("set_newkeys: rekeying");
+		debug("set_newkeys: rekeying, input %llu bytes %llu blocks, "
+		   "output %llu bytes %llu blocks",
+		   state->p_read.bytes, state->p_read.blocks,
+		   state->p_send.bytes, state->p_send.blocks);
 		if ((r = cipher_cleanup(cc)) != 0)
 			return r;
 		enc  = &state->newkeys[mode]->enc;
@@ -1021,6 +1023,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	if (state->rekey_limit)
 		*max_blocks = MIN(*max_blocks,
 		    state->rekey_limit / enc->block_size);
+	debug("rekey after %llu blocks", *max_blocks);
 	return 0;
 }
 
@@ -2271,9 +2274,9 @@ ssh_packet_need_rekeying(struct ssh *ssh)
 }
 
 void
-ssh_packet_set_rekey_limits(struct ssh *ssh, u_int32_t bytes, time_t seconds)
+ssh_packet_set_rekey_limits(struct ssh *ssh, u_int64_t bytes, time_t seconds)
 {
-	debug3("rekey after %lld bytes, %d seconds", (long long)bytes,
+	debug3("rekey after %llu bytes, %d seconds", (unsigned long long)bytes,
 	    (int)seconds);
 	ssh->state->rekey_limit = bytes;
 	ssh->state->rekey_interval = seconds;
@@ -2431,7 +2434,7 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 		if ((r = kex_to_blob(m, ssh->kex)) != 0 ||
 		    (r = newkeys_to_blob(m, ssh, MODE_OUT)) != 0 ||
 		    (r = newkeys_to_blob(m, ssh, MODE_IN)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->rekey_limit)) != 0 ||
+		    (r = sshbuf_put_u64(m, state->rekey_limit)) != 0 ||
 		    (r = sshbuf_put_u32(m, state->rekey_interval)) != 0 ||
 		    (r = sshbuf_put_u32(m, state->p_send.seqnr)) != 0 ||
 		    (r = sshbuf_put_u64(m, state->p_send.blocks)) != 0 ||
@@ -2610,7 +2613,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 		if ((r = kex_from_blob(m, &ssh->kex)) != 0 ||
 		    (r = newkeys_from_blob(m, ssh, MODE_OUT)) != 0 ||
 		    (r = newkeys_from_blob(m, ssh, MODE_IN)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->rekey_limit)) != 0 ||
+		    (r = sshbuf_get_u64(m, &state->rekey_limit)) != 0 ||
 		    (r = sshbuf_get_u32(m, &state->rekey_interval)) != 0 ||
 		    (r = sshbuf_get_u32(m, &state->p_send.seqnr)) != 0 ||
 		    (r = sshbuf_get_u64(m, &state->p_send.blocks)) != 0 ||
