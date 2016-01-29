@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.225 2016/01/29 03:31:03 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.226 2016/01/29 05:46:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1065,6 +1065,20 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 	return 0;
 }
 
+/* Used to mute debug logging for noisy packet types */
+static int
+ssh_packet_log_type(u_char type)
+{
+	switch (type) {
+	case SSH2_MSG_CHANNEL_DATA:
+	case SSH2_MSG_CHANNEL_EXTENDED_DATA:
+	case SSH2_MSG_CHANNEL_WINDOW_ADJUST:
+		return 0;
+	default:
+		return 1;
+	}
+}
+
 /*
  * Finalize packet in SSH2 format (compress, mac, encrypt, enqueue)
  */
@@ -1093,7 +1107,8 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	aadlen = (mac && mac->enabled && mac->etm) || authlen ? 4 : 0;
 
 	type = (sshbuf_ptr(state->outgoing_packet))[5];
-
+	if (ssh_packet_log_type(type))
+		debug3("send packet: type %u", type);
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "plain:     ");
 	sshbuf_dump(state->outgoing_packet, stderr);
@@ -1746,6 +1761,8 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	 */
 	if ((r = sshbuf_get_u8(state->incoming_packet, typep)) != 0)
 		goto out;
+	if (ssh_packet_log_type(*typep))
+		debug3("receive packet: type %u", *typep);
 	if (*typep < SSH2_MSG_MIN || *typep >= SSH2_MSG_LOCAL_MIN) {
 		if ((r = sshpkt_disconnect(ssh,
 		    "Invalid ssh2 packet type: %d", *typep)) != 0 ||
