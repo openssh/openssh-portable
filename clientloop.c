@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.281 2016/01/23 05:31:35 jsg Exp $ */
+/* $OpenBSD: clientloop.c,v 1.282 2016/01/29 23:04:46 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -167,8 +167,6 @@ static u_int x11_refuse_time;	/* If >0, refuse x11 opens after this time. */
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
-
-int	session_resumed = 0;
 
 /* Track escape per proto2 channel */
 struct escape_filter_ctx {
@@ -1684,14 +1682,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			 * the connection is processed elsewhere (above).
 			 */
 			client_process_output(writeset);
-		}
-
-		if (session_resumed) {
-			connection_in = packet_get_connection_in();
-			connection_out = packet_get_connection_out();
-			max_fd = MAX(max_fd, connection_out);
-			max_fd = MAX(max_fd, connection_in);
-			session_resumed = 0;
 		}
 
 		/*
