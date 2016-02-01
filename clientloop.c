@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.282 2016/01/29 23:04:46 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.283 2016/02/01 21:18:17 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -318,8 +318,9 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 	proto[0] = data[0] = xauthfile[0] = xauthdir[0] = '\0';
 
 	if (!client_x11_display_valid(display)) {
-		logit("DISPLAY \"%s\" invalid; disabling X11 forwarding",
-		    display);
+		if (display != NULL)
+			logit("DISPLAY \"%s\" invalid; disabling X11 forwarding",
+			    display);
 		return -1;
 	}
 	if (xauth_path != NULL && stat(xauth_path, &st) == -1) {
