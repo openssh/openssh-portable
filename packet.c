@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.226 2016/01/29 05:46:01 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.227 2016/02/04 23:43:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -954,8 +954,10 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	if (state->newkeys[mode] != NULL) {
 		debug("set_newkeys: rekeying, input %llu bytes %llu blocks, "
 		   "output %llu bytes %llu blocks",
-		   state->p_read.bytes, state->p_read.blocks,
-		   state->p_send.bytes, state->p_send.blocks);
+		   (unsigned long long)state->p_read.bytes,
+		   (unsigned long long)state->p_read.blocks,
+		   (unsigned long long)state->p_send.bytes,
+		   (unsigned long long)state->p_send.blocks);
 		if ((r = cipher_cleanup(cc)) != 0)
 			return r;
 		enc  = &state->newkeys[mode]->enc;
@@ -1023,7 +1025,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	if (state->rekey_limit)
 		*max_blocks = MIN(*max_blocks,
 		    state->rekey_limit / enc->block_size);
-	debug("rekey after %llu blocks", *max_blocks);
+	debug("rekey after %llu blocks", (unsigned long long)*max_blocks);
 	return 0;
 }
 
