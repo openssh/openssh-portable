@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.237 2016/01/14 22:56:56 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.238 2016/02/05 04:31:21 jsg Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1198,7 +1198,7 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 static Key *
 load_identity_file(Identity *id)
 {
-	Key *private;
+	Key *private = NULL;
 	char prompt[300], *passphrase, *comment;
 	int r, perm_ok = 0, quit = 0, i;
 	struct stat st;
