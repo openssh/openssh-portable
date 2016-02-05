@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.348 2015/10/15 23:51:40 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.349 2016/02/05 13:28:19 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1896,13 +1896,13 @@ read_mux(Channel *c, u_int need)
 	if (buffer_len(&c->input) < need) {
 		rlen = need - buffer_len(&c->input);
 		len = read(c->rfd, buf, MIN(rlen, CHAN_RBUF));
+		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			return buffer_len(&c->input);
 		if (len <= 0) {
-			if (errno != EINTR && errno != EAGAIN) {
-				debug2("channel %d: ctl read<=0 rfd %d len %d",
-				    c->self, c->rfd, len);
-				chan_read_failed(c);
-				return 0;
-			}
+			debug2("channel %d: ctl read<=0 rfd %d len %d",
+			    c->self, c->rfd, len);
+			chan_read_failed(c);
+			return 0;
 		} else
 			buffer_append(&c->input, buf, len);
 	}
