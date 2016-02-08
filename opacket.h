@@ -125,8 +125,6 @@ void	packet_disconnect(const char *, ...)
 	sshpkt_add_padding(active_state, (pad))
 #define packet_send_ignore(nbytes) \
 	ssh_packet_send_ignore(active_state, (nbytes))
-#define packet_need_rekeying() \
-	ssh_packet_need_rekeying(active_state)
 #define packet_set_server() \
 	ssh_packet_set_server(active_state)
 #define packet_set_authenticated() \

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.181 2016/01/14 16:17:40 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.182 2016/02/08 10:57:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -820,7 +820,7 @@ void
 server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int rekeying = 0, max_fd;
+	int max_fd;
 	u_int nalloc = 0;
 	u_int64_t rekey_timeout_ms = 0;
 
@@ -847,11 +847,11 @@ server_loop2(Authctxt *authctxt)
 	for (;;) {
 		process_buffered_input_packets();
 
-		rekeying = (active_state->kex != NULL && !active_state->kex->done);
-
-		if (!rekeying && packet_not_very_much_data_to_write())
+		if (!ssh_packet_is_rekeying(active_state) &&
+		    packet_not_very_much_data_to_write())
 			channel_output_poll();
-		if (options.rekey_interval > 0 && compat20 && !rekeying)
+		if (options.rekey_interval > 0 && compat20 &&
+		    !ssh_packet_is_rekeying(active_state))
 			rekey_timeout_ms = packet_get_rekey_timeout() * 1000;
 		else
 			rekey_timeout_ms = 0;
@@ -866,14 +866,8 @@ server_loop2(Authctxt *authctxt)
 		}
 
 		collect_children();
-		if (!rekeying) {
+		if (!ssh_packet_is_rekeying(active_state))
 			channel_after_select(readset, writeset);
-			if (packet_need_rekeying()) {
-				debug("need rekeying");
-				active_state->kex->done = 0;
-				kex_send_kexinit(active_state);
-			}
-		}
 		process_input(readset);
 		if (connection_closed)
 			break;

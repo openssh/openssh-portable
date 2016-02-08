@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.283 2016/02/01 21:18:17 millert Exp $ */
+/* $OpenBSD: clientloop.c,v 1.284 2016/02/08 10:57:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1502,7 +1502,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 {
 	fd_set *readset = NULL, *writeset = NULL;
 	double start_time, total_time;
-	int r, max_fd = 0, max_fd2 = 0, len, rekeying = 0;
+	int r, max_fd = 0, max_fd2 = 0, len;
 	u_int64_t ibytes, obytes;
 	u_int nalloc = 0;
 	char buf[100];
@@ -1617,10 +1617,15 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (compat20 && session_closed && !channel_still_open())
 			break;
 
-		rekeying = (active_state->kex != NULL && !active_state->kex->done);
-
-		if (rekeying) {
+		if (ssh_packet_is_rekeying(active_state)) {
 			debug("rekeying in progress");
+		} else if (need_rekeying) {
+			/* manual rekey request */
+			debug("need rekeying");
+			if ((r = kex_start_rekex(active_state)) != 0)
+				fatal("%s: kex_start_rekex: %s", __func__,
+				    ssh_err(r));
+			need_rekeying = 0;
 		} else {
 			/*
 			 * Make packets of buffered stdin data, and buffer
@@ -1651,23 +1656,14 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		 */
 		max_fd2 = max_fd;
 		client_wait_until_can_do_something(&readset, &writeset,
-		    &max_fd2, &nalloc, rekeying);
+		    &max_fd2, &nalloc, ssh_packet_is_rekeying(active_state));
 
 		if (quit_pending)
 			break;
 
 		/* Do channel operations unless rekeying in progress. */
-		if (!rekeying) {
+		if (!ssh_packet_is_rekeying(active_state))
 			channel_after_select(readset, writeset);
-			if (need_rekeying || packet_need_rekeying()) {
-				debug("need rekeying");
-				active_state->kex->done = 0;
-				if ((r = kex_send_kexinit(active_state)) != 0)
-					fatal("%s: kex_send_kexinit: %s",
-					    __func__, ssh_err(r));
-				need_rekeying = 0;
-			}
-		}
 
 		/* Buffer input from the connection.  */
 		client_process_net_input(readset);

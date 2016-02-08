@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.116 2016/01/14 16:17:39 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.117 2016/02/08 10:57:07 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -604,6 +604,25 @@ kex_setup(struct ssh *ssh, char *proposal[PROPOSAL_MAX])
 		return r;
 	}
 	return 0;
+}
+
+/*
+ * Request key re-exchange, returns 0 on success or a ssherr.h error
+ * code otherwise. Must not be called if KEX is incomplete or in-progress.
+ */
+int
+kex_start_rekex(struct ssh *ssh)
+{
+	if (ssh->kex == NULL) {
+		error("%s: no kex", __func__);
+		return SSH_ERR_INTERNAL_ERROR;
+	}
+	if (ssh->kex->done == 0) {
+		error("%s: requested twice", __func__);
+		return SSH_ERR_INTERNAL_ERROR;
+	}
+	ssh->kex->done = 0;
+	return kex_send_kexinit(ssh);
 }
 
 static int

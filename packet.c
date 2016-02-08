@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.227 2016/02/04 23:43:48 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.228 2016/02/08 10:57:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -257,6 +257,14 @@ ssh_alloc_session_state(void)
 	}
 	free(ssh);
 	return NULL;
+}
+
+/* Returns nonzero if rekeying is in progress */
+int
+ssh_packet_is_rekeying(struct ssh *ssh)
+{
+	return ssh->state->rekeying ||
+	    (ssh->kex != NULL && ssh->kex->done == 0);
 }
 
 /*
@@ -1029,6 +1037,51 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	return 0;
 }
 
+#define MAX_PACKETS	(1U<<31)
+static int
+ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
+{
+	struct session_state *state = ssh->state;
+	u_int32_t out_blocks;
+
+	/* XXX client can't cope with rekeying pre-auth */
+	if (!state->after_authentication)
+		return 0;
+
+	/* Haven't keyed yet or KEX in progress. */
+	if (ssh->kex == NULL || ssh_packet_is_rekeying(ssh))
+		return 0;
+
+	/* Peer can't rekey */
+	if (ssh->compat & SSH_BUG_NOREKEY)
+		return 0;
+
+	/*
+	 * Permit one packet in or out per rekey - this allows us to
+	 * make progress when rekey limits are very small.
+	 */
+	if (state->p_send.packets == 0 && state->p_read.packets == 0)
+		return 0;
+
+	/* Time-based rekeying */
+	if (state->rekey_interval != 0 &&
+	    state->rekey_time + state->rekey_interval <= monotime())
+		return 1;
+
+	/* Always rekey when MAX_PACKETS sent in either direction */
+	if (state->p_send.packets > MAX_PACKETS ||
+	    state->p_read.packets > MAX_PACKETS)
+		return 1;
+
+	/* Rekey after (cipher-specific) maxiumum blocks */
+	out_blocks = roundup(outbound_packet_len,
+	    state->newkeys[MODE_OUT]->enc.block_size);
+	return (state->max_blocks_out &&
+	    (state->p_send.blocks + out_blocks > state->max_blocks_out)) ||
+	    (state->max_blocks_in &&
+	    (state->p_read.blocks > state->max_blocks_in));
+}
+
 /*
  * Delayed compression for SSH2 is enabled after authentication:
  * This happens on the server side after a SSH2_MSG_USERAUTH_SUCCESS is sent,
@@ -1232,35 +1285,58 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	return r;
 }
 
+/* returns non-zero if the specified packet type is usec by KEX */
+static int
+ssh_packet_type_is_kex(u_char type)
+{
+	return
+	    type >= SSH2_MSG_TRANSPORT_MIN &&
+	    type <= SSH2_MSG_TRANSPORT_MAX &&
+	    type != SSH2_MSG_SERVICE_REQUEST &&
+	    type != SSH2_MSG_SERVICE_ACCEPT &&
+	    type != SSH2_MSG_EXT_INFO;
+}
+
 int
 ssh_packet_send2(struct ssh *ssh)
 {
 	struct session_state *state = ssh->state;
 	struct packet *p;
 	u_char type;
-	int r;
+	int r, need_rekey;
 
+	if (sshbuf_len(state->outgoing_packet) < 6)
+		return SSH_ERR_INTERNAL_ERROR;
 	type = sshbuf_ptr(state->outgoing_packet)[5];
+	need_rekey = !ssh_packet_type_is_kex(type) &&
+	    ssh_packet_need_rekeying(ssh, sshbuf_len(state->outgoing_packet));
 
-	/* during rekeying we can only send key exchange messages */
-	if (state->rekeying) {
-		if ((type < SSH2_MSG_TRANSPORT_MIN) ||
-		    (type > SSH2_MSG_TRANSPORT_MAX) ||
-		    (type == SSH2_MSG_SERVICE_REQUEST) ||
-		    (type == SSH2_MSG_SERVICE_ACCEPT) ||
-		    (type == SSH2_MSG_EXT_INFO)) {
-			debug("enqueue packet: %u", type);
-			p = calloc(1, sizeof(*p));
-			if (p == NULL)
-				return SSH_ERR_ALLOC_FAIL;
-			p->type = type;
-			p->payload = state->outgoing_packet;
-			TAILQ_INSERT_TAIL(&state->outgoing, p, next);
-			state->outgoing_packet = sshbuf_new();
-			if (state->outgoing_packet == NULL)
-				return SSH_ERR_ALLOC_FAIL;
-			return 0;
+	/*
+	 * During rekeying we can only send key exchange messages.
+	 * Queue everything else.
+	 */
+	if ((need_rekey || state->rekeying) && !ssh_packet_type_is_kex(type)) {
+		if (need_rekey)
+			debug3("%s: rekex triggered", __func__);
+		debug("enqueue packet: %u", type);
+		p = calloc(1, sizeof(*p));
+		if (p == NULL)
+			return SSH_ERR_ALLOC_FAIL;
+		p->type = type;
+		p->payload = state->outgoing_packet;
+		TAILQ_INSERT_TAIL(&state->outgoing, p, next);
+		state->outgoing_packet = sshbuf_new();
+		if (state->outgoing_packet == NULL)
+			return SSH_ERR_ALLOC_FAIL;
+		if (need_rekey) {
+			/*
+			 * This packet triggered a rekey, so send the
+			 * KEXINIT now.
+			 * NB. reenters this function via kex_start_rekex().
+			 */
+			return kex_start_rekex(ssh);
 		}
+		return 0;
 	}
 
 	/* rekeying starts with sending KEXINIT */
@@ -1276,10 +1352,22 @@ ssh_packet_send2(struct ssh *ssh)
 		state->rekey_time = monotime();
 		while ((p = TAILQ_FIRST(&state->outgoing))) {
 			type = p->type;
+			/*
+			 * If this packet triggers a rekex, then skip the
+			 * remaining packets in the queue for now.
+			 * NB. re-enters this function via kex_start_rekex.
+			 */
+			if (ssh_packet_need_rekeying(ssh,
+			    sshbuf_len(p->payload))) {
+				debug3("%s: queued packet triggered rekex",
+				    __func__);
+				return kex_start_rekex(ssh);
+			}
 			debug("dequeue packet: %u", type);
 			sshbuf_free(state->outgoing_packet);
 			state->outgoing_packet = p->payload;
 			TAILQ_REMOVE(&state->outgoing, p, next);
+			memset(p, 0, sizeof(*p));
 			free(p);
 			if ((r = ssh_packet_send2_wrapped(ssh)) != 0)
 				return r;
@@ -1784,6 +1872,13 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 #endif
 	/* reset for next packet */
 	state->packlen = 0;
+
+	/* do we need to rekey? */
+	if (ssh_packet_need_rekeying(ssh, 0)) {
+		debug3("%s: rekex triggered", __func__);
+		if ((r = kex_start_rekex(ssh)) != 0)
+			return r;
+	}
  out:
 	return r;
 }
@@ -2266,25 +2361,6 @@ ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
 			fatal("%s: %s", __func__, ssh_err(r));
 		rnd >>= 8;
 	}
-}
-
-#define MAX_PACKETS	(1U<<31)
-int
-ssh_packet_need_rekeying(struct ssh *ssh)
-{
-	struct session_state *state = ssh->state;
-
-	if (ssh->compat & SSH_BUG_NOREKEY)
-		return 0;
-	return
-	    (state->p_send.packets > MAX_PACKETS) ||
-	    (state->p_read.packets > MAX_PACKETS) ||
-	    (state->max_blocks_out &&
-	        (state->p_send.blocks > state->max_blocks_out)) ||
-	    (state->max_blocks_in &&
-	        (state->p_read.blocks > state->max_blocks_in)) ||
-	    (state->rekey_interval != 0 && state->rekey_time +
-		 state->rekey_interval <= monotime());
 }
 
 void
