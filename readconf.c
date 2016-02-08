@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.249 2016/01/29 02:54:45 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.250 2016/02/08 23:40:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -522,12 +522,15 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	 */
 	port = options->port <= 0 ? default_ssh_port() : options->port;
 	ruser = options->user == NULL ? pw->pw_name : options->user;
-	if (options->hostname != NULL) {
+	if (post_canon) {
+		host = xstrdup(options->hostname);
+	} else if (options->hostname != NULL) {
 		/* NB. Please keep in sync with ssh.c:main() */
 		host = percent_expand(options->hostname,
 		    "h", host_arg, (char *)NULL);
-	} else
+	} else {
 		host = xstrdup(host_arg);
+	}
 
 	debug2("checking match for '%s' host %s originally %s",
 	    cp, host, original_host);
