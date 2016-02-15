@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.108 2015/11/16 06:13:04 logan Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.109 2016/02/15 09:47:49 dtucker Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -1513,6 +1513,7 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	extern char *optarg;
 	extern char *__progname;
 
+	ssh_malloc_init();	/* must be called before any mallocs */
 	__progname = ssh_get_progname(argv[0]);
 	log_init(__progname, log_level, log_facility, log_stderr);
 

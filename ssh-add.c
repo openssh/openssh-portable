@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.127 2015/12/11 02:31:47 mmcc Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.128 2016/02/15 09:47:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -481,6 +481,7 @@ main(int argc, char **argv)
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0;
 	int xflag = 0, lflag = 0, Dflag = 0;
 
+	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
