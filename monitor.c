@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.156 2016/01/14 16:17:39 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.157 2016/02/15 23:32:37 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -684,10 +684,9 @@ mm_answer_sign(int sock, Buffer *m)
 	struct ssh *ssh = active_state; 	/* XXX */
 	extern int auth_sock;			/* XXX move to state struct? */
 	struct sshkey *key;
-	struct sshbuf *sigbuf;
-	u_char *p;
-	u_char *signature;
-	char *alg;
+	struct sshbuf *sigbuf = NULL;
+	u_char *p = NULL, *signature = NULL;
+	char *alg = NULL;
 	size_t datlen, siglen, alglen;
 	int r, keyid, is_proof = 0;
 	const char proof_req[] = "hostkeys-prove-00@openssh.com";
@@ -764,6 +763,7 @@ mm_answer_sign(int sock, Buffer *m)
 	if ((r = sshbuf_put_string(m, signature, siglen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
+	free(alg);
 	free(p);
 	free(signature);
 
