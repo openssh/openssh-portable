@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.278 2015/04/24 01:36:00 deraadt Exp $ */
+/* $OpenBSD: session.c,v 1.280 2016/02/16 03:37:48 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -779,8 +779,8 @@ int
 do_exec(Session *s, const char *command)
 {
 	int ret;
-	const char *forced = NULL;
-	char session_type[1024], *tty = NULL;
+	const char *forced = NULL, *tty = NULL;
+	char session_type[1024];
 
 	if (options.adm_forced_command) {
 		original_command = command;
@@ -815,13 +815,14 @@ do_exec(Session *s, const char *command)
 			tty += 5;
 	}
 
-	verbose("Starting session: %s%s%s for %s from %.200s port %d",
+	verbose("Starting session: %s%s%s for %s from %.200s port %d id %d",
 	    session_type,
 	    tty == NULL ? "" : " on ",
 	    tty == NULL ? "" : tty,
 	    s->pw->pw_name,
 	    get_remote_ipaddr(),
-	    get_remote_port());
+	    get_remote_port(),
+	    s->self);
 
 #ifdef SSH_AUDIT_EVENTS
 	if (command != NULL)
@@ -2499,7 +2500,12 @@ session_close(Session *s)
 {
 	u_int i;
 
-	debug("session_close: session %d pid %ld", s->self, (long)s->pid);
+	verbose("Close session: user %s from %.200s port %d id %d",
+	    s->pw->pw_name,
+	    get_remote_ipaddr(),
+	    get_remote_port(),
+	    s->self);
+
 	if (s->ttyfd != -1)
 		session_pty_cleanup(s);
 	free(s->term);
