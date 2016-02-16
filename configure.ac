@@ -1314,8 +1314,10 @@ AC_SEARCH_LIBS([openpty], [util bsd])
 AC_SEARCH_LIBS([updwtmp], [util bsd])
 AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 
-# On some platforms, inet_ntop may be found in libresolv or libnsl.
+# On some platforms, inet_ntop and gethostbyname may be found in libresolv
+# or libnsl.
 AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
+AC_SEARCH_LIBS([gethostbyname], [resolv nsl])
 
 AC_FUNC_STRFTIME
 
