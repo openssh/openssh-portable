@@ -47,7 +47,6 @@ vasprintf(char **str, const char *fmt, va_list ap)
 	char *string, *newstr;
 	size_t len;
 
-	va_start(ap);
 	VA_COPY(ap2, ap);
 	if ((string = malloc(INIT_SZ)) == NULL)
 		goto fail;
