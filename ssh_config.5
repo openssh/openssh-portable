@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.226 2016/02/17 07:38:19 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.227 2016/02/17 08:57:34 djm Exp $
 .Dd $Mdocdate: February 17 2016 $
 .Dt SSH_CONFIG 5
 .Os
@@ -869,7 +869,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 The
@@ -892,7 +892,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 If hostkeys are known for the destination host then this default is modified
@@ -1330,7 +1330,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 The

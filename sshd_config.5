@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.219 2016/02/17 07:38:19 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.220 2016/02/17 08:57:34 djm Exp $
 .Dd $Mdocdate: February 17 2016 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -658,7 +658,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 The
@@ -750,7 +750,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 The list of available key types may also be obtained using the
@@ -1358,7 +1358,7 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com,
 ssh-ed25519-cert-v01@openssh.com,
 ssh-rsa-cert-v01@openssh.com,
 ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+ssh-ed25519,ssh-rsa
 .Ed
 .Pp
 The
