@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.225 2016/02/16 05:11:04 djm Exp $
-.Dd $Mdocdate: February 16 2016 $
+.\" $OpenBSD: ssh_config.5,v 1.226 2016/02/17 07:38:19 jmc Exp $
+.Dd $Mdocdate: February 17 2016 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -824,12 +824,10 @@ The default is
 Specifies whether user authentication based on GSSAPI is allowed.
 The default is
 .Dq no .
-Note that this option applies to protocol version 2 only.
 .It Cm GSSAPIDelegateCredentials
 Forward (delegate) credentials to the server.
 The default is
 .Dq no .
-Note that this option applies to protocol version 2 only.
 .It Cm HashKnownHosts
 Indicates that
 .Xr ssh 1
@@ -856,9 +854,6 @@ or
 .Dq no .
 The default is
 .Dq no .
-This option applies to protocol version 2 only and
-is similar to
-.Cm RhostsRSAAuthentication .
 .It Cm HostbasedKeyTypes
 Specifies the key types that will be used for hostbased authentication
 as a comma-separated pattern list.
@@ -883,7 +878,7 @@ option of
 .Xr ssh 1
 may be used to list supported key types.
 .It Cm HostKeyAlgorithms
-Specifies the protocol version 2 host key algorithms
+Specifies the host key algorithms
 that the client wants to use in order of preference.
 Alternately if the specified value begins with a
 .Sq +
@@ -1170,8 +1165,7 @@ DEBUG2 and DEBUG3 each specify higher levels of verbose output.
 .It Cm MACs
 Specifies the MAC (message authentication code) algorithms
 in order of preference.
-The MAC algorithm is used in protocol version 2
-for data integrity protection.
+The MAC algorithm is used for data integrity protection.
 Multiple algorithms must be comma-separated.
 If the specified value begins with a
 .Sq +
@@ -1243,8 +1237,7 @@ private RSA key.
 Specifies the port number to connect on the remote host.
 The default is 22.
 .It Cm PreferredAuthentications
-Specifies the order in which the client should try protocol 2
-authentication methods.
+Specifies the order in which the client should try authentication methods.
 This allows a client to prefer one method (e.g.\&
 .Cm keyboard-interactive )
 over another method (e.g.\&
@@ -1353,7 +1346,6 @@ or
 .Dq no .
 The default is
 .Dq yes .
-This option applies to protocol version 2 only.
 .It Cm RekeyLimit
 Specifies the maximum amount of data that may be transmitted before the
 session key is renegotiated, optionally followed a maximum amount of
@@ -1379,7 +1371,6 @@ is
 .Dq default none ,
 which means that rekeying is performed after the cipher's default amount
 of data has been sent or received and no time based rekeying is done.
-This option applies to protocol version 2 only.
 .It Cm RemoteForward
 Specifies that a TCP port on the remote machine be forwarded over
 the secure channel to the specified host and port from the local machine.
@@ -1472,7 +1463,6 @@ Note that this option applies to protocol version 1 only.
 Specifies what variables from the local
 .Xr environ 7
 should be sent to the server.
-Note that environment passing is only supported for protocol 2.
 The server must also support it, and the server must be configured to
 accept these environment variables.
 Note that the
@@ -1520,7 +1510,6 @@ If, for example,
 .Cm ServerAliveCountMax
 is left at the default, if the server becomes unresponsive,
 ssh will disconnect after approximately 45 seconds.
-This option applies to protocol version 2 only.
 .It Cm ServerAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
 from the server,
@@ -1529,7 +1518,6 @@ will send a message through the encrypted
 channel to request a response from the server.
 The default
 is 0, indicating that these messages will not be sent to the server.
-This option applies to protocol version 2 only.
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
@@ -1726,7 +1714,6 @@ or
 .Dq ask .
 The default is
 .Dq no .
-Note that this option applies to protocol version 2 only.
 .Pp
 See also VERIFYING HOST KEYS in
 .Xr ssh 1 .
