@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.228 2016/02/08 10:57:07 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.229 2016/02/17 22:20:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -263,8 +263,8 @@ ssh_alloc_session_state(void)
 int
 ssh_packet_is_rekeying(struct ssh *ssh)
 {
-	return ssh->state->rekeying ||
-	    (ssh->kex != NULL && ssh->kex->done == 0);
+	return compat20 &&
+	    (ssh->state->rekeying || (ssh->kex != NULL && ssh->kex->done == 0));
 }
 
 /*
