@@ -48,19 +48,20 @@ ssh_sandbox_init(struct monitor *monitor)
 	struct ssh_sandbox *box = NULL;
 
 	box = xcalloc(1, sizeof(*box));
-	box->pset = priv_allocset();
+
+	/* Start with "basic" and drop everything we don't need. */
+	box->pset = solaris_basic_privset();
 
 	if (box->pset == NULL) {
 		free(box);
 		return NULL;
 	}
 
-	/* Start with "basic" and drop everything we don't need. */
-	priv_basicset(box->pset);
-
 	/* Drop everything except the ability to use already-opened files */
 	if (priv_delset(box->pset, PRIV_FILE_LINK_ANY) != 0 ||
+#ifdef PRIV_NET_ACCESS
 	    priv_delset(box->pset, PRIV_NET_ACCESS) != 0 ||
+#endif
 	    priv_delset(box->pset, PRIV_PROC_EXEC) != 0 ||
 	    priv_delset(box->pset, PRIV_PROC_FORK) != 0 ||
 	    priv_delset(box->pset, PRIV_PROC_INFO) != 0 ||

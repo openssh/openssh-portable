@@ -896,11 +896,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	else
 		AC_MSG_RESULT([no])
 	fi
-	AC_CHECK_FUNC([setppriv],
-		[ AC_CHECK_HEADERS([priv.h], [
-			SOLARIS_PRIVS="yes"
-		])
-	])
+	AC_CHECK_FUNCS([setppriv])
+	AC_CHECK_FUNCS([priv_basicset])
+	AC_CHECK_HEADERS([priv.h])
 	AC_ARG_WITH([solaris-contracts],
 		[  --with-solaris-contracts Enable Solaris process contracts (experimental)],
 		[
@@ -925,7 +923,9 @@ mips-sony-bsd|mips-sony-newsos4)
 		[  --with-solaris-privs    Enable Solaris/Illumos privileges (experimental)],
 		[
 		AC_MSG_CHECKING([for Solaris/Illumos privilege support])
-		if test "x$SOLARIS_PRIVS" = "xyes" ; then
+		if test "x$ac_cv_func_setppriv" = "xyes" -a \
+			"x$ac_cv_header_priv_h" = "xyes" ; then
+			SOLARIS_PRIVS=yes
 			AC_MSG_RESULT([found])
 			AC_DEFINE([NO_UID_RESTORATION_TEST], [1],
 				[Define to disable UID restoration test])
