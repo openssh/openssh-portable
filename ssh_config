@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh_config,v 1.28 2013/09/16 11:35:43 sthen Exp $
+#	$OpenBSD: ssh_config,v 1.29 2016/02/20 23:02:39 sobrado Exp $
 
 # This is the ssh client system-wide configuration file.  See
 # ssh_config(5) for more information.  This file provides defaults for
@@ -34,6 +34,8 @@
 #   IdentityFile ~/.ssh/identity
 #   IdentityFile ~/.ssh/id_rsa
 #   IdentityFile ~/.ssh/id_dsa
+#   IdentityFile ~/.ssh/id_ecdsa
+#   IdentityFile ~/.ssh/id_ed25519
 #   Port 22
 #   Protocol 2,1
 #   Cipher 3des
