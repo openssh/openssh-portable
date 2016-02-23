@@ -2077,6 +2077,9 @@ mm_answer_gss_userok(int sock, Buffer *m)
 
 	auth_method = "gssapi-with-mic";
 
+	if (authenticated)
+		authctxt->last_details = ssh_gssapi_get_displayname();
+
 	/* Monitor loop will terminate if authenticated */
 	return (authenticated);
 }
