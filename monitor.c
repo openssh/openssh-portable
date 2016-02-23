@@ -369,9 +369,13 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 
 		if (authenticated) {
 			prev_auth_details = authctxt->auth_details;
-			xasprintf(&authctxt->auth_details, "%s%s%s",
+			xasprintf(&authctxt->auth_details, "%s%s%s%s%s",
 			    prev_auth_details ? prev_auth_details : "",
-			    prev_auth_details ? ", " : "", auth_method);
+			    prev_auth_details ? ", " : "", auth_method,
+			    authctxt->last_details ? ": " : "",
+			    authctxt->last_details ? authctxt->last_details : "");
+			free(authctxt->last_details);
+			authctxt->last_details = NULL;
 			free(prev_auth_details);
 		}
 
@@ -1458,6 +1462,10 @@ mm_answer_keyverify(int sock, Buffer *m)
 	verified = key_verify(key, signature, signaturelen, data, datalen);
 	debug3("%s: key %p signature %s",
 	    __func__, key, (verified == 1) ? "verified" : "unverified");
+
+	if (verified == 1)
+		authctxt->last_details = sshkey_format_oneline(key,
+		    options.fingerprint_hash);
 
 	/* If auth was successful then record key to ensure it isn't reused */
 	if (verified == 1 && key_blobtype == MM_USERKEY)
