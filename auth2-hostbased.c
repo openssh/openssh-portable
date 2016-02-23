@@ -132,7 +132,7 @@ userauth_hostbased(Authctxt *authctxt)
 	buffer_dump(&b);
 #endif
 
-	pubkey = pubkey_format(key);
+	pubkey = sshkey_format_oneline(key, options.fingerprint_hash);
 	auth_info(authctxt,
 	    "%s, client user \"%.100s\", client host \"%.100s\"",
 	    pubkey, cuser, chost);

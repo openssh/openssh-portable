@@ -123,6 +123,7 @@ char		*sshkey_fingerprint(const struct sshkey *,
     int, enum sshkey_fp_rep);
 int		 sshkey_fingerprint_raw(const struct sshkey *k,
     int, u_char **retp, size_t *lenp);
+char		*sshkey_format_oneline(const struct sshkey *k, int dgst_alg);
 const char	*sshkey_type(const struct sshkey *);
 const char	*sshkey_cert_type(const struct sshkey *);
 int		 sshkey_write(const struct sshkey *, FILE *);
