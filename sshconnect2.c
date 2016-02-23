@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.238 2016/02/05 04:31:21 jsg Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.239 2016/02/23 01:34:14 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1039,7 +1039,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		    compat));
 	/* load the private key from the file */
 	if ((prv = load_identity_file(id)) == NULL)
-		return (-1); /* XXX return decent error code */
+		return SSH_ERR_KEY_NOT_FOUND;
 	ret = sshkey_sign(prv, sigp, lenp, data, datalen, alg, compat);
 	sshkey_free(prv);
 	return (ret);
@@ -1125,7 +1125,8 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	ret = identity_sign(id, &signature, &slen,
 	    buffer_ptr(&b), buffer_len(&b), datafellows);
 	if (ret != 0) {
-		error("%s: signing failed: %s", __func__, ssh_err(ret));
+		if (ret != SSH_ERR_KEY_NOT_FOUND)
+			error("%s: signing failed: %s", __func__, ssh_err(ret));
 		free(blob);
 		buffer_free(&b);
 		return 0;
