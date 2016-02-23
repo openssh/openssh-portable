@@ -644,6 +644,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		supported by bsd-setproctitle.c])
 	AC_CHECK_FUNCS([sandbox_init])
 	AC_CHECK_HEADERS([sandbox.h])
+	AC_CHECK_LIB([sandbox], [sandbox_apply], [
+	    SSHDLIBS="$SSHDLIBS -lsandbox"
+	])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
