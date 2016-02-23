@@ -2273,7 +2273,9 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sChallengeResponseAuthentication,
 	    o->challenge_response_authentication);
 	dump_cfg_fmtint(sPrintMotd, o->print_motd);
+#ifndef DISABLE_LASTLOG
 	dump_cfg_fmtint(sPrintLastLog, o->print_lastlog);
+#endif
 	dump_cfg_fmtint(sX11Forwarding, o->x11_forwarding);
 	dump_cfg_fmtint(sX11UseLocalhost, o->x11_use_localhost);
 	dump_cfg_fmtint(sPermitTTY, o->permit_tty);
