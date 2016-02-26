@@ -374,10 +374,10 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 			    prev_auth_details ? ", " : "", auth_method,
 			    authctxt->last_details ? ": " : "",
 			    authctxt->last_details ? authctxt->last_details : "");
-			free(authctxt->last_details);
-			authctxt->last_details = NULL;
 			free(prev_auth_details);
 		}
+		free(authctxt->last_details);
+		authctxt->last_details = NULL;
 
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {

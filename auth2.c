@@ -331,10 +331,10 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 		    prev_auth_details ? ", " : "", method,
 		    authctxt->last_details ? ": " : "",
 		    authctxt->last_details ? authctxt->last_details : "");
-		free(authctxt->last_details);
-		authctxt->last_details = NULL;
 		free(prev_auth_details);
 	}
+	free(authctxt->last_details);
+	authctxt->last_details = NULL;
 
 #ifdef USE_PAM
 	if (options.use_pam && authenticated) {
