@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.57 2015/05/27 23:39:18 dtucker Exp $ */
+/* $OpenBSD: dh.c,v 1.58 2016/02/28 22:27:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -246,12 +246,15 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 			bits_set++;
 	debug2("bits set: %d/%d", bits_set, BN_num_bits(dh->p));
 
-	/* if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial */
-	if (bits_set > 1)
-		return 1;
-
-	logit("invalid public DH value (%d/%d)", bits_set, BN_num_bits(dh->p));
-	return 0;
+	/*
+	 * if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial
+	 */
+	if (bits_set < 4) {
+		logit("invalid public DH value (%d/%d)",
+		   bits_set, BN_num_bits(dh->p));
+		return 0;
+	}
+	return 1;
 }
 
 int
@@ -263,6 +266,12 @@ dh_gen_key(DH *dh, int need)
 	    (pbits = BN_num_bits(dh->p)) <= 0 ||
 	    need > INT_MAX / 2 || 2 * need > pbits)
 		return SSH_ERR_INVALID_ARGUMENT;
+	if (need < 256)
+		need = 256;
+	/*
+	 * Pollard Rho, Big step/Little Step attacks are O(sqrt(n)),
+	 * so double requested need here.
+	 */
 	dh->length = MIN(need * 2, pbits - 1);
 	if (DH_generate_key(dh) == 0 ||
 	    !dh_pub_is_valid(dh, dh->pub_key)) {
