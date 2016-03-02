@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.101 2016/01/20 09:22:39 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.102 2016/03/02 22:42:40 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -907,6 +907,17 @@ monotime(void)
 #endif /* HAVE_CLOCK_GETTIME && (CLOCK_MONOTONIC || CLOCK_BOOTTIME */
 
 	return time(NULL);
+}
+
+double
+monotime_double(void)
+{
+	struct timespec ts;
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+		fatal("clock_gettime: %s", strerror(errno));
+
+	return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
 }
 
 void
