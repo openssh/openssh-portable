@@ -240,6 +240,7 @@ clean:	regressclean
 	rm -f regress/unittests/hostkeys/test_hostkeys
 	rm -f regress/unittests/kex/*.o
 	rm -f regress/unittests/kex/test_kex
+	rm -f regress/unittests/misc/kexfuzz
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -260,6 +261,7 @@ distclean:	regressclean
 	rm -f regress/unittests/hostkeys/test_hostkeys
 	rm -f regress/unittests/kex/*.o
 	rm -f regress/unittests/kex/test_kex
+	rm -f regress/unittests/misc/kexfuzz
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
 		rm -fr pkg ; \
@@ -419,6 +421,8 @@ regress-prep:
 		mkdir -p `pwd`/regress/unittests/hostkeys
 	[ -d `pwd`/regress/unittests/kex ] || \
 		mkdir -p `pwd`/regress/unittests/kex
+	[ -d `pwd`/regress/misc/kexfuzz ] || \
+		mkdir -p `pwd`/regress/misc/kexfuzz
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
@@ -505,6 +509,13 @@ regress/unittests/hostkeys/test_hostkeys$(EXEEXT): \
 	    regress/unittests/test_helper/libtest_helper.a \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
+MISC_KEX_FUZZ_OBJS=\
+	regress/misc/kexfuzz/kexfuzz.o
+
+regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
+	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
+	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
+
 REGRESS_BINARIES=\
 	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
@@ -514,7 +525,8 @@ REGRESS_BINARIES=\
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/bitmap/test_bitmap$(EXEEXT) \
 	regress/unittests/hostkeys/test_hostkeys$(EXEEXT) \
-	regress/unittests/kex/test_kex$(EXEEXT)
+	regress/unittests/kex/test_kex$(EXEEXT) \
+	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
 tests interop-tests t-exec: regress-prep $(TARGETS) $(REGRESS_BINARIES)
 	BUILDDIR=`pwd`; \
