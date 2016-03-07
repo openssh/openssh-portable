@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.183 2016/03/04 03:35:44 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.184 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -395,6 +395,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 static void
 process_input(fd_set *readset)
 {
+	struct ssh *ssh = active_state; /* XXX */
 	int len;
 	char buf[16384];
 
@@ -402,8 +403,8 @@ process_input(fd_set *readset)
 	if (FD_ISSET(connection_in, readset)) {
 		len = read(connection_in, buf, sizeof(buf));
 		if (len == 0) {
-			verbose("Connection closed by %.100s",
-			    get_remote_ipaddr());
+			verbose("Connection closed by %.100s port %d",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 			connection_closed = 1;
 			if (compat20)
 				return;
@@ -412,8 +413,9 @@ process_input(fd_set *readset)
 			if (errno != EINTR && errno != EAGAIN &&
 			    errno != EWOULDBLOCK) {
 				verbose("Read error from remote host "
-				    "%.100s: %.100s",
-				    get_remote_ipaddr(), strerror(errno));
+				    "%.100s port %d: %.100s",
+				    ssh_remote_ipaddr(ssh),
+				    ssh_remote_port(ssh), strerror(errno));
 				cleanup_exit(255);
 			}
 		} else {

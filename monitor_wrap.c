@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.87 2016/01/14 16:17:40 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.88 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -378,15 +378,15 @@ mm_user_key_allowed(struct passwd *pw, Key *key, int pubkey_auth_attempt)
 }
 
 int
-mm_hostbased_key_allowed(struct passwd *pw, char *user, char *host,
+mm_hostbased_key_allowed(struct passwd *pw, const char *user, const char *host,
     Key *key)
 {
 	return (mm_key_allowed(MM_HOSTKEY, user, host, key, 0));
 }
 
 int
-mm_auth_rhosts_rsa_key_allowed(struct passwd *pw, char *user,
-    char *host, Key *key)
+mm_auth_rhosts_rsa_key_allowed(struct passwd *pw, const char *user,
+    const char *host, Key *key)
 {
 	int ret;
 
@@ -397,8 +397,8 @@ mm_auth_rhosts_rsa_key_allowed(struct passwd *pw, char *user,
 }
 
 int
-mm_key_allowed(enum mm_keytype type, char *user, char *host, Key *key,
-    int pubkey_auth_attempt)
+mm_key_allowed(enum mm_keytype type, const char *user, const char *host,
+    Key *key, int pubkey_auth_attempt)
 {
 	Buffer m;
 	u_char *blob;

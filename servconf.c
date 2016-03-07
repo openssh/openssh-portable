@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.285 2016/02/17 05:29:04 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.286 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -706,14 +706,15 @@ process_queued_listen_addrs(ServerOptions *options)
 struct connection_info *
 get_connection_info(int populate, int use_dns)
 {
+	struct ssh *ssh = active_state; /* XXX */
 	static struct connection_info ci;
 
 	if (!populate)
 		return &ci;
-	ci.host = get_canonical_hostname(use_dns);
-	ci.address = get_remote_ipaddr();
-	ci.laddress = get_local_ipaddr(packet_get_connection_in());
-	ci.lport = get_local_port();
+	ci.host = auth_get_canonical_hostname(ssh, use_dns);
+	ci.address = ssh_remote_ipaddr(ssh);
+	ci.laddress = ssh_local_ipaddr(ssh);
+	ci.lport = ssh_local_port(ssh);
 	return &ci;
 }
 

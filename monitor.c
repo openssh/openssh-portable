@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.157 2016/02/15 23:32:37 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.158 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1469,6 +1469,7 @@ mm_answer_keyverify(int sock, Buffer *m)
 static void
 mm_record_login(Session *s, struct passwd *pw)
 {
+	struct ssh *ssh = active_state;	/* XXX */
 	socklen_t fromlen;
 	struct sockaddr_storage from;
 
@@ -1490,7 +1491,7 @@ mm_record_login(Session *s, struct passwd *pw)
 	}
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(s->pid, s->tty, pw->pw_name, pw->pw_uid,
-	    get_remote_name_or_ip(utmp_len, options.use_dns),
+	    session_get_remote_name_or_ip(ssh, utmp_len, options.use_dns),
 	    (struct sockaddr *)&from, fromlen);
 }
 

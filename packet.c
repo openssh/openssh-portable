@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.229 2016/02/17 22:20:14 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.230 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -52,6 +52,7 @@
 #include <arpa/inet.h>
 
 #include <errno.h>
+#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -296,7 +297,7 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	    (r = cipher_init(&state->receive_context, none,
 	    (const u_char *)"", 0, NULL, 0, CIPHER_DECRYPT)) != 0) {
 		error("%s: cipher_init failed: %s", __func__, ssh_err(r));
-		free(ssh);
+		free(ssh); /* XXX need ssh_free_session_state? */
 		return NULL;
 	}
 	state->newkeys[MODE_IN] = state->newkeys[MODE_OUT] = NULL;
@@ -378,6 +379,9 @@ ssh_packet_connection_is_on_socket(struct ssh *ssh)
 	struct session_state *state = ssh->state;
 	struct sockaddr_storage from, to;
 	socklen_t fromlen, tolen;
+
+	if (state->connection_in == -1 || state->connection_out == -1)
+		return 0;
 
 	/* filedescriptors in and out are the same, so it's a socket */
 	if (state->connection_in == state->connection_out)
@@ -468,10 +472,14 @@ ssh_remote_ipaddr(struct ssh *ssh)
 	if (ssh->remote_ipaddr == NULL) {
 		if (ssh_packet_connection_is_on_socket(ssh)) {
 			ssh->remote_ipaddr = get_peer_ipaddr(sock);
-			ssh->remote_port = get_sock_port(sock, 0);
+			ssh->remote_port = get_peer_port(sock);
+			ssh->local_ipaddr = get_local_ipaddr(sock);
+			ssh->local_port = get_local_port(sock);
 		} else {
 			ssh->remote_ipaddr = strdup("UNKNOWN");
-			ssh->remote_port = 0;
+			ssh->remote_port = 65535;
+			ssh->local_ipaddr = strdup("UNKNOWN");
+			ssh->local_port = 65535;
 		}
 	}
 	return ssh->remote_ipaddr;
@@ -484,6 +492,27 @@ ssh_remote_port(struct ssh *ssh)
 {
 	(void)ssh_remote_ipaddr(ssh); /* Will lookup and cache. */
 	return ssh->remote_port;
+}
+
+/*
+ * Returns the IP-address of the local host as a string.  The returned
+ * string must not be freed.
+ */
+
+const char *
+ssh_local_ipaddr(struct ssh *ssh)
+{
+	(void)ssh_remote_ipaddr(ssh); /* Will lookup and cache. */
+	return ssh->local_ipaddr;
+}
+
+/* Returns the port number of the local host. */
+
+int
+ssh_local_port(struct ssh *ssh)
+{
+	(void)ssh_remote_ipaddr(ssh); /* Will lookup and cache. */
+	return ssh->local_port;
 }
 
 /* Closes the connection and clears and frees internal data structures. */

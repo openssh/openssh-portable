@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.436 2016/02/15 09:47:49 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.437 2016/03/07 19:02:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -513,6 +513,7 @@ set_addrinfo_port(struct addrinfo *addrs, int port)
 int
 main(int ac, char **av)
 {
+	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, config_test = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
@@ -1220,6 +1221,8 @@ main(int ac, char **av)
 	packet_set_timeout(options.server_alive_interval,
 	    options.server_alive_count_max);
 
+	ssh = active_state; /* XXX */
+
 	if (timeout_ms > 0)
 		debug3("timeout: %d ms remain after connect", timeout_ms);
 
@@ -1346,7 +1349,7 @@ main(int ac, char **av)
 
 	if (packet_connection_is_on_socket()) {
 		verbose("Authenticated to %s ([%s]:%d).", host,
-		    get_remote_ipaddr(), get_remote_port());
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 	} else {
 		verbose("Authenticated to %s (via proxy).", host);
 	}
