@@ -624,6 +624,7 @@ sshpam_init(Authctxt *authctxt)
 	extern char *__progname;
 	const char *pam_rhost, *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
+	struct ssh *ssh = active_state; /* XXX */
 
 	if (sshpam_handle != NULL) {
 		/* We already have a PAM context; check if the user matches */
@@ -644,7 +645,7 @@ sshpam_init(Authctxt *authctxt)
 		sshpam_handle = NULL;
 		return (-1);
 	}
-	pam_rhost = get_remote_name_or_ip(utmp_len, options.use_dns);
+	pam_rhost = auth_get_canonical_hostname(ssh, options.use_dns);
 	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
 	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
 	if (sshpam_err != PAM_SUCCESS) {
@@ -715,6 +716,7 @@ static int
 sshpam_query(void *ctx, char **name, char **info,
     u_int *num, char ***prompts, u_int **echo_on)
 {
+	struct ssh *ssh = active_state; /* XXX */
 	Buffer buffer;
 	struct pam_ctxt *ctxt = ctx;
 	size_t plen;
@@ -797,7 +799,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			error("PAM: %s for %s%.100s from %.100s", msg,
 			    sshpam_authctxt->valid ? "" : "illegal user ",
 			    sshpam_authctxt->user,
-			    get_remote_name_or_ip(utmp_len, options.use_dns));
+			    auth_get_canonical_hostname(ssh, options.use_dns));
 			/* FALLTHROUGH */
 		default:
 			*num = 0;
