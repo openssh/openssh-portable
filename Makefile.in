@@ -516,8 +516,7 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-REGRESS_BINARIES=\
-	regress/modpipe$(EXEEXT) \
+regress-binaries: regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
@@ -528,7 +527,7 @@ REGRESS_BINARIES=\
 	regress/unittests/kex/test_kex$(EXEEXT) \
 	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
-tests interop-tests t-exec: regress-prep $(TARGETS) $(REGRESS_BINARIES)
+tests interop-tests t-exec: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
 	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
