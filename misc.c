@@ -912,12 +912,26 @@ monotime(void)
 double
 monotime_double(void)
 {
+#if defined(HAVE_CLOCK_GETTIME) && \
+    (defined(CLOCK_MONOTONIC) || defined(CLOCK_BOOTTIME))
 	struct timespec ts;
+	static int gettime_failed = 0;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
-		fatal("clock_gettime: %s", strerror(errno));
+	if (!gettime_failed) {
+#if defined(CLOCK_BOOTTIME)
+		if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
+			return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
+#endif
+#if defined(CLOCK_MONOTONIC)
+		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+			return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
+#endif
+		debug3("clock_gettime: %s", strerror(errno));
+		gettime_failed = 1;
+	}
+#endif /* HAVE_CLOCK_GETTIME && (CLOCK_MONOTONIC || CLOCK_BOOTTIME */
 
-	return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
+	return (double)time(NULL);
 }
 
 void
