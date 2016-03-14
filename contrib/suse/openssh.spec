@@ -202,7 +202,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) %{_bindir}/ssh-keygen
 %attr(0755,root,root) %{_bindir}/scp
 %attr(0755,root,root) %{_bindir}/ssh
-%attr(-,root,root) %{_bindir}/slogin
 %attr(0755,root,root) %{_bindir}/ssh-agent
 %attr(0755,root,root) %{_bindir}/ssh-add
 %attr(0755,root,root) %{_bindir}/ssh-keyscan
@@ -214,7 +213,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) %{_libdir}/ssh/ssh-pkcs11-helper
 %attr(0644,root,root) %doc %{_mandir}/man1/scp.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/sftp.1*
-%attr(-,root,root) %doc %{_mandir}/man1/slogin.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh-add.1*
 %attr(0644,root,root) %doc %{_mandir}/man1/ssh-agent.1*
