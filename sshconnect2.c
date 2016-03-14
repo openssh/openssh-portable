@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.239 2016/02/23 01:34:14 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.240 2016/03/14 16:20:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1112,12 +1112,8 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 			    "certificate", __func__, id->filename,
 			    id->agent_fd != -1 ? " from agent" : "");
 		} else {
-			/* XXX maybe verbose/error? */
-			debug("%s: no private key for certificate "
+			debug("%s: no separate private key for certificate "
 			    "\"%s\"", __func__, id->filename);
-			free(blob);
-			buffer_free(&b);
-			return 0;
 		}
 	}
 
