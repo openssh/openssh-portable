@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.58 2016/01/13 23:04:47 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.59 2016/04/01 02:34:10 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1297,7 +1297,7 @@ muxserver_listen(void)
 	/* Now atomically "move" the mux socket into position */
 	if (link(options.control_path, orig_control_path) != 0) {
 		if (errno != EEXIST) {
-			fatal("%s: link mux listener %s => %s: %s", __func__, 
+			fatal("%s: link mux listener %s => %s: %s", __func__,
 			    options.control_path, orig_control_path,
 			    strerror(errno));
 		}
