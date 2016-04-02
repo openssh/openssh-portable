@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.102 2016/03/02 22:42:40 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.103 2016/04/02 14:37:42 krw Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -84,9 +84,9 @@ set_nonblock(int fd)
 {
 	int val;
 
-	val = fcntl(fd, F_GETFL, 0);
+	val = fcntl(fd, F_GETFL);
 	if (val < 0) {
-		error("fcntl(%d, F_GETFL, 0): %s", fd, strerror(errno));
+		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
 	if (val & O_NONBLOCK) {
@@ -108,9 +108,9 @@ unset_nonblock(int fd)
 {
 	int val;
 
-	val = fcntl(fd, F_GETFL, 0);
+	val = fcntl(fd, F_GETFL);
 	if (val < 0) {
-		error("fcntl(%d, F_GETFL, 0): %s", fd, strerror(errno));
+		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
 	if (!(val & O_NONBLOCK)) {
@@ -729,16 +729,16 @@ sanitise_stdfd(void)
 		    strerror(errno));
 		exit(1);
 	}
-	while (++dupfd <= 2) {
-		/* Only clobber closed fds */
-		if (fcntl(dupfd, F_GETFL, 0) >= 0)
-			continue;
-		if (dup2(nullfd, dupfd) == -1) {
-			fprintf(stderr, "dup2: %s\n", strerror(errno));
-			exit(1);
+	while (++dupfd <= STDERR_FILENO) {
+		/* Only populate closed fds. */
+		if (fcntl(dupfd, F_GETFL) == -1 && errno == EBADF) {
+			if (dup2(nullfd, dupfd) == -1) {
+				fprintf(stderr, "dup2: %s\n", strerror(errno));
+				exit(1);
+			}
 		}
 	}
-	if (nullfd > 2)
+	if (nullfd > STDERR_FILENO)
 		close(nullfd);
 }
 
