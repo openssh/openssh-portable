@@ -2392,8 +2392,9 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
-		if ((rc = fprintf(fd ,"%08lx (%s)\n",
-		    (unsigned long)OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
+		if ((rc = fprintf(fd, "%08lx (%s)\n",
+		    (unsigned long)OPENSSL_VERSION_NUMBER,
+		     OPENSSL_VERSION_TEXT)) < 0)
 			exit(1);
 
 		exit(0);
