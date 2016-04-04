@@ -2428,8 +2428,8 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
-		if ((rc = fprintf(fd ,"%08x (%s)\n", SSLeay(),
-		    SSLeay_version(SSLEAY_VERSION))) <0)
+		if ((rc = fprintf(fd, "%08lx (%s)\n", (unsigned long)SSLeay(),
+		    SSLeay_version(SSLEAY_VERSION))) < 0)
 			exit(1);
 
 		exit(0);
