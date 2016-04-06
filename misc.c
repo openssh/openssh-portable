@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.103 2016/04/02 14:37:42 krw Exp $ */
+/* $OpenBSD: misc.c,v 1.104 2016/04/06 06:42:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1144,3 +1144,41 @@ sock_set_v6only(int s)
 		error("setsockopt IPV6_V6ONLY: %s", strerror(errno));
 #endif
 }
+
+/*
+ * Compares two strings that maybe be NULL. Returns non-zero if strings
+ * are both NULL or are identical, returns zero otherwise.
+ */
+static int
+strcmp_maybe_null(const char *a, const char *b)
+{
+	if ((a == NULL && b != NULL) || (a != NULL && b == NULL))
+		return 0;
+	if (a != NULL && strcmp(a, b) != 0)
+		return 0;
+	return 1;
+}
+
+/*
+ * Compare two forwards, returning non-zero if they are identical or
+ * zero otherwise.
+ */
+int
+forward_equals(const struct Forward *a, const struct Forward *b)
+{
+	if (strcmp_maybe_null(a->listen_host, b->listen_host) == 0)
+		return 0;
+	if (a->listen_port != b->listen_port)
+		return 0;
+	if (strcmp_maybe_null(a->listen_path, b->listen_path) == 0)
+		return 0;
+	if (strcmp_maybe_null(a->connect_host, b->connect_host) == 0)
+		return 0;
+	if (a->connect_port != b->connect_port)
+		return 0;
+	if (strcmp_maybe_null(a->connect_path, b->connect_path) == 0)
+		return 0;
+	/* allocated_port and handle are not checked */
+	return 1;
+}
+

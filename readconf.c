@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.250 2016/02/08 23:40:12 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.251 2016/04/06 06:42:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -294,12 +294,19 @@ void
 add_local_forward(Options *options, const struct Forward *newfwd)
 {
 	struct Forward *fwd;
+	int i;
 #ifndef NO_IPPORT_RESERVED_CONCEPT
 	extern uid_t original_real_uid;
+
 	if (newfwd->listen_port < IPPORT_RESERVED && original_real_uid != 0 &&
 	    newfwd->listen_path == NULL)
 		fatal("Privileged ports can only be forwarded by root.");
 #endif
+	/* Don't add duplicates */
+	for (i = 0; i < options->num_local_forwards; i++) {
+		if (forward_equals(newfwd, options->local_forwards + i))
+			return;
+	}
 	options->local_forwards = xreallocarray(options->local_forwards,
 	    options->num_local_forwards + 1,
 	    sizeof(*options->local_forwards));
@@ -322,7 +329,13 @@ void
 add_remote_forward(Options *options, const struct Forward *newfwd)
 {
 	struct Forward *fwd;
+	int i;
 
+	/* Don't add duplicates */
+	for (i = 0; i < options->num_remote_forwards; i++) {
+		if (forward_equals(newfwd, options->remote_forwards + i))
+			return;
+	}
 	options->remote_forwards = xreallocarray(options->remote_forwards,
 	    options->num_remote_forwards + 1,
 	    sizeof(*options->remote_forwards));
