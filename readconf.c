@@ -294,14 +294,12 @@ void
 add_local_forward(Options *options, const struct Forward *newfwd)
 {
 	struct Forward *fwd;
-	int i;
-#ifndef NO_IPPORT_RESERVED_CONCEPT
 	extern uid_t original_real_uid;
+	int i;
 
 	if (newfwd->listen_port < IPPORT_RESERVED && original_real_uid != 0 &&
 	    newfwd->listen_path == NULL)
 		fatal("Privileged ports can only be forwarded by root.");
-#endif
 	/* Don't add duplicates */
 	for (i = 0; i < options->num_local_forwards; i++) {
 		if (forward_equals(newfwd, options->local_forwards + i))
