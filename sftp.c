@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.172 2016/02/15 09:47:49 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.173 2016/04/08 08:19:17 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -735,7 +735,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd,
 
                 resume |= global_aflag;
 		if (!quiet && resume)
-			printf("Resuming upload of %s to %s\n", g.gl_pathv[i], 
+			printf("Resuming upload of %s to %s\n", g.gl_pathv[i],
 				abs_dst);
 		else if (!quiet && !resume)
 			printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
@@ -1205,7 +1205,7 @@ makeargv(const char *arg, int *argcp, int sloppy, char *lastquote,
 
 static int
 parse_args(const char **cpp, int *ignore_errors, int *aflag,
-	  int *fflag, int *hflag, int *iflag, int *lflag, int *pflag, 
+	  int *fflag, int *hflag, int *iflag, int *lflag, int *pflag,
 	  int *rflag, int *sflag,
     unsigned long *n_arg, char **path1, char **path2)
 {
@@ -1397,7 +1397,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
     int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int ignore_errors = 0, aflag = 0, fflag = 0, hflag = 0, 
+	int ignore_errors = 0, aflag = 0, fflag = 0, hflag = 0,
 	iflag = 0;
 	int lflag = 0, pflag = 0, rflag = 0, sflag = 0;
 	int cmdnum, i;

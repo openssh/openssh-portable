@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.121 2016/02/11 02:21:34 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.122 2016/04/08 08:19:17 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -1601,7 +1601,7 @@ do_upload(struct sftp_conn *conn, const char *local_path,
 	if (resume) {
 		/* Get remote file size if it exists */
 		if ((c = do_stat(conn, remote_path, 0)) == NULL) {
-			close(local_fd);                
+			close(local_fd);
 			return -1;
 		}
 
