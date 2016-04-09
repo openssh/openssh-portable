@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.31 2015/12/11 04:21:12 mmcc Exp $ */
+/* $OpenBSD: sshkey.c,v 1.32 2016/04/09 12:39:30 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1966,7 +1966,8 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 #ifdef DEBUG_PK /* XXX */
 	sshbuf_dump(b, stderr);
 #endif
-	*keyp = NULL;
+	if (keyp != NULL)
+		*keyp = NULL;
 	if ((copy = sshbuf_fromb(b)) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -2121,8 +2122,10 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 		goto out;
 	}
 	ret = 0;
-	*keyp = key;
-	key = NULL;
+	if (keyp != NULL) {
+		*keyp = key;
+		key = NULL;
+	}
  out:
 	sshbuf_free(copy);
 	sshkey_free(key);
@@ -3631,12 +3634,10 @@ sshkey_parse_public_rsa1_fileblob(struct sshbuf *blob,
 	/* The encrypted private part is not parsed by this function. */
 
 	r = 0;
-	if (keyp != NULL)
+	if (keyp != NULL) {
 		*keyp = pub;
-	else
-		sshkey_free(pub);
-	pub = NULL;
-
+		pub = NULL;
+	}
  out:
 	sshbuf_free(copy);
 	sshkey_free(pub);
@@ -3657,7 +3658,8 @@ sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
 	const struct sshcipher *cipher;
 	struct sshkey *prv = NULL;
 
-	*keyp = NULL;
+	if (keyp != NULL)
+		*keyp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
 
@@ -3743,8 +3745,10 @@ sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
 		goto out;
 	}
 	r = 0;
-	*keyp = prv;
-	prv = NULL;
+	if (keyp != NULL) {
+		*keyp = prv;
+		prv = NULL;
+	}
 	if (commentp != NULL) {
 		*commentp = comment;
 		comment = NULL;
@@ -3769,7 +3773,8 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	BIO *bio = NULL;
 	int r;
 
-	*keyp = NULL;
+	if (keyp != NULL)
+		*keyp = NULL;
 
 	if ((bio = BIO_new(BIO_s_mem())) == NULL || sshbuf_len(blob) > INT_MAX)
 		return SSH_ERR_ALLOC_FAIL;
@@ -3838,8 +3843,10 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		goto out;
 	}
 	r = 0;
-	*keyp = prv;
-	prv = NULL;
+	if (keyp != NULL) {
+		*keyp = prv;
+		prv = NULL;
+	}
  out:
 	BIO_free(bio);
 	if (pk != NULL)
@@ -3853,7 +3860,8 @@ int
 sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp)
 {
-	*keyp = NULL;
+	if (keyp != NULL)
+		*keyp = NULL;
 	if (commentp != NULL)
 		*commentp = NULL;
 
