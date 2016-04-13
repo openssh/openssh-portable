@@ -1322,7 +1322,7 @@ do_setup_env(Session *s, const char *shell)
 	 * Pull in any environment variables that may have
 	 * been set by PAM.
 	 */
-	if (options.use_pam) {
+	if (options.use_pam && !options.use_login) {
 		char **p;
 
 		p = fetch_pam_child_environment();
