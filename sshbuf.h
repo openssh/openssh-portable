@@ -21,12 +21,18 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <stdio.h>
-#ifdef WITH_OPENSSL
-# include <openssl/bn.h>
-# ifdef OPENSSL_HAS_ECC
-#  include <openssl/ec.h>
-# endif /* OPENSSL_HAS_ECC */
-#endif /* WITH_OPENSSL */
+
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/ec.h>
+#else
+# ifdef WITH_OPENSSL
+#  include <openssl/bn.h>
+#   ifdef OPENSSL_HAS_ECC
+#    include <openssl/ec.h>
+#   endif /* OPENSSL_HAS_ECC */
+# endif /* WITH_OPENSSL */
+#endif /* USING_WOLFSSL */
 
 #define SSHBUF_SIZE_MAX		0x8000000	/* Hard maximum size */
 #define SSHBUF_REFS_MAX		0x100000	/* Max child buffers */

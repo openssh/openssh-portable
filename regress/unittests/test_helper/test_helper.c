@@ -34,7 +34,11 @@
 #include <unistd.h>
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#else
 #include <openssl/bn.h>
+#endif
 
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>

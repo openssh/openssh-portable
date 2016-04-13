@@ -153,27 +153,47 @@ typedef unsigned int	UWORD;  /* Register */
 /* UMAC uses AES with 16 byte block and key lengths */
 #define AES_BLOCK_LEN  16
 
-/* OpenSSL's AES */
-#ifdef WITH_OPENSSL
-#include "openbsd-compat/openssl-compat.h"
-#ifndef USE_BUILTIN_RIJNDAEL
-# include <openssl/aes.h>
-#endif
-typedef AES_KEY aes_int_key[1];
-#define aes_encryption(in,out,int_key)                  \
-  AES_encrypt((u_char *)(in),(u_char *)(out),(AES_KEY *)int_key)
-#define aes_key_setup(key,int_key)                      \
-  AES_set_encrypt_key((const u_char *)(key),UMAC_KEY_LEN*8,int_key)
+#ifdef USING_WOLFSSL
+/* WolfSSL's AES */
+#include "openbsd-compat/wolfssl-compat.h"
 #else
-#include "rijndael.h"
-#define AES_ROUNDS ((UMAC_KEY_LEN / 4) + 6)
-typedef UINT8 aes_int_key[AES_ROUNDS+1][4][4];	/* AES internal */
-#define aes_encryption(in,out,int_key) \
-  rijndaelEncrypt((u32 *)(int_key), AES_ROUNDS, (u8 *)(in), (u8 *)(out))
-#define aes_key_setup(key,int_key) \
-  rijndaelKeySetupEnc((u32 *)(int_key), (const unsigned char *)(key), \
-  UMAC_KEY_LEN*8)
-#endif
+/* OpenSSL's AES */
+# ifdef WITH_OPENSSL
+# include "openbsd-compat/openssl-compat.h"
+# endif
+#endif /* USING_WOLFSSL */
+
+#ifndef USE_BUILTIN_RIJNDAEL
+#ifdef USING_WOLFSSL
+# include <wolfssl/openssl/evp.h>
+# include <wolfssl/wolfcrypt/aes.h>
+#else
+# include <openssl/aes.h>
+#endif /* USING_WOLFSSL */
+#endif /* USE_BUILTIN_RIJNDAEL */
+
+#ifdef USING_WOLFSSL
+typedef Aes aes_int_key[1];
+#define aes_encryption(in,out,int_key)  wc_AesEncryptDirect(int_key, (u_char *)(out),(u_char *)(in))
+#define aes_key_setup(key,int_key)      wc_AesSetKeyDirect(int_key, (u_char *)(key),UMAC_KEY_LEN,NULL,AES_ENCRYPTION)
+#else /* USING_WOLFSSL */
+# ifdef WITH_OPENSSL
+  typedef AES_KEY aes_int_key[1];
+# define aes_encryption(in,out,int_key)                  \
+   AES_encrypt((u_char *)(in),(u_char *)(out),(AES_KEY *)int_key)
+# define aes_key_setup(key,int_key)                      \
+   AES_set_encrypt_key((const u_char *)(key),UMAC_KEY_LEN*8,int_key)
+# else
+# include "rijndael.h"
+# define AES_ROUNDS ((UMAC_KEY_LEN / 4) + 6)
+  typedef UINT8 aes_int_key[AES_ROUNDS+1][4][4];	/* AES internal */
+# define aes_encryption(in,out,int_key) \
+   rijndaelEncrypt((u32 *)(int_key), AES_ROUNDS, (u8 *)(in), (u8 *)(out))
+# define aes_key_setup(key,int_key) \
+   rijndaelKeySetupEnc((u32 *)(int_key), (const unsigned char *)(key), \
+   UMAC_KEY_LEN*8)
+# endif /* WITH_OPENSSL */
+#endif /* USING_WOLFSSL */
 
 /* The user-supplied UMAC key is stretched using AES in a counter
  * mode to supply all random bits needed by UMAC. The kdf function takes

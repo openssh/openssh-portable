@@ -16,8 +16,13 @@
 #ifndef RSA_H
 #define RSA_H
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/rsa.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
+#endif
 
 int	 rsa_public_encrypt(BIGNUM *, BIGNUM *, RSA *);
 int	 rsa_private_decrypt(BIGNUM *, BIGNUM *, RSA *);

@@ -21,7 +21,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dh.h>
+#else
 #include <openssl/rsa.h>
+#endif
 
 #include <pwd.h>
 #include <stdio.h>

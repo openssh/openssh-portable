@@ -6,6 +6,8 @@
  * Copied from supercop-20130419/crypto_sign/ed25519/ref/fe25519.h
  */
 
+#ifndef USING_WOLFSSL
+
 #ifndef FE25519_H
 #define FE25519_H
 
@@ -68,3 +70,5 @@ void fe25519_invert(fe25519 *r, const fe25519 *x);
 void fe25519_pow2523(fe25519 *r, const fe25519 *x);
 
 #endif
+
+#endif /* USING_WOLFSSL */

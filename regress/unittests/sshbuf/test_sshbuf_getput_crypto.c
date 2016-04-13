@@ -16,10 +16,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/ssl.h>
+#include <wolfssl/openssl/ec.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/objects.h>
-#ifdef OPENSSL_HAS_NISTP256
-# include <openssl/ec.h>
+# ifdef OPENSSL_HAS_NISTP256
+#  include <openssl/ec.h>
+# endif
 #endif
 
 #include "../test_helper/test_helper.h"
@@ -47,8 +53,10 @@ sshbuf_getput_crypto_tests(void)
 		0x7f, 0xff, 0x11
 	};
 #if defined(OPENSSL_HAS_ECC) && defined(OPENSSL_HAS_NISTP256)
+#ifndef USING_WOLFSSL
 	const u_char *d;
 	size_t s;
+#endif
 	BIGNUM *bn_x, *bn_y;
 	int ec256_nid = NID_X9_62_prime256v1;
 	char *ec256_x = "0C828004839D0106AA59575216191357"
@@ -360,6 +368,10 @@ sshbuf_getput_crypto_tests(void)
 	ASSERT_PTR_NE(ecp, NULL);
 	MKBN(ec256_x, bn_x);
 	MKBN(ec256_y, bn_y);
+#ifndef USING_WOLFSSL
+	/* wolfSSL does not have support for set_affine_coordinates_GFp
+ 	 * at this time
+ 	 */
 	ASSERT_INT_EQ(EC_POINT_set_affine_coordinates_GFp(
 	    EC_KEY_get0_group(eck), ecp, bn_x, bn_y, NULL), 1);
 	ASSERT_INT_EQ(EC_KEY_set_public_key(eck, ecp), 1);
@@ -374,6 +386,7 @@ sshbuf_getput_crypto_tests(void)
 	ASSERT_MEM_EQ(d, expec256, sizeof(expec256));
 	sshbuf_free(p1);
 	EC_KEY_free(eck);
+#endif
 	TEST_DONE();
 
 	TEST_START("sshbuf_get_ec");

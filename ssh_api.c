@@ -17,6 +17,10 @@
 
 #include "includes.h"
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#endif
+
 #include "ssh1.h" /* For SSH_MSG_NONE */
 #include "ssh_api.h"
 #include "compat.h"

@@ -26,6 +26,10 @@
 #ifndef DH_H
 #define DH_H
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#endif
+
 struct dhgroup {
 	int size;
 	BIGNUM *g;

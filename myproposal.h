@@ -24,7 +24,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/opensslv.h>
+#else
 #include <openssl/opensslv.h>
+#endif
 
 /* conditional algorithm support */
 

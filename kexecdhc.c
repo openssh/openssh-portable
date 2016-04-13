@@ -26,7 +26,7 @@
 
 #include "includes.h"
 
-#if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
+#if (defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC))
 
 #include <sys/types.h>
 
@@ -34,7 +34,11 @@
 #include <string.h>
 #include <signal.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/ecdh.h>
+#else
 #include <openssl/ecdh.h>
+#endif
 
 #include "sshkey.h"
 #include "cipher.h"

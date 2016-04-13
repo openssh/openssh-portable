@@ -28,6 +28,10 @@
 #ifndef _MM_WRAP_H_
 #define _MM_WRAP_H_
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/dh.h>
+#endif
+
 extern int use_privsep;
 #define PRIVSEP(x)	(use_privsep ? mm_##x : x)
 

@@ -38,7 +38,12 @@
 #define CIPHER_H
 
 #include <sys/types.h>
+
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif
 #include "cipher-chachapoly.h"
 #include "cipher-aesctr.h"
 

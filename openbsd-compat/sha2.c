@@ -38,8 +38,13 @@
 
 #include "includes.h"
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/opensslv.h>
+#else
+#include <openssl/opensslv.h>
+#endif
+
 #ifdef WITH_OPENSSL
-# include <openssl/opensslv.h>
 # if !defined(HAVE_EVP_SHA256) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 #  define _NEED_SHA2 1
 # endif

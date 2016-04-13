@@ -57,8 +57,14 @@
 #  include "md5crypt.h"
 # endif
 
-# if defined(WITH_OPENSSL) && !defined(HAVE_CRYPT) && defined(HAVE_DES_CRYPT)
+# if !defined(HAVE_CRYPT) && defined(HAVE_DES_CRYPT)
+#ifdef USING_WOLFSSL
+#  include <wolfssl/openssl/des.h>
+#else
+# ifdef WITH_OPENSSL
 #  include <openssl/des.h>
+# endif
+#endif /* USING_WOLFSSL */
 #  define crypt DES_crypt
 # endif
 

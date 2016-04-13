@@ -161,8 +161,12 @@
 # endif
 #endif
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/opensslv.h>
+#else
 #ifdef WITH_OPENSSL
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
+#endif
 #endif
 
 #include "defines.h"

@@ -24,13 +24,19 @@
 
 #include "includes.h"
 
+#ifndef USING_WOLFSSL
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #ifdef USE_BUILTIN_RIJNDAEL
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif
 
 #include <stdarg.h>
 #include <string.h>

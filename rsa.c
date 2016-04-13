@@ -161,9 +161,16 @@ rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 int
 rsa_generate_additional_parameters(RSA *rsa)
 {
+    int r;
+#ifdef USING_WOLFSSL
+	if ( (r = wolfSSL_RSA_GenAdd(rsa)) < 0) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+#else
 	BIGNUM *aux = NULL;
 	BN_CTX *ctx = NULL;
-	int r;
+	
 
 	if ((ctx = BN_CTX_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
@@ -179,10 +186,13 @@ rsa_generate_additional_parameters(RSA *rsa)
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+#endif /* USING_WOLFSSL */
 	r = 0;
  out:
+#ifndef USING_WOLFSSL
 	BN_clear_free(aux);
 	BN_CTX_free(ctx);
+#endif
 	return r;
 }
 

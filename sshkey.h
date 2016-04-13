@@ -28,23 +28,28 @@
 
 #include <sys/types.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-# ifdef OPENSSL_HAS_ECC
-#  include <openssl/ec.h>
-# else /* OPENSSL_HAS_ECC */
-#  define EC_KEY	void
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rsa.h>
+#include <wolfssl/openssl/dsa.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/rsa.h>
+# include <openssl/dsa.h>
+#  ifdef OPENSSL_HAS_ECC
+#   include <openssl/ec.h>
+#  else /* OPENSSL_HAS_ECC */
+#   define EC_KEY	void
+#   define EC_GROUP	void
+#   define EC_POINT	void
+#  endif /* OPENSSL_HAS_ECC */
+# else /* WITH_OPENSSL */
+#  define RSA		void
+#  define DSA		void
+#  define EC_KEY		void
 #  define EC_GROUP	void
 #  define EC_POINT	void
-# endif /* OPENSSL_HAS_ECC */
-#else /* WITH_OPENSSL */
-# define RSA		void
-# define DSA		void
-# define EC_KEY		void
-# define EC_GROUP	void
-# define EC_POINT	void
-#endif /* WITH_OPENSSL */
+# endif /* WITH_OPENSSL */
+#endif /* USING_WOLFSSL*/
 
 #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
 #define SSH_KEY_MAX_SIGN_DATA_SIZE	(1 << 20)

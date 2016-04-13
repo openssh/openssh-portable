@@ -30,10 +30,17 @@
 
 #include <sys/types.h>
 
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/bn.h>
+#include <wolfssl/openssl/ec.h>
+#include <wolfssl/openssl/ecdsa.h>
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#endif /* USING_WOLFSSL */
 
 #include <string.h>
 

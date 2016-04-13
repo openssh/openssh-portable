@@ -16,6 +16,8 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef USING_WOLFSSL
+
 #ifndef _OPENSSL_COMPAT_H
 #define _OPENSSL_COMPAT_H
 
@@ -94,3 +96,4 @@ void ssh_OpenSSL_add_all_algorithms(void);
 
 #endif /* WITH_OPENSSL */
 #endif /* _OPENSSL_COMPAT_H */
+#endif /* USING_WOLFSSL */

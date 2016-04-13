@@ -1,7 +1,6 @@
-/* $OpenBSD: digest-libc.c,v 1.5 2015/05/05 02:48:17 jsg Exp $ */
+/* $OpenBSD: digest-wolfssl.c,v 1.0 2015/11/13 09:56:12 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
- * Copyright (c) 2014 Markus Friedl.  All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,30 +14,31 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*
+ * WolfSSL digest
+ */
 #include "includes.h"
 
-#if !defined(WITH_OPENSSL) && !defined(USING_WOLFSSL)
+#ifdef USING_WOLFSSL
 
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if 0
-#include <md5.h>
-#include <rmd160.h>
-#include <sha1.h>
-#include <sha2.h>
-#endif
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/md5.h>
+#include <wolfssl/wolfcrypt/ripemd.h>
+#include <wolfssl/wolfcrypt/sha.h>
+#include <wolfssl/wolfcrypt/sha256.h>
+#include <wolfssl/wolfcrypt/sha512.h>
 
-#include "ssherr.h"
-#include "sshbuf.h"
+#include "buffer.h"
 #include "digest.h"
 
 typedef void md_init_fn(void *mdctx);
 typedef void md_update_fn(void *mdctx, const u_int8_t *m, size_t mlen);
-typedef void md_final_fn(u_int8_t[], void *mdctx);
+typedef void md_final_fn(void *mdctx, u_int8_t[]);
 
 struct ssh_digest_ctx {
 	int alg;
@@ -61,62 +61,62 @@ const struct ssh_digest digests[SSH_DIGEST_MAX] = {
 	{
 		SSH_DIGEST_MD5,
 		"MD5",
-		MD5_BLOCK_LENGTH,
-		MD5_DIGEST_LENGTH,
-		sizeof(MD5_CTX),
-		(md_init_fn *) MD5Init,
-		(md_update_fn *) MD5Update,
-		(md_final_fn *) MD5Final
+		MD5_BLOCK_SIZE,
+		MD5_DIGEST_SIZE,
+		sizeof(Md5),
+		(md_init_fn *) wc_InitMd5,
+		(md_update_fn *) wc_Md5Update,
+		(md_final_fn *) wc_Md5Final
 	},
 	{
 		SSH_DIGEST_RIPEMD160,
 		"RIPEMD160",
-		RMD160_BLOCK_LENGTH,
-		RMD160_DIGEST_LENGTH,
-		sizeof(RMD160_CTX),
-		(md_init_fn *) RMD160Init,
-		(md_update_fn *) RMD160Update,
-		(md_final_fn *) RMD160Final
+		RIPEMD_BLOCK_SIZE,
+		RIPEMD_DIGEST_SIZE,
+		sizeof(RipeMd),
+		(md_init_fn *) wc_InitRipeMd,
+		(md_update_fn *) wc_RipeMdUpdate,
+		(md_final_fn *) wc_RipeMdFinal
 	},
 	{
 		SSH_DIGEST_SHA1,
 		"SHA1",
-		SHA1_BLOCK_LENGTH,
-		SHA1_DIGEST_LENGTH,
-		sizeof(SHA1_CTX),
-		(md_init_fn *) SHA1Init,
-		(md_update_fn *) SHA1Update,
-		(md_final_fn *) SHA1Final
+		SHA_BLOCK_SIZE,
+		SHA_DIGEST_SIZE,
+		sizeof(Sha),
+		(md_init_fn *) wc_InitSha,
+		(md_update_fn *) wc_ShaUpdate,
+		(md_final_fn *) wc_ShaFinal
 	},
 	{
 		SSH_DIGEST_SHA256,
 		"SHA256",
-		SHA256_BLOCK_LENGTH,
-		SHA256_DIGEST_LENGTH,
-		sizeof(SHA256_CTX),
-		(md_init_fn *) SHA256_Init,
-		(md_update_fn *) SHA256_Update,
-		(md_final_fn *) SHA256_Final
+		SHA256_BLOCK_SIZE,
+		SHA256_DIGEST_SIZE,
+		sizeof(Sha256),
+		(md_init_fn *) wc_InitSha256,
+		(md_update_fn *) wc_Sha256Update,
+		(md_final_fn *) wc_Sha256Final
 	},
 	{
 		SSH_DIGEST_SHA384,
 		"SHA384",
-		SHA384_BLOCK_LENGTH,
-		SHA384_DIGEST_LENGTH,
-		sizeof(SHA384_CTX),
-		(md_init_fn *) SHA384_Init,
-		(md_update_fn *) SHA384_Update,
-		(md_final_fn *) SHA384_Final
+		SHA384_BLOCK_SIZE,
+		SHA384_DIGEST_SIZE,
+		sizeof(Sha384),
+		(md_init_fn *) wc_InitSha384,
+		(md_update_fn *) wc_Sha384Update,
+		(md_final_fn *) wc_Sha384Final
 	},
 	{
 		SSH_DIGEST_SHA512,
 		"SHA512",
-		SHA512_BLOCK_LENGTH,
-		SHA512_DIGEST_LENGTH,
-		sizeof(SHA512_CTX),
-		(md_init_fn *) SHA512_Init,
-		(md_update_fn *) SHA512_Update,
-		(md_final_fn *) SHA512_Final
+		SHA512_BLOCK_SIZE,
+		SHA512_DIGEST_SIZE,
+		sizeof(Sha512),
+		(md_init_fn *) wc_InitSha512,
+		(md_update_fn *) wc_Sha512Update,
+		(md_final_fn *) wc_Sha512Final
 	}
 };
 
@@ -131,25 +131,22 @@ ssh_digest_by_alg(int alg)
 }
 
 int
-ssh_digest_alg_by_name(const char *name)
+ssh_digest_alg_by_name(const char* name)
 {
-	int alg;
-
-	for (alg = 0; alg < SSH_DIGEST_MAX; alg++) {
-		if (strcasecmp(name, digests[alg].name) == 0)
-			return digests[alg].id;
-	}
-	return -1;
+    int alg;
+    for (alg = 0; alg < SSH_DIGEST_MAX; alg++) {
+        if (strcasecmp(name, digests[alg].name) == 0)
+            return digests[alg].id;
+    }
+    return -1;
 }
 
-const char *
+const char*
 ssh_digest_alg_name(int alg)
 {
-	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
-
-	return digest == NULL ? NULL : digest->name;
+    const struct ssh_digest* digest = ssh_digest_by_alg(alg);
+    return digest == NULL ? NULL : digest->name;
 }
-
 size_t
 ssh_digest_bytes(int alg)
 {
@@ -172,7 +169,7 @@ ssh_digest_start(int alg)
 	const struct ssh_digest *digest = ssh_digest_by_alg(alg);
 	struct ssh_digest_ctx *ret;
 
-	if (digest == NULL || (ret = calloc(1, sizeof(*ret))) == NULL)
+	if (digest == NULL || (ret = calloc(1, sizeof(ret))) == NULL)
 		return NULL;
 	if ((ret->mdctx = calloc(1, digest->ctx_len)) == NULL) {
 		free(ret);
@@ -189,7 +186,7 @@ ssh_digest_copy_state(struct ssh_digest_ctx *from, struct ssh_digest_ctx *to)
 	const struct ssh_digest *digest = ssh_digest_by_alg(from->alg);
 
 	if (digest == NULL || from->alg != to->alg)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	memcpy(to->mdctx, from->mdctx, digest->ctx_len);
 	return 0;
 }
@@ -200,15 +197,15 @@ ssh_digest_update(struct ssh_digest_ctx *ctx, const void *m, size_t mlen)
 	const struct ssh_digest *digest = ssh_digest_by_alg(ctx->alg);
 
 	if (digest == NULL)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	digest->md_update(ctx->mdctx, m, mlen);
 	return 0;
 }
 
 int
-ssh_digest_update_buffer(struct ssh_digest_ctx *ctx, const struct sshbuf *b)
+ssh_digest_update_buffer(struct ssh_digest_ctx *ctx, const Buffer *b)
 {
-	return ssh_digest_update(ctx, sshbuf_ptr(b), sshbuf_len(b));
+	return ssh_digest_update(ctx, buffer_ptr(b), buffer_len(b));
 }
 
 int
@@ -217,12 +214,12 @@ ssh_digest_final(struct ssh_digest_ctx *ctx, u_char *d, size_t dlen)
 	const struct ssh_digest *digest = ssh_digest_by_alg(ctx->alg);
 
 	if (digest == NULL)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	if (dlen > UINT_MAX)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	if (dlen < digest->digest_len) /* No truncation allowed */
-		return SSH_ERR_INVALID_ARGUMENT;
-	digest->md_final(d, ctx->mdctx);
+		return -1;
+	digest->md_final(ctx->mdctx, d);
 	return 0;
 }
 
@@ -248,17 +245,18 @@ ssh_digest_memory(int alg, const void *m, size_t mlen, u_char *d, size_t dlen)
 	struct ssh_digest_ctx *ctx = ssh_digest_start(alg);
 
 	if (ctx == NULL)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	if (ssh_digest_update(ctx, m, mlen) != 0 ||
 	    ssh_digest_final(ctx, d, dlen) != 0)
-		return SSH_ERR_INVALID_ARGUMENT;
+		return -1;
 	ssh_digest_free(ctx);
 	return 0;
 }
 
 int
-ssh_digest_buffer(int alg, const struct sshbuf *b, u_char *d, size_t dlen)
+ssh_digest_buffer(int alg, const Buffer *b, u_char *d, size_t dlen)
 {
-	return ssh_digest_memory(alg, sshbuf_ptr(b), sshbuf_len(b), d, dlen);
+	return ssh_digest_memory(alg, buffer_ptr(b), buffer_len(b), d, dlen);
 }
-#endif /* !WITH_OPENSSL && !USING_WOLFSSL */
+
+#endif /* USING_WOLFSSL */

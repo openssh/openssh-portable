@@ -20,12 +20,20 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/opensslv.h>
+#else
 #include <openssl/opensslv.h>
+#endif
 
 #if !defined(HAVE_EVP_SHA256) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 
 #include <string.h>
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#else
 #include <openssl/evp.h>
+#endif /* USING_WOLFSSL */
 #ifdef HAVE_SHA256_UPDATE
 # ifdef HAVE_SHA2_H
 #  include <sha2.h>

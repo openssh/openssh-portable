@@ -33,8 +33,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/crypto.h>
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/crypto.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/crypto.h>
+# endif
 #endif
 
 #include "ssh2.h"

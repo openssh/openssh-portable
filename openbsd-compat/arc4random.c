@@ -34,11 +34,15 @@
 #include <unistd.h>
 
 #ifndef HAVE_ARC4RANDOM
-
-#ifdef WITH_OPENSSL
-#include <openssl/rand.h>
-#include <openssl/err.h>
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/err.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/rand.h>
+# include <openssl/err.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "log.h"
 

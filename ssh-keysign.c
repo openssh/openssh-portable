@@ -36,11 +36,17 @@
 #include <unistd.h>
 #include <errno.h>
 
-#ifdef WITH_OPENSSL
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#endif
+#ifdef USING_WOLFSSL
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/rand.h>
+#include <wolfssl/openssl/rsa.h>
+#else
+# ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include <openssl/rand.h>
+# include <openssl/rsa.h>
+# endif
+#endif /* USING_WOLFSSL */
 
 #include "xmalloc.h"
 #include "log.h"

@@ -3,7 +3,7 @@
 
 tid="sftp in chroot"
 
-CHROOT=/var/run
+CHROOT=/var/empty
 FILENAME=testdata_${USER}
 PRIVDATA=${CHROOT}/${FILENAME}
 

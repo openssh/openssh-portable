@@ -38,7 +38,9 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 
+#ifndef USING_WOLFSSL
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #define SSH_DIGEST	1	/* SSH_DIGEST_XXX */
 #define SSH_UMAC	2	/* UMAC (not integrated with OpenSSL) */
@@ -66,8 +68,10 @@ static const struct macalg macs[] = {
 	{ "hmac-md5-96",			SSH_DIGEST, SSH_DIGEST_MD5, 96, 0, 0, 0 },
 	{ "hmac-ripemd160",			SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 0 },
 	{ "hmac-ripemd160@openssh.com",		SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 0 },
+#ifndef USING_WOLFSSL
 	{ "umac-64@openssh.com",		SSH_UMAC, 0, 0, 128, 64, 0 },
 	{ "umac-128@openssh.com",		SSH_UMAC128, 0, 0, 128, 128, 0 },
+#endif
 
 	/* Encrypt-then-MAC variants */
 	{ "hmac-sha1-etm@openssh.com",		SSH_DIGEST, SSH_DIGEST_SHA1, 0, 0, 0, 1 },
@@ -79,8 +83,10 @@ static const struct macalg macs[] = {
 	{ "hmac-md5-etm@openssh.com",		SSH_DIGEST, SSH_DIGEST_MD5, 0, 0, 0, 1 },
 	{ "hmac-md5-96-etm@openssh.com",	SSH_DIGEST, SSH_DIGEST_MD5, 96, 0, 0, 1 },
 	{ "hmac-ripemd160-etm@openssh.com",	SSH_DIGEST, SSH_DIGEST_RIPEMD160, 0, 0, 0, 1 },
+#ifndef USING_WOLFSSL
 	{ "umac-64-etm@openssh.com",		SSH_UMAC, 0, 0, 128, 64, 1 },
 	{ "umac-128-etm@openssh.com",		SSH_UMAC128, 0, 0, 128, 128, 1 },
+#endif
 
 	{ NULL,					0, 0, 0, 0, 0, 0 }
 };
