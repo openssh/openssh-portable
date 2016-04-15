@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.84 2016/03/04 02:30:36 djm Exp $
+#	$OpenBSD: Makefile,v 1.85 2016/04/15 00:31:10 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -75,7 +75,8 @@ LTESTS= 	connect \
 		keygen-knownhosts \
 		hostkey-rotate \
 		principals-command \
-		cert-file
+		cert-file \
+		cfginclude
 
 
 #		dhgex \
@@ -106,7 +107,8 @@ CLEANFILES=	t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		sftp-server.sh sftp-server.log sftp.log setuid-allowed \
 		data ed25519-agent ed25519-agent.pub key.ed25519-512 \
 		key.ed25519-512.pub netcat host_krl_* host_revoked_* \
-		kh.* user_*key* agent-key.* known_hosts.* hkr.*
+		kh.* user_*key* agent-key.* known_hosts.* hkr.* \
+		scp-ssh-wrapper.scp ssh_proxy_bak ssh_config.*
 
 SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
 
