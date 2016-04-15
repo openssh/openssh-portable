@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.86 2016/04/15 00:48:01 djm Exp $
+#	$OpenBSD: Makefile,v 1.87 2016/04/15 02:55:53 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
