@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.251 2016/04/06 06:42:17 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.252 2016/04/15 00:30:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -39,6 +39,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef USE_SYSTEM_GLOB
+# include <glob.h>
+#else
+# include "openbsd-compat/glob.h"
+#endif
 #ifdef HAVE_UTIL_H
 #include <util.h>
 #endif
@@ -125,11 +130,18 @@
 
 */
 
+static int read_config_file_depth(const char *filename, struct passwd *pw,
+    const char *host, const char *original_host, Options *options,
+    int flags, int *activep, int depth);
+static int process_config_line_depth(Options *options, struct passwd *pw,
+    const char *host, const char *original_host, char *line,
+    const char *filename, int linenum, int *activep, int flags, int depth);
+
 /* Keyword tokens. */
 
 typedef enum {
 	oBadOption,
-	oHost, oMatch,
+	oHost, oMatch, oInclude,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
@@ -258,6 +270,7 @@ static struct {
 	{ "controlmaster", oControlMaster },
 	{ "controlpersist", oControlPersist },
 	{ "hashknownhosts", oHashKnownHosts },
+	{ "include", oInclude },
 	{ "tunnel", oTunnel },
 	{ "tunneldevice", oTunnelDevice },
 	{ "localcommand", oLocalCommand },
@@ -783,22 +796,32 @@ static const struct multistate multistate_canonicalizehostname[] = {
  * Processes a single option line as used in the configuration files. This
  * only sets those values that have not already been set.
  */
-#define WHITESPACE " \t\r\n"
 int
 process_config_line(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
     int linenum, int *activep, int flags)
 {
+	return process_config_line_depth(options, pw, host, original_host,
+	    line, filename, linenum, activep, flags, 0);
+}
+
+#define WHITESPACE " \t\r\n"
+static int
+process_config_line_depth(Options *options, struct passwd *pw, const char *host,
+    const char *original_host, char *line, const char *filename,
+    int linenum, int *activep, int flags, int depth)
+{
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
-	int negated, opcode, *intptr, value, value2, cmdline = 0;
+	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
 	LogLevel *log_level_ptr;
 	long long val64;
 	size_t len;
 	struct Forward fwd;
 	const struct multistate *multistate_ptr;
 	struct allowed_cname *cname;
+	glob_t gl;
 
 	if (activep == NULL) { /* We are processing a command line directive */
 		cmdline = 1;
@@ -1258,6 +1281,8 @@ parse_keytypes:
 		*activep = 0;
 		arg2 = NULL;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			if ((flags & SSHCONF_NEVERMATCH) != 0)
+				break;
 			negated = *arg == '!';
 			if (negated)
 				arg++;
@@ -1290,7 +1315,7 @@ parse_keytypes:
 		if (value < 0)
 			fatal("%.200s line %d: Bad Match condition", filename,
 			    linenum);
-		*activep = value;
+		*activep = (flags & SSHCONF_NEVERMATCH) ? 0 : value;
 		break;
 
 	case oEscapeChar:
@@ -1417,6 +1442,63 @@ parse_keytypes:
 	case oVisualHostKey:
 		intptr = &options->visual_host_key;
 		goto parse_flag;
+
+	case oInclude:
+		if (cmdline)
+			fatal("Include directive not supported as a "
+			    "command-line option");
+		value = 0;
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			/*
+			 * Ensure all paths are anchored. User configuration
+			 * files may begin with '~/' but system configurations
+			 * must not. If the path is relative, then treat it
+			 * as living in ~/.ssh for user configurations or
+			 * /etc/ssh for system ones.
+			 */
+			if (*arg == '~' && (flags & SSHCONF_USERCONF) == 0)
+				fatal("%.200s line %d: bad include path %s.",
+				    filename, linenum, arg);
+			if (*arg != '/' && *arg != '~') {
+				xasprintf(&arg2, "%s/%s",
+				    (flags & SSHCONF_USERCONF) ?
+				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
+			} else
+				arg2 = xstrdup(arg);
+			memset(&gl, 0, sizeof(gl));
+			r = glob(arg2, GLOB_TILDE, NULL, &gl);
+			if (r == GLOB_NOMATCH) {
+				debug("%.200s line %d: include %s matched no "
+				    "files",filename, linenum, arg2);
+				continue;
+			} else if (r != 0 || gl.gl_pathc < 0)
+				fatal("%.200s line %d: glob failed for %s.",
+				    filename, linenum, arg2);
+			free(arg2);
+			oactive = *activep;
+			for (i = 0; i < (u_int)gl.gl_pathc; i++) {
+				debug3("%.200s line %d: Including file %s "
+				    "depth %d%s", filename, linenum,
+				    gl.gl_pathv[i], depth,
+				    oactive ? "" : " (parse only)");
+				r = read_config_file_depth(gl.gl_pathv[i],
+				    pw, host, original_host, options,
+				    flags | SSHCONF_CHECKPERM |
+				    (oactive ? 0 : SSHCONF_NEVERMATCH),
+				    activep, depth + 1);
+				/*
+				 * don't let Match in includes clobber the
+				 * containing file's Match state.
+				 */
+				*activep = oactive;
+				if (r != 1)
+					value = -1;
+			}
+			globfree(&gl);
+		}
+		if (value != 0)
+			return value;
+		break;
 
 	case oIPQoS:
 		arg = strdelim(&s);
@@ -1576,21 +1658,34 @@ parse_keytypes:
 	return 0;
 }
 
-
 /*
  * Reads the config file and modifies the options accordingly.  Options
  * should already be initialized before this call.  This never returns if
  * there is an error.  If the file does not exist, this returns 0.
  */
-
 int
 read_config_file(const char *filename, struct passwd *pw, const char *host,
     const char *original_host, Options *options, int flags)
 {
+	int active = 1;
+
+	return read_config_file_depth(filename, pw, host, original_host,
+	    options, flags, &active, 0);
+}
+
+#define READCONF_MAX_DEPTH	16
+static int
+read_config_file_depth(const char *filename, struct passwd *pw,
+    const char *host, const char *original_host, Options *options,
+    int flags, int *activep, int depth)
+{
 	FILE *f;
 	char line[1024];
-	int active, linenum;
+	int linenum;
 	int bad_options = 0;
+
+	if (depth < 0 || depth > READCONF_MAX_DEPTH)
+		fatal("Too many recursive configuration includes");
 
 	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
@@ -1611,13 +1706,12 @@ read_config_file(const char *filename, struct passwd *pw, const char *host,
 	 * Mark that we are now processing the options.  This flag is turned
 	 * on/off by Host specifications.
 	 */
-	active = 1;
 	linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
 		/* Update line number counter. */
 		linenum++;
-		if (process_config_line(options, pw, host, original_host,
-		    line, filename, linenum, &active, flags) != 0)
+		if (process_config_line_depth(options, pw, host, original_host,
+		    line, filename, linenum, activep, flags, depth) != 0)
 			bad_options++;
 	}
 	fclose(f);
