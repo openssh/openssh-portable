@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.240 2016/03/14 16:20:54 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.241 2016/04/28 14:30:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1094,8 +1094,8 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	/*
 	 * If the key is an certificate, try to find a matching private key
 	 * and use it to complete the signature.
-	 * If no such private key exists, return failure and continue with
-	 * other methods of authentication.
+	 * If no such private key exists, fall back to trying the certificate
+	 * key itself in case it has a private half already loaded.
 	 */
 	if (key_is_cert(id->key)) {
 		matched = 0;
