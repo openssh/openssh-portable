@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.437 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.438 2016/04/29 08:07:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1395,7 +1395,7 @@ static void
 control_persist_detach(void)
 {
 	pid_t pid;
-	int devnull;
+	int devnull, keep_stderr;
 
 	debug("%s: backgrounding master process", __func__);
 
@@ -1426,8 +1426,10 @@ control_persist_detach(void)
 		error("%s: open(\"/dev/null\"): %s", __func__,
 		    strerror(errno));
 	} else {
+		keep_stderr = log_is_on_stderr() && debug_flag;
 		if (dup2(devnull, STDIN_FILENO) == -1 ||
-		    dup2(devnull, STDOUT_FILENO) == -1)
+		    dup2(devnull, STDOUT_FILENO) == -1 ||
+		    (!keep_stderr && dup2(devnull, STDERR_FILENO) == -1))
 			error("%s: dup2: %s", __func__, strerror(errno));
 		if (devnull > STDERR_FILENO)
 			close(devnull);

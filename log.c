@@ -1,4 +1,4 @@
-/* $OpenBSD: log.c,v 1.46 2015/07/08 19:04:21 markus Exp $ */
+/* $OpenBSD: log.c,v 1.47 2016/04/29 08:07:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -342,7 +342,7 @@ log_change_level(LogLevel new_log_level)
 int
 log_is_on_stderr(void)
 {
-	return log_on_stderr;
+	return log_on_stderr && log_stderr_fd == STDERR_FILENO;
 }
 
 /* redirect what would usually get written to stderr to specified file */
