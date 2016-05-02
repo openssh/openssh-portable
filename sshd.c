@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.468 2016/05/02 10:26:04 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.469 2016/05/02 14:10:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1104,7 +1104,7 @@ recv_rexec_state(int fd, Buffer *conf)
 
 	cp = buffer_get_string(&m, &len);
 	if (conf != NULL)
-		buffer_append(conf, cp, len + 1);
+		buffer_append(conf, cp, len);
 	free(cp);
 
 	if (buffer_get_int(&m)) {
