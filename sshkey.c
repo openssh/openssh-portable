@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.32 2016/04/09 12:39:30 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.33 2016/05/02 09:36:42 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2370,7 +2370,7 @@ sshkey_drop_cert(struct sshkey *k)
 
 /* Sign a certified key, (re-)generating the signed certblob. */
 int
-sshkey_certify(struct sshkey *k, struct sshkey *ca)
+sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg)
 {
 	struct sshbuf *principals = NULL;
 	u_char *ca_blob = NULL, *sig_blob = NULL, nonce[32];
@@ -2460,7 +2460,7 @@ sshkey_certify(struct sshkey *k, struct sshkey *ca)
 
 	/* Sign the whole mess */
 	if ((ret = sshkey_sign(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
-	    sshbuf_len(cert), NULL, 0)) != 0)
+	    sshbuf_len(cert), alg, 0)) != 0)
 		goto out;
 
 	/* Append signature and we are done */

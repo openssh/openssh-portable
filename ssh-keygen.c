@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.289 2016/05/02 08:49:03 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.290 2016/05/02 09:36:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1599,6 +1599,12 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		ca = load_identity(tmp);
 	free(tmp);
 
+	if (key_type_name != NULL &&
+	    sshkey_type_from_name(key_type_name) != ca->type)  {
+		fatal("CA key type %s doesn't match specified %s",
+		    sshkey_ssh_name(ca), key_type_name);
+	}
+
 	for (i = 0; i < argc; i++) {
 		/* Split list of principals */
 		n = 0;
@@ -1640,8 +1646,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		    &public->cert->signature_key)) != 0)
 			fatal("key_from_private (ca key): %s", ssh_err(r));
 
-		if (sshkey_certify(public, ca) != 0)
-			fatal("Couldn't not certify key %s", tmp);
+		if ((r = sshkey_certify(public, ca, key_type_name)) != 0)
+			fatal("Couldn't certify key %s: %s", tmp, ssh_err(r));
 
 		if ((cp = strrchr(tmp, '.')) != NULL && strcmp(cp, ".pub") == 0)
 			*cp = '\0';
