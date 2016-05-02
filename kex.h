@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.76 2016/02/08 10:57:07 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.77 2016/05/02 08:49:03 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -205,8 +205,9 @@ int kex_ecdh_hash(int, const EC_GROUP *, const char *, const char *,
     const u_char *, size_t, const u_char *, size_t, const u_char *, size_t,
     const EC_POINT *, const EC_POINT *, const BIGNUM *, u_char *, size_t *);
 
-int	 kex_c25519_hash(int, const char *, const char *, const char *, size_t,
-    const char *, size_t, const u_char *, size_t, const u_char *, const u_char *,
+int	 kex_c25519_hash(int, const char *, const char *,
+    const u_char *, size_t, const u_char *, size_t,
+    const u_char *, size_t, const u_char *, const u_char *,
     const u_char *, size_t, u_char *, size_t *);
 
 void	kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.241 2016/04/28 14:30:21 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.242 2016/05/02 08:49:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1922,8 +1922,8 @@ authmethods_get(void)
 			buffer_append(&b, method->name, strlen(method->name));
 		}
 	}
-	buffer_append(&b, "\0", 1);
-	list = xstrdup(buffer_ptr(&b));
+	if ((list = sshbuf_dup_string(&b)) == NULL)
+		fatal("%s: sshbuf_dup_string failed", __func__);
 	buffer_free(&b);
 	return list;
 }

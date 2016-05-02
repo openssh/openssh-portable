@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.158 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.159 2016/05/02 08:49:03 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -34,6 +34,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #ifdef HAVE_PATHS_H
 #include <paths.h>
 #endif
@@ -688,7 +689,8 @@ mm_answer_sign(int sock, Buffer *m)
 	u_char *p = NULL, *signature = NULL;
 	char *alg = NULL;
 	size_t datlen, siglen, alglen;
-	int r, keyid, is_proof = 0;
+	int r, is_proof = 0;
+	u_int keyid;
 	const char proof_req[] = "hostkeys-prove-00@openssh.com";
 
 	debug3("%s", __func__);
@@ -697,6 +699,8 @@ mm_answer_sign(int sock, Buffer *m)
 	    (r = sshbuf_get_string(m, &p, &datlen)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &alg, &alglen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (keyid > INT_MAX)
+		fatal("%s: invalid key ID", __func__);
 
 	/*
 	 * Supported KEX types use SHA1 (20 bytes), SHA256 (32 bytes),
@@ -1289,7 +1293,8 @@ static int
 monitor_valid_userblob(u_char *data, u_int datalen)
 {
 	Buffer b;
-	char *p, *userstyle;
+	u_char *p;
+	char *userstyle, *cp;
 	u_int len;
 	int fail = 0;
 
@@ -1314,26 +1319,26 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 	}
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
-	p = buffer_get_cstring(&b, NULL);
+	cp = buffer_get_cstring(&b, NULL);
 	xasprintf(&userstyle, "%s%s%s", authctxt->user,
 	    authctxt->style ? ":" : "",
 	    authctxt->style ? authctxt->style : "");
-	if (strcmp(userstyle, p) != 0) {
-		logit("wrong user name passed to monitor: expected %s != %.100s",
-		    userstyle, p);
+	if (strcmp(userstyle, cp) != 0) {
+		logit("wrong user name passed to monitor: "
+		    "expected %s != %.100s", userstyle, cp);
 		fail++;
 	}
 	free(userstyle);
-	free(p);
+	free(cp);
 	buffer_skip_string(&b);
 	if (datafellows & SSH_BUG_PKAUTH) {
 		if (!buffer_get_char(&b))
 			fail++;
 	} else {
-		p = buffer_get_cstring(&b, NULL);
-		if (strcmp("publickey", p) != 0)
+		cp = buffer_get_cstring(&b, NULL);
+		if (strcmp("publickey", cp) != 0)
 			fail++;
-		free(p);
+		free(cp);
 		if (!buffer_get_char(&b))
 			fail++;
 		buffer_skip_string(&b);

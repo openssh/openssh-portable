@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.122 2016/04/08 08:19:17 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.123 2016/05/02 08:49:03 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -515,8 +515,7 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 	struct sshbuf *msg;
 	u_int count, id, i, expected_id, ents = 0;
 	size_t handle_len;
-	u_char type;
-	char *handle;
+	u_char type, *handle;
 	int status = SSH2_FX_FAILURE;
 	int r;
 

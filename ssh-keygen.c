@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.288 2016/02/15 09:47:49 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.289 2016/05/02 08:49:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -883,7 +883,7 @@ do_fingerprint(struct passwd *pw)
 	char *comment = NULL, *cp, *ep, line[SSH_MAX_PUBKEY_BYTES];
 	int i, invalid = 1;
 	const char *path;
-	long int lnum = 0;
+	u_long lnum = 0;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -946,7 +946,7 @@ do_fingerprint(struct passwd *pw)
 		}
 		/* Retry after parsing leading hostname/key options */
 		if (public == NULL && (public = try_read_key(&cp)) == NULL) {
-			debug("%s:%ld: not a public key", path, lnum);
+			debug("%s:%lu: not a public key", path, lnum);
 			continue;
 		}
 
@@ -1920,7 +1920,7 @@ do_show_cert(struct passwd *pw)
 	FILE *f;
 	char *cp, line[SSH_MAX_PUBKEY_BYTES];
 	const char *path;
-	long int lnum = 0;
+	u_long lnum = 0;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
