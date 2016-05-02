@@ -1154,6 +1154,12 @@ copy_environment(char **source, char ***env, u_int *envsize)
 		}
 		*var_val++ = '\0';
 
+		if (options.expose_auth_methods < EXPOSE_AUTHMETH_PAMENV &&
+				strcmp(var_name, "SSH_USER_AUTH") == 0) {
+			free(var_name);
+			continue;
+		}
+
 		debug3("Copy environment: %s=%s", var_name, var_val);
 		child_set_env(env, envsize, var_name, var_val);
 
@@ -1336,7 +1342,8 @@ do_setup_env(Session *s, const char *shell)
 	}
 #endif /* USE_PAM */
 
-	if (s->authctxt->auth_details)
+	if (options.expose_auth_methods >= EXPOSE_AUTHMETH_PAMENV &&
+			s->authctxt->auth_details)
 		child_set_env(&env, &envsize, "SSH_USER_AUTH",
 		     s->authctxt->auth_details);
 

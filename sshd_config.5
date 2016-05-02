@@ -579,6 +579,21 @@ and finally
 See PATTERNS in
 .Xr ssh_config 5
 for more information on patterns.
+.It Cm ExposeAuthenticationMethods
+When using SSH2, this option controls the exposure of the list of
+successful authentication methods to PAM during the authentication
+and to the shell environment via the
+.Cm SSH_USER_AUTH
+variable. See the description of this variable for more details.
+Valid options are:
+.Dq never
+(Do not expose successful authentication methods),
+.Dq pam-only
+(Only expose them to PAM during authentication, not afterwards),
+.Dq pam-and-env
+(Expose them to PAM and keep them in the shell environment).
+The default is
+.Dq pam-only .
 .It Cm FingerprintHash
 Specifies the hash algorithm used when logging key fingerprints.
 Valid options are:

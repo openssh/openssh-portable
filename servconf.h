@@ -48,6 +48,11 @@
 #define FORWARD_LOCAL		(1<<1)
 #define FORWARD_ALLOW		(FORWARD_REMOTE|FORWARD_LOCAL)
 
+/* Expose AuthenticationMethods */
+#define EXPOSE_AUTHMETH_NEVER   0
+#define EXPOSE_AUTHMETH_PAMONLY 1
+#define EXPOSE_AUTHMETH_PAMENV  2
+
 #define DEFAULT_AUTH_FAIL_MAX	6	/* Default for MaxAuthTries */
 #define DEFAULT_SESSIONS_MAX	10	/* Default for MaxSessions */
 
@@ -195,6 +200,8 @@ typedef struct {
 	char   *auth_methods[MAX_AUTH_METHODS];
 
 	int	fingerprint_hash;
+
+	int	expose_auth_methods; /* EXPOSE_AUTHMETH_* above */
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
