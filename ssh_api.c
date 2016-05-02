@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.5 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.6 2016/05/02 10:26:04 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -103,6 +103,9 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 #ifdef WITH_OPENSSL
 		ssh->kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
 		ssh->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
+		ssh->kex->kex[KEX_DH_GRP14_SHA256] = kexdh_server;
+		ssh->kex->kex[KEX_DH_GRP16_SHA512] = kexdh_server;
+		ssh->kex->kex[KEX_DH_GRP18_SHA512] = kexdh_server;
 		ssh->kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 		ssh->kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 # ifdef OPENSSL_HAS_ECC
@@ -117,6 +120,9 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 #ifdef WITH_OPENSSL
 		ssh->kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 		ssh->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
+		ssh->kex->kex[KEX_DH_GRP14_SHA256] = kexdh_client;
+		ssh->kex->kex[KEX_DH_GRP16_SHA512] = kexdh_client;
+		ssh->kex->kex[KEX_DH_GRP18_SHA512] = kexdh_client;
 		ssh->kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 		ssh->kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 # ifdef OPENSSL_HAS_ECC
