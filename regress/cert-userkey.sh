@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.15 2016/05/02 09:52:00 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.16 2016/05/03 12:15:49 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -16,9 +16,10 @@ fi
 kname() {
 	case $ktype in
 	rsa-sha2-*) ;;
-	*) printf $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/' ;;
+	# subshell because some seds will add a newline
+	*) n=$(echo $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/') ;;
 	esac
- 	echo "*,ssh-rsa*,ssh-ed25519*"
+	echo "$n*,ssh-rsa*,ssh-ed25519*"
 }
 
 # Create a CA key
