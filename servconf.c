@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.288 2016/05/03 15:25:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.289 2016/05/03 15:57:39 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1994,6 +1994,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(allow_agent_forwarding);
 	M_CP_INTOPT(permit_tun);
 	M_CP_INTOPT(fwd_opts.gateway_ports);
+	M_CP_INTOPT(fwd_opts.streamlocal_bind_unlink);
 	M_CP_INTOPT(x11_display_offset);
 	M_CP_INTOPT(x11_forwarding);
 	M_CP_INTOPT(x11_use_localhost);
@@ -2005,6 +2006,16 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(ip_qos_bulk);
 	M_CP_INTOPT(rekey_limit);
 	M_CP_INTOPT(rekey_interval);
+
+	/*
+	 * The bind_mask is a mode_t that may be unsigned, so we can't use
+	 * M_CP_INTOPT - it does a signed comparison that causes compiler
+	 * warnings.
+	 */
+	if (src->fwd_opts.streamlocal_bind_mask == (mode_t)-1) {
+		dst->fwd_opts.streamlocal_bind_mask =
+		    src->fwd_opts.streamlocal_bind_mask;
+	}
 
 	/* M_CP_STROPT and M_CP_STRARRAYOPT should not appear before here */
 #define M_CP_STROPT(n) do {\
