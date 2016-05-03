@@ -1,7 +1,10 @@
-#	$OpenBSD: cfginclude.sh,v 1.1 2016/04/15 00:31:10 djm Exp $
+#	$OpenBSD: cfginclude.sh,v 1.2 2016/05/03 15:30:46 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="config include"
+
+# to appease StrictModes
+umask 022
 
 cat > $OBJ/ssh_config.i << _EOF
 Match host a
@@ -139,7 +142,7 @@ trial a aa
 
 # cleanup
 rm -f $OBJ/ssh_config.i $OBJ/ssh_config.i.* $OBJ/ssh_config.out
-#	$OpenBSD: cfginclude.sh,v 1.1 2016/04/15 00:31:10 djm Exp $
+#	$OpenBSD: cfginclude.sh,v 1.2 2016/05/03 15:30:46 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="config include"
