@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.289 2016/05/03 15:57:39 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.290 2016/05/04 14:00:09 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2012,7 +2012,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	 * M_CP_INTOPT - it does a signed comparison that causes compiler
 	 * warnings.
 	 */
-	if (src->fwd_opts.streamlocal_bind_mask == (mode_t)-1) {
+	if (src->fwd_opts.streamlocal_bind_mask != (mode_t)-1) {
 		dst->fwd_opts.streamlocal_bind_mask =
 		    src->fwd_opts.streamlocal_bind_mask;
 	}
