@@ -209,7 +209,7 @@ ECDSA certificates may be added with:
 ED25519 keys may be added using the following request
 	byte			SSH2_AGENTC_ADD_IDENTITY or
 				SSH2_AGENTC_ADD_ID_CONSTRAINED
-	string			"ssh-ed25519" 
+	string			"ssh-ed25519"
 	mpint			ed25519_public_key
 	mpint			ed25519_private_key
 	string			key_comment
@@ -218,7 +218,7 @@ ED25519 keys may be added using the following request
 ED25519 certificates may be added with:
 	byte			SSH2_AGENTC_ADD_IDENTITY or
 				SSH2_AGENTC_ADD_ID_CONSTRAINED
-	string			"ssh-ed25519-cert-v01@openssh.com" 
+	string			"ssh-ed25519-cert-v01@openssh.com"
 	string			certificate
 	mpint			ed25519_public_key
 	mpint			ed25519_private_key
@@ -576,4 +576,4 @@ Locking and unlocking affects both protocol 1 and protocol 2 keys.
 	SSH_AGENT_CONSTRAIN_LIFETIME			1
 	SSH_AGENT_CONSTRAIN_CONFIRM			2
 
-$OpenBSD: PROTOCOL.agent,v 1.9 2016/05/03 10:24:27 djm Exp $
+$OpenBSD: PROTOCOL.agent,v 1.10 2016/05/04 12:16:39 djm Exp $
