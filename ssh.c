@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.438 2016/04/29 08:07:53 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.439 2016/05/04 12:21:53 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1334,6 +1334,22 @@ main(int ac, char **av)
 	}
 	/* load options.identity_files */
 	load_public_identity_files();
+
+	/* optionally set the SSH_AUTHSOCKET_ENV_NAME varibale */
+	if (options.identity_agent) {
+		if (strcmp(options.identity_agent, "none") == 0) {
+			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+		} else {
+			p = tilde_expand_filename(options.identity_agent,
+			    original_real_uid);
+			cp = percent_expand(p, "d", pw->pw_dir,
+			    "u", pw->pw_name, "l", thishost, "h", host,
+			    "r", options.user, (char *)NULL);
+			setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
+			free(cp);
+			free(p);
+		}
+	}
 
 	/* Expand ~ in known host file names. */
 	tilde_expand_paths(options.system_hostfiles,

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.230 2016/04/17 14:34:46 jmc Exp $
-.Dd $Mdocdate: April 17 2016 $
+.\" $OpenBSD: ssh_config.5,v 1.231 2016/05/04 12:21:53 markus Exp $
+.Dd $Mdocdate: May 4 2016 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -952,6 +952,31 @@ This option is intended for situations where ssh-agent
 offers many different identities.
 The default is
 .Dq no .
+.It Cm IdentityAgent
+Specifies the
+.Ux Ns -domain
+socket used to communicate with the authentication agent.
+.Pp
+This option overrides the
+.Dq SSH_AUTH_SOCK
+environment variable and can be used to select a specific agent.
+Setting the socket name to
+.Dq none
+disables the use of an authentication agent.
+.Pp
+The socket name may use the tilde
+syntax to refer to a user's home directory or one of the following
+escape characters:
+.Ql %d
+(local user's home directory),
+.Ql %u
+(local user name),
+.Ql %l
+(local host name),
+.Ql %h
+(remote host name) or
+.Ql %r
+(remote user name).
 .It Cm IdentityFile
 Specifies a file from which the user's DSA, ECDSA, Ed25519 or RSA authentication
 identity is read.

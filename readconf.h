@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.114 2016/04/15 00:30:19 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.115 2016/05/04 12:21:53 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -101,6 +101,7 @@ typedef struct {
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 
 	int	add_keys_to_agent;
+	char   *identity_agent;		/* Optional path to ssh-agent socket */
 
 	/* Local TCP/IP forward requests. */
 	int     num_local_forwards;
