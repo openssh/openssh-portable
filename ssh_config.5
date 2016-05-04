@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.231 2016/05/04 12:21:53 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.232 2016/05/04 14:29:58 markus Exp $
 .Dd $Mdocdate: May 4 2016 $
 .Dt SSH_CONFIG 5
 .Os
@@ -963,6 +963,11 @@ environment variable and can be used to select a specific agent.
 Setting the socket name to
 .Dq none
 disables the use of an authentication agent.
+If the string
+.Dq SSH_AUTH_SOCK
+is specified, the location of the socket will be read from the
+.Ev SSH_AUTH_SOCK
+environment variable.
 .Pp
 The socket name may use the tilde
 syntax to refer to a user's home directory or one of the following
