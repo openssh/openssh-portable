@@ -257,7 +257,7 @@ install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
 %if %{build6x}
 install -m644 contrib/redhat/sshd.pam.old $RPM_BUILD_ROOT/etc/pam.d/sshd
 %else
-install -m644 contrib/redhat/sshd.pam     $RPM_BUILD_ROOT/etc/pam.d/sshd
+install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 %endif
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
@@ -414,7 +414,7 @@ fi
 - Don't install profile.d scripts when not building with GNOME/GTK askpass
   (patch from bet@rahul.net)
 
-* Wed Oct 01 2002 Damien Miller <djm@mindrot.org>
+* Tue Oct 01 2002 Damien Miller <djm@mindrot.org>
 - Install ssh-agent setgid nobody to prevent ptrace() key theft attacks
 
 * Mon Sep 30 2002 Damien Miller <djm@mindrot.org>
@@ -460,7 +460,7 @@ fi
 - remove dependency on db1-devel, which has just been swallowed up whole
   by gnome-libs-devel
 
-* Sun Dec 29 2001 Nalin Dahyabhai <nalin@redhat.com>
+* Sat Dec 29 2001 Nalin Dahyabhai <nalin@redhat.com>
 - adjust build dependencies so that build6x actually works right (fix
   from Hugo van der Kooij)
 
