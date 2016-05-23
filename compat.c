@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.97 2015/08/19 23:21:42 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.98 2016/05/23 00:17:27 dtucker Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -252,7 +252,7 @@ proto_spec(const char *spec)
 
 /*
  * Filters a proposal string, excluding any algorithm matching the 'filter'
- * pattern list.
+ * pattern list.  Returns a new string and frees the original proposal.
  */
 static char *
 filter_proposal(char *proposal, const char *filter)
@@ -275,6 +275,7 @@ filter_proposal(char *proposal, const char *filter)
 	fix_prop = xstrdup((char *)buffer_ptr(&b));
 	buffer_free(&b);
 	free(orig_prop);
+	free(proposal);
 
 	return fix_prop;
 }
