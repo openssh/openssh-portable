@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.244 2016/05/23 23:30:50 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.245 2016/05/24 04:43:45 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -171,13 +171,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	    compat_cipher_proposal(options.ciphers);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
 	    compat_cipher_proposal(options.ciphers);
-	if (options.compression) {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		myproposal[PROPOSAL_COMP_ALGS_STOC] = "zlib@openssh.com,zlib,none";
-	} else {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none,zlib@openssh.com,zlib";
-	}
+	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
+	    myproposal[PROPOSAL_COMP_ALGS_STOC] = options.compression ?
+	    "zlib@openssh.com,zlib,none" : "none,zlib@openssh.com,zlib";
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (options.hostkeyalgorithms != NULL) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.469 2016/05/02 14:10:58 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.470 2016/05/24 04:43:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2617,10 +2617,11 @@ do_ssh2_kex(void)
 
 	if (options.compression == COMP_NONE) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
+		    myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
 	} else if (options.compression == COMP_DELAYED) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none,zlib@openssh.com";
+		    myproposal[PROPOSAL_COMP_ALGS_STOC] =
+		    "none,zlib@openssh.com";
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
