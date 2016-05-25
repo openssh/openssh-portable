@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.123 2016/05/02 08:49:03 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.124 2016/05/25 23:48:45 schwarze Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -53,6 +53,7 @@
 #include "atomicio.h"
 #include "progressmeter.h"
 #include "misc.h"
+#include "utf8.h"
 
 #include "sftp.h"
 #include "sftp-common.h"
@@ -610,7 +611,7 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 			}
 
 			if (print_flag)
-				printf("%s\n", longname);
+				mprintf("%s\n", longname);
 
 			/*
 			 * Directory entries should never contain '/'
@@ -1460,7 +1461,7 @@ download_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		return -1;
 	}
 	if (print_flag)
-		printf("Retrieving %s\n", src);
+		mprintf("Retrieving %s\n", src);
 
 	if (dirattrib->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
 		mode = dirattrib->perm & 01777;
@@ -1793,7 +1794,7 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 		return -1;
 	}
 	if (print_flag)
-		printf("Entering %s\n", src);
+		mprintf("Entering %s\n", src);
 
 	attrib_clear(&a);
 	stat_to_attrib(&sb, &a);
