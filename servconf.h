@@ -29,6 +29,7 @@
 #define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
 #define MAX_AUTHKEYS_FILES	256	/* Max # of authorized_keys files. */
 #define MAX_AUTH_METHODS	256	/* Max # of AuthenticationMethods. */
+#define MAX_DISPLAYS  		1000 /* Maximum number of fake X11 displays to try. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -154,6 +155,7 @@ typedef struct {
 	int	max_startups;
 	int	max_authtries;
 	int	max_sessions;
+	int max_displays;
 	char   *banner;			/* SSH-2 banner message */
 	int	use_dns;
 	int	client_alive_interval;	/*

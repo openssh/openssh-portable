@@ -148,9 +148,6 @@ static int all_opens_permitted = 0;
 
 /* -- X11 forwarding */
 
-/* Maximum number of fake X11 displays to try. */
-#define MAX_DISPLAYS  1000
-
 /* Saved X11 local (client) display. */
 static char *x11_saved_display = NULL;
 
@@ -3890,7 +3887,8 @@ channel_send_window_changes(void)
  */
 int
 x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
-    int single_connection, u_int *display_numberp, int **chanids)
+	int max_displays, int single_connection, u_int *display_numberp, 
+	int **chanids)
 {
 	Channel *nc = NULL;
 	int display_number, sock;
@@ -3902,8 +3900,11 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	if (chanids == NULL)
 		return -1;
 
+	/* Try max_displays ports starting at the range 6000+X11DisplayOffset */
+	max_displays = max_displays + x11_display_offset;
+
 	for (display_number = x11_display_offset;
-	    display_number < MAX_DISPLAYS;
+	    display_number < max_displays;
 	    display_number++) {
 		port = 6000 + display_number;
 		memset(&hints, 0, sizeof(hints));
@@ -3957,7 +3958,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		if (num_socks > 0)
 			break;
 	}
-	if (display_number >= MAX_DISPLAYS) {
+	if (display_number >= max_displays) {
 		error("Failed to allocate internet-domain X11 display socket.");
 		return -1;
 	}

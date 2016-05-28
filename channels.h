@@ -286,7 +286,7 @@ int	 permitopen_port(const char *);
 
 void	 channel_set_x11_refuse_time(u_int);
 int	 x11_connect_display(void);
-int	 x11_create_display_inet(int, int, int, u_int *, int **);
+int	 x11_create_display_inet(int, int, int, int, u_int *, int **);
 int      x11_input_open(int, u_int32_t, void *);
 void	 x11_request_forwarding_with_spoofing(int, const char *, const char *,
 	     const char *, int);
