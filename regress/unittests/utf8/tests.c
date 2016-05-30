@@ -1,4 +1,4 @@
-/*	$OpenBSD: tests.c,v 1.1 2016/05/26 19:14:25 schwarze Exp $ */
+/*	$OpenBSD: tests.c,v 1.2 2016/05/30 12:05:56 schwarze Exp $ */
 /*
  * Regress test for the utf8.h *mprintf() API
  *
@@ -13,7 +13,23 @@
 
 #include "utf8.h"
 
+void	 badarg(void);
 void	 one(const char *, const char *, int, int, int, const char *);
+
+void
+badarg(void)
+{
+	char	 buf[16];
+	int	 len, width;
+
+	width = 1;
+	TEST_START("utf8_badarg");
+	len = snmprintf(buf, sizeof(buf), &width, "\377");
+	ASSERT_INT_EQ(len, -1);
+	ASSERT_STRING_EQ(buf, "");
+	ASSERT_INT_EQ(width, 0);
+	TEST_DONE();
+}
 
 void
 one(const char *name, const char *mbs, int width,
@@ -46,6 +62,9 @@ tests(void)
 	ASSERT_PTR_NE(loc, NULL);
 	TEST_DONE();
 
+	badarg();
+	one("null", NULL, 8, 6, 6, "(null)");
+	one("empty", "", 2, 0, 0, "");
 	one("ascii", "x", -2, -2, -2, "x");
 	one("newline", "a\nb", -2, -2, -2, "a\nb");
 	one("cr", "a\rb", -2, -2, -2, "a\rb");
