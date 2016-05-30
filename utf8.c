@@ -1,4 +1,4 @@
-/* $OpenBSD: utf8.c,v 1.1 2016/05/25 23:48:45 schwarze Exp $ */
+/* $OpenBSD: utf8.c,v 1.2 2016/05/30 12:05:56 schwarze Exp $ */
 /*
  * Copyright (c) 2016 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -81,13 +81,15 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	int	 width;	/* Display width of the character wc. */
 	int	 total_width, max_width, print;
 
-	src = dst = NULL;
-	if (vasprintf(&src, fmt, ap) <= 0)
+	src = NULL;
+	if ((ret = vasprintf(&src, fmt, ap)) <= 0)
 		goto fail;
 
 	sz = strlen(src);
-	if ((dst = malloc(sz)) == NULL)
+	if ((dst = malloc(sz)) == NULL) {
+		free(src);
 		goto fail;
+	}
 
 	if (maxsz > INT_MAX)
 		maxsz = INT_MAX;
@@ -191,12 +193,15 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	return ret;
 
 fail:
-	free(src);
-	free(dst);
-	*str = NULL;
 	if (wp != NULL)
 		*wp = 0;
-	return -1;
+	if (ret == 0) {
+		*str = src;
+		return 0;
+	} else {
+		*str = NULL;
+		return -1;
+	}
 }
 
 int
@@ -209,8 +214,11 @@ snmprintf(char *str, size_t sz, int *wp, const char *fmt, ...)
 	va_start(ap, fmt);
 	ret = vasnmprintf(&cp, sz, wp, fmt, ap);
 	va_end(ap);
-	(void)strlcpy(str, cp, sz);
-	free(cp);
+	if (cp != NULL) {
+		(void)strlcpy(str, cp, sz);
+		free(cp);
+	} else
+		*str = '\0';
 	return ret;
 }
 
