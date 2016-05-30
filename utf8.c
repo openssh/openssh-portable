@@ -1,4 +1,4 @@
-/* $OpenBSD: utf8.c,v 1.2 2016/05/30 12:05:56 schwarze Exp $ */
+/* $OpenBSD: utf8.c,v 1.3 2016/05/30 12:57:21 schwarze Exp $ */
 /*
  * Copyright (c) 2016 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -33,6 +33,7 @@
 #include "utf8.h"
 
 static int	 dangerous_locale(void);
+static int	 grow_dst(char **, size_t *, size_t, char **, size_t);
 static int	 vasnmprintf(char **, size_t, int *, const char *, va_list);
 
 
@@ -51,6 +52,25 @@ dangerous_locale(void) {
 
 	loc = nl_langinfo(CODESET);
 	return strcmp(loc, "US-ASCII") && strcmp(loc, "UTF-8");
+}
+
+static int
+grow_dst(char **dst, size_t *sz, size_t maxsz, char **dp, size_t need)
+{
+	char	*tp;
+	size_t	 tsz;
+
+	if (*dp + need < *dst + *sz)
+		return 0;
+	tsz = *sz + 128;
+	if (tsz > maxsz)
+		tsz = maxsz;
+	if ((tp = realloc(*dst, tsz)) == NULL)
+		return -1;
+	*dp = tp + (*dp - *dst);
+	*dst = tp;
+	*sz = tsz;
+	return 0;
 }
 
 /*
@@ -74,7 +94,6 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	char	*dp;	/* Pointer into dst. */
 	char	*tp;	/* Temporary pointer for dst. */
 	size_t	 sz;	/* Number of bytes allocated for dst. */
-	size_t	 tsz;	/* Temporary size while extending dst. */
 	wchar_t	 wc;	/* Wide character at sp. */
 	int	 len;	/* Number of bytes in the character at sp. */
 	int	 ret;	/* Number of bytes needed to format src. */
@@ -85,7 +104,7 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 	if ((ret = vasprintf(&src, fmt, ap)) <= 0)
 		goto fail;
 
-	sz = strlen(src);
+	sz = strlen(src) + 1;
 	if ((dst = malloc(sz)) == NULL) {
 		free(src);
 		goto fail;
@@ -130,6 +149,11 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 			    total_width > max_width - width))
 				print = 0;
 			if (print) {
+				if (grow_dst(&dst, &sz, maxsz,
+				    &dp, len) == -1) {
+					ret = -1;
+					break;
+				}
 				total_width += width;
 				memcpy(dp, sp, len);
 				dp += len;
@@ -147,18 +171,10 @@ vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 			    total_width > max_width - 4))
 				print = 0;
 			if (print) {
-				if (dp + 4 >= dst + sz) {
-					tsz = sz + 128;
-					if (tsz > maxsz)
-						tsz = maxsz;
-					tp = realloc(dst, tsz);
-					if (tp == NULL) {
-						ret = -1;
-						break;
-					}
-					dp = tp + (dp - dst);
-					dst = tp;
-					sz = tsz;
+				if (grow_dst(&dst, &sz, maxsz,
+				    &dp, 4) == -1) {
+					ret = -1;
+					break;
 				}
 				tp = vis(dp, *sp, VIS_OCTAL | VIS_ALL, 0);
 				width = tp - dp;
