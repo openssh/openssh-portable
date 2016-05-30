@@ -366,19 +366,16 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin)
 
 	f = p->function_list;
 	login_required = p->slotinfo[slotidx].token.flags & CKF_LOGIN_REQUIRED;
-	if (pin && login_required && !strlen(pin)) {
-		error("pin required");
-		return (-1);
-	}
+
 	if ((rv = f->C_OpenSession(p->slotlist[slotidx], CKF_RW_SESSION|
 	    CKF_SERIAL_SESSION, NULL, NULL, &session))
 	    != CKR_OK) {
 		error("C_OpenSession failed: %lu", rv);
 		return (-1);
 	}
-	if (login_required && pin) {
+	if (login_required) {
 		rv = f->C_Login(session, CKU_USER,
-		    (u_char *)pin, strlen(pin));
+		    (u_char *)pin, (pin != NULL) ? strlen(pin) : 0);
 		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
 			error("C_Login failed: %lu", rv);
 			if ((rv = f->C_CloseSession(session)) != CKR_OK)
