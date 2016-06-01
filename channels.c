@@ -2233,11 +2233,12 @@ channel_after_select(fd_set *readset, fd_set *writeset)
 
 
 /* If there is data to send to the connection, enqueue some of it now. */
-void
+int
 channel_output_poll(void)
 {
 	Channel *c;
 	u_int i, len;
+	int packet_length = 0;
 
 	for (i = 0; i < channels_alloc; i++) {
 		c = channels[i];
@@ -2285,7 +2286,7 @@ channel_output_poll(void)
 					packet_start(SSH2_MSG_CHANNEL_DATA);
 					packet_put_int(c->remote_id);
 					packet_put_string(data, dlen);
-					packet_send();
+					packet_length = packet_send();
 					c->remote_window -= dlen;
 					free(data);
 				}
@@ -2315,7 +2316,7 @@ channel_output_poll(void)
 				    SSH2_MSG_CHANNEL_DATA : SSH_MSG_CHANNEL_DATA);
 				packet_put_int(c->remote_id);
 				packet_put_string(buffer_ptr(&c->input), len);
-				packet_send();
+				packet_length = packet_send();
 				buffer_consume(&c->input, len);
 				c->remote_window -= len;
 			}
@@ -2350,12 +2351,13 @@ channel_output_poll(void)
 			packet_put_int(c->remote_id);
 			packet_put_int(SSH2_EXTENDED_DATA_STDERR);
 			packet_put_string(buffer_ptr(&c->extended), len);
-			packet_send();
+			packet_length = packet_send();
 			buffer_consume(&c->extended, len);
 			c->remote_window -= len;
 			debug2("channel %d: sent ext data %d", c->self, len);
 		}
 	}
+	return packet_length;
 }
 
 
