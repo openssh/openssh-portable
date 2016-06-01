@@ -423,6 +423,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	if ((options.none_switch == 1) && (options.none_enabled == 1)) {
 		if (!tty_flag) { /* no null on tty sessions */
 			debug("Requesting none rekeying...");
+			memcpy(&myproposal, &myproposal_default, sizeof(myproposal));
 			myproposal[PROPOSAL_ENC_ALGS_STOC] = "none";
 			myproposal[PROPOSAL_ENC_ALGS_CTOS] = "none";
 			kex_prop2buf(active_state->kex->my, myproposal);
