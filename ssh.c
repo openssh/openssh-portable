@@ -1433,6 +1433,8 @@ control_persist_detach(void)
 	setproctitle("%s [mux]", options.control_path);
 }
 
+extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+
 /* Do fork() after authentication. Used by "ssh -f" */
 static void
 fork_postauth(void)
