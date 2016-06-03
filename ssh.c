@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.441 2016/06/03 03:14:41 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.442 2016/06/03 04:09:39 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -782,8 +782,6 @@ main(int ac, char **av)
 			}
 			options.request_tty = REQUEST_TTY_NO;
 			no_shell_flag = 1;
-			options.clear_forwardings = 1;
-			options.exit_on_forward_failure = 1;
 			break;
 		case 'q':
 			options.log_level = SYSLOG_LEVEL_QUIET;

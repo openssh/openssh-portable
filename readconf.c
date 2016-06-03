@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.255 2016/06/03 03:14:41 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.256 2016/06/03 04:09:38 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1750,6 +1750,7 @@ initialize_options(Options * options)
 	options->forward_x11_timeout = -1;
 	options->stdio_forward_host = NULL;
 	options->stdio_forward_port = 0;
+	options->clear_forwardings = -1;
 	options->exit_on_forward_failure = -1;
 	options->xauth_location = NULL;
 	options->fwd_opts.gateway_ports = -1;
@@ -1796,7 +1797,6 @@ initialize_options(Options * options)
 	options->num_local_forwards = 0;
 	options->remote_forwards = NULL;
 	options->num_remote_forwards = 0;
-	options->clear_forwardings = -1;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
@@ -1870,8 +1870,19 @@ fill_default_options(Options * options)
 		options->forward_x11_trusted = 0;
 	if (options->forward_x11_timeout == -1)
 		options->forward_x11_timeout = 1200;
+	/*
+	 * stdio forwarding (-W) changes the default for these but we defer
+	 * setting the values so they can be overridden.
+	 */
 	if (options->exit_on_forward_failure == -1)
-		options->exit_on_forward_failure = 0;
+		options->exit_on_forward_failure =
+		    options->stdio_forward_host != NULL ? 1 : 0;
+	if (options->clear_forwardings == -1)
+		options->clear_forwardings =
+		    options->stdio_forward_host != NULL ? 1 : 0;
+	if (options->clear_forwardings == 1)
+		clear_forwardings(options);
+
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->fwd_opts.gateway_ports == -1)
@@ -1962,8 +1973,6 @@ fill_default_options(Options * options)
 	}
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;
-	if (options->clear_forwardings == 1)
-		clear_forwardings(options);
 	if (options->no_host_authentication_for_localhost == - 1)
 		options->no_host_authentication_for_localhost = 0;
 	if (options->identities_only == -1)
@@ -2424,6 +2433,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oCompression, o->compression);
 	dump_cfg_fmtint(oControlMaster, o->control_master);
 	dump_cfg_fmtint(oEnableSSHKeysign, o->enable_ssh_keysign);
+	dump_cfg_fmtint(oClearAllForwardings, o->clear_forwardings);
 	dump_cfg_fmtint(oExitOnForwardFailure, o->exit_on_forward_failure);
 	dump_cfg_fmtint(oFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(oForwardAgent, o->forward_agent);
