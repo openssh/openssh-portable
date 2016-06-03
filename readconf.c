@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.254 2016/05/04 14:29:58 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.255 2016/06/03 03:14:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1748,6 +1748,8 @@ initialize_options(Options * options)
 	options->forward_x11 = -1;
 	options->forward_x11_trusted = -1;
 	options->forward_x11_timeout = -1;
+	options->stdio_forward_host = NULL;
+	options->stdio_forward_port = 0;
 	options->exit_on_forward_failure = -1;
 	options->xauth_location = NULL;
 	options->fwd_opts.gateway_ports = -1;

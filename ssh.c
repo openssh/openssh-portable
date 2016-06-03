@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.440 2016/05/04 14:29:58 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.441 2016/06/03 03:14:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -150,10 +150,6 @@ int ostdin_null_flag, ono_shell_flag, otty_flag, orequest_tty;
  * background.
  */
 int fork_after_authentication_flag = 0;
-
-/* forward stdio to remote host and port */
-char *stdio_forward_host = NULL;
-int stdio_forward_port = 0;
 
 /*
  * General data structure for command line options and options configurable
@@ -651,7 +647,7 @@ main(int ac, char **av)
 			options.fwd_opts.gateway_ports = 1;
 			break;
 		case 'O':
-			if (stdio_forward_host != NULL)
+			if (options.stdio_forward_host != NULL)
 				fatal("Cannot specify multiplexing "
 				    "command with -W");
 			else if (muxclient_command != 0)
@@ -770,13 +766,13 @@ main(int ac, char **av)
 			}
 			break;
 		case 'W':
-			if (stdio_forward_host != NULL)
+			if (options.stdio_forward_host != NULL)
 				fatal("stdio forward already specified");
 			if (muxclient_command != 0)
 				fatal("Cannot specify stdio forward with -O");
 			if (parse_forward(&fwd, optarg, 1, 0)) {
-				stdio_forward_host = fwd.listen_host;
-				stdio_forward_port = fwd.listen_port;
+				options.stdio_forward_host = fwd.listen_host;
+				options.stdio_forward_port = fwd.listen_port;
 				free(fwd.connect_host);
 			} else {
 				fprintf(stderr,
@@ -1538,18 +1534,19 @@ ssh_init_stdio_forwarding(void)
 	Channel *c;
 	int in, out;
 
-	if (stdio_forward_host == NULL)
+	if (options.stdio_forward_host == NULL)
 		return;
 	if (!compat20)
 		fatal("stdio forwarding require Protocol 2");
 
-	debug3("%s: %s:%d", __func__, stdio_forward_host, stdio_forward_port);
+	debug3("%s: %s:%d", __func__, options.stdio_forward_host,
+	    options.stdio_forward_port);
 
 	if ((in = dup(STDIN_FILENO)) < 0 ||
 	    (out = dup(STDOUT_FILENO)) < 0)
 		fatal("channel_connect_stdio_fwd: dup() in/out failed");
-	if ((c = channel_connect_stdio_fwd(stdio_forward_host,
-	    stdio_forward_port, in, out)) == NULL)
+	if ((c = channel_connect_stdio_fwd(options.stdio_forward_host,
+	    options.stdio_forward_port, in, out)) == NULL)
 		fatal("%s: channel_connect_stdio_fwd failed", __func__);
 	channel_register_cleanup(c->self, client_cleanup_stdio_fwd, 0);
 	channel_register_open_confirm(c->self, ssh_stdio_confirm, NULL);

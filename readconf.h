@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.115 2016/05/04 12:21:53 markus Exp $ */
+/* $OpenBSD: readconf.h,v 1.116 2016/06/03 03:14:41 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -111,6 +111,10 @@ typedef struct {
 	int     num_remote_forwards;
 	struct Forward *remote_forwards;
 	int	clear_forwardings;
+
+	/* stdio forwarding (-W) host and port */
+	char   *stdio_forward_host;
+	int	stdio_forward_port;
 
 	int	enable_ssh_keysign;
 	int64_t rekey_limit;
