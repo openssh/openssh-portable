@@ -29,7 +29,6 @@
 #define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
 #define MAX_AUTHKEYS_FILES	256	/* Max # of authorized_keys files. */
 #define MAX_AUTH_METHODS	256	/* Max # of AuthenticationMethods. */
-#define MAX_DISPLAYS  		1000 /* Maximum number of fake X11 displays to try. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -51,6 +50,8 @@
 
 #define DEFAULT_AUTH_FAIL_MAX	6	/* Default for MaxAuthTries */
 #define DEFAULT_SESSIONS_MAX	10	/* Default for MaxSessions */
+#define DEFAULT_MAX_DISPLAYS	1000 /* Maximum number of fake X11 displays to try. */
+
 
 /* Magic name for internal sftp-server */
 #define INTERNAL_SFTP_NAME	"internal-sftp"
@@ -83,6 +84,7 @@ typedef struct {
 	int     x11_forwarding;	/* If true, permit inet (spoofing) X11 fwd. */
 	int     x11_display_offset;	/* What DISPLAY number to start
 					 * searching at */
+	int 	x11_max_displays; /* Number of displays to search */
 	int     x11_use_localhost;	/* If true, use localhost for fake X11 server. */
 	char   *xauth_location;	/* Location of xauth program */
 	int	permit_tty;	/* If false, deny pty allocation */
@@ -155,7 +157,6 @@ typedef struct {
 	int	max_startups;
 	int	max_authtries;
 	int	max_sessions;
-	int max_displays;
 	char   *banner;			/* SSH-2 banner message */
 	int	use_dns;
 	int	client_alive_interval;	/*

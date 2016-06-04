@@ -2701,7 +2701,7 @@ session_setup_x11fwd(Session *s)
 		return 0;
 	}
 	if (x11_create_display_inet(options.x11_display_offset,
-	    options.x11_use_localhost, options.max_displays,
+	    options.x11_use_localhost, options.x11_max_displays,
 	    s->single_connection, &s->display_number, 
 	    &s->x11_chanids) == -1) {
 		debug("x11_create_display_inet failed.");

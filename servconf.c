@@ -96,7 +96,7 @@ initialize_server_options(ServerOptions *options)
 	options->print_lastlog = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
-	options->max_displays = -1;
+	options->x11_max_displays = -1;
 	options->x11_use_localhost = -1;
 	options->permit_tty = -1;
 	options->permit_user_rc = -1;
@@ -252,6 +252,8 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
 		options->x11_display_offset = 10;
+	if (options->x11_max_displays == -1)
+		options->x11_max_displays = DEFAULT_MAX_DISPLAYS;
 	if (options->x11_use_localhost == -1)
 		options->x11_use_localhost = 1;
 	if (options->xauth_location == NULL)
@@ -328,8 +330,6 @@ fill_default_server_options(ServerOptions *options)
 		options->max_authtries = DEFAULT_AUTH_FAIL_MAX;
 	if (options->max_sessions == -1)
 		options->max_sessions = DEFAULT_SESSIONS_MAX;
-	if (options->max_displays == -1)
-		options->max_displays = MAX_DISPLAYS;
 	if (options->use_dns == -1)
 		options->use_dns = 0;
 	if (options->client_alive_interval == -1)
@@ -410,7 +410,7 @@ typedef enum {
 	sPasswordAuthentication, sKbdInteractiveAuthentication,
 	sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
-	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
+	sX11Forwarding, sX11DisplayOffset, sX11MaxDisplays, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
@@ -432,7 +432,7 @@ typedef enum {
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
-	sAllowStreamLocalForwarding, sFingerprintHash, sMaxDisplays,
+	sAllowStreamLocalForwarding, sFingerprintHash,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
 
@@ -518,6 +518,7 @@ static struct {
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts, SSHCFG_GLOBAL },
 	{ "x11forwarding", sX11Forwarding, SSHCFG_ALL },
 	{ "x11displayoffset", sX11DisplayOffset, SSHCFG_ALL },
+	{ "x11maxdisplays", sX11MaxDisplays, SSHCFG_ALL },
 	{ "x11uselocalhost", sX11UseLocalhost, SSHCFG_ALL },
 	{ "xauthlocation", sXAuthLocation, SSHCFG_GLOBAL },
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
@@ -575,7 +576,6 @@ static struct {
 	{ "streamlocalbindunlink", sStreamLocalBindUnlink, SSHCFG_ALL },
 	{ "allowstreamlocalforwarding", sAllowStreamLocalForwarding, SSHCFG_ALL },
 	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
-	{ "maxdisplays", sMaxDisplays, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1035,15 +1035,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			fatal("%s line %d: Badly formatted port number.",
 			    filename, linenum);
 		break;
-    case sMaxDisplays:
-		arg = strdelim(&cp);
-	    if (!arg || *arg == '\0')
-	        fatal("%s line %d: missing value.",filename, linenum);
-	    if ((options->max_displays = a2port(arg)) == -1) {
-	        error("Invalid MaxDisplays '%s'", arg);
-	       	return -1;
-	    }
-	  	break;
 	case sServerKeyBits:
 		intptr = &options->server_key_bits;
  parse_int:
@@ -1289,6 +1280,10 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sX11DisplayOffset:
 		intptr = &options->x11_display_offset;
+		goto parse_int;
+
+	case sX11MaxDisplays:
+		intptr = &options->x11_max_displays;
 		goto parse_int;
 
 	case sX11UseLocalhost:
@@ -2008,12 +2003,12 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(fwd_opts.gateway_ports);
 	M_CP_INTOPT(fwd_opts.streamlocal_bind_unlink);
 	M_CP_INTOPT(x11_display_offset);
+	M_CP_INTOPT(x11_max_displays);
 	M_CP_INTOPT(x11_forwarding);
 	M_CP_INTOPT(x11_use_localhost);
 	M_CP_INTOPT(permit_tty);
 	M_CP_INTOPT(permit_user_rc);
 	M_CP_INTOPT(max_sessions);
-	M_CP_INTOPT(max_displays);
 	M_CP_INTOPT(max_authtries);
 	M_CP_INTOPT(ip_qos_interactive);
 	M_CP_INTOPT(ip_qos_bulk);
@@ -2265,9 +2260,9 @@ dump_config(ServerOptions *o)
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
 	dump_cfg_int(sKeyRegenerationTime, o->key_regeneration_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
+	dump_cfg_int(sX11MaxDisplays, o->x11_max_displays);
 	dump_cfg_int(sMaxAuthTries, o->max_authtries);
 	dump_cfg_int(sMaxSessions, o->max_sessions);
-	dump_cfg_int(sMaxDisplays, o->max_displays);
 	dump_cfg_int(sClientAliveInterval, o->client_alive_interval);
 	dump_cfg_int(sClientAliveCountMax, o->client_alive_count_max);
 	dump_cfg_oct(sStreamLocalBindMask, o->fwd_opts.streamlocal_bind_mask);

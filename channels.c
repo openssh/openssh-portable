@@ -3887,7 +3887,7 @@ channel_send_window_changes(void)
  */
 int
 x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
-	int max_displays, int single_connection, u_int *display_numberp, 
+	int x11_max_displays, int single_connection, u_int *display_numberp,
 	int **chanids)
 {
 	Channel *nc = NULL;
@@ -3900,13 +3900,15 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	if (chanids == NULL)
 		return -1;
 
-	/* Try max_displays ports starting at the range 6000+X11DisplayOffset */
-	max_displays = max_displays + x11_display_offset;
+	/* Try to bind ports starting at 6000+X11DisplayOffset */
+	x11_max_displays = x11_max_displays + x11_display_offset;
 
 	for (display_number = x11_display_offset;
-	    display_number < max_displays;
+	    display_number < x11_max_displays;
 	    display_number++) {
 		port = 6000 + display_number;
+		if (port < 6000) /* overflow */
+			break;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = IPv4or6;
 		hints.ai_flags = x11_use_localhost ? 0: AI_PASSIVE;
@@ -3958,7 +3960,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		if (num_socks > 0)
 			break;
 	}
-	if (display_number >= max_displays) {
+	if (display_number >= x11_max_displays || port < 6000 ) {
 		error("Failed to allocate internet-domain X11 display socket.");
 		return -1;
 	}
