@@ -20,6 +20,8 @@
  * in particular to sanitize untrusted strings for terminal output.
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <langinfo.h>
 #include <limits.h>
@@ -27,7 +29,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vis.h>
+#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
+# include <vis.h>
+#endif
 #include <wchar.h>
 
 #include "utf8.h"
