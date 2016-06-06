@@ -1,0 +1,62 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+
+# From .cvsignore
+*.0
+Makefile
+autom4te.cache
+buildit.sh
+buildpkg.sh
+config.cache
+config.h
+config.h.in
+config.log
+config.status
+configure
+openssh.xml
+opensshd.init
+scp
+sftp
+sftp-server
+ssh
+ssh-add
+ssh-agent
+ssh-keygen
+ssh-keyscan
+ssh-keysign
+ssh-pkcs11-helper
+sshd
+stamp-h.in
+survey
+survey.sh
