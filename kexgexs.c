@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.28 2016/06/01 04:19:49 dtucker Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.29 2016/06/08 02:13:01 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -83,21 +83,21 @@ input_kex_dh_gex_request(int type, u_int32_t seq, void *ctxt)
 	kex->nbits = nbits;
 	kex->min = min;
 	kex->max = max;
+	min = MAX(DH_GRP_MIN, min);
+	max = MIN(DH_GRP_MAX, max);
+	nbits = MAX(DH_GRP_MIN, nbits);
+	nbits = MIN(DH_GRP_MAX, nbits);
+
 	if (kex->max < kex->min || kex->nbits < kex->min ||
-	    kex->max < kex->nbits || kex->max < DH_GRP_MIN ||
-	    kex->min > DH_GRP_MAX) {
+	    kex->max < kex->nbits || kex->max < DH_GRP_MIN) {
 		r = SSH_ERR_DH_GEX_OUT_OF_RANGE;
 		goto out;
 	}
-	kex->min = MAX(DH_GRP_MIN, kex->min);
-	kex->max = MIN(DH_GRP_MAX, kex->max);
-	kex->nbits = MAX(DH_GRP_MIN, kex->nbits);
-	kex->nbits = MIN(DH_GRP_MAX, kex->nbits);
 
 	/* Contact privileged parent */
-	kex->dh = PRIVSEP(choose_dh(kex->min, kex->nbits, kex->max));
+	kex->dh = PRIVSEP(choose_dh(min, nbits, max));
 	if (kex->dh == NULL) {
-		sshpkt_disconnect(ssh, "no matching DH group found");
+		sshpkt_disconnect(ssh, "no matching DH grp found");
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
