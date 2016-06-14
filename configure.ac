@@ -898,6 +898,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	else
 		AC_MSG_RESULT([no])
 	fi
+	AC_CHECK_FUNCS([setpflags])
 	AC_CHECK_FUNCS([setppriv])
 	AC_CHECK_FUNCS([priv_basicset])
 	AC_CHECK_HEADERS([priv.h])
