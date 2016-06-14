@@ -226,8 +226,7 @@ platform_disable_tracing(int strict)
 {
 #if defined(HAVE_PRCTL) && defined(PR_SET_DUMPABLE)
 	/* Disable ptrace on Linux without sgid bit */
-	if (prctl(PR_SET_DUMPABLE, 0) != 0)
-		if (strict)
-			fatal("unable to make the process undumpable");
+	if (prctl(PR_SET_DUMPABLE, 0) != 0 && strict)
+		fatal("unable to make the process undumpable");
 #endif
 }
