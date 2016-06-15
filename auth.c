@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.114 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.115 2016/06/15 00:40:40 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -857,7 +857,7 @@ remote_hostname(struct ssh *ssh)
 	hints.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
 		logit("reverse mapping checking getaddrinfo for %.700s "
-		    "[%s] failed - POSSIBLE BREAK-IN ATTEMPT!", name, ntop);
+		    "[%s] failed.", name, ntop);
 		return strdup(ntop);
 	}
 	/* Look for the address from the list of addresses. */
@@ -872,8 +872,7 @@ remote_hostname(struct ssh *ssh)
 	if (ai == NULL) {
 		/* Address not found for the host name. */
 		logit("Address %.100s maps to %.600s, but this does not "
-		    "map back to the address - POSSIBLE BREAK-IN ATTEMPT!",
-		    ntop, name);
+		    "map back to the address.", ntop, name);
 		return strdup(ntop);
 	}
 	return strdup(name);
