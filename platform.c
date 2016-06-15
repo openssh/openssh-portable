@@ -18,14 +18,6 @@
 
 #include "includes.h"
 
-#include <sys/types.h>
-#if defined(HAVE_SYS_PRCTL_H)
-#include <sys/prctl.h>	/* For prctl() and PR_SET_DUMPABLE */
-#endif
-#ifdef HAVE_PRIV_H
-#include <priv.h> /* For setpflags() and __PROC_PROTECT  */
-#endif
-
 #include <stdarg.h>
 #include <unistd.h>
 
@@ -222,19 +214,4 @@ platform_sys_dir_uid(uid_t uid)
 		return 1;
 #endif
 	return 0;
-}
-
-void
-platform_disable_tracing(int strict)
-{
-#if defined(HAVE_PRCTL) && defined(PR_SET_DUMPABLE)
-	/* Disable ptrace on Linux without sgid bit */
-	if (prctl(PR_SET_DUMPABLE, 0) != 0 && strict)
-		fatal("unable to make the process undumpable");
-#endif
-#if defined(HAVE_SETPFLAGS) && defined(__PROC_PROTECT)
-	/* On Solaris, we should make this process untraceable */
-	if (setpflags(__PROC_PROTECT, 1) != 0 && strict)
-		fatal("unable to make the process untraceable");
-#endif
 }
