@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.290 2016/05/04 14:00:09 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.291 2016/06/17 05:03:40 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -380,6 +380,14 @@ fill_default_server_options(ServerOptions *options)
 	for (i = 0; i < options->num_host_cert_files; i++)
 		CLEAR_ON_NONE(options->host_cert_files[i]);
 #undef CLEAR_ON_NONE
+
+	/* Similar handling for AuthenticationMethods=any */
+	if (options->num_auth_methods == 1 &&
+	    strcmp(options->auth_methods[0], "any") == 0) {
+		free(options->auth_methods[0]);
+		options->auth_methods[0] = NULL;
+		options->num_auth_methods = 0;
+	}
 
 #ifndef HAVE_MMAP
 	if (use_privsep && options->compression == 1) {
@@ -1804,20 +1812,38 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sAuthenticationMethods:
 		if (options->num_auth_methods == 0) {
+			value = 0; /* seen "any" pseudo-method */
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_auth_methods >=
 				    MAX_AUTH_METHODS)
 					fatal("%s line %d: "
 					    "too many authentication methods.",
 					    filename, linenum);
-				if (auth2_methods_valid(arg, 0) != 0)
+				if (strcmp(arg, "any") == 0) {
+					if (options->num_auth_methods > 0) {
+						fatal("%s line %d: \"any\" "
+						    "must appear alone in "
+						    "AuthenticationMethods",
+						    filename, linenum);
+					}
+					value = 1;
+				} else if (value) {
+					fatal("%s line %d: \"any\" must appear "
+					    "alone in AuthenticationMethods",
+					    filename, linenum);
+				} else if (auth2_methods_valid(arg, 0) != 0) {
 					fatal("%s line %d: invalid "
 					    "authentication method list.",
 					    filename, linenum);
+				}
 				if (!*activep)
 					continue;
 				options->auth_methods[
 				    options->num_auth_methods++] = xstrdup(arg);
+			}
+			if (options->num_auth_methods == 0) {
+				fatal("%s line %d: no AuthenticationMethods "
+				    "specified", filename, linenum);
 			}
 		}
 		return 0;
@@ -2195,11 +2221,13 @@ dump_cfg_strarray_oneline(ServerOpCodes code, u_int count, char **vals)
 {
 	u_int i;
 
-	if (count <= 0)
+	if (count <= 0 && code != sAuthenticationMethods)
 		return;
 	printf("%s", lookup_opcode_name(code));
 	for (i = 0; i < count; i++)
 		printf(" %s",  vals[i]);
+	if (code == sAuthenticationMethods && count == 0)
+		printf(" any");
 	printf("\n");
 }
 
