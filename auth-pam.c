@@ -365,17 +365,6 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
 		case PAM_PROMPT_ECHO_OFF:
-			buffer_put_cstring(&buffer,
-			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock,
-			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
-				goto fail;
-			if (ssh_msg_recv(ctxt->pam_csock, &buffer) == -1)
-				goto fail;
-			if (buffer_get_char(&buffer) != PAM_AUTHTOK)
-				goto fail;
-			reply[i].resp = buffer_get_string(&buffer, NULL);
-			break;
 		case PAM_PROMPT_ECHO_ON:
 			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
@@ -389,12 +378,6 @@ sshpam_thread_conv(int n, sshpam_const struct pam_message **msg,
 			reply[i].resp = buffer_get_string(&buffer, NULL);
 			break;
 		case PAM_ERROR_MSG:
-			buffer_put_cstring(&buffer,
-			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock,
-			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
-				goto fail;
-			break;
 		case PAM_TEXT_INFO:
 			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
