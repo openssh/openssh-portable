@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.33 2016/05/02 09:36:42 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.34 2016/06/17 05:06:23 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3786,7 +3786,44 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 
 	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
 	    (char *)passphrase)) == NULL) {
-		r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+		unsigned long pem_err = ERR_peek_last_error();
+		int pem_reason = ERR_GET_REASON(pem_err);
+
+		/*
+		 * Translate OpenSSL error codes to determine whether
+		 * passphrase is required/incorrect.
+		 */
+		switch (ERR_GET_LIB(pem_err)) {
+		case ERR_LIB_PEM:
+			switch (pem_reason) {
+			case PEM_R_BAD_PASSWORD_READ:
+			case PEM_R_PROBLEMS_GETTING_PASSWORD:
+			case PEM_R_BAD_DECRYPT:
+				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+				goto out;
+			default:
+				r = SSH_ERR_INVALID_FORMAT;
+				goto out;
+			}
+		case ERR_LIB_EVP:
+			switch (pem_reason) {
+			case EVP_R_BAD_DECRYPT:
+				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+				goto out;
+			case EVP_R_BN_DECODE_ERROR:
+			case EVP_R_DECODE_ERROR:
+			case EVP_R_PRIVATE_KEY_DECODE_ERROR:
+				r = SSH_ERR_INVALID_FORMAT;
+				goto out;
+			default:
+				r = SSH_ERR_LIBCRYPTO_ERROR;
+				goto out;
+			}
+		case ERR_LIB_ASN1:
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 	if (pk->type == EVP_PKEY_RSA &&
