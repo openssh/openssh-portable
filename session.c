@@ -769,6 +769,7 @@ do_exec_pty(Session *s, const char *command)
 static void
 do_pre_login(Session *s)
 {
+	struct ssh *ssh = active_state;	/* XXX */
 	socklen_t fromlen;
 	struct sockaddr_storage from;
 	pid_t pid = getpid();
@@ -788,7 +789,7 @@ do_pre_login(Session *s)
 	}
 
 	record_utmp_only(pid, s->tty, s->pw->pw_name,
-	    get_remote_name_or_ip(utmp_len, options.use_dns),
+	    session_get_remote_name_or_ip(ssh, utmp_len, options.use_dns),
 	    (struct sockaddr *)&from, fromlen);
 }
 #endif
