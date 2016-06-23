@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.291 2016/06/17 05:03:40 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.292 2016/06/23 05:17:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1813,6 +1813,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sAuthenticationMethods:
 		if (options->num_auth_methods == 0) {
 			value = 0; /* seen "any" pseudo-method */
+			value2 = 0; /* sucessfully parsed any method */
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_auth_methods >=
 				    MAX_AUTH_METHODS)
@@ -1836,12 +1837,13 @@ process_server_config_line(ServerOptions *options, char *line,
 					    "authentication method list.",
 					    filename, linenum);
 				}
+				value2 = 1;
 				if (!*activep)
 					continue;
 				options->auth_methods[
 				    options->num_auth_methods++] = xstrdup(arg);
 			}
-			if (options->num_auth_methods == 0) {
+			if (value2 == 0) {
 				fatal("%s line %d: no AuthenticationMethods "
 				    "specified", filename, linenum);
 			}
