@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.44 2016/05/30 18:34:41 schwarze Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.45 2016/06/30 05:17:05 dtucker Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -171,10 +171,10 @@ refresh_progress_meter(void)
 	}
 
 	/* percent of transfer done */
-	if (end_pos != 0)
-		percent = ((float)cur_pos / end_pos) * 100;
-	else
+	if (end_pos == 0 || cur_pos == end_pos)
 		percent = 100;
+	else
+		percent = ((float)cur_pos / end_pos) * 100;
 	snprintf(buf + strlen(buf), win_size - strlen(buf),
 	    " %3d%% ", percent);
 
