@@ -355,7 +355,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	if (options->expose_auth_methods == -1)
-		options->expose_auth_methods = EXPOSE_AUTHMETH_PAMONLY;
+		options->expose_auth_methods = EXPOSE_AUTHMETH_NEVER;
 
 	assemble_algorithms(options);
 
