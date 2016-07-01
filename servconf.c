@@ -584,7 +584,7 @@ static struct {
 	{ "streamlocalbindunlink", sStreamLocalBindUnlink, SSHCFG_ALL },
 	{ "allowstreamlocalforwarding", sAllowStreamLocalForwarding, SSHCFG_ALL },
 	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
-	{ "exposeauthenticationmethods", sExposeAuthenticationMethods, SSHCFG_GLOBAL },
+	{ "exposeauthenticationmethods", sExposeAuthenticationMethods, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
