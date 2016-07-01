@@ -154,6 +154,7 @@ typedef enum {
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oNoneEnabled, oNoneSwitch,
+	oDisableMTAES,
 	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
@@ -272,6 +273,7 @@ static struct {
 	{ "requesttty", oRequestTTY },
 	{ "noneenabled", oNoneEnabled },
 	{ "noneswitch", oNoneSwitch },
+	{ "disablemtaes", oDisableMTAES },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -950,6 +952,10 @@ parse_time:
 
 	case oNoneEnabled:
 		intptr = &options->none_enabled;
+		goto parse_flag;
+
+	case oDisableMTAES:
+		intptr = &options->disable_multithreaded;
 		goto parse_flag;
 
 	/*
@@ -1761,6 +1767,7 @@ initialize_options(Options * options)
 	options->request_tty = -1;
 	options->none_switch = -1;
 	options->none_enabled = -1;
+	options->disable_multithreaded = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;
 	options->tcp_rcv_buf_poll = -1;
@@ -1923,6 +1930,8 @@ fill_default_options(Options * options)
 		options->none_switch = 0;
 	if (options->none_enabled == -1)
 		options->none_enabled = 0;
+	if (options->disable_multithreaded == -1)
+		options->disable_multithreaded = 0;
 	if (options->hpn_disabled == -1)
 		options->hpn_disabled = 0;
 	if (options->hpn_buffer_size > -1) {
