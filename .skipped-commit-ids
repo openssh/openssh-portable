@@ -8,3 +8,4 @@ edbfde98c40007b7752a4ac106095e060c25c1ef	Regen moduli
 7cf73737f357492776223da1c09179fa6ba74660	Remove moduli <2k
 180d84674be1344e45a63990d60349988187c1ae	Update moduli
 f6ae971186ba68d066cd102e57d5b0b2c211a5ee	systrace is dead.
+96c5054e3e1f170c6276902d5bc65bb3b87a2603	remove DEBUGLIBS from Makefile
