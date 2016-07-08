@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.230 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.231 2016/07/08 03:44:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1690,7 +1690,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
 	struct session_state *state = ssh->state;
 	u_int padlen, need;
-	u_char *cp, macbuf[SSH_DIGEST_MAX_LENGTH];
+	u_char *cp;
 	u_int maclen, aadlen = 0, authlen = 0, block_size;
 	struct sshenc *enc   = NULL;
 	struct sshmac *mac   = NULL;
@@ -1790,17 +1790,21 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	 * 'maclen' bytes of message authentication code.
 	 */
 	if (sshbuf_len(state->input) < aadlen + need + authlen + maclen)
-		return 0;
+		return 0; /* packet is incomplete */
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "read_poll enc/full: ");
 	sshbuf_dump(state->input, stderr);
 #endif
-	/* EtM: compute mac over encrypted input */
+	/* EtM: check mac over encrypted input */
 	if (mac && mac->enabled && mac->etm) {
-		if ((r = mac_compute(mac, state->p_read.seqnr,
+		if ((r = mac_check(mac, state->p_read.seqnr,
 		    sshbuf_ptr(state->input), aadlen + need,
-		    macbuf, sizeof(macbuf))) != 0)
+		    sshbuf_ptr(state->input) + aadlen + need + authlen,
+		    maclen)) != 0) {
+			if (r == SSH_ERR_MAC_INVALID)
+				logit("Corrupted MAC on input.");
 			goto out;
+		}
 	}
 	if ((r = sshbuf_reserve(state->incoming_packet, aadlen + need,
 	    &cp)) != 0)
@@ -1810,26 +1814,21 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		goto out;
 	if ((r = sshbuf_consume(state->input, aadlen + need + authlen)) != 0)
 		goto out;
-	/*
-	 * compute MAC over seqnr and packet,
-	 * increment sequence number for incoming packet
-	 */
 	if (mac && mac->enabled) {
-		if (!mac->etm)
-			if ((r = mac_compute(mac, state->p_read.seqnr,
-			    sshbuf_ptr(state->incoming_packet),
-			    sshbuf_len(state->incoming_packet),
-			    macbuf, sizeof(macbuf))) != 0)
+		/* Not EtM: check MAC over cleartext */
+		if (!mac->etm && (r = mac_check(mac, state->p_read.seqnr,
+		    sshbuf_ptr(state->incoming_packet),
+		    sshbuf_len(state->incoming_packet),
+		    sshbuf_ptr(state->input), maclen)) != 0) {
+			if (r != SSH_ERR_MAC_INVALID)
 				goto out;
-		if (timingsafe_bcmp(macbuf, sshbuf_ptr(state->input),
-		    mac->mac_len) != 0) {
 			logit("Corrupted MAC on input.");
 			if (need > PACKET_MAX_SIZE)
 				return SSH_ERR_INTERNAL_ERROR;
 			return ssh_packet_start_discard(ssh, enc, mac,
 			    state->packlen, PACKET_MAX_SIZE - need);
 		}
-
+		/* Remove MAC from input buffer */
 		DBG(debug("MAC #%d ok", state->p_read.seqnr));
 		if ((r = sshbuf_consume(state->input, mac->mac_len)) != 0)
 			goto out;
