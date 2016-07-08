@@ -796,6 +796,30 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	aarch64*-*)
 		seccomp_audit_arch=AUDIT_ARCH_AARCH64
 		;;
+	s390x-*)
+		seccomp_audit_arch=AUDIT_ARCH_S390X
+		;;
+	s390-*)
+		seccomp_audit_arch=AUDIT_ARCH_S390
+		;;
+	powerpc64-*)
+		seccomp_audit_arch=AUDIT_ARCH_PPC64
+		;;
+	powerpc64le-*)
+		seccomp_audit_arch=AUDIT_ARCH_PPC64LE
+		;;
+	mips-*)
+		seccomp_audit_arch=AUDIT_ARCH_MIPS
+		;;
+	mipsel-*)
+		seccomp_audit_arch=AUDIT_ARCH_MIPSEL
+		;;
+	mips64-*)
+		seccomp_audit_arch=AUDIT_ARCH_MIPS64
+		;;
+	mips64el-*)
+		seccomp_audit_arch=AUDIT_ARCH_MIPSEL64
+		;;
 	esac
 	if test "x$seccomp_audit_arch" != "x" ; then
 		AC_MSG_RESULT(["$seccomp_audit_arch"])
