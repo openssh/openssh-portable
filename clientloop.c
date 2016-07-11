@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.284 2016/02/08 10:57:07 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.285 2016/07/11 21:38:13 tb Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1512,7 +1512,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (options.control_master &&
 	    ! option_clear_or_none(options.control_path)) {
 		debug("pledge: id");
-		if (pledge("stdio rpath wpath cpath unix inet dns proc exec id tty",
+		if (pledge("stdio rpath wpath cpath unix inet dns recvfd proc exec id tty",
 		    NULL) == -1)
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 
