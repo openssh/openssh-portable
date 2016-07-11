@@ -23,7 +23,9 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <langinfo.h>
+#ifdef HAVE_LANGINFO_H
+# include <langinfo.h>
+#endif
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -32,7 +34,9 @@
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
-#include <wchar.h>
+#ifdef HAVE_WCHAR_H
+# include <wchar.h>
+#endif
 
 #include "utf8.h"
 
