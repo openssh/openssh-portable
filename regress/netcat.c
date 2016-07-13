@@ -61,6 +61,9 @@
 #  include <sys/poll.h>
 # endif
 #endif
+#ifdef HAVE_ERR_H
+# include <err.h>
+#endif
 
 /* Telnet options from arpa/telnet.h */
 #define IAC	255
