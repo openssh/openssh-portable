@@ -373,6 +373,7 @@ AC_CHECK_HEADERS([ \
 	dirent.h \
 	endian.h \
 	elf.h \
+	err.h \
 	features.h \
 	fcntl.h \
 	floatingpoint.h \
@@ -1692,6 +1693,8 @@ AC_CHECK_FUNCS([ \
 	closefrom \
 	dirfd \
 	endgrent \
+	err \
+	errx \
 	explicit_bzero \
 	fchmod \
 	fchown \
@@ -1783,6 +1786,7 @@ AC_CHECK_FUNCS([ \
 	vasprintf \
 	vsnprintf \
 	waitpid \
+	warn \
 ])
 
 AC_LINK_IFELSE(

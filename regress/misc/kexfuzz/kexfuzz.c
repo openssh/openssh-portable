@@ -17,7 +17,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <err.h>
+#ifdef HAVE_ERR_H
+# include <err.h>
+#endif
 
 #include "ssherr.h"
 #include "ssh_api.h"
