@@ -1,4 +1,4 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.1 2016/06/03 04:10:41 dtucker Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.2 2016/07/14 01:24:21 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
@@ -10,20 +10,20 @@ verbose "reparse minimal config"
 
 verbose "ssh -W opts"
 f=`${SSH} -GF $OBJ/ssh_config host | awk '/exitonforwardfailure/{print $2}'`
-test "$f" == "no" || fail "exitonforwardfailure default"
+test "$f" = "no" || fail "exitonforwardfailure default"
 f=`${SSH} -GF $OBJ/ssh_config -W a:1 h | awk '/exitonforwardfailure/{print $2}'`
-test "$f" == "yes" || fail "exitonforwardfailure enable"
+test "$f" = "yes" || fail "exitonforwardfailure enable"
 f=`${SSH} -GF $OBJ/ssh_config -W a:1 -o exitonforwardfailure=no h | \
     awk '/exitonforwardfailure/{print $2}'`
-test "$f" == "no" || fail "exitonforwardfailure override"
+test "$f" = "no" || fail "exitonforwardfailure override"
 
 f=`${SSH} -GF $OBJ/ssh_config host | awk '/clearallforwardings/{print $2}'`
-test "$f" == "no" || fail "clearallforwardings default"
+test "$f" = "no" || fail "clearallforwardings default"
 f=`${SSH} -GF $OBJ/ssh_config -W a:1 h | awk '/clearallforwardings/{print $2}'`
-test "$f" == "yes" || fail "clearallforwardings enable"
+test "$f" = "yes" || fail "clearallforwardings enable"
 f=`${SSH} -GF $OBJ/ssh_config -W a:1 -o clearallforwardings=no h | \
     awk '/clearallforwardings/{print $2}'`
-test "$f" == "no" || fail "clearallforwardings override"
+test "$f" = "no" || fail "clearallforwardings override"
 
 # cleanup
 rm -f $OBJ/ssh_config.[012]
