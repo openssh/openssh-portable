@@ -1721,7 +1721,6 @@ AC_CHECK_FUNCS([ \
 	inet_ntop \
 	innetgr \
 	login_getcapbool \
-	mblen \
 	md5_crypt \
 	memmove \
 	memset_s \
@@ -1788,6 +1787,12 @@ AC_CHECK_FUNCS([ \
 	waitpid \
 	warn \
 ])
+
+dnl Wide character support.  Linux man page says it needs _XOPEN_SOURCE.
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -D_XOPEN_SOURCE"
+AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
+CFLAGS="$saved_CFLAGS"
 
 AC_LINK_IFELSE(
         [AC_LANG_PROGRAM(

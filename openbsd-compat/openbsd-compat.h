@@ -36,6 +36,8 @@
 
 #include <sys/socket.h>
 
+#include <stddef.h>  /* for wchar_t */
+
 /* OpenBSD function replacements */
 #include "base64.h"
 #include "sigact.h"
@@ -229,6 +231,22 @@ long long strtonum(const char *, long long, long long, const char **);
 /* multibyte character support */
 #ifndef HAVE_MBLEN
 # define mblen(x, y)	(1)
+#endif
+
+#ifndef HAVE_WCWIDTH
+# define wcwidth(x)	(((x) >= 0x20 && (x) <= 0x7e) ? 1 : -1)
+/* force our no-op nl_langinfo and mbtowc */
+# undef HAVE_NL_LANGINFO
+# undef HAVE_MBTOWC
+# undef HAVE_LANGINFO_H
+#endif
+
+#ifndef HAVE_NL_LANGINFO
+# define nl_langinfo(x)	""
+#endif
+
+#ifndef HAVE_MBTOWC
+int mbtowc(wchar_t *, const char*, size_t);
 #endif
 
 #if !defined(HAVE_VASPRINTF) || !defined(HAVE_VSNPRINTF)
