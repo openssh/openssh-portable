@@ -1405,6 +1405,9 @@ g.gl_statv = NULL;
 
 AC_CHECK_DECLS([GLOB_NOMATCH], , , [#include <glob.h>])
 
+AC_CHECK_DECL([VIS_ALL], ,
+    AC_DEFINE(BROKEN_STRNVIS, 1, [missing VIS_ALL]), [#include <vis.h>])
+
 AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
