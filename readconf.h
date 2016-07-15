@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.116 2016/06/03 03:14:41 dtucker Exp $ */
+/* $OpenBSD: readconf.h,v 1.117 2016/07/15 00:24:30 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -163,6 +163,11 @@ typedef struct {
 	char   *hostbased_key_types;
 	char   *pubkey_key_types;
 
+	char   *jump_user;
+	char   *jump_host;
+	int	jump_port;
+	char   *jump_extra;
+
 	char	*ignored_unknown; /* Pattern list of unknown tokens to ignore */
 }       Options;
 
@@ -198,6 +203,7 @@ int	 process_config_line(Options *, struct passwd *, const char *,
 int	 read_config_file(const char *, struct passwd *, const char *,
     const char *, Options *, int);
 int	 parse_forward(struct Forward *, const char *, int, int);
+int	 parse_jump(const char *, Options *, int);
 int	 default_ssh_port(void);
 int	 option_clear_or_none(const char *);
 void	 dump_client_config(Options *o, const char *host);

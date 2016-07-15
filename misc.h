@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.56 2016/04/06 06:42:17 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.57 2016/07/15 00:24:30 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -49,6 +49,7 @@ char	*put_host_port(const char *, u_short);
 char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);
+int	 parse_user_host_port(const char *, char **, char **, int *);
 long	 convtime(const char *);
 char	*tilde_expand_filename(const char *, uid_t);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.104 2016/04/06 06:42:17 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.105 2016/07/15 00:24:30 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -449,6 +449,67 @@ colon(char *cp)
 			return NULL;
 	}
 	return NULL;
+}
+
+/*
+ * Parse a [user@]host[:port] string.
+ * Caller must free returned user and host.
+ * Any of the pointer return arguments may be NULL (useful for syntax checking).
+ * If user was not specified then *userp will be set to NULL.
+ * If port was not specified then *portp will be -1.
+ * Returns 0 on success, -1 on failure.
+ */
+int
+parse_user_host_port(const char *s, char **userp, char **hostp, int *portp)
+{
+	char *sdup, *cp, *tmp;
+	char *user = NULL, *host = NULL;
+	int port = -1, ret = -1;
+
+	if (userp != NULL)
+		*userp = NULL;
+	if (hostp != NULL)
+		*hostp = NULL;
+	if (portp != NULL)
+		*portp = -1;
+
+	if ((sdup = tmp = strdup(s)) == NULL)
+		return -1;
+	/* Extract optional username */
+	if ((cp = strchr(tmp, '@')) != NULL) {
+		*cp = '\0';
+		if (*tmp == '\0')
+			goto out;
+		if ((user = strdup(tmp)) == NULL)
+			goto out;
+		tmp = cp + 1;
+	}
+	/* Extract mandatory hostname */
+	if ((cp = hpdelim(&tmp)) == NULL || *cp == '\0')
+		goto out;
+	host = xstrdup(cleanhostname(cp));
+	/* Convert and verify optional port */
+	if (tmp != NULL && *tmp != '\0') {
+		if ((port = a2port(tmp)) <= 0)
+			goto out;
+	}
+	/* Success */
+	if (userp != NULL) {
+		*userp = user;
+		user = NULL;
+	}
+	if (hostp != NULL) {
+		*hostp = host;
+		host = NULL;
+	}
+	if (portp != NULL)
+		*portp = port;
+	ret = 0;
+ out:
+	free(sdup);
+	free(user);
+	free(host);
+	return ret;
 }
 
 /* function to assist building execv() arguments */

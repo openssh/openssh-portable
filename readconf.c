@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.256 2016/06/03 04:09:38 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.257 2016/07/15 00:24:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -170,7 +170,7 @@ typedef enum {
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
-	oPubkeyAcceptedKeyTypes,
+	oPubkeyAcceptedKeyTypes, oProxyJump,
 	oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -295,6 +295,7 @@ static struct {
 	{ "hostbasedkeytypes", oHostbasedKeyTypes },
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedKeyTypes },
 	{ "ignoreunknown", oIgnoreUnknown },
+	{ "proxyjump", oProxyJump },
 
 	{ NULL, oBadOption }
 };
@@ -1121,12 +1122,27 @@ parse_char_array:
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
+		/* Ignore ProxyCommand if ProxyJump already specified */
+		if (options->jump_host != NULL)
+			charptr = &options->jump_host; /* Skip below */
 parse_command:
 		if (s == NULL)
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		len = strspn(s, WHITESPACE "=");
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(s + len);
+		return 0;
+
+	case oProxyJump:
+		if (s == NULL) {
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		}
+		len = strspn(s, WHITESPACE "=");
+		if (parse_jump(s + len, options, *activep) == -1) {
+			fatal("%.200s line %d: Invalid ProxyJump \"%s\"",
+			    filename, linenum, s + len);
+		}
 		return 0;
 
 	case oPort:
@@ -1789,6 +1805,10 @@ initialize_options(Options * options)
 	options->hostname = NULL;
 	options->host_key_alias = NULL;
 	options->proxy_command = NULL;
+	options->jump_user = NULL;
+	options->jump_host = NULL;
+	options->jump_port = -1;
+	options->jump_extra = NULL;
 	options->user = NULL;
 	options->escape_char = -1;
 	options->num_system_hostfiles = 0;
@@ -2261,6 +2281,44 @@ parse_forward(struct Forward *fwd, const char *fwdspec, int dynamicfwd, int remo
 	return (0);
 }
 
+int
+parse_jump(const char *s, Options *o, int active)
+{
+	char *orig, *sdup, *cp;
+	char *host = NULL, *user = NULL;
+	int ret = -1, port = -1;
+
+	active &= o->proxy_command == NULL && o->jump_host == NULL;
+
+	orig = sdup = xstrdup(s);
+	while ((cp = strsep(&sdup, ",")) && cp != NULL) {
+		if (active) {
+			/* First argument and configuration is active */
+			if (parse_user_host_port(cp, &user, &host, &port) != 0)
+				goto out;
+		} else {
+			/* Subsequent argument or inactive configuration */
+			if (parse_user_host_port(cp, NULL, NULL, NULL) != 0)
+				goto out;
+		}
+		active = 0; /* only check syntax for subsequent hosts */
+	}
+	/* success */
+	free(orig);
+	o->jump_user = user;
+	o->jump_host = host;
+	o->jump_port = port;
+	o->proxy_command = xstrdup("none");
+	user = host = NULL;
+	if ((cp = strchr(s, ',')) != NULL && cp[1] != '\0')
+		o->jump_extra = xstrdup(cp + 1);
+	ret = 0;
+ out:
+	free(user);
+	free(host);
+	return ret;
+}
+
 /* XXX the following is a near-vebatim copy from servconf.c; refactor */
 static const char *
 fmt_multistate_int(int val, const struct multistate *m)
@@ -2412,7 +2470,7 @@ void
 dump_client_config(Options *o, const char *host)
 {
 	int i;
-	char vbuf[5];
+	char buf[8];
 
 	/* This is normally prepared in ssh_kex2 */
 	if (kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->hostkeyalgorithms) != 0)
@@ -2490,7 +2548,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oMacs, o->macs ? o->macs : KEX_CLIENT_MAC);
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
-	dump_cfg_string(oProxyCommand, o->proxy_command);
 	dump_cfg_string(oPubkeyAcceptedKeyTypes, o->pubkey_key_types);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
 	dump_cfg_string(oXAuthLocation, o->xauth_location);
@@ -2551,8 +2608,8 @@ dump_client_config(Options *o, const char *host)
 	if (o->escape_char == SSH_ESCAPECHAR_NONE)
 		printf("escapechar none\n");
 	else {
-		vis(vbuf, o->escape_char, VIS_WHITE, 0);
-		printf("escapechar %s\n", vbuf);
+		vis(buf, o->escape_char, VIS_WHITE, 0);
+		printf("escapechar %s\n", buf);
 	}
 
 	/* oIPQoS */
@@ -2566,4 +2623,30 @@ dump_client_config(Options *o, const char *host)
 	/* oStreamLocalBindMask */
 	printf("streamlocalbindmask 0%o\n",
 	    o->fwd_opts.streamlocal_bind_mask);
+
+	/* oProxyCommand / oProxyJump */
+	if (o->jump_host == NULL)
+		dump_cfg_string(oProxyCommand, o->proxy_command);
+	else {
+		/* Check for numeric addresses */
+		i = strchr(o->jump_host, ':') != NULL ||
+		    strspn(o->jump_host, "1234567890.") == strlen(o->jump_host);
+		snprintf(buf, sizeof(buf), "%d", o->jump_port);
+		printf("proxyjump %s%s%s%s%s%s%s%s%s\n",
+		    /* optional user */
+		    o->jump_user == NULL ? "" : o->jump_user,
+		    o->jump_user == NULL ? "" : "@",
+		    /* opening [ if hostname is numeric */
+		    i ? "[" : "",
+		    /* mandatory hostname */
+		    o->jump_host,
+		    /* closing ] if hostname is numeric */
+		    i ? "]" : "",
+		    /* optional port number */
+		    o->jump_port <= 0 ? "" : ":",
+		    o->jump_port <= 0 ? "" : buf,
+		    /* optional additional jump spec */
+		    o->jump_extra == NULL ? "" : ",",
+		    o->jump_extra == NULL ? "" : o->jump_extra);
+	}
 }

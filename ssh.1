@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.374 2016/06/29 17:14:28 jmc Exp $
-.Dd $Mdocdate: June 29 2016 $
+.\" $OpenBSD: ssh.1,v 1.375 2016/07/15 00:24:30 djm Exp $
+.Dd $Mdocdate: July 15 2016 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -52,6 +52,7 @@
 .Op Fl F Ar configfile
 .Op Fl I Ar pkcs11
 .Op Fl i Ar identity_file
+.Oo Fl J Ar user Ns @ Oc Ns Ar host Ns Op : Ns Ar port
 .Op Fl L Ar address
 .Op Fl l Ar login_name
 .Op Fl m Ar mac_spec
@@ -312,6 +313,24 @@ by appending
 .Pa -cert.pub
 to identity filenames.
 .Pp
+.It Fl J Xo
+.Sm off
+.Oo Ar jump_user @ Oc
+.Ar jump_host
+.Ns Op : Ns Ar jump_port
+.Sm on
+.Xc
+Connect to the target host by first making a
+.Nm
+connection to
+.Ar jump_host
+and then establishing a TCP forward to the ultimate destination from
+there.
+Multiple jump hops may be specified separated by comma characters.
+This is a shortcut to specify a
+.Cm ProxyJump
+configuration directive.
+.Pp
 .It Fl K
 Enables GSSAPI-based authentication and forwarding (delegation) of GSSAPI
 credentials to the server.
@@ -523,6 +542,7 @@ For full details of the options listed below, and their possible values, see
 .It PreferredAuthentications
 .It Protocol
 .It ProxyCommand
+.It ProxyJump
 .It ProxyUseFdpass
 .It PubkeyAcceptedKeyTypes
 .It PubkeyAuthentication

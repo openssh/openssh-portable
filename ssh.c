@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.442 2016/06/03 04:09:39 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.443 2016/07/15 00:24:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -330,7 +330,7 @@ resolve_addr(const char *name, int port, char *caddr, size_t clen)
  * NB. this function must operate with a options having undefined members.
  */
 static int
-check_follow_cname(char **namep, const char *cname)
+check_follow_cname(int direct, char **namep, const char *cname)
 {
 	int i;
 	struct allowed_cname *rule;
@@ -342,9 +342,9 @@ check_follow_cname(char **namep, const char *cname)
 		return 0;
 	/*
 	 * Don't attempt to canonicalize names that will be interpreted by
-	 * a proxy unless the user specifically requests so.
+	 * a proxy or jump host unless the user specifically requests so.
 	 */
-	if (!option_clear_or_none(options.proxy_command) &&
+	if (!direct &&
 	    options.canonicalize_hostname != SSH_CANONICALISE_ALWAYS)
 		return 0;
 	debug3("%s: check \"%s\" CNAME \"%s\"", __func__, *namep, cname);
@@ -371,7 +371,7 @@ check_follow_cname(char **namep, const char *cname)
 static struct addrinfo *
 resolve_canonicalize(char **hostp, int port)
 {
-	int i, ndots;
+	int i, direct, ndots;
 	char *cp, *fullhost, newname[NI_MAXHOST];
 	struct addrinfo *addrs;
 
@@ -382,7 +382,9 @@ resolve_canonicalize(char **hostp, int port)
 	 * Don't attempt to canonicalize names that will be interpreted by
 	 * a proxy unless the user specifically requests so.
 	 */
-	if (!option_clear_or_none(options.proxy_command) &&
+	direct = option_clear_or_none(options.proxy_command) &&
+	    options.jump_host == NULL;
+	if (!direct &&
 	    options.canonicalize_hostname != SSH_CANONICALISE_ALWAYS)
 		return NULL;
 
@@ -437,7 +439,7 @@ resolve_canonicalize(char **hostp, int port)
 		/* Remove trailing '.' */
 		fullhost[strlen(fullhost) - 1] = '\0';
 		/* Follow CNAME if requested */
-		if (!check_follow_cname(&fullhost, newname)) {
+		if (!check_follow_cname(direct, &fullhost, newname)) {
 			debug("Canonicalized hostname \"%s\" => \"%s\"",
 			    *hostp, fullhost);
 		}
@@ -510,7 +512,7 @@ int
 main(int ac, char **av)
 {
 	struct ssh *ssh = NULL;
-	int i, r, opt, exit_status, use_syslog, config_test = 0;
+	int i, r, opt, exit_status, use_syslog, direct, config_test = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *host_arg, *logfile;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 	char cname[NI_MAXHOST], uidstr[32], *conn_hash_hex;
@@ -603,7 +605,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:E:F:GI:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
+	    "ACD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -728,6 +730,15 @@ main(int ac, char **av)
 			fprintf(stderr, "no support for PKCS#11.\n");
 #endif
 			break;
+		case 'J':
+			if (options.jump_host != NULL)
+				fatal("Only a single -J option permitted");
+			if (options.proxy_command != NULL)
+				fatal("Cannot specify -J with ProxyCommand");
+			if (parse_jump(optarg, &options, 1) == -1)
+				fatal("Invalid -J argument");
+			options.proxy_command = xstrdup("none");
+			break;
 		case 't':
 			if (options.request_tty == REQUEST_TTY_YES)
 				options.request_tty = REQUEST_TTY_FORCE;
@@ -739,8 +750,10 @@ main(int ac, char **av)
 				debug_flag = 1;
 				options.log_level = SYSLOG_LEVEL_DEBUG1;
 			} else {
-				if (options.log_level < SYSLOG_LEVEL_DEBUG3)
+				if (options.log_level < SYSLOG_LEVEL_DEBUG3) {
+					debug_flag++;
 					options.log_level++;
+				}
 			}
 			break;
 		case 'V':
@@ -1038,9 +1051,10 @@ main(int ac, char **av)
 	 * has specifically requested canonicalisation for this case via
 	 * CanonicalizeHostname=always
 	 */
-	if (addrs == NULL && options.num_permitted_cnames != 0 &&
-	    (option_clear_or_none(options.proxy_command) ||
-            options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
+	direct = option_clear_or_none(options.proxy_command) &&
+	    options.jump_host == NULL;
+	if (addrs == NULL && options.num_permitted_cnames != 0 && (direct ||
+	    options.canonicalize_hostname == SSH_CANONICALISE_ALWAYS)) {
 		if ((addrs = resolve_host(host, options.port,
 		    option_clear_or_none(options.proxy_command),
 		    cname, sizeof(cname))) == NULL) {
@@ -1048,7 +1062,7 @@ main(int ac, char **av)
 			if (option_clear_or_none(options.proxy_command))
 				cleanup_exit(255); /* logged in resolve_host */
 		} else
-			check_follow_cname(&host, cname);
+			check_follow_cname(direct, &host, cname);
 	}
 
 	/*
@@ -1072,6 +1086,41 @@ main(int ac, char **av)
 
 	/* Fill configuration defaults. */
 	fill_default_options(&options);
+
+	/*
+	 * If ProxyJump option specified, then construct a ProxyCommand now.
+	 */
+	if (options.jump_host != NULL) {
+		char port_s[8];
+
+		/* Consistency check */
+		if (options.proxy_command != NULL)
+			fatal("inconsistent options: ProxyCommand+ProxyJump");
+		/* Never use FD passing for ProxyJump */
+		options.proxy_use_fdpass = 0;
+		snprintf(port_s, sizeof(port_s), "%d", options.jump_port);
+		xasprintf(&options.proxy_command,
+		    "ssh%s%s%s%s%s%s%s%s%s%.*s -W %%h:%%p %s",
+		    /* Optional "-l user" argument if jump_user set */
+		    options.jump_user == NULL ? "" : " -l ",
+		    options.jump_user == NULL ? "" : options.jump_user,
+		    /* Optional "-p port" argument if jump_port set */
+		    options.jump_port <= 0 ? "" : " -p ",
+		    options.jump_port <= 0 ? "" : port_s,
+		    /* Optional additional jump hosts ",..." */
+		    options.jump_extra == NULL ? "" : " -J ",
+		    options.jump_extra == NULL ? "" : options.jump_extra,
+		    /* Optional "-F" argumment if -F specified */
+		    config == NULL ? "" : " -F ",
+		    config == NULL ? "" : config,
+		    /* Optional "-v" arguments if -v set */
+		    debug_flag ? " -" : "",
+		    debug_flag, "vvv",
+		    /* Mandatory hostname */
+		    options.jump_host);
+		debug("Setting implicit ProxyCommand from ProxyJump: %s",
+		    options.proxy_command);
+	}
 
 	if (options.port == 0)
 		options.port = default_ssh_port();

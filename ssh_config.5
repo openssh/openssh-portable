@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.232 2016/05/04 14:29:58 markus Exp $
-.Dd $Mdocdate: May 4 2016 $
+.\" $OpenBSD: ssh_config.5,v 1.233 2016/07/15 00:24:30 djm Exp $
+.Dd $Mdocdate: July 15 2016 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1358,6 +1358,30 @@ For example, the following directive would connect via an HTTP proxy at
 .Bd -literal -offset 3n
 ProxyCommand /usr/bin/nc -X connect -x 192.0.2.0:8080 %h %p
 .Ed
+.It Cm ProxyJump
+Specifies one or more jump proxies as
+.Xo
+.Sm off
+.Oo Ar user @ Oc
+.Ar host
+.Ns Op : Ns Ar port
+.Sm on
+.Xc .
+Multiple proxies may be separated by comma characters.
+Setting this option will cause
+.Xr ssh 1
+to connect to the target host by first making a
+.Xr ssh 1
+connection to the specified
+.Cm ProxyJump
+host and then establishing a
+a TCP forwarding to the ultimate target from there.
+.Pp
+Note that this option will compete with the
+.Cm ProxyCommand
+option - whichever is specified first will prevent later instances of the
+other from taking effect.
+.Pp
 .It Cm ProxyUseFdpass
 Specifies that
 .Cm ProxyCommand
