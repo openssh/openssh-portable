@@ -253,6 +253,23 @@ int mbtowc(wchar_t *, const char*, size_t);
 # include <stdarg.h>
 #endif
 
+/*
+ * Some platforms unconditionally undefine va_copy() so we define VA_COPY()
+ * instead.  This is known to be the case on at least some configurations of
+ * AIX with the xlc compiler.
+ */
+#ifndef VA_COPY
+# ifdef HAVE_VA_COPY
+#  define VA_COPY(dest, src) va_copy(dest, src)
+# else
+#  ifdef HAVE___VA_COPY
+#   define VA_COPY(dest, src) __va_copy(dest, src)
+#  else
+#   define VA_COPY(dest, src) (dest) = (src)
+#  endif
+# endif
+#endif
+
 #ifndef HAVE_VASPRINTF
 int vasprintf(char **, const char *, va_list);
 #endif
