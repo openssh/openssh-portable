@@ -25,6 +25,7 @@
 #include "includes.h"
 
 #include <sys/types.h>
+#include <string.h>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -62,10 +63,43 @@
 #  define crypt DES_crypt
 # endif
 
+/*
+ * Pick an appropriate password encryption type and salt for the running
+ * system.
+ */
+static const char *
+pick_salt(void)
+{
+	struct passwd *pw;
+	char *passwd, *p;
+	size_t typelen;
+	static char salt[32];
+
+	if (salt[0] != '\0')
+		return salt;
+	strlcpy(salt, "xx", sizeof(salt));
+	if ((pw = getpwuid(0)) == NULL)
+		return salt;
+	passwd = shadow_pw(pw);
+	if (passwd[0] != '$' || (p = strrchr(passwd + 1, '$')) == NULL)
+		return salt;  /* no $, DES */
+	typelen = p - passwd + 1;
+	strlcpy(salt, passwd, MIN(typelen, sizeof(salt)));
+	explicit_bzero(passwd, strlen(passwd));
+	return salt;
+}
+
 char *
 xcrypt(const char *password, const char *salt)
 {
 	char *crypted;
+
+	/*
+	 * If we don't have a salt we are encrypting a fake password for
+	 * for timing purposes.  Pick an appropriate salt.
+	 */
+	if (salt == NULL)
+		salt = pick_salt();
 
 # ifdef HAVE_MD5_PASSWORDS
         if (is_md5_salt(salt))
