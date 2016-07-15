@@ -35,6 +35,7 @@
 
 #ifdef WITH_OPENSSL
 #include <openssl/crypto.h>
+#include <openssl/dh.h>
 #endif
 
 #include "ssh2.h"
