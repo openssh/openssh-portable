@@ -232,7 +232,6 @@ static int sshpam_account_status = -1;
 static char **sshpam_env = NULL;
 static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
-static char badpw[] = "\b\n\r\177INCORRECT";
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -795,12 +794,35 @@ sshpam_query(void *ctx, char **name, char **info,
 	return (-1);
 }
 
+/*
+ * Returns a junk password of identical length to that the user supplied.
+ * Used to mitigate timing attacks against crypt(3)/PAM stacks that
+ * vary processing time in proportion to password length.
+ */
+static char *
+fake_password(const char *wire_password)
+{
+	const char junk[] = "\b\n\r\177INCORRECT";
+	char *ret = NULL;
+	size_t i, l = wire_password != NULL ? strlen(wire_password) : 0;
+
+	if (l >= INT_MAX)
+		fatal("%s: password length too long: %zu", __func__, l);
+
+	ret = malloc(l + 1);
+	for (i = 0; i < l; i++)
+		ret[i] = junk[i % (sizeof(junk) - 1)];
+	ret[i] = '\0';
+	return ret;
+}
+
 /* XXX - see also comment in auth-chall.c:verify_response */
 static int
 sshpam_respond(void *ctx, u_int num, char **resp)
 {
 	Buffer buffer;
 	struct pam_ctxt *ctxt = ctx;
+	char *fake;
 
 	debug2("PAM: %s entering, %u responses", __func__, num);
 	switch (ctxt->pam_done) {
@@ -821,8 +843,11 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	    (sshpam_authctxt->pw->pw_uid != 0 ||
 	    options.permit_root_login == PERMIT_YES))
 		buffer_put_cstring(&buffer, *resp);
-	else
-		buffer_put_cstring(&buffer, badpw);
+	else {
+		fake = fake_password(*resp);
+		buffer_put_cstring(&buffer, fake);
+		free(fake);
+	}
 	if (ssh_msg_send(ctxt->pam_psock, PAM_AUTHTOK, &buffer) == -1) {
 		buffer_free(&buffer);
 		return (-1);
@@ -1166,6 +1191,7 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 {
 	int flags = (options.permit_empty_passwd == 0 ?
 	    PAM_DISALLOW_NULL_AUTHTOK : 0);
+	char *fake = NULL;
 
 	if (!options.use_pam || sshpam_handle == NULL)
 		fatal("PAM: %s called when PAM disabled or failed to "
@@ -1181,7 +1207,7 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	 */
 	if (!authctxt->valid || (authctxt->pw->pw_uid == 0 &&
 	    options.permit_root_login != PERMIT_YES))
-		sshpam_password = badpw;
+		sshpam_password = fake = fake_password(password);
 
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&passwd_conv);
@@ -1191,6 +1217,7 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	sshpam_password = NULL;
+	free(fake);
 	if (sshpam_err == PAM_SUCCESS && authctxt->valid) {
 		debug("PAM: password authentication accepted for %.100s",
 		    authctxt->user);
