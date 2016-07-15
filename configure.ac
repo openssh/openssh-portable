@@ -1804,8 +1804,18 @@ AC_LINK_IFELSE(
 	[AC_DEFINE([HAVE_ISBLANK], [1], [Define if you have isblank(3C).])
 ])
 
+disable_pkcs11=
+AC_ARG_ENABLE([pkcs11],
+	[  --disable-pkcs11        disable PKCS#11 support code [no]],
+	[
+		if test "x$enableval" = "xno" ; then
+			disable_pkcs11=1
+		fi
+	]
+)
+
 # PKCS11 depends on OpenSSL.
-if test "x$openssl" = "xyes" ; then
+if test "x$openssl" = "xyes" && test "x$disable_pkcs11" = "x"; then
 	# PKCS#11 support requires dlopen() and co
 	AC_SEARCH_LIBS([dlopen], [dl],
 	    [AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])]
