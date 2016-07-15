@@ -2643,7 +2643,8 @@ if test "x$openssl" = "xyes" ; then
 		[
 			AC_MSG_RESULT([no])
 			unsupported_algorithms="$unsupported_cipers \
-			   aes128-gcm@openssh.com aes256-gcm@openssh.com"
+			   aes128-gcm@openssh.com \
+			   aes256-gcm@openssh.com"
 		]
 	)
 
@@ -2686,16 +2687,18 @@ if test "x$openssl" = "xyes" ; then
 	# Search for SHA256 support in libc and/or OpenSSL
 	AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
 	    [unsupported_algorithms="$unsupported_algorithms \
-		hmac-sha2-256 hmac-sha2-512 \
+		hmac-sha2-256 \
+		hmac-sha2-512 \
 		diffie-hellman-group-exchange-sha256 \
-		hmac-sha2-256-etm@openssh.com hmac-sha2-512-etm@openssh.com"
+		hmac-sha2-256-etm@openssh.com \
+		hmac-sha2-512-etm@openssh.com"
 	     ]
 	)
 	# Search for RIPE-MD support in OpenSSL
 	AC_CHECK_FUNCS([EVP_ripemd160], ,
 	    [unsupported_algorithms="$unsupported_algorithms \
-		hmac-ripemd160
-		hmac-ripemd160@openssh.com
+		hmac-ripemd160 \
+		hmac-ripemd160@openssh.com \
 		hmac-ripemd160-etm@openssh.com"
 	     ]
 	)
@@ -2796,24 +2799,30 @@ if test "x$openssl" = "xyes" ; then
 		TEST_SSH_ECC=yes
 		COMMENT_OUT_ECC=""
 	else
-		unsupported_algorithms="$unsupported_algorithms ecdsa-sha2-nistp256 \
-		    ecdh-sha2-nistp256 ecdsa-sha2-nistp256-cert-v01@openssh.com"
+		unsupported_algorithms="$unsupported_algorithms \
+			ecdsa-sha2-nistp256 \
+			ecdh-sha2-nistp256 \
+			ecdsa-sha2-nistp256-cert-v01@openssh.com"
 	fi
 	if test x$enable_nistp384 = x1; then
 		AC_DEFINE([OPENSSL_HAS_NISTP384], [1], [libcrypto has NID_secp384r1])
 		TEST_SSH_ECC=yes
 		COMMENT_OUT_ECC=""
 	else
-		unsupported_algorithms="$unsupported_algorithms ecdsa-sha2-nistp384 \
-		    ecdh-sha2-nistp384 ecdsa-sha2-nistp384-cert-v01@openssh.com"
+		unsupported_algorithms="$unsupported_algorithms \
+			ecdsa-sha2-nistp384 \
+			ecdh-sha2-nistp384 \
+			ecdsa-sha2-nistp384-cert-v01@openssh.com"
 	fi
 	if test x$enable_nistp521 = x1; then
 		AC_DEFINE([OPENSSL_HAS_NISTP521], [1], [libcrypto has NID_secp521r1])
 		TEST_SSH_ECC=yes
 		COMMENT_OUT_ECC=""
 	else
-		unsupported_algorithms="$unsupported_algorithms ecdh-sha2-nistp521 \
-		    ecdsa-sha2-nistp521 ecdsa-sha2-nistp521-cert-v01@openssh.com"
+		unsupported_algorithms="$unsupported_algorithms \
+			ecdh-sha2-nistp521 \
+			ecdsa-sha2-nistp521 \
+			ecdsa-sha2-nistp521-cert-v01@openssh.com"
 	fi
 
 	AC_SUBST([TEST_SSH_ECC])
