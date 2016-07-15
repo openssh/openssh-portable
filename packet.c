@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.231 2016/07/08 03:44:42 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.232 2016/07/15 05:01:58 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2073,24 +2073,19 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 {
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
-		logit("Connection closed by %.200s port %d",
+		logdie("Connection closed by %.200s port %d",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		cleanup_exit(255);
 	case SSH_ERR_CONN_TIMEOUT:
-		logit("Connection %s %.200s port %d timed out",
+		logdie("Connection %s %.200s port %d timed out",
 		    ssh->state->server_side ? "from" : "to",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		cleanup_exit(255);
 	case SSH_ERR_DISCONNECTED:
-		logit("Disconnected from %.200s port %d",
+		logdie("Disconnected from %.200s port %d",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		cleanup_exit(255);
 	case SSH_ERR_SYSTEM_ERROR:
-		if (errno == ECONNRESET) {
-			logit("Connection reset by %.200s port %d",
+		if (errno == ECONNRESET)
+			logdie("Connection reset by %.200s port %d",
 			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-			cleanup_exit(255);
-		}
 		/* FALLTHROUGH */
 	case SSH_ERR_NO_CIPHER_ALG_MATCH:
 	case SSH_ERR_NO_MAC_ALG_MATCH:
@@ -2098,14 +2093,14 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 	case SSH_ERR_NO_KEX_ALG_MATCH:
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
 		if (ssh && ssh->kex && ssh->kex->failed_choice) {
-			fatal("Unable to negotiate with %.200s port %d: %s. "
+			logdie("Unable to negotiate with %.200s port %d: %s. "
 			    "Their offer: %s", ssh_remote_ipaddr(ssh),
 			    ssh_remote_port(ssh), ssh_err(r),
 			    ssh->kex->failed_choice);
 		}
 		/* FALLTHROUGH */
 	default:
-		fatal("%s%sConnection %s %.200s port %d: %s",
+		logdie("%s%sConnection %s %.200s port %d: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
 		    ssh->state->server_side ? "from" : "to",
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), ssh_err(r));
