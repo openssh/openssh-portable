@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.375 2016/07/15 00:24:30 djm Exp $
-.Dd $Mdocdate: July 15 2016 $
+.\" $OpenBSD: ssh.1,v 1.376 2016/07/16 06:57:55 jmc Exp $
+.Dd $Mdocdate: July 16 2016 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -52,7 +52,7 @@
 .Op Fl F Ar configfile
 .Op Fl I Ar pkcs11
 .Op Fl i Ar identity_file
-.Oo Fl J Ar user Ns @ Oc Ns Ar host Ns Op : Ns Ar port
+.Op Fl J Oo Ar user Ns @ Oc Ns Ar host Ns Op : Ns Ar port
 .Op Fl L Ar address
 .Op Fl l Ar login_name
 .Op Fl m Ar mac_spec
@@ -315,16 +315,16 @@ to identity filenames.
 .Pp
 .It Fl J Xo
 .Sm off
-.Oo Ar jump_user @ Oc
-.Ar jump_host
-.Ns Op : Ns Ar jump_port
+.Op Ar user No @
+.Ar host
+.Op : Ar port
 .Sm on
 .Xc
 Connect to the target host by first making a
 .Nm
-connection to
-.Ar jump_host
-and then establishing a TCP forward to the ultimate destination from
+connection to the jump
+.Ar host
+and then establishing a TCP forwarding to the ultimate destination from
 there.
 Multiple jump hops may be specified separated by comma characters.
 This is a shortcut to specify a
