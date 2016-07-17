@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.444 2016/07/16 06:57:55 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.445 2016/07/17 04:20:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,6 +67,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <locale.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -591,6 +592,8 @@ main(int ac, char **av)
 	 * don't set the modes explicitly.
 	 */
 	umask(022);
+
+	setlocale(LC_CTYPE, "");
 
 	/*
 	 * Initialize option structure to indicate that no values have been
