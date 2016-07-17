@@ -75,6 +75,7 @@
 #include "cipher.h"
 #include "kex.h"
 #include "dh.h"
+#include "auth-pam.h"
 #ifdef TARGET_OS_MAC	/* XXX Broken krb5 headers on Mac */
 #undef TARGET_OS_MAC
 #include "zlib.h"
@@ -920,6 +921,9 @@ mm_answer_authpassword(int sock, Buffer *m)
 
 	buffer_clear(m);
 	buffer_put_int(m, authenticated);
+#ifdef USE_PAM
+	buffer_put_int(m, sshpam_get_maxtries_reached());
+#endif
 
 	debug3("%s: sending result %d", __func__, authenticated);
 	mm_request_send(sock, MONITOR_ANS_AUTHPASSWORD, m);
@@ -1119,6 +1123,7 @@ mm_answer_pam_query(int sock, Buffer *m)
 	free(name);
 	buffer_put_cstring(m, info);
 	free(info);
+	buffer_put_int(m, sshpam_get_maxtries_reached());
 	buffer_put_int(m, num);
 	for (i = 0; i < num; ++i) {
 		buffer_put_cstring(m, prompts[i]);

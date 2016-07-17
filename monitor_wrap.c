@@ -60,6 +60,7 @@
 #include "packet.h"
 #include "mac.h"
 #include "log.h"
+#include "auth-pam.h"
 #ifdef TARGET_OS_MAC    /* XXX Broken krb5 headers on Mac */
 #undef TARGET_OS_MAC
 #include "zlib.h"
@@ -362,6 +363,9 @@ mm_auth_password(Authctxt *authctxt, char *password)
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_AUTHPASSWORD, &m);
 
 	authenticated = buffer_get_int(&m);
+#ifdef USE_PAM
+	sshpam_set_maxtries_reached(buffer_get_int(&m));
+#endif
 
 	buffer_free(&m);
 
@@ -644,6 +648,7 @@ mm_sshpam_query(void *ctx, char **name, char **info,
 	debug3("%s: pam_query returned %d", __func__, ret);
 	*name = buffer_get_string(&m, NULL);
 	*info = buffer_get_string(&m, NULL);
+	sshpam_set_maxtries_reached(buffer_get_int(&m));
 	*num = buffer_get_int(&m);
 	if (*num > PAM_MAX_NUM_MSG)
 		fatal("%s: recieved %u PAM messages, expected <= %u",

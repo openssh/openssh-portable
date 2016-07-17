@@ -229,6 +229,7 @@ static int sshpam_authenticated = 0;
 static int sshpam_session_open = 0;
 static int sshpam_cred_established = 0;
 static int sshpam_account_status = -1;
+static int sshpam_maxtries_reached = 0;
 static char **sshpam_env = NULL;
 static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
@@ -450,6 +451,8 @@ sshpam_thread(void *ctxtp)
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
+	if (sshpam_err == PAM_MAXTRIES)
+		sshpam_set_maxtries_reached(1);
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
 
@@ -501,6 +504,8 @@ sshpam_thread(void *ctxtp)
 	/* XXX - can't do much about an error here */
 	if (sshpam_err == PAM_ACCT_EXPIRED)
 		ssh_msg_send(ctxt->pam_csock, PAM_ACCT_EXPIRED, &buffer);
+	else if (sshpam_maxtries_reached)
+		ssh_msg_send(ctxt->pam_csock, PAM_MAXTRIES, &buffer);
 	else
 		ssh_msg_send(ctxt->pam_csock, PAM_AUTH_ERR, &buffer);
 	buffer_free(&buffer);
@@ -741,7 +746,11 @@ sshpam_query(void *ctx, char **name, char **info,
 			free(msg);
 			break;
 		case PAM_ACCT_EXPIRED:
-			sshpam_account_status = 0;
+		case PAM_MAXTRIES:
+			if (type == PAM_ACCT_EXPIRED)
+				sshpam_account_status = 0;
+			if (type == PAM_MAXTRIES)
+				sshpam_set_maxtries_reached(1);
 			/* FALLTHROUGH */
 		case PAM_AUTH_ERR:
 			debug3("PAM: %s", pam_strerror(sshpam_handle, type));
@@ -1218,6 +1227,8 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	sshpam_err = pam_authenticate(sshpam_handle, flags);
 	sshpam_password = NULL;
 	free(fake);
+	if (sshpam_err == PAM_MAXTRIES)
+		sshpam_set_maxtries_reached(1);
 	if (sshpam_err == PAM_SUCCESS && authctxt->valid) {
 		debug("PAM: password authentication accepted for %.100s",
 		    authctxt->user);
@@ -1228,5 +1239,22 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 		    pam_strerror(sshpam_handle, sshpam_err));
 		return 0;
 	}
+}
+
+int
+sshpam_get_maxtries_reached(void)
+{
+	return sshpam_maxtries_reached;
+}
+
+void
+sshpam_set_maxtries_reached(int reached)
+{
+	if (reached == 0 || sshpam_maxtries_reached)
+		return;
+	sshpam_maxtries_reached = 1;
+	options.password_authentication = 0;
+	options.kbd_interactive_authentication = 0;
+	options.challenge_response_authentication = 0;
 }
 #endif /* USE_PAM */
