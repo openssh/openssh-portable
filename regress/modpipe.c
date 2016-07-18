@@ -25,6 +25,9 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifdef HAVE_ERR_H
+# include <err.h>
+#endif
 #include "openbsd-compat/getopt_long.c"
 
 static void
