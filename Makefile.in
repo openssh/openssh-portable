@@ -427,19 +427,21 @@ regress-prep:
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
-regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c
+REGRESSLIBS=libssh.a $(LIBCOMPAT)
+
+regress/modpipe$(EXEEXT): $(srcdir)/regress/modpipe.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-regress/setuid-allowed$(EXEEXT): $(srcdir)/regress/setuid-allowed.c
+regress/setuid-allowed$(EXEEXT): $(srcdir)/regress/setuid-allowed.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-regress/netcat$(EXEEXT): $(srcdir)/regress/netcat.c
+regress/netcat$(EXEEXT): $(srcdir)/regress/netcat.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-regress/check-perm$(EXEEXT): $(srcdir)/regress/check-perm.c
+regress/check-perm$(EXEEXT): $(srcdir)/regress/check-perm.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $? \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
