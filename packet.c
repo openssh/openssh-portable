@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.232 2016/07/15 05:01:58 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.233 2016/07/18 06:08:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1171,7 +1171,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 {
 	struct session_state *state = ssh->state;
 	u_char type, *cp, macbuf[SSH_DIGEST_MAX_LENGTH];
-	u_char padlen, pad = 0;
+	u_char tmp, padlen, pad = 0;
 	u_int authlen = 0, aadlen = 0;
 	u_int len;
 	struct sshenc *enc   = NULL;
@@ -1229,14 +1229,24 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	if (padlen < 4)
 		padlen += block_size;
 	if (state->extra_pad) {
-		/* will wrap if extra_pad+padlen > 255 */
+		tmp = state->extra_pad;
 		state->extra_pad =
 		    roundup(state->extra_pad, block_size);
-		pad = state->extra_pad -
-		    ((len + padlen) % state->extra_pad);
+		/* check if roundup overflowed */
+		if (state->extra_pad < tmp)
+			return SSH_ERR_INVALID_ARGUMENT;
+		tmp = (len + padlen) % state->extra_pad;
+		/* Check whether pad calculation below will underflow */
+		if (tmp > state->extra_pad)
+			return SSH_ERR_INVALID_ARGUMENT;
+		pad = state->extra_pad - tmp;
 		DBG(debug3("%s: adding %d (len %d padlen %d extra_pad %d)",
 		    __func__, pad, len, padlen, state->extra_pad));
+		tmp = padlen;
 		padlen += pad;
+		/* Check whether padlen calculation overflowed */
+		if (padlen < tmp)
+			return SSH_ERR_INVALID_ARGUMENT; /* overflow */
 		state->extra_pad = 0;
 	}
 	if ((r = sshbuf_reserve(state->outgoing_packet, padlen, &cp)) != 0)
