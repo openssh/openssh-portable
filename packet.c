@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.233 2016/07/18 06:08:01 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.234 2016/07/18 11:35:33 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -196,6 +196,7 @@ struct session_state {
 
 	/* XXX discard incoming data after MAC error */
 	u_int packet_discard;
+	size_t packet_discard_mac_already;
 	struct sshmac *packet_discard_mac;
 
 	/* Used in packet_read_poll2() */
@@ -333,16 +334,18 @@ ssh_packet_stop_discard(struct ssh *ssh)
 
 	if (state->packet_discard_mac) {
 		char buf[1024];
+		size_t dlen = PACKET_MAX_SIZE;
 
+		if (dlen > state->packet_discard_mac_already)
+			dlen -= state->packet_discard_mac_already;
 		memset(buf, 'a', sizeof(buf));
-		while (sshbuf_len(state->incoming_packet) <
-		    PACKET_MAX_SIZE)
+		while (sshbuf_len(state->incoming_packet) < dlen)
 			if ((r = sshbuf_put(state->incoming_packet, buf,
 			    sizeof(buf))) != 0)
 				return r;
 		(void) mac_compute(state->packet_discard_mac,
 		    state->p_read.seqnr,
-		    sshbuf_ptr(state->incoming_packet), PACKET_MAX_SIZE,
+		    sshbuf_ptr(state->incoming_packet), dlen,
 		    NULL, 0);
 	}
 	logit("Finished discarding for %.200s port %d",
@@ -352,7 +355,7 @@ ssh_packet_stop_discard(struct ssh *ssh)
 
 static int
 ssh_packet_start_discard(struct ssh *ssh, struct sshenc *enc,
-    struct sshmac *mac, u_int packet_length, u_int discard)
+    struct sshmac *mac, size_t mac_already, u_int discard)
 {
 	struct session_state *state = ssh->state;
 	int r;
@@ -362,11 +365,16 @@ ssh_packet_start_discard(struct ssh *ssh, struct sshenc *enc,
 			return r;
 		return SSH_ERR_MAC_INVALID;
 	}
-	if (packet_length != PACKET_MAX_SIZE && mac && mac->enabled)
+	/*
+	 * Record number of bytes over which the mac has already
+	 * been computed in order to minimize timing attacks.
+	 */
+	if (mac && mac->enabled) {
 		state->packet_discard_mac = mac;
-	if (sshbuf_len(state->input) >= discard &&
-	   (r = ssh_packet_stop_discard(ssh)) != 0)
-		return r;
+		state->packet_discard_mac_already = mac_already;
+	}
+	if (sshbuf_len(state->input) >= discard)
+		return ssh_packet_stop_discard(ssh);
 	state->packet_discard = discard - sshbuf_len(state->input);
 	return 0;
 }
@@ -1765,8 +1773,8 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			sshbuf_dump(state->incoming_packet, stderr);
 #endif
 			logit("Bad packet length %u.", state->packlen);
-			return ssh_packet_start_discard(ssh, enc, mac,
-			    state->packlen, PACKET_MAX_SIZE);
+			return ssh_packet_start_discard(ssh, enc, mac, 0,
+			    PACKET_MAX_SIZE);
 		}
 		if ((r = sshbuf_consume(state->input, block_size)) != 0)
 			goto out;
@@ -1788,8 +1796,8 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	if (need % block_size != 0) {
 		logit("padding error: need %d block %d mod %d",
 		    need, block_size, need % block_size);
-		return ssh_packet_start_discard(ssh, enc, mac,
-		    state->packlen, PACKET_MAX_SIZE - block_size);
+		return ssh_packet_start_discard(ssh, enc, mac, 0,
+		    PACKET_MAX_SIZE - block_size);
 	}
 	/*
 	 * check if the entire packet has been received and
@@ -1836,7 +1844,8 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			if (need > PACKET_MAX_SIZE)
 				return SSH_ERR_INTERNAL_ERROR;
 			return ssh_packet_start_discard(ssh, enc, mac,
-			    state->packlen, PACKET_MAX_SIZE - need);
+			    sshbuf_len(state->incoming_packet),
+			    PACKET_MAX_SIZE - need);
 		}
 		/* Remove MAC from input buffer */
 		DBG(debug("MAC #%d ok", state->p_read.seqnr));
