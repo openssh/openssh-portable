@@ -240,7 +240,8 @@ clean:	regressclean
 	rm -f regress/unittests/hostkeys/test_hostkeys
 	rm -f regress/unittests/kex/*.o
 	rm -f regress/unittests/kex/test_kex
-	rm -f regress/unittests/misc/kexfuzz
+	rm -f regress/misc/kexfuzz/*.o
+	rm -f regress/misc/kexfuzz/kexfuzz
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
