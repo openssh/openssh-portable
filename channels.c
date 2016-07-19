@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.350 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.351 2016/07/19 11:38:53 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -137,6 +137,9 @@ static int num_adm_permitted_opens = 0;
 
 /* special-case port number meaning allow any port */
 #define FWD_PERMIT_ANY_PORT	0
+
+/* special-case wildcard meaning allow any host */
+#define FWD_PERMIT_ANY_HOST	"*"
 
 /*
  * If this is true, all opens are permitted.  This is the case on the server
@@ -3298,7 +3301,8 @@ open_match(ForwardPermission *allowed_open, const char *requestedhost,
 	if (allowed_open->port_to_connect != FWD_PERMIT_ANY_PORT &&
 	    allowed_open->port_to_connect != requestedport)
 		return 0;
-	if (strcmp(allowed_open->host_to_connect, requestedhost) != 0)
+	if (strcmp(allowed_open->host_to_connect, FWD_PERMIT_ANY_HOST) != 0 &&
+	    strcmp(allowed_open->host_to_connect, requestedhost) != 0)
 		return 0;
 	return 1;
 }
