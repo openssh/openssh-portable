@@ -138,6 +138,9 @@ static int num_adm_permitted_opens = 0;
 /* special-case port number meaning allow any port */
 #define FWD_PERMIT_ANY_PORT	0
 
+/* special-case port number meaning allow any host */
+#define FWD_PERMIT_ANY_HOST	"*"
+
 /*
  * If this is true, all opens are permitted.  This is the case on the server
  * on which we have to trust the client anyway, and the user could do
@@ -3296,10 +3299,13 @@ open_match(ForwardPermission *allowed_open, const char *requestedhost,
 	if (allowed_open->host_to_connect == NULL)
 		return 0;
 	if (allowed_open->port_to_connect != FWD_PERMIT_ANY_PORT &&
-	    allowed_open->port_to_connect != requestedport)
-		return 0;
-	if (strcmp(allowed_open->host_to_connect, requestedhost) != 0)
-		return 0;
+		allowed_open->port_to_connect != requestedport)
+			return 0;
+
+	if (strcmp(allowed_open->host_to_connect, FWD_PERMIT_ANY_HOST) != 0 &&
+		strcmp(allowed_open->host_to_connect, requestedhost) != 0)
+			return 0;
+
 	return 1;
 }
 
