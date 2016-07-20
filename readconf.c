@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.257 2016/07/15 00:24:30 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.258 2016/07/20 10:45:27 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2286,13 +2286,14 @@ parse_jump(const char *s, Options *o, int active)
 {
 	char *orig, *sdup, *cp;
 	char *host = NULL, *user = NULL;
-	int ret = -1, port = -1;
+	int ret = -1, port = -1, first;
 
 	active &= o->proxy_command == NULL && o->jump_host == NULL;
 
 	orig = sdup = xstrdup(s);
+	first = active;
 	while ((cp = strsep(&sdup, ",")) && cp != NULL) {
-		if (active) {
+		if (first) {
 			/* First argument and configuration is active */
 			if (parse_user_host_port(cp, &user, &host, &port) != 0)
 				goto out;
@@ -2301,19 +2302,21 @@ parse_jump(const char *s, Options *o, int active)
 			if (parse_user_host_port(cp, NULL, NULL, NULL) != 0)
 				goto out;
 		}
-		active = 0; /* only check syntax for subsequent hosts */
+		first = 0; /* only check syntax for subsequent hosts */
 	}
 	/* success */
-	free(orig);
-	o->jump_user = user;
-	o->jump_host = host;
-	o->jump_port = port;
-	o->proxy_command = xstrdup("none");
-	user = host = NULL;
-	if ((cp = strchr(s, ',')) != NULL && cp[1] != '\0')
-		o->jump_extra = xstrdup(cp + 1);
+	if (active) {
+		o->jump_user = user;
+		o->jump_host = host;
+		o->jump_port = port;
+		o->proxy_command = xstrdup("none");
+		user = host = NULL;
+		if ((cp = strchr(s, ',')) != NULL && cp[1] != '\0')
+			o->jump_extra = xstrdup(cp + 1);
+	}
 	ret = 0;
  out:
+	free(orig);
 	free(user);
 	free(host);
 	return ret;
