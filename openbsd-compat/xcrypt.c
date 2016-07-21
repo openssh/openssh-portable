@@ -65,7 +65,9 @@
 
 /*
  * Pick an appropriate password encryption type and salt for the running
- * system.
+ * system by searching through accounts until we find one that has a valid
+ * salt.  Usually this will be root unless the root account is locked out.
+ * If we don't find one we return a traditional DES-based salt.
  */
 static const char *
 pick_salt(void)
@@ -78,14 +80,18 @@ pick_salt(void)
 	if (salt[0] != '\0')
 		return salt;
 	strlcpy(salt, "xx", sizeof(salt));
-	if ((pw = getpwuid(0)) == NULL)
-		return salt;
-	passwd = shadow_pw(pw);
-	if (passwd[0] != '$' || (p = strrchr(passwd + 1, '$')) == NULL)
-		return salt;  /* no $, DES */
-	typelen = p - passwd + 1;
-	strlcpy(salt, passwd, MIN(typelen, sizeof(salt)));
-	explicit_bzero(passwd, strlen(passwd));
+	setpwent();
+	while ((pw = getpwent()) != NULL) {
+		passwd = shadow_pw(pw);
+		if (passwd[0] == '$' && (p = strrchr(passwd+1, '$')) != NULL) {
+			typelen = p - passwd + 1;
+			strlcpy(salt, passwd, MIN(typelen, sizeof(salt)));
+			explicit_bzero(passwd, strlen(passwd));
+			goto out;
+		}
+	}
+ out:
+	endpwent();
 	return salt;
 }
 
