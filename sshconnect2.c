@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.246 2016/07/17 04:20:16 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.247 2016/07/22 05:46:11 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -556,7 +556,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	packet_check_eom();
 
 	if (partial != 0) {
-		logit("Authenticated with partial success.");
+		verbose("Authenticated with partial success.");
 		/* reset state */
 		pubkey_cleanup(authctxt);
 		pubkey_prepare(authctxt);
