@@ -154,9 +154,12 @@ sshpam_sigchld_handler(int sig)
 	    <= 0) {
 		/* PAM thread has not exitted, privsep slave must have */
 		kill(cleanup_ctxt->pam_thread, SIGTERM);
-		if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, 0)
-		    <= 0)
-			return; /* could not wait */
+		while (waitpid(cleanup_ctxt->pam_thread,
+		    &sshpam_thread_status, 0) == -1) {
+			if (errno == EINTR)
+				continue;
+			return;
+		}
 	}
 	if (WIFSIGNALED(sshpam_thread_status) &&
 	    WTERMSIG(sshpam_thread_status) == SIGTERM)
@@ -217,7 +220,11 @@ pthread_join(sp_pthread_t thread, void **value)
 	if (sshpam_thread_status != -1)
 		return (sshpam_thread_status);
 	signal(SIGCHLD, sshpam_oldsig);
-	waitpid(thread, &status, 0);
+	while (waitpid(thread, &status, 0) == -1) {
+		if (errno == EINTR)
+			continue;
+		fatal("%s: waitpid: %s", __func__, strerror(errno));
+	}
 	return (status);
 }
 #endif
