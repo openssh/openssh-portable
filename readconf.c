@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.258 2016/07/20 10:45:27 naddy Exp $ */
+/* $OpenBSD: readconf.c,v 1.259 2016/07/22 03:35:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2292,7 +2292,12 @@ parse_jump(const char *s, Options *o, int active)
 
 	orig = sdup = xstrdup(s);
 	first = active;
-	while ((cp = strsep(&sdup, ",")) && cp != NULL) {
+	do {
+		if ((cp = strrchr(sdup, ',')) == NULL)
+			cp = sdup; /* last */
+		else
+			*cp++ = '\0';
+
 		if (first) {
 			/* First argument and configuration is active */
 			if (parse_user_host_port(cp, &user, &host, &port) != 0)
@@ -2303,7 +2308,7 @@ parse_jump(const char *s, Options *o, int active)
 				goto out;
 		}
 		first = 0; /* only check syntax for subsequent hosts */
-	}
+	} while (cp != sdup);
 	/* success */
 	if (active) {
 		o->jump_user = user;
@@ -2311,8 +2316,10 @@ parse_jump(const char *s, Options *o, int active)
 		o->jump_port = port;
 		o->proxy_command = xstrdup("none");
 		user = host = NULL;
-		if ((cp = strchr(s, ',')) != NULL && cp[1] != '\0')
-			o->jump_extra = xstrdup(cp + 1);
+		if ((cp = strrchr(s, ',')) != NULL && cp != s) {
+			o->jump_extra = xstrdup(s);
+			o->jump_extra[cp - s] = '\0';
+		}
 	}
 	ret = 0;
  out:
@@ -2636,6 +2643,9 @@ dump_client_config(Options *o, const char *host)
 		    strspn(o->jump_host, "1234567890.") == strlen(o->jump_host);
 		snprintf(buf, sizeof(buf), "%d", o->jump_port);
 		printf("proxyjump %s%s%s%s%s%s%s%s%s\n",
+		    /* optional additional jump spec */
+		    o->jump_extra == NULL ? "" : o->jump_extra,
+		    o->jump_extra == NULL ? "" : ",",
 		    /* optional user */
 		    o->jump_user == NULL ? "" : o->jump_user,
 		    o->jump_user == NULL ? "" : "@",
@@ -2647,9 +2657,6 @@ dump_client_config(Options *o, const char *host)
 		    i ? "]" : "",
 		    /* optional port number */
 		    o->jump_port <= 0 ? "" : ":",
-		    o->jump_port <= 0 ? "" : buf,
-		    /* optional additional jump spec */
-		    o->jump_extra == NULL ? "" : ",",
-		    o->jump_extra == NULL ? "" : o->jump_extra);
+		    o->jump_port <= 0 ? "" : buf);
 	}
 }
