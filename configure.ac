@@ -589,8 +589,6 @@ case "$host" in
 		[Define if you want to disable shadow passwords])
 	AC_DEFINE([NO_X11_UNIX_SOCKETS], [1],
 		[Define if X11 doesn't support AF_UNIX sockets on that system])
-	AC_DEFINE([IPPORT_RESERVED], [0],
-		[Cygwin has no notion of ports only accessible to superusers])
 	AC_DEFINE([DISABLE_FD_PASSING], [1],
 		[Define if your platform needs to skip post auth
 		file descriptor passing])
