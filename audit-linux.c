@@ -36,6 +36,7 @@
 #include "log.h"
 #include "audit.h"
 #include "canohost.h"
+#include "packet.h"
 
 const char* audit_username(void);
 
