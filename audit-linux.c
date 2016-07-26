@@ -99,6 +99,8 @@ audit_session_close(struct logininfo *li)
 void
 audit_event(ssh_audit_event_t event)
 {
+	struct ssh *ssh = active_state; /* XXX */
+
 	switch(event) {
 	case SSH_AUTH_SUCCESS:
 	case SSH_CONNECTION_CLOSE:
@@ -115,7 +117,7 @@ audit_event(ssh_audit_event_t event)
 	case SSH_AUTH_FAIL_GSSAPI:
 	case SSH_INVALID_USER:
 		linux_audit_record_event(-1, audit_username(), NULL,
-			get_remote_ipaddr(), "sshd", 0);
+		    ssh_remote_ipaddr(ssh), "sshd", 0);
 		break;
 
 	default:
