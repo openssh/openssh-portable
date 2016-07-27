@@ -839,6 +839,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	if test "x$withval" != "xno" ; then
 		need_dash_r=1
 	fi
+	CPPFLAGS="$CPPFLAGS -D_OPENBSD_SOURCE"
 	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
