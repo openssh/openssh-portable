@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2002 Tim Rice.  All rights reserved.
  * MAP_FAILED code by Solar Designer.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:

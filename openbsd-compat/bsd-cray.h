@@ -2,7 +2,7 @@
 
 /*
  * Copyright (c) 2002, Cray Inc.  (Wendy Palm <wendyp@cray.com>)
- * Significant portions provided by 
+ * Significant portions provided by
  *          Wayne Schroeder, SDSC <schroeder@sdsc.edu>
  *          William Jones, UTexas <jones@tacc.utexas.edu>
  *

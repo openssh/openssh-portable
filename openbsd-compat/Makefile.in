@@ -36,7 +36,7 @@ libopenbsd-compat.a:  $(COMPAT) $(OPENBSD) $(PORTS)
 	$(RANLIB) $@
 
 clean:
-	rm -f *.o *.a core 
+	rm -f *.o *.a core
 
 distclean: clean
 	rm -f Makefile *~

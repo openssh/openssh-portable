@@ -42,7 +42,7 @@
 #  include <sys/security.h>
 #  include <sys/audit.h>
 #  include <prot.h>
-# endif 
+# endif
 
 # if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 #  include <shadow.h>
@@ -121,7 +121,7 @@ xcrypt(const char *password, const char *salt)
         crypted = bigcrypt(password, salt);
 # else
         crypted = crypt(password, salt);
-# endif 
+# endif
 
 	return crypted;
 }

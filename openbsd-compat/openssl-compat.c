@@ -55,7 +55,7 @@ ssh_compatible_openssl(long headerver, long libver)
 		mask = 0xfffff00fL; /* major,minor,fix,status */
 		return (headerver & mask) == (libver & mask);
 	}
-	
+
 	/*
 	 * For versions >= 1.0.0, major,minor,status must match and library
 	 * fix version must be equal to or newer than the header.

@@ -64,7 +64,7 @@ void closefrom(int);
 
 #ifndef HAVE_GETCWD
 char *getcwd(char *pt, size_t size);
-#endif 
+#endif
 
 #ifndef HAVE_REALLOCARRAY
 void *reallocarray(void *, size_t, size_t);
@@ -94,7 +94,7 @@ size_t strlcpy(char *dst, const char *src, size_t siz);
 #ifndef HAVE_STRLCAT
 /* #include <sys/types.h> XXX Still needed? */
 size_t strlcat(char *dst, const char *src, size_t siz);
-#endif 
+#endif
 
 #ifndef HAVE_SETENV
 int setenv(register const char *name, register const char *value, int rewrite);
@@ -113,11 +113,11 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm);
 int mkstemps(char *path, int slen);
 int mkstemp(char *path);
 char *mkdtemp(char *path);
-#endif 
+#endif
 
 #ifndef HAVE_DAEMON
 int daemon(int nochdir, int noclose);
-#endif 
+#endif
 
 #ifndef HAVE_DIRNAME
 char *dirname(const char *path);
@@ -142,7 +142,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 
 #ifndef HAVE_INET_ATON
 int inet_aton(const char *cp, struct in_addr *addr);
-#endif 
+#endif
 
 #ifndef HAVE_STRSEP
 char *strsep(char **stringp, const char *delim);
@@ -199,7 +199,7 @@ u_int32_t arc4random_uniform(u_int32_t);
 
 #ifndef HAVE_ASPRINTF
 int asprintf(char **, const char *, ...);
-#endif 
+#endif
 
 #ifndef HAVE_OPENPTY
 # include <sys/ioctl.h>	/* for struct winsize */
@@ -210,7 +210,7 @@ int openpty(int *, int *, char *, struct termios *, struct winsize *);
 
 #ifndef HAVE_SNPRINTF
 int snprintf(char *, size_t, SNPRINTF_CONST char *, ...);
-#endif 
+#endif
 
 #ifndef HAVE_STRTOLL
 long long strtoll(const char *, char **, int);
