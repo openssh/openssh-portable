@@ -71,7 +71,7 @@ int setlogin(const char *name)
 
 #ifndef HAVE_INNETGR
 int innetgr(const char *netgroup, const char *host,
-            const char *user, const char *domain)
+	    const char *user, const char *domain)
 {
 	return (0);
 }

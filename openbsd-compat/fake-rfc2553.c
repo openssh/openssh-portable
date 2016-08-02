@@ -45,7 +45,7 @@
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
-                size_t hostlen, char *serv, size_t servlen, int flags)
+		size_t hostlen, char *serv, size_t servlen, int flags)
 {
 	struct sockaddr_in *sin = (struct sockaddr_in *)sa;
 	struct hostent *hp;

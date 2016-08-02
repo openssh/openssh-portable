@@ -108,19 +108,19 @@ xcrypt(const char *password, const char *salt)
 		salt = pick_salt();
 
 # ifdef HAVE_MD5_PASSWORDS
-        if (is_md5_salt(salt))
-                crypted = md5_crypt(password, salt);
-        else
-                crypted = crypt(password, salt);
+	if (is_md5_salt(salt))
+		crypted = md5_crypt(password, salt);
+	else
+		crypted = crypt(password, salt);
 # elif defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec())
-                crypted = bigcrypt(password, salt);
-        else
-                crypted = crypt(password, salt);
+		crypted = bigcrypt(password, salt);
+	else
+		crypted = crypt(password, salt);
 # elif defined(HAVE_SECUREWARE)
-        crypted = bigcrypt(password, salt);
+	crypted = bigcrypt(password, salt);
 # else
-        crypted = crypt(password, salt);
+	crypted = crypt(password, salt);
 # endif
 
 	return crypted;
