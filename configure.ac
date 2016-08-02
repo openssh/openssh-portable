@@ -656,11 +656,11 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	TEST_MALLOC_OPTIONS="AFGJPRX"
 	;;
 *-*-haiku*)
-    LIBS="$LIBS -lbsd "
-    AC_CHECK_LIB([network], [socket])
-    AC_DEFINE([HAVE_U_INT64_T])
-    MANTYPE=man
-    ;;
+	LIBS="$LIBS -lbsd "
+	AC_CHECK_LIB([network], [socket])
+	AC_DEFINE([HAVE_U_INT64_T])
+	MANTYPE=man
+	;;
 *-*-hpux*)
 	# first we define all of the options common to all HP-UX releases
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
@@ -1162,9 +1162,10 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 
 *-*-lynxos)
-        CFLAGS="$CFLAGS -D__NO_INCLUDE_WARN__"
-        AC_DEFINE([BROKEN_SETVBUF], [1], [LynxOS has broken setvbuf() implementation])
-        ;;
+	CFLAGS="$CFLAGS -D__NO_INCLUDE_WARN__"
+	AC_DEFINE([BROKEN_SETVBUF], [1],
+	    [LynxOS has broken setvbuf() implementation])
+	;;
 esac
 
 AC_MSG_CHECKING([compiler and flags for sanity])
