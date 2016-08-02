@@ -849,8 +849,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 	    [Prepend the address family to IP tunnel traffic])
 	TEST_MALLOC_OPTIONS="AJRX"
-	AC_DEFINE([BROKEN_STRNVIS], [1],
-	    [NetBSD strnvis argument order is swapped compared to OpenBSD])
 	AC_DEFINE([BROKEN_READ_COMPARISON], [1],
 	    [NetBSD read function is sometimes redirected, breaking atomicio comparisons against it])
 	;;
@@ -861,8 +859,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_HEADER([net/if_tap.h], ,
 	    AC_DEFINE([SSH_TUN_NO_L2], [1], [No layer 2 tunnel support]))
 	AC_DEFINE([BROKEN_GLOB], [1], [FreeBSD glob does not do what we need])
-	AC_DEFINE([BROKEN_STRNVIS], [1],
-	    [FreeBSD strnvis argument order is swapped compared to OpenBSD])
 	TEST_MALLOC_OPTIONS="AJRX"
 	# Preauth crypto occasionally uses file descriptors for crypto offload
 	# and will crash if they cannot be opened.
@@ -2333,6 +2329,41 @@ if test "x$check_for_conflicting_getspnam" = "x1"; then
 			AC_DEFINE([GETSPNAM_CONFLICTING_DEFS], [1],
 			    [Conflicting defs for getspnam])
 		]
+	)
+fi
+
+dnl NetBSD added an strnvis and unfortunately made it incompatible with the
+dnl existing one in OpenBSD and Linux's libbsd (the former having existed
+dnl for over ten years). Despite this incompatibility being reported during
+dnl development (see http://gnats.netbsd.org/44977) they still shipped it.
+dnl Even more unfortunately FreeBSD and later MacOS picked up this incompatible
+dnl implementation.  Try to detect this mess, and assume the only safe option
+dnl if we're cross compiling.
+dnl
+dnl OpenBSD, 2001: strnvis(char *dst, const char *src, size_t dlen, int flag);
+dnl NetBSD: 2012,  strnvis(char *dst, size_t dlen, const char *src, int flag);
+if test "x$ac_cv_func_strnvis" = "xyes"; then
+	AC_MSG_CHECKING([for working strnvis])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vis.h>
+static void sighandler(int sig) { _exit(1); }
+		]], [[
+	char dst[16];
+
+	signal(SIGSEGV, sighandler);
+	if (strnvis(dst, "src", 4, 0) && strcmp(dst, "src") == 0)
+		exit(0);
+	exit(1)
+		]])],
+		[AC_MSG_RESULT([yes])],
+		[AC_MSG_RESULT([no])
+		 AC_DEFINE([BROKEN_STRNVIS], [1], [strnvis detected broken])],
+		[AC_MSG_WARN([cross compiling: assuming broken])
+		 AC_DEFINE([BROKEN_STRNVIS], [1], [strnvis assumed broken])]
 	)
 fi
 
