@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.470 2016/05/24 04:43:45 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.471 2016/08/03 04:23:55 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1071,7 +1071,7 @@ send_rexec_state(int fd, struct sshbuf *conf)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	} else
 #endif
-		if ((r = sshbuf_put_u32(m, 1)) != 0)
+		if ((r = sshbuf_put_u32(m, 0)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 #if defined(WITH_OPENSSL) && !defined(OPENSSL_PRNG_ONLY)
