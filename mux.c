@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.60 2016/06/03 03:14:41 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.61 2016/08/08 22:40:57 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -2138,7 +2138,8 @@ muxclient(const char *path)
 
 	if (strlcpy(addr.sun_path, path,
 	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
-		fatal("ControlPath too long");
+		fatal("ControlPath too long ('%s' >= %u bytes)", path,
+		     (unsigned int)sizeof(addr.sun_path));
 
 	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		fatal("%s socket(): %s", __func__, strerror(errno));
