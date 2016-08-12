@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.227 2016/07/19 12:59:16 jmc Exp $
-.Dd $Mdocdate: July 19 2016 $
+.\" $OpenBSD: sshd_config.5,v 1.228 2016/08/12 19:19:04 jca Exp $
+.Dd $Mdocdate: August 12 2016 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1074,7 +1074,7 @@ criteria may additionally contain addresses to match in CIDR
 address/masklen format, e.g.\&
 .Dq 192.0.2.0/24
 or
-.Dq 3ffe:ffff::/32 .
+.Dq 2001:db8::/32 .
 Note that the mask length provided must be consistent with the address -
 it is an error to specify a mask length that is too long for the address
 or one with bits set in this host portion of the address.
