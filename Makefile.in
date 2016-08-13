@@ -97,11 +97,11 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o mux.o
 
-SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
+SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	audit.o audit-bsm.o audit-linux.o platform.o \
 	sshpty.o sshlogin.o servconf.o serverloop.o \
-	auth.o auth1.o auth2.o auth-options.o session.o \
-	auth-chall.o auth2-chall.o groupaccess.o \
+	auth.o auth2.o auth-options.o session.o \
+	auth2-chall.o groupaccess.o \
 	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
 	auth2-none.o auth2-passwd.o auth2-pubkey.o \
 	monitor_mm.o monitor.o monitor_wrap.o auth-krb5.o \

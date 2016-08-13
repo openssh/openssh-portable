@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.115 2016/06/15 00:40:40 dtucker Exp $ */
+/* $OpenBSD: auth.c,v 1.116 2016/08/13 17:47:41 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -298,7 +298,7 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 	else
 		authmsg = authenticated ? "Accepted" : "Failed";
 
-	authlog("%s %s%s%s for %s%.100s from %.200s port %d %s%s%s",
+	authlog("%s %s%s%s for %s%.100s from %.200s port %d ssh2%s%s",
 	    authmsg,
 	    method,
 	    submethod != NULL ? "/" : "", submethod == NULL ? "" : submethod,
@@ -306,7 +306,6 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 	    authctxt->user,
 	    ssh_remote_ipaddr(ssh),
 	    ssh_remote_port(ssh),
-	    compat20 ? "ssh2" : "ssh1",
 	    authctxt->info != NULL ? ": " : "",
 	    authctxt->info != NULL ? authctxt->info : "");
 	free(authctxt->info);
@@ -339,12 +338,11 @@ auth_maxtries_exceeded(Authctxt *authctxt)
 	struct ssh *ssh = active_state; /* XXX */
 
 	error("maximum authentication attempts exceeded for "
-	    "%s%.100s from %.200s port %d %s",
+	    "%s%.100s from %.200s port %d ssh2",
 	    authctxt->valid ? "" : "invalid user ",
 	    authctxt->user,
 	    ssh_remote_ipaddr(ssh),
-	    ssh_remote_port(ssh),
-	    compat20 ? "ssh2" : "ssh1");
+	    ssh_remote_port(ssh));
 	packet_disconnect("Too many authentication failures");
 	/* NOTREACHED */
 }
