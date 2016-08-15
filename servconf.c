@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.292 2016/06/23 05:17:51 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.293 2016/08/15 12:27:56 naddy Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -86,9 +86,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_host_cert_files = 0;
 	options->host_key_agent = NULL;
 	options->pid_file = NULL;
-	options->server_key_bits = -1;
 	options->login_grace_time = -1;
-	options->key_regeneration_time = -1;
 	options->permit_root_login = PERMIT_NOT_SET;
 	options->ignore_rhosts = -1;
 	options->ignore_user_known_hosts = -1;
@@ -104,12 +102,10 @@ initialize_server_options(ServerOptions *options)
 	options->tcp_keep_alive = -1;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
-	options->rhosts_rsa_authentication = -1;
 	options->hostbased_authentication = -1;
 	options->hostbased_uses_name_from_packet_only = -1;
 	options->hostbased_key_types = NULL;
 	options->hostkeyalgorithms = NULL;
-	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->pubkey_key_types = NULL;
 	options->kerberos_authentication = -1;
@@ -138,7 +134,6 @@ initialize_server_options(ServerOptions *options)
 	options->ciphers = NULL;
 	options->macs = NULL;
 	options->kex_algorithms = NULL;
-	options->protocol = SSH_PROTO_UNKNOWN;
 	options->fwd_opts.gateway_ports = -1;
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
@@ -202,25 +197,18 @@ fill_default_server_options(ServerOptions *options)
 		options->use_pam = 0;
 
 	/* Standard Options */
-	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_2;
 	if (options->num_host_key_files == 0) {
 		/* fill default hostkeys for protocols */
-		if (options->protocol & SSH_PROTO_1)
-			options->host_key_files[options->num_host_key_files++] =
-			    _PATH_HOST_KEY_FILE;
-		if (options->protocol & SSH_PROTO_2) {
-			options->host_key_files[options->num_host_key_files++] =
-			    _PATH_HOST_RSA_KEY_FILE;
-			options->host_key_files[options->num_host_key_files++] =
-			    _PATH_HOST_DSA_KEY_FILE;
+		options->host_key_files[options->num_host_key_files++] =
+		    _PATH_HOST_RSA_KEY_FILE;
+		options->host_key_files[options->num_host_key_files++] =
+		    _PATH_HOST_DSA_KEY_FILE;
 #ifdef OPENSSL_HAS_ECC
-			options->host_key_files[options->num_host_key_files++] =
-			    _PATH_HOST_ECDSA_KEY_FILE;
+		options->host_key_files[options->num_host_key_files++] =
+		    _PATH_HOST_ECDSA_KEY_FILE;
 #endif
-			options->host_key_files[options->num_host_key_files++] =
-			    _PATH_HOST_ED25519_KEY_FILE;
-		}
+		options->host_key_files[options->num_host_key_files++] =
+		    _PATH_HOST_ED25519_KEY_FILE;
 	}
 	/* No certificates by default */
 	if (options->num_ports == 0)
@@ -231,12 +219,8 @@ fill_default_server_options(ServerOptions *options)
 		add_listen_addr(options, NULL, 0);
 	if (options->pid_file == NULL)
 		options->pid_file = xstrdup(_PATH_SSH_DAEMON_PID_FILE);
-	if (options->server_key_bits == -1)
-		options->server_key_bits = 1024;
 	if (options->login_grace_time == -1)
 		options->login_grace_time = 120;
-	if (options->key_regeneration_time == -1)
-		options->key_regeneration_time = 3600;
 	if (options->permit_root_login == PERMIT_NOT_SET)
 		options->permit_root_login = PERMIT_NO_PASSWD;
 	if (options->ignore_rhosts == -1)
@@ -267,14 +251,10 @@ fill_default_server_options(ServerOptions *options)
 		options->log_facility = SYSLOG_FACILITY_AUTH;
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;
-	if (options->rhosts_rsa_authentication == -1)
-		options->rhosts_rsa_authentication = 0;
 	if (options->hostbased_authentication == -1)
 		options->hostbased_authentication = 0;
 	if (options->hostbased_uses_name_from_packet_only == -1)
 		options->hostbased_uses_name_from_packet_only = 0;
-	if (options->rsa_authentication == -1)
-		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
 	if (options->kerberos_authentication == -1)
@@ -406,8 +386,8 @@ typedef enum {
 	/* Portable-specific options */
 	sUsePAM,
 	/* Standard Options */
-	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime,
-	sKeyRegenerationTime, sPermitRootLogin, sLogFacility, sLogLevel,
+	sPort, sHostKeyFile, sLoginGraceTime,
+	sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
 	sKerberosGetAFSToken,
@@ -419,7 +399,7 @@ typedef enum {
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
+	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedKeyTypes,
 	sXAuthLocation, sSubsystem, sMaxStartups, sMaxAuthTries, sMaxSessions,
 	sBanner, sUseDNS, sHostbasedAuthentication,
@@ -464,19 +444,19 @@ static struct {
 	{ "hostdsakey", sHostKeyFile, SSHCFG_GLOBAL },		/* alias */
 	{ "hostkeyagent", sHostKeyAgent, SSHCFG_GLOBAL },
 	{ "pidfile", sPidFile, SSHCFG_GLOBAL },
-	{ "serverkeybits", sServerKeyBits, SSHCFG_GLOBAL },
+	{ "serverkeybits", sDeprecated, SSHCFG_GLOBAL },
 	{ "logingracetime", sLoginGraceTime, SSHCFG_GLOBAL },
-	{ "keyregenerationinterval", sKeyRegenerationTime, SSHCFG_GLOBAL },
+	{ "keyregenerationinterval", sDeprecated, SSHCFG_GLOBAL },
 	{ "permitrootlogin", sPermitRootLogin, SSHCFG_ALL },
 	{ "syslogfacility", sLogFacility, SSHCFG_GLOBAL },
 	{ "loglevel", sLogLevel, SSHCFG_GLOBAL },
 	{ "rhostsauthentication", sDeprecated, SSHCFG_GLOBAL },
-	{ "rhostsrsaauthentication", sRhostsRSAAuthentication, SSHCFG_ALL },
+	{ "rhostsrsaauthentication", sDeprecated, SSHCFG_ALL },
 	{ "hostbasedauthentication", sHostbasedAuthentication, SSHCFG_ALL },
 	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly, SSHCFG_ALL },
 	{ "hostbasedacceptedkeytypes", sHostbasedAcceptedKeyTypes, SSHCFG_ALL },
 	{ "hostkeyalgorithms", sHostKeyAlgorithms, SSHCFG_GLOBAL },
-	{ "rsaauthentication", sRSAAuthentication, SSHCFG_ALL },
+	{ "rsaauthentication", sDeprecated, SSHCFG_ALL },
 	{ "pubkeyauthentication", sPubkeyAuthentication, SSHCFG_ALL },
 	{ "pubkeyacceptedkeytypes", sPubkeyAcceptedKeyTypes, SSHCFG_ALL },
 	{ "dsaauthentication", sPubkeyAuthentication, SSHCFG_GLOBAL }, /* alias */
@@ -541,7 +521,7 @@ static struct {
 	{ "denygroups", sDenyGroups, SSHCFG_ALL },
 	{ "ciphers", sCiphers, SSHCFG_GLOBAL },
 	{ "macs", sMacs, SSHCFG_GLOBAL },
-	{ "protocol", sProtocol, SSHCFG_GLOBAL },
+	{ "protocol", sDeprecated, SSHCFG_GLOBAL },
 	{ "gatewayports", sGatewayPorts, SSHCFG_ALL },
 	{ "subsystem", sSubsystem, SSHCFG_GLOBAL },
 	{ "maxstartups", sMaxStartups, SSHCFG_GLOBAL },
@@ -1040,18 +1020,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum);
 		break;
 
-	case sServerKeyBits:
-		intptr = &options->server_key_bits;
- parse_int:
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing integer value.",
-			    filename, linenum);
-		value = atoi(arg);
-		if (*activep && *intptr == -1)
-			*intptr = value;
-		break;
-
 	case sLoginGraceTime:
 		intptr = &options->login_grace_time;
  parse_time:
@@ -1065,10 +1033,6 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
-
-	case sKeyRegenerationTime:
-		intptr = &options->key_regeneration_time;
-		goto parse_time;
 
 	case sListenAddress:
 		arg = strdelim(&cp);
@@ -1189,10 +1153,6 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->ignore_user_known_hosts;
 		goto parse_flag;
 
-	case sRhostsRSAAuthentication:
-		intptr = &options->rhosts_rsa_authentication;
-		goto parse_flag;
-
 	case sHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;
 		goto parse_flag;
@@ -1218,10 +1178,6 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sHostKeyAlgorithms:
 		charptr = &options->hostkeyalgorithms;
 		goto parse_keytypes;
-
-	case sRSAAuthentication:
-		intptr = &options->rsa_authentication;
-		goto parse_flag;
 
 	case sPubkeyAuthentication:
 		intptr = &options->pubkey_authentication;
@@ -1285,7 +1241,15 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sX11DisplayOffset:
 		intptr = &options->x11_display_offset;
-		goto parse_int;
+ parse_int:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing integer value.",
+			    filename, linenum);
+		value = atoi(arg);
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
 
 	case sX11UseLocalhost:
 		intptr = &options->x11_use_localhost;
@@ -1485,19 +1449,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (options->kex_algorithms == NULL)
 			options->kex_algorithms = xstrdup(arg);
-		break;
-
-	case sProtocol:
-		intptr = &options->protocol;
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: Missing argument.", filename, linenum);
-		value = proto_spec(arg);
-		if (value == SSH_PROTO_UNKNOWN)
-			fatal("%s line %d: Bad protocol spec '%s'.",
-			    filename, linenum, arg ? arg : "<NONE>");
-		if (*intptr == SSH_PROTO_UNKNOWN)
-			*intptr = value;
 		break;
 
 	case sSubsystem:
@@ -2008,7 +1959,6 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 
 	M_CP_INTOPT(password_authentication);
 	M_CP_INTOPT(gss_authentication);
-	M_CP_INTOPT(rsa_authentication);
 	M_CP_INTOPT(pubkey_authentication);
 	M_CP_INTOPT(kerberos_authentication);
 	M_CP_INTOPT(hostbased_authentication);
@@ -2148,17 +2098,6 @@ fmt_intarg(ServerOpCodes code, int val)
 		return fmt_multistate_int(val, multistate_tcpfwd);
 	case sFingerprintHash:
 		return ssh_digest_alg_name(val);
-	case sProtocol:
-		switch (val) {
-		case SSH_PROTO_1:
-			return "1";
-		case SSH_PROTO_2:
-			return "2";
-		case (SSH_PROTO_1|SSH_PROTO_2):
-			return "2,1";
-		default:
-			return "UNKNOWN";
-		}
 	default:
 		switch (val) {
 		case 0:
@@ -2245,7 +2184,6 @@ dump_config(ServerOptions *o)
 	/* these are usually at the top of the config */
 	for (i = 0; i < o->num_ports; i++)
 		printf("port %d\n", o->ports[i]);
-	dump_cfg_fmtint(sProtocol, o->protocol);
 	dump_cfg_fmtint(sAddressFamily, o->address_family);
 
 	/*
@@ -2278,9 +2216,7 @@ dump_config(ServerOptions *o)
 #ifdef USE_PAM
 	dump_cfg_fmtint(sUsePAM, o->use_pam);
 #endif
-	dump_cfg_int(sServerKeyBits, o->server_key_bits);
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
-	dump_cfg_int(sKeyRegenerationTime, o->key_regeneration_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
 	dump_cfg_int(sMaxAuthTries, o->max_authtries);
 	dump_cfg_int(sMaxSessions, o->max_sessions);
@@ -2292,11 +2228,9 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sPermitRootLogin, o->permit_root_login);
 	dump_cfg_fmtint(sIgnoreRhosts, o->ignore_rhosts);
 	dump_cfg_fmtint(sIgnoreUserKnownHosts, o->ignore_user_known_hosts);
-	dump_cfg_fmtint(sRhostsRSAAuthentication, o->rhosts_rsa_authentication);
 	dump_cfg_fmtint(sHostbasedAuthentication, o->hostbased_authentication);
 	dump_cfg_fmtint(sHostbasedUsesNameFromPacketOnly,
 	    o->hostbased_uses_name_from_packet_only);
-	dump_cfg_fmtint(sRSAAuthentication, o->rsa_authentication);
 	dump_cfg_fmtint(sPubkeyAuthentication, o->pubkey_authentication);
 #ifdef KRB5
 	dump_cfg_fmtint(sKerberosAuthentication, o->kerberos_authentication);

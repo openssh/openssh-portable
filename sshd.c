@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.472 2016/08/13 17:47:41 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.473 2016/08/15 12:27:56 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -365,26 +365,12 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 {
 	u_int i;
 	int remote_major, remote_minor;
-	int major, minor;
 	char *s, *newline = "\n";
 	char buf[256];			/* Must not be larger than remote_version. */
 	char remote_version[256];	/* Must be at least as big as buf. */
 
-	if ((options.protocol & SSH_PROTO_1) &&
-	    (options.protocol & SSH_PROTO_2)) {
-		major = PROTOCOL_MAJOR_1;
-		minor = 99;
-	} else if (options.protocol & SSH_PROTO_2) {
-		major = PROTOCOL_MAJOR_2;
-		minor = PROTOCOL_MINOR_2;
-		newline = "\r\n";
-	} else {
-		major = PROTOCOL_MAJOR_1;
-		minor = PROTOCOL_MINOR_1;
-	}
-
 	xasprintf(&server_version_string, "SSH-%d.%d-%.100s%s%s%s",
-	    major, minor, SSH_VERSION,
+	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION,
 	    *options.version_addendum == '\0' ? "" : " ",
 	    options.version_addendum, newline);
 
@@ -925,10 +911,9 @@ usage(void)
 #endif
 	);
 	fprintf(stderr,
-"usage: sshd [-46DdeiqTt] [-b bits] [-C connection_spec] [-c host_cert_file]\n"
+"usage: sshd [-46DdeiqTt] [-C connection_spec] [-c host_cert_file]\n"
 "            [-E log_file] [-f config_file] [-g login_grace_time]\n"
-"            [-h host_key_file] [-k key_gen_time] [-o option] [-p port]\n"
-"            [-u len]\n"
+"            [-h host_key_file] [-o option] [-p port] [-u len]\n"
 	);
 	exit(1);
 }
@@ -1461,7 +1446,7 @@ main(int ac, char **av)
 			options.log_level = SYSLOG_LEVEL_QUIET;
 			break;
 		case 'b':
-			/* ignored */
+			/* protocol 1, ignored */
 			break;
 		case 'p':
 			options.ports_from_cmdline = 1;
@@ -1482,10 +1467,7 @@ main(int ac, char **av)
 			}
 			break;
 		case 'k':
-			if ((options.key_regeneration_time = convtime(optarg)) == -1) {
-				fprintf(stderr, "Invalid key regeneration interval.\n");
-				exit(1);
-			}
+			/* protocol 1, ignored */
 			break;
 		case 'h':
 			if (options.num_host_key_files >= MAX_HOSTKEYS) {
@@ -1619,9 +1601,6 @@ main(int ac, char **av)
 	 * and warns for trivial misconfigurations that could break login.
 	 */
 	if (options.num_auth_methods != 0) {
-		if ((options.protocol & SSH_PROTO_1))
-			fatal("AuthenticationMethods is not supported with "
-			    "SSH protocol 1");
 		for (n = 0; n < options.num_auth_methods; n++) {
 			if (auth2_methods_valid(options.auth_methods[n],
 			    1) == 0)
