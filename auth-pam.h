@@ -27,10 +27,6 @@
 #include "includes.h"
 #ifdef USE_PAM
 
-#if !defined(SSHD_PAM_SERVICE)
-# define SSHD_PAM_SERVICE		__progname
-#endif
-
 void start_pam(Authctxt *);
 void finish_pam(void);
 u_int do_pam_account(void);

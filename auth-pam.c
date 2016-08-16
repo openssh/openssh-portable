@@ -66,6 +66,11 @@
 #include <pam/pam_appl.h>
 #endif
 
+#if !defined(SSHD_PAM_SERVICE)
+extern char *__progname;
+# define SSHD_PAM_SERVICE		__progname
+#endif
+
 /* OpenGroup RFC86.0 and XSSO specify no "const" on arguments */
 #ifdef PAM_SUN_CODEBASE
 # define sshpam_const		/* Solaris, HP-UX, SunOS */
@@ -615,7 +620,6 @@ sshpam_cleanup(void)
 static int
 sshpam_init(Authctxt *authctxt)
 {
-	extern char *__progname;
 	const char *pam_rhost, *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
 	struct ssh *ssh = active_state; /* XXX */

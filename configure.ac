@@ -3047,6 +3047,17 @@ AC_ARG_WITH([pam],
 	]
 )
 
+AC_ARG_WITH([pam-service],
+	[  --with-pam-service=name Specify PAM service name ],
+	[
+		if test "x$withval" != "xno" && \
+		   test "x$withval" != "xyes" ; then
+			AC_DEFINE_UNQUOTED([SSHD_PAM_SERVICE],
+				["$withval"], [sshd PAM service name])
+		fi
+	]
+)
+
 # Check for older PAM
 if test "x$PAM_MSG" = "xyes" ; then
 	# Check PAM strerror arguments (old PAM)
