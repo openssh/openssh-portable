@@ -80,15 +80,27 @@ if test -z "$AR" ; then
 fi
 
 # Use LOGIN_PROGRAM from environment if possible
-if test ! -z "$LOGIN_PROGRAM" ; then
-	AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK], ["$LOGIN_PROGRAM"],
-		[If your header files don't define LOGIN_PROGRAM,
-		then use this (detected) from environment and PATH])
+login_program=$LOGIN_PROGRAM
+# Allow override on command-line
+AC_ARG_WITH([login-program],
+	[  --with-login-program=path Specify login program name ],
+	[
+		if test "x$withval" != "xno" && \
+		   test "x$withval" != "xyes" ; then
+			login_program=$withval
+		fi
+	]
+)
+# If no login_program specified then find one using the path.
+if test ! -z "$login_program" ; then
+	AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK], ["$login_program"],
+		[login program to use if system headers lack LOGIN_PROGRAM])
 else
 	# Search for login
 	AC_PATH_PROG([LOGIN_PROGRAM_FALLBACK], [login])
 	if test ! -z "$LOGIN_PROGRAM_FALLBACK" ; then
-		AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK], ["$LOGIN_PROGRAM_FALLBACK"])
+		AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK],
+				   ["$LOGIN_PROGRAM_FALLBACK"])
 	fi
 fi
 
