@@ -792,7 +792,9 @@ should ignore the user's
 during
 .Cm RhostsRSAAuthentication
 or
-.Cm HostbasedAuthentication .
+.Cm HostbasedAuthentication
+and instead only trust the systemwide
+.Pa /etc/ssh/ssh_known_hosts .
 The default is
 .Dq no .
 .It Cm IPQoS
