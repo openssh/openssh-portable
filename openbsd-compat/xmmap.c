@@ -23,8 +23,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.15 2009/02/16 04:21:40 djm Exp $ */
-
 #include "includes.h"
 
 #include <sys/types.h>

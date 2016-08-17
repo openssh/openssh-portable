@@ -25,9 +25,6 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.183 2014/09/02 19:33:26 djm Exp $ */
-
-
 /* Constants */
 
 #if defined(HAVE_DECL_SHUT_RD) && HAVE_DECL_SHUT_RD == 0

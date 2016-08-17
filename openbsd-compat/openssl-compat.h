@@ -1,5 +1,3 @@
-/* $Id: openssl-compat.h,v 1.31 2014/08/29 18:18:29 djm Exp $ */
-
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
  *

@@ -1,5 +1,4 @@
 /*
- * $Id: bsd-cray.c,v 1.17 2007/08/15 09:17:43 dtucker Exp $
  *
  * bsd-cray.c
  *

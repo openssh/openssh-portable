@@ -1,5 +1,3 @@
-/* $Id: openbsd-compat.h,v 1.62 2014/09/30 23:43:08 djm Exp $ */
-
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
  * Copyright (c) 2003 Ben Lindstrom. All rights reserved.
