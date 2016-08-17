@@ -9,7 +9,7 @@ options.  Some notes about specific compilers:
 You will need working installations of Zlib and libcrypto (LibreSSL /
 OpenSSL)
 
-Zlib 1.1.4 or 1.2.1.2 or greater (ealier 1.2.x versions have problems):
+Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
 http://www.gzip.org/zlib/
 
 libcrypto (LibreSSL or OpenSSL >= 0.9.8f < 1.1.0)
