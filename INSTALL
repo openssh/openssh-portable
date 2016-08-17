@@ -263,6 +263,3 @@ summary data may be published.
 If you experience problems compiling, installing or running OpenSSH.
 Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
-
-
-$Id: INSTALL,v 1.91 2014/09/09 02:23:11 dtucker Exp $

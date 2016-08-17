@@ -82,5 +82,3 @@ PrivSep Issues:
   + SIA is broken
 - Cygwin
   + Privsep for Pre-auth only (no fd passing)
-
-$Id: TODO,v 1.58 2004/12/06 11:40:11 dtucker Exp $

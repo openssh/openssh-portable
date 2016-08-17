@@ -65,5 +65,3 @@ References -
     (PAM also is standard on Solaris and HP-UX 11)
 [6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
 [7] http://www.openssh.com/faq.html
-
-$Id: README,v 1.87 2014/08/10 01:35:06 djm Exp $
