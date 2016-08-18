@@ -79,7 +79,7 @@ userauth_pubkey(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg, *userstyle, *fp = NULL;
+	char *pkalg, *userstyle, *pubkey, *fp = NULL;
 	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int have_sig, pktype;
@@ -171,7 +171,8 @@ userauth_pubkey(Authctxt *authctxt)
 #ifdef DEBUG_PK
 		buffer_dump(&b);
 #endif
-		pubkey_auth_info(authctxt, key, NULL);
+		pubkey = sshkey_format_oneline(key, options.fingerprint_hash);
+		auth_info(authctxt, "%s", pubkey);
 
 		/* test for correct signature */
 		authenticated = 0;
@@ -179,9 +180,12 @@ userauth_pubkey(Authctxt *authctxt)
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
 		    buffer_len(&b))) == 1) {
 			authenticated = 1;
+			authctxt->last_details = pubkey;
 			/* Record the successful key to prevent reuse */
 			auth2_record_userkey(authctxt, key);
 			key = NULL; /* Don't free below */
+		} else {
+			free(pubkey);
 		}
 		buffer_free(&b);
 		free(sig);
@@ -222,7 +226,7 @@ done:
 void
 pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 {
-	char *fp, *extra;
+	char *extra, *pubkey;
 	va_list ap;
 	int i;
 
@@ -232,27 +236,13 @@ pubkey_auth_info(Authctxt *authctxt, const Key *key, const char *fmt, ...)
 		i = vasprintf(&extra, fmt, ap);
 		va_end(ap);
 		if (i < 0 || extra == NULL)
-			fatal("%s: vasprintf failed", __func__);	
+			fatal("%s: vasprintf failed", __func__);
 	}
 
-	if (key_is_cert(key)) {
-		fp = sshkey_fingerprint(key->cert->signature_key,
-		    options.fingerprint_hash, SSH_FP_DEFAULT);
-		auth_info(authctxt, "%s ID %s (serial %llu) CA %s %s%s%s", 
-		    key_type(key), key->cert->key_id,
-		    (unsigned long long)key->cert->serial,
-		    key_type(key->cert->signature_key),
-		    fp == NULL ? "(null)" : fp,
-		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
-		free(fp);
-	} else {
-		fp = sshkey_fingerprint(key, options.fingerprint_hash,
-		    SSH_FP_DEFAULT);
-		auth_info(authctxt, "%s %s%s%s", key_type(key),
-		    fp == NULL ? "(null)" : fp,
-		    extra == NULL ? "" : ", ", extra == NULL ? "" : extra);
-		free(fp);
-	}
+	pubkey = sshkey_format_oneline(key, options.fingerprint_hash);
+	auth_info(authctxt, "%s%s%s", pubkey, extra == NULL ? "" : ", ",
+	    extra == NULL ? "" : extra);
+	free(pubkey);
 	free(extra);
 }
 

@@ -293,6 +293,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
     const char *submethod)
 {
 	char *methods;
+	char *prev_auth_details;
 	int partial = 0;
 
 	if (!authctxt->valid && authenticated)
@@ -322,6 +323,18 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 
 	if (authctxt->postponed)
 		return;
+
+	if (authenticated || partial) {
+		prev_auth_details = authctxt->auth_details;
+		xasprintf(&authctxt->auth_details, "%s%s%s%s%s",
+		    prev_auth_details ? prev_auth_details : "",
+		    prev_auth_details ? ", " : "", method,
+		    authctxt->last_details ? ": " : "",
+		    authctxt->last_details ? authctxt->last_details : "");
+		free(prev_auth_details);
+	}
+	free(authctxt->last_details);
+	authctxt->last_details = NULL;
 
 #ifdef USE_PAM
 	if (options.use_pam && authenticated) {

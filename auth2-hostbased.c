@@ -60,7 +60,7 @@ userauth_hostbased(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg, *cuser, *chost, *service;
+	char *pkalg, *cuser, *chost, *service, *pubkey;
 	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int pktype;
@@ -132,15 +132,21 @@ userauth_hostbased(Authctxt *authctxt)
 	buffer_dump(&b);
 #endif
 
-	pubkey_auth_info(authctxt, key,
-	    "client user \"%.100s\", client host \"%.100s\"", cuser, chost);
+	pubkey = sshkey_format_oneline(key, options.fingerprint_hash);
+	auth_info(authctxt,
+	    "%s, client user \"%.100s\", client host \"%.100s\"",
+	    pubkey, cuser, chost);
 
 	/* test for allowed key and correct signature */
 	authenticated = 0;
 	if (PRIVSEP(hostbased_key_allowed(authctxt->pw, cuser, chost, key)) &&
 	    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
-			buffer_len(&b))) == 1)
+			buffer_len(&b))) == 1) {
 		authenticated = 1;
+		authctxt->last_details = pubkey;
+	} else {
+		free(pubkey);
+	}
 
 	buffer_free(&b);
 done:

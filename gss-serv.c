@@ -384,6 +384,16 @@ ssh_gssapi_userok(char *user)
 }
 
 /* Privileged */
+char*
+ssh_gssapi_get_displayname(void)
+{
+	if (gssapi_client.displayname.length != 0 &&
+	    gssapi_client.displayname.value != NULL)
+		return strdup((char *)gssapi_client.displayname.value);
+	return NULL;
+}
+
+/* Privileged */
 OM_uint32
 ssh_gssapi_checkmic(Gssctxt *ctx, gss_buffer_t gssbuf, gss_buffer_t gssmic)
 {

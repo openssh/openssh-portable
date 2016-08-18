@@ -974,6 +974,12 @@ copy_environment(char **source, char ***env, u_int *envsize)
 		}
 		*var_val++ = '\0';
 
+		if (options.expose_auth_methods < EXPOSE_AUTHMETH_PAMENV &&
+				strcmp(var_name, "SSH_USER_AUTH") == 0) {
+			free(var_name);
+			continue;
+		}
+
 		debug3("Copy environment: %s=%s", var_name, var_val);
 		child_set_env(env, envsize, var_name, var_val);
 
@@ -1155,6 +1161,11 @@ do_setup_env(Session *s, const char *shell)
 		free_pam_environment(p);
 	}
 #endif /* USE_PAM */
+
+	if (options.expose_auth_methods >= EXPOSE_AUTHMETH_PAMENV &&
+			s->authctxt->auth_details)
+		child_set_env(&env, &envsize, "SSH_USER_AUTH",
+		     s->authctxt->auth_details);
 
 	if (auth_sock_name != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
@@ -2586,6 +2597,9 @@ do_cleanup(Authctxt *authctxt)
 
 	if (authctxt == NULL)
 		return;
+
+	free(authctxt->auth_details);
+	authctxt->auth_details = NULL;
 
 #ifdef USE_PAM
 	if (options.use_pam) {

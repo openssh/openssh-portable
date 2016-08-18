@@ -58,6 +58,7 @@
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
 #include "match.h"
+#include "xmalloc.h"
 
 /* openssh private key file format */
 #define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
@@ -1187,6 +1188,30 @@ sshkey_fingerprint(const struct sshkey *k, int dgst_alg,
 	explicit_bzero(dgst_raw, dgst_raw_len);
 	free(dgst_raw);
 	return retval;
+}
+
+char *
+sshkey_format_oneline(const struct sshkey *key, int dgst_alg)
+{
+	char *fp, *result;
+
+	if (sshkey_is_cert(key)) {
+		fp = sshkey_fingerprint(key->cert->signature_key, dgst_alg,
+		    SSH_FP_DEFAULT);
+		xasprintf(&result, "%s ID %s (serial %llu) CA %s %s",
+		    sshkey_type(key), key->cert->key_id,
+		    (unsigned long long)key->cert->serial,
+		    sshkey_type(key->cert->signature_key),
+		    fp == NULL ? "(null)" : fp);
+		free(fp);
+	} else {
+		fp = sshkey_fingerprint(key, dgst_alg, SSH_FP_DEFAULT);
+		xasprintf(&result, "%s %s", sshkey_type(key),
+		    fp == NULL ? "(null)" : fp);
+		free(fp);
+	}
+
+	return result;
 }
 
 #ifdef WITH_SSH1

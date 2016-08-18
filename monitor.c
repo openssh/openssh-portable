@@ -286,6 +286,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 {
 	struct mon_table *ent;
 	int authenticated = 0, partial = 0;
+	char *prev_auth_details;
 
 	debug3("preauth child monitor started");
 
@@ -309,6 +310,18 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 		auth_method = "unknown";
 		auth_submethod = NULL;
 		authenticated = (monitor_read(pmonitor, mon_dispatch, &ent) == 1);
+
+		if (authenticated) {
+			prev_auth_details = authctxt->auth_details;
+			xasprintf(&authctxt->auth_details, "%s%s%s%s%s",
+			    prev_auth_details ? prev_auth_details : "",
+			    prev_auth_details ? ", " : "", auth_method,
+			    authctxt->last_details ? ": " : "",
+			    authctxt->last_details ? authctxt->last_details : "");
+			free(prev_auth_details);
+		}
+		free(authctxt->last_details);
+		authctxt->last_details = NULL;
 
 		/* Special handling for multiple required authentications */
 		if (options.num_auth_methods != 0) {
@@ -1367,6 +1380,10 @@ mm_answer_keyverify(int sock, Buffer *m)
 	debug3("%s: key %p signature %s",
 	    __func__, key, (verified == 1) ? "verified" : "unverified");
 
+	if (verified == 1)
+		authctxt->last_details = sshkey_format_oneline(key,
+		    options.fingerprint_hash);
+
 	/* If auth was successful then record key to ensure it isn't reused */
 	if (verified == 1 && key_blobtype == MM_USERKEY)
 		auth2_record_userkey(authctxt, key);
@@ -1796,6 +1813,9 @@ mm_answer_gss_userok(int sock, Buffer *m)
 	mm_request_send(sock, MONITOR_ANS_GSSUSEROK, m);
 
 	auth_method = "gssapi-with-mic";
+
+	if (authenticated)
+		authctxt->last_details = ssh_gssapi_get_displayname();
 
 	/* Monitor loop will terminate if authenticated */
 	return (authenticated);

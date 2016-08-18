@@ -1416,6 +1416,10 @@ server IP address, and server port number.
 This variable contains the original command line if a forced command
 is executed.
 It can be used to extract the original arguments.
+.It Ev SSH_USER_AUTH
+This variable contains, for SSH2 only, a comma-separated list of authentication
+methods that were successfuly used to authenticate. When possible, these
+methods are extended with detailed information on the credential used.
 .It Ev SSH_TTY
 This is set to the name of the tty (path to the device) associated
 with the current shell or command.

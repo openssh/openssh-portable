@@ -688,6 +688,11 @@ sshpam_init_ctx(Authctxt *authctxt)
 		return (NULL);
 	}
 
+	/* Notify PAM about any already successful auth methods */
+	if (options.expose_auth_methods >= EXPOSE_AUTHMETH_PAMONLY &&
+			authctxt->auth_details)
+		do_pam_putenv("SSH_USER_AUTH", authctxt->auth_details);
+
 	ctxt = xcalloc(1, sizeof *ctxt);
 
 	/* Start the authentication thread */

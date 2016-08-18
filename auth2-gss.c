@@ -240,6 +240,9 @@ input_gssapi_exchange_complete(int type, u_int32_t plen, void *ctxt)
 
 	authenticated = PRIVSEP(ssh_gssapi_userok(authctxt->user));
 
+	if (authenticated)
+		authctxt->last_details = ssh_gssapi_get_displayname();
+
 	authctxt->postponed = 0;
 	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
 	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
@@ -277,6 +280,9 @@ input_gssapi_mic(int type, u_int32_t plen, void *ctxt)
 		authenticated = PRIVSEP(ssh_gssapi_userok(authctxt->user));
 	else
 		logit("GSSAPI MIC check failed");
+
+	if (authenticated)
+		authctxt->last_details = ssh_gssapi_get_displayname();
 
 	buffer_free(&b);
 	free(mic.value);
