@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.293 2016/08/15 12:27:56 naddy Exp $ */
+/* $OpenBSD: servconf.c,v 1.294 2016/08/19 03:18:06 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -120,7 +120,6 @@ initialize_server_options(ServerOptions *options)
 	options->challenge_response_authentication = -1;
 	options->permit_empty_passwd = -1;
 	options->permit_user_env = -1;
-	options->use_login = -1;
 	options->compression = -1;
 	options->rekey_limit = -1;
 	options->rekey_interval = -1;
@@ -281,8 +280,6 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_empty_passwd = 0;
 	if (options->permit_user_env == -1)
 		options->permit_user_env = 0;
-	if (options->use_login == -1)
-		options->use_login = 0;
 	if (options->compression == -1)
 		options->compression = COMP_DELAYED;
 	if (options->rekey_limit == -1)
@@ -397,7 +394,7 @@ typedef enum {
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sPermitTTY, sStrictModes, sEmptyPasswd, sTCPKeepAlive,
-	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
+	sPermitUserEnvironment, sAllowTcpForwarding, sCompression,
 	sRekeyLimit, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sPubkeyAcceptedKeyTypes,
@@ -508,7 +505,7 @@ static struct {
 	{ "strictmodes", sStrictModes, SSHCFG_GLOBAL },
 	{ "permitemptypasswords", sEmptyPasswd, SSHCFG_ALL },
 	{ "permituserenvironment", sPermitUserEnvironment, SSHCFG_GLOBAL },
-	{ "uselogin", sUseLogin, SSHCFG_GLOBAL },
+	{ "uselogin", sDeprecated, SSHCFG_GLOBAL },
 	{ "compression", sCompression, SSHCFG_GLOBAL },
 	{ "rekeylimit", sRekeyLimit, SSHCFG_ALL },
 	{ "tcpkeepalive", sTCPKeepAlive, SSHCFG_GLOBAL },
@@ -1281,10 +1278,6 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sPermitUserEnvironment:
 		intptr = &options->permit_user_env;
-		goto parse_flag;
-
-	case sUseLogin:
-		intptr = &options->use_login;
 		goto parse_flag;
 
 	case sCompression:
@@ -2261,7 +2254,6 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(sEmptyPasswd, o->permit_empty_passwd);
 	dump_cfg_fmtint(sPermitUserEnvironment, o->permit_user_env);
-	dump_cfg_fmtint(sUseLogin, o->use_login);
 	dump_cfg_fmtint(sCompression, o->compression);
 	dump_cfg_fmtint(sGatewayPorts, o->fwd_opts.gateway_ports);
 	dump_cfg_fmtint(sUseDNS, o->use_dns);
