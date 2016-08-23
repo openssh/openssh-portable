@@ -1,4 +1,4 @@
-/*	$OpenBSD: addrmatch.c,v 1.11 2016/08/23 03:24:10 djm Exp $ */
+/*	$OpenBSD: addrmatch.c,v 1.12 2016/08/23 08:17:42 djm Exp $ */
 
 /*
  * Copyright (c) 2004-2008 Damien Miller <djm@mindrot.org>
@@ -398,8 +398,8 @@ addr_match_list(const char *addr, const char *_list)
 		/* Prefer CIDR address matching */
 		r = addr_pton_cidr(cp, &match_addr, &masklen);
 		if (r == -2) {
-			error("Inconsistent mask length for "
-			    "network \"%.100s\"", cp);
+			debug2("%s: inconsistent mask length for "
+			    "match network \"%.100s\"", __func__, cp);
 			ret = -2;
 			break;
 		} else if (r == 0) {
