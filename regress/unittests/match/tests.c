@@ -1,4 +1,4 @@
-/* 	$OpenBSD: tests.c,v 1.1 2016/08/19 06:44:13 djm Exp $ */
+/* 	$OpenBSD: tests.c,v 1.2 2016/08/23 08:17:04 djm Exp $ */
 /*
  * Regress test for matching functions
  *
@@ -56,12 +56,16 @@ tests(void)
 	ASSERT_INT_EQ(match_pattern_list("a", "", 0), 0);
 	ASSERT_INT_EQ(match_pattern_list("a", "*", 0), 1);
 	ASSERT_INT_EQ(match_pattern_list("a", "!*", 0), -1);
+	ASSERT_INT_EQ(match_pattern_list("a", "!a", 0), -1);
+	ASSERT_INT_EQ(match_pattern_list("a", "!b", 0), 1);
 	ASSERT_INT_EQ(match_pattern_list("a", "!a,*", 0), -1);
 	ASSERT_INT_EQ(match_pattern_list("b", "!a,*", 0), 1);
 	ASSERT_INT_EQ(match_pattern_list("a", "*,!a", 0), -1);
 	ASSERT_INT_EQ(match_pattern_list("b", "*,!a", 0), 1);
 	ASSERT_INT_EQ(match_pattern_list("a", "a,!*", 0), -1);
 	ASSERT_INT_EQ(match_pattern_list("b", "a,!*", 0), -1);
+	ASSERT_INT_EQ(match_pattern_list("a", "a,!a", 0), -1);
+	ASSERT_INT_EQ(match_pattern_list("b", "a,!a", 0), 1);
 	ASSERT_INT_EQ(match_pattern_list("a", "!*,a", 0), -1);
 	ASSERT_INT_EQ(match_pattern_list("b", "!*,a", 0), -1);
 	TEST_DONE();
@@ -73,14 +77,35 @@ tests(void)
 	ASSERT_INT_EQ(match_pattern_list("ABC", "abc", 1), 0);
 	TEST_DONE();
 
+	TEST_START("addr_match_list");
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.1/44"), -2);
+	ASSERT_INT_EQ(addr_match_list(NULL, "127.0.0.1/44"), -2);
+	ASSERT_INT_EQ(addr_match_list("a", "*"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "*"), 1);
+	ASSERT_INT_EQ(addr_match_list(NULL, "*"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.1"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.2"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.1"), -1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.2"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.255", "127.0.0.0/24"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.1.1", "127.0.0.0/24"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.0/24"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.1.0/24"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.0/24"), -1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.1.0/24"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "10.0.0.1,!127.0.0.1"), -1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.1,10.0.0.1"), -1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "10.0.0.1,127.0.0.2"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "127.0.0.2,10.0.0.1"), 0);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "10.0.0.1,!127.0.0.2"), 1);
+	ASSERT_INT_EQ(addr_match_list("127.0.0.1", "!127.0.0.2,10.0.0.1"), 1);
+	TEST_DONE();
+
 /*
  * XXX TODO
  * int      match_host_and_ip(const char *, const char *, const char *);
  * int      match_user(const char *, const char *, const char *, const char *);
  * char    *match_list(const char *, const char *, u_int *);
- * int      addr_match_list(const char *, const char *);
  * int      addr_match_cidr_list(const char *, const char *);
  */
-
 }
-
