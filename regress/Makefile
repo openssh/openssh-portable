@@ -222,4 +222,6 @@ unit:
 		$$V ${.OBJDIR}/unittests/kex/test_kex ; \
 		$$V ${.OBJDIR}/unittests/hostkeys/test_hostkeys \
 			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
+		$$V ${.OBJDIR}/unittests/match/test_match ; \
+		$$V ${.OBJDIR}/unittests/utf8/test_utf8 ; \
 	fi
