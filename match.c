@@ -1,4 +1,4 @@
-/* $OpenBSD: match.c,v 1.30 2015/05/04 06:10:48 djm Exp $ */
+/* $OpenBSD: match.c,v 1.31 2016/08/23 03:22:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -158,7 +158,8 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 				return -1;		/* Negative */
 			else
 				got_positive = 1;	/* Positive */
-		}
+		} else if (negated)
+			got_positive = 1;
 	}
 
 	/*
