@@ -79,31 +79,6 @@ if test -z "$AR" ; then
 	AC_MSG_ERROR([*** 'ar' missing, please install or fix your \$PATH ***])
 fi
 
-# Use LOGIN_PROGRAM from environment if possible
-login_program=$LOGIN_PROGRAM
-# Allow override on command-line
-AC_ARG_WITH([login-program],
-	[  --with-login-program=path Specify login program name ],
-	[
-		if test "x$withval" != "xno" && \
-		   test "x$withval" != "xyes" ; then
-			login_program=$withval
-		fi
-	]
-)
-# If no login_program specified then find one using the path.
-if test ! -z "$login_program" ; then
-	AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK], ["$login_program"],
-		[login program to use if system headers lack LOGIN_PROGRAM])
-else
-	# Search for login
-	AC_PATH_PROG([LOGIN_PROGRAM_FALLBACK], [login])
-	if test ! -z "$LOGIN_PROGRAM_FALLBACK" ; then
-		AC_DEFINE_UNQUOTED([LOGIN_PROGRAM_FALLBACK],
-				   ["$LOGIN_PROGRAM_FALLBACK"])
-	fi
-fi
-
 AC_PATH_PROG([PATH_PASSWD_PROG], [passwd])
 if test ! -z "$PATH_PASSWD_PROG" ; then
 	AC_DEFINE_UNQUOTED([_PATH_PASSWD_PROG], ["$PATH_PASSWD_PROG"],
@@ -678,8 +653,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE([USE_PIPES])
-	AC_DEFINE([LOGIN_NO_ENDOPT], [1],
-	    [Define if your login program cannot handle end of options ("--")])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
 	AC_DEFINE([LOCKED_PASSWD_STRING], ["*"],
 		[String used in /etc/passwd to denote locked account])
@@ -906,9 +879,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	fi
 	AC_DEFINE([PAM_SUN_CODEBASE])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
-	AC_DEFINE([LOGIN_NEEDS_TERM], [1],
-		[Some versions of /bin/login need the TERM supplied
-		on the commandline])
 	AC_DEFINE([PAM_TTY_KLUDGE])
 	AC_DEFINE([SSHPAM_CHAUTHTOK_NEEDS_RUID], [1],
 		[Define if pam_chauthtok wants real uid set
