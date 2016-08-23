@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.284 2016/08/19 03:18:06 djm Exp $ */
+/* $OpenBSD: session.c,v 1.285 2016/08/23 16:21:45 otto Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -543,17 +543,11 @@ do_exec_pty(Session *s, const char *command)
 		close(ttyfd);
 
 		/* record login, etc. similar to login(1) */
-#ifndef HAVE_OSF_SIA
-		if (command != NULL) {
 #ifdef _UNICOS
-			cray_init_job(s->pw); /* set up cray jid and tmpdir */
+		cray_init_job(s->pw); /* set up cray jid and tmpdir */
 #endif /* _UNICOS */
-			do_login(s, command);
-		}
-# ifdef LOGIN_NEEDS_UTMPX
-		else
-			do_pre_login(s);
-# endif
+#ifndef HAVE_OSF_SIA
+		do_login(s, command);
 #endif
 		/*
 		 * Do common processing for the child, such as execing
