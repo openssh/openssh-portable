@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.259 2016/07/22 03:35:11 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.260 2016/08/25 23:56:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -858,7 +858,6 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	case oBadOption:
 		/* don't panic, but count bad options */
 		return -1;
-		/* NOTREACHED */
 	case oIgnoredUnknownOption:
 		debug("%s line %d: Ignored unknown option \"%s\"",
 		    filename, linenum, keyword);
