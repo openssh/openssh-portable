@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.294 2016/08/19 03:18:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.295 2016/08/25 23:57:54 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -415,7 +415,7 @@ typedef enum {
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash,
-	sDeprecated, sUnsupported
+	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
 #define SSHCFG_GLOBAL	0x01	/* allowed in main section of sshd_config */
@@ -518,7 +518,7 @@ static struct {
 	{ "denygroups", sDenyGroups, SSHCFG_ALL },
 	{ "ciphers", sCiphers, SSHCFG_GLOBAL },
 	{ "macs", sMacs, SSHCFG_GLOBAL },
-	{ "protocol", sDeprecated, SSHCFG_GLOBAL },
+	{ "protocol", sIgnore, SSHCFG_GLOBAL },
 	{ "gatewayports", sGatewayPorts, SSHCFG_ALL },
 	{ "subsystem", sSubsystem, SSHCFG_GLOBAL },
 	{ "maxstartups", sMaxStartups, SSHCFG_GLOBAL },
@@ -719,7 +719,7 @@ get_connection_info(int populate, int use_dns)
  * options set are copied into the main server config.
  *
  * Potential additions/improvements:
- *  - Add Match support for pre-kex directives, eg Protocol, Ciphers.
+ *  - Add Match support for pre-kex directives, eg. Ciphers.
  *
  *  - Add a Tag directive (idea from David Leonard) ala pf, eg:
  *	Match Address 192.168.0.*
@@ -1824,15 +1824,12 @@ process_server_config_line(ServerOptions *options, char *line,
 		break;
 
 	case sDeprecated:
-		logit("%s line %d: Deprecated option %s",
-		    filename, linenum, arg);
-		while (arg)
-		    arg = strdelim(&cp);
-		break;
-
+	case sIgnore:
 	case sUnsupported:
-		logit("%s line %d: Unsupported option %s",
-		    filename, linenum, arg);
+		do_log2(opcode == sIgnore ?
+		    SYSLOG_LEVEL_DEBUG2 : SYSLOG_LEVEL_INFO,
+		    "%s line %d: %s option %s", filename, linenum,
+		    opcode == sUnsupported ? "Unsupported" : "Deprecated", arg);
 		while (arg)
 		    arg = strdelim(&cp);
 		break;
