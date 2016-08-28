@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.474 2016/08/19 03:18:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.475 2016/08/28 22:28:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1313,8 +1313,8 @@ check_ip_options(struct ssh *ssh)
 #ifdef IP_OPTIONS
 	int sock_in = ssh_packet_get_connection_in(ssh);
 	struct sockaddr_storage from;
-	socklen_t option_size, i, fromlen = sizeof(from);
 	u_char opts[200];
+	socklen_t i, option_size = sizeof(opts), fromlen = sizeof(from);
 	char text[sizeof(opts) * 3 + 1];
 
 	memset(&from, 0, sizeof(from));
