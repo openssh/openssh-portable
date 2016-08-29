@@ -208,9 +208,9 @@ struct mon_table mon_dispatch_proto20[] = {
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
     {MONITOR_REQ_PAM_ACCOUNT, 0, mm_answer_pam_account},
-    {MONITOR_REQ_PAM_INIT_CTX, MON_ISAUTH, mm_answer_pam_init_ctx},
-    {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
-    {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
+    {MONITOR_REQ_PAM_INIT_CTX, MON_ONCE, mm_answer_pam_init_ctx},
+    {MONITOR_REQ_PAM_QUERY, 0, mm_answer_pam_query},
+    {MONITOR_REQ_PAM_RESPOND, MON_ONCE, mm_answer_pam_respond},
     {MONITOR_REQ_PAM_FREE_CTX, MON_ONCE|MON_AUTHDECIDE, mm_answer_pam_free_ctx},
 #endif
 #ifdef SSH_AUDIT_EVENTS
@@ -990,6 +990,7 @@ mm_answer_pam_start(int sock, Buffer *m)
 	start_pam(authctxt);
 
 	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
+	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
 
 	return (0);
 }
@@ -1019,11 +1020,14 @@ int
 mm_answer_pam_init_ctx(int sock, Buffer *m)
 {
 	debug3("%s", __func__);
+	if (sshpam_ctxt != NULL)
+		fatal("%s: already called", __func__);
 	sshpam_ctxt = (sshpam_device.init_ctx)(authctxt);
 	sshpam_authok = NULL;
 	buffer_clear(m);
 	if (sshpam_ctxt != NULL) {
 		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_FREE_CTX, 1);
+		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_QUERY, 1);
 		buffer_put_int(m, 1);
 	} else {
 		buffer_put_int(m, 0);
@@ -1041,11 +1045,14 @@ mm_answer_pam_query(int sock, Buffer *m)
 
 	debug3("%s", __func__);
 	sshpam_authok = NULL;
+	if (sshpam_ctxt == NULL)
+		fatal("%s: no context", __func__);
 	ret = (sshpam_device.query)(sshpam_ctxt, &name, &info, &num, &prompts, &echo_on);
 	if (ret == 0 && num == 0)
 		sshpam_authok = sshpam_ctxt;
 	if (num > 1 || name == NULL || info == NULL)
-		ret = -1;
+		fatal("sshpam_device.query failed");
+	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_RESPOND, 1);
 	buffer_clear(m);
 	buffer_put_int(m, ret);
 	buffer_put_cstring(m, name);
@@ -1075,6 +1082,8 @@ mm_answer_pam_respond(int sock, Buffer *m)
 	int ret;
 
 	debug3("%s", __func__);
+	if (sshpam_ctxt == NULL)
+		fatal("%s: no context", __func__);
 	sshpam_authok = NULL;
 	num = buffer_get_int(m);
 	if (num > 0) {
@@ -1104,10 +1113,14 @@ mm_answer_pam_free_ctx(int sock, Buffer *m)
 	int r = sshpam_authok != NULL && sshpam_authok == sshpam_ctxt;
 
 	debug3("%s", __func__);
+	if (sshpam_ctxt == NULL)
+		fatal("%s: no context", __func__);
 	(sshpam_device.free_ctx)(sshpam_ctxt);
 	sshpam_ctxt = sshpam_authok = NULL;
 	buffer_clear(m);
 	mm_request_send(sock, MONITOR_ANS_PAM_FREE_CTX, m);
+	/* Allow another attempt */
+	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
 	auth_method = "keyboard-interactive";
 	auth_submethod = "pam";
 	return r;
