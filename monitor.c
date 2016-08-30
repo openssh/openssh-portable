@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.163 2016/08/19 03:18:06 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.164 2016/08/30 07:50:21 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -844,6 +844,8 @@ mm_answer_authpassword(int sock, Buffer *m)
 	int authenticated;
 	u_int plen;
 
+	if (!options.password_authentication)
+		fatal("%s: password authentication not enabled", __func__);
 	passwd = buffer_get_string(m, &plen);
 	/* Only authenticate if the context is valid */
 	authenticated = options.password_authentication &&
@@ -880,6 +882,8 @@ mm_answer_bsdauthquery(int sock, Buffer *m)
 	char **prompts;
 	u_int success;
 
+	if (!options.kbd_interactive_authentication)
+		fatal("%s: kbd-int authentication not enabled", __func__);
 	success = bsdauth_query(authctxt, &name, &infotxt, &numprompts,
 	    &prompts, &echo_on) < 0 ? 0 : 1;
 
@@ -907,6 +911,8 @@ mm_answer_bsdauthrespond(int sock, Buffer *m)
 	char *response;
 	int authok;
 
+	if (!options.kbd_interactive_authentication)
+		fatal("%s: kbd-int authentication not enabled", __func__);
 	if (authctxt->as == NULL)
 		fatal("%s: no bsd auth session", __func__);
 
@@ -1716,6 +1722,9 @@ mm_answer_gss_setup_ctx(int sock, Buffer *m)
 	OM_uint32 major;
 	u_int len;
 
+	if (!options.gss_authentication)
+		fatal("%s: GSSAPI authentication not enabled", __func__);
+
 	goid.elements = buffer_get_string(m, &len);
 	goid.length = len;
 
@@ -1742,6 +1751,9 @@ mm_answer_gss_accept_ctx(int sock, Buffer *m)
 	OM_uint32 major, minor;
 	OM_uint32 flags = 0; /* GSI needs this */
 	u_int len;
+
+	if (!options.gss_authentication)
+		fatal("%s: GSSAPI authentication not enabled", __func__);
 
 	in.value = buffer_get_string(m, &len);
 	in.length = len;
@@ -1771,6 +1783,9 @@ mm_answer_gss_checkmic(int sock, Buffer *m)
 	OM_uint32 ret;
 	u_int len;
 
+	if (!options.gss_authentication)
+		fatal("%s: GSSAPI authentication not enabled", __func__);
+
 	gssbuf.value = buffer_get_string(m, &len);
 	gssbuf.length = len;
 	mic.value = buffer_get_string(m, &len);
@@ -1796,6 +1811,9 @@ int
 mm_answer_gss_userok(int sock, Buffer *m)
 {
 	int authenticated;
+
+	if (!options.gss_authentication)
+		fatal("%s: GSSAPI authentication not enabled", __func__);
 
 	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
 
