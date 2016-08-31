@@ -996,7 +996,8 @@ mm_answer_pam_start(int sock, Buffer *m)
 	start_pam(authctxt);
 
 	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
-	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
+	if (options.kbd_interactive_authentication)
+		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_INIT_CTX, 1);
 
 	return (0);
 }
@@ -1007,7 +1008,7 @@ mm_answer_pam_account(int sock, Buffer *m)
 	u_int ret;
 
 	if (!options.use_pam)
-		fatal("UsePAM not set, but ended up in %s anyway", __func__);
+		fatal("%s: PAM not enabled", __func__);
 
 	ret = do_pam_account();
 
@@ -1026,6 +1027,8 @@ int
 mm_answer_pam_init_ctx(int sock, Buffer *m)
 {
 	debug3("%s", __func__);
+	if (!options.kbd_interactive_authentication)
+		fatal("%s: kbd-int authentication not enabled", __func__);
 	if (sshpam_ctxt != NULL)
 		fatal("%s: already called", __func__);
 	sshpam_ctxt = (sshpam_device.init_ctx)(authctxt);
@@ -1053,7 +1056,8 @@ mm_answer_pam_query(int sock, Buffer *m)
 	sshpam_authok = NULL;
 	if (sshpam_ctxt == NULL)
 		fatal("%s: no context", __func__);
-	ret = (sshpam_device.query)(sshpam_ctxt, &name, &info, &num, &prompts, &echo_on);
+	ret = (sshpam_device.query)(sshpam_ctxt, &name, &info,
+	    &num, &prompts, &echo_on);
 	if (ret == 0 && num == 0)
 		sshpam_authok = sshpam_ctxt;
 	if (num > 1 || name == NULL || info == NULL)
