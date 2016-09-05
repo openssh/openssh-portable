@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.164 2016/08/30 07:50:21 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.165 2016/09/05 13:57:31 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -228,9 +228,9 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_KEYVERIFY, MON_AUTH, mm_answer_keyverify},
 #ifdef GSSAPI
     {MONITOR_REQ_GSSSETUP, MON_ISAUTH, mm_answer_gss_setup_ctx},
-    {MONITOR_REQ_GSSSTEP, MON_ISAUTH, mm_answer_gss_accept_ctx},
-    {MONITOR_REQ_GSSUSEROK, MON_AUTH, mm_answer_gss_userok},
-    {MONITOR_REQ_GSSCHECKMIC, MON_ISAUTH, mm_answer_gss_checkmic},
+    {MONITOR_REQ_GSSSTEP, 0, mm_answer_gss_accept_ctx},
+    {MONITOR_REQ_GSSUSEROK, MON_ONCE|MON_AUTHDECIDE, mm_answer_gss_userok},
+    {MONITOR_REQ_GSSCHECKMIC, MON_ONCE, mm_answer_gss_checkmic},
 #endif
     {0, 0, NULL}
 };
