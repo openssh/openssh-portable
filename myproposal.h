@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.50 2016/02/09 05:30:04 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.52 2016/09/05 14:02:42 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -120,7 +120,7 @@
 	AESGCM_CIPHER_MODES
 
 #define KEX_CLIENT_ENCRYPT KEX_SERVER_ENCRYPT "," \
-	"aes128-cbc,aes192-cbc,aes256-cbc,3des-cbc"
+	"aes128-cbc,aes192-cbc,aes256-cbc"
 
 #define KEX_SERVER_MAC \
 	"umac-64-etm@openssh.com," \
