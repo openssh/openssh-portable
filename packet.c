@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.235 2016/08/03 05:41:57 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.236 2016/09/06 09:22:56 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -977,30 +977,31 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	struct sshmac *mac;
 	struct sshcomp *comp;
 	struct sshcipher_ctx **ccp;
+	struct packet_state *ps;
 	u_int64_t *max_blocks;
-	const char *wmsg;
+	const char *wmsg, *dir;
 	int r, crypt_type;
 
 	debug2("set_newkeys: mode %d", mode);
 
 	if (mode == MODE_OUT) {
+		dir = "output";
 		ccp = &state->send_context;
 		crypt_type = CIPHER_ENCRYPT;
-		state->p_send.packets = state->p_send.blocks = 0;
+		ps = &state->p_send;
 		max_blocks = &state->max_blocks_out;
 	} else {
+		dir = "input";
 		ccp = &state->receive_context;
 		crypt_type = CIPHER_DECRYPT;
-		state->p_read.packets = state->p_read.blocks = 0;
+		ps = &state->p_read;
 		max_blocks = &state->max_blocks_in;
 	}
 	if (state->newkeys[mode] != NULL) {
-		debug("set_newkeys: rekeying, input %llu bytes %llu blocks, "
-		   "output %llu bytes %llu blocks",
-		   (unsigned long long)state->p_read.bytes,
-		   (unsigned long long)state->p_read.blocks,
-		   (unsigned long long)state->p_send.bytes,
-		   (unsigned long long)state->p_send.blocks);
+		debug("%s: rekeying after %llu %s blocks"
+		    " (%llu bytes total)", __func__,
+		    (unsigned long long)ps->blocks, dir,
+		    (unsigned long long)ps->bytes);
 		cipher_free(*ccp);
 		*ccp = NULL;
 		enc  = &state->newkeys[mode]->enc;
@@ -1018,6 +1019,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		free(comp->name);
 		free(state->newkeys[mode]);
 	}
+	/* note that both bytes and the seqnr are not reset */
+	ps->packets = ps->blocks = 0;
 	/* move newkeys from kex to state */
 	if ((state->newkeys[mode] = ssh->kex->newkeys[mode]) == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
