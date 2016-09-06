@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.118 2016/05/02 10:26:04 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.119 2016/09/06 09:14:05 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -775,10 +775,8 @@ kex_choose_conf(struct ssh *ssh)
 		char *ext;
 
 		ext = match_list("ext-info-c", peer[PROPOSAL_KEX_ALGS], NULL);
-		if (ext) {
-			kex->ext_info_c = 1;
-			free(ext);
-		}
+		kex->ext_info_c = (ext != NULL);
+		free(ext);
 	}
 
 	/* Algorithm Negotiation */
