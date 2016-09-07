@@ -268,6 +268,7 @@ thread_loop(void *x)
 		 * can see that it's being filled.
 		 */
 		q->qstate = KQFILLING;
+		pthread_cond_broadcast(&q->cond);
 		pthread_mutex_unlock(&q->lock);
 		for (i = 0; i < KQLEN; i++) {
 			AES_encrypt(q->ctr, q->keys[i], &key);
@@ -279,7 +280,7 @@ thread_loop(void *x)
 		ssh_ctr_add(q->ctr, KQLEN * (NUMKQ - 1), AES_BLOCK_SIZE);
 		q->qstate = KQFULL;
 		STATS_FILL(stats);
-		pthread_cond_signal(&q->cond);
+		pthread_cond_broadcast(&q->cond);
 		pthread_mutex_unlock(&q->lock);
 	}
 
@@ -371,6 +372,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 				pthread_cond_wait(&q->cond, &q->lock);
 			}
 			q->qstate = KQDRAINING;
+			pthread_cond_broadcast(&q->cond);
 			pthread_mutex_unlock(&q->lock);
 
 			/* Mark consumed queue empty and signal producers */
