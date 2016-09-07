@@ -478,6 +478,11 @@ ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx)
 	for (i = 0; i < CIPHER_THREADS; i++) {
 		pthread_cancel(c->tid[i]);
 	}
+	for (i = 0; i < NUMKQ; i++) {
+		pthread_mutex_lock(&c->q[i].lock);
+		pthread_cond_broadcast(&c->q[i].cond);
+		pthread_mutex_unlock(&c->q[i].lock);
+	}
 	for (i = 0; i < CIPHER_THREADS; i++) {
 		pthread_join(c->tid[i], NULL);
 	}
@@ -512,6 +517,11 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 		/* Cancel pregen threads */
 		for (i = 0; i < CIPHER_THREADS; i++)
 			pthread_cancel(c->tid[i]);
+		for (i = 0; i < NUMKQ; i++) {
+			pthread_mutex_lock(&c->q[i].lock);
+			pthread_cond_broadcast(&c->q[i].cond);
+			pthread_mutex_unlock(&c->q[i].lock);
+		}
 		for (i = 0; i < CIPHER_THREADS; i++)
 			pthread_join(c->tid[i], NULL);
 
