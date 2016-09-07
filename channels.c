@@ -4020,6 +4020,27 @@ connect_local_xsocket(u_int dnr)
 	return connect_local_xsocket_path(buf);
 }
 
+static int
+is_path_to_xsocket(const char *display, char *path, size_t pathlen)
+{
+	struct stat sbuf;
+
+	strlcpy(path, display, pathlen);
+	if (stat(path, &sbuf) == 0) {
+		return 1;
+	} else {
+		char *dot = strrchr(path, '.');
+		if (dot != NULL) {
+			*dot = '\0';
+			if (0 == stat(path, &sbuf)) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int
 x11_connect_display(void)
 {
@@ -4045,23 +4066,8 @@ x11_connect_display(void)
 	/* Check if display is a path to a socket (as set by launchd). */
 	{
 		char path[PATH_MAX];
-		struct stat sbuf;
-		int is_path_to_socket = 0;
 
-		strlcpy(path, display, sizeof(path));
-		if (0 == stat(path, &sbuf)) {
-			is_path_to_socket = 1;
-		} else {
-			char *dot = strrchr(path, '.');
-			if (dot) {
-				*dot = '\0';
-				if (0 == stat(path, &sbuf)) {
-					is_path_to_socket=1;
-				}
-			}
-		}
-
-		if (is_path_to_socket) {
+		if (is_path_to_xsocket(display, path, sizeof(path))) {
 			/* Create a socket. */
 			sock = connect_local_xsocket_path(path);
 			if (sock < 0)
@@ -4072,6 +4078,7 @@ x11_connect_display(void)
 		}
 	}
 #endif
+
 	/*
 	 * Check if it is a unix domain socket.  Unix domain displays are in
 	 * one of the following formats: unix:d[.s], :d[.s], ::d[.s]
