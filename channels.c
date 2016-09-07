@@ -4068,6 +4068,8 @@ x11_connect_display(void)
 		char path[PATH_MAX];
 
 		if (is_path_to_xsocket(display, path, sizeof(path))) {
+			debug("x11_connect_display: $DISPLAY is launchd");
+
 			/* Create a socket. */
 			sock = connect_local_xsocket_path(path);
 			if (sock < 0)
