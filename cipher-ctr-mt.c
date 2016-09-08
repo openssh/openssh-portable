@@ -421,8 +421,14 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		/* Cancel pregen threads */
 		for (i = 0; i < CIPHER_THREADS; i++)
 			pthread_cancel(c->tid[i]);
+		for (i = 0; i < NUMKQ; i++) {
+			pthread_mutex_lock(&c->q[i].lock);
+			pthread_cond_broadcast(&c->q[i].cond);
+			pthread_mutex_unlock(&c->q[i].lock);
+		}
 		for (i = 0; i < CIPHER_THREADS; i++)
 			pthread_join(c->tid[i], NULL);
+
 		/* Start over getting key & iv */
 		c->state = HAVE_NONE;
 	}
