@@ -81,7 +81,7 @@ void	 replacearg(arglist *, u_int, char *, ...)
 	     __attribute__((format(printf, 3, 4)));
 void	 freeargs(arglist *);
 
-int	 tun_open(int, int);
+int	 tun_open(int, int, int);
 
 /* Common definitions for ssh tunnel device forwarding */
 #define SSH_TUNMODE_NO		0x00

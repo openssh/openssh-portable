@@ -55,6 +55,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdarg.h>
+#if defined(SSH_TUN_DILOS)
+#include <sys/fcntl.h>
+#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -501,6 +504,7 @@ server_request_tun(void)
 	Channel *c = NULL;
 	int mode, tun;
 	int sock;
+	int ip_fd = -1;
 
 	mode = packet_get_int();
 	switch (mode) {
@@ -523,11 +527,20 @@ server_request_tun(void)
 			goto done;
 		tun = forced_tun_device;
 	}
-	sock = tun_open(tun, mode);
+
+#if defined(SSH_TUN_DILOS)
+	if ((ip_fd = open("/dev/udp", O_RDWR)) < 0) {
+		debug("%s: ip_fd (%d) open failed: %s", __func__, ip_fd,
+		    strerror(errno));
+		packet_send_debug("Failed to open the ip_fd on tunnel device.");
+		return -1;
+	}
+#endif
+	sock = tun_open(tun, mode, ip_fd);
 	if (sock < 0)
 		goto done;
 	c = channel_new("tun", SSH_CHANNEL_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1, tun, ip_fd);
 	c->datagram = 1;
 #if defined(SSH_TUN_FILTER)
 	if (mode == SSH_TUNMODE_POINTOPOINT)
@@ -562,7 +575,7 @@ server_request_session(void)
 	 */
 	c = channel_new("session", SSH_CHANNEL_LARVAL,
 	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
-	    0, "server-session", 1);
+	    0, "server-session", 1, -1, -1);
 	if (session_open(the_authctxt, c->self) != 1) {
 		debug("session open failed, free channel %d", c->self);
 		channel_free(c);

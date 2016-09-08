@@ -2205,11 +2205,26 @@ do_ssh2_kex(void)
 	debug("KEX done");
 }
 
+extern void sys_tun_delete(int, int, int);
+
 /* server specific fatal cleanup */
 void
 cleanup_exit(int i)
 {
 	if (the_authctxt) {
+#if defined(SSH_TUN_DILOS)
+		Channel *c = channel_lookup(the_authctxt->chanid);
+		if (c == NULL) {
+			debug("%s: couldn't found channel", __func__);
+		} else {
+			debug("%s: request delete ip_fd with tun%d,"
+				" permit_tun:%d", __func__,
+				c->local_tun, options.permit_tun);
+			if (c->local_tun >= 0 && c->ip_fd > 0)
+				sys_tun_delete(c->local_tun,
+					SSH_TUNMODE_POINTOPOINT, c->ip_fd);
+		}
+#endif
 		do_cleanup(the_authctxt);
 		if (use_privsep && privsep_is_preauth &&
 		    pmonitor != NULL && pmonitor->m_pid > 1) {

@@ -223,7 +223,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	nc = channel_new("auth socket",
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-	    0, "auth socket", 1);
+	    0, "auth socket", 1, -1, -1);
 	nc->path = xstrdup(auth_sock_name);
 	return 1;
 
