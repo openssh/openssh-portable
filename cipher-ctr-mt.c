@@ -127,7 +127,7 @@ struct kq {
 	u_char		keys[KQLEN][AES_BLOCK_SIZE];
 	u_char		ctr[AES_BLOCK_SIZE];
 	u_char		pad0[CACHELINE_LEN];
-	volatile int	qstate;
+	int		qstate;
 	pthread_mutex_t	lock;
 	pthread_cond_t	cond;
 	u_char		pad1[CACHELINE_LEN];
