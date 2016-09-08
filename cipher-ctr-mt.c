@@ -141,7 +141,7 @@ struct ssh_aes_ctr_ctx
 	STATS_STRUCT(stats);
 	u_char		aes_counter[AES_BLOCK_SIZE];
 	pthread_t	tid[CIPHER_THREADS];
-	pthread_rwlock_t thread_lock;
+	pthread_rwlock_t tid_lock;
 	int		state;
 	int		qidx;
 	int		ridx;
@@ -213,9 +213,9 @@ thread_loop(void *x)
 	/* Thread local copy of AES key */
 	memcpy(&key, &c->aes_ctx, sizeof(key));
 
-	pthread_rwlock_rdlock(&c->thread_lock);
+	pthread_rwlock_rdlock(&c->tid_lock);
 	first_tid = c->tid[0];
-	pthread_rwlock_unlock(&c->thread_lock);
+	pthread_rwlock_unlock(&c->tid_lock);
 
 	/*
 	 * Handle the special case of startup, one thread must fill
@@ -405,7 +405,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
 		c = xmalloc(sizeof(*c));
-		pthread_rwlock_init(&c->thread_lock, NULL);
+		pthread_rwlock_init(&c->tid_lock, NULL);
 
 		c->state = HAVE_NONE;
 		for (i = 0; i < NUMKQ; i++) {
@@ -459,9 +459,9 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		/* Start threads */
 		for (i = 0; i < CIPHER_THREADS; i++) {
 			debug("spawned a thread");
-			pthread_rwlock_wrlock(&c->thread_lock);
+			pthread_rwlock_wrlock(&c->tid_lock);
 			pthread_create(&c->tid[i], NULL, thread_loop, c);
-			pthread_rwlock_unlock(&c->thread_lock);
+			pthread_rwlock_unlock(&c->tid_lock);
 		}
 		pthread_mutex_lock(&c->q[0].lock);
 		while (c->q[0].qstate == KQINIT)
@@ -503,9 +503,9 @@ ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 	/* reconstruct threads */
 	for (i = 0; i < CIPHER_THREADS; i++) {
 		debug("spawned a thread");
-		pthread_rwlock_wrlock(&c->thread_lock);
+		pthread_rwlock_wrlock(&c->tid_lock);
 		pthread_create(&c->tid[i], NULL, thread_loop, c);
-		pthread_rwlock_unlock(&c->thread_lock);
+		pthread_rwlock_unlock(&c->tid_lock);
 	}
 }
 
