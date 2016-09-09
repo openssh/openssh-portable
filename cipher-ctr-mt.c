@@ -189,6 +189,28 @@ thread_loop_cleanup(void *x)
 }
 
 /*
+ * Helper function to terminate the helper threads
+ */
+static void
+stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
+{
+	int i;
+
+	/* Cancel pregen threads */
+	for (i = 0; i < CIPHER_THREADS; i++) {
+		pthread_cancel(c->tid[i]);
+	}
+	for (i = 0; i < NUMKQ; i++) {
+		pthread_mutex_lock(&c->q[i].lock);
+		pthread_cond_broadcast(&c->q[i].cond);
+		pthread_mutex_unlock(&c->q[i].lock);
+	}
+	for (i = 0; i < CIPHER_THREADS; i++) {
+		pthread_join(c->tid[i], NULL);
+	}
+}
+
+/*
  * The life of a pregen thread:
  *    Find empty keystream queues and fill them using their counter.
  *    When done, update counter for the next fill.
@@ -418,16 +440,8 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	}
 
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
-		/* Cancel pregen threads */
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_cancel(c->tid[i]);
-		for (i = 0; i < NUMKQ; i++) {
-			pthread_mutex_lock(&c->q[i].lock);
-			pthread_cond_broadcast(&c->q[i].cond);
-			pthread_mutex_unlock(&c->q[i].lock);
-		}
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_join(c->tid[i], NULL);
+		/* tell the pregen threads to exit */
+		stop_and_join_pregen_threads(c);
 
 		/* Start over getting key & iv */
 		c->state = HAVE_NONE;
@@ -478,20 +492,10 @@ void
 ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx)
 {
 	struct ssh_aes_ctr_ctx *c;
-	int i;
+
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
-	/* destroy threads */
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_cancel(c->tid[i]);
-	}
-	for (i = 0; i < NUMKQ; i++) {
-		pthread_mutex_lock(&c->q[i].lock);
-		pthread_cond_broadcast(&c->q[i].cond);
-		pthread_mutex_unlock(&c->q[i].lock);
-	}
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_join(c->tid[i], NULL);
-	}
+
+	stop_and_join_pregen_threads(c);
 }
 
 void
@@ -513,23 +517,13 @@ static int
 ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 {
 	struct ssh_aes_ctr_ctx *c;
-	int i;
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
 #ifdef CIPHER_THREAD_STATS
 		debug("main thread: %u drains, %u waits", c->stats.drains,
 				c->stats.waits);
 #endif
-		/* Cancel pregen threads */
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_cancel(c->tid[i]);
-		for (i = 0; i < NUMKQ; i++) {
-			pthread_mutex_lock(&c->q[i].lock);
-			pthread_cond_broadcast(&c->q[i].cond);
-			pthread_mutex_unlock(&c->q[i].lock);
-		}
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_join(c->tid[i], NULL);
+		stop_and_join_pregen_threads(c);
 
 		memset(c, 0, sizeof(*c));
 		free(c);
