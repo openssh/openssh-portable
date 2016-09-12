@@ -2485,9 +2485,9 @@ main(int argc, char **argv)
 		case 'W':
 			generator_wanted = (u_int32_t)strtonum(optarg, 1,
 			    UINT_MAX, &errstr);
-			if (errstr)
-				fatal("Desired generator has bad value: %s (%s)",
-					optarg, errstr);
+			if (errstr != NULL)
+				fatal("Desired generator invalid: %s (%s)",
+				    optarg, errstr);
 			break;
 #endif /* WITH_OPENSSL */
 		case '?':
