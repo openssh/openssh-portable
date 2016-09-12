@@ -2466,6 +2466,12 @@ main(int argc, char **argv)
 			    sizeof(out_file))
 				fatal("Output filename too long");
 			break;
+		case 'J':
+			lines_to_process = strtoul(optarg, NULL, 10);
+                        break;
+		case 'j':
+			start_lineno = strtoul(optarg, NULL, 10);
+                        break;
 		case 'T':
 			do_screen_candidates = 1;
 			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
