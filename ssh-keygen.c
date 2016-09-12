@@ -2467,12 +2467,6 @@ main(int argc, char **argv)
 		case 'j':
 			start_lineno = strtoul(optarg, NULL, 10);
 			break;
-		case 'T':
-			do_screen_candidates = 1;
-			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
-			    sizeof(out_file))
-				fatal("Output filename too long");
-			break;
 		case 'K':
 			if (strlen(optarg) >= PATH_MAX)
 				fatal("Checkpoint filename too long");
@@ -2488,6 +2482,12 @@ main(int argc, char **argv)
 			/* XXX - also compare length against bits */
 			if (BN_hex2bn(&start, optarg) == 0)
 				fatal("Invalid start point.");
+			break;
+		case 'T':
+			do_screen_candidates = 1;
+			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
+			    sizeof(out_file))
+				fatal("Output filename too long");
 			break;
 #endif /* WITH_OPENSSL */
 		case '?':
