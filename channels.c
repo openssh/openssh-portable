@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.351 2016/07/19 11:38:53 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.352 2016/09/12 01:22:38 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,7 +42,6 @@
 #include "includes.h"
 
 #include <sys/types.h>
-#include <sys/param.h>	/* MIN MAX */
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/un.h>
@@ -245,9 +244,9 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock, int is_tty)
 {
 	/* Update the maximum file descriptor value. */
-	channel_max_fd = MAX(channel_max_fd, rfd);
-	channel_max_fd = MAX(channel_max_fd, wfd);
-	channel_max_fd = MAX(channel_max_fd, efd);
+	channel_max_fd = MAXIMUM(channel_max_fd, rfd);
+	channel_max_fd = MAXIMUM(channel_max_fd, wfd);
+	channel_max_fd = MAXIMUM(channel_max_fd, efd);
 
 	if (rfd != -1)
 		fcntl(rfd, F_SETFD, FD_CLOEXEC);
@@ -373,9 +372,9 @@ channel_find_maxfd(void)
 	for (i = 0; i < channels_alloc; i++) {
 		c = channels[i];
 		if (c != NULL) {
-			max = MAX(max, c->rfd);
-			max = MAX(max, c->wfd);
-			max = MAX(max, c->efd);
+			max = MAXIMUM(max, c->rfd);
+			max = MAXIMUM(max, c->wfd);
+			max = MAXIMUM(max, c->efd);
 		}
 	}
 	return max;
@@ -1898,7 +1897,7 @@ read_mux(Channel *c, u_int need)
 
 	if (buffer_len(&c->input) < need) {
 		rlen = need - buffer_len(&c->input);
-		len = read(c->rfd, buf, MIN(rlen, CHAN_RBUF));
+		len = read(c->rfd, buf, MINIMUM(rlen, CHAN_RBUF));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return buffer_len(&c->input);
 		if (len <= 0) {
@@ -2201,7 +2200,7 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 {
 	u_int n, sz, nfdset;
 
-	n = MAX(*maxfdp, channel_max_fd);
+	n = MAXIMUM(*maxfdp, channel_max_fd);
 
 	nfdset = howmany(n+1, NFDBITS);
 	/* Explicitly test here, because xrealloc isn't always called */
@@ -3633,7 +3632,7 @@ connect_next(struct channel_connect *cctx)
 {
 	int sock, saved_errno;
 	struct sockaddr_un *sunaddr;
-	char ntop[NI_MAXHOST], strport[MAX(NI_MAXSERV,sizeof(sunaddr->sun_path))];
+	char ntop[NI_MAXHOST], strport[MAXIMUM(NI_MAXSERV,sizeof(sunaddr->sun_path))];
 
 	for (; cctx->ai; cctx->ai = cctx->ai->ai_next) {
 		switch (cctx->ai->ai_family) {

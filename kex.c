@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.119 2016/09/06 09:14:05 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.120 2016/09/12 01:22:38 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -25,7 +25,6 @@
 
 #include "includes.h"
 
-#include <sys/param.h>	/* MAX roundup */
 
 #include <signal.h>
 #include <stdarg.h>
@@ -833,14 +832,14 @@ kex_choose_conf(struct ssh *ssh)
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = kex->newkeys[mode];
-		need = MAX(need, newkeys->enc.key_len);
-		need = MAX(need, newkeys->enc.block_size);
-		need = MAX(need, newkeys->enc.iv_len);
-		need = MAX(need, newkeys->mac.key_len);
-		dh_need = MAX(dh_need, cipher_seclen(newkeys->enc.cipher));
-		dh_need = MAX(dh_need, newkeys->enc.block_size);
-		dh_need = MAX(dh_need, newkeys->enc.iv_len);
-		dh_need = MAX(dh_need, newkeys->mac.key_len);
+		need = MAXIMUM(need, newkeys->enc.key_len);
+		need = MAXIMUM(need, newkeys->enc.block_size);
+		need = MAXIMUM(need, newkeys->enc.iv_len);
+		need = MAXIMUM(need, newkeys->mac.key_len);
+		dh_need = MAXIMUM(dh_need, cipher_seclen(newkeys->enc.cipher));
+		dh_need = MAXIMUM(dh_need, newkeys->enc.block_size);
+		dh_need = MAXIMUM(dh_need, newkeys->enc.iv_len);
+		dh_need = MAXIMUM(dh_need, newkeys->mac.key_len);
 	}
 	/* XXX need runden? */
 	kex->we_need = need;
@@ -871,7 +870,7 @@ derive_key(struct ssh *ssh, int id, u_int need, u_char *hash, u_int hashlen,
 
 	if ((mdsz = ssh_digest_bytes(kex->hash_alg)) == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if ((digest = calloc(1, roundup(need, mdsz))) == NULL) {
+	if ((digest = calloc(1, ROUNDUP(need, mdsz))) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}

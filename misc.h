@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.58 2016/08/27 04:05:12 guenther Exp $ */
+/* $OpenBSD: misc.h,v 1.59 2016/09/12 01:22:38 deraadt Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -140,5 +140,9 @@ void mktemp_proto(char *, size_t);
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
 int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
+
+#define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
+#define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))
+#define ROUNDUP(x, y)   ((((x)+((y)-1))/(y))*(y))
 
 #endif /* _MISC_H */

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.36 2016/08/03 05:41:57 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.37 2016/09/12 01:22:38 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -27,7 +27,6 @@
 
 #include "includes.h"
 
-#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <netinet/in.h>
 
@@ -1082,10 +1081,10 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 			y += (input & 0x2) ? 1 : -1;
 
 			/* assure we are still in bounds */
-			x = MAX(x, 0);
-			y = MAX(y, 0);
-			x = MIN(x, FLDSIZE_X - 1);
-			y = MIN(y, FLDSIZE_Y - 1);
+			x = MAXIMUM(x, 0);
+			y = MAXIMUM(y, 0);
+			x = MINIMUM(x, FLDSIZE_X - 1);
+			y = MINIMUM(y, FLDSIZE_Y - 1);
 
 			/* augment the field */
 			if (field[x][y] < len - 2)
@@ -1126,7 +1125,7 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 	for (y = 0; y < FLDSIZE_Y; y++) {
 		*p++ = '|';
 		for (x = 0; x < FLDSIZE_X; x++)
-			*p++ = augmentation_string[MIN(field[x][y], len)];
+			*p++ = augmentation_string[MINIMUM(field[x][y], len)];
 		*p++ = '|';
 		*p++ = '\n';
 	}

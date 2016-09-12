@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.286 2016/07/23 02:54:08 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.287 2016/09/12 01:22:38 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -61,7 +61,6 @@
 
 #include "includes.h"
 
-#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_STAT_H
@@ -672,16 +671,16 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		server_alive_time = now + options.server_alive_interval;
 	}
 	if (options.rekey_interval > 0 && compat20 && !rekeying)
-		timeout_secs = MIN(timeout_secs, packet_get_rekey_timeout());
+		timeout_secs = MINIMUM(timeout_secs, packet_get_rekey_timeout());
 	set_control_persist_exit_time();
 	if (control_persist_exit_time > 0) {
-		timeout_secs = MIN(timeout_secs,
+		timeout_secs = MINIMUM(timeout_secs,
 			control_persist_exit_time - now);
 		if (timeout_secs < 0)
 			timeout_secs = 0;
 	}
 	if (minwait_secs != 0)
-		timeout_secs = MIN(timeout_secs, (int)minwait_secs);
+		timeout_secs = MINIMUM(timeout_secs, (int)minwait_secs);
 	if (timeout_secs == INT_MAX)
 		tvp = NULL;
 	else {
@@ -1553,7 +1552,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	buffer_high = 64 * 1024;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
-	max_fd = MAX(connection_in, connection_out);
+	max_fd = MAXIMUM(connection_in, connection_out);
 
 	if (!compat20) {
 		/* enable nonblocking unless tty */
@@ -1563,9 +1562,9 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			set_nonblock(fileno(stdout));
 		if (!isatty(fileno(stderr)))
 			set_nonblock(fileno(stderr));
-		max_fd = MAX(max_fd, fileno(stdin));
-		max_fd = MAX(max_fd, fileno(stdout));
-		max_fd = MAX(max_fd, fileno(stderr));
+		max_fd = MAXIMUM(max_fd, fileno(stdin));
+		max_fd = MAXIMUM(max_fd, fileno(stdout));
+		max_fd = MAXIMUM(max_fd, fileno(stderr));
 	}
 	quit_pending = 0;
 	escape_char1 = escape_char_arg;

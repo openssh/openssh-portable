@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.236 2016/09/06 09:22:56 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.237 2016/09/12 01:22:38 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -38,8 +38,7 @@
  */
 
 #include "includes.h"
- 
-#include <sys/param.h>	/* MIN roundup */
+
 #include <sys/types.h>
 #include "openbsd-compat/sys-queue.h"
 #include <sys/socket.h>
@@ -1069,7 +1068,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	else
 		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
 	if (state->rekey_limit)
-		*max_blocks = MIN(*max_blocks,
+		*max_blocks = MINIMUM(*max_blocks,
 		    state->rekey_limit / enc->block_size);
 	debug("rekey after %llu blocks", (unsigned long long)*max_blocks);
 	return 0;
@@ -1112,7 +1111,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 		return 1;
 
 	/* Rekey after (cipher-specific) maxiumum blocks */
-	out_blocks = roundup(outbound_packet_len,
+	out_blocks = ROUNDUP(outbound_packet_len,
 	    state->newkeys[MODE_OUT]->enc.block_size);
 	return (state->max_blocks_out &&
 	    (state->p_send.blocks + out_blocks > state->max_blocks_out)) ||
@@ -1240,7 +1239,7 @@ ssh_packet_send2_wrapped(struct ssh *ssh)
 	if (state->extra_pad) {
 		tmp = state->extra_pad;
 		state->extra_pad =
-		    roundup(state->extra_pad, block_size);
+		    ROUNDUP(state->extra_pad, block_size);
 		/* check if roundup overflowed */
 		if (state->extra_pad < tmp)
 			return SSH_ERR_INVALID_ARGUMENT;

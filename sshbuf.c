@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.6 2016/01/12 23:42:54 djm Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.7 2016/09/12 01:22:38 deraadt Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -18,7 +18,6 @@
 #define SSHBUF_INTERNAL
 #include "includes.h"
 
-#include <sys/param.h>	/* roundup */
 #include <sys/types.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -27,6 +26,7 @@
 
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "misc.h"
 
 static inline int
 sshbuf_check_sanity(const struct sshbuf *buf)
@@ -250,7 +250,7 @@ sshbuf_set_max_size(struct sshbuf *buf, size_t max_size)
 		if (buf->size < SSHBUF_SIZE_INIT)
 			rlen = SSHBUF_SIZE_INIT;
 		else
-			rlen = roundup(buf->size, SSHBUF_SIZE_INC);
+			rlen = ROUNDUP(buf->size, SSHBUF_SIZE_INC);
 		if (rlen > max_size)
 			rlen = max_size;
 		explicit_bzero(buf->d + buf->size, buf->alloc - buf->size);
@@ -340,7 +340,7 @@ sshbuf_reserve(struct sshbuf *buf, size_t len, u_char **dpp)
 		 * allocate less if doing so would overflow max_size.
 		 */
 		need = len + buf->size - buf->alloc;
-		rlen = roundup(buf->alloc + need, SSHBUF_SIZE_INC);
+		rlen = ROUNDUP(buf->alloc + need, SSHBUF_SIZE_INC);
 		SSHBUF_DBG(("need %zu initial rlen %zu", need, rlen));
 		if (rlen > buf->max_size)
 			rlen = buf->alloc + need;
