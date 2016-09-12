@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.120 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: kex.c,v 1.121 2016/09/12 23:31:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -340,13 +340,20 @@ static int
 kex_send_ext_info(struct ssh *ssh)
 {
 	int r;
+	char *algs;
 
+	if ((algs = sshkey_alg_list(0, 1, ',')) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshpkt_start(ssh, SSH2_MSG_EXT_INFO)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, 1)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, "server-sig-algs")) != 0 ||
-	    (r = sshpkt_put_cstring(ssh, "rsa-sha2-256,rsa-sha2-512")) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, algs)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
-		return r;
+		goto out;
+	/* success */
+	r = 0;
+ out:
+	free(algs);
 	return 0;
 }
 

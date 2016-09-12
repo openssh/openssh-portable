@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.445 2016/07/17 04:20:16 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.446 2016/09/12 23:31:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -685,11 +685,11 @@ main(int ac, char **av)
 			else if (strcmp(optarg, "kex") == 0)
 				cp = kex_alg_list('\n');
 			else if (strcmp(optarg, "key") == 0)
-				cp = key_alg_list(0, 0);
+				cp = sshkey_alg_list(0, 0, '\n');
 			else if (strcmp(optarg, "key-cert") == 0)
-				cp = key_alg_list(1, 0);
+				cp = sshkey_alg_list(1, 0, '\n');
 			else if (strcmp(optarg, "key-plain") == 0)
-				cp = key_alg_list(0, 1);
+				cp = sshkey_alg_list(0, 1, '\n');
 			else if (strcmp(optarg, "protocol-version") == 0) {
 #ifdef WITH_SSH1
 				cp = xstrdup("1\n2");

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.37 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: sshkey.c,v 1.38 2016/09/12 23:31:27 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -195,7 +195,7 @@ sshkey_ecdsa_nid_from_name(const char *name)
 }
 
 char *
-key_alg_list(int certs_only, int plain_only)
+sshkey_alg_list(int certs_only, int plain_only, char sep)
 {
 	char *tmp, *ret = NULL;
 	size_t nlen, rlen = 0;
@@ -207,7 +207,7 @@ key_alg_list(int certs_only, int plain_only)
 		if ((certs_only && !kt->cert) || (plain_only && kt->cert))
 			continue;
 		if (ret != NULL)
-			ret[rlen++] = '\n';
+			ret[rlen++] = sep;
 		nlen = strlen(kt->name);
 		if ((tmp = realloc(ret, rlen + nlen + 2)) == NULL) {
 			free(ret);
