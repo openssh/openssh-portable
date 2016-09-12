@@ -155,11 +155,11 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 		error("SETPGRP %s",strerror(errno));
 #endif /* NEED_SETPGRP */
 	fd = open(tty, O_RDWR);
-	if (fd < 0) {
+	if (fd < 0)
 		error("%.100s: %.100s", tty, strerror(errno));
-	} else {
+	else
 		close(fd);
-	}
+
 	/* Verify that we now have a controlling tty. */
 	fd = open(_PATH_TTY, O_WRONLY);
 	if (fd < 0)
