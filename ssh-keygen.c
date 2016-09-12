@@ -2448,13 +2448,6 @@ main(int argc, char **argv)
 			break;
 #ifdef WITH_OPENSSL
 		/* Moduli generation/screening */
-		case 'W':
-			generator_wanted = (u_int32_t)strtonum(optarg, 1,
-			    UINT_MAX, &errstr);
-			if (errstr)
-				fatal("Desired generator has bad value: %s (%s)",
-					optarg, errstr);
-			break;
 		case 'G':
 			do_gen_candidates = 1;
 			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
@@ -2488,6 +2481,13 @@ main(int argc, char **argv)
 			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
 			    sizeof(out_file))
 				fatal("Output filename too long");
+			break;
+		case 'W':
+			generator_wanted = (u_int32_t)strtonum(optarg, 1,
+			    UINT_MAX, &errstr);
+			if (errstr)
+				fatal("Desired generator has bad value: %s (%s)",
+					optarg, errstr);
 			break;
 #endif /* WITH_OPENSSL */
 		case '?':
