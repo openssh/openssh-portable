@@ -2455,11 +2455,6 @@ main(int argc, char **argv)
 				fatal("Desired generator has bad value: %s (%s)",
 					optarg, errstr);
 			break;
-		case 'M':
-			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
-			if (errstr)
-				fatal("Memory limit is %s: %s", errstr, optarg);
-			break;
 		case 'G':
 			do_gen_candidates = 1;
 			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
@@ -2482,6 +2477,12 @@ main(int argc, char **argv)
 			if (strlen(optarg) >= PATH_MAX)
 				fatal("Checkpoint filename too long");
 			checkpoint = xstrdup(optarg);
+			break;
+		case 'M':
+			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX,
+			    &errstr);
+			if (errstr)
+				fatal("Memory limit is %s: %s", errstr, optarg);
 			break;
 		case 'S':
 			/* XXX - also compare length against bits */
