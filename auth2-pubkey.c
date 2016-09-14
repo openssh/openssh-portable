@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.55 2016/01/27 00:53:12 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.56 2016/09/14 05:42:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -560,7 +560,7 @@ match_principals_option(const char *principal_list, struct sshkey_cert *cert)
 
 static int
 process_principals(FILE *f, char *file, struct passwd *pw,
-    struct sshkey_cert *cert)
+    const struct sshkey_cert *cert)
 {
 	char line[SSH_MAX_PUBKEY_BYTES], *cp, *ep, *line_opts;
 	u_long linenum = 0;
@@ -629,14 +629,16 @@ match_principals_file(char *file, struct passwd *pw, struct sshkey_cert *cert)
  * returns 1 if the principal is allowed or 0 otherwise.
  */
 static int
-match_principals_command(struct passwd *user_pw, struct sshkey_cert *cert)
+match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 {
+	const struct sshkey_cert *cert = key->cert;
 	FILE *f = NULL;
-	int ok, found_principal = 0;
+	int r, ok, found_principal = 0;
 	struct passwd *pw;
 	int i, ac = 0, uid_swapped = 0;
 	pid_t pid;
 	char *tmp, *username = NULL, *command = NULL, **av = NULL;
+	char *ca_fp = NULL, *key_fp = NULL, *catext = NULL, *keytext = NULL;
 	void (*osigchld)(int);
 
 	if (options.authorized_principals_command == NULL)
@@ -674,10 +676,34 @@ match_principals_command(struct passwd *user_pw, struct sshkey_cert *cert)
 		    command);
 		goto out;
 	}
+	if ((ca_fp = sshkey_fingerprint(cert->signature_key,
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
+		error("%s: sshkey_fingerprint failed", __func__);
+		goto out;
+	}
+	if ((key_fp = sshkey_fingerprint(cert->signature_key,
+	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
+		error("%s: sshkey_fingerprint failed", __func__);
+		goto out;
+	}
+	if ((r = sshkey_to_base64(cert->signature_key, &catext)) != 0) {
+		error("%s: sshkey_to_base64 failed: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if ((r = sshkey_to_base64(key, &keytext)) != 0) {
+		error("%s: sshkey_to_base64 failed: %s", __func__, ssh_err(r));
+		goto out;
+	}
 	for (i = 1; i < ac; i++) {
 		tmp = percent_expand(av[i],
 		    "u", user_pw->pw_name,
 		    "h", user_pw->pw_dir,
+		    "t", sshkey_ssh_name(key),
+		    "T", sshkey_ssh_name(cert->signature_key),
+		    "f", key_fp,
+		    "F", ca_fp,
+		    "k", keytext,
+		    "K", catext,
 		    (char *)NULL);
 		if (tmp == NULL)
 			fatal("%s: percent_expand failed", __func__);
@@ -712,6 +738,10 @@ match_principals_command(struct passwd *user_pw, struct sshkey_cert *cert)
 		restore_uid();
 	free(command);
 	free(username);
+	free(ca_fp);
+	free(key_fp);
+	free(catext);
+	free(keytext);
 	return found_principal;
 }
 /*
@@ -863,7 +893,7 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 			found_principal = 1;
 	}
 	/* Try querying command if specified */
-	if (!found_principal && match_principals_command(pw, key->cert))
+	if (!found_principal && match_principals_command(pw, key))
 		found_principal = 1;
 	/* If principals file or command is specified, then require a match */
 	use_authorized_principals = principals_file != NULL ||
