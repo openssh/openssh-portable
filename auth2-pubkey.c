@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.56 2016/09/14 05:42:25 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.57 2016/09/14 20:11:26 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -681,7 +681,7 @@ match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 		error("%s: sshkey_fingerprint failed", __func__);
 		goto out;
 	}
-	if ((key_fp = sshkey_fingerprint(cert->signature_key,
+	if ((key_fp = sshkey_fingerprint(key,
 	    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL) {
 		error("%s: sshkey_fingerprint failed", __func__);
 		goto out;
