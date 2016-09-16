@@ -1,4 +1,4 @@
-/* 	$OpenBSD: kexfuzz.c,v 1.1 2016/03/04 02:30:37 djm Exp $ */
+/* 	$OpenBSD: kexfuzz.c,v 1.2 2016/09/16 01:01:41 djm Exp $ */
 /*
  * Fuzz harness for KEX code
  *
@@ -231,12 +231,17 @@ do_kex_with_key(const char *kex, struct sshkey *prvkey, int *c2s, int *s2c,
 	sshbuf_free(state);
 	ASSERT_PTR_NE(server2->kex, NULL);
 	/* XXX we need to set the callbacks */
+#ifdef WITH_OPENSSL
 	server2->kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
 	server2->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
+	server2->kex->kex[KEX_DH_GRP14_SHA256] = kexdh_server;
+	server2->kex->kex[KEX_DH_GRP16_SHA512] = kexdh_server;
+	server2->kex->kex[KEX_DH_GRP18_SHA512] = kexdh_server;
 	server2->kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	server2->kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
-#ifdef OPENSSL_HAS_ECC
+# ifdef OPENSSL_HAS_ECC
 	server2->kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+# endif
 #endif
 	server2->kex->kex[KEX_C25519_SHA256] = kexc25519_server;
 	server2->kex->load_host_public_key = server->kex->load_host_public_key;
