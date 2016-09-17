@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.287 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: clientloop.c,v 1.288 2016/09/17 18:00:27 tedu Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -311,7 +311,7 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 	char xauthfile[PATH_MAX], xauthdir[PATH_MAX];
 	static char proto[512], data[512];
 	FILE *f;
-	int got_data = 0, generated = 0, do_unlink = 0, i, r;
+	int got_data = 0, generated = 0, do_unlink = 0, r;
 	struct stat st;
 	u_int now, x11_timeout_real;
 
@@ -438,17 +438,16 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 	 * for the local connection.
 	 */
 	if (!got_data) {
-		u_int32_t rnd = 0;
+		u_int8_t rnd[16];
+		u_int i;
 
 		logit("Warning: No xauth data; "
 		    "using fake authentication data for X11 forwarding.");
 		strlcpy(proto, SSH_X11_PROTO, sizeof proto);
-		for (i = 0; i < 16; i++) {
-			if (i % 4 == 0)
-				rnd = arc4random();
+		arc4random_buf(rnd, sizeof(rnd));
+		for (i = 0; i < sizeof(rnd); i++) {
 			snprintf(data + 2 * i, sizeof data - 2 * i, "%02x",
-			    rnd & 0xff);
-			rnd >>= 8;
+			    rnd[i]);
 		}
 	}
 
