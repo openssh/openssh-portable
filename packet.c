@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.237 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.238 2016/09/19 19:02:19 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1907,9 +1907,7 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			return r;
 		return SSH_ERR_PROTOCOL_ERROR;
 	}
-	if (*typep == SSH2_MSG_NEWKEYS)
-		r = ssh_set_newkeys(ssh, MODE_IN);
-	else if (*typep == SSH2_MSG_USERAUTH_SUCCESS && !state->server_side)
+	if (*typep == SSH2_MSG_USERAUTH_SUCCESS && !state->server_side)
 		r = ssh_packet_enable_delayed_compress(ssh);
 	else
 		r = 0;
