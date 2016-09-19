@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.352 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.353 2016/09/19 07:52:42 natano Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4215,7 +4215,6 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	char *new_data;
 	int screen_number;
 	const char *cp;
-	u_int32_t rnd = 0;
 
 	if (x11_saved_display == NULL)
 		x11_saved_display = xstrdup(disp);
@@ -4236,23 +4235,20 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	if (x11_saved_proto == NULL) {
 		/* Save protocol name. */
 		x11_saved_proto = xstrdup(proto);
-		/*
-		 * Extract real authentication data and generate fake data
-		 * of the same length.
-		 */
+
+		/* Extract real authentication data. */
 		x11_saved_data = xmalloc(data_len);
-		x11_fake_data = xmalloc(data_len);
 		for (i = 0; i < data_len; i++) {
 			if (sscanf(data + 2 * i, "%2x", &value) != 1)
 				fatal("x11_request_forwarding: bad "
 				    "authentication data: %.100s", data);
-			if (i % 4 == 0)
-				rnd = arc4random();
 			x11_saved_data[i] = value;
-			x11_fake_data[i] = rnd & 0xff;
-			rnd >>= 8;
 		}
 		x11_saved_data_len = data_len;
+
+		/* Generate fake data of the same length. */
+		x11_fake_data = xmalloc(data_len);
+		arc4random_buf(x11_fake_data, data_len);
 		x11_fake_data_len = data_len;
 	}
 
