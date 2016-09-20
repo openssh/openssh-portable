@@ -354,7 +354,7 @@ kex_send_ext_info(struct ssh *ssh)
 	r = 0;
  out:
 	free(algs);
-	return 0;
+	return r;
 }
 
 int
