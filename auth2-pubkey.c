@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.57 2016/09/14 20:11:26 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.58 2016/09/21 01:34:45 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -639,6 +639,7 @@ match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 	pid_t pid;
 	char *tmp, *username = NULL, *command = NULL, **av = NULL;
 	char *ca_fp = NULL, *key_fp = NULL, *catext = NULL, *keytext = NULL;
+	char serial_s[16];
 	void (*osigchld)(int);
 
 	if (options.authorized_principals_command == NULL)
@@ -694,6 +695,7 @@ match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 		error("%s: sshkey_to_base64 failed: %s", __func__, ssh_err(r));
 		goto out;
 	}
+	snprintf(serial_s, sizeof(serial_s), "%llu", cert->serial);
 	for (i = 1; i < ac; i++) {
 		tmp = percent_expand(av[i],
 		    "u", user_pw->pw_name,
@@ -704,6 +706,8 @@ match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 		    "F", ca_fp,
 		    "k", keytext,
 		    "K", catext,
+		    "i", cert->key_id,
+		    "s", serial_s,
 		    (char *)NULL);
 		if (tmp == NULL)
 			fatal("%s: percent_expand failed", __func__);

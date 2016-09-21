@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.232 2016/09/14 05:42:25 djm Exp $
-.Dd $Mdocdate: September 14 2016 $
+.\" $OpenBSD: sshd_config.5,v 1.233 2016/09/21 01:34:45 djm Exp $
+.Dd $Mdocdate: September 21 2016 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -306,14 +306,16 @@ Arguments to
 may be provided using the following tokens, which will be expanded
 at runtime:
 %% is replaced by a literal '%',
-%u is replaced by the username being authenticated,
-%h is replaced by the home directory of the user being authenticated,
-%t is replaced with type of the certificate being offered,
-%T with the type of the CA key,
-%f is replaced with certificate fingerprint,
 %F with the fingerprint of the CA key,
-%k is replaced with the full base-64 encoded certificate and
+%f is replaced with certificate fingerprint,
 %K is replaced with the base-64 encoded CA key.
+%k is replaced with the full base-64 encoded certificate,
+%h is replaced with the home directory of the user being authenticated,
+%i is replaced with key ID in the certificate,
+%s is replaced with the serial number of the certificate,
+%T with the type of the CA key,
+%t is replaced with type of the certificate being offered, and
+%u is replaced by the username being authenticated,
 If no arguments are specified then the username of the target user
 will be supplied.
 .Pp
