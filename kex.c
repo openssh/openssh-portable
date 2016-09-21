@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.122 2016/09/19 19:02:19 markus Exp $ */
+/* $OpenBSD: kex.c,v 1.123 2016/09/21 19:53:12 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -354,7 +354,7 @@ kex_send_ext_info(struct ssh *ssh)
 	r = 0;
  out:
 	free(algs);
-	return 0;
+	return r;
 }
 
 int
