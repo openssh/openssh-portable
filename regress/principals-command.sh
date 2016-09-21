@@ -1,4 +1,4 @@
-#	$OpenBSD: principals-command.sh,v 1.1 2015/05/21 06:44:25 djm Exp $
+#	$OpenBSD: principals-command.sh,v 1.2 2016/09/21 01:35:12 djm Exp $
 #	Placed in the Public Domain.
 
 tid="authorized principals command"
@@ -12,12 +12,36 @@ if test -z "$SUDO" ; then
 	exit 0
 fi
 
+SERIAL=$$
+
+# Create a CA key and a user certificate.
+${SSHKEYGEN} -q -N '' -t ed25519  -f $OBJ/user_ca_key || \
+	fatal "ssh-keygen of user_ca_key failed"
+${SSHKEYGEN} -q -N '' -t rsa -f $OBJ/cert_user_key || \
+	fatal "ssh-keygen of cert_user_key failed"
+${SSHKEYGEN} -q -s $OBJ/user_ca_key -I "Joanne User" \
+    -z $$ -n ${USER},mekmitasdigoat $OBJ/cert_user_key || \
+	fatal "couldn't sign cert_user_key"
+
+CERT_BODY=`cat $OBJ/cert_user_key-cert.pub | awk '{ print $2 }'`
+CA_BODY=`cat $OBJ/user_ca_key.pub | awk '{ print $2 }'`
+CERT_FP=`${SSHKEYGEN} -lf $OBJ/cert_user_key-cert.pub | awk '{ print $2 }'`
+CA_FP=`${SSHKEYGEN} -lf $OBJ/user_ca_key.pub | awk '{ print $2 }'`
+
 # Establish a AuthorizedPrincipalsCommand in /var/run where it will have
 # acceptable directory permissions.
 PRINCIPALS_CMD="/var/run/principals_command_${LOGNAME}"
 cat << _EOF | $SUDO sh -c "cat > '$PRINCIPALS_CMD'"
 #!/bin/sh
 test "x\$1" != "x${LOGNAME}" && exit 1
+test "x\$2" != "xssh-rsa-cert-v01@openssh.com" && exit 1
+test "x\$3" != "xssh-ed25519" && exit 1
+test "x\$4" != "xJoanne User" && exit 1
+test "x\$5" != "x${SERIAL}" && exit 1
+test "x\$6" != "x${CA_FP}" && exit 1
+test "x\$7" != "x${CERT_FP}" && exit 1
+test "x\$8" != "x${CERT_BODY}" && exit 1
+test "x\$9" != "x${CA_BODY}" && exit 1
 test -f "$OBJ/authorized_principals_${LOGNAME}" &&
 	exec cat "$OBJ/authorized_principals_${LOGNAME}"
 _EOF
@@ -31,15 +55,6 @@ if ! $OBJ/check-perm -m keys-command $PRINCIPALS_CMD ; then
 	exit 0
 fi
 
-# Create a CA key and a user certificate.
-${SSHKEYGEN} -q -N '' -t ed25519  -f $OBJ/user_ca_key || \
-	fatal "ssh-keygen of user_ca_key failed"
-${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/cert_user_key || \
-	fatal "ssh-keygen of cert_user_key failed"
-${SSHKEYGEN} -q -s $OBJ/user_ca_key -I "regress user key for $USER" \
-    -z $$ -n ${USER},mekmitasdigoat $OBJ/cert_user_key || \
-	fatal "couldn't sign cert_user_key"
-
 if [ -x $PRINCIPALS_CMD ]; then
 	# Test explicitly-specified principals
 	for privsep in yes no ; do
@@ -51,7 +66,8 @@ if [ -x $PRINCIPALS_CMD ]; then
 			cat $OBJ/sshd_proxy_bak
 			echo "UsePrivilegeSeparation $privsep"
 			echo "AuthorizedKeysFile none"
-			echo "AuthorizedPrincipalsCommand $PRINCIPALS_CMD %u"
+			echo "AuthorizedPrincipalsCommand $PRINCIPALS_COMMAND" \
+			    "%u %t %T %i %s %F %f %k %K"
 			echo "AuthorizedPrincipalsCommandUser ${LOGNAME}"
 			echo "TrustedUserCAKeys $OBJ/user_ca_key.pub"
 		) > $OBJ/sshd_proxy
