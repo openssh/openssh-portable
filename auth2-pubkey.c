@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.58 2016/09/21 01:34:45 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.59 2016/09/21 17:44:20 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -695,7 +695,8 @@ match_principals_command(struct passwd *user_pw, const struct sshkey *key)
 		error("%s: sshkey_to_base64 failed: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	snprintf(serial_s, sizeof(serial_s), "%llu", cert->serial);
+	snprintf(serial_s, sizeof(serial_s), "%llu",
+	    (unsigned long long)cert->serial);
 	for (i = 1; i < ac; i++) {
 		tmp = percent_expand(av[i],
 		    "u", user_pw->pw_name,
