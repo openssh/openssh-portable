@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.234 2016/09/22 17:55:13 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.235 2016/09/22 19:19:01 jmc Exp $
 .Dd $Mdocdate: September 22 2016 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -240,22 +240,21 @@ of a single authentication method is sufficient.
 Specifies a program to be used to look up the user's public keys.
 The program must be owned by root, not writable by group or others and
 specified by an absolute path.
-.Pp
 Arguments to
 .Cm AuthorizedKeysCommand
-may be provided using the following tokens, which will be expanded
-at runtime: %% is replaced by a literal '%', %u is replaced by the
-username being authenticated, %h is replaced by the home directory
-of the user being authenticated, %t is replaced with the key type
-offered for authentication, %f is replaced with the fingerprint of
-the key, and %k is replaced with the key being offered for authentication.
-If no arguments are specified then the username of the target user
-will be supplied.
+accept the tokens described in the
+.Sx TOKENS
+section.
+If no arguments are specified then the username of the target user is used.
 .Pp
 The program should produce on standard output zero or
-more lines of authorized_keys output (see AUTHORIZED_KEYS in
+more lines of authorized_keys output (see
+.Sx AUTHORIZED_KEYS
+in
 .Xr sshd 8 ) .
-If a key supplied by AuthorizedKeysCommand does not successfully authenticate
+If a key supplied by
+.Cm AuthorizedKeysCommand
+does not successfully authenticate
 and authorize the user then public key authentication continues using the usual
 .Cm AuthorizedKeysFile
 files.
@@ -272,18 +271,16 @@ is not, then
 .Xr sshd 8
 will refuse to start.
 .It Cm AuthorizedKeysFile
-Specifies the file that contains the public keys that can be used
-for user authentication.
+Specifies the file that contains the public keys used for user authentication.
 The format is described in the
-AUTHORIZED_KEYS FILE FORMAT
+.Sx AUTHORIZED_KEYS FILE FORMAT
 section of
 .Xr sshd 8 .
+Arguments to
 .Cm AuthorizedKeysFile
-may contain tokens of the form %T which are substituted during connection
-setup.
-The following tokens are defined: %% is replaced by a literal '%',
-%h is replaced by the home directory of the user being authenticated, and
-%u is replaced by the username of that user.
+accept the tokens described in the
+.Sx TOKENS
+section.
 After expansion,
 .Cm AuthorizedKeysFile
 is taken to be an absolute path or one relative to the user's home
@@ -300,24 +297,12 @@ certificate principals as per
 .Cm AuthorizedPrincipalsFile .
 The program must be owned by root, not writable by group or others and
 specified by an absolute path.
-.Pp
 Arguments to
 .Cm AuthorizedPrincipalsCommand
-may be provided using the following tokens, which will be expanded
-at runtime:
-%% is replaced by a literal '%',
-%F with the fingerprint of the CA key,
-%f is replaced with certificate fingerprint,
-%K is replaced with the base-64 encoded CA key.
-%k is replaced with the full base-64 encoded certificate,
-%h is replaced with the home directory of the user being authenticated,
-%i is replaced with key ID in the certificate,
-%s is replaced with the serial number of the certificate,
-%T with the type of the CA key,
-%t is replaced with type of the certificate being offered, and
-%u is replaced by the username being authenticated,
-If no arguments are specified then the username of the target user
-will be supplied.
+accept the tokens described in the
+.Sx TOKENS
+section.
+If no arguments are specified then the username of the target user is used.
 .Pp
 The program should produce on standard output zero or
 more lines of
@@ -329,9 +314,13 @@ or
 .Cm AuthorizedPrincipalsFile
 is specified, then certificates offered by the client for authentication
 must contain a principal that is listed.
-By default, no AuthorizedPrincipalsCommand is run.
+By default, no
+.Cm AuthorizedPrincipalsCommand
+is run.
 .It Cm AuthorizedPrincipalsCommandUser
-Specifies the user under whose account the AuthorizedPrincipalsCommand is run.
+Specifies the user under whose account the
+.Cm AuthorizedPrincipalsCommand
+is run.
 It is recommended to use a dedicated user that has no other role on the host
 than running authorized principals commands.
 If
@@ -348,29 +337,28 @@ When using certificates signed by a key listed in
 .Cm TrustedUserCAKeys ,
 this file lists names, one of which must appear in the certificate for it
 to be accepted for authentication.
-Names are listed one per line preceded by key options (as described
-in AUTHORIZED_KEYS FILE FORMAT in
+Names are listed one per line preceded by key options (as described in
+.Sx AUTHORIZED_KEYS FILE FORMAT
+in
 .Xr sshd 8 ) .
 Empty lines and comments starting with
 .Ql #
 are ignored.
 .Pp
+Arguments to
 .Cm AuthorizedPrincipalsFile
-may contain tokens of the form %T which are substituted during connection
-setup.
-The following tokens are defined: %% is replaced by a literal '%',
-%h is replaced by the home directory of the user being authenticated, and
-%u is replaced by the username of that user.
+accept the tokens described in the
+.Sx TOKENS
+section.
 After expansion,
 .Cm AuthorizedPrincipalsFile
-is taken to be an absolute path or one relative to the user's home
-directory.
-.Pp
+is taken to be an absolute path or one relative to the user's home directory.
 The default is
 .Dq none ,
 i.e. not to use a principals file \(en in this case, the username
 of the user must appear in a certificate's principals list for it to be
 accepted.
+.Pp
 Note that
 .Cm AuthorizedPrincipalsFile
 is only used when authentication proceeds using a CA listed in
@@ -406,11 +394,11 @@ which are not writable by any other user or group.
 After the chroot,
 .Xr sshd 8
 changes the working directory to the user's home directory.
-.Pp
-The pathname may contain the following tokens that are expanded at runtime once
-the connecting user has been authenticated: %% is replaced by a literal '%',
-%h is replaced by the home directory of the user being authenticated, and
-%u is replaced by the username of that user.
+Arguments to
+.Cm ChrootDirectory
+accept the tokens described in the
+.Sx TOKENS
+section.
 .Pp
 The
 .Cm ChrootDirectory
@@ -1665,6 +1653,50 @@ Time format examples:
 .It 1h30m
 1 hour 30 minutes (90 minutes)
 .El
+.Sh TOKENS
+Arguments to some keywords can make use of tokens,
+which are expanded at runtime:
+.Pp
+.Bl -tag -width XXXX -offset indent -compact
+.It %%
+A literal
+.Sq % .
+.It %F
+The fingerprint of the CA key.
+.It %f
+The fingerprint of the key or certificate.
+.It %h
+The home directory of the user.
+.It %i
+The key ID in the certificate.
+.It %K
+The base64-encoded CA key.
+.It %k
+The base64-encoded key or certificate for authentication.
+.It %s
+The serial number of the certificate.
+.It \&%T
+The type of the CA key.
+.It %t
+The key or certificate type.
+.It %u
+The username.
+.El
+.Pp
+.Cm AuthorizedKeysCommand
+accepts the tokens %%, %f, %h, %t, and %u.
+.Pp
+.Cm AuthorizedKeysFile
+accepts the tokens %%, %h, and %u.
+.Pp
+.Cm AuthorizedPrincipalsCommand
+accepts the tokens %%, %F, %f, %K, %k, %h, %i, %s, %T, %t, and %u.
+.Pp
+.Cm AuthorizedPrincipalsFile
+accepts the tokens %%, %h, and %u.
+.Pp
+.Cm ChrootDirectory
+accepts the tokens %%, %h, and %u.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa /etc/ssh/sshd_config
