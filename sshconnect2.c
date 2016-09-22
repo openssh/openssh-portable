@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.247 2016/07/22 05:46:11 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.248 2016/09/22 02:29:57 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -404,6 +404,8 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	pubkey_cleanup(&authctxt);
 	ssh_dispatch_range(ssh, SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
 
+	if (!authctxt.success)
+		fatal("Authentication failed.");
 	debug("Authentication succeeded (%s).", authctxt.method->name);
 }
 
