@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.52 2016/09/05 14:02:42 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.53 2016/09/22 17:52:53 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -84,7 +84,9 @@
 
 #ifdef WITH_OPENSSL
 # ifdef HAVE_EVP_SHA256
-#  define KEX_CURVE25519_METHODS "curve25519-sha256@libssh.org,"
+#  define KEX_CURVE25519_METHODS \
+	"curve25519-sha256," \
+	"curve25519-sha256@libssh.org,"
 # else
 #  define KEX_CURVE25519_METHODS ""
 # endif
@@ -139,6 +141,7 @@
 #else /* WITH_OPENSSL */
 
 #define KEX_SERVER_KEX		\
+	"curve25519-sha256," \
 	"curve25519-sha256@libssh.org"
 #define	KEX_DEFAULT_PK_ALG	\
 	"ssh-ed25519-cert-v01@openssh.com," \
