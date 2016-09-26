@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.38 2016/09/12 23:31:27 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.39 2016/09/26 21:16:11 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -887,9 +887,12 @@ sshkey_fingerprint_raw(const struct sshkey *k, int dgst_alg,
 		int nlen = BN_num_bytes(k->rsa->n);
 		int elen = BN_num_bytes(k->rsa->e);
 
+		if (nlen < 0 || elen < 0 || nlen >= INT_MAX - elen) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
 		blob_len = nlen + elen;
-		if (nlen >= INT_MAX - elen ||
-		    (blob = malloc(blob_len)) == NULL) {
+		if ((blob = malloc(blob_len)) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
