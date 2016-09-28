@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.296 2016/09/28 16:33:07 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.297 2016/09/28 20:32:42 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -920,8 +920,8 @@ static const struct multistate multistate_permitrootlogin[] = {
 	{ NULL, -1 }
 };
 static const struct multistate multistate_compression[] = {
-	{ "delayed",			COMP_DELAYED },
 	{ "yes",			COMP_DELAYED },
+	{ "delayed",			COMP_DELAYED },
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }
 };
