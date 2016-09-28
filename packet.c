@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.238 2016/09/19 19:02:19 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.239 2016/09/28 16:33:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -754,86 +754,6 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 		}
 	}
 	/* NOTREACHED */
-}
-
-/* Serialise compression state into a blob for privsep */
-static int
-ssh_packet_get_compress_state(struct sshbuf *m, struct ssh *ssh)
-{
-	struct session_state *state = ssh->state;
-	struct sshbuf *b;
-	int r;
-
-	if ((b = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if (state->compression_in_started) {
-		if ((r = sshbuf_put_string(b, &state->compression_in_stream,
-		    sizeof(state->compression_in_stream))) != 0)
-			goto out;
-	} else if ((r = sshbuf_put_string(b, NULL, 0)) != 0)
-		goto out;
-	if (state->compression_out_started) {
-		if ((r = sshbuf_put_string(b, &state->compression_out_stream,
-		    sizeof(state->compression_out_stream))) != 0)
-			goto out;
-	} else if ((r = sshbuf_put_string(b, NULL, 0)) != 0)
-		goto out;
-	r = sshbuf_put_stringb(m, b);
- out:
-	sshbuf_free(b);
-	return r;
-}
-
-/* Deserialise compression state from a blob for privsep */
-static int
-ssh_packet_set_compress_state(struct ssh *ssh, struct sshbuf *m)
-{
-	struct session_state *state = ssh->state;
-	struct sshbuf *b = NULL;
-	int r;
-	const u_char *inblob, *outblob;
-	size_t inl, outl;
-
-	if ((r = sshbuf_froms(m, &b)) != 0)
-		goto out;
-	if ((r = sshbuf_get_string_direct(b, &inblob, &inl)) != 0 ||
-	    (r = sshbuf_get_string_direct(b, &outblob, &outl)) != 0)
-		goto out;
-	if (inl == 0)
-		state->compression_in_started = 0;
-	else if (inl != sizeof(state->compression_in_stream)) {
-		r = SSH_ERR_INTERNAL_ERROR;
-		goto out;
-	} else {
-		state->compression_in_started = 1;
-		memcpy(&state->compression_in_stream, inblob, inl);
-	}
-	if (outl == 0)
-		state->compression_out_started = 0;
-	else if (outl != sizeof(state->compression_out_stream)) {
-		r = SSH_ERR_INTERNAL_ERROR;
-		goto out;
-	} else {
-		state->compression_out_started = 1;
-		memcpy(&state->compression_out_stream, outblob, outl);
-	}
-	r = 0;
- out:
-	sshbuf_free(b);
-	return r;
-}
-
-void
-ssh_packet_set_compress_hooks(struct ssh *ssh, void *ctx,
-    void *(*allocfunc)(void *, u_int, u_int),
-    void (*freefunc)(void *, void *))
-{
-	ssh->state->compression_out_stream.zalloc = (alloc_func)allocfunc;
-	ssh->state->compression_out_stream.zfree = (free_func)freefunc;
-	ssh->state->compression_out_stream.opaque = ctx;
-	ssh->state->compression_in_stream.zalloc = (alloc_func)allocfunc;
-	ssh->state->compression_in_stream.zfree = (free_func)freefunc;
-	ssh->state->compression_in_stream.opaque = ctx;
 }
 
 /*
@@ -2450,21 +2370,14 @@ ssh_packet_get_output(struct ssh *ssh)
 static int
 ssh_packet_set_postauth(struct ssh *ssh)
 {
-	struct sshcomp *comp;
-	int r, mode;
+	int r;
 
 	debug("%s: called", __func__);
 	/* This was set in net child, but is not visible in user child */
 	ssh->state->after_authentication = 1;
 	ssh->state->rekeying = 0;
-	for (mode = 0; mode < MODE_MAX; mode++) {
-		if (ssh->state->newkeys[mode] == NULL)
-			continue;
-		comp = &ssh->state->newkeys[mode]->comp;
-		if (comp && comp->enabled &&
-		    (r = ssh_packet_init_compression(ssh)) != 0)
-			return r;
-	}
+	if ((r = ssh_packet_enable_delayed_compress(ssh)) != 0)
+		return r;
 	return 0;
 }
 
@@ -2528,7 +2441,6 @@ newkeys_to_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 			goto out;
 	}
 	if ((r = sshbuf_put_u32(b, comp->type)) != 0 ||
-	    (r = sshbuf_put_u32(b, comp->enabled)) != 0 ||
 	    (r = sshbuf_put_cstring(b, comp->name)) != 0)
 		goto out;
 	r = sshbuf_put_stringb(m, b);
@@ -2589,9 +2501,7 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 		return r;
 	if (cipher_get_keycontext(state->receive_context, p) != (int)rlen)
 		return SSH_ERR_INTERNAL_ERROR;
-
-	if ((r = ssh_packet_get_compress_state(m, ssh)) != 0 ||
-	    (r = sshbuf_put_stringb(m, state->input)) != 0 ||
+	if ((r = sshbuf_put_stringb(m, state->input)) != 0 ||
 	    (r = sshbuf_put_stringb(m, state->output)) != 0)
 		return r;
 
@@ -2645,7 +2555,6 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 		mac->key_len = maclen;
 	}
 	if ((r = sshbuf_get_u32(b, &comp->type)) != 0 ||
-	    (r = sshbuf_get_u32(b, (u_int *)&comp->enabled)) != 0 ||
 	    (r = sshbuf_get_cstring(b, &comp->name, NULL)) != 0)
 		goto out;
 	if (enc->name == NULL ||
@@ -2773,8 +2682,7 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 	cipher_set_keycontext(state->send_context, keyout);
 	cipher_set_keycontext(state->receive_context, keyin);
 
-	if ((r = ssh_packet_set_compress_state(ssh, m)) != 0 ||
-	    (r = ssh_packet_set_postauth(ssh)) != 0)
+	if ((r = ssh_packet_set_postauth(ssh)) != 0)
 		return r;
 
 	sshbuf_reset(state->input);

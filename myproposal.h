@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.53 2016/09/22 17:52:53 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.54 2016/09/28 16:33:07 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -167,7 +167,7 @@
 
 #endif /* WITH_OPENSSL */
 
-#define	KEX_DEFAULT_COMP	"none,zlib@openssh.com,zlib"
+#define	KEX_DEFAULT_COMP	"none,zlib@openssh.com"
 #define	KEX_DEFAULT_LANG	""
 
 #define KEX_CLIENT \

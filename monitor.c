@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.165 2016/09/05 13:57:31 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.166 2016/09/28 16:33:06 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -94,7 +94,6 @@
 #include "misc.h"
 #include "servconf.h"
 #include "monitor.h"
-#include "monitor_mm.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
@@ -409,31 +408,6 @@ monitor_child_postauth(struct monitor *pmonitor)
 
 	for (;;)
 		monitor_read(pmonitor, mon_dispatch, NULL);
-}
-
-void
-monitor_sync(struct monitor *pmonitor)
-{
-	if (options.compression) {
-		/* The member allocation is not visible, so sync it */
-		mm_share_sync(&pmonitor->m_zlib, &pmonitor->m_zback);
-	}
-}
-
-/* Allocation functions for zlib */
-static void *
-mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
-{
-	if (size == 0 || ncount == 0 || ncount > SIZE_MAX / size)
-		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
-
-	return mm_malloc(mm, size * ncount);
-}
-
-static void
-mm_zfree(struct mm_master *mm, void *address)
-{
-	mm_free(mm, address);
 }
 
 static int
@@ -1632,13 +1606,6 @@ monitor_apply_keystate(struct monitor *pmonitor)
 		kex->host_key_index=&get_hostkey_index;
 		kex->sign = sshd_hostkey_sign;
 	}
-
-	/* Update with new address */
-	if (options.compression) {
-		ssh_packet_set_compress_hooks(ssh, pmonitor->m_zlib,
-		    (ssh_packet_comp_alloc_func *)mm_zalloc,
-		    (ssh_packet_comp_free_func *)mm_zfree);
-	}
 }
 
 /* This function requries careful sanity checking */
@@ -1691,23 +1658,10 @@ monitor_openfds(struct monitor *mon, int do_logfds)
 struct monitor *
 monitor_init(void)
 {
-	struct ssh *ssh = active_state;			/* XXX */
 	struct monitor *mon;
 
 	mon = xcalloc(1, sizeof(*mon));
-
 	monitor_openfds(mon, 1);
-
-	/* Used to share zlib space across processes */
-	if (options.compression) {
-		mon->m_zback = mm_create(NULL, MM_MEMSIZE);
-		mon->m_zlib = mm_create(mon->m_zback, 20 * MM_MEMSIZE);
-
-		/* Compression needs to share state across borders */
-		ssh_packet_set_compress_hooks(ssh, mon->m_zlib,
-		    (ssh_packet_comp_alloc_func *)mm_zalloc,
-		    (ssh_packet_comp_free_func *)mm_zfree);
-	}
 
 	return mon;
 }

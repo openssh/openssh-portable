@@ -133,9 +133,6 @@ void	packet_disconnect(const char *, ...)
 	ssh_packet_get_input(active_state)
 #define packet_get_output() \
 	ssh_packet_get_output(active_state)
-#define packet_set_compress_hooks(ctx, allocfunc, freefunc) \
-	ssh_packet_set_compress_hooks(active_state, ctx, \
-	    allocfunc, freefunc);
 #define packet_check_eom() \
 	ssh_packet_check_eom(active_state)
 #define set_newkeys(mode) \
