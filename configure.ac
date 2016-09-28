@@ -1137,7 +1137,6 @@ mips-sony-bsd|mips-sony-newsos4)
 
 *-*-ultrix*)
 	AC_DEFINE([BROKEN_GETGROUPS], [1], [getgroups(0,NULL) will return -1])
-	AC_DEFINE([BROKEN_MMAP], [1], [Ultrix mmap can't map files])
 	AC_DEFINE([NEED_SETPGRP])
 	AC_DEFINE([HAVE_SYS_SYSLOG_H], [1], [Force use of sys/syslog.h on Ultrix])
 	;;
@@ -1708,7 +1707,6 @@ AC_CHECK_FUNCS([ \
 	memmove \
 	memset_s \
 	mkdtemp \
-	mmap \
 	ngetaddrinfo \
 	nsleep \
 	ogetaddrinfo \
