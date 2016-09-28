@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.238 2016/09/22 17:55:13 djm Exp $
-.Dd $Mdocdate: September 22 2016 $
+.\" $OpenBSD: ssh_config.5,v 1.239 2016/09/28 17:59:22 jmc Exp $
+.Dd $Mdocdate: September 28 2016 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -177,24 +177,11 @@ The
 keyword executes the specified command under the user's shell.
 If the command returns a zero exit status then the condition is considered true.
 Commands containing whitespace characters must be quoted.
-The following character sequences in the command will be expanded prior to
-execution:
-.Ql %L
-will be substituted by the first component of the local host name,
-.Ql %l
-will be substituted by the local host name (including any domain name),
-.Ql %h
-will be substituted by the target host name,
-.Ql %n
-will be substituted by the original target host name
-specified on the command-line,
-.Ql %p
-the destination port,
-.Ql %r
-by the remote login username, and
-.Ql %u
-by the username of the user running
-.Xr ssh 1 .
+Arguments to
+.Cm exec
+accept the tokens described in the
+.Sx TOKENS
+section.
 .Pp
 The other keywords' criteria must be single entries or comma-separated
 lists and may use the wildcard and negation operators described in the
@@ -375,19 +362,12 @@ via
 or via a
 .Cm PKCS11Provider .
 .Pp
-The file name may use the tilde
-syntax to refer to a user's home directory or one of the following
-escape characters:
-.Ql %d
-(local user's home directory),
-.Ql %u
-(local user name),
-.Ql %l
-(local host name),
-.Ql %h
-(remote host name) or
-.Ql %r
-(remote user name).
+Arguments to
+.Cm CertificateFile
+may use the tilde syntax to refer to a user's home directory
+or the tokens described in the
+.Sx TOKENS
+section.
 .Pp
 It is possible to have multiple certificate files specified in
 configuration files; these certificates will be tried in sequence.
@@ -591,28 +571,12 @@ in the
 section above or the string
 .Dq none
 to disable connection sharing.
-In the path,
-.Ql %L
-will be substituted by the first component of the local host name,
-.Ql %l
-will be substituted by the local host name (including any domain name),
-.Ql %h
-will be substituted by the target host name,
-.Ql %n
-will be substituted by the original target host name
-specified on the command line,
-.Ql %p
-the destination port,
-.Ql %r
-by the remote login username,
-.Ql %u
-by the username and
-.Ql %i
-by the numeric user ID (uid) of the user running
-.Xr ssh 1 ,
-and
-.Ql \&%C
-by a hash of the concatenation: %l%h%p%r.
+Arguments to
+.Cm ControlPath
+may use the tilde syntax to refer to a user's home directory
+or the tokens described in the
+.Sx TOKENS
+section.
 It is recommended that any
 .Cm ControlPath
 used for opportunistic connection sharing include
@@ -915,20 +879,15 @@ or for multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
-If the hostname contains the character sequence
-.Ql %h ,
-then this will be replaced with the host name specified on the command line
-(this is useful for manipulating unqualified names).
-The character sequence
-.Ql %%
-will be replaced by a single
-.Ql %
-character, which may be used when specifying IPv6 link-local addresses.
-.Pp
-The default is the name given on the command line.
+Arguments to
+.Cm HostName
+accept the tokens described in the
+.Sx TOKENS
+section.
 Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
+The default is the name given on the command line.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
@@ -969,19 +928,12 @@ is specified, the location of the socket will be read from the
 .Ev SSH_AUTH_SOCK
 environment variable.
 .Pp
-The socket name may use the tilde
-syntax to refer to a user's home directory or one of the following
-escape characters:
-.Ql %d
-(local user's home directory),
-.Ql %u
-(local user name),
-.Ql %l
-(local host name),
-.Ql %h
-(remote host name) or
-.Ql %r
-(remote user name).
+Arguments to
+.Cm IdentityAgent
+may use the tilde syntax to refer to a user's home directory
+or the tokens described in the
+.Sx TOKENS
+section.
 .It Cm IdentityFile
 Specifies a file from which the user's DSA, ECDSA, Ed25519 or RSA authentication
 identity is read.
@@ -1007,19 +959,12 @@ appending
 to the path of a specified
 .Cm IdentityFile .
 .Pp
-The file name may use the tilde
-syntax to refer to a user's home directory or one of the following
-escape characters:
-.Ql %d
-(local user's home directory),
-.Ql %u
-(local user name),
-.Ql %l
-(local host name),
-.Ql %h
-(remote host name) or
-.Ql %r
-(remote user name).
+Arguments to
+.Cm IdentityFile
+may use the tilde syntax to refer to a user's home directory
+or the tokens described in the
+.Sx TOKENS
+section.
 .Pp
 It is possible to have
 multiple identity files specified in configuration files; all these
@@ -1151,23 +1096,11 @@ Specifies a command to execute on the local machine after successfully
 connecting to the server.
 The command string extends to the end of the line, and is executed with
 the user's shell.
-The following escape character substitutions will be performed:
-.Ql %d
-(local user's home directory),
-.Ql %h
-(remote host name),
-.Ql %l
-(local host name),
-.Ql %n
-(host name as provided on the command line),
-.Ql %p
-(remote port),
-.Ql %r
-(remote user name) or
-.Ql %u
-(local user name) or
-.Ql \&%C
-by a hash of the concatenation: %l%h%p%r.
+Arguments to
+.Cm LocalCommand
+accept the tokens described in the
+.Sx TOKENS
+section.
 .Pp
 The command is run synchronously and does not have access to the
 session of the
@@ -1325,14 +1258,11 @@ using the user's shell
 .Ql exec
 directive to avoid a lingering shell process.
 .Pp
-In the command string, any occurrence of
-.Ql %h
-will be substituted by the host name to
-connect,
-.Ql %p
-by the port, and
-.Ql %r
-by the remote user name.
+Arguments to
+.Cm ProxyCommand
+accept the tokens described in the
+.Sx TOKENS
+section.
 The command can be basically anything,
 and should read from its standard input and write to its standard output.
 It should eventually connect an
@@ -1846,6 +1776,58 @@ pool,
 the following entry (in authorized_keys) could be used:
 .Pp
 .Dl from=\&"!*.dialup.example.com,*.example.com\&"
+.Sh TOKENS
+Arguments to some keywords can make use of tokens,
+which are expanded at runtime:
+.Pp
+.Bl -tag -width XXXX -offset indent -compact
+.It %%
+A literal
+.Sq % .
+.It \&%C
+Shorthand for %l%h%p%r.
+.It %d
+Local user's home directory.
+.It %h
+The remote hostname.
+.It %i
+The local user ID.
+.It %L
+The local hostname.
+.It %l
+The local hostname, including the domain name.
+.It %n
+The original remote hostname, as given on the command line.
+.It %p
+The remote port.
+.It %r
+The remote username.
+.It %u
+The local username.
+.El
+.Pp
+.Cm Match exec
+accepts the tokens %%, %h, %L, %l, %n, %p, %r, and %u.
+.Pp
+.Cm CertificateFile
+accepts the tokens %%, %d, %h, %l, %r, and %u.
+.Pp
+.Cm ControlPath
+accepts the tokens %%, %C, %h, %i, %L, %l, %n, %p, %r, and %u.
+.Pp
+.Cm HostName
+accepts the tokens %% and %h.
+.Pp
+.Cm IdentityAgent
+and
+.Cm IdentityFile
+accept the tokens %%, %d, %h, %l, %r, and %u.
+.Pp
+.Cm LocalCommand
+accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, and %u.
+.Pp
+.Cm ProxyCommand
+accepts the tokens %%, %h, %p, and %r.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa ~/.ssh/config
