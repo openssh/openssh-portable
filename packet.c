@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.241 2016/09/28 21:44:52 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.242 2016/09/30 09:19:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -204,6 +204,9 @@ struct session_state {
 	/* Used in packet_send2 */
 	int rekeying;
 
+	/* Used in ssh_packet_send_mux() */
+	int mux;
+
 	/* Used in packet_set_interactive */
 	int set_interactive_called;
 
@@ -323,6 +326,19 @@ ssh_packet_set_timeout(struct ssh *ssh, int timeout, int count)
 		state->packet_timeout_ms = INT_MAX;
 	else
 		state->packet_timeout_ms = timeout * count * 1000;
+}
+
+void
+ssh_packet_set_mux(struct ssh *ssh)
+{
+	ssh->state->mux = 1;
+	ssh->state->rekeying = 0;
+}
+
+int
+ssh_packet_get_mux(struct ssh *ssh)
+{
+	return ssh->state->mux;
 }
 
 int
@@ -1078,7 +1094,7 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 }
 
 /* Used to mute debug logging for noisy packet types */
-static int
+int
 ssh_packet_log_type(u_char type)
 {
 	switch (type) {
@@ -1623,6 +1639,44 @@ ssh_packet_read_poll1(struct ssh *ssh, u_char *typep)
 	return r;
 }
 
+static int
+ssh_packet_read_poll2_mux(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
+{
+	struct session_state *state = ssh->state;
+	const u_char *cp;
+	size_t need;
+	int r;
+
+	if (ssh->kex)
+		return SSH_ERR_INTERNAL_ERROR;
+	*typep = SSH_MSG_NONE;
+	cp = sshbuf_ptr(state->input);
+	if (state->packlen == 0) {
+		if (sshbuf_len(state->input) < 4 + 1)
+			return 0; /* packet is incomplete */
+		state->packlen = PEEK_U32(cp);
+		if (state->packlen < 4 + 1 ||
+		    state->packlen > PACKET_MAX_SIZE)
+			return SSH_ERR_MESSAGE_INCOMPLETE;
+	}
+	need = state->packlen + 4;
+	if (sshbuf_len(state->input) < need)
+		return 0; /* packet is incomplete */
+	sshbuf_reset(state->incoming_packet);
+	if ((r = sshbuf_put(state->incoming_packet, cp + 4,
+	    state->packlen)) != 0 ||
+	    (r = sshbuf_consume(state->input, need)) != 0 ||
+	    (r = sshbuf_get_u8(state->incoming_packet, NULL)) != 0 ||
+	    (r = sshbuf_get_u8(state->incoming_packet, typep)) != 0)
+		return r;
+	if (ssh_packet_log_type(*typep))
+		debug3("%s: type %u", __func__, *typep);
+	/* sshbuf_dump(state->incoming_packet, stderr); */
+	/* reset for next packet */
+	state->packlen = 0;
+	return r;
+}
+
 int
 ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 {
@@ -1634,6 +1688,9 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 	struct sshmac *mac   = NULL;
 	struct sshcomp *comp = NULL;
 	int r;
+
+	if (state->mux)
+		return ssh_packet_read_poll2_mux(ssh, typep, seqnr_p);
 
 	*typep = SSH_MSG_NONE;
 
@@ -2875,11 +2932,43 @@ sshpkt_start(struct ssh *ssh, u_char type)
 	return sshbuf_put(ssh->state->outgoing_packet, buf, len);
 }
 
+static int
+ssh_packet_send_mux(struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+	u_char type, *cp;
+	size_t len;
+	int r;
+
+	if (ssh->kex)
+		return SSH_ERR_INTERNAL_ERROR;
+	len = sshbuf_len(state->outgoing_packet);
+	if (len < 6)
+		return SSH_ERR_INTERNAL_ERROR;
+	cp = sshbuf_mutable_ptr(state->outgoing_packet);
+	type = cp[5];
+	if (ssh_packet_log_type(type))
+		debug3("%s: type %u", __func__, type);
+	/* drop everything, but the connection protocol */
+	if (type >= SSH2_MSG_CONNECTION_MIN &&
+	    type <= SSH2_MSG_CONNECTION_MAX) {
+		POKE_U32(cp, len - 4);
+		if ((r = sshbuf_putb(state->output,
+		    state->outgoing_packet)) != 0)
+			return r;
+		/* sshbuf_dump(state->output, stderr); */
+	}
+	sshbuf_reset(state->outgoing_packet);
+	return 0;
+}
+
 /* send it */
 
 int
 sshpkt_send(struct ssh *ssh)
 {
+	if (ssh->state && ssh->state->mux)
+		return ssh_packet_send_mux(ssh);
 	if (compat20)
 		return ssh_packet_send2(ssh);
 	else

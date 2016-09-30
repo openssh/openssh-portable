@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.288 2016/09/17 18:00:27 tedu Exp $ */
+/* $OpenBSD: clientloop.c,v 1.289 2016/09/30 09:19:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1883,11 +1883,14 @@ client_input_agent_open(int type, u_int32_t seq, void *ctxt)
 }
 
 static Channel *
-client_request_forwarded_tcpip(const char *request_type, int rchan)
+client_request_forwarded_tcpip(const char *request_type, int rchan,
+    u_int rwindow, u_int rmaxpack)
 {
 	Channel *c = NULL;
+	struct sshbuf *b = NULL;
 	char *listen_address, *originator_address;
 	u_short listen_port, originator_port;
+	int r;
 
 	/* Get rest of the packet */
 	listen_address = packet_get_string(NULL);
@@ -1902,6 +1905,31 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	c = channel_connect_by_listen_address(listen_address, listen_port,
 	    "forwarded-tcpip", originator_address);
 
+	if (c != NULL && c->type == SSH_CHANNEL_MUX_CLIENT) {
+		if ((b = sshbuf_new()) == NULL) {
+			error("%s: alloc reply", __func__);
+			goto out;
+		}
+		/* reconstruct and send to muxclient */
+		if ((r = sshbuf_put_u8(b, 0)) != 0 ||	/* padlen */
+		    (r = sshbuf_put_u8(b, SSH2_MSG_CHANNEL_OPEN)) != 0 ||
+		    (r = sshbuf_put_cstring(b, request_type)) != 0 ||
+		    (r = sshbuf_put_u32(b, rchan)) != 0 ||
+		    (r = sshbuf_put_u32(b, rwindow)) != 0 ||
+		    (r = sshbuf_put_u32(b, rmaxpack)) != 0 ||
+		    (r = sshbuf_put_cstring(b, listen_address)) != 0 ||
+		    (r = sshbuf_put_u32(b, listen_port)) != 0 ||
+		    (r = sshbuf_put_cstring(b, originator_address)) != 0 ||
+		    (r = sshbuf_put_u32(b, originator_port)) != 0 ||
+		    (r = sshbuf_put_stringb(&c->output, b)) != 0) {
+			error("%s: compose for muxclient %s", __func__,
+			    ssh_err(r));
+			goto out;
+		}
+	}
+
+ out:
+	sshbuf_free(b);
 	free(originator_address);
 	free(listen_address);
 	return c;
@@ -2057,7 +2085,8 @@ client_input_channel_open(int type, u_int32_t seq, void *ctxt)
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "forwarded-tcpip") == 0) {
-		c = client_request_forwarded_tcpip(ctype, rchan);
+		c = client_request_forwarded_tcpip(ctype, rchan, rwindow,
+		    rmaxpack);
 	} else if (strcmp(ctype, "forwarded-streamlocal@openssh.com") == 0) {
 		c = client_request_forwarded_streamlocal(ctype, rchan);
 	} else if (strcmp(ctype, "x11") == 0) {
@@ -2065,8 +2094,9 @@ client_input_channel_open(int type, u_int32_t seq, void *ctxt)
 	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0) {
 		c = client_request_agent(ctype, rchan);
 	}
-/* XXX duplicate : */
-	if (c != NULL) {
+	if (c != NULL && c->type == SSH_CHANNEL_MUX_CLIENT) {
+		debug3("proxied to downstream: %s", ctype);
+	} else if (c != NULL) {
 		debug("confirm %s", ctype);
 		c->remote_id = rchan;
 		c->remote_window = rwindow;
@@ -2102,6 +2132,9 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	char *rtype;
 
 	id = packet_get_int();
+	c = channel_lookup(id);
+	if (channel_proxy_upstream(c, type, seq, ctxt))
+		return 0;
 	rtype = packet_get_string(NULL);
 	reply = packet_get_char();
 
@@ -2110,7 +2143,7 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 
 	if (id == -1) {
 		error("client_input_channel_req: request for channel -1");
-	} else if ((c = channel_lookup(id)) == NULL) {
+	} else if (c == NULL) {
 		error("client_input_channel_req: channel %d: "
 		    "unknown channel", id);
 	} else if (strcmp(rtype, "eow@openssh.com") == 0) {

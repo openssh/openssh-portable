@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.446 2016/09/12 23:31:27 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.447 2016/09/30 09:19:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -212,10 +212,6 @@ static int ssh_session(void);
 static int ssh_session2(void);
 static void load_public_identity_files(void);
 static void main_sigchld_handler(int);
-
-/* from muxclient.c */
-void muxclient(const char *);
-void muxserver_listen(void);
 
 /* ~/ expand a list of paths. NB. assumes path[n] is heap-allocated. */
 static void
@@ -668,6 +664,8 @@ main(int ac, char **av)
 				muxclient_command = SSHMUX_COMMAND_STOP;
 			else if (strcmp(optarg, "cancel") == 0)
 				muxclient_command = SSHMUX_COMMAND_CANCEL_FWD;
+			else if (strcmp(optarg, "proxy") == 0)
+				muxclient_command = SSHMUX_COMMAND_PROXY;
 			else
 				fatal("Invalid multiplex command.");
 			break;
@@ -1162,7 +1160,8 @@ main(int ac, char **av)
 		tty_flag = options.request_tty != REQUEST_TTY_NO;
 
 	/* Force no tty */
-	if (options.request_tty == REQUEST_TTY_NO || muxclient_command != 0)
+	if (options.request_tty == REQUEST_TTY_NO ||
+	    (muxclient_command && muxclient_command != SSHMUX_COMMAND_PROXY))
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
 	if ((!isatty(fileno(stdin)) || stdin_null_flag) &&
@@ -1239,8 +1238,16 @@ main(int ac, char **av)
 
 	if (muxclient_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");
-	if (options.control_path != NULL)
-		muxclient(options.control_path);
+	if (options.control_path != NULL) {
+		int sock;
+		if ((sock = muxclient(options.control_path)) >= 0) {
+			packet_set_connection(sock, sock);
+			ssh = active_state; /* XXX */
+			enable_compat20();	/* XXX */
+			packet_set_mux();
+			goto skip_connect;
+		}
+	}
 
 	/*
 	 * If hostname canonicalisation was not enabled, then we may not
@@ -1443,6 +1450,7 @@ main(int ac, char **av)
 		options.certificate_files[i] = NULL;
 	}
 
+ skip_connect:
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
 
@@ -1953,7 +1961,8 @@ ssh_session2(void)
 	ssh_init_forwarding();
 
 	/* Start listening for multiplex clients */
-	muxserver_listen();
+	if (!packet_get_mux())
+		muxserver_listen();
 
  	/*
 	 * If we are in control persist mode and have a working mux listen

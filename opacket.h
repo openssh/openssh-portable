@@ -153,5 +153,9 @@ void	packet_disconnect(const char *, ...)
 	ssh_packet_set_rekey_limits(active_state, x, y)
 #define packet_get_bytes(x,y) \
 	ssh_packet_get_bytes(active_state, x, y)
+#define packet_set_mux() \
+	ssh_packet_set_mux(active_state)
+#define packet_get_mux() \
+	ssh_packet_get_mux(active_state)
 
 #endif /* _OPACKET_H */
