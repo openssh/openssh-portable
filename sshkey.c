@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.39 2016/09/26 21:16:11 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.40 2016/10/04 21:34:40 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2863,6 +2863,14 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	EC_POINT *nq = NULL;
 	BIGNUM *order, *x, *y, *tmp;
 	int ret = SSH_ERR_KEY_INVALID_EC_VALUE;
+
+	/*
+	 * NB. This assumes OpenSSL has already verified that the public
+	 * point lies on the curve. This is done by EC_POINT_oct2point()
+	 * implicitly calling EC_POINT_is_on_curve(). If this code is ever
+	 * reachable with public points not unmarshalled using
+	 * EC_POINT_oct2point then the caller will need to explicitly check.
+	 */
 
 	if ((bnctx = BN_CTX_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
