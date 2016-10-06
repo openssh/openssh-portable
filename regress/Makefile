@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.89 2016/09/12 02:25:46 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.91 2016/10/06 09:31:38 natano Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -88,9 +88,10 @@ INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 
 #LTESTS= 	cipher-speed
 
-USER!=		id -un
-CLEANFILES=	*.core actual agent-key.* authorized_keys_${USER} \
-		authorized_keys_${USER}.* authorized_principals_${USER} \
+USERNAME!=		id -un
+CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
+		authorized_keys_${USERNAME}.* \
+		authorized_principals_${USERNAME} \
 		banner.in banner.out cert_host_key* cert_user_key* \
 		copy.1 copy.2 data ed25519-agent ed25519-agent* \
 		ed25519-agent.pub empty.in expect failed-regress.log \
@@ -112,7 +113,7 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USER} \
 		t6.out1 t6.out2 t7.out t7.out.pub t8.out t8.out.pub \
 		t9.out t9.out.pub testdata user_*key* user_ca* user_key*
 
-SUDO_CLEAN+=	/var/run/testdata_${USER} /var/run/keycommand_${USER}
+SUDO_CLEAN+=	/var/run/testdata_${USERNAME} /var/run/keycommand_${USERNAME}
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
