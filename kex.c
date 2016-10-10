@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.126 2016/09/28 21:44:52 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.127 2016/10/10 19:28:48 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -481,6 +481,7 @@ kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 	if (kex == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 
+	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, NULL);
 	ptr = sshpkt_ptr(ssh, &dlen);
 	if ((r = sshbuf_put(kex->peer, ptr, dlen)) != 0)
 		return r;
