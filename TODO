@@ -67,6 +67,7 @@ Clean up configure/makefiles:
 Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
+- provide signed releases on github
 
 PrivSep Issues:
 - PAM
