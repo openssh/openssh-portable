@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.73 2016/09/30 09:19:13 markus Exp $ */
+/* $OpenBSD: packet.h,v 1.74 2016/10/11 21:47:45 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -78,6 +78,9 @@ struct ssh {
 	void *app_data;
 };
 
+typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,
+    u_char *, void *);
+
 struct ssh *ssh_alloc_session_state(void);
 struct ssh *ssh_packet_set_connection(struct ssh *, int, int);
 void     ssh_packet_set_timeout(struct ssh *, int, int);
@@ -88,6 +91,8 @@ int      ssh_packet_get_connection_in(struct ssh *);
 int      ssh_packet_get_connection_out(struct ssh *);
 void     ssh_packet_close(struct ssh *);
 void	 ssh_packet_set_encryption_key(struct ssh *, const u_char *, u_int, int);
+void	 ssh_packet_set_input_hook(struct ssh *, ssh_packet_hook_fn *, void *);
+
 int	 ssh_packet_is_rekeying(struct ssh *);
 void     ssh_packet_set_protocol_flags(struct ssh *, u_int);
 u_int	 ssh_packet_get_protocol_flags(struct ssh *);

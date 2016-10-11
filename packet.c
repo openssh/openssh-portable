@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.242 2016/09/30 09:19:13 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.243 2016/10/11 21:47:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -219,6 +219,10 @@ struct session_state {
 	/* SSH1 CRC compensation attack detector */
 	struct deattack_ctx deattack;
 
+	/* Hook for fuzzing inbound packets */
+	ssh_packet_hook_fn *hook_in;
+	void *hook_in_ctx;
+
 	TAILQ_HEAD(, packet) outgoing;
 };
 
@@ -261,6 +265,13 @@ ssh_alloc_session_state(void)
 	}
 	free(ssh);
 	return NULL;
+}
+
+void
+ssh_packet_set_input_hook(struct ssh *ssh, ssh_packet_hook_fn *hook, void *ctx)
+{
+	ssh->state->hook_in = hook;
+	ssh->state->hook_in_ctx = ctx;
 }
 
 /* Returns nonzero if rekeying is in progress */
@@ -1884,6 +1895,10 @@ ssh_packet_read_poll2(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			return r;
 		return SSH_ERR_PROTOCOL_ERROR;
 	}
+	if (state->hook_in != NULL &&
+	    (r = state->hook_in(ssh, state->incoming_packet, typep,
+	    state->hook_in_ctx)) != 0)
+		return r;
 	if (*typep == SSH2_MSG_USERAUTH_SUCCESS && !state->server_side)
 		r = ssh_packet_enable_delayed_compress(ssh);
 	else
