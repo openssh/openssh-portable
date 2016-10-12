@@ -35,10 +35,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef TCSASOFT
-# define _T_FLUSH	(TCSAFLUSH|TCSASOFT)
-#else
-# define _T_FLUSH	(TCSAFLUSH)
+#ifndef TCSASOFT
+/* If we don't have TCSASOFT define it so that ORing it it below is a no-op. */
+# define TCSASOFT 0
 #endif
 
 /* SunOS 4.x which lacks _POSIX_VDISABLE, but has VDISABLE */
@@ -121,7 +120,7 @@ restart:
 		if (term.c_cc[VSTATUS] != _POSIX_VDISABLE)
 			term.c_cc[VSTATUS] = _POSIX_VDISABLE;
 #endif
-		(void)tcsetattr(input, _T_FLUSH, &term);
+		(void)tcsetattr(input, TCSAFLUSH|TCSASOFT, &term);
 	} else {
 		memset(&term, 0, sizeof(term));
 		term.c_lflag |= ECHO;
@@ -156,7 +155,7 @@ restart:
 
 	/* Restore old terminal settings and signals. */
 	if (memcmp(&term, &oterm, sizeof(term)) != 0) {
-		while (tcsetattr(input, _T_FLUSH, &oterm) == -1 &&
+		while (tcsetattr(input, TCSAFLUSH|TCSASOFT, &oterm) == -1 &&
 		    errno == EINTR)
 			continue;
 	}
