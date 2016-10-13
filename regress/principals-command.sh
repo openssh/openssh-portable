@@ -30,8 +30,8 @@ CA_FP=`${SSHKEYGEN} -lf $OBJ/user_ca_key.pub | awk '{ print $2 }'`
 
 # Establish a AuthorizedPrincipalsCommand in /var/run where it will have
 # acceptable directory permissions.
-PRINCIPALS_CMD="/var/run/principals_command_${LOGNAME}"
-cat << _EOF | $SUDO sh -c "cat > '$PRINCIPALS_CMD'"
+PRINCIPALS_COMMAND="/var/run/principals_command_${LOGNAME}"
+cat << _EOF | $SUDO sh -c "cat > '$PRINCIPALS_COMMAND'"
 #!/bin/sh
 test "x\$1" != "x${LOGNAME}" && exit 1
 test "x\$2" != "xssh-rsa-cert-v01@openssh.com" && exit 1
@@ -46,16 +46,16 @@ test -f "$OBJ/authorized_principals_${LOGNAME}" &&
 	exec cat "$OBJ/authorized_principals_${LOGNAME}"
 _EOF
 test $? -eq 0 || fatal "couldn't prepare principals command"
-$SUDO chmod 0755 "$PRINCIPALS_CMD"
+$SUDO chmod 0755 "$PRINCIPALS_COMMAND"
 
-if ! $OBJ/check-perm -m keys-command $PRINCIPALS_CMD ; then
-	echo "skipping: $PRINCIPALS_CMD is unsuitable as " \
+if ! $OBJ/check-perm -m keys-command $PRINCIPALS_COMMAND ; then
+	echo "skipping: $PRINCIPALS_COMMAND is unsuitable as " \
 	    "AuthorizedPrincipalsCommand"
-	$SUDO rm -f $PRINCIPALS_CMD
+	$SUDO rm -f $PRINCIPALS_COMMAND
 	exit 0
 fi
 
-if [ -x $PRINCIPALS_CMD ]; then
+if [ -x $PRINCIPALS_COMMAND ]; then
 	# Test explicitly-specified principals
 	for privsep in yes no ; do
 		_prefix="privsep $privsep"
