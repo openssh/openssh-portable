@@ -29,7 +29,6 @@ void start_pam(Authctxt *);
 void finish_pam(void);
 u_int do_pam_account(void);
 void do_pam_session(void);
-void do_pam_set_tty(const char *);
 void do_pam_setcred(int );
 void do_pam_chauthtok(void);
 int do_pam_putenv(char *, char *);

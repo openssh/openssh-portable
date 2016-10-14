@@ -951,18 +951,6 @@ do_pam_account(void)
 }
 
 void
-do_pam_set_tty(const char *tty)
-{
-	if (tty != NULL) {
-		debug("PAM: setting PAM_TTY to \"%s\"", tty);
-		sshpam_err = pam_set_item(sshpam_handle, PAM_TTY, tty);
-		if (sshpam_err != PAM_SUCCESS)
-			fatal("PAM: failed to set PAM_TTY: %s",
-			    pam_strerror(sshpam_handle, sshpam_err));
-	}
-}
-
-void
 do_pam_setcred(int init)
 {
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
