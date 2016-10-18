@@ -1,0 +1,8 @@
+--- channels.c
++++ channels.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: channels.c,v 1.355 2016/09/30 20:24:46 djm Exp $ */
++/* $OpenBSD: channels.c,v 1.356 2016/10/18 17:32:54 dtucker Exp $ */
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
