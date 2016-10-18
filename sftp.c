@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.176 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: sftp.c,v 1.177 2016/10/18 12:41:22 millert Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -228,6 +228,18 @@ killchild(int signo)
 	}
 
 	_exit(1);
+}
+
+/* ARGSUSED */
+static void
+suspchild(int signo)
+{
+	if (sshpid > 1) {
+		kill(sshpid, signo);
+		while (waitpid(sshpid, NULL, WUNTRACED) == -1 && errno == EINTR)
+			continue;
+	}
+	kill(getpid(), SIGSTOP);
 }
 
 /* ARGSUSED */
@@ -2213,6 +2225,9 @@ connect_to_server(char *path, char **args, int *in, int *out)
 	signal(SIGTERM, killchild);
 	signal(SIGINT, killchild);
 	signal(SIGHUP, killchild);
+	signal(SIGTSTP, suspchild);
+	signal(SIGTTIN, suspchild);
+	signal(SIGTTOU, suspchild);
 	close(c_in);
 	close(c_out);
 }
