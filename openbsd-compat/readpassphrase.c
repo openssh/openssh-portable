@@ -1,4 +1,4 @@
-/*	$OpenBSD: readpassphrase.c,v 1.24 2013/11/24 23:51:29 deraadt Exp $	*/
+/*	$OpenBSD: readpassphrase.c,v 1.25 2015/09/14 10:45:27 guenther Exp $	*/
 
 /*
  * Copyright (c) 2000-2002, 2007, 2010
@@ -195,6 +195,7 @@ restart:
 		errno = save_errno;
 	return(nr == -1 ? NULL : buf);
 }
+DEF_WEAK(readpassphrase);
 
 #if 0
 char *
