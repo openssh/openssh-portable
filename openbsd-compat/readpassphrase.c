@@ -1,4 +1,4 @@
-/*	$OpenBSD: readpassphrase.c,v 1.25 2015/09/14 10:45:27 guenther Exp $	*/
+/*	$OpenBSD: readpassphrase.c,v 1.26 2016/10/18 12:47:18 millert Exp $	*/
 
 /*
  * Copyright (c) 2000-2002, 2007, 2010
@@ -157,9 +157,13 @@ restart:
 
 	/* Restore old terminal settings and signals. */
 	if (memcmp(&term, &oterm, sizeof(term)) != 0) {
+		const int sigttou = signo[SIGTTOU];
+
+		/* Ignore SIGTTOU generated when we are not the fg pgrp. */
 		while (tcsetattr(input, TCSAFLUSH|TCSASOFT, &oterm) == -1 &&
 		    errno == EINTR && !signo[SIGTTOU])
 			continue;
+		signo[SIGTTOU] = sigttou;
 	}
 	(void)sigaction(SIGALRM, &savealrm, NULL);
 	(void)sigaction(SIGHUP, &savehup, NULL);
