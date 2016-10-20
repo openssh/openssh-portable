@@ -229,9 +229,13 @@ review it to ensure that it matches your security requirements.
 To generate a host key, run "make host-key". Alternately you can do so
 manually using the following commands:
 
-    ssh-keygen -t rsa1 -f /etc/ssh/ssh_host_key -N ""
-    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""
-    ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""
+    ssh-keygen -t [type] -f /etc/ssh/ssh_host_key -N ""
+
+for each of the types you wish to generate (rsa, dsa or ecdsaa) or
+
+    ssh-keygen -A
+
+to generate keys for all supported types.
 
 Replacing /etc/ssh with the correct path to the configuration directory.
 (${prefix}/etc or whatever you specified with --sysconfdir during
