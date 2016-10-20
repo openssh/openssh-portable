@@ -36,9 +36,9 @@ There is now several mailing lists for this port of OpenSSH. Please
 refer to https://www.openssh.com/list.html for details on how to join.
 
 Please send bug reports and patches to the mailing list
-openssh-unix-dev@mindrot.org. The list is open to posting by
-unsubscribed users.Code contribution are welcomed, but please follow the 
-OpenBSD style guidelines[6].
+openssh-unix-dev@mindrot.org. The list is open to posting by unsubscribed
+users.  Code contribution are welcomed, but please follow the OpenBSD
+style guidelines[6].
 
 Please refer to the INSTALL document for information on how to install
 OpenSSH on your system.
