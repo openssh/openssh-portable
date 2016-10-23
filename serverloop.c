@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.186 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: serverloop.c,v 1.187 2016/10/23 22:04:05 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -724,8 +724,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		if ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
 		    no_port_forwarding_flag ||
 		    (!want_reply && fwd.listen_port == 0) ||
-		    (fwd.listen_port != 0 && fwd.listen_port < IPPORT_RESERVED &&
-		    pw->pw_uid != 0)) {
+		    (fwd.listen_port != 0 &&
+		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
