@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.297 2016/09/28 20:32:42 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.298 2016/10/24 01:09:17 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1116,7 +1116,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			    MAX_HOSTCERTS);
 		charptr = &options->host_cert_files[*intptr];
 		goto parse_filename;
-		break;
 
 	case sPidFile:
 		charptr = &options->pid_file;
