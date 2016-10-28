@@ -32,8 +32,7 @@
 #include "digest.h"
 #include "ssherr.h"
 
-#if !defined(HAVE_EVP_RIPEMD160) || defined(OPENSSL_NO_RIPEMD) || \
-    defined(OPENSSL_NO_RMD160)
+#ifndef HAVE_EVP_RIPEMD160
 # define EVP_ripemd160 NULL
 #endif /* HAVE_EVP_RIPEMD160 */
 #ifndef HAVE_EVP_SHA256
