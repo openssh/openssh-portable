@@ -2046,6 +2046,8 @@ load_public_identity_files(void)
 	Key *identity_keys[SSH_MAX_IDENTITY_FILES];
 	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
+	size_t filename_len;
+	struct stat sb;
 #ifdef ENABLE_PKCS11
 	Key **keys;
 	int nkeys;
@@ -2161,6 +2163,28 @@ load_public_identity_files(void)
 		certificate_files[n_certs] = filename;
 		certificates[n_certs] = public;
 		++n_certs;
+
+		/*
+		 * If no keys have been explicitly listed then try
+		 * to add the default private key variant too.
+		 */
+		if (options.num_identity_files != 0)
+			continue;
+		if (n_ids >= SSH_MAX_IDENTITY_FILES)
+			continue;
+		filename_len = strlen(filename);
+		if (filename_len > 9 && strncmp("-cert.pub", filename + (filename_len - 9), 9) == 0) {
+			xasprintf(&cp, "%.*s", (int)(filename_len - 9), filename);
+			if (stat(cp, &sb) == 0) { /* file exists */
+				debug("identity file %s type %d", cp, -1);
+				identity_files[n_ids] = cp;
+				identity_keys[n_ids] = NULL; /* since it's a private key, we'll load lazily */
+				n_ids++;
+			} else {
+				free(cp);
+			}
+		}
+
 	}
 
 	options.num_identity_files = n_ids;
