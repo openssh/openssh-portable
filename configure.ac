@@ -405,6 +405,7 @@ AC_CHECK_HEADERS([ \
 	sys/poll.h \
 	sys/prctl.h \
 	sys/pstat.h \
+	sys/ptrace.h \
 	sys/select.h \
 	sys/stat.h \
 	sys/stream.h \
