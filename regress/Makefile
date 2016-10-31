@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.91 2016/10/06 09:31:38 natano Exp $
+#	$OpenBSD: Makefile,v 1.92 2016/10/31 23:45:08 tb Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -116,7 +116,7 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 SUDO_CLEAN+=	/var/run/testdata_${USERNAME} /var/run/keycommand_${USERNAME}
 
 # Enable all malloc(3) randomisations and checks
-TEST_ENV=      "MALLOC_OPTIONS=AFGJPRX"
+TEST_ENV=      "MALLOC_OPTIONS=FGJRX"
 
 TEST_SSH_SSHKEYGEN?=ssh-keygen
 

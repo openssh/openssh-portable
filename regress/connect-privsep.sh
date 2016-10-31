@@ -1,4 +1,4 @@
-#	$OpenBSD: connect-privsep.sh,v 1.6 2015/03/03 22:35:19 markus Exp $
+#	$OpenBSD: connect-privsep.sh,v 1.7 2016/10/31 23:45:08 tb Exp $
 #	Placed in the Public Domain.
 
 tid="proxy connect with privsep"
@@ -27,7 +27,7 @@ done
 # Because sandbox is sensitive to changes in libc, especially malloc, retest
 # with every malloc.conf option (and none).
 if [ -z "TEST_MALLOC_OPTIONS" ]; then
-	mopts="A F G H J P R S X < >"
+	mopts="F G H J R S X < >"
 else
 	mopts=`echo $TEST_MALLOC_OPTIONS | sed 's/./& /g'`
 fi
