@@ -432,9 +432,34 @@ char *
 colon(char *cp)
 {
 	int flag = 0;
+    int len = 0;
 
 	if (*cp == ':')		/* Leading colon is part of file name. */
 		return NULL;
+
+#ifdef WINDOWS
+    for (; *cp; ++cp) {
+        len++;
+
+        if (*cp == '[')
+            flag = 1;
+
+        if (flag && *cp != ']')
+            continue;
+
+        if (*cp == ']')
+            flag = 0;
+
+        if (*cp == ':') {
+            if (len != 2) { // avoid x: format for drive letter in Windows
+                return (cp);
+            }
+        }
+        //	if ( (*cp == '/') || (*cp == '\\') )
+        //		return (0);
+    }
+    return NULL;
+#else
 	if (*cp == '[')
 		flag = 1;
 
@@ -449,6 +474,7 @@ colon(char *cp)
 			return NULL;
 	}
 	return NULL;
+#endif
 }
 
 /*
@@ -582,7 +608,11 @@ char *
 tilde_expand_filename(const char *filename, uid_t uid)
 {
 	const char *path, *sep;
+#ifdef WIN32_FIXME
+	char user[128], ret[MAXPATHLEN], *ret2;
+#else
 	char user[128], *ret;
+#endif
 	struct passwd *pw;
 	u_int len, slash;
 
@@ -602,21 +632,44 @@ tilde_expand_filename(const char *filename, uid_t uid)
 	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
 		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
 
+#ifdef WIN32_FIXME
+
+  //
+  // Catch case when, homedir is unknown or doesn't exist
+  // e.g. for SYSTEM user. Then, redirect path to NUL.
+  //
+
+  if (wcslen((wchar_t*)pw -> pw_dir) == 0)
+  {
+    snprintf(ret, sizeof(ret), "NUL");
+  }
+
+  else if (snprintf(ret, sizeof(ret), "%ls", (wchar_t*)pw -> pw_dir) <= 0)
+#endif
 	/* Make sure directory has a trailing '/' */
+#ifndef WIN32_FIXME
 	len = strlen(pw->pw_dir);
 	if (len == 0 || pw->pw_dir[len - 1] != '/')
 		sep = "/";
 	else
 		sep = "";
+#endif
 
 	/* Skip leading '/' from specified path */
 	if (path != NULL)
 		filename = path + 1;
 
+#ifndef WIN32_FIXME
 	if (xasprintf(&ret, "%s%s%s", pw->pw_dir, sep, filename) >= PATH_MAX)
+#else
+	if (xasprintf(&ret2, "%s%s", ret, filename) >= PATH_MAX)
+#endif
 		fatal("tilde_expand_filename: Path too long");
-
+#ifdef WIN32_FIXME
+	return (ret2);
+#else
 	return (ret);
+#endif
 }
 
 /*
@@ -783,6 +836,7 @@ tun_open(int tun, int mode)
 void
 sanitise_stdfd(void)
 {
+#ifndef WIN32_FIXME
 	int nullfd, dupfd;
 
 	if ((nullfd = dupfd = open(_PATH_DEVNULL, O_RDWR)) == -1) {
@@ -801,6 +855,7 @@ sanitise_stdfd(void)
 	}
 	if (nullfd > STDERR_FILENO)
 		close(nullfd);
+#endif
 }
 
 char *
@@ -1010,6 +1065,7 @@ bandwidth_limit_init(struct bwlimit *bw, u_int64_t kbps, size_t buflen)
 void
 bandwidth_limit(struct bwlimit *bw, size_t read_len)
 {
+#ifndef WIN32_FIXME
 	u_int64_t waitlen;
 	struct timespec ts, rm;
 
@@ -1057,6 +1113,7 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 
 	bw->lamt = 0;
 	gettimeofday(&bw->bwstart, NULL);
+#endif
 }
 
 /* Make a template filename for mk[sd]temp() */

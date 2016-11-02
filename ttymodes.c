@@ -66,6 +66,7 @@
 #define TTY_OP_ISPEED_PROTO2	128
 #define TTY_OP_OSPEED_PROTO2	129
 
+#ifndef WIN32_FIXME
 /*
  * Converts POSIX speed_t to a baud rate.  The values of the
  * constants for speed_t are not themselves portable.
@@ -270,6 +271,7 @@ special_char_decode(u_int c)
 #endif /* _POSIX_VDISABLE */
 	return c;
 }
+#endif /* !WIN32_FIXME */
 
 /*
  * Encodes terminal modes for the terminal referenced by fd
@@ -279,7 +281,9 @@ special_char_decode(u_int c)
 void
 tty_make_modes(int fd, struct termios *tiop)
 {
+#ifndef WIN32_FIXME
 	struct termios tio;
+#endif
 	int baud;
 	Buffer buf;
 	int tty_op_ospeed, tty_op_ispeed;
@@ -296,6 +300,7 @@ tty_make_modes(int fd, struct termios *tiop)
 		put_arg = (void (*)(Buffer *, u_int)) buffer_put_char;
 	}
 
+#ifndef WIN32_FIXME
 	if (tiop == NULL) {
 		if (fd == -1) {
 			debug("tty_make_modes: no fd or tio");
@@ -307,12 +312,22 @@ tty_make_modes(int fd, struct termios *tiop)
 		}
 	} else
 		tio = *tiop;
+#endif
 
 	/* Store input and output baud rates. */
+#ifndef WIN32_FIXME
 	baud = speed_to_baud(cfgetospeed(&tio));
+#else
+	baud = 9600;
+#endif
+
 	buffer_put_char(&buf, tty_op_ospeed);
 	buffer_put_int(&buf, baud);
+#ifndef WIN32_FIXME
 	baud = speed_to_baud(cfgetispeed(&tio));
+#else
+	baud = 9600;
+#endif
 	buffer_put_char(&buf, tty_op_ispeed);
 	buffer_put_int(&buf, baud);
 
@@ -325,7 +340,9 @@ tty_make_modes(int fd, struct termios *tiop)
 	buffer_put_char(&buf, OP); \
 	put_arg(&buf, ((tio.FIELD & NAME) != 0));
 
+#ifndef WIN32_FIXME
 #include "ttymodes.h"
+#endif
 
 #undef TTYCHAR
 #undef TTYMODE
@@ -347,6 +364,7 @@ end:
 void
 tty_parse_modes(int fd, int *n_bytes_ptr)
 {
+#ifndef WIN32_FIXME
 	struct termios tio;
 	int opcode, baud;
 	int n_bytes = 0;
@@ -486,4 +504,5 @@ set:
 	/* Set the new modes for the terminal. */
 	if (tcsetattr(fd, TCSANOW, &tio) == -1)
 		logit("Setting tty modes failed: %.100s", strerror(errno));
+#endif // WIN32_FIXME
 }

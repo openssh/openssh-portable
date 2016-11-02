@@ -185,6 +185,8 @@ enum
 # define S_IRWXU			0000700	/* read, write, execute */
 # define S_IRWXG			0000070	/* read, write, execute */
 # define S_IRWXO			0000007	/* read, write, execute */
+# define S_ISUID            0x800 
+# define S_ISGID            0x400
 #endif /* S_IXUSR */
 
 #if !defined(MAP_ANON) && defined(MAP_ANONYMOUS)
@@ -868,6 +870,10 @@ struct winsize {
     defined(HAVE_DECL_GLOB_NOMATCH) &&  HAVE_DECL_GLOB_NOMATCH != 0 && \
     !defined(BROKEN_GLOB)
 # define USE_SYSTEM_GLOB
+#endif
+
+#ifdef _WIN32
+# define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
 #endif /* _DEFINES_H */

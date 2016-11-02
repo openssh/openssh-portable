@@ -156,6 +156,14 @@ static int
 pkcs11_start_helper(void)
 {
 	int pair[2];
+  #ifdef WIN32_FIXME
+  if (socketpair(pair) == -1) 
+  {
+    error("socketpair: %s", strerror(errno));
+    return (-1);
+  }
+
+  #else
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) == -1) {
 		error("socketpair: %s", strerror(errno));
@@ -178,6 +186,7 @@ pkcs11_start_helper(void)
 		    strerror(errno));
 		_exit(1);
 	}
+ #endif /*WIN32_FIXME*/
 	close(pair[1]);
 	fd = pair[0];
 	return (0);

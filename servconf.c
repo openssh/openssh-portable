@@ -13,6 +13,15 @@
 
 #include "includes.h"
 
+/*
+ * We support only client side kerberos on Windows.
+ */
+
+#ifdef WIN32_FIXME
+  #undef GSSAPI
+  #undef KRB5
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -89,7 +98,11 @@ initialize_server_options(ServerOptions *options)
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
 	options->key_regeneration_time = -1;
-	options->permit_root_login = PERMIT_NOT_SET;
+#ifndef WIN32_FIXME
+	options->permit_root_login = PERMIT_NOT_SET;	
+#else
+	options->permit_root_login = PERMIT_YES;
+#endif	
 	options->ignore_rhosts = -1;
 	options->ignore_user_known_hosts = -1;
 	options->print_motd = -1;
@@ -405,6 +418,11 @@ typedef enum {
 	sBadOption,		/* == unknown option */
 	/* Portable-specific options */
 	sUsePAM,
+#ifdef WIN32_FIXME
+  #ifdef RUNTIME_LIBPAM
+  sPAMLibrary,                   
+  #endif /* RUNTIME_LIBPAM */
+#endif
 	/* Standard Options */
 	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime,
 	sKeyRegenerationTime, sPermitRootLogin, sLogFacility, sLogLevel,
@@ -454,8 +472,18 @@ static struct {
 	/* Portable-specific options */
 #ifdef USE_PAM
 	{ "usepam", sUsePAM, SSHCFG_GLOBAL },
+#ifdef WIN32_FIXME
+  #ifdef RUNTIME_LIBPAM
+  {"pamlibrary", sPAMLibrary, SSHCFG_GLOBAL},
+  #endif /* RUNTIME_LIBPAM */
+#endif
 #else
 	{ "usepam", sUnsupported, SSHCFG_GLOBAL },
+#ifdef WIN32_FIXME
+  #ifdef RUNTIME_LIBPAM
+  {"pamlibrary", sUnsupported, SSHCFG_GLOBAL},
+  #endif /* RUNTIME_LIBPAM */
+#endif
 #endif
 	{ "pamauthenticationviakbdint", sDeprecated, SSHCFG_GLOBAL },
 	/* Standard Options */
@@ -623,7 +651,11 @@ derelativise_path(const char *path)
 	if (strcasecmp(path, "none") == 0)
 		return xstrdup("none");
 	expanded = tilde_expand_filename(path, getuid());
+#ifdef WIN32_FIXME
+	if (expanded[1] == ':')
+#else
 	if (*expanded == '/')
+#endif
 		return expanded;
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));
@@ -1019,7 +1051,22 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sUsePAM:
 		intptr = &options->use_pam;
 		goto parse_flag;
-
+#ifdef WIN32_FIXME
+    #ifdef RUNTIME_LIBPAM
+    
+    /*
+     * Path to libpam.so library.
+     */
+  
+    case sPAMLibrary:
+    {
+      charptr = &options -> pamLibrary_;
+      
+      goto parse_filename;
+    }
+    
+    #endif /* RUNTIME_LIBPAM */
+#endif
 	/* Standard Options */
 	case sBadOption:
 		return -1;
@@ -1935,7 +1982,9 @@ load_server_config(const char *filename, Buffer *conf)
 	}
 	buffer_append(conf, "\0", 1);
 	fclose(f);
+#ifndef WIN32_FIXME
 	debug2("%s: done config len = %d", __func__, buffer_len(conf));
+#endif
 }
 
 void

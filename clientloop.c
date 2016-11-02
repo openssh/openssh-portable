@@ -114,6 +114,14 @@
 #include "ssherr.h"
 #include "hostfile.h"
 
+#ifdef WIN32_FIXME
+// Windows Console screen size change related
+extern int ScreenX;
+extern int ScrollBottom;
+int win_received_window_change_signal = 1;
+
+#endif
+
 /* import options */
 extern Options options;
 
@@ -563,6 +571,7 @@ client_check_window_change(void)
 	if (compat20) {
 		channel_send_window_changes();
 	} else {
+#ifndef WIN32_FIXME
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 			return;
 		packet_start(SSH_CMSG_WINDOW_SIZE);
@@ -571,6 +580,7 @@ client_check_window_change(void)
 		packet_put_int((u_int)ws.ws_xpixel);
 		packet_put_int((u_int)ws.ws_ypixel);
 		packet_send();
+#endif
 	}
 }
 
@@ -722,6 +732,7 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 static void
 client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 {
+#ifndef WIN32_FIXME
 	/* Flush stdout and stderr buffers. */
 	if (buffer_len(bout) > 0)
 		atomicio(vwrite, fileno(stdout), buffer_ptr(bout),
@@ -752,6 +763,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 	buffer_init(berr);
 
 	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+#endif /* !WIN32_FIXME */
 }
 
 static void
@@ -1220,6 +1232,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				buffer_append(berr, string, strlen(string));
 				continue;
 
+#ifndef WIN32_FIXME//R
 			case '&':
 				if (c && c->ctl_chan != -1)
 					goto noescape;
@@ -1271,6 +1284,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					}
 				}
 				continue;
+#endif /* !WIN32_FIXME */
 
 			case '?':
 				print_escape_help(berr, escape_char, compat20,
@@ -1321,6 +1335,14 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 		 * and append it to the buffer.
 		 */
 		last_was_cr = (ch == '\r' || ch == '\n');
+		//#ifdef WIN32_FIXME
+		//extern int lftocrlf ; // defined in channels.c file's channel_input_data() function for now
+		//if ( (lftocrlf == 1) && ( ch == '\n') ) {
+			// add a \r before \n if sshd server sent us ESC[20h during initial tty mode setting
+			//buffer_put_char(bin, '\r');
+			//bytes++;
+		//}
+		//#endif
 		buffer_put_char(bin, ch);
 		bytes++;
 	}
@@ -1485,6 +1507,32 @@ client_simple_escape_filter(Channel *c, char *buf, int len)
 	    buf, len);
 }
 
+#ifdef WIN32_FIXME
+u_char * client_ansi_parser_filter(Channel *c, u_char **buf, u_int *len) {
+	/* TODO - account for error/extended stream*/
+        char *respbuf = NULL;
+        size_t resplen = 0;
+
+
+	if (c->client_tty) {
+                if (telProcessNetwork(buffer_ptr(&c->output), buffer_len(&c->output), &respbuf, &resplen) == 0)
+                        buffer_clear(&c->output);
+                if (respbuf != NULL) {
+                        sshbuf_put(&c->input, respbuf, resplen);
+                        buffer_clear(&c->output);
+                }
+                *buf = buffer_ptr(&c->output);
+		*len = buffer_len(&c->output);
+		return *buf;
+	}
+	else {
+		*buf = buffer_ptr(&c->output);
+		*len = buffer_len(&c->output);
+		return *buf;
+	}
+}
+#endif
+
 static void
 client_channel_closed(int id, void *arg)
 {
@@ -1599,7 +1647,11 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (session_ident != -1) {
 			if (escape_char_arg != SSH_ESCAPECHAR_NONE) {
 				channel_register_filter(session_ident,
+#ifdef WIN32_FIXME
+				    client_simple_escape_filter, client_ansi_parser_filter,
+#else
 				    client_simple_escape_filter, NULL,
+#endif
 				    client_filter_cleanup,
 				    client_new_escape_filter_ctx(
 				    escape_char_arg));
@@ -2556,14 +2608,18 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	if (want_tty) {
+#ifndef WIN32_FIXME
 		struct winsize ws;
 
 		/* Store window size in the packet. */
 		if (ioctl(in_fd, TIOCGWINSZ, &ws) < 0)
 			memset(&ws, 0, sizeof(ws));
+#endif /* !WIN32_FIXME */
 
 		channel_request_start(id, "pty-req", 1);
 		client_expect_confirm(id, "PTY allocation", CONFIRM_TTY);
+
+#ifndef WIN32_FIXME
 		packet_put_cstring(term != NULL ? term : "");
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);
@@ -2572,6 +2628,15 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		if (tiop == NULL)
 			tiop = get_saved_tio();
 		tty_make_modes(-1, tiop);
+		
+#else
+		packet_put_cstring(term != NULL ? term : "ansi");
+		packet_put_int((u_int) ScreenX);
+		packet_put_int((u_int) ScrollBottom);
+		packet_put_int((u_int) 640);
+		packet_put_int((u_int) 480);
+		tty_make_modes(-1, NULL);
+#endif /* else !WIN32_FIXME */
 		packet_send();
 		/* XXX wait for reply */
 		c->client_tty = 1;

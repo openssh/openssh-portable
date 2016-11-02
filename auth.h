@@ -42,6 +42,10 @@
 #include <krb5.h>
 #endif
 
+#ifdef WINDOWS
+#include <windows.h>
+#endif
+
 struct ssh;
 struct sshkey;
 

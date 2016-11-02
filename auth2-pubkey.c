@@ -25,6 +25,15 @@
 
 #include "includes.h"
 
+/*
+ * We support only client side kerberos on Windows.
+ */
+
+#ifdef WIN32_FIXME
+  #undef GSSAPI
+  #undef KRB5
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -73,6 +82,14 @@
 extern ServerOptions options;
 extern u_char *session_id2;
 extern u_int session_id2_len;
+
+#ifdef WIN32_FIXME
+  
+  extern char HomeDirLsaW[MAX_PATH];
+  extern int auth_sock;
+
+#endif
+
 
 static int
 userauth_pubkey(Authctxt *authctxt)
@@ -175,6 +192,51 @@ userauth_pubkey(Authctxt *authctxt)
 
 		/* test for correct signature */
 		authenticated = 0;
+
+#ifdef WIN32_FIXME
+		{
+#define SSH_AGENT_ROOT "SOFTWARE\\SSH\\Agent"
+			int r;
+			u_char *blob = NULL;
+			size_t blen = 0;
+			DWORD token = 0;
+			struct sshbuf *msg = NULL;
+
+			while (1) {
+				msg = sshbuf_new();
+				if (!msg)
+					break;
+				if ((r = sshbuf_put_u8(msg, 100)) != 0 ||
+					(r = sshbuf_put_cstring(msg, "pubkey")) != 0 ||
+					(r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
+					(r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
+					(r = sshbuf_put_string(msg, sig, slen)) != 0 ||
+					(r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
+					(r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
+					(r = sshbuf_get_u32(msg, &token)) != 0) {
+					debug("auth agent did not authorize client %s", authctxt->pw->pw_name);
+					break;
+				}
+
+				break;
+				
+			}
+			if (blob)
+				free(blob);
+			if (msg)
+				sshbuf_free(msg);
+
+			if (token) {
+				authenticated = 1;
+				authctxt->methoddata = token;
+			}
+				
+		}
+
+
+#else /* #ifdef WIN32_FIXME */
+
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
 		    buffer_len(&b))) == 1) {
@@ -185,6 +247,8 @@ userauth_pubkey(Authctxt *authctxt)
 		}
 		buffer_free(&b);
 		free(sig);
+   #endif /* else #ifdef WIN32_FIXME. */
+
 	} else {
 		debug("%s: test whether pkalg/pkblob are acceptable for %s %s",
 		    __func__, sshkey_type(key), fp);
@@ -198,7 +262,14 @@ userauth_pubkey(Authctxt *authctxt)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 0))) {
+		
+
+      #ifndef WIN32_FIXME
+
+     if (PRIVSEP(user_key_allowed(authctxt->pw, key, 0)))  
+ 
+      #endif		
+		{
 			packet_start(SSH2_MSG_USERAUTH_PK_OK);
 			packet_put_string(pkalg, alen);
 			packet_put_string(pkblob, blen);
@@ -395,6 +466,7 @@ static pid_t
 subprocess(const char *tag, struct passwd *pw, const char *command,
     int ac, char **av, FILE **child)
 {
+#ifndef WIN32_FIXME
 	FILE *f;
 	struct stat st;
 	int devnull, p[2], i;
@@ -514,12 +586,17 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	debug3("%s: %s pid %ld", __func__, tag, (long)pid);
 	*child = f;
 	return pid;
+#else
+	return 0;
+#endif
 }
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */
 static int
 exited_cleanly(pid_t pid, const char *tag, const char *cmd)
 {
+#ifndef WIN32_FIXME
+// PRAGMA: TODO
 	int status;
 
 	while (waitpid(pid, &status, 0) == -1) {
@@ -536,6 +613,9 @@ exited_cleanly(pid_t pid, const char *tag, const char *cmd)
 		return -1;
 	}
 	return 0;
+#else
+	return 0;
+#endif
 }
 
 static int
@@ -651,7 +731,10 @@ match_principals_command(struct passwd *user_pw, struct sshkey_cert *cert)
 	 * NB. all returns later this function should go via "out" to
 	 * ensure the original SIGCHLD handler is restored properly.
 	 */
+#ifndef WIN32_FIXME
+// PRAGMA:TODO
 	osigchld = signal(SIGCHLD, SIG_DFL);
+#endif
 
 	/* Prepare and verify the user for the command */
 	username = percent_expand(options.authorized_principals_command_user,
@@ -944,8 +1027,10 @@ user_key_command_allowed2(struct passwd *user_pw, Key *key)
 	 * NB. all returns later this function should go via "out" to
 	 * ensure the original SIGCHLD handler is restored properly.
 	 */
+	#ifndef WIN32_FIXME
+	//PRAGMA:TODO
 	osigchld = signal(SIGCHLD, SIG_DFL);
-
+	#endif
 	/* Prepare and verify the user for the command */
 	username = percent_expand(options.authorized_keys_command_user,
 	    "u", user_pw->pw_name, (char *)NULL);

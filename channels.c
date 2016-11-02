@@ -1762,6 +1762,9 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 		if (compat20 && c->wfd_isatty)
 			dlen = MIN(dlen, 8*1024);
 #endif
+#ifdef WIN32_FIXME /* TODO - Fix this - on windows we somehow end up with dlen = 0*/
+		if (dlen > 0) {
+#endif
 
 		len = write(c->wfd, buf, dlen);
 		if (len < 0 &&
@@ -1781,6 +1784,7 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			}
 			return -1;
 		}
+#ifndef WIN32_FIXME//R
 #ifndef BROKEN_TCGETATTR_ICANON
 		if (compat20 && c->isatty && dlen >= 1 && buf[0] != '\r') {
 			if (tcgetattr(c->wfd, &tio) == 0 &&
@@ -1796,8 +1800,12 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			}
 		}
 #endif
+#endif
 		buffer_consume(&c->output, len);
 	}
+#ifdef WIN32_FIXME /* for if (dlen > 0) */
+	}
+#endif
  out:
 	if (compat20 && olen > 0)
 		c->local_consumed += olen - buffer_len(&c->output);
@@ -1988,7 +1996,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 			c->notbefore = monotime() + 1;
 		return;
 	}
-
+#ifndef WINDOWS  /*TODO - implement user check for Windows*/
 	if (getpeereid(newsock, &euid, &egid) < 0) {
 		error("%s getpeereid failed: %s", __func__,
 		    strerror(errno));
@@ -2001,6 +2009,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		close(newsock);
 		return;
 	}
+#endif
 	nc = channel_new("multiplex client", SSH_CHANNEL_MUX_CLIENT,
 	    newsock, newsock, -1, c->local_window_max,
 	    c->local_maxpacket, 0, "mux-control", 1);
@@ -2433,6 +2442,10 @@ channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 	char *data;
 	u_int data_len, tcode;
 	Channel *c;
+#ifdef WIN32_FIXME
+        char *respbuf = NULL;
+        size_t resplen = 0;
+#endif
 
 	/* Get the channel number and verify it. */
 	id = packet_get_int();
@@ -2468,7 +2481,20 @@ channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 	}
 	debug2("channel %d: rcvd ext data %d", c->self, data_len);
 	c->local_window -= data_len;
+	#ifndef WIN32_FIXME//N
 	buffer_append(&c->extended, data, data_len);
+	#else
+        if (c->client_tty) {
+                if (telProcessNetwork(data, data_len, &respbuf, &resplen) > 0) // run it by ANSI engine if it is the ssh client
+                        buffer_append(&c->extended, data, data_len);
+
+                if (respbuf != NULL) {
+                        sshbuf_put(&c->input, respbuf, resplen);
+                }
+        }
+	else
+		buffer_append(&c->extended, data, data_len);
+	#endif
 	free(data);
 	return 0;
 }
@@ -3874,8 +3900,21 @@ channel_send_window_changes(void)
 		if (channels[i] == NULL || !channels[i]->client_tty ||
 		    channels[i]->type != SSH_CHANNEL_OPEN)
 			continue;
+#ifndef WIN32_FIXME
 		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
-			continue;
+			continue
+#else
+		{
+			CONSOLE_SCREEN_BUFFER_INFO c_info;
+			/* TODO - Fix this for multiple channels*/
+			if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &c_info))
+				continue;
+			ws.ws_col = c_info.dwSize.X;
+			ws.ws_row = c_info.dwSize.Y;
+			ws.ws_xpixel = 640;
+			ws.ws_ypixel = 480;
+		}
+#endif
 		channel_request_start(i, "window-change", 0);
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);

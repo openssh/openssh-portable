@@ -26,6 +26,15 @@
 
 #include "includes.h"
 
+/*
+ * We support only client side kerberos on Windows.
+ */
+
+#ifdef WIN32_FIXME
+  #undef GSSAPI
+  #undef KRB5
+#endif
+
 #ifdef GSSAPI
 #ifdef KRB5
 

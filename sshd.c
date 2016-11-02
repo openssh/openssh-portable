@@ -262,6 +262,153 @@ static void do_ssh1_kex(void);
 static void do_ssh2_kex(void);
 
 /*
+   * Retrieve path to current running module.
+   *
+   * path     - buffer, where to store path (OUT).
+   * pathSize - size of path buffer in bytes (IN).
+   *
+   * RETURNS: 0 if OK.
+   */
+   
+  int GetCurrentModulePath(char *path, int pathSize)
+  {
+    int exitCode = -1;
+    
+    /* Windows */
+    #ifdef WINDOWS
+
+    char* dir = w32_programdir();
+    if (strnlen(dir, pathSize) == pathSize) 
+        error("program directory path size exceeded provided pathSize %d", pathSize);
+    else {
+        memcpy(path, dir, strnlen(dir, pathSize) + 1);
+        exitCode = 0;
+    }
+    
+    #endif
+    
+    //
+    // Linux.
+    //
+    
+    #ifdef __linux__
+
+      if (readlink ("/proc/self/exe", path, pathSize) != -1)
+      {
+        dirname(path);
+
+        strcat(path, "/");
+       
+        exitCode = 0;
+      }
+    
+    #endif
+  
+    //
+    // MacOS.
+    //
+    
+    #ifdef __APPLE__
+    
+    #endif
+  
+    return exitCode;
+  }  
+
+#ifdef WIN32_FIXME
+  /*
+   * Win32 only.
+   */
+   
+  SERVICE_STATUS_HANDLE gSvcStatusHandle;;
+  SERVICE_STATUS gSvcStatus;
+
+  int ranServiceMain = 0;
+  int iAmAService = 1;
+
+  #define SVCNAME "SSHD"
+
+  static VOID ReportSvcStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, DWORD dwWaitHint)
+  {
+    static DWORD dwCheckPoint = 1;
+
+    /*
+     * Fill in the SERVICE_STATUS structure. 
+     */
+
+    gSvcStatus.dwCurrentState = dwCurrentState;
+    gSvcStatus.dwWin32ExitCode = dwWin32ExitCode;
+    gSvcStatus.dwWaitHint = dwWaitHint;
+
+    if (dwCurrentState == SERVICE_START_PENDING)
+    {
+      gSvcStatus.dwControlsAccepted = 0;
+    }  
+    else 
+    {  
+      gSvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+    }  
+
+    if ((dwCurrentState == SERVICE_RUNNING) || (dwCurrentState == SERVICE_STOPPED))
+    {
+      gSvcStatus.dwCheckPoint = 0;
+    }  
+    else
+    {
+      gSvcStatus.dwCheckPoint = dwCheckPoint++;
+    }
+
+    /*
+     * Report the status of the service to the SCM.
+     */
+    
+    SetServiceStatus( gSvcStatusHandle, &gSvcStatus );
+  }
+  static VOID WINAPI SSHDHandlerEx(DWORD dwControl)
+  {
+    debug("Request received (%u)", dwControl);
+  
+    /*
+     * Handle the requested control code.
+     */
+
+    switch(dwControl) 
+    {
+      case SERVICE_CONTROL_STOP:
+      {
+        debug("SERVICE_CONTROL_STOP signal received...");
+    
+        ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 500);
+
+        GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, 0);
+        ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
+
+        return;
+      }  
+ 
+      case SERVICE_CONTROL_INTERROGATE:
+      {
+        /* 
+         * Fall through to send current status.
+         */
+      
+        break;
+      }   
+ 
+      default:
+      {
+        break;
+      }
+    }  
+
+    ReportSvcStatus(gSvcStatus.dwCurrentState, NO_ERROR, 0);
+  }
+
+#endif /* WIN32_FIXME */
+
+
+
+/*
  * Close all listening sockets
  */
 static void
@@ -431,10 +578,17 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 		minor = PROTOCOL_MINOR_1;
 	}
 
+	#ifndef WIN32_FIXME
 	xasprintf(&server_version_string, "SSH-%d.%d-%.100s%s%s%s",
 	    major, minor, SSH_VERSION,
 	    *options.version_addendum == '\0' ? "" : " ",
 	    options.version_addendum, newline);
+	#else
+	xasprintf(&server_version_string, "SSH-%d.%d-%.100s%s%s%s",
+	    major, minor, SSH_RELEASE,
+	    *options.version_addendum == '\0' ? "" : " ",
+	    options.version_addendum, newline);
+	#endif
 
 	/* Send our protocol version identification. */
 	if (atomicio(vwrite, sock_out, server_version_string,
@@ -488,7 +642,9 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 	debug("Client protocol version %d.%d; client software version %.100s",
 	    remote_major, remote_minor, remote_version);
 
-	ssh->compat = compat_datafellows(remote_version);
+	#ifdef WIN32_FIXME
+	SetEnvironmentVariable("SSH_CLIENT_ID", remote_version);
+	#endif
 
 	if ((ssh->compat & SSH_BUG_PROBE) != 0) {
 		logit("probed from %s port %d with %s.  Don't panic.",
@@ -613,6 +769,7 @@ demote_sensitive_data(void)
 static void
 privsep_preauth_child(void)
 {
+#ifndef WIN32_FIXME
 	u_int32_t rnd[256];
 	gid_t gidset[1];
 
@@ -653,12 +810,13 @@ privsep_preauth_child(void)
 		if (setgroups(1, gidset) < 0)
 			fatal("setgroups: %.100s", strerror(errno));
 		permanently_set_uid(privsep_pw);
-	}
+#endif
 }
 
 static int
 privsep_preauth(Authctxt *authctxt)
 {
+#ifndef WIN32_FIXME
 	int status, r;
 	pid_t pid;
 	struct ssh_sandbox *box = NULL;
@@ -726,11 +884,21 @@ privsep_preauth(Authctxt *authctxt)
 
 		return 0;
 	}
+#else
+
+  /*
+   * Not implemented on Win32.
+   */
+   
+  return 0;
+  
+#endif
 }
 
 static void
 privsep_postauth(Authctxt *authctxt)
 {
+#ifndef WIN32_FIXME
 	u_int32_t rnd[256];
 
 #ifdef DISABLE_FD_PASSING
@@ -787,6 +955,7 @@ privsep_postauth(Authctxt *authctxt)
 	 * this information is not part of the key state.
 	 */
 	packet_set_authenticated();
+#endif /* !WIN32_FIXME */
 }
 
 static char *
@@ -1214,6 +1383,15 @@ server_listen(void)
 		/* Only communicate in IPv6 over AF_INET6 sockets. */
 		if (ai->ai_family == AF_INET6)
 			sock_set_v6only(listen_sock);
+    #ifdef WIN32_FIXME
+
+    /*
+     * Forbid inheriting of listen socket.
+     */
+		fcntl(listen_sock, F_SETFD, FD_CLOEXEC);
+    
+  
+    #endif
 
 		debug("Bind to port %s on %s.", strport, ntop);
 
@@ -1396,7 +1574,53 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * parent continues listening.
 			 */
 			platform_pre_fork();
+      #ifdef WIN32_FIXME
+			{
+				PROCESS_INFORMATION pi;
+				STARTUPINFO si;
+				BOOL b;
+				char path[MAX_PATH];
+
+				memset(&si, 0, sizeof(STARTUPINFO));
+
+				char remotesoc[64];
+                                snprintf(remotesoc, sizeof(remotesoc), "%p", sfd_to_handle(*newsock));
+                                SetEnvironmentVariable("SSHD_REMSOC", remotesoc);
+                                debug("Remote Handle %s", remotesoc);
+
+				si.cb = sizeof(STARTUPINFO);
+				si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+				si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+				si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+				si.wShowWindow = SW_HIDE;
+				si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+
+				/*
+				 * Create the child process
+				 */
+				strncpy(path, GetCommandLineA(), MAX_PATH);
+				if (CreateProcess(NULL, path, NULL, NULL, TRUE,
+					CREATE_NEW_PROCESS_GROUP, NULL, NULL,
+					&si, &pi) == FALSE) {
+					debug("CreateProcess failure: %d", GetLastError());
+					exit(1);
+				}				
+
+				close(*newsock);
+				close(startup_pipes[i]);
+				startup_pipes[i] = -1;
+				startups--;
+
+				sw_add_child(pi.hProcess, pi.dwProcessId);
+				CloseHandle(pi.hThread);
+				pid = pi.dwProcessId;
+			}
+			
+			if (pid == 0) {
+#else
+
 			if ((pid = fork()) == 0) {
+#endif /* else WIN32_FIXME */
 				/*
 				 * Child.  Close the listening and
 				 * max_startup sockets.  Start using
@@ -1536,6 +1760,16 @@ main(int ac, char **av)
 	struct connection_info *connection_info = get_connection_info(0, 0);
 
 	ssh_malloc_init();	/* must be called before any mallocs */
+#ifdef WIN32_FIXME
+
+    /*
+     * Setup exit signal handler for receiving signal, when 
+     * parent server is stopped.
+     */
+  
+    AllocConsole();
+
+#endif /* WIN32_FIXME */
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -1556,8 +1790,10 @@ main(int ac, char **av)
 	av = saved_argv;
 #endif
 
+#ifndef WIN32_FIXME
 	if (geteuid() == 0 && setgroups(0, NULL) == -1)
 		debug("setgroups(): %.200s", strerror(errno));
+#endif
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1597,7 +1833,7 @@ main(int ac, char **av)
 			no_daemon_flag = 1;
 			break;
 		case 'E':
-			logfile = optarg;
+			logfile = xstrdup(optarg);
 			/* FALLTHROUGH */
 		case 'e':
 			log_stderr = 1;
@@ -1685,14 +1921,146 @@ main(int ac, char **av)
 			break;
 		}
 	}
+	
+  #ifdef WIN32_FIXME
+    if (getenv("SSHD_REMSOC") == NULL)
+    {
+      if (!ranServiceMain)
+      {
+        do
+        {
+                int  wmain(int , wchar_t **);
+                SERVICE_TABLE_ENTRYW DispatchTable[] =
+          { 
+            {L"SSHD", (LPSERVICE_MAIN_FUNCTIONW) wmain},
+            {NULL, NULL} 
+          };
+ 
+          /* 
+           * Don't come back here now 
+           */
+          
+          ranServiceMain = 1;
+
+          /*
+           * This call returns when the service has stopped. 
+           */
+          
+          /* 
+           * The process should simply terminate when the call returns. 
+           */
+
+          /*
+           * If the service control dispatcher failed to register
+           * for any other reason, bail out.
+           */
+           
+          if (!StartServiceCtrlDispatcherW(DispatchTable))
+          { 
+            if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
+            {
+              /*
+               * We're a console app, baby! 
+               */
+              
+              iAmAService = 0;
+              
+              break;
+            }
+
+            /*
+             * We're a service that can't go any further 
+             */
+             
+            return -1;
+          }
+
+          return 0;
+        } while (0);
+      }
+      else
+      {
+        /* 
+         * Finish up the service initialization 
+         */
+         
+        gSvcStatusHandle = RegisterServiceCtrlHandler("SSHD", SSHDHandlerEx);
+        
+        ZeroMemory(&gSvcStatus, sizeof(gSvcStatus));
+        
+        gSvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+        ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 300);
+        ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
+      }
+    }
+  
+    rexec_flag = 0;
+    use_privsep = 0;
+
+  #endif /* WIN32_FIXME */
+    
+  {
+    /*
+     * Use relative './sshd_config' or '../etc/sshd_config' path.
+     */
+    
+    struct stat s;
+     
+    #define PATH_SIZE PATH_MAX
+
+    char basePath[PATH_SIZE] = {0};
+    char path[PATH_SIZE]     = {0};
+    
+    /*
+     * Get path to current running module.
+     */
+
+    if (GetCurrentModulePath(basePath, PATH_SIZE) == 0)
+    {
+
+#ifdef WIN32_FIXME
+		chdir(basePath);
+#endif
+      /*
+       * Try './sshd_config' first.
+       */
+         
+      strncpy(path, basePath, PATH_SIZE);
+      strncat(path, "/sshd_config", PATH_SIZE);
+        
+      if (stat(path, &s) == 0)
+      {
+        config_file_name = path;
+      }
+      else
+      {
+        /*
+         * Try '../etc/sshd_config'.
+         */
+       
+        strncpy(path, basePath, PATH_SIZE);
+        strncat(path, "/../etc/sshd_config", PATH_SIZE);
+        
+        if (stat(path, &s) == 0)
+        {
+          config_file_name = path;
+        }         
+      }
+    }
+  
+    #undef PATH_SIZE
+  }
+
 	if (rexeced_flag || inetd_flag)
 		rexec_flag = 0;
 	if (!test_flag && (rexec_flag && (av[0] == NULL || *av[0] != '/')))
 		fatal("sshd re-exec requires execution with an absolute path");
+#ifndef WIN32_FIXME
 	if (rexeced_flag)
 		closefrom(REEXEC_MIN_FREE_FD);
 	else
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
+#endif
 
 #ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
@@ -1716,8 +2084,10 @@ main(int ac, char **av)
 	 * Unset KRB5CCNAME, otherwise the user's session may inherit it from
 	 * root's environment
 	 */
+#ifndef WIN32_FIXME
 	if (getenv("KRB5CCNAME") != NULL)
 		(void) unsetenv("KRB5CCNAME");
+#endif
 
 #ifdef _UNICOS
 	/* Cray can define user privs drop all privs now!
@@ -1811,6 +2181,11 @@ main(int ac, char **av)
 #endif
 	);
 
+#ifdef WIN32_FIXME
+  logit("[Build " __DATE__ " " __TIME__ "]");
+#endif
+
+#ifndef WINDOWS
 	/* Store privilege separation user for later use if required. */
 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
 		if (use_privsep || options.kerberos_authentication)
@@ -1824,6 +2199,7 @@ main(int ac, char **av)
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();
+#endif
 
 	/* load host keys */
 	sensitive_data.host_keys = xcalloc(options.num_host_key_files,
@@ -1841,7 +2217,9 @@ main(int ac, char **av)
 			error("Could not connect to agent \"%s\": %s",
 			    options.host_key_agent, ssh_err(r));
 	}
-
+#ifdef WIN32_FIXME
+	have_agent = 1;
+#endif
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (options.host_key_files[i] == NULL)
 			continue;
@@ -1979,6 +2357,7 @@ main(int ac, char **av)
 			fatal("Missing privilege separation directory: %s",
 			    _PATH_PRIVSEP_CHROOT_DIR);
 
+#ifndef WIN32_FIXME
 #ifdef HAVE_CYGWIN
 		if (check_ntsec(_PATH_PRIVSEP_CHROOT_DIR) &&
 		    (st.st_uid != getuid () ||
@@ -1988,6 +2367,7 @@ main(int ac, char **av)
 #endif
 			fatal("%s must be owned by root and not group or "
 			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
+#endif
 	}
 
 	if (test_flag > 1) {
@@ -2007,8 +2387,10 @@ main(int ac, char **av)
 	 * to create a file, and we can't control the code in every
 	 * module which might be used).
 	 */
+#ifndef WIN32_FIXME
 	if (setgroups(0, NULL) < 0)
 		debug("setgroups() failed: %.200s", strerror(errno));
+#endif
 
 	if (rexec_flag) {
 		rexec_argv = xcalloc(rexec_argc + 2, sizeof(char *));
@@ -2055,8 +2437,10 @@ main(int ac, char **av)
 
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
+	#ifndef WIN32_FIXME
 	if (chdir("/") == -1)
 		error("chdir(\"/\"): %s", strerror(errno));
+	#endif
 
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
@@ -2066,6 +2450,9 @@ main(int ac, char **av)
 		server_accept_inetd(&sock_in, &sock_out);
 	} else {
 		platform_pre_listen();
+#ifdef WIN32_FIXME
+    if (getenv("SSHD_REMSOC") == NULL)
+#endif
 		server_listen();
 
 		if (options.protocol & SSH_PROTO_1)
@@ -2091,10 +2478,42 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
+    #ifdef WIN32_FIXME
+      
+      if (getenv("SSHD_REMSOC") == NULL)
+      {
+        /* 
+         * Accept a connection and return in a forked child 
+         */
+         
+        server_accept_loop(&sock_in, &sock_out, &newsock, config_s);
+      }
+      else
+      {        
+              char *stopstring;
+              DWORD_PTR remotesochandle;
+              remotesochandle = strtol(getenv("SSHD_REMSOC"), &stopstring, 16);
+              debug("remote channel %d", remotesochandle);
+
+              sock_in = sock_out = newsock = w32_allocate_fd_for_handle((HANDLE)remotesochandle, TRUE);
+
+                // we have the socket handle, delete it for child processes we create like shell 
+		SetEnvironmentVariable("SSHD_REMSOC", NULL);
+                SetHandleInformation((HANDLE)remotesochandle, HANDLE_FLAG_INHERIT, 0); // make the handle not to be inherited
+
+        /*
+         * We don't have a startup_pipe 
+         */
+        
+        startup_pipe = -1;
+      }
+   
+    #else
 
 		/* Accept a connection and return in a forked child */
 		server_accept_loop(&sock_in, &sock_out,
 		    &newsock, config_s);
+	#endif
 	}
 
 	/* This is the child processing a new connection. */
@@ -2105,6 +2524,7 @@ main(int ac, char **av)
 	 * setlogin() affects the entire process group.  We don't
 	 * want the child to be able to affect the parent.
 	 */
+#ifndef WIN32_FIXME
 #if !defined(SSHD_ACQUIRES_CTTY)
 	/*
 	 * If setsid is called, on some platforms sshd will later acquire a
@@ -2114,8 +2534,10 @@ main(int ac, char **av)
 	if (!debug_flag && !inetd_flag && setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
 #endif
+#endif
 
 	if (rexec_flag) {
+#ifndef WIN32_FIXME
 		int fd;
 
 		debug("rexec start in %d out %d newsock %d pipe %d sock %d",
@@ -2152,6 +2574,7 @@ main(int ac, char **av)
 		}
 		debug("rexec cleanup in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
+#endif /* !WIN32_FIXME */
 	}
 
 	/* Executed child processes don't need these. */
@@ -2289,11 +2712,13 @@ main(int ac, char **av)
 #endif
 
 #ifdef GSSAPI
+#ifndef WIN32_FIXME
 	if (options.gss_authentication) {
 		temporarily_use_uid(authctxt->pw);
 		ssh_gssapi_storecreds();
 		restore_uid();
 	}
+#endif
 #endif
 #ifdef USE_PAM
 	if (options.use_pam) {
@@ -2677,6 +3102,7 @@ cleanup_exit(int i)
 {
 	if (the_authctxt) {
 		do_cleanup(the_authctxt);
+#ifndef WIN32_FIXME
 		if (use_privsep && privsep_is_preauth &&
 		    pmonitor != NULL && pmonitor->m_pid > 1) {
 			debug("Killing privsep child %d", pmonitor->m_pid);
@@ -2685,11 +3111,15 @@ cleanup_exit(int i)
 				error("%s: kill(%d): %s", __func__,
 				    pmonitor->m_pid, strerror(errno));
 		}
+#endif
 	}
 #ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
 	if (!use_privsep || mm_is_monitor())
 		audit_event(SSH_CONNECTION_ABANDON);
+#endif
+#ifdef WIN32_FIXME
+   if (!iAmAService || (getenv("SSHD_REMSOC")))
 #endif
 	_exit(i);
 }

@@ -56,10 +56,22 @@ static int	 vasnmprintf(char **, size_t, int *, const char *, va_list);
 
 static int
 dangerous_locale(void) {
+
+#ifndef WINDOWS
 	char	*loc;
 
+#ifdef HAVE_LANGINFO_H
 	loc = nl_langinfo(CODESET);
+#endif
+
 	return strcmp(loc, "US-ASCII") && strcmp(loc, "UTF-8");
+#else
+    wchar_t loc[LOCALE_NAME_MAX_LENGTH];
+
+    GetSystemDefaultLocaleName(loc, LOCALE_NAME_MAX_LENGTH);
+
+    return wcscmp(loc, L"US-ASCII") && wcscmp(loc, L"UTF-8");
+#endif
 }
 
 static int
