@@ -36,7 +36,12 @@
 #endif
 #include <sys/uio.h>
 
+#ifdef WIN32_VS
+#include "win32_dirent.h"
+#else
 #include <dirent.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -58,6 +63,54 @@
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+
+#ifdef WIN32_FIXME
+  
+  int glob(const char *pattern, int flags, int (*errfunc)(const char *epath, int eerrno),
+               glob_t *pglob)
+  {
+    if (strchr(pattern, '*') || strchr(pattern, '?'))
+    {
+      error("Match pattern not implemented on Win32.\n");
+      
+      return -1;
+    }
+    else
+    {
+      pglob -> gl_pathc    = 2;
+      pglob -> gl_pathv    = malloc(2 * sizeof(char *));
+      pglob -> gl_pathv[0] = strdup(pattern);
+      pglob -> gl_pathv[1] = NULL;
+      pglob -> gl_offs     = 0;
+    }
+    
+    return 0;
+  }
+  
+  void globfree(glob_t *pglob)
+  {
+    if (pglob)
+    {
+      int i = 0;
+      
+      if (pglob -> gl_pathv)
+      {
+        for (i = 0; i < pglob -> gl_pathc; i++)
+        {
+          if (pglob -> gl_pathv[i])
+          {
+            free(pglob -> gl_pathv[i]);
+          }
+        }
+          
+        free(pglob -> gl_pathv);
+      }
+      
+      //free(pglob);
+    }
+  }
+
+#endif
 
 extern volatile sig_atomic_t interrupted;
 extern int showprogress;
@@ -1385,9 +1438,11 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 			    "server reordered requests", local_path);
 		}
 		debug("truncating at %llu", (unsigned long long)highwater);
+		#ifndef WIN32_VS
 		if (ftruncate(local_fd, highwater) == -1)
 			error("ftruncate \"%s\": %s", local_path,
 			    strerror(errno));
+		#endif
 	}
 	if (read_error) {
 		error("Couldn't read from remote file \"%s\" : %s",
@@ -1424,10 +1479,16 @@ do_download(struct sftp_conn *conn, const char *remote_path,
 		}
 		if (fsync_flag) {
 			debug("syncing \"%s\"", local_path);
+#ifdef WINDOWS
+            if(FlushFileBuffers(local_fd))
+                error("Couldn't sync file \"%s\": %s",
+                    local_path, strerror(GetLastError()));
+#else
 			if (fsync(local_fd) == -1)
 				error("Couldn't sync file \"%s\": %s",
 				    local_path, strerror(errno));
-		}
+#endif
+        }
 	}
 	close(local_fd);
 	sshbuf_free(msg);

@@ -121,11 +121,13 @@ sshkey_load_file(int fd, struct sshbuf *blob)
 			goto out;
 		}
 	}
+#ifndef WIN32_FIXME//R
 	if ((st.st_mode & (S_IFSOCK|S_IFCHR|S_IFIFO)) == 0 &&
 	    st.st_size != (off_t)sshbuf_len(blob)) {
 		r = SSH_ERR_FILE_CHANGED;
 		goto out;
 	}
+#endif
 	r = 0;
 
  out:
@@ -181,6 +183,8 @@ sshkey_perm_ok(int fd, const char *filename)
 #ifdef HAVE_CYGWIN
 	if (check_ntsec(filename))
 #endif
+
+#ifndef WINDOWS /*TODO - implement permission checks on Windows*/
 	if ((st.st_uid == getuid()) && (st.st_mode & 077) != 0) {
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
@@ -191,6 +195,7 @@ sshkey_perm_ok(int fd, const char *filename)
 		error("This private key will be ignored.");
 		return SSH_ERR_KEY_BAD_PERMISSIONS;
 	}
+#endif /* ifndef WIN32_FIXME */
 	return 0;
 }
 

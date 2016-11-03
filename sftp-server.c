@@ -30,7 +30,13 @@
 #include <sys/statvfs.h>
 #endif
 
+#ifdef WIN32_VS
+#include "win32_dirent.h"
+#include <Shlwapi.h>
+#else
 #include <dirent.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <pwd.h>
@@ -51,6 +57,24 @@
 
 #include "sftp.h"
 #include "sftp-common.h"
+
+#ifdef WIN32_FIXME
+#include <Shlwapi.h>
+
+  char * get_inside_path(char *, BOOL, BOOL);
+  int readlink(const char *path, char *link, int linklen);
+
+  /*
+   * Function to cut last slash (windows
+   * stat requires paths 
+   * without slash at the end).
+   */
+
+  char *realpathWin32(const char *path, char resolved[PATH_MAX]);
+  char *realpathWin32i(const char *path, char resolved[PATH_MAX]);
+  #define realpath realpathWin32
+
+#endif /* WIN32_FIXME */
 
 /* Our verbosity */
 static LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -673,6 +697,9 @@ process_init(void)
 	sshbuf_free(msg);
 }
 
+#ifdef WIN32_VS
+#define O_ACCMODE 0x3
+#endif
 static void
 process_open(u_int32_t id)
 {
@@ -689,6 +716,15 @@ process_open(u_int32_t id)
 	debug3("request %u: open flags %d", id, pflags);
 	flags = flags_from_portable(pflags);
 	mode = (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) ? a.perm : 0666;
+#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(name, resolvedname))
+	{
+		free(name);
+		name = strdup(resolvedname);
+	}
+#endif
+
 	logit("open \"%s\" flags %s mode 0%o",
 	    name, string_from_portable(pflags), mode);
 	if (readonly &&
@@ -821,6 +857,29 @@ process_do_stat(u_int32_t id, int do_lstat)
 	struct stat st;
 	char *name;
 	int r, status = SSH2_FX_FAILURE;
+	
+#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+#endif
+  
+  
+#ifdef WIN32_FIXME
+  
+	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+  
+	if (realpathWin32i(name, resolvedname)) {
+		free(name);
+		name = strdup(resolvedname);
+	}
+
+	debug3("request %u: %sstat", id, do_lstat ? "l" : "");
+	verbose("%sstat name \"%s\"", do_lstat ? "l" : "", name);
+	r = stat(name, &st);
+  
+#else
+
+
 
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -828,6 +887,7 @@ process_do_stat(u_int32_t id, int do_lstat)
 	debug3("request %u: %sstat", id, do_lstat ? "l" : "");
 	verbose("%sstat name \"%s\"", do_lstat ? "l" : "", name);
 	r = do_lstat ? lstat(name, &st) : stat(name, &st);
+  #endif /* WIN32_FIXME */
 	if (r < 0) {
 		status = errno_to_portable(errno);
 	} else {
@@ -896,6 +956,17 @@ process_setstat(u_int32_t id)
 	Attrib a;
 	char *name;
 	int r, status = SSH2_FX_OK;
+	
+	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 )
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(name, resolvedname))
+	{
+		free(name);
+		name = strdup(resolvedname);
+	}
+	#endif
 
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0 ||
 	    (r = decode_attrib(iqueue, &a)) != 0)
@@ -905,9 +976,11 @@ process_setstat(u_int32_t id)
 	if (a.flags & SSH2_FILEXFER_ATTR_SIZE) {
 		logit("set \"%s\" size %llu",
 		    name, (unsigned long long)a.size);
+#ifndef WIN32_FIXME
 		r = truncate(name, a.size);
 		if (r == -1)
 			status = errno_to_portable(errno);
+#endif
 	}
 	if (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 		logit("set \"%s\" mode %04o", name, a.perm);
@@ -929,9 +1002,11 @@ process_setstat(u_int32_t id)
 	if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
 		logit("set \"%s\" owner %lu group %lu", name,
 		    (u_long)a.uid, (u_long)a.gid);
+#ifndef WIN32_FIXME
 		r = chown(name, a.uid, a.gid);
 		if (r == -1)
 			status = errno_to_portable(errno);
+#endif
 	}
 	send_status(id, status);
 	free(name);
@@ -958,9 +1033,11 @@ process_fsetstat(u_int32_t id)
 		if (a.flags & SSH2_FILEXFER_ATTR_SIZE) {
 			logit("set \"%s\" size %llu",
 			    name, (unsigned long long)a.size);
+#ifndef WIN32_FIXME
 			r = ftruncate(fd, a.size);
 			if (r == -1)
 				status = errno_to_portable(errno);
+#endif
 		}
 		if (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 			logit("set \"%s\" mode %04o", name, a.perm);
@@ -990,6 +1067,7 @@ process_fsetstat(u_int32_t id)
 		if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
 			logit("set \"%s\" owner %lu group %lu", name,
 			    (u_long)a.uid, (u_long)a.gid);
+#ifndef WIN32_FIXME
 #ifdef HAVE_FCHOWN
 			r = fchown(fd, a.uid, a.gid);
 #else
@@ -997,6 +1075,7 @@ process_fsetstat(u_int32_t id)
 #endif
 			if (r == -1)
 				status = errno_to_portable(errno);
+#endif
 		}
 	}
 	send_status(id, status);
@@ -1012,9 +1091,26 @@ process_opendir(u_int32_t id)
 	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	char * ipath;
+	if (realpathWin32i(path, resolvedname))
+	{
+		free(path);
+		path = strdup(resolvedname);
+	}
+	ipath = get_inside_path(path, TRUE, TRUE);
+	#endif
+
 	debug3("request %u: opendir", id);
 	logit("opendir \"%s\"", path);
+
+	#ifdef WIN32_FIXME
+	dirp = opendir(ipath);
+	free(ipath);
+	#else
 	dirp = opendir(path);
+	#endif
 	if (dirp == NULL) {
 		status = errno_to_portable(errno);
 	} else {
@@ -1056,6 +1152,29 @@ process_readdir(u_int32_t id)
 		int nstats = 10, count = 0, i;
 
 		stats = xcalloc(nstats, sizeof(Stat));
+		#ifdef WIN32_FIXME
+		// process the first entry that opendir() has found already
+		if (_stricmp(dirp->c_file.name, ".") && !_stricmp(dirp->c_file.name, dirp->initName)) // a firstfile that's not ".", this can happen for shared root drives
+		{	  // put first dirp in list
+			if (!strcmp(path, "/")) {
+				snprintf(pathname, sizeof pathname,
+					"/%s", dirp->c_file.name);
+			}
+			else {
+				snprintf(pathname, sizeof pathname,
+					"%s/%s", path, dirp->c_file.name);
+			}
+			if (pathname) {
+				if (lstat(pathname, &st) >= 0) {
+					stat_to_attrib(&st, &(stats[count].attrib));
+					stats[count].name = xstrdup(dirp->c_file.name);
+					stats[count].long_name = ls_file(dirp->c_file.name, &st,0, 0);
+					count++;
+				}
+			}
+		}
+		#endif
+
 		while ((dp = readdir(dirp)) != NULL) {
 			if (count >= nstats) {
 				nstats *= 2;
@@ -1067,8 +1186,27 @@ process_readdir(u_int32_t id)
 			if (lstat(pathname, &st) < 0)
 				continue;
 			stat_to_attrib(&st, &(stats[count].attrib));
+#ifdef WIN32_FIXME
+      {
+        /*
+         * Convert names to UTF8 before send to network.
+         */
+		#ifdef WIN32_VS
+		stats[count].name = xstrdup(dp->d_name);
+		#else
+        stats[count].name      = ConvertLocal8ToUtf8(dp -> d_name, -1, NULL);
+		#endif
+        stats[count].long_name = ls_file(dp -> d_name, &st, dirp->c_file.attrib, 0);
+        
+        /*
+        debug3("putting name [%s]...\n", stats[count].name);
+        debug3("putting long name [%s]...\n", stats[count].long_name);
+        */  
+      }  
+#else
 			stats[count].name = xstrdup(dp->d_name);
 			stats[count].long_name = ls_file(dp->d_name, &st, 0, 0);
+#endif
 			count++;
 			/* send up to 100 entries in one message */
 			/* XXX check packet size instead */
@@ -1099,6 +1237,17 @@ process_remove(u_int32_t id)
 
 	debug3("request %u: remove", id);
 	logit("remove name \"%s\"", name);
+
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(name, resolvedname))
+	{
+		free(name);
+
+		name = strdup(resolvedname);
+	}
+	#endif
+
 	r = unlink(name);
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	send_status(id, status);
@@ -1120,6 +1269,16 @@ process_mkdir(u_int32_t id)
 	    a.perm & 07777 : 0777;
 	debug3("request %u: mkdir", id);
 	logit("mkdir name \"%s\" mode 0%o", name, mode);
+
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(name, resolvedname))
+	{
+		free(name);
+
+		name = strdup(resolvedname);
+	}
+	#endif
 	r = mkdir(name, mode);
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	send_status(id, status);
@@ -1137,6 +1296,15 @@ process_rmdir(u_int32_t id)
 
 	debug3("request %u: rmdir", id);
 	logit("rmdir name \"%s\"", name);
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(name, resolvedname))
+	{
+		free(name);
+
+		name = strdup(resolvedname);
+	}
+	#endif
 	r = rmdir(name);
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	send_status(id, status);
@@ -1149,14 +1317,66 @@ process_realpath(u_int32_t id)
 	char resolvedname[PATH_MAX];
 	char *path;
 	int r;
-
+//#ifdef WIN32_FIXME
+  //path = buffer_get_string_local8_from_utf8(&iqueue, NULL);
+//#else
 	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+//#endif
 
+	
+#ifndef WIN32_FIXME
 	if (path[0] == '\0') {
 		free(path);
 		path = xstrdup(".");
 	}
+#else
+	if ( (path[0] == '\0') || ( strcmp(path, ".")== 0 ) ) {
+		free(path);
+		// add an extra / in front of paths to make them sftp spec compliant
+		// c:/users/test1 will become /c:/users/test1
+		resolvedname[0] = '/';
+
+		_getcwd(&resolvedname[1], sizeof(resolvedname));
+		// convert back slashes to forward slashes to be compatibale with unix naming
+		char *cptr = resolvedname;
+		while (*cptr) {
+			if (*cptr == '\\')
+				*cptr = '/' ;
+			cptr++;
+		}
+		path = strdup(resolvedname);
+	}
+	else {
+		// see if we were given rooted form /dir or /x:/home/x:/dir
+		if (path[2] != ':') {
+			// absolute form given /dir
+			// no drive letter, so was given in absolute form like cd /debug and we got "/debug" to process
+			// we have to attach current drive letter in front
+			resolvedname[0] = '/';
+			resolvedname[1] = _getdrive() + 'A' - 1; // convert current drive letter to Windows driver Char
+			resolvedname[2] = ':';
+			strcpy(&resolvedname[3], path);
+			free(path);
+			path = strdup(resolvedname);
+		}
+		else {
+			char *pch = strchr(path, ':');
+			if (pch != NULL && (pch = strrchr(pch+1, ':')) ) {
+				if (path[0] == '/') { // it was /x:/home/x:/dir form, use last drive letter part
+					pch--;
+					resolvedname[0] = '/';
+					strcpy(resolvedname+1, pch);
+					free(path);
+					path = strdup(resolvedname);
+				}
+			}
+		}
+
+	}
+
+#endif
+
 	debug3("request %u: realpath", id);
 	verbose("realpath \"%s\"", path);
 	if (realpath(path, resolvedname) == NULL) {
@@ -1180,12 +1400,26 @@ process_rename(u_int32_t id)
 	if ((r = sshbuf_get_cstring(iqueue, &oldpath, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(iqueue, &newpath, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
+#ifdef WIN32_FIXME
+char resolvedname[MAXPATHLEN];
+if (realpathWin32i(oldpath, resolvedname))
+{
+	free(oldpath);
+	oldpath = strdup(resolvedname);
+}
+if (realpathWin32i(newpath, resolvedname))
+{
+	free(newpath);
+	newpath = strdup(resolvedname);
+}
+#endif
+	
 	debug3("request %u: rename", id);
 	logit("rename old \"%s\" new \"%s\"", oldpath, newpath);
 	status = SSH2_FX_FAILURE;
 	if (lstat(oldpath, &sb) == -1)
 		status = errno_to_portable(errno);
+#ifndef WIN32_FIXME
 	else if (S_ISREG(sb.st_mode)) {
 		/* Race-free rename of regular files */
 		if (link(oldpath, newpath) == -1) {
@@ -1219,7 +1453,9 @@ process_rename(u_int32_t id)
 			unlink(newpath);
 		} else
 			status = SSH2_FX_OK;
-	} else if (stat(newpath, &sb) == -1) {
+	} 
+#endif /* !WIN32_FIXME */	
+	else if (stat(newpath, &sb) == -1) {
 		if (rename(oldpath, newpath) == -1)
 			status = errno_to_portable(errno);
 		else
@@ -1242,6 +1478,16 @@ process_readlink(u_int32_t id)
 
 	debug3("request %u: readlink", id);
 	verbose("readlink \"%s\"", path);
+	
+	#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(path, resolvedname))
+	{
+		free(path);
+		path = strdup(resolvedname);
+	}
+	#endif
+
 	if ((len = readlink(path, buf, sizeof(buf) - 1)) == -1)
 		send_status(id, errno_to_portable(errno));
 	else {
@@ -1267,10 +1513,17 @@ process_symlink(u_int32_t id)
 
 	debug3("request %u: symlink", id);
 	logit("symlink old \"%s\" new \"%s\"", oldpath, newpath);
+
+	#ifdef WIN32_FIXME
+	send_status(id, SSH2_FX_OP_UNSUPPORTED);
+	#else
+
 	/* this will fail if 'newpath' exists */
 	r = symlink(oldpath, newpath);
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	send_status(id, status);
+	#endif
+
 	free(oldpath);
 	free(newpath);
 }
@@ -1285,6 +1538,20 @@ process_extended_posix_rename(u_int32_t id)
 	    (r = sshbuf_get_cstring(iqueue, &newpath, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
+#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(oldpath, resolvedname))
+	{
+		free(oldpath);
+		oldpath = strdup(resolvedname);
+	}
+	if (realpathWin32i(newpath, resolvedname))
+	{
+		free(newpath);
+		newpath = strdup(resolvedname);
+	}
+#endif
+
 	debug3("request %u: posix-rename", id);
 	logit("posix-rename old \"%s\" new \"%s\"", oldpath, newpath);
 	r = rename(oldpath, newpath);
@@ -1298,7 +1565,13 @@ static void
 process_extended_statvfs(u_int32_t id)
 {
 	char *path;
+	
+	#ifdef WIN32_FIXME
+	struct stat st;
+	#else
 	struct statvfs st;
+	#endif
+	
 	int r;
 
 	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
@@ -1317,7 +1590,11 @@ static void
 process_extended_fstatvfs(u_int32_t id)
 {
 	int r, handle, fd;
+	#ifdef WIN32_FIXME
+	struct stat st;
+	#else
 	struct statvfs st;
+	#endif
 
 	if ((r = get_handle(iqueue, &handle)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -1327,7 +1604,12 @@ process_extended_fstatvfs(u_int32_t id)
 		send_status(id, SSH2_FX_FAILURE);
 		return;
 	}
+#ifdef WIN32_FIXME
+  if (statvfs(handle_to_name(handle), &st) != 0)
+  #else
 	if (fstatvfs(fd, &st) != 0)
+  #endif
+	
 		send_status(id, errno_to_portable(errno));
 	else
 		send_statvfs(id, &st);
@@ -1345,8 +1627,12 @@ process_extended_hardlink(u_int32_t id)
 
 	debug3("request %u: hardlink", id);
 	logit("hardlink old \"%s\" new \"%s\"", oldpath, newpath);
+#ifndef WIN32_FIXME
 	r = link(oldpath, newpath);
 	status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+#else
+	status = SSH2_FX_OP_UNSUPPORTED;
+#endif
 	send_status(id, status);
 	free(oldpath);
 	free(newpath);
@@ -1363,10 +1649,13 @@ process_extended_fsync(u_int32_t id)
 	verbose("fsync \"%s\"", handle_to_name(handle));
 	if ((fd = handle_to_fd(handle)) < 0)
 		status = SSH2_FX_NO_SUCH_FILE;
+#ifndef WIN32_FIXME
+// PRAGMA:TODO
 	else if (handle_is_ok(handle, HANDLE_FILE)) {
 		r = fsync(fd);
 		status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
 	}
+#endif
 	send_status(id, status);
 }
 
@@ -1396,6 +1685,10 @@ process_extended(u_int32_t id)
 
 /* stolen from ssh-agent */
 
+#ifdef WIN32_FIXME
+int readsomemore=0;
+#endif
+
 static void
 process(void)
 {
@@ -1407,9 +1700,18 @@ process(void)
 	int i, r;
 	u_int32_t id;
 
+	#ifdef WIN32_FIXME
+	// we use to tell our caller to read more data if a message is not complete
+	readsomemore=0;
+	#endif
+	
 	buf_len = sshbuf_len(iqueue);
-	if (buf_len < 5)
+	if (buf_len < 5) {
+		#ifdef WIN32_FIXME
+		readsomemore =1;
+		#endif
 		return;		/* Incomplete message. */
+	}
 	cp = sshbuf_ptr(iqueue);
 	msg_len = get_u32(cp);
 	if (msg_len > SFTP_MAX_MSG_LENGTH) {
@@ -1417,8 +1719,12 @@ process(void)
 		    client_addr, pw->pw_name);
 		sftp_server_cleanup_exit(11);
 	}
-	if (buf_len < msg_len + 4)
+	if (buf_len < msg_len + 4) {
+		#ifdef WIN32_FIXME
+		readsomemore =1;
+		#endif
 		return;
+	}
 	if ((r = sshbuf_consume(iqueue, 4)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	buf_len -= 4;
@@ -1504,7 +1810,13 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 	int i, r, in, out, max, ch, skipargs = 0, log_stderr = 0;
 	ssize_t len, olen, set_size;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
+	
+	#ifdef WIN32_FIXME
+	char *cp, *homedir = NULL, buf[32768];
+	#else
 	char *cp, *homedir = NULL, buf[4*4096];
+	#endif
+	
 	long mask;
 
 	extern char *optarg;
@@ -1582,8 +1894,12 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			sftp_server_usage();
 		}
 	}
-
+	
+	#ifndef WIN32_FIXME
 	log_init(__progname, log_level, log_facility, log_stderr);
+#endif
+
+	
 
 	/*
 	 * On platforms where we can, avoid making /proc/self/{mem,maps}
@@ -1706,4 +2022,61 @@ sftp_server_main(int argc, char **argv, struct passwd *user_pw)
 			fatal("%s: sshbuf_check_reserve: %s",
 			    __func__, ssh_err(r));
 	}
+//#endif /* else WIN32 */
 }
+
+#ifdef WIN32_FIXME
+char *realpathWin32(const char *path, char resolved[PATH_MAX])
+{
+    char realpath[PATH_MAX];
+
+    strlcpy(resolved, path + 1, sizeof(realpath));
+    backslashconvert(resolved);
+    PathCanonicalizeA(realpath, resolved);
+    slashconvert(realpath);
+
+    /*
+    * Store terminating slash in 'X:/' on Windows.
+    */
+
+    if (realpath[1] == ':' && realpath[2] == 0)
+    {
+        realpath[2] = '/';
+        realpath[3] = 0;
+    }
+
+    resolved[0] = *path; // will be our first slash in /x:/users/test1 format
+    strncpy(resolved + 1, realpath, sizeof(realpath));
+    return resolved;
+}
+
+// like realpathWin32() but takes out the first slash so that windows systems can work on the actual file or directory
+char *realpathWin32i(const char *path, char resolved[PATH_MAX])
+{
+    char realpath[PATH_MAX];
+
+    if (path[0] != '/') {
+        // absolute form x:/abc/def given, no first slash to take out
+        strlcpy(resolved, path, sizeof(realpath));
+    }
+    else
+        strlcpy(resolved, path + 1, sizeof(realpath));
+
+    backslashconvert(resolved);
+    PathCanonicalizeA(realpath, resolved);
+    slashconvert(realpath);
+
+    /*
+    * Store terminating slash in 'X:/' on Windows.
+    */
+
+    if (realpath[1] == ':' && realpath[2] == 0)
+    {
+        realpath[2] = '/';
+        realpath[3] = 0;
+    }
+
+    strncpy(resolved, realpath, sizeof(realpath));
+    return resolved;
+}
+#endif

@@ -78,10 +78,24 @@ static volatile sig_atomic_t win_resized; /* for window resizing */
 /* units for format_size */
 static const char unit[] = " KMGT";
 
+#ifdef WINDOWS
+extern int ScreenX;
+#endif
+
 static int
 can_output(void)
 {
-	return (getpgrp() == tcgetpgrp(STDOUT_FILENO));
+#ifndef WINDOWS
+    return (getpgrp() == tcgetpgrp(STDOUT_FILENO));
+#else
+    DWORD dwProcessId = -1;
+    if (GetWindowThreadProcessId(GetStdHandle(STD_OUTPUT_HANDLE), &dwProcessId)) {
+        return(GetCurrentProcess() == dwProcessId);
+    }
+    else {
+        return -1;
+    }
+#endif
 }
 
 static void
@@ -222,7 +236,13 @@ refresh_progress_meter(void)
 			strlcat(buf, "    ", win_size);
 	}
 
+#ifdef WINDOWS
+    wchar_t* wtmp = utf8_to_utf16(buf);
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), wtmp, wcslen(wtmp), 0, 0);
+    free(wtmp);
+#else
 	atomicio(vwrite, STDOUT_FILENO, buf, win_size - 1);
+#endif
 	last_update = now;
 }
 
@@ -292,6 +312,7 @@ sig_winch(int sig)
 static void
 setscreensize(void)
 {
+#ifndef WINDOWS
 	struct winsize winsize;
 
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) != -1 &&
@@ -303,4 +324,7 @@ setscreensize(void)
 	} else
 		win_size = DEFAULT_WINSIZE;
 	win_size += 1;					/* trailing \0 */
+#else
+    win_size = ConScreenSizeX() + 1;
+#endif
 }

@@ -106,6 +106,7 @@ static int
 ssh_proxy_fdpass_connect(const char *host, u_short port,
     const char *proxy_command)
 {
+#ifndef WIN32_FIXME//R
 	char *command_string;
 	int sp[2], sock;
 	pid_t pid;
@@ -177,6 +178,10 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 	packet_set_connection(sock, sock);
 
 	return 0;
+#else
+	fatal("proxy fdpass connect is not supported in Windows");
+	return 0;
+#endif
 }
 
 /*
@@ -185,6 +190,8 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 static int
 ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 {
+#ifndef WIN32_FIXME//R
+
 	char *command_string;
 	int pin[2], pout[2];
 	pid_t pid;
@@ -254,6 +261,10 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 	/* Indicate OK return */
 	return 0;
+#else
+	fatal("proxy connect is not supported in Windows");
+	return 0;
+#endif
 }
 
 void
@@ -526,8 +537,18 @@ send_client_banner(int connection_out, int minor1)
 {
 	/* Send our own protocol version identification. */
 	if (compat20) {
+		#ifndef WIN32_FIXME
 		xasprintf(&client_version_string, "SSH-%d.%d-%.100s\r\n",
 		    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION);
+		#else
+		#ifdef WIN32_VS
+		xasprintf(&client_version_string, "SSH-%d.%d-%.100sp1 Microsoft_Win32_port_with_VS %s\r\n",
+		    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION, __DATE__ );
+		#else
+		xasprintf(&client_version_string, "SSH-%d.%d-%.100sp1 Microsoft_Win32_port %s\r\n",
+		    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION, __DATE__ );
+		#endif
+		#endif
 	} else {
 		xasprintf(&client_version_string, "SSH-%d.%d-%.100s\n",
 		    PROTOCOL_MAJOR_1, minor1, SSH_VERSION);
@@ -1482,6 +1503,7 @@ warn_changed_key(Key *host_key)
 int
 ssh_local_cmd(const char *args)
 {
+#ifndef WIN32_FIXME
 	char *shell;
 	pid_t pid;
 	int status;
@@ -1514,6 +1536,10 @@ ssh_local_cmd(const char *args)
 		return (1);
 
 	return (WEXITSTATUS(status));
+#else  
+	fatal("executing local command is not supported in Windows");
+	return 0;
+#endif 
 }
 
 void

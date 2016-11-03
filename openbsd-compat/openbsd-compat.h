@@ -245,8 +245,10 @@ long long strtonum(const char *, long long, long long, const char **);
 # define nl_langinfo(x)	""
 #endif
 
+#ifndef WINDOWS
 #ifndef HAVE_MBTOWC
 int mbtowc(wchar_t *, const char*, size_t);
+#endif
 #endif
 
 #if !defined(HAVE_VASPRINTF) || !defined(HAVE_VSNPRINTF)

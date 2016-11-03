@@ -64,7 +64,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef WINDOWS
+#include <win32_dirent.h>
+#else
 #include <dirent.h>
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>

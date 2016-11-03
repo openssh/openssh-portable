@@ -94,6 +94,44 @@ ssh_get_authentication_socket(int *fdp)
 	if (fdp != NULL)
 		*fdp = -1;
 
+#ifdef WIN32_FIXME
+	{
+#define SSH_AGENT_ROOT "SOFTWARE\\SSH\\Agent"
+		HKEY agent_root = 0;
+		DWORD agent_pid = 0, tmp_size = 4, pipe_server_pid = 0xff;
+		HANDLE h;
+		RegOpenKeyEx(HKEY_LOCAL_MACHINE, SSH_AGENT_ROOT, 0, KEY_QUERY_VALUE, &agent_root);
+		if (agent_root) {
+			RegQueryValueEx(agent_root, "ProcessId", 0, NULL, &agent_pid, &tmp_size);
+			RegCloseKey(agent_root);
+		}
+
+		h = CreateFile(
+			"\\\\.\\pipe\\ssh-agent",   // pipe name 
+			GENERIC_READ |  // read and write access 
+			GENERIC_WRITE,
+			0,              // no sharing 
+			NULL,           // default security attributes
+			OPEN_EXISTING,  // opens existing pipe 
+			FILE_FLAG_OVERLAPPED,              // attributes 
+			NULL);          // no template file 
+		if (h == INVALID_HANDLE_VALUE) {
+			return SSH_ERR_AGENT_NOT_PRESENT;
+		}
+
+		if (!GetNamedPipeServerProcessId(h, &pipe_server_pid) || (agent_pid != pipe_server_pid)) {
+			debug("agent pid mismatch");
+			CloseHandle(h);
+			return SSH_ERR_AGENT_COMMUNICATION;
+
+		}
+
+		if ((sock = w32_allocate_fd_for_handle(h, FALSE)) < 0) {
+			CloseHandle(h);
+			return SSH_ERR_SYSTEM_ERROR;
+		}
+	}
+#else
 	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
 	if (!authsocket)
 		return SSH_ERR_AGENT_NOT_PRESENT;
@@ -113,6 +151,8 @@ ssh_get_authentication_socket(int *fdp)
 		errno = oerrno;
 		return SSH_ERR_SYSTEM_ERROR;
 	}
+#endif
+
 	if (fdp != NULL)
 		*fdp = sock;
 	else
@@ -121,7 +161,11 @@ ssh_get_authentication_socket(int *fdp)
 }
 
 /* Communicate with agent: send request and read reply */
+#ifdef WINDOWS
+int
+#else
 static int
+#endif
 ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 {
 	int r;

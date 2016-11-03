@@ -532,6 +532,7 @@ int
 hostfile_replace_entries(const char *filename, const char *host, const char *ip,
     struct sshkey **keys, size_t nkeys, int store_hash, int quiet, int hash_alg)
 {
+	#ifndef WIN32_FIXME//R
 	int r, fd, oerrno = 0;
 	int loglevel = quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_VERBOSE;
 	struct host_delete_ctx ctx;
@@ -646,6 +647,10 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	if (r == SSH_ERR_SYSTEM_ERROR)
 		errno = oerrno;
 	return r;
+#else
+	error("replacing host file entries is not supported in Windows");
+	return 0;
+#endif
 }
 
 static int

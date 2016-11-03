@@ -16,6 +16,10 @@
 #ifndef SERVCONF_H
 #define SERVCONF_H
 
+#ifdef WIN32_FIXME
+#include "misc.h"
+#endif
+
 #define MAX_PORTS		256	/* Max # ports. */
 
 #define MAX_ALLOW_USERS		256	/* Max # users on allow list. */
