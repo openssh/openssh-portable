@@ -147,7 +147,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\conio.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\console.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\daemon.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\kerberos.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\startupneeds.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tncon.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tnnet.c" />
@@ -165,16 +164,11 @@
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\cng_cipher.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\console.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\Debug.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\deskright.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\homedirhelp.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\kerberos.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\lsalogon.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\lsastring.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\sfds.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\stringhelp.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tncon.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tnnet.h" />
-    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32auth.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\cng_kex.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\includes\arpa\inet.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\includes\arpa\nameser.h" />
