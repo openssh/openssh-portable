@@ -48,14 +48,6 @@
 /* Based on FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des */
 
 #include "includes.h"
-/*
- * We support only client side kerberos on Windows.
- */
-
-#ifdef WIN32_FIXME
-  #undef GSSAPI
-  #undef KRB5
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>

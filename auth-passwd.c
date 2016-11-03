@@ -37,18 +37,6 @@
  */
 
 #include "includes.h"
-#ifdef WIN32_FIXME
-#include "xmalloc.h"
-#endif
-
- /*
-  * We support only client side kerberos on Windows.
-  */
-
-#ifdef WIN32_FIXME
-#undef GSSAPI
-#undef KRB5
-#endif
 
 #include <sys/types.h>
 
@@ -206,7 +194,9 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 	}
 }
 
-#elif defined(WIN32_FIXME)
+#endif
+
+#ifdef WINDOWS
 extern int auth_sock;
 int sys_auth_passwd(Authctxt *authctxt, const char *password)
 {
