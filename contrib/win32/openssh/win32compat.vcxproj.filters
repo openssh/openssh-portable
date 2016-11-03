@@ -54,9 +54,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tnnet.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32auth.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\cng_openssl_dh.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -150,7 +150,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\startupneeds.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tncon.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\tnnet.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32auth.c" />
     <ClCompile Include="..\win32compat\cng_dh.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
