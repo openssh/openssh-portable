@@ -12,6 +12,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\pwd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\wmain.c" />
+    <ClCompile Include="..\win32compat\win32_dirent.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32fd.h" />
@@ -107,6 +108,9 @@
     </ClInclude>
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\termios.h">
       <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\win32compat\inc\dirent.h">
+      <Filter>inc\sys</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

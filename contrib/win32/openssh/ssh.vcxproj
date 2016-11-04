@@ -298,7 +298,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)sshconnect1.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sshconnect2.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sshtty.c" />
-    <ClCompile Include="..\..\..\win32_dirent.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

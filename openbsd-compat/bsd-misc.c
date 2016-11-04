@@ -30,9 +30,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#ifdef WINDOWS
-#include <fcntl.h>
-#endif
 
 #ifndef HAVE___PROGNAME
 char *__progname;

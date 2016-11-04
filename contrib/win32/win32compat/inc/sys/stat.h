@@ -5,6 +5,7 @@
 * instead of the one in Windows SDK. 
 */
 #pragma once
+#include "..\fcntl.h"
 
 /* flags COPIED FROM STAT.H
  */
