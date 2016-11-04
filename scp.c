@@ -73,13 +73,11 @@
 
 #include "includes.h"
 
-#ifndef WINDOWS
 #include <dirent.h>
-#else
+#ifdef WINDOWS
 #include <io.h>
 #include <fcntl.h>
 #include <Shlwapi.h>
-#include "win32_dirent.h"
 #endif
 
 #include <sys/types.h>

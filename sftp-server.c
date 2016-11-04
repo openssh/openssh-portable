@@ -31,12 +31,9 @@
 #endif
 
 #ifdef WIN32_VS
-#include "win32_dirent.h"
 #include <Shlwapi.h>
-#else
-#include <dirent.h>
 #endif
-
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pwd.h>

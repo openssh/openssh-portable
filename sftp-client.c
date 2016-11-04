@@ -36,12 +36,7 @@
 #endif
 #include <sys/uio.h>
 
-#ifdef WIN32_VS
-#include "win32_dirent.h"
-#else
 #include <dirent.h>
-#endif
-
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
