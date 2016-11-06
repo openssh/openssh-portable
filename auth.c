@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.116 2016/08/13 17:47:41 markus Exp $ */
+/* $OpenBSD: auth.c,v 1.117 2016/11/06 05:46:37 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -103,6 +103,7 @@ allowed_user(struct passwd * pw)
 	struct stat st;
 	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
 	u_int i;
+	int r;
 #ifdef USE_SHADOW
 	struct spwd *spw = NULL;
 #endif
@@ -192,8 +193,12 @@ allowed_user(struct passwd * pw)
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
 		for (i = 0; i < options.num_deny_users; i++)
-			if (match_user(pw->pw_name, hostname, ipaddr,
-			    options.deny_users[i])) {
+			r = match_user(pw->pw_name, hostname, ipaddr,
+			    options.deny_users[i]);
+			if (r < 0) {
+				fatal("Invalid DenyUsers pattern \"%.100s\"",
+				    options.deny_users[i]);
+			} else if (r != 1) {
 				logit("User %.100s from %.100s not allowed "
 				    "because listed in DenyUsers",
 				    pw->pw_name, hostname);
@@ -202,10 +207,15 @@ allowed_user(struct passwd * pw)
 	}
 	/* Return false if AllowUsers isn't empty and user isn't listed there */
 	if (options.num_allow_users > 0) {
-		for (i = 0; i < options.num_allow_users; i++)
-			if (match_user(pw->pw_name, hostname, ipaddr,
-			    options.allow_users[i]))
+		for (i = 0; i < options.num_allow_users; i++) {
+			r = match_user(pw->pw_name, hostname, ipaddr,
+			    options.allow_users[i]);
+			if (r < 0) {
+				fatal("Invalid AllowUsers pattern \"%.100s\"",
+				    options.allow_users[i]);
+			} else if (r == 1)
 				break;
+		}
 		/* i < options.num_allow_users iff we break for loop */
 		if (i >= options.num_allow_users) {
 			logit("User %.100s from %.100s not allowed because "

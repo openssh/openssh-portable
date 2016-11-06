@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.298 2016/10/24 01:09:17 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.299 2016/11/06 05:46:37 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1366,6 +1366,9 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_allow_users >= MAX_ALLOW_USERS)
 				fatal("%s line %d: too many allow users.",
 				    filename, linenum);
+			if (match_user(NULL, NULL, NULL, arg) == -1)
+				fatal("%s line %d: invalid AllowUsers pattern: "
+				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
 			options->allow_users[options->num_allow_users++] =
@@ -1378,6 +1381,9 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_deny_users >= MAX_DENY_USERS)
 				fatal("%s line %d: too many deny users.",
 				    filename, linenum);
+			if (match_user(NULL, NULL, NULL, arg) == -1)
+				fatal("%s line %d: invalid DenyUsers pattern: "
+				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
 			options->deny_users[options->num_deny_users++] =
