@@ -137,6 +137,7 @@ int	 sshkey_type_is_cert(int);
 int	 sshkey_type_plain(int);
 int	 sshkey_to_certified(struct sshkey *);
 int	 sshkey_drop_cert(struct sshkey *);
+int	 sshkey_cert_prepare_sign(struct sshkey *, struct sshkey *);
 int	 sshkey_certify(struct sshkey *, struct sshkey *, const char *);
 int	 sshkey_cert_copy(const struct sshkey *, struct sshkey *);
 int	 sshkey_cert_check_authority(const struct sshkey *, int, int,

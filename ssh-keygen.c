@@ -57,6 +57,7 @@
 #include "atomicio.h"
 #include "krl.h"
 #include "digest.h"
+#include "authfd.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -1579,28 +1580,94 @@ load_pkcs11_key(char *path)
 #endif /* ENABLE_PKCS11 */
 }
 
+static int
+do_agent_sign(int agent_fd, struct sshkey *k, struct sshkey *ca_pk,
+    u_char *ca_blob, size_t ca_len)
+{
+	u_char type;
+	u_char *sig;
+	size_t slen;
+	struct sshbuf *msg, *cert_blob;
+	u_int flags = 0;
+	int ret = 0, r = 0;
+
+	cert_blob = k->cert->certblob; /* for readability */
+	if ((msg = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if ((r = sshkey_cert_prepare_sign(k, ca_pk)) != 0)
+		ret = -1;
+
+	if (ret == 0) {
+		if ((r = sshbuf_put_u8(msg, SSH2_AGENTC_SIGN_REQUEST)) != 0 ||
+		    (r = sshbuf_put_string(msg, ca_blob, ca_len)) != 0 ||
+		    (r = sshbuf_put_string(msg, sshbuf_ptr(cert_blob),
+		    sshbuf_len(cert_blob))) != 0 ||
+		    (r = sshbuf_put_u32(msg, flags)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		if ((r = ssh_request_reply(agent_fd, msg, msg)) != 0)
+			ret = -1;
+		else if ((r = sshbuf_get_u8(msg, &type)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		else if ((type == SSH_AGENT_FAILURE) || (type == SSH2_AGENT_FAILURE))
+			ret = -1;
+		else if ((r = sshbuf_get_string(msg, &sig, &slen)) != 0 ||
+		    (r = sshbuf_put_string(cert_blob, sig, slen)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		else
+			free(sig);
+	}
+
+	sshbuf_free(msg);
+	return ret;
+}
+
 static void
 do_ca_sign(struct passwd *pw, int argc, char **argv)
 {
-	int r, i, fd;
+	int r, i, fd, agent_fd;
 	u_int n;
-	struct sshkey *ca, *public;
+	struct sshkey *ca, *ca_pk, *public;
 	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
+	u_char *ca_blob;
+	size_t ca_len;
+	/* flag indicating whether to try the ssh-agent to sign certificates */
+	int try_agent = 0;
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(1);
 #endif
+
+	/* load pubkey of CA first (ca_blob), if it works, try getting agent socket */
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
-	if (pkcs11provider != NULL) {
-		if ((ca = load_pkcs11_key(tmp)) == NULL)
-			fatal("No PKCS#11 key matching %s found", ca_key_path);
-	} else
-		ca = load_identity(tmp);
-	free(tmp);
+
+	if ((r = sshkey_load_public(tmp, &ca_pk, NULL)) == 0 &&
+	    (r = sshkey_to_blob(ca_pk, &ca_blob, &ca_len)) == 0) {
+		switch (r = ssh_get_authentication_socket(&agent_fd)) {
+		case SSH_ERR_SUCCESS:
+			try_agent = 1;
+			ca = NULL;
+			break;
+		case SSH_ERR_AGENT_NOT_PRESENT:
+			debug("Couldn't open connection to agent");
+			break;
+		default:
+			debug("Error connecting to agent");
+			break;
+		}
+	}
+
+	if (!try_agent) {
+		if (pkcs11provider != NULL) {
+			if ((ca = load_pkcs11_key(tmp)) == NULL)
+				fatal("No PKCS#11 key matching %s found", ca_key_path);
+		} else
+			ca = load_identity(tmp);
+		free(tmp);
+	}
 
 	if (key_type_name != NULL &&
-	    sshkey_type_from_name(key_type_name) != ca->type)  {
+	    sshkey_type_from_name(key_type_name) != ca->type) {
 		fatal("CA key type %s doesn't match specified %s",
 		    sshkey_ssh_name(ca), key_type_name);
 	}
@@ -1618,7 +1685,7 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			}
 			free(otmp);
 		}
-	
+
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
 		if ((r = sshkey_load_public(tmp, &public, &comment)) != 0)
 			fatal("%s: unable to open \"%s\": %s",
@@ -1642,12 +1709,27 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		prepare_options_buf(public->cert->critical, OPTIONS_CRITICAL);
 		prepare_options_buf(public->cert->extensions,
 		    OPTIONS_EXTENSIONS);
-		if ((r = sshkey_from_private(ca,
-		    &public->cert->signature_key)) != 0)
-			fatal("key_from_private (ca key): %s", ssh_err(r));
 
-		if ((r = sshkey_certify(public, ca, key_type_name)) != 0)
-			fatal("Couldn't certify key %s: %s", tmp, ssh_err(r));
+		if (try_agent &&
+		    (r = do_agent_sign(agent_fd, public, ca_pk, ca_blob, ca_len)) != 0) {
+			try_agent = 0;
+			otmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
+			if (pkcs11provider != NULL) {
+				if ((ca = load_pkcs11_key(otmp)) == NULL)
+					fatal("No PKCS#11 key matching %s found", ca_key_path);
+			} else
+				ca = load_identity(otmp);
+			free(otmp);
+		}
+
+		if (!try_agent) {
+			if ((r = sshkey_from_private(ca,
+			    &public->cert->signature_key)) != 0)
+				fatal("key_from_private (ca key): %s", ssh_err(r));
+
+			if ((r = sshkey_certify(public, ca, key_type_name)) != 0)
+				fatal("Couldn't certify key %s: %s", tmp, ssh_err(r));
+		}
 
 		if ((cp = strrchr(tmp, '.')) != NULL && strcmp(cp, ".pub") == 0)
 			*cp = '\0';

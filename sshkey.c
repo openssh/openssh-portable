@@ -2369,13 +2369,13 @@ sshkey_drop_cert(struct sshkey *k)
 	return 0;
 }
 
-/* Sign a certified key, (re-)generating the signed certblob. */
+/* Prepare a certificate blob for CA signing. */
 int
-sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg)
+sshkey_cert_prepare_sign(struct sshkey *k, struct sshkey *ca)
 {
 	struct sshbuf *principals = NULL;
-	u_char *ca_blob = NULL, *sig_blob = NULL, nonce[32];
-	size_t i, ca_len, sig_len;
+	u_char *ca_blob = NULL, nonce[32];
+	size_t i, ca_len;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *cert;
 
@@ -2458,6 +2458,29 @@ sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg)
 	    (ret = sshbuf_put_string(cert, NULL, 0)) != 0 || /* Reserved */
 	    (ret = sshbuf_put_string(cert, ca_blob, ca_len)) != 0)
 		goto out;
+	ret = 0;
+ out:
+	if (ret != 0)
+		sshbuf_reset(cert);
+	if (ca_blob != NULL)
+		free(ca_blob);
+	if (principals != NULL)
+		sshbuf_free(principals);
+	return ret;
+}
+
+/* Sign a certified key, (re-)generating the signed certblob. */
+int
+sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg)
+{
+	u_char *sig_blob = NULL;
+	size_t sig_len;
+	int ret = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *cert;
+
+	cert = k->cert->certblob; /* for readability */
+	if ((ret = sshkey_cert_prepare_sign(k, ca)) != 0)
+		goto out;
 
 	/* Sign the whole mess */
 	if ((ret = sshkey_sign(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
@@ -2472,8 +2495,6 @@ sshkey_certify(struct sshkey *k, struct sshkey *ca, const char *alg)
 	if (ret != 0)
 		sshbuf_reset(cert);
 	free(sig_blob);
-	free(ca_blob);
-	sshbuf_free(principals);
 	return ret;
 }
 
