@@ -288,6 +288,7 @@
     <ClInclude Include="$(OpenSSH-Src-Path)uuencode.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)version.h" />
     <ClInclude Include="$(OpenSSH-Src-Path)xmalloc.h" />
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)clientloop.c" />
