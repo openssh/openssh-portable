@@ -102,18 +102,14 @@ void ConInputInitParams(void)
 
 BOOL DataAvailable(HANDLE h)
 {
-    INPUT_RECORD irec;
-    DWORD events_read = 0;
-
-    if (!PeekConsoleInput(h, &irec, 1, &events_read)) {
-        return FALSE;
-    }
-
-    if (events_read) {
+    DWORD dwRet = WaitForSingleObject(h, INFINITE);
+    if(dwRet == WAIT_OBJECT_0)
         return TRUE;
-    }
 
-	return FALSE;
+    if(dwRet == WAIT_FAILED)
+        return FALSE;
+
+    return FALSE;
 }
 
 void queue_terminal_window_change_event();
@@ -150,7 +146,7 @@ int ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
         switch (InputRecord.EventType)
         {
             case WINDOW_BUFFER_SIZE_EVENT:
-		queue_terminal_window_change_event();
+		        queue_terminal_window_change_event();
                 break;
 
             case FOCUS_EVENT:
