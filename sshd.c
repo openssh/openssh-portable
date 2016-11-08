@@ -252,6 +252,9 @@ Buffer loginmsg;
 /* Unprivileged user */
 struct passwd *privsep_pw = NULL;
 
+/* is child process - used by Windows implementation*/
+int is_child = 0;
+
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
 void demote_sensitive_data(void);
@@ -314,99 +317,6 @@ static void do_ssh2_kex(void);
   
     return exitCode;
   }  
-
-#ifdef WIN32_FIXME
-  /*
-   * Win32 only.
-   */
-   
-  SERVICE_STATUS_HANDLE gSvcStatusHandle;;
-  SERVICE_STATUS gSvcStatus;
-
-  int ranServiceMain = 0;
-  int iAmAService = 1;
-
-  #define SVCNAME "SSHD"
-
-  static VOID ReportSvcStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, DWORD dwWaitHint)
-  {
-    static DWORD dwCheckPoint = 1;
-
-    /*
-     * Fill in the SERVICE_STATUS structure. 
-     */
-
-    gSvcStatus.dwCurrentState = dwCurrentState;
-    gSvcStatus.dwWin32ExitCode = dwWin32ExitCode;
-    gSvcStatus.dwWaitHint = dwWaitHint;
-
-    if (dwCurrentState == SERVICE_START_PENDING)
-    {
-      gSvcStatus.dwControlsAccepted = 0;
-    }  
-    else 
-    {  
-      gSvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
-    }  
-
-    if ((dwCurrentState == SERVICE_RUNNING) || (dwCurrentState == SERVICE_STOPPED))
-    {
-      gSvcStatus.dwCheckPoint = 0;
-    }  
-    else
-    {
-      gSvcStatus.dwCheckPoint = dwCheckPoint++;
-    }
-
-    /*
-     * Report the status of the service to the SCM.
-     */
-    
-    SetServiceStatus( gSvcStatusHandle, &gSvcStatus );
-  }
-  static VOID WINAPI SSHDHandlerEx(DWORD dwControl)
-  {
-    debug("Request received (%u)", dwControl);
-  
-    /*
-     * Handle the requested control code.
-     */
-
-    switch(dwControl) 
-    {
-      case SERVICE_CONTROL_STOP:
-      {
-        debug("SERVICE_CONTROL_STOP signal received...");
-    
-        ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 500);
-
-        GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, 0);
-        ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
-
-        return;
-      }  
- 
-      case SERVICE_CONTROL_INTERROGATE:
-      {
-        /* 
-         * Fall through to send current status.
-         */
-      
-        break;
-      }   
- 
-      default:
-      {
-        break;
-      }
-    }  
-
-    ReportSvcStatus(gSvcStatus.dwCurrentState, NO_ERROR, 0);
-  }
-
-#endif /* WIN32_FIXME */
-
-
 
 /*
  * Close all listening sockets
@@ -1923,77 +1833,7 @@ main(int ac, char **av)
 	}
 	
   #ifdef WIN32_FIXME
-    if (getenv("SSHD_REMSOC") == NULL)
-    {
-      if (!ranServiceMain)
-      {
-        do
-        {
-                int  wmain(int , wchar_t **);
-                SERVICE_TABLE_ENTRYW DispatchTable[] =
-          { 
-            {L"SSHD", (LPSERVICE_MAIN_FUNCTIONW) wmain},
-            {NULL, NULL} 
-          };
- 
-          /* 
-           * Don't come back here now 
-           */
-          
-          ranServiceMain = 1;
 
-          /*
-           * This call returns when the service has stopped. 
-           */
-          
-          /* 
-           * The process should simply terminate when the call returns. 
-           */
-
-          /*
-           * If the service control dispatcher failed to register
-           * for any other reason, bail out.
-           */
-           
-          if (!StartServiceCtrlDispatcherW(DispatchTable))
-          { 
-            if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-            {
-              /*
-               * We're a console app, baby! 
-               */
-              
-              iAmAService = 0;
-              
-              break;
-            }
-
-            /*
-             * We're a service that can't go any further 
-             */
-             
-            return -1;
-          }
-
-          return 0;
-        } while (0);
-      }
-      else
-      {
-        /* 
-         * Finish up the service initialization 
-         */
-         
-        gSvcStatusHandle = RegisterServiceCtrlHandler("SSHD", SSHDHandlerEx);
-        
-        ZeroMemory(&gSvcStatus, sizeof(gSvcStatus));
-        
-        gSvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
-        ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 300);
-        ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
-      }
-    }
-  
     rexec_flag = 0;
     use_privsep = 0;
 
@@ -2451,7 +2291,7 @@ main(int ac, char **av)
 	} else {
 		platform_pre_listen();
 #ifdef WIN32_FIXME
-    if (getenv("SSHD_REMSOC") == NULL)
+        if (is_child == 0)
 #endif
 		server_listen();
 
@@ -2478,42 +2318,28 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
-    #ifdef WIN32_FIXME
+#ifdef WIN32_FIXME
       
-      if (getenv("SSHD_REMSOC") == NULL)
-      {
-        /* 
-         * Accept a connection and return in a forked child 
-         */
-         
-        server_accept_loop(&sock_in, &sock_out, &newsock, config_s);
-      }
-      else
-      {        
-              char *stopstring;
-              DWORD_PTR remotesochandle;
-              remotesochandle = strtol(getenv("SSHD_REMSOC"), &stopstring, 16);
-              debug("remote channel %d", remotesochandle);
+      if (is_child) {      
+		char *stopstring;
+		DWORD_PTR remotesochandle;
+		remotesochandle = strtol(getenv("SSHD_REMSOC"), &stopstring, 16);
+		debug("remote channel %d", remotesochandle);
 
-              sock_in = sock_out = newsock = w32_allocate_fd_for_handle((HANDLE)remotesochandle, TRUE);
+		sock_in = sock_out = newsock = w32_allocate_fd_for_handle((HANDLE)remotesochandle, TRUE);
 
-                // we have the socket handle, delete it for child processes we create like shell 
+		// we have the socket handle, delete it for child processes we create like shell 
 		SetEnvironmentVariable("SSHD_REMSOC", NULL);
-                SetHandleInformation((HANDLE)remotesochandle, HANDLE_FLAG_INHERIT, 0); // make the handle not to be inherited
+		SetHandleInformation((HANDLE)remotesochandle, HANDLE_FLAG_INHERIT, 0); // make the handle not to be inherited
 
-        /*
-         * We don't have a startup_pipe 
-         */
-        
-        startup_pipe = -1;
+		startup_pipe = -1;
       }
-   
-    #else
+	  else
+#endif
 
 		/* Accept a connection and return in a forked child */
 		server_accept_loop(&sock_in, &sock_out,
 		    &newsock, config_s);
-	#endif
 	}
 
 	/* This is the child processing a new connection. */
@@ -3117,9 +2943,6 @@ cleanup_exit(int i)
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
 	if (!use_privsep || mm_is_monitor())
 		audit_event(SSH_CONNECTION_ABANDON);
-#endif
-#ifdef WIN32_FIXME
-   if (!iAmAService || (getenv("SSHD_REMSOC")))
 #endif
 	_exit(i);
 }
