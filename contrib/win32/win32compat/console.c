@@ -108,7 +108,7 @@ int ConInit( DWORD OutputHandle, BOOL fSmartInit )
         char *term = getenv("TERM");
         dwAttributes = (DWORD)ENABLE_PROCESSED_OUTPUT;  // PERFECT in NT
 
-        if (term != NULL && (_stricmp(term, "ansi") == 0 || _stricmp(term, "passthru")))
+        if (term != NULL && (_stricmp(term, "ansi") == 0 || _stricmp(term, "passthru") == 0))
             dwAttributes |= (DWORD)ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
         SetConsoleMode(hOutputConsole, dwAttributes); // Windows NT
@@ -327,6 +327,9 @@ void ConSetAttribute(int *iParam, int iParamCount)
                     iAttr |= FOREGROUND_INTENSITY;
                     break;
                 case ANSI_DIM:
+                    break;
+                case ANSI_NOUNDERSCORE:
+                    iAttr = iAttr & ~COMMON_LVB_UNDERSCORE;
                     break;
                 case ANSI_UNDERSCORE:
                     iAttr |= COMMON_LVB_UNDERSCORE;
