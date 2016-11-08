@@ -2391,7 +2391,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		char fullCmd[MAX_PATH] = { 0 };
 		char ioArg[1024] = { 0 };
 		PROCESS_INFORMATION pi = { 0 };
-		STARTUPINFO si = { 0 };
+		STARTUPINFOW si = { 0 };
 
 		debug3("Generating ssh-client command...");
                 fullCmd[0] = '\0';
