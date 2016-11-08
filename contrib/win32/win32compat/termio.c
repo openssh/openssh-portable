@@ -123,12 +123,13 @@ static DWORD WINAPI WriteThread(
 	_In_ LPVOID lpParameter
 	) {
 	struct w32_io* pio = (struct w32_io*)lpParameter;
+        char *respbuf = NULL;
+        size_t resplen = 0;
 	debug3("TermWrite thread, io:%p", pio);
-	if (!WriteFile(WINHANDLE(pio), pio->write_details.buf, write_status.to_transfer, 
-	    &write_status.transferred, NULL)) {
-		write_status.error = GetLastError();
-		debug("TermWrite thread - WriteFile failed %d, io:%p", GetLastError(), pio);
-	}
+	
+        telProcessNetwork(pio->write_details.buf, write_status.to_transfer, &respbuf, &resplen);
+        /*TODO - respbuf is not null in some cases, this needs to be returned back via read stream*/
+        write_status.transferred = write_status.to_transfer;
 
 	if (0 == QueueUserAPC(WriteAPCProc, main_thread, (ULONG_PTR)pio)) {
 		debug("TermWrite thread - ERROR QueueUserAPC failed %d, io:%p", GetLastError(), pio);
