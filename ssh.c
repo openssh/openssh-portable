@@ -114,13 +114,6 @@
 #include "ssh-pkcs11.h"
 #endif
 
-#ifdef WIN32_FIXME
-  #include <sys/stat.h>
-
-  char dotsshdir[MAX_PATH];
-
-#endif /* WIN32_FIXME */
-
 extern char *__progname;
 
 /* Saves a copy of argv for setproctitle emulation */
@@ -733,11 +726,7 @@ main(int ac, char **av)
                     strerror(errno));
                 break;
             }
-#ifdef WIN32_FIXME
-            add_identity_file(&options, NULL, 1, pw);
-#else
-            add_identity_file(&options, NULL, 1);
-#endif
+            add_identity_file(&options, NULL, p, 1);
             break;
         case 'I':
 #ifdef ENABLE_PKCS11
@@ -980,12 +969,6 @@ main(int ac, char **av)
 		}
 		ac--, av++;
 	}
-  #ifdef WIN32_FIXME
- 	// create various Windows user home directory based file names
-    sprintf(dotsshdir,"%s\\%s", pw->pw_dir, _PATH_SSH_USER_DIR );
-    _mkdir(dotsshdir); //this base directory for the user is needed
-
-  #endif
 
 	/* Check that we got a host name. */
 	if (!host)

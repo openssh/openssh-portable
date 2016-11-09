@@ -423,15 +423,9 @@ add_certificate_file(Options *options, const char *path, int userprovided)
 	    xstrdup(path);
 }
 
-#ifdef WIN32_FIXME
-void
-add_identity_file(Options *options, const char *dir, const char *filename,
-    int userprovided, struct passwd *pw)
-#else
 void
 add_identity_file(Options *options, const char *dir, const char *filename,
     int userprovided)
-#endif
 {
 	char *path;
 	int i;
@@ -443,12 +437,7 @@ add_identity_file(Options *options, const char *dir, const char *filename,
 	if (dir == NULL) /* no dir, filename is absolute */
 		path = xstrdup(filename);
 	else
-		#ifndef WIN32_FIXME
 		(void)xasprintf(&path, "%.100s%.100s", dir, filename);
-		#else
-		if ( strcmp(dir, "~/") == 0)
-			(void)xasprintf(&path, "%.100s\\%.100s", pw->pw_dir, filename);
-		#endif
 
 	/* Avoid registering duplicates */
 	for (i = 0; i < options->num_identity_files; i++) {
@@ -1062,13 +1051,8 @@ parse_time:
 			if (*intptr >= SSH_MAX_IDENTITY_FILES)
 				fatal("%.200s line %d: Too many identity files specified (max %d).",
 				    filename, linenum, SSH_MAX_IDENTITY_FILES);
-#ifdef WIN32_FIXME
-			add_identity_file(options, NULL,
-			    arg, flags & SSHCONF_USERCONF, pw);
-#else
-	add_identity_file(options, NULL,
+                        add_identity_file(options, NULL,
 			    arg, flags & SSHCONF_USERCONF);
-#endif
 		}
 		break;
 
@@ -1999,40 +1983,20 @@ void fill_default_options(Options * options, struct passwd *pw)
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
 			add_identity_file(options, "~/",
-#ifdef WIN32_FIXME
-			    _PATH_SSH_CLIENT_IDENTITY, 0, pw);
-#else
 				_PATH_SSH_CLIENT_IDENTITY, 0);
-#endif
 		}
 		if (options->protocol & SSH_PROTO_2) {
 			add_identity_file(options, "~/",
-#ifdef WIN32_FIXME
-			    _PATH_SSH_CLIENT_ID_RSA, 0, pw);
-#else
 				_PATH_SSH_CLIENT_ID_RSA, 0);
-#endif
 
 			add_identity_file(options, "~/",
-#ifdef WIN32_FIXME
-			    _PATH_SSH_CLIENT_ID_DSA, 0, pw);
-#else
 				_PATH_SSH_CLIENT_ID_DSA, 0);
-#endif
 #ifdef OPENSSL_HAS_ECC
 			add_identity_file(options, "~/",
-#ifdef WIN32_FIXME
-			    _PATH_SSH_CLIENT_ID_ECDSA, 0, pw);
-#else
 				_PATH_SSH_CLIENT_ID_ECDSA, 0);
 #endif
-#endif
 			add_identity_file(options, "~/",
-#ifdef WIN32_FIXME
-			    _PATH_SSH_CLIENT_ID_ED25519, 0, pw);
-#else
 				_PATH_SSH_CLIENT_ID_ED25519, 0);
-#endif
 		}
 	}
 	if (options->escape_char == -1)

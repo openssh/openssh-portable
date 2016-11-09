@@ -486,7 +486,11 @@ int
 w32_close(int fd) {
 	struct w32_io* pio;
 
-	CHECK_FD(fd);
+        if ((fd < 0) || (fd > MAX_FDS - 1) || fd_table.w32_ios[fd] == NULL) {
+                errno = EBADF;
+                return -1;
+        }
+
 	pio = fd_table.w32_ios[fd];
 
 	debug("close - io:%p, type:%d, fd:%d, table_index:%d", pio, pio->type, fd,
