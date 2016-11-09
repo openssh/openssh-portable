@@ -763,13 +763,8 @@ main(int ac, char **av)
                 }
                 break;
         case 'V':
-#ifndef WIN32_FIXME
-            fprintf(stderr, "%s, %s\n",
-                SSH_RELEASE,
-#else
             fprintf(stderr, "%s %s, %s\n",
                 SSH_RELEASE, __DATE__,
-#endif
 #ifdef WITH_OPENSSL
                 SSLeay_version(SSLEAY_VERSION)
 #else
@@ -1101,12 +1096,7 @@ main(int ac, char **av)
 	}
 
 	/* Fill configuration defaults. */
-	#ifndef WIN32_FIXME
 	fill_default_options(&options);
-	#else
-	fill_default_options(&options, pw);
-	#endif
-
 
 	/*
 	 * If ProxyJump option specified, then construct a ProxyCommand now.

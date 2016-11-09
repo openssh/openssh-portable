@@ -1891,18 +1891,9 @@ fill_default_options_for_canonicalization(Options *options)
  * Called after processing other sources of option data, this fills those
  * options for which no value has been specified with their default values.
  */
-#ifndef WIN32_FIXME
 void
 fill_default_options(Options * options)
-#else
-void fill_default_options(Options * options, struct passwd *pw)
-#endif
 {
-	#ifdef WIN32_FIXME
-	sprintf(user_hostfile_name,"%s\\%s\\known_hosts", pw->pw_dir, _PATH_SSH_USER_DIR );// SSH_USER_HOSTFILE2;
-	sprintf(user_hostfile_name2,"%s\\%s\\known_hosts2", pw->pw_dir, _PATH_SSH_USER_DIR );// SSH_USER_HOSTFILE2;
-	#endif
-
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
