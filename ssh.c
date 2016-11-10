@@ -1451,28 +1451,11 @@ main(int ac, char **av)
 		options.certificate_files[i] = NULL;
 	}
 	
-#ifdef WINDOWS
-        if (tty_flag) {
-                /* TODO - create a new screen buffer so old history can be reset*/
-                /* init the console input side with global parameters */
-	        ConInputInitParams(); 
-                /*init the output console surface for us to write*/
-	        ConInit(STD_OUTPUT_HANDLE, TRUE); 
-                ConClearScreen();
-	}
-#endif
-
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
 
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
-
-#ifdef WINDOWS
-        /* restore terminal settings */
-	if (tty_flag)
-		ConUnInit(); 
-#endif
 
 	/* Kill ProxyCommand if it is running. */
 	ssh_kill_proxy_command();

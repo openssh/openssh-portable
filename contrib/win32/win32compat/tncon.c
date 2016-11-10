@@ -58,7 +58,24 @@ extern int ScreenX;
 extern int ScrollTop;
 extern int ScrollBottom;
 
-TelParams Parameters;
+/* terminal global switches*/
+TelParams Parameters = {
+        0, // int fLogging;
+        NULL, //FILE *fplogfile;
+        NULL, //char *pInputFile;
+        NULL, // char *szDebugInputFile;
+        FALSE, //BOOL fDebugWait;
+        0, //int timeOut;
+        0, //int fLocalEcho;
+        0, //int fTreatLFasCRLF;
+        0, //int	fSendCROnly;
+        ENUM_LF, //int nReceiveCRLF;
+        '`', //char sleepChar;
+        '\035', //char menuChar; // CTRL-]
+        0, //SOCKET Socket;
+        FALSE, //BOOL bVT100Mode;
+        "\x01", //char *pAltKey; 
+};
 TelParams* pParams = &Parameters;
 
 // For our case, in NetWriteString2(), we do not use socket, but write the out going data to
@@ -74,30 +91,6 @@ int NetWriteString2(SOCKET sock, char* source, size_t len, int options)
 	}
 
 	return glob_outlen;
-}
-
-void ConInputInitParams(void)
-{
-    DWORD	dwMode = 0;
-
-    memset(&Parameters, '\0', sizeof(TelParams));
-
-	// Default values
-	Parameters.szDebugInputFile = NULL;
-	Parameters.fDebugWait = FALSE;
-	Parameters.nReceiveCRLF = ENUM_LF;
-	Parameters.sleepChar = '`';
-	Parameters.menuChar = '\035'; // CTRL-]
-	Parameters.pAltKey = "\x01";		// default 
-	
-	HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-
-    if (hInput && hInput != INVALID_HANDLE_VALUE) {
-
-        GetConsoleMode(hInput, &dwMode);
-        SetConsoleMode(hInput, (dwMode & ~(ENABLE_LINE_INPUT |
-            ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT)) | ENABLE_WINDOW_INPUT);
-    }
 }
 
 BOOL DataAvailable(HANDLE h)

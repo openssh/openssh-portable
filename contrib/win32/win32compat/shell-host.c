@@ -1034,6 +1034,10 @@ int start_with_pty(int ac, wchar_t **av) {
 
     cp = GetConsoleCP();
 
+    /* Windows PTY sends cursor positions in absolute coordinates starting from <0,0>
+     * We send a clear screen upfront to simplify client */
+    SendClearScreen(pipe_out);
+
     ZeroMemory(&inputSi, sizeof(STARTUPINFO));
     GetStartupInfo(&inputSi);
 
