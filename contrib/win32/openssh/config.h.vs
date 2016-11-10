@@ -1642,6 +1642,7 @@
 #undef HAVE_SYS_SYSMACROS_H
 #undef HAVE_SYS_MMAN_H
 #undef HAVE_SYS_UN_H
+#define _STRUCT_WINSIZE 1
 
 #define HAVE_TCGETPGRP 1
 

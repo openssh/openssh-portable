@@ -312,7 +312,6 @@ sig_winch(int sig)
 static void
 setscreensize(void)
 {
-#ifndef WINDOWS
 	struct winsize winsize;
 
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) != -1 &&
@@ -324,7 +323,4 @@ setscreensize(void)
 	} else
 		win_size = DEFAULT_WINSIZE;
 	win_size += 1;					/* trailing \0 */
-#else
-    win_size = ConScreenSizeX() + 1;
-#endif
 }

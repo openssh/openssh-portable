@@ -571,7 +571,6 @@ client_check_window_change(void)
 	if (compat20) {
 		channel_send_window_changes();
 	} else {
-#ifndef WIN32_FIXME
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 			return;
 		packet_start(SSH_CMSG_WINDOW_SIZE);
@@ -580,7 +579,6 @@ client_check_window_change(void)
 		packet_put_int((u_int)ws.ws_xpixel);
 		packet_put_int((u_int)ws.ws_ypixel);
 		packet_send();
-#endif
 	}
 }
 
@@ -2578,18 +2576,15 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	if (want_tty) {
-#ifndef WIN32_FIXME
 		struct winsize ws;
 
 		/* Store window size in the packet. */
 		if (ioctl(in_fd, TIOCGWINSZ, &ws) < 0)
 			memset(&ws, 0, sizeof(ws));
-#endif /* !WIN32_FIXME */
 
 		channel_request_start(id, "pty-req", 1);
 		client_expect_confirm(id, "PTY allocation", CONFIRM_TTY);
 
-#ifndef WIN32_FIXME
 		packet_put_cstring(term != NULL ? term : "");
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);
@@ -2599,14 +2594,6 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			tiop = get_saved_tio();
 		tty_make_modes(-1, tiop);
 		
-#else
-		packet_put_cstring(term != NULL ? term : "ansi");
-		packet_put_int((u_int) ScreenX);
-		packet_put_int((u_int) ScrollBottom);
-		packet_put_int((u_int) 640);
-		packet_put_int((u_int) 480);
-		tty_make_modes(-1, NULL);
-#endif /* else !WIN32_FIXME */
 		packet_send();
 		/* XXX wait for reply */
 		c->client_tty = 1;

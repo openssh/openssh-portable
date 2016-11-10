@@ -3884,20 +3884,11 @@ channel_send_window_changes(void)
 		    channels[i]->type != SSH_CHANNEL_OPEN)
 			continue;
 #ifndef WIN32_FIXME
-		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
-			continue
-#else
-		{
-			CONSOLE_SCREEN_BUFFER_INFO c_info;
-			/* TODO - Fix this for multiple channels*/
-			if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &c_info))
-				continue;
-			ws.ws_col = c_info.dwSize.X;
-			ws.ws_row = c_info.dwSize.Y;
-			ws.ws_xpixel = 640;
-			ws.ws_ypixel = 480;
-		}
+                /* TODO - Fix this for multiple channels*/
 #endif
+                if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
+                        continue;
+
 		channel_request_start(i, "window-change", 0);
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);

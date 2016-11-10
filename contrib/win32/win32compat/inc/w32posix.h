@@ -93,6 +93,7 @@ FILE* w32_fopen_utf8(const char *, const char *);
 int w32_ftruncate(int fd, off_t length);
 char* w32_programdir();
 int w32_fsync(int fd);
+int w32_ioctl(int d, int request, ...);
 
 /* Shutdown constants */
 #define SHUT_WR SD_SEND

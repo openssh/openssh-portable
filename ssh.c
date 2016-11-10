@@ -1770,22 +1770,12 @@ ssh_session(void)
 		packet_put_cstring(cp);
 
 		/* Store window size in the packet. */
-
-  #ifdef WIN32_FIXME
-  
-    packet_put_int((u_int) 25);  /*row*/
-    packet_put_int((u_int) 80);  /*col*/
-    packet_put_int((u_int) 640); /*xpixel*/
-    packet_put_int((u_int) 480); /*ypixel*/
-
-  #else
-		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
+                if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 			memset(&ws, 0, sizeof(ws));
 		packet_put_int((u_int)ws.ws_row);
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_xpixel);
 		packet_put_int((u_int)ws.ws_ypixel);
-#endif
 
 		/* Store tty modes in the packet. */
 		tty_make_modes(fileno(stdin), NULL);
