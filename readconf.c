@@ -300,11 +300,6 @@ static struct {
 	{ NULL, oBadOption }
 };
 
-#ifdef WIN32_FIXME
-char user_hostfile_name[MAX_PATH] ; // full path of "known_hosts"
-char user_hostfile_name2[MAX_PATH] ; // full path of "known_hosts2"
-#endif
-
 /*
  * Adds a local TCP/IP port forward to options.  Never returns if there is an
  * error.
@@ -2000,17 +1995,9 @@ fill_default_options(Options * options)
 	}
 	if (options->num_user_hostfiles == 0) {
 		options->user_hostfiles[options->num_user_hostfiles++] =
-			#ifdef WIN32_FIXME
-			xstrdup(user_hostfile_name);
-			#else
 		    xstrdup(_PATH_SSH_USER_HOSTFILE);
-			#endif
 		options->user_hostfiles[options->num_user_hostfiles++] =
-			#ifdef WIN32_FIXME
-			xstrdup(user_hostfile_name2);
-			#else
 		    xstrdup(_PATH_SSH_USER_HOSTFILE2);
-			#endif
 	}
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;
