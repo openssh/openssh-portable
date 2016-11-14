@@ -1,0 +1,20 @@
+version: 0.0.2.0
+image: Visual Studio 2015
+
+branches:
+  only:
+    - V_7_3w
+
+build_script:
+  - ps: |
+      Import-Module $env:APPVEYOR_BUILD_FOLDER\contrib\win32\openssh\AppVeyor.psm1
+      Invoke-AppVeyorBuild
+
+before_test:
+  - ps: Install-OpenSSH
+
+test_script:
+  - ps: Run-OpenSSHTests -uploadResults
+      
+on_finish:
+  - ps: Publish-Artifact
