@@ -34,7 +34,7 @@
 //#include <unistd.h>
 #include <signal.h>
 
-//#include <openssl/bn.h>
+#include <openssl/bn.h>
 
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
@@ -311,18 +311,18 @@ test_header(const char *file, int line, const char *a1, const char *a2,
 	    a2 != NULL ? ", " : "", a2 != NULL ? a2 : "");
 }
 
-//void
-//assert_bignum(const char *file, int line, const char *a1, const char *a2,
-//    const BIGNUM *aa1, const BIGNUM *aa2, enum test_predicate pred)
-//{
-//	int r = BN_cmp(aa1, aa2);
-//
-//	TEST_CHECK_INT(r, pred);
-//	test_header(file, line, a1, a2, "BIGNUM", pred);
-//	fprintf(stderr, "%12s = 0x%s\n", a1, BN_bn2hex(aa1));
-//	fprintf(stderr, "%12s = 0x%s\n", a2, BN_bn2hex(aa2));
-//	test_die();
-//}
+void
+assert_bignum(const char *file, int line, const char *a1, const char *a2,
+    const BIGNUM *aa1, const BIGNUM *aa2, enum test_predicate pred)
+{
+	int r = BN_cmp(aa1, aa2);
+
+	TEST_CHECK_INT(r, pred);
+	test_header(file, line, a1, a2, "BIGNUM", pred);
+	fprintf(stderr, "%12s = 0x%s\n", a1, BN_bn2hex(aa1));
+	fprintf(stderr, "%12s = 0x%s\n", a2, BN_bn2hex(aa2));
+	test_die();
+}
 
 void
 assert_string(const char *file, int line, const char *a1, const char *a2,
