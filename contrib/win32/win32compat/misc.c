@@ -181,10 +181,8 @@ char* w32_programdir() {
         if (s_programdir != NULL)
                 return s_programdir;
 
-        if ((s_programdir = utf16_to_utf8(_wpgmptr)) == NULL) {
-				return NULL;
-		}
-                
+        if ((s_programdir = utf16_to_utf8(_wpgmptr)) == NULL)
+                return NULL;
 
         /* null terminate after directory path */
         {
