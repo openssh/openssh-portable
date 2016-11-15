@@ -182,7 +182,6 @@ char* w32_programdir() {
                 return s_programdir;
 
         if ((s_programdir = utf16_to_utf8(_wpgmptr)) == NULL) {
-			if ((s_programdir = _pgmptr) == NULL)
 				return NULL;
 		}
                 
