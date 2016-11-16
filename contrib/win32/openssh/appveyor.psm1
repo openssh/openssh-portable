@@ -196,8 +196,8 @@ function Build-Win32OpenSSHPackage
     $rktoolsPath = "${env:ProgramFiles(x86)}\Windows Resource Kits\Tools\ntrights.exe"
     if (-not (Test-Path -Path $rktoolsPath))
     {
-        Write-Information -MessageData "$rktoolsPath not present. Installing $rktoolsPath."        
-        choco install $rktoolsPath -y --force
+        Write-Host -MessageData "$rktoolsPath not present. Installing $rktoolsPath."        
+        choco install $packageName -y --force        
     }
 
     Copy-Item -Path $rktoolsPath -Destination $OpenSSHDir -Force -ErrorAction Stop
