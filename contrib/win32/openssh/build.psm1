@@ -236,7 +236,7 @@ function Start-SSHBootstrap
     if (-not (Test-Path -Path $sdkPath))
     {
         Write-BuildMsg -AsInfo  -Message "Windows 8.1 SDK not present. Installing $packageName."
-        choco install $packageName -y
+        choco install $packageName -y --force
     }
     else
     {
@@ -267,7 +267,6 @@ function Start-SSHBootstrap
         Write-BuildMsg -AsError -ErrorAction Stop -Message "Could not find Visual Studio vcvarsall.bat at" + $script:vcPath
     }
 }
-
 
 function Start-SSHBuild
 {

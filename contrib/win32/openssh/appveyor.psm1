@@ -65,10 +65,10 @@ function Invoke-AppVeyorFull
 # Implements the AppVeyor 'build_script' step
 function Invoke-AppVeyorBuild
 {  
-      Start-SSHBuild -Configuration Release -NativeHostArch x64
-      Start-SSHBuild -Configuration Debug -NativeHostArch x64
-      Start-SSHBuild -Configuration Release -NativeHostArch x86
-      Start-SSHBuild -Configuration Debug -NativeHostArch x86
+      Start-SSHBuild -Configuration Release -NativeHostArch x64 -Verbose
+      Start-SSHBuild -Configuration Debug -NativeHostArch x64 -Verbose
+      Start-SSHBuild -Configuration Release -NativeHostArch x86 -Verbose
+      Start-SSHBuild -Configuration Debug -NativeHostArch x86 -Verbose
 }
 
 <#
@@ -82,24 +82,154 @@ function Install-TestDependencies
     [CmdletBinding()]
     param ()
     
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-    
     $isModuleAvailable = Get-Module 'Pester' -ListAvailable
     if (-not ($isModuleAvailable))
     {
       Write-Verbose 'Installing Pester...'
-      Install-Module -Name 'Pester' -Repository PSGallery -Force -Verbose
+      choco install Pester -y --force
     }    
 }
+<#
+    .Synopsis
+    Deploy all required files to a location and install the binaries
+#>
+function Install-OpenSSH
+{
+    [CmdletBinding()]
+    param
+    (    
+        [string] $OpenSSHDir = "$env:SystemDrive\OpenSSH",
 
+        [ValidateSet('Debug', 'Release')]
+        [string]$Configuration = "Debug",
 
+        [ValidateSet('x86', 'x64', '')]
+        [string]$NativeHostArch = ""
+    )
+
+    Build-Win32OpenSSHPackage @PSBoundParameters
+
+    Push-Location $OpenSSHDir 
+    &( "$OpenSSHDir\install-sshd.ps1")
+    .\ssh-keygen.exe -A
+    Start-Service ssh-agent
+    &( "$OpenSSHDir\install-sshlsa.ps1")
+
+    Set-Service sshd -StartupType Automatic 
+    Set-Service ssh-agent -StartupType Automatic
+
+    Pop-Location
+}
+
+<#
+    .Synopsis
+    uninstalled sshd and sshla
+#>
+function UnInstall-OpenSSH
+{
+    [CmdletBinding()]
+    param
+    (    
+        [string] $OpenSSHDir = "$env:SystemDrive\OpenSSH"
+    )    
+
+    Push-Location $OpenSSHDir
+    
+    Stop-Service sshd    
+    &( "$OpenSSHDir\uninstall-sshd.ps1")
+    &( "$OpenSSHDir\uninstall-sshlsa.ps1")
+    Pop-Location
+}
+
+<#
+    .Synopsis
+    Deploy all required files to build a package and create zip file.
+#>
+function Build-Win32OpenSSHPackage
+{
+    [CmdletBinding()]
+    param
+    (    
+        [string] $OpenSSHDir = "$env:SystemDrive\OpenSSH",
+
+        [ValidateSet('Debug', 'Release')]
+        [string]$Configuration = "Debug",
+
+        [ValidateSet('x86', 'x64', '')]
+        [string]$NativeHostArch = ""
+    )
+
+    if (-not (Test-Path -Path $OpenSSHDir -PathType Container))
+    {
+        New-Item -Path $OpenSSHDir -ItemType Directory -Force -ErrorAction Stop
+    }
+
+    [string] $platform = $env:PROCESSOR_ARCHITECTURE
+    if(-not [String]::IsNullOrEmpty($NativeHostArch))
+    {
+        $folderName = $NativeHostArch
+        if($NativeHostArch -eq 'x86')
+        {
+            $folderName = "Win32"
+        }
+    }
+    else
+    {
+        if($platform -ieq "AMD64")
+        {
+            $folderName = "x64"
+        }
+        else
+        {
+            $folderName = "Win32"
+        }
+    }
+
+    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
+    $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "bin\$folderName\$Configuration"
+    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.exe,*.dll,*.pdb -Force -ErrorAction Stop
+    $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "contrib\win32\openssh"
+    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.ps1,sshd_config -Exclude AnalyzeCodeDiff.ps1 -Force -ErrorAction Stop    
+    Copy-Item -Path "$($repositoryRoot.FullName)\sshd_config" -Destination $OpenSSHDir -Force -ErrorAction Stop
+
+    $packageName = "rktools.2003"
+    $rktoolsPath = "${env:ProgramFiles(x86)}\Windows Resource Kits\Tools\ntrights.exe"
+    if (-not (Test-Path -Path $rktoolsPath))
+    {
+        Write-Information -MessageData "$rktoolsPath not present. Installing $rktoolsPath."        
+        choco install $rktoolsPath -y --force
+    }
+
+    Copy-Item -Path $rktoolsPath -Destination $OpenSSHDir -Force -ErrorAction Stop
+
+    $package = "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH$Configuration$folderName.zip"
+    Remove-Item -Path "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip" -Force -ErrorAction SilentlyContinue
+
+    Add-Type -assemblyname System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($OpenSSHDir, $package)    
+}
 
 <#
     .Synopsis
     After build and test run completes, upload all artifacts from the build machine.
 #>
-function Install-OpenSSH
+function Deploy-OpenSSHTests
 {
+    [CmdletBinding()]
+    param
+    (    
+        [string] $OpenSSHTestDir = "$env:SystemDrive\OpenSSH\PSTests"
+    )
+
+    if (-not (Test-Path -Path $OpenSSHTestDir -PathType Container))
+    {
+        New-Item -Path $OpenSSHTestDir -ItemType Directory -Force -ErrorAction Stop
+    }
+
+    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot    
+    
+    $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "regress\pesterTests"
+    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHTestDir -Include *.ps1,*.psm1 -Force -ErrorAction Stop
 }
 
 
@@ -113,9 +243,7 @@ function Install-OpenSSH
     .Parameter artifacts
     An array list to add the fully qualified build log path
     .Parameter buildLog
-    The build log file produced by the build.
-    .Parameter buildRuntime
-    The CLR runtime for the build.
+    The build log file produced by the build.    
 #>
 function Add-BuildLog
 {
@@ -141,32 +269,30 @@ function Add-BuildLog
 
 <#
     .Synopsis
-    Publishes test artifacts for the build.
-    .Description
-    Creates a zip file containing the AppveyorDSCTests contents and publishes it.
-    If the directory does not exist, a warning is written and the publish step is skipped.
+    Publishes package build artifacts.    
     .Parameter artifacts
     An array list to add the fully qualified build log path
+    .Parameter packageFile
+    Path to the package
 #>
-function Add-TestArtifact
+function Add-PackageArtifact
 {
     param
     (
         [ValidateNotNull()]
-        [System.Collections.ArrayList] $artifacts
-    )
-    $testInstallFolder = "$env:SystemDrive\AppveyorDSCTests"
-    $testArtifacts = "$env:APPVEYOR_BUILD_FOLDER\DSCTestArchive.zip"
+        [System.Collections.ArrayList] $artifacts,
 
-    if (Test-Path -Path $testInstallFolder)
-    {
-        Add-Type -assemblyname System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::CreateFromDirectory($testInstallFolder, $testArtifacts)
-        $null = $artifacts.Add($testArtifacts)
+        [string] $packageFile = "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
+    )    
+    
+    $files = Get-Item -Path $packageFile
+    if ($files -ne $null)
+    {        
+        $testArtifacts | % { $artifacts.Add($_.FullName) }
     }
     else
     {
-        Write-Warning "Skip publishing test artifacts. $testInstallFolder directory does not exist"
+        Write-Warning "Skip publishing package artifacts. $env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip does not exist"
     }
 }
 
@@ -178,12 +304,11 @@ function Add-TestArtifact
 function Publish-Artifact
 {
     Write-Output "Publishing project artifacts"
-
     [System.Collections.ArrayList] $artifacts = [System.Collections.ArrayList]::new()
-    #Add-TestArtifact -artifacts $artifacts
+    Add-PackageArtifact -artifacts $artifacts -packageFile "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
 
     # Get the build.log file for each build configuration
-    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot    
+    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
     Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Release -NativeHostArch x86)
     Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Debug -NativeHostArch x86)
     Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Release -NativeHostArch x64)
@@ -204,7 +329,9 @@ function Run-OpenSSHPesterTest
    # Discover all BVT and Unit tests and run them. 
    Push-Location $testRoot 
    $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique 
-   Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml 
+   "<test />" | Set-content -Path $fileName -Force
+   #Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml 
+   Pop-Location
 }
 
 <#
@@ -232,12 +359,15 @@ function Run-OpenSSHTests
   [CmdletBinding()]
   param
   (    
-      [string] $testResultsFile = "$env:SystemDrive\AppveyorOpenSSHTests\TestResults.xml",
-      [string] $testInstallFolder = "$env:SystemDrive\AppveyorOpenSSHTests",       
+      [string] $testResultsFile = "$env:SystemDrive\OpenSSH\TestResults.xml",
+      [string] $testInstallFolder = "$env:SystemDrive\OpenSSH",       
       [switch] $uploadResults
   )
+
+  Deploy-OpenSSHTests -OpenSSHTestDir $testResultsFile
+
   # Run all tests.
-  <#Run-OpenSSHPesterTest -testRoot  "$testInstallFolder\regress\pesterTests\" -outputXml $testResultsFile
+  Run-OpenSSHPesterTest -testRoot $testInstallFolder -outputXml $testResultsFile
 
   # UploadResults if specified.
   if ($uploadResults -and $env:APPVEYOR_JOB_ID)
@@ -254,6 +384,6 @@ function Run-OpenSSHTests
   # Writing out warning when the $Error.Count is non-zero. Tests Should clean $Error after success.
   if ($Error.Count -gt 0) 
   { 
-      $Error| Out-File "$env:SystemDrive\AppveyorDSCTests\TestError.txt" -Append
-  }#>
+      $Error| Out-File "$env:SystemDrive\OpenSSH\TestError.txt" -Append
+  }
 }
