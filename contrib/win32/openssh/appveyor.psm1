@@ -196,7 +196,7 @@ function Build-Win32OpenSSHPackage
     $rktoolsPath = "${env:ProgramFiles(x86)}\Windows Resource Kits\Tools\ntrights.exe"
     if (-not (Test-Path -Path $rktoolsPath))
     {
-        Write-Information -MessageData "$rktoolsPath not present. Installing $rktoolsPath."        
+        Write-Information -MessageData "$packageName not present. Installing $packageName."        
         choco install $packageName -y --force
     }
 
@@ -329,7 +329,7 @@ function Run-OpenSSHPesterTest
    # Discover all BVT and Unit tests and run them. 
    Push-Location $testRoot 
    $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique 
-   "<test />" | Set-content -Path $fileName -Force
+   "<test />" | Set-content -Path $outputXml -Force
    #Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml 
    Pop-Location
 }
@@ -364,7 +364,7 @@ function Run-OpenSSHTests
       [switch] $uploadResults
   )
 
-  Deploy-OpenSSHTests -OpenSSHTestDir $testResultsFile
+  Deploy-OpenSSHTests -OpenSSHTestDir $testInstallFolder
 
   # Run all tests.
   Run-OpenSSHPesterTest -testRoot $testInstallFolder -outputXml $testResultsFile
