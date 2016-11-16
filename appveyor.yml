@@ -4,6 +4,8 @@ image: Visual Studio 2015
 branches:
   only:
     - V_7_3w
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 build_script:
   - ps: |
@@ -24,3 +26,4 @@ test_script:
       
 on_finish:
   - ps: Publish-Artifact
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
