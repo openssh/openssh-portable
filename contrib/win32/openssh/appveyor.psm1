@@ -288,7 +288,7 @@ function Add-PackageArtifact
     $files = Get-Item -Path $packageFile
     if ($files -ne $null)
     {        
-        $testArtifacts | % { $artifacts.Add($_.FullName) }
+        $files | % { $artifacts.Add($_.FullName) }
     }
     else
     {
@@ -305,7 +305,7 @@ function Publish-Artifact
 {
     Write-Output "Publishing project artifacts"
     [System.Collections.ArrayList] $artifacts = [System.Collections.ArrayList]::new()
-    Add-PackageArtifact -artifacts $artifacts -packageFile "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
+    Add-PackageArtifact  -artifacts $artifacts -packageFile "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
 
     # Get the build.log file for each build configuration
     [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
