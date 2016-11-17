@@ -74,7 +74,8 @@ function Invoke-AppVeyorBuild
 <#
       .SYNOPSIS
       This function installs the tools required by our tests
-      1) Pester for running the tests      
+      1) Nuget package provider - this is required so we can download from the Gallery
+      2) Pester for running the tests      
   #>
 function Install-TestDependencies
 {
@@ -86,7 +87,12 @@ function Install-TestDependencies
     {
       Write-Verbose 'Installing Pester...'
       choco install Pester -y --force
-    }    
+    }
+
+    if ( -not (Test-Path "$env:ProgramData\chocolatey\lib\sysinternals\tools" ) ) {
+        Write-Verbose "sysinternals not present. Installing sysinternals."
+        choco install sysinternals -y            
+    }
 }
 <#
     .Synopsis
@@ -362,8 +368,7 @@ function Run-OpenSSHTests
       [string] $testInstallFolder = "$env:SystemDrive\OpenSSH",       
       [switch] $uploadResults
   )
-  Install-TestDependencies
-  
+
   Deploy-OpenSSHTests -OpenSSHTestDir $testInstallFolder
 
   # Run all tests.

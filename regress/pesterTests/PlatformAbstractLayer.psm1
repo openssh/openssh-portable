@@ -85,7 +85,7 @@ Class Machine
     [string] $ClientKeyDirectory
     [string] $knownHostOfCurrentUser    
     [string] $OpenSSHdir = $PSScriptRoot
-    [string] $ToolsPath = "$PSScriptRoot\pstools"
+    [string] $ToolsPath = "$env:ProgramData\chocolatey\lib\sysinternals\tools"
 
     Machine() {
         $this.Platform = Set-Platform        
@@ -118,9 +118,11 @@ Class Machine
 
         if ($this.Platform -eq [PlatformType]::Windows)
         {
-            $this.ToolsPath = "$PSScriptRoot\pstools"
+            $this.ToolsPath = "$env:ProgramData\chocolatey\lib\sysinternals\tools"
             #download pstools
-	        $this.DownloadPStools("https://download.sysinternals.com/files/PSTools.zip", $PSScriptRoot)
+            if ( -not (Test-Path (join-path $($this.ToolsPath) "psexec.exe" ))) {
+	            $this.DownloadPStools()
+            }
         }
         
         foreach($key in @("rsa","dsa","ecdsa","ed25519"))
@@ -304,21 +306,41 @@ Class Machine
 	    $shell_app = $null
     }
 
-    [void] DownloadPStools ( [string]$URL, [string]$DestDir)
-     {      
-        if ( -not (Test-Path $($this.ToolsPath) ) ) {
-            New-Item -ItemType Directory -Force -Path $($this.ToolsPath) | out-null
+    [void] DownloadPStools()
+     {
+        $machinePath = [Environment]::GetEnvironmentVariable('Path', 'MACHINE')
+        $newMachineEnvironmentPath = $machinePath
+        # Install chocolatey
+        $chocolateyPath = "$env:AllUsersProfile\chocolatey\bin"
+        if(Get-Command "choco" -ErrorAction SilentlyContinue)
+        {
+            Write-Information -MessageData "Chocolatey is already installed. Skipping installation."
         }
-	    $parsed = Split-Path $URL -Leaf
-        $psexecZipFile = Join-Path $DestDir $parsed
+        else
+        {
+            Write-Information -MessageData  "Chocolatey not present. Installing chocolatey."
+            Invoke-Expression ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
 
-	    if ( -not (Test-Path $psexecZipFile) ) {
-            start-bitstransfer -Destination $DestDir $URL
+            if (-not ($machinePath.ToLower().Contains($chocolateyPath.ToLower())))
+            {
+                Write-Information -MessageData "Adding $chocolateyPath to Path environment variable"
+                $newMachineEnvironmentPath += ";$chocolateyPath"
+                $env:Path += ";$chocolateyPath"
+            }
+            else
+            {
+                Write-Information -MessageData "$chocolateyPath already present in Path environment variable"
+            }
         }
-            
-	    if ( -not (Test-Path "$($this.ToolsPath)\psexec.exe")) {                
-            $this.UnzipFile($psexecZipFile, $this.ToolsPath)
+
+        if ( -not (Test-Path $($this.ToolsPath) ) ) {
+            Write-Information -MessageData "sysinternals not present. Installing sysinternals."
+            choco install sysinternals -y            
         }
+        else
+        {
+            Write-Information -MessageData "sysinternals present. Skipping installation."
+        }	    
     }
 
     [void] SetKeys($Hostnames, $keyPath, $Path) {
