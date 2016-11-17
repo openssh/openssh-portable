@@ -50,20 +50,6 @@ put_opt(struct sshbuf *b, const char *name, const char *value)
 	sshbuf_free(sect);
 }
 
-#ifdef WIN32_FIXME
-const char *
-test_data_file(const char *name)
-{
-	static char ret[PATH_MAX];
-	snprintf(ret, sizeof(ret), "c:/openssh/Win32-OpenSSH/regress/unittests/sshkey/testdata/%s", name);
-	if (access(ret, F_OK) != 0) {
-		fprintf(stderr, "Cannot access data file %s: %s\n",
-		    ret, strerror(errno));
-		exit(1);
-	}
-	return ret;
-}
-#endif
 static void
 build_cert(struct sshbuf *b, const struct sshkey *k, const char *type,
     const struct sshkey *sign_key, const struct sshkey *ca_key,

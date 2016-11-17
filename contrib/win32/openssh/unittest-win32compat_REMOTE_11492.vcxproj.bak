@@ -19,12 +19,19 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\regress\unittests\win32compat\file_tests.c" />
+    <ClCompile Include="..\..\..\regress\unittests\win32compat\socket_tests.c" />
+    <ClCompile Include="..\..\..\regress\unittests\win32compat\tests.c" />
+    <ClCompile Include="..\..\..\regress\unittests\win32compat\test_helper.c" />
+    <ClCompile Include="..\win32compat\wmain_common.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8EC56B06-5A9A-4D6D-804D-037FE26FD43E}</ProjectGuid>
+    <ProjectGuid>{BF295BA9-4BF8-43F8-8CBF-FAE84815466C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Win32OpenSSH</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>unittest-kex</ProjectName>
+    <ProjectName>unittest-win32compat</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,14 +81,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-win32compat</TargetName>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-win32compat</TargetName>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
@@ -89,14 +96,14 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-win32compat</TargetName>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-win32compat</TargetName>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -128,7 +135,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(OpenSSL-x64-Debug-Path)include;$(OpenSSH-Src-Path)includes;$(OpenSSH-Src-Path);$(OpenSSH-Src-Path)contrib\win32\win32compat;$(OpenSSH-Src-Path)libkrb;$(OpenSSH-Src-Path)libkrb\libKrb5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
@@ -197,21 +204,6 @@
       <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <ItemGroup>
-<<<<<<< HEAD
-    <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\tests.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\test_kex.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\test_helper.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
-=======
-    <ClCompile Include="..\..\..\kexgexs.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\test_kex.c" />
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\test_helper.c" />
-    <ClCompile Include="..\win32compat\wmain_common.c" />
->>>>>>> refs/remotes/PowerShell/V_7_3w
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

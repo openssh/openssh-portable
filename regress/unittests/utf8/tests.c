@@ -9,7 +9,7 @@
 #include <locale.h>
 #include <string.h>
 
-#include "test_helper.h"
+#include "../test_helper/test_helper.h"
 
 #include "utf8.h"
 
@@ -58,7 +58,11 @@ tests(void)
 	char	*loc;
 
 	TEST_START("utf8_setlocale");
+	#ifndef WINDOWS
 	loc = setlocale(LC_CTYPE, "en_US.UTF-8");
+	#else
+	loc = setlocale(LC_CTYPE, "en-US");
+	#endif
 	ASSERT_PTR_NE(loc, NULL);
 	TEST_DONE();
 

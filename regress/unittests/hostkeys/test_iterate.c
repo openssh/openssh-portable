@@ -45,21 +45,6 @@ struct cbctx {
 	int match_ipv6;
 };
 
-#ifdef WIN32_FIXME
-const char *
-test_data_file(const char *name)
-{
-	static char ret[PATH_MAX];
-	snprintf(ret, sizeof(ret), "c:/openssh/Win32-OpenSSH/regress/unittests/hostkeys/testdata/%s", name);
-	if (access(ret, F_OK) != 0) {
-		fprintf(stderr, "Cannot access data file %s: %s\n",
-		    ret, strerror(errno));
-		exit(1);
-	}
-	return ret;
-}
-#endif
-
 /*
  * hostkeys_foreach() iterator callback that verifies the line passed
  * against an array of expected entries.
@@ -76,7 +61,6 @@ check(struct hostkey_foreach_line *l, void *_ctx)
 
 	test_subtest_info("entry %zu/%zu, file line %ld",
 	    ctx->i + 1, ctx->nexpected, l->linenum);
-#ifndef WIN32_FIXME
 	for (;;) {
 		ASSERT_SIZE_T_LT(ctx->i, ctx->nexpected);
 		expected = ctx->expected + ctx->i++;
@@ -92,7 +76,6 @@ check(struct hostkey_foreach_line *l, void *_ctx)
 		if (ctx->match_ipv6 && expected->match_ipv6)
 			break;
 	}
-#endif
 	expected_status = (parse_key || expected->no_parse_status < 0) ?
 	    expected->l.status : (u_int)expected->no_parse_status;
 	expected_match = expected->l.match;
@@ -129,7 +112,6 @@ check(struct hostkey_foreach_line *l, void *_ctx)
 	UPDATE_MATCH_STATUS(match_ipv6);
 
 	ASSERT_PTR_NE(l->path, NULL); /* Don't care about path */
-#ifndef WIN32_FIXME
 	ASSERT_LONG_LONG_EQ(l->linenum, expected->l.linenum);
 	ASSERT_U_INT_EQ(l->status, expected_status);
 	ASSERT_U_INT_EQ(l->match, expected_match);
@@ -155,7 +137,6 @@ check(struct hostkey_foreach_line *l, void *_ctx)
 	}
 	if (parse_key && !(l->comment == NULL && expected->l.comment == NULL))
 		ASSERT_STRING_EQ(l->comment, expected->l.comment);
-#endif
 	return 0;
 }
 

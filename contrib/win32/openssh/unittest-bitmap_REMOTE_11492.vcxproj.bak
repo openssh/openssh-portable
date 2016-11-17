@@ -20,11 +20,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8EC56B06-5A9A-4D6D-804D-037FE26FD43E}</ProjectGuid>
+    <ProjectGuid>{D901596E-76C7-4608-9CFA-2B42A9FD7250}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Win32OpenSSH</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>unittest-kex</ProjectName>
+    <ProjectName>unittest-bitmap</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,14 +74,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-bitmap</TargetName>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-bitmap</TargetName>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
@@ -89,14 +89,14 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-bitmap</TargetName>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
-    <TargetName>unittest-kex</TargetName>
+    <TargetName>unittest-bitmap</TargetName>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -198,19 +198,9 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-<<<<<<< HEAD
-    <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\tests.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\test_kex.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\test_helper.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
-=======
-    <ClCompile Include="..\..\..\kexgexs.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\test_kex.c" />
+    <ClCompile Include="..\..\..\regress\unittests\bitmap\tests.c" />
     <ClCompile Include="..\..\..\regress\unittests\win32compat\test_helper.c" />
     <ClCompile Include="..\win32compat\wmain_common.c" />
->>>>>>> refs/remotes/PowerShell/V_7_3w
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
