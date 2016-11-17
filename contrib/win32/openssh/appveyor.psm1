@@ -74,8 +74,7 @@ function Invoke-AppVeyorBuild
 <#
       .SYNOPSIS
       This function installs the tools required by our tests
-      1) Nuget package provider - this is required so we can download from the Gallery
-      2) Pester for running the tests      
+      1) Pester for running the tests      
   #>
 function Install-TestDependencies
 {
@@ -363,7 +362,8 @@ function Run-OpenSSHTests
       [string] $testInstallFolder = "$env:SystemDrive\OpenSSH",       
       [switch] $uploadResults
   )
-
+  Install-TestDependencies
+  
   Deploy-OpenSSHTests -OpenSSHTestDir $testInstallFolder
 
   # Run all tests.
