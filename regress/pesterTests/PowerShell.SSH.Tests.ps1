@@ -1,6 +1,6 @@
 ﻿using module .\PlatformAbstractLayer.psm1
 
-Describe "Tests for powershell over ssh" -Tags "CI" {
+Describe "Tests for powershell over ssh" -Tags "Scenario" {
     BeforeAll {
         $defaultParamValues = $PSDefaultParameterValues.Clone()
         #Skip on windows powershell. this feature only supported in powershell core from git

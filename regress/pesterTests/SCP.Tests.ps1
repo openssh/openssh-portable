@@ -2,7 +2,7 @@
 
 #covered -i -p -q -r -v -c -S -C
 #todo: -F, -l and -P should be tested over the network
-Describe "Tests for scp command" -Tags "CI" {
+Describe "Tests for scp command" -Tags "Scenario" {
     BeforeAll {        
         $fileName1 = "test.txt"
         $fileName2 = "test2.txt"

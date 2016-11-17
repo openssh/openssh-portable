@@ -117,6 +117,7 @@ function Install-OpenSSH
 
     Set-Service sshd -StartupType Automatic 
     Set-Service ssh-agent -StartupType Automatic
+    Start-Service sshd
 
     Pop-Location
 }
@@ -190,8 +191,7 @@ function Build-Win32OpenSSHPackage
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.exe,*.dll,*.pdb -Force -ErrorAction Stop
     $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "contrib\win32\openssh"
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.ps1,sshd_config -Exclude AnalyzeCodeDiff.ps1 -Force -ErrorAction Stop    
-    Copy-Item -Path "$($repositoryRoot.FullName)\sshd_config" -Destination $OpenSSHDir -Force -ErrorAction Stop
-
+    
     $packageName = "rktools.2003"
     $rktoolsPath = "${env:ProgramFiles(x86)}\Windows Resource Kits\Tools\ntrights.exe"
     if (-not (Test-Path -Path $rktoolsPath))
@@ -218,7 +218,7 @@ function Deploy-OpenSSHTests
     [CmdletBinding()]
     param
     (    
-        [string] $OpenSSHTestDir = "$env:SystemDrive\OpenSSH\PSTests"
+        [string] $OpenSSHTestDir = "$env:SystemDrive\OpenSSH"
     )
 
     if (-not (Test-Path -Path $OpenSSHTestDir -PathType Container))
@@ -329,8 +329,8 @@ function Run-OpenSSHPesterTest
    # Discover all BVT and Unit tests and run them. 
    Push-Location $testRoot 
    $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique 
-   "<test />" | Set-content -Path $outputXml -Force
-   #Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml 
+   
+   Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml -Tag "CI"
    Pop-Location
 }
 
