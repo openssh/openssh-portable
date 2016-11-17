@@ -369,6 +369,8 @@ function Run-OpenSSHTests
       [switch] $uploadResults
   )
 
+  Install-TestDependencies
+
   Deploy-OpenSSHTests -OpenSSHTestDir $testInstallFolder
 
   # Run all tests.
