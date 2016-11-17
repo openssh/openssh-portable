@@ -17,7 +17,7 @@
 
 /* Utility functions/framework for regress tests */
 
-#include "includes.h"
+//#include "includes.h"
 
 #include <sys/types.h>
 //#include <sys/param.h>
@@ -114,7 +114,6 @@ static u_int test_number = 0;
 static test_onerror_func_t *test_onerror = NULL;
 static void *onerror_ctx = NULL;
 static const char *data_dir = NULL;
-#define F_OK    0
 static char subtest_info[512];
 
 #ifndef WIN32_FIXME
@@ -174,7 +173,7 @@ main(int argc, char **argv)
 		printf(" %u tests ok\n", test_number);
 	return 0;
 }
-
+#ifndef WIN32_FIXME
 const char *
 test_data_file(const char *name)
 {
@@ -191,7 +190,7 @@ test_data_file(const char *name)
 	}
 	return ret;
 }
-
+#endif
 
 void
 test_info(char *s, size_t len)
