@@ -1975,7 +1975,7 @@ int start_process_io(char *exename, char **argv, char **envv,
 	*/
 	sui.cb = sizeof(STARTUPINFO);
 	sui.lpReserved = 0;
-    utf8_to_utf16(lpDesktop);
+	sui.lpDesktop = utf8_to_utf16(lpDesktop);
     sui.lpTitle = NULL; /* NULL means use exe name as title */
 	sui.dwX = 0;
 	sui.dwY = 0;
