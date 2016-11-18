@@ -20,11 +20,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\file_tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\socket_tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\test_helper.c" />
-    <ClCompile Include="..\win32compat\wmain_common.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\file_tests.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\socket_tests.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\tests.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\test_helper.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BF295BA9-4BF8-43F8-8CBF-FAE84815466C}</ProjectGuid>

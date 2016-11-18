@@ -45,21 +45,6 @@ struct cbctx {
 	int match_ipv6;
 };
 
-#ifdef WIN32_FIXME
-const char *
-test_data_file(const char *name)
-{
-	static char ret[PATH_MAX];
-	snprintf(ret, sizeof(ret), "c:/openssh/Win32-OpenSSH/regress/unittests/hostkeys/testdata/%s", name);
-	if (access(ret, F_OK) != 0) {
-		fprintf(stderr, "Cannot access data file %s: %s\n",
-		    ret, strerror(errno));
-		exit(1);
-	}
-	return ret;
-}
-#endif
-
 /*
  * hostkeys_foreach() iterator callback that verifies the line passed
  * against an array of expected entries.

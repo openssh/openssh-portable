@@ -198,11 +198,11 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\kexgexs.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\tests.c" />
-    <ClCompile Include="..\..\..\regress\unittests\kex\test_kex.c" />
-    <ClCompile Include="..\..\..\regress\unittests\win32compat\test_helper.c" />
-    <ClCompile Include="..\win32compat\wmain_common.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\tests.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\kex\test_kex.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\test_helper.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
