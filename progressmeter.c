@@ -89,7 +89,7 @@ can_output(void)
     return (getpgrp() == tcgetpgrp(STDOUT_FILENO));
 #else
     DWORD dwProcessId = -1;
-    if (GetWindowThreadProcessId(GetStdHandle(STD_OUTPUT_HANDLE), &dwProcessId)) {
+    if (GetWindowThreadProcessId(STDOUT_FILENO, &dwProcessId)) {
         return(GetCurrentProcess() == dwProcessId);
     }
     else {
@@ -299,7 +299,11 @@ stop_progress_meter(void)
 	if (cur_pos != end_pos)
 		refresh_progress_meter();
 
-	atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+#ifdef WINDOWS
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), L"\n", 1, 0, 0);
+#else
+    atomicio(vwrite, STDOUT_FILENO, "\n", 1);
+#endif
 }
 
 /*ARGSUSED*/
@@ -312,15 +316,20 @@ sig_winch(int sig)
 static void
 setscreensize(void)
 {
-	struct winsize winsize;
+#ifndef WINDOWS
+    struct winsize winsize;
 
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) != -1 &&
-	    winsize.ws_col != 0) {
-		if (winsize.ws_col > MAX_WINSIZE)
-			win_size = MAX_WINSIZE;
-		else
-			win_size = winsize.ws_col;
-	} else
-		win_size = DEFAULT_WINSIZE;
-	win_size += 1;					/* trailing \0 */
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) != -1 &&
+        winsize.ws_col != 0) {
+        if (winsize.ws_col > MAX_WINSIZE)
+            win_size = MAX_WINSIZE;
+        else
+            win_size = winsize.ws_col;
+    }
+    else
+        win_size = DEFAULT_WINSIZE;
+    win_size += 1;					/* trailing \0 */
+#else
+    win_size = ConScreenSizeX() + 1;
+#endif
 }

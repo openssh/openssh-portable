@@ -1316,7 +1316,7 @@ source(int argc, char **argv)
 	off_t i, statbytes;
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
-	char *last, *lastf, *lastr, *name, buf[2048], encname[PATH_MAX];
+	char *last = NULL, *lastf = NULL, *lastr = NULL, *name, buf[2048], encname[PATH_MAX];
 	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
