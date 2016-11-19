@@ -47,11 +47,12 @@ function Invoke-AppVeyorFull
     {
         $env:APPVEYOR_SCHEDULED_BUILD = 'True'
     }
-    try {
-        #Invoke-AppVeyorInstall
+    try {        
         Invoke-AppVeyorBuild
         Install-OpenSSH
-        Run-OpenSSHTests -uploadResults
+        Install-TestDependencies
+        & "$env:ProgramFiles\PowerShell\6.0.0.12\powershell.exe" -Command {Import-Module $($repoRoot.FullName)\contrib\win32\openssh\AppVeyor.psm1;Run-OpenSSHTests -uploadResults}
+        Run-OpenSSHTests
         Publish-Artifact        
     }
     finally {
@@ -72,6 +73,117 @@ function Invoke-AppVeyorBuild
 }
 
 <#
+    .Synopsis
+    This function invokes msiexec.exe to install PSCore on the AppVeyor build machine
+#>
+function Invoke-MSIEXEC
+{
+  [CmdletBinding()]  
+  param(
+    [Parameter(Mandatory=$true)]
+    [string] $InstallFile
+  )
+
+    Write-Verbose "Installing $InstallFile..."
+    $arguments = @(
+    "/i"
+    "`"$InstallFile`""
+    "/qn"
+    "/norestart"
+    )
+    $process = Start-Process -FilePath msiexec.exe -ArgumentList $arguments -Wait -PassThru
+    if ($process.ExitCode -eq 0){
+        Write-host "$InstallFile has been successfully installed"
+    }
+    else {
+        Write-host  "installer exit code  $($process.ExitCode) for file  $($InstallFile)"
+    }
+  
+  return $process.ExitCode
+}
+
+<#
+    .Synopsis
+    This function installs PSCore MSI on the AppVeyor build machine
+#>
+function Install-PSCoreFromGithub
+{
+  $downloadLocation = Download-PSCoreMSI
+    
+  Write-host "Installing PSCore ..."
+  if(-not [string]::IsNullOrEmpty($downloadLocation))
+  {
+    $processExitCode = Invoke-MSIEXEC -InstallFile $downloadLocation
+    Write-host "Process exitcode: $processExitCode"
+  }
+}
+
+<#
+    .Synopsis
+    Retuns MSI location for PSCore for Win10, Windows 8.1 and 2012 R2
+#>
+function Get-PSCoreMSIDownloadURL
+{
+  $osversion = ([String][Environment]::OSVersion.Version).Substring(0, 10)
+  Write-Host "osversion:$osversion"
+  if($osversion.StartsWith("6"))
+  {
+      if ($($env:PROCESSOR_ARCHITECTURE).Contains('64'))
+      {
+        return 'https://github.com/PowerShell/PowerShell/releases/download/v6.0.0-alpha.12/PowerShell_6.0.0.12-alpha.12-win81-x64.msi'
+      }
+      else
+      {
+        return   ''
+      }
+  }
+  elseif ($osversion.Contains("10.0"))
+  {
+    if ($($env:PROCESSOR_ARCHITECTURE).Contains('64'))
+      {
+        return 'https://github.com/PowerShell/PowerShell/releases/download/v6.0.0-alpha.12/PowerShell_6.0.0.12-alpha.12-win10-x64.msi'
+      }
+      else
+      {        
+        return   ''
+      }
+  }
+}
+
+<#
+    .Synopsis
+    This functions downloads MSI and returns the path where the file is downloaded.
+#>
+function Download-PSCoreMSI
+{
+    $url = Get-PSCoreMSIDownloadURL
+    if([string]::IsNullOrEmpty($url))
+    {
+        Write-Host "url is empty"
+        return ''
+    }
+    $parsed = $url.Substring($url.LastIndexOf("/") + 1)
+    if(-not (Test-path "$env:SystemDrive\PScore" -PathType Container))
+    {
+        New-Item -ItemType Directory -Force -Path "$env:SystemDrive\PScore" | out-null 
+    }
+    $downloadLocation = "$env:SystemDrive\PScore\$parsed"
+    if(-not (Test-path $downloadLocation -PathType Leaf))
+    {
+        Invoke-WebRequest -Uri $url -OutFile $downloadLocation -ErrorVariable v
+    }
+
+    if ($v)
+    {
+        throw "Failed to download PSCore MSI package from $url"
+    }
+    else
+    {
+        return $downloadLocation
+    }
+}
+
+<#
       .SYNOPSIS
       This function installs the tools required by our tests
       1) Pester for running the tests  
@@ -85,14 +197,16 @@ function Install-TestDependencies
     $isModuleAvailable = Get-Module 'Pester' -ListAvailable
     if (-not ($isModuleAvailable))
     {
-      Write-Verbose 'Installing Pester...'
+      Write-Host 'Installing Pester...'
       choco install Pester -y --force
     }
 
     if ( -not (Test-Path "$env:ProgramData\chocolatey\lib\sysinternals\tools" ) ) {
-        Write-Verbose "sysinternals not present. Installing sysinternals."
+        Write-Host "sysinternals not present. Installing sysinternals."
         choco install sysinternals -y            
     }
+    Write-Host "Installing pscore..."
+    Install-PSCoreFromGithub
 }
 <#
     .Synopsis
@@ -293,7 +407,7 @@ function Add-PackageArtifact
     $files = Get-Item -Path $packageFile
     if ($files -ne $null)
     {        
-        $files | % { $artifacts.Add($_.FullName) }
+        $files | % { $null = $artifacts.Add($_.FullName) }
     }
     else
     {
@@ -312,12 +426,11 @@ function Publish-Artifact
     [System.Collections.ArrayList] $artifacts = [System.Collections.ArrayList]::new()
     Add-PackageArtifact  -artifacts $artifacts -packageFile "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
 
-    # Get the build.log file for each build configuration
-    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
-    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Release -NativeHostArch x86)
-    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Debug -NativeHostArch x86)
-    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Release -NativeHostArch x64)
-    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repositoryRoot.FullName -Configuration Debug -NativeHostArch x64)
+    # Get the build.log file for each build configuration    
+    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName -Configuration Release -NativeHostArch x86)
+    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName -Configuration Debug -NativeHostArch x86)
+    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName -Configuration Release -NativeHostArch x64)
+    Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName -Configuration Debug -NativeHostArch x64)
 
     foreach ($artifact in $artifacts)
     {
@@ -331,12 +444,12 @@ function Run-OpenSSHPesterTest
 {
     param($testRoot, $outputXml) 
      
-   # Discover all BVT and Unit tests and run them. 
-   Push-Location $testRoot 
-   $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique 
-   "<test/>" | Set-Content -Path $outputXml
-   #Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml -Tag "CI"
-   Pop-Location
+   # Discover all CI tests and run them.
+    Push-Location $testRoot 
+    $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique 
+   
+    Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile  $outputXml -Tag 'CI'
+    Pop-Location
 }
 
 <#
@@ -365,22 +478,13 @@ function Run-OpenSSHTests
   param
   (    
       [string] $testResultsFile = "$env:SystemDrive\OpenSSH\TestResults.xml",
-      [string] $testInstallFolder = "$env:SystemDrive\OpenSSH",       
-      [switch] $uploadResults
+      [string] $testInstallFolder = "$env:SystemDrive\OpenSSH"      
   )
-
-  Install-TestDependencies
 
   Deploy-OpenSSHTests -OpenSSHTestDir $testInstallFolder
 
   # Run all tests.
-  Run-OpenSSHPesterTest -testRoot $testInstallFolder -outputXml $testResultsFile
-
-  # UploadResults if specified.
-  if ($uploadResults -and $env:APPVEYOR_JOB_ID)
-  {
-      (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))
-  }
+  Run-OpenSSHPesterTest -testRoot $testInstallFolder -outputXml $testResultsFile  
 
   $xml = [xml](Get-Content -raw $testResultsFile) 
   if ([int]$xml.'test-results'.failures -gt 0) 
@@ -393,4 +497,19 @@ function Run-OpenSSHTests
   { 
       $Error| Out-File "$env:SystemDrive\OpenSSH\TestError.txt" -Append
   }
+}
+
+function Upload-OpenSSHTestResults
+{  
+  [CmdletBinding()]
+  param
+  (    
+      [string] $testResultsFile = "$env:SystemDrive\OpenSSH\TestResults.xml"
+  )
+  
+  if ($env:APPVEYOR_JOB_ID)
+  {
+      (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsFile))      
+  }
+ 
 }
