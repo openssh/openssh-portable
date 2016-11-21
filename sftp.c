@@ -2405,7 +2405,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		* Assign sockets to StartupInfo.
 		*/
 
-		si.cb = sizeof(STARTUPINFO);
+		si.cb = sizeof(STARTUPINFOW);
 		si.hStdInput = sfd_to_handle(c_in);
 		si.hStdOutput = sfd_to_handle(c_out);
 		si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
@@ -2418,7 +2418,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		*/
 
 		debug("Executing ssh client: \"%.500s\"...\n", fullCmd);
-		
+
 		if (CreateProcessW(NULL, utf8_to_utf16(fullCmd), NULL, NULL, TRUE,
 			NORMAL_PRIORITY_CLASS, NULL,
 			NULL, &si, &pi) == TRUE) {
