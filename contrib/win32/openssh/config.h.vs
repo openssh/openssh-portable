@@ -218,7 +218,8 @@
 /* #undef HAVE_B64_PTON */
 
 /* Define if you have the basename function. */
-#define HAVE_BASENAME 1
+/* For Windows, this is defined in dirent.h, but that header is not included in sftp.c */
+/* #define HAVE_BASENAME */
 
 /* Define to 1 if you have the `bcopy' function. */
 /* #undef HAVE_BCOPY */

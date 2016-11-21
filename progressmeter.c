@@ -237,8 +237,8 @@ refresh_progress_meter(void)
 	}
 
 #ifdef WINDOWS
-    wchar_t* wtmp = utf8_to_utf16(buf);
-    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), wtmp, wcslen(wtmp), 0, 0);
+	wchar_t* wtmp = utf8_to_utf16(buf);
+	WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), wtmp, wcslen(wtmp), 0, 0);
     free(wtmp);
 #else
 	atomicio(vwrite, STDOUT_FILENO, buf, win_size - 1);
@@ -316,7 +316,6 @@ sig_winch(int sig)
 static void
 setscreensize(void)
 {
-#ifndef WINDOWS
     struct winsize winsize;
 
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) != -1 &&
@@ -329,7 +328,4 @@ setscreensize(void)
     else
         win_size = DEFAULT_WINSIZE;
     win_size += 1;					/* trailing \0 */
-#else
-    win_size = ConScreenSizeX() + 1;
-#endif
 }

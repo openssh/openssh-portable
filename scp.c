@@ -914,17 +914,6 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 
-#ifdef WINDOWS
-    /*
-    * Initialize I/O wrappers.
-    */
-
-    w32posix_initialize();
-    /*scp is invoked on client side*/
-    if (!(argc >= 2 && (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "-t") == 0)))
-        ConInit(STD_OUTPUT_HANDLE, TRUE);
-#endif
-
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 

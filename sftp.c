@@ -2418,7 +2418,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		*/
 
 		debug("Executing ssh client: \"%.500s\"...\n", fullCmd);
-
+		
 		if (CreateProcessW(NULL, utf8_to_utf16(fullCmd), NULL, NULL, TRUE,
 			NORMAL_PRIORITY_CLASS, NULL,
 			NULL, &si, &pi) == TRUE) {
@@ -2505,16 +2505,10 @@ main(int argc, char **argv)
 	long long limit_kbps = 0;
 
 #ifdef WINDOWS
-    /*
-     * Initialize I/O wrappers.
-     */
-
-	w32posix_initialize();     
+    /*TODO - is this really needed ???*/
 	setvbuf(stdout, NULL, _IONBF, 0);
-
-    ConInit(STD_OUTPUT_HANDLE, TRUE);
-
  #endif
+
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 	setlocale(LC_CTYPE, "");
