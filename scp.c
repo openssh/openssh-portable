@@ -833,7 +833,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 }
 
 /*
- * This functions executes a command simlar to do_cmd(), but expects the
+ * This functions executes a command similar to do_cmd(), but expects the
  * input and output descriptors to be setup by a previous call to do_cmd().
  * This way the input and output of two commands can be connected.
  */
@@ -932,9 +932,9 @@ main(int argc, char **argv)
 	args.list = remote_remote_args.list = NULL;
 	addargs(&args, "%s", ssh_program);
 	addargs(&args, "-x");
-	addargs(&args, "-oForwardAgent=no");
-	addargs(&args, "-oPermitLocalCommand=no");
-	addargs(&args, "-oClearAllForwardings=yes");
+	addargs(&args, "\"-oForwardAgent no\"");
+	addargs(&args, "\"-oPermitLocalCommand no\"");
+	addargs(&args, "\"-oClearAllForwardings yes\"");
 
 	fflag = tflag = 0;
 	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q12346S:o:F:")) != -1)
@@ -943,32 +943,62 @@ main(int argc, char **argv)
 		case '1':
 		case '2':
 		case '4':
+            ipv_restrict = ONLY_IPV4;
+            break;
 		case '6':
+            ipv_restrict = ONLY_IPV6;
+            break;
 		case 'C':
 			addargs(&args, "-%c", ch);
 			addargs(&remote_remote_args, "-%c", ch);
+            compress = ch;
 			break;
 		case '3':
 			throughlocal = 1;
 			break;
 		case 'o':
-		case 'c':
+            addargs(&remote_remote_args, "-%c", ch);
+            addargs(&remote_remote_args, "%s", optarg);
+            addargs(&args, "-%c", ch);
+            addargs(&args, "%s", optarg);
+            break;
+        case 'c':
+            addargs(&remote_remote_args, "-%c", ch);
+            addargs(&remote_remote_args, "%s", optarg);
+            addargs(&args, "-%c", ch);
+            addargs(&args, "%s", optarg);
+
+            cipher = xstrdup(optarg);;
+            break;
 		case 'i':
+            addargs(&remote_remote_args, "-%c", ch);
+            addargs(&remote_remote_args, "%s", optarg);
+            addargs(&args, "-%c", ch);
+            addargs(&args, "%s", optarg);
+
+            identity = xstrdup(optarg);;
+            break;
 		case 'F':
 			addargs(&remote_remote_args, "-%c", ch);
 			addargs(&remote_remote_args, "%s", optarg);
 			addargs(&args, "-%c", ch);
 			addargs(&args, "%s", optarg);
-			break;
+            
+            ssh_config = xstrdup(optarg);;
+            break;
 		case 'P':
 			addargs(&remote_remote_args, "-p");
 			addargs(&remote_remote_args, "%s", optarg);
 			addargs(&args, "-p");
 			addargs(&args, "%s", optarg);
+
+            port = xstrdup(optarg);;
 			break;
 		case 'B':
-			addargs(&remote_remote_args, "-oBatchmode=yes");
-			addargs(&args, "-oBatchmode=yes");
+			addargs(&remote_remote_args, "\"-oBatchmode yes\"");
+			addargs(&args, "\"-oBatchmode yes\"");
+
+            batchmode = 1;
 			break;
 		case 'l':
 			limit_kbps = strtonum(optarg, 1, 100 * 1024 * 1024,
@@ -1019,8 +1049,12 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+#ifndef WINDOWS
 	if ((pwd = getpwuid(userid = getuid())) == NULL)
 		fatal("unknown user %u", (u_int) userid);
+#else
+	InitForMicrosoftWindows(); // picks the username, user home dir
+#endif
 
 	if (!isatty(STDOUT_FILENO))
 		showprogress = 0;
@@ -1962,10 +1996,10 @@ int start_process_io(char *exename, char **argv, char **envv,
 	/* set up the STARTUPINFO structure,
 	*  then call CreateProcess to try and start the new exe.
 	*/
-	sui.cb = sizeof(STARTUPINFO);
+	sui.cb = sizeof(STARTUPINFOW);
 	sui.lpReserved = 0;
 	sui.lpDesktop = utf8_to_utf16(lpDesktop);
-    sui.lpTitle = NULL; /* NULL means use exe name as title */
+        sui.lpTitle = NULL; /* NULL means use exe name as title */
 	sui.dwX = 0;
 	sui.dwY = 0;
 	sui.dwXSize = 132;
