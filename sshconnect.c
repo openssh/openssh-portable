@@ -1516,8 +1516,8 @@ ssh_local_cmd(const char *args)
 }
 
 void
-maybe_add_key_to_agent(char *authfile, Key *private, char *comment,
-    char *passphrase)
+maybe_add_key_to_agent(const char *authfile, const Key *private,
+    const char *comment, const char *passphrase)
 {
 	int auth_sock = -1, r;
 
