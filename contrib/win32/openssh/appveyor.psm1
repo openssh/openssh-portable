@@ -307,7 +307,7 @@ function Build-Win32OpenSSHPackage
 
     [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
     $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "bin\$folderName\$Configuration"
-    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.exe,*.dll,*.pdb -Force -ErrorAction Stop
+    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.exe,*.dll -Exclude *unittest*.* -Force -ErrorAction Stop
     $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "contrib\win32\openssh"
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.ps1,sshd_config -Exclude AnalyzeCodeDiff.ps1 -Force -ErrorAction Stop    
     
@@ -321,8 +321,14 @@ function Build-Win32OpenSSHPackage
 
     Copy-Item -Path $rktoolsPath -Destination $OpenSSHDir -Force -ErrorAction Stop
 
-    $package = "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH$Configuration$folderName.zip"
-    $allPackage = "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
+    $packageFolder = $env:SystemDrive
+    if ($env:APPVEYOR_BUILD_FOLDER)
+    {
+        $packageFolder = $env:APPVEYOR_BUILD_FOLDER
+    }
+
+    $package = "$packageFolder\Win32OpenSSH$Configuration$folderName.zip"
+    $allPackage = "$packageFolder\Win32OpenSSH*.zip"
     if (Test-Path $allPackage)
     {
         Remove-Item -Path $allPackage -Force -ErrorAction SilentlyContinue
@@ -341,7 +347,13 @@ function Deploy-OpenSSHTests
     [CmdletBinding()]
     param
     (    
-        [string] $OpenSSHTestDir = "$env:SystemDrive\OpenSSH"
+        [string] $OpenSSHTestDir = "$env:SystemDrive\OpenSSH",
+
+        [ValidateSet('Debug', 'Release')]
+        [string]$Configuration = "Debug",
+
+        [ValidateSet('x86', 'x64', '')]
+        [string]$NativeHostArch = ""
     )
 
     if (-not (Test-Path -Path $OpenSSHTestDir -PathType Container))
@@ -349,10 +361,36 @@ function Deploy-OpenSSHTests
         New-Item -Path $OpenSSHTestDir -ItemType Directory -Force -ErrorAction Stop
     }
 
+    [string] $platform = $env:PROCESSOR_ARCHITECTURE
+    if(-not [String]::IsNullOrEmpty($NativeHostArch))
+    {
+        $folderName = $NativeHostArch
+        if($NativeHostArch -eq 'x86')
+        {
+            $folderName = "Win32"
+        }
+    }
+    else
+    {
+        if($platform -ieq "AMD64")
+        {
+            $folderName = "x64"
+        }
+        else
+        {
+            $folderName = "Win32"
+        }
+    }
+    
+
     [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot    
     
     $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "regress\pesterTests"
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHTestDir -Include *.ps1,*.psm1 -Force -ErrorAction Stop
+
+    $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "bin\$folderName\$Configuration"    
+    Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHTestDir -Exclude ssh-agent.exe, sshd.exe -Force -ErrorAction Stop
+    
 }
 
 
@@ -406,8 +444,7 @@ function Add-Artifact
     (
         [ValidateNotNull()]
         [System.Collections.ArrayList] $artifacts,
-
-        [string] $FileToAdd = "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
+        [string] $FileToAdd = "$env:SystemDrive\Win32OpenSSH*.zip"
     )    
     
     $files = Get-ChildItem -Path $FileToAdd -ErrorAction Ignore
@@ -435,8 +472,15 @@ function Publish-Artifact
 {
     Write-Output "Publishing project artifacts"
     [System.Collections.ArrayList] $artifacts = [System.Collections.ArrayList]::new()
-    Add-Artifact  -artifacts $artifacts -FileToAdd "$env:APPVEYOR_BUILD_FOLDER\Win32OpenSSH*.zip"
-    Add-Artifact  -artifacts $artifacts -FileToAdd "$env:SystemDrive\OpenSSH\UnitTestResults.txt"
+    
+    $packageFolder = $env:SystemDrive
+    if ($env:APPVEYOR_BUILD_FOLDER)
+    {
+        $packageFolder = $env:APPVEYOR_BUILD_FOLDER
+    }
+
+    Add-Artifact  -artifacts $artifacts -FileToAdd "$packageFolder\Win32OpenSSH*.zip"
+    Add-Artifact  -artifacts $artifacts -FileToAdd "$packageFolder\OpenSSH\UnitTestResults.txt"
 
     # Get the build.log file for each build configuration    
     #Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName -Configuration Release -NativeHostArch x86)
@@ -485,7 +529,7 @@ function Run-OpenSSHUnitTest
         Remove-Item -Path $unitTestOutputFile -Force -ErrorAction SilentlyContinue
     }
 
-    $unitTestFiles = Get-ChildItem -Path "$testRoot\unittest*.exe" -Include unittest-kex.exe, unittest-bitmap.exe, unittest-sshbuf.exe, unittest-win32compat.exe
+    $unitTestFiles = Get-ChildItem -Path "$testRoot\unittest*.exe" -Include unittest-kex.exe, unittest-bitmap.exe, unittest-sshbuf.exe, unittest-win32compat.exe, unittest-hostkeys.exe
     $testFailed = $false
     if ($unitTestFiles -ne $null)
     {        
