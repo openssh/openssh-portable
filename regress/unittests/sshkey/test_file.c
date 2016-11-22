@@ -101,6 +101,7 @@ sshkey_file_tests(void)
 	sshkey_free(k1);
 #endif
 
+#ifdef WITH_OPENSSL
 	TEST_START("parse RSA from private");
 	buf = load_file("rsa_1");
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(buf, "", &k1, NULL), 0);
@@ -282,6 +283,7 @@ sshkey_file_tests(void)
 	TEST_DONE();
 
 	sshkey_free(k1);
+#endif
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("parse ECDSA from private");

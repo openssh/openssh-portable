@@ -9,5 +9,6 @@
     <OpenSSL-Win32-Debug-Path>$(SolutionDir)\OpenSSLSDK\1.0.2d\Win32\Debug\</OpenSSL-Win32-Debug-Path>
     <OpenSSL-x64-Release-Path>$(SolutionDir)\OpenSSLSDK\1.0.2d\x64\Release\</OpenSSL-x64-Release-Path>
     <OpenSSL-x64-Debug-Path>$(SolutionDir)\OpenSSLSDK\1.0.2d\x64\Debug\</OpenSSL-x64-Debug-Path>
+	<UseOpenSSL>false</UseOpenSSL>
   </PropertyGroup>
 </Project>

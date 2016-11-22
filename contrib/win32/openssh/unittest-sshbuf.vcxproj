@@ -203,8 +203,12 @@
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_fixed.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_fuzz.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_getput_basic.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_getput_crypto.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_getput_fuzz.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_getput_crypto.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_getput_fuzz.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshbuf\test_sshbuf_misc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\test_helper\fuzz.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\test_helper.c" />

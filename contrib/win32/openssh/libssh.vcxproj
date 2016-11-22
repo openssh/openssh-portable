@@ -190,8 +190,12 @@
     <ClCompile Include="$(OpenSSH-Src-Path)compat.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)crc32.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)deattack.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)dh.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)digest-libc.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)dh.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)digest-libc.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)dispatch.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)dns.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)ed25519.c" />
@@ -207,14 +211,30 @@
     <ClCompile Include="$(OpenSSH-Src-Path)kexc25519.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)kexc25519c.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)kexc25519s.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdh.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhc.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdh.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhc.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexgex.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexgexc.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)kexdh.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexdhc.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexecdh.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhc.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexgex.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexgexc.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)key.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)krl.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)log.c" />
@@ -232,14 +252,22 @@
     <ClCompile Include="$(OpenSSH-Src-Path)progressmeter.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)readpass.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)rijndael.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)rsa.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)rsa.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)sc25519.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)smult_curve25519_ref.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)ssh-dss.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ecdsa.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-dss.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-ecdsa.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)ssh-ed25519.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)ssh-pkcs11.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)ssh-rsa.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-rsa.c">
+		<ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)sshbuf-getput-basic.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sshbuf-getput-crypto.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)sshbuf-misc.c" />

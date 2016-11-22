@@ -34,7 +34,9 @@
 //#include <unistd.h>
 #include <signal.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/bn.h>
+#endif
 
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
@@ -311,6 +313,7 @@ test_header(const char *file, int line, const char *a1, const char *a2,
 	    a2 != NULL ? ", " : "", a2 != NULL ? a2 : "");
 }
 
+#ifdef WITH_OPENSSL
 void
 assert_bignum(const char *file, int line, const char *a1, const char *a2,
     const BIGNUM *aa1, const BIGNUM *aa2, enum test_predicate pred)
@@ -323,6 +326,7 @@ assert_bignum(const char *file, int line, const char *a1, const char *a2,
 	fprintf(stderr, "%12s = 0x%s\n", a2, BN_bn2hex(aa2));
 	test_die();
 }
+#endif
 
 void
 assert_string(const char *file, int line, const char *a1, const char *a2,
