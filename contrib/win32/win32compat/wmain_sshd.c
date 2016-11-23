@@ -68,6 +68,7 @@ static VOID ReportSvcStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, DWORD d
 	SetServiceStatus(service_status_handle, &service_status);
 }
 
+BOOL WINAPI native_sig_handler(DWORD);
 static VOID WINAPI service_handler(DWORD dwControl)
 {
 	switch (dwControl)
