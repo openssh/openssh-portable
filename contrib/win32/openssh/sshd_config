@@ -119,4 +119,4 @@ Subsystem	sftp	C:/Program Files/OpenSSH/sftp-server.exe
 #	X11Forwarding no
 #	AllowTcpForwarding no
 #	ForceCommand cvs server
-PubkeyAcceptedKeyTypes ssh-ed25519*,ssh-rsa*,ssh-dss*,ecdsa-sha2*
+PubkeyAcceptedKeyTypes ssh-ed25519*

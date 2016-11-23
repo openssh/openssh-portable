@@ -529,7 +529,7 @@ function Run-OpenSSHUnitTest
         Remove-Item -Path $unitTestOutputFile -Force -ErrorAction SilentlyContinue
     }
 
-    $unitTestFiles = Get-ChildItem -Path "$testRoot\unittest*.exe" -Include unittest-kex.exe, unittest-bitmap.exe, unittest-sshbuf.exe, unittest-win32compat.exe, unittest-hostkeys.exe
+    $unitTestFiles = Get-ChildItem -Path "$testRoot\unittest*.exe"
     $testFailed = $false
     if ($unitTestFiles -ne $null)
     {        

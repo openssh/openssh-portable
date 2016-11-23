@@ -125,7 +125,7 @@ Class Machine
             }
         }
         
-        foreach($key in @("rsa","dsa","ecdsa","ed25519"))
+        foreach($key in @("ed25519"))            #@("rsa","dsa","ecdsa","ed25519")
         {
             $keyPath = "$($this.ClientKeyDirectory)\id_$key"
             $this.clientPrivateKeyPaths += $keyPath
@@ -159,8 +159,10 @@ Class Machine
 
         #Generate all host keys
         .\ssh-keygen -A
-        $this.PublicHostKeyPaths = @("$psscriptroot\ssh_host_rsa_key.pub","$psscriptroot\ssh_host_dsa_key.pub","$psscriptroot\ssh_host_ecdsa_key.pub","$psscriptroot\ssh_host_ed25519_key.pub")
-        $this.PrivateHostKeyPaths = @("$psscriptroot\ssh_host_rsa_key","$psscriptroot\ssh_host_dsa_key","$psscriptroot\ssh_host_ecdsa_key","$psscriptroot\ssh_host_ed25519_key")
+        $this.PublicHostKeyPaths = @("$psscriptroot\ssh_host_ed25519_key.pub")
+	    # @("$psscriptroot\ssh_host_rsa_key.pub","$psscriptroot\ssh_host_dsa_key.pub","$psscriptroot\ssh_host_ecdsa_key.pub","$psscriptroot\ssh_host_ed25519_key.pub")
+        $this.PrivateHostKeyPaths = @("$psscriptroot\ssh_host_ed25519_key")
+        # @("$psscriptroot\ssh_host_rsa_key","$psscriptroot\ssh_host_dsa_key","$psscriptroot\ssh_host_ecdsa_key","$psscriptroot\ssh_host_ed25519_key")
     }
 
     [void] SetupClient([Machine] $server) {

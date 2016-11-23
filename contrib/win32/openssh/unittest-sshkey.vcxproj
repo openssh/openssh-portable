@@ -122,6 +122,9 @@
     <Manifest>
       <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy /Y $(ProjectDir)..\..\..\regress\unittests\sshkey\testdata\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -145,6 +148,9 @@
     <Manifest>
       <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy /Y $(ProjectDir)..\..\..\regress\unittests\sshkey\testdata\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -170,6 +176,9 @@
     <Manifest>
       <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy /Y $(ProjectDir)..\..\..\regress\unittests\sshkey\testdata\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -196,6 +205,9 @@
     <Manifest>
       <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
     </Manifest>
+    <PostBuildEvent>
+      <Command>copy /Y $(ProjectDir)..\..\..\regress\unittests\sshkey\testdata\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\sshkey\common.c" />
