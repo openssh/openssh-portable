@@ -74,10 +74,14 @@ static VOID WINAPI service_handler(DWORD dwControl)
 	{
 	case SERVICE_CONTROL_STOP: {
 		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 500);
-		GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-		//wait for main daemon thread to terminate
-		WaitForSingleObject(main_thread, INFINITE);
 		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
+		/* TOTO - GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0); doesn't seem to be invoking 
+		 * signal handler (native_sig_handler) when sshd runs as service 
+		 * So calling the signal handler directly to interrupt the deamon's main thread
+		 * This is being called after reporting SERVICE_STOPPED because main thread does a exit()
+		 * as part of handling Crtl+c
+		 */
+		native_sig_handler(CTRL_C_EVENT);
 		return;
 	}
 	case SERVICE_CONTROL_INTERROGATE:
@@ -107,8 +111,7 @@ int sshd_main(int argc, wchar_t **wargv) {
 }
 
 int wmain(int argc, wchar_t **wargv) {
-	
-	
+
 	if (!StartServiceCtrlDispatcherW(dispatch_table)) {
 		if (GetLastError() != ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 			return -1;
