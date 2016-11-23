@@ -428,7 +428,7 @@ ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
 
 /* encode signature algoritm in flag bits, so we can keep the msg format */
 static u_int
-agent_encode_alg(struct sshkey *key, const char *alg)
+agent_encode_alg(const struct sshkey *key, const char *alg)
 {
 	if (alg != NULL && key->type == KEY_RSA) {
 		if (strcmp(alg, "rsa-sha2-256") == 0)
@@ -441,7 +441,7 @@ agent_encode_alg(struct sshkey *key, const char *alg)
 
 /* ask agent to sign data, returns err.h code on error, 0 on success */
 int
-ssh_agent_sign(int sock, struct sshkey *key,
+ssh_agent_sign(int sock, const struct sshkey *key,
     u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, const char *alg, u_int compat)
 {

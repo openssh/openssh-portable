@@ -39,7 +39,7 @@ int	ssh_remove_all_identities(int sock, int version);
 
 int	ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
 	    u_char session_id[16], u_char response[16]);
-int	ssh_agent_sign(int sock, struct sshkey *key,
+int	ssh_agent_sign(int sock, const struct sshkey *key,
 	    u_char **sigp, size_t *lenp,
 	    const u_char *data, size_t datalen, const char *alg, u_int compat);
 

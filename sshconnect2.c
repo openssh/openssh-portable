@@ -315,10 +315,10 @@ int	input_gssapi_errtok(int, u_int32_t, void *);
 
 void	userauth(Authctxt *, char *);
 
-static int sign_and_send_pubkey(Authctxt *, Identity *);
+static int sign_and_send_pubkey(Authctxt *, const Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
-static Key *load_identity_file(Identity *);
+static Key *load_identity_file(const Identity *);
 
 static Authmethod *authmethod_get(char *authlist);
 static Authmethod *authmethod_lookup(const char *name);
@@ -996,7 +996,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 }
 
 static const char *
-identity_sign_encode(struct identity *id)
+identity_sign_encode(const struct identity *id)
 {
 	struct ssh *ssh = active_state;
 
@@ -1012,7 +1012,7 @@ identity_sign_encode(struct identity *id)
 }
 
 static int
-identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
+identity_sign(const struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat)
 {
 	Key *prv;
@@ -1042,7 +1042,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 }
 
 static int
-sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
+sign_and_send_pubkey(Authctxt *authctxt, const Identity *id)
 {
 	Buffer b;
 	Identity *private_id;
@@ -1160,7 +1160,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 }
 
 static int
-send_pubkey_test(Authctxt *authctxt, Identity *id)
+send_pubkey_test(Authctxt *authctxt, const Identity *id)
 {
 	u_char *blob;
 	u_int bloblen, have_sig = 0;
@@ -1189,7 +1189,7 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 }
 
 static Key *
-load_identity_file(Identity *id)
+load_identity_file(const Identity *id)
 {
 	Key *private = NULL;
 	char prompt[300], *passphrase, *comment;
@@ -1415,7 +1415,7 @@ pubkey_cleanup(Authctxt *authctxt)
 }
 
 static int
-try_identity(Identity *id)
+try_identity(const Identity *id)
 {
 	if (!id->key)
 		return (0);
