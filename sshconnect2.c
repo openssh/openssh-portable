@@ -318,6 +318,7 @@ void	userauth(Authctxt *, char *);
 static int sign_and_send_pubkey(Authctxt *, const Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
+static void pubkey_reset(Authctxt *);
 static Key *load_identity_file(const Identity *);
 
 static Authmethod *authmethod_get(char *authlist);
@@ -560,8 +561,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	if (partial != 0) {
 		verbose("Authenticated with partial success.");
 		/* reset state */
-		pubkey_cleanup(authctxt);
-		pubkey_prepare(authctxt);
+		pubkey_reset(authctxt);
 	}
 	debug("Authentications that can continue: %s", authlist);
 
@@ -1414,6 +1414,23 @@ pubkey_cleanup(Authctxt *authctxt)
 	}
 }
 
+static void
+pubkey_reset(Authctxt *authctxt)
+{
+	Identity *id, *last;
+
+	last = TAILQ_LAST(&authctxt->keys, idlist);
+	while ((id = TAILQ_FIRST(&authctxt->keys)) &&
+	    (id->tried != last->tried)) {
+		id->tried++;
+		TAILQ_REMOVE(&authctxt->keys, id, next);
+		TAILQ_INSERT_TAIL(&authctxt->keys, id, next);
+		last = id;
+	}
+	TAILQ_FOREACH(id, &authctxt->keys, next)
+		id->tried = 0;
+}
+
 static int
 try_identity(const Identity *id)
 {
@@ -1459,6 +1476,7 @@ userauth_pubkey(Authctxt *authctxt)
 					id->isprivate = 1;
 					sent = sign_and_send_pubkey(
 					    authctxt, id);
+					id->isprivate = 0;
 				}
 				key_free(id->key);
 				id->key = NULL;
