@@ -1332,7 +1332,7 @@
 /* #undef OPENSSL_EVP_DIGESTUPDATE_VOID */
 
 /* libcrypto includes complete ECC support */
-//#define OPENSSL_HAS_ECC 1
+#define OPENSSL_HAS_ECC 1
 
 /* libcrypto is missing AES 192 and 256 bit functions */
 /* #undef OPENSSL_LOBOTOMISED_AES */
@@ -1670,7 +1670,7 @@
 
 
 // PRAGMA SYS PORT
-//#define WITH_OPENSSL 1
+#define WITH_OPENSSL 1
 #define HAVE_KRB5_GET_ERROR_MESSAGE 1
 #define HAVE_KRB5_FREE_ERROR_MESSAGE 1
 #define HAVE_DECL_NFDBITS 0
