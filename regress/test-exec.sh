@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.54 2016/08/23 06:36:23 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.55 2016/11/25 02:49:18 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
