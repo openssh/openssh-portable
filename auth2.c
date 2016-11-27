@@ -50,7 +50,6 @@
 #include "dispatch.h"
 #include "pathnames.h"
 #include "buffer.h"
-#include "canohost.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -229,7 +228,7 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 	debug("userauth-request for user %s service %s method %s", user, service, method);
 	if (!log_flag) {
 		logit("SSH: Server;Ltype: Authname;Remote: %s-%d;Name: %s",
-		      get_remote_ipaddr(), get_remote_port(), user);
+		      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state), user);
 		log_flag = 1;
 	}
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);

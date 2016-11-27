@@ -903,7 +903,7 @@ server_loop2(Authctxt *authctxt)
 	session_destroy_all(NULL);
 	total_time = get_current_time() - start_time;
 	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
-	      get_remote_ipaddr(), get_remote_port(),
+	      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state),
 	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
 	      fdout_bytes / total_time);
 }

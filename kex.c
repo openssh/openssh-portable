@@ -52,7 +52,6 @@
 
 #include "ssherr.h"
 #include "sshbuf.h"
-#include "canohost.h"
 #include "digest.h"
 
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
@@ -850,8 +849,8 @@ kex_choose_conf(struct ssh *ssh)
 		 */
 		if (ctos && !log_flag) {
 			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
-			    ssh_get_remote_ipaddr(ssh),
-			    ssh_get_remote_port(ssh),
+			    ssh_remote_ipaddr(ssh),
+			    ssh_remote_port(ssh),
 			    newkeys->enc.name,
 			    authlen == 0 ? newkeys->mac.name : "<implicit>",
 			    newkeys->comp.name);
