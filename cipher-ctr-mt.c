@@ -127,7 +127,7 @@ struct kq {
 	u_char		keys[KQLEN][AES_BLOCK_SIZE];
 	u_char		ctr[AES_BLOCK_SIZE];
 	u_char		pad0[CACHELINE_LEN];
-	volatile int	qstate;
+	int		qstate;
 	pthread_mutex_t	lock;
 	pthread_cond_t	cond;
 	u_char		pad1[CACHELINE_LEN];
@@ -141,7 +141,11 @@ struct ssh_aes_ctr_ctx
 	STATS_STRUCT(stats);
 	u_char		aes_counter[AES_BLOCK_SIZE];
 	pthread_t	tid[CIPHER_THREADS];
-	pthread_rwlock_t thread_lock;
+	pthread_rwlock_t tid_lock;
+#ifdef __APPLE__
+	pthread_rwlock_t stop_lock;
+	int		exit_flag;
+#endif /* __APPLE__ */
 	int		state;
 	int		qidx;
 	int		ridx;
@@ -188,6 +192,57 @@ thread_loop_cleanup(void *x)
 	pthread_mutex_unlock((pthread_mutex_t *)x);
 }
 
+#ifdef __APPLE__
+/* Check if we should exit, we are doing both cancel and exit condition
+ * since on OSX threads seem to occasionally fail to notice when they have
+ * been cancelled. We want to have a backup to make sure that we won't hang
+ * when the main process join()-s the cancelled thread.
+ */
+static void
+thread_loop_check_exit(struct ssh_aes_ctr_ctx *c)
+{
+	int exit_flag;
+
+	pthread_rwlock_rdlock(&c->stop_lock);
+	exit_flag = c->exit_flag;
+	pthread_rwlock_unlock(&c->stop_lock);
+
+	if (exit_flag)
+		pthread_exit(NULL);
+}
+#else
+# define thread_loop_check_exit(s)
+#endif /* __APPLE__ */
+
+/*
+ * Helper function to terminate the helper threads
+ */
+static void
+stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
+{
+	int i;
+
+#ifdef __APPLE__
+	/* notify threads that they should exit */
+	pthread_rwlock_wrlock(&c->stop_lock);
+	c->exit_flag = TRUE;
+	pthread_rwlock_unlock(&c->stop_lock);
+#endif /* __APPLE__ */
+
+	/* Cancel pregen threads */
+	for (i = 0; i < CIPHER_THREADS; i++) {
+		pthread_cancel(c->tid[i]);
+	}
+	for (i = 0; i < NUMKQ; i++) {
+		pthread_mutex_lock(&c->q[i].lock);
+		pthread_cond_broadcast(&c->q[i].cond);
+		pthread_mutex_unlock(&c->q[i].lock);
+	}
+	for (i = 0; i < CIPHER_THREADS; i++) {
+		pthread_join(c->tid[i], NULL);
+	}
+}
+
 /*
  * The life of a pregen thread:
  *    Find empty keystream queues and fill them using their counter.
@@ -213,9 +268,9 @@ thread_loop(void *x)
 	/* Thread local copy of AES key */
 	memcpy(&key, &c->aes_ctx, sizeof(key));
 
-	pthread_rwlock_rdlock(&c->thread_lock);
+	pthread_rwlock_rdlock(&c->tid_lock);
 	first_tid = c->tid[0];
-	pthread_rwlock_unlock(&c->thread_lock);
+	pthread_rwlock_unlock(&c->tid_lock);
 
 	/*
 	 * Handle the special case of startup, one thread must fill
@@ -251,12 +306,16 @@ thread_loop(void *x)
 		/* Check if I was cancelled, also checked in cond_wait */
 		pthread_testcancel();
 
+		/* Check if we should exit as well */
+		thread_loop_check_exit(c);
+
 		/* Lock queue and block if its draining */
 		q = &c->q[qidx];
 		pthread_mutex_lock(&q->lock);
 		pthread_cleanup_push(thread_loop_cleanup, &q->lock);
 		while (q->qstate == KQDRAINING || q->qstate == KQINIT) {
 			STATS_WAIT(stats);
+			thread_loop_check_exit(c);
 			pthread_cond_wait(&q->cond, &q->lock);
 		}
 		pthread_cleanup_pop(0);
@@ -405,7 +464,11 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
 		c = xmalloc(sizeof(*c));
-		pthread_rwlock_init(&c->thread_lock, NULL);
+		pthread_rwlock_init(&c->tid_lock, NULL);
+#ifdef __APPLE__
+		pthread_rwlock_init(&c->stop_lock, NULL);
+		c->exit_flag = FALSE;
+#endif /* __APPLE__ */
 
 		c->state = HAVE_NONE;
 		for (i = 0; i < NUMKQ; i++) {
@@ -418,11 +481,14 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	}
 
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
-		/* Cancel pregen threads */
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_cancel(c->tid[i]);
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_join(c->tid[i], NULL);
+		/* tell the pregen threads to exit */
+		stop_and_join_pregen_threads(c);
+
+#ifdef __APPLE__
+		/* reset the exit flag */
+		c->exit_flag = FALSE;
+#endif /* __APPLE__ */
+
 		/* Start over getting key & iv */
 		c->state = HAVE_NONE;
 	}
@@ -453,9 +519,9 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		/* Start threads */
 		for (i = 0; i < CIPHER_THREADS; i++) {
 			debug("spawned a thread");
-			pthread_rwlock_wrlock(&c->thread_lock);
+			pthread_rwlock_wrlock(&c->tid_lock);
 			pthread_create(&c->tid[i], NULL, thread_loop, c);
-			pthread_rwlock_unlock(&c->thread_lock);
+			pthread_rwlock_unlock(&c->tid_lock);
 		}
 		pthread_mutex_lock(&c->q[0].lock);
 		while (c->q[0].qstate == KQINIT)
@@ -472,20 +538,10 @@ void
 ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx)
 {
 	struct ssh_aes_ctr_ctx *c;
-	int i;
+
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
-	/* destroy threads */
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_cancel(c->tid[i]);
-	}
-	for (i = 0; i < NUMKQ; i++) {
-		pthread_mutex_lock(&c->q[i].lock);
-		pthread_cond_broadcast(&c->q[i].cond);
-		pthread_mutex_unlock(&c->q[i].lock);
-	}
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_join(c->tid[i], NULL);
-	}
+
+	stop_and_join_pregen_threads(c);
 }
 
 void
@@ -497,9 +553,9 @@ ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 	/* reconstruct threads */
 	for (i = 0; i < CIPHER_THREADS; i++) {
 		debug("spawned a thread");
-		pthread_rwlock_wrlock(&c->thread_lock);
+		pthread_rwlock_wrlock(&c->tid_lock);
 		pthread_create(&c->tid[i], NULL, thread_loop, c);
-		pthread_rwlock_unlock(&c->thread_lock);
+		pthread_rwlock_unlock(&c->tid_lock);
 	}
 }
 
@@ -507,23 +563,13 @@ static int
 ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 {
 	struct ssh_aes_ctr_ctx *c;
-	int i;
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
 #ifdef CIPHER_THREAD_STATS
 		debug("main thread: %u drains, %u waits", c->stats.drains,
 				c->stats.waits);
 #endif
-		/* Cancel pregen threads */
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_cancel(c->tid[i]);
-		for (i = 0; i < NUMKQ; i++) {
-			pthread_mutex_lock(&c->q[i].lock);
-			pthread_cond_broadcast(&c->q[i].cond);
-			pthread_mutex_unlock(&c->q[i].lock);
-		}
-		for (i = 0; i < CIPHER_THREADS; i++)
-			pthread_join(c->tid[i], NULL);
+		stop_and_join_pregen_threads(c);
 
 		memset(c, 0, sizeof(*c));
 		free(c);
