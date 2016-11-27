@@ -12,7 +12,7 @@ void     ssh_packet_put_ecpoint(struct ssh *, const EC_GROUP *, const EC_POINT *
 void     ssh_packet_put_string(struct ssh *, const void *buf, u_int len);
 void     ssh_packet_put_cstring(struct ssh *, const char *str);
 void     ssh_packet_put_raw(struct ssh *, const void *buf, u_int len);
-int      ssh_packet_send(struct ssh *);
+void     ssh_packet_send(struct ssh *);
 
 u_int	 ssh_packet_get_char(struct ssh *);
 u_int	 ssh_packet_get_int(struct ssh *);

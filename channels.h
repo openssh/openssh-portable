@@ -249,7 +249,7 @@ int	 channel_input_status_confirm(int, u_int32_t, void *);
 void	 channel_prepare_select(fd_set **, fd_set **, int *, u_int*,
 	     time_t*, int);
 void     channel_after_select(fd_set *, fd_set *);
-int      channel_output_poll(void);
+void     channel_output_poll(void);
 
 int      channel_not_very_much_buffered_data(void);
 void     channel_close_all(void);

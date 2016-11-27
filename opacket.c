@@ -108,15 +108,13 @@ ssh_packet_put_ecpoint(struct ssh *ssh, const EC_GROUP *curve,
 # endif
 #endif /* WITH_OPENSSL */
 
-int
+void
 ssh_packet_send(struct ssh *ssh)
 {
 	int r;
 
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
-
-	return r;
 }
 
 u_int
