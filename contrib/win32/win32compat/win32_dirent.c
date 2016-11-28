@@ -11,6 +11,14 @@
 
 #include "inc\dirent.h"
 
+
+typedef struct DIR_ {
+	intptr_t hFile;
+	struct _finddata_t c_file;
+	char initName[260];
+	int first;
+};
+
 /* Open a directory stream on NAME.
    Return a DIR stream on the directory, or NULL if it could not be opened.  */
 DIR * opendir(char *name)
@@ -37,12 +45,14 @@ DIR * opendir(char *name)
     }
     else {
         pdir = (DIR *) malloc( sizeof(DIR) );
+		memset(pdir, 0, sizeof(DIR));
         pdir->hFile = hFile ;
         pdir->c_file.attrib = c_file.attrib ;
         pdir->c_file.size = c_file.size;
         pdir->c_file.time_access = c_file.time_access;
         pdir->c_file.time_create = c_file.time_create;
         pdir->c_file.time_write = c_file.time_write;
+		pdir->first = 1;
 
         if ((tmp = utf16_to_utf8(&(c_file.name))) == NULL)
             fatal("failed to covert input arguments");
@@ -80,7 +90,8 @@ struct dirent *readdir(void *avp)
     char *tmp = NULL;
 
     for (;;) {
-        if ( _wfindnext( dirp->hFile, &c_file ) == 0 ) {
+        if ( dirp->first || _wfindnext( dirp->hFile, &c_file ) == 0 ) {
+			dirp->first = 0;
 		    if ( ( wcscmp (c_file.name, L".") == 0 ) ||
 			     ( wcscmp (c_file.name, L"..") == 0 ) ) {
 			    continue ;

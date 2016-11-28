@@ -18,13 +18,7 @@ struct dirent {
 	//unsigned attrib ; // its attributes
 };
 
-typedef struct {
-    intptr_t hFile;
-    struct _finddata_t c_file;
-    int	bRoot;
-    int	bDrive;
-    char initName[260];
-} DIR;
+typedef struct DIR_ DIR;
 
 DIR * opendir(char *name);
 int closedir(DIR *dirp);

@@ -219,7 +219,7 @@ int w32_ioctl(int d, int request, ...) {
                         errno = EINVAL;
                         return -1;
                 }
-                wsize->ws_col = c_info.dwSize.X;
+                wsize->ws_col = c_info.dwSize.X - 5;
                 wsize->ws_row = c_info.dwSize.Y;
                 wsize->ws_xpixel = 640;
                 wsize->ws_ypixel = 480;

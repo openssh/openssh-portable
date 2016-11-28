@@ -210,6 +210,7 @@ userauth_pubkey(Authctxt *authctxt)
 					break;
 				}
 
+				debug3("auth agent authenticated %s", authctxt->pw->pw_name);
 				break;
 				
 			}

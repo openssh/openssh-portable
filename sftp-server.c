@@ -1149,28 +1149,6 @@ process_readdir(u_int32_t id)
 		int nstats = 10, count = 0, i;
 
 		stats = xcalloc(nstats, sizeof(Stat));
-		#ifdef WIN32_FIXME
-		// process the first entry that opendir() has found already
-		if (_stricmp(dirp->c_file.name, ".") && !_stricmp(dirp->c_file.name, dirp->initName)) // a firstfile that's not ".", this can happen for shared root drives
-		{	  // put first dirp in list
-			if (!strcmp(path, "/")) {
-				snprintf(pathname, sizeof pathname,
-					"/%s", dirp->c_file.name);
-			}
-			else {
-				snprintf(pathname, sizeof pathname,
-					"%s/%s", path, dirp->c_file.name);
-			}
-			if (pathname) {
-				if (lstat(pathname, &st) >= 0) {
-					stat_to_attrib(&st, &(stats[count].attrib));
-					stats[count].name = xstrdup(dirp->c_file.name);
-					stats[count].long_name = ls_file(dirp->c_file.name, &st,0, 0);
-					count++;
-				}
-			}
-		}
-		#endif
 
 		while ((dp = readdir(dirp)) != NULL) {
 			if (count >= nstats) {
@@ -1183,28 +1161,9 @@ process_readdir(u_int32_t id)
 			if (lstat(pathname, &st) < 0)
 				continue;
 			stat_to_attrib(&st, &(stats[count].attrib));
-#ifdef WIN32_FIXME
-      {
-        /*
-         * Convert names to UTF8 before send to network.
-         */
-		#ifdef WIN32_VS
-		stats[count].name = xstrdup(dp->d_name);
-		#else
-        stats[count].name      = ConvertLocal8ToUtf8(dp -> d_name, -1, NULL);
-		#endif
-        stats[count].long_name = ls_file(dp -> d_name, &st, dirp->c_file.attrib, 0);
-        
-        /*
-        debug3("putting name [%s]...\n", stats[count].name);
-        debug3("putting long name [%s]...\n", stats[count].long_name);
-        */  
-      }  
-#else
 			stats[count].name = xstrdup(dp->d_name);
 			stats[count].long_name = ls_file(dp->d_name, &st, 0, 0);
-#endif
-			count++;
+				count++;
 			/* send up to 100 entries in one message */
 			/* XXX check packet size instead */
 			if (count == 100)
@@ -1314,14 +1273,10 @@ process_realpath(u_int32_t id)
 	char resolvedname[PATH_MAX];
 	char *path;
 	int r;
-//#ifdef WIN32_FIXME
-  //path = buffer_get_string_local8_from_utf8(&iqueue, NULL);
-//#else
+
 	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-//#endif
 
-	
 #ifndef WIN32_FIXME
 	if (path[0] == '\0') {
 		free(path);
@@ -1682,10 +1637,6 @@ process_extended(u_int32_t id)
 
 /* stolen from ssh-agent */
 
-#ifdef WIN32_FIXME
-int readsomemore=0;
-#endif
-
 static void
 process(void)
 {
@@ -1696,17 +1647,9 @@ process(void)
 	const u_char *cp;
 	int i, r;
 	u_int32_t id;
-
-	#ifdef WIN32_FIXME
-	// we use to tell our caller to read more data if a message is not complete
-	readsomemore=0;
-	#endif
 	
 	buf_len = sshbuf_len(iqueue);
 	if (buf_len < 5) {
-		#ifdef WIN32_FIXME
-		readsomemore =1;
-		#endif
 		return;		/* Incomplete message. */
 	}
 	cp = sshbuf_ptr(iqueue);
@@ -1717,9 +1660,6 @@ process(void)
 		sftp_server_cleanup_exit(11);
 	}
 	if (buf_len < msg_len + 4) {
-		#ifdef WIN32_FIXME
-		readsomemore =1;
-		#endif
 		return;
 	}
 	if ((r = sshbuf_consume(iqueue, 4)) != 0)
@@ -2043,7 +1983,7 @@ char *realpathWin32(const char *path, char resolved[PATH_MAX])
     }
 
     resolved[0] = *path; // will be our first slash in /x:/users/test1 format
-    strncpy(resolved + 1, realpath, sizeof(realpath));
+    strncpy(resolved + 1, realpath, sizeof(realpath) - 1);
     return resolved;
 }
 

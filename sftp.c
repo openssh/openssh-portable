@@ -928,10 +928,10 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 		} 
         else {
 #ifdef WINDOWS
-            wchar_t* wtmp = utf8_to_utf16(fname);
-            // TODO: Deal with the sizing wprintf_s(L"%-*s", colspace, wtmp);
-            WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), wtmp, wcslen(wtmp), 0, 0);
-            WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), L" ", 1, 0, 0);
+			wchar_t buf[1024]; 
+			wchar_t* wtmp = utf8_to_utf16(fname);
+			swprintf(buf, 1024, L"%-*s", colspace, wtmp);
+			WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), buf, wcslen(buf), 0, 0);
             free(wtmp);
 #else
             printf("%-*s", colspace, fname);
@@ -2416,7 +2416,6 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		/*
 		* Create child ssh process with given stdout/stdin.
 		*/
-
 		debug("Executing ssh client: \"%.500s\"...\n", fullCmd);
 
 		if (CreateProcessW(NULL, utf8_to_utf16(fullCmd), NULL, NULL, TRUE,
