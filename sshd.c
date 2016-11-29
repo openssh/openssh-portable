@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.476 2016/09/28 16:33:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.477 2016/11/29 03:54:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -122,10 +122,6 @@
 #include "ssh-sandbox.h"
 #include "version.h"
 #include "ssherr.h"
-
-#ifndef O_NOCTTY
-#define O_NOCTTY	0
-#endif
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
@@ -1807,20 +1803,11 @@ main(int ac, char **av)
 	 * exits.
 	 */
 	if (!(debug_flag || inetd_flag || no_daemon_flag)) {
-#ifdef TIOCNOTTY
-		int fd;
-#endif /* TIOCNOTTY */
+
 		if (daemon(0, 0) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
 
-		/* Disconnect from the controlling tty. */
-#ifdef TIOCNOTTY
-		fd = open(_PATH_TTY, O_RDWR | O_NOCTTY);
-		if (fd >= 0) {
-			(void) ioctl(fd, TIOCNOTTY, NULL);
-			close(fd);
-		}
-#endif /* TIOCNOTTY */
+		disconnect_controlling_tty();
 	}
 	/* Reinitialize the log (because of the fork above). */
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);

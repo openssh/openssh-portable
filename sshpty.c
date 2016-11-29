@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.30 2015/07/30 23:09:15 djm Exp $ */
+/* $OpenBSD: sshpty.c,v 1.31 2016/11/29 03:54:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -237,4 +237,18 @@ pty_setowner(struct passwd *pw, const char *tty)
 				    tty, (u_int)mode, strerror(errno));
 		}
 	}
+}
+
+/* Disconnect from the controlling tty. */
+void
+disconnect_controlling_tty(void)
+{
+#ifdef TIOCNOTTY
+	int fd;
+
+	if ((fd = open(_PATH_TTY, O_RDWR | O_NOCTTY)) >= 0) {
+		(void) ioctl(fd, TIOCNOTTY, NULL);
+		close(fd);
+	}
+#endif /* TIOCNOTTY */
 }
