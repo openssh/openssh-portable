@@ -428,7 +428,7 @@ ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
 
 /* encode signature algoritm in flag bits, so we can keep the msg format */
 static u_int
-agent_encode_alg(struct sshkey *key, const char *alg)
+agent_encode_alg(const struct sshkey *key, const char *alg)
 {
 	if (alg != NULL && key->type == KEY_RSA) {
 		if (strcmp(alg, "rsa-sha2-256") == 0)
@@ -441,7 +441,7 @@ agent_encode_alg(struct sshkey *key, const char *alg)
 
 /* ask agent to sign data, returns err.h code on error, 0 on success */
 int
-ssh_agent_sign(int sock, struct sshkey *key,
+ssh_agent_sign(int sock, const struct sshkey *key,
     u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, const char *alg, u_int compat)
 {
@@ -496,7 +496,7 @@ ssh_agent_sign(int sock, struct sshkey *key,
 
 #ifdef WITH_SSH1
 static int
-ssh_encode_identity_rsa1(struct sshbuf *b, RSA *key, const char *comment)
+ssh_encode_identity_rsa1(struct sshbuf *b, const RSA *key, const char *comment)
 {
 	int r;
 
@@ -515,7 +515,7 @@ ssh_encode_identity_rsa1(struct sshbuf *b, RSA *key, const char *comment)
 #endif
 
 static int
-ssh_encode_identity_ssh2(struct sshbuf *b, struct sshkey *key,
+ssh_encode_identity_ssh2(struct sshbuf *b, const struct sshkey *key,
     const char *comment)
 {
 	int r;
@@ -550,8 +550,8 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
  * This call is intended only for use by ssh-add(1) and like applications.
  */
 int
-ssh_add_identity_constrained(int sock, struct sshkey *key, const char *comment,
-    u_int life, u_int confirm)
+ssh_add_identity_constrained(int sock, const struct sshkey *key,
+    const char *comment, u_int life, u_int confirm)
 {
 	struct sshbuf *msg;
 	int r, constrained = (life || confirm);
