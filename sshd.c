@@ -499,9 +499,29 @@ demote_sensitive_data(void)
 }
 
 static void
-privsep_preauth_child(void)
+reseed_prngs(void)
 {
 	u_int32_t rnd[256];
+
+#ifdef WITH_OPENSSL
+	RAND_poll();
+#endif
+	arc4random_stir(); /* noop on recent arc4random() implementations */
+	arc4random_buf(rnd, sizeof(rnd)); /* let arc4random notice PID change */
+
+#ifdef WITH_OPENSSL
+	RAND_seed(rnd, sizeof(rnd));
+	/* give libcrypto a chance to notice the PID change */
+	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
+		fatal("%s: RAND_bytes failed", __func__);
+#endif
+
+	explicit_bzero(rnd, sizeof(rnd));
+}
+
+static void
+privsep_preauth_child(void)
+{
 	gid_t gidset[1];
 
 	/* Enable challenge-response authentication for privilege separation */
@@ -513,14 +533,7 @@ privsep_preauth_child(void)
 		ssh_gssapi_prepare_supported_oids();
 #endif
 
-	arc4random_stir();
-	arc4random_buf(rnd, sizeof(rnd));
-#ifdef WITH_OPENSSL
-	RAND_seed(rnd, sizeof(rnd));
-	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal("%s: RAND_bytes failed", __func__);
-#endif
-	explicit_bzero(rnd, sizeof(rnd));
+	reseed_prngs();
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
@@ -616,8 +629,6 @@ privsep_preauth(Authctxt *authctxt)
 static void
 privsep_postauth(Authctxt *authctxt)
 {
-	u_int32_t rnd[256];
-
 #ifdef DISABLE_FD_PASSING
 	if (1) {
 #else
@@ -651,14 +662,7 @@ privsep_postauth(Authctxt *authctxt)
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
 
-	arc4random_stir();
-	arc4random_buf(rnd, sizeof(rnd));
-#ifdef WITH_OPENSSL
-	RAND_seed(rnd, sizeof(rnd));
-	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal("%s: RAND_bytes failed", __func__);
-#endif
-	explicit_bzero(rnd, sizeof(rnd));
+	reseed_prngs();
 
 	/* Drop privileges */
 	do_setusercontext(authctxt->pw);
