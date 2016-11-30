@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.286 2016/08/19 03:18:06 djm Exp $
-.Dd $Mdocdate: August 19 2016 $
+.\" $OpenBSD: sshd.8,v 1.287 2016/11/30 02:57:40 djm Exp $
+.Dd $Mdocdate: November 30 2016 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -481,19 +481,27 @@ If an 8-bit clean channel is required,
 one must not request a pty or should specify
 .Cm no-pty .
 A quote may be included in the command by quoting it with a backslash.
+.Pp
 This option might be useful
 to restrict certain public keys to perform just a specific operation.
 An example might be a key that permits remote backups but nothing else.
 Note that the client may specify TCP and/or X11
-forwarding unless they are explicitly prohibited.
+forwarding unless they are explicitly prohibited, e.g. using the
+.Cm restrict
+key option.
+.Pp
 The command originally supplied by the client is available in the
 .Ev SSH_ORIGINAL_COMMAND
 environment variable.
 Note that this option applies to shell, command or subsystem execution.
-Also note that this command may be superseded by either a
+Also note that this command may be superseded by a
 .Xr sshd_config 5
 .Cm ForceCommand
-directive or a command embedded in a certificate.
+directive.
+.Pp
+If a command is specified and a forced-command is embedded in a certificate
+used for authentication, then the certificate will be accepted only if the
+two commands are identical.
 .It Cm environment="NAME=value"
 Specifies that the string is to be added to the environment when
 logging in using this key.

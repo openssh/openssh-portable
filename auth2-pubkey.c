@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.59 2016/09/21 17:44:20 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.60 2016/11/30 02:57:40 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -757,17 +757,17 @@ static int
 check_authkeys_file(FILE *f, char *file, Key* key, struct passwd *pw)
 {
 	char line[SSH_MAX_PUBKEY_BYTES];
-	const char *reason;
 	int found_key = 0;
 	u_long linenum = 0;
 	Key *found;
-	char *fp;
 
 	found_key = 0;
 
 	found = NULL;
 	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
-		char *cp, *key_options = NULL;
+		char *cp, *key_options = NULL, *fp = NULL;
+		const char *reason = NULL;
+
 		if (found != NULL)
 			key_free(found);
 		found = key_new(key_is_cert(key) ? KEY_UNSPEC : key->type);
@@ -832,10 +832,8 @@ check_authkeys_file(FILE *f, char *file, Key* key, struct passwd *pw)
 			    authorized_principals == NULL ? pw->pw_name : NULL,
 			    &reason) != 0)
 				goto fail_reason;
-			if (auth_cert_options(key, pw) != 0) {
-				free(fp);
-				continue;
-			}
+			if (auth_cert_options(key, pw, &reason) != 0)
+				goto fail_reason;
 			verbose("Accepted certificate ID \"%s\" (serial %llu) "
 			    "signed by %s CA %s via %s", key->cert->key_id,
 			    (unsigned long long)key->cert->serial,
@@ -913,8 +911,8 @@ user_cert_trusted_ca(struct passwd *pw, Key *key)
 	if (key_cert_check_authority(key, 0, 1,
 	    use_authorized_principals ? NULL : pw->pw_name, &reason) != 0)
 		goto fail_reason;
-	if (auth_cert_options(key, pw) != 0)
-		goto out;
+	if (auth_cert_options(key, pw, &reason) != 0)
+		goto fail_reason;
 
 	verbose("Accepted certificate ID \"%s\" (serial %llu) signed by "
 	    "%s CA %s via %s", key->cert->key_id,
