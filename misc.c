@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.106 2016/10/23 22:04:05 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.107 2016/11/30 00:28:31 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1249,5 +1249,23 @@ bind_permitted(int port, uid_t uid)
 {
 	if (port < IPPORT_RESERVED && uid != 0)
 		return 0;
+	return 1;
+}
+
+/* returns 1 if process is already daemonized, 0 otherwise */
+int
+daemonized(void)
+{
+	int fd;
+
+	if ((fd = open(_PATH_TTY, O_RDONLY | O_NOCTTY)) >= 0) {
+		close(fd);
+		return 0;	/* have controlling terminal */
+	}
+	if (getppid() != 1)
+		return 0;	/* parent is not init */
+	if (getsid(0) != getpid())
+		return 0;	/* not session leader */
+	debug3("already daemonized");
 	return 1;
 }

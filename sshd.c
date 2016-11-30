@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.477 2016/11/29 03:54:50 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.478 2016/11/30 00:28:31 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1343,7 +1343,7 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	extern char *optarg;
 	extern int optind;
-	int r, opt, i, j, on = 1;
+	int r, opt, i, j, on = 1, already_daemon;
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
@@ -1802,11 +1802,12 @@ main(int ac, char **av)
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
 	/*
-	 * If not in debugging mode, and not started from inetd, disconnect
-	 * from the controlling terminal, and fork.  The original process
-	 * exits.
+	 * If not in debugging mode, not started from inetd and not already
+	 * daemonized (eg re-exec via SIGHUP), disconnect from the controlling
+	 * terminal, and fork.  The original process exits.
 	 */
-	if (!(debug_flag || inetd_flag || no_daemon_flag)) {
+	already_daemon = daemonized();
+	if (!(debug_flag || inetd_flag || no_daemon_flag || already_daemon)) {
 
 		if (daemon(0, 0) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
@@ -1840,7 +1841,7 @@ main(int ac, char **av)
 		 * Write out the pid file after the sigterm handler
 		 * is setup and the listen sockets are bound
 		 */
-		if (options.pid_file != NULL && !debug_flag) {
+		if (options.pid_file != NULL && !debug_flag && !already_daemon) {
 			FILE *f = fopen(options.pid_file, "w");
 
 			if (f == NULL) {
