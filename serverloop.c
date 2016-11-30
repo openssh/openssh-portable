@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.187 2016/10/23 22:04:05 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.188 2016/11/30 03:00:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -447,7 +447,7 @@ server_request_direct_tcpip(void)
 
 	/* XXX fine grained permissions */
 	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag) {
+	    !no_port_forwarding_flag && !options.disable_forwarding) {
 		c = channel_connect_to_port(target, target_port,
 		    "direct-tcpip", "direct-tcpip");
 	} else {
@@ -479,7 +479,7 @@ server_request_direct_streamlocal(void)
 
 	/* XXX fine grained permissions */
 	if ((options.allow_streamlocal_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag) {
+	    !no_port_forwarding_flag && !options.disable_forwarding) {
 		c = channel_connect_to_path(target,
 		    "direct-streamlocal@openssh.com", "direct-streamlocal");
 	} else {
@@ -722,7 +722,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
-		    no_port_forwarding_flag ||
+		    no_port_forwarding_flag || options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0) ||
 		    (fwd.listen_port != 0 &&
 		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
@@ -760,7 +760,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0
-		    || no_port_forwarding_flag) {
+		    || no_port_forwarding_flag || options.disable_forwarding) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
