@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.478 2016/11/30 00:28:31 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.479 2016/12/04 22:27:25 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -290,6 +290,8 @@ static void
 sighup_restart(void)
 {
 	logit("Received SIGHUP; restarting.");
+	if (options.pid_file != NULL)
+		unlink(options.pid_file);
 	platform_pre_restart();
 	close_listen_socks();
 	close_startup_pipes();
@@ -1841,7 +1843,7 @@ main(int ac, char **av)
 		 * Write out the pid file after the sigterm handler
 		 * is setup and the listen sockets are bound
 		 */
-		if (options.pid_file != NULL && !debug_flag && !already_daemon) {
+		if (options.pid_file != NULL && !debug_flag) {
 			FILE *f = fopen(options.pid_file, "w");
 
 			if (f == NULL) {
