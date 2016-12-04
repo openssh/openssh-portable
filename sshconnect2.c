@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.250 2016/09/28 20:32:42 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.251 2016/12/04 23:54:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -318,6 +318,7 @@ void	userauth(Authctxt *, char *);
 static int sign_and_send_pubkey(Authctxt *, Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
+static void pubkey_reset(Authctxt *);
 static Key *load_identity_file(Identity *);
 
 static Authmethod *authmethod_get(char *authlist);
@@ -560,8 +561,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	if (partial != 0) {
 		verbose("Authenticated with partial success.");
 		/* reset state */
-		pubkey_cleanup(authctxt);
-		pubkey_prepare(authctxt);
+		pubkey_reset(authctxt);
 	}
 	debug("Authentications that can continue: %s", authlist);
 
@@ -1414,6 +1414,15 @@ pubkey_cleanup(Authctxt *authctxt)
 	}
 }
 
+static void
+pubkey_reset(Authctxt *authctxt)
+{
+	Identity *id;
+
+	TAILQ_FOREACH(id, &authctxt->keys, next)
+		id->tried = 0;
+}
+
 static int
 try_identity(Identity *id)
 {
@@ -1462,6 +1471,7 @@ userauth_pubkey(Authctxt *authctxt)
 				}
 				key_free(id->key);
 				id->key = NULL;
+				id->isprivate = 0;
 			}
 		}
 		if (sent)
