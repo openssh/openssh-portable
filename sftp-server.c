@@ -855,36 +855,25 @@ process_do_stat(u_int32_t id, int do_lstat)
 	char *name;
 	int r, status = SSH2_FX_FAILURE;
 	
-#ifdef WIN32_FIXME
-	char resolvedname[MAXPATHLEN];
-#endif
-  
-  
-#ifdef WIN32_FIXME
-  
 	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+#ifdef WIN32_FIXME
+	char resolvedname[MAXPATHLEN];  
   
 	if (realpathWin32i(name, resolvedname)) {
 		free(name);
 		name = strdup(resolvedname);
 	}
 
-	debug3("request %u: %sstat", id, do_lstat ? "l" : "");
-	verbose("%sstat name \"%s\"", do_lstat ? "l" : "", name);
-	r = stat(name, &st);
-  
+	r = stat(name, &st);  
 #else
-
-
-
-	if ((r = sshbuf_get_cstring(iqueue, &name, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	r = do_lstat ? lstat(name, &st) : stat(name, &st);
+#endif
 
 	debug3("request %u: %sstat", id, do_lstat ? "l" : "");
 	verbose("%sstat name \"%s\"", do_lstat ? "l" : "", name);
-	r = do_lstat ? lstat(name, &st) : stat(name, &st);
-  #endif /* WIN32_FIXME */
+
 	if (r < 0) {
 		status = errno_to_portable(errno);
 	} else {
@@ -1088,7 +1077,7 @@ process_opendir(u_int32_t id)
 	if ((r = sshbuf_get_cstring(iqueue, &path, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	#ifdef WIN32_FIXME
+#ifdef WIN32_FIXME
 	char resolvedname[MAXPATHLEN];
 	char * ipath;
 	if (realpathWin32i(path, resolvedname))
@@ -1097,17 +1086,15 @@ process_opendir(u_int32_t id)
 		path = strdup(resolvedname);
 	}
 	ipath = get_inside_path(path, TRUE, TRUE);
-	#endif
-
+	dirp = opendir(ipath);
+	free(ipath);
+#else
+	dirp = opendir(path);
+#endif
+	
 	debug3("request %u: opendir", id);
 	logit("opendir \"%s\"", path);
 
-	#ifdef WIN32_FIXME
-	dirp = opendir(ipath);
-	free(ipath);
-	#else
-	dirp = opendir(path);
-	#endif
 	if (dirp == NULL) {
 		status = errno_to_portable(errno);
 	} else {
@@ -1352,18 +1339,19 @@ process_rename(u_int32_t id)
 	if ((r = sshbuf_get_cstring(iqueue, &oldpath, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(iqueue, &newpath, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
 #ifdef WIN32_FIXME
-char resolvedname[MAXPATHLEN];
-if (realpathWin32i(oldpath, resolvedname))
-{
-	free(oldpath);
-	oldpath = strdup(resolvedname);
-}
-if (realpathWin32i(newpath, resolvedname))
-{
-	free(newpath);
-	newpath = strdup(resolvedname);
-}
+	char resolvedname[MAXPATHLEN];
+	if (realpathWin32i(oldpath, resolvedname))
+	{
+		free(oldpath);
+		oldpath = strdup(resolvedname);
+	}
+	if (realpathWin32i(newpath, resolvedname))
+	{
+		free(newpath);
+		newpath = strdup(resolvedname);
+	}
 #endif
 	
 	debug3("request %u: rename", id);
