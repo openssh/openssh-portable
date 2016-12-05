@@ -651,8 +651,7 @@ process_get(struct sftp_conn *conn, const char *src, const char *dst,
 			} else {
 				abs_dst = xstrdup(dst);
 			}
-		} else if (dst) {
-			//BALU (this can be removed after glob is implemented).
+		} else if (dst) {			
 #ifdef WINDOWS
 			{
 				if (is_dir(dst)) {
@@ -750,8 +749,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 	}
 
 	/* If we aren't fetching to pwd then stash this status for later */
-	if (tmp_dst != NULL) {
-		// BALU - To get the real path.
+	if (tmp_dst != NULL) {		
 		#ifdef WINDOWS
 			if (strlen(tmp_dst) >= 2 && tmp_dst[2] == ':')
 				tmp_dst = do_realpath(conn, tmp_dst);
@@ -790,8 +788,7 @@ process_put(struct sftp_conn *conn, const char *src, const char *dst,
 				abs_dst = path_append(tmp_dst, filename);
 			else
 				abs_dst = xstrdup(tmp_dst);
-		} else if (tmp_dst) {
-			//BALU (this can be removed after glob is implemented).
+		} else if (tmp_dst) {			
 			#ifdef WINDOWS
 			{
 				if (dst_is_dir)
@@ -2455,10 +2452,8 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		/*
 		* Create child ssh process with given stdout/stdin.
 		*/
-		debug("Executing ssh client: \"%.500s\"...\n", fullCmd);
-		
-		//BALU
-		memcpy(fullCmd, "sftp-server.exe", 16);		
+		debug("Executing ssh client: \"%.500s\"...\n", fullCmd);	
+
 		if (CreateProcessW(NULL, utf8_to_utf16(fullCmd), NULL, NULL, TRUE,
 			NORMAL_PRIORITY_CLASS, NULL,
 			NULL, &si, &pi) == TRUE) {

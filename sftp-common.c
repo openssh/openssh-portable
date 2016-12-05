@@ -283,17 +283,6 @@ ls_file(const char *name, const struct stat *st, int remote, int si_units)
 #include <windows.h>
 
 void
-strmode_from_attrib(unsigned attrib, char *p)
-{
-	if (attrib & FILE_ATTRIBUTE_REPARSE_POINT)
-		*p = 'l';
-	else if (attrib & FILE_ATTRIBUTE_DIRECTORY)
-		*p = 'd';
-	else
-		*p = '-';
-}
-
-void
 strmode(mode_t mode, char *p)
 {
 	/* print type */
