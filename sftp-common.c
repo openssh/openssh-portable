@@ -226,16 +226,16 @@ ls_file(const char *name, const struct stat *st, int remote, int si_units)
 	time_t now;
 
     strmode(st->st_mode, mode);
-#ifdef WINDOWS
-	strmode_from_attrib(remote, mode);
-#endif
+
 	if (!remote) {
 #ifndef WIN32_FIXME
         user = user_from_uid(st->st_uid, 0);
 #else
-        user = "\0";
-        snprintf(gbuf, sizeof gbuf, "%u", (u_int)st->st_gid);
-        group = gbuf;
+		snprintf(ubuf, sizeof ubuf, "%u", (u_int)st->st_uid);
+		user = ubuf;
+
+		snprintf(gbuf, sizeof gbuf, "%u", (u_int)st->st_gid);
+		group = gbuf;
 #endif
 	} else {
 		snprintf(ubuf, sizeof ubuf, "%u", (u_int)st->st_uid);
