@@ -492,6 +492,7 @@ process_output(fd_set *writeset)
 			fdin = -1;
 		} else {
 			/* Successful write. */
+#ifndef WIN32_FIXME
 			if (fdin_is_tty && dlen >= 1 && data[0] != '\r' &&
 			    tcgetattr(fdin, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
@@ -502,6 +503,7 @@ process_output(fd_set *writeset)
 				packet_send_ignore(len);
 				packet_send();
 			}
+#endif
 			/* Consume the data from the buffer. */
 			buffer_consume(&stdin_buffer, len);
 			/* Update the count of bytes written to the program. */
@@ -881,6 +883,17 @@ server_loop2(Authctxt *authctxt)
 
 	free(readset);
 	free(writeset);
+	
+
+  /*
+   * Wait until all output has been sent to the client.
+   */
+  
+  #ifdef WIN32_FIXME
+  
+  drain_output();
+  
+  #endif
 
 	/* free all channels, no more reads and writes */
 	channel_free_all();

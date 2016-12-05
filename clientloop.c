@@ -114,6 +114,14 @@
 #include "ssherr.h"
 #include "hostfile.h"
 
+#ifdef WIN32_FIXME
+// Windows Console screen size change related
+extern int ScreenX;
+extern int ScrollBottom;
+int win_received_window_change_signal = 1;
+
+#endif
+
 /* import options */
 extern Options options;
 
@@ -722,6 +730,7 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 static void
 client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 {
+#ifndef WIN32_FIXME
 	/* Flush stdout and stderr buffers. */
 	if (buffer_len(bout) > 0)
 		atomicio(vwrite, fileno(stdout), buffer_ptr(bout),
@@ -752,6 +761,7 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 	buffer_init(berr);
 
 	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
+#endif /* !WIN32_FIXME */
 }
 
 static void
@@ -1220,6 +1230,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				buffer_append(berr, string, strlen(string));
 				continue;
 
+#ifndef WIN32_FIXME//R
 			case '&':
 				if (c && c->ctl_chan != -1)
 					goto noescape;
@@ -1271,6 +1282,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					}
 				}
 				continue;
+#endif /* !WIN32_FIXME */
 
 			case '?':
 				print_escape_help(berr, escape_char, compat20,
@@ -1321,6 +1333,14 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 		 * and append it to the buffer.
 		 */
 		last_was_cr = (ch == '\r' || ch == '\n');
+		//#ifdef WIN32_FIXME
+		//extern int lftocrlf ; // defined in channels.c file's channel_input_data() function for now
+		//if ( (lftocrlf == 1) && ( ch == '\n') ) {
+			// add a \r before \n if sshd server sent us ESC[20h during initial tty mode setting
+			//buffer_put_char(bin, '\r');
+			//bytes++;
+		//}
+		//#endif
 		buffer_put_char(bin, ch);
 		bytes++;
 	}
@@ -2564,6 +2584,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 
 		channel_request_start(id, "pty-req", 1);
 		client_expect_confirm(id, "PTY allocation", CONFIRM_TTY);
+
 		packet_put_cstring(term != NULL ? term : "");
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);
@@ -2572,6 +2593,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		if (tiop == NULL)
 			tiop = get_saved_tio();
 		tty_make_modes(-1, tiop);
+		
 		packet_send();
 		/* XXX wait for reply */
 		c->client_tty = 1;

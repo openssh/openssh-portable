@@ -57,6 +57,7 @@ check_rhosts_file(const char *filename, const char *hostname,
 		  const char *ipaddr, const char *client_user,
 		  const char *server_user)
 {
+#ifndef WIN32_FIXME
 	FILE *f;
 #define RBUFLN 1024
 	char buf[RBUFLN];/* Must not be larger than host, user, dummy below. */
@@ -179,6 +180,10 @@ check_rhosts_file(const char *filename, const char *hostname,
 	/* Authentication using this file denied. */
 	fclose(f);
 	return 0;
+
+#else
+  return 1;
+#endif
 }
 
 /*

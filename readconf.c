@@ -469,7 +469,12 @@ default_ssh_port(void)
 static int
 execute_in_shell(const char *cmd)
 {
-	char *shell;
+	#ifdef WIN32_FIXME
+	// PRAGMA:TODO
+	logit("==>> execute_in_shell()");
+	return 0;
+	#else
+	char *shell, *command_string;
 	pid_t pid;
 	int devnull, status;
 	extern uid_t original_real_uid;
@@ -527,6 +532,7 @@ execute_in_shell(const char *cmd)
 	}
 	debug3("command returned status %d", WEXITSTATUS(status));
 	return WEXITSTATUS(status);
+	#endif
 }
 
 /*
@@ -1040,7 +1046,7 @@ parse_time:
 			if (*intptr >= SSH_MAX_IDENTITY_FILES)
 				fatal("%.200s line %d: Too many identity files specified (max %d).",
 				    filename, linenum, SSH_MAX_IDENTITY_FILES);
-			add_identity_file(options, NULL,
+                        add_identity_file(options, NULL,
 			    arg, flags & SSHCONF_USERCONF);
 		}
 		break;
@@ -1711,6 +1717,7 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
 
+#ifndef WINDOWS /* TODO - implement permission checks for Windows */
 	if (flags & SSHCONF_CHECKPERM) {
 		struct stat sb;
 
@@ -1720,7 +1727,7 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		    (sb.st_mode & 022) != 0))
 			fatal("Bad owner or permissions on %s", filename);
 	}
-
+#endif
 	debug("Reading configuration data %.200s", filename);
 
 	/*
@@ -1962,19 +1969,20 @@ fill_default_options(Options * options)
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
 			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_IDENTITY, 0);
+				_PATH_SSH_CLIENT_IDENTITY, 0);
 		}
 		if (options->protocol & SSH_PROTO_2) {
 			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_RSA, 0);
+				_PATH_SSH_CLIENT_ID_RSA, 0);
+
 			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_DSA, 0);
+				_PATH_SSH_CLIENT_ID_DSA, 0);
 #ifdef OPENSSL_HAS_ECC
 			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_ECDSA, 0);
+				_PATH_SSH_CLIENT_ID_ECDSA, 0);
 #endif
 			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_ED25519, 0);
+				_PATH_SSH_CLIENT_ID_ED25519, 0);
 		}
 	}
 	if (options->escape_char == -1)

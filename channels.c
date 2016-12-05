@@ -1762,6 +1762,9 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 		if (compat20 && c->wfd_isatty)
 			dlen = MIN(dlen, 8*1024);
 #endif
+#ifdef WIN32_FIXME /* TODO - Fix this - on windows we somehow end up with dlen = 0*/
+		if (dlen > 0) {
+#endif
 
 		len = write(c->wfd, buf, dlen);
 		if (len < 0 &&
@@ -1781,6 +1784,7 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			}
 			return -1;
 		}
+#ifndef WIN32_FIXME//R
 #ifndef BROKEN_TCGETATTR_ICANON
 		if (compat20 && c->isatty && dlen >= 1 && buf[0] != '\r') {
 			if (tcgetattr(c->wfd, &tio) == 0 &&
@@ -1796,8 +1800,12 @@ channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 			}
 		}
 #endif
+#endif
 		buffer_consume(&c->output, len);
 	}
+#ifdef WIN32_FIXME /* for if (dlen > 0) */
+	}
+#endif
  out:
 	if (compat20 && olen > 0)
 		c->local_consumed += olen - buffer_len(&c->output);
@@ -1988,7 +1996,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 			c->notbefore = monotime() + 1;
 		return;
 	}
-
+#ifndef WINDOWS  /*TODO - implement user check for Windows*/
 	if (getpeereid(newsock, &euid, &egid) < 0) {
 		error("%s getpeereid failed: %s", __func__,
 		    strerror(errno));
@@ -2001,6 +2009,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		close(newsock);
 		return;
 	}
+#endif
 	nc = channel_new("multiplex client", SSH_CHANNEL_MUX_CLIENT,
 	    newsock, newsock, -1, c->local_window_max,
 	    c->local_maxpacket, 0, "mux-control", 1);
@@ -3874,8 +3883,12 @@ channel_send_window_changes(void)
 		if (channels[i] == NULL || !channels[i]->client_tty ||
 		    channels[i]->type != SSH_CHANNEL_OPEN)
 			continue;
-		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
-			continue;
+#ifndef WIN32_FIXME
+                /* TODO - Fix this for multiple channels*/
+#endif
+                if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
+                        continue;
+
 		channel_request_start(i, "window-change", 0);
 		packet_put_int((u_int)ws.ws_col);
 		packet_put_int((u_int)ws.ws_row);

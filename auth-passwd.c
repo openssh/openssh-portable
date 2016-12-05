@@ -193,6 +193,49 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 		return (auth_close(as));
 	}
 }
+
+#endif
+
+#ifdef WINDOWS
+extern int auth_sock;
+int sys_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	/*
+	 * Authenticate on Windows
+	 */
+
+	{
+		u_char *blob = NULL;
+		size_t blen = 0;
+		DWORD token = 0;
+		struct sshbuf *msg = NULL;
+
+		msg = sshbuf_new();
+		if (!msg)
+			return 0;
+		if (sshbuf_put_u8(msg, 100) != 0 ||
+			sshbuf_put_cstring(msg, "password") != 0 ||
+			sshbuf_put_cstring(msg, authctxt->user) != 0 ||
+			sshbuf_put_cstring(msg, password) != 0 ||
+			ssh_request_reply(auth_sock, msg, msg) != 0 ||
+			sshbuf_get_u32(msg, &token) != 0) {
+			debug("auth agent did not authorize client %s", authctxt->pw->pw_name);
+			return 0;
+		}
+
+
+		if (blob)
+			free(blob);
+		if (msg)
+			sshbuf_free(msg);
+
+		authctxt->methoddata = token;
+		
+	}
+
+	return 1;
+}
+
 #elif !defined(CUSTOM_SYS_AUTH_PASSWD)
 int
 sys_auth_passwd(Authctxt *authctxt, const char *password)

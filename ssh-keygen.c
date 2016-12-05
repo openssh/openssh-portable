@@ -1036,6 +1036,11 @@ do_gen_all_hostkeys(struct passwd *pw)
 		}
 		sshkey_free(private);
 		strlcat(identity_file, ".pub", sizeof(identity_file));
+#ifdef WINDOWS
+                if ((f = fopen(identity_file, "w")) == NULL) {
+                        error("fopen %s failed: %s", identity_file, strerror(errno));
+                /* TODO - set permissions on file */
+#else
 		fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1) {
 			error("Could not save your public key in %s",
@@ -1048,6 +1053,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 		if (f == NULL) {
 			error("fdopen %s failed", identity_file);
 			close(fd);
+#endif
 			sshkey_free(public);
 			first = 0;
 			continue;
@@ -1187,6 +1193,16 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
+#ifdef WIN32_FIXME
+  
+  /*
+   * Not implemented on Win32 yet.
+   */
+   
+  fatal("Unimplemented");
+
+#else
+	  
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
@@ -1278,6 +1294,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	}
 
 	exit (find_host && !ctx.found_key);
+#endif /* else WIN32_FIXME */
 }
 
 /*
@@ -2267,7 +2284,6 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
@@ -2284,9 +2300,20 @@ main(int argc, char **argv)
 	pw = getpwuid(getuid());
 	if (!pw)
 		fatal("No user exists for uid %lu", (u_long)getuid());
-	if (gethostname(hostname, sizeof(hostname)) < 0)
+	if (gethostname(hostname, sizeof(hostname)) < 0) {
+#ifdef WIN32_FIXME
+    
+    DWORD local_len = sizeof(hostname);
+    
+    if (!GetComputerNameA(hostname, &local_len))
+    {
+  
+  #endif		
 		fatal("gethostname: %s", strerror(errno));
-
+	#ifdef WIN32_FIXME
+    }
+  #endif
+	}
 	/* Remaining characters: UYdw */
 	while ((opt = getopt(argc, argv, "ABHLQXceghiklopquvxy"
 	    "C:D:E:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Z:"
@@ -2646,7 +2673,15 @@ main(int argc, char **argv)
 				error("Could not create directory '%s': %s",
 				    dotsshdir, strerror(errno));
 			} else if (!quiet)
+#ifdef WIN32_FIXME
+      {
+        SetFileAttributes(dotsshdir, FILE_ATTRIBUTE_HIDDEN);
+        
+        printf("Created directory '%s'.\n", dotsshdir);
+      }
+#else
 				printf("Created directory '%s'.\n", dotsshdir);
+#endif
 		}
 	}
 	/* If the file already exists, ask the user to confirm. */
@@ -2716,11 +2751,17 @@ passphrase_again:
 		printf("Your identification has been saved in %s.\n", identity_file);
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
+#ifdef WINDOWS
+        if ((f = fopen(identity_file, "w")) == NULL)
+                fatal("fopen %s failed: %s", identity_file, strerror(errno));
+        /* TODO - set permissions on file */
+#else
 	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
 		fatal("Unable to save public key to %s: %s",
 		    identity_file, strerror(errno));
 	if ((f = fdopen(fd, "w")) == NULL)
 		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
+#endif
 	if ((r = sshkey_write(public, f)) != 0)
 		error("write key failed: %s", ssh_err(r));
 	fprintf(f, " %s\n", comment);

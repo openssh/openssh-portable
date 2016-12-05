@@ -211,6 +211,7 @@ tcsendbreak(int fd, int duration)
 }
 #endif /* HAVE_TCSENDBREAK */
 
+#ifdef HAVE_SIGACTION /* Moved out of function definition */
 mysig_t
 mysignal(int sig, mysig_t act)
 {
@@ -237,6 +238,7 @@ mysignal(int sig, mysig_t act)
 	return (signal(sig, act));
 #endif
 }
+#endif
 
 #ifndef HAVE_STRDUP
 char *
@@ -285,6 +287,7 @@ pledge(const char *promises, const char *paths[])
 }
 #endif
 
+#ifndef WINDOWS
 #ifndef HAVE_MBTOWC
 /* a mbtowc that only supports ASCII */
 int
@@ -300,4 +303,5 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 		*pwc = *s;
 	return 1;
 }
+#endif
 #endif

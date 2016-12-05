@@ -16,6 +16,9 @@
 #ifndef READCONF_H
 #define READCONF_H
 
+#ifdef WIN32_FIXME
+#include "misc.h"
+#endif
 /* Data structure for representing option data. */
 
 #define MAX_SEND_ENV		256

@@ -305,6 +305,8 @@ process_mux_master_hello(u_int rid, Channel *c, Buffer *m, Buffer *r)
 static int
 process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 {
+	
+#ifndef WIN32_FIXME
 	Channel *nc;
 	struct mux_session_confirm_ctx *cctx;
 	char *reserved, *cmd, *cp;
@@ -472,11 +474,21 @@ process_mux_new_session(u_int rid, Channel *c, Buffer *m, Buffer *r)
 
 	/* reply is deferred, sent by mux_session_confirm */
 	return 0;
+#else
+
+  /*
+   * Not implemented on Win32.
+   */
+
+  return -1;
+  
+#endif
 }
 
 static int
 process_mux_alive_check(u_int rid, Channel *c, Buffer *m, Buffer *r)
 {
+#ifndef WIN32_FIXME
 	debug2("%s: channel %d: alive check", __func__, c->self);
 
 	/* prepare reply */
@@ -485,11 +497,17 @@ process_mux_alive_check(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	buffer_put_int(r, (u_int)getpid());
 
 	return 0;
+#else
+
+  return -1;
+
+#endif
 }
 
 static int
 process_mux_terminate(u_int rid, Channel *c, Buffer *m, Buffer *r)
 {
+#ifndef WIN32_FIXME
 	debug2("%s: channel %d: terminate request", __func__, c->self);
 
 	if (options.control_master == SSHCTL_MASTER_ASK ||
@@ -509,6 +527,11 @@ process_mux_terminate(u_int rid, Channel *c, Buffer *m, Buffer *r)
 	buffer_put_int(r, rid);
 	/* XXX exit happens too soon - message never makes it to client */
 	return 0;
+#else
+
+  return -1; 
+
+#endif
 }
 
 static char *
@@ -1239,6 +1262,7 @@ mux_tty_alloc_failed(Channel *c)
 void
 muxserver_listen(void)
 {
+#ifndef WIN32_FIXME
 	mode_t old_umask;
 	char *orig_control_path = options.control_path;
 	char rbuf[16+1];
@@ -1317,6 +1341,7 @@ muxserver_listen(void)
 	mux_listener_channel->mux_rcb = mux_master_read_cb;
 	debug3("%s: mux listener channel %d fd %d", __func__,
 	    mux_listener_channel->self, mux_listener_channel->sock);
+#endif
 }
 
 /* Callback on open confirmation in mux master for a mux client session. */
@@ -1417,12 +1442,14 @@ control_client_sighandler(int signo)
 static void
 control_client_sigrelay(int signo)
 {
+#ifndef WIN32_FIXME
 	int save_errno = errno;
 
 	if (muxserver_pid > 1)
 		kill(muxserver_pid, signo);
 
 	errno = save_errno;
+#endif
 }
 
 static int
@@ -1819,7 +1846,10 @@ mux_client_request_session(int fd)
 	}
 
 	term = getenv("TERM");
-
+#ifdef WIN32_FIXME
+        if (term != NULL && _stricmp(term, "passthru") == 0)
+                term = "ansi";
+#endif
 	buffer_init(&m);
 	buffer_put_int(&m, MUX_C_NEW_SESSION);
 	buffer_put_int(&m, muxclient_request_id);

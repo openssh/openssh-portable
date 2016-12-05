@@ -81,7 +81,9 @@
 #include "zlib.h"
 #define TARGET_OS_MAC 1
 #else
+#ifndef WIN32_ZLIB_NO
 #include "zlib.h"
+#endif
 #endif
 #include "packet.h"
 #include "auth-options.h"
@@ -438,7 +440,9 @@ monitor_set_child_handler(pid_t pid)
 static void
 monitor_child_handler(int sig)
 {
+#ifndef WIN32_FIXME
 	kill(monitor_child_pid, sig);
+#endif
 }
 
 void
@@ -1783,6 +1787,7 @@ mm_answer_rsa_response(int sock, Buffer *m)
 int
 mm_answer_term(int sock, Buffer *req)
 {
+#ifndef WIN32_FIXME
 	extern struct monitor *pmonitor;
 	int res, status;
 
@@ -1804,6 +1809,9 @@ mm_answer_term(int sock, Buffer *req)
 
 	/* Terminate process */
 	exit(res);
+#else
+	exit(1);
+#endif
 }
 
 #ifdef SSH_AUDIT_EVENTS
@@ -1883,11 +1891,13 @@ monitor_apply_keystate(struct monitor *pmonitor)
 	}
 
 	/* Update with new address */
+#ifndef WIN32_ZLIB_NO
 	if (options.compression) {
 		ssh_packet_set_compress_hooks(ssh, pmonitor->m_zlib,
 		    (ssh_packet_comp_alloc_func *)mm_zalloc,
 		    (ssh_packet_comp_free_func *)mm_zfree);
 	}
+#endif
 }
 
 /* This function requries careful sanity checking */
@@ -1915,6 +1925,7 @@ mm_get_keystate(struct monitor *pmonitor)
 static void
 monitor_openfds(struct monitor *mon, int do_logfds)
 {
+	#ifndef WIN32_FIXME
 	int pair[2];
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) == -1)
@@ -1933,6 +1944,11 @@ monitor_openfds(struct monitor *mon, int do_logfds)
 		mon->m_log_sendfd = pair[1];
 	} else
 		mon->m_log_recvfd = mon->m_log_sendfd = -1;
+#else
+
+  fatal("monitor_openfds() not implemented on Win32.");
+  
+#endif
 }
 
 #define MM_MEMSIZE	65536
@@ -1952,10 +1968,12 @@ monitor_init(void)
 		mon->m_zback = mm_create(NULL, MM_MEMSIZE);
 		mon->m_zlib = mm_create(mon->m_zback, 20 * MM_MEMSIZE);
 
+#ifndef WIN32_ZLIB_NO
 		/* Compression needs to share state across borders */
 		ssh_packet_set_compress_hooks(ssh, mon->m_zlib,
 		    (ssh_packet_comp_alloc_func *)mm_zalloc,
 		    (ssh_packet_comp_free_func *)mm_zfree);
+#endif
 	}
 
 	return mon;
@@ -1977,8 +1995,9 @@ mm_answer_gss_setup_ctx(int sock, Buffer *m)
 
 	goid.elements = buffer_get_string(m, &len);
 	goid.length = len;
-
+#ifndef WIN32_FIXME
 	major = ssh_gssapi_server_ctx(&gsscontext, &goid);
+#endif
 
 	free(goid.elements);
 
@@ -2004,7 +2023,9 @@ mm_answer_gss_accept_ctx(int sock, Buffer *m)
 
 	in.value = buffer_get_string(m, &len);
 	in.length = len;
+#ifndef WIN32_FIXME
 	major = ssh_gssapi_accept_ctx(gsscontext, &in, &out, &flags);
+#endif
 	free(in.value);
 
 	buffer_clear(m);
@@ -2034,8 +2055,9 @@ mm_answer_gss_checkmic(int sock, Buffer *m)
 	gssbuf.length = len;
 	mic.value = buffer_get_string(m, &len);
 	mic.length = len;
-
+#ifndef WIN32_FIXME
 	ret = ssh_gssapi_checkmic(gsscontext, &gssbuf, &mic);
+#endif
 
 	free(gssbuf.value);
 	free(mic.value);
@@ -2055,8 +2077,12 @@ int
 mm_answer_gss_userok(int sock, Buffer *m)
 {
 	int authenticated;
-
+#ifndef WIN32_FIXME
+// PRAGMA:TODO
 	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
+#else
+	authenticated = authctxt->valid;
+#endif
 
 	buffer_clear(m);
 	buffer_put_int(m, authenticated);

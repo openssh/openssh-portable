@@ -173,6 +173,7 @@ allowed_user(struct passwd * pw)
 			free(shell);
 			return 0;
 		}
+#ifndef WIN32_FIXME//R
 		if (S_ISREG(st.st_mode) == 0 ||
 		    (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)) == 0) {
 			logit("User %.100s not allowed because shell %.100s "
@@ -180,6 +181,7 @@ allowed_user(struct passwd * pw)
 			free(shell);
 			return 0;
 		}
+#endif
 		free(shell);
 	}
 
@@ -480,6 +482,7 @@ int
 auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
     uid_t uid, char *err, size_t errlen)
 {
+#ifndef WIN32_FIXME
 	char buf[PATH_MAX], homedir[PATH_MAX];
 	char *cp;
 	int comparehome = 0;
@@ -532,6 +535,9 @@ auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
 			break;
 	}
 	return 0;
+#else
+  return 0;
+#endif 
 }
 
 /*
@@ -544,6 +550,7 @@ static int
 secure_filename(FILE *f, const char *file, struct passwd *pw,
     char *err, size_t errlen)
 {
+#ifndef WIN32_FIXME
 	struct stat st;
 
 	/* check the open file to avoid races */
@@ -553,6 +560,9 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		return -1;
 	}
 	return auth_secure_path(file, &st, pw->pw_dir, pw->pw_uid, err, errlen);
+#else
+  return 0;
+#endif 
 }
 
 static FILE *
@@ -563,14 +573,17 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 	struct stat st;
 	int fd;
 	FILE *f;
-
+	
+#ifdef WIN32_FIXME
+	if ((f = fopen(file, "r")) == NULL)
+		return NULL;
+#else
 	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
 		if (log_missing || errno != ENOENT)
 			debug("Could not open %s '%s': %s", file_type, file,
 			   strerror(errno));
 		return NULL;
 	}
-
 	if (fstat(fd, &st) < 0) {
 		close(fd);
 		return NULL;
@@ -582,10 +595,12 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 		return NULL;
 	}
 	unset_nonblock(fd);
+
 	if ((f = fdopen(fd, "r")) == NULL) {
 		close(fd);
 		return NULL;
 	}
+#endif
 	if (strict_modes &&
 	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
 		fclose(f);
