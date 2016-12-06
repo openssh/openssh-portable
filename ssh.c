@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.447 2016/09/30 09:19:13 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.448 2016/12/06 07:48:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2127,8 +2127,9 @@ load_public_identity_files(void)
 			free(cp);
 			continue;
 		}
+		/* NB. leave filename pointing to private key */
+		identity_files[n_ids] = xstrdup(filename);
 		identity_keys[n_ids] = public;
-		identity_files[n_ids] = cp;
 		n_ids++;
 	}
 
