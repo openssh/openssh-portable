@@ -580,6 +580,7 @@ tests interop-tests t-exec: regress-prep regress-binaries $(TARGETS)
 	TEST_SSH_PUTTYGEN="puttygen"; \
 	TEST_SSH_CONCH="conch"; \
 	TEST_SSH_IPV6="@TEST_SSH_IPV6@" ; \
+	TEST_SSH_UTF8="@TEST_SSH_UTF8@" ; \
 	TEST_SSH_ECC="@TEST_SSH_ECC@" ; \
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
@@ -604,6 +605,7 @@ tests interop-tests t-exec: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_PUTTYGEN="$${TEST_SSH_PUTTYGEN}" \
 		TEST_SSH_CONCH="$${TEST_SSH_CONCH}" \
 		TEST_SSH_IPV6="$${TEST_SSH_IPV6}" \
+		TEST_SSH_UTF8="$${TEST_SSH_UTF8}" \
 		TEST_SSH_ECC="$${TEST_SSH_ECC}" \
 		TEST_SHELL="${TEST_SHELL}" \
 		EXEEXT="$(EXEEXT)" \

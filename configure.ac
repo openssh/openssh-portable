@@ -1776,6 +1776,23 @@ CFLAGS="$CFLAGS -D_XOPEN_SOURCE"
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
 CFLAGS="$saved_CFLAGS"
 
+TEST_SSH_UTF8=yes
+AC_MSG_CHECKING([for utf8 locale support])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <locale.h>
+	]], [[
+	char *loc = setlocale(LC_CTYPE, "en_US.UTF-8");
+	if (loc != NULL)
+		exit(0);
+	exit(1);
+	]])],
+	AC_MSG_RESULT(yes),
+	[AC_MSG_RESULT(no)
+	 TEST_SSH_UTF8=no],
+	AC_MSG_WARN([cross compiling: assuming yes])
+)
+
 AC_LINK_IFELSE(
         [AC_LANG_PROGRAM(
            [[ #include <ctype.h> ]],
@@ -5009,6 +5026,7 @@ else
 fi
 AC_CHECK_DECL([BROKEN_GETADDRINFO],  [TEST_SSH_IPV6=no])
 AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
+AC_SUBST([TEST_SSH_UTF8], [$TEST_SSH_UTF8])
 AC_SUBST([TEST_MALLOC_OPTIONS], [$TEST_MALLOC_OPTIONS])
 AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 

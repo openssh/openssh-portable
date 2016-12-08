@@ -225,5 +225,7 @@ unit:
 		$$V ${.OBJDIR}/unittests/hostkeys/test_hostkeys \
 			-d ${.CURDIR}/unittests/hostkeys/testdata ; \
 		$$V ${.OBJDIR}/unittests/match/test_match ; \
-		$$V ${.OBJDIR}/unittests/utf8/test_utf8 ; \
+		if test "x${TEST_SSH_UTF8}" = "xyes"  ; then \
+			$$V ${.OBJDIR}/unittests/utf8/test_utf8 ; \
+		fi \
 	fi
