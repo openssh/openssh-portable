@@ -1781,6 +1781,7 @@ AC_MSG_CHECKING([for utf8 locale support])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
 #include <locale.h>
+#include <unistd.h>
 	]], [[
 	char *loc = setlocale(LC_CTYPE, "en_US.UTF-8");
 	if (loc != NULL)
