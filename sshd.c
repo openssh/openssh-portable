@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.479 2016/12/04 22:27:25 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.480 2016/12/09 03:04:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1174,7 +1174,15 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				continue;
 			}
 			if (drop_connection(startups) == 1) {
-				debug("drop connection #%d", startups);
+				char *laddr = get_local_ipaddr(*newsock);
+				char *raddr = get_peer_ipaddr(*newsock);
+
+				verbose("drop connection #%d from [%s]:%d "
+				    "on [%s]:%d past MaxStartups", startups,
+				    raddr, get_peer_port(*newsock),
+				    laddr, get_local_port(*newsock));
+				free(laddr);
+				free(raddr);
 				close(*newsock);
 				continue;
 			}
