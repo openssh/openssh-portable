@@ -1743,6 +1743,7 @@ AC_CHECK_FUNCS([ \
 	socketpair \
 	statfs \
 	statvfs \
+	strcasestr \
 	strdup \
 	strerror \
 	strlcat \
