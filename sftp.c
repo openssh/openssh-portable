@@ -2272,7 +2272,7 @@ main(int argc, char **argv)
 	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
-	setlocale(LC_CTYPE, "");
+	msetlocale();
 
 	__progname = ssh_get_progname(argv[0]);
 	memset(&args, '\0', sizeof(args));

@@ -109,6 +109,7 @@
 #include "version.h"
 #include "ssherr.h"
 #include "myproposal.h"
+#include "utf8.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -589,7 +590,7 @@ main(int ac, char **av)
 	 */
 	umask(022);
 
-	setlocale(LC_CTYPE, "");
+	msetlocale();
 
 	/*
 	 * Initialize option structure to indicate that no values have been

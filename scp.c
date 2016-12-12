@@ -379,7 +379,7 @@ main(int argc, char **argv)
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
-	setlocale(LC_CTYPE, "");
+	msetlocale();
 
 	/* Copy argv, because we modify it */
 	newargv = xcalloc(MAXIMUM(argc + 1, 1), sizeof(*newargv));
