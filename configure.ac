@@ -1777,7 +1777,7 @@ CFLAGS="$CFLAGS -D_XOPEN_SOURCE"
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
 CFLAGS="$saved_CFLAGS"
 
-TEST_SSH_UTF8=yes
+TEST_SSH_UTF8=${TEST_SSH_UTF8:=yes}
 AC_MSG_CHECKING([for utf8 locale support])
 AC_RUN_IFELSE(
 	[AC_LANG_PROGRAM([[
