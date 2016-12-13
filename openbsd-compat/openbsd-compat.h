@@ -94,6 +94,10 @@ size_t strlcpy(char *dst, const char *src, size_t siz);
 size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
 
+#ifndef HAVE_STRCASESTR
+char *strcasestr(const char *, const char *);
+#endif
+
 #ifndef HAVE_SETENV
 int setenv(register const char *name, register const char *value, int rewrite);
 #endif
