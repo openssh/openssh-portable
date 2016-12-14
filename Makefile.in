@@ -104,7 +104,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	auth2-chall.o groupaccess.o \
 	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
 	auth2-none.o auth2-passwd.o auth2-pubkey.o \
-	monitor_mm.o monitor.o monitor_wrap.o auth-krb5.o \
+	monitor.o monitor_wrap.o auth-krb5.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-shadow.o auth-sia.o md5crypt.o \
 	sftp-server.o sftp-common.o \
@@ -580,6 +580,7 @@ tests interop-tests t-exec: regress-prep regress-binaries $(TARGETS)
 	TEST_SSH_PUTTYGEN="puttygen"; \
 	TEST_SSH_CONCH="conch"; \
 	TEST_SSH_IPV6="@TEST_SSH_IPV6@" ; \
+	TEST_SSH_UTF8="@TEST_SSH_UTF8@" ; \
 	TEST_SSH_ECC="@TEST_SSH_ECC@" ; \
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
@@ -604,6 +605,7 @@ tests interop-tests t-exec: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_PUTTYGEN="$${TEST_SSH_PUTTYGEN}" \
 		TEST_SSH_CONCH="$${TEST_SSH_CONCH}" \
 		TEST_SSH_IPV6="$${TEST_SSH_IPV6}" \
+		TEST_SSH_UTF8="$${TEST_SSH_UTF8}" \
 		TEST_SSH_ECC="$${TEST_SSH_ECC}" \
 		TEST_SHELL="${TEST_SHELL}" \
 		EXEEXT="$(EXEEXT)" \

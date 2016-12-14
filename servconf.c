@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.295 2016/08/25 23:57:54 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.301 2016/11/30 03:00:05 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -163,6 +163,7 @@ initialize_server_options(ServerOptions *options)
 	options->ip_qos_bulk = -1;
 	options->version_addendum = NULL;
 	options->fingerprint_hash = -1;
+	options->disable_forwarding = -1;
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -330,6 +331,8 @@ fill_default_server_options(ServerOptions *options)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
+	if (options->disable_forwarding == -1)
+		options->disable_forwarding = 0;
 
 	assemble_algorithms(options);
 
@@ -414,7 +417,7 @@ typedef enum {
 	sAuthorizedKeysCommand, sAuthorizedKeysCommandUser,
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
-	sAllowStreamLocalForwarding, sFingerprintHash,
+	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -528,8 +531,8 @@ static struct {
 	{ "usedns", sUseDNS, SSHCFG_GLOBAL },
 	{ "verifyreversemapping", sDeprecated, SSHCFG_GLOBAL },
 	{ "reversemappingcheck", sDeprecated, SSHCFG_GLOBAL },
-	{ "clientaliveinterval", sClientAliveInterval, SSHCFG_GLOBAL },
-	{ "clientalivecountmax", sClientAliveCountMax, SSHCFG_GLOBAL },
+	{ "clientaliveinterval", sClientAliveInterval, SSHCFG_ALL },
+	{ "clientalivecountmax", sClientAliveCountMax, SSHCFG_ALL },
 	{ "authorizedkeysfile", sAuthorizedKeysFile, SSHCFG_ALL },
 	{ "authorizedkeysfile2", sDeprecated, SSHCFG_ALL },
 	{ "useprivilegeseparation", sUsePrivilegeSeparation, SSHCFG_GLOBAL},
@@ -557,6 +560,7 @@ static struct {
 	{ "streamlocalbindunlink", sStreamLocalBindUnlink, SSHCFG_ALL },
 	{ "allowstreamlocalforwarding", sAllowStreamLocalForwarding, SSHCFG_ALL },
 	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
+	{ "disableforwarding", sDisableForwarding, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -920,8 +924,8 @@ static const struct multistate multistate_permitrootlogin[] = {
 	{ NULL, -1 }
 };
 static const struct multistate multistate_compression[] = {
+	{ "yes",			COMP_DELAYED },
 	{ "delayed",			COMP_DELAYED },
-	{ "yes",			COMP_ZLIB },
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }
 };
@@ -1116,7 +1120,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			    MAX_HOSTCERTS);
 		charptr = &options->host_cert_files[*intptr];
 		goto parse_filename;
-		break;
 
 	case sPidFile:
 		charptr = &options->pid_file;
@@ -1357,6 +1360,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->allow_agent_forwarding;
 		goto parse_flag;
 
+	case sDisableForwarding:
+		intptr = &options->disable_forwarding;
+		goto parse_flag;
+
 	case sUsePrivilegeSeparation:
 		intptr = &use_privsep;
 		multistate_ptr = multistate_privsep;
@@ -1367,6 +1374,9 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_allow_users >= MAX_ALLOW_USERS)
 				fatal("%s line %d: too many allow users.",
 				    filename, linenum);
+			if (match_user(NULL, NULL, NULL, arg) == -1)
+				fatal("%s line %d: invalid AllowUsers pattern: "
+				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
 			options->allow_users[options->num_allow_users++] =
@@ -1379,6 +1389,9 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (options->num_deny_users >= MAX_DENY_USERS)
 				fatal("%s line %d: too many deny users.",
 				    filename, linenum);
+			if (match_user(NULL, NULL, NULL, arg) == -1)
+				fatal("%s line %d: invalid DenyUsers pattern: "
+				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
 			options->deny_users[options->num_deny_users++] =
@@ -1960,6 +1973,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(allow_streamlocal_forwarding);
 	M_CP_INTOPT(allow_agent_forwarding);
+	M_CP_INTOPT(disable_forwarding);
 	M_CP_INTOPT(permit_tun);
 	M_CP_INTOPT(fwd_opts.gateway_ports);
 	M_CP_INTOPT(fwd_opts.streamlocal_bind_unlink);
@@ -1970,6 +1984,8 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(permit_user_rc);
 	M_CP_INTOPT(max_sessions);
 	M_CP_INTOPT(max_authtries);
+	M_CP_INTOPT(client_alive_count_max);
+	M_CP_INTOPT(client_alive_interval);
 	M_CP_INTOPT(ip_qos_interactive);
 	M_CP_INTOPT(ip_qos_bulk);
 	M_CP_INTOPT(rekey_limit);
@@ -2256,6 +2272,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sUseDNS, o->use_dns);
 	dump_cfg_fmtint(sAllowTcpForwarding, o->allow_tcp_forwarding);
 	dump_cfg_fmtint(sAllowAgentForwarding, o->allow_agent_forwarding);
+	dump_cfg_fmtint(sDisableForwarding, o->disable_forwarding);
 	dump_cfg_fmtint(sAllowStreamLocalForwarding, o->allow_streamlocal_forwarding);
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sUsePrivilegeSeparation, use_privsep);

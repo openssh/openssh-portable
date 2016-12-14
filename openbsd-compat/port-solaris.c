@@ -213,7 +213,7 @@ solaris_set_default_project(struct passwd *pw)
 
 	/* get default project, if we fail just return gracefully  */
 	if ((defaultproject = getdefaultproj(pw->pw_name, &tempproject, &buf,
-	    sizeof(buf))) > 0) {
+	    sizeof(buf))) != NULL) {
 		/* set default project */
 		if (setproject(defaultproject->pj_name, pw->pw_name,
 		    TASK_NORMAL) != 0)

@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.122 2016/08/19 03:18:06 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.123 2016/11/30 03:00:05 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -125,6 +125,7 @@ typedef struct {
 	int	allow_tcp_forwarding; /* One of FORWARD_* */
 	int	allow_streamlocal_forwarding; /* One of FORWARD_* */
 	int	allow_agent_forwarding;
+	int	disable_forwarding;
 	u_int num_allow_users;
 	char   *allow_users[MAX_ALLOW_USERS];
 	u_int num_deny_users;

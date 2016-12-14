@@ -833,6 +833,13 @@ struct winsize {
 #endif
 
 /*
+ * We want functions in openbsd-compat, if enabled, to override system ones.
+ * We no-op out the weak symbol definition rather than remove it to reduce
+ * future sync problems.
+ */
+#define DEF_WEAK(x)
+
+/*
  * Platforms that have arc4random_uniform() and not arc4random_stir()
  * shouldn't need the latter.
  */

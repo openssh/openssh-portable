@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.185 2016/08/13 17:47:41 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.189 2016/12/14 00:36:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,7 +37,6 @@
 
 #include "includes.h"
 
-#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -212,7 +211,7 @@ wait_until_can_do_something(int connection_in, int connection_out,
 
 	/* XXX need proper deadline system for rekey/client alive */
 	if (minwait_secs != 0)
-		max_time_ms = MIN(max_time_ms, (u_int)minwait_secs * 1000);
+		max_time_ms = MINIMUM(max_time_ms, (u_int)minwait_secs * 1000);
 
 	/*
 	 * if using client_alive, set the max timeout accordingly,
@@ -372,8 +371,8 @@ server_loop2(Authctxt *authctxt)
 
 	notify_setup();
 
-	max_fd = MAX(connection_in, connection_out);
-	max_fd = MAX(max_fd, notify_pipe[0]);
+	max_fd = MAXIMUM(connection_in, connection_out);
+	max_fd = MAXIMUM(max_fd, notify_pipe[0]);
 
 	server_init_dispatch();
 
@@ -448,7 +447,7 @@ server_request_direct_tcpip(void)
 
 	/* XXX fine grained permissions */
 	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag) {
+	    !no_port_forwarding_flag && !options.disable_forwarding) {
 		c = channel_connect_to_port(target, target_port,
 		    "direct-tcpip", "direct-tcpip");
 	} else {
@@ -480,7 +479,8 @@ server_request_direct_streamlocal(void)
 
 	/* XXX fine grained permissions */
 	if ((options.allow_streamlocal_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag) {
+	    !no_port_forwarding_flag && !options.disable_forwarding &&
+	    use_privsep) {
 		c = channel_connect_to_path(target,
 		    "direct-streamlocal@openssh.com", "direct-streamlocal");
 	} else {
@@ -723,10 +723,10 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
-		    no_port_forwarding_flag ||
+		    no_port_forwarding_flag || options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0) ||
-		    (fwd.listen_port != 0 && fwd.listen_port < IPPORT_RESERVED &&
-		    pw->pw_uid != 0)) {
+		    (fwd.listen_port != 0 &&
+		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
@@ -761,7 +761,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0
-		    || no_port_forwarding_flag) {
+		    || no_port_forwarding_flag || options.disable_forwarding ||
+		    !use_privsep) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.36 2016/08/03 05:41:57 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.41 2016/10/24 01:09:17 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -27,7 +27,6 @@
 
 #include "includes.h"
 
-#include <sys/param.h>	/* MIN MAX */
 #include <sys/types.h>
 #include <netinet/in.h>
 
@@ -196,7 +195,7 @@ sshkey_ecdsa_nid_from_name(const char *name)
 }
 
 char *
-key_alg_list(int certs_only, int plain_only)
+sshkey_alg_list(int certs_only, int plain_only, char sep)
 {
 	char *tmp, *ret = NULL;
 	size_t nlen, rlen = 0;
@@ -208,7 +207,7 @@ key_alg_list(int certs_only, int plain_only)
 		if ((certs_only && !kt->cert) || (plain_only && kt->cert))
 			continue;
 		if (ret != NULL)
-			ret[rlen++] = '\n';
+			ret[rlen++] = sep;
 		nlen = strlen(kt->name);
 		if ((tmp = realloc(ret, rlen + nlen + 2)) == NULL) {
 			free(ret);
@@ -513,7 +512,6 @@ sshkey_new(int type)
 	default:
 		free(k);
 		return NULL;
-		break;
 	}
 
 	if (sshkey_is_cert(k)) {
@@ -888,9 +886,12 @@ sshkey_fingerprint_raw(const struct sshkey *k, int dgst_alg,
 		int nlen = BN_num_bytes(k->rsa->n);
 		int elen = BN_num_bytes(k->rsa->e);
 
+		if (nlen < 0 || elen < 0 || nlen >= INT_MAX - elen) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
 		blob_len = nlen + elen;
-		if (nlen >= INT_MAX - elen ||
-		    (blob = malloc(blob_len)) == NULL) {
+		if ((blob = malloc(blob_len)) == NULL) {
 			r = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
@@ -1082,10 +1083,10 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 			y += (input & 0x2) ? 1 : -1;
 
 			/* assure we are still in bounds */
-			x = MAX(x, 0);
-			y = MAX(y, 0);
-			x = MIN(x, FLDSIZE_X - 1);
-			y = MIN(y, FLDSIZE_Y - 1);
+			x = MAXIMUM(x, 0);
+			y = MAXIMUM(y, 0);
+			x = MINIMUM(x, FLDSIZE_X - 1);
+			y = MINIMUM(y, FLDSIZE_Y - 1);
 
 			/* augment the field */
 			if (field[x][y] < len - 2)
@@ -1126,7 +1127,7 @@ fingerprint_randomart(const char *alg, u_char *dgst_raw, size_t dgst_raw_len,
 	for (y = 0; y < FLDSIZE_Y; y++) {
 		*p++ = '|';
 		for (x = 0; x < FLDSIZE_X; x++)
-			*p++ = augmentation_string[MIN(field[x][y], len)];
+			*p++ = augmentation_string[MINIMUM(field[x][y], len)];
 		*p++ = '|';
 		*p++ = '\n';
 	}
@@ -2861,6 +2862,14 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	EC_POINT *nq = NULL;
 	BIGNUM *order, *x, *y, *tmp;
 	int ret = SSH_ERR_KEY_INVALID_EC_VALUE;
+
+	/*
+	 * NB. This assumes OpenSSL has already verified that the public
+	 * point lies on the curve. This is done by EC_POINT_oct2point()
+	 * implicitly calling EC_POINT_is_on_curve(). If this code is ever
+	 * reachable with public points not unmarshalled using
+	 * EC_POINT_oct2point then the caller will need to explicitly check.
+	 */
 
 	if ((bnctx = BN_CTX_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;

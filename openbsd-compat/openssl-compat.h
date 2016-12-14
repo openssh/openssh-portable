@@ -69,6 +69,12 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 # endif
 #endif
 
+#if defined(HAVE_EVP_RIPEMD160)
+# if defined(OPENSSL_NO_RIPEMD) || defined(OPENSSL_NO_RMD160)
+#  undef HAVE_EVP_RIPEMD160
+# endif
+#endif
+
 /*
  * We overload some of the OpenSSL crypto functions with ssh_* equivalents
  * to automatically handle OpenSSL engine initialisation.

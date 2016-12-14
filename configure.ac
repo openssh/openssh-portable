@@ -405,6 +405,7 @@ AC_CHECK_HEADERS([ \
 	sys/poll.h \
 	sys/prctl.h \
 	sys/pstat.h \
+	sys/ptrace.h \
 	sys/select.h \
 	sys/stat.h \
 	sys/stream.h \
@@ -1137,7 +1138,6 @@ mips-sony-bsd|mips-sony-newsos4)
 
 *-*-ultrix*)
 	AC_DEFINE([BROKEN_GETGROUPS], [1], [getgroups(0,NULL) will return -1])
-	AC_DEFINE([BROKEN_MMAP], [1], [Ultrix mmap can't map files])
 	AC_DEFINE([NEED_SETPGRP])
 	AC_DEFINE([HAVE_SYS_SYSLOG_H], [1], [Force use of sys/syslog.h on Ultrix])
 	;;
@@ -1708,7 +1708,6 @@ AC_CHECK_FUNCS([ \
 	memmove \
 	memset_s \
 	mkdtemp \
-	mmap \
 	ngetaddrinfo \
 	nsleep \
 	ogetaddrinfo \
@@ -1744,6 +1743,7 @@ AC_CHECK_FUNCS([ \
 	socketpair \
 	statfs \
 	statvfs \
+	strcasestr \
 	strdup \
 	strerror \
 	strlcat \
@@ -1776,6 +1776,24 @@ saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -D_XOPEN_SOURCE"
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
 CFLAGS="$saved_CFLAGS"
+
+TEST_SSH_UTF8=${TEST_SSH_UTF8:=yes}
+AC_MSG_CHECKING([for utf8 locale support])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#include <locale.h>
+#include <stdlib.h>
+	]], [[
+	char *loc = setlocale(LC_CTYPE, "en_US.UTF-8");
+	if (loc != NULL)
+		exit(0);
+	exit(1);
+	]])],
+	AC_MSG_RESULT(yes),
+	[AC_MSG_RESULT(no)
+	 TEST_SSH_UTF8=no],
+	AC_MSG_WARN([cross compiling: assuming yes])
+)
 
 AC_LINK_IFELSE(
         [AC_LANG_PROGRAM(
@@ -4152,7 +4170,7 @@ AC_ARG_WITH([kerberos5],
 		AC_DEFINE([KRB5], [1], [Define if you want Kerberos 5 support])
 		KRB5_MSG="yes"
 
-		AC_PATH_PROG([KRB5CONF], [krb5-config],
+		AC_PATH_TOOL([KRB5CONF], [krb5-config],
 			     [$KRB5ROOT/bin/krb5-config],
 			     [$KRB5ROOT/bin:$PATH])
 		if test -x $KRB5CONF ; then
@@ -5010,6 +5028,7 @@ else
 fi
 AC_CHECK_DECL([BROKEN_GETADDRINFO],  [TEST_SSH_IPV6=no])
 AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
+AC_SUBST([TEST_SSH_UTF8], [$TEST_SSH_UTF8])
 AC_SUBST([TEST_MALLOC_OPTIONS], [$TEST_MALLOC_OPTIONS])
 AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
 

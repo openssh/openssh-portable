@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.475 2016/08/28 22:28:12 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.480 2016/12/09 03:04:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -114,7 +114,6 @@
 #include "dispatch.h"
 #include "channels.h"
 #include "session.h"
-#include "monitor_mm.h"
 #include "monitor.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -123,10 +122,6 @@
 #include "ssh-sandbox.h"
 #include "version.h"
 #include "ssherr.h"
-
-#ifndef O_NOCTTY
-#define O_NOCTTY	0
-#endif
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
@@ -295,6 +290,8 @@ static void
 sighup_restart(void)
 {
 	logit("Received SIGHUP; restarting.");
+	if (options.pid_file != NULL)
+		unlink(options.pid_file);
 	platform_pre_restart();
 	close_listen_socks();
 	close_startup_pipes();
@@ -504,9 +501,29 @@ demote_sensitive_data(void)
 }
 
 static void
-privsep_preauth_child(void)
+reseed_prngs(void)
 {
 	u_int32_t rnd[256];
+
+#ifdef WITH_OPENSSL
+	RAND_poll();
+#endif
+	arc4random_stir(); /* noop on recent arc4random() implementations */
+	arc4random_buf(rnd, sizeof(rnd)); /* let arc4random notice PID change */
+
+#ifdef WITH_OPENSSL
+	RAND_seed(rnd, sizeof(rnd));
+	/* give libcrypto a chance to notice the PID change */
+	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
+		fatal("%s: RAND_bytes failed", __func__);
+#endif
+
+	explicit_bzero(rnd, sizeof(rnd));
+}
+
+static void
+privsep_preauth_child(void)
+{
 	gid_t gidset[1];
 
 	/* Enable challenge-response authentication for privilege separation */
@@ -518,14 +535,7 @@ privsep_preauth_child(void)
 		ssh_gssapi_prepare_supported_oids();
 #endif
 
-	arc4random_stir();
-	arc4random_buf(rnd, sizeof(rnd));
-#ifdef WITH_OPENSSL
-	RAND_seed(rnd, sizeof(rnd));
-	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal("%s: RAND_bytes failed", __func__);
-#endif
-	explicit_bzero(rnd, sizeof(rnd));
+	reseed_prngs();
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
@@ -582,9 +592,6 @@ privsep_preauth(Authctxt *authctxt)
 			ssh_sandbox_parent_preauth(box, pid);
 		monitor_child_preauth(authctxt, pmonitor);
 
-		/* Sync memory */
-		monitor_sync(pmonitor);
-
 		/* Wait for the child's exit status */
 		while (waitpid(pid, &status, 0) < 0) {
 			if (errno == EINTR)
@@ -624,8 +631,6 @@ privsep_preauth(Authctxt *authctxt)
 static void
 privsep_postauth(Authctxt *authctxt)
 {
-	u_int32_t rnd[256];
-
 #ifdef DISABLE_FD_PASSING
 	if (1) {
 #else
@@ -659,14 +664,7 @@ privsep_postauth(Authctxt *authctxt)
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
 
-	arc4random_stir();
-	arc4random_buf(rnd, sizeof(rnd));
-#ifdef WITH_OPENSSL
-	RAND_seed(rnd, sizeof(rnd));
-	if ((RAND_bytes((u_char *)rnd, 1)) != 1)
-		fatal("%s: RAND_bytes failed", __func__);
-#endif
-	explicit_bzero(rnd, sizeof(rnd));
+	reseed_prngs();
 
 	/* Drop privileges */
 	do_setusercontext(authctxt->pw);
@@ -1176,7 +1174,15 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				continue;
 			}
 			if (drop_connection(startups) == 1) {
-				debug("drop connection #%d", startups);
+				char *laddr = get_local_ipaddr(*newsock);
+				char *raddr = get_peer_ipaddr(*newsock);
+
+				verbose("drop connection #%d from [%s]:%d "
+				    "on [%s]:%d past MaxStartups", startups,
+				    raddr, get_peer_port(*newsock),
+				    laddr, get_local_port(*newsock));
+				free(laddr);
+				free(raddr);
 				close(*newsock);
 				continue;
 			}
@@ -1347,7 +1353,7 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	extern char *optarg;
 	extern int optind;
-	int r, opt, i, j, on = 1;
+	int r, opt, i, j, on = 1, already_daemon;
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
 	int remote_port;
@@ -1806,25 +1812,17 @@ main(int ac, char **av)
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
 	/*
-	 * If not in debugging mode, and not started from inetd, disconnect
-	 * from the controlling terminal, and fork.  The original process
-	 * exits.
+	 * If not in debugging mode, not started from inetd and not already
+	 * daemonized (eg re-exec via SIGHUP), disconnect from the controlling
+	 * terminal, and fork.  The original process exits.
 	 */
-	if (!(debug_flag || inetd_flag || no_daemon_flag)) {
-#ifdef TIOCNOTTY
-		int fd;
-#endif /* TIOCNOTTY */
+	already_daemon = daemonized();
+	if (!(debug_flag || inetd_flag || no_daemon_flag || already_daemon)) {
+
 		if (daemon(0, 0) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
 
-		/* Disconnect from the controlling tty. */
-#ifdef TIOCNOTTY
-		fd = open(_PATH_TTY, O_RDWR | O_NOCTTY);
-		if (fd >= 0) {
-			(void) ioctl(fd, TIOCNOTTY, NULL);
-			close(fd);
-		}
-#endif /* TIOCNOTTY */
+		disconnect_controlling_tty();
 	}
 	/* Reinitialize the log (because of the fork above). */
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
@@ -2152,10 +2150,6 @@ do_ssh2_kex(void)
 	if (options.compression == COMP_NONE) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 		    myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
-	} else if (options.compression == COMP_DELAYED) {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-		    myproposal[PROPOSAL_COMP_ALGS_STOC] =
-		    "none,zlib@openssh.com";
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
