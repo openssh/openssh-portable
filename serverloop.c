@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.188 2016/11/30 03:00:05 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.189 2016/12/14 00:36:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -479,7 +479,8 @@ server_request_direct_streamlocal(void)
 
 	/* XXX fine grained permissions */
 	if ((options.allow_streamlocal_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag && !options.disable_forwarding) {
+	    !no_port_forwarding_flag && !options.disable_forwarding &&
+	    use_privsep) {
 		c = channel_connect_to_path(target,
 		    "direct-streamlocal@openssh.com", "direct-streamlocal");
 	} else {
@@ -760,7 +761,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0
-		    || no_port_forwarding_flag || options.disable_forwarding) {
+		    || no_port_forwarding_flag || options.disable_forwarding ||
+		    !use_privsep) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
