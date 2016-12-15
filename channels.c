@@ -4359,14 +4359,17 @@ is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 {
 	struct stat sbuf;
 
-	strlcpy(path, display, pathlen);
+	if (strlcpy(path, display, pathlen) >= pathlen) {
+		error("%s: display path too long", __func__);
+		return 0;
+	}
 	if (stat(path, &sbuf) == 0) {
 		return 1;
 	} else {
 		char *dot = strrchr(path, '.');
 		if (dot != NULL) {
 			*dot = '\0';
-			if (0 == stat(path, &sbuf)) {
+			if (stat(path, &sbuf) == 0) {
 				return 1;
 			}
 		}
