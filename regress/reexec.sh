@@ -1,4 +1,4 @@
-#	$OpenBSD: reexec.sh,v 1.8 2015/03/03 22:35:19 markus Exp $
+#	$OpenBSD: reexec.sh,v 1.9 2016/12/15 23:50:37 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="reexec tests"
