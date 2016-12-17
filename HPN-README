@@ -48,15 +48,15 @@ geared towards 10GigE transcontinental connections.
 
 Conditions: HPNBufferSize NOT Set, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
 HPN Buffer Size = TCP receive buffer value.
-Users on non-autotuning systesm should disable TCPRcvBufPoll in the
-ssh_cofig and sshd_config
+Users on non-autotuning systems should disable TCPRcvBufPoll in the
+ssh_config and sshd_config
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
-HPN Buffer Size = minmum of TCP receive buffer and HPNBufferSize.
+HPN Buffer Size = minimum of TCP receive buffer and HPNBufferSize.
 This would be the system defined TCP receive buffer (RWIN).
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf SET
-HPN Buffer Size = minmum of TCPRcvBuf and HPNBufferSize.
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
 Generally there is no need to set both.
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf NOT Set
@@ -64,7 +64,7 @@ HPN Buffer Size = grows to HPNBufferSize
 The buffer will grow up to the maximum size specified here.
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf SET
-HPN Buffer Size = minmum of TCPRcvBuf and HPNBufferSize.
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
 Generally there is no need to set both of these, especially on autotuning
 systems. However, if the users wishes to override the autotuning this would be
 one way to do it.
