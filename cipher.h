@@ -99,7 +99,8 @@ u_int	 cipher_authlen(const struct sshcipher *);
 u_int	 cipher_ivlen(const struct sshcipher *);
 u_int	 cipher_is_cbc(const struct sshcipher *);
 void	 cipher_reset_multithreaded(void);
-const char *cipher_return_name(const struct sshcipher *);
+
+const char *cipher_ctx_name(const struct sshcipher_ctx *);
 
 u_int	 cipher_get_number(const struct sshcipher *);
 int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, u_int);
