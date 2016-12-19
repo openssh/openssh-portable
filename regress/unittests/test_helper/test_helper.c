@@ -116,6 +116,12 @@ static void *onerror_ctx = NULL;
 static const char *data_dir = NULL;
 static char subtest_info[512];
 
+#ifndef WIN32_FIXME
+void fatal(const char *fmt,...) {/*stub*/}
+void logit(const char *fmt,...) {/*stub*/}
+void debug3(const char *fmt,...) {/*stub*/}
+#endif
+
 int
 main(int argc, char **argv)
 {
