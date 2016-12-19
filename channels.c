@@ -4364,6 +4364,8 @@ is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 		error("%s: display path too long", __func__);
 		return 0;
 	}
+	if (display[0] != '/')
+		return 0;
 	if (stat(path, &sbuf) == 0) {
 		return 1;
 	} else {
