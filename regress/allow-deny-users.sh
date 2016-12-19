@@ -3,7 +3,10 @@
 
 tid="AllowUsers/DenyUsers"
 
-me=`whoami`
+me="$LOGNAME"
+if [ "x$me" == "x" ]; then
+	me=`whoami`
+fi
 other="nobody"
 
 test_auth()
