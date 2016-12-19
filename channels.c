@@ -4354,6 +4354,7 @@ connect_local_xsocket(u_int dnr)
 	return connect_local_xsocket_path(buf);
 }
 
+#ifdef __APPLE__
 static int
 is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 {
@@ -4377,6 +4378,7 @@ is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 
 	return 0;
 }
+#endif
 
 int
 x11_connect_display(void)
