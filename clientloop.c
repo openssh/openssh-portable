@@ -1219,6 +1219,9 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			case '&':
+#ifdef WINDOWS
+				fatal("Background execution is not supported in Windows");
+#else /* !WINDOWS */
 				if (c && c->ctl_chan != -1)
 					goto noescape;
 				/*
@@ -1269,6 +1272,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					}
 				}
 				continue;
+#endif /* !WINDOWS */
 
 			case '?':
 				print_escape_help(berr, escape_char, compat20,

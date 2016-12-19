@@ -163,7 +163,12 @@ int saved_argc;
 
 /* re-exec */
 int rexeced_flag = 0;
+#ifdef WINDOWS
+/* rexec is not applicable in Windows */
+int rexec_flag = 0;
+#else /* !WINDOWS */
 int rexec_flag = 1;
+#endif /* !WINDOWS */
 int rexec_argc = 0;
 char **rexec_argv;
 
@@ -220,7 +225,12 @@ int *startup_pipes = NULL;
 int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
+#ifdef WINDOWS
+/* Windows does not use Unix privilege separation model */
+int use_prevsep = 0;
+#else
 int use_privsep = -1;
+#endif
 struct monitor *pmonitor = NULL;
 int privsep_is_preauth = 1;
 
@@ -235,6 +245,9 @@ Buffer loginmsg;
 
 /* Unprivileged user */
 struct passwd *privsep_pw = NULL;
+
+/* is child process - used by Windows implementation*/
+int is_child = 0;
 
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
@@ -521,6 +534,29 @@ reseed_prngs(void)
 	explicit_bzero(rnd, sizeof(rnd));
 }
 
+#ifdef WINDOWS
+/* 
+ * No-OP defs for preauth routines for Windows 
+ * these should go away once the privilege separation 
+ * related code is refactored to be invoked only when applicable 
+ */
+static void
+privsep_preauth_child(void) {
+        return;
+}
+
+static int
+privsep_preauth(Authctxt *authctxt) {
+        return 0;
+}
+
+static void
+privsep_postauth(Authctxt *authctxt) {
+        return;
+}
+
+#else /* !WINDOWS */
+/* Unix privilege separation routines */
 static void
 privsep_preauth_child(void)
 {
@@ -679,6 +715,8 @@ privsep_postauth(Authctxt *authctxt)
 	 */
 	packet_set_authenticated();
 }
+
+#endif  /* !WINDOWS */
 
 static char *
 list_hostkey_types(void)
@@ -1046,6 +1084,14 @@ server_listen(void)
 			close(listen_sock);
 			continue;
 		}
+#ifdef WINDOWS
+		/* disable inheritance on listener socket */
+		if (fcntl(listen_sock, F_SETFD, FD_CLOEXEC) != 0) {
+			error("F_SETFD  FD_CLOEXEC on listener socket %d failed with %d", listen_sock, errno);
+			close(listen_sock);
+			continue;
+		}
+#endif /* WINDOWS */
 		/*
 		 * Set socket options.
 		 * Allow local port reuse in TIME_WAIT.
@@ -1242,6 +1288,38 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * parent continues listening.
 			 */
 			platform_pre_fork();
+#ifdef WINDOWS
+			/* 
+			* fork() repleacement for Windows -
+			* - Put accepted socket in a env varaibale
+			* - disable inheritance on listening socket and startup fds
+			* - Spawn child sshd.exe
+			*/
+			{
+				char* path_utf8 = utf16_to_utf8(GetCommandLineW());
+				char fd_handle[30];  /* large enough to hold pointer value in hex */
+
+				if (path_utf8 == NULL)
+					fatal("Failed to alloc memory");
+				
+				if (snprintf(fd_handle, sizeof(fd_handle), "%p", sfd_to_handle(*newsock)) == -1
+				    || SetEnvironmentVariable("SSHD_REMSOC", fd_handle) == FALSE
+				    || snprintf(fd_handle, sizeof(fd_handle), "%p", sfd_to_handle(startup_p[1])) == -1
+				    || SetEnvironmentVariable("SSHD_STARTUPSOC", fd_handle) == FALSE
+				    || fcntl(startup_p[0], F_SETFD, FD_CLOEXEC) == -1) {
+					error("unable to set the right environment for child, closing connection ");
+					close(*newsock);
+					/* close child end of startup pipe. parent end will automatically be cleaned up on next iteration*/
+					close(startup_p[1]);
+					continue;
+				}
+                
+				pid = spawn_child(path_utf8, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO, CREATE_NEW_PROCESS_GROUP);
+				free(path_utf8);
+				close(*newsock);
+			}
+#else /* !WINDOWS */
+
 			if ((pid = fork()) == 0) {
 				/*
 				 * Child.  Close the listening and
@@ -1265,7 +1343,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					close(config_s[0]);
 				break;
 			}
-
+#endif /* !WINDOWS */
 			/* Parent.  Stay in the loop. */
 			platform_post_fork_parent(pid);
 			if (pid < 0)
@@ -1634,6 +1712,7 @@ main(int ac, char **av)
 #endif
 	);
 
+#ifndef WINDOWS /* not applicable in Windows */
 	/* Store privilege separation user for later use if required. */
 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
 		if (use_privsep || options.kerberos_authentication)
@@ -1647,6 +1726,7 @@ main(int ac, char **av)
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();
+#endif /* !WINDOWS */
 
 	/* load host keys */
 	sensitive_data.host_keys = xcalloc(options.num_host_key_files,
@@ -1664,7 +1744,9 @@ main(int ac, char **av)
 			error("Could not connect to agent \"%s\": %s",
 			    options.host_key_agent, ssh_err(r));
 	}
-
+#ifdef WINDOWS /* Windows version always needs and has agent running */
+	have_agent = 1;
+#endif
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (options.host_key_files[i] == NULL)
 			continue;
@@ -1840,6 +1922,10 @@ main(int ac, char **av)
 		server_accept_inetd(&sock_in, &sock_out);
 	} else {
 		platform_pre_listen();
+#ifdef WINDOWS
+		/* For Windows child sshd, skip listener */
+		if (is_child == 0)
+#endif /* WINDOWS */
 		server_listen();
 
 		signal(SIGHUP, sighup_handler);
@@ -1862,6 +1948,27 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
+
+#ifdef WINDOWS
+      /* Windows - for sshd child, pick up the accepted socket*/
+      if (is_child) {
+		char *stopstring;
+		DWORD_PTR handle;
+
+		handle = strtol(getenv("SSHD_REMSOC"), &stopstring, 16);
+		SetEnvironmentVariable("SSHD_REMSOC", NULL);
+		debug("child socket: %d", handle);
+		sock_in = sock_out = newsock = w32_allocate_fd_for_handle((HANDLE)handle, TRUE);
+		fcntl(newsock, F_SETFD, FD_CLOEXEC);
+
+		handle = strtol(getenv("SSHD_STARTUPSOC"), &stopstring, 16);
+		SetEnvironmentVariable("SSHD_STARTUPSOC", NULL);
+		debug("child startup_pipe: %d", handle); 
+		startup_pipe = w32_allocate_fd_for_handle((HANDLE)handle, FALSE);		
+		fcntl(startup_pipe, F_SETFD, FD_CLOEXEC);
+      }
+	  else /* Windows and Unix sshd parent */
+#endif /* WINDOWS */
 
 		/* Accept a connection and return in a forked child */
 		server_accept_loop(&sock_in, &sock_out,

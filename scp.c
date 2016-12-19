@@ -195,6 +195,26 @@ do_local_cmd(arglist *a)
 			fmprintf(stderr, " %s", a->list[i]);
 		fprintf(stderr, "\n");
 	}
+#ifdef WINDOWS
+	/* flatten the cmd into a long space separated string and execute using system(cmd) api */
+	{
+		char* cmd;
+		size_t cmdlen = 0;
+		for (i = 0; i < a->num; i++)
+			cmdlen += strlen(a->list[i]) + 1;
+
+		cmd = xmalloc(cmdlen);
+		cmd[0] = '\0';
+		for (i = 0; i < a->num; i++) {
+			strcat(cmd, a->list[i]);
+			strcat(cmd, " ");
+		}
+		if (system(cmd))
+			return -1; 
+		return 0;
+	}
+
+#else /* !WINDOWS */
 	if ((pid = fork()) == -1)
 		fatal("do_local_cmd: fork: %s", strerror(errno));
 
@@ -219,6 +239,7 @@ do_local_cmd(arglist *a)
 		return (-1);
 
 	return (0);
+#endif /* !WINDOWS */
 }
 
 /*
@@ -260,7 +281,43 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 	signal(SIGTTOU, suspchild);
 
 	/* Fork a child to execute the command on the remote host using ssh. */
+#ifdef WINDOWS
+	/* generate command line and spawn_child */
+	replacearg(&args, 0, "%s", ssh_program);
+	if (remuser != NULL) {
+		addargs(&args, "-l");
+		addargs(&args, "%s", remuser);
+	}
+	addargs(&args, "--");
+	addargs(&args, "%s", host);
+	addargs(&args, "%s", cmd);
+
+	{
+		char* full_cmd;
+		size_t cmdlen = 0;
+		char** list = args.list;
+
+		cmdlen = 1; /* null term */
+		while (*list)
+			cmdlen += strlen(*list++) + 1;
+
+		full_cmd = xmalloc(cmdlen);
+		full_cmd[0] = '\0';
+		list = args.list;
+		while (*list) {
+			strcat(full_cmd, *list++);
+			strcat(full_cmd, " ");
+		}
+
+		fcntl(pout[0], F_SETFD, FD_CLOEXEC);
+		fcntl(pin[1], F_SETFD, FD_CLOEXEC);
+
+		do_cmd_pid = spawn_child(full_cmd, pin[0], pout[1], STDERR_FILENO, 0);
+		free(full_cmd);
+	}
+#else /* !WINDOWS */
 	do_cmd_pid = fork();
+#endif /* !WINDOWS */
 	if (do_cmd_pid == 0) {
 		/* Child. */
 		close(pin[1]);
@@ -297,7 +354,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 }
 
 /*
- * This functions executes a command simlar to do_cmd(), but expects the
+ * This functions executes a command similar to do_cmd(), but expects the
  * input and output descriptors to be setup by a previous call to do_cmd().
  * This way the input and output of two commands can be connected.
  */
@@ -314,7 +371,42 @@ do_cmd2(char *host, char *remuser, char *cmd, int fdin, int fdout)
 		    remuser ? remuser : "(unspecified)", cmd);
 
 	/* Fork a child to execute the command on the remote host using ssh. */
+#ifdef WINDOWS
+	/* generate command line and spawn_child */
+	replacearg(&args, 0, "%s", ssh_program);
+	if (remuser != NULL) {
+		addargs(&args, "-l");
+		addargs(&args, "%s", remuser);
+	}
+	addargs(&args, "--");
+	addargs(&args, "%s", host);
+	addargs(&args, "%s", cmd);
+
+	{
+		char* full_cmd;
+		size_t cmdlen = 0;
+		char** list = args.list;
+
+		cmdlen = strlen(w32_programdir()) + 2;
+		while (*list)
+			cmdlen += strlen(*list++) + 1;
+
+		full_cmd = xmalloc(cmdlen);
+		full_cmd[0] = '\0';
+		strcat(full_cmd, w32_programdir());
+		strcat(full_cmd, "\\");
+		list = args.list;
+		while (*list) {
+			strcat(full_cmd, *list++);
+			strcat(full_cmd, " ");
+		}
+
+		pid = spawn_child(full_cmd, fdin, fdout, STDERR_FILENO, 0);
+		free(full_cmd);
+	}
+#else /* !WINDOWS */
 	pid = fork();
+#endif /* !WINDOWS */
 	if (pid == 0) {
 		dup2(fdin, 0);
 		dup2(fdout, 1);
@@ -499,6 +591,24 @@ main(int argc, char **argv)
 
 	remin = STDIN_FILENO;
 	remout = STDOUT_FILENO;
+
+#ifdef WINDOWS
+	/* 
+	 * To support both Windows and Unix style paths
+	 * convert '\\' to '/' in rest of arguments 
+	 */
+	{
+		char *s1, *s2;
+		int i;
+		for (i = 0; i < argc; i++) {
+			s1 = argv[i];
+			while ((s2 = strchr(s1, '\\')) != NULL) {
+				*s2 = '/';
+				s1 = s2 + 1;
+			}
+		}		
+	}
+#endif /* WINDOWS */
 
 	if (fflag) {
 		/* Follow "protocol", send data. */
@@ -715,6 +825,47 @@ tolocal(int argc, char **argv)
 	for (i = 0; i < argc - 1; i++) {
 		if (!(src = colon(argv[i]))) {	/* Local to local. */
 			freeargs(&alist);
+#ifdef WINDOWS
+#define _PATH_XCOPY "xcopy"
+#define _PATH_COPY "copy"
+			/* local to local on windows - need to use local native copy command */
+			struct stat stb;
+			int exists;
+
+			exists = stat(argv[i], &stb) == 0;
+			if (exists && (S_ISDIR(stb.st_mode))) {
+				addargs(&alist, "%s", _PATH_XCOPY);
+				if (iamrecursive)
+					addargs(&alist, "/S /E /H");
+				if (pflag)
+					addargs(&alist, "/K /X");
+				addargs(&alist, "/Y /F /I");
+				addargs(&alist, "%s", argv[i]);
+
+				char *lastf = NULL, *lastr = NULL, *name;
+				if ((lastf = strrchr(argv[i], '/')) == NULL && (lastr = strrchr(argv[i], '\\')) == NULL)
+					name = argv[i];
+				else {
+					if (lastf)
+						name = lastf;
+					if (lastr)
+						name = lastr;
+					++name;
+				}
+
+				char * dest = argv[argc - 1];
+				int len = strlen(dest);
+				char * lastletter = dest + len - 1;
+
+				addargs(&alist, "%s%s%s", argv[argc - 1],
+					(lastletter == "\\" || lastletter == "/") ? "" : "\\", name);
+			} else {
+				addargs(&alist, "%s", _PATH_COPY);
+				addargs(&alist, "/Y");
+				addargs(&alist, "%s", argv[i]);
+				addargs(&alist, "%s", argv[argc - 1]);
+			}
+#else  /* !WINDOWS */
 			addargs(&alist, "%s", _PATH_CP);
 			if (iamrecursive)
 				addargs(&alist, "-r");
@@ -723,6 +874,7 @@ tolocal(int argc, char **argv)
 			addargs(&alist, "--");
 			addargs(&alist, "%s", argv[i]);
 			addargs(&alist, "%s", argv[argc-1]);
+#endif /* !WINDOWS */
 			if (do_local_cmd(&alist))
 				++errs;
 			continue;
@@ -891,7 +1043,17 @@ rsource(char *name, struct stat *statp)
 	(void) snprintf(path, sizeof path, "D%04o %d %.1024s\n",
 	    (u_int) (statp->st_mode & FILEMODEMASK), 0, last);
 	if (verbose_mode)
+#ifdef WINDOWS
+	/* TODO - make fmprintf work for Windows  */
+	{
+		printf("Entering directory: ");
+		wchar_t* wtmp = utf8_to_utf16(path);
+		WriteConsoleW(GetStdHandle(STD_ERROR_HANDLE), wtmp, wcslen(wtmp), 0, 0);
+		free(wtmp);
+	}
+#else /* !WINDOWS */
 		fmprintf(stderr, "Entering directory: %s", path);
+#endif /* !WINDOWS */
 	(void) atomicio(vwrite, remout, path, strlen(path));
 	if (response() < 0) {
 		closedir(dirp);
@@ -966,7 +1128,17 @@ sink(int argc, char **argv)
 		} while (cp < &buf[sizeof(buf) - 1] && ch != '\n');
 		*cp = 0;
 		if (verbose_mode)
+#ifdef WINDOWS
+		/* TODO - make fmprintf work for Windows  */
+		{
+			printf("Sink: ");
+			wchar_t* wtmp = utf8_to_utf16(buf);
+			WriteConsoleW(GetStdHandle(STD_ERROR_HANDLE), wtmp, wcslen(wtmp), 0, 0);
+			free(wtmp);
+		}
+#else /* !WINDOWS */
 			fmprintf(stderr, "Sink: %s", buf);
+#endif /* !WINDOWS */
 
 		if (buf[0] == '\01' || buf[0] == '\02') {
 			if (iamremote == 0) {

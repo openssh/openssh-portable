@@ -470,6 +470,10 @@ static int
 execute_in_shell(const char *cmd)
 {
 	char *shell;
+#ifdef WINDOWS
+	fatal("LocalCommand execution is not supported on Windows yet");
+	return 0;
+#else /* !WINDOWS */
 	pid_t pid;
 	int devnull, status;
 	extern uid_t original_real_uid;
@@ -527,6 +531,7 @@ execute_in_shell(const char *cmd)
 	}
 	debug3("command returned status %d", WEXITSTATUS(status));
 	return WEXITSTATUS(status);
+#endif /* !WINDOWS */
 }
 
 /*
@@ -1710,6 +1715,7 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
 
+#ifndef WINDOWS /* TODO - implement permission checks for Windows */
 	if (flags & SSHCONF_CHECKPERM) {
 		struct stat sb;
 
@@ -1719,6 +1725,7 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		    (sb.st_mode & 022) != 0))
 			fatal("Bad owner or permissions on %s", filename);
 	}
+#endif /* !WINDOWS */
 
 	debug("Reading configuration data %.200s", filename);
 

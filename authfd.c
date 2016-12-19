@@ -94,6 +94,42 @@ ssh_get_authentication_socket(int *fdp)
 	if (fdp != NULL)
 		*fdp = -1;
 
+#ifdef WINDOWS
+	/* Auth socket in Windows is a static-named pipe listener in ssh-agent */
+	{
+#define SSH_AGENT_REG_ROOT L"SOFTWARE\\SSH\\Agent"
+#define SSH_AGENT_PIPE_NAME L"\\\\.\\pipe\\ssh-agent"
+		HKEY agent_root = 0;
+		DWORD agent_pid = 0, tmp_size = 4, pipe_server_pid = 0xff;
+		HANDLE h;
+		RegOpenKeyExW(HKEY_LOCAL_MACHINE, SSH_AGENT_REG_ROOT, 0, KEY_QUERY_VALUE, &agent_root);
+		if (agent_root) {
+			RegQueryValueEx(agent_root, "ProcessId", 0, NULL, (LPBYTE)&agent_pid, &tmp_size);
+			RegCloseKey(agent_root);
+		}
+
+		h = CreateFileW(SSH_AGENT_PIPE_NAME, GENERIC_READ | GENERIC_WRITE, 0,
+		    NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL); 
+		if (h == INVALID_HANDLE_VALUE)
+			return SSH_ERR_AGENT_NOT_PRESENT;
+
+		/*
+		 * ensure that connected server pid matches published pid. this provides service side
+		 * auth and prevents mitm
+		 */
+		if (!GetNamedPipeServerProcessId(h, &pipe_server_pid) || (agent_pid != pipe_server_pid)) {
+			debug("agent pid mismatch");
+			CloseHandle(h);
+			return SSH_ERR_AGENT_COMMUNICATION;
+		}
+
+		/* alloc fd for pipe handle */
+		if ((sock = w32_allocate_fd_for_handle(h, FALSE)) < 0) {
+			CloseHandle(h);
+			return SSH_ERR_SYSTEM_ERROR;
+		}
+	}
+#else  /* !WINDOWS */
 	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
 	if (!authsocket)
 		return SSH_ERR_AGENT_NOT_PRESENT;
@@ -113,6 +149,8 @@ ssh_get_authentication_socket(int *fdp)
 		errno = oerrno;
 		return SSH_ERR_SYSTEM_ERROR;
 	}
+#endif  /* !WINDOWS */
+
 	if (fdp != NULL)
 		*fdp = sock;
 	else
@@ -121,7 +159,12 @@ ssh_get_authentication_socket(int *fdp)
 }
 
 /* Communicate with agent: send request and read reply */
+#ifdef WINDOWS
+/* for Windows we need to access this function from other places to talk to agent*/
+int
+#else /* !WINDOWS */
 static int
+#endif /* !WINDOWS */
 ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 {
 	int r;

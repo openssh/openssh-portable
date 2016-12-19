@@ -292,9 +292,40 @@ help(void)
 	    "?                                  Synonym for help\n");
 }
 
+#ifdef WINDOWS
+/* printf version to account for utf-8 input */
+/* TODO - merge this with vfmprint */
+static void printf_utf8(char *fmt,  ... ) {
+        /* TODO - is 1024 sufficient */
+        char buf[1024];
+        wchar_t* wtmp;
+        va_list valist;
+        va_start(valist, fmt);
+
+        vsnprintf(buf, 1024, fmt, valist);
+        va_end(valist);
+
+        if ((wtmp = utf8_to_utf16(buf)) == NULL)
+                fatal("unable to allocate memory");
+        WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), wtmp, wcslen(wtmp), 0, 0);
+        free(wtmp);
+}
+
+/* override mprintf */
+#define mprintf(a,...)		printf_utf8((a), __VA_ARGS__)
+#endif   /* WINDOWS */
+
 static void
 local_do_shell(const char *args)
 {
+  #ifdef WINDOWS
+        /* execute via system call in Windows*/
+	if (!*args) {
+                /* TODO - support unicode ComSpec */
+		args = (char *)	getenv("ComSpec"); // get name of Windows cmd shell
+	}
+	system(args); // execute the shell or cmd given
+  #else   /* !WINDOWS */
 	int status;
 	char *shell;
 	pid_t pid;
@@ -328,6 +359,7 @@ local_do_shell(const char *args)
 		error("Shell exited abnormally");
 	else if (WEXITSTATUS(status))
 		error("Shell exited with status %d", WEXITSTATUS(status));
+ #endif   /* !WINDOWS */
 }
 
 static void
@@ -371,12 +403,45 @@ make_absolute(char *p, const char *pwd)
 	char *abs_str;
 
 	/* Derelativise */
+#ifdef WINDOWS
+	/*
+	* For Windows - given path is absolute when
+	*   - first character is "/"
+	*   - or second character is ":"
+	* This code is also applicable from a Linux client to Windows target
+	* Need to follow up with community if this makes sense in common code
+	*/
+	char *s1, *s2;
+	if (p && p[0] != '/' && (p[0] == '\0' || p[1] != ':')) {
+		abs_str = path_append(pwd, p);
+		free(p);
+		p = abs_str;
+	}
+
+	/* convert '\\' tp '/' */
+	s1 = p;
+	while ((s2 = strchr(s1, '\\')) != NULL) {
+		*s2 = '/';
+		s1 = s2 + 1;
+	}
+
+	/* Append "/" if needed to the absolute windows path */	
+	if (p && p[0] != '\0' && p[1] == ':') {
+		s1 = path_append("/", p);
+		free(p);
+		p = s1;
+	}
+
+#else /* !WINDOWS */
 	if (p && p[0] != '/') {
 		abs_str = path_append(pwd, p);
 		free(p);
 		return(abs_str);
 	} else
 		return(p);
+#endif /* !WINDOWS */
+	return(p);
+
 }
 
 static int
@@ -791,6 +856,7 @@ sdirent_comp(const void *aa, const void *bb)
 		return (rmul * NCMP(a->a.size, b->a.size));
 
 	fatal("Unknown ls sort type");
+	return 0;
 }
 
 /* sftp ls.1 replacement for directories */
@@ -861,7 +927,17 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 			} else
 				mprintf("%s\n", d[n]->longname);
 		} else {
+#ifdef WINDOWS
+			/* cannot use printf_utf8 becuase of width specification */
+			/* printf_utf8 does not account for utf-16 based argument widths */
+			wchar_t buf[1024]; 
+			wchar_t* wtmp = utf8_to_utf16(fname);
+			swprintf(buf, 1024, L"%-*s", colspace, wtmp);
+			WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), buf, wcslen(buf), 0, 0);
+			free(wtmp);
+#else
 			mprintf("%-*s", colspace, fname);
+#endif
 			if (c >= columns) {
 				printf("\n");
 				c = 1;
@@ -945,7 +1021,17 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 			mprintf("%s\n", lname);
 			free(lname);
 		} else {
+#ifdef WINDOWS
+			/* cannot use printf_utf8 becuase of width specification */
+			/* printf_utf8 does not account for utf-16 based argument widths */
+			wchar_t buf[1024];
+			wchar_t* wtmp = utf8_to_utf16(fname);
+			swprintf(buf, 1024, L"%-*s", colspace, wtmp);
+			WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), buf, wcslen(buf), 0, 0);
+			free(wtmp);
+#else
 			mprintf("%-*s", colspace, fname);
+#endif
 			if (c >= columns) {
 				printf("\n");
 				c = 1;
@@ -1425,6 +1511,19 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	glob_t g;
 
 	path1 = path2 = NULL;
+#ifdef WINDOWS
+	/* 
+	 * convert '\\' to '/' in Windows styled paths. 
+	 * else they get treated as escape sequence in makeargv 
+	 */
+	{
+		char *s1 = cmd, *s2;
+		while ((s2 = strchr(s1, '\\')) != NULL) {
+			*s2 = '/';
+			s1 = s2 + 1;
+		}
+	}
+#endif
 	cmdnum = parse_args(&cmd, &ignore_errors, &aflag, &fflag, &hflag,
 	    &iflag, &lflag, &pflag, &rflag, &sflag, &n_arg, &path1, &path2);
 	if (ignore_errors != 0)
@@ -2105,8 +2204,14 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		free(dir);
 	}
 
+#ifdef WINDOWS
+	/* Min buffer size allowed in Windows is 2*/
+	setvbuf(stdout, NULL, _IOLBF, 2);
+	setvbuf(infile, NULL, _IOLBF, 2);
+#else   /* !WINDOWS */
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
+#endif   /* !WINDOWS */
 
 	interactive = !batchmode && isatty(STDIN_FILENO);
 	err = 0;
@@ -2116,6 +2221,25 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		signal(SIGINT, SIG_IGN);
 
 		if (el == NULL) {
+#ifdef WINDOWS
+			/* fgets on Windows does not support Unicode input*/
+			if (interactive) {
+				wchar_t wcmd[2048];
+				printf("sftp> ");
+				if (fgetws(wcmd, sizeof(cmd)/sizeof(wchar_t), infile) == NULL) {
+					printf("\n");
+					break;
+				}
+				else {
+					char *pcmd = NULL;
+					if ((pcmd = utf16_to_utf8(wcmd)) == NULL)
+						fatal("failed to convert input arguments");
+					strcpy(cmd, pcmd);
+					free(pcmd);                    
+				}
+			} else if (fgets(cmd, sizeof(cmd), infile) == NULL) 
+				break;
+#else /* !WINDOWS */
 			if (interactive)
 				printf("sftp> ");
 			if (fgets(cmd, sizeof(cmd), infile) == NULL) {
@@ -2123,6 +2247,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 					printf("\n");
 				break;
 			}
+#endif/* !WINDOWS */
 			if (!interactive) { /* Echo command */
 				mprintf("sftp> %s", cmd);
 				if (strlen(cmd) > 0 &&
@@ -2195,7 +2320,37 @@ connect_to_server(char *path, char **args, int *in, int *out)
 	c_in = c_out = inout[1];
 #endif /* USE_PIPES */
 
+#ifdef WINDOWS
+	/* fork replacement on Windows */
+	{
+		size_t cmdlen = 0;
+		int i = 0;
+		char* full_cmd;
+
+		cmdlen = strlen(path) + 1;
+		for (i = 1; args[i]; i++)
+			cmdlen += strlen(args[i]) + 1;
+
+		full_cmd = xmalloc(cmdlen);
+		full_cmd[0] = '\0';
+		strcat(full_cmd, path);
+		for (i = 1; args[i]; i++) 	{
+			strcat(full_cmd, " ");
+			strcat(full_cmd, args[i]);
+		}
+
+		/* disable inheritance on local pipe ends*/
+		fcntl(pout[1], F_SETFD, FD_CLOEXEC);
+		fcntl(pin[0], F_SETFD, FD_CLOEXEC);
+		
+		sshpid = spawn_child(full_cmd, c_in, c_out, STDERR_FILENO, 0);
+		free(full_cmd);
+ 	}
+
+	if (sshpid == -1)
+#else /* !WINDOWS */
 	if ((sshpid = fork()) == -1)
+#endif  /* !WINDOWS */
 		fatal("fork: %s", strerror(errno));
 	else if (sshpid == 0) {
 		if ((dup2(c_in, STDIN_FILENO) == -1) ||
@@ -2284,6 +2439,11 @@ main(int argc, char **argv)
 	addargs(&args, "-oClearAllForwardings yes");
 
 	ll = SYSLOG_LEVEL_INFO;
+
+#ifdef WINDOWS
+	/* prepare for Unicode input */
+	_setmode(_fileno(stdin), O_U16TEXT);
+#endif
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,

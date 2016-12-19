@@ -175,6 +175,51 @@ userauth_pubkey(Authctxt *authctxt)
 
 		/* test for correct signature */
 		authenticated = 0;
+
+#ifdef WINDOWS
+		/* Pass key challenge material to ssh-agent to retrieve token upon succesful authentication */
+		{
+			extern int auth_sock;
+			int r;
+			u_char *blob = NULL;
+			size_t blen = 0;
+			DWORD token = 0;
+			struct sshbuf *msg = NULL;
+
+			while (1) {
+				msg = sshbuf_new();
+				if (!msg)
+					break;
+				if ((r = sshbuf_put_u8(msg, 100)) != 0 ||
+					(r = sshbuf_put_cstring(msg, "pubkey")) != 0 ||
+					(r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
+					(r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
+					(r = sshbuf_put_string(msg, sig, slen)) != 0 ||
+					(r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
+					(r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
+					(r = sshbuf_get_u32(msg, &token)) != 0) {
+					debug("auth agent did not authorize client %s", authctxt->pw->pw_name);
+					break;
+				}
+
+				debug3("auth agent authenticated %s", authctxt->pw->pw_name);
+				break;
+				
+			}
+			if (blob)
+				free(blob);
+			if (msg)
+				sshbuf_free(msg);
+
+			if (token) {
+				authenticated = 1;                              
+				authctxt->methoddata = (void*)(INT_PTR)token;
+			}
+				
+		}
+
+#else  /* !WINDOWS */
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
 		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
 		    buffer_len(&b))) == 1) {
@@ -185,6 +230,8 @@ userauth_pubkey(Authctxt *authctxt)
 		}
 		buffer_free(&b);
 		free(sig);
+#endif  /* !WINDOWS */
+
 	} else {
 		debug("%s: test whether pkalg/pkblob are acceptable for %s %s",
 		    __func__, sshkey_type(key), fp);
@@ -198,7 +245,11 @@ userauth_pubkey(Authctxt *authctxt)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
+#ifdef WINDOWS /* key validation in done in agent for Windows */
+		{
+#else  /* !WINDOWS */
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 0))) {
+#endif  /* !WINDOWS */
 			packet_start(SSH2_MSG_USERAUTH_PK_OK);
 			packet_put_string(pkalg, alen);
 			packet_put_string(pkblob, blen);
@@ -395,6 +446,10 @@ static pid_t
 subprocess(const char *tag, struct passwd *pw, const char *command,
     int ac, char **av, FILE **child)
 {
+#ifdef WINDOWS
+        logit("AuthorizedPrincipalsCommand and AuthorizedKeysCommand are not supported in Windows yet");
+        return 0;
+#else  /* !WINDOWS */
 	FILE *f;
 	struct stat st;
 	int devnull, p[2], i;
@@ -514,6 +569,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	debug3("%s: %s pid %ld", __func__, tag, (long)pid);
 	*child = f;
 	return pid;
+#endif  /* !WINDOWS */
 }
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */
