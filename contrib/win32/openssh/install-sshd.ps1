@@ -1,4 +1,7 @@
-﻿$scriptpath = $MyInvocation.MyCommand.Path
+﻿# @manojampalam - authored initial script
+# @friism - Fixed issue with invalid SDDL on Set-Acl
+
+$scriptpath = $MyInvocation.MyCommand.Path
 $scriptdir = Split-Path $scriptpath
 
 $sshdpath = Join-Path $scriptdir "sshd.exe"
