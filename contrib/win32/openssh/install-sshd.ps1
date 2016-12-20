@@ -5,7 +5,8 @@ $sshdpath = Join-Path $scriptdir "sshd.exe"
 $sshagentpath = Join-Path $scriptdir "ssh-agent.exe"
 $logsdir = Join-Path $scriptdir "logs"
 
-$ntrights = "ntrights.exe -u `"NT SERVICE\SSHD`" +r SeAssignPrimaryTokenPrivilege"
+$account = "NT SERVICE\SSHD"
+$ntrights = "ntrights.exe -u `"{0}`" +r SeAssignPrimaryTokenPrivilege" -f $account
 
 if (-not (Test-Path $sshdpath)) {
     throw "sshd.exe is not present in script path"
@@ -27,7 +28,7 @@ New-Service -Name ssh-agent -BinaryPathName $sshagentpath -Description "SSH Agen
 cmd.exe /c 'sc.exe sdset ssh-agent D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;RP;;;AU)'
 
 New-Service -Name sshd -BinaryPathName $sshdpath -Description "SSH Deamon" -StartupType Manual -DependsOn ssh-agent | Out-Null
-sc.exe config sshd obj= "NT SERVICE\SSHD"
+sc.exe config sshd obj= $account
 
 Push-Location
 cd $scriptdir
@@ -35,9 +36,9 @@ cmd.exe /c $ntrights
 Pop-Location
 
 mkdir $logsdir > $null
-$sddl = "O:SYG:DUD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x12019f;;;S-1-5-80-3847866527-469524349-687026318-516638107-1125189541)"
+$rights = [System.Security.AccessControl.FileSystemRights]"Read, Write"
+$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($account, $rights, "ContainerInherit,ObjectInherit", "None", "Allow")
 $acl = Get-Acl -Path $logsdir
-$acl.SetSecurityDescriptorSddlForm($sddl)
+$Acl.SetAccessRule($accessRule)
 Set-Acl -Path $logsdir -AclObject $acl
 Write-Host -ForegroundColor Green "sshd and ssh-agent services successfully installed"
-
