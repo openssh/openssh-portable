@@ -651,20 +651,39 @@ readlink(const char *path, char *link, int linklen)
 	return 0;
 }
 
+// convert forward slash to back slash
+void
+convertToBackslash(char *str) {
+	while (*str) {
+		if (*str == '/')
+			*str = '\\';
+		str++;
+	}
+}
+
+// convert back slash to forward slash
+void 
+convertToForwardslash(char *str) {
+	while (*str) {
+		if (*str == '\\')
+			*str = '/';
+		str++;
+	}
+}
+
 /*
 * This method will expands all symbolic links and resolves references to /./,
 *  /../ and extra '/' characters in the null-terminated string named by
 *  path to produce a canonicalized absolute pathname.
 */
 char *
-realpath(const char *path, char resolved[MAX_PATH])
-{
+realpath(const char *path, char resolved[MAX_PATH]) {
 	char tempPath[MAX_PATH];
 
 	if ((0 == strcmp(path, "./")) || (0 == strcmp(path, "."))) {
 		tempPath[0] = '/';
 		_getcwd(&tempPath[1], sizeof(tempPath) - 1);
-		slashconvert(tempPath);
+		convertToForwardslash(tempPath);
 
 		strncpy(resolved, tempPath, strlen(tempPath) + 1);
 		return resolved;
@@ -675,9 +694,9 @@ realpath(const char *path, char resolved[MAX_PATH])
 	else
 		strlcpy(resolved, path + 1, sizeof(tempPath));
 
-	backslashconvert(resolved);
+	convertToBackslash(resolved);
 	PathCanonicalizeA(tempPath, resolved);
-	slashconvert(tempPath);
+	convertToForwardslash(tempPath);
 
 	// Store terminating slash in 'X:/' on Windows.	
 	if (tempPath[1] == ':' && tempPath[2] == 0) {
@@ -692,8 +711,7 @@ realpath(const char *path, char resolved[MAX_PATH])
 
 // like realpathWin32() but takes out the first slash so that windows systems can work on the actual file or directory
 char *
-realpath_win(const char *path, char resolved[MAX_PATH])
-{
+realpath_win(const char *path, char resolved[MAX_PATH]) {
 	char tempPath[MAX_PATH];
 	realpath(path, tempPath);
 
@@ -737,8 +755,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
 BOOL 
-ResolveLink(wchar_t * tLink, wchar_t *ret, DWORD * plen, DWORD Flags)
-{
+ResolveLink(wchar_t * tLink, wchar_t *ret, DWORD * plen, DWORD Flags) {
 	HANDLE   fileHandle;
 	BYTE     reparseBuffer[MAX_REPARSE_SIZE];
 	PBYTE    reparseData;

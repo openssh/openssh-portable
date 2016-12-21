@@ -419,11 +419,7 @@ make_absolute(char *p, const char *pwd)
 	}
 
 	/* convert '\\' tp '/' */
-	s1 = p;
-	while ((s2 = strchr(s1, '\\')) != NULL) {
-		*s2 = '/';
-		s1 = s2 + 1;
-	}
+	convertToForwardslash(p);
 
 	/* Append "/" if needed to the absolute windows path */	
 	if (p && p[0] != '\0' && p[1] == ':') {
@@ -1516,13 +1512,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	 * convert '\\' to '/' in Windows styled paths. 
 	 * else they get treated as escape sequence in makeargv 
 	 */
-	{
-		char *s1 = cmd, *s2;
-		while ((s2 = strchr(s1, '\\')) != NULL) {
-			*s2 = '/';
-			s1 = s2 + 1;
-		}
-	}
+	convertToForwardslash(cmd);
 #endif
 	cmdnum = parse_args(&cmd, &ignore_errors, &aflag, &fflag, &hflag,
 	    &iflag, &lflag, &pflag, &rflag, &sflag, &n_arg, &path1, &path2);
