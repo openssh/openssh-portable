@@ -82,16 +82,16 @@ Describe "Tests for scp command" -Tags "CI" {
         $client.CleanupClient()
         $server.CleanupServer()
 
-        Get-Item $SourceDir | Remove-Item -Recurse -Force -ea silentlycontinue        
-        Get-Item $DestinationDir | Remove-Item -Recurse -Force -ea silentlycontinue
+        Get-Item $SourceDir | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Get-Item $DestinationDir | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     }
 
-    BeforeEach {
+    BeforeAll {
         $null = New-Item $DestinationDir -ItemType directory -Force
     }
 
     AfterEach {
-        Get-ChildItem $DestinationDir -Recurse -Directory | Remove-Item -Recurse -Force -ea silentlycontinue
+        Get-ChildItem $DestinationDir -Recurse | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     <#Context "SCP usage" {
@@ -147,7 +147,7 @@ Describe "Tests for scp command" -Tags "CI" {
 
             #cleanup single signon
             .\ssh-add.exe -D
-        }
+        }        
 
         It 'File Copy with -S option (positive)' {
             .\scp -S .\ssh.exe $SourceFilePath "$($server.localAdminUserName)@$($server.MachineName):$DestinationFilePath"
@@ -156,18 +156,18 @@ Describe "Tests for scp command" -Tags "CI" {
             $equal | Should Be $true
         }
 
-        <#It 'File Copy with -p -c -v option: <Title> ' -TestCases:$testData {
+        It 'File Copy with -p -c -v option: <Title> ' -TestCases:$testData {
             param([string]$Title, $Source, $Destination)
 
-            .\scp -p -c aes128-ctr  -v  -C $Source $Destination
+            .\scp -p -c aes128-ctr -v  -C $Source $Destination
             #validate file content. DestPath is the path to the file.
             $equal = @(Compare-Object (Get-ChildItem -path $SourceFilePath) (Get-ChildItem -path $DestinationFilePath) -Property Name, Length, LastWriteTime.DateTime).Length -eq 0
             $equal | Should Be $true            
-        }#>
+        }
                 
         It 'Directory recursive Copy with -r -p -v option: <Title> ' -TestCases:$testData1 {
             param([string]$Title, $Source, $Destination)
-            .\scp -r -p -v $Source $Destination
+            .\scp -r -p -c aes128-ctr -v $Source $Destination
             
             $equal = @(Compare-Object (Get-Item -path $SourceDir ) (Get-Item -path (join-path $DestinationDir $SourceDirName) ) -Property Name, Length).Length -eq 0
             $equal | Should Be $true            

@@ -830,7 +830,7 @@ tolocal(int argc, char **argv)
 			exists = stat(argv[i], &stb) == 0;
 			/* convert '/' to '\\' 	*/
 			convertToBackslash(argv[i]);
-			convertToBackslash(argv[i - 1]);
+			convertToBackslash(argv[argc - 1]);
 			if (exists && (S_ISDIR(stb.st_mode))) {
 				addargs(&alist, "%s", _PATH_XCOPY);
 				if (iamrecursive)
