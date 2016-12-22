@@ -312,7 +312,7 @@ spawn_child(char* cmd, int in, int out, int err, DWORD flags) {
 		if(!cmd)
 			break;
 		t = cmd;
-		if (*t = '\"')
+		if (*t == '\"')
 			t++;
 		if (t[0] == '\0' || t[0] == '\\' || t[0] == '.' || t[1] == ':')
 			break;
