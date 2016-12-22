@@ -2992,14 +2992,10 @@ channel_setup_fwd_listener_tcpip(int type, struct Forward *fwd,
 
 		/* Allocate a channel number for the socket. */
 		/* explicitly test for hpn disabled option. if true use smaller window size */
-		if (hpn_disabled)
-			c = channel_new("port listener", type, sock, sock, -1,
-			    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-			    0, "port listener", 1);
-		else
-			c = channel_new("port listener", type, sock, sock, -1,
-			    hpn_buffer_size, CHAN_TCP_PACKET_DEFAULT,
-			    0, "port listener", 1);
+		c = channel_new("port listener", type, sock, sock, -1,
+		    hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : hpn_buffer_size,
+		    CHAN_TCP_PACKET_DEFAULT,
+		    0, "port listener", 1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -4032,17 +4028,12 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	*chanids = xcalloc(num_socks + 1, sizeof(**chanids));
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
-		/* Is this really necassary? */
-		if (hpn_disabled)
 		nc = channel_new("x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
+		    /* Is this really necassary? */
+		    hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : hpn_buffer_size,
+		    CHAN_X11_PACKET_DEFAULT,
 		    0, "X11 inet listener", 1);
-		else
-			nc = channel_new("x11 listener",
-			    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-			    hpn_buffer_size, CHAN_X11_PACKET_DEFAULT,
-			    0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}
