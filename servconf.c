@@ -663,7 +663,6 @@ parse_token(const char *cp, const char *filename,
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcasecmp(cp, keywords[i].name) == 0) {
-			debug("Config token is %s", keywords[i].name);
 			*flags = keywords[i].flags;
 			return keywords[i].opcode;
 		}
