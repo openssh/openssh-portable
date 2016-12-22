@@ -189,7 +189,6 @@ static void port_open_helper(Channel *c, char *rtype);
 static int connect_next(struct channel_connect *);
 static void channel_connect_ctx_free(struct channel_connect *);
 
-
 static int hpn_disabled = 0;
 static int hpn_buffer_size = 2 * 1024 * 1024;
 
@@ -862,7 +861,7 @@ channel_tcpwinsz(void)
 	ret = getsockopt(packet_get_connection_in(),
 			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
 	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
-	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
+	if (ret == 0 && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
 	debug2("tcpwinsz: %d for connection: %d", tcpwinsz,
@@ -876,7 +875,7 @@ channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 	u_int limit = compat20 ? c->remote_window : packet_get_maxsize();
 
 	/* check buffer limits */
-	if ((!c->tcpwinsz) || (c->dynamic_window > 0))
+	if (!c->tcpwinsz || c->dynamic_window > 0)
 		c->tcpwinsz = channel_tcpwinsz();
 
 	limit = MIN(limit, 2 * c->tcpwinsz);
@@ -1900,7 +1899,7 @@ channel_check_window(Channel *c)
 	    c->local_consumed > 0) {
 		u_int addition = 0;
 		/* adjust max window size if we are in a dynamic environment */
-		if (c->dynamic_window && (c->tcpwinsz > c->local_window_max)) {
+		if (c->dynamic_window && c->tcpwinsz > c->local_window_max) {
 			/* grow the window somewhat aggressively to maintain pressure */
 			addition = 1.5 * (c->tcpwinsz - c->local_window_max);
 			c->local_window_max += addition;
@@ -2855,7 +2854,6 @@ channel_fwd_bind_addr(const char *listen_addr, int *wildcardp,
 		*wildcardp = wildcard;
 	return addr;
 }
-
 
 void
 channel_set_hpn(int external_hpn_disabled, int external_hpn_buffer_size)

@@ -134,7 +134,6 @@ Subsystem	sftp	/usr/libexec/sftp-server
 # buffer size for hpn to non-hpn connections
 #HPNBufferSize 2048
 
-
 # allow the use of the none cipher
 #NoneEnabled no
 

@@ -2012,7 +2012,7 @@ ssh_session2_open(void)
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", /*nonblock*/0);
 
-	if ((options.tcp_rcv_buf_poll > 0) && (!options.hpn_disabled)) {
+	if (options.tcp_rcv_buf_poll > 0 && !options.hpn_disabled) {
 		c->dynamic_window = 1;
 		debug("Enabled Dynamic Window Scaling");
 	}

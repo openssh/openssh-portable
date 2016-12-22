@@ -1242,7 +1242,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			*intptr = value;
 		break;
 
-
 	case sTcpRcvBufPoll:
 		intptr = &options->tcp_rcv_buf_poll;
 		goto parse_flag;
