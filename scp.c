@@ -596,17 +596,11 @@ main(int argc, char **argv)
 	/* 
 	 * To support both Windows and Unix style paths
 	 * convert '\\' to '/' in rest of arguments 
-	 */
-	{
-		char *s1, *s2;
+	 */	
+	{		
 		int i;
-		for (i = 0; i < argc; i++) {
-			s1 = argv[i];
-			while ((s2 = strchr(s1, '\\')) != NULL) {
-				*s2 = '/';
-				s1 = s2 + 1;
-			}
-		}		
+		for (i = 0; i < argc; i++) 
+			convertToForwardslash(argv[i]);
 	}
 #endif /* WINDOWS */
 
@@ -831,40 +825,34 @@ tolocal(int argc, char **argv)
 			/* local to local on windows - need to use local native copy command */
 			struct stat stb;
 			int exists;
+			char *last;
 
 			exists = stat(argv[i], &stb) == 0;
+			/* convert '/' to '\\' 	*/
+			convertToBackslash(argv[i]);
+			convertToBackslash(argv[i - 1]);
 			if (exists && (S_ISDIR(stb.st_mode))) {
 				addargs(&alist, "%s", _PATH_XCOPY);
 				if (iamrecursive)
 					addargs(&alist, "/S /E /H");
 				if (pflag)
 					addargs(&alist, "/K /X");
-				addargs(&alist, "/Y /F /I");
-				addargs(&alist, "%s", argv[i]);
+				addargs(&alist, "/Y /F /I");				
+				addargs(&alist, "%s", argv[i]);				
 
-				char *lastf = NULL, *lastr = NULL, *name;
-				if ((lastf = strrchr(argv[i], '/')) == NULL && (lastr = strrchr(argv[i], '\\')) == NULL)
-					name = argv[i];
-				else {
-					if (lastf)
-						name = lastf;
-					if (lastr)
-						name = lastr;
-					++name;
-				}
-
-				char * dest = argv[argc - 1];
-				int len = strlen(dest);
-				char * lastletter = dest + len - 1;
-
+				if ((last = strrchr(argv[i], '\\')) == NULL)
+					last = argv[i];
+				else
+					++last;
+				
 				addargs(&alist, "%s%s%s", argv[argc - 1],
-					(lastletter == "\\" || lastletter == "/") ? "" : "\\", name);
+					strcmp(argv[argc - 1], "\\") ? "\\" : "", last);
 			} else {
 				addargs(&alist, "%s", _PATH_COPY);
-				addargs(&alist, "/Y");
+				addargs(&alist, "/Y");				
 				addargs(&alist, "%s", argv[i]);
 				addargs(&alist, "%s", argv[argc - 1]);
-			}
+			}			
 #else  /* !WINDOWS */
 			addargs(&alist, "%s", _PATH_CP);
 			if (iamrecursive)
@@ -1541,3 +1529,4 @@ lostconn(int signo)
 	else
 		exit(1);
 }
+
