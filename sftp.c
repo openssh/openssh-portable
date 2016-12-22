@@ -313,6 +313,7 @@ static void printf_utf8(char *fmt,  ... ) {
 
 /* override mprintf */
 #define mprintf(a,...)		printf_utf8((a), __VA_ARGS__)
+#define printf(a,...)		printf_utf8((a), __VA_ARGS__)
 #endif   /* WINDOWS */
 
 static void
@@ -2319,14 +2320,15 @@ connect_to_server(char *path, char **args, int *in, int *out)
 
 		cmdlen = strlen(path) + 1;
 		for (i = 1; args[i]; i++)
-			cmdlen += strlen(args[i]) + 1;
+			cmdlen += strlen(args[i]) + 1 + 2;
 
 		full_cmd = xmalloc(cmdlen);
 		full_cmd[0] = '\0';
 		strcat(full_cmd, path);
 		for (i = 1; args[i]; i++) 	{
-			strcat(full_cmd, " ");
+			strcat(full_cmd, " \"");
 			strcat(full_cmd, args[i]);
+			strcat(full_cmd, "\"");
 		}
 
 		/* disable inheritance on local pipe ends*/
