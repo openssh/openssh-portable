@@ -672,37 +672,22 @@ convertToForwardslash(char *str) {
 }
 
 /*
-* This method will expands all symbolic links and resolves references to /./,
-*  /../ and extra '/' characters in the null-terminated string named by
+* This method will resolves references to /./, /../ and extra '/' characters in the null-terminated string named by
 *  path to produce a canonicalized absolute pathname.
 */
 char *
 realpath(const char *path, char resolved[MAX_PATH]) {
 	char tempPath[MAX_PATH];
-
-	if ((0 == strcmp(path, "./")) || (0 == strcmp(path, "."))) {
-		tempPath[0] = '/';
-		_getcwd(&tempPath[1], sizeof(tempPath) - 1);
-		convertToForwardslash(tempPath);
-
-		strncpy(resolved, tempPath, strlen(tempPath) + 1);
-		return resolved;
-	}
-
-	if (path[0] != '/')
-		strlcpy(resolved, path, sizeof(tempPath));
+		
+	if (*path == '/' && *(path + 2) == ':')
+		strncpy(resolved, path + 1, strlen(path)); // skip the first '/'
 	else
-		strlcpy(resolved, path + 1, sizeof(tempPath));
+		strncpy(resolved, path, strlen(path) + 1);
 
-	convertToBackslash(resolved);
-	PathCanonicalizeA(tempPath, resolved);
+	if (_fullpath(tempPath, resolved, MAX_PATH) == NULL)
+		return NULL;
+	
 	convertToForwardslash(tempPath);
-
-	// Store terminating slash in 'X:/' on Windows.	
-	if (tempPath[1] == ':' && tempPath[2] == 0) {
-		tempPath[2] = '/';
-		tempPath[3] = 0;
-	}
 
 	resolved[0] = '/'; // will be our first slash in /x:/users/test1 format
 	strncpy(resolved + 1, tempPath, sizeof(tempPath) - 1);
