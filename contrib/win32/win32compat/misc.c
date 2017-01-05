@@ -37,6 +37,7 @@
 #include <time.h>
 #include <Shlwapi.h>
 #include "misc_internal.h"
+#include "inc\dlfcn.h"
 
 int usleep(unsigned int useconds)
 {
@@ -114,51 +115,6 @@ explicit_bzero(void *b, size_t len) {
 	SecureZeroMemory(b, len);
 }
 
-int statvfs(const char *path, struct statvfs *buf) {
-	DWORD sectorsPerCluster;
-	DWORD bytesPerSector;
-	DWORD freeClusters;
-	DWORD totalClusters;
-
-	if (GetDiskFreeSpace(path, &sectorsPerCluster, &bytesPerSector,
-		&freeClusters, &totalClusters) == TRUE)
-	{
-		debug3("path              : [%s]", path);
-		debug3("sectorsPerCluster : [%lu]", sectorsPerCluster);
-		debug3("bytesPerSector    : [%lu]", bytesPerSector);
-		debug3("bytesPerCluster   : [%lu]", sectorsPerCluster * bytesPerSector);
-		debug3("freeClusters      : [%lu]", freeClusters);
-		debug3("totalClusters     : [%lu]", totalClusters);
-
-		buf->f_bsize = sectorsPerCluster * bytesPerSector;
-		buf->f_frsize = sectorsPerCluster * bytesPerSector;
-		buf->f_blocks = totalClusters;
-		buf->f_bfree = freeClusters;
-		buf->f_bavail = freeClusters;
-		buf->f_files = -1;
-		buf->f_ffree = -1;
-		buf->f_favail = -1;
-		buf->f_fsid = 0;
-		buf->f_flag = 0;
-		buf->f_namemax = MAX_PATH - 1;
-
-		return 0;
-	}
-	else
-	{
-		debug3("ERROR: Cannot get free space for [%s]. Error code is : %d.\n",
-			path, GetLastError());
-
-		return -1;
-	}
-}
-
-int fstatvfs(int fd, struct statvfs *buf) {
-	errno = ENOTSUP;
-	return -1;
-}
-
-#include "inc\dlfcn.h"
 HMODULE dlopen(const char *filename, int flags) {
 	return LoadLibraryA(filename);
 }
@@ -655,7 +611,7 @@ char *
 realpath(const char *path, char resolved[MAX_PATH]) {
 	char tempPath[MAX_PATH];
 		
-	if (*path == '/' && *(path + 2) == ':')
+	if ( (strlen(path) >= 2) && (path[0] == '/') && (path[2] == ':') )
 		strncpy(resolved, path + 1, strlen(path)); // skip the first '/'
 	else
 		strncpy(resolved, path, strlen(path) + 1);
@@ -677,8 +633,7 @@ realpath(const char *path, char resolved[MAX_PATH]) {
 #define IO_REPARSE_TAG_MOUNT_POINT              (0xA0000003L)       // winnt ntifs 
 #define IO_REPARSE_TAG_HSM                      (0xC0000004L)       // winnt ntifs 
 #define IO_REPARSE_TAG_SIS                      (0x80000007L)       // winnt ntifs 
-#define REPARSE_MOUNTPOINT_HEADER_SIZE   8 
-
+#define REPARSE_MOUNTPOINT_HEADER_SIZE   8
 
 typedef struct _REPARSE_DATA_BUFFER {
 	ULONG  ReparseTag;
@@ -778,4 +733,51 @@ ResolveLink(wchar_t * tLink, wchar_t *ret, DWORD * plen, DWORD Flags) {
 
 	CloseHandle(fileHandle);
 	return TRUE;
+}
+
+int statvfs(const char *path, struct statvfs *buf) {
+	DWORD sectorsPerCluster;
+	DWORD bytesPerSector;
+	DWORD freeClusters;
+	DWORD totalClusters;
+
+	wchar_t* path_utf16 = utf8_to_utf16(sanitized_path(path));
+	if (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
+		&freeClusters, &totalClusters) == TRUE)
+	{
+		debug3("path              : [%s]", path);
+		debug3("sectorsPerCluster : [%lu]", sectorsPerCluster);
+		debug3("bytesPerSector    : [%lu]", bytesPerSector);
+		debug3("bytesPerCluster   : [%lu]", sectorsPerCluster * bytesPerSector);
+		debug3("freeClusters      : [%lu]", freeClusters);
+		debug3("totalClusters     : [%lu]", totalClusters);
+
+		buf->f_bsize = sectorsPerCluster * bytesPerSector;
+		buf->f_frsize = sectorsPerCluster * bytesPerSector;
+		buf->f_blocks = totalClusters;
+		buf->f_bfree = freeClusters;
+		buf->f_bavail = freeClusters;
+		buf->f_files = -1;
+		buf->f_ffree = -1;
+		buf->f_favail = -1;
+		buf->f_fsid = 0;
+		buf->f_flag = 0;
+		buf->f_namemax = MAX_PATH - 1;
+
+		free(path_utf16);
+		return 0;
+	}
+	else
+	{
+		debug3("ERROR: Cannot get free space for [%s]. Error code is : %d.\n",
+			path, GetLastError());
+
+		free(path_utf16);
+		return -1;
+	}
+}
+
+int fstatvfs(int fd, struct statvfs *buf) {
+	errno = ENOTSUP;
+	return -1;
 }
