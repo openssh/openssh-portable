@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.262 2016/10/25 04:08:13 jsg Exp $ */
+/* $OpenBSD: readconf.c,v 1.263 2017/01/06 03:53:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1502,6 +1502,11 @@ parse_keytypes:
 				    flags | SSHCONF_CHECKPERM |
 				    (oactive ? 0 : SSHCONF_NEVERMATCH),
 				    activep, depth + 1);
+				if (errno != ENOENT) {
+					fatal("Can't open user config file "
+					    "%.100s: %.100s", gl.gl_pathv[i],
+					    strerror(errno));
+				}
 				/*
 				 * don't let Match in includes clobber the
 				 * containing file's Match state.
