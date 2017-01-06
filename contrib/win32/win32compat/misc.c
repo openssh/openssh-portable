@@ -436,10 +436,16 @@ strmode(mode_t mode, char *p)
 }
 
 int 
-w32_chmod(const char *pathname, mode_t mode) {
-    /* TODO - implement this */
-	errno = EOPNOTSUPP;
-    return -1;
+w32_chmod(const char *pathname, mode_t mode) {	
+	int ret;
+	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(sanitized_path(pathname));
+	if (resolvedPathName_utf16 == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
+	ret = _wchmod(resolvedPathName_utf16, mode);
+	free(resolvedPathName_utf16);
+	return ret;
 }
 
 int 
@@ -461,7 +467,7 @@ w32_utimes(const char *filename, struct timeval *tvp) {
 		errno = ENOMEM;
 		return -1;
 	}
-
+	/* _utime only set time for filename; TODO - need a different logic to set times for directory*/
 	ret = _wutime(resolvedPathName_utf16, &ub);
 	free(resolvedPathName_utf16);
 	return ret;
@@ -565,8 +571,12 @@ w32_mkdir(const char *path_utf8, unsigned short mode) {
 		return -1;
 	}
 	int returnStatus = _wmkdir(path_utf16);
+	if (returnStatus < 0) {
+		return -1;
+	}
+	returnStatus = _wchmod(path_utf16, mode);
 	free(path_utf16);
-
+	/*TODO: map mode*/
 	return returnStatus;
 }
 
