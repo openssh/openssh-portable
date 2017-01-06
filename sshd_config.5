@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.240 2017/01/06 02:34:54 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.241 2017/01/06 16:28:12 jmc Exp $
 .Dd $Mdocdate: January 6 2017 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1644,13 +1644,13 @@ The username.
 .El
 .Pp
 .Cm AuthorizedKeysCommand
-accepts the tokens %%, %f, %k, %h, %t, and %u.
+accepts the tokens %%, %f, %h, %k, %t, and %u.
 .Pp
 .Cm AuthorizedKeysFile
 accepts the tokens %%, %h, and %u.
 .Pp
 .Cm AuthorizedPrincipalsCommand
-accepts the tokens %%, %F, %f, %K, %k, %h, %i, %s, %T, %t, and %u.
+accepts the tokens %%, %F, %f, %h, %i, %K, %k, %s, %T, %t, and %u.
 .Pp
 .Cm AuthorizedPrincipalsFile
 accepts the tokens %%, %h, and %u.
