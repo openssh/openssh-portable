@@ -136,6 +136,7 @@ HANDLE pipe_in = INVALID_HANDLE_VALUE;
 HANDLE pipe_out = INVALID_HANDLE_VALUE;
 HANDLE pipe_err = INVALID_HANDLE_VALUE;
 HANDLE child = INVALID_HANDLE_VALUE;
+DWORD child_exit_code = 0;
 HANDLE hConsoleBuffer = INVALID_HANDLE_VALUE;
 
 HANDLE monitor_thread = INVALID_HANDLE_VALUE;
@@ -497,6 +498,7 @@ void SizeWindow(HANDLE hInput) {
 
 DWORD WINAPI MonitorChild(_In_ LPVOID lpParameter) {
     WaitForSingleObject(child, INFINITE);
+    GetExitCodeProcess(child, &child_exit_code);
     PostThreadMessage(hostThreadId, WM_APPEXIT, 0, 0);
     return 0;
 }
@@ -1088,8 +1090,7 @@ int start_with_pty(int ac, wchar_t **av) {
     Sleep(20);
     while (!AttachConsole(pi.dwProcessId))
     {
-        DWORD exit_code;
-        if (GetExitCodeProcess(pi.hProcess, &exit_code) && exit_code != STILL_ACTIVE)
+        if (GetExitCodeProcess(pi.hProcess, &child_exit_code) && child_exit_code != STILL_ACTIVE)
                 break;
         Sleep(100);
     }
@@ -1129,7 +1130,7 @@ cleanup:
 
     FreeConsole();
 
-    return 0;
+    return child_exit_code;
 }
 
 HANDLE child_pipe_read;
@@ -1138,6 +1139,7 @@ DWORD WINAPI MonitorChild_nopty(
         _In_ LPVOID lpParameter
         ) {
         WaitForSingleObject(child, INFINITE);
+	GetExitCodeProcess(child, &child_exit_code);
         CloseHandle(pipe_in);
         //printf("XXXX CHILD PROCESS DEAD XXXXX");
         return 0;
@@ -1282,7 +1284,7 @@ cleanup:
                 TerminateProcess(child, 0);
         if (monitor_thread != INVALID_HANDLE_VALUE)
                 WaitForSingleObject(monitor_thread, INFINITE);
-        return 0;        
+        return child_exit_code;        
 }
 
 int wmain(int ac, wchar_t **av) {
