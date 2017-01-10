@@ -455,20 +455,55 @@ w32_chown(const char *pathname, unsigned int owner, unsigned int group) {
 	return -1;
 }
 
+static void
+unix_time_to_file_time(ULONG t, LPFILETIME pft) {
+	
+	ULONGLONG ull;
+	ull = UInt32x32To64(t, 10000000) + 116444736000000000;
+
+	pft->dwLowDateTime = (DWORD)ull;
+	pft->dwHighDateTime = (DWORD)(ull >> 32);
+}
+
+static int
+settimes(wchar_t * path, FILETIME *cretime, FILETIME *acttime, FILETIME *modtime) {
+	HANDLE handle;
+	handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_WRITE,
+		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		errno = GetLastError;
+		debug("w32_settimes - CreateFileW ERROR:%d", errno);
+		return -1;
+	}
+
+	if (SetFileTime(handle, cretime, acttime, modtime) == 0)
+	{
+		errno = GetLastError;
+		debug("w32_settimes - SetFileTime ERROR:%d", errno);
+		CloseHandle(handle);
+		return -1;
+	}
+
+	CloseHandle(handle);
+	return 0;
+}
+
 int
 w32_utimes(const char *filename, struct timeval *tvp) {
-	struct utimbuf ub;
-	ub.actime = tvp[0].tv_sec;
-	ub.modtime = tvp[1].tv_sec;
 	int ret;
-
+	FILETIME acttime, modtime;
 	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(sanitized_path(filename));
 	if (resolvedPathName_utf16 == NULL) {
 		errno = ENOMEM;
 		return -1;
 	}
-	/* _utime only set time for filename; TODO - need a different logic to set times for directory*/
-	ret = _wutime(resolvedPathName_utf16, &ub);
+	memset(&acttime, 0, sizeof(FILETIME));
+	memset(&modtime, 0, sizeof(FILETIME));
+
+	unix_time_to_file_time((ULONG)tvp[0].tv_sec, &acttime);
+	unix_time_to_file_time((ULONG)tvp[1].tv_sec, &modtime);
+	ret = settimes(resolvedPathName_utf16, NULL, &acttime, &modtime);
 	free(resolvedPathName_utf16);
 	return ret;
 }
@@ -572,11 +607,16 @@ w32_mkdir(const char *path_utf8, unsigned short mode) {
 	}
 	int returnStatus = _wmkdir(path_utf16);
 	if (returnStatus < 0) {
+		free(path_utf16);
 		return -1;
 	}
-	returnStatus = _wchmod(path_utf16, mode);
+	
+	mode_t curmask = _umask(0);
+	_umask(curmask);
+	
+	returnStatus = _wchmod(path_utf16, mode & ~curmask & (_S_IREAD | _S_IWRITE));
 	free(path_utf16);
-	/*TODO: map mode*/
+	
 	return returnStatus;
 }
 
