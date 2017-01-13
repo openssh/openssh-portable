@@ -472,14 +472,15 @@ settimes(wchar_t * path, FILETIME *cretime, FILETIME *acttime, FILETIME *modtime
 		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 
 	if (handle == INVALID_HANDLE_VALUE) {
-		errno = GetLastError;
+		/* TODO - convert Win32 error to errno */
+		errno = GetLastError();
 		debug("w32_settimes - CreateFileW ERROR:%d", errno);
 		return -1;
 	}
 
 	if (SetFileTime(handle, cretime, acttime, modtime) == 0)
 	{
-		errno = GetLastError;
+		errno = GetLastError();
 		debug("w32_settimes - SetFileTime ERROR:%d", errno);
 		CloseHandle(handle);
 		return -1;
