@@ -210,10 +210,10 @@ Describe "Tests for scp command" -Tags "CI" {
             $client.CleanupPasswordSetting()
         }
         
-        It 'File copy with -p and -v options: <Title> ' -TestCases:$testData {
+        It 'File copy with -p options: <Title> ' -TestCases:$testData {
             param([string]$Title, $Source, $Destination)
 
-            .\scp -v -p $Source $Destination            
+            .\scp -p $Source $Destination            
             #validate file content. DestPath is the path to the file.
             $equal = @(Compare-Object (Get-ChildItem -path $SourceFilePath) (Get-ChildItem -path $DestinationFilePath) -Property Name, Length, LastWriteTime.DateTime).Length -eq 0
             $equal | Should Be $true
@@ -222,7 +222,7 @@ Describe "Tests for scp command" -Tags "CI" {
         It 'Directory recursive copy with -p and -v options: <Title> ' -TestCases:$testData1 {
             param([string]$Title, $Source, $Destination)               
 
-            .\scp -r -v $Source $Destination            
+            .\scp -r -p $Source $Destination            
             $equal = @(Compare-Object (Get-Item -path $SourceDir ) (Get-Item -path (join-path $DestinationDir $SourceDirName) ) -Property Name, Length, LastWriteTime.DateTime).Length -eq 0
             $equal | Should Be $true
                         

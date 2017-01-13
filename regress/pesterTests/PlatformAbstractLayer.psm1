@@ -224,7 +224,12 @@ Class Machine
     }
 
     [void] CleanupClient() {                
-        Remove-item -path $($this.ClientKeyDirectory) -force -Recurse -ea silentlycontinue        
+        Remove-item -path $($this.ClientKeyDirectory) -force -Recurse -ea silentlycontinue
+        $sshPath = split-path $this.knownHostOfCurrentUser -Parent
+        if(Test-Path $sshPath -PathType Container )
+        {
+            Remove-item -path $sshPath -force -Recurse
+        }
         $this.CleanupPasswordSetting()
     }
 
