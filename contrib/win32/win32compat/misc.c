@@ -832,3 +832,59 @@ int fstatvfs(int fd, struct statvfs *buf) {
 	errno = ENOTSUP;
 	return -1;
 }
+
+/* w32_strerror start */
+/* Windows CRT defines error string messages only till 43 in errno.h*/
+/* This is an extended list that defines messages for EADDRINUSE through EWOULDBLOCK*/
+char* _sys_errlist_ext[] = {
+	"Address already in use", // EADDRINUSE      100
+	"Address not available", // EADDRNOTAVAIL   101
+	"Address family not supported", // EAFNOSUPPORT    102
+	"Connection already in progress", // EALREADY        103
+	"Bad message", // EBADMSG         104
+	"Operation canceled", // ECANCELED       105
+	"Connection aborted", // ECONNABORTED    106
+	"Connection refused", // ECONNREFUSED    107
+	"Connection reset", // ECONNRESET      108
+	"Destination address required", // EDESTADDRREQ    109
+	"Host is unreachable", // EHOSTUNREACH    110
+	"Identifier removed", // EIDRM           111
+	"Operation in progress", // EINPROGRESS     112
+	"Socket is connected", // EISCONN         113
+	"Too many levels of symbolic links", // ELOOP           114
+	"Message too long", // EMSGSIZE        115
+	"Network is down", // ENETDOWN        116
+	"Connection aborted by network", // ENETRESET       117
+	"Network unreachable", // ENETUNREACH     118
+	"No buffer space available", // ENOBUFS         119
+	"No message is available on the STREAM head read queue", // ENODATA         120
+	"Link has been severed", // ENOLINK         121
+	"No message of the desired type", // ENOMSG          122
+	"Protocol not available", // ENOPROTOOPT     123
+	"No STREAM resources", // ENOSR           124
+	"Not a STREAM", // ENOSTR          125
+	"The socket is not connected", // ENOTCONN        126
+	"enotecoverable", // ENOTRECOVERABLE 127
+	"Not a socket", // ENOTSOCK        128
+	"Operation not supported", // ENOTSUP         129
+	"Operation not supported on socket", // EOPNOTSUPP      130
+	"eother", // EOTHER          131
+	"Value too large to be stored in data type", // EOVERFLOW       132
+	"eownerdead", // EOWNERDEAD      133
+	"Protocol error", // EPROTO          134
+	"Protocol not supported", // EPROTONOSUPPORT 135
+	"Protocol wrong type for socket", // EPROTOTYPE      136
+	"Timer expired", // ETIME           137
+	"Connection timed out", // ETIMEDOUT       138
+	"Text file busy", // ETXTBSY         139
+	"Operation would block" // EWOULDBLOCK     140
+};
+
+char *
+w32_strerror(int errnum) {
+	if (errnum >= EADDRINUSE  && errnum <= EWOULDBLOCK)
+		return _sys_errlist_ext[errnum - EADDRINUSE];
+	return strerror(errnum);
+}
+
+/* w32_strerror end */
