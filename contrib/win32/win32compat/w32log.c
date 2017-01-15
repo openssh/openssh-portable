@@ -33,6 +33,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "inc\syslog.h"
+#include "misc_internal.h"
 
 #define MSGBUFSIZ 1024
 static int logfd = -1;
@@ -41,11 +42,12 @@ void
 openlog(char *ident, unsigned int option, int facility) {
 	if (logfd != -1 || ident == NULL)
 		return;
+	
+	wchar_t path[PATH_MAX], log_file[PATH_MAX + 12];
+	if (GetModuleFileNameW(NULL, path, PATH_MAX) == 0)
 
-	wchar_t path[MAX_PATH], log_file[MAX_PATH + 12];
-	if (GetModuleFileNameW(NULL, path, MAX_PATH) == 0)
 		return;
-	path[MAX_PATH - 1] = '\0';
+	path[PATH_MAX - 1] = '\0';
 
 	/* split path root and module */
 	{

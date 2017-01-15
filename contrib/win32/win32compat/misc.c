@@ -38,6 +38,7 @@
 #include <Shlwapi.h>
 #include "misc_internal.h"
 #include "inc\dlfcn.h"
+#include "inc\dirent.h"
 
 int usleep(unsigned int useconds)
 {
@@ -134,7 +135,7 @@ FARPROC dlsym(HMODULE handle, const char *symbol) {
 */
 FILE*
 w32_fopen_utf8(const char *path, const char *mode) {
-	wchar_t wpath[MAX_PATH], wmode[5];
+	wchar_t wpath[PATH_MAX], wmode[5];
 	FILE* f;
 	char utf8_bom[] = { 0xEF,0xBB,0xBF };
 	char first3_bytes[3];
@@ -144,7 +145,7 @@ w32_fopen_utf8(const char *path, const char *mode) {
 		return NULL;
 	}
 
-	if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_PATH) == 0 ||
+	if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, PATH_MAX) == 0 ||
 		MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 5) == 0) {
 		errno = EFAULT;
 		debug("WideCharToMultiByte failed for %c - ERROR:%d", path, GetLastError());
@@ -478,8 +479,7 @@ settimes(wchar_t * path, FILETIME *cretime, FILETIME *acttime, FILETIME *modtime
 		return -1;
 	}
 
-	if (SetFileTime(handle, cretime, acttime, modtime) == 0)
-	{
+	if (SetFileTime(handle, cretime, acttime, modtime) == 0) {
 		errno = GetLastError();
 		debug("w32_settimes - SetFileTime ERROR:%d", errno);
 		CloseHandle(handle);
@@ -531,6 +531,28 @@ w32_rename(const char *old_name, const char *new_name) {
 	if (NULL == resolvedOldPathName_utf16 || NULL == resolvedNewPathName_utf16) {
 		errno = ENOMEM;
 		return -1;
+	}
+
+	/*
+	 * To be consistent with linux rename(),
+	 * 1) if the new_name is file, then delete it so that _wrename will succeed.
+	 * 2) if the new_name is directory and it is empty then delete it so that _wrename will succeed.
+	 */
+	struct _stat64 st;
+	if (fileio_stat(sanitized_path(new_name), &st) != -1) {
+		if(((st.st_mode & _S_IFMT) == _S_IFREG)) {
+			w32_unlink(new_name);
+		} else {
+			DIR *dirp = opendir(new_name);
+			if (NULL != dirp) {
+				struct dirent *dp = readdir(dirp);
+				closedir(dirp);
+
+				if (dp == NULL) {
+					w32_rmdir(new_name);
+				}
+			}
+		}
 	}
 
 	int returnStatus = _wrename(resolvedOldPathName_utf16, resolvedNewPathName_utf16);
@@ -585,10 +607,10 @@ w32_chdir(const char *dirname_utf8) {
 
 char *
 w32_getcwd(char *buffer, int maxlen) {
-	wchar_t wdirname[MAX_PATH];
+	wchar_t wdirname[PATH_MAX];
 	char* putf8 = NULL;
 
-	_wgetcwd(&wdirname[0], MAX_PATH);
+	_wgetcwd(&wdirname[0], PATH_MAX);
 
 	if ((putf8 = utf16_to_utf8(&wdirname[0])) == NULL)
 		fatal("failed to convert input arguments");
@@ -655,19 +677,25 @@ convertToForwardslash(char *str) {
 }
 
 /*
-* This method will resolves references to /./, /../ and extra '/' characters in the null-terminated string named by
-*  path to produce a canonicalized absolute pathname.
-*/
+ * This method will resolves references to /./, /../ and extra '/' characters in the null-terminated string named by
+ *  path to produce a canonicalized absolute pathname.
+ */
 char *
-realpath(const char *path, char resolved[MAX_PATH]) {
-	char tempPath[MAX_PATH];
+realpath(const char *path, char resolved[PATH_MAX]) {
+	char tempPath[PATH_MAX];
 		
-	if ( (strlen(path) >= 2) && (path[0] == '/') && (path[2] == ':') )
+	if ((path[0] == '/') && path[1] && (path[2] == ':')) {
 		strncpy(resolved, path + 1, strlen(path)); // skip the first '/'
-	else
+	} else {
 		strncpy(resolved, path, strlen(path) + 1);
+	}	
 
-	if (_fullpath(tempPath, resolved, MAX_PATH) == NULL)
+	if ((resolved[0]) && (resolved[1] == ':') && (resolved[2] == '\0')) { // make "x:" as "x:\\"
+		resolved[2] = '\\';
+		resolved[3] = '\0';
+	}
+
+	if (_fullpath(tempPath, resolved, PATH_MAX) == NULL)
 		return NULL;
 	
 	convertToForwardslash(tempPath);
@@ -675,6 +703,27 @@ realpath(const char *path, char resolved[MAX_PATH]) {
 	resolved[0] = '/'; // will be our first slash in /x:/users/test1 format
 	strncpy(resolved + 1, tempPath, sizeof(tempPath) - 1);
 	return resolved;
+}
+
+char*
+sanitized_path(const char *path) {
+	static char newPath[PATH_MAX] = { '\0', };
+
+	if (path[0] == '/' && path[1]) {
+		if (path[2] == ':') {
+			if (path[3] == '\0') { // make "/x:" as "x:\\"
+				strncpy(newPath, path + 1, strlen(path) - 1);
+				newPath[2] = '\\';
+				newPath[3] = '\0';
+
+				return newPath;
+			} else {
+				return (char *)(path + 1); // skip the first "/"
+			}
+		}	
+	} 
+
+	return (char *)path;			
 }
 
 // Maximum reparse buffer info size. The max user defined reparse 
@@ -813,7 +862,7 @@ int statvfs(const char *path, struct statvfs *buf) {
 		buf->f_favail = -1;
 		buf->f_fsid = 0;
 		buf->f_flag = 0;
-		buf->f_namemax = MAX_PATH - 1;
+		buf->f_namemax = PATH_MAX - 1;
 
 		free(path_utf16);
 		return 0;

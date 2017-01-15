@@ -35,6 +35,7 @@
 #include <Strsafe.h>
 #include <stdio.h>
 #include <io.h>
+#include "misc_internal.h"
 
 #define MAX_CONSOLE_COLUMNS 9999
 #define MAX_CONSOLE_ROWS 9999
@@ -1068,15 +1069,15 @@ int start_with_pty(int ac, wchar_t **av) {
     /*TODO - pick this up from system32*/
     cmd[0] = L'\0';
     if (ac)
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L"cmd.exe"));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L"cmd.exe"));
 
     ac--;
     av++;
     if (ac)
-        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L" /c"));
+        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L" /c"));
     while (ac) {
-        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L" "));
-        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, *av));
+        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L" "));
+        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, *av));
         ac--;
         av++;
     }
@@ -1182,14 +1183,14 @@ int start_withno_pty(int ac, wchar_t **av) {
 
         /*TODO - pick this up from system32*/
         cmd[0] = L'\0';
-        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L"cmd.exe"));
+        GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L"cmd.exe"));
         ac -= 2;
         av += 2;
         if (ac)
-                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L" /c"));
+                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L" /c"));
         while (ac) {
-                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, L" "));
-                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_PATH, *av));
+                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, L" "));
+                GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, PATH_MAX, *av));
                 ac--;
                 av++;
         }
