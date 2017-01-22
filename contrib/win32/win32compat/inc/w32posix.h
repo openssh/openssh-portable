@@ -151,16 +151,5 @@ struct iovec
 void
 explicit_bzero(void *b, size_t len);
 
-/* string.h overrides */
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-char *w32_strerror(int);
-#define strerror w32_strerror
-
-/* stdio.h overrides */
-#define fopen w32_fopen_utf8
-#define popen _popen
-#define pclose _pclose
-
 void convertToBackslash(char *str);
 void convertToForwardslash(char *str);
