@@ -613,12 +613,10 @@ socket_typical_ssh_payload_tests() {
 void 
 socket_tests()
 {
-	w32posix_initialize();
 	socket_fd_tests();
 	socket_blocking_io_tests();
 	socket_nonblocking_io_tests();
 	socket_select_tests();
 	socket_typical_ssh_payload_tests();
-	w32posix_done();
 }
 

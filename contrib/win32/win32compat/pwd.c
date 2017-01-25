@@ -45,8 +45,6 @@ static struct passwd pw;
 static char* pw_shellpath = NULL;
 #define SHELL_HOST "\\ssh-shellhost.exe"
 
-char* w32_programdir();
-
 int
 initialize_pw() {
         if (pw_shellpath == NULL) {

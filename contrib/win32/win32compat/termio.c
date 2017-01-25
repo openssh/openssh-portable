@@ -1,7 +1,6 @@
 #include <Windows.h>
 #include "w32fd.h"
 #include "tncon.h"
-#include "inc\defs.h"
 #include "inc\utf.h"
 
 #define TERM_IO_BUF_SIZE 2048
