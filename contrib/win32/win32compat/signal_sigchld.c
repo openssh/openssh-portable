@@ -208,6 +208,9 @@ int waitpid(int pid, int *status, int options) {
 	if (children.num_zombies) {
 		/* return one of them */
 		ret_id = children.process_id[children.num_children - 1];
+		GetExitCodeProcess(children.handles[children.num_children - 1], &exit_code);
+		if (status)
+			*status = exit_code;
 		sw_remove_child_at_index(children.num_children - 1);
 		return ret_id;
 	}
