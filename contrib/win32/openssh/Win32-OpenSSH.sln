@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssh", "ssh.vcxproj", "{74E69D5E-A1EF-46EA-9173-19A412774104}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -136,6 +136,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{17322AAF-808F-4646-AD37-5B0EDDCB8F3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A8096E32-E084-4FA0-AE01-A8D909EB2BB4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unittest-match", "unittest-match.vcxproj", "{484A8CDE-B949-4BDA-B447-74685C8E032F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -313,6 +315,14 @@ Global
 		{FC568FF0-60F2-4B2E-AF62-FD392EDBA1B9}.Release|x64.Build.0 = Release|x64
 		{FC568FF0-60F2-4B2E-AF62-FD392EDBA1B9}.Release|x86.ActiveCfg = Release|Win32
 		{FC568FF0-60F2-4B2E-AF62-FD392EDBA1B9}.Release|x86.Build.0 = Release|Win32
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Debug|x64.ActiveCfg = Debug|x64
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Debug|x64.Build.0 = Debug|x64
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Debug|x86.ActiveCfg = Debug|Win32
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Debug|x86.Build.0 = Debug|Win32
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Release|x64.ActiveCfg = Release|x64
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Release|x64.Build.0 = Release|x64
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Release|x86.ActiveCfg = Release|Win32
+		{484A8CDE-B949-4BDA-B447-74685C8E032F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -339,5 +349,6 @@ Global
 		{114CAA59-46C0-4B87-BA86-C1946A68101D} = {A8096E32-E084-4FA0-AE01-A8D909EB2BB4}
 		{890C6129-286F-4CD8-8252-FB8D3B4E6E1B} = {A8096E32-E084-4FA0-AE01-A8D909EB2BB4}
 		{FC568FF0-60F2-4B2E-AF62-FD392EDBA1B9} = {A8096E32-E084-4FA0-AE01-A8D909EB2BB4}
+		{484A8CDE-B949-4BDA-B447-74685C8E032F} = {A8096E32-E084-4FA0-AE01-A8D909EB2BB4}
 	EndGlobalSection
 EndGlobal

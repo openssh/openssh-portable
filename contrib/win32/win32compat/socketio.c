@@ -57,6 +57,8 @@ int errno_from_WSAError(int wsaerrno)
 		return EINVAL;
 	case WSAECONNABORTED:
 		return ECONNABORTED;
+	case WSAETIMEDOUT:
+		return ETIMEDOUT;
 	case WSAECONNREFUSED:
 		return ECONNREFUSED;
 	case WSAEINPROGRESS:
