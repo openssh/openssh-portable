@@ -2208,17 +2208,22 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		free(dir);
 	}
 
+	interactive = !batchmode && isatty(STDIN_FILENO);
+	err = 0;
+
 #ifdef WINDOWS
 	/* Min buffer size allowed in Windows is 2*/
 	setvbuf(stdout, NULL, _IOLBF, 2);
-	setvbuf(infile, NULL, _IOLBF, 2);
+	
+	/* We do this only in interactive mode as we are unable to read files with UTF8 BOM */
+	if(interactive)
+		setvbuf(infile, NULL, _IOLBF, 2);
 #else   /* !WINDOWS */
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
 #endif   /* !WINDOWS */
 
-	interactive = !batchmode && isatty(STDIN_FILENO);
-	err = 0;
+
 	for (;;) {
 		char *cp;
 
