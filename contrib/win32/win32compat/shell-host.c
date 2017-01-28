@@ -95,7 +95,7 @@ struct key_translation keys[] = {
     { "\x1b",       VK_ESCAPE,  "\x1b" },
     { "\r",         VK_RETURN,  "\r" },
     { "\b",         VK_BACK,    "\b" },
-    { "\x7f",       VK_BACK,    "\x7f" },
+    { "\x7f",       VK_BACK,    "\b" },
     { "\t",         VK_TAB,     "\t" },
     { "\x1b[A",     VK_UP,       0 },
     { "\x1b[B",     VK_DOWN,     0 },

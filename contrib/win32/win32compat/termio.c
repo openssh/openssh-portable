@@ -30,27 +30,6 @@ static VOID CALLBACK ReadAPCProc(
 	pio->read_overlapped.hEvent = 0;
 }
 
-static DWORD WINAPI ReadThread(
-	_In_ LPVOID lpParameter
-	) {
-	struct w32_io* pio = (struct w32_io*)lpParameter;
-	debug3("TermRead thread, io:%p", pio);
-	memset(&read_status, 0, sizeof(read_status));
-	if (!ReadFile(WINHANDLE(pio), pio->read_details.buf, 
-		pio->read_details.buf_size, &read_status.transferred, NULL)) {
-		read_status.error = GetLastError();
-		debug("TermRead thread - ReadFile failed %d, io:%p", GetLastError(), pio);
-	}
-
-	if (0 == QueueUserAPC(ReadAPCProc, main_thread, (ULONG_PTR)pio)) {
-		debug("TermRead thread - ERROR QueueUserAPC failed %d, io:%p", GetLastError(), pio);
-		pio->read_details.pending = FALSE;
-		pio->read_details.error = GetLastError();
-		DebugBreak();
-	}
-	return 0;
-}
-
 static DWORD WINAPI ReadConsoleThread(
     _In_ LPVOID lpParameter
 ) {
