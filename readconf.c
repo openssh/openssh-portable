@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.264 2017/01/06 09:27:52 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.265 2017/01/30 00:34:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2451,10 +2451,10 @@ dump_cfg_forwards(OpCodes code, u_int count, const struct Forward *fwds)
 	/* oDynamicForward */
 	for (i = 0; i < count; i++) {
 		fwd = &fwds[i];
-		if (code == oDynamicForward &&
+		if (code == oDynamicForward && fwd->connect_host != NULL &&
 		    strcmp(fwd->connect_host, "socks") != 0)
 			continue;
-		if (code == oLocalForward &&
+		if (code == oLocalForward && fwd->connect_host != NULL &&
 		    strcmp(fwd->connect_host, "socks") == 0)
 			continue;
 		printf("%s", lookup_opcode_name(code));
