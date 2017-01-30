@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.17 2017/01/06 02:09:25 dtucker Exp $
+#	$OpenBSD: forwarding.sh,v 1.18 2017/01/30 04:54:07 djm Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -82,7 +82,7 @@ for p in ${SSH_PROTOCOLS}; do
 		fail "connection failed with cleared local forwarding"
 	else
 		# this one should fail
-		${SSH} -$p -F $OBJ/ssh_config -p ${base}01 true \
+		${SSH} -$p -F $OBJ/ssh_config -p ${base}01 somehost true \
 		     >>$TEST_REGRESS_LOGFILE 2>&1 && \
 			fail "local forwarding not cleared"
 	fi
@@ -96,7 +96,7 @@ for p in ${SSH_PROTOCOLS}; do
 		fail "connection failed with cleared remote forwarding"
 	else
 		# this one should fail
-		${SSH} -$p -F $OBJ/ssh_config -p ${base}01 true \
+		${SSH} -$p -F $OBJ/ssh_config -p ${base}01 somehost true \
 		     >>$TEST_REGRESS_LOGFILE 2>&1 && \
 			fail "remote forwarding not cleared"
 	fi
