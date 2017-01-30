@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.252 2017/01/30 00:32:03 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.253 2017/01/30 00:32:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1632,7 +1632,7 @@ ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 	/* send # of sock, data to be signed */
-	if ((r = sshbuf_put_u32(b, sock) != 0) ||
+	if ((r = sshbuf_put_u32(b, sock)) != 0 ||
 	    (r = sshbuf_put_string(b, data, datalen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (ssh_msg_send(to[1], version, b) == -1)
