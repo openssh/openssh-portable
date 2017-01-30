@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.251 2016/12/04 23:54:02 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.252 2017/01/30 00:32:03 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -934,14 +934,14 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	char *info, *lang, *password = NULL, *retype = NULL;
 	char prompt[150];
-	const char *host = options.host_key_alias ? options.host_key_alias :
-	    authctxt->host;
+	const char *host;
 
 	debug2("input_userauth_passwd_changereq");
 
 	if (authctxt == NULL)
 		fatal("input_userauth_passwd_changereq: "
 		    "no authentication context");
+	host = options.host_key_alias ? options.host_key_alias : authctxt->host;
 
 	info = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
