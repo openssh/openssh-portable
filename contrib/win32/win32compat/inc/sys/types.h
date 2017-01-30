@@ -1,8 +1,9 @@
+#define __STDC__ 1
 #include "..\crtheaders.h"
 #include SYS_TYPES_H
 
 typedef _dev_t dev_t;
-typedef _off_t off_t;
+typedef long long off_t;
 typedef unsigned int uid_t;
 typedef unsigned int gid_t;
 

@@ -30,7 +30,7 @@
 
 #include <Windows.h>
 #include <stdio.h>
-#include "sys\stat.h"
+#include "inc\sys\stat.h"
 #include "inc\sys\statvfs.h"
 #include "inc\sys\time.h"
 #include <time.h>
