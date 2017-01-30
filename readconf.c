@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.265 2017/01/30 00:34:01 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.266 2017/01/30 00:38:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -93,7 +93,7 @@
 
    Host books.com
      RemoteForward 9999 shadows.cs.hut.fi:9999
-     Cipher 3des
+     Ciphers 3des-cbc
 
    Host fascist.blob.com
      Port 23123
@@ -108,7 +108,7 @@
      PublicKeyAuthentication no
 
    Host *.su
-     Cipher none
+     Ciphers aes128-ctr
      PasswordAuthentication no
 
    Host vpn.fake.com
@@ -180,6 +180,44 @@ static struct {
 	const char *name;
 	OpCodes opcode;
 } keywords[] = {
+	/* Deprecated options */
+	{ "fallbacktorsh", oDeprecated },
+	{ "globalknownhostsfile2", oDeprecated },
+	{ "rhostsauthentication", oDeprecated },
+	{ "userknownhostsfile2", oDeprecated },
+	{ "useroaming", oDeprecated },
+	{ "usersh", oDeprecated },
+
+	/* Unsupported options */
+	{ "afstokenpassing", oUnsupported },
+	{ "kerberosauthentication", oUnsupported },
+	{ "kerberostgtpassing", oUnsupported },
+
+	/* Sometimes-unsupported options */
+#if defined(GSSAPI)
+	{ "gssapiauthentication", oGssAuthentication },
+	{ "gssapidelegatecredentials", oGssDelegateCreds },
+# else
+	{ "gssapiauthentication", oUnsupported },
+	{ "gssapidelegatecredentials", oUnsupported },
+#endif
+#ifdef ENABLE_PKCS11
+	{ "smartcarddevice", oPKCS11Provider },
+	{ "pkcs11provider", oPKCS11Provider },
+# else
+	{ "smartcarddevice", oUnsupported },
+	{ "pkcs11provider", oUnsupported },
+#endif
+#ifdef WITH_SSH1
+	{ "rsaauthentication", oRSAAuthentication },
+	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
+	{ "compressionlevel", oCompressionLevel },
+# else
+	{ "rsaauthentication", oUnsupported },
+	{ "rhostsrsaauthentication", oUnsupported },
+	{ "compressionlevel", oUnsupported },
+#endif
+
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
 	{ "forwardx11trusted", oForwardX11Trusted },
@@ -188,30 +226,15 @@ static struct {
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
 	{ "useprivilegedport", oUsePrivilegedPort },
-	{ "rhostsauthentication", oDeprecated },
 	{ "passwordauthentication", oPasswordAuthentication },
 	{ "kbdinteractiveauthentication", oKbdInteractiveAuthentication },
 	{ "kbdinteractivedevices", oKbdInteractiveDevices },
-	{ "rsaauthentication", oRSAAuthentication },
 	{ "pubkeyauthentication", oPubkeyAuthentication },
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
-	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
 	{ "hostbasedauthentication", oHostbasedAuthentication },
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
-	{ "kerberosauthentication", oUnsupported },
-	{ "kerberostgtpassing", oUnsupported },
-	{ "afstokenpassing", oUnsupported },
-#if defined(GSSAPI)
-	{ "gssapiauthentication", oGssAuthentication },
-	{ "gssapidelegatecredentials", oGssDelegateCreds },
-#else
-	{ "gssapiauthentication", oUnsupported },
-	{ "gssapidelegatecredentials", oUnsupported },
-#endif
-	{ "fallbacktorsh", oDeprecated },
-	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
 	{ "identityfile2", oIdentityFile },			/* obsolete */
 	{ "identitiesonly", oIdentitiesOnly },
@@ -233,15 +256,12 @@ static struct {
 	{ "match", oMatch },
 	{ "escapechar", oEscapeChar },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
-	{ "globalknownhostsfile2", oDeprecated },
 	{ "userknownhostsfile", oUserKnownHostsFile },
-	{ "userknownhostsfile2", oDeprecated },
 	{ "connectionattempts", oConnectionAttempts },
 	{ "batchmode", oBatchMode },
 	{ "checkhostip", oCheckHostIP },
 	{ "stricthostkeychecking", oStrictHostKeyChecking },
 	{ "compression", oCompression },
-	{ "compressionlevel", oCompressionLevel },
 	{ "tcpkeepalive", oTCPKeepAlive },
 	{ "keepalive", oTCPKeepAlive },				/* obsolete */
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
@@ -250,13 +270,6 @@ static struct {
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
-#ifdef ENABLE_PKCS11
-	{ "smartcarddevice", oPKCS11Provider },
-	{ "pkcs11provider", oPKCS11Provider },
-#else
-	{ "smartcarddevice", oUnsupported },
-	{ "pkcs11provider", oUnsupported },
-#endif
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "verifyhostkeydns", oVerifyHostKeyDNS },
@@ -277,7 +290,6 @@ static struct {
 	{ "localcommand", oLocalCommand },
 	{ "permitlocalcommand", oPermitLocalCommand },
 	{ "visualhostkey", oVisualHostKey },
-	{ "useroaming", oDeprecated },
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
@@ -2527,8 +2539,10 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oProxyUseFdpass, o->proxy_use_fdpass);
 	dump_cfg_fmtint(oPubkeyAuthentication, o->pubkey_authentication);
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);
+#ifdef WITH_RSA1
 	dump_cfg_fmtint(oRhostsRSAAuthentication, o->rhosts_rsa_authentication);
 	dump_cfg_fmtint(oRSAAuthentication, o->rsa_authentication);
+#endif
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
@@ -2540,7 +2554,9 @@ dump_client_config(Options *o, const char *host)
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);
+#ifdef WITH_SSH1
 	dump_cfg_int(oCompressionLevel, o->compression_level);
+#endif
 	dump_cfg_int(oConnectionAttempts, o->connection_attempts);
 	dump_cfg_int(oForwardX11Timeout, o->forward_x11_timeout);
 	dump_cfg_int(oNumberOfPasswordPrompts, o->number_of_password_prompts);
@@ -2560,7 +2576,9 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oLocalCommand, o->local_command);
 	dump_cfg_string(oLogLevel, log_level_name(o->log_level));
 	dump_cfg_string(oMacs, o->macs ? o->macs : KEX_CLIENT_MAC);
+#ifdef ENABLE_PKCS11
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
+#endif
 	dump_cfg_string(oPreferredAuthentications, o->preferred_authentications);
 	dump_cfg_string(oPubkeyAcceptedKeyTypes, o->pubkey_key_types);
 	dump_cfg_string(oRevokedHostKeys, o->revoked_host_keys);
