@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.18 2017/01/30 04:54:07 djm Exp $
+#	$OpenBSD: forwarding.sh,v 1.19 2017/01/30 05:22:14 djm Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -37,7 +37,7 @@ for p in ${SSH_PROTOCOLS}; do
 	test -s ${COPY}		|| fail "failed copy of ${DATA}"
 	cmp ${DATA} ${COPY}	|| fail "corrupted copy of ${DATA}"
 
-	${SSH} -S $CTL -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost
 done
 
 for p in ${SSH_PROTOCOLS}; do
@@ -52,7 +52,7 @@ for d in L R; do
 	    -$d ${base}04:127.0.0.1:$PORT \
 	    -oExitOnForwardFailure=yes somehost true
 	if [ $? != 0 ]; then
-		fail "connection failed, should not"
+		fatal "connection failed, should not"
 	else
 		# this one should fail
 		${SSH} -q -$p -F $OBJ/ssh_config \
@@ -86,7 +86,7 @@ for p in ${SSH_PROTOCOLS}; do
 		     >>$TEST_REGRESS_LOGFILE 2>&1 && \
 			fail "local forwarding not cleared"
 	fi
-	${SSH} -S $CTL -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost
 	
 	trace "clear remote forward proto $p"
 	rm -f $CTL
@@ -100,7 +100,7 @@ for p in ${SSH_PROTOCOLS}; do
 		     >>$TEST_REGRESS_LOGFILE 2>&1 && \
 			fail "remote forwarding not cleared"
 	fi
-	${SSH} -S $CTL -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost
 done
 
 for p in 2; do
@@ -126,7 +126,7 @@ for p in ${SSH_PROTOCOLS}; do
 	test -s ${COPY}		|| fail "failed copy of ${DATA}"
 	cmp ${DATA} ${COPY}	|| fail "corrupted copy of ${DATA}"
 
-	${SSH} -S $CTL -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost
 done
 
 for p in 2; do
@@ -142,8 +142,8 @@ for p in 2; do
 	test -s ${COPY}			|| fail "failed copy ${DATA}"
 	cmp ${DATA} ${COPY}		|| fail "corrupted copy of ${DATA}"
 
-	${SSH} -S $CTL -O exit somehost
-	${SSH} -S $CTL.1 -O exit somehost
-	${SSH} -S $CTL.2 -O exit somehost
-	${SSH} -S $CTL.3 -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL.1 -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL.2 -O exit somehost
+	${SSH} -F $OBJ/ssh_config -S $CTL.3 -O exit somehost
 done
