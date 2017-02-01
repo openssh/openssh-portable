@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.190 2017/01/04 05:37:40 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.191 2017/02/01 02:59:09 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -430,7 +430,7 @@ server_input_keep_alive(int type, u_int32_t seq, void *ctxt)
 }
 
 static Channel *
-server_request_direct_tcpip(void)
+server_request_direct_tcpip(int *reason, const char **errmsg)
 {
 	Channel *c = NULL;
 	char *target, *originator;
@@ -449,11 +449,13 @@ server_request_direct_tcpip(void)
 	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) != 0 &&
 	    !no_port_forwarding_flag && !options.disable_forwarding) {
 		c = channel_connect_to_port(target, target_port,
-		    "direct-tcpip", "direct-tcpip");
+		    "direct-tcpip", "direct-tcpip", reason, errmsg);
 	} else {
 		logit("refused local port forward: "
 		    "originator %s port %d, target %s port %d",
 		    originator, originator_port, target, target_port);
+		if (reason != NULL)
+			*reason = SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED;
 	}
 
 	free(originator);
@@ -581,7 +583,8 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
-	int rchan;
+	const char *errmsg = NULL;
+	int rchan, reason = SSH2_OPEN_CONNECT_FAILED;
 	u_int rmaxpack, rwindow, len;
 
 	ctype = packet_get_string(&len);
@@ -595,7 +598,7 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 	if (strcmp(ctype, "session") == 0) {
 		c = server_request_session();
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
-		c = server_request_direct_tcpip();
+		c = server_request_direct_tcpip(&reason, &errmsg);
 	} else if (strcmp(ctype, "direct-streamlocal@openssh.com") == 0) {
 		c = server_request_direct_streamlocal();
 	} else if (strcmp(ctype, "tun@openssh.com") == 0) {
@@ -618,9 +621,9 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 		debug("server_input_channel_open: failure %s", ctype);
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
-		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
+		packet_put_int(reason);
 		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring("open failed");
+			packet_put_cstring(errmsg ? errmsg : "open failed");
 			packet_put_cstring("");
 		}
 		packet_send();
