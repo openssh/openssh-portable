@@ -812,19 +812,22 @@ int w32_allocate_fd_for_handle(HANDLE h, BOOL is_sock) {
 
 int 
 w32_ftruncate(int fd, off_t length) {
-    CHECK_FD(fd);
+	LARGE_INTEGER new_postion;
 
-    if (!SetFilePointer(w32_fd_to_handle(fd), length, 0, FILE_BEGIN))
-        return -1;
-    if (!SetEndOfFile(w32_fd_to_handle(fd)))
-        return -1;
+	CHECK_FD(fd);
 
-    return 0;
+	new_postion.QuadPart = length;
+	if (!SetFilePointerEx(w32_fd_to_handle(fd), new_postion, 0, FILE_BEGIN))
+		return -1;
+	if (!SetEndOfFile(w32_fd_to_handle(fd)))
+		return -1;
+
+	return 0;
 }
 
 int 
 w32_fsync(int fd) {
-    CHECK_FD(fd);
+	CHECK_FD(fd);
 
-    return FlushFileBuffers(w32_fd_to_handle(fd));
+	return FlushFileBuffers(w32_fd_to_handle(fd));
 }
