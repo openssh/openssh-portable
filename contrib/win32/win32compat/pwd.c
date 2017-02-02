@@ -83,7 +83,7 @@ static struct passwd*
 get_passwd(const char *user_utf8, LPWSTR user_sid) {
         struct passwd *ret = NULL;
         wchar_t *user_utf16 = NULL, *uname_utf16, *udom_utf16, *tmp;
-        char *uname_utf8 = NULL, *pw_home_utf8 = NULL;
+        char *uname_utf8 = NULL, *pw_home_utf8 = NULL, *user_sid_utf8;
         LPBYTE user_info = NULL;
         LPWSTR user_sid_local = NULL;
         wchar_t reg_path[PATH_MAX], profile_home[PATH_MAX];
@@ -156,7 +156,8 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
                 GetWindowsDirectoryW(profile_home, PATH_MAX);
 
         if ((uname_utf8 = _strdup(user_utf8)) == NULL ||
-                (pw_home_utf8 = utf16_to_utf8(profile_home)) == NULL) {
+            (pw_home_utf8 = utf16_to_utf8(profile_home)) == NULL ||
+	    (user_sid_utf8 = utf16_to_utf8(user_sid)) == NULL)  {
                 errno = ENOMEM;
                 goto done;
         }
@@ -165,7 +166,10 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
         uname_utf8 = NULL;
         pw.pw_dir = pw_home_utf8;
         pw_home_utf8 = NULL;
+	pw.pw_sid =  user_sid_utf8;
+	user_sid_utf8 = NULL;
         ret = &pw;
+
 done:
         if (user_utf16)
                 free(user_utf16);
@@ -181,6 +185,8 @@ done:
                 RegCloseKey(reg_key);
         if (pdc)
             NetApiBufferFree(pdc);
+	if (user_sid_utf8)
+		free(user_sid_utf8);
         return ret;
 }
 

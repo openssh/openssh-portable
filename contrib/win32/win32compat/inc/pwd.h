@@ -20,6 +20,7 @@ struct passwd {
 	gid_t	pw_gid;		/* numerical group ID */
 	char	*pw_dir;	/* initial working directory */
 	char	*pw_shell;	/* path to shell */
+	char	*pw_sid;	/* sid of user */
 };
 
 /*start - declarations not applicable in Windows */
