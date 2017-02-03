@@ -230,6 +230,7 @@ pwcopy(struct passwd *pw)
 		copy->pw_domain = xstrdup(pw->pw_domain);
 	else
 		copy->pw_domain = NULL;
+	copy->pw_sid = xstrdup(pw->pw_sid);
 #endif // WINDOWS
 
 	return copy;

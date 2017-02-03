@@ -921,6 +921,9 @@ DWORD WINAPI ProcessPipes(LPVOID p) {
     }
 
 cleanup:
+    /* pipe_in has ended */
+    PostThreadMessage(hostThreadId, WM_APPEXIT, 0, 0);
+
     dwStatus = GetLastError();
 
     return 0;

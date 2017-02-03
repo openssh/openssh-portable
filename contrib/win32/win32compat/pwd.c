@@ -77,6 +77,14 @@ reset_pw() {
 		free(pw.pw_name);
 	if (pw.pw_dir)
 		free(pw.pw_dir);
+	if (pw.pw_domain)
+		free(pw.pw_domain);
+	if (pw.pw_sid)
+		free(pw.pw_sid);
+	pw.pw_name = NULL;
+	pw.pw_dir = NULL;
+	pw.pw_domain = NULL;
+	pw.pw_sid = NULL;
 }
 
 static struct passwd*
@@ -90,11 +98,10 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
 	HKEY reg_key = 0;
 	int tmp_len = PATH_MAX;
 	PDOMAIN_CONTROLLER_INFOW pdc = NULL;
+	DWORD dsStatus;
 
 	errno = 0;
-
 	reset_pw();
-
 	if ((user_utf16 = utf8_to_utf16(user_utf8) ) == NULL) {
 		errno = ENOMEM;
 		goto done;
@@ -118,43 +125,27 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
 	if (user_sid == NULL) {
 		NET_API_STATUS status;
 		if ((status = NetUserGetInfo(udom_utf16, uname_utf16, 23, &user_info)) != NERR_Success) {
-			debug("NetUserGetInfo() failed with error: %d \n", status);
-
-			/* We reach here only for domain users.
-			 * If we didn't get the domain name from the end-user then we treat it as error and return.
-			 */
-			if (udom_utf16 == NULL) {
-				errno = ENOENT;
-				goto done;
-			}
-
-			DWORD dsStatus;
-			if ((dsStatus = DsGetDcNameW(NULL, udom_utf16, NULL, NULL, DS_DIRECTORY_SERVICE_PREFERRED, &pdc)) == ERROR_SUCCESS) {
-				if ((status = NetUserGetInfo(pdc->DomainControllerName, uname_utf16, 23, &user_info)) != NERR_Success) {
-					debug("NetUserGetInfo() with domainController failed with error: %d \n", status);
-
-					if (ConvertSidToStringSidW(((LPUSER_INFO_23)user_info)->usri23_user_sid, &user_sid_local) == FALSE) {
-						error("ConvertSidToStringSidW() failed with error: %d\n", GetLastError());
-
-						errno = ENOENT;
-						goto done;
-					}
-				}
-			}
-			else {
+			debug("NetUserGetInfo() failed with error: %d for user: %ls and domain: %ls \n", status, uname_utf16, udom_utf16);
+			
+			if ((dsStatus = DsGetDcNameW(NULL, udom_utf16, NULL, NULL, DS_DIRECTORY_SERVICE_PREFERRED, &pdc)) != ERROR_SUCCESS) {
 				error("DsGetDcNameW() failed with error: %d \n", dsStatus);
 				errno = ENOENT;
 				goto done;
 			}
-		}
-		else {
-			if (ConvertSidToStringSidW(((LPUSER_INFO_23)user_info)->usri23_user_sid, &user_sid_local) == FALSE) {
-				debug("NetUserGetInfo() Succeded but ConvertSidToStringSidW() failed with error: %d\n", GetLastError());
+
+			if ((status = NetUserGetInfo(pdc->DomainControllerName, uname_utf16, 23, &user_info)) != NERR_Success) {
+				debug("NetUserGetInfo() with domainController: %ls failed with error: %d \n", pdc->DomainControllerName, status);
 				errno = ENOENT;
 				goto done;
-			}
+			}			
 		}
-
+		
+		if (ConvertSidToStringSidW(((LPUSER_INFO_23)user_info)->usri23_user_sid, &user_sid_local) == FALSE) {
+			debug("NetUserGetInfo() Succeded but ConvertSidToStringSidW() failed with error: %d\n", GetLastError());
+			errno = ENOENT;
+			goto done;
+		}
+		
 		user_sid = user_sid_local;
 	}
 
