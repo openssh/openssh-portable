@@ -740,6 +740,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	use_pie=auto
 	check_for_libcrypt_later=1
 	check_for_openpty_ctty_bug=1
+	dnl Target SUSv3/POSIX.1-2001 plus BSD specifics.
+	dnl _DEFAULT_SOURCE is the new name for _BSD_SOURCE
+	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE"
 	AC_DEFINE([PAM_TTY_KLUDGE], [1],
 		[Work around problematic Linux PAM modules handling of PAM_TTY])
 	AC_DEFINE([LOCKED_PASSWD_PREFIX], ["!"],
@@ -1771,11 +1774,8 @@ AC_CHECK_FUNCS([ \
 	warn \
 ])
 
-dnl Wide character support.  Linux man page says it needs _XOPEN_SOURCE.
-saved_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -D_XOPEN_SOURCE"
+dnl Wide character support.
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
-CFLAGS="$saved_CFLAGS"
 
 TEST_SSH_UTF8=${TEST_SSH_UTF8:=yes}
 AC_MSG_CHECKING([for utf8 locale support])
