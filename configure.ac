@@ -1474,36 +1474,47 @@ AC_ARG_WITH([skey],
 LDNS_MSG="no"
 AC_ARG_WITH(ldns,
 	[  --with-ldns[[=PATH]]      Use ldns for DNSSEC support (optionally in PATH)],
-    [
-        if test "x$withval" != "xno" ; then
+	[
+	ldns=""
+	if test "x$withval" = "xyes" ; then
+		AC_PATH_TOOL([LDNSCONFIG], [ldns-config], [no])
+		if test "x$PKGCONFIG" = "xno"; then
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			LDFLAGS="$LDFLAGS -L${withval}/lib"
+			LIBS="-lldns $LIBS"
+			ldns=yes
+		else
+			LIBS="$LIBS `$LDNSCONFIG --libs`"
+			CPPFLAGS="$CPPFLAGS `$LDNSCONFIG --cflags`"
+		fi
+	elif test "x$withval" != "xno" ; then
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			LDFLAGS="$LDFLAGS -L${withval}/lib"
+			LIBS="-lldns $LIBS"
+			ldns=yes
+	fi
 
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-			fi
-
-            AC_DEFINE(HAVE_LDNS, 1, [Define if you want ldns support])
-            LIBS="-lldns $LIBS"
-            LDNS_MSG="yes"
-
-            AC_MSG_CHECKING([for ldns support])
-            AC_LINK_IFELSE(
-                [AC_LANG_SOURCE([[
+	# Verify that it works.
+	if test "x$ldns" = "xyes" ; then
+		AC_DEFINE(HAVE_LDNS, 1, [Define if you want ldns support])
+		LDNS_MSG="yes"
+		AC_MSG_CHECKING([for ldns support])
+		AC_LINK_IFELSE(
+			[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <ldns/ldns.h>
 int main() { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); status=LDNS_STATUS_OK; exit(0); }
-                                ]])
-                ],
-				[AC_MSG_RESULT(yes)],
+			]])
+		],
+			[AC_MSG_RESULT(yes)],
 				[
 					AC_MSG_RESULT(no)
 					AC_MSG_ERROR([** Incomplete or missing ldns libraries.])
 				])
-        fi
-    ]
-)
+	fi
+])
 
 # Check whether user wants libedit support
 LIBEDIT_MSG="no"
@@ -5083,6 +5094,7 @@ echo "                 Smartcard support: $SCARD_MSG"
 echo "                     S/KEY support: $SKEY_MSG"
 echo "              MD5 password support: $MD5_MSG"
 echo "                   libedit support: $LIBEDIT_MSG"
+echo "                   libldns support: $LDNS_MSG"
 echo "  Solaris process contract support: $SPC_MSG"
 echo "           Solaris project support: $SP_MSG"
 echo "         Solaris privilege support: $SPP_MSG"
