@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.267 2017/02/03 05:05:56 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.268 2017/02/03 23:01:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1194,7 +1194,7 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (!ciphers_valid(*arg == '+' ? arg + 1 : arg))
+		if (*arg != '-' && !ciphers_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%.200s line %d: Bad SSH2 cipher spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->ciphers == NULL)
@@ -1205,7 +1205,7 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (!mac_valid(*arg == '+' ? arg + 1 : arg))
+		if (*arg != '-' && !mac_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->macs == NULL)
@@ -1217,7 +1217,8 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.",
 			    filename, linenum);
-		if (!kex_names_valid(*arg == '+' ? arg + 1 : arg))
+		if (*arg != '-' &&
+		    !kex_names_valid(*arg == '+' ? arg + 1 : arg))
 			fatal("%.200s line %d: Bad SSH2 KexAlgorithms '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->kex_algorithms == NULL)
@@ -1231,7 +1232,8 @@ parse_keytypes:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.",
 			    filename, linenum);
-		if (!sshkey_names_valid2(*arg == '+' ? arg + 1 : arg, 1))
+		if (*arg != '-' &&
+		    !sshkey_names_valid2(*arg == '+' ? arg + 1 : arg, 1))
 			fatal("%s line %d: Bad key types '%s'.",
 				filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *charptr == NULL)
