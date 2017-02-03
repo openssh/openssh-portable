@@ -68,6 +68,7 @@
 #include "ssherr.h"
 #include "channels.h" /* XXX for session.h */
 #include "session.h" /* XXX for child_set_env(); refactor? */
+#include "authfd.h"
 
 /* import */
 extern ServerOptions options;
@@ -190,20 +191,21 @@ userauth_pubkey(Authctxt *authctxt)
 				msg = sshbuf_new();
 				if (!msg)
 					break;
-				if ((r = sshbuf_put_u8(msg, 100)) != 0 ||
-					(r = sshbuf_put_cstring(msg, "pubkey")) != 0 ||
+				if ((r = sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE)) != 0 ||
+					(r = sshbuf_put_cstring(msg, PUBKEY_AUTH_REQUEST)) != 0 ||
 					(r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
 					(r = sshbuf_put_string(msg, blob, blen)) != 0 ||
 					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
+					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_domain)) != 0 ||
 					(r = sshbuf_put_string(msg, sig, slen)) != 0 ||
 					(r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
 					(r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
 					(r = sshbuf_get_u32(msg, &token)) != 0) {
-					debug("auth agent did not authorize client %s", authctxt->pw->pw_name);
+					debug("auth agent did not authorize client %s", authctxt->user);
 					break;
 				}
 
-				debug3("auth agent authenticated %s", authctxt->pw->pw_name);
+				debug3("auth agent authenticated %s", authctxt->user);
 				break;
 				
 			}

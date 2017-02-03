@@ -54,6 +54,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
+#include "authfd.h"
 
 extern Buffer loginmsg;
 extern ServerOptions options;
@@ -225,7 +226,7 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 
 #elif defined(WINDOWS)
 /*
-* Authenticate on Windows - Pass creds to ssh-agent and retrieve token
+* Authenticate on Windows - Pass credentials to ssh-agent and retrieve token
 * upon succesful authentication
 */
 extern int auth_sock;
@@ -239,16 +240,17 @@ int sys_auth_passwd(Authctxt *authctxt, const char *password)
 	msg = sshbuf_new();
 	if (!msg)
 		return 0;
-	if (sshbuf_put_u8(msg, 100) != 0 ||
-		sshbuf_put_cstring(msg, "password") != 0 ||
-		sshbuf_put_cstring(msg, authctxt->user) != 0 ||
+
+	if (sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE) != 0 ||
+		sshbuf_put_cstring(msg, PASSWD_AUTH_REQUEST) != 0 ||
+		sshbuf_put_cstring(msg, authctxt->pw->pw_name) != 0 ||
+		sshbuf_put_cstring(msg, authctxt->pw->pw_domain) != 0 ||
 		sshbuf_put_cstring(msg, password) != 0 ||
 		ssh_request_reply(auth_sock, msg, msg) != 0 ||
 		sshbuf_get_u32(msg, &token) != 0) {
-		debug("auth agent did not authorize client %s", authctxt->pw->pw_name);
+		debug("auth agent did not authorize client %s", authctxt->user);
 		return 0;
 	}
-
 
 	if (blob)
 		free(blob);
