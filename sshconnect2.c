@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.253 2017/01/30 00:32:28 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.254 2017/02/03 02:56:00 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -193,8 +193,8 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
-		packet_set_rekey_limits((u_int32_t)options.rekey_limit,
-		    (time_t)options.rekey_interval);
+		packet_set_rekey_limits(options.rekey_limit,
+		    options.rekey_interval);
 
 	/* start key exchange */
 	if ((r = kex_setup(active_state, myproposal)) != 0)

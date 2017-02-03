@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.243 2016/10/11 21:47:45 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.244 2017/02/03 02:56:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1049,7 +1049,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 
 	/* Time-based rekeying */
 	if (state->rekey_interval != 0 &&
-	    state->rekey_time + state->rekey_interval <= monotime())
+	    (int64_t)state->rekey_time + state->rekey_interval <= monotime())
 		return 1;
 
 	/* Always rekey when MAX_PACKETS sent in either direction */
@@ -2396,10 +2396,10 @@ ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
 }
 
 void
-ssh_packet_set_rekey_limits(struct ssh *ssh, u_int64_t bytes, time_t seconds)
+ssh_packet_set_rekey_limits(struct ssh *ssh, u_int64_t bytes, u_int32_t seconds)
 {
-	debug3("rekey after %llu bytes, %d seconds", (unsigned long long)bytes,
-	    (int)seconds);
+	debug3("rekey after %llu bytes, %u seconds", (unsigned long long)bytes,
+	    (unsigned int)seconds);
 	ssh->state->rekey_limit = bytes;
 	ssh->state->rekey_interval = seconds;
 }
