@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.266 2017/01/30 00:38:50 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.267 2017/02/03 05:05:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -842,11 +842,11 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 		activep = &cmdline;
 	}
 
-	/* Strip trailing whitespace */
+	/* Strip trailing whitespace. Allow \f (form feed) at EOL only */
 	if ((len = strlen(line)) == 0)
 		return 0;
 	for (len--; len > 0; len--) {
-		if (strchr(WHITESPACE, line[len]) == NULL)
+		if (strchr(WHITESPACE "\f", line[len]) == NULL)
 			break;
 		line[len] = '\0';
 	}
