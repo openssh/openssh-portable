@@ -42,6 +42,7 @@ int	ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
 int	ssh_agent_sign(int sock, struct sshkey *key,
 	    u_char **sigp, size_t *lenp,
 	    const u_char *data, size_t datalen, const char *alg, u_int compat);
+int	ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply);
 
 /* Messages for the authentication agent connection. */
 #define SSH_AGENTC_REQUEST_RSA_IDENTITIES	1
