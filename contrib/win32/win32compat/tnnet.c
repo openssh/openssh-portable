@@ -45,7 +45,8 @@
  * are hardcoded in the server and will be transformed to Windows Console commands.
  */
 size_t 
-telProcessNetwork(char *buf, size_t len, unsigned char **respbuf, size_t *resplen) {
+telProcessNetwork(char *buf, size_t len, unsigned char **respbuf, size_t *resplen)
+{
 	unsigned char szBuffer[dwBuffer + 8];
 	unsigned char* pszNewHead = NULL;
 	unsigned char* pszHead = NULL;

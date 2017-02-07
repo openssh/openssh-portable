@@ -207,7 +207,8 @@ SendKeyStroke(HANDLE hInput, int keyStroke, char character)
 }
 
 void 
-ProcessIncomingKeys(char * ansikey) {
+ProcessIncomingKeys(char * ansikey)
+{
 	int nKey = 0;
 	int index = ARRAYSIZE(keys);
 
@@ -228,7 +229,8 @@ ProcessIncomingKeys(char * ansikey) {
  * VT output routines
  */
 void 
-SendLF(HANDLE hInput) {
+SendLF(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -236,7 +238,8 @@ SendLF(HANDLE hInput) {
 }
 
 void 
-SendClearScreen(HANDLE hInput) {
+SendClearScreen(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -244,7 +247,8 @@ SendClearScreen(HANDLE hInput) {
 }
 
 void 
-SendClearScreenFromCursor(HANDLE hInput) {
+SendClearScreenFromCursor(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -252,7 +256,8 @@ SendClearScreenFromCursor(HANDLE hInput) {
 }
 
 void 
-SendHideCursor(HANDLE hInput) {
+SendHideCursor(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -260,7 +265,8 @@ SendHideCursor(HANDLE hInput) {
 }
 
 void 
-SendShowCursor(HANDLE hInput) {
+SendShowCursor(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -268,7 +274,8 @@ SendShowCursor(HANDLE hInput) {
 }
 
 void 
-SendCursorPositionRequest(HANDLE hInput) {
+SendCursorPositionRequest(HANDLE hInput)
+{
 	DWORD wr = 0;
 
 	if (bUseAnsiEmulation)
@@ -276,7 +283,8 @@ SendCursorPositionRequest(HANDLE hInput) {
 }
 
 void 
-SendSetCursor(HANDLE hInput, int X, int Y) {
+SendSetCursor(HANDLE hInput, int X, int Y)
+{
 	DWORD wr = 0;
 	DWORD out = 0;
 	char formatted_output[255];
@@ -287,7 +295,8 @@ SendSetCursor(HANDLE hInput, int X, int Y) {
 }
 
 void 
-SendVerticalScroll(HANDLE hInput, int lines) {
+SendVerticalScroll(HANDLE hInput, int lines)
+{
 	DWORD wr = 0;
 	DWORD out = 0;
 	char formatted_output[255];
@@ -303,7 +312,8 @@ SendVerticalScroll(HANDLE hInput, int lines) {
 }
 
 void 
-SendHorizontalScroll(HANDLE hInput, int cells) {
+SendHorizontalScroll(HANDLE hInput, int cells)
+{
 	DWORD wr = 0;
 	DWORD out = 0;
 	char formatted_output[255];
@@ -315,7 +325,8 @@ SendHorizontalScroll(HANDLE hInput, int cells) {
 }
 
 void 
-SendCharacter(HANDLE hInput, WORD attributes, wchar_t character) {
+SendCharacter(HANDLE hInput, WORD attributes, wchar_t character)
+{
 	DWORD wr = 0;
 	DWORD out = 0;
 	DWORD current = 0;
@@ -403,7 +414,8 @@ SendCharacter(HANDLE hInput, WORD attributes, wchar_t character) {
 }
 
 void 
-SendBuffer(HANDLE hInput, CHAR_INFO *buffer, DWORD bufferSize) {
+SendBuffer(HANDLE hInput, CHAR_INFO *buffer, DWORD bufferSize)
+{
 	if (bufferSize <= 0)
 		return;
 
@@ -412,14 +424,16 @@ SendBuffer(HANDLE hInput, CHAR_INFO *buffer, DWORD bufferSize) {
 }
 
 void 
-CalculateAndSetCursor(HANDLE hInput, UINT aboveTopLine, UINT viewPortHeight, UINT x, UINT y) {
+CalculateAndSetCursor(HANDLE hInput, UINT aboveTopLine, UINT viewPortHeight, UINT x, UINT y)
+{
 
 	SendSetCursor(pipe_out, x + 1, y + 1);
 	currentLine = y;
 }
 
 void 
-SizeWindow(HANDLE hInput) {
+SizeWindow(HANDLE hInput)
+{
 	SMALL_RECT srWindowRect;
 	COORD coordScreen;
 	BOOL bSuccess = FALSE;
@@ -472,7 +486,8 @@ SizeWindow(HANDLE hInput) {
 }
 
 DWORD WINAPI 
-MonitorChild(_In_ LPVOID lpParameter) {
+MonitorChild(_In_ LPVOID lpParameter)
+{
 	WaitForSingleObject(child, INFINITE);
 	GetExitCodeProcess(child, &child_exit_code);
 	PostThreadMessage(hostThreadId, WM_APPEXIT, 0, 0);
@@ -480,7 +495,8 @@ MonitorChild(_In_ LPVOID lpParameter) {
 }
 
 DWORD 
-ProcessEvent(void *p) {
+ProcessEvent(void *p)
+{
 	char f[255];
 	wchar_t chUpdate;
 	WORD  wAttributes;
@@ -689,7 +705,8 @@ ProcessEvent(void *p) {
 }
 
 DWORD WINAPI 
-ProcessEventQueue(LPVOID p) {
+ProcessEventQueue(LPVOID p)
+{
 	static SHORT lastX = 0;
 	static SHORT lastY = 0;
 
@@ -747,7 +764,8 @@ ProcessEventQueue(LPVOID p) {
 }
 
 void 
-QueueEvent(DWORD event, HWND hwnd, LONG idObject, LONG idChild) {
+QueueEvent(DWORD event, HWND hwnd, LONG idObject, LONG idChild)
+{
 	consoleEvent* current = NULL;
 
 	EnterCriticalSection(&criticalSection);
@@ -786,7 +804,8 @@ QueueEvent(DWORD event, HWND hwnd, LONG idObject, LONG idChild) {
 }
 
 DWORD WINAPI 
-ProcessPipes(LPVOID p) {
+ProcessPipes(LPVOID p)
+{
 	BOOL ret;
 	DWORD dwStatus;
 
@@ -838,12 +857,14 @@ ConsoleEventProc(HWINEVENTHOOK hWinEventHook,
     LONG idObject,
     LONG idChild,
     DWORD dwEventThread,
-    DWORD dwmsEventTime) {
+    DWORD dwmsEventTime)
+{
 	QueueEvent(event, hwnd, idObject, idChild);
 }
 
 DWORD 
-ProcessMessages(void* p) {
+ProcessMessages(void* p)
+{
 	BOOL ret;
 	DWORD dwMode;
 	DWORD dwStatus;
@@ -895,7 +916,8 @@ cleanup:
 }
 
 int 
-start_with_pty(int ac, wchar_t **av) {
+start_with_pty(int ac, wchar_t **av)
+{
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	wchar_t cmd[MAX_CMD_LEN];
@@ -1015,7 +1037,8 @@ HANDLE child_pipe_read;
 HANDLE child_pipe_write;
 
 DWORD WINAPI 
-MonitorChild_nopty( _In_ LPVOID lpParameter) {
+MonitorChild_nopty( _In_ LPVOID lpParameter)
+{
 	WaitForSingleObject(child, INFINITE);
 	GetExitCodeProcess(child, &child_exit_code);
 	CloseHandle(pipe_in);
@@ -1023,7 +1046,8 @@ MonitorChild_nopty( _In_ LPVOID lpParameter) {
 }
 
 int 
-start_withno_pty(int ac, wchar_t **av) {
+start_withno_pty(int ac, wchar_t **av)
+{
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	wchar_t cmd[MAX_CMD_LEN];
@@ -1157,7 +1181,8 @@ cleanup:
 }
 
 int 
-wmain(int ac, wchar_t **av) {
+wmain(int ac, wchar_t **av)
+{
 	/* create job to hold all child processes */
 	HANDLE job = CreateJobObject(NULL, NULL);
 	JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;

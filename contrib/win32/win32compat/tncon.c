@@ -79,7 +79,8 @@ void queue_terminal_window_change_event();
  * a global buffer setup by ReadConsoleForTermEmul().
  */
 int 
-NetWriteString2(SOCKET sock, char* source, size_t len, int options) {
+NetWriteString2(SOCKET sock, char* source, size_t len, int options)
+{
 	while (len > 0) {
 		if (glob_outlen >= glob_space)
 			return glob_outlen;
@@ -91,7 +92,8 @@ NetWriteString2(SOCKET sock, char* source, size_t len, int options) {
 }
 
 BOOL 
-DataAvailable(HANDLE h) {
+DataAvailable(HANDLE h)
+{
 	DWORD dwRet = WaitForSingleObject(h, INFINITE);
 	if (dwRet == WAIT_OBJECT_0)
 		return TRUE;
@@ -101,7 +103,8 @@ DataAvailable(HANDLE h) {
 }
 
 int 
-ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen) {
+ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
+{
 	HANDLE hHandle[] = { hInput, NULL };
 	DWORD nHandle = 1;
 	DWORD dwInput = 0;

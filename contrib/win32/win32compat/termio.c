@@ -53,7 +53,8 @@ static struct io_status read_status, write_status;
 
 /* APC that gets queued on main thread when a sync Read completes on worker thread */
 static VOID CALLBACK
-ReadAPCProc(_In_ ULONG_PTR dwParam) {
+ReadAPCProc(_In_ ULONG_PTR dwParam)
+{
 	struct w32_io* pio = (struct w32_io*)dwParam;
 	debug3("TermRead CB - io:%p, bytes: %d, pending: %d, error: %d", pio, read_status.transferred,
 		pio->read_details.pending, read_status.error);
@@ -68,7 +69,8 @@ ReadAPCProc(_In_ ULONG_PTR dwParam) {
 
 /* Read worker thread */
 static DWORD WINAPI
-ReadConsoleThread(_In_ LPVOID lpParameter) {
+ReadConsoleThread(_In_ LPVOID lpParameter)
+{
 	int nBytesReturned = 0;
 	struct w32_io* pio = (struct w32_io*)lpParameter;
 
@@ -91,7 +93,8 @@ ReadConsoleThread(_In_ LPVOID lpParameter) {
 
 /* Initiates read on tty */
 int
-termio_initiate_read(struct w32_io* pio) {
+termio_initiate_read(struct w32_io* pio)
+{
 	HANDLE read_thread;
 
 	debug3("TermRead initiate io:%p", pio);
@@ -118,7 +121,8 @@ termio_initiate_read(struct w32_io* pio) {
 
 /* APC that gets queued on main thread when a sync Write completes on worker thread */
 static VOID CALLBACK 
-WriteAPCProc(_In_ ULONG_PTR dwParam) {
+WriteAPCProc(_In_ ULONG_PTR dwParam)
+{
 	struct w32_io* pio = (struct w32_io*)dwParam;
 	debug3("TermWrite CB - io:%p, bytes: %d, pending: %d, error: %d", pio, write_status.transferred,
 		pio->write_details.pending, write_status.error);
@@ -134,7 +138,8 @@ WriteAPCProc(_In_ ULONG_PTR dwParam) {
 
 /* Write worker thread */
 static DWORD WINAPI 
-WriteThread(_In_ LPVOID lpParameter) {
+WriteThread(_In_ LPVOID lpParameter)
+{
 	struct w32_io* pio = (struct w32_io*)lpParameter;
 	char *respbuf = NULL;
 	size_t resplen = 0;
@@ -166,7 +171,8 @@ WriteThread(_In_ LPVOID lpParameter) {
 
 /* Initiates write on tty */
 int
-termio_initiate_write(struct w32_io* pio, DWORD num_bytes) {
+termio_initiate_write(struct w32_io* pio, DWORD num_bytes)
+{
 	HANDLE write_thread;
 	debug3("TermWrite initiate io:%p", pio);
 	memset(&write_status, 0, sizeof(write_status));
@@ -185,7 +191,8 @@ termio_initiate_write(struct w32_io* pio, DWORD num_bytes) {
 
 /* tty close */
 int 
-termio_close(struct w32_io* pio) {
+termio_close(struct w32_io* pio)
+{
 	debug2("termio_close - pio:%p", pio);
 	HANDLE h;
 	CancelIoEx(WINHANDLE(pio), NULL);
