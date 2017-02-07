@@ -265,10 +265,11 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 	char *key_blob, *user, *domain, *usernameWithDomain, *sig, *blob;
 	size_t key_blob_len, user_len, domain_len, sig_len, blob_len;
 	struct sshkey *key = NULL;
-	HANDLE token = NULL, dup_token = NULL, client_proc = NULL;
+	HANDLE token = NULL, restricted_token = NULL, dup_token = NULL, client_proc = NULL;
 	wchar_t wuser[MAX_USER_LEN], wdomain[MAX_FQDN_LEN];
 	PWSTR wuser_home = NULL;
 	ULONG client_pid;
+	LUID_AND_ATTRIBUTES priv_to_delete[1];
 
 	user = NULL;
 	domain = NULL;
@@ -293,9 +294,14 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 		goto done;
 	}
 
-	con->auth_token = token;
-
-	if (SHGetKnownFolderPath(&FOLDERID_Profile, 0, token, &wuser_home) != S_OK ||
+	/* for key based auth, remove SeTakeOwnershipPrivilege */
+	if (LookupPrivilegeValueW(NULL, L"SeTakeOwnershipPrivilege", &priv_to_delete[0].Luid) == FALSE ||
+	    CreateRestrictedToken(token, 0, 0, NULL, 1, priv_to_delete, 0, NULL, &restricted_token) == FALSE) {
+		debug("unable to remove SeTakeOwnershipPrivilege privilege");
+		goto done;
+	}
+	
+	if (SHGetKnownFolderPath(&FOLDERID_Profile, 0, restricted_token, &wuser_home) != S_OK ||
 	    pubkey_allowed(key, wuser, wuser_home) != 1) {
 		debug("unable to verify public key for user %ls (profile:%ls)", wuser, wuser_home);
 		goto done;
@@ -308,12 +314,14 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 
 	if ((FALSE == GetNamedPipeClientProcessId(con->connection, &client_pid)) ||
 	    ( (client_proc = OpenProcess(PROCESS_DUP_HANDLE, FALSE, client_pid)) == NULL) ||
-	    (FALSE == DuplicateHandle(GetCurrentProcess(), token, client_proc, &dup_token, TOKEN_QUERY | TOKEN_IMPERSONATE, FALSE, DUPLICATE_SAME_ACCESS)) ||
+	    (FALSE == DuplicateHandle(GetCurrentProcess(), restricted_token, client_proc, &dup_token, TOKEN_QUERY | TOKEN_IMPERSONATE, FALSE, DUPLICATE_SAME_ACCESS)) ||
 	    (sshbuf_put_u32(response, (int)(intptr_t)dup_token) != 0)) {
 		debug("failed to authorize user");
 		goto done;
 	}
 
+	con->auth_token = restricted_token; 
+	restricted_token = NULL;
 	LoadProfile(con, wuser, wdomain);
 
 	r = 0;
@@ -330,6 +338,8 @@ done:
 		CoTaskMemFree(wuser_home);
 	if (client_proc)
 		CloseHandle(client_proc);
+	if (token)
+		CloseHandle(token);
 	return r;
 }
 
