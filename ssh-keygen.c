@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.292 2016/09/12 03:29:16 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.293 2017/02/08 20:32:43 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1441,7 +1441,10 @@ do_change_comment(struct passwd *pw)
 		sshkey_free(private);
 		exit(1);
 	}
-	printf("Key now has comment '%s'\n", comment);
+	if (comment)
+		printf("Key now has comment '%s'\n", comment);
+	else
+		printf("Key now has no comment\n");
 
 	if (identity_comment) {
 		strlcpy(new_comment, identity_comment, sizeof(new_comment));
