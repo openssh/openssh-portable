@@ -32,33 +32,38 @@
 
 #include "inc\zlib.h"
 
-
 int
-deflateEnd(z_streamp strm) {
+deflateEnd(z_streamp strm)
+{
         return Z_DATA_ERROR;
 }
 
 int
-inflateEnd(z_streamp strm) {
+inflateEnd(z_streamp strm)
+{
         return Z_DATA_ERROR;
 }
 
 int
-deflateInit(z_streamp strm, int level) {
+deflateInit(z_streamp strm, int level)
+{
         return Z_DATA_ERROR;
 }
 
 int
-inflateInit(z_streamp strm) {
+inflateInit(z_streamp strm)
+{
         return Z_DATA_ERROR;
 }
 
 int
-deflate(z_streamp strm, int flush) {
+deflate(z_streamp strm, int flush)
+{
         return Z_DATA_ERROR;
 }
 
 int
-inflate(z_streamp strm, int flush) {
+inflate(z_streamp strm, int flush)
+{
         return Z_DATA_ERROR;
 }

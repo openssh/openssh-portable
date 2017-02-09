@@ -36,6 +36,7 @@
 #include <DsGetDC.h>
 #define SECURITY_WIN32
 #include <security.h>
+
 #include "inc\pwd.h"
 #include "inc\grp.h"
 #include "inc\utf.h"
@@ -45,8 +46,10 @@ static struct passwd pw;
 static char* pw_shellpath = NULL;
 #define SHELL_HOST "\\ssh-shellhost.exe"
 
+
 int
-initialize_pw() {
+initialize_pw()
+{
 	if (pw_shellpath == NULL) {
 		if ((pw_shellpath = malloc(strlen(w32_programdir()) + strlen(SHELL_HOST) + 1)) == NULL)
 			fatal("initialize_pw - out of memory");
@@ -59,6 +62,7 @@ initialize_pw() {
 			*head = '\0';
 		}
 	}
+
 	if (pw.pw_shell != pw_shellpath) {
 		memset(&pw, 0, sizeof(pw));
 		pw.pw_shell = pw_shellpath;
@@ -71,7 +75,8 @@ initialize_pw() {
 }
 
 void
-reset_pw() {
+reset_pw()
+{
 	initialize_pw();
 	if (pw.pw_name)
 		free(pw.pw_name);
@@ -88,7 +93,8 @@ reset_pw() {
 }
 
 static struct passwd*
-get_passwd(const char *user_utf8, LPWSTR user_sid) {
+get_passwd(const char *user_utf8, LPWSTR user_sid)
+{
 	struct passwd *ret = NULL;
 	wchar_t *user_utf16 = NULL, *uname_utf16, *udom_utf16, *tmp;
 	char *uname_utf8 = NULL, *udom_utf8 = NULL, *pw_home_utf8 = NULL, *user_sid_utf8 = NULL;
@@ -102,7 +108,7 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
 
 	errno = 0;
 	reset_pw();
-	if ((user_utf16 = utf8_to_utf16(user_utf8) ) == NULL) {
+	if ((user_utf16 = utf8_to_utf16(user_utf8)) == NULL) {
 		errno = ENOMEM;
 		goto done;
 	}
@@ -126,7 +132,7 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
 		NET_API_STATUS status;
 		if ((status = NetUserGetInfo(udom_utf16, uname_utf16, 23, &user_info)) != NERR_Success) {
 			debug("NetUserGetInfo() failed with error: %d for user: %ls and domain: %ls \n", status, uname_utf16, udom_utf16);
-			
+
 			if ((dsStatus = DsGetDcNameW(NULL, udom_utf16, NULL, NULL, DS_DIRECTORY_SERVICE_PREFERRED, &pdc)) != ERROR_SUCCESS) {
 				error("DsGetDcNameW() failed with error: %d \n", dsStatus);
 				errno = ENOENT;
@@ -137,22 +143,22 @@ get_passwd(const char *user_utf8, LPWSTR user_sid) {
 				debug("NetUserGetInfo() with domainController: %ls failed with error: %d \n", pdc->DomainControllerName, status);
 				errno = ENOENT;
 				goto done;
-			}			
+			}
 		}
-		
+
 		if (ConvertSidToStringSidW(((LPUSER_INFO_23)user_info)->usri23_user_sid, &user_sid_local) == FALSE) {
 			debug("NetUserGetInfo() Succeded but ConvertSidToStringSidW() failed with error: %d\n", GetLastError());
 			errno = ENOENT;
 			goto done;
 		}
-		
+
 		user_sid = user_sid_local;
 	}
 
 	/* if one of below fails, set profile path to Windows directory */
 	if (swprintf(reg_path, PATH_MAX, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%ls", user_sid) == PATH_MAX ||
-	    RegOpenKeyExW(HKEY_LOCAL_MACHINE, reg_path, 0, STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &reg_key) != 0 ||
-	    RegQueryValueExW(reg_key, L"ProfileImagePath", 0, NULL, (LPBYTE)profile_home, &tmp_len) != 0)
+		RegOpenKeyExW(HKEY_LOCAL_MACHINE, reg_path, 0, STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &reg_key) != 0 ||
+		RegQueryValueExW(reg_key, L"ProfileImagePath", 0, NULL, (LPBYTE)profile_home, &tmp_len) != 0)
 		GetWindowsDirectoryW(profile_home, PATH_MAX);
 
 	if ((uname_utf8 = utf16_to_utf8(uname_utf16)) == NULL ||
@@ -196,12 +202,14 @@ done:
 }
 
 struct passwd*
-	w32_getpwnam(const char *user_utf8) {
+w32_getpwnam(const char *user_utf8)
+{
 	return get_passwd(user_utf8, NULL);
 }
 
 struct passwd*
-	w32_getpwuid(uid_t uid) {
+w32_getpwuid(uid_t uid)
+{
 	wchar_t* wuser = NULL;
 	char* user_utf8 = NULL;
 	ULONG needed = 0;
@@ -216,7 +224,7 @@ struct passwd*
 	if (GetUserNameExW(NameSamCompatible, NULL, &needed) != 0 ||
 	    (wuser = malloc(needed * sizeof(wchar_t))) == NULL ||
 	    GetUserNameExW(NameSamCompatible, wuser, &needed) == 0 ||
-	    (user_utf8 = utf16_to_utf8(wuser)) == NULL  ||
+	    (user_utf8 = utf16_to_utf8(wuser)) == NULL ||
 	    OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == FALSE ||
 	    GetTokenInformation(token, TokenUser, NULL, 0, &info_len) == TRUE ||
 	    (info = (TOKEN_USER*)malloc(info_len)) == NULL ||
@@ -243,50 +251,62 @@ done:
 
 
 
-char *group_from_gid(gid_t gid, int nogroup) {
+char *
+group_from_gid(gid_t gid, int nogroup)
+{
 	return "-";
 }
 
-char *user_from_uid(uid_t uid, int nouser) {
+char *
+user_from_uid(uid_t uid, int nouser)
+{
 	return "-";
 }
 
 uid_t
-getuid(void) {
+getuid(void)
+{
 	return 0;
 }
 
 gid_t
-getgid(void) {
+getgid(void)
+{
 	return 0;
 }
 
 uid_t
-geteuid(void) {
+geteuid(void)
+{
 	return 0;
 }
 
 gid_t
-getegid(void) {
+getegid(void)
+{
 	return 0;
 }
 
 int
-setuid(uid_t uid) {
+setuid(uid_t uid)
+{
 	return 0;
 }
 
 int
-setgid(gid_t gid) {
+setgid(gid_t gid)
+{
 	return 0;
 }
 
 int
-seteuid(uid_t uid) {
+seteuid(uid_t uid)
+{
 	return 0;
 }
 
 int
-setegid(gid_t gid) {
+setegid(gid_t gid)
+{
 	return 0;
 }

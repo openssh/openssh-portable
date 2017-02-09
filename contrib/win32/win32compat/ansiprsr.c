@@ -124,9 +124,8 @@ GetCursorPositionReport()
 
 	out = _snprintf_s(cursor_report, sizeof(cursor_report), _TRUNCATE,
 		CURSOR_REPORT_FORMAT_STRING, ConGetCursorY() + 1, ConGetCursorX() + 1);
-	if (out > 0) {
+	if (out > 0)
 		return cursor_report;
-	}
 
 	return NULL;
 }
