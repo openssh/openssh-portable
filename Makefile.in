@@ -44,7 +44,7 @@ CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
-LIBS=@LIBS@
+LIBS=@LIBS@ -lpthread
 K5LIBS=@K5LIBS@
 GSSLIBS=@GSSLIBS@
 SSHLIBS=@SSHLIBS@
@@ -78,7 +78,7 @@ LIBOPENSSH_OBJS=\
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	authfd.o authfile.o bufaux.o bufbn.o bufec.o buffer.o \
 	canohost.o channels.o cipher.o cipher-aes.o cipher-aesctr.o \
-	cipher-bf1.o cipher-ctr.o cipher-3des1.o cleanup.o \
+	cipher-bf1.o cipher-ctr.o cipher-ctr-mt.o cipher-3des1.o cleanup.o \
 	compat.o crc32.o deattack.o fatal.o hostfile.o \
 	log.o match.o md-sha256.o moduli.o nchan.o packet.o opacket.o \
 	readpass.o rsa.o ttymodes.o xmalloc.o addrmatch.o \
