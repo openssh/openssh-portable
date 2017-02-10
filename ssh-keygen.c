@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.293 2017/02/08 20:32:43 millert Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.294 2017/02/10 03:36:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -37,6 +37,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <locale.h>
 
 #include "xmalloc.h"
 #include "sshkey.h"
@@ -57,6 +58,7 @@
 #include "atomicio.h"
 #include "krl.h"
 #include "digest.h"
+#include "utf8.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -843,7 +845,7 @@ fingerprint_one_key(const struct sshkey *public, const char *comment)
 	ra = sshkey_fingerprint(public, fingerprint_hash, SSH_FP_RANDOMART);
 	if (fp == NULL || ra == NULL)
 		fatal("%s: sshkey_fingerprint failed", __func__);
-	printf("%u %s %s (%s)\n", sshkey_size(public), fp,
+	mprintf("%u %s %s (%s)\n", sshkey_size(public), fp,
 	    comment ? comment : "no comment", sshkey_type(public));
 	if (log_level >= SYSLOG_LEVEL_VERBOSE)
 		printf("%s\n", ra);
@@ -1166,7 +1168,7 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 				known_hosts_hash(l, ctx);
 			else if (print_fingerprint) {
 				fp = sshkey_fingerprint(l->key, fptype, rep);
-				printf("%s %s %s %s\n", ctx->host,
+				mprintf("%s %s %s %s\n", ctx->host,
 				    sshkey_type(l->key), fp, l->comment);
 				free(fp);
 			} else
@@ -1317,7 +1319,7 @@ do_change_passphrase(struct passwd *pw)
 		fatal("Failed to load key %s: %s", identity_file, ssh_err(r));
 	}
 	if (comment)
-		printf("Key has comment '%s'\n", comment);
+		mprintf("Key has comment '%s'\n", comment);
 
 	/* Ask the new passphrase (twice). */
 	if (identity_new_passphrase) {
@@ -2282,6 +2284,8 @@ main(int argc, char **argv)
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	seed_rng();
+
+	msetlocale();
 
 	/* we need this for the home * directory.  */
 	pw = getpwuid(getuid());
