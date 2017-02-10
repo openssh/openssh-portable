@@ -190,17 +190,17 @@ userauth_pubkey(Authctxt *authctxt)
 			while (1) {
 				msg = sshbuf_new();
 				if (!msg)
-					break;
+					fatal("%s: out of memory", __func__);
 				if ((r = sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE)) != 0 ||
-					(r = sshbuf_put_cstring(msg, PUBKEY_AUTH_REQUEST)) != 0 ||
-					(r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
-					(r = sshbuf_put_string(msg, blob, blen)) != 0 ||
-					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
-					(r = sshbuf_put_cstring(msg, authctxt->pw->pw_domain)) != 0 ||
-					(r = sshbuf_put_string(msg, sig, slen)) != 0 ||
-					(r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
-					(r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
-					(r = sshbuf_get_u32(msg, &token)) != 0) {
+				    (r = sshbuf_put_cstring(msg, PUBKEY_AUTH_REQUEST)) != 0 ||
+				    (r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
+				    (r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+				    (r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
+				    (r = sshbuf_put_cstring(msg, authctxt->pw->pw_domain)) != 0 ||
+				    (r = sshbuf_put_string(msg, sig, slen)) != 0 ||
+				    (r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
+				    (r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
+				    (r = sshbuf_get_u32(msg, &token)) != 0) {
 					debug("auth agent did not authorize client %s", authctxt->user);
 					break;
 				}

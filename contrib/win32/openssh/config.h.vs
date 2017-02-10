@@ -1678,14 +1678,12 @@
 #define __func__ __FUNCTION__
 #endif
 
+/* Windows specific macro added to workaround mysignal implementaion in bsd-misc.c */
+#define HAVE_MYSIGNAL 1
+
 #define PATH_MAX MAX_PATH
 
-//#define IN_LOOPBACKNET INADDR_LOOPBACK
-
 #define S_IFIFO        0x1000  
-//#define SHUT_RDWR	   2
-//#define SHUT_WR		   1
-//#define SHUT_RD        0
 
 #define HAVE_EXPLICIT_BZERO
 

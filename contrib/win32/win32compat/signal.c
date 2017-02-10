@@ -120,6 +120,11 @@ sw_init_signal_handler_table()
 }
 
 sighandler_t
+mysignal(int signum, sighandler_t handler) {
+	return w32_signal(signum, handler);
+}
+
+sighandler_t
 w32_signal(int signum, sighandler_t handler)
 {
 	sighandler_t prev;

@@ -232,33 +232,31 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 extern int auth_sock;
 int sys_auth_passwd(Authctxt *authctxt, const char *password)
 {
-	u_char *blob = NULL;
 	size_t blen = 0;
 	DWORD token = 0;
 	struct sshbuf *msg = NULL;
+	int r;
 
 	msg = sshbuf_new();
 	if (!msg)
-		return 0;
+		fatal("%s: out of memory", __func__);
 
 	if (sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE) != 0 ||
-		sshbuf_put_cstring(msg, PASSWD_AUTH_REQUEST) != 0 ||
-		sshbuf_put_cstring(msg, authctxt->pw->pw_name) != 0 ||
-		sshbuf_put_cstring(msg, authctxt->pw->pw_domain) != 0 ||
-		sshbuf_put_cstring(msg, password) != 0 ||
-		ssh_request_reply(auth_sock, msg, msg) != 0 ||
-		sshbuf_get_u32(msg, &token) != 0) {
+	    sshbuf_put_cstring(msg, PASSWD_AUTH_REQUEST) != 0 ||
+	    sshbuf_put_cstring(msg, authctxt->pw->pw_name) != 0 ||
+	    sshbuf_put_cstring(msg, authctxt->pw->pw_domain) != 0 ||
+	    sshbuf_put_cstring(msg, password) != 0 ||
+	    ssh_request_reply(auth_sock, msg, msg) != 0 ||
+	    sshbuf_get_u32(msg, &token) != 0) {
 		debug("auth agent did not authorize client %s", authctxt->user);
-		return 0;
+		r = 0;
+		goto done;
 	}
-
-	if (blob)
-		free(blob);
+	authctxt->methoddata = (void*)(INT_PTR)token;
+	r = 1;
+done:
 	if (msg)
 		sshbuf_free(msg);
-
-	authctxt->methoddata = (void*)(INT_PTR)token;
-
-	return 1;
+	return r;
 }
 #endif   /* WINDOWS */

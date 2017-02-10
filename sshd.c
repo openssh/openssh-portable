@@ -1087,7 +1087,8 @@ server_listen(void)
 #ifdef WINDOWS
 		/* disable inheritance on listener socket */
 		if (fcntl(listen_sock, F_SETFD, FD_CLOEXEC) != 0) {
-			error("F_SETFD  FD_CLOEXEC on listener socket %d failed with %d", listen_sock, errno);
+			error("F_SETFD  FD_CLOEXEC on socket %d error %d", 
+			    listen_sock, errno);
 			close(listen_sock);
 			continue;
 		}
@@ -1297,19 +1298,25 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			*/
 			{
 				char* path_utf8 = utf16_to_utf8(GetCommandLineW());
-				char fd_handle[30];  /* large enough to hold pointer value in hex */
+				/* large enough to hold pointer value in hex */
+				char fd_handle[30];  
 
 				if (path_utf8 == NULL)
 					fatal("Failed to alloc memory");
 				
-				if (snprintf(fd_handle, sizeof(fd_handle), "%p", w32_fd_to_handle(*newsock)) == -1
+				if (snprintf(fd_handle, sizeof(fd_handle), "%p", 
+					w32_fd_to_handle(*newsock)) == -1
 				    || SetEnvironmentVariable("SSHD_REMSOC", fd_handle) == FALSE
-				    || snprintf(fd_handle, sizeof(fd_handle), "%p", w32_fd_to_handle(startup_p[1])) == -1
+				    || snprintf(fd_handle, sizeof(fd_handle), "%p", 
+					w32_fd_to_handle(startup_p[1])) == -1
 				    || SetEnvironmentVariable("SSHD_STARTUPSOC", fd_handle) == FALSE
 				    || fcntl(startup_p[0], F_SETFD, FD_CLOEXEC) == -1) {
-					error("unable to set the right environment for child, closing connection ");
+					error("unable to set environment for child");
 					close(*newsock);
-					/* close child end of startup pipe. parent end will automatically be cleaned up on next iteration*/
+					/* 
+					 * close child end of startup pipe. parent end will 
+					 * automatically be cleaned up on next iteration
+					 */
 					close(startup_p[1]);
 					continue;
 				}
