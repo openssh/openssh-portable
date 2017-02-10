@@ -108,13 +108,15 @@ ssh_packet_put_ecpoint(struct ssh *ssh, const EC_GROUP *curve,
 # endif
 #endif /* WITH_OPENSSL */
 
-void
+int
 ssh_packet_send(struct ssh *ssh)
 {
 	int r;
 
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
+
+	return r;
 }
 
 u_int
@@ -294,13 +296,15 @@ packet_write_wait(void)
 		sshpkt_fatal(active_state, __func__, r);
 }
 
-void
+int
 packet_write_poll(void)
 {
 	int r;
 
 	if ((r = ssh_packet_write_poll(active_state)) != 0)
 		sshpkt_fatal(active_state, __func__, r);
+
+	return r;
 }
 
 void
