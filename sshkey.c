@@ -3812,7 +3812,9 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 				goto out;
 			case EVP_R_BN_DECODE_ERROR:
 			case EVP_R_DECODE_ERROR:
+#ifdef EVP_R_PRIVATE_KEY_DECODE_ERROR
 			case EVP_R_PRIVATE_KEY_DECODE_ERROR:
+#endif
 				r = SSH_ERR_INVALID_FORMAT;
 				goto out;
 			default:
