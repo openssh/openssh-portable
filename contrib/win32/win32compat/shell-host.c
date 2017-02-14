@@ -222,7 +222,8 @@ ProcessIncomingKeys(char * ansikey)
 	}
 
 	if (nKey == index)
-		SendKeyStroke(child_in, 0, ansikey[0]);
+		for(int i=0; i < strlen(ansikey); i++)
+			SendKeyStroke(child_in, 0, ansikey[i]);
 }
 
 /*
@@ -807,15 +808,15 @@ DWORD WINAPI
 ProcessPipes(LPVOID p)
 {
 	BOOL ret;
-	DWORD dwStatus;
+	DWORD dwStatus;	
+	char buf[128];
 
 	/* process data from pipe_in and route appropriately */
-	while (1) {
-		char buf[128];
+	while (1) {	
 		ZeroMemory(buf, 128);
 		DWORD rd = 0, wr = 0, i = -1;
 
-		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, 128, &rd, NULL));
+		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, 127, &rd, NULL)); /* read bufsize-1 */
 		bStartup = FALSE;
 		while (++i < rd) {
 			INPUT_RECORD ir;
