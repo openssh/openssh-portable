@@ -226,11 +226,6 @@ pwcopy(struct passwd *pw)
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
 #ifdef WINDOWS
-	/* copy additionaly pw entries for Windows */
-	if (pw->pw_domain != NULL)
-		copy->pw_domain = xstrdup(pw->pw_domain);
-	else
-		copy->pw_domain = NULL;
 	copy->pw_sid = xstrdup(pw->pw_sid);
 #endif /* WINDOWS */
 

@@ -14,7 +14,6 @@
 
 struct passwd {
 	char	*pw_name;	/* user's login name */
-	char	*pw_domain;	/* user's domain name */
 	char	*pw_passwd;	/* password? */
 	char	*pw_gecos;	/* ??? */
 	uid_t	pw_uid;		/* numerical user ID */

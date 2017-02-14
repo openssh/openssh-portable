@@ -38,6 +38,7 @@
 #include "agent.h"
 #include "agent-request.h"
 #include "key.h"
+#include "inc\utf.h"
 
 static void
 InitLsaString(LSA_STRING *lsa_string, const char *str)
@@ -105,7 +106,7 @@ LoadProfile(struct agent_connection* con, wchar_t* user, wchar_t* domain) {
 #define MAX_PW_LEN 64
 
 static HANDLE
-generate_user_token(wchar_t* user, wchar_t* domain) {
+generate_user_token(wchar_t* user_cpn) {
 	HANDLE lsa_handle = 0, token = 0;
 	LSA_OPERATIONAL_MODE mode;
 	ULONG auth_package_id;
@@ -120,7 +121,7 @@ generate_user_token(wchar_t* user, wchar_t* domain) {
 	DWORD cbProfile;
 	BOOL domain_user;
 
-	domain_user = (*domain != L'\0') ? TRUE : FALSE;
+	domain_user = wcschr(user_cpn, L'@')? TRUE : FALSE;
 
 	InitLsaString(&logon_process_name, "ssh-agent");
 	if (domain_user)
@@ -137,10 +138,6 @@ generate_user_token(wchar_t* user, wchar_t* domain) {
 
 	if (domain_user) {
 		KERB_S4U_LOGON *s4u_logon;
-		wchar_t user_cpn[MAX_USER_LEN + 1 + MAX_FQDN_LEN + 1];
-		memcpy(user_cpn, user, wcslen(user) * 2);
-		user_cpn[wcslen(user)] = L'@';
-		memcpy(user_cpn + wcslen(user) + 1, domain, wcslen(domain) * 2 + 2);
 		logon_info_size = sizeof(KERB_S4U_LOGON);
 		logon_info_size += (wcslen(user_cpn) * 2 + 2);
 		logon_info = malloc(logon_info_size);
@@ -157,11 +154,11 @@ generate_user_token(wchar_t* user, wchar_t* domain) {
 		s4u_logon->ClientRealm.MaximumLength = 0;
 		s4u_logon->ClientRealm.Buffer = 0;
 	} else {
-		logon_info_size = (wcslen(user) + 1)*sizeof(wchar_t);
+		logon_info_size = (wcslen(user_cpn) + 1)*sizeof(wchar_t);
 		logon_info = malloc(logon_info_size);
 		if (logon_info == NULL)
 			goto done;
-		memcpy(logon_info, user, logon_info_size);
+		memcpy(logon_info, user_cpn, logon_info_size);
 	}
 
 	memcpy(sourceContext.SourceName,"sshagent", sizeof(sourceContext.SourceName));
@@ -201,36 +198,35 @@ done:
 /* TODO - SecureZeroMemory password */
 int process_passwordauth_request(struct sshbuf* request, struct sshbuf* response, struct agent_connection* con) {
 	char *user = NULL, *domain = NULL, *pwd = NULL;
-	wchar_t userW_buf[MAX_USER_LEN], domainW_buf[MAX_FQDN_LEN], pwdW_buf[MAX_PW_LEN];
-	wchar_t *userW = userW_buf, *domW = domainW_buf, *pwdW = pwdW_buf, *tmp;
-	size_t user_len = 0, domain_len = 0, pwd_len = 0, dom_len = 0;
+	size_t user_len, pwd_len;
+	wchar_t *user_utf16 = NULL, *udom_utf16 = NULL, *pwd_utf16 = NULL, *tmp;
 	int r = -1;
 	HANDLE token = 0, dup_token, client_proc = 0;
 	ULONG client_pid;
 
 	if (sshbuf_get_cstring(request, &user, &user_len) != 0 ||
-	    sshbuf_get_cstring(request, &domain, &domain_len) != 0 ||
 	    sshbuf_get_cstring(request, &pwd, &pwd_len) != 0 ||
 	    user_len == 0 ||
 	    pwd_len == 0 ||
-	    user_len > MAX_USER_LEN ||
-	    domain_len > MAX_FQDN_LEN ||
+	    user_len > MAX_USER_LEN + MAX_FQDN_LEN ||
 	    pwd_len > MAX_PW_LEN) {
 		debug("bad password auth request");
 		goto done;
 	}
 
-	userW[0] = L'\0';
-	domW[0] = L'\0';
-	if ((MultiByteToWideChar(CP_UTF8, 0, user, user_len + 1, userW, MAX_USER_LEN) == 0) ||
-	    (domain_len != 0 && MultiByteToWideChar(CP_UTF8, 0, domain, domain_len + 1, domW, MAX_FQDN_LEN) == 0) ||
-	    (MultiByteToWideChar(CP_UTF8, 0, pwd, pwd_len + 1, pwdW, MAX_PW_LEN) == 0)) {
-		debug("unable to convert user (%s) or password to UTF-16", user);
+	if ((user_utf16 = utf8_to_utf16(user)) == NULL ||
+	    (pwd_utf16 = utf8_to_utf16(pwd)) == NULL) {
+		debug("out of memory");
 		goto done;
 	}
 
-	if (LogonUserW(userW, domW, pwdW, LOGON32_LOGON_NETWORK, LOGON32_PROVIDER_DEFAULT, &token) == FALSE) {
-		debug("failed to logon user");
+	if ((tmp = wcschr(user_utf16, L'@') ) != NULL ) {
+		udom_utf16 = tmp + 1;
+		*tmp = L'\0';
+	}
+
+	if (LogonUserW(user_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK, LOGON32_PROVIDER_DEFAULT, &token) == FALSE) {
+		debug("failed to logon user: %ls domain: %ls", user_utf16, udom_utf16);
 		goto done;
 	}
 
@@ -243,7 +239,7 @@ int process_passwordauth_request(struct sshbuf* request, struct sshbuf* response
 	}
 
 	con->auth_token = token;
-	LoadProfile(con, userW, domW);
+	LoadProfile(con, user_utf16, udom_utf16);
 	r = 0;
 done:
 	/* TODO Fix this hacky protocol*/
@@ -254,6 +250,10 @@ done:
 		free(user);
 	if (pwd)
 		free(pwd);
+	if (user_utf16)
+		free(user_utf16);
+	if (pwd_utf16)
+		free(pwd_utf16);
 	if (client_proc)
 		CloseHandle(client_proc);
 
@@ -262,22 +262,19 @@ done:
 
 int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, struct agent_connection* con) {
 	int r = -1;
-	char *key_blob, *user, *domain, *usernameWithDomain, *sig, *blob;
-	size_t key_blob_len, user_len, domain_len, sig_len, blob_len;
+	char *key_blob, *user, *sig, *blob;
+	size_t key_blob_len, user_len, sig_len, blob_len;
 	struct sshkey *key = NULL;
 	HANDLE token = NULL, restricted_token = NULL, dup_token = NULL, client_proc = NULL;
-	wchar_t wuser[MAX_USER_LEN], wdomain[MAX_FQDN_LEN];
+	wchar_t *user_utf16 = NULL, *udom_utf16 = NULL, *tmp;
 	PWSTR wuser_home = NULL;
 	ULONG client_pid;
 	LUID_AND_ATTRIBUTES priv_to_delete[1];
 
 	user = NULL;
-	domain = NULL;
 	if (sshbuf_get_string_direct(request, &key_blob, &key_blob_len) != 0 ||
 	    sshbuf_get_cstring(request, &user, &user_len) != 0 ||
-	    sshbuf_get_cstring(request, &domain, &domain_len) != 0 ||
 	    user_len > MAX_USER_LEN ||
-	    domain_len > MAX_FQDN_LEN ||
 	    sshbuf_get_string_direct(request, &sig, &sig_len) != 0 ||
 	    sshbuf_get_string_direct(request, &blob, &blob_len) != 0 ||
 	    sshkey_from_blob(key_blob, key_blob_len, &key) != 0) {
@@ -285,12 +282,13 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 		goto done;
 	}
 
-	wuser[0] = L'\0';
-	wdomain[0] = L'\0';
-	if (MultiByteToWideChar(CP_UTF8, 0, user, user_len + 1, wuser, MAX_USER_LEN) == 0 ||
-	    (domain_len != 0 && MultiByteToWideChar(CP_UTF8, 0, domain, domain_len + 1, wdomain, MAX_FQDN_LEN) == 0) ||
-	    (token = generate_user_token(wuser, wdomain)) == 0) {
-		debug("unable to generate token for user %ls", wuser);
+	if ((user_utf16 = utf8_to_utf16(user)) == NULL) {
+		debug("out of memory");
+		goto done;
+	}
+
+	if ((token = generate_user_token(user_utf16)) == 0) {
+		debug("unable to generate token for user %ls", user_utf16);
 		goto done;
 	}
 
@@ -302,8 +300,8 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 	}
 	
 	if (SHGetKnownFolderPath(&FOLDERID_Profile, 0, restricted_token, &wuser_home) != S_OK ||
-	    pubkey_allowed(key, wuser, wuser_home) != 1) {
-		debug("unable to verify public key for user %ls (profile:%ls)", wuser, wuser_home);
+	    pubkey_allowed(key, user_utf16, wuser_home) != 1) {
+		debug("unable to verify public key for user %ls (profile:%ls)", user_utf16, wuser_home);
 		goto done;
 	}
 
@@ -322,7 +320,11 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 
 	con->auth_token = restricted_token; 
 	restricted_token = NULL;
-	LoadProfile(con, wuser, wdomain);
+	if ((tmp = wcschr(user_utf16, L'@')) != NULL) {
+		udom_utf16 = tmp + 1;
+		*tmp = L'\0';
+	}
+	LoadProfile(con, user_utf16, udom_utf16);
 
 	r = 0;
 done:
@@ -332,6 +334,8 @@ done:
 
 	if (user)
 		free(user);
+	if (user_utf16)
+		free(user_utf16);
 	if (key)
 		sshkey_free(key);
 	if (wuser_home)

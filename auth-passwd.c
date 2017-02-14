@@ -244,7 +244,6 @@ int sys_auth_passwd(Authctxt *authctxt, const char *password)
 	if (sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE) != 0 ||
 	    sshbuf_put_cstring(msg, PASSWD_AUTH_REQUEST) != 0 ||
 	    sshbuf_put_cstring(msg, authctxt->pw->pw_name) != 0 ||
-	    sshbuf_put_cstring(msg, authctxt->pw->pw_domain) != 0 ||
 	    sshbuf_put_cstring(msg, password) != 0 ||
 	    ssh_request_reply(auth_sock, msg, msg) != 0 ||
 	    sshbuf_get_u32(msg, &token) != 0) {
