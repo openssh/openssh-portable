@@ -1,4 +1,4 @@
-/* $OpenBSD: match.c,v 1.34 2017/02/03 23:01:19 djm Exp $ */
+/* $OpenBSD: match.c,v 1.35 2017/02/15 23:38:31 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -297,8 +297,11 @@ match_filter_list(const char *proposal, const char *filter)
 	char *orig_prop = strdup(proposal);
 	char *cp, *tmp;
 
-	if (fix_prop == NULL || orig_prop == NULL)
+	if (fix_prop == NULL || orig_prop == NULL) {
+		free(orig_prop);
+		free(fix_prop);
 		return NULL;
+	}
 
 	tmp = orig_prop;
 	*fix_prop = '\0';
