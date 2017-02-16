@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <io.h>
 #include "misc_internal.h"
+#include "inc\utf.h"
 
 #define MAX_CONSOLE_COLUMNS 9999
 #define MAX_CONSOLE_ROWS 9999
@@ -917,7 +918,7 @@ cleanup:
 }
 
 int 
-start_with_pty(int ac, wchar_t **av)
+start_with_pty(wchar_t *command)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -974,17 +975,12 @@ start_with_pty(int ac, wchar_t **av)
 	
 	/*TODO - pick this up from system32*/
 	cmd[0] = L'\0';
-	if (ac)
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
-	ac--;
-	av++;
-	if (ac)
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
+	
+	if (command) {
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
-	while (ac) {
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, *av));
-		ac--;
-		av++;
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 	}
 
 	SetConsoleCtrlHandler(NULL, FALSE);
@@ -1047,7 +1043,7 @@ MonitorChild_nopty( _In_ LPVOID lpParameter)
 }
 
 int 
-start_withno_pty(int ac, wchar_t **av)
+start_withno_pty(wchar_t *command)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -1083,15 +1079,10 @@ start_withno_pty(int ac, wchar_t **av)
 	/*TODO - pick this up from system32*/
 	cmd[0] = L'\0';
 	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
-	ac -= 2;
-	av += 2;
-	if (ac)
+	if (command) {
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
-	while (ac) {
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, *av));
-		ac--;
-		av++;
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 	}
 
 	GOTO_CLEANUP_ON_FALSE(CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi));
@@ -1181,20 +1172,51 @@ cleanup:
 	return child_exit_code;
 }
 
+int b64_pton(char const *src, u_char *target, size_t targsize);
+
 int 
 wmain(int ac, wchar_t **av)
 {
-	/* create job to hold all child processes */
-	HANDLE job = CreateJobObject(NULL, NULL);
-	JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
-	memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-	job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-	if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)))
-		return -1;
-	CloseHandle(job);
+	int pty_requested = 0;
+	wchar_t *cmd = NULL, *cmd_b64 = NULL;
+	{
+		/* create job to hold all child processes */
+		HANDLE job = CreateJobObject(NULL, NULL);
+		JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
+		memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+		job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+		if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)))
+			return -1;
+		CloseHandle(job);
+	}
 
-	if ((ac == 1) || wcscmp(av[1], L"-nopty"))
-		return start_with_pty(ac, av);
+	if ((ac == 1) || (ac == 2 && wcscmp(av[1], L"-nopty"))) {
+		pty_requested = 1;
+		cmd_b64 = ac == 2? av[1] : NULL;
+	} else if (ac <= 3 && wcscmp(av[1], L"-nopty") == 0)
+		cmd_b64 = ac == 3? av[2] : NULL;
+	else {
+		printf("ssh-shellhost received unexpected input arguments");
+		return -1;
+	}
+
+	/* decode cmd_b64*/
+	if (cmd_b64) {
+		char *cmd_b64_utf8, *cmd_utf8;
+		if ((cmd_b64_utf8 = utf16_to_utf8(cmd_b64)) == NULL ||
+		    /* strlen(b64) should be sufficient for decoded length */
+		    (cmd_utf8 = malloc(strlen(cmd_b64_utf8))) == NULL ||
+		    b64_pton(cmd_b64_utf8, cmd_utf8, strlen(cmd_b64_utf8)) == -1 ||
+		    (cmd = utf8_to_utf16(cmd_utf8)) == NULL) {
+			printf("ssh-shellhost encountered an internal error while decoding base64 cmdline");
+			return -1;
+		}
+		free(cmd_b64_utf8);
+		free(cmd_utf8);
+	}
+
+	if (pty_requested)
+		return start_with_pty(cmd);
 	else
-		return start_withno_pty(ac, av);
+		return start_withno_pty(cmd);
 }

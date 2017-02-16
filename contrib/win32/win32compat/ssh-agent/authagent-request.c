@@ -225,7 +225,7 @@ int process_passwordauth_request(struct sshbuf* request, struct sshbuf* response
 		*tmp = L'\0';
 	}
 
-	if (LogonUserW(user_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK, LOGON32_PROVIDER_DEFAULT, &token) == FALSE) {
+	if (LogonUserW(user_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_PROVIDER_DEFAULT, &token) == FALSE) {
 		debug("failed to logon user: %ls domain: %ls", user_utf16, udom_utf16);
 		goto done;
 	}

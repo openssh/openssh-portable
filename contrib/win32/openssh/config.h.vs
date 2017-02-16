@@ -1673,6 +1673,7 @@
 #define HAVE_DECL_HOWMANY 0
 #define HAVE_STRTOULL 1
 #define HAVE_USLEEP 1
+#define HAVE_EVP_RIPEMD160 1
 
 #if defined ( WIN32 )
 #define __func__ __FUNCTION__
