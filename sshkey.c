@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.42 2017/02/10 04:34:50 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.43 2017/02/17 02:31:14 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -89,7 +89,9 @@ static const struct keytype keytypes[] = {
 	{ "ssh-ed25519-cert-v01@openssh.com", "ED25519-CERT",
 	    KEY_ED25519_CERT, 0, 1, 0 },
 #ifdef WITH_OPENSSL
+# ifdef WITH_SSH1
 	{ NULL, "RSA1", KEY_RSA1, 0, 0, 0 },
+# endif
 	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0, 0 },
 	{ "rsa-sha2-256", "RSA", KEY_RSA, 0, 0, 1 },
 	{ "rsa-sha2-512", "RSA", KEY_RSA, 0, 0, 1 },
