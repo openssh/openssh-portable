@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.294 2017/02/10 03:36:40 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.295 2017/02/17 02:32:05 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2208,11 +2208,17 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	exit(ret);
 }
 
+#ifdef WITH_SSH1
+# define RSA1_USAGE " | rsa1"
+#else
+# define RSA1_USAGE ""
+#endif
+
 static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa | rsa1]\n"
+	    "usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa%s]\n"
 	    "                  [-N new_passphrase] [-C comment] [-f output_keyfile]\n"
 	    "       ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]\n"
 	    "       ssh-keygen -i [-m key_format] [-f input_keyfile]\n"
@@ -2220,7 +2226,7 @@ usage(void)
 	    "       ssh-keygen -y [-f input_keyfile]\n"
 	    "       ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
-	    "       ssh-keygen -B [-f input_keyfile]\n");
+	    "       ssh-keygen -B [-f input_keyfile]\n", RSA1_USAGE);
 #ifdef ENABLE_PKCS11
 	fprintf(stderr,
 	    "       ssh-keygen -D pkcs11\n");
