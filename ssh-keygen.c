@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.295 2017/02/17 02:32:05 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.296 2017/03/03 06:13:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1084,6 +1084,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	struct known_hosts_ctx *ctx = (struct known_hosts_ctx *)_ctx;
 	char *hashed, *cp, *hosts, *ohosts;
 	int has_wild = l->hosts && strcspn(l->hosts, "*?!") != strlen(l->hosts);
+	int was_hashed = l->hosts[0] == HASH_DELIM;
 
 	switch (l->status) {
 	case HKF_STATUS_OK:
@@ -1092,8 +1093,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 		 * Don't hash hosts already already hashed, with wildcard
 		 * characters or a CA/revocation marker.
 		 */
-		if ((l->match & HKF_MATCH_HOST_HASHED) != 0 ||
-		    has_wild || l->marker != MRK_NONE) {
+		if (was_hashed || has_wild || l->marker != MRK_NONE) {
 			fprintf(ctx->out, "%s\n", l->line);
 			if (has_wild && !find_host) {
 				logit("%s:%ld: ignoring host name "
