@@ -24,6 +24,7 @@ sftp
 sftp-server
 ssh
 ssh-add
+ssh-store
 ssh-agent
 ssh-keygen
 ssh-keyscan

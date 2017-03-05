@@ -69,6 +69,7 @@
 #include "ssh2.h"
 #include "sshbuf.h"
 #include "sshkey.h"
+#include "cipher.h"
 #include "authfd.h"
 #include "log.h"
 #include "misc.h"
@@ -102,6 +103,14 @@
 #define AGENT_MAX_EXT_CERTS		1024
 
 /* XXX store hostkey_sid in a refcounted tree */
+
+/*
+ * Constants relating to "shielding" support; protection of keys expected
+ * to remain in memory for long durations
+ */
+#define AGENT_SHIELD_PREKEY_LEN	(16 * 1024)
+#define AGENT_SHIELD_CIPHER		"aes256-ctr" /* XXX want AES-EME* */
+#define AGENT_SHIELD_PREKEY_HASH	SSH_DIGEST_SHA512
 
 typedef enum {
 	AUTH_UNUSED = 0,
@@ -148,6 +157,23 @@ struct idtable {
 
 /* private key table */
 struct idtable *idtab;
+
+typedef struct variable {
+	TAILQ_ENTRY(variable) next;
+	char *var;
+	u_char *enc;
+	u_char *prekey;
+	size_t lvar;
+	size_t lval;
+	size_t lenc;
+} Variable;
+
+typedef struct {
+	int nentries;
+	TAILQ_HEAD(varqueue, variable) varlist;
+} Vartab;
+
+Vartab vartable;
 
 int max_fd = 0;
 
@@ -233,6 +259,13 @@ free_dest_constraint_hop(struct dest_constraint_hop *dch)
 		sshkey_free(dch->keys[i]);
 	free(dch->keys);
 	free(dch->key_is_ca);
+}
+
+static void
+vartab_init(void)
+{
+	TAILQ_INIT(&vartable.varlist);
+	vartable.nentries = 0;
 }
 
 static void
@@ -558,6 +591,23 @@ identity_permitted(Identity *id, SocketEntry *e, char *user,
 
 	/* success */
 	return 0;
+}
+
+static void
+free_variable_value(Variable *v)
+{
+	explicit_bzero(v->enc, v->lenc);
+	explicit_bzero(v->prekey, AGENT_SHIELD_PREKEY_LEN);
+	free(v->enc);
+	free(v->prekey);
+}
+
+static void
+free_variable(Variable *v)
+{
+	free(v->var);
+	free_variable_value(v);
+	free(v);
 }
 
 static int
@@ -1756,6 +1806,399 @@ process_ext_session_bind(SocketEntry *e)
 	return r == 0 ? 1 : 0;
 }
 
+/*
+ * shield variable values. Based on sshkey_(un)shield_private.
+ * TODO: refactor that to use this and move to sshkey.c
+ *       (this code does not encrypt the length in an sshbuf, so that would have to be harmonised)
+ */
+static int
+shield_val(char *val, size_t lval, u_char **enc, size_t *lenc, u_char **prekey) {
+	u_char *buf = NULL;
+	u_char keyiv[SSH_DIGEST_MAX_LENGTH];
+	struct sshcipher_ctx *cctx = NULL;
+	const struct sshcipher *cipher;
+	size_t i;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	*enc = NULL;
+	*lenc = 0;
+	*prekey = NULL;
+
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: entering\n", __func__);
+#endif
+	if ((cipher = cipher_by_name(AGENT_SHIELD_CIPHER)) == NULL) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
+	if (cipher_keylen(cipher) + cipher_ivlen(cipher) >
+	    ssh_digest_bytes(AGENT_SHIELD_PREKEY_HASH)) {
+		r = SSH_ERR_INTERNAL_ERROR;
+		goto out;
+	}
+
+	/* Prepare a random pre-key, and from it an ephemeral key */
+	if ((*prekey = malloc(AGENT_SHIELD_PREKEY_LEN)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	arc4random_buf(*prekey, AGENT_SHIELD_PREKEY_LEN);
+	if ((r = ssh_digest_memory(AGENT_SHIELD_PREKEY_HASH,
+	    *prekey, AGENT_SHIELD_PREKEY_LEN,
+	    keyiv, SSH_DIGEST_MAX_LENGTH)) != 0)
+		goto out;
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: key+iv\n", __func__);
+	sshbuf_dump_data(keyiv, ssh_digest_bytes(AGENT_SHIELD_PREKEY_HASH),
+	    stderr);
+#endif
+	if ((r = cipher_init(&cctx, cipher, keyiv, cipher_keylen(cipher),
+	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 1)) != 0)
+		goto out;
+
+	*lenc = ((lval + cipher_blocksize(cipher) - 1) / cipher_blocksize(cipher)) * cipher_blocksize(cipher);
+	/* Serialise and encrypt the private key using the ephemeral key */
+	if ((buf = malloc(*lenc)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	memcpy (buf, val, lval);
+
+	/* pad input buf to cipher blocksize */
+	for (i = lval; i < *lenc; i++) {
+		buf[i] = (i-lval+1) & 0xff;
+	}
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: serialised\n", __func__);
+	sshbuf_dump_data(buf, *lenc, stderr);
+#endif
+	/* encrypt */
+	if ((*enc = malloc(*lenc)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = cipher_crypt(cctx, 0, *enc,
+	    buf, *lenc, 0, 0)) != 0)
+		goto out;
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: encrypted\n", __func__);
+	sshbuf_dump_data(*enc, *lenc, stderr);
+#endif
+
+	/* success */
+	r = 0;
+
+ out:
+	free(buf);
+	cipher_free(cctx);
+	explicit_bzero(keyiv, sizeof(keyiv));
+	return r;
+}
+
+static int
+unshield_val(u_char *enc, size_t lenc, u_char *prekey, char** val, size_t lval) {
+	u_char pad, keyiv[SSH_DIGEST_MAX_LENGTH];
+	struct sshcipher_ctx *cctx = NULL;
+	const struct sshcipher *cipher;
+	size_t i;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	/* use saved lval */
+	*val = NULL;
+
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: entering\n", __func__);
+#endif
+
+	if ((cipher = cipher_by_name(AGENT_SHIELD_CIPHER)) == NULL) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
+	if (cipher_keylen(cipher) + cipher_ivlen(cipher) >
+	    ssh_digest_bytes(AGENT_SHIELD_PREKEY_HASH)) {
+		r = SSH_ERR_INTERNAL_ERROR;
+		goto out;
+	}
+	/* check size of shielded key val */
+	if (lenc < cipher_blocksize(cipher) ||
+	    (lenc % cipher_blocksize(cipher)) != 0) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+
+	/* Calculate the ephemeral key from the prekey */
+	if ((r = ssh_digest_memory(AGENT_SHIELD_PREKEY_HASH,
+	    prekey, AGENT_SHIELD_PREKEY_LEN,
+	    keyiv, SSH_DIGEST_MAX_LENGTH)) != 0)
+		goto out;
+	if ((r = cipher_init(&cctx, cipher, keyiv, cipher_keylen(cipher),
+	    keyiv + cipher_keylen(cipher), cipher_ivlen(cipher), 0)) != 0)
+		goto out;
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: key+iv\n", __func__);
+	sshbuf_dump_data(keyiv, ssh_digest_bytes(AGENT_SHIELD_PREKEY_HASH),
+	    stderr);
+#endif
+
+	/* Decrypt and parse the shielded private key using the ephemeral key.
+	   Allocate lenc, even though we won't use the padded bytes at the end. */
+	if ((*val = malloc(lenc)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	/* decrypt */
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: encrypted\n", __func__);
+	sshbuf_dump_data(enc, lenc, stderr);
+#endif
+	if ((r = cipher_crypt(cctx, 0, *(u_char**)val,
+	    enc, lenc, 0, 0)) != 0)
+		goto out;
+#ifdef DEBUG_PK
+	fprintf(stderr, "%s: serialised\n", __func__);
+	sshbuf_dump_data(*val, lenc, stderr);
+#endif
+
+	/* Check deterministic padding and zero */
+	for (i = lval; i < lenc; i++) {
+		pad = (*val)[i];
+		if (pad != ((i-lval+1) & 0xff)) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		(*val)[i] = 0;
+	}
+
+	/* success */
+	r = 0;
+
+ out:
+	cipher_free(cctx);
+	explicit_bzero(keyiv, sizeof(keyiv));
+	return r;
+}
+
+
+/* return variable entry for given name */
+static Variable *
+lookup_variable(const char *var, size_t lvar)
+{
+	Variable *v;
+
+	TAILQ_FOREACH(v, &vartable.varlist, next) {
+		if (lvar == v->lvar && 0 == memcmp(var, v->var, lvar))
+			return (v);
+	}
+	return (NULL);
+}
+
+static void
+send_return_code(SocketEntry *e, int code)
+{
+	int r;
+	debug("return code %d", code);
+	if ((r = sshbuf_put_u32(e->output, 1)) != 0 ||
+	    (r = sshbuf_put_u8(e->output, code)) != 0)
+		fatal_fr(r, "compose");
+}
+
+static void
+process_set_variable(SocketEntry *e)
+{
+	size_t lvar = 0, lval = 0;
+	char *var = NULL, *val = NULL;
+	Variable *v;
+	int r, ret = SSH_AGENT_FAILURE;
+
+	if ((r = sshbuf_get_string(e->request, (u_char**)&var, &lvar)) != 0 ||
+	    (r = sshbuf_get_string(e->request, (u_char**)&val, &lval)) != 0)
+		error_fr(r, "parse");
+	else {
+		if ((v = lookup_variable(var, lvar))) {
+			debug("set '%.*s' = '%.*s' (replacing old value of length %d)", (int)lvar, var, (int)lval, val, (int)v->lval);
+			free_variable_value(v);
+			ret = SSH_AGENT_VARIABLE_REPLACED;
+		} else {
+			debug("set '%.*s' = '%.*s'", (int)lvar, var, (int)lval, val);
+			if ((v = xmalloc(sizeof(Variable))) == NULL)
+				fatal_f("xmalloc failed");
+			v->var = var;
+			v->lvar = lvar;
+			TAILQ_INSERT_TAIL(&vartable.varlist, v, next);
+			vartable.nentries++;
+			ret = SSH_AGENT_SUCCESS;
+		}
+		if ((r = shield_val(val, lval, &v->enc, &v->lenc, &v->prekey)) != 0)
+			fatal_fr(r, "shield");
+		v->lval = lval;
+	}
+	send_return_code(e, ret);
+}
+
+static void
+process_get_variable(SocketEntry *e)
+{
+	size_t lvar = 0;
+	char *var = NULL, *val = NULL;
+	Variable *v;
+	struct sshbuf *msg;
+	int r;
+
+	if ((r = sshbuf_get_string(e->request, (u_char**)&var, &lvar)) != 0) {
+		error_fr(r, "parse");
+		send_return_code(e, SSH_AGENT_FAILURE);
+		return;
+	}
+	if ((v = lookup_variable(var, lvar))) {
+		if ((r = unshield_val(v->enc, v->lenc, v->prekey, &val, v->lval)) != 0)
+			fatal_fr(r, "compose");
+
+		debug("get '%.*s' -> '%.*s'", (int)lvar, var, (int)v->lval, val);
+		if ((msg = sshbuf_new()) == NULL)
+			fatal_f("sshbuf_new failed");
+		if ((r = sshbuf_put_u8(msg, SSH_AGENT_GET_VARIABLE_ANSWER)) != 0 ||
+				(r = sshbuf_put_string(msg, val, v->lval)) != 0 ||
+				(r = sshbuf_put_u32(e->output, sshbuf_len(msg))) != 0 ||
+				(r = sshbuf_putb(e->output, msg)) != 0)
+			fatal_fr(r, "compose");
+		sshbuf_free(msg);
+		explicit_bzero(val, v->lval);
+		free(val);
+	} else {
+		debug("variable '%.*s' not found", (int)lvar, var);
+		send_return_code(e, SSH_AGENT_NO_VARIABLE);
+	}
+	free(var);
+}
+
+/* send list of variables */
+static void
+process_list_variables(SocketEntry *e, char full)
+{
+	struct sshbuf *msg, *msg2;
+	int r;
+	char *prefix = NULL, *val = NULL;
+	size_t lprefix = 0, nret = 0;
+	Variable *v;
+
+	if ((r = sshbuf_get_string(e->request, (u_char**)&prefix, &lprefix)) != 0)
+		lprefix = 0;
+	if (lprefix > 0)
+		debug("list variables starting with '%.*s'", (int)lprefix, prefix);
+	else
+		debug("list all variables");
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	TAILQ_FOREACH(v, &vartable.varlist, next) {
+		if (lprefix == 0 || (v->lvar >= lprefix && 0 == memcmp (v->var, prefix, lprefix))) {
+			if (full) {
+				if ((r = unshield_val(v->enc, v->lenc, v->prekey, &val, v->lval)) != 0 ||
+				    (r = sshbuf_put_string(msg, v->var, v->lvar)) != 0 ||
+				    (r = sshbuf_put_string(msg, val, v->lval)) != 0)
+					fatal_fr(r, "compose");
+				debug("  -> '%.*s' = '%.*s'", (int)v->lvar, v->var, (int)v->lval, val);
+				explicit_bzero(val, v->lval);
+				free(val);
+			} else {
+				debug("  -> '%.*s'",          (int)v->lvar, v->var);
+				if ((r = sshbuf_put_string(msg, v->var, v->lvar)) != 0)
+					fatal_fr(r, "compose");
+			}
+			nret++;
+		}
+	}
+  free(prefix);
+	if ((msg2 = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg2, full ? SSH_AGENT_VARIABLES_ANSWER : SSH_AGENT_VARIABLE_NAMES_ANSWER)) != 0 ||
+	    (r = sshbuf_put_u32(msg2, nret)) != 0 ||
+	    (r = sshbuf_put_u32(e->output, sshbuf_len(msg)+sshbuf_len(msg2))) != 0 ||
+	    (r = sshbuf_putb(e->output, msg2)) != 0 ||
+	    (r = sshbuf_putb(e->output, msg)) != 0)
+		fatal_fr(r, "compose");
+	sshbuf_free(msg2);
+	sshbuf_free(msg);
+}
+
+static void
+no_variables(SocketEntry *e, size_t type)
+{
+	struct sshbuf *msg;
+	int r;
+
+	if ((msg = sshbuf_new()) == NULL)
+		fatal_f("sshbuf_new failed");
+	if ((r = sshbuf_put_u8(msg, (type == SSH_AGENTC_LIST_VARIABLES) ? SSH_AGENT_VARIABLES_ANSWER : SSH_AGENT_VARIABLE_NAMES_ANSWER)) != 0 ||
+	    (r = sshbuf_put_u32(msg, 0)) != 0 ||
+	    (r = sshbuf_put_u32(e->output, sshbuf_len(msg))) != 0 ||
+	    (r = sshbuf_put(e->output, sshbuf_ptr(msg), sshbuf_len(msg))) != 0)
+		fatal_fr(r, "compose");
+	sshbuf_free(msg);
+}
+
+/* shared */
+static void
+process_remove_variable(SocketEntry *e)
+{
+	size_t lvar = 0;
+	char *var = NULL;
+	Variable *v;
+	int r, ret;
+
+	if ((r = sshbuf_get_string(e->request, (u_char**)&var, &lvar)) != 0) {
+		error_fr(r, "parse");
+		send_return_code(e, SSH_AGENT_FAILURE);
+		return;
+	}
+	if ((v = lookup_variable(var, lvar))) {
+		debug("delete variable '%.*s' with value length %d", (int)v->lvar, v->var, (int)v->lval);
+		if (vartable.nentries < 1)
+			fatal_f("internal error: vartable.nentries %d", vartable.nentries);
+		TAILQ_REMOVE(&vartable.varlist, v, next);
+		free_variable (v);
+		vartable.nentries--;
+		ret = SSH_AGENT_SUCCESS;
+	} else
+		ret = SSH_AGENT_NO_VARIABLE;
+	free (var);
+	send_return_code(e, ret);
+}
+
+static void
+process_remove_all_variables(SocketEntry *e)
+{
+	char *prefix = NULL;
+	size_t lprefix = 0, ndel = 0;
+	Variable *v, *last = NULL;
+	int r;
+
+	if ((r = sshbuf_get_string(e->request, (u_char**)&prefix, &lprefix)) != 0)
+		lprefix = 0;
+	TAILQ_FOREACH(v, &vartable.varlist, next) {
+		if (last) {   /* don't remove variable until we've moved past it */
+			TAILQ_REMOVE(&vartable.varlist, last, next);
+			free_variable (last);
+			last = NULL;
+		}
+		if (lprefix == 0 || (v->lvar >= lprefix && 0 == memcmp (v->var, prefix, lprefix))) {
+			debug("delete variable '%.*s' with value length %d", (int)v->lvar, v->var, (int)v->lval);
+			vartable.nentries--;
+			ndel++;
+			last = v;
+		}
+	}
+	if (last) {
+		TAILQ_REMOVE(&vartable.varlist, last, next);
+		free_variable (last);
+	}
+	free(prefix);
+
+	/* Send success. */
+	send_return_code(e, ndel ? SSH_AGENT_SUCCESS : SSH_AGENT_NO_VARIABLE);
+}
+
+/* dispatch incoming messages */
+
 static void
 process_extension(SocketEntry *e)
 {
@@ -1826,6 +2269,10 @@ process_message(u_int socknum)
 			/* send empty lists */
 			no_identities(e);
 			break;
+		case SSH_AGENTC_LIST_VARIABLE_NAMES:
+		case SSH_AGENTC_LIST_VARIABLES:
+			no_variables(e, type);
+			break;
 		default:
 			/* send a fail message for all other request types */
 			send_status(e, 0);
@@ -1869,6 +2316,24 @@ process_message(u_int socknum)
 #endif /* ENABLE_PKCS11 */
 	case SSH_AGENTC_EXTENSION:
 		process_extension(e);
+		break;
+	case SSH_AGENTC_SET_VARIABLE:
+		process_set_variable(e);
+		break;
+	case SSH_AGENTC_GET_VARIABLE:
+		process_get_variable(e);
+		break;
+	case SSH_AGENTC_LIST_VARIABLE_NAMES:
+		process_list_variables(e, 0);
+		break;
+	case SSH_AGENTC_LIST_VARIABLES:
+		process_list_variables(e, 1);
+		break;
+	case SSH_AGENTC_REMOVE_VARIABLE:
+		process_remove_variable(e);
+		break;
+	case SSH_AGENTC_REMOVE_ALL_VARIABLES:
+		process_remove_all_variables(e);
 		break;
 	default:
 		/* Unknown message.  Respond with failure. */
@@ -2523,7 +2988,9 @@ skip:
 	new_socket(AUTH_SOCKET, sock);
 	if (ac > 0)
 		parent_alive_interval = 10;
+
 	idtab_init();
+	vartab_init();
 	ssh_signal(SIGPIPE, SIG_IGN);
 	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
 	ssh_signal(SIGHUP, cleanup_handler);
