@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.297 2017/03/06 00:44:51 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.298 2017/03/06 02:03:20 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1084,7 +1084,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	struct known_hosts_ctx *ctx = (struct known_hosts_ctx *)_ctx;
 	char *hashed, *cp, *hosts, *ohosts;
 	int has_wild = l->hosts && strcspn(l->hosts, "*?!") != strlen(l->hosts);
-	int was_hashed = l->hosts[0] == HASH_DELIM;
+	int was_hashed = l->hosts && l->hosts[0] == HASH_DELIM;
 
 	switch (l->status) {
 	case HKF_STATUS_OK:
