@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.296 2017/03/03 06:13:11 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.297 2017/03/06 00:44:51 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1096,7 +1096,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 		if (was_hashed || has_wild || l->marker != MRK_NONE) {
 			fprintf(ctx->out, "%s\n", l->line);
 			if (has_wild && !find_host) {
-				logit("%s:%ld: ignoring host name "
+				logit("%s:%lu: ignoring host name "
 				    "with wildcard: %.64s", l->path,
 				    l->linenum, l->hosts);
 			}
@@ -1118,7 +1118,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 	case HKF_STATUS_INVALID:
 		/* Retain invalid lines, but mark file as invalid. */
 		ctx->invalid = 1;
-		logit("%s:%ld: invalid line", l->path, l->linenum);
+		logit("%s:%lu: invalid line", l->path, l->linenum);
 		/* FALLTHROUGH */
 	default:
 		fprintf(ctx->out, "%s\n", l->line);
@@ -1152,14 +1152,14 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 				 */
 				ctx->found_key = 1;
 				if (!quiet)
-					printf("# Host %s found: line %ld\n",
+					printf("# Host %s found: line %lu\n",
 					    ctx->host, l->linenum);
 			}
 			return 0;
 		} else if (find_host) {
 			ctx->found_key = 1;
 			if (!quiet) {
-				printf("# Host %s found: line %ld %s\n",
+				printf("# Host %s found: line %lu %s\n",
 				    ctx->host,
 				    l->linenum, l->marker == MRK_CA ? "CA" :
 				    (l->marker == MRK_REVOKE ? "REVOKED" : ""));
@@ -1179,7 +1179,7 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 		/* Retain non-matching hosts when deleting */
 		if (l->status == HKF_STATUS_INVALID) {
 			ctx->invalid = 1;
-			logit("%s:%ld: invalid line", l->path, l->linenum);
+			logit("%s:%lu: invalid line", l->path, l->linenum);
 		}
 		fprintf(ctx->out, "%s\n", l->line);
 	}
