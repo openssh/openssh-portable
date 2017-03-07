@@ -292,27 +292,6 @@ help(void)
 	    "?                                  Synonym for help\n");
 }
 
-#ifdef WINDOWS
-/* printf version to account for utf-8 input */
-/* TODO - merge this with vfmprint */
-static void printf_utf8(char *fmt,  ... ) {
-	/* TODO - is 1024 sufficient */
-	char buf[1024];
-	int length = 0;
-	
-	va_list valist;
-	va_start(valist, fmt);
-	length = vsnprintf(buf, 1024, fmt, valist);
-	va_end(valist);
-
-	write(STDOUT_FILENO, buf, length);
-}
-
-/* override mprintf */
-#define mprintf(a,...)		printf_utf8((a), __VA_ARGS__)
-#define printf(a,...)		printf_utf8((a), __VA_ARGS__)
-#endif   /* WINDOWS */
-
 static void
 local_do_shell(const char *args)
 {
@@ -420,7 +399,7 @@ make_absolute(char *p, const char *pwd)
 		p = abs_str;
 	}
 
-	/* convert '\\' tp '/' */
+	/* convert '\\' to '/' */
 	convertToForwardslash(p);
 
 	/* Append "/" if needed to the absolute windows path */	
@@ -925,23 +904,7 @@ do_ls_dir(struct sftp_conn *conn, const char *path,
 			} else
 				mprintf("%s\n", d[n]->longname);
 		} else {
-#ifdef WINDOWS
-			/* cannot use printf_utf8 becuase of width specification */
-			/* printf_utf8 does not account for utf-16 based argument widths */
-			char *p = NULL;
-			wchar_t buf[1024]; 
-			wchar_t* wtmp = utf8_to_utf16(fname);
-			swprintf(buf, 1024, L"%-*s", colspace, wtmp);
-			
-			if ((p = utf16_to_utf8(buf)) == NULL)
-				continue;
-			
-			write(STDOUT_FILENO, p, strlen(p));			
-			free(wtmp);
-			free(p);
-#else
 			mprintf("%-*s", colspace, fname);
-#endif
 			if (c >= columns) {
 				printf("\n");
 				c = 1;
@@ -1025,23 +988,7 @@ do_globbed_ls(struct sftp_conn *conn, const char *path,
 			mprintf("%s\n", lname);
 			free(lname);
 		} else {
-#ifdef WINDOWS
-			/* cannot use printf_utf8 becuase of width specification */
-			/* printf_utf8 does not account for utf-16 based argument widths */
-			char *p = NULL;
-			wchar_t buf[1024];
-			wchar_t* wtmp = utf8_to_utf16(fname);
-			swprintf(buf, 1024, L"%-*s", colspace, wtmp);
-			
-			if ((p = utf16_to_utf8(buf)) == NULL)
-				continue;
-
-			write(STDOUT_FILENO, p, strlen(p));			
-			free(wtmp);
-			free(p);
-#else
 			mprintf("%-*s", colspace, fname);
-#endif
 			if (c >= columns) {
 				printf("\n");
 				c = 1;
@@ -2211,20 +2158,8 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 	interactive = !batchmode && isatty(STDIN_FILENO);
 	err = 0;
 
-#ifdef WINDOWS
-	/* Min buffer size allowed in Windows is 2*/
-	setvbuf(stdout, NULL, _IOLBF, 2);
-	
-	/* We do this only in interactive mode as we are unable to read files with UTF8 BOM */
-	if (interactive) {
-		setvbuf(infile, NULL, _IOLBF, 2);
-		_setmode(_fileno(stdin), O_U16TEXT); /* prepare for Unicode input */
-	}
-#else   /* !WINDOWS */
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
-#endif   /* !WINDOWS */
-
 
 	for (;;) {
 		char *cp;
@@ -2232,25 +2167,6 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		signal(SIGINT, SIG_IGN);
 
 		if (el == NULL) {
-#ifdef WINDOWS
-			/* fgets on Windows does not support Unicode input*/
-			if (interactive) {
-				wchar_t wcmd[2048];
-				printf("sftp> ");
-				if (fgetws(wcmd, sizeof(cmd)/sizeof(wchar_t), infile) == NULL) {
-					printf("\n");
-					break;
-				}
-				else {
-					char *pcmd = NULL;
-					if ((pcmd = utf16_to_utf8(wcmd)) == NULL)
-						fatal("failed to convert input arguments");
-					strcpy(cmd, pcmd);
-					free(pcmd);                    
-				}
-			} else if (fgets(cmd, sizeof(cmd), infile) == NULL) 
-				break;
-#else /* !WINDOWS */
 			if (interactive)
 				printf("sftp> ");
 			if (fgets(cmd, sizeof(cmd), infile) == NULL) {
@@ -2258,7 +2174,6 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 					printf("\n");
 				break;
 			}
-#endif/* !WINDOWS */
 			if (!interactive) { /* Echo command */
 				mprintf("sftp> %s", cmd);
 				if (strlen(cmd) > 0 &&
