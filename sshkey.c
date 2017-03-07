@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.41 2016/10/24 01:09:17 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.43 2017/02/17 02:31:14 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -89,7 +89,9 @@ static const struct keytype keytypes[] = {
 	{ "ssh-ed25519-cert-v01@openssh.com", "ED25519-CERT",
 	    KEY_ED25519_CERT, 0, 1, 0 },
 #ifdef WITH_OPENSSL
+# ifdef WITH_SSH1
 	{ NULL, "RSA1", KEY_RSA1, 0, 0, 0 },
+# endif
 	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0, 0 },
 	{ "rsa-sha2-256", "RSA", KEY_RSA, 0, 0, 1 },
 	{ "rsa-sha2-512", "RSA", KEY_RSA, 0, 0, 1 },
@@ -3786,7 +3788,46 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 
 	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
 	    (char *)passphrase)) == NULL) {
-		r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+		unsigned long pem_err = ERR_peek_last_error();
+		int pem_reason = ERR_GET_REASON(pem_err);
+
+		/*
+		 * Translate OpenSSL error codes to determine whether
+		 * passphrase is required/incorrect.
+		 */
+		switch (ERR_GET_LIB(pem_err)) {
+		case ERR_LIB_PEM:
+			switch (pem_reason) {
+			case PEM_R_BAD_PASSWORD_READ:
+			case PEM_R_PROBLEMS_GETTING_PASSWORD:
+			case PEM_R_BAD_DECRYPT:
+				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+				goto out;
+			default:
+				r = SSH_ERR_INVALID_FORMAT;
+				goto out;
+			}
+		case ERR_LIB_EVP:
+			switch (pem_reason) {
+			case EVP_R_BAD_DECRYPT:
+				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+				goto out;
+			case EVP_R_BN_DECODE_ERROR:
+			case EVP_R_DECODE_ERROR:
+#ifdef EVP_R_PRIVATE_KEY_DECODE_ERROR
+			case EVP_R_PRIVATE_KEY_DECODE_ERROR:
+#endif
+				r = SSH_ERR_INVALID_FORMAT;
+				goto out;
+			default:
+				r = SSH_ERR_LIBCRYPTO_ERROR;
+				goto out;
+			}
+		case ERR_LIB_ASN1:
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
 	if (pk->type == EVP_PKEY_RSA &&
@@ -3860,6 +3901,8 @@ int
 sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp)
 {
+	int r = SSH_ERR_INTERNAL_ERROR;
+
 	if (keyp != NULL)
 		*keyp = NULL;
 	if (commentp != NULL)
@@ -3882,9 +3925,11 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		return sshkey_parse_private2(blob, type, passphrase,
 		    keyp, commentp);
 	case KEY_UNSPEC:
-		if (sshkey_parse_private2(blob, type, passphrase, keyp,
-		    commentp) == 0)
-			return 0;
+		r = sshkey_parse_private2(blob, type, passphrase, keyp,
+		    commentp);
+		/* Do not fallback to PEM parser if only passphrase is wrong. */
+		if (r == 0 || r == SSH_ERR_KEY_WRONG_PASSPHRASE)
+			return r;
 #ifdef WITH_OPENSSL
 		return sshkey_parse_private_pem_fileblob(blob, type,
 		    passphrase, keyp);
