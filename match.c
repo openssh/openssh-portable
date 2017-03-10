@@ -1,4 +1,4 @@
-/* $OpenBSD: match.c,v 1.35 2017/02/15 23:38:31 jsg Exp $ */
+/* $OpenBSD: match.c,v 1.36 2017/03/10 03:52:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -145,7 +145,7 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 		if (subi >= sizeof(sub) - 1)
 			return 0;
 
-		/* If the subpattern was terminated by a comma, skip the comma. */
+		/* If the subpattern was terminated by a comma, then skip it. */
 		if (i < len && pattern[i] == ',')
 			i++;
 
