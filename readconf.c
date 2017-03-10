@@ -1980,7 +1980,9 @@ fill_default_options(Options * options)
 		options->protocol = SSH_PROTO_2;
 	if (options->add_keys_to_agent == -1)
 		options->add_keys_to_agent = 0;
-	if (options->num_identity_files == 0) {
+	if (options->num_identity_files == 0
+	    && options->num_certificate_files == 0 /* a cert is equivalent to an identity */
+	    && options->identities_only != 1) {    /* don't add implicit identity when explicit desired */
 		if (options->protocol & SSH_PROTO_1) {
 			add_identity_file(options, "~/",
 			    _PATH_SSH_CLIENT_IDENTITY, 0);

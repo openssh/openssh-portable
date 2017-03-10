@@ -996,11 +996,11 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 }
 
 static const char *
-identity_sign_encode(struct identity *id)
+key_sign_encode(Key *key)
 {
 	struct ssh *ssh = active_state;
 
-	if (id->key->type == KEY_RSA) {
+	if (key->type == KEY_RSA) {
 		switch (ssh->kex->rsa_sha2) {
 		case 256:
 			return "rsa-sha2-256";
@@ -1008,7 +1008,13 @@ identity_sign_encode(struct identity *id)
 			return "rsa-sha2-512";
 		}
 	}
-	return key_ssh_name(id->key);
+	return key_ssh_name(key);
+}
+
+static const char *
+identity_sign_encode(struct identity *id)
+{
+	return key_sign_encode(id->key);
 }
 
 static int
@@ -1017,26 +1023,24 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 {
 	Key *prv;
 	int ret;
-	const char *alg;
-
-	alg = identity_sign_encode(id);
 
 	/* the agent supports this key */
-	if (id->agent_fd != -1)
+	if (id->key != NULL && id->agent_fd != -1)
 		return ssh_agent_sign(id->agent_fd, id->key, sigp, lenp,
-		    data, datalen, alg, compat);
+		    data, datalen, identity_sign_encode(id), compat);
 
 	/*
 	 * we have already loaded the private key or
 	 * the private key is stored in external hardware
 	 */
-	if (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))
-		return (sshkey_sign(id->key, sigp, lenp, data, datalen, alg,
-		    compat));
+	if (id->key != NULL && (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT)))
+		return (sshkey_sign(id->key, sigp, lenp, data, datalen,
+		    identity_sign_encode(id), compat));
+
 	/* load the private key from the file */
 	if ((prv = load_identity_file(id)) == NULL)
 		return SSH_ERR_KEY_NOT_FOUND;
-	ret = sshkey_sign(prv, sigp, lenp, data, datalen, alg, compat);
+	ret = sshkey_sign(prv, sigp, lenp, data, datalen, key_sign_encode(prv), compat);
 	sshkey_free(prv);
 	return (ret);
 }
@@ -1049,8 +1053,9 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	u_char *blob, *signature;
 	size_t slen;
 	u_int bloblen, skip = 0;
-	int matched, ret = -1, have_sig = 1;
+	int matched, ret = -1, have_sig = 1, try_keyname = 0;
 	char *fp;
+	size_t orig_name_len, cert_filename_len = 0;
 
 	if ((fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
@@ -1095,9 +1100,35 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	 */
 	if (key_is_cert(id->key)) {
 		matched = 0;
+
+		/*
+		 * If a user specified only a private key originally, e.g. id_rsa, then
+		 * code elsewhere looks for file named "-cert.pub" and loads it up but gives
+		 * it a name as "-cert" for some reason.
+		 *
+		 * If instead we explicitly listed a cert with name "-cert.pub", then it ends
+		 * up here as "-cert.pub".
+		 *
+		 * Thus we handle both.
+		 */
+		if (id->filename != NULL) {
+			cert_filename_len = strlen(id->filename);
+			if (cert_filename_len > 5 && strncmp("-cert", id->filename + (cert_filename_len - 5), 5) == 0) {
+				orig_name_len = cert_filename_len - 5;
+				try_keyname = 1;
+			} else if (cert_filename_len > 9 && strncmp("-cert.pub", id->filename + (cert_filename_len - 9), 9) == 0) {
+				orig_name_len = cert_filename_len - 9;
+				try_keyname = 1;
+			}
+		}
+
 		TAILQ_FOREACH(private_id, &authctxt->keys, next) {
-			if (sshkey_equal_public(id->key, private_id->key) &&
-			    id->key->type != private_id->key->type) {
+			if ((sshkey_equal_public(id->key, private_id->key) &&
+			     id->key->type != private_id->key->type) ||
+			    (try_keyname &&
+			     private_id->filename != NULL &&
+			     strlen(private_id->filename) == orig_name_len &&
+			     strncmp(id->filename, private_id->filename, orig_name_len) == 0)) {
 				id = private_id;
 				matched = 1;
 				break;
@@ -1112,7 +1143,6 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 			    "\"%s\"", __func__, id->filename);
 		}
 	}
-
 	/* generate signature */
 	ret = identity_sign(id, &signature, &slen,
 	    buffer_ptr(&b), buffer_len(&b), datafellows);

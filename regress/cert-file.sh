@@ -17,6 +17,11 @@ ${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/user_key1 || \
 	fatal "ssh-keygen failed"
 ${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/user_key2 || \
 	fatal "ssh-keygen failed"
+${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/user_key3 || \
+	fatal "ssh-keygen failed"
+${SSHKEYGEN} -q -N '' -t ed25519 -f $OBJ/user_key4 || \
+	fatal "ssh-keygen failed"
+
 # Move the certificate to a different address to better control
 # when it is offered.
 ${SSHKEYGEN} -q -s $OBJ/user_ca_key1 -I "regress user key for $USER" \
@@ -27,13 +32,59 @@ ${SSHKEYGEN} -q -s $OBJ/user_ca_key2 -I "regress user key for $USER" \
 	-z $$ -n ${USER} $OBJ/user_key1 ||
 		fail "couldn't sign user_key1 with user_ca_key2"
 mv $OBJ/user_key1-cert.pub $OBJ/cert_user_key1_2.pub
+${SSHKEYGEN} -q -s $OBJ/user_ca_key1 -I "regress user key for $USER" \
+	-z $$ -n ${USER} $OBJ/user_key3 ||
+		fail "couldn't sign user_key3 with user_ca_key1"
+rm $OBJ/user_key3.pub # make sure we remove this, as that's the point of this test
+${SSHKEYGEN} -q -s $OBJ/user_ca_key1 -I "regress user key for $USER" \
+	-z $$ -n ${USER} $OBJ/user_key4 ||
+		fail "couldn't sign user_key4 with user_ca_key1"
+rm $OBJ/user_key4 $OBJ/user_key4.pub # remove them both, we want this to be a broken cert
 
 trace 'try with identity files'
 opts="-F $OBJ/ssh_proxy -oIdentitiesOnly=yes"
 opts2="$opts -i $OBJ/user_key1 -i $OBJ/user_key2"
 echo "cert-authority $(cat $OBJ/user_ca_key1.pub)" > $OBJ/authorized_keys_$USER
 
+# Make a clean config that doesn't have any pre-added identities.
+cat $OBJ/ssh_proxy | grep -v IdentityFile > $OBJ/no_identity_config
+
 for p in ${SSH_PROTOCOLS}; do
+	# IdentitiesOnly should count a CertificateFile as an identity, and not fall back
+	# to ~/.ssh/id_rsa and friends, even if the cert is busted.
+	${SSH} -F $OBJ/no_identity_config -oIdentitiesOnly=yes -oCertificateFile=$OBJ/user_key4-cert.pub somehost exit 5$p
+	r=$?
+	if [ $r -eq 5$p ]; then
+		fail "ssh should fail, and not fallback to other working user $p"
+	fi
+	# Bad form to grep over log file, but can't see any other way to determine
+	# if the default home directory location is used or not.
+	cnt=$(grep -c id_rsa $OBJ/ssh.log)
+	if [ $cnt -ne "0" ]; then
+		fail "ssh must not try to use id_rsa when IdentitiesOnly is specified ($cnt found, want 0) $p"
+	fi
+
+	# xxx alone should work (find the equivalent cert)
+	${SSH} -F $OBJ/no_identity_config -oIdentitiesOnly=yes -i $OBJ/user_key3 somehost exit 5$p
+	r=$?
+	if [ $r -ne 5$p ]; then
+		fail "ssh with cert failed with private key file specified only $p"
+	fi
+
+	# xxx-cert.pub should work (find the equivalent private key)
+	${SSH} -F $OBJ/no_identity_config -oIdentitiesOnly=yes -oCertificateFile=$OBJ/user_key3-cert.pub somehost exit 5$p
+	r=$?
+	if [ $r -ne 5$p ]; then
+		fail "ssh failed with cert only $p"
+	fi
+
+	# Both together must work, even when key.pub is missing
+	${SSH} -F $OBJ/no_identity_config -oIdentitiesOnly=yes -oCertificateFile=$OBJ/user_key3-cert.pub -i $OBJ/user_key3 somehost exit 5$p
+	r=$?
+	if [ $r -ne 5$p ]; then
+		fail "ssh failed with cert and private key file only $p"
+	fi
+
 	# Just keys should fail
 	${SSH} $opts2 somehost exit 5$p
 	r=$?
