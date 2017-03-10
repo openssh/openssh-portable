@@ -1,4 +1,4 @@
-/* $OpenBSD: match.c,v 1.37 2017/03/10 04:24:55 djm Exp $ */
+/* $OpenBSD: match.c,v 1.36 2017/03/10 03:52:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,11 +42,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "xmalloc.h"
 #include "match.h"
-#include "misc.h"
 
 /*
  * Returns true if the given string matches the pattern (which may contain ?
@@ -179,13 +177,7 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 int
 match_hostname(const char *host, const char *pattern)
 {
-	char *hostcopy = xstrdup(host);
-	int r;
-
-	lowercase(hostcopy);
-	r = match_pattern_list(hostcopy, pattern, 1);
-	free(hostcopy);
-	return r;
+	return match_pattern_list(host, pattern, 1);
 }
 
 /*
