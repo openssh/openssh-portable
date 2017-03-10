@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.43 2017/02/17 02:31:14 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.44 2017/03/10 03:48:57 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1238,6 +1238,9 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef WITH_SSH1
 	u_long bits;
 #endif /* WITH_SSH1 */
+
+	if (ret == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 
 	cp = *cpp;
 
