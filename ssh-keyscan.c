@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.108 2017/03/10 03:18:24 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.109 2017/03/10 04:26:06 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -327,6 +327,7 @@ keyprint_one(const char *host, struct sshkey *key)
 	const char *known_host, *hashed;
 
 	hostport = put_host_port(host, ssh_port);
+	lowercase(hostport);
 	if (hash_hosts && (hashed = host_hash(host, NULL, 0)) == NULL)
 		fatal("host_hash failed");
 	known_host = hash_hosts ? hashed : hostport;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.298 2017/03/06 02:03:20 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.299 2017/03/10 04:26:06 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1108,6 +1108,7 @@ known_hosts_hash(struct hostkey_foreach_line *l, void *_ctx)
 		 */
 		ohosts = hosts = xstrdup(l->hosts);
 		while ((cp = strsep(&hosts, ",")) != NULL && *cp != '\0') {
+			lowercase(cp);
 			if ((hashed = host_hash(cp, NULL, 0)) == NULL)
 				fatal("hash_host failed");
 			fprintf(ctx->out, "%s %s\n", hashed, l->rawkey);
