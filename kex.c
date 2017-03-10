@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.129 2017/03/10 03:45:40 dtucker Exp $ */
+/* $OpenBSD: kex.c,v 1.130 2017/03/10 04:07:20 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -350,7 +350,7 @@ kex_send_ext_info(struct ssh *ssh)
 	int r;
 	char *algs;
 
-	if ((algs = sshkey_alg_list(0, 1, ',')) == NULL)
+	if ((algs = sshkey_alg_list(0, 1, 1, ',')) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshpkt_start(ssh, SSH2_MSG_EXT_INFO)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, 1)) != 0 ||
