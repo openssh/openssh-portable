@@ -388,10 +388,12 @@ w32_ioctl(int d, int request, ...)
 			errno = EINVAL;
 			return -1;
 		}
-		wsize->ws_col = c_info.dwSize.X - 5;
-		wsize->ws_row = c_info.dwSize.Y;
+
+		wsize->ws_col = c_info.srWindow.Right - c_info.srWindow.Left + 1;
+		wsize->ws_row = c_info.srWindow.Bottom - c_info.srWindow.Top + 1;
 		wsize->ws_xpixel = 640;
 		wsize->ws_ypixel = 480;
+
 		return 0;
 	}
 	default:
