@@ -1205,8 +1205,14 @@ wmain(int ac, wchar_t **av)
 		char *cmd_b64_utf8, *cmd_utf8;
 		if ((cmd_b64_utf8 = utf16_to_utf8(cmd_b64)) == NULL ||
 		    /* strlen(b64) should be sufficient for decoded length */
-		    (cmd_utf8 = malloc(strlen(cmd_b64_utf8))) == NULL ||
-		    b64_pton(cmd_b64_utf8, cmd_utf8, strlen(cmd_b64_utf8)) == -1 ||
+		    (cmd_utf8 = malloc(strlen(cmd_b64_utf8))) == NULL) {
+			printf("ssh-shellhost - out of memory");
+			return -1;
+		}
+		   
+		memset(cmd_utf8, 0, strlen(cmd_b64_utf8));
+
+		if (b64_pton(cmd_b64_utf8, cmd_utf8, strlen(cmd_b64_utf8)) == -1 ||
 		    (cmd = utf8_to_utf16(cmd_utf8)) == NULL) {
 			printf("ssh-shellhost encountered an internal error while decoding base64 cmdline");
 			return -1;
