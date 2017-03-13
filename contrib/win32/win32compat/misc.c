@@ -389,7 +389,7 @@ w32_ioctl(int d, int request, ...)
 			return -1;
 		}
 
-		wsize->ws_col = c_info.srWindow.Right - c_info.srWindow.Left + 1;
+		wsize->ws_col = c_info.dwSize.X;
 		wsize->ws_row = c_info.srWindow.Bottom - c_info.srWindow.Top + 1;
 		wsize->ws_xpixel = 640;
 		wsize->ws_ypixel = 480;
