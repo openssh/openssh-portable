@@ -228,7 +228,15 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW_ARG(__NR_ioctl, 1, Z90STAT_STATUS_MASK),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSAMODEXPO),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSACRT),
-#endif /* defined(__NR_ioctl) && defined(__s390__) */
+#endif
+#if defined(__x86_64__) && defined(__ILP32__) && defined(__X32_SYSCALL_BIT)
+	/*
+	 * On Linux x32, the clock_gettime VDSO falls back to the
+	 * x86-64 syscall under some circumstances, e.g.
+	 * https://bugs.debian.org/849923
+	 */
+	SC_ALLOW(__NR_clock_gettime & ~__X32_SYSCALL_BIT);
+#endif
 
 	/* Default deny */
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_FILTER_FAIL),
