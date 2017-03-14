@@ -73,6 +73,16 @@
 # define SECCOMP_FILTER_FAIL SECCOMP_RET_TRAP
 #endif /* SANDBOX_SECCOMP_FILTER_DEBUG */
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+# define ARG_LO_OFFSET  0
+# define ARG_HI_OFFSET  sizeof(uint32_t)
+#elif __BYTE_ORDER == __BIG_ENDIAN
+# define ARG_LO_OFFSET  sizeof(uint32_t)
+# define ARG_HI_OFFSET  0
+#else
+#error "Unknown endianness"
+#endif
+
 /* Simple helpers to avoid manual errors (but larger BPF programs). */
 #define SC_DENY(_nr, _errno) \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 1), \
@@ -81,11 +91,17 @@
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 1), \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW)
 #define SC_ALLOW_ARG(_nr, _arg_nr, _arg_val) \
-	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 4), \
-	/* load first syscall argument */ \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, __NR_ ## _nr, 0, 6), \
+	/* load and test first syscall argument, low word */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
-	    offsetof(struct seccomp_data, args[(_arg_nr)])), \
-	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, (_arg_val), 0, 1), \
+	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_LO_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
+	    ((_arg_val) & 0xFFFFFFFF), 0, 3), \
+	/* load and test first syscall argument, high word */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_HI_OFFSET), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
+	    (((uint32_t)((uint64_t)(_arg_val) >> 32)) & 0xFFFFFFFF), 0, 1), \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW), \
 	/* reload syscall number; all rules expect it in accumulator */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
