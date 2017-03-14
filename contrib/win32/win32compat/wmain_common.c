@@ -34,7 +34,8 @@
 #include "inc\utf.h"
 #include "misc_internal.h"
 
-int main(int, char **);
+int
+main(int, char **);
 
 int
 wmain(int argc, wchar_t **wargv) {
