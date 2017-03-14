@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.108 2017/03/14 00:25:03 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.109 2017/03/14 00:55:37 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -350,10 +350,10 @@ convtime(const char *s)
 		default:
 			return -1;
 		}
-		if (secs > LONG_MAX / multiplier)
+		if (secs >= LONG_MAX / multiplier)
 			return -1;
 		secs *= multiplier;
-		if  (total > LONG_MAX - secs)
+		if  (total >= LONG_MAX - secs)
 			return -1;
 		total += secs;
 		if (total < 0)
