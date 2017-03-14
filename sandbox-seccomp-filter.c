@@ -223,6 +223,12 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_socketcall
 	SC_ALLOW_ARG(socketcall, 0, SYS_SHUTDOWN),
 #endif
+#if defined(__NR_ioctl) && defined(__s390__)
+	/* Allow ioctls for ICA crypto card on s390 */
+	SC_ALLOW_ARG(ioctl, 1, Z90STAT_STATUS_MASK),
+	SC_ALLOW_ARG(ioctl, 1, ICARSAMODEXPO),
+	SC_ALLOW_ARG(ioctl, 1, ICARSACRT),
+#endif /* defined(__NR_ioctl) && defined(__s390__) */
 
 	/* Default deny */
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_FILTER_FAIL),
