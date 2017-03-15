@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.484 2017/03/15 02:19:09 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.485 2017/03/15 03:52:30 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1679,7 +1679,7 @@ main(int ac, char **av)
 		if ((pubkey != NULL && pubkey->type == KEY_RSA1) ||
 		    (key != NULL && key->type == KEY_RSA1)) {
 			verbose("Ignoring RSA1 key %s",
-			    options.host_key_files[i])
+			    options.host_key_files[i]);
 			key_free(key);
 			key_free(pubkey);
 			continue;

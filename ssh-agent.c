@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.217 2017/03/15 02:25:09 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.218 2017/03/15 03:52:30 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -857,6 +857,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	else
 		error("process_remove_smartcard_key:"
 		    " pkcs11_del_provider failed");
+send:
 	free(provider);
 	send_status(e, success);
 }
