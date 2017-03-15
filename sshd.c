@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.483 2017/02/24 03:16:34 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.484 2017/03/15 02:19:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1675,6 +1675,15 @@ main(int ac, char **av)
 			continue;
 		key = key_load_private(options.host_key_files[i], "", NULL);
 		pubkey = key_load_public(options.host_key_files[i], NULL);
+
+		if ((pubkey != NULL && pubkey->type == KEY_RSA1) ||
+		    (key != NULL && key->type == KEY_RSA1)) {
+			verbose("Ignoring RSA1 key %s",
+			    options.host_key_files[i])
+			key_free(key);
+			key_free(pubkey);
+			continue;
+		}
 		if (pubkey == NULL && key != NULL)
 			pubkey = key_demote(key);
 		sensitive_data.host_keys[i] = key;
