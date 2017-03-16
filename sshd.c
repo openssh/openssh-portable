@@ -1317,7 +1317,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					continue;
 				}
                 
-				pid = spawn_child(path_utf8, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO, CREATE_NEW_PROCESS_GROUP);
+				pid = spawn_child(path_utf8, NULL, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO, CREATE_NEW_PROCESS_GROUP);
 				free(path_utf8);
 				close(*newsock);
 			}
@@ -1747,9 +1747,9 @@ main(int ac, char **av)
 			error("Could not connect to agent \"%s\": %s",
 			    options.host_key_agent, ssh_err(r));
 	}
-#ifdef WINDOWS /* Windows version always needs and has agent running */
+#ifdef WINDOWS /* Windows version always needs and has agent running */  
 	have_agent = 1;
-#endif
+#endif  
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (options.host_key_files[i] == NULL)
 			continue;

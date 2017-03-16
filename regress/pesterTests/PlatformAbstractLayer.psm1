@@ -251,6 +251,11 @@ Class Machine
         {
             $this.SetKeys($null, $publicKeyPath, $($this.localAdminAuthorizedKeyPath))
         }        
+        # Provide Read Access to NT Service\sshd
+        $acl = get-acl $($this.localAdminAuthorizedKeyPath)
+        $ar = New-Object  System.Security.AccessControl.FileSystemAccessRule("NT Service\sshd", "Read", "Allow")
+        $acl.SetAccessRule($ar)
+        Set-Acl  $($this.localAdminAuthorizedKeyPath) $acl
     }
 
     [void] CleanupServer() {
@@ -351,7 +356,8 @@ Class Machine
     }
 
     [void] AddPasswordSetting([string] $pass) {
-        if ($this.Platform -eq [PlatformType]::Windows) {        
+        if ($this.Platform -eq [PlatformType]::Windows) {
+            if (-not($env:DISPLAY)) {$env:DISPLAY=1}
             $env:SSH_ASKPASS="$($env:ComSpec) /c echo $pass"
         }
     }
@@ -359,6 +365,7 @@ Class Machine
     [void] CleanupPasswordSetting() {
         if ($this.Platform -eq [PlatformType]::Windows -and (Test-Path env:SSH_ASKPASS))
         {
+            if ($env:DISPLAY -eq 1) {Remove-Item env:\DISPLAY}
             remove-item "env:SSH_ASKPASS" -ErrorAction SilentlyContinue
         }
     }
