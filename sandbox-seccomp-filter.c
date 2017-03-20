@@ -235,7 +235,7 @@ static const struct sock_filter preauth_insns[] = {
 	 * x86-64 syscall under some circumstances, e.g.
 	 * https://bugs.debian.org/849923
 	 */
-	SC_ALLOW(__NR_clock_gettime & ~__X32_SYSCALL_BIT);
+	SC_ALLOW(__NR_clock_gettime & ~__X32_SYSCALL_BIT),
 #endif
 
 	/* Default deny */
