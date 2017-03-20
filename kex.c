@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.128 2017/02/03 23:01:19 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.131 2017/03/15 07:07:39 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -178,7 +178,7 @@ kex_names_valid(const char *names)
 char *
 kex_names_cat(const char *a, const char *b)
 {
-	char *ret = NULL, *tmp = NULL, *cp, *p;
+	char *ret = NULL, *tmp = NULL, *cp, *p, *m;
 	size_t len;
 
 	if (a == NULL || *a == '\0')
@@ -195,8 +195,10 @@ kex_names_cat(const char *a, const char *b)
 	}
 	strlcpy(ret, a, len);
 	for ((p = strsep(&cp, ",")); p && *p != '\0'; (p = strsep(&cp, ","))) {
-		if (match_list(ret, p, NULL) != NULL)
+		if ((m = match_list(ret, p, NULL)) != NULL) {
+			free(m);
 			continue; /* Algorithm already present */
+		}
 		if (strlcat(ret, ",", len) >= len ||
 		    strlcat(ret, p, len) >= len) {
 			free(tmp);
@@ -339,7 +341,6 @@ kex_reset_dispatch(struct ssh *ssh)
 {
 	ssh_dispatch_range(ssh, SSH2_MSG_TRANSPORT_MIN,
 	    SSH2_MSG_TRANSPORT_MAX, &kex_protocol_error);
-	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
 }
 
 static int
@@ -348,7 +349,7 @@ kex_send_ext_info(struct ssh *ssh)
 	int r;
 	char *algs;
 
-	if ((algs = sshkey_alg_list(0, 1, ',')) == NULL)
+	if ((algs = sshkey_alg_list(0, 1, 1, ',')) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshpkt_start(ssh, SSH2_MSG_EXT_INFO)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, 1)) != 0 ||
@@ -429,6 +430,7 @@ kex_input_newkeys(int type, u_int32_t seq, void *ctxt)
 
 	debug("SSH2_MSG_NEWKEYS received");
 	ssh_dispatch_set(ssh, SSH2_MSG_NEWKEYS, &kex_protocol_error);
+	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
 	if ((r = sshpkt_get_end(ssh)) != 0)
 		return r;
 	if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0)
@@ -543,6 +545,7 @@ kex_new(struct ssh *ssh, char *proposal[PROPOSAL_MAX], struct kex **kexp)
 		goto out;
 	kex->done = 0;
 	kex_reset_dispatch(ssh);
+	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
 	r = 0;
 	*kexp = kex;
  out:
@@ -651,8 +654,10 @@ choose_enc(struct sshenc *enc, char *client, char *server)
 
 	if (name == NULL)
 		return SSH_ERR_NO_CIPHER_ALG_MATCH;
-	if ((enc->cipher = cipher_by_name(name)) == NULL)
+	if ((enc->cipher = cipher_by_name(name)) == NULL) {
+		free(name);
 		return SSH_ERR_INTERNAL_ERROR;
+	}
 	enc->name = name;
 	enc->enabled = 0;
 	enc->iv = NULL;
@@ -670,8 +675,10 @@ choose_mac(struct ssh *ssh, struct sshmac *mac, char *client, char *server)
 
 	if (name == NULL)
 		return SSH_ERR_NO_MAC_ALG_MATCH;
-	if (mac_setup(mac, name) < 0)
+	if (mac_setup(mac, name) < 0) {
+		free(name);
 		return SSH_ERR_INTERNAL_ERROR;
+	}
 	/* truncate the key */
 	if (ssh->compat & SSH_BUG_HMAC)
 		mac->key_len = 16;
@@ -695,6 +702,7 @@ choose_comp(struct sshcomp *comp, char *client, char *server)
 	} else if (strcmp(name, "none") == 0) {
 		comp->type = COMP_NONE;
 	} else {
+		free(name);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
 	comp->name = name;

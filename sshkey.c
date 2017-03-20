@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.43 2017/02/17 02:31:14 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.45 2017/03/10 04:07:20 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -197,14 +197,16 @@ sshkey_ecdsa_nid_from_name(const char *name)
 }
 
 char *
-sshkey_alg_list(int certs_only, int plain_only, char sep)
+sshkey_alg_list(int certs_only, int plain_only, int include_sigonly, char sep)
 {
 	char *tmp, *ret = NULL;
 	size_t nlen, rlen = 0;
 	const struct keytype *kt;
 
 	for (kt = keytypes; kt->type != -1; kt++) {
-		if (kt->name == NULL || kt->sigonly)
+		if (kt->name == NULL)
+			continue;
+		if (!include_sigonly && kt->sigonly)
 			continue;
 		if ((certs_only && !kt->cert) || (plain_only && kt->cert))
 			continue;
@@ -1238,6 +1240,9 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #ifdef WITH_SSH1
 	u_long bits;
 #endif /* WITH_SSH1 */
+
+	if (ret == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 
 	cp = *cpp;
 

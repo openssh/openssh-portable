@@ -4396,7 +4396,6 @@ is_path_to_xsocket(const char *display, char *path, size_t pathlen)
 			}
 		}
 	}
-
 	return 0;
 }
 #endif
@@ -4440,7 +4439,6 @@ x11_connect_display(void)
 		}
 	}
 #endif
-
 	/*
 	 * Check if it is a unix domain socket.  Unix domain displays are in
 	 * one of the following formats: unix:d[.s], :d[.s], ::d[.s]
