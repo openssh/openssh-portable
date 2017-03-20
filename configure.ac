@@ -1717,6 +1717,7 @@ AC_CHECK_FUNCS([ \
 	inet_ntoa \
 	inet_ntop \
 	innetgr \
+	llabs \
 	login_getcapbool \
 	md5_crypt \
 	memmove \
