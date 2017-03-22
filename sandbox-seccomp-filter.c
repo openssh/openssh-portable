@@ -50,6 +50,9 @@
 #include <elf.h>
 
 #include <asm/unistd.h>
+#ifdef __s390__
+#include <asm/zcrypt.h>
+#endif
 
 #include <errno.h>
 #include <signal.h>
