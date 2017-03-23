@@ -1486,6 +1486,7 @@ AC_ARG_WITH(ldns,
 		else
 			LIBS="$LIBS `$LDNSCONFIG --libs`"
 			CPPFLAGS="$CPPFLAGS `$LDNSCONFIG --cflags`"
+			ldns=yes
 		fi
 	elif test "x$withval" != "xno" ; then
 			CPPFLAGS="$CPPFLAGS -I${withval}/include"
