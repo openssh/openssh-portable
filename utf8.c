@@ -332,4 +332,3 @@ msetlocale(void)
 	/* We can handle this locale */
 	setlocale(LC_CTYPE, "");
 }
-

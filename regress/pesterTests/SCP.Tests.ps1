@@ -1,5 +1,4 @@
-﻿using module .\PlatformAbstractLayer.psm1
-
+﻿
 #covered -i -p -q -r -v -c -S -C
 #todo: -F, -l and -P should be tested over the network
 Describe "Tests for scp command" -Tags "CI" {
@@ -21,10 +20,9 @@ Describe "Tests for scp command" -Tags "CI" {
         "Test content in nested dir" | Set-content -Path $NestedSourceFilePath
         $null = New-Item $DestinationDir -ItemType directory -Force
         
-        [Machine] $client = [Machine]::new([MachineRole]::Client)
-        [Machine] $server = [Machine]::new([MachineRole]::Server)
-        $client.SetupClient($server)
-        $server.SetupServer($client)
+        $server = $OpenSSHTestInfo["Target"]
+        $port = $OpenSSHTestInfo["Port"]
+        $ssouser = $OpenSSHTestInfo["SSOUser"]
         $script:logNum = 0        
 
         $testData = @(
@@ -36,11 +34,11 @@ Describe "Tests for scp command" -Tags "CI" {
             @{
                 Title = 'Simple copy local file to remote file'
                 Source = $SourceFilePath
-                Destination = "$($server.localAdminUserName)@$($server.MachineName):$DestinationFilePath"                
+                Destination = "$($ssouser)@$($server):$DestinationFilePath"                
             },
             @{
                 Title = 'Simple copy remote file to local file'
-                Source = "$($server.localAdminUserName)@$($server.MachineName):$SourceFilePath"
+                Source = "$($ssouser)@$($server):$SourceFilePath"
                 Destination = $DestinationFilePath                    
             },            
             @{
@@ -51,11 +49,11 @@ Describe "Tests for scp command" -Tags "CI" {
             @{
                 Title = 'simple copy local file to remote dir'         
                 Source = $SourceFilePath
-                Destination = "$($server.localAdminUserName)@$($server.MachineName):$DestinationDir"
+                Destination = "$($ssouser)@$($server):$DestinationDir"
             },
             @{
                 Title = 'simple copy remote file to local dir'
-                Source = "$($server.localAdminUserName)@$($server.MachineName):$SourceFilePath"
+                Source = "$($ssouser)@$($server):$SourceFilePath"
                 Destination = $DestinationDir
             }
         )
@@ -64,7 +62,7 @@ Describe "Tests for scp command" -Tags "CI" {
             @{
                 Title = 'copy from local dir to remote dir'
                 Source = $sourceDir
-                Destination = "$($server.localAdminUserName)@$($server.MachineName):$DestinationDir"
+                Destination = "$($ssouser)@$($server):$DestinationDir"
             },
             <#  @{
                 Title = 'copy from local dir to local dir'
@@ -73,7 +71,7 @@ Describe "Tests for scp command" -Tags "CI" {
             },#>
             @{
                 Title = 'copy from remote dir to local dir'            
-                Source = "$($server.localAdminUserName)@$($server.MachineName):$sourceDir"
+                Source = "$($ssouser)@$($server):$sourceDir"
                 Destination = $DestinationDir
             }
         )
@@ -93,9 +91,6 @@ Describe "Tests for scp command" -Tags "CI" {
     }
     AfterAll {
 
-        $client.CleanupClient()
-        $server.CleanupServer()
-
         Get-Item $SourceDir | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         Get-Item $DestinationDir | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
     }
@@ -114,16 +109,15 @@ Describe "Tests for scp command" -Tags "CI" {
         }
     }#>       
     
-    Context "Key is Secured in ssh-agent on server" {
-        BeforeAll {
-            $Server.SecureHostKeys($server.PrivateHostKeyPaths)
-            $privateKeyFile = $client.clientPrivateKeyPaths[0]            
+    Context "SCP -i option" {
+        BeforeAll {        
         }
         BeforeEach {
             if ($env:DebugMode)
             {
                 Stop-Service ssh-agent -Force
                 Start-Sleep 2
+                # Fix this - pick up logs from ssh installation dir, not test directory
                 Remove-Item .\logs\ssh-agent.log -Force -ErrorAction ignore
                 Remove-Item .\logs\sshd.log -Force -ErrorAction ignore
                 Start-Service sshd
@@ -131,12 +125,11 @@ Describe "Tests for scp command" -Tags "CI" {
         }
 
         AfterAll {
-            $Server.CleanupHostKeys()
         }
         
-        It 'File copy with -i option and private key: <Title> ' -TestCases:$testData {
+        It 'File copy with -i option: <Title> ' -TestCases:$testData {
             param([string]$Title, $Source, $Destination)
-            .\scp -i $privateKeyFile $Source $Destination
+            scp -P $port $Source $Destination
             $LASTEXITCODE | Should Be 0
 
             #validate file content. DestPath is the path to the file.
@@ -148,7 +141,7 @@ Describe "Tests for scp command" -Tags "CI" {
         It 'Directory recursive copy with -i option and private key: <Title> ' -TestCases:$testData1 {
             param([string]$Title, $Source, $Destination)            
 
-            .\scp -r -i $privateKeyFile $Source $Destination
+            scp -P $port -r $Source $Destination
             $LASTEXITCODE | Should Be 0
             CheckTarget -target (join-path $DestinationDir $SourceDirName) | Should Be $true
             
@@ -160,23 +153,16 @@ Describe "Tests for scp command" -Tags "CI" {
         }        
     }
     
-    Context "Single signon with keys -p -v -c option Secured in ssh-agent" {
+    Context "SCP -p -v -c options" {
         BeforeAll {        
-            $Server.SecureHostKeys($server.PrivateHostKeyPaths)
-            $identifyFile = $client.clientPrivateKeyPaths[0]
-            #setup single signon
-            .\ssh-add.exe $identifyFile
         }
 
         AfterAll {
-            $Server.CleanupHostKeys()
-
-            #cleanup single signon
-            .\ssh-add.exe -D
         }        
 
-        It 'File copy with -S -v option (positive)' {
-            .\scp -S .\ssh.exe -v $SourceFilePath "$($server.localAdminUserName)@$($server.MachineName):$DestinationFilePath"
+        It 'File copy with -S option (positive)' {
+            $sshcmd = (get-command ssh).Path
+            scp -P $port -S $sshcmd $SourceFilePath "$($ssouser)@$($server):$DestinationFilePath"
             $LASTEXITCODE | Should Be 0
             #validate file content. DestPath is the path to the file.
             CheckTarget -target $DestinationFilePath | Should Be $true
@@ -184,10 +170,11 @@ Describe "Tests for scp command" -Tags "CI" {
             $equal | Should Be $true
         }
 
+
         It 'File copy with -p -c option: <Title> ' -TestCases:$testData {
             param([string]$Title, $Source, $Destination)
             
-            .\scp -p -c aes128-ctr -C $Source $Destination
+            scp -P $port -p -c aes128-ctr -C $Source $Destination
             $LASTEXITCODE | Should Be 0
             #validate file content. DestPath is the path to the file.
             CheckTarget -target $DestinationFilePath | Should Be $true
@@ -198,7 +185,7 @@ Describe "Tests for scp command" -Tags "CI" {
         It 'Directory recursive copy with -r -p -c option: <Title> ' -TestCases:$testData1 {
             param([string]$Title, $Source, $Destination)                        
             
-            .\scp -r -p -c aes128-ctr $Source $Destination
+            scp -P $port -r -p -c aes128-ctr $Source $Destination
             $LASTEXITCODE | Should Be 0
             CheckTarget -target (join-path $DestinationDir $SourceDirName) | Should Be $true
             $equal = @(Compare-Object (Get-Item -path $SourceDir ) (Get-Item -path (join-path $DestinationDir $SourceDirName) ) -Property Name, Length, LastWriteTime.DateTime).Length -eq 0
@@ -209,15 +196,14 @@ Describe "Tests for scp command" -Tags "CI" {
         }
     }
    
-   Context "Private key authentication with -i -C -q options. host keys are not secured on server" {
+   Context "SCP -i -C -q options" {
         BeforeAll {
-            $identifyFile = $client.clientPrivateKeyPaths[0]
         }
         
         It 'File copy with -i -C -q options: <Title> ' -TestCases:$testData{
             param([string]$Title, $Source, $Destination)
 
-            .\scp -i $identifyFile -C -q $Source $Destination
+            scp -P $port  -C -q $Source $Destination
             $LASTEXITCODE | Should Be 0
             #validate file content. DestPath is the path to the file.
             CheckTarget -target $DestinationFilePath | Should Be $true
@@ -228,7 +214,7 @@ Describe "Tests for scp command" -Tags "CI" {
         It 'Directory recursive copy with -i -C -r and -q options: <Title> ' -TestCases:$testData1 {
             param([string]$Title, $Source, $Destination)               
 
-            .\scp -i $identifyFile -C -r -q $Source $Destination
+            scp -P $port  -C -r -q $Source $Destination
             $LASTEXITCODE | Should Be 0
             CheckTarget -target (join-path $DestinationDir $SourceDirName) | Should Be $true
             $equal = @(Compare-Object (Get-Item -path $SourceDir ) (Get-Item -path (join-path $DestinationDir $SourceDirName) ) -Property Name, Length).Length -eq 0
@@ -239,6 +225,7 @@ Describe "Tests for scp command" -Tags "CI" {
         }
     }
 
+    <#  No need to test Password auth for scp. Remove these if they are not adding any value from scp side
     Context "Password authentication" {
         BeforeAll {
             $client.AddPasswordSetting($server.localAdminPassword)
@@ -271,5 +258,6 @@ Describe "Tests for scp command" -Tags "CI" {
             $equal = @(Compare-Object (Get-ChildItem -Recurse -path $SourceDir) (Get-ChildItem -Recurse -path (join-path $DestinationDir $SourceDirName) ) -Property Name, Length, LastWriteTime.DateTime).Length -eq 0
             $equal | Should Be $true          
         }
-    }
+    }  
+    #>
 }   

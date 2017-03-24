@@ -29,14 +29,12 @@ Describe "SFTP Testcases" -Tags "CI" {
         
         [Machine] $client = [Machine]::new([MachineRole]::Client)
         [Machine] $server = [Machine]::new([MachineRole]::Server)
-        $client.SetupClient($server)
-        $server.SetupServer($client)
         
         $testData1 = @(
              @{
                 title = "put, ls for non-unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "put $tempFilePath $serverDirectory
                             ls $serverDirectory"
                 expectedoutput = (join-path $serverdirectory $tempFileName)
@@ -44,32 +42,32 @@ Describe "SFTP Testcases" -Tags "CI" {
              },
              @{
                 title = "get, ls for non-unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "get $tempFilePath $clientDirectory
                             ls $clientDirectory"
                 expectedoutput = (join-path $clientDirectory $tempFileName)
              },
              @{
                 title = "mput, ls for non-unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "mput $tempFilePath $serverDirectory
                             ls $serverDirectory"
                 expectedoutput = (join-path $serverdirectory $tempFileName)
              },
              @{
                 title = "mget, ls for non-unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "mget $tempFilePath $clientDirectory
                             ls $clientDirectory"
                 expectedoutput = (join-path $clientDirectory $tempFileName)
              },
              @{
                 title = "mkdir, cd, pwd for non-unicode directory names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "cd $serverdirectory
                             mkdir server_test_dir
                             cd server_test_dir
@@ -78,8 +76,8 @@ Describe "SFTP Testcases" -Tags "CI" {
              },
              @{
                 Title = "lmkdir, lcd, lpwd for non-unicode directory names"
-                LogonStr = "$($server.localAdminUserName)@$($server.MachineName)"
-                Options = '-i $identifyFile'
+                LogonStr = "$($server.ssouser)@$($server.MachineName)"
+                Options = ''
                 Commands = "lcd $clientDirectory
                             lmkdir client_test_dir
                             lcd client_test_dir
@@ -88,40 +86,40 @@ Describe "SFTP Testcases" -Tags "CI" {
              },
              @{
                 title = "put, ls for unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "put $tempUnicodeFilePath $serverDirectory
                             ls $serverDirectory"
                 expectedoutput = (join-path $serverdirectory $tempUnicodeFileName)			
              },
              @{
                 title = "get, ls for unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "get $tempUnicodeFilePath $clientDirectory
                             ls $clientDirectory"
                 expectedoutput = (join-path $clientDirectory $tempUnicodeFileName)
              },
              @{
                 title = "mput, ls for unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "mput $tempUnicodeFilePath $serverDirectory
                             ls $serverDirectory"
                 expectedoutput = (join-path $serverdirectory $tempUnicodeFileName)
              },
              @{
                 title = "mget, ls for unicode file names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "mget $tempUnicodeFilePath $clientDirectory
                             ls $clientDirectory"
                 expectedoutput = (join-path $clientDirectory $tempUnicodeFileName)
              },
              @{
                 title = "mkdir, cd, pwd for unicode directory names"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = ''
                 commands = "cd $serverdirectory
                             mkdir server_test_dir_язык
                             cd server_test_dir_язык
@@ -130,8 +128,8 @@ Describe "SFTP Testcases" -Tags "CI" {
              },
              @{
                 Title = "lmkdir, lcd, lpwd for unicode directory names"
-                LogonStr = "$($server.localAdminUserName)@$($server.MachineName)"
-                Options = '-i $identifyFile'
+                LogonStr = "$($server.ssouser)@$($server.MachineName)"
+                Options = ''
                 Commands = "lcd $clientDirectory
                             lmkdir client_test_dir_язык
                             lcd client_test_dir_язык
@@ -144,8 +142,8 @@ Describe "SFTP Testcases" -Tags "CI" {
         $testData2 = @(
             @{
                 title = "rm, rmdir, rename for unicode file, directory"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile -b $batchFilePath'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = 'b $batchFilePath'
                 
                 tmpFileName1 = $tempUnicodeFileName
                 tmpFilePath1 = $tempUnicodeFilePath
@@ -159,8 +157,8 @@ Describe "SFTP Testcases" -Tags "CI" {
             },
             @{
                 title = "rm, rmdir, rename for non-unicode file, directory"
-                logonstr = "$($server.localadminusername)@$($server.machinename)"
-                options = '-i $identifyfile -b $batchFilePath'
+                logonstr = "$($server.ssouser)@$($server.machinename)"
+                options = '-b $batchFilePath'
                 
                 tmpFileName1 = $tempFileName
                 tmpFilePath1 = $tempFilePath
@@ -176,20 +174,12 @@ Describe "SFTP Testcases" -Tags "CI" {
     }
 
     AfterAll {
-        $client.CleanupClient()
-        $server.CleanupServer()
     }
 
-    Context "Single signon" {
-        BeforeAll {
-            $Server.SecureHostKeys($server.PrivateHostKeyPaths)
-            $identifyFile = $client.clientPrivateKeyPaths[0]
-            .\ssh-add.exe $identifyFile #setup single signon            
+    Context "SFTP Test Cases" {
+        BeforeAll {          
         }
         AfterAll {
-            $Server.CleanupHostKeys()
-            .\ssh-add.exe -D #cleanup single signon
-            
             Get-Item $rootDirectory | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         }
 
@@ -204,7 +194,8 @@ Describe "SFTP Testcases" -Tags "CI" {
            param([string]$Title, $LogonStr, $Options, $Commands, $ExpectedOutput, $SkipVerification = $false)
            
            Set-Content $batchFilePath -Encoding UTF8 -value $Commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) -b $batchFilePath $($LogonStr) > $outputFilePath")
+           Write-Host "sftp -P 47002 $($Options) -b $batchFilePath $($LogonStr) > $outputFilePath"
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) -b $batchFilePath $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
 
            #validate file content.
@@ -221,7 +212,7 @@ Describe "SFTP Testcases" -Tags "CI" {
                         put $tmpFilePath1 $tmpDirectoryPath1
                         ls $tmpDirectoryPath1"
            Set-Content $batchFilePath  -Encoding UTF8 -value $commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) $($LogonStr) > $outputFilePath")
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
            Test-Path (join-path $tmpDirectoryPath1 $tmpFileName1) | Should be $true
            
@@ -230,7 +221,7 @@ Describe "SFTP Testcases" -Tags "CI" {
                         pwd
                        "
            Set-Content $batchFilePath  -Encoding UTF8 -value $commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) $($LogonStr) > $outputFilePath")
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
            Test-Path (join-path $tmpDirectoryPath1 $tmpFileName1) | Should be $false
            
@@ -241,7 +232,7 @@ Describe "SFTP Testcases" -Tags "CI" {
                         ls $tmpDirectoryPath1
                         pwd"
            Set-Content $batchFilePath -Encoding UTF8 -value $commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) $($LogonStr) > $outputFilePath")
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
            Test-Path (join-path $tmpDirectoryPath1 $tmpFileName2) | Should be $true
            
@@ -251,7 +242,7 @@ Describe "SFTP Testcases" -Tags "CI" {
                         rename $tmpDirectoryPath1 $tmpDirectoryPath2
                         ls $serverDirectory"
            Set-Content $batchFilePath -Encoding UTF8 -value $commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) $($LogonStr) > $outputFilePath")
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
            Test-Path $tmpDirectoryPath2 | Should be $true
            
@@ -260,7 +251,7 @@ Describe "SFTP Testcases" -Tags "CI" {
            $commands = "rmdir $tmpDirectoryPath2
                         ls $serverDirectory"
            Set-Content $batchFilePath -Encoding UTF8 -value $commands
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\sftp $($Options) $($LogonStr) > $outputFilePath")
+           $str = $ExecutionContext.InvokeCommand.ExpandString("sftp -P 47002 $($Options) $($LogonStr) > $outputFilePath")
            $client.RunCmd($str)
            Test-Path $tmpDirectoryPath2 | Should be $false
         }
