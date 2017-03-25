@@ -140,7 +140,7 @@ ConEnterRawMode(DWORD OutputHandle, BOOL fSmartInit)
 		SavedViewRect = csbi.srWindow;
 		debug("console doesn't support the ansi parsing");
 	} else {
-		ConMoveCurosorTop(csbi);
+		ConMoveCursorTop(csbi);
 		debug("console supports the ansi parsing");
 	}		
 
@@ -1075,16 +1075,27 @@ ConScrollUp(int topline, int botline)
 	);
 }
 
-void 
+void
 ConMoveVisibleWindow(int offset)
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 	SMALL_RECT visibleWindowRect;
 
 	if (GetConsoleScreenBufferInfo(hOutputConsole, &consoleInfo)) {
-		memcpy(&visibleWindowRect, &consoleInfo.srWindow, sizeof(visibleWindowRect));
-		visibleWindowRect.Top += offset;
-		visibleWindowRect.Bottom += offset;
+		/* Check if applying the offset results in console buffer overflow.
+		* if yes, then scrolldown the console buffer.
+		*/
+		if ((consoleInfo.srWindow.Bottom + offset) >= (consoleInfo.dwSize.Y - 1)) {
+			for (int i = 0; i < offset; i++)
+				ConScrollDown(0, consoleInfo.dwSize.Y - 1);
+
+			if (GetConsoleScreenBufferInfo(hOutputConsole, &consoleInfo))
+				memcpy(&visibleWindowRect, &consoleInfo.srWindow, sizeof(visibleWindowRect));
+		} else {
+			memcpy(&visibleWindowRect, &consoleInfo.srWindow, sizeof(visibleWindowRect));
+			visibleWindowRect.Top += offset;
+			visibleWindowRect.Bottom += offset;
+		}
 
 		SetConsoleWindowInfo(hOutputConsole, TRUE, &visibleWindowRect);
 	}
@@ -1552,8 +1563,12 @@ ConSaveWindowsState()
 }
 
 void
-ConMoveCurosorTop(CONSOLE_SCREEN_BUFFER_INFO csbi)
+ConMoveCursorTop(CONSOLE_SCREEN_BUFFER_INFO csbi)
 {
+	/* Windows server at first sends the "cls" after the connection is established.
+	 * Since we don't want to loose any data on the console, we would like to scroll down
+	 * the visible window.
+	 */
 	int offset = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
 	ConMoveVisibleWindow(offset);
 

@@ -137,5 +137,5 @@ void ConSaveWindowsState();
 void ConMoveVisibleWindow(int offset);
 int is_cursor_at_lastline_of_visible_window();
 void ConGetCursorPosition(int *x, int *y);
-void ConMoveCurosorTop(CONSOLE_SCREEN_BUFFER_INFO csbi);
+void ConMoveCursorTop(CONSOLE_SCREEN_BUFFER_INFO csbi);
 #endif
