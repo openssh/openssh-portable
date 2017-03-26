@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.122 2016/11/25 23:24:45 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.123 2017/03/26 00:18:52 deraadt Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -113,7 +113,7 @@ sshkey_load_file(int fd, struct sshbuf *blob)
 	 * implicit realloc() in the sshbuf code.
 	 */
 	if ((st.st_mode & S_IFREG) == 0 || st.st_size <= 0) {
-		st.st_size = 64*1024; /* 64k should be enough for anyone :) */
+		st.st_size = 64*1024; /* 64k ought to be enough for anybody. :) */
 		dontmax = 1;
 	}
 	if ((r = sshbuf_allocate(blob, st.st_size)) != 0 ||
