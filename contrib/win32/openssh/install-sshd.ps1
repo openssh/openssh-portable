@@ -30,7 +30,7 @@ if (Get-Service ssh-agent -ErrorAction SilentlyContinue)
 New-Service -Name ssh-agent -BinaryPathName $sshagentpath -Description "SSH Agent" -StartupType Manual | Out-Null
 cmd.exe /c 'sc.exe sdset ssh-agent D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;RP;;;AU)'
 
-New-Service -Name sshd -BinaryPathName $sshdpath -Description "SSH Deamon" -StartupType Manual -DependsOn ssh-agent | Out-Null
+New-Service -Name sshd -BinaryPathName $sshdpath -Description "SSH Daemon" -StartupType Manual -DependsOn ssh-agent | Out-Null
 sc.exe config sshd obj= $account
 
 Push-Location

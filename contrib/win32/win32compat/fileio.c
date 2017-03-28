@@ -180,29 +180,29 @@ fileio_pipe(struct w32_io* pio[2])
 	sec_attributes.nLength = 0;
 
 	/* create named pipe */
-	read_handle = CreateNamedPipeA(pipe_name,
-		PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+	write_handle = CreateNamedPipeA(pipe_name,
+		PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED,
 		PIPE_TYPE_BYTE | PIPE_WAIT,
 		1,
 		4096,
 		4096,
 		0,
 		&sec_attributes);
-	if (read_handle == INVALID_HANDLE_VALUE) {
+	if (write_handle == INVALID_HANDLE_VALUE) {
 		errno = errno_from_Win32LastError();
 		debug3("pipe - CreateNamedPipe() ERROR:%d", errno);
 		goto error;
 	}
 
 	/* connect to named pipe */
-	write_handle = CreateFileA(pipe_name,
-		GENERIC_WRITE,
+	read_handle = CreateFileA(pipe_name,
+		GENERIC_READ,
 		0,
 		&sec_attributes,
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 		NULL);
-	if (write_handle == INVALID_HANDLE_VALUE) {
+	if (read_handle == INVALID_HANDLE_VALUE) {
 		errno = errno_from_Win32LastError();
 		debug3("pipe - ERROR CreateFile() :%d", errno);
 		goto error;
@@ -525,6 +525,7 @@ int
 fileio_write(struct w32_io* pio, const void *buf, unsigned int max)
 {
 	int bytes_copied;
+	DWORD pipe_flags = 0, pipe_instances = 0;
 
 	debug4("write - io:%p", pio);
 	if (pio->write_details.pending) {
@@ -571,6 +572,39 @@ fileio_write(struct w32_io* pio, const void *buf, unsigned int max)
 		}
 		else
 			return -1;
+	} else if ( FILETYPE(pio) == FILE_TYPE_PIPE &&
+	    GetNamedPipeInfo(WINHANDLE(pio), &pipe_flags, NULL, NULL, &pipe_instances) &&
+	    pipe_flags == PIPE_CLIENT_END && pipe_instances == 1) {
+		/* 
+		 * TODO - Figure out a better solution to this problem 
+		 * IO handle corresponding to this object (pio->handle) may be referring
+		 * to something that isn't opened in overlapped mode. While all handles
+		 * opened by this POSIX wrapper are opened in overlapped mode, other handles
+		 * that are inherited (ex. via std i/o) are typically not. 
+		 * Ex. When we do this in Powershell
+		 * $o = ssh.exe user@target hostname
+		 * Powershell creates anonymous pipes (that do not support overlapped i.o)
+		 * Calling asynchronous I/O APIs (WriteFileEx) for example will not work in 
+		 * those cases (the callback is never called and it typically manifests as a 
+		 * hang to end user
+		 *
+		 * This conditional logic is put in place to specifically handle Powershell 
+		 * redirection scenarios. Thinking behind these conditions
+		 * - should be a pipe handle. console I/O is handled in termio.c, impacting file i/o
+		 *   scenarios not found yet.
+		 * - pipe should be the client end. This is to skip pipes created internally in POSIX
+		 *   wrapper (by pipe() calls) - The write ends on these pipes are on server
+		 * - pipe_instances == 1. This is to skip pipe handles created as part of Connect(AF_UNIX)
+		 *   sockets (that typically are created for unlimited instances). 
+		 * For such I/O we do a synchronous write. 
+		 */
+		/* DebugBreak() */;
+		if (WriteFile(WINHANDLE(pio), pio->write_details.buf, bytes_copied, &bytes_copied, NULL) == FALSE) {
+			errno = errno_from_Win32LastError();
+			debug3("write - WriteFile() ERROR:%d, io:%p", GetLastError(), pio);
+			return -1;
+		}
+		return bytes_copied;
 	} else {
 		if (WriteFileEx(WINHANDLE(pio), pio->write_details.buf, bytes_copied,
 			&pio->write_overlapped, &WriteCompletionRoutine)) {
