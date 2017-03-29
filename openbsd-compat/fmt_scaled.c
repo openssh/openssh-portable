@@ -1,4 +1,4 @@
-/*	$OpenBSD: fmt_scaled.c,v 1.13 2017/03/11 23:37:23 djm Exp $	*/
+/*	$OpenBSD: fmt_scaled.c,v 1.14 2017/03/15 00:13:18 dtucker Exp $	*/
 
 /*
  * Copyright (c) 2001, 2002, 2003 Ian F. Darwin.  All rights reserved.
@@ -171,6 +171,11 @@ scan_scaled(char *scaled, long long *result)
 			scale_fact = scale_factors[i];
 
 			if (whole >= LLONG_MAX / scale_fact) {
+				errno = ERANGE;
+				return -1;
+			}
+
+			if (whole <= LLONG_MIN / scale_fact) {
 				errno = ERANGE;
 				return -1;
 			}
