@@ -439,24 +439,6 @@ function Deploy-Win32OpenSSHBinaries
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.exe,*.dll -Exclude *unittest*.* -Force -ErrorAction Stop
     $sourceDir = Join-Path $repositoryRoot.FullName -ChildPath "contrib\win32\openssh"
     Copy-Item -Path "$sourceDir\*" -Destination $OpenSSHDir -Include *.ps1,sshd_config -Exclude AnalyzeCodeDiff.ps1 -Force -ErrorAction Stop
-        
-    $packageName = "rktools.2003"
-    $rktoolsPath = "${env:ProgramFiles(x86)}\Windows Resource Kits\Tools\ntrights.exe"
-    if (-not (Test-Path -Path $rktoolsPath))
-    {        
-        Write-Log -Message "$packageName not present. Installing $packageName."
-        choco install $packageName -y --force 2>&1 >> $script:BuildLogFile
-        if (-not (Test-Path -Path $rktoolsPath))
-        {
-            choco install $packageName -y --force 2>&1 >> $script:BuildLogFile
-            if (-not (Test-Path -Path $rktoolsPath))
-            {                
-                throw "failed to download $packageName"
-            }
-        }
-    }
-
-    Copy-Item -Path $rktoolsPath -Destination $OpenSSHDir -Force -ErrorAction Stop
 }
 
 <#
