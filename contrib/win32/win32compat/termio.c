@@ -145,8 +145,7 @@ WriteThread(_In_ LPVOID lpParameter)
 {
 	struct w32_io* pio = (struct w32_io*)lpParameter;
 	char *respbuf = NULL;
-	size_t resplen = 0;
-	DWORD dwSavedAttributes = ENABLE_PROCESSED_INPUT;
+	size_t resplen = 0;	
 	debug5("TermWrite thread, io:%p", pio);
 
 	pio->write_details.buf[write_status.to_transfer] = '\0';

@@ -38,10 +38,6 @@
 
 #include "console.h"
 
-#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#define ENABLE_VIRTUAL_TERMINAL_PROCESSING  0x4
-#endif
-
 HANDLE	hOutputConsole = NULL;
 DWORD	dwSavedAttributes = 0;
 WORD	wStartingAttributes = 0;
@@ -1573,4 +1569,38 @@ ConMoveCursorTop(CONSOLE_SCREEN_BUFFER_INFO csbi)
 	ConMoveVisibleWindow(offset);
 
 	ConSaveViewRect();
+}
+
+HANDLE
+get_console_handle(FILE *stream, DWORD * mode)
+{
+	int file_num = 0, ret = 0;
+	intptr_t lHandle = 0;
+	HANDLE hFile = NULL;
+	DWORD type = 0;
+
+	file_num = (_fileno)(stream);
+	if (file_num == -1) {
+		return -1;
+	}
+	lHandle = _get_osfhandle(file_num);
+	if (lHandle == -1 && errno == EBADF) {
+		return -1;
+	}
+	type = GetFileType((HANDLE)lHandle);
+	if (type == FILE_TYPE_CHAR && file_num >= 0 && file_num <= 2) {
+		if (file_num == 0)
+			hFile = GetStdHandle(STD_INPUT_HANDLE);
+		else if (file_num == 1)
+			hFile = GetStdHandle(STD_OUTPUT_HANDLE);
+		else if (file_num == 2)
+			hFile = GetStdHandle(STD_ERROR_HANDLE);
+
+		if ((hFile != NULL) &&
+			(hFile != INVALID_HANDLE_VALUE) &&
+			(GetFileType(hFile) == FILE_TYPE_CHAR) &&
+			GetConsoleMode(hFile, mode))
+			return hFile;
+	}
+	return INVALID_HANDLE_VALUE;
 }
