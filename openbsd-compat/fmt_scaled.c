@@ -1,4 +1,4 @@
-/*	$OpenBSD: fmt_scaled.c,v 1.14 2017/03/15 00:13:18 dtucker Exp $	*/
+/*	$OpenBSD: fmt_scaled.c,v 1.15 2017/03/15 05:25:56 dtucker Exp $	*/
 
 /*
  * Copyright (c) 2001, 2002, 2003 Ian F. Darwin.  All rights reserved.
@@ -170,12 +170,9 @@ scan_scaled(char *scaled, long long *result)
 			}
 			scale_fact = scale_factors[i];
 
-			if (whole >= LLONG_MAX / scale_fact) {
-				errno = ERANGE;
-				return -1;
-			}
-
-			if (whole <= LLONG_MIN / scale_fact) {
+			/* check for overflow and underflow after scaling */
+			if (whole > LLONG_MAX / scale_fact ||
+			    whole < LLONG_MIN / scale_fact) {
 				errno = ERANGE;
 				return -1;
 			}
