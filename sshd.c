@@ -223,6 +223,7 @@ int startup_pipe;		/* in child */
 int use_privsep = -1;
 struct monitor *pmonitor = NULL;
 int privsep_is_preauth = 1;
+static int privsep_chroot = 1;
 
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
@@ -541,7 +542,7 @@ privsep_preauth_child(void)
 	demote_sensitive_data();
 
 	/* Demote the child */
-	if (getuid() == 0 || geteuid() == 0) {
+	if (privsep_chroot) {
 		/* Change our root directory */
 		if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
 			fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
@@ -1640,8 +1641,9 @@ main(int ac, char **av)
 	);
 
 	/* Store privilege separation user for later use if required. */
+	privsep_chroot = use_privsep && (getuid() == 0 || geteuid() == 0);
 	if ((privsep_pw = getpwnam(SSH_PRIVSEP_USER)) == NULL) {
-		if (use_privsep || options.kerberos_authentication)
+		if (privsep_chroot || options.kerberos_authentication)
 			fatal("Privilege separation user %s does not exist",
 			    SSH_PRIVSEP_USER);
 	} else {
@@ -1767,7 +1769,7 @@ main(int ac, char **av)
 		    key_type(key));
 	}
 
-	if (use_privsep) {
+	if (privsep_chroot) {
 		struct stat st;
 
 		if ((stat(_PATH_PRIVSEP_CHROOT_DIR, &st) == -1) ||
