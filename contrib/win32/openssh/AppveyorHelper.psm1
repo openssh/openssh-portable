@@ -155,14 +155,13 @@ function Add-Artifact
         [string] $FileToAdd
     )        
     
-    if (($FileToAdd -ne $null ) -and (Test-Path $FileToAdd -PathType Leaf))
-    {        
-        
-        $null = $artifacts.Add($FileToAdd)
-    }
+    if ([string]::IsNullOrEmpty($FileToAdd) -or (-not (Test-Path $FileToAdd -PathType Leaf)) )
+    {            
+        Write-Host "Skip publishing package artifacts. $FileToAdd does not exist"
+    }    
     else
     {
-        Write-Host "Skip publishing package artifacts. $FileToAdd does not exist"
+        $null = $artifacts.Add($FileToAdd)
     }
 }
 
@@ -177,17 +176,19 @@ function Publish-Artifact
     
     # Get the build.log file for each build configuration        
     Add-BuildLog -artifacts $artifacts -buildLog (Get-BuildLogFile -root $repoRoot.FullName)
-        
-    Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["UnitTestResultsFile"]
-    Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["E2ETestResultsFile"]
-    Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["TestSetupLogFile"]
+
+    if($Global:OpenSSHTestInfo)
+    {
+        Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["UnitTestResultsFile"]
+        Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["E2ETestResultsFile"]
+        Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["TestSetupLogFile"]
+    }
     
     foreach ($artifact in $artifacts)
     {
         Write-Host "Publishing $artifact as Appveyor artifact"
-        # NOTE: attempt to publish subsequent artifacts even if the current one fails
-        # TODO - Fix this
-        # Push-AppveyorArtifact $artifact -ErrorAction Continue
+        # NOTE: attempt to publish subsequent artifacts even if the current one fails        
+        Push-AppveyorArtifact $artifact -ErrorAction Continue
     }
 }
 
@@ -211,18 +212,18 @@ function Run-OpenSSHTests
         Write-Host "All Unit tests passed!"
         Write-BuildMessage -Message "All Unit tests passed!" -Category Information    
     }
-  # Run all pester tests.
-  <#Run-OpenSSHPesterTest
-  if (-not (Test-Path $global:PesterTestResultsFile))
+    # Run all E2E tests.
+    Run-OpenSSHE2ETest
+    if (($OpenSSHTestInfo -eq $null) -or (-not (Test-Path $OpenSSHTestInfo["E2ETestResultsFile"])))
     {
-        Write-Warning "Test result file $global:PesterTestResultsFile not found after tests."
-        Write-BuildMessage -Message "Test result file $global:PesterTestResultsFile not found after tests." -Category Error
+        Write-Warning "Test result file $OpenSSHTestInfo["E2ETestResultsFile"] not found after tests."
+        Write-BuildMessage -Message "Test result file $OpenSSHTestInfo["E2ETestResultsFile"] not found after tests." -Category Error
         Set-BuildVariable TestPassed False
     }
-    $xml = [xml](Get-Content -raw $global:PesterTestResultsFile)
+    $xml = [xml](Get-Content -raw $OpenSSHTestInfo["E2ETestResultsFile"])
     if ([int]$xml.'test-results'.failures -gt 0) 
     {
-        $errorMessage = "$($xml.'test-results'.failures) tests in regress\pesterTests failed. Detail test log is at $($global:PesterTestResultsFile)."
+        $errorMessage = "$($xml.'test-results'.failures) tests in regress\pesterTests failed. Detail test log is at $($OpenSSHTestInfo["E2ETestResultsFile"])."
         Write-Warning $errorMessage
         Write-BuildMessage -Message $errorMessage -Category Error
         Set-BuildVariable TestPassed False
@@ -232,7 +233,7 @@ function Run-OpenSSHTests
     if ($Error.Count -gt 0) 
     {
         Write-BuildMessage -Message "Tests Should clean $Error after success." -Category Warning
-    }#>
+    }
 }
 
 <#

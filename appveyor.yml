@@ -26,8 +26,6 @@ after_build:
 before_test:
   - ps: |
       Import-Module $env:APPVEYOR_BUILD_FOLDER\contrib\win32\openssh\AppveyorHelper.psm1 -DisableNameChecking
-      Install-OpenSSHTestDependencies
-      Deploy-OpenSSHTests
       Setup-OpenSSHTestEnvironment -Quiet
 
 test_script:

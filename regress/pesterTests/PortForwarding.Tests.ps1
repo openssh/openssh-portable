@@ -1,6 +1,11 @@
 ﻿
 Describe "Tests for portforwarding" -Tags "CI" {
-    BeforeAll {        
+    BeforeAll {
+
+        if($OpenSSHTestInfo -eq $null)
+        {
+            Throw "`$OpenSSHTestInfo is null. Please run Setup-OpenSSHTestEnvironment to setup test environment."
+        }
         $fileName = "test.txt"
         $filePath = Join-Path ${TestDrive} $fileName
         $logName = "log.txt"
@@ -22,9 +27,6 @@ Describe "Tests for portforwarding" -Tags "CI" {
                 FwdedPort = 5432
             }
         )      
-    }
-
-    AfterAll {
     }
 
     AfterEach {
