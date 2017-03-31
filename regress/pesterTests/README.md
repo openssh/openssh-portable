@@ -27,6 +27,14 @@ Run-OpenSSHUnitTest
 C:\git\openssh-portable\regress\pesterTests\SCP.Tests.ps1
 C:\git\openssh-portable\bin\x64\Release\unittest-bitmap\unittest-bitmap.exe
 ```
+
+#### To verify / modify (Ex- DebugMode) the Test setup environment 
+
+```powershell
+$OpenSSHTestInfo
+$OpenSSHTestInfo["DebugMode"] = $true
+```
+
 #### To revert what's done in Setup-OpenSSHTestEnvironment:
 
 ```powershell

@@ -140,7 +140,12 @@ WARNING: Following changes will be made to OpenSSH configuration
     }
 
     Install-OpenSSHTestDependencies
-    
+
+    if(-not (Test-path $TestDataPath -PathType Container))
+    {
+       New-Item -ItemType Directory -Path $TestDataPath -Force -ErrorAction SilentlyContinue | out-null
+    }
+
     #Backup existing OpenSSH configuration
     $backupConfigPath = Join-Path $script:OpenSSHBinPath sshd_config.ori
     if (-not (Test-Path $backupConfigPath -PathType Leaf)) {

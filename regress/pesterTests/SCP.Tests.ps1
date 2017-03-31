@@ -96,14 +96,11 @@ Describe "Tests for scp command" -Tags "CI" {
             }
         )
 
+        # for the first time, delete the existing log files.
         if ($OpenSSHTestInfo['DebugMode'])
         {
-            Stop-Service ssh-agent -Force
-            Start-Sleep 2
-            # Fix this - pick up logs from ssh installation dir, not test directory
-            Remove-Item "$($OpenSSHTestInfo['OpenSSHDir'])\logs\ssh-agent.log" -Force -ErrorAction ignore
-            Remove-Item "$($OpenSSHTestInfo['OpenSSHDir'])\logs\sshd.log" -Force -ErrorAction ignore
-            Start-Service sshd
+            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction ignore
+            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction ignore
         }
 
         function CheckTarget {
@@ -112,9 +109,14 @@ Describe "Tests for scp command" -Tags "CI" {
             {
                 if( $OpenSSHTestInfo["DebugMode"])
                 {
-                    Copy-Item "$($OpenSSHTestInfo['OpenSSHDir'])\logs\ssh-agent.log" "$($OpenSSHTestInfo['OpenSSHDir'])\logs\failedagent$script:logNum.log" -Force                
-                    Copy-Item "$($OpenSSHTestInfo['OpenSSHDir'])\logs\sshd.log" "$($OpenSSHTestInfo['OpenSSHDir'])\logs\failedsshd$script:logNum.log" -Force
+                    Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\failedagent$script:logNum.log" -Force
+                    Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\failedsshd$script:logNum.log" -Force
+                    
                     $script:logNum++
+                    
+                    # clear the ssh-agent, sshd logs so that next testcase will get fresh logs.
+                    Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction ignore
+                    Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction ignore
                 }
              
                 return $false
