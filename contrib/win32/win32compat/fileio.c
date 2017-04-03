@@ -665,25 +665,23 @@ fileio_fstat(struct w32_io* pio, struct _stat64 *buf)
 int
 fileio_stat(const char *path, struct _stat64 *buf)
 {
-	wchar_t wpath[PATH_MAX];
-	wchar_t* wtmp = NULL;
-	struct w32_io* pio;
+	wchar_t* wpath = NULL;
+	int r = -1;
 
-	if ((wtmp = utf8_to_utf16(path)) == NULL)
+	if ((wpath = utf8_to_utf16(path)) == NULL)
 		fatal("failed to covert input arguments");
 
-	/* If we doesn't have sufficient permissions then _wstat4() is returning
-	 * file not found so added fileio_open() which will set the errorno correctly (access denied)	 
-	 */
-	if (NULL == (pio = fileio_open(path, O_RDONLY, 0)))
-		return -1;
-	
-	fileio_close(pio);
+	r = _wstat64(wpath, buf);
 
-	wcscpy(&wpath[0], wtmp);
-	free(wtmp);
+	/*
+	* If we doesn't have sufficient permissions then _wstat64() is returning "file not found"
+	* TODO - Replace the above call with GetFileAttributesEx 
+	*/
 
-	return _wstat64(wpath, buf);
+cleanup:
+	if (wpath)
+		free(wpath);
+	return r;
 }
 
 long
