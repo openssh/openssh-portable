@@ -311,6 +311,8 @@ createFile_flags_setup(int flags, int mode, struct createFile_flags* cf_flags)
 	return 0;
 }
 
+
+#define NULL_DEVICE "/dev/null"
 /* open() implementation. Uses CreateFile to open file, console, device, etc */
 struct w32_io*
 fileio_open(const char *path_utf8, int flags, int mode)
@@ -327,6 +329,10 @@ fileio_open(const char *path_utf8, int flags, int mode)
 		debug3("open - ERROR:%d", errno);
 		return NULL;
 	}
+
+	/* if opening null device, point to Windows equivalent */
+	if (strncmp(path_utf8, NULL_DEVICE, strlen(NULL_DEVICE)) == 0) 
+		path_utf8 = "NUL";
 
 	if ((path_utf16 = utf8_to_utf16(path_utf8)) == NULL) {
 		errno = ENOMEM;
