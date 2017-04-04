@@ -290,6 +290,68 @@ function Copy-OpenSSLSDK
     }
 }
 
+function Package-OpenSSH
+{
+    [CmdletBinding(SupportsShouldProcess=$false)]    
+    param
+    (        
+        [ValidateSet('x86', 'x64')]
+        [string]$NativeHostArch = "x64",
+
+        [ValidateSet('Debug', 'Release', '')]
+        [string]$Configuration = "Release"
+    )
+
+    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
+    $repositoryRoot = Get-Item -Path $repositoryRoot.FullName
+    $folderName = $NativeHostArch
+    if($NativeHostArch -ieq 'x86')
+    {
+        $folderName = "Win32"
+    }
+    $buildDir = Join-Path $repositoryRoot ("bin\" + $folderName + "\" + $Configuration)
+    $payload = "sshd.exe", "ssh.exe", "ssh-agent.exe", "ssh-add.exe", "sftp.exe"
+    $payload += "sftp-server.exe", "scp.exe", "ssh-lsa.dll", "ssh-shellhost.exe", "ssh-keygen.exe" 
+    $payload += "sshd_config", "install-sshd.ps1", "uninstall-sshd.ps1"
+    $payload += "install-sshlsa.ps1", "uninstall-sshlsa.ps1"
+
+    $packageName = "OpenSSH-Win64"
+    if ($NativeHostArch -eq 'x86') {
+        $packageName = "OpenSSH-Win32"
+    }
+
+    $packageDir = Join-Path $buildDir $packageName
+    Remove-Item $packageDir -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item $packageDir -Type Directory | Out-Null
+    
+    $symbolsDir = Join-Path $buildDir ($packageName + '_Symbols')
+    Remove-Item $symbolsDir -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item $symbolsDir -Type Directory | Out-Null
+       
+    foreach ($file in $payload) {
+        if ((-not(Test-Path (Join-Path $buildDir $file)))) {
+            Throw "Cannot find $file under $buildDir. Did you run Build-OpenSSH?"
+        }
+        Copy-Item (Join-Path $buildDir $file) $packageDir
+        if ($file.EndsWith(".exe")) {
+            $pdb = $file.Replace(".exe", ".pdb")
+            Copy-Item (Join-Path $buildDir $pdb) $symbolsDir
+        }
+        if ($file.EndsWith(".dll")) {
+            $pdb = $file.Replace(".dll", ".pdb")
+            Copy-Item (Join-Path $buildDir $pdb) $symbolsDir
+        }
+    }
+
+    Remove-Item ($packageDir + '.zip') -Force -ErrorAction SilentlyContinue
+    Compress-Archive -Path $packageDir -DestinationPath ($packageDir + '.zip')
+    Remove-Item $packageDir -Recurse -Force -ErrorAction SilentlyContinue
+
+    Remove-Item ($symbolsDir + '.zip') -Force -ErrorAction SilentlyContinue
+    Compress-Archive -Path $symbolsDir -DestinationPath ($symbolsDir + '.zip')
+    Remove-Item $symbolsDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 function Build-OpenSSH
 {
     [CmdletBinding(SupportsShouldProcess=$false)]    
@@ -527,4 +589,4 @@ function UnInstall-OpenSSH
 }
 
 
-Export-ModuleMember -Function Build-OpenSSH, Get-BuildLogFile, Install-OpenSSH, UnInstall-OpenSSH
+Export-ModuleMember -Function Build-OpenSSH, Get-BuildLogFile, Install-OpenSSH, UnInstall-OpenSSH, Package-OpenSSH
