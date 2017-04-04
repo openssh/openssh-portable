@@ -19,7 +19,7 @@ char		*get_peer_ipaddr(int);
 int		 get_peer_port(int);
 char		*get_local_ipaddr(int);
 char		*get_local_name(int);
-int		get_local_port(int);
+int		 get_local_port(int);
 
 #endif /* _CANOHOST_H */
 
