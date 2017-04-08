@@ -127,7 +127,7 @@ generate_user_token(wchar_t* user_cpn) {
 	if (domain_user)
 		InitLsaString(&auth_package_name, MICROSOFT_KERBEROS_NAME_A);
 	else
-		InitLsaString(&auth_package_name, "SSH-LSA");
+		InitLsaString(&auth_package_name, MSV1_0_PACKAGE_NAME);
 
 	InitLsaString(&originName, "sshd");
 	if (ret = LsaRegisterLogonProcess(&logon_process_name, &lsa_handle, &mode) != STATUS_SUCCESS)
@@ -154,11 +154,24 @@ generate_user_token(wchar_t* user_cpn) {
 		s4u_logon->ClientRealm.MaximumLength = 0;
 		s4u_logon->ClientRealm.Buffer = 0;
 	} else {
-		logon_info_size = (wcslen(user_cpn) + 1)*sizeof(wchar_t);
+		MSV1_0_S4U_LOGON *s4u_logon;
+		logon_info_size = sizeof(MSV1_0_S4U_LOGON);
+		/* additional buffer size = size of user_cpn + size of "." and their null terminators */
+		logon_info_size += (wcslen(user_cpn) * 2 + 2) + 4;
 		logon_info = malloc(logon_info_size);
 		if (logon_info == NULL)
 			goto done;
-		memcpy(logon_info, user_cpn, logon_info_size);
+		s4u_logon = (MSV1_0_S4U_LOGON*)logon_info;
+		s4u_logon->MessageType = MsV1_0S4ULogon;
+		s4u_logon->Flags = 0;
+		s4u_logon->UserPrincipalName.Length = wcslen(user_cpn) * 2;
+		s4u_logon->UserPrincipalName.MaximumLength = s4u_logon->UserPrincipalName.Length;
+		s4u_logon->UserPrincipalName.Buffer = (WCHAR*)(s4u_logon + 1);
+		memcpy(s4u_logon->UserPrincipalName.Buffer, user_cpn, s4u_logon->UserPrincipalName.Length + 2);
+		s4u_logon->DomainName.Length = 2;
+		s4u_logon->DomainName.MaximumLength = 2;
+		s4u_logon->DomainName.Buffer = ((WCHAR*)s4u_logon->UserPrincipalName.Buffer) + wcslen(user_cpn) + 1;
+		memcpy(s4u_logon->DomainName.Buffer, L".", 4);
 	}
 
 	memcpy(sourceContext.SourceName,"sshagent", sizeof(sourceContext.SourceName));
@@ -180,7 +193,7 @@ generate_user_token(wchar_t* user_cpn) {
 		&token,
 		&quotas,
 		&subStatus) != STATUS_SUCCESS) {
-		debug("LsaLogonUser failed %d", ret);
+		debug("LsaLogonUser failed NTSTATUS: %d", ret);
 		goto done;
 	}
 	debug3("LsaLogonUser succeeded");
