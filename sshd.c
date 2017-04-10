@@ -233,7 +233,12 @@ int use_privsep = -1;
 #endif
 struct monitor *pmonitor = NULL;
 int privsep_is_preauth = 1;
+#ifdef WINDOWS
+/* Windows does not use Unix privilege separation model */
+static int privsep_chroot = 0;
+#else
 static int privsep_chroot = 1;
+#endif
 
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
