@@ -110,7 +110,7 @@ socketio_acceptEx(struct w32_io* pio)
 	context = (struct acceptEx_context *)pio->internal.context;
 	ResetEvent(pio->read_overlapped.hEvent);
 
-	if (getsockname(pio->sock, &addr, &addrlen) == SOCKET_ERROR) {
+	if (getsockname(pio->sock, (struct sockaddr*)&addr, &addrlen) == SOCKET_ERROR) {
 		errno = errno_from_WSALastError();
 		debug("acceptEx - getsockname() ERROR:%d, io:%p", errno, pio);
 		return -1;		
