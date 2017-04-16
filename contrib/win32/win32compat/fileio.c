@@ -29,8 +29,8 @@
 */
 
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "inc/sys/stat.h"
+#include "inc/sys/types.h"
 #include <io.h>
 #include <errno.h>
 #include <stddef.h>
