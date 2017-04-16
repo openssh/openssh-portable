@@ -1320,6 +1320,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					 * automatically be cleaned up on next iteration
 					 */
 					close(startup_p[1]);
+					free(path_utf8);
 					continue;
 				}
                 
