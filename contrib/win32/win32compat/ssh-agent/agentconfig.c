@@ -96,7 +96,6 @@ int load_config() {
 	wchar_t basePath[PATH_MAX] = { 0 };
 	wchar_t path[PATH_MAX] = { 0 };
         
-	/* TODO - account for UNICODE paths*/
         if (GetCurrentModulePath(basePath, PATH_MAX) == -1)
                 return -1;
 
