@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.187 2016/09/12 01:22:38 deraadt Exp $ */
+/* $OpenBSD: scp.c,v 1.188 2017/04/27 11:53:12 millert Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1043,10 +1043,15 @@ sink(int argc, char **argv)
 		if (*cp++ != ' ')
 			SCREWUP("mode not delimited");
 
-		for (size = 0; isdigit((unsigned char)*cp);)
-			size = size * 10 + (*cp++ - '0');
-		if (*cp++ != ' ')
+		if (!isdigit((unsigned char)*cp))
+			SCREWUP("size not present");
+		ull = strtoull(cp, &cp, 10);
+		if (!cp || *cp++ != ' ')
 			SCREWUP("size not delimited");
+		if ((off_t)ull < 0 || (unsigned long long)(off_t)ull != ull)
+			SCREWUP("size out of range");
+		size = (off_t)ull;
+
 		if ((strchr(cp, '/') != NULL) || (strcmp(cp, "..") == 0)) {
 			run_err("error: unexpected filename: %s", cp);
 			exit(1);
