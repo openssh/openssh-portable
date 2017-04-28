@@ -306,8 +306,7 @@ int process_pubkeyauth_request(struct sshbuf* request, struct sshbuf* response, 
 	}
 
 	
-	if (SHGetKnownFolderPath(&FOLDERID_Profile, 0, token, &wuser_home) != S_OK ||
-	    pubkey_allowed(key, user_utf16, wuser_home) != 1) {
+	if (pubkey_allowed(key, token) != 1) {
 		debug("unable to verify public key for user %ls (profile:%ls)", user_utf16, wuser_home);
 		goto done;
 	}

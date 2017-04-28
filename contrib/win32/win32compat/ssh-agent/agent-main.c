@@ -88,7 +88,7 @@ BOOL WINAPI
 ctrl_c_handler(_In_ DWORD dwCtrlType) 
 {
 	/* for any Ctrl type, shutdown agent*/
-	debug("Ctrl+C received");
+	debug3("Ctrl+C received");
 	agent_shutdown();
 	return TRUE;
 }
