@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.270 2017/03/10 04:27:32 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.271 2017/04/28 03:20:27 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -152,7 +152,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oTCPKeepAlive, oNumberOfPasswordPrompts,
-	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
+	oUsePrivilegedPort, oLogFacility, oLogLevel, oCiphers, oProtocol, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
@@ -265,6 +265,7 @@ static struct {
 	{ "tcpkeepalive", oTCPKeepAlive },
 	{ "keepalive", oTCPKeepAlive },				/* obsolete */
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
+	{ "syslogfacility", oLogFacility },
 	{ "loglevel", oLogLevel },
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
@@ -830,6 +831,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	u_int i, *uintptr, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
 	LogLevel *log_level_ptr;
+	SyslogFacility *log_facility_ptr;
 	long long val64;
 	size_t len;
 	struct Forward fwd;
@@ -1262,6 +1264,17 @@ parse_keytypes:
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *log_level_ptr == SYSLOG_LEVEL_NOT_SET)
 			*log_level_ptr = (LogLevel) value;
+		break;
+
+	case oLogFacility:
+		log_facility_ptr = &options->log_facility;
+		arg = strdelim(&s);
+		value = log_facility_number(arg);
+		if (value == SYSLOG_FACILITY_NOT_SET)
+			fatal("%.200s line %d: unsupported log facility '%s'",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (*log_facility_ptr == -1)
+			*log_facility_ptr = (SyslogFacility) value;
 		break;
 
 	case oLocalForward:
@@ -1838,6 +1851,7 @@ initialize_options(Options * options)
 	options->num_local_forwards = 0;
 	options->remote_forwards = NULL;
 	options->num_remote_forwards = 0;
+	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
@@ -2014,6 +2028,8 @@ fill_default_options(Options * options)
 	}
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;
+	if (options->log_facility == SYSLOG_FACILITY_NOT_SET)
+		options->log_facility = SYSLOG_FACILITY_USER;
 	if (options->no_host_authentication_for_localhost == - 1)
 		options->no_host_authentication_for_localhost = 0;
 	if (options->identities_only == -1)

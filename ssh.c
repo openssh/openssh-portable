@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.451 2017/03/10 04:07:20 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.452 2017/04/28 03:20:27 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1007,8 +1007,11 @@ main(int ac, char **av)
 	if (logfile != NULL)
 		log_redirect_stderr_to(logfile);
 	log_init(argv0,
-	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
-	    SYSLOG_FACILITY_USER, !use_syslog);
+	    options.log_level == SYSLOG_LEVEL_NOT_SET ? 
+	    SYSLOG_LEVEL_INFO : options.log_level,
+	    options.log_facility == SYSLOG_FACILITY_NOT_SET ? 
+	    SYSLOG_FACILITY_USER : options.log_facility,
+	    !use_syslog);
 
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE,
@@ -1150,7 +1153,7 @@ main(int ac, char **av)
 #endif
 
 	/* reinit */
-	log_init(argv0, options.log_level, SYSLOG_FACILITY_USER, !use_syslog);
+	log_init(argv0, options.log_level, options.log_facility, !use_syslog);
 
 	if (options.request_tty == REQUEST_TTY_YES ||
 	    options.request_tty == REQUEST_TTY_FORCE)
