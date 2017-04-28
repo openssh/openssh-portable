@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.255 2017/03/11 23:40:26 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.256 2017/04/28 03:24:53 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1479,6 +1479,7 @@ userauth_pubkey(Authctxt *authctxt)
 {
 	Identity *id;
 	int sent = 0;
+	char *fp;
 
 	while ((id = TAILQ_FIRST(&authctxt->keys))) {
 		if (id->tried++)
@@ -1493,8 +1494,16 @@ userauth_pubkey(Authctxt *authctxt)
 		 */
 		if (id->key != NULL) {
 			if (try_identity(id)) {
-				debug("Offering %s public key: %s",
-				    key_type(id->key), id->filename);
+				if ((fp = sshkey_fingerprint(id->key,
+				    options.fingerprint_hash,
+				    SSH_FP_DEFAULT)) == NULL) {
+					error("%s: sshkey_fingerprint failed",
+					    __func__);
+					return 0;
+				}
+				debug("Offering public key: %s %s %s",
+				    sshkey_type(id->key), fp, id->filename);
+				free(fp);
 				sent = send_pubkey_test(authctxt, id);
 			}
 		} else {
