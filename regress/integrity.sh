@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.21 2017/04/28 04:00:14 dtucker Exp $
+#	$OpenBSD: integrity.sh,v 1.22 2017/04/28 04:16:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -60,14 +60,16 @@ for m in $macs; do
 		Corrupted?MAC* | *message?authentication?code?incorrect*)
 				emac=`expr $emac + 1`; skip=0;;
 		padding*)	epad=`expr $epad + 1`; skip=0;;
+		*Timeout,?server*)
+				etmo=`expr $etmo + 1`; skip=0;;
 		*)		fail "unexpected error mac $m at $off: $out";;
 		esac
 	done
-	verbose "test $tid: $ecnt errors: mac $emac padding $epad length $elen"
+	verbose "test $tid: $ecnt errors: mac $emac padding $epad length $elen timeout $etmo"
 	if [ $emac -eq 0 ]; then
 		fail "$m: no mac errors"
 	fi
-	expect=`expr $ecnt - $epad - $elen`
+	expect=`expr $ecnt - $epad - $elen - $etmo`
 	if [ $emac -ne $expect ]; then
 		fail "$m: expected $expect mac errors, got $emac"
 	fi
