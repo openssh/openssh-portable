@@ -1327,6 +1327,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				pid = spawn_child(path_utf8, NULL, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO, CREATE_NEW_PROCESS_GROUP);
 				free(path_utf8);
 				close(*newsock);
+				SetEnvironmentVariable("SSHD_REMSOC", NULL);
+				SetEnvironmentVariable("SSHD_STARTUPSOC", NULL);
 			}
 #else /* !WINDOWS */
 
