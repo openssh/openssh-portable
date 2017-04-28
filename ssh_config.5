@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.243 2017/04/28 03:20:27 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.244 2017/04/28 06:15:03 jmc Exp $
 .Dd $Mdocdate: April 28 2017 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1101,12 +1101,6 @@ indicates that the listening port be bound for local use only, while an
 empty address or
 .Sq *
 indicates that the port should be available from all interfaces.
-.It Cm SyslogFacility
-Gives the facility code that is used when logging messages from
-.Xr ssh 1 .
-The possible values are: DAEMON, USER, AUTH, LOCAL0, LOCAL1, LOCAL2,
-LOCAL3, LOCAL4, LOCAL5, LOCAL6, LOCAL7.
-The default is USER.
 .It Cm LogLevel
 Gives the verbosity level that is used when logging messages from
 .Xr ssh 1 .
@@ -1537,6 +1531,12 @@ has confirmed that is what they really want to do, and
 ssh will refuse to connect to hosts whose host key has changed.
 The host keys of
 known hosts will be verified automatically in all cases.
+.It Cm SyslogFacility
+Gives the facility code that is used when logging messages from
+.Xr ssh 1 .
+The possible values are: DAEMON, USER, AUTH, LOCAL0, LOCAL1, LOCAL2,
+LOCAL3, LOCAL4, LOCAL5, LOCAL6, LOCAL7.
+The default is USER.
 .It Cm TCPKeepAlive
 Specifies whether the system should send TCP keepalive messages to the
 other side.
