@@ -55,7 +55,8 @@ void	 ssh_userauth2(const char *, const char *, char *, Sensitive *);
 void	 ssh_put_password(char *);
 int	 ssh_local_cmd(const char *);
 
-void	 maybe_add_key_to_agent(char *, Key *, char *, char *);
+void	 maybe_add_key_to_agent(const char *, const Key *, const char *,
+    const char *);
 
 /*
  * Macros to raise/lower permissions.

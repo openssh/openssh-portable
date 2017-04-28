@@ -496,7 +496,7 @@ ssh_agent_sign(int sock, struct sshkey *key,
 
 #ifdef WITH_SSH1
 static int
-ssh_encode_identity_rsa1(struct sshbuf *b, RSA *key, const char *comment)
+ssh_encode_identity_rsa1(struct sshbuf *b, const RSA *key, const char *comment)
 {
 	int r;
 
@@ -515,7 +515,7 @@ ssh_encode_identity_rsa1(struct sshbuf *b, RSA *key, const char *comment)
 #endif
 
 static int
-ssh_encode_identity_ssh2(struct sshbuf *b, struct sshkey *key,
+ssh_encode_identity_ssh2(struct sshbuf *b, const struct sshkey *key,
     const char *comment)
 {
 	int r;
@@ -550,8 +550,8 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
  * This call is intended only for use by ssh-add(1) and like applications.
  */
 int
-ssh_add_identity_constrained(int sock, struct sshkey *key, const char *comment,
-    u_int life, u_int confirm)
+ssh_add_identity_constrained(int sock, const struct sshkey *key,
+    const char *comment, u_int life, u_int confirm)
 {
 	struct sshbuf *msg;
 	int r, constrained = (life || confirm);
