@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.134 2017/04/29 04:12:25 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.135 2017/04/29 06:06:01 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -474,23 +474,23 @@ The
 .Ar address_list
 is a comma-separated list of one or more address/netmask pairs in CIDR
 format.
-.It Ic extension Ns : Ns Ar name Ns Op Ns = Ns Ar contents
+.It Ic extension : Ns Ar name Ns Op Ns = Ns Ar contents
 Includes an arbitrary certificate extension.
-.It Ic critical Ns : Ns Ar name Ns Op Ns = Ns Ar contents
+.It Ic critical : Ns Ar name Ns Op Ns = Ns Ar contents
 Includes an arbitrary certificate critical option.
 .El
 .Pp
 At present, no standard options are valid for host keys.
 .Pp
-For non-standard certificate extension or options included using
+For non-standard certificate extensions or options included using
 .Ic extension
 or
 .Ic option ,
 the specified
 .Ar name
-should include a domain suffix, e.g.
+should include a domain suffix, e.g.\&
 .Dq name@example.com .
-If a
+If
 .Ar contents
 is specified then it is included as the contents of the extension/option
 encoded as a string, otherwise the extension/option is created with no
