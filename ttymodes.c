@@ -1,4 +1,4 @@
-/* $OpenBSD: ttymodes.c,v 1.31 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: ttymodes.c,v 1.32 2017/04/30 23:26:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -59,12 +59,10 @@
 
 #define TTY_OP_END		0
 /*
- * uint32 (u_int) follows speed in SSH1 and SSH2
+ * uint32 (u_int) follows speed.
  */
-#define TTY_OP_ISPEED_PROTO1	192
-#define TTY_OP_OSPEED_PROTO1	193
-#define TTY_OP_ISPEED_PROTO2	128
-#define TTY_OP_OSPEED_PROTO2	129
+#define TTY_OP_ISPEED	128
+#define TTY_OP_OSPEED	129
 
 /*
  * Converts POSIX speed_t to a baud rate.  The values of the
@@ -282,11 +280,8 @@ tty_make_modes(int fd, struct termios *tiop)
 	struct termios tio;
 	int baud;
 	Buffer buf;
-	int tty_op_ospeed, tty_op_ispeed;
 
 	buffer_init(&buf);
-	tty_op_ospeed = TTY_OP_OSPEED_PROTO2;
-	tty_op_ispeed = TTY_OP_ISPEED_PROTO2;
 
 	if (tiop == NULL) {
 		if (fd == -1) {
@@ -302,10 +297,10 @@ tty_make_modes(int fd, struct termios *tiop)
 
 	/* Store input and output baud rates. */
 	baud = speed_to_baud(cfgetospeed(&tio));
-	buffer_put_char(&buf, tty_op_ospeed);
+	buffer_put_char(&buf, TTY_OP_OSPEED);
 	buffer_put_int(&buf, baud);
 	baud = speed_to_baud(cfgetispeed(&tio));
-	buffer_put_char(&buf, tty_op_ispeed);
+	buffer_put_char(&buf, TTY_OP_ISPEED);
 	buffer_put_int(&buf, baud);
 
 	/* Store values of mode flags. */
@@ -362,9 +357,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 		case TTY_OP_END:
 			goto set;
 
-		/* XXX: future conflict possible */
-		case TTY_OP_ISPEED_PROTO1:
-		case TTY_OP_ISPEED_PROTO2:
+		case TTY_OP_ISPEED:
 			n_bytes += 4;
 			baud = packet_get_int();
 			if (failure != -1 &&
@@ -372,9 +365,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 				error("cfsetispeed failed for %d", baud);
 			break;
 
-		/* XXX: future conflict possible */
-		case TTY_OP_OSPEED_PROTO1:
-		case TTY_OP_OSPEED_PROTO2:
+		case TTY_OP_OSPEED:
 			n_bytes += 4;
 			baud = packet_get_int();
 			if (failure != -1 &&
