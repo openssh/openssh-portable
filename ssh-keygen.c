@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.300 2017/04/29 04:12:25 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.301 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -987,9 +987,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 		char *path;
 	} key_types[] = {
 #ifdef WITH_OPENSSL
-#ifdef WITH_SSH1
-		{ "rsa1", "RSA1", _PATH_HOST_KEY_FILE },
-#endif /* WITH_SSH1 */
 		{ "rsa", "RSA" ,_PATH_HOST_RSA_KEY_FILE },
 		{ "dsa", "DSA", _PATH_HOST_DSA_KEY_FILE },
 #ifdef OPENSSL_HAS_ECC
@@ -2244,11 +2241,7 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	exit(ret);
 }
 
-#ifdef WITH_SSH1
-# define RSA1_USAGE " | rsa1"
-#else
 # define RSA1_USAGE ""
-#endif
 
 static void
 usage(void)

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.109 2017/03/10 04:26:06 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.110 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -187,52 +187,6 @@ strnnsep(char **stringp, char *delim)
 	return (tok);
 }
 
-#ifdef WITH_SSH1
-static struct sshkey *
-keygrab_ssh1(con *c)
-{
-	static struct sshkey *rsa;
-	static struct sshbuf *msg;
-	int r;
-	u_char type;
-
-	if (rsa == NULL) {
-		if ((rsa = sshkey_new(KEY_RSA1)) == NULL) {
-			error("%s: sshkey_new failed", __func__);
-			return NULL;
-		}
-		if ((msg = sshbuf_new()) == NULL)
-			fatal("%s: sshbuf_new failed", __func__);
-	}
-	if ((r = sshbuf_put(msg, c->c_data, c->c_plen)) != 0 ||
-	    (r = sshbuf_consume(msg, 8 - (c->c_plen & 7))) != 0 || /* padding */
-	    (r = sshbuf_get_u8(msg, &type)) != 0)
-		goto buf_err;
-	if (type != (int) SSH_SMSG_PUBLIC_KEY) {
-		error("%s: invalid packet type", c->c_name);
-		sshbuf_reset(msg);
-		return NULL;
-	}
-	if ((r = sshbuf_consume(msg, 8)) != 0 || /* cookie */
-	    /* server key */
-	    (r = sshbuf_get_u32(msg, NULL)) != 0 ||
-	    (r = sshbuf_get_bignum1(msg, NULL)) != 0 ||
-	    (r = sshbuf_get_bignum1(msg, NULL)) != 0 ||
-	    /* host key */
-	    (r = sshbuf_get_u32(msg, NULL)) != 0 ||
-	    (r = sshbuf_get_bignum1(msg, rsa->rsa->e)) != 0 ||
-	    (r = sshbuf_get_bignum1(msg, rsa->rsa->n)) != 0) {
- buf_err:
-		error("%s: buffer error: %s", __func__, ssh_err(r));
-		sshbuf_reset(msg);
-		return NULL;
-	}
-
-	sshbuf_reset(msg);
-
-	return (rsa);
-}
-#endif
 
 static int
 key_print_wrapper(struct sshkey *hostkey, struct ssh *ssh)
@@ -585,12 +539,6 @@ conread(int s)
 			c->c_data = xmalloc(c->c_len);
 			c->c_status = CS_KEYS;
 			break;
-#ifdef WITH_SSH1
-		case CS_KEYS:
-			keyprint(c, keygrab_ssh1(c));
-			confree(s);
-			return;
-#endif
 		default:
 			fatal("conread: invalid status %d", c->c_status);
 			break;
@@ -756,11 +704,6 @@ main(int argc, char **argv)
 				int type = sshkey_type_from_name(tname);
 
 				switch (type) {
-#ifdef WITH_SSH1
-				case KEY_RSA1:
-					get_keytypes |= KT_RSA1;
-					break;
-#endif
 				case KEY_DSA:
 					get_keytypes |= KT_DSA;
 					break;

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.271 2017/04/28 03:20:27 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.272 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -208,15 +208,9 @@ static struct {
 	{ "smartcarddevice", oUnsupported },
 	{ "pkcs11provider", oUnsupported },
 #endif
-#ifdef WITH_SSH1
-	{ "rsaauthentication", oRSAAuthentication },
-	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
-	{ "compressionlevel", oCompressionLevel },
-# else
 	{ "rsaauthentication", oUnsupported },
 	{ "rhostsrsaauthentication", oUnsupported },
 	{ "compressionlevel", oUnsupported },
-#endif
 
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
@@ -2575,9 +2569,6 @@ dump_client_config(Options *o, const char *host)
 
 	/* Integer options */
 	dump_cfg_int(oCanonicalizeMaxDots, o->canonicalize_max_dots);
-#ifdef WITH_SSH1
-	dump_cfg_int(oCompressionLevel, o->compression_level);
-#endif
 	dump_cfg_int(oConnectionAttempts, o->connection_attempts);
 	dump_cfg_int(oForwardX11Timeout, o->forward_x11_timeout);
 	dump_cfg_int(oNumberOfPasswordPrompts, o->number_of_password_prompts);

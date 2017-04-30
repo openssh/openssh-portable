@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.102 2016/08/03 05:41:57 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.103 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -51,11 +51,6 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
-#ifdef WITH_SSH1
-extern const EVP_CIPHER *evp_ssh1_bf(void);
-extern const EVP_CIPHER *evp_ssh1_3des(void);
-extern int ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
-#endif
 
 struct sshcipher_ctx {
 	int	plaintext;
@@ -87,13 +82,6 @@ struct sshcipher {
 };
 
 static const struct sshcipher ciphers[] = {
-#ifdef WITH_SSH1
-	{ "des",	SSH_CIPHER_DES, 8, 8, 0, 0, 0, 1, EVP_des_cbc },
-	{ "3des",	SSH_CIPHER_3DES, 8, 16, 0, 0, 0, 1, evp_ssh1_3des },
-# ifndef OPENSSL_NO_BF
-	{ "blowfish",	SSH_CIPHER_BLOWFISH, 8, 32, 0, 0, 0, 1, evp_ssh1_bf },
-# endif /* OPENSSL_NO_BF */
-#endif /* WITH_SSH1 */
 #ifdef WITH_OPENSSL
 	{ "none",	SSH_CIPHER_NONE, 8, 0, 0, 0, 0, 0, EVP_enc_null },
 	{ "3des-cbc",	SSH_CIPHER_SSH2, 8, 24, 0, 0, 0, 1, EVP_des_ede3_cbc },
@@ -628,10 +616,6 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 			memcpy(iv, cc->evp->iv, len);
 		break;
 #endif
-#ifdef WITH_SSH1
-	case SSH_CIPHER_3DES:
-		return ssh1_3des_iv(cc->evp, 0, iv, 24);
-#endif
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
 	}
@@ -673,10 +657,6 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 		} else
 			memcpy(cc->evp->iv, iv, evplen);
 		break;
-#endif
-#ifdef WITH_SSH1
-	case SSH_CIPHER_3DES:
-		return ssh1_3des_iv(cc->evp, 1, (u_char *)iv, 24);
 #endif
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;

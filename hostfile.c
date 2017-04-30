@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.68 2017/03/10 04:26:06 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.69 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -789,20 +789,7 @@ hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
 				break;
 			}
 			if (!hostfile_read_key(&cp, &kbits, lineinfo.key)) {
-#ifdef WITH_SSH1
-				sshkey_free(lineinfo.key);
-				lineinfo.key = sshkey_new(KEY_RSA1);
-				if (lineinfo.key  == NULL) {
-					error("%s: sshkey_new fail", __func__);
-					r = SSH_ERR_ALLOC_FAIL;
-					break;
-				}
-				if (!hostfile_read_key(&cp, &kbits,
-				    lineinfo.key))
-					goto bad;
-#else
 				goto bad;
-#endif
 			}
 			lineinfo.keytype = lineinfo.key->type;
 			lineinfo.comment = cp;

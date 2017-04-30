@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.123 2017/03/26 00:18:52 deraadt Exp $ */
+/* $OpenBSD: authfile.c,v 1.124 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -147,35 +147,6 @@ sshkey_load_file(int fd, struct sshbuf *blob)
 	return r;
 }
 
-#ifdef WITH_SSH1
-/*
- * Loads the public part of the ssh v1 key file.  Returns NULL if an error was
- * encountered (the file does not exist or is not readable), and the key
- * otherwise.
- */
-static int
-sshkey_load_public_rsa1(int fd, struct sshkey **keyp, char **commentp)
-{
-	struct sshbuf *b = NULL;
-	int r;
-
-	if (keyp != NULL)
-		*keyp = NULL;
-	if (commentp != NULL)
-		*commentp = NULL;
-
-	if ((b = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshkey_load_file(fd, b)) != 0)
-		goto out;
-	if ((r = sshkey_parse_public_rsa1_fileblob(b, keyp, commentp)) != 0)
-		goto out;
-	r = 0;
- out:
-	sshbuf_free(b);
-	return r;
-}
-#endif /* WITH_SSH1 */
 
 /* XXX remove error() calls from here? */
 int
@@ -362,21 +333,7 @@ sshkey_load_public(const char *filename, struct sshkey **keyp, char **commentp)
 
 	if ((fd = open(filename, O_RDONLY)) < 0)
 		goto skip;
-#ifdef WITH_SSH1
-	/* try rsa1 private key */
-	r = sshkey_load_public_rsa1(fd, keyp, commentp);
 	close(fd);
-	switch (r) {
-	case SSH_ERR_INTERNAL_ERROR:
-	case SSH_ERR_ALLOC_FAIL:
-	case SSH_ERR_INVALID_ARGUMENT:
-	case SSH_ERR_SYSTEM_ERROR:
-	case 0:
-		return r;
-	}
-#else /* WITH_SSH1 */
-	close(fd);
-#endif /* WITH_SSH1 */
 
 	/* try ssh2 public key */
 	if ((pub = sshkey_new(KEY_UNSPEC)) == NULL)
@@ -388,17 +345,6 @@ sshkey_load_public(const char *filename, struct sshkey **keyp, char **commentp)
 	}
 	sshkey_free(pub);
 
-#ifdef WITH_SSH1
-	/* try rsa1 public key */
-	if ((pub = sshkey_new(KEY_RSA1)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshkey_try_load_public(pub, filename, commentp)) == 0) {
-		if (keyp != NULL)
-			*keyp = pub;
-		return 0;
-	}
-	sshkey_free(pub);
-#endif /* WITH_SSH1 */
 
  skip:
 	/* try .pub suffix */

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.247 2017/03/11 13:07:35 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.248 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -811,34 +811,7 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 void
 ssh_packet_set_encryption_key(struct ssh *ssh, const u_char *key, u_int keylen, int number)
 {
-#ifndef WITH_SSH1
 	fatal("no SSH protocol 1 support");
-#else /* WITH_SSH1 */
-	struct session_state *state = ssh->state;
-	const struct sshcipher *cipher = cipher_by_number(number);
-	int r;
-	const char *wmsg;
-
-	if (cipher == NULL)
-		fatal("%s: unknown cipher number %d", __func__, number);
-	if (keylen < 20)
-		fatal("%s: keylen too small: %d", __func__, keylen);
-	if (keylen > SSH_SESSION_KEY_LENGTH)
-		fatal("%s: keylen too big: %d", __func__, keylen);
-	memcpy(state->ssh1_key, key, keylen);
-	state->ssh1_keylen = keylen;
-	if ((r = cipher_init(&state->send_context, cipher, key, keylen,
-	    NULL, 0, CIPHER_ENCRYPT)) != 0 ||
-	    (r = cipher_init(&state->receive_context, cipher, key, keylen,
-	    NULL, 0, CIPHER_DECRYPT) != 0))
-		fatal("%s: cipher_init failed: %s", __func__, ssh_err(r));
-	if (!state->cipher_warning_done &&
-	    ((wmsg = cipher_warning_message(state->send_context)) != NULL ||
-	    (wmsg = cipher_warning_message(state->send_context)) != NULL)) {
-		error("Warning: %s", wmsg);
-		state->cipher_warning_done = 1;
-	}
-#endif /* WITH_SSH1 */
 }
 
 /*
@@ -2862,13 +2835,6 @@ sshpkt_put_ec(struct ssh *ssh, const EC_POINT *v, const EC_GROUP *g)
 }
 #endif /* OPENSSL_HAS_ECC */
 
-#ifdef WITH_SSH1
-int
-sshpkt_put_bignum1(struct ssh *ssh, const BIGNUM *v)
-{
-	return sshbuf_put_bignum1(ssh->state->outgoing_packet, v);
-}
-#endif /* WITH_SSH1 */
 
 int
 sshpkt_put_bignum2(struct ssh *ssh, const BIGNUM *v)
@@ -2930,13 +2896,6 @@ sshpkt_get_ec(struct ssh *ssh, EC_POINT *v, const EC_GROUP *g)
 }
 #endif /* OPENSSL_HAS_ECC */
 
-#ifdef WITH_SSH1
-int
-sshpkt_get_bignum1(struct ssh *ssh, BIGNUM *v)
-{
-	return sshbuf_get_bignum1(ssh->state->incoming_packet, v);
-}
-#endif /* WITH_SSH1 */
 
 int
 sshpkt_get_bignum2(struct ssh *ssh, BIGNUM *v)

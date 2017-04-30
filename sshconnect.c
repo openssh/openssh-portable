@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.273 2017/03/10 03:22:40 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.274 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1382,12 +1382,7 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 		ssh_kex2(host, hostaddr, port);
 		ssh_userauth2(local_user, server_user, host, sensitive);
 	} else {
-#ifdef WITH_SSH1
-		ssh_kex(host, hostaddr);
-		ssh_userauth1(local_user, server_user, host, sensitive);
-#else
 		fatal("ssh1 is not supported");
-#endif
 	}
 	free(local_user);
 }

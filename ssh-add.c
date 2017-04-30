@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.128 2016/02/15 09:47:49 dtucker Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.129 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -79,9 +79,6 @@ static char *default_files[] = {
 #endif
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
-#ifdef WITH_SSH1
-	_PATH_SSH_CLIENT_IDENTITY,
-#endif
 	NULL
 };
 
@@ -363,11 +360,7 @@ list_identities(int agent_fd, int do_fp)
 	int r, had_identities = 0;
 	struct ssh_identitylist *idlist;
 	size_t i;
-#ifdef WITH_SSH1
-	int version = 1;
-#else
 	int version = 2;
-#endif
 
 	for (; version <= 2; version++) {
 		if ((r = ssh_fetch_identitylist(agent_fd, version,

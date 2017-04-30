@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.45 2017/03/10 04:07:20 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.46 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -89,9 +89,6 @@ static const struct keytype keytypes[] = {
 	{ "ssh-ed25519-cert-v01@openssh.com", "ED25519-CERT",
 	    KEY_ED25519_CERT, 0, 1, 0 },
 #ifdef WITH_OPENSSL
-# ifdef WITH_SSH1
-	{ NULL, "RSA1", KEY_RSA1, 0, 0, 0 },
-# endif
 	{ "ssh-rsa", "RSA", KEY_RSA, 0, 0, 0 },
 	{ "rsa-sha2-256", "RSA", KEY_RSA, 0, 0, 1 },
 	{ "rsa-sha2-512", "RSA", KEY_RSA, 0, 0, 1 },
@@ -1194,39 +1191,6 @@ sshkey_fingerprint(const struct sshkey *k, int dgst_alg,
 	return retval;
 }
 
-#ifdef WITH_SSH1
-/*
- * Reads a multiple-precision integer in decimal from the buffer, and advances
- * the pointer.  The integer must already be initialized.  This function is
- * permitted to modify the buffer.  This leaves *cpp to point just beyond the
- * last processed character.
- */
-static int
-read_decimal_bignum(char **cpp, BIGNUM *v)
-{
-	char *cp;
-	size_t e;
-	int skip = 1;	/* skip white space */
-
-	cp = *cpp;
-	while (*cp == ' ' || *cp == '\t')
-		cp++;
-	e = strspn(cp, "0123456789");
-	if (e == 0)
-		return SSH_ERR_INVALID_FORMAT;
-	if (e > SSHBUF_MAX_BIGNUM * 3)
-		return SSH_ERR_BIGNUM_TOO_LARGE;
-	if (cp[e] == '\0')
-		skip = 0;
-	else if (strchr(" \t\r\n", cp[e]) == NULL)
-		return SSH_ERR_INVALID_FORMAT;
-	cp[e] = '\0';
-	if (BN_dec2bn(&v, cp) <= 0)
-		return SSH_ERR_INVALID_FORMAT;
-	*cpp = cp + e + skip;
-	return 0;
-}
-#endif /* WITH_SSH1 */
 
 /* returns 0 ok, and < 0 error */
 int
@@ -1237,9 +1201,6 @@ sshkey_read(struct sshkey *ret, char **cpp)
 	char *ep, *cp, *space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
-#ifdef WITH_SSH1
-	u_long bits;
-#endif /* WITH_SSH1 */
 
 	if (ret == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -1248,23 +1209,6 @@ sshkey_read(struct sshkey *ret, char **cpp)
 
 	switch (ret->type) {
 	case KEY_RSA1:
-#ifdef WITH_SSH1
-		/* Get number of bits. */
-		bits = strtoul(cp, &ep, 10);
-		if (*cp == '\0' || strchr(" \t\r\n", *ep) == NULL ||
-		    bits == 0 || bits > SSHBUF_MAX_BIGNUM * 8)
-			return SSH_ERR_INVALID_FORMAT;	/* Bad bit count... */
-		/* Get public exponent, public modulus. */
-		if ((r = read_decimal_bignum(&ep, ret->rsa->e)) < 0)
-			return r;
-		if ((r = read_decimal_bignum(&ep, ret->rsa->n)) < 0)
-			return r;
-		/* validate the claimed number of bits */
-		if (BN_num_bits(ret->rsa->n) != (int)bits)
-			return SSH_ERR_KEY_BITS_MISMATCH;
-		*cpp = ep;
-		retval = 0;
-#endif /* WITH_SSH1 */
 		break;
 	case KEY_UNSPEC:
 	case KEY_RSA:
@@ -1422,36 +1366,6 @@ static int
 sshkey_format_rsa1(const struct sshkey *key, struct sshbuf *b)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
-#ifdef WITH_SSH1
-	u_int bits = 0;
-	char *dec_e = NULL, *dec_n = NULL;
-
-	if (key->rsa == NULL || key->rsa->e == NULL ||
-	    key->rsa->n == NULL) {
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
-	}
-	if ((dec_e = BN_bn2dec(key->rsa->e)) == NULL ||
-	    (dec_n = BN_bn2dec(key->rsa->n)) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	/* size of modulus 'n' */
-	if ((bits = BN_num_bits(key->rsa->n)) <= 0) {
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
-	}
-	if ((r = sshbuf_putf(b, "%u %s %s", bits, dec_e, dec_n)) != 0)
-		goto out;
-
-	/* Success */
-	r = 0;
- out:
-	if (dec_e != NULL)
-		OPENSSL_free(dec_e);
-	if (dec_n != NULL)
-		OPENSSL_free(dec_n);
-#endif /* WITH_SSH1 */
 
 	return r;
 }
@@ -3404,105 +3318,6 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	return r;
 }
 
-#if WITH_SSH1
-/*
- * Serialises the authentication (private) key to a blob, encrypting it with
- * passphrase.  The identification of the blob (lowest 64 bits of n) will
- * precede the key to provide identification of the key without needing a
- * passphrase.
- */
-static int
-sshkey_private_rsa1_to_blob(struct sshkey *key, struct sshbuf *blob,
-    const char *passphrase, const char *comment)
-{
-	struct sshbuf *buffer = NULL, *encrypted = NULL;
-	u_char buf[8];
-	int r, cipher_num;
-	struct sshcipher_ctx *ciphercontext = NULL;
-	const struct sshcipher *cipher;
-	u_char *cp;
-
-	/*
-	 * If the passphrase is empty, use SSH_CIPHER_NONE to ease converting
-	 * to another cipher; otherwise use SSH_AUTHFILE_CIPHER.
-	 */
-	cipher_num = (strcmp(passphrase, "") == 0) ?
-	    SSH_CIPHER_NONE : SSH_CIPHER_3DES;
-	if ((cipher = cipher_by_number(cipher_num)) == NULL)
-		return SSH_ERR_INTERNAL_ERROR;
-
-	/* This buffer is used to build the secret part of the private key. */
-	if ((buffer = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-
-	/* Put checkbytes for checking passphrase validity. */
-	if ((r = sshbuf_reserve(buffer, 4, &cp)) != 0)
-		goto out;
-	arc4random_buf(cp, 2);
-	memcpy(cp + 2, cp, 2);
-
-	/*
-	 * Store the private key (n and e will not be stored because they
-	 * will be stored in plain text, and storing them also in encrypted
-	 * format would just give known plaintext).
-	 * Note: q and p are stored in reverse order to SSL.
-	 */
-	if ((r = sshbuf_put_bignum1(buffer, key->rsa->d)) != 0 ||
-	    (r = sshbuf_put_bignum1(buffer, key->rsa->iqmp)) != 0 ||
-	    (r = sshbuf_put_bignum1(buffer, key->rsa->q)) != 0 ||
-	    (r = sshbuf_put_bignum1(buffer, key->rsa->p)) != 0)
-		goto out;
-
-	/* Pad the part to be encrypted to a size that is a multiple of 8. */
-	explicit_bzero(buf, 8);
-	if ((r = sshbuf_put(buffer, buf, 8 - (sshbuf_len(buffer) % 8))) != 0)
-		goto out;
-
-	/* This buffer will be used to contain the data in the file. */
-	if ((encrypted = sshbuf_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-
-	/* First store keyfile id string. */
-	if ((r = sshbuf_put(encrypted, LEGACY_BEGIN,
-	    sizeof(LEGACY_BEGIN))) != 0)
-		goto out;
-
-	/* Store cipher type and "reserved" field. */
-	if ((r = sshbuf_put_u8(encrypted, cipher_num)) != 0 ||
-	    (r = sshbuf_put_u32(encrypted, 0)) != 0)
-		goto out;
-
-	/* Store public key.  This will be in plain text. */
-	if ((r = sshbuf_put_u32(encrypted, BN_num_bits(key->rsa->n))) != 0 ||
-	    (r = sshbuf_put_bignum1(encrypted, key->rsa->n)) != 0 ||
-	    (r = sshbuf_put_bignum1(encrypted, key->rsa->e)) != 0 ||
-	    (r = sshbuf_put_cstring(encrypted, comment)) != 0)
-		goto out;
-
-	/* Allocate space for the private part of the key in the buffer. */
-	if ((r = sshbuf_reserve(encrypted, sshbuf_len(buffer), &cp)) != 0)
-		goto out;
-
-	if ((r = cipher_set_key_string(&ciphercontext, cipher, passphrase,
-	    CIPHER_ENCRYPT)) != 0)
-		goto out;
-	if ((r = cipher_crypt(ciphercontext, 0, cp,
-	    sshbuf_ptr(buffer), sshbuf_len(buffer), 0, 0)) != 0)
-		goto out;
-
-	r = sshbuf_putb(blob, encrypted);
-
- out:
-	cipher_free(ciphercontext);
-	explicit_bzero(buf, sizeof(buf));
-	sshbuf_free(buffer);
-	sshbuf_free(encrypted);
-
-	return r;
-}
-#endif /* WITH_SSH1 */
 
 #ifdef WITH_OPENSSL
 /* convert SSH v2 key in OpenSSL PEM format */
@@ -3565,11 +3380,6 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
     int force_new_format, const char *new_format_cipher, int new_format_rounds)
 {
 	switch (key->type) {
-#ifdef WITH_SSH1
-	case KEY_RSA1:
-		return sshkey_private_rsa1_to_blob(key, blob,
-		    passphrase, comment);
-#endif /* WITH_SSH1 */
 #ifdef WITH_OPENSSL
 	case KEY_DSA:
 	case KEY_ECDSA:
@@ -3589,182 +3399,6 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 	}
 }
 
-#ifdef WITH_SSH1
-/*
- * Parse the public, unencrypted portion of a RSA1 key.
- */
-int
-sshkey_parse_public_rsa1_fileblob(struct sshbuf *blob,
-    struct sshkey **keyp, char **commentp)
-{
-	int r;
-	struct sshkey *pub = NULL;
-	struct sshbuf *copy = NULL;
-
-	if (keyp != NULL)
-		*keyp = NULL;
-	if (commentp != NULL)
-		*commentp = NULL;
-
-	/* Check that it is at least big enough to contain the ID string. */
-	if (sshbuf_len(blob) < sizeof(LEGACY_BEGIN))
-		return SSH_ERR_INVALID_FORMAT;
-
-	/*
-	 * Make sure it begins with the id string.  Consume the id string
-	 * from the buffer.
-	 */
-	if (memcmp(sshbuf_ptr(blob), LEGACY_BEGIN, sizeof(LEGACY_BEGIN)) != 0)
-		return SSH_ERR_INVALID_FORMAT;
-	/* Make a working copy of the keyblob and skip past the magic */
-	if ((copy = sshbuf_fromb(blob)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_consume(copy, sizeof(LEGACY_BEGIN))) != 0)
-		goto out;
-
-	/* Skip cipher type, reserved data and key bits. */
-	if ((r = sshbuf_get_u8(copy, NULL)) != 0 ||	/* cipher type */
-	    (r = sshbuf_get_u32(copy, NULL)) != 0 ||	/* reserved */
-	    (r = sshbuf_get_u32(copy, NULL)) != 0)	/* key bits */
-		goto out;
-
-	/* Read the public key from the buffer. */
-	if ((pub = sshkey_new(KEY_RSA1)) == NULL ||
-	    (r = sshbuf_get_bignum1(copy, pub->rsa->n)) != 0 ||
-	    (r = sshbuf_get_bignum1(copy, pub->rsa->e)) != 0)
-		goto out;
-
-	/* Finally, the comment */
-	if ((r = sshbuf_get_string(copy, (u_char**)commentp, NULL)) != 0)
-		goto out;
-
-	/* The encrypted private part is not parsed by this function. */
-
-	r = 0;
-	if (keyp != NULL) {
-		*keyp = pub;
-		pub = NULL;
-	}
- out:
-	sshbuf_free(copy);
-	sshkey_free(pub);
-	return r;
-}
-
-static int
-sshkey_parse_private_rsa1(struct sshbuf *blob, const char *passphrase,
-    struct sshkey **keyp, char **commentp)
-{
-	int r;
-	u_int16_t check1, check2;
-	u_int8_t cipher_type;
-	struct sshbuf *decrypted = NULL, *copy = NULL;
-	u_char *cp;
-	char *comment = NULL;
-	struct sshcipher_ctx *ciphercontext = NULL;
-	const struct sshcipher *cipher;
-	struct sshkey *prv = NULL;
-
-	if (keyp != NULL)
-		*keyp = NULL;
-	if (commentp != NULL)
-		*commentp = NULL;
-
-	/* Check that it is at least big enough to contain the ID string. */
-	if (sshbuf_len(blob) < sizeof(LEGACY_BEGIN))
-		return SSH_ERR_INVALID_FORMAT;
-
-	/*
-	 * Make sure it begins with the id string.  Consume the id string
-	 * from the buffer.
-	 */
-	if (memcmp(sshbuf_ptr(blob), LEGACY_BEGIN, sizeof(LEGACY_BEGIN)) != 0)
-		return SSH_ERR_INVALID_FORMAT;
-
-	if ((prv = sshkey_new_private(KEY_RSA1)) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((copy = sshbuf_fromb(blob)) == NULL ||
-	    (decrypted = sshbuf_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = sshbuf_consume(copy, sizeof(LEGACY_BEGIN))) != 0)
-		goto out;
-
-	/* Read cipher type. */
-	if ((r = sshbuf_get_u8(copy, &cipher_type)) != 0 ||
-	    (r = sshbuf_get_u32(copy, NULL)) != 0)	/* reserved */
-		goto out;
-
-	/* Read the public key and comment from the buffer. */
-	if ((r = sshbuf_get_u32(copy, NULL)) != 0 ||	/* key bits */
-	    (r = sshbuf_get_bignum1(copy, prv->rsa->n)) != 0 ||
-	    (r = sshbuf_get_bignum1(copy, prv->rsa->e)) != 0 ||
-	    (r = sshbuf_get_cstring(copy, &comment, NULL)) != 0)
-		goto out;
-
-	/* Check that it is a supported cipher. */
-	cipher = cipher_by_number(cipher_type);
-	if (cipher == NULL) {
-		r = SSH_ERR_KEY_UNKNOWN_CIPHER;
-		goto out;
-	}
-	/* Initialize space for decrypted data. */
-	if ((r = sshbuf_reserve(decrypted, sshbuf_len(copy), &cp)) != 0)
-		goto out;
-
-	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
-	if ((r = cipher_set_key_string(&ciphercontext, cipher, passphrase,
-	    CIPHER_DECRYPT)) != 0)
-		goto out;
-	if ((r = cipher_crypt(ciphercontext, 0, cp,
-	    sshbuf_ptr(copy), sshbuf_len(copy), 0, 0)) != 0)
-		goto out;
-
-	if ((r = sshbuf_get_u16(decrypted, &check1)) != 0 ||
-	    (r = sshbuf_get_u16(decrypted, &check2)) != 0)
-		goto out;
-	if (check1 != check2) {
-		r = SSH_ERR_KEY_WRONG_PASSPHRASE;
-		goto out;
-	}
-
-	/* Read the rest of the private key. */
-	if ((r = sshbuf_get_bignum1(decrypted, prv->rsa->d)) != 0 ||
-	    (r = sshbuf_get_bignum1(decrypted, prv->rsa->iqmp)) != 0 ||
-	    (r = sshbuf_get_bignum1(decrypted, prv->rsa->q)) != 0 ||
-	    (r = sshbuf_get_bignum1(decrypted, prv->rsa->p)) != 0)
-		goto out;
-
-	/* calculate p-1 and q-1 */
-	if ((r = rsa_generate_additional_parameters(prv->rsa)) != 0)
-		goto out;
-
-	/* enable blinding */
-	if (RSA_blinding_on(prv->rsa, NULL) != 1) {
-		r = SSH_ERR_LIBCRYPTO_ERROR;
-		goto out;
-	}
-	r = 0;
-	if (keyp != NULL) {
-		*keyp = prv;
-		prv = NULL;
-	}
-	if (commentp != NULL) {
-		*commentp = comment;
-		comment = NULL;
-	}
- out:
-	cipher_free(ciphercontext);
-	free(comment);
-	sshkey_free(prv);
-	sshbuf_free(copy);
-	sshbuf_free(decrypted);
-	return r;
-}
-#endif /* WITH_SSH1 */
 
 #ifdef WITH_OPENSSL
 static int
@@ -3910,11 +3544,6 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		*commentp = NULL;
 
 	switch (type) {
-#ifdef WITH_SSH1
-	case KEY_RSA1:
-		return sshkey_parse_private_rsa1(blob, passphrase,
-		    keyp, commentp);
-#endif /* WITH_SSH1 */
 #ifdef WITH_OPENSSL
 	case KEY_DSA:
 	case KEY_ECDSA:
@@ -3951,13 +3580,6 @@ sshkey_parse_private_fileblob(struct sshbuf *buffer, const char *passphrase,
 	if (commentp != NULL)
 		*commentp = NULL;
 
-#ifdef WITH_SSH1
-	/* it's a SSH v1 key if the public key part is readable */
-	if (sshkey_parse_public_rsa1_fileblob(buffer, NULL, NULL) == 0) {
-		return sshkey_parse_private_fileblob_type(buffer, KEY_RSA1,
-		    passphrase, keyp, commentp);
-	}
-#endif /* WITH_SSH1 */
 	return sshkey_parse_private_fileblob_type(buffer, KEY_UNSPEC,
 	    passphrase, keyp, commentp);
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.218 2017/03/15 03:52:30 deraadt Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.219 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -257,16 +257,6 @@ process_request_identities(SocketEntry *e, int version)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	TAILQ_FOREACH(id, &tab->idlist, next) {
 		if (id->key->type == KEY_RSA1) {
-#ifdef WITH_SSH1
-			if ((r = sshbuf_put_u32(msg,
-			    BN_num_bits(id->key->rsa->n))) != 0 ||
-			    (r = sshbuf_put_bignum1(msg,
-			    id->key->rsa->e)) != 0 ||
-			    (r = sshbuf_put_bignum1(msg,
-			    id->key->rsa->n)) != 0)
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-#endif
 		} else {
 			u_char *blob;
 			size_t blen;
@@ -289,87 +279,6 @@ process_request_identities(SocketEntry *e, int version)
 	sshbuf_free(msg);
 }
 
-#ifdef WITH_SSH1
-/* ssh1 only */
-static void
-process_authentication_challenge1(SocketEntry *e)
-{
-	u_char buf[32], mdbuf[16], session_id[16];
-	u_int response_type;
-	BIGNUM *challenge;
-	Identity *id;
-	int r, len;
-	struct sshbuf *msg;
-	struct ssh_digest_ctx *md;
-	struct sshkey *key;
-
-	if ((msg = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((key = sshkey_new(KEY_RSA1)) == NULL)
-		fatal("%s: sshkey_new failed", __func__);
-	if ((challenge = BN_new()) == NULL)
-		fatal("%s: BN_new failed", __func__);
-
-	if ((r = sshbuf_get_u32(e->request, NULL)) != 0 || /* ignored */
-	    (r = sshbuf_get_bignum1(e->request, key->rsa->e)) != 0 ||
-	    (r = sshbuf_get_bignum1(e->request, key->rsa->n)) != 0 ||
-	    (r = sshbuf_get_bignum1(e->request, challenge)))
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-	/* Only protocol 1.1 is supported */
-	if (sshbuf_len(e->request) == 0)
-		goto failure;
-	if ((r = sshbuf_get(e->request, session_id, sizeof(session_id))) != 0 ||
-	    (r = sshbuf_get_u32(e->request, &response_type)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (response_type != 1)
-		goto failure;
-
-	id = lookup_identity(key, 1);
-	if (id != NULL && (!id->confirm || confirm_key(id) == 0)) {
-		struct sshkey *private = id->key;
-		/* Decrypt the challenge using the private key. */
-		if ((r = rsa_private_decrypt(challenge, challenge,
-		    private->rsa) != 0)) {
-			fatal("%s: rsa_public_encrypt: %s", __func__,
-			    ssh_err(r));
-			goto failure;	/* XXX ? */
-		}
-
-		/* The response is MD5 of decrypted challenge plus session id */
-		len = BN_num_bytes(challenge);
-		if (len <= 0 || len > 32) {
-			logit("%s: bad challenge length %d", __func__, len);
-			goto failure;
-		}
-		memset(buf, 0, 32);
-		BN_bn2bin(challenge, buf + 32 - len);
-		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
-		    ssh_digest_update(md, buf, 32) < 0 ||
-		    ssh_digest_update(md, session_id, 16) < 0 ||
-		    ssh_digest_final(md, mdbuf, sizeof(mdbuf)) < 0)
-			fatal("%s: md5 failed", __func__);
-		ssh_digest_free(md);
-
-		/* Send the response. */
-		if ((r = sshbuf_put_u8(msg, SSH_AGENT_RSA_RESPONSE)) != 0 ||
-		    (r = sshbuf_put(msg, mdbuf, sizeof(mdbuf))) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-		goto send;
-	}
-
- failure:
-	/* Unknown identity or protocol error.  Send failure. */
-	if ((r = sshbuf_put_u8(msg, SSH_AGENT_FAILURE)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
- send:
-	if ((r = sshbuf_put_stringb(e->output, msg)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	sshkey_free(key);
-	BN_clear_free(challenge);
-	sshbuf_free(msg);
-}
-#endif
 
 static char *
 agent_decode_alg(struct sshkey *key, u_int flags)
@@ -448,28 +357,8 @@ process_remove_identity(SocketEntry *e, int version)
 	int r, success = 0;
 	struct sshkey *key = NULL;
 	u_char *blob;
-#ifdef WITH_SSH1
-	u_int bits;
-#endif /* WITH_SSH1 */
 
 	switch (version) {
-#ifdef WITH_SSH1
-	case 1:
-		if ((key = sshkey_new(KEY_RSA1)) == NULL) {
-			error("%s: sshkey_new failed", __func__);
-			return;
-		}
-		if ((r = sshbuf_get_u32(e->request, &bits)) != 0 ||
-		    (r = sshbuf_get_bignum1(e->request, key->rsa->e)) != 0 ||
-		    (r = sshbuf_get_bignum1(e->request, key->rsa->n)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-		if (bits != sshkey_size(key))
-			logit("Warning: identity keysize mismatch: "
-			    "actual %u, announced %u",
-			    sshkey_size(key), bits);
-		break;
-#endif /* WITH_SSH1 */
 	case 2:
 		if ((r = sshbuf_get_string(e->request, &blob, &blen)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -559,45 +448,6 @@ reaper(void)
  * XXX this and the corresponding serialisation function probably belongs
  * in key.c
  */
-#ifdef WITH_SSH1
-static int
-agent_decode_rsa1(struct sshbuf *m, struct sshkey **kp)
-{
-	struct sshkey *k = NULL;
-	int r = SSH_ERR_INTERNAL_ERROR;
-
-	*kp = NULL;
-	if ((k = sshkey_new_private(KEY_RSA1)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-
-	if ((r = sshbuf_get_u32(m, NULL)) != 0 ||		/* ignored */
-	    (r = sshbuf_get_bignum1(m, k->rsa->n)) != 0 ||
-	    (r = sshbuf_get_bignum1(m, k->rsa->e)) != 0 ||
-	    (r = sshbuf_get_bignum1(m, k->rsa->d)) != 0 ||
-	    (r = sshbuf_get_bignum1(m, k->rsa->iqmp)) != 0 ||
-	    /* SSH1 and SSL have p and q swapped */
-	    (r = sshbuf_get_bignum1(m, k->rsa->q)) != 0 ||	/* p */
-	    (r = sshbuf_get_bignum1(m, k->rsa->p)) != 0) 	/* q */
-		goto out;
-
-	/* Generate additional parameters */
-	if ((r = rsa_generate_additional_parameters(k->rsa)) != 0)
-		goto out;
-	/* enable blinding */
-	if (RSA_blinding_on(k->rsa, NULL) != 1) {
-		r = SSH_ERR_LIBCRYPTO_ERROR;
-		goto out;
-	}
-
-	r = 0; /* success */
- out:
-	if (r == 0)
-		*kp = k;
-	else
-		sshkey_free(k);
-	return r;
-}
-#endif /* WITH_SSH1 */
 
 static void
 process_add_identity(SocketEntry *e, int version)
@@ -613,11 +463,6 @@ process_add_identity(SocketEntry *e, int version)
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	switch (version) {
-#ifdef WITH_SSH1
-	case 1:
-		r = agent_decode_rsa1(e->request, &k);
-		break;
-#endif /* WITH_SSH1 */
 	case 2:
 		r = sshkey_private_deserialize(e->request, &k);
 		break;
@@ -912,22 +757,6 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_UNLOCK:
 		process_lock_agent(e, type == SSH_AGENTC_LOCK);
 		break;
-#ifdef WITH_SSH1
-	/* ssh1 */
-	case SSH_AGENTC_RSA_CHALLENGE:
-		process_authentication_challenge1(e);
-		break;
-	case SSH_AGENTC_REQUEST_RSA_IDENTITIES:
-		process_request_identities(e, 1);
-		break;
-	case SSH_AGENTC_ADD_RSA_IDENTITY:
-	case SSH_AGENTC_ADD_RSA_ID_CONSTRAINED:
-		process_add_identity(e, 1);
-		break;
-	case SSH_AGENTC_REMOVE_RSA_IDENTITY:
-		process_remove_identity(e, 1);
-		break;
-#endif
 	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
 		process_remove_all_identities(e, 1); /* safe for !WITH_SSH1 */
 		break;

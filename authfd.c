@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.100 2015/12/04 16:41:28 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.101 2017/04/30 23:10:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -199,43 +199,6 @@ ssh_lock_agent(int sock, int lock, const char *password)
 	return r;
 }
 
-#ifdef WITH_SSH1
-static int
-deserialise_identity1(struct sshbuf *ids, struct sshkey **keyp, char **commentp)
-{
-	struct sshkey *key;
-	int r, keybits;
-	u_int32_t bits;
-	char *comment = NULL;
-
-	if ((key = sshkey_new(KEY_RSA1)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_get_u32(ids, &bits)) != 0 ||
-	    (r = sshbuf_get_bignum1(ids, key->rsa->e)) != 0 ||
-	    (r = sshbuf_get_bignum1(ids, key->rsa->n)) != 0 ||
-	    (r = sshbuf_get_cstring(ids, &comment, NULL)) != 0)
-		goto out;
-	keybits = BN_num_bits(key->rsa->n);
-	/* XXX previously we just warned here. I think we should be strict */
-	if (keybits < 0 || bits != (u_int)keybits) {
-		r = SSH_ERR_KEY_BITS_MISMATCH;
-		goto out;
-	}
-	if (keyp != NULL) {
-		*keyp = key;
-		key = NULL;
-	}
-	if (commentp != NULL) {
-		*commentp = comment;
-		comment = NULL;
-	}
-	r = 0;
- out:
-	sshkey_free(key);
-	free(comment);
-	return r;
-}
-#endif
 
 static int
 deserialise_identity2(struct sshbuf *ids, struct sshkey **keyp, char **commentp)
@@ -331,11 +294,6 @@ ssh_fetch_identitylist(int sock, int version, struct ssh_identitylist **idlp)
 	for (i = 0; i < num;) {
 		switch (version) {
 		case 1:
-#ifdef WITH_SSH1
-			if ((r = deserialise_identity1(msg,
-			    &(idl->keys[i]), &(idl->comments[i]))) != 0)
-				goto out;
-#endif
 			break;
 		case 2:
 			if ((r = deserialise_identity2(msg,
@@ -385,46 +343,6 @@ ssh_free_identitylist(struct ssh_identitylist *idl)
  * otherwise.
  */
 
-#ifdef WITH_SSH1
-int
-ssh_decrypt_challenge(int sock, struct sshkey* key, BIGNUM *challenge,
-    u_char session_id[16], u_char response[16])
-{
-	struct sshbuf *msg;
-	int r;
-	u_char type;
-
-	if (key->type != KEY_RSA1)
-		return SSH_ERR_INVALID_ARGUMENT;
-	if ((msg = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_put_u8(msg, SSH_AGENTC_RSA_CHALLENGE)) != 0 ||
-	    (r = sshbuf_put_u32(msg, BN_num_bits(key->rsa->n))) != 0 ||
-	    (r = sshbuf_put_bignum1(msg, key->rsa->e)) != 0 ||
-	    (r = sshbuf_put_bignum1(msg, key->rsa->n)) != 0 ||
-	    (r = sshbuf_put_bignum1(msg, challenge)) != 0 ||
-	    (r = sshbuf_put(msg, session_id, 16)) != 0 ||
-	    (r = sshbuf_put_u32(msg, 1)) != 0) /* Response type for proto 1.1 */
-		goto out;
-	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
-		goto out;
-	if ((r = sshbuf_get_u8(msg, &type)) != 0)
-		goto out;
-	if (agent_failed(type)) {
-		r = SSH_ERR_AGENT_FAILURE;
-		goto out;
-	} else if (type != SSH_AGENT_RSA_RESPONSE) {
-		r = SSH_ERR_INVALID_FORMAT;
-		goto out;
-	}
-	if ((r = sshbuf_get(msg, response, 16)) != 0)
-		goto out;
-	r = 0;
- out:
-	sshbuf_free(msg);
-	return r;
-}
-#endif
 
 /* encode signature algoritm in flag bits, so we can keep the msg format */
 static u_int
@@ -494,25 +412,6 @@ ssh_agent_sign(int sock, struct sshkey *key,
 
 /* Encode key for a message to the agent. */
 
-#ifdef WITH_SSH1
-static int
-ssh_encode_identity_rsa1(struct sshbuf *b, RSA *key, const char *comment)
-{
-	int r;
-
-	/* To keep within the protocol: p < q for ssh. in SSL p > q */
-	if ((r = sshbuf_put_u32(b, BN_num_bits(key->n))) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->n)) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->e)) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->d)) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->iqmp)) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->q)) != 0 ||
-	    (r = sshbuf_put_bignum1(b, key->p)) != 0 ||
-	    (r = sshbuf_put_cstring(b, comment)) != 0)
-		return r;
-	return 0;
-}
-#endif
 
 static int
 ssh_encode_identity_ssh2(struct sshbuf *b, struct sshkey *key,
@@ -561,16 +460,6 @@ ssh_add_identity_constrained(int sock, struct sshkey *key, const char *comment,
 		return SSH_ERR_ALLOC_FAIL;
 
 	switch (key->type) {
-#ifdef WITH_SSH1
-	case KEY_RSA1:
-		type = constrained ?
-		    SSH_AGENTC_ADD_RSA_ID_CONSTRAINED :
-		    SSH_AGENTC_ADD_RSA_IDENTITY;
-		if ((r = sshbuf_put_u8(msg, type)) != 0 ||
-		    (r = ssh_encode_identity_rsa1(msg, key->rsa, comment)) != 0)
-			goto out;
-		break;
-#endif
 #ifdef WITH_OPENSSL
 	case KEY_RSA:
 	case KEY_RSA_CERT:
@@ -620,16 +509,6 @@ ssh_remove_identity(int sock, struct sshkey *key)
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 
-#ifdef WITH_SSH1
-	if (key->type == KEY_RSA1) {
-		if ((r = sshbuf_put_u8(msg,
-		    SSH_AGENTC_REMOVE_RSA_IDENTITY)) != 0 ||
-		    (r = sshbuf_put_u32(msg, BN_num_bits(key->rsa->n))) != 0 ||
-		    (r = sshbuf_put_bignum1(msg, key->rsa->e)) != 0 ||
-		    (r = sshbuf_put_bignum1(msg, key->rsa->n)) != 0)
-			goto out;
-	} else
-#endif
 	if (key->type != KEY_UNSPEC) {
 		if ((r = sshkey_to_blob(key, &blob, &blen)) != 0)
 			goto out;
