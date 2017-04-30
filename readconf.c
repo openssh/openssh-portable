@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.272 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.273 2017/04/30 23:11:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -152,7 +152,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oTCPKeepAlive, oNumberOfPasswordPrompts,
-	oUsePrivilegedPort, oLogFacility, oLogLevel, oCiphers, oProtocol, oMacs,
+	oUsePrivilegedPort, oLogFacility, oLogLevel, oCiphers, oMacs,
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
@@ -171,7 +171,7 @@ typedef enum {
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
 	oPubkeyAcceptedKeyTypes, oProxyJump,
-	oIgnoredUnknownOption, oDeprecated, oUnsupported
+	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -181,6 +181,7 @@ static struct {
 	OpCodes opcode;
 } keywords[] = {
 	/* Deprecated options */
+	{ "protocol", oIgnore }, /* NB. silently ignored */
 	{ "fallbacktorsh", oDeprecated },
 	{ "globalknownhostsfile2", oDeprecated },
 	{ "rhostsauthentication", oDeprecated },
@@ -242,7 +243,6 @@ static struct {
 	{ "cipher", oCipher },
 	{ "ciphers", oCiphers },
 	{ "macs", oMacs },
-	{ "protocol", oProtocol },
 	{ "remoteforward", oRemoteForward },
 	{ "localforward", oLocalForward },
 	{ "user", oUser },
@@ -866,6 +866,8 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	case oBadOption:
 		/* don't panic, but count bad options */
 		return -1;
+	case oIgnore:
+		return 0;
 	case oIgnoredUnknownOption:
 		debug("%s line %d: Ignored unknown option \"%s\"",
 		    filename, linenum, keyword);
@@ -1234,19 +1236,6 @@ parse_keytypes:
 				filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
-		break;
-
-	case oProtocol:
-		intptr = &options->protocol;
-		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		value = proto_spec(arg);
-		if (value == SSH_PROTO_UNKNOWN)
-			fatal("%.200s line %d: Bad protocol spec '%s'.",
-			    filename, linenum, arg ? arg : "<NONE>");
-		if (*activep && *intptr == SSH_PROTO_UNKNOWN)
-			*intptr = value;
 		break;
 
 	case oLogLevel:
@@ -1827,7 +1816,6 @@ initialize_options(Options * options)
 	options->macs = NULL;
 	options->kex_algorithms = NULL;
 	options->hostkeyalgorithms = NULL;
-	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
 	options->num_certificate_files = 0;
 	options->hostname = NULL;
@@ -1984,27 +1972,16 @@ fill_default_options(Options * options)
 	if (options->cipher == -1)
 		options->cipher = SSH_CIPHER_NOT_SET;
 	/* options->hostkeyalgorithms, default set in myproposals.h */
-	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_2;
 	if (options->add_keys_to_agent == -1)
 		options->add_keys_to_agent = 0;
 	if (options->num_identity_files == 0) {
-		if (options->protocol & SSH_PROTO_1) {
-			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_IDENTITY, 0);
-		}
-		if (options->protocol & SSH_PROTO_2) {
-			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_RSA, 0);
-			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_DSA, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_RSA, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DSA, 0);
 #ifdef OPENSSL_HAS_ECC
-			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_ECDSA, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_ECDSA, 0);
 #endif
-			add_identity_file(options, "~/",
-			    _PATH_SSH_CLIENT_ID_ED25519, 0);
-		}
+		add_identity_file(options, "~/",
+		    _PATH_SSH_CLIENT_ID_ED25519, 0);
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';
@@ -2395,17 +2372,6 @@ fmt_intarg(OpCodes code, int val)
 		return fmt_multistate_int(val, multistate_canonicalizehostname);
 	case oFingerprintHash:
 		return ssh_digest_alg_name(val);
-	case oProtocol:
-		switch (val) {
-		case SSH_PROTO_1:
-			return "1";
-		case SSH_PROTO_2:
-			return "2";
-		case (SSH_PROTO_1|SSH_PROTO_2):
-			return "2,1";
-		default:
-			return "UNKNOWN";
-		}
 	default:
 		switch (val) {
 		case 0:
@@ -2550,7 +2516,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oNoHostAuthenticationForLocalhost, o->no_host_authentication_for_localhost);
 	dump_cfg_fmtint(oPasswordAuthentication, o->password_authentication);
 	dump_cfg_fmtint(oPermitLocalCommand, o->permit_local_command);
-	dump_cfg_fmtint(oProtocol, o->protocol);
 	dump_cfg_fmtint(oProxyUseFdpass, o->proxy_use_fdpass);
 	dump_cfg_fmtint(oPubkeyAuthentication, o->pubkey_authentication);
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);

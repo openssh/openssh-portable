@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.453 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.454 2017/04/30 23:11:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -609,10 +609,10 @@ main(int ac, char **av)
 	    "ACD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
-			options.protocol = SSH_PROTO_1;
+			fatal("SSH protocol v.1 is no longer supported");
 			break;
 		case '2':
-			options.protocol = SSH_PROTO_2;
+			/* Ignored */
 			break;
 		case '4':
 			options.address_family = AF_INET;

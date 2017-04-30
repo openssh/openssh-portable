@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.274 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.275 2017/04/30 23:11:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -549,7 +549,7 @@ ssh_exchange_identification(int timeout_ms)
 	int remote_major, remote_minor, mismatch;
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
-	int minor1 = PROTOCOL_MINOR_1, client_banner_sent = 0;
+	int client_banner_sent = 0;
 	u_int i, n;
 	size_t len;
 	int fdsetsz, remaining, rc;
@@ -559,15 +559,9 @@ ssh_exchange_identification(int timeout_ms)
 	fdsetsz = howmany(connection_in + 1, NFDBITS) * sizeof(fd_mask);
 	fdset = xcalloc(1, fdsetsz);
 
-	/*
-	 * If we are SSH2-only then we can send the banner immediately and
-	 * save a round-trip.
-	 */
-	if (options.protocol == SSH_PROTO_2) {
-		enable_compat20();
-		send_client_banner(connection_out, 0);
-		client_banner_sent = 1;
-	}
+	enable_compat20();
+	send_client_banner(connection_out, 0);
+	client_banner_sent = 1;
 
 	/* Read other side's version identification. */
 	remaining = timeout_ms;
@@ -635,50 +629,27 @@ ssh_exchange_identification(int timeout_ms)
 
 	switch (remote_major) {
 	case 1:
-		if (remote_minor == 99 &&
-		    (options.protocol & SSH_PROTO_2) &&
-		    !(options.protocol & SSH_PROTO_1_PREFERRED)) {
+		if (remote_minor == 99)
 			enable_compat20();
-			break;
-		}
-		if (!(options.protocol & SSH_PROTO_1)) {
+		else
 			mismatch = 1;
-			break;
-		}
-		if (remote_minor < 3) {
-			fatal("Remote machine has too old SSH software version.");
-		} else if (remote_minor == 3 || remote_minor == 4) {
-			/* We speak 1.3, too. */
-			enable_compat13();
-			minor1 = 3;
-			if (options.forward_agent) {
-				logit("Agent forwarding disabled for protocol 1.3");
-				options.forward_agent = 0;
-			}
-		}
 		break;
 	case 2:
-		if (options.protocol & SSH_PROTO_2) {
-			enable_compat20();
-			break;
-		}
-		/* FALLTHROUGH */
+		enable_compat20();
+		break;
 	default:
 		mismatch = 1;
 		break;
 	}
 	if (mismatch)
 		fatal("Protocol major versions differ: %d vs. %d",
-		    (options.protocol & SSH_PROTO_2) ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
-		    remote_major);
+		    PROTOCOL_MAJOR_2, remote_major);
 	if ((datafellows & SSH_BUG_DERIVEKEY) != 0)
 		fatal("Server version \"%.100s\" uses unsafe key agreement; "
 		    "refusing connection", remote_version);
 	if ((datafellows & SSH_BUG_RSASIGMD5) != 0)
 		logit("Server version \"%.100s\" uses unsafe RSA signature "
 		    "scheme; disabling use of RSA keys", remote_version);
-	if (!client_banner_sent)
-		send_client_banner(connection_out, minor1);
 	chop(server_version_string);
 }
 

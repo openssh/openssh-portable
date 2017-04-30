@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.118 2017/04/28 03:20:27 dtucker Exp $ */
+/* $OpenBSD: readconf.h,v 1.119 2017/04/30 23:11:45 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -75,7 +75,6 @@ typedef struct {
 	char   *macs;		/* SSH2 macs in order of preference. */
 	char   *hostkeyalgorithms;	/* SSH2 server key types in order of preference. */
 	char   *kex_algorithms;	/* SSH2 kex methods in order of preference. */
-	int	protocol;	/* Protocol in order of preference. */
 	char   *hostname;	/* Real host to connect. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */
 	char   *proxy_command;	/* Proxy command for connecting the host. */
