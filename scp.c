@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.189 2017/04/28 03:21:12 millert Exp $ */
+/* $OpenBSD: scp.c,v 1.190 2017/04/30 23:28:12 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -404,7 +404,11 @@ main(int argc, char **argv)
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
+			fatal("SSH protocol v.1 is no longer supported");
+			break;
 		case '2':
+			/* Ignored */
+			break;
 		case '4':
 		case '6':
 		case 'C':
