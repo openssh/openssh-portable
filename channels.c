@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.358 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.359 2017/04/30 23:28:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,7 +69,6 @@
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
-#include "ssh1.h"
 #include "ssh2.h"
 #include "ssherr.h"
 #include "packet.h"
@@ -2621,46 +2620,6 @@ channel_input_ieof(int type, u_int32_t seq, void *ctxt)
 	return 0;
 }
 
-/* ARGSUSED */
-int
-channel_input_close(int type, u_int32_t seq, void *ctxt)
-{
-	int id;
-	Channel *c;
-
-	id = packet_get_int();
-	packet_check_eom();
-	c = channel_lookup(id);
-	if (c == NULL)
-		packet_disconnect("Received close for nonexistent channel %d.", id);
-	if (channel_proxy_upstream(c, type, seq, ctxt))
-		return 0;
-	/*
-	 * Send a confirmation that we have closed the channel and no more
-	 * data is coming for it.
-	 */
-	packet_start(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION);
-	packet_put_int(c->remote_id);
-	packet_send();
-
-	/*
-	 * If the channel is in closed state, we have sent a close request,
-	 * and the other side will eventually respond with a confirmation.
-	 * Thus, we cannot free the channel here, because then there would be
-	 * no-one to receive the confirmation.  The channel gets freed when
-	 * the confirmation arrives.
-	 */
-	if (c->type != SSH_CHANNEL_CLOSED) {
-		/*
-		 * Not a closed channel - mark it as draining, which will
-		 * cause it to be freed later.
-		 */
-		buffer_clear(&c->input);
-		c->type = SSH_CHANNEL_OUTPUT_DRAINING;
-	}
-	return 0;
-}
-
 /* proto version 1.5 overloads CLOSE_CONFIRMATION with OCLOSE */
 /* ARGSUSED */
 int
@@ -2814,38 +2773,6 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 		fatal("channel %d: adjust %u overflows remote window %u",
 		    id, adjust, c->remote_window);
 	c->remote_window = tmp;
-	return 0;
-}
-
-/* ARGSUSED */
-int
-channel_input_port_open(int type, u_int32_t seq, void *ctxt)
-{
-	Channel *c = NULL;
-	u_short host_port;
-	char *host, *originator_string;
-	int remote_id;
-
-	remote_id = packet_get_int();
-	host = packet_get_string(NULL);
-	host_port = packet_get_int();
-
-	if (packet_get_protocol_flags() & SSH_PROTOFLAG_HOST_IN_FWD_OPEN) {
-		originator_string = packet_get_string(NULL);
-	} else {
-		originator_string = xstrdup("unknown (remote did not supply name)");
-	}
-	packet_check_eom();
-	c = channel_connect_to_port(host, host_port,
-	    "connected socket", originator_string, NULL, NULL);
-	free(originator_string);
-	free(host);
-	if (c == NULL) {
-		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
-		packet_put_int(remote_id);
-		packet_send();
-	} else
-		c->remote_id = remote_id;
 	return 0;
 }
 
@@ -4256,81 +4183,6 @@ x11_connect_display(void)
 }
 
 /*
- * This is called when SSH_SMSG_X11_OPEN is received.  The packet contains
- * the remote channel number.  We should do whatever we want, and respond
- * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
- */
-
-/* ARGSUSED */
-int
-x11_input_open(int type, u_int32_t seq, void *ctxt)
-{
-	Channel *c = NULL;
-	int remote_id, sock = 0;
-	char *remote_host;
-
-	debug("Received X11 open request.");
-
-	remote_id = packet_get_int();
-
-	if (packet_get_protocol_flags() & SSH_PROTOFLAG_HOST_IN_FWD_OPEN) {
-		remote_host = packet_get_string(NULL);
-	} else {
-		remote_host = xstrdup("unknown (remote did not supply name)");
-	}
-	packet_check_eom();
-
-	/* Obtain a connection to the real X display. */
-	sock = x11_connect_display();
-	if (sock != -1) {
-		/* Allocate a channel for this connection. */
-		c = channel_new("connected x11 socket",
-		    SSH_CHANNEL_X11_OPEN, sock, sock, -1, 0, 0, 0,
-		    remote_host, 1);
-		c->remote_id = remote_id;
-		c->force_drain = 1;
-	}
-	free(remote_host);
-	if (c == NULL) {
-		/* Send refusal to the remote host. */
-		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
-		packet_put_int(remote_id);
-	} else {
-		/* Send a confirmation to the remote host. */
-		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
-		packet_put_int(remote_id);
-		packet_put_int(c->self);
-	}
-	packet_send();
-	return 0;
-}
-
-/* dummy protocol handler that denies SSH-1 requests (agent/x11) */
-/* ARGSUSED */
-int
-deny_input_open(int type, u_int32_t seq, void *ctxt)
-{
-	int rchan = packet_get_int();
-
-	switch (type) {
-	case SSH_SMSG_AGENT_OPEN:
-		error("Warning: ssh server tried agent forwarding.");
-		break;
-	case SSH_SMSG_X11_OPEN:
-		error("Warning: ssh server tried X11 forwarding.");
-		break;
-	default:
-		error("deny_input_open: type %d", type);
-		break;
-	}
-	error("Warning: this is probably a break-in attempt by a malicious server.");
-	packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
-	packet_put_int(rchan);
-	packet_send();
-	return 0;
-}
-
-/*
  * Requests forwarding of X11 connections, generates fake authentication
  * data, and enables authentication spoofing.
  * This should be called in the client only.
@@ -4393,17 +4245,4 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	packet_send();
 	packet_write_wait();
 	free(new_data);
-}
-
-
-/* -- agent forwarding */
-
-/* Sends a message to the server to request authentication fd forwarding. */
-
-void
-auth_request_forwarding(void)
-{
-	packet_start(SSH_CMSG_AGENT_REQUEST_FORWARDING);
-	packet_send();
-	packet_write_wait();
 }

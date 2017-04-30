@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.28 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: dispatch.c,v 1.29 2017/04/30 23:28:42 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -30,7 +30,6 @@
 #include <signal.h>
 #include <stdarg.h>
 
-#include "ssh1.h"
 #include "ssh2.h"
 #include "log.h"
 #include "dispatch.h"

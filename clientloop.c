@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.294 2017/04/30 23:21:54 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.295 2017/04/30 23:28:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -89,7 +89,6 @@
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "ssh.h"
-#include "ssh1.h"
 #include "ssh2.h"
 #include "packet.h"
 #include "buffer.h"

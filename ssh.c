@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.457 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.458 2017/04/30 23:28:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -81,7 +81,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "ssh1.h"
 #include "ssh2.h"
 #include "canohost.h"
 #include "compat.h"

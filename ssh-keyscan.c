@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.112 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.113 2017/04/30 23:28:42 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -32,7 +32,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "ssh1.h"
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "cipher.h"

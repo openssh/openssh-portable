@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.251 2017/04/30 23:26:16 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.252 2017/04/30 23:28:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,7 +69,6 @@
 #include "xmalloc.h"
 #include "crc32.h"
 #include "compat.h"
-#include "ssh1.h"
 #include "ssh2.h"
 #include "cipher.h"
 #include "sshkey.h"
