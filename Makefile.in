@@ -95,7 +95,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	platform-pledge.o platform-tracing.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
-	sshconnect.o sshconnect1.o sshconnect2.o mux.o
+	sshconnect.o sshconnect2.o mux.o
 
 SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	audit.o audit-bsm.o audit-linux.o platform.o \
