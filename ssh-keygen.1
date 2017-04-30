@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.135 2017/04/29 06:06:01 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.136 2017/04/30 23:18:44 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: April 29 2017 $
+.Dd $Mdocdate: April 30 2017 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -207,7 +207,7 @@ There is no way to recover a lost passphrase.
 If the passphrase is lost or forgotten, a new key must be generated
 and the corresponding public key copied to other machines.
 .Pp
-For RSA1 keys and keys stored in the newer OpenSSH format,
+For keys stored in the newer OpenSSH format,
 there is also a comment field in the key file that is only for
 convenience to the user to help identify the key.
 The comment can tell what the key is for, or whatever is useful.
@@ -264,7 +264,7 @@ flag will be ignored.
 Provides a new comment.
 .It Fl c
 Requests changing the comment in the private and public key files.
-This operation is only supported for RSA1 keys and keys stored in the
+This operation is only supported for keys stored in the
 newer OpenSSH format.
 The program will prompt for the file containing the private keys, for
 the passphrase if the key has one, and for the new comment.
@@ -384,7 +384,6 @@ section.
 Prints the contents of one or more certificates.
 .It Fl l
 Show fingerprint of specified public key file.
-Private RSA1 keys are also supported.
 For RSA and DSA keys
 .Nm
 tries to find the matching public key file and prints its fingerprint.

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.111 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.112 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -54,11 +54,13 @@ int IPv4or6 = AF_UNSPEC;
 
 int ssh_port = SSH_DEFAULT_PORT;
 
-#define KT_RSA1		1
-#define KT_DSA		2
-#define KT_RSA		4
-#define KT_ECDSA	8
-#define KT_ED25519	16
+#define KT_DSA		(1)
+#define KT_RSA		(1<<1)
+#define KT_ECDSA	(1<<2)
+#define KT_ED25519	(1<<3)
+
+#define KT_MIN		KT_DSA
+#define KT_MAX		KT_ED25519
 
 int get_cert = 0;
 int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519;
@@ -94,7 +96,7 @@ typedef struct Connection {
 	int c_plen;		/* Packet length field for ssh packet */
 	int c_len;		/* Total bytes which must be read. */
 	int c_off;		/* Length of data read so far. */
-	int c_keytype;		/* Only one of KT_RSA1, KT_DSA, or KT_RSA */
+	int c_keytype;		/* Only one of KT_* */
 	sig_atomic_t c_done;	/* SSH2 done */
 	char *c_namebase;	/* Address to free for c_name and c_namelist */
 	char *c_name;		/* Hostname of connection for errors */
@@ -435,6 +437,20 @@ congreet(int s)
 	size_t bufsiz;
 	con *c = &fdcon[s];
 
+	/* send client banner */
+	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
+	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2);
+	if (n < 0 || (size_t)n >= sizeof(buf)) {
+		error("snprintf: buffer too small");
+		confree(s);
+		return;
+	}
+	if (atomicio(vwrite, s, buf, n) != (size_t)n) {
+		error("write (%s): %s", c->c_name, strerror(errno));
+		confree(s);
+		return;
+	}
+
 	for (;;) {
 		memset(buf, '\0', sizeof(buf));
 		bufsiz = sizeof(buf);
@@ -477,38 +493,14 @@ congreet(int s)
 		c->c_ssh->compat = compat_datafellows(remote_version);
 	else
 		c->c_ssh->compat = 0;
-	if (c->c_keytype != KT_RSA1) {
-		if (!ssh2_capable(remote_major, remote_minor)) {
-			debug("%s doesn't support ssh2", c->c_name);
-			confree(s);
-			return;
-		}
-	} else if (remote_major != 1) {
-		debug("%s doesn't support ssh1", c->c_name);
+	if (!ssh2_capable(remote_major, remote_minor)) {
+		debug("%s doesn't support ssh2", c->c_name);
 		confree(s);
 		return;
 	}
 	fprintf(stderr, "# %s:%d %s\n", c->c_name, ssh_port, chop(buf));
-	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
-	    c->c_keytype == KT_RSA1? PROTOCOL_MAJOR_1 : PROTOCOL_MAJOR_2,
-	    c->c_keytype == KT_RSA1? PROTOCOL_MINOR_1 : PROTOCOL_MINOR_2);
-	if (n < 0 || (size_t)n >= sizeof(buf)) {
-		error("snprintf: buffer too small");
-		confree(s);
-		return;
-	}
-	if (atomicio(vwrite, s, buf, n) != (size_t)n) {
-		error("write (%s): %s", c->c_name, strerror(errno));
-		confree(s);
-		return;
-	}
-	if (c->c_keytype != KT_RSA1) {
-		keygrab_ssh2(c);
-		confree(s);
-		return;
-	}
-	c->c_status = CS_SIZE;
-	contouch(s);
+	keygrab_ssh2(c);
+	confree(s);
 }
 
 static void
@@ -606,7 +598,7 @@ do_host(char *host)
 
 	if (name == NULL)
 		return;
-	for (j = KT_RSA1; j <= KT_ED25519; j *= 2) {
+	for (j = KT_MIN; j <= KT_MAX; j *= 2) {
 		if (get_keytypes & j) {
 			while (ncon >= MAXCON)
 				conloop();

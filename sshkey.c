@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.47 2017/04/30 23:15:04 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.48 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -235,10 +235,6 @@ sshkey_names_valid2(const char *names, int allow_wildcard)
 	for ((p = strsep(&cp, ",")); p && *p != '\0';
 	    (p = strsep(&cp, ","))) {
 		type = sshkey_type_from_name(p);
-		if (type == KEY_RSA1) {
-			free(s);
-			return 0;
-		}
 		if (type == KEY_UNSPEC) {
 			if (allow_wildcard) {
 				/*
@@ -247,8 +243,6 @@ sshkey_names_valid2(const char *names, int allow_wildcard)
 				 * the component is accepted.
 				 */
 				for (kt = keytypes; kt->type != -1; kt++) {
-					if (kt->type == KEY_RSA1)
-						continue;
 					if (match_pattern_list(kt->name,
 					    p, 0) != 0)
 						break;
@@ -269,7 +263,6 @@ sshkey_size(const struct sshkey *k)
 {
 	switch (k->type) {
 #ifdef WITH_OPENSSL
-	case KEY_RSA1:
 	case KEY_RSA:
 	case KEY_RSA_CERT:
 		return BN_num_bits(k->rsa->n);
@@ -472,7 +465,6 @@ sshkey_new(int type)
 	k->ed25519_pk = NULL;
 	switch (k->type) {
 #ifdef WITH_OPENSSL
-	case KEY_RSA1:
 	case KEY_RSA:
 	case KEY_RSA_CERT:
 		if ((rsa = RSA_new()) == NULL ||
@@ -530,7 +522,6 @@ sshkey_add_private(struct sshkey *k)
 {
 	switch (k->type) {
 #ifdef WITH_OPENSSL
-	case KEY_RSA1:
 	case KEY_RSA:
 	case KEY_RSA_CERT:
 #define bn_maybe_alloc_failed(p) (p == NULL && (p = BN_new()) == NULL)
@@ -586,7 +577,6 @@ sshkey_free(struct sshkey *k)
 		return;
 	switch (k->type) {
 #ifdef WITH_OPENSSL
-	case KEY_RSA1:
 	case KEY_RSA:
 	case KEY_RSA_CERT:
 		if (k->rsa != NULL)
@@ -664,7 +654,6 @@ sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 
 	switch (a->type) {
 #ifdef WITH_OPENSSL
-	case KEY_RSA1:
 	case KEY_RSA_CERT:
 	case KEY_RSA:
 		return a->rsa != NULL && b->rsa != NULL &&
@@ -881,25 +870,7 @@ sshkey_fingerprint_raw(const struct sshkey *k, int dgst_alg,
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
-
-	if (k->type == KEY_RSA1) {
-#ifdef WITH_OPENSSL
-		int nlen = BN_num_bytes(k->rsa->n);
-		int elen = BN_num_bytes(k->rsa->e);
-
-		if (nlen < 0 || elen < 0 || nlen >= INT_MAX - elen) {
-			r = SSH_ERR_INVALID_FORMAT;
-			goto out;
-		}
-		blob_len = nlen + elen;
-		if ((blob = malloc(blob_len)) == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		BN_bn2bin(k->rsa->n, blob);
-		BN_bn2bin(k->rsa->e, blob + nlen);
-#endif /* WITH_OPENSSL */
-	} else if ((r = to_blob(k, &blob, &blob_len, 1)) != 0)
+	if ((r = to_blob(k, &blob, &blob_len, 1)) != 0)
 		goto out;
 	if ((ret = calloc(1, SSH_DIGEST_MAX_LENGTH)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
@@ -1208,8 +1179,6 @@ sshkey_read(struct sshkey *ret, char **cpp)
 	cp = *cpp;
 
 	switch (ret->type) {
-	case KEY_RSA1:
-		break;
 	case KEY_UNSPEC:
 	case KEY_RSA:
 	case KEY_DSA:
@@ -1363,30 +1332,16 @@ sshkey_to_base64(const struct sshkey *key, char **b64p)
 }
 
 static int
-sshkey_format_rsa1(const struct sshkey *key, struct sshbuf *b)
-{
-	int r = SSH_ERR_INTERNAL_ERROR;
-
-	return r;
-}
-
-static int
 sshkey_format_text(const struct sshkey *key, struct sshbuf *b)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 	char *uu = NULL;
 
-	if (key->type == KEY_RSA1) {
-		if ((r = sshkey_format_rsa1(key, b)) != 0)
-			goto out;
-	} else {
-		/* Unsupported key types handled in sshkey_to_base64() */
-		if ((r = sshkey_to_base64(key, &uu)) != 0)
-			goto out;
-		if ((r = sshbuf_putf(b, "%s %s",
-		    sshkey_ssh_name(key), uu)) != 0)
-			goto out;
-	}
+	if ((r = sshkey_to_base64(key, &uu)) != 0)
+		goto out;
+	if ((r = sshbuf_putf(b, "%s %s",
+	    sshkey_ssh_name(key), uu)) != 0)
+		goto out;
 	r = 0;
  out:
 	free(uu);
@@ -1602,7 +1557,6 @@ sshkey_generate(int type, u_int bits, struct sshkey **keyp)
 		break;
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA:
-	case KEY_RSA1:
 		ret = rsa_generate_private_key(bits, &k->rsa);
 		break;
 #endif /* WITH_OPENSSL */
@@ -1713,7 +1667,6 @@ sshkey_from_private(const struct sshkey *k, struct sshkey **pkp)
 		break;
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA:
-	case KEY_RSA1:
 	case KEY_RSA_CERT:
 		if ((n = sshkey_new(k->type)) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
@@ -2183,7 +2136,6 @@ sshkey_demote(const struct sshkey *k, struct sshkey **dkp)
 		if ((ret = sshkey_cert_copy(k, pk)) != 0)
 			goto fail;
 		/* FALLTHROUGH */
-	case KEY_RSA1:
 	case KEY_RSA:
 		if ((pk->rsa = RSA_new()) == NULL ||
 		    (pk->rsa->e = BN_dup(k->rsa->e)) == NULL ||
@@ -2742,7 +2694,6 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	switch (k->type) {
 	case KEY_RSA:
 	case KEY_RSA_CERT:
-	case KEY_RSA1:
 		if (RSA_blinding_on(k->rsa, NULL) != 1) {
 			r = SSH_ERR_LIBCRYPTO_ERROR;
 			goto out;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.276 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.277 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1367,7 +1367,6 @@ static int
 show_other_keys(struct hostkeys *hostkeys, Key *key)
 {
 	int type[] = {
-		KEY_RSA1,
 		KEY_RSA,
 		KEY_DSA,
 		KEY_ECDSA,

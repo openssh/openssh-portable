@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.83 2015/12/11 03:19:09 djm Exp $ */
+/* $OpenBSD: ssh.h,v 1.84 2017/04/30 23:18:44 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -32,7 +32,7 @@
 
 /*
  * Maximum length of lines in authorized_keys file.
- * Current value permits 16kbit RSA and RSA1 keys and 8kbit DSA keys, with
+ * Current value permits 16kbit RSA keys and 8kbit DSA keys, with
  * some room for options and comments.
  */
 #define SSH_MAX_PUBKEY_BYTES		16384

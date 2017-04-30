@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.292 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.293 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1831,8 +1831,7 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 	size_t i;
 	struct sshkey **tmp;
 
-	if (l->status != HKF_STATUS_MATCHED || l->key == NULL ||
-	    l->key->type == KEY_RSA1)
+	if (l->status != HKF_STATUS_MATCHED || l->key == NULL)
 		return 0;
 
 	/* Mark off keys we've already seen for this host */

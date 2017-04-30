@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.301 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.302 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -246,9 +246,6 @@ ask_filename(struct passwd *pw, const char *prompt)
 		name = _PATH_SSH_CLIENT_ID_RSA;
 	else {
 		switch (sshkey_type_from_name(key_type_name)) {
-		case KEY_RSA1:
-			name = _PATH_SSH_CLIENT_IDENTITY;
-			break;
 		case KEY_DSA_CERT:
 		case KEY_DSA:
 			name = _PATH_SSH_CLIENT_ID_DSA;
@@ -320,8 +317,6 @@ do_convert_to_ssh2(struct passwd *pw, struct sshkey *k)
 	char comment[61];
 	int r;
 
-	if (k->type == KEY_RSA1)
-		fatal("version 1 keys are not supported");
 	if ((r = sshkey_to_blob(k, &blob, &len)) != 0)
 		fatal("key_to_blob failed: %s", ssh_err(r));
 	/* Comment + surrounds must fit into 72 chars (RFC 4716 sec 3.3) */
@@ -343,7 +338,6 @@ static void
 do_convert_to_pkcs8(struct sshkey *k)
 {
 	switch (sshkey_type_plain(k->type)) {
-	case KEY_RSA1:
 	case KEY_RSA:
 		if (!PEM_write_RSA_PUBKEY(stdout, k->rsa))
 			fatal("PEM_write_RSA_PUBKEY failed");
@@ -368,7 +362,6 @@ static void
 do_convert_to_pem(struct sshkey *k)
 {
 	switch (sshkey_type_plain(k->type)) {
-	case KEY_RSA1:
 	case KEY_RSA:
 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
 			fatal("PEM_write_RSAPublicKey failed");
@@ -825,13 +818,6 @@ try_read_key(char **cpp)
 	struct sshkey *ret;
 	int r;
 
-	if ((ret = sshkey_new(KEY_RSA1)) == NULL)
-		fatal("sshkey_new failed");
-	/* Try RSA1 */
-	if ((r = sshkey_read(ret, cpp)) == 0)
-		return ret;
-	/* Try modern */
-	sshkey_free(ret);
 	if ((ret = sshkey_new(KEY_UNSPEC)) == NULL)
 		fatal("sshkey_new failed");
 	if ((r = sshkey_read(ret, cpp)) == 0)
@@ -1442,9 +1428,8 @@ do_change_comment(struct passwd *pw)
 		}
 	}
 
-	if (private->type != KEY_RSA1 && private->type != KEY_ED25519 &&
-	    !use_new_format) {
-		error("Comments are only supported for RSA1 or keys stored in "
+	if (private->type != KEY_ED25519 && !use_new_format) {
+		error("Comments are only supported for keys stored in "
 		    "the new format (-o).");
 		explicit_bzero(passphrase, strlen(passphrase));
 		sshkey_free(private);
@@ -2241,13 +2226,11 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	exit(ret);
 }
 
-# define RSA1_USAGE ""
-
 static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa%s]\n"
+	    "usage: ssh-keygen [-q] [-b bits] [-t dsa | ecdsa | ed25519 | rsa]\n"
 	    "                  [-N new_passphrase] [-C comment] [-f output_keyfile]\n"
 	    "       ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]\n"
 	    "       ssh-keygen -i [-m key_format] [-f input_keyfile]\n"
@@ -2255,7 +2238,7 @@ usage(void)
 	    "       ssh-keygen -y [-f input_keyfile]\n"
 	    "       ssh-keygen -c [-P passphrase] [-C comment] [-f keyfile]\n"
 	    "       ssh-keygen -l [-v] [-E fingerprint_hash] [-f input_keyfile]\n"
-	    "       ssh-keygen -B [-f input_keyfile]\n", RSA1_USAGE);
+	    "       ssh-keygen -B [-f input_keyfile]\n");
 #ifdef ENABLE_PKCS11
 	fprintf(stderr,
 	    "       ssh-keygen -D pkcs11\n");

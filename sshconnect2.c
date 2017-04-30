@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.256 2017/04/28 03:24:53 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.257 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1317,8 +1317,6 @@ pubkey_prepare(Authctxt *authctxt)
 	/* list of keys stored in the filesystem and PKCS#11 */
 	for (i = 0; i < options.num_identity_files; i++) {
 		key = options.identity_keys[i];
-		if (key && key->type == KEY_RSA1)
-			continue;
 		if (key && key->cert && key->cert->type != SSH2_CERT_TYPE_USER)
 			continue;
 		options.identity_keys[i] = NULL;
@@ -1471,7 +1469,7 @@ try_identity(Identity *id)
 		    key_type(id->key), id->filename);
 		return (0);
 	}
-	return (id->key->type != KEY_RSA1);
+	return 1;
 }
 
 int
@@ -1764,7 +1762,6 @@ userauth_hostbased(Authctxt *authctxt)
 		private = NULL;
 		for (i = 0; i < authctxt->sensitive->nkeys; i++) {
 			if (authctxt->sensitive->keys[i] == NULL ||
-			    authctxt->sensitive->keys[i]->type == KEY_RSA1 ||
 			    authctxt->sensitive->keys[i]->type == KEY_UNSPEC)
 				continue;
 			if (match_pattern_list(

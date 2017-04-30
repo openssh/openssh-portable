@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.38 2015/11/08 23:24:03 jmc Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.39 2017/04/30 23:18:44 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: November 8 2015 $
+.Dd $Mdocdate: April 30 2017 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -125,11 +125,6 @@ attacks which have begun after the ssh_known_hosts file was created.
 Input format:
 .Bd -literal
 1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
-.Ed
-.Pp
-Output format for RSA1 keys:
-.Bd -literal
-host-or-namelist bits exponent modulus
 .Ed
 .Pp
 Output format for RSA, DSA, ECDSA, and Ed25519 keys:

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.219 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.220 2017/04/30 23:18:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -247,6 +247,8 @@ process_request_identities(SocketEntry *e, int version)
 	Identity *id;
 	struct sshbuf *msg;
 	int r;
+	u_char *blob;
+	size_t blen;
 
 	if ((msg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -256,21 +258,15 @@ process_request_identities(SocketEntry *e, int version)
 	    (r = sshbuf_put_u32(msg, tab->nentries)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	TAILQ_FOREACH(id, &tab->idlist, next) {
-		if (id->key->type == KEY_RSA1) {
-		} else {
-			u_char *blob;
-			size_t blen;
-
-			if ((r = sshkey_to_blob(id->key, &blob, &blen)) != 0) {
-				error("%s: sshkey_to_blob: %s", __func__,
-				    ssh_err(r));
-				continue;
-			}
-			if ((r = sshbuf_put_string(msg, blob, blen)) != 0)
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-			free(blob);
+		if ((r = sshkey_to_blob(id->key, &blob, &blen)) != 0) {
+			error("%s: sshkey_to_blob: %s", __func__,
+			    ssh_err(r));
+			continue;
 		}
+		if ((r = sshbuf_put_string(msg, blob, blen)) != 0)
+			fatal("%s: buffer error: %s",
+			    __func__, ssh_err(r));
+		free(blob);
 		if ((r = sshbuf_put_cstring(msg, id->comment)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	}
@@ -639,7 +635,7 @@ process_add_smartcard_key(SocketEntry *e)
 	count = pkcs11_add_provider(canonical_provider, pin, &keys);
 	for (i = 0; i < count; i++) {
 		k = keys[i];
-		version = k->type == KEY_RSA1 ? 1 : 2;
+		version = 2;
 		tab = idtab_lookup(version);
 		if (lookup_identity(k, version) == NULL) {
 			id = xcalloc(1, sizeof(Identity));

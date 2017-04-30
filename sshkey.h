@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.15 2017/03/10 04:07:20 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.16 2017/04/30 23:18:44 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -53,7 +53,6 @@ struct sshbuf;
 
 /* Key types */
 enum sshkey_types {
-	KEY_RSA1,
 	KEY_RSA,
 	KEY_DSA,
 	KEY_ECDSA,
