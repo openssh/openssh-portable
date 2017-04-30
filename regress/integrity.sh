@@ -1,4 +1,4 @@
-#	$OpenBSD: integrity.sh,v 1.22 2017/04/28 04:16:27 dtucker Exp $
+#	$OpenBSD: integrity.sh,v 1.23 2017/04/30 23:34:55 djm Exp $
 #	Placed in the Public Domain.
 
 tid="integrity"
@@ -46,7 +46,7 @@ for m in $macs; do
 			macopt="-m $m -c aes128-ctr"
 		fi
 		verbose "test $tid: $m @$off"
-		${SSH} $macopt -2F $OBJ/ssh_proxy -o "$pxy" \
+		${SSH} $macopt -F $OBJ/ssh_proxy -o "$pxy" \
 		    -oServerAliveInterval=1 -oServerAliveCountMax=30 \
 		    999.999.999.999 'printf "%4096s" " "' >/dev/null
 		if [ $? -eq 0 ]; then
