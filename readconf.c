@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.274 2017/04/30 23:15:04 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.275 2017/04/30 23:18:22 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -951,14 +951,6 @@ parse_time:
 		intptr = &options->pubkey_authentication;
 		goto parse_flag;
 
-	case oRSAAuthentication:
-		intptr = &options->rsa_authentication;
-		goto parse_flag;
-
-	case oRhostsRSAAuthentication:
-		intptr = &options->rhosts_rsa_authentication;
-		goto parse_flag;
-
 	case oHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;
 		goto parse_flag;
@@ -1007,10 +999,6 @@ parse_time:
 
 	case oNumberOfPasswordPrompts:
 		intptr = &options->number_of_password_prompts;
-		goto parse_int;
-
-	case oCompressionLevel:
-		intptr = &options->compression_level;
 		goto parse_int;
 
 	case oRekeyLimit:
@@ -1777,7 +1765,6 @@ initialize_options(Options * options)
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
 	options->use_privileged_port = -1;
-	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
 	options->gss_authentication = -1;
@@ -1785,14 +1772,12 @@ initialize_options(Options * options)
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->kbd_interactive_devices = NULL;
-	options->rhosts_rsa_authentication = -1;
 	options->hostbased_authentication = -1;
 	options->batch_mode = -1;
 	options->check_host_ip = -1;
 	options->strict_host_key_checking = -1;
 	options->compression = -1;
 	options->tcp_keep_alive = -1;
-	options->compression_level = -1;
 	options->port = -1;
 	options->address_family = -1;
 	options->connection_attempts = -1;
@@ -1916,8 +1901,6 @@ fill_default_options(Options * options)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
 	if (options->use_privileged_port == -1)
 		options->use_privileged_port = 0;
-	if (options->rsa_authentication == -1)
-		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
 	if (options->challenge_response_authentication == -1)
@@ -1930,8 +1913,6 @@ fill_default_options(Options * options)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
 		options->kbd_interactive_authentication = 1;
-	if (options->rhosts_rsa_authentication == -1)
-		options->rhosts_rsa_authentication = 0;
 	if (options->hostbased_authentication == -1)
 		options->hostbased_authentication = 0;
 	if (options->batch_mode == -1)
@@ -1944,8 +1925,6 @@ fill_default_options(Options * options)
 		options->compression = 0;
 	if (options->tcp_keep_alive == -1)
 		options->tcp_keep_alive = 1;
-	if (options->compression_level == -1)
-		options->compression_level = 6;
 	if (options->port == -1)
 		options->port = 0;	/* Filled in ssh_connect. */
 	if (options->address_family == -1)
@@ -2502,10 +2481,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oProxyUseFdpass, o->proxy_use_fdpass);
 	dump_cfg_fmtint(oPubkeyAuthentication, o->pubkey_authentication);
 	dump_cfg_fmtint(oRequestTTY, o->request_tty);
-#ifdef WITH_RSA1
-	dump_cfg_fmtint(oRhostsRSAAuthentication, o->rhosts_rsa_authentication);
-	dump_cfg_fmtint(oRSAAuthentication, o->rsa_authentication);
-#endif
 	dump_cfg_fmtint(oStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
