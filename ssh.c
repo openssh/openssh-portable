@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.455 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.456 2017/04/30 23:15:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -813,27 +813,14 @@ main(int ac, char **av)
 			}
 			break;
 		case 'c':
-			if (ciphers_valid(*optarg == '+' ?
+			if (!ciphers_valid(*optarg == '+' ?
 			    optarg + 1 : optarg)) {
-				/* SSH2 only */
-				free(options.ciphers);
-				options.ciphers = xstrdup(optarg);
-				options.cipher = SSH_CIPHER_INVALID;
-				break;
-			}
-			/* SSH1 only */
-			options.cipher = cipher_number(optarg);
-			if (options.cipher == -1) {
 				fprintf(stderr, "Unknown cipher type '%s'\n",
 				    optarg);
 				exit(255);
 			}
-			if (options.cipher == SSH_CIPHER_3DES)
-				options.ciphers = xstrdup("3des-cbc");
-			else if (options.cipher == SSH_CIPHER_BLOWFISH)
-				options.ciphers = xstrdup("blowfish-cbc");
-			else
-				options.ciphers = xstrdup(KEX_CLIENT_ENCRYPT);
+			free(options.ciphers);
+			options.ciphers = xstrdup(optarg);
 			break;
 		case 'm':
 			if (mac_valid(optarg)) {

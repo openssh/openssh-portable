@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.273 2017/04/30 23:11:45 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.274 2017/04/30 23:15:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -182,6 +182,7 @@ static struct {
 } keywords[] = {
 	/* Deprecated options */
 	{ "protocol", oIgnore }, /* NB. silently ignored */
+	{ "cipher", oDeprecated },
 	{ "fallbacktorsh", oDeprecated },
 	{ "globalknownhostsfile2", oDeprecated },
 	{ "rhostsauthentication", oDeprecated },
@@ -240,7 +241,6 @@ static struct {
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
-	{ "cipher", oCipher },
 	{ "ciphers", oCiphers },
 	{ "macs", oMacs },
 	{ "remoteforward", oRemoteForward },
@@ -1175,19 +1175,6 @@ parse_int:
 		intptr = &options->connection_attempts;
 		goto parse_int;
 
-	case oCipher:
-		intptr = &options->cipher;
-		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		value = cipher_number(arg);
-		if (value == -1)
-			fatal("%.200s line %d: Bad cipher '%s'.",
-			    filename, linenum, arg ? arg : "<NONE>");
-		if (*activep && *intptr == -1)
-			*intptr = value;
-		break;
-
 	case oCiphers:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
@@ -1811,7 +1798,6 @@ initialize_options(Options * options)
 	options->connection_attempts = -1;
 	options->connection_timeout = -1;
 	options->number_of_password_prompts = -1;
-	options->cipher = -1;
 	options->ciphers = NULL;
 	options->macs = NULL;
 	options->kex_algorithms = NULL;
@@ -1968,9 +1954,6 @@ fill_default_options(Options * options)
 		options->connection_attempts = 1;
 	if (options->number_of_password_prompts == -1)
 		options->number_of_password_prompts = 3;
-	/* Selected in ssh_login(). */
-	if (options->cipher == -1)
-		options->cipher = SSH_CIPHER_NOT_SET;
 	/* options->hostkeyalgorithms, default set in myproposals.h */
 	if (options->add_keys_to_agent == -1)
 		options->add_keys_to_agent = 0;
@@ -2602,10 +2585,6 @@ dump_client_config(Options *o, const char *host)
 		}
 		printf("\n");
 	}
-
-	/* oCipher */
-	if (o->cipher != SSH_CIPHER_NOT_SET)
-		printf("Cipher %s\n", cipher_name(o->cipher));
 
 	/* oControlPersist */
 	if (o->control_persist == 0 || o->control_persist_timeout == 0)

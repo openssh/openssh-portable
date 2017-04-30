@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.46 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.47 2017/04/30 23:15:04 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2971,12 +2971,8 @@ sshkey_private_to_blob2(const struct sshkey *prv, struct sshbuf *blob,
 		kdfname = "none";
 	} else if (ciphername == NULL)
 		ciphername = DEFAULT_CIPHERNAME;
-	else if (cipher_number(ciphername) != SSH_CIPHER_SSH2) {
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
-	}
 	if ((cipher = cipher_by_name(ciphername)) == NULL) {
-		r = SSH_ERR_INTERNAL_ERROR;
+		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
 
