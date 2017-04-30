@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.250 2017/04/30 23:23:54 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.251 2017/04/30 23:26:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -68,7 +68,6 @@
 
 #include "xmalloc.h"
 #include "crc32.h"
-#include "deattack.h"
 #include "compat.h"
 #include "ssh1.h"
 #include "ssh2.h"
@@ -216,9 +215,6 @@ struct session_state {
 	/* One-off warning about weak ciphers */
 	int cipher_warning_done;
 
-	/* SSH1 CRC compensation attack detector */
-	struct deattack_ctx deattack;
-
 	/* Hook for fuzzing inbound packets */
 	ssh_packet_hook_fn *hook_in;
 	void *hook_in_ctx;
@@ -315,7 +311,6 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 		return NULL;
 	}
 	state->newkeys[MODE_IN] = state->newkeys[MODE_OUT] = NULL;
-	deattack_init(&state->deattack);
 	/*
 	 * Cache the IP address of the remote connection for use in error
 	 * messages that might be generated after the connection has closed.
