@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.77 2017/04/30 23:13:25 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.78 2017/04/30 23:23:54 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -118,7 +118,6 @@ int	 ssh_packet_send2(struct ssh *);
 int      ssh_packet_read(struct ssh *);
 int	 ssh_packet_read_expect(struct ssh *, u_int type);
 int      ssh_packet_read_poll(struct ssh *);
-int ssh_packet_read_poll1(struct ssh *, u_char *);
 int ssh_packet_read_poll2(struct ssh *, u_char *, u_int32_t *seqnr_p);
 int	 ssh_packet_process_incoming(struct ssh *, const char *buf, u_int len);
 int      ssh_packet_read_seqnr(struct ssh *, u_char *, u_int32_t *seqnr_p);
@@ -181,7 +180,6 @@ int	sshpkt_put_string(struct ssh *ssh, const void *v, size_t len);
 int	sshpkt_put_cstring(struct ssh *ssh, const void *v);
 int	sshpkt_put_stringb(struct ssh *ssh, const struct sshbuf *v);
 int	sshpkt_put_ec(struct ssh *ssh, const EC_POINT *v, const EC_GROUP *g);
-int	sshpkt_put_bignum1(struct ssh *ssh, const BIGNUM *v);
 int	sshpkt_put_bignum2(struct ssh *ssh, const BIGNUM *v);
 
 int	sshpkt_get(struct ssh *ssh, void *valp, size_t len);
@@ -192,7 +190,6 @@ int	sshpkt_get_string(struct ssh *ssh, u_char **valp, size_t *lenp);
 int	sshpkt_get_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp);
 int	sshpkt_get_cstring(struct ssh *ssh, char **valp, size_t *lenp);
 int	sshpkt_get_ec(struct ssh *ssh, EC_POINT *v, const EC_GROUP *g);
-int	sshpkt_get_bignum1(struct ssh *ssh, BIGNUM *v);
 int	sshpkt_get_bignum2(struct ssh *ssh, BIGNUM *v);
 int	sshpkt_get_end(struct ssh *ssh);
 const u_char	*sshpkt_ptr(struct ssh *, size_t *lenp);
