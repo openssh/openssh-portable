@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.293 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.294 2017/04/30 23:21:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -152,15 +152,9 @@ static time_t control_persist_exit_time = 0;
 
 /* Common data for the client loop code. */
 volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
-static int escape_char1;	/* Escape character. (proto1 only) */
-static int escape_pending1;	/* Last character was an escape (proto1 only) */
 static int last_was_cr;		/* Last character was a newline. */
 static int exit_status;		/* Used to store the command exit status. */
-static int stdin_eof;		/* EOF has been encountered on stderr. */
-static Buffer stdin_buffer;	/* Buffer for stdin data. */
-static Buffer stdout_buffer;	/* Buffer for stdout data. */
-static Buffer stderr_buffer;	/* Buffer for stderr data. */
-static u_int buffer_high;	/* Soft max buffer size. */
+static Buffer stderr_buffer;	/* Used for final exit message. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
@@ -523,9 +517,9 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		memset(*readsetp, 0, *nallocp);
 		memset(*writesetp, 0, *nallocp);
 		return;
-	} else {
-		FD_SET(connection_in, *readsetp);
 	}
+
+	FD_SET(connection_in, *readsetp);
 
 	/* Select server connection if have data to write to the server. */
 	if (packet_have_data_to_write())
@@ -961,19 +955,11 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 	u_int i;
 	u_char ch;
 	char *s;
-	int *escape_pendingp, escape_char;
-	struct escape_filter_ctx *efc;
+	struct escape_filter_ctx *efc = c->filter_ctx == NULL ?
+	    NULL : (struct escape_filter_ctx *)c->filter_ctx;
 
-	if (c == NULL) {
-		escape_pendingp = &escape_pending1;
-		escape_char = escape_char1;
-	} else {
-		if (c->filter_ctx == NULL)
-			return 0;
-		efc = (struct escape_filter_ctx *)c->filter_ctx;
-		escape_pendingp = &efc->escape_pending;
-		escape_char = efc->escape_char;
-	}
+	if (c->filter_ctx == NULL)
+		return 0;
 	
 	if (len <= 0)
 		return (0);
@@ -982,17 +968,17 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 		/* Get one character at a time. */
 		ch = buf[i];
 
-		if (*escape_pendingp) {
+		if (efc->escape_pending) {
 			/* We have previously seen an escape character. */
 			/* Clear the flag now. */
-			*escape_pendingp = 0;
+			efc->escape_pending = 0;
 
 			/* Process the escaped character. */
 			switch (ch) {
 			case '.':
 				/* Terminate the connection. */
 				snprintf(string, sizeof string, "%c.\r\n",
-				    escape_char);
+				    efc->escape_char);
 				buffer_append(berr, string, strlen(string));
 
 				if (c && c->ctl_chan != -1) {
@@ -1020,14 +1006,14 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 					snprintf(string, sizeof string,
 					    "%c%s escape not available to "
 					    "multiplexed sessions\r\n",
-					    escape_char, b);
+					    efc->escape_char, b);
 					buffer_append(berr, string,
 					    strlen(string));
 					continue;
 				}
 				/* Suspend the program. Inform the user */
 				snprintf(string, sizeof string,
-				    "%c^Z [suspend ssh]\r\n", escape_char);
+				    "%c^Z [suspend ssh]\r\n", efc->escape_char);
 				buffer_append(berr, string, strlen(string));
 
 				/* Restore terminal modes and suspend. */
@@ -1038,7 +1024,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 
 			case 'B':
 				snprintf(string, sizeof string,
-				    "%cB\r\n", escape_char);
+				    "%cB\r\n", efc->escape_char);
 				buffer_append(berr, string, strlen(string));
 				channel_request_start(c->self, "break", 0);
 				packet_put_int(1000);
@@ -1061,7 +1047,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				if (!log_is_on_stderr()) {
 					snprintf(string, sizeof string,
 					    "%c%c [Logging to syslog]\r\n",
-					     escape_char, ch);
+					     efc->escape_char, ch);
 					buffer_append(berr, string,
 					    strlen(string));
 					continue;
@@ -1073,7 +1059,8 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				    SYSLOG_LEVEL_DEBUG3)
 					log_change_level(++options.log_level);
 				snprintf(string, sizeof string,
-				    "%c%c [LogLevel %s]\r\n", escape_char, ch,
+				    "%c%c [LogLevel %s]\r\n",
+				    efc->escape_char, ch,
 				    log_level_name(options.log_level));
 				buffer_append(berr, string, strlen(string));
 				continue;
@@ -1094,7 +1081,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				channel_stop_listening();
 
 				snprintf(string, sizeof string,
-				    "%c& [backgrounded]\n", escape_char);
+				    "%c& [backgrounded]\n", efc->escape_char);
 				buffer_append(berr, string, strlen(string));
 
 				/* Fork into background. */
@@ -1112,14 +1099,14 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				/* fake EOF on stdin */
 				return -1;
 			case '?':
-				print_escape_help(berr, escape_char,
+				print_escape_help(berr, efc->escape_char,
 				    (c && c->ctl_chan != -1),
 				    log_is_on_stderr());
 				continue;
 
 			case '#':
 				snprintf(string, sizeof string, "%c#\r\n",
-				    escape_char);
+				    efc->escape_char);
 				buffer_append(berr, string, strlen(string));
 				s = channel_open_message();
 				buffer_append(berr, s, strlen(s));
@@ -1133,8 +1120,8 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			default:
-				if (ch != escape_char) {
-					buffer_put_char(bin, escape_char);
+				if (ch != efc->escape_char) {
+					buffer_put_char(bin, efc->escape_char);
 					bytes++;
 				}
 				/* Escaped characters fall through here */
@@ -1145,12 +1132,12 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 			 * The previous character was not an escape char.
 			 * Check if this is an escape.
 			 */
-			if (last_was_cr && ch == escape_char) {
+			if (last_was_cr && ch == efc->escape_char) {
 				/*
 				 * It is. Set the flag and continue to
 				 * next character.
 				 */
-				*escape_pendingp = 1;
+				efc->escape_pending = 1;
 				continue;
 			}
 		}
@@ -1276,21 +1263,15 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	start_time = get_current_time();
 
 	/* Initialize variables. */
-	escape_pending1 = 0;
 	last_was_cr = 1;
 	exit_status = -1;
-	stdin_eof = 0;
-	buffer_high = 64 * 1024;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 	max_fd = MAXIMUM(connection_in, connection_out);
 
 	quit_pending = 0;
-	escape_char1 = escape_char_arg;
 
 	/* Initialize buffers. */
-	buffer_init(&stdin_buffer);
-	buffer_init(&stdout_buffer);
 	buffer_init(&stderr_buffer);
 
 	client_init_dispatch();
@@ -1451,16 +1432,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		buffer_append(&stderr_buffer, buf, strlen(buf));
 	}
 
-	/* Output any buffered data for stdout. */
-	if (buffer_len(&stdout_buffer) > 0) {
-		len = atomicio(vwrite, fileno(stdout),
-		    buffer_ptr(&stdout_buffer), buffer_len(&stdout_buffer));
-		if (len < 0 || (u_int)len != buffer_len(&stdout_buffer))
-			error("Write failed flushing stdout buffer.");
-		else
-			buffer_consume(&stdout_buffer, len);
-	}
-
 	/* Output any buffered data for stderr. */
 	if (buffer_len(&stderr_buffer) > 0) {
 		len = atomicio(vwrite, fileno(stderr),
@@ -1473,8 +1444,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Clear and free any buffers. */
 	explicit_bzero(buf, sizeof(buf));
-	buffer_free(&stdin_buffer);
-	buffer_free(&stdout_buffer);
 	buffer_free(&stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
@@ -1792,9 +1761,7 @@ struct hostkeys_update_ctx {
 	 */
 	struct sshkey **keys;
 	int *keys_seen;
-	size_t nkeys;
-
-	size_t nnew;
+	size_t nkeys, nnew; 
 
 	/*
 	 * Keys that are in known_hosts, but were not present in the update
