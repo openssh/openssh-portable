@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.10 2016/05/02 09:52:00 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.11 2017/04/30 23:33:48 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -190,16 +190,6 @@ sshkey_tests(void)
 	TEST_START("new/free KEY_UNSPEC");
 	k1 = sshkey_new(KEY_UNSPEC);
 	ASSERT_PTR_NE(k1, NULL);
-	sshkey_free(k1);
-	TEST_DONE();
-
-	TEST_START("new/free KEY_RSA1");
-	k1 = sshkey_new(KEY_RSA1);
-	ASSERT_PTR_NE(k1, NULL);
-	ASSERT_PTR_NE(k1->rsa, NULL);
-	ASSERT_PTR_NE(k1->rsa->n, NULL);
-	ASSERT_PTR_NE(k1->rsa->e, NULL);
-	ASSERT_PTR_EQ(k1->rsa->p, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 
