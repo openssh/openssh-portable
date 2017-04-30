@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.275 2017/04/30 23:11:45 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.276 2017/04/30 23:13:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -524,13 +524,8 @@ static void
 send_client_banner(int connection_out, int minor1)
 {
 	/* Send our own protocol version identification. */
-	if (compat20) {
-		xasprintf(&client_version_string, "SSH-%d.%d-%.100s\r\n",
-		    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION);
-	} else {
-		xasprintf(&client_version_string, "SSH-%d.%d-%.100s\n",
-		    PROTOCOL_MAJOR_1, minor1, SSH_VERSION);
-	}
+	xasprintf(&client_version_string, "SSH-%d.%d-%.100s\r\n",
+	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION);
 	if (atomicio(vwrite, connection_out, client_version_string,
 	    strlen(client_version_string)) != strlen(client_version_string))
 		fatal("write: %.100s", strerror(errno));
@@ -559,7 +554,6 @@ ssh_exchange_identification(int timeout_ms)
 	fdsetsz = howmany(connection_in + 1, NFDBITS) * sizeof(fd_mask);
 	fdset = xcalloc(1, fdsetsz);
 
-	enable_compat20();
 	send_client_banner(connection_out, 0);
 	client_banner_sent = 1;
 
@@ -628,14 +622,11 @@ ssh_exchange_identification(int timeout_ms)
 	mismatch = 0;
 
 	switch (remote_major) {
-	case 1:
-		if (remote_minor == 99)
-			enable_compat20();
-		else
-			mismatch = 1;
-		break;
 	case 2:
-		enable_compat20();
+		break;
+	case 1:
+		if (remote_minor != 99)
+			mismatch = 1;
 		break;
 	default:
 		mismatch = 1;
@@ -1243,8 +1234,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 			    host_key->cert->principals[i]);
 		}
 	} else {
-		debug("Server host key: %s %s", compat20 ?
-		    sshkey_ssh_name(host_key) : sshkey_type(host_key), fp);
+		debug("Server host key: %s %s", sshkey_ssh_name(host_key), fp);
 	}
 
 	if (sshkey_equal(previous_host_key, host_key)) {
@@ -1349,12 +1339,8 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 	/* key exchange */
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
-	if (compat20) {
-		ssh_kex2(host, hostaddr, port);
-		ssh_userauth2(local_user, server_user, host, sensitive);
-	} else {
-		fatal("ssh1 is not supported");
-	}
+	ssh_kex2(host, hostaddr, port);
+	ssh_userauth2(local_user, server_user, host, sensitive);
 	free(local_user);
 }
 

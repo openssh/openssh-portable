@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.248 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.249 2017/04/30 23:13:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -278,8 +278,8 @@ ssh_packet_set_input_hook(struct ssh *ssh, ssh_packet_hook_fn *hook, void *ctx)
 int
 ssh_packet_is_rekeying(struct ssh *ssh)
 {
-	return compat20 &&
-	    (ssh->state->rekeying || (ssh->kex != NULL && ssh->kex->done == 0));
+	return ssh->state->rekeying ||
+	    (ssh->kex != NULL && ssh->kex->done == 0);
 }
 
 /*
@@ -698,7 +698,7 @@ ssh_packet_start_compression(struct ssh *ssh, int level)
 {
 	int r;
 
-	if (ssh->state->packet_compression && !compat20)
+	if (ssh->state->packet_compression)
 		return SSH_ERR_INTERNAL_ERROR;
 	ssh->state->packet_compression = 1;
 	if ((r = ssh_packet_init_compression(ssh)) != 0 ||
@@ -812,99 +812,6 @@ void
 ssh_packet_set_encryption_key(struct ssh *ssh, const u_char *key, u_int keylen, int number)
 {
 	fatal("no SSH protocol 1 support");
-}
-
-/*
- * Finalizes and sends the packet.  If the encryption key has been set,
- * encrypts the packet before sending.
- */
-
-int
-ssh_packet_send1(struct ssh *ssh)
-{
-	struct session_state *state = ssh->state;
-	u_char buf[8], *cp;
-	int r, padding, len;
-	u_int checksum;
-
-	/*
-	 * If using packet compression, compress the payload of the outgoing
-	 * packet.
-	 */
-	if (state->packet_compression) {
-		sshbuf_reset(state->compression_buffer);
-		/* Skip padding. */
-		if ((r = sshbuf_consume(state->outgoing_packet, 8)) != 0)
-			goto out;
-		/* padding */
-		if ((r = sshbuf_put(state->compression_buffer,
-		    "\0\0\0\0\0\0\0\0", 8)) != 0)
-			goto out;
-		if ((r = compress_buffer(ssh, state->outgoing_packet,
-		    state->compression_buffer)) != 0)
-			goto out;
-		sshbuf_reset(state->outgoing_packet);
-                if ((r = sshbuf_putb(state->outgoing_packet,
-                    state->compression_buffer)) != 0)
-			goto out;
-	}
-	/* Compute packet length without padding (add checksum, remove padding). */
-	len = sshbuf_len(state->outgoing_packet) + 4 - 8;
-
-	/* Insert padding. Initialized to zero in packet_start1() */
-	padding = 8 - len % 8;
-	if (!cipher_ctx_is_plaintext(state->send_context)) {
-		cp = sshbuf_mutable_ptr(state->outgoing_packet);
-		if (cp == NULL) {
-			r = SSH_ERR_INTERNAL_ERROR;
-			goto out;
-		}
-		arc4random_buf(cp + 8 - padding, padding);
-	}
-	if ((r = sshbuf_consume(state->outgoing_packet, 8 - padding)) != 0)
-		goto out;
-
-	/* Add check bytes. */
-	checksum = ssh_crc32(sshbuf_ptr(state->outgoing_packet),
-	    sshbuf_len(state->outgoing_packet));
-	POKE_U32(buf, checksum);
-	if ((r = sshbuf_put(state->outgoing_packet, buf, 4)) != 0)
-		goto out;
-
-#ifdef PACKET_DEBUG
-	fprintf(stderr, "packet_send plain: ");
-	sshbuf_dump(state->outgoing_packet, stderr);
-#endif
-
-	/* Append to output. */
-	POKE_U32(buf, len);
-	if ((r = sshbuf_put(state->output, buf, 4)) != 0)
-		goto out;
-	if ((r = sshbuf_reserve(state->output,
-	    sshbuf_len(state->outgoing_packet), &cp)) != 0)
-		goto out;
-	if ((r = cipher_crypt(state->send_context, 0, cp,
-	    sshbuf_ptr(state->outgoing_packet),
-	    sshbuf_len(state->outgoing_packet), 0, 0)) != 0)
-		goto out;
-
-#ifdef PACKET_DEBUG
-	fprintf(stderr, "encrypted: ");
-	sshbuf_dump(state->output, stderr);
-#endif
-	state->p_send.packets++;
-	state->p_send.bytes += len +
-	    sshbuf_len(state->outgoing_packet);
-	sshbuf_reset(state->outgoing_packet);
-
-	/*
-	 * Note that the packet is now only buffered in output.  It won't be
-	 * actually sent until ssh_packet_write_wait or ssh_packet_write_poll
-	 * is called.
-	 */
-	r = 0;
- out:
-	return r;
 }
 
 int
@@ -1397,13 +1304,6 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		r = ssh_packet_read_poll_seqnr(ssh, typep, seqnr_p);
 		if (r != 0)
 			break;
-		if (!compat20 && (
-		    *typep == SSH_SMSG_SUCCESS
-		    || *typep == SSH_SMSG_FAILURE
-		    || *typep == SSH_CMSG_EOF
-		    || *typep == SSH_CMSG_EXIT_CONFIRMATION))
-			if ((r = sshpkt_get_end(ssh)) != 0)
-				break;
 		/* If we got a packet, return it. */
 		if (*typep != SSH_MSG_NONE)
 			break;
@@ -1924,75 +1824,48 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 
 	for (;;) {
 		msg = NULL;
-		if (compat20) {
-			r = ssh_packet_read_poll2(ssh, typep, seqnr_p);
-			if (r != 0)
+		r = ssh_packet_read_poll2(ssh, typep, seqnr_p);
+		if (r != 0)
+			return r;
+		if (*typep) {
+			state->keep_alive_timeouts = 0;
+			DBG(debug("received packet type %d", *typep));
+		}
+		switch (*typep) {
+		case SSH2_MSG_IGNORE:
+			debug3("Received SSH2_MSG_IGNORE");
+			break;
+		case SSH2_MSG_DEBUG:
+			if ((r = sshpkt_get_u8(ssh, NULL)) != 0 ||
+			    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0 ||
+			    (r = sshpkt_get_string(ssh, NULL, NULL)) != 0) {
+				free(msg);
 				return r;
-			if (*typep) {
-				state->keep_alive_timeouts = 0;
-				DBG(debug("received packet type %d", *typep));
 			}
-			switch (*typep) {
-			case SSH2_MSG_IGNORE:
-				debug3("Received SSH2_MSG_IGNORE");
-				break;
-			case SSH2_MSG_DEBUG:
-				if ((r = sshpkt_get_u8(ssh, NULL)) != 0 ||
-				    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0 ||
-				    (r = sshpkt_get_string(ssh, NULL, NULL)) != 0) {
-					free(msg);
-					return r;
-				}
-				debug("Remote: %.900s", msg);
-				free(msg);
-				break;
-			case SSH2_MSG_DISCONNECT:
-				if ((r = sshpkt_get_u32(ssh, &reason)) != 0 ||
-				    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
-					return r;
-				/* Ignore normal client exit notifications */
-				do_log2(ssh->state->server_side &&
-				    reason == SSH2_DISCONNECT_BY_APPLICATION ?
-				    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
-				    "Received disconnect from %s port %d:"
-				    "%u: %.400s", ssh_remote_ipaddr(ssh),
-				    ssh_remote_port(ssh), reason, msg);
-				free(msg);
-				return SSH_ERR_DISCONNECTED;
-			case SSH2_MSG_UNIMPLEMENTED:
-				if ((r = sshpkt_get_u32(ssh, &seqnr)) != 0)
-					return r;
-				debug("Received SSH2_MSG_UNIMPLEMENTED for %u",
-				    seqnr);
-				break;
-			default:
-				return 0;
-			}
-		} else {
-			r = ssh_packet_read_poll1(ssh, typep);
-			switch (*typep) {
-			case SSH_MSG_NONE:
-				return SSH_MSG_NONE;
-			case SSH_MSG_IGNORE:
-				break;
-			case SSH_MSG_DEBUG:
-				if ((r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
-					return r;
-				debug("Remote: %.900s", msg);
-				free(msg);
-				break;
-			case SSH_MSG_DISCONNECT:
-				if ((r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
-					return r;
-				error("Received disconnect from %s port %d: "
-				    "%.400s", ssh_remote_ipaddr(ssh),
-				    ssh_remote_port(ssh), msg);
-				free(msg);
-				return SSH_ERR_DISCONNECTED;
-			default:
-				DBG(debug("received packet type %d", *typep));
-				return 0;
-			}
+			debug("Remote: %.900s", msg);
+			free(msg);
+			break;
+		case SSH2_MSG_DISCONNECT:
+			if ((r = sshpkt_get_u32(ssh, &reason)) != 0 ||
+			    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
+				return r;
+			/* Ignore normal client exit notifications */
+			do_log2(ssh->state->server_side &&
+			    reason == SSH2_DISCONNECT_BY_APPLICATION ?
+			    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
+			    "Received disconnect from %s port %d:"
+			    "%u: %.400s", ssh_remote_ipaddr(ssh),
+			    ssh_remote_port(ssh), reason, msg);
+			free(msg);
+			return SSH_ERR_DISCONNECTED;
+		case SSH2_MSG_UNIMPLEMENTED:
+			if ((r = sshpkt_get_u32(ssh, &seqnr)) != 0)
+				return r;
+			debug("Received SSH2_MSG_UNIMPLEMENTED for %u",
+			    seqnr);
+			break;
+		default:
+			return 0;
 		}
 	}
 }
@@ -2044,27 +1917,19 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 	va_list args;
 	int r;
 
-	if (compat20 && (ssh->compat & SSH_BUG_DEBUG))
+	if ((ssh->compat & SSH_BUG_DEBUG))
 		return;
 
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	if (compat20) {
-		if ((r = sshpkt_start(ssh, SSH2_MSG_DEBUG)) != 0 ||
-		    (r = sshpkt_put_u8(ssh, 0)) != 0 || /* always display */
-		    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
-		    (r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
-	} else {
-		if ((r = sshpkt_start(ssh, SSH_MSG_DEBUG)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
-		    (r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
-	}
-	if ((r = ssh_packet_write_wait(ssh)) != 0)
+	if ((r = sshpkt_start(ssh, SSH2_MSG_DEBUG)) != 0 ||
+	    (r = sshpkt_put_u8(ssh, 0)) != 0 || /* always display */
+	    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
 
@@ -2385,8 +2250,7 @@ ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
 	u_int32_t rnd = 0;
 	int r, i;
 
-	if ((r = sshpkt_start(ssh, compat20 ?
-	    SSH2_MSG_IGNORE : SSH_MSG_IGNORE)) != 0 ||
+	if ((r = sshpkt_start(ssh, SSH2_MSG_IGNORE)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, nbytes)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 	for (i = 0; i < nbytes; i++) {
@@ -2531,38 +2395,22 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 	struct session_state *state = ssh->state;
 	u_char *p;
 	size_t slen, rlen;
-	int r, ssh1cipher;
+	int r;
 
-	if (!compat20) {
-		ssh1cipher = cipher_ctx_get_number(state->receive_context);
-		slen = cipher_get_keyiv_len(state->send_context);
-		rlen = cipher_get_keyiv_len(state->receive_context);
-		if ((r = sshbuf_put_u32(m, state->remote_protocol_flags)) != 0 ||
-		    (r = sshbuf_put_u32(m, ssh1cipher)) != 0 ||
-		    (r = sshbuf_put_string(m, state->ssh1_key, state->ssh1_keylen)) != 0 ||
-		    (r = sshbuf_put_u32(m, slen)) != 0 ||
-		    (r = sshbuf_reserve(m, slen, &p)) != 0 ||
-		    (r = cipher_get_keyiv(state->send_context, p, slen)) != 0 ||
-		    (r = sshbuf_put_u32(m, rlen)) != 0 ||
-		    (r = sshbuf_reserve(m, rlen, &p)) != 0 ||
-		    (r = cipher_get_keyiv(state->receive_context, p, rlen)) != 0)
-			return r;
-	} else {
-		if ((r = kex_to_blob(m, ssh->kex)) != 0 ||
-		    (r = newkeys_to_blob(m, ssh, MODE_OUT)) != 0 ||
-		    (r = newkeys_to_blob(m, ssh, MODE_IN)) != 0 ||
-		    (r = sshbuf_put_u64(m, state->rekey_limit)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->rekey_interval)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->p_send.seqnr)) != 0 ||
-		    (r = sshbuf_put_u64(m, state->p_send.blocks)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->p_send.packets)) != 0 ||
-		    (r = sshbuf_put_u64(m, state->p_send.bytes)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->p_read.seqnr)) != 0 ||
-		    (r = sshbuf_put_u64(m, state->p_read.blocks)) != 0 ||
-		    (r = sshbuf_put_u32(m, state->p_read.packets)) != 0 ||
-		    (r = sshbuf_put_u64(m, state->p_read.bytes)) != 0)
-			return r;
-	}
+	if ((r = kex_to_blob(m, ssh->kex)) != 0 ||
+	    (r = newkeys_to_blob(m, ssh, MODE_OUT)) != 0 ||
+	    (r = newkeys_to_blob(m, ssh, MODE_IN)) != 0 ||
+	    (r = sshbuf_put_u64(m, state->rekey_limit)) != 0 ||
+	    (r = sshbuf_put_u32(m, state->rekey_interval)) != 0 ||
+	    (r = sshbuf_put_u32(m, state->p_send.seqnr)) != 0 ||
+	    (r = sshbuf_put_u64(m, state->p_send.blocks)) != 0 ||
+	    (r = sshbuf_put_u32(m, state->p_send.packets)) != 0 ||
+	    (r = sshbuf_put_u64(m, state->p_send.bytes)) != 0 ||
+	    (r = sshbuf_put_u32(m, state->p_read.seqnr)) != 0 ||
+	    (r = sshbuf_put_u64(m, state->p_read.blocks)) != 0 ||
+	    (r = sshbuf_put_u32(m, state->p_read.packets)) != 0 ||
+	    (r = sshbuf_put_u64(m, state->p_read.bytes)) != 0)
+		return r;
 
 	slen = cipher_get_keycontext(state->send_context, NULL);
 	rlen = cipher_get_keycontext(state->receive_context, NULL);
@@ -2701,53 +2549,34 @@ int
 ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 {
 	struct session_state *state = ssh->state;
-	const u_char *ssh1key, *ivin, *ivout, *keyin, *keyout, *input, *output;
-	size_t ssh1keylen, rlen, slen, ilen, olen;
+	const u_char *keyin, *keyout, *input, *output;
+	size_t rlen, slen, ilen, olen;
 	int r;
-	u_int ssh1cipher = 0;
 
-	if (!compat20) {
-		if ((r = sshbuf_get_u32(m, &state->remote_protocol_flags)) != 0 ||
-		    (r = sshbuf_get_u32(m, &ssh1cipher)) != 0 ||
-		    (r = sshbuf_get_string_direct(m, &ssh1key, &ssh1keylen)) != 0 ||
-		    (r = sshbuf_get_string_direct(m, &ivout, &slen)) != 0 ||
-		    (r = sshbuf_get_string_direct(m, &ivin, &rlen)) != 0)
-			return r;
-		if (ssh1cipher > INT_MAX)
-			return SSH_ERR_KEY_UNKNOWN_CIPHER;
-		ssh_packet_set_encryption_key(ssh, ssh1key, ssh1keylen,
-		    (int)ssh1cipher);
-		if (cipher_get_keyiv_len(state->send_context) != (int)slen ||
-		    cipher_get_keyiv_len(state->receive_context) != (int)rlen)
-			return SSH_ERR_INVALID_FORMAT;
-		if ((r = cipher_set_keyiv(state->send_context, ivout)) != 0 ||
-		    (r = cipher_set_keyiv(state->receive_context, ivin)) != 0)
-			return r;
-	} else {
-		if ((r = kex_from_blob(m, &ssh->kex)) != 0 ||
-		    (r = newkeys_from_blob(m, ssh, MODE_OUT)) != 0 ||
-		    (r = newkeys_from_blob(m, ssh, MODE_IN)) != 0 ||
-		    (r = sshbuf_get_u64(m, &state->rekey_limit)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->rekey_interval)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->p_send.seqnr)) != 0 ||
-		    (r = sshbuf_get_u64(m, &state->p_send.blocks)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->p_send.packets)) != 0 ||
-		    (r = sshbuf_get_u64(m, &state->p_send.bytes)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->p_read.seqnr)) != 0 ||
-		    (r = sshbuf_get_u64(m, &state->p_read.blocks)) != 0 ||
-		    (r = sshbuf_get_u32(m, &state->p_read.packets)) != 0 ||
-		    (r = sshbuf_get_u64(m, &state->p_read.bytes)) != 0)
-			return r;
-		/*
-		 * We set the time here so that in post-auth privsep slave we
-		 * count from the completion of the authentication.
-		 */
-		state->rekey_time = monotime();
-		/* XXX ssh_set_newkeys overrides p_read.packets? XXX */
-		if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0 ||
-		    (r = ssh_set_newkeys(ssh, MODE_OUT)) != 0)
-			return r;
-	}
+	if ((r = kex_from_blob(m, &ssh->kex)) != 0 ||
+	    (r = newkeys_from_blob(m, ssh, MODE_OUT)) != 0 ||
+	    (r = newkeys_from_blob(m, ssh, MODE_IN)) != 0 ||
+	    (r = sshbuf_get_u64(m, &state->rekey_limit)) != 0 ||
+	    (r = sshbuf_get_u32(m, &state->rekey_interval)) != 0 ||
+	    (r = sshbuf_get_u32(m, &state->p_send.seqnr)) != 0 ||
+	    (r = sshbuf_get_u64(m, &state->p_send.blocks)) != 0 ||
+	    (r = sshbuf_get_u32(m, &state->p_send.packets)) != 0 ||
+	    (r = sshbuf_get_u64(m, &state->p_send.bytes)) != 0 ||
+	    (r = sshbuf_get_u32(m, &state->p_read.seqnr)) != 0 ||
+	    (r = sshbuf_get_u64(m, &state->p_read.blocks)) != 0 ||
+	    (r = sshbuf_get_u32(m, &state->p_read.packets)) != 0 ||
+	    (r = sshbuf_get_u64(m, &state->p_read.bytes)) != 0)
+		return r;
+	/*
+	 * We set the time here so that in post-auth privsep slave we
+	 * count from the completion of the authentication.
+	 */
+	state->rekey_time = monotime();
+	/* XXX ssh_set_newkeys overrides p_read.packets? XXX */
+	if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0 ||
+	    (r = ssh_set_newkeys(ssh, MODE_OUT)) != 0)
+		return r;
+
 	if ((r = sshbuf_get_string_direct(m, &keyout, &slen)) != 0 ||
 	    (r = sshbuf_get_string_direct(m, &keyin, &rlen)) != 0)
 		return r;
@@ -2925,15 +2754,13 @@ sshpkt_ptr(struct ssh *ssh, size_t *lenp)
 int
 sshpkt_start(struct ssh *ssh, u_char type)
 {
-	u_char buf[9];
-	int len;
+	u_char buf[6]; /* u32 packet length, u8 pad len, u8 type */
 
 	DBG(debug("packet_start[%d]", type));
-	len = compat20 ? 6 : 9;
-	memset(buf, 0, len - 1);
-	buf[len - 1] = type;
+	memset(buf, 0, sizeof(buf));
+	buf[sizeof(buf) - 1] = type;
 	sshbuf_reset(ssh->state->outgoing_packet);
-	return sshbuf_put(ssh->state->outgoing_packet, buf, len);
+	return sshbuf_put(ssh->state->outgoing_packet, buf, sizeof(buf));
 }
 
 static int
@@ -2973,10 +2800,7 @@ sshpkt_send(struct ssh *ssh)
 {
 	if (ssh->state && ssh->state->mux)
 		return ssh_packet_send_mux(ssh);
-	if (compat20)
-		return ssh_packet_send2(ssh);
-	else
-		return ssh_packet_send1(ssh);
+	return ssh_packet_send2(ssh);
 }
 
 int
@@ -2990,19 +2814,12 @@ sshpkt_disconnect(struct ssh *ssh, const char *fmt,...)
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	if (compat20) {
-		if ((r = sshpkt_start(ssh, SSH2_MSG_DISCONNECT)) != 0 ||
-		    (r = sshpkt_put_u32(ssh, SSH2_DISCONNECT_PROTOCOL_ERROR)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
-		    (r = sshpkt_send(ssh)) != 0)
-			return r;
-	} else {
-		if ((r = sshpkt_start(ssh, SSH_MSG_DISCONNECT)) != 0 ||
-		    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
-		    (r = sshpkt_send(ssh)) != 0)
-			return r;
-	}
+	if ((r = sshpkt_start(ssh, SSH2_MSG_DISCONNECT)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, SSH2_DISCONNECT_PROTOCOL_ERROR)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0)
+		return r;
 	return 0;
 }
 

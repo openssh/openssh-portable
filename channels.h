@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.121 2017/02/01 02:59:09 dtucker Exp $ */
+/* $OpenBSD: channels.h,v 1.122 2017/04/30 23:13:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -200,11 +200,11 @@ struct Channel {
 
 /* check whether 'efd' is still in use */
 #define CHANNEL_EFD_INPUT_ACTIVE(c) \
-	(compat20 && c->extended_usage == CHAN_EXTENDED_READ && \
+	(c->extended_usage == CHAN_EXTENDED_READ && \
 	(c->efd != -1 || \
 	buffer_len(&c->extended) > 0))
 #define CHANNEL_EFD_OUTPUT_ACTIVE(c) \
-	(compat20 && c->extended_usage == CHAN_EXTENDED_WRITE && \
+	(c->extended_usage == CHAN_EXTENDED_WRITE && \
 	c->efd != -1 && (!(c->flags & (CHAN_EOF_RCVD|CHAN_CLOSE_RCVD)) || \
 	buffer_len(&c->extended) > 0))
 

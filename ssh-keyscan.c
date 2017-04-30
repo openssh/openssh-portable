@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.110 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.111 2017/04/30 23:13:25 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -221,7 +221,6 @@ keygrab_ssh2(con *c)
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	int r;
 
-	enable_compat20();
 	switch (c->c_keytype) {
 	case KT_DSA:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?

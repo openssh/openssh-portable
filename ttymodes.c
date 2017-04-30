@@ -1,4 +1,4 @@
-/* $OpenBSD: ttymodes.c,v 1.30 2016/05/04 14:22:33 markus Exp $ */
+/* $OpenBSD: ttymodes.c,v 1.31 2017/04/30 23:13:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -283,18 +283,10 @@ tty_make_modes(int fd, struct termios *tiop)
 	int baud;
 	Buffer buf;
 	int tty_op_ospeed, tty_op_ispeed;
-	void (*put_arg)(Buffer *, u_int);
 
 	buffer_init(&buf);
-	if (compat20) {
-		tty_op_ospeed = TTY_OP_OSPEED_PROTO2;
-		tty_op_ispeed = TTY_OP_ISPEED_PROTO2;
-		put_arg = buffer_put_int;
-	} else {
-		tty_op_ospeed = TTY_OP_OSPEED_PROTO1;
-		tty_op_ispeed = TTY_OP_ISPEED_PROTO1;
-		put_arg = (void (*)(Buffer *, u_int)) buffer_put_char;
-	}
+	tty_op_ospeed = TTY_OP_OSPEED_PROTO2;
+	tty_op_ispeed = TTY_OP_ISPEED_PROTO2;
 
 	if (tiop == NULL) {
 		if (fd == -1) {
@@ -319,11 +311,11 @@ tty_make_modes(int fd, struct termios *tiop)
 	/* Store values of mode flags. */
 #define TTYCHAR(NAME, OP) \
 	buffer_put_char(&buf, OP); \
-	put_arg(&buf, special_char_encode(tio.c_cc[NAME]));
+	buffer_put_int(&buf, special_char_encode(tio.c_cc[NAME]));
 
 #define TTYMODE(NAME, FIELD, OP) \
 	buffer_put_char(&buf, OP); \
-	put_arg(&buf, ((tio.FIELD & NAME) != 0));
+	buffer_put_int(&buf, ((tio.FIELD & NAME) != 0));
 
 #include "ttymodes.h"
 
@@ -333,10 +325,7 @@ tty_make_modes(int fd, struct termios *tiop)
 end:
 	/* Mark end of mode data. */
 	buffer_put_char(&buf, TTY_OP_END);
-	if (compat20)
-		packet_put_string(buffer_ptr(&buf), buffer_len(&buf));
-	else
-		packet_put_raw(buffer_ptr(&buf), buffer_len(&buf));
+	packet_put_string(buffer_ptr(&buf), buffer_len(&buf));
 	buffer_free(&buf);
 }
 
@@ -351,19 +340,10 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 	int opcode, baud;
 	int n_bytes = 0;
 	int failure = 0;
-	u_int (*get_arg)(void);
-	int arg_size;
 
-	if (compat20) {
-		*n_bytes_ptr = packet_get_int();
-		if (*n_bytes_ptr == 0)
-			return;
-		get_arg = packet_get_int;
-		arg_size = 4;
-	} else {
-		get_arg = packet_get_char;
-		arg_size = 1;
-	}
+	*n_bytes_ptr = packet_get_int();
+	if (*n_bytes_ptr == 0)
+		return;
 
 	/*
 	 * Get old attributes for the terminal.  We will modify these
@@ -404,13 +384,13 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 
 #define TTYCHAR(NAME, OP) \
 	case OP: \
-	  n_bytes += arg_size; \
-	  tio.c_cc[NAME] = special_char_decode(get_arg()); \
+	  n_bytes += 4; \
+	  tio.c_cc[NAME] = special_char_decode(packet_get_int()); \
 	  break;
 #define TTYMODE(NAME, FIELD, OP) \
 	case OP: \
-	  n_bytes += arg_size; \
-	  if (get_arg()) \
+	  n_bytes += 4; \
+	  if (packet_get_int()) \
 	    tio.FIELD |= NAME; \
 	  else \
 	    tio.FIELD &= ~NAME;	\
@@ -424,51 +404,21 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 		default:
 			debug("Ignoring unsupported tty mode opcode %d (0x%x)",
 			    opcode, opcode);
-			if (!compat20) {
-				/*
-				 * SSH1:
-				 * Opcodes 1 to 127 are defined to have
-				 * a one-byte argument.
-				 * Opcodes 128 to 159 are defined to have
-				 * an integer argument.
-				 */
-				if (opcode > 0 && opcode < 128) {
-					n_bytes += 1;
-					(void) packet_get_char();
-					break;
-				} else if (opcode >= 128 && opcode < 160) {
-					n_bytes += 4;
-					(void) packet_get_int();
-					break;
-				} else {
-					/*
-					 * It is a truly undefined opcode (160 to 255).
-					 * We have no idea about its arguments.  So we
-					 * must stop parsing.  Note that some data
-					 * may be left in the packet; hopefully there
-					 * is nothing more coming after the mode data.
-					 */
-					logit("parse_tty_modes: unknown opcode %d",
-					    opcode);
-					goto set;
-				}
+			/*
+			 * SSH2:
+			 * Opcodes 1 to 159 are defined to have a uint32
+			 * argument.
+			 * Opcodes 160 to 255 are undefined and cause parsing
+			 * to stop.
+			 */
+			if (opcode > 0 && opcode < 160) {
+				n_bytes += 4;
+				(void) packet_get_int();
+				break;
 			} else {
-				/*
-				 * SSH2:
-				 * Opcodes 1 to 159 are defined to have
-				 * a uint32 argument.
-				 * Opcodes 160 to 255 are undefined and
-				 * cause parsing to stop.
-				 */
-				if (opcode > 0 && opcode < 160) {
-					n_bytes += 4;
-					(void) packet_get_int();
-					break;
-				} else {
-					logit("parse_tty_modes: unknown opcode %d",
-					    opcode);
-					goto set;
-				}
+				logit("parse_tty_modes: unknown opcode %d",
+				    opcode);
+				goto set;
 			}
 		}
 	}

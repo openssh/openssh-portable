@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.76 2017/02/03 23:03:33 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.77 2017/04/30 23:13:25 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -112,7 +112,6 @@ int	 ssh_packet_set_log_preamble(struct ssh *, const char *, ...)
 
 int	 ssh_packet_log_type(u_char);
 
-int	 ssh_packet_send1(struct ssh *);
 int	 ssh_packet_send2_wrapped(struct ssh *);
 int	 ssh_packet_send2(struct ssh *);
 

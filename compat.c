@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.102 2017/04/30 23:11:45 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.103 2017/04/30 23:13:25 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -39,24 +39,8 @@
 #include "match.h"
 #include "kex.h"
 
-int compat13 = 0;
-int compat20 = 0;
 int datafellows = 0;
 
-void
-enable_compat20(void)
-{
-	if (compat20)
-		return;
-	debug("Enabling compatibility mode for protocol 2.0");
-	compat20 = 1;
-}
-void
-enable_compat13(void)
-{
-	debug("Enabling compatibility mode for protocol 1.3");
-	compat13 = 1;
-}
 /* datafellows bug compatibility */
 u_int
 compat_datafellows(const char *version)
