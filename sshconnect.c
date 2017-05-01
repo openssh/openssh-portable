@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.277 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.278 2017/05/01 02:27:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -544,7 +544,6 @@ ssh_exchange_identification(int timeout_ms)
 	int remote_major, remote_minor, mismatch;
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
-	int client_banner_sent = 0;
 	u_int i, n;
 	size_t len;
 	int fdsetsz, remaining, rc;
@@ -555,7 +554,6 @@ ssh_exchange_identification(int timeout_ms)
 	fdset = xcalloc(1, fdsetsz);
 
 	send_client_banner(connection_out, 0);
-	client_banner_sent = 1;
 
 	/* Read other side's version identification. */
 	remaining = timeout_ms;
