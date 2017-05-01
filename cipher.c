@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.104 2017/04/30 23:15:04 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.105 2017/05/01 00:03:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -259,7 +259,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	if ((cc = calloc(sizeof(*cc), 1)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 
-	cc->plaintext = 0; /* XXX */
+	cc->plaintext = (cipher->flags & CFLAG_NONE) != 0;
 	cc->encrypt = do_encrypt;
 
 	if (keylen < cipher->key_len ||
