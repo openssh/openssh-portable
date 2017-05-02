@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.138 2017/05/02 09:05:58 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.139 2017/05/02 17:04:09 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -46,7 +46,7 @@
 .Nm ssh-keygen
 .Op Fl q
 .Op Fl b Ar bits
-.Op Fl t Cm dsa | ecdsa | ed25519 | rsa | rsa1
+.Op Fl t Cm dsa | ecdsa | ed25519 | rsa
 .Op Fl N Ar new_passphrase
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
@@ -223,7 +223,7 @@ should be placed to be activated.
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl A
-For each of the key types (rsa1, rsa, dsa, ecdsa and ed25519)
+For each of the key types (rsa, dsa, ecdsa and ed25519)
 for which host keys
 do not exist, generate the host keys with the default key file path,
 an empty passphrase, default bits for the key type, and default comment.
@@ -557,17 +557,14 @@ section for details.
 Test DH group exchange candidate primes (generated using the
 .Fl G
 option) for safety.
-.It Fl t Cm dsa | ecdsa | ed25519 | rsa | rsa1
+.It Fl t Cm dsa | ecdsa | ed25519 | rsa
 Specifies the type of key to create.
 The possible values are
-.Dq rsa1
-for protocol version 1 and
 .Dq dsa ,
 .Dq ecdsa ,
 .Dq ed25519 ,
 or
-.Dq rsa
-for protocol version 2.
+.Dq rsa .
 .It Fl u
 Update a KRL.
 When specified with
