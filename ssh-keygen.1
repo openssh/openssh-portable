@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.137 2017/05/02 07:13:31 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.138 2017/05/02 09:05:58 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -425,7 +425,6 @@ This option may be specified multiple times.
 See also the
 .Sx CERTIFICATES
 section for further details.
-At present, no standard options are valid for host keys.
 The options that are valid for user certificates are:
 .Pp
 .Bl -tag -width Ds -compact
@@ -448,6 +447,8 @@ encoded as a string, otherwise the extension/option is created with no
 contents (usually indicating a flag).
 Extensions may be ignored by a client or server that does not recognise them,
 whereas unknown critical options will cause the certificate to be refused.
+.Pp
+At present, no standard options are valid for host keys.
 .Pp
 .It Ic force-command Ns = Ns Ar command
 Forces the execution of
