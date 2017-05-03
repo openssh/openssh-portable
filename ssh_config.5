@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.246 2017/05/03 21:08:09 naddy Exp $
+.\" $OpenBSD: ssh_config.5,v 1.247 2017/05/03 21:49:18 naddy Exp $
 .Dd $Mdocdate: May 3 2017 $
 .Dt SSH_CONFIG 5
 .Os
@@ -455,6 +455,11 @@ The argument must be
 or
 .Cm no
 (the default).
+.It Cm ConnectionAttempts
+Specifies the number of tries (one per second) to make before exiting.
+The argument must be an integer.
+This may be useful in scripts if the connection sometimes fails.
+The default is 1.
 .It Cm ConnectTimeout
 Specifies the timeout (in seconds) used when connecting to the
 SSH server, instead of using the default system TCP timeout.
