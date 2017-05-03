@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.78 2017/04/30 23:23:54 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.79 2017/05/03 21:08:09 naddy Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -93,7 +93,6 @@ void     ssh_packet_set_nonblocking(struct ssh *);
 int      ssh_packet_get_connection_in(struct ssh *);
 int      ssh_packet_get_connection_out(struct ssh *);
 void     ssh_packet_close(struct ssh *);
-void	 ssh_packet_set_encryption_key(struct ssh *, const u_char *, u_int, int);
 void	 ssh_packet_set_input_hook(struct ssh *, ssh_packet_hook_fn *, void *);
 
 int	 ssh_packet_is_rekeying(struct ssh *);

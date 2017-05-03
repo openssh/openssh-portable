@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.252 2017/04/30 23:28:42 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.253 2017/05/03 21:08:09 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -184,10 +184,6 @@ struct session_state {
 	u_int32_t rekey_interval;	/* how often in seconds */
 	time_t rekey_time;	/* time of last rekeying */
 
-	/* Session key for protocol v1 */
-	u_char ssh1_key[SSH_SESSION_KEY_LENGTH];
-	u_int ssh1_keylen;
-
 	/* roundup current message to extra_pad bytes */
 	u_char extra_pad;
 
@@ -278,8 +274,7 @@ ssh_packet_is_rekeying(struct ssh *ssh)
 }
 
 /*
- * Sets the descriptors used for communication.  Disables encryption until
- * packet_set_encryption_key is called.
+ * Sets the descriptors used for communication.
  */
 struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
@@ -794,18 +789,6 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 		}
 	}
 	/* NOTREACHED */
-}
-
-/*
- * Causes any further packets to be encrypted using the given key.  The same
- * key is used for both sending and reception.  However, both directions are
- * encrypted independently of each other.
- */
-
-void
-ssh_packet_set_encryption_key(struct ssh *ssh, const u_char *key, u_int keylen, int number)
-{
-	fatal("no SSH protocol 1 support");
 }
 
 int

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.85 2017/04/30 23:28:12 djm Exp $ */
+/* $OpenBSD: ssh.h,v 1.86 2017/05/03 21:08:09 naddy Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -47,7 +47,7 @@
 #define PROTOCOL_MAJOR_1	1
 #define PROTOCOL_MINOR_1	5
 
-/* We support both SSH2 */
+/* We support only SSH2 */
 #define PROTOCOL_MAJOR_2	2
 #define PROTOCOL_MINOR_2	0
 
