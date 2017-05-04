@@ -63,6 +63,7 @@ check_secure_file_permission(const char *name, struct passwd * pw)
 	DWORD error_code = ERROR_SUCCESS; 
 	BOOL is_valid_sid = FALSE, is_valid_acl = FALSE;
 	struct passwd * pwd = pw;
+	char *bad_user = NULL;
 	int ret = 0;	
 
 	if (pwd == NULL)
@@ -170,11 +171,17 @@ check_secure_file_permission(const char *name, struct passwd * pw)
 		}
 		else {
 			ret = -1;
-			debug3("Bad permission. Other user or group than owner, admin user and local system have access to file %s.", name);			
+			if (ConvertSidToStringSid(current_trustee_sid, &bad_user) == FALSE) {
+				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
+				break;
+			}
+			debug3("Bad permissions. Try removing permissions for user: %s on file %s.", bad_user, name);
 			break;
 		}
 	}	
 cleanup:
+	if(bad_user)
+		free(bad_user);
 	if (pSD)
 		LocalFree(pSD);
 	if (user_sid)
@@ -211,17 +218,16 @@ is_sshd_account(PSID user_sid) {
 static BOOL
 is_admin_account(PSID user_sid)
 {
-	DWORD entries_read = 0, total_entries = 0, i = 0, name_length = UNCLEN, domain_name_length = DNLEN;
+	DWORD entries_read = 0, total_entries = 0, i = 0, name_length = UNCLEN, domain_name_length = DNLEN, sid_size;
 	LPLOCALGROUP_MEMBERS_INFO_1 local_groups_member_info = NULL;
-	PSID admins_sid = NULL;
+	char admins_sid[SECURITY_MAX_SID_SIZE];
 	wchar_t admins_group_name[UNCLEN], domain_name[DNLEN];
 	SID_NAME_USE sid_type = SidTypeInvalid;
 	NET_API_STATUS status;
-	BOOL ret = FALSE;	
+	BOOL ret = FALSE;
 
-	if (ConvertStringSidToSidW(L"S-1-5-32-544", &admins_sid) == FALSE ||
-		(IsValidSid(user_sid) == FALSE)) {
-		debug3("ConvertStringSidToSidW failed with error code: %d.", GetLastError());
+	if (CreateWellKnownSid(WinBuiltinAdministratorsSid, NULL, admins_sid, &sid_size) == FALSE) {
+		debug3("CreateWellKnownSid failed with error code: %d.", GetLastError());
 		goto done;
 	}
 
@@ -231,9 +237,9 @@ is_admin_account(PSID user_sid)
 		errno = ENOENT;
 		goto done;
 	}
-	
+
 	status = NetLocalGroupGetMembers(NULL, admins_group_name, 1, (LPBYTE*)&local_groups_member_info,
-	MAX_PREFERRED_LENGTH, &entries_read, &total_entries, NULL);
+		MAX_PREFERRED_LENGTH, &entries_read, &total_entries, NULL);
 	if (status != NERR_Success) {
 		debug3("NetLocalGroupGetMembers failed with error code: %d.", status);
 		goto done;
@@ -241,18 +247,16 @@ is_admin_account(PSID user_sid)
 
 	for (i = 0; i < entries_read; i++) {
 		if (local_groups_member_info[i].lgrmi1_sidusage == SidTypeDeletedAccount)
-			continue;		
-		else if(EqualSid(local_groups_member_info[i].lgrmi1_sid, user_sid)) {
+			continue;
+		else if (EqualSid(local_groups_member_info[i].lgrmi1_sid, user_sid)) {
 			ret = TRUE;
 			break;
 		}
 	}
 
-done:	
+done:
 	if (local_groups_member_info)
 		NetApiBufferFree(local_groups_member_info);
-	if(admins_sid)
-		LocalFree(admins_sid);
 	return ret;
 }
 
