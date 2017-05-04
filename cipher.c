@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.105 2017/05/01 00:03:18 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.106 2017/05/04 01:33:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -453,28 +453,6 @@ cipher_free(struct sshcipher_ctx *cc)
 #endif
 	explicit_bzero(cc, sizeof(*cc));
 	free(cc);
-}
-
-/*
- * Selects the cipher, and keys if by computing the MD5 checksum of the
- * passphrase and using the resulting 16 bytes as the key.
- */
-int
-cipher_set_key_string(struct sshcipher_ctx **ccp,
-    const struct sshcipher *cipher, const char *passphrase, int do_encrypt)
-{
-	u_char digest[16];
-	int r = SSH_ERR_INTERNAL_ERROR;
-
-	if ((r = ssh_digest_memory(SSH_DIGEST_MD5,
-	    passphrase, strlen(passphrase),
-	    digest, sizeof(digest))) != 0)
-		goto out;
-
-	r = cipher_init(ccp, cipher, digest, 16, NULL, 0, do_encrypt);
- out:
-	explicit_bzero(digest, sizeof(digest));
-	return r;
 }
 
 /*

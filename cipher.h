@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.50 2017/04/30 23:15:04 djm Exp $ */
+/* $OpenBSD: cipher.h,v 1.51 2017/05/04 01:33:21 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -59,8 +59,6 @@ int	 cipher_crypt(struct sshcipher_ctx *, u_int, u_char *, const u_char *,
 int	 cipher_get_length(struct sshcipher_ctx *, u_int *, u_int,
     const u_char *, u_int);
 void	 cipher_free(struct sshcipher_ctx *);
-int	 cipher_set_key_string(struct sshcipher_ctx **,
-    const struct sshcipher *, const char *, int);
 u_int	 cipher_blocksize(const struct sshcipher *);
 u_int	 cipher_keylen(const struct sshcipher *);
 u_int	 cipher_seclen(const struct sshcipher *);
