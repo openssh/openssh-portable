@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.101 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.102 2017/05/04 06:10:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -575,6 +575,10 @@ ssh_update_card(int sock, int add, const char *reader_id, const char *pin,
 /*
  * Removes all identities from the agent.
  * This call is intended only for use by ssh-add(1) and like applications.
+ *
+ * This supports the SSH protocol 1 message to because, when clearing all
+ * keys from an agent, we generally want to clear both protocol v1 and v2
+ * keys.
  */
 int
 ssh_remove_all_identities(int sock, int version)

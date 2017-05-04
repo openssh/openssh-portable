@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.129 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.130 2017/05/04 06:10:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -161,6 +161,11 @@ delete_all(int agent_fd)
 {
 	int ret = -1;
 
+	/*
+	 * Since the agent might be forwarded, old or non-OpenSSH, when asked
+	 * to remove all keys, attempt to remove both protocol v.1 and v.2
+	 * keys.
+	 */
 	if (ssh_remove_all_identities(agent_fd, 2) == 0)
 		ret = 0;
 	/* ignore error-code for ssh1 */
