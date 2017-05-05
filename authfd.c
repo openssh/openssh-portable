@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.102 2017/05/04 06:10:57 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.103 2017/05/05 10:42:49 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -227,27 +227,13 @@ deserialise_identity2(struct sshbuf *ids, struct sshkey **keyp, char **commentp)
  * Fetch list of identities held by the agent.
  */
 int
-ssh_fetch_identitylist(int sock, int version, struct ssh_identitylist **idlp)
+ssh_fetch_identitylist(int sock, struct ssh_identitylist **idlp)
 {
-	u_char type, code1 = 0, code2 = 0;
+	u_char type;
 	u_int32_t num, i;
 	struct sshbuf *msg;
 	struct ssh_identitylist *idl = NULL;
 	int r;
-
-	/* Determine request and expected response types */
-	switch (version) {
-	case 1:
-		code1 = SSH_AGENTC_REQUEST_RSA_IDENTITIES;
-		code2 = SSH_AGENT_RSA_IDENTITIES_ANSWER;
-		break;
-	case 2:
-		code1 = SSH2_AGENTC_REQUEST_IDENTITIES;
-		code2 = SSH2_AGENT_IDENTITIES_ANSWER;
-		break;
-	default:
-		return SSH_ERR_INVALID_ARGUMENT;
-	}
 
 	/*
 	 * Send a message to the agent requesting for a list of the
@@ -255,7 +241,7 @@ ssh_fetch_identitylist(int sock, int version, struct ssh_identitylist **idlp)
 	 */
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_put_u8(msg, code1)) != 0)
+	if ((r = sshbuf_put_u8(msg, SSH2_AGENTC_REQUEST_IDENTITIES)) != 0)
 		goto out;
 
 	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
@@ -267,7 +253,7 @@ ssh_fetch_identitylist(int sock, int version, struct ssh_identitylist **idlp)
 	if (agent_failed(type)) {
 		r = SSH_ERR_AGENT_FAILURE;
 		goto out;
-	} else if (type != code2) {
+	} else if (type != SSH2_AGENT_IDENTITIES_ANSWER) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
@@ -292,20 +278,14 @@ ssh_fetch_identitylist(int sock, int version, struct ssh_identitylist **idlp)
 		goto out;
 	}
 	for (i = 0; i < num;) {
-		switch (version) {
-		case 1:
-			break;
-		case 2:
-			if ((r = deserialise_identity2(msg,
-			    &(idl->keys[i]), &(idl->comments[i]))) != 0) {
-				if (r == SSH_ERR_KEY_TYPE_UNKNOWN) {
-					/* Gracefully skip unknown key types */
-					num--;
-					continue;
-				} else
-					goto out;
-			}
-			break;
+		if ((r = deserialise_identity2(msg, &(idl->keys[i]),
+		    &(idl->comments[i]))) != 0) {
+			if (r == SSH_ERR_KEY_TYPE_UNKNOWN) {
+				/* Gracefully skip unknown key types */
+				num--;
+				continue;
+			} else
+				goto out;
 		}
 		i++;
 	}

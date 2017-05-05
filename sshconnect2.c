@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.257 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.258 2017/05/05 10:42:49 naddy Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1345,7 +1345,7 @@ pubkey_prepare(Authctxt *authctxt)
 		if (r != SSH_ERR_AGENT_NOT_PRESENT)
 			debug("%s: ssh_get_authentication_socket: %s",
 			    __func__, ssh_err(r));
-	} else if ((r = ssh_fetch_identitylist(agent_fd, 2, &idlist)) != 0) {
+	} else if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
 		if (r != SSH_ERR_AGENT_NO_IDENTITIES)
 			debug("%s: ssh_fetch_identitylist: %s",
 			    __func__, ssh_err(r));
