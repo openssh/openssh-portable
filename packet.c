@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.253 2017/05/03 21:08:09 naddy Exp $ */
+/* $OpenBSD: packet.c,v 1.254 2017/05/07 23:12:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -884,7 +884,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	}
 	/*
 	 * The 2^(blocksize*2) limit is too expensive for 3DES,
-	 * blowfish, etc, so enforce a 1GB limit for small blocksizes.
+	 * so enforce a 1GB limit for small blocksizes.
 	 */
 	if (enc->block_size >= 16)
 		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
@@ -2223,8 +2223,6 @@ int
 ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 {
 	struct session_state *state = ssh->state;
-	u_char *p;
-	size_t slen, rlen;
 	int r;
 
 	if ((r = kex_to_blob(m, ssh->kex)) != 0 ||
@@ -2240,22 +2238,6 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 	    (r = sshbuf_put_u64(m, state->p_read.blocks)) != 0 ||
 	    (r = sshbuf_put_u32(m, state->p_read.packets)) != 0 ||
 	    (r = sshbuf_put_u64(m, state->p_read.bytes)) != 0)
-		return r;
-
-	slen = cipher_get_keycontext(state->send_context, NULL);
-	rlen = cipher_get_keycontext(state->receive_context, NULL);
-	if ((r = sshbuf_put_u32(m, slen)) != 0 ||
-	    (r = sshbuf_reserve(m, slen, &p)) != 0)
-		return r;
-	if (cipher_get_keycontext(state->send_context, p) != (int)slen)
-		return SSH_ERR_INTERNAL_ERROR;
-	if ((r = sshbuf_put_u32(m, rlen)) != 0 ||
-	    (r = sshbuf_reserve(m, rlen, &p)) != 0)
-		return r;
-	if (cipher_get_keycontext(state->receive_context, p) != (int)rlen)
-		return SSH_ERR_INTERNAL_ERROR;
-	if ((r = sshbuf_put_stringb(m, state->input)) != 0 ||
-	    (r = sshbuf_put_stringb(m, state->output)) != 0)
 		return r;
 
 	return 0;
@@ -2379,8 +2361,8 @@ int
 ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 {
 	struct session_state *state = ssh->state;
-	const u_char *keyin, *keyout, *input, *output;
-	size_t rlen, slen, ilen, olen;
+	const u_char *input, *output;
+	size_t ilen, olen;
 	int r;
 
 	if ((r = kex_from_blob(m, &ssh->kex)) != 0 ||
@@ -2406,15 +2388,6 @@ ssh_packet_set_state(struct ssh *ssh, struct sshbuf *m)
 	if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0 ||
 	    (r = ssh_set_newkeys(ssh, MODE_OUT)) != 0)
 		return r;
-
-	if ((r = sshbuf_get_string_direct(m, &keyout, &slen)) != 0 ||
-	    (r = sshbuf_get_string_direct(m, &keyin, &rlen)) != 0)
-		return r;
-	if (cipher_get_keycontext(state->send_context, NULL) != (int)slen ||
-	    cipher_get_keycontext(state->receive_context, NULL) != (int)rlen)
-		return SSH_ERR_INVALID_FORMAT;
-	cipher_set_keycontext(state->send_context, keyout);
-	cipher_set_keycontext(state->receive_context, keyin);
 
 	if ((r = ssh_packet_set_postauth(ssh)) != 0)
 		return r;

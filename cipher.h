@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.h,v 1.51 2017/05/04 01:33:21 djm Exp $ */
+/* $OpenBSD: cipher.h,v 1.52 2017/05/07 23:12:57 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -71,7 +71,5 @@ u_int	 cipher_ctx_is_plaintext(struct sshcipher_ctx *);
 int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, u_int);
 int	 cipher_set_keyiv(struct sshcipher_ctx *, const u_char *);
 int	 cipher_get_keyiv_len(const struct sshcipher_ctx *);
-int	 cipher_get_keycontext(const struct sshcipher_ctx *, u_char *);
-void	 cipher_set_keycontext(struct sshcipher_ctx *, const u_char *);
 
 #endif				/* CIPHER_H */

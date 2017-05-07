@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.106 2017/05/04 01:33:21 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.107 2017/05/07 23:12:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,7 +67,6 @@ struct sshcipher {
 	u_int	key_len;
 	u_int	iv_len;		/* defaults to block_size */
 	u_int	auth_len;
-	u_int	discard_len;
 	u_int	flags;
 #define CFLAG_CBC		(1<<0)
 #define CFLAG_CHACHAPOLY	(1<<1)
@@ -83,42 +82,31 @@ struct sshcipher {
 
 static const struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL
-	{ "3des-cbc",		8, 24, 0, 0, 0, 1, EVP_des_ede3_cbc },
-# ifndef OPENSSL_NO_BF
-	{ "blowfish-cbc",	8, 16, 0, 0, 0, 1, EVP_bf_cbc },
-# endif /* OPENSSL_NO_BF */
-# ifndef OPENSSL_NO_CAST
-	{ "cast128-cbc",	8, 16, 0, 0, 0, 1, EVP_cast5_cbc },
-# endif /* OPENSSL_NO_CAST */
-# ifndef OPENSSL_NO_RC4
-	{ "arcfour",		8, 16, 0, 0, 0, 0, EVP_rc4 },
-	{ "arcfour128",		8, 16, 0, 0, 1536, 0, EVP_rc4 },
-	{ "arcfour256",		8, 32, 0, 0, 1536, 0, EVP_rc4 },
-# endif /* OPENSSL_NO_RC4 */
-	{ "aes128-cbc",		16, 16, 0, 0, 0, 1, EVP_aes_128_cbc },
-	{ "aes192-cbc",		16, 24, 0, 0, 0, 1, EVP_aes_192_cbc },
-	{ "aes256-cbc",		16, 32, 0, 0, 0, 1, EVP_aes_256_cbc },
+	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
+	{ "aes128-cbc",		16, 16, 0, 0, CFLAG_CBC, EVP_aes_128_cbc },
+	{ "aes192-cbc",		16, 24, 0, 0, CFLAG_CBC, EVP_aes_192_cbc },
+	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
 	{ "rijndael-cbc@lysator.liu.se",
-				16, 32, 0, 0, 0, 1, EVP_aes_256_cbc },
-	{ "aes128-ctr",		16, 16, 0, 0, 0, 0, EVP_aes_128_ctr },
-	{ "aes192-ctr",		16, 24, 0, 0, 0, 0, EVP_aes_192_ctr },
-	{ "aes256-ctr",		16, 32, 0, 0, 0, 0, EVP_aes_256_ctr },
+				16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
+	{ "aes128-ctr",		16, 16, 0, 0, 0, EVP_aes_128_ctr },
+	{ "aes192-ctr",		16, 24, 0, 0, 0, EVP_aes_192_ctr },
+	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr },
 # ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
-				16, 16, 12, 16, 0, 0, EVP_aes_128_gcm },
+				16, 16, 12, 16, 0, EVP_aes_128_gcm },
 	{ "aes256-gcm@openssh.com",
-				16, 32, 12, 16, 0, 0, EVP_aes_256_gcm },
+				16, 32, 12, 16, 0, EVP_aes_256_gcm },
 # endif /* OPENSSL_HAVE_EVPGCM */
 #else
-	{ "aes128-ctr",		16, 16, 0, 0, 0, CFLAG_AESCTR, NULL },
-	{ "aes192-ctr",		16, 24, 0, 0, 0, CFLAG_AESCTR, NULL },
-	{ "aes256-ctr",		16, 32, 0, 0, 0, CFLAG_AESCTR, NULL },
+	{ "aes128-ctr",		16, 16, 0, 0, CFLAG_AESCTR, NULL },
+	{ "aes192-ctr",		16, 24, 0, 0, CFLAG_AESCTR, NULL },
+	{ "aes256-ctr",		16, 32, 0, 0, CFLAG_AESCTR, NULL },
 #endif
 	{ "chacha20-poly1305@openssh.com",
-				8, 64, 0, 16, 0, CFLAG_CHACHAPOLY, NULL },
-	{ "none",		8, 0, 0, 0, 0, CFLAG_NONE, NULL },
+				8, 64, 0, 16, CFLAG_CHACHAPOLY, NULL },
+	{ "none",		8, 0, 0, 0, CFLAG_NONE, NULL },
 
-	{ NULL,			0, 0, 0, 0, 0, 0, NULL }
+	{ NULL,			0, 0, 0, 0, 0, NULL }
 };
 
 /*--*/
@@ -252,7 +240,6 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 #ifdef WITH_OPENSSL
 	const EVP_CIPHER *type;
 	int klen;
-	u_char *junk, *discard;
 #endif
 
 	*ccp = NULL;
@@ -313,23 +300,6 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	if (EVP_CipherInit(cc->evp, NULL, (u_char *)key, NULL, -1) == 0) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
-	}
-
-	if (cipher->discard_len > 0) {
-		if ((junk = malloc(cipher->discard_len)) == NULL ||
-		    (discard = malloc(cipher->discard_len)) == NULL) {
-			free(junk);
-			ret = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		ret = EVP_Cipher(cc->evp, discard, junk, cipher->discard_len);
-		explicit_bzero(discard, cipher->discard_len);
-		free(junk);
-		free(discard);
-		if (ret != 1) {
-			ret = SSH_ERR_LIBCRYPTO_ERROR;
-			goto out;
-		}
 	}
 	ret = 0;
 #endif /* WITH_OPENSSL */
