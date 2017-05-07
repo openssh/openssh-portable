@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.h,v 1.86 2017/05/03 21:08:09 naddy Exp $ */
+/* $OpenBSD: ssh.h,v 1.87 2017/05/07 23:15:59 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -97,9 +97,6 @@
 #ifndef SSH_PRIVSEP_USER
 #define SSH_PRIVSEP_USER		"sshd"
 #endif
-
-/* Minimum modulus size (n) for RSA keys. */
-#define SSH_RSA_MINIMUM_MODULUS_SIZE	768
 
 /* Listen backlog for sshd, ssh-agent and forwarding sockets */
 #define SSH_LISTEN_BACKLOG		128

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.48 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.49 2017/05/07 23:15:59 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1392,10 +1392,11 @@ rsa_generate_private_key(u_int bits, RSA **rsap)
 	BIGNUM *f4 = NULL;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
-	if (rsap == NULL ||
-	    bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
-	    bits > SSHBUF_MAX_BIGNUM * 8)
+	if (rsap == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
+	if (bits < SSH_RSA_MINIMUM_MODULUS_SIZE ||
+	    bits > SSHBUF_MAX_BIGNUM * 8)
+		return SSH_ERR_KEY_LENGTH;
 	*rsap = NULL;
 	if ((private = RSA_new()) == NULL || (f4 = BN_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
@@ -1423,8 +1424,10 @@ dsa_generate_private_key(u_int bits, DSA **dsap)
 	DSA *private;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
-	if (dsap == NULL || bits != 1024)
+	if (dsap == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
+	if (bits != 1024)
+		return SSH_ERR_KEY_LENGTH;
 	if ((private = DSA_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -1874,6 +1877,10 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 		if (sshbuf_get_bignum2(b, key->rsa->e) != 0 ||
 		    sshbuf_get_bignum2(b, key->rsa->n) != 0) {
 			ret = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		if (BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
+			ret = SSH_ERR_KEY_LENGTH;
 			goto out;
 		}
 #ifdef DEBUG_PK
@@ -2643,6 +2650,10 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 		    (r = sshbuf_get_bignum2(buf, k->rsa->q)) != 0 ||
 		    (r = rsa_generate_additional_parameters(k->rsa)) != 0)
 			goto out;
+		if (BN_num_bits(k->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
+			r = SSH_ERR_KEY_LENGTH;
+			goto out;
+		}
 		break;
 	case KEY_RSA_CERT:
 		if ((r = sshkey_froms(buf, &k)) != 0 ||
@@ -2653,6 +2664,10 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 		    (r = sshbuf_get_bignum2(buf, k->rsa->q)) != 0 ||
 		    (r = rsa_generate_additional_parameters(k->rsa)) != 0)
 			goto out;
+		if (BN_num_bits(k->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
+			r = SSH_ERR_KEY_LENGTH;
+			goto out;
+		}
 		break;
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
@@ -3425,6 +3440,10 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 #endif
 		if (RSA_blinding_on(prv->rsa, NULL) != 1) {
 			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
+		if (BN_num_bits(prv->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
+			r = SSH_ERR_KEY_LENGTH;
 			goto out;
 		}
 	} else if (pk->type == EVP_PKEY_DSA &&
