@@ -129,11 +129,17 @@ static ForwardPermission *permitted_opens = NULL;
 /* List of all permitted host/port pairs to connect by the admin. */
 static ForwardPermission *permitted_adm_opens = NULL;
 
+/* List of all permitted remote host/port pairs to connect by the user. */
+static ForwardPermission *permitted_listens = NULL;
+
 /* Number of permitted host/port pairs in the array permitted by the user. */
 static int num_permitted_opens = 0;
 
 /* Number of permitted host/port pair in the array permitted by the admin. */
 static int num_adm_permitted_opens = 0;
+
+/* Number of permitted remote host/port pairs. */
+static int num_permitted_listens = 0;
 
 /* special-case port number meaning allow any port */
 #define FWD_PERMIT_ANY_PORT	0
@@ -148,6 +154,10 @@ static int num_adm_permitted_opens = 0;
  */
 static int all_opens_permitted = 0;
 
+/**
+ * If this is true, all remote opens are permitted.
+ */
+static int all_listens_permitted = 0;
 
 /* -- X11 forwarding */
 
@@ -3503,6 +3513,23 @@ channel_add_permitted_opens(char *host, int port)
 	all_opens_permitted = 0;
 }
 
+void
+channel_add_permitted_listens(char *host, int port)
+{
+	debug("allow remote port forwarding to host %s port %d", host, port);
+
+	permitted_listens = xreallocarray(permitted_listens,
+        num_permitted_listens + 1, sizeof(*permitted_listens));
+	permitted_listens[num_permitted_listens].host_to_connect = xstrdup(host);
+	permitted_listens[num_permitted_listens].port_to_connect = port;
+	permitted_listens[num_permitted_listens].listen_host = NULL;
+	permitted_listens[num_permitted_listens].listen_path = NULL;
+	permitted_listens[num_permitted_listens].listen_port = 0;
+	num_permitted_listens++;
+
+	all_listens_permitted = 0;
+}
+
 /*
  * Update the listen port for a dynamic remote forward, after
  * the actual 'newport' has been allocated. If 'newport' < 0 is
@@ -3589,6 +3616,21 @@ channel_clear_adm_permitted_opens(void)
 	free(permitted_adm_opens);
 	permitted_adm_opens = NULL;
 	num_adm_permitted_opens = 0;
+}
+
+void
+channel_clear_permitted_listens(void)
+{
+    int i;
+
+    for (i = 0; i < num_permitted_listens; i++) {
+        free(permitted_listens[i].host_to_connect);
+        free(permitted_listens[i].listen_host);
+        free(permitted_listens[i].listen_path);
+    }
+    free(permitted_listens);
+    permitted_listens = NULL;
+    num_permitted_listens = 0;
 }
 
 void
@@ -3883,6 +3925,30 @@ channel_connect_to_path(const char *path, char *ctype, char *rname)
 		return NULL;
 	}
 	return connect_to(path, PORT_STREAMLOCAL, ctype, rname);
+}
+
+/* Check if connecting to that port is permitted and connect. */
+int
+channel_connect_check_permitted_listens(const char *host, u_short port)
+{
+    int i, permit = 1;
+
+    permit = all_listens_permitted;
+    if (!permit) {
+        for (i = 0; i < num_permitted_listens; i++)
+            if (open_match(&permitted_listens[i], host, port)) {
+                permit = 1;
+                break;
+            }
+    }
+
+    if (!permit) {
+        logit("Received request for remote forward to host %.100s port %d, "
+                      "but the request was denied.", host, port);
+        return -1;
+    }
+
+    return 0;
 }
 
 void

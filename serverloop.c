@@ -729,11 +729,12 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		    fwd.listen_host, fwd.listen_port);
 
 		/* check permissions */
-		if ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
+		if (channel_connect_check_permitted_listens(fwd.listen_host, fwd.listen_port) < 0 &&
+		    ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
 		    no_port_forwarding_flag || options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0) ||
 		    (fwd.listen_port != 0 &&
-		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
+		     !bind_permitted(fwd.listen_port, pw->pw_uid)))) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
