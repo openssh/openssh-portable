@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.49 2017/05/07 23:15:59 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.50 2017/05/08 06:11:06 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1504,9 +1504,10 @@ ecdsa_generate_private_key(u_int bits, int *nid, EC_KEY **ecdsap)
 	EC_KEY *private;
 	int ret = SSH_ERR_INTERNAL_ERROR;
 
-	if (nid == NULL || ecdsap == NULL ||
-	    (*nid = sshkey_ecdsa_bits_to_nid(bits)) == -1)
+	if (nid == NULL || ecdsap == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
+	if ((*nid = sshkey_ecdsa_bits_to_nid(bits)) == -1)
+		return SSH_ERR_KEY_LENGTH;
 	*ecdsap = NULL;
 	if ((private = EC_KEY_new_by_curve_name(*nid)) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
