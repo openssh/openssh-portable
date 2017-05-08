@@ -181,7 +181,7 @@ check_secure_file_permission(const char *name, struct passwd * pw)
 	}	
 cleanup:
 	if(bad_user)
-		free(bad_user);
+		LocalFree(bad_user);
 	if (pSD)
 		LocalFree(pSD);
 	if (user_sid)
