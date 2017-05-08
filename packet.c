@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.255 2017/05/08 00:21:36 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.256 2017/05/08 06:03:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2240,6 +2240,7 @@ ssh_packet_get_state(struct ssh *ssh, struct sshbuf *m)
 	    (r = sshbuf_put_u64(m, state->p_read.bytes)) != 0 ||
 	    (r = sshbuf_put_stringb(m, state->input)) != 0 ||
 	    (r = sshbuf_put_stringb(m, state->output)) != 0)
+		return r;
 
 	return 0;
 }
