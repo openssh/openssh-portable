@@ -134,7 +134,7 @@ check_secure_file_permission(const char *name, struct passwd * pw)
 		case ACCESS_DENIED_ACE_TYPE: {
 			PACCESS_DENIED_ACE pDeniedAce = (PACCESS_DENIED_ACE)current_ace;
 			current_trustee_sid = &(pDeniedAce->SidStart);			
-			if(pDeniedAce->Mask & (FILE_GENERIC_READ & ~(SYNCHRONIZE | READ_CONTROL)) != 0) {
+			if((pDeniedAce->Mask & (FILE_GENERIC_READ & ~(SYNCHRONIZE | READ_CONTROL))) != 0) {
 				if (EqualSid(current_trustee_sid, owner_sid)){
 					debug3("Bad permission on %s. The owner of the file should at least have read permission.", name);
 					ret = -1;

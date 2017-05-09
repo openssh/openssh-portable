@@ -293,7 +293,7 @@
     <ClInclude Include="$(OpenSSH-Src-Path)crypto-wrap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include=$(OpenSSH-Src-Path)sshfileperm.h">
+    <ClInclude Include="$(OpenSSH-Src-Path)sshfileperm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
