@@ -228,26 +228,27 @@ umac128.o:	umac.c
 clean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core survey
+	rm -f regress/check-perm$(EXEEXT)
 	rm -f regress/unittests/test_helper/*.a
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/sshbuf/*.o
-	rm -f regress/unittests/sshbuf/test_sshbuf
+	rm -f regress/unittests/sshbuf/test_sshbuf$(EXEEXT)
 	rm -f regress/unittests/sshkey/*.o
-	rm -f regress/unittests/sshkey/test_sshkey
+	rm -f regress/unittests/sshkey/test_sshkey$(EXEEXT)
 	rm -f regress/unittests/bitmap/*.o
-	rm -f regress/unittests/bitmap/test_bitmap
+	rm -f regress/unittests/bitmap/test_bitmap$(EXEEXT)
 	rm -f regress/unittests/conversion/*.o
-	rm -f regress/unittests/conversion/test_conversion
+	rm -f regress/unittests/conversion/test_conversion$(EXEEXT)
 	rm -f regress/unittests/hostkeys/*.o
-	rm -f regress/unittests/hostkeys/test_hostkeys
+	rm -f regress/unittests/hostkeys/test_hostkeys$(EXEEXT)
 	rm -f regress/unittests/kex/*.o
-	rm -f regress/unittests/kex/test_kex
+	rm -f regress/unittests/kex/test_kex$(EXEEXT)
 	rm -f regress/unittests/match/*.o
-	rm -f regress/unittests/match/test_match
+	rm -f regress/unittests/match/test_match$(EXEEXT)
 	rm -f regress/unittests/utf8/*.o
-	rm -f regress/unittests/utf8/test_utf8
+	rm -f regress/unittests/utf8/test_utf8$(EXEEXT)
 	rm -f regress/misc/kexfuzz/*.o
-	rm -f regress/misc/kexfuzz/kexfuzz
+	rm -f regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
