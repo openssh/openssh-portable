@@ -2,6 +2,7 @@
 #todo: -S -F -V -e
 $tC = 1
 $tI = 0
+$suite = "sshclient"
         
 Describe "E2E scenarios for ssh client" -Tags "CI" {
     BeforeAll {        
@@ -10,23 +11,17 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             Throw "`$OpenSSHTestInfo is null. Please run Setup-OpenSSHTestEnvironment to setup test environment."
         }
 
-        if(-not (Test-Path $OpenSSHTestInfo["TestDataPath"]))
-        {
-            $null = New-Item $OpenSSHTestInfo["TestDataPath"] -ItemType directory -Force -ErrorAction SilentlyContinue
-        }
-
         $server = $OpenSSHTestInfo["Target"]
         $port = $OpenSSHTestInfo["Port"]
         $ssouser = $OpenSSHTestInfo["SSOUser"]
-        $sshCmdDefault = "ssh -p $port $($ssouser)@$($server)"
 
-        $testDir = Join-Path $OpenSSHTestInfo["TestDataPath"] "ssh"
+        $testDir = Join-Path $OpenSSHTestInfo["TestDataPath"] $suite
         if(-not (Test-Path $testDir))
         {
             $null = New-Item $testDir -ItemType directory -Force -ErrorAction SilentlyContinue
         }
 
-        $testData = @(
+        <#$testData = @(
             @{
                 Title = 'Simple logon no option';                
                 LogonStr = "$($server.localAdminUserName)@$($server.MachineName)"
@@ -55,28 +50,29 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
                 LogonStr = "$($server.localAdminUserName)@$($server.MachineName)"
                 Options = '-i $identifyFile -c aes256-ctr'
             },
-            <# -V does not redirect to file
+             -V does not redirect to file
             @{
                 Title = "logon using -i -V option"
                 LogonStr = "$($server.localAdminUserName)@$($server.MachineName)"
                 Options = '-i $identifyFile -V'
                 SkipVerification = $true
-            },#>
+            },
             @{
                 Title = 'logon using -i -l option'
                 LogonStr = $server.MachineName
                 Options = '-i $identifyFile -l $($server.localAdminUserName)'
             }
-        )
+        )#>
         
     }
 
     BeforeEach {
-        $tI++;
         $stderrFile=Join-Path $testDir "$tC.$tI.stderr.txt"
         $stdoutFile=Join-Path $testDir "$tC.$tI.stdout.txt"
         $logFile = Join-Path $testDir "$tC.$tI.log.txt"
     }        
+
+    AfterEach {$tI++;}
 
     Context "$tC - Basic Scenarios" {
         
@@ -117,12 +113,12 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
         AfterAll{$tC++}
 
         It "$tC.$tI - stdout to file" {
-            iex "$sshDefaultCmd powershell get-process > $stdoutFile"
+            ssh test_target powershell get-process > $stdoutFile
             $stdoutFile | Should Contain "ProcessName"
         }
 
         It "$tC.$tI - stdout to PS object" {
-            $o = iex "$sshDefaultCmd echo 1234"
+            $o = ssh test_target echo 1234
             $o | Should Be "1234"
         }
 
@@ -138,8 +134,8 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
         BeforeAll {$tI=1}
         AfterAll{$tC++}
 
-        It "$tC.$tI - verbose to file" {
-            $o = ssh -p $port -v -E $logFile $ssouser@$server echo 1234
+        It "$tC.$tI - verbose to file (-v -E)" {
+            $o = ssh -v -E $logFile test_target echo 1234
             $o | Should Be "1234"
             #TODO - checks below are very inefficient (time taking). 
             $logFile | Should Contain "OpenSSH_"
@@ -147,22 +143,22 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
         }
 
 
-        It "$tC.$tI - cipher options" {
+        It "$tC.$tI - cipher options (-c)" {
             #bad cipher
-            iex "cmd /c `"ssh -c bad_cipher $ssouser@$server echo 1234 2>$stderrFile`""
+            iex "cmd /c `"ssh -c bad_cipher test_target echo 1234 2>$stderrFile`""
             $stderrFile | Should Contain "Unknown cipher type"
             #good cipher, ensure cipher is used from debug logs
-            $o = ssh -c aes256-ctr  -v -E $logFile -p $port $ssouser@$server echo 1234
+            $o = ssh -c aes256-ctr  -v -E $logFile test_target echo 1234
             $o | Should Be "1234"
             $logFile | Should Contain "kex: server->client cipher: aes256-ctr"
             $logFile | Should Contain "kex: client->server cipher: aes256-ctr"
         }
 
-        It "$tC.$tI - ssh_config" {
+        It "$tC.$tI - ssh_config (-F)" {
             #ensure -F is working by pointing to a bad configuration
             $badConfigFile = Join-Path $testDir "$tC.$tI.bad_ssh_config"
             "bad_config_line" | Set-Content $badConfigFile
-            iex "cmd /c `"ssh -F $badConfigFile $ssouser@$server echo 1234 2>$stderrFile`""
+            iex "cmd /c `"ssh -F $badConfigFile test_target echo 1234 2>$stderrFile`""
             $stderrFile | Should Contain "bad_ssh_config"
             $stderrFile | Should Contain "bad_config_line"
             $stderrFile | Should Contain "bad configuration options"
@@ -177,6 +173,19 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             "    User $ssouser" | Add-Content $goodConfigFile
             $o = ssh -F $goodConfigFile myhost echo 1234
             $o | Should Be "1234"          
+        }
+
+        It "$tC.$tI - IP options - (-4) (-6)" {
+            # TODO - this test assumes target is localhost. 
+            # make it work independent of target
+            #-4
+            $o = ssh -4 -v -E $logFile test_target echo 1234
+            $o | Should Be "1234"
+            $logFile | Should Contain "[127.0.0.1]"
+            #-4
+            $o = ssh -6 -v -E $logFile test_target echo 1234
+            $o | Should Be "1234"
+            $logFile | Should Contain "[::1]"            
         }
     }
 

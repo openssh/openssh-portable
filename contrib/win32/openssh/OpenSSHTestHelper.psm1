@@ -119,6 +119,8 @@ WARNING: Following changes will be made to OpenSSH configuration
    - will be replaced with a test sshd_config
    - $HOME\.ssh\known_hosts will be backed up as known_hosts.ori
    - will be replaced with a test known_hosts
+   - $HOME\.ssh\config will be backed up as config.ori
+   - will be replaced with a test config
    - sshd test listener will be on port 47002
    - $HOME\.ssh\known_hosts will be modified with test host key entry
    - test accounts - ssouser, pubkeyuser, and passwduser will be added
@@ -172,16 +174,22 @@ WARNING: Following changes will be made to OpenSSH configuration
    
     #Backup existing known_hosts and replace with test version
     #TODO - account for custom known_hosts locations
-    $knowHostsDirectoryPath = Join-Path $home .ssh
-    $knowHostsFilePath = Join-Path $knowHostsDirectoryPath known_hosts
-    if(-not (Test-Path $knowHostsDirectoryPath -PathType Container))
+    $dotSshDirectoryPath = Join-Path $home .ssh
+    $knowHostsFilePath = Join-Path $dotSshDirectoryPath known_hosts
+    if(-not (Test-Path $dotSshDirectoryPath -PathType Container))
     {
-        New-Item -ItemType Directory -Path $knowHostsDirectoryPath -Force -ErrorAction SilentlyContinue | out-null
+        New-Item -ItemType Directory -Path $dotSshDirectoryPath -Force -ErrorAction SilentlyContinue | out-null
     }
-    if ((Test-Path $knowHostsFilePath -PathType Leaf) -and (-not (Test-Path (Join-Path $knowHostsDirectoryPath known_hosts.ori) -PathType Leaf))) {
-        Copy-Item $knowHostsFilePath (Join-Path $knowHostsDirectoryPath known_hosts.ori) -Force
+    if ((Test-Path $knowHostsFilePath -PathType Leaf) -and (-not (Test-Path (Join-Path $dotSshDirectoryPath known_hosts.ori) -PathType Leaf))) {
+        Copy-Item $knowHostsFilePath (Join-Path $dotSshDirectoryPath known_hosts.ori) -Force
     }
     Copy-Item (Join-Path $Script:E2ETestDirectory known_hosts) $knowHostsFilePath -Force
+
+    $sshConfigFilePath = Join-Path $dotSshDirectoryPath config
+    if ((Test-Path $sshConfigFilePath -PathType Leaf) -and (-not (Test-Path (Join-Path $dotSshDirectoryPath config.ori) -PathType Leaf))) {
+        Copy-Item $sshConfigFilePath (Join-Path $dotSshDirectoryPath config.ori) -Force
+    }
+    Copy-Item (Join-Path $Script:E2ETestDirectory ssh_config) $sshConfigFilePath -Force
 
     # create test accounts
     #TODO - this is Windows specific. Need to be in PAL
@@ -313,6 +321,14 @@ function Cleanup-OpenSSHTestEnvironment
     {
         Copy-Item $originKnowHostsPath (Join-Path $home .ssh\known_hosts) -Force -ErrorAction SilentlyContinue
         Remove-Item $originKnowHostsPath -Force -ErrorAction SilentlyContinue
+    }
+
+    #Restore ssh_config
+    $originConfigPath = Join-Path $home .ssh\config.ori
+    if (Test-Path $originConfigPath)
+    {
+        Copy-Item $originConfigPath (Join-Path $home .ssh\config) -Force -ErrorAction SilentlyContinue
+        Remove-Item $originConfigPath -Force -ErrorAction SilentlyContinue
     }
 
     #Delete accounts
