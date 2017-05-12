@@ -212,6 +212,7 @@ WARNING: Following changes will be made to OpenSSH configuration
     $testPriKeypath = Join-Path $Script:E2ETestDirectory sshtest_userssokey_ed25519
     Cleanup-SecureFileACL -FilePath $testPriKeypath -owner $owner
     cmd /c "ssh-add $testPriKeypath 2>&1 >> $Script:TestSetupLogFile"
+    Backup-OpenSSHTestInfo
 }
 #TODO - this is Windows specific. Need to be in PAL
 function Get-LocalUserProfile
@@ -439,6 +440,56 @@ function Run-OpenSSHUnitTest
     $testfailed
 }
 
+function Backup-OpenSSHTestInfo
+{
+    param
+    (    
+        [string] $BackupFile = $null
+    )
+
+    if ($Global:OpenSSHTestInfo -eq $null) {
+        Throw "`$OpenSSHTestInfo is null. Did you run Setup-OpenSSHTestEnvironment yet?"
+    }
+    
+    $testInfo = $Global:OpenSSHTestInfo
+    
+    if ([String]::IsNullOrEmpty($BackupFile)) {
+        $BackupFile = Join-Path $testInfo["TestDataPath"] "OpenSSHTestInfo_backup.txt"
+    }
+    
+    $null | Set-Content $BackupFile
+
+    foreach ($key in $testInfo.Keys) {
+        $value = $testInfo[$key]
+        Add-Content $BackupFile "$key,$value"
+    }
+}
+
+function Recover-OpenSSHTestInfo
+{
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $BackupFile
+    )
+
+    if($Global:OpenSSHTestInfo -ne $null)
+    {
+        $Global:OpenSSHTestInfo.Clear()
+        $Global:OpenSSHTestInfo = $null
+    }
+
+    $Global:OpenSSHTestInfo = @{}
+
+    $entries = Get-Content $BackupFile
+
+    foreach ($entry in $entries) {
+        $data = $entry.Split(",")
+        $Global:OpenSSHTestInfo[$data[0]] = $data[1] 
+    }
+}
+
 <#
     Write-Log 
 #>
@@ -460,4 +511,4 @@ function Write-Log
     }  
 }
 
-Export-ModuleMember -Function Setup-OpenSSHTestEnvironment, Cleanup-OpenSSHTestEnvironment, Run-OpenSSHUnitTest, Run-OpenSSHE2ETest
+Export-ModuleMember -Function Setup-OpenSSHTestEnvironment, Cleanup-OpenSSHTestEnvironment, Run-OpenSSHUnitTest, Run-OpenSSHE2ETest, Backup-OpenSSHTestInfo, Recover-OpenSSHTestInfo

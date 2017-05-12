@@ -3,7 +3,7 @@
 $tC = 1
 $tI = 0
         
-Describe "ssh client tests" -Tags "CI" {
+Describe "E2E scenarios for ssh client" -Tags "CI" {
     BeforeAll {        
         if($OpenSSHTestInfo -eq $null)
         {
@@ -73,7 +73,9 @@ Describe "ssh client tests" -Tags "CI" {
 
     BeforeEach {
         $tI++;
-        $tFile=Join-Path $testDir "$tC.$tI.txt"
+        $stderrFile=Join-Path $testDir "$tC.$tI.stderr.txt"
+        $stdoutFile=Join-Path $testDir "$tC.$tI.stdout.txt"
+        $logFile = Join-Path $testDir "$tC.$tI.log.txt"
     }        
 
     Context "$tC - Basic Scenarios" {
@@ -82,24 +84,30 @@ Describe "ssh client tests" -Tags "CI" {
         AfterAll{$tC++}
 
         It "$tC.$tI - test version" {
-            iex "cmd /c `"ssh -V 2> $tFile`""
-            $tFile | Should Contain "OpenSSH_"
+            iex "cmd /c `"ssh -V 2> $stderrFile`""
+            $stderrFile | Should Contain "OpenSSH_"
         }
 
         It "$tC.$tI - test help" {
-            iex "cmd /c `"ssh -? 2> $tFile`""
-            $tFile | Should Contain "usage: ssh"
+            iex "cmd /c `"ssh -? 2> $stderrFile`""
+            $stderrFile | Should Contain "usage: ssh"
         }
         
         It "$tC.$tI - remote echo command" {
             iex "$sshDefaultCmd echo 1234" | Should Be "1234"
         }
 
-        It "$tC.$tI - exit code" {
-            ssh -p $port $ssouser@$server exit 0
-            $LASTEXITCODE | Should Be 0
-            ssh -p $port $ssouser@$server exit 21
-            $LASTEXITCODE | Should Be 21
+    }
+
+    Context "$tC - exit code (exit-status.sh)" {
+        BeforeAll {$tI=1}
+        AfterAll{$tC++}
+
+        It "$tC.$tI - various exit codes" {
+            foreach ($i in (0,1,4,5,44)) {
+                ssh -p $port $ssouser@$server exit $i
+                $LASTEXITCODE | Should Be $i
+            }            
         }
     }
 
@@ -109,8 +117,8 @@ Describe "ssh client tests" -Tags "CI" {
         AfterAll{$tC++}
 
         It "$tC.$tI - stdout to file" {
-            iex "$sshDefaultCmd powershell get-process > $tFile"
-            $tFile | Should Contain "ProcessName"
+            iex "$sshDefaultCmd powershell get-process > $stdoutFile"
+            $stdoutFile | Should Contain "ProcessName"
         }
 
         It "$tC.$tI - stdout to PS object" {
@@ -131,7 +139,6 @@ Describe "ssh client tests" -Tags "CI" {
         AfterAll{$tC++}
 
         It "$tC.$tI - verbose to file" {
-            $logFile = Join-Path $testDir "$tC.$tI.log.txt"
             $o = ssh -p $port -v -E $logFile $ssouser@$server echo 1234
             $o | Should Be "1234"
             #TODO - checks below are very inefficient (time taking). 
@@ -139,7 +146,42 @@ Describe "ssh client tests" -Tags "CI" {
             $logFile | Should Contain "Exit Status 0"
         }
 
+
+        It "$tC.$tI - cipher options" {
+            #bad cipher
+            iex "cmd /c `"ssh -c bad_cipher $ssouser@$server echo 1234 2>$stderrFile`""
+            $stderrFile | Should Contain "Unknown cipher type"
+            #good cipher, ensure cipher is used from debug logs
+            $o = ssh -c aes256-ctr  -v -E $logFile -p $port $ssouser@$server echo 1234
+            $o | Should Be "1234"
+            $logFile | Should Contain "kex: server->client cipher: aes256-ctr"
+            $logFile | Should Contain "kex: client->server cipher: aes256-ctr"
+        }
+
+        It "$tC.$tI - ssh_config" {
+            #ensure -F is working by pointing to a bad configuration
+            $badConfigFile = Join-Path $testDir "$tC.$tI.bad_ssh_config"
+            "bad_config_line" | Set-Content $badConfigFile
+            iex "cmd /c `"ssh -F $badConfigFile $ssouser@$server echo 1234 2>$stderrFile`""
+            $stderrFile | Should Contain "bad_ssh_config"
+            $stderrFile | Should Contain "bad_config_line"
+            $stderrFile | Should Contain "bad configuration options"
+
+            #try with a proper configuration file. Put it on a unicode path with unicode content
+            #so we can test the Unicode support simultaneously
+            $goodConfigFile = Join-Path $testDir "$tC.$tI.Очень_хорошо_ssh_config"
+            "#this is a Unicode comment because it contains русский язык" | Set-Content $goodConfigFile -Encoding UTF8
+            "Host myhost" | Add-Content $goodConfigFile
+            "    HostName $server" | Add-Content $goodConfigFile
+            "    Port $port" | Add-Content $goodConfigFile
+            "    User $ssouser" | Add-Content $goodConfigFile
+            $o = ssh -F $goodConfigFile myhost echo 1234
+            $o | Should Be "1234"          
+        }
     }
+
+
+    
     <#Context "Key is not secured in ssh-agent on server" {
         BeforeAll {            
             $identifyFile = $client.clientPrivateKeyPaths[0]
