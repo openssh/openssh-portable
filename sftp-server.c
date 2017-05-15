@@ -28,6 +28,7 @@
 #ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
+#include <sys/file.h>
 
 #include <dirent.h>
 #include <errno.h>
@@ -107,6 +108,7 @@ static void process_extended_statvfs(u_int32_t id);
 static void process_extended_fstatvfs(u_int32_t id);
 static void process_extended_hardlink(u_int32_t id);
 static void process_extended_fsync(u_int32_t id);
+static void process_extended_flock(u_int32_t id);
 static void process_extended(u_int32_t id);
 
 struct sftp_handler {
@@ -148,6 +150,7 @@ struct sftp_handler extended_handlers[] = {
 	{ "fstatvfs", "fstatvfs@openssh.com", 0, process_extended_fstatvfs, 0 },
 	{ "hardlink", "hardlink@openssh.com", 0, process_extended_hardlink, 1 },
 	{ "fsync", "fsync@openssh.com", 0, process_extended_fsync, 1 },
+	{ "flock", "flock@openssh.com", 0, process_extended_flock, 1 },
 	{ NULL, NULL, 0, NULL, 0 }
 };
 
@@ -663,6 +666,9 @@ process_init(void)
 	    (r = sshbuf_put_cstring(msg, "2")) != 0 || /* version */
 	    /* hardlink extension */
 	    (r = sshbuf_put_cstring(msg, "hardlink@openssh.com")) != 0 ||
+	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
+	    /* flock extension */
+	    (r = sshbuf_put_cstring(msg, "flock@openssh.com")) != 0 ||
 	    (r = sshbuf_put_cstring(msg, "1")) != 0 || /* version */
 	    /* fsync extension */
 	    (r = sshbuf_put_cstring(msg, "fsync@openssh.com")) != 0 ||
@@ -1365,6 +1371,39 @@ process_extended_fsync(u_int32_t id)
 	else if (handle_is_ok(handle, HANDLE_FILE)) {
 		r = fsync(fd);
 		status = (r == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	}
+	send_status(id, status);
+}
+
+static void
+process_extended_flock(u_int32_t id)
+{
+	int handle, fd, r, status = SSH2_FX_OP_UNSUPPORTED;
+	u_int32_t op;
+
+	r = get_handle(iqueue, &handle);
+	if (r != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	r = sshbuf_get_u32(iqueue, &op);
+	if (r != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	debug3("request %u: flock (handle %u)", id, handle);
+	verbose("flock \"%s\" 0x%x", handle_to_name(handle), op);
+
+	fd = handle_to_fd(handle);
+	if (fd < 0)
+		status = SSH2_FX_NO_SUCH_FILE;
+	else if (op == LOCK_UN || (op & LOCK_NB)) {
+		r = flock(fd, op);
+		if (r < 0 && errno == EWOULDBLOCK) {
+			status = SSH2_FX_EOF;
+		} else if (r < 0) {
+			status = errno_to_portable(errno);
+		} else {
+			status = SSH2_FX_OK;
+		}
 	}
 	send_status(id, status);
 }

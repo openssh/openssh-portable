@@ -454,4 +454,27 @@ respond with a SSH_FXP_STATUS message.
 This extension is advertised in the SSH_FXP_VERSION hello with version
 "1".
 
+10. sftp: Extension request "flock@openssh.com"
+
+This request asks the server to call flock(2) on an open file handle.
+
+	uint32		id
+	string		"flock@openssh.com"
+	string		handle
+	uint32		op
+
+On receiving this request, a server will call flock(handle_fd, op)
+and will respond with a SSH_FXP_STATUS message.
+
+Iterpretation of return code depends on op:
+
+	1 LOCK_SH		SSH2_FX_OP_UNSUPPORTED (not implemented yet)
+	2 LOCK_EX		SSH2_FX_OP_UNSUPPORTED (not implemented yet)
+	5 LOCK_SH|LOCK_NB	SSH2_FX_EOF if already locked
+	6 LOCK_EX|LOCK_NB	SSH2_FX_EOF if already locked
+	8 LOCK_UN		SSH2_FX_OK
+
+This extension is advertised in the SSH_FXP_VERSION hello with version
+"1".
+
 $OpenBSD: PROTOCOL,v 1.30 2016/04/08 06:35:54 djm Exp $
