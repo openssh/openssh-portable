@@ -412,7 +412,7 @@ function Run-OpenSSHE2ETest
    # Discover all CI tests and run them.
     Push-Location $Script:E2ETestDirectory
     Write-Log -Message "Running OpenSSH E2E tests..."    
-    $testFolders = Get-ChildItem *.tests.ps1 -Recurse -Exclude SSHDConfig.tests.ps1, SSH.Tests.ps1 | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique
+    $testFolders = Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique
     Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile $Script:E2ETestResultsFile -Tag 'CI'
     Pop-Location
 }
