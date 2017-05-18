@@ -34,6 +34,7 @@
 #include <io.h>
 #include <errno.h>
 #include <stddef.h>
+#include <direct.h>
 
 #include "w32fd.h"
 #include "inc\utf.h"
@@ -638,22 +639,53 @@ int
 fileio_stat(const char *path, struct _stat64 *buf)
 {
 	wchar_t* wpath = NULL;
-	int r = -1;
+	WIN32_FILE_ATTRIBUTE_DATA attributes = { 0 };
+	int ret = -1, len = 0;	
+	if ((wpath = utf8_to_utf16(path)) == NULL) {
+		errno = errno_from_Win32LastError();
+		debug3("utf8_to_utf16 failed for file:%s error:%d", path, GetLastError());
+		return -1;
+	}
+	memset(buf, 0, sizeof(struct _stat64));
 
-	if ((wpath = utf8_to_utf16(path)) == NULL)
-		fatal("failed to covert input arguments");
+	if (GetFileAttributesExW(wpath, GetFileExInfoStandard, &attributes) == FALSE) {
+		errno = errno_from_Win32LastError();
+		debug3("GetFileAttributesExW with last error %d", GetLastError());
+		goto cleanup;
+	}
+	
+	len = wcslen(wpath);
 
-	r = _wstat64(wpath, buf);
+	buf->st_ino = 0; /* Has no meaning in the FAT, HPFS, or NTFS file systems*/
+	buf->st_gid = 0; /* UNIX - specific; has no meaning on windows */
+	buf->st_uid = 0; /* UNIX - specific; has no meaning on windows */
+	buf->st_nlink = 1; /* number of hard links. Always 1 on non - NTFS file systems.*/
+	buf->st_mode |= file_attr_to_st_mode(wpath, attributes.dwFileAttributes);
+	buf->st_size = attributes.nFileSizeLow | (((off_t)attributes.nFileSizeHigh) << 32);
+	if (len > 1 && __ascii_iswalpha(*wpath) && (*(wpath + 1) == ':'))
+		buf->st_dev = buf->st_rdev = towupper(*wpath) - L'A'; /* drive num */
+	else
+		buf->st_dev = buf->st_rdev = _getdrive() - 1;
+	file_time_to_unix_time(&(attributes.ftLastAccessTime), &(buf->st_atime));
+	file_time_to_unix_time(&(attributes.ftLastWriteTime), &(buf->st_mtime));
+	file_time_to_unix_time(&(attributes.ftCreationTime), &(buf->st_ctime));
 
-	/*
-	* If we doesn't have sufficient permissions then _wstat64() is returning "file not found"
-	* TODO - Replace the above call with GetFileAttributesEx 
-	*/
-
+	if (attributes.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+		WIN32_FIND_DATAW findbuf = { 0 };
+		HANDLE handle = FindFirstFileW(wpath, &findbuf);
+		if (handle != INVALID_HANDLE_VALUE) {
+			if ((findbuf.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+				(findbuf.dwReserved0 == IO_REPARSE_TAG_SYMLINK)) {
+				buf->st_mode |= S_IFLNK;
+			}
+			FindClose(handle);
+		}
+	}	
+	ret = 0;
 cleanup:
 	if (wpath)
-		free(wpath);
-	return r;
+		free(wpath);	
+	return ret;
 }
 
 long

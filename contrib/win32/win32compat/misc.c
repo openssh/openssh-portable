@@ -59,6 +59,10 @@ static char* s_programdir = NULL;
 #define IO_REPARSE_TAG_SIS (0x80000007L) /* winnt ntifs */
 #define REPARSE_MOUNTPOINT_HEADER_SIZE 8
 
+ /* Difference in us between UNIX Epoch and Win32 Epoch */
+#define EPOCH_DELTA_US  116444736000000000ULL
+#define RATE_DIFF 10000000ULL /* 1000 nsecs */
+
 typedef struct _REPARSE_DATA_BUFFER {
 	ULONG  ReparseTag;
 	USHORT ReparseDataLength;
@@ -174,9 +178,6 @@ nanosleep(const struct timespec *req, struct timespec *rem)
 	}
 }
 
-/* Difference in us between UNIX Epoch and Win32 Epoch */
-#define EPOCH_DELTA_US  11644473600000000ULL
-
 /* This routine is contributed by  * Author: NoMachine <developers@nomachine.com>
  * Copyright (c) 2009, 2010 NoMachine
  * All rights reserved
@@ -191,17 +192,14 @@ gettimeofday(struct timeval *tv, void *tz)
 	unsigned long long us;
 
 	/* Fetch time since Jan 1, 1601 in 100ns increments */
-	GetSystemTimeAsFileTime(&timehelper.ft);
-
-	/* Convert to microseconds from 100 ns units */
-	us = timehelper.ns / 10;
+	GetSystemTimeAsFileTime(&timehelper.ft);	
 
 	/* Remove the epoch difference */
-	us -= EPOCH_DELTA_US;
+	us = timehelper.ns - EPOCH_DELTA_US;
 
 	/* Stuff result into the timeval */
-	tv->tv_sec = (long)(us / 1000000ULL);
-	tv->tv_usec = (long)(us % 1000000ULL);
+	tv->tv_sec = (long)(us / RATE_DIFF);
+	tv->tv_usec = (long)(us % RATE_DIFF);
 
 	return 0;
 }
@@ -550,14 +548,81 @@ w32_chown(const char *pathname, unsigned int owner, unsigned int group)
 	return -1;
 }
 
-static void
+/* Convert a UNIX time into a Windows file time */
+void
 unix_time_to_file_time(ULONG t, LPFILETIME pft)
 {
 	ULONGLONG ull;
-	ull = UInt32x32To64(t, 10000000) + 116444736000000000;
+	ull = UInt32x32To64(t, RATE_DIFF) + EPOCH_DELTA_US;
 
 	pft->dwLowDateTime = (DWORD)ull;
 	pft->dwHighDateTime = (DWORD)(ull >> 32);
+}
+
+/* Convert a Windows file time into a UNIX time_t */
+void
+file_time_to_unix_time(const LPFILETIME pft, time_t * winTime)
+{
+	*winTime = ((long long)pft->dwHighDateTime << 32) + pft->dwLowDateTime;
+	*winTime -= EPOCH_DELTA_US;
+	*winTime /= RATE_DIFF;		 /* Nano to seconds resolution */
+}
+
+static BOOL
+is_root_or_empty(wchar_t * path)
+{
+	wchar_t * path_start;
+	BOOL has_drive_letter_and_colon;
+	int len;
+	if (!path) 
+		return FALSE;
+	len = wcslen(path);
+	if((len > 1) && __ascii_iswalpha(path[0]) && path[1] == L':')
+		path_start = path + 2;
+	else
+		path_start = path;
+	/*path like  c:\, /, \ are root directory*/
+	if ((*path_start == L'\0') || ((*path_start == L'\\' || *path_start == L'/' ) && path_start[1] == L'\0'))
+		return TRUE;
+	return FALSE;
+}
+
+static BOOL
+has_executable_extension(wchar_t * path)
+{
+	wchar_t * last_dot;
+	if (!path)
+		return FALSE;
+
+	last_dot = wcsrchr(path, L'.');
+	if (!last_dot)
+		return FALSE;
+	if (_wcsnicmp(last_dot, L".exe", 4) != 0 && _wcsnicmp(last_dot, L".cmd", 4) != 0 &&
+	_wcsnicmp(last_dot, L".bat", 4) != 0 && _wcsnicmp(last_dot, L".com", 4) != 0)
+		return FALSE; 
+	return TRUE;
+}
+
+int
+file_attr_to_st_mode(wchar_t * path, DWORD attributes)
+{
+	int mode = S_IREAD;	
+	if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0 || is_root_or_empty(path))
+		mode |= S_IFDIR | _S_IEXEC;
+	else {
+		mode |= S_IFREG;
+		/* See if file appears to be an executable by checking its extension */
+		if (has_executable_extension(path))
+			mode |= _S_IEXEC;
+
+	}
+	if (!(attributes & FILE_ATTRIBUTE_READONLY))
+		mode |= S_IWRITE;
+
+	// propagate owner read/write/execute bits to group/other fields.
+	mode |= (mode & 0700) >> 3;
+	mode |= (mode & 0700) >> 6;
+	return mode;
 }
 
 static int

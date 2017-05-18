@@ -14,3 +14,6 @@ char* w32_programdir();
 
 void convertToBackslash(char *str);
 void convertToForwardslash(char *str);
+
+void unix_time_to_file_time(ULONG, LPFILETIME);
+void file_time_unix_time(const LPFILETIME, time_t *);

@@ -63,6 +63,15 @@ Describe "Tests for host keys file permission" -Tags "Scenario" {
             Remove-Item -Path $filePath -Force -ErrorAction ignore            
         }
 
+        AfterAll {
+            if(Test-path $hostKeyFilePath -PathType Leaf){
+                Set-SecureFileACL -filepath $hostKeyFilePath            
+            }
+            if(Test-path "$hostKeyFilePath.pub" -PathType Leaf){
+                Set-SecureFileACL -filepath "$hostKeyFilePath.pub"
+            }
+        }
+
         It 'Host keys -- positive (Secured private key and sshd can access to public key file)' {
             #setup to have current user as owner and grant it full control        
             Set-SecureFileACL -filepath $hostKeyFilePath

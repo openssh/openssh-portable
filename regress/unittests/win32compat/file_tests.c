@@ -102,8 +102,49 @@ void file_simple_fileio()
 	ASSERT_INT_EQ(ret, 0);
 	close(f);
 	TEST_DONE();
+}
 
+void file_simple_fileio_mode()
+{
+	char * small_write_buf = "sample payload", *c, small_read_buf[SMALL_RECV_BUF_SIZE];
+	int ret;
+	FILE* f;
+	struct stat st;
 
+	TEST_START("file mode");
+	f = fopen("tmp.txt", "w");
+	ASSERT_PTR_NE(f, NULL);
+	fclose(f);
+	f = fopen("tmp.txt", "r");
+	ASSERT_PTR_NE(f, NULL);
+	c = fgets(small_read_buf, sizeof(small_read_buf), f);
+	ASSERT_PTR_EQ(c, NULL);
+	fclose(f);
+	
+	ret = stat("tmp.txt", &st);
+	ASSERT_INT_EQ(ret, 0);
+	ASSERT_INT_EQ(st.st_size, 0);
+	
+	f = fopen("tmp.txt", "w");
+	ASSERT_PTR_NE(f, NULL);
+	ret = fputs(small_write_buf, f);
+	ASSERT_INT_EQ(ret, 0);
+	fclose(f);
+
+	ret = stat("tmp.txt", &st);
+	ASSERT_INT_EQ(ret, 0);
+	ASSERT_INT_EQ(st.st_size, strlen(small_write_buf));
+
+	f = fopen("tmp.txt", "r");
+	ASSERT_PTR_NE(f, NULL);
+	c = fgets(small_read_buf, sizeof(small_read_buf), f);
+	ASSERT_PTR_NE(c, NULL);	
+	ASSERT_STRING_EQ(small_write_buf, small_read_buf);
+
+	c = fgets(small_read_buf, sizeof(small_read_buf), f);
+	ASSERT_PTR_EQ(c, NULL);	
+	fclose(f);
+	TEST_DONE();
 }
 
 void 
@@ -240,7 +281,8 @@ void
 file_tests()
 {
 	//console_io_test();
-	//file_simple_fileio();
+	file_simple_fileio();
+	file_simple_fileio_mode();
 	file_blocking_io_tests();
 	file_nonblocking_io_tests();
 	file_select_tests();
