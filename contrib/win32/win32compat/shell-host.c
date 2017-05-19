@@ -223,7 +223,7 @@ SendKeyStroke(HANDLE hInput, int keyStroke, char character)
 void 
 ProcessIncomingKeys(char * ansikey)
 {
-	int keylen = strlen(ansikey);
+	int keylen = (int)strlen(ansikey);
 
 	if (!keylen)
 		return;
@@ -407,7 +407,7 @@ SendCharacter(HANDLE hInput, WORD attributes, wchar_t character)
 	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, "m", Color);
 
 	if (bUseAnsiEmulation && attributes != pattributes)
-		WriteFile(hInput, formatted_output, (Next - formatted_output), &wr, NULL);
+		WriteFile(hInput, formatted_output, (DWORD)(Next - formatted_output), &wr, NULL);
 
 	/* East asian languages have 2 bytes for each character, only use the first */
 	if (!(attributes & COMMON_LVB_TRAILING_BYTE)) {
@@ -481,8 +481,8 @@ SizeWindow(HANDLE hInput)
 		inputSi.dwYCountChars = 25;
 	}
 
-	srWindowRect.Right = (SHORT)(min(inputSi.dwXCountChars, coordScreen.X) - 1);
-	srWindowRect.Bottom = (SHORT)(min(inputSi.dwYCountChars, coordScreen.Y) - 1);
+	srWindowRect.Right = (SHORT)(min(inputSi.dwXCountChars, (DWORD)coordScreen.X) - 1);
+	srWindowRect.Bottom = (SHORT)(min(inputSi.dwYCountChars, (DWORD)coordScreen.Y) - 1);
 	srWindowRect.Left = srWindowRect.Top = (SHORT)0;
 
 	/* Define the new console buffer size to be the maximum possible */
@@ -511,14 +511,12 @@ MonitorChild(_In_ LPVOID lpParameter)
 DWORD 
 ProcessEvent(void *p)
 {
-	char f[255];
 	wchar_t chUpdate;
 	WORD  wAttributes;
 	WORD  wX;
 	WORD  wY;
 	DWORD dwProcessId;
 	DWORD wr = 0;
-	DWORD dwMode;
 	DWORD event;
 	HWND hwnd;
 	LONG idObject;
@@ -640,8 +638,8 @@ ProcessEvent(void *p)
 			return dwError;
 		}
 
-		if (readRect.Top > currentLine)
-			for (SHORT n = currentLine; n < readRect.Top; n++)
+		if ((DWORD)readRect.Top > currentLine)
+			for (DWORD n = currentLine; n < (DWORD)readRect.Top; n++)
 				SendLF(pipe_out);
 
 		/* Set cursor location based on the reported location from the message */
@@ -779,8 +777,6 @@ ProcessEventQueue(LPVOID p)
 
 		if (child_in != INVALID_HANDLE_VALUE && child_in != NULL &&
 		    child_out != INVALID_HANDLE_VALUE && child_out != NULL) {
-			DWORD dwInputMode;
-			DWORD dwOutputMode;
 
 			ZeroMemory(&consoleInfo, sizeof(consoleInfo));
 			consoleInfo.cbSize = sizeof(consoleInfo);
@@ -908,8 +904,6 @@ ConsoleEventProc(HWINEVENTHOOK hWinEventHook,
 DWORD 
 ProcessMessages(void* p)
 {
-	BOOL ret;
-	DWORD dwMode;
 	DWORD dwStatus;
 	SECURITY_ATTRIBUTES sa;
 	MSG msg;
@@ -966,8 +960,6 @@ start_with_pty(wchar_t *command)
 	wchar_t cmd[MAX_CMD_LEN];
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret;
-	DWORD dwThreadId;
-	DWORD dwMode;
 	DWORD dwStatus;
 	HANDLE hEventHook = NULL;
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
@@ -1226,6 +1218,102 @@ cleanup:
 	return child_exit_code;
 }
 
+#include <Shlobj.h>
+#include <Sddl.h>
+
+static void* xmalloc(size_t size) {
+	void* ptr;
+	if ((ptr = malloc(size)) == NULL) {
+		printf("out of memory");
+		exit(EXIT_FAILURE);
+	}
+	return ptr;
+}
+
+#define SET_USER_ENV(folder_id, evn_variable) do  {                \
+       if (SHGetKnownFolderPath(&folder_id,0,NULL,&path) == S_OK)              \
+        {                                                                       \
+                SetEnvironmentVariableW(evn_variable, path);                    \
+                CoTaskMemFree(path);                                            \
+       }                                                                        \
+} while (0)
+
+/* set user environment variables from user profile */
+static void setup_session_user_vars()	
+{
+	/* retrieve and set env variables. */
+	HKEY reg_key = 0;
+	wchar_t *path;
+	wchar_t name[256];
+	wchar_t *data = NULL, *data_expanded = NULL, *path_value = NULL, *to_apply;
+	DWORD type, name_chars = 256, data_chars = 0, data_expanded_chars = 0, required, i = 0;
+	LONG ret;
+
+	SET_USER_ENV(FOLDERID_LocalAppData, L"LOCALAPPDATA");
+	SET_USER_ENV(FOLDERID_Profile, L"USERPROFILE");
+	SET_USER_ENV(FOLDERID_RoamingAppData, L"APPDATA");
+
+	ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_QUERY_VALUE, &reg_key);
+	if (ret != ERROR_SUCCESS)
+		//error("Error retrieving user environment variables. RegOpenKeyExW returned %d", ret);
+		return;		
+	else while (1) {
+		to_apply = NULL;
+		required = data_chars * 2;
+		name_chars = 256;
+		ret = RegEnumValueW(reg_key, i++, name, &name_chars, 0, &type, (LPBYTE)data, &required);
+		if (ret == ERROR_NO_MORE_ITEMS)
+			break;
+		else if (ret == ERROR_MORE_DATA || required > data_chars * 2) {
+			if (data != NULL)
+				free(data);
+			data = xmalloc(required);
+			data_chars = required / 2;
+			i--;
+			continue;
+		}
+		else if (ret != ERROR_SUCCESS) 
+			break;
+
+		if (type == REG_SZ)
+			to_apply = data;
+		else if (type == REG_EXPAND_SZ) {
+			required = ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
+			if (required > data_expanded_chars) {
+				if (data_expanded)
+					free(data_expanded);
+				data_expanded = xmalloc(required * 2);
+				data_expanded_chars = required;
+				ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
+			}
+			to_apply = data_expanded;
+		}
+
+		if (wcsicmp(name, L"PATH") == 0) {
+			if ((required = GetEnvironmentVariableW(L"PATH", NULL, 0)) != 0) {
+				/* "required" includes null term */
+				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
+				GetEnvironmentVariableW(L"PATH", path_value, required);
+				path_value[required - 1] = L';';
+				memcpy(path_value + required, to_apply, (wcslen(to_apply) + 1) * 2);
+				to_apply = path_value;
+			}
+
+		}
+		if (to_apply)
+			SetEnvironmentVariableW(name, to_apply);
+	}
+	if (reg_key)
+		RegCloseKey(reg_key);
+	if (data)
+		free(data);
+	if (data_expanded)
+		free(data_expanded);
+	if (path_value)
+		free(path_value);
+	RevertToSelf();
+}
+
 int b64_pton(char const *src, u_char *target, size_t targsize);
 
 int 
@@ -1253,6 +1341,8 @@ wmain(int ac, wchar_t **av)
 		printf("ssh-shellhost received unexpected input arguments");
 		return -1;
 	}
+
+	setup_session_user_vars();
 
 	/* decode cmd_b64*/
 	if (cmd_b64) {
