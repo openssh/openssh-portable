@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.275 2017/04/30 23:18:22 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.276 2017/05/20 02:35:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -438,8 +438,8 @@ add_identity_file(Options *options, const char *dir, const char *filename,
 
 	if (dir == NULL) /* no dir, filename is absolute */
 		path = xstrdup(filename);
-	else
-		(void)xasprintf(&path, "%.100s%.100s", dir, filename);
+	else if (xasprintf(&path, "%s%s", dir, filename) >= PATH_MAX)
+		fatal("Identity file path %s too long", path);
 
 	/* Avoid registering duplicates */
 	for (i = 0; i < options->num_identity_files; i++) {
