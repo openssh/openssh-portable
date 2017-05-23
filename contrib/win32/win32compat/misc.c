@@ -284,6 +284,8 @@ w32_fopen_utf8(const char *path, const char *mode)
 */
 char*
  w32_fgets(char *str, int n, FILE *stream) {
+	if (!str || !n || !stream) return NULL;
+
 	HANDLE h = (HANDLE)_get_osfhandle(_fileno(stream));
 	wchar_t* str_w = NULL;
 	char *ret = NULL, *str_tmp = NULL, *cp = NULL;
@@ -773,6 +775,8 @@ w32_chdir(const char *dirname_utf8)
 char *
 w32_getcwd(char *buffer, int maxlen)
 {
+	if(!buffer) return NULL;
+
 	wchar_t wdirname[PATH_MAX];
 	char* putf8 = NULL;
 
@@ -852,6 +856,8 @@ convertToForwardslash(char *str)
 char *
 realpath(const char *path, char resolved[PATH_MAX])
 {
+	if (!path || !resolved) return NULL;
+
 	char tempPath[PATH_MAX];
 
 	if ((path[0] == '/') && path[1] && (path[2] == ':'))
@@ -877,6 +883,8 @@ realpath(const char *path, char resolved[PATH_MAX])
 char*
 sanitized_path(const char *path)
 {
+	if(!path) return NULL;
+
 	static char newPath[PATH_MAX] = { '\0', };
 
 	if (path[0] == '/' && path[1]) {
@@ -968,8 +976,8 @@ statvfs(const char *path, struct statvfs *buf)
 	DWORD totalClusters;
 
 	wchar_t* path_utf16 = utf8_to_utf16(sanitized_path(path));
-	if (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
-	    &freeClusters, &totalClusters) == TRUE) {
+	if (path_utf16 && (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
+	    &freeClusters, &totalClusters) == TRUE)) {
 		debug5("path              : [%s]", path);
 		debug5("sectorsPerCluster : [%lu]", sectorsPerCluster);
 		debug5("bytesPerSector    : [%lu]", bytesPerSector);

@@ -88,6 +88,8 @@ opendir(const char *name)
 int 
 closedir(DIR *dirp)
 {
+	if(!dirp) return -1;
+
 	if (dirp && (dirp->hFile)) {
 		_findclose(dirp->hFile);
 		dirp->hFile = 0;
@@ -104,6 +106,8 @@ closedir(DIR *dirp)
 struct dirent *
 readdir(void *avp)
 {
+	if(!avp) return NULL;
+
 	static struct dirent pdirentry;
 	struct _wfinddata_t c_file;
 	DIR *dirp = (DIR *)avp;

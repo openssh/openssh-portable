@@ -20,7 +20,7 @@ int w32_fcntl(int fd, int cmd, ... /* arg */);
 int w32_open(const char *pathname, int flags, ...);
 
 void* w32_fd_to_handle(int fd);
-int w32_allocate_fd_for_handle(void* h, int is_sock);
+int w32_allocate_fd_for_handle(HANDLE, BOOL);
 
 #define O_RDONLY     _O_RDONLY
 #define O_WRONLY     _O_WRONLY
