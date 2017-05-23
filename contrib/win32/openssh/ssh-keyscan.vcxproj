@@ -20,11 +20,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F58FF6BA-098B-4DB9-9609-A030DFB4D03F}</ProjectGuid>
+    <ProjectGuid>{7D0A75FC-F366-4B60-B72F-B37C3EA07CCA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>keygen</RootNamespace>
+    <RootNamespace>sshkeyscan</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>sshd</ProjectName>
+    <ProjectName>ssh-keyscan</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -84,24 +84,23 @@
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(OpenSSH-Bin-Path)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
     <IncludePath>$(OpenSSH-Src-Path)contrib\win32\win32compat\inc;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32_ZLIB_NO;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(OpenSSL-Win32-Debug-Path)include;$(OpenSSH-Src-Path)includes;$(OpenSSH-Src-Path);$(OpenSSH-Src-Path)contrib\win32\win32compat;$(OpenSSH-Src-Path)libkrb;$(OpenSSH-Src-Path)libkrb\libKrb5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -112,7 +111,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Netapi32.lib;posix_compat.lib;bcrypt.lib;Userenv.lib;Ws2_32.lib;Secur32.lib;Shlwapi.lib;openbsd_compat.lib;libssh.lib;libeay32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(OpenSSL-Win32-Debug-Path)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -121,11 +119,10 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32_ZLIB_NO;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(OpenSSL-x64-Debug-Path)include;$(OpenSSH-Src-Path)includes;$(OpenSSH-Src-Path);$(OpenSSH-Src-Path)contrib\win32\win32compat;$(OpenSSH-Src-Path)libkrb;$(OpenSSH-Src-Path)libkrb\libKrb5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -136,7 +133,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Netapi32.lib;posix_compat.lib;bcrypt.lib;Userenv.lib;Ws2_32.lib;Secur32.lib;Shlwapi.lib;openbsd_compat.lib;libssh.lib;libeay32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(OpenSSL-x64-Debug-Path)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -146,12 +142,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level1</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32_ZLIB_NO;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x600;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(OpenSSL-Win32-Release-Path)include;$(OpenSSH-Src-Path)includes;$(OpenSSH-Src-Path);$(OpenSSH-Src-Path)contrib\win32\win32compat;$(OpenSSH-Src-Path)libkrb;$(OpenSSH-Src-Path)libkrb\libKrb5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -163,7 +158,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>Netapi32.lib;posix_compat.lib;bcrypt.lib;Userenv.lib;Ws2_32.lib;Secur32.lib;Shlwapi.lib;openbsd_compat.lib;libssh.lib;libeay32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(OpenSSL-Win32-Release-Path)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
@@ -174,12 +168,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level1</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_WIN32_WINNT=0x600;WIN32_ZLIB_NO;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x600;_LIB;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(OpenSSL-x64-Release-Path)include;$(OpenSSH-Src-Path)includes;$(OpenSSH-Src-Path);$(OpenSSH-Src-Path)contrib\win32\win32compat;$(OpenSSH-Src-Path)libkrb;$(OpenSSH-Src-Path)libkrb\libKrb5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -192,7 +185,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>Netapi32.lib;posix_compat.lib;bcrypt.lib;Userenv.lib;Ws2_32.lib;Secur32.lib;Shlwapi.lib;openbsd_compat.lib;libssh.lib;libeay32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(OpenSSL-x64-Release-Path)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
@@ -201,51 +193,8 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(OpenSSH-Src-Path)audit-bsm.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)audit-linux.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)audit.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-bsdauth.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-krb5.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-options.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-pam.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-passwd.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-rhosts.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-shadow.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-sia.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth-skey.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-chall.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-gss.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-hostbased.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-kbdint.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-none.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-passwd.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2-pubkey.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)auth2.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)groupaccess.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)gss-serv-krb5.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)gss-serv.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)loginrec.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)md5crypt.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)monitor.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)monitor_wrap.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)platform.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-capsicum.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-darwin.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-null.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-rlimit.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-seccomp-filter.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sandbox-systrace.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)servconf.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)serverloop.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)session.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sftp-common.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sshd.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)sshlogin.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_sshpty.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_sshd.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)ssh-keyscan.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_common.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

@@ -60,9 +60,8 @@ enum w32_io_type {
 enum w32_io_sock_state {
 	SOCK_INITIALIZED = 0,
 	SOCK_LISTENING = 1,	/*listen called on socket*/
-	SOCK_ACCEPTED = 2,	/*socket returned from accept()*/
-	SOCK_CONNECTING = 3,	/*connect called on socket, connect is in progress*/
-	SOCK_CONNECTED = 4	/*connect completed on socket*/
+	SOCK_CONNECTING = 2,	/*connect called on socket, connect is in progress*/
+	SOCK_READY = 3		/*recv and send can be done*/
 };
 
 /*

@@ -284,6 +284,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)digest-openssl.c">
       <ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)crypto-wrap.h" />
