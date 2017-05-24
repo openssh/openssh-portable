@@ -295,3 +295,5 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/
 contrib/win32/win32compat/inc/crtheaders.h
+
+contrib/win32/openssh/LibreSSLSDK/
