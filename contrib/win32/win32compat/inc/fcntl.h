@@ -16,8 +16,8 @@
 int w32_fcntl(int fd, int cmd, ... /* arg */);
 #define fcntl(a,b,...)		w32_fcntl((a), (b),  __VA_ARGS__)
 
-#define open w32_open
-int w32_open(const char *pathname, int flags, ...);
+#define open(a,b,...) w32_open((a), (b),  __VA_ARGS__)
+int w32_open(const char *pathname, int flags, ... /* arg */);
 
 void* w32_fd_to_handle(int fd);
 int w32_allocate_fd_for_handle(HANDLE, BOOL);

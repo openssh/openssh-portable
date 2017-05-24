@@ -1710,9 +1710,9 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	if (flags & SSHCONF_CHECKPERM) {		
 #if WINDOWS
 		/*
-		file permissions are designed differently on windows
-		implementation on windows to make sure the config file is owned by the user and
-		nobody else except Administrators group and  current user of calling process, and SYSTEM account has the write permission
+		file permissions are designed differently on windows.
+		implementation on windows to make sure the config file is owned by a user, administrators group, or LOCALSYSTEM account
+		and nobody else except Administrators group, LOCALSYSTEM, and file owner account has the write permission
 		*/
 		if (check_secure_file_permission(filename, pw) != 0)
 			fatal("Bad owner or permissions on %s", filename);

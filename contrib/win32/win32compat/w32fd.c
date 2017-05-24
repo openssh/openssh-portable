@@ -387,16 +387,24 @@ w32_pipe(int *pfds)
 }
 
 int
-w32_open(const char *pathname, int flags, ...)
+w32_open(const char *pathname, int flags, ... /* arg */)
 {
 	int min_index = fd_table_get_min_index();
 	struct w32_io* pio;
+	va_list valist;
+	u_short mode = 0;
 
 	errno = 0;
 	if (min_index == -1)
 		return -1;
+	if (flags & O_CREAT) {
+		va_start(valist, flags);
+		mode = va_arg(valist, u_short);
+		va_end(valist);
+	}
 
-	pio = fileio_open(sanitized_path(pathname), flags, 0);
+	pio = fileio_open(sanitized_path(pathname), flags, mode);
+	
 	if (pio == NULL)
 		return -1;
 

@@ -122,7 +122,7 @@ dir_tests_1()
 	retValue = chdir(tes_dirname_2);
 	ASSERT_INT_EQ(retValue, 0);
 
-	f = open(tmpfile, O_RDWR | O_CREAT | O_TRUNC);
+	f = open(tmpfile, O_RDWR | O_CREAT | O_TRUNC, 0600);
 	ASSERT_INT_NE(f, -1);
 	close(f);
 

@@ -300,7 +300,7 @@ function Package-OpenSSH
     }
     $buildDir = Join-Path $repositoryRoot ("bin\" + $folderName + "\" + $Configuration)
     $payload = "sshd.exe", "ssh.exe", "ssh-agent.exe", "ssh-add.exe", "sftp.exe"
-    $payload += "sftp-server.exe", "scp.exe", "ssh-shellhost.exe", "ssh-keygen.exe" 
+    $payload += "sftp-server.exe", "scp.exe", "ssh-shellhost.exe", "ssh-keygen.exe", "ssh-keyscan.exe" 
     $payload += "sshd_config", "install-sshd.ps1", "uninstall-sshd.ps1"
 
     $packageName = "OpenSSH-Win64"
@@ -503,7 +503,7 @@ function Install-OpenSSH
     & "$OpenSSHDir\ssh-keygen.exe" -A
 
     $keyFiles = Get-ChildItem "$OpenSSHDir\ssh_host_*_key*" | % {        
-        Add-PermissionToFileACL -FilePath $_.FullName -User "NT Service\sshd" -Perm "Read"
+        Adjust-HostKeyFileACL -FilePath $_.FullName
     }
 
 

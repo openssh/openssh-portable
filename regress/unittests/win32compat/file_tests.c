@@ -81,15 +81,18 @@ file_blocking_io_tests()
 
 void file_simple_fileio()
 {
-	TEST_START("file io");
+	TEST_START("file io and fstat");
 
 	char* small_write_buf = "sample payload";
 	char small_read_buf[SMALL_RECV_BUF_SIZE];
 	int f;
 	struct stat st;
-
 	{
 		f = open(tmp_filename, O_WRONLY | O_CREAT | O_TRUNC);
+		ASSERT_INT_EQ(f, -1);
+	}
+	{
+		f = open(tmp_filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 		ASSERT_INT_NE(f, -1);
 		close(f);
 	}
@@ -100,13 +103,14 @@ void file_simple_fileio()
 		retValue = fstat(f, &st);
 		ASSERT_INT_EQ(retValue, 0);
 		ASSERT_INT_EQ(st.st_size, 0);
+		ASSERT_INT_EQ(st.st_mode & 0777, 0666);
 		retValue = read(f, small_read_buf, SMALL_RECV_BUF_SIZE);
 		ASSERT_INT_EQ(retValue, 0);		
 		close(f);
 	}
 	
 	{
-		f = open(tmp_filename, O_WRONLY | O_CREAT | O_TRUNC);
+		f = open(tmp_filename, O_WRONLY | O_TRUNC);
 		ASSERT_INT_NE(f, -1);
 		retValue = write(f, small_write_buf, strlen(small_write_buf));
 		ASSERT_INT_EQ(retValue, strlen(small_write_buf));		
@@ -119,7 +123,7 @@ void file_simple_fileio()
 		retValue = stat(tmp_filename, &st);
 		ASSERT_INT_EQ(retValue, 0);
 		ASSERT_INT_EQ(st.st_size, strlen(small_write_buf));
-
+		ASSERT_INT_EQ(st.st_mode & 0777, 0666);
 		char mode[12];
 		strmode(st.st_mode, mode);
 		ASSERT_CHAR_EQ(mode[0], '-');
@@ -162,7 +166,7 @@ void file_simple_fileio()
 
 	{
 		/* test writev, ftruncate, isatty, lseek, fdopen */
-		f = open(tmp_filename, O_RDWR | O_CREAT | O_TRUNC);
+		f = open(tmp_filename, O_RDWR | O_TRUNC);
 		ASSERT_INT_NE(f, -1);
 		struct iovec iov;
 		iov.iov_base = small_write_buf;
@@ -205,7 +209,7 @@ void file_simple_fileio()
 
 void file_simple_fileio_mode()
 {
-	TEST_START("file mode");
+	TEST_START("file io and mode");
 
 	char * small_write_buf = "sample payload", *c, small_read_buf[SMALL_RECV_BUF_SIZE];
 	int ret;
@@ -420,7 +424,7 @@ file_miscellaneous_tests()
 	ASSERT_INT_NE(f, -1);
 	close(f);
 
-	f = open(tmp_filename, O_RDWR | O_CREAT | O_TRUNC);
+	f = open(tmp_filename, O_RDWR | O_CREAT | O_TRUNC, 0600);
 	ASSERT_INT_NE(f, -1);
 	int f1 = dup(f);
 	ASSERT_INT_EQ(f1, -1);
