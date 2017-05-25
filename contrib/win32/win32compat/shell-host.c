@@ -1032,18 +1032,18 @@ start_with_pty(wchar_t *command)
 	/* monitor child exist */
 	child = pi.hProcess;
 	monitor_thread = CreateThread(NULL, 0, MonitorChild, NULL, 0, NULL);
-	if (monitor_thread == INVALID_HANDLE_VALUE)
+	if (IS_INVALID_HANDLE(monitor_thread))
 		goto cleanup;
 
 	/* disable Ctrl+C hander in this process*/
 	SetConsoleCtrlHandler(NULL, TRUE);
 
 	io_thread = CreateThread(NULL, 0, ProcessPipes, NULL, 0, NULL);
-	if (io_thread == INVALID_HANDLE_VALUE)
+	if (IS_INVALID_HANDLE(io_thread))
 		goto cleanup;
 
 	ux_thread = CreateThread(NULL, 0, ProcessEventQueue, NULL, 0, NULL);
-	if (ux_thread == INVALID_HANDLE_VALUE)
+	if (IS_INVALID_HANDLE(ux_thread))
 		goto cleanup;
 
 	ProcessMessages(NULL);
@@ -1051,15 +1051,15 @@ cleanup:
 	dwStatus = GetLastError();
 	if (child != INVALID_HANDLE_VALUE)
 		TerminateProcess(child, 0);
-	if (monitor_thread != INVALID_HANDLE_VALUE) {
+	if (!IS_INVALID_HANDLE(monitor_thread)) {
 		WaitForSingleObject(monitor_thread, INFINITE);
 		CloseHandle(monitor_thread);
 	}
-	if (ux_thread != INVALID_HANDLE_VALUE) {
+	if (!IS_INVALID_HANDLE(ux_thread)) {
 		TerminateThread(ux_thread, S_OK);
 		CloseHandle(ux_thread);
 	}
-	if (io_thread != INVALID_HANDLE_VALUE) {
+	if (!IS_INVALID_HANDLE(io_thread)) {
 		TerminateThread(io_thread, 0);
 		CloseHandle(io_thread);
 	}
@@ -1096,6 +1096,8 @@ start_withno_pty(wchar_t *command)
 	wchar_t cmd[MAX_CMD_LEN];
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret;
+	char buf[128];
+	DWORD rd = 0, wr = 0, i = 0;
 
 	pipe_in = GetStdHandle(STD_INPUT_HANDLE);
 	pipe_out = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -1130,16 +1132,16 @@ start_withno_pty(wchar_t *command)
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 	}
-
+	
 	GOTO_CLEANUP_ON_FALSE(CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi));
-
+	
 	/* close unwanted handles*/
 	CloseHandle(child_pipe_read);
 	child_pipe_read = INVALID_HANDLE_VALUE;
 	child = pi.hProcess;
 	/* monitor child exist */
 	monitor_thread = CreateThread(NULL, 0, MonitorChild_nopty, NULL, 0, NULL);
-	if (monitor_thread == INVALID_HANDLE_VALUE)
+	if (IS_INVALID_HANDLE(monitor_thread))
 		goto cleanup;
 
 	/* disable Ctrl+C hander in this process*/
@@ -1147,9 +1149,8 @@ start_withno_pty(wchar_t *command)
 
 	/* process data from pipe_in and route appropriately */
 	while (1) {
-		char buf[128];
-		DWORD rd = 0, wr = 0, i = 0;
-		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, 128, &rd, NULL));
+		rd = wr = i = 0;
+		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf)-1, &rd, NULL));
 
 		while (i < rd) {
 			/* skip arrow keys */
@@ -1210,10 +1211,16 @@ start_withno_pty(wchar_t *command)
 		}
 	}
 cleanup:
-	if (child != INVALID_HANDLE_VALUE)
-		TerminateProcess(child, 0);
-	if (monitor_thread != INVALID_HANDLE_VALUE)
+	/* close child's stdin first */
+	if(!IS_INVALID_HANDLE(child_pipe_write))
+		CloseHandle(child_pipe_write);
+	
+	if (!IS_INVALID_HANDLE(monitor_thread)) {
 		WaitForSingleObject(monitor_thread, INFINITE);
+		CloseHandle(monitor_thread);
+	}		
+	if (!IS_INVALID_HANDLE(child))
+		TerminateProcess(child, 0);
 	
 	return child_exit_code;
 }
