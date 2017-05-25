@@ -1677,7 +1677,8 @@ main(int ac, char **av)
 	 * For windows, enable logging right away to capture failures while loading private host keys.
 	 * On Unix, logging at configured level is not done until private host keys are loaded. Why??
 	 */
-	log_init(__progname, options.log_level, options.log_facility, log_stderr);
+	if (!debug_flag)
+		log_init(__progname, options.log_level, options.log_facility, log_stderr);
 #endif // WINDOWS
 
 	/* challenge-response is implemented via keyboard interactive */

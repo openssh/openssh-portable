@@ -82,13 +82,7 @@ function Adjust-HostKeyFileACL
         ("Everyone", "Read", "None", "None", "Allow")
         $myACL.AddAccessRule($everyoneAce)
     }
-    else
-    {
-        #this only is needed when the private host keys are not registered with agent
-        $sshdAce = New-Object System.Security.AccessControl.FileSystemAccessRule `
-        ("NT service\sshd", "Read", "None", "None", "Allow")
-        $myACL.AddAccessRule($sshdAce)
-    }
+
     Set-Acl -Path $FilePath -AclObject $myACL
 }
 
