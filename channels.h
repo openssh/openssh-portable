@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.124 2017/05/26 19:34:12 markus Exp $ */
+/* $OpenBSD: channels.h,v 1.125 2017/05/26 19:35:50 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -46,8 +46,6 @@
 #define SSH_CHANNEL_CLOSED		5	/* waiting for close confirmation */
 #define SSH_CHANNEL_AUTH_SOCKET		6	/* authentication socket */
 #define SSH_CHANNEL_X11_OPEN		7	/* reading first X11 packet */
-#define SSH_CHANNEL_INPUT_DRAINING	8	/* sending remaining data to conn */
-#define SSH_CHANNEL_OUTPUT_DRAINING	9	/* sending remaining data to app */
 #define SSH_CHANNEL_LARVAL		10	/* larval session */
 #define SSH_CHANNEL_RPORT_LISTENER	11	/* Listening to a R-style port  */
 #define SSH_CHANNEL_CONNECTING		12
