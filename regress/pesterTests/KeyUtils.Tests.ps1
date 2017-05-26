@@ -234,9 +234,25 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
             cmd /c "ssh-add -d $keyFilePath 2> nul "
         }
 
-        It "$tC.$tI - ssh-add - positive (Secured private key owned by Administrators group)" {
+        It "$tC.$tI - ssh-add - positive (Secured private key owned by Administrators group and the current user has no explicit ACE)" {
             #setup to have local admin group as owner and grant it full control
             Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $adminsAccount -OwnerPerms "FullControl"
+
+            # for ssh-add to consume SSh_ASKPASS, stdin should not be TTY
+            cmd /c "ssh-add $keyFilePath < $nullFile 2> nul "
+            $LASTEXITCODE | Should Be 0
+            $allkeys = ssh-add -L
+            $pubkeyraw = ((Get-Content "$keyFilePath.pub").Split(' '))[1]
+            ($allkeys | where { $_.contains($pubkeyraw) }).count | Should Be 1
+            
+            #clean up
+            cmd /c "ssh-add -d $keyFilePath 2> nul "
+        }
+
+        It "$tC.$tI - ssh-add - positive (Secured private key owned by Administrators group and the current user has explicit ACE)" {
+            #setup to have local admin group as owner and grant it full control
+            Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $adminsAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath $keyFilePath -User $currentUser -Perm "Read, Write"
 
             # for ssh-add to consume SSh_ASKPASS, stdin should not be TTY
             cmd /c "ssh-add $keyFilePath < $nullFile 2> nul "
@@ -284,21 +300,6 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
             #setup to have ssouser as owner and grant it full control
             Set-FileOwnerAndACL -FilePath $keyFilePath -owner $objUser -OwnerPerms "Read, Write"
             Add-PermissionToFileACL -FilePath $keyFilePath -User $adminsAccount -Perm "FullControl"
-
-            cmd /c "ssh-add $keyFilePath < $nullFile 2> nul "
-            $LASTEXITCODE | Should Not Be 0
-
-            $allkeys = ssh-add -L
-            $pubkeyraw = ((Get-Content "$keyFilePath.pub").Split(' '))[1]            
-            ($allkeys | where { $_.contains($pubkeyraw) }).count | Should Be 0
-        }
-
-        It "$tC.$tI - ssh-add- negative (the owner is denied Read perm on private key)" {
-            #setup to have local ssytem account as owner and grant it full control
-            Set-FileOwnerAndACL -FilePath $keyFilePath -owner $systemAccount -OwnerPerms "FullControl"
-            Add-PermissionToFileACL -FilePath $keyFilePath -User $adminsAccount -Perm "FullControl"
-            #deny owner 
-            Add-PermissionToFileACL -FilePath $keyFilePath -User $systemAccount -Perm "Read, Write" -AccessType Deny
 
             cmd /c "ssh-add $keyFilePath < $nullFile 2> nul "
             $LASTEXITCODE | Should Not Be 0

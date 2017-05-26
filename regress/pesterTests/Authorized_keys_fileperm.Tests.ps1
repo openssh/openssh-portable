@@ -68,7 +68,7 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             $logPath = Join-Path $testDir "$tC.$tI.$logName"
         }       
 
-        It "$tC.$tI-authorized_keys-positive(Secured file and running process can access to the file)" {
+        It "$tC.$tI-authorized_keys-positive(pwd user is the owner and running process can access to the file)" {
             #setup to have ssouser as owner and grant ssouser read and write, admins group, and local system full control            
             Adjust-UserKeyFileACL -Filepath $authorizedkeyPath -Owner $objUser -OwnerPerms "Read, Write"
 
@@ -81,10 +81,11 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }            
         }
 
-        It "$tC.$tI-authorized_keys-positive(authorized_keys is owned by local system  and running process can access to the file)" {
+        It "$tC.$tI-authorized_keys-positive(authorized_keys is owned by local system)" {
             #setup to have system as owner and grant it full control            
             Set-FileOwnerAndACL -Filepath $authorizedkeyPath -Owner $systemAccount -OwnerPerms "FullControl"
             Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $adminAccount -Perms "FullControl"
+            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $objUser -Perms "Read, Write"
 
             #Run
             Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-o `"AuthorizedKeysFile .testssh/authorized_keys`"", "-E $logPath") -NoNewWindow
@@ -95,11 +96,27 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }            
         }
 
-        It "$tC.$tI-authorized_keys-positive(authorized_keys is owned by admins group and running process can access to the file)" {
+        It "$tC.$tI-authorized_keys-positive(authorized_keys is owned by admins group and pwd does not have explict ACE)" {
+            #setup to have admin group as owner and grant it full control
+            
+            Set-FileOwnerAndACL -Filepath $authorizedkeyPath -Owner $adminAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $systemAccount -Perms "FullControl"            
+
+            #Run
+            Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-o `"AuthorizedKeysFile .testssh/authorized_keys`"", "-E $logPath") -NoNewWindow
+            $o = ssh -p $port $ssouser@$server -o "UserKnownHostsFile $testknownhosts"  echo 1234
+            $o | Should Be "1234"
+            
+            #Cleanup
+            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }            
+        }
+
+        It "$tC.$tI-authorized_keys-positive(authorized_keys is owned by admins group and pwd have explict ACE)" {
             #setup to have admin group as owner and grant it full control
             
             Set-FileOwnerAndACL -Filepath $authorizedkeyPath -Owner $adminAccount -OwnerPerms "FullControl"
             Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $systemAccount -Perms "FullControl"
+            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $objUser -Perms "Read, Write"
 
             #Run
             Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-o `"AuthorizedKeysFile .testssh/authorized_keys`"", "-E $logPath") -NoNewWindow
@@ -175,24 +192,6 @@ Describe "Tests for authorized_keys file permission" -Tags "CI" {
             ssh -p $port -E $filePath -o "UserKnownHostsFile $testknownhosts" $ssouser@$server echo 1234
             $LASTEXITCODE | Should Not Be 0
 
-            $matches = Get-Content $filePath | Select-String -pattern "^Permission denied"
-            $matches.Count | Should BeGreaterThan 2
-            
-            #Cleanup
-            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } } 
-        }       
-
-        It "$tC.$tI-authorized_keys-negative(the owner of authorized_keys file is denied to access to it)" {
-            Set-FileOwnerAndACL -Filepath $authorizedkeyPath -Owner $objUser -OwnerPerms "Read","Write"
-            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $systemAccount -Perms "FullControl"
-            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $adminAccount -Perms "FullControl"
-            #add rule to denied the owner
-            Add-PermissionToFileACL -FilePath $authorizedkeyPath -User $objUser -Perm "Read" -AccessType Deny
-
-            #Run
-            Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-o `"AuthorizedKeysFile .testssh/authorized_keys`"", "-E $logPath") -NoNewWindow
-            ssh -p $port -E $filePath -o "UserKnownHostsFile $testknownhosts" $ssouser@$server echo 1234
-            $LASTEXITCODE | Should Not Be 0
             $matches = Get-Content $filePath | Select-String -pattern "^Permission denied"
             $matches.Count | Should BeGreaterThan 2
             

@@ -69,8 +69,24 @@ Describe "Tests for host keys file permission" -Tags "CI" {
 
             #Run
             Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-h $hostKeyFilePath", "-E $logPath") -NoNewWindow
-            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }
+            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }            
+
+            #validate file content does not contain unprotected info.
+            $logPath | Should Not Contain "UNPROTECTED PRIVATE KEY FILE!"
+        }
+
+        It "$tC.$tI-Host keys-positive (both public and private keys are owned by admin groups and pwd user has explicit ACE)" {
+            Set-FileOwnerAndACL -Filepath $hostKeyFilePath -Owner $adminAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath $hostKeyFilePath -User $systemAccount -Perms "FullControl"
+            Add-PermissionToFileACL -FilePath "$hostKeyFilePath.pub" -User $currentUser -Perms "Read"
             
+            Set-FileOwnerAndACL -Filepath "$hostKeyFilePath.pub" -Owner $adminAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath "$hostKeyFilePath.pub" -User $systemAccount -Perms "FullControl"
+            Add-PermissionToFileACL -FilePath "$hostKeyFilePath.pub" -User $everyOne -Perms "Read"
+
+            #Run
+            Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-h $hostKeyFilePath", "-E $logPath") -NoNewWindow
+            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 2 } }            
 
             #validate file content does not contain unprotected info.
             $logPath | Should Not Contain "UNPROTECTED PRIVATE KEY FILE!"
@@ -126,6 +142,7 @@ Describe "Tests for host keys file permission" -Tags "CI" {
             #validate file content contains unprotected info.
             $logPath | Should Contain "key_load_private: bad permissions"
         }
+
         It "$tC.$tI-Host keys-negative (the running process does not have read access to public key)" {
             #setup to have ssouser as owner and grant it full control
             Set-FileOwnerAndACL -FilePath $hostKeyFilePath -Owner $systemAccount -OwnerPerms "FullControl"            
@@ -139,26 +156,6 @@ Describe "Tests for host keys file permission" -Tags "CI" {
 
             #validate file content contains unprotected info.
             $logPath | Should Contain "key_load_public: Permission denied"
-        }
-
-        It "$tC.$tI-Host keys-negative (the owner of private host key is denied Read access to private key)" {
-            #setup to have ssouser as owner and grant it full control
-            Set-FileOwnerAndACL -FilePath $hostKeyFilePath -Owner $systemAccount -OwnerPerms "FullControl"
-            Add-PermissionToFileACL -FilePath $hostKeyFilePath -User $adminAccount -Perms "FullControl"
-            
-            Set-FileOwnerAndACL -Filepath "$hostKeyFilePath.pub" -Owner $systemAccount -OwnerPerms "FullControl"            
-            Add-PermissionToFileACL -FilePath "$hostKeyFilePath.pub" -User $adminAccount -Perms "FullControl"
-            Add-PermissionToFileACL -FilePath "$hostKeyFilePath.pub" -User $everyOne -Perms "Read"
-
-            #add rule to denied the owner
-            Add-PermissionToFileACL -FilePath $hostKeyFilePath -User $systemAccount -Perms "Read" -AccessType Deny
-
-            #Run
-            Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-h $hostKeyFilePath", "-E $logPath") -NoNewWindow
-            Get-Process -Name sshd | % { if($_.SI -ne 0) { Start-sleep 1; Stop-Process $_; Start-sleep 1 } }
-
-            #validate file content does not contain unprotected.
-            $logPath | Should Contain "key_load_private: bad permissions"            
         }
     }
 }

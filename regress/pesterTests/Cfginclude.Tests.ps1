@@ -96,10 +96,21 @@ Describe "Tests for ssh config" -Tags "CI" {
             $o | Should Be "1234"
         }
 
-        It "$tC.$tI-User SSHConfig-ReadConfig positive (admin is the owner)" {
+        It "$tC.$tI-User SSHConfig-ReadConfig positive (admin is the owner and current user has no explict ACE)" {
             #setup
             Set-FileOwnerAndACL -Filepath $userConfigFile -Owner $adminAccount -OwnerPerms "FullControl"
             Add-PermissionToFileACL -FilePath $userConfigFile -User $systemAccount -Perms "FullControl"
+
+            #Run
+            $o = ssh test_target echo 1234
+            $o | Should Be "1234"
+        }
+
+        It "$tC.$tI-User SSHConfig-ReadConfig positive (admin is the owner and current user has explict ACE)" {
+            #setup
+            Set-FileOwnerAndACL -Filepath $userConfigFile -Owner $adminAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath $userConfigFile -User $systemAccount -Perms "FullControl"
+            Add-PermissionToFileACL -FilePath $userConfigFile -User $currentUser -Perms "Read, Write"
 
             #Run
             $o = ssh test_target echo 1234
@@ -124,17 +135,6 @@ Describe "Tests for ssh config" -Tags "CI" {
             Add-PermissionToFileACL -FilePath $userConfigFile -User $systemAccount -Perms "FullControl"
             Add-PermissionToFileACL -FilePath $userConfigFile -User $adminAccount -Perms "FullControl"
             Add-PermissionToFileACL -FilePath $userConfigFile -User $objUser -Perms "Read"
-
-            #Run
-            cmd /c "ssh test_target echo 1234 2> $logPath"
-            $LASTEXITCODE | Should Not Be 0
-            Get-Content $logPath | Should Match "^Bad owner or permissions on [a-fA-F]:[/\\]{1,}Users[/\\]{1,}\w+[/\\]{1,}.ssh[/\\]{1,}config$"
-        }
-        It "$tC.$tI-User SSHConfig-ReadConfig negative (owner is denied Read permission)" {
-            #setup
-            Set-FileOwnerAndACL -Filepath $userConfigFile -Owner $systemAccount -OwnerPerms "FullControl"
-            Add-PermissionToFileACL -FilePath $userConfigFile -User $adminAccount -Perms "FullControl"
-            Add-PermissionToFileACL -FilePath $userConfigFile -User $systemAccount -Perms "Read" -AccessType Deny
 
             #Run
             cmd /c "ssh test_target echo 1234 2> $logPath"

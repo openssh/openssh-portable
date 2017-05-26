@@ -79,9 +79,19 @@ Describe "Tests for user Key file permission" -Tags "CI" {
             $o | Should Be "1234"
         }
 
-        It "$tC.$tI-ssh with private key file -- positive(Secured private key owned by Administrators group)" {
+        It "$tC.$tI-ssh with private key file -- positive(Secured private key owned by Administrators group and current user has no explicit ACE)" {
             #setup to have local admin group as owner and grant it full control
             Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $adminsAccount -OwnerPerms "FullControl"
+
+            #Run
+            $o = ssh -p $port -i $keyFilePath $pubKeyUser@$server echo 1234
+            $o | Should Be "1234"
+        }
+
+        It "$tC.$tI-ssh with private key file -- positive(Secured private key owned by Administrators group and current user has explicit ACE)" {
+            #setup to have local admin group as owner and grant it full control
+            Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $adminsAccount -OwnerPerms "FullControl"
+            Add-PermissionToFileACL -FilePath $keyFilePath -User $currentUser -Perm "Read"
 
             #Run
             $o = ssh -p $port -i $keyFilePath $pubKeyUser@$server echo 1234
@@ -116,19 +126,6 @@ Describe "Tests for user Key file permission" -Tags "CI" {
             #setup to have ssouser as owner and grant it full control            
             Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $objUser -OwnerPerms "Read, Write"            
             Add-PermissionToFileACL -FilePath $keyFilePath -User $adminsAccount -Perm "FullControl"
-
-            $o = ssh -p $port -i $keyFilePath -E $logPath $pubKeyUser@$server echo 1234
-            $LASTEXITCODE | Should Not Be 0
-
-            $logPath | Should Contain "UNPROTECTED PRIVATE KEY FILE!"
-        }
-
-        It "$tC.$tI-ssh with private key file -- negative(the owner is denied read perm)" {
-            #setup to have local system as owner and grant it full control            
-            Set-FileOwnerAndACL -FilePath $keyFilePath -Owner $systemAccount -OwnerPerms "Read, Write"
-            Add-PermissionToFileACL -FilePath $keyFilePath -User $adminsAccount -Perm "FullControl"
-            #deny local system read access
-            Add-PermissionToFileACL -FilePath $keyFilePath -User $systemAccount -Perm "Read,write" -AccessType Deny
 
             $o = ssh -p $port -i $keyFilePath -E $logPath $pubKeyUser@$server echo 1234
             $LASTEXITCODE | Should Not Be 0
