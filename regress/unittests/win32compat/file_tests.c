@@ -204,6 +204,15 @@ void file_simple_fileio()
 		ASSERT_INT_EQ(retValue, 0);
 	}
 	
+	{
+		// test null device 
+		FILE *fp = fopen("/dev/null", "r");
+		ASSERT_PTR_NE(fp, NULL);
+
+		f = open("/dev/null", O_RDONLY);
+		ASSERT_INT_NE(f, -1);
+	}
+
 	TEST_DONE();
 }
 
@@ -429,7 +438,7 @@ file_miscellaneous_tests()
 	int f1 = dup(f);
 	ASSERT_INT_EQ(f1, -1);
 	HANDLE h = w32_fd_to_handle(f);
-	ASSERT_HANDLE(h, retValue);
+	ASSERT_HANDLE(h);
 	close(f);
 
 	char *tmp_filename_1 = "tmp_1.txt";
@@ -443,16 +452,16 @@ file_miscellaneous_tests()
 		free(tmp);
 
 	h = w32_fd_to_handle(STDIN_FILENO);
-	ASSERT_HANDLE(h, retValue);
+	ASSERT_HANDLE(h);
 
 	h = w32_fd_to_handle(STDOUT_FILENO);
-	ASSERT_HANDLE(h, retValue);
+	ASSERT_HANDLE(h);
 
 	h = w32_fd_to_handle(STDERR_FILENO);
-	ASSERT_HANDLE(h, retValue);
+	ASSERT_HANDLE(h);
 
 	retValue = w32_allocate_fd_for_handle(h, FALSE);
-	ASSERT_HANDLE(h, retValue);
+	ASSERT_HANDLE(h);
 
 	TEST_DONE();
 }

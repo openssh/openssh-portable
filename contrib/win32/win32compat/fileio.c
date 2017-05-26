@@ -413,8 +413,6 @@ cleanup:
 	return ret;
 }
 
-
-#define NULL_DEVICE "/dev/null"
 /* open() implementation. Uses CreateFile to open file, console, device, etc */
 struct w32_io*
 fileio_open(const char *path_utf8, int flags, u_short mode)
@@ -433,7 +431,7 @@ fileio_open(const char *path_utf8, int flags, u_short mode)
 	}
 
 	/* if opening null device, point to Windows equivalent */
-	if (strncmp(path_utf8, NULL_DEVICE, strlen(NULL_DEVICE)) == 0) 
+	if (strncmp(path_utf8, NULL_DEVICE, strlen(NULL_DEVICE)+1) == 0) 
 		path_utf8 = "NUL";
 
 	if ((path_utf16 = utf8_to_utf16(path_utf8)) == NULL) {

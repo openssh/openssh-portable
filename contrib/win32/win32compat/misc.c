@@ -240,14 +240,27 @@ w32_fopen_utf8(const char *path, const char *mode)
 	FILE* f;
 	char utf8_bom[] = { 0xEF,0xBB,0xBF };
 	char first3_bytes[3];
+	int status = 1;
 
 	if (mode[1] != '\0') {
 		errno = ENOTSUP;
 		return NULL;
 	}
 
-	if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, PATH_MAX) == 0 ||
-	    MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 5) == 0) {
+	if(NULL == path) { 
+		errno = EINVAL;
+		debug3("fopen - ERROR:%d", errno);
+		return NULL; 
+	}
+
+	/* if opening null device, point to Windows equivalent */
+	if (0 == strncmp(path, NULL_DEVICE, strlen(NULL_DEVICE)+1))
+		wcsncpy_s(wpath, PATH_MAX, L"NUL", 3);
+	else
+		status = MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, PATH_MAX);
+
+	if ((0 == status) ||
+	    (0 == MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 5))) {
 		errno = EFAULT;
 		debug3("WideCharToMultiByte failed for %c - ERROR:%d", path, GetLastError());
 		return NULL;

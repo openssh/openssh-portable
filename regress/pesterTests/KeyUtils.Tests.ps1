@@ -313,6 +313,7 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
     Context "$tC - ssh-keyscan test cases" {
         BeforeAll {
             $tI=1
+            $port = $OpenSSHTestInfo["Port"]
             Remove-item (join-path $testDir "$tC.$tI.out.txt") -force -ErrorAction Ignore
         }
         BeforeEach {
@@ -321,25 +322,25 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
         AfterAll{$tC++}
 
 		It "$tC.$tI - ssh-keyscan with default arguments" {
-			cmd /c "ssh-keyscan -p 22 github.com 2>&1 > $outputFile"
-			$outputFile | Should Contain 'github.com ssh-rsa.*' 			
+			cmd /c "ssh-keyscan -p $port 127.0.0.1 2>&1 > $outputFile"
+			$outputFile | Should Contain '.*ssh-rsa.*'
 		}
 
         It "$tC.$tI - ssh-keyscan with -p" {
-			cmd /c "ssh-keyscan -p 22 github.com 2>&1 > $outputFile"
-			$outputFile | Should Contain 'github.com ssh-rsa.*' 			
+			cmd /c "ssh-keyscan -p $port 127.0.0.1 2>&1 > $outputFile"
+			$outputFile | Should Contain '.*ssh-rsa.*'
 		}
 
 		It "$tC.$tI - ssh-keyscan with -f" {
-			Set-Content -Path tmp.txt -Value "github.com"
-			cmd /c "ssh-keyscan -f tmp.txt 2>&1 > $outputFile"
-			$outputFile | Should Contain 'github.com ssh-rsa.*' 			
+			Set-Content -Path tmp.txt -Value "127.0.0.1"
+			cmd /c "ssh-keyscan -p $port -f tmp.txt 2>&1 > $outputFile"
+			$outputFile | Should Contain '.*ssh-rsa.*'
 		}
 
 		It "$tC.$tI - ssh-keyscan with -f -t" {
-			Set-Content -Path tmp.txt -Value "github.com"
-			cmd /c "ssh-keyscan -f tmp.txt -t rsa,dsa 2>&1 > $outputFile"
-			$outputFile | Should Contain 'github.com ssh-rsa.*' 			
+			Set-Content -Path tmp.txt -Value "127.0.0.1"
+			cmd /c "ssh-keyscan -p $port -f tmp.txt -t rsa,dsa 2>&1 > $outputFile"
+			$outputFile | Should Contain '.*ssh-rsa.*'
 		}
 	}
 }
