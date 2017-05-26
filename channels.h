@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.123 2017/04/30 23:28:41 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.124 2017/05/26 19:34:12 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -238,7 +238,6 @@ int	 channel_proxy_upstream(Channel *, int, u_int32_t, void *);
 
 /* protocol handler */
 
-int	 channel_input_close_confirmation(int, u_int32_t, void *);
 int	 channel_input_data(int, u_int32_t, void *);
 int	 channel_input_extended_data(int, u_int32_t, void *);
 int	 channel_input_ieof(int, u_int32_t, void *);

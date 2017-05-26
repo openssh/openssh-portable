@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.359 2017/04/30 23:28:41 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.360 2017/05/26 19:34:12 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2620,7 +2620,6 @@ channel_input_ieof(int type, u_int32_t seq, void *ctxt)
 	return 0;
 }
 
-/* proto version 1.5 overloads CLOSE_CONFIRMATION with OCLOSE */
 /* ARGSUSED */
 int
 channel_input_oclose(int type, u_int32_t seq, void *ctxt)
@@ -2634,26 +2633,6 @@ channel_input_oclose(int type, u_int32_t seq, void *ctxt)
 		return 0;
 	packet_check_eom();
 	chan_rcvd_oclose(c);
-	return 0;
-}
-
-/* ARGSUSED */
-int
-channel_input_close_confirmation(int type, u_int32_t seq, void *ctxt)
-{
-	int id = packet_get_int();
-	Channel *c = channel_lookup(id);
-
-	if (c == NULL)
-		packet_disconnect("Received close confirmation for "
-		    "out-of-range channel %d.", id);
-	if (channel_proxy_upstream(c, type, seq, ctxt))
-		return 0;
-	packet_check_eom();
-	if (c->type != SSH_CHANNEL_CLOSED && c->type != SSH_CHANNEL_ABANDONED)
-		packet_disconnect("Received close confirmation for "
-		    "non-closed channel %d (type %d).", id, c->type);
-	channel_free(c);
 	return 0;
 }
 
