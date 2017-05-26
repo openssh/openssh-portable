@@ -745,12 +745,21 @@ fileio_stat(const char *path, struct _stat64 *buf)
 	wchar_t* wpath = NULL;
 	WIN32_FILE_ATTRIBUTE_DATA attributes = { 0 };
 	int ret = -1, len = 0;	
+
+	memset(buf, 0, sizeof(struct _stat64));
+
+	/* Detect root dir */
+	if (path && strcmp(path, "/") == 0) {
+		buf->st_mode = _S_IFDIR | _S_IREAD | 0xFF;
+		buf->st_dev = USHRT_MAX;   // rootdir flag
+		return 0;
+	}
+
 	if ((wpath = utf8_to_utf16(path)) == NULL) {
 		errno = errno_from_Win32LastError();
 		debug3("utf8_to_utf16 failed for file:%s error:%d", path, GetLastError());
 		return -1;
 	}
-	memset(buf, 0, sizeof(struct _stat64));
 
 	if (GetFileAttributesExW(wpath, GetFileExInfoStandard, &attributes) == FALSE) {
 		errno = errno_from_Win32LastError();

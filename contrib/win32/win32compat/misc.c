@@ -851,6 +851,16 @@ convertToBackslash(char *str)
 	}
 }
 
+void
+convertToBackslashW(wchar_t *str)
+{
+	while (*str) {
+		if (*str == L'/')
+			*str = L'\\';
+		str++;
+	}
+}
+
 /* convert back slash to forward slash */
 void
 convertToForwardslash(char *str)
@@ -874,9 +884,9 @@ realpath(const char *path, char resolved[PATH_MAX])
 	char tempPath[PATH_MAX];
 
 	if ((path[0] == '/') && path[1] && (path[2] == ':'))
-		strncpy(resolved, path + 1, strlen(path)); /* skip the first '/' */
+		strncpy(resolved, path + 1, PATH_MAX); /* skip the first '/' */
 	else
-		strncpy(resolved, path, strlen(path) + 1);
+		strncpy(resolved, path, PATH_MAX);
 
 	if ((resolved[0]) && (resolved[1] == ':') && (resolved[2] == '\0')) { /* make "x:" as "x:\\" */
 		resolved[2] = '\\';
@@ -889,7 +899,7 @@ realpath(const char *path, char resolved[PATH_MAX])
 	convertToForwardslash(tempPath);
 
 	resolved[0] = '/'; /* will be our first slash in /x:/users/test1 format */
-	strncpy(resolved + 1, tempPath, sizeof(tempPath) - 1);
+	strncpy(resolved + 1, tempPath, PATH_MAX - 1);
 	return resolved;
 }
 
