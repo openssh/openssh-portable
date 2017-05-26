@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.8 2016/11/25 23:22:04 djm Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.9 2017/05/26 20:34:49 markus Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -391,6 +391,9 @@ sshbuf_consume(struct sshbuf *buf, size_t len)
 	if (len > sshbuf_len(buf))
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	buf->off += len;
+	/* deal with empty buffer */
+	if (buf->off == buf->size)
+		buf->off = buf->size = 0;
 	SSHBUF_TELL("done");
 	return 0;
 }
