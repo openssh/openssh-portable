@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.279 2017/05/30 08:52:19 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.280 2017/05/30 14:13:40 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -779,7 +779,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 	const struct hostkey_entry *host_found, *ip_found;
 	int len, cancelled_forwarding = 0;
 	int local = sockaddr_is_local(hostaddr);
-	int r, want_cert = key_is_cert(host_key), host_ip_differ = 0;
+	int r, want_cert = sshkey_is_cert(host_key), host_ip_differ = 0;
 	int hostkey_trusted = 0; /* Known or explicitly accepted by user */
 	struct hostkeys *host_hostkeys, *ip_hostkeys;
 	u_int i;
@@ -830,8 +830,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 
  retry:
 	/* Reload these as they may have changed on cert->key downgrade */
-	want_cert = key_is_cert(host_key);
-	type = key_type(host_key);
+	want_cert = sshkey_is_cert(host_key);
+	type = sshkey_type(host_key);
 
 	/*
 	 * Check if the host key is present in the user's list of known
@@ -851,7 +851,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		if (host_status == HOST_CHANGED &&
 		    (ip_status != HOST_CHANGED || 
 		    (ip_found != NULL &&
-		    !key_equal(ip_found->key, host_found->key))))
+		    !sshkey_equal(ip_found->key, host_found->key))))
 			host_ip_differ = 1;
 	} else
 		ip_status = host_status;
@@ -1048,7 +1048,8 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		warn_changed_key(host_key);
 		error("Add correct host key in %.100s to get rid of this message.",
 		    user_hostfiles[0]);
-		error("Offending %s key in %s:%lu", key_type(host_found->key),
+		error("Offending %s key in %s:%lu",
+		    sshkey_type(host_found->key),
 		    host_found->file, host_found->line);
 
 		/*
@@ -1177,14 +1178,16 @@ fail:
 		 * search normally.
 		 */
 		debug("No matching CA found. Retry with plain key");
-		raw_key = key_from_private(host_key);
-		if (key_drop_cert(raw_key) != 0)
-			fatal("Couldn't drop certificate");
+		if ((r = sshkey_from_private(host_key, &raw_key)) != 0)
+			fatal("%s: sshkey_from_private: %s",
+			    __func__, ssh_err(r));
+		if ((r = sshkey_drop_cert(raw_key)) != 0)
+			fatal("Couldn't drop certificate: %s", ssh_err(r));
 		host_key = raw_key;
 		goto retry;
 	}
 	if (raw_key != NULL)
-		key_free(raw_key);
+		sshkey_free(raw_key);
 	free(ip);
 	free(host);
 	if (host_hostkeys != NULL)
@@ -1300,8 +1303,8 @@ out:
 	free(fp);
 	free(cafp);
 	if (r == 0 && host_key != NULL) {
-		key_free(previous_host_key);
-		previous_host_key = key_from_private(host_key);
+		sshkey_free(previous_host_key);
+		r = sshkey_from_private(host_key, &previous_host_key);
 	}
 
 	return r;
