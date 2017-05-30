@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.167 2017/02/03 23:05:57 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.168 2017/05/30 08:52:19 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1119,7 +1119,7 @@ mm_answer_pam_free_ctx(int sock, Buffer *m)
 int
 mm_answer_keyallowed(int sock, Buffer *m)
 {
-	Key *key;
+	struct sshkey *key;
 	char *cuser, *chost;
 	u_char *blob;
 	u_int bloblen, pubkey_auth_attempt;
@@ -1332,7 +1332,7 @@ monitor_valid_hostbasedblob(u_char *data, u_int datalen, char *cuser,
 int
 mm_answer_keyverify(int sock, Buffer *m)
 {
-	Key *key;
+	struct sshkey *key;
 	u_char *signature, *data, *blob;
 	u_int signaturelen, datalen, bloblen;
 	int verified = 0;

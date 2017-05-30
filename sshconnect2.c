@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.258 2017/05/05 10:42:49 naddy Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.259 2017/05/30 08:52:20 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -93,7 +93,7 @@ char *xxx_host;
 struct sockaddr *xxx_hostaddr;
 
 static int
-verify_host_key_callback(Key *hostkey, struct ssh *ssh)
+verify_host_key_callback(struct sshkey *hostkey, struct ssh *ssh)
 {
 	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey) == -1)
 		fatal("Host key verification failed.");
@@ -319,7 +319,7 @@ static int sign_and_send_pubkey(Authctxt *, Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
 static void pubkey_reset(Authctxt *);
-static Key *load_identity_file(Identity *);
+static struct sshkey *load_identity_file(Identity *);
 
 static Authmethod *authmethod_get(char *authlist);
 static Authmethod *authmethod_lookup(const char *name);
@@ -574,7 +574,7 @@ int
 input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
-	Key *key = NULL;
+	struct sshkey *key = NULL;
 	Identity *id = NULL;
 	Buffer b;
 	int pktype, sent = 0;
@@ -1015,7 +1015,7 @@ static int
 identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat)
 {
-	Key *prv;
+	struct sshkey *prv;
 	int ret;
 
 	/* the agent supports this key */
@@ -1225,10 +1225,10 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 	return 1;
 }
 
-static Key *
+static struct sshkey *
 load_identity_file(Identity *id)
 {
-	Key *private = NULL;
+	struct sshkey *private = NULL;
 	char prompt[300], *passphrase, *comment;
 	int r, perm_ok = 0, quit = 0, i;
 	struct stat st;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.459 2017/05/02 08:06:33 jmc Exp $ */
+/* $OpenBSD: ssh.c,v 1.460 2017/05/30 08:52:19 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1278,7 +1278,7 @@ main(int ac, char **av)
 	if (options.hostbased_authentication) {
 		sensitive_data.nkeys = 9;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
-		    sizeof(Key));
+		    sizeof(struct sshkey));	/* XXX */
 		for (i = 0; i < sensitive_data.nkeys; i++)
 			sensitive_data.keys[i] = NULL;
 
@@ -1849,16 +1849,16 @@ load_public_identity_files(void)
 {
 	char *filename, *cp, thishost[NI_MAXHOST];
 	char *pwdir = NULL, *pwname = NULL;
-	Key *public;
+	struct sshkey *public;
 	struct passwd *pw;
 	int i;
 	u_int n_ids, n_certs;
 	char *identity_files[SSH_MAX_IDENTITY_FILES];
-	Key *identity_keys[SSH_MAX_IDENTITY_FILES];
+	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
 	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
 #ifdef ENABLE_PKCS11
-	Key **keys;
+	struct sshkey **keys;
 	int nkeys;
 #endif /* PKCS11 */
 

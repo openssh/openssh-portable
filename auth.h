@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.89 2016/08/13 17:47:41 markus Exp $ */
+/* $OpenBSD: auth.h,v 1.90 2017/05/30 08:52:19 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -117,9 +117,10 @@ auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
 int      auth_password(Authctxt *, const char *);
 
-int	 hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
-int	 user_key_allowed(struct passwd *, Key *, int);
-void	 pubkey_auth_info(Authctxt *, const Key *, const char *, ...)
+int	 hostbased_key_allowed(struct passwd *, const char *, char *,
+	    struct sshkey *);
+int	 user_key_allowed(struct passwd *, struct sshkey *, int);
+void	 pubkey_auth_info(Authctxt *, const struct sshkey *, const char *, ...)
 	    __attribute__((__format__ (printf, 3, 4)));
 void	 auth2_record_userkey(Authctxt *, struct sshkey *);
 int	 auth2_userkey_already_used(Authctxt *, struct sshkey *);
@@ -182,22 +183,22 @@ char	*authorized_principals_file(struct passwd *);
 
 FILE	*auth_openkeyfile(const char *, struct passwd *, int);
 FILE	*auth_openprincipals(const char *, struct passwd *, int);
-int	 auth_key_is_revoked(Key *);
+int	 auth_key_is_revoked(struct sshkey *);
 
 const char	*auth_get_canonical_hostname(struct ssh *, int);
 
 HostStatus
-check_key_in_hostfiles(struct passwd *, Key *, const char *,
+check_key_in_hostfiles(struct passwd *, struct sshkey *, const char *,
     const char *, const char *);
 
 /* hostkey handling */
-Key	*get_hostkey_by_index(int);
-Key	*get_hostkey_public_by_index(int, struct ssh *);
-Key	*get_hostkey_public_by_type(int, int, struct ssh *);
-Key	*get_hostkey_private_by_type(int, int, struct ssh *);
-int	 get_hostkey_index(Key *, int, struct ssh *);
-int	 sshd_hostkey_sign(Key *, Key *, u_char **, size_t *,
-	     const u_char *, size_t, const char *, u_int);
+struct sshkey	*get_hostkey_by_index(int);
+struct sshkey	*get_hostkey_public_by_index(int, struct ssh *);
+struct sshkey	*get_hostkey_public_by_type(int, int, struct ssh *);
+struct sshkey	*get_hostkey_private_by_type(int, int, struct ssh *);
+int	 get_hostkey_index(struct sshkey *, int, struct ssh *);
+int	 sshd_hostkey_sign(struct sshkey *, struct sshkey *, u_char **,
+	     size_t *, const u_char *, size_t, const char *, u_int);
 
 /* debug messages during authentication */
 void	 auth_debug_add(const char *fmt,...) __attribute__((format(printf, 1, 2)));

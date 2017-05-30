@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.26 2016/03/07 19:02:43 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.27 2017/05/30 08:52:19 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -59,7 +59,7 @@ static int
 userauth_hostbased(Authctxt *authctxt)
 {
 	Buffer b;
-	Key *key = NULL;
+	struct sshkey *key = NULL;
 	char *pkalg, *cuser, *chost, *service;
 	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
@@ -158,7 +158,7 @@ done:
 /* return 1 if given hostkey is allowed */
 int
 hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
-    Key *key)
+    struct sshkey *key)
 {
 	struct ssh *ssh = active_state; /* XXX */
 	const char *resolvedname, *ipaddr, *lookup, *reason;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.487 2017/04/30 23:18:44 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.488 2017/05/30 08:52:20 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -195,10 +195,10 @@ int have_agent = 0;
  * not very useful.  Currently, memory locking is not implemented.
  */
 struct {
-	Key	**host_keys;		/* all private host keys */
-	Key	**host_pubkeys;		/* all public host keys */
-	Key	**host_certificates;	/* all public host certificates */
-	int	have_ssh2_key;
+	struct sshkey	**host_keys;		/* all private host keys */
+	struct sshkey	**host_pubkeys;		/* all public host keys */
+	struct sshkey	**host_certificates;	/* all public host certificates */
+	int		have_ssh2_key;
 } sensitive_data;
 
 /* This is set to true when a signal is received. */
@@ -486,7 +486,7 @@ destroy_sensitive_data(void)
 void
 demote_sensitive_data(void)
 {
-	Key *tmp;
+	struct sshkey *tmp;
 	int i;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
@@ -686,7 +686,7 @@ list_hostkey_types(void)
 	const char *p;
 	char *ret;
 	int i;
-	Key *key;
+	struct sshkey *key;
 
 	buffer_init(&b);
 	for (i = 0; i < options.num_host_key_files; i++) {
@@ -742,11 +742,11 @@ list_hostkey_types(void)
 	return ret;
 }
 
-static Key *
+static struct sshkey *
 get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 {
 	int i;
-	Key *key;
+	struct sshkey *key;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		switch (type) {
@@ -770,19 +770,19 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 	return NULL;
 }
 
-Key *
+struct sshkey *
 get_hostkey_public_by_type(int type, int nid, struct ssh *ssh)
 {
 	return get_hostkey_by_type(type, nid, 0, ssh);
 }
 
-Key *
+struct sshkey *
 get_hostkey_private_by_type(int type, int nid, struct ssh *ssh)
 {
 	return get_hostkey_by_type(type, nid, 1, ssh);
 }
 
-Key *
+struct sshkey *
 get_hostkey_by_index(int ind)
 {
 	if (ind < 0 || ind >= options.num_host_key_files)
@@ -790,7 +790,7 @@ get_hostkey_by_index(int ind)
 	return (sensitive_data.host_keys[ind]);
 }
 
-Key *
+struct sshkey *
 get_hostkey_public_by_index(int ind, struct ssh *ssh)
 {
 	if (ind < 0 || ind >= options.num_host_key_files)
@@ -799,7 +799,7 @@ get_hostkey_public_by_index(int ind, struct ssh *ssh)
 }
 
 int
-get_hostkey_index(Key *key, int compare, struct ssh *ssh)
+get_hostkey_index(struct sshkey *key, int compare, struct ssh *ssh)
 {
 	int i;
 
@@ -1366,8 +1366,8 @@ main(int ac, char **av)
 	u_int n;
 	u_int64_t ibytes, obytes;
 	mode_t new_umask;
-	Key *key;
-	Key *pubkey;
+	struct sshkey *key;
+	struct sshkey *pubkey;
 	int keytype;
 	Authctxt *authctxt;
 	struct connection_info *connection_info = get_connection_info(0, 0);
@@ -1655,9 +1655,9 @@ main(int ac, char **av)
 
 	/* load host keys */
 	sensitive_data.host_keys = xcalloc(options.num_host_key_files,
-	    sizeof(Key *));
+	    sizeof(struct sshkey *));
 	sensitive_data.host_pubkeys = xcalloc(options.num_host_key_files,
-	    sizeof(Key *));
+	    sizeof(struct sshkey *));
 
 	if (options.host_key_agent) {
 		if (strcmp(options.host_key_agent, SSH_AUTHSOCKET_ENV_NAME))
@@ -1721,7 +1721,7 @@ main(int ac, char **av)
 	 * indices to the public keys that they relate to.
 	 */
 	sensitive_data.host_certificates = xcalloc(options.num_host_key_files,
-	    sizeof(Key *));
+	    sizeof(struct sshkey *));
 	for (i = 0; i < options.num_host_key_files; i++)
 		sensitive_data.host_certificates[i] = NULL;
 
@@ -2109,8 +2109,9 @@ main(int ac, char **av)
 }
 
 int
-sshd_hostkey_sign(Key *privkey, Key *pubkey, u_char **signature, size_t *slen,
-    const u_char *data, size_t dlen, const char *alg, u_int flag)
+sshd_hostkey_sign(struct sshkey *privkey, struct sshkey *pubkey,
+    u_char **signature, size_t *slen, const u_char *data, size_t dlen,
+    const char *alg, u_int flag)
 {
 	int r;
 	u_int xxx_slen, xxx_dlen = dlen;

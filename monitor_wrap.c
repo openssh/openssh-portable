@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.90 2017/05/17 01:24:17 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.91 2017/05/30 08:52:19 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -216,7 +216,7 @@ mm_choose_dh(int min, int nbits, int max)
 #endif
 
 int
-mm_key_sign(Key *key, u_char **sigp, u_int *lenp,
+mm_key_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
     const u_char *data, u_int datalen, const char *hostkey_alg)
 {
 	struct kex *kex = *pmonitor->m_pkex;
@@ -375,7 +375,8 @@ mm_auth_password(Authctxt *authctxt, char *password)
 }
 
 int
-mm_user_key_allowed(struct passwd *pw, Key *key, int pubkey_auth_attempt)
+mm_user_key_allowed(struct passwd *pw, struct sshkey *key,
+    int pubkey_auth_attempt)
 {
 	return (mm_key_allowed(MM_USERKEY, NULL, NULL, key,
 	    pubkey_auth_attempt));
@@ -383,14 +384,14 @@ mm_user_key_allowed(struct passwd *pw, Key *key, int pubkey_auth_attempt)
 
 int
 mm_hostbased_key_allowed(struct passwd *pw, const char *user, const char *host,
-    Key *key)
+    struct sshkey *key)
 {
 	return (mm_key_allowed(MM_HOSTKEY, user, host, key, 0));
 }
 
 int
 mm_key_allowed(enum mm_keytype type, const char *user, const char *host,
-    Key *key, int pubkey_auth_attempt)
+    struct sshkey *key, int pubkey_auth_attempt)
 {
 	Buffer m;
 	u_char *blob;
@@ -435,7 +436,8 @@ mm_key_allowed(enum mm_keytype type, const char *user, const char *host,
  */
 
 int
-mm_key_verify(Key *key, u_char *sig, u_int siglen, u_char *data, u_int datalen)
+mm_key_verify(struct sshkey *key, u_char *sig, u_int siglen, u_char *data,
+    u_int datalen)
 {
 	Buffer m;
 	u_char *blob;

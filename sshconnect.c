@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.278 2017/05/01 02:27:11 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.279 2017/05/30 08:52:19 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,7 +67,7 @@
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
-Key *previous_host_key = NULL;
+struct sshkey *previous_host_key = NULL;
 
 static int matching_host_key_dns = 0;
 
@@ -79,8 +79,8 @@ extern char *__progname;
 extern uid_t original_real_uid;
 extern uid_t original_effective_uid;
 
-static int show_other_keys(struct hostkeys *, Key *);
-static void warn_changed_key(Key *);
+static int show_other_keys(struct hostkeys *, struct sshkey *);
+static void warn_changed_key(struct sshkey *);
 
 /* Expand a proxy command */
 static char *
@@ -667,7 +667,7 @@ confirm(const char *prompt)
 }
 
 static int
-check_host_cert(const char *host, const Key *host_key)
+check_host_cert(const char *host, const struct sshkey *host_key)
 {
 	const char *reason;
 
@@ -765,13 +765,13 @@ get_hostfile_hostname_ipaddr(char *hostname, struct sockaddr *hostaddr,
 #define ROQUIET	2
 static int
 check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
-    Key *host_key, int readonly,
+    struct sshkey *host_key, int readonly,
     char **user_hostfiles, u_int num_user_hostfiles,
     char **system_hostfiles, u_int num_system_hostfiles)
 {
 	HostStatus host_status;
 	HostStatus ip_status;
-	Key *raw_key = NULL;
+	struct sshkey *raw_key = NULL;
 	char *ip = NULL, *host = NULL;
 	char hostline[1000], *hostp, *fp, *ra;
 	char msg[1024];
@@ -1196,7 +1196,7 @@ fail:
 
 /* returns 0 if key verifies or -1 if key does NOT verify */
 int
-verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
+verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key)
 {
 	u_int i;
 	int r = -1, flags = 0;
@@ -1362,7 +1362,7 @@ ssh_put_password(char *password)
 
 /* print all known host keys for a given host, but skip keys of given type */
 static int
-show_other_keys(struct hostkeys *hostkeys, Key *key)
+show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
 {
 	int type[] = {
 		KEY_RSA,
@@ -1402,7 +1402,7 @@ show_other_keys(struct hostkeys *hostkeys, Key *key)
 }
 
 static void
-warn_changed_key(Key *host_key)
+warn_changed_key(struct sshkey *host_key)
 {
 	char *fp;
 
@@ -1465,7 +1465,7 @@ ssh_local_cmd(const char *args)
 }
 
 void
-maybe_add_key_to_agent(char *authfile, Key *private, char *comment,
+maybe_add_key_to_agent(char *authfile, struct sshkey *private, char *comment,
     char *passphrase)
 {
 	int auth_sock = -1, r;
