@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.259 2017/05/30 08:52:20 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.260 2017/05/30 14:19:15 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -397,10 +397,12 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	    (r = sshpkt_send(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 
+	ssh->authctxt = &authctxt;
 	ssh_dispatch_init(ssh, &input_userauth_error);
 	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &input_userauth_ext_info);
 	ssh_dispatch_set(ssh, SSH2_MSG_SERVICE_ACCEPT, &input_userauth_service_accept);
-	ssh_dispatch_run(ssh, DISPATCH_BLOCK, &authctxt.success, &authctxt);	/* loop until success */
+	ssh_dispatch_run(ssh, DISPATCH_BLOCK, &authctxt.success, ssh);	/* loop until success */
+	ssh->authctxt = NULL;
 
 	pubkey_cleanup(&authctxt);
 	ssh_dispatch_range(ssh, SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
@@ -414,8 +416,8 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 int
 input_userauth_service_accept(int type, u_int32_t seqnr, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
-	struct ssh *ssh = active_state;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	int r;
 
 	if (ssh_packet_remaining(ssh) > 0) {
@@ -448,7 +450,7 @@ input_userauth_service_accept(int type, u_int32_t seqnr, void *ctxt)
 int
 input_userauth_ext_info(int type, u_int32_t seqnr, void *ctxt)
 {
-	return kex_input_ext_info(type, seqnr, active_state);
+	return kex_input_ext_info(type, seqnr, ctxt);
 }
 
 void
@@ -516,7 +518,8 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 int
 input_userauth_success(int type, u_int32_t seq, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_success: no authentication context");
@@ -533,7 +536,8 @@ input_userauth_success(int type, u_int32_t seq, void *ctxt)
 int
 input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 
 	if (authctxt == NULL)
 		fatal("%s: no authentication context", __func__);
@@ -547,7 +551,8 @@ input_userauth_success_unexpected(int type, u_int32_t seq, void *ctxt)
 int
 input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	char *authlist = NULL;
 	int partial;
 
@@ -573,7 +578,8 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 int
 input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	struct sshkey *key = NULL;
 	Identity *id = NULL;
 	Buffer b;
@@ -704,7 +710,8 @@ userauth_gssapi(Authctxt *authctxt)
 static OM_uint32
 process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	Gssctxt *gssctxt = authctxt->methoddata;
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc mic = GSS_C_EMPTY_BUFFER;
@@ -759,7 +766,8 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 int
 input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	Gssctxt *gssctxt;
 	int oidlen;
 	char *oidv;
@@ -800,7 +808,8 @@ input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 int
 input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	gss_buffer_desc recv_tok;
 	OM_uint32 status;
 	u_int slen;
@@ -829,7 +838,8 @@ input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 int
 input_gssapi_errtok(int type, u_int32_t plen, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	Gssctxt *gssctxt;
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc recv_tok;
@@ -931,7 +941,8 @@ userauth_passwd(Authctxt *authctxt)
 int
 input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	char *info, *lang, *password = NULL, *retype = NULL;
 	char prompt[150];
 	const char *host;
@@ -1561,7 +1572,8 @@ userauth_kbdint(Authctxt *authctxt)
 int
 input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 {
-	Authctxt *authctxt = ctxt;
+	struct ssh *ssh = ctxt;
+	Authctxt *authctxt = ssh->authctxt;
 	char *name, *inst, *lang, *prompt, *response;
 	u_int num_prompts, i;
 	int echo = 0;
