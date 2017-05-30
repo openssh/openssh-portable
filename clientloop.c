@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.296 2017/05/03 21:08:09 naddy Exp $ */
+/* $OpenBSD: clientloop.c,v 1.297 2017/05/30 14:23:52 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -459,7 +459,7 @@ client_check_window_change(void)
 }
 
 static int
-client_global_request_reply(int type, u_int32_t seq, void *ctxt)
+client_global_request_reply(int type, u_int32_t seq, struct ssh *ssh)
 {
 	struct global_confirm *gc;
 
@@ -1642,7 +1642,7 @@ client_request_tun_fwd(int tun_mode, int local_tun, int remote_tun)
 
 /* XXXX move to generic input handler */
 static int
-client_input_channel_open(int type, u_int32_t seq, void *ctxt)
+client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	char *ctype;
@@ -1698,7 +1698,7 @@ client_input_channel_open(int type, u_int32_t seq, void *ctxt)
 }
 
 static int
-client_input_channel_req(int type, u_int32_t seq, void *ctxt)
+client_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 {
 	Channel *c = NULL;
 	int exitval, id, reply, success = 0;
@@ -1706,7 +1706,7 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 
 	id = packet_get_int();
 	c = channel_lookup(id);
-	if (channel_proxy_upstream(c, type, seq, ctxt))
+	if (channel_proxy_upstream(c, type, seq, ssh))
 		return 0;
 	rtype = packet_get_string(NULL);
 	reply = packet_get_char();
@@ -2136,7 +2136,7 @@ client_input_hostkeys(void)
 }
 
 static int
-client_input_global_request(int type, u_int32_t seq, void *ctxt)
+client_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 {
 	char *rtype;
 	int want_reply;

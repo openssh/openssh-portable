@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.46 2017/05/30 14:18:15 markus Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.47 2017/05/30 14:23:52 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -49,7 +49,7 @@ extern ServerOptions options;
 
 static int auth2_challenge_start(Authctxt *);
 static int send_userauth_info_request(Authctxt *);
-static int input_userauth_info_response(int, u_int32_t, void *);
+static int input_userauth_info_response(int, u_int32_t, struct ssh *);
 
 #ifdef BSD_AUTH
 extern KbdintDevice bsdauth_device;
@@ -285,9 +285,8 @@ send_userauth_info_request(Authctxt *authctxt)
 }
 
 static int
-input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
+input_userauth_info_response(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	Authctxt *authctxt = ssh->authctxt;
 	KbdintAuthctxt *kbdintctxt;
 	int authenticated = 0, res;

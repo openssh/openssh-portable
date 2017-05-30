@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.29 2017/04/30 23:28:42 djm Exp $ */
+/* $OpenBSD: dispatch.c,v 1.30 2017/05/30 14:23:52 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -38,9 +38,8 @@
 #include "ssherr.h"
 
 int
-dispatch_protocol_error(int type, u_int32_t seq, void *ctx)
+dispatch_protocol_error(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	int r;
 
 	logit("dispatch_protocol_error: type %d seq %u", type, seq);
@@ -53,7 +52,7 @@ dispatch_protocol_error(int type, u_int32_t seq, void *ctx)
 }
 
 int
-dispatch_protocol_ignore(int type, u_int32_t seq, void *ssh)
+dispatch_protocol_ignore(int type, u_int32_t seq, struct ssh *ssh)
 {
 	logit("dispatch_protocol_ignore: type %d seq %u", type, seq);
 	return 0;

@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.138 2017/05/30 14:18:15 markus Exp $ */
+/* $OpenBSD: auth2.c,v 1.139 2017/05/30 14:23:52 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -87,8 +87,8 @@ Authmethod *authmethods[] = {
 
 /* protocol */
 
-static int input_service_request(int, u_int32_t, void *);
-static int input_userauth_request(int, u_int32_t, void *);
+static int input_service_request(int, u_int32_t, struct ssh *);
+static int input_userauth_request(int, u_int32_t, struct ssh *);
 
 /* helper */
 static Authmethod *authmethod_lookup(Authctxt *, const char *);
@@ -178,9 +178,8 @@ do_authentication2(Authctxt *authctxt)
 
 /*ARGSUSED*/
 static int
-input_service_request(int type, u_int32_t seq, void *ctxt)
+input_service_request(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	Authctxt *authctxt = ssh->authctxt;
 	u_int len;
 	int acceptit = 0;
@@ -214,9 +213,8 @@ input_service_request(int type, u_int32_t seq, void *ctxt)
 
 /*ARGSUSED*/
 static int
-input_userauth_request(int type, u_int32_t seq, void *ctxt)
+input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	Authctxt *authctxt = ssh->authctxt;
 	Authmethod *m = NULL;
 	char *user, *service, *method, *style = NULL;

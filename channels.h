@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.125 2017/05/26 19:35:50 markus Exp $ */
+/* $OpenBSD: channels.h,v 1.126 2017/05/30 14:23:52 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -61,6 +61,7 @@
 
 #define CHANNEL_CANCEL_PORT_STATIC	-1
 
+struct ssh;
 struct Channel;
 typedef struct Channel Channel;
 
@@ -232,18 +233,19 @@ void	 channel_send_window_changes(void);
 /* mux proxy support */
 
 int	 channel_proxy_downstream(Channel *mc);
-int	 channel_proxy_upstream(Channel *, int, u_int32_t, void *);
+int	 channel_proxy_upstream(Channel *, int, u_int32_t, struct ssh *);
 
 /* protocol handler */
 
-int	 channel_input_data(int, u_int32_t, void *);
-int	 channel_input_extended_data(int, u_int32_t, void *);
-int	 channel_input_ieof(int, u_int32_t, void *);
-int	 channel_input_oclose(int, u_int32_t, void *);
-int	 channel_input_open_confirmation(int, u_int32_t, void *);
-int	 channel_input_open_failure(int, u_int32_t, void *);
-int	 channel_input_window_adjust(int, u_int32_t, void *);
-int	 channel_input_status_confirm(int, u_int32_t, void *);
+int	 channel_input_data(int, u_int32_t, struct ssh *);
+int	 channel_input_extended_data(int, u_int32_t, struct ssh *);
+int	 channel_input_ieof(int, u_int32_t, struct ssh *);
+int	 channel_input_oclose(int, u_int32_t, struct ssh *);
+int	 channel_input_open_confirmation(int, u_int32_t, struct ssh *);
+int	 channel_input_open_failure(int, u_int32_t, struct ssh *);
+int	 channel_input_port_open(int, u_int32_t, struct ssh *);
+int	 channel_input_window_adjust(int, u_int32_t, struct ssh *);
+int	 channel_input_status_confirm(int, u_int32_t, struct ssh *);
 
 /* file descriptor handling (read/write) */
 
