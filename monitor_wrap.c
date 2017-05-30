@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.91 2017/05/30 08:52:19 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.92 2017/05/30 14:10:53 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -436,13 +436,13 @@ mm_key_allowed(enum mm_keytype type, const char *user, const char *host,
  */
 
 int
-mm_key_verify(struct sshkey *key, u_char *sig, u_int siglen, u_char *data,
-    u_int datalen)
+mm_sshkey_verify(const struct sshkey *key, const u_char *sig, size_t siglen,
+    const u_char *data, size_t datalen, u_int compat)
 {
 	Buffer m;
 	u_char *blob;
 	u_int len;
-	int verified = 0;
+	u_int encoded_ret = 0;
 
 	debug3("%s entering", __func__);
 
@@ -461,11 +461,13 @@ mm_key_verify(struct sshkey *key, u_char *sig, u_int siglen, u_char *data,
 	debug3("%s: waiting for MONITOR_ANS_KEYVERIFY", __func__);
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_KEYVERIFY, &m);
 
-	verified = buffer_get_int(&m);
+	encoded_ret = buffer_get_int(&m);
 
 	buffer_free(&m);
 
-	return (verified);
+	if (encoded_ret != 0)
+		return SSH_ERR_SIGNATURE_INVALID;
+	return 0;
 }
 
 void

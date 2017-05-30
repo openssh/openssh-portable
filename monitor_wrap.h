@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.33 2017/05/30 08:52:19 markus Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.34 2017/05/30 14:10:53 markus Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -51,7 +51,8 @@ int mm_key_allowed(enum mm_keytype, const char *, const char *, struct sshkey *,
 int mm_user_key_allowed(struct passwd *, struct sshkey *, int);
 int mm_hostbased_key_allowed(struct passwd *, const char *,
     const char *, struct sshkey *);
-int mm_key_verify(struct sshkey *, u_char *, u_int, u_char *, u_int);
+int mm_sshkey_verify(const struct sshkey *, const u_char *, size_t,
+    const u_char *, size_t, u_int);
 
 #ifdef GSSAPI
 OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **, gss_OID);
