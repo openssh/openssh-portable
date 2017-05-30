@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-passwd.c,v 1.13 2017/05/30 14:26:49 markus Exp $ */
+/* $OpenBSD: auth2-passwd.c,v 1.14 2017/05/30 14:29:59 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -48,9 +48,8 @@
 extern ServerOptions options;
 
 static int
-userauth_passwd(Authctxt *authctxt)
+userauth_passwd(struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	char *password;
 	int authenticated = 0, r;
 	u_char change;

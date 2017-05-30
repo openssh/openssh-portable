@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.24 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.25 2017/05/30 14:29:59 markus Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -58,8 +58,9 @@ static int input_gssapi_errtok(int, u_int32_t, struct ssh *);
  * how to check local user kuserok and the like)
  */
 static int
-userauth_gssapi(Authctxt *authctxt)
+userauth_gssapi(struct ssh *ssh)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	gss_OID_desc goid = {0, NULL};
 	Gssctxt *ctxt = NULL;
 	int mechs;
@@ -119,8 +120,8 @@ userauth_gssapi(Authctxt *authctxt)
 	packet_send();
 	free(doid);
 
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, &input_gssapi_token);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, &input_gssapi_errtok);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, &input_gssapi_token);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, &input_gssapi_errtok);
 	authctxt->postponed = 1;
 
 	return (0);
@@ -157,8 +158,8 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 			packet_send();
 		}
 		authctxt->postponed = 0;
-		dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
-		userauth_finish(authctxt, 0, "gssapi-with-mic", NULL);
+		ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+		userauth_finish(ssh, 0, "gssapi-with-mic", NULL);
 	} else {
 		if (send_tok.length != 0) {
 			packet_start(SSH2_MSG_USERAUTH_GSSAPI_TOKEN);
@@ -166,12 +167,12 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 			packet_send();
 		}
 		if (maj_status == GSS_S_COMPLETE) {
-			dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+			ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
 			if (flags & GSS_C_INTEG_FLAG)
-				dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_MIC,
+				ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_MIC,
 				    &input_gssapi_mic);
 			else
-				dispatch_set(
+				ssh_dispatch_set(ssh,
 				    SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE,
 				    &input_gssapi_exchange_complete);
 		}
@@ -207,8 +208,8 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	free(recv_tok.value);
 
 	/* We can't return anything to the client, even if we wanted to */
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
 
 	/* The client will have already moved on to the next auth */
 
@@ -241,11 +242,11 @@ input_gssapi_exchange_complete(int type, u_int32_t plen, struct ssh *ssh)
 	authenticated = PRIVSEP(ssh_gssapi_userok(authctxt->user));
 
 	authctxt->postponed = 0;
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_MIC, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
-	userauth_finish(authctxt, authenticated, "gssapi-with-mic", NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_MIC, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
+	userauth_finish(ssh, authenticated, "gssapi-with-mic", NULL);
 	return 0;
 }
 
@@ -282,11 +283,11 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	free(mic.value);
 
 	authctxt->postponed = 0;
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_MIC, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
-	userauth_finish(authctxt, authenticated, "gssapi-with-mic", NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_ERRTOK, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_MIC, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
+	userauth_finish(ssh, authenticated, "gssapi-with-mic", NULL);
 	return 0;
 }
 

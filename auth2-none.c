@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-none.c,v 1.19 2017/05/30 14:27:22 markus Exp $ */
+/* $OpenBSD: auth2-none.c,v 1.20 2017/05/30 14:29:59 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -60,9 +60,8 @@ extern ServerOptions options;
 static int none_enabled = 1;
 
 static int
-userauth_none(Authctxt *authctxt)
+userauth_none(struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	int r;
 
 	none_enabled = 0;

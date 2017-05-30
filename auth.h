@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.90 2017/05/30 08:52:19 markus Exp $ */
+/* $OpenBSD: auth.h,v 1.91 2017/05/30 14:29:59 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -91,7 +91,7 @@ struct Authctxt {
 
 struct Authmethod {
 	char	*name;
-	int	(*userauth)(Authctxt *authctxt);
+	int	(*userauth)(struct ssh *);
 	int	*enabled;
 };
 
@@ -155,7 +155,7 @@ void	auth_info(Authctxt *authctxt, const char *, ...)
 	    __attribute__((__nonnull__ (2)));
 void	auth_log(Authctxt *, int, int, const char *, const char *);
 void	auth_maxtries_exceeded(Authctxt *) __attribute__((noreturn));
-void	userauth_finish(Authctxt *, int, const char *, const char *);
+void	userauth_finish(struct ssh *, int, const char *, const char *);
 int	auth_root_allowed(const char *);
 
 void	userauth_send_banner(const char *);
@@ -168,8 +168,8 @@ int	 auth2_method_allowed(Authctxt *, const char *, const char *);
 
 void	privsep_challenge_enable(void);
 
-int	auth2_challenge(Authctxt *, char *);
-void	auth2_challenge_stop(Authctxt *);
+int	auth2_challenge(struct ssh *, char *);
+void	auth2_challenge_stop(struct ssh *);
 int	bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int	bsdauth_respond(void *, u_int, char **);
 int	skey_query(void *, char **, char **, u_int *, char ***, u_int **);

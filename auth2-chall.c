@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.47 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.48 2017/05/30 14:29:59 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -47,7 +47,7 @@
 /* import */
 extern ServerOptions options;
 
-static int auth2_challenge_start(Authctxt *);
+static int auth2_challenge_start(struct ssh *);
 static int send_userauth_info_request(Authctxt *);
 static int input_userauth_info_response(int, u_int32_t, struct ssh *);
 
@@ -195,8 +195,9 @@ kbdint_next_device(Authctxt *authctxt, KbdintAuthctxt *kbdintctxt)
  * wait for the response.
  */
 int
-auth2_challenge(Authctxt *authctxt, char *devs)
+auth2_challenge(struct ssh *ssh, char *devs)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	debug("auth2_challenge: user=%s devs=%s",
 	    authctxt->user ? authctxt->user : "<nouser>",
 	    devs ? devs : "<no devs>");
@@ -205,15 +206,16 @@ auth2_challenge(Authctxt *authctxt, char *devs)
 		return 0;
 	if (authctxt->kbdintctxt == NULL)
 		authctxt->kbdintctxt = kbdint_alloc(devs);
-	return auth2_challenge_start(authctxt);
+	return auth2_challenge_start(ssh);
 }
 
 /* unregister kbd-int callbacks and context */
 void
-auth2_challenge_stop(Authctxt *authctxt)
+auth2_challenge_stop(struct ssh *ssh)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	/* unregister callback */
-	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
 	if (authctxt->kbdintctxt != NULL) {
 		kbdint_free(authctxt->kbdintctxt);
 		authctxt->kbdintctxt = NULL;
@@ -222,29 +224,30 @@ auth2_challenge_stop(Authctxt *authctxt)
 
 /* side effect: sets authctxt->postponed if a reply was sent*/
 static int
-auth2_challenge_start(Authctxt *authctxt)
+auth2_challenge_start(struct ssh *ssh)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	KbdintAuthctxt *kbdintctxt = authctxt->kbdintctxt;
 
 	debug2("auth2_challenge_start: devices %s",
 	    kbdintctxt->devices ?  kbdintctxt->devices : "<empty>");
 
 	if (kbdint_next_device(authctxt, kbdintctxt) == 0) {
-		auth2_challenge_stop(authctxt);
+		auth2_challenge_stop(ssh);
 		return 0;
 	}
 	debug("auth2_challenge_start: trying authentication method '%s'",
 	    kbdintctxt->device->name);
 
 	if ((kbdintctxt->ctxt = kbdintctxt->device->init_ctx(authctxt)) == NULL) {
-		auth2_challenge_stop(authctxt);
+		auth2_challenge_stop(ssh);
 		return 0;
 	}
 	if (send_userauth_info_request(authctxt) == 0) {
-		auth2_challenge_stop(authctxt);
+		auth2_challenge_stop(ssh);
 		return 0;
 	}
-	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE,
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_INFO_RESPONSE,
 	    &input_userauth_info_response);
 
 	authctxt->postponed = 1;
@@ -340,14 +343,14 @@ input_userauth_info_response(int type, u_int32_t seq, struct ssh *ssh)
 	devicename = kbdintctxt->device->name;
 	if (!authctxt->postponed) {
 		if (authenticated) {
-			auth2_challenge_stop(authctxt);
+			auth2_challenge_stop(ssh);
 		} else {
 			/* start next device */
 			/* may set authctxt->postponed */
-			auth2_challenge_start(authctxt);
+			auth2_challenge_start(ssh);
 		}
 	}
-	userauth_finish(authctxt, authenticated, "keyboard-interactive",
+	userauth_finish(ssh, authenticated, "keyboard-interactive",
 	    devicename);
 	return 0;
 }

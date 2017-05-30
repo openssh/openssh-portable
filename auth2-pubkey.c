@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.64 2017/05/30 14:10:53 markus Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.65 2017/05/30 14:29:59 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -75,9 +75,9 @@ extern u_char *session_id2;
 extern u_int session_id2_len;
 
 static int
-userauth_pubkey(Authctxt *authctxt)
+userauth_pubkey(struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
+	Authctxt *authctxt = ssh->authctxt;
 	struct sshbuf *b;
 	struct sshkey *key = NULL;
 	char *pkalg, *userstyle = NULL, *fp = NULL;

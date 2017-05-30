@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.139 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: auth2.c,v 1.140 2017/05/30 14:29:59 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -170,9 +170,9 @@ do_authentication2(Authctxt *authctxt)
 {
 	struct ssh *ssh = active_state;		/* XXX */
 	ssh->authctxt = authctxt;		/* XXX move to caller */
-	dispatch_init(&dispatch_protocol_error);
-	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
-	dispatch_run(DISPATCH_BLOCK, &authctxt->success, ssh);
+	ssh_dispatch_init(ssh, &dispatch_protocol_error);
+	ssh_dispatch_set(ssh, SSH2_MSG_SERVICE_REQUEST, &input_service_request);
+	ssh_dispatch_run(ssh, DISPATCH_BLOCK, &authctxt->success, ssh);
 	ssh->authctxt = NULL;
 }
 
@@ -193,7 +193,7 @@ input_service_request(int type, u_int32_t seq, struct ssh *ssh)
 		if (!authctxt->success) {
 			acceptit = 1;
 			/* now we can handle user-auth requests */
-			dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &input_userauth_request);
+			ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_REQUEST, &input_userauth_request);
 		}
 	}
 	/* XXX all other service requests are denied */
@@ -269,12 +269,12 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		    authctxt->user, authctxt->service, user, service);
 	}
 	/* reset state */
-	auth2_challenge_stop(authctxt);
+	auth2_challenge_stop(ssh);
 
 #ifdef GSSAPI
 	/* XXX move to auth2_gssapi_stop() */
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
-	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
 #endif
 
 	authctxt->postponed = 0;
@@ -284,9 +284,9 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	m = authmethod_lookup(authctxt, method);
 	if (m != NULL && authctxt->failures < options.max_authtries) {
 		debug2("input_userauth_request: try method %s", method);
-		authenticated =	m->userauth(authctxt);
+		authenticated =	m->userauth(ssh);
 	}
-	userauth_finish(authctxt, authenticated, method, NULL);
+	userauth_finish(ssh, authenticated, method, NULL);
 
 	free(service);
 	free(user);
@@ -295,10 +295,10 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 void
-userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
+userauth_finish(struct ssh *ssh, int authenticated, const char *method,
     const char *submethod)
 {
-	struct ssh *ssh = active_state;	/* XXX */
+	Authctxt *authctxt = ssh->authctxt;
 	char *methods;
 	int partial = 0;
 
@@ -354,7 +354,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, const char *method,
 
 	if (authenticated == 1) {
 		/* turn off userauth */
-		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &dispatch_protocol_ignore);
+		ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_REQUEST, &dispatch_protocol_ignore);
 		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
 		packet_send();
 		packet_write_wait();
