@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.361 2017/05/26 19:35:50 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.362 2017/05/30 08:49:58 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3191,7 +3191,7 @@ channel_cancel_lport_listener(struct Forward *fwd, int cport, struct ForwardOpti
 		return channel_cancel_lport_listener_tcpip(fwd->listen_host, fwd->listen_port, cport, fwd_opts);
 }
 
-/* protocol local port fwd, used by ssh (and sshd in v1) */
+/* protocol local port fwd, used by ssh */
 int
 channel_setup_local_fwd_listener(struct Forward *fwd, struct ForwardOptions *fwd_opts)
 {
