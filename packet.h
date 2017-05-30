@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.79 2017/05/03 21:08:09 naddy Exp $ */
+/* $OpenBSD: packet.h,v 1.80 2017/05/30 14:18:15 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -76,6 +76,9 @@ struct ssh {
 	/* Lists for private and public keys */
 	TAILQ_HEAD(, key_entry) private_keys;
 	TAILQ_HEAD(, key_entry) public_keys;
+
+	/* Client/Server authentication context */
+	void *authctxt;
 
 	/* APP data */
 	void *app_data;
