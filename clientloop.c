@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.298 2017/05/31 07:00:13 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.299 2017/05/31 09:15:42 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1812,9 +1812,9 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 	/* This line contained a key that not offered by the server */
 	debug3("%s: deprecated %s key at %s:%ld", __func__,
 	    sshkey_ssh_name(l->key), l->path, l->linenum);
-	if ((tmp = reallocarray(ctx->old_keys, ctx->nold + 1,
+	if ((tmp = recallocarray(ctx->old_keys, ctx->nold, ctx->nold + 1,
 	    sizeof(*ctx->old_keys))) == NULL)
-		fatal("%s: reallocarray failed nold = %zu",
+		fatal("%s: recallocarray failed nold = %zu",
 		    __func__, ctx->nold);
 	ctx->old_keys = tmp;
 	ctx->old_keys[ctx->nold++] = l->key;
@@ -2046,9 +2046,9 @@ client_input_hostkeys(void)
 			}
 		}
 		/* Key is good, record it */
-		if ((tmp = reallocarray(ctx->keys, ctx->nkeys + 1,
+		if ((tmp = recallocarray(ctx->keys, ctx->nkeys, ctx->nkeys + 1,
 		    sizeof(*ctx->keys))) == NULL)
-			fatal("%s: reallocarray failed nkeys = %zu",
+			fatal("%s: recallocarray failed nkeys = %zu",
 			    __func__, ctx->nkeys);
 		ctx->keys = tmp;
 		ctx->keys[ctx->nkeys++] = key;

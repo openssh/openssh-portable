@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.65 2017/05/30 14:29:59 markus Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.66 2017/05/31 09:15:42 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1156,9 +1156,10 @@ auth2_record_userkey(Authctxt *authctxt, struct sshkey *key)
 	struct sshkey **tmp;
 
 	if (authctxt->nprev_userkeys >= INT_MAX ||
-	    (tmp = reallocarray(authctxt->prev_userkeys,
-	    authctxt->nprev_userkeys + 1, sizeof(*tmp))) == NULL)
-		fatal("%s: reallocarray failed", __func__);
+	    (tmp = recallocarray(authctxt->prev_userkeys,
+	    authctxt->nprev_userkeys, authctxt->nprev_userkeys + 1,
+	    sizeof(*tmp))) == NULL)
+		fatal("%s: recallocarray failed", __func__);
 	authctxt->prev_userkeys = tmp;
 	authctxt->prev_userkeys[authctxt->nprev_userkeys] = key;
 	authctxt->nprev_userkeys++;
