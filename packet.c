@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.257 2017/05/31 08:09:45 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.258 2017/05/31 08:58:52 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -570,7 +570,6 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 	state->initialized = 0;
 	if (do_close) {
 		if (state->connection_in == state->connection_out) {
-			shutdown(state->connection_out, SHUT_RDWR);
 			close(state->connection_out);
 		} else {
 			close(state->connection_in);
