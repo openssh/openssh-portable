@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.363 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.364 2017/05/31 00:43:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1075,9 +1075,11 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	buffer_get(&c->input, (char *)&s4_req.dest_addr, 4);
 	have = buffer_len(&c->input);
 	p = (char *)buffer_ptr(&c->input);
-	if (memchr(p, '\0', have) == NULL)
-		fatal("channel %d: decode socks4: user not nul terminated",
+	if (memchr(p, '\0', have) == NULL) {
+		error("channel %d: decode socks4: user not nul terminated",
 		    c->self);
+		return -1;
+	}
 	len = strlen(p);
 	debug2("channel %d: decode socks4: user %s/%d", c->self, p, len);
 	len++;					/* trailing '\0' */
@@ -1095,13 +1097,15 @@ channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 	} else {				/* SOCKS4A: two strings */
 		have = buffer_len(&c->input);
 		p = (char *)buffer_ptr(&c->input);
+		if (memchr(p, '\0', have) == NULL) {
+			error("channel %d: decode socks4a: host not nul "
+			    "terminated", c->self);
+			return -1;
+		}
 		len = strlen(p);
 		debug2("channel %d: decode socks4a: host %s/%d",
 		    c->self, p, len);
 		len++;				/* trailing '\0' */
-		if (len > have)
-			fatal("channel %d: decode socks4a: len %d > have %d",
-			    c->self, len, have);
 		if (len > NI_MAXHOST) {
 			error("channel %d: hostname \"%.100s\" too long",
 			    c->self, p);
