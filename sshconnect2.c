@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.261 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.262 2017/05/31 05:08:46 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -703,9 +703,8 @@ userauth_gssapi(Authctxt *authctxt)
 }
 
 static OM_uint32
-process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
+process_gssapi_token(struct ssh *ssh, gss_buffer_t recv_tok)
 {
-	struct ssh *ssh = ctxt;
 	Authctxt *authctxt = ssh->authctxt;
 	Gssctxt *gssctxt = authctxt->methoddata;
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
@@ -789,7 +788,7 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 
 	free(oidv);
 
-	if (GSS_ERROR(process_gssapi_token(ctxt, GSS_C_NO_BUFFER))) {
+	if (GSS_ERROR(process_gssapi_token(ssh, GSS_C_NO_BUFFER))) {
 		/* Start again with next method on list */
 		debug("Trying to start again");
 		userauth(authctxt, NULL);
@@ -815,7 +814,7 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 
 	packet_check_eom();
 
-	status = process_gssapi_token(ctxt, &recv_tok);
+	status = process_gssapi_token(ssh, &recv_tok);
 
 	free(recv_tok.value);
 
