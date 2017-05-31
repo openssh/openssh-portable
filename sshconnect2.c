@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.262 2017/05/31 05:08:46 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.263 2017/05/31 07:00:13 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -217,7 +217,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	kex->server_version_string=server_version_string;
 	kex->verify_host_key=&verify_host_key_callback;
 
-	dispatch_run(DISPATCH_BLOCK, &kex->done, active_state);
+	ssh_dispatch_run_fatal(active_state, DISPATCH_BLOCK, &kex->done);
 
 	/* remove ext-info from the KEX proposals for rekeying */
 	myproposal[PROPOSAL_KEX_ALGS] =
@@ -401,7 +401,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	ssh_dispatch_init(ssh, &input_userauth_error);
 	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &input_userauth_ext_info);
 	ssh_dispatch_set(ssh, SSH2_MSG_SERVICE_ACCEPT, &input_userauth_service_accept);
-	ssh_dispatch_run(ssh, DISPATCH_BLOCK, &authctxt.success, ssh);	/* loop until success */
+	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &authctxt.success);	/* loop until success */
 	ssh->authctxt = NULL;
 
 	pubkey_cleanup(&authctxt);

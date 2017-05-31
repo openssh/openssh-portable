@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.192 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.193 2017/05/31 07:00:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -323,7 +323,7 @@ process_output(fd_set *writeset, int connection_out)
 static void
 process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, NULL, active_state);
+	ssh_dispatch_run_fatal(active_state, DISPATCH_NONBLOCK, NULL);
 }
 
 static void

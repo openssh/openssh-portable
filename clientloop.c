@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.297 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.298 2017/05/31 07:00:13 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1167,7 +1167,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 static void
 client_process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, &quit_pending, active_state);
+	ssh_dispatch_run_fatal(active_state, DISPATCH_NONBLOCK, &quit_pending);
 }
 
 /* scan buf[] for '~' before sending data to the peer */

@@ -1,4 +1,4 @@
-/* $OpenBSD: dispatch.c,v 1.30 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: dispatch.c,v 1.31 2017/05/31 07:00:13 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -85,8 +85,7 @@ ssh_dispatch_set(struct ssh *ssh, int type, dispatch_fn *fn)
 }
 
 int
-ssh_dispatch_run(struct ssh *ssh, int mode, volatile sig_atomic_t *done,
-    void *ctxt)
+ssh_dispatch_run(struct ssh *ssh, int mode, volatile sig_atomic_t *done)
 {
 	int r;
 	u_char type;
@@ -111,8 +110,7 @@ ssh_dispatch_run(struct ssh *ssh, int mode, volatile sig_atomic_t *done,
 				ssh->dispatch_skip_packets--;
 				continue;
 			}
-			/* XXX 'ssh' will replace 'ctxt' later */
-			r = (*ssh->dispatch[type])(type, seqnr, ctxt);
+			r = (*ssh->dispatch[type])(type, seqnr, ssh);
 			if (r != 0)
 				return r;
 		} else {
@@ -128,11 +126,10 @@ ssh_dispatch_run(struct ssh *ssh, int mode, volatile sig_atomic_t *done,
 }
 
 void
-ssh_dispatch_run_fatal(struct ssh *ssh, int mode, volatile sig_atomic_t *done,
-    void *ctxt)
+ssh_dispatch_run_fatal(struct ssh *ssh, int mode, volatile sig_atomic_t *done)
 {
 	int r;
 
-	if ((r = ssh_dispatch_run(ssh, mode, done, ctxt)) != 0)
+	if ((r = ssh_dispatch_run(ssh, mode, done)) != 0)
 		sshpkt_fatal(ssh, __func__, r);
 }
