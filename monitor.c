@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.169 2017/05/30 14:10:53 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.170 2017/05/31 08:09:45 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1582,6 +1582,17 @@ mm_answer_audit_command(int socket, Buffer *m)
 	return (0);
 }
 #endif /* SSH_AUDIT_EVENTS */
+
+void
+monitor_clear_keystate(struct monitor *pmonitor)
+{
+	struct ssh *ssh = active_state;	/* XXX */
+
+	ssh_clear_newkeys(ssh, MODE_IN);
+	ssh_clear_newkeys(ssh, MODE_OUT);
+	sshbuf_free(child_state);
+	child_state = NULL;
+}
 
 void
 monitor_apply_keystate(struct monitor *pmonitor)

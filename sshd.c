@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.489 2017/05/31 07:00:13 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.490 2017/05/31 08:09:45 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -649,6 +649,7 @@ privsep_postauth(Authctxt *authctxt)
 	else if (pmonitor->m_pid != 0) {
 		verbose("User child is on pid %ld", (long)pmonitor->m_pid);
 		buffer_clear(&loginmsg);
+		monitor_clear_keystate(pmonitor);
 		monitor_child_postauth(pmonitor);
 
 		/* NEVERREACHED */
@@ -2032,6 +2033,7 @@ main(int ac, char **av)
 	 */
 	if (use_privsep) {
 		mm_send_keystate(pmonitor);
+		packet_clear_keys();
 		exit(0);
 	}
 

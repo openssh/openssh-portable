@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.286 2016/11/30 03:00:05 djm Exp $ */
+/* $OpenBSD: session.c,v 1.287 2017/05/31 08:09:45 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1486,6 +1486,7 @@ do_child(Session *s, const char *command)
 
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
+	packet_clear_keys();
 
 	/* Force a password change */
 	if (s->authctxt->force_pwchange) {

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.34 2017/05/30 14:10:53 markus Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.35 2017/05/31 08:09:45 markus Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -34,7 +34,6 @@ extern int use_privsep;
 enum mm_keytype { MM_NOKEY, MM_HOSTKEY, MM_USERKEY };
 
 struct monitor;
-struct mm_master;
 struct Authctxt;
 
 void mm_log_handler(LogLevel, const char *, void *);
@@ -86,6 +85,7 @@ void mm_session_pty_cleanup2(struct Session *);
 struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
+void monitor_clear_keystate(struct monitor *);
 void monitor_apply_keystate(struct monitor *);
 void mm_get_keystate(struct monitor *);
 void mm_send_keystate(struct monitor*);
