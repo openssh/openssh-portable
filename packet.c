@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.258 2017/05/31 08:58:52 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.259 2017/06/01 06:16:43 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -813,7 +813,7 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 void
 ssh_clear_newkeys(struct ssh *ssh, int mode)
 {
-	if (ssh->kex && ssh->kex->newkeys) {
+	if (ssh->kex && ssh->kex->newkeys[mode]) {
 		kex_free_newkeys(ssh->kex->newkeys[mode]);
 		ssh->kex->newkeys[mode] = NULL;
 	}
@@ -829,19 +829,17 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	struct sshcipher_ctx **ccp;
 	struct packet_state *ps;
 	u_int64_t *max_blocks;
-	const char *wmsg, *dir;
+	const char *wmsg;
 	int r, crypt_type;
 
 	debug2("set_newkeys: mode %d", mode);
 
 	if (mode == MODE_OUT) {
-		dir = "output";
 		ccp = &state->send_context;
 		crypt_type = CIPHER_ENCRYPT;
 		ps = &state->p_send;
 		max_blocks = &state->max_blocks_out;
 	} else {
-		dir = "input";
 		ccp = &state->receive_context;
 		crypt_type = CIPHER_DECRYPT;
 		ps = &state->p_read;
