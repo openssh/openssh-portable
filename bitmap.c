@@ -87,10 +87,10 @@ reserve(struct bitmap *b, u_int n)
 		return -1; /* invalid */
 	nlen = (n / BITMAP_BITS) + 1;
 	if (b->len < nlen) {
-		if ((tmp = recallocarray(b->d, b->len, nlen, BITMAP_BYTES)) == NULL)
+		if ((tmp = recallocarray(b->d, b->len,
+		    nlen, BITMAP_BYTES)) == NULL)
 			return -1;
 		b->d = tmp;
-		memset(b->d + b->len, 0, (nlen - b->len) * BITMAP_BYTES);
 		b->len = nlen;
 	}
 	return 0;
