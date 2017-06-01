@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.c,v 1.10 2017/05/31 09:15:42 deraadt Exp $	*/
+/*	$OpenBSD: sshbuf.c,v 1.11 2017/06/01 06:58:25 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -201,8 +201,8 @@ sshbuf_reset(struct sshbuf *buf)
 			buf->cd = buf->d = d;
 			buf->alloc = SSHBUF_SIZE_INIT;
 		}
-	} else
-		explicit_bzero(buf->d, SSHBUF_SIZE_INIT);
+	}
+	explicit_bzero(buf->d, SSHBUF_SIZE_INIT);
 }
 
 size_t
