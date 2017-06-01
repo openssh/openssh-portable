@@ -9,6 +9,7 @@ openbsd-compat/regress/Makefile
 openssh.xml
 opensshd.init
 survey.sh
+**/*.0
 **/*.o
 **/*.out
 **/*.a
