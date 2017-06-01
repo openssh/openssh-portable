@@ -189,7 +189,7 @@ bitmap_from_string(struct bitmap *b, const void *p, size_t l)
 {
 	int r;
 	size_t i, offset, shift;
-	u_char *s = (u_char *)p;
+	const u_char *s = (const u_char *)p;
 
 	if (l > BITMAP_MAX / 8)
 		return -1;
