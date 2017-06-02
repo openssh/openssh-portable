@@ -1095,7 +1095,8 @@ start_withno_pty(wchar_t *command)
 	PROCESS_INFORMATION pi;
 	wchar_t cmd[MAX_CMD_LEN];
 	SECURITY_ATTRIBUTES sa;
-	BOOL ret;
+	BOOL ret, process_input = FALSE, run_under_cmd = FALSE;
+	size_t command_len;
 	char buf[128];
 	DWORD rd = 0, wr = 0, i = 0;
 
@@ -1124,16 +1125,60 @@ start_withno_pty(wchar_t *command)
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(child_pipe_write, HANDLE_FLAG_INHERIT, 0));
 
-	/*TODO - pick this up from system32*/
-	cmd[0] = L'\0';
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
-	if (command) {
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
+	/*
+	* check if the input needs to be processed (ex for CRLF translation)
+	* input stream needs to be processed when running the command
+	* within shell processor. This is needed when
+	*  - launching a interactive shell (-nopty)
+	*    ssh -T user@target
+	*  - launching cmd explicity
+	*    ssh user@target cmd
+	*  - executing a cmd command
+	*    ssh user@target dir
+	*  - executing a cmd command within a cmd
+	*    ssh user@target cmd /c dir
+	*/
+
+	if (!command)
+		process_input = TRUE;
+	else {
+		command_len = wcsnlen_s(command, MAX_CMD_LEN);
+		if ((command_len >= 3 && wcsncmp(command, L"cmd", 4) == 0) ||
+		    (command_len >= 7 && wcsncmp(command, L"cmd.exe", 8) == 0) ||
+		    (command_len >= 4 && wcsncmp(command, L"cmd ", 4) == 0) ||
+		    (command_len >= 8 && wcsncmp(command, L"cmd.exe ", 8) == 0))
+			process_input = TRUE;
 	}
+
+	/* Try launching command as is first */
+	if (command) {
+		ret = CreateProcessW(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+		if (ret == FALSE) {
+			/* it was probably this case - ssh user@target dir */
+			if (GetLastError() == ERROR_FILE_NOT_FOUND)
+				run_under_cmd = TRUE;
+			else
+				goto cleanup;
+		}
+	}
+	else
+		run_under_cmd = TRUE;
+
+	/* if above failed with FILE_NOT_FOUND, try running the provided command under cmd*/
+	if (run_under_cmd) {
+		/*TODO - pick this up from system32*/
+		cmd[0] = L'\0';
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
+		if (command) {
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
+		}
 	
-	GOTO_CLEANUP_ON_FALSE(CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi));
+		GOTO_CLEANUP_ON_FALSE(CreateProcessW(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi));
+		/* Create process succeeded when running under cmd. input stream needs to be processed */
+		process_input = TRUE;
+	}
 	
 	/* close unwanted handles*/
 	CloseHandle(child_pipe_read);
@@ -1152,6 +1197,12 @@ start_withno_pty(wchar_t *command)
 		rd = wr = i = 0;
 		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf)-1, &rd, NULL));
 
+		if (process_input == FALSE) {
+			/* write stream directly to child stdin */
+			GOTO_CLEANUP_ON_FALSE(WriteFile(child_pipe_write, buf, rd, &wr, NULL));
+			continue;
+		}
+		/* else - process input before routing it to child */
 		while (i < rd) {
 			/* skip arrow keys */
 			if ((rd - i >= 3) && (buf[i] == '\033') && (buf[i + 1] == '[') &&
