@@ -164,15 +164,18 @@ WARNING: Following changes will be made to OpenSSH configuration
         #workaround for the cariggage new line added by git before copy them
         (Get-Content $_.FullName -Raw).Replace("`r`n","`n") | Set-Content $_.FullName -Force
         Adjust-HostKeyFileACL -FilePath $_.FullName
+        if (-not ($_.Name.EndsWith(".pub"))) {
+            Add-PermissionToFileACL -FilePath $_.FullName -User "NT Service\sshd" -Perm "Read"
+        }
     }
 
     #register host keys with agent
-    Get-ChildItem "$($script:OpenSSHBinPath)\sshtest*hostkey*"| % {
+    <#Get-ChildItem "$($script:OpenSSHBinPath)\sshtest*hostkey*"| % {
         if (-not ($_.Name.EndsWith(".pub"))) {
-            $cmd = "cmd /c `"$env:ProgramData\chocolatey\lib\sysinternals\tools\psexec -accepteula -nobanner -s -w $($script:OpenSSHBinPath) ssh-add $_ 2> tmp.txt`""
-            iex $cmd
+            & "$env:ProgramData\chocolatey\lib\sysinternals\tools\psexec" -accepteula -nobanner -i -s -w $($script:OpenSSHBinPath) cmd.exe /c "ssh-add $_"
+            Add-PermissionToFileACL -FilePath $_.FullName -User "NT Service\sshd" -Perm "Read"
         }
-    }
+    }#>
     Restart-Service sshd -Force
    
     #Backup existing known_hosts and replace with test version
