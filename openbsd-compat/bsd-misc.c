@@ -211,6 +211,11 @@ tcsendbreak(int fd, int duration)
 }
 #endif /* HAVE_TCSENDBREAK */
 
+/* 
+ * This is not a BSD routine. Why is this here? 
+ * Macro added to override this implementation for Windows
+ */
+#ifndef HAVE_MYSIGNAL 
 mysig_t
 mysignal(int sig, mysig_t act)
 {
@@ -237,6 +242,7 @@ mysignal(int sig, mysig_t act)
 	return (signal(sig, act));
 #endif
 }
+#endif
 
 #ifndef HAVE_STRDUP
 char *

@@ -81,7 +81,12 @@ static const char unit[] = " KMGT";
 static int
 can_output(void)
 {
+#ifdef WINDOWS
+	/* TODO - confirm this is always true */
+	return 1;
+#else /* !WINDOWS */
 	return (getpgrp() == tcgetpgrp(STDOUT_FILENO));
+#endif /* !WINDOWS */
 }
 
 static void

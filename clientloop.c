@@ -1065,6 +1065,9 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				continue;
 
 			case '&':
+#ifdef WINDOWS
+				fatal("Background execution is not supported in Windows");
+#else /* !WINDOWS */
 				if (c && c->ctl_chan != -1)
 					goto noescape;
 				/*
@@ -1097,6 +1100,7 @@ process_escapes(Channel *c, Buffer *bin, Buffer *bout, Buffer *berr,
 				buffer_append(bin, "\004", 1);
 				/* fake EOF on stdin */
 				return -1;
+#endif /* !WINDOWS */
 			case '?':
 				print_escape_help(berr, efc->escape_char,
 				    (c && c->ctl_chan != -1),

@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sshfileperm.h>
 #ifdef USE_SYSTEM_GLOB
 # include <glob.h>
 #else
@@ -479,6 +480,10 @@ static int
 execute_in_shell(const char *cmd)
 {
 	char *shell;
+#ifdef WINDOWS
+	fatal("LocalCommand execution is not supported on Windows yet");
+	return 0;
+#else /* !WINDOWS */
 	pid_t pid;
 	int devnull, status;
 	extern uid_t original_real_uid;
@@ -536,6 +541,7 @@ execute_in_shell(const char *cmd)
 	}
 	debug3("command returned status %d", WEXITSTATUS(status));
 	return WEXITSTATUS(status);
+#endif /* !WINDOWS */
 }
 
 /*
@@ -1707,7 +1713,16 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
 
-	if (flags & SSHCONF_CHECKPERM) {
+	if (flags & SSHCONF_CHECKPERM) {		
+#if WINDOWS
+		/*
+		file permissions are designed differently on windows.
+		implementation on windows to make sure the config file is owned by a user, administrators group, or LOCALSYSTEM account
+		and nobody else except Administrators group, LOCALSYSTEM, and file owner account has the write permission
+		*/
+		if (check_secure_file_permission(filename, pw) != 0)
+			fatal("Bad owner or permissions on %s", filename);
+#else
 		struct stat sb;
 
 		if (fstat(fileno(f), &sb) == -1)
@@ -1715,7 +1730,9 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		if (((sb.st_uid != 0 && sb.st_uid != getuid()) ||
 		    (sb.st_mode & 022) != 0))
 			fatal("Bad owner or permissions on %s", filename);
+#endif /* !WINDOWS */
 	}
+
 
 	debug("Reading configuration data %.200s", filename);
 

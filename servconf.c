@@ -604,7 +604,12 @@ derelativise_path(const char *path)
 	if (strcasecmp(path, "none") == 0)
 		return xstrdup("none");
 	expanded = tilde_expand_filename(path, getuid());
+#ifdef WINDOWS
+        /* Windows absolute paths have a drive letter followed by :*/
+	if (*expanded != '\0' && expanded[1] == ':')
+#else  /* !WINDOWS */
 	if (*expanded == '/')
+#endif  /* !WINDOWS */
 		return expanded;
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));

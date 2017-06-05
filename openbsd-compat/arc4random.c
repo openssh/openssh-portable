@@ -78,6 +78,19 @@ _rs_init(u_char *buf, size_t n)
 }
 
 #ifndef WITH_OPENSSL
+#ifdef WINDOWS
+#include <Wincrypt.h>
+static void
+getrnd(u_char *s, size_t len) {
+	HCRYPTPROV hProvider;
+	if (CryptAcquireContextW(&hProvider, 0, 0, PROV_RSA_FULL, 
+		CRYPT_VERIFYCONTEXT | CRYPT_SILENT) == FALSE ||
+	    CryptGenRandom(hProvider, len, s) == FALSE ||
+	    CryptReleaseContext(hProvider, 0) == FALSE)
+		fatal("%s Crypto error: %d", __func__, GetLastError());
+}
+
+#else /* !WINDOWS */
 #define SSH_RANDOM_DEV "/dev/urandom"
 /* XXX use getrandom() if supported on Linux */
 static void
@@ -101,6 +114,7 @@ getrnd(u_char *s, size_t len)
 	}
 	close(fd);
 }
+#endif /* !WINDOWS */
 #endif
 
 static void
