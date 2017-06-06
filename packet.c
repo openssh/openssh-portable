@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.259 2017/06/01 06:16:43 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.260 2017/06/06 09:12:17 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -600,7 +600,7 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 				deflateEnd(stream);
 		}
 		if (state->compression_in_started) {
-			z_streamp stream = &state->compression_out_stream;
+			z_streamp stream = &state->compression_in_stream;
 			debug("compress incoming: "
 			    "raw data %llu, compressed %llu, factor %.2f",
 			    (unsigned long long)stream->total_out,
