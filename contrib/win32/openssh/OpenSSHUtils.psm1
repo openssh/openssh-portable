@@ -71,7 +71,14 @@ function Fix-AuthorizedKeyPermissions
         {
             $userSid = $profileItem.PSChildName
             $account = Get-UserAccount -UserSid $userSid
-            Fix-FilePermissions -Owners $account,$adminsAccount,$systemAccount -AnyAccessOK $account -ReadAccessNeeded $sshdAccount @psBoundParameters
+            if($account)
+            {
+                Fix-FilePermissions -Owners $account,$adminsAccount,$systemAccount -AnyAccessOK $account -ReadAccessNeeded $sshdAccount @psBoundParameters
+            }
+            else
+            {
+                Write-Warning "Can't translate $userSid to an account. skip $fullPath..." -ForegroundColor Yellow
+            }
         }
         else
         {
@@ -219,6 +226,10 @@ function Fix-FilePermissionInternal {
     #this is orginal list requested by the user, the account will be removed from the list if they already part of the dacl
     $realReadAccessNeeded = $ReadAccessNeeded
 
+    #'APPLICATION PACKAGE AUTHORITY\ALL RESTRICTED APPLICATION PACKAGES'- can't translate fully qualified name. it is a win32 API bug.
+    #'ALL APPLICATION PACKAGES' exists only on Win2k12 and Win2k16 and 'ALL RESTRICTED APPLICATION PACKAGES' exists only in Win2k16
+    $specialIdRefs = "ALL APPLICATION PACKAGES","ALL RESTRICTED APPLICATION PACKAGES"
+
     foreach($a in $acl.Access)
     {
         if(($realAnyAccessOKList -ne $null) -and $realAnyAccessOKList.Contains($a.IdentityReference))
@@ -250,7 +261,7 @@ function Fix-FilePermissionInternal {
             {
                 if($needChange)    
                 {
-                    Set-Acl -Path $FilePath -AclObject $acl     
+                    Set-Acl -Path $FilePath -AclObject $acl
                 }
 
                 $message = @"
@@ -277,9 +288,27 @@ Need to remove inheritance to fix it.
             if($result.ToLower().Startswith('y'))
             {   
                 $needChange = $true
-                $sshAce = New-Object System.Security.AccessControl.FileSystemAccessRule `
-                    ($a.IdentityReference, "Read", "None", "None", "Allow")
-                $acl.SetAccessRule($sshAce)
+                $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
+                if ($idRefShortValue -in $specialIdRefs )
+                {
+                    $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
+                    if($ruleIdentity)
+                    {
+                        $ace = New-Object System.Security.AccessControl.FileSystemAccessRule `
+                            ($ruleIdentity, "Read", "None", "None", "Allow")
+                    }
+                    else
+                    {
+                        Write-Warning "can't translate '$idRefShortValue'. "
+                        continue
+                    }                    
+                }
+                else
+                {
+                    $ace = New-Object System.Security.AccessControl.FileSystemAccessRule `
+                        ($a.IdentityReference, "Read", "None", "None", "Allow")
+                    }
+                $acl.SetAccessRule($ace)
                 Write-Host "'$($a.IdentityReference)' now has Read access to $FilePath. "  -ForegroundColor Green
             }
             else
@@ -320,9 +349,26 @@ Need to remove inheritance to fix it.
             if($result.ToLower().Startswith('y'))
             {   
                 $needChange = $true
-                if(-not ($acl.RemoveAccessRule($a)))
+                $ace = $a
+                $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
+                if ($idRefShortValue -in $specialIdRefs )
+                {                    
+                    $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
+                    if($ruleIdentity)
+                    {
+                        $ace = New-Object System.Security.AccessControl.FileSystemAccessRule `
+                            ($ruleIdentity, $a.FileSystemRights, $a.InheritanceFlags, $a.PropagationFlags, $a.AccessControlType)
+                    }
+                    else
+                    {
+                        Write-Warning "Can't translate '$idRefShortValue'. "
+                        continue
+                    }
+                }
+
+                if(-not ($acl.RemoveAccessRule($ace)))
                 {
-                    throw "failed to remove access of $($a.IdentityReference) rule to file $FilePath"
+                    Write-Warning "failed to remove access of $($a.IdentityReference) rule to file $FilePath"
                 }
                 else
                 {
@@ -341,9 +387,9 @@ Need to remove inheritance to fix it.
     if($realReadAccessNeeded)
     {
         $realReadAccessNeeded | % {
-            if([string]::IsNullOrEmpty((Get-UserSID -User $_)))
+            if((Get-UserSID -User $_) -eq $null)
             {
-                Write-Warning "'$_' needs Read access to $FilePath', but it does not exit on the machine."
+                Write-Warning "'$_' needs Read access to $FilePath', but it can't be translated on the machine."
             }
             else
             {
@@ -463,12 +509,11 @@ function Get-UserSID
     param ([System.Security.Principal.NTAccount]$User)    
     try
     {
-        $strSID = $User.Translate([System.Security.Principal.SecurityIdentifier])
-        $strSID.Value
+        $User.Translate([System.Security.Principal.SecurityIdentifier])        
     }
     catch {
     }
 }
 
 
-Export-ModuleMember -Function Fix-HostSSHDConfigPermissions, Fix-HostKeyPermissions, Fix-AuthorizedKeyPermissions, Fix-UserKeyPermissions, Fix-UserSSHConfigPermissions
+Export-ModuleMember -Function Fix-FilePermissions, Fix-HostSSHDConfigPermissions, Fix-HostKeyPermissions, Fix-AuthorizedKeyPermissions, Fix-UserKeyPermissions, Fix-UserSSHConfigPermissions
