@@ -1,4 +1,5 @@
 ﻿param ([switch]$Quiet)
+If (!(Test-Path variable:PSScriptRoot)) {$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition}
 Import-Module $PSScriptRoot\OpenSSHUtils.psm1 -Force -DisableNameChecking
 
 #check sshd config file
@@ -33,14 +34,19 @@ If you choose not to register the keys with ssh-agent, please grant sshd read ac
     Write-Host " "
 }#>
 
-Get-ChildItem $PSScriptRoot\ssh_host_*_key -ErrorAction Ignore | % {    
+Get-ChildItem $PSScriptRoot\ssh_host_*_key -ErrorAction SilentlyContinue | % {    
     Fix-HostKeyPermissions -FilePath $_.FullName @psBoundParameters
 }
 
 
 #check authorized_keys
-Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"  -ErrorAction Ignore | % {
-    $userProfilePath = Get-ItemPropertyValue $_.pspath -Name ProfileImagePath -ErrorAction Ignore
+Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"  -ErrorAction SilentlyContinue | % {
+    $properties =  Get-ItemProperty $_.pspath  -ErrorAction SilentlyContinue
+    $userProfilePath = ""
+    if($properties)
+    {
+        $userProfilePath =  $properties.ProfileImagePath
+    }
     $filePath = Join-Path $userProfilePath .ssh\authorized_keys
     if(Test-Path $filePath -PathType Leaf)
     {

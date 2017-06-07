@@ -17,7 +17,14 @@ function Fix-HostSSHDConfigPermissions
         [string]$FilePath,
         [switch] $Quiet)
 
-        Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        if ($PSVersionTable.CLRVersion.Major -gt 2)
+        {
+            Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        }
+        else
+        {
+            Fix-FilePermissions -Owners $adminsAccount, $systemAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        }
 }
 
 <#
@@ -38,10 +45,25 @@ function Fix-HostKeyPermissions
         {
             $parameters["FilePath"] = $parameters["FilePath"].Replace(".pub", "")
         }
-        Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        if ($PSVersionTable.CLRVersion.Major -gt 2)
+        {
+            Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        }
+        else
+        {
+            # issue in ps 2.0: system account is not allowed to set to a owner of the file
+            Fix-FilePermissions -Owners $adminsAccount, $systemAccount -ReadAccessNeeded $sshdAccount @psBoundParameters
+        }
         
         $parameters["FilePath"] += ".pub"
-        Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessOK $everyone -ReadAccessNeeded $sshdAccount @parameters
+        if ($PSVersionTable.CLRVersion.Major -gt 2)
+        {
+            Fix-FilePermissions -Owners $systemAccount,$adminsAccount -ReadAccessOK $everyone -ReadAccessNeeded $sshdAccount @parameters
+        }
+        else
+        {
+            Fix-FilePermissions -Owners $adminsAccount,$systemAccount -ReadAccessOK $everyone -ReadAccessNeeded $sshdAccount @parameters
+        }
 }
 
 <#
@@ -64,8 +86,14 @@ function Fix-AuthorizedKeyPermissions
         }
         $fullPath = (Resolve-Path $FilePath).Path
         $profileListPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
-        $profileItem = Get-ChildItem $profileListPath  -ErrorAction Ignore | ? { 
-            $fullPath.ToLower().Contains((Get-ItemPropertyValue $_.PSPath -Name ProfileImagePath -ErrorAction Ignore).Tolower())
+        $profileItem = Get-ChildItem $profileListPath  -ErrorAction SilentlyContinue | ? {
+            $properties =  Get-ItemProperty $_.pspath  -ErrorAction SilentlyContinue
+            $userProfilePath = $null
+            if($properties)
+            {
+                $userProfilePath =  $properties.ProfileImagePath
+            }
+            $fullPath -ieq "$userProfilePath\.ssh\authorized_keys"
         }
         if($profileItem)
         {
@@ -77,7 +105,7 @@ function Fix-AuthorizedKeyPermissions
             }
             else
             {
-                Write-Warning "Can't translate $userSid to an account. skip $fullPath..." -ForegroundColor Yellow
+                Write-host "Can't translate $userSid to an account. skip checking $fullPath..." -ForegroundColor Yellow
             }
         }
         else
@@ -186,7 +214,9 @@ function Fix-FilePermissionInternal {
         $result = 'Y'
     }
     
-    if(-not $Owners.Contains([System.Security.Principal.NTAccount]$($acl.Owner)))
+    $validOwner = $owners | ? { $_.equals([System.Security.Principal.NTAccount]$acl.owner)}
+
+    if($validOwner -eq $null)
     {
         if (-not $Quiet) {
             $warning = "Current owner: '$($acl.Owner)'. '$($Owners[0])' should own $FilePath."
@@ -231,23 +261,23 @@ function Fix-FilePermissionInternal {
     $specialIdRefs = "ALL APPLICATION PACKAGES","ALL RESTRICTED APPLICATION PACKAGES"
 
     foreach($a in $acl.Access)
-    {
-        if(($realAnyAccessOKList -ne $null) -and $realAnyAccessOKList.Contains($a.IdentityReference))
+    {        
+        if($realAnyAccessOKList -and (($realAnyAccessOKList | ? { $_.equals($a.IdentityReference)}) -ne $null))
         {
             #ignore those accounts listed in the AnyAccessOK list.
         }
         #If everyone is in the ReadAccessOK list, any user can have read access;
         # below block make sure they are granted Read access only
-        elseif($realReadAcessOKList -and (($realReadAcessOKList.Contains($everyone)) -or `
-             ($realReadAcessOKList.Contains($a.IdentityReference))))
+        elseif($realReadAcessOKList -and (($realReadAcessOKList | ? { $_.Equals($everyone)}) -ne $null) -or `
+             (($realReadAcessOKList | ? { $_.equals($a.IdentityReference)}) -ne $null))
         {
             if($realReadAccessNeeded -and ($a.IdentityReference.Equals($everyone)))
             {
-                $realReadAccessNeeded.Clear()
+                $realReadAccessNeeded=@()
             }
-            elseif($realReadAccessNeeded -and $realReadAccessNeeded.Contains($a.IdentityReference))
+            elseif($realReadAccessNeeded)
             {
-                    $realReadAccessNeeded = $realReadAccessNeeded | ? { -not $_.Equals($a.IdentityReference) }
+                $realReadAccessNeeded = $realReadAccessNeeded | ? { -not $_.Equals($a.IdentityReference) }
             }
 
             if (-not ($a.AccessControlType.Equals([System.Security.AccessControl.AccessControlType]::Allow)) -or `
@@ -261,7 +291,7 @@ function Fix-FilePermissionInternal {
             {
                 if($needChange)    
                 {
-                    Set-Acl -Path $FilePath -AclObject $acl
+                    Set-Acl -Path $FilePath -AclObject $acl     
                 }
 
                 $message = @"
@@ -289,7 +319,7 @@ Need to remove inheritance to fix it.
             {   
                 $needChange = $true
                 $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
-                if ($idRefShortValue -in $specialIdRefs )
+                if ($specialIdRefs -icontains $idRefShortValue )
                 {
                     $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
                     if($ruleIdentity)
@@ -351,7 +381,7 @@ Need to remove inheritance to fix it.
                 $needChange = $true
                 $ace = $a
                 $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
-                if ($idRefShortValue -in $specialIdRefs )
+                if ($specialIdRefs -icontains $idRefShortValue)
                 {                    
                     $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
                     if($ruleIdentity)
@@ -509,7 +539,7 @@ function Get-UserSID
     param ([System.Security.Principal.NTAccount]$User)    
     try
     {
-        $User.Translate([System.Security.Principal.SecurityIdentifier])        
+        $User.Translate([System.Security.Principal.SecurityIdentifier])
     }
     catch {
     }
