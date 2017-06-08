@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.286 2016/11/30 03:00:05 djm Exp $ */
+/* $OpenBSD: session.c,v 1.288 2017/05/31 09:15:42 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1740,6 +1740,7 @@ do_child(Session *s, const char *command)
 
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
+	packet_clear_keys();
 
 	/* Force a password change */
 	if (s->authctxt->force_pwchange) {
@@ -1965,8 +1966,8 @@ session_new(void)
 			return NULL;
 		debug2("%s: allocate (allocated %d max %d)",
 		    __func__, sessions_nalloc, options.max_sessions);
-		tmp = xreallocarray(sessions, sessions_nalloc + 1,
-		    sizeof(*sessions));
+		tmp = xrecallocarray(sessions, sessions_nalloc,
+		    sessions_nalloc + 1, sizeof(*sessions));
 		if (tmp == NULL) {
 			error("%s: cannot allocate %d sessions",
 			    __func__, sessions_nalloc + 1);
@@ -2290,8 +2291,8 @@ session_env_req(Session *s)
 	for (i = 0; i < options.num_accept_env; i++) {
 		if (match_pattern(name, options.accept_env[i])) {
 			debug2("Setting env %d: %s=%s", s->num_env, name, val);
-			s->env = xreallocarray(s->env, s->num_env + 1,
-			    sizeof(*s->env));
+			s->env = xrecallocarray(s->env, s->num_env,
+			    s->num_env + 1, sizeof(*s->env));
 			s->env[s->num_env].name = name;
 			s->env[s->num_env].val = val;
 			s->num_env++;
