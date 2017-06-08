@@ -220,7 +220,7 @@ userauth_pubkey(struct ssh *ssh)
 				    (r = sshbuf_put_string(msg, blob, blen)) != 0 ||
 				    (r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
 				    (r = sshbuf_put_string(msg, sig, slen)) != 0 ||
-				    (r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
+				    (r = sshbuf_put_string(msg, sshbuf_ptr(b), sshbuf_len(b))) != 0 ||
 				    (r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
 				    (r = sshbuf_get_u32(msg, &token)) != 0) {
 					debug("auth agent did not authorize client %s", authctxt->user);
