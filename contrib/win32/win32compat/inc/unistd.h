@@ -78,7 +78,7 @@ int daemon(int nochdir, int noclose);
 char *crypt(const char *key, const char *salt);
 int link(const char *oldpath, const char *newpath);
 int readlink(const char *path, char *link, int linklen);
-int spawn_child(char*, char**, int, int, int, DWORD);
+int spawn_child(char*, char**, int, int, int, unsigned long);
 
 /* 
  * readpassphrase.h definitions 

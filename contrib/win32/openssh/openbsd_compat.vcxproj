@@ -30,6 +30,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-closefrom.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cray.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cygwin_util.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-getpagesize.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-getpeereid.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-misc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-nextstep.c" />
@@ -62,6 +63,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\port-uw.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\readpassphrase.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\reallocarray.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\recallocarray.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rmd160.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\rresvport.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\setenv.c" />

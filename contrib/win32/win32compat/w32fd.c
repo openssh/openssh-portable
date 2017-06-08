@@ -899,7 +899,7 @@ w32_fsync(int fd)
 * this decoration is done only when additional arguments are passed in argv
 */
 int
-spawn_child(char* cmd, char** argv, int in, int out, int err, DWORD flags)
+spawn_child(char* cmd, char** argv, int in, int out, int err, unsigned long flags)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
