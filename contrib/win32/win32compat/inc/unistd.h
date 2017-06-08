@@ -4,6 +4,7 @@
 * POSIX header and needed function definitions
 */
 #pragma once
+#include <stddef.h>
 #include "sys\types.h"
 #include "fcntl.h"
 
