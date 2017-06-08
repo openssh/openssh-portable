@@ -1044,58 +1044,63 @@ w32_strerror(int errnum)
 		return _sys_errlist_ext[errnum - EADDRINUSE];
 	return strerror(errnum);
 }
-/* 
- * Temporary implementation of readpassphrase. 
- * TODO - this needs to be reimplemented as per 
- * https://linux.die.net/man/3/readpassphrase
- */
-char * 
-readpassphrase(const char *prompt, char *out, size_t out_len, int flags) {
-	char *askpass = NULL;
-	char *ret = NULL;
 
-	DWORD mode;
-	size_t len = 0;
-	int retr = 0;
+char *
+readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags) {
+	int current_index = 0;
+	char ch;
+	wchar_t* wtmp = NULL;
 
-	/* prompt user */
-	wchar_t* wtmp = utf8_to_utf16(prompt);
+	if (outBufLen == 0) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	while (_kbhit()) _getch();
+
+	wtmp = utf8_to_utf16(prompt);
 	if (wtmp == NULL)
 		fatal("unable to alloc memory");
+
 	_cputws(wtmp);
 	free(wtmp);
 
-	len = retr = 0;
-
-	while (_kbhit())
-		_getch();
-
-	while (len < out_len) {
-		out[len] = (unsigned char)_getch();
-
-		if (out[len] == '\r') {
-			if (_kbhit()) /* read linefeed if its there */
-				_getch();
+	while (current_index < outBufLen - 1) {
+		ch = _getch();
+		
+		if (ch == '\r') {
+			if (_kbhit()) _getch(); /* read linefeed if its there */
 			break;
-		}
-		else if (out[len] == '\n') {
+		} else if (ch == '\n') {
 			break;
-		}
-		else if (out[len] == '\b') { /* backspace */
-			if (len > 0)
-				len--; /* overwrite last character */
-		}
-		else if (out[len] == '\003') {
-			/* exit on Ctrl+C */
+		} else if (ch == '\b') { /* backspace */
+			if (current_index > 0) {
+				if (flags & RPP_ECHO_ON)
+					printf("%c \b", ch);
+
+				current_index--; /* overwrite last character */
+			}
+		} else if (ch == '\003') { /* exit on Ctrl+C */
 			fatal("");
-		}
-		else {
-			len++; /* keep reading in the loop */
+		} else {
+			if (flags & RPP_SEVENBIT)
+				ch &= 0x7f;
+
+			if (isalpha((unsigned char)ch)) {
+				if(flags & RPP_FORCELOWER)
+					ch = tolower((unsigned char)ch);
+				if(flags & RPP_FORCEUPPER)
+					ch = toupper((unsigned char)ch);
+			}
+
+			outBuf[current_index++] = ch;
+			if(flags & RPP_ECHO_ON)
+				printf("%c", ch);
 		}
 	}
 
-	out[len] = '\0'; /* get rid of the cr/lf */
-	_cputs("\n"); /*show a newline as we do not echo password or the line */
+	outBuf[current_index] = '\0';
+	_cputs("\n");
 
-	return out;
+	return outBuf;
 }
