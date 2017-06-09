@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.260 2017/06/06 09:12:17 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.261 2017/06/09 04:40:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -901,6 +901,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	/*
 	 * The 2^(blocksize*2) limit is too expensive for 3DES,
 	 * so enforce a 1GB limit for small blocksizes.
+	 * See RFC4344 section 3.2.
 	 */
 	if (enc->block_size >= 16)
 		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
@@ -944,7 +945,10 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	    (int64_t)state->rekey_time + state->rekey_interval <= monotime())
 		return 1;
 
-	/* Always rekey when MAX_PACKETS sent in either direction */
+	/*
+	 * Always rekey when MAX_PACKETS sent in either direction 
+	 * As per RFC4344 section 3.1 we do this after 2^31 packets.
+	 */
 	if (state->p_send.packets > MAX_PACKETS ||
 	    state->p_read.packets > MAX_PACKETS)
 		return 1;
