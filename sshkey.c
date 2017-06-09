@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.51 2017/05/31 09:15:42 deraadt Exp $ */
+/* $OpenBSD: sshkey.c,v 1.52 2017/06/09 06:40:24 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1331,7 +1331,7 @@ sshkey_to_base64(const struct sshkey *key, char **b64p)
 	return r;
 }
 
-static int
+int
 sshkey_format_text(const struct sshkey *key, struct sshbuf *b)
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -3366,6 +3366,64 @@ sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
 
 #ifdef WITH_OPENSSL
 static int
+translate_libcrypto_error(unsigned long pem_err)
+{
+	int pem_reason = ERR_GET_REASON(pem_err);
+
+	switch (ERR_GET_LIB(pem_err)) {
+	case ERR_LIB_PEM:
+		switch (pem_reason) {
+		case PEM_R_BAD_PASSWORD_READ:
+		case PEM_R_PROBLEMS_GETTING_PASSWORD:
+		case PEM_R_BAD_DECRYPT:
+			return SSH_ERR_KEY_WRONG_PASSPHRASE;
+		default:
+			return SSH_ERR_INVALID_FORMAT;
+		}
+	case ERR_LIB_EVP:
+		switch (pem_reason) {
+		case EVP_R_BAD_DECRYPT:
+			return SSH_ERR_KEY_WRONG_PASSPHRASE;
+		case EVP_R_BN_DECODE_ERROR:
+		case EVP_R_DECODE_ERROR:
+#ifdef EVP_R_PRIVATE_KEY_DECODE_ERROR
+		case EVP_R_PRIVATE_KEY_DECODE_ERROR:
+#endif
+			return SSH_ERR_INVALID_FORMAT;
+		default:
+			return SSH_ERR_LIBCRYPTO_ERROR;
+		}
+	case ERR_LIB_ASN1:
+		return SSH_ERR_INVALID_FORMAT;
+	}
+	return SSH_ERR_LIBCRYPTO_ERROR;
+}
+
+static void
+clear_libcrypto_errors(void)
+{
+	while (ERR_get_error() != 0)
+		;
+}
+
+/*
+ * Translate OpenSSL error codes to determine whether
+ * passphrase is required/incorrect.
+ */
+static int
+convert_libcrypto_error(void)
+{
+	/*
+	 * Some password errors are reported at the beginning
+	 * of the error queue.
+	 */
+	if (translate_libcrypto_error(ERR_peek_error()) ==
+	    SSH_ERR_KEY_WRONG_PASSPHRASE)
+		return SSH_ERR_KEY_WRONG_PASSPHRASE;
+	return translate_libcrypto_error(ERR_peek_last_error());
+}
+
+static int
 sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp)
 {
@@ -3385,48 +3443,10 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 		goto out;
 	}
 
+	clear_libcrypto_errors();
 	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
 	    (char *)passphrase)) == NULL) {
-		unsigned long pem_err = ERR_peek_last_error();
-		int pem_reason = ERR_GET_REASON(pem_err);
-
-		/*
-		 * Translate OpenSSL error codes to determine whether
-		 * passphrase is required/incorrect.
-		 */
-		switch (ERR_GET_LIB(pem_err)) {
-		case ERR_LIB_PEM:
-			switch (pem_reason) {
-			case PEM_R_BAD_PASSWORD_READ:
-			case PEM_R_PROBLEMS_GETTING_PASSWORD:
-			case PEM_R_BAD_DECRYPT:
-				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
-				goto out;
-			default:
-				r = SSH_ERR_INVALID_FORMAT;
-				goto out;
-			}
-		case ERR_LIB_EVP:
-			switch (pem_reason) {
-			case EVP_R_BAD_DECRYPT:
-				r = SSH_ERR_KEY_WRONG_PASSPHRASE;
-				goto out;
-			case EVP_R_BN_DECODE_ERROR:
-			case EVP_R_DECODE_ERROR:
-#ifdef EVP_R_PRIVATE_KEY_DECODE_ERROR
-			case EVP_R_PRIVATE_KEY_DECODE_ERROR:
-#endif
-				r = SSH_ERR_INVALID_FORMAT;
-				goto out;
-			default:
-				r = SSH_ERR_LIBCRYPTO_ERROR;
-				goto out;
-			}
-		case ERR_LIB_ASN1:
-			r = SSH_ERR_INVALID_FORMAT;
-			goto out;
-		}
-		r = SSH_ERR_LIBCRYPTO_ERROR;
+		r = convert_libcrypto_error();
 		goto out;
 	}
 	if (pk->type == EVP_PKEY_RSA &&
