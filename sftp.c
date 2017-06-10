@@ -894,9 +894,15 @@ sglob_comp(const void *aa, const void *bb)
 #define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
 	if (sort_flag & LS_NAME_SORT)
 		return (rmul * strcmp(ap, bp));
-	else if (sort_flag & LS_TIME_SORT)
+	else if (sort_flag & LS_TIME_SORT) {
+#if defined(HAVE_STRUCT_STAT_ST_MTIM)
 		return (rmul * timespeccmp(&as->st_mtim, &bs->st_mtim, <));
-	else if (sort_flag & LS_SIZE_SORT)
+#elif defined(HAVE_STRUCT_STAT_ST_MTIME)
+		return (rmul * NCMP(as->st_mtime, bs->st_mtime));
+#else
+	return rmul * 1;
+#endif
+	} else if (sort_flag & LS_SIZE_SORT)
 		return (rmul * NCMP(as->st_size, bs->st_size));
 
 	fatal("Unknown ls sort type");
