@@ -1,12 +1,14 @@
-﻿param ([switch]$Quiet)
+﻿[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="High")]
+param ()
+Set-StrictMode -Version 2.0
 If (!(Test-Path variable:PSScriptRoot)) {$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition}
-Import-Module $PSScriptRoot\OpenSSHUtils.psm1 -Force -DisableNameChecking
+Import-Module $PSScriptRoot\OpenSSHUtils -Force
 
 #check sshd config file
 $sshdConfigPath = join-path $PSScriptRoot "sshd_config"
 if(Test-Path $sshdConfigPath -PathType Leaf)
 {
-    Fix-HostSSHDConfigPermissions -FilePath $sshdConfigPath @psBoundParameters
+    Repair-SshdConfigPermission -FilePath $sshdConfigPath @psBoundParameters
 }
 else
 {
@@ -14,16 +16,16 @@ else
 }
  
 #check host keys
-<#$result = 'n'
-if (-not $Quiet) {
-    Do
-    {                
-        $input = Read-Host -Prompt "Did you register host private keys with ssh-agent? [Yes] Y; [No] N"    
-    } until ($input -match "^(y(es)?|N(o)?)$")
-    $result = $Matches[0]
-}
+<#
+$warning = @"
+To keep the host private keys secure, it is recommended to register them with ssh-agent following
+steps in link https://github.com/PowerShell/Win32-OpenSSH/wiki/Install-Win32-OpenSSH.
+If you choose not to register the keys with ssh-agent, please grant sshd read access to the private host keys after run this script.
+"@
+$prompt = "Did you register host private keys with ssh-agent?"
+$description = "Grant sshd read access to the private host keys"
 
-if($result.ToLower().Startswith('n'))
+if($pscmdlet.ShouldProcess($description, $prompt, $warning))
 {
     $warning = @"
 To keep the host private keys secure, it is recommended to register them with ssh-agent following
@@ -35,7 +37,7 @@ If you choose not to register the keys with ssh-agent, please grant sshd read ac
 }#>
 
 Get-ChildItem $PSScriptRoot\ssh_host_*_key -ErrorAction SilentlyContinue | % {    
-    Fix-HostKeyPermissions -FilePath $_.FullName @psBoundParameters
+    Repair-SshdHostKeyPermission -FilePath $_.FullName @psBoundParameters
 }
 
 
@@ -50,7 +52,7 @@ Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"  
     $filePath = Join-Path $userProfilePath .ssh\authorized_keys
     if(Test-Path $filePath -PathType Leaf)
     {
-        Fix-AuthorizedKeyPermissions -FilePath $filePath @psBoundParameters
+        Repair-AuthorizedKeyPermission -FilePath $filePath @psBoundParameters
     }
 }
 
