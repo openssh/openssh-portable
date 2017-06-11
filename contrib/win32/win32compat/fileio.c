@@ -131,7 +131,7 @@ fileio_connect(struct w32_io* pio, char* name)
 	}
 	_snwprintf(pipe_name, PATH_MAX, L"\\\\.\\pipe\\%ls", name_w);
 	h = CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, 
-		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT  | SECURITY_IDENTIFICATION, NULL);
 	
 	/* TODO - support nonblocking connect */
 	/* wait until we have a server pipe instance to connect */
@@ -139,6 +139,8 @@ fileio_connect(struct w32_io* pio, char* name)
 		debug4("waiting for agent connection, retrying after 1 sec");
 		if ((ret = wait_for_any_event(NULL, 0, 1000) != 0) != 0)
 			goto cleanup;
+		h = CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0,
+			NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT | SECURITY_IDENTIFICATION, NULL);
 	}
 
 	if (h == INVALID_HANDLE_VALUE) {
