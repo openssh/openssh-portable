@@ -51,7 +51,7 @@ get_user_root(struct agent_connection* con, HKEY *root)
 	*root = HKEY_LOCAL_MACHINE;
 	
 	if (con->client_type <= ADMIN_USER) {
-		if (ImpersonateLoggedOnUser(con->client_impersonation_token == FALSE))
+		if (ImpersonateLoggedOnUser(con->client_impersonation_token) == FALSE)
 			return -1;
 		*root = NULL;
 		/* 
