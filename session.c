@@ -441,7 +441,7 @@ int do_exec_windows(Session *s, const char *command, int pty) {
 				
 				// copy the arguments (if any).
 				if(strlen(command) > strlen(INTERNAL_SFTP_NAME)) {
-					argp = command + strlen(INTERNAL_SFTP_NAME);
+					argp = (char*)command + strlen(INTERNAL_SFTP_NAME);
 					memcpy(cmd, argp, strlen(argp)+1);
 				}
 			} else

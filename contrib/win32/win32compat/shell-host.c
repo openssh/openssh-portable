@@ -123,7 +123,7 @@ struct key_translation keys[] = {
 
 static SHORT lastX = 0;
 static SHORT lastY = 0;
-
+SHORT currentLine = 0;
 consoleEvent* head = NULL;
 consoleEvent* tail = NULL;
 
@@ -132,6 +132,8 @@ BOOL bNoScrollRegion = FALSE;
 BOOL bStartup = TRUE;
 BOOL bAnsi = FALSE;
 BOOL bHookEvents = FALSE;
+BOOL bFullScreen = FALSE;
+BOOL bUseAnsiEmulation = TRUE;
 
 HANDLE child_out = INVALID_HANDLE_VALUE;
 HANDLE child_in = INVALID_HANDLE_VALUE;
@@ -151,21 +153,15 @@ DWORD hostProcessId = 0;
 DWORD hostThreadId = 0;
 DWORD childProcessId = 0;
 DWORD dwStatus = 0;
-DWORD currentLine = 0;
+DWORD in_cmd_len = 0;
 DWORD lastLineLength = 0;
 
 UINT cp = 0;
-
 UINT ViewPortY = 0;
 UINT lastViewPortY = 0;
-
-BOOL bFullScreen = FALSE;
-BOOL bUseAnsiEmulation = TRUE;
-
 UINT savedViewPortY = 0;
 UINT savedLastViewPortY = 0;
 
-DWORD in_cmd_len = 0;
 char in_cmd[MAX_CMD_LEN];
 
 CRITICAL_SECTION criticalSection;
@@ -223,7 +219,7 @@ SendKeyStroke(HANDLE hInput, int keyStroke, char character)
 void 
 ProcessIncomingKeys(char * ansikey)
 {
-	int keylen = (int)strlen(ansikey);
+	int keylen = (int) strlen(ansikey);
 
 	if (!keylen)
 		return;
@@ -403,25 +399,26 @@ SendCharacter(HANDLE hInput, WORD attributes, wchar_t character)
 		1 * ((attributes & BACKGROUND_RED) != 0);
 
 	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, ";%u", Color);
-
-	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, "m", Color);
+	
+	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, ";%c", 'm');
 
 	if (bUseAnsiEmulation && attributes != pattributes)
 		WriteFile(hInput, formatted_output, (DWORD)(Next - formatted_output), &wr, NULL);
 
 	/* East asian languages have 2 bytes for each character, only use the first */
 	if (!(attributes & COMMON_LVB_TRAILING_BYTE)) {
+		char str[10];
 		int nSize = WideCharToMultiByte(CP_UTF8,
 			0,
 			&character,
 			1,
-			Next,
-			10,
+			(LPSTR)str,
+			sizeof(str),
 			NULL,
 			NULL);
 
 		if (nSize > 0)
-			WriteFile(hInput, Next, nSize, &wr, NULL);
+			WriteFile(hInput, str, nSize, &wr, NULL);
 	}
 
 	pattributes = attributes;
@@ -462,7 +459,8 @@ SizeWindow(HANDLE hInput)
 	matchingFont.dwFontSize.Y = 16;
 	matchingFont.FontFamily = FF_DONTCARE;
 	matchingFont.FontWeight = FW_NORMAL;
-	wcscpy(matchingFont.FaceName, L"Consolas");
+	//wcscpy(matchingFont.FaceName, L"Consolas");
+	wcscpy_s(matchingFont.FaceName, LF_FACESIZE, L"Consolas");
 
 	bSuccess = __SetCurrentConsoleFontEx(child_out, FALSE, &matchingFont);
 
@@ -481,8 +479,8 @@ SizeWindow(HANDLE hInput)
 		inputSi.dwYCountChars = 25;
 	}
 
-	srWindowRect.Right = (SHORT)(min(inputSi.dwXCountChars, (DWORD)coordScreen.X) - 1);
-	srWindowRect.Bottom = (SHORT)(min(inputSi.dwYCountChars, (DWORD)coordScreen.Y) - 1);
+	srWindowRect.Right = min((SHORT)inputSi.dwXCountChars, coordScreen.X) - 1;
+	srWindowRect.Bottom = min((SHORT)inputSi.dwYCountChars, coordScreen.Y) - 1;
 	srWindowRect.Left = srWindowRect.Top = (SHORT)0;
 
 	/* Define the new console buffer size to be the maximum possible */
@@ -638,8 +636,8 @@ ProcessEvent(void *p)
 			return dwError;
 		}
 
-		if ((DWORD)readRect.Top > currentLine)
-			for (DWORD n = currentLine; n < (DWORD)readRect.Top; n++)
+		if (readRect.Top > currentLine)
+			for (SHORT n = currentLine; n < readRect.Top; n++)
 				SendLF(pipe_out);
 
 		/* Set cursor location based on the reported location from the message */
@@ -681,6 +679,8 @@ ProcessEvent(void *p)
 		int pBufferSize = coordBufSize.X * coordBufSize.Y;
 		/* Send the one character. Note that a CR doesn't end up here */
 		CHAR_INFO *pBuffer = (PCHAR_INFO)malloc(sizeof(CHAR_INFO) * pBufferSize);
+		if (!pBuffer)
+			return ERROR_INSUFFICIENT_BUFFER;
 
 		/* Copy the block from the screen buffer to the temp. buffer */
 		if (!ReadConsoleOutput(child_out, pBuffer, coordBufSize, coordBufCoord, &readRect)) {
@@ -777,7 +777,6 @@ ProcessEventQueue(LPVOID p)
 
 		if (child_in != INVALID_HANDLE_VALUE && child_in != NULL &&
 		    child_out != INVALID_HANDLE_VALUE && child_out != NULL) {
-
 			ZeroMemory(&consoleInfo, sizeof(consoleInfo));
 			consoleInfo.cbSize = sizeof(consoleInfo);
 
@@ -859,12 +858,12 @@ ProcessPipes(LPVOID p)
 
 	/* process data from pipe_in and route appropriately */
 	while (1) {	
-		DWORD rd = 0;
 		ZeroMemory(buf, sizeof(buf));
+		int rd = 0;
 
-		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf)-1, &rd, NULL)); /* read bufsize-1 */
+		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf) - 1, &rd, NULL)); /* read bufsize-1 */
 		bStartup = FALSE;
-		for (DWORD i=0; i < rd; i++) {
+		for (int i=0; i < rd; i++) {
 			if (buf[i] == 0)
 				break;
 
@@ -873,9 +872,9 @@ ProcessPipes(LPVOID p)
 				continue;
 			}
 
-			if (bAnsi) {
+			if (bAnsi)
 				SendKeyStroke(child_in, 0, buf[i]);
-			} else {
+			else {
 				ProcessIncomingKeys(buf);
 				break;
 			}
@@ -957,13 +956,18 @@ start_with_pty(wchar_t *command)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	wchar_t cmd[MAX_CMD_LEN];
+	wchar_t *cmd = (wchar_t *)malloc(sizeof(wchar_t) * MAX_CMD_LEN);
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret;
 	DWORD dwStatus;
 	HANDLE hEventHook = NULL;
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
 
+	if(cmd == NULL) {
+		printf("ssh-shellhost - out of memory");
+		return -1;
+	}
+		
 	if ((hm_kernel32 = LoadLibraryW(L"kernel32.dll")) == NULL ||
 	    (hm_user32 = LoadLibraryW(L"user32.dll")) == NULL ||
 	    (__SetCurrentConsoleFontEx = (__t_SetCurrentConsoleFontEx)GetProcAddress(hm_kernel32, "SetCurrentConsoleFontEx")) == NULL ||
@@ -996,6 +1000,12 @@ start_with_pty(wchar_t *command)
 	hostThreadId = GetCurrentThreadId();
 	hostProcessId = GetCurrentProcessId();
 	InitializeCriticalSection(&criticalSection);
+	
+	/* 
+	 * Ignore the static code analysis warning C6387 
+	 * as per msdn, third argument can be NULL when we specify WINEVENT_OUTOFCONTEXT
+	 */
+#pragma warning(suppress: 6387)
 	hEventHook = __SetWinEventHook(EVENT_CONSOLE_CARET, EVENT_CONSOLE_END_APPLICATION, NULL,
 					ConsoleEventProc, 0, 0, WINEVENT_OUTOFCONTEXT);
 	memset(&si, 0, sizeof(STARTUPINFO));
@@ -1051,6 +1061,7 @@ cleanup:
 	dwStatus = GetLastError();
 	if (child != INVALID_HANDLE_VALUE)
 		TerminateProcess(child, 0);
+
 	if (!IS_INVALID_HANDLE(monitor_thread)) {
 		WaitForSingleObject(monitor_thread, INFINITE);
 		CloseHandle(monitor_thread);
@@ -1063,15 +1074,22 @@ cleanup:
 		TerminateThread(io_thread, 0);
 		CloseHandle(io_thread);
 	}
+
 	if (hEventHook)
 		__UnhookWinEvent(hEventHook);
+	
 	FreeConsole();
+	
 	if (child != INVALID_HANDLE_VALUE) {
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
+	
 	FreeQueueEvent();
 	DeleteCriticalSection(&criticalSection);
+	
+	if(cmd != NULL)
+		free(cmd);
 
 	return child_exit_code;
 }
@@ -1093,7 +1111,7 @@ start_withno_pty(wchar_t *command)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	wchar_t cmd[MAX_CMD_LEN];
+	wchar_t *cmd = (wchar_t *) malloc(sizeof(wchar_t) * MAX_CMD_LEN);
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret, process_input = FALSE, run_under_cmd = FALSE;
 	size_t command_len;
@@ -1262,6 +1280,7 @@ start_withno_pty(wchar_t *command)
 		}
 	}
 cleanup:
+
 	/* close child's stdin first */
 	if(!IS_INVALID_HANDLE(child_pipe_write))
 		CloseHandle(child_pipe_write);
@@ -1347,7 +1366,7 @@ static void setup_session_user_vars()
 			to_apply = data_expanded;
 		}
 
-		if (wcsicmp(name, L"PATH") == 0) {
+		if (_wcsicmp(name, L"PATH") == 0) {
 			if ((required = GetEnvironmentVariableW(L"PATH", NULL, 0)) != 0) {
 				/* "required" includes null term */
 				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
@@ -1379,16 +1398,6 @@ wmain(int ac, wchar_t **av)
 {
 	int pty_requested = 0;
 	wchar_t *cmd = NULL, *cmd_b64 = NULL;
-	{
-		/* create job to hold all child processes */
-		HANDLE job = CreateJobObject(NULL, NULL);
-		JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
-		memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-		job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-		if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)))
-			return -1;
-		CloseHandle(job);
-	}
 
 	if ((ac == 1) || (ac == 2 && wcscmp(av[1], L"-nopty"))) {
 		pty_requested = 1;

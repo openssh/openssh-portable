@@ -209,6 +209,7 @@ userauth_pubkey(struct ssh *ssh)
 			DWORD token = 0;
 			extern int auth_sock;
 			int r = 0;
+			int ssh_request_reply(int , struct sshbuf *, struct sshbuf *);
 
 			while (1) {
 				msg = sshbuf_new();

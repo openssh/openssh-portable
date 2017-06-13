@@ -22,7 +22,7 @@ int w32_pipe(int *pfds);
 int w32_read(int fd, void *dst, size_t max);
 
 #define write w32_write
-int w32_write(int fd, const void *buf, unsigned int max);
+int w32_write(int fd, const void *buf, size_t max);
 
 #define writev w32_writev
 int w32_writev(int fd, const struct iovec *iov, int iovcnt);
