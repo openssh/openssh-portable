@@ -120,11 +120,11 @@
     <PostBuildEvent>
       <Command>copy /Y $(SolutionDir)install-ssh*ps1 $(OutDir)
 copy /Y $(SolutionDir)uninstall-ssh*ps1 $(OutDir)
-copy /Y $(SolutionDir)OpenSSHUtils.psm1 $(OutDir)
+copy /Y $(SolutionDir)OpenSSHUtils.ps*1 $(OutDir)
 copy /Y $(SolutionDir)Fix*FilePermissions.ps1 $(OutDir)
 copy /Y $(SolutionDir)ssh-add-hostkey.ps1 $(OutDir)
 If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -153,11 +153,11 @@ If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</C
     <PostBuildEvent>
       <Command>copy /Y $(SolutionDir)install-ssh*ps1 $(OutDir)
 copy /Y $(SolutionDir)uninstall-ssh*ps1 $(OutDir)
-copy /Y $(SolutionDir)OpenSSHUtils.psm1 $(OutDir)
+copy /Y $(SolutionDir)OpenSSHUtils.ps*1 $(OutDir)
 copy /Y $(SolutionDir)Fix*FilePermissions.ps1 $(OutDir)
 copy /Y $(SolutionDir)ssh-add-hostkey.ps1 $(OutDir)
 If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -190,11 +190,11 @@ If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</C
     <PostBuildEvent>
       <Command>copy /Y $(SolutionDir)install-ssh*ps1 $(OutDir)
 copy /Y $(SolutionDir)uninstall-ssh*ps1 $(OutDir)
-copy /Y $(SolutionDir)OpenSSHUtils.psm1 $(OutDir)
+copy /Y $(SolutionDir)OpenSSHUtils.ps*1 $(OutDir)
 copy /Y $(SolutionDir)Fix*FilePermissions.ps1 $(OutDir)
 copy /Y $(SolutionDir)ssh-add-hostkey.ps1 $(OutDir)
 If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -227,11 +227,11 @@ If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</C
     <PostBuildEvent>
       <Command>copy /Y $(SolutionDir)install-ssh*ps1 $(OutDir)
 copy /Y $(SolutionDir)uninstall-ssh*ps1 $(OutDir)
-copy /Y $(SolutionDir)OpenSSHUtils.psm1 $(OutDir)
+copy /Y $(SolutionDir)OpenSSHUtils.ps*1 $(OutDir)
 copy /Y $(SolutionDir)Fix*FilePermissions.ps1 $(OutDir)
 copy /Y $(SolutionDir)ssh-add-hostkey.ps1 $(OutDir)
 If NOT exist $(OutDir)\sshd_config (copy $(SolutionDir)sshd_config $(OutDir))</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, and sshd_config (if not already present) to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

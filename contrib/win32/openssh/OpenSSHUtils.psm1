@@ -5,6 +5,60 @@ $currentUser = New-Object System.Security.Principal.NTAccount($($env:USERDOMAIN)
 $everyone =  New-Object System.Security.Principal.NTAccount("EveryOne")
 $sshdAccount = New-Object System.Security.Principal.NTAccount("NT SERVICE","sshd")
 
+#Taken from P/Invoke.NET with minor adjustments.
+ $definition = @'
+using System;
+using System.Runtime.InteropServices;
+  
+public class AdjPriv
+{
+    [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
+    internal static extern bool AdjustTokenPrivileges(IntPtr htok, bool disall,
+    ref TokPriv1Luid newst, int len, IntPtr prev, IntPtr relen);
+    [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+    internal static extern IntPtr GetCurrentProcess();
+    [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
+    internal static extern bool OpenProcessToken(IntPtr h, int acc, ref IntPtr phtok);
+    [DllImport("advapi32.dll", SetLastError = true)]
+    internal static extern bool LookupPrivilegeValue(string host, string name, ref long pluid);
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    internal struct TokPriv1Luid
+    {
+        public int Count;
+        public long Luid;
+        public int Attr;
+    }
+  
+    internal const int SE_PRIVILEGE_ENABLED = 0x00000002;
+    internal const int SE_PRIVILEGE_DISABLED = 0x00000000;
+    internal const int TOKEN_QUERY = 0x00000008;
+    internal const int TOKEN_ADJUST_PRIVILEGES = 0x00000020;
+    public static bool EnablePrivilege(string privilege, bool disable)
+    {
+        bool retVal;
+        TokPriv1Luid tp;
+        IntPtr hproc = GetCurrentProcess();
+        IntPtr htok = IntPtr.Zero;
+        retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
+        tp.Count = 1;
+        tp.Luid = 0;
+        if(disable)
+        {
+            tp.Attr = SE_PRIVILEGE_DISABLED;
+        }
+        else
+        {
+            tp.Attr = SE_PRIVILEGE_ENABLED;
+        }
+        retVal = LookupPrivilegeValue(null, privilege, ref tp.Luid);
+        retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+        return retVal;
+    }
+}
+'@
+ 
+$type = Add-Type $definition -PassThru -ErrorAction SilentlyContinue
+
 <#
     .Synopsis
     Repair-SshdConfigPermission
@@ -105,7 +159,7 @@ function Repair-UserKeyPermission
 {
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="High")]
     param (
-        [parameter(Mandatory=$true)]
+        [parameter(Mandatory=$true, Position = 0)]
         [ValidateNotNullOrEmpty()]        
         [string]$FilePath,
         [System.Security.Principal.NTAccount] $User = $currentUser)
@@ -144,7 +198,7 @@ function Repair-FilePermission
 {
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="High")]
     param (        
-        [parameter(Mandatory=$true)]
+        [parameter(Mandatory=$true, Position = 0)]
         [ValidateNotNullOrEmpty()]        
         [string]$FilePath,
         [ValidateNotNull()]
@@ -177,7 +231,7 @@ function Repair-FilePermission
 function Repair-FilePermissionInternal {
     [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="High")]
     param (
-        [parameter(Mandatory=$true)]
+        [parameter(Mandatory=$true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string]$FilePath,
         [ValidateNotNull()]
@@ -200,7 +254,7 @@ function Repair-FilePermissionInternal {
         $prompt = "Shall I set the file owner?"
         $description = "Set '$($Owners[0])' as owner of '$FilePath'."        
         if($pscmdlet.ShouldProcess($description, $prompt, $caption))
-	    {   
+        {   
             Enable-Privilege SeRestorePrivilege | out-null
             $acl.SetOwner($Owners[0])
             Set-Acl -Path $FilePath -AclObject $acl -ErrorVariable e -Confirm:$false
@@ -247,8 +301,8 @@ function Repair-FilePermissionInternal {
         }
         #If everyone is in the ReadAccessOK list, any user can have read access;
         # below block make sure they are granted Read access only
-        elseif($realReadAcessOKList -and (($realReadAcessOKList | ? { $_.Equals($everyone)}) -ne $null) -or `
-             (($realReadAcessOKList | ? { $_.equals($a.IdentityReference)}) -ne $null))
+        elseif($realReadAcessOKList -and ((($realReadAcessOKList | ? { $_.Equals($everyone)}) -ne $null) -or `
+             (($realReadAcessOKList | ? { $_.equals($a.IdentityReference)}) -ne $null)))
         {
             if($realReadAccessNeeded -and ($a.IdentityReference.Equals($everyone)))
             {
@@ -284,7 +338,7 @@ function Repair-FilePermissionInternal {
             $description = "Set'$($a.IdentityReference)' Read access only to '$FilePath'. "
 
             if($pscmdlet.ShouldProcess($description, $prompt, $caption))
-	        {
+            {
                 $needChange = $true
                 $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
                 if ($specialIdRefs -icontains $idRefShortValue )
@@ -340,7 +394,7 @@ function Repair-FilePermissionInternal {
             $description = "Remove access rule of '$($a.IdentityReference)' from '$FilePath'."
 
             if($pscmdlet.ShouldProcess($description, $prompt, "$caption."))
-	        {  
+            {  
                 $needChange = $true
                 $ace = $a
                 $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
@@ -507,81 +561,27 @@ function Get-UserSID
 }
 
 function Enable-Privilege {
- param(
-  ## The privilege to adjust. This set is taken from
-  ## http://msdn.microsoft.com/en-us/library/bb530716(VS.85).aspx
-  [ValidateSet(
-   "SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
-   "SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
-   "SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
-   "SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege", "SeIncreaseBasePriorityPrivilege",
-   "SeIncreaseQuotaPrivilege", "SeIncreaseWorkingSetPrivilege", "SeLoadDriverPrivilege",
-   "SeLockMemoryPrivilege", "SeMachineAccountPrivilege", "SeManageVolumePrivilege",
-   "SeProfileSingleProcessPrivilege", "SeRelabelPrivilege", "SeRemoteShutdownPrivilege",
-   "SeRestorePrivilege", "SeSecurityPrivilege", "SeShutdownPrivilege", "SeSyncAgentPrivilege",
-   "SeSystemEnvironmentPrivilege", "SeSystemProfilePrivilege", "SeSystemtimePrivilege",
-   "SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
-   "SeUndockPrivilege", "SeUnsolicitedInputPrivilege")]
-  $Privilege,
-  ## Switch to disable the privilege, rather than enable it.
-  [Switch] $Disable
+    param(
+    #The privilege to adjust. This set is taken from
+    #http://msdn.microsoft.com/en-us/library/bb530716(VS.85).aspx
+    [ValidateSet(
+       "SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
+       "SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
+       "SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
+       "SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege", "SeIncreaseBasePriorityPrivilege",
+       "SeIncreaseQuotaPrivilege", "SeIncreaseWorkingSetPrivilege", "SeLoadDriverPrivilege",
+       "SeLockMemoryPrivilege", "SeMachineAccountPrivilege", "SeManageVolumePrivilege",
+       "SeProfileSingleProcessPrivilege", "SeRelabelPrivilege", "SeRemoteShutdownPrivilege",
+       "SeRestorePrivilege", "SeSecurityPrivilege", "SeShutdownPrivilege", "SeSyncAgentPrivilege",
+       "SeSystemEnvironmentPrivilege", "SeSystemProfilePrivilege", "SeSystemtimePrivilege",
+       "SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
+       "SeUndockPrivilege", "SeUnsolicitedInputPrivilege")]
+    $Privilege,
+    # Switch to disable the privilege, rather than enable it.
+    [Switch] $Disable
  )
 
- ## Taken from P/Invoke.NET with minor adjustments.
- $definition = @'
- using System;
- using System.Runtime.InteropServices;
-  
- public class AdjPriv
- {
-  [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
-  internal static extern bool AdjustTokenPrivileges(IntPtr htok, bool disall,
-   ref TokPriv1Luid newst, int len, IntPtr prev, IntPtr relen);
-  [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
-  internal static extern IntPtr GetCurrentProcess();
-  [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
-  internal static extern bool OpenProcessToken(IntPtr h, int acc, ref IntPtr phtok);
-  [DllImport("advapi32.dll", SetLastError = true)]
-  internal static extern bool LookupPrivilegeValue(string host, string name, ref long pluid);
-  [StructLayout(LayoutKind.Sequential, Pack = 1)]
-  internal struct TokPriv1Luid
-  {
-   public int Count;
-   public long Luid;
-   public int Attr;
-  }
-  
-  internal const int SE_PRIVILEGE_ENABLED = 0x00000002;
-  internal const int SE_PRIVILEGE_DISABLED = 0x00000000;
-  internal const int TOKEN_QUERY = 0x00000008;
-  internal const int TOKEN_ADJUST_PRIVILEGES = 0x00000020;
-  public static bool EnablePrivilege(string privilege, bool disable)
-  {
-   bool retVal;
-   TokPriv1Luid tp;
-   IntPtr hproc = GetCurrentProcess();
-   IntPtr htok = IntPtr.Zero;
-   retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
-   tp.Count = 1;
-   tp.Luid = 0;
-   if(disable)
-   {
-    tp.Attr = SE_PRIVILEGE_DISABLED;
-   }
-   else
-   {
-    tp.Attr = SE_PRIVILEGE_ENABLED;
-   }
-   retVal = LookupPrivilegeValue(null, privilege, ref tp.Luid);
-   retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
-   return retVal;
-  }
- }
-'@
-
- 
- $type = Add-Type $definition -PassThru
- $type[0]::EnablePrivilege($Privilege, $Disable)
+    $type[0]::EnablePrivilege($Privilege, $Disable)
 }
 
 Export-ModuleMember -Function Repair-FilePermission, Repair-SshdConfigPermission, Repair-SshdHostKeyPermission, Repair-AuthorizedKeyPermission, Repair-UserKeyPermission, Repair-UserSshConfigPermission
