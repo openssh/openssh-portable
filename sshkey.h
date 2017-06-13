@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.18 2017/05/07 23:15:59 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.19 2017/06/13 11:22:15 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -124,6 +124,7 @@ int		 sshkey_fingerprint_raw(const struct sshkey *k,
     int, u_char **retp, size_t *lenp);
 const char	*sshkey_type(const struct sshkey *);
 const char	*sshkey_cert_type(const struct sshkey *);
+int		 sshkey_format_text(const struct sshkey *, struct sshbuf *);
 int		 sshkey_write(const struct sshkey *, FILE *);
 int		 sshkey_read(struct sshkey *, char **);
 u_int		 sshkey_size(const struct sshkey *);
