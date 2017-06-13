@@ -365,7 +365,7 @@ createFile_flags_setup(int flags, u_short mode, struct createFile_flags* cf_flag
 	if (c_s_flags & O_APPEND)
 		cf_flags->dwDesiredAccess = FILE_APPEND_DATA;
 
-	cf_flags->dwFlagsAndAttributes = FILE_FLAG_OVERLAPPED | SECURITY_IMPERSONATION | FILE_FLAG_BACKUP_SEMANTICS;
+	cf_flags->dwFlagsAndAttributes = FILE_FLAG_OVERLAPPED | FILE_FLAG_BACKUP_SEMANTICS;
 
 	/*map mode*/
 	if ((pwd = getpwuid(0)) == NULL)
