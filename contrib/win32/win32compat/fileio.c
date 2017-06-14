@@ -757,10 +757,7 @@ fileio_stat(const char *path, struct _stat64 *buf)
 	WIN32_FILE_ATTRIBUTE_DATA attributes = { 0 };
 	int ret = -1, len = 0;	
 
-	if ((wpath = utf8_to_utf16(path)) == NULL) {
-		errno = ENOMEM;
-		return -1;
-	}
+	memset(buf, 0, sizeof(struct _stat64));
 
 	/* Detect root dir */
 	if (path && strcmp(path, "/") == 0) {
@@ -770,7 +767,7 @@ fileio_stat(const char *path, struct _stat64 *buf)
 	}
 
 	if ((wpath = utf8_to_utf16(path)) == NULL) {
-		errno = errno_from_Win32LastError();
+		errno = ENOMEM;
 		debug3("utf8_to_utf16 failed for file:%s error:%d", path, GetLastError());
 		return -1;
 	}
@@ -781,7 +778,7 @@ fileio_stat(const char *path, struct _stat64 *buf)
 		goto cleanup;
 	}
 	
-	len = wcslen(wpath);
+	len = (int)wcslen(wpath);
 
 	buf->st_ino = 0; /* Has no meaning in the FAT, HPFS, or NTFS file systems*/
 	buf->st_gid = 0; /* UNIX - specific; has no meaning on windows */

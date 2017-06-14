@@ -86,39 +86,41 @@ typedef struct consoleEvent {
 } consoleEvent;
 
 struct key_translation {
-	char incoming[6];
+	wchar_t in[6];
 	int vk;
-	char outgoing;
+	wchar_t out;
+	int in_key_len;
 } key_translation;
 
+/* All the substrings (Ex- "\x1b") should be in the end, otherwise ProcessIncomingKeys() will not work as expected */
 struct key_translation keys[] = {
-    { "\x1b",       VK_ESCAPE,  '\x1b' },
-    { "\r",         VK_RETURN,  '\r' },
-    { "\b",         VK_BACK,    '\b' },
-    { "\x7f",       VK_BACK,    '\b' },
-    { "\t",         VK_TAB,     '\t' },
-    { "\x1b[A",     VK_UP,       0 },
-    { "\x1b[B",     VK_DOWN,     0 },
-    { "\x1b[C",     VK_RIGHT,    0 },
-    { "\x1b[D",     VK_LEFT,     0 },
-    { "\x1b[1~",    VK_HOME,     0 },
-    { "\x1b[2~",    VK_INSERT,   0 },
-    { "\x1b[3~",    VK_DELETE,   0 },
-    { "\x1b[4~",    VK_END,      0 },
-    { "\x1b[5~",    VK_PRIOR,    0 },
-    { "\x1b[6~",    VK_NEXT,     0 },
-    { "\x1b[11~",   VK_F1,       0 },
-    { "\x1b[12~",   VK_F2,       0 },
-    { "\x1b[13~",   VK_F3,       0 },
-    { "\x1b[14~",   VK_F4,       0 },
-    { "\x1b[15~",   VK_F5,       0 },
-    { "\x1b[17~",   VK_F6,       0 },
-    { "\x1b[18~",   VK_F7,       0 },
-    { "\x1b[19~",   VK_F8,       0 },
-    { "\x1b[20~",   VK_F9,       0 },
-    { "\x1b[21~",   VK_F10,      0 },
-    { "\x1b[23~",   VK_F11,      0 },
-    { "\x1b[24~",   VK_F12,      0 }
+    { L"\r",         VK_RETURN,  L'\r' , 0},
+    { L"\b",         VK_BACK,    L'\b' , 0},
+    { L"\x7f",       VK_BACK,    L'\b' , 0},
+    { L"\t",         VK_TAB,     L'\t' , 0},
+    { L"\x1b[A",     VK_UP,       0 , 0},
+    { L"\x1b[B",     VK_DOWN,     0 , 0},
+    { L"\x1b[C",     VK_RIGHT,    0 , 0},
+    { L"\x1b[D",     VK_LEFT,     0 , 0},
+    { L"\x1b[1~",    VK_HOME,     0 , 0},
+    { L"\x1b[2~",    VK_INSERT,   0 , 0},
+    { L"\x1b[3~",    VK_DELETE,   0 , 0},
+    { L"\x1b[4~",    VK_END,      0 , 0},
+    { L"\x1b[5~",    VK_PRIOR,    0 , 0},
+    { L"\x1b[6~",    VK_NEXT,     0 , 0},
+    { L"\x1b[11~",   VK_F1,       0 , 0},
+    { L"\x1b[12~",   VK_F2,       0 , 0},
+    { L"\x1b[13~",   VK_F3,       0 , 0},
+    { L"\x1b[14~",   VK_F4,       0 , 0},
+    { L"\x1b[15~",   VK_F5,       0 , 0},
+    { L"\x1b[17~",   VK_F6,       0 , 0},
+    { L"\x1b[18~",   VK_F7,       0 , 0},
+    { L"\x1b[19~",   VK_F8,       0 , 0},
+    { L"\x1b[20~",   VK_F9,       0 , 0},
+    { L"\x1b[21~",   VK_F10,      0 , 0},
+    { L"\x1b[23~",   VK_F11,      0 , 0},
+    { L"\x1b[24~",   VK_F12,      0 , 0},
+    { L"\x1b",       VK_ESCAPE,  L'\x1b' , 0}
 };
 
 static SHORT lastX = 0;
@@ -130,7 +132,6 @@ consoleEvent* tail = NULL;
 BOOL bRet = FALSE;
 BOOL bNoScrollRegion = FALSE;
 BOOL bStartup = TRUE;
-BOOL bAnsi = FALSE;
 BOOL bHookEvents = FALSE;
 BOOL bFullScreen = FALSE;
 BOOL bUseAnsiEmulation = TRUE;
@@ -142,13 +143,12 @@ HANDLE pipe_in = INVALID_HANDLE_VALUE;
 HANDLE pipe_out = INVALID_HANDLE_VALUE;
 HANDLE pipe_err = INVALID_HANDLE_VALUE;
 HANDLE child = INVALID_HANDLE_VALUE;
-DWORD child_exit_code = 0;
 HANDLE hConsoleBuffer = INVALID_HANDLE_VALUE;
-
 HANDLE monitor_thread = INVALID_HANDLE_VALUE;
 HANDLE io_thread = INVALID_HANDLE_VALUE;
 HANDLE ux_thread = INVALID_HANDLE_VALUE;
 
+DWORD child_exit_code = 0;
 DWORD hostProcessId = 0;
 DWORD hostThreadId = 0;
 DWORD childProcessId = 0;
@@ -196,7 +196,7 @@ ConSRWidth()
  * This function will handle the console keystrokes.
  */
 void 
-SendKeyStroke(HANDLE hInput, int keyStroke, char character) 
+SendKeyStroke(HANDLE hInput, int keyStroke, wchar_t character) 
 {
 	DWORD wr = 0;
 	INPUT_RECORD ir;
@@ -207,32 +207,48 @@ SendKeyStroke(HANDLE hInput, int keyStroke, char character)
 	ir.Event.KeyEvent.wVirtualKeyCode = keyStroke;
 	ir.Event.KeyEvent.wVirtualScanCode = 0;
 	ir.Event.KeyEvent.dwControlKeyState = 0;
-	ir.Event.KeyEvent.uChar.UnicodeChar = 0;
-	ir.Event.KeyEvent.uChar.AsciiChar = character;
+	ir.Event.KeyEvent.uChar.UnicodeChar = character;
 
-	WriteConsoleInputA(hInput, &ir, 1, &wr);
+	WriteConsoleInputW(hInput, &ir, 1, &wr);
 
 	ir.Event.KeyEvent.bKeyDown = FALSE;
-	WriteConsoleInputA(hInput, &ir, 1, &wr);
+	WriteConsoleInputW(hInput, &ir, 1, &wr);
+}
+
+void
+initialize_keylen()
+{
+	for(int i = 0; i < ARRAYSIZE(keys); i++)
+		keys[i].in_key_len = (int) wcslen(keys[i].in);
 }
 
 void 
 ProcessIncomingKeys(char * ansikey)
 {
-	int keylen = (int) strlen(ansikey);
-
-	if (!keylen)
-		return;
-
-	for (int nKey=0; nKey < ARRAYSIZE(keys); nKey++) {
-		if (strcmp(ansikey, keys[nKey].incoming) == 0) {
-			SendKeyStroke(child_in, keys[nKey].vk, keys[nKey].outgoing);
-			return;
-		}
+	wchar_t *buf = utf8_to_utf16(ansikey);
+		
+	if (!buf) {
+		printf("\nFailed to deserialize the client data, error:%d\n", GetLastError());
+		exit(255);
 	}
 
-	for (int i=0; i < keylen; i++)
-		SendKeyStroke(child_in, 0, ansikey[i]);
+	loop:
+	while (buf && (wcslen(buf) > 0)) {
+		for (int j = 0; j < ARRAYSIZE(keys); j++) {
+			if ( (wcslen(buf) >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0) ) {
+				SendKeyStroke(child_in, keys[j].vk, keys[j].out);				
+				buf += keys[j].in_key_len;
+				goto loop;
+			}
+		}
+
+		if (*buf == L'\x3') /*Ctrl+C - Raise Ctrl+C*/
+			GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
+		else 
+			SendKeyStroke(child_in, 0, *buf);
+
+		buf++;
+	}		
 }
 
 /*
@@ -458,8 +474,7 @@ SizeWindow(HANDLE hInput)
 	matchingFont.dwFontSize.X = 0;
 	matchingFont.dwFontSize.Y = 16;
 	matchingFont.FontFamily = FF_DONTCARE;
-	matchingFont.FontWeight = FW_NORMAL;
-	//wcscpy(matchingFont.FaceName, L"Consolas");
+	matchingFont.FontWeight = FW_NORMAL;	
 	wcscpy_s(matchingFont.FaceName, LF_FACESIZE, L"Consolas");
 
 	bSuccess = __SetCurrentConsoleFontEx(child_out, FALSE, &matchingFont);
@@ -741,19 +756,6 @@ ProcessEvent(void *p)
 DWORD WINAPI 
 ProcessEventQueue(LPVOID p)
 {
-	if (child_in != INVALID_HANDLE_VALUE && child_in != NULL &&
-	    child_out != INVALID_HANDLE_VALUE && child_out != NULL) {
-		DWORD dwInputMode;
-		DWORD dwOutputMode;
-
-		if (GetConsoleMode(child_in, &dwInputMode) && GetConsoleMode(child_out, &dwOutputMode))
-			if (((dwOutputMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING) &&
-			    ((dwInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT))
-				bAnsi = TRUE;
-			else
-				bAnsi = FALSE;
-	}
-
 	while (1) {
 		while (head) {
 			EnterCriticalSection(&criticalSection);
@@ -853,32 +855,18 @@ DWORD WINAPI
 ProcessPipes(LPVOID p)
 {
 	BOOL ret;
-	DWORD dwStatus;	
+	DWORD dwStatus;
 	char buf[128];
 
 	/* process data from pipe_in and route appropriately */
-	while (1) {	
+	while (1) {
 		ZeroMemory(buf, sizeof(buf));
 		int rd = 0;
 
 		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf) - 1, &rd, NULL)); /* read bufsize-1 */
 		bStartup = FALSE;
-		for (int i=0; i < rd; i++) {
-			if (buf[i] == 0)
-				break;
-
-			if (buf[i] == 3) { /*Ctrl+C - Raise Ctrl+C*/
-				GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
-				continue;
-			}
-
-			if (bAnsi)
-				SendKeyStroke(child_in, 0, buf[i]);
-			else {
-				ProcessIncomingKeys(buf);
-				break;
-			}
-		}
+		if(rd > 0)
+			ProcessIncomingKeys(buf);
 	}
 
 cleanup:
@@ -964,8 +952,8 @@ start_with_pty(wchar_t *command)
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
 
 	if(cmd == NULL) {
-		printf("ssh-shellhost - out of memory");
-		return -1;
+		printf("ssh-shellhost is out of memory");
+		exit(255);
 	}
 		
 	if ((hm_kernel32 = LoadLibraryW(L"kernel32.dll")) == NULL ||
@@ -1047,6 +1035,8 @@ start_with_pty(wchar_t *command)
 
 	/* disable Ctrl+C hander in this process*/
 	SetConsoleCtrlHandler(NULL, TRUE);
+	
+	initialize_keylen();
 
 	io_thread = CreateThread(NULL, 0, ProcessPipes, NULL, 0, NULL);
 	if (IS_INVALID_HANDLE(io_thread))
@@ -1117,6 +1107,11 @@ start_withno_pty(wchar_t *command)
 	size_t command_len;
 	char buf[128];
 	DWORD rd = 0, wr = 0, i = 0;
+
+	if (cmd == NULL) {
+		printf("ssh-shellhost is out of memory");
+		exit(255);
+	}
 
 	pipe_in = GetStdHandle(STD_INPUT_HANDLE);
 	pipe_out = GetStdHandle(STD_OUTPUT_HANDLE);

@@ -367,9 +367,9 @@ int register_child(void* child, unsigned long pid);
 
 int do_exec_windows(Session *s, const char *command, int pty) {
 	int pipein[2], pipeout[2], pipeerr[2], r;
-	char *exec_command = NULL, *progdir = w32_programdir(), *cmd = NULL, *shell_host = NULL, *command_b64 = NULL, *argp = NULL;
+	char *exec_command = NULL, *progdir = w32_programdir(), *cmd = NULL, *shell_host = NULL, *command_b64 = NULL;
 	wchar_t *exec_command_w = NULL, *pw_dir_w;
-	const char *sftp_exe = "sftp-server.exe";
+	const char *sftp_exe = "sftp-server.exe", *argp = NULL;
 	size_t command_b64_len = 0;
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;

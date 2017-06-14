@@ -100,7 +100,6 @@ opendir(const char *name)
 	DIR *pdir;
 	wchar_t searchstr[PATH_MAX];
 	wchar_t* wname = NULL;
-	int needed;
 	size_t len;
 
 	/* Detect root dir */

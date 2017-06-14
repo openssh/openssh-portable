@@ -482,10 +482,10 @@ strmode(mode_t mode, char *p)
 	 * As of now we are keeping "*" for everything.
 	 * TODO - figure out if there is a better option
 	 */
-	const char *permissions = "********* ";
-	strncpy(p, permissions, strlen(permissions) + 1);
-
-	p = p + strlen(p);
+	const char *permissions = "********* ";	
+	for(int i = 0; i < strlen(permissions); i++)
+		*p++ = permissions[i];
+	
 	*p = '\0';
 }
 
@@ -535,11 +535,10 @@ static BOOL
 is_root_or_empty(wchar_t * path)
 {
 	wchar_t * path_start;
-	BOOL has_drive_letter_and_colon;
 	int len;
 	if (!path) 
 		return FALSE;
-	len = wcslen(path);
+	len = (int)wcslen(path);
 	if((len > 1) && __ascii_iswalpha(path[0]) && path[1] == L':')
 		path_start = path + 2;
 	else
