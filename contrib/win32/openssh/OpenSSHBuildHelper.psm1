@@ -303,7 +303,8 @@ function Package-OpenSSH
     if($NativeHostArch -ieq 'x86')
     {
         $folderName = "Win32"
-    }
+    }    
+
     $buildDir = Join-Path $repositoryRoot ("bin\" + $folderName + "\" + $Configuration)
     $payload = "sshd.exe", "ssh.exe", "ssh-agent.exe", "ssh-add.exe", "sftp.exe"
     $payload += "sftp-server.exe", "scp.exe", "ssh-shellhost.exe", "ssh-keygen.exe", "ssh-keyscan.exe" 
@@ -311,7 +312,7 @@ function Package-OpenSSH
     $payload +="FixHostFilePermissions.ps1", "FixUserFilePermissions.ps1", "OpenSSHUtils.psm1", "OpenSSHUtils.psd1", "ssh-add-hostkey.ps1"
 
     $packageName = "OpenSSH-Win64"
-    if ($NativeHostArch -eq 'x86') {
+    if ($NativeHostArch -ieq 'x86') {
         $packageName = "OpenSSH-Win32"
     }
     while((($service = Get-Service ssh-agent -ErrorAction Ignore) -ne $null) -and ($service.Status -ine 'Stopped'))
@@ -343,6 +344,10 @@ function Package-OpenSSH
             Copy-Item (Join-Path $buildDir $pdb) $symbolsDir -Force
         }
     }
+
+    #copy libcrypto-41 dll
+    $libreSSLSDKPath = Join-Path $PSScriptRoot $script:libreSSLSDKStr
+    Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto-41.dll") -Destination $packageDir -Force -ErrorAction Stop    
 
     if ($DestinationPath -ne "") {
         if (Test-Path $DestinationPath) {            
@@ -535,17 +540,6 @@ function Install-OpenSSH
     
     Set-Service sshd -StartupType Automatic 
     Set-Service ssh-agent -StartupType Automatic
-    
-    #copy libcrypto-41 dll
-    $libreSSLSDKPath = Join-Path $PSScriptRoot $script:libreSSLSDKStr
-    if( $NativeHostArch -ieq "x86" )
-    {
-        Copy-Item -Path $(Join-Path $libreSSLSDKPath "x86\libcrypto-41.dll") -Destination $OpenSSHDir -Force -ErrorAction Stop
-    }
-    else
-    {
-        Copy-Item -Path $(Join-Path $libreSSLSDKPath "x64\libcrypto-41.dll") -Destination $OpenSSHDir -Force -ErrorAction Stop
-    }
 
     Pop-Location
     Write-Log -Message "OpenSSH installed!"
