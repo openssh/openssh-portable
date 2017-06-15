@@ -343,7 +343,8 @@ createFile_flags_setup(int flags, u_short mode, struct createFile_flags* cf_flag
 	switch (rwflags) {
 	case O_RDONLY:
 		cf_flags->dwDesiredAccess = GENERIC_READ;
-		cf_flags->dwShareMode = FILE_SHARE_READ;
+		/* refer to https://msdn.microsoft.com/en-us/library/windows/desktop/aa363874(v=vs.85).aspx */
+		cf_flags->dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
 		break;
 	case O_WRONLY:
 		cf_flags->dwDesiredAccess = GENERIC_WRITE;

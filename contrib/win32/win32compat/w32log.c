@@ -98,7 +98,7 @@ syslog(int priority, const char *format, const char *formatBuffer)
 		return;
 
 	GetLocalTime(&st);
-	r = snprintf(msgbufTimestamp, sizeof(msgbufTimestamp), "%d %02d:%02d:%02d %03d %s\n",
+	r = snprintf(msgbufTimestamp, sizeof(msgbufTimestamp), "%d %02d:%02d:%02d:%03d %s\n",
 		GetCurrentProcessId(), st.wHour, st.wMinute, st.wSecond,
 		st.wMilliseconds, formatBuffer);
 	msgbufTimestamp[sizeof(msgbufTimestamp) - 1] = '\0';
