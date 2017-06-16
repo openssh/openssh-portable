@@ -49,6 +49,7 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "krl.h"
+#include "sshfileperm.h"
 
 #define MAX_KEY_FILE_SIZE	(1024 * 1024)
 
@@ -152,12 +153,21 @@ sshkey_perm_ok(int fd, const char *filename)
 #ifdef HAVE_CYGWIN
 	if (check_ntsec(filename))
 #endif
+		
+#ifdef WINDOWS  /*implement permission checks on Windows*/
+	if(check_secure_file_permission(filename, NULL) != 0) {
+		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
+		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		error("Permissions for '%s' are too open.", filename);
+#else
 	if ((st.st_uid == getuid()) && (st.st_mode & 077) != 0) {
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("Permissions 0%3.3o for '%s' are too open.",
 		    (u_int)st.st_mode & 0777, filename);
+#endif /* !WINDOWS */
 		error("It is required that your private key files are NOT accessible by others.");
 		error("This private key will be ignored.");
 		return SSH_ERR_KEY_BAD_PERMISSIONS;

@@ -54,6 +54,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
+#include "authfd.h"
 
 extern Buffer loginmsg;
 extern ServerOptions options;
@@ -222,4 +223,40 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 	return encrypted_password != NULL &&
 	    strcmp(encrypted_password, pw_password) == 0;
 }
-#endif
+
+#elif defined(WINDOWS)
+/*
+* Authenticate on Windows - Pass credentials to ssh-agent and retrieve token
+* upon successful authentication
+* TODO - password is sent in plain text over IPC. Consider implications. 
+*/
+int sys_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	struct sshbuf *msg = NULL;
+	size_t blen = 0;
+	DWORD token = 0;
+	extern int auth_sock;
+	int r = 0;
+
+	msg = sshbuf_new();
+	if (!msg)
+		fatal("%s: out of memory", __func__);
+
+	if (sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE) != 0 ||
+	    sshbuf_put_cstring(msg, PASSWD_AUTH_REQUEST) != 0 ||
+	    sshbuf_put_cstring(msg, authctxt->pw->pw_name) != 0 ||
+	    sshbuf_put_cstring(msg, password) != 0 ||
+	    ssh_request_reply(auth_sock, msg, msg) != 0 ||
+	    sshbuf_get_u32(msg, &token) != 0) {
+		debug("auth agent did not authorize client %s", authctxt->user);
+		r = 0;
+		goto done;
+	}
+	authctxt->methoddata = (void*)(INT_PTR)token;
+	r = 1;
+done:
+	if (msg)
+		sshbuf_free(msg);
+	return r;
+}
+#endif   /* WINDOWS */

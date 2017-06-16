@@ -296,6 +296,18 @@ help(void)
 static void
 local_do_shell(const char *args)
 {
+  #ifdef WINDOWS
+    /* execute via system call in Windows*/
+	if (!*args) {        
+		args = (char *)	getenv("ComSpec"); // get name of Windows cmd shell
+	} else {
+		convertToBackslash((char *) args);
+	}
+	
+	wchar_t* path_utf16 = utf8_to_utf16(args);
+	_wsystem(path_utf16); // execute the shell or cmd given
+	free(path_utf16);
+  #else   /* !WINDOWS */
 	int status;
 	char *shell;
 	pid_t pid;
@@ -329,6 +341,7 @@ local_do_shell(const char *args)
 		error("Shell exited abnormally");
 	else if (WEXITSTATUS(status))
 		error("Shell exited with status %d", WEXITSTATUS(status));
+ #endif   /* !WINDOWS */
 }
 
 static void
@@ -372,12 +385,41 @@ make_absolute(char *p, const char *pwd)
 	char *abs_str;
 
 	/* Derelativise */
+#ifdef WINDOWS
+	/*
+	* For Windows - given path is absolute when
+	*   - first character is "/"
+	*   - or second character is ":"
+	* This code is also applicable from a Linux client to Windows target
+	* Need to follow up with community if this makes sense in common code
+	*/
+	char *s1, *s2;
+	if (p && p[0] != '/' && (p[0] == '\0' || p[1] != ':')) {
+		abs_str = path_append(pwd, p);
+		free(p);
+		p = abs_str;
+	}
+
+	/* convert '\\' to '/' */
+	convertToForwardslash(p);
+
+	/* Append "/" if needed to the absolute windows path */	
+	if (p && p[0] != '\0' && p[1] == ':') {
+		s1 = path_append("/", p);
+		free(p);
+		p = s1;
+	}
+
+#else /* !WINDOWS */
 	if (p && p[0] != '/') {
 		abs_str = path_append(pwd, p);
 		free(p);
 		return(abs_str);
 	} else
 		return(p);
+#endif /* !WINDOWS */
+	return(p);
+
 }
 
 static int
@@ -792,6 +834,7 @@ sdirent_comp(const void *aa, const void *bb)
 		return (rmul * NCMP(a->a.size, b->a.size));
 
 	fatal("Unknown ls sort type");
+	return 0;
 }
 
 /* sftp ls.1 replacement for directories */
@@ -1483,6 +1526,13 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	glob_t g;
 
 	path1 = path2 = NULL;
+#ifdef WINDOWS
+	/* 
+	 * convert '\\' to '/' in Windows styled paths. 
+	 * else they get treated as escape sequence in makeargv 
+	 */
+	convertToForwardslash((char *)cmd);
+#endif
 	cmdnum = parse_args(&cmd, &ignore_errors, &aflag, &fflag, &hflag,
 	    &iflag, &lflag, &pflag, &rflag, &sflag, &n_arg, &path1, &path2);
 	if (ignore_errors != 0)
@@ -2253,7 +2303,17 @@ connect_to_server(char *path, char **args, int *in, int *out)
 	c_in = c_out = inout[1];
 #endif /* USE_PIPES */
 
+#ifdef WINDOWS
+	/* fork replacement on Windows */
+	/* disable inheritance on local pipe ends*/
+	fcntl(pout[1], F_SETFD, FD_CLOEXEC);
+	fcntl(pin[0], F_SETFD, FD_CLOEXEC);
+
+	sshpid = spawn_child(path, args + 1, c_in, c_out, STDERR_FILENO, 0);
+	if (sshpid == -1)
+#else /* !WINDOWS */
 	if ((sshpid = fork()) == -1)
+#endif  /* !WINDOWS */
 		fatal("fork: %s", strerror(errno));
 	else if (sshpid == 0) {
 		if ((dup2(c_in, STDIN_FILENO) == -1) ||

@@ -105,6 +105,16 @@ static int
 ssh_proxy_fdpass_connect(const char *host, u_short port,
     const char *proxy_command)
 {
+#ifdef WINDOWS
+        fatal("proxy fdpass connect is not supported in Windows");
+	/* 
+	 * Unix logic relies on passing in ancillary data over domain sockets 
+	 * This concept does not exist in Windows. 
+	 * Possible implementation in Windows could have proxy_command return 
+	 * connection handle through IPC means
+	 */
+        return 0;
+#else /* !WINDOWS */
 	char *command_string;
 	int sp[2], sock;
 	pid_t pid;
@@ -176,6 +186,7 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 	packet_set_connection(sock, sock);
 
 	return 0;
+#endif /* !WINDOWS */
 }
 
 /*
@@ -184,6 +195,10 @@ ssh_proxy_fdpass_connect(const char *host, u_short port,
 static int
 ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 {
+#ifdef WINDOWS
+        fatal("Proxy connect is not supported in Windows yet");
+        return 0;
+#else /* !WINDOWS */
 	char *command_string;
 	int pin[2], pout[2];
 	pid_t pid;
@@ -253,6 +268,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 
 	/* Indicate OK return */
 	return 0;
+#endif /* !WINDOWS */
 }
 
 void
@@ -548,10 +564,12 @@ ssh_exchange_identification(int timeout_ms)
 	size_t len;
 	int fdsetsz, remaining, rc;
 	struct timeval t_start, t_remaining;
-	fd_set *fdset;
+	fd_set *readfds;
+	fd_set *exceptfds;
 
 	fdsetsz = howmany(connection_in + 1, NFDBITS) * sizeof(fd_mask);
-	fdset = xcalloc(1, fdsetsz);
+	readfds = xcalloc(1, fdsetsz);
+	exceptfds = xcalloc(1, fdsetsz);
 
 	send_client_banner(connection_out, 0);
 
@@ -562,9 +580,10 @@ ssh_exchange_identification(int timeout_ms)
 			if (timeout_ms > 0) {
 				gettimeofday(&t_start, NULL);
 				ms_to_timeval(&t_remaining, remaining);
-				FD_SET(connection_in, fdset);
-				rc = select(connection_in + 1, fdset, NULL,
-				    fdset, &t_remaining);
+				FD_SET(connection_in, readfds);
+				FD_SET(connection_in, exceptfds);
+				rc = select(connection_in + 1, readfds, NULL,
+					exceptfds, &t_remaining);
 				ms_subtract_diff(&t_start, &remaining);
 				if (rc == 0 || remaining <= 0)
 					fatal("Connection timed out during "
@@ -604,7 +623,8 @@ ssh_exchange_identification(int timeout_ms)
 		debug("ssh_exchange_identification: %s", buf);
 	}
 	server_version_string = xstrdup(buf);
-	free(fdset);
+	free(readfds);
+	free(exceptfds);
 
 	/*
 	 * Check that the versions match.  In future this might accept
@@ -1433,6 +1453,10 @@ warn_changed_key(struct sshkey *host_key)
 int
 ssh_local_cmd(const char *args)
 {
+#ifdef WINDOWS
+        fatal("executing local command is not supported in Windows yet");
+        return 0;
+#else /* !WINDOWS */
 	char *shell;
 	pid_t pid;
 	int status;
@@ -1465,6 +1489,7 @@ ssh_local_cmd(const char *args)
 		return (1);
 
 	return (WEXITSTATUS(status));
+#endif  /* !WINDOWS */
 }
 
 void

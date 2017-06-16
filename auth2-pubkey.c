@@ -68,6 +68,7 @@
 #include "ssherr.h"
 #include "channels.h" /* XXX for session.h */
 #include "session.h" /* XXX for child_set_env(); refactor? */
+#include "authfd.h"
 
 /* import */
 extern ServerOptions options;
@@ -198,6 +199,51 @@ userauth_pubkey(struct ssh *ssh)
 
 		/* test for correct signature */
 		authenticated = 0;
+
+#ifdef WINDOWS
+		/* Pass key challenge material to ssh-agent to retrieve token upon successful authentication */
+		{
+			struct sshbuf *msg = NULL; 
+			u_char *blob = NULL;
+			size_t blen = 0;
+			DWORD token = 0;
+			extern int auth_sock;
+			int r = 0;
+
+			while (1) {
+				msg = sshbuf_new();
+				if (!msg)
+					fatal("%s: out of memory", __func__);
+				if ((r = sshbuf_put_u8(msg, SSH_AGENT_AUTHENTICATE)) != 0 ||
+				    (r = sshbuf_put_cstring(msg, PUBKEY_AUTH_REQUEST)) != 0 ||
+				    (r = sshkey_to_blob(key, &blob, &blen)) != 0 ||
+				    (r = sshbuf_put_string(msg, blob, blen)) != 0 ||
+				    (r = sshbuf_put_cstring(msg, authctxt->pw->pw_name)) != 0 ||
+				    (r = sshbuf_put_string(msg, sig, slen)) != 0 ||
+				    (r = sshbuf_put_string(msg, buffer_ptr(&b), buffer_len(&b))) != 0 ||
+				    (r = ssh_request_reply(auth_sock, msg, msg)) != 0 ||
+				    (r = sshbuf_get_u32(msg, &token)) != 0) {
+					debug("auth agent did not authorize client %s", authctxt->user);
+					break;
+				}
+
+				debug3("auth agent authenticated %s", authctxt->user);
+				break;
+				
+			}
+			if (blob)
+				free(blob);
+			if (msg)
+				sshbuf_free(msg);
+
+			if (token) {
+				authenticated = 1;                              
+				authctxt->methoddata = (void*)(INT_PTR)token;
+			}
+				
+		}
+
+#else  /* !WINDOWS */
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
 		    PRIVSEP(sshkey_verify(key, sig, slen, sshbuf_ptr(b),
 		    sshbuf_len(b), ssh->compat)) == 0) {
@@ -208,6 +254,8 @@ userauth_pubkey(struct ssh *ssh)
 		}
 		sshbuf_free(b);
 		free(sig);
+#endif  /* !WINDOWS */
+
 	} else {
 		debug("%s: test whether pkalg/pkblob are acceptable for %s %s",
 		    __func__, sshkey_type(key), fp);
@@ -423,6 +471,10 @@ static pid_t
 subprocess(const char *tag, struct passwd *pw, const char *command,
     int ac, char **av, FILE **child)
 {
+#ifdef WINDOWS
+        logit("AuthorizedPrincipalsCommand and AuthorizedKeysCommand are not supported in Windows yet");
+        return 0;
+#else  /* !WINDOWS */
 	FILE *f;
 	struct stat st;
 	int devnull, p[2], i;
@@ -542,6 +594,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	debug3("%s: %s pid %ld", __func__, tag, (long)pid);
 	*child = f;
 	return pid;
+#endif  /* !WINDOWS */
 }
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */

@@ -1914,6 +1914,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		return;
 	}
 
+#ifndef WINDOWS  /*TODO - implement user check for Windows*/
 	if (getpeereid(newsock, &euid, &egid) < 0) {
 		error("%s getpeereid failed: %s", __func__,
 		    strerror(errno));
@@ -1926,6 +1927,7 @@ channel_post_mux_listener(Channel *c, fd_set *readset, fd_set *writeset)
 		close(newsock);
 		return;
 	}
+#endif /* !WINDOWS */
 	nc = channel_new("multiplex client", SSH_CHANNEL_MUX_CLIENT,
 	    newsock, newsock, -1, c->local_window_max,
 	    c->local_maxpacket, 0, "mux-control", 1);

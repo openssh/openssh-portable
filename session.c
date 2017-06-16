@@ -182,6 +182,10 @@ auth_sock_cleanup_proc(struct passwd *pw)
 static int
 auth_input_request_forwarding(struct passwd * pw)
 {
+#ifdef WINDOWS
+	packet_send_debug("Agent forwarding not supported in Windows yet");
+	return 0;
+#else  /* !WINDOWS */
 	Channel *nc;
 	int sock = -1;
 
@@ -238,6 +242,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	auth_sock_name = NULL;
 	auth_sock_dir = NULL;
 	return 0;
+#endif  /* !WINDOWS */
 }
 
 static void
@@ -285,6 +290,250 @@ xauth_valid_string(const char *s)
 }
 
 #define USE_PIPES 1
+
+#ifdef WINDOWS
+/*
+ * do_exec* on Windows
+ * - Read and set user environment variables from registry
+ * - Build subsystem cmdline path
+ * - Interactive shell/commands are executed using ssh-shellhost.exe
+ * - ssh-shellhost.exe implements server-side PTY for Windows
+ */
+
+
+#define UTF8_TO_UTF16_FATAL(o, i) do {				\
+	if (o != NULL) free(o);					\
+	if ((o = utf8_to_utf16(i)) == NULL)			\
+		fatal("%s, out of memory", __func__);		\
+} while (0)
+
+static void setup_session_vars(Session* s) {
+	wchar_t *pw_dir_w = NULL, *tmp = NULL;
+	char buf[256];
+	wchar_t wbuf[256];
+	char* laddr;
+
+	struct ssh *ssh = active_state; /* XXX */
+
+	UTF8_TO_UTF16_FATAL(pw_dir_w, s->pw->pw_dir);
+	UTF8_TO_UTF16_FATAL(tmp, s->pw->pw_name);
+	SetEnvironmentVariableW(L"USERNAME", tmp);
+	if (s->display) {
+		UTF8_TO_UTF16_FATAL(tmp, s->display);
+		SetEnvironmentVariableW(L"DISPLAY", tmp);
+	}
+	SetEnvironmentVariableW(L"USERPROFILE", pw_dir_w);
+
+	if (pw_dir_w[0] && pw_dir_w[1] == L':') {
+		SetEnvironmentVariableW(L"HOMEPATH", pw_dir_w + 2);
+		wchar_t wc = pw_dir_w[2];
+		pw_dir_w[2] = L'\0';
+		SetEnvironmentVariableW(L"HOMEDRIVE", pw_dir_w);
+		pw_dir_w[2] = wc;
+	} else {
+		SetEnvironmentVariableW(L"HOMEPATH", pw_dir_w);
+	}
+
+	snprintf(buf, sizeof buf, "%.50s %d %d",
+		ssh->remote_ipaddr, ssh->remote_port, ssh->local_port);
+	SetEnvironmentVariableA("SSH_CLIENT", buf);
+
+	laddr = get_local_ipaddr(packet_get_connection_in());
+	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
+		ssh->remote_ipaddr, ssh->remote_port, laddr, ssh->local_port);
+	free(laddr);
+	SetEnvironmentVariableA("SSH_CONNECTION", buf);
+
+	if (original_command) {
+		UTF8_TO_UTF16_FATAL(tmp, original_command);
+		SetEnvironmentVariableW(L"SSH_ORIGINAL_COMMAND", tmp);
+	}
+
+	if ((s->term) && (s->term[0]))
+		SetEnvironmentVariableA("TERM", s->term);
+
+	if (!s->is_subsystem) {
+		UTF8_TO_UTF16_FATAL(tmp, s->pw->pw_name);
+		_snwprintf(wbuf, sizeof(wbuf)/2, L"%ls@%ls $P$G", tmp, _wgetenv(L"COMPUTERNAME"));
+		SetEnvironmentVariableW(L"PROMPT", wbuf);
+	}
+
+	free(pw_dir_w);
+	free(tmp);
+}
+
+char* w32_programdir();
+int register_child(void* child, unsigned long pid);
+
+int do_exec_windows(Session *s, const char *command, int pty) {
+	int pipein[2], pipeout[2], pipeerr[2], r;
+	char *exec_command = NULL, *progdir = w32_programdir();
+	wchar_t *exec_command_w = NULL, *pw_dir_w;
+
+	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
+		error("sub system not supported, exiting");
+		fflush(NULL);
+		exit(1);
+	}
+	
+	/* Create three pipes for stdin, stdout and stderr */
+	if (pipe(pipein) == -1 || pipe(pipeout) == -1 || pipe(pipeerr) == -1) 
+		fatal("%s: cannot create pipe: %.100s", __func__, strerror(errno));
+
+	if ((pw_dir_w = utf8_to_utf16(s->pw->pw_dir)) == NULL)
+		fatal("%s: out of memory", __func__);
+
+
+	set_nonblock(pipein[0]);
+	set_nonblock(pipein[1]);
+	set_nonblock(pipeout[0]);
+	set_nonblock(pipeout[1]);
+	set_nonblock(pipeerr[0]);
+	set_nonblock(pipeerr[1]);
+
+	fcntl(pipein[1], F_SETFD, FD_CLOEXEC);
+	fcntl(pipeout[0], F_SETFD, FD_CLOEXEC);
+	fcntl(pipeerr[0], F_SETFD, FD_CLOEXEC);
+
+	/* setup Environment varibles */
+	setup_session_vars(s);
+
+	/* prepare exec - path used with CreateProcess() */
+	if (s->is_subsystem || (command && memcmp(command, "scp", 3) == 0)) {
+		/* relative or absolute */
+		if (command == NULL || command[0] == '\0')
+			fatal("expecting command for a subsystem");
+
+		if (command[1] == ':') /* absolute */
+			exec_command = xstrdup(command);
+		else {/*relative*/
+			exec_command = malloc(strlen(progdir) + 1 + strlen(command));
+			if (exec_command == NULL)
+				fatal("%s, out of memory", __func__);
+			memcpy(exec_command, progdir, strlen(progdir));
+			exec_command[strlen(progdir)] = '\\';
+			memcpy(exec_command + strlen(progdir) + 1, command, strlen(command) + 1);
+		}
+	} else {
+		/* 
+		 * contruct %programdir%\ssh-shellhost.exe <-nopty> base64encoded(command)  
+		 * command is base64 encoded to preserve original special charecters like '"'
+		 * else they will get lost in CreateProcess translation
+		 */
+		char *shell_host = pty ? "ssh-shellhost.exe " : "ssh-shellhost.exe -nopty ", *c;
+		char *command_b64 = NULL;
+		size_t command_b64_len = 0;
+		if (command) {
+			/* accomodate bas64 encoding bloat and null terminator */
+			command_b64_len = ((strlen(command) + 2) / 3) * 4 + 1;
+			if ((command_b64 = malloc(command_b64_len)) == NULL ||
+			    b64_ntop(command, strlen(command), command_b64, command_b64_len) == -1)
+				fatal("%s, error encoding session command");
+		}
+		exec_command = malloc(strlen(progdir) + 1 + strlen(shell_host) + (command_b64 ? strlen(command_b64): 0) + 1);
+		if (exec_command == NULL)
+			fatal("%s, out of memory", __func__);
+		c = exec_command;
+		memcpy(c, progdir, strlen(progdir));
+		c += strlen(progdir);
+		*c++ = '\\';
+		memcpy(c, shell_host, strlen(shell_host));
+		c += strlen(shell_host);
+		if (command_b64) {
+			memcpy(c, command_b64, strlen(command_b64));
+			c += strlen(command_b64);
+		}
+		*c = '\0';
+	}
+
+	/* start the process */
+	{
+		PROCESS_INFORMATION pi;
+		STARTUPINFOW si;
+		BOOL b;
+		HANDLE hToken = INVALID_HANDLE_VALUE;
+		extern int debug_flag;
+
+		memset(&si, 0, sizeof(STARTUPINFO));
+		si.cb = sizeof(STARTUPINFO);
+		si.dwXSize = 5;
+		si.dwYSize = 5;
+		si.dwXCountChars = s->col;
+		si.dwYCountChars = s->row;
+		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESIZE | STARTF_USECOUNTCHARS;
+		
+		si.hStdInput = (HANDLE)w32_fd_to_handle(pipein[0]);
+		si.hStdOutput = (HANDLE)w32_fd_to_handle(pipeout[1]);
+		si.hStdError = (HANDLE)w32_fd_to_handle(pipeerr[1]);
+		si.lpDesktop = NULL;
+
+		hToken = s->authctxt->methoddata;
+
+		debug("Executing command: %s", exec_command);
+		UTF8_TO_UTF16_FATAL(exec_command_w, exec_command);
+		
+		_putenv_s("SSH_ASYNC_STDIN", "1");
+		_putenv_s("SSH_ASYNC_STDOUT", "1");
+		_putenv_s("SSH_ASYNC_STDERR", "1");
+
+		/* in debug mode launch using sshd.exe user context */
+		if (debug_flag)
+			b = CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE,
+				DETACHED_PROCESS, NULL, pw_dir_w,
+				&si, &pi);
+		else /* launch as client user context */
+			b = CreateProcessAsUserW(hToken, NULL, exec_command_w, NULL, NULL, TRUE,
+				DETACHED_PROCESS , NULL, pw_dir_w,
+				&si, &pi);
+
+		_putenv_s("SSH_ASYNC_STDIN", "");
+		_putenv_s("SSH_ASYNC_STDOUT", "");
+		_putenv_s("SSH_ASYNC_STDERR", "");
+
+		if (!b)
+			fatal("ERROR. Cannot create process (%u).\n", GetLastError());
+
+		CloseHandle(pi.hThread);
+		s->pid = pi.dwProcessId;
+		register_child(pi.hProcess, pi.dwProcessId);
+	}
+
+	/*
+	* Set interactive/non-interactive mode.
+	*/
+	packet_set_interactive(s->display != NULL, options.ip_qos_interactive,
+		options.ip_qos_bulk);
+
+	/* Close the child sides of the socket pairs. */
+	close(pipein[0]);
+	close(pipeout[1]);
+	close(pipeerr[1]);
+
+	/*
+	* Enter the interactive session.  Note: server_loop must be able to
+	* handle the case that fdin and fdout are the same.
+	*/
+	if (s->ttyfd == -1)
+		session_set_fds(s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 0);
+	else
+		session_set_fds(s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
+
+		free(pw_dir_w);
+		free(exec_command_w);
+	return 0;
+}
+
+int
+do_exec_no_pty(Session *s, const char *command) {
+	return do_exec_windows(s, command, 0);
+}
+
+int
+do_exec_pty(Session *s, const char *command) {
+	return do_exec_windows(s, command, 1);
+}
+
+#else    /* !WINDOWS */
 /*
  * This is called to fork and execute a command when we have no tty.  This
  * will call do_child from the child, and server_loop from the parent after
@@ -578,6 +827,7 @@ do_exec_pty(Session *s, const char *command)
 	session_set_fds(s, ptyfd, fdout, -1, 1, 1);
 	return 0;
 }
+#endif   /* !WINDOWS */
 
 #ifdef LOGIN_NEEDS_UTMPX
 static void
@@ -1477,6 +1727,10 @@ child_close_fds(void)
 void
 do_child(Session *s, const char *command)
 {
+#ifdef WINDOWS
+	/*not called for Windows */
+	return;
+#else  /* !WINDOWS */
 	extern char **environ;
 	char **env;
 	char *argv[ARGV_MAX];
@@ -1678,6 +1932,7 @@ do_child(Session *s, const char *command)
 	execve(shell, argv, env);
 	perror(shell);
 	exit(1);
+#endif   /* !WINDOWS */
 }
 
 void
