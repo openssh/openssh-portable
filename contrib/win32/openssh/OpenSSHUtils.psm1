@@ -1,8 +1,48 @@
 ﻿Set-StrictMode -Version 2.0
-$systemAccount = New-Object System.Security.Principal.NTAccount("NT AUTHORITY", "SYSTEM")
-$adminsAccount = New-Object System.Security.Principal.NTAccount("BUILTIN","Administrators")            
+
+<#
+    .Synopsis
+    Get-UserAccount
+#>
+function Get-UserAccount
+{
+    [CmdletBinding(DefaultParameterSetName='SidString')]
+    param
+        (   [parameter(Mandatory=$true, ParameterSetName="SidString")]
+            [ValidateNotNullOrEmpty()]
+            [string]$UserSid,
+            [parameter(Mandatory=$true, ParameterSetName="WellKnownSidType")]
+            [ValidateNotNull()]
+            [System.Security.Principal.WellKnownSidType]$WellKnownSidType
+        )
+    try
+    {
+        if($PSBoundParameters.ContainsKey("UserSid"))
+        {
+            $objSID = New-Object System.Security.Principal.SecurityIdentifier($UserSid) 
+            $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
+        }
+        elseif($PSBoundParameters.ContainsKey("WellKnownSidType"))
+        {            
+            $sid = New-Object System.Security.Principal.SecurityIdentifier($WellKnownSidType, $null)
+            $objUser = $sid.Translate( [System.Security.Principal.NTAccount])
+        }
+        $objUser
+    }
+    catch {
+    }
+}
+
+# get the local System user
+$systemAccount = Get-UserAccount -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::LocalSystemSid)
+
+# get the Administrators group
+$adminsAccount = Get-UserAccount -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid)
+
+# get the everyone
+$everyone = Get-UserAccount -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::WorldSid)
+
 $currentUser = New-Object System.Security.Principal.NTAccount($($env:USERDOMAIN), $($env:USERNAME))
-$everyone =  New-Object System.Security.Principal.NTAccount("EveryOne")
 $sshdAccount = New-Object System.Security.Principal.NTAccount("NT SERVICE","sshd")
 
 #Taken from P/Invoke.NET with minor adjustments.
@@ -287,11 +327,7 @@ function Repair-FilePermissionInternal {
     $realReadAcessOKList = $ReadAccessOK + $ReadAccessNeeded
 
     #this is orginal list requested by the user, the account will be removed from the list if they already part of the dacl
-    $realReadAccessNeeded = $ReadAccessNeeded
-
-    #'APPLICATION PACKAGE AUTHORITY\ALL RESTRICTED APPLICATION PACKAGES'- can't translate fully qualified name. it is a win32 API bug.
-    #'ALL APPLICATION PACKAGES' exists only on Win2k12 and Win2k16 and 'ALL RESTRICTED APPLICATION PACKAGES' exists only in Win2k16
-    $specialIdRefs = "ALL APPLICATION PACKAGES","ALL RESTRICTED APPLICATION PACKAGES"
+    $realReadAccessNeeded = $ReadAccessNeeded    
 
     foreach($a in $acl.Access)
     {
@@ -339,10 +375,15 @@ function Repair-FilePermissionInternal {
 
             if($pscmdlet.ShouldProcess($description, $prompt, $caption))
             {
-                $needChange = $true
-                $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
-                if ($specialIdRefs -icontains $idRefShortValue )
+                $needChange = $true                
+                if(Get-UserSID -User $a.IdentityReference)
                 {
+                    $ace = New-Object System.Security.AccessControl.FileSystemAccessRule `
+                        ($a.IdentityReference, "Read", "None", "None", "Allow")
+                }
+                else
+                {
+                    $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
                     $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
                     if($ruleIdentity)
                     {
@@ -354,12 +395,7 @@ function Repair-FilePermissionInternal {
                         Write-Warning "Can't translate '$idRefShortValue'. "
                         continue
                     }                    
-                }
-                else
-                {
-                    $ace = New-Object System.Security.AccessControl.FileSystemAccessRule `
-                        ($a.IdentityReference, "Read", "None", "None", "Allow")
-                    }
+                }                
                 $acl.SetAccessRule($ace)
                 Write-Host "'$($a.IdentityReference)' now has Read access to '$FilePath'. "  -ForegroundColor Green
             }
@@ -395,11 +431,14 @@ function Repair-FilePermissionInternal {
 
             if($pscmdlet.ShouldProcess($description, $prompt, "$caption."))
             {  
-                $needChange = $true
-                $ace = $a
-                $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]
-                if ($specialIdRefs -icontains $idRefShortValue)
-                {                    
+                $needChange = $true                
+                if(Get-UserSID -User $a.IdentityReference)
+                {
+                    $ace = $a
+                }                
+                else
+                {
+                    $idRefShortValue = ($a.IdentityReference.Value).split('\')[-1]                 
                     $ruleIdentity = Get-UserSID -User (New-Object Security.Principal.NTAccount $idRefShortValue)
                     if($ruleIdentity)
                     {
@@ -525,25 +564,7 @@ function Remove-RuleProtection
         return $false
     }
 }
-<#
-    .Synopsis
-    Get-UserAccount
-#>
-function Get-UserAccount
-{
-    param
-        (   [parameter(Mandatory=$true)]      
-            [string]$UserSid
-        )
-    try
-    {
-        $objSID = New-Object System.Security.Principal.SecurityIdentifier($UserSid) 
-        $objUser = $objSID.Translate( [System.Security.Principal.NTAccount]) 
-        $objUser
-    }
-    catch {
-    }
-}
+
 
 <#
     .Synopsis
@@ -557,6 +578,7 @@ function Get-UserSID
         $User.Translate([System.Security.Principal.SecurityIdentifier])
     }
     catch {
+        return $null
     }
 }
 
