@@ -874,10 +874,24 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		seccomp_audit_arch=AUDIT_ARCH_MIPSEL
 		;;
 	mips64-*)
-		seccomp_audit_arch=AUDIT_ARCH_MIPS64
+		case "$mips_abi" in
+		"n32")
+			seccomp_audit_arch=AUDIT_ARCH_MIPS64N32
+			;;
+		"n64")
+			seccomp_audit_arch=AUDIT_ARCH_MIPS64
+			;;
+		esac
 		;;
 	mips64el-*)
-		seccomp_audit_arch=AUDIT_ARCH_MIPSEL64
+		case "$mips_abi" in
+		"n32")
+			seccomp_audit_arch=AUDIT_ARCH_MIPSEL64N32
+			;;
+		"n64")
+			seccomp_audit_arch=AUDIT_ARCH_MIPSEL64
+			;;
+		esac
 		;;
 	esac
 	if test "x$seccomp_audit_arch" != "x" ; then
