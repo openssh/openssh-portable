@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.247 2017/06/24 06:57:04 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.248 2017/06/24 07:08:57 djm Exp $
 .Dd $Mdocdate: June 24 2017 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -568,7 +568,7 @@ simplify restricted configurations.
 Enables writing a file containing a list of authentication methods and
 public credentials (e.g. keys) used to authenticate the user.
 The location of the file is exposed to the user session through the
-.Ev SSH_AUTH_INFO
+.Ev SSH_USER_AUTH
 environment variable.
 .It Cm FingerprintHash
 Specifies the hash algorithm used when logging key fingerprints.
