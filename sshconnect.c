@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.280 2017/05/30 14:13:40 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.281 2017/06/24 05:35:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -863,7 +863,9 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		    host, type, want_cert ? "certificate" : "key");
 		debug("Found %s in %s:%lu", want_cert ? "CA key" : "key",
 		    host_found->file, host_found->line);
-		if (want_cert && !check_host_cert(hostname, host_key))
+		if (want_cert &&
+		    !check_host_cert(options.host_key_alias == NULL ?
+		    hostname : options.host_key_alias, host_key))
 			goto fail;
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			if (readonly || want_cert)
