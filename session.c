@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.288 2017/05/31 09:15:42 deraadt Exp $ */
+/* $OpenBSD: session.c,v 1.289 2017/06/24 05:24:11 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -134,7 +134,6 @@ static int session_pty_req(Session *);
 /* import */
 extern ServerOptions options;
 extern char *__progname;
-extern int log_stderr;
 extern int debug_flag;
 extern u_int utmp_len;
 extern int startup_pipe;
@@ -364,10 +363,6 @@ do_exec_no_pty(Session *s, const char *command)
 	case 0:
 		is_child = 1;
 
-		/* Child.  Reinitialize the log since the pid has changed. */
-		log_init(__progname, options.log_level,
-		    options.log_facility, log_stderr);
-
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -522,9 +517,6 @@ do_exec_pty(Session *s, const char *command)
 		close(fdout);
 		close(ptymaster);
 
-		/* Child.  Reinitialize the log because the pid has changed. */
-		log_init(__progname, options.log_level,
-		    options.log_facility, log_stderr);
 		/* Close the master side of the pseudo tty. */
 		close(ptyfd);
 
