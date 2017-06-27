@@ -114,7 +114,6 @@ int
 fileio_connect(struct w32_io* pio, char* name) 
 {
 	wchar_t* name_w = NULL;
-	wchar_t pipe_name[PATH_MAX];
 	HANDLE h = INVALID_HANDLE_VALUE;
 	int ret = 0, r;
 
@@ -129,16 +128,9 @@ fileio_connect(struct w32_io* pio, char* name)
 		errno = ENOMEM;
 		return -1;
 	}
-	r = _snwprintf_s(pipe_name, PATH_MAX, PATH_MAX, L"\\\\.\\pipe\\%ls", name_w);
-	if (r < 0 || r >= PATH_MAX) {
-		debug3("cannot create pipe name with %s", name);
-		errno = EOTHER;
-		return -1;
-	}
-
-
+	
 	do {
-		h = CreateFileW(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, 
+		h = CreateFileW(name_w, GENERIC_READ | GENERIC_WRITE, 0,
 			NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT | SECURITY_IDENTIFICATION, NULL);
 	
 		if (h != INVALID_HANDLE_VALUE)
