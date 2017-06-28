@@ -168,6 +168,10 @@ function Start-OpenSSHBootstrap
     {
         Write-BuildMsg -AsVerbose -Message "Adding $gitCmdPath to Path environment variable" -Silent:$silent
         $newMachineEnvironmentPath = "$gitCmdPath;$newMachineEnvironmentPath"
+        if(-not ($env:Path.ToLower().Contains($gitCmdPath.ToLower())))
+        {
+            $env:Path += ";$gitCmdPath"
+        }
     }
     else
     {
@@ -184,12 +188,15 @@ function Start-OpenSSHBootstrap
     {
         Write-BuildMsg -AsVerbose -Message "Adding $nativeMSBuildPath to Path environment variable" -Silent:$silent
         $newMachineEnvironmentPath += ";$nativeMSBuildPath"
-        $env:Path += ";$nativeMSBuildPath"
+        if(-not ($env:Path.ToLower().Contains($nativeMSBuildPath.ToLower())))
+        {
+            $env:Path += ";$nativeMSBuildPath"
+        }
     }
     else
     {
         Write-BuildMsg -AsVerbose -Message "$nativeMSBuildPath already present in Path environment variable" -Silent:$silent
-    }
+    } 
 
     # Update machine environment path
     if ($newMachineEnvironmentPath -ne $machinePath)
@@ -197,42 +204,47 @@ function Start-OpenSSHBootstrap
         [Environment]::SetEnvironmentVariable('Path', $newMachineEnvironmentPath, 'MACHINE')
     }
 
-    # Install Visual Studio 2015 Community
-    $packageName = "VisualStudio2015Community"
-    $VSPackageInstalled = Get-ItemProperty "HKLM:\software\WOW6432Node\Microsoft\VisualStudio\14.0\setup\vs" -ErrorAction SilentlyContinue
+    $VCTargetsPath = "${env:ProgramFiles(x86)}\MSBuild\Microsoft.Cpp\v4.0\V140"
+    [Environment]::SetEnvironmentVariable('VCTargetsPath', $VCTargetsPath, 'MACHINE')
+    $env:VCTargetsPath= $VCTargetsPath
 
-    if ($null -eq $VSPackageInstalled)
-    {
-        Write-BuildMsg -AsInfo -Message "$packageName not present. Installing $packageName."
-        $adminFilePath = "$script:OpenSSHRoot\contrib\win32\openssh\VSWithBuildTools.xml"
-        choco install $packageName -packageParameters "--AdminFile $adminFilePath" -y --force --limitoutput --execution-timeout 10000 2>&1 >> $script:BuildLogFile
-    }
-    else
-    {
-        Write-BuildMsg -AsVerbose -Message "$packageName present. Skipping installation." -Silent:$silent
-    }
-
-    # Install Windows 8.1 SDK
-    $packageName = "windows-sdk-8.1"
+    $vcVars = "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"
     $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\8.1\bin\x86\register_app.vbs"
-
-    if (-not (Test-Path -Path $sdkPath))
-    {
-        Write-BuildMsg -AsInfo  -Message "Windows 8.1 SDK not present. Installing $packageName."
-        choco install $packageName -y --limitoutput --force 2>&1 >> $script:BuildLogFile
+    $packageName = "vcbuildtools"
+    If ((-not (Test-Path $nativeMSBuildPath)) -or (-not (Test-Path $VcVars)) -or (-not (Test-Path $sdkPath))) {
+        Write-BuildMsg -AsInfo -Message "$packageName not present. Installing $packageName ..."
+        choco install $packageName -ia "/InstallSelectableItems VisualCppBuildTools_ATLMFC_SDK;VisualCppBuildTools_NETFX_SDK;Win81SDK_CppBuildSKUV1" -y --force --limitoutput --execution-timeout 10000 2>&1 >> $script:BuildLogFile
+        $errorCode = $LASTEXITCODE
+        if ($errorCode -eq 3010)
+        {
+            Write-Host "The recent package changes indicate a reboot is necessary. please reboot the machine, open a new powershell window and call Start-SSHBuild or Start-OpenSSHBootstrap again." -ForegroundColor Black -BackgroundColor Yellow
+            Do {
+                $input = Read-Host -Prompt "Reboot the machine? [Yes] Y; [No] N (default is `"Y`")"
+                if([string]::IsNullOrEmpty($input))
+                {
+                    $input = 'Y'
+                }
+            } until ($input -match "^(y(es)?|N(o)?)$")
+            [string]$ret = $Matches[0]
+            if ($ret.ToLower().Startswith('y'))
+            {
+                Write-BuildMsg -AsWarning -Message "restarting machine ..."
+                Restart-Computer -Force
+                exit
+            }
+            else
+            {
+                Write-BuildMsg -AsError -ErrorAction Stop -Message "User choose not to restart the machine to apply the changes."
+            }
+        }
+        else
+        {
+            Write-BuildMsg -AsError -ErrorAction Stop -Message "$packageName installation failed with error code $errorCode"
+        }
     }
     else
     {
-        Write-BuildMsg -AsInfo -Message "$packageName present. Skipping installation." -Silent:$silent
-    }
-
-    # Require restarting PowerShell session
-    if ($null -eq $VSPackageInstalled)
-    {
-        Write-Host "To apply changes, please close this PowerShell window, open a new one and call Start-SSHBuild or Start-DscBootstrap again." -ForegroundColor Black -BackgroundColor Yellow
-        Write-Host -NoNewLine 'Press any key to close this PowerShell window...' -ForegroundColor Black -BackgroundColor Yellow
-        $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-        exit
+        Write-BuildMsg -AsVerbose -Message 'VC++ 2015 Build Tools already present.'
     }
 
     # Ensure the VS C toolset is installed
@@ -247,7 +259,7 @@ function Start-OpenSSHBootstrap
     Write-BuildMsg -AsVerbose -Message "vcPath: $script:vcPath" -Silent:$silent
     if ((Test-Path -Path "$script:vcPath\vcvarsall.bat") -eq $false)
     {
-        Write-BuildMsg -AsError -ErrorAction Stop -Message "Could not find Visual Studio vcvarsall.bat at$script:vcPath, which means some required develop kits are missing on the machine." 
+        Write-BuildMsg -AsError -ErrorAction Stop -Message "Could not find Visual Studio vcvarsall.bat at $script:vcPath, which means some required develop kits are missing on the machine." 
     }
 }
 
@@ -378,7 +390,6 @@ function Start-OpenSSHPackage
         }
     }
     Remove-Item $packageDir -Recurse -Force -ErrorAction SilentlyContinue
-
     
     if ($DestinationPath -ne "") {
         Copy-Item -Path $symbolsDir\* -Destination $DestinationPath -Force -Recurse
