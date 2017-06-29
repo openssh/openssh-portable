@@ -125,6 +125,8 @@ struct key_translation keys[] = {
 
 static SHORT lastX = 0;
 static SHORT lastY = 0;
+static wchar_t cmd_exe_path[PATH_MAX];
+
 SHORT currentLine = 0;
 consoleEvent* head = NULL;
 consoleEvent* tail = NULL;
@@ -939,6 +941,19 @@ cleanup:
 	return 0;
 }
 
+wchar_t *
+w32_cmd_path()
+{
+	ZeroMemory(cmd_exe_path, PATH_MAX);
+	if (!GetSystemDirectory(cmd_exe_path, sizeof(cmd_exe_path))) {
+		printf("GetSystemDirectory failed");
+		exit(255);
+	}
+
+	wcscat_s(cmd_exe_path, sizeof(cmd_exe_path), L"\\cmd.exe");
+	return cmd_exe_path;
+}
+
 int 
 start_with_pty(wchar_t *command)
 {
@@ -1004,9 +1019,8 @@ start_with_pty(wchar_t *command)
 	/* disable inheritance on pipe_in*/
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
 	
-	/*TODO - pick this up from system32*/
 	cmd[0] = L'\0';
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));
 	
 	if (command) {
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
@@ -1178,10 +1192,9 @@ start_withno_pty(wchar_t *command)
 		run_under_cmd = TRUE;
 
 	/* if above failed with FILE_NOT_FOUND, try running the provided command under cmd*/
-	if (run_under_cmd) {
-		/*TODO - pick this up from system32*/
+	if (run_under_cmd) {		
 		cmd[0] = L'\0';
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"cmd.exe"));
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));
 		if (command) {
 			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
 			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));

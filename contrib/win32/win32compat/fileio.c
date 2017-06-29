@@ -115,7 +115,7 @@ fileio_connect(struct w32_io* pio, char* name)
 {
 	wchar_t* name_w = NULL;
 	HANDLE h = INVALID_HANDLE_VALUE;
-	int ret = 0, r;
+	int ret = 0;
 
 	if (pio->handle != 0 && pio->handle != INVALID_HANDLE_VALUE) {
 		debug3("fileio_connect called in unexpected state, pio = %p", pio);
