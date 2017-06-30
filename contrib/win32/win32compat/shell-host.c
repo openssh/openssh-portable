@@ -102,6 +102,9 @@ struct key_translation keys[] = {
     { L"\x1b[B",     VK_DOWN,     0 , 0},
     { L"\x1b[C",     VK_RIGHT,    0 , 0},
     { L"\x1b[D",     VK_LEFT,     0 , 0},
+    { L"\x1b[F",     VK_END,      0 , 0 },    /* KeyPad END */
+    { L"\x1b[H",     VK_HOME,     0 , 0 },    /* KeyPad HOME */
+    { L"\x1b[Z",     0,           0 , 0 },    /* ignore Shift+TAB */
     { L"\x1b[1~",    VK_HOME,     0 , 0},
     { L"\x1b[2~",    VK_INSERT,   0 , 0},
     { L"\x1b[3~",    VK_DELETE,   0 , 0},
@@ -120,6 +123,10 @@ struct key_translation keys[] = {
     { L"\x1b[21~",   VK_F10,      0 , 0},
     { L"\x1b[23~",   VK_F11,      0 , 0},
     { L"\x1b[24~",   VK_F12,      0 , 0},
+    { L"\x1bOP",     VK_F1,       0 , 0 },
+    { L"\x1bOQ",     VK_F2,       0 , 0 },
+    { L"\x1bOR",     VK_F3,       0 , 0 },
+    { L"\x1bOS",     VK_F4,       0 , 0 },
     { L"\x1b",       VK_ESCAPE,  L'\x1b' , 0}
 };
 
