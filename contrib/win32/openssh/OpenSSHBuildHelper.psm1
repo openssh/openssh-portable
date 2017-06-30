@@ -2,7 +2,6 @@
 If ($PSVersiontable.PSVersion.Major -le 2) {$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path}
 Import-Module $PSScriptRoot\OpenSSHCommonUtils.psm1 -Force
 
-[string] $script:platform = $env:PROCESSOR_ARCHITECTURE
 [string] $script:vcPath = $null
 [System.IO.DirectoryInfo] $script:OpenSSHRoot = $null
 [System.IO.DirectoryInfo] $script:gitRoot = $null
@@ -152,7 +151,7 @@ function Start-OpenSSHBootstrap
 
     # Install chocolatey
     $chocolateyPath = "$env:AllUsersProfile\chocolatey\bin"
-    if(Get-Command "choco" -ErrorAction SilentlyContinue)
+    if(Get-Command choco -ErrorAction SilentlyContinue)
     {
         Write-BuildMsg -AsVerbose -Message "Chocolatey is already installed. Skipping installation." -Silent:$silent
     }
@@ -160,6 +159,20 @@ function Start-OpenSSHBootstrap
     {
         Write-BuildMsg -AsInfo -Message "Chocolatey not present. Installing chocolatey." -Silent:$silent
         Invoke-Expression ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) 2>&1 >> $script:BuildLogFile
+    }
+
+    if (-not ($machinePath.ToLower().Contains($chocolateyPath.ToLower())))
+    {
+        Write-BuildMsg -AsVerbose -Message "Adding $chocolateyPath to Path environment variable" -Silent:$silent
+        $newMachineEnvironmentPath = "$chocolateyPath;$newMachineEnvironmentPath"
+        if(-not ($env:Path.ToLower().Contains($chocolateyPath.ToLower())))
+        {
+            $env:Path = "$chocolateyPath;$env:Path"
+        }
+    }
+    else
+    {
+        Write-BuildMsg -AsVerbose -Message "$chocolateyPath already present in Path environment variable" -Silent:$silent
     }
 
     # Add git\cmd to the path
@@ -170,7 +183,7 @@ function Start-OpenSSHBootstrap
         $newMachineEnvironmentPath = "$gitCmdPath;$newMachineEnvironmentPath"
         if(-not ($env:Path.ToLower().Contains($gitCmdPath.ToLower())))
         {
-            $env:Path += ";$gitCmdPath"
+            $env:Path = "$gitCmdPath;$env:Path"
         }
     }
     else
@@ -178,8 +191,8 @@ function Start-OpenSSHBootstrap
         Write-BuildMsg -AsVerbose -Message "$gitCmdPath already present in Path environment variable" -Silent:$silent
     }
         
-    $nativeMSBuildPath = "${env:ProgramFiles(x86)}\MSBuild\14.0\bin"
-    if($script:platform -ieq "AMD64")
+    $nativeMSBuildPath = "${env:ProgramFiles(x86)}\MSBuild\14.0\bin"    
+    if($env:PROCESSOR_ARCHITECTURE -ieq "AMD64")
     {
         $nativeMSBuildPath += "\amd64"
     }
@@ -205,8 +218,14 @@ function Start-OpenSSHBootstrap
     }
 
     $VCTargetsPath = "${env:ProgramFiles(x86)}\MSBuild\Microsoft.Cpp\v4.0\V140"
-    [Environment]::SetEnvironmentVariable('VCTargetsPath', $VCTargetsPath, 'MACHINE')
-    $env:VCTargetsPath= $VCTargetsPath
+    if([Environment]::GetEnvironmentVariable('VCTargetsPath', 'MACHINE') -eq $null)
+    {
+        [Environment]::SetEnvironmentVariable('VCTargetsPath', $VCTargetsPath, 'MACHINE')
+    }
+    if ($env:VCTargetsPath -eq $null)
+    {
+        $env:VCTargetsPath = $VCTargetsPath
+    }
 
     $vcVars = "${env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"
     $sdkPath = "${env:ProgramFiles(x86)}\Windows Kits\8.1\bin\x86\register_app.vbs"
