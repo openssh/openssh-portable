@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.53 2017/06/28 01:09:22 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.54 2017/07/01 13:50:45 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -51,7 +51,6 @@
 #include "ssherr.h"
 #include "misc.h"
 #include "sshbuf.h"
-#include "rsa.h"
 #include "cipher.h"
 #include "digest.h"
 #define SSHKEY_INTERNAL
@@ -2667,7 +2666,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 		    (r = sshbuf_get_bignum2(buf, k->rsa->iqmp)) != 0 ||
 		    (r = sshbuf_get_bignum2(buf, k->rsa->p)) != 0 ||
 		    (r = sshbuf_get_bignum2(buf, k->rsa->q)) != 0 ||
-		    (r = rsa_generate_additional_parameters(k->rsa)) != 0)
+		    (r = ssh_rsa_generate_additional_parameters(k)) != 0)
 			goto out;
 		if (BN_num_bits(k->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
 			r = SSH_ERR_KEY_LENGTH;
@@ -2681,7 +2680,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 		    (r = sshbuf_get_bignum2(buf, k->rsa->iqmp)) != 0 ||
 		    (r = sshbuf_get_bignum2(buf, k->rsa->p)) != 0 ||
 		    (r = sshbuf_get_bignum2(buf, k->rsa->q)) != 0 ||
-		    (r = rsa_generate_additional_parameters(k->rsa)) != 0)
+		    (r = ssh_rsa_generate_additional_parameters(k)) != 0)
 			goto out;
 		if (BN_num_bits(k->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
 			r = SSH_ERR_KEY_LENGTH;
