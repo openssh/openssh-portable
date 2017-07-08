@@ -372,6 +372,12 @@ assemble_argv(int argc, char **argv)
 	return ret;
 }
 
+#ifdef HAVE_CYGWIN
+#define ROOT_OR_SYSTEM_UID 18
+#else
+#define ROOT_OR_SYSTEM_UID 0
+#endif
+
 /*
  * Runs command in a subprocess. Returns pid on success and a FILE* to the
  * subprocess' stdout or 0 on failure.
@@ -406,7 +412,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 		restore_uid();
 		return 0;
 	}
-	if (auth_secure_path(av[0], &st, NULL, 0,
+	if (auth_secure_path(av[0], &st, NULL, ROOT_OR_SYSTEM_UID,
 	    errmsg, sizeof(errmsg)) != 0) {
 		error("Unsafe %s \"%s\": %s", tag, av[0], errmsg);
 		restore_uid();

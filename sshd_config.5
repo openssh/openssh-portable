@@ -227,8 +227,8 @@ Note that each authentication method listed should also be explicitly enabled
 in the configuration.
 .It Cm AuthorizedKeysCommand
 Specifies a program to be used to look up the user's public keys.
-The program must be owned by root, not writable by group or others and
-specified by an absolute path.
+The program must be owned by root (or SYSTEM on Windows), not writable by group
+or others and specified by an absolute path.
 Arguments to
 .Cm AuthorizedKeysCommand
 accept the tokens described in the
