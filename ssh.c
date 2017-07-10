@@ -1709,7 +1709,8 @@ ssh_session2_setup(int id, int success, void *arg)
 
 	display = getenv("DISPLAY");
 	if (display == NULL && options.forward_x11)
-		debug("X11 forwarding requested but DISPLAY not set");
+		debug("X11 forwarding requested but the DISPLAY environment 
+			variable is not set on the client");
 	if (options.forward_x11 && client_x11_get_proto(display,
 	    options.xauth_location, options.forward_x11_trusted,
 	    options.forward_x11_timeout, &proto, &data) == 0) {
