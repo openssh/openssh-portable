@@ -54,7 +54,7 @@
 #define PREV_KEY                    "\x1b[5~"
 #define NEXT_KEY                    "\x1b[6~"
 #define SHIFT_TAB_KEY               "\x1b[~"
-#define ESCAPE_KEY		            "\x1b"
+#define ESCAPE_KEY		    "\x1b"
 #define BACKSPACE_KEY               "\b"
 
 // VT100 Function Key's

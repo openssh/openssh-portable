@@ -36,6 +36,8 @@
 #include <Strsafe.h>
 #include <stdio.h>
 #include <io.h>
+#include <Shlobj.h>
+#include <Sddl.h>
 #include "misc_internal.h"
 #include "inc\utf.h"
 
@@ -92,9 +94,10 @@ struct key_translation {
 	int in_key_len;
 } key_translation;
 
-/* All the substrings (Ex- "\x1b") should be in the end, otherwise ProcessIncomingKeys() will not work as expected */
+/* All the substrings should be in the end, otherwise ProcessIncomingKeys() will not work as expected */
 struct key_translation keys[] = {
     { L"\r",         VK_RETURN,  L'\r' , 0},
+    { L"\n",         VK_RETURN,  L'\r' , 0 },
     { L"\b",         VK_BACK,    L'\b' , 0},
     { L"\x7f",       VK_BACK,    L'\b' , 0},
     { L"\t",         VK_TAB,     L'\t' , 0},
@@ -102,9 +105,9 @@ struct key_translation keys[] = {
     { L"\x1b[B",     VK_DOWN,     0 , 0},
     { L"\x1b[C",     VK_RIGHT,    0 , 0},
     { L"\x1b[D",     VK_LEFT,     0 , 0},
-    { L"\x1b[F",     VK_END,      0 , 0 },    /* KeyPad END */
-    { L"\x1b[H",     VK_HOME,     0 , 0 },    /* KeyPad HOME */
-    { L"\x1b[Z",     0,           0 , 0 },    /* ignore Shift+TAB */
+    { L"\x1b[F",     VK_END,      0 , 0},    /* KeyPad END */
+    { L"\x1b[H",     VK_HOME,     0 , 0},    /* KeyPad HOME */
+    { L"\x1b[Z",     0,           0 , 0},    /* ignore Shift+TAB */
     { L"\x1b[1~",    VK_HOME,     0 , 0},
     { L"\x1b[2~",    VK_INSERT,   0 , 0},
     { L"\x1b[3~",    VK_DELETE,   0 , 0},
@@ -123,15 +126,21 @@ struct key_translation keys[] = {
     { L"\x1b[21~",   VK_F10,      0 , 0},
     { L"\x1b[23~",   VK_F11,      0 , 0},
     { L"\x1b[24~",   VK_F12,      0 , 0},
-    { L"\x1bOP",     VK_F1,       0 , 0 },
-    { L"\x1bOQ",     VK_F2,       0 , 0 },
-    { L"\x1bOR",     VK_F3,       0 , 0 },
-    { L"\x1bOS",     VK_F4,       0 , 0 },
-    { L"\x1b",       VK_ESCAPE,  L'\x1b' , 0}
+    { L"\x1bOA",     VK_UP,       0 , 0},
+    { L"\x1bOB",     VK_DOWN,     0 , 0},
+    { L"\x1bOC",     VK_RIGHT,    0 , 0},
+    { L"\x1bOD",     VK_LEFT,     0 , 0},
+    { L"\x1bOF",     VK_END,      0 , 0},    /* KeyPad END */
+    { L"\x1bOH",     VK_HOME,     0 , 0},    /* KeyPad HOME */
+    { L"\x1bOP",     VK_F1,       0 , 0},
+    { L"\x1bOQ",     VK_F2,       0 , 0},
+    { L"\x1bOR",     VK_F3,       0 , 0},
+    { L"\x1bOS",     VK_F4,       0 , 0}    
 };
 
 static SHORT lastX = 0;
 static SHORT lastY = 0;
+static wchar_t system32_path[PATH_MAX];
 static wchar_t cmd_exe_path[PATH_MAX];
 
 SHORT currentLine = 0;
@@ -201,27 +210,58 @@ ConSRWidth()
 	return consoleBufferInfo.srWindow.Right;
 }
 
+struct key_translation *
+FindKeyTransByMask(wchar_t prefix, const wchar_t * value, int vlen, wchar_t suffix)
+{
+	struct key_translation *k = NULL;
+	for (int i = 0; i < ARRAYSIZE(keys); i++) {
+		k = &keys[i];
+		if (k->in_key_len < vlen + 2) continue;
+		if (k->in[0] != L'\033') continue;
+		if (k->in[1] != prefix) continue;
+		if (k->in[vlen + 2] != suffix) continue;
+
+		if (vlen <= 1 && value[0] == k->in[2])
+			return k;
+		if (vlen > 1 && wcsncmp(&k->in[2], value, vlen) == 0)
+			return k;
+	}
+
+	return NULL;
+}
+
+int
+GetVirtualKeyByMask(wchar_t prefix, const wchar_t * value, int vlen, wchar_t suffix)
+{
+	struct key_translation * pk = FindKeyTransByMask(prefix, value, vlen, suffix);
+	return pk ? pk->vk : 0;
+}
+
 /*
  * This function will handle the console keystrokes.
  */
-void 
-SendKeyStroke(HANDLE hInput, int keyStroke, wchar_t character) 
+void
+SendKeyStrokeEx(HANDLE hInput, int vKey, wchar_t character, DWORD ctrlState, BOOL keyDown)
 {
 	DWORD wr = 0;
 	INPUT_RECORD ir;
 
 	ir.EventType = KEY_EVENT;
-	ir.Event.KeyEvent.bKeyDown = TRUE;
-	ir.Event.KeyEvent.wRepeatCount = 1;
-	ir.Event.KeyEvent.wVirtualKeyCode = keyStroke;
-	ir.Event.KeyEvent.wVirtualScanCode = 0;
-	ir.Event.KeyEvent.dwControlKeyState = 0;
+	ir.Event.KeyEvent.bKeyDown = keyDown;
+	ir.Event.KeyEvent.wRepeatCount = 0;
+	ir.Event.KeyEvent.wVirtualKeyCode = vKey;
+	ir.Event.KeyEvent.wVirtualScanCode = MapVirtualKeyA(vKey, MAPVK_VK_TO_VSC);
+	ir.Event.KeyEvent.dwControlKeyState = ctrlState;
 	ir.Event.KeyEvent.uChar.UnicodeChar = character;
 
 	WriteConsoleInputW(hInput, &ir, 1, &wr);
+}
 
-	ir.Event.KeyEvent.bKeyDown = FALSE;
-	WriteConsoleInputW(hInput, &ir, 1, &wr);
+void
+SendKeyStroke(HANDLE hInput, int keyStroke, wchar_t character)
+{
+	SendKeyStrokeEx(hInput, keyStroke, character, 0, TRUE);
+	SendKeyStrokeEx(hInput, keyStroke, character, 0, FALSE);
 }
 
 void
@@ -231,24 +271,78 @@ initialize_keylen()
 		keys[i].in_key_len = (int) wcslen(keys[i].in);
 }
 
+int
+ProcessCtrlSequence(wchar_t *buf, int buf_len)
+{
+	int vkey = 0;
+	/* Decode special keys when pressed CTRL key */
+	if (buf[0] == L'\033' && buf[1] == L'[' && buf[buf_len - 3] == L';' && buf[buf_len - 2] == L'5') {
+		if (buf[buf_len - 1] == L'~') {
+			/* VK_DELETE, VK_PGDN, VK_PGUP */
+			if (!vkey && buf_len == 6)
+				vkey = GetVirtualKeyByMask(L'[', &buf[2], 1, L'~');
+
+			/* VK_F1 ... VK_F12 */
+			if (!vkey && buf_len == 7)
+				vkey = GetVirtualKeyByMask(L'[', &buf[2], 2, L'~');
+		} else {
+			/* VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN */
+			if (!vkey && buf_len == 6 && buf[2] == L'1')
+				vkey = GetVirtualKeyByMask(L'[', &buf[5], 1, 0);
+
+			/* VK_F1 ... VK_F4 */
+			if (!vkey && buf_len == 6 && buf[2] == L'1' && isalpha(buf[5]))
+				vkey = GetVirtualKeyByMask(L'O', &buf[5], 1, 0);
+		}
+		if (vkey) {
+			SendKeyStrokeEx(child_in, VK_CONTROL, 0, LEFT_CTRL_PRESSED, TRUE);
+			SendKeyStrokeEx(child_in, vkey, 0, LEFT_CTRL_PRESSED, TRUE);
+			SendKeyStrokeEx(child_in, VK_CONTROL, 0, 0, FALSE);
+			SendKeyStrokeEx(child_in, vkey, 0, 0, FALSE);			
+		}
+	}
+
+	return vkey;
+}
+
 void 
 ProcessIncomingKeys(char * ansikey)
 {
+	int buf_len = 0;
+	const int MAX_CTRL_SEQ_LEN = 7;
+	const wchar_t *ESC_SEQ = L"\x1b";
 	wchar_t *buf = utf8_to_utf16(ansikey);
-		
+
 	if (!buf) {
 		printf("\nFailed to deserialize the client data, error:%d\n", GetLastError());
 		exit(255);
 	}
 
 	loop:
-	while (buf && (wcslen(buf) > 0)) {
+	while (buf && ((buf_len=(int)wcslen(buf)) > 0)) {
 		for (int j = 0; j < ARRAYSIZE(keys); j++) {
-			if ( (wcslen(buf) >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0) ) {
+			if ( (buf_len >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0) ) {
 				SendKeyStroke(child_in, keys[j].vk, keys[j].out);				
 				buf += keys[j].in_key_len;
 				goto loop;
 			}
+		}
+
+		/* Decode special keys when pressed CTRL key. CTRL sequences can be of size 6 or 7. */
+		if ((buf_len >= MAX_CTRL_SEQ_LEN) && ProcessCtrlSequence(buf, MAX_CTRL_SEQ_LEN)) {
+			buf += MAX_CTRL_SEQ_LEN;
+			goto loop;
+		}
+
+		if ((buf_len >= (MAX_CTRL_SEQ_LEN - 1)) && ProcessCtrlSequence(buf, MAX_CTRL_SEQ_LEN - 1)) {
+			buf += (MAX_CTRL_SEQ_LEN - 1);
+			goto loop;
+		}
+
+		if(wcsncmp(buf, ESC_SEQ, wcslen(ESC_SEQ)) == 0) {
+			SendKeyStroke(child_in, VK_ESCAPE, L'\x1b');
+			buf += wcslen(ESC_SEQ);
+			goto loop;
 		}
 
 		if (*buf == L'\x3') /*Ctrl+C - Raise Ctrl+C*/
@@ -460,10 +554,13 @@ SendBuffer(HANDLE hInput, CHAR_INFO *buffer, DWORD bufferSize)
 }
 
 void 
-CalculateAndSetCursor(HANDLE hInput, UINT x, UINT y)
+CalculateAndSetCursor(HANDLE hInput, short x, short y, BOOL scroll)
 {
+	if (scroll && y > currentLine)
+		for (short n = currentLine; n < y; n++)
+			SendLF(hInput);
 
-	SendSetCursor(pipe_out, x + 1, y + 1);
+	SendSetCursor(hInput, x + 1, y + 1);
 	currentLine = y;
 }
 
@@ -486,16 +583,16 @@ SizeWindow(HANDLE hInput)
 	matchingFont.FontWeight = FW_NORMAL;	
 	wcscpy_s(matchingFont.FaceName, LF_FACESIZE, L"Consolas");
 
-	bSuccess = __SetCurrentConsoleFontEx(child_out, FALSE, &matchingFont);
+	bSuccess = __SetCurrentConsoleFontEx(hInput, FALSE, &matchingFont);
 
 	/* This information is the live screen  */
 	ZeroMemory(&consoleInfo, sizeof(consoleInfo));
 	consoleInfo.cbSize = sizeof(consoleInfo);
 
-	bSuccess = GetConsoleScreenBufferInfoEx(child_out, &consoleInfo);
+	bSuccess = GetConsoleScreenBufferInfoEx(hInput, &consoleInfo);
 
 	/* Get the largest size we can size the console window to */
-	coordScreen = GetLargestConsoleWindowSize(child_out);
+	coordScreen = GetLargestConsoleWindowSize(hInput);
 
 	/* Define the new console window size and scroll position */
 	if (inputSi.dwXCountChars == 0 || inputSi.dwYCountChars == 0) {
@@ -507,18 +604,18 @@ SizeWindow(HANDLE hInput)
 	srWindowRect.Bottom = min((SHORT)inputSi.dwYCountChars, coordScreen.Y) - 1;
 	srWindowRect.Left = srWindowRect.Top = (SHORT)0;
 
-	/* Define the new console buffer size to be the maximum possible */
-	coordScreen.X = 100;
+	/* Define the new console buffer history to be the maximum possible */
+	coordScreen.X = srWindowRect.Right + 1;   /* buffer width must be equ window width */
 	coordScreen.Y = 9999;
 
-	if (SetConsoleWindowInfo(child_out, TRUE, &srWindowRect))
-		bSuccess = SetConsoleScreenBufferSize(child_out, coordScreen);
+	if (SetConsoleWindowInfo(hInput, TRUE, &srWindowRect))
+		bSuccess = SetConsoleScreenBufferSize(hInput, coordScreen);
 	else {
-		if (SetConsoleScreenBufferSize(child_out, coordScreen))
-			bSuccess = SetConsoleWindowInfo(child_out, TRUE, &srWindowRect);
+		if (SetConsoleScreenBufferSize(hInput, coordScreen))
+			bSuccess = SetConsoleWindowInfo(hInput, TRUE, &srWindowRect);
 	}
 
-	bSuccess = GetConsoleScreenBufferInfoEx(child_out, &consoleInfo);
+	bSuccess = GetConsoleScreenBufferInfoEx(hInput, &consoleInfo);
 }
 
 DWORD WINAPI 
@@ -543,19 +640,24 @@ ProcessEvent(void *p)
 	HWND hwnd;
 	LONG idObject;
 	LONG idChild;
+	CHAR_INFO pBuffer[MAX_EXPECTED_BUFFER_SIZE] = {0,};
+	DWORD bufferSize;
+	SMALL_RECT readRect;
+	COORD coordBufSize;
+	COORD coordBufCoord;
 
 	if (!p)
 		return ERROR_INVALID_PARAMETER;
 
 	consoleEvent* current = (consoleEvent *)p;
 
-	if (current) {
-		event = current->event;
-		hwnd = current->hwnd;
-		idObject = current->idObject;
-		idChild = current->idChild;
-	} else
+	if (!current)
 		return ERROR_INVALID_PARAMETER;
+
+	event = current->event;
+	hwnd = current->hwnd;
+	idObject = current->idObject;
+	idChild = current->idChild;
 
 	if (event < EVENT_CONSOLE_CARET || event > EVENT_CONSOLE_LAYOUT)
 		return ERROR_INVALID_PARAMETER;
@@ -586,14 +688,15 @@ ProcessEvent(void *p)
 		lastX = co.X;
 		lastY = co.Y;
 
-		SendSetCursor(pipe_out, lastX + 1, lastY + 1);
+		if (lastX == 0 && lastY > currentLine)
+			CalculateAndSetCursor(pipe_out, lastX, lastY, TRUE);
+		else
+			SendSetCursor(pipe_out, lastX + 1, lastY + 1);
 
 		break;
 	}
 	case EVENT_CONSOLE_UPDATE_REGION:
 	{
-		SMALL_RECT readRect;
-
 		readRect.Top = HIWORD(idObject);
 		readRect.Left = LOWORD(idObject);
 		readRect.Bottom = HIWORD(idChild);
@@ -617,8 +720,7 @@ ProcessEvent(void *p)
 			}
 		}
 
-		/* Figure out the buffer size */
-		COORD coordBufSize;
+		/* Figure out the buffer size */		
 		coordBufSize.Y = readRect.Bottom - readRect.Top + 1;
 		coordBufSize.X = readRect.Right - readRect.Left + 1;
 
@@ -632,7 +734,7 @@ ProcessEvent(void *p)
 			return ERROR_INVALID_PARAMETER;
 
 		/* Compute buffer size */
-		DWORD bufferSize = coordBufSize.X * coordBufSize.Y;
+		bufferSize = coordBufSize.X * coordBufSize.Y;
 		if (bufferSize > MAX_EXPECTED_BUFFER_SIZE) {
 			if (!bStartup) {
 				SendClearScreen(pipe_out);
@@ -641,38 +743,22 @@ ProcessEvent(void *p)
 			}
 			return ERROR_SUCCESS;
 		}
-
-		/* Create the screen scrape buffer */
-		CHAR_INFO *pBuffer = (PCHAR_INFO)malloc(sizeof(CHAR_INFO) * bufferSize);
-		if (!pBuffer)
-			return ERROR_INSUFFICIENT_BUFFER;
-
-		/* The top left destination cell of the temporary buffer is row 0, col 0 */
-		COORD coordBufCoord;
+		
+		/* The top left destination cell of the temporary buffer is row 0, col 0 */		
 		coordBufCoord.X = 0;
 		coordBufCoord.Y = 0;
 
 		/* Copy the block from the screen buffer to the temp. buffer */
-		if (!ReadConsoleOutput(child_out, pBuffer, coordBufSize, coordBufCoord, &readRect)) {
-			DWORD dwError = GetLastError();
-			
-			free(pBuffer);
-			return dwError;
-		}
-
-		if (readRect.Top > currentLine)
-			for (SHORT n = currentLine; n < readRect.Top; n++)
-				SendLF(pipe_out);
+		if (!ReadConsoleOutput(child_out, pBuffer, coordBufSize, coordBufCoord, &readRect))
+			return GetLastError();
 
 		/* Set cursor location based on the reported location from the message */
-		CalculateAndSetCursor(pipe_out, readRect.Left, readRect.Top);
+		CalculateAndSetCursor(pipe_out, readRect.Left, readRect.Top, TRUE);
 
 		/* Send the entire block */
 		SendBuffer(pipe_out, pBuffer, bufferSize);
 		lastViewPortY = ViewPortY;
-		lastLineLength = readRect.Left;
-		
-		free(pBuffer);
+		lastLineLength = readRect.Left;		
 		
 		break;
 	}
@@ -683,38 +769,27 @@ ProcessEvent(void *p)
 		wX = LOWORD(idObject);
 		wY = HIWORD(idObject);
 		
-		SMALL_RECT readRect;
 		readRect.Top = wY;
 		readRect.Bottom = wY;
 		readRect.Left = wX;
 		readRect.Right = ConSRWidth();
 		
 		/* Set cursor location based on the reported location from the message */
-		CalculateAndSetCursor(pipe_out, wX, wY);
-		
-		COORD coordBufSize;
+		CalculateAndSetCursor(pipe_out, wX, wY, TRUE);
+				
 		coordBufSize.Y = readRect.Bottom - readRect.Top + 1;
 		coordBufSize.X = readRect.Right - readRect.Left + 1;
+		bufferSize = coordBufSize.X * coordBufSize.Y;
 
 		/* The top left destination cell of the temporary buffer is row 0, col 0 */
-		COORD coordBufCoord;
 		coordBufCoord.X = 0;
 		coordBufCoord.Y = 0;
-		int pBufferSize = coordBufSize.X * coordBufSize.Y;
-		/* Send the one character. Note that a CR doesn't end up here */
-		CHAR_INFO *pBuffer = (PCHAR_INFO)malloc(sizeof(CHAR_INFO) * pBufferSize);
-		if (!pBuffer)
-			return ERROR_INSUFFICIENT_BUFFER;
 
 		/* Copy the block from the screen buffer to the temp. buffer */
-		if (!ReadConsoleOutput(child_out, pBuffer, coordBufSize, coordBufCoord, &readRect)) {
-			DWORD dwError = GetLastError();
-			free(pBuffer);
-			return dwError;
-		}
+		if (!ReadConsoleOutput(child_out, pBuffer, coordBufSize, coordBufCoord, &readRect))
+			return GetLastError();
 
-		SendBuffer(pipe_out, pBuffer, pBufferSize);
-		free(pBuffer);
+		SendBuffer(pipe_out, pBuffer, bufferSize);		
 
 		break;
 	}
@@ -951,13 +1026,9 @@ cleanup:
 wchar_t *
 w32_cmd_path()
 {
-	ZeroMemory(cmd_exe_path, PATH_MAX);
-	if (!GetSystemDirectory(cmd_exe_path, sizeof(cmd_exe_path))) {
-		printf("GetSystemDirectory failed");
-		exit(255);
-	}
+	wcsncpy_s(cmd_exe_path, (sizeof(cmd_exe_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
+	wcscat_s(cmd_exe_path, (sizeof(cmd_exe_path)/sizeof(wchar_t)), L"\\cmd.exe");
 
-	wcscat_s(cmd_exe_path, sizeof(cmd_exe_path), L"\\cmd.exe");
 	return cmd_exe_path;
 }
 
@@ -972,14 +1043,21 @@ start_with_pty(wchar_t *command)
 	DWORD dwStatus;
 	HANDLE hEventHook = NULL;
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
+	wchar_t kernel32_dll_path[PATH_MAX]={0,}, user32_dll_path[PATH_MAX]={0,};
 
 	if(cmd == NULL) {
 		printf("ssh-shellhost is out of memory");
 		exit(255);
 	}
-		
-	if ((hm_kernel32 = LoadLibraryW(L"kernel32.dll")) == NULL ||
-	    (hm_user32 = LoadLibraryW(L"user32.dll")) == NULL ||
+
+	wcsncpy_s(kernel32_dll_path, (sizeof(kernel32_dll_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
+	wcscat_s(kernel32_dll_path, (sizeof(kernel32_dll_path)/sizeof(wchar_t)), L"\\kernel32.dll");
+
+	wcsncpy_s(user32_dll_path, (sizeof(user32_dll_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
+	wcscat_s(user32_dll_path, (sizeof(user32_dll_path)/sizeof(wchar_t)), L"\\user32.dll");
+
+	if ((hm_kernel32 = LoadLibraryW(kernel32_dll_path)) == NULL ||
+	    (hm_user32 = LoadLibraryW(user32_dll_path)) == NULL ||
 	    (__SetCurrentConsoleFontEx = (__t_SetCurrentConsoleFontEx)GetProcAddress(hm_kernel32, "SetCurrentConsoleFontEx")) == NULL ||
 	    (__UnhookWinEvent = (__t_UnhookWinEvent)GetProcAddress(hm_user32, "UnhookWinEvent")) == NULL ||
 	    (__SetWinEventHook = (__t_SetWinEventHook)GetProcAddress(hm_user32, "SetWinEventHook")) == NULL) {
@@ -1310,9 +1388,6 @@ cleanup:
 	return child_exit_code;
 }
 
-#include <Shlobj.h>
-#include <Sddl.h>
-
 static void* xmalloc(size_t size) {
 	void* ptr;
 	if ((ptr = malloc(size)) == NULL) {
@@ -1445,6 +1520,12 @@ wmain(int ac, wchar_t **av)
 		}
 		free(cmd_b64_utf8);
 		free(cmd_utf8);
+	}
+
+	ZeroMemory(system32_path, sizeof(system32_path) / sizeof(wchar_t));
+	if (!GetSystemDirectory(system32_path, sizeof(system32_path)/sizeof(wchar_t))) {
+		printf("GetSystemDirectory failed");
+		exit(255);
 	}
 
 	if (pty_requested)
