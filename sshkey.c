@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.54 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.55 2017/07/19 08:30:41 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1986,11 +1986,6 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 		pk = NULL;
 		break;
 	case KEY_UNSPEC:
-		if ((key = sshkey_new(type)) == NULL) {
-			ret = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		break;
 	default:
 		ret = SSH_ERR_KEY_TYPE_UNKNOWN;
 		goto out;
