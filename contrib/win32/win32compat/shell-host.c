@@ -210,6 +210,14 @@ ConSRWidth()
 	return consoleBufferInfo.srWindow.Right;
 }
 
+void
+my_invalid_parameter_handler(const wchar_t* expression, const wchar_t* function,
+	 const wchar_t* file, unsigned int line, uintptr_t pReserved)
+{
+	wprintf_s(L"Invalid parameter in function: %s. File: %s Line: %d\n", function, file, line);
+	wprintf_s(L"Expression: %s\n", expression);
+}
+
 struct key_translation *
 FindKeyTransByMask(wchar_t prefix, const wchar_t * value, int vlen, wchar_t suffix)
 {
@@ -268,7 +276,7 @@ void
 initialize_keylen()
 {
 	for(int i = 0; i < ARRAYSIZE(keys); i++)
-		keys[i].in_key_len = (int) wcslen(keys[i].in);
+		keys[i].in_key_len = (int) wcsnlen(keys[i].in, _countof(keys[i].in));
 }
 
 int
@@ -314,7 +322,7 @@ ProcessIncomingKeys(char * ansikey)
 	wchar_t *buf = utf8_to_utf16(ansikey);
 
 	if (!buf) {
-		printf("\nFailed to deserialize the client data, error:%d\n", GetLastError());
+		printf_s("\nFailed to deserialize the client data, error:%d\n", GetLastError());
 		exit(255);
 	}
 
@@ -415,11 +423,11 @@ void
 SendSetCursor(HANDLE hInput, int X, int Y)
 {
 	DWORD wr = 0;
-	DWORD out = 0;
+	int out = 0;
 	char formatted_output[255];
 
 	out = _snprintf_s(formatted_output, sizeof(formatted_output), _TRUNCATE, "\033[%d;%dH", Y, X);
-	if (bUseAnsiEmulation)
+	if (out > 0 && bUseAnsiEmulation)
 		WriteFile(hInput, formatted_output, out, &wr, NULL);
 }
 
@@ -427,15 +435,15 @@ void
 SendVerticalScroll(HANDLE hInput, int lines)
 {
 	DWORD wr = 0;
-	DWORD out = 0;
+	int out = 0;
 	char formatted_output[255];
 
 	LONG vn = abs(lines);
 	/* Not supporting the [S at the moment. */
 	if (lines > 0) {
-		out = snprintf(formatted_output, sizeof(formatted_output), "\033[%dT", vn);
+		out = _snprintf_s(formatted_output, sizeof(formatted_output), _TRUNCATE, "\033[%dT", vn);
 
-		if (bUseAnsiEmulation)
+		if (out > 0 && bUseAnsiEmulation)
 			WriteFile(hInput, formatted_output, out, &wr, NULL);
 	}	
 }
@@ -444,12 +452,12 @@ void
 SendHorizontalScroll(HANDLE hInput, int cells)
 {
 	DWORD wr = 0;
-	DWORD out = 0;
+	int out = 0;
 	char formatted_output[255];
 
-	out = snprintf(formatted_output, sizeof(formatted_output), "\033[%dG", cells);
+	out = _snprintf_s(formatted_output, sizeof(formatted_output), _TRUNCATE, "\033[%dG", cells);
 
-	if (bUseAnsiEmulation)
+	if (out > 0 && bUseAnsiEmulation)
 		WriteFile(hInput, formatted_output, out, &wr, NULL);
 }
 
@@ -1026,9 +1034,16 @@ cleanup:
 wchar_t *
 w32_cmd_path()
 {
-	wcsncpy_s(cmd_exe_path, (sizeof(cmd_exe_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
-	wcscat_s(cmd_exe_path, (sizeof(cmd_exe_path)/sizeof(wchar_t)), L"\\cmd.exe");
+	errno_t r = 0;
+	if ((r = wcsncpy_s(cmd_exe_path, _countof(cmd_exe_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1)) != 0) {
+		printf_s("wcsncpy_s failed with error: %d.", r);
+		exit(255);
+	}
 
+	if ((r = wcscat_s(cmd_exe_path, _countof(cmd_exe_path), L"\\cmd.exe")) != 0) {
+		printf_s("wcscat_s failed with error: %d.", r);
+		exit(255);
+	}
 	return cmd_exe_path;
 }
 
@@ -1046,22 +1061,22 @@ start_with_pty(wchar_t *command)
 	wchar_t kernel32_dll_path[PATH_MAX]={0,}, user32_dll_path[PATH_MAX]={0,};
 
 	if(cmd == NULL) {
-		printf("ssh-shellhost is out of memory");
+		printf_s("ssh-shellhost is out of memory");
 		exit(255);
 	}
 
-	wcsncpy_s(kernel32_dll_path, (sizeof(kernel32_dll_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
-	wcscat_s(kernel32_dll_path, (sizeof(kernel32_dll_path)/sizeof(wchar_t)), L"\\kernel32.dll");
+	GOTO_CLEANUP_ON_ERR(wcsncpy_s(kernel32_dll_path, _countof(kernel32_dll_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(kernel32_dll_path, _countof(kernel32_dll_path), L"\\kernel32.dll"));
 
-	wcsncpy_s(user32_dll_path, (sizeof(user32_dll_path)/sizeof(wchar_t)), system32_path, wcslen(system32_path)+1);
-	wcscat_s(user32_dll_path, (sizeof(user32_dll_path)/sizeof(wchar_t)), L"\\user32.dll");
+	GOTO_CLEANUP_ON_ERR(wcsncpy_s(user32_dll_path, _countof(user32_dll_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(user32_dll_path, _countof(user32_dll_path), L"\\user32.dll"));
 
 	if ((hm_kernel32 = LoadLibraryW(kernel32_dll_path)) == NULL ||
 	    (hm_user32 = LoadLibraryW(user32_dll_path)) == NULL ||
 	    (__SetCurrentConsoleFontEx = (__t_SetCurrentConsoleFontEx)GetProcAddress(hm_kernel32, "SetCurrentConsoleFontEx")) == NULL ||
 	    (__UnhookWinEvent = (__t_UnhookWinEvent)GetProcAddress(hm_user32, "UnhookWinEvent")) == NULL ||
 	    (__SetWinEventHook = (__t_SetWinEventHook)GetProcAddress(hm_user32, "SetWinEventHook")) == NULL) {
-		printf("cannot support a pseudo terminal. \n");
+		printf_s("cannot support a pseudo terminal. \n");
 		return -1;
 	}
 
@@ -1208,7 +1223,7 @@ start_withno_pty(wchar_t *command)
 	DWORD rd = 0, wr = 0, i = 0;
 
 	if (cmd == NULL) {
-		printf("ssh-shellhost is out of memory");
+		printf_s("ssh-shellhost is out of memory");
 		exit(255);
 	}
 
@@ -1391,7 +1406,7 @@ cleanup:
 static void* xmalloc(size_t size) {
 	void* ptr;
 	if ((ptr = malloc(size)) == NULL) {
-		printf("out of memory");
+		printf_s("out of memory");
 		exit(EXIT_FAILURE);
 	}
 	return ptr;
@@ -1462,7 +1477,7 @@ static void setup_session_user_vars()
 				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
 				GetEnvironmentVariableW(L"PATH", path_value, required);
 				path_value[required - 1] = L';';
-				memcpy(path_value + required, to_apply, (wcslen(to_apply) + 1) * 2);
+				GOTO_CLEANUP_ON_ERR(memcpy_s(path_value + required, (wcslen(to_apply) + 1) * 2, to_apply, (wcslen(to_apply) + 1) * 2));
 				to_apply = path_value;
 			}
 
@@ -1470,6 +1485,7 @@ static void setup_session_user_vars()
 		if (to_apply)
 			SetEnvironmentVariableW(name, to_apply);
 	}
+cleanup:
 	if (reg_key)
 		RegCloseKey(reg_key);
 	if (data)
@@ -1489,13 +1505,14 @@ wmain(int ac, wchar_t **av)
 	int pty_requested = 0;
 	wchar_t *cmd = NULL, *cmd_b64 = NULL;
 
+	_set_invalid_parameter_handler(my_invalid_parameter_handler);
 	if ((ac == 1) || (ac == 2 && wcscmp(av[1], L"-nopty"))) {
 		pty_requested = 1;
 		cmd_b64 = ac == 2? av[1] : NULL;
 	} else if (ac <= 3 && wcscmp(av[1], L"-nopty") == 0)
 		cmd_b64 = ac == 3? av[2] : NULL;
 	else {
-		printf("ssh-shellhost received unexpected input arguments");
+		printf_s("ssh-shellhost received unexpected input arguments");
 		return -1;
 	}
 
@@ -1507,7 +1524,7 @@ wmain(int ac, wchar_t **av)
 		if ((cmd_b64_utf8 = utf16_to_utf8(cmd_b64)) == NULL ||
 		    /* strlen(b64) should be sufficient for decoded length */
 		    (cmd_utf8 = malloc(strlen(cmd_b64_utf8))) == NULL) {
-			printf("ssh-shellhost - out of memory");
+			printf_s("ssh-shellhost - out of memory");
 			return -1;
 		}
 		   
@@ -1515,16 +1532,16 @@ wmain(int ac, wchar_t **av)
 
 		if (b64_pton(cmd_b64_utf8, cmd_utf8, strlen(cmd_b64_utf8)) == -1 ||
 		    (cmd = utf8_to_utf16(cmd_utf8)) == NULL) {
-			printf("ssh-shellhost encountered an internal error while decoding base64 cmdline");
+			printf_s("ssh-shellhost encountered an internal error while decoding base64 cmdline");
 			return -1;
 		}
 		free(cmd_b64_utf8);
 		free(cmd_utf8);
 	}
 
-	ZeroMemory(system32_path, sizeof(system32_path) / sizeof(wchar_t));
-	if (!GetSystemDirectory(system32_path, sizeof(system32_path)/sizeof(wchar_t))) {
-		printf("GetSystemDirectory failed");
+	ZeroMemory(system32_path, _countof(system32_path));
+	if (!GetSystemDirectory(system32_path, _countof(system32_path))) {
+		printf_s("GetSystemDirectory failed");
 		exit(255);
 	}
 

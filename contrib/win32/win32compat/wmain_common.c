@@ -40,8 +40,8 @@ main(int, char **);
 int
 wmain(int argc, wchar_t **wargv) {
 	char** argv = NULL;
-	int i,r;
-
+	int i, r;
+	_set_invalid_parameter_handler(invalid_parameter_handler);
 	if (argc) {
 		if ((argv = malloc(argc * sizeof(char*))) == NULL)
 			fatal("out of memory");
@@ -59,6 +59,6 @@ wmain(int argc, wchar_t **wargv) {
 	w32posix_initialize();
 	
 	r = main(argc, argv);
-	w32posix_done();
+	w32posix_done();	
 	return r;
 }

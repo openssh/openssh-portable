@@ -517,12 +517,12 @@ ConWriteString(char* pszString, int cbString)
 	if ((needed = MultiByteToWideChar(CP_UTF8, 0, pszString, cbString, NULL, 0)) == 0 ||
 	    (utf16 = malloc(needed * sizeof(wchar_t))) == NULL ||
 	    (cnt = MultiByteToWideChar(CP_UTF8, 0, pszString, cbString, utf16, needed)) == 0) {
-		Result = (DWORD)printf(pszString);
+		Result = (DWORD)printf_s(pszString);
 	} else {
 		if (hOutputConsole)
 			WriteConsoleW(hOutputConsole, utf16, cnt, &Result, 0);
 		else
-			Result = (DWORD)wprintf(utf16);
+			Result = (DWORD)wprintf_s(utf16);
 	}
 
 	if (utf16)
@@ -539,7 +539,7 @@ ConTranslateAndWriteString(char* pszString, int cbString)
 	if (hOutputConsole)
 		WriteConsole(hOutputConsole, pszString, cbString, &Result, 0);
 	else
-		Result = (DWORD)printf(pszString);
+		Result = (DWORD)printf_s(pszString);
 
 	return Result;
 }
@@ -829,7 +829,11 @@ Con_printf(const char *Format, ...)
 
 	memset(temp, '\0', sizeof(temp));
 	va_start(va_data, Format);
-	len = vsnprintf(temp, sizeof(temp), Format, va_data);
+	len = vsnprintf_s(temp, sizeof(temp), _TRUNCATE, Format, va_data);
+	if (len == -1) {
+		error("Error from vsnprintf_s!");
+		return -1;
+	}
 	ConWriteConsole(temp, len);
 	va_end(va_data);
 
@@ -1073,6 +1077,7 @@ ConMoveVisibleWindow(int offset)
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 	SMALL_RECT visibleWindowRect;
+	errno_t r = 0;
 
 	memset(&visibleWindowRect, 0, sizeof(SMALL_RECT));
 	if (GetConsoleScreenBufferInfo(hOutputConsole, &consoleInfo)) {
@@ -1083,14 +1088,19 @@ ConMoveVisibleWindow(int offset)
 			for (int i = 0; i < offset; i++)
 				ConScrollDown(0, consoleInfo.dwSize.Y - 1);
 
-			if (GetConsoleScreenBufferInfo(hOutputConsole, &consoleInfo))
-				memcpy(&visibleWindowRect, &consoleInfo.srWindow, sizeof(visibleWindowRect));
-			else {
+			if (GetConsoleScreenBufferInfo(hOutputConsole, &consoleInfo) == FALSE) {
 				error("GetConsoleScreenBufferInfo failed with %d", GetLastError());
 				return;
 			}
+			if ((r = memcpy_s(&visibleWindowRect, sizeof(visibleWindowRect), &consoleInfo.srWindow, sizeof(visibleWindowRect))) != 0) {
+				error("memcpy_s failed with error: %d.", r);
+				return;
+			}
 		} else {
-			memcpy(&visibleWindowRect, &consoleInfo.srWindow, sizeof(visibleWindowRect));
+			if ((r = memcpy_s(&visibleWindowRect, sizeof(visibleWindowRect), &consoleInfo.srWindow, sizeof(visibleWindowRect))) != 0) {
+				error("memcpy_s failed with error: %d.", r);
+				return;
+			}
 			visibleWindowRect.Top += offset;
 			visibleWindowRect.Bottom += offset;
 		}
