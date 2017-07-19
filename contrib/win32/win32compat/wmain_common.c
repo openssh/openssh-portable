@@ -53,6 +53,9 @@ wmain(int argc, wchar_t **wargv) {
 	if (getenv("SSH_AUTH_SOCK") == NULL)
 		_putenv("SSH_AUTH_SOCK=\\\\.\\pipe\\openssh-ssh-agent");
 
+	if (getenv("TERM") == NULL)
+		_putenv("TERM=xterm");
+
 	w32posix_initialize();
 	
 	r = main(argc, argv);
