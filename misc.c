@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.110 2017/05/31 09:15:42 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.111 2017/07/23 23:37:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1085,6 +1085,7 @@ static const struct {
 	const char *name;
 	int value;
 } ipqos[] = {
+	{ "none", INT_MAX },		/* can't use 0 here; that's CS0 */
 	{ "af11", IPTOS_DSCP_AF11 },
 	{ "af12", IPTOS_DSCP_AF12 },
 	{ "af13", IPTOS_DSCP_AF13 },
