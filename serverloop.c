@@ -736,6 +736,9 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
+		} else if(!channel_permitted_remote_fwd(fwd.listen_host, fwd.listen_port)) {
+			success = 0;
+			packet_send_debug("Server has disabled remote forwarding for this port.");
 		} else {
 			/* Start listening on the port */
 			success = channel_setup_remote_fwd_listener(&fwd,
