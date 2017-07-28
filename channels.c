@@ -3444,6 +3444,27 @@ channel_request_rforward_cancel(struct Forward *fwd)
 }
 
 /*
+ * checks if host/port are allowed for remote forward
+ */
+int
+channel_permitted_remote_fwd(char *host, int port)
+{
+	int i;
+	if(all_opens_permitted){
+		debug("no rule found for permitopen, allowed by default");
+		return 1;
+	}
+	for (i = 0; i < num_permitted_opens; i++) {
+		if((permitted_opens[i].port_to_connect==port)
+			&&(strcmp(permitted_opens[i].host_to_connect,host)==0)
+			){
+			debug("allowed host: %s port %i",host,port);
+			return 1;
+		}
+	}
+return 0;
+}
+/*
  * Permits opening to any host/port if permitted_opens[] is empty.  This is
  * usually called by the server, because the user could connect to any port
  * anyway, and the server has no way to know but to trust the client anyway.
