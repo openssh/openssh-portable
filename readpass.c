@@ -177,7 +177,7 @@ ask_permission(const char *fmt, ...)
 	vsnprintf(prompt, sizeof(prompt), fmt, args);
 	va_end(args);
 
-	p = read_passphrase(prompt, RP_USE_ASKPASS|RP_ALLOW_EOF);
+	p = read_passphrase(prompt, RP_ALLOW_EOF);
 	if (p != NULL) {
 		/*
 		 * Accept empty responses and responses consisting
