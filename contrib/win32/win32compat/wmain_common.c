@@ -54,7 +54,7 @@ wmain(int argc, wchar_t **wargv) {
 		_putenv("SSH_AUTH_SOCK=\\\\.\\pipe\\openssh-ssh-agent");
 
 	if (getenv("TERM") == NULL)
-		_putenv("TERM=xterm");
+		_putenv("TERM=xterm-256color");
 
 	w32posix_initialize();
 	

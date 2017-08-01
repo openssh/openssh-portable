@@ -912,7 +912,7 @@ sanitized_path(const char *path)
 	if (path[0] == '/' && path[1]) {
 		if (path[2] == ':') {
 			if (path[3] == '\0') { /* make "/x:" as "x:\\" */
-				if((r = strncpy_s(newPath, sizeof(PATH_MAX), path + 1, strlen(path) - 1)) != 0 ) {
+				if((r = strncpy_s(newPath, sizeof(newPath), path + 1, strlen(path) - 1)) != 0 ) {
 					debug3("memcpy_s failed with error: %d.", r);
 					return NULL;
 				}
