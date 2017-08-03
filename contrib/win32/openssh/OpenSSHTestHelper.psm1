@@ -313,12 +313,12 @@ function Install-OpenSSHUtilsModule
     }
     
     $modulePath = Join-Path -Path $env:ProgramFiles -ChildPath WindowsPowerShell\Modules
-    if(-not (Test-Path $targetDirectory -PathType Container))
+    if(-not (Test-Path "$targetDirectory" -PathType Container))
     {
-        New-Item -ItemType Directory -Path $targetDirectory -Force -ErrorAction SilentlyContinue | out-null
+        New-Item -ItemType Directory -Path "$targetDirectory" -Force -ErrorAction SilentlyContinue | out-null
     }
-    Copy-item $manifestFile -Destination $targetDirectory -Force -ErrorAction SilentlyContinue | out-null
-    Copy-item $moduleFile -Destination $targetDirectory -Force -ErrorAction SilentlyContinue | out-null
+    Copy-item "$manifestFile" -Destination "$targetDirectory" -Force -ErrorAction SilentlyContinue | out-null
+    Copy-item "$moduleFile" -Destination "$targetDirectory" -Force -ErrorAction SilentlyContinue | out-null
     
     if ($PSVersionTable.PSVersion.Major -lt 4)
     {
@@ -506,13 +506,18 @@ function Get-UnitTestDirectory
     Run OpenSSH pester tests.
 #>
 function Invoke-OpenSSHE2ETest
-{     
+{
+    [CmdletBinding()]
+    param
+    (
+        [ValidateSet('CI', 'Scenario')]
+        [string]$pri = "CI")
     # Discover all CI tests and run them.
     Import-Module pester -force -global
     Push-Location $Script:E2ETestDirectory
     Write-Log -Message "Running OpenSSH E2E tests..."    
     $testFolders = @(Get-ChildItem *.tests.ps1 -Recurse | ForEach-Object{ Split-Path $_.FullName} | Sort-Object -Unique)
-    Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile $Script:E2ETestResultsFile -Tag 'CI'
+    Invoke-Pester $testFolders -OutputFormat NUnitXml -OutputFile $Script:E2ETestResultsFile -Tag $pri -PassThru
     Pop-Location
 }
 
