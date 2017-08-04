@@ -1007,7 +1007,7 @@ main(int ac, char **av)
 	if (options.hostname != NULL) {
 		/* NB. Please keep in sync with readconf.c:match_cfg_line() */
 		cp = percent_expand(options.hostname,
-		    "h", host, (char *)NULL);
+		    "n", host_arg, (char *)NULL);
 		free(host);
 		host = cp;
 		free(options.hostname);
