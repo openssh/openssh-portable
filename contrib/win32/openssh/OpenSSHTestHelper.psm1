@@ -20,6 +20,8 @@ $Script:UnitTestResultsFile = Join-Path $TestDataPath $UnitTestResultsFileName
 $Script:TestSetupLogFile = Join-Path $TestDataPath $TestSetupLogFileName
 $Script:E2ETestDirectory = Join-Path $repositoryRoot.FullName -ChildPath "regress\pesterTests"
 $Script:WindowsInBox = $false
+$Script:EnableAppVerifier = $true
+$Script:PostmortemDebugging = $false
 
 <#
     .Synopsis
@@ -32,8 +34,10 @@ function Set-OpenSSHTestEnvironment
     param
     (   
         [string] $OpenSSHBinPath,
-        [string] $TestDataPath = "$env:SystemDrive\OpenSSHTests",
-        [Boolean] $DebugMode = $false
+        [string] $TestDataPath = "$env:SystemDrive\OpenSSHTests",        
+        [Boolean] $DebugMode = $false,
+        [Switch] $NoAppVerifier,
+        [Switch] $PostmortemDebugging
     )
     
     if($PSBoundParameters.ContainsKey("Verbose"))
@@ -51,7 +55,11 @@ function Set-OpenSSHTestEnvironment
     $Script:UnitTestResultsFile = Join-Path $TestDataPath "UnitTestResults.txt"
     $Script:TestSetupLogFile = Join-Path $TestDataPath "TestSetupLog.txt"
     $Script:UnitTestDirectory = Get-UnitTestDirectory
-    
+    $Script:EnableAppVerifier = -not ($NoAppVerifier.IsPresent)
+    if($Script:EnableAppVerifier)
+    {
+        $Script:PostmortemDebugging = $PostmortemDebugging.IsPresent
+    }
 
     $Global:OpenSSHTestInfo = @{        
         "Target"= "localhost";                                 # test listener name
@@ -67,6 +75,8 @@ function Set-OpenSSHTestEnvironment
         "E2ETestDirectory" = $Script:E2ETestDirectory          # the directory of E2E tests
         "UnitTestDirectory" = $Script:UnitTestDirectory        # the directory of unit tests
         "DebugMode" = $DebugMode                               # run openssh E2E in debug mode
+        "EnableAppVerifier" = $Script:EnableAppVerifier
+        "PostmortemDebugging" = $Script:PostmortemDebugging
         }
         
     #if user does not set path, pick it up
@@ -237,6 +247,24 @@ WARNING: Following changes will be made to OpenSSH configuration
     cmd /c "ssh-add -D 2>&1 >> $Script:TestSetupLogFile"
     Repair-UserKeyPermission -FilePath $testPriKeypath -confirm:$false
     cmd /c "ssh-add $testPriKeypath 2>&1 >> $Script:TestSetupLogFile"
+
+    #Enable AppVerifier
+    if($EnableAppVerifier)
+    {        
+        # clear all applications in application verifier first
+        &  $env:windir\System32\appverif.exe -disable * -for *  | out-null
+        Get-ChildItem "$($script:OpenSSHBinPath)\*.exe" | % {
+            & $env:windir\System32\appverif.exe -verify $_.Name  | out-null
+        }
+
+        if($Script:PostmortemDebugging -and (Test-path $Script:WindbgPath))
+        {            
+            # enable Postmortem debugger            
+            New-ItemProperty "HKLM:Software\Microsoft\Windows NT\CurrentVersion\AeDebug" -Name Debugger -Type String -Value "`"$Script:WindbgPath`" -p %ld -e %ld -g" -Force -ErrorAction SilentlyContinue | Out-Null
+            New-ItemProperty "HKLM:Software\Microsoft\Windows NT\CurrentVersion\AeDebug" -Name Auto -Type String -Value "1" -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+    }
+
     Backup-OpenSSHTestInfo
 }
 #TODO - this is Windows specific. Need to be in PAL
@@ -293,6 +321,31 @@ function Install-OpenSSHTestDependencies
     {      
         Write-Log -Message "Installing Pester..." 
         choco install Pester -y --force --limitoutput 2>&1 >> $Script:TestSetupLogFile
+    }
+
+    if($Script:PostmortemDebugging -or (($OpenSSHTestInfo -ne $null) -and ($OpenSSHTestInfo["PostmortemDebugging"])))
+    {
+        $folderName = "x86"
+        $pathroot = $env:ProgramFiles
+        if($env:PROCESSOR_ARCHITECTURE -ieq "AMD64")
+        {
+            $folderName = "x64"
+            $pathroot = ${env:ProgramFiles(x86)}
+        }
+        $Script:WindbgPath = "$pathroot\Windows Kits\8.1\Debuggers\$folderName\windbg.exe"
+        if(-not (Test-Path $Script:WindbgPath))
+        {
+            $Script:WindbgPath = "$pathroot\Windows Kits\10\Debuggers\$folderName\windbg.exe"
+            if(-not (Test-Path $Script:WindbgPath))
+            {
+                choco install windbg -y --force --limitoutput 2>&1 >> $Script:TestSetupLogFile
+            }            
+        }        
+    }
+
+    if(($Script:EnableAppVerifier -or (($OpenSSHTestInfo -ne $null) -and ($OpenSSHTestInfo["EnableAppVerifier"]))) -and (-not (Test-path $env:windir\System32\appverif.exe)))
+    {
+        choco install appverifier -y --force --limitoutput 2>&1 >> $Script:TestSetupLogFile
     }
 }
 
@@ -396,6 +449,18 @@ function Clear-OpenSSHTestEnvironment
     Get-ChildItem "$sshBinPath\sshtest*hostkey*.pub"| % {
         ssh-add-hostkey.ps1 -Delete_key $_.FullName
     }
+
+    if($Global:OpenSSHTestInfo["EnableAppVerifier"] -and (Test-path $env:windir\System32\appverif.exe))
+    {
+        # clear all applications in application verifier
+        &  $env:windir\System32\appverif.exe -disable * -for * | out-null
+    }
+
+    if($Global:OpenSSHTestInfo["PostmortemDebugging"])
+    {
+        Remove-ItemProperty "HKLM:Software\Microsoft\Windows NT\CurrentVersion\AeDebug" -Name Debugger -ErrorAction SilentlyContinue -Force | Out-Null
+        Remove-ItemProperty "HKLM:Software\Microsoft\Windows NT\CurrentVersion\AeDebug" -Name Auto -ErrorAction SilentlyContinue -Force | Out-Null
+    }
     
     Remove-Item $sshBinPath\sshtest*hostkey* -Force -ErrorAction SilentlyContinue    
     #Restore sshd_config
@@ -442,7 +507,7 @@ function Clear-OpenSSHTestEnvironment
     {      
         Write-Log -Message "Uninstalling Module OpenSSHUtils..."
         Uninstall-OpenSSHUtilsModule
-    }    
+    }
 }
 
 <#

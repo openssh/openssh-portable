@@ -109,6 +109,7 @@ ReadThread(_In_ LPVOID lpParameter)
 				pio->read_details.buf_size, &read_status.transferred, NULL)) {
 				read_status.error = GetLastError();
 				debug("ReadThread - ReadFile failed %d, io:%p", GetLastError(), pio);
+				return -1;
 			}
 
 			char *p = NULL;
@@ -128,6 +129,7 @@ ReadThread(_In_ LPVOID lpParameter)
 		    pio->read_details.buf_size, &read_status.transferred, NULL)) {
 			read_status.error = GetLastError();
 			debug("ReadThread - ReadFile failed %d, io:%p", GetLastError(), pio);
+			return -1;
 		}
 	}
 	if (0 == QueueUserAPC(ReadAPCProc, main_thread, (ULONG_PTR)pio)) {
