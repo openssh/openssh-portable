@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.194 2017/08/11 03:58:36 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.195 2017/08/11 04:16:35 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -277,7 +277,7 @@ wait_until_can_do_something(int connection_in, int connection_out,
 		} else if (FD_ISSET(connection_in, *readsetp)) {
 			last_client_time = now;
 		} else if (last_client_time != 0 && last_client_time +
-		    options.client_alive_interval < now) {
+		    options.client_alive_interval <= now) {
 			client_alive_check();
 			last_client_time = now;
 		}
