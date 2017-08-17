@@ -190,6 +190,12 @@ ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
 					case VK_DELETE:
 						NetWriteString2(pParams->Socket, (char *)REMOVE_KEY, 4, 0);
 						break;
+					case VK_PRIOR: /* page up */
+						NetWriteString2(pParams->Socket, (char *)PREV_KEY, 4, 0);
+						break;
+					case VK_NEXT: /* page down */
+						NetWriteString2(pParams->Socket, (char *)NEXT_KEY, 4, 0);
+						break;
 					case VK_BACK:
 						NetWriteString2(pParams->Socket, (char *)BACKSPACE_KEY, 1, 0);
 						break;

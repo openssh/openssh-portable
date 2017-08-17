@@ -55,6 +55,33 @@
 #define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
 #endif
 
+#define VK_A 0x41
+#define VK_B 0x42
+#define VK_C 0x43
+#define VK_D 0x44
+#define VK_E 0x45
+#define VK_F 0x46
+#define VK_G 0x47
+#define VK_H 0x48
+#define VK_I 0x49
+#define VK_J 0x4A
+#define VK_K 0x4B
+#define VK_L 0x4C
+#define VK_M 0x4D
+#define VK_N 0x4E
+#define VK_O 0x4F
+#define VK_P 0x50
+#define VK_Q 0x51
+#define VK_R 0x52
+#define VK_S 0x53
+#define VK_T 0x54
+#define VK_U 0x55
+#define VK_V 0x56
+#define VK_W 0x57
+#define VK_X 0x58
+#define VK_Y 0x59
+#define VK_Z 0x5A
+
 typedef BOOL(WINAPI *__t_SetCurrentConsoleFontEx)(
 	_In_ HANDLE               hConsoleOutput,
 	_In_ BOOL                 bMaximumWindow,
@@ -92,50 +119,77 @@ struct key_translation {
 	int vk;
 	wchar_t out;
 	int in_key_len;
+	DWORD ctrlState;
 } key_translation;
 
 /* All the substrings should be in the end, otherwise ProcessIncomingKeys() will not work as expected */
 struct key_translation keys[] = {
-    { L"\r",         VK_RETURN,  L'\r' , 0},
-    { L"\n",         VK_RETURN,  L'\r' , 0 },
-    { L"\b",         VK_BACK,    L'\b' , 0},
-    { L"\x7f",       VK_BACK,    L'\b' , 0},
-    { L"\t",         VK_TAB,     L'\t' , 0},
-    { L"\x1b[A",     VK_UP,       0 , 0},
-    { L"\x1b[B",     VK_DOWN,     0 , 0},
-    { L"\x1b[C",     VK_RIGHT,    0 , 0},
-    { L"\x1b[D",     VK_LEFT,     0 , 0},
-    { L"\x1b[F",     VK_END,      0 , 0},    /* KeyPad END */
-    { L"\x1b[H",     VK_HOME,     0 , 0},    /* KeyPad HOME */
-    { L"\x1b[Z",     0,           0 , 0},    /* ignore Shift+TAB */
-    { L"\x1b[1~",    VK_HOME,     0 , 0},
-    { L"\x1b[2~",    VK_INSERT,   0 , 0},
-    { L"\x1b[3~",    VK_DELETE,   0 , 0},
-    { L"\x1b[4~",    VK_END,      0 , 0},
-    { L"\x1b[5~",    VK_PRIOR,    0 , 0},
-    { L"\x1b[6~",    VK_NEXT,     0 , 0},
-    { L"\x1b[11~",   VK_F1,       0 , 0},
-    { L"\x1b[12~",   VK_F2,       0 , 0},
-    { L"\x1b[13~",   VK_F3,       0 , 0},
-    { L"\x1b[14~",   VK_F4,       0 , 0},
-    { L"\x1b[15~",   VK_F5,       0 , 0},
-    { L"\x1b[17~",   VK_F6,       0 , 0},
-    { L"\x1b[18~",   VK_F7,       0 , 0},
-    { L"\x1b[19~",   VK_F8,       0 , 0},
-    { L"\x1b[20~",   VK_F9,       0 , 0},
-    { L"\x1b[21~",   VK_F10,      0 , 0},
-    { L"\x1b[23~",   VK_F11,      0 , 0},
-    { L"\x1b[24~",   VK_F12,      0 , 0},
-    { L"\x1bOA",     VK_UP,       0 , 0},
-    { L"\x1bOB",     VK_DOWN,     0 , 0},
-    { L"\x1bOC",     VK_RIGHT,    0 , 0},
-    { L"\x1bOD",     VK_LEFT,     0 , 0},
-    { L"\x1bOF",     VK_END,      0 , 0},    /* KeyPad END */
-    { L"\x1bOH",     VK_HOME,     0 , 0},    /* KeyPad HOME */
-    { L"\x1bOP",     VK_F1,       0 , 0},
-    { L"\x1bOQ",     VK_F2,       0 , 0},
-    { L"\x1bOR",     VK_F3,       0 , 0},
-    { L"\x1bOS",     VK_F4,       0 , 0}    
+    { L"\r",         VK_RETURN,  L'\r' , 0 , 0},
+    { L"\n",         VK_RETURN,  L'\r' , 0 , 0 },
+    { L"\b",         VK_BACK,    L'\b' , 0 , 0 },
+    { L"\x7f",       VK_BACK,    L'\b' , 0 , 0 },
+    { L"\t",         VK_TAB,     L'\t' , 0 , 0},
+    { L"\x1b[A",     VK_UP,       0 , 0 , 0},
+    { L"\x1b[B",     VK_DOWN,     0 , 0 , 0},
+    { L"\x1b[C",     VK_RIGHT,    0 , 0 , 0},
+    { L"\x1b[D",     VK_LEFT,     0 , 0 , 0},
+    { L"\x1b[F",     VK_END,      0 , 0 , 0},    /* KeyPad END */
+    { L"\x1b[H",     VK_HOME,     0 , 0 , 0},    /* KeyPad HOME */
+    { L"\x1b[Z",     0,           0 , 0 , 0},    /* ignore Shift+TAB */
+    { L"\x1b[1~",    VK_HOME,     0 , 0 , 0},
+    { L"\x1b[2~",    VK_INSERT,   0 , 0 , 0},
+    { L"\x1b[3~",    VK_DELETE,   0 , 0 , 0},
+    { L"\x1b[4~",    VK_END,      0 , 0 , 0},
+    { L"\x1b[5~",    VK_PRIOR,    0 , 0 , 0},
+    { L"\x1b[6~",    VK_NEXT,     0 , 0 , 0},
+    { L"\x1b[11~",   VK_F1,       0 , 0 , 0},
+    { L"\x1b[12~",   VK_F2,       0 , 0 , 0},
+    { L"\x1b[13~",   VK_F3,       0 , 0 , 0},
+    { L"\x1b[14~",   VK_F4,       0 , 0 , 0},
+    { L"\x1b[15~",   VK_F5,       0 , 0 , 0},
+    { L"\x1b[17~",   VK_F6,       0 , 0 , 0},
+    { L"\x1b[18~",   VK_F7,       0 , 0 , 0},
+    { L"\x1b[19~",   VK_F8,       0 , 0 , 0},
+    { L"\x1b[20~",   VK_F9,       0 , 0 , 0},
+    { L"\x1b[21~",   VK_F10,      0 , 0 , 0},
+    { L"\x1b[23~",   VK_F11,      0 , 0 , 0},
+    { L"\x1b[24~",   VK_F12,      0 , 0 , 0},
+    { L"\x1bOA",     VK_UP,       0 , 0 , 0},
+    { L"\x1bOB",     VK_DOWN,     0 , 0 , 0},
+    { L"\x1bOC",     VK_RIGHT,    0 , 0 , 0},
+    { L"\x1bOD",     VK_LEFT,     0 , 0 , 0},
+    { L"\x1bOF",     VK_END,      0 , 0 , 0},    /* KeyPad END */
+    { L"\x1bOH",     VK_HOME,     0 , 0 , 0},    /* KeyPad HOME */
+    { L"\x1bOP",     VK_F1,       0 , 0 , 0},
+    { L"\x1bOQ",     VK_F2,       0 , 0 , 0},
+    { L"\x1bOR",     VK_F3,       0 , 0 , 0},
+    { L"\x1bOS",     VK_F4,       0 , 0 , 0},    
+    { L"\x1",        VK_A,   L'\x1' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x2",        VK_B,   L'\x2' , 0 , LEFT_CTRL_PRESSED},
+    //{ L"\x3",        VK_C,   L'\x3' , 0 , LEFT_CTRL_PRESSED}, /* Control + C is handled differently */
+    { L"\x4",        VK_D,   L'\x4' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x5",        VK_E,   L'\x5' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x6",        VK_F,   L'\x6' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x7",        VK_G,   L'\x7' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x8",        VK_H,   L'\x8' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x9",        VK_I,   L'\x9' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xA",        VK_J,   L'\xA' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xB",        VK_K,   L'\xB' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xC",        VK_L,   L'\xC' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xD",        VK_M,   L'\xD' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xE",        VK_N,   L'\xE' , 0 , LEFT_CTRL_PRESSED},
+    { L"\xF",        VK_O,   L'\xF' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x10",       VK_P,   L'\x10' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x11",       VK_Q,   L'\x11' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x12",       VK_R,   L'\x12' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x13",       VK_S,   L'\x13' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x14",       VK_T,   L'\x14' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x15",       VK_U,   L'\x15' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x16",       VK_V,   L'\x16' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x17",       VK_W,   L'\x17' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x18",       VK_X,   L'\x18' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x19",       VK_Y,   L'\x19' , 0 , LEFT_CTRL_PRESSED},
+    { L"\x1A",       VK_Z,   L'\x1A' , 0 , LEFT_CTRL_PRESSED}
 };
 
 static SHORT lastX = 0;
@@ -266,10 +320,10 @@ SendKeyStrokeEx(HANDLE hInput, int vKey, wchar_t character, DWORD ctrlState, BOO
 }
 
 void
-SendKeyStroke(HANDLE hInput, int keyStroke, wchar_t character)
+SendKeyStroke(HANDLE hInput, int keyStroke, wchar_t character, DWORD ctrlState)
 {
-	SendKeyStrokeEx(hInput, keyStroke, character, 0, TRUE);
-	SendKeyStrokeEx(hInput, keyStroke, character, 0, FALSE);
+	SendKeyStrokeEx(hInput, keyStroke, character, ctrlState, TRUE);
+	SendKeyStrokeEx(hInput, keyStroke, character, ctrlState, FALSE);
 }
 
 void
@@ -330,7 +384,7 @@ ProcessIncomingKeys(char * ansikey)
 	while (buf && ((buf_len=(int)wcslen(buf)) > 0)) {
 		for (int j = 0; j < ARRAYSIZE(keys); j++) {
 			if ( (buf_len >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0) ) {
-				SendKeyStroke(child_in, keys[j].vk, keys[j].out);				
+				SendKeyStroke(child_in, keys[j].vk, keys[j].out, keys[j].ctrlState);				
 				buf += keys[j].in_key_len;
 				goto loop;
 			}
@@ -348,7 +402,7 @@ ProcessIncomingKeys(char * ansikey)
 		}
 
 		if(wcsncmp(buf, ESC_SEQ, wcslen(ESC_SEQ)) == 0) {
-			SendKeyStroke(child_in, VK_ESCAPE, L'\x1b');
+			SendKeyStroke(child_in, VK_ESCAPE, L'\x1b', 0);
 			buf += wcslen(ESC_SEQ);
 			goto loop;
 		}
@@ -356,7 +410,7 @@ ProcessIncomingKeys(char * ansikey)
 		if (*buf == L'\x3') /*Ctrl+C - Raise Ctrl+C*/
 			GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
 		else 
-			SendKeyStroke(child_in, 0, *buf);
+			SendKeyStroke(child_in, 0, *buf, 0);
 
 		buf++;
 	}		
