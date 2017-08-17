@@ -272,6 +272,7 @@ sc.exe config sshd obj= $sshdAccount
 sc.exe privs sshd SeAssignPrimaryTokenPrivilege
 
 Add-Privilege -Account $sshdSid -Privilege SeAssignPrimaryTokenPrivilege
+Add-Privilege -Account $sshdSid -Privilege SeServiceLogonRight
 
 if(-not (test-path $logsdir -PathType Container))
 {
