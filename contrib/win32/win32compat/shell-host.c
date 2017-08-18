@@ -163,7 +163,8 @@ struct key_translation keys[] = {
     { L"\x1bOP",     VK_F1,       0 , 0 , 0},
     { L"\x1bOQ",     VK_F2,       0 , 0 , 0},
     { L"\x1bOR",     VK_F3,       0 , 0 , 0},
-    { L"\x1bOS",     VK_F4,       0 , 0 , 0},    
+    { L"\x1bOS",     VK_F4,       0 , 0 , 0},
+    { L"\x1b?",      VK_OEM_2, L'?' , 0 , SHIFT_PRESSED | LEFT_ALT_PRESSED},
     { L"\x1",        VK_A,   L'\x1' , 0 , LEFT_CTRL_PRESSED},
     { L"\x2",        VK_B,   L'\x2' , 0 , LEFT_CTRL_PRESSED},
     //{ L"\x3",        VK_C,   L'\x3' , 0 , LEFT_CTRL_PRESSED}, /* Control + C is handled differently */
@@ -356,12 +357,8 @@ ProcessCtrlSequence(wchar_t *buf, int buf_len)
 			if (!vkey && buf_len == 6 && buf[2] == L'1' && isalpha(buf[5]))
 				vkey = GetVirtualKeyByMask(L'O', &buf[5], 1, 0);
 		}
-		if (vkey) {
-			SendKeyStrokeEx(child_in, VK_CONTROL, 0, LEFT_CTRL_PRESSED, TRUE);
-			SendKeyStrokeEx(child_in, vkey, 0, LEFT_CTRL_PRESSED, TRUE);
-			SendKeyStrokeEx(child_in, VK_CONTROL, 0, 0, FALSE);
-			SendKeyStrokeEx(child_in, vkey, 0, 0, FALSE);			
-		}
+		if (vkey)
+			SendKeyStroke(child_in, vkey, 0, LEFT_CTRL_PRESSED);
 	}
 
 	return vkey;
