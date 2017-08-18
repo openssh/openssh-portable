@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.112 2017/08/18 05:36:45 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.113 2017/08/18 05:48:04 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1570,7 +1570,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */
 int
-exited_cleanly(pid_t pid, const char *tag, const char *cmd)
+exited_cleanly(pid_t pid, const char *tag, const char *cmd, int quiet)
 {
 	int status;
 
@@ -1584,7 +1584,8 @@ exited_cleanly(pid_t pid, const char *tag, const char *cmd)
 		error("%s %s exited on signal %d", tag, cmd, WTERMSIG(status));
 		return -1;
 	} else if (WEXITSTATUS(status) != 0) {
-		error("%s %s failed, status %d", tag, cmd, WEXITSTATUS(status));
+		do_log2(quiet ? SYSLOG_LEVEL_DEBUG1 : SYSLOG_LEVEL_INFO,
+		    "%s %s failed, status %d", tag, cmd, WEXITSTATUS(status));
 		return -1;
 	}
 	return 0;
