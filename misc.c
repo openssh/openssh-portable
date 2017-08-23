@@ -70,6 +70,7 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "uidswap.h"
+#include "platform.h"
 
 /* remove newline at end of string */
 char *
