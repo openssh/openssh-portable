@@ -1458,6 +1458,10 @@ pid_t
 subprocess(const char *tag, struct passwd *pw, const char *command,
     int ac, char **av, FILE **child, u_int flags)
 {
+#ifdef WINDOWS
+	error("subprocess is not implemented in Windows yet");
+	return 0;
+#else
 	FILE *f = NULL;
 	struct stat st;
 	int fd, devnull, p[2], i;
@@ -1595,6 +1599,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	if (child != NULL)
 		*child = f;
 	return pid;
+#endif
 }
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */

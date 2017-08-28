@@ -1068,13 +1068,14 @@ do_gen_all_hostkeys(struct passwd *pw)
 			    pub_tmp, strerror(errno));
 			goto failnext;
 		}
-		(void)fchmod(fd, 0644);
 #ifdef WINDOWS
 		/* Windows POSIX adpater does not support fdopen() on open(file)*/
 		close(fd);
+		chmod(identity_file, 0644);
 		if ((f = fopen(identity_file, "w")) == NULL) {
 			error("fopen %s failed: %s", identity_file, strerror(errno));			
 #else  /* !WINDOWS */
+		(void)fchmod(fd, 0644);
 		f = fdopen(fd, "w");
 		if (f == NULL) {
 			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
