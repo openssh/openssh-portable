@@ -5,6 +5,7 @@ typedef unsigned __int64 u_int64_t;
 #define __attribute__(a)
 #include "sshbuf.h"
 #include "sshkey.h"
+#include <openssl/bn.h>
 #include "authfd.h"
 #include "digest.h"
 
