@@ -1071,9 +1071,9 @@ do_gen_all_hostkeys(struct passwd *pw)
 #ifdef WINDOWS
 		/* Windows POSIX adpater does not support fdopen() on open(file)*/
 		close(fd);
-		chmod(identity_file, 0644);
-		if ((f = fopen(identity_file, "w")) == NULL) {
-			error("fopen %s failed: %s", identity_file, strerror(errno));			
+		chmod(pub_tmp, 0644);
+		if ((f = fopen(pub_tmp, "w")) == NULL) {
+			error("fopen %s failed: %s", pub_tmp, strerror(errno));
 #else  /* !WINDOWS */
 		(void)fchmod(fd, 0644);
 		f = fdopen(fd, "w");
