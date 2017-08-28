@@ -370,7 +370,6 @@ AC_CHECK_HEADERS([ \
 	sys/audit.h \
 	sys/bitypes.h \
 	sys/bsdtty.h \
-	sys/capability.h \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
@@ -400,6 +399,13 @@ AC_CHECK_HEADERS([ \
 	utmpx.h \
 	vis.h \
 	wchar.h \
+])
+
+# sys/capsicum.h requires sys/types.h
+AC_CHECK_HEADERS([sys/capsicum.h], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
 ])
 
 # lastlog.h requires sys/time.h to be included first on Solaris
@@ -3256,10 +3262,10 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xcapsicum" || \
      ( test -z "$sandbox_arg" && \
-       test "x$ac_cv_header_sys_capability_h" = "xyes" && \
+       test "x$ac_cv_header_sys_capsicum_h" = "xyes" && \
        test "x$ac_cv_func_cap_rights_limit" = "xyes") ; then
-       test "x$ac_cv_header_sys_capability_h" != "xyes" && \
-		AC_MSG_ERROR([capsicum sandbox requires sys/capability.h header])
+       test "x$ac_cv_header_sys_capsicum_h" != "xyes" && \
+		AC_MSG_ERROR([capsicum sandbox requires sys/capsicum.h header])
        test "x$ac_cv_func_cap_rights_limit" != "xyes" && \
 		AC_MSG_ERROR([capsicum sandbox requires cap_rights_limit function])
        SANDBOX_STYLE="capsicum"
