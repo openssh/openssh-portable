@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.65 2017/08/29 09:42:29 dlg Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.66 2017/08/29 13:05:58 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -126,6 +126,8 @@ Lists public key parameters of all identities currently represented
 by the agent.
 .It Fl l
 Lists fingerprints of all identities currently represented by the agent.
+.It Fl q
+Be quiet after a successful operation.
 .It Fl s Ar pkcs11
 Add keys provided by the PKCS#11 shared library
 .Ar pkcs11 .
@@ -134,8 +136,6 @@ Set a maximum lifetime when adding identities to an agent.
 The lifetime may be specified in seconds or in a time format
 specified in
 .Xr sshd_config 5 .
-.It Fl q
-Be quiet after a successful operation.
 .It Fl X
 Unlock the agent.
 .It Fl x
