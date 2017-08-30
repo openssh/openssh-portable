@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.365 2017/05/31 08:58:52 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.366 2017/08/30 03:59:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1996,8 +1996,8 @@ channel_garbage_collect(Channel *c)
 }
 
 static void
-channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset,
-    time_t *unpause_secs)
+channel_handler(struct ssh *ssh, chan_fn *ftab[],
+    fd_set *readset, fd_set *writeset, time_t *unpause_secs)
 {
 	static int did_init = 0;
 	u_int i, oalloc;
@@ -2052,8 +2052,8 @@ channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset,
  * select bitmasks.
  */
 void
-channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    u_int *nallocp, time_t *minwait_secs, int rekeying)
+channel_prepare_select(struct ssh *ssh, fd_set **readsetp, fd_set **writesetp,
+    int *maxfdp, u_int *nallocp, time_t *minwait_secs)
 {
 	u_int n, sz, nfdset;
 
@@ -2075,8 +2075,8 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 	memset(*readsetp, 0, sz);
 	memset(*writesetp, 0, sz);
 
-	if (!rekeying)
-		channel_handler(channel_pre, *readsetp, *writesetp,
+	if (!ssh_packet_is_rekeying(ssh))
+		channel_handler(ssh, channel_pre, *readsetp, *writesetp,
 		    minwait_secs);
 }
 
@@ -2085,9 +2085,9 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
  * events pending.
  */
 void
-channel_after_select(fd_set *readset, fd_set *writeset)
+channel_after_select(struct ssh *ssh, fd_set *readset, fd_set *writeset)
 {
-	channel_handler(channel_post, readset, writeset, NULL);
+	channel_handler(ssh, channel_post, readset, writeset, NULL);
 }
 
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.126 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: channels.h,v 1.127 2017/08/30 03:59:08 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -249,9 +249,9 @@ int	 channel_input_status_confirm(int, u_int32_t, struct ssh *);
 
 /* file descriptor handling (read/write) */
 
-void	 channel_prepare_select(fd_set **, fd_set **, int *, u_int*,
-	     time_t*, int);
-void     channel_after_select(fd_set *, fd_set *);
+void	 channel_prepare_select(struct ssh *, fd_set **, fd_set **, int *,
+	     u_int*, time_t*);
+void     channel_after_select(struct ssh *, fd_set *, fd_set *);
 void     channel_output_poll(void);
 
 int      channel_not_very_much_buffered_data(void);

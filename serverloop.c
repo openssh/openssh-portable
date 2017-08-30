@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.195 2017/08/11 04:16:35 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.196 2017/08/30 03:59:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -207,8 +207,8 @@ wait_until_can_do_something(int connection_in, int connection_out,
 	static time_t last_client_time;
 
 	/* Allocate and update select() masks for channel descriptors. */
-	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp,
-	    &minwait_secs, 0);
+	channel_prepare_select(active_state, readsetp, writesetp, maxfdp,
+	    nallocp, &minwait_secs);
 
 	/* XXX need proper deadline system for rekey/client alive */
 	if (minwait_secs != 0)
@@ -411,7 +411,7 @@ server_loop2(Authctxt *authctxt)
 
 		collect_children();
 		if (!ssh_packet_is_rekeying(active_state))
-			channel_after_select(readset, writeset);
+			channel_after_select(active_state, readset, writeset);
 		if (process_input(readset, connection_in) < 0)
 			break;
 		process_output(writeset, connection_out);

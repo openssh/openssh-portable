@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.301 2017/07/14 03:18:21 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.302 2017/08/30 03:59:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -506,8 +506,8 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	int ret;
 
 	/* Add any selections by the channel mechanism. */
-	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp,
-	    &minwait_secs, rekeying);
+	channel_prepare_select(active_state, readsetp, writesetp, maxfdp,
+	    nallocp, &minwait_secs);
 
 	/* channel_prepare_select could have closed the last channel */
 	if (session_closed && !channel_still_open() &&
@@ -1353,7 +1353,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 		/* Do channel operations unless rekeying in progress. */
 		if (!ssh_packet_is_rekeying(active_state))
-			channel_after_select(readset, writeset);
+			channel_after_select(active_state, readset, writeset);
 
 		/* Buffer input from the connection.  */
 		client_process_net_input(readset);
