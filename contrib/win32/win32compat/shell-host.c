@@ -311,7 +311,7 @@ SendKeyStrokeEx(HANDLE hInput, int vKey, wchar_t character, DWORD ctrlState, BOO
 
 	ir.EventType = KEY_EVENT;
 	ir.Event.KeyEvent.bKeyDown = keyDown;
-	ir.Event.KeyEvent.wRepeatCount = 0;
+	ir.Event.KeyEvent.wRepeatCount = 1;
 	ir.Event.KeyEvent.wVirtualKeyCode = vKey;
 	ir.Event.KeyEvent.wVirtualScanCode = MapVirtualKeyA(vKey, MAPVK_VK_TO_VSC);
 	ir.Event.KeyEvent.dwControlKeyState = ctrlState;
