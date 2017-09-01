@@ -33,6 +33,7 @@
 #include <time.h>
 #include <Shlwapi.h>
 #include <conio.h>
+#include <LM.h>
 
 #include "inc\unistd.h"
 #include "inc\sys\stat.h"
@@ -49,6 +50,7 @@
 #include "debug.h"
 #include "w32fd.h"
 #include "inc\string.h"
+#include "inc\grp.h"
 
 static char* s_programdir = NULL;
 
@@ -1046,8 +1048,233 @@ readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags)
 	return outBuf;
 }
 
-void invalid_parameter_handler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t pReserved)
+void 
+invalid_parameter_handler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t pReserved)
 {	
 	debug3("Invalid parameter in function: %ls. File: %ls Line: %d.", function, file, line);
 	debug3("Expression: %s", expression);
+}
+
+int
+get_machine_domain_name(wchar_t *domain, int size)
+{
+	LPWKSTA_INFO_100 pBuf = NULL;
+	NET_API_STATUS nStatus;
+	LPWSTR pszServerName = NULL;
+
+	nStatus = NetWkstaGetInfo(pszServerName, 100, (LPBYTE *)&pBuf);
+	if (nStatus != NERR_Success) {
+		error("Unable to fetch the machine domain, error:%d\n", nStatus);
+		return 0;
+	}
+
+	debug3("Machine domain:%ls", pBuf->wki100_langroup);
+	wcscpy_s(domain, size, pBuf->wki100_langroup);
+
+	if (pBuf != NULL)
+		NetApiBufferFree(pBuf);
+
+	return 1;
+}
+
+/*
+ * This method will fetch all the groups (listed below) even if the user is indirectly a member.
+ * - Local machine groups
+ * - Domain groups
+ * - global group
+ * - universal groups
+*/
+char **
+getusergroups(const char *user, int *ngroups)
+{	
+	LPGROUP_USERS_INFO_0 local_groups = NULL;
+	LPGROUP_USERS_INFO_0 domain_groups = NULL;
+	LPGROUP_USERS_INFO_0 global_universal_groups = NULL;	
+	DWORD num_local_groups_read = 0;
+	DWORD total_local_groups = 0;
+	DWORD num_domain_groups_read = 0;
+	DWORD total_domain_groups = 0;
+	DWORD num_global_universal_groups_read = 0;
+	DWORD total_global_universal_groups = 0;
+
+	DWORD flags = LG_INCLUDE_INDIRECT;
+	NET_API_STATUS nStatus;
+	wchar_t *w_username = NULL;
+	char *user_domain = NULL;	
+	LPWSTR wszDCName = NULL;
+	char *user_name = malloc(strlen(user)+1);
+	if(!user_name) {
+		error("failed to allocate memory!");
+		return 0;
+	}
+
+	memcpy(user_name, user, strlen(user)+1);
+
+	if (user_domain = strchr(user_name, '@')) {
+		char *t = user_domain;
+		user_domain++;
+		*t='\0';
+	}
+
+	w_username = utf8_to_utf16(user_name);
+	if (!w_username) {
+		error("utf8_to_utf16 failed! for %s", user_name);
+		return NULL;
+	}
+
+	/* Fetch groups on the Local machine */
+	wchar_t w_machine_domain_name[64] = { 0, };
+	if (get_machine_domain_name(w_machine_domain_name, 64)) {
+		if(!machine_domain_name)
+			machine_domain_name = utf16_to_utf8(w_machine_domain_name);
+
+		wchar_t local_user_fmt[256] = { 0, };
+		if (user_domain) {
+			wcscpy_s(local_user_fmt, 256, w_machine_domain_name);
+			wcscat_s(local_user_fmt, 256, L"\\");
+		}
+
+		wcscat_s(local_user_fmt, 256, w_username);
+		nStatus = NetUserGetLocalGroups(NULL,
+			    local_user_fmt,
+			    0,
+			    flags,
+			    (LPBYTE *)&local_groups,
+			    MAX_PREFERRED_LENGTH,
+			    &num_local_groups_read,
+			    &total_local_groups);
+
+		if (NERR_Success != nStatus)
+			error("Failed to get local groups on this machine, error: %d\n", nStatus);
+	}
+	
+	if (user_domain) {
+		/* Fetch Domain groups */
+		nStatus = NetGetDCName(NULL, w_machine_domain_name, (LPBYTE *)&wszDCName);
+		if (NERR_Success == nStatus) {
+			debug3("domain controller name: %ls", wszDCName);
+
+			nStatus = NetUserGetLocalGroups(wszDCName,
+				    w_username,
+				    0,
+				    flags,
+				    (LPBYTE *)&domain_groups,
+				    MAX_PREFERRED_LENGTH,
+				    &num_domain_groups_read,
+				    &total_domain_groups);
+
+			if (NERR_Success != nStatus)
+				error("Failed to get domain groups from DC:%s error: %d\n", wszDCName, nStatus);
+		}
+		else
+			error("Failed to get the domain controller name, error: %d\n", nStatus);
+
+		/* Fetch global, universal groups */
+		nStatus = NetUserGetGroups(wszDCName,
+			w_username,
+			0,
+			(LPBYTE *)&global_universal_groups,
+			MAX_PREFERRED_LENGTH,
+			&num_global_universal_groups_read,
+			&total_global_universal_groups);
+
+		if (NERR_Success != nStatus)
+			error("Failed to get global,universal groups from DC:%ls error: %d\n", wszDCName, nStatus);
+	}
+
+	int total_user_groups = num_local_groups_read + num_domain_groups_read + num_global_universal_groups_read;
+
+	/* populate the output */
+	char **user_groups = NULL;
+	int num_user_groups = 0;
+	user_groups = malloc(total_user_groups * sizeof(*user_groups));	
+
+	populate_user_groups(user_groups, &num_user_groups, num_local_groups_read, total_local_groups, (LPBYTE) local_groups, LOCAL_GROUP);
+	if (user_domain) {
+		populate_user_groups(user_groups, &num_user_groups, num_domain_groups_read, total_domain_groups, (LPBYTE)domain_groups, DOMAIN_GROUP);
+		populate_user_groups(user_groups, &num_user_groups, num_global_universal_groups_read, total_global_universal_groups, (LPBYTE)global_universal_groups, GLOBAL_UNIVERSAL_GROUP);
+	}
+	
+	for (int i = 0; i < num_user_groups; i++)
+		to_lower_case(user_groups[i]);
+
+	print_user_groups(user, user_groups, num_user_groups);
+
+	if(local_groups)
+		NetApiBufferFree(local_groups);
+
+	if(domain_groups)
+		NetApiBufferFree(domain_groups);
+
+	if(global_universal_groups)
+		NetApiBufferFree(global_universal_groups);
+	
+	*ngroups = num_user_groups;
+	return user_groups;
+}
+
+/* This method will return in "group@domain" format */
+char *
+append_domain_to_groupname(char *groupname)
+{
+	if(!groupname) return NULL;
+
+	int len = (int) strlen(machine_domain_name) + (int) strlen(groupname) + 2;
+	char *groupname_with_domain = malloc(len);
+
+	strcpy_s(groupname_with_domain, len, groupname);
+	strcat_s(groupname_with_domain, len, "@");
+	strcat_s(groupname_with_domain, len, machine_domain_name);	
+
+	groupname_with_domain[len-1]= '\0';
+
+	return groupname_with_domain;
+}
+
+void
+populate_user_groups(char **gr_name, int *group_index, DWORD groupsread, DWORD totalgroups, LPBYTE buf, group_type groupType)
+{
+	if(0 == groupsread) return;
+		
+	if (groupType == GLOBAL_UNIVERSAL_GROUP) {
+		LPGROUP_USERS_INFO_0 pTmpBuf = (LPGROUP_USERS_INFO_0)buf;
+		for (DWORD i = 0; (i < groupsread) && pTmpBuf; i++, pTmpBuf++) {
+			gr_name[*group_index] = append_domain_to_groupname(utf16_to_utf8(pTmpBuf->grui0_name));
+			if(gr_name[*group_index])
+				(*group_index)++;
+			else
+				error("utf16_to_utf8 failed to convert:%ls", pTmpBuf->grui0_name);
+		}
+	} else {
+		LPLOCALGROUP_USERS_INFO_0 pTmpBuf = (LPLOCALGROUP_USERS_INFO_0)buf;
+		for (DWORD i = 0; (i < groupsread) && pTmpBuf; i++, pTmpBuf++) {
+			if(groupType == DOMAIN_GROUP)
+				gr_name[*group_index] = append_domain_to_groupname(utf16_to_utf8(pTmpBuf->lgrui0_name));
+			else
+				gr_name[*group_index] = utf16_to_utf8(pTmpBuf->lgrui0_name);
+
+			if (gr_name[*group_index])
+				(*group_index)++;
+			else
+				error("utf16_to_utf8 failed to convert:%ls", pTmpBuf->lgrui0_name);
+		}
+	}
+
+	if (groupsread < totalgroups)
+		error("groupsread:%d totalgroups:%d groupType:%d", groupsread, totalgroups, groupType);
+}
+
+void 
+print_user_groups(const char *user, char **user_groups, int num_user_groups)
+{
+	debug3("Group list for user:%s", user);
+	for(int i=0; i < num_user_groups; i++)
+		debug3("group name:%s", user_groups[i]);
+}
+
+void
+to_lower_case(char *s)
+{
+	for (; *s; s++)
+		*s = tolower((u_char)*s);
 }
