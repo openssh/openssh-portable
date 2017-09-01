@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.283 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.284 2017/09/01 05:53:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -83,6 +83,7 @@ extern uid_t original_effective_uid;
 
 static int show_other_keys(struct hostkeys *, struct sshkey *);
 static void warn_changed_key(struct sshkey *);
+static void warn_missing_key(struct sshkey *);
 
 /* Expand a proxy command */
 static char *
@@ -864,6 +865,16 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 			free(ra);
 			free(fp);
 		}
+		if (options.verify_host_key_dns &&
+		    options.strict_host_key_checking &&
+		    !matching_host_key_dns) {
+			snprintf(msg, sizeof(msg),
+			    "Are you sure you want to continue connecting "
+			    "(yes/no)? ");
+			if (!confirm(msg))
+				goto fail;
+			msg[0] = '\0';
+		}
 		hostkey_trusted = 1;
 		break;
 	case HOST_NEW:
@@ -1259,10 +1270,17 @@ verify_host_key(char *host, struct sockaddr *hostaddr, struct sshkey *host_key)
 				if (flags & DNS_VERIFY_MATCH) {
 					matching_host_key_dns = 1;
 				} else {
-					warn_changed_key(plain);
-					error("Update the SSHFP RR in DNS "
-					    "with the new host key to get rid "
-					    "of this message.");
+					if (flags & DNS_VERIFY_MISSING) {
+						warn_missing_key(plain);
+						error("Add this host key to "
+						    "the SSHFP RR in DNS to get rid "
+						    "of this message.");
+					} else {
+						warn_changed_key(plain);
+						error("Update the SSHFP RR in DNS "
+						    "with the new host key to get rid "
+						    "of this message.");
+					}
 				}
 			}
 		}
@@ -1394,12 +1412,31 @@ warn_changed_key(struct sshkey *host_key)
 	error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
 	error("It is also possible that a host key has just been changed.");
 	error("The fingerprint for the %s key sent by the remote host is\n%s.",
-	    key_type(host_key), fp);
+	    sshkey_type(host_key), fp);
 	error("Please contact your system administrator.");
 
 	free(fp);
 }
 
+static void
+warn_missing_key(struct sshkey *host_key)
+{
+	char *fp;
+
+	fp = sshkey_fingerprint(host_key, options.fingerprint_hash,
+	    SSH_FP_DEFAULT);
+	if (fp == NULL)
+		fatal("%s: sshkey_fingerprint fail", __func__);
+
+	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	error("@    WARNING: REMOTE HOST IDENTIFICATION IS MISSING       @");
+	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	error("The fingerprint for the %s key sent by the remote host is\n%s.",
+	    sshkey_type(host_key), fp);
+	error("Please contact your system administrator.");
+
+	free(fp);
+}
 /*
  * Execute a local command
  */
