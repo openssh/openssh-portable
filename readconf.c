@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.277 2017/05/30 18:58:37 bluhm Exp $ */
+/* $OpenBSD: readconf.c,v 1.278 2017/09/03 23:33:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -751,6 +751,16 @@ static const struct multistate multistate_yesnoask[] = {
 	{ "ask",			2 },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_strict_hostkey[] = {
+	{ "true",			SSH_STRICT_HOSTKEY_YES },
+	{ "false",			SSH_STRICT_HOSTKEY_OFF },
+	{ "yes",			SSH_STRICT_HOSTKEY_YES },
+	{ "no",				SSH_STRICT_HOSTKEY_OFF },
+	{ "ask",			SSH_STRICT_HOSTKEY_ASK },
+	{ "off",			SSH_STRICT_HOSTKEY_OFF },
+	{ "accept-new",			SSH_STRICT_HOSTKEY_NEW },
+	{ NULL, -1 }
+};
 static const struct multistate multistate_yesnoaskconfirm[] = {
 	{ "true",			1 },
 	{ "false",			0 },
@@ -984,7 +994,7 @@ parse_time:
 
 	case oStrictHostKeyChecking:
 		intptr = &options->strict_host_key_checking;
-		multistate_ptr = multistate_yesnoask;
+		multistate_ptr = multistate_strict_hostkey;
 		goto parse_multistate;
 
 	case oCompression:
@@ -1927,7 +1937,7 @@ fill_default_options(Options * options)
 	if (options->check_host_ip == -1)
 		options->check_host_ip = 1;
 	if (options->strict_host_key_checking == -1)
-		options->strict_host_key_checking = 2;	/* 2 is default */
+		options->strict_host_key_checking = SSH_STRICT_HOSTKEY_ASK;
 	if (options->compression == -1)
 		options->compression = 0;
 	if (options->tcp_keep_alive == -1)
@@ -2329,9 +2339,10 @@ fmt_intarg(OpCodes code, int val)
 	case oAddressFamily:
 		return fmt_multistate_int(val, multistate_addressfamily);
 	case oVerifyHostKeyDNS:
-	case oStrictHostKeyChecking:
 	case oUpdateHostkeys:
 		return fmt_multistate_int(val, multistate_yesnoask);
+	case oStrictHostKeyChecking:
+		return fmt_multistate_int(val, multistate_strict_hostkey);
 	case oControlMaster:
 		return fmt_multistate_int(val, multistate_controlmaster);
 	case oTunnel:
