@@ -208,9 +208,6 @@ ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
 					case VK_ESCAPE:
 						NetWriteString2(pParams->Socket, (char *)ESCAPE_KEY, 1, 0);
 						break;
-					case VK_OEM_2:
-						NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_Q, 2, 0);
-						break;
 					case VK_SHIFT:
 					case VK_CONTROL:
 					case VK_CAPITAL:
