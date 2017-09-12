@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.368 2017/09/12 06:35:31 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.369 2017/09/12 07:32:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1836,6 +1836,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c,
 		if ((r = sshbuf_get_string(c->output, &data, &dlen)) != 0)
 			fatal("%s: channel %d: get datagram: %s", __func__,
 			    c->self, ssh_err(r));
+		buf = data;
 	} else {
 		buf = data = sshbuf_mutable_ptr(c->output);
 		dlen = sshbuf_len(c->output);
