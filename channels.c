@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.369 2017/09/12 07:32:04 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.370 2017/09/12 07:55:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2522,7 +2522,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 	char *ctype = NULL, *listen_host = NULL;
 	u_char type;
 	size_t have;
-	int ret = -1, r, idx;
+	int ret = -1, r;
 	u_int id, remote_id, listen_port;
 
 	/* sshbuf_dump(downstream->input, stderr); */
@@ -2621,7 +2621,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 			goto out;
 		}
 		/* Record that connection to this host/port is permitted. */
-		idx = fwd_perm_list_add(ssh, FWDPERM_USER, "<mux>", -1,
+		fwd_perm_list_add(ssh, FWDPERM_USER, "<mux>", -1,
 		    listen_host, NULL, (int)listen_port, downstream);
 		listen_host = NULL;
 		break;
