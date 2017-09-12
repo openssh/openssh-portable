@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.92 2017/05/30 14:10:53 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.93 2017/09/12 06:32:07 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -242,6 +242,7 @@ mm_key_sign(struct sshkey *key, u_char **sigp, u_int *lenp,
 struct passwd *
 mm_getpwnamallow(const char *username)
 {
+	struct ssh *ssh = active_state;		/* XXX */
 	Buffer m;
 	struct passwd *pw;
 	u_int len, i;
@@ -296,6 +297,7 @@ out:
 
 	copy_set_server_options(&options, newopts, 1);
 	log_change_level(options.log_level);
+	process_permitopen(ssh, &options);
 	free(newopts);
 
 	buffer_free(&m);

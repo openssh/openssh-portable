@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.172 2017/06/24 06:34:38 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.173 2017/09/12 06:32:07 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1519,13 +1519,14 @@ mm_answer_pty_cleanup(int sock, Buffer *m)
 int
 mm_answer_term(int sock, Buffer *req)
 {
+	struct ssh *ssh = active_state;	/* XXX */
 	extern struct monitor *pmonitor;
 	int res, status;
 
 	debug3("%s: tearing down sessions", __func__);
 
 	/* The child is terminating */
-	session_destroy_all(&mm_session_close);
+	session_destroy_all(ssh, &mm_session_close);
 
 #ifdef USE_PAM
 	if (options.use_pam)
