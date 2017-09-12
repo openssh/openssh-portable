@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.303 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.304 2017/09/12 06:35:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1682,6 +1682,7 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	} else if (c != NULL) {
 		debug("confirm %s", ctype);
 		c->remote_id = rchan;
+		c->have_remote_id = 1;
 		c->remote_window = rwindow;
 		c->remote_maxpacket = rmaxpack;
 		if (c->type != SSH_CHANNEL_CONNECTING) {
@@ -1749,6 +1750,9 @@ client_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 		packet_check_eom();
 	}
 	if (reply && c != NULL && !(c->flags & CHAN_CLOSE_SENT)) {
+		if (!c->have_remote_id)
+			fatal("%s: channel %d: no remote_id",
+			    __func__, c->self);
 		packet_start(success ?
 		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
 		packet_put_int(c->remote_id);

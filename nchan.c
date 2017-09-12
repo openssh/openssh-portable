@@ -1,4 +1,4 @@
-/* $OpenBSD: nchan.c,v 1.66 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: nchan.c,v 1.67 2017/09/12 06:35:32 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -183,6 +183,9 @@ chan_send_eof2(struct ssh *ssh, Channel *c)
 	debug2("channel %d: send eof", c->self);
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_DRAIN:
+		if (!c->have_remote_id)
+			fatal("%s: channel %d: no remote_id",
+			    __func__, c->self);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_EOF)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
@@ -209,6 +212,9 @@ chan_send_close2(struct ssh *ssh, Channel *c)
 	} else if (c->flags & CHAN_CLOSE_SENT) {
 		error("channel %d: already sent close", c->self);
 	} else {
+		if (!c->have_remote_id)
+			fatal("%s: channel %d: no remote_id",
+			    __func__, c->self);
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_CLOSE)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
@@ -230,6 +236,8 @@ chan_send_eow2(struct ssh *ssh, Channel *c)
 	}
 	if (!(datafellows & SSH_NEW_OPENSSH))
 		return;
+	if (!c->have_remote_id)
+		fatal("%s: channel %d: no remote_id", __func__, c->self);
 	if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_REQUEST)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, "eow@openssh.com")) != 0 ||

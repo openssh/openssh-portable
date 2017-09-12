@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.128 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.129 2017/09/12 06:35:32 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -97,8 +97,9 @@ typedef int mux_callback_fn(struct ssh *, struct Channel *);
 struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
-	int     remote_id;	/* channel identifier for remote peer */
-				/* XXX should be uint32_t */
+	uint32_t remote_id;	/* channel identifier for remote peer */
+	int	have_remote_id;	/* non-zero if remote_id is valid */
+
 	u_int   istate;		/* input from channel (state of receive half) */
 	u_int   ostate;		/* output to channel  (state of transmit half) */
 	int     flags;		/* close sent/rcvd */
@@ -222,7 +223,7 @@ void channel_init_channels(struct ssh *ssh);
 /* channel management */
 
 Channel	*channel_by_id(struct ssh *, int);
-Channel	*channel_by_remote_id(struct ssh *, int);
+Channel	*channel_by_remote_id(struct ssh *, u_int);
 Channel	*channel_lookup(struct ssh *, int);
 Channel *channel_new(struct ssh *, char *, int, int, int, int,
 	    u_int, u_int, int, char *, int);

@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.66 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.67 2017/09/12 06:35:32 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -215,7 +215,8 @@ mux_master_session_cleanup_cb(struct ssh *ssh, int cid, void *unused)
 			fatal("%s: channel %d missing control channel %d",
 			    __func__, c->self, c->ctl_chan);
 		c->ctl_chan = -1;
-		cc->remote_id = -1;
+		cc->remote_id = 0;
+		cc->have_remote_id = 0;
 		chan_rcvd_oclose(ssh, cc);
 	}
 	channel_cancel_cleanup(ssh, c->self);
@@ -231,11 +232,12 @@ mux_master_control_cleanup_cb(struct ssh *ssh, int cid, void *unused)
 	debug3("%s: entering for channel %d", __func__, cid);
 	if (c == NULL)
 		fatal("%s: channel_by_id(%i) == NULL", __func__, cid);
-	if (c->remote_id != -1) {
+	if (c->have_remote_id) {
 		if ((sc = channel_by_id(ssh, c->remote_id)) == NULL)
-			fatal("%s: channel %d missing session channel %d",
+			fatal("%s: channel %d missing session channel %u",
 			    __func__, c->self, c->remote_id);
-		c->remote_id = -1;
+		c->remote_id = 0;
+		c->have_remote_id = 0;
 		sc->ctl_chan = -1;
 		if (sc->type != SSH_CHANNEL_OPEN &&
 		    sc->type != SSH_CHANNEL_OPENING) {
@@ -413,7 +415,7 @@ process_mux_new_session(struct ssh *ssh, u_int rid,
 	    new_fd[0], new_fd[1], new_fd[2]);
 
 	/* XXX support multiple child sessions in future */
-	if (c->remote_id != -1) {
+	if (c->have_remote_id) {
 		debug2("%s: session already open", __func__);
 		/* prepare reply */
 		buffer_put_int(r, MUX_S_FAILURE);
@@ -471,6 +473,7 @@ process_mux_new_session(struct ssh *ssh, u_int rid,
 
 	nc->ctl_chan = c->self;		/* link session -> control channel */
 	c->remote_id = nc->self; 	/* link control -> session channel */
+	c->have_remote_id = 1;
 
 	if (cctx->want_tty && escape_char != 0xffffffff) {
 		channel_register_filter(ssh, nc->self,
@@ -1007,7 +1010,7 @@ process_mux_stdio_fwd(struct ssh *ssh, u_int rid,
 	    new_fd[0], new_fd[1]);
 
 	/* XXX support multiple child sessions in future */
-	if (c->remote_id != -1) {
+	if (c->have_remote_id) {
 		debug2("%s: session already open", __func__);
 		/* prepare reply */
 		buffer_put_int(r, MUX_S_FAILURE);
@@ -1043,6 +1046,7 @@ process_mux_stdio_fwd(struct ssh *ssh, u_int rid,
 
 	nc->ctl_chan = c->self;		/* link session -> control channel */
 	c->remote_id = nc->self; 	/* link control -> session channel */
+	c->have_remote_id = 1;
 
 	debug2("%s: channel_new: %d linked to control channel %d",
 	    __func__, nc->self, nc->ctl_chan);

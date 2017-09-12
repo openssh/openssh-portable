@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.366 2017/08/30 03:59:08 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.368 2017/09/12 06:35:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -252,14 +252,14 @@ channel_by_id(struct ssh *ssh, int id)
 }
 
 Channel *
-channel_by_remote_id(struct ssh *ssh, int remote_id)
+channel_by_remote_id(struct ssh *ssh, u_int remote_id)
 {
 	Channel *c;
 	u_int i;
 
 	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
 		c = ssh->chanctxt->channels[i];
-		if (c != NULL && c->remote_id == remote_id)
+		if (c != NULL && c->have_remote_id && c->remote_id == remote_id)
 			return c;
 	}
 	return NULL;
@@ -387,7 +387,6 @@ channel_new(struct ssh *ssh, char *ctype, int type, int rfd, int wfd, int efd,
 	c->local_window = window;
 	c->local_window_max = window;
 	c->local_maxpacket = maxpack;
-	c->remote_id = -1;
 	c->remote_name = xstrdup(remote_name);
 	c->ctl_chan = -1;
 	c->delayed = 1;		/* prevent call to channel_post handler */
@@ -703,7 +702,7 @@ channel_find_open(struct ssh *ssh)
 
 	for (i = 0; i < ssh->chanctxt->channels_alloc; i++) {
 		c = ssh->chanctxt->channels[i];
-		if (c == NULL || c->remote_id < 0)
+		if (c == NULL || !c->have_remote_id)
 			continue;
 		switch (c->type) {
 		case SSH_CHANNEL_CLOSED:
@@ -778,9 +777,10 @@ channel_open_message(struct ssh *ssh)
 		case SSH_CHANNEL_MUX_PROXY:
 		case SSH_CHANNEL_MUX_CLIENT:
 			if ((r = sshbuf_putf(buf, "  #%d %.300s "
-			    "(t%d r%d i%u/%zu o%u/%zu fd %d/%d cc %d)\r\n",
+			    "(t%d %s%u i%u/%zu o%u/%zu fd %d/%d cc %d)\r\n",
 			    c->self, c->remote_name,
-			    c->type, c->remote_id,
+			    c->type,
+			    c->have_remote_id ? "r" : "nr", c->remote_id,
 			    c->istate, sshbuf_len(c->input),
 			    c->ostate, sshbuf_len(c->output),
 			    c->rfd, c->wfd, c->ctl_chan)) != 0)
@@ -838,6 +838,9 @@ channel_request_start(struct ssh *ssh, int id, char *service, int wantconfirm)
 		logit("%s: %d: unknown channel id", __func__, id);
 		return;
 	}
+	if (!c->have_remote_id)
+		fatal(":%s: channel %d: no remote id", __func__, c->self);
+
 	debug2("channel %d: request %s confirm %d", id, service, wantconfirm);
 	if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_REQUEST)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
@@ -930,6 +933,9 @@ channel_set_fds(struct ssh *ssh, int id, int rfd, int wfd, int efd,
 
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
+	if (!c->have_remote_id)
+		fatal(":%s: channel %d: no remote id", __func__, c->self);
+
 	channel_register_fds(ssh, c, rfd, wfd, efd, extusage, nonblock, is_tty);
 	c->type = SSH_CHANNEL_OPEN;
 	c->local_window = c->local_window_max = window_max;
@@ -1698,6 +1704,8 @@ channel_post_connecting(struct ssh *ssh, Channel *c,
 
 	if (!FD_ISSET(c->sock, writeset))
 		return;
+	if (!c->have_remote_id)
+		fatal(":%s: channel %d: no remote id", __func__, c->self);
 
 	if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, &err, &sz) < 0) {
 		err = errno;
@@ -1983,6 +1991,9 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
+		if (!c->have_remote_id)
+			fatal(":%s: channel %d: no remote id",
+			    __func__, c->self);
 		if ((r = sshpkt_start(ssh,
 		    SSH2_MSG_CHANNEL_WINDOW_ADJUST)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
@@ -2338,6 +2349,9 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 		return;
 	}
 
+	if (!c->have_remote_id)
+		fatal(":%s: channel %d: no remote id", __func__, c->self);
+
 	if (c->datagram) {
 		/* Check datagram will fit; drop if not */
 		if ((r = sshbuf_peek_string_direct(c->input, NULL, &dlen)) != 0)
@@ -2404,6 +2418,8 @@ channel_output_poll_extended_read(struct ssh *ssh, Channel *c)
 		len = c->remote_maxpacket;
 	if (len == 0)
 		return;
+	if (!c->have_remote_id)
+		fatal(":%s: channel %d: no remote id", __func__, c->self);
 	if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_EXTENDED_DATA)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, SSH2_EXTENDED_DATA_STDERR)) != 0 ||
@@ -2570,6 +2586,7 @@ channel_proxy_downstream(struct ssh *ssh, Channel *downstream)
 		c->mux_ctx = downstream;	/* point to mux client */
 		c->mux_downstream_id = id;
 		c->remote_id = remote_id;
+		c->have_remote_id = 1;
 		if ((r = sshbuf_put_u32(modified, remote_id)) != 0 ||
 		    (r = sshbuf_put_u32(modified, c->self)) != 0 ||
 		    (r = sshbuf_putb(modified, original)) != 0) {
@@ -2713,8 +2730,10 @@ channel_proxy_upstream(Channel *c, int type, u_int32_t seq, struct ssh *ssh)
 	switch (type) {
 	case SSH2_MSG_CHANNEL_OPEN_CONFIRMATION:
 		/* record remote_id for SSH2_MSG_CHANNEL_CLOSE */
-		if (cp && len > 4)
+		if (cp && len > 4) {
 			c->remote_id = PEEK_U32(cp);
+			c->have_remote_id = 1;
+		}
 		break;
 	case SSH2_MSG_CHANNEL_CLOSE:
 		if (c->flags & CHAN_CLOSE_SENT)
@@ -2923,14 +2942,15 @@ channel_input_open_confirmation(int type, u_int32_t seq, struct ssh *ssh)
 	 * Record the remote channel number and mark that the channel
 	 * is now open.
 	 */
-	c->remote_id = channel_parse_id(ssh, __func__, "open confirmation");
-	if ((r = sshpkt_get_u32(ssh, &remote_window)) != 0 ||
+	if ((r = sshpkt_get_u32(ssh, &c->remote_id)) != 0 ||
+	    (r = sshpkt_get_u32(ssh, &remote_window)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &remote_maxpacket)) != 0) {
 		error("%s: window/maxpacket: %s", __func__, ssh_err(r));
 		packet_disconnect("Invalid open confirmation message");
 	}
 	ssh_packet_check_eom(ssh);
 
+	c->have_remote_id = 1;
 	c->remote_window = remote_window;
 	c->remote_maxpacket = remote_maxpacket;
 	c->type = SSH_CHANNEL_OPEN;
