@@ -12,7 +12,10 @@
 } while(0)
 #define NULL_DEVICE "/dev/null"
 
+#define IsWin7OrLess() (!IsWindows8OrGreater())
+
 #define IS_INVALID_HANDLE(h) ( ((NULL == h) || (INVALID_HANDLE_VALUE == h)) ? 1 : 0 )
+#define IS_VALID_HANDLE(h) (!IS_INVALID_HANDLE(h))
 
 /* removes first '/' for Windows paths that are unix styled. Ex: /c:/ab.cd */
 char * sanitized_path(const char *);
