@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.67 2017/09/12 06:35:32 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.68 2017/09/18 12:03:24 dtucker Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -2001,7 +2001,7 @@ mux_client_request_session(int fd)
 		leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
 	if (muxclient_terminate) {
-		debug2("Exiting on signal %d", muxclient_terminate);
+		debug2("Exiting on signal %ld", (long)muxclient_terminate);
 		exitval = 255;
 	} else if (!exitval_seen) {
 		debug2("Control master terminated unexpectedly");
