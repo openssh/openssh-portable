@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.310 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.311 2017/09/18 09:41:52 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1665,11 +1665,12 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum);
 		i = options->num_permitted_opens;	/* modified later */
 		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
-			if (*activep && i == 0)
+			if (*activep && i == 0) {
 				options->num_permitted_opens = 1;
 				options->permitted_opens = xcalloc(1,
 				    sizeof(*options->permitted_opens));
 				options->permitted_opens[0] = xstrdup(arg);
+			}
 			break;
 		}
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
