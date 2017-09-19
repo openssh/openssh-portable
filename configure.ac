@@ -1696,6 +1696,7 @@ AC_CHECK_FUNCS([ \
 	fchmod \
 	fchown \
 	freeaddrinfo \
+	freezero \
 	fstatfs \
 	fstatvfs \
 	futimes \
