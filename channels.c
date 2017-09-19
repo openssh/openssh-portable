@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.370 2017/09/12 07:55:48 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.371 2017/09/19 12:10:30 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -573,7 +573,7 @@ channel_free(struct ssh *ssh, Channel *c)
 	if (c->filter_cleanup != NULL && c->filter_ctx != NULL)
 		c->filter_cleanup(ssh, c->self, c->filter_ctx);
 	sc->channels[c->self] = NULL;
-	bzero(c, sizeof(*c));
+	explicit_bzero(c, sizeof(*c));
 	free(c);
 }
 
