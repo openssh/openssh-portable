@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.304 2017/09/12 06:35:32 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.305 2017/09/19 04:24:22 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -600,24 +600,15 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 
 	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 
-	/*
-	 * Free (and clear) the buffer to reduce the amount of data that gets
-	 * written to swap.
-	 */
-	buffer_free(bin);
-	buffer_free(bout);
-	buffer_free(berr);
+	sshbuf_reset(bin);
+	sshbuf_reset(bout);
+	sshbuf_reset(berr);
 
 	/* Send the suspend signal to the program itself. */
 	kill(getpid(), SIGTSTP);
 
 	/* Reset window sizes in case they have changed */
 	received_window_change_signal = 1;
-
-	/* OK, we have been continued by the user. Reinitialize buffers. */
-	buffer_init(bin);
-	buffer_init(bout);
-	buffer_init(berr);
 
 	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 }
