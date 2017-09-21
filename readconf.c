@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.278 2017/09/03 23:33:13 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.279 2017/09/21 19:16:53 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -836,6 +836,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	char **cpptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
+	int remotefwd, dynamicfwd;
 	LogLevel *log_level_ptr;
 	SyslogFacility *log_facility_ptr;
 	long long val64;
@@ -1255,31 +1256,36 @@ parse_keytypes:
 			fatal("%.200s line %d: Missing port argument.",
 			    filename, linenum);
 
-		if (opcode == oLocalForward ||
-		    opcode == oRemoteForward) {
+		remotefwd = (opcode == oRemoteForward);
+		dynamicfwd = (opcode == oDynamicForward);
+
+		if (!dynamicfwd) {
 			arg2 = strdelim(&s);
-			if (arg2 == NULL || *arg2 == '\0')
-				fatal("%.200s line %d: Missing target argument.",
-				    filename, linenum);
-
-			/* construct a string for parse_forward */
-			snprintf(fwdarg, sizeof(fwdarg), "%s:%s", arg, arg2);
-		} else if (opcode == oDynamicForward) {
-			strlcpy(fwdarg, arg, sizeof(fwdarg));
+			if (arg2 == NULL || *arg2 == '\0') {
+				if (remotefwd)
+					dynamicfwd = 1;
+				else
+					fatal("%.200s line %d: Missing target "
+					    "argument.", filename, linenum);
+			} else {
+				/* construct a string for parse_forward */
+				snprintf(fwdarg, sizeof(fwdarg), "%s:%s", arg,
+				    arg2);
+			}
 		}
+		if (dynamicfwd)
+			strlcpy(fwdarg, arg, sizeof(fwdarg));
 
-		if (parse_forward(&fwd, fwdarg,
-		    opcode == oDynamicForward ? 1 : 0,
-		    opcode == oRemoteForward ? 1 : 0) == 0)
+		if (parse_forward(&fwd, fwdarg, dynamicfwd, remotefwd) == 0)
 			fatal("%.200s line %d: Bad forwarding specification.",
 			    filename, linenum);
 
 		if (*activep) {
-			if (opcode == oLocalForward ||
-			    opcode == oDynamicForward)
-				add_local_forward(options, &fwd);
-			else if (opcode == oRemoteForward)
+			if (remotefwd) {
 				add_remote_forward(options, &fwd);
+			} else {
+				add_local_forward(options, &fwd);
+			}
 		}
 		break;
 

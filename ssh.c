@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.463 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.464 2017/09/21 19:16:53 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -868,7 +868,8 @@ main(int ac, char **av)
 			break;
 
 		case 'R':
-			if (parse_forward(&fwd, optarg, 0, 1)) {
+			if (parse_forward(&fwd, optarg, 0, 1) ||
+			    parse_forward(&fwd, optarg, 1, 1)) {
 				add_remote_forward(&options, &fwd);
 			} else {
 				fprintf(stderr,

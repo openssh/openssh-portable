@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.h,v 1.129 2017/09/12 06:35:32 djm Exp $ */
+/* $OpenBSD: channels.h,v 1.130 2017/09/21 19:16:53 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -57,7 +57,9 @@
 #define SSH_CHANNEL_UNIX_LISTENER	18	/* Listening on a domain socket. */
 #define SSH_CHANNEL_RUNIX_LISTENER	19	/* Listening to a R-style domain socket. */
 #define SSH_CHANNEL_MUX_PROXY		20	/* proxy channel for mux-slave */
-#define SSH_CHANNEL_MAX_TYPE		21
+#define SSH_CHANNEL_RDYNAMIC_OPEN	21	/* reverse SOCKS, parsing request */
+#define SSH_CHANNEL_RDYNAMIC_FINISH	22	/* reverse SOCKS, finishing connect */
+#define SSH_CHANNEL_MAX_TYPE		23
 
 #define CHANNEL_CANCEL_PORT_STATIC	-1
 
