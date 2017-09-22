@@ -1,4 +1,6 @@
 #pragma once
+#include <VersionHelpers.h>
+
 #define PATH_MAX MAX_PATH
 #define SSH_ASYNC_STDIN "SSH_ASYNC_STDIN"
 #define SSH_ASYNC_STDOUT "SSH_ASYNC_STDOUT"
