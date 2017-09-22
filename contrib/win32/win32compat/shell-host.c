@@ -215,6 +215,7 @@ HANDLE pipe_in = INVALID_HANDLE_VALUE;
 HANDLE pipe_out = INVALID_HANDLE_VALUE;
 HANDLE pipe_err = INVALID_HANDLE_VALUE;
 HANDLE child = INVALID_HANDLE_VALUE;
+HANDLE job = NULL;
 HANDLE hConsoleBuffer = INVALID_HANDLE_VALUE;
 HANDLE monitor_thread = INVALID_HANDLE_VALUE;
 HANDLE io_thread = INVALID_HANDLE_VALUE;
@@ -1554,6 +1555,7 @@ wmain(int ac, wchar_t **av)
 {
 	int pty_requested = 0;
 	wchar_t *cmd = NULL, *cmd_b64 = NULL;
+	JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
 
 	_set_invalid_parameter_handler(my_invalid_parameter_handler);
 	if ((ac == 1) || (ac == 2 && wcscmp(av[1], L"-nopty"))) {
@@ -1593,6 +1595,21 @@ wmain(int ac, wchar_t **av)
 	if (!GetSystemDirectory(system32_path, _countof(system32_path))) {
 		printf_s("GetSystemDirectory failed");
 		exit(255);
+	}
+
+	/* assign to job object */
+	if ((job = CreateJobObjectW(NULL, NULL)) == NULL) {
+		printf_s("cannot create job object, error: %d", GetLastError());
+		return -1;
+	}
+
+	memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+	job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+	if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)) ||
+		!AssignProcessToJobObject(job, GetCurrentProcess())) {
+		printf_s("cannot associate job object: %d", GetLastError());
+		return -1;
 	}
 
 	if (pty_requested)

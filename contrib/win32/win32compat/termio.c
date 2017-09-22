@@ -107,7 +107,8 @@ ReadThread(_In_ LPVOID lpParameter)
 
 			if (!ReadFile(WINHANDLE(pio), pio->read_details.buf,
 				pio->read_details.buf_size, &read_status.transferred, NULL)) { 
-				read_status.error = GetLastError();				
+				debug4("ReadThread - ReadFile failed, error:%d, io:%p", GetLastError(), pio); 
+				read_status.error = GetLastError();
 				return -1;
 			}
 
@@ -126,7 +127,8 @@ ReadThread(_In_ LPVOID lpParameter)
 	} else {
 		if (!ReadFile(WINHANDLE(pio), pio->read_details.buf,
 		    pio->read_details.buf_size, &read_status.transferred, NULL)) {
-			read_status.error = GetLastError();			
+			debug4("ReadThread - ReadFile failed, error:%d, io:%p", GetLastError(), pio); 
+			read_status.error = GetLastError();
 			return -1;
 		}
 	}
@@ -192,7 +194,7 @@ WriteThread(_In_ LPVOID lpParameter)
 	struct w32_io* pio = (struct w32_io*)lpParameter;
 	char *respbuf = NULL;
 	size_t resplen = 0;	
-	debug5("TermWrite thread, io:%p", pio);
+	debug5("WriteThread thread, io:%p", pio);
 
 	if (FILETYPE(pio) == FILE_TYPE_CHAR) {
 		pio->write_details.buf[write_status.to_transfer] = '\0';
@@ -209,13 +211,13 @@ WriteThread(_In_ LPVOID lpParameter)
 		if (!WriteFile(WINHANDLE(pio), pio->write_details.buf, write_status.to_transfer,
 		    &write_status.transferred, NULL)) {
 			write_status.error = GetLastError();
-			debug("WriteThread - ReadFile WriteFile %d, io:%p", GetLastError(), pio);
+			debug4("WriteThread - WriteFile %d, io:%p", GetLastError(), pio);
 		}
 	}
 
 	
 	if (0 == QueueUserAPC(WriteAPCProc, main_thread, (ULONG_PTR)pio)) {
-		debug3("TermWrite thread - ERROR QueueUserAPC failed %d, io:%p", GetLastError(), pio);
+		debug3("WriteThread thread - ERROR QueueUserAPC failed %d, io:%p", GetLastError(), pio);
 		pio->write_details.pending = FALSE;
 		pio->write_details.error = GetLastError();
 		DebugBreak();
@@ -229,13 +231,13 @@ int
 syncio_initiate_write(struct w32_io* pio, DWORD num_bytes)
 {
 	HANDLE write_thread;
-	debug5("TermWrite initiate io:%p", pio);
+	debug5("syncio_initiate_write initiate io:%p", pio);
 	memset(&write_status, 0, sizeof(write_status));
 	write_status.to_transfer = num_bytes;
 	write_thread = CreateThread(NULL, 0, WriteThread, pio, 0, NULL);
 	if (write_thread == NULL) {
 		errno = errno_from_Win32LastError();
-		debug3("TermWrite initiate - ERROR CreateThread %d, io:%p", GetLastError(), pio);
+		debug3("syncio_initiate_write initiate - ERROR CreateThread %d, io:%p", GetLastError(), pio);
 		return -1;
 	}
 
