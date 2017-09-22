@@ -198,6 +198,7 @@ typedef struct {
 
 	int	fingerprint_hash;
 	int	expose_userauth_info;
+	int username_case_sensitive;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */

@@ -165,6 +165,7 @@ initialize_server_options(ServerOptions *options)
 	options->fingerprint_hash = -1;
 	options->disable_forwarding = -1;
 	options->expose_userauth_info = -1;
+	options->username_case_sensitive = -1; 
 }
 
 /* Returns 1 if a string option is unset or set to "none" or 0 otherwise. */
@@ -422,6 +423,7 @@ typedef enum {
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
 	sExposeAuthInfo,
+	sUserNameCaseSensitive,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -566,6 +568,7 @@ static struct {
 	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
 	{ "disableforwarding", sDisableForwarding, SSHCFG_ALL },
 	{ "exposeauthinfo", sExposeAuthInfo, SSHCFG_ALL },
+	{ "usernamecasesensitive", sUserNameCaseSensitive, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1882,6 +1885,10 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sExposeAuthInfo:
 		intptr = &options->expose_userauth_info;
 		goto parse_flag;
+		
+	case sUserNameCaseSensitive:
+		intptr = &options->username_case_sensitive;
+		goto parse_flag;
 
 	case sDeprecated:
 	case sIgnore:
@@ -2322,6 +2329,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_fmtint(sStreamLocalBindUnlink, o->fwd_opts.streamlocal_bind_unlink);
 	dump_cfg_fmtint(sFingerprintHash, o->fingerprint_hash);
 	dump_cfg_fmtint(sExposeAuthInfo, o->expose_userauth_info);
+	dump_cfg_fmtint(sUserNameCaseSensitive, o->username_case_sensitive);
 
 	/* string arguments */
 	dump_cfg_string(sPidFile, o->pid_file);
