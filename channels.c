@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.372 2017/09/21 19:16:53 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.373 2017/09/23 22:04:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2450,7 +2450,8 @@ channel_after_select(struct ssh *ssh, fd_set *readset, fd_set *writeset)
 static void
 channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 {
-	size_t len, dlen;
+	size_t len, plen;
+	const u_char *pkt;
 	int r;
 
 	if ((len = sshbuf_len(c->input)) == 0) {
@@ -2477,27 +2478,27 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 
 	if (c->datagram) {
 		/* Check datagram will fit; drop if not */
-		if ((r = sshbuf_peek_string_direct(c->input, NULL, &dlen)) != 0)
-			fatal("%s: channel %d: peek datagram: %s", __func__,
+		if ((r = sshbuf_get_string_direct(c->input, &pkt, &plen)) != 0)
+			fatal("%s: channel %d: get datagram: %s", __func__,
 			    c->self, ssh_err(r));
 		/*
 		 * XXX this does tail-drop on the datagram queue which is
 		 * usually suboptimal compared to head-drop. Better to have
 		 * backpressure at read time? (i.e. read + discard)
 		 */
-		if (dlen > c->remote_window || dlen > c->remote_maxpacket) {
+		if (plen > c->remote_window || plen > c->remote_maxpacket) {
 			debug("channel %d: datagram too big", c->self);
 			return;
 		}
 		/* Enqueue it */
 		if ((r = sshpkt_start(ssh, SSH2_MSG_CHANNEL_DATA)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-		    (r = sshpkt_put_stringb(ssh, c->input)) != 0 ||
+		    (r = sshpkt_put_string(ssh, pkt, plen)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0) {
 			fatal("%s: channel %i: datagram: %s", __func__,
 			    c->self, ssh_err(r));
 		}
-		c->remote_window -= dlen;
+		c->remote_window -= plen;
 		return;
 	}
 
