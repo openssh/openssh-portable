@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.373 2017/09/23 22:04:07 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.374 2017/09/24 09:50:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1941,7 +1941,7 @@ channel_handle_wfd(struct ssh *ssh, Channel *c,
 
 	if (c->datagram) {
 		/* ignore truncated writes, datagrams might get lost */
-		len = write(c->wfd, data, dlen);
+		len = write(c->wfd, buf, dlen);
 		free(data);
 		if (len < 0 && (errno == EINTR || errno == EAGAIN ||
 		    errno == EWOULDBLOCK))
