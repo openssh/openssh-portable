@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.374 2017/09/24 09:50:01 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.375 2017/09/24 13:45:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3126,7 +3126,7 @@ channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
 	if ((datafellows & SSH_BUG_OPENFAILURE) == 0) {
 		/* skip language */
 		if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
-		    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) == 0) {
+		    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0) {
 			error("%s: message/lang: %s", __func__, ssh_err(r));
 			packet_disconnect("Invalid open failure message");
 		}
