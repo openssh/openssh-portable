@@ -1770,6 +1770,7 @@ AC_CHECK_FUNCS([ \
 	strnlen \
 	strnvis \
 	strptime \
+	strsignal \
 	strtonum \
 	strtoll \
 	strtoul \
