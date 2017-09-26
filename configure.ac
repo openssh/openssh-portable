@@ -1331,7 +1331,17 @@ AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
 AC_SEARCH_LIBS([gethostbyname], [resolv nsl])
 
+# "Particular Function Checks"
+# see https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Particular-Functions.html
 AC_FUNC_STRFTIME
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+# autoconf doesn't have AC_FUNC_CALLOC so fake it if malloc returns NULL;
+if test "x$ac_cv_func_malloc_0_nonnull" != "xyes"; then
+	AC_DEFINE(HAVE_CALLOC, 0, [calloc(x, 0) returns NULL])
+	AC_DEFINE(calloc, rpl_calloc,
+	    [Define to rpl_calloc if the replacement function should be used.])
+fi
 
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING([for GLOB_ALTDIRFUNC support])
