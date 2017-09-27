@@ -46,6 +46,8 @@
 #define MAX_CMD_LEN 8191 // msdn
 #define WM_APPEXIT WM_USER+1
 #define MAX_EXPECTED_BUFFER_SIZE 1024
+/* 4KB is the largest size for which writes are guaranteed to be atomic */
+#define BUFF_SIZE 4096
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING  0x4
@@ -1218,7 +1220,7 @@ start_with_pty(wchar_t *command)
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
 	wchar_t kernel32_dll_path[PATH_MAX]={0,}, user32_dll_path[PATH_MAX]={0,};
 
-	if(cmd == NULL) {
+	if (cmd == NULL) {
 		printf_s("ssh-shellhost is out of memory");
 		exit(255);
 	}
@@ -1278,11 +1280,9 @@ start_with_pty(wchar_t *command)
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
 	
 	cmd[0] = L'\0';
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));
-	
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));	
 	if (command) {
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));		
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 	}
 
@@ -1373,18 +1373,17 @@ start_withno_pty(wchar_t *command)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	wchar_t *cmd = (wchar_t *) malloc(sizeof(wchar_t) * MAX_CMD_LEN);
+	wchar_t *cmd = (wchar_t *)malloc(sizeof(wchar_t) * MAX_CMD_LEN);
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret, process_input = FALSE, run_under_cmd = FALSE;
 	size_t command_len;
-	char buf[128];
+	char *buf = (char *)malloc(BUFF_SIZE + 1);
 	DWORD rd = 0, wr = 0, i = 0;
 
 	if (cmd == NULL) {
 		printf_s("ssh-shellhost is out of memory");
 		exit(255);
 	}
-
 	pipe_in = GetStdHandle(STD_INPUT_HANDLE);
 	pipe_out = GetStdHandle(STD_OUTPUT_HANDLE);
 	pipe_err = GetStdHandle(STD_ERROR_HANDLE);
@@ -1395,8 +1394,11 @@ start_withno_pty(wchar_t *command)
 
 	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
 	sa.bInheritHandle = TRUE;
-	if (!CreatePipe(&child_pipe_read, &child_pipe_write, &sa, 128))
+	/* use the default buffer size, 64K*/
+	if (!CreatePipe(&child_pipe_read, &child_pipe_write, &sa, 0)) {
+		printf_s("ssh-shellhost-can't open no pty session, error: %d", GetLastError());
 		return -1;
+	}
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
@@ -1428,10 +1430,10 @@ start_withno_pty(wchar_t *command)
 		process_input = TRUE;
 	else {
 		command_len = wcsnlen_s(command, MAX_CMD_LEN);
-		if ((command_len >= 3 && wcsncmp(command, L"cmd", 4) == 0) ||
-		    (command_len >= 7 && wcsncmp(command, L"cmd.exe", 8) == 0) ||
-		    (command_len >= 4 && wcsncmp(command, L"cmd ", 4) == 0) ||
-		    (command_len >= 8 && wcsncmp(command, L"cmd.exe ", 8) == 0))
+		if ((command_len >= 3 && _wcsnicmp(command, L"cmd", 4) == 0) ||
+		    (command_len >= 7 && _wcsnicmp(command, L"cmd.exe", 8) == 0) ||
+		    (command_len >= 4 && _wcsnicmp(command, L"cmd ", 4) == 0) ||
+		    (command_len >= 8 && _wcsnicmp(command, L"cmd.exe ", 8) == 0))
 			process_input = TRUE;
 	}
 
@@ -1450,12 +1452,11 @@ start_withno_pty(wchar_t *command)
 		run_under_cmd = TRUE;
 
 	/* if above failed with FILE_NOT_FOUND, try running the provided command under cmd*/
-	if (run_under_cmd) {		
+	if (run_under_cmd) {
 		cmd[0] = L'\0';
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));
 		if (command) {
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c"));
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" "));
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
 			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 		}
 	
@@ -1476,10 +1477,15 @@ start_withno_pty(wchar_t *command)
 	/* disable Ctrl+C hander in this process*/
 	SetConsoleCtrlHandler(NULL, TRUE);
 
+	if (buf == NULL) {
+		printf_s("ssh-shellhost is out of memory");
+		exit(255);
+	}
 	/* process data from pipe_in and route appropriately */
 	while (1) {
 		rd = wr = i = 0;
-		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, sizeof(buf)-1, &rd, NULL));
+		buf[0] = L'\0';
+		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, BUFF_SIZE, &rd, NULL));
 
 		if (process_input == FALSE) {
 			/* write stream directly to child stdin */
@@ -1521,12 +1527,10 @@ start_withno_pty(wchar_t *command)
 
 			/* For CR and LF */
 			if ((buf[i] == '\r') || (buf[i] == '\n')) {
-				/* TODO - do a much accurate mapping */
-				GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, buf + i, 1, &wr, NULL));
-				if ((buf[i] == '\r') && ((i == rd - 1) || (buf[i + 1] != '\n'))) {
+				/* TODO - do a much accurate mapping */				
+				if ((buf[i] == '\r') && ((i == rd - 1) || (buf[i + 1] != '\n')))
 					buf[i] = '\n';
-					GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, buf + i, 1, &wr, NULL));
-				}
+				GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, buf + i, 1, &wr, NULL));
 				in_cmd[in_cmd_len] = buf[i];
 				in_cmd_len++;
 				GOTO_CLEANUP_ON_FALSE(WriteFile(child_pipe_write, in_cmd, in_cmd_len, &wr, NULL));
@@ -1557,6 +1561,12 @@ cleanup:
 	}		
 	if (!IS_INVALID_HANDLE(child))
 		TerminateProcess(child, 0);
+
+	if (buf != NULL)
+		free(buf);
+
+	if (cmd != NULL)
+		free(cmd);
 	
 	return child_exit_code;
 }
