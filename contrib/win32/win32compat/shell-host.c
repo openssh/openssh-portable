@@ -81,6 +81,19 @@
 #define VK_X 0x58
 #define VK_Y 0x59
 #define VK_Z 0x5A
+#define VK_0 0x30
+#define VK_1 0x31
+#define VK_2 0x32
+#define VK_3 0x33
+#define VK_4 0x34
+#define VK_5 0x35
+#define VK_6 0x36
+#define VK_7 0x37
+#define VK_8 0x38
+#define VK_9 0x39
+
+const int MAX_CTRL_SEQ_LEN = 7;
+const int MIN_CTRL_SEQ_LEN = 6;
 
 typedef BOOL(WINAPI *__t_SetCurrentConsoleFontEx)(
 	_In_ HANDLE               hConsoleOutput,
@@ -115,7 +128,7 @@ typedef struct consoleEvent {
 } consoleEvent;
 
 struct key_translation {
-	wchar_t in[6];
+	wchar_t in[8];
 	int vk;
 	wchar_t out;
 	int in_key_len;
@@ -124,10 +137,10 @@ struct key_translation {
 
 /* All the substrings should be in the end, otherwise ProcessIncomingKeys() will not work as expected */
 struct key_translation keys[] = {
-    { L"\r",         VK_RETURN,  L'\r' , 0 , 0},
-    { L"\n",         VK_RETURN,  L'\r' , 0 , 0 },
-    { L"\b",         VK_BACK,    L'\b' , 0 , 0 },
-    { L"\x7f",       VK_BACK,    L'\b' , 0 , 0 },
+    { L"\r",         VK_RETURN,  L'\r', 0, 0},
+    { L"\n",         VK_RETURN,  L'\r', 0, 0 },
+    { L"\b",         VK_BACK,    L'\b', 0, 0 },
+    { L"\x7f",       VK_BACK,    L'\b', 0 , 0 },
     { L"\t",         VK_TAB,     L'\t' , 0 , 0},
     { L"\x1b[A",     VK_UP,       0 , 0 , 0},
     { L"\x1b[B",     VK_DOWN,     0 , 0 , 0},
@@ -189,7 +202,53 @@ struct key_translation keys[] = {
     { L"\x17",       VK_W,   L'\x17' , 0 , LEFT_CTRL_PRESSED},
     { L"\x18",       VK_X,   L'\x18' , 0 , LEFT_CTRL_PRESSED},
     { L"\x19",       VK_Y,   L'\x19' , 0 , LEFT_CTRL_PRESSED},
-    { L"\x1A",       VK_Z,   L'\x1A' , 0 , LEFT_CTRL_PRESSED}
+    { L"\x1A",       VK_Z,   L'\x1A' , 0 , LEFT_CTRL_PRESSED},
+    { L"\033a",      VK_A,   L'a', 0, LEFT_ALT_PRESSED},
+    { L"\033b",      VK_B,   L'b', 0, LEFT_ALT_PRESSED},
+    { L"\033c",      VK_C,   L'c', 0, LEFT_ALT_PRESSED},
+    { L"\033d",      VK_D,   L'd', 0, LEFT_ALT_PRESSED},
+    { L"\033e",      VK_E,   L'e', 0, LEFT_ALT_PRESSED},
+    { L"\033f",      VK_F,   L'f', 0, LEFT_ALT_PRESSED},
+    { L"\033g",      VK_G,   L'g', 0, LEFT_ALT_PRESSED},
+    { L"\033h",      VK_H,   L'h', 0, LEFT_ALT_PRESSED},
+    { L"\033i",      VK_I,   L'i', 0, LEFT_ALT_PRESSED},
+    { L"\033j",      VK_J,   L'j', 0, LEFT_ALT_PRESSED},
+    { L"\033k",      VK_K,   L'k', 0, LEFT_ALT_PRESSED},
+    { L"\033l",      VK_L,   L'l', 0, LEFT_ALT_PRESSED},
+    { L"\033m",      VK_M,   L'm', 0, LEFT_ALT_PRESSED},
+    { L"\033n",      VK_N,   L'n', 0, LEFT_ALT_PRESSED},
+    { L"\033o",      VK_O,   L'o', 0, LEFT_ALT_PRESSED},
+    { L"\033p",      VK_P,   L'p', 0, LEFT_ALT_PRESSED},
+    { L"\033q",      VK_Q,   L'q', 0, LEFT_ALT_PRESSED},
+    { L"\033r",      VK_R,   L'r', 0, LEFT_ALT_PRESSED},
+    { L"\033s",      VK_S,   L's', 0, LEFT_ALT_PRESSED},
+    { L"\033t",      VK_T,   L't', 0, LEFT_ALT_PRESSED},
+    { L"\033u",      VK_U,   L'u', 0, LEFT_ALT_PRESSED},
+    { L"\033v",      VK_V,   L'v', 0, LEFT_ALT_PRESSED},
+    { L"\033w",      VK_W,   L'w', 0, LEFT_ALT_PRESSED},
+    { L"\033x",      VK_X,   L'x', 0, LEFT_ALT_PRESSED},
+    { L"\033y",      VK_Y,   L'y', 0, LEFT_ALT_PRESSED},
+    { L"\033z",      VK_Z,   L'z', 0, LEFT_ALT_PRESSED},
+    { L"\0330",      VK_0,   L'0', 0, LEFT_ALT_PRESSED},
+    { L"\0331",      VK_1,   L'1', 0, LEFT_ALT_PRESSED},
+    { L"\0332",      VK_2,   L'2', 0, LEFT_ALT_PRESSED},
+    { L"\0333",      VK_3,   L'3', 0, LEFT_ALT_PRESSED},
+    { L"\0334",      VK_4,   L'4', 0, LEFT_ALT_PRESSED},
+    { L"\0335",      VK_5,   L'5', 0, LEFT_ALT_PRESSED},
+    { L"\0336",      VK_6,   L'6', 0, LEFT_ALT_PRESSED},
+    { L"\0337",      VK_7,   L'7', 0, LEFT_ALT_PRESSED},
+    { L"\0338",      VK_8,   L'8', 0, LEFT_ALT_PRESSED},
+    { L"\0339",      VK_9,   L'9', 0, LEFT_ALT_PRESSED},
+    { L"\033!",      VK_1,   L'!', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033@",      VK_2,   L'@', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033#",      VK_3,   L'#', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033$",      VK_4,   L'$', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033%",      VK_5,   L'%', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033^",      VK_6,   L'^', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033&",      VK_7,   L'&', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033*",      VK_8,   L'*', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033(",      VK_9,   L'(', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED },
+    { L"\033)",      VK_0,   L')', 0, LEFT_ALT_PRESSED | SHIFT_PRESSED }
 };
 
 static SHORT lastX = 0;
@@ -335,11 +394,19 @@ initialize_keylen()
 }
 
 int
-ProcessCtrlSequence(wchar_t *buf, int buf_len)
+ProcessModifierKeySequence(wchar_t *buf, int buf_len)
 {
-	int vkey = 0;
-	/* Decode special keys when pressed CTRL key */
-	if (buf[0] == L'\033' && buf[1] == L'[' && buf[buf_len - 3] == L';' && buf[buf_len - 2] == L'5') {
+	if(buf_len < MIN_CTRL_SEQ_LEN)
+		return 0;
+
+	int vkey = 0;	
+	int modifier_key = _wtoi((wchar_t *)&buf[buf_len - 2]);
+
+	if ((modifier_key < 2) && (modifier_key > 7))
+		return 0;
+
+	/* Decode special keys when pressed ALT/CTRL/SHIFT key */
+	if (buf[0] == L'\033' && buf[1] == L'[' && buf[buf_len - 3] == L';') {
 		if (buf[buf_len - 1] == L'~') {
 			/* VK_DELETE, VK_PGDN, VK_PGUP */
 			if (!vkey && buf_len == 6)
@@ -357,18 +424,51 @@ ProcessCtrlSequence(wchar_t *buf, int buf_len)
 			if (!vkey && buf_len == 6 && buf[2] == L'1' && isalpha(buf[5]))
 				vkey = GetVirtualKeyByMask(L'O', &buf[5], 1, 0);
 		}
-		if (vkey)
-			SendKeyStroke(child_in, vkey, 0, LEFT_CTRL_PRESSED);
+		if (vkey) {
+			switch (modifier_key)
+			{
+				case 2:
+					SendKeyStroke(child_in, vkey, 0, SHIFT_PRESSED);
+					break;
+				case 3:
+					SendKeyStroke(child_in, vkey, 0, LEFT_ALT_PRESSED);
+					break;
+				case 4:
+					SendKeyStroke(child_in, vkey, 0, SHIFT_PRESSED | LEFT_ALT_PRESSED);
+					break;
+				case 5:
+					SendKeyStroke(child_in, vkey, 0, LEFT_CTRL_PRESSED);
+					break;
+				case 6:
+					SendKeyStroke(child_in, vkey, 0, SHIFT_PRESSED | LEFT_CTRL_PRESSED);
+					break;
+				case 7:
+					SendKeyStroke(child_in, vkey, 0, LEFT_CTRL_PRESSED | LEFT_ALT_PRESSED);
+					break;				
+			}
+		}
+			
 	}
 
 	return vkey;
+}
+int
+CheckKeyTranslations(wchar_t *buf, int buf_len, int *index)
+{
+	for (int j = 0; j < ARRAYSIZE(keys); j++) {
+		if ((buf_len >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0)) {
+			*index = j;
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 void 
 ProcessIncomingKeys(char * ansikey)
 {
 	int buf_len = 0;
-	const int MAX_CTRL_SEQ_LEN = 7;
 	const wchar_t *ESC_SEQ = L"\x1b";
 	wchar_t *buf = utf8_to_utf16(ansikey);
 
@@ -379,26 +479,33 @@ ProcessIncomingKeys(char * ansikey)
 
 	loop:
 	while (buf && ((buf_len=(int)wcslen(buf)) > 0)) {
-		for (int j = 0; j < ARRAYSIZE(keys); j++) {
-			if ( (buf_len >= keys[j].in_key_len) && (wcsncmp(buf, keys[j].in, keys[j].in_key_len) == 0) ) {
-				SendKeyStroke(child_in, keys[j].vk, keys[j].out, keys[j].ctrlState);				
-				buf += keys[j].in_key_len;
-				goto loop;
-			}
+		int j = 0;
+		if (CheckKeyTranslations(buf, buf_len, &j)) {
+			SendKeyStroke(child_in, keys[j].vk, keys[j].out, keys[j].ctrlState);				
+			buf += keys[j].in_key_len;
+			goto loop;
 		}
 
 		/* Decode special keys when pressed CTRL key. CTRL sequences can be of size 6 or 7. */
-		if ((buf_len >= MAX_CTRL_SEQ_LEN) && ProcessCtrlSequence(buf, MAX_CTRL_SEQ_LEN)) {
+		if ((buf_len >= MAX_CTRL_SEQ_LEN) && ProcessModifierKeySequence(buf, MAX_CTRL_SEQ_LEN)) {
 			buf += MAX_CTRL_SEQ_LEN;
 			goto loop;
 		}
 
-		if ((buf_len >= (MAX_CTRL_SEQ_LEN - 1)) && ProcessCtrlSequence(buf, MAX_CTRL_SEQ_LEN - 1)) {
+		if ((buf_len >= (MAX_CTRL_SEQ_LEN - 1)) && ProcessModifierKeySequence(buf, MAX_CTRL_SEQ_LEN - 1)) {
 			buf += (MAX_CTRL_SEQ_LEN - 1);
 			goto loop;
 		}
 
 		if(wcsncmp(buf, ESC_SEQ, wcslen(ESC_SEQ)) == 0) {
+			wchar_t* p = buf + wcslen(ESC_SEQ);
+			/* Alt sequence */
+			if (CheckKeyTranslations(p, buf_len - (int)wcslen(ESC_SEQ), &j) && !(keys[j].ctrlState & LEFT_ALT_PRESSED)) {
+				SendKeyStroke(child_in, keys[j].vk, keys[j].out, keys[j].ctrlState| LEFT_ALT_PRESSED);
+				buf += wcslen(ESC_SEQ) +keys[j].in_key_len;
+				goto loop;
+			}
+
 			SendKeyStroke(child_in, VK_ESCAPE, L'\x1b', 0);
 			buf += wcslen(ESC_SEQ);
 			goto loop;
