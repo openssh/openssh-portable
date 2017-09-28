@@ -2550,6 +2550,7 @@ if test "x$openssl" = "xyes" ; then
 					AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
 			                ;;
 				100*)   ;; # 1.0.x
+				200*)   ;; # LibreSSL
 			        *)
 					AC_MSG_ERROR([OpenSSL >= 1.1.0 is not yet supported (have "$ssl_library_ver")])
 			                ;;
