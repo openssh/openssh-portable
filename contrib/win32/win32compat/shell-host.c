@@ -255,8 +255,11 @@ struct key_translation keys[] = {
 
 static SHORT lastX = 0;
 static SHORT lastY = 0;
-static wchar_t system32_path[PATH_MAX];
-static wchar_t cmd_exe_path[PATH_MAX];
+static wchar_t system32_path[PATH_MAX + 1] = { 0, };
+static wchar_t default_shell_path[PATH_MAX + 3] = { 0, }; /* 2 - quotes, 1 - Null terminator */
+static wchar_t w32_cmd_exe_path[PATH_MAX + 1] = { 0, };
+static BOOL is_default_shell_configured = FALSE;
+static BOOL is_bash_default_shell = FALSE;
 
 SHORT currentLine = 0;
 consoleEvent* head = NULL;
@@ -1192,19 +1195,44 @@ cleanup:
 }
 
 wchar_t *
-w32_cmd_path()
+get_default_shell_path()
 {
+	HKEY reg_key = 0;
+	int tmp_len = PATH_MAX;
 	errno_t r = 0;
-	if ((r = wcsncpy_s(cmd_exe_path, _countof(cmd_exe_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1)) != 0) {
-		printf_s("wcsncpy_s failed with error: %d.", r);
+	REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
+	wchar_t *tmp = malloc(PATH_MAX + 1);
+
+	memset(tmp, 0, PATH_MAX + 1);
+	memset(default_shell_path, 0, _countof(default_shell_path));
+
+	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
+		(RegQueryValueExW(reg_key, L"DefaultShell", 0, NULL, (LPBYTE)tmp, &tmp_len) == ERROR_SUCCESS) &&
+		(tmp)) {
+		is_default_shell_configured = TRUE;
+		if (wcsstr(default_shell_path, L"bash.exe"))
+			is_bash_default_shell = TRUE;
+
+		/* If required, add quotes to the default shell. */
+		if (tmp[0] != L'"') {
+			default_shell_path[0] = L'\"';
+			wcscat_s(default_shell_path, _countof(default_shell_path), tmp);
+			wcscat_s(default_shell_path, _countof(default_shell_path), L"\"");
+		} else
+			wcscat_s(default_shell_path, _countof(default_shell_path), tmp);
+	}
+
+	if (((r = wcsncpy_s(w32_cmd_exe_path, _countof(w32_cmd_exe_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1)) != 0) ||
+		((r = wcscat_s(w32_cmd_exe_path, _countof(w32_cmd_exe_path), L"\\cmd.exe")) != 0)) {
+		printf_s("get_default_shell_path(), wcscat_s failed with error: %d.", r);
 		exit(255);
 	}
 
-	if ((r = wcscat_s(cmd_exe_path, _countof(cmd_exe_path), L"\\cmd.exe")) != 0) {
-		printf_s("wcscat_s failed with error: %d.", r);
-		exit(255);
-	}
-	return cmd_exe_path;
+	/* if default shell is not configured then use cmd.exe as the default shell */
+	if (!is_default_shell_configured)
+		wcscat_s(default_shell_path, _countof(default_shell_path), w32_cmd_exe_path);
+
+	return default_shell_path;
 }
 
 int 
@@ -1280,10 +1308,24 @@ start_with_pty(wchar_t *command)
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
 	
 	cmd[0] = L'\0';
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));	
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, get_default_shell_path()));
 	if (command) {
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));		
+		if(is_bash_default_shell)
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" -c "));
+		else
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
+
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
+	} else {
+		/* If the user configures the default shell then launch it through cmd.exe */
+		if (is_default_shell_configured) {
+			wchar_t tmp_cmd[PATH_MAX + 1] = {0,};
+			wcscat_s(tmp_cmd, _countof(tmp_cmd), cmd);
+			cmd[0] = L'\0';
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_exe_path));
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
+			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, tmp_cmd));
+		}
 	}
 
 	SetConsoleCtrlHandler(NULL, FALSE);
@@ -1454,9 +1496,13 @@ start_withno_pty(wchar_t *command)
 	/* if above failed with FILE_NOT_FOUND, try running the provided command under cmd*/
 	if (run_under_cmd) {
 		cmd[0] = L'\0';
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, w32_cmd_path()));
+		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, get_default_shell_path()));
 		if (command) {
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
+			if (is_bash_default_shell)
+				GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" -c "));
+			else
+				GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
+
 			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 		}
 	
