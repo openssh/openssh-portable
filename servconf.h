@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.125 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.126 2017/10/02 19:33:20 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -237,7 +237,7 @@ struct connection_info {
 		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
-		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
+		M_CP_STRARRAYOPT_ALLOC(permitted_opens, num_permitted_opens); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);

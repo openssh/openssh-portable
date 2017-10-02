@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.311 2017/09/18 09:41:52 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.312 2017/10/02 19:33:20 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2063,6 +2063,13 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 			dst->n[dst->num_n] = xstrdup(src->n[dst->num_n]); \
 	} \
 } while(0)
+#define M_CP_STRARRAYOPT_ALLOC(n, num_n) do { \
+	if (src->num_n != 0) { \
+		dst->n = xcalloc(src->num_n, sizeof(*dst->n)); \
+		M_CP_STRARRAYOPT(n, num_n); \
+		dst->num_n = src->num_n; \
+	} \
+} while(0)
 
 	/* See comment in servconf.h */
 	COPY_MATCH_STRING_OPTS();
@@ -2093,6 +2100,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 #undef M_CP_INTOPT
 #undef M_CP_STROPT
 #undef M_CP_STRARRAYOPT
+#undef M_CP_STRARRAYOPT_ALLOC
 
 void
 parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
