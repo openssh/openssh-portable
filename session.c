@@ -405,7 +405,7 @@ static void setup_session_vars(Session* s) {
 char* w32_programdir();
 int register_child(void* child, unsigned long pid);
 
-int do_exec_windows(Session *s, const char *command, int pty) {
+int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	int pipein[2], pipeout[2], pipeerr[2], r;
 	char *exec_command = NULL, *progdir = w32_programdir(), *cmd = NULL, *shell_host = NULL, *command_b64 = NULL;
 	wchar_t *exec_command_w = NULL, *pw_dir_w;
@@ -582,9 +582,9 @@ int do_exec_windows(Session *s, const char *command, int pty) {
 	* handle the case that fdin and fdout are the same.
 	*/
 	if (s->ttyfd == -1)
-		session_set_fds(s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 0);
+		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 0);
 	else
-		session_set_fds(s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
+		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
 
 		free(pw_dir_w);
 		free(exec_command_w);
@@ -592,13 +592,13 @@ int do_exec_windows(Session *s, const char *command, int pty) {
 }
 
 int
-do_exec_no_pty(Session *s, const char *command) {
-	return do_exec_windows(s, command, 0);
+do_exec_no_pty(struct ssh *ssh, Session *s, const char *command) {
+	return do_exec_windows(ssh, s, command, 0);
 }
 
 int
-do_exec_pty(Session *s, const char *command) {
-	return do_exec_windows(s, command, 1);
+do_exec_pty(struct ssh *ssh, Session *s, const char *command) {
+	return do_exec_windows(ssh, s, command, 1);
 }
 
 #else    /* !WINDOWS */
