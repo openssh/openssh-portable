@@ -77,15 +77,13 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "ssherr.h"
+#include "counters.h"
 
 extern ServerOptions options;
 
 /* XXX */
 extern Authctxt *the_authctxt;
 extern int use_privsep;
-
-static u_long stdin_bytes = 0;	/* Number of bytes written to stdin. */
-static u_long fdout_bytes = 0;	/* Number of stdout bytes read from program. */
 
 static int no_more_sessions = 0; /* Disallow further sessions. */
 
@@ -370,7 +368,6 @@ void
 server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	double start_time, total_time;
 	int max_fd;
 	u_int nalloc = 0, connection_in, connection_out;
 	u_int64_t rekey_timeout_ms = 0;
@@ -434,11 +431,6 @@ server_loop2(Authctxt *authctxt)
 
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(NULL);
-	total_time = get_current_time() - start_time;
-	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
-	      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state),
-	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
-	      fdout_bytes / total_time);
 }
 
 static int

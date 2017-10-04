@@ -46,6 +46,12 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <errno.h>
+#include "packet.h" /* needed for host and port look ups */
+#include "counters.h" /* contains counters for time and xferd byte count */
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h> /* to get current time */
+#endif
+
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
@@ -61,6 +67,8 @@ static log_handler_fn *log_handler;
 static void *log_handler_ctx;
 
 extern char *__progname;
+
+extern struct ssh *active_state;
 
 #define LOG_SYSLOG_VIS	(VIS_CSTYLE|VIS_NL|VIS_TAB|VIS_OCTAL)
 #define LOG_STDERR_VIS	(VIS_SAFE|VIS_OCTAL)
@@ -176,14 +184,27 @@ sigdie(const char *fmt,...)
 	_exit(1);
 }
 
+static double
+get_current_time(void)
+{
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
+}
+
 void
 logdie(const char *fmt,...)
 {
 	va_list args;
-
+	double total_time;
 	va_start(args, fmt);
 	do_log(SYSLOG_LEVEL_INFO, fmt, args);
 	va_end(args);
+	total_time = get_current_time() - start_time;
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state),
+	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
+	      fdout_bytes / total_time);	
 	cleanup_exit(255);
 }
 
