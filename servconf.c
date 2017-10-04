@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.312 2017/10/02 19:33:20 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.313 2017/10/04 18:49:30 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1663,9 +1663,9 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: missing PermitOpen specification",
 			    filename, linenum);
-		i = options->num_permitted_opens;	/* modified later */
+		value = options->num_permitted_opens;	/* modified later */
 		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
-			if (*activep && i == 0) {
+			if (*activep && value == 0) {
 				options->num_permitted_opens = 1;
 				options->permitted_opens = xcalloc(1,
 				    sizeof(*options->permitted_opens));
@@ -1683,7 +1683,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (arg == NULL || ((port = permitopen_port(arg)) < 0))
 				fatal("%s line %d: bad port number in "
 				    "PermitOpen", filename, linenum);
-			if (*activep && i == 0) {
+			if (*activep && value == 0) {
 				options->permitted_opens = xrecallocarray(
 				    options->permitted_opens,
 				    options->num_permitted_opens,
