@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.492 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.493 2017/10/05 15:52:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -467,7 +467,7 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 void
 destroy_sensitive_data(void)
 {
-	int i;
+	u_int i;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
@@ -486,7 +486,7 @@ void
 demote_sensitive_data(void)
 {
 	struct sshkey *tmp;
-	int i;
+	u_int i;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
@@ -685,7 +685,7 @@ list_hostkey_types(void)
 	Buffer b;
 	const char *p;
 	char *ret;
-	int i;
+	u_int i;
 	struct sshkey *key;
 
 	buffer_init(&b);
@@ -745,7 +745,7 @@ list_hostkey_types(void)
 static struct sshkey *
 get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 {
-	int i;
+	u_int i;
 	struct sshkey *key;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
@@ -785,7 +785,7 @@ get_hostkey_private_by_type(int type, int nid, struct ssh *ssh)
 struct sshkey *
 get_hostkey_by_index(int ind)
 {
-	if (ind < 0 || ind >= options.num_host_key_files)
+	if (ind < 0 || (u_int)ind >= options.num_host_key_files)
 		return (NULL);
 	return (sensitive_data.host_keys[ind]);
 }
@@ -793,7 +793,7 @@ get_hostkey_by_index(int ind)
 struct sshkey *
 get_hostkey_public_by_index(int ind, struct ssh *ssh)
 {
-	if (ind < 0 || ind >= options.num_host_key_files)
+	if (ind < 0 || (u_int)ind >= options.num_host_key_files)
 		return (NULL);
 	return (sensitive_data.host_pubkeys[ind]);
 }
@@ -801,7 +801,7 @@ get_hostkey_public_by_index(int ind, struct ssh *ssh)
 int
 get_hostkey_index(struct sshkey *key, int compare, struct ssh *ssh)
 {
-	int i;
+	u_int i;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (key_is_cert(key)) {
@@ -830,7 +830,8 @@ notify_hostkeys(struct ssh *ssh)
 {
 	struct sshbuf *buf;
 	struct sshkey *key;
-	int i, nkeys, r;
+	u_int i, nkeys;
+	int r;
 	char *fp;
 
 	/* Some clients cannot cope with the hostkeys message, skip those. */
@@ -861,7 +862,7 @@ notify_hostkeys(struct ssh *ssh)
 		packet_put_string(sshbuf_ptr(buf), sshbuf_len(buf));
 		nkeys++;
 	}
-	debug3("%s: sent %d hostkeys", __func__, nkeys);
+	debug3("%s: sent %u hostkeys", __func__, nkeys);
 	if (nkeys == 0)
 		fatal("%s: no hostkeys", __func__);
 	packet_send();
@@ -1357,13 +1358,12 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	extern char *optarg;
 	extern int optind;
-	int r, opt, i, j, on = 1, already_daemon;
+	int r, opt, on = 1, already_daemon, remote_port;
 	int sock_in = -1, sock_out = -1, newsock = -1;
 	const char *remote_ip;
-	int remote_port;
 	char *fp, *line, *laddr, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
-	u_int n;
+	u_int i, j;
 	u_int64_t ibytes, obytes;
 	mode_t new_umask;
 	struct sshkey *key;
@@ -1416,12 +1416,8 @@ main(int ac, char **av)
 			config_file_name = optarg;
 			break;
 		case 'c':
-			if (options.num_host_cert_files >= MAX_HOSTCERTS) {
-				fprintf(stderr, "too many host certificates.\n");
-				exit(1);
-			}
-			options.host_cert_files[options.num_host_cert_files++] =
-			   derelativise_path(optarg);
+			servconf_add_hostcert("[command-line]", 0,
+			    &options, optarg);
 			break;
 		case 'd':
 			if (debug_flag == 0) {
@@ -1480,12 +1476,8 @@ main(int ac, char **av)
 			/* protocol 1, ignored */
 			break;
 		case 'h':
-			if (options.num_host_key_files >= MAX_HOSTKEYS) {
-				fprintf(stderr, "too many host keys.\n");
-				exit(1);
-			}
-			options.host_key_files[options.num_host_key_files++] = 
-			   derelativise_path(optarg);
+			servconf_add_hostkey("[command-line]", 0,
+			    &options, optarg);
 			break;
 		case 't':
 			test_flag = 1;
@@ -1611,12 +1603,12 @@ main(int ac, char **av)
 	 * and warns for trivial misconfigurations that could break login.
 	 */
 	if (options.num_auth_methods != 0) {
-		for (n = 0; n < options.num_auth_methods; n++) {
-			if (auth2_methods_valid(options.auth_methods[n],
+		for (i = 0; i < options.num_auth_methods; i++) {
+			if (auth2_methods_valid(options.auth_methods[i],
 			    1) == 0)
 				break;
 		}
-		if (n >= options.num_auth_methods)
+		if (i >= options.num_auth_methods)
 			fatal("AuthenticationMethods cannot be satisfied by "
 			    "enabled authentication methods");
 	}
@@ -1752,7 +1744,7 @@ main(int ac, char **av)
 			continue;
 		}
 		sensitive_data.host_certificates[j] = key;
-		debug("host certificate: #%d type %d %s", j, key->type,
+		debug("host certificate: #%u type %d %s", j, key->type,
 		    key_type(key));
 	}
 
@@ -1796,8 +1788,10 @@ main(int ac, char **av)
 		debug("setgroups() failed: %.200s", strerror(errno));
 
 	if (rexec_flag) {
+		if (rexec_argc < 0)
+			fatal("rexec_argc %d < 0", rexec_argc);
 		rexec_argv = xcalloc(rexec_argc + 2, sizeof(char *));
-		for (i = 0; i < rexec_argc; i++) {
+		for (i = 0; i < (u_int)rexec_argc; i++) {
 			debug("rexec_argv[%d]='%s'", i, saved_argv[i]);
 			rexec_argv[i] = saved_argv[i];
 		}

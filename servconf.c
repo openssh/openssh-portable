@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.313 2017/10/04 18:49:30 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.314 2017/10/05 15:52:03 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -188,10 +188,45 @@ assemble_algorithms(ServerOptions *o)
 		fatal("kex_assemble_names failed");
 }
 
+static void
+array_append(const char *file, const int line, const char *directive,
+    char ***array, u_int *lp, const char *s)
+{
+
+	if (*lp >= INT_MAX)
+		fatal("%s line %d: Too many %s entries", file, line, directive);
+
+	*array = xrecallocarray(*array, *lp, *lp + 1, sizeof(**array));
+	(*array)[*lp] = xstrdup(s);
+	(*lp)++;
+}
+
+void
+servconf_add_hostkey(const char *file, const int line,
+    ServerOptions *options, const char *path)
+{
+	char *apath = derelativise_path(path);
+
+	array_append(file, line, "HostKey",
+	    &options->host_key_files, &options->num_host_key_files, apath);
+	free(apath);
+}
+
+void
+servconf_add_hostcert(const char *file, const int line,
+    ServerOptions *options, const char *path)
+{
+	char *apath = derelativise_path(path);
+
+	array_append(file, line, "HostCertificate",
+	    &options->host_cert_files, &options->num_host_cert_files, apath);
+	free(apath);
+}
+
 void
 fill_default_server_options(ServerOptions *options)
 {
-	int i;
+	u_int i;
 
 	/* Portable-specific options */
 	if (options->use_pam == -1)
@@ -200,16 +235,16 @@ fill_default_server_options(ServerOptions *options)
 	/* Standard Options */
 	if (options->num_host_key_files == 0) {
 		/* fill default hostkeys for protocols */
-		options->host_key_files[options->num_host_key_files++] =
-		    _PATH_HOST_RSA_KEY_FILE;
-		options->host_key_files[options->num_host_key_files++] =
-		    _PATH_HOST_DSA_KEY_FILE;
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_RSA_KEY_FILE);
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
-		options->host_key_files[options->num_host_key_files++] =
-		    _PATH_HOST_ECDSA_KEY_FILE;
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_ECDSA_KEY_FILE);
 #endif
-		options->host_key_files[options->num_host_key_files++] =
-		    _PATH_HOST_ED25519_KEY_FILE;
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_ED25519_KEY_FILE);
 	}
 	/* No certificates by default */
 	if (options->num_ports == 0)
@@ -313,10 +348,14 @@ fill_default_server_options(ServerOptions *options)
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
 	if (options->num_authkeys_files == 0) {
-		options->authorized_keys_files[options->num_authkeys_files++] =
-		    xstrdup(_PATH_SSH_USER_PERMITTED_KEYS);
-		options->authorized_keys_files[options->num_authkeys_files++] =
-		    xstrdup(_PATH_SSH_USER_PERMITTED_KEYS2);
+		array_append("[default]", 0, "AuthorizedKeysFiles",
+		    &options->authorized_keys_files,
+		    &options->num_authkeys_files,
+		    _PATH_SSH_USER_PERMITTED_KEYS);
+		array_append("[default]", 0, "AuthorizedKeysFiles",
+		    &options->authorized_keys_files,
+		    &options->num_authkeys_files,
+		    _PATH_SSH_USER_PERMITTED_KEYS2);
 	}
 	if (options->permit_tun == -1)
 		options->permit_tun = SSH_TUNMODE_NO;
@@ -1128,22 +1167,12 @@ process_server_config_line(ServerOptions *options, char *line,
 		break;
 
 	case sHostKeyFile:
-		intptr = &options->num_host_key_files;
-		if (*intptr >= MAX_HOSTKEYS)
-			fatal("%s line %d: too many host keys specified (max %d).",
-			    filename, linenum, MAX_HOSTKEYS);
-		charptr = &options->host_key_files[*intptr];
- parse_filename:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: missing file name.",
 			    filename, linenum);
-		if (*activep && *charptr == NULL) {
-			*charptr = derelativise_path(arg);
-			/* increase optional counter */
-			if (intptr != NULL)
-				*intptr = *intptr + 1;
-		}
+		if (*activep)
+			servconf_add_hostkey(filename, linenum, options, arg);
 		break;
 
 	case sHostKeyAgent:
@@ -1158,17 +1187,28 @@ process_server_config_line(ServerOptions *options, char *line,
 		break;
 
 	case sHostCertificate:
-		intptr = &options->num_host_cert_files;
-		if (*intptr >= MAX_HOSTKEYS)
-			fatal("%s line %d: too many host certificates "
-			    "specified (max %d).", filename, linenum,
-			    MAX_HOSTCERTS);
-		charptr = &options->host_cert_files[*intptr];
-		goto parse_filename;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing file name.",
+			    filename, linenum);
+		if (*activep)
+			servconf_add_hostcert(filename, linenum, options, arg);
+		break;
 
 	case sPidFile:
 		charptr = &options->pid_file;
-		goto parse_filename;
+ parse_filename:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing file name.",
+			    filename, linenum);
+		if (*activep && *charptr == NULL) {
+			*charptr = derelativise_path(arg);
+			/* increase optional counter */
+			if (intptr != NULL)
+				*intptr = *intptr + 1;
+		}
+		break;
 
 	case sPermitRootLogin:
 		intptr = &options->permit_root_login;
@@ -1412,55 +1452,47 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sAllowUsers:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {
-			if (options->num_allow_users >= MAX_ALLOW_USERS)
-				fatal("%s line %d: too many allow users.",
-				    filename, linenum);
 			if (match_user(NULL, NULL, NULL, arg) == -1)
 				fatal("%s line %d: invalid AllowUsers pattern: "
 				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
-			options->allow_users[options->num_allow_users++] =
-			    xstrdup(arg);
+			array_append(filename, linenum, "AllowUsers",
+			    &options->allow_users, &options->num_allow_users,
+			    arg);
 		}
 		break;
 
 	case sDenyUsers:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {
-			if (options->num_deny_users >= MAX_DENY_USERS)
-				fatal("%s line %d: too many deny users.",
-				    filename, linenum);
 			if (match_user(NULL, NULL, NULL, arg) == -1)
 				fatal("%s line %d: invalid DenyUsers pattern: "
 				    "\"%.100s\"", filename, linenum, arg);
 			if (!*activep)
 				continue;
-			options->deny_users[options->num_deny_users++] =
-			    xstrdup(arg);
+			array_append(filename, linenum, "DenyUsers",
+			    &options->deny_users, &options->num_deny_users,
+			    arg);
 		}
 		break;
 
 	case sAllowGroups:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {
-			if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
-				fatal("%s line %d: too many allow groups.",
-				    filename, linenum);
 			if (!*activep)
 				continue;
-			options->allow_groups[options->num_allow_groups++] =
-			    xstrdup(arg);
+			array_append(filename, linenum, "AllowGroups",
+			    &options->allow_groups, &options->num_allow_groups,
+			    arg);
 		}
 		break;
 
 	case sDenyGroups:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {
-			if (options->num_deny_groups >= MAX_DENY_GROUPS)
-				fatal("%s line %d: too many deny groups.",
-				    filename, linenum);
 			if (!*activep)
 				continue;
-			options->deny_groups[options->num_deny_groups++] =
-			    xstrdup(arg);
+			array_append(filename, linenum, "DenyGroups",
+			    &options->deny_groups, &options->num_deny_groups,
+			    arg);
 		}
 		break;
 
@@ -1579,14 +1611,12 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sAuthorizedKeysFile:
 		if (*activep && options->num_authkeys_files == 0) {
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_authkeys_files >=
-				    MAX_AUTHKEYS_FILES)
-					fatal("%s line %d: "
-					    "too many authorized keys files.",
-					    filename, linenum);
-				options->authorized_keys_files[
-				    options->num_authkeys_files++] =
-				    tilde_expand_filename(arg, getuid());
+				arg = tilde_expand_filename(arg, getuid());
+				array_append(filename, linenum,
+				    "AuthorizedKeysFile",
+				    &options->authorized_keys_files,
+				    &options->num_authkeys_files, arg);
+				free(arg);
 			}
 		}
 		return 0;
@@ -1618,13 +1648,11 @@ process_server_config_line(ServerOptions *options, char *line,
 			if (strchr(arg, '=') != NULL)
 				fatal("%s line %d: Invalid environment name.",
 				    filename, linenum);
-			if (options->num_accept_env >= MAX_ACCEPT_ENV)
-				fatal("%s line %d: too many allow env.",
-				    filename, linenum);
 			if (!*activep)
 				continue;
-			options->accept_env[options->num_accept_env++] =
-			    xstrdup(arg);
+			array_append(filename, linenum, "AcceptEnv",
+			    &options->accept_env, &options->num_accept_env,
+			    arg);
 		}
 		break;
 
@@ -1684,15 +1712,12 @@ process_server_config_line(ServerOptions *options, char *line,
 				fatal("%s line %d: bad port number in "
 				    "PermitOpen", filename, linenum);
 			if (*activep && value == 0) {
-				options->permitted_opens = xrecallocarray(
-				    options->permitted_opens,
-				    options->num_permitted_opens,
-				    options->num_permitted_opens + 1,
-				    sizeof(*options->permitted_opens));
-				i = options->num_permitted_opens++;
-				options->permitted_opens[i] = arg2;
-			} else
-				free(arg2);
+				array_append(filename, linenum,
+				    "PermitOpen",
+				    &options->permitted_opens,
+				    &options->num_permitted_opens, arg2);
+			}
+			free(arg2);
 		}
 		break;
 
@@ -1815,11 +1840,6 @@ process_server_config_line(ServerOptions *options, char *line,
 			value = 0; /* seen "any" pseudo-method */
 			value2 = 0; /* sucessfully parsed any method */
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_auth_methods >=
-				    MAX_AUTH_METHODS)
-					fatal("%s line %d: "
-					    "too many authentication methods.",
-					    filename, linenum);
 				if (strcmp(arg, "any") == 0) {
 					if (options->num_auth_methods > 0) {
 						fatal("%s line %d: \"any\" "
@@ -1840,8 +1860,10 @@ process_server_config_line(ServerOptions *options, char *line,
 				value2 = 1;
 				if (!*activep)
 					continue;
-				options->auth_methods[
-				    options->num_auth_methods++] = xstrdup(arg);
+				array_append(filename, linenum,
+				    "AuthenticationMethods",
+				    &options->auth_methods,
+				    &options->num_auth_methods, arg);
 			}
 			if (value2 == 0) {
 				fatal("%s line %d: no AuthenticationMethods "
@@ -2057,17 +2079,16 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 		dst->n = src->n; \
 	} \
 } while(0)
-#define M_CP_STRARRAYOPT(n, num_n) do {\
-	if (src->num_n != 0) { \
-		for (dst->num_n = 0; dst->num_n < src->num_n; dst->num_n++) \
-			dst->n[dst->num_n] = xstrdup(src->n[dst->num_n]); \
-	} \
-} while(0)
-#define M_CP_STRARRAYOPT_ALLOC(n, num_n) do { \
-	if (src->num_n != 0) { \
-		dst->n = xcalloc(src->num_n, sizeof(*dst->n)); \
-		M_CP_STRARRAYOPT(n, num_n); \
-		dst->num_n = src->num_n; \
+#define M_CP_STRARRAYOPT(s, num_s) do {\
+	u_int i; \
+	if (src->num_s != 0) { \
+		for (i = 0; i < dst->num_s; i++) \
+			free(dst->s[i]); \
+		free(dst->s); \
+		dst->s = xcalloc(src->num_s, sizeof(*dst->s)); \
+		for (i = 0; i < src->num_s; i++) \
+			dst->s[i] = xstrdup(src->s[i]); \
+		dst->num_s = src->num_s; \
 	} \
 } while(0)
 
@@ -2100,7 +2121,6 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 #undef M_CP_INTOPT
 #undef M_CP_STROPT
 #undef M_CP_STRARRAYOPT
-#undef M_CP_STRARRAYOPT_ALLOC
 
 void
 parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
