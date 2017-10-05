@@ -196,12 +196,17 @@ void
 logdie(const char *fmt,...)
 {
 	va_list args;
-	double total_time;
+	double total_time = get_current_time() - start_time;
+
 	va_start(args, fmt);
 	do_log(SYSLOG_LEVEL_INFO, fmt, args);
 	va_end(args);
-	total_time = get_current_time() - start_time;
-	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	/* I went back and forth about placing this here vs
+	   as a separate logline prior to each logdie
+	   but I want this every time the connection closes in packet.c
+	   -cjr
+	*/
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.2f;tPut_in: %.0f;tPut_out: %.0f",
 	      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state),
 	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
 	      fdout_bytes / total_time);	
