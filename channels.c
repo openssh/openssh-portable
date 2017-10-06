@@ -3963,6 +3963,8 @@ channel_disable_adm_local_opens(struct ssh *ssh)
 void
 channel_clear_permitted_opens(struct ssh *ssh)
 {
+	if(ssh == NULL)
+		return;
 	struct ssh_channels *sc = ssh->chanctxt;
 
 	sc->permitted_opens = xrecallocarray(sc->permitted_opens,
