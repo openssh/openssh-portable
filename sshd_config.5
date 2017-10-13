@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.254 2017/10/09 20:12:51 benno Exp $
-.Dd $Mdocdate: October 9 2017 $
+.\" $OpenBSD: sshd_config.5,v 1.255 2017/10/13 16:50:45 jmc Exp $
+.Dd $Mdocdate: October 13 2017 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1189,7 +1189,6 @@ Specifies whether root can log in using
 The argument must be
 .Cm yes ,
 .Cm prohibit-password ,
-.Cm without-password ,
 .Cm forced-commands-only ,
 or
 .Cm no .
@@ -1198,8 +1197,8 @@ The default is
 .Pp
 If this option is set to
 .Cm prohibit-password
-or
-.Cm without-password ,
+(or its deprecated alias,
+.Cm without-password ) ,
 password and keyboard-interactive authentication are disabled for root.
 .Pp
 If this option is set to
