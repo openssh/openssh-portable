@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.264 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.265 2017/10/13 21:13:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1773,6 +1773,8 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
+
+	debug3("sending debug message: %s", buf);
 
 	if ((r = sshpkt_start(ssh, SSH2_MSG_DEBUG)) != 0 ||
 	    (r = sshpkt_put_u8(ssh, 0)) != 0 || /* always display */
