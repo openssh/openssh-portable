@@ -1321,13 +1321,13 @@ get_final_mode(int allow_mode, int deny_mode)
 	if (!allow_mode) return allow_mode;
 	
 	if(deny_mode & S_IROTH)
-		allow_mode = (allow_mode | S_IROTH) ^ S_IROTH;
+		allow_mode = allow_mode & ~S_IROTH;
 
 	if (deny_mode & S_IWOTH)
-		allow_mode = (allow_mode | S_IWOTH) ^ S_IWOTH;
+		allow_mode = allow_mode & ~S_IWOTH;
 
 	if (deny_mode & S_IXOTH)
-		allow_mode = (allow_mode | S_IXOTH) ^ S_IXOTH;
+		allow_mode = allow_mode & ~S_IXOTH;
 
 	return allow_mode;
 }
@@ -1368,18 +1368,20 @@ get_others_file_permissions(wchar_t * file_name, int isReadOnlyFile)
 
 		current_aceHeader = (PACE_HEADER)current_ace;
 		/* only interested in Allow ACE */
-		if (!(current_aceHeader->AceType == ACCESS_ALLOWED_ACE_TYPE || 
-		    current_aceHeader->AceType == ACCESS_DENIED_ACE_TYPE))
-			continue;
-
-		PACCESS_ALLOWED_ACE pAllowedAce = (PACCESS_ALLOWED_ACE)current_ace;
-		current_trustee_sid = &(pAllowedAce->SidStart);
-
+		if (current_aceHeader->AceType == ACCESS_ALLOWED_ACE_TYPE) {
+			PACCESS_ALLOWED_ACE pAllowedAce = (PACCESS_ALLOWED_ACE)current_ace;
+			current_trustee_sid = &(pAllowedAce->SidStart);
+			current_access_mask = pAllowedAce->Mask;
+		} else if (current_aceHeader->AceType == ACCESS_DENIED_ACE_TYPE) {
+			PACCESS_DENIED_ACE pDeniedAce = (PACCESS_DENIED_ACE)current_ace;
+			current_trustee_sid = &(pDeniedAce->SidStart);
+			current_access_mask = pDeniedAce->Mask;
+		} else continue;
+		
 		if (!(IsWellKnownSid(current_trustee_sid, WinWorldSid) || 
 		    IsWellKnownSid(current_trustee_sid, WinAuthenticatedUserSid)))
 			continue;
-
-		current_access_mask = pAllowedAce->Mask;
+		
 		if ((current_access_mask & READ_PERMISSIONS) == READ_PERMISSIONS)
 			mode_tmp |= S_IROTH;
 
@@ -1399,7 +1401,7 @@ get_others_file_permissions(wchar_t * file_name, int isReadOnlyFile)
 				allow_mode_auth_users |= mode_tmp;
 			else
 				deny_mode_auth_users |= mode_tmp;
-		}	
+		}
 	}
 	
 	allow_mode_world = get_final_mode(allow_mode_world, deny_mode_world);
