@@ -67,7 +67,19 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
                 Options = '-i $identifyFile -l $($server.localAdminUserName)'
             }
         )#>
-        
+        $defaultRegistryPath = "HKLM:\Software\OpenSSH"
+        $registryKeyName = "DefaultShell"
+
+        function ConfigureDefaultShell {
+            param([string]$default_shell_path)
+            
+            if (!(Test-Path $defaultRegistryPath)) {
+                New-Item -Path $defaultRegistryPath -Force | Out-Null
+                New-ItemProperty -Path $defaultRegistryPath -Name $registryKeyName -Value $default_shell_path -PropertyType String -Force
+            } else {
+                New-ItemProperty -Path $defaultRegistryPath -Name $registryKeyName -Value $default_shell_path -PropertyType String -Force
+            }
+        }
     }
 
     BeforeEach {
@@ -98,7 +110,7 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
         }
 
     }
-
+    
     Context "$tC - exit code (exit-status.sh)" {
         BeforeAll {$tI=1}
         AfterAll{$tC++}
@@ -131,8 +143,36 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             0 | ssh -p $port $ssouser@$server pause
             $true | Should Be $true
         }#>
-    }
+    }    
+    
+    Context "$tC - configure default shell Scenarios" {
+        BeforeAll {$tI=1}
+        AfterAll{$tC++}
+        AfterEach {
+            Remove-ItemProperty -Name $registryKeyName -Path $defaultRegistryPath -ErrorAction SilentlyContinue
+        }
 
+        It "$tC.$tI - default shell as powershell" {
+            $shell_path = (Get-Command powershell.exe -ErrorAction SilentlyContinue).path
+            if($shell_path -ne $null) {
+                ConfigureDefaultShell -default_shell_path $shell_path
+
+                $o = ssh test_target Write-Output 1234
+                $o | Should Be "1234"
+            }
+        }
+
+        It "$tC.$tI - default shell as cmd" {
+            $shell_path = (Get-Command cmd.exe -ErrorAction SilentlyContinue).path
+            if($shell_path -ne $null) {
+                ConfigureDefaultShell -default_shell_path $shell_path
+
+                $o = ssh test_target where cmd
+                $o | Should Contain "cmd"
+            }
+        }
+    }
+    
     Context "$tC - cmdline parameters" {
         
         BeforeAll {$tI=1}
