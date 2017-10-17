@@ -1210,6 +1210,7 @@ get_default_shell_path()
 
 	memset(tmp, 0, PATH_MAX + 1);
 	memset(default_shell_path, 0, _countof(default_shell_path));
+	memset(default_shell_cmd_option, 0, _countof(default_shell_cmd_option));
 
 	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
 	    (RegQueryValueExW(reg_key, L"DefaultShell", 0, NULL, (LPBYTE)tmp, &tmp_len) == ERROR_SUCCESS) &&
@@ -1246,8 +1247,7 @@ get_default_shell_path()
 	/* if default shell is not configured then use cmd.exe as the default shell */
 	if (!is_default_shell_configured)
 		wcscat_s(default_shell_path, _countof(default_shell_path), cmd_exe_path);
-
-	memset(default_shell_cmd_option, 0, _countof(default_shell_cmd_option));
+	
 	if (!default_shell_cmd_option[0]) {
 		if (wcsstr(default_shell_path, L"cmd.exe") || wcsstr(default_shell_path, L"powershell.exe"))
 			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), L" /c ");
