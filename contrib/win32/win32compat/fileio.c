@@ -347,7 +347,11 @@ createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags
 	// If the mode is USHRT_MAX then we will inherit the permissions from the parent folder.
 	if (mode != USHRT_MAX) {
 		/*validate mode*/
-		if (mode & ~(S_IRWXU | S_IRWXG | S_IRWXO)) {
+		/*
+		 * __S_IFDIR  __S_IFREG are added for compat
+		 * TODO- open(__S_IFDIR) on a file and vice versa should fail
+		*/
+		if (mode & ~(S_IRWXU | S_IRWXG | S_IRWXO | __S_IFDIR | __S_IFREG)) {
 			debug3("open - ERROR: unsupported mode: %d", mode);
 			errno = ENOTSUP;
 			return -1;
