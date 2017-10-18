@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.257 2017/10/05 12:56:50 jmc Exp $
-.Dd $Mdocdate: October 5 2017 $
+.\" $OpenBSD: ssh_config.5,v 1.258 2017/10/18 02:49:44 djm Exp $
+.Dd $Mdocdate: October 18 2017 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1674,6 +1674,19 @@ pool,
 the following entry (in authorized_keys) could be used:
 .Pp
 .Dl from=\&"!*.dialup.example.com,*.example.com\&"
+.Pp
+Note that a negated match will never produce a positive result by itself.
+For example, attempting to match
+.Qq host3
+against the following pattern-list will fail:
+.Pp
+.Dl from=\&"!host1,!host2\&"
+.Pp
+The solution here is to include a term that will yield a positive match,
+such as a wildcard:
+.Pp
+.Dl from=\&"!host1,!host2,*\&"
+.Pp
 .Sh TOKENS
 Arguments to some keywords can make use of tokens,
 which are expanded at runtime:
