@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.126 2017/10/02 19:33:20 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.127 2017/10/05 15:52:03 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -18,17 +18,7 @@
 
 #define MAX_PORTS		256	/* Max # ports. */
 
-#define MAX_ALLOW_USERS		256	/* Max # users on allow list. */
-#define MAX_DENY_USERS		256	/* Max # users on deny list. */
-#define MAX_ALLOW_GROUPS	256	/* Max # groups on allow list. */
-#define MAX_DENY_GROUPS		256	/* Max # groups on deny list. */
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
-#define MAX_HOSTKEYS		256	/* Max # hostkeys. */
-#define MAX_HOSTCERTS		256	/* Max # host certificates. */
-#define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
-#define MAX_MATCH_GROUPS	256	/* Max # of groups for Match. */
-#define MAX_AUTHKEYS_FILES	256	/* Max # of authorized_keys files. */
-#define MAX_AUTH_METHODS	256	/* Max # of AuthenticationMethods. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -68,14 +58,16 @@ typedef struct {
 	u_int	num_queued_listens;
 	char   **queued_listen_addrs;
 	int    *queued_listen_ports;
-	struct addrinfo *listen_addrs;	/* Addresses on which the server listens. */
-	int     address_family;		/* Address family used by the server. */
-	char   *host_key_files[MAX_HOSTKEYS];	/* Files containing host keys. */
-	int     num_host_key_files;     /* Number of files for host keys. */
-	char   *host_cert_files[MAX_HOSTCERTS];	/* Files containing host certs. */
-	int     num_host_cert_files;     /* Number of files for host certs. */
-	char   *host_key_agent;		 /* ssh-agent socket for host keys. */
-	char   *pid_file;	/* Where to put our pid */
+	struct addrinfo *listen_addrs;	/* Addresses for server to listen. */
+	int	address_family;		/* Address family used by the server. */
+
+	char   **host_key_files;	/* Files containing host keys. */
+	u_int	num_host_key_files;     /* Number of files for host keys. */
+	char   **host_cert_files;	/* Files containing host certs. */
+	u_int	num_host_cert_files;	/* Number of files for host certs. */
+
+	char   *host_key_agent;		/* ssh-agent socket for host keys. */
+	char   *pid_file;		/* Where to put our pid */
 	int     login_grace_time;	/* Disconnect if no auth in this time
 					 * (sec). */
 	int     permit_root_login;	/* PERMIT_*, see above */
@@ -134,13 +126,13 @@ typedef struct {
 	int	allow_agent_forwarding;
 	int	disable_forwarding;
 	u_int num_allow_users;
-	char   *allow_users[MAX_ALLOW_USERS];
+	char   **allow_users;
 	u_int num_deny_users;
-	char   *deny_users[MAX_DENY_USERS];
+	char   **deny_users;
 	u_int num_allow_groups;
-	char   *allow_groups[MAX_ALLOW_GROUPS];
+	char   **allow_groups;
 	u_int num_deny_groups;
-	char   *deny_groups[MAX_DENY_GROUPS];
+	char   **deny_groups;
 
 	u_int num_subsystems;
 	char   *subsystem_name[MAX_SUBSYSTEMS];
@@ -148,7 +140,7 @@ typedef struct {
 	char   *subsystem_args[MAX_SUBSYSTEMS];
 
 	u_int num_accept_env;
-	char   *accept_env[MAX_ACCEPT_ENV];
+	char   **accept_env;
 
 	int	max_startups_begin;
 	int	max_startups_rate;
@@ -167,8 +159,8 @@ typedef struct {
 					 * disconnect the session
 					 */
 
-	u_int num_authkeys_files;	/* Files containing public keys */
-	char   *authorized_keys_files[MAX_AUTHKEYS_FILES];
+	u_int	num_authkeys_files;	/* Files containing public keys */
+	char   **authorized_keys_files;
 
 	char   *adm_forced_command;
 
@@ -194,7 +186,7 @@ typedef struct {
 	char   *version_addendum;	/* Appended to SSH banner */
 
 	u_int	num_auth_methods;
-	char   *auth_methods[MAX_AUTH_METHODS];
+	char   **auth_methods;
 
 	int	fingerprint_hash;
 	int	expose_userauth_info;
@@ -237,7 +229,7 @@ struct connection_info {
 		M_CP_STRARRAYOPT(deny_groups, num_deny_groups); \
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
-		M_CP_STRARRAYOPT_ALLOC(permitted_opens, num_permitted_opens); \
+		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);
@@ -255,5 +247,9 @@ int	 server_match_spec_complete(struct connection_info *);
 void	 copy_set_server_options(ServerOptions *, ServerOptions *, int);
 void	 dump_config(ServerOptions *);
 char	*derelativise_path(const char *);
+void	 servconf_add_hostkey(const char *, const int,
+	    ServerOptions *, const char *path);
+void	 servconf_add_hostcert(const char *, const int,
+	    ServerOptions *, const char *path);
 
 #endif				/* SERVCONF_H */
