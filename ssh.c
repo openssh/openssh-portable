@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.464 2017/09/21 19:16:53 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.465 2017/10/21 23:06:24 millert Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -203,7 +203,7 @@ usage(void)
 "           [-J [user@]host[:port]] [-L address] [-l login_name] [-m mac_spec]\n"
 "           [-O ctl_cmd] [-o option] [-p port] [-Q query_option] [-R address]\n"
 "           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
-"           [user@]hostname [command]\n"
+"           destination [command]\n"
 	);
 	exit(255);
 }
@@ -846,14 +846,18 @@ main(int ac, char **av)
 				options.control_master = SSHCTL_MASTER_YES;
 			break;
 		case 'p':
-			options.port = a2port(optarg);
-			if (options.port <= 0) {
-				fprintf(stderr, "Bad port '%s'\n", optarg);
-				exit(255);
+			if (options.port == -1) {
+				options.port = a2port(optarg);
+				if (options.port <= 0) {
+					fprintf(stderr, "Bad port '%s'\n",
+					    optarg);
+					exit(255);
+				}
 			}
 			break;
 		case 'l':
-			options.user = optarg;
+			if (options.user == NULL)
+				options.user = optarg;
 			break;
 
 		case 'L':
@@ -933,16 +937,38 @@ main(int ac, char **av)
 	av += optind;
 
 	if (ac > 0 && !host) {
-		if (strrchr(*av, '@')) {
+		int tport;
+		char *tuser;
+		switch (parse_ssh_uri(*av, &tuser, &host, &tport)) {
+		case -1:
+			usage();
+			break;
+		case 0:
+			if (options.user == NULL) {
+				options.user = tuser;
+				tuser = NULL;
+			}
+			free(tuser);
+			if (options.port == -1 && tport != -1)
+				options.port = tport;
+			break;
+		default:
 			p = xstrdup(*av);
 			cp = strrchr(p, '@');
-			if (cp == NULL || cp == p)
-				usage();
-			options.user = p;
-			*cp = '\0';
-			host = xstrdup(++cp);
-		} else
-			host = xstrdup(*av);
+			if (cp != NULL) {
+				if (cp == p)
+					usage();
+				if (options.user == NULL) {
+					options.user = p;
+					p = NULL;
+				}
+				*cp++ = '\0';
+				host = xstrdup(cp);
+				free(p);
+			} else
+				host = p;
+			break;
+		}
 		if (ac > 1 && !opt_terminated) {
 			optind = optreset = 1;
 			goto again;

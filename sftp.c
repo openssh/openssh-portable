@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.180 2017/06/10 06:33:34 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.181 2017/10/21 23:06:24 millert Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2301,19 +2301,16 @@ usage(void)
 	    "[-i identity_file] [-l limit]\n"
 	    "          [-o ssh_option] [-P port] [-R num_requests] "
 	    "[-S program]\n"
-	    "          [-s subsystem | sftp_server] host\n"
-	    "       %s [user@]host[:file ...]\n"
-	    "       %s [user@]host[:dir[/]]\n"
-	    "       %s -b batchfile [user@]host\n",
-	    __progname, __progname, __progname, __progname);
+	    "          [-s subsystem | sftp_server] destination\n",
+	    __progname);
 	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	int in, out, ch, err;
-	char *host = NULL, *userhost, *cp, *file2 = NULL;
+	int in, out, ch, err, tmp, port = -1;
+	char *host = NULL, *user, *cp, *file2 = NULL;
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
@@ -2368,7 +2365,9 @@ main(int argc, char **argv)
 			addargs(&args, "-%c", ch);
 			break;
 		case 'P':
-			addargs(&args, "-oPort %s", optarg);
+			port = a2port(optarg);
+			if (port <= 0)
+				fatal("Bad port \"%s\"\n", optarg);
 			break;
 		case 'v':
 			if (debug_level < 3) {
@@ -2451,33 +2450,38 @@ main(int argc, char **argv)
 	if (sftp_direct == NULL) {
 		if (optind == argc || argc > (optind + 2))
 			usage();
+		argv += optind;
 
-		userhost = xstrdup(argv[optind]);
-		file2 = argv[optind+1];
-
-		if ((host = strrchr(userhost, '@')) == NULL)
-			host = userhost;
-		else {
-			*host++ = '\0';
-			if (!userhost[0]) {
-				fprintf(stderr, "Missing username\n");
-				usage();
+		switch (parse_uri("sftp", *argv, &user, &host, &tmp, &file1)) {
+		case -1:
+			usage();
+			break;
+		case 0:
+			if (tmp != -1)
+				port = tmp;
+			break;
+		default:
+			if (parse_user_host_path(*argv, &user, &host,
+			    &file1) == -1) {
+				/* Treat as a plain hostname. */
+				host = xstrdup(*argv);
+				host = cleanhostname(host);
 			}
-			addargs(&args, "-l");
-			addargs(&args, "%s", userhost);
+			break;
 		}
+		file2 = *(argv + 1);
 
-		if ((cp = colon(host)) != NULL) {
-			*cp++ = '\0';
-			file1 = cp;
-		}
-
-		host = cleanhostname(host);
 		if (!*host) {
 			fprintf(stderr, "Missing hostname\n");
 			usage();
 		}
 
+		if (port != -1)
+			addargs(&args, "-oPort %d", port);
+		if (user != NULL) {
+			addargs(&args, "-l");
+			addargs(&args, "%s", user);
+		}
 		addargs(&args, "-oProtocol %d", sshver);
 
 		/* no subsystem if the server-spec contains a '/' */

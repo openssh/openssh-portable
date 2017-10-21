@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.63 2017/08/18 05:48:04 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.64 2017/10/21 23:06:24 millert Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -54,7 +54,9 @@ char	*put_host_port(const char *, u_short);
 char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);
+int	 parse_user_host_path(const char *, char **, char **, char **);
 int	 parse_user_host_port(const char *, char **, char **, int *);
+int	 parse_uri(const char *, const char *, char **, char **, int *, char **);
 long	 convtime(const char *);
 char	*tilde_expand_filename(const char *, uid_t);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
@@ -66,6 +68,7 @@ time_t	 monotime(void);
 double	 monotime_double(void);
 void	 lowercase(char *s);
 int	 unix_listener(const char *, int, int);
+int	 valid_domain(char *, int, const char **);
 
 void	 sock_set_v6only(int);
 
