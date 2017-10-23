@@ -116,3 +116,13 @@ Subsystem	sftp	/usr/libexec/sftp-server
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
+
+# This flag if set to "no" makes sshd ignore the username case.
+# By default the usernames are compared by sshd case sensitively.
+# The option to turn off username case sensitivity is mainly 
+# applicable to sshd running in Cygwin/Windows since for some reason 
+# the usernames on the specified platform return the username 
+# case differently to that of Active Directory intermittently.
+# Suffice to say, the username case is inconsistent in Windows
+# and auth fails when it happens thus the option to turn it off.
+# UserNameCaseSensitive	yes

@@ -580,12 +580,22 @@ getpwnamallow(const char *user)
 #endif
 #ifdef HAVE_CYGWIN
 	/*
-	 * Windows usernames are case-insensitive.  To avoid later problems
-	 * when trying to match the username, the user is only allowed to
-	 * login if the username is given in the same case as stored in the
-	 * user database.
+	 * The method getpwnam in Cygwin does not return the username in 
+	 * the same case all the time e.g. active directory username = 
+	 * "jediknight", a day or days after the username is returned as 
+	 * "JediKnight" but the active directory case for that user stays 
+	 * the same. Then on other days it can be "JEDIknight". Somehow the 
+	 * username is saved/cached in the case with which it was typed in 
+	 * during login but not all the time. An option (username_case_sensitive) 
+	 * was introduced to enable users to turn on/off username case 
+	 * sensitivity to mitigate the issue that was described above without 
+	 * doing anything to Cygwin or Windows. By default the username is 
+	 * case sensitive.
 	 */
-	if (pw != NULL && strcmp(user, pw->pw_name) != 0) {
+	int userNameComparisonResult = options.username_case_sensitive == -1 ? 
+				strcmp(user, pw->pw_name) : strcasecmp(user, pw->pw_name);
+ 
+	if (pw != NULL && userNameComparisonResult != 0) {
 		logit("Login name %.100s does not match stored username %.100s",
 		    user, pw->pw_name);
 		pw = NULL;
