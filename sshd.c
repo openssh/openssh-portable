@@ -1383,7 +1383,7 @@ main(int ac, char **av)
 	saved_argc = ac;
 	rexec_argc = ac;
 	saved_argv = xcalloc(ac + 1, sizeof(*saved_argv));
-	for (i = 0; i < ac; i++)
+	for (i = 0; (int)i < ac; i++)
 		saved_argv[i] = xstrdup(av[i]);
 	saved_argv[i] = NULL;
 
