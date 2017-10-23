@@ -56,11 +56,14 @@
 #include <linux/if_tun.h>
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, char **ifname)
 {
 	struct ifreq ifr;
 	int fd = -1;
 	const char *name = NULL;
+
+	if (ifname != NULL)
+		*ifname = NULL;
 
 	if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
 		debug("%s: failed to open tunnel control interface: %s",
@@ -99,6 +102,9 @@ sys_tun_open(int tun, int mode)
 	else
 		debug("%s: %s mode %d fd %d", __func__, ifr.ifr_name, mode, fd);
 
+	if (ifname != NULL && (*ifname = strdup(ifr.ifr_name)))
+		goto failed;
+
 	return (fd);
 
  failed:
@@ -116,12 +122,15 @@ sys_tun_open(int tun, int mode)
 #endif
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, char **ifname)
 {
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock, flag;
 	const char *tunbase = "tun";
+
+	if (ifname != NULL)
+		*ifname = NULL;
 
 	if (mode == SSH_TUNMODE_ETHERNET) {
 #ifdef SSH_TUN_NO_L2
@@ -179,6 +188,9 @@ sys_tun_open(int tun, int mode)
 		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
 			goto failed;
 	}
+
+	if (ifname != NULL && (*ifname = strdup(ifr.ifr_name)))
+		goto failed;
 
 	close(sock);
 	return (fd);

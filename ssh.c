@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.465 2017/10/21 23:06:24 millert Exp $ */
+/* $OpenBSD: ssh.c,v 1.466 2017/10/23 05:08:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -168,6 +168,10 @@ char *config = NULL;
  */
 char *host;
 
+/* Various strings used to to percent_expand() arguments */
+static char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
+static char uidstr[32], *host_arg, *conn_hash_hex;
+
 /* socket address the host resolves to */
 struct sockaddr_storage hostaddr;
 
@@ -208,8 +212,8 @@ usage(void)
 	exit(255);
 }
 
-static int ssh_session2(struct ssh *);
-static void load_public_identity_files(void);
+static int ssh_session2(struct ssh *, struct passwd *);
+static void load_public_identity_files(struct passwd *);
 static void main_sigchld_handler(int);
 
 /* ~/ expand a list of paths. NB. assumes path[n] is heap-allocated. */
@@ -456,14 +460,14 @@ resolve_canonicalize(char **hostp, int port)
  * file if the user specifies a config file on the command line.
  */
 static void
-process_config_files(const char *host_arg, struct passwd *pw, int post_canon)
+process_config_files(const char *host_name, struct passwd *pw, int post_canon)
 {
 	char buf[PATH_MAX];
 	int r;
 
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
-		    !read_config_file(config, pw, host, host_arg, &options,
+		    !read_config_file(config, pw, host, host_name, &options,
 		    SSHCONF_USERCONF | (post_canon ? SSHCONF_POSTCANON : 0)))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
@@ -471,13 +475,13 @@ process_config_files(const char *host_arg, struct passwd *pw, int post_canon)
 		r = snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir,
 		    _PATH_SSH_USER_CONFFILE);
 		if (r > 0 && (size_t)r < sizeof(buf))
-			(void)read_config_file(buf, pw, host, host_arg,
+			(void)read_config_file(buf, pw, host, host_name,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
 			    (post_canon ? SSHCONF_POSTCANON : 0));
 
 		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
-		    host, host_arg, &options,
+		    host, host_name, &options,
 		    post_canon ? SSHCONF_POSTCANON : 0);
 	}
 }
@@ -511,9 +515,8 @@ main(int ac, char **av)
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
 	int config_test = 0, opt_terminated = 0;
-	char *p, *cp, *line, *argv0, buf[PATH_MAX], *host_arg, *logfile;
-	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
-	char cname[NI_MAXHOST], uidstr[32], *conn_hash_hex;
+	char *p, *cp, *line, *argv0, buf[PATH_MAX], *logfile;
+	char cname[NI_MAXHOST];
 	struct stat st;
 	struct passwd *pw;
 	extern int optind, optreset;
@@ -1203,6 +1206,7 @@ main(int ac, char **av)
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
 
+	/* Set up strings used to percent_expand() arguments */
 	if (gethostname(thishost, sizeof(thishost)) == -1)
 		fatal("gethostname: %s", strerror(errno));
 	strlcpy(shorthost, thishost, sizeof(shorthost));
@@ -1220,24 +1224,11 @@ main(int ac, char **av)
 	ssh_digest_free(md);
 	conn_hash_hex = tohex(conn_hash, ssh_digest_bytes(SSH_DIGEST_SHA1));
 
-	if (options.local_command != NULL) {
-		debug3("expanding LocalCommand: %s", options.local_command);
-		cp = options.local_command;
-		options.local_command = percent_expand(cp,
-		    "C", conn_hash_hex,
-		    "L", shorthost,
-		    "d", pw->pw_dir,
-		    "h", host,
-		    "l", thishost,
-		    "n", host_arg,
-		    "p", portstr,
-		    "r", options.user,
-		    "u", pw->pw_name,
-		    (char *)NULL);
-		debug3("expanded LocalCommand: %s", options.local_command);
-		free(cp);
-	}
-
+	/*
+	 * Expand tokens in arguments. NB. LocalCommand is expanded later,
+	 * after port-forwarding is set up, so it may pick up any local
+	 * tunnel interface name allocated.
+	 */
 	if (options.remote_command != NULL) {
 		debug3("expanding RemoteCommand: %s", options.remote_command);
 		cp = options.remote_command;
@@ -1256,7 +1247,6 @@ main(int ac, char **av)
 		free(cp);
 		buffer_append(&command, options.remote_command,
 		    strlen(options.remote_command));
-
 	}
 
 	if (options.control_path != NULL) {
@@ -1427,7 +1417,7 @@ main(int ac, char **av)
 		}
 	}
 	/* load options.identity_files */
-	load_public_identity_files();
+	load_public_identity_files(pw);
 
 	/* optionally set the SSH_AUTHSOCKET_ENV_NAME varibale */
 	if (options.identity_agent &&
@@ -1491,7 +1481,7 @@ main(int ac, char **av)
 	}
 
  skip_connect:
-	exit_status = ssh_session2(ssh);
+	exit_status = ssh_session2(ssh, pw);
 	packet_close();
 
 	if (options.control_path != NULL && muxserver_sock != -1)
@@ -1650,7 +1640,7 @@ ssh_init_stdio_forwarding(struct ssh *ssh)
 }
 
 static void
-ssh_init_forwarding(struct ssh *ssh)
+ssh_init_forwarding(struct ssh *ssh, char **ifname)
 {
 	int success = 0;
 	int i;
@@ -1708,8 +1698,9 @@ ssh_init_forwarding(struct ssh *ssh)
 
 	/* Initiate tunnel forwarding. */
 	if (options.tun_open != SSH_TUNMODE_NO) {
-		if (client_request_tun_fwd(ssh, options.tun_open,
-		    options.tun_local, options.tun_remote) == -1) {
+		if ((*ifname = client_request_tun_fwd(ssh,
+		    options.tun_open, options.tun_local,
+		    options.tun_remote)) == NULL) {
 			if (options.exit_on_forward_failure)
 				fatal("Could not request tunnel forwarding.");
 			else
@@ -1824,14 +1815,35 @@ ssh_session2_open(struct ssh *ssh)
 }
 
 static int
-ssh_session2(struct ssh *ssh)
+ssh_session2(struct ssh *ssh, struct passwd *pw)
 {
 	int id = -1;
+	char *cp, *tun_fwd_ifname = NULL;
 
 	/* XXX should be pre-session */
 	if (!options.control_persist)
 		ssh_init_stdio_forwarding(ssh);
-	ssh_init_forwarding(ssh);
+
+	ssh_init_forwarding(ssh, &tun_fwd_ifname);
+
+	if (options.local_command != NULL) {
+		debug3("expanding LocalCommand: %s", options.local_command);
+		cp = options.local_command;
+		options.local_command = percent_expand(cp,
+		    "C", conn_hash_hex,
+		    "L", shorthost,
+		    "d", pw->pw_dir,
+		    "h", host,
+		    "l", thishost,
+		    "n", host_arg,
+		    "p", portstr,
+		    "r", options.user,
+		    "u", pw->pw_name,
+		    "T", tun_fwd_ifname == NULL ? "NONE" : tun_fwd_ifname,
+		    (char *)NULL);
+		debug3("expanded LocalCommand: %s", options.local_command);
+		free(cp);
+	}
 
 	/* Start listening for multiplex clients */
 	if (!packet_get_mux())
@@ -1907,12 +1919,10 @@ ssh_session2(struct ssh *ssh)
 
 /* Loads all IdentityFile and CertificateFile keys */
 static void
-load_public_identity_files(void)
+load_public_identity_files(struct passwd *pw)
 {
-	char *filename, *cp, thishost[NI_MAXHOST];
-	char *pwdir = NULL, *pwname = NULL;
+	char *filename, *cp;
 	struct sshkey *public;
-	struct passwd *pw;
 	int i;
 	u_int n_ids, n_certs;
 	char *identity_files[SSH_MAX_IDENTITY_FILES];
@@ -1951,11 +1961,6 @@ load_public_identity_files(void)
 #endif /* ENABLE_PKCS11 */
 	if ((pw = getpwuid(original_real_uid)) == NULL)
 		fatal("load_public_identity_files: getpwuid failed");
-	pwname = xstrdup(pw->pw_name);
-	pwdir = xstrdup(pw->pw_dir);
-	if (gethostname(thishost, sizeof(thishost)) == -1)
-		fatal("load_public_identity_files: gethostname: %s",
-		    strerror(errno));
 	for (i = 0; i < options.num_identity_files; i++) {
 		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
 		    strcasecmp(options.identity_files[i], "none") == 0) {
@@ -1965,8 +1970,8 @@ load_public_identity_files(void)
 		}
 		cp = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
-		filename = percent_expand(cp, "d", pwdir,
-		    "u", pwname, "l", thishost, "h", host,
+		filename = percent_expand(cp, "d", pw->pw_dir,
+		    "u", pw->pw_name, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
 		free(cp);
 		public = key_load_public(filename, NULL);
@@ -2011,8 +2016,8 @@ load_public_identity_files(void)
 	for (i = 0; i < options.num_certificate_files; i++) {
 		cp = tilde_expand_filename(options.certificate_files[i],
 		    original_real_uid);
-		filename = percent_expand(cp, "d", pwdir,
-		    "u", pwname, "l", thishost, "h", host,
+		filename = percent_expand(cp, "d", pw->pw_dir,
+		    "u", pw->pw_name, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
 		free(cp);
 
@@ -2045,11 +2050,6 @@ load_public_identity_files(void)
 	memcpy(options.certificate_files,
 	    certificate_files, sizeof(certificate_files));
 	memcpy(options.certificates, certificates, sizeof(certificates));
-
-	explicit_bzero(pwname, strlen(pwname));
-	free(pwname);
-	explicit_bzero(pwdir, strlen(pwdir));
-	free(pwdir);
 }
 
 static void

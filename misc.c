@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.114 2017/10/21 23:06:24 millert Exp $ */
+/* $OpenBSD: misc.c,v 1.115 2017/10/23 05:08:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -964,15 +964,18 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 }
 
 int
-tun_open(int tun, int mode)
+tun_open(int tun, int mode, char **ifname)
 {
 #if defined(CUSTOM_SYS_TUN_OPEN)
-	return (sys_tun_open(tun, mode));
+	return (sys_tun_open(tun, mode, ifname));
 #elif defined(SSH_TUN_OPENBSD)
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;
 	const char *tunbase = "tun";
+
+	if (ifname != NULL)
+		*ifname = NULL;
 
 	if (mode == SSH_TUNMODE_ETHERNET)
 		tunbase = "tap";
@@ -1019,6 +1022,9 @@ tun_open(int tun, int mode)
 			goto failed;
 		}
 	}
+
+	if (ifname != NULL)
+		*ifname = xstrdup(ifr.ifr_name);
 
 	close(sock);
 	return fd;

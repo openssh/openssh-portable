@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.260 2017/10/21 23:06:24 millert Exp $
-.Dd $Mdocdate: October 21 2017 $
+.\" $OpenBSD: ssh_config.5,v 1.261 2017/10/23 05:08:00 djm Exp $
+.Dd $Mdocdate: October 23 2017 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1713,6 +1713,16 @@ The original remote hostname, as given on the command line.
 The remote port.
 .It %r
 The remote username.
+.It \&%T
+The local
+.Xr tun 4
+or
+.Xr tap 4
+network interface assigned if
+.Cm Tunnel
+forwarding was requested, or
+.Cm NONE
+otherwise.
 .It %u
 The local username.
 .El
@@ -1735,7 +1745,7 @@ and
 accept the tokens %%, %d, %h, %l, %r, and %u.
 .Pp
 .Cm LocalCommand
-accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, and %u.
+accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, %T, and %u.
 .Pp
 .Cm ProxyCommand
 accepts the tokens %%, %h, %p, and %r.

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.64 2017/10/21 23:06:24 millert Exp $ */
+/* $OpenBSD: misc.h,v 1.65 2017/10/23 05:08:00 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -87,7 +87,7 @@ void	 replacearg(arglist *, u_int, char *, ...)
 	     __attribute__((format(printf, 3, 4)));
 void	 freeargs(arglist *);
 
-int	 tun_open(int, int);
+int	 tun_open(int, int, char **);
 
 /* Common definitions for ssh tunnel device forwarding */
 #define SSH_TUNMODE_NO		0x00
