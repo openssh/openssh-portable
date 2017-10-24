@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.115 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.116 2017/10/24 19:41:45 millert Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -498,7 +498,7 @@ parse_user_host_path(const char *s, char **userp, char **hostp, char **pathp)
 	if (pathp != NULL)
 		*pathp = NULL;
 
-	sdup = tmp = xstrdup(s);
+	sdup = xstrdup(s);
 
 	/* Check for remote syntax: [user@]host:[path] */
 	if ((tmp = colon(sdup)) == NULL)
@@ -530,11 +530,11 @@ parse_user_host_path(const char *s, char **userp, char **hostp, char **pathp)
 	if (hostp != NULL) {
 		*hostp = host;
 		host = NULL;
-        }
+	}
 	if (pathp != NULL) {
 		*pathp = path;
 		path = NULL;
-        }
+	}
 	ret = 0;
 out:
 	free(sdup);
