@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.316 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.317 2017/10/25 00:19:47 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -855,6 +855,7 @@ get_connection_info(int populate, int use_dns)
 	ci.address = ssh_remote_ipaddr(ssh);
 	ci.laddress = ssh_local_ipaddr(ssh);
 	ci.lport = ssh_local_port(ssh);
+	ci.rdomain = ssh_packet_rdomain_in(ssh);
 	return &ci;
 }
 
@@ -1038,6 +1039,16 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				    ci->laddress, port, line);
 			else
 				result = 0;
+		} else if (strcasecmp(attrib, "rdomain") == 0) {
+			if (ci == NULL || ci->rdomain == NULL) {
+				result = 0;
+				continue;
+			}
+			if (match_pattern_list(ci->rdomain, arg, 0) != 1)
+				result = 0;
+			else
+				debug("user %.100s matched 'RDomain %.100s' at "
+				    "line %d", ci->rdomain, arg, line);
 		} else {
 			error("Unsupported Match attribute %s", attrib);
 			return -1;
@@ -2080,6 +2091,8 @@ int parse_server_match_testspec(struct connection_info *ci, char *spec)
 			ci->user = xstrdup(p + 5);
 		} else if (strncmp(p, "laddr=", 6) == 0) {
 			ci->laddress = xstrdup(p + 6);
+		} else if (strncmp(p, "rdomain=", 8) == 0) {
+			ci->rdomain = xstrdup(p + 8);
 		} else if (strncmp(p, "lport=", 6) == 0) {
 			ci->lport = a2port(p + 6);
 			if (ci->lport == -1) {

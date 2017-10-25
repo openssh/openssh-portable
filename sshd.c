@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.495 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.496 2017/10/25 00:19:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1404,7 +1404,7 @@ main(int ac, char **av)
 	extern int optind;
 	int r, opt, on = 1, already_daemon, remote_port;
 	int sock_in = -1, sock_out = -1, newsock = -1;
-	const char *remote_ip;
+	const char *remote_ip, *rdomain;
 	char *fp, *line, *laddr, *logfile = NULL;
 	int config_s[2] = { -1 , -1 };
 	u_int i, j;
@@ -2022,10 +2022,14 @@ main(int ac, char **av)
 	audit_connection_from(remote_ip, remote_port);
 #endif
 
+	rdomain = ssh_packet_rdomain_in(ssh);
+
 	/* Log the connection. */
 	laddr = get_local_ipaddr(sock_in);
-	verbose("Connection from %s port %d on %s port %d",
-	    remote_ip, remote_port, laddr,  ssh_local_port(ssh));
+	verbose("Connection from %s port %d on %s port %d%s%s",
+	    remote_ip, remote_port, laddr,  ssh_local_port(ssh),
+	    rdomain == NULL ? "" : " rdomain ",
+	    rdomain == NULL ? "" : rdomain);
 	free(laddr);
 
 	/*

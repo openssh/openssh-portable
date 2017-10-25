@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.129 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.130 2017/10/25 00:19:47 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -218,6 +218,7 @@ struct connection_info {
 	const char *address; 	/* remote address */
 	const char *laddress;	/* local address */
 	int lport;		/* local port */
+	const char *rdomain;	/* routing domain if available */
 };
 
 
