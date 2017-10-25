@@ -735,6 +735,9 @@ add_one_listen_addr(ServerOptions *options, const char *addr,
 static int
 valid_rdomain(const char *name)
 {
+#if defined(HAVE_SYS_VALID_RDOMAIN)
+	return valid_rdomain(name)
+#elif defined(__OpenBSD__)
 	const char *errstr;
 	long long num;
 	struct rt_tableinfo info;
@@ -758,6 +761,10 @@ valid_rdomain(const char *name)
 		return 0;
 
 	return 1;
+#else /* defined(__OpenBSD__) */
+	error("Routing domains are not supported on this platform");
+	return 0;
+#endif
 }
 
 /*

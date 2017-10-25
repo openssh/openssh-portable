@@ -1372,6 +1372,18 @@ check_ip_options(struct ssh *ssh)
 static void
 set_process_rdomain(struct ssh *ssh, const char *name)
 {
+#if defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
+	if (name == NULL)
+		return; /* default */
+
+	if (strcmp(name, "%D") == 0) {
+		/* "expands" to routing domain of connection */
+		if ((name = ssh_packet_rdomain_in(ssh)) == NULL)
+			return;
+	}
+	/* NB. We don't pass 'ssh' to sys_set_process_rdomain() */
+	return sys_set_process_rdomain(name);
+#elif defined(__OpenBSD__)
 	int rtable, ortable = getrtable();
 	const char *errstr;
 
@@ -1391,6 +1403,9 @@ set_process_rdomain(struct ssh *ssh, const char *name)
 		fatal("Unable to set routing domain %d: %s",
 		    rtable, strerror(errno));
 	debug("%s: set routing domain %d (was %d)", __func__, rtable, ortable);
+#else /* defined(__OpenBSD__) */
+	fatal("Unable to set routing domain: not supported in this platform");
+#endif
 }
 
 /*

@@ -184,6 +184,9 @@ set_reuseaddr(int fd)
 char *
 get_rdomain(int fd)
 {
+#if defined(HAVE_SYS_GET_RDOMAIN)
+	return sys_get_rdomain(fd);
+#elif defined(__OpenBSD__)
 	int rtable;
 	char *ret;
 	socklen_t len = sizeof(rtable);
@@ -195,11 +198,17 @@ get_rdomain(int fd)
 	}
 	xasprintf(&ret, "%d", rtable);
 	return ret;
+#else /* defined(__OpenBSD__) */
+	return NULL;
+#endif
 }
 
 int
 set_rdomain(int fd, const char *name)
 {
+#if defined(HAVE_SYS_SET_RDOMAIN)
+	return sys_set_rdomain(fd, name);
+#elif defined(__OpenBSD__)
 	int rtable;
 	const char *errstr;
 
@@ -219,6 +228,10 @@ set_rdomain(int fd, const char *name)
 		return -1;
 	}
 	return 0;
+#else /* defined(__OpenBSD__) */
+	error("Setting routing domain is not supported on this platform");
+	return -1;
+#endif
 }
 
 /* Characters considered whitespace in strsep calls. */
