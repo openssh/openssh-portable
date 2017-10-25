@@ -37,6 +37,38 @@
 #include "ssherr.h"
 
 /*
+ * This file contains various portability code for network support,
+ * including tun/tap forwarding and routing domains.
+ */
+
+#if defined(SYS_RDOMAIN_XXX)
+/* XXX examples */
+char *
+sys_get_rdomain(int fd)
+{
+	return NULL;
+}
+
+int
+sys_set_rdomain(int fd, const char *name)
+{
+	return -1;
+}
+
+int
+valid_rdomain(const char *name)
+{
+	return 0;
+}
+
+void
+sys_set_process_rdomain(const char *name)
+{
+	fatal("%s: not supported", __func__);
+}
+#endif /* defined(SYS_RDOMAIN_XXX) */
+
+/*
  * This is the portable version of the SSH tunnel forwarding, it
  * uses some preprocessor definitions for various platform-specific
  * settings.
