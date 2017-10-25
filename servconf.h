@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.128 2017/10/25 00:15:35 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.129 2017/10/25 00:17:08 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -77,6 +77,8 @@ typedef struct {
 	struct listenaddr *listen_addrs;
 	u_int	num_listen_addrs;
 	int	address_family;		/* Address family used by the server. */
+
+	char	*routing_domain;	/* Bind session to routing domain */
 
 	char   **host_key_files;	/* Files containing host keys. */
 	u_int	num_host_key_files;     /* Number of files for host keys. */
@@ -239,6 +241,7 @@ struct connection_info {
 		M_CP_STROPT(authorized_principals_command_user); \
 		M_CP_STROPT(hostbased_key_types); \
 		M_CP_STROPT(pubkey_key_types); \
+		M_CP_STROPT(routing_domain); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \

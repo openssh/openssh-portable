@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.315 2017/10/25 00:15:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.316 2017/10/25 00:17:08 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -91,6 +91,7 @@ initialize_server_options(ServerOptions *options)
 	options->listen_addrs = NULL;
 	options->num_listen_addrs = 0;
 	options->address_family = -1;
+	options->routing_domain = NULL;
 	options->num_host_key_files = 0;
 	options->num_host_cert_files = 0;
 	options->host_key_agent = NULL;
@@ -406,6 +407,7 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->authorized_principals_file);
 	CLEAR_ON_NONE(options->adm_forced_command);
 	CLEAR_ON_NONE(options->chroot_directory);
+	CLEAR_ON_NONE(options->routing_domain);
 	for (i = 0; i < options->num_host_key_files; i++)
 		CLEAR_ON_NONE(options->host_key_files[i]);
 	for (i = 0; i < options->num_host_cert_files; i++)
@@ -469,7 +471,7 @@ typedef enum {
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
-	sExposeAuthInfo,
+	sExposeAuthInfo, sRDomain,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -614,6 +616,7 @@ static struct {
 	{ "fingerprinthash", sFingerprintHash, SSHCFG_GLOBAL },
 	{ "disableforwarding", sDisableForwarding, SSHCFG_ALL },
 	{ "exposeauthinfo", sExposeAuthInfo, SSHCFG_ALL },
+	{ "rdomain", sRDomain, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -1984,6 +1987,19 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->expose_userauth_info;
 		goto parse_flag;
 
+	case sRDomain:
+		charptr = &options->routing_domain;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		if (strcasecmp(arg, "none") != 0 && strcmp(arg, "%D") != 0 &&
+		    !valid_rdomain(arg))
+			fatal("%s line %d: bad routing domain",
+			    filename, linenum);
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+
 	case sDeprecated:
 	case sIgnore:
 	case sUnsupported:
@@ -2473,6 +2489,7 @@ dump_config(ServerOptions *o)
 	    o->hostkeyalgorithms : KEX_DEFAULT_PK_ALG);
 	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types ?
 	    o->pubkey_key_types : KEX_DEFAULT_PK_ALG);
+	dump_cfg_string(sRDomain, o->routing_domain);
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));

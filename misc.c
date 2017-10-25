@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.117 2017/10/25 00:15:35 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.118 2017/10/25 00:17:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -180,7 +180,23 @@ set_reuseaddr(int fd)
 	return 0;
 }
 
-/* Set routing table */
+/* Get/set routing domain */
+char *
+get_rdomain(int fd)
+{
+	int rtable;
+	char *ret;
+	socklen_t len = sizeof(rtable);
+
+	if (getsockopt(fd, SOL_SOCKET, SO_RTABLE, &rtable, &len) == -1) {
+		error("Failed to get routing domain for fd %d: %s",
+		    fd, strerror(errno));
+		return NULL;
+	}
+	xasprintf(&ret, "%d", rtable);
+	return ret;
+}
+
 int
 set_rdomain(int fd, const char *name)
 {

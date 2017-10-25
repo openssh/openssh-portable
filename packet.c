@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.265 2017/10/13 21:13:54 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.266 2017/10/25 00:17:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -555,6 +555,18 @@ ssh_local_port(struct ssh *ssh)
 {
 	(void)ssh_remote_ipaddr(ssh); /* Will lookup and cache. */
 	return ssh->local_port;
+}
+
+/* Returns the routing domain of the input socket, or NULL if unavailable */
+const char *
+ssh_packet_rdomain_in(struct ssh *ssh)
+{
+	if (ssh->rdomain_in != NULL)
+		return ssh->rdomain_in;
+	if (!ssh_packet_connection_is_on_socket(ssh))
+		return NULL;
+	ssh->rdomain_in = get_rdomain(ssh->state->connection_in);
+	return ssh->rdomain_in;
 }
 
 /* Closes the connection and clears and frees internal data structures. */
