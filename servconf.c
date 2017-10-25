@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.317 2017/10/25 00:19:47 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.318 2017/10/25 02:10:39 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2538,11 +2538,13 @@ dump_config(ServerOptions *o)
 	printf("maxstartups %d:%d:%d\n", o->max_startups_begin,
 	    o->max_startups_rate, o->max_startups);
 
-	for (i = 0; tunmode_desc[i].val != -1; i++)
+	s = NULL;
+	for (i = 0; tunmode_desc[i].val != -1; i++) {
 		if (tunmode_desc[i].val == o->permit_tun) {
 			s = tunmode_desc[i].text;
 			break;
 		}
+	}
 	dump_cfg_string(sPermitTunnel, s);
 
 	printf("ipqos %s ", iptos2str(o->ip_qos_interactive));
