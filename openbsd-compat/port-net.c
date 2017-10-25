@@ -76,7 +76,22 @@ sys_set_rdomain(int fd, const char *name)
 int
 valid_rdomain(const char *name)
 {
-	return 0;
+	int fd;
+
+	/*
+	 * This is a pretty crappy way to test. It would be better to
+	 * check whether "name" represents a VRF device, but apparently
+	 * that requires an rtnetlink transaction.
+	 */
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		return 0;
+	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE,
+	    name, strlen(name)) == -1) {
+		close(fd);
+		return 0;
+	}
+	close(fd);
+	return 1;
 }
 #elif defined(SYS_RDOMAIN_XXX)
 /* XXX examples */
