@@ -404,6 +404,7 @@ AC_CHECK_HEADERS([ \
 	sys/strtio.h \
 	sys/statvfs.h \
 	sys/sysmacros.h \
+	sys/sysctl.h \
 	sys/time.h \
 	sys/timers.h \
 	time.h \
@@ -425,6 +426,11 @@ AC_CHECK_HEADERS([sys/capsicum.h], [], [], [
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
+])
+
+# net/route.h requires sys/socket.h
+AC_CHECK_HEADERS([net/route.h], [], [], [
+#include <sys/socket.h>
 ])
 
 # lastlog.h requires sys/time.h to be included first on Solaris
