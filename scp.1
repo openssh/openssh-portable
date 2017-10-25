@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.75 2017/10/21 23:06:24 millert Exp $
+.\" $OpenBSD: scp.1,v 1.76 2017/10/25 06:19:46 jmc Exp $
 .\"
-.Dd $Mdocdate: October 21 2017 $
+.Dd $Mdocdate: October 25 2017 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -18,7 +18,6 @@
 .Nd secure copy (remote file copy program)
 .Sh SYNOPSIS
 .Nm scp
-.Bk -words
 .Op Fl 346BCpqrv
 .Op Fl c Ar cipher
 .Op Fl F Ar ssh_config
@@ -27,8 +26,7 @@
 .Op Fl o Ar ssh_option
 .Op Fl P Ar port
 .Op Fl S Ar program
-.Ar source ...
-.Ar target
+.Ar source ... target
 .Sh DESCRIPTION
 .Nm
 copies files between hosts on a network.
@@ -42,15 +40,18 @@ will ask for passwords or passphrases if they are needed for
 authentication.
 .Pp
 The
-.Ar target
+.Ar source
 and
-.Ar destination
+.Ar target
 may be specified as a local pathname, a remote host with optional path
 in the form
-.Oo Ar user Ns @ Oc Ns Ar host Ns : Ns Oo Ar path Oc ,
-or an scp URI in the form
-.No scp:// Ns Oo Ar user Ns @ Oc Ns Ar host Ns
-.Oo : Ns Ar port Oc Ns Oo / Ns Ar path Oc .
+.Sm off
+.Oo user @ Oc host : Op path ,
+.Sm on
+or a URI in the form
+.Sm off
+.No scp:// Oo user @ Oc host Oo : port Oc Op / path .
+.Sm on
 Local file names can be made explicit using absolute or relative pathnames
 to avoid
 .Nm
