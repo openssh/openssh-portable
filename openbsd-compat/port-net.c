@@ -41,7 +41,44 @@
  * including tun/tap forwarding and routing domains.
  */
 
-#if defined(SYS_RDOMAIN_XXX)
+#if defined(SYS_RDOMAIN_LINUX) || defined(SSH_TUN_LINUX)
+#include <linux/if.h>
+#endif
+
+#if defined(SYS_RDOMAIN_LINUX)
+char *
+sys_get_rdomain(int fd)
+{
+	char dev[IFNAMSIZ + 1];
+	socklen_t len = sizeof(dev) - 1;
+
+	if (getsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, dev, &len) == -1) {
+		error("%s: cannot determine VRF for fd=%d : %s",
+		    __func__, fd, strerror(errno));
+		return NULL;
+	}
+	dev[len] = '\0';
+	return strdup(dev);
+}
+
+int
+sys_set_rdomain(int fd, const char *name)
+{
+	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE,
+	    name, strlen(name)) == -1) {
+		error("%s: setsockopt(%d, SO_BINDTODEVICE, %s): %s",
+		      __func__, fd, name, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
+int
+valid_rdomain(const char *name)
+{
+	return 0;
+}
+#elif defined(SYS_RDOMAIN_XXX)
 /* XXX examples */
 char *
 sys_get_rdomain(int fd)
@@ -84,7 +121,6 @@ sys_set_process_rdomain(const char *name)
  */
 
 #if defined(SSH_TUN_LINUX)
-#include <linux/if.h>
 #include <linux/if_tun.h>
 
 int
