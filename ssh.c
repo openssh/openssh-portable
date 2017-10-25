@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.466 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.467 2017/10/25 00:21:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1817,7 +1817,7 @@ ssh_session2_open(struct ssh *ssh)
 static int
 ssh_session2(struct ssh *ssh, struct passwd *pw)
 {
-	int id = -1;
+	int devnull, id = -1;
 	char *cp, *tun_fwd_ifname = NULL;
 
 	/* XXX should be pre-session */
@@ -1899,6 +1899,20 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (options.local_command != NULL &&
 	    options.permit_local_command)
 		ssh_local_cmd(options.local_command);
+
+	/*
+	 * stdout is now owned by the session channel; clobber it here
+	 * so future channel closes are propagated to the local fd.
+	 * NB. this can only happen after LocalCommand has completed,
+	 * as it may want to write to stdout.
+	 */
+	if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
+		error("%s: open %s: %s", __func__,
+		    _PATH_DEVNULL, strerror(errno));
+	if (dup2(devnull, STDOUT_FILENO) < 0)
+		fatal("%s: dup2() stdout failed", __func__);
+	if (devnull > STDERR_FILENO)
+		close(devnull);
 
 	/*
 	 * If requested and we are not interested in replies to remote
