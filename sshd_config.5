@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.255 2017/10/13 16:50:45 jmc Exp $
-.Dd $Mdocdate: October 13 2017 $
+.\" $OpenBSD: sshd_config.5,v 1.256 2017/10/25 00:15:35 djm Exp $
+.Dd $Mdocdate: October 25 2017 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -909,31 +909,48 @@ The following forms may be used:
 .It
 .Cm ListenAddress
 .Sm off
-.Ar host | Ar IPv4_addr | Ar IPv6_addr
+.Ar hostname | Ar address
 .Sm on
+.Oo rdomain Ar domain Oc
 .It
 .Cm ListenAddress
 .Sm off
-.Ar host | Ar IPv4_addr : Ar port
+.Ar hostname : Ar port
 .Sm on
+.Oo rdomain Ar domain Oc
+.It
+.Cm ListenAddress
+.Sm off
+.Ar IPv4_address : Ar port
+.Sm on
+.Oo rdomain Ar domain Oc
 .It
 .Cm ListenAddress
 .Sm off
 .Oo
-.Ar host | Ar IPv6_addr Oc : Ar port
+.Ar hostname | address Oc : Ar port
 .Sm on
+.Oo rdomain Ar domain Oc
 .El
 .Pp
+The optional
+.Cm rdomain
+qualifier requests
+.Xr sshd 8
+listen in an explicit routing domain.
 If
 .Ar port
 is not specified,
 sshd will listen on the address and all
 .Cm Port
 options specified.
-The default is to listen on all local addresses.
+The default is to listen on all local addresses on the current default
+routing domain.
 Multiple
 .Cm ListenAddress
 options are permitted.
+For more information on routing domains, see
+.Xr rdomain 4.
 .It Cm LoginGraceTime
 The server disconnects after this time if the user has not
 successfully logged in.

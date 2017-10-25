@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.127 2017/10/05 15:52:03 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.128 2017/10/25 00:15:35 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -51,14 +51,31 @@
 struct ssh;
 struct fwd_perm_list;
 
+/*
+ * Used to store addresses from ListenAddr directives. These may be
+ * incomplete, as they may specify addresses that need to be merged
+ * with any ports requested by ListenPort.
+ */
+struct queued_listenaddr {
+	char *addr;
+	int port; /* <=0 if unspecified */
+	char *rdomain;
+};
+
+/* Resolved listen addresses, grouped by optional routing domain */
+struct listenaddr {
+	char *rdomain;
+	struct addrinfo *addrs;
+};
+
 typedef struct {
 	u_int	num_ports;
 	u_int	ports_from_cmdline;
 	int	ports[MAX_PORTS];	/* Port number to listen on. */
+	struct queued_listenaddr *queued_listen_addrs;
 	u_int	num_queued_listens;
-	char   **queued_listen_addrs;
-	int    *queued_listen_ports;
-	struct addrinfo *listen_addrs;	/* Addresses for server to listen. */
+	struct listenaddr *listen_addrs;
+	u_int	num_listen_addrs;
 	int	address_family;		/* Address family used by the server. */
 
 	char   **host_key_files;	/* Files containing host keys. */

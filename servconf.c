@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.314 2017/10/05 15:52:03 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.315 2017/10/25 00:15:35 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -15,10 +15,16 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
 
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
+#ifdef HAVE_NET_ROUTE_H
+#include <net/route.h>
+#endif
 
 #include <ctype.h>
 #include <netdb.h>
@@ -58,8 +64,10 @@
 #include "myproposal.h"
 #include "digest.h"
 
-static void add_listen_addr(ServerOptions *, char *, int);
-static void add_one_listen_addr(ServerOptions *, char *, int);
+static void add_listen_addr(ServerOptions *, const char *,
+    const char *, int);
+static void add_one_listen_addr(ServerOptions *, const char *,
+    const char *, int);
 
 /* Use of privilege separation or not */
 extern int use_privsep;
@@ -81,6 +89,7 @@ initialize_server_options(ServerOptions *options)
 	options->queued_listen_addrs = NULL;
 	options->num_queued_listens = 0;
 	options->listen_addrs = NULL;
+	options->num_listen_addrs = 0;
 	options->address_family = -1;
 	options->num_host_key_files = 0;
 	options->num_host_cert_files = 0;
@@ -252,7 +261,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->address_family == -1)
 		options->address_family = AF_UNSPEC;
 	if (options->listen_addrs == NULL)
-		add_listen_addr(options, NULL, 0);
+		add_listen_addr(options, NULL, NULL, 0);
 	if (options->pid_file == NULL)
 		options->pid_file = xstrdup(_PATH_SSH_DAEMON_PID_FILE);
 	if (options->login_grace_time == -1)
@@ -658,23 +667,51 @@ derelativise_path(const char *path)
 }
 
 static void
-add_listen_addr(ServerOptions *options, char *addr, int port)
+add_listen_addr(ServerOptions *options, const char *addr,
+    const char *rdomain, int port)
 {
 	u_int i;
 
-	if (port == 0)
-		for (i = 0; i < options->num_ports; i++)
-			add_one_listen_addr(options, addr, options->ports[i]);
-	else
-		add_one_listen_addr(options, addr, port);
+	if (port > 0)
+		add_one_listen_addr(options, addr, rdomain, port);
+	else {
+		for (i = 0; i < options->num_ports; i++) {
+			add_one_listen_addr(options, addr, rdomain,
+			    options->ports[i]);
+		}
+	}
 }
 
 static void
-add_one_listen_addr(ServerOptions *options, char *addr, int port)
+add_one_listen_addr(ServerOptions *options, const char *addr,
+    const char *rdomain, int port)
 {
 	struct addrinfo hints, *ai, *aitop;
 	char strport[NI_MAXSERV];
 	int gaierr;
+	u_int i;
+
+	/* Find listen_addrs entry for this rdomain */
+	for (i = 0; i < options->num_listen_addrs; i++) {
+		if (rdomain == NULL && options->listen_addrs[i].rdomain == NULL)
+			break;
+		if (rdomain == NULL || options->listen_addrs[i].rdomain == NULL)
+			continue;
+		if (strcmp(rdomain, options->listen_addrs[i].rdomain) == 0)
+			break;
+	}
+	if (i >= options->num_listen_addrs) {
+		/* No entry for this rdomain; allocate one */
+		if (i >= INT_MAX)
+			fatal("%s: too many listen addresses", __func__);
+		options->listen_addrs = xrecallocarray(options->listen_addrs,
+		    options->num_listen_addrs, options->num_listen_addrs + 1,
+		    sizeof(*options->listen_addrs));
+		i = options->num_listen_addrs++;
+		if (rdomain != NULL)
+			options->listen_addrs[i].rdomain = xstrdup(rdomain);
+	}
+	/* options->listen_addrs[i] points to the addresses for this rdomain */
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = options->address_family;
@@ -687,8 +724,37 @@ add_one_listen_addr(ServerOptions *options, char *addr, int port)
 		    ssh_gai_strerror(gaierr));
 	for (ai = aitop; ai->ai_next; ai = ai->ai_next)
 		;
-	ai->ai_next = options->listen_addrs;
-	options->listen_addrs = aitop;
+	ai->ai_next = options->listen_addrs[i].addrs;
+	options->listen_addrs[i].addrs = aitop;
+}
+
+/* Returns nonzero if the routing domain name is valid */
+static int
+valid_rdomain(const char *name)
+{
+	const char *errstr;
+	long long num;
+	struct rt_tableinfo info;
+	int mib[6];
+	size_t miblen = sizeof(mib);
+
+	if (name == NULL)
+		return 1;
+
+	num = strtonum(name, 0, 255, &errstr);
+	if (errstr != NULL)
+		return 0;
+
+	/* Check whether the table actually exists */
+	memset(mib, 0, sizeof(mib));
+	mib[0] = CTL_NET;
+	mib[1] = PF_ROUTE;
+	mib[4] = NET_RT_TABLE;
+	mib[5] = (int)num;
+	if (sysctl(mib, 6, &info, &miblen, NULL, 0) == -1)
+		return 0;
+
+	return 1;
 }
 
 /*
@@ -696,18 +762,19 @@ add_one_listen_addr(ServerOptions *options, char *addr, int port)
  * and AddressFamily options.
  */
 static void
-queue_listen_addr(ServerOptions *options, char *addr, int port)
+queue_listen_addr(ServerOptions *options, const char *addr,
+    const char *rdomain, int port)
 {
-	options->queued_listen_addrs = xreallocarray(
-	    options->queued_listen_addrs, options->num_queued_listens + 1,
-	    sizeof(addr));
-	options->queued_listen_ports = xreallocarray(
-	    options->queued_listen_ports, options->num_queued_listens + 1,
-	    sizeof(port));
-	options->queued_listen_addrs[options->num_queued_listens] =
-	    xstrdup(addr);
-	options->queued_listen_ports[options->num_queued_listens] = port;
-	options->num_queued_listens++;
+	struct queued_listenaddr *qla;
+
+	options->queued_listen_addrs = xrecallocarray(
+	    options->queued_listen_addrs,
+	    options->num_queued_listens, options->num_queued_listens + 1,
+	    sizeof(*options->queued_listen_addrs));
+	qla = &options->queued_listen_addrs[options->num_queued_listens++];
+	qla->addr = xstrdup(addr);
+	qla->port = port;
+	qla->rdomain = rdomain == NULL ? NULL : xstrdup(rdomain);
 }
 
 /*
@@ -717,6 +784,7 @@ static void
 process_queued_listen_addrs(ServerOptions *options)
 {
 	u_int i;
+	struct queued_listenaddr *qla;
 
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
@@ -724,15 +792,13 @@ process_queued_listen_addrs(ServerOptions *options)
 		options->address_family = AF_UNSPEC;
 
 	for (i = 0; i < options->num_queued_listens; i++) {
-		add_listen_addr(options, options->queued_listen_addrs[i],
-		    options->queued_listen_ports[i]);
-		free(options->queued_listen_addrs[i]);
-		options->queued_listen_addrs[i] = NULL;
+		qla = &options->queued_listen_addrs[i];
+		add_listen_addr(options, qla->addr, qla->rdomain, qla->port);
+		free(qla->addr);
+		free(qla->rdomain);
 	}
 	free(options->queued_listen_addrs);
 	options->queued_listen_addrs = NULL;
-	free(options->queued_listen_ports);
-	options->queued_listen_ports = NULL;
 	options->num_queued_listens = 0;
 }
 
@@ -1127,20 +1193,33 @@ process_server_config_line(ServerOptions *options, char *line,
 		/* check for bare IPv6 address: no "[]" and 2 or more ":" */
 		if (strchr(arg, '[') == NULL && (p = strchr(arg, ':')) != NULL
 		    && strchr(p+1, ':') != NULL) {
-			queue_listen_addr(options, arg, 0);
-			break;
-		}
-		p = hpdelim(&arg);
-		if (p == NULL)
-			fatal("%s line %d: bad address:port usage",
-			    filename, linenum);
-		p = cleanhostname(p);
-		if (arg == NULL)
 			port = 0;
-		else if ((port = a2port(arg)) <= 0)
-			fatal("%s line %d: bad port number", filename, linenum);
+			p = arg;
+		} else {
+			p = hpdelim(&arg);
+			if (p == NULL)
+				fatal("%s line %d: bad address:port usage",
+				    filename, linenum);
+			p = cleanhostname(p);
+			if (arg == NULL)
+				port = 0;
+			else if ((port = a2port(arg)) <= 0)
+				fatal("%s line %d: bad port number",
+				    filename, linenum);
+		}
+		/* Optional routing table */
+		arg2 = NULL;
+		if ((arg = strdelim(&cp)) != NULL) {
+			if (strcmp(arg, "rdomain") != 0 ||
+			    (arg2 = strdelim(&cp)) == NULL)
+				fatal("%s line %d: bad ListenAddress syntax",
+				    filename, linenum);
+			if (!valid_rdomain(arg2))
+				fatal("%s line %d: bad routing domain",
+				    filename, linenum);
+		}
 
-		queue_listen_addr(options, p, port);
+		queue_listen_addr(options, p, arg2, port);
 
 		break;
 
@@ -2251,45 +2330,61 @@ dump_cfg_strarray_oneline(ServerOpCodes code, u_int count, char **vals)
 	printf("\n");
 }
 
-void
-dump_config(ServerOptions *o)
+static char *
+format_listen_addrs(struct listenaddr *la)
 {
-	u_int i;
-	int ret;
+	int r;
 	struct addrinfo *ai;
-	char addr[NI_MAXHOST], port[NI_MAXSERV], *s = NULL;
+	char addr[NI_MAXHOST], port[NI_MAXSERV];
 	char *laddr1 = xstrdup(""), *laddr2 = NULL;
-
-	/* these are usually at the top of the config */
-	for (i = 0; i < o->num_ports; i++)
-		printf("port %d\n", o->ports[i]);
-	dump_cfg_fmtint(sAddressFamily, o->address_family);
 
 	/*
 	 * ListenAddress must be after Port.  add_one_listen_addr pushes
 	 * addresses onto a stack, so to maintain ordering we need to
 	 * print these in reverse order.
 	 */
-	for (ai = o->listen_addrs; ai; ai = ai->ai_next) {
-		if ((ret = getnameinfo(ai->ai_addr, ai->ai_addrlen, addr,
+	for (ai = la->addrs; ai; ai = ai->ai_next) {
+		if ((r = getnameinfo(ai->ai_addr, ai->ai_addrlen, addr,
 		    sizeof(addr), port, sizeof(port),
 		    NI_NUMERICHOST|NI_NUMERICSERV)) != 0) {
-			error("getnameinfo failed: %.100s",
-			    (ret != EAI_SYSTEM) ? gai_strerror(ret) :
-			    strerror(errno));
-		} else {
-			laddr2 = laddr1;
-			if (ai->ai_family == AF_INET6)
-				xasprintf(&laddr1, "listenaddress [%s]:%s\n%s",
-				    addr, port, laddr2);
-			else
-				xasprintf(&laddr1, "listenaddress %s:%s\n%s",
-				    addr, port, laddr2);
-			free(laddr2);
+			error("getnameinfo: %.100s", ssh_gai_strerror(r));
+			continue;
 		}
+		laddr2 = laddr1;
+		if (ai->ai_family == AF_INET6) {
+			xasprintf(&laddr1, "listenaddress [%s]:%s%s%s\n%s",
+			    addr, port,
+			    la->rdomain == NULL ? "" : " rdomain ",
+			    la->rdomain == NULL ? "" : la->rdomain,
+			    laddr2);
+		} else {
+			xasprintf(&laddr1, "listenaddress %s:%s%s%s\n%s",
+			    addr, port,
+			    la->rdomain == NULL ? "" : " rdomain ",
+			    la->rdomain == NULL ? "" : la->rdomain,
+			    laddr2);
+		}
+		free(laddr2);
 	}
-	printf("%s", laddr1);
-	free(laddr1);
+	return laddr1;
+}
+
+void
+dump_config(ServerOptions *o)
+{
+	char *s;
+	u_int i;
+
+	/* these are usually at the top of the config */
+	for (i = 0; i < o->num_ports; i++)
+		printf("port %d\n", o->ports[i]);
+	dump_cfg_fmtint(sAddressFamily, o->address_family);
+
+	for (i = 0; i < o->num_listen_addrs; i++) {
+		s = format_listen_addrs(&o->listen_addrs[i]);
+		printf("%s", s);
+		free(s);
+	}
 
 	/* integer arguments */
 #ifdef USE_PAM

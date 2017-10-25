@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.116 2017/10/24 19:41:45 millert Exp $ */
+/* $OpenBSD: misc.c,v 1.117 2017/10/25 00:15:35 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -165,6 +165,44 @@ set_nodelay(int fd)
 	debug2("fd %d setting TCP_NODELAY", fd);
 	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof opt) == -1)
 		error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
+}
+
+/* Allow local port reuse in TIME_WAIT */
+int
+set_reuseaddr(int fd)
+{
+	int on = 1;
+
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
+		error("setsockopt SO_REUSEADDR fd %d: %s", fd, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
+/* Set routing table */
+int
+set_rdomain(int fd, const char *name)
+{
+	int rtable;
+	const char *errstr;
+
+	if (name == NULL)
+		return 0; /* default table */
+
+	rtable = (int)strtonum(name, 0, 255, &errstr);
+	if (errstr != NULL) {
+		/* Shouldn't happen */
+		error("Invalid routing domain \"%s\": %s", name, errstr);
+		return -1;
+	}
+	if (setsockopt(fd, SOL_SOCKET, SO_RTABLE,
+	    &rtable, sizeof(rtable)) == -1) {
+		error("Failed to set routing domain %d on fd %d: %s",
+		    rtable, fd, strerror(errno));
+		return -1;
+	}
+	return 0;
 }
 
 /* Characters considered whitespace in strsep calls. */

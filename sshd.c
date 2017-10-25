@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.493 2017/10/05 15:52:03 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.494 2017/10/25 00:15:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1015,13 +1015,13 @@ server_accept_inetd(int *sock_in, int *sock_out)
  * Listen for TCP connections
  */
 static void
-server_listen(void)
+listen_on_addrs(struct listenaddr *la)
 {
-	int ret, listen_sock, on = 1;
+	int ret, listen_sock;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 
-	for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
+	for (ai = la->addrs; ai; ai = ai->ai_next) {
 		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
 			continue;
 		if (num_listen_socks >= MAX_LISTEN_SOCKS)
@@ -1051,13 +1051,13 @@ server_listen(void)
 			close(listen_sock);
 			continue;
 		}
-		/*
-		 * Set socket options.
-		 * Allow local port reuse in TIME_WAIT.
-		 */
-		if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
-		    &on, sizeof(on)) == -1)
-			error("setsockopt SO_REUSEADDR: %s", strerror(errno));
+		/* Socket options */
+		set_reuseaddr(listen_sock);
+		if (la->rdomain != NULL &&
+		    set_rdomain(listen_sock, la->rdomain) == -1) {
+			close(listen_sock);
+			continue;
+		}
 
 		/* Only communicate in IPv6 over AF_INET6 sockets. */
 		if (ai->ai_family == AF_INET6)
@@ -1079,9 +1079,28 @@ server_listen(void)
 		if (listen(listen_sock, SSH_LISTEN_BACKLOG) < 0)
 			fatal("listen on [%s]:%s: %.100s",
 			    ntop, strport, strerror(errno));
-		logit("Server listening on %s port %s.", ntop, strport);
+		logit("Server listening on %s port %s%s%s.",
+		    ntop, strport,
+		    la->rdomain == NULL ? "" : " rdomain ",
+		    la->rdomain == NULL ? "" : la->rdomain);
 	}
-	freeaddrinfo(options.listen_addrs);
+}
+
+static void
+server_listen(void)
+{
+	u_int i;
+
+	for (i = 0; i < options.num_listen_addrs; i++) {
+		listen_on_addrs(&options.listen_addrs[i]);
+		freeaddrinfo(options.listen_addrs[i].addrs);
+		free(options.listen_addrs[i].rdomain);
+		memset(&options.listen_addrs[i], 0,
+		    sizeof(options.listen_addrs[i]));
+	}
+	free(options.listen_addrs);
+	options.listen_addrs = NULL;
+	options.num_listen_addrs = 0;
 
 	if (!num_listen_socks)
 		fatal("Cannot bind any address.");
