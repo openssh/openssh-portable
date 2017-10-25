@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.258 2017/10/25 00:19:47 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.259 2017/10/25 06:18:06 jmc Exp $
 .Dd $Mdocdate: October 25 2017 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -909,28 +909,27 @@ The following forms may be used:
 .It
 .Cm ListenAddress
 .Sm off
-.Ar hostname | Ar address
+.Ar hostname | address
 .Sm on
-.Oo rdomain Ar domain Oc
+.Op rdomain Ar domain
 .It
 .Cm ListenAddress
 .Sm off
-.Ar hostname : Ar port
+.Ar hostname : port
 .Sm on
-.Oo rdomain Ar domain Oc
+.Op rdomain Ar domain
 .It
 .Cm ListenAddress
 .Sm off
-.Ar IPv4_address : Ar port
+.Ar IPv4_address : port
 .Sm on
-.Oo rdomain Ar domain Oc
+.Op rdomain Ar domain
 .It
 .Cm ListenAddress
 .Sm off
-.Oo
-.Ar hostname | address Oc : Ar port
+.Oo Ar hostname | address Oc : Ar port
 .Sm on
-.Oo rdomain Ar domain Oc
+.Op rdomain Ar domain
 .El
 .Pp
 The optional
@@ -950,7 +949,7 @@ Multiple
 .Cm ListenAddress
 options are permitted.
 For more information on routing domains, see
-.Xr rdomain 4.
+.Xr rdomain 4 .
 .It Cm LoginGraceTime
 The server disconnects after this time if the user has not
 successfully logged in.
@@ -1389,12 +1388,12 @@ For more information on KRLs, see the KEY REVOCATION LISTS section in
 .It Cm RDomain
 Specifies an explicit routing domain that is applied after authentication
 has completed.
-The user session, as well and any forwarded or listening IP sockets will
-be bound to this
+The user session, as well and any forwarded or listening IP sockets,
+will be bound to this
 .Xr rdomain 4 .
 If the routing domain is set to
 .Cm \&%D ,
-then the domain in which the incoming connection was recieved will be applied.
+then the domain in which the incoming connection was received will be applied.
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
