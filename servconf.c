@@ -736,7 +736,7 @@ static int
 valid_rdomain(const char *name)
 {
 #if defined(HAVE_SYS_VALID_RDOMAIN)
-	return valid_rdomain(name)
+	return sys_valid_rdomain(name);
 #elif defined(__OpenBSD__)
 	const char *errstr;
 	long long num;

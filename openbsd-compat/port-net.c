@@ -74,7 +74,7 @@ sys_set_rdomain(int fd, const char *name)
 }
 
 int
-valid_rdomain(const char *name)
+sys_valid_rdomain(const char *name)
 {
 	int fd;
 

@@ -37,7 +37,7 @@ u_char	*sys_tun_outfilter(struct ssh *, struct Channel *, u_char **, size_t *);
 # define HAVE_SYS_VALID_RDOMAIN
 char *sys_get_rdomain(int fd);
 int sys_set_rdomain(int fd, const char *name);
-int valid_rdomain(const char *name);
+int sys_valid_rdomain(const char *name);
 #endif
 
 #if defined(SYS_RDOMAIN_XXX)
