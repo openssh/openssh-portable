@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.496 2017/10/25 00:19:47 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.497 2017/10/27 00:18:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2041,10 +2041,11 @@ main(int ac, char **av)
 
 	/* Log the connection. */
 	laddr = get_local_ipaddr(sock_in);
-	verbose("Connection from %s port %d on %s port %d%s%s",
+	verbose("Connection from %s port %d on %s port %d%s%s%s",
 	    remote_ip, remote_port, laddr,  ssh_local_port(ssh),
-	    rdomain == NULL ? "" : " rdomain ",
-	    rdomain == NULL ? "" : rdomain);
+	    rdomain == NULL ? "" : " rdomain \"",
+	    rdomain == NULL ? "" : rdomain,
+	    rdomain == NULL ? "" : "\"");
 	free(laddr);
 
 	/*
