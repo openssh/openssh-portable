@@ -92,7 +92,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	kex.o kexdh.o kexgex.o kexecdh.o kexc25519.o \
 	kexdhc.o kexgexc.o kexecdhc.o kexc25519c.o \
 	kexdhs.o kexgexs.o kexecdhs.o kexc25519s.o \
-	platform-pledge.o platform-tracing.o platform-misc.o
+	platform-pledge.o platform-tracing.o platform-misc.o libcrypto-compat.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect2.o mux.o

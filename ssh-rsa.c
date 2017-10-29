@@ -78,12 +78,15 @@ rsa_hash_alg_nid(int type)
 	}
 }
 
-/* calculate p-1 and q-1 */
+/* Fill in the CRT parameters, calculate d mod (p-1) and d mod (q-1) */
 int
-ssh_rsa_generate_additional_parameters(struct sshkey *key)
+ssh_rsa_generate_additional_parameters(struct sshkey *key, BIGNUM *iqmp)
 {
 	RSA *rsa;
 	BIGNUM *aux = NULL;
+	BIGNUM *dmp1 = NULL;
+	BIGNUM *dmq1 = NULL;
+	const BIGNUM *p, *q, *d;
 	BN_CTX *ctx = NULL;
 	int r;
 
@@ -93,19 +96,26 @@ ssh_rsa_generate_additional_parameters(struct sshkey *key)
 
 	if ((ctx = BN_CTX_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((aux = BN_new()) == NULL) {
+	if ((aux = BN_new()) == NULL ||
+            (dmp1 = BN_new()) == NULL ||
+	    (dmq1 = BN_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 	rsa = key->rsa;
+	RSA_get0_key(rsa, NULL, NULL, &d);
+	RSA_get0_factors(rsa, &p, &q);
 
-	if ((BN_sub(aux, rsa->q, BN_value_one()) == 0) ||
-	    (BN_mod(rsa->dmq1, rsa->d, aux, ctx) == 0) ||
-	    (BN_sub(aux, rsa->p, BN_value_one()) == 0) ||
-	    (BN_mod(rsa->dmp1, rsa->d, aux, ctx) == 0)) {
+	if ((BN_sub(aux, q, BN_value_one()) == 0) ||
+	    (BN_mod(dmq1, d, aux, ctx) == 0) ||
+	    (BN_sub(aux, p, BN_value_one()) == 0) ||
+	    (BN_mod(dmp1, d, aux, ctx) == 0) ||
+	    (RSA_set0_crt_params(rsa, dmp1, dmq1, iqmp) == 0)) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
+	dmp1 = NULL;
+	dmq1 = NULL;
 	r = 0;
  out:
 	BN_clear_free(aux);
@@ -136,7 +146,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	if (key == NULL || key->rsa == NULL || hash_alg == -1 ||
 	    sshkey_type_plain(key->type) != KEY_RSA)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
+	if (RSA_bits(key->rsa) < SSH_RSA_MINIMUM_MODULUS_SIZE)
 		return SSH_ERR_KEY_LENGTH;
 	slen = RSA_size(key->rsa);
 	if (slen <= 0 || slen > SSHBUF_MAX_BIGNUM)
@@ -210,7 +220,7 @@ ssh_rsa_verify(const struct sshkey *key,
 	    sshkey_type_plain(key->type) != KEY_RSA ||
 	    sig == NULL || siglen == 0)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE)
+	if (RSA_bits(key->rsa) < SSH_RSA_MINIMUM_MODULUS_SIZE)
 		return SSH_ERR_KEY_LENGTH;
 
 	if ((b = sshbuf_from(sig, siglen)) == NULL)
