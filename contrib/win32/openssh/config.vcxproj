@@ -108,7 +108,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -141,7 +141,7 @@ If NOT exist "$(OutDir)\sshd_config" (copy "$(SolutionDir)sshd_config" "$(OutDir
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -178,7 +178,7 @@ If NOT exist "$(OutDir)\sshd_config" (copy "$(SolutionDir)sshd_config" "$(OutDir
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
@@ -215,7 +215,7 @@ If NOT exist "$(OutDir)\sshd_config" (copy "$(SolutionDir)sshd_config" "$(OutDir
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openbsd_compat.lib;libssh.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>

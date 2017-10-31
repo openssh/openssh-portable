@@ -395,9 +395,9 @@ function Start-OpenSSHPackage
         }
     }
 
-    #copy libcrypto-41 dll
+    #copy libcrypto dll
     $libreSSLSDKPath = Join-Path $PSScriptRoot $script:libreSSLSDKStr
-    Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto-41.dll") -Destination $packageDir -Force -ErrorAction Stop    
+    Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop    
 
     if ($DestinationPath -ne "") {
         if (Test-Path $DestinationPath) {            
@@ -490,7 +490,7 @@ function Start-OpenSSHBuild
     }
 
     $PathTargets = Join-Path $PSScriptRoot paths.targets
-    if ($NoOpenSSL -or $OneCore) 
+    if ($NoOpenSSL) 
     {        
         [XML]$xml = Get-Content $PathTargets
         $xml.Project.PropertyGroup.UseOpenSSL = 'false'
@@ -505,7 +505,6 @@ function Start-OpenSSHBuild
     {
         $win10SDKVer = Get-Windows10SDKVersion
         [XML]$xml = Get-Content $PathTargets
-        $xml.Project.PropertyGroup.UseOpenSSL = 'false'
         $xml.Project.PropertyGroup.WindowsSDKVersion = $win10SDKVer.ToString()
         $xml.Project.PropertyGroup.AdditionalDependentLibs = 'onecore.lib'
         $xml.Save($PathTargets)
@@ -514,10 +513,6 @@ function Start-OpenSSHBuild
     $msbuildCmd = "msbuild.exe"
     $solutionFile = Get-SolutionFile -root $repositoryRoot.FullName
     $cmdMsg = @("${solutionFile}", "/p:Platform=${NativeHostArch}", "/p:Configuration=${Configuration}", "/m", "/noconlog", "/nologo", "/fl", "/flp:LogFile=${script:BuildLogFile}`;Append`;Verbosity=diagnostic")
-
-    if ($OneCore -or $NoOpenSSL) {
-        $cmdMsg += @("/t:core\scp", "/t:core\sftp", "/t:core\sftp-server", "/t:core\ssh", "/t:core\ssh-add", "/t:core\ssh-agent", "/t:core\sshd", "/t:core\ssh-keygen", "/t:core\ssh-shellhost")
-    }
 
     & $msbuildCmd $cmdMsg
     $errorCode = $LASTEXITCODE

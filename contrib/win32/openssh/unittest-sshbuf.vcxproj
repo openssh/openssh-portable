@@ -116,7 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -139,7 +139,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -164,7 +164,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -190,7 +190,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;Ws2_32.lib;Netapi32.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>

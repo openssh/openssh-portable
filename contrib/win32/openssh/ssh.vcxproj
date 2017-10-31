@@ -117,7 +117,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -141,7 +141,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
     </Link>
     <Manifest>
@@ -167,7 +167,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x86-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
@@ -195,7 +195,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OpenSSH-Lib-Path)$(Platform)\$(Configuration);$(LibreSSL-x64-Path);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto-41.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>posix_compat.lib;libssh.lib;openbsd_compat.lib;libcrypto.lib;$(AdditionalDependentLibs);%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
     </Link>
