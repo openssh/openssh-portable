@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.468 2017/10/27 01:57:06 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.469 2017/11/01 00:04:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1906,13 +1906,15 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * NB. this can only happen after LocalCommand has completed,
 	 * as it may want to write to stdout.
 	 */
-	if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
-		error("%s: open %s: %s", __func__,
-		    _PATH_DEVNULL, strerror(errno));
-	if (dup2(devnull, STDOUT_FILENO) < 0)
-		fatal("%s: dup2() stdout failed", __func__);
-	if (devnull > STDERR_FILENO)
-		close(devnull);
+	if (!need_controlpersist_detach) {
+		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
+			error("%s: open %s: %s", __func__,
+			    _PATH_DEVNULL, strerror(errno));
+		if (dup2(devnull, STDOUT_FILENO) < 0)
+			fatal("%s: dup2() stdout failed", __func__);
+		if (devnull > STDERR_FILENO)
+			close(devnull);
+	}
 
 	/*
 	 * If requested and we are not interested in replies to remote
