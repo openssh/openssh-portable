@@ -91,6 +91,7 @@ errno_from_Win32Error(int win32_error)
 	case ERROR_FILE_EXISTS:
 		return EEXIST;
 	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
 		return ENOENT;
 	default:
 		return win32_error;
