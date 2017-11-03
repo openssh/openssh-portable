@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.307 2017/07/07 03:53:12 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.308 2017/11/03 05:14:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1832,7 +1832,7 @@ parse_absolute_time(const char *s)
 		    s, s + 4, s + 6, s + 8, s + 10, s + 12);
 		break;
 	default:
-		fatal("Invalid certificate time format %s", s);
+		fatal("Invalid certificate time format \"%s\"", s);
 	}
 
 	memset(&tm, 0, sizeof(tm));
@@ -1865,8 +1865,8 @@ parse_cert_times(char *timespec)
 
 	/*
 	 * from:to, where
-	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
-	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
+	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "always"
+	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "forever"
 	 */
 	from = xstrdup(timespec);
 	to = strchr(from, ':');
@@ -1876,11 +1876,15 @@ parse_cert_times(char *timespec)
 
 	if (*from == '-' || *from == '+')
 		cert_valid_from = parse_relative_time(from, now);
+	else if (strcmp(from, "always") == 0)
+		cert_valid_from = 0;
 	else
 		cert_valid_from = parse_absolute_time(from);
 
 	if (*to == '-' || *to == '+')
 		cert_valid_to = parse_relative_time(to, now);
+	else if (strcmp(to, "forever") == 0)
+		cert_valid_to = ~(u_int64_t)0;
 	else
 		cert_valid_to = parse_absolute_time(to);
 
