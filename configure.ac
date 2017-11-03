@@ -404,7 +404,6 @@ AC_CHECK_HEADERS([ \
 	sys/strtio.h \
 	sys/statvfs.h \
 	sys/sysmacros.h \
-	sys/sysctl.h \
 	sys/time.h \
 	sys/timers.h \
 	time.h \
@@ -428,8 +427,13 @@ AC_CHECK_HEADERS([sys/capsicum.h], [], [], [
 #endif
 ])
 
-# net/route.h requires sys/socket.h
-AC_CHECK_HEADERS([net/route.h], [], [], [
+# net/route.h requires sys/socket.h and sys/types.h.
+# sys/sysctl.h also requires sys/param.h
+AC_CHECK_HEADERS([net/route.h sys/sysctl.h], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#include <sys/param.h>
 #include <sys/socket.h>
 ])
 
