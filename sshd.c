@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.497 2017/10/27 00:18:41 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.498 2017/11/03 03:18:53 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1429,7 +1429,7 @@ main(int ac, char **av)
 	struct sshkey *pubkey;
 	int keytype;
 	Authctxt *authctxt;
-	struct connection_info *connection_info = get_connection_info(0, 0);
+	struct connection_info *connection_info = NULL;
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 
@@ -1545,6 +1545,7 @@ main(int ac, char **av)
 			test_flag = 2;
 			break;
 		case 'C':
+			connection_info = get_connection_info(0, 0);
 			if (parse_server_match_testspec(connection_info,
 			    optarg) == -1)
 				exit(1);
@@ -1613,14 +1614,10 @@ main(int ac, char **av)
 	sensitive_data.have_ssh2_key = 0;
 
 	/*
-	 * If we're doing an extended config test, make sure we have all of
-	 * the parameters we need.  If we're not doing an extended test,
-	 * do not silently ignore connection test params.
+	 * If we're not doing an extended test do not silently ignore connection
+	 * test params.
 	 */
-	if (test_flag >= 2 && server_match_spec_complete(connection_info) == 0)
-		fatal("user, host and addr are all required when testing "
-		   "Match configs");
-	if (test_flag < 2 && server_match_spec_complete(connection_info) >= 0)
+	if (test_flag < 2 && connection_info != NULL)
 		fatal("Config test connection parameter (-C) provided without "
 		   "test mode (-T)");
 
@@ -1827,8 +1824,7 @@ main(int ac, char **av)
 	}
 
 	if (test_flag > 1) {
-		if (server_match_spec_complete(connection_info) == 1)
-			parse_server_match_config(&options, connection_info);
+		parse_server_match_config(&options, connection_info);
 		dump_config(&options);
 	}
 
