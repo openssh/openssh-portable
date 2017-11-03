@@ -142,11 +142,15 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             $o | Should Be "1234"
         }
 
-        <#It "$tC.$tI - stdin from PS object" {
-            #if input redirection doesn't work, this would hang
-            0 | ssh -p $port $ssouser@$server pause
-            $true | Should Be $true
-        }#>
+        It "$tC.$tI - stdin from PS object" {
+            # execute this script that dumps the length of input data, on the remote end
+            $str = "begin {} process { Write-Output `$input.Length} end { }"
+            $EncodedText =[Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($str))
+            $h = "hello123"
+            # ignore error stream using 2> $null
+            $o = $h | ssh test_target PowerShell -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -EncodedCommand $EncodedText 2> $null
+            $o | Should Be "8"
+        }
     }    
     
     Context "$tC - configure default shell Scenarios" {
