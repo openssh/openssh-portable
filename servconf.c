@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.319 2017/11/03 03:18:53 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.320 2017/11/03 05:18:44 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1098,6 +1098,11 @@ struct multistate {
 	char *key;
 	int value;
 };
+static const struct multistate multistate_flag[] = {
+	{ "yes",			1 },
+	{ "no",				0 },
+	{ NULL, -1 }
+};
 static const struct multistate multistate_addressfamily[] = {
 	{ "inet",			AF_INET },
 	{ "inet6",			AF_INET6 },
@@ -1338,21 +1343,8 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sIgnoreRhosts:
 		intptr = &options->ignore_rhosts;
  parse_flag:
-		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing yes/no argument.",
-			    filename, linenum);
-		value = 0;	/* silence compiler */
-		if (strcmp(arg, "yes") == 0)
-			value = 1;
-		else if (strcmp(arg, "no") == 0)
-			value = 0;
-		else
-			fatal("%s line %d: Bad yes/no argument: %s",
-				filename, linenum, arg);
-		if (*activep && *intptr == -1)
-			*intptr = value;
-		break;
+		multistate_ptr = multistate_flag;
+		goto parse_multistate;
 
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;
