@@ -20,7 +20,7 @@ $Script:UnitTestResultsFile = Join-Path $TestDataPath $UnitTestResultsFileName
 $Script:TestSetupLogFile = Join-Path $TestDataPath $TestSetupLogFileName
 $Script:E2ETestDirectory = Join-Path $repositoryRoot.FullName -ChildPath "regress\pesterTests"
 $Script:WindowsInBox = $false
-$Script:UseLibreSSL = $true
+$Script:NoLibreSSL = $false
 $Script:EnableAppVerifier = $true
 $Script:PostmortemDebugging = $false
 
@@ -58,7 +58,7 @@ function Set-OpenSSHTestEnvironment
     $Script:TestSetupLogFile = Join-Path $TestDataPath "TestSetupLog.txt"
     $Script:UnitTestDirectory = Get-UnitTestDirectory
     $Script:EnableAppVerifier = -not ($NoAppVerifier.IsPresent)
-    $Script:UseLibreSSL = -not ($NoLibreSSL.IsPresent)
+    $Script:NoLibreSSL = $NoLibreSSL.IsPresent
     if($Script:EnableAppVerifier)
     {
         $Script:PostmortemDebugging = $PostmortemDebugging.IsPresent
@@ -80,7 +80,7 @@ function Set-OpenSSHTestEnvironment
         "DebugMode" = $DebugMode                               # run openssh E2E in debug mode
         "EnableAppVerifier" = $Script:EnableAppVerifier
         "PostmortemDebugging" = $Script:PostmortemDebugging
-        "UseLibreSSL" = $Script:UseLibreSSL
+        "NoLibreSSL" = $Script:NoLibreSSL
         }
         
     #if user does not set path, pick it up
