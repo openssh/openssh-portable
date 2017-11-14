@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.498 2017/11/03 03:18:53 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.499 2017/11/14 00:45:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -144,7 +144,12 @@ char *config_file_name = _PATH_SERVER_CONFIG_FILE;
  */
 int debug_flag = 0;
 
-/* Flag indicating that the daemon should only test the configuration and keys. */
+/*
+ * Indicating that the daemon should only test the configuration and keys.
+ * If test_flag > 1 ("-T" flag), then sshd will also dump the effective
+ * configuration, optionally using connection information provided by the
+ * "-C" flag.
+ */
 int test_flag = 0;
 
 /* Flag indicating that the daemon is being started from inetd. */
@@ -1824,6 +1829,12 @@ main(int ac, char **av)
 	}
 
 	if (test_flag > 1) {
+		/*
+		 * If no connection info was provided by -C then use
+		 * use a blank one that will cause no predicate to match.
+		 */
+		if (connection_info == NULL)
+			connection_info = get_connection_info(0, 0);
 		parse_server_match_config(&options, connection_info);
 		dump_config(&options);
 	}
