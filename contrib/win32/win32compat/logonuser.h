@@ -1,10 +1,8 @@
 /*
-* Author: Manoj Ampalam <manoj.ampalam@microsoft.com>
+* Author: Yanbing Wang <yawang@microsoft.com>
 *
-* Compatibility header to give us pwd-like functionality on Win32
-* A lot of passwd fields are not applicable in Windows, neither are some API calls based on this structure
-* Ideally, usage of this structure needs to be replaced in core SSH code to an ssh_user interface,
-* that each platform can extend and implement.
+* Support logon user call on Win32 based operating systems.
+*
 */
 
 #ifndef LOGONUSER_H

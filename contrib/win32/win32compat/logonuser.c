@@ -28,10 +28,10 @@
 #include <Windows.h>
 #include "debug.h"
 
-static HMODULE hMod = NULL;
-
 /* Define the function prototype */
 typedef BOOL(WINAPI *LogonUserExExWType)(wchar_t*, wchar_t*, wchar_t*, DWORD, DWORD, PTOKEN_GROUPS, PHANDLE, PSID, PVOID, LPDWORD, PQUOTA_LIMITS);
+static HMODULE hMod = NULL;
+static LogonUserExExWType func = NULL;
 
 /*
 * The function uses LoadLibrary and GetProcAddress to access
@@ -41,8 +41,7 @@ BOOL
 LogonUserExExWHelper(wchar_t *user_name, wchar_t *domain, wchar_t *password, DWORD logon_type,
 	DWORD logon_provider, PTOKEN_GROUPS token_groups, PHANDLE token, PSID *logon_sid, 
 	PVOID *profile_buffer, LPDWORD profile_length, PQUOTA_LIMITS quota_limits)
-{
-	LogonUserExExWType func = NULL;
+{	
 	wchar_t sspicli_dll_path[MAX_PATH + 1] = { 0, };
 	wchar_t system32_path[MAX_PATH + 1] = { 0, };
 	
@@ -60,7 +59,10 @@ LogonUserExExWHelper(wchar_t *user_name, wchar_t *domain, wchar_t *password, DWO
 		debug3("Failed to retrieve the module handle of sspicli.dll with error %d", GetLastError());
 		return FALSE;
 	}
-	if ((func = (LogonUserExExWType)GetProcAddress(hMod, "LogonUserExExW")) == NULL) {
+	if (func == NULL)
+		func = (LogonUserExExWType)GetProcAddress(hMod, "LogonUserExExW");
+
+	if (func == NULL) {
 		debug3("GetProcAddress of LogonUserExExW failed with error $d.", GetLastError());
 		return FALSE;
 	}

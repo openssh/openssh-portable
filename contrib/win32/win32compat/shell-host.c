@@ -1650,14 +1650,6 @@ static void* xmalloc(size_t size) {
 	return ptr;
 }
 
-#define SET_USER_ENV(folder_id, evn_variable) do  {                \
-       if (SHGetKnownFolderPath(&folder_id,0,NULL,&path) == S_OK)              \
-       {                                                                        \
-                SetEnvironmentVariableW(evn_variable, path);                    \
-                CoTaskMemFree(path);                                            \
-       }                                                                        \
-} while (0)
-
 /* set user environment variables from user profile */
 static void setup_session_user_vars()
 {

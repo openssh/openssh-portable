@@ -41,7 +41,9 @@
 #include <sys/types.h>
 
 #include <pwd.h>
+#ifdef WINDOWS
 #include <logonuser.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
