@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.225 2017/11/15 00:13:40 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.226 2017/11/15 02:10:16 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -475,6 +475,11 @@ process_lock_agent(SocketEntry *e, int lock)
 	static u_int fail_count = 0;
 	size_t pwlen;
 
+	/*
+	 * This is deliberately fatal: the user has requested that we lock,
+	 * but we can't parse their request properly. The only safe thing to
+	 * do is abort.
+	 */
 	if ((r = sshbuf_get_cstring(e->request, &passwd, &pwlen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (pwlen == 0) {
@@ -532,7 +537,7 @@ no_identities(SocketEntry *e)
 static void
 process_add_smartcard_key(SocketEntry *e)
 {
-	char *provider = NULL, *pin, canonical_provider[PATH_MAX];
+	char *provider = NULL, *pin = NULL, canonical_provider[PATH_MAX];
 	int r, i, count = 0, success = 0, confirm = 0;
 	u_int seconds;
 	time_t death = 0;
@@ -541,17 +546,23 @@ process_add_smartcard_key(SocketEntry *e)
 	Identity *id;
 
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
+		error("%s: buffer error: %s", __func__, ssh_err(r));
+		goto send;
+	}
 
 	while (sshbuf_len(e->request)) {
-		if ((r = sshbuf_get_u8(e->request, &type)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		if ((r = sshbuf_get_u8(e->request, &type)) != 0) {
+			error("%s: buffer error: %s", __func__, ssh_err(r));
+			goto send;
+		}
 		switch (type) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
-			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0)
-				fatal("%s: buffer error: %s",
+			if ((r = sshbuf_get_u32(e->request, &seconds)) != 0) {
+				error("%s: buffer error: %s",
 				    __func__, ssh_err(r));
+				goto send;
+			}
 			death = monotime() + seconds;
 			break;
 		case SSH_AGENT_CONSTRAIN_CONFIRM:
@@ -609,8 +620,10 @@ process_remove_smartcard_key(SocketEntry *e)
 	Identity *id, *nxt;
 
 	if ((r = sshbuf_get_cstring(e->request, &provider, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	    (r = sshbuf_get_cstring(e->request, &pin, NULL)) != 0) {
+		error("%s: buffer error: %s", __func__, ssh_err(r));
+		goto send;
+	}
 	free(pin);
 
 	if (realpath(provider, canonical_provider) == NULL) {
