@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.224 2017/07/24 04:34:28 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.225 2017/11/15 00:13:40 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -287,8 +287,11 @@ process_sign_request2(SocketEntry *e)
 		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshkey_froms(e->request, &key)) != 0 ||
 	    (r = sshbuf_get_string_direct(e->request, &data, &dlen)) != 0 ||
-	    (r = sshbuf_get_u32(e->request, &flags)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	    (r = sshbuf_get_u32(e->request, &flags)) != 0) {
+		error("%s: couldn't parse request: %s", __func__, ssh_err(r));
+		goto send;
+	}
+
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		compat = SSH_BUG_SIGBLOB;
 	if ((id = lookup_identity(key)) == NULL) {
