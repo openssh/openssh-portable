@@ -2544,8 +2544,10 @@ main(int argc, char **argv)
 			}
 			break;
 		}
-		if (argv + 1)
-			file2 = *(argv + 1);
+		
+		/* TODO: need to debug this. this parameter doesn't make sense
+		file2 = *(argv + 1);
+		*/
 
 		if (!*host) {
 			fprintf(stderr, "Missing hostname\n");

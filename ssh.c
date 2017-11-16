@@ -1915,6 +1915,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * NB. this can only happen after LocalCommand has completed,
 	 * as it may want to write to stdout.
 	 */
+#ifndef WINDOWS /* TODO - implement dup2 for Windows */
 	if (!need_controlpersist_detach) {
 		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
 			error("%s: open %s: %s", __func__,
@@ -1924,6 +1925,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 		if (devnull > STDERR_FILENO)
 			close(devnull);
 	}
+#endif
 
 	/*
 	 * If requested and we are not interested in replies to remote
