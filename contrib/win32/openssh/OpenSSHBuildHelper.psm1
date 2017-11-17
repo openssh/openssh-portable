@@ -500,6 +500,19 @@ function Start-OpenSSHBuild
         $win10SDKVer = Get-Windows10SDKVersion
         [XML]$xml = Get-Content $PathTargets
         $xml.Project.PropertyGroup.WindowsSDKVersion = $win10SDKVer.ToString()
+        $arch = $NativeHostArch.ToUpper()
+        $nodeName = "WindowsSDKDesktop$($arch)Support"
+        $node = $xml.Project.PropertyGroup.ChildNodes | where {$_.Name -eq $nodeName}
+        if($node -eq $null)
+        {
+            $newElement =$xml.CreateElement($nodeName, $xml.Project.xmlns)
+            $newNode = $xml.Project.PropertyGroup.AppendChild($newElement)
+            $null = $newNode.AppendChild($xml.CreateTextNode("true"))
+        } 
+        else
+        {
+            $node.InnerText = "true"
+        }
         $xml.Save($PathTargets)
     }
 
