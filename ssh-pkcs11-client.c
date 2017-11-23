@@ -31,6 +31,14 @@
 #include <errno.h>
 
 #include <openssl/rsa.h>
+#ifdef OPENSSL_HAS_ECC
+#include <openssl/ecdsa.h>
+#if ((defined(LIBRESSL_VERSION_NUMBER) && \
+	(LIBRESSL_VERSION_NUMBER >= 0x20010002L))) || \
+	(defined(ECDSA_F_ECDSA_METHOD_NEW))
+#define ENABLE_PKCS11_ECDSA 1
+#endif
+#endif
 
 #include "pathnames.h"
 #include "xmalloc.h"
@@ -139,9 +147,9 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	return (ret);
 }
 
-/* redirect the private key encrypt operation to the ssh-pkcs11-helper */
+/* redirect the RSA private key encrypt operation to the ssh-pkcs11-helper */
 static int
-wrap_key(RSA *rsa)
+wrap_rsa_key(RSA *rsa)
 {
 	static RSA_METHOD helper_rsa;
 
@@ -151,6 +159,67 @@ wrap_key(RSA *rsa)
 	RSA_set_method(rsa, &helper_rsa);
 	return (0);
 }
+
+#ifdef ENABLE_PKCS11_ECDSA
+static ECDSA_SIG *
+pkcs11_ecdsa_private_sign(const unsigned char *from, int flen,
+								  const BIGNUM *inv, const BIGNUM *r, EC_KEY * ecdsa)
+{
+	Key key;
+	u_char *blob, *signature = NULL;
+	u_int blen, slen = 0;
+	Buffer msg;
+	ECDSA_SIG *ret = NULL;
+
+	key.type = KEY_ECDSA;
+	key.ecdsa = ecdsa;
+	key.ecdsa_nid = sshkey_ecdsa_key_to_nid(ecdsa);
+	if (key_to_blob(&key, &blob, &blen) == 0)
+		return NULL;
+	buffer_init(&msg);
+	buffer_put_char(&msg, SSH2_AGENTC_SIGN_REQUEST);
+	buffer_put_string(&msg, blob, blen);
+	buffer_put_string(&msg, from, flen);
+	buffer_put_int(&msg, 0);
+	free(blob);
+	send_msg(&msg);
+	buffer_clear(&msg);
+
+	if (recv_msg(&msg) == SSH2_AGENT_SIGN_RESPONSE) {
+		signature = buffer_get_string(&msg, &slen);
+		if (slen <= (u_int)ECDSA_size(ecdsa)) {
+			int nlen = slen / 2;
+			ret = ECDSA_SIG_new();
+			BN_bin2bn(&signature[0], nlen, ret->r);
+			BN_bin2bn(&signature[nlen], nlen, ret->s);
+		}
+		free(signature);
+	}
+	buffer_free(&msg);
+	return (ret);
+}
+
+/* redirect the ECDSA private key encrypt operation to the ssh-pkcs11-helper */
+static int
+wrap_ecdsa_key(EC_KEY *ecdsa) {
+	static ECDSA_METHOD *helper_ecdsa = NULL;
+	if(helper_ecdsa == NULL) {
+		const ECDSA_METHOD *def = ECDSA_get_default_method();
+#ifdef ECDSA_F_ECDSA_METHOD_NEW
+		helper_ecdsa = ECDSA_METHOD_new((ECDSA_METHOD *)def);
+		ECDSA_METHOD_set_name(helper_ecdsa, "ssh-pkcs11-helper-ecdsa");
+		ECDSA_METHOD_set_sign(helper_ecdsa, pkcs11_ecdsa_private_sign);
+#else
+		helper_ecdsa = xcalloc(1, sizeof(*helper_ecdsa));
+		memcpy(helper_ecdsa, def, sizeof(*helper_ecdsa));
+		helper_ecdsa->name = "ssh-pkcs11-helper-ecdsa";
+		helper_ecdsa->ecdsa_do_sign = pkcs11_ecdsa_private_sign;
+#endif
+	}
+	ECDSA_set_method(ecdsa, helper_ecdsa);
+	return (0);
+}
+#endif
 
 static int
 pkcs11_start_helper(void)
@@ -209,7 +278,15 @@ pkcs11_add_provider(char *name, char *pin, Key ***keysp)
 			blob = buffer_get_string(&msg, &blen);
 			free(buffer_get_string(&msg, NULL));
 			k = key_from_blob(blob, blen);
-			wrap_key(k->rsa);
+			if(k->type == KEY_RSA) {
+				 wrap_rsa_key(k->rsa);
+#ifdef ENABLE_PKCS11_ECDSA
+			} else if(k->type == KEY_ECDSA) {
+				 wrap_ecdsa_key(k->ecdsa);
+#endif /* ENABLE_PKCS11_ECDSA */
+			} else {
+				/* Unsupported type */
+			}
 			(*keysp)[i] = k;
 			free(blob);
 		}

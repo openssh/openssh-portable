@@ -17,6 +17,7 @@
 int	pkcs11_init(int);
 void	pkcs11_terminate(void);
 int	pkcs11_add_provider(char *, char *, struct sshkey ***);
+int	pkcs11_del_key(struct sshkey *);
 int	pkcs11_del_provider(char *);
 
 #if !defined(WITH_OPENSSL) && defined(ENABLE_PKCS11)

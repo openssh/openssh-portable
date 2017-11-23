@@ -24,6 +24,16 @@
 
 #include "openbsd-compat/sys-queue.h"
 
+#include <openssl/rsa.h>
+#ifdef OPENSSL_HAS_ECC
+#include <openssl/ecdsa.h>
+#if ((defined(LIBRESSL_VERSION_NUMBER) && \
+	(LIBRESSL_VERSION_NUMBER >= 0x20010002L))) || \
+	(defined(ECDSA_F_ECDSA_METHOD_NEW))
+#define ENABLE_PKCS11_ECDSA 1
+#endif
+#endif
+
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
@@ -80,7 +90,7 @@ del_keys_by_name(char *name)
 		if (!strcmp(ki->providername, name)) {
 			TAILQ_REMOVE(&pkcs11_keylist, ki, next);
 			free(ki->providername);
-			key_free(ki->key);
+			pkcs11_del_key(ki->key);
 			free(ki);
 		}
 	}
@@ -180,14 +190,31 @@ process_sign(void)
 	if ((key = key_from_blob(blob, blen)) != NULL) {
 		if ((found = lookup_key(key)) != NULL) {
 #ifdef WITH_OPENSSL
-			int ret;
-
-			slen = RSA_size(key->rsa);
-			signature = xmalloc(slen);
-			if ((ret = RSA_private_encrypt(dlen, data, signature,
-			    found->rsa, RSA_PKCS1_PADDING)) != -1) {
-				slen = ret;
-				ok = 0;
+			if(found->type == KEY_RSA) {
+				int ret;
+				slen = RSA_size(key->rsa);
+				signature = xmalloc(slen);
+				if ((ret = RSA_private_encrypt(dlen, data, signature,
+											   found->rsa, RSA_PKCS1_PADDING)) != -1) {
+					slen = ret;
+					ok = 0;
+				}
+#ifdef ENABLE_PKCS11_ECDSA
+			} else if(found->type == KEY_ECDSA) {
+				ECDSA_SIG *sig = NULL;
+				if ((sig = ECDSA_do_sign(data, dlen, found->ecdsa)) != NULL) {
+					int rlen = BN_num_bytes(sig->r);
+					slen = BN_num_bytes(sig->s);
+					signature = xmalloc(slen + rlen);
+					BN_bn2bin(sig->r, signature);
+					BN_bn2bin(sig->s, signature + rlen);
+					ECDSA_SIG_free(sig);
+					slen += rlen;
+					ok = 0;
+				}
+#endif /* ENABLE_PKCS11_ECDSA */
+			} else {
+				/* Unsupported type */
 			}
 #endif /* WITH_OPENSSL */
 		}
