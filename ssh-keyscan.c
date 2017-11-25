@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.115 2017/06/30 04:17:23 dtucker Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.116 2017/11/25 06:46:22 dtucker Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -377,7 +377,7 @@ conalloc(char *iname, char *oname, int keytype)
 	fdcon[s].c_len = 4;
 	fdcon[s].c_off = 0;
 	fdcon[s].c_keytype = keytype;
-	gettimeofday(&fdcon[s].c_tv, NULL);
+	monotime_tv(&fdcon[s].c_tv);
 	fdcon[s].c_tv.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
 	FD_SET(s, read_wait);
@@ -411,7 +411,7 @@ static void
 contouch(int s)
 {
 	TAILQ_REMOVE(&tq, &fdcon[s], c_link);
-	gettimeofday(&fdcon[s].c_tv, NULL);
+	monotime_tv(&fdcon[s].c_tv);
 	fdcon[s].c_tv.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
 }
@@ -545,7 +545,7 @@ conloop(void)
 	con *c;
 	int i;
 
-	gettimeofday(&now, NULL);
+	monotime_tv(&now);
 	c = TAILQ_FIRST(&tq);
 
 	if (c && (c->c_tv.tv_sec > now.tv_sec ||

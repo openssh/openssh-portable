@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.67 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.68 2017/11/25 06:46:22 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -67,6 +67,8 @@ char	*tohex(const void *, size_t);
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
 void	 ms_to_timeval(struct timeval *, int);
+void	 monotime_ts(struct timespec *);
+void	 monotime_tv(struct timeval *);
 time_t	 monotime(void);
 double	 monotime_double(void);
 void	 lowercase(char *s);

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.266 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.267 2017/11/25 06:46:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1332,7 +1332,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		for (;;) {
 			if (state->packet_timeout_ms != -1) {
 				ms_to_timeval(&timeout, ms_remain);
-				gettimeofday(&start, NULL);
+				monotime_tv(&start);
 			}
 			if ((r = select(state->connection_in + 1, setp,
 			    NULL, NULL, timeoutp)) >= 0)
@@ -1959,7 +1959,7 @@ ssh_packet_write_wait(struct ssh *ssh)
 		for (;;) {
 			if (state->packet_timeout_ms != -1) {
 				ms_to_timeval(&timeout, ms_remain);
-				gettimeofday(&start, NULL);
+				monotime_tv(&start);
 			}
 			if ((ret = select(state->connection_out + 1,
 			    NULL, setp, NULL, timeoutp)) >= 0)

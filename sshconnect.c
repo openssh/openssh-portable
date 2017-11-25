@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.287 2017/09/14 04:32:21 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.288 2017/11/25 06:46:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -344,7 +344,7 @@ waitrfd(int fd, int *timeoutp)
 	struct timeval t_start;
 	int oerrno, r;
 
-	gettimeofday(&t_start, NULL);
+	monotime_tv(&t_start);
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	for (; *timeoutp >= 0;) {

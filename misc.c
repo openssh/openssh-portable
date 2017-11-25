@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.118 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.119 2017/11/25 06:46:22 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1259,8 +1259,8 @@ ms_subtract_diff(struct timeval *start, int *ms)
 {
 	struct timeval diff, finish;
 
-	gettimeofday(&finish, NULL);
-	timersub(&finish, start, &diff);	
+	monotime_tv(&finish);
+	timersub(&finish, start, &diff);
 	*ms -= (diff.tv_sec * 1000) + (diff.tv_usec / 1000);
 }
 
@@ -1273,54 +1273,63 @@ ms_to_timeval(struct timeval *tv, int ms)
 	tv->tv_usec = (ms % 1000) * 1000;
 }
 
-time_t
-monotime(void)
+void
+monotime_ts(struct timespec *ts)
 {
-#if defined(HAVE_CLOCK_GETTIME) && \
-    (defined(CLOCK_MONOTONIC) || defined(CLOCK_BOOTTIME))
-	struct timespec ts;
+	struct timeval tv;
+#if defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_BOOTTIME) || \
+    defined(CLOCK_MONOTONIC) || defined(CLOCK_REALTIME))
 	static int gettime_failed = 0;
 
 	if (!gettime_failed) {
-#if defined(CLOCK_BOOTTIME)
-		if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
-			return (ts.tv_sec);
-#endif
-#if defined(CLOCK_MONOTONIC)
-		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-			return (ts.tv_sec);
-#endif
+# ifdef CLOCK_BOOTTIME
+		if (clock_gettime(CLOCK_BOOTTIME, ts) == 0)
+			return;
+# endif /* CLOCK_BOOTTIME */
+# ifdef CLOCK_MONOTONIC
+		if (clock_gettime(CLOCK_MONOTONIC, ts) == 0)
+			return;
+# endif /* CLOCK_MONOTONIC */
+# ifdef CLOCK_REALTIME
+		/* Not monotonic, but we're almost out of options here. */
+		if (clock_gettime(CLOCK_REALTIME, ts) == 0)
+			return;
+# endif /* CLOCK_REALTIME */
 		debug3("clock_gettime: %s", strerror(errno));
 		gettime_failed = 1;
 	}
-#endif /* HAVE_CLOCK_GETTIME && (CLOCK_MONOTONIC || CLOCK_BOOTTIME */
+#endif /* HAVE_CLOCK_GETTIME && (BOOTTIME || MONOTONIC || REALTIME) */
+	gettimeofday(&tv, NULL);
+	ts->tv_sec = tv.tv_sec;
+	ts->tv_nsec = (long)tv.tv_usec * 1000;
+}
 
-	return time(NULL);
+void
+monotime_tv(struct timeval *tv)
+{
+	struct timespec ts;
+
+	monotime_ts(&ts);
+	tv->tv_sec = ts.tv_sec;
+	tv->tv_usec = ts.tv_nsec / 1000;
+}
+
+time_t
+monotime(void)
+{
+	struct timespec ts;
+
+	monotime_ts(&ts);
+	return ts.tv_sec;
 }
 
 double
 monotime_double(void)
 {
-#if defined(HAVE_CLOCK_GETTIME) && \
-    (defined(CLOCK_MONOTONIC) || defined(CLOCK_BOOTTIME))
 	struct timespec ts;
-	static int gettime_failed = 0;
 
-	if (!gettime_failed) {
-#if defined(CLOCK_BOOTTIME)
-		if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0)
-			return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
-#endif
-#if defined(CLOCK_MONOTONIC)
-		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-			return (ts.tv_sec + (double)ts.tv_nsec / 1000000000);
-#endif
-		debug3("clock_gettime: %s", strerror(errno));
-		gettime_failed = 1;
-	}
-#endif /* HAVE_CLOCK_GETTIME && (CLOCK_MONOTONIC || CLOCK_BOOTTIME */
-
-	return (double)time(NULL);
+	monotime_ts(&ts);
+	return ts.tv_sec + ((double)ts.tv_nsec / 1000000000);
 }
 
 void
@@ -1342,7 +1351,7 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 	struct timespec ts, rm;
 
 	if (!timerisset(&bw->bwstart)) {
-		gettimeofday(&bw->bwstart, NULL);
+		monotime_tv(&bw->bwstart);
 		return;
 	}
 
@@ -1350,7 +1359,7 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 	if (bw->lamt < bw->thresh)
 		return;
 
-	gettimeofday(&bw->bwend, NULL);
+	monotime_tv(&bw->bwend);
 	timersub(&bw->bwend, &bw->bwstart, &bw->bwend);
 	if (!timerisset(&bw->bwend))
 		return;
@@ -1384,7 +1393,7 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 	}
 
 	bw->lamt = 0;
-	gettimeofday(&bw->bwstart, NULL);
+	monotime_tv(&bw->bwstart);
 }
 
 /* Make a template filename for mk[sd]temp() */
