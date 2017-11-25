@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.306 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.307 2017/11/25 05:58:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -223,19 +223,6 @@ signal_handler(int sig)
 {
 	received_signal = sig;
 	quit_pending = 1;
-}
-
-/*
- * Returns current time in seconds from Jan 1, 1970 with the maximum
- * available resolution.
- */
-
-static double
-get_current_time(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
 }
 
 /*
@@ -1256,7 +1243,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 	}
 
-	start_time = get_current_time();
+	start_time = monotime_double();
 
 	/* Initialize variables. */
 	last_was_cr = 1;
@@ -1445,7 +1432,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	buffer_free(&stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
-	total_time = get_current_time() - start_time;
+	total_time = monotime_double() - start_time;
 	packet_get_bytes(&ibytes, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
 	    (unsigned long long)obytes, (unsigned long long)ibytes, total_time);
