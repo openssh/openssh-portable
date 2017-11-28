@@ -1,4 +1,4 @@
-/* $OpenBSD: umac.c,v 1.14 2017/11/28 06:04:51 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.15 2017/11/28 06:09:38 djm Exp $ */
 /* -----------------------------------------------------------------------
  *
  * umac.c -- C Implementation UMAC Message Authentication
@@ -682,7 +682,7 @@ static void nh_final(nh_ctx *hc, UINT8 *result)
         nh_transform(hc, hc->data, nh_len);
         hc->bytes_hashed += hc->next_data_empty;
     } else if (hc->bytes_hashed == 0) {
-    	nh_len = L1_PAD_BOUNDARY;
+	nh_len = L1_PAD_BOUNDARY;
         zero_pad(hc->data, L1_PAD_BOUNDARY);
         nh_transform(hc, hc->data, nh_len);
     }
@@ -1133,10 +1133,10 @@ static int uhash(uhash_ctx_t ahc, u_char *msg, long len, u_char *res)
      * the polyhash.
      */
     if (len <= L1_KEY_LEN) {
-    	if (len == 0)                  /* If zero length messages will not */
-    		nh_len = L1_PAD_BOUNDARY;  /* be seen, comment out this case   */
-    	else
-        	nh_len = ((len + (L1_PAD_BOUNDARY - 1)) & ~(L1_PAD_BOUNDARY - 1));
+	if (len == 0)                  /* If zero length messages will not */
+		nh_len = L1_PAD_BOUNDARY;  /* be seen, comment out this case   */
+	else
+		nh_len = ((len + (L1_PAD_BOUNDARY - 1)) & ~(L1_PAD_BOUNDARY - 1));
         extra_zeroes_needed = nh_len - len;
         zero_pad((UINT8 *)msg + len, extra_zeroes_needed);
         nh(&ahc->hash, (UINT8 *)msg, nh_len, len, nh_result);
