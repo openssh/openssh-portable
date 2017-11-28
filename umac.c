@@ -1,6 +1,6 @@
-/* $OpenBSD: umac.c,v 1.13 2017/10/27 01:01:17 djm Exp $ */
+/* $OpenBSD: umac.c,v 1.14 2017/11/28 06:04:51 djm Exp $ */
 /* -----------------------------------------------------------------------
- * 
+ *
  * umac.c -- C Implementation UMAC Message Authentication
  *
  * Version 0.93b of rfc4418.txt -- 2006 July 18
@@ -10,7 +10,7 @@
  * Please report bugs and suggestions to the UMAC webpage.
  *
  * Copyright (c) 1999-2006 Ted Krovetz
- *                                                                 
+ *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and with or without fee, is hereby
  * granted provided that the above copyright notice appears in all copies
@@ -18,8 +18,8 @@
  * holder not be used in advertising or publicity pertaining to
  * distribution of the software without specific, written prior permission.
  *
- * Comments should be directed to Ted Krovetz (tdk@acm.org)                                        
- *                                                                   
+ * Comments should be directed to Ted Krovetz (tdk@acm.org)
+ *
  * ---------------------------------------------------------------------- */
 
  /* ////////////////////// IMPORTANT NOTES /////////////////////////////////
@@ -208,7 +208,7 @@ static void kdf(void *bufp, aes_int_key key, UINT8 ndx, int nbytes)
 }
 
 /* The final UHASH result is XOR'd with the output of a pseudorandom
- * function. Here, we use AES to generate random output and 
+ * function. Here, we use AES to generate random output and
  * xor the appropriate bytes depending on the last bits of nonce.
  * This scheme is optimized for sequential, increasing big-endian nonces.
  */
@@ -284,28 +284,28 @@ static void pdf_gen_xor(pdf_ctx *pc, const UINT8 nonce[8], UINT8 buf[8])
 /* ---------------------------------------------------------------------- */
 
 /* The NH-based hash functions used in UMAC are described in the UMAC paper
- * and specification, both of which can be found at the UMAC website.     
- * The interface to this implementation has two         
+ * and specification, both of which can be found at the UMAC website.
+ * The interface to this implementation has two
  * versions, one expects the entire message being hashed to be passed
  * in a single buffer and returns the hash result immediately. The second
- * allows the message to be passed in a sequence of buffers. In the          
- * muliple-buffer interface, the client calls the routine nh_update() as     
- * many times as necessary. When there is no more data to be fed to the   
- * hash, the client calls nh_final() which calculates the hash output.    
- * Before beginning another hash calculation the nh_reset() routine       
- * must be called. The single-buffer routine, nh(), is equivalent to  
- * the sequence of calls nh_update() and nh_final(); however it is        
+ * allows the message to be passed in a sequence of buffers. In the
+ * muliple-buffer interface, the client calls the routine nh_update() as
+ * many times as necessary. When there is no more data to be fed to the
+ * hash, the client calls nh_final() which calculates the hash output.
+ * Before beginning another hash calculation the nh_reset() routine
+ * must be called. The single-buffer routine, nh(), is equivalent to
+ * the sequence of calls nh_update() and nh_final(); however it is
  * optimized and should be prefered whenever the multiple-buffer interface
- * is not necessary. When using either interface, it is the client's         
- * responsability to pass no more than L1_KEY_LEN bytes per hash result.            
- *                                                                        
- * The routine nh_init() initializes the nh_ctx data structure and        
- * must be called once, before any other PDF routine.                     
+ * is not necessary. When using either interface, it is the client's
+ * responsability to pass no more than L1_KEY_LEN bytes per hash result.
+ *
+ * The routine nh_init() initializes the nh_ctx data structure and
+ * must be called once, before any other PDF routine.
  */
 
  /* The "nh_aux" routines do the actual NH hashing work. They
   * expect buffers to be multiples of L1_PAD_BOUNDARY. These routines
-  * produce output for all STREAMS NH iterations in one call, 
+  * produce output for all STREAMS NH iterations in one call,
   * allowing the parallel implementation of the streams.
   */
 
@@ -328,10 +328,10 @@ typedef struct {
 #if (UMAC_OUTPUT_LEN == 4)
 
 static void nh_aux(void *kp, const void *dp, void *hp, UINT32 dlen)
-/* NH hashing primitive. Previous (partial) hash result is loaded and     
+/* NH hashing primitive. Previous (partial) hash result is loaded and
 * then stored via hp pointer. The length of the data pointed at by "dp",
 * "dlen", is guaranteed to be divisible by L1_PAD_BOUNDARY (32).  Key
-* is expected to be endian compensated in memory at key setup.    
+* is expected to be endian compensated in memory at key setup.
 */
 {
     UINT64 h;
@@ -677,7 +677,7 @@ static void nh_final(nh_ctx *hc, UINT8 *result)
     if (hc->next_data_empty != 0) {
         nh_len = ((hc->next_data_empty + (L1_PAD_BOUNDARY - 1)) &
                                                 ~(L1_PAD_BOUNDARY - 1));
-        zero_pad(hc->data + hc->next_data_empty, 
+        zero_pad(hc->data + hc->next_data_empty,
                                           nh_len - hc->next_data_empty);
         nh_transform(hc, hc->data, nh_len);
         hc->bytes_hashed += hc->next_data_empty;
@@ -744,16 +744,16 @@ static void nh(nh_ctx *hc, const UINT8 *buf, UINT32 padded_len,
  * buffers are presented sequentially. In the sequential interface, the
  * UHASH client calls the routine uhash_update() as many times as necessary.
  * When there is no more data to be fed to UHASH, the client calls
- * uhash_final() which          
- * calculates the UHASH output. Before beginning another UHASH calculation    
- * the uhash_reset() routine must be called. The all-at-once UHASH routine,   
- * uhash(), is equivalent to the sequence of calls uhash_update() and         
- * uhash_final(); however it is optimized and should be                     
- * used whenever the sequential interface is not necessary.              
- *                                                                        
- * The routine uhash_init() initializes the uhash_ctx data structure and    
+ * uhash_final() which
+ * calculates the UHASH output. Before beginning another UHASH calculation
+ * the uhash_reset() routine must be called. The all-at-once UHASH routine,
+ * uhash(), is equivalent to the sequence of calls uhash_update() and
+ * uhash_final(); however it is optimized and should be
+ * used whenever the sequential interface is not necessary.
+ *
+ * The routine uhash_init() initializes the uhash_ctx data structure and
  * must be called once, before any other UHASH routine.
- */                                                        
+ */
 
 /* ---------------------------------------------------------------------- */
 /* ----- Constants and uhash_ctx ---------------------------------------- */
@@ -835,7 +835,7 @@ static void poly_hash(uhash_ctx_t hc, UINT32 data_in[])
 
     for (i = 0; i < STREAMS; i++) {
         if ((UINT32)(data[i] >> 32) == 0xfffffffful) {
-            hc->poly_accum[i] = poly64(hc->poly_accum[i], 
+            hc->poly_accum[i] = poly64(hc->poly_accum[i],
                                        hc->poly_key_8[i], p64 - 1);
             hc->poly_accum[i] = poly64(hc->poly_accum[i],
                                        hc->poly_key_8[i], (data[i] - 59));
@@ -919,7 +919,7 @@ static void ip_long(uhash_ctx_t ahc, u_char *res)
         if (ahc->poly_accum[i] >= p64)
             ahc->poly_accum[i] -= p64;
         t  = ip_aux(0,ahc->ip_keys+(i*4), ahc->poly_accum[i]);
-        STORE_UINT32_BIG((UINT32 *)res+i, 
+        STORE_UINT32_BIG((UINT32 *)res+i,
                          ip_reduce_p36(t) ^ ahc->ip_trans[i]);
     }
 }
@@ -984,7 +984,7 @@ static void uhash_init(uhash_ctx_t ahc, aes_int_key prf_key)
     for (i = 0; i < STREAMS; i++)
           memcpy(ahc->ip_keys+4*i, buf+(8*i+4)*sizeof(UINT64),
                                                  4*sizeof(UINT64));
-    endian_convert_if_le(ahc->ip_keys, sizeof(UINT64), 
+    endian_convert_if_le(ahc->ip_keys, sizeof(UINT64),
                                                   sizeof(ahc->ip_keys));
     for (i = 0; i < STREAMS*4; i++)
         ahc->ip_keys[i] %= p36;  /* Bring into Z_p36 */
@@ -1134,7 +1134,7 @@ static int uhash(uhash_ctx_t ahc, u_char *msg, long len, u_char *res)
      */
     if (len <= L1_KEY_LEN) {
     	if (len == 0)                  /* If zero length messages will not */
-    		nh_len = L1_PAD_BOUNDARY;  /* be seen, comment out this case   */ 
+    		nh_len = L1_PAD_BOUNDARY;  /* be seen, comment out this case   */
     	else
         	nh_len = ((len + (L1_PAD_BOUNDARY - 1)) & ~(L1_PAD_BOUNDARY - 1));
         extra_zeroes_needed = nh_len - len;
@@ -1175,9 +1175,9 @@ static int uhash(uhash_ctx_t ahc, u_char *msg, long len, u_char *res)
 
 /* The UMAC interface has two interfaces, an all-at-once interface where
  * the entire message to be authenticated is passed to UMAC in one buffer,
- * and a sequential interface where the message is presented a little at a   
+ * and a sequential interface where the message is presented a little at a
  * time. The all-at-once is more optimaized than the sequential version and
- * should be preferred when the sequential interface is not required. 
+ * should be preferred when the sequential interface is not required.
  */
 struct umac_ctx {
     uhash_ctx hash;          /* Hash function for message compression    */
@@ -1213,7 +1213,7 @@ int umac_delete(struct umac_ctx *ctx)
 /* ---------------------------------------------------------------------- */
 
 struct umac_ctx *umac_new(const u_char key[])
-/* Dynamically allocate a umac_ctx struct, initialize variables, 
+/* Dynamically allocate a umac_ctx struct, initialize variables,
  * generate subkeys from key. Align to 16-byte boundary.
  */
 {
@@ -1263,7 +1263,7 @@ int umac_update(struct umac_ctx *ctx, const u_char *input, long len)
 /* ---------------------------------------------------------------------- */
 
 #if 0
-int umac(struct umac_ctx *ctx, u_char *input, 
+int umac(struct umac_ctx *ctx, u_char *input,
          long len, u_char tag[],
          u_char nonce[8])
 /* All-in-one version simply calls umac_update() and umac_final().        */
