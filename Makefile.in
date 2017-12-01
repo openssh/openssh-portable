@@ -61,6 +61,7 @@ XAUTH_PATH=@XAUTH_PATH@
 LDFLAGS=-L. -Lopenbsd-compat/ @LDFLAGS@
 EXEEXT=@EXEEXT@
 MANFMT=@MANFMT@
+MKDIR_P=@MKDIR_P@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT)
 
@@ -310,14 +311,13 @@ check-config:
 	-$(DESTDIR)$(sbindir)/sshd -t -f $(DESTDIR)$(sysconfdir)/sshd_config
 
 install-files:
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)5
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)
-	(umask 022 ; $(srcdir)/mkinstalldirs $(DESTDIR)$(PRIVSEP_PATH))
+	$(MKDIR_P) $(DESTDIR)$(bindir)
+	$(MKDIR_P) $(DESTDIR)$(sbindir)
+	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)1
+	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)5
+	$(MKDIR_P) $(DESTDIR)$(mandir)/$(mansubdir)8
+	$(MKDIR_P) $(DESTDIR)$(libexecdir)
+	$(MKDIR_P) -m 0755 $(DESTDIR)$(PRIVSEP_PATH)
 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh$(EXEEXT) $(DESTDIR)$(bindir)/ssh$(EXEEXT)
 	$(INSTALL) -m 0755 $(STRIP_OPT) scp$(EXEEXT) $(DESTDIR)$(bindir)/scp$(EXEEXT)
 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-add$(EXEEXT) $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
@@ -345,9 +345,7 @@ install-files:
 	$(INSTALL) -m 644 ssh-pkcs11-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-pkcs11-helper.8
 
 install-sysconf:
-	if [ ! -d $(DESTDIR)$(sysconfdir) ]; then \
-		$(srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir); \
-	fi
+	$(MKDIR_P) $(DESTDIR)$(sysconfdir)
 	@if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config ]; then \
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
 	else \
@@ -418,28 +416,16 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-pkcs11-helper.8
 
 regress-prep:
-	[ -d `pwd`/regress ] || mkdir -p `pwd`/regress
-	[ -d `pwd`/regress/unittests ] || mkdir -p `pwd`/regress/unittests
-	[ -d `pwd`/regress/unittests/test_helper ] || \
-		mkdir -p `pwd`/regress/unittests/test_helper
-	[ -d `pwd`/regress/unittests/sshbuf ] || \
-		mkdir -p `pwd`/regress/unittests/sshbuf
-	[ -d `pwd`/regress/unittests/sshkey ] || \
-		mkdir -p `pwd`/regress/unittests/sshkey
-	[ -d `pwd`/regress/unittests/bitmap ] || \
-		mkdir -p `pwd`/regress/unittests/bitmap
-	[ -d `pwd`/regress/unittests/conversion ] || \
-		mkdir -p `pwd`/regress/unittests/conversion
-	[ -d `pwd`/regress/unittests/hostkeys ] || \
-		mkdir -p `pwd`/regress/unittests/hostkeys
-	[ -d `pwd`/regress/unittests/kex ] || \
-		mkdir -p `pwd`/regress/unittests/kex
-	[ -d `pwd`/regress/unittests/match ] || \
-		mkdir -p `pwd`/regress/unittests/match
-	[ -d `pwd`/regress/unittests/utf8 ] || \
-		mkdir -p `pwd`/regress/unittests/utf8
-	[ -d `pwd`/regress/misc/kexfuzz ] || \
-		mkdir -p `pwd`/regress/misc/kexfuzz
+	$(MKDIR_P) `pwd`/regress/unittests/test_helper
+	$(MKDIR_P) `pwd`/regress/unittests/sshbuf
+	$(MKDIR_P) `pwd`/regress/unittests/sshkey
+	$(MKDIR_P) `pwd`/regress/unittests/bitmap
+	$(MKDIR_P) `pwd`/regress/unittests/conversion
+	$(MKDIR_P) `pwd`/regress/unittests/hostkeys
+	$(MKDIR_P) `pwd`/regress/unittests/kex
+	$(MKDIR_P) `pwd`/regress/unittests/match
+	$(MKDIR_P) `pwd`/regress/unittests/utf8
+	$(MKDIR_P) `pwd`/regress/misc/kexfuzz
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
