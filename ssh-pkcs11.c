@@ -469,7 +469,6 @@ pkcs11_fetch_keys_filter(struct pkcs11_provider *p, CK_ULONG slotidx,
 	CK_ULONG		nfound;
 	CK_SESSION_HANDLE	session;
 	CK_FUNCTION_LIST	*f;
-	const BIGNUM		*n, *e;
 
 	f = p->function_list;
 	session = p->slotinfo[slotidx].session;
@@ -550,26 +549,30 @@ pkcs11_fetch_keys_filter(struct pkcs11_provider *p, CK_ULONG slotidx,
 			if (x509)
 				X509_free(x509);
 		}
-		RSA_get0_key(rsa, &n, &e, NULL);
-		if (rsa && n && e &&
-		    pkcs11_rsa_wrap(p, slotidx, &attribs[0], rsa) == 0) {
-			if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
-				fatal("sshkey_new failed");
-			key->rsa = rsa;
-			key->type = KEY_RSA;
-			key->flags |= SSHKEY_FLAG_EXT;
-			if (pkcs11_key_included(keysp, nkeys, key)) {
-				sshkey_free(key);
+		if (rsa) {
+			const BIGNUM *n, *e;
+
+			RSA_get0_key(rsa, &n, &e, NULL);
+			if (n && e &&
+			    pkcs11_rsa_wrap(p, slotidx, &attribs[0], rsa) == 0) {
+				if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
+					fatal("sshkey_new failed");
+				key->rsa = rsa;
+				key->type = KEY_RSA;
+				key->flags |= SSHKEY_FLAG_EXT;
+				if (pkcs11_key_included(keysp, nkeys, key)) {
+					sshkey_free(key);
+				} else {
+					/* expand key array and add key */
+					*keysp = xrecallocarray(*keysp, *nkeys,
+					    *nkeys + 1, sizeof(struct sshkey *));
+					(*keysp)[*nkeys] = key;
+					*nkeys = *nkeys + 1;
+					debug("have %d keys", *nkeys);
+				}
 			} else {
-				/* expand key array and add key */
-				*keysp = xrecallocarray(*keysp, *nkeys,
-				    *nkeys + 1, sizeof(struct sshkey *));
-				(*keysp)[*nkeys] = key;
-				*nkeys = *nkeys + 1;
-				debug("have %d keys", *nkeys);
+				RSA_free(rsa);
 			}
-		} else if (rsa) {
-			RSA_free(rsa);
 		}
 		for (i = 0; i < 3; i++)
 			free(attribs[i].pValue);
