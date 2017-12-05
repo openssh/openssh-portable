@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.376 2017/10/25 00:15:35 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.377 2017/12/05 01:30:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3351,7 +3351,8 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sock < 0) {
 			/* this is no error since kernel may not support ipv6 */
-			verbose("socket: %.100s", strerror(errno));
+			verbose("socket [%s]:%s: %.100s", ntop, strport,
+			    strerror(errno));
 			continue;
 		}
 
@@ -3369,9 +3370,11 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 			 * already bound
 			 */
 			if (!ai->ai_next)
-				error("bind: %.100s", strerror(errno));
+				error("bind [%s]:%s: %.100s",
+				    ntop, strport, strerror(errno));
 			else
-				verbose("bind: %.100s", strerror(errno));
+				verbose("bind [%s]:%s: %.100s",
+				    ntop, strport, strerror(errno));
 
 			close(sock);
 			continue;
@@ -3379,6 +3382,8 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		/* Start listening for connections on the socket. */
 		if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
 			error("listen: %.100s", strerror(errno));
+			error("listen [%s]:%s: %.100s", ntop, strport,
+			    strerror(errno));
 			close(sock);
 			continue;
 		}
