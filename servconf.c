@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.321 2017/12/05 23:56:07 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.322 2017/12/05 23:59:47 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1152,6 +1152,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	size_t len;
 	long long val64;
 	const struct multistate *multistate_ptr;
+	const char *errstr;
 
 	/* Strip trailing whitespace. Allow \f (form feed) at EOL only */
 	if ((len = strlen(line)) == 0)
@@ -1441,10 +1442,9 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->x11_display_offset;
  parse_int:
 		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing integer value.",
-			    filename, linenum);
-		value = atoi(arg);
+		if ((errstr = atoi_err(arg, &value)) != NULL)
+			fatal("%s line %d: integer value %s.",
+			    filename, linenum, errstr);
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;

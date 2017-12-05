@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.68 2017/11/25 06:46:22 dtucker Exp $ */
+/* $OpenBSD: misc.h,v 1.69 2017/12/05 23:59:47 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -74,6 +74,7 @@ double	 monotime_double(void);
 void	 lowercase(char *s);
 int	 unix_listener(const char *, int, int);
 int	 valid_domain(char *, int, const char **);
+const char *atoi_err(const char *, int *);
 
 void	 sock_set_v6only(int);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.119 2017/11/25 06:46:22 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.120 2017/12/05 23:59:47 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -2111,4 +2111,18 @@ bad:
 	if (errstr != NULL)
 		*errstr = errbuf;
 	return 0;
+}
+
+const char *
+atoi_err(const char *nptr, int *val)
+{
+	const char *errstr = NULL;
+	long long num;
+
+	if (nptr == NULL || *nptr == '\0')
+		return "missing";
+	num = strtonum(nptr, 0, INT_MAX, &errstr);
+	if (errstr == NULL)
+		*val = (int)num;
+	return errstr;
 }

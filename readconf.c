@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.280 2017/10/21 23:06:24 millert Exp $ */
+/* $OpenBSD: readconf.c,v 1.281 2017/12/05 23:59:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -817,6 +817,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	const struct multistate *multistate_ptr;
 	struct allowed_cname *cname;
 	glob_t gl;
+	const char *errstr;
 
 	if (activep == NULL) { /* We are processing a command line directive */
 		cmdline = 1;
@@ -1131,15 +1132,9 @@ parse_command:
 		intptr = &options->port;
 parse_int:
 		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
-			fatal("%.200s line %d: Bad number.", filename, linenum);
-
-		/* Octal, decimal, or hex format? */
-		value = strtol(arg, &endofnumber, 0);
-		if (arg == endofnumber)
-			fatal("%.200s line %d: Bad number.", filename, linenum);
+		if ((errstr = atoi_err(arg, &value)) != NULL)
+			fatal("%s line %d: integer value %s.",
+			    filename, linenum, errstr);
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
@@ -1534,7 +1529,6 @@ parse_keytypes:
 	case oCanonicalDomains:
 		value = options->num_canonical_domains != 0;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
-			const char *errstr;
 			if (!valid_domain(arg, 1, &errstr)) {
 				fatal("%s line %d: %s", filename, linenum,
 				    errstr);
