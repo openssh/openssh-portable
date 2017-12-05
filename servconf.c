@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.320 2017/11/03 05:18:44 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.321 2017/12/05 23:56:07 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2029,6 +2029,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum);
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
+		break;
 
 	case sDeprecated:
 	case sIgnore:
