@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.288 2017/11/25 06:46:22 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.289 2017/12/06 05:06:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -631,11 +631,12 @@ confirm(const char *prompt)
 		return 0;
 	for (msg = prompt;;msg = again) {
 		p = read_passphrase(msg, RP_ECHO);
-		if (p == NULL ||
-		    (p[0] == '\0') || (p[0] == '\n') ||
-		    strncasecmp(p, "no", 2) == 0)
+		if (p == NULL)
+			return 0;
+		p[strcspn(p, "\n")] = '\0';
+		if (p[0] == '\0' || strcasecmp(p, "no") == 0)
 			ret = 0;
-		if (p && strncasecmp(p, "yes", 3) == 0)
+		else if (strcasecmp(p, "yes") == 0)
 			ret = 1;
 		free(p);
 		if (ret != -1)
