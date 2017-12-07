@@ -78,7 +78,8 @@ fd_table_initialize()
 	w32_io_stdin.type = NONSOCK_SYNC_FD;
 
 	char *envValue = NULL;
-	_dupenv_s(&envValue, NULL, SSH_ASYNC_STDIN);
+	size_t len = 0;
+	_dupenv_s(&envValue, &len, SSH_ASYNC_STDIN);
 	if (NULL != envValue) {
 		if(strcmp(envValue, "1") == 0)
 			w32_io_stdin.type = NONSOCK_FD;
@@ -93,7 +94,7 @@ fd_table_initialize()
 	w32_io_stdout.type = NONSOCK_SYNC_FD;
 	
 	envValue = NULL;
-	_dupenv_s(&envValue, NULL, SSH_ASYNC_STDOUT);
+	_dupenv_s(&envValue, &len, SSH_ASYNC_STDOUT);
 	if (NULL != envValue) {
 		if(strcmp(envValue, "1") == 0)
 			w32_io_stdout.type = NONSOCK_FD;
@@ -108,7 +109,7 @@ fd_table_initialize()
 	w32_io_stderr.type = NONSOCK_SYNC_FD;
 
 	envValue = NULL;
-	_dupenv_s(&envValue, NULL, SSH_ASYNC_STDERR);
+	_dupenv_s(&envValue, &len, SSH_ASYNC_STDERR);
 	if (NULL != envValue) {
 		if(strcmp(envValue, "1") == 0)
 			w32_io_stderr.type = NONSOCK_FD;

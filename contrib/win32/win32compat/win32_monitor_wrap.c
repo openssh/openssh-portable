@@ -152,15 +152,20 @@ void* mm_auth_pubkey(const char* user_name, const struct sshkey *key,
 		msg = sshbuf_new();
 		if (!msg)
 			fatal("%s: out of memory", __func__);
+
 		if (sshbuf_put_u8(msg, SSH_PRIV_AGENT_MSG_ID) != 0 ||
 		    sshbuf_put_cstring(msg, PUBKEY_AUTH_REQUEST) != 0 ||
 		    sshkey_to_blob(key, &blob, &blen) != 0 ||
 		    sshbuf_put_string(msg, blob, blen) != 0 ||
 		    sshbuf_put_cstring(msg, user_name) != 0 ||
 		    sshbuf_put_string(msg, sig, slen) != 0 ||
-		    sshbuf_put_string(msg, sshbuf_ptr(b), sshbuf_len(b)) != 0 ||
-		    ssh_request_reply(agent_fd, msg, msg) != 0) {
-			debug("unable to send pubkeyauth request");
+		    sshbuf_put_string(msg, sshbuf_ptr(b), sshbuf_len(b)) != 0) {
+			debug("unable to add data to ssh buffer");
+			break;
+		}
+
+		if(ssh_request_reply(agent_fd, msg, msg) != 0) {
+			error("unable to send pubkeyauth request to agent");
 			break;
 		}
 
@@ -211,4 +216,46 @@ int mm_load_profile(const char* user_name, u_int token)
 	}
 
 	return result;
+}
+
+void*
+mm_auth_custom_lsa(const char* user, const char* password, const char* domain, const char* lsa_auth_pkg)
+{
+	/* Pass credentials to privileged agent to retrieve token upon successful authentication */
+	struct sshbuf *msg = NULL;
+	HANDLE token = 0;
+	int agent_fd;
+
+	while (1) {
+		if ((agent_fd = get_priv_agent_sock()) == -1)
+			break;
+
+		msg = sshbuf_new();
+		if (!msg)
+			fatal("%s: out of memory", __func__);
+
+		if (sshbuf_put_u8(msg, SSH_PRIV_AGENT_MSG_ID) != 0 ||
+			sshbuf_put_cstring(msg, CUSTOM_LSA_AUTH_REQUEST) != 0 ||
+			sshbuf_put_cstring(msg, user) != 0 ||
+			sshbuf_put_cstring(msg, password) != 0 ||
+			sshbuf_put_cstring(msg, domain) != 0 ||
+			sshbuf_put_cstring(msg, lsa_auth_pkg) != 0 ||
+			ssh_request_reply(agent_fd, msg, msg) != 0) {
+			debug("unable to send LSA Auth request");
+			break;
+		}
+
+		if (sshbuf_get_u32(msg, (u_int32_t *)&token) != 0) {
+			debug("failed to get the token from the agent");
+			break;
+		}	
+
+		debug3("user:%s authenticated using LSA auth pkg:%s", user, lsa_auth_pkg);
+		break;
+	}
+
+	if (msg)
+		sshbuf_free(msg);
+
+	return (void*)(INT_PTR)token;
 }
