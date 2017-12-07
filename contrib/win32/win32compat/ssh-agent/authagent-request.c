@@ -296,12 +296,12 @@ process_custom_lsa_auth_req(struct sshbuf* request, struct sshbuf* response, str
 	InitLsaString(&originName, "sshd");
 
 	if ((ret = LsaRegisterLogonProcess(&logon_process_name, &lsa_handle, &mode)) != STATUS_SUCCESS) {
-		error("LsaRegisterLogonProcess failed, error:%ld", LsaNtStatusToWinError(ret));
+		error("LsaRegisterLogonProcess failed, error:%x", ret);
 		goto done;
 	}
 
 	if ((ret = LsaLookupAuthenticationPackage(lsa_handle, &lsa_auth_package_name, &auth_package_id)) != STATUS_SUCCESS) {
-		error("LsaLookupAuthenticationPackage failed, lsa auth pkg:%ls error:%ld", lsa_pkg, LsaNtStatusToWinError(ret));
+		error("LsaLookupAuthenticationPackage failed, lsa auth pkg:%ls error:%x", lsa_pkg, ret);
 		goto done;
 	}
 
@@ -338,9 +338,9 @@ process_custom_lsa_auth_req(struct sshbuf* request, struct sshbuf* response, str
 		&quotas,
 		&subStatus)) != STATUS_SUCCESS) {		
 		if(ret == STATUS_ACCOUNT_RESTRICTION)
-			error("LsaLogonUser failed, error:%ld subStatus:%ld", LsaNtStatusToWinError(ret), subStatus);
+			error("LsaLogonUser failed, error:%x subStatus:%ld", ret, subStatus);
 		else
-			error("LsaLogonUser failed error:%ld", LsaNtStatusToWinError(ret));
+			error("LsaLogonUser failed error:%x", ret);
 
 		goto done;
 	}
