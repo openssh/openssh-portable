@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.121 2017/12/08 02:13:02 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.122 2017/12/08 02:14:33 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1515,18 +1515,18 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	}
 	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
 		saved_errno = errno;
-		close(sock);
 		error("%s: cannot bind to path %s: %s",
 		    __func__, path, strerror(errno));
+		close(sock);
 		errno = saved_errno;
 		return -1;
 	}
 	if (listen(sock, backlog) < 0) {
 		saved_errno = errno;
-		close(sock);
-		unlink(path);
 		error("%s: cannot listen on path %s: %s",
 		    __func__, path, strerror(errno));
+		close(sock);
+		unlink(path);
 		errno = saved_errno;
 		return -1;
 	}
