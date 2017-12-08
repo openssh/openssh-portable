@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.120 2017/12/05 23:59:47 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.121 2017/12/08 02:13:02 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1494,9 +1494,10 @@ unix_listener(const char *path, int backlog, int unlink_first)
 
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
-	if (strlcpy(sunaddr.sun_path, path, sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
-		error("%s: \"%s\" too long for Unix domain socket", __func__,
-		    path);
+	if (strlcpy(sunaddr.sun_path, path,
+	    sizeof(sunaddr.sun_path)) >= sizeof(sunaddr.sun_path)) {
+		error("%s: path \"%s\" too long for Unix domain socket",
+		    __func__, path);
 		errno = ENAMETOOLONG;
 		return -1;
 	}
@@ -1504,7 +1505,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (sock < 0) {
 		saved_errno = errno;
-		error("socket: %.100s", strerror(errno));
+		error("%s: socket: %.100s", __func__, strerror(errno));
 		errno = saved_errno;
 		return -1;
 	}
@@ -1514,18 +1515,18 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	}
 	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
 		saved_errno = errno;
-		error("bind: %.100s", strerror(errno));
 		close(sock);
-		error("%s: cannot bind to path: %s", __func__, path);
+		error("%s: cannot bind to path %s: %s",
+		    __func__, path, strerror(errno));
 		errno = saved_errno;
 		return -1;
 	}
 	if (listen(sock, backlog) < 0) {
 		saved_errno = errno;
-		error("listen: %.100s", strerror(errno));
 		close(sock);
 		unlink(path);
-		error("%s: cannot listen on path: %s", __func__, path);
+		error("%s: cannot listen on path %s: %s",
+		    __func__, path, strerror(errno));
 		errno = saved_errno;
 		return -1;
 	}
