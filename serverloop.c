@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.199 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.200 2017/12/10 05:55:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -171,10 +171,12 @@ static void
 client_alive_check(struct ssh *ssh)
 {
 	int channel_id;
+	char remote_id[512];
 
 	/* timeout, check to see how many we have had */
 	if (packet_inc_alive_timeouts() > options.client_alive_count_max) {
-		logit("Timeout, client not responding.");
+		sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+		logit("Timeout, client not responding from %s", remote_id);
 		cleanup_exit(255);
 	}
 

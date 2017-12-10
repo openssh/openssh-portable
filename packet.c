@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.267 2017/11/25 06:46:22 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.268 2017/12/10 05:55:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1797,8 +1797,8 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
 
-static void
-fmt_connection_id(struct ssh *ssh, char *s, size_t l)
+void
+sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 {
 	snprintf(s, l, "%.200s%s%s port %d",
 	    ssh->log_preamble ? ssh->log_preamble : "",
@@ -1814,7 +1814,7 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 {
 	char remote_id[512];
 
-	fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
@@ -1876,7 +1876,7 @@ ssh_packet_disconnect(struct ssh *ssh, const char *fmt,...)
 	 * Format the message.  Note that the caller must make sure the
 	 * message is of limited size.
 	 */
-	fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
