@@ -1,4 +1,4 @@
-# Commit IDs against the new CVS->GIT translation go here (and delete this line)
+5317f294d63a876bfc861e19773b1575f96f027d	remove libssh from makefiles
 
 Old upstream tree:
 
