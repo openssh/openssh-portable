@@ -1,4 +1,4 @@
-#	$OpenBSD: scp-uri.sh,v 1.1 2017/10/24 19:33:32 millert Exp $
+#	$OpenBSD: scp-uri.sh,v 1.2 2017/12/11 11:41:56 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp-uri"
@@ -51,14 +51,18 @@ scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
-diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+for i in $(cd ${DIR} && echo *); do
+	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
+done
 
 verbose "$tid: recursive remote dir to local dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
-diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+for i in $(cd ${DIR} && echo *); do
+	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
+done
 
 # TODO: scp -3
 
