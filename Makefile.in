@@ -298,9 +298,18 @@ catman-do:
 			>$$base.0 ; \
 	done
 
-distprep: catman-do
+depend: depend-rebuild
+	rm -f .depend.bak
+
+depend-rebuild:
+	makedepend -w1000 -Y. -f .depend *.c 2>/dev/null
+
+depend-check: depend-rebuild
+	cmp .depend .depend.bak || (echo .depend stale && exit 1)
+
+distprep: catman-do depend-check
 	$(AUTORECONF)
-	-rm -rf autom4te.cache
+	-rm -rf autom4te.cache .depend.bak
 
 install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files install-sysconf host-key check-config
 install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files install-sysconf
@@ -632,3 +641,5 @@ package: $(CONFIGFILES) $(MANPAGES) $(TARGETS)
 	if [ "@MAKE_PACKAGE_SUPPORTED@" = yes ]; then \
 		sh buildpkg.sh; \
 	fi
+
+# @DEPEND@

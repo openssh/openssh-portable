@@ -103,6 +103,13 @@ Native BSM support is known to exist in Solaris from at least 2.5.1,
 FreeBSD 6.1 and OS X.  Alternatively, you may use the OpenBSM
 implementation (http://www.openbsm.org).
 
+makedepend:
+
+https://www.x.org/archive/individual/util/
+
+If you are making significant changes to the code you may need to rebuild
+the dependency (.depend) file using "make depend", which requires the
+"makedepend" tool from the X11 distribution.
 
 2. Building / Installation
 --------------------------
