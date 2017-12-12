@@ -218,13 +218,6 @@ $(CONFIGFILES): $(CONFIGFILES_IN)
 moduli:
 	echo
 
-# special case target for umac128
-umac128.o:	umac.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o umac128.o -c $(srcdir)/umac.c \
-	    -DUMAC_OUTPUT_LEN=16 -Dumac_new=umac128_new \
-	    -Dumac_update=umac128_update -Dumac_final=umac128_final \
-	    -Dumac_delete=umac128_delete -Dumac_ctx=umac128_ctx
-
 clean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core survey
