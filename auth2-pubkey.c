@@ -67,6 +67,7 @@
 #include "ssherr.h"
 #include "channels.h" /* XXX for session.h */
 #include "session.h" /* XXX for child_set_env(); refactor? */
+#include "authfd.h"
 
 /* import */
 extern ServerOptions options;
@@ -196,9 +197,15 @@ userauth_pubkey(struct ssh *ssh)
 
 		/* test for correct signature */
 		authenticated = 0;
+
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
+#ifdef WINDOWS
+		    (authctxt->auth_token = mm_auth_pubkey(authctxt->pw->pw_name, 
+		    key, sig, slen, b)) != NULL) {
+#else
 		    PRIVSEP(sshkey_verify(key, sig, slen, sshbuf_ptr(b),
 		    sshbuf_len(b), ssh->compat)) == 0) {
+#endif
 			authenticated = 1;
 		}
 		sshbuf_free(b);

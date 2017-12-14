@@ -302,6 +302,10 @@ pwcopy(struct passwd *pw)
 #endif
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
+#ifdef WINDOWS
+	copy->pw_sid = xstrdup(pw->pw_sid);
+#endif /* WINDOWS */
+
 	return copy;
 }
 
@@ -526,6 +530,17 @@ colon(char *cp)
 
 	if (*cp == ':')		/* Leading colon is part of file name. */
 		return NULL;
+
+#ifdef WINDOWS
+	/*
+	 * Account for Windows file names in the form x: or /x: 
+	 * Note: This may conflict with potential single character targets
+	 */
+	if ((*cp != '\0' && cp[1] == ':') ||
+	    (cp[0] == '/' && cp[1] != '\0' && cp[2] == ':'))
+		return NULL;
+#endif
+
 	if (*cp == '[')
 		flag = 1;
 
@@ -1111,6 +1126,10 @@ tun_open(int tun, int mode, char **ifname)
 void
 sanitise_stdfd(void)
 {
+#ifdef WINDOWS
+	/* nothing to do for Windows*/
+	return;
+#else /* !WINDOWS */
 	int nullfd, dupfd;
 
 	if ((nullfd = dupfd = open(_PATH_DEVNULL, O_RDWR)) == -1) {
@@ -1129,6 +1148,7 @@ sanitise_stdfd(void)
 	}
 	if (nullfd > STDERR_FILENO)
 		close(nullfd);
+#endif /* !WINDOWS */
 }
 
 char *
@@ -1592,6 +1612,14 @@ bind_permitted(int port, uid_t uid)
 }
 
 /* returns 1 if process is already daemonized, 0 otherwise */
+#ifdef WINDOWS
+/* This should go away once sshd platform specific startup code is refactored */
+int 
+daemonized(void)
+{
+	return 1;
+}
+#else /* !WINDOWS */
 int
 daemonized(void)
 {
@@ -1608,7 +1636,7 @@ daemonized(void)
 	debug3("already daemonized");
 	return 1;
 }
-
+#endif /* !WINDOWS */
 
 /*
  * Splits 's' into an argument vector. Handles quoted string and basic
@@ -1753,6 +1781,10 @@ pid_t
 subprocess(const char *tag, struct passwd *pw, const char *command,
     int ac, char **av, FILE **child, u_int flags)
 {
+#ifdef WINDOWS
+	error("subprocess is not implemented in Windows yet");
+	return 0;
+#else
 	FILE *f = NULL;
 	struct stat st;
 	int fd, devnull, p[2], i;
@@ -1890,6 +1922,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	if (child != NULL)
 		*child = f;
 	return pid;
+#endif
 }
 
 /* Returns 0 if pid exited cleanly, non-zero otherwise */

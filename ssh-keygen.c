@@ -59,6 +59,7 @@
 #include "digest.h"
 #include "utf8.h"
 #include "authfd.h"
+#include "sshfileperm.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -242,7 +243,11 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 	case KEY_ECDSA:
 		if (sshkey_ecdsa_bits_to_nid(*bitsp) == -1)
 			fatal("Invalid ECDSA key length: valid lengths are "
-			    "256, 384 or 521 bits");
+#ifdef OPENSSL_HAS_NISTP521
+				"256, 384 or 521 bits");
+#else
+			"256 or 384 bits");
+#endif
 	}
 #endif
 }
@@ -1063,11 +1068,22 @@ do_gen_all_hostkeys(struct passwd *pw)
 			    pub_tmp, strerror(errno));
 			goto failnext;
 		}
+#ifdef WINDOWS
+		/* Windows POSIX adpater does not support fdopen() on open(file)*/
+		close(fd);
+		chmod(pub_tmp, 0644);
+		if ((f = fopen(pub_tmp, "w")) == NULL) {
+			error("fopen %s failed: %s", pub_tmp, strerror(errno));
+#else  /* !WINDOWS */
 		(void)fchmod(fd, 0644);
 		f = fdopen(fd, "w");
 		if (f == NULL) {
 			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
 			close(fd);
+#endif  /* !WINDOWS */
+			sshkey_free(public);
+			first = 0;
+			continue;
 			goto failnext;
 		}
 		if ((r = sshkey_write(public, f)) != 0) {
@@ -1231,6 +1247,10 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
+#ifdef WINDOWS
+        fatal("Updating known_hosts is not supported in Windows yet.");
+#else  /* !WINDOWS */
+	  
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
@@ -1322,6 +1342,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	}
 
 	exit (find_host && !ctx.found_key);
+#endif   /* !WINDOWS */
 }
 
 /*
@@ -1635,6 +1656,7 @@ load_pkcs11_key(char *path)
 	return private;
 #else
 	fatal("no pkcs11 support");
+	return NULL;
 #endif /* ENABLE_PKCS11 */
 }
 
@@ -1765,9 +1787,16 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 
 		if ((fd = open(out, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
 			fatal("Could not open \"%s\" for writing: %s", out,
-			    strerror(errno));
+			    strerror(errno));		
+#ifdef WINDOWS
+		/* Windows POSIX adpater does not support fdopen() on open(file)*/
+		close(fd);
+		if ((f = fopen(out, "w")) == NULL)
+			fatal("fopen %s failed: %s", identity_file, strerror(errno));
+#else  /* !WINDOWS */
 		if ((f = fdopen(fd, "w")) == NULL)
 			fatal("%s: fdopen: %s", __func__, strerror(errno));
+#endif  /* !WINDOWS */
 		if ((r = sshkey_write(public, f)) != 0)
 			fatal("Could not write certified key to %s: %s",
 			    out, ssh_err(r));
@@ -2858,8 +2887,15 @@ passphrase_again:
 	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
 		fatal("Unable to save public key to %s: %s",
 		    identity_file, strerror(errno));
+#ifdef WINDOWS
+	/* Windows POSIX adpater does not support fdopen() on open(file)*/
+	close(fd);
+	if ((f = fopen(identity_file, "w")) == NULL)
+		fatal("fopen %s failed: %s", identity_file, strerror(errno));
+#else  /* !WINDOWS */
 	if ((f = fdopen(fd, "w")) == NULL)
 		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
+#endif  /* !WINDOWS */
 	if ((r = sshkey_write(public, f)) != 0)
 		error("write key failed: %s", ssh_err(r));
 	fprintf(f, " %s\n", comment);

@@ -66,7 +66,12 @@ int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519;
 
 int hash_hosts = 0;		/* Hash hostname on output */
 
+#ifdef WINDOWS
+#define MAXMAXFD 32
+#else
 #define MAXMAXFD 256
+#endif // WINDOWS
+
 
 /* The number of seconds after which to give up on a TCP connection */
 int timeout = 5;

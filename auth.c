@@ -73,6 +73,7 @@
 #include "authfile.h"
 #include "ssherr.h"
 #include "compat.h"
+#include "sshfileperm.h"
 
 /* import */
 extern ServerOptions options;
@@ -427,6 +428,13 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	file = percent_expand(filename, "h", pw->pw_dir,
 	    "u", pw->pw_name, (char *)NULL);
 
+#ifdef WINDOWS
+	/* Return if the path is absolute. If not, prepend the '%h\\' */
+	if ((strlen(file) > 1) && (file[1] == ':'))
+		return (file);
+
+	i = snprintf(ret, sizeof(ret), "%s\\%s", pw->pw_dir, file);
+#else
 	/*
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
@@ -435,6 +443,8 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 		return (file);
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
+#endif // WINDOWS
+
 	if (i < 0 || (size_t)i >= sizeof(ret))
 		fatal("expand_authorized_keys: path too long");
 	free(file);
@@ -504,6 +514,20 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 	int fd;
 	FILE *f;
 
+#ifdef WINDOWS
+        /* Windows POSIX adapter does not support fdopen() on open(file)*/
+        if ((f = fopen(file, "r")) == NULL) {
+                debug("Could not open %s '%s': %s", file_type, file,
+                        strerror(errno));
+                return NULL;
+        }
+	if (strict_modes && check_secure_file_permission(file, pw) != 0) {
+		fclose(f);
+		logit("Authentication refused.");
+		auth_debug_add("Ignored %s", file_type);
+		return NULL;
+	}
+#else  /* !WINDOWS */
 	if ((fd = open(file, O_RDONLY|O_NONBLOCK)) == -1) {
 		if (log_missing || errno != ENOENT)
 			debug("Could not open %s '%s': %s", file_type, file,
@@ -533,6 +557,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 		auth_debug_add("Ignored %s: %s", file_type, line);
 		return NULL;
 	}
+#endif  /* !WINDOWS */
 
 	return f;
 }

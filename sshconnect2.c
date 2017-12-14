@@ -172,9 +172,14 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	    compat_cipher_proposal(options.ciphers);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
 	    compat_cipher_proposal(options.ciphers);
+#ifdef WINDOWS
+	/* compression not supported in Windows yet */
+	myproposal[PROPOSAL_COMP_ALGS_CTOS] = "none";
+#else /* !WINDOWS */
 	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 	    myproposal[PROPOSAL_COMP_ALGS_STOC] = options.compression ?
 	    "zlib@openssh.com,zlib,none" : "none,zlib@openssh.com,zlib";
+#endif /* !WINDOWS */
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (options.hostkeyalgorithms != NULL) {
@@ -1624,6 +1629,10 @@ static int
 ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen)
 {
+#ifdef WINDOWS
+        fatal("keysign is not supported in Windows yet");
+        return -1;
+#else /* !WINDOWS */
 	struct sshbuf *b;
 	struct stat st;
 	pid_t pid;
@@ -1733,6 +1742,7 @@ ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
 	sshbuf_free(b);
 
 	return 0;
+#endif /* !WINDOWS */
 }
 
 int

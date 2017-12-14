@@ -66,7 +66,14 @@ ssh_askpass(char *askpass, const char *msg)
 		return NULL;
 	}
 	osigchld = signal(SIGCHLD, SIG_DFL);
+#ifdef WINDOWS 
+	/* spawd child for Windows */
+	fcntl(p[0], F_SETFD, FD_CLOEXEC);
+	pid = spawn_child(askpass, NULL, p[1], p[1], STDERR_FILENO, 0);
+	if (pid < 0) {
+#else  /* !WINDOWS */
 	if ((pid = fork()) < 0) {
+#endif  /* !WINDOWS */
 		error("ssh_askpass: fork: %s", strerror(errno));
 		signal(SIGCHLD, osigchld);
 		return NULL;

@@ -202,6 +202,26 @@ do_local_cmd(arglist *a)
 			fmprintf(stderr, " %s", a->list[i]);
 		fprintf(stderr, "\n");
 	}
+#ifdef WINDOWS
+	/* flatten the cmd into a long space separated string and execute using system(cmd) api */
+	{
+		char* cmd;
+		size_t cmdlen = 0;
+		for (i = 0; i < a->num; i++)
+			cmdlen += strlen(a->list[i]) + 1;
+
+		cmd = xmalloc(cmdlen);
+		cmd[0] = '\0';
+		for (i = 0; i < a->num; i++) {
+			strcat(cmd, a->list[i]);
+			strcat(cmd, " ");
+		}
+		if (system(cmd))
+			return -1; 
+		return 0;
+	}
+
+#else /* !WINDOWS */
 	if ((pid = fork()) == -1)
 		fatal("do_local_cmd: fork: %s", strerror(errno));
 
@@ -226,6 +246,7 @@ do_local_cmd(arglist *a)
 		return (-1);
 
 	return (0);
+#endif /* !WINDOWS */
 }
 
 /*
@@ -270,7 +291,25 @@ do_cmd(char *host, char *remuser, int port, char *cmd, int *fdin, int *fdout)
 	signal(SIGTTOU, suspchild);
 
 	/* Fork a child to execute the command on the remote host using ssh. */
+#ifdef WINDOWS
+	/* generate command line and spawn_child */
+	replacearg(&args, 0, "%s", ssh_program);
+	if (remuser != NULL) {
+		addargs(&args, "-l");
+		addargs(&args, "%s", remuser);
+	}
+	addargs(&args, "--");
+	addargs(&args, "%s", host);
+	addargs(&args, "%s", cmd);
+
+	fcntl(pout[0], F_SETFD, FD_CLOEXEC);
+	fcntl(pin[1], F_SETFD, FD_CLOEXEC);
+
+	do_cmd_pid = spawn_child(args.list[0], args.list + 1, pin[0], pout[1], STDERR_FILENO, 0);
+
+#else /* !WINDOWS */
 	do_cmd_pid = fork();
+#endif /* !WINDOWS */
 	if (do_cmd_pid == 0) {
 		/* Child. */
 		close(pin[1]);
@@ -311,7 +350,7 @@ do_cmd(char *host, char *remuser, int port, char *cmd, int *fdin, int *fdout)
 }
 
 /*
- * This functions executes a command simlar to do_cmd(), but expects the
+ * This functions executes a command similar to do_cmd(), but expects the
  * input and output descriptors to be setup by a previous call to do_cmd().
  * This way the input and output of two commands can be connected.
  */
@@ -331,7 +370,22 @@ do_cmd2(char *host, char *remuser, int port, char *cmd, int fdin, int fdout)
 		port = sshport;
 
 	/* Fork a child to execute the command on the remote host using ssh. */
+#ifdef WINDOWS
+	/* generate command line and spawn_child */
+	replacearg(&args, 0, "%s", ssh_program);
+	if (remuser != NULL) {
+		addargs(&args, "-l");
+		addargs(&args, "%s", remuser);
+	}
+	addargs(&args, "--");
+	addargs(&args, "%s", host);
+	addargs(&args, "%s", cmd);
+
+	pid = spawn_child(args.list[0], args.list + 1, fdin, fdout, STDERR_FILENO, 0);
+		
+#else /* !WINDOWS */
 	pid = fork();
+#endif /* !WINDOWS */
 	if (pid == 0) {
 		dup2(fdin, 0);
 		dup2(fdout, 1);
@@ -523,6 +577,23 @@ main(int argc, char **argv)
 
 	remin = STDIN_FILENO;
 	remout = STDOUT_FILENO;
+
+#ifdef WINDOWS
+	/* 
+	 * To support both Windows and Unix style paths
+	 * convert '\\' to '/' in path portion of rest arguments 
+	 */	
+	{		
+		int i;
+		char *p;
+		for (i = 0; i < argc; i++) {
+			if(p = colon(argv[i]))			
+				convertToForwardslash(p);
+			else
+				convertToForwardslash(argv[i]);			
+		}			
+	}
+#endif /* WINDOWS */
 
 	if (fflag) {
 		/* Follow "protocol", send data. */
@@ -743,6 +814,41 @@ tolocal(int argc, char **argv)
 		}
 		if (!host) {	/* Local to local. */
 			freeargs(&alist);
+#ifdef WINDOWS
+#define _PATH_XCOPY "xcopy"
+#define _PATH_COPY "copy"
+			/* local to local on windows - need to use local native copy command */
+			struct stat stb;
+			int exists;
+			char *last;
+
+			exists = stat(argv[i], &stb) == 0;
+			/* convert '/' to '\\' 	*/
+			convertToBackslash(argv[i]);
+			convertToBackslash(argv[argc - 1]);
+			if (exists && (S_ISDIR(stb.st_mode))) {
+				addargs(&alist, "%s", _PATH_XCOPY);
+				if (iamrecursive)
+					addargs(&alist, "/S /E /H");
+				if (pflag)
+					addargs(&alist, "/K /X");
+				addargs(&alist, "/Y /F /I");				
+				addargs(&alist, "%s", argv[i]);				
+
+				if ((last = strrchr(argv[i], '\\')) == NULL)
+					last = argv[i];
+				else
+					++last;
+				
+				addargs(&alist, "%s%s%s", argv[argc - 1],
+					strcmp(argv[argc - 1], "\\") ? "\\" : "", last);
+			} else {
+				addargs(&alist, "%s", _PATH_COPY);
+				addargs(&alist, "/Y");				
+				addargs(&alist, "%s", argv[i]);
+				addargs(&alist, "%s", argv[argc - 1]);
+			}			
+#else  /* !WINDOWS */
 			addargs(&alist, "%s", _PATH_CP);
 			if (iamrecursive)
 				addargs(&alist, "-r");
@@ -751,6 +857,7 @@ tolocal(int argc, char **argv)
 			addargs(&alist, "--");
 			addargs(&alist, "%s", argv[i]);
 			addargs(&alist, "%s", argv[argc-1]);
+#endif /* !WINDOWS */
 			if (do_local_cmd(&alist))
 				++errs;
 			continue;
@@ -1132,7 +1239,12 @@ sink(int argc, char **argv)
 		}
 		omode = mode;
 		mode |= S_IWUSR;
-		if ((ofd = open(np, O_WRONLY|O_CREAT, mode)) < 0) {
+#ifdef WINDOWS
+		// In windows, we would like to inherit the parent folder permissions by setting mode to USHRT_MAX.
+		if ((ofd = open(np, O_WRONLY | O_CREAT, USHRT_MAX)) < 0) {
+#else
+		if ((ofd = open(np, O_WRONLY | O_CREAT, mode)) < 0) {
+#endif // WINDOWS
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;
 		}

@@ -1496,6 +1496,14 @@ main(int ac, char **av)
 static void
 control_persist_detach(void)
 {
+#ifdef WINDOWS
+	/* 
+	 * This needs some level of support for domain sockets in Windows 
+	 * Domain sockets (w/out ancillary data support) can easily be 
+	 * implemented using named pipes.
+	 */
+        fatal("ControlMaster is not supported in Windows yet");
+#else /* !WINDOWS */
 	pid_t pid;
 	int devnull, keep_stderr;
 
@@ -1538,6 +1546,7 @@ control_persist_detach(void)
 	}
 	daemon(1, 1);
 	setproctitle("%s [mux]", options.control_path);
+#endif /* !WINDOWS */
 }
 
 /* Do fork() after authentication. Used by "ssh -f" */
@@ -1906,6 +1915,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * NB. this can only happen after LocalCommand has completed,
 	 * as it may want to write to stdout.
 	 */
+#ifndef WINDOWS /* TODO - implement dup2 for Windows */
 	if (!need_controlpersist_detach) {
 		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
 			error("%s: open %s: %s", __func__,
@@ -1915,6 +1925,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 		if (devnull > STDERR_FILENO)
 			close(devnull);
 	}
+#endif
 
 	/*
 	 * If requested and we are not interested in replies to remote
