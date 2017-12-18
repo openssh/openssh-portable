@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.175 2017/10/05 15:52:03 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.176 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1339,12 +1339,14 @@ mm_answer_keyverify(int sock, struct sshbuf *m)
 {
 	struct sshkey *key;
 	u_char *signature, *data, *blob;
+	char *sigalg;
 	size_t signaturelen, datalen, bloblen;
 	int r, ret, valid_data = 0, encoded_ret;
 
 	if ((r = sshbuf_get_string(m, &blob, &bloblen)) != 0 ||
 	    (r = sshbuf_get_string(m, &signature, &signaturelen)) != 0 ||
-	    (r = sshbuf_get_string(m, &data, &datalen)) != 0)
+	    (r = sshbuf_get_string(m, &data, &datalen)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &sigalg, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	if (hostbased_cuser == NULL || hostbased_chost == NULL ||
@@ -1373,7 +1375,7 @@ mm_answer_keyverify(int sock, struct sshbuf *m)
 		fatal("%s: bad signature data blob", __func__);
 
 	ret = sshkey_verify(key, signature, signaturelen, data, datalen,
-	    active_state->compat);
+	    sigalg, active_state->compat);
 	debug3("%s: %s %p signature %s", __func__, auth_method, key,
 	    (ret == 0) ? "verified" : "unverified");
 	auth2_record_key(authctxt, ret == 0, key);

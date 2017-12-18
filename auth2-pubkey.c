@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.71 2017/09/07 23:48:09 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.72 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -198,7 +198,7 @@ userauth_pubkey(struct ssh *ssh)
 		authenticated = 0;
 		if (PRIVSEP(user_key_allowed(authctxt->pw, key, 1)) &&
 		    PRIVSEP(sshkey_verify(key, sig, slen, sshbuf_ptr(b),
-		    sshbuf_len(b), ssh->compat)) == 0) {
+		    sshbuf_len(b), pkalg, ssh->compat)) == 0) {
 			authenticated = 1;
 		}
 		sshbuf_free(b);

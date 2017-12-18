@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.308 2017/11/03 05:14:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.309 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -539,7 +539,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 
 	/* try the key */
 	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), NULL, 0) != 0 ||
-	    sshkey_verify(key, sig, slen, data, sizeof(data), 0) != 0) {
+	    sshkey_verify(key, sig, slen, data, sizeof(data), NULL, 0) != 0) {
 		sshkey_free(key);
 		free(sig);
 		return NULL;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.58 2017/12/18 02:22:29 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.59 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1814,7 +1814,7 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 		goto out;
 	}
 	if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
-	    sshbuf_ptr(key->cert->certblob), signed_len, 0)) != 0)
+	    sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0)) != 0)
 		goto out;
 
 	/* Success */
@@ -2109,11 +2109,12 @@ sshkey_sign(const struct sshkey *key,
 
 /*
  * ssh_key_verify returns 0 for a correct signature  and < 0 on error.
+ * If "alg" specified, then the signature must use that algorithm.
  */
 int
 sshkey_verify(const struct sshkey *key,
     const u_char *sig, size_t siglen,
-    const u_char *data, size_t dlen, u_int compat)
+    const u_char *data, size_t dlen, const char *alg, u_int compat)
 {
 	if (siglen == 0 || dlen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -2129,7 +2130,7 @@ sshkey_verify(const struct sshkey *key,
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
-		return ssh_rsa_verify(key, sig, siglen, data, dlen);
+		return ssh_rsa_verify(key, sig, siglen, data, dlen, alg);
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:

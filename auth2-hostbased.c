@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.31 2017/06/24 06:34:38 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.32 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -144,7 +144,7 @@ userauth_hostbased(struct ssh *ssh)
 	authenticated = 0;
 	if (PRIVSEP(hostbased_key_allowed(authctxt->pw, cuser, chost, key)) &&
 	    PRIVSEP(sshkey_verify(key, sig, slen,
-	    sshbuf_ptr(b), sshbuf_len(b), ssh->compat)) == 0)
+	    sshbuf_ptr(b), sshbuf_len(b), pkalg, ssh->compat)) == 0)
 		authenticated = 1;
 
 	auth2_record_key(authctxt, authenticated, key);

@@ -1,5 +1,7 @@
 /* $OpenBSD: hash.c,v 1.4 2017/12/14 21:07:39 naddy Exp $ */
 
+#include "includes.h"
+
 #include "crypto_api.h"
 
 #include <stdarg.h>

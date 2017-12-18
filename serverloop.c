@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.200 2017/12/10 05:55:29 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.201 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -715,7 +715,8 @@ server_input_hostkeys_prove(struct ssh *ssh, struct sshbuf **respp)
 		    ssh->kex->session_id, ssh->kex->session_id_len)) != 0 ||
 		    (r = sshkey_puts(key, sigbuf)) != 0 ||
 		    (r = ssh->kex->sign(key_prv, key_pub, &sig, &slen,
-		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf), NULL, 0)) != 0 ||
+		    sshbuf_ptr(sigbuf), sshbuf_len(sigbuf),
+		    ssh->kex->hostkey_alg, 0)) != 0 ||
 		    (r = sshbuf_put_string(resp, sig, slen)) != 0) {
 			error("%s: couldn't prepare signature: %s",
 			    __func__, ssh_err(r));

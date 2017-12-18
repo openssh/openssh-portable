@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhc.c,v 1.11 2017/05/30 14:23:52 markus Exp $ */
+/* $OpenBSD: kexecdhc.c,v 1.12 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -188,7 +188,7 @@ input_kex_ecdh_reply(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	if ((r = sshkey_verify(server_host_key, signature, slen, hash,
-	    hashlen, ssh->compat)) != 0)
+	    hashlen, kex->hostkey_alg, ssh->compat)) != 0)
 		goto out;
 
 	/* save session id */

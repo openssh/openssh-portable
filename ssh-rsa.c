@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.62 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.63 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -198,9 +198,10 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 
 int
 ssh_rsa_verify(const struct sshkey *key,
-    const u_char *sig, size_t siglen, const u_char *data, size_t datalen)
+    const u_char *sig, size_t siglen, const u_char *data, size_t datalen,
+    const char *alg)
 {
-	char *ktype = NULL;
+	char *sigtype = NULL;
 	int hash_alg, ret = SSH_ERR_INTERNAL_ERROR;
 	size_t len, diff, modlen, dlen;
 	struct sshbuf *b = NULL;
@@ -215,11 +216,17 @@ ssh_rsa_verify(const struct sshkey *key,
 
 	if ((b = sshbuf_from(sig, siglen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if (sshbuf_get_cstring(b, &ktype, NULL) != 0) {
+	if (sshbuf_get_cstring(b, &sigtype, NULL) != 0) {
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if ((hash_alg = rsa_hash_alg_from_ident(ktype)) == -1) {
+	/* XXX djm: need cert types that reliably yield SHA-2 signatures */
+	if (alg != NULL && strcmp(alg, sigtype) != 0 &&
+	    strcmp(alg, "ssh-rsa-cert-v01@openssh.com") != 0) {
+		ret = SSH_ERR_SIGNATURE_INVALID;
+		goto out;
+	}
+	if ((hash_alg = rsa_hash_alg_from_ident(sigtype)) == -1) {
 		ret = SSH_ERR_KEY_TYPE_MISMATCH;
 		goto out;
 	}
@@ -263,7 +270,7 @@ ssh_rsa_verify(const struct sshkey *key,
 		explicit_bzero(sigblob, len);
 		free(sigblob);
 	}
-	free(ktype);
+	free(sigtype);
 	sshbuf_free(b);
 	explicit_bzero(digest, sizeof(digest));
 	return ret;
