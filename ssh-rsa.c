@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.63 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.64 2017/12/18 23:14:34 djm Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -33,6 +33,7 @@
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
 #include "digest.h"
+#include "log.h"
 
 static int openssh_RSA_verify(int, u_char *, size_t, u_char *, size_t, RSA *);
 
@@ -223,6 +224,8 @@ ssh_rsa_verify(const struct sshkey *key,
 	/* XXX djm: need cert types that reliably yield SHA-2 signatures */
 	if (alg != NULL && strcmp(alg, sigtype) != 0 &&
 	    strcmp(alg, "ssh-rsa-cert-v01@openssh.com") != 0) {
+		error("%s: RSA signature type mismatch: "
+		    "expected %s received %s", __func__, alg, sigtype);
 		ret = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
