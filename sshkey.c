@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.57 2017/10/13 06:24:51 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.58 2017/12/18 02:22:29 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2045,6 +2045,31 @@ sshkey_froms(struct sshbuf *buf, struct sshkey **keyp)
 	if ((r = sshbuf_froms(buf, &b)) != 0)
 		return r;
 	r = sshkey_from_blob_internal(b, keyp, 1);
+	sshbuf_free(b);
+	return r;
+}
+
+int
+sshkey_sigtype(const u_char *sig, size_t siglen, char **sigtypep)
+{
+	int r;
+	struct sshbuf *b = NULL;
+	char *sigtype = NULL;
+
+	if (sigtypep != NULL)
+		*sigtypep = NULL;
+	if ((b = sshbuf_from(sig, siglen)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if ((r = sshbuf_get_cstring(b, &sigtype, NULL)) != 0)
+		goto out;
+	/* success */
+	if (sigtypep != NULL) {
+		*sigtypep = sigtype;
+		sigtype = NULL;
+	}
+	r = 0;
+ out:
+	free(sigtype);
 	sshbuf_free(b);
 	return r;
 }
