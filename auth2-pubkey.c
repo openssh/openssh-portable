@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.72 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.73 2017/12/19 00:24:34 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -73,13 +73,24 @@ extern ServerOptions options;
 extern u_char *session_id2;
 extern u_int session_id2_len;
 
+static char *
+format_key(const struct sshkey *key)
+{
+	char *ret, *fp = sshkey_fingerprint(key,
+	    options.fingerprint_hash, SSH_FP_DEFAULT);
+
+	xasprintf(&ret, "%s %s", sshkey_type(key), fp);
+	free(fp);
+	return ret;
+}
+
 static int
 userauth_pubkey(struct ssh *ssh)
 {
 	Authctxt *authctxt = ssh->authctxt;
 	struct sshbuf *b;
 	struct sshkey *key = NULL;
-	char *pkalg, *userstyle = NULL, *fp = NULL;
+	char *pkalg, *userstyle = NULL, *key_s = NULL, *ca_s = NULL;
 	u_char *pkblob, *sig, have_sig;
 	size_t blen, slen;
 	int r, pktype;
@@ -135,7 +146,6 @@ userauth_pubkey(struct ssh *ssh)
 		    "signature scheme");
 		goto done;
 	}
-	fp = sshkey_fingerprint(key, options.fingerprint_hash, SSH_FP_DEFAULT);
 	if (auth2_key_already_used(authctxt, key)) {
 		logit("refusing previously-used %s key", sshkey_type(key));
 		goto done;
@@ -147,9 +157,15 @@ userauth_pubkey(struct ssh *ssh)
 		goto done;
 	}
 
+	key_s = format_key(key);
+	if (sshkey_is_cert(key))
+		ca_s = format_key(key->cert->signature_key);
+
 	if (have_sig) {
-		debug3("%s: have signature for %s %s",
-		    __func__, sshkey_type(key), fp);
+		debug3("%s: have %s signature for %s%s%s",
+		    __func__, pkalg, key_s,
+		    ca_s == NULL ? "" : " CA ",
+		    ca_s == NULL ? "" : ca_s);
 		if ((r = sshpkt_get_string(ssh, &sig, &slen)) != 0 ||
 		    (r = sshpkt_get_end(ssh)) != 0)
 			fatal("%s: %s", __func__, ssh_err(r));
@@ -205,8 +221,11 @@ userauth_pubkey(struct ssh *ssh)
 		free(sig);
 		auth2_record_key(authctxt, authenticated, key);
 	} else {
-		debug("%s: test whether pkalg/pkblob are acceptable for %s %s",
-		    __func__, sshkey_type(key), fp);
+		debug("%s: test pkalg %s pkblob %s%s%s",
+		    __func__, pkalg, key_s,
+		    ca_s == NULL ? "" : " CA ",
+		    ca_s == NULL ? "" : ca_s);
+
 		if ((r = sshpkt_get_end(ssh)) != 0)
 			fatal("%s: %s", __func__, ssh_err(r));
 
@@ -237,7 +256,8 @@ done:
 	free(userstyle);
 	free(pkalg);
 	free(pkblob);
-	free(fp);
+	free(key_s);
+	free(ca_s);
 	return authenticated;
 }
 
