@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.96 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.97 2017/12/21 00:00:28 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -458,7 +458,7 @@ mm_sshkey_verify(const struct sshkey *key, const u_char *sig, size_t siglen,
 	buffer_put_string(&m, blob, len);
 	buffer_put_string(&m, sig, siglen);
 	buffer_put_string(&m, data, datalen);
-	buffer_put_cstring(&m, sigalg);
+	buffer_put_cstring(&m, sigalg == NULL ? "" : sigalg);
 	free(blob);
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_KEYVERIFY, &m);

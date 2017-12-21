@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.176 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.177 2017/12/21 00:00:28 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1353,6 +1353,12 @@ mm_answer_keyverify(int sock, struct sshbuf *m)
 	  !monitor_allowed_key(blob, bloblen))
 		fatal("%s: bad key, not previously allowed", __func__);
 
+	/* Empty signature algorithm means NULL. */
+	if (*sigalg == '\0') {
+		free(sigalg);
+		sigalg = NULL;
+	}
+
 	/* XXX use sshkey_froms here; need to change key_blob, etc. */
 	if ((r = sshkey_from_blob(blob, bloblen, &key)) != 0)
 		fatal("%s: bad public key blob: %s", __func__, ssh_err(r));
@@ -1383,6 +1389,7 @@ mm_answer_keyverify(int sock, struct sshbuf *m)
 	free(blob);
 	free(signature);
 	free(data);
+	free(sigalg);
 
 	monitor_reset_key_state();
 
