@@ -10,7 +10,12 @@ if [ $? -ne 0 ]; then
 fi
 cmp ${DATA} ${COPY}		|| fail "corrupted copy"
 
-for s in 10 100 1k 32k 64k 128k 256k; do
+BLOCKS="10 100 1k 32k 64k 128k 256k"
+if [ "`uname`" = "NONSTOP_KERNEL" ]; then
+	# NonStop does not support blocking above 56k
+	BLOCKS="10 100 1k 32k"
+fi
+for s in ${BLOCKS}; do
 	trace "dd-size ${s}"
 	rm -f ${COPY}
 	dd if=$DATA obs=${s} 2> /dev/null | \
