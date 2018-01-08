@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.93 2017/08/18 05:36:45 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.94 2018/01/08 15:21:49 markus Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -220,6 +220,12 @@ void	 auth_debug_send(void);
 void	 auth_debug_reset(void);
 
 struct passwd *fakepw(void);
+
+#define	SSH_SUBPROCESS_STDOUT_DISCARD  (1)     /* Discard stdout */
+#define	SSH_SUBPROCESS_STDOUT_CAPTURE  (1<<1)  /* Redirect stdout */
+#define	SSH_SUBPROCESS_STDERR_DISCARD  (1<<2)  /* Discard stderr */
+pid_t	subprocess(const char *, struct passwd *,
+    const char *, int, char **, FILE **, u_int flags);
 
 int	 sys_auth_passwd(Authctxt *, const char *);
 

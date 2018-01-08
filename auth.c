@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.124 2017/09/12 06:32:07 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.125 2018/01/08 15:21:49 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #include <netinet/in.h>
 
@@ -839,4 +840,156 @@ auth_get_canonical_hostname(struct ssh *ssh, int use_dns)
 		dnsname = remote_hostname(ssh);
 		return dnsname;
 	}
+}
+
+/*
+ * Runs command in a subprocess wuth a minimal environment.
+ * Returns pid on success, 0 on failure.
+ * The child stdout and stderr maybe captured, left attached or sent to
+ * /dev/null depending on the contents of flags.
+ * "tag" is prepended to log messages.
+ * NB. "command" is only used for logging; the actual command executed is
+ * av[0].
+ */
+pid_t
+subprocess(const char *tag, struct passwd *pw, const char *command,
+    int ac, char **av, FILE **child, u_int flags)
+{
+	FILE *f = NULL;
+	struct stat st;
+	int fd, devnull, p[2], i;
+	pid_t pid;
+	char *cp, errmsg[512];
+	u_int envsize;
+	char **child_env;
+
+	if (child != NULL)
+		*child = NULL;
+
+	debug3("%s: %s command \"%s\" running as %s (flags 0x%x)", __func__,
+	    tag, command, pw->pw_name, flags);
+
+	/* Check consistency */
+	if ((flags & SSH_SUBPROCESS_STDOUT_DISCARD) != 0 &&
+	    (flags & SSH_SUBPROCESS_STDOUT_CAPTURE) != 0) {
+		error("%s: inconsistent flags", __func__);
+		return 0;
+	}
+	if (((flags & SSH_SUBPROCESS_STDOUT_CAPTURE) == 0) != (child == NULL)) {
+		error("%s: inconsistent flags/output", __func__);
+		return 0;
+	}
+
+	/*
+	 * If executing an explicit binary, then verify the it exists
+	 * and appears safe-ish to execute
+	 */
+	if (*av[0] != '/') {
+		error("%s path is not absolute", tag);
+		return 0;
+	}
+	temporarily_use_uid(pw);
+	if (stat(av[0], &st) < 0) {
+		error("Could not stat %s \"%s\": %s", tag,
+		    av[0], strerror(errno));
+		restore_uid();
+		return 0;
+	}
+	if (safe_path(av[0], &st, NULL, 0, errmsg, sizeof(errmsg)) != 0) {
+		error("Unsafe %s \"%s\": %s", tag, av[0], errmsg);
+		restore_uid();
+		return 0;
+	}
+	/* Prepare to keep the child's stdout if requested */
+	if (pipe(p) != 0) {
+		error("%s: pipe: %s", tag, strerror(errno));
+		restore_uid();
+		return 0;
+	}
+	restore_uid();
+
+	switch ((pid = fork())) {
+	case -1: /* error */
+		error("%s: fork: %s", tag, strerror(errno));
+		close(p[0]);
+		close(p[1]);
+		return 0;
+	case 0: /* child */
+		/* Prepare a minimal environment for the child. */
+		envsize = 5;
+		child_env = xcalloc(sizeof(*child_env), envsize);
+		child_set_env(&child_env, &envsize, "PATH", _PATH_STDPATH);
+		child_set_env(&child_env, &envsize, "USER", pw->pw_name);
+		child_set_env(&child_env, &envsize, "LOGNAME", pw->pw_name);
+		child_set_env(&child_env, &envsize, "HOME", pw->pw_dir);
+		if ((cp = getenv("LANG")) != NULL)
+			child_set_env(&child_env, &envsize, "LANG", cp);
+
+		for (i = 0; i < NSIG; i++)
+			signal(i, SIG_DFL);
+
+		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+			error("%s: open %s: %s", tag, _PATH_DEVNULL,
+			    strerror(errno));
+			_exit(1);
+		}
+		if (dup2(devnull, STDIN_FILENO) == -1) {
+			error("%s: dup2: %s", tag, strerror(errno));
+			_exit(1);
+		}
+
+		/* Set up stdout as requested; leave stderr in place for now. */
+		fd = -1;
+		if ((flags & SSH_SUBPROCESS_STDOUT_CAPTURE) != 0)
+			fd = p[1];
+		else if ((flags & SSH_SUBPROCESS_STDOUT_DISCARD) != 0)
+			fd = devnull;
+		if (fd != -1 && dup2(fd, STDOUT_FILENO) == -1) {
+			error("%s: dup2: %s", tag, strerror(errno));
+			_exit(1);
+		}
+		closefrom(STDERR_FILENO + 1);
+
+		/* Don't use permanently_set_uid() here to avoid fatal() */
+		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
+			error("%s: setresgid %u: %s", tag, (u_int)pw->pw_gid,
+			    strerror(errno));
+			_exit(1);
+		}
+		if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) != 0) {
+			error("%s: setresuid %u: %s", tag, (u_int)pw->pw_uid,
+			    strerror(errno));
+			_exit(1);
+		}
+		/* stdin is pointed to /dev/null at this point */
+		if ((flags & SSH_SUBPROCESS_STDOUT_DISCARD) != 0 &&
+		    dup2(STDIN_FILENO, STDERR_FILENO) == -1) {
+			error("%s: dup2: %s", tag, strerror(errno));
+			_exit(1);
+		}
+
+		execve(av[0], av, child_env);
+		error("%s exec \"%s\": %s", tag, command, strerror(errno));
+		_exit(127);
+	default: /* parent */
+		break;
+	}
+
+	close(p[1]);
+	if ((flags & SSH_SUBPROCESS_STDOUT_CAPTURE) == 0)
+		close(p[0]);
+	else if ((f = fdopen(p[0], "r")) == NULL) {
+		error("%s: fdopen: %s", tag, strerror(errno));
+		close(p[0]);
+		/* Don't leave zombie child */
+		kill(pid, SIGTERM);
+		while (waitpid(pid, NULL, 0) == -1 && errno == EINTR)
+			;
+		return 0;
+	}
+	/* Success */
+	debug3("%s: %s pid %ld", __func__, tag, (long)pid);
+	if (child != NULL)
+		*child = f;
+	return pid;
 }

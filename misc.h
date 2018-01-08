@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.69 2017/12/05 23:59:47 dtucker Exp $ */
+/* $OpenBSD: misc.h,v 1.70 2018/01/08 15:21:49 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -148,12 +148,6 @@ void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
 int	 argv_split(const char *, int *, char ***);
 char	*argv_assemble(int, char **argv);
 int	 exited_cleanly(pid_t, const char *, const char *, int);
-
-#define SSH_SUBPROCESS_STDOUT_DISCARD	(1)	/* Discard stdout */
-#define SSH_SUBPROCESS_STDOUT_CAPTURE	(1<<1)	/* Redirect stdout */
-#define SSH_SUBPROCESS_STDERR_DISCARD	(1<<2)	/* Discard stderr */
-pid_t	 subprocess(const char *, struct passwd *,
-    const char *, int, char **, FILE **, u_int flags);
 
 struct stat;
 int	 safe_path(const char *, struct stat *, const char *, uid_t,
