@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.97 2017/12/21 00:00:28 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.98 2018/01/08 15:14:44 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -76,7 +76,6 @@
 #include "atomicio.h"
 #include "monitor_fdpass.h"
 #include "misc.h"
-#include "uuencode.h"
 
 #include "channels.h"
 #include "session.h"
