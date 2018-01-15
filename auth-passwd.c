@@ -230,10 +230,13 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 }
 
 #elif defined(WINDOWS)
+HANDLE password_auth_token = NULL;
+HANDLE process_custom_lsa_auth(char*, const char*, char*);
+
 void 
 sys_auth_passwd_lsa(Authctxt *authctxt, const char *password)
 {
-	char *tmp = NULL, *domain = NULL, *lsa_auth_pkg = NULL;
+	char  *lsa_auth_pkg = NULL;
 	wchar_t *lsa_auth_pkg_w = NULL;
 	int domain_len = 0, lsa_auth_pkg_len = 0;	
 	HKEY reg_key = 0;
@@ -249,23 +252,14 @@ sys_auth_passwd_lsa(Authctxt *authctxt, const char *password)
 		if (RegQueryValueExW(reg_key, L"LSAAuthenticationPackage", 0, NULL, (LPBYTE)lsa_auth_pkg_w, &lsa_auth_pkg_len) == ERROR_SUCCESS) {
 			lsa_auth_pkg = utf16_to_utf8(lsa_auth_pkg_w);
 			if (!lsa_auth_pkg)
-				error("utf16_to_utf8 failed to convert lsa_auth_pkg_w:%ls", lsa_auth_pkg_w);
+				fatal("utf16_to_utf8 failed to convert lsa_auth_pkg_w:%ls", lsa_auth_pkg_w);
 
-			if ((tmp = strstr(authctxt->pw->pw_name, "@")) != NULL) {
-				domain_len = strlen(tmp) + 1;
-				domain = (char*) malloc(domain_len * sizeof(char));
-				memcpy(domain, tmp, domain_len);
-				domain[domain_len] = '\0';
-			}
 			debug("Authenticating using LSA Auth Package:%ls", lsa_auth_pkg_w);
-			authctxt->auth_token = mm_auth_custom_lsa(authctxt->pw->pw_name, password, domain, lsa_auth_pkg);
+			password_auth_token = process_custom_lsa_auth(authctxt->pw->pw_name, password, lsa_auth_pkg);
 		}
 	}
 
 done:
-	if (domain)
-		free(domain);
-
 	if (lsa_auth_pkg_w)
 		free(lsa_auth_pkg_w);
 
@@ -301,7 +295,7 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 
 	if (LogonUserExExWHelper(user_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK_CLEARTEXT,
 	    LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL) == TRUE)
-		authctxt->auth_token = (void*)(INT_PTR)token;
+		password_auth_token = token;
 	else {
 		if (GetLastError() == ERROR_PASSWORD_MUST_CHANGE)
 			/*
@@ -318,7 +312,7 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 	}
 			
 done:
-	if (authctxt->auth_token)
+	if (password_auth_token)
 		r = 1;
 
 	if (user_utf16)

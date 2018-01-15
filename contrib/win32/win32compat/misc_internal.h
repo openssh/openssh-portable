@@ -2,9 +2,6 @@
 #include <VersionHelpers.h>
 
 #define PATH_MAX MAX_PATH
-#define SSH_ASYNC_STDIN "SSH_ASYNC_STDIN"
-#define SSH_ASYNC_STDOUT "SSH_ASYNC_STDOUT"
-#define SSH_ASYNC_STDERR "SSH_ASYNC_STDERR"
 
 #define GOTO_CLEANUP_IF(_cond_,_err_) do {  \
     if ((_cond_)) {                         \
@@ -40,3 +37,6 @@ void invalid_parameter_handler(const wchar_t *, const wchar_t *, const wchar_t *
 static char *machine_domain_name;
 void to_lower_case(char *s);
 int get_machine_domain_name(wchar_t *domain, int size);
+
+HANDLE get_user_token(char* user);
+int load_user_profile(HANDLE user_token, char* user);

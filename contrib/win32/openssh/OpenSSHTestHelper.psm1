@@ -188,11 +188,6 @@ WARNING: Following changes will be made to OpenSSH configuration
         if (-not ($_.Name.EndsWith(".pub")))
         {
             Repair-SshdHostKeyPermission -FilePath $_.FullName -confirm:$false
-            if($psversiontable.BuildVersion.Major -gt 6)
-            {                
-                #register private key with agent
-                ssh-add-hostkey.ps1 $_.FullName
-            }
         }        
     }
 
@@ -462,11 +457,6 @@ function Clear-OpenSSHTestEnvironment
         Throw "Cannot find OpenSSH binaries under $script:OpenSSHBinPath. "
     }
     
-    #unregister test host keys from agent
-    Get-ChildItem "$sshBinPath\sshtest*hostkey*.pub"| % {
-        ssh-add-hostkey.ps1 -Delete_key $_.FullName
-    }
-
     if($Global:OpenSSHTestInfo["EnableAppVerifier"] -and (Test-path $env:windir\System32\appverif.exe))
     {
         # clear all applications in application verifier

@@ -168,8 +168,8 @@ CALLBACK WSARecvCompletionRoutine(IN DWORD dwError,
 
 /* initiates async receive operation*/
 /* TODO - always return 0, or make this a void func. any error should be put in context*/
-int
-socketio_WSARecv(struct w32_io* pio, BOOL* completed)
+static int
+socketio_WSARecv(struct w32_io* pio, BOOL* completed, int len)
 {
 	int ret = 0;
 	WSABUF wsabuf;
@@ -193,6 +193,9 @@ socketio_WSARecv(struct w32_io* pio, BOOL* completed)
 		pio->read_details.buf_size = wsabuf.len;
 	} else
 		wsabuf.buf = pio->read_details.buf;
+
+	if (len)
+		wsabuf.len = len;
 
 	ret = WSARecv(pio->sock, &wsabuf, 1, NULL, &recv_flags, &pio->read_overlapped, &WSARecvCompletionRoutine);
 	if (ret == 0) {
@@ -420,7 +423,7 @@ socketio_recv(struct w32_io* pio, void *buf, size_t len, int flags)
 		}
 	}
 
-	if (0 != socketio_WSARecv(pio, &completed))
+	if (0 != socketio_WSARecv(pio, &completed, len))
 		return -1;
 
 	if (completed) {
@@ -952,7 +955,7 @@ socketio_on_select(struct w32_io* pio, BOOL rd)
 			}
 	} else if(sock_state == SOCK_READY) {
 		/* connected socket - WSARecv if needed */
-		if ((!pio->read_details.pending) && (!socketio_is_io_available(pio, rd)) && (socketio_WSARecv(pio, NULL) != 0))
+		if ((!pio->read_details.pending) && (!socketio_is_io_available(pio, rd)) && (socketio_WSARecv(pio, NULL, 0) != 0))
 		{
 			/* set error, recv() will pick it */
 			pio->read_details.error = errno;
