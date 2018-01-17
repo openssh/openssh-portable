@@ -690,7 +690,7 @@ SendCharacter(HANDLE hInput, WORD attributes, wchar_t character)
 
 	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, ";%u", Color);
 	
-	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, ";%c", 'm');
+	StringCbPrintfExA(Next, SizeLeft, &Next, &SizeLeft, 0, "%c", 'm');
 
 	if (bUseAnsiEmulation && attributes != pattributes)
 		WriteFile(hInput, formatted_output, (DWORD)(Next - formatted_output), &wr, NULL);
