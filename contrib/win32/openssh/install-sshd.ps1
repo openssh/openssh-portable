@@ -31,13 +31,6 @@ cmd.exe /c 'sc.exe sdset ssh-agent D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPW
 
 New-Service -Name sshd -BinaryPathName `"$sshdpath`" -Description "SSH Daemon" -StartupType Manual | Out-Null
 
-# create sshd account with random password if it does not already exist
-# New-LocalUser only exists on PS V5
-# New-LocalUser -Name sshd -AccountNeverExpires -Password (ConvertTo-SecureString (new-guid).guid -AsPlainText -Force) -ErrorAction SilentlyContinue | Out-Null
-# net user prompts if password is more than 14 chars long
-net user sshd (new-guid).guid.substring(1,14) /add > $null 2>&1
-
-
 # create logs folder and set its permissions
 if(-not (test-path $logsdir -PathType Container))
 {
