@@ -35,8 +35,6 @@
 #include "sshfileperm.h"
 #include "debug.h"
 
-#define SSHD_ACCOUNT L"NT Service\\sshd"
-
 /*
 * The function is to check if current user is secure to access to the file. 
 * Check the owner of the file is one of these types: Local Administrators groups, system account, current user account
@@ -127,15 +125,7 @@ check_secure_file_permission(const char *name, struct passwd * pw)
 			IsWellKnownSid(current_trustee_sid, WinLocalSystemSid) ||
 			EqualSid(current_trustee_sid, user_sid)) {
 			continue;
-		}
-		else if(is_sshd_account(current_trustee_sid)){
-			if ((current_access_mask & ~FILE_GENERIC_READ) != 0){
-				debug3("Bad permission. %s can only read access to %s", SSHD_ACCOUNT, name);	
-				ret = -1;			
-				break;			
-			}			
-		}
-		else {
+		} else {
 			ret = -1;
 			if (ConvertSidToStringSid(current_trustee_sid, &bad_user) == FALSE) {
 				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
@@ -157,26 +147,3 @@ cleanup:
 	return ret;
 }
 
-/*TODO: optimize to get sshd sid first and then call EqualSid*/
-static BOOL
-is_sshd_account(PSID user_sid) {	
-	wchar_t user_name[UNCLEN] = { 0 }, full_name[UNCLEN + DNLEN + 2] = { 0 };
-	DWORD name_length = UNCLEN, domain_name_length = 0, full_name_len = UNCLEN + DNLEN + 2;
-	SID_NAME_USE sid_type = SidTypeInvalid;
-	BOOL ret = FALSE;
-	errno_t r = 0;
-	
-	if (LookupAccountSidLocalW(user_sid, user_name, &name_length, full_name, &full_name_len, &sid_type) == FALSE)
-	{
-		debug3("LookupAccountSidLocalW() failed with error: %d. ", GetLastError());
-		errno = ENOENT;
-		return FALSE;
-	}	
-	domain_name_length = wcsnlen(full_name, _countof(full_name));
-	full_name[domain_name_length] = L'\\';
-	if ((r = wmemcpy_s(full_name + domain_name_length + 1, _countof(full_name) - domain_name_length -1, user_name, wcsnlen_s(user_name, UNCLEN) + 1)) != 0) {
-		debug3("wmemcpy_s failed with error: %d.", r);
-		return FALSE;
-	}
-	return (wcsicmp(full_name, SSHD_ACCOUNT) == 0);
-}
