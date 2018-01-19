@@ -423,7 +423,7 @@ socketio_recv(struct w32_io* pio, void *buf, size_t len, int flags)
 		}
 	}
 
-	if (0 != socketio_WSARecv(pio, &completed, len))
+	if (0 != socketio_WSARecv(pio, &completed, (int)len))
 		return -1;
 
 	if (completed) {

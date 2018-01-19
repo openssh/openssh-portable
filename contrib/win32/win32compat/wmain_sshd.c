@@ -108,7 +108,7 @@ prereq_setup()
 	RPC_CWSTR rpc_str;
 	USER_INFO_1 ui;
 	NET_API_STATUS nStatus;
-	STARTUPINFO si;
+	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 	wchar_t cmdline[MAX_PATH];
 
@@ -135,7 +135,7 @@ prereq_setup()
 
 		/* create host keys if they dont already exist */
 		ZeroMemory(&si, sizeof(si));
-		si.cb = sizeof(si);
+		si.cb = sizeof(STARTUPINFOW);
 		ZeroMemory(&pi, sizeof(pi));
 		memcpy(cmdline, SSH_HOSTKEY_GEN_CMDLINE, wcslen(SSH_HOSTKEY_GEN_CMDLINE) * 2 + 2);
 		if (CreateProcessW(NULL, cmdline, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
