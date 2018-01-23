@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.502 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.503 2018/01/23 20:00:58 stsp Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -450,7 +450,7 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 	chop(server_version_string);
 	debug("Local version string %.200s", server_version_string);
 
-	if (remote_major != 2 ||
+	if (remote_major != 2 &&
 	    !(remote_major == 1 && remote_minor == 99)) {
 		s = "Protocol major versions differ.\n";
 		(void) atomicio(vwrite, sock_out, s, strlen(s));
