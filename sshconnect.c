@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.289 2017/12/06 05:06:21 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.290 2018/01/23 05:17:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -416,7 +416,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
     int connection_attempts, int *timeout_ms, int want_keepalive, int needpriv)
 {
 	int on = 1;
-	int sock = -1, attempt;
+	int oerrno, sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
 
@@ -436,12 +436,16 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 		 */
 		for (ai = aitop; ai; ai = ai->ai_next) {
 			if (ai->ai_family != AF_INET &&
-			    ai->ai_family != AF_INET6)
+			    ai->ai_family != AF_INET6) {
+				errno = EAFNOSUPPORT;
 				continue;
+			}
 			if (getnameinfo(ai->ai_addr, ai->ai_addrlen,
 			    ntop, sizeof(ntop), strport, sizeof(strport),
 			    NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+				oerrno = errno;
 				error("%s: getnameinfo failed", __func__);
+				errno = oerrno;
 				continue;
 			}
 			debug("Connecting to %.200s [%.100s] port %s.",
@@ -451,6 +455,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 			sock = ssh_create_socket(needpriv, ai);
 			if (sock < 0)
 				/* Any error is already output */
+				errno = 0;
 				continue;
 
 			if (timeout_connect(sock, ai->ai_addr, ai->ai_addrlen,
@@ -459,10 +464,12 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen);
 				break;
 			} else {
+				oerrno = errno;
 				debug("connect to address %s port %s: %s",
 				    ntop, strport, strerror(errno));
 				close(sock);
 				sock = -1;
+				errno = oerrno;
 			}
 		}
 		if (sock != -1)
@@ -472,8 +479,8 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 	/* Return failure if we didn't get a successful connection. */
 	if (sock == -1) {
 		error("ssh: connect to host %s port %s: %s",
-		    host, strport, strerror(errno));
-		return (-1);
+		    host, strport, errno == 0 ? "failure" : strerror(errno));
+		return -1;
 	}
 
 	debug("Connection established.");
