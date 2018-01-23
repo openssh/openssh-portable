@@ -523,6 +523,13 @@ function Start-OpenSSHBuild
         $xml.Project.PropertyGroup.WindowsSDKVersion = $win10SDKVer.ToString()
         $xml.Project.PropertyGroup.AdditionalDependentLibs = 'onecore.lib'
         $xml.Project.PropertyGroup.MinimalCoreWin = 'true'
+        
+        #Use onecore libcrypto binaries
+        $xml.Project.PropertyGroup."LibreSSL-x86-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\x86\'
+        $xml.Project.PropertyGroup."LibreSSL-x64-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\x64\'
+        $xml.Project.PropertyGroup."LibreSSL-arm-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\arm\'
+        $xml.Project.PropertyGroup."LibreSSL-arm64-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\arm64\'
+        
         $xml.Save($PathTargets)
     }
     

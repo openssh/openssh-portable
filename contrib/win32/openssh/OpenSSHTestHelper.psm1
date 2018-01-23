@@ -244,6 +244,7 @@ WARNING: Following changes will be made to OpenSSH configuration
     $authorizedKeyPath = Join-Path $ssouserProfile .ssh\authorized_keys
     $testPubKeyPath = Join-Path $Script:E2ETestDirectory sshtest_userssokey_ed25519.pub
     Copy-Item $testPubKeyPath $authorizedKeyPath -Force -ErrorAction SilentlyContinue
+    Repair-AuthorizedKeyPermission -FilePath $authorizedKeyPath -confirm:$false 
     
     copy-item (Join-Path $Script:E2ETestDirectory sshtest_userssokey_ed25519) $Global:OpenSSHTestInfo["TestDataPath"]
     $testPriKeypath = Join-Path $Global:OpenSSHTestInfo["TestDataPath"] sshtest_userssokey_ed25519
