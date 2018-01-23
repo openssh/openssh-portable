@@ -99,7 +99,7 @@ static VOID WINAPI service_handler(DWORD dwControl)
 
 #define SSH_HOSTKEY_GEN_CMDLINE L"ssh-keygen -A"
 static void 
-prereq_setup()
+generate_host_keys()
 {
 	TOKEN_USER* info = NULL;
 	DWORD info_len = 0, dwError = 0;
@@ -151,6 +151,50 @@ cleanup:
 		free(info);
 }
 
+/*
+* 1) Create %programdata%\ssh - Administrator group(F), system(F), authorized users(RX).
+* 2) Create %programdata%\ssh\logs - Administrator group(F), system(F)
+* 3) copy <binary_location>\sshd_config_default to %programdata%\ssh\sshd_config
+*/
+static void 
+create_prgdata_ssh_folder()
+{
+	/* create ssh cfg folder */
+	char ssh_cfg_dir[PATH_MAX] = { 0, };
+	strcpy_s(ssh_cfg_dir, _countof(ssh_cfg_dir), get_program_data_path());
+	strcat_s(ssh_cfg_dir, _countof(ssh_cfg_dir), "\\ssh");
+	if (create_directory_withsddl(ssh_cfg_dir, "O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1200a9;;;AU)") < 0)
+		fatal("failed to create %s", ssh_cfg_dir);
+
+	/* create logs folder */
+	char logs_dir[PATH_MAX] = { 0, };
+	strcat_s(logs_dir, _countof(logs_dir), ssh_cfg_dir);
+	strcat_s(logs_dir, _countof(logs_dir), "\\logs");
+	if (create_directory_withsddl(logs_dir, "O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)") < 0)
+		fatal("failed to create %s", logs_dir);
+
+	/* COPY sshd_config_default to %programData%\openssh\sshd_config */
+	char sshd_config_path[PATH_MAX] = { 0, };
+	strcat_s(sshd_config_path, _countof(sshd_config_path), ssh_cfg_dir);
+	strcat_s(sshd_config_path, _countof(sshd_config_path), "\\sshd_config");
+	struct stat st;
+	if (stat(sshd_config_path, &st) < 0) {
+		char sshd_config_default_path[PATH_MAX] = { 0, };
+		strcat_s(sshd_config_default_path, _countof(sshd_config_default_path), w32_programdir());
+		strcat_s(sshd_config_default_path, _countof(sshd_config_default_path), "\\sshd_config_default");
+
+		if (copy_file(sshd_config_default_path, sshd_config_path) < 0)
+			fatal("Failed to copy %s to %s, error:%d", sshd_config_default_path, sshd_config_path, GetLastError());
+	}
+}
+
+static void
+prereq_setup()
+{	
+	create_prgdata_ssh_folder();
+	generate_host_keys();
+}
+
 int sshd_main(int argc, wchar_t **wargv) {
 	char** argv = NULL;
 	int i, r;
@@ -177,7 +221,7 @@ int wmain(int argc, wchar_t **wargv) {
 	wchar_t* path_utf16;
 	argc_original = argc;
 	wargv_original = wargv;
-
+	
 	/* change current directory to sshd.exe root */
 	if ( (path_utf16 = utf8_to_utf16(w32_programdir())) == NULL) 
 		return -1;

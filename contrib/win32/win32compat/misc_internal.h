@@ -40,3 +40,5 @@ int get_machine_domain_name(wchar_t *domain, int size);
 char* get_program_data_path();
 HANDLE get_user_token(char* user);
 int load_user_profile(HANDLE user_token, char* user);
+int copy_file(char *source, char *destination);
+int create_directory_withsddl(char *path, char *sddl);
