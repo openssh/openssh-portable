@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.470 2018/01/23 05:06:25 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.471 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1931,7 +1931,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (options.control_persist && muxserver_sock == -1)
 		ssh_init_stdio_forwarding(ssh);
 
-	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
+	if (!no_shell_flag)
 		id = ssh_session2_open(ssh);
 	else {
 		packet_set_interactive(

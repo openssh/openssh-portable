@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.266 2017/08/27 00:38:41 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.267 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -578,7 +578,6 @@ input_userauth_pk_ok(int type, u_int32_t seq, struct ssh *ssh)
 	Authctxt *authctxt = ssh->authctxt;
 	struct sshkey *key = NULL;
 	Identity *id = NULL;
-	Buffer b;
 	int pktype, sent = 0;
 	u_int alen, blen;
 	char *pkalg, *fp;
@@ -586,18 +585,9 @@ input_userauth_pk_ok(int type, u_int32_t seq, struct ssh *ssh)
 
 	if (authctxt == NULL)
 		fatal("input_userauth_pk_ok: no authentication context");
-	if (datafellows & SSH_BUG_PKOK) {
-		/* this is similar to SSH_BUG_PKAUTH */
-		debug2("input_userauth_pk_ok: SSH_BUG_PKOK");
-		pkblob = packet_get_string(&blen);
-		buffer_init(&b);
-		buffer_append(&b, pkblob, blen);
-		pkalg = buffer_get_string(&b, &alen);
-		buffer_free(&b);
-	} else {
-		pkalg = packet_get_string(&alen);
-		pkblob = packet_get_string(&blen);
-	}
+
+	pkalg = packet_get_string(&alen);
+	pkblob = packet_get_string(&blen);
 	packet_check_eom();
 
 	debug("Server accepts key: pkalg %s blen %u", pkalg, blen);
@@ -1100,17 +1090,10 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	}
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, authctxt->server_user);
-	buffer_put_cstring(&b,
-	    datafellows & SSH_BUG_PKSERVICE ?
-	    "ssh-userauth" :
-	    authctxt->service);
-	if (datafellows & SSH_BUG_PKAUTH) {
-		buffer_put_char(&b, have_sig);
-	} else {
-		buffer_put_cstring(&b, authctxt->method->name);
-		buffer_put_char(&b, have_sig);
-		buffer_put_cstring(&b, key_sign_encode(id->key));
-	}
+	buffer_put_cstring(&b, authctxt->service);
+	buffer_put_cstring(&b, authctxt->method->name);
+	buffer_put_char(&b, have_sig);
+	buffer_put_cstring(&b, key_sign_encode(id->key));
 	buffer_put_string(&b, blob, bloblen);
 
 	/*
@@ -1170,19 +1153,6 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 #ifdef DEBUG_PK
 	buffer_dump(&b);
 #endif
-	if (datafellows & SSH_BUG_PKSERVICE) {
-		buffer_clear(&b);
-		buffer_append(&b, session_id2, session_id2_len);
-		skip = session_id2_len;
-		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
-		buffer_put_cstring(&b, authctxt->server_user);
-		buffer_put_cstring(&b, authctxt->service);
-		buffer_put_cstring(&b, authctxt->method->name);
-		buffer_put_char(&b, have_sig);
-		if (!(datafellows & SSH_BUG_PKAUTH))
-			buffer_put_cstring(&b, key_ssh_name(id->key));
-		buffer_put_string(&b, blob, bloblen);
-	}
 	free(blob);
 
 	/* append signature */
@@ -1224,8 +1194,7 @@ send_pubkey_test(Authctxt *authctxt, Identity *id)
 	packet_put_cstring(authctxt->service);
 	packet_put_cstring(authctxt->method->name);
 	packet_put_char(have_sig);
-	if (!(datafellows & SSH_BUG_PKAUTH))
-		packet_put_cstring(key_sign_encode(id->key));
+	packet_put_cstring(key_sign_encode(id->key));
 	packet_put_string(blob, bloblen);
 	free(blob);
 	packet_send();
@@ -1741,7 +1710,6 @@ userauth_hostbased(Authctxt *authctxt)
 	struct ssh *ssh = active_state;
 	struct sshkey *private = NULL;
 	struct sshbuf *b = NULL;
-	const char *service;
 	u_char *sig = NULL, *keyblob = NULL;
 	char *fp = NULL, *chost = NULL, *lname = NULL;
 	size_t siglen = 0, keylen = 0;
@@ -1812,9 +1780,6 @@ userauth_hostbased(Authctxt *authctxt)
 	xasprintf(&chost, "%s.", lname);
 	debug2("%s: chost %s", __func__, chost);
 
-	service = datafellows & SSH_BUG_HBSERVICE ? "ssh-userauth" :
-	    authctxt->service;
-
 	/* construct data */
 	if ((b = sshbuf_new()) == NULL) {
 		error("%s: sshbuf_new failed", __func__);
@@ -1827,7 +1792,7 @@ userauth_hostbased(Authctxt *authctxt)
 	if ((r = sshbuf_put_string(b, session_id2, session_id2_len)) != 0 ||
 	    (r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 	    (r = sshbuf_put_cstring(b, authctxt->server_user)) != 0 ||
-	    (r = sshbuf_put_cstring(b, service)) != 0 ||
+	    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
 	    (r = sshbuf_put_cstring(b, authctxt->method->name)) != 0 ||
 	    (r = sshbuf_put_cstring(b, key_ssh_name(private))) != 0 ||
 	    (r = sshbuf_put_string(b, keyblob, keylen)) != 0 ||

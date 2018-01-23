@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.377 2017/12/05 01:30:19 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.378 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1582,13 +1582,8 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c,
 	    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket, 0, buf, 1);
 	open_preamble(ssh, __func__, nc, "x11");
-	if ((r = sshpkt_put_cstring(ssh, remote_ipaddr)) != 0) {
-		fatal("%s: channel %i: reply %s", __func__,
-		    c->self, ssh_err(r));
-	}
-	if ((datafellows & SSH_BUG_X11FWD) != 0)
-		debug2("channel %d: ssh2 x11 bug compat mode", nc->self);
-	else if ((r = sshpkt_put_u32(ssh, remote_port)) != 0) {
+	if ((r = sshpkt_put_cstring(ssh, remote_ipaddr)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, remote_port)) != 0) {
 		fatal("%s: channel %i: reply %s", __func__,
 		    c->self, ssh_err(r));
 	}
@@ -1824,15 +1819,13 @@ channel_post_connecting(struct ssh *ssh, Channel *c,
 			if ((r = sshpkt_start(ssh,
 			    SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
 			    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-			    (r = sshpkt_put_u32(ssh, SSH2_OPEN_CONNECT_FAILED))
-			    != 0)
+			    (r = sshpkt_put_u32(ssh,
+			    SSH2_OPEN_CONNECT_FAILED)) != 0 ||
+			    (r = sshpkt_put_cstring(ssh, strerror(err))) != 0 ||
+			    (r = sshpkt_put_cstring(ssh, "")) != 0) {
 				fatal("%s: channel %i: failure: %s", __func__,
 				    c->self, ssh_err(r));
-			if ((datafellows & SSH_BUG_OPENFAILURE) == 0 &&
-			    ((r = sshpkt_put_cstring(ssh, strerror(err))) != 0 ||
-			    (r = sshpkt_put_cstring(ssh, "")) != 0))
-				fatal("%s: channel %i: failure: %s", __func__,
-				    c->self, ssh_err(r));
+			}
 			if ((r = sshpkt_send(ssh)) != 0)
 				fatal("%s: channel %i: %s", __func__, c->self,
 				    ssh_err(r));
@@ -3110,13 +3103,11 @@ channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
 		error("%s: reason: %s", __func__, ssh_err(r));
 		packet_disconnect("Invalid open failure message");
 	}
-	if ((datafellows & SSH_BUG_OPENFAILURE) == 0) {
-		/* skip language */
-		if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
-		    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0) {
-			error("%s: message/lang: %s", __func__, ssh_err(r));
-			packet_disconnect("Invalid open failure message");
-		}
+	/* skip language */
+	if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
+	    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0) {
+		error("%s: message/lang: %s", __func__, ssh_err(r));
+		packet_disconnect("Invalid open failure message");
 	}
 	ssh_packet_check_eom(ssh);
 	logit("channel %d: open failed: %s%s%s", c->self,
@@ -3664,15 +3655,9 @@ static const char *
 channel_rfwd_bind_host(const char *listen_host)
 {
 	if (listen_host == NULL) {
-		if (datafellows & SSH_BUG_RFWD_ADDR)
-			return "127.0.0.1";
-		else
-			return "localhost";
+		return "localhost";
 	} else if (*listen_host == '\0' || strcmp(listen_host, "*") == 0) {
-		if (datafellows & SSH_BUG_RFWD_ADDR)
-			return "0.0.0.0";
-		else
-			return "";
+		return "";
 	} else
 		return listen_host;
 }

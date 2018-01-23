@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.74 2017/12/21 00:00:28 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.75 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -100,26 +100,10 @@ userauth_pubkey(struct ssh *ssh)
 		debug2("%s: disabled because of invalid user", __func__);
 		return 0;
 	}
-	if ((r = sshpkt_get_u8(ssh, &have_sig)) != 0)
-		fatal("%s: sshpkt_get_u8 failed: %s", __func__, ssh_err(r));
-	if (ssh->compat & SSH_BUG_PKAUTH) {
-		debug2("%s: SSH_BUG_PKAUTH", __func__);
-		if ((b = sshbuf_new()) == NULL)
-			fatal("%s: sshbuf_new failed", __func__);
-		/* no explicit pkalg given */
-		/* so we have to extract the pkalg from the pkblob */
-		/* XXX use sshbuf_from() */
-		if ((r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0 ||
-		    (r = sshbuf_put(b, pkblob, blen)) != 0 ||
-		    (r = sshbuf_get_cstring(b, &pkalg, NULL)) != 0)
-			fatal("%s: failed: %s", __func__, ssh_err(r));
-		sshbuf_free(b);
-	} else {
-		if ((r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
-		    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0)
-			fatal("%s: sshpkt_get_cstring failed: %s",
-			    __func__, ssh_err(r));
-	}
+	if ((r = sshpkt_get_u8(ssh, &have_sig)) != 0 ||
+	    (r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
+	    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0)
+		fatal("%s: parse request failed: %s", __func__, ssh_err(r));
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
 		/* this is perfectly legal */
@@ -188,22 +172,11 @@ userauth_pubkey(struct ssh *ssh)
 		    authctxt->style ? authctxt->style : "");
 		if ((r = sshbuf_put_u8(b, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 		    (r = sshbuf_put_cstring(b, userstyle)) != 0 ||
-		    (r = sshbuf_put_cstring(b, ssh->compat & SSH_BUG_PKSERVICE ?
-		    "ssh-userauth" : authctxt->service)) != 0)
-			fatal("%s: build packet failed: %s",
-			    __func__, ssh_err(r));
-		if (ssh->compat & SSH_BUG_PKAUTH) {
-			if ((r = sshbuf_put_u8(b, have_sig)) != 0)
-				fatal("%s: build packet failed: %s",
-				    __func__, ssh_err(r));
-		} else {
-			if ((r = sshbuf_put_cstring(b, "publickey")) != 0 ||
-			    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
-			    (r = sshbuf_put_cstring(b, pkalg) != 0))
-				fatal("%s: build packet failed: %s",
-				    __func__, ssh_err(r));
-		}
-		if ((r = sshbuf_put_string(b, pkblob, blen)) != 0)
+		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
+		    (r = sshbuf_put_cstring(b, "publickey")) != 0 ||
+		    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
+		    (r = sshbuf_put_cstring(b, pkalg) != 0) ||
+		    (r = sshbuf_put_string(b, pkblob, blen)) != 0)
 			fatal("%s: build packet failed: %s",
 			    __func__, ssh_err(r));
 #ifdef DEBUG_PK

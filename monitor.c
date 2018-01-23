@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.177 2017/12/21 00:00:28 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.178 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1255,18 +1255,13 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 	free(userstyle);
 	free(cp);
 	buffer_skip_string(&b);
-	if (datafellows & SSH_BUG_PKAUTH) {
-		if (!buffer_get_char(&b))
-			fail++;
-	} else {
-		cp = buffer_get_cstring(&b, NULL);
-		if (strcmp("publickey", cp) != 0)
-			fail++;
-		free(cp);
-		if (!buffer_get_char(&b))
-			fail++;
-		buffer_skip_string(&b);
-	}
+	cp = buffer_get_cstring(&b, NULL);
+	if (strcmp("publickey", cp) != 0)
+		fail++;
+	free(cp);
+	if (!buffer_get_char(&b))
+		fail++;
+	buffer_skip_string(&b);
 	buffer_skip_string(&b);
 	if (buffer_len(&b) != 0)
 		fail++;

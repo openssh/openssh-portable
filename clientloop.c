@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.309 2017/12/18 23:16:23 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.310 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1541,12 +1541,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		return NULL;
 	}
 	originator = packet_get_string(NULL);
-	if (datafellows & SSH_BUG_X11FWD) {
-		debug2("buggy server: x11 request w/o originator_port");
-		originator_port = 0;
-	} else {
-		originator_port = packet_get_int();
-	}
+	originator_port = packet_get_int();
 	packet_check_eom();
 	/* XXX check permission */
 	debug("client_request_x11: request from %s %d", originator,
@@ -1678,10 +1673,8 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
-		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring("open failed");
-			packet_put_cstring("");
-		}
+		packet_put_cstring("open failed");
+		packet_put_cstring("");
 		packet_send();
 	}
 	free(ctype);

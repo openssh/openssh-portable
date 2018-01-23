@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.226 2017/11/15 02:10:16 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.227 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -292,8 +292,6 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 
-	if (flags & SSH_AGENT_OLD_SIGNATURE)
-		compat = SSH_BUG_SIGBLOB;
 	if ((id = lookup_identity(key)) == NULL) {
 		verbose("%s: %s key not found", __func__, sshkey_type(key));
 		goto send;

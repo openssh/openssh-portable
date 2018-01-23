@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.105 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.106 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -353,8 +353,6 @@ ssh_agent_sign(int sock, const struct sshkey *key,
 
 	if (datalen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (compat & SSH_BUG_SIGBLOB)
-		flags |= SSH_AGENT_OLD_SIGNATURE;
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshkey_to_blob(key, &blob, &blen)) != 0)

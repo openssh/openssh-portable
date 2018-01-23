@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.290 2018/01/23 05:17:04 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.291 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -617,9 +617,6 @@ ssh_exchange_identification(int timeout_ms)
 	if (mismatch)
 		fatal("Protocol major versions differ: %d vs. %d",
 		    PROTOCOL_MAJOR_2, remote_major);
-	if ((datafellows & SSH_BUG_DERIVEKEY) != 0)
-		fatal("Server version \"%.100s\" uses unsafe key agreement; "
-		    "refusing connection", remote_version);
 	if ((datafellows & SSH_BUG_RSASIGMD5) != 0)
 		logit("Server version \"%.100s\" uses unsafe RSA signature "
 		    "scheme; disabling use of RSA keys", remote_version);

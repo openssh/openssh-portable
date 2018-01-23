@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.202 2017/12/18 23:16:24 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.203 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -655,10 +655,8 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(reason);
-		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring(errmsg ? errmsg : "open failed");
-			packet_put_cstring("");
-		}
+		packet_put_cstring(errmsg ? errmsg : "open failed");
+		packet_put_cstring("");
 		packet_send();
 	}
 	free(ctype);

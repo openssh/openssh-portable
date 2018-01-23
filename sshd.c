@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.501 2018/01/23 05:12:12 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.502 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -445,10 +445,6 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 	if ((ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
 		logit("Client version \"%.100s\" uses unsafe RSA signature "
 		    "scheme; disabling use of RSA keys", remote_version);
-	}
-	if ((ssh->compat & SSH_BUG_DERIVEKEY) != 0) {
-		fatal("Client version \"%.100s\" uses unsafe key agreement; "
-		    "refusing connection", remote_version);
 	}
 
 	chop(server_version_string);

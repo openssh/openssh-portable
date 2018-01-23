@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.134 2017/06/13 12:13:59 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.135 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -675,9 +675,6 @@ choose_mac(struct ssh *ssh, struct sshmac *mac, char *client, char *server)
 		free(name);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
-	/* truncate the key */
-	if (ssh->compat & SSH_BUG_HMAC)
-		mac->key_len = 16;
 	mac->name = name;
 	mac->key = NULL;
 	mac->enabled = 0;
@@ -866,8 +863,7 @@ kex_choose_conf(struct ssh *ssh)
 	kex->dh_need = dh_need;
 
 	/* ignore the next message if the proposals do not match */
-	if (first_kex_follows && !proposals_match(my, peer) &&
-	    !(ssh->compat & SSH_BUG_FIRSTKEX))
+	if (first_kex_follows && !proposals_match(my, peer))
 		ssh->dispatch_skip_packets = 1;
 	r = 0;
  out:
