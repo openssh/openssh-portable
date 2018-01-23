@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.499 2017/11/14 00:45:29 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.500 2018/01/23 05:01:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1695,10 +1695,8 @@ main(int ac, char **av)
 			fatal("Privilege separation user %s does not exist",
 			    SSH_PRIVSEP_USER);
 	} else {
-		explicit_bzero(privsep_pw->pw_passwd,
-		    strlen(privsep_pw->pw_passwd));
 		privsep_pw = pwcopy(privsep_pw);
-		free(privsep_pw->pw_passwd);
+		freezero(privsep_pw->pw_passwd, strlen(privsep_pw->pw_passwd));
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();
