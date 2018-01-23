@@ -138,9 +138,6 @@ auth2_read_banner(void)
 void
 userauth_send_banner(const char *msg)
 {
-	if (datafellows & SSH_BUG_BANNER)
-		return;
-
 	packet_start(SSH2_MSG_USERAUTH_BANNER);
 	packet_put_cstring(msg);
 	packet_put_cstring("");		/* language, unused */
