@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.291 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.292 2018/01/23 18:33:49 stsp Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -453,10 +453,11 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 
 			/* Create a socket for connecting. */
 			sock = ssh_create_socket(needpriv, ai);
-			if (sock < 0)
+			if (sock < 0) {
 				/* Any error is already output */
 				errno = 0;
 				continue;
+			}
 
 			if (timeout_connect(sock, ai->ai_addr, ai->ai_addrlen,
 			    timeout_ms) >= 0) {
