@@ -8,6 +8,8 @@
 #ifndef crypto_api_h
 #define crypto_api_h
 
+#include "includes.h"
+
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #endif
