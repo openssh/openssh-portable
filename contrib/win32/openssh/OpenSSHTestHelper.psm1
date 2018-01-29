@@ -162,8 +162,14 @@ WARNING: Following changes will be made to OpenSSH configuration
        New-Item -ItemType Directory -Path $TestDataPath -Force -ErrorAction SilentlyContinue | out-null
     }
 
-    #Backup existing OpenSSH configuration
+    
+    if(-not (Test-Path $OpenSSHConfigPath -pathType Container))
+    {
+        #starting the service will create ssh config folder
+        start-service sshd
+    }    
     $backupConfigPath = Join-Path $OpenSSHConfigPath sshd_config.ori
+    #Backup existing OpenSSH configuration
     if (-not (Test-Path $backupConfigPath -PathType Leaf)) {
         Copy-Item (Join-Path $OpenSSHConfigPath sshd_config) $backupConfigPath -Force
     }
