@@ -30,12 +30,11 @@ AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_EGREP
+AC_PROG_MKDIR_P
 AC_CHECK_TOOLS([AR], [ar])
 AC_PATH_PROG([CAT], [cat])
 AC_PATH_PROG([KILL], [kill])
-AC_PATH_PROGS([PERL], [perl5 perl])
 AC_PATH_PROG([SED], [sed])
-AC_SUBST([PERL])
 AC_PATH_PROG([ENT], [ent])
 AC_SUBST([ENT])
 AC_PATH_PROG([TEST_MINUS_S_SH], [bash])
@@ -163,8 +162,8 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-sign], [-Wno-pointer-sign])
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
-	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
     if test "x$use_toolchain_hardening" = "x1"; then
+	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,noexecstack])
@@ -289,6 +288,16 @@ AC_ARG_WITH([cflags],
 		fi
 	]
 )
+
+AC_ARG_WITH([cflags-after],
+	[  --with-cflags-after     Specify additional flags to pass to compiler after configure],
+	[
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
+			CFLAGS_AFTER="$withval"
+		fi
+	]
+)
 AC_ARG_WITH([cppflags],
 	[  --with-cppflags         Specify additional flags to pass to preprocessor] ,
 	[
@@ -304,6 +313,15 @@ AC_ARG_WITH([ldflags],
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then
 			LDFLAGS="$LDFLAGS $withval"
+		fi
+	]
+)
+AC_ARG_WITH([ldflags-after],
+	[  --with-ldflags-after    Specify additional flags to pass to linker after configure],
+	[
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
+			LDFLAGS_AFTER="$withval"
 		fi
 	]
 )
@@ -370,7 +388,6 @@ AC_CHECK_HEADERS([ \
 	sys/audit.h \
 	sys/bitypes.h \
 	sys/bsdtty.h \
-	sys/capability.h \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
@@ -400,6 +417,23 @@ AC_CHECK_HEADERS([ \
 	utmpx.h \
 	vis.h \
 	wchar.h \
+])
+
+# sys/capsicum.h requires sys/types.h
+AC_CHECK_HEADERS([sys/capsicum.h], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+])
+
+# net/route.h requires sys/socket.h and sys/types.h.
+# sys/sysctl.h also requires sys/param.h
+AC_CHECK_HEADERS([net/route.h sys/sysctl.h], [], [], [
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#include <sys/param.h>
+#include <sys/socket.h>
 ])
 
 # lastlog.h requires sys/time.h to be included first on Solaris
@@ -744,6 +778,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
 		    [Prepend the address family to IP tunnel traffic])
 	fi
+	AC_CHECK_HEADER([linux/if.h],
+	    AC_DEFINE([SYS_RDOMAIN_LINUX], [1],
+		[Support routing domains using Linux VRF]))
 	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
 	    [], [#include <linux/types.h>])
 	AC_MSG_CHECKING([for seccomp architecture])
@@ -980,6 +1017,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([BROKEN_SETREUID])
 	AC_DEFINE([BROKEN_SETREGID])
 	AC_DEFINE([PASSWD_NEEDS_USERNAME])
+	AC_DEFINE([BROKEN_TCGETATTR_ICANON])
 	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
@@ -1305,7 +1343,17 @@ AC_CHECK_FUNCS([fmt_scaled scan_scaled login logout openpty updwtmp logwtmp])
 AC_SEARCH_LIBS([inet_ntop], [resolv nsl])
 AC_SEARCH_LIBS([gethostbyname], [resolv nsl])
 
+# "Particular Function Checks"
+# see https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Particular-Functions.html
 AC_FUNC_STRFTIME
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+# autoconf doesn't have AC_FUNC_CALLOC so fake it if malloc returns NULL;
+if test "x$ac_cv_func_malloc_0_nonnull" != "xyes"; then
+	AC_DEFINE(HAVE_CALLOC, 0, [calloc(x, 0) returns NULL])
+	AC_DEFINE(calloc, rpl_calloc,
+	    [Define to rpl_calloc if the replacement function should be used.])
+fi
 
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING([for GLOB_ALTDIRFUNC support])
@@ -1451,7 +1499,7 @@ AC_ARG_WITH(ldns,
 	ldns=""
 	if test "x$withval" = "xyes" ; then
 		AC_PATH_TOOL([LDNSCONFIG], [ldns-config], [no])
-		if test "x$PKGCONFIG" = "xno"; then
+		if test "x$LDNSCONFIG" = "xno"; then
 			CPPFLAGS="$CPPFLAGS -I${withval}/include"
 			LDFLAGS="$LDFLAGS -L${withval}/lib"
 			LIBS="-lldns $LIBS"
@@ -1670,6 +1718,7 @@ AC_CHECK_FUNCS([ \
 	fchmod \
 	fchown \
 	freeaddrinfo \
+	freezero \
 	fstatfs \
 	fstatvfs \
 	futimes \
@@ -1678,6 +1727,7 @@ AC_CHECK_FUNCS([ \
 	getgrouplist \
 	getnameinfo \
 	getopt \
+	getpagesize \
 	getpeereid \
 	getpeerucred \
 	getpgid \
@@ -1708,6 +1758,7 @@ AC_CHECK_FUNCS([ \
 	readpassphrase \
 	reallocarray \
 	recvmsg \
+	recallocarray \
 	rresvport_af \
 	sendmsg \
 	setdtablesize \
@@ -1741,6 +1792,7 @@ AC_CHECK_FUNCS([ \
 	strnlen \
 	strnvis \
 	strptime \
+	strsignal \
 	strtonum \
 	strtoll \
 	strtoul \
@@ -2509,7 +2561,11 @@ if test "x$openssl" = "xyes" ; then
 				10000*|0*)
 					AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
 			                ;;
-			        *) ;;
+				100*)   ;; # 1.0.x
+				200*)   ;; # LibreSSL
+			        *)
+					AC_MSG_ERROR([OpenSSL >= 1.1.0 is not yet supported (have "$ssl_library_ver")])
+			                ;;
 			esac
 			AC_MSG_RESULT([$ssl_library_ver])
 		],
@@ -3162,7 +3218,8 @@ AC_RUN_IFELSE(
 	 select_works_with_rlimit=yes],
 	[AC_MSG_RESULT([no])
 	 select_works_with_rlimit=no],
-	[AC_MSG_WARN([cross compiling: assuming yes])]
+	[AC_MSG_WARN([cross compiling: assuming yes])
+	 select_works_with_rlimit=yes]
 )
 
 AC_MSG_CHECKING([if setrlimit(RLIMIT_NOFILE,{0,0}) works])
@@ -3188,7 +3245,8 @@ AC_RUN_IFELSE(
 	 rlimit_nofile_zero_works=yes],
 	[AC_MSG_RESULT([no])
 	 rlimit_nofile_zero_works=no],
-	[AC_MSG_WARN([cross compiling: assuming yes])]
+	[AC_MSG_WARN([cross compiling: assuming yes])
+	 rlimit_nofile_zero_works=yes]
 )
 
 AC_MSG_CHECKING([if setrlimit RLIMIT_FSIZE works])
@@ -3251,10 +3309,10 @@ elif test "x$sandbox_arg" = "xseccomp_filter" || \
 	AC_DEFINE([SANDBOX_SECCOMP_FILTER], [1], [Sandbox using seccomp filter])
 elif test "x$sandbox_arg" = "xcapsicum" || \
      ( test -z "$sandbox_arg" && \
-       test "x$ac_cv_header_sys_capability_h" = "xyes" && \
+       test "x$ac_cv_header_sys_capsicum_h" = "xyes" && \
        test "x$ac_cv_func_cap_rights_limit" = "xyes") ; then
-       test "x$ac_cv_header_sys_capability_h" != "xyes" && \
-		AC_MSG_ERROR([capsicum sandbox requires sys/capability.h header])
+       test "x$ac_cv_header_sys_capsicum_h" != "xyes" && \
+		AC_MSG_ERROR([capsicum sandbox requires sys/capsicum.h header])
        test "x$ac_cv_func_cap_rights_limit" != "xyes" && \
 		AC_MSG_ERROR([capsicum sandbox requires cap_rights_limit function])
        SANDBOX_STYLE="capsicum"
@@ -3810,6 +3868,8 @@ OSSH_CHECK_HEADER_FOR_FIELD([ut_time], [utmpx.h], [HAVE_TIME_IN_UTMPX])
 OSSH_CHECK_HEADER_FOR_FIELD([ut_tv], [utmpx.h], [HAVE_TV_IN_UTMPX])
 
 AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_CHECK_MEMBERS([struct stat.st_mtim])
+AC_CHECK_MEMBERS([struct stat.st_mtime])
 AC_CHECK_MEMBERS([struct passwd.pw_gecos, struct passwd.pw_class,
 struct passwd.pw_change, struct passwd.pw_expire],
 [], [], [[
@@ -5008,6 +5068,10 @@ AC_SUBST([TEST_SSH_IPV6], [$TEST_SSH_IPV6])
 AC_SUBST([TEST_SSH_UTF8], [$TEST_SSH_UTF8])
 AC_SUBST([TEST_MALLOC_OPTIONS], [$TEST_MALLOC_OPTIONS])
 AC_SUBST([UNSUPPORTED_ALGORITHMS], [$unsupported_algorithms])
+AC_SUBST([DEPEND], [$(cat $srcdir/.depend)])
+
+CFLAGS="${CFLAGS} ${CFLAGS_AFTER}"
+LDFLAGS="${LDFLAGS} ${LDFLAGS_AFTER}"
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \

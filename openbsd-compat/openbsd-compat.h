@@ -60,12 +60,20 @@ int bindresvport_sa(int sd, struct sockaddr *sa);
 void closefrom(int);
 #endif
 
+#ifndef HAVE_GETPAGESIZE
+int getpagesize(void);
+#endif
+
 #ifndef HAVE_GETCWD
 char *getcwd(char *pt, size_t size);
 #endif
 
 #ifndef HAVE_REALLOCARRAY
 void *reallocarray(void *, size_t, size_t);
+#endif
+
+#ifndef HAVE_RECALLOCARRAY
+void *recallocarray(void *, size_t, size_t, size_t);
 #endif
 
 #if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
@@ -296,6 +304,10 @@ int	bcrypt_pbkdf(const char *, size_t, const u_int8_t *, size_t,
 void explicit_bzero(void *p, size_t n);
 #endif
 
+#ifndef HAVE_FREEZERO
+void freezero(void *, size_t);
+#endif
+
 char *xcrypt(const char *password, const char *salt);
 char *shadow_pw(struct passwd *pw);
 
@@ -310,7 +322,7 @@ char *shadow_pw(struct passwd *pw);
 #include "port-irix.h"
 #include "port-linux.h"
 #include "port-solaris.h"
-#include "port-tun.h"
+#include "port-net.h"
 #include "port-uw.h"
 
 /* _FORTIFY_SOURCE breaks FD_ISSET(n)/FD_SET(n) for n > FD_SETSIZE. Avoid. */

@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.256 2017/05/08 06:03:39 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.269 2017/12/18 23:13:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -557,10 +557,22 @@ ssh_local_port(struct ssh *ssh)
 	return ssh->local_port;
 }
 
+/* Returns the routing domain of the input socket, or NULL if unavailable */
+const char *
+ssh_packet_rdomain_in(struct ssh *ssh)
+{
+	if (ssh->rdomain_in != NULL)
+		return ssh->rdomain_in;
+	if (!ssh_packet_connection_is_on_socket(ssh))
+		return NULL;
+	ssh->rdomain_in = get_rdomain(ssh->state->connection_in);
+	return ssh->rdomain_in;
+}
+
 /* Closes the connection and clears and frees internal data structures. */
 
-void
-ssh_packet_close(struct ssh *ssh)
+static void
+ssh_packet_close_internal(struct ssh *ssh, int do_close)
 {
 	struct session_state *state = ssh->state;
 	u_int mode;
@@ -568,20 +580,25 @@ ssh_packet_close(struct ssh *ssh)
 	if (!state->initialized)
 		return;
 	state->initialized = 0;
-	if (state->connection_in == state->connection_out) {
-		shutdown(state->connection_out, SHUT_RDWR);
-		close(state->connection_out);
-	} else {
-		close(state->connection_in);
-		close(state->connection_out);
+	if (do_close) {
+		if (state->connection_in == state->connection_out) {
+			close(state->connection_out);
+		} else {
+			close(state->connection_in);
+			close(state->connection_out);
+		}
 	}
 	sshbuf_free(state->input);
 	sshbuf_free(state->output);
 	sshbuf_free(state->outgoing_packet);
 	sshbuf_free(state->incoming_packet);
-	for (mode = 0; mode < MODE_MAX; mode++)
-		kex_free_newkeys(state->newkeys[mode]);
-	if (state->compression_buffer) {
+	for (mode = 0; mode < MODE_MAX; mode++) {
+		kex_free_newkeys(state->newkeys[mode]);	/* current keys */
+		state->newkeys[mode] = NULL;
+		ssh_clear_newkeys(ssh, mode);		/* next keys */
+	}
+	/* comression state is in shared mem, so we can only release it once */
+	if (do_close && state->compression_buffer) {
 		sshbuf_free(state->compression_buffer);
 		if (state->compression_out_started) {
 			z_streamp stream = &state->compression_out_stream;
@@ -595,7 +612,7 @@ ssh_packet_close(struct ssh *ssh)
 				deflateEnd(stream);
 		}
 		if (state->compression_in_started) {
-			z_streamp stream = &state->compression_out_stream;
+			z_streamp stream = &state->compression_in_stream;
 			debug("compress incoming: "
 			    "raw data %llu, compressed %llu, factor %.2f",
 			    (unsigned long long)stream->total_out,
@@ -609,10 +626,24 @@ ssh_packet_close(struct ssh *ssh)
 	cipher_free(state->send_context);
 	cipher_free(state->receive_context);
 	state->send_context = state->receive_context = NULL;
-	free(ssh->remote_ipaddr);
-	ssh->remote_ipaddr = NULL;
-	free(ssh->state);
-	ssh->state = NULL;
+	if (do_close) {
+		free(ssh->remote_ipaddr);
+		ssh->remote_ipaddr = NULL;
+		free(ssh->state);
+		ssh->state = NULL;
+	}
+}
+
+void
+ssh_packet_close(struct ssh *ssh)
+{
+	ssh_packet_close_internal(ssh, 1);
+}
+
+void
+ssh_packet_clear_keys(struct ssh *ssh)
+{
+	ssh_packet_close_internal(ssh, 0);
 }
 
 /* Sets remote side protocol flags. */
@@ -791,6 +822,15 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	/* NOTREACHED */
 }
 
+void
+ssh_clear_newkeys(struct ssh *ssh, int mode)
+{
+	if (ssh->kex && ssh->kex->newkeys[mode]) {
+		kex_free_newkeys(ssh->kex->newkeys[mode]);
+		ssh->kex->newkeys[mode] = NULL;
+	}
+}
+
 int
 ssh_set_newkeys(struct ssh *ssh, int mode)
 {
@@ -801,45 +841,33 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	struct sshcipher_ctx **ccp;
 	struct packet_state *ps;
 	u_int64_t *max_blocks;
-	const char *wmsg, *dir;
+	const char *wmsg;
 	int r, crypt_type;
 
 	debug2("set_newkeys: mode %d", mode);
 
 	if (mode == MODE_OUT) {
-		dir = "output";
 		ccp = &state->send_context;
 		crypt_type = CIPHER_ENCRYPT;
 		ps = &state->p_send;
 		max_blocks = &state->max_blocks_out;
 	} else {
-		dir = "input";
 		ccp = &state->receive_context;
 		crypt_type = CIPHER_DECRYPT;
 		ps = &state->p_read;
 		max_blocks = &state->max_blocks_in;
 	}
 	if (state->newkeys[mode] != NULL) {
-		debug("%s: rekeying after %llu %s blocks"
-		    " (%llu bytes total)", __func__,
-		    (unsigned long long)ps->blocks, dir,
-		    (unsigned long long)ps->bytes);
+		debug("set_newkeys: rekeying, input %llu bytes %llu blocks, "
+		   "output %llu bytes %llu blocks",
+		   (unsigned long long)state->p_read.bytes,
+		   (unsigned long long)state->p_read.blocks,
+		   (unsigned long long)state->p_send.bytes,
+		   (unsigned long long)state->p_send.blocks);
 		cipher_free(*ccp);
 		*ccp = NULL;
-		enc  = &state->newkeys[mode]->enc;
-		mac  = &state->newkeys[mode]->mac;
-		comp = &state->newkeys[mode]->comp;
-		mac_clear(mac);
-		explicit_bzero(enc->iv,  enc->iv_len);
-		explicit_bzero(enc->key, enc->key_len);
-		explicit_bzero(mac->key, mac->key_len);
-		free(enc->name);
-		free(enc->iv);
-		free(enc->key);
-		free(mac->name);
-		free(mac->key);
-		free(comp->name);
-		free(state->newkeys[mode]);
+		kex_free_newkeys(state->newkeys[mode]);
+		state->newkeys[mode] = NULL;
 	}
 	/* note that both bytes and the seqnr are not reset */
 	ps->packets = ps->blocks = 0;
@@ -885,6 +913,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	/*
 	 * The 2^(blocksize*2) limit is too expensive for 3DES,
 	 * so enforce a 1GB limit for small blocksizes.
+	 * See RFC4344 section 3.2.
 	 */
 	if (enc->block_size >= 16)
 		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
@@ -928,7 +957,10 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	    (int64_t)state->rekey_time + state->rekey_interval <= monotime())
 		return 1;
 
-	/* Always rekey when MAX_PACKETS sent in either direction */
+	/*
+	 * Always rekey when MAX_PACKETS sent in either direction 
+	 * As per RFC4344 section 3.1 we do this after 2^31 packets.
+	 */
 	if (state->p_send.packets > MAX_PACKETS ||
 	    state->p_read.packets > MAX_PACKETS)
 		return 1;
@@ -1300,7 +1332,7 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 		for (;;) {
 			if (state->packet_timeout_ms != -1) {
 				ms_to_timeval(&timeout, ms_remain);
-				gettimeofday(&start, NULL);
+				monotime_tv(&start);
 			}
 			if ((r = select(state->connection_in + 1, setp,
 			    NULL, NULL, timeoutp)) >= 0)
@@ -1754,6 +1786,8 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
+	debug3("sending debug message: %s", buf);
+
 	if ((r = sshpkt_start(ssh, SSH2_MSG_DEBUG)) != 0 ||
 	    (r = sshpkt_put_u8(ssh, 0)) != 0 || /* always display */
 	    (r = sshpkt_put_cstring(ssh, buf)) != 0 ||
@@ -1763,8 +1797,8 @@ ssh_packet_send_debug(struct ssh *ssh, const char *fmt,...)
 		fatal("%s: %s", __func__, ssh_err(r));
 }
 
-static void
-fmt_connection_id(struct ssh *ssh, char *s, size_t l)
+void
+sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 {
 	snprintf(s, l, "%.200s%s%s port %d",
 	    ssh->log_preamble ? ssh->log_preamble : "",
@@ -1780,19 +1814,24 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 {
 	char remote_id[512];
 
-	fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
+		ssh_packet_clear_keys(ssh);
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
+		ssh_packet_clear_keys(ssh);
 		logdie("Connection %s %s timed out",
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
+		ssh_packet_clear_keys(ssh);
 		logdie("Disconnected from %s", remote_id);
 	case SSH_ERR_SYSTEM_ERROR:
-		if (errno == ECONNRESET)
+		if (errno == ECONNRESET) {
+			ssh_packet_clear_keys(ssh);
 			logdie("Connection reset by %s", remote_id);
+		}
 		/* FALLTHROUGH */
 	case SSH_ERR_NO_CIPHER_ALG_MATCH:
 	case SSH_ERR_NO_MAC_ALG_MATCH:
@@ -1800,12 +1839,14 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 	case SSH_ERR_NO_KEX_ALG_MATCH:
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
 		if (ssh && ssh->kex && ssh->kex->failed_choice) {
+			ssh_packet_clear_keys(ssh);
 			logdie("Unable to negotiate with %s: %s. "
 			    "Their offer: %s", remote_id, ssh_err(r),
 			    ssh->kex->failed_choice);
 		}
 		/* FALLTHROUGH */
 	default:
+		ssh_packet_clear_keys(ssh);
 		logdie("%s%sConnection %s %s: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
 		    ssh->state->server_side ? "from" : "to",
@@ -1835,7 +1876,7 @@ ssh_packet_disconnect(struct ssh *ssh, const char *fmt,...)
 	 * Format the message.  Note that the caller must make sure the
 	 * message is of limited size.
 	 */
-	fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
@@ -1918,7 +1959,7 @@ ssh_packet_write_wait(struct ssh *ssh)
 		for (;;) {
 			if (state->packet_timeout_ms != -1) {
 				ms_to_timeval(&timeout, ms_remain);
-				gettimeofday(&start, NULL);
+				monotime_tv(&start);
 			}
 			if ((ret = select(state->connection_out + 1,
 			    NULL, setp, NULL, timeoutp)) >= 0)
@@ -1970,7 +2011,7 @@ void
 ssh_packet_set_tos(struct ssh *ssh, int tos)
 {
 #ifndef IP_TOS_IS_BROKEN
-	if (!ssh_packet_connection_is_on_socket(ssh))
+	if (!ssh_packet_connection_is_on_socket(ssh) || tos == INT_MAX)
 		return;
 	switch (ssh_packet_connection_af(ssh)) {
 # ifdef IP_TOS
@@ -2063,35 +2104,6 @@ ssh_packet_get_maxsize(struct ssh *ssh)
 	return ssh->state->max_packet_size;
 }
 
-/*
- * 9.2.  Ignored Data Message
- *
- *   byte      SSH_MSG_IGNORE
- *   string    data
- *
- * All implementations MUST understand (and ignore) this message at any
- * time (after receiving the protocol version). No implementation is
- * required to send them. This message can be used as an additional
- * protection measure against advanced traffic analysis techniques.
- */
-void
-ssh_packet_send_ignore(struct ssh *ssh, int nbytes)
-{
-	u_int32_t rnd = 0;
-	int r, i;
-
-	if ((r = sshpkt_start(ssh, SSH2_MSG_IGNORE)) != 0 ||
-	    (r = sshpkt_put_u32(ssh, nbytes)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
-	for (i = 0; i < nbytes; i++) {
-		if (i % 4 == 0)
-			rnd = arc4random();
-		if ((r = sshpkt_put_u8(ssh, (u_char)rnd & 0xff)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
-		rnd >>= 8;
-	}
-}
-
 void
 ssh_packet_set_rekey_limits(struct ssh *ssh, u_int64_t bytes, u_int32_t seconds)
 {
@@ -2161,7 +2173,9 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 	if ((r = sshbuf_put_string(m, kex->session_id,
 	    kex->session_id_len)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->we_need)) != 0 ||
+	    (r = sshbuf_put_cstring(m, kex->hostkey_alg)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->hostkey_type)) != 0 ||
+	    (r = sshbuf_put_u32(m, kex->hostkey_nid)) != 0 ||
 	    (r = sshbuf_put_u32(m, kex->kex_type)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->my)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->peer)) != 0 ||
@@ -2195,9 +2209,7 @@ newkeys_to_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 		return r;
 	if ((b = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	/* The cipher struct is constant and shared, you export pointer */
 	if ((r = sshbuf_put_cstring(b, enc->name)) != 0 ||
-	    (r = sshbuf_put(b, &enc->cipher, sizeof(enc->cipher))) != 0 ||
 	    (r = sshbuf_put_u32(b, enc->enabled)) != 0 ||
 	    (r = sshbuf_put_u32(b, enc->block_size)) != 0 ||
 	    (r = sshbuf_put_string(b, enc->key, enc->key_len)) != 0 ||
@@ -2271,12 +2283,15 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	comp = &newkey->comp;
 
 	if ((r = sshbuf_get_cstring(b, &enc->name, NULL)) != 0 ||
-	    (r = sshbuf_get(b, &enc->cipher, sizeof(enc->cipher))) != 0 ||
 	    (r = sshbuf_get_u32(b, (u_int *)&enc->enabled)) != 0 ||
 	    (r = sshbuf_get_u32(b, &enc->block_size)) != 0 ||
 	    (r = sshbuf_get_string(b, &enc->key, &keylen)) != 0 ||
 	    (r = sshbuf_get_string(b, &enc->iv, &ivlen)) != 0)
 		goto out;
+	if ((enc->cipher = cipher_by_name(enc->name)) == NULL) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	if (cipher_authlen(enc->cipher) == 0) {
 		if ((r = sshbuf_get_cstring(b, &mac->name, NULL)) != 0)
 			goto out;
@@ -2294,11 +2309,6 @@ newkeys_from_blob(struct sshbuf *m, struct ssh *ssh, int mode)
 	if ((r = sshbuf_get_u32(b, &comp->type)) != 0 ||
 	    (r = sshbuf_get_cstring(b, &comp->name, NULL)) != 0)
 		goto out;
-	if (enc->name == NULL ||
-	    cipher_by_name(enc->name) != enc->cipher) {
-		r = SSH_ERR_INVALID_FORMAT;
-		goto out;
-	}
 	if (sshbuf_len(b) != 0) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
@@ -2329,7 +2339,9 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	}
 	if ((r = sshbuf_get_string(m, &kex->session_id, &kex->session_id_len)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &kex->hostkey_alg, NULL)) != 0 ||
 	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_type)) != 0 ||
+	    (r = sshbuf_get_u32(m, (u_int *)&kex->hostkey_nid)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->kex_type)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->my)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->peer)) != 0 ||
@@ -2516,6 +2528,12 @@ sshpkt_get_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp)
 }
 
 int
+sshpkt_peek_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp)
+{
+	return sshbuf_peek_string_direct(ssh->state->incoming_packet, valp, lenp);
+}
+
+int
 sshpkt_get_cstring(struct ssh *ssh, char **valp, size_t *lenp)
 {
 	return sshbuf_get_cstring(ssh->state->incoming_packet, valp, lenp);
@@ -2595,6 +2613,37 @@ ssh_packet_send_mux(struct ssh *ssh)
 		/* sshbuf_dump(state->output, stderr); */
 	}
 	sshbuf_reset(state->outgoing_packet);
+	return 0;
+}
+
+/*
+ * 9.2.  Ignored Data Message
+ *
+ *   byte      SSH_MSG_IGNORE
+ *   string    data
+ *
+ * All implementations MUST understand (and ignore) this message at any
+ * time (after receiving the protocol version). No implementation is
+ * required to send them. This message can be used as an additional
+ * protection measure against advanced traffic analysis techniques.
+ */
+int
+sshpkt_msg_ignore(struct ssh *ssh, u_int nbytes)
+{
+	u_int32_t rnd = 0;
+	int r;
+	u_int i;
+
+	if ((r = sshpkt_start(ssh, SSH2_MSG_IGNORE)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, nbytes)) != 0)
+		return r;
+	for (i = 0; i < nbytes; i++) {
+		if (i % 4 == 0)
+			rnd = arc4random();
+		if ((r = sshpkt_put_u8(ssh, (u_char)rnd & 0xff)) != 0)
+			return r;
+		rnd >>= 8;
+	}
 	return 0;
 }
 

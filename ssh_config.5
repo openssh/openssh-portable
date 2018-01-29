@@ -33,16 +33,13 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.248 2017/05/07 23:12:57 djm Exp $
-.Dd $Mdocdate: May 7 2017 $
+.\" $OpenBSD: ssh_config.5,v 1.262 2017/10/24 06:27:42 jmc Exp $
+.Dd $Mdocdate: October 24 2017 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
 .Nm ssh_config
 .Nd OpenSSH SSH client configuration files
-.Sh SYNOPSIS
-.Nm ~/.ssh/config
-.Nm /etc/ssh/ssh_config
 .Sh DESCRIPTION
 .Xr ssh 1
 obtains configuration data from the following sources in
@@ -809,7 +806,7 @@ The list of available key types may also be obtained using
 .It Cm HostKeyAlias
 Specifies an alias that should be used instead of the
 real host name when looking up or saving the host key
-in the host key database files.
+in the host key database files and when validating host certificates.
 This option is useful for tunneling SSH connections
 or for multiple servers running on a single host.
 .It Cm HostName
@@ -972,7 +969,9 @@ Accepted values are
 .Cm lowdelay ,
 .Cm throughput ,
 .Cm reliability ,
-or a numeric value.
+a numeric value, or
+.Cm none
+to use the operating system default.
 This option may take one or two arguments, separated by whitespace.
 If one argument is specified, it is used as the packet class unconditionally.
 If two values are specified, the first is automatically selected for
@@ -1199,13 +1198,14 @@ For example, the following directive would connect via an HTTP proxy at
 ProxyCommand /usr/bin/nc -X connect -x 192.0.2.0:8080 %h %p
 .Ed
 .It Cm ProxyJump
-Specifies one or more jump proxies as
+Specifies one or more jump proxies as either
 .Xo
 .Sm off
 .Op Ar user No @
 .Ar host
 .Op : Ns Ar port
 .Sm on
+or an ssh URI
 .Xc .
 Multiple proxies may be separated by comma characters and will be visited
 sequentially.
@@ -1287,15 +1287,31 @@ is
 .Cm default none ,
 which means that rekeying is performed after the cipher's default amount
 of data has been sent or received and no time based rekeying is done.
+.It Cm RemoteCommand
+Specifies a command to execute on the remote machine after successfully
+connecting to the server.
+The command string extends to the end of the line, and is executed with
+the user's shell.
+Arguments to
+.Cm RemoteCommand
+accept the tokens described in the
+.Sx TOKENS
+section.
 .It Cm RemoteForward
 Specifies that a TCP port on the remote machine be forwarded over
-the secure channel to the specified host and port from the local machine.
+the secure channel.
+The remote port may either be fowarded to a specified host and port
+from the local machine, or may act as a SOCKS 4/5 proxy that allows a remote
+client to connect to arbitrary destinations from the local machine.
 The first argument must be
 .Sm off
 .Oo Ar bind_address : Oc Ar port
 .Sm on
-and the second argument must be
-.Ar host : Ns Ar hostport .
+If forwarding to a specific destination then the second argument must be
+.Ar host : Ns Ar hostport ,
+otherwise if no destination argument is specified then the remote forwarding
+will be established as a SOCKS proxy.
+.Pp
 IPv6 addresses can be specified by enclosing addresses in square brackets.
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
@@ -1449,10 +1465,19 @@ file is poorly maintained or when connections to new hosts are
 frequently made.
 This option forces the user to manually
 add all new hosts.
+.Pp
 If this flag is set to
-.Cm no ,
-ssh will automatically add new host keys to the
-user known hosts files.
+.Dq accept-new
+then ssh will automatically add new host keys to the user
+known hosts files, but will not permit connections to hosts with
+changed host keys.
+If this flag is set to
+.Dq no
+or
+.Dq off ,
+ssh will automatically add new host keys to the user known hosts files
+and allow connections to hosts with changed hostkeys to proceed,
+subject to some restrictions.
 If this flag is set to
 .Cm ask
 (the default),
@@ -1650,6 +1675,18 @@ pool,
 the following entry (in authorized_keys) could be used:
 .Pp
 .Dl from=\&"!*.dialup.example.com,*.example.com\&"
+.Pp
+Note that a negated match will never produce a positive result by itself.
+For example, attempting to match
+.Qq host3
+against the following pattern-list will fail:
+.Pp
+.Dl from=\&"!host1,!host2\&"
+.Pp
+The solution here is to include a term that will yield a positive match,
+such as a wildcard:
+.Pp
+.Dl from=\&"!host1,!host2,*\&"
 .Sh TOKENS
 Arguments to some keywords can make use of tokens,
 which are expanded at runtime:
@@ -1659,7 +1696,7 @@ which are expanded at runtime:
 A literal
 .Sq % .
 .It \&%C
-Shorthand for %l%h%p%r.
+Hash of %l%h%p%r.
 .It %d
 Local user's home directory.
 .It %h
@@ -1676,6 +1713,15 @@ The original remote hostname, as given on the command line.
 The remote port.
 .It %r
 The remote username.
+.It \&%T
+The local
+.Xr tun 4
+or
+.Xr tap 4
+network interface assigned if
+tunnel forwarding was requested, or
+.Qq NONE
+otherwise.
 .It %u
 The local username.
 .El
@@ -1698,10 +1744,13 @@ and
 accept the tokens %%, %d, %h, %l, %r, and %u.
 .Pp
 .Cm LocalCommand
-accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, and %u.
+accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, %T, and %u.
 .Pp
 .Cm ProxyCommand
 accepts the tokens %%, %h, %p, and %r.
+.Pp
+.Cm RemoteCommand
+accepts the tokens %%, %C, %d, %h, %l, %n, %p, %r, and %u.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa ~/.ssh/config

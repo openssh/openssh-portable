@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.113 2017/04/30 23:28:42 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.116 2017/11/25 06:46:22 dtucker Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -271,7 +271,7 @@ keygrab_ssh2(con *c)
 	 * do the key-exchange until an error occurs or until
 	 * the key_print_wrapper() callback sets c_done.
 	 */
-	ssh_dispatch_run(c->c_ssh, DISPATCH_BLOCK, &c->c_done, c->c_ssh);
+	ssh_dispatch_run(c->c_ssh, DISPATCH_BLOCK, &c->c_done);
 }
 
 static void
@@ -377,7 +377,7 @@ conalloc(char *iname, char *oname, int keytype)
 	fdcon[s].c_len = 4;
 	fdcon[s].c_off = 0;
 	fdcon[s].c_keytype = keytype;
-	gettimeofday(&fdcon[s].c_tv, NULL);
+	monotime_tv(&fdcon[s].c_tv);
 	fdcon[s].c_tv.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
 	FD_SET(s, read_wait);
@@ -390,7 +390,6 @@ confree(int s)
 {
 	if (s >= maxfd || fdcon[s].c_status == CS_UNUSED)
 		fatal("confree: attempt to free bad fdno %d", s);
-	close(s);
 	free(fdcon[s].c_namebase);
 	free(fdcon[s].c_output_name);
 	if (fdcon[s].c_status == CS_KEYS)
@@ -401,7 +400,8 @@ confree(int s)
 		ssh_packet_close(fdcon[s].c_ssh);
 		free(fdcon[s].c_ssh);
 		fdcon[s].c_ssh = NULL;
-	}
+	} else
+		close(s);
 	TAILQ_REMOVE(&tq, &fdcon[s], c_link);
 	FD_CLR(s, read_wait);
 	ncon--;
@@ -411,7 +411,7 @@ static void
 contouch(int s)
 {
 	TAILQ_REMOVE(&tq, &fdcon[s], c_link);
-	gettimeofday(&fdcon[s].c_tv, NULL);
+	monotime_tv(&fdcon[s].c_tv);
 	fdcon[s].c_tv.tv_sec += timeout;
 	TAILQ_INSERT_TAIL(&tq, &fdcon[s], c_link);
 }
@@ -545,7 +545,7 @@ conloop(void)
 	con *c;
 	int i;
 
-	gettimeofday(&now, NULL);
+	monotime_tv(&now);
 	c = TAILQ_FIRST(&tq);
 
 	if (c && (c->c_tv.tv_sec > now.tv_sec ||

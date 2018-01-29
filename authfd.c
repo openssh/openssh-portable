@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.103 2017/05/05 10:42:49 naddy Exp $ */
+/* $OpenBSD: authfd.c,v 1.106 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -51,7 +51,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "rsa.h"
 #include "sshbuf.h"
 #include "sshkey.h"
 #include "authfd.h"
@@ -326,7 +325,7 @@ ssh_free_identitylist(struct ssh_identitylist *idl)
 
 /* encode signature algoritm in flag bits, so we can keep the msg format */
 static u_int
-agent_encode_alg(struct sshkey *key, const char *alg)
+agent_encode_alg(const struct sshkey *key, const char *alg)
 {
 	if (alg != NULL && key->type == KEY_RSA) {
 		if (strcmp(alg, "rsa-sha2-256") == 0)
@@ -339,7 +338,7 @@ agent_encode_alg(struct sshkey *key, const char *alg)
 
 /* ask agent to sign data, returns err.h code on error, 0 on success */
 int
-ssh_agent_sign(int sock, struct sshkey *key,
+ssh_agent_sign(int sock, const struct sshkey *key,
     u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, const char *alg, u_int compat)
 {
@@ -354,8 +353,6 @@ ssh_agent_sign(int sock, struct sshkey *key,
 
 	if (datalen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
-	if (compat & SSH_BUG_SIGBLOB)
-		flags |= SSH_AGENT_OLD_SIGNATURE;
 	if ((msg = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshkey_to_blob(key, &blob, &blen)) != 0)

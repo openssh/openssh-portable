@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.303 2017/05/07 23:15:59 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.309 2017/12/18 02:25:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -41,7 +41,6 @@
 
 #include "xmalloc.h"
 #include "sshkey.h"
-#include "rsa.h"
 #include "authfile.h"
 #include "uuencode.h"
 #include "sshbuf.h"
@@ -59,6 +58,7 @@
 #include "krl.h"
 #include "digest.h"
 #include "utf8.h"
+#include "authfd.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -120,6 +120,9 @@ char *identity_comment = NULL;
 
 /* Path to CA key when certifying keys. */
 char *ca_key_path = NULL;
+
+/* Prefer to use agent keys for CA signing */
+int prefer_agent = 0;
 
 /* Certificate serial number */
 unsigned long long cert_serial = 0;
@@ -488,7 +491,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 		return NULL;
 	}
 	if ((key = sshkey_new_private(ktype)) == NULL)
-		fatal("key_new_private failed");
+		fatal("sshkey_new_private failed");
 	free(type);
 
 	switch (key->type) {
@@ -524,7 +527,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 		buffer_get_bignum_bits(b, key->rsa->iqmp);
 		buffer_get_bignum_bits(b, key->rsa->q);
 		buffer_get_bignum_bits(b, key->rsa->p);
-		if ((r = rsa_generate_additional_parameters(key->rsa)) != 0)
+		if ((r = ssh_rsa_generate_additional_parameters(key)) != 0)
 			fatal("generate RSA parameters failed: %s", ssh_err(r));
 		break;
 	}
@@ -536,7 +539,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 
 	/* try the key */
 	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), NULL, 0) != 0 ||
-	    sshkey_verify(key, sig, slen, data, sizeof(data), 0) != 0) {
+	    sshkey_verify(key, sig, slen, data, sizeof(data), NULL, 0) != 0) {
 		sshkey_free(key);
 		free(sig);
 		return NULL;
@@ -770,7 +773,7 @@ do_print_public(struct passwd *pw)
 		fatal("%s: %s", identity_file, strerror(errno));
 	prv = load_identity(identity_file);
 	if ((r = sshkey_write(prv, stdout)) != 0)
-		error("key_write failed: %s", ssh_err(r));
+		error("sshkey_write failed: %s", ssh_err(r));
 	sshkey_free(prv);
 	fprintf(stdout, "\n");
 	exit(0);
@@ -994,19 +997,37 @@ do_gen_all_hostkeys(struct passwd *pw)
 	int first = 0;
 	struct stat st;
 	struct sshkey *private, *public;
-	char comment[1024];
+	char comment[1024], *prv_tmp, *pub_tmp, *prv_file, *pub_file;
 	int i, type, fd, r;
 	FILE *f;
 
 	for (i = 0; key_types[i].key_type; i++) {
-		if (stat(key_types[i].path, &st) == 0)
-			continue;
-		if (errno != ENOENT) {
+		public = private = NULL;
+		prv_tmp = pub_tmp = prv_file = pub_file = NULL;
+
+		xasprintf(&prv_file, "%s%s",
+		    identity_file, key_types[i].path);
+
+		/* Check whether private key exists and is not zero-length */
+		if (stat(prv_file, &st) == 0) {
+			if (st.st_size != 0)
+				goto next;
+		} else if (errno != ENOENT) {
 			error("Could not stat %s: %s", key_types[i].path,
 			    strerror(errno));
-			first = 0;
-			continue;
+			goto failnext;
 		}
+
+		/*
+		 * Private key doesn't exist or is invalid; proceed with
+		 * key generation.
+		 */
+		xasprintf(&prv_tmp, "%s%s.XXXXXXXXXX",
+		    identity_file, key_types[i].path);
+		xasprintf(&pub_tmp, "%s%s.pub.XXXXXXXXXX",
+		    identity_file, key_types[i].path);
+		xasprintf(&pub_file, "%s%s.pub",
+		    identity_file, key_types[i].path);
 
 		if (first == 0) {
 			first = 1;
@@ -1015,56 +1036,76 @@ do_gen_all_hostkeys(struct passwd *pw)
 		printf("%s ", key_types[i].key_type_display);
 		fflush(stdout);
 		type = sshkey_type_from_name(key_types[i].key_type);
-		strlcpy(identity_file, key_types[i].path, sizeof(identity_file));
+		if ((fd = mkstemp(prv_tmp)) == -1) {
+			error("Could not save your public key in %s: %s",
+			    prv_tmp, strerror(errno));
+			goto failnext;
+		}
+		close(fd); /* just using mkstemp() to generate/reserve a name */
 		bits = 0;
 		type_bits_valid(type, NULL, &bits);
 		if ((r = sshkey_generate(type, bits, &private)) != 0) {
-			error("key_generate failed: %s", ssh_err(r));
-			first = 0;
-			continue;
+			error("sshkey_generate failed: %s", ssh_err(r));
+			goto failnext;
 		}
 		if ((r = sshkey_from_private(private, &public)) != 0)
 			fatal("sshkey_from_private failed: %s", ssh_err(r));
 		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name,
 		    hostname);
-		if ((r = sshkey_save_private(private, identity_file, "",
+		if ((r = sshkey_save_private(private, prv_tmp, "",
 		    comment, use_new_format, new_format_cipher, rounds)) != 0) {
 			error("Saving key \"%s\" failed: %s",
-			    identity_file, ssh_err(r));
-			sshkey_free(private);
-			sshkey_free(public);
-			first = 0;
-			continue;
+			    prv_tmp, ssh_err(r));
+			goto failnext;
 		}
-		sshkey_free(private);
-		strlcat(identity_file, ".pub", sizeof(identity_file));
-		fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd == -1) {
-			error("Could not save your public key in %s",
-			    identity_file);
-			sshkey_free(public);
-			first = 0;
-			continue;
+		if ((fd = mkstemp(pub_tmp)) == -1) {
+			error("Could not save your public key in %s: %s",
+			    pub_tmp, strerror(errno));
+			goto failnext;
 		}
+		(void)fchmod(fd, 0644);
 		f = fdopen(fd, "w");
 		if (f == NULL) {
-			error("fdopen %s failed", identity_file);
+			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
 			close(fd);
-			sshkey_free(public);
-			first = 0;
-			continue;
+			goto failnext;
 		}
 		if ((r = sshkey_write(public, f)) != 0) {
 			error("write key failed: %s", ssh_err(r));
 			fclose(f);
-			sshkey_free(public);
-			first = 0;
-			continue;
+			goto failnext;
 		}
 		fprintf(f, " %s\n", comment);
-		fclose(f);
-		sshkey_free(public);
+		if (ferror(f) != 0) {
+			error("write key failed: %s", strerror(errno));
+			fclose(f);
+			goto failnext;
+		}
+		if (fclose(f) != 0) {
+			error("key close failed: %s", strerror(errno));
+			goto failnext;
+		}
 
+		/* Rename temporary files to their permanent locations. */
+		if (rename(pub_tmp, pub_file) != 0) {
+			error("Unable to move %s into position: %s",
+			    pub_file, strerror(errno));
+			goto failnext;
+		}
+		if (rename(prv_tmp, prv_file) != 0) {
+			error("Unable to move %s into position: %s",
+			    key_types[i].path, strerror(errno));
+ failnext:
+			first = 0;
+			goto next;
+		}
+ next:
+		sshkey_free(private);
+		sshkey_free(public);
+		free(prv_tmp);
+		free(pub_tmp);
+		free(prv_file);
+		free(pub_file);
 	}
 	if (first != 0)
 		printf("\n");
@@ -1475,7 +1516,7 @@ do_change_comment(struct passwd *pw)
 	explicit_bzero(passphrase, strlen(passphrase));
 	free(passphrase);
 	if ((r = sshkey_from_private(private, &public)) != 0)
-		fatal("key_from_private failed: %s", ssh_err(r));
+		fatal("sshkey_from_private failed: %s", ssh_err(r));
 	sshkey_free(private);
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
@@ -1597,24 +1638,66 @@ load_pkcs11_key(char *path)
 #endif /* ENABLE_PKCS11 */
 }
 
+/* Signer for sshkey_certify_custom that uses the agent */
+static int
+agent_signer(const struct sshkey *key, u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, u_int compat, void *ctx)
+{
+	int *agent_fdp = (int *)ctx;
+
+	return ssh_agent_sign(*agent_fdp, key, sigp, lenp,
+	    data, datalen, alg, compat);
+}
+
 static void
 do_ca_sign(struct passwd *pw, int argc, char **argv)
 {
-	int r, i, fd;
+	int r, i, fd, found, agent_fd = -1;
 	u_int n;
 	struct sshkey *ca, *public;
 	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
 	FILE *f;
+	struct ssh_identitylist *agent_ids;
+	size_t j;
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(1);
 #endif
 	tmp = tilde_expand_filename(ca_key_path, pw->pw_uid);
 	if (pkcs11provider != NULL) {
+		/* If a PKCS#11 token was specified then try to use it */
 		if ((ca = load_pkcs11_key(tmp)) == NULL)
 			fatal("No PKCS#11 key matching %s found", ca_key_path);
-	} else
+	} else if (prefer_agent) {
+		/*
+		 * Agent signature requested. Try to use agent after making
+		 * sure the public key specified is actually present in the
+		 * agent.
+		 */
+		if ((r = sshkey_load_public(tmp, &ca, NULL)) != 0)
+			fatal("Cannot load CA public key %s: %s",
+			    tmp, ssh_err(r));
+		if ((r = ssh_get_authentication_socket(&agent_fd)) != 0)
+			fatal("Cannot use public key for CA signature: %s",
+			    ssh_err(r));
+		if ((r = ssh_fetch_identitylist(agent_fd, &agent_ids)) != 0)
+			fatal("Retrieve agent key list: %s", ssh_err(r));
+		found = 0;
+		for (j = 0; j < agent_ids->nkeys; j++) {
+			if (sshkey_equal(ca, agent_ids->keys[j])) {
+				found = 1;
+				break;
+			}
+		}
+		if (!found)
+			fatal("CA key %s not found in agent", tmp);
+		ssh_free_identitylist(agent_ids);
+		ca->flags |= SSHKEY_FLAG_EXT;
+	} else {
+		/* CA key is assumed to be a private key on the filesystem */
 		ca = load_identity(tmp);
+	}
 	free(tmp);
 
 	if (key_type_name != NULL &&
@@ -1662,10 +1745,18 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		    OPTIONS_EXTENSIONS);
 		if ((r = sshkey_from_private(ca,
 		    &public->cert->signature_key)) != 0)
-			fatal("key_from_private (ca key): %s", ssh_err(r));
+			fatal("sshkey_from_private (ca key): %s", ssh_err(r));
 
-		if ((r = sshkey_certify(public, ca, key_type_name)) != 0)
-			fatal("Couldn't certify key %s: %s", tmp, ssh_err(r));
+		if (agent_fd != -1 && (ca->flags & SSHKEY_FLAG_EXT) != 0) {
+			if ((r = sshkey_certify_custom(public, ca,
+			    key_type_name, agent_signer, &agent_fd)) != 0)
+				fatal("Couldn't certify key %s via agent: %s",
+				    tmp, ssh_err(r));
+		} else {
+			if ((sshkey_certify(public, ca, key_type_name)) != 0)
+				fatal("Couldn't certify key %s: %s",
+				    tmp, ssh_err(r));
+		}
 
 		if ((cp = strrchr(tmp, '.')) != NULL && strcmp(cp, ".pub") == 0)
 			*cp = '\0';
@@ -1741,7 +1832,7 @@ parse_absolute_time(const char *s)
 		    s, s + 4, s + 6, s + 8, s + 10, s + 12);
 		break;
 	default:
-		fatal("Invalid certificate time format %s", s);
+		fatal("Invalid certificate time format \"%s\"", s);
 	}
 
 	memset(&tm, 0, sizeof(tm));
@@ -1774,8 +1865,8 @@ parse_cert_times(char *timespec)
 
 	/*
 	 * from:to, where
-	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
-	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS
+	 * from := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "always"
+	 *   to := [+-]timespec | YYYYMMDD | YYYYMMDDHHMMSS | "forever"
 	 */
 	from = xstrdup(timespec);
 	to = strchr(from, ':');
@@ -1785,11 +1876,15 @@ parse_cert_times(char *timespec)
 
 	if (*from == '-' || *from == '+')
 		cert_valid_from = parse_relative_time(from, now);
+	else if (strcmp(from, "always") == 0)
+		cert_valid_from = 0;
 	else
 		cert_valid_from = parse_absolute_time(from);
 
 	if (*to == '-' || *to == '+')
 		cert_valid_to = parse_relative_time(to, now);
+	else if (strcmp(to, "forever") == 0)
+		cert_valid_to = ~(u_int64_t)0;
 	else
 		cert_valid_to = parse_absolute_time(to);
 
@@ -1980,7 +2075,7 @@ do_show_cert(struct passwd *pw)
 		if (*cp == '#' || *cp == '\0')
 			continue;
 		if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
-			fatal("key_new");
+			fatal("sshkey_new");
 		if ((r = sshkey_read(key, &cp)) != 0) {
 			error("%s:%lu: invalid key: %s", path,
 			    lnum, ssh_err(r));
@@ -2126,7 +2221,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 				 */
 			}
 			if ((key = sshkey_new(KEY_UNSPEC)) == NULL)
-				fatal("key_new");
+				fatal("sshkey_new");
 			if ((r = sshkey_read(key, &cp)) != 0)
 				fatal("%s:%lu: invalid key: %s",
 				    path, lnum, ssh_err(r));
@@ -2261,8 +2356,9 @@ usage(void)
 	    "       ssh-keygen -T output_file -f input_file [-v] [-a rounds] [-J num_lines]\n"
 	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
 #endif
-	    "       ssh-keygen -s ca_key -I certificate_identity [-h] [-n principals]\n"
-	    "                  [-O option] [-V validity_interval] [-z serial_number] file ...\n"
+	    "       ssh-keygen -s ca_key -I certificate_identity [-h] [-U]\n"
+	    "                  [-D pkcs11_provider] [-n principals] [-O option]\n"
+	    "                  [-V validity_interval] [-z serial_number] file ...\n"
 	    "       ssh-keygen -L [-f input_keyfile]\n"
 	    "       ssh-keygen -A\n"
 	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
@@ -2320,8 +2416,8 @@ main(int argc, char **argv)
 	if (gethostname(hostname, sizeof(hostname)) < 0)
 		fatal("gethostname: %s", strerror(errno));
 
-	/* Remaining characters: UYdw */
-	while ((opt = getopt(argc, argv, "ABHLQXceghiklopquvxy"
+	/* Remaining characters: Ydw */
+	while ((opt = getopt(argc, argv, "ABHLQUXceghiklopquvxy"
 	    "C:D:E:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Z:"
 	    "a:b:f:g:j:m:n:r:s:t:z:")) != -1) {
 		switch (opt) {
@@ -2447,6 +2543,9 @@ main(int argc, char **argv)
 			break;
 		case 'D':
 			pkcs11provider = optarg;
+			break;
+		case 'U':
+			prefer_agent = 1;
 			break;
 		case 'u':
 			update_krl = 1;
@@ -2667,9 +2766,9 @@ main(int argc, char **argv)
 		printf("Generating public/private %s key pair.\n",
 		    key_type_name);
 	if ((r = sshkey_generate(type, bits, &private)) != 0)
-		fatal("key_generate failed");
+		fatal("sshkey_generate failed");
 	if ((r = sshkey_from_private(private, &public)) != 0)
-		fatal("key_from_private failed: %s\n", ssh_err(r));
+		fatal("sshkey_from_private failed: %s\n", ssh_err(r));
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which to save the key");

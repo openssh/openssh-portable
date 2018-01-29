@@ -9,6 +9,7 @@ openbsd-compat/regress/Makefile
 openssh.xml
 opensshd.init
 survey.sh
+**/*.0
 **/*.o
 **/*.out
 **/*.a
@@ -24,3 +25,4 @@ ssh-keyscan
 ssh-keysign
 ssh-pkcs11-helper
 sshd
+!regress/misc/fuzz-harness/Makefile

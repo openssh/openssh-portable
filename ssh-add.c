@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.131 2017/05/05 10:42:49 naddy Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.134 2017/08/29 09:42:29 dlg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -55,7 +55,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "rsa.h"
 #include "log.h"
 #include "sshkey.h"
 #include "sshbuf.h"
@@ -103,7 +102,7 @@ clear_pass(void)
 }
 
 static int
-delete_file(int agent_fd, const char *filename, int key_only)
+delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 {
 	struct sshkey *public, *cert = NULL;
 	char *certpath = NULL, *comment = NULL;
@@ -114,7 +113,10 @@ delete_file(int agent_fd, const char *filename, int key_only)
 		return -1;
 	}
 	if ((r = ssh_remove_identity(agent_fd, public)) == 0) {
-		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
+		if (!qflag) {
+			fprintf(stderr, "Identity removed: %s (%s)\n",
+			    filename, comment);
+		}
 		ret = 0;
 	} else
 		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
@@ -139,8 +141,10 @@ delete_file(int agent_fd, const char *filename, int key_only)
 		    certpath, filename);
 
 	if ((r = ssh_remove_identity(agent_fd, cert)) == 0) {
-		fprintf(stderr, "Identity removed: %s (%s)\n", certpath,
-		    comment);
+		if (!qflag) {
+			fprintf(stderr, "Identity removed: %s (%s)\n",
+			    certpath, comment);
+		}
 		ret = 0;
 	} else
 		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
@@ -180,7 +184,7 @@ delete_all(int agent_fd)
 }
 
 static int
-add_file(int agent_fd, const char *filename, int key_only)
+add_file(int agent_fd, const char *filename, int key_only, int qflag)
 {
 	struct sshkey *private, *cert;
 	char *comment = NULL;
@@ -306,7 +310,7 @@ add_file(int agent_fd, const char *filename, int key_only)
 		goto out;
 	}
 	if ((r = sshkey_cert_copy(cert, private)) != 0) {
-		error("%s: key_cert_copy: %s", __func__, ssh_err(r));
+		error("%s: sshkey_cert_copy: %s", __func__, ssh_err(r));
 		sshkey_free(cert);
 		goto out;
 	}
@@ -428,13 +432,13 @@ lock_agent(int agent_fd, int lock)
 }
 
 static int
-do_file(int agent_fd, int deleting, int key_only, char *file)
+do_file(int agent_fd, int deleting, int key_only, char *file, int qflag)
 {
 	if (deleting) {
-		if (delete_file(agent_fd, file, key_only) == -1)
+		if (delete_file(agent_fd, file, key_only, qflag) == -1)
 			return -1;
 	} else {
-		if (add_file(agent_fd, file, key_only) == -1)
+		if (add_file(agent_fd, file, key_only, qflag) == -1)
 			return -1;
 	}
 	return 0;
@@ -457,6 +461,7 @@ usage(void)
 	fprintf(stderr, "  -X          Unlock agent.\n");
 	fprintf(stderr, "  -s pkcs11   Add keys from PKCS#11 provider.\n");
 	fprintf(stderr, "  -e pkcs11   Remove keys provided by PKCS#11 provider.\n");
+	fprintf(stderr, "  -q          Be quiet after a successful operation.\n");
 }
 
 int
@@ -467,7 +472,7 @@ main(int argc, char **argv)
 	int agent_fd;
 	char *pkcs11provider = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0;
-	int xflag = 0, lflag = 0, Dflag = 0;
+	int xflag = 0, lflag = 0, Dflag = 0, qflag = 0;
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -495,7 +500,7 @@ main(int argc, char **argv)
 		exit(2);
 	}
 
-	while ((ch = getopt(argc, argv, "klLcdDxXE:e:s:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "klLcdDxXE:e:qs:t:")) != -1) {
 		switch (ch) {
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
@@ -539,6 +544,9 @@ main(int argc, char **argv)
 				ret = 1;
 				goto done;
 			}
+			break;
+		case 'q':
+			qflag = 1;
 			break;
 		default:
 			usage();
@@ -588,7 +596,8 @@ main(int argc, char **argv)
 			    default_files[i]);
 			if (stat(buf, &st) < 0)
 				continue;
-			if (do_file(agent_fd, deleting, key_only, buf) == -1)
+			if (do_file(agent_fd, deleting, key_only, buf,
+			    qflag) == -1)
 				ret = 1;
 			else
 				count++;
@@ -598,7 +607,7 @@ main(int argc, char **argv)
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (do_file(agent_fd, deleting, key_only,
-			    argv[i]) == -1)
+			    argv[i], qflag) == -1)
 				ret = 1;
 		}
 	}

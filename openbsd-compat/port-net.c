@@ -37,6 +37,90 @@
 #include "ssherr.h"
 
 /*
+ * This file contains various portability code for network support,
+ * including tun/tap forwarding and routing domains.
+ */
+
+#if defined(SYS_RDOMAIN_LINUX) || defined(SSH_TUN_LINUX)
+#include <linux/if.h>
+#endif
+
+#if defined(SYS_RDOMAIN_LINUX)
+char *
+sys_get_rdomain(int fd)
+{
+	char dev[IFNAMSIZ + 1];
+	socklen_t len = sizeof(dev) - 1;
+
+	if (getsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, dev, &len) == -1) {
+		error("%s: cannot determine VRF for fd=%d : %s",
+		    __func__, fd, strerror(errno));
+		return NULL;
+	}
+	dev[len] = '\0';
+	return strdup(dev);
+}
+
+int
+sys_set_rdomain(int fd, const char *name)
+{
+	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE,
+	    name, strlen(name)) == -1) {
+		error("%s: setsockopt(%d, SO_BINDTODEVICE, %s): %s",
+		      __func__, fd, name, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
+int
+sys_valid_rdomain(const char *name)
+{
+	int fd;
+
+	/*
+	 * This is a pretty crappy way to test. It would be better to
+	 * check whether "name" represents a VRF device, but apparently
+	 * that requires an rtnetlink transaction.
+	 */
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		return 0;
+	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE,
+	    name, strlen(name)) == -1) {
+		close(fd);
+		return 0;
+	}
+	close(fd);
+	return 1;
+}
+#elif defined(SYS_RDOMAIN_XXX)
+/* XXX examples */
+char *
+sys_get_rdomain(int fd)
+{
+	return NULL;
+}
+
+int
+sys_set_rdomain(int fd, const char *name)
+{
+	return -1;
+}
+
+int
+valid_rdomain(const char *name)
+{
+	return 0;
+}
+
+void
+sys_set_process_rdomain(const char *name)
+{
+	fatal("%s: not supported", __func__);
+}
+#endif /* defined(SYS_RDOMAIN_XXX) */
+
+/*
  * This is the portable version of the SSH tunnel forwarding, it
  * uses some preprocessor definitions for various platform-specific
  * settings.
@@ -52,15 +136,17 @@
  */
 
 #if defined(SSH_TUN_LINUX)
-#include <linux/if.h>
 #include <linux/if_tun.h>
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, char **ifname)
 {
 	struct ifreq ifr;
 	int fd = -1;
 	const char *name = NULL;
+
+	if (ifname != NULL)
+		*ifname = NULL;
 
 	if ((fd = open("/dev/net/tun", O_RDWR)) == -1) {
 		debug("%s: failed to open tunnel control interface: %s",
@@ -99,6 +185,9 @@ sys_tun_open(int tun, int mode)
 	else
 		debug("%s: %s mode %d fd %d", __func__, ifr.ifr_name, mode, fd);
 
+	if (ifname != NULL && (*ifname = strdup(ifr.ifr_name)))
+		goto failed;
+
 	return (fd);
 
  failed:
@@ -116,12 +205,15 @@ sys_tun_open(int tun, int mode)
 #endif
 
 int
-sys_tun_open(int tun, int mode)
+sys_tun_open(int tun, int mode, char **ifname)
 {
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock, flag;
 	const char *tunbase = "tun";
+
+	if (ifname != NULL)
+		*ifname = NULL;
 
 	if (mode == SSH_TUNMODE_ETHERNET) {
 #ifdef SSH_TUN_NO_L2
@@ -180,6 +272,9 @@ sys_tun_open(int tun, int mode)
 			goto failed;
 	}
 
+	if (ifname != NULL && (*ifname = strdup(ifr.ifr_name)))
+		goto failed;
+
 	close(sock);
 	return (fd);
 
@@ -199,84 +294,81 @@ sys_tun_open(int tun, int mode)
  */
 
 #if defined(SSH_TUN_FILTER)
+/*
+ * The tunnel forwarding protocol prepends the address family of forwarded
+ * IP packets using OpenBSD's numbers.
+ */
 #define OPENBSD_AF_INET		2
 #define OPENBSD_AF_INET6	24
 
 int
-sys_tun_infilter(struct Channel *c, char *buf, int len)
+sys_tun_infilter(struct ssh *ssh, struct Channel *c, char *buf, int _len)
 {
+	int r;
+	size_t len;
+	char *ptr = buf;
 #if defined(SSH_TUN_PREPEND_AF)
 	char rbuf[CHAN_RBUF];
-	struct ip *iph;
+	struct ip iph;
 #endif
-	u_int32_t *af;
-	char *ptr = buf;
-	int r;
+#if defined(SSH_TUN_PREPEND_AF) || defined(SSH_TUN_COMPAT_AF)
+	u_int32_t af;
+#endif
+
+	/* XXX update channel input filter API to use unsigned length */
+	if (_len < 0)
+		return -1;
+	len = _len;
 
 #if defined(SSH_TUN_PREPEND_AF)
-	if (len <= 0 || len > (int)(sizeof(rbuf) - sizeof(*af)))
-		return (-1);
-	ptr = (char *)&rbuf[0];
-	bcopy(buf, ptr + sizeof(u_int32_t), len);
-	len += sizeof(u_int32_t);
-	af = (u_int32_t *)ptr;
-
-	iph = (struct ip *)(ptr + sizeof(u_int32_t));
-	switch (iph->ip_v) {
-	case 6:
-		*af = AF_INET6;
-		break;
-	case 4:
-	default:
-		*af = AF_INET;
-		break;
-	}
+	if (len <= sizeof(iph) || len > sizeof(rbuf) - 4)
+		return -1;
+	/* Determine address family from packet IP header. */
+	memcpy(&iph, buf, sizeof(iph));
+	af = iph.ip_v == 6 ? OPENBSD_AF_INET6 : OPENBSD_AF_INET;
+	/* Prepend address family to packet using OpenBSD constants */
+	memcpy(rbuf + 4, buf, len);
+	len += 4;
+	POKE_U32(rbuf, af);
+	ptr = rbuf;
+#elif defined(SSH_TUN_COMPAT_AF)
+	/* Convert existing address family header to OpenBSD value */
+	if (len <= 4)
+		return -1;
+	af = PEEK_U32(buf);
+	/* Put it back */
+	POKE_U32(buf, af == AF_INET6 ? OPENBSD_AF_INET6 : OPENBSD_AF_INET);
 #endif
 
-#if defined(SSH_TUN_COMPAT_AF)
-	if (len < (int)sizeof(u_int32_t))
-		return (-1);
-
-	af = (u_int32_t *)ptr;
-	if (*af == htonl(AF_INET6))
-		*af = htonl(OPENBSD_AF_INET6);
-	else
-		*af = htonl(OPENBSD_AF_INET);
-#endif
-
-	if ((r = sshbuf_put_string(&c->input, ptr, len)) != 0)
+	if ((r = sshbuf_put_string(c->input, ptr, len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	return (0);
 }
 
 u_char *
-sys_tun_outfilter(struct Channel *c, u_char **data, u_int *dlen)
+sys_tun_outfilter(struct ssh *ssh, struct Channel *c,
+    u_char **data, size_t *dlen)
 {
 	u_char *buf;
-	u_int32_t *af;
+	u_int32_t af;
 	int r;
-	size_t xxx_dlen;
 
 	/* XXX new API is incompatible with this signature. */
-	if ((r = sshbuf_get_string(&c->output, data, &xxx_dlen)) != 0)
+	if ((r = sshbuf_get_string(c->output, data, dlen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (dlen != NULL)
-		*dlen = xxx_dlen;
-	if (*dlen < sizeof(*af))
+	if (*dlen < sizeof(af))
 		return (NULL);
 	buf = *data;
 
 #if defined(SSH_TUN_PREPEND_AF)
-	*dlen -= sizeof(u_int32_t);
-	buf = *data + sizeof(u_int32_t);
+	/* skip address family */
+	*dlen -= sizeof(af);
+	buf = *data + sizeof(af);
 #elif defined(SSH_TUN_COMPAT_AF)
-	af = ntohl(*(u_int32_t *)buf);
-	if (*af == OPENBSD_AF_INET6)
-		*af = htonl(AF_INET6);
-	else
-		*af = htonl(AF_INET);
+	/* translate address family */
+	af = (PEEK_U32(buf) == OPENBSD_AF_INET6) ? AF_INET6 : AF_INET;
+	POKE_U32(buf, af);
 #endif
-
 	return (buf);
 }
 #endif /* SSH_TUN_FILTER */

@@ -1,3 +1,4 @@
+/* $OpenBSD: opacket.h,v 1.12 2017/10/20 01:56:39 djm Exp $ */
 #ifndef _OPACKET_H
 /* Written by Markus Friedl. Placed in the public domain.  */
 
@@ -149,5 +150,7 @@ void	packet_disconnect(const char *, ...)
 	ssh_packet_set_mux(active_state)
 #define packet_get_mux() \
 	ssh_packet_get_mux(active_state)
+#define packet_clear_keys() \
+	ssh_packet_clear_keys(active_state)
 
 #endif /* _OPACKET_H */

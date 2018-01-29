@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.132 2017/04/30 23:10:43 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.135 2018/01/23 05:27:21 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -56,7 +56,7 @@
 
 /* prototype */
 static int kex_choose_conf(struct ssh *);
-static int kex_input_newkeys(int, u_int32_t, void *);
+static int kex_input_newkeys(int, u_int32_t, struct ssh *);
 
 static const char *proposal_names[PROPOSAL_MAX] = {
 	"KEX algorithms",
@@ -315,9 +315,8 @@ kex_prop_free(char **proposal)
 
 /* ARGSUSED */
 static int
-kex_protocol_error(int type, u_int32_t seq, void *ctxt)
+kex_protocol_error(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	int r;
 
 	error("kex protocol error: type %d seq %u", type, seq);
@@ -375,12 +374,13 @@ kex_send_newkeys(struct ssh *ssh)
 }
 
 int
-kex_input_ext_info(int type, u_int32_t seq, void *ctxt)
+kex_input_ext_info(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	struct kex *kex = ssh->kex;
 	u_int32_t i, ninfo;
-	char *name, *val, *found;
+	char *name, *found;
+	u_char *val;
+	size_t vlen;
 	int r;
 
 	debug("SSH2_MSG_EXT_INFO received");
@@ -390,12 +390,17 @@ kex_input_ext_info(int type, u_int32_t seq, void *ctxt)
 	for (i = 0; i < ninfo; i++) {
 		if ((r = sshpkt_get_cstring(ssh, &name, NULL)) != 0)
 			return r;
-		if ((r = sshpkt_get_cstring(ssh, &val, NULL)) != 0) {
+		if ((r = sshpkt_get_string(ssh, &val, &vlen)) != 0) {
 			free(name);
 			return r;
 		}
-		debug("%s: %s=<%s>", __func__, name, val);
 		if (strcmp(name, "server-sig-algs") == 0) {
+			/* Ensure no \0 lurking in value */
+			if (memchr(val, '\0', vlen) != NULL) {
+				error("%s: nul byte in %s", __func__, name);
+				return SSH_ERR_INVALID_FORMAT;
+			}
+			debug("%s: %s=<%s>", __func__, name, val);
 			found = match_list("rsa-sha2-256", val, NULL);
 			if (found) {
 				kex->rsa_sha2 = 256;
@@ -406,7 +411,8 @@ kex_input_ext_info(int type, u_int32_t seq, void *ctxt)
 				kex->rsa_sha2 = 512;
 				free(found);
 			}
-		}
+		} else
+			debug("%s: %s (unrecognised)", __func__, name);
 		free(name);
 		free(val);
 	}
@@ -414,9 +420,8 @@ kex_input_ext_info(int type, u_int32_t seq, void *ctxt)
 }
 
 static int
-kex_input_newkeys(int type, u_int32_t seq, void *ctxt)
+kex_input_newkeys(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	struct kex *kex = ssh->kex;
 	int r;
 
@@ -467,9 +472,8 @@ kex_send_kexinit(struct ssh *ssh)
 
 /* ARGSUSED */
 int
-kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
+kex_input_kexinit(int type, u_int32_t seq, struct ssh *ssh)
 {
-	struct ssh *ssh = ctxt;
 	struct kex *kex = ssh->kex;
 	const u_char *ptr;
 	u_int i;
@@ -671,9 +675,6 @@ choose_mac(struct ssh *ssh, struct sshmac *mac, char *client, char *server)
 		free(name);
 		return SSH_ERR_INTERNAL_ERROR;
 	}
-	/* truncate the key */
-	if (ssh->compat & SSH_BUG_HMAC)
-		mac->key_len = 16;
 	mac->name = name;
 	mac->key = NULL;
 	mac->enabled = 0;
@@ -862,8 +863,7 @@ kex_choose_conf(struct ssh *ssh)
 	kex->dh_need = dh_need;
 
 	/* ignore the next message if the proposals do not match */
-	if (first_kex_follows && !proposals_match(my, peer) &&
-	    !(ssh->compat & SSH_BUG_FIRSTKEX))
+	if (first_kex_follows && !proposals_match(my, peer))
 		ssh->dispatch_skip_packets = 1;
 	r = 0;
  out:
