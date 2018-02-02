@@ -2,7 +2,7 @@
 #include <VersionHelpers.h>
 
 #define PATH_MAX MAX_PATH
-
+#define SSH_REGISTRY_ROOT L"SOFTWARE\\OpenSSH"
 #define GOTO_CLEANUP_IF(_cond_,_err_) do {  \
     if ((_cond_)) {                         \
         hr = _err_;                         \

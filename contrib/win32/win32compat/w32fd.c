@@ -1040,6 +1040,7 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	}
 	else {
 		errno = GetLastError();
+		error("%s failed error:%d", (as_user?"CreateProcessAsUserW":"CreateProcessW"), GetLastError());
 		goto cleanup;
 	}
 

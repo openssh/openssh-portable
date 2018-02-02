@@ -1460,7 +1460,7 @@ int
 is_absolute_path(char *path)
 {
 	int retVal = 0;
-	if (*path == '/' || *path == '\\' || (*path != '\0' && path[1] == ':') ||
+	if (*path == '/' || *path == '\\' || (*path != '\0' && isalpha(*path) && path[1] == ':') ||
 	    ((strlen(path) >= strlen(PROGRAM_DATA)) && (memcmp(path, PROGRAM_DATA, strlen(PROGRAM_DATA)) == 0)))
 		retVal = 1;
 	
