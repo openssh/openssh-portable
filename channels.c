@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.378 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.379 2018/02/05 05:36:49 tb Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -436,10 +436,15 @@ channel_close_fd(struct ssh *ssh, int *fdp)
 static void
 channel_close_fds(struct ssh *ssh, Channel *c)
 {
+	int sock = c->sock, rfd = c->rfd, wfd = c->wfd, efd = c->efd;
+
 	channel_close_fd(ssh, &c->sock);
-	channel_close_fd(ssh, &c->rfd);
-	channel_close_fd(ssh, &c->wfd);
-	channel_close_fd(ssh, &c->efd);
+	if (rfd != sock)
+		channel_close_fd(ssh, &c->rfd);
+	if (wfd != sock && wfd != rfd)
+		channel_close_fd(ssh, &c->wfd);
+	if (efd != sock && efd != rfd && efd != wfd)
+		channel_close_fd(ssh, &c->efd);
 }
 
 static void
