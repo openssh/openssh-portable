@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.178 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.179 2018/02/05 05:37:46 tb Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -289,8 +289,10 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 
 	debug3("preauth child monitor started");
 
-	close(pmonitor->m_recvfd);
-	close(pmonitor->m_log_sendfd);
+	if (pmonitor->m_recvfd >= 0)
+		close(pmonitor->m_recvfd);
+	if (pmonitor->m_log_sendfd >= 0)
+		close(pmonitor->m_log_sendfd);
 	pmonitor->m_log_sendfd = pmonitor->m_recvfd = -1;
 
 	authctxt = _authctxt;
@@ -371,8 +373,10 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
 		;
 
-	close(pmonitor->m_sendfd);
-	close(pmonitor->m_log_recvfd);
+	if (pmonitor->m_recvfd >= 0)
+		close(pmonitor->m_recvfd);
+	if (pmonitor->m_log_sendfd >= 0)
+		close(pmonitor->m_log_sendfd);
 	pmonitor->m_sendfd = pmonitor->m_log_recvfd = -1;
 }
 
