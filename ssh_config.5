@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.262 2017/10/24 06:27:42 jmc Exp $
-.Dd $Mdocdate: October 24 2017 $
+.\" $OpenBSD: ssh_config.5,v 1.263 2018/02/06 06:01:54 dtucker Exp $
+.Dd $Mdocdate: February 6 2018 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1458,7 +1458,7 @@ If this flag is set to
 will never automatically add host keys to the
 .Pa ~/.ssh/known_hosts
 file, and refuses to connect to hosts whose host key has changed.
-This provides maximum protection against trojan horse attacks,
+This provides maximum protection against man-in-the-middle (MITM) attacks,
 though it can be annoying when the
 .Pa /etc/ssh/ssh_known_hosts
 file is poorly maintained or when connections to new hosts are
