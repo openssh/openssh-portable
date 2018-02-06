@@ -469,8 +469,7 @@ sshkey_new(int type)
 		if ((rsa = RSA_new()) == NULL ||
 		    (rsa->n = BN_new()) == NULL ||
 		    (rsa->e = BN_new()) == NULL) {
-			if (rsa != NULL)
-				RSA_free(rsa);
+			RSA_free(rsa);
 			free(k);
 			return NULL;
 		}
@@ -578,8 +577,7 @@ sshkey_free(struct sshkey *k)
 #ifdef WITH_OPENSSL
 	case KEY_RSA:
 	case KEY_RSA_CERT:
-		if (k->rsa != NULL)
-			RSA_free(k->rsa);
+		RSA_free(k->rsa);
 		k->rsa = NULL;
 		break;
 	case KEY_DSA:
@@ -1248,8 +1246,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 		switch (sshkey_type_plain(ret->type)) {
 #ifdef WITH_OPENSSL
 		case KEY_RSA:
-			if (ret->rsa != NULL)
-				RSA_free(ret->rsa);
+			RSA_free(ret->rsa);
 			ret->rsa = k->rsa;
 			k->rsa = NULL;
 #ifdef DEBUG_PK
@@ -1410,8 +1407,7 @@ rsa_generate_private_key(u_int bits, RSA **rsap)
 	private = NULL;
 	ret = 0;
  out:
-	if (private != NULL)
-		RSA_free(private);
+	RSA_free(private);
 	if (f4 != NULL)
 		BN_free(f4);
 	return ret;
