@@ -197,8 +197,7 @@ input_kex_ecdh_init(int type, u_int32_t seq, struct ssh *ssh)
 		explicit_bzero(kbuf, klen);
 		free(kbuf);
 	}
-	if (shared_secret)
-		BN_clear_free(shared_secret);
+	BN_clear_free(shared_secret);
 	free(server_host_key_blob);
 	free(signature);
 	return r;

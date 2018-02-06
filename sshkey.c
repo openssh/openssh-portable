@@ -2761,8 +2761,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	free(tname);
 	free(curve);
 #ifdef WITH_OPENSSL
-	if (exponent != NULL)
-		BN_clear_free(exponent);
+	BN_clear_free(exponent);
 #endif /* WITH_OPENSSL */
 	sshkey_free(k);
 	if (ed25519_pk != NULL) {

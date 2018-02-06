@@ -216,8 +216,7 @@ input_kex_ecdh_reply(int type, u_int32_t seq, struct ssh *ssh)
 		explicit_bzero(kbuf, klen);
 		free(kbuf);
 	}
-	if (shared_secret)
-		BN_clear_free(shared_secret);
+	BN_clear_free(shared_secret);
 	sshkey_free(server_host_key);
 	free(server_host_key_blob);
 	free(signature);
