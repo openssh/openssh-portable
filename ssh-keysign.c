@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.52 2016/02/15 09:47:49 dtucker Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.53 2018/02/07 22:52:45 dtucker Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -158,7 +158,7 @@ valid_request(struct passwd *pw, char *host, struct sshkey **ret,
 
 	debug3("%s: fail %d", __func__, fail);
 
-	if (fail && key != NULL)
+	if (fail)
 		sshkey_free(key);
 	else if (ret != NULL)
 		*ret = key;

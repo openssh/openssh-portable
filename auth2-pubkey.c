@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.75 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.76 2018/02/07 22:52:45 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -471,8 +471,7 @@ check_authkeys_file(FILE *f, char *file, struct sshkey *key, struct passwd *pw)
 		/* Always consume entire file */
 		if (found_key)
 			continue;
-		if (found != NULL)
-			sshkey_free(found);
+		sshkey_free(found);
 		found = sshkey_new(sshkey_is_cert(key) ? KEY_UNSPEC : key->type);
 		if (found == NULL)
 			goto done;
@@ -563,8 +562,7 @@ check_authkeys_file(FILE *f, char *file, struct sshkey *key, struct passwd *pw)
 		}
 	}
  done:
-	if (found != NULL)
-		sshkey_free(found);
+	sshkey_free(found);
 	if (!found_key)
 		debug2("key not found");
 	return found_key;

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.292 2018/01/23 18:33:49 stsp Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.293 2018/02/07 22:52:45 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1177,8 +1177,7 @@ fail:
 		host_key = raw_key;
 		goto retry;
 	}
-	if (raw_key != NULL)
-		sshkey_free(raw_key);
+	sshkey_free(raw_key);
 	free(ip);
 	free(host);
 	if (host_hostkeys != NULL)
