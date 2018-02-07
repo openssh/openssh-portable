@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.59 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.60 2018/02/07 02:06:51 jsing Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -469,8 +469,7 @@ sshkey_new(int type)
 		if ((rsa = RSA_new()) == NULL ||
 		    (rsa->n = BN_new()) == NULL ||
 		    (rsa->e = BN_new()) == NULL) {
-			if (rsa != NULL)
-				RSA_free(rsa);
+			RSA_free(rsa);
 			free(k);
 			return NULL;
 		}
@@ -483,8 +482,7 @@ sshkey_new(int type)
 		    (dsa->q = BN_new()) == NULL ||
 		    (dsa->g = BN_new()) == NULL ||
 		    (dsa->pub_key = BN_new()) == NULL) {
-			if (dsa != NULL)
-				DSA_free(dsa);
+			DSA_free(dsa);
 			free(k);
 			return NULL;
 		}
@@ -578,21 +576,18 @@ sshkey_free(struct sshkey *k)
 #ifdef WITH_OPENSSL
 	case KEY_RSA:
 	case KEY_RSA_CERT:
-		if (k->rsa != NULL)
-			RSA_free(k->rsa);
+		RSA_free(k->rsa);
 		k->rsa = NULL;
 		break;
 	case KEY_DSA:
 	case KEY_DSA_CERT:
-		if (k->dsa != NULL)
-			DSA_free(k->dsa);
+		DSA_free(k->dsa);
 		k->dsa = NULL;
 		break;
 # ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 	case KEY_ECDSA_CERT:
-		if (k->ecdsa != NULL)
-			EC_KEY_free(k->ecdsa);
+		EC_KEY_free(k->ecdsa);
 		k->ecdsa = NULL;
 		break;
 # endif /* OPENSSL_HAS_ECC */
@@ -1248,8 +1243,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 		switch (sshkey_type_plain(ret->type)) {
 #ifdef WITH_OPENSSL
 		case KEY_RSA:
-			if (ret->rsa != NULL)
-				RSA_free(ret->rsa);
+			RSA_free(ret->rsa);
 			ret->rsa = k->rsa;
 			k->rsa = NULL;
 #ifdef DEBUG_PK
@@ -1257,8 +1251,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 #endif
 			break;
 		case KEY_DSA:
-			if (ret->dsa != NULL)
-				DSA_free(ret->dsa);
+			DSA_free(ret->dsa);
 			ret->dsa = k->dsa;
 			k->dsa = NULL;
 #ifdef DEBUG_PK
@@ -1267,8 +1260,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 			break;
 # ifdef OPENSSL_HAS_ECC
 		case KEY_ECDSA:
-			if (ret->ecdsa != NULL)
-				EC_KEY_free(ret->ecdsa);
+			EC_KEY_free(ret->ecdsa);
 			ret->ecdsa = k->ecdsa;
 			ret->ecdsa_nid = k->ecdsa_nid;
 			k->ecdsa = NULL;
@@ -1410,10 +1402,8 @@ rsa_generate_private_key(u_int bits, RSA **rsap)
 	private = NULL;
 	ret = 0;
  out:
-	if (private != NULL)
-		RSA_free(private);
-	if (f4 != NULL)
-		BN_free(f4);
+	RSA_free(private);
+	BN_free(f4);
 	return ret;
 }
 
@@ -1441,8 +1431,7 @@ dsa_generate_private_key(u_int bits, DSA **dsap)
 	private = NULL;
 	ret = 0;
  out:
-	if (private != NULL)
-		DSA_free(private);
+	DSA_free(private);
 	return ret;
 }
 
@@ -1521,8 +1510,7 @@ ecdsa_generate_private_key(u_int bits, int *nid, EC_KEY **ecdsap)
 	private = NULL;
 	ret = 0;
  out:
-	if (private != NULL)
-		EC_KEY_free(private);
+	EC_KEY_free(private);
 	return ret;
 }
 # endif /* OPENSSL_HAS_ECC */
@@ -1933,8 +1921,7 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 			ret = SSH_ERR_EC_CURVE_MISMATCH;
 			goto out;
 		}
-		if (key->ecdsa != NULL)
-			EC_KEY_free(key->ecdsa);
+		EC_KEY_free(key->ecdsa);
 		if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid))
 		    == NULL) {
 			ret = SSH_ERR_EC_CURVE_INVALID;
@@ -2011,8 +1998,7 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 	free(curve);
 	free(pk);
 #if defined(WITH_OPENSSL) && defined(OPENSSL_HAS_ECC)
-	if (q != NULL)
-		EC_POINT_free(q);
+	EC_POINT_free(q);
 #endif /* WITH_OPENSSL && OPENSSL_HAS_ECC */
 	return ret;
 }
@@ -2765,8 +2751,7 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	free(tname);
 	free(curve);
 #ifdef WITH_OPENSSL
-	if (exponent != NULL)
-		BN_clear_free(exponent);
+	BN_clear_free(exponent);
 #endif /* WITH_OPENSSL */
 	sshkey_free(k);
 	if (ed25519_pk != NULL) {
@@ -2854,8 +2839,7 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	ret = 0;
  out:
 	BN_CTX_free(bnctx);
-	if (nq != NULL)
-		EC_POINT_free(nq);
+	EC_POINT_free(nq);
 	return ret;
 }
 
@@ -3550,8 +3534,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	}
  out:
 	BIO_free(bio);
-	if (pk != NULL)
-		EVP_PKEY_free(pk);
+	EVP_PKEY_free(pk);
 	sshkey_free(prv);
 	return r;
 }

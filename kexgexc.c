@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.26 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.27 2018/02/07 02:06:51 jsing Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -134,10 +134,8 @@ input_kex_dh_gex_group(int type, u_int32_t seq, struct ssh *ssh)
 	ssh_dispatch_set(ssh, SSH2_MSG_KEX_DH_GEX_REPLY, &input_kex_dh_gex_reply);
 	r = 0;
 out:
-	if (p)
-		BN_clear_free(p);
-	if (g)
-		BN_clear_free(g);
+	BN_clear_free(p);
+	BN_clear_free(g);
 	return r;
 }
 
@@ -250,14 +248,12 @@ input_kex_dh_gex_reply(int type, u_int32_t seq, struct ssh *ssh)
 	explicit_bzero(hash, sizeof(hash));
 	DH_free(kex->dh);
 	kex->dh = NULL;
-	if (dh_server_pub)
-		BN_clear_free(dh_server_pub);
+	BN_clear_free(dh_server_pub);
 	if (kbuf) {
 		explicit_bzero(kbuf, klen);
 		free(kbuf);
 	}
-	if (shared_secret)
-		BN_clear_free(shared_secret);
+	BN_clear_free(shared_secret);
 	sshkey_free(server_host_key);
 	free(server_host_key_blob);
 	free(signature);

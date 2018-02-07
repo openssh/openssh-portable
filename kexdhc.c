@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.21 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.22 2018/02/07 02:06:51 jsing Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -203,14 +203,12 @@ input_kex_dh(int type, u_int32_t seq, struct ssh *ssh)
 	explicit_bzero(hash, sizeof(hash));
 	DH_free(kex->dh);
 	kex->dh = NULL;
-	if (dh_server_pub)
-		BN_clear_free(dh_server_pub);
+	BN_clear_free(dh_server_pub);
 	if (kbuf) {
 		explicit_bzero(kbuf, klen);
 		free(kbuf);
 	}
-	if (shared_secret)
-		BN_clear_free(shared_secret);
+	BN_clear_free(shared_secret);
 	sshkey_free(server_host_key);
 	free(server_host_key_blob);
 	free(signature);

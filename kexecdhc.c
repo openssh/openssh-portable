@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdhc.c,v 1.12 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: kexecdhc.c,v 1.13 2018/02/07 02:06:51 jsing Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -89,8 +89,7 @@ kexecdh_client(struct ssh *ssh)
 	ssh_dispatch_set(ssh, SSH2_MSG_KEX_ECDH_REPLY, &input_kex_ecdh_reply);
 	r = 0;
  out:
-	if (client_key)
-		EC_KEY_free(client_key);
+	EC_KEY_free(client_key);
 	return r;
 }
 
@@ -206,18 +205,14 @@ input_kex_ecdh_reply(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_send_newkeys(ssh);
  out:
 	explicit_bzero(hash, sizeof(hash));
-	if (kex->ec_client_key) {
-		EC_KEY_free(kex->ec_client_key);
-		kex->ec_client_key = NULL;
-	}
-	if (server_public)
-		EC_POINT_clear_free(server_public);
+	EC_KEY_free(kex->ec_client_key);
+	kex->ec_client_key = NULL;
+	EC_POINT_clear_free(server_public);
 	if (kbuf) {
 		explicit_bzero(kbuf, klen);
 		free(kbuf);
 	}
-	if (shared_secret)
-		BN_clear_free(shared_secret);
+	BN_clear_free(shared_secret);
 	sshkey_free(server_host_key);
 	free(server_host_key_blob);
 	free(signature);

@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.108 2017/11/03 02:22:41 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.109 2018/02/07 02:06:50 jsing Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -310,8 +310,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	} else {
 		if (cc != NULL) {
 #ifdef WITH_OPENSSL
-			if (cc->evp != NULL)
-				EVP_CIPHER_CTX_free(cc->evp);
+			EVP_CIPHER_CTX_free(cc->evp);
 #endif /* WITH_OPENSSL */
 			explicit_bzero(cc, sizeof(*cc));
 			free(cc);
@@ -416,10 +415,8 @@ cipher_free(struct sshcipher_ctx *cc)
 	else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));
 #ifdef WITH_OPENSSL
-	if (cc->evp != NULL) {
-		EVP_CIPHER_CTX_free(cc->evp);
-		cc->evp = NULL;
-	}
+	EVP_CIPHER_CTX_free(cc->evp);
+	cc->evp = NULL;
 #endif
 	explicit_bzero(cc, sizeof(*cc));
 	free(cc);

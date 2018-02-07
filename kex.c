@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.135 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.136 2018/02/07 02:06:50 jsing Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -587,11 +587,9 @@ kex_free(struct kex *kex)
 	u_int mode;
 
 #ifdef WITH_OPENSSL
-	if (kex->dh)
-		DH_free(kex->dh);
+	DH_free(kex->dh);
 #ifdef OPENSSL_HAS_ECC
-	if (kex->ec_client_key)
-		EC_KEY_free(kex->ec_client_key);
+	EC_KEY_free(kex->ec_client_key);
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 	for (mode = 0; mode < MODE_MAX; mode++) {
