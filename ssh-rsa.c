@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.64 2017/12/18 23:14:34 djm Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.65 2018/02/07 05:17:56 jsing Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -120,7 +120,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, const char *alg_ident)
 {
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *sig = NULL;
-	size_t slen;
+	size_t slen = 0;
 	u_int dlen, len;
 	int nid, hash_alg, ret = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *b = NULL;
@@ -189,10 +189,7 @@ ssh_rsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
 	ret = 0;
  out:
 	explicit_bzero(digest, sizeof(digest));
-	if (sig != NULL) {
-		explicit_bzero(sig, slen);
-		free(sig);
-	}
+	freezero(sig, slen);
 	sshbuf_free(b);
 	return ret;
 }
@@ -204,7 +201,7 @@ ssh_rsa_verify(const struct sshkey *key,
 {
 	char *sigtype = NULL;
 	int hash_alg, ret = SSH_ERR_INTERNAL_ERROR;
-	size_t len, diff, modlen, dlen;
+	size_t len = 0, diff, modlen, dlen;
 	struct sshbuf *b = NULL;
 	u_char digest[SSH_DIGEST_MAX_LENGTH], *osigblob, *sigblob = NULL;
 
@@ -269,10 +266,7 @@ ssh_rsa_verify(const struct sshkey *key,
 	ret = openssh_RSA_verify(hash_alg, digest, dlen, sigblob, len,
 	    key->rsa);
  out:
-	if (sigblob != NULL) {
-		explicit_bzero(sigblob, len);
-		free(sigblob);
-	}
+	freezero(sigblob, len);
 	free(sigtype);
 	sshbuf_free(b);
 	explicit_bzero(digest, sizeof(digest));
@@ -394,10 +388,7 @@ openssh_RSA_verify(int hash_alg, u_char *hash, size_t hashlen,
 	}
 	ret = 0;
 done:
-	if (decrypted) {
-		explicit_bzero(decrypted, rsasize);
-		free(decrypted);
-	}
+	freezero(decrypted, rsasize);
 	return ret;
 }
 #endif /* WITH_OPENSSL */
