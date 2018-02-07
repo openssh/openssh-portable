@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.309 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.310 2018/02/07 05:15:49 jsing Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -377,13 +377,6 @@ do_convert_to_pem(struct sshkey *k)
 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
 			fatal("PEM_write_RSAPublicKey failed");
 		break;
-#if notyet /* OpenSSH 0.9.8 lacks this function */
-	case KEY_DSA:
-		if (!PEM_write_DSAPublicKey(stdout, k->dsa))
-			fatal("PEM_write_DSAPublicKey failed");
-		break;
-#endif
-	/* XXX ECDSA? */
 	default:
 		fatal("%s: unsupported key type %s", __func__, sshkey_type(k));
 	}
@@ -671,9 +664,6 @@ do_convert_from_pem(struct sshkey **k, int *private)
 {
 	FILE *fp;
 	RSA *rsa;
-#ifdef notyet
-	DSA *dsa;
-#endif
 
 	if ((fp = fopen(identity_file, "r")) == NULL)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
@@ -685,18 +675,6 @@ do_convert_from_pem(struct sshkey **k, int *private)
 		fclose(fp);
 		return;
 	}
-#if notyet /* OpenSSH 0.9.8 lacks this function */
-	rewind(fp);
-	if ((dsa = PEM_read_DSAPublicKey(fp, NULL, NULL, NULL)) != NULL) {
-		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
-			fatal("sshkey_new failed");
-		(*k)->type = KEY_DSA;
-		(*k)->dsa = dsa;
-		fclose(fp);
-		return;
-	}
-	/* XXX ECDSA */
-#endif
 	fatal("%s: unrecognised raw private key format", __func__);
 }
 
