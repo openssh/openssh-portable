@@ -135,10 +135,8 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	return 1;
 
  fail:
-	if (dhg->g != NULL)
-		BN_clear_free(dhg->g);
-	if (dhg->p != NULL)
-		BN_clear_free(dhg->p);
+	BN_clear_free(dhg->g);
+	BN_clear_free(dhg->p);
 	dhg->g = dhg->p = NULL;
 	return 0;
 }
