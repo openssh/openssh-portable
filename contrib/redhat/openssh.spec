@@ -24,11 +24,17 @@
 %define gtk2 1
 
 # Use build6x options for older RHEL builds
-# RHEL 7 and Fedora not yet supported
+# RHEL 7 not yet supported
 %if 0%{?rhel} > 6
 %define build6x 0
 %else
 %define build6x 1
+%endif
+
+%if 0%{?fedora} >= 26
+%define compat_openssl 1
+%else
+%define compat_openssl 0
 %endif
 
 # Do we want kerberos5 support (1=yes 0=no)
@@ -90,8 +96,12 @@ PreReq: initscripts >= 5.00
 Requires: initscripts >= 5.20
 %endif
 BuildRequires: perl
+%if %{compat_openssl}
+BuildRequires: compat-openssl10-devel
+%else
 BuildRequires: openssl-devel >= 1.0.1
 BuildRequires: openssl-devel < 1.1
+%endif
 BuildRequires: /bin/login
 %if ! %{build6x}
 BuildRequires: glibc-devel, pam
@@ -413,6 +423,7 @@ fi
 %changelog
 * Sat Feb 10 2018 Darren Tucker <dtucker@dtucker.net>
 - Update openssl-devel dependency to match current requirements.
+- Handle Fedora >=6 openssl 1.0 compat libs.
 
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
 - Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
