@@ -446,7 +446,7 @@ fi
 - Don't install profile.d scripts when not building with GNOME/GTK askpass
   (patch from bet@rahul.net)
 
-* Wed Oct 01 2002 Damien Miller <djm@mindrot.org>
+* Tue Oct 01 2002 Damien Miller <djm@mindrot.org>
 - Install ssh-agent setgid nobody to prevent ptrace() key theft attacks
 
 * Mon Sep 30 2002 Damien Miller <djm@mindrot.org>
@@ -492,7 +492,7 @@ fi
 - remove dependency on db1-devel, which has just been swallowed up whole
   by gnome-libs-devel
 
-* Sun Dec 29 2001 Nalin Dahyabhai <nalin@redhat.com>
+* Sat Dec 29 2001 Nalin Dahyabhai <nalin@redhat.com>
 - adjust build dependencies so that build6x actually works right (fix
   from Hugo van der Kooij)
 
