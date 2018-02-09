@@ -75,7 +75,7 @@
 %define kerberos5 0
 %endif
 
-Summary: The OpenSSH implementation of SSH protocol versions 1 and 2.
+Summary: The OpenSSH implementation of SSH protocol version 2.
 Name: openssh
 Version: %{ver}
 %if %{rescue}
@@ -424,6 +424,7 @@ fi
 * Sat Feb 10 2018 Darren Tucker <dtucker@dtucker.net>
 - Update openssl-devel dependency to match current requirements.
 - Handle Fedora >=6 openssl 1.0 compat libs.
+- Remove SSH1 from description.
 
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
 - Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
