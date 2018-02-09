@@ -90,7 +90,8 @@ PreReq: initscripts >= 5.00
 Requires: initscripts >= 5.20
 %endif
 BuildRequires: perl
-BuildRequires: openssl-devel >= 0.9.8f
+BuildRequires: openssl-devel >= 1.0.1
+BuildRequires: openssl-devel < 1.1
 BuildRequires: /bin/login
 %if ! %{build6x}
 BuildRequires: glibc-devel, pam
@@ -410,6 +411,9 @@ fi
 %endif
 
 %changelog
+* Sat Feb 10 2018 Darren Tucker <dtucker@dtucker.net>
+- Update openssl-devel dependency to match current requirements.
+
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
 - Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
 - Add 'dist' option to 'ver' so package names reflect OS at build time
