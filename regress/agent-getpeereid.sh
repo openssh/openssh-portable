@@ -18,6 +18,7 @@ case "x$SUDO" in
 	xdoas) ;;
 	x)
 		echo "need SUDO to switch to uid $UNPRIV"
+ 		echo SKIPPED
 		exit 0 ;;
 	*)
 		echo "unsupported $SUDO - "doas" and "sudo" are allowed"
