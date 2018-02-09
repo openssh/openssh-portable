@@ -25,7 +25,7 @@
 
 # Use build6x options for older RHEL builds
 # RHEL 7 and Fedora not yet supported
-%if %{?rhel} > 6
+%if 0%{?rhel} > 6
 %define build6x 0
 %else
 %define build6x 1
