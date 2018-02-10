@@ -2838,9 +2838,16 @@ passphrase_again:
 		    identity_file, strerror(errno));
 	if ((f = fdopen(fd, "w")) == NULL)
 		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-	if ((r = sshkey_write(public, f)) != 0)
+	if ((r = sshkey_write(public, f)) != 0) {
 		error("write key failed: %s", ssh_err(r));
-	fprintf(f, " %s\n", comment);
+		exit(1);
+	}
+	if (-1 == fprintf(f, " %s", comment))
+		error("add comment to %s failed", identity_file);
+	if ('\n' != fputc('\n', f)) {
+		error("write newline %s failed: %s", identity_file, strerror(errno));
+		exit(1);
+	}
 	fclose(f);
 
 	if (!quiet) {
