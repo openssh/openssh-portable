@@ -117,6 +117,8 @@ The allow/deny directives are processed in the following order:
 .Cm DenyGroups ,
 and finally
 .Cm AllowGroups .
+The first one that matches determines whether the login is allowed or
+denied, with the later processed directives being ignored.
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -177,6 +179,8 @@ The allow/deny directives are processed in the following order:
 .Cm DenyGroups ,
 and finally
 .Cm AllowGroups .
+The first one that matches determines whether the login is allowed or
+denied, with the later processed directives being ignored.
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -544,6 +548,8 @@ The allow/deny directives are processed in the following order:
 .Cm DenyGroups ,
 and finally
 .Cm AllowGroups .
+The first one that matches determines whether the login is allowed or
+denied, with the later processed directives being ignored.
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -565,6 +571,8 @@ The allow/deny directives are processed in the following order:
 .Cm DenyGroups ,
 and finally
 .Cm AllowGroups .
+The first one that matches determines whether the login is allowed or
+denied, with the later processed directives being ignored.
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
