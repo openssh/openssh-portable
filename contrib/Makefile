@@ -1,5 +1,7 @@
 PKG_CONFIG = pkg-config
 
+LDLIBS=-lm -lXrender -lXext -lz -lpixman-1
+
 all:
 	@echo "Valid targets: gnome-ssh-askpass1 gnome-ssh-askpass2"
 
@@ -11,7 +13,7 @@ gnome-ssh-askpass1: gnome-ssh-askpass1.c
 gnome-ssh-askpass2: gnome-ssh-askpass2.c
 	$(CC) $(CFLAGS) `$(PKG_CONFIG) --cflags gtk+-2.0` \
 		gnome-ssh-askpass2.c -o gnome-ssh-askpass2 \
-		`$(PKG_CONFIG) --libs gtk+-2.0 x11`
+		`$(PKG_CONFIG) --libs gtk+-2.0 x11` $(LDLIBS)
 
 gnome-ssh-askpass3: gnome-ssh-askpass2.c
 	$(CC) $(CFLAGS) `$(PKG_CONFIG) --cflags gtk+-3.0` \
