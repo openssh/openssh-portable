@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.311 2018/02/10 05:43:26 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.312 2018/02/10 05:48:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1697,6 +1697,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			}
 			free(otmp);
 		}
+		if (n > SSHKEY_CERT_MAX_PRINCIPALS)
+			fatal("Too many certificate principals specified");
 	
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
 		if ((r = sshkey_load_public(tmp, &public, &comment)) != 0)
