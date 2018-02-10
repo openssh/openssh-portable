@@ -426,6 +426,8 @@ fi
 - Update openssl-devel dependency to match current requirements.
 - Handle Fedora >=6 openssl 1.0 compat libs.
 - Remove SSH1 from description.
+- Don't strip binaries at build time so that debuginfo package can be
+  created.
 
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>
 - Add '--mandir' and '--with-mantype' for RHEL 5 compatibility
