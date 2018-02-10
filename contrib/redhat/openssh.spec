@@ -214,6 +214,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-md5-passwords \
 	--mandir=%{_mandir} \
 	--with-mantype=man \
+	--disable-strip \
 %if %{scard}
 	--with-smartcard \
 %endif
@@ -280,12 +281,12 @@ install -m644 contrib/redhat/sshd.pam     $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
-install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/x11-ssh-askpass
+install x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/x11-ssh-askpass
 ln -s x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/ssh-askpass
 %endif
 
 %if ! %{no_gnome_askpass}
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/gnome-ssh-askpass
+install contrib/gnome-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/gnome-ssh-askpass
 %endif
 
 %if ! %{scard}
@@ -409,7 +410,7 @@ fi
 %doc x11-ssh-askpass-%{aversion}/README
 %doc x11-ssh-askpass-%{aversion}/ChangeLog
 %doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
-%attr(0755,root,root) %{_libexecdir}/openssh/ssh-askpass
+%{_libexecdir}/openssh/ssh-askpass
 %attr(0755,root,root) %{_libexecdir}/openssh/x11-ssh-askpass
 %endif
 
