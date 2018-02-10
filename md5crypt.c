@@ -50,7 +50,7 @@ is_md5_salt(const char *salt)
 char *
 md5_crypt(const char *pw, const char *salt)
 {
-	static char passwd[120], salt_copy[9], *p;
+	static char passwd[120], salt_copy[9];
 	static const char *sp, *ep;
 	unsigned char final[16];
 	int sl, pl, i, j;
