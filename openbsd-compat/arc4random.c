@@ -38,6 +38,11 @@
 #ifdef WITH_OPENSSL
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#else
+#include <sys/syscall.h>
+#ifdef __linux__
+#  include <linux/random.h>
+#endif
 #endif
 
 #include "log.h"
@@ -77,16 +82,35 @@ _rs_init(u_char *buf, size_t n)
 	chacha_ivsetup(&rs, buf + KEYSZ);
 }
 
-#ifndef WITH_OPENSSL
-#define SSH_RANDOM_DEV "/dev/urandom"
-/* XXX use getrandom() if supported on Linux */
 static void
 getrnd(u_char *s, size_t len)
 {
+#ifdef WITH_OPENSSL
+	if (RAND_bytes(s, len) <= 0)
+		fatal("Couldn't obtain random bytes (error 0x%lx)",
+		      (unsigned long)ERR_get_error());
+#else
+#define SSH_RANDOM_DEV "/dev/urandom"
 	int fd;
 	ssize_t r;
 	size_t o = 0;
 
+#if defined(SYS_getrandom) && defined(__linux__)
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+	/* clang 3.9 MemorySanitizer sucks */
+	memset(s, 0, len);
+#  endif
+#endif
+	long ret;
+	do {
+		ret = syscall(SYS_getrandom, s, len, 0, 0, 0, 0);
+	} while ((ret == -1) && (errno == EINTR));
+	if ((size_t)ret == len) return;
+	if ((ret == -1) && (errno != ENOSYS)) {
+		fatal("getrandom %zu bytes: %s", len, strerror(errno));
+	}
+#endif
 	if ((fd = open(SSH_RANDOM_DEV, O_RDONLY)) == -1)
 		fatal("Couldn't open %s: %s", SSH_RANDOM_DEV, strerror(errno));
 	while (o < len) {
@@ -100,21 +124,15 @@ getrnd(u_char *s, size_t len)
 		o += r;
 	}
 	close(fd);
-}
 #endif
+}
 
 static void
 _rs_stir(void)
 {
 	u_char rnd[KEYSZ + IVSZ];
 
-#ifdef WITH_OPENSSL
-	if (RAND_bytes(rnd, sizeof(rnd)) <= 0)
-		fatal("Couldn't obtain random bytes (error 0x%lx)",
-		    (unsigned long)ERR_get_error());
-#else
 	getrnd(rnd, sizeof(rnd));
-#endif
 
 	if (!rs_initialized) {
 		rs_initialized = 1;
