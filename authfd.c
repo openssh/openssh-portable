@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.106 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.107 2018/02/10 09:25:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -391,7 +391,7 @@ ssh_agent_sign(int sock, const struct sshkey *key,
 
 
 static int
-ssh_encode_identity_ssh2(struct sshbuf *b, struct sshkey *key,
+ssh_encode_identity_ssh2(struct sshbuf *b, const struct sshkey *key,
     const char *comment)
 {
 	int r;
@@ -426,8 +426,8 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
  * This call is intended only for use by ssh-add(1) and like applications.
  */
 int
-ssh_add_identity_constrained(int sock, struct sshkey *key, const char *comment,
-    u_int life, u_int confirm)
+ssh_add_identity_constrained(int sock, const struct sshkey *key,
+    const char *comment, u_int life, u_int confirm)
 {
 	struct sshbuf *msg;
 	int r, constrained = (life || confirm);
