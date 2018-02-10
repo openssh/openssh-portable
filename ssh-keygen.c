@@ -1696,6 +1696,11 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 					fatal("Empty principal name");
 			}
 			free(otmp);
+			if (n > SSHKEY_CERT_MAX_PRINCIPALS) {
+				fatal("%s: invalid format: too many principals (%u)"
+				" for this certificate identity, specify at most %i.",
+				__func__,  n, SSHKEY_CERT_MAX_PRINCIPALS);
+			}
 		}
 	
 		tmp = tilde_expand_filename(argv[i], pw->pw_uid);
