@@ -166,7 +166,7 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-mfunction-return=thunk]) # gcc
 	OSSH_CHECK_CFLAG_COMPILE([-mindirect-branch=thunk]) # gcc
 	OSSH_CHECK_CFLAG_COMPILE([-mretpoline]) # clang
-	OSSH_CHECK_CFLAG_LINK([-z retpolineplt])
+	OSSH_CHECK_CFLAG_LINK([-Wl,-z,retpolineplt])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
