@@ -49,10 +49,6 @@ int setegid(uid_t);
 const char *strerror(int);
 #endif
 
-#if !defined(HAVE_STRSIGNAL)
-char *strsignal(int);
-#endif
-
 #if !defined(HAVE_SETLINEBUF)
 #define setlinebuf(a)	(setvbuf((a), NULL, _IOLBF, 0))
 #endif
@@ -97,12 +93,6 @@ int tcsendbreak(int, int);
 #ifndef HAVE_UNSETENV
 int unsetenv(const char *);
 #endif
-
-/* wrapper for signal interface */
-typedef void (*mysig_t)(int);
-mysig_t mysignal(int sig, mysig_t act);
-
-#define signal(a,b) mysignal(a,b)
 
 #ifndef HAVE_ISBLANK
 int	isblank(int);
