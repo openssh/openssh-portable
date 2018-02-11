@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.310 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.311 2018/02/11 21:16:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -210,7 +210,6 @@ static void
 window_change_handler(int sig)
 {
 	received_window_change_signal = 1;
-	signal(SIGWINCH, window_change_handler);
 }
 
 /*

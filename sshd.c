@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.503 2018/01/23 20:00:58 stsp Exp $ */
+/* $OpenBSD: sshd.c,v 1.504 2018/02/11 21:16:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -283,7 +283,6 @@ sighup_handler(int sig)
 	int save_errno = errno;
 
 	received_sighup = 1;
-	signal(SIGHUP, sighup_handler);
 	errno = save_errno;
 }
 
@@ -333,8 +332,6 @@ main_sigchld_handler(int sig)
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid < 0 && errno == EINTR))
 		;
-
-	signal(SIGCHLD, main_sigchld_handler);
 	errno = save_errno;
 }
 

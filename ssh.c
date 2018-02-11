@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.471 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.472 2018/02/11 21:16:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2132,7 +2132,5 @@ main_sigchld_handler(int sig)
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid < 0 && errno == EINTR))
 		;
-
-	signal(sig, main_sigchld_handler);
 	errno = save_errno;
 }
