@@ -450,11 +450,6 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 		close(err[0]);
 #endif
 
-
-#ifdef _UNICOS
-		cray_init_job(s->pw); /* set up cray jid and tmpdir */
-#endif
-
 		/* Do processing for the child (exec command etc). */
 		do_child(ssh, s, command);
 		/* NOTREACHED */
@@ -462,9 +457,6 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 		break;
 	}
 
-#ifdef _UNICOS
-	signal(WJSIGNAL, cray_job_termination_handler);
-#endif /* _UNICOS */
 #ifdef HAVE_CYGWIN
 	cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
 #endif
@@ -576,9 +568,6 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 		close(ttyfd);
 
 		/* record login, etc. similar to login(1) */
-#ifdef _UNICOS
-		cray_init_job(s->pw); /* set up cray jid and tmpdir */
-#endif /* _UNICOS */
 #ifndef HAVE_OSF_SIA
 		do_login(ssh, s, command);
 #endif
@@ -592,9 +581,6 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 		break;
 	}
 
-#ifdef _UNICOS
-	signal(WJSIGNAL, cray_job_termination_handler);
-#endif /* _UNICOS */
 #ifdef HAVE_CYGWIN
 	cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
 #endif
@@ -1080,11 +1066,6 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
 		    original_command);
 
-#ifdef _UNICOS
-	if (cray_tmpdir[0] != '\0')
-		child_set_env(&env, &envsize, "TMPDIR", cray_tmpdir);
-#endif /* _UNICOS */
-
 	/*
 	 * Since we clear KRB5CCNAME at startup, if it's set now then it
 	 * must have been set by a native authentication method (eg AIX or
@@ -1484,10 +1465,6 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 		do_pwchange(s);
 		exit(1);
 	}
-
-#ifdef _UNICOS
-	cray_setup(pw->pw_uid, pw->pw_name, command);
-#endif /* _UNICOS */
 
 	/*
 	 * Login(1) does this as well, and it needs uid 0 for the "-h"

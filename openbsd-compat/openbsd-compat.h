@@ -316,7 +316,6 @@ char *shadow_pw(struct passwd *pw);
 #include "fake-rfc2553.h"
 
 /* Routines for a single OS platform */
-#include "bsd-cray.h"
 #include "bsd-cygwin_util.h"
 
 #include "port-aix.h"

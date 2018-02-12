@@ -1602,13 +1602,6 @@ main(int ac, char **av)
 	if (getenv("KRB5CCNAME") != NULL)
 		(void) unsetenv("KRB5CCNAME");
 
-#ifdef _UNICOS
-	/* Cray can define user privs drop all privs now!
-	 * Not needed on PRIV_SU systems!
-	 */
-	drop_cray_privs();
-#endif
-
 	sensitive_data.have_ssh2_key = 0;
 
 	/*

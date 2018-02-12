@@ -1073,40 +1073,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	TEST_SHELL=$SHELL	# let configure find us a capable shell
 	SKIP_DISABLE_LASTLOG_DEFINE=yes
 	;;
-*-*-unicosmk*)
-	AC_DEFINE([NO_SSH_LASTLOG], [1],
-		[Define if you don't want to use lastlog in session.c])
-	AC_DEFINE([SETEUID_BREAKS_SETUID])
-	AC_DEFINE([BROKEN_SETREUID])
-	AC_DEFINE([BROKEN_SETREGID])
-	AC_DEFINE([USE_PIPES])
-	AC_DEFINE([DISABLE_FD_PASSING])
-	LDFLAGS="$LDFLAGS"
-	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
-	MANTYPE=cat
-	;;
-*-*-unicosmp*)
-	AC_DEFINE([SETEUID_BREAKS_SETUID])
-	AC_DEFINE([BROKEN_SETREUID])
-	AC_DEFINE([BROKEN_SETREGID])
-	AC_DEFINE([WITH_ABBREV_NO_TTY])
-	AC_DEFINE([USE_PIPES])
-	AC_DEFINE([DISABLE_FD_PASSING])
-	LDFLAGS="$LDFLAGS"
-	LIBS="$LIBS -lgen -lacid -ldb"
-	MANTYPE=cat
-	;;
-*-*-unicos*)
-	AC_DEFINE([SETEUID_BREAKS_SETUID])
-	AC_DEFINE([BROKEN_SETREUID])
-	AC_DEFINE([BROKEN_SETREGID])
-	AC_DEFINE([USE_PIPES])
-	AC_DEFINE([DISABLE_FD_PASSING])
-	AC_DEFINE([NO_SSH_LASTLOG])
-	LDFLAGS="$LDFLAGS -Wl,-Dmsglevel=334:fatal"
-	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
-	MANTYPE=cat
-	;;
 *-dec-osf*)
 	AC_MSG_CHECKING([for Digital Unix SIA])
 	no_osfsia=""

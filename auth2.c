@@ -349,13 +349,6 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 	}
 #endif
 
-#ifdef _UNICOS
-	if (authenticated && cray_access_denied(authctxt->user)) {
-		authenticated = 0;
-		fatal("Access denied for user %s.", authctxt->user);
-	}
-#endif /* _UNICOS */
-
 	if (authenticated == 1) {
 		/* turn off userauth */
 		ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_REQUEST, &dispatch_protocol_ignore);
@@ -366,7 +359,6 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 		authctxt->success = 1;
 		ssh_packet_set_log_preamble(ssh, "user %s", authctxt->user);
 	} else {
-
 		/* Allow initial try of "none" auth without failure penalty */
 		if (!partial && !authctxt->server_caused_failure &&
 		    (authctxt->attempt > 1 || strcmp(method, "none") != 0))
