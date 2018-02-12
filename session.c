@@ -335,7 +335,6 @@ int
 do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 {
 	pid_t pid;
-
 #ifdef USE_PIPES
 	int pin[2], pout[2], perr[2];
 
