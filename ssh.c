@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.472 2018/02/11 21:16:56 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.473 2018/02/13 03:36:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1555,29 +1555,29 @@ control_persist_detach(void)
 
 	debug("%s: backgrounding master process", __func__);
 
- 	/*
- 	 * master (current process) into the background, and make the
- 	 * foreground process a client of the backgrounded master.
- 	 */
+	/*
+	 * master (current process) into the background, and make the
+	 * foreground process a client of the backgrounded master.
+	 */
 	switch ((pid = fork())) {
 	case -1:
 		fatal("%s: fork: %s", __func__, strerror(errno));
 	case 0:
 		/* Child: master process continues mainloop */
- 		break;
- 	default:
+		break;
+	default:
 		/* Parent: set up mux slave to connect to backgrounded master */
 		debug2("%s: background process is %ld", __func__, (long)pid);
 		stdin_null_flag = ostdin_null_flag;
 		options.request_tty = orequest_tty;
 		tty_flag = otty_flag;
- 		close(muxserver_sock);
- 		muxserver_sock = -1;
+		close(muxserver_sock);
+		muxserver_sock = -1;
 		options.control_master = SSHCTL_MASTER_NO;
- 		muxclient(options.control_path);
+		muxclient(options.control_path);
 		/* muxclient() doesn't return on success. */
- 		fatal("Failed to connect to new control master");
- 	}
+		fatal("Failed to connect to new control master");
+	}
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
 		error("%s: open(\"/dev/null\"): %s", __func__,
 		    strerror(errno));
@@ -1903,7 +1903,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (!packet_get_mux())
 		muxserver_listen(ssh);
 
- 	/*
+	/*
 	 * If we are in control persist mode and have a working mux listen
 	 * socket, then prepare to background ourselves and have a foreground
 	 * client attach as a control slave.
@@ -1912,18 +1912,18 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * after the connection is fully established (in particular,
 	 * async rfwd replies have been received for ExitOnForwardFailure).
 	 */
- 	if (options.control_persist && muxserver_sock != -1) {
+	if (options.control_persist && muxserver_sock != -1) {
 		ostdin_null_flag = stdin_null_flag;
 		ono_shell_flag = no_shell_flag;
 		orequest_tty = options.request_tty;
 		otty_flag = tty_flag;
- 		stdin_null_flag = 1;
- 		no_shell_flag = 1;
- 		tty_flag = 0;
+		stdin_null_flag = 1;
+		no_shell_flag = 1;
+		tty_flag = 0;
 		if (!fork_after_authentication_flag)
 			need_controlpersist_detach = 1;
 		fork_after_authentication_flag = 1;
- 	}
+	}
 	/*
 	 * ControlPersist mux listen socket setup failed, attempt the
 	 * stdio forward setup that we skipped earlier.
