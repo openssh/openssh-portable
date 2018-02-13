@@ -139,8 +139,6 @@ md5_crypt(const char *pw, const char *salt)
 		MD5_Final(final, &ctx1);
 	}
 
-	p = passwd + strlen(passwd);
-
 	l = (final[ 0]<<16) | (final[ 6]<<8) | final[12];
 	strlcat(passwd, to64(l, 4), sizeof(passwd));
 	l = (final[ 1]<<16) | (final[ 7]<<8) | final[13];
