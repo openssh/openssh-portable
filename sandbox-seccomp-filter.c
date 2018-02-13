@@ -167,7 +167,7 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_exit_group),
 #endif
 #ifdef __NR_getpeername /* not defined on archs that go via socketcall(2) */
-	SC_ALLOW(getpeername),
+	SC_ALLOW(__NR_getpeername),
 #endif
 #ifdef __NR_getpgid
 	SC_ALLOW(__NR_getpgid),

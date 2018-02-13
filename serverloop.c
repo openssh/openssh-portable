@@ -447,7 +447,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 	/* write final data to log */
 	total_time = get_current_time() - start_time;
 	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
-	      get_remote_ipaddr(), get_remote_port(),
+	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
 	      fdout_bytes / total_time);
 
