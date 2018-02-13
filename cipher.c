@@ -212,7 +212,8 @@ ciphers_valid(const char *names)
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
-		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0) {
+		  if (c == NULL || ((c->flags & CFLAG_INTERNAL) != 0 &&
+				    (c->flags & CFLAG_NONE) != 0)) {
 			free(cipher_list);
 			return 0;
 		}

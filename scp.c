@@ -770,7 +770,7 @@ source(int argc, char **argv)
 	off_t i, statbytes;
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
-	char *last, *name, buf[2048], encname[PATH_MAX];
+	char *last, *name, buf[16384], encname[PATH_MAX];
 	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
