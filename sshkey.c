@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.60 2018/02/07 02:06:51 jsing Exp $ */
+/* $OpenBSD: sshkey.c,v 1.61 2018/02/14 16:03:32 jsing Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -420,8 +420,7 @@ cert_free(struct sshkey_cert *cert)
 		free(cert->principals[i]);
 	free(cert->principals);
 	sshkey_free(cert->signature_key);
-	explicit_bzero(cert, sizeof(*cert));
-	free(cert);
+	freezero(cert, sizeof(*cert));
 }
 
 static struct sshkey_cert *
@@ -594,16 +593,10 @@ sshkey_free(struct sshkey *k)
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
-		if (k->ed25519_pk) {
-			explicit_bzero(k->ed25519_pk, ED25519_PK_SZ);
-			free(k->ed25519_pk);
-			k->ed25519_pk = NULL;
-		}
-		if (k->ed25519_sk) {
-			explicit_bzero(k->ed25519_sk, ED25519_SK_SZ);
-			free(k->ed25519_sk);
-			k->ed25519_sk = NULL;
-		}
+		freezero(k->ed25519_pk, ED25519_PK_SZ);
+		k->ed25519_pk = NULL;
+		freezero(k->ed25519_sk, ED25519_SK_SZ);
+		k->ed25519_sk = NULL;
 		break;
 	case KEY_UNSPEC:
 		break;
@@ -612,8 +605,7 @@ sshkey_free(struct sshkey *k)
 	}
 	if (sshkey_is_cert(k))
 		cert_free(k->cert);
-	explicit_bzero(k, sizeof(*k));
-	free(k);
+	freezero(k, sizeof(*k));
 }
 
 static int
@@ -906,8 +898,7 @@ fingerprint_b64(const char *alg, u_char *dgst_raw, size_t dgst_raw_len)
 		return ret;
 	if ((r = b64_ntop(dgst_raw, dgst_raw_len,
 	    ret + plen, rlen - plen)) == -1) {
-		explicit_bzero(ret, rlen);
-		free(ret);
+		freezero(ret, rlen);
 		return NULL;
 	}
 	/* Trim padding characters from end */
@@ -1272,7 +1263,7 @@ sshkey_read(struct sshkey *ret, char **cpp)
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		case KEY_ED25519:
-			free(ret->ed25519_pk);
+			freezero(ret->ed25519_pk, ED25519_PK_SZ);
 			ret->ed25519_pk = k->ed25519_pk;
 			k->ed25519_pk = NULL;
 #ifdef DEBUG_PK
@@ -2754,14 +2745,8 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	BN_clear_free(exponent);
 #endif /* WITH_OPENSSL */
 	sshkey_free(k);
-	if (ed25519_pk != NULL) {
-		explicit_bzero(ed25519_pk, pklen);
-		free(ed25519_pk);
-	}
-	if (ed25519_sk != NULL) {
-		explicit_bzero(ed25519_sk, sklen);
-		free(ed25519_sk);
-	}
+	freezero(ed25519_pk, pklen);
+	freezero(ed25519_sk, sklen);
 	return r;
 }
 
