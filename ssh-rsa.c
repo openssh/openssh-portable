@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-rsa.c,v 1.65 2018/02/07 05:17:56 jsing Exp $ */
+/* $OpenBSD: ssh-rsa.c,v 1.66 2018/02/14 16:27:24 jsing Exp $ */
 /*
  * Copyright (c) 2000, 2003 Markus Friedl <markus@openbsd.org>
  *
@@ -79,13 +79,12 @@ rsa_hash_alg_nid(int type)
 	}
 }
 
-/* calculate p-1 and q-1 */
 int
 ssh_rsa_generate_additional_parameters(struct sshkey *key)
 {
-	RSA *rsa;
 	BIGNUM *aux = NULL;
 	BN_CTX *ctx = NULL;
+	BIGNUM d;
 	int r;
 
 	if (key == NULL || key->rsa == NULL ||
@@ -98,12 +97,15 @@ ssh_rsa_generate_additional_parameters(struct sshkey *key)
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	rsa = key->rsa;
+	BN_set_flags(aux, BN_FLG_CONSTTIME);
 
-	if ((BN_sub(aux, rsa->q, BN_value_one()) == 0) ||
-	    (BN_mod(rsa->dmq1, rsa->d, aux, ctx) == 0) ||
-	    (BN_sub(aux, rsa->p, BN_value_one()) == 0) ||
-	    (BN_mod(rsa->dmp1, rsa->d, aux, ctx) == 0)) {
+	BN_init(&d);
+	BN_with_flags(&d, key->rsa->d, BN_FLG_CONSTTIME);
+
+	if ((BN_sub(aux, key->rsa->q, BN_value_one()) == 0) ||
+	    (BN_mod(key->rsa->dmq1, &d, aux, ctx) == 0) ||
+	    (BN_sub(aux, key->rsa->p, BN_value_one()) == 0) ||
+	    (BN_mod(key->rsa->dmp1, &d, aux, ctx) == 0)) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
