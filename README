@@ -22,7 +22,7 @@ This port consists of the re-introduction of autoconf support, PAM
 support, EGD[1]/PRNGD[2] support and replacements for OpenBSD library
 functions that are (regrettably) absent from other unices. This port
 has been best tested on AIX, Cygwin, HP-UX, Linux, MacOS/X,
-NetBSD, OpenBSD, OpenServer, Solaris, Unicos, and UnixWare.
+NetBSD, OpenBSD, OpenServer, Solaris and UnixWare.
 
 This version actively tracks changes in the OpenBSD CVS repository.
 
