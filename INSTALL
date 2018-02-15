@@ -169,13 +169,11 @@ also be enabled in sshd_config (refer to the UsePAM directive).
 
 --with-prngd-socket=/some/file allows you to enable EGD or PRNGD
 support and to specify a PRNGd socket. Use this if your Unix lacks
-/dev/random and you don't want to use OpenSSH's builtin entropy
-collection support.
+/dev/random.
 
 --with-prngd-port=portnum allows you to enable EGD or PRNGD support
 and to specify a EGD localhost TCP port. Use this if your Unix lacks
-/dev/random and you don't want to use OpenSSH's builtin entropy
-collection support.
+/dev/random.
 
 --with-lastlog=FILE will specify the location of the lastlog file.
 ./configure searches a few locations for lastlog, but may not find
