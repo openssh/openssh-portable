@@ -373,7 +373,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 
 	debug("Entering interactive session for SSH2.");
 
-	mysignal(SIGCHLD, sigchld_handler);
+	signal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
