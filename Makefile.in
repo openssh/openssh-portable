@@ -1,5 +1,3 @@
-# $Id: Makefile.in,v 1.365 2014/08/30 06:23:07 djm Exp $
-
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
 
