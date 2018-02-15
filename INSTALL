@@ -209,8 +209,7 @@ created.
 --with-xauth=PATH specifies the location of the xauth binary
 
 --with-ssl-dir=DIR allows you to specify where your Libre/OpenSSL
-libraries
-are installed.
+libraries are installed.
 
 --with-ssl-engine enables Libre/OpenSSL's (hardware) ENGINE support
 
