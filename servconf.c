@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.323 2018/02/09 02:37:36 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.324 2018/02/16 02:32:40 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -247,8 +247,6 @@ fill_default_server_options(ServerOptions *options)
 		/* fill default hostkeys for protocols */
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA_KEY_FILE);
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_KEY_FILE);
