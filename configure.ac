@@ -1854,7 +1854,6 @@ AC_SEARCH_LIBS([clock_gettime], [rt],
 	[AC_DEFINE([HAVE_CLOCK_GETTIME], [1], [Have clock_gettime])])
 
 dnl Make sure prototypes are defined for these before using them.
-AC_CHECK_DECL([getrusage], [AC_CHECK_FUNCS([getrusage])])
 AC_CHECK_DECL([strsep],
 	[AC_CHECK_FUNCS([strsep])],
 	[],
