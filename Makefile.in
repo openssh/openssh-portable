@@ -567,6 +567,8 @@ regress-binaries: regress/modpipe$(EXEEXT) \
 	regress/unittests/utf8/test_utf8$(EXEEXT) \
 	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
+REGRESSTMP := "$(BUILDDIR)/regress"
+
 tests interop-tests t-exec unit: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
 	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
@@ -590,7 +592,7 @@ tests interop-tests t-exec unit: regress-prep regress-binaries $(TARGETS)
 		.OBJDIR="$${BUILDDIR}/regress" \
 		.CURDIR="`pwd`" \
 		BUILDDIR="$${BUILDDIR}" \
-		OBJ="$${BUILDDIR}/regress/" \
+		OBJ="$(REGRESSTMP)" \
 		PATH="$${BUILDDIR}:$${PATH}" \
 		TEST_ENV=MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
 		TEST_MALLOC_OPTIONS="@TEST_MALLOC_OPTIONS@" \
