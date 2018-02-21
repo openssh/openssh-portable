@@ -443,8 +443,9 @@ AddSidMappingToLsa(PUNICODE_STRING domain_name,
 			error("LsaManageSidNameMapping failed with ntstatus: %d \n", status);
 	}
 
-	if (p_output)
-		LsaFreeMemory(p_output);
+	/* TODO - Free p_output */
+	/*if (p_output)
+		LsaFreeMemory(p_output);*/
 
 	return ret;
 }
@@ -469,10 +470,19 @@ int RemoveVirtualAccountLSAMapping(PUNICODE_STRING domain_name,
 	if (status != STATUS_SUCCESS)
 		ret = -1;
 
-	if (p_output)
-		LsaFreeMemory(p_output);
+	/* TODO - Free p_output */
+	/*if (p_output)
+		LsaFreeMemory(p_output);*/
 
 	return ret;
+}
+
+void 
+InitUnicodeString(PUNICODE_STRING dest, PCWSTR source)
+{
+	dest->Buffer = source;
+	dest->Length = wcslen(source) * sizeof(wchar_t);
+	dest->MaximumLength = dest->Length + 2;
 }
 
 HANDLE generate_sshd_virtual_token()
@@ -486,9 +496,9 @@ HANDLE generate_sshd_virtual_token()
 
 	StringCchPrintfW(va_name, 32, L"%s_%d", L"sshd", GetCurrentProcessId());
 
-	RtlInitUnicodeString(&domain, VIRTUALUSER_DOMAIN);
-	RtlInitUnicodeString(&group, VIRTUALUSER_GROUP_NAME);
-	RtlInitUnicodeString(&account, va_name);
+	InitUnicodeString(&domain, VIRTUALUSER_DOMAIN);
+	InitUnicodeString(&group, VIRTUALUSER_GROUP_NAME);
+	InitUnicodeString(&account, va_name);
 
 	/* Initialize SIDs */
 	/* domain SID - S-1-5-111 */

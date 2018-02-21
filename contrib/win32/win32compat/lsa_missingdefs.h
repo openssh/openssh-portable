@@ -53,8 +53,3 @@ NTSTATUS WINAPI LsaManageSidNameMapping(
 	PLSA_SID_NAME_MAPPING_OPERATION_INPUT  OpInput,
 	PLSA_SID_NAME_MAPPING_OPERATION_OUTPUT *OpOutput
 );
-
-VOID WINAPI RtlInitUnicodeString(
-	PUNICODE_STRING DestinationString,
-	PCWSTR          SourceString
-);
