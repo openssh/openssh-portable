@@ -40,8 +40,11 @@
 #include "inc\utf.h"
 #include "logonuser.h"
 #include <Ntsecapi.h>
+#include <Strsafe.h>
+#include <sddl.h>
 #include <ntstatus.h>
 #include "misc_internal.h"
+#include "lsa_missingdefs.h"
 #include "Debug.h"
 
 #pragma warning(push, 3)
@@ -118,7 +121,7 @@ done:
 #define MAX_PW_LEN 64
 
 static HANDLE
-generate_user_token(wchar_t* user_cpn) {
+generate_s4u_user_token(wchar_t* user_cpn) {
 	HANDLE lsa_handle = 0, token = 0;
 	LSA_OPERATIONAL_MODE mode;
 	ULONG auth_package_id;
@@ -329,6 +332,8 @@ done:
 	return token;
 }
 
+HANDLE generate_sshd_virtual_token();
+
 HANDLE
 get_user_token(char* user) {
 	HANDLE token = NULL;
@@ -339,12 +344,18 @@ get_user_token(char* user) {
 		goto done;
 	}
 
-	if ((token = generate_user_token(user_utf16)) == 0) {
+	if (wcscmp(user_utf16, L"sshd") == 0) {
+		if ((token = generate_sshd_virtual_token()) != 0)
+			goto done;
+		debug3("unable to generate sshd virtual token, falling back to s4u");
+	}
+
+	if ((token = generate_s4u_user_token(user_utf16)) == 0) {
 		error("unable to generate token for user %ls", user_utf16);
 		/* work around for https://github.com/PowerShell/Win32-OpenSSH/issues/727 by doing a fake login */
 		LogonUserExExWHelper(L"FakeUser", L"FakeDomain", L"FakePasswd",
 			LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL);
-		if ((token = generate_user_token(user_utf16)) == 0) {
+		if ((token = generate_s4u_user_token(user_utf16)) == 0) {
 			error("unable to generate token on 2nd attempt for user %ls", user_utf16);
 			goto done;
 		}
@@ -381,5 +392,200 @@ done:
 		free(user_utf16);
 	return r;
 }
+
+
+/* *** virtual account token generation logic ***/
+
+char* LSAMappingErrorDetails[] = {
+	"LsaSidNameMappingOperation_Success",
+	"LsaSidNameMappingOperation_NonMappingError",
+	"LsaSidNameMappingOperation_NameCollision",
+	"LsaSidNameMappingOperation_SidCollision",
+	"LsaSidNameMappingOperation_DomainNotFound",
+	"LsaSidNameMappingOperation_DomainSidPrefixMismatch",
+	"LsaSidNameMappingOperation_MappingNotFound"
+};
+
+#define VIRTUALUSER_DOMAIN L"VIRTUAL USERS"
+#define VIRTUALUSER_GROUP_NAME L"ALL VIRTUAL USERS"
+
+/* returns 0 on success -1 on failure */
+int
+AddSidMappingToLsa(PUNICODE_STRING domain_name,
+	 PUNICODE_STRING account_name,
+	 PSID sid)
+{
+	LSA_SID_NAME_MAPPING_OPERATION_INPUT   input = { 0 };
+	PLSA_SID_NAME_MAPPING_OPERATION_OUTPUT p_output = NULL;
+	LSA_SID_NAME_MAPPING_OPERATION_ERROR op_result =
+		LsaSidNameMappingOperation_NonMappingError;
+	NTSTATUS status = STATUS_SUCCESS;
+	int ret = 0;
+
+	input.AddInput.DomainName = *domain_name;
+	if (account_name)
+		input.AddInput.AccountName = *account_name;
+	input.AddInput.Sid = sid;
+
+	status = LsaManageSidNameMapping(LsaSidNameMappingOperation_Add,
+		&input,
+		&p_output);
+	if (status != STATUS_SUCCESS) {
+		ret = -1;
+		if (p_output) {
+			op_result = p_output->AddOutput.ErrorCode;
+			if (op_result == LsaSidNameMappingOperation_NameCollision || op_result == LsaSidNameMappingOperation_SidCollision)
+				ret = 0; /* OK as it failed due to collision */
+			else
+				error("LsaManageSidNameMapping failed with : %s \n", LSAMappingErrorDetails[op_result]);
+		}
+		else
+			error("LsaManageSidNameMapping failed with ntstatus: %d \n", status);
+	}
+
+	if (p_output)
+		LsaFreeMemory(p_output);
+
+	return ret;
+}
+
+
+int RemoveVirtualAccountLSAMapping(PUNICODE_STRING domain_name,
+	PUNICODE_STRING account_name)
+{
+	int ret = 0;
+
+	LSA_SID_NAME_MAPPING_OPERATION_INPUT         input = { 0 };
+	PLSA_SID_NAME_MAPPING_OPERATION_OUTPUT       p_output = NULL;
+	PLSA_SID_NAME_MAPPING_OPERATION_REMOVE_INPUT remove_input = &input.RemoveInput;
+
+	remove_input->DomainName = *domain_name;
+	if (account_name)
+		remove_input->AccountName = *account_name;
+	
+	NTSTATUS status = LsaManageSidNameMapping(LsaSidNameMappingOperation_Remove,
+		&input,
+		&p_output);
+	if (status != STATUS_SUCCESS)
+		ret = -1;
+
+	if (p_output)
+		LsaFreeMemory(p_output);
+
+	return ret;
+}
+
+HANDLE generate_sshd_virtual_token()
+{
+	SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
+	UNICODE_STRING domain, group, account;
+	WCHAR va_name[32]; /* enough to accomodate sshd_123457890 */
+
+	PSID sid_domain = NULL, sid_group = NULL, sid_user = NULL;
+	HANDLE va_token = 0, va_token_restricted = 0;
+
+	StringCchPrintfW(va_name, 32, L"%s_%d", L"sshd", GetCurrentProcessId());
+
+	RtlInitUnicodeString(&domain, VIRTUALUSER_DOMAIN);
+	RtlInitUnicodeString(&group, VIRTUALUSER_GROUP_NAME);
+	RtlInitUnicodeString(&account, va_name);
+
+	/* Initialize SIDs */
+	/* domain SID - S-1-5-111 */
+	if (!(AllocateAndInitializeSid(&nt_authority,
+	    1,
+	    111,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    &sid_domain)))
+		goto cleanup;
+
+	/* group SID - S-1-5-111-0 */
+	if (!(AllocateAndInitializeSid(&nt_authority,
+	    2,
+	    111,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    &sid_group)))
+		goto cleanup;
+
+	/* 
+	 * account SID 
+	 * this is derived from higher RIDs in sshd service account SID to ensure there are no conflicts
+	 * S-1-5-80-3847866527-469524349-687026318-516638107-1125189541 (Well Known group: NT SERVICE\sshd)
+	 * Ex account SID - S-1-5-111-3847866527-469524349-687026318-516638107-1125189541-123
+	 */
+	if (!(AllocateAndInitializeSid(&nt_authority,
+	    7,
+	    111,
+	    3847866527,
+	    469524349,
+	    687026318,
+	    516638107,
+	    1125189541,
+	    GetCurrentProcessId(),
+	    0,
+	    &sid_user)))
+		goto cleanup;
+
+	/* Map the domain SID */
+	if (AddSidMappingToLsa(&domain, NULL, sid_domain) != 0)
+		goto cleanup;
+
+	/* Map the group SID */
+	if (AddSidMappingToLsa(&domain, &group, sid_group) != 0)
+		goto cleanup;
+
+	/* Map the user SID */
+	if (AddSidMappingToLsa(&domain, &account, sid_user) != 0)
+		goto cleanup;
+
+	/* Logon virtual and create token */
+	if (!LogonUserExExWHelper(
+	    va_name,
+	    VIRTUALUSER_DOMAIN,
+	    L"",
+	    LOGON32_LOGON_INTERACTIVE,
+	    LOGON32_PROVIDER_VIRTUAL,
+	    NULL,
+	    &va_token,
+	    NULL,
+	    NULL,
+	    NULL,
+	    NULL)) {
+		debug3("LogonUserExExW failed with %d \n", GetLastError());
+		goto cleanup;
+	}
+
+	/* remove all privileges */
+	if (!CreateRestrictedToken(va_token, DISABLE_MAX_PRIVILEGE, 0, NULL, 0, NULL, 0, NULL, &va_token_restricted ))
+		debug3("CreateRestrictedToken failed with %d \n", GetLastError());
+
+	CloseHandle(va_token);
+
+cleanup:
+	RemoveVirtualAccountLSAMapping(&domain, &account);
+
+	if (sid_domain)
+		FreeSid(sid_domain);
+	if (sid_user)
+		FreeSid(sid_user);
+	if (sid_group)
+		FreeSid(sid_group);
+
+	return va_token_restricted;
+}
+
+
 
 #pragma warning(pop)

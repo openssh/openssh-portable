@@ -129,7 +129,7 @@ generate_host_keys()
 		ui.usri1_priv = USER_PRIV_USER;
 		ui.usri1_home_dir = NULL;
 		ui.usri1_comment = NULL;
-		ui.usri1_flags = UF_SCRIPT;
+		ui.usri1_flags = UF_SCRIPT | UF_DONT_EXPIRE_PASSWD;
 		ui.usri1_script_path = NULL;
 
 		NetUserAdd(NULL, 1, (LPBYTE)&ui, &dwError);
