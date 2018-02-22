@@ -388,12 +388,12 @@ AC_CHECK_HEADERS([ \
 	stdint.h \
 	string.h \
 	strings.h \
-	sys/audit.h \
 	sys/bitypes.h \
 	sys/bsdtty.h \
 	sys/cdefs.h \
 	sys/dir.h \
 	sys/mman.h \
+	sys/label.h \
 	sys/ndir.h \
 	sys/poll.h \
 	sys/prctl.h \
@@ -420,6 +420,20 @@ AC_CHECK_HEADERS([ \
 	utmpx.h \
 	vis.h \
 	wchar.h \
+])
+
+# On some platforms (eg SunOS4) sys/audit.h requires sys/[time|types|label.h]
+# to be included first.
+AC_CHECK_HEADERS([sys/audit.h], [], [], [
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_LABEL_H
+# include <sys/label.h>
+#endif
 ])
 
 # sys/capsicum.h requires sys/types.h
