@@ -365,6 +365,7 @@ AC_CHECK_HEADERS([ \
 	glob.h \
 	ia.h \
 	iaf.h \
+	ifaddrs.h \
 	inttypes.h \
 	langinfo.h \
 	limits.h \

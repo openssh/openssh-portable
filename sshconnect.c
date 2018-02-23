@@ -44,7 +44,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ifaddrs.h>
+#ifdef HAVE_IFADDRS_H
+# include <ifaddrs.h>
+#endif
 
 #include "xmalloc.h"
 #include "key.h"
@@ -272,6 +274,7 @@ ssh_kill_proxy_command(void)
 		kill(proxy_command_pid, SIGHUP);
 }
 
+#ifdef HAVE_IFADDRS_H
 /*
  * Search a interface address list (returned from getifaddrs(3)) for an
  * address that matches the desired address family on the specifed interface.
@@ -332,6 +335,7 @@ check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
 	}
 	return -1;
 }
+#endif
 
 /*
  * Creates a (possibly privileged) socket for use as the ssh connection.
@@ -343,7 +347,9 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	struct sockaddr_storage bindaddr;
 	socklen_t bindaddrlen = 0;
 	struct addrinfo hints, *res = NULL;
+#ifdef HAVE_IFADDRS_H
 	struct ifaddrs *ifaddrs = NULL;
+#endif
 	char ntop[NI_MAXHOST];
 
 	sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
@@ -380,6 +386,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 		memcpy(&bindaddr, res->ai_addr, res->ai_addrlen);
 		bindaddrlen = res->ai_addrlen;
 	} else if (options.bind_interface != NULL) {
+#ifdef HAVE_IFADDRS_H
 		if ((r = getifaddrs(&ifaddrs)) != 0) {
 			error("getifaddrs: %s: %s", options.bind_interface,
 			      strerror(errno));
@@ -392,6 +399,9 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 			      options.bind_interface);
 			goto fail;
 		}
+#else
+		error("BindInterface not supported on this platform.");
+#endif
 	}
 	if ((r = getnameinfo((struct sockaddr *)&bindaddr, bindaddrlen,
 	    ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST)) != 0) {
@@ -427,8 +437,10 @@ fail:
  out:
 	if (res != NULL)
 		freeaddrinfo(res);
+#ifdef HAVE_IFADDRS_H
 	if (ifaddrs != NULL)
 		freeifaddrs(ifaddrs);
+#endif
 	return sock;
 }
 
