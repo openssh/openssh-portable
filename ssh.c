@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.474 2018/02/23 02:34:33 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.475 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1384,7 +1384,7 @@ main(int ac, char **av)
 	sensitive_data.keys = NULL;
 	sensitive_data.external_keysign = 0;
 	if (options.hostbased_authentication) {
-		sensitive_data.nkeys = 9;
+		sensitive_data.nkeys = 11;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(struct sshkey));	/* XXX */
 		for (i = 0; i < sensitive_data.nkeys; i++)
@@ -1411,6 +1411,10 @@ main(int ac, char **av)
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
 		sensitive_data.keys[8] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[9] = key_load_private_cert(KEY_XMSS,
+		    _PATH_HOST_XMSS_KEY_FILE, "", NULL);
+		sensitive_data.keys[10] = key_load_private_type(KEY_XMSS,
+		    _PATH_HOST_XMSS_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
@@ -1418,7 +1422,8 @@ main(int ac, char **av)
 		    sensitive_data.keys[5] == NULL &&
 		    sensitive_data.keys[6] == NULL &&
 		    sensitive_data.keys[7] == NULL &&
-		    sensitive_data.keys[8] == NULL) {
+		    sensitive_data.keys[8] == NULL &&
+		    sensitive_data.keys[9] == NULL) {
 #ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_ECDSA_KEY_FILE);
@@ -1439,6 +1444,10 @@ main(int ac, char **av)
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.keys[8] = key_load_public(
 			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			sensitive_data.keys[9] = key_load_cert(
+			    _PATH_HOST_XMSS_KEY_FILE);
+			sensitive_data.keys[10] = key_load_public(
+			    _PATH_HOST_XMSS_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}
 	}

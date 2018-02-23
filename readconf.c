@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.282 2018/02/23 02:34:33 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.283 2018/02/23 15:58:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1943,6 +1943,7 @@ fill_default_options(Options * options)
 #endif
 		add_identity_file(options, "~/",
 		    _PATH_SSH_CLIENT_ID_ED25519, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_XMSS, 0);
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';

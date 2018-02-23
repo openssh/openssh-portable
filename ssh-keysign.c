@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.53 2018/02/07 22:52:45 dtucker Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.54 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -171,7 +171,7 @@ main(int argc, char **argv)
 {
 	struct sshbuf *b;
 	Options options;
-#define NUM_KEYTYPES 4
+#define NUM_KEYTYPES 5
 	struct sshkey *keys[NUM_KEYTYPES], *key = NULL;
 	struct passwd *pw;
 	int r, key_fd[NUM_KEYTYPES], i, found, version = 2, fd;
@@ -198,6 +198,7 @@ main(int argc, char **argv)
 	key_fd[i++] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
+	key_fd[i++] = open(_PATH_HOST_XMSS_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
 
 	original_real_uid = getuid();	/* XXX readconf.c needs this */

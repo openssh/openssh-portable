@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.312 2018/02/10 05:48:46 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.313 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -274,6 +274,10 @@ ask_filename(struct passwd *pw, const char *prompt)
 		case KEY_ED25519:
 		case KEY_ED25519_CERT:
 			name = _PATH_SSH_CLIENT_ID_ED25519;
+			break;
+		case KEY_XMSS:
+		case KEY_XMSS_CERT:
+			name = _PATH_SSH_CLIENT_ID_XMSS;
 			break;
 		default:
 			fatal("bad key type");
@@ -969,6 +973,9 @@ do_gen_all_hostkeys(struct passwd *pw)
 #endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 		{ "ed25519", "ED25519",_PATH_HOST_ED25519_KEY_FILE },
+#ifdef WITH_XMSS
+		{ "xmss", "XMSS",_PATH_HOST_XMSS_KEY_FILE },
+#endif /* WITH_XMSS */
 		{ NULL, NULL, NULL }
 	};
 
@@ -1455,7 +1462,8 @@ do_change_comment(struct passwd *pw)
 		}
 	}
 
-	if (private->type != KEY_ED25519 && !use_new_format) {
+	if (private->type != KEY_ED25519 && private->type != KEY_XMSS &&
+	    !use_new_format) {
 		error("Comments are only supported for keys stored in "
 		    "the new format (-o).");
 		explicit_bzero(passphrase, strlen(passphrase));
@@ -1705,7 +1713,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 			fatal("%s: unable to open \"%s\": %s",
 			    __func__, tmp, ssh_err(r));
 		if (public->type != KEY_RSA && public->type != KEY_DSA &&
-		    public->type != KEY_ECDSA && public->type != KEY_ED25519)
+		    public->type != KEY_ECDSA && public->type != KEY_ED25519 &&
+		    public->type != KEY_XMSS)
 			fatal("%s: key \"%s\" type %s cannot be certified",
 			    __func__, tmp, sshkey_type(public));
 
@@ -2405,7 +2414,7 @@ main(int argc, char **argv)
 			gen_all_hostkeys = 1;
 			break;
 		case 'b':
-			bits = (u_int32_t)strtonum(optarg, 256, 32768, &errstr);
+			bits = (u_int32_t)strtonum(optarg, 10, 32768, &errstr);
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",
 					optarg, errstr);
@@ -2683,6 +2692,8 @@ main(int argc, char **argv)
 			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname);
 			n += do_print_resource_record(pw,
 			    _PATH_HOST_ED25519_KEY_FILE, rr_hostname);
+			n += do_print_resource_record(pw,
+			    _PATH_HOST_XMSS_KEY_FILE, rr_hostname);
 			if (n == 0)
 				fatal("no keys found.");
 			exit(0);

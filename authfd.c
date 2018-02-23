@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.107 2018/02/10 09:25:34 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.108 2018/02/23 15:58:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -129,7 +129,7 @@ ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 
 	/* Get the length of the message, and format it in the buffer. */
 	len = sshbuf_len(request);
-	put_u32(buf, len);
+	POKE_U32(buf, len);
 
 	/* Send the length and then the packet to the agent. */
 	if (atomicio(vwrite, sock, buf, 4) != 4 ||
@@ -144,7 +144,7 @@ ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 	    return SSH_ERR_AGENT_COMMUNICATION;
 
 	/* Extract the length, and check it for sanity. */
-	len = get_u32(buf);
+	len = PEEK_U32(buf);
 	if (len > MAX_AGENT_REPLY_LEN)
 		return SSH_ERR_INVALID_FORMAT;
 
@@ -391,19 +391,7 @@ ssh_agent_sign(int sock, const struct sshkey *key,
 
 
 static int
-ssh_encode_identity_ssh2(struct sshbuf *b, const struct sshkey *key,
-    const char *comment)
-{
-	int r;
-
-	if ((r = sshkey_private_serialize(key, b)) != 0 ||
-	    (r = sshbuf_put_cstring(b, comment)) != 0)
-		return r;
-	return 0;
-}
-
-static int
-encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
+encode_constraints(struct sshbuf *m, u_int life, u_int confirm, u_int maxsign)
 {
 	int r;
 
@@ -414,6 +402,11 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
 	}
 	if (confirm != 0) {
 		if ((r = sshbuf_put_u8(m, SSH_AGENT_CONSTRAIN_CONFIRM)) != 0)
+			goto out;
+	}
+	if (maxsign != 0) {
+		if ((r = sshbuf_put_u8(m, SSH_AGENT_CONSTRAIN_MAXSIGN)) != 0 ||
+		    (r = sshbuf_put_u32(m, maxsign)) != 0)
 			goto out;
 	}
 	r = 0;
@@ -427,10 +420,10 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm)
  */
 int
 ssh_add_identity_constrained(int sock, const struct sshkey *key,
-    const char *comment, u_int life, u_int confirm)
+    const char *comment, u_int life, u_int confirm, u_int maxsign)
 {
 	struct sshbuf *msg;
-	int r, constrained = (life || confirm);
+	int r, constrained = (life || confirm || maxsign);
 	u_char type;
 
 	if ((msg = sshbuf_new()) == NULL)
@@ -447,11 +440,15 @@ ssh_add_identity_constrained(int sock, const struct sshkey *key,
 #endif
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
+	case KEY_XMSS:
+	case KEY_XMSS_CERT:
 		type = constrained ?
 		    SSH2_AGENTC_ADD_ID_CONSTRAINED :
 		    SSH2_AGENTC_ADD_IDENTITY;
 		if ((r = sshbuf_put_u8(msg, type)) != 0 ||
-		    (r = ssh_encode_identity_ssh2(msg, key, comment)) != 0)
+		    (r = sshkey_private_serialize_maxsign(key, msg, maxsign,
+		    NULL)) != 0 ||
+		    (r = sshbuf_put_cstring(msg, comment)) != 0)
 			goto out;
 		break;
 	default:
@@ -459,7 +456,7 @@ ssh_add_identity_constrained(int sock, const struct sshkey *key,
 		goto out;
 	}
 	if (constrained &&
-	    (r = encode_constraints(msg, life, confirm)) != 0)
+	    (r = encode_constraints(msg, life, confirm, maxsign)) != 0)
 		goto out;
 	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
 		goto out;
@@ -537,7 +534,7 @@ ssh_update_card(int sock, int add, const char *reader_id, const char *pin,
 	    (r = sshbuf_put_cstring(msg, pin)) != 0)
 		goto out;
 	if (constrained &&
-	    (r = encode_constraints(msg, life, confirm)) != 0)
+	    (r = encode_constraints(msg, life, confirm, 0)) != 0)
 		goto out;
 	if ((r = ssh_request_reply(sock, msg, msg)) != 0)
 		goto out;

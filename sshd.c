@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.504 2018/02/11 21:16:56 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.505 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -705,6 +705,7 @@ list_hostkey_types(void)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_XMSS:
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
@@ -726,6 +727,7 @@ list_hostkey_types(void)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_XMSS_CERT:
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
@@ -752,6 +754,7 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_XMSS_CERT:
 			key = sensitive_data.host_certificates[i];
 			break;
 		default:
@@ -1734,6 +1737,7 @@ main(int ac, char **av)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_XMSS:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
 			break;

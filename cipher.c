@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.110 2018/02/13 03:36:56 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.111 2018/02/23 15:58:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -401,7 +401,7 @@ cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
 		    cp, len);
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
-	*plenp = get_u32(cp);
+	*plenp = PEEK_U32(cp);
 	return 0;
 }
 

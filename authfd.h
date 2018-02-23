@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.h,v 1.42 2018/02/10 09:25:34 djm Exp $ */
+/* $OpenBSD: authfd.h,v 1.43 2018/02/23 15:58:37 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -30,7 +30,7 @@ int	ssh_lock_agent(int sock, int lock, const char *password);
 int	ssh_fetch_identitylist(int sock, struct ssh_identitylist **idlp);
 void	ssh_free_identitylist(struct ssh_identitylist *idl);
 int	ssh_add_identity_constrained(int sock, const struct sshkey *key,
-	    const char *comment, u_int life, u_int confirm);
+	    const char *comment, u_int life, u_int confirm, u_int maxsign);
 int	ssh_remove_identity(int sock, struct sshkey *key);
 int	ssh_update_card(int sock, int add, const char *reader_id,
 	    const char *pin, u_int life, u_int confirm);
@@ -77,6 +77,7 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 
 #define	SSH_AGENT_CONSTRAIN_LIFETIME		1
 #define	SSH_AGENT_CONSTRAIN_CONFIRM		2
+#define	SSH_AGENT_CONSTRAIN_MAXSIGN		3
 
 /* extended failure messages */
 #define SSH2_AGENT_FAILURE			30

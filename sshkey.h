@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.23 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.24 2018/02/23 15:58:38 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -61,6 +61,8 @@ enum sshkey_types {
 	KEY_DSA_CERT,
 	KEY_ECDSA_CERT,
 	KEY_ED25519_CERT,
+	KEY_XMSS,
+	KEY_XMSS_CERT,
 	KEY_UNSPEC
 };
 
@@ -74,6 +76,14 @@ enum sshkey_fp_rep {
 	SSH_FP_BASE64,
 	SSH_FP_BUBBLEBABBLE,
 	SSH_FP_RANDOMART
+};
+
+/* Private key serialisation formats, used on the wire */
+enum sshkey_serialize_rep {
+	SSHKEY_SERIALIZE_DEFAULT = 0,
+	SSHKEY_SERIALIZE_STATE = 1,
+	SSHKEY_SERIALIZE_FULL = 2,
+	SSHKEY_SERIALIZE_INFO = 254,
 };
 
 /* key is stored in external hardware */
@@ -104,6 +114,11 @@ struct sshkey {
 	EC_KEY	*ecdsa;
 	u_char	*ed25519_sk;
 	u_char	*ed25519_pk;
+	char	*xmss_name;
+	char	*xmss_filename;	/* for state file updates */
+	void	*xmss_state;	/* depends on xmss_name, opaque */
+	u_char	*xmss_sk;
+	u_char	*xmss_pk;
 	struct sshkey_cert *cert;
 };
 
@@ -171,6 +186,8 @@ int	 sshkey_to_blob(const struct sshkey *, u_char **, size_t *);
 int	 sshkey_to_base64(const struct sshkey *, char **);
 int	 sshkey_putb(const struct sshkey *, struct sshbuf *);
 int	 sshkey_puts(const struct sshkey *, struct sshbuf *);
+int	 sshkey_puts_opts(const struct sshkey *, struct sshbuf *,
+    enum sshkey_serialize_rep);
 int	 sshkey_plain_to_blob(const struct sshkey *, u_char **, size_t *);
 int	 sshkey_putb_plain(const struct sshkey *, struct sshbuf *);
 
@@ -186,6 +203,8 @@ void	sshkey_dump_ec_key(const EC_KEY *);
 
 /* private key parsing and serialisation */
 int	sshkey_private_serialize(const struct sshkey *key, struct sshbuf *buf);
+int	sshkey_private_serialize_opt(const struct sshkey *key, struct sshbuf *buf,
+    enum sshkey_serialize_rep);
 int	sshkey_private_deserialize(struct sshbuf *buf,  struct sshkey **keyp);
 
 /* private key file format parsing and serialisation */
@@ -199,6 +218,15 @@ int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 
 /* XXX should be internal, but used by ssh-keygen */
 int ssh_rsa_generate_additional_parameters(struct sshkey *);
+
+/* stateful keys (e.g. XMSS) */
+typedef void sshkey_printfn(const char *, ...) __attribute__((format(printf, 1, 2)));
+int	 sshkey_set_filename(struct sshkey *, const char *);
+int	 sshkey_enable_maxsign(struct sshkey *, u_int32_t);
+u_int32_t sshkey_signatures_left(const struct sshkey *);
+int	 sshkey_forward_state(const struct sshkey *, u_int32_t, sshkey_printfn *);
+int	 sshkey_private_serialize_maxsign(const struct sshkey *key, struct sshbuf *buf,
+    u_int32_t maxsign, sshkey_printfn *pr);
 
 #ifdef SSHKEY_INTERNAL
 int ssh_rsa_sign(const struct sshkey *key,
@@ -220,6 +248,11 @@ int ssh_ecdsa_verify(const struct sshkey *key,
 int ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ed25519_verify(const struct sshkey *key,
+    const u_char *signature, size_t signaturelen,
+    const u_char *data, size_t datalen, u_int compat);
+int ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen, u_int compat);
+int ssh_xmss_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
     const u_char *data, size_t datalen, u_int compat);
 #endif
