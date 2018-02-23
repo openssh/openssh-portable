@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.390 2018/02/23 02:34:33 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.391 2018/02/23 07:38:09 jmc Exp $
 .Dd $Mdocdate: February 23 2018 $
 .Dt SSH 1
 .Os
@@ -125,9 +125,9 @@ authenticate using the identities loaded into the agent.
 .It Fl a
 Disables forwarding of the authentication agent connection.
 .Pp
-.It Fl B Ar interface
+.It Fl B Ar bind_interface
 Bind to the address of
-.Ar interface
+.Ar bind_interface
 before attempting to connect to the destination host.
 This is only useful on systems with more than one address.
 .Pp

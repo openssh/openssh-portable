@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.41 2018/02/23 05:14:05 djm Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.42 2018/02/23 07:38:09 jmc Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -165,9 +165,10 @@ $ ssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr sshd 8
-.%R RFC 4255
-.%T "Using DNS to Securely Publish Secure Shell (SSH) Key Fingerprints"
+.Rs
 .%D 2006
+.%R RFC 4255
+.%T Using DNS to Securely Publish Secure Shell (SSH) Key Fingerprints
 .Re
 .Sh AUTHORS
 .An -nosplit

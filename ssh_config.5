@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.267 2018/02/23 02:34:33 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.268 2018/02/23 07:38:09 jmc Exp $
 .Dd $Mdocdate: February 23 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -254,17 +254,17 @@ The argument must be
 or
 .Cm no
 (the default).
-.It Cm BindInterface
-Use the address of the specified interface on the local machine as the
-source address of the connection.
-Note that this option does not work if
-.Cm UsePrivilegedPort
-is set to
-.Cm yes .
 .It Cm BindAddress
 Use the specified address on the local machine as the source address of
 the connection.
 Only useful on systems with more than one address.
+Note that this option does not work if
+.Cm UsePrivilegedPort
+is set to
+.Cm yes .
+.It Cm BindInterface
+Use the address of the specified interface on the local machine as the
+source address of the connection.
 Note that this option does not work if
 .Cm UsePrivilegedPort
 is set to
