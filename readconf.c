@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.281 2017/12/05 23:59:47 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.282 2018/02/23 02:34:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -156,7 +156,7 @@ typedef enum {
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms, oBindAddress, oPKCS11Provider,
+	oHostKeyAlgorithms, oBindAddress, oBindInterface, oPKCS11Provider,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
@@ -266,6 +266,7 @@ static struct {
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
+	{ "bindinterface", oBindInterface },
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "verifyhostkeydns", oVerifyHostKeyDNS },
@@ -1099,6 +1100,10 @@ parse_char_array:
 		charptr = &options->bind_address;
 		goto parse_string;
 
+	case oBindInterface:
+		charptr = &options->bind_interface;
+		goto parse_string;
+
 	case oPKCS11Provider:
 		charptr = &options->pkcs11_provider;
 		goto parse_string;
@@ -1800,6 +1805,7 @@ initialize_options(Options * options)
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
+	options->bind_interface = NULL;
 	options->pkcs11_provider = NULL;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
@@ -2509,6 +2515,7 @@ dump_client_config(Options *o, const char *host)
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);
+	dump_cfg_string(oBindInterface, o->bind_interface);
 	dump_cfg_string(oCiphers, o->ciphers ? o->ciphers : KEX_CLIENT_ENCRYPT);
 	dump_cfg_string(oControlPath, o->control_path);
 	dump_cfg_string(oHostKeyAlgorithms, o->hostkeyalgorithms);
