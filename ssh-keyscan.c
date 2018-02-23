@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.116 2017/11/25 06:46:22 dtucker Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.117 2018/02/23 05:14:05 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -46,6 +46,7 @@
 #include "hostfile.h"
 #include "ssherr.h"
 #include "ssh_api.h"
+#include "dns.h"
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
    Default value is AF_UNSPEC means both IPv4 and IPv6. */
@@ -65,6 +66,8 @@ int get_cert = 0;
 int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519;
 
 int hash_hosts = 0;		/* Hash hostname on output */
+
+int print_sshfp = 0;		/* Print SSHFP records instead of known_hosts */
 
 #define MAXMAXFD 256
 
@@ -279,6 +282,11 @@ keyprint_one(const char *host, struct sshkey *key)
 {
 	char *hostport;
 	const char *known_host, *hashed;
+
+	if (print_sshfp) {
+		export_dns_rr(host, key, stdout, 0);
+		return;
+	}
 
 	hostport = put_host_port(host, ssh_port);
 	lowercase(hostport);
@@ -497,7 +505,8 @@ congreet(int s)
 		confree(s);
 		return;
 	}
-	fprintf(stderr, "# %s:%d %s\n", c->c_name, ssh_port, chop(buf));
+	fprintf(stderr, "%c %s:%d %s\n", print_sshfp ? ';' : '#',
+	    c->c_name, ssh_port, chop(buf));
 	keygrab_ssh2(c);
 	confree(s);
 }
@@ -621,7 +630,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-	    "usage: %s [-46cHv] [-f file] [-p port] [-T timeout] [-t type]\n"
+	    "usage: %s [-46cDHv] [-f file] [-p port] [-T timeout] [-t type]\n"
 	    "\t\t   [host | addrlist namelist] ...\n",
 	    __progname);
 	exit(1);
@@ -650,13 +659,16 @@ main(int argc, char **argv)
 	if (argc <= 1)
 		usage();
 
-	while ((opt = getopt(argc, argv, "cHv46p:T:t:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "cDHv46p:T:t:f:")) != -1) {
 		switch (opt) {
 		case 'H':
 			hash_hosts = 1;
 			break;
 		case 'c':
 			get_cert = 1;
+			break;
+		case 'D':
+			print_sshfp = 1;
 			break;
 		case 'p':
 			ssh_port = a2port(optarg);

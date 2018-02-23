@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.40 2017/05/02 17:04:09 jmc Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.41 2018/02/23 05:14:05 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: May 2 2017 $
+.Dd $Mdocdate: February 23 2018 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -15,7 +15,7 @@
 .Sh SYNOPSIS
 .Nm ssh-keyscan
 .Bk -words
-.Op Fl 46cHv
+.Op Fl 46cDHv
 .Op Fl f Ar file
 .Op Fl p Ar port
 .Op Fl T Ar timeout
@@ -56,6 +56,12 @@ Forces
 to use IPv6 addresses only.
 .It Fl c
 Request certificates from target hosts instead of plain keys.
+.It Fl D
+Print keys found as SSHFP DNS records.
+The default is to print keys in a format usable as a
+.Xr ssh 1
+.Pa known_hosts
+file.
 .It Fl f Ar file
 Read hosts or
 .Dq addrlist namelist
@@ -159,6 +165,10 @@ $ ssh-keyscan -t rsa,dsa,ecdsa,ed25519 -f ssh_hosts | \e
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr sshd 8
+.%R RFC 4255
+.%T "Using DNS to Securely Publish Secure Shell (SSH) Key Fingerprints"
+.%D 2006
+.Re
 .Sh AUTHORS
 .An -nosplit
 .An David Mazieres Aq Mt dm@lcs.mit.edu
