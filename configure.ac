@@ -1337,8 +1337,23 @@ AC_FUNC_STRFTIME
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 # autoconf doesn't have AC_FUNC_CALLOC so fake it if malloc returns NULL;
-if test "x$ac_cv_func_malloc_0_nonnull" != "xyes"; then
-	AC_DEFINE(HAVE_CALLOC, 0, [calloc(x, 0) returns NULL])
+AC_MSG_CHECKING([if calloc(0, N) returns non-null])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM(
+		[[ #include <stdlib.h> ]],
+		[[ void *p = calloc(0, 1); exit(p == NULL); ]]
+	)],
+	[ func_calloc_0_nonnull=yes ],
+	[ func_calloc_0_nonnull=no ],
+	[ AC_MSG_WARN([cross compiling: assuming same as malloc])
+	  func_calloc_0_nonnull="$ac_cv_func_malloc_0_nonnull"]
+)
+AC_MSG_RESULT([$func_calloc_0_nonnull])
+
+if test "x$func_calloc_0_nonnull" == "xyes"; then
+	AC_DEFINE(HAVE_CALLOC, 1, [calloc(0, x) returns non-null])
+else
+	AC_DEFINE(HAVE_CALLOC, 0, [calloc(0, x) returns NULL])
 	AC_DEFINE(calloc, rpl_calloc,
 	    [Define to rpl_calloc if the replacement function should be used.])
 fi
