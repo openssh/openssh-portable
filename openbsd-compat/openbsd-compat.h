@@ -170,10 +170,18 @@ int BSDgetopt(int argc, char * const *argv, const char *opts);
 #include "openbsd-compat/getopt.h"
 #endif
 
-#if defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0
+#if ((defined(HAVE_DECL_READV) && HAVE_DECL_READV == 0) || \
+    (defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0))
 # include <sys/types.h>
 # include <sys/uio.h>
+
+# if defined(HAVE_DECL_READV) && HAVE_DECL_READV == 0
+int readv(int, struct iovec *, int);
+# endif
+
+# if defined(HAVE_DECL_WRITEV) && HAVE_DECL_WRITEV == 0
 int writev(int, struct iovec *, int);
+# endif
 #endif
 
 /* Home grown routines */
