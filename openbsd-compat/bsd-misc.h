@@ -137,4 +137,8 @@ long long llabs(long long);
 void bzero(void *, size_t);
 #endif
 
+#ifndef HAVE_RAISE
+int raise(int);
+#endif
+
 #endif /* _BSD_MISC_H */

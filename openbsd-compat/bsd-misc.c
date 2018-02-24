@@ -290,3 +290,11 @@ bzero(void *b, size_t n)
 	(void)memset(b, 0, n);
 }
 #endif
+
+#ifndef HAVE_RAISE
+int
+raise(int sig)
+{
+	kill(getpid(), sig);
+}
+#endif

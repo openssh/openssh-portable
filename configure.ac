@@ -1744,6 +1744,7 @@ AC_CHECK_FUNCS([ \
 	poll \
 	prctl \
 	pstat \
+	raise \
 	readpassphrase \
 	reallocarray \
 	recvmsg \
