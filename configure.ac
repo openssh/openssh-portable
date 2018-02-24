@@ -1695,6 +1695,7 @@ AC_CHECK_FUNCS([ \
 	bcrypt_pbkdf \
 	bindresvport_sa \
 	blf_enc \
+	bzero \
 	cap_rights_limit \
 	clock \
 	closefrom \
@@ -1799,6 +1800,8 @@ AC_CHECK_FUNCS([ \
 	waitpid \
 	warn \
 ])
+
+AC_CHECK_DECLS([bzero])
 
 dnl Wide character support.
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
