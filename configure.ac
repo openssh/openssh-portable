@@ -409,6 +409,7 @@ AC_CHECK_HEADERS([ \
 	sys/sysmacros.h \
 	sys/time.h \
 	sys/timers.h \
+	sys/vfs.h \
 	time.h \
 	tmpdir.h \
 	ttyent.h \
@@ -3658,6 +3659,23 @@ AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t], , , [
 #include <sys/statvfs.h>
 #endif
 ])
+
+AC_CHECK_MEMBERS([struct statfs.f_flags], [], [], [[
+#include <sys/types.h>
+#ifdef HAVE_SYS_BITYPES_H
+#include <sys/bitypes.h>
+#endif
+#ifdef HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
+#ifdef HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
+]])
+
 
 AC_CHECK_TYPES([in_addr_t, in_port_t], , ,
 [#include <sys/types.h>
