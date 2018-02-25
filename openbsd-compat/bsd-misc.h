@@ -141,4 +141,8 @@ void bzero(void *, size_t);
 int raise(int);
 #endif
 
+#ifndef HAVE_GETSID
+pid_t getsid(pid_t);
+#endif
+
 #endif /* _BSD_MISC_H */

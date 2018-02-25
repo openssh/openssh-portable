@@ -1739,6 +1739,7 @@ AC_CHECK_FUNCS([ \
 	getpgrp \
 	_getpty \
 	getrlimit \
+	getsid \
 	getttyent \
 	glob \
 	group_from_gid \

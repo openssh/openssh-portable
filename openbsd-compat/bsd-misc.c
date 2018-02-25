@@ -298,3 +298,13 @@ raise(int sig)
 	kill(getpid(), sig);
 }
 #endif
+
+#ifndef HAVE_GETSID
+pid_t
+getsid(pid_t pid)
+{
+	errno = ENOSYS;
+	return -1;
+}
+#endif
+
