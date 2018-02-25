@@ -238,7 +238,7 @@ isblank(int c)
 pid_t
 getpgid(pid_t pid)
 {
-#if defined(HAVE_GETPGRP) && !defined(GETPGRP_VOID)
+#if defined(HAVE_GETPGRP) && !defined(GETPGRP_VOID) && GETPGRP_VOID == 0
 	return getpgrp(pid);
 #elif defined(HAVE_GETPGRP)
 	if (pid == 0)

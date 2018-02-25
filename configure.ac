@@ -1736,7 +1736,6 @@ AC_CHECK_FUNCS([ \
 	getpeereid \
 	getpeerucred \
 	getpgid \
-	getpgrp \
 	_getpty \
 	getrlimit \
 	getsid \
@@ -2413,7 +2412,16 @@ static void sighandler(int sig) { _exit(1); }
 	)
 fi
 
-AC_FUNC_GETPGRP
+AC_CHECK_FUNCS([getpgrp],[
+	AC_MSG_CHECKING([if getpgrp accepts zero args])
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM([[$ac_includes_default]], [[ getpgrp(); ]])],
+		[ AC_MSG_RESULT([yes])
+		  AC_DEFINE([GETPGRP_VOID], [1], [getpgrp takes zero args])],
+		[ AC_MSG_RESULT([no])
+		  AC_DEFINE([GETPGRP_VOID], [0], [getpgrp takes one arg])]
+	)
+])
 
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
