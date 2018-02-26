@@ -5,7 +5,9 @@ Joost Rijneveld
 Public domain.
 */
 
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 void setLayerADRS(uint32_t adrs[8], uint32_t layer);
 

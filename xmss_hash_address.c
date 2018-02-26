@@ -6,7 +6,9 @@ Public domain.
 */
 #include "includes.h"
 
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include "xmss_hash_address.h"	/* prototypes */
 
 void setLayerADRS(uint32_t adrs[8], uint32_t layer){

@@ -12,7 +12,9 @@ Public domain.
 #include "xmss_hash.h"
 
 #include <stddef.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <openssl/sha.h>

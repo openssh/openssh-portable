@@ -10,7 +10,9 @@ Public domain.
 #include "xmss_commons.h"
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 void to_byte(unsigned char *out, unsigned long long in, uint32_t bytes)
 {

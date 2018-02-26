@@ -10,7 +10,9 @@ Public domain.
 #include "xmss_fast.h"
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 #include "crypto_api.h"
 #include "xmss_wots.h"

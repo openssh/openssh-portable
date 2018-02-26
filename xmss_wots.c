@@ -8,7 +8,9 @@ Public domain.
 #include "includes.h"
 
 #include <stdlib.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 #include <limits.h>
 #include "xmss_commons.h"
 #include "xmss_hash.h"

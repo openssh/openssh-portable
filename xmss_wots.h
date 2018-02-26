@@ -8,7 +8,9 @@ Public domain.
 #ifndef WOTS_H
 #define WOTS_H
 
+#ifdef HAVE_STDINT_H
 #include "stdint.h"
+#endif
 
 /**
  * WOTS parameter set
