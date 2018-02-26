@@ -133,7 +133,7 @@ void warn(const char *, ...) __attribute__((format(printf, 1, 2)));
 long long llabs(long long);
 #endif
 
-#ifndef HAVE_DECL_BZERO
+#if defined(HAVE_DECL_BZERO) && HAVE_DECL_BZERO == 0
 void bzero(void *, size_t);
 #endif
 
