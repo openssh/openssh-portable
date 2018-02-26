@@ -63,13 +63,13 @@ MKDIR_P=@MKDIR_P@
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT)
 
 XMSS_OBJS=\
-	ssh-xmss.c \
-	sshkey-xmss.c \
-	xmss_commons.c \
-	xmss_fast.c \
-	xmss_hash.c \
-	xmss_hash_address.c \
-	xmss_wots.c
+	ssh-xmss.o \
+	sshkey-xmss.o \
+	xmss_commons.o \
+	xmss_fast.o \
+	xmss_hash.o \
+	xmss_hash_address.o \
+	xmss_wots.o
 
 LIBOPENSSH_OBJS=\
 	ssh_api.o \
