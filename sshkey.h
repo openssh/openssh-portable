@@ -220,7 +220,11 @@ int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 int ssh_rsa_generate_additional_parameters(struct sshkey *);
 
 /* stateful keys (e.g. XMSS) */
+#ifdef NO_ATTRIBUTE_ON_PROTOTYPE_ARGS
+typedef void sshkey_printfn(const char *, ...);
+#else
 typedef void sshkey_printfn(const char *, ...) __attribute__((format(printf, 1, 2)));
+#endif
 int	 sshkey_set_filename(struct sshkey *, const char *);
 int	 sshkey_enable_maxsign(struct sshkey *, u_int32_t);
 u_int32_t sshkey_signatures_left(const struct sshkey *);

@@ -265,6 +265,18 @@ __attribute__((__unused__)) static void foo(void){return;}]],
 	 [compiler does not accept __attribute__ on return types]) ]
 )
 
+AC_MSG_CHECKING([if compiler allows __attribute__ prototype args])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[
+#include <stdlib.h>
+typedef void foo(const char *, ...) __attribute__((format(printf, 1, 2)));]],
+    [[ exit(0); ]])],
+    [ AC_MSG_RESULT([yes]) ],
+    [ AC_MSG_RESULT([no])
+      AC_DEFINE(NO_ATTRIBUTE_ON_PROTOTYPE_ARGS, 1,
+	 [compiler does not accept __attribute__ on protoype args]) ]
+)
+
 if test "x$no_attrib_nonnull" != "x1" ; then
 	AC_DEFINE([HAVE_ATTRIBUTE__NONNULL__], [1], [Have attribute nonnull])
 fi
