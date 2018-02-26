@@ -21,9 +21,11 @@ void to_byte(unsigned char *out, unsigned long long in, uint32_t bytes)
   }
 }
 
+#if 0
 void hexdump(const unsigned char *a, size_t len)
 {
   size_t i;
   for (i = 0; i < len; i++)
     printf("%02x", a[i]);
 }
+#endif
