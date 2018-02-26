@@ -1,5 +1,5 @@
 #ifdef WITH_XMSS
-/* $OpenBSD: xmss_wots.h,v 1.2 2018/02/26 03:56:44 dtucker Exp $ */
+/* $OpenBSD: xmss_wots.h,v 1.3 2018/02/26 12:14:53 dtucker Exp $ */
 /*
 wots.h version 20160722
 Andreas Hülsing
