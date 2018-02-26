@@ -72,7 +72,7 @@ flock(int fd, int op)
 	if (rc && (errno == EAGAIN))
 		errno = EWOULDBLOCK;
 #else
-	rc = -1
+	rc = -1;
 	errno = ENOSYS;
 #endif
 
