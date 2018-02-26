@@ -1,4 +1,5 @@
 #ifdef WITH_XMSS
+/* $OpenBSD: xmss_fast.h,v 1.2 2018/02/26 03:56:44 dtucker Exp $ */
 /*
 xmss_fast.h version 20160722
 Andreas Hülsing

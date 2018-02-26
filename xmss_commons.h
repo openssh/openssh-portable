@@ -1,4 +1,5 @@
 #ifdef WITH_XMSS
+/* $OpenBSD: xmss_commons.h,v 1.3 2018/02/26 03:56:44 dtucker Exp $ */
 /*
 xmss_commons.h 20160722
 Andreas Hülsing

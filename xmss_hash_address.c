@@ -1,3 +1,4 @@
+/* $OpenBSD: xmss_hash_address.c,v 1.2 2018/02/26 03:56:44 dtucker Exp $ */
 /*
 hash_address.c version 20160722
 Andreas Hülsing
