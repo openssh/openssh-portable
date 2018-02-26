@@ -1876,7 +1876,10 @@ AC_ARG_ENABLE([pkcs11],
 if test "x$openssl" = "xyes" && test "x$disable_pkcs11" = "x"; then
 	# PKCS#11 support requires dlopen() and co
 	AC_SEARCH_LIBS([dlopen], [dl],
-	    [AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])]
+	    AC_CHECK_DECL([RTLD_NOW],
+		AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support]),
+		[], [#include <dlfcn.h>]
+	    )
 	)
 fi
 
