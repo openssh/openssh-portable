@@ -5,6 +5,8 @@ Joost Rijneveld
 Public domain.
 */
 
+#include "includes.h"
+
 #include "xmss_fast.h"
 #include <stdlib.h>
 #include <string.h>

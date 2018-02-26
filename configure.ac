@@ -393,6 +393,7 @@ AC_CHECK_HEADERS([ \
 	sys/bsdtty.h \
 	sys/cdefs.h \
 	sys/dir.h \
+	sys/file.h \
 	sys/mman.h \
 	sys/label.h \
 	sys/ndir.h \

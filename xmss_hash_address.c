@@ -4,6 +4,8 @@ Andreas Hülsing
 Joost Rijneveld
 Public domain.
 */
+#include "includes.h"
+
 #include <stdint.h>
 #include "xmss_hash_address.h"	/* prototypes */
 

@@ -5,6 +5,8 @@ Joost Rijneveld
 Public domain.
 */
 
+#include "includes.h"
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>

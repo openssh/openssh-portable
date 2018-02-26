@@ -5,6 +5,8 @@ Joost Rijneveld
 Public domain.
 */
 
+#include "includes.h"
+
 #include "xmss_hash_address.h"
 #include "xmss_commons.h"
 #include "xmss_hash.h"

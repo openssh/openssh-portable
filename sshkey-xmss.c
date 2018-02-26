@@ -23,6 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "includes.h"
+
 #include <sys/types.h>
 #include <sys/uio.h>
 
@@ -31,6 +33,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_SYS_FILE_H
+# include <sys/file.h>
+#endif
 
 #include "ssh2.h"
 #include "ssherr.h"
