@@ -1723,6 +1723,7 @@ AC_CHECK_FUNCS([ \
 	explicit_bzero \
 	fchmod \
 	fchown \
+	flock \
 	freeaddrinfo \
 	freezero \
 	fstatfs \

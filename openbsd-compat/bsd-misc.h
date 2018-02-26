@@ -145,4 +145,12 @@ int raise(int);
 pid_t getsid(pid_t);
 #endif
 
+#ifndef HAVE_FLOCK
+# define LOCK_SH		0x01
+# define LOCK_EX		0x02
+# define LOCK_NB		0x04
+# define LOCK_UN		0x08
+int flock(int, int);
+#endif
+
 #endif /* _BSD_MISC_H */
