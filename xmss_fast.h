@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 xmss_fast.h version 20160722
 Andreas Hülsing
@@ -106,4 +107,4 @@ int xmssmt_sign(unsigned char *sk, bds_state *state, unsigned char *wots_sigs, u
  */
 int xmssmt_sign_open(unsigned char *msg, unsigned long long *msglen, const unsigned char *sig_msg, unsigned long long sig_msg_len, const unsigned char *pk, const xmssmt_params *params);
 #endif
-
+#endif /* WITH_XMSS */

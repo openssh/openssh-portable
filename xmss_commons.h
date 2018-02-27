@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 xmss_commons.h 20160722
 Andreas Hülsing
@@ -17,3 +18,4 @@ void to_byte(unsigned char *output, unsigned long long in, uint32_t bytes);
 void hexdump(const unsigned char *a, size_t len);
 #endif
 #endif
+#endif /* WITH_XMSS */

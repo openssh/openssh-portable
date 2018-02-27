@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 hash.h version 20160722
 Andreas Hülsing
@@ -17,3 +18,4 @@ int hash_h(unsigned char *out, const unsigned char *in, const unsigned char *pub
 int hash_f(unsigned char *out, const unsigned char *in, const unsigned char *pub_seed, uint32_t addr[8], const unsigned int n);
 
 #endif
+#endif /* WITH_XMSS */

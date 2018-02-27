@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /* $OpenBSD: sshkey-xmss.c,v 1.1 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
@@ -1051,3 +1052,4 @@ sshkey_xmss_enable_maxsign(struct sshkey *k, u_int32_t maxsign)
 	state->maxidx = state->idx + maxsign;
 	return 0;
 }
+#endif /* WITH_XMSS */

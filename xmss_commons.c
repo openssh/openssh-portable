@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 xmss_commons.c 20160722
 Andreas Hülsing
@@ -31,3 +32,4 @@ void hexdump(const unsigned char *a, size_t len)
     printf("%02x", a[i]);
 }
 #endif
+#endif /* WITH_XMSS */

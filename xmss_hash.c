@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 hash.c version 20160722
 Andreas Hülsing
@@ -135,3 +136,4 @@ int hash_f(unsigned char *out, const unsigned char *in, const unsigned char *pub
   }
   return core_hash_SHA2(out, 0, key, n, buf, n, n);
 }
+#endif /* WITH_XMSS */

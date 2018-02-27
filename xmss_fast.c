@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 xmss_fast.c version 20160722
 Andreas Hülsing
@@ -1101,3 +1102,4 @@ fail:
   *msglen = -1;
   return -1;
 }
+#endif /* WITH_XMSS */

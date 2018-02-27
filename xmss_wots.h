@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 wots.h version 20160722
 Andreas Hülsing
@@ -59,3 +60,4 @@ int wots_sign(unsigned char *sig, const unsigned char *msg, const unsigned char 
 int wots_pkFromSig(unsigned char *pk, const unsigned char *sig, const unsigned char *msg, const wots_params *params, const unsigned char *pub_seed, uint32_t addr[8]);
 
 #endif
+#endif /* WITH_XMSS */

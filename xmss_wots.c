@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 wots.c version 20160722
 Andreas Hülsing
@@ -187,3 +188,4 @@ int wots_pkFromSig(unsigned char *pk, const unsigned char *sig, const unsigned c
   free(basew);
   return 0;
 }
+#endif /* WITH_XMSS */

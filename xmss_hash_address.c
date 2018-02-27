@@ -1,3 +1,4 @@
+#ifdef WITH_XMSS
 /*
 hash_address.c version 20160722
 Andreas Hülsing
@@ -61,3 +62,4 @@ void setTreeHeight(uint32_t adrs[8], uint32_t treeHeight){
 void setTreeIndex(uint32_t adrs[8], uint32_t treeIndex){
   adrs[6] = treeIndex;
 }
+#endif /* WITH_XMSS */
