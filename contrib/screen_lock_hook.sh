@@ -16,6 +16,11 @@ SOCKETDIR=/var/run/screen/S-`whoami`
 if [ -z "$STY" ]; then
 	# use newest socket file, meaing the most recently created session.
 	SOCK=`ls -tr $SOCKETDIR | tail -1`
+	if [ -z "$SOCK" ]; then
+		# no socket -> no screen
+		echo 1
+		exit 1
+	fi
 	SOCKETNAME="$SOCKETDIR/$SOCK"
 else
         # this script actually runs inside of a screen session. So
