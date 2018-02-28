@@ -1,4 +1,3 @@
-#ifdef WITH_XMSS
 /*
 hash.c version 20160722
 Andreas Hülsing
@@ -7,6 +6,7 @@ Public domain.
 */
 
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #include "xmss_hash_address.h"
 #include "xmss_commons.h"

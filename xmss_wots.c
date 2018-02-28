@@ -1,4 +1,3 @@
-#ifdef WITH_XMSS
 /*
 wots.c version 20160722
 Andreas Hülsing
@@ -7,6 +6,7 @@ Public domain.
 */
 
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H

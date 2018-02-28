@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #define SSHKEY_INTERNAL
 #include <sys/types.h>
@@ -188,3 +189,4 @@ ssh_xmss_verify(const struct sshkey *key,
 	free(ktype);
 	return r;
 }
+#endif /* WITH_XMSS */

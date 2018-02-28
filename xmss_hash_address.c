@@ -1,4 +1,3 @@
-#ifdef WITH_XMSS
 /*
 hash_address.c version 20160722
 Andreas Hülsing
@@ -6,6 +5,7 @@ Joost Rijneveld
 Public domain.
 */
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

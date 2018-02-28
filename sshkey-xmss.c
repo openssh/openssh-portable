@@ -1,4 +1,3 @@
-#ifdef WITH_XMSS
 /* $OpenBSD: sshkey-xmss.c,v 1.1 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
@@ -25,6 +24,7 @@
  */
 
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #include <sys/types.h>
 #include <sys/uio.h>

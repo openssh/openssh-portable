@@ -1,4 +1,3 @@
-#ifdef WITH_XMSS
 /*
 xmss_commons.c 20160722
 Andreas Hülsing
@@ -7,6 +6,7 @@ Public domain.
 */
 
 #include "includes.h"
+#ifdef WITH_XMSS
 
 #include "xmss_commons.h"
 #include <stdlib.h>
