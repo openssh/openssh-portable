@@ -22,11 +22,7 @@ Describe "E2E scenarios for certificate authentication" -Tags "CI" {
             $null = New-Item $testDir -ItemType directory -Force -ErrorAction SilentlyContinue
         }
         $user_key = Join-Path $testDir "cert_auth_user_key"
-        $keypassphrase = "testpassword"
-
-        $platform = Get-Platform
-        $skip = ($platform -eq [PlatformType]::Windows) -and ($PSVersionTable.PSVersion.Major -le 2)
-        
+        $keypassphrase = "testpassword"        
     }
 
     BeforeEach {

@@ -22,7 +22,7 @@ Describe "Tests for host keys file permission" -Tags "CI" {
         $script:logNum = 0
         Remove-Item -Path (Join-Path $testDir "*$logName") -Force -ErrorAction SilentlyContinue        
         $platform = Get-Platform
-        $skip = ($platform -eq [PlatformType]::Windows) -and ($PSVersionTable.PSVersion.Major -le 2)
+        $skip = ($platform -eq [PlatformType]::Windows) -and ([Environment]::OSVersion.Version.Major -le 6) -and ([Environment]::OSVersion.Version.Minor -lt 2)
         if(($platform -eq [PlatformType]::Windows) -and ($psversiontable.BuildVersion.Major -le 6))
         {
             #suppress the firewall blocking dialogue on win7
@@ -77,12 +77,12 @@ Describe "Tests for host keys file permission" -Tags "CI" {
             $logPath = Join-Path $testDir "$tC.$tI.$logName"
         }
 
-        AfterAll {
+        AfterEach {
             if(Test-path $hostKeyFilePath -PathType Leaf) {
                 Repair-SshdHostKeyPermission -filepath $hostKeyFilePath -confirm:$false
-            }
-            $tC++
+            }            
         }
+        AfterAll { $tC++ }
 
         It "$tC.$tI-Host keys-positive (both public and private keys are owned by admin groups and running process can access to public key file)" {            
             Repair-FilePermission -Filepath $hostKeyFilePath -Owners $adminsSid -FullAccessNeeded $adminsSid,$systemSid -confirm:$false
@@ -149,6 +149,7 @@ Describe "Tests for host keys file permission" -Tags "CI" {
             $logPath | Should Contain "key_load_private: bad permissions"
         }
 
+        #skip on win7 because Set-Acl failed due to issue on win7 when user does not have write permission on the file
         It "$tC.$tI-Host keys-negative (the running process does not have read access to public key)" -skip:$skip {
             #setup to have ssouser as owner and grant it full control
             Repair-FilePermission -Filepath $hostKeyFilePath -Owners $systemSid -FullAccessNeeded $systemSid,$adminsSid -confirm:$false            

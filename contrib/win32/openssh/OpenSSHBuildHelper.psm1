@@ -344,7 +344,8 @@ function Start-OpenSSHPackage
 
         # Copy payload to DestinationPath instead of packaging
         [string]$DestinationPath = "",
-        [switch]$NoOpenSSL
+        [switch]$NoOpenSSL,
+        [switch]$OneCore
     )
 
     [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
@@ -406,7 +407,16 @@ function Start-OpenSSHPackage
     $libreSSLSDKPath = Join-Path $PSScriptRoot $script:libreSSLSDKStr
     if (-not $NoOpenSSL.IsPresent) 
     {        
-        Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
+        if($OneCore)
+        {
+            Copy-Item -Path $(Join-Path $libreSSLSDKPath "Onecore\$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLSDKPath "Onecore\$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
+        }
+        else
+        {
+            Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
+        }
     }    
 
     if ($DestinationPath -ne "") {
@@ -446,7 +456,7 @@ function Start-OpenSSHPackage
         }
         else
         {
-               Write-BuildMsg -AsInfo -Message "Packaged Symbols not compressed."
+            Write-BuildMsg -AsInfo -Message "Packaged Symbols not compressed."
         }
     }
     Remove-Item $symbolsDir -Recurse -Force -ErrorAction SilentlyContinue

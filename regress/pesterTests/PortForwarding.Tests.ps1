@@ -16,6 +16,7 @@ Describe "E2E scenarios for port forwarding" -Tags "CI" {
             $null = New-Item $testDir -ItemType directory -Force -ErrorAction SilentlyContinue
         }
         $platform = Get-Platform
+        #skip on ps 2 becase non-interactive cmd require a ENTER before it returns on ps2
         $skip = ($platform -eq [PlatformType]::Windows) -and ($PSVersionTable.PSVersion.Major -le 2)
     }
 

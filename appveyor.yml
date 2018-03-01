@@ -1,4 +1,4 @@
-version: 1.0.0.0.{build}
+version: 7.6.0.0.{build}
 image: Visual Studio 2015
 
 branches:
@@ -6,7 +6,8 @@ branches:
     - latestw_all
 
 init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - ps: |
+      [Environment]::OSVersion | fl *
 
 build_script:
   - ps: |
@@ -34,6 +35,6 @@ after_test:
       Publish-OpenSSHTestResults
       
 on_finish:
-  - ps: |
+  - ps: |      
       Import-Module $env:APPVEYOR_BUILD_FOLDER\contrib\win32\openssh\AppveyorHelper.psm1
       Publish-Artifact
