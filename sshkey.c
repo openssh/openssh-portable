@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.62 2018/02/23 15:58:38 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.63 2018/03/02 02:08:03 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1215,21 +1215,36 @@ sshkey_fingerprint(const struct sshkey *k, int dgst_alg,
 	return retval;
 }
 
+static int
+peek_type_nid(const char *s, size_t l, int *nid)
+{
+	const struct keytype *kt;
 
-/* returns 0 ok, and < 0 error */
+	for (kt = keytypes; kt->type != -1; kt++) {
+		if (kt->name == NULL || strlen(kt->name) != l)
+			continue;
+		if (memcmp(s, kt->name, l) == 0) {
+			*nid = -1;
+			if (kt->type == KEY_ECDSA || kt->type == KEY_ECDSA_CERT)
+				*nid = kt->nid;
+			return kt->type;
+		}
+	}
+	return KEY_UNSPEC;
+}
+
+/* XXX this can now be made const char * */
 int
 sshkey_read(struct sshkey *ret, char **cpp)
 {
 	struct sshkey *k;
-	int retval = SSH_ERR_INVALID_FORMAT;
-	char *ep, *cp, *space;
+	char *cp, *blobcopy;
+	size_t space;
 	int r, type, curve_nid = -1;
 	struct sshbuf *blob;
 
 	if (ret == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
-
-	cp = *cpp;
 
 	switch (ret->type) {
 	case KEY_UNSPEC:
@@ -1245,135 +1260,142 @@ sshkey_read(struct sshkey *ret, char **cpp)
 	case KEY_XMSS:
 	case KEY_XMSS_CERT:
 #endif /* WITH_XMSS */
-		space = strchr(cp, ' ');
-		if (space == NULL)
-			return SSH_ERR_INVALID_FORMAT;
-		*space = '\0';
-		type = sshkey_type_from_name(cp);
-		if (sshkey_type_plain(type) == KEY_ECDSA &&
-		    (curve_nid = sshkey_ecdsa_nid_from_name(cp)) == -1)
-			return SSH_ERR_EC_CURVE_INVALID;
-		*space = ' ';
-		if (type == KEY_UNSPEC)
-			return SSH_ERR_INVALID_FORMAT;
-		cp = space+1;
-		if (*cp == '\0')
-			return SSH_ERR_INVALID_FORMAT;
-		if (ret->type != KEY_UNSPEC && ret->type != type)
-			return SSH_ERR_KEY_TYPE_MISMATCH;
-		if ((blob = sshbuf_new()) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
-		/* trim comment */
-		space = strchr(cp, ' ');
-		if (space) {
-			/* advance 'space': skip whitespace */
-			*space++ = '\0';
-			while (*space == ' ' || *space == '\t')
-				space++;
-			ep = space;
-		} else
-			ep = cp + strlen(cp);
-		if ((r = sshbuf_b64tod(blob, cp)) != 0) {
-			sshbuf_free(blob);
-			return r;
-		}
-		if ((r = sshkey_from_blob(sshbuf_ptr(blob),
-		    sshbuf_len(blob), &k)) != 0) {
-			sshbuf_free(blob);
-			return r;
-		}
-		sshbuf_free(blob);
-		if (k->type != type) {
-			sshkey_free(k);
-			return SSH_ERR_KEY_TYPE_MISMATCH;
-		}
-		if (sshkey_type_plain(type) == KEY_ECDSA &&
-		    curve_nid != k->ecdsa_nid) {
-			sshkey_free(k);
-			return SSH_ERR_EC_CURVE_MISMATCH;
-		}
-		ret->type = type;
-		if (sshkey_is_cert(ret)) {
-			if (!sshkey_is_cert(k)) {
-				sshkey_free(k);
-				return SSH_ERR_EXPECTED_CERT;
-			}
-			if (ret->cert != NULL)
-				cert_free(ret->cert);
-			ret->cert = k->cert;
-			k->cert = NULL;
-		}
-		switch (sshkey_type_plain(ret->type)) {
-#ifdef WITH_OPENSSL
-		case KEY_RSA:
-			RSA_free(ret->rsa);
-			ret->rsa = k->rsa;
-			k->rsa = NULL;
-#ifdef DEBUG_PK
-			RSA_print_fp(stderr, ret->rsa, 8);
-#endif
-			break;
-		case KEY_DSA:
-			DSA_free(ret->dsa);
-			ret->dsa = k->dsa;
-			k->dsa = NULL;
-#ifdef DEBUG_PK
-			DSA_print_fp(stderr, ret->dsa, 8);
-#endif
-			break;
-# ifdef OPENSSL_HAS_ECC
-		case KEY_ECDSA:
-			EC_KEY_free(ret->ecdsa);
-			ret->ecdsa = k->ecdsa;
-			ret->ecdsa_nid = k->ecdsa_nid;
-			k->ecdsa = NULL;
-			k->ecdsa_nid = -1;
-#ifdef DEBUG_PK
-			sshkey_dump_ec_key(ret->ecdsa);
-#endif
-			break;
-# endif /* OPENSSL_HAS_ECC */
-#endif /* WITH_OPENSSL */
-		case KEY_ED25519:
-			freezero(ret->ed25519_pk, ED25519_PK_SZ);
-			ret->ed25519_pk = k->ed25519_pk;
-			k->ed25519_pk = NULL;
-#ifdef DEBUG_PK
-			/* XXX */
-#endif
-			break;
-#ifdef WITH_XMSS
-		case KEY_XMSS:
-			free(ret->xmss_pk);
-			ret->xmss_pk = k->xmss_pk;
-			k->xmss_pk = NULL;
-			free(ret->xmss_state);
-			ret->xmss_state = k->xmss_state;
-			k->xmss_state = NULL;
-			free(ret->xmss_name);
-			ret->xmss_name = k->xmss_name;
-			k->xmss_name = NULL;
-			free(ret->xmss_filename);
-			ret->xmss_filename = k->xmss_filename;
-			k->xmss_filename = NULL;
-#ifdef DEBUG_PK
-			/* XXX */
-#endif
-			break;
-#endif /* WITH_XMSS */
-		}
-		*cpp = ep;
-		retval = 0;
-/*XXXX*/
-		sshkey_free(k);
-		if (retval != 0)
-			break;
-		break;
+		break; /* ok */
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
 	}
-	return retval;
+
+	/* Decode type */
+	cp = *cpp;
+	space = strcspn(cp, " \t");
+	if (space == strlen(cp))
+		return SSH_ERR_INVALID_FORMAT;
+	if ((type = peek_type_nid(cp, space, &curve_nid)) == KEY_UNSPEC)
+		return SSH_ERR_INVALID_FORMAT;
+
+	/* skip whitespace */
+	for (cp += space; *cp == ' ' || *cp == '\t'; cp++)
+		;
+	if (*cp == '\0')
+		return SSH_ERR_INVALID_FORMAT;
+	if (ret->type != KEY_UNSPEC && ret->type != type)
+		return SSH_ERR_KEY_TYPE_MISMATCH;
+	if ((blob = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+
+	/* find end of keyblob and decode */
+	space = strcspn(cp, " \t");
+	if ((blobcopy = strndup(cp, space)) == NULL) {
+		sshbuf_free(blob);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	if ((r = sshbuf_b64tod(blob, blobcopy)) != 0) {
+		free(blobcopy);
+		sshbuf_free(blob);
+		return r;
+	}
+	free(blobcopy);
+	if ((r = sshkey_fromb(blob, &k)) != 0) {
+		sshbuf_free(blob);
+		return r;
+	}
+	sshbuf_free(blob);
+
+	/* skip whitespace and leave cp at start of comment */
+	for (cp += space; *cp == ' ' || *cp == '\t'; cp++)
+		;
+
+	/* ensure type of blob matches type at start of line */
+	if (k->type != type) {
+		sshkey_free(k);
+		return SSH_ERR_KEY_TYPE_MISMATCH;
+	}
+	if (sshkey_type_plain(type) == KEY_ECDSA && curve_nid != k->ecdsa_nid) {
+		sshkey_free(k);
+		return SSH_ERR_EC_CURVE_MISMATCH;
+	}
+
+	/* Fill in ret from parsed key */
+	ret->type = type;
+	if (sshkey_is_cert(ret)) {
+		if (!sshkey_is_cert(k)) {
+			sshkey_free(k);
+			return SSH_ERR_EXPECTED_CERT;
+		}
+		if (ret->cert != NULL)
+			cert_free(ret->cert);
+		ret->cert = k->cert;
+		k->cert = NULL;
+	}
+	switch (sshkey_type_plain(ret->type)) {
+#ifdef WITH_OPENSSL
+	case KEY_RSA:
+		RSA_free(ret->rsa);
+		ret->rsa = k->rsa;
+		k->rsa = NULL;
+#ifdef DEBUG_PK
+		RSA_print_fp(stderr, ret->rsa, 8);
+#endif
+		break;
+	case KEY_DSA:
+		DSA_free(ret->dsa);
+		ret->dsa = k->dsa;
+		k->dsa = NULL;
+#ifdef DEBUG_PK
+		DSA_print_fp(stderr, ret->dsa, 8);
+#endif
+		break;
+# ifdef OPENSSL_HAS_ECC
+	case KEY_ECDSA:
+		EC_KEY_free(ret->ecdsa);
+		ret->ecdsa = k->ecdsa;
+		ret->ecdsa_nid = k->ecdsa_nid;
+		k->ecdsa = NULL;
+		k->ecdsa_nid = -1;
+#ifdef DEBUG_PK
+		sshkey_dump_ec_key(ret->ecdsa);
+#endif
+		break;
+# endif /* OPENSSL_HAS_ECC */
+#endif /* WITH_OPENSSL */
+	case KEY_ED25519:
+		freezero(ret->ed25519_pk, ED25519_PK_SZ);
+		ret->ed25519_pk = k->ed25519_pk;
+		k->ed25519_pk = NULL;
+#ifdef DEBUG_PK
+		/* XXX */
+#endif
+		break;
+#ifdef WITH_XMSS
+	case KEY_XMSS:
+		free(ret->xmss_pk);
+		ret->xmss_pk = k->xmss_pk;
+		k->xmss_pk = NULL;
+		free(ret->xmss_state);
+		ret->xmss_state = k->xmss_state;
+		k->xmss_state = NULL;
+		free(ret->xmss_name);
+		ret->xmss_name = k->xmss_name;
+		k->xmss_name = NULL;
+		free(ret->xmss_filename);
+		ret->xmss_filename = k->xmss_filename;
+		k->xmss_filename = NULL;
+#ifdef DEBUG_PK
+		/* XXX */
+#endif
+		break;
+#endif /* WITH_XMSS */
+	default:
+		sshkey_free(k);
+		return SSH_ERR_INTERNAL_ERROR;
+	}
+	sshkey_free(k);
+
+	/* success */
+	*cpp = cp;
+	return 0;
 }
+
 
 int
 sshkey_to_base64(const struct sshkey *key, char **b64p)
