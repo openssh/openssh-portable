@@ -1077,7 +1077,7 @@ do_pam_chauthtok(void)
 }
 
 void
-do_pam_session(void)
+do_pam_session(struct ssh *ssh)
 {
 	debug3("PAM: opening session");
 
@@ -1093,7 +1093,7 @@ do_pam_session(void)
 		sshpam_session_open = 1;
 	else {
 		sshpam_session_open = 0;
-		disable_forwarding();
+		auth_restrict_session(ssh);
 		error("PAM: pam_open_session(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
 	}

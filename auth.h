@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.94 2018/01/08 15:21:49 markus Exp $ */
+/* $OpenBSD: auth.h,v 1.95 2018/03/03 03:15:51 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -42,9 +42,11 @@
 #include <krb5.h>
 #endif
 
+struct passwd;
 struct ssh;
-struct sshkey;
 struct sshbuf;
+struct sshkey;
+struct sshauthopt;
 
 typedef struct Authctxt Authctxt;
 typedef struct Authmethod Authmethod;
@@ -128,11 +130,12 @@ struct KbdintDevice
 int
 auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
-int      auth_password(Authctxt *, const char *);
+int      auth_password(struct ssh *, const char *);
 
 int	 hostbased_key_allowed(struct passwd *, const char *, char *,
 	    struct sshkey *);
-int	 user_key_allowed(struct passwd *, struct sshkey *, int);
+int	 user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
+    struct sshauthopt **);
 int	 auth2_key_already_used(Authctxt *, const struct sshkey *);
 
 /*
@@ -163,14 +166,12 @@ int auth_shadow_pwexpired(Authctxt *);
 #include "audit.h"
 void remove_kbdint_device(const char *);
 
-void disable_forwarding(void);
-
 void	do_authentication2(Authctxt *);
 
 void	auth_log(Authctxt *, int, int, const char *, const char *);
 void	auth_maxtries_exceeded(Authctxt *) __attribute__((noreturn));
 void	userauth_finish(struct ssh *, int, const char *, const char *);
-int	auth_root_allowed(const char *);
+int	auth_root_allowed(struct ssh *, const char *);
 
 void	userauth_send_banner(const char *);
 
@@ -214,8 +215,17 @@ int	 get_hostkey_index(struct sshkey *, int, struct ssh *);
 int	 sshd_hostkey_sign(struct sshkey *, struct sshkey *, u_char **,
 	     size_t *, const u_char *, size_t, const char *, u_int);
 
+/* Key / cert options linkage to auth layer */
+const struct sshauthopt *auth_options(struct ssh *);
+int	 auth_activate_options(struct ssh *, struct sshauthopt *);
+void	 auth_restrict_session(struct ssh *);
+int	 auth_authorise_keyopts(struct ssh *, struct passwd *pw,
+    struct sshauthopt *, int, const char *);
+void	 auth_log_authopts(const char *, const struct sshauthopt *, int);
+
 /* debug messages during authentication */
-void	 auth_debug_add(const char *fmt,...) __attribute__((format(printf, 1, 2)));
+void	 auth_debug_add(const char *fmt,...)
+    __attribute__((format(printf, 1, 2)));
 void	 auth_debug_send(void);
 void	 auth_debug_reset(void);
 
@@ -227,7 +237,7 @@ struct passwd *fakepw(void);
 pid_t	subprocess(const char *, struct passwd *,
     const char *, int, char **, FILE **, u_int flags);
 
-int	 sys_auth_passwd(Authctxt *, const char *);
+int	 sys_auth_passwd(struct ssh *, const char *);
 
 #define SKEY_PROMPT "\nS/Key Password: "
 

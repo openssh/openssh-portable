@@ -1,15 +1,19 @@
-/* $OpenBSD: auth-options.h,v 1.24 2018/03/03 03:06:02 djm Exp $ */
+/* $OpenBSD: auth-options.h,v 1.25 2018/03/03 03:15:51 djm Exp $ */
 
 /*
- * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
- *                    All rights reserved
+ * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
- * As far as I am concerned, the code I have written for this software
- * can be used freely for any purpose.  Any derived versions of this
- * software must be clearly marked as such, and if the derived work is
- * incompatible with the protocol description in the RFC file, it must be
- * called by a name other than "ssh" or "Secure Shell".
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 #ifndef AUTH_OPTIONS_H
@@ -17,30 +21,6 @@
 
 struct passwd;
 struct sshkey;
-
-/* Linked list of custom environment strings */
-struct envstring {
-	struct envstring *next;
-	char   *s;
-};
-
-/* Flags that may be set in authorized_keys options. */
-extern int no_port_forwarding_flag;
-extern int no_agent_forwarding_flag;
-extern int no_x11_forwarding_flag;
-extern int no_pty_flag;
-extern int no_user_rc;
-extern char *forced_command;
-extern struct envstring *custom_environment;
-extern int forced_tun_device;
-extern int key_is_cert_authority;
-extern char *authorized_principals;
-
-int	auth_parse_options(struct passwd *, char *, const char *, u_long);
-void	auth_clear_options(void);
-int	auth_cert_options(struct sshkey *, struct passwd *, const char **);
-
-/* authorized_keys options handling */
 
 /*
  * sshauthopt represents key options parsed from authorized_keys or

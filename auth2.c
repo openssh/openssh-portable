@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.144 2018/01/23 05:27:21 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.145 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -310,7 +310,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 
 	/* Special handling for root */
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
-	    !auth_root_allowed(method)) {
+	    !auth_root_allowed(ssh, method)) {
 		authenticated = 0;
 #ifdef SSH_AUDIT_EVENTS
 		PRIVSEP(audit_event(SSH_LOGIN_ROOT_DENIED));

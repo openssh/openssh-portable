@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.204 2018/02/11 21:16:56 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.205 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -82,6 +82,7 @@ extern ServerOptions options;
 
 /* XXX */
 extern Authctxt *the_authctxt;
+extern struct sshauthopt *auth_opts;
 extern int use_privsep;
 
 static int no_more_sessions = 0; /* Disallow further sessions. */
@@ -456,12 +457,13 @@ server_request_direct_tcpip(struct ssh *ssh, int *reason, const char **errmsg)
 	originator_port = packet_get_int();
 	packet_check_eom();
 
-	debug("server_request_direct_tcpip: originator %s port %d, target %s "
-	    "port %d", originator, originator_port, target, target_port);
+	debug("%s: originator %s port %d, target %s port %d", __func__,
+	    originator, originator_port, target, target_port);
 
 	/* XXX fine grained permissions */
 	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag && !options.disable_forwarding) {
+	    auth_opts->permit_port_forwarding_flag &&
+	    !options.disable_forwarding) {
 		c = channel_connect_to_port(ssh, target, target_port,
 		    "direct-tcpip", "direct-tcpip", reason, errmsg);
 	} else {
@@ -487,20 +489,20 @@ server_request_direct_streamlocal(struct ssh *ssh)
 	struct passwd *pw = the_authctxt->pw;
 
 	if (pw == NULL || !the_authctxt->valid)
-		fatal("server_input_global_request: no/invalid user");
+		fatal("%s: no/invalid user", __func__);
 
 	target = packet_get_string(NULL);
 	originator = packet_get_string(NULL);
 	originator_port = packet_get_int();
 	packet_check_eom();
 
-	debug("server_request_direct_streamlocal: originator %s port %d, target %s",
+	debug("%s: originator %s port %d, target %s", __func__,
 	    originator, originator_port, target);
 
 	/* XXX fine grained permissions */
 	if ((options.allow_streamlocal_forwarding & FORWARD_LOCAL) != 0 &&
-	    !no_port_forwarding_flag && !options.disable_forwarding &&
-	    (pw->pw_uid == 0 || use_privsep)) {
+	    auth_opts->permit_port_forwarding_flag &&
+	    !options.disable_forwarding && (pw->pw_uid == 0 || use_privsep)) {
 		c = channel_connect_to_path(ssh, target,
 		    "direct-streamlocal@openssh.com", "direct-streamlocal");
 	} else {
@@ -519,8 +521,7 @@ static Channel *
 server_request_tun(struct ssh *ssh)
 {
 	Channel *c = NULL;
-	int mode, tun;
-	int sock;
+	int mode, tun, sock;
 	char *tmp, *ifname = NULL;
 
 	mode = packet_get_int();
@@ -539,10 +540,10 @@ server_request_tun(struct ssh *ssh)
 	}
 
 	tun = packet_get_int();
-	if (forced_tun_device != -1) {
-		if (tun != SSH_TUNID_ANY && forced_tun_device != tun)
+	if (auth_opts->force_tun_device != -1) {
+		if (tun != SSH_TUNID_ANY && auth_opts->force_tun_device != tun)
 			goto done;
-		tun = forced_tun_device;
+		tun = auth_opts->force_tun_device;
 	}
 	sock = tun_open(tun, mode, &ifname);
 	if (sock < 0)
@@ -767,7 +768,8 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 
 		/* check permissions */
 		if ((options.allow_tcp_forwarding & FORWARD_REMOTE) == 0 ||
-		    no_port_forwarding_flag || options.disable_forwarding ||
+		    !auth_opts->permit_port_forwarding_flag ||
+		    options.disable_forwarding ||
 		    (!want_reply && fwd.listen_port == 0) ||
 		    (fwd.listen_port != 0 &&
 		     !bind_permitted(fwd.listen_port, pw->pw_uid))) {
@@ -805,7 +807,8 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 
 		/* check permissions */
 		if ((options.allow_streamlocal_forwarding & FORWARD_REMOTE) == 0
-		    || no_port_forwarding_flag || options.disable_forwarding ||
+		    || !auth_opts->permit_port_forwarding_flag ||
+		    options.disable_forwarding ||
 		    (pw->pw_uid != 0 && !use_privsep)) {
 			success = 0;
 			packet_send_debug("Server has disabled "

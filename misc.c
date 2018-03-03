@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.124 2018/03/02 03:02:11 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.125 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1921,6 +1921,7 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 	}
 
 	/* Allocate space and format the variable in the appropriate slot. */
+	/* XXX xasprintf */
 	env[i] = xmalloc(strlen(name) + 1 + strlen(value) + 1);
 	snprintf(env[i], strlen(name) + 1 + strlen(value) + 1, "%s=%s", name, value);
 }

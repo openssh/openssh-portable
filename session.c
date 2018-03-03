@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.293 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: session.c,v 1.294 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -140,6 +140,7 @@ extern u_int utmp_len;
 extern int startup_pipe;
 extern void destroy_sensitive_data(void);
 extern Buffer loginmsg;
+extern struct sshauthopt *auth_opts;
 char *tun_fwd_ifnames; /* serverloop.c */
 
 /* original command from peer. */
@@ -288,14 +289,42 @@ prepare_auth_info_file(struct passwd *pw, struct sshbuf *info)
 	restore_uid();
 }
 
+static void
+set_permitopen_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
+{
+	char *tmp, *cp, *host;
+	int port;
+	size_t i;
+
+	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) == 0)
+		return;
+	channel_clear_permitted_opens(ssh);
+	for (i = 0; i < auth_opts->npermitopen; i++) {
+		tmp = cp = xstrdup(auth_opts->permitopen[i]);
+		/* This shouldn't fail as it has already been checked */
+		if ((host = hpdelim(&cp)) == NULL)
+			fatal("%s: internal error: hpdelim", __func__);
+		host = cleanhostname(host);
+		if (cp == NULL || (port = permitopen_port(cp)) < 0)
+			fatal("%s: internal error: permitopen port",
+			    __func__);
+		channel_add_permitted_opens(ssh, host, port);
+		free(tmp);
+	}
+}
+
 void
 do_authenticated(struct ssh *ssh, Authctxt *authctxt)
 {
 	setproctitle("%s", authctxt->pw->pw_name);
 
+	auth_log_authopts("active", auth_opts, 0);
+
 	/* setup the channel layer */
 	/* XXX - streamlocal? */
-	if (no_port_forwarding_flag || options.disable_forwarding ||
+	set_permitopen_from_authopts(ssh, auth_opts);
+	if (!auth_opts->permit_port_forwarding_flag ||
+	    options.disable_forwarding ||
 	    (options.allow_tcp_forwarding & FORWARD_LOCAL) == 0)
 		channel_disable_adm_local_opens(ssh);
 	else
@@ -642,9 +671,9 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 		original_command = command;
 		command = options.adm_forced_command;
 		forced = "(config)";
-	} else if (forced_command) {
+	} else if (auth_opts->force_command != NULL) {
 		original_command = command;
-		command = forced_command;
+		command = auth_opts->force_command;
 		forced = "(key-option)";
 	}
 	if (forced != NULL) {
@@ -947,8 +976,9 @@ static char **
 do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 {
 	char buf[256];
+	size_t n;
 	u_int i, envsize;
-	char **env, *laddr;
+	char *ocp, *cp, **env, *laddr;
 	struct passwd *pw = s->pw;
 #if !defined (HAVE_LOGIN_CAP) && !defined (HAVE_CYGWIN)
 	char *path = NULL;
@@ -1023,20 +1053,17 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	if (getenv("TZ"))
 		child_set_env(&env, &envsize, "TZ", getenv("TZ"));
 
-	/* Set custom environment options from RSA authentication. */
-	while (custom_environment) {
-		struct envstring *ce = custom_environment;
-		char *str = ce->s;
-
-		for (i = 0; str[i] != '=' && str[i]; i++)
-			;
-		if (str[i] == '=') {
-			str[i] = 0;
-			child_set_env(&env, &envsize, str, str + i + 1);
+	/* Set custom environment options from pubkey authentication. */
+	if (options.permit_user_env) {
+		for (n = 0 ; n < auth_opts->nenv; n++) {
+			ocp = xstrdup(auth_opts->env[n]);
+			cp = strchr(ocp, '=');
+			if (*cp == '=') {
+				*cp = '\0';
+				child_set_env(&env, &envsize, ocp, cp + 1);
+			}
+			free(ocp);
 		}
-		custom_environment = ce->next;
-		free(ce->s);
-		free(ce);
 	}
 
 	/* SSH_CLIENT deprecated */
@@ -1138,7 +1165,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
  * first in this order).
  */
 static void
-do_rc_files(Session *s, const char *shell)
+do_rc_files(struct ssh *ssh, Session *s, const char *shell)
 {
 	FILE *f = NULL;
 	char cmd[1024];
@@ -1150,7 +1177,7 @@ do_rc_files(Session *s, const char *shell)
 
 	/* ignore _PATH_SSH_USER_RC for subsystems and admin forced commands */
 	if (!s->is_subsystem && options.adm_forced_command == NULL &&
-	    !no_user_rc && options.permit_user_rc &&
+	    auth_opts->permit_user_rc && options.permit_user_rc &&
 	    stat(_PATH_SSH_USER_RC, &st) >= 0) {
 		snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
 		    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
@@ -1570,7 +1597,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 
 	closefrom(STDERR_FILENO + 1);
 
-	do_rc_files(s, shell);
+	do_rc_files(ssh, s, shell);
 
 	/* restore SIGPIPE for child */
 	signal(SIGPIPE, SIG_DFL);
@@ -1833,8 +1860,8 @@ session_pty_req(struct ssh *ssh, Session *s)
 	u_int len;
 	int n_bytes;
 
-	if (no_pty_flag || !options.permit_tty) {
-		debug("Allocating a pty not permitted for this authentication.");
+	if (!auth_opts->permit_pty_flag || !options.permit_tty) {
+		debug("Allocating a pty not permitted for this connection.");
 		return 0;
 	}
 	if (s->ttyfd != -1) {
@@ -2022,9 +2049,11 @@ static int
 session_auth_agent_req(struct ssh *ssh, Session *s)
 {
 	static int called = 0;
+
 	packet_check_eom();
-	if (no_agent_forwarding_flag || !options.allow_agent_forwarding) {
-		debug("session_auth_agent_req: no_agent_forwarding_flag");
+	if (!auth_opts->permit_agent_forwarding_flag ||
+	    !options.allow_agent_forwarding) {
+		debug("%s: agent forwarding disabled", __func__);
 		return 0;
 	}
 	if (called) {
@@ -2402,8 +2431,8 @@ session_setup_x11fwd(struct ssh *ssh, Session *s)
 	char hostname[NI_MAXHOST];
 	u_int i;
 
-	if (no_x11_forwarding_flag) {
-		packet_send_debug("X11 forwarding disabled in user configuration file.");
+	if (!auth_opts->permit_x11_forwarding_flag) {
+		packet_send_debug("X11 forwarding disabled by key options.");
 		return 0;
 	}
 	if (!options.x11_forwarding) {
@@ -2412,7 +2441,7 @@ session_setup_x11fwd(struct ssh *ssh, Session *s)
 	}
 	if (options.xauth_location == NULL ||
 	    (stat(options.xauth_location, &st) == -1)) {
-		packet_send_debug("No xauth program; cannot forward with spoofing.");
+		packet_send_debug("No xauth program; cannot forward X11.");
 		return 0;
 	}
 	if (s->display != NULL) {

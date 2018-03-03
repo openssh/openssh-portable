@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.125 2018/01/08 15:21:49 markus Exp $ */
+/* $OpenBSD: auth.c,v 1.126 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -74,12 +74,14 @@
 #include "authfile.h"
 #include "ssherr.h"
 #include "compat.h"
+#include "channels.h"
 
 /* import */
 extern ServerOptions options;
 extern int use_privsep;
 extern Buffer loginmsg;
 extern struct passwd *privsep_pw;
+extern struct sshauthopt *auth_opts;
 
 /* Debugging messages */
 Buffer auth_debug;
@@ -386,10 +388,8 @@ auth_maxtries_exceeded(Authctxt *authctxt)
  * Check whether root logins are disallowed.
  */
 int
-auth_root_allowed(const char *method)
+auth_root_allowed(struct ssh *ssh, const char *method)
 {
-	struct ssh *ssh = active_state; /* XXX */
-
 	switch (options.permit_root_login) {
 	case PERMIT_YES:
 		return 1;
@@ -400,7 +400,7 @@ auth_root_allowed(const char *method)
 			return 1;
 		break;
 	case PERMIT_FORCED_ONLY:
-		if (forced_command) {
+		if (auth_opts->force_command != NULL) {
 			logit("Root login accepted for forced command.");
 			return 1;
 		}
@@ -992,4 +992,174 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	if (child != NULL)
 		*child = f;
 	return pid;
+}
+
+/* These functions link key/cert options to the auth framework */
+
+/* Log sshauthopt options locally and (optionally) for remote transmission */
+void
+auth_log_authopts(const char *loc, const struct sshauthopt *opts, int do_remote)
+{
+	int do_env = options.permit_user_env && opts->nenv > 0;
+	int do_permitopen = opts->npermitopen > 0 &&
+	    (options.allow_tcp_forwarding & FORWARD_LOCAL) != 0;
+	size_t i;
+	char msg[1024], tbuf[32];
+
+	snprintf(tbuf, sizeof(tbuf), "%d", opts->force_tun_device);
+	/* Try to keep this alphabetically sorted */
+	snprintf(msg, sizeof(msg), "key options:%s%s%s%s%s%s%s%s%s%s%s",
+	    opts->permit_agent_forwarding_flag ? " agent-forwarding" : "",
+	    opts->force_command == NULL ? "" : " command",
+	    do_env ?  " environment" : "",
+	    do_permitopen ?  " permitopen" : "",
+	    opts->permit_port_forwarding_flag ? " port-forwarding" : "",
+	    opts->cert_principals == NULL ? "" : " principals",
+	    opts->permit_pty_flag ? " pty" : "",
+	    opts->force_tun_device == -1 ? "" : " tun=",
+	    opts->force_tun_device == -1 ? "" : tbuf,
+	    opts->permit_user_rc ? " user-rc" : "",
+	    opts->permit_x11_forwarding_flag ? " x11-forwarding" : "");
+
+	debug("%s: %s", loc, msg);
+	if (do_remote)
+		auth_debug_add("%s: %s", loc, msg);
+
+	if (options.permit_user_env) {
+		for (i = 0; i < opts->nenv; i++) {
+			debug("%s: environment: %s", loc, opts->env[i]);
+			if (do_remote) {
+				auth_debug_add("%s: environment: %s",
+				    loc, opts->env[i]);
+			}
+		}
+	}
+
+	/* Go into a little more details for the local logs. */
+	if (opts->cert_principals != NULL) {
+		debug("%s: authorized principals: \"%s\"",
+		    loc, opts->cert_principals);
+	}
+	if (opts->force_command != NULL)
+		debug("%s: forced command: \"%s\"", loc, opts->force_command);
+	if ((options.allow_tcp_forwarding & FORWARD_LOCAL) != 0) {
+		for (i = 0; i < opts->npermitopen; i++) {
+			debug("%s: permitted open: %s",
+			    loc, opts->permitopen[i]);
+		}
+	}
+}
+
+/* Activate a new set of key/cert options; merging with what is there. */
+int
+auth_activate_options(struct ssh *ssh, struct sshauthopt *opts)
+{
+	struct sshauthopt *old = auth_opts;
+	const char *emsg = NULL;
+
+	debug("%s: setting new authentication options", __func__);
+	if ((auth_opts = sshauthopt_merge(old, opts, &emsg)) == NULL) {
+		error("Inconsistent authentication options: %s", emsg);
+		return -1;
+	}
+	return 0;
+}
+
+/* Disable forwarding, etc for the session */
+void
+auth_restrict_session(struct ssh *ssh)
+{
+	struct sshauthopt *restricted;
+
+	debug("%s: restricting session", __func__);
+
+	/* A blank sshauthopt defaults to permitting nothing */
+	restricted = sshauthopt_new();
+	restricted->restricted = 1;
+
+	if (auth_activate_options(ssh, restricted) != 0)
+		fatal("%s: failed to restrict session", __func__);
+	sshauthopt_free(restricted);
+}
+
+int
+auth_authorise_keyopts(struct ssh *ssh, struct passwd *pw,
+    struct sshauthopt *opts, int allow_cert_authority, const char *loc)
+{
+	const char *remote_ip = ssh_remote_ipaddr(ssh);
+	const char *remote_host = auth_get_canonical_hostname(ssh,
+	    options.use_dns);
+
+	/* Consistency checks */
+	if (opts->cert_principals != NULL && !opts->cert_authority) {
+		debug("%s: principals on non-CA key", loc);
+		auth_debug_add("%s: principals on non-CA key", loc);
+		/* deny access */
+		return -1;
+	}
+	/* cert-authority flag isn't valid in authorized_principals files */
+	if (!allow_cert_authority && opts->cert_authority) {
+		debug("%s: cert-authority flag invalid here", loc);
+		auth_debug_add("%s: cert-authority flag invalid here", loc);
+		/* deny access */
+		return -1;
+	}
+
+	/* Perform from= checks */
+	if (opts->required_from_host_keys != NULL) {
+		switch (match_host_and_ip(remote_host, remote_ip,
+		    opts->required_from_host_keys )) {
+		case 1:
+			/* Host name matches. */
+			break;
+		case -1:
+		default:
+			debug("%s: invalid from criteria", loc);
+			auth_debug_add("%s: invalid from criteria", loc);
+			/* FALLTHROUGH */
+		case 0:
+			logit("%s: Authentication tried for %.100s with "
+			    "correct key but not from a permitted "
+			    "host (host=%.200s, ip=%.200s, required=%.200s).",
+			    loc, pw->pw_name, remote_host, remote_ip,
+			    opts->required_from_host_keys);
+			auth_debug_add("%s: Your host '%.200s' is not "
+			    "permitted to use this key for login.",
+			    loc, remote_host);
+			/* deny access */
+			return -1;
+		}
+	}
+	/* Check source-address restriction from certificate */
+	if (opts->required_from_host_cert != NULL) {
+		switch (addr_match_cidr_list(remote_ip,
+		    opts->required_from_host_cert)) {
+		case 1:
+			/* accepted */
+			break;
+		case -1:
+		default:
+			/* invalid */
+			error("%s: Certificate source-address invalid",
+			    loc);
+			/* FALLTHROUGH */
+		case 0:
+			logit("%s: Authentication tried for %.100s with valid "
+			    "certificate but not from a permitted source "
+			    "address (%.200s).", loc, pw->pw_name, remote_ip);
+			auth_debug_add("%s: Your address '%.200s' is not "
+			    "permitted to use this certificate for login.",
+			    loc, remote_ip);
+			return -1;
+		}
+	}
+	/*
+	 *
+	 * XXX this is spammy. We should report remotely only for keys
+	 *     that are successful in actual auth attempts, and not PK_OK
+	 *     tests.
+	 */
+	auth_log_authopts(loc, opts, 1);
+
+	return 0;
 }
