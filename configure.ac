@@ -1809,6 +1809,7 @@ AC_CHECK_FUNCS([ \
 	strlcat \
 	strlcpy \
 	strmode \
+	strndup \
 	strnlen \
 	strnvis \
 	strptime \

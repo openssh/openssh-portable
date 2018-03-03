@@ -51,6 +51,7 @@ OPENBSD=base64.o \
 	strlcat.o \
 	strlcpy.o \
 	strmode.o \
+	strndup.o \
 	strnlen.o \
 	strptime.o \
 	strsep.o \
