@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.5 2018/03/02 02:53:27 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.6 2018/03/04 01:46:48 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -32,9 +32,10 @@ expect_pty_succeed() {
 		fail "key option failed $which"
 	else
 		r=`cat $OBJ/data`
-		if [ ! -e "$r" ]; then
-			fail "key option failed $which (pty $r)"
-		fi
+		case "$r" in
+		/dev/*) ;;
+		*)	fail "key option failed $which (pty $r)" ;;
+		esac
 	fi
 }
 expect_pty_fail() {
@@ -49,6 +50,10 @@ expect_pty_fail() {
 		if [ -e "$r" ]; then
 			fail "key option failed $which (pty $r)"
 		fi
+		case "$r" in
+		/dev/*)	fail "key option failed $which (pty $r)" ;;
+		*)	;;
+		esac
 	fi
 }
 # First ensure that we can allocate a pty by default.
