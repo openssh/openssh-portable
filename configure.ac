@@ -1007,6 +1007,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	conf_wtmp_location=/var/adm/wtmp
 	conf_lastlog_location=/var/adm/lastlog
 	AC_DEFINE([USE_PIPES])
+	AC_DEFINE([DISABLE_UTMPX], [1], [no utmpx])
 	;;
 *-ncr-sysv*)
 	LIBS="$LIBS -lc89"
