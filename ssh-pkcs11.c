@@ -216,43 +216,14 @@ pkcs11_find(struct pkcs11_provider *p, CK_ULONG slotidx, CK_ATTRIBUTE *attr,
 	return (ret);
 }
 
-/* openssl callback doing the actual signing operation */
+
 static int
-pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
-    int padding)
+pkcs11_login(struct pkcs11_provider *p, struct pkcs11_slotinfo  *si)
 {
-	struct pkcs11_key	*k11;
-	struct pkcs11_slotinfo	*si;
-	CK_FUNCTION_LIST	*f;
-	CK_OBJECT_HANDLE	obj;
-	CK_ULONG		tlen = 0;
-	CK_RV			rv;
-	CK_OBJECT_CLASS	private_key_class = CKO_PRIVATE_KEY;
-	CK_BBOOL		true_val = CK_TRUE;
-	CK_MECHANISM		mech = {
-		CKM_RSA_PKCS, NULL_PTR, 0
-	};
-	CK_ATTRIBUTE		key_filter[] = {
-		{CKA_CLASS, NULL, sizeof(private_key_class) },
-		{CKA_ID, NULL, 0},
-		{CKA_SIGN, NULL, sizeof(true_val) }
-	};
 	char			*pin = NULL, prompt[1024];
-	int			rval = -1;
-
-	key_filter[0].pValue = &private_key_class;
-	key_filter[2].pValue = &true_val;
-
-	if ((k11 = RSA_get_app_data(rsa)) == NULL) {
-		error("RSA_get_app_data failed for rsa %p", rsa);
-		return (-1);
-	}
-	if (!k11->provider || !k11->provider->valid) {
-		error("no pkcs11 (valid) provider for rsa %p", rsa);
-		return (-1);
-	}
-	f = k11->provider->function_list;
-	si = &k11->provider->slotinfo[k11->slotidx];
+	CK_RV			rv;
+	CK_FUNCTION_LIST	*f;
+	f = p->function_list;
 	if ((si->token.flags & CKF_LOGIN_REQUIRED) && !si->logged_in) {
 		if (!pkcs11_interactive) {
 			error("need pin entry%s", (si->token.flags &
@@ -280,6 +251,49 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 			return (-1);
 		}
 		si->logged_in = 1;
+	}
+	return 0;
+}
+
+
+/* openssl callback doing the actual signing operation */
+static int
+pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
+    int padding)
+{
+	struct pkcs11_key	*k11;
+	struct pkcs11_slotinfo	*si;
+	CK_FUNCTION_LIST	*f;
+	CK_OBJECT_HANDLE	obj;
+	CK_ULONG		tlen = 0;
+	CK_RV			rv;
+	CK_OBJECT_CLASS	private_key_class = CKO_PRIVATE_KEY;
+	CK_BBOOL		true_val = CK_TRUE;
+	CK_MECHANISM		mech = {
+		CKM_RSA_PKCS, NULL_PTR, 0
+	};
+	CK_ATTRIBUTE		key_filter[] = {
+		{CKA_CLASS, NULL, sizeof(private_key_class) },
+		{CKA_ID, NULL, 0},
+		{CKA_SIGN, NULL, sizeof(true_val) }
+	};
+	int			rval = -1;
+
+	key_filter[0].pValue = &private_key_class;
+	key_filter[2].pValue = &true_val;
+
+	if ((k11 = RSA_get_app_data(rsa)) == NULL) {
+		error("RSA_get_app_data failed for rsa %p", rsa);
+		return (-1);
+	}
+	if (!k11->provider || !k11->provider->valid) {
+		error("no pkcs11 (valid) provider for rsa %p", rsa);
+		return (-1);
+	}
+	f = k11->provider->function_list;
+	si = &k11->provider->slotinfo[k11->slotidx];
+        if (pkcs11_login(k11->provider, si)) {
+		return (-1);
 	}
 	key_filter[1].pValue = k11->keyid;
 	key_filter[1].ulValueLen = k11->keyid_len;
@@ -422,14 +436,29 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 		{ CKA_SUBJECT, NULL, 0 },
 		{ CKA_VALUE, NULL, 0 }
 	};
+	int			keys;
+	int			certs;
+	int			i;
 	pubkey_filter[0].pValue = &pubkey_class;
 	cert_filter[0].pValue = &cert_class;
 
-	if (pkcs11_fetch_keys_filter(p, slotidx, pubkey_filter, pubkey_attribs,
-	    keysp, nkeys) < 0 ||
-	    pkcs11_fetch_keys_filter(p, slotidx, cert_filter, cert_attribs,
-	    keysp, nkeys) < 0)
-		return (-1);
+	for (i = 0; i < 2; i++) {
+		/* i==0: legacy behavior try to find keys without login */
+		/* i==1: try again, logged in */
+		keys = pkcs11_fetch_keys_filter(p, slotidx, pubkey_filter,
+		  pubkey_attribs, keysp, nkeys);
+		certs = pkcs11_fetch_keys_filter(p, slotidx, cert_filter,
+		  cert_attribs, keysp, nkeys) < 0;
+		if (keys < 0 || certs < 0)
+			return (-1);
+		if (keys > 0 && certs > 0)
+			break;
+		if (i == 0) {
+			if (pkcs11_login(p, &p->slotinfo[slotidx]))
+				return (-1);
+		}
+	}
+
 	return (0);
 }
 
