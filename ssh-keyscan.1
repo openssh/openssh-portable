@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.43 2018/03/02 21:40:15 jmc Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.44 2018/03/05 07:03:18 jmc Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -6,7 +6,7 @@
 .\" permitted provided that due credit is given to the author and the
 .\" OpenBSD project by leaving this copyright notice intact.
 .\"
-.Dd $Mdocdate: March 2 2018 $
+.Dd $Mdocdate: March 5 2018 $
 .Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
@@ -26,7 +26,9 @@ is a utility for gathering the public SSH host keys of a number of
 hosts.
 It was designed to aid in building and verifying
 .Pa ssh_known_hosts
-files.
+files,
+the format of which is documented in
+.Xr sshd 8 .
 .Nm
 provides a minimal interface suitable for use by shell and perl
 scripts.
@@ -41,27 +43,6 @@ hosts are down or do not run
 For scanning, one does not need
 login access to the machines that are being scanned, nor does the
 scanning process involve any encryption.
-.Pp
-Input is expected in the format:
-.Bd -literal -offset 3n
-1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
-.Ed
-.Pp
-The output format is:
-.Bd -literal -offset 3n
-host-or-namelist keytype base64-encoded-key
-.Ed
-.Pp
-Where
-.Ar keytype
-is either
-.Dq ecdsa-sha2-nistp256 ,
-.Dq ecdsa-sha2-nistp384 ,
-.Dq ecdsa-sha2-nistp521 ,
-.Dq ssh-ed25519 ,
-.Dq ssh-dss
-or
-.Dq ssh-rsa .
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -92,6 +73,10 @@ If
 is supplied instead of a filename,
 .Nm
 will read from the standard input.
+Input is expected in the format:
+.Bd -literal
+1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
+.Ed
 .It Fl H
 Hash all hostnames and addresses in the output.
 Hashed names may be used normally by
