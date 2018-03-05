@@ -153,4 +153,8 @@ pid_t getsid(pid_t);
 int flock(int, int);
 #endif
 
+#ifdef FFLUSH_NULL_BUG
+# define fflush(x)	(_ssh_compat_fflush(x))
+#endif
+
 #endif /* _BSD_MISC_H */

@@ -2059,6 +2059,16 @@ AC_CHECK_FUNCS([realpath], [
 	)
 ])
 
+AC_MSG_CHECKING([for working fflush(NULL)])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[#include <stdio.h>]], [[fflush(NULL); exit(0);]])],
+	AC_MSG_RESULT([yes]),
+	[AC_MSG_RESULT([no])
+	 AC_DEFINE([FFLUSH_NULL_BUG], [1],
+	    [define if fflush(NULL) does not work])],
+	AC_MSG_WARN([cross compiling: assuming working])
+)
+
 dnl    Checks for time functions
 AC_CHECK_FUNCS([gettimeofday time])
 dnl    Checks for utmp functions

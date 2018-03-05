@@ -308,3 +308,19 @@ getsid(pid_t pid)
 }
 #endif
 
+#ifdef FFLUSH_NULL_BUG
+#undef fflush
+int _ssh_compat_fflush(FILE *f)
+{
+	int r1, r2, r3;
+
+	if (f == NULL) {
+		r2 = fflush(stdout);
+		r3 = fflush(stderr);
+		if (r1 == -1 || r2 == -1 || r3 == -1)
+			return -1;
+		return 0;
+	}
+	return fflush(f);
+}
+#endif
