@@ -253,7 +253,7 @@ hostbased_key_allowed(struct ssh *ssh, struct passwd *pw,
 	return (host_status == HOST_OK);
 }
 
-Authmethod method_hostbased = {
+const Authmethod method_hostbased = {
 	"hostbased",
 	NULL,
 	userauth_hostbased,

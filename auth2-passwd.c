@@ -72,7 +72,7 @@ userauth_passwd(struct ssh *ssh, const char *method)
 	return authenticated;
 }
 
-Authmethod method_passwd = {
+const Authmethod method_passwd = {
 	"password",
 	NULL,
 	userauth_passwd,

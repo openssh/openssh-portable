@@ -802,7 +802,7 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	return success;
 }
 
-Authmethod method_pubkey = {
+const Authmethod method_pubkey = {
 	"publickey",
 	"publickey-hostbound-v00@openssh.com",
 	userauth_pubkey,
