@@ -10,6 +10,7 @@ $sshdpath = Join-Path $scriptdir "sshd.exe"
 $sshagentpath = Join-Path $scriptdir "ssh-agent.exe"
 $sshdir = Join-Path $env:ProgramData "\ssh"
 $logsdir = Join-Path $sshdir "logs"
+$etwman = Join-Path $scriptdir "openssh-events.man"
 
 if (-not (Test-Path $sshdpath)) {
     throw "sshd.exe is not present in script path"
@@ -26,6 +27,18 @@ if (Get-Service ssh-agent -ErrorAction SilentlyContinue)
    Stop-Service ssh-agent
    sc.exe delete ssh-agent 1>$null
 }
+
+# unregister etw provider
+wevtutil um `"$etwman`"
+
+# adjust provider resource path in instrumentation manifest
+[XML]$xml = Get-Content $etwman
+$xml.instrumentationManifest.instrumentation.events.provider.resourceFileName = $sshagentpath.ToString()
+$xml.instrumentationManifest.instrumentation.events.provider.messageFileName = $sshagentpath.ToString()
+$xml.Save($etwman)
+
+#register etw provider
+wevtutil im `"$etwman`"
 
 New-Service -Name ssh-agent -BinaryPathName `"$sshagentpath`" -Description "SSH Agent" -StartupType Manual | Out-Null
 cmd.exe /c 'sc.exe sdset ssh-agent D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;RP;;;AU)'

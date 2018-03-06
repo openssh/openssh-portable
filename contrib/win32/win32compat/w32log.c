@@ -36,17 +36,63 @@
 #include "inc\syslog.h"
 #include "misc_internal.h"
 #include "inc\utf.h"
+#include "openssh-events.h"
 
 #define MSGBUFSIZ 1024
 static int logfd = -1;
+char* identity = NULL;
+int log_facility = 0;
+
+void openlog_etw()
+{
+	EventRegisterOpenSSH();
+}
+
+void
+syslog_etw(int priority, const char *format, const char *formatBuffer)
+{
+	wchar_t *w_identity = NULL, *w_payload = NULL;
+	w_identity = utf8_to_utf16(identity);
+	w_payload = utf8_to_utf16(formatBuffer);
+
+	if (!w_identity || !w_payload)
+		goto done;
+
+	switch (priority) {
+	case LOG_CRIT:
+		EventWriteCRITICAL_Event(w_identity, w_payload);
+		break;
+	case LOG_ERR:
+		EventWriteERROR_Event(w_identity, w_payload);
+		break;
+	case LOG_WARNING:
+		EventWriteWARNING_Event(w_identity, w_payload);
+		break;
+	case LOG_INFO:
+		EventWriteINFO_Event(w_identity, w_payload);
+		break;
+	case LOG_DEBUG:
+		EventWriteDEBUG_Event(w_identity, w_payload);
+		break;
+	default:
+		break;
+	}
+
+done:
+	if (w_identity)
+		free(w_identity);
+	if (w_payload)
+		free(w_payload);
+}
+
 
 /*
  * log file location will be - "%programData%\\openssh\\logs\\<module_name>.log"
  */
 void
-openlog(char *ident, unsigned int option, int facility)
+openlog_file()
 {	
-	if (logfd != -1 || ident == NULL)
+	if (logfd != -1)
 		return;
 
 	wchar_t *logs_dir = L"\\logs\\";
@@ -84,13 +130,7 @@ openlog(char *ident, unsigned int option, int facility)
 }
 
 void
-closelog(void)
-{
-	/*NOOP*/
-}
-
-void
-syslog(int priority, const char *format, const char *formatBuffer)
+syslog_file(int priority, const char *format, const char *formatBuffer)
 {
 	char msgbufTimestamp[MSGBUFSIZ];
 	SYSTEMTIME st;
@@ -109,4 +149,30 @@ syslog(int priority, const char *format, const char *formatBuffer)
 	}
 	msgbufTimestamp[strnlen(msgbufTimestamp, MSGBUFSIZ)] = '\0';
 	_write(logfd, msgbufTimestamp, (unsigned int)strnlen(msgbufTimestamp, MSGBUFSIZ));
+}
+
+void
+openlog(char *ident, unsigned int option, int facility)
+{
+	identity = ident;
+	log_facility = facility;
+	if (log_facility == LOG_LOCAL0)
+		openlog_file();
+	else
+		openlog_etw();
+}
+
+void
+syslog(int priority, const char *format, const char *formatBuffer)
+{
+	if (log_facility == LOG_LOCAL0)
+		syslog_file(priority, format, formatBuffer);
+	else
+		syslog_etw(priority, format, formatBuffer);
+}
+
+void
+closelog(void)
+{
+	/*NOOP*/
 }

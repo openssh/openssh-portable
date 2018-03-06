@@ -357,10 +357,11 @@ function Start-OpenSSHPackage
     }    
 
     $buildDir = Join-Path $repositoryRoot ("bin\" + $folderName + "\" + $Configuration)
-    $payload = "sshd.exe", "ssh.exe", "ssh-agent.exe", "ssh-add.exe", "sftp.exe"
+    $payload =  "sshd.exe", "ssh.exe", "ssh-agent.exe", "ssh-add.exe", "sftp.exe"
     $payload += "sftp-server.exe", "scp.exe", "ssh-shellhost.exe", "ssh-keygen.exe", "ssh-keyscan.exe" 
     $payload += "sshd_config_default", "install-sshd.ps1", "uninstall-sshd.ps1"
-    $payload +="FixHostFilePermissions.ps1", "FixUserFilePermissions.ps1", "OpenSSHUtils.psm1", "OpenSSHUtils.psd1"
+    $payload += "FixHostFilePermissions.ps1", "FixUserFilePermissions.ps1", "OpenSSHUtils.psm1", "OpenSSHUtils.psd1"
+    $payload += "openssh-events.man"
 
     $packageName = "OpenSSH-Win64"
     if ($NativeHostArch -ieq 'x86') {

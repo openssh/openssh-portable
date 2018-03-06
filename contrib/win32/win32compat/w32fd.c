@@ -69,6 +69,10 @@ void fd_table_set(struct w32_io* pio, int index);
 void fd_decode_state(char*);
 #define POSIX_STATE_ENV "c28fc6f98a2c44abbbd89d6a3037d0d9_POSIX_STATE"
 
+/* __progname */
+char* __progname = "";
+static char* s_programdir = "";
+
 /* initializes mapping table*/
 static int
 fd_table_initialize()
@@ -157,13 +161,45 @@ fd_table_clear(int index)
 	FD_CLR(index, &(fd_table.occupied));
 }
 
+char *
+w32_programdir()
+{
+	return s_programdir;
+}
+
+static int 
+init_prog_paths()
+{
+	wchar_t* wpgmptr;
+
+	if (_get_wpgmptr(&wpgmptr) != 0) {
+		errno = EOTHER;
+		return -1;
+	}
+
+	if ((s_programdir = utf16_to_utf8(wpgmptr)) == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	__progname = strrchr(s_programdir, '\\') + 1;
+	*(__progname - 1) = '\0';
+
+	/* strip .exe off __progname */
+	*(__progname + strlen(__progname) - 4) = '\0';
+
+	return 0;
+}
+
 void
 w32posix_initialize()
 {
 	if ((fd_table_initialize() != 0) || (socketio_initialize() != 0))
 		DebugBreak();
 	main_thread = OpenThread(THREAD_SET_CONTEXT | SYNCHRONIZE, FALSE, GetCurrentThreadId());
-	if ((main_thread == NULL) || (sw_initialize() != 0) || w32_programdir() == NULL) {
+	if (main_thread == NULL || 
+	    sw_initialize() != 0 || 
+	    init_prog_paths() != 0 ) {
 		DebugBreak();
 		fatal("failed to initialize w32posix wrapper");
 	}

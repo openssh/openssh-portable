@@ -742,9 +742,13 @@ privsep_preauth(Authctxt *authctxt)
 
 #ifdef FORK_NOT_SUPPORTED
 	if (privsep_auth_child) {
-		struct passwd* me = getpwuid(geteuid());
-		/* this re-does the user specific config */
-		authctxt->pw = getpwnamallow(xstrdup(me->pw_name));
+		struct connection_info *ci = get_connection_info(1, options.use_dns);
+
+		authctxt->pw = getpwuid(geteuid());
+		ci->user = authctxt->pw->pw_name;
+		parse_server_match_config(&options, ci);
+		log_change_level(options.log_level);
+		process_permitopen(active_state, &options);
 		authctxt->valid = 1;
 		return 1;
 	}
@@ -777,6 +781,8 @@ privsep_preauth(Authctxt *authctxt)
 			char** argv = privsep_child_cmdline(0);
 			if (__posix_spawn_asuser(&pid, argv[0], &actions, NULL, argv, NULL, SSH_PRIVSEP_USER) != 0)
 				error("%s, posix_spawn failed", __func__);
+			else
+				debug2("Network child is on pid %ld", (long)pid);
 			posix_spawn_file_actions_destroy(&actions);
 		}
 		close(pmonitor->m_recvfd);
@@ -883,6 +889,8 @@ privsep_postauth(Authctxt *authctxt)
 			char** argv = privsep_child_cmdline(1);
 			if (__posix_spawn_asuser(&pmonitor->m_pid, argv[0], &actions, NULL, argv, NULL, authctxt->pw->pw_name) != 0)
 				error("%s, posix_spawn failed", __func__);
+			else
+				verbose("User child is on pid %ld", (long)pmonitor->m_pid);
 			posix_spawn_file_actions_destroy(&actions);
 		}
 		

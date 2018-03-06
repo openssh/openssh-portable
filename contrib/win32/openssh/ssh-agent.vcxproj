@@ -393,6 +393,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\ssh-agent\keyagent-request.c" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="openssh-events.rc" />
     <ResourceCompile Include="version.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
