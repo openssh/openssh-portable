@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.125 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.126 2018/03/07 23:53:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -242,7 +242,7 @@ set_rdomain(int fd, const char *name)
 char *
 strdelim(char **s)
 {
-	char *old, *cp;
+	char *old;
 	int wspace = 0;
 
 	if (*s == NULL)
@@ -256,24 +256,13 @@ strdelim(char **s)
 
 	if (*s[0] == '\"') {
 		memmove(*s, *s + 1, strlen(*s)); /* move nul too */
-
 		/* Find matching quote */
-		for (cp = *s; ; cp++) {
-			if (*cp == '\0')
-				return NULL; /* no matching quote */
-			if (*cp == '\\') {
-				/* Escape sequence */
-				if (cp[1] == '\"' || cp[1] == '\'' ||
-				    cp[1] == '\\') {
-					memmove(cp, cp + 1, strlen(cp));
-					continue;
-				}
-				return NULL; /* invalid escape */
-			} else if (*cp == '\"') {
-				*(cp++) = '\0';
-				*s += strspn(cp, WHITESPACE);
-				return old;
-			}
+		if ((*s = strpbrk(*s, QUOTE)) == NULL) {
+			return (NULL);		/* no matching quote */
+		} else {
+			*s[0] = '\0';
+			*s += strspn(*s + 1, WHITESPACE) + 1;
+			return (old);
 		}
 	}
 
