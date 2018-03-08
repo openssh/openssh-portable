@@ -819,6 +819,27 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	    ])
 	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
 	    [], [#include <linux/types.h>])
+	# Obtain MIPS ABI
+	case "$host" in
+	mips*)
+		AC_COMPILE_IFELSE([
+#if _MIPS_SIM != _ABIO32
+#error
+#endif
+			],[mips_abi="o32"],[AC_COMPILE_IFELSE([
+#if _MIPS_SIM != _ABIN32
+#error
+#endif
+				],[mips_abi="n32"],[AC_COMPILE_IFELSE([
+#if _MIPS_SIM != _ABI64
+#error
+#endif
+					],[mips_abi="n64"],[AC_MSG_ERROR([unknown MIPS ABI])
+				])
+			])
+		])
+		;;
+	esac
 	AC_MSG_CHECKING([for seccomp architecture])
 	seccomp_audit_arch=
 	case "$host" in
@@ -853,10 +874,24 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		seccomp_audit_arch=AUDIT_ARCH_MIPSEL
 		;;
 	mips64-*)
-		seccomp_audit_arch=AUDIT_ARCH_MIPS64
+		case "$mips_abi" in
+		"n32")
+			seccomp_audit_arch=AUDIT_ARCH_MIPS64N32
+			;;
+		"n64")
+			seccomp_audit_arch=AUDIT_ARCH_MIPS64
+			;;
+		esac
 		;;
 	mips64el-*)
-		seccomp_audit_arch=AUDIT_ARCH_MIPSEL64
+		case "$mips_abi" in
+		"n32")
+			seccomp_audit_arch=AUDIT_ARCH_MIPSEL64N32
+			;;
+		"n64")
+			seccomp_audit_arch=AUDIT_ARCH_MIPSEL64
+			;;
+		esac
 		;;
 	esac
 	if test "x$seccomp_audit_arch" != "x" ; then
