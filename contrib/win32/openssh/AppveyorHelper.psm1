@@ -167,10 +167,7 @@ function Install-OpenSSH
 
     Push-Location $OpenSSHDir 
     & "$OpenSSHDir\install-sshd.ps1"
-    & "$OpenSSHDir\ssh-keygen.exe" -A    
-    & "$OpenSSHDir\FixHostFilePermissions.ps1" -Confirm:$false
 
-    #machine will be reboot after Install-openssh anyway
     $machinePath = [Environment]::GetEnvironmentVariable('Path', 'MACHINE')
     $newMachineEnvironmentPath = $machinePath
     if (-not ($machinePath.ToLower().Contains($OpenSSHDir.ToLower())))
@@ -184,8 +181,8 @@ function Install-OpenSSH
         [Environment]::SetEnvironmentVariable('Path', $newMachineEnvironmentPath, 'MACHINE')
     }
     
-    Set-Service sshd -StartupType Automatic 
-    Set-Service ssh-agent -StartupType Automatic
+    Start-Service -Name sshd 
+    Start-Service -Name ssh-agent
 
     Pop-Location
     Write-BuildMessage -Message "OpenSSH installed!" -Category Information

@@ -54,7 +54,9 @@
 #include "inc\string.h"
 #include "inc\grp.h"
 
-/* Maximum reparse buffer info size. The max user defined reparse 
+static char* s_programdir = NULL;
+
+/* Maximum reparse buffer info size. The max user defined reparse
  * data is 16KB, plus there's a header. 
  */
 #define MAX_REPARSE_SIZE 17000 
@@ -400,6 +402,34 @@ w32_setvbuf(FILE *stream, char *buffer, int mode, size_t size) {
 		return setvbuf(stream, NULL, _IONBF, 0);
 	else
 		return setvbuf(stream, buffer, mode, size);
+}
+
+/* TODO - deprecate this. This is not a POSIX API, used internally only */
+char *
+w32_programdir()
+{
+	wchar_t* wpgmptr;
+
+	if (s_programdir != NULL)
+		return s_programdir;
+
+	if (_get_wpgmptr(&wpgmptr) != 0)
+		return NULL;
+
+	if ((s_programdir = utf16_to_utf8(wpgmptr)) == NULL)
+		return NULL;
+
+	/* null terminate after directory path */
+	char* tail = s_programdir + strlen(s_programdir);
+	while (tail > s_programdir && *tail != '\\' && *tail != '/')
+		tail--;
+
+	if (tail > s_programdir)
+		*tail = '\0';
+	else
+		*tail = '.'; /* current directory */
+
+	return s_programdir;
 }
 
 int

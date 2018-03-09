@@ -71,7 +71,6 @@ void fd_decode_state(char*);
 
 /* __progname */
 char* __progname = "";
-static char* s_programdir = "";
 
 /* initializes mapping table*/
 static int
@@ -161,28 +160,24 @@ fd_table_clear(int index)
 	FD_CLR(index, &(fd_table.occupied));
 }
 
-char *
-w32_programdir()
-{
-	return s_programdir;
-}
-
+/* TODO - consolidate w32_programdir logic in here */
 static int 
 init_prog_paths()
 {
 	wchar_t* wpgmptr;
+	char* pgmptr;
 
 	if (_get_wpgmptr(&wpgmptr) != 0) {
 		errno = EOTHER;
 		return -1;
 	}
 
-	if ((s_programdir = utf16_to_utf8(wpgmptr)) == NULL) {
+	if ((pgmptr = utf16_to_utf8(wpgmptr)) == NULL) {
 		errno = ENOMEM;
 		return -1;
 	}
 
-	__progname = strrchr(s_programdir, '\\') + 1;
+	__progname = strrchr(pgmptr, '\\') + 1;
 	*(__progname - 1) = '\0';
 
 	/* strip .exe off __progname */
