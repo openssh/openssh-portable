@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.76 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.77 2018/03/12 00:52:01 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -311,6 +311,7 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 	int r;
 	struct sshauthopt *ret = NULL;
 	const char *errstr = "unknown error";
+	uint64_t valid_before;
 
 	if (errstrp != NULL)
 		*errstrp = NULL;
@@ -366,6 +367,19 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 			    &errstr);
 			if (ret->required_from_host_keys == NULL)
 				goto fail;
+		} else if (opt_match(&opts, "valid-before")) {
+			if ((opt = opt_dequote(&opts, &errstr)) == NULL)
+				goto fail;
+			if (parse_absolute_time(opt, &valid_before) != 0 ||
+			    valid_before == 0) {
+				free(opt);
+				errstr = "invalid expires time";
+				goto fail;
+			}
+			free(opt);
+			if (ret->valid_before == 0 ||
+			    valid_before < ret->valid_before)
+				ret->valid_before = valid_before;
 		} else if (opt_match(&opts, "environment")) {
 			if (ret->nenv > INT_MAX) {
 				errstr = "too many environment strings";
@@ -572,6 +586,13 @@ sshauthopt_merge(const struct sshauthopt *primary,
 	OPTFLAG(permit_user_rc);
 #undef OPTFLAG
 
+	/* Earliest expiry time should win */
+	if (primary->valid_before != 0)
+		ret->valid_before = primary->valid_before;
+	if (additional->valid_before != 0 &&
+	    additional->valid_before < ret->valid_before)
+		ret->valid_before = additional->valid_before;
+
 	/*
 	 * When both multiple forced-command are specified, only
 	 * proceed if they are identical, otherwise fail.
@@ -631,6 +652,7 @@ sshauthopt_copy(const struct sshauthopt *orig)
 	OPTSCALAR(restricted);
 	OPTSCALAR(cert_authority);
 	OPTSCALAR(force_tun_device);
+	OPTSCALAR(valid_before);
 #undef OPTSCALAR
 #define OPTSTRING(x) \
 	do { \
@@ -751,14 +773,15 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 {
 	int r = SSH_ERR_INTERNAL_ERROR;
 
-	/* Flag options */
+	/* Flag and simple integer options */
 	if ((r = sshbuf_put_u8(m, opts->permit_port_forwarding_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_agent_forwarding_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_x11_forwarding_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_pty_flag)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->permit_user_rc)) != 0 ||
 	    (r = sshbuf_put_u8(m, opts->restricted)) != 0 ||
-	    (r = sshbuf_put_u8(m, opts->cert_authority)) != 0)
+	    (r = sshbuf_put_u8(m, opts->cert_authority)) != 0 ||
+	    (r = sshbuf_put_u64(m, opts->valid_before)) != 0)
 		return r;
 
 	/* tunnel number can be negative to indicate "unset" */
@@ -814,6 +837,9 @@ sshauthopt_deserialise(struct sshbuf *m, struct sshauthopt **optsp)
 	OPT_FLAG(restricted);
 	OPT_FLAG(cert_authority);
 #undef OPT_FLAG
+
+	if ((r = sshbuf_get_u64(m, &opts->valid_before)) != 0)
+		goto out;
 
 	/* tunnel number can be negative to indicate "unset" */
 	if ((r = sshbuf_get_u8(m, &f)) != 0 ||

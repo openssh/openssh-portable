@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.h,v 1.25 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: auth-options.h,v 1.26 2018/03/12 00:52:01 djm Exp $ */
 
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
@@ -36,6 +36,9 @@ struct sshauthopt {
 
 	/* "restrict" keyword was invoked */
 	int restricted;
+
+	/* key/principal expiry date */
+	uint64_t valid_before;
 
 	/* Certificate-related options */
 	int cert_authority;

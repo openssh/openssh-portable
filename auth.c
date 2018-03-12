@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.126 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.127 2018/03/12 00:52:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1004,20 +1004,21 @@ auth_log_authopts(const char *loc, const struct sshauthopt *opts, int do_remote)
 	int do_permitopen = opts->npermitopen > 0 &&
 	    (options.allow_tcp_forwarding & FORWARD_LOCAL) != 0;
 	size_t i;
-	char msg[1024], tbuf[32];
+	char msg[1024], buf[64];
 
-	snprintf(tbuf, sizeof(tbuf), "%d", opts->force_tun_device);
+	snprintf(buf, sizeof(buf), "%d", opts->force_tun_device);
 	/* Try to keep this alphabetically sorted */
-	snprintf(msg, sizeof(msg), "key options:%s%s%s%s%s%s%s%s%s%s%s",
+	snprintf(msg, sizeof(msg), "key options:%s%s%s%s%s%s%s%s%s%s%s%s",
 	    opts->permit_agent_forwarding_flag ? " agent-forwarding" : "",
 	    opts->force_command == NULL ? "" : " command",
 	    do_env ?  " environment" : "",
+	    opts->valid_before == 0 ? "" : "expires",
 	    do_permitopen ?  " permitopen" : "",
 	    opts->permit_port_forwarding_flag ? " port-forwarding" : "",
 	    opts->cert_principals == NULL ? "" : " principals",
 	    opts->permit_pty_flag ? " pty" : "",
 	    opts->force_tun_device == -1 ? "" : " tun=",
-	    opts->force_tun_device == -1 ? "" : tbuf,
+	    opts->force_tun_device == -1 ? "" : buf,
 	    opts->permit_user_rc ? " user-rc" : "",
 	    opts->permit_x11_forwarding_flag ? " x11-forwarding" : "");
 
@@ -1036,6 +1037,10 @@ auth_log_authopts(const char *loc, const struct sshauthopt *opts, int do_remote)
 	}
 
 	/* Go into a little more details for the local logs. */
+	if (opts->valid_before != 0) {
+		format_absolute_time(opts->valid_before, buf, sizeof(buf));
+		debug("%s: expires at %s", loc, buf);
+	}
 	if (opts->cert_principals != NULL) {
 		debug("%s: authorized principals: \"%s\"",
 		    loc, opts->cert_principals);
@@ -1089,7 +1094,20 @@ auth_authorise_keyopts(struct ssh *ssh, struct passwd *pw,
 	const char *remote_ip = ssh_remote_ipaddr(ssh);
 	const char *remote_host = auth_get_canonical_hostname(ssh,
 	    options.use_dns);
+	time_t now = time(NULL);
+	char buf[64];
 
+	/*
+	 * Check keys/principals file expiry time.
+	 * NB. validity interval in certificate is handled elsewhere.
+	 */
+	if (opts->valid_before && now > 0 &&
+	    opts->valid_before < (uint64_t)now) {
+		format_absolute_time(opts->valid_before, buf, sizeof(buf));
+		debug("%s: entry expired at %s", loc, buf);
+		auth_debug_add("%s: entry expired at %s", loc, buf);
+		return -1;
+	}
 	/* Consistency checks */
 	if (opts->cert_principals != NULL && !opts->cert_authority) {
 		debug("%s: principals on non-CA key", loc);

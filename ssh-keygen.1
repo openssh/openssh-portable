@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.146 2018/01/25 03:34:43 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.147 2018/03/12 00:52:01 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 25 2018 $
+.Dd $Mdocdate: March 12 2018 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -588,13 +588,13 @@ of two times separated by a colon to indicate an explicit time interval.
 The start time may be specified as the string
 .Dq always
 to indicate the certificate has no specified start time,
-a date in YYYYMMDD format, a time in YYYYMMDDHHMMSS format,
+a date in YYYYMMDD format, a time in YYYYMMDDHHMM[SS] format,
 a relative time (to the current time) consisting of a minus sign followed by
 an interval in the format described in the
 TIME FORMATS section of
 .Xr sshd_config 5 .
 .Pp
-The end time may be specified as a YYYYMMDD date, a YYYYMMDDHHMMSS time,
+The end time may be specified as a YYYYMMDD date, a YYYYMMDDHHMM[SS] time,
 a relative time starting with a plus character or the string
 .Dq forever
 to indicate that the certificate has no expirty date.

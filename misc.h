@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.70 2018/01/08 15:21:49 markus Exp $ */
+/* $OpenBSD: misc.h,v 1.71 2018/03/12 00:52:01 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -75,6 +75,8 @@ void	 lowercase(char *s);
 int	 unix_listener(const char *, int, int);
 int	 valid_domain(char *, int, const char **);
 const char *atoi_err(const char *, int *);
+int	 parse_absolute_time(const char *, uint64_t *);
+void	 format_absolute_time(uint64_t, char *, size_t);
 
 void	 sock_set_v6only(int);
 
