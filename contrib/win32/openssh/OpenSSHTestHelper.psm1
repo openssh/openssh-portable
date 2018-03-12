@@ -37,7 +37,7 @@ function Set-OpenSSHTestEnvironment
     (   
         [string] $OpenSSHBinPath,
         [string] $TestDataPath = "$env:SystemDrive\OpenSSHTests",        
-        [Boolean] $DebugMode = $false,
+        [Switch] $DebugMode,
         [Switch] $NoAppVerifier,
         [Switch] $PostmortemDebugging,
         [Switch] $NoLibreSSL
@@ -78,7 +78,7 @@ function Set-OpenSSHTestEnvironment
         "UnitTestResultsFile" = $Script:UnitTestResultsFile;   # openssh unittest test results file
         "E2ETestDirectory" = $Script:E2ETestDirectory          # the directory of E2E tests
         "UnitTestDirectory" = $Script:UnitTestDirectory        # the directory of unit tests
-        "DebugMode" = $DebugMode                               # run openssh E2E in debug mode
+        "DebugMode" = $DebugMode.IsPresent                     # run openssh E2E in debug mode
         "EnableAppVerifier" = $Script:EnableAppVerifier
         "PostmortemDebugging" = $Script:PostmortemDebugging
         "NoLibreSSL" = $Script:NoLibreSSL
@@ -173,6 +173,10 @@ WARNING: Following changes will be made to OpenSSH configuration
     $targetsshdConfig = Join-Path $OpenSSHConfigPath sshd_config
     # copy new sshd_config
     Copy-Item (Join-Path $Script:E2ETestDirectory sshd_config) $targetsshdConfig -Force
+    if($DebugMode) {
+        $con = (Get-Content $targetsshdConfig | Out-String).Replace("#SyslogFacility AUTH","SyslogFacility LOCAL0")
+        Set-Content -Path $targetsshdConfig -Value "$con" -Force    
+    }
     
     Start-Service ssh-agent
 

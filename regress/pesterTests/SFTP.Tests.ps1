@@ -1,5 +1,6 @@
 ﻿If ($PSVersiontable.PSVersion.Major -le 2) {$PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path}
 Import-Module $PSScriptRoot\CommonUtils.psm1 -Force
+$tI = 0
 Describe "SFTP Test Cases" -Tags "CI" {
     BeforeAll {
         $serverDirectory = $null
@@ -30,10 +31,10 @@ Describe "SFTP Test Cases" -Tags "CI" {
         $server = $OpenSSHTestInfo["Target"]
         $port = $OpenSSHTestInfo["Port"]
         $ssouser = $OpenSSHTestInfo["SSOUser"]
-        $script:testId = 1
 
         Remove-item (Join-Path $rootDirectory "*.$outputFileName") -Force -ErrorAction SilentlyContinue                
         Remove-item (Join-Path $rootDirectory "*.$batchFileName") -Force -ErrorAction SilentlyContinue
+        Remove-item (Join-Path $rootDirectory "*.log") -Force -ErrorAction SilentlyContinue
         
         $platform = Get-Platform
         $skip = ($platform -eq [PlatformType]::Windows) -and ($PSVersionTable.PSVersion.Major -le 2)
@@ -168,22 +169,22 @@ Describe "SFTP Test Cases" -Tags "CI" {
         # for the first time, delete the existing log files.
         if ($OpenSSHTestInfo['DebugMode'])
         {
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction SilentlyContinue
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sftp-server.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\sshd.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\sftp-server.log" -Force -ErrorAction SilentlyContinue
         }
 
         function CopyDebugLogs {
             if($OpenSSHTestInfo["DebugMode"])
             {
-                Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent_$script:testId.log" -Force
-                Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd_$script:testId.log" -Force
-                Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sftp-server.log" "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sftp-server_$script:testId.log" -Force
+                Copy-Item "$env:ProgramData\ssh\logs\ssh-agent.log" "$rootDirectory\ssh-agent_$tI.log" -Force -ErrorAction SilentlyContinue
+                Copy-Item "$env:ProgramData\ssh\logs\sshd.log" "$rootDirectory\sshd_$tI.log" -Force -ErrorAction SilentlyContinue
+                Copy-Item "$env:ProgramData\ssh\logs\sftp-server.log" "$rootDirectory\sftp-server_$tI.log" -Force -ErrorAction SilentlyContinue
                 
                 # clear the ssh-agent, sshd logs so that next testcase will get fresh logs.
-                Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
-                Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction SilentlyContinue
-                Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sftp-server.log" -Force -ErrorAction SilentlyContinue
+                Clear-Content "$env:ProgramData\ssh\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
+                Clear-Content "$env:ProgramData\ssh\logs\sshd.log" -Force -ErrorAction SilentlyContinue
+                Clear-Content "$env:ProgramData\ssh\logs\sftp-server.log" -Force -ErrorAction SilentlyContinue
             }
         }
     }
@@ -196,13 +197,13 @@ Describe "SFTP Test Cases" -Tags "CI" {
     BeforeEach {
        if($serverDirectory) { Get-ChildItem $serverDirectory | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
        if($clientDirectory) { Get-ChildItem $clientDirectory | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue }
-       $outputFilePath = Join-Path $rootDirectory "$($script:testId).$outputFileName"
-       $batchFilePath = Join-Path $rootDirectory "$($script:testId).$batchFileName"
+       $outputFilePath = Join-Path $rootDirectory "$tI.$outputFileName"
+       $batchFilePath = Join-Path $rootDirectory "$tI.$batchFileName"
     }
 
     AfterEach {
         CopyDebugLogs
-        $script:testId++
+        $tI++
     }    
 
     It '<Title>' -TestCases:$testData1 {

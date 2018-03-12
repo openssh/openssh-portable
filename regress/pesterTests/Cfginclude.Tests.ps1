@@ -2,7 +2,7 @@
 Import-Module $PSScriptRoot\CommonUtils.psm1 -Force
 $tC = 1
 $tI = 0
-$suite = "authorized_keys_fileperm"
+$suite = "Cfginclude"
 Describe "Tests for ssh config" -Tags "CI" {
     BeforeAll {
         if($OpenSSHTestInfo -eq $null)
@@ -28,8 +28,8 @@ Describe "Tests for ssh config" -Tags "CI" {
         # for the first time, delete the existing log files.
         if ($OpenSSHTestInfo['DebugMode'])
         {         
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction SilentlyContinue         
+            Clear-Content "$env:ProgramData\ssh\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\sshd.log" -Force -ErrorAction SilentlyContinue         
             Remove-Item -Path (Join-Path $testDir "*log*.log") -Force -ErrorAction SilentlyContinue
         }
         
@@ -39,12 +39,12 @@ Describe "Tests for ssh config" -Tags "CI" {
     AfterEach {        
         if( $OpenSSHTestInfo["DebugMode"])
         {
-            Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" "$testDir\agentlog$tC.$tI.log" -Force -ErrorAction SilentlyContinue
-            Copy-Item "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" "$testDir\sshdlog$tC.$tI.log" -Force -ErrorAction SilentlyContinue
+            Copy-Item "$env:ProgramData\ssh\logs\ssh-agent.log" "$testDir\agentlog$tC.$tI.log" -Force -ErrorAction SilentlyContinue
+            Copy-Item "$env:ProgramData\ssh\logs\sshd.log" "$testDir\sshdlog$tC.$tI.log" -Force -ErrorAction SilentlyContinue
                     
             #Clear the ssh-agent, sshd logs so that next testcase will get fresh logs.
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
-            Clear-Content "$($OpenSSHTestInfo['OpenSSHBinPath'])\logs\sshd.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\ssh-agent.log" -Force -ErrorAction SilentlyContinue
+            Clear-Content "$env:ProgramData\ssh\logs\sshd.log" -Force -ErrorAction SilentlyContinue
         }
         $tI++
     }
