@@ -822,19 +822,19 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	# Obtain MIPS ABI
 	case "$host" in
 	mips*)
-		AC_COMPILE_IFELSE([
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if _MIPS_SIM != _ABIO32
 #error
 #endif
-			],[mips_abi="o32"],[AC_COMPILE_IFELSE([
+			]])],[mips_abi="o32"],[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if _MIPS_SIM != _ABIN32
 #error
 #endif
-				],[mips_abi="n32"],[AC_COMPILE_IFELSE([
+				]])],[mips_abi="n32"],[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if _MIPS_SIM != _ABI64
 #error
 #endif
-					],[mips_abi="n64"],[AC_MSG_ERROR([unknown MIPS ABI])
+					]])],[mips_abi="n64"],[AC_MSG_ERROR([unknown MIPS ABI])
 				])
 			])
 		])
