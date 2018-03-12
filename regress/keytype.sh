@@ -1,4 +1,4 @@
-#	$OpenBSD: keytype.sh,v 1.6 2017/10/30 22:01:52 djm Exp $
+#	$OpenBSD: keytype.sh,v 1.7 2018/03/12 00:54:04 djm Exp $
 #	Placed in the Public Domain.
 
 tid="login with different key types"
@@ -37,7 +37,7 @@ for ut in $ktypes; do
 		ecdsa-384)	t=ecdsa-sha2-nistp384;;
 		ecdsa-521)	t=ecdsa-sha2-nistp521;;
 		ed25519-512)	t=ssh-ed25519;;
-		rsa-*)		t=ssh-rsa;;
+		rsa-*)		t=rsa-sha2-512,rsa-sha2-256,ssh-rsa;;
 		esac
 		trace "ssh connect, userkey $ut, hostkey $ht"
 		(
