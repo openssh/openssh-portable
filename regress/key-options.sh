@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.6 2018/03/04 01:46:48 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.7 2018/03/12 00:56:03 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -94,4 +94,21 @@ for f in 127.0.0.1 '127.0.0.0\/8'; do
 	fi
 done
 
-rm -f "$origkeys"
+check_valid_before() {
+	which=$1
+	opts=$2
+	expect=$3
+	sed "s/.*/$opts &/" $origkeys >$authkeys
+	verbose "key option valid-before $which"
+	${SSH} -q -F $OBJ/ssh_proxy somehost true
+	case "$expect" in
+	fail)	test $? -eq 0 && fail "key option succeeded $which" ;;
+	pass)	test $? -ne 0 && fail "key option failed $which" ;;
+	*)	fatal "unknown expectation $expect" ;;
+	esac
+}
+check_valid_before "default"	""				"pass"
+check_valid_before "invalid"	'valid-before="INVALID"'	"fail"
+check_valid_before "expired"	'valid-before="19990101"'	"fail"
+check_valid_before "valid"	'valid-before="20380101"'	"pass"
+
