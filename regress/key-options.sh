@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.7 2018/03/12 00:56:03 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.8 2018/03/14 05:35:40 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -99,7 +99,7 @@ check_valid_before() {
 	opts=$2
 	expect=$3
 	sed "s/.*/$opts &/" $origkeys >$authkeys
-	verbose "key option valid-before $which"
+	verbose "key option expiry-time $which"
 	${SSH} -q -F $OBJ/ssh_proxy somehost true
 	case "$expect" in
 	fail)	test $? -eq 0 && fail "key option succeeded $which" ;;
@@ -108,7 +108,7 @@ check_valid_before() {
 	esac
 }
 check_valid_before "default"	""				"pass"
-check_valid_before "invalid"	'valid-before="INVALID"'	"fail"
-check_valid_before "expired"	'valid-before="19990101"'	"fail"
-check_valid_before "valid"	'valid-before="20380101"'	"pass"
+check_valid_before "invalid"	'expiry-time="INVALID"'		"fail"
+check_valid_before "expired"	'expiry-time="19990101"'	"fail"
+check_valid_before "valid"	'expiry-time="20380101"'	"pass"
 
