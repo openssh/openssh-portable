@@ -19,6 +19,7 @@ tests()
 {
     _set_abort_behavior(0, 1);
     log_init(NULL, 7, 2, 0);
+	signal_tests();
     socket_tests();
     file_tests();
     dir_tests();

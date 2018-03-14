@@ -282,18 +282,18 @@ wait_for_any_event(HANDLE* events, int num_events, DWORD milli_seconds)
 	debug5("wait() on %d events and %d children", num_events, live_children);
 	/* TODO - implement signal catching and handling */
 	if (num_all_events) {
-		DWORD ret = WaitForMultipleObjectsEx(num_all_events, all_events, FALSE, milli_seconds, TRUE);
-		if ((ret >= WAIT_OBJECT_0) && (ret <= WAIT_OBJECT_0 + num_all_events - 1)) {
+		DWORD ret = wait_for_multiple_objects_enhanced(num_all_events, all_events, milli_seconds, TRUE);
+		if ((ret >= WAIT_OBJECT_0_ENHANCED) && (ret <= WAIT_OBJECT_0_ENHANCED + num_all_events - 1)) {
 			/* woken up by event signalled
 			 * is this due to a child process going down
 			 */
-			if (live_children && ((ret - WAIT_OBJECT_0) < live_children)) {
+			if (live_children && ((ret - WAIT_OBJECT_0_ENHANCED) < live_children)) {
 				sigaddset(&pending_signals, W32_SIGCHLD);
-				sw_child_to_zombie(ret - WAIT_OBJECT_0);
+				sw_child_to_zombie(ret - WAIT_OBJECT_0_ENHANCED);
 			}
-		} else if (ret == WAIT_IO_COMPLETION) {
+		} else if (ret == WAIT_IO_COMPLETION_ENHANCED) {
 			/* APC processed due to IO or signal*/
-		} else if (ret == WAIT_TIMEOUT) {
+		} else if (ret == WAIT_TIMEOUT_ENHANCED) {
 			/* timed out */
 			return 0;
 		} else { /* some other error*/

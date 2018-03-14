@@ -222,9 +222,9 @@ waitpid(int pid, int *status, int options)
 	timeout = INFINITE;
 	if (options & WNOHANG)
 		timeout = 0;
-	ret = WaitForMultipleObjects(children.num_children, children.handles, FALSE, timeout);
-	if ((ret >= WAIT_OBJECT_0) && (ret < (WAIT_OBJECT_0 + children.num_children))) {
-		index = ret - WAIT_OBJECT_0;
+	ret = wait_for_multiple_objects_enhanced(children.num_children, children.handles, timeout, FALSE);
+	if ((ret >= WAIT_OBJECT_0_ENHANCED) && (ret < (WAIT_OBJECT_0_ENHANCED + children.num_children))) {
+		index = ret - WAIT_OBJECT_0_ENHANCED;
 		process = children.handles[index];
 		ret_id = children.process_id[index];
 		GetExitCodeProcess(process, &exit_code);
@@ -233,7 +233,7 @@ waitpid(int pid, int *status, int options)
 		if (status)
 			*status = exit_code;
 		return ret_id;
-	} else if (ret == WAIT_TIMEOUT) {
+	} else if (ret == WAIT_TIMEOUT_ENHANCED) {
 		/* TODO - assert that WNOHANG  was specified*/
 		return 0;
 	}

@@ -60,6 +60,9 @@
     <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\string_tests.c">
       <ExcludedFromBuild Condition="$(UseOpenSSL)=='false'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\signal_tests.c">
+      <ExcludedFromBuild Condition="$(UseOpenSSL)=='false'">true</ExcludedFromBuild>
+    </ClCompile>    
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)regress\unittests\win32compat\tests.h" />

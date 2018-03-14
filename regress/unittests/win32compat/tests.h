@@ -1,4 +1,5 @@
 #pragma once
+void signal_tests();
 void socket_tests();
 void file_tests();
 void miscellaneous_tests();
