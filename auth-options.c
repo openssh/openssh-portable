@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.77 2018/03/12 00:52:01 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.78 2018/03/14 05:35:40 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -367,7 +367,7 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 			    &errstr);
 			if (ret->required_from_host_keys == NULL)
 				goto fail;
-		} else if (opt_match(&opts, "valid-before")) {
+		} else if (opt_match(&opts, "expiry-time")) {
 			if ((opt = opt_dequote(&opts, &errstr)) == NULL)
 				goto fail;
 			if (parse_absolute_time(opt, &valid_before) != 0 ||
