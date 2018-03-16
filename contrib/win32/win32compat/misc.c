@@ -663,6 +663,11 @@ w32_rename(const char *old_name, const char *new_name)
 	char old_name_resolved[PATH_MAX] = {0, };
 	char new_name_resolved[PATH_MAX] = {0, };
 
+	if (old_name == NULL || new_name == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
 	strcpy_s(old_name_resolved, _countof(old_name_resolved), resolved_path(old_name));
 	strcpy_s(new_name_resolved, _countof(new_name_resolved), resolved_path(new_name));
 

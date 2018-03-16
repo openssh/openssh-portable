@@ -436,10 +436,11 @@ file_miscellaneous_tests()
 	f = open(tmp_filename, O_RDWR | O_CREAT | O_TRUNC, 0600);
 	ASSERT_INT_NE(f, -1);
 	int f1 = dup(f);
-	ASSERT_INT_EQ(f1, -1);
+	ASSERT_INT_NE(f1, -1);
 	HANDLE h = w32_fd_to_handle(f);
 	ASSERT_HANDLE(h);
 	close(f);
+	close(f1);
 
 	char *tmp_filename_1 = "tmp_1.txt";
 	retValue = rename(tmp_filename, tmp_filename_1);
