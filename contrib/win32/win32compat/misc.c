@@ -70,33 +70,6 @@ static char* s_programdir = NULL;
 #define EPOCH_DELTA_US  116444736000000000ULL
 #define RATE_DIFF 10000000ULL /* 1000 nsecs */
 
-typedef struct _REPARSE_DATA_BUFFER {
-	ULONG  ReparseTag;
-	USHORT ReparseDataLength;
-	USHORT Reserved;
-	union {
-		struct {
-			USHORT SubstituteNameOffset;
-			USHORT SubstituteNameLength;
-			USHORT PrintNameOffset;
-			USHORT PrintNameLength;
-			WCHAR PathBuffer[1];
-		} SymbolicLinkReparseBuffer;
-
-		struct {
-			USHORT SubstituteNameOffset;
-			USHORT SubstituteNameLength;
-			USHORT PrintNameOffset;
-			USHORT PrintNameLength;
-			WCHAR PathBuffer[1];
-		} MountPointReparseBuffer;
-
-		struct {
-			UCHAR  DataBuffer[1];
-		} GenericReparseBuffer;
-	};
-} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
-
 /* Windows CRT defines error string messages only till 43 in errno.h
  * This is an extended list that defines messages for EADDRINUSE through EWOULDBLOCK
  */
@@ -482,6 +455,9 @@ strmode(mode_t mode, char *p)
 	case S_IFREG:			/* regular */
 		*p++ = '-';
 		break;
+	case S_IFLNK:			/* symbolic link */
+		*p++ = 'l';
+		break;			
 #ifdef S_IFSOCK
 	case S_IFSOCK:			/* socket */
 		*p++ = 's';
@@ -831,13 +807,17 @@ w32_stat(const char *input_path, struct w32_stat *buf)
 	return fileio_stat(resolved_path(input_path), (struct _stat64*)buf);
 }
 
+int
+w32_lstat(const char *input_path, struct w32_stat *buf)
+{
+	return fileio_lstat(resolved_path(input_path), (struct _stat64*)buf);
+}
+
 /* if file is symbolic link, copy its link into "link" */
 int
 readlink(const char *path, char *link, int linklen)
 {
-	if(strcpy_s(link, linklen, resolved_path(path)))
-		return -1;
-	return 0;
+	return fileio_readlink(resolved_path(path), link, linklen);
 }
 
 /* convert forward slash to back slash */
