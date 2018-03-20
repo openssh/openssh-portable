@@ -73,15 +73,34 @@ DWORD
 wait_for_multiple_objects_enhanced(_In_ DWORD  nCount, _In_ const HANDLE *lpHandles,
 	_In_ DWORD dwMilliseconds, _In_ BOOL bAlertable)
 {
-	
 	/* number of separate bins / threads required to monitor execution */
 	const DWORD bin_size = MAXIMUM_WAIT_OBJECTS;
 	const DWORD bins_total = (nCount - 1) / bin_size + 1;
 	
 	DWORD return_value = WAIT_FAILED_ENHANCED;
 	HANDLE wait_event = NULL;
-	wait_for_multiple_objects_struct *wait_bins = NULL;
+	wait_for_multiple_objects_struct wait_bins[(MAXIMUM_WAIT_OBJECTS_ENHANCED - 1) / MAXIMUM_WAIT_OBJECTS + 1] = { 0 };
 	DWORD wait_ret;
+
+	/* protect against too many events */
+	if (nCount > MAXIMUM_WAIT_OBJECTS_ENHANCED)
+	{
+		return WAIT_FAILED_ENHANCED;
+	}
+
+	/* in the event that no events are passed and alterable, just do a sleep and
+	 * and wait for wakeup call.  This differs from the WaitForMultipleObjectsEx
+	 * call which would return an error if no events are passed to the function. */
+	if (nCount == 0 && bAlertable)
+	{
+		DWORD wait_ret = SleepEx(dwMilliseconds, TRUE);
+		if (wait_ret == 0)
+			return WAIT_TIMEOUT_ENHANCED;
+		else if (wait_ret == WAIT_IO_COMPLETION) 
+			return WAIT_IO_COMPLETION_ENHANCED;
+		else
+			return WAIT_FAILED_ENHANCED;
+	}
 	
 	/* if less than the normal maximum then just use the built-in function
 	 * to avoid the overhead of another thread */
@@ -108,21 +127,12 @@ wait_for_multiple_objects_enhanced(_In_ DWORD  nCount, _In_ const HANDLE *lpHand
 		return WAIT_FAILED_ENHANCED;
 	}
 
-
 	/* setup synchronization event to flag when the main thread should wake up */
 	wait_event = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (wait_event == NULL) {
 		goto cleanup;
 	}
 
-	/* allocate an area to communicate with our threads */
-	wait_bins = (wait_for_multiple_objects_struct *)
-		calloc(bins_total, sizeof(wait_for_multiple_objects_struct));
-	if (wait_bins == NULL) {
-		goto cleanup;
-	}
-
-	ZeroMemory(wait_bins, bins_total * sizeof(wait_for_multiple_objects_struct));
 	/* initialize each thread that handles up to MAXIMUM_WAIT_OBJECTS each */
 	for (DWORD bin = 0; bin < bins_total; bin++) {
 
@@ -220,7 +230,5 @@ cleanup:
 
 	if (wait_event)
 		CloseHandle(wait_event);
-	if (wait_bins)
-		free(wait_bins);
 	return return_value;
 }

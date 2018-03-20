@@ -654,7 +654,7 @@ w32_fcntl(int fd, int cmd, ... /* arg */)
 	return ret;
 }
 
-#define SELECT_EVENT_LIMIT 32
+#define SELECT_EVENT_LIMIT 512
 int
 w32_select(int fds, w32_fd_set* readfds, w32_fd_set* writefds, w32_fd_set* exceptfds, const struct timeval *timeout)
 {

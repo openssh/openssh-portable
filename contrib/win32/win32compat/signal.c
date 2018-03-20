@@ -260,59 +260,42 @@ sw_process_pending_signals()
 int
 wait_for_any_event(HANDLE* events, int num_events, DWORD milli_seconds)
 {
-	HANDLE all_events[MAXIMUM_WAIT_OBJECTS];
-	DWORD num_all_events;
+	HANDLE all_events[MAXIMUM_WAIT_OBJECTS_ENHANCED];
 	DWORD live_children = children.num_children - children.num_zombies;
+	DWORD num_all_events = num_events + live_children;
 	errno_t r = 0;
 
-	num_all_events = num_events + live_children;
-
-	if (num_all_events > MAXIMUM_WAIT_OBJECTS) {
-		debug3("wait() - ERROR max events reached");
+	if (num_all_events > MAXIMUM_WAIT_OBJECTS_ENHANCED) {
+		debug3("wait_for_any_event() - ERROR max events reached");
 		errno = ENOTSUP;
 		return -1;
 	}
 
-	if ((r = memcpy_s(all_events, MAXIMUM_WAIT_OBJECTS * sizeof(HANDLE), children.handles, live_children * sizeof(HANDLE)) != 0) ||
-	( r = memcpy_s(all_events + live_children, (MAXIMUM_WAIT_OBJECTS - live_children) * sizeof(HANDLE), events, num_events * sizeof(HANDLE)) != 0)) {
+	if ((r = memcpy_s(all_events, MAXIMUM_WAIT_OBJECTS_ENHANCED * sizeof(HANDLE), children.handles, live_children * sizeof(HANDLE)) != 0) ||
+	( r = memcpy_s(all_events + live_children, (MAXIMUM_WAIT_OBJECTS_ENHANCED - live_children) * sizeof(HANDLE), events, num_events * sizeof(HANDLE)) != 0)) {
 		debug3("memcpy_s failed with error: %d.", r);
 		return -1;
 	}
 
 	debug5("wait() on %d events and %d children", num_events, live_children);
-	/* TODO - implement signal catching and handling */
-	if (num_all_events) {
-		DWORD ret = wait_for_multiple_objects_enhanced(num_all_events, all_events, milli_seconds, TRUE);
-		if ((ret >= WAIT_OBJECT_0_ENHANCED) && (ret <= WAIT_OBJECT_0_ENHANCED + num_all_events - 1)) {
-			/* woken up by event signalled
-			 * is this due to a child process going down
-			 */
-			if (live_children && ((ret - WAIT_OBJECT_0_ENHANCED) < live_children)) {
-				sigaddset(&pending_signals, W32_SIGCHLD);
-				sw_child_to_zombie(ret - WAIT_OBJECT_0_ENHANCED);
-			}
-		} else if (ret == WAIT_IO_COMPLETION_ENHANCED) {
-			/* APC processed due to IO or signal*/
-		} else if (ret == WAIT_TIMEOUT_ENHANCED) {
-			/* timed out */
-			return 0;
-		} else { /* some other error*/
-			errno = EOTHER;
-			debug3("ERROR: unxpected wait end: %d", ret);
-			return -1;
+	DWORD ret = wait_for_multiple_objects_enhanced(num_all_events, all_events, milli_seconds, TRUE);
+	if ((ret >= WAIT_OBJECT_0_ENHANCED) && (ret <= WAIT_OBJECT_0_ENHANCED + num_all_events - 1)) {
+		/* woken up by event signaled
+		 * is this due to a child process going down
+		 */
+		if (live_children && ((ret - WAIT_OBJECT_0_ENHANCED) < live_children)) {
+			sigaddset(&pending_signals, W32_SIGCHLD);
+			sw_child_to_zombie(ret - WAIT_OBJECT_0_ENHANCED);
 		}
-	} else {
-		DWORD ret = SleepEx(milli_seconds, TRUE);
-		if (ret == WAIT_IO_COMPLETION) {
-			/* APC processed due to IO or signal*/
-		} else if (ret == 0) {
-			/* timed out */
-			return 0;
-		} else { /* some other error */
-			errno = EOTHER;
-			debug3("ERROR: unxpected SleepEx error: %d", ret);
-			return -1;
-		}
+	} else if (ret == WAIT_IO_COMPLETION_ENHANCED) {
+		/* APC processed due to IO or signal*/
+	} else if (ret == WAIT_TIMEOUT_ENHANCED) {
+		/* timed out */
+		return 0;
+	} else { /* some other error*/
+		errno = EOTHER;
+		debug3("ERROR: unexpected wait end: %d", ret);
+		return -1;
 	}
 
 	if (pending_signals)
