@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.63 2018/03/02 02:08:03 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.64 2018/03/22 07:05:48 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3005,9 +3005,14 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 	case KEY_XMSS_CERT:
 		if ((r = sshkey_froms(buf, &k)) != 0 ||
 		    (r = sshkey_add_private(k)) != 0 ||
+		    (r = sshbuf_get_cstring(buf, &xmss_name, NULL)) != 0 ||
 		    (r = sshbuf_get_string(buf, &xmss_pk, &pklen)) != 0 ||
 		    (r = sshbuf_get_string(buf, &xmss_sk, &sklen)) != 0)
 			goto out;
+		if (strcmp(xmss_name, k->xmss_name)) {
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
 		if (pklen != sshkey_xmss_pklen(k) ||
 		    sklen != sshkey_xmss_sklen(k)) {
 			r = SSH_ERR_INVALID_FORMAT;
