@@ -527,6 +527,9 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyLocalhost=1" >> ${OBJ}/.putty/sessions/localhost_proxy
 
+	PUTTYDIR=${OBJ}/.putty
+	export PUTTYDIR
+
 	REGRESS_INTEROP_PUTTY=yes
 fi
 

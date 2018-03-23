@@ -15,7 +15,7 @@ for c in 0 1 ; do
 	    ${OBJ}/.putty/sessions/compression_$c
 	echo "Compression=$c" >> ${OBJ}/.putty/sessions/kex_$k
 	env HOME=$PWD ${PLINK} -load compression_$c -batch \
-	    -i putty.rsa2 cat ${DATA} > ${COPY}
+	    -i ${OBJ}/putty.rsa2 cat ${DATA} > ${COPY}
 	if [ $? -ne 0 ]; then
 		fail "ssh cat $DATA failed"
 	fi
@@ -26,7 +26,7 @@ for c in 0 1 ; do
 		rm -f ${COPY}
 		dd if=$DATA obs=${s} 2> /dev/null | \
 			env HOME=$PWD ${PLINK} -load compression_$c \
-			    -batch -i putty.rsa2 \
+			    -batch -i ${OBJ}/putty.rsa2 \
 			    "cat > ${COPY}"
 		if [ $? -ne 0 ]; then
 			fail "ssh cat $DATA failed"
