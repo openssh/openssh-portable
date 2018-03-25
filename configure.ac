@@ -1091,20 +1091,16 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE([PASSWD_NEEDS_USERNAME])
 	AC_DEFINE([BROKEN_TCGETATTR_ICANON])
 	TEST_SHELL=$SHELL	# let configure find us a capable shell
+	check_for_libcrypt_later=1
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
 		maildir=/var/spool/mail
-		AC_DEFINE([BROKEN_LIBIAF], [1],
-			[ia_uinfo routines not supported by OS yet])
 		AC_DEFINE([BROKEN_UPDWTMPX])
 		AC_CHECK_LIB([prot], [getluid], [ LIBS="$LIBS -lprot"
 			AC_CHECK_FUNCS([getluid setluid], , , [-lprot])
-			AC_DEFINE([HAVE_SECUREWARE])
-			AC_DEFINE([DISABLE_SHADOW])
 			], , )
 		;;
 	*)	AC_DEFINE([LOCKED_PASSWD_STRING], ["*LK*"])
-		check_for_libcrypt_later=1
 		;;
 	esac
 	;;
