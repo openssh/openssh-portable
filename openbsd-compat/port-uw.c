@@ -51,8 +51,9 @@
 int nischeck(char *);
 
 int
-sys_auth_passwd(Authctxt *authctxt, const char *password)
+sys_auth_passwd(struct ssh *ssh, const char *password)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
 	char *salt;
 	int result;
