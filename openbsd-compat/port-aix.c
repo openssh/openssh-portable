@@ -32,6 +32,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "ssh.h"
+#include "ssh_api.h"
 #include "log.h"
 
 #ifdef _AIX

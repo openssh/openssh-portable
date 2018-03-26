@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "ssh.h"
+#include "ssh_api.h"
 #include "key.h"
 #include "hostfile.h"
 #include "auth.h"

@@ -47,6 +47,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "ssh.h"
+#include "ssh_api.h"
 
 int nischeck(char *);
 
