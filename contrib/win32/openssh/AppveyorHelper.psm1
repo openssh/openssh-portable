@@ -162,6 +162,7 @@ function Install-OpenSSH
             $NativeHostArch = 'x86'
         }
     }
+    UnInstall-OpenSSH -OpenSSHDir $OpenSSHDir
 
     Start-OpenSSHPackage -NativeHostArch $NativeHostArch -Configuration $Configuration -DestinationPath $OpenSSHDir
 
