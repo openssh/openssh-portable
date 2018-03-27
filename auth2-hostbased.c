@@ -83,7 +83,7 @@ userauth_hostbased(struct ssh *ssh)
 	    cuser, chost, pkalg, slen);
 #ifdef DEBUG_PK
 	debug("signature:");
-	sshbuf_dump_data(sig, siglen, stderr);
+	sshbuf_dump_data(sig, slen, stderr);
 #endif
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
