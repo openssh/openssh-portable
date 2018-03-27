@@ -195,7 +195,7 @@ socketio_WSARecv(struct w32_io* pio, BOOL* completed, int len)
 		wsabuf.buf = pio->read_details.buf;
 
 	if (len)
-		wsabuf.len = min(len, wsabuf.len);
+		wsabuf.len = min((ULONG)len, wsabuf.len);
 
 	ret = WSARecv(pio->sock, &wsabuf, 1, NULL, &recv_flags, &pio->read_overlapped, &WSARecvCompletionRoutine);
 	if (ret == 0) {

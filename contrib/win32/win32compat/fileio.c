@@ -830,7 +830,7 @@ fileio_readlink_internal(wchar_t * wpath)
 	 * this string could be as large as parent path plus the reparse buffer 
 	 * data plus a null terminator.
 	 */
-	const int wpath_len = wcslen(wpath);
+	const int wpath_len = (int)wcslen(wpath);
 	int linkpath_len = wpath_len + symlink_nonnull_size / sizeof(wchar_t) + 1;
 	linkpath = calloc(linkpath_len, sizeof(wchar_t));
 	if (linkpath == NULL) {
@@ -854,7 +854,7 @@ fileio_readlink_internal(wchar_t * wpath)
 	} 
 
 	/* append the symbolic link data to the output string*/
-	wcsncat(linkpath, symlink_nonnull, symlink_nonnull_size / sizeof(wchar_t));
+	wcsncat_s(linkpath, linkpath_len, symlink_nonnull, symlink_nonnull_size / sizeof(wchar_t));
 
 cleanup:
 
@@ -1119,7 +1119,7 @@ fileio_readlink(const char *path, char *buf, size_t bufsiz)
 	}
 
 	/* ensure output buffer is large enough forward slash and the string */
-	ssize_t out_size = strlen(output);
+	ssize_t out_size = (ssize_t) strlen(output);
 	if (1 + out_size > bufsiz) {
 		errno = ENAMETOOLONG;
 		goto cleanup;

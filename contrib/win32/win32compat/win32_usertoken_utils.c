@@ -478,10 +478,10 @@ int RemoveVirtualAccountLSAMapping(PUNICODE_STRING domain_name,
 }
 
 void 
-InitUnicodeString(PUNICODE_STRING dest, PCWSTR source)
+InitUnicodeString(PUNICODE_STRING dest, PWSTR source)
 {
 	dest->Buffer = source;
-	dest->Length = wcslen(source) * sizeof(wchar_t);
+	dest->Length = (USHORT)(wcslen(source) * sizeof(wchar_t));
 	dest->MaximumLength = dest->Length + 2;
 }
 

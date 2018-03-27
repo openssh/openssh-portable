@@ -1143,7 +1143,7 @@ ConsoleEventProc(HWINEVENTHOOK hWinEventHook,
 	QueueEvent(event, hwnd, idObject, idChild);
 }
 
-DWORD 
+void
 ProcessMessages(void* p)
 {
 	DWORD dwStatus;
@@ -1154,23 +1154,19 @@ ProcessMessages(void* p)
 	sa.lpSecurityDescriptor = NULL;
 	sa.bInheritHandle = TRUE;
 
+	/* If we here then we are certain that we have a child process console, so we should be able to get child_in, child_out handles */
 	while (child_in == (HANDLE)-1) {
 		child_in = CreateFile(TEXT("CONIN$"), GENERIC_READ | GENERIC_WRITE,
 					FILE_SHARE_WRITE | FILE_SHARE_READ,
 					&sa, OPEN_EXISTING, 0, NULL);
 	}
-	if (child_in == (HANDLE)-1)
-		goto cleanup;
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.lpSecurityDescriptor = NULL;
-	sa.bInheritHandle = TRUE;
+
 	while (child_out == (HANDLE)-1) {
 		child_out = CreateFile(TEXT("CONOUT$"), GENERIC_READ | GENERIC_WRITE,
 					FILE_SHARE_WRITE | FILE_SHARE_READ,
 					&sa, OPEN_EXISTING, 0, NULL);
 	}
-	if (child_out == (HANDLE)-1)
-		goto cleanup;
+
 	child_err = child_out;
 	SizeWindow(child_out);
 	/* Get the current buffer information after all the adjustments */
@@ -1185,13 +1181,12 @@ ProcessMessages(void* p)
 		}
 	}
 
-cleanup:
+	/* cleanup */
 	dwStatus = GetLastError();
 	if (child_in != INVALID_HANDLE_VALUE)
 		CloseHandle(child_in);
 	if (child_out != INVALID_HANDLE_VALUE)
 		CloseHandle(child_out);
-	return 0;
 }
 
 wchar_t *
@@ -1311,7 +1306,9 @@ start_with_pty(wchar_t *command)
 	 * Windows PTY sends cursor positions in absolute coordinates starting from <0,0>
 	 * We send a clear screen upfront to simplify client 
 	 */	
-	SendClearScreen(pipe_out);
+	if(!command)
+		SendClearScreen(pipe_out);
+
 	ZeroMemory(&inputSi, sizeof(STARTUPINFO));
 	GetStartupInfo(&inputSi);
 	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
@@ -1343,6 +1340,10 @@ start_with_pty(wchar_t *command)
 			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, default_shell_cmd_option));
 
 		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
+
+		si.dwFlags = STARTF_USESTDHANDLES;
+		si.hStdOutput = pipe_out;
+		si.hStdError = pipe_err;
 	} else {
 		/* Launch the default shell through cmd.exe.
 		 * If we don't launch default shell through cmd.exe then the powershell colors are rendered badly to the ssh client.
@@ -1365,8 +1366,10 @@ start_with_pty(wchar_t *command)
 	FreeConsole();
 	Sleep(20);
 	while (!AttachConsole(pi.dwProcessId)) {
+		/* If user tries to execute a command (like dir) in pty session then we may run into this scenario. */
 		if (GetExitCodeProcess(pi.hProcess, &child_exit_code) && child_exit_code != STILL_ACTIVE)
-			break;
+			goto cleanup;
+
 		Sleep(100);
 	}
 
