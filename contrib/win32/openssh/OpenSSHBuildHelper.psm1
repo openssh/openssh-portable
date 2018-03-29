@@ -7,8 +7,6 @@ Import-Module $PSScriptRoot\OpenSSHCommonUtils.psm1 -Force
 [System.IO.DirectoryInfo] $script:gitRoot = $null
 [bool] $script:Verbose = $false
 [string] $script:BuildLogFile = $null
-[string] $script:libreSSLSDKStr = "LibreSSLSDK"
-[string] $script:win32OpenSSHPath = $null
 <#
     Called by Write-BuildMsg to write to the build log, if it exists. 
 #>
@@ -294,41 +292,37 @@ function Start-OpenSSHBootstrap
     }
 }
 
-function Get-Win32OpenSSHRepo
-{
-    [bool] $silent = -not $script:Verbose
-
-    if (-not (Test-Path -Path $script:win32OpenSSHPath -PathType Container))
-    {
-        Write-BuildMsg -AsInfo -Message "clone repo Win32-OpenSSH" -Silent:$silent
-        Push-Location $gitRoot
-        git clone -q --recursive https://github.com/PowerShell/Win32-OpenSSH.git $script:win32OpenSSHPath
-        Pop-Location
-    }
-    
-    Write-BuildMsg -AsInfo -Message "pull latest from repo Win32-OpenSSH" -Silent:$silent
-    Push-Location $script:win32OpenSSHPath
-    git fetch -q origin
-    git checkout -qf L1-Prod
-    Pop-Location
-}
-
-function Remove-Win32OpenSSHRepo
-{
-    Remove-Item -Path $script:win32OpenSSHPath -Recurse -Force -ErrorAction SilentlyContinue
-}
-
 function Copy-LibreSSLSDK
 {
-    [bool] $silent = -not $script:Verbose
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor `
+                                                  [Net.SecurityProtocolType]::Tls11 -bor `
+                                                  [Net.SecurityProtocolType]::Tls
 
-    $sourcePath  = Join-Path $script:win32OpenSSHPath "contrib\win32\openssh\LibreSSLSDK"
-    Write-BuildMsg -AsInfo -Message "copying $sourcePath" -Silent:$silent
-    Copy-Item -Container -Path $sourcePath -Destination $PSScriptRoot -Recurse -Force -ErrorAction SilentlyContinue -ErrorVariable e
+    $url = 'https://github.com/PowerShell/libressl/releases/latest/'
+    $request = [System.Net.WebRequest]::Create($url)
+    $request.AllowAutoRedirect = $false
+    $request.Timeout = 30000; #30 sec
+    $response=$request.GetResponse()
+    $libressl_release_url=$([String]$response.GetResponseHeader("Location")).Replace('tag','download') + '/LibreSSL.zip'
+    $libressl_zip_path=Join-Path $script:gitRoot "libressl.zip"
+
+    #download libressl latest release binaries
+    Remove-Item $libressl_zip_path -Force -ErrorAction SilentlyContinue
+    (New-Object System.Net.WebClient).DownloadFile($libressl_release_url, $libressl_zip_path)
+    if(-not (Test-Path $libressl_zip_path))
+    {
+        Write-BuildMsg -AsError -ErrorAction Stop -Message "Unable to download $libressl_release_url to $libressl_zip_path."
+    }
+    
+    #copy libressl
+    $openssh_libressl_path=Join-Path $script:OpenSSHRoot "contrib\win32\openssh"
+    Expand-Archive -Path $libressl_zip_path -DestinationPath $openssh_libressl_path -Force -ErrorAction SilentlyContinue -ErrorVariable e
     if($e -ne $null)
     {
-        Write-BuildMsg -AsError -ErrorAction Stop -Message "Copy LibreSSLSDK from $sourcePath to $PSScriptRoot failed."
+        Write-BuildMsg -AsError -ErrorAction Stop -Message "Unable to extract LibreSSL from $libressl_zip_path to $openssh_libressl_path failed."
     }
+    
+    Remove-Item $libressl_zip_path -Force -ErrorAction SilentlyContinue
 }
 
 function Start-OpenSSHPackage
@@ -405,18 +399,18 @@ function Start-OpenSSHPackage
     }
 
     #copy libcrypto dll
-    $libreSSLSDKPath = Join-Path $PSScriptRoot $script:libreSSLSDKStr
-    if (-not $NoOpenSSL.IsPresent) 
+    $libreSSLPath = Join-Path $PSScriptRoot "LibreSSL"
+    if (-not $NoOpenSSL.IsPresent)
     {        
         if($OneCore)
         {
-            Copy-Item -Path $(Join-Path $libreSSLSDKPath "Onecore\$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
-            Copy-Item -Path $(Join-Path $libreSSLSDKPath "Onecore\$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLPath "bin\onecore\$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLPath "bin\onecore\$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
         }
         else
         {
-            Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
-            Copy-Item -Path $(Join-Path $libreSSLSDKPath "$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLPath "bin\desktop\$NativeHostArch\libcrypto.dll") -Destination $packageDir -Force -ErrorAction Stop
+            Copy-Item -Path $(Join-Path $libreSSLPath "bin\desktop\$NativeHostArch\libcrypto.pdb") -Destination $symbolsDir -Force -ErrorAction Stop
         }
     }    
 
@@ -482,7 +476,7 @@ function Start-OpenSSHBuild
 
     [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
 
-    # Get openssh-portable root    
+    # Get openssh-portable root
     $script:OpenSSHRoot = Get-Item -Path $repositoryRoot.FullName
     $script:gitRoot = split-path $script:OpenSSHRoot
 
@@ -497,17 +491,15 @@ function Start-OpenSSHBuild
     {
         Remove-Item -Path $script:BuildLogFile -force
     }
-    
-    Write-BuildMsg -AsInfo -Message "Starting Open SSH build; Build Log: $($script:BuildLogFile)."
 
     Start-OpenSSHBootstrap -OneCore:$OneCore
 
-    $script:win32OpenSSHPath = join-path $script:gitRoot "Win32-OpenSSH"
-    if (-not (Test-Path (Join-Path $PSScriptRoot LibreSSLSDK)))
+    # Download the LibreSSL
+    if (-not (Test-Path (Join-Path $PSScriptRoot "LibreSSL")))
     {
-        Get-Win32OpenSSHRepo
+        Write-BuildMsg -AsInfo -Message "Download, Copy LibreSSL"
         Copy-LibreSSLSDK
-        Remove-Win32OpenSSHRepo
+        Write-BuildMsg -AsInfo -Message "LibreSSL copied successfully"
     }
 
     $PathTargets = Join-Path $PSScriptRoot paths.targets
@@ -553,10 +545,10 @@ function Start-OpenSSHBuild
         $xml.Project.PropertyGroup.MinimalCoreWin = 'true'
         
         #Use onecore libcrypto binaries
-        $xml.Project.PropertyGroup."LibreSSL-x86-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\x86\'
-        $xml.Project.PropertyGroup."LibreSSL-x64-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\x64\'
-        $xml.Project.PropertyGroup."LibreSSL-arm-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\arm\'
-        $xml.Project.PropertyGroup."LibreSSL-arm64-Path" = '$(SolutionDir)\LibreSSLSDK\onecore\arm64\'
+        $xml.Project.PropertyGroup."LibreSSL-x86-Path" = '$(SolutionDir)\LibreSSL\bin\onecore\x86\'
+        $xml.Project.PropertyGroup."LibreSSL-x64-Path" = '$(SolutionDir)\LibreSSL\bin\onecore\x64\'
+        $xml.Project.PropertyGroup."LibreSSL-arm-Path" = '$(SolutionDir)\LibreSSL\bin\onecore\arm\'
+        $xml.Project.PropertyGroup."LibreSSL-arm64-Path" = '$(SolutionDir)\LibreSSL\bin\onecore\arm64\'
         
         $xml.Save($PathTargets)
     }
@@ -573,6 +565,8 @@ function Start-OpenSSHBuild
     {
         $msbuildCmd = Get-VS2015BuildToolPath
     }
+    
+    Write-BuildMsg -AsInfo -Message "Starting Open SSH build; Build Log: $($script:BuildLogFile)."
 
     & "$msbuildCmd" $cmdMsg
     $errorCode = $LASTEXITCODE
