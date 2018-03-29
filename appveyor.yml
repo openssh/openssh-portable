@@ -4,6 +4,7 @@ image: Visual Studio 2015
 branches:
   only:
     - latestw_all
+    - hotfix
 
 init:
   - ps: |
