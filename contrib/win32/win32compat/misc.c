@@ -644,9 +644,7 @@ w32_utimes(const char *filename, struct timeval *tvp)
 int
 w32_symlink(const char *target, const char *linkpath)
 {
-	/* Not supported in windows */
-	errno = EOPNOTSUPP;
-	return -1;
+	return fileio_symlink(target, linkpath);
 }
 
 int
@@ -1443,7 +1441,7 @@ get_program_data_path()
 
 /* Windows absolute paths - \abc, /abc, c:\abc, c:/abc, __PROGRAMDATA__\openssh\sshd_config */
 int
-is_absolute_path(char *path)
+is_absolute_path(const char *path)
 {
 	int retVal = 0;
 	if(*path == '\"') /* skip double quote if path is "c:\abc" */

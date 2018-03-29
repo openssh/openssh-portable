@@ -42,3 +42,4 @@ HANDLE get_user_token(char* user);
 int load_user_profile(HANDLE user_token, char* user);
 int copy_file(char *source, char *destination);
 int create_directory_withsddl(char *path, char *sddl);
+int is_absolute_path(const char *);

@@ -1,5 +1,8 @@
 /*
 * Author: Manoj Ampalam <manoj.ampalam@microsoft.com>
+*
+* Author: Bryan Berns <berns@uwalumni.com>
+*   Added tests for symlink(), readlink(), lstat()
 */
 
 #include "includes.h"
@@ -488,6 +491,117 @@ file_miscellaneous_tests()
 }
 
 void
+file_symlink_tests()
+{
+	/* skip these unit tests if we cannot create symbolic links at all 
+	 * note: 0x2 = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+	 */
+	DeleteFileW(L"admin_check");
+	if (CreateSymbolicLinkW(L"admin_check", L"admin_check", 0) == 0 &&
+		CreateSymbolicLinkW(L"admin_check", L"admin_check", 0x2 == 0)) {
+		return;
+	}
+	DeleteFileW(L"admin_check");
+
+	wchar_t curdir[MAX_PATH];
+	GetCurrentDirectoryW(MAX_PATH, curdir);
+
+	/* perform a variety of symlink tests using unicode, directory targets, 
+	 * file targets, absolute/relative links, absolute/relative targets 
+	 */
+	for (int do_unicode = 0; do_unicode <= 1; do_unicode++)
+	for (int do_dir = 0; do_dir <= 1; do_dir++)
+	for (int do_absolute_lnk = 0; do_absolute_lnk <= 1; do_absolute_lnk++)
+	for (int do_absolute_tgt = 0; do_absolute_tgt <= 1; do_absolute_tgt++)
+	{
+		char test_name[128];
+		sprintf(test_name, "Symlink: %s link, %s %s target, %s",
+			(do_absolute_lnk) ? "relative" : "absolute",
+			(do_absolute_tgt) ? "relative" : "absolute",
+			(do_dir) ? "directory" : "file",
+			(do_unicode) ? "unicode" : "ansi");
+		TEST_START(test_name);
+
+		/* cleanup / setup basic test structure */
+		_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
+		_wsystem(L"MKDIR win32compat-tmp >NUL 2>&1");
+
+		wchar_t tgt_path[MAX_PATH] = L"";
+		wchar_t lnk_path[MAX_PATH] = L"";
+
+		/* prepend absolute path if doing absolute test */
+		if (do_absolute_tgt) {
+			wcscat(tgt_path, L"/");
+			wcscat(tgt_path, curdir);
+			wcscat(tgt_path, L"/");
+		}
+		if (do_absolute_lnk) {
+			wcscat(lnk_path, L"/");
+			wcscat(lnk_path, curdir);
+			wcscat(lnk_path, L"/");
+		}
+
+		/* append the test paths */
+		wcscat(tgt_path, L"win32compat-tmp/tgt");
+		wcscat(lnk_path, L"win32compat-tmp/lnk");
+
+		/* append unicode char if doing unicode test */
+		if (do_unicode) {
+			wcscat(tgt_path, L"Δ");
+			wcscat(lnk_path, L"Δ");
+		}
+
+		/* ensure target is in forward slash format since this is 
+		 * required for the readlink test output later *
+		 */
+		for (wchar_t * t = tgt_path; *t; t++) if (*t == '\\') *t = L'/';
+
+		/* create directory or file as target --- we have to offset
+		 * the first forward slash so the windows functions operate
+		 */
+		if (do_dir)
+			CreateDirectoryW(&tgt_path[do_absolute_tgt], NULL);
+		else
+			CloseHandle(CreateFileW(&tgt_path[do_absolute_tgt],
+				GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL));
+
+		/* convert to utf8 for test */
+		char * tgt_utf8 = utf16_to_utf8(tgt_path);
+		char * lnk_utf8 = utf16_to_utf8(lnk_path);
+
+		/* for relative link, the target is relative to the link */
+		char * tgt_name_utf8 = tgt_utf8;
+		if (!do_absolute_tgt) tgt_name_utf8 = strrchr(tgt_utf8, '/') + 1;
+
+		/* create symlink */
+		int symlink_ret = symlink(tgt_name_utf8, lnk_utf8);
+		ASSERT_INT_EQ(symlink_ret, 0);
+
+		/* verify readlink() output against symlink() input */
+		char readlink_buf[MAX_PATH] = "";
+		int readlink_ret = readlink(lnk_utf8, readlink_buf, MAX_PATH);
+		ASSERT_INT_EQ(readlink_ret, strlen(tgt_name_utf8));
+		ASSERT_INT_EQ(0, memcmp(readlink_buf, tgt_name_utf8, readlink_ret));
+
+		/* verify lstat() gets the reference to the link */
+		struct w32_stat statbuf;
+		int lstat_ret = lstat(lnk_utf8, &statbuf);
+		ASSERT_INT_EQ(lstat_ret, 0);
+		ASSERT_INT_EQ(1, S_ISLNK(statbuf.st_mode));
+
+		/* verify stat() gets a reference to the dir or file */
+		int stat_ret = stat(lnk_utf8, &statbuf);
+		ASSERT_INT_EQ(stat_ret, 0);
+		ASSERT_INT_EQ(0, S_ISLNK(statbuf.st_mode));
+		ASSERT_INT_EQ(do_dir, S_ISDIR(statbuf.st_mode));
+
+		TEST_DONE();
+	}
+		
+	_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
+}
+
+void
 file_tests()
 {
 	file_simple_fileio();
@@ -496,4 +610,5 @@ file_tests()
 	file_nonblocking_io_tests();
 	file_select_tests();
 	file_miscellaneous_tests();
+	file_symlink_tests();
 }
