@@ -17,7 +17,7 @@
  */
 
 #include "config.h"
-#ifndef HAVE_STRNDUP
+#if !defined(HAVE_STRNDUP) || defined(BROKEN_STRNDUP)
 #include <sys/types.h>
 
 #include <stddef.h>

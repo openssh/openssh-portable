@@ -603,6 +603,8 @@ case "$host" in
 	    [AIX 5.2 and 5.3 (and presumably newer) require this])
 	AC_DEFINE([PTY_ZEROREAD], [1], [read(1) can return 0 for a non-closed fd])
 	AC_DEFINE([PLATFORM_SYS_DIR_UID], 2, [System dirs owned by bin (uid 2)])
+	AC_DEFINE([BROKEN_STRNDUP], 1, [strndup broken, see APAR IY61211])
+	AC_DEFINE([BROKEN_STRNLEN], 1, [strnlen broken, see APAR IY62551])
 	;;
 *-*-android*)
 	AC_DEFINE([DISABLE_UTMP], [1], [Define if you don't want to use utmp])
