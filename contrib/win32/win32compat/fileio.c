@@ -295,7 +295,7 @@ static int
 createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags)
 {
 	/* check flags */
-	int rwflags = flags & 0x3, c_s_flags = flags & 0xfffffff0, ret = -1;
+	int rwflags = flags & 0x3, c_s_flags = flags & 0xfffffffc, ret = -1;
 	PSECURITY_DESCRIPTOR pSD = NULL;
 	wchar_t sddl[SDDL_LENGTH + 1] = { 0 }, owner_ace[MAX_ACE_LENGTH + 1] = {0}, everyone_ace[MAX_ACE_LENGTH + 1] = {0};
 	wchar_t owner_access[MAX_ATTRIBUTE_LENGTH + 1] = {0}, everyone_access[MAX_ATTRIBUTE_LENGTH + 1] = {0}, *sid_utf16 = NULL;
@@ -341,8 +341,10 @@ createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags
 	if (c_s_flags & O_CREAT) {
 		if (c_s_flags & O_EXCL)
 			cf_flags->dwCreationDisposition = CREATE_NEW;
-		else
+		else if (c_s_flags & O_TRUNC)
 			cf_flags->dwCreationDisposition = CREATE_ALWAYS;
+		else
+			cf_flags->dwCreationDisposition = OPEN_ALWAYS;
 	}
 
 	if (c_s_flags & O_APPEND)
