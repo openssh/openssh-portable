@@ -67,8 +67,11 @@ static char* s_programdir = NULL;
 #define REPARSE_MOUNTPOINT_HEADER_SIZE 8
 
  /* Difference in us between UNIX Epoch and Win32 Epoch */
-#define EPOCH_DELTA_US  116444736000000000ULL
-#define RATE_DIFF 10000000ULL /* 1000 nsecs */
+#define EPOCH_DELTA  116444736000000000ULL /* in 100 nsecs intervals */
+#define RATE_DIFF 10000000ULL /* 100 nsecs */
+
+#define NSEC_IN_SEC 1000000000ULL // 10**9
+#define USEC_IN_SEC 1000000ULL // 10**6
 
 /* Windows CRT defines error string messages only till 43 in errno.h
  * This is an extended list that defines messages for EADDRINUSE through EWOULDBLOCK
@@ -124,6 +127,14 @@ usleep(unsigned int useconds)
 	return 1;
 }
 
+static LONGLONG
+timespec_to_nsec(const struct timespec *req)
+{
+	LONGLONG sec = req->tv_sec;
+	return sec * NSEC_IN_SEC + req->tv_nsec;
+}
+
+
 int
 nanosleep(const struct timespec *req, struct timespec *rem)
 {
@@ -140,7 +151,8 @@ nanosleep(const struct timespec *req, struct timespec *rem)
 		return -1;
 	}
 
-	li.QuadPart = -req->tv_nsec;
+	/* convert timespec to 100ns intervals */
+	li.QuadPart = -(timespec_to_nsec(req) / 100);
 	if (!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)) {
 		CloseHandle(timer);
 		errno = EFAULT;
@@ -153,6 +165,7 @@ nanosleep(const struct timespec *req, struct timespec *rem)
 		CloseHandle(timer);
 		return 0;
 	default:
+		CloseHandle(timer);
 		errno = EFAULT;
 		return -1;
 	}
@@ -174,12 +187,12 @@ gettimeofday(struct timeval *tv, void *tz)
 	/* Fetch time since Jan 1, 1601 in 100ns increments */
 	GetSystemTimeAsFileTime(&timehelper.ft);	
 
-	/* Remove the epoch difference */
-	us = timehelper.ns - EPOCH_DELTA_US;
+	/* Remove the epoch difference & convert 100ns to us */
+	us = (timehelper.ns - EPOCH_DELTA) / 10;
 
 	/* Stuff result into the timeval */
-	tv->tv_sec = (long)(us / RATE_DIFF);
-	tv->tv_usec = (long)(us % RATE_DIFF);
+	tv->tv_sec = (long)(us / USEC_IN_SEC);
+	tv->tv_usec = (long)(us % USEC_IN_SEC);
 
 	return 0;
 }
@@ -521,7 +534,7 @@ void
 unix_time_to_file_time(ULONG t, LPFILETIME pft)
 {
 	ULONGLONG ull;
-	ull = UInt32x32To64(t, RATE_DIFF) + EPOCH_DELTA_US;
+	ull = UInt32x32To64(t, RATE_DIFF) + EPOCH_DELTA;
 
 	pft->dwLowDateTime = (DWORD)ull;
 	pft->dwHighDateTime = (DWORD)(ull >> 32);
@@ -532,7 +545,7 @@ void
 file_time_to_unix_time(const LPFILETIME pft, time_t * winTime)
 {
 	*winTime = ((long long)pft->dwHighDateTime << 32) + pft->dwLowDateTime;
-	*winTime -= EPOCH_DELTA_US;
+	*winTime -= EPOCH_DELTA;
 	*winTime /= RATE_DIFF;		 /* Nano to seconds resolution */
 }
 
