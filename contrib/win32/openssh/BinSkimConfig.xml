@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Properties Type="PropertiesDictionary">
+  <Properties Key="BA2001.LoadImageAboveFourGigabyteAddress.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2002.DoNotIncorporateVulnerableDependencies.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+    <Properties Key="VulnerableDependencies" Type="PropertiesDictionary">
+      <Properties Key="AtlVulnerability" Type="IL.Rules.VulnerableDependencyDescriptor">
+        <Property Key="FileHashes" Type="StringSet">
+          <Item>atlbase.h#31-F6-53-39-6A-51-B4-57-1E-F0-DD-C0-B3-54-8A-60</Item>
+          <Item>atlbase.h#FC-A7-3E-99-8B-D3-CC-E6-D6-28-75-F6-B4-27-DF-6E</Item>
+          <Item>atlcom.h#0B-C1-32-3B-3B-19-84-64-07-F5-3A-7A-48-36-43-B0</Item>
+          <Item>atlcom.h#95-EB-90-BE-CF-F8-DF-1B-3E-EC-79-0A-64-B4-96-54</Item>
+          <Item>atlcom.h#97-D2-E6-9A-A3-D5-F2-F1-BA-2A-51-A2-B6-C8-9A-4B</Item>
+          <Item>atlcom.h#AE-5D-A4-A5-23-42-EA-F8-46-74-93-91-1C-4F-3B-93</Item>
+          <Item>atlcomcli.h#56-42-D5-31-BE-31-25-9B-E9-69-9F-2F-1F-68-CD-C2</Item>
+          <Item>atlcomcli.h#76-FB-17-FE-79-86-B9-7D-0E-09-97-85-9A-20-E9-4C</Item>
+          <Item>atlcomcli.h#7B-C6-E4-10-50-D7-89-24-37-71-7F-1E-9D-97-84-B6</Item>
+          <Item>atlcomcli.h#A5-17-80-59-4D-4D-94-0C-68-0A-00-59-ED-6B-B3-1D</Item>
+          <Item>atlcomcli.h#AC-EB-62-06-96-F2-ED-92-F8-F9-14-A0-50-48-80-25</Item>
+          <Item>atlimpl.cpp#7C-4C-5D-BE-B6-EF-CB-DF-AF-8E-54-E5-0E-C0-2A-FB</Item>
+        </Property>
+        <Property Key="Id" Value="AtlVulnerability" />
+        <Property Key="Resolution" Value="compile your binary using an up-to-date copy of ATL." />
+        <Property Key="VulnerabilityDescription" Value="contains known remote execution bugs (see https://technet.microsoft.com/en-us/library/security/ms09-035.aspx)." />
+      </Properties>
+    </Properties>
+  </Properties>
+  <Properties Key="BA2005.DoNotShipVulnerableBinaries.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+    <Properties Key="VulnerableBinaries" Type="IL.Rules.StringToVersionMap">
+      <Property Key="msidcrl.dll" Value="7.0" Type="System.Version" />
+      <Property Key="msxml6.dll" Value="6.30" Type="System.Version" />
+      <Property Key="xmllite.dll" Value="1.3" Type="System.Version" />
+    </Properties>
+  </Properties>
+  <Properties Key="BA2006.BuildWithSecureTools.Options" Type="PropertiesDictionary">
+    <!---->
+    <Property Key="AdvancedMitigationsEnforced" Value="None" Type="AdvancedMitigations" />
+    <Properties Key="AllowedLibraries" Type="IL.Rules.StringToVersionMap" />
+    <Properties Key="MinimumToolVersions" Type="IL.Rules.StringToVersionMap">
+      <Property Key="MinimumCompilerVersion" Value="17.0.65501.17013" Type="System.Version" />
+      <Property Key="MinimumXboxCompilerVersion" Value="16.0.11886.0" Type="System.Version" />
+    </Properties>
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2007.EnableCriticalCompilerWarnings.Options" Type="PropertiesDictionary">
+    <!-- Valid values here are currently Default and Disabled. -->
+    <Property Key="RuleEnabled" Value="Disabled" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2008.EnableControlFlowGuard.Options" Type="PropertiesDictionary">
+    <!---->
+    <Property Key="MinimumRequiredLinkerVersion" Value="14.0" Type="System.Version" />
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2009.EnableAddressSpaceLayoutRandomization.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2010.DoNotMarkImportsSectionAsExecutable.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2011.EnableStackProtection.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2012.DoNotModifyStackProtectionCookie.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2013.InitializeStackProtection.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2014.DoNotDisableStackProtectionForFunctions.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+    <Property Key="StringSet" Type="StringSet">
+      <Item>__vcrt_trace_logging_provider::_TlgWrite</Item>
+      <Item>_TlgWrite</Item>
+    </Property>
+  </Properties>
+  <Properties Key="BA2015.EnableHighEntropyVirtualAddresses.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2016.MarkImageAsNXCompatible.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2018.EnableSafeSEH.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2019.DoNotMarkWritableSectionsAsShared.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2021.DoNotMarkWritableSectionsAsExecutable.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2022.SignSecurely.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA2024.EnableSpectreMitigations.Options" Type="PropertiesDictionary">
+    <Properties Key="AllowedLibraries" Type="IL.Rules.StringToVersionMap" />
+    <Properties Key="MitigatedCompilers" Type="PropertiesDictionary">
+      <Properties Key="Arm" Type="PropertiesDictionary" />
+      <Properties Key="X86" Type="PropertiesDictionary">
+        <Property Key="19.12.25830.2-19.12.*.*" Value="D2GuardSpecLoadAvailable" />
+        <Property Key="19.13.26029.0 - 19.13.26029.*" Value="D2GuardSpecLoadAvailable" />
+        <Property Key="19.14.0.0 - *.*.*.*" Value="QSpectreAvailable, D2GuardSpecLoadAvailable" />
+      </Properties>
+    </Properties>
+    <!---->
+    <Property Key="Reporting" Value="Default" Type="ReportingOptions" />
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA3001.EnablePIEOnExecutables.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA3002.DoNotMarkStackAsExecutable.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA3003.EnableStackProtector.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA3010.EnableReadOnlyRelocations.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+  <Properties Key="BA3030.UseCheckedFunctionsWithGCC.Options" Type="PropertiesDictionary">
+    <Property Key="RuleEnabled" Value="Default" Type="Driver.RuleEnabledState" />
+  </Properties>
+</Properties>

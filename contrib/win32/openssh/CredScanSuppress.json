@@ -1,0 +1,13 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+      {
+        "file": "\\regress\\pesterTests\\SSHDConfig.tests.ps1",
+        "_justification": "password for testing purpose"
+      },
+      {
+        "file": "\\contrib\\win32\\openssh\\OpenSSHTestHelper.psm1",
+        "_justification": "password for testing purpose"
+      }
+     ]  
+}

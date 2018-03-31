@@ -1,0 +1,246 @@
+{
+  "Windows": [
+    {
+      "Name": "Onecore-X64",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X64 -Configuration Release -OneCore",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x64",
+      "BinaryBucket": "OpenSSH-Win64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X64"
+    },
+    {
+      "Name": "Onecore-X86",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X86 -Configuration Release -OneCore",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x86",
+      "BinaryBucket": "OpenSSH-Win32",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X86"
+    },
+    {
+      "Name": "Onecore-ARM",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM -Configuration Release -OneCore",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm",
+      "BinaryBucket": "OpenSSH-ARM",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM"
+    },
+    {
+      "Name": "Onecore-ARM64",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM64 -Configuration Release -OneCore",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm64",
+      "BinaryBucket": "OpenSSH-ARM64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
+    },
+    {
+      "Name": "Onecore-X64-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X64 -Configuration Release -OneCore -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x64",
+      "BinaryBucket": "OpenSSH-Win64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X64"
+    },
+    {
+      "Name": "Onecore-X86-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X86 -Configuration Release -OneCore -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x86",
+      "BinaryBucket": "OpenSSH-Win32",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X86"
+    },
+    {
+      "Name": "Onecore-ARM-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM -Configuration Release -OneCore -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm",
+      "BinaryBucket": "OpenSSH-Arm",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM"
+    },
+    {
+      "Name": "Onecore-ARM64-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM64 -Configuration Release -OneCore -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm64",
+      "BinaryBucket": "OpenSSH-Arm64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
+    },
+    {
+      "Name": "X64",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X64 -Configuration Release",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x64",
+      "BinaryBucket": "OpenSSH-Original",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X64"
+    },
+    {
+      "Name": "X86",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X86 -Configuration Release",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x86",
+      "BinaryBucket": "OpenSSH-Original",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X86"
+    },
+    {
+      "Name": "ARM",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM -Configuration Release",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm",
+      "BinaryBucket": "OpenSSH-Arm",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM"
+    },
+    {
+      "Name": "ARM64",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM64 -Configuration Release",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm64",
+      "BinaryBucket": "OpenSSH-Arm64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
+    },
+    {
+      "Name": "X64-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X64 -Configuration Release -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x64",
+      "BinaryBucket": "OpenSSH-Win64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X64"
+    },
+    {
+      "Name": "X86-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch X86 -Configuration Release -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-x86",
+      "BinaryBucket": "OpenSSH-Win32",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-X86"
+    },
+    {
+      "Name": "ARM-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM -Configuration Release -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm",
+      "BinaryBucket": "OpenSSH-Arm",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM"
+    },
+    {
+      "Name": "ARM64-NoOpenSSL",
+      "RepoDestinationPath": "C:\\OpenSSH",
+      "BuildCommand": "C:\\OpenSSH-build.ps1 -repolocation _RepoDestinationPath_ -destination _DockerVolume_ -NativeHostArch ARM64 -Configuration Release -NoOpenSSL",
+      "BuildDockerOptions": [
+        "-m",
+        "3968m"
+      ],
+      "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
+      "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
+      "DockerImageName": "di-openssh-arm64",
+      "BinaryBucket": "OpenSSH-Arm64",
+      "ArtifactsExpected": 1,
+      "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
+    }
+  ],
+  "Linux": [
+  ]
+}

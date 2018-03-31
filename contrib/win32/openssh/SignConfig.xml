@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SignConfigXML>
+  <!-- ****Begin**** BothDual - Dual (Sha256 and Sha1) AuthenticodeDual) and should be StrongName  ******** -->
+ <job platform="" configuration="" dest="__OUTPATHROOT__\signed" jobname="OpenSSH" approvers="gstolt,vigarg">
+    <file src="__INPATHROOT__\libcrypto.dll" signType="AuthenticodeDual" dest="__OUTPATHROOT__\libcrypto.dll" />
+    <file src="__INPATHROOT__\scp.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\scp.exe" />
+    <file src="__INPATHROOT__\sftp-server.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\sftp-server.exe" />
+    <file src="__INPATHROOT__\sftp.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\sftp.exe" />
+    <file src="__INPATHROOT__\ssh-add.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh-add.exe" />
+    <file src="__INPATHROOT__\ssh-agent.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh-agent.exe" />
+    <file src="__INPATHROOT__\ssh-keygen.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh-keygen.exe" />
+    <file src="__INPATHROOT__\ssh-keyscan.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh-keyscan.exe" />
+    <file src="__INPATHROOT__\ssh-shellhost.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh-shellhost.exe" />
+    <file src="__INPATHROOT__\ssh.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\ssh.exe" />
+    <file src="__INPATHROOT__\sshd.exe" signType="AuthenticodeDual" dest="__OUTPATHROOT__\sshd.exe" />
+
+    <!-- ****Begin**** Authenticode - Authenticode SHA256 ************* -->
+    <!-- PowerShell script files cannot be dual signed, so we will sign them only with a SHA256 cert -->
+    <file src="__INPATHROOT__\FixHostFilePermissions.ps1" signType="Authenticode" dest="__OUTPATHROOT__\FixHostFilePermissions.ps1" />
+    <file src="__INPATHROOT__\FixUserFilePermissions.ps1" signType="Authenticode" dest="__OUTPATHROOT__\FixUserFilePermissions.ps1" />
+    <file src="__INPATHROOT__\install-sshd.ps1" signType="Authenticode" dest="__OUTPATHROOT__\install-sshd.ps1" />
+    <file src="__INPATHROOT__\uninstall-sshd.ps1" signType="Authenticode" dest="__OUTPATHROOT__\uninstall-sshd.ps1" />
+    <file src="__INPATHROOT__\OpenSSHUtils.psd1" signType="Authenticode" dest="__OUTPATHROOT__\OpenSSHUtils.psd1" />
+    <file src="__INPATHROOT__\OpenSSHUtils.psm1" signType="Authenticode" dest="__OUTPATHROOT__\OpenSSHUtils.psm1" />
+   <!-- not actually a code file, don't sign for now
+    <file src="__INPATHROOT__\sshd_config_default" signType="Authenticode" dest="__OUTPATHROOT__\sshd_config_default" />
+    -->
+  </job>
+</SignConfigXML>
