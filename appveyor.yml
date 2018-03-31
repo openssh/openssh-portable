@@ -1,4 +1,4 @@
-version: 7.6.0.0.{build}
+version: 7.6.1.0.{build}
 image: Visual Studio 2015
 
 branches:

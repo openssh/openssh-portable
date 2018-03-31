@@ -1,4 +1,8 @@
-﻿if (Get-Service sshd -ErrorAction SilentlyContinue) 
+﻿$scriptpath = $MyInvocation.MyCommand.Path
+$scriptdir = Split-Path $scriptpath
+$etwman = Join-Path $scriptdir "openssh-events.man"
+
+if (Get-Service sshd -ErrorAction SilentlyContinue) 
 {
    Stop-Service sshd
    sc.exe delete sshd 1>$null
@@ -7,6 +11,9 @@
 else {
     Write-Host -ForegroundColor Yellow "sshd service is not installed"
 }
+
+# unregister etw provider
+wevtutil um `"$etwman`"
 
 if (Get-Service ssh-agent -ErrorAction SilentlyContinue) 
 {
