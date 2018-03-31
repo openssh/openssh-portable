@@ -166,3 +166,4 @@ long fileio_lseek(struct w32_io* pio, unsigned __int64 offset, int origin);
 FILE* fileio_fdopen(struct w32_io* pio, const char *mode);
 ssize_t fileio_readlink(const char *path, char *buf, size_t bufsiz);
 int fileio_symlink(const char *target, const char *linkpath);
+int fileio_link(const char *oldpath, const char *newpath);

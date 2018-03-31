@@ -1204,3 +1204,36 @@ cleanup:
 		free(resolved_utf16);
 	return ret;
 }
+
+int 
+fileio_link(const char *oldpath, const char *newpath)
+{
+	if (oldpath == NULL || newpath == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	DWORD ret = 0;
+	wchar_t *oldpath_utf16 = utf8_to_utf16(resolved_path(oldpath));
+	wchar_t *newpath_utf16 = utf8_to_utf16(resolved_path(newpath));
+	if (oldpath_utf16 == NULL || newpath_utf16 == NULL) {
+		errno = ENOMEM;
+		ret = -1;
+		goto cleanup;
+	}
+
+	if (CreateHardLinkW(newpath_utf16, oldpath_utf16, NULL) == 0) {
+		errno = errno_from_Win32LastError();
+		ret = -1;
+		goto cleanup;
+	}
+
+cleanup:
+
+	if (oldpath_utf16)
+		free(oldpath_utf16);
+	if (newpath_utf16)
+		free(newpath_utf16);
+
+	return ret;
+}

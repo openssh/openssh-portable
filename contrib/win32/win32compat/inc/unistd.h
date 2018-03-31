@@ -76,11 +76,14 @@ int w32_chdir(const char *dirname);
 char *w32_getcwd(char *buffer, int maxlen);
 #define getcwd w32_getcwd
 
+int w32_readlink(const char *path, char *link, int linklen);
+#define readlink w32_readlink
+
+int w32_link(const char *oldpath, const char *newpath);
+#define link w32_link
+
 int daemon(int nochdir, int noclose);
 char *crypt(const char *key, const char *salt);
-int link(const char *oldpath, const char *newpath);
-int readlink(const char *path, char *link, int linklen);
-
 int chroot(const char *path);
 
 /* 
