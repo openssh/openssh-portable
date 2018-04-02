@@ -74,11 +74,8 @@
 #include "authfile.h"
 #include "ssherr.h"
 #include "compat.h"
-<<<<<<< HEAD
-#include "sshfileperm.h"
-=======
 #include "channels.h"
->>>>>>> 2c71ca1dd1efe458cb7dee3f8a1a566f913182c2
+#include "sshfileperm.h"
 
 /* import */
 extern ServerOptions options;
