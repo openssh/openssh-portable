@@ -229,15 +229,14 @@ dlsym(HMODULE handle, const char *symbol)
 FILE *
 w32_fopen_utf8(const char *input_path, const char *mode)
 {
-	wchar_t wpath[PATH_MAX], wmode[5];
-	FILE* f;
+	wchar_t *wmode = NULL, *wpath = NULL;
+	FILE* f = NULL;
 	char utf8_bom[] = { 0xEF,0xBB,0xBF };
 	char first3_bytes[3];
 	int status = 1;
-	errno_t r = 0;	
-	char *path = NULL;
+	errno_t r = 0;
 
-	if (mode[1] != '\0') {
+	if (mode == NULL || mode[1] != '\0') {
 		errno = ENOTSUP;
 		return NULL;
 	}
@@ -248,28 +247,21 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 		return NULL; 
 	}
 
-	path = resolved_path(input_path);
-
 	/* if opening null device, point to Windows equivalent */
-	if (0 == strncmp(path, NULL_DEVICE, strlen(NULL_DEVICE)+1)) {
-		if ((r = wcsncpy_s(wpath, PATH_MAX, L"NUL", 3)) != 0) {
-			debug3("wcsncpy_s failed with error: %d.", r);
-			return NULL;
-		}
-	}
-	else
-		status = MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, PATH_MAX);
+	if (strcmp(input_path, NULL_DEVICE) == 0)
+		input_path = NULL_DEVICE_WIN;
 
-	if ((0 == status) ||
-	    (0 == MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 5))) {
-		errno = EFAULT;
-		debug3("WideCharToMultiByte failed for %c - ERROR:%d", path, GetLastError());
-		return NULL;
+	wpath = resolved_path_utf16(input_path);
+	wmode = utf8_to_utf16(mode);
+	if (wpath == NULL || wmode == NULL)
+	{
+		errno = ENOMEM;
+		goto cleanup;
 	}
 
 	if ((_wfopen_s(&f, wpath, wmode) != 0) || (f == NULL)) {
-		debug3("Failed to open file:%s error:%d", path, errno);
-		return NULL;
+		debug3("Failed to open file:%S error:%d", wpath, errno);
+		goto cleanup;
 	}		
 
 	/* BOM adjustments for file streams*/
@@ -277,7 +269,7 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 		/* write UTF-8 BOM - should we ?*/
 		/*if (fwrite(utf8_bom, sizeof(utf8_bom), 1, f) != 1) {
 			fclose(f);
-			return NULL;
+			goto cleanup;
 		}*/
 
 	} else if (mode[0] == 'r' && fseek(f, 0, SEEK_SET) != EBADF) {
@@ -287,6 +279,13 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 			fseek(f, 0, SEEK_SET);
 		}
 	}
+
+cleanup:
+
+	if (wpath) 
+		free(wpath);
+	if (wmode)
+		free(wmode);
 
 	return f;
 }
@@ -511,7 +510,7 @@ int
 w32_chmod(const char *pathname, mode_t mode)
 {
 	int ret;
-	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(resolved_path(pathname));
+	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(pathname);
 	if (resolvedPathName_utf16 == NULL) {
 		errno = ENOMEM;
 		return -1;
@@ -639,7 +638,7 @@ w32_utimes(const char *filename, struct timeval *tvp)
 {
 	int ret;
 	FILETIME acttime, modtime;
-	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(resolved_path(filename));
+	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(filename);
 	if (resolvedPathName_utf16 == NULL) {
 		errno = ENOMEM;
 		return -1;
@@ -671,19 +670,13 @@ link(const char *oldpath, const char *newpath)
 int
 w32_rename(const char *old_name, const char *new_name)
 {
-	char old_name_resolved[PATH_MAX] = {0, };
-	char new_name_resolved[PATH_MAX] = {0, };
-
 	if (old_name == NULL || new_name == NULL) {
 		errno = EFAULT;
 		return -1;
 	}
 
-	strcpy_s(old_name_resolved, _countof(old_name_resolved), resolved_path(old_name));
-	strcpy_s(new_name_resolved, _countof(new_name_resolved), resolved_path(new_name));
-
-	wchar_t *resolvedOldPathName_utf16 = utf8_to_utf16(old_name_resolved);
-	wchar_t *resolvedNewPathName_utf16 = utf8_to_utf16(new_name_resolved);
+	wchar_t *resolvedOldPathName_utf16 = resolved_path_utf16(old_name);
+	wchar_t *resolvedNewPathName_utf16 = resolved_path_utf16(new_name);
 
 	if (NULL == resolvedOldPathName_utf16 || NULL == resolvedNewPathName_utf16) {
 		errno = ENOMEM;
@@ -695,18 +688,18 @@ w32_rename(const char *old_name, const char *new_name)
 	 * 1) if the new_name is file, then delete it so that _wrename will succeed.
 	 * 2) if the new_name is directory and it is empty then delete it so that _wrename will succeed.
 	 */
-	struct _stat64 st;
-	if (fileio_stat(resolved_path(new_name_resolved), &st) != -1) {
+	struct w32_stat st;
+	if (w32_stat(new_name, &st) != -1) {
 		if (((st.st_mode & _S_IFMT) == _S_IFREG))
-			w32_unlink(new_name_resolved);
+			w32_unlink(new_name);
 		else {
-			DIR *dirp = opendir(new_name_resolved);
+			DIR *dirp = opendir(new_name);
 			if (NULL != dirp) {
 				struct dirent *dp = readdir(dirp);
 				closedir(dirp);
 
 				if (dp == NULL)
-					w32_rmdir(new_name_resolved);
+					w32_rmdir(new_name);
 			}
 		}
 	}
@@ -721,7 +714,7 @@ w32_rename(const char *old_name, const char *new_name)
 int
 w32_unlink(const char *path)
 {
-	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(resolved_path(path));
+	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(path);
 	if (NULL == resolvedPathName_utf16) {
 		errno = ENOMEM;
 		return -1;
@@ -736,7 +729,7 @@ w32_unlink(const char *path)
 int
 w32_rmdir(const char *path)
 {
-	wchar_t *resolvedPathName_utf16 = utf8_to_utf16(resolved_path(path));
+	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(path);
 	if (NULL == resolvedPathName_utf16) {
 		errno = ENOMEM;
 		return -1;
@@ -796,7 +789,7 @@ int
 w32_mkdir(const char *path_utf8, unsigned short mode)
 {
 	int curmask;
-	wchar_t *path_utf16 = utf8_to_utf16(resolved_path(path_utf8));
+	wchar_t *path_utf16 = resolved_path_utf16(path_utf8);
 	if (path_utf16 == NULL) {
 		errno = ENOMEM;
 		return -1;
@@ -820,20 +813,20 @@ w32_mkdir(const char *path_utf8, unsigned short mode)
 int
 w32_stat(const char *input_path, struct w32_stat *buf)
 {
-	return fileio_stat(resolved_path(input_path), (struct _stat64*)buf);
+	return fileio_stat(input_path, (struct _stat64*)buf);
 }
 
 int
 w32_lstat(const char *input_path, struct w32_stat *buf)
 {
-	return fileio_lstat(resolved_path(input_path), (struct _stat64*)buf);
+	return fileio_lstat(input_path, (struct _stat64*)buf);
 }
 
 /* if file is symbolic link, copy its link into "link" */
 int
 readlink(const char *path, char *link, int linklen)
 {
-	return fileio_readlink(resolved_path(path), link, linklen);
+	return fileio_readlink(path, link, linklen);
 }
 
 /* convert forward slash to back slash */
@@ -915,44 +908,55 @@ realpath(const char *path, char resolved[PATH_MAX])
 	return resolved;
 }
 
-/* This function is not thread safe. 
-* TODO - It uses static memory. Is this a good design?
-*/
-char*
-resolved_path(const char *input_path)
+wchar_t*
+resolved_path_utf16(const char *input_path)
 {
-	static char resolved_path[PATH_MAX] = {0,};
-	static char newPath[PATH_MAX] = { '\0', };
-	errno_t r = 0;
-
 	if (!input_path) return NULL;
 
-	/* If filename contains __PROGRAMDATA__ then expand it to %programData% and return the resolved path */
-	if ((strlen(input_path) >= strlen(PROGRAM_DATA)) && (memcmp(input_path, PROGRAM_DATA, strlen(PROGRAM_DATA)) == 0)) {
-		resolved_path[0] = '\0';
-		strcat_s(resolved_path, _countof(resolved_path), get_program_data_path());
-		strcat_s(resolved_path, _countof(resolved_path), &input_path[strlen(PROGRAM_DATA)]);
+	wchar_t * resolved_path = utf8_to_utf16(input_path);
+	if (resolved_path == NULL)
+		return NULL;
 
-		return resolved_path; /* return here as its doesn't start with "/" */
+	int resolved_len = (int) wcslen(resolved_path);
+	const int variable_len = (int) wcslen(PROGRAM_DATAW);
+
+	/* search for program data flag and switch it with the real path */
+	if (_wcsnicmp(resolved_path, PROGRAM_DATAW, variable_len) == 0) {
+		wchar_t * program_data = get_program_data_path();
+		const int programdata_len = (int) wcslen(program_data);
+		const int changed_req = programdata_len - variable_len;
+
+		/* allocate more memory if required */
+		if (changed_req > 0) {
+			wchar_t * resolved_path_new = realloc(resolved_path, 
+				(resolved_len + changed_req + 1) * sizeof(wchar_t));
+			if (resolved_path == NULL) {
+				free(resolved_path);
+				return NULL;
+			}
+			else resolved_path = resolved_path_new;
+		}
+
+		/* shift memory contents over based on side of the new string */
+		memmove(resolved_path + variable_len + changed_req, resolved_path + variable_len, 
+			(resolved_len - variable_len + 1) * sizeof(wchar_t));
+		memcpy(resolved_path, program_data, programdata_len * sizeof(wchar_t));
+		resolved_len += changed_req;
 	}
 
-	strcpy_s(resolved_path, _countof(resolved_path), input_path);
-	if (resolved_path[0] == '/' && resolved_path[1]) {
-		if (resolved_path[2] == ':') {
-			if (resolved_path[3] == '\0') { 
-				/* make "/x:" as "x:\\" */
-				resolved_path[0] = resolved_path[1];
-				resolved_path[1] = resolved_path[2];
-				resolved_path[2] = '\\';
-				resolved_path[3] = '\0';
+	if (resolved_path[0] == L'/' && iswalpha(resolved_path[1]) && resolved_path[2] == L':') {
 
-				return resolved_path;
-			} else
-				return (char *)(resolved_path + 1); /* skip the first "/" */
+		/* shift memory to remove forward slash including null terminator */
+		memmove(resolved_path, resolved_path + 1, (resolved_len + 1 - 1) * sizeof(wchar_t));
+
+		/* if just a drive letter path, make x: into x:\ */
+		if (resolved_path[2] == L'\0') {
+			resolved_path[2] = L'\\';
+			resolved_path[3] = L'\0';
 		}
 	}
 
-	return (char *)resolved_path;
+	return resolved_path;
 }
 
 int
@@ -963,7 +967,7 @@ statvfs(const char *path, struct statvfs *buf)
 	DWORD freeClusters;
 	DWORD totalClusters;
 
-	wchar_t* path_utf16 = utf8_to_utf16(resolved_path(path));
+	wchar_t* path_utf16 = resolved_path_utf16(path);
 	if (path_utf16 && (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
 	    &freeClusters, &totalClusters) == TRUE)) {
 		debug5("path              : [%s]", path);
@@ -1433,23 +1437,19 @@ cleanup:
 	return ret;
 }
 
-char*
+wchar_t*
 get_program_data_path()
 {
-	if (ssh_cfg_dir_path) return ssh_cfg_dir_path;
+	static wchar_t ssh_cfg_dir_path_w[PATH_MAX] = L"";
+	if (wcslen(ssh_cfg_dir_path_w) > 0) return ssh_cfg_dir_path_w;
 
-	wchar_t ssh_cfg_dir_path_w[PATH_MAX] = {0, };
-	int return_val = ExpandEnvironmentStringsW(L"%programData%", ssh_cfg_dir_path_w, PATH_MAX);
+	int return_val = ExpandEnvironmentStringsW(L"%ProgramData%", ssh_cfg_dir_path_w, PATH_MAX);
 	if (return_val > PATH_MAX)
-		fatal("%s, buffer too small to expand:%s", __func__, "%programData%");
+		fatal("%s, buffer too small to expand:%s", __func__, "%ProgramData%");
 	else if (!return_val)
-		fatal("%s, failed to expand:%s error:%s", __func__, "%programData%", GetLastError());
-	
-	ssh_cfg_dir_path = utf16_to_utf8(ssh_cfg_dir_path_w);
-	if(!ssh_cfg_dir_path)
-		fatal("%s utf16_to_utf8 failed", __func__);
+		fatal("%s, failed to expand:%s error:%s", __func__, "%ProgramData%", GetLastError());
 
-	return ssh_cfg_dir_path;
+	return ssh_cfg_dir_path_w;
 }
 
 /* Windows absolute paths - \abc, /abc, c:\abc, c:/abc, __PROGRAMDATA__\openssh\sshd_config */
@@ -1469,27 +1469,14 @@ is_absolute_path(const char *path)
 
 /* return -1 - in case of failure, 0 - success */
 int
-create_directory_withsddl(char *path, char *sddl)
+create_directory_withsddl(wchar_t *path_w, wchar_t *sddl_w)
 {
-	struct stat st;
-	if (stat(path, &st) < 0) {
+	if (GetFileAttributesW(path_w) == INVALID_FILE_ATTRIBUTES) {
 		PSECURITY_DESCRIPTOR pSD = NULL;
 		SECURITY_ATTRIBUTES sa;
 		memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
 		sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 		sa.bInheritHandle = FALSE;
-
-		wchar_t *path_w = utf8_to_utf16(path);
-		if (!path_w) {
-			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, path);
-			return -1;
-		}
-
-		wchar_t *sddl_w = utf8_to_utf16(sddl);
-		if (!sddl_w) {
-			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, sddl);
-			return -1;
-		}
 
 		if (ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl_w, SDDL_REVISION, &pSD, NULL) == FALSE) {
 			error("ConvertStringSecurityDescriptorToSecurityDescriptorW failed with error code %d", GetLastError());
@@ -1510,33 +1497,3 @@ create_directory_withsddl(char *path, char *sddl)
 
 	return 0;
 }
-
-/* return -1 - in case of failure, 0 - success */
-int
-copy_file(char *source, char *destination)
-{
-	if (!source || !destination) return 0;
-
-	struct stat st;
-	if ((stat(source, &st) >= 0) && (stat(destination, &st) < 0)) {
-		wchar_t *source_w = utf8_to_utf16(source);
-		if (!source_w) {
-			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, source_w);
-			return -1;
-		}
-
-		wchar_t *destination_w = utf8_to_utf16(destination);
-		if (!destination_w) {
-			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, destination_w);
-			return -1;
-		}
-
-		if (!CopyFileW(source_w, destination_w, FALSE)) {
-			error("Failed to copy %ls to %ls, error:%d", source_w, destination_w, GetLastError());
-			return -1;
-		}
-	}
-
-	return 0;
-}
-

@@ -474,7 +474,7 @@ w32_open(const char *pathname, int flags, ... /* arg */)
 		va_end(valist);
 	}
 
-	pio = fileio_open(resolved_path(pathname), flags, mode);
+	pio = fileio_open(pathname, flags, mode);
 	
 	if (pio == NULL)
 		return -1;
