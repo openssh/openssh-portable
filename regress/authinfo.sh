@@ -6,7 +6,7 @@ tid="authinfo"
 # Ensure the environment variable doesn't leak when ExposeAuthInfo=no.
 verbose "ExposeAuthInfo=no"
 env SSH_USER_AUTH=blah ${SSH} -F $OBJ/ssh_proxy x \
-	'printenv SSH_USER_AUTH >/dev/null' && fail "SSH_USER_AUTH present"
+	'env | grep SSH_USER_AUTH >/dev/null' && fail "SSH_USER_AUTH present"
 
 verbose "ExposeAuthInfo=yes"
 echo ExposeAuthInfo=yes >> $OBJ/sshd_proxy

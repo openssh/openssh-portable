@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.469 2017/11/01 00:04:15 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.475 2018/02/23 15:58:38 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -201,13 +201,13 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-b bind_address] [-c cipher_spec]\n"
-"           [-D [bind_address:]port] [-E log_file] [-e escape_char]\n"
-"           [-F configfile] [-I pkcs11] [-i identity_file]\n"
-"           [-J [user@]host[:port]] [-L address] [-l login_name] [-m mac_spec]\n"
-"           [-O ctl_cmd] [-o option] [-p port] [-Q query_option] [-R address]\n"
-"           [-S ctl_path] [-W host:port] [-w local_tun[:remote_tun]]\n"
-"           destination [command]\n"
+"usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface]\n"
+"           [-b bind_address] [-c cipher_spec] [-D [bind_address:]port]\n"
+"           [-E log_file] [-e escape_char] [-F configfile] [-I pkcs11]\n"
+"           [-i identity_file] [-J [user@]host[:port]] [-L address]\n"
+"           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
+"           [-Q query_option] [-R address] [-S ctl_path] [-W host:port]\n"
+"           [-w local_tun[:remote_tun]] destination [command]\n"
 	);
 	exit(255);
 }
@@ -269,6 +269,40 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 		}
 	}
 	return res;
+}
+
+/* Returns non-zero if name can only be an address and not a hostname */
+static int
+is_addr_fast(const char *name)
+{
+	return (strchr(name, '%') != NULL || strchr(name, ':') != NULL ||
+	    strspn(name, "0123456789.") == strlen(name));
+}
+
+/* Returns non-zero if name represents a valid, single address */
+static int
+is_addr(const char *name)
+{
+	char strport[NI_MAXSERV];
+	struct addrinfo hints, *res;
+
+	if (is_addr_fast(name))
+		return 1;
+
+	snprintf(strport, sizeof strport, "%u", default_ssh_port());
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = options.address_family == -1 ?
+	    AF_UNSPEC : options.address_family;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_NUMERICHOST|AI_NUMERICSERV;
+	if (getaddrinfo(name, strport, &hints, &res) != 0)
+		return 0;
+	if (res == NULL || res->ai_next != NULL) {
+		freeaddrinfo(res);
+		return 0;
+	}
+	freeaddrinfo(res);
+	return 1;
 }
 
 /*
@@ -376,6 +410,33 @@ resolve_canonicalize(char **hostp, int port)
 	char *cp, *fullhost, newname[NI_MAXHOST];
 	struct addrinfo *addrs;
 
+	/*
+	 * Attempt to canonicalise addresses, regardless of
+	 * whether hostname canonicalisation was requested
+	 */
+	if ((addrs = resolve_addr(*hostp, port,
+	    newname, sizeof(newname))) != NULL) {
+		debug2("%s: hostname %.100s is address", __func__, *hostp);
+		if (strcasecmp(*hostp, newname) != 0) {
+			debug2("%s: canonicalised address \"%s\" => \"%s\"",
+			    __func__, *hostp, newname);
+			free(*hostp);
+			*hostp = xstrdup(newname);
+		}
+		return addrs;
+	}
+
+	/*
+	 * If this looks like an address but didn't parse as one, it might
+	 * be an address with an invalid interface scope. Skip further
+	 * attempts at canonicalisation.
+	 */
+	if (is_addr_fast(*hostp)) {
+		debug("%s: hostname %.100s is an unrecognised address",
+		    __func__, *hostp);
+		return NULL;
+	}
+
 	if (options.canonicalize_hostname == SSH_CANONICALISE_NO)
 		return NULL;
 
@@ -388,19 +449,6 @@ resolve_canonicalize(char **hostp, int port)
 	if (!direct &&
 	    options.canonicalize_hostname != SSH_CANONICALISE_ALWAYS)
 		return NULL;
-
-	/* Try numeric hostnames first */
-	if ((addrs = resolve_addr(*hostp, port,
-	    newname, sizeof(newname))) != NULL) {
-		debug2("%s: hostname %.100s is address", __func__, *hostp);
-		if (strcasecmp(*hostp, newname) != 0) {
-			debug2("%s: canonicalised address \"%s\" => \"%s\"",
-			    __func__, *hostp, newname);
-			free(*hostp);
-			*hostp = xstrdup(newname);
-		}
-		return addrs;
-	}
 
 	/* If domain name is anchored, then resolve it now */
 	if ((*hostp)[strlen(*hostp) - 1] == '.') {
@@ -514,7 +562,7 @@ main(int ac, char **av)
 {
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
-	int config_test = 0, opt_terminated = 0;
+	int was_addr, config_test = 0, opt_terminated = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *logfile;
 	char cname[NI_MAXHOST];
 	struct stat st;
@@ -615,7 +663,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "ACD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
+	    "AB:CD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			fatal("SSH protocol v.1 is no longer supported");
@@ -925,6 +973,9 @@ main(int ac, char **av)
 		case 'b':
 			options.bind_address = optarg;
 			break;
+		case 'B':
+			options.bind_interface = optarg;
+			break;
 		case 'F':
 			config = optarg;
 			break;
@@ -1055,9 +1106,15 @@ main(int ac, char **av)
 		options.hostname = xstrdup(host);
 	}
 
-	/* If canonicalization requested then try to apply it */
-	lowercase(host);
-	if (options.canonicalize_hostname != SSH_CANONICALISE_NO)
+	/* Don't lowercase addresses, they will be explicitly canonicalised */
+	if ((was_addr = is_addr(host)) == 0)
+		lowercase(host);
+
+	/*
+	 * Try to canonicalize if requested by configuration or the
+	 * hostname is an address.
+	 */
+	if (options.canonicalize_hostname != SSH_CANONICALISE_NO || was_addr)
 		addrs = resolve_canonicalize(&host, options.port);
 
 	/*
@@ -1327,7 +1384,7 @@ main(int ac, char **av)
 	sensitive_data.keys = NULL;
 	sensitive_data.external_keysign = 0;
 	if (options.hostbased_authentication) {
-		sensitive_data.nkeys = 9;
+		sensitive_data.nkeys = 11;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(struct sshkey));	/* XXX */
 		for (i = 0; i < sensitive_data.nkeys; i++)
@@ -1354,6 +1411,10 @@ main(int ac, char **av)
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
 		sensitive_data.keys[8] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
+		sensitive_data.keys[9] = key_load_private_cert(KEY_XMSS,
+		    _PATH_HOST_XMSS_KEY_FILE, "", NULL);
+		sensitive_data.keys[10] = key_load_private_type(KEY_XMSS,
+		    _PATH_HOST_XMSS_KEY_FILE, "", NULL, NULL);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
@@ -1361,7 +1422,8 @@ main(int ac, char **av)
 		    sensitive_data.keys[5] == NULL &&
 		    sensitive_data.keys[6] == NULL &&
 		    sensitive_data.keys[7] == NULL &&
-		    sensitive_data.keys[8] == NULL) {
+		    sensitive_data.keys[8] == NULL &&
+		    sensitive_data.keys[9] == NULL) {
 #ifdef OPENSSL_HAS_ECC
 			sensitive_data.keys[1] = key_load_cert(
 			    _PATH_HOST_ECDSA_KEY_FILE);
@@ -1382,6 +1444,10 @@ main(int ac, char **av)
 			    _PATH_HOST_RSA_KEY_FILE, NULL);
 			sensitive_data.keys[8] = key_load_public(
 			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			sensitive_data.keys[9] = key_load_cert(
+			    _PATH_HOST_XMSS_KEY_FILE);
+			sensitive_data.keys[10] = key_load_public(
+			    _PATH_HOST_XMSS_KEY_FILE, NULL);
 			sensitive_data.external_keysign = 1;
 		}
 	}
@@ -1509,29 +1575,29 @@ control_persist_detach(void)
 
 	debug("%s: backgrounding master process", __func__);
 
- 	/*
- 	 * master (current process) into the background, and make the
- 	 * foreground process a client of the backgrounded master.
- 	 */
+	/*
+	 * master (current process) into the background, and make the
+	 * foreground process a client of the backgrounded master.
+	 */
 	switch ((pid = fork())) {
 	case -1:
 		fatal("%s: fork: %s", __func__, strerror(errno));
 	case 0:
 		/* Child: master process continues mainloop */
- 		break;
- 	default:
+		break;
+	default:
 		/* Parent: set up mux slave to connect to backgrounded master */
 		debug2("%s: background process is %ld", __func__, (long)pid);
 		stdin_null_flag = ostdin_null_flag;
 		options.request_tty = orequest_tty;
 		tty_flag = otty_flag;
- 		close(muxserver_sock);
- 		muxserver_sock = -1;
+		close(muxserver_sock);
+		muxserver_sock = -1;
 		options.control_master = SSHCTL_MASTER_NO;
- 		muxclient(options.control_path);
+		muxclient(options.control_path);
 		/* muxclient() doesn't return on success. */
- 		fatal("Failed to connect to new control master");
- 	}
+		fatal("Failed to connect to new control master");
+	}
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
 		error("%s: open(\"/dev/null\"): %s", __func__,
 		    strerror(errno));
@@ -1858,7 +1924,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (!packet_get_mux())
 		muxserver_listen(ssh);
 
- 	/*
+	/*
 	 * If we are in control persist mode and have a working mux listen
 	 * socket, then prepare to background ourselves and have a foreground
 	 * client attach as a control slave.
@@ -1867,18 +1933,18 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	 * after the connection is fully established (in particular,
 	 * async rfwd replies have been received for ExitOnForwardFailure).
 	 */
- 	if (options.control_persist && muxserver_sock != -1) {
+	if (options.control_persist && muxserver_sock != -1) {
 		ostdin_null_flag = stdin_null_flag;
 		ono_shell_flag = no_shell_flag;
 		orequest_tty = options.request_tty;
 		otty_flag = tty_flag;
- 		stdin_null_flag = 1;
- 		no_shell_flag = 1;
- 		tty_flag = 0;
+		stdin_null_flag = 1;
+		no_shell_flag = 1;
+		tty_flag = 0;
 		if (!fork_after_authentication_flag)
 			need_controlpersist_detach = 1;
 		fork_after_authentication_flag = 1;
- 	}
+	}
 	/*
 	 * ControlPersist mux listen socket setup failed, attempt the
 	 * stdio forward setup that we skipped earlier.
@@ -1886,7 +1952,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (options.control_persist && muxserver_sock == -1)
 		ssh_init_stdio_forwarding(ssh);
 
-	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
+	if (!no_shell_flag)
 		id = ssh_session2_open(ssh);
 	else {
 		packet_set_interactive(
@@ -2089,7 +2155,5 @@ main_sigchld_handler(int sig)
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid < 0 && errno == EINTR))
 		;
-
-	signal(sig, main_sigchld_handler);
 	errno = save_errno;
 }

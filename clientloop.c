@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.306 2017/10/23 05:08:00 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.311 2018/02/11 21:16:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -210,7 +210,6 @@ static void
 window_change_handler(int sig)
 {
 	received_window_change_signal = 1;
-	signal(SIGWINCH, window_change_handler);
 }
 
 /*
@@ -223,19 +222,6 @@ signal_handler(int sig)
 {
 	received_signal = sig;
 	quit_pending = 1;
-}
-
-/*
- * Returns current time in seconds from Jan 1, 1970 with the maximum
- * available resolution.
- */
-
-static double
-get_current_time(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
 }
 
 /*
@@ -1260,7 +1246,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 	}
 
-	start_time = get_current_time();
+	start_time = monotime_double();
 
 	/* Initialize variables. */
 	last_was_cr = 1;
@@ -1449,7 +1435,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	buffer_free(&stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
-	total_time = get_current_time() - start_time;
+	total_time = monotime_double() - start_time;
 	packet_get_bytes(&ibytes, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
 	    (unsigned long long)obytes, (unsigned long long)ibytes, total_time);
@@ -1558,12 +1544,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		return NULL;
 	}
 	originator = packet_get_string(NULL);
-	if (datafellows & SSH_BUG_X11FWD) {
-		debug2("buggy server: x11 request w/o originator_port");
-		originator_port = 0;
-	} else {
-		originator_port = packet_get_int();
-	}
+	originator_port = packet_get_int();
 	packet_check_eom();
 	/* XXX check permission */
 	debug("client_request_x11: request from %s %d", originator,
@@ -1695,10 +1676,8 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
-		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring("open failed");
-			packet_put_cstring("");
-		}
+		packet_put_cstring("open failed");
+		packet_put_cstring("");
 		packet_send();
 	}
 	free(ctype);
@@ -1910,7 +1889,7 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i, ndone;
 	struct sshbuf *signdata;
-	int r;
+	int r, kexsigtype, use_kexsigtype;
 	const u_char *sig;
 	size_t siglen;
 
@@ -1922,6 +1901,9 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		hostkeys_update_ctx_free(ctx);
 		return;
 	}
+	kexsigtype = sshkey_type_plain(
+	    sshkey_type_from_name(ssh->kex->hostkey_alg));
+
 	if ((signdata = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 	/* Don't want to accidentally accept an unbound signature */
@@ -1950,8 +1932,15 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 			    __func__, ssh_err(r));
 			goto out;
 		}
+		/*
+		 * For RSA keys, prefer to use the signature type negotiated
+		 * during KEX to the default (SHA1).
+		 */
+		use_kexsigtype = kexsigtype == KEY_RSA &&
+		    sshkey_type_plain(ctx->keys[i]->type) == KEY_RSA;
 		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
-		    sshbuf_ptr(signdata), sshbuf_len(signdata), 0)) != 0) {
+		    sshbuf_ptr(signdata), sshbuf_len(signdata),
+		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL, 0)) != 0) {
 			error("%s: server gave bad signature for %s key %zu",
 			    __func__, sshkey_type(ctx->keys[i]), i);
 			goto out;
