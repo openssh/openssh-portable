@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.226 2017/11/15 02:10:16 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.228 2018/02/23 15:58:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -245,7 +245,8 @@ process_request_identities(SocketEntry *e)
 	    (r = sshbuf_put_u32(msg, idtab->nentries)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	TAILQ_FOREACH(id, &idtab->idlist, next) {
-		if ((r = sshkey_puts(id->key, msg)) != 0 ||
+		if ((r = sshkey_puts_opts(id->key, msg, SSHKEY_SERIALIZE_INFO))
+		     != 0 ||
 		    (r = sshbuf_put_cstring(msg, id->comment)) != 0) {
 			error("%s: put key/comment: %s", __func__,
 			    ssh_err(r));
@@ -292,8 +293,6 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 
-	if (flags & SSH_AGENT_OLD_SIGNATURE)
-		compat = SSH_BUG_SIGBLOB;
 	if ((id = lookup_identity(key)) == NULL) {
 		verbose("%s: %s key not found", __func__, sshkey_type(key));
 		goto send;
@@ -404,7 +403,7 @@ process_add_identity(SocketEntry *e)
 {
 	Identity *id;
 	int success = 0, confirm = 0;
-	u_int seconds;
+	u_int seconds, maxsign;
 	char *comment = NULL;
 	time_t death = 0;
 	struct sshkey *k = NULL;
@@ -435,6 +434,18 @@ process_add_identity(SocketEntry *e)
 		case SSH_AGENT_CONSTRAIN_CONFIRM:
 			confirm = 1;
 			break;
+		case SSH_AGENT_CONSTRAIN_MAXSIGN:
+			if ((r = sshbuf_get_u32(e->request, &maxsign)) != 0) {
+				error("%s: bad maxsign constraint: %s",
+				    __func__, ssh_err(r));
+				goto err;
+			}
+			if ((r = sshkey_enable_maxsign(k, maxsign)) != 0) {
+				error("%s: cannot enable maxsign: %s",
+				    __func__, ssh_err(r));
+				goto err;
+			}
+			break;
 		default:
 			error("%s: Unknown constraint %d", __func__, ctype);
  err:
@@ -450,14 +461,15 @@ process_add_identity(SocketEntry *e)
 		death = monotime() + lifetime;
 	if ((id = lookup_identity(k)) == NULL) {
 		id = xcalloc(1, sizeof(Identity));
-		id->key = k;
 		TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
 		/* Increment the number of identities. */
 		idtab->nentries++;
 	} else {
-		sshkey_free(k);
+		/* key state might have been updated */
+		sshkey_free(id->key);
 		free(id->comment);
 	}
+	id->key = k;
 	id->comment = comment;
 	id->death = death;
 	id->confirm = confirm;

@@ -6,7 +6,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)authfd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)authfile.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bitmap.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)blocks.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufaux.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufbn.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufec.c" />
@@ -89,6 +88,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)verify.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)xmalloc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)kexgexs.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)platform-misc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(OpenSSH-Src-Path)addrmatch.c">
@@ -257,9 +257,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)poly1305.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)rsa.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)sc25519.c">

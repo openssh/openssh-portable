@@ -349,7 +349,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)authfd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)authfile.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bitmap.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)blocks.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufaux.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufbn.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bufec.c" />
