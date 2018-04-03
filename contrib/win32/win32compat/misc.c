@@ -53,6 +53,7 @@
 #include "w32fd.h"
 #include "inc\string.h"
 #include "inc\grp.h"
+#include "inc\time.h"
 
 static char* s_programdir = NULL;
 
@@ -1540,3 +1541,10 @@ copy_file(char *source, char *destination)
 	return 0;
 }
 
+struct tm* 
+localtime_r(const time_t *timep, struct tm *result)
+{
+	struct tm *t = localtime(timep);
+	memcpy(result, t, sizeof(struct tm));
+	return t;
+}

@@ -269,8 +269,9 @@ done:
 * - If LogonUser fails, then try the LSA (Local Security Authority) authentication.
 */
 int 
-sys_auth_passwd(Authctxt *authctxt, const char *password)
+sys_auth_passwd(struct ssh *ssh, const char *password)
 {
+	Authctxt *authctxt = ssh->authctxt;
 	wchar_t *user_utf16 = NULL, *udom_utf16 = NULL, *pwd_utf16 = NULL, *tmp;
 	HANDLE token = NULL;
 	int r = 0;

@@ -44,7 +44,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\blowfish.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-asprintf.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-closefrom.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cray.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cygwin_util.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-getpagesize.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-getpeereid.c" />
@@ -100,6 +99,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\xcrypt.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\glob.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\strcasestr.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\strndup.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)openbsd-compat\base64.h" />

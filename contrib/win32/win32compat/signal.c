@@ -130,6 +130,15 @@ mysignal(int signum, sighandler_t handler) {
 	return w32_signal(signum, handler);
 }
 
+char*
+strsignal(int sig)
+{
+	static char buf[16];
+
+	(void)snprintf(buf, sizeof(buf), "%d", sig);
+	return buf;
+}
+
 sighandler_t
 w32_signal(int signum, sighandler_t handler)
 {

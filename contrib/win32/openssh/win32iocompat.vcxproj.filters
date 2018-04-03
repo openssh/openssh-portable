@@ -9,7 +9,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\misc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigalrm.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigchld.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_wait.c" />    
+    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_wait.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\pwd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32_dirent.c" />
@@ -143,6 +143,12 @@
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\spawn.h">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\time.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\net\if.h">
+      <Filter>inc\net</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="inc">
@@ -156,6 +162,9 @@
     </Filter>
     <Filter Include="inc\netinet">
       <UniqueIdentifier>{d943f1aa-2df9-4df3-b499-4403a899fe8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc\net">
+      <UniqueIdentifier>{b16bbf61-e602-4b0f-832b-190085cbfd5c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
