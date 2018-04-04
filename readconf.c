@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.283 2018/02/23 15:58:37 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.284 2018/04/04 15:12:17 job Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1998,9 +1998,9 @@ fill_default_options(Options * options)
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
 	if (options->ip_qos_interactive == -1)
-		options->ip_qos_interactive = IPTOS_LOWDELAY;
+		options->ip_qos_interactive = IPTOS_DSCP_AF21;
 	if (options->ip_qos_bulk == -1)
-		options->ip_qos_bulk = IPTOS_THROUGHPUT;
+		options->ip_qos_bulk = IPTOS_DSCP_CS1;
 	if (options->request_tty == -1)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->proxy_use_fdpass == -1)

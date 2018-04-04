@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.326 2018/03/01 20:32:16 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.327 2018/04/04 15:12:17 job Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -372,9 +372,9 @@ fill_default_server_options(ServerOptions *options)
 	if (options->permit_tun == -1)
 		options->permit_tun = SSH_TUNMODE_NO;
 	if (options->ip_qos_interactive == -1)
-		options->ip_qos_interactive = IPTOS_LOWDELAY;
+		options->ip_qos_interactive = IPTOS_DSCP_AF21;
 	if (options->ip_qos_bulk == -1)
-		options->ip_qos_bulk = IPTOS_THROUGHPUT;
+		options->ip_qos_bulk = IPTOS_DSCP_CS1;
 	if (options->version_addendum == NULL)
 		options->version_addendum = xstrdup("");
 	if (options->fwd_opts.streamlocal_bind_mask == (mode_t)-1)
