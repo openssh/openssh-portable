@@ -661,11 +661,9 @@ w32_symlink(const char *target, const char *linkpath)
 }
 
 int
-link(const char *oldpath, const char *newpath)
+w32_link(const char *oldpath, const char *newpath)
 {
-	/* Not supported in windows */
-	errno = EOPNOTSUPP;
-	return -1;
+	return fileio_link(oldpath, newpath);
 }
 
 int
@@ -825,7 +823,7 @@ w32_lstat(const char *input_path, struct w32_stat *buf)
 
 /* if file is symbolic link, copy its link into "link" */
 int
-readlink(const char *path, char *link, int linklen)
+w32_readlink(const char *path, char *link, int linklen)
 {
 	return fileio_readlink(path, link, linklen);
 }
