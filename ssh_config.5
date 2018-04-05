@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.269 2018/04/04 15:12:17 job Exp $
-.Dd $Mdocdate: April 4 2018 $
+.\" $OpenBSD: ssh_config.5,v 1.270 2018/04/05 22:54:28 djm Exp $
+.Dd $Mdocdate: April 5 2018 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -425,8 +425,7 @@ The default is:
 .Bd -literal -offset indent
 chacha20-poly1305@openssh.com,
 aes128-ctr,aes192-ctr,aes256-ctr,
-aes128-gcm@openssh.com,aes256-gcm@openssh.com,
-aes128-cbc,aes192-cbc,aes256-cbc
+aes128-gcm@openssh.com,aes256-gcm@openssh.com
 .Ed
 .Pp
 The list of available ciphers may also be obtained using
