@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.285 2018/04/06 03:51:27 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.286 2018/04/06 13:02:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -684,6 +684,35 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	return result;
 }
 
+/* Remove environment variable by pattern */
+static void
+rm_env(Options *options, const char *arg, const char *filename, int linenum)
+{
+	int i, j;
+	char *cp;
+
+	/* Remove an environment variable */
+	for (i = 0; i < options->num_send_env; ) {
+		cp = xstrdup(options->send_env[i]);
+		if (!match_pattern(cp, arg + 1)) {
+			free(cp);
+			i++;
+			continue;
+		}
+		debug3("%s line %d: removing environment %s",
+		    filename, linenum, cp);
+		free(cp);
+		free(options->send_env[i]);
+		options->send_env[i] = NULL;
+		for (j = i; j < options->num_send_env - 1; j++) {
+			options->send_env[j] = options->send_env[j + 1];
+			options->send_env[j + 1] = NULL;
+		}
+		options->num_send_env--;
+		/* NB. don't increment i */
+	}
+}
+
 /*
  * Returns the number of the token pointed to by cp or oBadOption.
  */
@@ -1359,11 +1388,18 @@ parse_keytypes:
 				    filename, linenum);
 			if (!*activep)
 				continue;
-			if (options->num_send_env >= MAX_SEND_ENV)
-				fatal("%s line %d: too many send env.",
-				    filename, linenum);
-			options->send_env[options->num_send_env++] =
-			    xstrdup(arg);
+			if (*arg == '-') {
+				/* Removing an env var */
+				rm_env(options, arg, filename, linenum);
+				continue;
+			} else {
+				/* Adding an env var */
+				if (options->num_send_env >= MAX_SEND_ENV)
+					fatal("%s line %d: too many send env.",
+					    filename, linenum);
+				options->send_env[options->num_send_env++] =
+				    xstrdup(arg);
+			}
 		}
 		break;
 
