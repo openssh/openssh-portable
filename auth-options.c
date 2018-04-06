@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.78 2018/03/14 05:35:40 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.79 2018/04/06 04:15:45 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -394,7 +394,7 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 				goto fail;
 			}
 			for (cp = opt; cp < tmp; cp++) {
-				if (!isalnum((u_char)*cp)) {
+				if (!isalnum((u_char)*cp) && *cp != '_') {
 					free(opt);
 					errstr = "invalid environment string";
 					goto fail;
