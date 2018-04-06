@@ -907,8 +907,8 @@ main(int ac, char **av)
 			}
 			break;
 		case 'l':
-			if (options.user == NULL)
-				options.user = optarg;
+			free(options.user);
+			options.user = xstrdup(optarg);
 			break;
 
 		case 'L':
@@ -998,13 +998,9 @@ main(int ac, char **av)
 			usage();
 			break;
 		case 0:
-			if (options.user == NULL) {
-				options.user = tuser;
-				tuser = NULL;
-			}
-			free(tuser);
-			if (options.port == -1 && tport != -1)
-				options.port = tport;
+			free(options.user);
+			options.user = tuser;
+			options.port = tport;
 			break;
 		default:
 			p = xstrdup(*av);
@@ -1012,13 +1008,10 @@ main(int ac, char **av)
 			if (cp != NULL) {
 				if (cp == p)
 					usage();
-				if (options.user == NULL) {
-					options.user = p;
-					p = NULL;
-				}
+				free(options.user);
+				options.user = p;
 				*cp++ = '\0';
 				host = xstrdup(cp);
-				free(p);
 			} else
 				host = p;
 			break;
@@ -1260,8 +1253,10 @@ main(int ac, char **av)
 
 	seed_rng();
 
-	if (options.user == NULL)
+	if (!options.user) {
+		free(options.user);
 		options.user = xstrdup(pw->pw_name);
+	}
 
 	/* Set up strings used to percent_expand() arguments */
 	if (gethostname(thishost, sizeof(thishost)) == -1)
