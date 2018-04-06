@@ -674,6 +674,27 @@ sshpam_init(Authctxt *authctxt)
 	return (0);
 }
 
+static void
+expose_authinfo(const char *caller)
+{
+	char *auth_info;
+
+	/*
+	 * Expose authentication information to PAM.
+	 * The environment variable is versioned. Please increment the
+	 * version suffix if the format of session_info changes.
+	 */
+	if (sshpam_authctxt->session_info == NULL)
+		auth_info = xstrdup("");
+	else if ((auth_info = sshbuf_dup_string(
+	    sshpam_authctxt->session_info)) == NULL)
+		fatal("%s: sshbuf_dup_string failed", __func__);
+
+	debug2("%s: auth information in SSH_AUTH_INFO_0", caller);
+	do_pam_putenv("SSH_AUTH_INFO_0", auth_info);
+	free(auth_info);
+}
+
 static void *
 sshpam_init_ctx(Authctxt *authctxt)
 {
@@ -694,6 +715,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 		return (NULL);
 	}
 
+	expose_authinfo(__func__);
 	ctxt = xcalloc(1, sizeof *ctxt);
 
 	/* Start the authentication thread */
@@ -935,26 +957,6 @@ finish_pam(void)
 	sshpam_cleanup();
 }
 
-static void
-expose_authinfo(const char *caller)
-{
-	char *auth_info;
-
-	/*
-	 * Expose authentication information to PAM.
-	 * The enviornment variable is versioned. Please increment the
-	 * version suffix if the format of session_info changes.
-	 */
-	if (sshpam_authctxt->session_info == NULL)
-		auth_info = xstrdup("");
-	else if ((auth_info = sshbuf_dup_string(
-	    sshpam_authctxt->session_info)) == NULL)
-		fatal("%s: sshbuf_dup_string failed", __func__);
-
-	debug2("%s: auth information in SSH_AUTH_INFO_0", caller);
-	do_pam_putenv("SSH_AUTH_INFO_0", auth_info);
-	free(auth_info);
-}
 
 u_int
 do_pam_account(void)
