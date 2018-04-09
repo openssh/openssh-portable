@@ -154,6 +154,7 @@ static char *pkcs11_whitelist;
 int locked = 0;
 u_char lock_pwhash[LOCK_SIZE];
 u_char lock_salt[LOCK_SALT_SIZE];
+char *lock_script = NULL;
 
 extern char *__progname;
 
@@ -666,6 +667,40 @@ send:
 }
 #endif /* ENABLE_PKCS11 */
 
+/* dynamic lock query - should return 0 for unlocked, 1 for locked */
+static int
+query_lock_script()
+{
+	FILE *plock;
+	int rc;
+
+	if (!lock_script)
+		return 0; /* not locked */
+	debug("calling lock script '%s'", lock_script);
+	plock = popen(lock_script, "r");
+	if (!plock) {
+		error("lock script execution failed: %s", strerror(errno));
+		return -1; /* locked */
+	}
+
+	/* output is ignored. we only want the exit code. */
+
+	rc = pclose(plock); /* waits for process to finish */
+	if (rc == -1) {
+		error("lock script reaping failed: %s", strerror(errno));
+		return -1; /* locked */
+	}
+	if (!WIFEXITED(rc)) {
+		error("lock script exited abnormally");
+		return -1; /* locked */
+	}
+	debug("lock script '%s' returned exit code %d",
+	    lock_script, WEXITSTATUS(rc));
+	if (WEXITSTATUS(rc) != 0)
+		return -1; /* locked */
+	return 0; /* not locked */
+}
+
 /* dispatch incoming messages */
 
 static int
@@ -709,8 +744,8 @@ process_message(u_int socknum)
 
 	debug("%s: socket %u (fd=%d) type %d", __func__, socknum, e->fd, type);
 
-	/* check wheter agent is locked */
-	if (locked && type != SSH_AGENTC_UNLOCK) {
+	/* check whether agent is locked */
+	if ((locked && type != SSH_AGENTC_UNLOCK) || query_lock_script()) {
 		sshbuf_reset(e->request);
 		switch (type) {
 		case SSH2_AGENTC_REQUEST_IDENTITIES:
@@ -1036,7 +1071,8 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: ssh-agent [-c | -s] [-Dd] [-a bind_address] [-E fingerprint_hash]\n"
-	    "                 [-P pkcs11_whitelist] [-t life] [command [arg ...]]\n"
+	    "                 [-P pkcs11_whitelist] [-t life] [-l lock_script]\n"
+	    "                 [command [arg ...]]\n"
 	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
@@ -1077,7 +1113,7 @@ main(int ac, char **av)
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
 
-	while ((ch = getopt(ac, av, "cDdksE:a:P:t:")) != -1) {
+	while ((ch = getopt(ac, av, "cDdksE:a:P:t:l:")) != -1) {
 		switch (ch) {
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
@@ -1120,6 +1156,9 @@ main(int ac, char **av)
 				fprintf(stderr, "Invalid lifetime\n");
 				usage();
 			}
+			break;
+		case 'l':
+			lock_script = optarg;
 			break;
 		default:
 			usage();

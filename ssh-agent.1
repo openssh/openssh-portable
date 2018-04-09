@@ -48,6 +48,7 @@
 .Op Fl E Ar fingerprint_hash
 .Op Fl P Ar pkcs11_whitelist
 .Op Fl t Ar life
+.Op Fl l Ar lock_script
 .Op Ar command Op Ar arg ...
 .Nm ssh-agent
 .Op Fl c | s
@@ -148,6 +149,9 @@ A lifetime specified for an identity with
 .Xr ssh-add 1
 overrides this value.
 Without this option the default maximum lifetime is forever.
+.It Fl l Ar lock_script
+Use a script to dynamically decide whether the agent is locked or not.
+Scripts return exit code 0 for unlocked, non-zero for locked.
 .El
 .Pp
 If a command line is given, this is executed as a subprocess of the agent.
