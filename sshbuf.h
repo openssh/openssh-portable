@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.9 2017/09/12 06:32:07 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.10 2018/04/10 00:10:49 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -53,7 +53,7 @@ struct sshbuf {
 #ifndef SSHBUF_NO_DEPREACTED
 /*
  * NB. Please do not use sshbuf_init() in new code. Please use sshbuf_new()
- * instead. sshbuf_init() is deprectated and will go away soon (it is
+ * instead. sshbuf_init() is deprecated and will go away soon (it is
  * only included to allow compat with buffer_* in OpenSSH)
  */
 void sshbuf_init(struct sshbuf *buf);

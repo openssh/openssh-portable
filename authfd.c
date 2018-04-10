@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.108 2018/02/23 15:58:37 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.109 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -323,7 +323,7 @@ ssh_free_identitylist(struct ssh_identitylist *idl)
  */
 
 
-/* encode signature algoritm in flag bits, so we can keep the msg format */
+/* encode signature algorithm in flag bits, so we can keep the msg format */
 static u_int
 agent_encode_alg(const struct sshkey *key, const char *alg)
 {

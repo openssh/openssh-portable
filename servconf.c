@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.327 2018/04/04 15:12:17 job Exp $ */
+/* $OpenBSD: servconf.c,v 1.328 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1951,7 +1951,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sAuthenticationMethods:
 		if (options->num_auth_methods == 0) {
 			value = 0; /* seen "any" pseudo-method */
-			value2 = 0; /* sucessfully parsed any method */
+			value2 = 0; /* successfully parsed any method */
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (strcmp(arg, "any") == 0) {
 					if (options->num_auth_methods > 0) {
@@ -2135,7 +2135,7 @@ int parse_server_match_testspec(struct connection_info *ci, char *spec)
  *
  * If the preauth flag is set, we do not bother copying the string or
  * array values that are not used pre-authentication, because any that we
- * do use must be explictly sent in mm_getpwnamallow().
+ * do use must be explicitly sent in mm_getpwnamallow().
  */
 void
 copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)

@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.311 2018/02/11 21:16:56 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.312 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -664,7 +664,7 @@ client_status_confirm(struct ssh *ssh, int type, Channel *c, void *ctx)
 	    options.request_tty == REQUEST_TTY_YES))
 		cr->action = CONFIRM_CLOSE;
 
-	/* XXX supress on mux _client_ quietmode */
+	/* XXX suppress on mux _client_ quietmode */
 	tochan = options.log_level >= SYSLOG_LEVEL_ERROR &&
 	    c->ctl_chan != -1 && c->extended_usage == CHAN_EXTENDED_WRITE;
 

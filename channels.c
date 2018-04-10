@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.379 2018/02/05 05:36:49 tb Exp $ */
+/* $OpenBSD: channels.c,v 1.380 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2599,7 +2599,7 @@ channel_output_poll(struct ssh *ssh)
  *      SSH_CHANNEL_MUX_PROXY channel and replace the mux clients ID
  *      with the newly allocated channel ID.
  * 2) Upstream messages are received by matching SSH_CHANNEL_MUX_PROXY
- *    channels and procesed by channel_proxy_upstream(). The local channel ID
+ *    channels and processed by channel_proxy_upstream(). The local channel ID
  *    is then translated back to the original mux client ID.
  * 3) In both cases we need to keep track of matching SSH2_MSG_CHANNEL_CLOSE
  *    messages so we can clean up SSH_CHANNEL_MUX_PROXY channels.
@@ -2610,7 +2610,7 @@ channel_output_poll(struct ssh *ssh)
  *    channel. E.g. client_request_forwarded_tcpip() needs to figure
  *    out whether the request is addressed to the local client or a
  *    specific downstream client based on the listen-address/port.
- * 6) Agent and X11-Forwarding have a similar problem and are currenly
+ * 6) Agent and X11-Forwarding have a similar problem and are currently
  *    not supported as the matching session/channel cannot be identified
  *    easily.
  */
@@ -2787,7 +2787,7 @@ channel_proxy_upstream(Channel *c, int type, u_int32_t seq, struct ssh *ssh)
 	/*
 	 * When receiving packets from the peer we need to check whether we
 	 * need to forward the packets to the mux client. In this case we
-	 * restore the orignal channel id and keep track of CLOSE messages,
+	 * restore the original channel id and keep track of CLOSE messages,
 	 * so we can cleanup the channel.
 	 */
 	if (c == NULL || c->type != SSH_CHANNEL_MUX_PROXY)

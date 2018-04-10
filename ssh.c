@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.475 2018/02/23 15:58:38 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.476 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1485,7 +1485,7 @@ main(int ac, char **av)
 	/* load options.identity_files */
 	load_public_identity_files(pw);
 
-	/* optionally set the SSH_AUTHSOCKET_ENV_NAME varibale */
+	/* optionally set the SSH_AUTHSOCKET_ENV_NAME variable */
 	if (options.identity_agent &&
 	    strcmp(options.identity_agent, SSH_AUTHSOCKET_ENV_NAME) != 0) {
 		if (strcmp(options.identity_agent, "none") == 0) {

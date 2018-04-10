@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.297 2018/02/23 15:58:38 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.298 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -277,7 +277,7 @@ ssh_kill_proxy_command(void)
 #ifdef HAVE_IFADDRS_H
 /*
  * Search a interface address list (returned from getifaddrs(3)) for an
- * address that matches the desired address family on the specifed interface.
+ * address that matches the desired address family on the specified interface.
  * Returns 0 and fills in *resultp and *rlenp on success. Returns -1 on failure.
  */
 static int

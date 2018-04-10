@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.229 2018/04/09 23:54:49 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.230 2018/04/10 00:10:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -709,7 +709,7 @@ process_message(u_int socknum)
 
 	debug("%s: socket %u (fd=%d) type %d", __func__, socknum, e->fd, type);
 
-	/* check wheter agent is locked */
+	/* check whether agent is locked */
 	if (locked && type != SSH_AGENTC_UNLOCK) {
 		sshbuf_reset(e->request);
 		switch (type) {
