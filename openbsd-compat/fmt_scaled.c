@@ -188,7 +188,7 @@ scan_scaled(char *scaled, long long *result)
 			/* scale whole part */
 			whole *= scale_fact;
 
-			/* truncate fpart so it does't overflow.
+			/* truncate fpart so it doesn't overflow.
 			 * then scale fractional part.
 			 */
 			while (fpart >= LLONG_MAX / scale_fact) {

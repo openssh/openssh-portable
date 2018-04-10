@@ -657,7 +657,7 @@ mm_sshpam_query(void *ctx, char **name, char **info,
 	sshpam_set_maxtries_reached(buffer_get_int(&m));
 	*num = buffer_get_int(&m);
 	if (*num > PAM_MAX_NUM_MSG)
-		fatal("%s: recieved %u PAM messages, expected <= %u",
+		fatal("%s: received %u PAM messages, expected <= %u",
 		    __func__, *num, PAM_MAX_NUM_MSG);
 	*prompts = xcalloc((*num + 1), sizeof(char *));
 	*echo_on = xcalloc((*num + 1), sizeof(u_int));
