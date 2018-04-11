@@ -2086,6 +2086,8 @@ main(int ac, char **av)
 	notify_hostkeys(ssh);
 
 	/* Start session. */
+	do_authenticated(ssh, authctxt);
+
 #ifdef WITH_OPENSSL
 	/* if we are using aes-ctr there can be issues in either a fork or sandbox
 	 * so the initial aes-ctr is defined to point ot the original single process
@@ -2102,8 +2104,6 @@ main(int ac, char **av)
 		packet_request_rekeying();
 	}
 #endif
-
-	do_authenticated(ssh, authctxt);
 
 	/* The connection has been terminated. */
 	packet_get_bytes(&ibytes, &obytes);
