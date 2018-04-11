@@ -2098,10 +2098,10 @@ main(int ac, char **av)
 	 * so we repoint the define to the multithreaded evp. To start the threads we
 	 * then force a rekey
 	 */
-	struct sshcipher_ctx *ccsend = ssh_packet_get_send_context(active_state);
+	const void *cc = ssh_packet_get_send_context(active_state);
 
 	/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
-	if (strstr(cipher_return_name(ccsend->cipher), "ctr")) {
+	if (strstr(cipher_ctx_name(cc), "ctr")) {
 		debug("Single to Multithreaded CTR cipher swap - server request");
 		cipher_reset_multithreaded();
 		packet_request_rekeying();

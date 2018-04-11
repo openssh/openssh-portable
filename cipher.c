@@ -172,9 +172,9 @@ cipher_alg_list(char sep, int auth_only)
  * single to multithreaded ctr cipher swap we only rekey when appropriate
  */
 const char *
-cipher_return_name(const struct sshcipher *c)
+cipher_ctx_name(const struct sshcipher_ctx *cc)
 {
-	return c->name;
+	return cc->cipher->name;
 }
 
 /* in order to get around sandbox and forking issues with a threaded cipher

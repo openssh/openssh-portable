@@ -3074,5 +3074,5 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 void *
 ssh_packet_get_send_context(struct ssh *ssh)
 {
-        return (void *)&ssh->state->send_context;
+        return ssh->state->send_context;
 }
