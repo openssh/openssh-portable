@@ -71,7 +71,7 @@ signal_test_wait_for_multiple_objects()
 
 	{
 		TEST_START("Signal: APC wakeup with select event counts (WAIT_IO_COMPLETION_ENHANCED)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		for (int i = 0; i < objects_size; i++) {
@@ -83,13 +83,13 @@ signal_test_wait_for_multiple_objects()
 			}
 		}
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 
 	{
 		TEST_START("Signal: Wait-any with one invalid event in positions 1-300 (WAIT_FAILED_ENHANCED)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		for (int i = 0; i < objects_size; i++) {
@@ -100,13 +100,13 @@ signal_test_wait_for_multiple_objects()
 			hObjects[i] = event;
 		}
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 
 	{
 		TEST_START("Signal: Wait-any with signaled event in positions 1-300 (WAIT_OBJECT_0_ENHANCED)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) {
 			SetEvent(hObjects[i]);
@@ -115,25 +115,25 @@ signal_test_wait_for_multiple_objects()
 			ResetEvent(hObjects[i]);
 		}
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 
 	{
 		TEST_START("Signal: Wait-any with latent events (WAIT_TIMEOUT_ENHANCED)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		DWORD ret = wait_for_multiple_objects_enhanced(objects_size, hObjects, 250, FALSE);
 		ASSERT_INT_EQ(ret, WAIT_TIMEOUT_ENHANCED);
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 
 	{
 		TEST_START("Signal: Wait-any with async event in positions 1-300 (WAIT_OBJECT_0_ENHANCED offset)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		for (int i = 0; i < objects_size; i++) {
@@ -143,13 +143,13 @@ signal_test_wait_for_multiple_objects()
 			ResetEvent(hObjects[i]);
 		}
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 
 	{
 		TEST_START("Signal: Wait-any with abandoned mutex in positions 1-300 (WAIT_ABANDONED_0_ENHANCED offset)");
-		TEST_RESOURCES(TRUE);
+		//TEST_RESOURCES(TRUE);
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		for (int i = 0; i < objects_size; i++) {
@@ -160,7 +160,7 @@ signal_test_wait_for_multiple_objects()
 			hObjects[i] = original_event;
 		}
 
-		TEST_RESOURCES(FALSE);
+		//TEST_RESOURCES(FALSE);
 		TEST_DONE();
 	}
 

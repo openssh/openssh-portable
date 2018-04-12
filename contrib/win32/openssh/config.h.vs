@@ -1580,6 +1580,7 @@
 /* #undef socklen_t */
 #define WIN32_LEAN_AND_MEAN 1
 #define WINDOWS 1
+#define SUPPORT_CRLF 1
 
 #define BROKEN_READV_COMPARISON
 

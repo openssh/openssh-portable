@@ -6,10 +6,6 @@ branches:
     - latestw_all
     - hotfix
 
-init:
-  - ps: |
-      [Environment]::OSVersion | fl *
-
 build_script:
   - ps: |
       Import-Module $env:APPVEYOR_BUILD_FOLDER\contrib\win32\openssh\AppveyorHelper.psm1
