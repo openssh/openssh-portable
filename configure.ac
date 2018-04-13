@@ -1398,7 +1398,7 @@ AC_RUN_IFELSE(
 )
 AC_MSG_RESULT([$func_calloc_0_nonnull])
 
-if test "x$func_calloc_0_nonnull" == "xyes"; then
+if test "x$func_calloc_0_nonnull" = "xyes"; then
 	AC_DEFINE(HAVE_CALLOC, 1, [calloc(0, x) returns non-null])
 else
 	AC_DEFINE(HAVE_CALLOC, 0, [calloc(0, x) returns NULL])
