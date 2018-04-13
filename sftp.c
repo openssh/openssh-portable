@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.183 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.184 2018/04/13 05:04:12 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -251,6 +251,23 @@ cmd_interrupt(int signo)
 	(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
 	interrupted = 1;
 	errno = olderrno;
+}
+
+/*ARGSUSED*/
+static void
+sigchld_handler(int sig)
+{
+	int save_errno = errno;
+	pid_t pid;
+	const char msg[] = "\rConnection closed.  \n";
+
+	/* Report if ssh transport process dies. */
+	while ((pid = waitpid(sshpid, NULL, WNOHANG)) == -1 && errno == EINTR)
+		continue;
+	if (pid == sshpid)
+		(void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+
+	errno = save_errno;
 }
 
 static void
@@ -2227,6 +2244,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		if (err != 0)
 			break;
 	}
+	signal(SIGCHLD, SIG_DFL);
 	free(remote_path);
 	free(startdir);
 	free(conn);
@@ -2296,6 +2314,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 	signal(SIGTSTP, suspchild);
 	signal(SIGTTIN, suspchild);
 	signal(SIGTTOU, suspchild);
+	signal(SIGCHLD, sigchld_handler);
 	close(c_in);
 	close(c_out);
 }
