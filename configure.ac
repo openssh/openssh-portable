@@ -413,6 +413,7 @@ AC_CHECK_HEADERS([ \
 	sys/prctl.h \
 	sys/pstat.h \
 	sys/ptrace.h \
+	sys/random.h \
 	sys/select.h \
 	sys/stat.h \
 	sys/stream.h \
@@ -1786,6 +1787,7 @@ AC_CHECK_FUNCS([ \
 	getpgid \
 	_getpty \
 	getrlimit \
+	getrandom \
 	getsid \
 	getttyent \
 	glob \
