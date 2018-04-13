@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.130 2017/10/25 00:19:47 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.131 2018/04/13 03:57:26 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -209,6 +209,7 @@ typedef struct {
 
 	int	fingerprint_hash;
 	int	expose_userauth_info;
+	u_int64_t timing_secret;
 }       ServerOptions;
 
 /* Information about the incoming connection as used by Match */
