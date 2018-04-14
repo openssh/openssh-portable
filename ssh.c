@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.476 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.477 2018/04/14 21:50:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1323,7 +1323,6 @@ main(int ac, char **av)
 		    (char *)NULL);
 		free(cp);
 	}
-	free(conn_hash_hex);
 
 	if (config_test) {
 		dump_client_config(&options, host);
