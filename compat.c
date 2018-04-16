@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.106 2018/02/16 04:43:11 dtucker Exp $ */
+/* $OpenBSD: compat.c,v 1.107 2018/04/16 22:50:44 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -128,6 +128,8 @@ compat_datafellows(const char *version)
 					SSH_OLD_DHGEX },
 		{ "ConfD-*",
 					SSH_BUG_UTF8TTYMODE },
+		{ "Twisted_*",		0 },
+		{ "Twisted*",		SSH_BUG_DEBUG },
 		{ NULL,			0 }
 	};
 
