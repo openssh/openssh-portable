@@ -42,7 +42,7 @@ int	 packet_read_seqnr(u_int32_t *);
 int	 packet_read_poll_seqnr(u_int32_t *);
 void	 packet_process_incoming(const char *buf, u_int len);
 void	 packet_write_wait(void);
-void	 packet_write_poll(void);
+int	 packet_write_poll(void);
 void	 packet_read_expect(int expected_type);
 #define packet_set_timeout(timeout, count) \
 	ssh_packet_set_timeout(active_state, (timeout), (count))

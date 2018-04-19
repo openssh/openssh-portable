@@ -66,6 +66,7 @@
 #include "uidswap.h"
 #include "myproposal.h"
 #include "digest.h"
+#include "sshbuf.h"
 
 /* Format of the configuration file:
 
@@ -164,7 +165,10 @@ typedef enum {
 	oSendEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
-	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
+	oLocalCommand, oPermitLocalCommand, oRemoteCommand, 
+	oNoneEnabled, oNoneSwitch,
+	oDisableMTAES,
+	oTcpRcvBufPoll, oTcpRcvBuf, oHPNDisabled, oHPNBufferSize,
 	oVisualHostKey,
 	oKexAlgorithms, oIPQoS, oRequestTTY, oIgnoreUnknown, oProxyUseFdpass,
 	oCanonicalDomains, oCanonicalizeHostname, oCanonicalizeMaxDots,
@@ -290,6 +294,9 @@ static struct {
 	{ "kexalgorithms", oKexAlgorithms },
 	{ "ipqos", oIPQoS },
 	{ "requesttty", oRequestTTY },
+	{ "noneenabled", oNoneEnabled },
+	{ "noneswitch", oNoneSwitch },
+	{ "disablemtaes", oDisableMTAES },
 	{ "proxyusefdpass", oProxyUseFdpass },
 	{ "canonicaldomains", oCanonicalDomains },
 	{ "canonicalizefallbacklocal", oCanonicalizeFallbackLocal },
@@ -305,6 +312,11 @@ static struct {
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedKeyTypes },
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
+
+	{ "tcprcvbufpoll", oTcpRcvBufPoll },
+	{ "tcprcvbuf", oTcpRcvBuf },
+	{ "hpndisabled", oHPNDisabled },
+	{ "hpnbuffersize", oHPNBufferSize },
 
 	{ NULL, oBadOption }
 };
@@ -988,6 +1000,42 @@ parse_time:
 		intptr = &options->check_host_ip;
 		goto parse_flag;
 
+	case oNoneEnabled:
+		intptr = &options->none_enabled;
+		goto parse_flag;
+
+	case oDisableMTAES:
+		intptr = &options->disable_multithreaded;
+		goto parse_flag;
+
+	/*
+	 * We check to see if the command comes from the command
+	 * line or not. If it does then enable it otherwise fail.
+	 *  NONE should never be a default configuration.
+	 */
+	case oNoneSwitch:
+		if (strcmp(filename, "command-line") == 0) {
+			intptr = &options->none_switch;
+			goto parse_flag;
+		} else {
+			error("NoneSwitch is found in %.200s.\nYou may only use this configuration option from the command line", filename);
+			error("Continuing...");
+			debug("NoneSwitch directive found in %.200s.", filename);
+			return 0;
+		}
+
+	case oHPNDisabled:
+		intptr = &options->hpn_disabled;
+		goto parse_flag;
+
+	case oHPNBufferSize:
+		intptr = &options->hpn_buffer_size;
+		goto parse_int;
+
+	case oTcpRcvBufPoll:
+		intptr = &options->tcp_rcv_buf_poll;
+		goto parse_flag;
+
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;
 		multistate_ptr = multistate_yesnoask;
@@ -1174,6 +1222,10 @@ parse_int:
 
 	case oConnectionAttempts:
 		intptr = &options->connection_attempts;
+		goto parse_int;
+
+	case oTcpRcvBuf:
+		intptr = &options->tcp_rcv_buf;
 		goto parse_int;
 
 	case oCiphers:
@@ -1857,6 +1909,13 @@ initialize_options(Options * options)
 	options->ip_qos_interactive = -1;
 	options->ip_qos_bulk = -1;
 	options->request_tty = -1;
+	options->none_switch = -1;
+	options->none_enabled = -1;
+	options->disable_multithreaded = -1;
+	options->hpn_disabled = -1;
+	options->hpn_buffer_size = -1;
+	options->tcp_rcv_buf_poll = -1;
+	options->tcp_rcv_buf = -1;
 	options->proxy_use_fdpass = -1;
 	options->ignored_unknown = NULL;
 	options->num_canonical_domains = 0;
@@ -2002,6 +2061,32 @@ fill_default_options(Options * options)
 		options->server_alive_interval = 0;
 	if (options->server_alive_count_max == -1)
 		options->server_alive_count_max = 3;
+	if (options->none_switch == -1)
+		options->none_switch = 0;
+	if (options->none_enabled == -1)
+		options->none_enabled = 0;
+	if (options->disable_multithreaded == -1)
+		options->disable_multithreaded = 0;
+	if (options->hpn_disabled == -1)
+		options->hpn_disabled = 0;
+	if (options->hpn_buffer_size > -1) {
+		/* if a user tries to set the size to 0 set it to 1KB */
+		if (options->hpn_buffer_size == 0)
+			options->hpn_buffer_size = 1;
+		/* limit the buffer to SSHBUF_SIZE_MAX (currently 256MB) */
+		if (options->hpn_buffer_size > (SSHBUF_SIZE_MAX / 1024)) {
+			options->hpn_buffer_size = SSHBUF_SIZE_MAX;
+			debug("User requested buffer larger than 256MB. Request reverted to 256MB");
+		} else
+			options->hpn_buffer_size *= 1024;
+		debug("hpn_buffer_size set to %d", options->hpn_buffer_size);
+	}
+	if (options->tcp_rcv_buf == 0)
+		options->tcp_rcv_buf = 1;
+	if (options->tcp_rcv_buf > -1)
+		options->tcp_rcv_buf *=1024;
+	if (options->tcp_rcv_buf_poll == -1)
+		options->tcp_rcv_buf_poll = 1;
 	if (options->control_master == -1)
 		options->control_master = 0;
 	if (options->control_persist == -1) {

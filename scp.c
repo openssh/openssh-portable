@@ -770,7 +770,7 @@ source(int argc, char **argv)
 	off_t i, statbytes;
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
-	char *last, *name, buf[2048], encname[PATH_MAX];
+	char *last, *name, buf[16384], encname[PATH_MAX];
 	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
@@ -943,7 +943,7 @@ sink(int argc, char **argv)
 	off_t size, statbytes;
 	unsigned long long ull;
 	int setimes, targisdir, wrerrno = 0;
-	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048], visbuf[2048];
+	char ch, *cp, *np, *targ, *why, *vect[1], buf[16384], visbuf[16384];
 	struct timeval tv[2];
 
 #define	atime	tv[0]

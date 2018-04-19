@@ -367,7 +367,7 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 	char remote_version[256];	/* Must be at least as big as buf. */
 
 	xasprintf(&server_version_string, "SSH-%d.%d-%.100s%s%s\r\n",
-	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION,
+	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_RELEASE,
 	    *options.version_addendum == '\0' ? "" : " ",
 	    options.version_addendum);
 
@@ -421,6 +421,9 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 		cleanup_exit(255);
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
+	    remote_major, remote_minor, remote_version);
+	logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
+	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
 	    remote_major, remote_minor, remote_version);
 
 	ssh->compat = compat_datafellows(remote_version);
@@ -1019,6 +1022,8 @@ server_listen(void)
 	int ret, listen_sock, on = 1;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int socksize;
+	int socksizelen = sizeof(int);
 
 	for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
 		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
@@ -1063,6 +1068,11 @@ server_listen(void)
 			sock_set_v6only(listen_sock);
 
 		debug("Bind to port %s on %s.", strport, ntop);
+
+		getsockopt(listen_sock, SOL_SOCKET, SO_RCVBUF,
+				   &socksize, &socksizelen);
+		debug("Server TCP RWIN socket size: %d", socksize);
+		debug("HPN Buffer Size: %d", options.hpn_buffer_size);
 
 		/* Bind the socket to the desired port. */
 		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
@@ -1588,6 +1598,13 @@ main(int ac, char **av)
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
 
+	if (options.none_enabled == 1) {
+		char *old_ciphers = options.ciphers;
+
+		xasprintf(&options.ciphers, "%s,none", old_ciphers);
+		free(old_ciphers);
+	}
+
 	/* challenge-response is implemented via keyboard interactive */
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
@@ -1987,6 +2004,9 @@ main(int ac, char **av)
 	    remote_ip, remote_port, laddr,  ssh_local_port(ssh));
 	free(laddr);
 
+	/* set the HPN options for the child */
+	channel_set_hpn(options.hpn_disabled, options.hpn_buffer_size);
+
 	/*
 	 * We don't want to listen forever unless the other side
 	 * successfully authenticates itself.  So we set up an alarm which is
@@ -2148,6 +2168,9 @@ do_ssh2_kex(void)
 	char *myproposal[PROPOSAL_MAX] = { KEX_SERVER };
 	struct kex *kex;
 	int r;
+
+	if (options.none_enabled == 1)
+		debug("WARNING: None cipher enabled");
 
 	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(
 	    options.kex_algorithms);

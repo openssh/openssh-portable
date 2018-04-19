@@ -48,9 +48,17 @@
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "digest.h"
+#include "log.h"
 
 #include "openbsd-compat/openssl-compat.h"
 
+
+/* for multi-threaded aes-ctr cipher */
+extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+
+/* no longer needed. replaced by evp pointer swap */
+/* extern void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); */
+/* extern void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx); */
 
 struct sshcipher_ctx {
 	int	plaintext;
@@ -80,7 +88,7 @@ struct sshcipher {
 #endif
 };
 
-static const struct sshcipher ciphers[] = {
+static struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL
 	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
 	{ "aes128-cbc",		16, 16, 0, 0, CFLAG_CBC, EVP_aes_128_cbc },
@@ -90,7 +98,7 @@ static const struct sshcipher ciphers[] = {
 				16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
 	{ "aes128-ctr",		16, 16, 0, 0, 0, EVP_aes_128_ctr },
 	{ "aes192-ctr",		16, 24, 0, 0, 0, EVP_aes_192_ctr },
-	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr },
+	{ "aes256-ctr",		16, 32, 0, 0, 0, EVP_aes_256_ctr }, 
 # ifdef OPENSSL_HAVE_EVPGCM
 	{ "aes128-gcm@openssh.com",
 				16, 16, 12, 16, 0, EVP_aes_128_gcm },
@@ -136,6 +144,35 @@ cipher_alg_list(char sep, int auth_only)
 		rlen += nlen;
 	}
 	return ret;
+}
+
+/* used to get the cipher name so when force rekeying to handle the
+ * single to multithreaded ctr cipher swap we only rekey when appropriate
+ */
+const char *
+cipher_ctx_name(const struct sshcipher_ctx *cc)
+{
+	return cc->cipher->name;
+}
+
+/* in order to get around sandbox and forking issues with a threaded cipher
+ * we set the initial pre-auth aes-ctr cipher to the default OpenSSH cipher
+ * post auth we set them to the new evp as defined by cipher-ctr-mt
+ */
+#ifdef WITH_OPENSSL
+void
+cipher_reset_multithreaded(void)
+{
+	cipher_by_name("aes128-ctr")->evptype = evp_aes_ctr_mt;
+	cipher_by_name("aes192-ctr")->evptype = evp_aes_ctr_mt;
+	cipher_by_name("aes256-ctr")->evptype = evp_aes_ctr_mt;
+}
+#endif
+
+void
+cipher_mt_restart(const struct sshcipher_ctx *cc) {
+	ssh_aes_ctr_thread_destroy(cc->evp);
+	ssh_aes_ctr_thread_reconstruction(cc->evp);
 }
 
 u_int
@@ -187,10 +224,10 @@ cipher_ctx_is_plaintext(struct sshcipher_ctx *cc)
 	return cc->plaintext;
 }
 
-const struct sshcipher *
+struct sshcipher *
 cipher_by_name(const char *name)
 {
-	const struct sshcipher *c;
+	struct sshcipher *c;
 	for (c = ciphers; c->name != NULL; c++)
 		if (strcmp(c->name, name) == 0)
 			return c;
@@ -212,7 +249,9 @@ ciphers_valid(const char *names)
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
-		if (c == NULL || (c->flags & CFLAG_INTERNAL) != 0) {
+		/* not sure the logic here is correct CJR */
+		if (c == NULL || ((c->flags & CFLAG_INTERNAL) != 0 &&
+				  (c->flags & CFLAG_NONE) !=0)) {
 			free(cipher_list);
 			return 0;
 		}

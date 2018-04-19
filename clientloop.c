@@ -1570,7 +1570,9 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		return NULL;
 	c = channel_new(ssh, "x11",
 	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
+	    /* again is this really necessary for X11? */
+	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+	    CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1595,7 +1597,8 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 	}
 	c = channel_new(ssh, "authentication agent connection",
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
-	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0,
+	    options.hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : options.hpn_buffer_size,
+	    CHAN_TCP_PACKET_DEFAULT, 0,
 	    "authentication agent connection", 1);
 	c->force_drain = 1;
 	return c;
@@ -1620,7 +1623,8 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	}
 
 	c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+	    CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
 
 #if defined(SSH_TUN_FILTER)

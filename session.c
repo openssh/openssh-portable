@@ -96,6 +96,7 @@
 #include "sftp.h"
 #include "atomicio.h"
 
+
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
 #endif
@@ -404,6 +405,21 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	case 0:
 		is_child = 1;
 
+		/* this block should be moved to do_child but at this point I want to preserve as much 
+		   debugging information as possible. After this is validated then move to there*/
+#ifdef WITH_OPENSSL
+	if (options.disable_multithreaded == 0) {
+		/* if we are using aes-ctr there can be issues in either a fork or sandbox                                                                                      		 * so the initial aes-ctr is defined to point ot the original single process                                                                                    		 * evp. After authentication we'll be past the fork and the sandboxed privsep                                                                                   		 * so we repoint the define to the multithreaded evp. To start the threads we                                                                                   		 * then force a rekey                                                                                                                                           		 */
+	  const void *cc = ssh_packet_get_send_context(active_state);
+	  
+	  /* only rekey if necessary. If we don't do this gcm mode cipher breaks */
+	  if (strstr(cipher_ctx_name(cc), "ctr")) {
+		  debug("Single to Multithreaded CTR cipher swap - server request");
+		  cipher_reset_multithreaded();
+		  packet_request_rekeying();
+	  }
+	}
+#endif			
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -555,6 +571,23 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	case 0:
 		is_child = 1;
 
+
+		/* this block should be moved to do_child but at this point I want to preserve as much 
+		   debugging information as possible. After this is validated then move to there*/
+#ifdef WITH_OPENSSL
+	if (options.disable_multithreaded == 0) {
+		/* if we are using aes-ctr there can be issues in either a fork or sandbox                                                                                      		 * so the initial aes-ctr is defined to point ot the original single process                                                                                    		 * evp. After authentication we'll be past the fork and the sandboxed privsep                                                                                   		 * so we repoint the define to the multithreaded evp. To start the threads we                                                                                   		 * then force a rekey                                                                                                                                           		 */
+	  const void *cc = ssh_packet_get_send_context(active_state);
+	  
+	  /* only rekey if necessary. If we don't do this gcm mode cipher breaks */
+	  if (strstr(cipher_ctx_name(cc), "ctr")) {
+		  debug("Single to Multithreaded CTR cipher swap - server request");
+		  cipher_reset_multithreaded();
+		  packet_request_rekeying();
+	  }
+	}
+#endif
+	
 		close(fdout);
 		close(ptymaster);
 
@@ -2111,7 +2144,8 @@ session_set_fds(struct ssh *ssh, Session *s,
 	channel_set_fds(ssh, s->chanid,
 	    fdout, fdin, fderr,
 	    ignore_fderr ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1, is_tty, CHAN_SES_WINDOW_DEFAULT);
+	    1, is_tty,
+	    options.hpn_disabled ? CHAN_SES_WINDOW_DEFAULT : options.hpn_buffer_size);
 }
 
 /*

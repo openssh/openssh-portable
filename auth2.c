@@ -75,6 +75,8 @@ extern Authmethod method_hostbased;
 extern Authmethod method_gssapi;
 #endif
 
+static int log_flag = 0;
+
 Authmethod *authmethods[] = {
 	&method_none,
 	&method_pubkey,
@@ -229,6 +231,11 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	service = packet_get_cstring(NULL);
 	method = packet_get_cstring(NULL);
 	debug("userauth-request for user %s service %s method %s", user, service, method);
+	if (!log_flag) {
+		logit("SSH: Server;Ltype: Authname;Remote: %s-%d;Name: %s",
+		      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state), user);
+		log_flag = 1;
+	}
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
 
 	if ((style = strchr(user, ':')) != NULL)

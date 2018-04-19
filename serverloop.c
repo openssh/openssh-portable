@@ -84,6 +84,9 @@ extern ServerOptions options;
 extern Authctxt *the_authctxt;
 extern int use_privsep;
 
+static u_long stdin_bytes = 0;	/* Number of bytes written to stdin. */
+static u_long fdout_bytes = 0;	/* Number of stdout bytes read from program. */
+
 static int no_more_sessions = 0; /* Disallow further sessions. */
 
 /*
@@ -98,6 +101,20 @@ static volatile sig_atomic_t received_sigterm = 0;
 
 /* prototypes */
 static void server_init_dispatch(void);
+
+/*
+ * Returns current time in seconds from Jan 1, 1970 with the maximum
+ * available resolution.
+ */
+
+static double
+get_current_time(void)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
+}
+
 
 /*
  * we write to this pipe if a SIGCHLD is caught in order to avoid
@@ -317,6 +334,7 @@ process_input(struct ssh *ssh, fd_set *readset, int connection_in)
 		} else {
 			/* Buffer any received data. */
 			packet_process_incoming(buf, len);
+			fdout_bytes += len;
 		}
 	}
 	return 0;
@@ -330,7 +348,7 @@ process_output(fd_set *writeset, int connection_out)
 {
 	/* Send any buffered packet data to the client. */
 	if (FD_ISSET(connection_out, writeset))
-		packet_write_poll();
+		stdin_bytes += packet_write_poll();
 }
 
 static void
@@ -365,11 +383,13 @@ void
 server_loop2(struct ssh *ssh, Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
+	double start_time, total_time;
 	int max_fd;
 	u_int nalloc = 0, connection_in, connection_out;
 	u_int64_t rekey_timeout_ms = 0;
 
 	debug("Entering interactive session for SSH2.");
+	start_time = get_current_time();
 
 	mysignal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
@@ -426,6 +446,11 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(ssh, NULL);
+	total_time = get_current_time() - start_time;
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state),
+	      stdin_bytes, fdout_bytes, total_time, stdin_bytes / total_time,
+	      fdout_bytes / total_time);
 }
 
 static int
@@ -545,7 +570,8 @@ server_request_tun(struct ssh *ssh)
 	if (sock < 0)
 		goto done;
 	c = channel_new(ssh, "tun", SSH_CHANNEL_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+	    CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
 #if defined(SSH_TUN_FILTER)
 	if (mode == SSH_TUNMODE_POINTOPOINT)
@@ -581,6 +607,8 @@ server_request_session(struct ssh *ssh)
 	c = channel_new(ssh, "session", SSH_CHANNEL_LARVAL,
 	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
 	    0, "server-session", 1);
+	if (options.tcp_rcv_buf_poll && !options.hpn_disabled)
+		c->dynamic_window = 1;
 	if (session_open(the_authctxt, c->self) != 1) {
 		debug("session open failed, free channel %d", c->self);
 		channel_free(ssh, c);
