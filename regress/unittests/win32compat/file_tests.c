@@ -601,6 +601,87 @@ file_symlink_tests()
 	_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
 }
 
+
+void
+file_link_tests()
+{
+	/* skip these unit tests if we cannot create hard links at all */
+	CloseHandle(CreateFileW(L"admin_check_tgt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL));
+	int perm_test = CreateHardLinkW(L"admin_check", L"admin_check_tgt", 0);
+	DeleteFileW(L"admin_check");
+	DeleteFileW(L"admin_check_tgt");
+	if (perm_test == 0) return;
+
+	wchar_t curdir[MAX_PATH];
+	GetCurrentDirectoryW(MAX_PATH, curdir);
+
+	/* perform a variety of link tests using unicode, absolute/relative links,
+	 * absolute/relative targets
+	*/
+	for (int do_unicode = 0; do_unicode <= 1; do_unicode++)
+	for (int do_absolute_lnk = 0; do_absolute_lnk <= 1; do_absolute_lnk++)
+	for (int do_absolute_tgt = 0; do_absolute_tgt <= 1; do_absolute_tgt++)
+	{
+		char test_name[128];
+		sprintf(test_name, "link: %s link, %s file target, %s",
+			(do_absolute_lnk) ? "relative" : "absolute",
+			(do_absolute_tgt) ? "relative" : "absolute",
+			(do_unicode) ? "unicode" : "ansi");
+		TEST_START(test_name);
+
+		/* cleanup / setup basic test structure */
+		_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
+		_wsystem(L"MKDIR win32compat-tmp >NUL 2>&1");
+
+		wchar_t tgt_path[MAX_PATH] = L"";
+		wchar_t lnk_path[MAX_PATH] = L"";
+
+		/* prepend absolute path if doing absolute test */
+		if (do_absolute_tgt) {
+			wcscat(tgt_path, L"/");
+			wcscat(tgt_path, curdir);
+			wcscat(tgt_path, L"/");
+		}
+		if (do_absolute_lnk) {
+			wcscat(lnk_path, L"/");
+			wcscat(lnk_path, curdir);
+			wcscat(lnk_path, L"/");
+		}
+
+		/* append the test paths */
+		wcscat(tgt_path, L"win32compat-tmp/tgt");
+		wcscat(lnk_path, L"win32compat-tmp/lnk");
+
+		/* append unicode char if doing unicode test */
+		if (do_unicode) {
+			wcscat(tgt_path, L"Δ");
+			wcscat(lnk_path, L"Δ");
+		}
+
+		/* create file as target */
+		CloseHandle(CreateFileW(&tgt_path[do_absolute_tgt],
+			GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL));
+
+		/* convert to utf8 for test */
+		char * tgt_utf8 = utf16_to_utf8(tgt_path);
+		char * lnk_utf8 = utf16_to_utf8(lnk_path);
+
+		/* create link */
+		int link_ret = link(tgt_utf8, lnk_utf8);
+		ASSERT_INT_EQ(link_ret, 0);
+
+		/* verify stat() gets a reference to the dir or file */
+		struct w32_stat statbuf;
+		int stat_ret = stat(lnk_utf8, &statbuf);
+		ASSERT_INT_EQ(stat_ret, 0);
+		ASSERT_INT_EQ(1, S_ISREG(statbuf.st_mode));
+
+		TEST_DONE();
+	}
+
+	_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
+}
+
 void
 file_tests()
 {
@@ -611,4 +692,5 @@ file_tests()
 	file_select_tests();
 	file_miscellaneous_tests();
 	file_symlink_tests();
+	file_link_tests();
 }
