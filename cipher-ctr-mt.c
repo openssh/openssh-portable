@@ -57,7 +57,7 @@
 #define CACHELINE_LEN	64
 
 /* Collect thread stats and print at cancellation when in debug mode */
-/*#define CIPHER_THREAD_STATS */
+#define CIPHER_THREAD_STATS
 
 /* Can the system do unaligned loads natively? */
 #if defined(__aarch64__) || \
