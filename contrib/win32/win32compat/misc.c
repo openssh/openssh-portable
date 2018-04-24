@@ -53,6 +53,7 @@
 #include "w32fd.h"
 #include "inc\string.h"
 #include "inc\grp.h"
+#include <wchar.h>
 
 static char* s_programdir = NULL;
 
@@ -248,7 +249,7 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	}
 
 	/* if opening null device, point to Windows equivalent */
-	if (strcmp(input_path, NULL_DEVICE) == 0)
+	if (strncmp(input_path, NULL_DEVICE, sizeof(NULL_DEVICE)) == 0)
 		input_path = NULL_DEVICE_WIN;
 
 	wpath = resolved_path_utf16(input_path);
@@ -260,7 +261,7 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	}
 
 	if ((_wfopen_s(&f, wpath, wmode) != 0) || (f == NULL)) {
-		debug3("Failed to open file:%S error:%d", wpath, errno);
+		debug3("Failed to open file:%s error:%d", input_path, errno);
 		goto cleanup;
 	}		
 
@@ -931,6 +932,7 @@ resolved_path_utf16(const char *input_path)
 			wchar_t * resolved_path_new = realloc(resolved_path, 
 				(resolved_len + changed_req + 1) * sizeof(wchar_t));
 			if (resolved_path == NULL) {
+				debug3("%s: memory allocation failed.", __FUNCTION__);
 				free(resolved_path);
 				return NULL;
 			}
@@ -938,16 +940,16 @@ resolved_path_utf16(const char *input_path)
 		}
 
 		/* shift memory contents over based on side of the new string */
-		memmove(resolved_path + variable_len + changed_req, resolved_path + variable_len, 
-			(resolved_len - variable_len + 1) * sizeof(wchar_t));
-		memcpy(resolved_path, program_data, programdata_len * sizeof(wchar_t));
+		wmemmove_s(&resolved_path[variable_len + changed_req], resolved_len - variable_len + 1,
+			&resolved_path[variable_len], resolved_len - variable_len + 1);
 		resolved_len += changed_req;
+		wmemcpy_s(resolved_path, resolved_len + 1, program_data, programdata_len);
 	}
 
 	if (resolved_path[0] == L'/' && iswalpha(resolved_path[1]) && resolved_path[2] == L':') {
 
 		/* shift memory to remove forward slash including null terminator */
-		memmove(resolved_path, resolved_path + 1, (resolved_len + 1 - 1) * sizeof(wchar_t));
+		wmemmove_s(resolved_path, resolved_len + 1, resolved_path + 1, (resolved_len + 1 - 1));
 
 		/* if just a drive letter path, make x: into x:\ */
 		if (resolved_path[2] == L'\0') {

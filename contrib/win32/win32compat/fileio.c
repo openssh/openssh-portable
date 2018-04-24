@@ -439,7 +439,7 @@ fileio_open(const char *path_utf8, int flags, mode_t mode)
 	}
 
 	/* if opening null device, point to Windows equivalent */
-	if (strcmp(path_utf8, NULL_DEVICE) == 0) 
+	if (strncmp(path_utf8, NULL_DEVICE, sizeof(NULL_DEVICE)) == 0) 
 		path_utf8 = NULL_DEVICE_WIN;
 
 	if ((path_utf16 = resolved_path_utf16(path_utf8)) == NULL) {
