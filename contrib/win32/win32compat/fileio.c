@@ -1212,8 +1212,8 @@ fileio_link(const char *oldpath, const char *newpath)
 	}
 
 	DWORD ret = 0;
-	wchar_t *oldpath_utf16 = utf8_to_utf16(resolved_path(oldpath));
-	wchar_t *newpath_utf16 = utf8_to_utf16(resolved_path(newpath));
+	wchar_t *oldpath_utf16 = resolved_path_utf16(oldpath);
+	wchar_t *newpath_utf16 = resolved_path_utf16(newpath);
 	if (oldpath_utf16 == NULL || newpath_utf16 == NULL) {
 		errno = ENOMEM;
 		ret = -1;
