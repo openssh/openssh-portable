@@ -94,7 +94,7 @@ thread_loop_stats(void *x)
 {
 	struct thread_stats *s = x;
 
-	debug("tid %lu - %u fills, %u skips, %u waits", pthread_self(),
+	debug("AES-CTR MT tid %lu - %u fills, %u skips, %u waits", pthread_self(),
 			s->fills, s->skips, s->waits);
 }
 
@@ -134,7 +134,7 @@ struct kq {
 };
 
 /* Context struct */
-struct ssh_aes_ctr_ctx
+struct ssh_aes_ctr_ctx_mt
 {
 	struct kq	q[NUMKQ];
 	AES_KEY		aes_ctx;
@@ -199,7 +199,7 @@ thread_loop_cleanup(void *x)
  * when the main process join()-s the cancelled thread.
  */
 static void
-thread_loop_check_exit(struct ssh_aes_ctr_ctx *c)
+thread_loop_check_exit(struct ssh_aes_ctr_ctx_mt *c)
 {
 	int exit_flag;
 
@@ -218,7 +218,7 @@ thread_loop_check_exit(struct ssh_aes_ctr_ctx *c)
  * Helper function to terminate the helper threads
  */
 static void
-stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
+stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 {
 	int i;
 
@@ -239,7 +239,11 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
 		pthread_mutex_unlock(&c->q[i].lock);
 	}
 	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_join(c->tid[i], NULL);
+		if (pthread_kill(c->tid[i], 0) != 0) {
+			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s", c->tid[i], __FUNCTION__);
+		} else {
+			pthread_join(c->tid[i], NULL);
+		}
 	}
 }
 
@@ -253,7 +257,7 @@ thread_loop(void *x)
 {
 	AES_KEY key;
 	STATS_STRUCT(stats);
-	struct ssh_aes_ctr_ctx *c = x;
+	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
 	int i;
 	int qidx;
@@ -373,7 +377,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	} ptrs_t;
 	ptrs_t destp, srcp, bufp;
 	uintptr_t align;
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	struct kq *q, *oldq;
 	int ridx;
 	u_char *buf;
@@ -459,7 +463,7 @@ static int
 ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
     int enc)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
@@ -483,7 +487,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
 		/* tell the pregen threads to exit */
 		stop_and_join_pregen_threads(c);
-
+		
 #ifdef __APPLE__
 		/* reset the exit flag */
 		c->exit_flag = FALSE;
@@ -518,9 +522,11 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 		/* Start threads */
 		for (i = 0; i < CIPHER_THREADS; i++) {
-		        debug("spawned a thread");
 			pthread_rwlock_wrlock(&c->tid_lock);
-			pthread_create(&c->tid[i], NULL, thread_loop, c);
+			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
+				debug ("AES-CTR MT Could not create thread in %s", __FUNCTION__); /*should die here */
+			else
+				debug ("AES-CTR MT spawned a thread with id %lu in %s", c->tid[i], __FUNCTION__);
 			pthread_rwlock_unlock(&c->tid_lock);
 		}
 		pthread_mutex_lock(&c->q[0].lock);
@@ -537,24 +543,25 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 void
 ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
-
 	stop_and_join_pregen_threads(c);
 }
 
 void
 ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
 	/* reconstruct threads */
 	for (i = 0; i < CIPHER_THREADS; i++) {
-		debug("spawned a thread");
 		pthread_rwlock_wrlock(&c->tid_lock);
-		pthread_create(&c->tid[i], NULL, thread_loop, c);
+		if (pthread_create(&c->tid[i], NULL, thread_loop, c) !=0 )
+			debug("AES-CTR MT could not create thread in %s", __FUNCTION__);
+		else
+			debug("AES-CTR MT spawned a thread with id %lu in %s", c->tid[i], __FUNCTION__);
 		pthread_rwlock_unlock(&c->tid_lock);
 	}
 }
@@ -562,12 +569,12 @@ ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 static int
 ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
 #ifdef CIPHER_THREAD_STATS
-		debug("main thread: %u drains, %u waits", c->stats.drains,
-				c->stats.waits);
+		debug("AES-CTR MT main thread: %u drains, %u waits", c->stats.drains,
+		      c->stats.waits);
 #endif
 		stop_and_join_pregen_threads(c);
 
