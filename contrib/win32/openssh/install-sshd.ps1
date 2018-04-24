@@ -33,14 +33,30 @@ wevtutil um `"$etwman`"
 [XML]$xml = Get-Content $etwman
 $xml.instrumentationManifest.instrumentation.events.provider.resourceFileName = $sshagentpath.ToString()
 $xml.instrumentationManifest.instrumentation.events.provider.messageFileName = $sshagentpath.ToString()
-$xml.Save($etwman)
+
+$streamWriter = $null
+$xmlWriter = $null
+try {
+    $streamWriter = new-object System.IO.StreamWriter($etwman)
+    $xmlWriter = [System.Xml.XmlWriter]::Create($streamWriter)    
+    $xml.Save($xmlWriter)
+}
+finally {
+    if($streamWriter) {
+        $streamWriter.Close()
+    }
+}
 
 #register etw provider
 wevtutil im `"$etwman`"
 
-New-Service -Name ssh-agent -BinaryPathName `"$sshagentpath`" -Description "SSH Agent" -StartupType Manual | Out-Null
-cmd.exe /c 'sc.exe sdset ssh-agent D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;RP;;;AU)'
+$agentDesc = "Agent to hold private keys used for public key authentication."
+New-Service -Name ssh-agent -DisplayName "OpenSSH Authentication Agent" -BinaryPathName `"$sshagentpath`" -Description $agentDesc -StartupType Manual | Out-Null
+sc.exe sdset ssh-agent "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;RP;;;AU)"
+sc.exe privs ssh-agent SeImpersonatePrivilege
 
-New-Service -Name sshd -BinaryPathName `"$sshdpath`" -Description "SSH Daemon" -StartupType Manual | Out-Null
+$sshdDesc = "SSH protocol based service to provide secure encrypted communications between two untrusted hosts over an insecure network."
+New-Service -Name sshd -DisplayName "OpenSSH SSH Server" -BinaryPathName `"$sshdpath`" -Description $sshdDesc -StartupType Manual | Out-Null
+sc.exe privs sshd SeAssignPrimaryTokenPrivilege/SeTcbPrivilege/SeBackupPrivilege/SeRestorePrivilege/SeImpersonatePrivilege
 
 Write-Host -ForegroundColor Green "sshd and ssh-agent services successfully installed"
