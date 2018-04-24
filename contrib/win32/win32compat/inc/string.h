@@ -11,3 +11,5 @@ char *w32_strerror(int);
 #define ERROR_MSG_MAXLEN 94 /* https://msdn.microsoft.com/en-us/library/51sah927.aspx */
 
 static char errorBuf[ERROR_MSG_MAXLEN];
+
+char *strndup(const char*, size_t);

@@ -53,6 +53,8 @@
 #include "w32fd.h"
 #include "inc\string.h"
 #include "inc\grp.h"
+#include "inc\time.h"
+
 #include <wchar.h>
 
 static char* s_programdir = NULL;
@@ -1496,4 +1498,41 @@ create_directory_withsddl(wchar_t *path_w, wchar_t *sddl_w)
 	}
 
 	return 0;
+}
+
+/* return -1 - in case of failure, 0 - success */
+int
+copy_file(char *source, char *destination)
+{
+	if (!source || !destination) return 0;
+
+	struct stat st;
+	if ((stat(source, &st) >= 0) && (stat(destination, &st) < 0)) {
+		wchar_t *source_w = utf8_to_utf16(source);
+		if (!source_w) {
+			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, source_w);
+			return -1;
+		}
+
+		wchar_t *destination_w = utf8_to_utf16(destination);
+		if (!destination_w) {
+			error("%s utf8_to_utf16() has failed to convert string:%s", __func__, destination_w);
+			return -1;
+		}
+
+		if (!CopyFileW(source_w, destination_w, FALSE)) {
+			error("Failed to copy %ls to %ls, error:%d", source_w, destination_w, GetLastError());
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+struct tm* 
+localtime_r(const time_t *timep, struct tm *result)
+{
+	struct tm *t = localtime(timep);
+	memcpy(result, t, sizeof(struct tm));
+	return t;
 }

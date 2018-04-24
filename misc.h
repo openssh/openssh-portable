@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.67 2017/10/25 00:17:08 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.71 2018/03/12 00:52:01 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -67,11 +67,16 @@ char	*tohex(const void *, size_t);
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
 void	 ms_to_timeval(struct timeval *, int);
+void	 monotime_ts(struct timespec *);
+void	 monotime_tv(struct timeval *);
 time_t	 monotime(void);
 double	 monotime_double(void);
 void	 lowercase(char *s);
 int	 unix_listener(const char *, int, int);
 int	 valid_domain(char *, int, const char **);
+const char *atoi_err(const char *, int *);
+int	 parse_absolute_time(const char *, uint64_t *);
+void	 format_absolute_time(uint64_t, char *, size_t);
 
 void	 sock_set_v6only(int);
 
@@ -145,12 +150,6 @@ void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
 int	 argv_split(const char *, int *, char ***);
 char	*argv_assemble(int, char **argv);
 int	 exited_cleanly(pid_t, const char *, const char *, int);
-
-#define SSH_SUBPROCESS_STDOUT_DISCARD	(1)	/* Discard stdout */
-#define SSH_SUBPROCESS_STDOUT_CAPTURE	(1<<1)	/* Redirect stdout */
-#define SSH_SUBPROCESS_STDERR_DISCARD	(1<<2)	/* Discard stderr */
-pid_t	 subprocess(const char *, struct passwd *,
-    const char *, int, char **, FILE **, u_int flags);
 
 struct stat;
 int	 safe_path(const char *, struct stat *, const char *, uid_t,

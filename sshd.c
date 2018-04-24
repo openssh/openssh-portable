@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.499 2017/11/14 00:45:29 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.506 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -119,6 +119,7 @@
 #endif
 #include "monitor_wrap.h"
 #include "ssh-sandbox.h"
+#include "auth-options.h"
 #include "version.h"
 #include "ssherr.h"
 
@@ -242,6 +243,9 @@ static int privsep_chroot = 1;
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
 
+/* global key/cert auth options. XXX move to permanent ssh->authctxt? */
+struct sshauthopt *auth_opts = NULL;
+
 /* sshd_config buffer */
 Buffer cfg;
 
@@ -293,7 +297,6 @@ sighup_handler(int sig)
 	int save_errno = errno;
 
 	received_sighup = 1;
-	signal(SIGHUP, sighup_handler);
 	errno = save_errno;
 }
 
@@ -343,8 +346,6 @@ main_sigchld_handler(int sig)
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 	    (pid < 0 && errno == EINTR))
 		;
-
-	signal(SIGCHLD, main_sigchld_handler);
 	errno = save_errno;
 }
 
@@ -456,16 +457,12 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 		logit("Client version \"%.100s\" uses unsafe RSA signature "
 		    "scheme; disabling use of RSA keys", remote_version);
 	}
-	if ((ssh->compat & SSH_BUG_DERIVEKEY) != 0) {
-		fatal("Client version \"%.100s\" uses unsafe key agreement; "
-		    "refusing connection", remote_version);
-	}
 
 	chop(server_version_string);
 	debug("Local version string %.200s", server_version_string);
 
-	if (remote_major != 2 ||
-	    (remote_major == 1 && remote_minor != 99)) {
+	if (remote_major != 2 &&
+	    !(remote_major == 1 && remote_minor == 99)) {
 		s = "Protocol major versions differ.\n";
 		(void) atomicio(vwrite, sock_out, s, strlen(s));
 		close(sock_in);
@@ -995,6 +992,7 @@ list_hostkey_types(void)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_XMSS:
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
@@ -1016,6 +1014,7 @@ list_hostkey_types(void)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_XMSS_CERT:
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			p = key_ssh_name(key);
@@ -1042,6 +1041,7 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_XMSS_CERT:
 			key = sensitive_data.host_certificates[i];
 			break;
 		default:
@@ -1942,13 +1942,6 @@ main(int ac, char **av)
 	if (getenv("KRB5CCNAME") != NULL)
 		(void) unsetenv("KRB5CCNAME");
 
-#ifdef _UNICOS
-	/* Cray can define user privs drop all privs now!
-	 * Not needed on PRIV_SU systems!
-	 */
-	drop_cray_privs();
-#endif
-
 	sensitive_data.have_ssh2_key = 0;
 
 	/*
@@ -2030,10 +2023,8 @@ main(int ac, char **av)
 			fatal("Privilege separation user %s does not exist",
 			    SSH_PRIVSEP_USER);
 	} else {
-		explicit_bzero(privsep_pw->pw_passwd,
-		    strlen(privsep_pw->pw_passwd));
 		privsep_pw = pwcopy(privsep_pw);
-		free(privsep_pw->pw_passwd);
+		freezero(privsep_pw->pw_passwd, strlen(privsep_pw->pw_passwd));
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	endpwent();
@@ -2091,6 +2082,7 @@ main(int ac, char **av)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_XMSS:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
 			break;
@@ -2431,6 +2423,10 @@ idexch_done:
 	/* XXX global for cleanup, access from other modules */
 	the_authctxt = authctxt;
 
+	/* Set default key authentication options */
+	if ((auth_opts = sshauthopt_new_with_keys_defaults()) == NULL)
+		fatal("allocation failed");
+
 	/* prepare buffer to collect messages to display to user after login */
 	buffer_init(&loginmsg);
 	auth_debug_reset();
@@ -2487,7 +2483,7 @@ idexch_done:
 #ifdef USE_PAM
 	if (options.use_pam) {
 		do_pam_setcred(1);
-		do_pam_session();
+		do_pam_session(ssh);
 	}
 #endif
 

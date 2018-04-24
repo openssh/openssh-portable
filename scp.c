@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.193 2017/10/21 23:06:24 millert Exp $ */
+/* $OpenBSD: scp.c,v 1.195 2018/02/10 06:15:12 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -539,6 +539,8 @@ main(int argc, char **argv)
 	addargs(&args, "-oForwardAgent=no");
 	addargs(&args, "-oPermitLocalCommand=no");
 	addargs(&args, "-oClearAllForwardings=yes");
+	addargs(&args, "-oRemoteCommand=none");
+	addargs(&args, "-oRequestTTY=no");
 
 	fflag = tflag = 0;
 	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q12346S:o:F:")) != -1)
@@ -727,6 +729,18 @@ do_times(int fd, int verb, const struct stat *sb)
 	return (response());
 }
 
+static int
+parse_scp_uri(const char *uri, char **userp, char **hostp, int *portp,
+     char **pathp)
+{
+	int r;
+
+	r = parse_uri("scp", uri, userp, hostp, portp, pathp);
+	if (r == 0 && *pathp == NULL)
+		*pathp = xstrdup(".");
+	return r;
+}
+
 void
 toremote(int argc, char **argv)
 {
@@ -741,27 +755,39 @@ toremote(int argc, char **argv)
 	alist.list = NULL;
 
 	/* Parse target */
-	r = parse_uri("scp", argv[argc - 1], &tuser, &thost, &tport, &targ);
-	if (r == -1)
-		goto out;	/* invalid URI */
+	r = parse_scp_uri(argv[argc - 1], &tuser, &thost, &tport, &targ);
+	if (r == -1) {
+		fmprintf(stderr, "%s: invalid uri\n", argv[argc - 1]);
+		++errs;
+		goto out;
+	}
 	if (r != 0) {
 		if (parse_user_host_path(argv[argc - 1], &tuser, &thost,
-		    &targ) == -1)
+		    &targ) == -1) {
+			fmprintf(stderr, "%s: invalid target\n", argv[argc - 1]);
+			++errs;
 			goto out;
+		}
 	}
-	if (tuser != NULL && !okname(tuser))
+	if (tuser != NULL && !okname(tuser)) {
+		++errs;
 		goto out;
+	}
 
 	/* Parse source files */
 	for (i = 0; i < argc - 1; i++) {
 		free(suser);
 		free(host);
 		free(src);
-		r = parse_uri("scp", argv[i], &suser, &host, &sport, &src);
-		if (r == -1)
-			continue;	/* invalid URI */
-		if (r != 0)
+		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
+		if (r == -1) {
+			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
+			++errs;
+			continue;
+		}
+		if (r != 0) {
 			parse_user_host_path(argv[i], &suser, &host, &src);
+		}
 		if (suser != NULL && !okname(suser)) {
 			++errs;
 			continue;
@@ -851,8 +877,9 @@ tolocal(int argc, char **argv)
 		free(suser);
 		free(host);
 		free(src);
-		r = parse_uri("scp", argv[i], &suser, &host, &sport, &src);
+		r = parse_scp_uri(argv[i], &suser, &host, &sport, &src);
 		if (r == -1) {
+			fmprintf(stderr, "%s: invalid uri\n", argv[i]);
 			++errs;
 			continue;
 		}

@@ -39,9 +39,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-closefrom.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cray.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\bsd-cygwin_util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -205,6 +202,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\strcasestr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\strndup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

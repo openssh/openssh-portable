@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.262 2017/10/24 06:27:42 jmc Exp $
-.Dd $Mdocdate: October 24 2017 $
+.\" $OpenBSD: ssh_config.5,v 1.268 2018/02/23 07:38:09 jmc Exp $
+.Dd $Mdocdate: February 23 2018 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -258,6 +258,13 @@ or
 Use the specified address on the local machine as the source address of
 the connection.
 Only useful on systems with more than one address.
+Note that this option does not work if
+.Cm UsePrivilegedPort
+is set to
+.Cm yes .
+.It Cm BindInterface
+Use the address of the specified interface on the local machine as the
+source address of the connection.
 Note that this option does not work if
 .Cm UsePrivilegedPort
 is set to
@@ -1015,7 +1022,10 @@ The default is:
 curve25519-sha256,curve25519-sha256@libssh.org,
 ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,
 diffie-hellman-group-exchange-sha256,
+diffie-hellman-group16-sha512,
+diffie-hellman-group18-sha512,
 diffie-hellman-group-exchange-sha1,
+diffie-hellman-group14-sha256,
 diffie-hellman-group14-sha1
 .Ed
 .Pp
@@ -1107,10 +1117,7 @@ hmac-sha2-256,hmac-sha2-512,hmac-sha1
 The list of available MAC algorithms may also be obtained using
 .Qq ssh -Q mac .
 .It Cm NoHostAuthenticationForLocalhost
-This option can be used if the home directory is shared across machines.
-In this case localhost will refer to a different machine on each of
-the machines and the user will get many warnings about changed host keys.
-However, this option disables host authentication for localhost.
+Disable host authentication for localhost (loopback addresses).
 The argument to this keyword must be
 .Cm yes
 or
@@ -1458,7 +1465,7 @@ If this flag is set to
 will never automatically add host keys to the
 .Pa ~/.ssh/known_hosts
 file, and refuses to connect to hosts whose host key has changed.
-This provides maximum protection against trojan horse attacks,
+This provides maximum protection against man-in-the-middle (MITM) attacks,
 though it can be annoying when the
 .Pa /etc/ssh/ssh_known_hosts
 file is poorly maintained or when connections to new hosts are
@@ -1510,6 +1517,9 @@ This is important in scripts, and many users want it too.
 .Pp
 To disable TCP keepalive messages, the value should be set to
 .Cm no .
+See also
+.Cm ServerAliveInterval
+for protocol-level keepalives.
 .It Cm Tunnel
 Request
 .Xr tun 4

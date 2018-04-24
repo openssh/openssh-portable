@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.320 2017/11/03 05:18:44 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.326 2018/03/01 20:32:16 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -247,14 +247,16 @@ fill_default_server_options(ServerOptions *options)
 		/* fill default hostkeys for protocols */
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_RSA_KEY_FILE);
-		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_DSA_KEY_FILE);
 #ifdef OPENSSL_HAS_ECC
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ECDSA_KEY_FILE);
 #endif
 		servconf_add_hostkey("[default]", 0, options,
 		    _PATH_HOST_ED25519_KEY_FILE);
+#ifdef WITH_XMSS
+		servconf_add_hostkey("[default]", 0, options,
+		    _PATH_HOST_XMSS_KEY_FILE);
+#endif /* WITH_XMSS */
 	}
 	/* No certificates by default */
 	if (options->num_ports == 0)
@@ -443,8 +445,7 @@ typedef enum {
 	sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
-	sKerberosGetAFSToken,
-	sKerberosTgtPassing, sChallengeResponseAuthentication,
+	sKerberosGetAFSToken, sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication,
 	sListenAddress, sAddressFamily,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
@@ -1156,6 +1157,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	size_t len;
 	long long val64;
 	const struct multistate *multistate_ptr;
+	const char *errstr;
 
 	/* Strip trailing whitespace. Allow \f (form feed) at EOL only */
 	if ((len = strlen(line)) == 0)
@@ -1445,10 +1447,9 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->x11_display_offset;
  parse_int:
 		arg = strdelim(&cp);
-		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing integer value.",
-			    filename, linenum);
-		value = atoi(arg);
+		if ((errstr = atoi_err(arg, &value)) != NULL)
+			fatal("%s line %d: integer value %s.",
+			    filename, linenum, errstr);
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
@@ -2033,6 +2034,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			    filename, linenum);
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
+		break;
 
 	case sDeprecated:
 	case sIgnore:

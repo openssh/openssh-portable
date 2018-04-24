@@ -34,7 +34,7 @@ cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: put to remote directory (trailing slash)"
 sftpclean
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b /dev/stdin \
+${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b - \
     "sftp://${USER}@somehost:${PORT}/${DIR}/" > /dev/null 2>&1 << EOF
 	version
 	put ${DATA} copy
@@ -48,7 +48,7 @@ fi
 
 verbose "$tid: put to remote directory (no slash)"
 sftpclean
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b /dev/stdin \
+${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b - \
     "sftp://${USER}@somehost:${PORT}/${DIR}" > /dev/null 2>&1 << EOF
 	version
 	put ${DATA} copy
