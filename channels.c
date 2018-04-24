@@ -2142,7 +2142,7 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		}
 		debug2("channel %d: window %d sent adjust %d",
 		    c->self, c->local_window,
-		    c->local_consumed);
+		    c->local_consumed + addition);
 		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
