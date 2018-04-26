@@ -439,10 +439,10 @@ fileio_open(const char *path_utf8, int flags, mode_t mode)
 	}
 
 	/* if opening null device, point to Windows equivalent */
-	if (strncmp(path_utf8, NULL_DEVICE, strlen(NULL_DEVICE)+1) == 0) 
-		path_utf8 = "NUL";
+	if (strncmp(path_utf8, NULL_DEVICE, sizeof(NULL_DEVICE)) == 0) 
+		path_utf8 = NULL_DEVICE_WIN;
 
-	if ((path_utf16 = utf8_to_utf16(path_utf8)) == NULL) {
+	if ((path_utf16 = resolved_path_utf16(path_utf8)) == NULL) {
 		errno = ENOMEM;
 		debug3("utf8_to_utf16 failed for file:%s error:%d", path_utf8, GetLastError());
 		return NULL;
@@ -774,7 +774,7 @@ fileio_stat_or_lstat_internal(const char *path, struct _stat64 *buf, int do_lsta
 		return 0;
 	}
 
-	if ((wpath = utf8_to_utf16(path)) == NULL) {
+	if ((wpath = resolved_path_utf16(path)) == NULL) {
 		errno = ENOMEM;
 		debug3("utf8_to_utf16 failed for file:%s error:%d", path, GetLastError());
 		return -1;
@@ -1013,8 +1013,6 @@ fileio_readlink(const char *path, char *buf, size_t bufsiz)
 	 * for more info: https://msdn.microsoft.com/en-us/library/cc232006.aspx
 	 */
 
-	debug4("readlink - io:%p", pio);
-
 	typedef struct _REPARSE_DATA_BUFFER_SYMLINK {
 		ULONG ReparseTag;
 		USHORT ReparseDataLength;
@@ -1041,7 +1039,7 @@ fileio_readlink(const char *path, char *buf, size_t bufsiz)
 		goto cleanup;
 	}
 
-	if ((wpath = utf8_to_utf16(path)) == NULL) {
+	if ((wpath = resolved_path_utf16(path)) == NULL) {
 		errno = ENOMEM;
 		goto cleanup;
 	}
@@ -1131,8 +1129,8 @@ fileio_symlink(const char *target, const char *linkpath)
 	}
 
 	DWORD ret = 0;
-	wchar_t *target_utf16 = utf8_to_utf16(resolved_path(target));
-	wchar_t *linkpath_utf16 = utf8_to_utf16(resolved_path(linkpath));
+	wchar_t *target_utf16 = resolved_path_utf16(target);
+	wchar_t *linkpath_utf16 = resolved_path_utf16(linkpath);
 	wchar_t *resolved_utf16 = _wcsdup(target_utf16);
 	if (target_utf16 == NULL || linkpath_utf16 == NULL || resolved_utf16 == NULL) {
 		errno = ENOMEM;
@@ -1214,8 +1212,10 @@ fileio_link(const char *oldpath, const char *newpath)
 	}
 
 	DWORD ret = 0;
-	wchar_t *oldpath_utf16 = utf8_to_utf16(resolved_path(oldpath));
-	wchar_t *newpath_utf16 = utf8_to_utf16(resolved_path(newpath));
+
+	wchar_t *oldpath_utf16 = resolved_path_utf16(oldpath);
+	wchar_t *newpath_utf16 = resolved_path_utf16(newpath);
+
 	if (oldpath_utf16 == NULL || newpath_utf16 == NULL) {
 		errno = ENOMEM;
 		ret = -1;

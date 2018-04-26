@@ -159,7 +159,7 @@ w32_sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
 {
 	/* this is only used by sshd to block SIGCHLD while doing waitpid() */
 	/* our implementation of waidpid() is never interrupted, so no need to implement this for now*/
-	debug5("sigprocmask() how:%d");
+	debug5("sigprocmask() how:%d", how);
 	return 0;
 }
 
@@ -286,7 +286,6 @@ wait_for_any_event(HANDLE* events, int num_events, DWORD milli_seconds)
 		return -1;
 	}
 
-	debug5("wait() on %d events and %d children", num_events, live_children);
 	DWORD ret = wait_for_multiple_objects_enhanced(num_all_events, all_events, milli_seconds, TRUE);
 	if ((ret >= WAIT_OBJECT_0_ENHANCED) && (ret <= WAIT_OBJECT_0_ENHANCED + num_all_events - 1)) {
 		/* woken up by event signaled

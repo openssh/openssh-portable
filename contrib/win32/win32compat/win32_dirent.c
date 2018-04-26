@@ -108,7 +108,7 @@ opendir(const char *name)
 	if (name && strcmp(name, "/") == 0)
 		return openrootdir(name);
 
-	if ((wname = utf8_to_utf16(resolved_path(name))) == NULL) {
+	if ((wname = resolved_path_utf16(name)) == NULL) {
 		errno = ENOMEM;
 		return NULL;
 	}

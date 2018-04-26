@@ -9,21 +9,23 @@
         goto cleanup;                       \
     }                                       \
 } while(0)
+
 #define NULL_DEVICE "/dev/null"
+#define NULL_DEVICE_WIN "NUL"
 
 #define IsWin7OrLess() (!IsWindows8OrGreater())
 
 #define IS_INVALID_HANDLE(h) ( ((NULL == h) || (INVALID_HANDLE_VALUE == h)) ? 1 : 0 )
 #define IS_VALID_HANDLE(h) (!IS_INVALID_HANDLE(h))
 #define PROGRAM_DATA "__PROGRAMDATA__"
+#define PROGRAM_DATAW L"__PROGRAMDATA__"
 
 #define errno_from_Win32LastError() errno_from_Win32Error(GetLastError())
 
 static char *machine_domain_name;
-static char *ssh_cfg_dir_path = NULL;
 
 /* removes first '/' for Windows paths that are unix styled. Ex: /c:/ab.cd */
-char * resolved_path(const char *);
+wchar_t * resolved_path_utf16(const char *);
 void w32posix_initialize();
 void w32posix_done();
 char* w32_programdir();
@@ -37,9 +39,8 @@ int file_attr_to_st_mode(wchar_t * path, DWORD attributes);
 void invalid_parameter_handler(const wchar_t *, const wchar_t *, const wchar_t *, unsigned int, uintptr_t);
 void to_lower_case(char *s);
 int get_machine_domain_name(wchar_t *domain, int size);
-char* get_program_data_path();
+wchar_t* get_program_data_path();
 HANDLE get_user_token(char* user);
 int load_user_profile(HANDLE user_token, char* user);
-int copy_file(char *source, char *destination);
-int create_directory_withsddl(char *path, char *sddl);
+int create_directory_withsddl(wchar_t *path, wchar_t *sddl);
 int is_absolute_path(const char *);

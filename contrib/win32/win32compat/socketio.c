@@ -579,7 +579,6 @@ socketio_send(struct w32_io* pio, const void *buf, size_t len, int flags)
 
 	if (ret == 0) {
 		/* send has completed and APC is scheduled, let it run */
-		debug4("send - WSASend() returned 0, APC scheduled io:%p", pio);
 		pio->write_details.pending = TRUE;
 		pio->write_details.remaining = wsabuf.len;
 		SleepEx(0, TRUE);

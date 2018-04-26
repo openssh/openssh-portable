@@ -57,7 +57,6 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	struct passwd * pwd = pw;
 	char *bad_user = NULL;
 	int ret = 0;
-	char *path = NULL;
 
 	if (pwd == NULL)
 		if ((pwd = getpwuid(0)) == NULL) 
@@ -70,8 +69,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 		goto cleanup;
 	}
 
-	path = resolved_path(input_path);
-	if ((path_utf16 = utf8_to_utf16(path)) == NULL) {
+	if ((path_utf16 = resolved_path_utf16(input_path)) == NULL) {
 		ret = -1;
 		errno = ENOMEM;
 		goto cleanup;
@@ -81,7 +79,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	if ((error_code = GetNamedSecurityInfoW(path_utf16, SE_FILE_OBJECT,
 		OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
 		&owner_sid, NULL, &dacl, NULL, &pSD)) != ERROR_SUCCESS) {
-		debug3("failed to retrieve the owner sid and dacl of file %s with error code: %d", path, error_code);
+		debug3("failed to retrieve the owner sid and dacl of file %S with error code: %d", path_utf16, error_code);
 		errno = EOTHER;
 		ret = -1;
 		goto cleanup;
@@ -94,7 +92,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	if (!IsWellKnownSid(owner_sid, WinBuiltinAdministratorsSid) &&
 		!IsWellKnownSid(owner_sid, WinLocalSystemSid) &&
 		!EqualSid(owner_sid, user_sid)) {
-		debug3("Bad owner on %s", path);
+		debug3("Bad owner on %S", path_utf16);
 		ret = -1;
 		goto cleanup;
 	}
@@ -136,7 +134,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
 				break;
 			}
-			debug3("Bad permissions. Try removing permissions for user: %s on file %s.", bad_user, path);
+			debug3("Bad permissions. Try removing permissions for user: %s on file %S.", bad_user, path_utf16);
 			break;
 		}
 	}	

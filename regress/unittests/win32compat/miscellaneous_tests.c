@@ -64,31 +64,38 @@ test_sanitizedpath()
 {
 	TEST_START("win32 program dir");
 	
-	char *win32prgdir = w32_programdir();
-	ASSERT_PTR_NE(win32prgdir, NULL);
+	char *win32prgdir_utf8 = w32_programdir();
+	ASSERT_PTR_NE(win32prgdir_utf8, NULL);
 
-	ASSERT_PTR_EQ(resolved_path(NULL), NULL);
+	ASSERT_PTR_EQ(resolved_path_utf16(NULL), NULL);
 
-	char *ret = resolved_path(win32prgdir);
-	retValue = strcmp(win32prgdir, ret);
+	wchar_t *win32prgdir = utf8_to_utf16(win32prgdir_utf8);
+	wchar_t *ret = resolved_path_utf16(win32prgdir_utf8);
+	retValue = wcscmp(win32prgdir, ret);
 	ASSERT_INT_EQ(retValue, 0);
+	free(ret);
 
-	char win32prgdir_len = strlen(win32prgdir);
+	char win32prgdir_len = strlen(win32prgdir_utf8);
 	char *tmp_path = malloc(win32prgdir_len + 2); /* 1-NULL and 1-adding "/" */
 	tmp_path[0] = '/';
-	strncpy(tmp_path+1, win32prgdir, win32prgdir_len);
+	strcpy(tmp_path+1, win32prgdir_utf8);
 	tmp_path[win32prgdir_len+1] = '\0';
 
-	ret = resolved_path(tmp_path);
-	retValue = strcmp(win32prgdir, ret);
+	ret = resolved_path_utf16(tmp_path);
+	retValue = wcscmp(win32prgdir, ret);
 	ASSERT_INT_EQ(retValue, 0);
+	free(ret);
 
-	char *s1 = malloc(4), *s2 = malloc(4);
+	char s1[4];
+	wchar_t s2[4];
 	s1[0] = '/', s1[1] = win32prgdir[0],  s1[2] = ':', s1[3] = '\0';
-	s2[0] = win32prgdir[0], s2[1] = ':', s2[2] = '\\', s2[3] = '\0';
-	ret = resolved_path(s1);
-	retValue = strcmp(ret, s2);
+	s2[0] = win32prgdir[0], s2[1] = ':', s2[2] = '\\', s2[3] = '\0';	
+	ret = resolved_path_utf16(s1);
+	retValue = wcscmp(ret, s2);
 	ASSERT_INT_EQ(retValue, 0);
+	free(ret);
+
+	free(win32prgdir);
 
 	TEST_DONE();
 }
