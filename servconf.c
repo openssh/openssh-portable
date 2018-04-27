@@ -161,7 +161,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_principals_command = NULL;
 	options->authorized_principals_command_user = NULL;
 	options->none_enabled = -1;
-	options->disable_multithreaded = -1,
+	options->disable_multithreaded = -1;
 	options->tcp_rcv_buf_poll = -1;
 	options->hpn_disabled = -1;
 	options->hpn_buffer_size = -1;

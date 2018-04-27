@@ -962,6 +962,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	 * cipher switch methods -cjr */
 	if (rekey_requested == 1) {
 		rekey_requested = 0;
+		debug ("Forced rekey requested in %s", __FUNCTION__);
 		return 1;
 	}
 	

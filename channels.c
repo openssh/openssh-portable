@@ -1002,13 +1002,6 @@ static void
 channel_pre_open(struct ssh *ssh, Channel *c,
     fd_set *readset, fd_set *writeset)
 {
-
-	/* check buffer limits */
-	if (!c->tcpwinsz || c->dynamic_window > 0)
-		c->tcpwinsz = channel_tcpwinsz();
-
-	c->remote_window = MIN(c->remote_window, 2 * c->tcpwinsz);
-
 	if (c->istate == CHAN_INPUT_OPEN &&
 	    c->remote_window > 0 &&
 	    sshbuf_len(c->input) < c->remote_window &&
@@ -2127,10 +2120,14 @@ channel_check_window(struct ssh *ssh, Channel *c)
 			    __func__, c->self);
 		u_int addition = 0;
 		/* adjust max window size if we are in a dynamic environment */
-		if (c->dynamic_window && c->tcpwinsz > c->local_window_max) {
-			/* grow the window somewhat aggressively to maintain pressure */
-			addition = 1.5 * (c->tcpwinsz - c->local_window_max);
-			c->local_window_max += addition;
+                if (c->dynamic_window == 1) {
+			/* check current tcp rmem size */
+			c->tcpwinsz = channel_tcpwinsz();
+			if (c->tcpwinsz > c->local_window_max) {
+				/* grow the window somewhat aggressively to maintain pressure */
+				addition = 1.5 * (c->tcpwinsz - c->local_window_max);
+				c->local_window_max += addition;
+			}
 		}
 		if ((r = sshpkt_start(ssh,
 		    SSH2_MSG_CHANNEL_WINDOW_ADJUST)) != 0 ||
