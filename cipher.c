@@ -166,12 +166,6 @@ cipher_reset_multithreaded(void)
 }
 #endif
 
-void
-cipher_mt_restart(const struct sshcipher_ctx *cc) {
-	ssh_aes_ctr_thread_destroy(cc->evp);
-	ssh_aes_ctr_thread_reconstruction(cc->evp);
-}
-
 u_int
 cipher_blocksize(const struct sshcipher *c)
 {

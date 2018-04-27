@@ -77,6 +77,4 @@ int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, u_int);
 int	 cipher_set_keyiv(struct sshcipher_ctx *, const u_char *);
 int	 cipher_get_keyiv_len(const struct sshcipher_ctx *);
 
-void     cipher_mt_restart(const struct sshcipher_ctx *); 
-
 #endif				/* CIPHER_H */
