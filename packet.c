@@ -926,6 +926,24 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	return 0;
 }
 
+/* this supports the forced rekeying required for the NONE cipher */
+int rekey_requested = 0;
+void
+packet_request_rekeying(void)
+{
+	rekey_requested = 1;
+}
+
+/* used to determine if pre or post auth when rekeying for aes-ctr
+ * and none cipher switch */
+int
+packet_authentication_state(const struct ssh *ssh)
+{
+	struct session_state *state = ssh->state;
+
+	return state->after_authentication;
+}
+
 #define MAX_PACKETS	(1U<<31)
 static int
 ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
@@ -951,6 +969,13 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	 */
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
+
+	/* used to force rekeying when called for by the none
+         * cipher switch methods -cjr */
+        if (rekey_requested == 1) {
+                rekey_requested = 0;
+                return 1;
+        }
 
 	/* Time-based rekeying */
 	if (state->rekey_interval != 0 &&
