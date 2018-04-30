@@ -190,6 +190,8 @@ typedef struct {
 
 	int	none_enabled;		/* Enable NONE cipher switch */
 
+        int     disable_multithreaded;  /*disable multithreaded aes-ctr cipher */
+
 	int	permit_tun;
 
 	char   **permitted_opens;

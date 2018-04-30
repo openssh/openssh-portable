@@ -119,6 +119,7 @@ typedef struct {
 	int64_t rekey_limit;
 	int     none_switch;    /* Use none cipher */
 	int     none_enabled;   /* Allow none to be used */
+	int     disable_multithreaded; /*disable multithreaded aes-ctr*/
 	int	rekey_interval;
 
 	int	no_host_authentication_for_localhost;

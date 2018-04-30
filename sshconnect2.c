@@ -443,19 +443,21 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	}
 
 #ifdef WITH_OPENSSL
-	/* if we are using aes-ctr there can be issues in either a fork or sandbox
-	 * so the initial aes-ctr is defined to point to the original single process
-	 * evp. After authentication we'll be past the fork and the sandboxed privsep
-	 * so we repoint the define to the multithreaded evp. To start the threads we
-	 * then force a rekey
-	 */
-	const void *cc = ssh_packet_get_send_context(active_state);
-
-	/* only do this for the ctr cipher. otherwise gcm mode breaks. Don't know why though */
-	if (strstr(cipher_ctx_name(cc), "ctr")) {
-		debug("Single to Multithread CTR cipher swap - client request");
-		cipher_reset_multithreaded();
-		packet_request_rekeying();
+	if (options.disable_multithreaded == 0) {
+		/* if we are using aes-ctr there can be issues in either a fork or sandbox
+		 * so the initial aes-ctr is defined to point to the original single process
+		 * evp. After authentication we'll be past the fork and the sandboxed privsep
+		 * so we repoint the define to the multithreaded evp. To start the threads we
+		 * then force a rekey
+		 */
+		const void *cc = ssh_packet_get_send_context(active_state);
+		
+		/* only do this for the ctr cipher. otherwise gcm mode breaks. Don't know why though */
+		if (strstr(cipher_ctx_name(cc), "ctr")) {
+			debug("Single to Multithread CTR cipher swap - client request");
+			cipher_reset_multithreaded();
+			packet_request_rekeying();
+		}
 	}
 #endif
 
