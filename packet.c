@@ -280,7 +280,7 @@ struct ssh *
 ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 {
 	struct session_state *state;
-	const struct sshcipher *none = cipher_by_name("none");
+	struct sshcipher *none = cipher_by_name("none");
 	int r;
 
 	if (none == NULL) {
@@ -970,8 +970,8 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 	if (state->p_send.packets == 0 && state->p_read.packets == 0)
 		return 0;
 
-	/* used to force rekeying when called for by the none
-         * cipher switch methods -cjr */
+        /* used to force rekeying when called for by the none
+         * cipher switch and aes-mt-ctr methods -cjr */
         if (rekey_requested == 1) {
                 rekey_requested = 0;
                 return 1;
@@ -2708,4 +2708,11 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 {
 	ssh->state->extra_pad = pad;
 	return 0;
+}
+
+/* need this for the moment for the aes-ctr cipher */
+void *
+ssh_packet_get_send_context(struct ssh *ssh)
+{
+        return ssh->state->send_context;
 }

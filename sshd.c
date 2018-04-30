@@ -2169,6 +2169,23 @@ main(int ac, char **av)
 	/* Try to send all our hostkeys to the client */
 	notify_hostkeys(ssh);
 
+#ifdef WITH_OPENSSL
+	/* if we are using aes-ctr there can be issues in either a fork or sandbox
+	 * so the initial aes-ctr is defined to point ot the original single process
+	 * evp. After authentication we'll be past the fork and the sandboxed privsep
+	 * so we repoint the define to the multithreaded evp. To start the threads we
+	 * then force a rekey
+	 */
+	const void *cc = ssh_packet_get_send_context(active_state);
+
+	/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
+	if (strstr(cipher_ctx_name(cc), "ctr")) {
+		debug("Single to Multithreaded CTR cipher swap - server request");
+		cipher_reset_multithreaded();
+		packet_request_rekeying();
+	}
+#endif
+
 	/* Start session. */
 	do_authenticated(ssh, authctxt);
 
