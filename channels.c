@@ -2438,7 +2438,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 	size_t len, plen;
 	const u_char *pkt;
 	int r;
-
+	
 	if ((len = sshbuf_len(c->input)) == 0) {
 		if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
 			/*
@@ -2484,7 +2484,6 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 			    c->self, ssh_err(r));
 		}
 		c->remote_window -= plen;
-		return;
 	}
 
 	/* Enqueue packet for buffered data. */
@@ -2556,7 +2555,7 @@ channel_output_poll(struct ssh *ssh)
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
-
+		
 		/*
 		 * We are only interested in channels that can have buffered
 		 * incoming data.
@@ -2566,10 +2565,10 @@ channel_output_poll(struct ssh *ssh)
 		if ((c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
 			debug3("channel %d: will not send data after close",
-			    c->self);
+			       c->self);
 			continue;
 		}
-
+		
 		/* Get the amount of buffered data for this channel. */
 		if (c->istate == CHAN_INPUT_OPEN ||
 		    c->istate == CHAN_INPUT_WAIT_DRAIN)
