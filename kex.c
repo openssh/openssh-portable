@@ -52,6 +52,7 @@
 
 #include "ssherr.h"
 #include "sshbuf.h"
+#include "canohost.h"
 #include "digest.h"
 
 /* prototype */
@@ -769,7 +770,8 @@ kex_choose_conf(struct ssh *ssh)
 	u_int mode, ctos, need, dh_need, authlen;
 	int r, first_kex_follows;
 	int auth_flag;
-
+	int log_flag = 0;
+	
 	auth_flag = packet_authentication_state(ssh);
 	debug("AUTH STATE IS %d", auth_flag);
 
@@ -855,6 +857,22 @@ kex_choose_conf(struct ssh *ssh)
 		    newkeys->enc.name,
 		    authlen == 0 ? newkeys->mac.name : "<implicit>",
 		    newkeys->comp.name);
+		/*
+		 * client starts with ctos = 0 && log flag = 0 and no log.
+		 * 2nd client pass ctos = 1 and flag = 1 so no log.
+		 * server starts with ctos = 1 && log_flag = 0 so log.
+		 * 2nd sever pass ctos = 1 && log flag = 1 so no log.
+		 * -cjr
+		 */
+		if (ctos && !log_flag) {
+			logit("SSH: Server;Ltype: Kex;Remote: %s-%d;Enc: %s;MAC: %s;Comp: %s",
+			    ssh_remote_ipaddr(ssh),
+			    ssh_remote_port(ssh),
+			    newkeys->enc.name,
+			    authlen == 0 ? newkeys->mac.name : "<implicit>",
+			    newkeys->comp.name);
+		}
+		log_flag = 1;
 	}
 	need = dh_need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
