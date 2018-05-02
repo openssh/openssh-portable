@@ -290,6 +290,8 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\misc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigalrm.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigchld.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\logonuser.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32_usertoken_utils.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\pwd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32_dirent.c" />
