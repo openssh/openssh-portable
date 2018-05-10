@@ -999,8 +999,8 @@ channel_tcpwinsz(void)
 	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
-	debug2("tcpwinsz: %d for connection: %d", tcpwinsz,
-	       packet_get_connection_in());
+	debug2("tcpwinsz: tcp connection %d, Receive window: %d",
+	       packet_get_connection_in(), tcpwinsz);
 	return tcpwinsz;
 }
 
@@ -1008,14 +1008,6 @@ static void
 channel_pre_open(struct ssh *ssh, Channel *c,
     fd_set *readset, fd_set *writeset)
 {
-	/* check buffer limits */
-        if (!c->tcpwinsz || c->dynamic_window > 0)
-                c->tcpwinsz = channel_tcpwinsz();
-	
-        /* this may not work and I may have to use a temp variable to hold the 
-           remote window value in this function -CJR */
-	c->remote_window = MIN(c->remote_window, 2 * c->tcpwinsz);
-
 	if (c->istate == CHAN_INPUT_OPEN &&
 	    c->remote_window > 0 &&
 	    sshbuf_len(c->input) < c->remote_window &&
@@ -2110,11 +2102,13 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
 		u_int addition = 0;
+		u_int32_t tcpwinsz = channel_tcpwinsz();
 		/* adjust max window size if we are in a dynamic environment */
-		if (c->dynamic_window && (c->tcpwinsz > c->local_window_max)) {
+		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
 			/* grow the window somewhat aggressively to maintain pressure */
-			addition = 1.5 * (c->tcpwinsz - c->local_window_max);
+			addition = 1.5 * (tcpwinsz - c->local_window_max);
 			c->local_window_max += addition;
+			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
 		}
 		if (!c->have_remote_id)
 			fatal(":%s: channel %d: no remote id",
@@ -2129,7 +2123,7 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		}
 		debug2("channel %d: window %d sent adjust %d",
 		    c->self, c->local_window,
-		    c->local_consumed);
+		    c->local_consumed + addition);
 		c->local_window += c->local_consumed + addition;
 		c->local_consumed = 0;
 	}
