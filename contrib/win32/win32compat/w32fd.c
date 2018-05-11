@@ -67,7 +67,8 @@ HANDLE main_thread;
 void fd_table_set(struct w32_io* pio, int index);
 
 void fd_decode_state(char*);
-#define POSIX_STATE_ENV "c28fc6f98a2c44abbbd89d6a3037d0d9_POSIX_STATE"
+#define POSIX_FD_STATE "c28fc6f98a2c44abbbd89d6a3037d0d9_POSIX_FD_STATE"
+#define POSIX_CHROOTW L"c28fc6f98a2c44abbbd89d6a3037d0d9_POSIX_CHROOT"
 
 /* __progname */
 char* __progname = "";
@@ -76,7 +77,6 @@ char* __progname = "";
 static int
 fd_table_initialize()
 {
-	char *posix_state;
 	struct w32_io *pio;
 	HANDLE wh;
 	/* table entries representing std in, out and error*/
@@ -101,17 +101,33 @@ fd_table_initialize()
 		}
 	}
 
-	_dupenv_s(&posix_state, NULL, POSIX_STATE_ENV);
-	/*TODO - validate parent process - to accomodate these scenarios -
-	* A posix parent process launches a regular process that inturn launches a posix child process
-	* In this case the posix child process may misinterpret POSIX_STATE_ENV set by grand parent
-	*/
 
-	if (NULL != posix_state) {
-		fd_decode_state(posix_state);
-		free(posix_state);
-		_putenv_s(POSIX_STATE_ENV, "");
+	/* decode fd state if any */
+	{
+		char *posix_fd_state;
+		_dupenv_s(&posix_fd_state, NULL, POSIX_FD_STATE);
+		/*TODO - validate parent process - to accomodate these scenarios -
+		* A posix parent process launches a regular process that inturn launches a posix child process
+		* In this case the posix child process may misinterpret POSIX_FD_STATE set by grand parent
+		*/
+
+		if (NULL != posix_fd_state) {
+			fd_decode_state(posix_fd_state);
+			free(posix_fd_state);
+			_putenv_s(POSIX_FD_STATE, "");
+		}
 	}
+
+	/* decode chroot if any */
+	{
+		_wdupenv_s(&chroot_pathw, NULL, POSIX_CHROOTW);
+		if (chroot_pathw != NULL) {
+			if ((chroot_path = utf16_to_utf8(chroot_pathw)) == NULL)
+				return -1;
+			chroot_path_len = strlen(chroot_path);
+		}
+	}
+
 	return 0;
 }
 
@@ -1235,7 +1251,7 @@ posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actio
 	if ((fd_info = fd_encode_state(file_actions, aux_handles)) == NULL)
 		goto cleanup;
 
-	if (_putenv_s(POSIX_STATE_ENV, fd_info) != 0)
+	if (_putenv_s(POSIX_FD_STATE, fd_info) != 0)
 		goto cleanup;
 	i = spawn_child_internal(argv[0], argv + 1, stdio_handles[STDIN_FILENO], stdio_handles[STDOUT_FILENO], stdio_handles[STDERR_FILENO], sc_flags, user_token);
 	if (i == -1)
@@ -1244,7 +1260,7 @@ posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actio
 		*pidp = i;
 	ret = 0;
 cleanup:
-	_putenv_s(POSIX_STATE_ENV, "");
+	_putenv_s(POSIX_FD_STATE, "");
 	for (i = 0; i <= STDERR_FILENO; i++) {
 		if (stdio_handles[i] != NULL) {
 			if (fd_table.w32_ios[file_actions->stdio_redirect[i]]->type == SOCK_FD)

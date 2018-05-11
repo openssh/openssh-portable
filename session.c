@@ -438,7 +438,7 @@ int register_child(void* child, unsigned long pid);
 int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	int pipein[2], pipeout[2], pipeerr[2], r;
 	char *exec_command = NULL, *progdir = w32_programdir(), *cmd = NULL, *shell_host = NULL, *command_b64 = NULL;
-	wchar_t *exec_command_w = NULL, *pw_dir_w;
+	wchar_t *exec_command_w = NULL;
 	const char *sftp_exe = "sftp-server.exe", *argp = NULL;
 	size_t command_b64_len = 0;
 	PROCESS_INFORMATION pi;
@@ -457,9 +457,6 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	if (pipe(pipein) == -1 || pipe(pipeout) == -1 || pipe(pipeerr) == -1) 
 		fatal("%s: cannot create pipe: %.100s", __func__, strerror(errno));
 
-	if ((pw_dir_w = utf8_to_utf16(s->pw->pw_dir)) == NULL)
-		fatal("%s: out of memory", __func__);
-
 	set_nonblock(pipein[0]);
 	set_nonblock(pipein[1]);
 	set_nonblock(pipeout[0]);
@@ -473,6 +470,9 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 
 	/* setup Environment varibles */
 	setup_session_vars(s);
+
+	if (!in_chroot)
+		chdir(s->pw->pw_dir);
 
 	/* prepare exec - path used with CreateProcess() */
 	if (s->is_subsystem || (command && memcmp(command, "scp", 3) == 0)) {
@@ -564,10 +564,9 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 
 		debug("Executing command: %s", exec_command);
 		UTF8_TO_UTF16_FATAL(exec_command_w, exec_command);
-		
-		/* in debug mode launch using sshd.exe user context */
+
 		create_process_ret_val = CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE,
-			DETACHED_PROCESS, NULL, pw_dir_w,
+			DETACHED_PROCESS, NULL, NULL,
 			&si, &pi);
 
 		if (!create_process_ret_val)
@@ -598,8 +597,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	else
 		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
 
-		free(pw_dir_w);
-		free(exec_command_w);
+	free(exec_command_w);
 	return 0;
 }
 
@@ -1536,11 +1534,15 @@ safely_chroot(const char *path, uid_t uid)
 	char component[PATH_MAX];
 	struct stat st;
 
+#ifdef WINDOWS
+	if (path[1] != ':')
+#else
 	if (*path != '/')
+#endif
 		fatal("chroot path does not begin at root");
 	if (strlen(path) >= sizeof(component))
 		fatal("chroot path too long");
-
+#ifndef WINDOWS
 	/*
 	 * Descend the path, checking that each component is a
 	 * root-owned directory with strict permissions.
@@ -1568,7 +1570,7 @@ safely_chroot(const char *path, uid_t uid)
 			    cp == NULL ? "" : "component ", component);
 
 	}
-
+#endif
 	if (chdir(path) == -1)
 		fatal("Unable to chdir to chroot path \"%s\": "
 		    "%s", path, strerror(errno));

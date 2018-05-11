@@ -19,8 +19,8 @@ struct dirent {
 
 typedef struct DIR_ DIR;
 
-DIR * opendir(const char *name);
-int closedir(DIR *dirp);
-struct dirent *readdir(void *avp);
+DIR * opendir(const char*);
+int closedir(DIR*);
+struct dirent *readdir(void*);
 
 #endif

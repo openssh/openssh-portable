@@ -132,6 +132,12 @@ char* _sys_errlist_ext[] = {
 	"Operation would block"					/* EWOULDBLOCK     140 */
 };
 
+/* chroot state */
+char* chroot_path = NULL;
+int chroot_path_len = 0;
+/* UTF-16 version of the above */
+wchar_t* chroot_pathw = NULL;
+
 int
 usleep(unsigned int useconds)
 {
@@ -247,6 +253,7 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	char first3_bytes[3];
 	int status = 1;
 	errno_t r = 0;
+	int nonfs_dev = 0; /* opening a non file system device */
 
 	if (mode == NULL || mode[1] != '\0') {
 		errno = ENOTSUP;
@@ -260,21 +267,32 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	}
 
 	/* if opening null device, point to Windows equivalent */
-	if (strncmp(input_path, NULL_DEVICE, sizeof(NULL_DEVICE)) == 0)
-		input_path = NULL_DEVICE_WIN;
-
-	wpath = resolved_path_utf16(input_path);
+	if (strncmp(input_path, NULL_DEVICE, sizeof(NULL_DEVICE)) == 0) {
+		nonfs_dev = 1;
+		wpath = utf8_to_utf16(NULL_DEVICE_WIN);
+	}
+	else
+		wpath = resolved_path_utf16(input_path);
+	
 	wmode = utf8_to_utf16(mode);
 	if (wpath == NULL || wmode == NULL)
-	{
-		errno = ENOMEM;
 		goto cleanup;
-	}
 
 	if ((_wfopen_s(&f, wpath, wmode) != 0) || (f == NULL)) {
 		debug3("Failed to open file:%s error:%d", input_path, errno);
 		goto cleanup;
-	}		
+	}	
+
+	if (chroot_pathw && !nonfs_dev) {
+		/* ensure final path is within chroot */
+		HANDLE h = (HANDLE)_get_osfhandle(_fileno(f));
+		if (!file_in_chroot_jail(h, input_path)) {
+			fclose(f);
+			f = NULL;
+			errno = EACCES;
+			goto cleanup;
+		}
+	}
 
 	/* BOM adjustments for file streams*/
 	if (mode[0] == 'w' && fseek(f, 0, SEEK_SET) != EBADF) {
@@ -523,10 +541,9 @@ w32_chmod(const char *pathname, mode_t mode)
 {
 	int ret;
 	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(pathname);
-	if (resolvedPathName_utf16 == NULL) {
-		errno = ENOMEM;
+	if (resolvedPathName_utf16 == NULL) 
 		return -1;
-	}
+
 	ret = _wchmod(resolvedPathName_utf16, mode);
 	free(resolvedPathName_utf16);
 	return ret;
@@ -651,10 +668,9 @@ w32_utimes(const char *filename, struct timeval *tvp)
 	int ret;
 	FILETIME acttime, modtime;
 	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(filename);
-	if (resolvedPathName_utf16 == NULL) {
-		errno = ENOMEM;
+	if (resolvedPathName_utf16 == NULL) 
 		return -1;
-	}
+
 	memset(&acttime, 0, sizeof(FILETIME));
 	memset(&modtime, 0, sizeof(FILETIME));
 
@@ -688,11 +704,9 @@ w32_rename(const char *old_name, const char *new_name)
 	wchar_t *resolvedOldPathName_utf16 = resolved_path_utf16(old_name);
 	wchar_t *resolvedNewPathName_utf16 = resolved_path_utf16(new_name);
 
-	if (NULL == resolvedOldPathName_utf16 || NULL == resolvedNewPathName_utf16) {
-		errno = ENOMEM;
+	if (NULL == resolvedOldPathName_utf16 || NULL == resolvedNewPathName_utf16) 
 		return -1;
-	}
-
+	
 	/*
 	 * To be consistent with POSIX rename(),
 	 * 1) if the new_name is file, then delete it so that _wrename will succeed.
@@ -725,10 +739,8 @@ int
 w32_unlink(const char *path)
 {
 	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(path);
-	if (NULL == resolvedPathName_utf16) {
-		errno = ENOMEM;
+	if (NULL == resolvedPathName_utf16) 
 		return -1;
-	}
 
 	int returnStatus = _wunlink(resolvedPathName_utf16);
 	free(resolvedPathName_utf16);
@@ -740,10 +752,8 @@ int
 w32_rmdir(const char *path)
 {
 	wchar_t *resolvedPathName_utf16 = resolved_path_utf16(path);
-	if (NULL == resolvedPathName_utf16) {
-		errno = ENOMEM;
+	if (NULL == resolvedPathName_utf16) 
 		return -1;
-	}
 
 	int returnStatus = _wrmdir(resolvedPathName_utf16);
 	free(resolvedPathName_utf16);
@@ -754,11 +764,9 @@ w32_rmdir(const char *path)
 int
 w32_chdir(const char *dirname_utf8)
 {
-	wchar_t *dirname_utf16 = utf8_to_utf16(dirname_utf8);
-	if (dirname_utf16 == NULL) {
-		errno = ENOMEM;
+	wchar_t *dirname_utf16 = resolved_path_utf16(dirname_utf8);
+	if (dirname_utf16 == NULL) 
 		return -1;
-	}
 
 	int returnStatus = _wchdir(dirname_utf16);
 	free(dirname_utf16);
@@ -792,6 +800,30 @@ w32_getcwd(char *buffer, int maxlen)
 		return NULL;
 	free(putf8);
 
+	to_lower_case(buffer);
+
+	if (chroot_path) {
+		/* ensure we are within chroot jail */
+		char c = buffer[chroot_path_len];
+		if ( strlen(buffer) < chroot_path_len ||
+		    memcmp(chroot_path, buffer, chroot_path_len) != 0 ||
+		    (c != '\0' && c!= '\\') ) {
+			errno = EOTHER;
+			error("cwb is not currently within chroot");
+			return NULL;
+		}
+
+		/* is cwd chroot ?*/
+		if (c == '\0') {
+			buffer[0] = '\\';
+			buffer[1] = '\0';
+		}
+		else {
+			char *tail = buffer + chroot_path_len;
+			memmove_s(buffer, maxlen, tail, strlen(tail) + 1);
+		}
+	}
+
 	return buffer;
 }
 
@@ -800,10 +832,9 @@ w32_mkdir(const char *path_utf8, unsigned short mode)
 {
 	int curmask;
 	wchar_t *path_utf16 = resolved_path_utf16(path_utf8);
-	if (path_utf16 == NULL) {
-		errno = ENOMEM;
+	if (path_utf16 == NULL) 
 		return -1;
-	}
+
 	int returnStatus = _wmkdir(path_utf16);
 	if (returnStatus < 0) {
 		free(path_utf16);
@@ -878,25 +909,55 @@ convertToForwardslash(char *str)
 char *
 realpath(const char *path, char resolved[PATH_MAX])
 {
-	errno_t r = 0;
 	if (!path || !resolved) return NULL;
 
 	char tempPath[PATH_MAX];
 	size_t path_len = strlen(path);
+	resolved[0] = '\0';
 
 	if (path_len > PATH_MAX - 1) {
 		errno = EINVAL;
 		return NULL;
 	}
 
-	if ((path_len >= 2) && (path[0] == '/') && path[1] && (path[2] == ':')) {
-		if((r = strncpy_s(resolved, PATH_MAX, path + 1, path_len)) != 0 ) /* skip the first '/' */ {
-			debug3("memcpy_s failed with error: %d.", r);
+	/* resolve root directory to the same */
+	if (path_len == 1 && (path[0] == '/' || path[0] == '\\')) {
+		resolved[0] = '/';
+		resolved[1] = '\0';
+		return resolved;
+	}
+
+	/* resolve this common case scenario to root */
+	/* "cd .." from within a drive root */
+	if (path_len == 6 && !chroot_path) {
+		char *tmplate = "/x:/..";
+		strcat(resolved, path);
+		resolved[1] = 'x';
+		if (strcmp(tmplate, resolved) == 0) {
+			resolved[0] = '/';
+			resolved[1] = '\0';
+			return resolved;
+		}
+	}
+
+	if (chroot_path) {
+		resolved[0] = '\0';
+		strcat(resolved, chroot_path);
+		/* if path is relative, add cwd within chroot */
+		if (path[0] != '/' && path[0] != '\\') {
+			w32_getcwd(resolved + chroot_path_len, PATH_MAX - chroot_path_len);
+			strcat(resolved, "/");
+		}
+		strcat(resolved, path);
+	}
+	else if ((path_len >= 2) && (path[0] == '/') && path[1] && (path[2] == ':')) {
+		if((errno = strncpy_s(resolved, PATH_MAX, path + 1, path_len)) != 0 ) /* skip the first '/' */ {
+			debug3("memcpy_s failed with error: %d.", errno);
 			return NULL;
 		}
 	}
-	else if(( r = strncpy_s(resolved, PATH_MAX, path, path_len + 1)) != 0) {
-		debug3("memcpy_s failed with error: %d.", r);
+	else if(( errno = strncpy_s(resolved, PATH_MAX, path, path_len + 1)) != 0) {
+		debug3("memcpy_s failed with error: %d.", errno);
 		return NULL;
 	}
 
@@ -905,27 +966,78 @@ realpath(const char *path, char resolved[PATH_MAX])
 		resolved[3] = '\0';
 	}
 
-	if (_fullpath(tempPath, resolved, PATH_MAX) == NULL)
-		return NULL;
-
-	convertToForwardslash(tempPath);
-
-	resolved[0] = '/'; /* will be our first slash in /x:/users/test1 format */
-	if ((r = strncpy_s(resolved+1, PATH_MAX - 1, tempPath, sizeof(tempPath) - 1)) != 0) {
-		debug3("memcpy_s failed with error: %d.", r);
+	if (_fullpath(tempPath, resolved, PATH_MAX) == NULL) {
+		errno = EINVAL;
 		return NULL;
 	}
-	return resolved;
+
+	if (chroot_path) {
+		if (strlen(tempPath) < strlen(chroot_path)) {
+			errno = EACCES;
+			return NULL;
+		}
+		if (memcmp(chroot_path, tempPath, strlen(chroot_path)) != 0) {
+			errno = EACCES;
+			return NULL;
+		}
+
+		resolved[0] = '\0';
+
+		
+		if (strlen(tempPath) == strlen(chroot_path))
+			/* realpath is the same as chroot_path */
+			strcat(resolved, "\\");
+		else
+			strcat(resolved, tempPath + strlen(chroot_path));
+
+		if (resolved[0] != '\\') {
+			errno = EACCES;
+			return NULL;
+		}
+
+		convertToForwardslash(resolved);
+		return resolved;		
+	}
+	else {
+		convertToForwardslash(tempPath);
+		resolved[0] = '/'; /* will be our first slash in /x:/users/test1 format */
+		if ((errno = strncpy_s(resolved + 1, PATH_MAX - 1, tempPath, sizeof(tempPath) - 1)) != 0) {
+			debug3("memcpy_s failed with error: %d.", errno);
+			return NULL;
+		}
+		return resolved;
+	}
 }
 
+/* on error returns NULL and sets errno */
 wchar_t*
 resolved_path_utf16(const char *input_path)
 {
-	if (!input_path) return NULL;
+	wchar_t *resolved_path = NULL;
 
-	wchar_t * resolved_path = utf8_to_utf16(input_path);
-	if (resolved_path == NULL)
+	if (!input_path) {
+		errno = EINVAL;
 		return NULL;
+	}
+
+	if (chroot_path) {
+		char actual_path[MAX_PATH], jail_path[MAX_PATH];
+
+		if (realpath(input_path, jail_path) == NULL)
+			return NULL;
+
+		actual_path[0] = '\0';
+		strcat_s(actual_path, MAX_PATH, chroot_path);
+		strcat_s(actual_path, MAX_PATH, jail_path);
+		resolved_path = utf8_to_utf16(actual_path);
+	}
+	else
+		resolved_path = utf8_to_utf16(input_path);
+	
+	if (resolved_path == NULL) {
+		errno = ENOMEM;
+		return NULL;
+	}
 
 	int resolved_len = (int) wcslen(resolved_path);
 	const int variable_len = (int) wcslen(PROGRAM_DATAW);
@@ -943,6 +1055,7 @@ resolved_path_utf16(const char *input_path)
 			if (resolved_path == NULL) {
 				debug3("%s: memory allocation failed.", __FUNCTION__);
 				free(resolved_path);
+				errno = ENOMEM;
 				return NULL;
 			}
 			else resolved_path = resolved_path_new;
@@ -979,8 +1092,11 @@ statvfs(const char *path, struct statvfs *buf)
 	DWORD totalClusters;
 
 	wchar_t* path_utf16 = resolved_path_utf16(path);
-	if (path_utf16 && (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
-	    &freeClusters, &totalClusters) == TRUE)) {
+	if (path_utf16 == NULL)
+		return -1;
+
+	if (GetDiskFreeSpaceW(path_utf16, &sectorsPerCluster, &bytesPerSector,
+	    &freeClusters, &totalClusters)) {
 		debug5("path              : [%s]", path);
 		debug5("sectorsPerCluster : [%lu]", sectorsPerCluster);
 		debug5("bytesPerSector    : [%lu]", bytesPerSector);
@@ -1004,7 +1120,7 @@ statvfs(const char *path, struct statvfs *buf)
 		return 0;
 	} else {
 		debug5("ERROR: Cannot get free space for [%s]. Error code is : %d.\n", path, GetLastError());
-
+		errno = errno_from_Win32LastError();
 		free(path_utf16);
 		return -1;
 	}
@@ -1271,6 +1387,13 @@ to_lower_case(char *s)
 		*s = tolower((u_char)*s);
 }
 
+void 
+to_wlower_case(wchar_t *s)
+{
+	for (; *s; s++)
+		*s = towlower(*s);
+}
+
 static int
 get_final_mode(int allow_mode, int deny_mode)
 {	
@@ -1470,4 +1593,47 @@ localtime_r(const time_t *timep, struct tm *result)
 	struct tm *t = localtime(timep);
 	memcpy(result, t, sizeof(struct tm));
 	return t;
+}
+
+int
+chroot(const char *path)
+{
+	char cwd[MAX_PATH];
+
+	if (strcmp(path, ".") == 0) {
+		if (w32_getcwd(cwd, MAX_PATH) == NULL)
+			return -1;
+		path = (const char *)cwd;
+	} else if (*(path + 1) != ':') {
+		errno = ENOTSUP;
+		error("chroot only supports absolute paths");
+		return -1;
+	} else {
+		/* TODO - ensure path exists and is a directory */
+	}
+
+	if ((chroot_path = _strdup(path)) == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	to_lower_case(chroot_path);
+	convertToBackslash(chroot_path);
+
+	/* strip trailing \ */
+	if (chroot_path[strlen(chroot_path) - 1] == '\\')
+		chroot_path[strlen(chroot_path) - 1] = '\0';
+
+	chroot_path_len = strlen(chroot_path);
+
+	if ((chroot_pathw = utf8_to_utf16(chroot_path)) == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	/* TODO - set the env variable just in time in a posix_spawn_chroot like API */
+#define POSIX_CHROOTW L"c28fc6f98a2c44abbbd89d6a3037d0d9_POSIX_CHROOT"
+	_wputenv_s(POSIX_CHROOTW, chroot_pathw);
+
+	return 0;
 }

@@ -318,6 +318,11 @@ STARTUPINFO inputSi;
 		goto cleanup;		\
 } while(0)
 
+void     
+debug3(const char *s, ...) {
+	return;
+}
+
 int
 ConSRWidth()
 {

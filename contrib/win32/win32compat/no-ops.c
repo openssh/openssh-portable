@@ -90,19 +90,14 @@ innetgr(const char *netgroup, const char *host, const char *user, const char *do
 	return -1;
 }
 
+
+/* sshd.c */
 int
-chroot(const char *path)
+initgroups(const char *user, gid_t group)
 {
 	return 0;
 }
 
-int
-initgroups(const char *user, gid_t group)
-{
-	return -1;
-}
-
-/* sshd.c */
 int
 setgroups(gid_t group, char* name)
 {

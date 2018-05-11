@@ -30,7 +30,9 @@
 
 #include <Windows.h>
 #include "inc\utf.h"
+#include "Debug.h"
 
+/*on error returns NULL and sets errno*/
 wchar_t *
 utf8_to_utf16(const char *utf8)
 {
@@ -38,8 +40,11 @@ utf8_to_utf16(const char *utf8)
 	wchar_t* utf16 = NULL;
 	if ((needed = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0)) == 0 ||
 	    (utf16 = malloc(needed * sizeof(wchar_t))) == NULL ||
-	    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, needed) == 0)
+	    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, needed) == 0) {
+		debug3("failed to convert utf8 payload:%s error:%d", utf8, GetLastError());
+		errno = ENOMEM;
 		return NULL;
+	}
 
 	return utf16;
 }

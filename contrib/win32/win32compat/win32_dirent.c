@@ -48,9 +48,9 @@ struct DIR_ {
 #define ATTR_ROOTDIR  UINT_MAX
 
 /* Enumerate all devices which have drive name.
-   Return a DIR stream on the root directory, or NULL if it could not be enumerated. */
+Return a DIR stream on the root directory, or NULL if it could not be enumerated. */
 DIR *
-openrootdir(const char *name)
+openrootdir()
 {
 	int hr = 0;
 	DWORD dw;
@@ -104,14 +104,12 @@ opendir(const char *name)
 	wchar_t* wname = NULL;
 	size_t len;
 
-	/* Detect root dir */
-	if (name && strcmp(name, "/") == 0)
-		return openrootdir(name);
-
-	if ((wname = resolved_path_utf16(name)) == NULL) {
-		errno = ENOMEM;
+	if ((wname = resolved_path_utf16(name)) == NULL) 
 		return NULL;
-	}
+
+	/* Detect root dir */
+	if (wcscmp(wname, L"/") == 0)
+		return openrootdir();
 
 	convertToBackslashW(wname);
 	len = wcslen(wname);

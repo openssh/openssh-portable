@@ -918,8 +918,9 @@ privsep_postauth(Authctxt *authctxt)
 	close(pmonitor->m_recvfd);
 
 	pmonitor->m_recvfd = PRIVSEP_MONITOR_FD;
-
 	monitor_recv_keystate(pmonitor);
+
+	do_setusercontext(authctxt->pw);
 	monitor_apply_keystate(pmonitor);
 	packet_set_authenticated();
 skip:

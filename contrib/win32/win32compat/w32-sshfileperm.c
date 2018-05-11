@@ -71,7 +71,6 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 
 	if ((path_utf16 = resolved_path_utf16(input_path)) == NULL) {
 		ret = -1;
-		errno = ENOMEM;
 		goto cleanup;
 	}
 
