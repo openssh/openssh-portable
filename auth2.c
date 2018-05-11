@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.146 2018/04/13 03:57:26 dtucker Exp $ */
+/* $OpenBSD: auth2.c,v 1.147 2018/05/11 03:22:55 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -220,7 +220,8 @@ user_specific_delay(const char *user)
 	u_char *hash = xmalloc(len);
 	double delay;
 
-	(void)snprintf(b, sizeof b, "%llu%s", options.timing_secret, user);
+	(void)snprintf(b, sizeof b, "%llu%s",
+	     (unsigned long long)options.timing_secret, user);
 	if (ssh_digest_memory(SSH_DIGEST_SHA512, b, strlen(b), hash, len) != 0)
 		fatal("%s: ssh_digest_memory", __func__);
 	/* 0-4.2 ms of delay */
