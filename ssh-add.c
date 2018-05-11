@@ -42,6 +42,7 @@
 
 #ifdef USING_WOLFSSL
 #include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/ssl.h>
 #else
 #include <openssl/evp.h>
 #include "openbsd-compat/openssl-compat.h"

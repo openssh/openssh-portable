@@ -91,9 +91,9 @@ const struct ssh_digest digests[SSH_DIGEST_MAX] = {
 	{
 		SSH_DIGEST_SHA256,
 		"SHA256",
-		SHA256_BLOCK_SIZE,
-		SHA256_DIGEST_SIZE,
-		sizeof(Sha256),
+		WC_SHA256_BLOCK_SIZE,
+		WC_SHA256_DIGEST_SIZE,
+		sizeof(wc_Sha256),
 		(md_init_fn *) wc_InitSha256,
 		(md_update_fn *) wc_Sha256Update,
 		(md_final_fn *) wc_Sha256Final

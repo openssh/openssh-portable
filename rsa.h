@@ -17,6 +17,7 @@
 #define RSA_H
 
 #ifdef USING_WOLFSSL
+#include <wolfssl/wolfcrypt/rsa.h>
 #include <wolfssl/openssl/bn.h>
 #include <wolfssl/openssl/rsa.h>
 #else

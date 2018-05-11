@@ -25,6 +25,7 @@
 #include <wolfssl/openssl/evp.h>
 #include <wolfssl/openssl/err.h>
 #include <wolfssl/wolfcrypt/rsa.h>
+#include <wolfssl/openssl/ssl.h>
 #else
 #include <openssl/evp.h>
 #include <openssl/err.h>

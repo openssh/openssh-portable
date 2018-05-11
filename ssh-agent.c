@@ -52,6 +52,7 @@
 
 #ifdef USING_WOLFSSL
 #include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/ssl.h>
 #else
 # ifdef WITH_OPENSSL
 # include <openssl/evp.h>
