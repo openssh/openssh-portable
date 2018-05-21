@@ -103,7 +103,7 @@ Describe "Setup Tests" -Tags "Setup" {
             }
 
             $identities | % {
-                (Get-UserAccount -UserSid $_) | Should BeIn $myACL.Access.IdentityReference
+                $myACL.Access.IdentityReference -contains (Get-UserAccount -UserSid $_) | Should Be $true
             }
 
             foreach ($a in $myACL.Access) {
@@ -114,7 +114,7 @@ Describe "Setup Tests" -Tags "Setup" {
                     $id = Get-UserSID -User $idRefShortValue                                      
                 }
 
-                $id | Should BeIn $identities
+                $identities -contains $id | Should be $true
 
                 switch ($id)
                 {
@@ -300,32 +300,37 @@ Describe "Setup Tests" -Tags "Setup" {
         }
 
         It "$tC.$tI - Validate Registry key ssh-agent\ObjectName" {
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "ObjectName"            
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "ObjectName"
             $p | Should Be "LocalSystem"
         }        
 
         It "$tC.$tI - Validate Registry key ssh-agent\Start" {
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "Start"            
-            $p | Should Be 3
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "Start"  
+            if($windowsInBox) {
+                $p | Should Be 4
+            }
+            else {
+                $p | Should Be 3
+            }
         }
 
         It "$tC.$tI - Validate Registry key ssh-agent\Type" {
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "Type"            
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent") -Name "Type"
             $p | Should Be 16
         }        
 
         It "$tC.$tI - Validate Registry key to ssh-agent\Security\Security" { 
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent\Security") -Name Security            
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "ssh-agent\Security") -Name Security
             $p.Gettype() | Should Be byte[]
         }        
 
         It "$tC.$tI - Validate Registry key sshd\Description" {
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "sshd") -Name "Description"            
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "sshd") -Name "Description"
             $p | Should not Be $null
         }
 
         It "$tC.$tI - Validate Registry key sshd\ErrorControl" {
-            $p = Get-ItemPropertyValue (Join-Path $servicePath "sshd") -Name "ErrorControl"            
+            $p = Get-ItemPropertyValue (Join-Path $servicePath "sshd") -Name "ErrorControl"
             $p | Should Be 1
         }
 
@@ -355,12 +360,15 @@ Describe "Setup Tests" -Tags "Setup" {
         }
         It "$tC.$tI - Validate Registry openssh\agent entry" {
             $agentPath = Join-Path $opensshRegPath "Agent"
-            if(-not (Test-Path $agentPath -PathType Container))
+            if(Test-Path $agentPath -PathType Container)
+            {
+                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshACLs
+            }
+            elseif((-not $windowsInBox) -or ((Get-Service ssh-agent).StartType -ne ([System.ServiceProcess.ServiceStartMode]::Disabled)))
             {
                 Start-Service ssh-agent
-            }
-
-            ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshACLs
+                ValidateRegistryACL -RegPath $agentPath -IdAcls $opensshACLs
+            }                            
         }
     }
 
@@ -373,7 +381,12 @@ Describe "Setup Tests" -Tags "Setup" {
 
         It "$tC.$tI - Validate properties of ssh-agent service" {            
             $sshdSvc = Get-service ssh-agent
-            $sshdSvc.StartType | Should Be ([System.ServiceProcess.ServiceStartMode]::Manual)
+            if($windowsInBox) {
+                $sshdSvc.StartType | Should Be ([System.ServiceProcess.ServiceStartMode]::Disabled)
+            }
+            else {
+                $sshdSvc.StartType | Should Be ([System.ServiceProcess.ServiceStartMode]::Manual)
+            }
             $sshdSvc.ServiceType | Should Be ([System.ServiceProcess.ServiceType]::Win32OwnProcess)
             $sshdSvc.ServiceName | Should Be "ssh-agent"
             $sshdSvc.DisplayName | Should BeLike "OpenSSH*"
@@ -407,11 +420,11 @@ Describe "Setup Tests" -Tags "Setup" {
             $a = sc.exe qprivs sshd 256
             $p = $a | % { if($_ -match "Se[\w]+Privilege" ) {$start = $_.IndexOf("Se");$_.Substring($start, $_.length-$start)}}
             $expected | % {
-                $_ | Should BeIn $p
+                $p -contains $_ | Should be $true
             }
 
             $p | % {
-                $_ | Should BeIn $expected
+                $expected -contains $_ | Should be $true
             }
         }
 
@@ -426,10 +439,10 @@ Describe "Setup Tests" -Tags "Setup" {
             $actual_dacl_aces = $dacl_aces | ? { -not [string]::IsNullOrWhiteSpace($_) }
 
             $expected_dacl_aces | % {
-                $_ | Should BeIn $actual_dacl_aces
+                $actual_dacl_aces -contains $_ | Should be $true 
             }
             $actual_dacl_aces | % {
-                $_ | Should BeIn $expected_dacl_aces
+                $expected_dacl_aces -contains $_ | Should be $true
             }
 
             <# ignore sacl for now
@@ -449,10 +462,10 @@ Describe "Setup Tests" -Tags "Setup" {
             $actual_dacl_aces = $dacl_aces | ? { -not [string]::IsNullOrWhiteSpace($_) }
 
             $expected_dacl_aces | % {
-                $_ | Should BeIn $actual_dacl_aces
+                $actual_dacl_aces -contains $_ | Should be $true
             }
             $actual_dacl_aces | % {
-                $_ | Should BeIn $expected_dacl_aces
+                $expected_dacl_aces -contains $_ | Should be $true
             }
 
             <# ignore sacl for now

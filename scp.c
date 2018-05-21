@@ -214,8 +214,9 @@ do_local_cmd(arglist *a)
 		cmd = xmalloc(cmdlen);
 		cmd[0] = '\0';
 		for (i = 0; i < a->num; i++) {
-			strcat(cmd, a->list[i]);
-			strcat(cmd, " ");
+			if(i != 0)
+				strcat_s(cmd, cmdlen, " ");
+			strcat_s(cmd, cmdlen, a->list[i]);
 		}
 		if (system(cmd))
 			return -1; 
