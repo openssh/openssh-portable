@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.62 2018/03/16 09:06:31 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.63 2018/05/22 00:22:49 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -375,7 +375,10 @@ fail ()
 	save_debug_log "FAIL: $@"
 	RESULT=1
 	echo "$@"
-
+	if test "x$TEST_SSH_FAIL_FATAL" != "x" ; then
+		cleanup
+		exit $RESULT
+	fi
 }
 
 fatal ()
