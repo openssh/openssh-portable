@@ -1587,7 +1587,7 @@ copy_file(char *source, char *destination)
 	return 0;
 }
 
-struct tm* 
+struct tm*
 localtime_r(const time_t *timep, struct tm *result)
 {
 	struct tm *t = localtime(timep);
@@ -1636,4 +1636,84 @@ chroot(const char *path)
 	_wputenv_s(POSIX_CHROOTW, chroot_pathw);
 
 	return 0;
+}
+
+/* returns SID of user or current user if (user = NULL) */
+PSID
+get_user_sid(char* name)
+{
+	HANDLE token = NULL;
+	TOKEN_USER* info = NULL;
+	DWORD info_len = 0;
+	PSID ret = NULL, psid;
+	wchar_t* name_utf16 = NULL;
+
+	if (name) {
+		DWORD sid_len = 0;
+		SID_NAME_USE n_use;
+		WCHAR dom[DNLEN + 1] = L"";
+		DWORD dom_len = DNLEN + 1;
+
+		if ((name_utf16 = utf8_to_utf16(name)) == NULL)
+			goto cleanup;
+
+		LookupAccountNameW(NULL, name_utf16, NULL, &sid_len, dom, &dom_len, &n_use);
+
+		if (sid_len == 0) {
+			errno = errno_from_Win32LastError();
+			goto cleanup;
+		}
+
+		if ((psid = malloc(sid_len)) == NULL) {
+			errno = ENOMEM;
+			goto cleanup;
+		}
+
+		if (!LookupAccountNameW(NULL, name_utf16, psid, &sid_len, dom, &dom_len, &n_use)) {
+			errno = errno_from_Win32LastError();
+			goto cleanup;
+		}
+	}
+	else {
+		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == FALSE ||
+		    GetTokenInformation(token, TokenUser, NULL, 0, &info_len) == TRUE) {
+			errno = EOTHER;
+			goto cleanup;
+		}
+
+		if ((info = (TOKEN_USER*)malloc(info_len)) == NULL) {
+			errno = ENOMEM;
+			goto cleanup;
+		}
+
+		if (GetTokenInformation(token, TokenUser, info, info_len, &info_len) == FALSE) {
+			errno = errno_from_Win32LastError();
+			goto cleanup;
+		}
+
+		if ((psid = malloc(GetLengthSid(info->User.Sid))) == NULL) {
+			errno = ENOMEM;
+			goto cleanup;
+		}
+
+		if (!CopySid(GetLengthSid(info->User.Sid), psid, info->User.Sid)) {
+			errno = errno_from_Win32LastError();
+			goto cleanup;
+		}
+	}
+
+	ret = psid;
+	psid = NULL;
+cleanup:
+
+	if (token)
+		CloseHandle(token);
+	if (name_utf16)
+		free(name_utf16);
+	if (psid)
+		free(psid);
+	if (info)
+		free(info);
+
+	return ret;
 }

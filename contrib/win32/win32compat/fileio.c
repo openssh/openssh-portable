@@ -366,18 +366,8 @@ createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags
 			return -1;
 		}
 
-		if ((pwd = getpwuid(0)) == NULL)
-			fatal("getpwuid failed.");
-
-		if ((sid_utf16 = utf8_to_utf16(pwd->pw_sid)) == NULL) {
-			debug3("Failed to get utf16 of the sid string");
-			errno = ENOMEM;
-			goto cleanup;
-		}
-
-		if (ConvertStringSidToSid(pwd->pw_sid, &owner_sid) == FALSE ||
-			(IsValidSid(owner_sid) == FALSE)) {
-			debug3("cannot retrieve SID of user %s", pwd->pw_name);
+		if ((owner_sid = get_user_sid(NULL)) == NULL || (!ConvertSidToStringSidW(owner_sid, &sid_utf16))) {
+			debug3("cannot retrieve current user's SID");
 			goto cleanup;
 		}
 
@@ -416,9 +406,11 @@ createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags
 	ret = 0;
 cleanup:
 	if (owner_sid)
-		LocalFree(owner_sid);
+		free(owner_sid);
+
 	if (sid_utf16)
-		free(sid_utf16);
+		LocalFree(sid_utf16);
+		
 	return ret;
 }
 

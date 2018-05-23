@@ -54,20 +54,11 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	PACL dacl = NULL;
 	DWORD error_code = ERROR_SUCCESS; 
 	BOOL is_valid_sid = FALSE, is_valid_acl = FALSE;
-	struct passwd * pwd = pw;
 	char *bad_user = NULL;
 	int ret = 0;
 
-	if (pwd == NULL)
-		if ((pwd = getpwuid(0)) == NULL) 
-			fatal("getpwuid failed.");
-	
-	if (ConvertStringSidToSid(pwd->pw_sid, &user_sid) == FALSE ||
-		(IsValidSid(user_sid) == FALSE)) {
-		debug3("failed to retrieve sid of user %s", pwd->pw_name);
-		ret = -1;
+	if ((user_sid = get_user_sid(pw ? pw->pw_name : NULL)) == NULL)
 		goto cleanup;
-	}
 
 	if ((path_utf16 = resolved_path_utf16(input_path)) == NULL) {
 		ret = -1;
@@ -143,7 +134,7 @@ cleanup:
 	if (pSD)
 		LocalFree(pSD);
 	if (user_sid)
-		LocalFree(user_sid);
+		free(user_sid);
 	if(path_utf16)
 		free(path_utf16);
 	return ret;

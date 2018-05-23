@@ -49,32 +49,73 @@
 
 static struct passwd pw;
 static char* pw_shellpath = NULL;
-#define SHELL_HOST "\\ssh-shellhost.exe"
+char* shell_command_option = NULL;
+
+/* returns 0 on success, and -1 with errno set on failure */
+static int
+set_defaultshell()
+{
+	HKEY reg_key = 0;
+	int tmp_len, ret = -1;
+	REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
+	wchar_t path_buf[PATH_MAX], option_buf[32];
+	char *pw_shellpath_local = NULL, *command_option_local = NULL;
+
+	errno = 0;
+
+	/* if already set, return success */
+	if (pw_shellpath != NULL)
+		return 0;
+
+	path_buf[0] = L'\0';
+	option_buf[0] = L'\0';
+
+	tmp_len = _countof(path_buf);
+	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
+	    (RegQueryValueExW(reg_key, L"DefaultShell", 0, NULL, (LPBYTE)path_buf, &tmp_len) == ERROR_SUCCESS) &&
+	    (path_buf[0] != L'\0')) {
+		/* fetched default shell path from registry */
+		tmp_len = _countof(option_buf);
+		if (RegQueryValueExW(reg_key, L"DefaultShellCommandOption", 0, NULL, (LPBYTE)option_buf, &tmp_len) != ERROR_SUCCESS)
+			option_buf[0] = L'\0';
+	} else {
+		if (!GetSystemDirectoryW(path_buf, _countof(path_buf))) {
+			errno = GetLastError();
+			goto cleanup;
+		}
+		if (wcscat_s(path_buf, _countof(path_buf), L"\\cmd.exe") != 0)
+			goto cleanup;
+	}
+
+	if ((pw_shellpath_local = utf16_to_utf8(path_buf)) == NULL)
+		goto cleanup;
+
+	if (option_buf[0] != L'\0')
+		if ((command_option_local = utf16_to_utf8(option_buf)) == NULL)
+			goto cleanup;
+
+	pw_shellpath = pw_shellpath_local;
+	pw_shellpath_local = NULL;
+	shell_command_option = command_option_local;
+	command_option_local = NULL;
+
+	ret = 0;
+cleanup:
+	if (pw_shellpath_local)
+		free(pw_shellpath_local);
+
+	if (command_option_local)
+		free(command_option_local);
+
+	return ret;
+}
 
 
 int
 initialize_pw()
 {
-	errno_t r = 0;
-	char* program_dir = w32_programdir();
-	size_t program_dir_len = strlen(program_dir);
-	size_t shell_host_len = strlen(SHELL_HOST);
-	if (pw_shellpath == NULL) {
-		if ((pw_shellpath = malloc(program_dir_len + shell_host_len + 1)) == NULL)
-			fatal("initialize_pw - out of memory");
-		else {
-			char* head = pw_shellpath;
-			if ((r= memcpy_s(head, program_dir_len + shell_host_len + 1, w32_programdir(), program_dir_len)) != 0) {
-				fatal("memcpy_s failed with error: %d.", r);
-			}
-			head += program_dir_len;
-			if ((r = memcpy_s(head, shell_host_len + 1, SHELL_HOST, shell_host_len)) != 0) {
-				fatal("memcpy_s failed with error: %d.", r);
-			}
-			head += shell_host_len;
-			*head = '\0';
-		}
-	}
+	if (set_defaultshell() != 0)
+		return -1;
 
 	if (pw.pw_shell != pw_shellpath) {
 		memset(&pw, 0, sizeof(pw));
@@ -87,19 +128,26 @@ initialize_pw()
 	return 0;
 }
 
-void
-reset_pw()
+static void 
+clean_pw()
 {
-	initialize_pw();
 	if (pw.pw_name)
 		free(pw.pw_name);
 	if (pw.pw_dir)
 		free(pw.pw_dir);
-	if (pw.pw_sid)
-		free(pw.pw_sid);
 	pw.pw_name = NULL;
 	pw.pw_dir = NULL;
-	pw.pw_sid = NULL;
+}
+
+static int
+reset_pw()
+{
+	if (initialize_pw() != 0)
+		return -1;
+
+	clean_pw();
+
+	return 0;
 }
 
 static struct passwd*
@@ -119,16 +167,16 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	SID_NAME_USE account_type = 0;
 
 	errno = 0;
-	reset_pw();
+	if (reset_pw() != 0)
+		return NULL;
 
 	/* skip forward lookup on name if sid was passed in */
 	if (sid != NULL)
 		CopySid(sizeof(binary_sid), binary_sid, sid);
-
-	/* attempt to lookup the account; this will verify the account is valid and
+	/* else attempt to lookup the account; this will verify the account is valid and
 	 * is will return its sid and the realm that owns it */
 	else if(LookupAccountNameW(NULL, user_utf16, binary_sid, &sid_size,
-		domain_name, &domain_name_size, &account_type) == 0) {
+	    domain_name, &domain_name_size, &account_type) == 0) {
 		errno = ENOENT;
 		debug("%s: LookupAccountName() failed: %d.", __FUNCTION__, GetLastError());
 		goto cleanup;
@@ -136,7 +184,7 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 
 	/* convert the binary string to a string */
 	if (ConvertSidToStringSidW((PSID) binary_sid, &sid_string) == FALSE) {
-		errno = ENOENT;
+		errno = errno_from_Win32LastError();
 		goto cleanup;
 	}
 
@@ -145,8 +193,8 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	DWORD user_name_length = ARRAYSIZE(user_name);
 	domain_name_size = DNLEN + 1;
 	if (LookupAccountSidW(NULL, binary_sid, user_name, &user_name_length,
-		domain_name, &domain_name_size, &account_type) == 0) {
-		errno = ENOENT;
+	    domain_name, &domain_name_size, &account_type) == 0) {
+		errno = errno_from_Win32LastError();
 		debug("%s: LookupAccountSid() failed: %d.", __FUNCTION__, GetLastError());
 		goto cleanup;
 	}
@@ -188,9 +236,8 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	/* convert to utf8, make name lowercase, and assign to output structure*/
 	_wcslwr_s(user_resolved, wcslen(user_resolved) + 1);
 	if ((pw.pw_name = utf16_to_utf8(user_resolved)) == NULL ||
-		(pw.pw_dir = utf16_to_utf8(profile_home_exp)) == NULL || 
-		(pw.pw_sid = utf16_to_utf8(sid_string)) == NULL) {
-		reset_pw();
+	    (pw.pw_dir = utf16_to_utf8(profile_home_exp)) == NULL) {
+		clean_pw();
 		errno = ENOMEM;
 		goto cleanup;
 	}
@@ -207,40 +254,84 @@ cleanup:
 	return ret;
 }
 
+static struct passwd*
+getpwnam_placeholder(const char* user) {
+	wchar_t tmp_home[PATH_MAX];
+	char *pw_name = NULL, *pw_dir = NULL;
+	struct passwd* ret = NULL;
+
+	if (GetWindowsDirectoryW(tmp_home, PATH_MAX) == 0) {
+		debug3("GetWindowsDirectoryW failed with %d", GetLastError());
+		errno = EOTHER;
+		goto cleanup;
+	}
+	pw_name = strdup(user);
+	pw_dir = utf16_to_utf8(tmp_home);
+
+	if (!pw_name || !pw_dir) {
+		errno = ENOMEM;
+		goto cleanup;
+	}
+
+	pw.pw_name = pw_name;
+	pw_name = NULL;
+	pw.pw_dir = pw_dir;
+	pw_dir = NULL;
+
+	ret = &pw;
+cleanup:
+	if (pw_name)
+		free(pw_name);
+	if (pw_dir)
+		free(pw_dir);
+
+	return ret;
+}
+
 struct passwd*
 w32_getpwnam(const char *user_utf8)
 {
+	struct passwd* ret = NULL;
 	wchar_t * user_utf16 = utf8_to_utf16(user_utf8);
 	if (user_utf16 == NULL) {
 		errno = ENOMEM;
 		return NULL;
 	}
 
-	return get_passwd(user_utf16, NULL);
+	ret = get_passwd(user_utf16, NULL);
+	if (ret != NULL)
+		return ret;
+
+	/* check if custom passwd auth is enabled */
+	{
+		int lsa_auth_pkg_len = 0;
+		HKEY reg_key = 0;
+
+		REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
+		if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
+		    (RegQueryValueExW(reg_key, L"LSAAuthenticationPackage", 0, NULL, NULL, &lsa_auth_pkg_len) == ERROR_SUCCESS))
+			ret = getpwnam_placeholder(user_utf8);
+
+		if (reg_key)
+			RegCloseKey(reg_key);
+	}
+	return ret;
 }
 
 struct passwd*
 w32_getpwuid(uid_t uid)
 {
 	struct passwd* ret = NULL;
-	HANDLE token = NULL;
-	TOKEN_USER* info = NULL;
-	DWORD info_len = 0;
-
-	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == FALSE ||
-		GetTokenInformation(token, TokenUser, NULL, 0, &info_len) == TRUE ||
-		(info = (TOKEN_USER*)malloc(info_len)) == NULL ||
-		GetTokenInformation(token, TokenUser, info, info_len, &info_len) == FALSE)
+	PSID cur_user_sid = NULL;
+	
+	if ((cur_user_sid = get_user_sid(NULL)) == NULL)
 		goto cleanup;
 
-	ret = get_passwd(NULL, info->User.Sid);
+	ret = get_passwd(NULL, cur_user_sid);
 
 cleanup:
-
-	if (token)
-		CloseHandle(token);
-	if (info)
-		free(info);
+	if (cur_user_sid)
+		free(cur_user_sid);
 
 	return ret;
 }

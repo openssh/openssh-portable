@@ -371,25 +371,113 @@ xauth_valid_string(const char *s)
  */
 
 
-#define UTF8_TO_UTF16_FATAL(o, i) do {				\
+#define UTF8_TO_UTF16_WITH_CLEANUP(o, i) do {				\
 	if (o != NULL) free(o);					\
 	if ((o = utf8_to_utf16(i)) == NULL)			\
-		fatal("%s, out of memory", __func__);		\
+		goto cleanup;		\
 } while (0)
 
-static void setup_session_vars(Session* s) {
+#define GOTO_CLEANUP_ON_ERR(exp) do {	\
+	if ((exp) != 0)			\
+		goto cleanup;		\
+} while(0)
+
+ /* TODO  - built env var set and pass it along with CreateProcess */
+ /* set user environment variables from user profile */
+static void
+setup_session_user_vars(wchar_t* profile_path)
+{
+	/* retrieve and set env variables. */
+	HKEY reg_key = 0;
+	wchar_t name[256];
+	wchar_t path[PATH_MAX + 1] = { 0, };
+	wchar_t *data = NULL, *data_expanded = NULL, *path_value = NULL, *to_apply;
+	DWORD type, name_chars = 256, data_chars = 0, data_expanded_chars = 0, required, i = 0;
+	LONG ret;
+
+	SetEnvironmentVariableW(L"USERPROFILE", profile_path);
+	swprintf_s(path, _countof(path), L"%s\\AppData\\Local", profile_path);
+	SetEnvironmentVariableW(L"LOCALAPPDATA", path);
+	swprintf_s(path, _countof(path), L"%s\\AppData\\Roaming", profile_path);
+	SetEnvironmentVariableW(L"APPDATA", path);
+	
+	ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_QUERY_VALUE, &reg_key);
+	if (ret != ERROR_SUCCESS)
+		//error("Error retrieving user environment variables. RegOpenKeyExW returned %d", ret);
+		return;
+	else while (1) {
+		to_apply = NULL;
+		required = data_chars * sizeof(wchar_t);
+		name_chars = 256;
+		ret = RegEnumValueW(reg_key, i++, name, &name_chars, 0, &type, (LPBYTE)data, &required);
+		if (ret == ERROR_NO_MORE_ITEMS)
+			break;
+		else if (ret == ERROR_MORE_DATA || required > data_chars * 2) {
+			if (data != NULL)
+				free(data);
+			data = xmalloc(required);
+			data_chars = required / 2;
+			i--;
+			continue;
+		}
+		else if (ret != ERROR_SUCCESS)
+			break;
+
+		if (type == REG_SZ)
+			to_apply = data;
+		else if (type == REG_EXPAND_SZ) {
+			required = ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
+			if (required > data_expanded_chars) {
+				if (data_expanded)
+					free(data_expanded);
+				data_expanded = xmalloc(required * 2);
+				data_expanded_chars = required;
+				ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
+			}
+			to_apply = data_expanded;
+		}
+
+		if (_wcsicmp(name, L"PATH") == 0) {
+			if ((required = GetEnvironmentVariableW(L"PATH", NULL, 0)) != 0) {
+				/* "required" includes null term */
+				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
+				GetEnvironmentVariableW(L"PATH", path_value, required);
+				path_value[required - 1] = L';';
+				GOTO_CLEANUP_ON_ERR(memcpy_s(path_value + required, (wcslen(to_apply) + 1) * 2, to_apply, (wcslen(to_apply) + 1) * 2));
+				to_apply = path_value;
+			}
+
+		}
+		if (to_apply)
+			SetEnvironmentVariableW(name, to_apply);
+	}
+cleanup:
+	if (reg_key)
+		RegCloseKey(reg_key);
+	if (data)
+		free(data);
+	if (data_expanded)
+		free(data_expanded);
+	if (path_value)
+		free(path_value);
+}
+
+static int 
+setup_session_vars(Session* s) 
+{
 	wchar_t *pw_dir_w = NULL, *tmp = NULL;
 	char buf[256];
 	wchar_t wbuf[256];
 	char* laddr;
+	int ret = -1;
 
 	struct ssh *ssh = active_state; /* XXX */
 
-	UTF8_TO_UTF16_FATAL(pw_dir_w, s->pw->pw_dir);
-	UTF8_TO_UTF16_FATAL(tmp, s->pw->pw_name);
+	UTF8_TO_UTF16_WITH_CLEANUP(pw_dir_w, s->pw->pw_dir);
+	UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->pw->pw_name);
 	SetEnvironmentVariableW(L"USERNAME", tmp);
 	if (s->display) {
-		UTF8_TO_UTF16_FATAL(tmp, s->display);
+		UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->display);
 		SetEnvironmentVariableW(L"DISPLAY", tmp);
 	}
 	SetEnvironmentVariableW(L"USERPROFILE", pw_dir_w);
@@ -415,7 +503,7 @@ static void setup_session_vars(Session* s) {
 	SetEnvironmentVariableA("SSH_CONNECTION", buf);
 
 	if (original_command) {
-		UTF8_TO_UTF16_FATAL(tmp, original_command);
+		UTF8_TO_UTF16_WITH_CLEANUP(tmp, original_command);
 		SetEnvironmentVariableW(L"SSH_ORIGINAL_COMMAND", tmp);
 	}
 
@@ -423,39 +511,35 @@ static void setup_session_vars(Session* s) {
 		SetEnvironmentVariableA("TERM", s->term);
 
 	if (!s->is_subsystem) {
-		UTF8_TO_UTF16_FATAL(tmp, s->pw->pw_name);
+		UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->pw->pw_name);
 		_snwprintf(wbuf, sizeof(wbuf)/2, L"%ls@%ls $P$G", tmp, _wgetenv(L"COMPUTERNAME"));
 		SetEnvironmentVariableW(L"PROMPT", wbuf);
 	}
 
+	/* setup any user specific env variables */
+	setup_session_user_vars(pw_dir_w);
+
+	ret = 0;
+cleanup:
 	free(pw_dir_w);
 	free(tmp);
+
+	return ret;
 }
 
 char* w32_programdir();
 int register_child(void* child, unsigned long pid);
 
 int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
-	int pipein[2], pipeout[2], pipeerr[2], r;
-	char *exec_command = NULL, *progdir = w32_programdir(), *cmd = NULL, *shell_host = NULL, *command_b64 = NULL;
+	int pipein[2], pipeout[2], pipeerr[2], r, ret = -1;
+	char *progdir = w32_programdir();
 	wchar_t *exec_command_w = NULL;
-	const char *sftp_exe = "sftp-server.exe", *argp = NULL;
-	size_t command_b64_len = 0;
-	PROCESS_INFORMATION pi;
-	STARTUPINFOW si;
-	BOOL create_process_ret_val;
-	HANDLE hToken = INVALID_HANDLE_VALUE;
-	extern int debug_flag;
-
-	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
-		error("This service allows sftp connections only.\n");
-		fflush(NULL);
-		exit(1);
-	}
+	char  *command_enhanced = NULL, *exec_command = NULL;
+	HANDLE job = NULL;
 	
 	/* Create three pipes for stdin, stdout and stderr */
 	if (pipe(pipein) == -1 || pipe(pipeout) == -1 || pipe(pipeerr) == -1) 
-		fatal("%s: cannot create pipe: %.100s", __func__, strerror(errno));
+		goto cleanup;
 
 	set_nonblock(pipein[0]);
 	set_nonblock(pipein[1]);
@@ -467,88 +551,144 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	fcntl(pipein[1], F_SETFD, FD_CLOEXEC);
 	fcntl(pipeout[0], F_SETFD, FD_CLOEXEC);
 	fcntl(pipeerr[0], F_SETFD, FD_CLOEXEC);
+	
+	/* setup Environment varibles */ 
+	do {
+		static int environment_set = 0;
 
-	/* setup Environment varibles */
-	setup_session_vars(s);
+		if (environment_set)
+			break;
+
+		if (setup_session_vars(s) != 0)
+			goto cleanup;
+
+		environment_set = 1;
+	} while (0);
 
 	if (!in_chroot)
 		chdir(s->pw->pw_dir);
 
-	/* prepare exec - path used with CreateProcess() */
-	if (s->is_subsystem || (command && memcmp(command, "scp", 3) == 0)) {
-		/* relative or absolute */
-		if (command == NULL || command[0] == '\0')
-			fatal("expecting command for a subsystem");
+#define CMDLINE_APPEND(P, S)		\
+do {					\
+	int _S_len = strlen(S);		\
+	memcpy((P), (S), _S_len);		\
+	(P) += _S_len;			\
+} while(0)
 
-		if (command[1] == ':') /* absolute */
-			exec_command = xstrdup(command);
-		else {/*relative*/
-			const int command_len = strlen(progdir) + 1 + strlen(command) + (strlen(sftp_exe) - strlen(INTERNAL_SFTP_NAME));
-			exec_command = malloc(command_len);
-			if (exec_command == NULL)
-				fatal("%s, out of memory", __func__);
-						
-			cmd = exec_command;
-			memcpy(cmd, progdir, strlen(progdir));
-			cmd += strlen(progdir);
-			*cmd++ = '\\';
+	/* special cases where incoming command needs to be adjusted */
+	do {
+		if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
+			command = "echo This service allows sftp connections only.";
+			break;
+		}
 
-			/* In windows, INTERNAL_SFTP is supported via sftp-server.exe.
-			 * This is a deviation from the UNIX implementation that hosts sftp-server within sshd.
-			 * If sftp-server were to be hosted within sshd for Windows, following would be needed
-			 *  - Impersonate client user
-			 *  - call sftp-server-main
-			 *
-			 * SSHD service account would need impersonate privilege to impersonate client user, 
-			 * thereby needing elevation of SSHD account privileges
-			 * Apart from slight performance gain (by hosting sftp in process), there isn't a clear 
-			 * gain with this option over using and spawning sftp-server.exe.
-			 * Hence going with the later option. 
-			 */
-			if(IS_INTERNAL_SFTP(command)) {
-				memcpy(cmd, sftp_exe, strlen(sftp_exe) + 1);
-				cmd += strlen(sftp_exe);
-				
-				// copy the arguments (if any).
-				if(strlen(command) > strlen(INTERNAL_SFTP_NAME)) {
-					argp = (char*)command + strlen(INTERNAL_SFTP_NAME);
-					memcpy(cmd, argp, strlen(argp)+1);
-				}
+		/* if scp or sftp - add module path if command is not absolute */
+		if (s->is_subsystem || (command && memcmp(command, "scp", 3) == 0)) {
+			int en_size;
+			char* p;
+
+			if (!command || command[0] == '\0') {
+				error("expecting command for subsystem or scp");
+				errno = EOTHER;
+				return -1;
+			}
+
+			/* if absolute skip further logic */
+			if (command[1] == ':')
+				break;
+
+			/* account for max possible enhanced path */
+			en_size = PATH_MAX + 1 + strlen(command) ;
+			if ((command_enhanced = malloc(en_size)) == NULL) {
+				errno = ENOMEM;
+				goto cleanup;
+			}
+
+			p = command_enhanced;
+			CMDLINE_APPEND(p, progdir);
+			CMDLINE_APPEND(p, "\\");
+			
+			/* since Windows does not support fork, launch sftp-server.exe for internal_sftp */
+			if (IS_INTERNAL_SFTP(command)) {
+				CMDLINE_APPEND(p, "sftp-server.exe");
+				/* add subsystem arguments if any */
+				CMDLINE_APPEND(p, command + strlen(INTERNAL_SFTP_NAME));
 			} else
-				memcpy(cmd, command, strlen(command) + 1);
+				CMDLINE_APPEND(p, command);
+			
+			*p = '\0';
+
+			command = command_enhanced;
+			break;
 		}
-	} else {
-		/* 
-		 * contruct %programdir%\ssh-shellhost.exe <-nopty> base64encoded(command)  
-		 * command is base64 encoded to preserve original special charecters like '"'
-		 * else they will get lost in CreateProcess translation
-		 */
-		shell_host = pty ? "ssh-shellhost.exe " : "ssh-shellhost.exe -nopty ";
+	} while (0);
+
+	/* build command line to be executed */
+	{
+		/* max possible cmdline size - account for shellhost path, shell path and command */
+		int max_cmdline_size = 2 * PATH_MAX + (command ? strlen(command) + 1 : 1) + 1;
+		char* p;
+		enum sh_type { SH_CMD, SH_PS, SH_BASH, SH_OTHER } shell_type = SH_OTHER;
+		extern char* shell_command_option;
+
+		if ((exec_command = malloc(max_cmdline_size)) == NULL) {
+			errno = ENOMEM;
+			goto cleanup;
+		}
+
+		p = exec_command;
+
+		if (strstr(s->pw->pw_shell, "system32\\cmd.exe"))
+			shell_type = SH_CMD;
+		else if (strstr(s->pw->pw_shell, "powershell"))
+			shell_type = SH_PS;
+		else if (strstr(s->pw->pw_shell, "bash"))
+			shell_type = SH_BASH;
+		else if (strstr(s->pw->pw_shell, "cygwin"))
+			shell_type = SH_BASH;
+
+		/* build command line */
+		/* For PTY - launch via ssh-shellhost.exe */
+		if (pty) {
+			CMDLINE_APPEND(p,"\"");
+			CMDLINE_APPEND(p, progdir);
+			CMDLINE_APPEND(p, "\\ssh-shellhost.exe\" ");
+		}
+
+		/* Add shell */
+		CMDLINE_APPEND(p, "\"");
+		CMDLINE_APPEND(p, s->pw->pw_shell);
+		CMDLINE_APPEND(p, "\"");
+		
+		/* Add command option and command*/
 		if (command) {
-			/* accomodate bas64 encoding bloat and null terminator */
-			command_b64_len = ((strlen(command) + 2) / 3) * 4 + 1;
-			if ((command_b64 = malloc(command_b64_len)) == NULL ||
-			    b64_ntop(command, strlen(command), command_b64, command_b64_len) == -1)
-				fatal("%s, error encoding session command");
+			if (shell_command_option) {
+				CMDLINE_APPEND(p, " ");
+				CMDLINE_APPEND(p, shell_command_option);
+				CMDLINE_APPEND(p, " ");
+			} else if (shell_type == SH_CMD)
+				CMDLINE_APPEND(p, " /c ");
+			else
+				CMDLINE_APPEND(p, " -c ");
+
+			if (shell_type == SH_BASH)
+				CMDLINE_APPEND(p, "\"");
+
+			CMDLINE_APPEND(p, command);
+
+			if (shell_type == SH_BASH)
+				CMDLINE_APPEND(p, "\"");
 		}
-		exec_command = malloc(strlen(progdir) + 1 + strlen(shell_host) + (command_b64 ? strlen(command_b64): 0) + 1);
-		if (exec_command == NULL)
-			fatal("%s, out of memory", __func__);
-		cmd = exec_command;
-		memcpy(cmd, progdir, strlen(progdir));
-		cmd += strlen(progdir);
-		*cmd++ = '\\';
-		memcpy(cmd, shell_host, strlen(shell_host));
-		cmd += strlen(shell_host);
-		if (command_b64) {
-			memcpy(cmd, command_b64, strlen(command_b64));
-			cmd += strlen(command_b64);
-		}
-		*cmd = '\0';
+		*p = '\0';
 	}
 
 	/* start the process */
 	{
+		PROCESS_INFORMATION pi;
+		STARTUPINFOW si;
+		JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
+		HANDLE job_dup;
+
 		memset(&si, 0, sizeof(STARTUPINFO));
 		si.cb = sizeof(STARTUPINFO);
 		si.dwXSize = 5;
@@ -563,16 +703,36 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		si.lpDesktop = NULL;
 
 		debug("Executing command: %s", exec_command);
-		UTF8_TO_UTF16_FATAL(exec_command_w, exec_command);
+		if ((exec_command_w = utf8_to_utf16(exec_command)) == NULL)
+			goto cleanup;
 
-		create_process_ret_val = CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE,
-			DETACHED_PROCESS, NULL, NULL,
-			&si, &pi);
-
-		if (!create_process_ret_val)
-			fatal("ERROR. Cannot create process (%u).\n", GetLastError());
+		if (!CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+			errno = EOTHER;
+			error("ERROR. Cannot create process (%u).\n", GetLastError());
+			goto cleanup;
+		}
 
 		CloseHandle(pi.hThread);
+		memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+		job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
+
+		/* 
+		 * assign job object to control processes spawned by shell 
+		 * 1. create job object
+		 * 2. assign child to job object
+		 * 3. duplicate job handle into child so it would be the last to close it
+		 */
+		if ((job = CreateJobObjectW(NULL, NULL)) == NULL ||
+		    !SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)) ||
+		    !AssignProcessToJobObject(job, pi.hProcess) ||
+		    !DuplicateHandle(GetCurrentProcess(), job, pi.hProcess, &job_dup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+			error("cannot associate job object: %d", GetLastError());
+			errno = EOTHER;
+			TerminateProcess(pi.hProcess, 255);
+			CloseHandle(pi.hProcess);
+			goto cleanup;
+		}
+
 		s->pid = pi.dwProcessId;
 		register_child(pi.hProcess, pi.dwProcessId);
 	}
@@ -597,8 +757,19 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	else
 		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
 
-	free(exec_command_w);
-	return 0;
+	ret = 0;
+
+cleanup:
+	if (!command_enhanced)
+		free(command_enhanced);
+	if (!exec_command)
+		free(exec_command);
+	if (!exec_command_w)
+		free(exec_command_w);
+	if (job)
+		CloseHandle(job);
+
+	return ret;
 }
 
 int
@@ -1542,7 +1713,16 @@ safely_chroot(const char *path, uid_t uid)
 		fatal("chroot path does not begin at root");
 	if (strlen(path) >= sizeof(component))
 		fatal("chroot path too long");
-#ifndef WINDOWS
+
+#ifdef WINDOWS
+	/* ensure chroot path exists and is a directory */
+	if (stat(path, &st) != 0)
+		fatal("%s: stat(\"%s\"): %s", __func__,
+			path, strerror(errno));
+	if (!S_ISDIR(st.st_mode))
+		fatal("chroot path %s is not a directory",
+			path);
+#else
 	/*
 	 * Descend the path, checking that each component is a
 	 * root-owned directory with strict permissions.

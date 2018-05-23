@@ -256,10 +256,6 @@ struct key_translation keys[] = {
 static SHORT lastX = 0;
 static SHORT lastY = 0;
 static wchar_t system32_path[PATH_MAX + 1] = { 0, };
-static wchar_t cmd_exe_path[PATH_MAX + 1] = { 0, };
-static wchar_t default_shell_path[PATH_MAX + 3] = { 0, }; /* 2 - quotes, 1 - Null terminator */
-static wchar_t default_shell_cmd_option[10] = { 0, }; /* for cmd.exe/powershell it is "/c", for bash.exe it is "-c" */
-static BOOL is_default_shell_configured = FALSE;
 
 SHORT currentLine = 0;
 consoleEvent* head = NULL;
@@ -1194,76 +1190,6 @@ ProcessMessages(void* p)
 		CloseHandle(child_out);
 }
 
-wchar_t *
-get_default_shell_path()
-{
-	HKEY reg_key = 0;
-	int tmp_len = PATH_MAX;
-	errno_t r = 0;
-	REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
-	wchar_t *tmp = malloc(PATH_MAX + 1);
-
-	if (!tmp) {
-		printf_s("%s: out of memory", __func__);
-		exit(255);
-	}
-
-	memset(tmp, 0, PATH_MAX + 1);
-	memset(default_shell_path, 0, _countof(default_shell_path));
-	memset(default_shell_cmd_option, 0, _countof(default_shell_cmd_option));
-
-	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
-	    (RegQueryValueExW(reg_key, L"DefaultShell", 0, NULL, (LPBYTE)tmp, &tmp_len) == ERROR_SUCCESS) &&
-	    (tmp)) {
-		is_default_shell_configured = TRUE;
-
-		/* If required, add quotes to the default shell. */
-		if (tmp[0] != L'"') {
-			default_shell_path[0] = L'\"';
-			wcscat_s(default_shell_path, _countof(default_shell_path), tmp);
-			wcscat_s(default_shell_path, _countof(default_shell_path), L"\"");
-		} else
-			wcscat_s(default_shell_path, _countof(default_shell_path), tmp);
-		
-		/* Fetch the default shell command option.
-		 * For cmd.exe/powershell.exe it is "/c", for bash.exe it is "-c".
-		 * For cmd.exe/powershell.exe/bash.exe, verify if present otherwise auto-populate.
-		 */
-		memset(tmp, 0, PATH_MAX + 1);
-		
-		if ((RegQueryValueExW(reg_key, L"DefaultShellCommandOption", 0, NULL, (LPBYTE)tmp, &tmp_len) == ERROR_SUCCESS)) {
-			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), L" ");
-			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), tmp);
-			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), L" ");
-		}
-	}
-
-	if (((r = wcsncpy_s(cmd_exe_path, _countof(cmd_exe_path), system32_path, wcsnlen(system32_path, _countof(system32_path)) + 1)) != 0) ||
-	    ((r = wcscat_s(cmd_exe_path, _countof(cmd_exe_path), L"\\cmd.exe")) != 0)) {
-		printf_s("get_default_shell_path(), wcscat_s failed with error: %d.", r);
-		exit(255);
-	}
-
-	/* if default shell is not configured then use cmd.exe as the default shell */
-	if (!is_default_shell_configured)
-		wcscat_s(default_shell_path, _countof(default_shell_path), cmd_exe_path);
-	
-	if (!default_shell_cmd_option[0]) {
-		if (wcsstr(default_shell_path, L"cmd.exe") || wcsstr(default_shell_path, L"powershell.exe"))
-			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), L" /c ");
-		else if (wcsstr(default_shell_path, L"bash.exe"))
-			wcscat_s(default_shell_cmd_option, _countof(default_shell_cmd_option), L" -c ");
-	}
-
-	if (tmp)
-		free(tmp);
-	
-	if (reg_key)
-		RegCloseKey(reg_key);
-
-	return default_shell_path;
-}
-
 int 
 start_with_pty(wchar_t *command)
 {
@@ -1279,6 +1205,11 @@ start_with_pty(wchar_t *command)
 
 	if (cmd == NULL) {
 		printf_s("ssh-shellhost is out of memory");
+		exit(255);
+	}
+
+	if (!GetSystemDirectoryW(system32_path, PATH_MAX)) {
+		printf_s("unable to retrieve system32 path\n");
 		exit(255);
 	}
 
@@ -1311,8 +1242,7 @@ start_with_pty(wchar_t *command)
 	 * Windows PTY sends cursor positions in absolute coordinates starting from <0,0>
 	 * We send a clear screen upfront to simplify client 
 	 */	
-	if(!command)
-		SendClearScreen(pipe_out);
+	SendClearScreen(pipe_out);
 
 	ZeroMemory(&inputSi, sizeof(STARTUPINFO));
 	GetStartupInfo(&inputSi);
@@ -1338,30 +1268,13 @@ start_with_pty(wchar_t *command)
 	/* disable inheritance on pipe_in*/
 	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
 	
+	/*
+	* Launch via cmd.exe /c, otherwise known issues exist with color rendering in powershell
+	*/
 	cmd[0] = L'\0';
-	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, get_default_shell_path()));
-	if (command) {
-		if(default_shell_cmd_option[0])
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, default_shell_cmd_option));
-
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
-
-		si.dwFlags = STARTF_USESTDHANDLES;
-		si.hStdOutput = pipe_out;
-		si.hStdError = pipe_err;
-	} else {
-		/* Launch the default shell through cmd.exe.
-		 * If we don't launch default shell through cmd.exe then the powershell colors are rendered badly to the ssh client.
-		 */
-		if (is_default_shell_configured) {
-			wchar_t tmp_cmd[PATH_MAX + 1] = {0,};
-			wcscat_s(tmp_cmd, _countof(tmp_cmd), cmd);
-			cmd[0] = L'\0';
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, cmd_exe_path));
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L" /c "));
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, tmp_cmd));
-		}
-	}
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, system32_path));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, L"\\cmd.exe /c "));
+	GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
 
 	SetConsoleCtrlHandler(NULL, FALSE);
 	GOTO_CLEANUP_ON_FALSE(CreateProcess(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE,
@@ -1435,379 +1348,21 @@ cleanup:
 	return child_exit_code;
 }
 
-HANDLE child_pipe_read;
-HANDLE child_pipe_write;
-
-DWORD WINAPI 
-MonitorChild_nopty( _In_ LPVOID lpParameter)
-{
-	WaitForSingleObject(child, INFINITE);
-	GetExitCodeProcess(child, &child_exit_code);
-	CloseHandle(pipe_in);
-	return 0;
-}
-
-int 
-start_withno_pty(wchar_t *command)
-{
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-	wchar_t *cmd = (wchar_t *)malloc(sizeof(wchar_t) * MAX_CMD_LEN);
-	SECURITY_ATTRIBUTES sa;
-	BOOL ret, process_input = FALSE, run_under_cmd = FALSE;
-	size_t command_len;
-	char *buf = (char *)malloc(BUFF_SIZE + 1);
-	DWORD rd = 0, wr = 0, i = 0;
-
-	if (cmd == NULL) {
-		printf_s("ssh-shellhost is out of memory");
-		exit(255);
-	}
-	pipe_in = GetStdHandle(STD_INPUT_HANDLE);
-	pipe_out = GetStdHandle(STD_OUTPUT_HANDLE);
-	pipe_err = GetStdHandle(STD_ERROR_HANDLE);
-
-	/* copy pipe handles passed through std io*/
-	if ((pipe_in == INVALID_HANDLE_VALUE) || (pipe_out == INVALID_HANDLE_VALUE) || (pipe_err == INVALID_HANDLE_VALUE))
-		return -1;
-
-	memset(&sa, 0, sizeof(SECURITY_ATTRIBUTES));
-	sa.bInheritHandle = TRUE;
-	/* use the default buffer size, 64K*/
-	if (!CreatePipe(&child_pipe_read, &child_pipe_write, &sa, 0)) {
-		printf_s("ssh-shellhost-can't open no pty session, error: %d", GetLastError());
-		return -1;
-	}
-
-	memset(&si, 0, sizeof(STARTUPINFO));
-	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
-	si.cb = sizeof(STARTUPINFO);
-	si.dwFlags = STARTF_USESTDHANDLES;
-	si.hStdInput = child_pipe_read;
-	si.hStdOutput = pipe_out;
-	si.hStdError = pipe_err;
-
-	/* disable inheritance on child_pipe_write and pipe_in*/
-	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(pipe_in, HANDLE_FLAG_INHERIT, 0));
-	GOTO_CLEANUP_ON_FALSE(SetHandleInformation(child_pipe_write, HANDLE_FLAG_INHERIT, 0));
-
-	/*
-	* check if the input needs to be processed (ex for CRLF translation)
-	* input stream needs to be processed when running the command
-	* within shell processor. This is needed when
-	*  - launching a interactive shell (-nopty)
-	*    ssh -T user@target
-	*  - launching cmd explicity
-	*    ssh user@target cmd
-	*  - executing a cmd command
-	*    ssh user@target dir
-	*  - executing a cmd command within a cmd
-	*    ssh user@target cmd /c dir
-	*/
-
-	if (!command)
-		process_input = TRUE;
-	else {
-		command_len = wcsnlen_s(command, MAX_CMD_LEN);
-		if ((command_len >= 3 && _wcsnicmp(command, L"cmd", 4) == 0) ||
-		    (command_len >= 7 && _wcsnicmp(command, L"cmd.exe", 8) == 0) ||
-		    (command_len >= 4 && _wcsnicmp(command, L"cmd ", 4) == 0) ||
-		    (command_len >= 8 && _wcsnicmp(command, L"cmd.exe ", 8) == 0))
-			process_input = TRUE;
-	}
-
-	/* Try launching command as is first */
-	if (command) {
-		ret = CreateProcessW(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
-		if (ret == FALSE) {
-			/* it was probably this case - ssh user@target dir */
-			if (GetLastError() == ERROR_FILE_NOT_FOUND)
-				run_under_cmd = TRUE;
-			else
-				goto cleanup;
-		}
-	}
-	else
-		run_under_cmd = TRUE;
-
-	/* if above failed with FILE_NOT_FOUND, try running the provided command under cmd*/
-	if (run_under_cmd) {
-		cmd[0] = L'\0';
-		GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, get_default_shell_path()));
-		if (command) {
-			if (default_shell_cmd_option[0])
-				GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, default_shell_cmd_option));
-
-			GOTO_CLEANUP_ON_ERR(wcscat_s(cmd, MAX_CMD_LEN, command));
-		}
-	
-		GOTO_CLEANUP_ON_FALSE(CreateProcessW(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi));
-		/* Create process succeeded when running under cmd. input stream needs to be processed */
-		process_input = TRUE;
-	}
-	
-	/* close unwanted handles*/
-	CloseHandle(child_pipe_read);
-	child_pipe_read = INVALID_HANDLE_VALUE;
-	child = pi.hProcess;
-	/* monitor child exist */
-	monitor_thread = CreateThread(NULL, 0, MonitorChild_nopty, NULL, 0, NULL);
-	if (IS_INVALID_HANDLE(monitor_thread))
-		goto cleanup;
-
-	/* disable Ctrl+C hander in this process*/
-	SetConsoleCtrlHandler(NULL, TRUE);
-
-	if (buf == NULL) {
-		printf_s("ssh-shellhost is out of memory");
-		exit(255);
-	}
-	/* process data from pipe_in and route appropriately */
-	while (1) {
-		rd = wr = i = 0;
-		buf[0] = L'\0';
-		GOTO_CLEANUP_ON_FALSE(ReadFile(pipe_in, buf, BUFF_SIZE, &rd, NULL));
-
-		if (process_input == FALSE) {
-			/* write stream directly to child stdin */
-			GOTO_CLEANUP_ON_FALSE(WriteFile(child_pipe_write, buf, rd, &wr, NULL));
-			continue;
-		}
-		/* else - process input before routing it to child */
-		while (i < rd) {
-			/* skip arrow keys */
-			if ((rd - i >= 3) && (buf[i] == '\033') && (buf[i + 1] == '[') &&
-			    (buf[i + 2] >= 'A') && (buf[i + 2] <= 'D')) {
-				i += 3;
-				continue;
-			}
-
-			/* skip tab */
-			if (buf[i] == '\t') {
-				i++;
-				continue;
-			}
-
-			/* Ctrl +C */
-			if (buf[i] == '\003') {
-				GOTO_CLEANUP_ON_FALSE(GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0));
-				in_cmd_len = 0;
-				i++;
-				continue;
-			}
-
-			/* for backspace, we need to send space and another backspace for visual erase */
-			if (buf[i] == '\b' || buf[i] == '\x7f') {
-				if (in_cmd_len > 0) {
-					GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, "\b \b", 3, &wr, NULL));
-					in_cmd_len--;
-				}
-				i++;
-				continue;
-			}
-
-			/* For CR and LF */
-			if ((buf[i] == '\r') || (buf[i] == '\n')) {
-				/* TODO - do a much accurate mapping */				
-				if ((buf[i] == '\r') && ((i == rd - 1) || (buf[i + 1] != '\n')))
-					buf[i] = '\n';
-				GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, buf + i, 1, &wr, NULL));
-				in_cmd[in_cmd_len] = buf[i];
-				in_cmd_len++;
-				GOTO_CLEANUP_ON_FALSE(WriteFile(child_pipe_write, in_cmd, in_cmd_len, &wr, NULL));
-				in_cmd_len = 0;
-				i++;
-				continue;
-			}
-
-			GOTO_CLEANUP_ON_FALSE(WriteFile(pipe_out, buf + i, 1, &wr, NULL));
-			in_cmd[in_cmd_len] = buf[i];
-			in_cmd_len++;
-			if (in_cmd_len == MAX_CMD_LEN - 1) {
-				GOTO_CLEANUP_ON_FALSE(WriteFile(child_pipe_write, in_cmd, in_cmd_len, &wr, NULL));
-				in_cmd_len = 0;
-			}
-			i++;
-		}
-	}
-cleanup:
-
-	/* close child's stdin first */
-	if(!IS_INVALID_HANDLE(child_pipe_write))
-		CloseHandle(child_pipe_write);
-	
-	if (!IS_INVALID_HANDLE(monitor_thread)) {
-		WaitForSingleObject(monitor_thread, INFINITE);
-		CloseHandle(monitor_thread);
-	}		
-	if (!IS_INVALID_HANDLE(child))
-		TerminateProcess(child, 0);
-
-	if (buf != NULL)
-		free(buf);
-
-	if (cmd != NULL)
-		free(cmd);
-	
-	return child_exit_code;
-}
-
-static void* xmalloc(size_t size) {
-	void* ptr;
-	if ((ptr = malloc(size)) == NULL) {
-		printf_s("out of memory");
-		exit(EXIT_FAILURE);
-	}
-	return ptr;
-}
-
-/* set user environment variables from user profile */
-static void setup_session_user_vars()
-{
-	/* retrieve and set env variables. */
-	HKEY reg_key = 0;
-	wchar_t name[256];
-	wchar_t userprofile_path[PATH_MAX + 1] = { 0, }, path[PATH_MAX + 1] = { 0, };
-	wchar_t *data = NULL, *data_expanded = NULL, *path_value = NULL, *to_apply;
-	DWORD type, name_chars = 256, data_chars = 0, data_expanded_chars = 0, required, i = 0;
-	LONG ret;
-	DWORD len = GetCurrentDirectory(_countof(userprofile_path), userprofile_path);
-	if (len > 0) {
-		SetEnvironmentVariableW(L"USERPROFILE", userprofile_path);
-		swprintf_s(path, _countof(path), L"%s\\AppData\\Local", userprofile_path);
-		SetEnvironmentVariableW(L"LOCALAPPDATA", path);
-		swprintf_s(path, _countof(path), L"%s\\AppData\\Roaming", userprofile_path);
-		SetEnvironmentVariableW(L"APPDATA", path);
-	}
-
-	ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_QUERY_VALUE, &reg_key);
-	if (ret != ERROR_SUCCESS)
-		//error("Error retrieving user environment variables. RegOpenKeyExW returned %d", ret);
-		return;		
-	else while (1) {
-		to_apply = NULL;
-		required = data_chars * 2;
-		name_chars = 256;
-		ret = RegEnumValueW(reg_key, i++, name, &name_chars, 0, &type, (LPBYTE)data, &required);
-		if (ret == ERROR_NO_MORE_ITEMS)
-			break;
-		else if (ret == ERROR_MORE_DATA || required > data_chars * 2) {
-			if (data != NULL)
-				free(data);
-			data = xmalloc(required);
-			data_chars = required / 2;
-			i--;
-			continue;
-		}
-		else if (ret != ERROR_SUCCESS) 
-			break;
-
-		if (type == REG_SZ)
-			to_apply = data;
-		else if (type == REG_EXPAND_SZ) {
-			required = ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
-			if (required > data_expanded_chars) {
-				if (data_expanded)
-					free(data_expanded);
-				data_expanded = xmalloc(required * 2);
-				data_expanded_chars = required;
-				ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
-			}
-			to_apply = data_expanded;
-		}
-
-		if (_wcsicmp(name, L"PATH") == 0) {
-			if ((required = GetEnvironmentVariableW(L"PATH", NULL, 0)) != 0) {
-				/* "required" includes null term */
-				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
-				GetEnvironmentVariableW(L"PATH", path_value, required);
-				path_value[required - 1] = L';';
-				GOTO_CLEANUP_ON_ERR(memcpy_s(path_value + required, (wcslen(to_apply) + 1) * 2, to_apply, (wcslen(to_apply) + 1) * 2));
-				to_apply = path_value;
-			}
-
-		}
-		if (to_apply)
-			SetEnvironmentVariableW(name, to_apply);
-	}
-cleanup:
-	if (reg_key)
-		RegCloseKey(reg_key);
-	if (data)
-		free(data);
-	if (data_expanded)
-		free(data_expanded);
-	if (path_value)
-		free(path_value);
-	RevertToSelf();
-}
-
-int b64_pton(char const *src, u_char *target, size_t targsize);
-
+/* shellhost.exe <cmdline to be executed with PTY support>*/
 int 
 wmain(int ac, wchar_t **av)
 {
-	int pty_requested = 0;
-	wchar_t *cmd = NULL, *cmd_b64 = NULL;
-	JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
+	wchar_t *exec_command;
 
 	_set_invalid_parameter_handler(my_invalid_parameter_handler);
-	if ((ac == 1) || (ac == 2 && wcscmp(av[1], L"-nopty"))) {
-		pty_requested = 1;
-		cmd_b64 = ac == 2? av[1] : NULL;
-	} else if (ac <= 3 && wcscmp(av[1], L"-nopty") == 0)
-		cmd_b64 = ac == 3? av[2] : NULL;
-	else {
-		printf_s("ssh-shellhost received unexpected input arguments");
-		return -1;
-	}
 
-	setup_session_user_vars();
-
-	/* decode cmd_b64*/
-	if (cmd_b64) {
-		char *cmd_b64_utf8, *cmd_utf8;
-		if ((cmd_b64_utf8 = utf16_to_utf8(cmd_b64)) == NULL ||
-		    /* strlen(b64) should be sufficient for decoded length */
-		    (cmd_utf8 = malloc(strlen(cmd_b64_utf8))) == NULL) {
-			printf_s("ssh-shellhost - out of memory");
-			return -1;
-		}
-		   
-		memset(cmd_utf8, 0, strlen(cmd_b64_utf8));
-
-		if (b64_pton(cmd_b64_utf8, cmd_utf8, strlen(cmd_b64_utf8)) == -1 ||
-		    (cmd = utf8_to_utf16(cmd_utf8)) == NULL) {
-			printf_s("ssh-shellhost encountered an internal error while decoding base64 cmdline");
-			return -1;
-		}
-		free(cmd_b64_utf8);
-		free(cmd_utf8);
-	}
-
-	ZeroMemory(system32_path, _countof(system32_path));
-	if (!GetSystemDirectory(system32_path, _countof(system32_path))) {
-		printf_s("GetSystemDirectory failed");
+	if (ac == 1) {
+		printf("usage: shellhost.exe <cmdline to be executed with PTY support>\n");
 		exit(255);
 	}
 
-	/* assign to job object */
-	if ((job = CreateJobObjectW(NULL, NULL)) == NULL) {
-		printf_s("cannot create job object, error: %d", GetLastError());
-		return -1;
-	}
+	/* get past shellhost.exe in commandline */
+	exec_command = wcsstr(GetCommandLineW(), L"shellhost.exe") + wcslen(L"shellhost.exe") + 1;
 
-	memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-	job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
-
-	if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)) ||
-		!AssignProcessToJobObject(job, GetCurrentProcess())) {
-		printf_s("cannot associate job object: %d", GetLastError());
-		return -1;
-	}
-
-	if (pty_requested)
-		return start_with_pty(cmd);
-	else
-		return start_withno_pty(cmd);
+	return start_with_pty(exec_command);
 }

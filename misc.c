@@ -302,9 +302,6 @@ pwcopy(struct passwd *pw)
 #endif
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
-#ifdef WINDOWS
-	copy->pw_sid = xstrdup(pw->pw_sid);
-#endif /* WINDOWS */
 
 	return copy;
 }
