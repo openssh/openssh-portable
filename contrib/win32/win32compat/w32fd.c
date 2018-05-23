@@ -1126,7 +1126,7 @@ fd_encode_state(const posix_spawn_file_actions_t *file_actions, HANDLE aux_h[])
 	char *buf, *encoded;
 	struct std_fd_state *std_fd_state;
 	struct inh_fd_state *c;
-	DWORD len_req;
+	DWORD len_req = 0;
 	BOOL b;
 	int i;
 	int fd_in = file_actions->stdio_redirect[STDIN_FILENO];
@@ -1174,7 +1174,7 @@ static void
 fd_decode_state(char* enc_buf)
 {
 	char* buf;
-	DWORD req, skipped, out_flags;
+	DWORD req = 0, skipped, out_flags;
 	struct std_fd_state *std_fd_state;
 	struct inh_fd_state *c;
 	int num_inherited = 0;

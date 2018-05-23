@@ -43,7 +43,7 @@ typedef struct _wait_for_multiple_objects_struct {
 }
 wait_for_multiple_objects_struct;
 
-DWORD WINAPI
+unsigned __stdcall
 wait_for_multiple_objects_thread(LPVOID lpParam)
 {
 	wait_for_multiple_objects_struct *waitstruct = 
@@ -66,7 +66,7 @@ wait_for_multiple_objects_interrupter(_In_ ULONG_PTR dwParam)
 	 * the alert prior to the thread running in which case it is acknowledged when
 	 * the threads starts running instead of when it is waiting at
 	 * WaitForMultipleObjectsEx */
-	ExitThread(0);
+	_endthreadex(0);
 }
 
 DWORD
@@ -144,8 +144,8 @@ wait_for_multiple_objects_enhanced(_In_ DWORD  nCount, _In_ const HANDLE *lpHand
 		wait_bins[bin].num_handles = min(nCount - handles_processed, bin_size);
 
 		/* create a thread for this bin */
-		if ((wait_bins[bin].thread_handle = CreateThread(NULL, 2048,
-			wait_for_multiple_objects_thread,
+		if ((wait_bins[bin].thread_handle = (HANDLE) _beginthreadex(NULL,
+			2048, wait_for_multiple_objects_thread,
 			(LPVOID) &(wait_bins[bin]), 0, NULL)) == NULL) {
 			goto cleanup;
 		}

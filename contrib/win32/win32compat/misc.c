@@ -1052,7 +1052,7 @@ resolved_path_utf16(const char *input_path)
 		if (changed_req > 0) {
 			wchar_t * resolved_path_new = realloc(resolved_path, 
 				(resolved_len + changed_req + 1) * sizeof(wchar_t));
-			if (resolved_path == NULL) {
+			if (resolved_path_new == NULL) {
 				debug3("%s: memory allocation failed.", __FUNCTION__);
 				free(resolved_path);
 				errno = ENOMEM;

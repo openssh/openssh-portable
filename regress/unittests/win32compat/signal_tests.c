@@ -23,7 +23,7 @@ signal_test_send_apc(LPVOID lpParam)
 	return TRUE;
 }
 
-DWORD WINAPI
+unsigned __stdcall
 signal_test_set_event(LPVOID lpParam)
 {
 	HANDLE hevent = (HANDLE)lpParam;
@@ -32,7 +32,7 @@ signal_test_set_event(LPVOID lpParam)
 	return TRUE;
 }
 
-DWORD WINAPI
+unsigned __stdcall
 signal_create_abandoned_object(LPVOID lpParam)
 {
 	*((HANDLE *)lpParam) = CreateMutex(NULL, TRUE, 0);
@@ -65,7 +65,7 @@ signal_test_wait_for_multiple_objects()
 
 	/* create abandoned mutex */
 	HANDLE abandoned_mutux = NULL;
-	HANDLE mutex_thread = CreateThread(NULL, 0, signal_create_abandoned_object, &abandoned_mutux, 0, NULL);
+	HANDLE mutex_thread = (HANDLE) _beginthreadex(NULL, 0, signal_create_abandoned_object, &abandoned_mutux, 0, NULL);
 	WaitForSingleObject(mutex_thread, INFINITE);
 	CloseHandle(mutex_thread);
 
@@ -137,7 +137,7 @@ signal_test_wait_for_multiple_objects()
 
 		for (int i = 0; i < objects_size; i++) ResetEvent(hObjects[i]);
 		for (int i = 0; i < objects_size; i++) {
-			CloseHandle(CreateThread(NULL, 0, signal_test_set_event, hObjects[i], 0, NULL));
+			CloseHandle((HANDLE) _beginthreadex(NULL, 0, signal_test_set_event, hObjects[i], 0, NULL));
 			DWORD ret = wait_for_multiple_objects_enhanced(objects_size, hObjects, 10000, FALSE);
 			ASSERT_INT_EQ(ret, i + WAIT_OBJECT_0_ENHANCED);
 			ResetEvent(hObjects[i]);

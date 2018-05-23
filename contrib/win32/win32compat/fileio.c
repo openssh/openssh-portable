@@ -1072,8 +1072,14 @@ fileio_readlink(const char *path, char *buf, size_t bufsiz)
 		goto cleanup;
 	}
 
+	/* allocate the maximum possible size the reparse buffer size could be */
+	reparse_buffer = (PREPARSE_DATA_BUFFER_SYMLINK)malloc(MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+	if (reparse_buffer == NULL) {
+		errno = ENOMEM;
+		goto cleanup;
+	}
+
 	/* send a request to the file system to get the real path */
-	reparse_buffer = (PREPARSE_DATA_BUFFER_SYMLINK) malloc(MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
 	DWORD dwBytesReturned = 0;
 	if (DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, NULL, 0,
 		(LPVOID) reparse_buffer, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &dwBytesReturned, 0) == 0) {

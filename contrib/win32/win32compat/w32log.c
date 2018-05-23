@@ -142,7 +142,7 @@ syslog_file(int priority, const char *format, const char *formatBuffer)
 		GetCurrentProcessId(), st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
 		st.wMilliseconds, formatBuffer);
 	if (r == -1) {
-		_write(logfd, "_snprintf_s failed.", 30);
+		_write(logfd, "_snprintf_s failed.", 20);
 		return;
 	}
 	msgbufTimestamp[strnlen(msgbufTimestamp, MSGBUFSIZ)] = '\0';

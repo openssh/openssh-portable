@@ -40,6 +40,7 @@
  */
 
 #include <Windows.h>
+#include <process.h>
 #include "w32fd.h"
 #include "tncon.h"
 #include "inc\utf.h"
@@ -69,7 +70,7 @@ ReadAPCProc(_In_ ULONG_PTR dwParam)
 }
 
 /* Read worker thread */
-static DWORD WINAPI
+static unsigned __stdcall
 ReadThread(_In_ LPVOID lpParameter)
 {
 	int nBytesReturned = 0;
@@ -154,10 +155,10 @@ syncio_initiate_read(struct w32_io* pio)
 		pio->read_details.buf_size = TERM_IO_BUF_SIZE;
 	}
 
-	read_thread = CreateThread(NULL, 0, ReadThread, pio, 0, NULL);
+	read_thread = (HANDLE) _beginthreadex(NULL, 0, ReadThread, pio, 0, NULL);
 	if (read_thread == NULL) {
 		errno = errno_from_Win32LastError();
-		debug3("TermRead initiate - ERROR CreateThread %d, io:%p", GetLastError(), pio);
+		debug3("TermRead initiate - ERROR _beginthreadex %d, io:%p", GetLastError(), pio);
 		return -1;
 	}
 
@@ -185,7 +186,7 @@ WriteAPCProc(_In_ ULONG_PTR dwParam)
 
 
 /* Write worker thread */
-static DWORD WINAPI 
+static unsigned __stdcall
 WriteThread(_In_ LPVOID lpParameter)
 {
 	struct w32_io* pio = (struct w32_io*)lpParameter;
@@ -231,10 +232,10 @@ syncio_initiate_write(struct w32_io* pio, DWORD num_bytes)
 	debug5("syncio_initiate_write initiate io:%p", pio);
 	memset(&(pio->sync_write_status), 0, sizeof(pio->sync_write_status));
 	pio->sync_write_status.to_transfer = num_bytes;
-	write_thread = CreateThread(NULL, 0, WriteThread, pio, 0, NULL);
+	write_thread = (HANDLE)_beginthreadex(NULL, 0, WriteThread, pio, 0, NULL);
 	if (write_thread == NULL) {
 		errno = errno_from_Win32LastError();
-		debug3("syncio_initiate_write initiate - ERROR CreateThread %d, io:%p", GetLastError(), pio);
+		debug3("syncio_initiate_write initiate - ERROR _beginthreadex %d, io:%p", GetLastError(), pio);
 		return -1;
 	}
 

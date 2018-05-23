@@ -1,6 +1,6 @@
 #pragma once
 
-void     fatal(const char *, ...);
+void     __declspec(noreturn) fatal(const char *, ...);
 void     error(const char *, ...);
 void     verbose(const char *, ...);
 void     debug(const char *, ...);

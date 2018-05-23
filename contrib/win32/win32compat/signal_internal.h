@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <process.h>
 
 /* child processes */
 #define MAX_CHILDREN 512
