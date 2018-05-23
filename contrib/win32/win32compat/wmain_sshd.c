@@ -103,9 +103,7 @@ static VOID WINAPI service_handler(DWORD dwControl)
 static void 
 generate_host_keys()
 {
-	TOKEN_USER* info = NULL;
-	DWORD info_len = 0, dwError = 0;
-	HANDLE proc_token = NULL;
+	DWORD dwError = 0;
 	UUID uuid;
 	RPC_CWSTR rpc_str;
 	USER_INFO_1 ui;
@@ -114,13 +112,8 @@ generate_host_keys()
 	PROCESS_INFORMATION pi;
 	wchar_t cmdline[MAX_PATH];
 
-	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &proc_token) == FALSE ||
-	    GetTokenInformation(proc_token, TokenUser, NULL, 0, &info_len) == TRUE ||
-	    (info = (TOKEN_USER*)malloc(info_len)) == NULL ||
-	    GetTokenInformation(proc_token, TokenUser, info, info_len, &info_len) == FALSE)
-		goto cleanup;
 
-	if (IsWellKnownSid(info->User.Sid, WinLocalSystemSid)) {
+	if (am_system()) {
 		/* create sshd account if it does not exist */
 		UuidCreate(&uuid);
 		UuidToStringW(&uuid, (RPC_WSTR*)&rpc_str);
@@ -146,11 +139,6 @@ generate_host_keys()
 			CloseHandle(pi.hProcess);
 		}
 	}
-cleanup:
-	if (proc_token)
-		CloseHandle(proc_token);
-	if (info)
-		free(info);
 }
 
 /*
@@ -259,13 +247,13 @@ int wmain(int argc, wchar_t **wargv) {
 	wchar_t* path_utf16;
 	argc_original = argc;
 	wargv_original = wargv;
-
+	
 	/* change current directory to sshd.exe root */
 	if ( (path_utf16 = utf8_to_utf16(w32_programdir())) == NULL) 
 		return -1;
 	_wchdir(path_utf16);
 	free(path_utf16);
-	
+
 	if (!StartServiceCtrlDispatcherW(dispatch_table)) {
 		if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 			return sshd_main(argc, wargv); /* sshd running NOT as service*/

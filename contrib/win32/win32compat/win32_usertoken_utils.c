@@ -51,6 +51,7 @@
 #include "misc_internal.h"
 #include "lsa_missingdefs.h"
 #include "Debug.h"
+#include "inc\pwd.h"
 
 #pragma warning(push, 3)
 
@@ -307,6 +308,7 @@ done:
 }
 
 HANDLE generate_sshd_virtual_token();
+HANDLE generate_sshd_token_as_nonsystem();
 
 HANDLE
 get_user_token(char* user, int impersonation) {
@@ -319,13 +321,28 @@ get_user_token(char* user, int impersonation) {
 	}
 
 	if (wcscmp(user_utf16, L"sshd") == 0) {
-		if ((token = generate_sshd_virtual_token()) != 0)
+		/* not running as system, try generating sshd token as admin */
+		if (!am_system() && (token = generate_sshd_token_as_nonsystem()) != 0)
 			goto done;
-		debug3("unable to generate sshd virtual token, falling back to s4u");
+			
+		if ((token = generate_sshd_virtual_token()) == 0)
+  		    error("unable to generate sshd virtual token, ensure sshd service has TCB privileges");
+
+		goto done;
+	}
+
+	if (!am_system()) {
+		struct passwd* pwd = w32_getpwuid(0);
+		if (strcmp(pwd->pw_name, user) == 0)
+			OpenProcessToken(GetCurrentProcess(), TOKEN_ALL_ACCESS_P, &token);
+		else
+			debug("unable to generate user token for %s as I am not running as system", user);
+
+		goto done;
 	}
 
 	if ((token = generate_s4u_user_token(user_utf16, impersonation)) == 0) {
-		error("unable to generate token for user %ls", user_utf16);
+		debug3("unable to generate token for user %ls", user_utf16);
 		/* work around for https://github.com/PowerShell/Win32-OpenSSH/issues/727 by doing a fake login */
 		LogonUserExExWHelper(L"FakeUser", L"FakeDomain", L"FakePasswd",
 			LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL);
@@ -346,6 +363,12 @@ int
 load_user_profile(HANDLE user_token, char* user)
 {
 	wchar_t * user_utf16 = NULL;
+
+	if (!am_system()) {
+	    debug("Not running as SYSTEM: skipping loading user profile");
+	    return 0;
+	}
+
 	if ((user_utf16 = utf8_to_utf16(user)) == NULL) {
 		fatal("out of memory");
 		return -1;
@@ -474,6 +497,33 @@ InitUnicodeString(PUNICODE_STRING dest, PWSTR source)
 	dest->Buffer = source;
 	dest->Length = (USHORT)(wcslen(source) * sizeof(wchar_t));
 	dest->MaximumLength = dest->Length + 2;
+}
+
+HANDLE generate_sshd_token_as_nonsystem()
+{
+	/*
+	 * This logic tries to reset sshd account password and generate sshd token via logon user
+	 * however this token cannot be used to spawn child processes in typical interactive 
+	 * scenarios, without modifying ACLs on desktop station. 
+	 * Since sshd is run in interactive mode primarily for debugging/testing purposes, we are
+	 * simply returing the process token (to be used for spawning unprivileged worker)
+	 {
+	    UUID uuid;
+	    RPC_CWSTR rpc_str;
+	    USER_INFO_1003 info;
+	    HANDLE token = 0;
+	    UuidCreate(&uuid);
+	    UuidToStringW(&uuid, (RPC_WSTR*)&rpc_str);
+
+	    info.usri1003_password = (LPWSTR)rpc_str;
+	    NetUserSetInfo(NULL, L"sshd", 1003, (LPBYTE)&info, NULL);
+
+	    LogonUserW(L"sshd", NULL, (LPCWSTR)rpc_str, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &token);
+	}
+	*/
+	HANDLE token = 0;
+	OpenProcessToken(GetCurrentProcess(), TOKEN_ALL_ACCESS_P , &token);
+	return token;
 }
 
 HANDLE generate_sshd_virtual_token()

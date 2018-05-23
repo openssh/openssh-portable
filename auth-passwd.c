@@ -326,7 +326,7 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 			*/
 			error("password for user %s has expired", authctxt->pw->pw_name);
 		else {
-			debug("Windows authentication failed for user: %ls domain: %ls error:%d", user_utf16, udom_utf16, GetLastError());
+			debug("Windows authentication failed for user: %ls domain: %ls error:%d", unam_utf16, udom_utf16, GetLastError());
 
 			/* If LSA authentication package is configured then it will return the auth_token */
 			sys_auth_passwd_lsa(authctxt, password);

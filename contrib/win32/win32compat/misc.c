@@ -1638,6 +1638,37 @@ chroot(const char *path)
 	return 0;
 }
 
+/*
+ * Am I running as SYSTEM ?
+ * a security sensitive call - fatal exits if it cannot definitively conclude 
+ */
+int 
+am_system()
+{
+	HANDLE proc_token = NULL;
+	DWORD info_len;
+	TOKEN_USER* info = NULL;
+	static int running_as_system = -1;
+
+	if (running_as_system != -1)
+		return running_as_system;
+
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &proc_token) == FALSE ||
+		GetTokenInformation(proc_token, TokenUser, NULL, 0, &info_len) == TRUE ||
+		(info = (TOKEN_USER*)malloc(info_len)) == NULL ||
+		GetTokenInformation(proc_token, TokenUser, info, info_len, &info_len) == FALSE)
+		fatal("unable to know if I am running as system");
+
+	if (IsWellKnownSid(info->User.Sid, WinLocalSystemSid))
+		running_as_system = 1;
+	else
+		running_as_system = 0;
+
+	CloseHandle(proc_token);
+	free(info);
+	return running_as_system;
+}
+
 /* returns SID of user or current user if (user = NULL) */
 PSID
 get_user_sid(char* name)

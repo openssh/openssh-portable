@@ -53,3 +53,4 @@ int create_directory_withsddl(wchar_t *path, wchar_t *sddl);
 int is_absolute_path(const char *);
 int file_in_chroot_jail(HANDLE, const char*);
 PSID get_user_sid(char*);
+int am_system();
