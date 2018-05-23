@@ -1224,10 +1224,6 @@ getusergroups(const char *user, int *ngroups)
 	/* early declarations and initializations to support cleanup */
 	HANDLE logon_token = NULL;
 	PTOKEN_GROUPS group_buf = NULL;
-	PLSA_REFERENCED_DOMAIN_LIST domain_list = NULL;
-	PLSA_TRANSLATED_NAME name_list = NULL;
-	PSID * group_sids = NULL;
-	LSA_HANDLE lsa_policy = NULL;
 
 	/* initialize return values */
 	errno = 0;
@@ -1257,19 +1253,19 @@ getusergroups(const char *user, int *ngroups)
 	}
 
 	/* read group sids from logon token -- this will return a list of groups
-	 * similiar to the data returned when you do a whoami /groups command */
+	 * similar to the data returned when you do a whoami /groups command */
 	if (GetTokenInformation(logon_token, TokenGroups, group_buf, group_size, &group_size) == 0) {
 		debug3("%s: GetTokenInformation() failed for user '%s'.", __FUNCTION__, user);
 		goto cleanup;
 	}
 
-	/* allocate and copy the sids to a a structure we can pass to lookup */
-	if ((group_sids = (PSID *)malloc(sizeof(PSID) * group_buf->GroupCount)) == NULL) {
+	/* allocate memory to hold points to all group names; we double the value
+	 * in order to account for local groups that we trim the domain qualifier */
+	if ((user_groups = (char**)malloc(sizeof(char*) * group_buf->GroupCount * 2)) == NULL) {
 		errno = ENOMEM;
 		goto cleanup;
 	}
 
-	DWORD group_sids_count = 0;
 	for (DWORD i = 0; i < group_buf->GroupCount; i++) {
 
 		/* only bother with group thats are 'enabled' from a security perspective */
@@ -1288,60 +1284,23 @@ getusergroups(const char *user, int *ngroups)
 		if (memcmp(&nt_authority, GetSidIdentifierAuthority(sid), sizeof(SID_IDENTIFIER_AUTHORITY)) == 0 && (
 			sub == SECURITY_NT_NON_UNIQUE || sub == SECURITY_BUILTIN_DOMAIN_RID) &&
 			rid != DOMAIN_GROUP_RID_USERS && rid != DOMAIN_ALIAS_RID_USERS) {
-			group_sids[group_sids_count++] = sid;
-		}
-	}
 
-	/* open a new connection to the lsa policy provider for group lookup */
-	LSA_OBJECT_ATTRIBUTES ObjectAttributes;
-	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
-	if (LsaOpenPolicy(NULL, &ObjectAttributes, POLICY_LOOKUP_NAMES, &lsa_policy) != 0) {
-		debug3("%s: LsaOpenPolicy() failed for user '%s'.", __FUNCTION__, user);
-		goto cleanup;
-	}
+			/* lookup the account name for this sid */
+			wchar_t name[GNLEN + 1];
+			DWORD name_len = ARRAYSIZE(name);
+			wchar_t domain[DNLEN + 1];
+			DWORD domain_len = ARRAYSIZE(domain);
+			SID_NAME_USE name_use = 0;
+			if (LookupAccountSidW(NULL, sid, name, &name_len, domain, &domain_len, &name_use) == 0) {
+				errno = ENOENT;
+				debug("%s: LookupAccountSid() failed: %d.", __FUNCTION__, GetLastError());
+				goto cleanup;
+			}
 
-	/* translate all the sids to real group names */
-	NTSTATUS lsa_ret = LsaLookupSids(lsa_policy, group_sids_count, group_sids, &domain_list, &name_list);
-	if (lsa_ret != STATUS_SUCCESS) {
-		debug3("%s: LsaLookupSids() failed for user '%s' with return %d.", __FUNCTION__, user, lsa_ret);
-		goto cleanup;
-	}
-
-	/* allocate memory to hold points to all group names; we double the value
-	 * in order to account for local groups that we trim the domain qualifier */
-	if ((user_groups = (char**)malloc(sizeof(char*) * group_sids_count * 2)) == NULL) {
-		errno = ENOMEM;
-		goto cleanup;
-	}
-
-	/* enumerate all groups and add to group list */
-	for (DWORD group_index = 0; group_index < group_sids_count; group_index++) {
-
-		/* ignore unresolvable or invalid domains */
-		if (name_list[group_index].DomainIndex == -1)
-			continue;
-
-		PLSA_UNICODE_STRING domain = &(domain_list->Domains[name_list[group_index].DomainIndex].Name);
-		PLSA_UNICODE_STRING name = &(name_list[group_index].Name);
-
-		/* add group name in netbios\\name format */
-		int current_group = (*ngroups)++;
-		wchar_t formatted_group[DNLEN + 1 + GNLEN + 1];
-		swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%wZ\\%wZ", domain, name);
-		_wcslwr_s(formatted_group, ARRAYSIZE(formatted_group));
-		debug3("Added group '%ls' for user '%s'.", formatted_group, user);
-		user_groups[current_group] = utf16_to_utf8(formatted_group);
-		if (user_groups[current_group] == NULL) {
-			errno = ENOMEM;
-			goto cleanup;
-		}
-
-		/* for local accounts trim the domain qualifier */
-		if (wcslen(computer_name) == domain->Length / sizeof(wchar_t) &&
-			_wcsnicmp(computer_name, domain->Buffer, domain->Length / sizeof(wchar_t)) == 0)
-		{
-			current_group = (*ngroups)++;
-			swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%wZ", name);
+			/* add group name in netbios\\name format */
+			int current_group = (*ngroups)++;
+			wchar_t formatted_group[DNLEN + 1 + GNLEN + 1];
+			swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%s\\%s", domain, name);
 			_wcslwr_s(formatted_group, ARRAYSIZE(formatted_group));
 			debug3("Added group '%ls' for user '%s'.", formatted_group, user);
 			user_groups[current_group] = utf16_to_utf8(formatted_group);
@@ -1349,23 +1308,29 @@ getusergroups(const char *user, int *ngroups)
 				errno = ENOMEM;
 				goto cleanup;
 			}
+
+			/* for local accounts trim the domain qualifier */
+			if (_wcsicmp(computer_name, domain) == 0)
+			{
+				current_group = (*ngroups)++;
+				swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%s", name);
+				_wcslwr_s(formatted_group, ARRAYSIZE(formatted_group));
+				debug3("Added group '%ls' for user '%s'.", formatted_group, user);
+				user_groups[current_group] = utf16_to_utf8(formatted_group);
+				if (user_groups[current_group] == NULL) {
+					errno = ENOMEM;
+					goto cleanup;
+				}
+			}
 		}
 	}
 
 cleanup:
 
-	if (domain_list) 
-		LsaFreeMemory(domain_list);
-	if (name_list) 
-		LsaFreeMemory(name_list);
 	if (group_buf)
 		free(group_buf);
 	if (logon_token) 
 		CloseHandle(logon_token);
-	if (group_sids) 
-		free(group_sids);
-	if (lsa_policy)
-		LsaClose(lsa_policy);
 
 	/* special cleanup - if ran out of memory while allocating groups */
 	if (user_groups && errno == ENOMEM || *ngroups == 0) {

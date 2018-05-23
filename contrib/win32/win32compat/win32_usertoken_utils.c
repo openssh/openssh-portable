@@ -133,10 +133,26 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 
 	if (domain_user) {
 
+		/* assemble the path to the name translation library */
+		wchar_t library_path[MAX_PATH + 1];
+		if (GetSystemDirectoryW(library_path, ARRAYSIZE(library_path)) == 0) {
+			debug3("%s: GetSystemDirectoryW() failed name translation: %d", __FUNCTION__, GetLastError());
+			goto done;
+		}
+		wcscat_s(library_path, ARRAYSIZE(library_path), L"\\secur32.dll");
+
+		/* dynamically load name translation function to support static linking to onecore */
+		typedef (*TranslateNameWFunc)(_In_ LPCWSTR lpAccountName,
+			_In_ EXTENDED_NAME_FORMAT AccountNameFormat, _In_ EXTENDED_NAME_FORMAT DesiredNameFormat,
+			_Out_writes_to_opt_(*nSize, *nSize) LPWSTR lpTranslatedName, _Inout_ PULONG nSize);
+		HMODULE library = LoadLibraryW(library_path);
+		TranslateNameWFunc LocalTranslateNameW = NULL;
+
 		/* lookup the upn for the user */
 		WCHAR domain_upn[MAX_UPN_LEN + 1];
 		ULONG domain_upn_len = ARRAYSIZE(domain_upn);
-		if (TranslateNameW(user_cpn, NameSamCompatible,
+		if (library == NULL || (LocalTranslateNameW = (TranslateNameWFunc) GetProcAddress(library, "TranslateNameW")) == NULL ||
+			LocalTranslateNameW(user_cpn, NameSamCompatible,
 			NameUserPrincipal, domain_upn, &domain_upn_len) == 0) {
 
 			/* upn lookup failed so resort to attempting samcompatiblename */
