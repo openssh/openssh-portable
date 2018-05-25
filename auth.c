@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.127 2018/03/12 00:52:01 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.128 2018/05/25 07:11:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1080,6 +1080,7 @@ auth_restrict_session(struct ssh *ssh)
 
 	/* A blank sshauthopt defaults to permitting nothing */
 	restricted = sshauthopt_new();
+	restricted->permit_pty_flag = 1;
 	restricted->restricted = 1;
 
 	if (auth_activate_options(ssh, restricted) != 0)
