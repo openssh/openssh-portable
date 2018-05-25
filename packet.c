@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.269 2017/12/18 23:13:42 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.270 2018/05/25 03:20:59 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1338,8 +1338,10 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			    NULL, NULL, timeoutp)) >= 0)
 				break;
 			if (errno != EAGAIN && errno != EINTR &&
-			    errno != EWOULDBLOCK)
-				break;
+			    errno != EWOULDBLOCK) {
+				r = SSH_ERR_SYSTEM_ERROR;
+				goto out;
+			}
 			if (state->packet_timeout_ms == -1)
 				continue;
 			ms_subtract_diff(&start, &ms_remain);
