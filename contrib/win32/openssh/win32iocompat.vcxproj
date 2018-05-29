@@ -160,7 +160,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <ExceptionHandling>false</ExceptionHandling>
@@ -223,7 +223,7 @@
       <PreprocessorDefinitions>_LIB;USE_MSCNG;_WIN32_WINNT=0x600;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <ControlFlowGuard>Guard</ControlFlowGuard>
@@ -237,7 +237,7 @@
       <PreprocessorDefinitions>_LIB;USE_MSCNG;_WIN32_WINNT=0x600;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <Optimization>Disabled</Optimization>
@@ -254,7 +254,7 @@
       <PreprocessorDefinitions>_LIB;USE_MSCNG;_WIN32_WINNT=0x600;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <Optimization>Disabled</Optimization>
@@ -271,7 +271,7 @@
       <PreprocessorDefinitions>_LIB;USE_MSCNG;_WIN32_WINNT=0x600;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <Optimization>Disabled</Optimization>
@@ -290,7 +290,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\misc.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigalrm.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\signal_sigchld.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\logonuser.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32api_proxies.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32_usertoken_utils.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\pwd.c" />

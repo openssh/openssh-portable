@@ -43,7 +43,7 @@
 #include <security.h>
 
 #include "inc\utf.h"
-#include "logonuser.h"
+#include "w32api_proxies.h"
 #include <Ntsecapi.h>
 #include <Strsafe.h>
 #include <sddl.h>
@@ -134,26 +134,9 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 	if (domain_user) {
 
 		/* assemble the path to the name translation library */
-		wchar_t library_path[MAX_PATH + 1];
-		if (GetSystemDirectoryW(library_path, ARRAYSIZE(library_path)) == 0) {
-			debug3("%s: GetSystemDirectoryW() failed name translation: %d", __FUNCTION__, GetLastError());
-			goto done;
-		}
-		wcscat_s(library_path, ARRAYSIZE(library_path), L"\\secur32.dll");
-
-		/* dynamically load name translation function to support static linking to onecore */
-		typedef (*TranslateNameWFunc)(_In_ LPCWSTR lpAccountName,
-			_In_ EXTENDED_NAME_FORMAT AccountNameFormat, _In_ EXTENDED_NAME_FORMAT DesiredNameFormat,
-			_Out_writes_to_opt_(*nSize, *nSize) LPWSTR lpTranslatedName, _Inout_ PULONG nSize);
-		HMODULE library = LoadLibraryW(library_path);
-		TranslateNameWFunc LocalTranslateNameW = NULL;
-
-		/* lookup the upn for the user */
 		WCHAR domain_upn[MAX_UPN_LEN + 1];
 		ULONG domain_upn_len = ARRAYSIZE(domain_upn);
-		if (library == NULL || (LocalTranslateNameW = (TranslateNameWFunc) GetProcAddress(library, "TranslateNameW")) == NULL ||
-			LocalTranslateNameW(user_cpn, NameSamCompatible,
-			NameUserPrincipal, domain_upn, &domain_upn_len) == 0) {
+		if (pTranslateNameW(user_cpn, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) == 0) {
 
 			/* upn lookup failed so resort to attempting samcompatiblename */
 			debug3("%s: Unable to discover upn for user '%s': %d",
@@ -360,7 +343,7 @@ get_user_token(char* user, int impersonation) {
 	if ((token = generate_s4u_user_token(user_utf16, impersonation)) == 0) {
 		debug3("unable to generate token for user %ls", user_utf16);
 		/* work around for https://github.com/PowerShell/Win32-OpenSSH/issues/727 by doing a fake login */
-		LogonUserExExWHelper(L"FakeUser", L"FakeDomain", L"FakePasswd",
+		pLogonUserExExW(L"FakeUser", L"FakeDomain", L"FakePasswd",
 			LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL);
 		if ((token = generate_s4u_user_token(user_utf16, impersonation)) == 0) {
 			error("unable to generate token on 2nd attempt for user %ls", user_utf16);
@@ -473,9 +456,8 @@ AddSidMappingToLsa(PUNICODE_STRING domain_name,
 			error("LsaManageSidNameMapping failed with ntstatus: %d \n", status);
 	}
 
-	/* TODO - Free p_output */
-	/*if (p_output)
-		LsaFreeMemory(p_output);*/
+	if (p_output)
+		LsaFreeMemory(p_output);
 
 	return ret;
 }
@@ -547,6 +529,7 @@ HANDLE generate_sshd_virtual_token()
 	SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
 	UNICODE_STRING domain, group, account;
 	WCHAR va_name[32]; /* enough to accomodate sshd_123457890 */
+	LSA_HANDLE lsa_policy = NULL;
 
 	PSID sid_domain = NULL, sid_group = NULL, sid_user = NULL;
 	HANDLE va_token = 0, va_token_restricted = 0;
@@ -617,12 +600,32 @@ HANDLE generate_sshd_virtual_token()
 	if (AddSidMappingToLsa(&domain, &account, sid_user) != 0)
 		goto cleanup;
 
+	/* assign service logon privilege to virtual account */
+	{
+		LSA_OBJECT_ATTRIBUTES ObjectAttributes;
+		UNICODE_STRING svcLogonRight;
+		NTSTATUS lsa_ret;
+
+		ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
+		if ((lsa_ret = LsaOpenPolicy(NULL, &ObjectAttributes,
+		    POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES, 
+		    &lsa_policy )) != STATUS_SUCCESS) {
+			error("%s: unable to open policy handle, error: %d", __FUNCTION__, LsaNtStatusToWinError(lsa_ret));
+			goto cleanup;
+		}
+		InitUnicodeString(&svcLogonRight, L"SeServiceLogonRight");
+		if ((lsa_ret = LsaAddAccountRights(lsa_policy, sid_user, &svcLogonRight, 1)) != STATUS_SUCCESS) {
+			error("%s: unable to assign SE_SERVICE_LOGON_NAME privilege, error: %d", __FUNCTION__, LsaNtStatusToWinError(lsa_ret));
+			goto cleanup;
+		}
+	}
+
 	/* Logon virtual and create token */
-	if (!LogonUserExExWHelper(
+	if (!pLogonUserExExW(
 	    va_name,
 	    VIRTUALUSER_DOMAIN,
 	    L"",
-	    LOGON32_LOGON_INTERACTIVE,
+	    LOGON32_LOGON_SERVICE,
 	    LOGON32_PROVIDER_VIRTUAL,
 	    NULL,
 	    &va_token,
@@ -649,6 +652,8 @@ cleanup:
 		FreeSid(sid_user);
 	if (sid_group)
 		FreeSid(sid_group);
+	if (lsa_policy)
+		LsaClose(lsa_policy);
 
 	return va_token_restricted;
 }

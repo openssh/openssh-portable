@@ -57,11 +57,8 @@
 #include "authfd.h"
 
 #ifdef WINDOWS
-#define SECURITY_WIN32
-#include <security.h>
-#include "logonuser.h"
+#include "w32api_proxies.h"
 #include "misc_internal.h"
-#include "monitor_wrap.h"
 #endif
 
 extern Buffer loginmsg;
@@ -297,25 +294,8 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	/* translate to domain user if format contains a backslash */
 	wchar_t * backslash = wcschr(user_utf16, L'\\');
 	if (backslash != NULL) {
-
-		/* assemble the path to the name translation library */
-		wchar_t library_path[MAX_PATH + 1];
-		if (GetSystemDirectoryW(library_path, ARRAYSIZE(library_path)) == 0) {
-			debug3("%s: GetSystemDirectoryW() failed name translation: %d", __FUNCTION__, GetLastError());
-			goto done;
-		}
-		wcscat_s(library_path, ARRAYSIZE(library_path), L"\\secur32.dll");
-
-		/* dynamically load name translation function to support static linking to onecore */
-		typedef (*TranslateNameWFunc)(_In_ LPCWSTR lpAccountName,
-			_In_ EXTENDED_NAME_FORMAT AccountNameFormat, _In_ EXTENDED_NAME_FORMAT DesiredNameFormat,
-			_Out_writes_to_opt_(*nSize, *nSize) LPWSTR lpTranslatedName, _Inout_ PULONG nSize);
-		HMODULE library = LoadLibraryW(library_path);
-		TranslateNameWFunc LocalTranslateNameW = NULL;
-
 		/* attempt to format into upn format as this is preferred for login */
-		if (library != NULL && (LocalTranslateNameW = (TranslateNameWFunc) GetProcAddress(library, "TranslateNameW")) != NULL &&
-			LocalTranslateNameW(user_utf16, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) != 0) {
+		if (pTranslateNameW(user_utf16, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) != 0) {
 			unam_utf16 = domain_upn;
 			udom_utf16 = NULL;
 		}
@@ -330,7 +310,7 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 		}
 	}
 
-	if (LogonUserExExWHelper(unam_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK_CLEARTEXT,
+	if (pLogonUserExExW(unam_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK_CLEARTEXT,
 	    LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL) == TRUE)
 		password_auth_token = token;
 	else {
