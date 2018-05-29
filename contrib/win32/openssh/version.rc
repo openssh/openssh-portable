@@ -69,7 +69,7 @@ BEGIN
         BEGIN
             VALUE "FileVersion", "7.7.0.0"
             VALUE "ProductName", "OpenSSH for Windows"
-            VALUE "ProductVersion", "OpenSSH_7.6p1 for Windows"
+            VALUE "ProductVersion", "OpenSSH_7.7p1 for Windows"
         END
     END
     BLOCK "VarFileInfo"
