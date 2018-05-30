@@ -1699,3 +1699,4 @@
 #define _PATH_SSH_PROGRAM "ssh.exe"
 #define _PATH_LS			"dir"
 #define FORK_NOT_SUPPORTED 1
+#define HAVE_FREEZERO

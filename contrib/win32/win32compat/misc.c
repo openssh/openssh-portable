@@ -1555,9 +1555,21 @@ copy_file(char *source, char *destination)
 struct tm*
 localtime_r(const time_t *timep, struct tm *result)
 {
-	struct tm *t = localtime(timep);
-	memcpy(result, t, sizeof(struct tm));
+	struct tm *t = NULL;
+
+	if(!localtime_s(t, timep))
+		memcpy(result, t, sizeof(struct tm));
+
 	return t;
+}
+
+void
+freezero(void *ptr, size_t sz)
+{
+	if (ptr == NULL)
+		return;
+	explicit_bzero(ptr, sz);
+	free(ptr);
 }
 
 int
