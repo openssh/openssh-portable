@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.270 2018/05/25 03:20:59 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.271 2018/06/01 04:05:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -418,13 +418,16 @@ ssh_packet_start_discard(struct ssh *ssh, struct sshenc *enc,
 int
 ssh_packet_connection_is_on_socket(struct ssh *ssh)
 {
-	struct session_state *state = ssh->state;
+	struct session_state *state;
 	struct sockaddr_storage from, to;
 	socklen_t fromlen, tolen;
 
-	if (state->connection_in == -1 || state->connection_out == -1)
+	if (ssh == NULL || ssh->state == NULL)
 		return 0;
 
+	state = ssh->state;
+	if (state->connection_in == -1 || state->connection_out == -1)
+		return 0;
 	/* filedescriptors in and out are the same, so it's a socket */
 	if (state->connection_in == state->connection_out)
 		return 1;
@@ -508,11 +511,12 @@ ssh_packet_get_connection_out(struct ssh *ssh)
 const char *
 ssh_remote_ipaddr(struct ssh *ssh)
 {
-	const int sock = ssh->state->connection_in;
+	int sock;
 
 	/* Check whether we have cached the ipaddr. */
 	if (ssh->remote_ipaddr == NULL) {
 		if (ssh_packet_connection_is_on_socket(ssh)) {
+			sock = ssh->state->connection_in;
 			ssh->remote_ipaddr = get_peer_ipaddr(sock);
 			ssh->remote_port = get_peer_port(sock);
 			ssh->local_ipaddr = get_local_ipaddr(sock);
