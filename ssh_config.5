@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.274 2018/06/01 03:33:53 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.275 2018/06/01 06:23:10 jmc Exp $
 .Dd $Mdocdate: June 1 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1746,7 +1746,7 @@ The local username.
 accepts the tokens %%, %h, %i, %L, %l, %n, %p, %r, and %u.
 .Pp
 .Cm CertificateFile
-accepts the tokens %%, %d, %h, %i %l, %r, and %u.
+accepts the tokens %%, %d, %h, %i, %l, %r, and %u.
 .Pp
 .Cm ControlPath
 accepts the tokens %%, %C, %h, %i, %L, %l, %n, %p, %r, and %u.
@@ -1757,10 +1757,10 @@ accepts the tokens %% and %h.
 .Cm IdentityAgent
 and
 .Cm IdentityFile
-accept the tokens %%, %d, %h, %i %l, %r, and %u.
+accept the tokens %%, %d, %h, %i, %l, %r, and %u.
 .Pp
 .Cm LocalCommand
-accepts the tokens %%, %C, %d, %h, %i %l, %n, %p, %r, %T, and %u.
+accepts the tokens %%, %C, %d, %h, %i, %l, %n, %p, %r, %T, and %u.
 .Pp
 .Cm ProxyCommand
 accepts the tokens %%, %h, %p, and %r.
