@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.266 2018/05/15 05:40:11 jmc Exp $
-.Dd $Mdocdate: May 15 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.267 2018/06/01 03:33:53 djm Exp $
+.Dd $Mdocdate: June 1 2018 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1689,24 +1689,26 @@ The serial number of the certificate.
 The type of the CA key.
 .It %t
 The key or certificate type.
+.It %U
+The numeric user-id id of the target user.
 .It %u
 The username.
 .El
 .Pp
 .Cm AuthorizedKeysCommand
-accepts the tokens %%, %f, %h, %k, %t, and %u.
+accepts the tokens %%, %f, %h, %k, %t, %U and %u.
 .Pp
 .Cm AuthorizedKeysFile
-accepts the tokens %%, %h, and %u.
+accepts the tokens %%, %h, %U and %u.
 .Pp
 .Cm AuthorizedPrincipalsCommand
-accepts the tokens %%, %F, %f, %h, %i, %K, %k, %s, %T, %t, and %u.
+accepts the tokens %%, %F, %f, %h, %i, %K, %k, %s, %T, %t, %U and %u.
 .Pp
 .Cm AuthorizedPrincipalsFile
-accepts the tokens %%, %h, and %u.
+accepts the tokens %%, %h, and %U %u.
 .Pp
 .Cm ChrootDirectory
-accepts the tokens %%, %h, and %u.
+accepts the tokens %%, %h, and %U %u.
 .Pp
 .Cm RoutingDomain
 accepts the token %D.

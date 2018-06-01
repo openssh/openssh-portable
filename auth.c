@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.128 2018/05/25 07:11:01 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.129 2018/06/01 03:33:53 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -422,11 +422,13 @@ auth_root_allowed(struct ssh *ssh, const char *method)
 char *
 expand_authorized_keys(const char *filename, struct passwd *pw)
 {
-	char *file, ret[PATH_MAX];
+	char *file, uidstr[32], ret[PATH_MAX];
 	int i;
 
+	snprintf(uidstr, sizeof(uidstr), "%llu",
+	    (unsigned long long)pw->pw_uid);
 	file = percent_expand(filename, "h", pw->pw_dir,
-	    "u", pw->pw_name, (char *)NULL);
+	    "u", pw->pw_name, "U", uidstr, (char *)NULL);
 
 	/*
 	 * Ensure that filename starts anchored. If not, be backward

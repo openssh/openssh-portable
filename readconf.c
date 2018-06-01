@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.287 2018/05/22 00:13:26 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.288 2018/06/01 03:33:53 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -551,6 +551,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	const char *ruser;
 	int r, port, this_result, result = 1, attributes = 0, negate;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
+	char uidstr[32];
 
 	/*
 	 * Configuration is likely to be incomplete at this point so we
@@ -631,6 +632,8 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			strlcpy(shorthost, thishost, sizeof(shorthost));
 			shorthost[strcspn(thishost, ".")] = '\0';
 			snprintf(portstr, sizeof(portstr), "%d", port);
+			snprintf(uidstr, sizeof(uidstr), "%llu",
+			    (unsigned long long)pw->pw_uid);
 
 			cmd = percent_expand(arg,
 			    "L", shorthost,
@@ -641,6 +644,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    "p", portstr,
 			    "r", ruser,
 			    "u", pw->pw_name,
+			    "i", uidstr,
 			    (char *)NULL);
 			if (result != 1) {
 				/* skip execution if prior predicate failed */
