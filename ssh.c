@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.477 2018/04/14 21:50:41 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.478 2018/06/01 03:11:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1171,6 +1171,14 @@ main(int ac, char **av)
 	 */
 	if (options.jump_host != NULL) {
 		char port_s[8];
+		const char *sshbin = argv0;
+
+		/*
+		 * Try to use SSH indicated by argv[0], but fall back to
+		 * "ssh" if it appears unavailable.
+		 */
+		if (strchr(argv0, '/') != NULL && access(argv0, X_OK) != 0)
+			sshbin = "ssh";
 
 		/* Consistency check */
 		if (options.proxy_command != NULL)
@@ -1179,7 +1187,8 @@ main(int ac, char **av)
 		options.proxy_use_fdpass = 0;
 		snprintf(port_s, sizeof(port_s), "%d", options.jump_port);
 		xasprintf(&options.proxy_command,
-		    "ssh%s%s%s%s%s%s%s%s%s%.*s -W '[%%h]:%%p' %s",
+		    "%s%s%s%s%s%s%s%s%s%s%.*s -W '[%%h]:%%p' %s",
+		    sshbin,
 		    /* Optional "-l user" argument if jump_user set */
 		    options.jump_user == NULL ? "" : " -l ",
 		    options.jump_user == NULL ? "" : options.jump_user,
