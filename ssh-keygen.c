@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.315 2018/06/01 03:51:34 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.316 2018/06/01 04:21:29 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1257,7 +1257,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 	/* XXX support identity_file == "-" for stdin */
 	foreach_options = find_host ? HKF_WANT_MATCH : 0;
 	foreach_options |= print_fingerprint ? HKF_WANT_PARSE_KEY : 0;
-	if ((r = hostkeys_foreach(identity_file, (find_host || !hash_hosts) ? 
+	if ((r = hostkeys_foreach(identity_file, (find_host || !hash_hosts) ?
 	    known_hosts_find_delete : known_hosts_hash, &ctx, name, NULL,
 	    foreach_options)) != 0) {
 		if (inplace)
