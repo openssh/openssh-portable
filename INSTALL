@@ -138,6 +138,18 @@ make install
 This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
 
+### build for iOS on Mac OSX (eg. arm64/armv7)
+$ ./configure --prefix=/Users/hongs/Desktop/openssh --host=armv64-apple-darwin CC="xcrun -sdk iphoneos clang -mios-version-min=7.0 -arch arm64”
+
+# patch sftp-server Handle (conflicting with MacTypes.h)
+$ sed -i 's/Handle/SHandle/g'  sftp-server.c
+$ make 
+$ make install
+
+However, sftp and scp depend on ssh command, when installed the command in /Users/hongs/Desktop/openssh/bin, so you need to change this by --prefix depend on where you want to install these.
+
+
+
 If you are using Privilege Separation (which is enabled by default)
 then you will also need to create the user, group and directory used by
 sshd for privilege separation.  See README.privsep for details.
