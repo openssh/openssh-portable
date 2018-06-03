@@ -139,6 +139,8 @@ This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
 
 ### build for iOS on Mac OSX (eg. arm64/armv7)
+Need openssl header files and libssl.a, libcryto.a static library files, check this for install them for openssh(https://github.com/openssl/openssl/pull/6409/commits/33e46a78a0a20c91b8de1c636b899bd921d33a51)
+
 $ ./configure --prefix=/Users/hongs/Desktop/openssh --host=armv64-apple-darwin CC="xcrun -sdk iphoneos clang -mios-version-min=7.0 -arch arm64”
 
 # patch sftp-server Handle (conflicting with MacTypes.h)
