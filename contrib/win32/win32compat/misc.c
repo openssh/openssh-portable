@@ -1273,17 +1273,12 @@ getusergroups(const char *user, int *ngroups)
 			!IsValidSid(group_buf->Groups[i].Sid))
 			continue;
 
-		/* only bother with groups that are builtin or classic domain/local groups 
-		 * also ignore domain users and builtin users since these will be meaningless 
-		 * since they do not resolve properly on workgroup computers; these would 
-		 * never meaningfully be used in the server configuration */
+		/* only bother with groups that are builtin or classic domain/local groups */
 		SID * sid = group_buf->Groups[i].Sid;
 		DWORD sub = sid->SubAuthority[0];
-		DWORD rid = sid->SubAuthority[sid->SubAuthorityCount - 1]; 
 		SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
 		if (memcmp(&nt_authority, GetSidIdentifierAuthority(sid), sizeof(SID_IDENTIFIER_AUTHORITY)) == 0 && (
-			sub == SECURITY_NT_NON_UNIQUE || sub == SECURITY_BUILTIN_DOMAIN_RID) &&
-			rid != DOMAIN_GROUP_RID_USERS && rid != DOMAIN_ALIAS_RID_USERS) {
+			sub == SECURITY_NT_NON_UNIQUE || sub == SECURITY_BUILTIN_DOMAIN_RID)) {
 
 			/* lookup the account name for this sid */
 			wchar_t name[GNLEN + 1];

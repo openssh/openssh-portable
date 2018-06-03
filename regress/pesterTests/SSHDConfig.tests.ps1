@@ -228,19 +228,6 @@ Describe "Tests of sshd_config" -Tags "CI" {
 
         }
 
-        It "$tC.$tI-User with full name in the list of AllowUsers but not in any AllowGroups"  -skip:$skip {
-           #Run
-           Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments "-d -f $sshdConfigPath -E $sshdlog" 
-
-           Add-LocalUser -UserName $allowUser4 -Password $password
-
-           ssh -p $port -E $sshlog -o "UserKnownHostsFile $testknownhosts" $allowUser4@$server echo 1234
-           $LASTEXITCODE | Should Not Be 0
-           Stop-SSHDTestDaemon
-           $sshdlog | Should Contain "not allowed because not in any group"
-           
-        }
-
         It "$tC.$tI-User with full name in the list of DenyUsers"  -skip:$skip {
            #Run
            Start-SSHDTestDaemon -WorkDir $opensshbinpath -Arguments "-d -f $sshdConfigPath -E $sshdlog" 
