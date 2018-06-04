@@ -468,13 +468,15 @@ setup_session_vars(Session* s)
 	wchar_t *pw_dir_w = NULL, *tmp = NULL;
 	char buf[256];
 	wchar_t wbuf[256];
-	char* laddr;
+	char *laddr, *c;
 	int ret = -1;
 
 	struct ssh *ssh = active_state; /* XXX */
 
 	UTF8_TO_UTF16_WITH_CLEANUP(pw_dir_w, s->pw->pw_dir);
-	UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->pw->pw_name);
+	/* skip domain part (if there) while setting USERNAME */
+	c = strchr(s->pw->pw_name, '\\');
+	UTF8_TO_UTF16_WITH_CLEANUP(tmp, c ? c + 1 : s->pw->pw_name);
 	SetEnvironmentVariableW(L"USERNAME", tmp);
 	if (s->display) {
 		UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->display);
@@ -527,15 +529,15 @@ cleanup:
 	return ret;
 }
 
-char* w32_programdir();
 int register_child(void* child, unsigned long pid);
+char* build_session_commandline(const char *, const char *, const char *, int);
 
 int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	int pipein[2], pipeout[2], pipeerr[2], r, ret = -1;
-	char *progdir = w32_programdir();
 	wchar_t *exec_command_w = NULL;
-	char  *command_enhanced = NULL, *exec_command = NULL;
+	char *exec_command = NULL;
 	HANDLE job = NULL;
+	extern char* shell_command_option;
 	
 	/* Create three pipes for stdin, stdout and stderr */
 	if (pipe(pipein) == -1 || pipe(pipeout) == -1 || pipe(pipeerr) == -1) 
@@ -568,119 +570,12 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	if (!in_chroot)
 		chdir(s->pw->pw_dir);
 
-#define CMDLINE_APPEND(P, S)		\
-do {					\
-	int _S_len = strlen(S);		\
-	memcpy((P), (S), _S_len);		\
-	(P) += _S_len;			\
-} while(0)
+	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR)
+		command = "echo This service allows sftp connections only.";
 
-	/* special cases where incoming command needs to be adjusted */
-	do {
-		if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
-			command = "echo This service allows sftp connections only.";
-			break;
-		}
-
-		/* if scp or sftp - add module path if command is not absolute */
-		if (s->is_subsystem || (command && memcmp(command, "scp", 3) == 0)) {
-			int en_size;
-			char* p;
-
-			if (!command || command[0] == '\0') {
-				error("expecting command for subsystem or scp");
-				errno = EOTHER;
-				return -1;
-			}
-
-			/* if absolute skip further logic */
-			if (command[1] == ':')
-				break;
-
-			/* account for max possible enhanced path */
-			en_size = PATH_MAX + 1 + strlen(command) ;
-			if ((command_enhanced = malloc(en_size)) == NULL) {
-				errno = ENOMEM;
-				goto cleanup;
-			}
-
-			p = command_enhanced;
-			CMDLINE_APPEND(p, progdir);
-			CMDLINE_APPEND(p, "\\");
-			
-			/* since Windows does not support fork, launch sftp-server.exe for internal_sftp */
-			if (IS_INTERNAL_SFTP(command)) {
-				CMDLINE_APPEND(p, "sftp-server.exe");
-				/* add subsystem arguments if any */
-				CMDLINE_APPEND(p, command + strlen(INTERNAL_SFTP_NAME));
-			} else
-				CMDLINE_APPEND(p, command);
-			
-			*p = '\0';
-
-			command = command_enhanced;
-			break;
-		}
-	} while (0);
-
-	/* build command line to be executed */
-	{
-		/* max possible cmdline size - account for shellhost path, shell path and command */
-		int max_cmdline_size = 2 * PATH_MAX + (command ? strlen(command) + 1 : 1) + 1;
-		char* p;
-		enum sh_type { SH_CMD, SH_PS, SH_BASH, SH_OTHER } shell_type = SH_OTHER;
-		extern char* shell_command_option;
-
-		if ((exec_command = malloc(max_cmdline_size)) == NULL) {
-			errno = ENOMEM;
-			goto cleanup;
-		}
-
-		p = exec_command;
-
-		if (strstr(s->pw->pw_shell, "system32\\cmd.exe"))
-			shell_type = SH_CMD;
-		else if (strstr(s->pw->pw_shell, "powershell"))
-			shell_type = SH_PS;
-		else if (strstr(s->pw->pw_shell, "bash"))
-			shell_type = SH_BASH;
-		else if (strstr(s->pw->pw_shell, "cygwin"))
-			shell_type = SH_BASH;
-
-		/* build command line */
-		/* For PTY - launch via ssh-shellhost.exe */
-		if (pty) {
-			CMDLINE_APPEND(p,"\"");
-			CMDLINE_APPEND(p, progdir);
-			CMDLINE_APPEND(p, "\\ssh-shellhost.exe\" ");
-		}
-
-		/* Add shell */
-		CMDLINE_APPEND(p, "\"");
-		CMDLINE_APPEND(p, s->pw->pw_shell);
-		CMDLINE_APPEND(p, "\"");
-		
-		/* Add command option and command*/
-		if (command) {
-			if (shell_command_option) {
-				CMDLINE_APPEND(p, " ");
-				CMDLINE_APPEND(p, shell_command_option);
-				CMDLINE_APPEND(p, " ");
-			} else if (shell_type == SH_CMD)
-				CMDLINE_APPEND(p, " /c ");
-			else
-				CMDLINE_APPEND(p, " -c ");
-
-			if (shell_type == SH_BASH)
-				CMDLINE_APPEND(p, "\"");
-
-			CMDLINE_APPEND(p, command);
-
-			if (shell_type == SH_BASH)
-				CMDLINE_APPEND(p, "\"");
-		}
-		*p = '\0';
-	}
+	exec_command = build_session_commandline(s->pw->pw_shell, shell_command_option, command, pty);
+	if (exec_command == NULL)
+		goto cleanup;
 
 	/* start the process */
 	{
@@ -760,8 +655,6 @@ do {					\
 	ret = 0;
 
 cleanup:
-	if (!command_enhanced)
-		free(command_enhanced);
 	if (!exec_command)
 		free(exec_command);
 	if (!exec_command_w)

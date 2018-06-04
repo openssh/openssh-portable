@@ -94,6 +94,7 @@ set_defaultshell()
 		if ((command_option_local = utf16_to_utf8(option_buf)) == NULL)
 			goto cleanup;
 
+	convertToBackslash(pw_shellpath_local);
 	pw_shellpath = pw_shellpath_local;
 	pw_shellpath_local = NULL;
 	shell_command_option = command_option_local;

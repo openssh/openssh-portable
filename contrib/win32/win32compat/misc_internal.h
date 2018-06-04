@@ -54,3 +54,4 @@ int is_absolute_path(const char *);
 int file_in_chroot_jail(HANDLE, const char*);
 PSID get_user_sid(char*);
 int am_system();
+char* build_session_commandline(const char *, const char *, const char *, int );

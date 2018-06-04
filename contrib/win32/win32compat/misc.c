@@ -1720,3 +1720,178 @@ cleanup:
 
 	return ret;
 }
+
+/* builds session commandline. returns NULL with errno set on failure, caller should free returned string */
+char* 
+build_session_commandline(const char *shell, const char* shell_arg, const char *command, int pty)
+{
+	enum sh_type { SH_CMD, SH_PS, SH_WSL_BASH, SH_CYGWIN, SH_OTHER } shell_type = SH_OTHER;
+	enum cmd_type { CMD_OTHER, CMD_SFTP, CMD_SCP } command_type = CMD_OTHER;
+	char *progdir = w32_programdir(), *cmd_sp = NULL, *cmdline = NULL, *ret = NULL, *p;
+	int len, progdir_len = (int)strlen(progdir);
+
+#define CMDLINE_APPEND(P, S)		\
+do {					\
+	int _S_len = (int)strlen(S);		\
+	memcpy((P), (S), _S_len);	\
+	(P) += _S_len;			\
+} while(0)
+
+	/* get shell type */
+	if (strstr(shell, "system32\\cmd"))
+		shell_type = SH_CMD;
+	else if (strstr(shell, "powershell"))
+		shell_type = SH_PS;
+	else if (strstr(shell, "system32\\bash"))
+		shell_type = SH_WSL_BASH;
+	else if (strstr(shell, "cygwin"))
+		shell_type = SH_CYGWIN;
+
+	/* special case where incoming command needs to be adjusted */
+	do {
+		/*
+		* identify scp and sftp sessions
+		* we want to launch scp and sftp executables from the same binary directory
+		* that sshd is hosted in. This will facilitate hosting and evaluating
+		* multiple versions of OpenSSH at the same time.
+		*
+		* currently we can only accomodate this for cmd.exe, since cmd.exe simply executes 
+		* its commandline without applying CRT or shell specific rules
+		*
+		* Ex.
+		* this works
+		*	cmd /c "c:\program files\sftp" -d
+		* this following wouldn't work in powershell, cygwin's or WSL bash unless we put
+		* some shell specific rules 
+		*	powershell -c "c:\program files\scp" -t
+		*	cygwin\bash -c "c:\program files\scp" -t
+		*	bash -c "c:\program files\scp" -t
+		* 
+		* for now, for all non-cmd shells, we launch scp and sftp-server directly -
+		*	shell -c "scp.exe -t"
+		* note that .exe extension and case matters for WSL bash
+		* note that double quotes matter for WSL and Cygwin bash, they dont matter for PS
+		*
+		* consequence - 
+		* for non-cmd shells - sftp and scp installation path is expected to be in machine wide PATH
+		* 
+		*/
+
+		int command_len;
+		const char *command_args = NULL;
+
+		if (!command)
+			break;
+		command_len = (int)strlen(command);
+
+		if (command_len >= 13 && _memicmp(command, "internal-sftp", 13) == 0) {
+			command_type = CMD_SFTP;
+			command_args = command + 13;
+		} else if (command_len >= 11 && _memicmp(command, "sftp-server", 11) == 0) {
+			command_type = CMD_SFTP;
+
+			/* account for possible .exe extension */
+			if (command_len >= 15 && _memicmp(command + 11, ".exe", 4) == 0)
+				command_args = command + 15;
+			else
+				command_args = command + 11;
+		} else if (command_len >= 3 && _memicmp(command, "scp", 3) == 0) {
+			command_type = CMD_SCP;
+
+			/* account for possible .exe extension */
+			if (command_len >= 7 && _memicmp(command + 3, ".exe", 4) == 0)
+				command_args = command + 7;
+			else
+				command_args = command + 3;
+		}
+
+		if (command_type == CMD_OTHER)
+			break;
+
+		len = 0;
+		len += progdir_len + 4; /* account for " around */
+		len += command_len + 4; /* account for possible .exe addition */
+
+		if ((cmd_sp = malloc(len)) == NULL) {
+			errno = ENOMEM;
+			goto done;
+		}
+
+		p = cmd_sp;
+
+		if (shell_type == SH_CMD) {
+
+			CMDLINE_APPEND(p, "\"");
+			CMDLINE_APPEND(p, progdir);
+
+			if (command_type == CMD_SCP)
+				CMDLINE_APPEND(p, "\\scp.exe\"");
+			else
+				CMDLINE_APPEND(p, "\\sftp-server.exe\"");
+
+		} else {
+			if (command_type == CMD_SCP)
+				CMDLINE_APPEND(p, "scp.exe");
+			else
+				CMDLINE_APPEND(p, "sftp-server.exe");
+		}
+
+		CMDLINE_APPEND(p, command_args);
+		*p = '\0';
+		command = cmd_sp;
+	} while (0);
+
+	len = 0;
+	if (pty)
+		len += progdir_len + (int)strlen("ssh-shellhost.exe") + 5;
+	len +=(int) strlen(shell) + 3;/* 3 for " around shell path and trailing space */
+	if (command) {
+		len += 15; /* for shell command argument, typically -c or /c */
+		len += (int)strlen(command) + 5; /* 5 for possible " around command and null term*/
+	}
+	
+	if ((cmdline = malloc(len)) == NULL) {
+		errno = ENOMEM;
+		goto done;
+	}
+
+	p = cmdline;
+	if (pty) {
+		CMDLINE_APPEND(p, "\"");
+		CMDLINE_APPEND(p, progdir);
+		CMDLINE_APPEND(p, "\\ssh-shellhost.exe\" ");
+	}
+	CMDLINE_APPEND(p, "\"");
+	CMDLINE_APPEND(p, shell);
+	CMDLINE_APPEND(p, "\"");
+	if (command) {
+		if (shell_arg) {
+			CMDLINE_APPEND(p, " ");
+			CMDLINE_APPEND(p, shell_arg);
+			CMDLINE_APPEND(p, " ");
+		}
+		else if (shell_type == SH_CMD)
+			CMDLINE_APPEND(p, " /c ");
+		else
+			CMDLINE_APPEND(p, " -c ");
+
+		/* bash type shells require " decoration around command*/
+		if (shell_type == SH_WSL_BASH || shell_type == SH_CYGWIN)
+			CMDLINE_APPEND(p, "\"");
+
+		CMDLINE_APPEND(p, command);
+
+		if (shell_type == SH_WSL_BASH || shell_type == SH_CYGWIN)
+			CMDLINE_APPEND(p, "\"");
+	}
+	*p = '\0';
+	ret = cmdline;
+	cmdline = NULL;
+done:
+	if (cmd_sp)
+		free(cmd_sp);
+	if (cmdline)
+		free(cmdline);
+
+	return ret;
+}
