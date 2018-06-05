@@ -359,7 +359,7 @@ test_build_session_commandline()
 
 	TEST_DONE();
 	
-	TEST_START("wsl bash shell tests");
+	TEST_START("bash shell tests");
 	out = build_session_commandline("c:\\system32\\bash.exe", NULL, "internal-sftp -arg", 0);
 	ASSERT_STRING_EQ(out, "\"c:\\system32\\bash.exe\" -c \"sftp-server.exe -arg\"");
 	free(out);
@@ -372,14 +372,11 @@ test_build_session_commandline()
 	out = build_session_commandline("c:\\system32\\bash", NULL, "scP -arg", 0);
 	ASSERT_STRING_EQ(out, "\"c:\\system32\\bash\" -c \"scp.exe -arg\"");
 	free(out);
-	out = build_session_commandline("c:\\system32\\bash", "-custom", "mycommand -arg", 1);
-	ASSERT_STRING_EQ(out + shellhost_path_len + 1, "\"c:\\system32\\bash\" -custom \"mycommand -arg\"");
+	out = build_session_commandline("c:\\bash", "-custom", "mycommand -arg", 1);
+	ASSERT_STRING_EQ(out + shellhost_path_len + 1, "\"c:\\bash\" -custom \"mycommand -arg\"");
 	out[shellhost_path_len] = '\0';
 	ASSERT_STRING_EQ(out, shellhost_path);
 	free(out);
-	TEST_DONE();
-
-	TEST_START("cygwin bash shell tests");
 	out = build_session_commandline("c:\\cygwin\\bash.exe", NULL, "internal-sftp -arg", 0);
 	ASSERT_STRING_EQ(out, "\"c:\\cygwin\\bash.exe\" -c \"sftp-server.exe -arg\"");
 	free(out);

@@ -95,6 +95,7 @@ set_defaultshell()
 			goto cleanup;
 
 	convertToBackslash(pw_shellpath_local);
+	to_lower_case(pw_shellpath_local);
 	pw_shellpath = pw_shellpath_local;
 	pw_shellpath_local = NULL;
 	shell_command_option = command_option_local;

@@ -1720,7 +1720,7 @@ cleanup:
 char* 
 build_session_commandline(const char *shell, const char* shell_arg, const char *command, int pty)
 {
-	enum sh_type { SH_CMD, SH_PS, SH_WSL_BASH, SH_CYGWIN, SH_OTHER } shell_type = SH_OTHER;
+	enum sh_type { SH_OTHER, SH_CMD, SH_PS, SH_BASH } shell_type = SH_OTHER;
 	enum cmd_type { CMD_OTHER, CMD_SFTP, CMD_SCP } command_type = CMD_OTHER;
 	char *progdir = w32_programdir(), *cmd_sp = NULL, *cmdline = NULL, *ret = NULL, *p;
 	int len, progdir_len = (int)strlen(progdir);
@@ -1737,10 +1737,8 @@ do {					\
 		shell_type = SH_CMD;
 	else if (strstr(shell, "powershell"))
 		shell_type = SH_PS;
-	else if (strstr(shell, "system32\\bash"))
-		shell_type = SH_WSL_BASH;
-	else if (strstr(shell, "cygwin"))
-		shell_type = SH_CYGWIN;
+	else if (strstr(shell, "\\bash"))
+		shell_type = SH_BASH;
 
 	/* special case where incoming command needs to be adjusted */
 	do {
@@ -1871,12 +1869,12 @@ do {					\
 			CMDLINE_APPEND(p, " -c ");
 
 		/* bash type shells require " decoration around command*/
-		if (shell_type == SH_WSL_BASH || shell_type == SH_CYGWIN)
+		if (shell_type == SH_BASH)
 			CMDLINE_APPEND(p, "\"");
 
 		CMDLINE_APPEND(p, command);
 
-		if (shell_type == SH_WSL_BASH || shell_type == SH_CYGWIN)
+		if (shell_type == SH_BASH)
 			CMDLINE_APPEND(p, "\"");
 	}
 	*p = '\0';
