@@ -52,7 +52,7 @@ static HMODULE
 load_module(wchar_t* name)
 {
 	wchar_t module_path[MAX_PATH + 1];
-	wchar_t *system32_path, *p;
+	wchar_t *system32_path;
 	HMODULE hm;
 	
 	if ((system32_path = system32_dir()) == NULL)

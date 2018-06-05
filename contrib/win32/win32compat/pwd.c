@@ -266,7 +266,7 @@ getpwnam_placeholder(const char* user) {
 		errno = EOTHER;
 		goto cleanup;
 	}
-	pw_name = strdup(user);
+	pw_name = _strdup(user);
 	pw_dir = utf16_to_utf8(tmp_home);
 
 	if (!pw_name || !pw_dir) {

@@ -931,7 +931,7 @@ realpath(const char *path, char resolved[PATH_MAX])
 	/* "cd .." from within a drive root */
 	if (path_len == 6 && !chroot_path) {
 		char *tmplate = "/x:/..";
-		strcat(resolved, path);
+		strcat_s(resolved, PATH_MAX, path);
 		resolved[1] = 'x';
 		if (strcmp(tmplate, resolved) == 0) {
 			resolved[0] = '/';
@@ -942,13 +942,13 @@ realpath(const char *path, char resolved[PATH_MAX])
 
 	if (chroot_path) {
 		resolved[0] = '\0';
-		strcat(resolved, chroot_path);
+		strcat_s(resolved, PATH_MAX, chroot_path);
 		/* if path is relative, add cwd within chroot */
 		if (path[0] != '/' && path[0] != '\\') {
 			w32_getcwd(resolved + chroot_path_len, PATH_MAX - chroot_path_len);
-			strcat(resolved, "/");
+			strcat_s(resolved, PATH_MAX, "/");
 		}
-		strcat(resolved, path);
+		strcat_s(resolved, PATH_MAX, path);
 	}
 	else if ((path_len >= 2) && (path[0] == '/') && path[1] && (path[2] == ':')) {
 		if((errno = strncpy_s(resolved, PATH_MAX, path + 1, path_len)) != 0 ) /* skip the first '/' */ {
@@ -986,9 +986,9 @@ realpath(const char *path, char resolved[PATH_MAX])
 		
 		if (strlen(tempPath) == strlen(chroot_path))
 			/* realpath is the same as chroot_path */
-			strcat(resolved, "\\");
+			strcat_s(resolved, PATH_MAX, "\\");
 		else
-			strcat(resolved, tempPath + strlen(chroot_path));
+			strcat_s(resolved, PATH_MAX, tempPath + strlen(chroot_path));
 
 		if (resolved[0] != '\\') {
 			errno = EACCES;
@@ -1547,15 +1547,10 @@ copy_file(char *source, char *destination)
 	return 0;
 }
 
-struct tm*
+struct tm *
 localtime_r(const time_t *timep, struct tm *result)
 {
-	struct tm *t = NULL;
-
-	if(!localtime_s(t, timep))
-		memcpy(result, t, sizeof(struct tm));
-
-	return t;
+	return localtime_s(result, timep) == 0 ? result : NULL;
 }
 
 void
@@ -1596,7 +1591,7 @@ chroot(const char *path)
 	if (chroot_path[strlen(chroot_path) - 1] == '\\')
 		chroot_path[strlen(chroot_path) - 1] = '\0';
 
-	chroot_path_len = strlen(chroot_path);
+	chroot_path_len = (int) strlen(chroot_path);
 
 	if ((chroot_pathw = utf8_to_utf16(chroot_path)) == NULL) {
 		errno = ENOMEM;
@@ -1648,7 +1643,7 @@ get_user_sid(char* name)
 	HANDLE token = NULL;
 	TOKEN_USER* info = NULL;
 	DWORD info_len = 0;
-	PSID ret = NULL, psid;
+	PSID ret = NULL, psid = NULL;
 	wchar_t* name_utf16 = NULL;
 
 	if (name) {

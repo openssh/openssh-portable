@@ -124,7 +124,7 @@ fd_table_initialize()
 		if (chroot_pathw != NULL) {
 			if ((chroot_path = utf16_to_utf8(chroot_pathw)) == NULL)
 				return -1;
-			chroot_path_len = strlen(chroot_path);
+			chroot_path_len = (int) strlen(chroot_path);
 		}
 	}
 
