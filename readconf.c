@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.288 2018/06/01 03:33:53 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.289 2018/06/06 18:29:18 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1728,7 +1728,8 @@ read_config_file_depth(const char *filename, struct passwd *pw,
     int flags, int *activep, int depth)
 {
 	FILE *f;
-	char line[4096];
+	char *line = NULL;
+	size_t linesize = 0;
 	int linenum;
 	int bad_options = 0;
 
@@ -1755,15 +1756,14 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	 * on/off by Host specifications.
 	 */
 	linenum = 0;
-	while (fgets(line, sizeof(line), f)) {
+	while (getline(&line, &linesize, f) != -1) {
 		/* Update line number counter. */
 		linenum++;
-		if (strlen(line) == sizeof(line) - 1)
-			fatal("%s line %d too long", filename, linenum);
 		if (process_config_line_depth(options, pw, host, original_host,
 		    line, filename, linenum, activep, flags, depth) != 0)
 			bad_options++;
 	}
+	free(line);
 	fclose(f);
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",

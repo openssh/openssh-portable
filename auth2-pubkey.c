@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.78 2018/06/01 03:33:53 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.79 2018/06/06 18:29:18 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -319,14 +319,16 @@ static int
 process_principals(struct ssh *ssh, FILE *f, const char *file,
     const struct sshkey_cert *cert, struct sshauthopt **authoptsp)
 {
-	char loc[256], line[SSH_MAX_PUBKEY_BYTES], *cp, *ep;
+	char loc[256], *line = NULL, *cp, *ep;
+	size_t linesize = 0;
 	u_long linenum = 0;
 	u_int found_principal = 0;
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;
 
-	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
 		/* Always consume entire input */
 		if (found_principal)
 			continue;
@@ -344,6 +346,7 @@ process_principals(struct ssh *ssh, FILE *f, const char *file,
 		if (check_principals_line(ssh, cp, cert, loc, authoptsp) == 0)
 			found_principal = 1;
 	}
+	free(line);
 	return found_principal;
 }
 
@@ -687,14 +690,16 @@ static int
 check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
     char *file, struct sshkey *key, struct sshauthopt **authoptsp)
 {
-	char *cp, line[SSH_MAX_PUBKEY_BYTES], loc[256];
+	char *cp, *line = NULL, loc[256];
+	size_t linesize = 0;
 	int found_key = 0;
 	u_long linenum = 0;
 
 	if (authoptsp != NULL)
 		*authoptsp = NULL;
 
-	while (read_keyfile_line(f, file, line, sizeof(line), &linenum) != -1) {
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
 		/* Always consume entire file */
 		if (found_key)
 			continue;
@@ -708,6 +713,7 @@ check_authkeys_file(struct ssh *ssh, struct passwd *pw, FILE *f,
 		if (check_authkey_line(ssh, pw, key, cp, loc, authoptsp) == 0)
 			found_key = 1;
 	}
+	free(line);
 	return found_key;
 }
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.127 2018/03/12 00:52:01 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.128 2018/06/06 18:29:18 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1003,31 +1003,6 @@ percent_expand(const char *string, ...)
 	}
 	return (xstrdup(buf));
 #undef EXPAND_MAX_KEYS
-}
-
-/*
- * Read an entire line from a public key file into a static buffer, discarding
- * lines that exceed the buffer size.  Returns 0 on success, -1 on failure.
- */
-int
-read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
-   u_long *lineno)
-{
-	while (fgets(buf, bufsz, f) != NULL) {
-		if (buf[0] == '\0')
-			continue;
-		(*lineno)++;
-		if (buf[strlen(buf) - 1] == '\n' || feof(f)) {
-			return 0;
-		} else {
-			debug("%s: %s line %lu exceeds size limit", __func__,
-			    filename, *lineno);
-			/* discard remainder of line */
-			while (fgetc(f) != '\n' && !feof(f))
-				;	/* nothing */
-		}
-	}
-	return -1;
 }
 
 int

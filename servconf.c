@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.330 2018/06/06 18:23:32 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.331 2018/06/06 18:29:18 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2103,7 +2103,8 @@ process_server_config_line(ServerOptions *options, char *line,
 void
 load_server_config(const char *filename, Buffer *conf)
 {
-	char line[4096], *cp;
+	char *line = NULL, *cp;
+	size_t linesize = 0;
 	FILE *f;
 	int lineno = 0;
 
@@ -2113,10 +2114,8 @@ load_server_config(const char *filename, Buffer *conf)
 		exit(1);
 	}
 	buffer_clear(conf);
-	while (fgets(line, sizeof(line), f)) {
+	while (getline(&line, &linesize, f) != -1) {
 		lineno++;
-		if (strlen(line) == sizeof(line) - 1)
-			fatal("%s line %d too long", filename, lineno);
 		/*
 		 * Trim out comments and strip whitespace
 		 * NB - preserve newlines, they are needed to reproduce
@@ -2128,6 +2127,7 @@ load_server_config(const char *filename, Buffer *conf)
 
 		buffer_append(conf, cp, strlen(cp));
 	}
+	free(line);
 	buffer_append(conf, "\0", 1);
 	fclose(f);
 	debug2("%s: done config len = %d", __func__, buffer_len(conf));

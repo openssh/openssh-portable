@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.71 2018/03/12 00:52:01 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.72 2018/06/06 18:29:18 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -166,7 +166,6 @@ int	 safe_path_fd(int, const char *, struct passwd *,
 
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
-int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
 
 #define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
 #define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))
