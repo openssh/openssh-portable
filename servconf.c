@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.329 2018/06/06 18:22:41 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.330 2018/06/06 18:23:32 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -160,7 +160,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_accept_env = 0;
 	options->permit_tun = -1;
 	options->permitted_opens = NULL;
-	options->permitted_remote_opens = NULL;
+	options->permitted_listens = NULL;
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
 	options->authorized_keys_command = NULL;
@@ -463,7 +463,7 @@ typedef enum {
 	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sGssStrictAcceptor,
 	sAcceptEnv, sPermitTunnel,
-	sMatch, sPermitOpen, sPermitRemoteOpen, sForceCommand, sChrootDirectory,
+	sMatch, sPermitOpen, sPermitListen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sHostCertificate,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
@@ -598,7 +598,7 @@ static struct {
 	{ "permituserrc", sPermitUserRC, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
-	{ "permitremoteopen", sPermitRemoteOpen, SSHCFG_ALL },
+	{ "permitlisten", sPermitListen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ "hostcertificate", sHostCertificate, SSHCFG_GLOBAL },
@@ -878,9 +878,9 @@ process_permitopen(struct ssh *ssh, ServerOptions *options)
 {
 	process_permitopen_list(ssh, sPermitOpen,
 	    options->permitted_opens, options->num_permitted_opens);
-	process_permitopen_list(ssh, sPermitRemoteOpen,
-	    options->permitted_remote_opens,
-	    options->num_permitted_remote_opens);
+	process_permitopen_list(ssh, sPermitListen,
+	    options->permitted_listens,
+	    options->num_permitted_listens);
 }
 
 struct connection_info *
@@ -1831,11 +1831,11 @@ process_server_config_line(ServerOptions *options, char *line,
 		*activep = value;
 		break;
 
-	case sPermitRemoteOpen:
+	case sPermitListen:
 	case sPermitOpen:
-		if (opcode == sPermitRemoteOpen) {
-			uintptr = &options->num_permitted_remote_opens;
-			chararrayptr = &options->permitted_remote_opens;
+		if (opcode == sPermitListen) {
+			uintptr = &options->num_permitted_listens;
+			chararrayptr = &options->permitted_listens;
 		} else {
 			uintptr = &options->num_permitted_opens;
 			chararrayptr = &options->permitted_opens;
@@ -1857,7 +1857,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
 			arg2 = xstrdup(arg);
 			p = hpdelim(&arg);
-			/* XXX support bare port number for PermitRemoteOpen */
+			/* XXX support bare port number for PermitListen */
 			if (p == NULL) {
 				fatal("%s line %d: missing host in %s",
 				    filename, linenum,
@@ -2596,12 +2596,12 @@ dump_config(ServerOptions *o)
 			printf(" %s", o->permitted_opens[i]);
 	}
 	printf("\n");
-	printf("permitremoteopen");
-	if (o->num_permitted_remote_opens == 0)
+	printf("permitlisten");
+	if (o->num_permitted_listens == 0)
 		printf(" any");
 	else {
-		for (i = 0; i < o->num_permitted_remote_opens; i++)
-			printf(" %s", o->permitted_remote_opens[i]);
+		for (i = 0; i < o->num_permitted_listens; i++)
+			printf(" %s", o->permitted_listens[i]);
 	}
 	printf("\n");
 }

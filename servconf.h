@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.132 2018/06/06 18:22:41 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.133 2018/06/06 18:23:32 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -183,8 +183,8 @@ typedef struct {
 
 	char   **permitted_opens;	/* May also be one of PERMITOPEN_* */
 	u_int   num_permitted_opens;
-	char   **permitted_remote_opens; /* May also be one of PERMITOPEN_* */
-	u_int   num_permitted_remote_opens;
+	char   **permitted_listens; /* May also be one of PERMITOPEN_* */
+	u_int   num_permitted_listens;
 
 	char   *chroot_directory;
 	char   *revoked_keys_file;
@@ -248,8 +248,7 @@ struct connection_info {
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
-		M_CP_STRARRAYOPT(permitted_remote_opens, \
-		    num_permitted_remote_opens); \
+		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);
