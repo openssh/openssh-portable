@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.479 2018/06/01 03:33:53 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.480 2018/06/06 18:22:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1654,10 +1654,10 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 			logit("Allocated port %u for remote forward to %s:%d",
 			    rfwd->allocated_port,
 			    rfwd->connect_host, rfwd->connect_port);
-			channel_update_permitted_opens(ssh,
+			channel_update_permission(ssh,
 			    rfwd->handle, rfwd->allocated_port);
 		} else {
-			channel_update_permitted_opens(ssh, rfwd->handle, -1);
+			channel_update_permission(ssh, rfwd->handle, -1);
 		}
 	}
 

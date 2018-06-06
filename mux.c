@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.69 2017/09/20 05:19:00 dtucker Exp $ */
+/* $OpenBSD: mux.c,v 1.70 2018/06/06 18:22:41 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -634,7 +634,7 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 			buffer_put_int(&out, MUX_S_REMOTE_PORT);
 			buffer_put_int(&out, fctx->rid);
 			buffer_put_int(&out, rfwd->allocated_port);
-			channel_update_permitted_opens(ssh, rfwd->handle,
+			channel_update_permission(ssh, rfwd->handle,
 			   rfwd->allocated_port);
 		} else {
 			buffer_put_int(&out, MUX_S_OK);
@@ -643,7 +643,7 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 		goto out;
 	} else {
 		if (rfwd->listen_port == 0)
-			channel_update_permitted_opens(ssh, rfwd->handle, -1);
+			channel_update_permission(ssh, rfwd->handle, -1);
 		if (rfwd->listen_path != NULL)
 			xasprintf(&failmsg, "remote port forwarding failed for "
 			    "listen path %s", rfwd->listen_path);

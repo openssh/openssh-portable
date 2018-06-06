@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.328 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.329 2018/06/06 18:22:41 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -160,6 +160,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_accept_env = 0;
 	options->permit_tun = -1;
 	options->permitted_opens = NULL;
+	options->permitted_remote_opens = NULL;
 	options->adm_forced_command = NULL;
 	options->chroot_directory = NULL;
 	options->authorized_keys_command = NULL;
@@ -462,7 +463,7 @@ typedef enum {
 	sClientAliveInterval, sClientAliveCountMax, sAuthorizedKeysFile,
 	sGssAuthentication, sGssCleanupCreds, sGssStrictAcceptor,
 	sAcceptEnv, sPermitTunnel,
-	sMatch, sPermitOpen, sForceCommand, sChrootDirectory,
+	sMatch, sPermitOpen, sPermitRemoteOpen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
 	sHostCertificate,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
@@ -597,6 +598,7 @@ static struct {
 	{ "permituserrc", sPermitUserRC, SSHCFG_ALL },
 	{ "match", sMatch, SSHCFG_ALL },
 	{ "permitopen", sPermitOpen, SSHCFG_ALL },
+	{ "permitremoteopen", sPermitRemoteOpen, SSHCFG_ALL },
 	{ "forcecommand", sForceCommand, SSHCFG_ALL },
 	{ "chrootdirectory", sChrootDirectory, SSHCFG_ALL },
 	{ "hostcertificate", sHostCertificate, SSHCFG_GLOBAL },
@@ -631,6 +633,20 @@ static struct {
 	{ SSH_TUNMODE_YES, "yes" },
 	{ -1, NULL }
 };
+
+/* Returns an opcode name from its number */
+
+static const char *
+lookup_opcode_name(ServerOpCodes code)
+{
+	u_int i;
+
+	for (i = 0; keywords[i].name != NULL; i++)
+		if (keywords[i].opcode == code)
+			return(keywords[i].name);
+	return "UNKNOWN";
+}
+
 
 /*
  * Returns the number of the token pointed to by cp or sBadOption.
@@ -814,41 +830,57 @@ process_queued_listen_addrs(ServerOptions *options)
 }
 
 /*
+ * Inform channels layer of permitopen options for a single forwarding
+ * direction (local/remote).
+ */
+static void
+process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
+    char **opens, u_int num_opens)
+{
+	u_int i;
+	int port;
+	char *host, *arg, *oarg;
+	int where = opcode == sPermitOpen ? FORWARD_LOCAL : FORWARD_REMOTE;
+	const char *what = lookup_opcode_name(opcode);
+
+	channel_clear_permission(ssh, FORWARD_ADM, where);
+	if (num_opens == 0)
+		return; /* permit any */
+
+	/* handle keywords: "any" / "none" */
+	if (num_opens == 1 && strcmp(opens[0], "any") == 0)
+		return;
+	if (num_opens == 1 && strcmp(opens[0], "none") == 0) {
+		channel_disable_admin(ssh, where);
+		return;
+	}
+	/* Otherwise treat it as a list of permitted host:port */
+	for (i = 0; i < num_opens; i++) {
+		oarg = arg = xstrdup(opens[i]);
+		host = hpdelim(&arg);
+		if (host == NULL)
+			fatal("%s: missing host in %s", __func__, what);
+		host = cleanhostname(host);
+		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
+			fatal("%s: bad port number in %s", __func__, what);
+		/* Send it to channels layer */
+		channel_add_permission(ssh, FORWARD_ADM,
+		    where, host, port);
+		free(oarg);
+	}
+}
+
+/*
  * Inform channels layer of permitopen options from configuration.
  */
 void
 process_permitopen(struct ssh *ssh, ServerOptions *options)
 {
-	u_int i;
-	int port;
-	char *host, *arg, *oarg;
-
-	channel_clear_adm_permitted_opens(ssh);
-	if (options->num_permitted_opens == 0)
-		return; /* permit any */
-
-	/* handle keywords: "any" / "none" */
-	if (options->num_permitted_opens == 1 &&
-	    strcmp(options->permitted_opens[0], "any") == 0)
-		return;
-	if (options->num_permitted_opens == 1 &&
-	    strcmp(options->permitted_opens[0], "none") == 0) {
-		channel_disable_adm_local_opens(ssh);
-		return;
-	}
-	/* Otherwise treat it as a list of permitted host:port */
-	for (i = 0; i < options->num_permitted_opens; i++) {
-		oarg = arg = xstrdup(options->permitted_opens[i]);
-		host = hpdelim(&arg);
-		if (host == NULL)
-			fatal("%s: missing host in PermitOpen", __func__);
-		host = cleanhostname(host);
-		if (arg == NULL || ((port = permitopen_port(arg)) < 0))
-			fatal("%s: bad port number in PermitOpen", __func__);
-		/* Send it to channels layer */
-		channel_add_adm_permitted_opens(ssh, host, port);
-		free(oarg);
-	}
+	process_permitopen_list(ssh, sPermitOpen,
+	    options->permitted_opens, options->num_permitted_opens);
+	process_permitopen_list(ssh, sPermitRemoteOpen,
+	    options->permitted_remote_opens,
+	    options->num_permitted_remote_opens);
 }
 
 struct connection_info *
@@ -1144,12 +1176,12 @@ process_server_config_line(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
     struct connection_info *connectinfo)
 {
-	char *cp, **charptr, *arg, *arg2, *p;
+	char *cp, ***chararrayptr, **charptr, *arg, *arg2, *p;
 	int cmdline = 0, *intptr, value, value2, n, port;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
-	u_int i, flags = 0;
+	u_int i, *uintptr, uvalue, flags = 0;
 	size_t len;
 	long long val64;
 	const struct multistate *multistate_ptr;
@@ -1799,36 +1831,49 @@ process_server_config_line(ServerOptions *options, char *line,
 		*activep = value;
 		break;
 
+	case sPermitRemoteOpen:
 	case sPermitOpen:
+		if (opcode == sPermitRemoteOpen) {
+			uintptr = &options->num_permitted_remote_opens;
+			chararrayptr = &options->permitted_remote_opens;
+		} else {
+			uintptr = &options->num_permitted_opens;
+			chararrayptr = &options->permitted_opens;
+		}
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
-			fatal("%s line %d: missing PermitOpen specification",
-			    filename, linenum);
-		value = options->num_permitted_opens;	/* modified later */
+			fatal("%s line %d: missing %s specification",
+			    filename, linenum, lookup_opcode_name(opcode));
+		uvalue = *uintptr;	/* modified later */
 		if (strcmp(arg, "any") == 0 || strcmp(arg, "none") == 0) {
-			if (*activep && value == 0) {
-				options->num_permitted_opens = 1;
-				options->permitted_opens = xcalloc(1,
-				    sizeof(*options->permitted_opens));
-				options->permitted_opens[0] = xstrdup(arg);
+			if (*activep && uvalue == 0) {
+				*uintptr = 1;
+				*chararrayptr = xcalloc(1,
+				    sizeof(**chararrayptr));
+				(*chararrayptr)[0] = xstrdup(arg);
 			}
 			break;
 		}
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
 			arg2 = xstrdup(arg);
 			p = hpdelim(&arg);
-			if (p == NULL)
-				fatal("%s line %d: missing host in PermitOpen",
-				    filename, linenum);
+			/* XXX support bare port number for PermitRemoteOpen */
+			if (p == NULL) {
+				fatal("%s line %d: missing host in %s",
+				    filename, linenum,
+				    lookup_opcode_name(opcode));
+			}
 			p = cleanhostname(p);
-			if (arg == NULL || ((port = permitopen_port(arg)) < 0))
-				fatal("%s line %d: bad port number in "
-				    "PermitOpen", filename, linenum);
-			if (*activep && value == 0) {
+			if (arg == NULL ||
+			    ((port = permitopen_port(arg)) < 0)) {
+				fatal("%s line %d: bad port number in %s",
+				    filename, linenum,
+				    lookup_opcode_name(opcode));
+			}
+			if (*activep && uvalue == 0) {
 				array_append(filename, linenum,
-				    "PermitOpen",
-				    &options->permitted_opens,
-				    &options->num_permitted_opens, arg2);
+				    lookup_opcode_name(opcode),
+				    chararrayptr, uintptr, arg2);
 			}
 			free(arg2);
 		}
@@ -2307,17 +2352,6 @@ fmt_intarg(ServerOpCodes code, int val)
 	}
 }
 
-static const char *
-lookup_opcode_name(ServerOpCodes code)
-{
-	u_int i;
-
-	for (i = 0; keywords[i].name != NULL; i++)
-		if (keywords[i].opcode == code)
-			return(keywords[i].name);
-	return "UNKNOWN";
-}
-
 static void
 dump_cfg_int(ServerOpCodes code, int val)
 {
@@ -2560,6 +2594,14 @@ dump_config(ServerOptions *o)
 	else {
 		for (i = 0; i < o->num_permitted_opens; i++)
 			printf(" %s", o->permitted_opens[i]);
+	}
+	printf("\n");
+	printf("permitremoteopen");
+	if (o->num_permitted_remote_opens == 0)
+		printf(" any");
+	else {
+		for (i = 0; i < o->num_permitted_remote_opens; i++)
+			printf(" %s", o->permitted_remote_opens[i]);
 	}
 	printf("\n");
 }

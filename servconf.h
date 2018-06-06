@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.131 2018/04/13 03:57:26 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.132 2018/06/06 18:22:41 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -31,12 +31,6 @@
 #define PRIVSEP_OFF		0
 #define PRIVSEP_ON		1
 #define PRIVSEP_NOSANDBOX	2
-
-/* AllowTCPForwarding */
-#define FORWARD_DENY		0
-#define FORWARD_REMOTE		(1)
-#define FORWARD_LOCAL		(1<<1)
-#define FORWARD_ALLOW		(FORWARD_REMOTE|FORWARD_LOCAL)
 
 /* PermitOpen */
 #define PERMITOPEN_ANY		0
@@ -187,8 +181,10 @@ typedef struct {
 
 	int	permit_tun;
 
-	char   **permitted_opens;
-	u_int   num_permitted_opens; /* May also be one of PERMITOPEN_* */
+	char   **permitted_opens;	/* May also be one of PERMITOPEN_* */
+	u_int   num_permitted_opens;
+	char   **permitted_remote_opens; /* May also be one of PERMITOPEN_* */
+	u_int   num_permitted_remote_opens;
 
 	char   *chroot_directory;
 	char   *revoked_keys_file;
@@ -252,6 +248,8 @@ struct connection_info {
 		M_CP_STRARRAYOPT(accept_env, num_accept_env); \
 		M_CP_STRARRAYOPT(auth_methods, num_auth_methods); \
 		M_CP_STRARRAYOPT(permitted_opens, num_permitted_opens); \
+		M_CP_STRARRAYOPT(permitted_remote_opens, \
+		    num_permitted_remote_opens); \
 	} while (0)
 
 struct connection_info *get_connection_info(int, int);
