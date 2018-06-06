@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.270 2018/06/01 06:23:10 jmc Exp $
-.Dd $Mdocdate: June 1 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.271 2018/06/06 18:24:00 djm Exp $
+.Dd $Mdocdate: June 6 2018 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1125,6 +1125,7 @@ Available keywords are
 .Cm MaxSessions ,
 .Cm PasswordAuthentication ,
 .Cm PermitEmptyPasswords ,
+.Cm PermitListen ,
 .Cm PermitOpen ,
 .Cm PermitRootLogin ,
 .Cm PermitTTY ,
@@ -1184,6 +1185,44 @@ When password authentication is allowed, it specifies whether the
 server allows login to accounts with empty password strings.
 The default is
 .Cm no .
+.It Cm PermitListen
+Specifies the addresses/ports on which a remote TCP port forwarding may listen.
+The listen specification must be one of the following forms:
+.Pp
+.Bl -item -offset indent -compact
+.It
+.Cm PermitListen
+.Sm off
+.Ar host : port
+.Sm on
+.It
+.Cm PermitListen
+.Sm off
+.Ar IPv4_addr : port
+.Sm on
+.It
+.Cm PermitListen
+.Sm off
+.Ar \&[ IPv6_addr \&] : port
+.Sm on
+.El
+.Pp
+Multiple permissions may be specified by separating them with whitespace.
+An argument of
+.Cm any
+can be used to remove all restrictions and permit any listen requests.
+An argument of
+.Cm none
+can be used to prohibit all listen requests.
+The host name may contain wildcards as described in the PATTERNS section in
+.Xr ssh_config 5 .
+The wildcard
+.Sq *
+can also be used in place of a port number to allow all ports.
+By default all port forwarding listen requests are permitted.
+Note that
+.Cm GatewayPorts
+option may further restrict which addresses may be listened on.
 .It Cm PermitOpen
 Specifies the destinations to which TCP port forwarding is permitted.
 The forwarding specification must be one of the following forms:
