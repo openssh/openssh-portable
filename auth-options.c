@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.80 2018/06/06 18:23:32 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.81 2018/06/07 04:31:51 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -313,7 +313,7 @@ sshauthopt_new_with_keys_defaults(void)
  * Return 0 on success. Return -1 on failure and sets *errstrp to error reason.
  */
 static int
-handle_permit(const char *opts, char ***permitsp, size_t *npermitsp,
+handle_permit(const char **opts, char ***permitsp, size_t *npermitsp,
     const char **errstrp)
 {
 	char *opt, *tmp, *cp, *host, **permits = *permitsp;
@@ -324,7 +324,7 @@ handle_permit(const char *opts, char ***permitsp, size_t *npermitsp,
 		*errstrp = "too many permission directives";
 		return -1;
 	}
-	if ((opt = opt_dequote(&opts, &errstr)) == NULL) {
+	if ((opt = opt_dequote(opts, &errstr)) == NULL) {
 		return -1;
 	}
 	if ((tmp = strdup(opt)) == NULL) {
@@ -474,11 +474,11 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 			}
 			ret->env[ret->nenv++] = opt;
 		} else if (opt_match(&opts, "permitopen")) {
-			if (handle_permit(opts, &ret->permitopen,
+			if (handle_permit(&opts, &ret->permitopen,
 			    &ret->npermitopen, &errstr) != 0)
 				goto fail;
 		} else if (opt_match(&opts, "permitlisten")) {
-			if (handle_permit(opts, &ret->permitlisten,
+			if (handle_permit(&opts, &ret->permitlisten,
 			    &ret->npermitlisten, &errstr) != 0)
 				goto fail;
 		} else if (opt_match(&opts, "tunnel")) {
