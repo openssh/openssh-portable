@@ -1,4 +1,4 @@
-#	$OpenBSD: forward-control.sh,v 1.6 2018/06/06 18:25:33 djm Exp $
+#	$OpenBSD: forward-control.sh,v 1.7 2018/06/07 14:29:43 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshd control of local and remote forwarding"
@@ -210,20 +210,20 @@ rperm_tests() {
 	cp ${OBJ}/authorized_keys_${USER}.bak  ${OBJ}/authorized_keys_${USER}
 	_prefix="AllowTcpForwarding=$_tcpfwd"
 
-	# PermitRemoteOpen via sshd_config that doesn't match
+	# PermitListen via sshd_config that doesn't match
 	( cat ${OBJ}/sshd_proxy.bak ;
 	  echo "AllowTcpForwarding $_tcpfwd" ;
-	  echo "PermitRemoteOpen $_badfwd1 $_badfwd2" ) \
+	  echo "PermitListen $_badfwd1 $_badfwd2" ) \
 	    > ${OBJ}/sshd_proxy
-	check_lfwd $_nopermit_lfwd "$_prefix, !PermitRemoteOpen"
-	check_rfwd $_nopermit_rfwd "$_prefix, !PermitRemoteOpen"
-	# PermitRemoteOpen via sshd_config that does match
+	check_lfwd $_nopermit_lfwd "$_prefix, !PermitListen"
+	check_rfwd $_nopermit_rfwd "$_prefix, !PermitListen"
+	# PermitListen via sshd_config that does match
 	( cat ${OBJ}/sshd_proxy.bak ;
 	  echo "AllowTcpForwarding $_tcpfwd" ;
-	  echo "PermitRemoteOpen $_badfwd1 $_goodfwd $_badfwd2" ) \
+	  echo "PermitListen $_badfwd1 $_goodfwd $_badfwd2" ) \
 	    > ${OBJ}/sshd_proxy
-	check_lfwd $_plain_lfwd "$_prefix, PermitRemoteOpen"
-	check_rfwd $_plain_rfwd "$_prefix, PermitRemoteOpen"
+	check_lfwd $_plain_lfwd "$_prefix, PermitListen"
+	check_rfwd $_plain_rfwd "$_prefix, PermitListen"
 }
 
 #   permit-remote-open      none          mismatch         match
