@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.81 2018/06/07 04:31:51 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.82 2018/06/07 09:26:42 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -313,7 +313,7 @@ sshauthopt_new_with_keys_defaults(void)
  * Return 0 on success. Return -1 on failure and sets *errstrp to error reason.
  */
 static int
-handle_permit(const char **opts, char ***permitsp, size_t *npermitsp,
+handle_permit(const char **optsp, char ***permitsp, size_t *npermitsp,
     const char **errstrp)
 {
 	char *opt, *tmp, *cp, *host, **permits = *permitsp;
@@ -324,7 +324,7 @@ handle_permit(const char **opts, char ***permitsp, size_t *npermitsp,
 		*errstrp = "too many permission directives";
 		return -1;
 	}
-	if ((opt = opt_dequote(opts, &errstr)) == NULL) {
+	if ((opt = opt_dequote(optsp, &errstr)) == NULL) {
 		return -1;
 	}
 	if ((tmp = strdup(opt)) == NULL) {
@@ -849,7 +849,7 @@ sshauthopt_serialise(const struct sshauthopt *opts, struct sshbuf *m,
 	if ((r = serialise_array(m, opts->env,
 	    untrusted ? 0 : opts->nenv)) != 0 ||
 	    (r = serialise_array(m, opts->permitopen,
-	    untrusted ? 0 : opts->npermitopen)) ||
+	    untrusted ? 0 : opts->npermitopen)) != 0 ||
 	    (r = serialise_array(m, opts->permitlisten,
 	    untrusted ? 0 : opts->npermitlisten)) != 0)
 		return r;
