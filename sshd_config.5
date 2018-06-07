@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.271 2018/06/06 18:24:00 djm Exp $
-.Dd $Mdocdate: June 6 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.272 2018/06/07 11:26:14 jmc Exp $
+.Dd $Mdocdate: June 7 2018 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1220,7 +1220,7 @@ The wildcard
 .Sq *
 can also be used in place of a port number to allow all ports.
 By default all port forwarding listen requests are permitted.
-Note that
+Note that the
 .Cm GatewayPorts
 option may further restrict which addresses may be listened on.
 .It Cm PermitOpen
