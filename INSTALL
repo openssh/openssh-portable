@@ -220,7 +220,7 @@ If you need to pass special options to the compiler or linker, you
 can specify these as environment variables before running ./configure.
 For example:
 
-CFLAGS="-O -m486" LDFLAGS="-s" LIBS="-lrubbish" LD="/usr/foo/ld" ./configure
+CC="/usr/foo/cc" CFLAGS="-O" LDFLAGS="-s" LIBS="-lrubbish" ./configure
 
 3. Configuration
 ----------------

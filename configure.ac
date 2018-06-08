@@ -83,9 +83,11 @@ if test ! -z "$PATH_PASSWD_PROG" ; then
 		[Full path of your "passwd" program])
 fi
 
-if test -z "$LD" ; then
-	LD=$CC
-fi
+dnl Since autoconf doesn't support it very well,  we no longer allow users to
+dnl override LD, however keeping the hook here for now in case there's a use
+dnl use case we overlooked and someone needs to re-enable it.  Unless a good
+dnl reason is found we'll be removing this in future.
+LD="$CC"
 AC_SUBST([LD])
 
 AC_C_INLINE
@@ -526,7 +528,6 @@ case "$host" in
 	    [ AC_MSG_RESULT([yes]) ],
 	    [ AC_MSG_RESULT([no])
 	      CC="`echo $CC | sed 's/-qlanglvl\=ansi//g'`"
-	      LD="`echo $LD | sed 's/-qlanglvl\=ansi//g'`"
 	      CFLAGS="`echo $CFLAGS | sed 's/-qlanglvl\=ansi//g'`"
 	      CPPFLAGS="`echo $CPPFLAGS | sed 's/-qlanglvl\=ansi//g'`"
 	    ]
