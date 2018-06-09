@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.276 2018/06/09 03:01:12 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.277 2018/06/09 06:36:31 jmc Exp $
 .Dd $Mdocdate: June 9 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1404,12 +1404,6 @@ It is possible to clear previously set
 variable names by prefixing patterns with
 .Pa - .
 The default is not to send any environment variables.
-.It Cm SetEnv
-Directly specify one or more environment variables and their contents to
-be sent to the server.
-Similarly to
-.Cm SendEnv ,
-the server must be prepared to accept the environment variable.
 .It Cm ServerAliveCountMax
 Sets the number of server alive messages (see below) which may be
 sent without
@@ -1444,6 +1438,12 @@ will send a message through the encrypted
 channel to request a response from the server.
 The default
 is 0, indicating that these messages will not be sent to the server.
+.It Cm SetEnv
+Directly specify one or more environment variables and their contents to
+be sent to the server.
+Similarly to
+.Cm SendEnv ,
+the server must be prepared to accept the environment variable.
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
