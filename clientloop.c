@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.312 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.313 2018/06/09 03:01:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2158,7 +2158,8 @@ void
 client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
     const char *term, struct termios *tiop, int in_fd, Buffer *cmd, char **env)
 {
-	int len;
+	int i, j, matched, len;
+	char *name, *val;
 	Channel *c = NULL;
 
 	debug2("%s: id %d", __func__, id);
@@ -2193,9 +2194,6 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 
 	/* Transfer any environment variables from client to server */
 	if (options.num_send_env != 0 && env != NULL) {
-		int i, j, matched;
-		char *name, *val;
-
 		debug("Sending environment.");
 		for (i = 0; env[i] != NULL; i++) {
 			/* Split */
@@ -2226,6 +2224,22 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 			packet_send();
 			free(name);
 		}
+	}
+	for (i = 0; i < options.num_setenv; i++) {
+		/* Split */
+		name = xstrdup(options.setenv[i]);
+		if ((val = strchr(name, '=')) == NULL) {
+			free(name);
+			continue;
+		}
+		*val++ = '\0';
+
+		debug("Setting env %s = %s", name, val);
+		channel_request_start(ssh, id, "env", 0);
+		packet_put_cstring(name);
+		packet_put_cstring(val);
+		packet_send();
+		free(name);
 	}
 
 	len = buffer_len(cmd);

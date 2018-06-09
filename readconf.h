@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.125 2018/02/23 02:34:33 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.126 2018/06/09 03:01:12 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -18,7 +18,6 @@
 
 /* Data structure for representing option data. */
 
-#define MAX_SEND_ENV		256
 #define SSH_MAX_HOSTS_FILES	32
 #define MAX_CANON_DOMAINS	32
 #define PATH_MAX_SUN		(sizeof((struct sockaddr_un *)0)->sun_path)
@@ -120,7 +119,9 @@ typedef struct {
 	int	server_alive_count_max;
 
 	int     num_send_env;
-	char   *send_env[MAX_SEND_ENV];
+	char   **send_env;
+	int     num_setenv;
+	char   **setenv;
 
 	char	*control_path;
 	int	control_master;

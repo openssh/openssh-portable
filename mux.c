@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.70 2018/06/06 18:22:41 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.71 2018/06/09 03:01:12 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1852,9 +1852,9 @@ mux_client_request_session(int fd)
 {
 	Buffer m;
 	char *e, *term;
-	u_int i, rid, sid, esid, exitval, type, exitval_seen;
+	u_int rid, sid, esid, exitval, type, exitval_seen;
 	extern char **environ;
-	int devnull, rawmode;
+	int i, devnull, rawmode;
 
 	debug3("%s: entering", __func__);
 
@@ -1889,14 +1889,16 @@ mux_client_request_session(int fd)
 	buffer_put_cstring(&m, term == NULL ? "" : term);
 	buffer_put_string(&m, buffer_ptr(&command), buffer_len(&command));
 
+	/* Pass environment */
 	if (options.num_send_env > 0 && environ != NULL) {
-		/* Pass environment */
 		for (i = 0; environ[i] != NULL; i++) {
 			if (env_permitted(environ[i])) {
 				buffer_put_cstring(&m, environ[i]);
 			}
 		}
 	}
+	for (i = 0; i < options.num_setenv; i++)
+		buffer_put_cstring(&m, options.setenv[i]);
 
 	if (mux_client_write_packet(fd, &m) != 0)
 		fatal("%s: write packet: %s", __func__, strerror(errno));

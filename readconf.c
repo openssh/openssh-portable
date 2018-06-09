@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.289 2018/06/06 18:29:18 markus Exp $ */
+/* $OpenBSD: readconf.c,v 1.290 2018/06/09 03:01:12 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -161,7 +161,7 @@ typedef enum {
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
-	oSendEnv, oControlPath, oControlMaster, oControlPersist,
+	oSendEnv, oSetEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
@@ -277,6 +277,7 @@ static struct {
 	{ "serveraliveinterval", oServerAliveInterval },
 	{ "serveralivecountmax", oServerAliveCountMax },
 	{ "sendenv", oSendEnv },
+	{ "setenv", oSetEnv },
 	{ "controlpath", oControlPath },
 	{ "controlmaster", oControlMaster },
 	{ "controlpersist", oControlPersist },
@@ -1398,12 +1399,35 @@ parse_keytypes:
 				continue;
 			} else {
 				/* Adding an env var */
-				if (options->num_send_env >= MAX_SEND_ENV)
+				if (options->num_send_env >= INT_MAX)
 					fatal("%s line %d: too many send env.",
 					    filename, linenum);
+				options->send_env = xrecallocarray(
+				    options->send_env, options->num_send_env,
+				    options->num_send_env,
+				    sizeof(*options->send_env));
 				options->send_env[options->num_send_env++] =
 				    xstrdup(arg);
 			}
+		}
+		break;
+
+	case oSetEnv:
+		value = options->num_setenv;
+		while ((arg = strdelimw(&s)) != NULL && *arg != '\0') {
+			if (strchr(arg, '=') == NULL)
+				fatal("%s line %d: Invalid SetEnv.",
+				    filename, linenum);
+			if (!*activep || value != 0)
+				continue;
+			/* Adding a setenv var */
+			if (options->num_setenv >= INT_MAX)
+				fatal("%s line %d: too many SetEnv.",
+				    filename, linenum);
+			options->setenv = xrecallocarray(
+			    options->setenv, options->num_setenv,
+			    options->num_setenv + 1, sizeof(*options->setenv));
+			options->setenv[options->num_setenv++] = xstrdup(arg);
 		}
 		break;
 
@@ -1855,7 +1879,10 @@ initialize_options(Options * options)
 	options->verify_host_key_dns = -1;
 	options->server_alive_interval = -1;
 	options->server_alive_count_max = -1;
+	options->send_env = NULL;
 	options->num_send_env = 0;
+	options->setenv = NULL;
+	options->num_setenv = 0;
 	options->control_path = NULL;
 	options->control_master = -1;
 	options->control_persist = -1;
@@ -2606,6 +2633,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_strarray_oneline(oGlobalKnownHostsFile, o->num_system_hostfiles, o->system_hostfiles);
 	dump_cfg_strarray_oneline(oUserKnownHostsFile, o->num_user_hostfiles, o->user_hostfiles);
 	dump_cfg_strarray(oSendEnv, o->num_send_env, o->send_env);
+	dump_cfg_strarray(oSetEnv, o->num_setenv, o->setenv);
 
 	/* Special cases */
 
