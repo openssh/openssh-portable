@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.298 2018/06/06 18:29:18 markus Exp $ */
+/* $OpenBSD: session.c,v 1.299 2018/06/09 02:58:02 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1078,46 +1078,10 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 
 	if (getenv("TZ"))
 		child_set_env(&env, &envsize, "TZ", getenv("TZ"));
-
-	/* Set custom environment options from pubkey authentication. */
-	if (options.permit_user_env) {
-		for (n = 0 ; n < auth_opts->nenv; n++) {
-			ocp = xstrdup(auth_opts->env[n]);
-			cp = strchr(ocp, '=');
-			if (*cp == '=') {
-				*cp = '\0';
-				child_set_env(&env, &envsize, ocp, cp + 1);
-			}
-			free(ocp);
-		}
-	}
-
-	/* SSH_CLIENT deprecated */
-	snprintf(buf, sizeof buf, "%.50s %d %d",
-	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-	    ssh_local_port(ssh));
-	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
-
-	laddr = get_local_ipaddr(packet_get_connection_in());
-	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
-	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-	    laddr, ssh_local_port(ssh));
-	free(laddr);
-	child_set_env(&env, &envsize, "SSH_CONNECTION", buf);
-
-	if (tun_fwd_ifnames != NULL)
-		child_set_env(&env, &envsize, "SSH_TUNNEL", tun_fwd_ifnames);
-	if (auth_info_file != NULL)
-		child_set_env(&env, &envsize, "SSH_USER_AUTH", auth_info_file);
-	if (s->ttyfd != -1)
-		child_set_env(&env, &envsize, "SSH_TTY", s->tty);
 	if (s->term)
 		child_set_env(&env, &envsize, "TERM", s->term);
 	if (s->display)
 		child_set_env(&env, &envsize, "DISPLAY", s->display);
-	if (original_command)
-		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
-		    original_command);
 
 	/*
 	 * Since we clear KRB5CCNAME at startup, if it's set now then it
@@ -1145,6 +1109,31 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		child_set_env(&env, &envsize, "KRB5CCNAME",
 		    s->authctxt->krb5_ccname);
 #endif
+	if (auth_sock_name != NULL)
+		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
+		    auth_sock_name);
+
+
+	/* Set custom environment options from pubkey authentication. */
+	if (options.permit_user_env) {
+		for (n = 0 ; n < auth_opts->nenv; n++) {
+			ocp = xstrdup(auth_opts->env[n]);
+			cp = strchr(ocp, '=');
+			if (*cp == '=') {
+				*cp = '\0';
+				child_set_env(&env, &envsize, ocp, cp + 1);
+			}
+			free(ocp);
+		}
+	}
+
+	/* read $HOME/.ssh/environment. */
+	if (options.permit_user_env) {
+		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
+		    pw->pw_dir);
+		read_environment_file(&env, &envsize, buf);
+	}
+
 #ifdef USE_PAM
 	/*
 	 * Pull in any environment variables that may have
@@ -1167,16 +1156,29 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	}
 #endif /* USE_PAM */
 
-	if (auth_sock_name != NULL)
-		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
-		    auth_sock_name);
+	/* SSH_CLIENT deprecated */
+	snprintf(buf, sizeof buf, "%.50s %d %d",
+	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	    ssh_local_port(ssh));
+	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
 
-	/* read $HOME/.ssh/environment. */
-	if (options.permit_user_env) {
-		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
-		    strcmp(pw->pw_dir, "/") ? pw->pw_dir : "");
-		read_environment_file(&env, &envsize, buf);
-	}
+	laddr = get_local_ipaddr(packet_get_connection_in());
+	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
+	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	    laddr, ssh_local_port(ssh));
+	free(laddr);
+	child_set_env(&env, &envsize, "SSH_CONNECTION", buf);
+
+	if (tun_fwd_ifnames != NULL)
+		child_set_env(&env, &envsize, "SSH_TUNNEL", tun_fwd_ifnames);
+	if (auth_info_file != NULL)
+		child_set_env(&env, &envsize, "SSH_USER_AUTH", auth_info_file);
+	if (s->ttyfd != -1)
+		child_set_env(&env, &envsize, "SSH_TTY", s->tty);
+	if (original_command)
+		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
+		    original_command);
+
 	if (debug_flag) {
 		/* dump the environment */
 		fprintf(stderr, "Environment:\n");
