@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.133 2018/06/06 18:23:32 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.134 2018/06/09 03:03:10 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -154,6 +154,8 @@ typedef struct {
 
 	u_int num_accept_env;
 	char   **accept_env;
+	u_int num_setenv;
+	char   **setenv;
 
 	int	max_startups_begin;
 	int	max_startups_rate;

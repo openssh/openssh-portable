@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.299 2018/06/09 02:58:02 djm Exp $ */
+/* $OpenBSD: session.c,v 1.300 2018/06/09 03:03:10 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1004,7 +1004,7 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	char buf[256];
 	size_t n;
 	u_int i, envsize;
-	char *ocp, *cp, **env, *laddr;
+	char *ocp, *cp, *value, **env, *laddr;
 	struct passwd *pw = s->pw;
 #if !defined (HAVE_LOGIN_CAP) && !defined (HAVE_CYGWIN)
 	char *path = NULL;
@@ -1155,6 +1155,17 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		free_pam_environment(p);
 	}
 #endif /* USE_PAM */
+
+	/* Environment specified by admin */
+	for (i = 0; i < options.num_setenv; i++) {
+		cp = xstrdup(options.setenv[i]);
+		if ((value = strchr(cp, '=')) == NULL) {
+			/* shouldn't happen; vars are checked in servconf.c */
+			fatal("Invalid config SetEnv: %s", options.setenv[i]);
+		}
+		*value++ = '\0';
+		child_set_env(&env, &envsize, cp, value);
+	}
 
 	/* SSH_CLIENT deprecated */
 	snprintf(buf, sizeof buf, "%.50s %d %d",

@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.273 2018/06/09 03:01:12 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.274 2018/06/09 03:03:10 djm Exp $
 .Dd $Mdocdate: June 9 2018 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -1138,6 +1138,7 @@ Available keywords are
 .Cm RekeyLimit ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
+.Cm SetEnv ,
 .Cm StreamLocalBindMask ,
 .Cm StreamLocalBindUnlink ,
 .Cm TrustedUserCAKeys ,
@@ -1445,6 +1446,21 @@ will be bound to this
 If the routing domain is set to
 .Cm \&%D ,
 then the domain in which the incoming connection was received will be applied.
+.It Cm SetEnv
+Specifies one or more environment variables to set in child sessions started
+by
+.Xr sshd 8
+as
+.Dq NAME=VALUE .
+The environment value may be quoted (e.g. if it contains whitespace
+characters).
+Environment variables set by
+.Cm SetEnv
+override the default environment and any variables specified by the user
+via
+.Cm AcceptEnv
+or
+.Cm PermitUserEnvironment .
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
