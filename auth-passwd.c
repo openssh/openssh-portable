@@ -296,13 +296,15 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	if (backslash != NULL) {
 		/* attempt to format into upn format as this is preferred for login */
 		if (pTranslateNameW(user_utf16, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) != 0) {
+			debug3("%s: Successfully discovered principal name: '%ls'=>'%ls'",
+				__FUNCTION__, user_utf16, domain_upn);
 			unam_utf16 = domain_upn;
 			udom_utf16 = NULL;
 		}
 
 		/* user likely does not have upn so just use SamCompatibleName */
 		else {
-			debug3("%s: Unable to discover upn for user '%s': %d",
+			debug3("%s: Unable to discover principal name for user '%ls': %d",
 				__FUNCTION__, user_utf16, GetLastError());
 			*backslash = '\0';
 			unam_utf16 = backslash + 1;
@@ -321,7 +323,8 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 			*/
 			error("password for user %s has expired", authctxt->pw->pw_name);
 		else {
-			debug("Windows authentication failed for user: %ls domain: %ls error:%d", unam_utf16, udom_utf16, GetLastError());
+			debug("Windows authentication failed for user: %ls domain: %ls error: %d", 
+				unam_utf16, udom_utf16, GetLastError());
 
 			/* If LSA authentication package is configured then it will return the auth_token */
 			sys_auth_passwd_lsa(authctxt, password);

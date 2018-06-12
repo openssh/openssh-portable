@@ -139,10 +139,12 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 		if (pTranslateNameW(user_cpn, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) == 0) {
 
 			/* upn lookup failed so resort to attempting samcompatiblename */
-			debug3("%s: Unable to discover upn for user '%s': %d",
+			debug3("%s: Unable to discover principal name for user '%ls': %d",
 				__FUNCTION__, user_cpn, GetLastError());
 			wcscpy_s(domain_upn, ARRAYSIZE(domain_upn), user_cpn);
 		}
+		else
+			debug3("%s: Successfully discovered principal name: '%ls'=>'%ls'", user_cpn, domain_upn);
 
 		KERB_S4U_LOGON *s4u_logon;
 		logon_info_size = sizeof(KERB_S4U_LOGON);
@@ -204,7 +206,8 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 	if ((ret = LsaLogonUser(lsa_handle, &origin_name, Network, auth_package_id,
 		logon_info, (ULONG)logon_info_size, NULL, &source_context,
 		(PVOID*)&profile, &profile_size, &logon_id, &token, &quotas, &subStatus)) != STATUS_SUCCESS) {
-		debug("%s: LsaLogonUser() failed: %d SubStatus %d.", __FUNCTION__, ret, subStatus);
+		debug("%s: LsaLogonUser() failed. User '%ls' Status: 0x%08X SubStatus %d.", 
+			__FUNCTION__, user_cpn, ret, subStatus);
 		goto done;
 	}
 
@@ -284,7 +287,8 @@ process_custom_lsa_auth(const char* user, const char* pwd, const char* lsa_pkg)
 	if ((ret = LsaLogonUser(lsa_handle, &origin_name, Network, auth_package_id,
 		logon_info, (ULONG)logon_info_size, NULL, &source_context,
 		(PVOID*)&profile, &profile_size, &logon_id, &token, &quotas, &subStatus)) != STATUS_SUCCESS) {
-		debug("%s: LsaLogonUser() failed: %d SubStatus %d.", __FUNCTION__, ret, subStatus);
+		debug("%s: LsaLogonUser() failed: User '%s' Status: %08X SubStatus %d.", 
+			__FUNCTION__, user, ret, subStatus);
 		goto done;
 	}
 
