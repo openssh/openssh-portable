@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.39 2015/06/24 01:49:19 dtucker Exp $ */
+/* $OpenBSD: uidswap.c,v 1.40 2018/06/15 07:01:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,6 +49,7 @@ static gid_t	saved_egid = 0;
 /* Saved effective uid. */
 static int	privileged = 0;
 static int	temporarily_use_uid_effective = 0;
+static uid_t	user_groups_uid;
 static gid_t	*saved_egroups = NULL, *user_groups = NULL;
 static int	saved_egroupslen = -1, user_groupslen = -1;
 
@@ -92,10 +93,11 @@ temporarily_use_uid(struct passwd *pw)
 			fatal("getgroups: %.100s", strerror(errno));
 	} else { /* saved_egroupslen == 0 */
 		free(saved_egroups);
+		saved_egroups = NULL;
 	}
 
 	/* set and save the user's groups */
-	if (user_groupslen == -1) {
+	if (user_groupslen == -1 || user_groups_uid != pw->pw_uid) {
 		if (initgroups(pw->pw_name, pw->pw_gid) < 0)
 			fatal("initgroups: %s: %.100s", pw->pw_name,
 			    strerror(errno));
@@ -110,7 +112,9 @@ temporarily_use_uid(struct passwd *pw)
 				fatal("getgroups: %.100s", strerror(errno));
 		} else { /* user_groupslen == 0 */
 			free(user_groups);
+			user_groups = NULL;
 		}
+		user_groups_uid = pw->pw_uid;
 	}
 	/* Set the effective uid to the given (unprivileged) uid. */
 	if (setgroups(user_groupslen, user_groups) < 0)
