@@ -220,9 +220,6 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_sigprocmask
 	SC_ALLOW(__NR_sigprocmask),
 #endif
-#ifdef __NR_socketcall
-	SC_ALLOW(socketcall),
-#endif
 #ifdef __NR_time
 	SC_ALLOW(__NR_time),
 #endif
