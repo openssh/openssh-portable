@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.332 2018/06/09 03:03:10 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.333 2018/06/19 02:59:41 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1870,15 +1870,23 @@ process_server_config_line(ServerOptions *options, char *line,
 			break;
 		}
 		for (; arg != NULL && *arg != '\0'; arg = strdelim(&cp)) {
-			arg2 = xstrdup(arg);
-			p = hpdelim(&arg);
-			/* XXX support bare port number for PermitListen */
-			if (p == NULL) {
-				fatal("%s line %d: missing host in %s",
-				    filename, linenum,
-				    lookup_opcode_name(opcode));
+			if (opcode == sPermitListen &&
+			    strchr(arg, ':') == NULL) {
+				/*
+				 * Allow bare port number for PermitListen
+				 * to indicate a wildcard listen host.
+				 */
+				xasprintf(&arg2, "*:%s", arg);
+			} else {
+				arg2 = xstrdup(arg);
+				p = hpdelim(&arg);
+				if (p == NULL) {
+					fatal("%s line %d: missing host in %s",
+					    filename, linenum,
+					    lookup_opcode_name(opcode));
+				}
+				p = cleanhostname(p);
 			}
-			p = cleanhostname(p);
 			if (arg == NULL ||
 			    ((port = permitopen_port(arg)) < 0)) {
 				fatal("%s line %d: bad port number in %s",

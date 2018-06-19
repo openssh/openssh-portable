@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.275 2018/06/09 03:18:11 djm Exp $
-.Dd $Mdocdate: June 9 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.276 2018/06/19 02:59:41 djm Exp $
+.Dd $Mdocdate: June 19 2018 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1196,17 +1196,12 @@ The listen specification must be one of the following forms:
 .It
 .Cm PermitListen
 .Sm off
+.Ar port
+.Sm on
+.It
+.Cm PermitListen
+.Sm off
 .Ar host : port
-.Sm on
-.It
-.Cm PermitListen
-.Sm off
-.Ar IPv4_addr : port
-.Sm on
-.It
-.Cm PermitListen
-.Sm off
-.Ar \&[ IPv6_addr \&] : port
 .Sm on
 .El
 .Pp
@@ -1226,6 +1221,15 @@ By default all port forwarding listen requests are permitted.
 Note that the
 .Cm GatewayPorts
 option may further restrict which addresses may be listened on.
+Note also that
+.Xr ssh 1
+will request a listen host of
+.Dq localhost
+if no listen host was specifically requested, and this this name is
+treated differently to explict localhost addresses of
+.Dq 127.0.0.1
+and
+.Dq ::1 .
 .It Cm PermitOpen
 Specifies the destinations to which TCP port forwarding is permitted.
 The forwarding specification must be one of the following forms:

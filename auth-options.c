@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.82 2018/06/07 09:26:42 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.83 2018/06/19 02:59:41 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -313,8 +313,8 @@ sshauthopt_new_with_keys_defaults(void)
  * Return 0 on success. Return -1 on failure and sets *errstrp to error reason.
  */
 static int
-handle_permit(const char **optsp, char ***permitsp, size_t *npermitsp,
-    const char **errstrp)
+handle_permit(const char **optsp, int allow_bare_port,
+    char ***permitsp, size_t *npermitsp, const char **errstrp)
 {
 	char *opt, *tmp, *cp, *host, **permits = *permitsp;
 	size_t npermits = *npermitsp;
@@ -326,6 +326,18 @@ handle_permit(const char **optsp, char ***permitsp, size_t *npermitsp,
 	}
 	if ((opt = opt_dequote(optsp, &errstr)) == NULL) {
 		return -1;
+	}
+	if (allow_bare_port && strchr(opt, ':') == NULL) {
+		/*
+		 * Allow a bare port number in permitlisten to indicate a
+		 * listen_host wildcard.
+		 */
+		if (asprintf(&tmp, "*:%s", opt) < 0) {
+			*errstrp = "memory allocation failed";
+			return -1;
+		}
+		free(opt);
+		opt = tmp;
 	}
 	if ((tmp = strdup(opt)) == NULL) {
 		free(opt);
@@ -474,11 +486,11 @@ sshauthopt_parse(const char *opts, const char **errstrp)
 			}
 			ret->env[ret->nenv++] = opt;
 		} else if (opt_match(&opts, "permitopen")) {
-			if (handle_permit(&opts, &ret->permitopen,
+			if (handle_permit(&opts, 0, &ret->permitopen,
 			    &ret->npermitopen, &errstr) != 0)
 				goto fail;
 		} else if (opt_match(&opts, "permitlisten")) {
-			if (handle_permit(&opts, &ret->permitlisten,
+			if (handle_permit(&opts, 1, &ret->permitlisten,
 			    &ret->npermitlisten, &errstr) != 0)
 				goto fail;
 		} else if (opt_match(&opts, "tunnel")) {
