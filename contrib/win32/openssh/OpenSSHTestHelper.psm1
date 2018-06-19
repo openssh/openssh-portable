@@ -121,8 +121,8 @@ WARNING: Following changes will be made to OpenSSH configuration
         $con = (Get-Content $targetsshdConfig | Out-String).Replace("#SyslogFacility AUTH","SyslogFacility LOCAL0")
         Set-Content -Path $targetsshdConfig -Value "$con" -Force    
     }
-    $sshdSvc = Get-service ssh-agent
-    if($sshdSvc.StartType -eq [System.ServiceProcess.ServiceStartMode]::Disabled)
+    $sshAgentSvc = Get-service ssh-agent
+    if($sshAgentSvc.StartType -eq [System.ServiceProcess.ServiceStartMode]::Disabled)
     {
         Set-service ssh-agent -StartupType Manual
     }

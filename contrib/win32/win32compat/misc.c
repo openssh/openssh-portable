@@ -1119,7 +1119,7 @@ statvfs(const char *path, struct statvfs *buf)
 		free(path_utf16);
 		return 0;
 	} else {
-		debug5("ERROR: Cannot get free space for [%s]. Error code is : %d.\n", path, GetLastError());
+		debug5("ERROR: Cannot get free space for [%s]. Error code is : %d.", path, GetLastError());
 		errno = errno_from_Win32LastError();
 		free(path_utf16);
 		return -1;

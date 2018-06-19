@@ -50,21 +50,11 @@ system32_dir()
 
 static HMODULE 
 load_module(wchar_t* name)
-{
-	wchar_t module_path[MAX_PATH + 1];
-	wchar_t *system32_path;
+{	
 	HMODULE hm;
 	
-	if ((system32_path = system32_dir()) == NULL)
-		return NULL;
-
-	module_path[0] = L'\0';
-	if (wcscat_s(module_path, _countof(module_path), system32_path) != 0 ||
-	    wcscat_s(module_path, _countof(module_path), L"\\") != 0 ||
-	    wcscat_s(module_path, _countof(module_path), name) != 0)
-		return NULL;
-
-	if ((hm = LoadLibraryW(module_path)) == NULL)
+	/*system uses a standard search strategy to find the module */
+	if ((hm = LoadLibraryW(name)) == NULL)
 		debug3("unable to load module %ls at run time, error: %d", name, GetLastError());
 
 	return hm;
@@ -103,11 +93,21 @@ load_secur32()
 	return s_hm_secur32;
 }
 
+load_ntdll()
+{
+	static HMODULE s_hm_ntdll = NULL;
+	
+	if (!s_hm_ntdll)
+		s_hm_ntdll = load_module(L"ntdll.dll");
+
+	return s_hm_ntdll;
+}
+
 FARPROC get_proc_address(HMODULE hm, char* fn)
 {
 	FARPROC ret = GetProcAddress(hm, fn);
 	if (!ret)
-		debug3("GetProcAddress of %s failed with error $d.", fn, GetLastError());
+		debug3("GetProcAddress of %s failed with error %d.", fn, GetLastError());
 
 	return ret;
 }
@@ -117,7 +117,7 @@ pLogonUserExExW(wchar_t *user_name, wchar_t *domain, wchar_t *password, DWORD lo
 	DWORD logon_provider, PTOKEN_GROUPS token_groups, PHANDLE token, PSID *logon_sid, 
 	PVOID *profile_buffer, LPDWORD profile_length, PQUOTA_LIMITS quota_limits)
 {
-	HMODULE hm;
+	HMODULE hm = NULL;
 	typedef BOOL(WINAPI *LogonUserExExWType)(wchar_t*, wchar_t*, wchar_t*, DWORD, DWORD, PTOKEN_GROUPS, PHANDLE, PSID, PVOID, LPDWORD, PQUOTA_LIMITS);
 	static LogonUserExExWType s_pLogonUserExExW = NULL;
 
@@ -142,8 +142,8 @@ BOOLEAN pTranslateNameW(LPCWSTR name,
 	LPWSTR translated_name,
 	PULONG psize)
 {
-	HMODULE hm;
-	typedef BOOLEAN(WINAPI *TranslateNameWType)(LPCWSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPWSTR, PULONG);
+	HMODULE hm = NULL;
+	typedef BOOLEAN(SEC_ENTRY *TranslateNameWType)(LPCWSTR, EXTENDED_NAME_FORMAT, EXTENDED_NAME_FORMAT, LPWSTR, PULONG);
 	static TranslateNameWType s_pTranslateNameW = NULL;
 
 	if (!s_pTranslateNameW) {
@@ -157,43 +157,18 @@ BOOLEAN pTranslateNameW(LPCWSTR name,
 	return s_pTranslateNameW(name, account_format, desired_name_format, translated_name, psize);
 }
 
-NTSTATUS pLsaOpenPolicy(PLSA_UNICODE_STRING system_name,
-	PLSA_OBJECT_ATTRIBUTES attrib,
-	ACCESS_MASK access,
-	PLSA_HANDLE handle)
+ULONG pRtlNtStatusToDosError(NTSTATUS status)
 {
-	HMODULE hm;
-	typedef NTSTATUS(*LsaOpenPolicyType)(PLSA_UNICODE_STRING, PLSA_OBJECT_ATTRIBUTES, ACCESS_MASK, PLSA_HANDLE);
-	static LsaOpenPolicyType s_pLsaOpenPolicy = NULL;
+	HMODULE hm = NULL;
+	typedef ULONG(NTAPI *RtlNtStatusToDosErrorType)(NTSTATUS);
+	static RtlNtStatusToDosErrorType s_pRtlNtStatusToDosError = NULL;
 
-	if (!s_pLsaOpenPolicy) {
-		if ((hm = load_advapi32()) == NULL)
+	if (!s_pRtlNtStatusToDosError) {
+		if ((hm = load_ntdll()) == NULL)
 			return STATUS_ASSERTION_FAILURE;
 
-		if ((s_pLsaOpenPolicy = (LsaOpenPolicyType)get_proc_address(hm, "LsaOpenPolicy")) == NULL)
+		if ((s_pRtlNtStatusToDosError = (RtlNtStatusToDosErrorType)get_proc_address(hm, "RtlNtStatusToDosError")) == NULL)
 			return STATUS_ASSERTION_FAILURE;
 	}
-
-	return s_pLsaOpenPolicy(system_name, attrib, access, handle);
-}
-
-
-NTSTATUS pLsaAddAccountRights(LSA_HANDLE lsa_h,
-	PSID psid,
-	PLSA_UNICODE_STRING rights,
-	ULONG num_rights)
-{
-	HMODULE hm;
-	typedef NTSTATUS(*LsaAddAccountRightsType)(LSA_HANDLE, PSID, PLSA_UNICODE_STRING, ULONG);
-	static LsaAddAccountRightsType s_pLsaAddAccountRights = NULL;
-
-	if (!s_pLsaAddAccountRights) {
-		if ((hm = load_advapi32()) == NULL)
-			return STATUS_ASSERTION_FAILURE;
-
-		if ((s_pLsaAddAccountRights = (LsaAddAccountRightsType)get_proc_address(hm, "LsaAddAccountRights")) == NULL)
-			return STATUS_ASSERTION_FAILURE;
-	}
-	
-	return s_pLsaAddAccountRights(lsa_h, psid, rights, num_rights);
+	return pRtlNtStatusToDosError(status);
 }

@@ -11,7 +11,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x64",
-      "BinaryBucket": "OpenSSH-Win64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X64"
     },
@@ -26,7 +26,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x86",
-      "BinaryBucket": "OpenSSH-Win32",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X86"
     },
@@ -41,7 +41,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm",
-      "BinaryBucket": "OpenSSH-ARM",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM"
     },
@@ -56,7 +56,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm64",
-      "BinaryBucket": "OpenSSH-ARM64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
     },
@@ -71,7 +71,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x64",
-      "BinaryBucket": "OpenSSH-Win64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X64"
     },
@@ -86,7 +86,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x86",
-      "BinaryBucket": "OpenSSH-Win32",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X86"
     },
@@ -101,7 +101,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm",
-      "BinaryBucket": "OpenSSH-Arm",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM"
     },
@@ -116,7 +116,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm64",
-      "BinaryBucket": "OpenSSH-Arm64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
     },
@@ -161,7 +161,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm",
-      "BinaryBucket": "OpenSSH-Arm",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM"
     },
@@ -176,7 +176,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm64",
-      "BinaryBucket": "OpenSSH-Arm64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
     },
@@ -191,7 +191,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x64",
-      "BinaryBucket": "OpenSSH-Win64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X64"
     },
@@ -206,7 +206,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-x86",
-      "BinaryBucket": "OpenSSH-Win32",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-X86"
     },
@@ -221,7 +221,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm",
-      "BinaryBucket": "OpenSSH-Arm",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM"
     },
@@ -236,7 +236,7 @@
       "DockerFile": ".\\contrib\\win32\\openssh\\DockerFile",
       "AdditionalContextFiles": [ ".\\contrib\\win32\\openssh\\OpenSSH-build.ps1" ],
       "DockerImageName": "di-openssh-arm64",
-      "BinaryBucket": "OpenSSH-Arm64",
+      "BinaryBucket": "OpenSSH-Original",
       "ArtifactsExpected": 1,
       "VariableForExtractedBinariesPath": "OpenSSH-ARM64"
     }
