@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatchlisten.sh,v 1.1 2018/06/07 04:46:34 djm Exp $
+#	$OpenBSD: cfgmatchlisten.sh,v 1.2 2018/06/19 03:02:17 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config matchlisten"
@@ -106,6 +106,21 @@ ${SSH} -q -p $fwdport -F $OBJ/ssh_config somehost true || \
     fail "match permitlisten permit"
 stop_client
 
+# Test that a bare port number is accepted in PermitListen
+cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+echo "PermitListen 127.0.0.1:1 $fwdport 127.0.0.2:2" >>$OBJ/sshd_proxy
+trace "match permitlisten bare"
+expect_client_ok -F $OBJ/ssh_config
+${SSH} -q -p $fwdport -F $OBJ/ssh_config somehost true || \
+    fail "match permitlisten bare"
+stop_client
+
+# Test that an incorrect bare port number is denied as expected
+cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+echo "PermitListen 1 2 99" >>$OBJ/sshd_proxy
+trace "match permitlisten bare"
+expect_client_fail -F $OBJ/ssh_config
+
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 echo "PermitListen 127.0.0.1:1 $fwdspec 127.0.0.2:2" >>$OBJ/sshd_proxy
 echo "Match User $USER" >>$OBJ/sshd_proxy
@@ -149,7 +164,7 @@ expect_client_fail "nomatch 127.0.0.1 server config and userkey" \
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 echo "PermitListen 127.0.0.1:1 ${fwdspec2} 127.0.0.2:2" >>$OBJ/sshd_proxy
 trace "nomatch permitlisten 127.0.0.1 w/key opts"
-expect_client_fail "nomatch 127.0.0.1 w/key otps" \
+expect_client_fail "nomatch 127.0.0.1 w/key opts" \
     -F $OBJ/ssh_config
 
 # fix key opts
@@ -163,3 +178,25 @@ expect_client_ok -F $OBJ/ssh_proxy
 ${SSH} -q -p $fwdport -F $OBJ/ssh_config somehost true || \
     fail "match 127.0.0.1 server config w/key opts"
 stop_client
+
+# key opts with bare port number
+cp /dev/null $OBJ/authorized_keys_$USER
+for t in ${SSH_KEYTYPES}; do
+	printf 'permitlisten="'$fwdport'" ' >> $OBJ/authorized_keys_$USER
+	cat $OBJ/$t.pub >> $OBJ/authorized_keys_$USER
+done
+trace "match permitlisten 127.0.0.1 server config w/key opts (bare)"
+expect_client_ok -F $OBJ/ssh_proxy
+${SSH} -q -p $fwdport -F $OBJ/ssh_config somehost true || \
+    fail "match 127.0.0.1 server config w/key opts (bare)"
+stop_client
+
+# key opts with incorrect bare port number
+cp /dev/null $OBJ/authorized_keys_$USER
+for t in ${SSH_KEYTYPES}; do
+	printf 'permitlisten="99" ' >> $OBJ/authorized_keys_$USER
+	cat $OBJ/$t.pub >> $OBJ/authorized_keys_$USER
+done
+trace "match permitlisten 127.0.0.1 server config w/key opts (wrong bare)"
+expect_client_fail "nomatch 127.0.0.1 w/key opts (wrong bare)" \
+    -F $OBJ/ssh_config
