@@ -85,6 +85,11 @@ struct ssh {
 
 	/* APP data */
 	void *app_data;
+
+	/* logging data for ServerLogging patch*/
+	double start_time;
+	u_long fdout_bytes;
+	u_long stdin_bytes;
 };
 
 typedef int (ssh_packet_hook_fn)(struct ssh *, struct sshbuf *,
@@ -173,6 +178,8 @@ time_t	 ssh_packet_get_rekey_timeout(struct ssh *);
 void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
 void	*ssh_packet_get_send_context(struct ssh *);
+
+double  get_current_time(void);
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);

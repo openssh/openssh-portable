@@ -1818,6 +1818,16 @@ fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 }
 
+/* Povide the current time in seconds since epoch */
+
+double
+get_current_time(void)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
+}
+
 /*
  * Pretty-print connection-terminating errors and exit.
  */
@@ -1825,8 +1835,20 @@ void
 sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 {
 	char remote_id[512];
+	double total_time;
 
 	fmt_connection_id(ssh, remote_id, sizeof(remote_id));
+
+	if (ssh->start_time < 1) 
+		/* this will produce a NaN in the output. -cjr */
+		total_time = 0;
+	else
+		total_time = get_current_time() - ssh->start_time;
+	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
+	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	      ssh->stdin_bytes, ssh->fdout_bytes, total_time,
+	      ssh->stdin_bytes / total_time,
+	      ssh->fdout_bytes / total_time);
 
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
@@ -1935,6 +1957,8 @@ ssh_packet_write_poll(struct ssh *ssh)
 			return SSH_ERR_CONN_CLOSED;
 		if ((r = sshbuf_consume(state->output, len)) != 0)
 			return r;
+		else
+			ssh->stdin_bytes += len;
 	}
 	return 0;
 }

@@ -226,19 +226,6 @@ signal_handler(int sig)
 }
 
 /*
- * Returns current time in seconds from Jan 1, 1970 with the maximum
- * available resolution.
- */
-
-static double
-get_current_time(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
-}
-
-/*
  * Sets control_persist_exit_time to the absolute time when the
  * backgrounded control master should exit due to expiry of the
  * ControlPersist timeout.  Sets it to 0 if we are not a backgrounded
