@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.381 2018/06/06 18:22:41 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.382 2018/06/25 22:28:33 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3886,7 +3886,7 @@ open_listen_match_tcpip(struct permission *allowed_open,
 	allowed_host = translate ?
 	    channel_rfwd_bind_host(allowed_open->listen_host) :
 	    allowed_open->listen_host;
-	if (allowed_host == NULL ||
+	if (allowed_host == NULL || requestedhost == NULL ||
 	    strcmp(allowed_host, requestedhost) != 0)
 		return 0;
 	return 1;
