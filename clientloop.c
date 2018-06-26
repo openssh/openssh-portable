@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.313 2018/06/09 03:01:12 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.314 2018/06/26 02:02:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -921,7 +921,7 @@ print_escape_help(Buffer *b, int escape_char, int mux_client, int using_stderr)
 	buffer_append(b, string, strlen(string));
 }
 
-/* 
+/*
  * Process the characters one by one.
  */
 static int
@@ -940,7 +940,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 
 	if (c->filter_ctx == NULL)
 		return 0;
-	
+
 	if (len <= 0)
 		return (0);
 
@@ -1746,7 +1746,7 @@ struct hostkeys_update_ctx {
 	 */
 	struct sshkey **keys;
 	int *keys_seen;
-	size_t nkeys, nnew; 
+	size_t nkeys, nnew;
 
 	/*
 	 * Keys that are in known_hosts, but were not present in the update

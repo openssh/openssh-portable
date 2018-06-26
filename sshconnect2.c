@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.270 2018/03/24 19:28:43 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.271 2018/06/26 02:02:36 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -654,7 +654,7 @@ userauth_gssapi(Authctxt *authctxt)
 	while (mech < gss_supported->count && !ok) {
 		/* My DER encoding requires length<128 */
 		if (gss_supported->elements[mech].length < 128 &&
-		    ssh_gssapi_check_mechanism(&gssctxt, 
+		    ssh_gssapi_check_mechanism(&gssctxt,
 		    &gss_supported->elements[mech], authctxt->host)) {
 			ok = 1; /* Mechanism works */
 		} else {
