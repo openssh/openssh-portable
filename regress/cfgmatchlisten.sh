@@ -1,4 +1,4 @@
-#	$OpenBSD: cfgmatchlisten.sh,v 1.2 2018/06/19 03:02:17 djm Exp $
+#	$OpenBSD: cfgmatchlisten.sh,v 1.3 2018/07/02 14:13:30 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="sshd_config matchlisten"
@@ -20,7 +20,7 @@ start_client()
 		return $r
 	fi
 	${SSH} -vvv $fwd "$@" somehost \
-	    exec sh -c \'"echo \$\$ > $pidfile; exec sleep 100"\' &
+	    exec sh -c \'"echo \$\$ > $pidfile; exec sleep 100"\' \
 	    >>$TEST_REGRESS_LOGFILE 2>&1 &
 	client_pid=$!
 	# Wait for remote end
