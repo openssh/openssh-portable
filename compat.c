@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.108 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.109 2018/07/03 11:42:12 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -72,7 +72,8 @@ compat_datafellows(const char *version)
 		  "OpenSSH_7.3*,"
 		  "OpenSSH_7.4*,"
 		  "OpenSSH_7.5*,"
-		  "OpenSSH_7.6*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE},
+		  "OpenSSH_7.6*,"
+		  "OpenSSH_7.7*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE},
 		{ "OpenSSH*",		SSH_NEW_OPENSSH },
 		{ "*MindTerm*",		0 },
 		{ "3.0.*",		SSH_BUG_DEBUG },
