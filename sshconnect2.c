@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.272 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.273 2018/07/03 13:07:58 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1507,7 +1507,7 @@ pubkey_prepare(Authctxt *authctxt)
 	}
 	/* finally, filter by PubkeyAcceptedKeyTypes */
 	TAILQ_FOREACH_SAFE(id, preferred, next, id2) {
-		if (id->key != NULL && !key_type_allowed_by_config(key)) {
+		if (id->key != NULL && !key_type_allowed_by_config(id->key)) {
 			debug("Skipping %s key %s - "
 			    "not in PubkeyAcceptedKeyTypes",
 			    sshkey_ssh_name(id->key), id->filename);
