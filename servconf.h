@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.134 2018/06/09 03:03:10 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.135 2018/07/03 10:59:35 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -133,6 +133,7 @@ typedef struct {
 	int     permit_empty_passwd;	/* If false, do not permit empty
 					 * passwords. */
 	int     permit_user_env;	/* If true, read ~/.ssh/environment */
+	char   *permit_user_env_whitelist; /* pattern-list whitelist */
 	int     compression;	/* If true, compression is allowed */
 	int	allow_tcp_forwarding; /* One of FORWARD_* */
 	int	allow_streamlocal_forwarding; /* One of FORWARD_* */
@@ -242,6 +243,7 @@ struct connection_info {
 		M_CP_STROPT(hostbased_key_types); \
 		M_CP_STROPT(pubkey_key_types); \
 		M_CP_STROPT(routing_domain); \
+		M_CP_STROPT(permit_user_env_whitelist); \
 		M_CP_STRARRAYOPT(authorized_keys_files, num_authkeys_files); \
 		M_CP_STRARRAYOPT(allow_users, num_allow_users); \
 		M_CP_STRARRAYOPT(deny_users, num_deny_users); \

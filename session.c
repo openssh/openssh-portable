@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.300 2018/06/09 03:03:10 djm Exp $ */
+/* $OpenBSD: session.c,v 1.301 2018/07/03 10:59:35 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -867,10 +867,12 @@ check_quietlogin(Session *s, const char *command)
  * into the environment.  If the file does not exist, this does nothing.
  * Otherwise, it must consist of empty lines, comments (line starts with '#')
  * and assignments of the form name=value.  No other forms are allowed.
+ * If whitelist is not NULL, then it is interpreted as a pattern list and
+ * only variable names that match it will be accepted.
  */
 static void
 read_environment_file(char ***env, u_int *envsize,
-	const char *filename)
+	const char *filename, const char *whitelist)
 {
 	FILE *f;
 	char *line = NULL, *cp, *value;
@@ -903,6 +905,9 @@ read_environment_file(char ***env, u_int *envsize,
 		 */
 		*value = '\0';
 		value++;
+		if (whitelist != NULL &&
+		    match_pattern_list(cp, whitelist, 0) != 1)
+			continue;
 		child_set_env(env, envsize, cp, value);
 	}
 	free(line);
@@ -1121,7 +1126,12 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 			cp = strchr(ocp, '=');
 			if (*cp == '=') {
 				*cp = '\0';
-				child_set_env(&env, &envsize, ocp, cp + 1);
+				/* Apply PermitUserEnvironment whitelist */
+				if (options.permit_user_env_whitelist == NULL ||
+				    match_pattern_list(ocp,
+				    options.permit_user_env_whitelist, 0) == 1)
+					child_set_env(&env, &envsize,
+					    ocp, cp + 1);
 			}
 			free(ocp);
 		}
@@ -1131,7 +1141,8 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	if (options.permit_user_env) {
 		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
 		    pw->pw_dir);
-		read_environment_file(&env, &envsize, buf);
+		read_environment_file(&env, &envsize, buf,
+		    options.permit_user_env_whitelist);
 	}
 
 #ifdef USE_PAM
