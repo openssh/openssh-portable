@@ -1,4 +1,4 @@
-#	$OpenBSD: key-options.sh,v 1.8 2018/03/14 05:35:40 djm Exp $
+#	$OpenBSD: key-options.sh,v 1.9 2018/07/03 13:53:26 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key options"
@@ -65,6 +65,7 @@ expect_pty_fail "restrict" "restrict"
 expect_pty_succeed "restrict,pty" "restrict,pty"
 
 # Test environment=
+# XXX this can fail if ~/.ssh/environment exists for the user running the test
 echo 'PermitUserEnvironment yes' >> $OBJ/sshd_proxy
 sed 's/.*/environment="FOO=bar" &/' $origkeys >$authkeys
 verbose "key option environment"
