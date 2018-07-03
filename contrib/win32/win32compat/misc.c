@@ -1211,135 +1211,6 @@ invalid_parameter_handler(const wchar_t* expression, const wchar_t* function, co
 	debug3("Expression: %s", expression);
 }
 
-/*
- * This method will fetch all the groups (listed below) even if the user is indirectly a member.
- * - Local machine groups
- * - Domain groups
- * - global group
- * - universal groups
-*/
-char **
-getusergroups(const char *user, int *ngroups)
-{
-	/* early declarations and initializations to support cleanup */
-	HANDLE logon_token = NULL;
-	PTOKEN_GROUPS group_buf = NULL;
-
-	/* initialize return values */
-	errno = 0;
-	*ngroups = 0;
-	char ** user_groups = NULL;
-
-	/* fetch the computer name so we can determine if the specified user is local or not */
-	wchar_t computer_name[CNLEN + 1];
-	DWORD computer_name_size = ARRAYSIZE(computer_name);
-	if (GetComputerNameW(computer_name, &computer_name_size) == 0) {
-		goto cleanup;
-	}
-
-	/* get token that can be used for getting group information */
-	if ((logon_token = get_user_token((char *)user, 0)) == NULL) {
-		debug3("%s: get_user_token() failed for user %s.", __FUNCTION__, user);
-		goto cleanup;
-	}
-
-	/* allocate area for group information */
-	DWORD group_size = 0;
-	if (GetTokenInformation(logon_token, TokenGroups, NULL, 0, &group_size) == 0 
-		&& GetLastError() != ERROR_INSUFFICIENT_BUFFER ||
-		(group_buf = (PTOKEN_GROUPS)malloc(group_size)) == NULL) {
-		debug3("%s: GetTokenInformation() failed: %d", __FUNCTION__, GetLastError());
-		goto cleanup;
-	}
-
-	/* read group sids from logon token -- this will return a list of groups
-	 * similar to the data returned when you do a whoami /groups command */
-	if (GetTokenInformation(logon_token, TokenGroups, group_buf, group_size, &group_size) == 0) {
-		debug3("%s: GetTokenInformation() failed for user '%s'.", __FUNCTION__, user);
-		goto cleanup;
-	}
-
-	/* allocate memory to hold points to all group names; we double the value
-	 * in order to account for local groups that we trim the domain qualifier */
-	if ((user_groups = (char**)malloc(sizeof(char*) * group_buf->GroupCount * 2)) == NULL) {
-		errno = ENOMEM;
-		goto cleanup;
-	}
-
-	for (DWORD i = 0; i < group_buf->GroupCount; i++) {
-
-		/* only bother with group thats are 'enabled' from a security perspective */
-		if ((group_buf->Groups[i].Attributes & SE_GROUP_ENABLED) == 0 ||
-			!IsValidSid(group_buf->Groups[i].Sid))
-			continue;
-
-		/* only bother with groups that are builtin or classic domain/local groups */
-		SID * sid = group_buf->Groups[i].Sid;
-		DWORD sub = sid->SubAuthority[0];
-		SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
-		if (memcmp(&nt_authority, GetSidIdentifierAuthority(sid), sizeof(SID_IDENTIFIER_AUTHORITY)) == 0 && (
-			sub == SECURITY_NT_NON_UNIQUE || sub == SECURITY_BUILTIN_DOMAIN_RID)) {
-
-			/* lookup the account name for this sid */
-			wchar_t name[GNLEN + 1];
-			DWORD name_len = ARRAYSIZE(name);
-			wchar_t domain[DNLEN + 1];
-			DWORD domain_len = ARRAYSIZE(domain);
-			SID_NAME_USE name_use = 0;
-			if (LookupAccountSidW(NULL, sid, name, &name_len, domain, &domain_len, &name_use) == 0) {
-				errno = ENOENT;
-				debug("%s: LookupAccountSid() failed: %d.", __FUNCTION__, GetLastError());
-				goto cleanup;
-			}
-
-			/* add group name in netbios\\name format */
-			int current_group = (*ngroups)++;
-			wchar_t formatted_group[DNLEN + 1 + GNLEN + 1];
-			swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%s\\%s", domain, name);
-			_wcslwr_s(formatted_group, ARRAYSIZE(formatted_group));
-			debug3("Added group '%ls' for user '%s'.", formatted_group, user);
-			user_groups[current_group] = utf16_to_utf8(formatted_group);
-			if (user_groups[current_group] == NULL) {
-				errno = ENOMEM;
-				goto cleanup;
-			}
-
-			/* for local accounts trim the domain qualifier */
-			if (_wcsicmp(computer_name, domain) == 0)
-			{
-				current_group = (*ngroups)++;
-				swprintf_s(formatted_group, ARRAYSIZE(formatted_group), L"%s", name);
-				_wcslwr_s(formatted_group, ARRAYSIZE(formatted_group));
-				debug3("Added group '%ls' for user '%s'.", formatted_group, user);
-				user_groups[current_group] = utf16_to_utf8(formatted_group);
-				if (user_groups[current_group] == NULL) {
-					errno = ENOMEM;
-					goto cleanup;
-				}
-			}
-		}
-	}
-
-cleanup:
-
-	if (group_buf)
-		free(group_buf);
-	if (logon_token) 
-		CloseHandle(logon_token);
-
-	/* special cleanup - if ran out of memory while allocating groups */
-	if (user_groups && errno == ENOMEM || *ngroups == 0) {
-		for (int group = 0; group < *ngroups; group++)
-			if (user_groups[group]) free(user_groups[group]);
-		*ngroups = 0;
-		free(user_groups);
-		return NULL;
-	}
-
-	/* downsize the array to the actual size and return */
-	return (char**)realloc(user_groups, sizeof(char*) * (*ngroups));
-}
-
 void
 to_lower_case(char *s)
 {
@@ -1636,9 +1507,12 @@ am_system()
 	return running_as_system;
 }
 
-/* returns SID of user or current user if (user = NULL) */
+/* 
+ * returns SID of user/group or current user if (user = NULL) 
+ * caller should free() return value
+ */
 PSID
-get_user_sid(char* name)
+get_sid(const char* name)
 {
 	HANDLE token = NULL;
 	TOKEN_USER* info = NULL;

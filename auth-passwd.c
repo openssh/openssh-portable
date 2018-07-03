@@ -226,43 +226,7 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 #elif defined(WINDOWS)
 HANDLE password_auth_token = NULL;
 HANDLE process_custom_lsa_auth(const char*, const char*, const char*);
-
-void 
-sys_auth_passwd_lsa(Authctxt *authctxt, const char *password)
-{
-	char  *lsa_auth_pkg = NULL;
-	wchar_t *lsa_auth_pkg_w = NULL;
-	int domain_len = 0, lsa_auth_pkg_len = 0;	
-	HKEY reg_key = 0;
-	REGSAM mask = STANDARD_RIGHTS_READ | KEY_QUERY_VALUE | KEY_WOW64_64KEY;
-		
-	if ((RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OpenSSH", 0, mask, &reg_key) == ERROR_SUCCESS) &&
-		(RegQueryValueExW(reg_key, L"LSAAuthenticationPackage", 0, NULL, NULL, &lsa_auth_pkg_len) == ERROR_SUCCESS)) {
-		lsa_auth_pkg_w = (wchar_t *) malloc(lsa_auth_pkg_len); // lsa_auth_pkg_len includes the null terminating character.
-		if (!lsa_auth_pkg_w)
-			fatal("%s: out of memory", __func__);
-
-		memset(lsa_auth_pkg_w, 0, lsa_auth_pkg_len);
-		if (RegQueryValueExW(reg_key, L"LSAAuthenticationPackage", 0, NULL, (LPBYTE)lsa_auth_pkg_w, &lsa_auth_pkg_len) == ERROR_SUCCESS) {
-			lsa_auth_pkg = utf16_to_utf8(lsa_auth_pkg_w);
-			if (!lsa_auth_pkg)
-				fatal("utf16_to_utf8 failed to convert lsa_auth_pkg_w:%ls", lsa_auth_pkg_w);
-			
-			password_auth_token = process_custom_lsa_auth(authctxt->pw->pw_name, password, lsa_auth_pkg);
-		}
-	}
-
-done:
-	if (lsa_auth_pkg_w)
-		free(lsa_auth_pkg_w);
-
-	if (lsa_auth_pkg)
-		free(lsa_auth_pkg);
-
-	if (reg_key)
-		RegCloseKey(reg_key);
-}
-
+char* get_custom_lsa_package();
 /*
 * Authenticate on Windows 
 * - Call LogonUser and retrieve user token
@@ -327,7 +291,8 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 				unam_utf16, udom_utf16, GetLastError());
 
 			/* If LSA authentication package is configured then it will return the auth_token */
-			sys_auth_passwd_lsa(authctxt, password);
+			if (get_custom_lsa_package())
+				password_auth_token = process_custom_lsa_auth(authctxt->pw->pw_name, password, get_custom_lsa_package());
 		}
 	}
 	

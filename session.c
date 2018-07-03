@@ -577,8 +577,10 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	if (!in_chroot)
 		chdir(s->pw->pw_dir);
 
-	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR)
+	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
 		command = "echo This service allows sftp connections only.";
+		pty = 0;
+	}
 
 	exec_command = build_session_commandline(s->pw->pw_shell, shell_command_option, command, pty);
 	if (exec_command == NULL)

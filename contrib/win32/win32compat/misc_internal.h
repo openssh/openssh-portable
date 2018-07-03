@@ -47,11 +47,12 @@ void invalid_parameter_handler(const wchar_t *, const wchar_t *, const wchar_t *
 void to_lower_case(char *s);
 void to_wlower_case(wchar_t *s);
 wchar_t* get_program_data_path();
-HANDLE get_user_token(char* user, int impersonation);
+HANDLE get_user_token(const char* user, int impersonation);
 int load_user_profile(HANDLE user_token, char* user);
 int create_directory_withsddl(wchar_t *path, wchar_t *sddl);
 int is_absolute_path(const char *);
 int file_in_chroot_jail(HANDLE, const char*);
-PSID get_user_sid(char*);
+PSID get_sid(const char*);
 int am_system();
 char* build_session_commandline(const char *, const char *, const char *, int );
+char* get_custom_lsa_package();

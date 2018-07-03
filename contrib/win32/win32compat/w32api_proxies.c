@@ -93,6 +93,7 @@ load_secur32()
 	return s_hm_secur32;
 }
 
+static HMODULE
 load_ntdll()
 {
 	static HMODULE s_hm_ntdll = NULL;

@@ -712,6 +712,40 @@ recv_hostkeys_state(int fd)
 	buffer_free(m);
 }
 
+static void
+send_autxctx_state(Authctxt *auth, int fd)
+{
+	struct sshbuf *m;
+	int r;
+
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if ((r = sshbuf_put_cstring(m, auth->pw->pw_name)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	if (ssh_msg_send(fd, 0, m) == -1)
+		fatal("%s: ssh_msg_send failed", __func__);
+
+	sshbuf_free(m);
+}
+
+static void
+recv_autxctx_state(Authctxt *auth, int fd)
+{
+	Buffer m;
+	u_int len;
+
+	buffer_init(&m);
+
+	if (ssh_msg_recv(fd, &m) == -1)
+		fatal("%s: ssh_msg_recv failed", __func__);
+	if (buffer_get_char(&m) != 0)
+		fatal("%s: recv_keystate version mismatch", __func__);
+
+	auth->user = xstrdup(buffer_get_cstring(&m, &len));
+	buffer_free(&m);
+}
+
 static char**
 privsep_child_cmdline(int authenticated)
 {
@@ -739,13 +773,8 @@ privsep_preauth(Authctxt *authctxt)
 
 #ifdef FORK_NOT_SUPPORTED
 	if (privsep_auth_child) {
-		struct connection_info *ci = get_connection_info(1, options.use_dns);
-
-		authctxt->pw = getpwuid(geteuid());
-		ci->user = authctxt->pw->pw_name;
-		parse_server_match_config(&options, ci);
-		log_change_level(options.log_level);
-		process_permitopen(active_state, &options);
+		recv_autxctx_state(authctxt, PRIVSEP_MONITOR_FD);
+		authctxt->pw = getpwnamallow(authctxt->user);
 		authctxt->valid = 1;
 		return 1;
 	}
@@ -907,6 +936,7 @@ privsep_postauth(Authctxt *authctxt)
 		send_config_state(pmonitor->m_sendfd, &cfg);
 		send_hostkeys_state(pmonitor->m_sendfd);
 		send_idexch_state(pmonitor->m_sendfd);
+		send_autxctx_state(authctxt, pmonitor->m_sendfd);
 		monitor_send_keystate(pmonitor);
 		monitor_clear_keystate(pmonitor);
 		monitor_child_postauth(pmonitor);

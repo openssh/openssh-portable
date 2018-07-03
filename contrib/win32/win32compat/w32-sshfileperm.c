@@ -57,7 +57,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	char *bad_user = NULL;
 	int ret = 0;
 
-	if ((user_sid = get_user_sid(pw ? pw->pw_name : NULL)) == NULL)
+	if ((user_sid = get_sid(pw ? pw->pw_name : NULL)) == NULL)
 		goto cleanup;
 
 	if ((path_utf16 = resolved_path_utf16(input_path)) == NULL) {
