@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.136 2018/02/07 02:06:50 jsing Exp $ */
+/* $OpenBSD: kex.c,v 1.137 2018/07/03 11:39:54 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -342,6 +342,7 @@ kex_send_ext_info(struct ssh *ssh)
 
 	if ((algs = sshkey_alg_list(0, 1, 1, ',')) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
+	/* XXX filter algs list by allowed pubkey/hostbased types */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_EXT_INFO)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, 1)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, "server-sig-algs")) != 0 ||
@@ -378,7 +379,7 @@ kex_input_ext_info(int type, u_int32_t seq, struct ssh *ssh)
 {
 	struct kex *kex = ssh->kex;
 	u_int32_t i, ninfo;
-	char *name, *found;
+	char *name;
 	u_char *val;
 	size_t vlen;
 	int r;
@@ -401,16 +402,8 @@ kex_input_ext_info(int type, u_int32_t seq, struct ssh *ssh)
 				return SSH_ERR_INVALID_FORMAT;
 			}
 			debug("%s: %s=<%s>", __func__, name, val);
-			found = match_list("rsa-sha2-256", val, NULL);
-			if (found) {
-				kex->rsa_sha2 = 256;
-				free(found);
-			}
-			found = match_list("rsa-sha2-512", val, NULL);
-			if (found) {
-				kex->rsa_sha2 = 512;
-				free(found);
-			}
+			kex->server_sig_algs = val;
+			val = NULL;
 		} else
 			debug("%s: %s (unrecognised)", __func__, name);
 		free(name);

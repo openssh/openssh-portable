@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.508 2018/04/13 03:57:26 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.509 2018/07/03 11:39:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -681,45 +681,47 @@ privsep_postauth(Authctxt *authctxt)
 	packet_set_authenticated();
 }
 
+static void
+append_hostkey_type(struct sshbuf *b, const char *s)
+{
+	int r;
+
+	if (match_pattern_list(s, options.hostkeyalgorithms, 0) != 1) {
+		debug3("%s: %s key not permitted by HostkeyAlgorithms",
+		    __func__, s);
+		return;
+	}
+	if ((r = sshbuf_putf(b, "%s%s", sshbuf_len(b) > 0 ? "," : "", s)) != 0)
+		fatal("%s: sshbuf_putf: %s", __func__, ssh_err(r));
+}
+
 static char *
 list_hostkey_types(void)
 {
-	Buffer b;
-	const char *p;
+	struct sshbuf *b;
+	struct sshkey *key;
 	char *ret;
 	u_int i;
-	struct sshkey *key;
 
-	buffer_init(&b);
+	if ((b = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	for (i = 0; i < options.num_host_key_files; i++) {
 		key = sensitive_data.host_keys[i];
 		if (key == NULL)
 			key = sensitive_data.host_pubkeys[i];
 		if (key == NULL)
 			continue;
-		/* Check that the key is accepted in HostkeyAlgorithms */
-		if (match_pattern_list(sshkey_ssh_name(key),
-		    options.hostkeyalgorithms, 0) != 1) {
-			debug3("%s: %s key not permitted by HostkeyAlgorithms",
-			    __func__, sshkey_ssh_name(key));
-			continue;
-		}
 		switch (key->type) {
 		case KEY_RSA:
+			/* for RSA we also support SHA2 signatures */
+			append_hostkey_type(b, "rsa-sha2-512");
+			append_hostkey_type(b, "rsa-sha2-256");
+			/* FALLTHROUGH */
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
 		case KEY_XMSS:
-			if (buffer_len(&b) > 0)
-				buffer_append(&b, ",", 1);
-			p = key_ssh_name(key);
-			buffer_append(&b, p, strlen(p));
-
-			/* for RSA we also support SHA2 signatures */
-			if (key->type == KEY_RSA) {
-				p = ",rsa-sha2-512,rsa-sha2-256";
-				buffer_append(&b, p, strlen(p));
-			}
+			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
 		}
 		/* If the private key has a cert peer, then list that too */
@@ -728,21 +730,24 @@ list_hostkey_types(void)
 			continue;
 		switch (key->type) {
 		case KEY_RSA_CERT:
+			/* for RSA we also support SHA2 signatures */
+			append_hostkey_type(b,
+			    "rsa-sha2-512-cert-v01@openssh.com");
+			append_hostkey_type(b,
+			    "rsa-sha2-256-cert-v01@openssh.com");
+			/* FALLTHROUGH */
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
 		case KEY_XMSS_CERT:
-			if (buffer_len(&b) > 0)
-				buffer_append(&b, ",", 1);
-			p = key_ssh_name(key);
-			buffer_append(&b, p, strlen(p));
+			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
 		}
 	}
-	if ((ret = sshbuf_dup_string(&b)) == NULL)
+	if ((ret = sshbuf_dup_string(b)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);
-	buffer_free(&b);
-	debug("list_hostkey_types: %s", ret);
+	sshbuf_free(b);
+	debug("%s: %s", __func__, ret);
 	return ret;
 }
 

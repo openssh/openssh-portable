@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.79 2018/06/06 18:29:18 markus Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.80 2018/07/03 11:39:54 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -109,7 +109,7 @@ userauth_pubkey(struct ssh *ssh)
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
 		/* this is perfectly legal */
-		logit("%s: unsupported public key algorithm: %s",
+		verbose("%s: unsupported public key algorithm: %s",
 		    __func__, pkalg);
 		goto done;
 	}
@@ -136,8 +136,7 @@ userauth_pubkey(struct ssh *ssh)
 		logit("refusing previously-used %s key", sshkey_type(key));
 		goto done;
 	}
-	if (match_pattern_list(sshkey_ssh_name(key),
-	    options.pubkey_key_types, 0) != 1) {
+	if (match_pattern_list(pkalg, options.pubkey_key_types, 0) != 1) {
 		logit("%s: key type %s not in PubkeyAcceptedKeyTypes",
 		    __func__, sshkey_ssh_name(key));
 		goto done;
@@ -188,8 +187,10 @@ userauth_pubkey(struct ssh *ssh)
 		/* test for correct signature */
 		authenticated = 0;
 		if (PRIVSEP(user_key_allowed(ssh, pw, key, 1, &authopts)) &&
-		    PRIVSEP(sshkey_verify(key, sig, slen, sshbuf_ptr(b),
-		    sshbuf_len(b), NULL, ssh->compat)) == 0) {
+		    PRIVSEP(sshkey_verify(key, sig, slen,
+		    sshbuf_ptr(b), sshbuf_len(b),
+		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
+		    ssh->compat)) == 0) {
 			authenticated = 1;
 		}
 		sshbuf_free(b);

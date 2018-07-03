@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.107 2018/04/16 22:50:44 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.108 2018/07/03 11:39:54 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -52,16 +52,27 @@ compat_datafellows(const char *version)
 	} check[] = {
 		{ "OpenSSH_2.*,"
 		  "OpenSSH_3.0*,"
-		  "OpenSSH_3.1*",	SSH_BUG_EXTEOF|SSH_OLD_FORWARD_ADDR},
-		{ "OpenSSH_3.*",	SSH_OLD_FORWARD_ADDR },
-		{ "Sun_SSH_1.0*",	SSH_BUG_NOREKEY|SSH_BUG_EXTEOF},
+		  "OpenSSH_3.1*",	SSH_BUG_EXTEOF|SSH_OLD_FORWARD_ADDR|
+					SSH_BUG_SIGTYPE},
+		{ "OpenSSH_3.*",	SSH_OLD_FORWARD_ADDR|SSH_BUG_SIGTYPE },
+		{ "Sun_SSH_1.0*",	SSH_BUG_NOREKEY|SSH_BUG_EXTEOF|
+					SSH_BUG_SIGTYPE},
 		{ "OpenSSH_2*,"
 		  "OpenSSH_3*,"
-		  "OpenSSH_4*",		0 },
-		{ "OpenSSH_5*",		SSH_NEW_OPENSSH|SSH_BUG_DYNAMIC_RPORT},
-		{ "OpenSSH_6.6.1*",	SSH_NEW_OPENSSH},
+		  "OpenSSH_4*",		SSH_BUG_SIGTYPE },
+		{ "OpenSSH_5*",		SSH_NEW_OPENSSH|SSH_BUG_DYNAMIC_RPORT|
+					SSH_BUG_SIGTYPE},
+		{ "OpenSSH_6.6.1*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE},
 		{ "OpenSSH_6.5*,"
-		  "OpenSSH_6.6*",	SSH_NEW_OPENSSH|SSH_BUG_CURVE25519PAD},
+		  "OpenSSH_6.6*",	SSH_NEW_OPENSSH|SSH_BUG_CURVE25519PAD|
+					SSH_BUG_SIGTYPE},
+		{ "OpenSSH_7.0*,"
+		  "OpenSSH_7.1*,"
+		  "OpenSSH_7.2*,"
+		  "OpenSSH_7.3*,"
+		  "OpenSSH_7.4*,"
+		  "OpenSSH_7.5*,"
+		  "OpenSSH_7.6*",	SSH_NEW_OPENSSH|SSH_BUG_SIGTYPE},
 		{ "OpenSSH*",		SSH_NEW_OPENSSH },
 		{ "*MindTerm*",		0 },
 		{ "3.0.*",		SSH_BUG_DEBUG },
