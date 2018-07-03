@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.65 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.66 2018/07/03 13:20:25 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2244,8 +2244,8 @@ get_sigtype(const u_char *sig, size_t siglen, char **sigtypep)
 /*
  * Returns the expected signature algorithm for a given public key algorithm.
  */
-static const char *
-sigalg_by_name(const char *name)
+const char *
+sshkey_sigalg_by_name(const char *name)
 {
 	const struct keytype *kt;
 
@@ -2276,7 +2276,7 @@ sshkey_check_sigtype(const u_char *sig, size_t siglen,
 
 	if (requested_alg == NULL)
 		return 0;
-	if ((expected_alg = sigalg_by_name(requested_alg)) == NULL)
+	if ((expected_alg = sshkey_sigalg_by_name(requested_alg)) == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((r = get_sigtype(sig, siglen, &sigtype)) != 0)
 		return r;

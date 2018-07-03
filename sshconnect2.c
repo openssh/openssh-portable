@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.273 2018/07/03 13:07:58 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.274 2018/07/03 13:20:25 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -996,7 +996,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, struct ssh *ssh)
 static char *
 key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 {
-	char *allowed, *oallowed, *cp, *alg = NULL;
+	char *allowed, *oallowed, *cp, *tmp, *alg = NULL;
 
 	/*
 	 * The signature algorithm will only differ from the key algorithm
@@ -1020,7 +1020,10 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 	while ((cp = strsep(&allowed, ",")) != NULL) {
 		if (sshkey_type_from_name(cp) != key->type)
 			continue;
-		alg = match_list(cp, ssh->kex->server_sig_algs, NULL);
+		tmp = match_list(sshkey_sigalg_by_name(cp), ssh->kex->server_sig_algs, NULL);
+		if (tmp != NULL)
+			alg = xstrdup(cp);
+		free(tmp);
 		if (alg != NULL)
 			break;
 	}

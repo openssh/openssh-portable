@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.25 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.26 2018/07/03 13:20:25 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -196,6 +196,7 @@ int	 sshkey_sign(const struct sshkey *, u_char **, size_t *,
 int	 sshkey_verify(const struct sshkey *, const u_char *, size_t,
     const u_char *, size_t, const char *, u_int);
 int	 sshkey_check_sigtype(const u_char *, size_t, const char *);
+const char *sshkey_sigalg_by_name(const char *);
 
 /* for debug */
 void	sshkey_dump_ec_point(const EC_GROUP *, const EC_POINT *);
