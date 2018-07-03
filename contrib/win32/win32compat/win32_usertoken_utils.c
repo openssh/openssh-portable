@@ -535,79 +535,52 @@ HANDLE generate_sshd_token_as_nonsystem()
 HANDLE generate_sshd_virtual_token()
 {
 	SID_IDENTIFIER_AUTHORITY nt_authority = SECURITY_NT_AUTHORITY;
-	UNICODE_STRING domain, group, account;
-	WCHAR va_name[32]; /* enough to accomodate sshd_123457890 */
+	UNICODE_STRING domain, group, account, svcLogonRight;
+	WCHAR va_name[16]; /* enough to accommodate sshd_ + log10(MAXDWORD) */
+	LSA_OBJECT_ATTRIBUTES ObjectAttributes;
 	LSA_HANDLE lsa_policy = NULL;
+	NTSTATUS lsa_ret = 0, lsa_add_ret = (NTSTATUS)-1;
 
 	PSID sid_domain = NULL, sid_group = NULL, sid_user = NULL;
 	HANDLE va_token = 0, va_token_restricted = 0;
 
 	StringCchPrintfW(va_name, 32, L"%s_%d", L"sshd", GetCurrentProcessId());
 
+	InitUnicodeString(&svcLogonRight, L"SeServiceLogonRight");
 	InitUnicodeString(&domain, VIRTUALUSER_DOMAIN);
 	InitUnicodeString(&group, VIRTUALUSER_GROUP_NAME);
 	InitUnicodeString(&account, va_name);
 
 	/* Initialize SIDs */
 	/* domain SID - S-1-5-111 */
-	if (!(AllocateAndInitializeSid(&nt_authority,
-	    1,
-	    111,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    &sid_domain))) {
+	if (!(AllocateAndInitializeSid(&nt_authority, 1, 111, 0, 0, 0, 0, 0, 0, 0, &sid_domain))) {
 		debug3("AllocateAndInitializeSid failed with domain SID");
 		goto cleanup;
 	}
 
 	/* group SID - S-1-5-111-0 */
-	if (!(AllocateAndInitializeSid(&nt_authority,
-	    2,
-	    111,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    0,
-	    &sid_group))) {
+	if (!(AllocateAndInitializeSid(&nt_authority, 2, 111, 0, 0, 0, 0, 0, 0, 0, &sid_group))) {
 		debug3("AllocateAndInitializeSid failed with group SID");
 		goto cleanup;
 	}
 
-	/* 
-	 * account SID 
-	 * this is derived from higher RIDs in sshd service account SID to ensure there are no conflicts
-	 * S-1-5-80-3847866527-469524349-687026318-516638107-1125189541 (Well Known group: NT SERVICE\sshd)
-	 * Ex account SID - S-1-5-111-3847866527-469524349-687026318-516638107-1125189541-123
-	 */
-	if (!(AllocateAndInitializeSid(&nt_authority,
-	    7,
-	    111,
-	    3847866527,
-	    469524349,
-	    687026318,
-	    516638107,
-	    1125189541,
-	    GetCurrentProcessId(),
-	    0,
-	    &sid_user))) {
+	/*
+	* account SID
+	* this is derived from higher RIDs in sshd service account SID to ensure there are no conflicts
+	* S-1-5-80-3847866527-469524349-687026318-516638107-1125189541 (Well Known group: NT SERVICE\sshd)
+	* Ex account SID - S-1-5-111-3847866527-469524349-687026318-516638107-1125189541-123
+	*/
+	if (!(AllocateAndInitializeSid(&nt_authority, 7, 111, 3847866527, 469524349,
+		687026318, 516638107, 1125189541, GetCurrentProcessId(), 0, &sid_user))) {
 		debug3("AllocateAndInitializeSid failed with account SID");
 		goto cleanup;
 	}
-		
 
 	/* Map the domain SID */
 	if (AddSidMappingToLsa(&domain, NULL, sid_domain) != 0) {
 		debug3("AddSidMappingToLsa failed to map the domain Sid");
 		goto cleanup;
-	}		
+	}
 
 	/* Map the group SID */
 	if (AddSidMappingToLsa(&domain, &group, sid_group) != 0) {
@@ -622,50 +595,42 @@ HANDLE generate_sshd_virtual_token()
 	}
 
 	/* assign service logon privilege to virtual account */
-	{
-		LSA_OBJECT_ATTRIBUTES ObjectAttributes;
-		UNICODE_STRING svcLogonRight;
-		NTSTATUS lsa_ret;
+	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
+	if ((lsa_ret = LsaOpenPolicy(NULL, &ObjectAttributes,
+		POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES,
+		&lsa_policy)) != STATUS_SUCCESS) {
+		error("%s: unable to open policy handle, error: %d",
+			__FUNCTION__, (ULONG)pRtlNtStatusToDosError(lsa_ret));
+		goto cleanup;
+	}
 
-		ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
-		if ((lsa_ret = LsaOpenPolicy(NULL, &ObjectAttributes,
-		    POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES, 
-		    &lsa_policy )) != STATUS_SUCCESS) {
-			error("%s: unable to open policy handle, error: %d", __FUNCTION__, pRtlNtStatusToDosError(lsa_ret));
-			goto cleanup;
-		}
-		InitUnicodeString(&svcLogonRight, L"SeServiceLogonRight");
-		if ((lsa_ret = LsaAddAccountRights(lsa_policy, sid_user, &svcLogonRight, 1)) != STATUS_SUCCESS) {
-			error("%s: unable to assign SE_SERVICE_LOGON_NAME privilege, error: %d", __FUNCTION__, pRtlNtStatusToDosError(lsa_ret));
-			goto cleanup;
-		}
+	/* alter security to allow policy to account to logon as a service */
+	if ((lsa_add_ret = LsaAddAccountRights(lsa_policy, sid_user, &svcLogonRight, 1)) != STATUS_SUCCESS) {
+		error("%s: unable to assign SE_SERVICE_LOGON_NAME privilege, error: %d",
+			__FUNCTION__, (ULONG)pRtlNtStatusToDosError(lsa_add_ret));
+		goto cleanup;
 	}
 
 	/* Logon virtual and create token */
-	if (!pLogonUserExExW(
-	    va_name,
-	    VIRTUALUSER_DOMAIN,
-	    L"",
-	    LOGON32_LOGON_SERVICE,
-	    LOGON32_PROVIDER_VIRTUAL,
-	    NULL,
-	    &va_token,
-	    NULL,
-	    NULL,
-	    NULL,
-	    NULL)) {
+	if (!pLogonUserExExW(va_name, VIRTUALUSER_DOMAIN, L"", LOGON32_LOGON_SERVICE,
+		LOGON32_PROVIDER_VIRTUAL, NULL, &va_token, NULL, NULL, NULL, NULL)) {
 		debug3("LogonUserExExW failed with %d", GetLastError());
 		goto cleanup;
 	}
 
 	/* remove all privileges */
-	if (!CreateRestrictedToken(va_token, DISABLE_MAX_PRIVILEGE, 0, NULL, 0, NULL, 0, NULL, &va_token_restricted ))
+	if (!CreateRestrictedToken(va_token, DISABLE_MAX_PRIVILEGE, 0, NULL, 0, NULL, 0, NULL, &va_token_restricted))
 		debug3("CreateRestrictedToken failed with %d", GetLastError());
 
 	CloseHandle(va_token);
 
 cleanup:
 	RemoveVirtualAccountLSAMapping(&domain, &account);
+
+	/* attempt to remove virtual account permissions if previous add succeeded */
+	if (lsa_add_ret == STATUS_SUCCESS)
+		if ((lsa_ret = LsaRemoveAccountRights(lsa_policy, sid_user, FALSE, &svcLogonRight, 1)) != STATUS_SUCCESS)
+			debug("%s: unable to remove SE_SERVICE_LOGON_NAME privilege, error: %d", __FUNCTION__, pRtlNtStatusToDosError(lsa_ret));
 
 	if (sid_domain)
 		FreeSid(sid_domain);
