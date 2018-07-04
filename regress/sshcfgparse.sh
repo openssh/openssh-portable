@@ -1,7 +1,26 @@
-#	$OpenBSD: sshcfgparse.sh,v 1.3 2018/04/06 04:18:35 dtucker Exp $
+#	$OpenBSD: sshcfgparse.sh,v 1.4 2018/07/04 13:51:12 djm Exp $
 #	Placed in the Public Domain.
 
 tid="ssh config parse"
+
+expect_result_present() {
+	_str="$1" ; shift
+	for _expect in "$@" ; do
+		echo "$f" | tr ',' '\n' | grep "^$_expect\$" >/dev/null
+		if test $? -ne 0 ; then
+			fail "missing expected \"$_expect\" from \"$_str\""
+		fi
+	done
+}
+expect_result_absent() {
+	_str="$1" ; shift
+	for _expect in "$@" ; do
+		echo "$f" | tr ',' '\n' | grep "^$_expect\$" >/dev/null
+		if test $? -eq 0 ; then
+			fail "unexpected \"$_expect\" present in \"$_str\""
+		fi
+	done
+}
 
 verbose "reparse minimal config"
 (${SSH} -G -F $OBJ/ssh_config somehost >$OBJ/ssh_config.1 &&
@@ -35,6 +54,36 @@ f=`${SSH} -GF $OBJ/ssh_config -lbar baz@host user=foo baz@host | awk '/^user /{p
 test "$f" = "bar" || fail "user first match -l, expected 'bar' got '$f'"
 f=`${SSH} -GF $OBJ/ssh_config baz@host -o user=foo -l bar baz@host | awk '/^user /{print $2}'`
 test "$f" = "baz" || fail "user first match user@host, expected 'baz' got '$f'"
+
+verbose "pubkeyacceptedkeytypes"
+# Default set
+f=`${SSH} -GF none host | awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519" "ssh-ed25519-cert-v01.*"
+expect_result_absent "$f" "ssh-dss"
+# Explicit override
+f=`${SSH} -GF none -opubkeyacceptedkeytypes=ssh-ed25519 host | \
+    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519"
+expect_result_absent "$f" "ssh-ed25519-cert-v01.*" "ssh-dss"
+# Removal from default set
+f=`${SSH} -GF none -opubkeyacceptedkeytypes=-ssh-ed25519-cert* host | \
+    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519"
+expect_result_absent "$f" "ssh-ed25519-cert-v01.*" "ssh-dss"
+f=`${SSH} -GF none -opubkeyacceptedkeytypes=-ssh-ed25519 host | \
+    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519-cert-v01.*"
+expect_result_absent "$f" "ssh-ed25519" "ssh-dss"
+# Append to default set.
+# XXX this will break for !WITH_OPENSSL
+f=`${SSH} -GF none -opubkeyacceptedkeytypes=+ssh-dss-cert* host | \
+    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519" "ssh-dss-cert-v01.*"
+expect_result_absent "$f" "ssh-dss"
+f=`${SSH} -GF none -opubkeyacceptedkeytypes=+ssh-dss host | \
+    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+expect_result_present "$f" "ssh-ed25519" "ssh-ed25519-cert-v01.*" "ssh-dss"
+expect_result_absent "$f" "ssh-dss-cert-v01.*"
 
 # cleanup
 rm -f $OBJ/ssh_config.[012]
