@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.137 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.138 2018/07/04 13:49:31 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -174,7 +174,7 @@ kex_names_cat(const char *a, const char *b)
 	size_t len;
 
 	if (a == NULL || *a == '\0')
-		return NULL;
+		return strdup(b);
 	if (b == NULL || *b == '\0')
 		return strdup(a);
 	if (strlen(b) > 1024*1024)
@@ -209,27 +209,88 @@ kex_names_cat(const char *a, const char *b)
  * specified names should be removed.
  */
 int
-kex_assemble_names(const char *def, char **list)
+kex_assemble_names(char **listp, const char *def, const char *all)
 {
-	char *ret;
+	char *cp, *tmp, *patterns;
+	char *list = NULL, *ret = NULL, *matching = NULL, *opatterns = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if (list == NULL || *list == NULL || **list == '\0') {
-		*list = strdup(def);
+	if (listp == NULL || *listp == NULL || **listp == '\0') {
+		if ((*listp = strdup(def)) == NULL)
+			return SSH_ERR_ALLOC_FAIL;
 		return 0;
 	}
-	if (**list == '+') {
-		if ((ret = kex_names_cat(def, *list + 1)) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
-		free(*list);
-		*list = ret;
-	} else if (**list == '-') {
-		if ((ret = match_filter_list(def, *list + 1)) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
-		free(*list);
-		*list = ret;
+
+	list = *listp;
+	*listp = NULL;
+	if (*list == '+') {
+		/* Append names to default list */
+		if ((tmp = kex_names_cat(def, list + 1)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto fail;
+		}
+		free(list);
+		list = tmp;
+	} else if (*list == '-') {
+		/* Remove names from default list */
+		if ((*listp = match_filter_blacklist(def, list + 1)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto fail;
+		}
+		free(list);
+		/* filtering has already been done */
+		return 0;
+	} else {
+		/* Explicit list, overrides default - just use "list" as is */
 	}
 
-	return 0;
+	/*
+	 * The supplied names may be a pattern-list. For the -list case,
+	 * the patterns are applied above. For the +list and explicit list
+	 * cases we need to do it now.
+	 */
+	ret = NULL;
+	if ((patterns = opatterns = strdup(list)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto fail;
+	}
+	/* Apply positive (i.e. non-negated) patterns from the list */
+	while ((cp = strsep(&patterns, ",")) != NULL) {
+		if (*cp == '!') {
+			/* negated matches are not supported here */
+			r = SSH_ERR_INVALID_ARGUMENT;
+			goto fail;
+		}
+		free(matching);
+		if ((matching = match_filter_whitelist(all, cp)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto fail;
+		}
+		if ((tmp = kex_names_cat(ret, matching)) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto fail;
+		}
+		free(ret);
+		ret = tmp;
+	}
+	if (ret == NULL || *ret == '\0') {
+		/* An empty name-list is an error */
+		/* XXX better error code? */
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto fail;
+	}
+
+	/* success */
+	*listp = ret;
+	ret = NULL;
+	r = 0;
+
+ fail:
+	free(matching);
+	free(opatterns);
+	free(list);
+	free(ret);
+	return r;
 }
 
 /* put algorithm proposal into buffer */

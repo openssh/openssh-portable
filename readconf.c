@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.291 2018/06/10 23:45:41 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.292 2018/07/04 13:49:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1936,6 +1936,8 @@ fill_default_options_for_canonicalization(Options *options)
 void
 fill_default_options(Options * options)
 {
+	char *all_cipher, *all_mac, *all_kex, *all_key;
+
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
@@ -2082,14 +2084,27 @@ fill_default_options(Options * options)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	if (options->update_hostkeys == -1)
 		options->update_hostkeys = 0;
-	if (kex_assemble_names(KEX_CLIENT_ENCRYPT, &options->ciphers) != 0 ||
-	    kex_assemble_names(KEX_CLIENT_MAC, &options->macs) != 0 ||
-	    kex_assemble_names(KEX_CLIENT_KEX, &options->kex_algorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->hostbased_key_types) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->pubkey_key_types) != 0)
+
+	/* Expand KEX name lists */
+	all_cipher = cipher_alg_list(',', 0);
+	all_mac = mac_alg_list(',');
+	all_kex = kex_alg_list(',');
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	if (kex_assemble_names(&options->ciphers,
+	    KEX_CLIENT_ENCRYPT, all_cipher) != 0 ||
+	    kex_assemble_names(&options->macs,
+	    KEX_CLIENT_MAC, all_mac) != 0 ||
+	    kex_assemble_names(&options->kex_algorithms,
+	    KEX_CLIENT_KEX, all_kex) != 0 ||
+	    kex_assemble_names(&options->hostbased_key_types,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0 ||
+	    kex_assemble_names(&options->pubkey_key_types,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0)
 		fatal("%s: kex_assemble_names failed", __func__);
+	free(all_cipher);
+	free(all_mac);
+	free(all_kex);
+	free(all_key);
 
 #define CLEAR_ON_NONE(v) \
 	do { \
@@ -2537,11 +2552,14 @@ void
 dump_client_config(Options *o, const char *host)
 {
 	int i;
-	char buf[8];
+	char buf[8], *all_key;
 
 	/* This is normally prepared in ssh_kex2 */
-	if (kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->hostkeyalgorithms) != 0)
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	if (kex_assemble_names( &o->hostkeyalgorithms,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0)
 		fatal("%s: kex_assemble_names failed", __func__);
+	free(all_key);
 
 	/* Most interesting options first: user, host, port */
 	dump_cfg_string(oUser, o->user);

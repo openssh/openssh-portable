@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.274 2018/07/03 13:20:25 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.275 2018/07/04 13:49:31 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -158,7 +158,7 @@ void
 ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
-	char *s;
+	char *s, *all_key;
 	struct kex *kex;
 	int r;
 
@@ -178,9 +178,11 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (options.hostkeyalgorithms != NULL) {
-		if (kex_assemble_names(KEX_DEFAULT_PK_ALG,
-		    &options.hostkeyalgorithms) != 0)
+		all_key = sshkey_alg_list(0, 0, 1, ',');
+		if (kex_assemble_names(&options.hostkeyalgorithms,
+		    KEX_DEFAULT_PK_ALG, all_key) != 0)
 			fatal("%s: kex_assemble_namelist", __func__);
+		free(all_key);
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    compat_pkalg_proposal(options.hostkeyalgorithms);
 	} else {

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.334 2018/07/03 10:59:35 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.335 2018/07/04 13:49:31 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -190,15 +190,29 @@ option_clear_or_none(const char *o)
 static void
 assemble_algorithms(ServerOptions *o)
 {
-	if (kex_assemble_names(KEX_SERVER_ENCRYPT, &o->ciphers) != 0 ||
-	    kex_assemble_names(KEX_SERVER_MAC, &o->macs) != 0 ||
-	    kex_assemble_names(KEX_SERVER_KEX, &o->kex_algorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &o->hostkeyalgorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &o->hostbased_key_types) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->pubkey_key_types) != 0)
+	char *all_cipher, *all_mac, *all_kex, *all_key;
+
+	all_cipher = cipher_alg_list(',', 0);
+	all_mac = mac_alg_list(',');
+	all_kex = kex_alg_list(',');
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	if (kex_assemble_names(&o->ciphers,
+	    KEX_SERVER_ENCRYPT, all_cipher) != 0 ||
+	    kex_assemble_names(&o->macs,
+	    KEX_SERVER_MAC, all_mac) != 0 ||
+	    kex_assemble_names(&o->kex_algorithms,
+	    KEX_SERVER_KEX, all_kex) != 0 ||
+	    kex_assemble_names(&o->hostkeyalgorithms,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0 ||
+	    kex_assemble_names(&o->hostbased_key_types,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0 ||
+	    kex_assemble_names(&o->pubkey_key_types,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0)
 		fatal("kex_assemble_names failed");
+	free(all_cipher);
+	free(all_mac);
+	free(all_kex);
+	free(all_key);
 }
 
 static void
