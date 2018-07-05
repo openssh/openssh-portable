@@ -947,7 +947,8 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 	 * so we use a temporary environment and copy the variables we're
 	 * interested in.
 	 */
-	read_environment_file(&tmpenv, &tmpenvsize, "/etc/default/login");
+	read_environment_file(&tmpenv, &tmpenvsize, "/etc/default/login",
+	    options.permit_user_env_whitelist);
 
 	if (tmpenv == NULL)
 		return;
@@ -1106,7 +1107,8 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 
 		if ((cp = getenv("AUTHSTATE")) != NULL)
 			child_set_env(&env, &envsize, "AUTHSTATE", cp);
-		read_environment_file(&env, &envsize, "/etc/environment");
+		read_environment_file(&env, &envsize, "/etc/environment",
+		    options.permit_user_env_whitelist);
 	}
 #endif
 #ifdef KRB5
