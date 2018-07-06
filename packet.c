@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.271 2018/06/01 04:05:29 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.272 2018/07/06 09:03:02 sf Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -146,12 +146,6 @@ struct session_state {
 	int compression_out_started;
 	int compression_in_failures;
 	int compression_out_failures;
-
-	/*
-	 * Flag indicating whether packet compression/decompression is
-	 * enabled.
-	 */
-	int packet_compression;
 
 	/* default maximum packet size */
 	u_int max_packet_size;
@@ -714,21 +708,6 @@ start_compression_in(struct ssh *ssh)
 	default:
 		return SSH_ERR_INTERNAL_ERROR;
 	}
-	return 0;
-}
-
-int
-ssh_packet_start_compression(struct ssh *ssh, int level)
-{
-	int r;
-
-	if (ssh->state->packet_compression)
-		return SSH_ERR_INTERNAL_ERROR;
-	ssh->state->packet_compression = 1;
-	if ((r = ssh_packet_init_compression(ssh)) != 0 ||
-	    (r = start_compression_in(ssh)) != 0 ||
-	    (r = start_compression_out(ssh, level)) != 0)
-		return r;
 	return 0;
 }
 
