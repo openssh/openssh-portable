@@ -53,9 +53,9 @@ getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
 
 
 	if (*buf == NULL || *bufsiz == 0) {
-		*bufsiz = BUFSIZ;
-		if ((*buf = malloc(*bufsiz)) == NULL)
+		if ((*buf = malloc(BUFSIZ)) == NULL)
 			return -1;
+		*bufsiz = BUFSIZ;
 	}
 
 	for (ptr = *buf, eptr = *buf + *bufsiz;;) {
