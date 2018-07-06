@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.99 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.100 2018/07/06 09:05:01 sf Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -84,8 +84,6 @@
 #include "ssherr.h"
 
 /* Imports */
-extern z_stream incoming_stream;
-extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
 extern Buffer loginmsg;
 extern ServerOptions options;
