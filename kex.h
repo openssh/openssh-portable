@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.86 2018/07/06 09:05:01 sf Exp $ */
+/* $OpenBSD: kex.h,v 1.87 2018/07/06 09:06:14 sf Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -64,7 +64,7 @@
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
 
 #define COMP_NONE	0
-#define COMP_DELAYED	1
+#define COMP_ZLIB	1
 
 #define CURVE25519_SIZE 32
 
