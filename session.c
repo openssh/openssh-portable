@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.301 2018/07/03 10:59:35 djm Exp $ */
+/* $OpenBSD: session.c,v 1.302 2018/07/09 21:20:26 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1912,7 +1912,6 @@ static int
 session_pty_req(struct ssh *ssh, Session *s)
 {
 	u_int len;
-	int n_bytes;
 
 	if (!auth_opts->permit_pty_flag || !options.permit_tty) {
 		debug("Allocating a pty not permitted for this connection.");
@@ -1947,8 +1946,7 @@ session_pty_req(struct ssh *ssh, Session *s)
 	}
 	debug("session_pty_req: session %d alloc %s", s->self, s->tty);
 
-	n_bytes = packet_remaining();
-	tty_parse_modes(s->ttyfd, &n_bytes);
+	ssh_tty_parse_modes(ssh, s->ttyfd);
 
 	if (!use_privsep)
 		pty_setowner(s->pw, s->tty);

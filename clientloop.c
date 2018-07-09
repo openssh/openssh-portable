@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.315 2018/07/09 21:03:30 markus Exp $ */
+/* $OpenBSD: clientloop.c,v 1.316 2018/07/09 21:20:26 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2210,7 +2210,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		packet_put_int((u_int)ws.ws_ypixel);
 		if (tiop == NULL)
 			tiop = get_saved_tio();
-		tty_make_modes(-1, tiop);
+		ssh_tty_make_modes(ssh, -1, tiop);
 		packet_send();
 		/* XXX wait for reply */
 		c->client_tty = 1;
