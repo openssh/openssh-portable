@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.510 2018/07/09 21:26:02 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.511 2018/07/09 21:29:36 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -91,7 +91,7 @@
 #include "sshpty.h"
 #include "packet.h"
 #include "log.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "misc.h"
 #include "match.h"
 #include "servconf.h"
@@ -237,7 +237,7 @@ Authctxt *the_authctxt = NULL;
 struct sshauthopt *auth_opts = NULL;
 
 /* sshd_config buffer */
-Buffer cfg;
+struct sshbuf *cfg;
 
 /* message to be displayed after login */
 struct sshbuf *loginmsg;
@@ -958,31 +958,33 @@ send_rexec_state(int fd, struct sshbuf *conf)
 }
 
 static void
-recv_rexec_state(int fd, Buffer *conf)
+recv_rexec_state(int fd, struct sshbuf *conf)
 {
-	Buffer m;
-	char *cp;
-	u_int len;
+	struct sshbuf *m;
+	u_char *cp, ver;
+	size_t len;
+	int r;
 
 	debug3("%s: entering fd = %d", __func__, fd);
 
-	buffer_init(&m);
-
-	if (ssh_msg_recv(fd, &m) == -1)
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if (ssh_msg_recv(fd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
-	if (buffer_get_char(&m) != 0)
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
 		fatal("%s: rexec version mismatch", __func__);
-
-	cp = buffer_get_string(&m, &len);
-	if (conf != NULL)
-		buffer_append(conf, cp, len);
-	free(cp);
-
+	if ((r = sshbuf_get_string(m, &cp, &len)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (conf != NULL && (r = sshbuf_put(conf, cp, len)))
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 #if defined(WITH_OPENSSL) && !defined(OPENSSL_PRNG_ONLY)
-	rexec_recv_rng_seed(&m);
+	rexec_recv_rng_seed(m);
 #endif
 
-	buffer_free(&m);
+	free(cp);
+	sshbuf_free(m);
 
 	debug3("%s: done", __func__);
 }
@@ -1263,8 +1265,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				startup_pipe = -1;
 				pid = getpid();
 				if (rexec_flag) {
-					send_rexec_state(config_s[0],
-					    &cfg);
+					send_rexec_state(config_s[0], cfg);
 					close(config_s[0]);
 				}
 				break;
@@ -1310,7 +1311,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			close(startup_p[1]);
 
 			if (rexec_flag) {
-				send_rexec_state(config_s[0], &cfg);
+				send_rexec_state(config_s[0], cfg);
 				close(config_s[0]);
 				close(config_s[1]);
 			}
@@ -1662,14 +1663,15 @@ main(int ac, char **av)
 		   "test mode (-T)");
 
 	/* Fetch our configuration */
-	buffer_init(&cfg);
+	if ((cfg = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	if (rexeced_flag)
-		recv_rexec_state(REEXEC_CONFIG_PASS_FD, &cfg);
+		recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg);
 	else if (strcasecmp(config_file_name, "none") != 0)
-		load_server_config(config_file_name, &cfg);
+		load_server_config(config_file_name, cfg);
 
 	parse_server_config(&options, rexeced_flag ? "rexec" : config_file_name,
-	    &cfg, NULL);
+	    cfg, NULL);
 
 	seed_rng();
 
@@ -1770,7 +1772,7 @@ main(int ac, char **av)
 			keytype = pubkey->type;
 		} else if (key != NULL) {
 			keytype = key->type;
-			accumulate_host_timing_secret(&cfg, key);
+			accumulate_host_timing_secret(cfg, key);
 		} else {
 			error("Could not load host key: %s",
 			    options.host_key_files[i]);
@@ -1796,7 +1798,7 @@ main(int ac, char **av)
 		    key ? "private" : "agent", i, sshkey_ssh_name(pubkey), fp);
 		free(fp);
 	}
-	accumulate_host_timing_secret(&cfg, NULL);
+	accumulate_host_timing_secret(cfg, NULL);
 	if (!sensitive_data.have_ssh2_key) {
 		logit("sshd: no hostkeys available -- exiting.");
 		exit(1);

@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.337 2018/07/09 13:37:10 sf Exp $ */
+/* $OpenBSD: servconf.c,v 1.338 2018/07/09 21:29:36 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -45,7 +45,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 #include "log.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
 #include "compat.h"
@@ -59,6 +59,7 @@
 #include "groupaccess.h"
 #include "canohost.h"
 #include "packet.h"
+#include "ssherr.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "myproposal.h"
@@ -71,7 +72,7 @@ static void add_one_listen_addr(ServerOptions *, const char *,
 
 /* Use of privilege separation or not */
 extern int use_privsep;
-extern Buffer cfg;
+extern struct sshbuf *cfg;
 
 /* Initializes the server options to their default values. */
 
@@ -2163,19 +2164,19 @@ process_server_config_line(ServerOptions *options, char *line,
 /* Reads the server configuration file. */
 
 void
-load_server_config(const char *filename, Buffer *conf)
+load_server_config(const char *filename, struct sshbuf *conf)
 {
 	char *line = NULL, *cp;
 	size_t linesize = 0;
 	FILE *f;
-	int lineno = 0;
+	int r, lineno = 0;
 
 	debug2("%s: filename %s", __func__, filename);
 	if ((f = fopen(filename, "r")) == NULL) {
 		perror(filename);
 		exit(1);
 	}
-	buffer_clear(conf);
+	sshbuf_reset(conf);
 	while (getline(&line, &linesize, f) != -1) {
 		lineno++;
 		/*
@@ -2186,13 +2187,14 @@ load_server_config(const char *filename, Buffer *conf)
 		if ((cp = strchr(line, '#')) != NULL)
 			memcpy(cp, "\n", 2);
 		cp = line + strspn(line, " \t\r");
-
-		buffer_append(conf, cp, strlen(cp));
+		if ((r = sshbuf_put(conf, cp, strlen(cp))) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	}
 	free(line);
-	buffer_append(conf, "\0", 1);
+	if ((r = sshbuf_put_u8(conf, 0)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	fclose(f);
-	debug2("%s: done config len = %d", __func__, buffer_len(conf));
+	debug2("%s: done config len = %zu", __func__, sshbuf_len(conf));
 }
 
 void
@@ -2202,7 +2204,7 @@ parse_server_match_config(ServerOptions *options,
 	ServerOptions mo;
 
 	initialize_server_options(&mo);
-	parse_server_config(&mo, "reprocess config", &cfg, connectinfo);
+	parse_server_config(&mo, "reprocess config", cfg, connectinfo);
 	copy_set_server_options(options, &mo, 0);
 }
 
@@ -2346,13 +2348,13 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 #undef M_CP_STRARRAYOPT
 
 void
-parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
-    struct connection_info *connectinfo)
+parse_server_config(ServerOptions *options, const char *filename,
+    struct sshbuf *conf, struct connection_info *connectinfo)
 {
 	int active, linenum, bad_options = 0;
 	char *cp, *obuf, *cbuf;
 
-	debug2("%s: config %s len %d", __func__, filename, buffer_len(conf));
+	debug2("%s: config %s len %zu", __func__, filename, sshbuf_len(conf));
 
 	if ((obuf = cbuf = sshbuf_dup_string(conf)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);

@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.206 2018/06/08 01:55:40 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.207 2018/07/09 21:29:36 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -58,7 +58,7 @@
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "packet.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "log.h"
 #include "misc.h"
 #include "servconf.h"
