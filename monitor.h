@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.h,v 1.20 2016/09/28 16:33:07 djm Exp $ */
+/* $OpenBSD: monitor.h,v 1.21 2018/07/09 21:53:45 markus Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -87,8 +87,8 @@ struct mon_table;
 int monitor_read(struct monitor*, struct mon_table *, struct mon_table **);
 
 /* Prototypes for request sending and receiving */
-void mm_request_send(int, enum monitor_reqtype, Buffer *);
-void mm_request_receive(int, Buffer *);
-void mm_request_receive_expect(int, enum monitor_reqtype, Buffer *);
+void mm_request_send(int, enum monitor_reqtype, struct sshbuf *);
+void mm_request_receive(int, struct sshbuf *);
+void mm_request_receive_expect(int, enum monitor_reqtype, struct sshbuf *);
 
 #endif /* _MONITOR_H_ */
