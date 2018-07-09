@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.181 2018/07/09 21:26:02 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.182 2018/07/09 21:35:50 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -113,8 +113,6 @@ static Gssctxt *gsscontext = NULL;
 extern ServerOptions options;
 extern u_int utmp_len;
 extern u_char session_id[];
-extern Buffer auth_debug;
-extern int auth_debug_init;
 extern struct sshbuf *loginmsg;
 extern struct sshauthopt *auth_opts; /* XXX move to permanent ssh->authctxt? */
 

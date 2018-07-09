@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.130 2018/06/06 18:23:32 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.131 2018/07/09 21:35:50 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -55,10 +55,10 @@
 #include "match.h"
 #include "groupaccess.h"
 #include "log.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
@@ -84,8 +84,7 @@ extern struct passwd *privsep_pw;
 extern struct sshauthopt *auth_opts;
 
 /* Debugging messages */
-Buffer auth_debug;
-int auth_debug_init;
+static struct sshbuf *auth_debug;
 
 /*
  * Check if the user is allowed to log in via ssh. If user is listed
@@ -281,7 +280,7 @@ format_method_key(Authctxt *authctxt)
 	if (key == NULL)
 		return NULL;
 
-	if (key_is_cert(key)) {
+	if (sshkey_is_cert(key)) {
 		fp = sshkey_fingerprint(key->cert->signature_key,
 		    options.fingerprint_hash, SSH_FP_DEFAULT);
 		xasprintf(&ret, "%s ID %s (serial %llu) CA %s %s%s%s",
@@ -672,26 +671,32 @@ auth_debug_add(const char *fmt,...)
 {
 	char buf[1024];
 	va_list args;
+	int r;
 
-	if (!auth_debug_init)
+	if (auth_debug == NULL)
 		return;
 
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
-	buffer_put_cstring(&auth_debug, buf);
+	if ((r = sshbuf_put_cstring(auth_debug, buf)) != 0)
+		fatal("%s: sshbuf_put_cstring: %s", __func__, ssh_err(r));
 }
 
 void
 auth_debug_send(void)
 {
+	struct ssh *ssh = active_state;		/* XXX */
 	char *msg;
+	int r;
 
-	if (!auth_debug_init)
+	if (auth_debug == NULL)
 		return;
-	while (buffer_len(&auth_debug)) {
-		msg = buffer_get_string(&auth_debug, NULL);
-		packet_send_debug("%s", msg);
+	while (sshbuf_len(auth_debug) != 0) {
+		if ((r = sshbuf_get_cstring(auth_debug, &msg, NULL)) != 0)
+			fatal("%s: sshbuf_get_cstring: %s",
+			    __func__, ssh_err(r));
+		ssh_packet_send_debug(ssh, "%s", msg);
 		free(msg);
 	}
 }
@@ -699,12 +704,10 @@ auth_debug_send(void)
 void
 auth_debug_reset(void)
 {
-	if (auth_debug_init)
-		buffer_clear(&auth_debug);
-	else {
-		buffer_init(&auth_debug);
-		auth_debug_init = 1;
-	}
+	if (auth_debug != NULL)
+		sshbuf_reset(auth_debug);
+	else if ((auth_debug = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 }
 
 struct passwd *

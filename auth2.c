@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.147 2018/05/11 03:22:55 dtucker Exp $ */
+/* $OpenBSD: auth2.c,v 1.148 2018/07/09 21:35:50 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -41,7 +41,7 @@
 #include "ssh2.h"
 #include "packet.h"
 #include "log.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "misc.h"
 #include "servconf.h"
 #include "compat.h"
@@ -451,11 +451,12 @@ auth2_method_allowed(Authctxt *authctxt, const char *method,
 static char *
 authmethods_get(Authctxt *authctxt)
 {
-	Buffer b;
+	struct sshbuf *b;
 	char *list;
-	u_int i;
+	int i, r;
 
-	buffer_init(&b);
+	if ((b = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	for (i = 0; authmethods[i] != NULL; i++) {
 		if (strcmp(authmethods[i]->name, "none") == 0)
 			continue;
@@ -465,14 +466,13 @@ authmethods_get(Authctxt *authctxt)
 		if (!auth2_method_allowed(authctxt, authmethods[i]->name,
 		    NULL))
 			continue;
-		if (buffer_len(&b) > 0)
-			buffer_append(&b, ",", 1);
-		buffer_append(&b, authmethods[i]->name,
-		    strlen(authmethods[i]->name));
+		if ((r = sshbuf_putf(b, "%s%s", sshbuf_len(b) ? "," : "",
+		    authmethods[i]->name)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	}
-	if ((list = sshbuf_dup_string(&b)) == NULL)
+	if ((list = sshbuf_dup_string(b)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);
-	buffer_free(&b);
+	sshbuf_free(b);
 	return list;
 }
 
