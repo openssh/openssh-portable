@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.110 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.111 2018/07/09 21:59:10 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -133,7 +133,7 @@ ssh_request_reply(int sock, struct sshbuf *request, struct sshbuf *reply)
 
 	/* Send the length and then the packet to the agent. */
 	if (atomicio(vwrite, sock, buf, 4) != 4 ||
-	    atomicio(vwrite, sock, (u_char *)sshbuf_ptr(request),
+	    atomicio(vwrite, sock, sshbuf_mutable_ptr(request),
 	    sshbuf_len(request)) != sshbuf_len(request))
 		return SSH_ERR_AGENT_COMMUNICATION;
 	/*
