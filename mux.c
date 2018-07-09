@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.71 2018/06/09 03:01:12 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.72 2018/07/09 21:03:30 markus Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -87,7 +87,7 @@ extern Options options;
 extern int stdin_null_flag;
 extern char *host;
 extern int subsystem_flag;
-extern Buffer command;
+extern struct sshbuf *command;
 extern volatile sig_atomic_t quit_pending;
 
 /* Context for session open confirmation callback */
@@ -1887,7 +1887,7 @@ mux_client_request_session(int fd)
 	buffer_put_int(&m, options.escape_char == SSH_ESCAPECHAR_NONE ?
 	    0xffffffff : (u_int)options.escape_char);
 	buffer_put_cstring(&m, term == NULL ? "" : term);
-	buffer_put_string(&m, buffer_ptr(&command), buffer_len(&command));
+	buffer_put_string(&m, buffer_ptr(command), buffer_len(command));
 
 	/* Pass environment */
 	if (options.num_send_env > 0 && environ != NULL) {

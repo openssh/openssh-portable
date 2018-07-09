@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.110 2018/07/04 13:49:31 djm Exp $ */
+/* $OpenBSD: compat.c,v 1.111 2018/07/09 21:03:30 markus Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -32,7 +32,6 @@
 #include <stdarg.h>
 
 #include "xmalloc.h"
-#include "buffer.h"
 #include "packet.h"
 #include "compat.h"
 #include "log.h"
