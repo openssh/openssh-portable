@@ -84,7 +84,7 @@ LIBOPENSSH_OBJS=\
 	${XMSS_OBJS}
 
 LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
-	authfd.o authfile.o bufaux.o bufbn.o bufec.o buffer.o \
+	authfd.o authfile.o \
 	canohost.o channels.o cipher.o cipher-aes.o cipher-aesctr.o \
 	cipher-ctr.o cleanup.o \
 	compat.o crc32.o fatal.o hostfile.o \
@@ -175,7 +175,7 @@ sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(SSHDLIBS) $(LIBS) $(GSSLIBS) $(K5LIBS)
 
 scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o progressmeter.o
-	$(LD) -o $@ scp.o progressmeter.o bufaux.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+	$(LD) -o $@ scp.o progressmeter.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o
 	$(LD) -o $@ ssh-add.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
