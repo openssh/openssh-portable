@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.135 2018/07/03 10:59:35 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.136 2018/07/09 21:26:02 markus Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -261,8 +261,8 @@ void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int,
 	     int *, struct connection_info *);
 void	 process_permitopen(struct ssh *ssh, ServerOptions *options);
-void	 load_server_config(const char *, Buffer *);
-void	 parse_server_config(ServerOptions *, const char *, Buffer *,
+void	 load_server_config(const char *, struct sshbuf *);
+void	 parse_server_config(ServerOptions *, const char *, struct sshbuf *,
 	     struct connection_info *);
 void	 parse_server_match_config(ServerOptions *, struct connection_info *);
 int	 parse_server_match_testspec(struct connection_info *, char *);

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.509 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.510 2018/07/09 21:26:02 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -240,7 +240,7 @@ struct sshauthopt *auth_opts = NULL;
 Buffer cfg;
 
 /* message to be displayed after login */
-Buffer loginmsg;
+struct sshbuf *loginmsg;
 
 /* Unprivileged user */
 struct passwd *privsep_pw = NULL;
@@ -649,7 +649,7 @@ privsep_postauth(Authctxt *authctxt)
 		fatal("fork of unprivileged child failed");
 	else if (pmonitor->m_pid != 0) {
 		verbose("User child is on pid %ld", (long)pmonitor->m_pid);
-		buffer_clear(&loginmsg);
+		sshbuf_reset(loginmsg);
 		monitor_clear_keystate(pmonitor);
 		monitor_child_postauth(pmonitor);
 
@@ -2119,7 +2119,8 @@ main(int ac, char **av)
 		fatal("allocation failed");
 
 	/* prepare buffer to collect messages to display to user after login */
-	buffer_init(&loginmsg);
+	if ((loginmsg = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	auth_debug_reset();
 
 	if (use_privsep) {

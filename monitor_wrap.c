@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.101 2018/07/09 13:37:10 sf Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.102 2018/07/09 21:26:02 markus Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -87,7 +87,7 @@
 extern z_stream incoming_stream;
 extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
-extern Buffer loginmsg;
+extern struct sshbuf *loginmsg;
 extern ServerOptions options;
 
 void
@@ -506,7 +506,7 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {
 	Buffer m;
 	char *p, *msg;
-	int success = 0, tmp1 = -1, tmp2 = -1;
+	int success = 0, tmp1 = -1, tmp2 = -1, r;
 
 	/* Kludge: ensure there are fds free to receive the pty/tty */
 	if ((tmp1 = dup(pmonitor->m_recvfd)) == -1 ||
@@ -540,7 +540,8 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 	strlcpy(namebuf, p, namebuflen); /* Possible truncation */
 	free(p);
 
-	buffer_append(&loginmsg, msg, strlen(msg));
+	if ((r = sshbuf_put(loginmsg, msg, strlen(msg))) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	free(msg);
 
 	if ((*ptyfd = mm_receive_fd(pmonitor->m_recvfd)) == -1 ||

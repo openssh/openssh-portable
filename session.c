@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.302 2018/07/09 21:20:26 markus Exp $ */
+/* $OpenBSD: session.c,v 1.303 2018/07/09 21:26:02 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -69,7 +69,8 @@
 #include "ssh2.h"
 #include "sshpty.h"
 #include "packet.h"
-#include "buffer.h"
+#include "sshbuf.h"
+#include "ssherr.h"
 #include "match.h"
 #include "uidswap.h"
 #include "compat.h"
@@ -139,7 +140,7 @@ extern int debug_flag;
 extern u_int utmp_len;
 extern int startup_pipe;
 extern void destroy_sensitive_data(void);
-extern Buffer loginmsg;
+extern struct sshbuf *loginmsg;
 extern struct sshauthopt *auth_opts;
 char *tun_fwd_ifnames; /* serverloop.c */
 
@@ -248,11 +249,14 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 static void
 display_loginmsg(void)
 {
-	if (buffer_len(&loginmsg) > 0) {
-		buffer_append(&loginmsg, "\0", 1);
-		printf("%s", (char *)buffer_ptr(&loginmsg));
-		buffer_clear(&loginmsg);
-	}
+	int r;
+
+	if (sshbuf_len(loginmsg) == 0)
+		return;
+	if ((r = sshbuf_put_u8(loginmsg, 0)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	printf("%s", (char *)sshbuf_ptr(loginmsg));
+	sshbuf_reset(loginmsg);
 }
 
 static void
@@ -757,7 +761,7 @@ do_exec(struct ssh *ssh, Session *s, const char *command)
 	 * it to the user, otherwise multiple sessions may accumulate
 	 * multiple copies of the login messages.
 	 */
-	buffer_clear(&loginmsg);
+	sshbuf_reset(loginmsg);
 
 	return ret;
 }
