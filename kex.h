@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.87 2018/07/06 09:06:14 sf Exp $ */
+/* $OpenBSD: kex.h,v 1.88 2018/07/09 13:37:10 sf Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -65,6 +65,7 @@
 
 #define COMP_NONE	0
 #define COMP_ZLIB	1
+#define COMP_DELAYED	2
 
 #define CURVE25519_SIZE 32
 

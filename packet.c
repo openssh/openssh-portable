@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.274 2018/07/06 09:06:14 sf Exp $ */
+/* $OpenBSD: packet.c,v 1.275 2018/07/09 13:37:10 sf Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -879,8 +879,9 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	/* explicit_bzero(enc->iv,  enc->block_size);
 	   explicit_bzero(enc->key, enc->key_len);
 	   explicit_bzero(mac->key, mac->key_len); */
-	if (comp->type == COMP_ZLIB && state->after_authentication
-	    && comp->enabled == 0) {
+	if ((comp->type == COMP_ZLIB ||
+	    (comp->type == COMP_DELAYED &&
+	     state->after_authentication)) && comp->enabled == 0) {
 		if ((r = ssh_packet_init_compression(ssh)) < 0)
 			return r;
 		if (mode == MODE_OUT) {
@@ -970,7 +971,7 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 
 	/*
 	 * Remember that we are past the authentication step, so rekeying
-	 * with COMP_ZLIB will turn on compression immediately.
+	 * with COMP_DELAYED will turn on compression immediately.
 	 */
 	state->after_authentication = 1;
 	for (mode = 0; mode < MODE_MAX; mode++) {
@@ -978,7 +979,7 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 		if (state->newkeys[mode] == NULL)
 			continue;
 		comp = &state->newkeys[mode]->comp;
-		if (comp && !comp->enabled && comp->type == COMP_ZLIB) {
+		if (comp && !comp->enabled && comp->type == COMP_DELAYED) {
 			if ((r = ssh_packet_init_compression(ssh)) != 0)
 				return r;
 			if (mode == MODE_OUT) {

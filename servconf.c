@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.336 2018/07/06 09:06:14 sf Exp $ */
+/* $OpenBSD: servconf.c,v 1.337 2018/07/09 13:37:10 sf Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -349,7 +349,7 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_user_env_whitelist = NULL;
 	}
 	if (options->compression == -1)
-		options->compression = COMP_ZLIB;
+		options->compression = COMP_DELAYED;
 	if (options->rekey_limit == -1)
 		options->rekey_limit = 0;
 	if (options->rekey_interval == -1)
@@ -1170,8 +1170,8 @@ static const struct multistate multistate_permitrootlogin[] = {
 	{ NULL, -1 }
 };
 static const struct multistate multistate_compression[] = {
-	{ "yes",			COMP_ZLIB },
-	{ "delayed",			COMP_ZLIB },
+	{ "yes",			COMP_DELAYED },
+	{ "delayed",			COMP_DELAYED },
 	{ "no",				COMP_NONE },
 	{ NULL, -1 }
 };

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.140 2018/07/06 09:06:14 sf Exp $ */
+/* $OpenBSD: kex.c,v 1.141 2018/07/09 13:37:10 sf Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -741,6 +741,8 @@ choose_comp(struct sshcomp *comp, char *client, char *server)
 	if (name == NULL)
 		return SSH_ERR_NO_COMPRESS_ALG_MATCH;
 	if (strcmp(name, "zlib@openssh.com") == 0) {
+		comp->type = COMP_DELAYED;
+	} else if (strcmp(name, "zlib") == 0) {
 		comp->type = COMP_ZLIB;
 	} else if (strcmp(name, "none") == 0) {
 		comp->type = COMP_NONE;
