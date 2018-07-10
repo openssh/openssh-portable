@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.89 2018/07/09 21:56:06 markus Exp $ */
+/* $OpenBSD: kex.h,v 1.90 2018/07/10 09:36:58 sf Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -63,6 +63,7 @@
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
 
 #define COMP_NONE	0
+/* pre-auth compression (COMP_ZLIB) is only supported in the client */
 #define COMP_ZLIB	1
 #define COMP_DELAYED	2
 
