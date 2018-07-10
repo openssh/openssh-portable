@@ -23,9 +23,8 @@ these programs.
 
     - These provide an arbitrary size buffer, where data can be appended.
       Data can be consumed from either end.  The code is used heavily
-      throughout ssh.  The basic buffer manipulation functions are in
-      buffer.c (header buffer.h), and additional code to manipulate specific
-      data types is in bufaux.c.
+      throughout ssh.  The buffer manipulation functions are in
+      sshbuf*.c (header sshbuf.h).
 
   Compression Library
 
@@ -165,4 +164,4 @@ these programs.
 	uidswap.c    uid-swapping
 	xmalloc.c    "safe" malloc routines
 
-$OpenBSD: OVERVIEW,v 1.12 2015/07/08 19:01:15 markus Exp $
+$OpenBSD: OVERVIEW,v 1.13 2018/07/10 06:45:29 djm Exp $
