@@ -163,9 +163,13 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	esac
 
 	if [ x"$VG_SKIP" = "x" ]; then
+		VG_LEAK="--leak-check=no"
+		if [ x"$VALGRIND_CHECK_LEAKS" = "x" ]; then
+			VG_LEAK="--leak-check=full"
+		fi
 		VG_IGNORE="/bin/*,/sbin/*,/usr/*,/var/*"
 		VG_LOG="$OBJ/valgrind-out/${VG_TEST}."
-		VG_OPTS="--track-origins=yes --leak-check=full"
+		VG_OPTS="--track-origins=yes $VG_LEAK"
 		VG_OPTS="$VG_OPTS --trace-children=yes"
 		VG_OPTS="$VG_OPTS --trace-children-skip=${VG_IGNORE}"
 		VG_PATH="valgrind"
