@@ -1,4 +1,4 @@
-/* $OpenBSD: gss-genr.c,v 1.25 2018/07/09 21:37:55 markus Exp $ */
+/* $OpenBSD: gss-genr.c,v 1.26 2018/07/10 09:13:30 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2007 Simon Wilkinson. All rights reserved.
@@ -46,6 +46,21 @@
 
 extern u_char *session_id2;
 extern u_int session_id2_len;
+
+/* sshbuf_get for gss_buffer_desc */
+int
+ssh_gssapi_get_buffer_desc(struct sshbuf *b, gss_buffer_desc *g)
+{
+	int r;
+	u_char *p;
+	size_t len;
+
+	if ((r = sshbuf_get_string(b, &p, &len)) != 0)
+		return r;
+	g->value = p;
+	g->length = len;
+	return 0;
+}
 
 /* Check that the OID in a data stream matches that in the context */
 int

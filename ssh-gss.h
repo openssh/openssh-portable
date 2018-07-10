@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-gss.h,v 1.13 2018/07/10 06:43:52 djm Exp $ */
+/* $OpenBSD: ssh-gss.h,v 1.14 2018/07/10 09:13:30 djm Exp $ */
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
  *
@@ -106,6 +106,9 @@ void ssh_gssapi_supported_oids(gss_OID_set *);
 ssh_gssapi_mech *ssh_gssapi_get_ctype(Gssctxt *);
 void ssh_gssapi_prepare_supported_oids(void);
 OM_uint32 ssh_gssapi_test_oid_supported(OM_uint32 *, gss_OID, int *);
+
+struct sshbuf;
+int ssh_gssapi_get_buffer_desc(struct sshbuf *, gss_buffer_desc *);
 
 OM_uint32 ssh_gssapi_import_name(Gssctxt *, const char *);
 OM_uint32 ssh_gssapi_init_ctx(Gssctxt *, int,

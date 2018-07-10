@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.27 2018/07/09 21:37:55 markus Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.28 2018/07/10 09:13:30 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -204,15 +204,18 @@ input_gssapi_errtok(int type, u_int32_t plen, struct ssh *ssh)
 	gss_buffer_desc recv_tok;
 	OM_uint32 maj_status;
 	int r;
+	u_char *p;
+	size_t len;
 
 	if (authctxt == NULL || (authctxt->methoddata == NULL && !use_privsep))
 		fatal("No authentication or GSSAPI context");
 
 	gssctxt = authctxt->methoddata;
-	if ((r = sshpkt_get_string(ssh,
-	    &recv_tok.value, &recv_tok.length)) != 0 ||
+	if ((r = sshpkt_get_string(ssh, &p, &len)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
+	recv_tok.value = p;
+	recv_tok.length = len;
 
 	/* Push the error token into GSSAPI to see what it says */
 	maj_status = PRIVSEP(ssh_gssapi_accept_ctx(gssctxt, &recv_tok,
@@ -240,7 +243,7 @@ static int
 input_gssapi_exchange_complete(int type, u_int32_t plen, struct ssh *ssh)
 {
 	Authctxt *authctxt = ssh->authctxt;
-	int authenticated;
+	int r, authenticated;
 	const char *displayname;
 
 	if (authctxt == NULL || (authctxt->methoddata == NULL && !use_privsep))
@@ -278,16 +281,20 @@ input_gssapi_mic(int type, u_int32_t plen, struct ssh *ssh)
 	struct sshbuf *b;
 	gss_buffer_desc mic, gssbuf;
 	const char *displayname;
+	u_char *p;
+	size_t len;
 
 	if (authctxt == NULL || (authctxt->methoddata == NULL && !use_privsep))
 		fatal("No authentication or GSSAPI context");
 
 	gssctxt = authctxt->methoddata;
 
-	if ((r = sshpkt_get_string(ssh, &mic.value, &mic.length)) != 0)
+	if ((r = sshpkt_get_string(ssh, &p, &len)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
+	mic.value = p;
+	mic.length = len;
 	ssh_gssapi_buildmic(b, authctxt->user, authctxt->service,
 	    "gssapi-with-mic");
 

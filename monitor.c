@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.183 2018/07/09 21:53:45 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.184 2018/07/10 09:13:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1795,13 +1795,15 @@ mm_answer_gss_setup_ctx(int sock, struct sshbuf *m)
 	gss_OID_desc goid;
 	OM_uint32 major;
 	size_t len;
+	u_char *p;
 	int r;
 
 	if (!options.gss_authentication)
 		fatal("%s: GSSAPI authentication not enabled", __func__);
 
-	if ((r = sshbuf_get_string(m, &goid.elements, &len)) != 0)
+	if ((r = sshbuf_get_string(m, &p, &len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	goid.elements = p;
 	goid.length = len;
 
 	major = ssh_gssapi_server_ctx(&gsscontext, &goid);
@@ -1832,7 +1834,7 @@ mm_answer_gss_accept_ctx(int sock, struct sshbuf *m)
 	if (!options.gss_authentication)
 		fatal("%s: GSSAPI authentication not enabled", __func__);
 
-	if ((r = sshbuf_get_string(m, &in.value, &in.length)) != 0)
+	if ((r = ssh_gssapi_get_buffer_desc(m, &in)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	major = ssh_gssapi_accept_ctx(gsscontext, &in, &out, &flags);
 	free(in.value);
@@ -1859,12 +1861,13 @@ mm_answer_gss_checkmic(int sock, struct sshbuf *m)
 {
 	gss_buffer_desc gssbuf, mic;
 	OM_uint32 ret;
+	int r;
 
 	if (!options.gss_authentication)
 		fatal("%s: GSSAPI authentication not enabled", __func__);
 
-	if ((r = sshbuf_get_string(m, &gssbuf.value, &gssbuf.length)) != 0 ||
-	    (r = sshbuf_get_string(m, &mic.value, &mic.length)) != 0)
+	if ((r = ssh_gssapi_get_buffer_desc(m, &gssbuf)) != 0 ||
+	    (r = ssh_gssapi_get_buffer_desc(m, &mic)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	ret = ssh_gssapi_checkmic(gsscontext, &gssbuf, &mic);
@@ -1887,7 +1890,7 @@ mm_answer_gss_checkmic(int sock, struct sshbuf *m)
 int
 mm_answer_gss_userok(int sock, struct sshbuf *m)
 {
-	int authenticated;
+	int r, authenticated;
 	const char *displayname;
 
 	if (!options.gss_authentication)
