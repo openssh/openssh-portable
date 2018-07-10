@@ -973,6 +973,7 @@ mm_answer_skeyquery(int sock, struct sshbuf *m)
 	struct skey skey;
 	char challenge[1024];
 	u_int success;
+	int r;
 
 	success = _compat_skeychallenge(&skey, authctxt->user, challenge,
 	    sizeof(challenge)) < 0 ? 0 : 1;
