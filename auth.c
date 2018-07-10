@@ -79,7 +79,7 @@
 /* import */
 extern ServerOptions options;
 extern int use_privsep;
-extern Buffer loginmsg;
+extern struct sshbuf *loginmsg;
 extern struct passwd *privsep_pw;
 extern struct sshauthopt *auth_opts;
 

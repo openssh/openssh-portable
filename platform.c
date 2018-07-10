@@ -20,7 +20,6 @@
 #include <unistd.h>
 
 #include "log.h"
-#include "buffer.h"
 #include "misc.h"
 #include "servconf.h"
 #include "key.h"

@@ -529,7 +529,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	 * it to the user, otherwise multiple sessions may accumulate
 	 * multiple copies of the login messages.
 	 */
-	buffer_clear(&loginmsg);
+	sshbuf_reset(loginmsg);
 
 #ifdef USE_PIPES
 	/* We are the parent.  Close the child sides of the pipes. */

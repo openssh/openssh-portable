@@ -407,7 +407,10 @@ int
 mm_auth_password(struct ssh *ssh, char *password)
 {
 	struct sshbuf *m;
-	int r, maxtries = 0, authenticated = 0;
+	int r, authenticated = 0;
+#ifdef USE_PAM
+	u_int maxtries = 0;
+#endif
 
 	debug3("%s entering", __func__);
 
@@ -426,6 +429,8 @@ mm_auth_password(struct ssh *ssh, char *password)
 #ifdef USE_PAM
 	if ((r = sshbuf_get_u32(m, &maxtries)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (maxtries > INT_MAX)
+		fatal("%s: bad maxtries %u", __func__, maxtries);
 	sshpam_set_maxtries_reached(maxtries);
 #endif
 
@@ -637,40 +642,44 @@ mm_session_pty_cleanup2(Session *s)
 void
 mm_start_pam(Authctxt *authctxt)
 {
-	Buffer m;
+	struct sshbuf *m;
 
 	debug3("%s entering", __func__);
 	if (!options.use_pam)
 		fatal("UsePAM=no, but ended up in %s anyway", __func__);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_START, m);
 
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_START, &m);
-
-	buffer_free(&m);
+	sshbuf_free(m);
 }
 
 u_int
 mm_do_pam_account(void)
 {
-	Buffer m;
+	struct sshbuf *m;
 	u_int ret;
 	char *msg;
+	size_t msglen;
+	int r;
 
 	debug3("%s entering", __func__);
 	if (!options.use_pam)
 		fatal("UsePAM=no, but ended up in %s anyway", __func__);
 
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_ACCOUNT, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_ACCOUNT, m);
 
 	mm_request_receive_expect(pmonitor->m_recvfd,
-	    MONITOR_ANS_PAM_ACCOUNT, &m);
-	ret = buffer_get_int(&m);
-	msg = buffer_get_string(&m, NULL);
-	buffer_append(&loginmsg, msg, strlen(msg));
-	free(msg);
+	    MONITOR_ANS_PAM_ACCOUNT, m);
+	if ((r = sshbuf_get_u32(m, &ret)) != 0 ||
+	    (r = sshbuf_get_cstring(m, &msg, &msglen)) != 0 ||
+	    (r = sshbuf_put(loginmsg, msg, msglen)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	buffer_free(&m);
+	free(msg);
+	sshbuf_free(m);
 
 	debug3("%s returning %d", __func__, ret);
 
@@ -680,21 +689,24 @@ mm_do_pam_account(void)
 void *
 mm_sshpam_init_ctx(Authctxt *authctxt)
 {
-	Buffer m;
-	int success;
+	struct sshbuf *m;
+	int r, success;
 
 	debug3("%s", __func__);
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_INIT_CTX, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_INIT_CTX, m);
 	debug3("%s: waiting for MONITOR_ANS_PAM_INIT_CTX", __func__);
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PAM_INIT_CTX, &m);
-	success = buffer_get_int(&m);
+	mm_request_receive_expect(pmonitor->m_recvfd,
+	    MONITOR_ANS_PAM_INIT_CTX, m);
+	if ((r = sshbuf_get_u32(m, &success)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (success == 0) {
 		debug3("%s: pam_init_ctx failed", __func__);
-		buffer_free(&m);
+		sshbuf_free(m);
 		return (NULL);
 	}
-	buffer_free(&m);
+	sshbuf_free(m);
 	return (authctxt);
 }
 
@@ -702,66 +714,79 @@ int
 mm_sshpam_query(void *ctx, char **name, char **info,
     u_int *num, char ***prompts, u_int **echo_on)
 {
-	Buffer m;
-	u_int i;
-	int ret;
+	struct sshbuf *m;
+	u_int i, n;
+	int r, ret;
 
 	debug3("%s", __func__);
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_QUERY, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_QUERY, m);
 	debug3("%s: waiting for MONITOR_ANS_PAM_QUERY", __func__);
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PAM_QUERY, &m);
-	ret = buffer_get_int(&m);
+	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PAM_QUERY, m);
+	if ((r = sshbuf_get_u32(m, &ret)) != 0 ||
+	    (r = sshbuf_get_cstring(m, name, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(m, info, NULL)) != 0 ||
+	    (r = sshbuf_get_u32(m, &n)) != 0 ||
+	    (r = sshbuf_get_u32(m, num)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	debug3("%s: pam_query returned %d", __func__, ret);
-	*name = buffer_get_string(&m, NULL);
-	*info = buffer_get_string(&m, NULL);
-	sshpam_set_maxtries_reached(buffer_get_int(&m));
-	*num = buffer_get_int(&m);
+	sshpam_set_maxtries_reached(n);
 	if (*num > PAM_MAX_NUM_MSG)
 		fatal("%s: received %u PAM messages, expected <= %u",
 		    __func__, *num, PAM_MAX_NUM_MSG);
 	*prompts = xcalloc((*num + 1), sizeof(char *));
 	*echo_on = xcalloc((*num + 1), sizeof(u_int));
 	for (i = 0; i < *num; ++i) {
-		(*prompts)[i] = buffer_get_string(&m, NULL);
-		(*echo_on)[i] = buffer_get_int(&m);
+		if ((r = sshbuf_get_cstring(m, &((*prompts)[i]), NULL)) != 0 ||
+		    (r = sshbuf_get_u32(m, &((*echo_on)[i]))) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	}
-	buffer_free(&m);
+	sshbuf_free(m);
 	return (ret);
 }
 
 int
 mm_sshpam_respond(void *ctx, u_int num, char **resp)
 {
-	Buffer m;
-	u_int i;
-	int ret;
+	struct sshbuf *m;
+	u_int n, i;
+	int r, ret;
 
 	debug3("%s", __func__);
-	buffer_init(&m);
-	buffer_put_int(&m, num);
-	for (i = 0; i < num; ++i)
-		buffer_put_cstring(&m, resp[i]);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_RESPOND, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if ((r = sshbuf_put_u32(m, num)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	for (i = 0; i < num; ++i) {
+		if ((r = sshbuf_put_cstring(m, resp[i])) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	}
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_RESPOND, m);
 	debug3("%s: waiting for MONITOR_ANS_PAM_RESPOND", __func__);
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PAM_RESPOND, &m);
-	ret = buffer_get_int(&m);
+	mm_request_receive_expect(pmonitor->m_recvfd,
+	    MONITOR_ANS_PAM_RESPOND, m);
+	if ((r = sshbuf_get_u32(m, &n)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	ret = (int)n; /* XXX */
 	debug3("%s: pam_respond returned %d", __func__, ret);
-	buffer_free(&m);
+	sshbuf_free(m);
 	return (ret);
 }
 
 void
 mm_sshpam_free_ctx(void *ctxtp)
 {
-	Buffer m;
+	struct sshbuf *m;
 
 	debug3("%s", __func__);
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_FREE_CTX, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_FREE_CTX, m);
 	debug3("%s: waiting for MONITOR_ANS_PAM_FREE_CTX", __func__);
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_PAM_FREE_CTX, &m);
-	buffer_free(&m);
+	mm_request_receive_expect(pmonitor->m_recvfd,
+	    MONITOR_ANS_PAM_FREE_CTX, m);
+	sshbuf_free(m);
 }
 #endif /* USE_PAM */
 
@@ -859,27 +884,29 @@ int
 mm_skey_query(void *ctx, char **name, char **infotxt,
    u_int *numprompts, char ***prompts, u_int **echo_on)
 {
-	Buffer m;
+	struct sshbuf *m;
 	u_int success;
 	char *challenge;
 
 	debug3("%s: entering", __func__);
 
-	buffer_init(&m);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYQUERY, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYQUERY, m);
 
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_SKEYQUERY,
-	    &m);
-	success = buffer_get_int(&m);
+	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_SKEYQUERY, m);
+	if ((r = sshbuf_get_u32(m, &success)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (success == 0) {
 		debug3("%s: no challenge", __func__);
-		buffer_free(&m);
+		sshbuf_free(m);
 		return (-1);
 	}
 
 	/* Get the challenge, and format the response */
-	challenge  = buffer_get_string(&m, NULL);
-	buffer_free(&m);
+	if ((r = sshbuf_get_cstring(m, &challenge)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	sshbuf_free(m);
 
 	debug3("%s: received challenge: %s", __func__, challenge);
 
@@ -894,22 +921,25 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 int
 mm_skey_respond(void *ctx, u_int numresponses, char **responses)
 {
-	Buffer m;
+	struct sshbuf *m;
 	int authok;
 
 	debug3("%s: entering", __func__);
 	if (numresponses != 1)
 		return (-1);
 
-	buffer_init(&m);
-	buffer_put_cstring(&m, responses[0]);
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYRESPOND, &m);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if ((r = sshbuf_put_cstring(m, responses[0])) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYRESPOND, m);
 
 	mm_request_receive_expect(pmonitor->m_recvfd,
-	    MONITOR_ANS_SKEYRESPOND, &m);
+	    MONITOR_ANS_SKEYRESPOND, m);
 
-	authok = buffer_get_int(&m);
-	buffer_free(&m);
+	if ((r = sshbuf_get_u32(m, &authok)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	sshbuf_free(m);
 
 	return ((authok == 0) ? -1 : 0);
 }
@@ -919,29 +949,33 @@ mm_skey_respond(void *ctx, u_int numresponses, char **responses)
 void
 mm_audit_event(ssh_audit_event_t event)
 {
-	Buffer m;
+	struct sshbuf *m;
 
 	debug3("%s entering", __func__);
 
-	buffer_init(&m);
-	buffer_put_int(&m, event);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if ((r = sshbuf_put_u32(m, event)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_EVENT, &m);
-	buffer_free(&m);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_EVENT, m);
+	sshbuf_free(m);
 }
 
 void
 mm_audit_run_command(const char *command)
 {
-	Buffer m;
+	struct sshbuf *m;
 
 	debug3("%s entering command %s", __func__, command);
 
-	buffer_init(&m);
-	buffer_put_cstring(&m, command);
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if ((r = sshbuf_put_cstring(m, command)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_COMMAND, &m);
-	buffer_free(&m);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_COMMAND, m);
+	sshbuf_free(m);
 }
 #endif /* SSH_AUDIT_EVENTS */
 

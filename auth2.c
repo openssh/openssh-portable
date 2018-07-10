@@ -50,7 +50,8 @@
 #include "auth.h"
 #include "dispatch.h"
 #include "pathnames.h"
-#include "buffer.h"
+#include "sshbuf.h"
+#include "ssherr.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -63,7 +64,7 @@
 extern ServerOptions options;
 extern u_char *session_id2;
 extern u_int session_id2_len;
-extern Buffer loginmsg;
+extern struct sshbuf *loginmsg;
 
 /* methods */
 
@@ -378,11 +379,15 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 
 #ifdef USE_PAM
 	if (options.use_pam && authenticated) {
+		int r;
+
 		if (!PRIVSEP(do_pam_account())) {
 			/* if PAM returned a message, send it to the user */
-			if (buffer_len(&loginmsg) > 0) {
-				buffer_append(&loginmsg, "\0", 1);
-				userauth_send_banner(buffer_ptr(&loginmsg));
+			if (sshbuf_len(loginmsg) > 0) {
+				if ((r = sshbuf_put(loginmsg, "\0", 1)) != 0)
+					fatal("%s: buffer error: %s",
+					    __func__, ssh_err(r));
+				userauth_send_banner(sshbuf_ptr(loginmsg));
 				packet_write_wait();
 			}
 			fatal("Access denied for user %s by PAM account "

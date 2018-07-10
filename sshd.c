@@ -2111,7 +2111,7 @@ main(int ac, char **av)
 	/* allocate authentication context */
 	authctxt = xcalloc(1, sizeof(*authctxt));
 
-	authctxt->loginmsg = &loginmsg;
+	authctxt->loginmsg = loginmsg;
 
 	/* XXX global for cleanup, access from other modules */
 	the_authctxt = authctxt;

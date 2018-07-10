@@ -38,7 +38,6 @@
 
 #include "xmalloc.h"
 #include "packet.h"
-#include "buffer.h"
 #include "key.h"
 #include "auth-options.h"
 #include "log.h"
