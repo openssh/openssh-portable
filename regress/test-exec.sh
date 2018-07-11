@@ -164,7 +164,7 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 
 	if [ x"$VG_SKIP" = "x" ]; then
 		VG_LEAK="--leak-check=no"
-		if [ x"$VALGRIND_CHECK_LEAKS" = "x" ]; then
+		if [ x"$VALGRIND_CHECK_LEAKS" != "x" ]; then
 			VG_LEAK="--leak-check=full"
 		fi
 		VG_IGNORE="/bin/*,/sbin/*,/usr/*,/var/*"

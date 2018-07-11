@@ -9,7 +9,7 @@ test "x$OBJ" = "x" && OBJ=$PWD
 # This mostly replicates the logic in test-exec.sh for running the
 # regress tests under valgrind.
 VG_LEAK="--leak-check=no"
-if [ x"$VALGRIND_CHECK_LEAKS" = "x" ]; then
+if [ x"$VALGRIND_CHECK_LEAKS" != "x" ]; then
 	VG_LEAK="--leak-check=full"
 fi
 VG_TEST=`basename $UNIT_BINARY`
