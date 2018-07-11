@@ -885,6 +885,7 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 	struct sshbuf *m;
 	u_int success;
 	char *challenge;
+	int r;
 
 	debug3("%s: entering", __func__);
 
@@ -920,7 +921,7 @@ int
 mm_skey_respond(void *ctx, u_int numresponses, char **responses)
 {
 	struct sshbuf *m;
-	int authok;
+	int authok, r;
 
 	debug3("%s: entering", __func__);
 	if (numresponses != 1)

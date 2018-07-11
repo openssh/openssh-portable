@@ -996,7 +996,7 @@ mm_answer_skeyrespond(int sock, struct sshbuf *m)
 {
 	char *response;
 	size_t rlen;
-	int authok;
+	int authok, r;
 
 	if ((r = sshbuf_get_cstring(m, &response, &rlen)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
