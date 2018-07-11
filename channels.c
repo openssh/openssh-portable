@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.382 2018/06/25 22:28:33 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.383 2018/07/11 18:53:29 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -79,7 +79,7 @@
 #include "channels.h"
 #include "compat.h"
 #include "canohost.h"
-#include "key.h"
+#include "sshkey.h"
 #include "authfd.h"
 #include "pathnames.h"
 #include "match.h"

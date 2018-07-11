@@ -168,7 +168,7 @@
 #include <unistd.h>
 
 #include "xmalloc.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "ssh.h"
 #include "loginrec.h"

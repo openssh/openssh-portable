@@ -22,7 +22,7 @@
 #include "log.h"
 #include "misc.h"
 #include "servconf.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-pam.h"

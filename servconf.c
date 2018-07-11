@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.338 2018/07/09 21:29:36 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.339 2018/07/11 18:53:29 markus Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -51,7 +51,7 @@
 #include "compat.h"
 #include "pathnames.h"
 #include "cipher.h"
-#include "key.h"
+#include "sshkey.h"
 #include "kex.h"
 #include "mac.h"
 #include "match.h"

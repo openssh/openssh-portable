@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.511 2018/07/09 21:29:36 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.512 2018/07/11 18:53:29 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -99,7 +99,7 @@
 #include "compat.h"
 #include "cipher.h"
 #include "digest.h"
-#include "key.h"
+#include "sshkey.h"
 #include "kex.h"
 #include "myproposal.h"
 #include "authfile.h"
@@ -473,11 +473,11 @@ destroy_sensitive_data(void)
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
-			key_free(sensitive_data.host_keys[i]);
+			sshkey_free(sensitive_data.host_keys[i]);
 			sensitive_data.host_keys[i] = NULL;
 		}
 		if (sensitive_data.host_certificates[i]) {
-			key_free(sensitive_data.host_certificates[i]);
+			sshkey_free(sensitive_data.host_certificates[i]);
 			sensitive_data.host_certificates[i] = NULL;
 		}
 	}
@@ -489,11 +489,16 @@ demote_sensitive_data(void)
 {
 	struct sshkey *tmp;
 	u_int i;
+	int r;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
-			tmp = key_demote(sensitive_data.host_keys[i]);
-			key_free(sensitive_data.host_keys[i]);
+			if ((r = sshkey_demote(sensitive_data.host_keys[i],
+			    &tmp)) != 0)
+				fatal("could not demote host %s key: %s",
+				    sshkey_type(sensitive_data.host_keys[i]),
+				    ssh_err(r));
+			sshkey_free(sensitive_data.host_keys[i]);
 			sensitive_data.host_keys[i] = tmp;
 		}
 		/* Certs do not need demotion */
@@ -814,7 +819,7 @@ get_hostkey_index(struct sshkey *key, int compare, struct ssh *ssh)
 	u_int i;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
-		if (key_is_cert(key)) {
+		if (sshkey_is_cert(key)) {
 			if (key == sensitive_data.host_certificates[i] ||
 			    (compare && sensitive_data.host_certificates[i] &&
 			    sshkey_equal(key,
@@ -1758,11 +1763,18 @@ main(int ac, char **av)
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (options.host_key_files[i] == NULL)
 			continue;
-		key = key_load_private(options.host_key_files[i], "", NULL);
-		pubkey = key_load_public(options.host_key_files[i], NULL);
-
+		if ((r = sshkey_load_private(options.host_key_files[i], "",
+		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
+			error("Error loading host key \"%s\": %s",
+			    options.host_key_files[i], ssh_err(r));
+		if ((r = sshkey_load_public(options.host_key_files[i],
+		    &pubkey, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
+			error("Error loading host key \"%s\": %s",
+			    options.host_key_files[i], ssh_err(r));
 		if (pubkey == NULL && key != NULL)
-			pubkey = key_demote(key);
+			if ((r = sshkey_demote(key, &pubkey)) != 0)
+				fatal("Could not demote key: \"%s\": %s",
+				    options.host_key_files[i], ssh_err(r));
 		sensitive_data.host_keys[i] = key;
 		sensitive_data.host_pubkeys[i] = pubkey;
 
@@ -1816,21 +1828,21 @@ main(int ac, char **av)
 	for (i = 0; i < options.num_host_cert_files; i++) {
 		if (options.host_cert_files[i] == NULL)
 			continue;
-		key = key_load_public(options.host_cert_files[i], NULL);
-		if (key == NULL) {
-			error("Could not load host certificate: %s",
-			    options.host_cert_files[i]);
+		if ((r = sshkey_load_public(options.host_cert_files[i],
+		    &key, NULL)) != 0) {
+			error("Could not load host certificate \"%s\": %s",
+			    options.host_cert_files[i], ssh_err(r));
 			continue;
 		}
-		if (!key_is_cert(key)) {
+		if (!sshkey_is_cert(key)) {
 			error("Certificate file is not a certificate: %s",
 			    options.host_cert_files[i]);
-			key_free(key);
+			sshkey_free(key);
 			continue;
 		}
 		/* Find matching private key */
 		for (j = 0; j < options.num_host_key_files; j++) {
-			if (key_equal_public(key,
+			if (sshkey_equal_public(key,
 			    sensitive_data.host_keys[j])) {
 				sensitive_data.host_certificates[j] = key;
 				break;
@@ -1839,12 +1851,12 @@ main(int ac, char **av)
 		if (j >= options.num_host_key_files) {
 			error("No matching private key for certificate: %s",
 			    options.host_cert_files[i]);
-			key_free(key);
+			sshkey_free(key);
 			continue;
 		}
 		sensitive_data.host_certificates[j] = key;
 		debug("host certificate: #%u type %d %s", j, key->type,
-		    key_type(key));
+		    sshkey_type(key));
 	}
 
 	if (privsep_chroot) {
@@ -2225,26 +2237,21 @@ main(int ac, char **av)
 
 int
 sshd_hostkey_sign(struct sshkey *privkey, struct sshkey *pubkey,
-    u_char **signature, size_t *slen, const u_char *data, size_t dlen,
+    u_char **signature, size_t *slenp, const u_char *data, size_t dlen,
     const char *alg, u_int flag)
 {
 	int r;
-	u_int xxx_slen, xxx_dlen = dlen;
 
 	if (privkey) {
-		if (PRIVSEP(key_sign(privkey, signature, &xxx_slen, data, xxx_dlen,
-		    alg) < 0))
+		if (PRIVSEP(sshkey_sign(privkey, signature, slenp, data, dlen,
+		    alg, datafellows)) < 0)
 			fatal("%s: key_sign failed", __func__);
-		if (slen)
-			*slen = xxx_slen;
 	} else if (use_privsep) {
-		if (mm_key_sign(pubkey, signature, &xxx_slen, data, xxx_dlen,
-		    alg) < 0)
+		if (mm_sshkey_sign(pubkey, signature, slenp, data, dlen,
+		    alg, datafellows) < 0)
 			fatal("%s: pubkey_sign failed", __func__);
-		if (slen)
-			*slen = xxx_slen;
 	} else {
-		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slen,
+		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slenp,
 		    data, dlen, alg, datafellows)) != 0)
 			fatal("%s: ssh_agent_sign failed: %s",
 			    __func__, ssh_err(r));

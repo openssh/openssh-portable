@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.482 2018/07/09 21:03:30 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.483 2018/07/11 18:53:29 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -89,7 +89,7 @@
 #include "packet.h"
 #include "sshbuf.h"
 #include "channels.h"
-#include "key.h"
+#include "sshkey.h"
 #include "authfd.h"
 #include "authfile.h"
 #include "pathnames.h"
@@ -501,6 +501,30 @@ resolve_canonicalize(char **hostp, int port)
 		fatal("%s: Could not resolve host \"%s\"", __progname, *hostp);
 	debug2("%s: host %s not found in any suffix", __func__, *hostp);
 	return NULL;
+}
+
+/*
+ * Check the result of hostkey loading, ignoring some errors and
+ * fatal()ing for others.
+ */
+static void
+check_load(int r, const char *path, const char *message)
+{
+	switch (r) {
+	case 0:
+		break;
+	case SSH_ERR_INTERNAL_ERROR:
+	case SSH_ERR_ALLOC_FAIL:
+		fatal("load %s \"%s\": %s", message, path, ssh_err(r));
+	case SSH_ERR_SYSTEM_ERROR:
+		/* Ignore missing files */
+		if (errno == ENOENT)
+			break;
+		/* FALLTHROUGH */
+	default:
+		error("load %s \"%s\": %s", message, path, ssh_err(r));
+		break;
+	}
 }
 
 /*
@@ -1388,7 +1412,7 @@ main(int ac, char **av)
 
 	/*
 	 * If we successfully made the connection, load the host private key
-	 * in case we will need it later for combined rsa-rhosts
+	 * in case we will need it later for hostbased
 	 * authentication. This must be done before releasing extra
 	 * privileges, because the file is only readable by root.
 	 * If we cannot access the private keys, load the public keys
@@ -1400,35 +1424,32 @@ main(int ac, char **av)
 	if (options.hostbased_authentication) {
 		sensitive_data.nkeys = 11;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
-		    sizeof(struct sshkey));	/* XXX */
-		for (i = 0; i < sensitive_data.nkeys; i++)
-			sensitive_data.keys[i] = NULL;
+		    sizeof(struct sshkey));
+
+		/* XXX check errors? */
+#define L_KEY(t,p,o) \
+	check_load(sshkey_load_private_type(t, p, "", \
+	    &(sensitive_data.keys[o]), NULL, NULL), p, "key")
+#define L_KEYCERT(t,p,o) \
+	check_load(sshkey_load_private_cert(t, p, "", \
+	    &(sensitive_data.keys[o]), NULL), p, "cert and key")
+#define L_PUBKEY(p,o) \
+	check_load(sshkey_load_public(p, &(sensitive_data.keys[o]), NULL), \
+	    p, "pubkey")
+#define L_CERT(p,o) \
+	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), p, "cert")
 
 		PRIV_START;
-#ifdef OPENSSL_HAS_ECC
-		sensitive_data.keys[1] = key_load_private_cert(KEY_ECDSA,
-		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL);
-#endif
-		sensitive_data.keys[2] = key_load_private_cert(KEY_ED25519,
-		    _PATH_HOST_ED25519_KEY_FILE, "", NULL);
-		sensitive_data.keys[3] = key_load_private_cert(KEY_RSA,
-		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
-		sensitive_data.keys[4] = key_load_private_cert(KEY_DSA,
-		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
-#ifdef OPENSSL_HAS_ECC
-		sensitive_data.keys[5] = key_load_private_type(KEY_ECDSA,
-		    _PATH_HOST_ECDSA_KEY_FILE, "", NULL, NULL);
-#endif
-		sensitive_data.keys[6] = key_load_private_type(KEY_ED25519,
-		    _PATH_HOST_ED25519_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[7] = key_load_private_type(KEY_RSA,
-		    _PATH_HOST_RSA_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[8] = key_load_private_type(KEY_DSA,
-		    _PATH_HOST_DSA_KEY_FILE, "", NULL, NULL);
-		sensitive_data.keys[9] = key_load_private_cert(KEY_XMSS,
-		    _PATH_HOST_XMSS_KEY_FILE, "", NULL);
-		sensitive_data.keys[10] = key_load_private_type(KEY_XMSS,
-		    _PATH_HOST_XMSS_KEY_FILE, "", NULL, NULL);
+		L_KEYCERT(KEY_ECDSA, _PATH_HOST_ECDSA_KEY_FILE, 1);
+		L_KEYCERT(KEY_ED25519, _PATH_HOST_ED25519_KEY_FILE, 2);
+		L_KEYCERT(KEY_RSA, _PATH_HOST_RSA_KEY_FILE, 3);
+		L_KEYCERT(KEY_DSA, _PATH_HOST_DSA_KEY_FILE, 4);
+		L_KEY(KEY_ECDSA, _PATH_HOST_ECDSA_KEY_FILE, 5);
+		L_KEY(KEY_ED25519, _PATH_HOST_ED25519_KEY_FILE, 6);
+		L_KEY(KEY_RSA, _PATH_HOST_RSA_KEY_FILE, 7);
+		L_KEY(KEY_DSA, _PATH_HOST_DSA_KEY_FILE, 8);
+		L_KEYCERT(KEY_XMSS, _PATH_HOST_XMSS_KEY_FILE, 9);
+		L_KEY(KEY_XMSS, _PATH_HOST_XMSS_KEY_FILE, 10);
 		PRIV_END;
 
 		if (options.hostbased_authentication == 1 &&
@@ -1437,31 +1458,18 @@ main(int ac, char **av)
 		    sensitive_data.keys[6] == NULL &&
 		    sensitive_data.keys[7] == NULL &&
 		    sensitive_data.keys[8] == NULL &&
-		    sensitive_data.keys[9] == NULL) {
-#ifdef OPENSSL_HAS_ECC
-			sensitive_data.keys[1] = key_load_cert(
-			    _PATH_HOST_ECDSA_KEY_FILE);
-#endif
-			sensitive_data.keys[2] = key_load_cert(
-			    _PATH_HOST_ED25519_KEY_FILE);
-			sensitive_data.keys[3] = key_load_cert(
-			    _PATH_HOST_RSA_KEY_FILE);
-			sensitive_data.keys[4] = key_load_cert(
-			    _PATH_HOST_DSA_KEY_FILE);
-#ifdef OPENSSL_HAS_ECC
-			sensitive_data.keys[5] = key_load_public(
-			    _PATH_HOST_ECDSA_KEY_FILE, NULL);
-#endif
-			sensitive_data.keys[6] = key_load_public(
-			    _PATH_HOST_ED25519_KEY_FILE, NULL);
-			sensitive_data.keys[7] = key_load_public(
-			    _PATH_HOST_RSA_KEY_FILE, NULL);
-			sensitive_data.keys[8] = key_load_public(
-			    _PATH_HOST_DSA_KEY_FILE, NULL);
-			sensitive_data.keys[9] = key_load_cert(
-			    _PATH_HOST_XMSS_KEY_FILE);
-			sensitive_data.keys[10] = key_load_public(
-			    _PATH_HOST_XMSS_KEY_FILE, NULL);
+		    sensitive_data.keys[9] == NULL &&
+		    sensitive_data.keys[10] == NULL) {
+			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 1);
+			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 2);
+			L_CERT(_PATH_HOST_RSA_KEY_FILE, 3);
+			L_CERT(_PATH_HOST_DSA_KEY_FILE, 4);
+			L_PUBKEY(_PATH_HOST_ECDSA_KEY_FILE, 5);
+			L_PUBKEY(_PATH_HOST_ED25519_KEY_FILE, 6);
+			L_PUBKEY(_PATH_HOST_RSA_KEY_FILE, 7);
+			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 8);
+			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 9);
+			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 10);
 			sensitive_data.external_keysign = 1;
 		}
 	}
@@ -1546,7 +1554,7 @@ main(int ac, char **av)
 			if (sensitive_data.keys[i] != NULL) {
 				/* Destroys contents safely */
 				debug3("clear hostkey %d", i);
-				key_free(sensitive_data.keys[i]);
+				sshkey_free(sensitive_data.keys[i]);
 				sensitive_data.keys[i] = NULL;
 			}
 		}
@@ -1556,7 +1564,7 @@ main(int ac, char **av)
 		free(options.identity_files[i]);
 		options.identity_files[i] = NULL;
 		if (options.identity_keys[i]) {
-			key_free(options.identity_keys[i]);
+			sshkey_free(options.identity_keys[i]);
 			options.identity_keys[i] = NULL;
 		}
 	}
@@ -2050,7 +2058,7 @@ load_public_identity_files(struct passwd *pw)
 	    &keys)) > 0) {
 		for (i = 0; i < nkeys; i++) {
 			if (n_ids >= SSH_MAX_IDENTITY_FILES) {
-				key_free(keys[i]);
+				sshkey_free(keys[i]);
 				continue;
 			}
 			identity_keys[n_ids] = keys[i];
@@ -2076,7 +2084,8 @@ load_public_identity_files(struct passwd *pw)
 		    "u", pw->pw_name, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
 		free(cp);
-		public = key_load_public(filename, NULL);
+		check_load(sshkey_load_public(filename, &public, NULL),
+		    filename, "pubkey");
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);
 		free(options.identity_files[i]);
@@ -2093,17 +2102,18 @@ load_public_identity_files(struct passwd *pw)
 		if (options.num_certificate_files != 0)
 			continue;
 		xasprintf(&cp, "%s-cert", filename);
-		public = key_load_public(cp, NULL);
+		check_load(sshkey_load_public(cp, &public, NULL),
+		    filename, "pubkey");
 		debug("identity file %s type %d", cp,
 		    public ? public->type : -1);
 		if (public == NULL) {
 			free(cp);
 			continue;
 		}
-		if (!key_is_cert(public)) {
+		if (!sshkey_is_cert(public)) {
 			debug("%s: key %s type %s is not a certificate",
-			    __func__, cp, key_type(public));
-			key_free(public);
+			    __func__, cp, sshkey_type(public));
+			sshkey_free(public);
 			free(cp);
 			continue;
 		}
@@ -2128,7 +2138,8 @@ load_public_identity_files(struct passwd *pw)
 		    (char *)NULL);
 		free(cp);
 
-		public = key_load_public(filename, NULL);
+		check_load(sshkey_load_public(filename, &public, NULL),
+		    filename, "certificate");
 		debug("certificate file %s type %d", filename,
 		    public ? public->type : -1);
 		free(options.certificate_files[i]);
@@ -2137,10 +2148,10 @@ load_public_identity_files(struct passwd *pw)
 			free(filename);
 			continue;
 		}
-		if (!key_is_cert(public)) {
+		if (!sshkey_is_cert(public)) {
 			debug("%s: key %s type %s is not a certificate",
-			    __func__, filename, key_type(public));
-			key_free(public);
+			    __func__, filename, sshkey_type(public));
+			sshkey_free(public);
 			free(filename);
 			continue;
 		}

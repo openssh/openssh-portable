@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "ssh.h"

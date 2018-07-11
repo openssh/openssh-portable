@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.73 2018/07/09 21:18:10 markus Exp $ */
+/* $OpenBSD: mux.c,v 1.74 2018/07/11 18:53:29 markus Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -76,7 +76,7 @@
 #include "packet.h"
 #include "monitor_fdpass.h"
 #include "sshpty.h"
-#include "key.h"
+#include "sshkey.h"
 #include "readconf.h"
 #include "clientloop.h"
 #include "ssherr.h"
