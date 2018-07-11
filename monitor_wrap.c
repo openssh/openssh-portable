@@ -890,7 +890,7 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 	debug3("%s: entering", __func__);
 
 	if ((m = sshbuf_new()) == NULL)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal("%s: sshbuf_new failed", __func__);
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYQUERY, m);
 
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_SKEYQUERY, m);
@@ -928,7 +928,7 @@ mm_skey_respond(void *ctx, u_int numresponses, char **responses)
 		return (-1);
 
 	if ((m = sshbuf_new()) == NULL)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_put_cstring(m, responses[0])) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_SKEYRESPOND, m);
