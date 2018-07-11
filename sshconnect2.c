@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.279 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.280 2018/07/11 18:55:11 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -234,9 +234,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 	/* send 1st encrypted/maced/compressed message */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_IGNORE)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, "markus")) != 0 ||
-	    (r = sshpkt_send(ssh)) != 0)
+	    (r = sshpkt_send(ssh)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
-	ssh_packet_write_wait(ssh);
 #endif
 }
 

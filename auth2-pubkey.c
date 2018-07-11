@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.81 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.82 2018/07/11 18:55:11 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -218,9 +218,9 @@ userauth_pubkey(struct ssh *ssh)
 			    != 0 ||
 			    (r = sshpkt_put_cstring(ssh, pkalg)) != 0 ||
 			    (r = sshpkt_put_string(ssh, pkblob, blen)) != 0 ||
-			    (r = sshpkt_send(ssh)) != 0)
+			    (r = sshpkt_send(ssh)) != 0 ||
+			    (r = ssh_packet_write_wait(ssh)) != 0)
 				fatal("%s: %s", __func__, ssh_err(r));
-			ssh_packet_write_wait(ssh);
 			authctxt->postponed = 1;
 		}
 	}

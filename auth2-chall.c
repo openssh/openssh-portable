@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-chall.c,v 1.49 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth2-chall.c,v 1.50 2018/07/11 18:55:11 markus Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2001 Per Allansson.  All rights reserved.
@@ -280,9 +280,9 @@ send_userauth_info_request(struct ssh *ssh)
 		    (r = sshpkt_put_u8(ssh, echo_on[i])) != 0)
 			fatal("%s: %s", __func__, ssh_err(r));
 	}
-	if ((r = sshpkt_send(ssh)) != 0)
+	if ((r = sshpkt_send(ssh)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
-	ssh_packet_write_wait(ssh);
 
 	for (i = 0; i < kbdintctxt->nreq; i++)
 		free(prompts[i]);
