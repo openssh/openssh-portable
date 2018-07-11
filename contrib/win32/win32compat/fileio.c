@@ -769,14 +769,24 @@ fileio_write(struct w32_io* pio, const void *buf, size_t max_bytes)
 int
 fileio_fstat(struct w32_io* pio, struct _stat64 *buf)
 {
-	int fd = _open_osfhandle((intptr_t)pio->handle, 0);
-	debug4("fstat - pio:%p", pio);
-	if (fd == -1) {
+	HANDLE dup_handle = 0;
+	if (!DuplicateHandle(GetCurrentProcess(), pio->handle, GetCurrentProcess(), &dup_handle, 0,
+		TRUE, DUPLICATE_SAME_ACCESS)) {
 		errno = EOTHER;
 		return -1;
 	}
 
-	return _fstat64(fd, buf);
+	int fd = _open_osfhandle(dup_handle, 0);
+	debug4("fstat - pio:%p", pio);
+	if (fd == -1) {
+		errno = EOTHER;
+		CloseHandle(dup_handle);
+		return -1;
+	}
+
+	int res = _fstat64(fd, buf);
+	_close(fd);
+	return res;
 }
 
 int
@@ -1206,8 +1216,8 @@ fileio_symlink(const char *target, const char *linkpath)
 		SYMBOLIC_LINK_FLAG_DIRECTORY : 0;
 
 	/* symlink creation on earlier versions of windows were a privileged op
- 	 * and then an option was added to create symlink using from an unprivileged
- 	 * context so we try both operations, attempting privileged version first.
+	 * and then an option was added to create symlink using from an unprivileged
+	 * context so we try both operations, attempting privileged version first.
 	 * note: 0x2 = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
 	 */
 	if (CreateSymbolicLinkW(linkpath_utf16, target_utf16, create_flags) == 0) {
