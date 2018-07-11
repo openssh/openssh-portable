@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.131 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth.c,v 1.132 2018/07/11 08:19:35 martijn Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -848,7 +848,7 @@ auth_get_canonical_hostname(struct ssh *ssh, int use_dns)
 }
 
 /*
- * Runs command in a subprocess wuth a minimal environment.
+ * Runs command in a subprocess with a minimal environment.
  * Returns pid on success, 0 on failure.
  * The child stdout and stderr maybe captured, left attached or sent to
  * /dev/null depending on the contents of flags.
