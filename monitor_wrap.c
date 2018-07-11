@@ -903,7 +903,7 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 	}
 
 	/* Get the challenge, and format the response */
-	if ((r = sshbuf_get_cstring(m, &challenge)) != 0)
+	if ((r = sshbuf_get_cstring(m, &challenge, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	sshbuf_free(m);
 
