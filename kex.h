@@ -41,6 +41,8 @@
 #  define EC_POINT	void
 # endif /* OPENSSL_HAS_ECC */
 #else /* WITH_OPENSSL */
+# define DH		void
+# define BIGNUM		void
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void
