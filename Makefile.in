@@ -276,6 +276,7 @@ distclean:	regressclean
 	rm -f regress/unittests/match/test_match
 	rm -f regress/unittests/utf8/*.o
 	rm -f regress/unittests/utf8/test_utf8
+	rm -f regress/misc/kexfuzz/*.o
 	rm -f regress/unittests/misc/kexfuzz
 	(cd openbsd-compat && $(MAKE) distclean)
 	if test -d pkg ; then \
