@@ -30,7 +30,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "key.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "sshbuf.h"

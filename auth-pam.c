@@ -88,7 +88,6 @@ extern char *__progname;
 #include "xmalloc.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-#include "key.h"
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-pam.h"

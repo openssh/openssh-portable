@@ -31,7 +31,6 @@
 
 #include "audit.h"
 #include "log.h"
-#include "key.h"
 #include "hostfile.h"
 #include "auth.h"
 
