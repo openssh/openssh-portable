@@ -769,14 +769,24 @@ fileio_write(struct w32_io* pio, const void *buf, size_t max_bytes)
 int
 fileio_fstat(struct w32_io* pio, struct _stat64 *buf)
 {
-	int fd = _open_osfhandle((intptr_t)pio->handle, 0);
-	debug4("fstat - pio:%p", pio);
-	if (fd == -1) {
+	HANDLE dup_handle = 0;
+	if (!DuplicateHandle(GetCurrentProcess(), pio->handle, GetCurrentProcess(), &dup_handle, 0,
+		TRUE, DUPLICATE_SAME_ACCESS)) {
 		errno = EOTHER;
 		return -1;
 	}
 
-	return _fstat64(fd, buf);
+	int fd = _open_osfhandle(dup_handle, 0);
+	debug4("fstat - pio:%p", pio);
+	if (fd == -1) {
+		CloseHandle(dup_handle);
+		errno = EOTHER;
+		return -1;
+	}
+
+	int res = _fstat64(fd, buf);
+	_close(fd);
+	return res;
 }
 
 int
