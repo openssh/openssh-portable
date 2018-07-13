@@ -26,6 +26,7 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef SSH_AUDIT_EVENTS
 
