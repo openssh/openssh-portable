@@ -946,11 +946,12 @@ void
 mm_audit_event(ssh_audit_event_t event)
 {
 	struct sshbuf *m;
+	int r;
 
 	debug3("%s entering", __func__);
 
 	if ((m = sshbuf_new()) == NULL)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_put_u32(m, event)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
@@ -962,11 +963,12 @@ void
 mm_audit_run_command(const char *command)
 {
 	struct sshbuf *m;
+	int r;
 
 	debug3("%s entering command %s", __func__, command);
 
 	if ((m = sshbuf_new()) == NULL)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_put_cstring(m, command)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
