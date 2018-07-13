@@ -28,7 +28,7 @@ start_client()
 	while test ! -f $pidfile ; do
 		sleep 1
 		n=`expr $n + 1`
-		if test $n -gt 5; then
+		if test $n -gt 60; then
 			kill $client_pid
 			fatal "timeout waiting for background ssh"
 		fi
