@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.483 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.484 2018/07/16 07:06:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2037,8 +2037,10 @@ load_public_identity_files(struct passwd *pw)
 	u_int n_ids, n_certs;
 	char *identity_files[SSH_MAX_IDENTITY_FILES];
 	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
+	int identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
 	char *certificate_files[SSH_MAX_CERTIFICATE_FILES];
 	struct sshkey *certificates[SSH_MAX_CERTIFICATE_FILES];
+	int certificate_file_userprovided[SSH_MAX_CERTIFICATE_FILES];
 #ifdef ENABLE_PKCS11
 	struct sshkey **keys;
 	int nkeys;
@@ -2047,8 +2049,12 @@ load_public_identity_files(struct passwd *pw)
 	n_ids = n_certs = 0;
 	memset(identity_files, 0, sizeof(identity_files));
 	memset(identity_keys, 0, sizeof(identity_keys));
+	memset(identity_file_userprovided, 0,
+	    sizeof(identity_file_userprovided));
 	memset(certificate_files, 0, sizeof(certificate_files));
 	memset(certificates, 0, sizeof(certificates));
+	memset(certificate_file_userprovided, 0,
+	    sizeof(certificate_file_userprovided));
 
 #ifdef ENABLE_PKCS11
 	if (options.pkcs11_provider != NULL &&
@@ -2091,7 +2097,8 @@ load_public_identity_files(struct passwd *pw)
 		free(options.identity_files[i]);
 		identity_files[n_ids] = filename;
 		identity_keys[n_ids] = public;
-
+		identity_file_userprovided[n_ids] =
+		    options.identity_file_userprovided[i];
 		if (++n_ids >= SSH_MAX_IDENTITY_FILES)
 			continue;
 
@@ -2120,6 +2127,8 @@ load_public_identity_files(struct passwd *pw)
 		/* NB. leave filename pointing to private key */
 		identity_files[n_ids] = xstrdup(filename);
 		identity_keys[n_ids] = public;
+		identity_file_userprovided[n_ids] =
+		    options.identity_file_userprovided[i];
 		n_ids++;
 	}
 
@@ -2157,17 +2166,24 @@ load_public_identity_files(struct passwd *pw)
 		}
 		certificate_files[n_certs] = filename;
 		certificates[n_certs] = public;
+		certificate_file_userprovided[n_certs] =
+		    options.certificate_file_userprovided[i];
 		++n_certs;
 	}
 
 	options.num_identity_files = n_ids;
 	memcpy(options.identity_files, identity_files, sizeof(identity_files));
 	memcpy(options.identity_keys, identity_keys, sizeof(identity_keys));
+	memcpy(options.identity_file_userprovided,
+	    identity_file_userprovided, sizeof(identity_file_userprovided));
 
 	options.num_certificate_files = n_certs;
 	memcpy(options.certificate_files,
 	    certificate_files, sizeof(certificate_files));
 	memcpy(options.certificates, certificates, sizeof(certificates));
+	memcpy(options.certificate_file_userprovided,
+	    certificate_file_userprovided,
+	    sizeof(certificate_file_userprovided));
 }
 
 static void
