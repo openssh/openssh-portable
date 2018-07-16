@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.72 2018/06/06 18:29:18 markus Exp $ */
+/* $OpenBSD: hostfile.c,v 1.73 2018/07/16 03:09:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -683,11 +683,11 @@ hostkeys_foreach(const char *path, hostkeys_foreach_fn *callback, void *ctx,
 		linenum++;
 		line[strcspn(line, "\n")] = '\0';
 
+		free(lineinfo.line);
 		sshkey_free(lineinfo.key);
 		memset(&lineinfo, 0, sizeof(lineinfo));
 		lineinfo.path = path;
 		lineinfo.linenum = linenum;
-		free(lineinfo.line);
 		lineinfo.line = xstrdup(line);
 		lineinfo.marker = MRK_NONE;
 		lineinfo.status = HKF_STATUS_OK;

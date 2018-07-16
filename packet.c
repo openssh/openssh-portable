@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.276 2018/07/09 21:03:30 markus Exp $ */
+/* $OpenBSD: packet.c,v 1.277 2018/07/16 03:09:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -622,6 +622,8 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 	cipher_free(state->receive_context);
 	state->send_context = state->receive_context = NULL;
 	if (do_close) {
+		free(ssh->local_ipaddr);
+		ssh->local_ipaddr = NULL;
 		free(ssh->remote_ipaddr);
 		ssh->remote_ipaddr = NULL;
 		free(ssh->state);
