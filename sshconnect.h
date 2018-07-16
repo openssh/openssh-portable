@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.32 2018/02/10 09:25:35 djm Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.33 2018/07/16 11:05:41 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -28,7 +28,6 @@ typedef struct Sensitive Sensitive;
 struct Sensitive {
 	struct sshkey	**keys;
 	int		nkeys;
-	int		external_keysign;
 };
 
 struct addrinfo;

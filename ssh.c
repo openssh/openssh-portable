@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.484 2018/07/16 07:06:50 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.485 2018/07/16 11:05:41 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1411,16 +1411,12 @@ main(int ac, char **av)
 		debug3("timeout: %d ms remain after connect", timeout_ms);
 
 	/*
-	 * If we successfully made the connection, load the host private key
-	 * in case we will need it later for hostbased
-	 * authentication. This must be done before releasing extra
-	 * privileges, because the file is only readable by root.
-	 * If we cannot access the private keys, load the public keys
-	 * instead and try to execute the ssh-keysign helper instead.
+	 * If we successfully made the connection and we have hostbased auth
+	 * enabled, load the public keys so we can later use the ssh-keysign
+	 * helper to sign challenges.
 	 */
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
-	sensitive_data.external_keysign = 0;
 	if (options.hostbased_authentication) {
 		sensitive_data.nkeys = 11;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
@@ -1439,27 +1435,7 @@ main(int ac, char **av)
 #define L_CERT(p,o) \
 	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), p, "cert")
 
-		PRIV_START;
-		L_KEYCERT(KEY_ECDSA, _PATH_HOST_ECDSA_KEY_FILE, 1);
-		L_KEYCERT(KEY_ED25519, _PATH_HOST_ED25519_KEY_FILE, 2);
-		L_KEYCERT(KEY_RSA, _PATH_HOST_RSA_KEY_FILE, 3);
-		L_KEYCERT(KEY_DSA, _PATH_HOST_DSA_KEY_FILE, 4);
-		L_KEY(KEY_ECDSA, _PATH_HOST_ECDSA_KEY_FILE, 5);
-		L_KEY(KEY_ED25519, _PATH_HOST_ED25519_KEY_FILE, 6);
-		L_KEY(KEY_RSA, _PATH_HOST_RSA_KEY_FILE, 7);
-		L_KEY(KEY_DSA, _PATH_HOST_DSA_KEY_FILE, 8);
-		L_KEYCERT(KEY_XMSS, _PATH_HOST_XMSS_KEY_FILE, 9);
-		L_KEY(KEY_XMSS, _PATH_HOST_XMSS_KEY_FILE, 10);
-		PRIV_END;
-
-		if (options.hostbased_authentication == 1 &&
-		    sensitive_data.keys[0] == NULL &&
-		    sensitive_data.keys[5] == NULL &&
-		    sensitive_data.keys[6] == NULL &&
-		    sensitive_data.keys[7] == NULL &&
-		    sensitive_data.keys[8] == NULL &&
-		    sensitive_data.keys[9] == NULL &&
-		    sensitive_data.keys[10] == NULL) {
+		if (options.hostbased_authentication == 1) {
 			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 1);
 			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 2);
 			L_CERT(_PATH_HOST_RSA_KEY_FILE, 3);
@@ -1470,7 +1446,6 @@ main(int ac, char **av)
 			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 8);
 			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 9);
 			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 10);
-			sensitive_data.external_keysign = 1;
 		}
 	}
 	/*
