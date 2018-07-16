@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.485 2018/07/16 11:05:41 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.486 2018/07/16 22:25:01 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1418,34 +1418,34 @@ main(int ac, char **av)
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
 	if (options.hostbased_authentication) {
-		sensitive_data.nkeys = 11;
+		sensitive_data.nkeys = 10;
 		sensitive_data.keys = xcalloc(sensitive_data.nkeys,
 		    sizeof(struct sshkey));
 
 		/* XXX check errors? */
-#define L_KEY(t,p,o) \
-	check_load(sshkey_load_private_type(t, p, "", \
-	    &(sensitive_data.keys[o]), NULL, NULL), p, "key")
-#define L_KEYCERT(t,p,o) \
-	check_load(sshkey_load_private_cert(t, p, "", \
-	    &(sensitive_data.keys[o]), NULL), p, "cert and key")
-#define L_PUBKEY(p,o) \
+#define L_PUBKEY(p,o) do { \
+	if ((o) >= sensitive_data.nkeys) \
+		fatal("%s pubkey out of array bounds", __func__); \
 	check_load(sshkey_load_public(p, &(sensitive_data.keys[o]), NULL), \
-	    p, "pubkey")
-#define L_CERT(p,o) \
-	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), p, "cert")
+	    p, "pubkey"); \
+} while (0)
+#define L_CERT(p,o) do { \
+	if ((o) >= sensitive_data.nkeys) \
+		fatal("%s cert out of array bounds", __func__); \
+	check_load(sshkey_load_cert(p, &(sensitive_data.keys[o])), p, "cert"); \
+} while (0)
 
 		if (options.hostbased_authentication == 1) {
-			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 1);
-			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 2);
-			L_CERT(_PATH_HOST_RSA_KEY_FILE, 3);
-			L_CERT(_PATH_HOST_DSA_KEY_FILE, 4);
-			L_PUBKEY(_PATH_HOST_ECDSA_KEY_FILE, 5);
-			L_PUBKEY(_PATH_HOST_ED25519_KEY_FILE, 6);
-			L_PUBKEY(_PATH_HOST_RSA_KEY_FILE, 7);
-			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 8);
-			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 9);
-			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 10);
+			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 0);
+			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 1);
+			L_CERT(_PATH_HOST_RSA_KEY_FILE, 2);
+			L_CERT(_PATH_HOST_DSA_KEY_FILE, 3);
+			L_PUBKEY(_PATH_HOST_ECDSA_KEY_FILE, 4);
+			L_PUBKEY(_PATH_HOST_ED25519_KEY_FILE, 5);
+			L_PUBKEY(_PATH_HOST_RSA_KEY_FILE, 6);
+			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 7);
+			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 8);
+			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 9);
 		}
 	}
 	/*
