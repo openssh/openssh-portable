@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.300 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.301 2018/07/18 11:34:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -53,7 +53,6 @@
 #include "ssh.h"
 #include "sshbuf.h"
 #include "packet.h"
-#include "uidswap.h"
 #include "compat.h"
 #include "sshkey.h"
 #include "sshconnect.h"
@@ -129,9 +128,6 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 	/* Fork and execute the proxy command. */
 	if ((pid = fork()) == 0) {
 		char *argv[10];
-
-		/* Child.  Permanently give up superuser privileges. */
-		permanently_drop_suid(original_real_uid);
 
 		close(sp[1]);
 		/* Redirect stdin and stdout. */
@@ -211,9 +207,6 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 	/* Fork and execute the proxy command. */
 	if ((pid = fork()) == 0) {
 		char *argv[10];
-
-		/* Child.  Permanently give up superuser privileges. */
-		permanently_drop_suid(original_real_uid);
 
 		/* Redirect stdin and stdout. */
 		close(pin[1]);
@@ -342,7 +335,7 @@ check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
 static int
 ssh_create_socket(int privileged, struct addrinfo *ai)
 {
-	int sock, r, oerrno;
+	int sock, r;
 	struct sockaddr_storage bindaddr;
 	socklen_t bindaddrlen = 0;
 	struct addrinfo hints, *res = NULL;
@@ -409,22 +402,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 		    ssh_gai_strerror(r));
 		goto fail;
 	}
-	/*
-	 * If we are running as root and want to connect to a privileged
-	 * port, bind our own socket to a privileged port.
-	 */
-	if (privileged) {
-		PRIV_START;
-		r = bindresvport_sa(sock,
-		        bindaddrlen == 0 ? NULL : (struct sockaddr *)&bindaddr);
-		oerrno = errno;
-		PRIV_END;
-		if (r < 0) {
-			error("bindresvport_sa %s: %s", ntop,
-			    strerror(oerrno));
-			goto fail;
-		}
-	} else if (bind(sock, (struct sockaddr *)&bindaddr, bindaddrlen) != 0) {
+	if (bind(sock, (struct sockaddr *)&bindaddr, bindaddrlen) != 0) {
 		error("bind %s: %s", ntop, strerror(errno));
 		goto fail;
 	}

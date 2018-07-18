@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.33 2018/07/16 11:05:41 dtucker Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.34 2018/07/18 11:34:04 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -57,22 +57,3 @@ void	 ssh_put_password(char *);
 int	 ssh_local_cmd(const char *);
 
 void	 maybe_add_key_to_agent(char *, const struct sshkey *, char *, char *);
-
-/*
- * Macros to raise/lower permissions.
- */
-#define PRIV_START do {					\
-	int save_errno = errno;				\
-	if (seteuid(original_effective_uid) != 0)	\
-		fatal("PRIV_START: seteuid: %s",	\
-		    strerror(errno));			\
-	errno = save_errno;				\
-} while (0)
-
-#define PRIV_END do {					\
-	int save_errno = errno;				\
-	if (seteuid(original_real_uid) != 0)		\
-		fatal("PRIV_END: seteuid: %s",		\
-		    strerror(errno));			\
-	errno = save_errno;				\
-} while (0)

@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.40 2018/06/15 07:01:11 djm Exp $ */
+/* $OpenBSD: uidswap.c,v 1.41 2018/07/18 11:34:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -133,37 +133,6 @@ temporarily_use_uid(struct passwd *pw)
 	if (seteuid(pw->pw_uid) == -1)
 		fatal("seteuid %u: %.100s", (u_int)pw->pw_uid,
 		    strerror(errno));
-}
-
-void
-permanently_drop_suid(uid_t uid)
-{
-#ifndef NO_UID_RESTORATION_TEST
-	uid_t old_uid = getuid();
-#endif
-
-	debug("permanently_drop_suid: %u", (u_int)uid);
-	if (setresuid(uid, uid, uid) < 0)
-		fatal("setresuid %u: %.100s", (u_int)uid, strerror(errno));
-
-#ifndef NO_UID_RESTORATION_TEST
-	/*
-	 * Try restoration of UID if changed (test clearing of saved uid).
-	 *
-	 * Note that we don't do this on Cygwin, or on Solaris-based platforms
-	 * where fine-grained privileges are available (the user might be
-	 * deliberately allowed the right to setuid back to root).
-	 */
-	if (old_uid != uid &&
-	    (setuid(old_uid) != -1 || seteuid(old_uid) != -1))
-		fatal("%s: was able to restore old [e]uid", __func__);
-#endif
-
-	/* Verify UID drop was successful */
-	if (getuid() != uid || geteuid() != uid) {
-		fatal("%s: euid incorrect uid:%u euid:%u (should be %u)",
-		    __func__, (u_int)getuid(), (u_int)geteuid(), (u_int)uid);
-	}
 }
 
 /*

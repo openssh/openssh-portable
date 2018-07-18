@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.281 2018/07/16 11:05:41 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.282 2018/07/18 11:34:04 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1812,7 +1812,6 @@ ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
 	if (pid == 0) {
 		/* keep the socket on exec */
 		fcntl(sock, F_SETFD, 0);
-		permanently_drop_suid(getuid());
 		close(from[0]);
 		if (dup2(from[1], STDOUT_FILENO) < 0)
 			fatal("%s: dup2: %s", __func__, strerror(errno));
