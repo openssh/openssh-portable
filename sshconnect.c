@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.301 2018/07/18 11:34:04 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.302 2018/07/19 10:28:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -330,10 +330,10 @@ check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
 #endif
 
 /*
- * Creates a (possibly privileged) socket for use as the ssh connection.
+ * Creates a ocket for use as the ssh connection.
  */
 static int
-ssh_create_socket(int privileged, struct addrinfo *ai)
+ssh_create_socket(struct addrinfo *ai)
 {
 	int sock, r;
 	struct sockaddr_storage bindaddr;
@@ -352,8 +352,7 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	fcntl(sock, F_SETFD, FD_CLOEXEC);
 
 	/* Bind the socket to an alternative local IP address */
-	if (options.bind_address == NULL && options.bind_interface == NULL &&
-	    !privileged)
+	if (options.bind_address == NULL && options.bind_interface == NULL)
 		return sock;
 
 	if (options.bind_address != NULL) {
@@ -492,9 +491,7 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 /*
  * Opens a TCP/IP connection to the remote server on the given host.
  * The address of the remote host will be returned in hostaddr.
- * If port is 0, the default port will be used.  If needpriv is true,
- * a privileged port will be allocated to make the connection.
- * This requires super-user privileges if needpriv is true.
+ * If port is 0, the default port will be used.
  * Connection_attempts specifies the maximum number of tries (one per
  * second).  If proxy_command is non-NULL, it specifies the command (with %h
  * and %p substituted for host and port, respectively) to use to contact
@@ -503,14 +500,14 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 static int
 ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
     struct sockaddr_storage *hostaddr, u_short port, int family,
-    int connection_attempts, int *timeout_ms, int want_keepalive, int needpriv)
+    int connection_attempts, int *timeout_ms, int want_keepalive)
 {
 	int on = 1;
 	int oerrno, sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
 
-	debug2("%s: needpriv %d", __func__, needpriv);
+	debug2("%s", __func__);
 	memset(ntop, 0, sizeof(ntop));
 	memset(strport, 0, sizeof(strport));
 
@@ -542,7 +539,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				host, ntop, strport);
 
 			/* Create a socket for connecting. */
-			sock = ssh_create_socket(needpriv, ai);
+			sock = ssh_create_socket(ai);
 			if (sock < 0) {
 				/* Any error is already output */
 				errno = 0;
@@ -592,12 +589,11 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 int
 ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
     struct sockaddr_storage *hostaddr, u_short port, int family,
-    int connection_attempts, int *timeout_ms, int want_keepalive, int needpriv)
+    int connection_attempts, int *timeout_ms, int want_keepalive)
 {
 	if (options.proxy_command == NULL) {
 		return ssh_connect_direct(ssh, host, addrs, hostaddr, port,
-		    family, connection_attempts, timeout_ms, want_keepalive,
-		    needpriv);
+		    family, connection_attempts, timeout_ms, want_keepalive);
 	} else if (strcmp(options.proxy_command, "-") == 0) {
 		if ((ssh_packet_set_connection(ssh,
 		    STDIN_FILENO, STDOUT_FILENO)) == NULL)

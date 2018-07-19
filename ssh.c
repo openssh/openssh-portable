@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.487 2018/07/18 11:34:04 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.488 2018/07/19 10:28:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -733,7 +733,6 @@ main(int ac, char **av)
 				fatal("Invalid multiplex command.");
 			break;
 		case 'P':	/* deprecated */
-			options.use_privileged_port = 0;
 			break;
 		case 'Q':
 			cp = NULL;
@@ -1236,10 +1235,6 @@ main(int ac, char **av)
 	}
 	if (options.connection_attempts <= 0)
 		fatal("Invalid number of ConnectionAttempts");
-#ifndef HAVE_CYGWIN
-	if (original_effective_uid != 0)
-		options.use_privileged_port = 0;
-#endif
 
 	if (sshbuf_len(command) != 0 && options.remote_command != NULL)
 		fatal("Cannot execute command-line and remote command.");
@@ -1376,8 +1371,7 @@ main(int ac, char **av)
 	/* Open a connection to the remote host. */
 	if (ssh_connect(ssh, host, addrs, &hostaddr, options.port,
 	    options.address_family, options.connection_attempts,
-	    &timeout_ms, options.tcp_keep_alive,
-	    options.use_privileged_port) != 0)
+	    &timeout_ms, options.tcp_keep_alive) != 0)
  		exit(255);
 
 	if (addrs != NULL)

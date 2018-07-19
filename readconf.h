@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.126 2018/06/09 03:01:12 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.127 2018/07/19 10:28:47 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -35,7 +35,6 @@ typedef struct {
 	int     exit_on_forward_failure;	/* Exit if bind(2) fails for -L/-R */
 	char   *xauth_location;	/* Location for xauth program */
 	struct ForwardOptions fwd_opts;	/* forwarding options */
-	int     use_privileged_port;	/* Don't use privileged port if false. */
 	int     pubkey_authentication;	/* Try ssh2 pubkey authentication. */
 	int     hostbased_authentication;	/* ssh2's rhosts_rsa */
 	int     challenge_response_authentication;
