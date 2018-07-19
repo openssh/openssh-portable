@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.302 2018/07/19 10:28:47 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.303 2018/07/19 23:03:16 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -330,7 +330,7 @@ check_ifaddrs(const char *ifname, int af, const struct ifaddrs *ifaddrs,
 #endif
 
 /*
- * Creates a ocket for use as the ssh connection.
+ * Creates a socket for use as the ssh connection.
  */
 static int
 ssh_create_socket(struct addrinfo *ai)
