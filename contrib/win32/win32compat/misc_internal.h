@@ -56,3 +56,4 @@ PSID get_sid(const char*);
 int am_system();
 char* build_session_commandline(const char *, const char *, const char *, int );
 char* get_custom_lsa_package();
+int lookup_principal_name(const wchar_t * sam_account_name, wchar_t * user_principal_name);

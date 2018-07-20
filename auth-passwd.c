@@ -258,18 +258,16 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	/* translate to domain user if format contains a backslash */
 	wchar_t * backslash = wcschr(user_utf16, L'\\');
 	if (backslash != NULL) {
+
 		/* attempt to format into upn format as this is preferred for login */
-		if (pTranslateNameW(user_utf16, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) != 0) {
-			debug3("%s: Successfully discovered principal name: '%ls'=>'%ls'",
-				__FUNCTION__, user_utf16, domain_upn);
+		if (lookup_principal_name(user_utf16, domain_upn) == 0) {
 			unam_utf16 = domain_upn;
 			udom_utf16 = NULL;
 		}
 
-		/* user likely does not have upn so just use SamCompatibleName */
+		/* could not discover upn so just use netbios for the domain parameter and
+		 * the sam account name for the user name */
 		else {
-			debug3("%s: Unable to discover principal name for user '%ls': %d",
-				__FUNCTION__, user_utf16, GetLastError());
 			*backslash = '\0';
 			unam_utf16 = backslash + 1;
 			udom_utf16 = user_utf16;

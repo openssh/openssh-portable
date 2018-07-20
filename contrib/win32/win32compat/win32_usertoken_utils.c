@@ -133,19 +133,13 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 
 	if (domain_user) {
 
-		/* assemble the path to the name translation library */
+		/* lookup the user principal name for the account */
 		WCHAR domain_upn[MAX_UPN_LEN + 1];
-		ULONG domain_upn_len = ARRAYSIZE(domain_upn);
-		if (pTranslateNameW(user_cpn, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) == 0) {
-
-			/* upn lookup failed so resort to attempting samcompatiblename */
-			debug3("%s: Unable to discover principal name for user '%ls': %d",
-				__FUNCTION__, user_cpn, GetLastError());
+		if (lookup_principal_name(user_cpn, domain_upn) != 0) {
+			/* failure - fallback to NetBiosDomain\SamAccountName */
 			wcscpy_s(domain_upn, ARRAYSIZE(domain_upn), user_cpn);
 		}
-		else
-			debug3("%s: Successfully discovered principal name: '%ls'=>'%ls'", __FUNCTION__, user_cpn, domain_upn);
-
+		
 		KERB_S4U_LOGON *s4u_logon;
 		logon_info_size = sizeof(KERB_S4U_LOGON);
 
@@ -713,6 +707,47 @@ get_custom_lsa_package()
 
 	s_processed = 1;
 	return s_lsa_auth_pkg;
+}
+
+/* using the netbiosname\samaccountname as an input, lookup the upn for the user.
+ * if no explicit upn is defined, implicit upn is returned (samaccountname@fqdn) */
+int lookup_principal_name(const wchar_t * sam_account_name, wchar_t * user_principal_name)
+{
+	wchar_t * seperator = wcschr(sam_account_name, L'\\');
+	wchar_t domain_upn[MAX_UPN_LEN + 1];
+	DWORD domain_upn_len = ARRAYSIZE(domain_upn);
+	DWORD lookup_error = 0;
+
+	/* sanity check */
+	if (seperator == NULL)
+		return -1;
+
+	/* try explicit lookup */
+	if (pTranslateNameW(sam_account_name, NameSamCompatible, NameUserPrincipal, domain_upn, &domain_upn_len) != 0) {
+		wcscpy_s(user_principal_name, MAX_UPN_LEN + 1, domain_upn);
+		debug3("%s: Successfully discovered explicit principal name: '%ls'=>'%ls'",
+			__FUNCTION__, sam_account_name, user_principal_name);
+		return 0;
+	}
+
+	/* try implicit lookup */
+	lookup_error = GetLastError();
+	domain_upn_len = ARRAYSIZE(domain_upn);
+	if (pTranslateNameW(sam_account_name, NameSamCompatible, NameCanonical, domain_upn, &domain_upn_len) != 0) {
+		/* construct an implicit upn using the samaccountname from the passed parameter 
+		 * and the fully qualified domain portion of the canonical name */
+		wcscpy_s(user_principal_name, MAX_UPN_LEN + 1, seperator + 1);
+		wcscat_s(user_principal_name, MAX_UPN_LEN + 1, L"@");
+		wcsncat_s(user_principal_name, MAX_UPN_LEN + 1, domain_upn, wcschr(domain_upn, L'/') - domain_upn);
+		debug3("%s: Successfully discovered implicit principal name: '%ls'=>'%ls'",
+			__FUNCTION__, sam_account_name, user_principal_name);
+		return 0;
+	}
+
+	/* report error */
+	error("%s: User principal name lookup failed for user '%ls' (explicit: %d, implicit: %d)",
+		__FUNCTION__, sam_account_name, lookup_error, GetLastError());
+	return -1;
 }
 
 #pragma warning(pop)
