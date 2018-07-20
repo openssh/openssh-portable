@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.106 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.107 2018/07/20 03:46:34 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -61,13 +61,6 @@
 #include "mac.h"
 #include "log.h"
 #include "auth-pam.h"
-#ifdef TARGET_OS_MAC    /* XXX Broken krb5 headers on Mac */
-#undef TARGET_OS_MAC
-#include "zlib.h"
-#define TARGET_OS_MAC 1
-#else
-#include "zlib.h"
-#endif
 #include "monitor.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"

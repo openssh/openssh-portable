@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.185 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: monitor.c,v 1.186 2018/07/20 03:46:34 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -76,13 +76,6 @@
 #include "kex.h"
 #include "dh.h"
 #include "auth-pam.h"
-#ifdef TARGET_OS_MAC	/* XXX Broken krb5 headers on Mac */
-#undef TARGET_OS_MAC
-#include "zlib.h"
-#define TARGET_OS_MAC 1
-#else
-#include "zlib.h"
-#endif
 #include "packet.h"
 #include "auth-options.h"
 #include "sshpty.h"
