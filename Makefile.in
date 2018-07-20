@@ -110,7 +110,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o \
 	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth2.o auth-options.o session.o \
 	auth2-chall.o groupaccess.o \
-	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
+	auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
 	auth2-none.o auth2-passwd.o auth2-pubkey.o \
 	monitor.o monitor_wrap.o auth-krb5.o \
 	auth2-gss.o gss-serv.o gss-serv-krb5.o \

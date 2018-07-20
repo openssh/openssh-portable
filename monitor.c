@@ -56,10 +56,6 @@
 # endif
 #endif
 
-#ifdef SKEY
-#include <skey.h>
-#endif
-
 #ifdef WITH_OPENSSL
 #include <openssl/dh.h>
 #endif
@@ -122,8 +118,6 @@ int mm_answer_authserv(int, struct sshbuf *);
 int mm_answer_authpassword(int, struct sshbuf *);
 int mm_answer_bsdauthquery(int, struct sshbuf *);
 int mm_answer_bsdauthrespond(int, struct sshbuf *);
-int mm_answer_skeyquery(int, struct sshbuf *);
-int mm_answer_skeyrespond(int, struct sshbuf *);
 int mm_answer_keyallowed(int, struct sshbuf *);
 int mm_answer_keyverify(int, struct sshbuf *);
 int mm_answer_pty(int, struct sshbuf *);
@@ -211,10 +205,6 @@ struct mon_table mon_dispatch_proto20[] = {
 #ifdef BSD_AUTH
     {MONITOR_REQ_BSDAUTHQUERY, MON_ISAUTH, mm_answer_bsdauthquery},
     {MONITOR_REQ_BSDAUTHRESPOND, MON_AUTH, mm_answer_bsdauthrespond},
-#endif
-#ifdef SKEY
-    {MONITOR_REQ_SKEYQUERY, MON_ISAUTH, mm_answer_skeyquery},
-    {MONITOR_REQ_SKEYRESPOND, MON_AUTH, mm_answer_skeyrespond},
 #endif
     {MONITOR_REQ_KEYALLOWED, MON_ISAUTH, mm_answer_keyallowed},
     {MONITOR_REQ_KEYVERIFY, MON_AUTH, mm_answer_keyverify},
@@ -955,62 +945,6 @@ mm_answer_bsdauthrespond(int sock, struct sshbuf *m)
 
 	auth_method = "keyboard-interactive";
 	auth_submethod = "bsdauth";
-
-	return (authok != 0);
-}
-#endif
-
-#ifdef SKEY
-int
-mm_answer_skeyquery(int sock, struct sshbuf *m)
-{
-	struct skey skey;
-	char challenge[1024];
-	u_int success;
-	int r;
-
-	success = _compat_skeychallenge(&skey, authctxt->user, challenge,
-	    sizeof(challenge)) < 0 ? 0 : 1;
-
-	sshbuf_reset(m);
-	if ((r = sshbuf_put_u32(m, success)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (success) {
-		if ((r = sshbuf_put_cstring(m, challenge)) != 0)
-			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	}
-	debug3("%s: sending challenge success: %u", __func__, success);
-	mm_request_send(sock, MONITOR_ANS_SKEYQUERY, m);
-
-	return (0);
-}
-
-int
-mm_answer_skeyrespond(int sock, struct sshbuf *m)
-{
-	char *response;
-	size_t rlen;
-	int authok, r;
-
-	if ((r = sshbuf_get_cstring(m, &response, &rlen)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-	authok = (options.challenge_response_authentication &&
-	    authctxt->valid &&
-	    skey_haskey(authctxt->pw->pw_name) == 0 &&
-	    skey_passcheck(authctxt->pw->pw_name, response) != -1);
-
-	freezero(response, rlen);
-
-	sshbuf_reset(m);
-	if ((r = sshbuf_put_u32(m, authok)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-
-	debug3("%s: sending authenticated: %d", __func__, authok);
-	mm_request_send(sock, MONITOR_ANS_SKEYRESPOND, m);
-
-	auth_method = "keyboard-interactive";
-	auth_submethod = "skey";
 
 	return (authok != 0);
 }

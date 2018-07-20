@@ -35,7 +35,7 @@ Programming:
  - Use different PAM service name for kbdint vs regular auth (suggest from
    Solar Designer)
  - Ability to select which ChallengeResponseAuthentications may be used
-   and order to try them in e.g. "ChallengeResponseAuthentication skey, pam"
+   and order to try them in e.g. "ChallengeResponseAuthentication pam"
 
 - Complete Tru64 SIA support
  - It looks like we could merge it into the password auth code to cut down

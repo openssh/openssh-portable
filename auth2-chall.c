@@ -58,9 +58,6 @@ extern KbdintDevice bsdauth_device;
 #ifdef USE_PAM
 extern KbdintDevice sshpam_device;
 #endif
-#ifdef SKEY
-extern KbdintDevice skey_device;
-#endif
 #endif
 
 KbdintDevice *devices[] = {
@@ -69,9 +66,6 @@ KbdintDevice *devices[] = {
 #else
 #ifdef USE_PAM
 	&sshpam_device,
-#endif
-#ifdef SKEY
-	&skey_device,
 #endif
 #endif
 	NULL
@@ -369,7 +363,7 @@ input_userauth_info_response(int type, u_int32_t seq, struct ssh *ssh)
 void
 privsep_challenge_enable(void)
 {
-#if defined(BSD_AUTH) || defined(USE_PAM) || defined(SKEY)
+#if defined(BSD_AUTH) || defined(USE_PAM)
 	int n = 0;
 #endif
 #ifdef BSD_AUTH
@@ -378,18 +372,12 @@ privsep_challenge_enable(void)
 #ifdef USE_PAM
 	extern KbdintDevice mm_sshpam_device;
 #endif
-#ifdef SKEY
-	extern KbdintDevice mm_skey_device;
-#endif
 
 #ifdef BSD_AUTH
 	devices[n++] = &mm_bsdauth_device;
 #else
 #ifdef USE_PAM
 	devices[n++] = &mm_sshpam_device;
-#endif
-#ifdef SKEY
-	devices[n++] = &mm_skey_device;
 #endif
 #endif
 }
