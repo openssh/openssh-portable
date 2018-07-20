@@ -230,6 +230,7 @@ clean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core survey
 	rm -f regress/check-perm$(EXEEXT)
+	rm -f regress/mkdtemp$(EXEEXT)
 	rm -f regress/unittests/test_helper/*.a
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/sshbuf/*.o
@@ -258,6 +259,8 @@ distclean:	regressclean
 	rm -f Makefile buildpkg.sh config.h config.status
 	rm -f survey.sh openbsd-compat/regress/Makefile *~ 
 	rm -rf autom4te.cache
+	rm -f regress/check-perm
+	rm -f regress/mkdtemp
 	rm -f regress/unittests/test_helper/*.a
 	rm -f regress/unittests/test_helper/*.o
 	rm -f regress/unittests/sshbuf/*.o
@@ -460,6 +463,10 @@ regress/check-perm$(EXEEXT): $(srcdir)/regress/check-perm.c $(REGRESSLIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(srcdir)/regress/check-perm.c \
 	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
+regress/mkdtemp$(EXEEXT): $(srcdir)/regress/mkdtemp.c $(REGRESSLIBS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $(srcdir)/regress/mkdtemp.c \
+	$(LDFLAGS) -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
+
 UNITTESTS_TEST_HELPER_OBJS=\
 	regress/unittests/test_helper/test_helper.o \
 	regress/unittests/test_helper/fuzz.o
@@ -568,6 +575,7 @@ regress-binaries: regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
+	regress/mkdtemp$(EXEEXT) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/bitmap/test_bitmap$(EXEEXT) \

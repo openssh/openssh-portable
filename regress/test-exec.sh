@@ -76,6 +76,9 @@ SFTP=sftp
 SFTPSERVER=/usr/libexec/openssh/sftp-server
 SCP=scp
 
+# Set by make_tmpdir() on demand (below).
+SSH_REGRESS_TMP=
+
 # Interop testing
 PLINK=plink
 PUTTYGEN=puttygen
@@ -322,6 +325,12 @@ stop_sshd ()
 	fi
 }
 
+make_tmpdir ()
+{
+	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-regress-XXXXXXXXXXXX)" || \
+	    fatal "failed to create temporary directory"
+}
+
 # helper
 cleanup ()
 {
@@ -331,6 +340,9 @@ cleanup ()
 		else
 			kill $SSH_PID
 		fi
+	fi
+	if [ "x$SSH_REGRESS_TMP" != "x" ]; then
+		rm -rf "$SSH_REGRESS_TMP"
 	fi
 	stop_sshd
 }
