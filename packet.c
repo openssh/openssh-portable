@@ -61,6 +61,18 @@
 #include <signal.h>
 #include <time.h>
 
+/*
+ * Explicitly include OpenSSL before zlib as some versions of OpenSSL have
+ * "free_func" in their headers, which zlib typedefs.
+ */
+#ifdef WITH_OPENSSL
+# include <openssl/bn.h>
+# include <openssl/evp.h>
+# ifdef OPENSSL_HAS_ECC
+#  include <openssl/ec.h>
+# endif
+#endif
+
 #include <zlib.h>
 
 #include "xmalloc.h"
