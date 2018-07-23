@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.117 2018/07/19 10:28:47 dtucker Exp $
+.\" $OpenBSD: sftp.1,v 1.118 2018/07/23 19:02:49 kn Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -22,7 +22,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: July 19 2018 $
+.Dd $Mdocdate: July 23 2018 $
 .Dt SFTP 1
 .Os
 .Sh NAME
@@ -315,7 +315,7 @@ to
 .Ar grp .
 .Ar path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 .Ar grp
 must be a numeric GID.
@@ -326,7 +326,7 @@ to
 .Ar mode .
 .Ar path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 .It Ic chown Ar own Ar path
 Change owner of file
@@ -335,7 +335,7 @@ to
 .Ar own .
 .Ar path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 .Ar own
 must be a numeric UID.
@@ -373,7 +373,7 @@ path name is not specified, it is given the same name it has on the
 remote machine.
 .Ar remote-path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 If it does and
 .Ar local-path
@@ -429,7 +429,7 @@ may contain any flags supported by the local system's
 command.
 .Ar path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 .It Ic lmkdir Ar path
 Create local directory specified by
@@ -460,7 +460,7 @@ or the current directory if
 is not specified.
 .Ar path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 .Pp
 The following flags are recognized and alter the behaviour of
@@ -513,7 +513,7 @@ If the remote path name is not specified, it is given the same name it has
 on the local machine.
 .Ar local-path
 may contain
-.Xr glob 3
+.Xr glob 7
 characters and may match multiple files.
 If it does and
 .Ar remote-path
@@ -616,7 +616,7 @@ Synonym for help.
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-keygen 1 ,
-.Xr glob 3 ,
+.Xr glob 7 ,
 .Xr ssh_config 5 ,
 .Xr sftp-server 8 ,
 .Xr sshd 8

@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.280 2018/07/19 10:28:47 dtucker Exp $
-.Dd $Mdocdate: July 19 2018 $
+.\" $OpenBSD: ssh_config.5,v 1.281 2018/07/23 19:02:49 kn Exp $
+.Dd $Mdocdate: July 23 2018 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -926,7 +926,7 @@ to unknown options that appear before it.
 .It Cm Include
 Include the specified configuration file(s).
 Multiple pathnames may be specified and each pathname may contain
-.Xr glob 3
+.Xr glob 7
 wildcards and, for user configurations, shell-like
 .Sq ~
 references to user home directories.
