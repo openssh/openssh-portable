@@ -40,11 +40,14 @@
 #include "debug.h"
 #include "console.h"
 #include "ansiprsr.h"
+#include "misc_internal.h"
 
 HANDLE	hOutputConsole = NULL;
 DWORD	stdin_dwSavedAttributes = 0;
 DWORD	stdout_dwSavedAttributes = 0;
 WORD	wStartingAttributes = 0;
+unsigned int console_out_cp_saved = 0;
+unsigned int console_in_cp_saved = 0;
 
 int ScreenX;
 int ScreenY;
@@ -142,14 +145,28 @@ ConEnterRawMode()
 		SavedViewRect = csbi.srWindow;
 		debug("console doesn't support the ansi parsing");
 	} else {
-		ConSaveViewRect();
 		debug("console supports the ansi parsing");
-	}		
+		if (is_conpty_supported()) {
+			console_out_cp_saved = GetConsoleOutputCP();
+			console_in_cp_saved = GetConsoleCP();
+			if (SetConsoleOutputCP(CP_UTF8))
+				debug3("Successfully set console output code page from:%d to %d", console_out_cp_saved, CP_UTF8);
+			else
+				error("Failed to set console output code page from:%d to %d error:%d", console_out_cp_saved, CP_UTF8, GetLastError());
+
+			if (SetConsoleCP(CP_UTF8))
+				debug3("Successfully set console input code page from:%d to %d", console_in_cp_saved, CP_UTF8);
+			else
+				error("Failed to set console input code page from:%d to %d error:%d", console_in_cp_saved, CP_UTF8, GetLastError());
+		} else {
+			ConSaveViewRect();
+		}
+	}
 
 	ConSetScreenX();
 	ConSetScreenY();
 	ScrollTop = 0;
-	ScrollBottom = ConVisibleWindowHeight();		
+	ScrollBottom = ConVisibleWindowHeight();
 	
 	in_raw_mode = 1;
 }
@@ -160,6 +177,22 @@ ConExitRawMode()
 {
 	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), stdin_dwSavedAttributes);
 	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), stdout_dwSavedAttributes);
+
+	if (FALSE == isAnsiParsingRequired && is_conpty_supported()) {
+		if (console_out_cp_saved) {
+			if(SetConsoleOutputCP(console_out_cp_saved))
+				debug3("Successfully set console output code page from %d to %d", CP_UTF8, console_out_cp_saved);
+			else
+				error("Failed to set console output code page from %d to %d error:%d", CP_UTF8, console_out_cp_saved, GetLastError());
+		}
+
+		if (console_in_cp_saved) {
+			if (SetConsoleCP(console_in_cp_saved))
+				debug3("Successfully set console input code page from %d to %d", CP_UTF8, console_in_cp_saved);
+			else
+				error("Failed to set console input code page from %d to %d error:%d", CP_UTF8, console_in_cp_saved, GetLastError());
+		}
+	}
 }
 
 /* Used to exit the raw mode */
@@ -223,7 +256,7 @@ ConSetScreenRect(int xSize, int ySize)
 			bSuccess = SetConsoleScreenBufferSize(hOutputConsole, coordScreen);
 	}
 
-	if (bSuccess)
+	if (bSuccess && !is_conpty_supported())
 		ConSaveViewRect();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
@@ -270,7 +303,7 @@ ConSetScreenSize(int xSize, int ySize)
 			bSuccess = SetConsoleWindowInfo(hOutputConsole, TRUE, &srWindowRect);
 	}
 
-	if (bSuccess)
+	if (bSuccess && !is_conpty_supported())
 		ConSaveViewRect();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
@@ -1490,7 +1523,6 @@ void
 ConSaveViewRect()
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
 	if (GetConsoleScreenBufferInfo(hOutputConsole, &csbi))
 		SavedViewRect = csbi.srWindow;
 }
@@ -1590,7 +1622,8 @@ ConMoveCursorTopOfVisibleWindow()
 		offset = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
 		ConMoveVisibleWindow(offset);
 
-		ConSaveViewRect();
+		if(!is_conpty_supported())
+			ConSaveViewRect();
 	}
 }
 

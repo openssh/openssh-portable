@@ -37,6 +37,7 @@
 #include "ansiprsr.h"
 #include "inc\utf.h"
 #include "console.h"
+#include "misc_internal.h"
 
 #define dwBuffer 4096
 
@@ -51,16 +52,17 @@ BOOL isFirstPacket = TRUE;
  * are hardcoded in the server and will be transformed to Windows Console commands.
  */
 void
-processBuffer(HANDLE handle, char *buf, size_t len, unsigned char **respbuf, size_t *resplen)
+processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size_t *resplen)
 {
 	unsigned char *pszNewHead = NULL;
 	unsigned char *pszHead = NULL;
 	unsigned char *pszTail = NULL;
 	const char *applicationModeSeq = "\x1b[?1h";
-	const int applicationModeSeqLen = (int)strlen(applicationModeSeq);
+	const DWORD applicationModeSeqLen = (DWORD)strlen(applicationModeSeq);
 	const char *normalModeSeq = "\x1b[?1l";
-	const int normalModeSeqLen = (int)strlen(normalModeSeq);
+	const DWORD normalModeSeqLen = (DWORD)strlen(normalModeSeq);
 	const char *clsSeq = "\x1b[2J";
+	static int track_view_port = 1;
 
 	if (len == 0)
 		return;
@@ -68,6 +70,10 @@ processBuffer(HANDLE handle, char *buf, size_t len, unsigned char **respbuf, siz
 	if (false == isAnsiParsingRequired) {
 		if(isFirstPacket) {
 			isFirstPacket = FALSE;
+
+			if (is_conpty_supported())
+				track_view_port = 0;
+
 			/* Windows server at first sends the "cls" after the connection is established.
 			 * There is a bug in the conhost which causes the visible window data to loose so to
 			 * mitigate that issue we need to first move the visible window so that the cursor is at the top of the visible window.
@@ -81,15 +87,18 @@ processBuffer(HANDLE handle, char *buf, size_t len, unsigned char **respbuf, siz
 		else if(len >= normalModeSeqLen && strstr(buf, normalModeSeq))
 			gbVTAppMode = false;
 
+		/* WriteFile() gets messy when user does scroll up/down so we need to restore the visible window. 
+		 * It's a conhost bug but we need to live with it as they are not going to back port the fix.
+		 */
+		if(track_view_port)
+			ConRestoreViewRect();
+				
 		/* Console has the capability to parse so pass the raw buffer to console directly */
-		ConRestoreViewRect(); /* Restore the visible window, otherwise WriteConsoleW() gets messy */
-		wchar_t* t = utf8_to_utf16(buf);
-		if (t) {
-			WriteConsoleW(handle, t, (DWORD)wcslen(t), 0, 0);
-			free(t);
-		}
-		
-		ConSaveViewRect();
+		WriteFile(handle, buf, len, 0, 0);
+
+		if (track_view_port)
+			ConSaveViewRect();
+
 		return;
 	}
 

@@ -286,7 +286,8 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	if (chroot_pathw && !nonfs_dev) {
 		/* ensure final path is within chroot */
 		HANDLE h = (HANDLE)_get_osfhandle(_fileno(f));
-		if (!file_in_chroot_jail(h, input_path)) {
+		if (!file_in_chroot_jail(h)) {
+			debug3("%s is not in chroot jail", input_path);
 			fclose(f);
 			f = NULL;
 			errno = EACCES;
@@ -417,34 +418,6 @@ w32_setvbuf(FILE *stream, char *buffer, int mode, size_t size) {
 		return setvbuf(stream, NULL, _IONBF, 0);
 	else
 		return setvbuf(stream, buffer, mode, size);
-}
-
-/* TODO - deprecate this. This is not a POSIX API, used internally only */
-char *
-w32_programdir()
-{
-	wchar_t* wpgmptr;
-
-	if (s_programdir != NULL)
-		return s_programdir;
-
-	if (_get_wpgmptr(&wpgmptr) != 0)
-		return NULL;
-
-	if ((s_programdir = utf16_to_utf8(wpgmptr)) == NULL)
-		return NULL;
-
-	/* null terminate after directory path */
-	char* tail = s_programdir + strlen(s_programdir);
-	while (tail > s_programdir && *tail != '\\' && *tail != '/')
-		tail--;
-
-	if (tail > s_programdir)
-		*tail = '\0';
-	else
-		*tail = '.'; /* current directory */
-
-	return s_programdir;
 }
 
 int
@@ -1592,11 +1565,11 @@ cleanup:
 
 /* builds session commandline. returns NULL with errno set on failure, caller should free returned string */
 char* 
-build_session_commandline(const char *shell, const char* shell_arg, const char *command, int pty)
+build_session_commandline(const char *shell, const char* shell_arg, const char *command)
 {
 	enum sh_type { SH_OTHER, SH_CMD, SH_PS, SH_BASH } shell_type = SH_OTHER;
 	enum cmd_type { CMD_OTHER, CMD_SFTP, CMD_SCP } command_type = CMD_OTHER;
-	char *progdir = w32_programdir(), *cmd_sp = NULL, *cmdline = NULL, *ret = NULL, *p;
+	char *progdir = __progdir, *cmd_sp = NULL, *cmdline = NULL, *ret = NULL, *p;
 	int len, progdir_len = (int)strlen(progdir);
 
 #define CMDLINE_APPEND(P, S)		\
@@ -1650,7 +1623,7 @@ do {					\
 		if (!command)
 			break;
 		command_len = (int)strlen(command);
-
+		/*TODO - replace numbers below with readable compile time operators*/
 		if (command_len >= 13 && _memicmp(command, "internal-sftp", 13) == 0) {
 			command_type = CMD_SFTP;
 			command_args = command + 13;
@@ -1687,7 +1660,6 @@ do {					\
 		p = cmd_sp;
 
 		if (shell_type == SH_CMD) {
-
 			CMDLINE_APPEND(p, "\"");
 			CMDLINE_APPEND(p, progdir);
 
@@ -1709,8 +1681,6 @@ do {					\
 	} while (0);
 
 	len = 0;
-	if (pty)
-		len += progdir_len + (int)strlen("ssh-shellhost.exe") + 5;
 	len +=(int) strlen(shell) + 3;/* 3 for " around shell path and trailing space */
 	if (command) {
 		len += 15; /* for shell command argument, typically -c or /c */
@@ -1723,11 +1693,6 @@ do {					\
 	}
 
 	p = cmdline;
-	if (pty) {
-		CMDLINE_APPEND(p, "\"");
-		CMDLINE_APPEND(p, progdir);
-		CMDLINE_APPEND(p, "\\ssh-shellhost.exe\" ");
-	}
 	CMDLINE_APPEND(p, "\"");
 	CMDLINE_APPEND(p, shell);
 	CMDLINE_APPEND(p, "\"");
@@ -1742,14 +1707,10 @@ do {					\
 		else
 			CMDLINE_APPEND(p, " -c ");
 
-		/* bash type shells require " decoration around command*/
-		if (shell_type == SH_BASH)
-			CMDLINE_APPEND(p, "\"");
-
+		/* Add double quotes around command */		
+		CMDLINE_APPEND(p, "\"");
 		CMDLINE_APPEND(p, command);
-
-		if (shell_type == SH_BASH)
-			CMDLINE_APPEND(p, "\"");
+		CMDLINE_APPEND(p, "\"");
 	}
 	*p = '\0';
 	ret = cmdline;

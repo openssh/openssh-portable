@@ -135,6 +135,7 @@ generate_s4u_user_token(wchar_t* user_cpn, int impersonation) {
 
 		/* lookup the user principal name for the account */
 		WCHAR domain_upn[MAX_UPN_LEN + 1];
+
 		if (lookup_principal_name(user_cpn, domain_upn) != 0) {
 			/* failure - fallback to NetBiosDomain\SamAccountName */
 			wcscpy_s(domain_upn, ARRAYSIZE(domain_upn), user_cpn);
@@ -488,7 +489,7 @@ add_sid_mapping_to_lsa(PUNICODE_STRING domain_name,
 	}
 
 	if (p_output) {
-		status = LsaFreeMemory(p_output);
+		status = pLsaFreeMemory(p_output);
 		if (status != STATUS_SUCCESS)
 			debug3("LsaFreeMemory failed with ntstatus: %d", status);
 	}
@@ -517,7 +518,7 @@ int remove_virtual_account_lsa_mapping(PUNICODE_STRING domain_name,
 		ret = -1;
 		
 	if (p_output) {
-		status = LsaFreeMemory(p_output);
+		status = pLsaFreeMemory(p_output);
 		if (status != STATUS_SUCCESS)
 			debug3("LsaFreeMemory failed with ntstatus: %d", status);
 	}
@@ -623,7 +624,7 @@ HANDLE generate_sshd_virtual_token()
 
 	/* assign service logon privilege to virtual account */
 	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
-	if ((lsa_ret = LsaOpenPolicy(NULL, &ObjectAttributes,
+	if ((lsa_ret = pLsaOpenPolicy(NULL, &ObjectAttributes,
 		POLICY_CREATE_ACCOUNT | POLICY_LOOKUP_NAMES,
 		&lsa_policy)) != STATUS_SUCCESS) {
 		error("%s: unable to open policy handle, error: %d",
@@ -632,7 +633,7 @@ HANDLE generate_sshd_virtual_token()
 	}
 
 	/* alter security to allow policy to account to logon as a service */
-	if ((lsa_add_ret = LsaAddAccountRights(lsa_policy, sid_user, &svcLogonRight, 1)) != STATUS_SUCCESS) {
+	if ((lsa_add_ret = pLsaAddAccountRights(lsa_policy, sid_user, &svcLogonRight, 1)) != STATUS_SUCCESS) {
 		error("%s: unable to assign SE_SERVICE_LOGON_NAME privilege, error: %d",
 			__FUNCTION__, (ULONG)pRtlNtStatusToDosError(lsa_add_ret));
 		goto cleanup;
@@ -656,7 +657,7 @@ cleanup:
 
 	/* attempt to remove virtual account permissions if previous add succeeded */
 	if (lsa_add_ret == STATUS_SUCCESS)
-		if ((lsa_ret = LsaRemoveAccountRights(lsa_policy, sid_user, FALSE, &svcLogonRight, 1)) != STATUS_SUCCESS)
+		if ((lsa_ret = pLsaRemoveAccountRights(lsa_policy, sid_user, FALSE, &svcLogonRight, 1)) != STATUS_SUCCESS)
 			debug("%s: unable to remove SE_SERVICE_LOGON_NAME privilege, error: %d", __FUNCTION__, pRtlNtStatusToDosError(lsa_ret));
 
 	if (sid_domain)
@@ -666,7 +667,7 @@ cleanup:
 	if (sid_group)
 		FreeSid(sid_group);
 	if (lsa_policy)
-		LsaClose(lsa_policy);
+		pLsaClose(lsa_policy);
 
 	return va_token_restricted;
 }
@@ -707,6 +708,24 @@ get_custom_lsa_package()
 
 	s_processed = 1;
 	return s_lsa_auth_pkg;
+}
+
+/*
+ * Not thread safe 
+ * returned value is pointer from static buffer
+ * dont free()
+ */
+wchar_t* get_final_path_by_handle(HANDLE h)
+{
+	static wchar_t path_buf[PATH_MAX];
+
+	if (GetFinalPathNameByHandleW(h, path_buf, PATH_MAX, 0) == 0) {
+		errno = EOTHER;
+		debug3("failed to get final path of file with handle:%d error:%d", h, GetLastError());
+		return NULL;
+	}
+
+	return (path_buf + 4);
 }
 
 /* using the netbiosname\samaccountname as an input, lookup the upn for the user.

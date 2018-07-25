@@ -786,6 +786,9 @@ privsep_preauth(Authctxt *authctxt)
 
 		pmonitor->m_recvfd = PRIVSEP_MONITOR_FD;
 		pmonitor->m_log_sendfd = PRIVSEP_LOG_FD;
+		
+		fcntl(pmonitor->m_recvfd, F_SETFD, FD_CLOEXEC);
+		fcntl(pmonitor->m_log_sendfd, F_SETFD, FD_CLOEXEC);
 
 		/* Arrange for logging to be sent to the monitor */
 		set_log_handler(mm_log_handler, pmonitor);
@@ -948,6 +951,7 @@ privsep_postauth(Authctxt *authctxt)
 	close(pmonitor->m_recvfd);
 
 	pmonitor->m_recvfd = PRIVSEP_MONITOR_FD;
+	fcntl(pmonitor->m_recvfd, F_SETFD, FD_CLOEXEC);
 	monitor_recv_keystate(pmonitor);
 
 	do_setusercontext(authctxt->pw);

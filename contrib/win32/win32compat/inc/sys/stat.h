@@ -38,6 +38,10 @@ int w32_mkdir(const char *pathname, unsigned short mode);
 int w32_chmod(const char *, mode_t);
 #define chmod w32_chmod
 
+int w32_fchmod(int fd, mode_t mode);
+#define fchmod w32_fchmod
+
+
 struct w32_stat {
 	dev_t     st_dev;     /* ID of device containing file */
 	unsigned short     st_ino;     /* inode number */

@@ -107,7 +107,7 @@ static VOID CALLBACK
 sigwinch_APCProc(_In_ ULONG_PTR dwParam)
 {
 	debug5("SIGTERM APCProc()");
-	sigaddset(&pending_signals, W32_SIGWINCH);
+	sigaddset(&pending_signals, SIGWINCH);
 }
 
 void

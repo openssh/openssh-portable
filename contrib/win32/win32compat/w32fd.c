@@ -33,6 +33,7 @@
 #include "inc\sys\select.h"
 #include "inc\sys\uio.h"
 #include "inc\sys\types.h"
+#include "inc\sys\stat.h"
 #include "inc\unistd.h"
 #include "inc\fcntl.h"
 #include "inc\sys\un.h"
@@ -72,6 +73,11 @@ void fd_decode_state(char*);
 
 /* __progname */
 char* __progname = "";
+
+/* __progdir */
+char* __progdir = "";
+wchar_t* __wprogdir = L"";
+
 
 /* initializes mapping table*/
 static int
@@ -176,41 +182,42 @@ fd_table_clear(int index)
 	FD_CLR(index, &(fd_table.occupied));
 }
 
-/* TODO - consolidate w32_programdir logic in here */
-static int 
+void 
 init_prog_paths()
 {
 	wchar_t* wpgmptr;
-	char* pgmptr;
+	static int processed = 0;
 
-	if (_get_wpgmptr(&wpgmptr) != 0) {
-		errno = EOTHER;
-		return -1;
-	}
+	if (processed)
+		return;
 
-	if ((pgmptr = utf16_to_utf8(wpgmptr)) == NULL) {
-		errno = ENOMEM;
-		return -1;
-	}
+	if (_get_wpgmptr(&wpgmptr) != 0)
+		fatal("unable to retrieve wpgmptr");
 
-	__progname = strrchr(pgmptr, '\\') + 1;
-	*(__progname - 1) = '\0';
+	if ((__wprogdir = _wcsdup(wpgmptr)) == NULL ||
+	    (__progdir = utf16_to_utf8(__wprogdir)) == NULL)
+		fatal("out of memory");
+
+	__progname = strrchr(__progdir, '\\') + 1;
+	/* TODO: retain trailing \ at the end of progdir* variants ? */
+	*(strrchr(__progdir, '\\')) = '\0';
+	*(wcsrchr(__wprogdir, L'\\')) = L'\0';
 
 	/* strip .exe off __progname */
 	*(__progname + strlen(__progname) - 4) = '\0';
 
-	return 0;
+	processed = 1;
 }
 
 void
 w32posix_initialize()
 {
+	init_prog_paths();
 	if ((fd_table_initialize() != 0) || (socketio_initialize() != 0))
 		DebugBreak();
 	main_thread = OpenThread(THREAD_SET_CONTEXT | SYNCHRONIZE, FALSE, GetCurrentThreadId());
 	if (main_thread == NULL || 
-	    sw_initialize() != 0 || 
-	    init_prog_paths() != 0 ) {
+	    sw_initialize() != 0 ) {
 		DebugBreak();
 		fatal("failed to initialize w32posix wrapper");
 	}
@@ -962,6 +969,28 @@ w32_ftruncate(int fd, off_t length)
 	return 0;
 }
 
+int w32_fchmod(int fd, mode_t mode)
+{
+	wchar_t *file_path;
+	char *file_path_utf8 = NULL;
+	int ret = -1;
+	CHECK_FD(fd);
+
+	file_path = get_final_path_by_handle(fd_table.w32_ios[fd]->handle);
+	if (!file_path)
+		goto cleanup;
+
+	if ((file_path_utf8 = utf16_to_utf8(file_path)) == NULL)
+		goto cleanup;
+
+	ret = w32_chmod(file_path_utf8, mode);
+cleanup:
+	if (file_path_utf8)
+		free(file_path_utf8);
+
+	return ret;
+}
+
 int
 w32_fsync(int fd)
 {
@@ -1012,7 +1041,7 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 
 	/* compute total cmdline len*/
 	if (add_module_path)
-		cmdline_len += (DWORD)strlen(w32_programdir()) + 1 + (DWORD)strlen(cmd) + 1 + 2;
+		cmdline_len += (DWORD)strlen(__progdir) + 1 + (DWORD)strlen(cmd) + 1 + 2;
 	else
 		cmdline_len += (DWORD)strlen(cmd) + 1 + 2;
 
@@ -1032,8 +1061,8 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	if (argv && argv[0])
 		*t++ = '\"';
 	if (add_module_path) {
-		memcpy(t, w32_programdir(), strlen(w32_programdir()));
-		t += strlen(w32_programdir());
+		memcpy(t, __progdir, strlen(__progdir));
+		t += strlen(__progdir);
 		*t++ = '\\';
 	}
 

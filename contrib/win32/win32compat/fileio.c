@@ -207,7 +207,7 @@ fileio_pipe(struct w32_io* pio[2], int duplex)
 
 	sec_attributes.bInheritHandle = TRUE;
 	sec_attributes.lpSecurityDescriptor = NULL;
-	sec_attributes.nLength = 0;
+	sec_attributes.nLength = sizeof(sec_attributes);
 
 	/* create named pipe */
 	write_handle = CreateNamedPipeA(pipe_name,
@@ -415,18 +415,18 @@ cleanup:
 
 /* returns 1 if true, 0 otherwise */
 int
-file_in_chroot_jail(HANDLE handle, const char* path_utf8) {
+file_in_chroot_jail(HANDLE handle) {
 	/* ensure final path is within chroot */
-	wchar_t path_buf[MAX_PATH], *final_path;
-	if (GetFinalPathNameByHandleW(handle, path_buf, MAX_PATH, 0) == 0) {
-		debug3("failed to get final path of file:%s error:%d", path_utf8, GetLastError());
+	wchar_t *final_path;
+	
+	final_path = get_final_path_by_handle(handle);
+	if (!final_path)
 		return 0;
-	}
-	final_path = path_buf + 4;
+
 	to_wlower_case(final_path);
 	if ((wcslen(final_path) < wcslen(chroot_pathw)) ||
-		memcmp(final_path, chroot_pathw, 2 * wcslen(chroot_pathw)) != 0 ||
-		final_path[wcslen(chroot_pathw)] != '\\') {
+	    memcmp(final_path, chroot_pathw, 2 * wcslen(chroot_pathw)) != 0 ||
+	    final_path[wcslen(chroot_pathw)] != '\\') {
 		debug3("access denied due to attempt to escape chroot jail");
 		return 0;
 	}
@@ -478,7 +478,8 @@ fileio_open(const char *path_utf8, int flags, mode_t mode)
 		goto cleanup;
 	}
 
-	if (chroot_pathw && !nonfs_dev && !file_in_chroot_jail(handle, path_utf8)) {		
+	if (chroot_pathw && !nonfs_dev && !file_in_chroot_jail(handle)) {	
+		debug3("%s is not in chroot jail", path_utf8);
 		errno = EACCES;
 		goto cleanup;
 	}
@@ -776,7 +777,7 @@ fileio_fstat(struct w32_io* pio, struct _stat64 *buf)
 		return -1;
 	}
 
-	int fd = _open_osfhandle(dup_handle, 0);
+	int fd = _open_osfhandle((intptr_t)dup_handle, 0);
 	debug4("fstat - pio:%p", pio);
 	if (fd == -1) {
 		CloseHandle(dup_handle);
@@ -902,44 +903,41 @@ fileio_lseek(struct w32_io* pio, unsigned __int64 offset, int origin)
 	return 0;
 }
 
-/* fdopen implementation */
+/* 
+ * fdopen implementation - use with caution
+ * this implementation deviates from POSIX spec the following way
+ * - the underlying file descriptor is closed automatically
+ * hence no further POSIX io operations (read, write, close, etc) on the 
+ * underlying file descriptor are supported
+ */
 FILE*
 fileio_fdopen(struct w32_io* pio, const char *mode)
 {
-	int fd_flags = 0;
+	wchar_t *file_path, *wmode = NULL;
+	FILE* ret = NULL;
+	
 	debug4("fdopen - io:%p", pio);
 
-	/* logic below doesn't work with overlapped file HANDLES */
-	if (mode[1] == '\0') {
-		switch (*mode) {
-		case 'r':
-			fd_flags = _O_RDONLY;
-			break;
-		case 'w':
-			break;
-		case 'a':
-			fd_flags = _O_APPEND;
-			break;
-		default:
-			errno = ENOTSUP;
-			debug3("fdopen - ERROR unsupported mode %s", mode);
-			return NULL;
-		}
-	} else {
-		errno = ENOTSUP;
-		debug3("fdopen - ERROR unsupported mode %s", mode);
-		return NULL;
-	}
+	if ((wmode = utf8_to_utf16(mode)) == NULL)
+		goto cleanup;
 
-	int fd = _open_osfhandle((intptr_t)pio->handle, fd_flags);
+	file_path = get_final_path_by_handle(pio->handle);
+	if (!file_path) 
+		goto cleanup;
+	
+	/* 
+	 * close the win32 handle right away and remove entry from table
+	 * otherwise, wfopen will get an access denied due to sharing violation
+	 */
+	int w32_close(int);
+	w32_close(pio->table_index);
+	errno = _wfopen_s(&ret, file_path, wmode);
 
-	if (fd == -1) {
-		errno = EOTHER;
-		debug3("fdopen - ERROR:%d _open_osfhandle()", errno);
-		return NULL;
-	}
+cleanup:
+	if (wmode)
+		free(wmode);
 
-	return _fdopen(fd, mode);
+	return ret;
 }
 
 void

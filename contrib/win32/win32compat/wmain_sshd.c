@@ -189,7 +189,7 @@ create_prgdata_ssh_folder()
 	wcscat_s(sshd_config_path, _countof(sshd_config_path), L"\\sshd_config");
 	if (GetFileAttributesW(sshd_config_path) == INVALID_FILE_ATTRIBUTES) {
 		wchar_t sshd_config_default_path[PATH_MAX] = { 0, };
-		swprintf_s(sshd_config_default_path, PATH_MAX, L"%S\\%s", w32_programdir(), L"sshd_config_default");
+		swprintf_s(sshd_config_default_path, PATH_MAX, L"%S\\%s", __progdir, L"sshd_config_default");
 
 		if (CopyFileW(sshd_config_default_path, sshd_config_path, TRUE) == 0) {
 			printf("Failed to copy %s to %s, error:%d", sshd_config_default_path, sshd_config_path, GetLastError());
@@ -264,11 +264,9 @@ int wmain(int argc, wchar_t **wargv) {
 	argc_original = argc;
 	wargv_original = wargv;
 	
+	init_prog_paths();
 	/* change current directory to sshd.exe root */
-	if ( (path_utf16 = utf8_to_utf16(w32_programdir())) == NULL) 
-		return -1;
-	_wchdir(path_utf16);
-	free(path_utf16);
+	_wchdir(__wprogdir);
 
 	if (!StartServiceCtrlDispatcherW(dispatch_table)) {
 		if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)

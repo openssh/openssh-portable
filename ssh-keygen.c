@@ -1053,19 +1053,12 @@ do_gen_all_hostkeys(struct passwd *pw)
 			    pub_tmp, strerror(errno));
 			goto failnext;
 		}
-#ifdef WINDOWS
-		/* Windows POSIX adpater does not support fdopen() on open(file)*/
-		close(fd);
-		chmod(pub_tmp, 0644);
-		if ((f = fopen(pub_tmp, "w")) == NULL) {
-			error("fopen %s failed: %s", pub_tmp, strerror(errno));
-#else  /* !WINDOWS */
+
 		(void)fchmod(fd, 0644);
 		f = fdopen(fd, "w");
 		if (f == NULL) {
 			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
 			close(fd);
-#endif  /* !WINDOWS */
 			sshkey_free(public);
 			first = 0;
 			continue;
@@ -1232,10 +1225,6 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 static void
 do_known_hosts(struct passwd *pw, const char *name)
 {
-#ifdef WINDOWS
-        fatal("Updating known_hosts is not supported in Windows yet.");
-#else  /* !WINDOWS */
-	  
 	char *cp, tmp[PATH_MAX], old[PATH_MAX];
 	int r, fd, oerrno, inplace = 0;
 	struct known_hosts_ctx ctx;
@@ -1327,7 +1316,6 @@ do_known_hosts(struct passwd *pw, const char *name)
 	}
 
 	exit (find_host && !ctx.found_key);
-#endif   /* !WINDOWS */
 }
 
 /*
@@ -1530,16 +1518,9 @@ do_change_comment(struct passwd *pw)
 	fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd == -1)
 		fatal("Could not save your public key in %s", identity_file);
-#ifdef WINDOWS
-	/* Windows POSIX adpater does not support fdopen() on open(file)*/
-	close(fd);
-	if ((f = fopen(identity_file, "w")) == NULL)
-		fatal("fopen %s failed: %s", identity_file, strerror(errno));
-#else  /* !WINDOWS */
 	f = fdopen(fd, "w");
 	if (f == NULL)
 		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-#endif  /* !WINDOWS */
 	if ((r = sshkey_write(public, f)) != 0)
 		fatal("write key failed: %s", ssh_err(r));
 	sshkey_free(public);
@@ -1784,15 +1765,8 @@ do_ca_sign(struct passwd *pw, int argc, char **argv)
 		if ((fd = open(out, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
 			fatal("Could not open \"%s\" for writing: %s", out,
 			    strerror(errno));		
-#ifdef WINDOWS
-		/* Windows POSIX adpater does not support fdopen() on open(file)*/
-		close(fd);
-		if ((f = fopen(out, "w")) == NULL)
-			fatal("fopen %s failed: %s", identity_file, strerror(errno));
-#else  /* !WINDOWS */
 		if ((f = fdopen(fd, "w")) == NULL)
 			fatal("%s: fdopen: %s", __func__, strerror(errno));
-#endif  /* !WINDOWS */
 		if ((r = sshkey_write(public, f)) != 0)
 			fatal("Could not write certified key to %s: %s",
 			    out, ssh_err(r));
@@ -2851,15 +2825,8 @@ passphrase_again:
 	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
 		fatal("Unable to save public key to %s: %s",
 		    identity_file, strerror(errno));
-#ifdef WINDOWS
-	/* Windows POSIX adpater does not support fdopen() on open(file)*/
-	close(fd);
-	if ((f = fopen(identity_file, "w")) == NULL)
-		fatal("fopen %s failed: %s", identity_file, strerror(errno));
-#else  /* !WINDOWS */
 	if ((f = fdopen(fd, "w")) == NULL)
 		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-#endif  /* !WINDOWS */
 	if ((r = sshkey_write(public, f)) != 0)
 		error("write key failed: %s", ssh_err(r));
 	fprintf(f, " %s\n", comment);

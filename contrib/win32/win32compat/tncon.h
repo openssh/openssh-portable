@@ -56,7 +56,7 @@
 #define SHIFT_TAB_KEY               "\x1b[~"
 #define SHIFT_ALT_Q                 "\x1b?"
 #define ESCAPE_KEY		    "\x1b"
-#define BACKSPACE_KEY               "\b"
+#define BACKSPACE_KEY               "\x7f"
 
 // VT100 Function Key's
 #define VT100_PF1_KEY               "\x1bO2"

@@ -295,6 +295,30 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
         }        
     }
 
+    Context "$tC ssh-keygen known_hosts operations" {
+
+        BeforeAll {$tI=1}
+        AfterAll{$tC++}
+
+        It "$tC.$tI - list and delete host key thumbprints" {
+            $kh = Join-Path $testDir "$tC.$tI.known_hosts"
+            $entry = "[localhost]:47002 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMtJMxwn+iJU0X4+EC7PSj/cfcMbdP6ahhodtXx+6RHv sshtest_hostkey_ed25519"
+            $entry | Set-Content $kh
+            $o = ssh-keygen -F [localhost]:47002 -f $kh
+            $o.Count | Should Be 2
+            $o[1] | Should Be $entry
+
+            $o = ssh-keygen -H -F [localhost]:47002 -f $kh
+            $o.StartsWith("|1|")  | Should Be $true
+
+            $o = ssh-keygen -R [localhost]:47002 -f $kh
+            $o.count | Should Be 3
+            $o[0] | Should Be "# Host [localhost]:47002 found: line 1"
+            (dir $kh).Length | Should Be 0
+        }
+
+    }
+
     Context "$tC-ssh-add key files with different file perms" {
         BeforeAll {
             $keyFileName = "sshadd_userPermTestkey_ed25519"

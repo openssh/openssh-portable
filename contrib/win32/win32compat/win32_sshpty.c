@@ -6,23 +6,34 @@
 
 #include <Windows.h>
 #include "..\..\..\sshpty.h"
-
+#include "inc\unistd.h"
+#include "misc_internal.h"
 
 /* 
  * Windows versions of pty_*. Some of them are NO-OPs and should go 
  * away when pty logic is refactored and abstracted out 
  * 
  */
+
+ /*
+ * allocates a control channel for Windows PTY
+ * ptyfd can be used to deliver Window size change events
+ */
 int
 pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 {
-	/*
-	* Simple console screen implementation in Win32 to give a 
-	* Unix like pty for interactive sessions
-	*/
+	int p[2];
 	*ttyfd = 0;
 	*ptyfd = 0;
-	strlcpy(namebuf, "console", namebuflen);
+	if (w32_pipe(p) < 0)
+		return 0;
+
+	/* enable blocking mode io*/
+	unset_nonblock(p[0]);
+	unset_nonblock(p[1]);
+	*ttyfd = p[0];
+	*ptyfd = p[1];
+	strlcpy(namebuf, "windows-pty", namebuflen);
 	return 1;
 }
 
@@ -38,8 +49,15 @@ pty_make_controlling_tty(int *ttyfd, const char *tty) {
 
 void
 pty_change_window_size(int ptyfd, u_int row, u_int col,
-    u_int xpixel, u_int ypixel) {
-	/* TODO - Need to implement*/
+    u_int xpixel, u_int ypixel) 
+{
+	unsigned short signalPacket[3];
+	signalPacket[0] = PTY_SIGNAL_RESIZE_WINDOW;
+	signalPacket[1] = col;
+	signalPacket[2] = row;
+	// TODO - xpixel, ypixel
+
+	w32_write(ptyfd, signalPacket, sizeof(signalPacket));
 }
 
 

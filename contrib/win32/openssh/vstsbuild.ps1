@@ -18,7 +18,7 @@ if (-not $gitBinFullPath)
 function Get-RepoFork
 {
     [CmdletBinding()]    
-    param([string]$AccountURL, [string]$RepoFork, [string]$repoLocalPath, [string]$BranchName)
+    param([string]$AccountURL="https://github.com/powershell", [string]$RepoFork, [string]$repoLocalPath, [string]$BranchName)
     if (Test-Path -Path $repoLocalPath -PathType Container)
     {
         Remove-Item -Path $repoLocalPath -Recurse -Force

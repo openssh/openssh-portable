@@ -81,14 +81,16 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             param
             (
                   [string] $default_shell_path,
-                  [string] $default_shell_cmd_option_val
+                  [string] $default_shell_cmd_option_val = $null
             )
             
             if (!(Test-Path $dfltShellRegPath)) {
                 New-Item -Path $dfltShellRegPath -Force | Out-Null
             }
             New-ItemProperty -Path $dfltShellRegPath -Name $dfltShellRegKeyName -Value $default_shell_path -PropertyType String -Force
-            New-ItemProperty -Path $dfltShellRegPath -Name $dfltShellCmdOptionRegKeyName -Value $default_shell_cmd_option_val -PropertyType String -Force
+            if ($default_shell_cmd_option_val -ne $null) {
+                New-ItemProperty -Path $dfltShellRegPath -Name $dfltShellCmdOptionRegKeyName -Value $default_shell_cmd_option_val -PropertyType String -Force
+            }
         }
     }
 
@@ -146,6 +148,12 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
         It "$tC.$tI - stdout to PS object" {
             $o = ssh test_target echo 1234
             $o | Should Be "1234"
+        }
+
+        It "$tC.$tI - multiple double quotes in cmdline" {
+            # actual command line ssh target \"cmd\" /c \"echo hello\"
+            $o = ssh test_target `\`"cmd`\`" /c `\`"echo hello`\`"
+            $o | Should Be "hello"
         }
 
         It "$tC.$tI - stdin from PS object" -skip:$skip {
@@ -211,6 +219,14 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
                 $o | Should Contain "cmd"
             }
         }
+
+        It "$tC.$tI - shellhost as default shell and multiple double quotes in cmdline" {
+            # actual command line ssh target \"cmd\" /c \"echo hello\"
+            $shell_path = (Get-Command ssh-shellhost -ErrorAction SilentlyContinue).path
+            ConfigureDefaultShell -default_shell_path $shell_path
+            $o = ssh test_target `\`"cmd`\`" /c `\`"echo hello`\`"
+            $o | Should Be "hello"
+        }
     }
     
     Context "$tC - cmdline parameters" {
@@ -271,105 +287,15 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             $o | Should Be "1234"
             $logFile | Should Contain "[::1]"            
         }
-    }
-    
 
-    
-    <#Context "Key is not secured in ssh-agent on server" {
-        BeforeAll {            
-            $identifyFile = $client.clientPrivateKeyPaths[0]
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-        
-        AfterEach {
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-        
-        It '<Title>' -TestCases:$testData1 {
-            param([string]$Title, $LogonStr, $Options, $SkipVerification = $false)
-           
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\ssh $($Options) $($LogonStr) hostname > $filePath")
-           $client.RunCmd($str)
-           #validate file content.
-           Get-Content $filePath | Should be $server.MachineName           
+        It "$tC.$tI - auto populate known hosts" {
+            
+            $kh = Join-Path $testDir "$tC.$tI.known_hosts"
+            $nul | Set-Content $kh
+            # doing via cmd to intercept and drain stderr output
+            iex "cmd /c `"ssh -o UserKnownHostsFile=`"$kh`" -o StrictHostKeyChecking=no test_target hostname 2>&1`""
+            (Get-Content $kh).Count | Should Be 1
         }
     }
     
-    Context "Key is secured in ssh-agent" {
-        BeforeAll {
-            $server.SecureHostKeys($server.PrivateHostKeyPaths)
-            $identifyFile = $client.clientPrivateKeyPaths[0]
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-
-        AfterAll {            
-            $Server.CleanupHostKeys()
-        }
-        
-        AfterEach {
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-        
-        It '<Title>' -TestCases:$testData1 {
-            param([string]$Title, $LogonStr, $Options, $SkipVerification = $false)
-           
-           $str = $ExecutionContext.InvokeCommand.ExpandString(".\ssh $Options $LogonStr hostname > $filePath")
-           $client.RunCmd($str)
-           #validate file content.           
-           Get-Content $filePath | Should be $server.MachineName           
-        }
-    }
-    
-    Context "Single signon on client and keys secured in ssh-agent on server" {
-        BeforeAll {
-            $Server.SecureHostKeys($server.PrivateHostKeyPaths)
-            $identifyFile = $client.clientPrivateKeyPaths[0]
-            #setup single signon
-            .\ssh-add.exe $identifyFile
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-
-        AfterAll {
-            $Server.CleanupHostKeys()
-
-            #cleanup single signon
-            .\ssh-add.exe -D
-        }
-        
-        AfterEach {
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-
-        It '<Title>' -TestCases:$testData {
-            param([string]$Title, $LogonStr, $Options)
-           
-           $str = ".\ssh $($Options) $($LogonStr) hostname > $filePath"
-           $client.RunCmd($str)
-           #validate file content.           
-           Get-Content $filePath | Should be $server.MachineName           
-        }
-    }
-    Context "password authentication" {
-        BeforeAll {
-            $client.AddPasswordSetting($server.localAdminPassword)
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-
-        AfterAll {
-            $client.CleanupPasswordSetting()
-        }
-
-        AfterEach {
-            Remove-Item -Path $filePath -Force -ea silentlycontinue
-        }
-
-        It '<Title>' -TestCases:$testData {
-            param([string]$Title, $LogonStr, $Options)
-           
-           $str = ".\ssh $($Options) $($LogonStr) hostname > $filePath"
-           $client.RunCmd($str)
-           #validate file content.           
-           Get-Content $filePath | Should be $server.MachineName           
-        }
-    }#>
 }

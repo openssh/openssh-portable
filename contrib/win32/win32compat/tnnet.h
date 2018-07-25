@@ -35,6 +35,6 @@
  
 #ifndef __TNNET_H
 #define __TNNET_H
-void processBuffer(HANDLE handle, char *buf, size_t len, unsigned char **respbuf, size_t *resplen);
+void processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size_t *resplen);
 
 #endif

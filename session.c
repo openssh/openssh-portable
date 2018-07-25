@@ -537,7 +537,7 @@ cleanup:
 }
 
 int register_child(void* child, unsigned long pid);
-char* build_session_commandline(const char *, const char *, const char *, int);
+char* build_session_commandline(const char *, const char *, const char *);
 
 int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	int pipein[2], pipeout[2], pipeerr[2], r, ret = -1;
@@ -582,7 +582,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		pty = 0;
 	}
 
-	exec_command = build_session_commandline(s->pw->pw_shell, shell_command_option, command, pty);
+	exec_command = build_session_commandline(s->pw->pw_shell, shell_command_option, command);
 	if (exec_command == NULL)
 		goto cleanup;
 
@@ -606,11 +606,18 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		si.hStdError = (HANDLE)w32_fd_to_handle(pipeerr[1]);
 		si.lpDesktop = NULL;
 
-		debug("Executing command: %s", exec_command);
 		if ((exec_command_w = utf8_to_utf16(exec_command)) == NULL)
 			goto cleanup;
 
-		if (!CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+		debug("Executing command: %s with%spty", exec_command, pty? " ":" no ");
+		
+		if (pty) {
+			fcntl(s->ptyfd, F_SETFD, FD_CLOEXEC);
+			if (exec_command_with_pty(exec_command_w, &si, &pi, s->ttyfd) == -1)
+				goto cleanup;
+			close(s->ttyfd);
+			s->ttyfd = -1;
+		} else if (!CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
 			errno = EOTHER;
 			error("ERROR. Cannot create process (%u).\n", GetLastError());
 			goto cleanup;
@@ -641,12 +648,6 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		register_child(pi.hProcess, pi.dwProcessId);
 	}
 
-	/*
-	* Set interactive/non-interactive mode.
-	*/
-	packet_set_interactive(s->display != NULL, options.ip_qos_interactive,
-		options.ip_qos_bulk);
-
 	/* Close the child sides of the socket pairs. */
 	close(pipein[0]);
 	close(pipeout[1]);
@@ -656,10 +657,17 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 	* Enter the interactive session.  Note: server_loop must be able to
 	* handle the case that fdin and fdout are the same.
 	*/
-	if (s->ttyfd == -1)
+	if (pty) {
+		/* Set interactive/non-interactive mode */
+		packet_set_interactive(1, options.ip_qos_interactive,
+			options.ip_qos_bulk);
+		session_set_fds(ssh, s, pipein[1], pipeout[0], -1, 1, 1);
+	} else {
+		/* Set interactive/non-interactive mode */
+		packet_set_interactive(s->display != NULL, options.ip_qos_interactive,
+			options.ip_qos_bulk);
 		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 0);
-	else
-		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 1); /* tty interactive session */
+	}
 
 	ret = 0;
 
