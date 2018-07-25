@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.488 2018/07/19 10:28:47 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.489 2018/07/25 13:10:56 beck Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2011,8 +2011,6 @@ load_public_identity_files(struct passwd *pw)
 		free(keys);
 	}
 #endif /* ENABLE_PKCS11 */
-	if ((pw = getpwuid(original_real_uid)) == NULL)
-		fatal("load_public_identity_files: getpwuid failed");
 	for (i = 0; i < options.num_identity_files; i++) {
 		if (n_ids >= SSH_MAX_IDENTITY_FILES ||
 		    strcasecmp(options.identity_files[i], "none") == 0) {
