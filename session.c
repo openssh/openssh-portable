@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.304 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: session.c,v 1.305 2018/07/25 13:56:23 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -378,7 +378,7 @@ xauth_valid_string(const char *s)
 		if (!isalnum((u_char)s[i]) &&
 		    s[i] != '.' && s[i] != ':' && s[i] != '/' &&
 		    s[i] != '-' && s[i] != '_')
-		return 0;
+			return 0;
 	}
 	return 1;
 }
