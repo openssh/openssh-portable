@@ -84,7 +84,8 @@ LTESTS= 	connect \
 		cert-file \
 		cfginclude \
 		allow-deny-users \
-		authinfo
+		authinfo \
+		signal
 
 
 #		dhgex \
