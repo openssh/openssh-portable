@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.295 2018/07/27 05:13:02 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.296 2018/07/27 05:34:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -320,7 +320,6 @@ void
 add_local_forward(Options *options, const struct Forward *newfwd)
 {
 	struct Forward *fwd;
-	extern uid_t original_real_uid;
 	int i;
 
 	/* Don't add duplicates */
@@ -480,7 +479,6 @@ execute_in_shell(const char *cmd)
 	char *shell;
 	pid_t pid;
 	int devnull, status;
-	extern uid_t original_real_uid;
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;

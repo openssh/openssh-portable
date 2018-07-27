@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.489 2018/07/25 13:10:56 beck Exp $ */
+/* $OpenBSD: ssh.c,v 1.490 2018/07/27 05:34:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -177,10 +177,6 @@ struct sockaddr_storage hostaddr;
 /* Private host keys. */
 Sensitive sensitive_data;
 
-/* Original real UID. */
-uid_t original_real_uid;
-uid_t original_effective_uid;
-
 /* command to be executed */
 struct sshbuf *command;
 
@@ -223,7 +219,7 @@ tilde_expand_paths(char **paths, u_int num_paths)
 	char *cp;
 
 	for (i = 0; i < num_paths; i++) {
-		cp = tilde_expand_filename(paths[i], original_real_uid);
+		cp = tilde_expand_filename(paths[i], getuid());
 		free(paths[i]);
 		paths[i] = cp;
 	}
@@ -620,17 +616,10 @@ main(int ac, char **av)
 	 */
 	closefrom(STDERR_FILENO + 1);
 
-	/*
-	 * Save the original real uid.  It will be needed later (uid-swapping
-	 * may clobber the real uid).
-	 */
-	original_real_uid = getuid();
-	original_effective_uid = geteuid();
-
 	/* Get user data. */
-	pw = getpwuid(original_real_uid);
+	pw = getpwuid(getuid());
 	if (!pw) {
-		logit("No user exists for uid %lu", (u_long)original_real_uid);
+		logit("No user exists for uid %lu", (u_long)getuid());
 		exit(255);
 	}
 	/* Take a copy of the returned structure. */
@@ -773,7 +762,7 @@ main(int ac, char **av)
 			options.gss_deleg_creds = 1;
 			break;
 		case 'i':
-			p = tilde_expand_filename(optarg, original_real_uid);
+			p = tilde_expand_filename(optarg, getuid());
 			if (stat(p, &st) < 0)
 				fprintf(stderr, "Warning: Identity file %s "
 				    "not accessible: %s.\n", p,
@@ -1321,8 +1310,7 @@ main(int ac, char **av)
 	}
 
 	if (options.control_path != NULL) {
-		cp = tilde_expand_filename(options.control_path,
-		    original_real_uid);
+		cp = tilde_expand_filename(options.control_path, getuid());
 		free(options.control_path);
 		options.control_path = percent_expand(cp,
 		    "C", conn_hash_hex,
@@ -1450,7 +1438,7 @@ main(int ac, char **av)
 			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
 		} else {
 			p = tilde_expand_filename(options.identity_agent,
-			    original_real_uid);
+			    getuid());
 			cp = percent_expand(p,
 			    "d", pw->pw_dir,
 			    "h", host,
@@ -2018,8 +2006,7 @@ load_public_identity_files(struct passwd *pw)
 			options.identity_files[i] = NULL;
 			continue;
 		}
-		cp = tilde_expand_filename(options.identity_files[i],
-		    original_real_uid);
+		cp = tilde_expand_filename(options.identity_files[i], getuid());
 		filename = percent_expand(cp, "d", pw->pw_dir,
 		    "u", pw->pw_name, "l", thishost, "h", host,
 		    "r", options.user, (char *)NULL);
@@ -2070,7 +2057,7 @@ load_public_identity_files(struct passwd *pw)
 		fatal("%s: too many certificates", __func__);
 	for (i = 0; i < options.num_certificate_files; i++) {
 		cp = tilde_expand_filename(options.certificate_files[i],
-		    original_real_uid);
+		    getuid());
 		filename = percent_expand(cp,
 		    "d", pw->pw_dir,
 		    "h", host,

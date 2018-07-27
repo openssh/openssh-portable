@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.303 2018/07/19 23:03:16 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.304 2018/07/27 05:34:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -80,8 +80,6 @@ static pid_t proxy_command_pid = 0;
 /* import */
 extern Options options;
 extern char *__progname;
-extern uid_t original_real_uid;
-extern uid_t original_effective_uid;
 
 static int show_other_keys(struct hostkeys *, struct sshkey *);
 static void warn_changed_key(struct sshkey *);
