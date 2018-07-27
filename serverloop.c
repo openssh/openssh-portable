@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.208 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: serverloop.c,v 1.209 2018/07/27 05:13:02 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -102,6 +102,17 @@ static void server_init_dispatch(void);
 
 /* requested tunnel forwarding interface(s), shared with session.c */
 char *tun_fwd_ifnames = NULL;
+
+/* returns 1 if bind to specified port by specified user is permitted */
+static int
+bind_permitted(int port, uid_t uid)
+{
+	if (use_privsep)
+		return 1; /* allow system to decide */
+	if (port < IPPORT_RESERVED && uid != 0)
+		return 0;
+	return 1;
+}
 
 /*
  * we write to this pipe if a SIGCHLD is caught in order to avoid
