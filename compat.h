@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.h,v 1.52 2018/07/03 11:39:54 djm Exp $ */
+/* $OpenBSD: compat.h,v 1.53 2018/07/31 03:07:24 djm Exp $ */
 
 /*
  * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
@@ -65,9 +65,15 @@
 
 u_int    compat_datafellows(const char *);
 int	 proto_spec(const char *);
-char	*compat_cipher_proposal(char *);
-char	*compat_pkalg_proposal(char *);
-char	*compat_kex_proposal(char *);
+
+/*
+ * compat_*_proposal will update their respective proposals based on the
+ * active compat flags. The replacement is performed in-place - i.e. they
+ * will free their argument and return a new heap-allocated string.
+ */
+char	*compat_cipher_proposal(char *, u_int compat);
+char	*compat_pkalg_proposal(char *, u_int compat);
+char	*compat_kex_proposal(char *, u_int compat);
 
 extern int datafellows;
 #endif

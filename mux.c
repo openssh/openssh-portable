@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.74 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: mux.c,v 1.75 2018/07/31 03:07:24 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -1042,6 +1042,7 @@ process_mux_stdio_fwd(struct ssh *ssh, u_int rid,
 		set_nonblock(new_fd[1]);
 
 	nc = channel_connect_stdio_fwd(ssh, chost, cport, new_fd[0], new_fd[1]);
+	free(chost);
 
 	nc->ctl_chan = c->self;		/* link session -> control channel */
 	c->remote_id = nc->self; 	/* link control -> session channel */

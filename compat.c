@@ -1,4 +1,4 @@
-/* $OpenBSD: compat.c,v 1.111 2018/07/09 21:03:30 markus Exp $ */
+/* $OpenBSD: compat.c,v 1.112 2018/07/31 03:07:24 djm Exp $ */
 /*
  * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
@@ -184,13 +184,17 @@ proto_spec(const char *spec)
 }
 
 char *
-compat_cipher_proposal(char *cipher_prop)
+compat_cipher_proposal(char *cipher_prop, u_int compat)
 {
-	if (!(datafellows & SSH_BUG_BIGENDIANAES))
+	char *cp;
+
+	if (!(compat & SSH_BUG_BIGENDIANAES))
 		return cipher_prop;
 	debug2("%s: original cipher proposal: %s", __func__, cipher_prop);
-	if ((cipher_prop = match_filter_blacklist(cipher_prop, "aes*")) == NULL)
+	if ((cp = match_filter_blacklist(cipher_prop, "aes*")) == NULL)
 		fatal("match_filter_blacklist failed");
+	free(cipher_prop);
+	cipher_prop = cp;
 	debug2("%s: compat cipher proposal: %s", __func__, cipher_prop);
 	if (*cipher_prop == '\0')
 		fatal("No supported ciphers found");
@@ -198,13 +202,17 @@ compat_cipher_proposal(char *cipher_prop)
 }
 
 char *
-compat_pkalg_proposal(char *pkalg_prop)
+compat_pkalg_proposal(char *pkalg_prop, u_int compat)
 {
-	if (!(datafellows & SSH_BUG_RSASIGMD5))
+	char *cp;
+
+	if (!(compat & SSH_BUG_RSASIGMD5))
 		return pkalg_prop;
 	debug2("%s: original public key proposal: %s", __func__, pkalg_prop);
-	if ((pkalg_prop = match_filter_blacklist(pkalg_prop, "ssh-rsa")) == NULL)
+	if ((cp = match_filter_blacklist(pkalg_prop, "ssh-rsa")) == NULL)
 		fatal("match_filter_blacklist failed");
+	free(pkalg_prop);
+	pkalg_prop = cp;
 	debug2("%s: compat public key proposal: %s", __func__, pkalg_prop);
 	if (*pkalg_prop == '\0')
 		fatal("No supported PK algorithms found");
@@ -212,24 +220,31 @@ compat_pkalg_proposal(char *pkalg_prop)
 }
 
 char *
-compat_kex_proposal(char *p)
+compat_kex_proposal(char *kex_prop, u_int compat)
 {
-	if ((datafellows & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
-		return p;
-	debug2("%s: original KEX proposal: %s", __func__, p);
-	if ((datafellows & SSH_BUG_CURVE25519PAD) != 0)
-		if ((p = match_filter_blacklist(p,
+	char *cp;
+
+	if ((compat & (SSH_BUG_CURVE25519PAD|SSH_OLD_DHGEX)) == 0)
+		return kex_prop;
+	debug2("%s: original KEX proposal: %s", __func__, kex_prop);
+	if ((compat & SSH_BUG_CURVE25519PAD) != 0) {
+		if ((cp = match_filter_blacklist(kex_prop,
 		    "curve25519-sha256@libssh.org")) == NULL)
 			fatal("match_filter_blacklist failed");
-	if ((datafellows & SSH_OLD_DHGEX) != 0) {
-		if ((p = match_filter_blacklist(p,
+		free(kex_prop);
+		kex_prop = cp;
+	}
+	if ((compat & SSH_OLD_DHGEX) != 0) {
+		if ((cp = match_filter_blacklist(kex_prop,
 		    "diffie-hellman-group-exchange-sha256,"
 		    "diffie-hellman-group-exchange-sha1")) == NULL)
 			fatal("match_filter_blacklist failed");
+		free(kex_prop);
+		kex_prop = cp;
 	}
-	debug2("%s: compat KEX proposal: %s", __func__, p);
-	if (*p == '\0')
+	debug2("%s: compat KEX proposal: %s", __func__, kex_prop);
+	if (*kex_prop == '\0')
 		fatal("No supported key exchange algorithms found");
-	return p;
+	return kex_prop;
 }
 

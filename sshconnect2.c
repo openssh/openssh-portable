@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.282 2018/07/18 11:34:04 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.283 2018/07/31 03:07:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -167,11 +167,11 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal("%s: kex_names_cat", __func__);
-	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(s);
+	myproposal[PROPOSAL_KEX_ALGS] = compat_kex_proposal(s, datafellows);
 	myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-	    compat_cipher_proposal(options.ciphers);
+	    compat_cipher_proposal(options.ciphers, datafellows);
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
-	    compat_cipher_proposal(options.ciphers);
+	    compat_cipher_proposal(options.ciphers, datafellows);
 	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 	    myproposal[PROPOSAL_COMP_ALGS_STOC] = options.compression ?
 	    "zlib@openssh.com,zlib,none" : "none,zlib@openssh.com,zlib";
@@ -184,14 +184,15 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 			fatal("%s: kex_assemble_namelist", __func__);
 		free(all_key);
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(options.hostkeyalgorithms);
+		    compat_pkalg_proposal(options.hostkeyalgorithms,
+		    datafellows);
 	} else {
 		/* Enforce default */
 		options.hostkeyalgorithms = xstrdup(KEX_DEFAULT_PK_ALG);
 		/* Prefer algorithms that we already have keys for */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    compat_pkalg_proposal(
-		    order_hostkeyalgs(host, hostaddr, port));
+		    order_hostkeyalgs(host, hostaddr, port), datafellows);
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
@@ -223,7 +224,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr, u_short port)
 
 	/* remove ext-info from the KEX proposals for rekeying */
 	myproposal[PROPOSAL_KEX_ALGS] =
-	    compat_kex_proposal(options.kex_algorithms);
+	    compat_kex_proposal(options.kex_algorithms, datafellows);
 	if ((r = kex_prop2buf(kex->my, myproposal)) != 0)
 		fatal("kex_prop2buf: %s", ssh_err(r));
 
