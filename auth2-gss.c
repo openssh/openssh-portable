@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-gss.c,v 1.28 2018/07/10 09:13:30 djm Exp $ */
+/* $OpenBSD: auth2-gss.c,v 1.29 2018/07/31 03:10:27 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -70,9 +70,6 @@ userauth_gssapi(struct ssh *ssh)
 	size_t len;
 	u_char *doid = NULL;
 
-	if (!authctxt->valid || authctxt->user == NULL)
-		return (0);
-
 	if ((r = sshpkt_get_u32(ssh, &mechs)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 
@@ -103,6 +100,12 @@ userauth_gssapi(struct ssh *ssh)
 	if (!present) {
 		free(doid);
 		authctxt->server_caused_failure = 1;
+		return (0);
+	}
+
+	if (!authctxt->valid || authctxt->user == NULL) {
+		debug2("%s: disabled because of invalid user", __func__);
+		free(doid);
 		return (0);
 	}
 

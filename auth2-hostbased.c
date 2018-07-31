@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.35 2018/07/09 21:35:50 markus Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.36 2018/07/31 03:10:27 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -67,10 +67,6 @@ userauth_hostbased(struct ssh *ssh)
 	size_t alen, blen, slen;
 	int r, pktype, authenticated = 0;
 
-	if (!authctxt->valid) {
-		debug2("%s: disabled because of invalid user", __func__);
-		return 0;
-	}
 	/* XXX use sshkey_froms() */
 	if ((r = sshpkt_get_cstring(ssh, &pkalg, &alen)) != 0 ||
 	    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0 ||
@@ -114,6 +110,11 @@ userauth_hostbased(struct ssh *ssh)
 	if (match_pattern_list(pkalg, options.hostbased_key_types, 0) != 1) {
 		logit("%s: key type %s not in HostbasedAcceptedKeyTypes",
 		    __func__, sshkey_type(key));
+		goto done;
+	}
+
+	if (!authctxt->valid || authctxt->user == NULL) {
+		debug2("%s: disabled because of invalid user", __func__);
 		goto done;
 	}
 
