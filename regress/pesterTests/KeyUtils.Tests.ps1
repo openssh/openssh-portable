@@ -34,7 +34,7 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
         $adminsSid = Get-UserSID -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid)                        
         $currentUserSid = Get-UserSID -User "$($env:USERDOMAIN)\$($env:USERNAME)"
         $objUserSid = Get-UserSID -User $ssouser
-        $everyoneSid = Get-UserSID -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::WorldSid)
+        $everyoneSid = Get-UserSID -WellKnownSidType ([System.Security.Principal.WellKnownSidType]::WorldSid)              
 
         function ValidateRegistryACL {
             param([string]$UserSid = $currentUserSid, $count)
@@ -56,7 +56,7 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
                 $a.PropagationFlags | Should Be ([System.Security.AccessControl.PropagationFlags]::None)
             }
 
-            $entries = Get-ChildItem $agentPath\keys
+            $entries = @(Get-ChildItem $agentPath\keys)
             $entries.Count | Should Be $count
             if($count -gt 0)
             {
@@ -241,20 +241,25 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
             foreach($type in $keytypes)
             {
                 $keyPath = Join-Path $testDir "id_$type"
-                $keyPathDifferentEnding = Join-Path $testDir "id_$($type)_DifferentEnding"
-                if((Get-Content -Path $keyPath -raw).Contains("`r`n"))
-                {
-                    $newcontent = (Get-Content -Path $keyPath -raw).Replace("`r`n", "`n")
-                }
-                else
-                {
-                    $newcontent = (Get-Content -Path $keyPath -raw).Replace("`n", "`r`n")
-                }
-                Set-content -Path $keyPathDifferentEnding -value "$newcontent"
-                Repair-UserKeyPermission $keyPathDifferentEnding -confirm:$false
                 # for ssh-add to consume SSh_ASKPASS, stdin should not be TTY
                 iex "cmd /c `"ssh-add $keyPath < $nullFile 2> nul `""
-                iex "cmd /c `"ssh-add $keyPathDifferentEnding < $nullFile 2> nul `""
+                #Check if -Raw presents for Get-Content cmdlet
+                $rawParam = (get-command Get-Content).Parametersets | Select -ExpandProperty Parameters | ? {$_.Name -ieq "Raw"}
+                if($rawParam)
+                {
+                    $keyPathDifferentEnding = Join-Path $testDir "id_$($type)_DifferentEnding"
+                    if((Get-Content -Path $keyPath -raw).Contains("`r`n"))
+                    {
+                        $newcontent = (Get-Content -Path $keyPath -raw).Replace("`r`n", "`n")
+                    }
+                    else
+                    {
+                        $newcontent = (Get-Content -Path $keyPath -raw).Replace("`n", "`r`n")
+                    }
+                    Set-content -Path $keyPathDifferentEnding -value "$newcontent"
+                    Repair-UserKeyPermission $keyPathDifferentEnding -confirm:$false
+                    iex "cmd /c `"ssh-add $keyPathDifferentEnding < $nullFile 2> nul `""
+                }                             
             }
 
             #remove SSH_ASKPASS
@@ -290,7 +295,7 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
                 @($allkeys | where { $_.contains($pubkeyraw) }).count | Should Be 0
             }
 
-            $allkeys = ssh-add -L
+            $allkeys = @(ssh-add -L)
             ValidateRegistryACL -count $allkeys.count
         }        
     }
