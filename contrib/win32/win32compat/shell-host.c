@@ -803,43 +803,54 @@ MonitorChild(_In_ LPVOID lpParameter)
 unsigned __stdcall
 ControlThread(LPVOID p)
 {
-	short type, row, col;
-	DWORD len;
-	COORD coord;
-	SMALL_RECT rect;
-	while (1) {
-		if (!ReadFile(pipe_ctrl, &type, 2, &len, NULL))
-			break;
-		if (type != PTY_SIGNAL_RESIZE_WINDOW)
-			break;
-		if (!ReadFile(pipe_ctrl, &col, 2, &len, NULL))
-			break;
-		if (!ReadFile(pipe_ctrl, &row, 2, &len, NULL))
-			break;
-		
-		/* 
-		 * when reducing width, console seemed to retain prior width 
-		 * while increasing width, however, it behaves right
-		 * 
-		 * hence setting it less by 1 and setting it again to the right
-		 * count
-		 */
-		
-		coord.X = col - 1;
-		coord.Y = row;
-		rect.Top = 0;
-		rect.Left = 0;
-		rect.Bottom = row - 1;
-		rect.Right = col - 2;
-		SetConsoleScreenBufferSize(child_out, coord);
-		SetConsoleWindowInfo(child_out, TRUE, &rect);
-
-		coord.X = col;
-		rect.Right = col - 1;
-		SetConsoleScreenBufferSize(child_out, coord);
-		SetConsoleWindowInfo(child_out, TRUE, &rect);
-	}
+	/* 
+	* TODO - Enable the console resize logic.
+	* With the current resize logic, we have two issues
+	* 1) console screen buffer rows should be always 9999, irrespective of the user setting.
+	* 2) when ssh client window is resized it clears everything and gives a blank screen.
+	* For now we disable this logic.
+	*
+	* It looks to be a bug in our console hook event pty implementation.
+	*/
 	return 0;
+
+	//short type, row, col;
+	//DWORD len;
+	//COORD coord;
+	//SMALL_RECT rect;
+	//while (1) {
+	//	if (!ReadFile(pipe_ctrl, &type, 2, &len, NULL))
+	//		break;
+	//	if (type != PTY_SIGNAL_RESIZE_WINDOW)
+	//		break;
+	//	if (!ReadFile(pipe_ctrl, &col, 2, &len, NULL))
+	//		break;
+	//	if (!ReadFile(pipe_ctrl, &row, 2, &len, NULL))
+	//		break;
+	//	
+	//	/* 
+	//	 * when reducing width, console seemed to retain prior width 
+	//	 * while increasing width, however, it behaves right
+	//	 * 
+	//	 * hence setting it less by 1 and setting it again to the right
+	//	 * count
+	//	 */
+	//	
+	//	coord.X = col - 1;
+	//	coord.Y = row;
+	//	rect.Top = 0;
+	//	rect.Left = 0;
+	//	rect.Bottom = row - 1;
+	//	rect.Right = col - 2;
+	//	SetConsoleScreenBufferSize(child_out, coord);
+	//	SetConsoleWindowInfo(child_out, TRUE, &rect);
+
+	//	coord.X = col;
+	//	rect.Right = col - 1;
+	//	SetConsoleScreenBufferSize(child_out, coord);
+	//	SetConsoleWindowInfo(child_out, TRUE, &rect);
+	//}
+	//return 0;
 }
 
 DWORD 
