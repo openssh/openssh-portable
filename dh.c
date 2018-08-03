@@ -278,7 +278,6 @@ dh_gen_key(DH *dh, int need)
 	dh->length = MINIMUM(need * 2, pbits - 1);
 	if (DH_generate_key(dh) == 0 ||
 	    !dh_pub_is_valid(dh, dh->pub_key)) {
-		BN_clear_free(dh->priv_key);
 		return SSH_ERR_LIBCRYPTO_ERROR;
 	}
 	return 0;
