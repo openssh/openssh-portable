@@ -457,6 +457,57 @@ function Start-OpenSSHPackage
     Remove-Item $symbolsDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+function Copy-OpenSSHUnitTests
+{
+    [CmdletBinding(SupportsShouldProcess=$false)]    
+    param
+    (        
+        [ValidateSet('x86', 'x64', 'arm64', 'arm')]
+        [string]$NativeHostArch = "x64",
+
+        [ValidateSet('Debug', 'Release')]
+        [string]$Configuration = "Release",
+
+        # Copy unittests to DestinationPath
+        [string]$DestinationPath = ""
+    )
+
+    [System.IO.DirectoryInfo] $repositoryRoot = Get-RepositoryRoot
+    $repositoryRoot = Get-Item -Path $repositoryRoot.FullName
+    $folderName = $NativeHostArch
+    if($NativeHostArch -ieq 'x86')
+    {
+        $folderName = "Win32"
+    }
+    $buildDir = Join-Path $repositoryRoot ("bin\" + $folderName + "\" + $Configuration)
+    $unittestsDir = Join-Path $buildDir "unittests"
+    $unitTestFolders = Get-ChildItem -Directory $buildDir\unittest-*    
+    
+    if ($DestinationPath -ne "") {
+        if (-not (Test-Path $DestinationPath -PathType Container)) {
+            New-Item -ItemType Directory $DestinationPath -Force | Out-Null
+        }
+        foreach ($folder in $unitTestFolders) {
+            Copy-Item $folder.FullName $DestinationPath\$($folder.Name) -Recurse -Force
+            Write-BuildMsg -AsInfo -Message "Copied $($folder.FullName) to $DestinationPath\$($folder.Name)."
+        }        
+    }
+    else {        
+        if(Test-Path ($unittestsDir + '.zip') -PathType Leaf) {
+            Remove-Item ($unittestsDir + '.zip') -Force -ErrorAction SilentlyContinue
+        }
+        if(get-command Compress-Archive -ErrorAction SilentlyContinue)
+        {
+            Compress-Archive -Path $unitTestFolders.FullName -DestinationPath ($unittestsDir + '.zip')
+            Write-BuildMsg -AsInfo -Message "Packaged unittests - '$unittestsDir.zip'"
+        }
+        else
+        {
+            Write-BuildMsg -AsInfo -Message "Packaged unittests not compressed."
+        }
+    }
+}
+
 function Start-OpenSSHBuild
 {
     [CmdletBinding(SupportsShouldProcess=$false)]    
@@ -657,4 +708,4 @@ function Get-SolutionFile
 
 
 
-Export-ModuleMember -Function Start-OpenSSHBuild, Get-BuildLogFile, Start-OpenSSHPackage
+Export-ModuleMember -Function Start-OpenSSHBuild, Get-BuildLogFile, Start-OpenSSHPackage, Copy-OpenSSHUnitTests
