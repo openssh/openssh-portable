@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.339 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.340 2018/08/12 20:19:13 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -192,24 +192,24 @@ static void
 assemble_algorithms(ServerOptions *o)
 {
 	char *all_cipher, *all_mac, *all_kex, *all_key;
+	int r;
 
 	all_cipher = cipher_alg_list(',', 0);
 	all_mac = mac_alg_list(',');
 	all_kex = kex_alg_list(',');
 	all_key = sshkey_alg_list(0, 0, 1, ',');
-	if (kex_assemble_names(&o->ciphers,
-	    KEX_SERVER_ENCRYPT, all_cipher) != 0 ||
-	    kex_assemble_names(&o->macs,
-	    KEX_SERVER_MAC, all_mac) != 0 ||
-	    kex_assemble_names(&o->kex_algorithms,
-	    KEX_SERVER_KEX, all_kex) != 0 ||
-	    kex_assemble_names(&o->hostkeyalgorithms,
-	    KEX_DEFAULT_PK_ALG, all_key) != 0 ||
-	    kex_assemble_names(&o->hostbased_key_types,
-	    KEX_DEFAULT_PK_ALG, all_key) != 0 ||
-	    kex_assemble_names(&o->pubkey_key_types,
-	    KEX_DEFAULT_PK_ALG, all_key) != 0)
-		fatal("kex_assemble_names failed");
+#define ASSEMBLE(what, defaults, all) \
+	do { \
+		if ((r = kex_assemble_names(&o->what, defaults, all)) != 0) \
+			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
+	} while (0)
+	ASSEMBLE(ciphers, KEX_SERVER_ENCRYPT, all_cipher);
+	ASSEMBLE(macs, KEX_SERVER_MAC, all_mac);
+	ASSEMBLE(kex_algorithms, KEX_SERVER_KEX, all_kex);
+	ASSEMBLE(hostkeyalgorithms, KEX_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
+#undef ASSEMBLE
 	free(all_cipher);
 	free(all_mac);
 	free(all_kex);
