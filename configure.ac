@@ -164,8 +164,15 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
     if test "x$use_toolchain_hardening" = "x1"; then
-	OSSH_CHECK_CFLAG_COMPILE([-mfunction-return=thunk]) # gcc
-	OSSH_CHECK_CFLAG_COMPILE([-mindirect-branch=thunk]) # gcc
+	# Cygwin GCC 7.x allows thunking on the CLI, but produces non-working
+	# code.  Unfortunately you only notice this at link time.
+	case "$host" in
+	*-*-cygwin*) ;;
+	*)
+	    OSSH_CHECK_CFLAG_COMPILE([-mfunction-return=thunk]) # gcc
+	    OSSH_CHECK_CFLAG_COMPILE([-mindirect-branch=thunk]) # gcc
+	    ;;
+	esac
 	OSSH_CHECK_CFLAG_COMPILE([-mretpoline]) # clang
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,retpolineplt])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
