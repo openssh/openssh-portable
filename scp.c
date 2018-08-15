@@ -502,13 +502,13 @@ main(int argc, char **argv)
 		glob_t g;
 		int expandargc = 0;
 		memset(&g, 0, sizeof(g));
-		for (n = 0; n < argc; n++) {			
+		for (n = 0; n < argc; n++) {
 			argdup = xstrdup(argv[n]);
 			if (p = colon(argdup))
 				convertToForwardslash(p);
 			else
 				convertToForwardslash(argdup);
-			if (glob(argdup, GLOB_NOCHECK, NULL, &g)) {
+			if (glob(argdup, GLOB_NOCHECK | GLOB_NOESCAPE, NULL, &g)) {
 				if (expandargc > argc)
 					newargv = xreallocarray(newargv, expandargc + 1, sizeof(*newargv));
 				newargv[expandargc++] = xstrdup(argdup);
