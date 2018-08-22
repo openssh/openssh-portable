@@ -85,7 +85,7 @@ pkcs11_init(int interactive)
 /*
  * finalize a provider shared libarary, it's no longer usable.
  * however, there might still be keys referencing this provider,
- * so the actuall freeing of memory is handled by pkcs11_provider_unref().
+ * so the actual freeing of memory is handled by pkcs11_provider_unref().
  * this is called when a provider gets unregistered.
  */
 static void

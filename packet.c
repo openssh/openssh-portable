@@ -293,7 +293,7 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	if (ssh == NULL)
 		ssh = ssh_alloc_session_state();
 	if (ssh == NULL) {
-		error("%s: cound not allocate state", __func__);
+		error("%s: could not allocate state", __func__);
 		return NULL;
 	}
 	state = ssh->state;

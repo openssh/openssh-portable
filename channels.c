@@ -497,7 +497,7 @@ permission_set_get(struct ssh *ssh, int where)
 	}
 }
 
-/* Reutrns pointers to the specified forwarding list and its element count */
+/* Returns pointers to the specified forwarding list and its element count */
 static void
 permission_set_get_array(struct ssh *ssh, int who, int where,
     struct permission ***permpp, u_int **npermpp)
