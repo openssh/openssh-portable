@@ -1187,7 +1187,7 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*arg != '-' && !mac_valid(*arg == '+' ? arg + 1 : arg))
-			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
+			fatal("%.200s line %d: Bad SSH2 MAC spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->macs == NULL)
 			options->macs = xstrdup(arg);
