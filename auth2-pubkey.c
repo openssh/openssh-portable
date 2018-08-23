@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.83 2018/07/31 03:10:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.84 2018/08/23 03:01:08 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -193,7 +193,6 @@ userauth_pubkey(struct ssh *ssh)
 		    ssh->compat)) == 0) {
 			authenticated = 1;
 		}
-		sshbuf_free(b);
 		auth2_record_key(authctxt, authenticated, key);
 	} else {
 		debug("%s: test pkalg %s pkblob %s%s%s",
@@ -235,6 +234,7 @@ done:
 	}
 	debug2("%s: authenticated %d pkalg %s", __func__, authenticated, pkalg);
 
+	sshbuf_free(b);
 	sshauthopt_free(authopts);
 	sshkey_free(key);
 	free(userstyle);
