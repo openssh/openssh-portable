@@ -327,7 +327,7 @@ stop_sshd ()
 
 make_tmpdir ()
 {
-	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-regress-XXXXXXXXXXXX)" || \
+	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
 	    fatal "failed to create temporary directory"
 }
 
