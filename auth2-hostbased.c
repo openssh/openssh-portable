@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.36 2018/07/31 03:10:27 djm Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.37 2018/08/28 12:17:45 mestre Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -79,7 +79,7 @@ userauth_hostbased(struct ssh *ssh)
 	    cuser, chost, pkalg, slen);
 #ifdef DEBUG_PK
 	debug("signature:");
-	sshbuf_dump_data(sig, siglen, stderr);
+	sshbuf_dump_data(sig, slen, stderr);
 #endif
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
