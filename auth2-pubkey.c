@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.84 2018/08/23 03:01:08 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.85 2018/08/28 12:25:53 mestre Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -177,7 +177,7 @@ userauth_pubkey(struct ssh *ssh)
 		    (r = sshbuf_put_cstring(b, authctxt->service)) != 0 ||
 		    (r = sshbuf_put_cstring(b, "publickey")) != 0 ||
 		    (r = sshbuf_put_u8(b, have_sig)) != 0 ||
-		    (r = sshbuf_put_cstring(b, pkalg) != 0) ||
+		    (r = sshbuf_put_cstring(b, pkalg)) != 0 ||
 		    (r = sshbuf_put_string(b, pkblob, blen)) != 0)
 			fatal("%s: build packet failed: %s",
 			    __func__, ssh_err(r));
