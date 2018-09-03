@@ -40,7 +40,6 @@
 #include "log.h"
 
 static int ngroups;
-static int ngroups;
 static char **groups_byname;
 
 /*
