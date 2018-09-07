@@ -52,13 +52,14 @@ ga_init(const char *user, gid_t base)
 	gid_t *groups_bygid;
 	int i, j;
 	struct group *gr;
+	int allocated_ngroups;
 
 	if (ngroups > 0)
 		ga_free();
 
 	ngroups = NGROUPS_MAX;
 #if defined(HAVE_SYSCONF) && defined(_SC_NGROUPS_MAX)
-	ngroups = MAX(NGROUPS_MAX, sysconf(_SC_NGROUPS_MAX));
+	allocated_ngroups = ngroups = MAX(NGROUPS_MAX, sysconf(_SC_NGROUPS_MAX));
 #endif
 
 	groups_bygid = xcalloc(ngroups, sizeof(*groups_bygid));
@@ -66,6 +67,8 @@ ga_init(const char *user, gid_t base)
 
 	if (getgrouplist(user, base, groups_bygid, &ngroups) == -1)
 		logit("getgrouplist: groups list too small");
+	if (ngroups > allocated_ngroups)
+		ngroups = allocated_ngroups;
 	for (i = 0, j = 0; i < ngroups; i++)
 		if ((gr = getgrgid(groups_bygid[i])) != NULL)
 			groups_byname[j++] = xstrdup(gr->gr_name);
