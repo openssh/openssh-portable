@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.319 2018/08/08 01:16:01 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.320 2018/09/12 01:21:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2080,15 +2080,51 @@ load_krl(const char *path, struct ssh_krl **krlp)
 }
 
 static void
+hash_to_blob(const char *cp, u_char **blobp, size_t *lenp,
+    const char *file, u_long lnum)
+{
+	char *tmp;
+	size_t tlen;
+	struct sshbuf *b;
+	int r;
+
+	if (strncmp(cp, "SHA256:", 7) != 0)
+		fatal("%s:%lu: unsupported hash algorithm", file, lnum);
+	cp += 7;
+
+	/*
+	 * OpenSSH base64 hashes omit trailing '='
+	 * characters; put them back for decode.
+	 */
+	tlen = strlen(cp);
+	tmp = xmalloc(tlen + 4 + 1);
+	strlcpy(tmp, cp, tlen + 1);
+	while ((tlen % 4) != 0) {
+		tmp[tlen++] = '=';
+		tmp[tlen] = '\0';
+	}
+	if ((b = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if ((r = sshbuf_b64tod(b, tmp)) != 0)
+		fatal("%s:%lu: decode hash failed: %s", file, lnum, ssh_err(r));
+	free(tmp);
+	*lenp = sshbuf_len(b);
+	*blobp = xmalloc(*lenp);
+	memcpy(*blobp, sshbuf_ptr(b), *lenp);
+	sshbuf_free(b);
+}
+
+static void
 update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
     const struct sshkey *ca, struct ssh_krl *krl)
 {
 	struct sshkey *key = NULL;
 	u_long lnum = 0;
 	char *path, *cp, *ep, *line = NULL;
-	size_t linesize = 0;
+	u_char *blob = NULL;
+	size_t blen = 0, linesize = 0;
 	unsigned long long serial, serial2;
-	int i, was_explicit_key, was_sha1, r;
+	int i, was_explicit_key, was_sha1, was_sha256, was_hash, r;
 	FILE *krl_spec;
 
 	path = tilde_expand_filename(file, pw->pw_uid);
@@ -2103,7 +2139,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 		printf("Revoking from %s\n", path);
 	while (getline(&line, &linesize, krl_spec) != -1) {
 		lnum++;
-		was_explicit_key = was_sha1 = 0;
+		was_explicit_key = was_sha1 = was_sha256 = was_hash = 0;
 		cp = line + strspn(line, " \t");
 		/* Trim trailing space, comments and strip \n */
 		for (i = 0, r = -1; cp[i] != '\0'; i++) {
@@ -2168,6 +2204,11 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 			cp = cp + strspn(cp, " \t");
 			if (ssh_krl_revoke_cert_by_key_id(krl, ca, cp) != 0)
 				fatal("%s: revoke key ID failed", __func__);
+		} else if (strncasecmp(cp, "hash:", 5) == 0) {
+			cp += 5;
+			cp = cp + strspn(cp, " \t");
+			hash_to_blob(cp, &blob, &blen, file, lnum);
+			r = ssh_krl_revoke_key_sha256(krl, blob, blen);
 		} else {
 			if (strncasecmp(cp, "key:", 4) == 0) {
 				cp += 4;
@@ -2177,7 +2218,10 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 				cp += 5;
 				cp = cp + strspn(cp, " \t");
 				was_sha1 = 1;
-			} else {
+			} else if (strncasecmp(cp, "sha256:", 7) == 0) {
+				cp += 7;
+				cp = cp + strspn(cp, " \t");
+				was_sha256 = 1;
 				/*
 				 * Just try to process the line as a key.
 				 * Parsing will fail if it isn't.
@@ -2190,13 +2234,28 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 				    path, lnum, ssh_err(r));
 			if (was_explicit_key)
 				r = ssh_krl_revoke_key_explicit(krl, key);
-			else if (was_sha1)
-				r = ssh_krl_revoke_key_sha1(krl, key);
-			else
+			else if (was_sha1) {
+				if (sshkey_fingerprint_raw(key,
+				    SSH_DIGEST_SHA1, &blob, &blen) != 0) {
+					fatal("%s:%lu: fingerprint failed",
+					    file, lnum);
+				}
+				r = ssh_krl_revoke_key_sha1(krl, blob, blen);
+			} else if (was_sha256) {
+				if (sshkey_fingerprint_raw(key,
+				    SSH_DIGEST_SHA256, &blob, &blen) != 0) {
+					fatal("%s:%lu: fingerprint failed",
+					    file, lnum);
+				}
+				r = ssh_krl_revoke_key_sha256(krl, blob, blen);
+			} else
 				r = ssh_krl_revoke_key(krl, key);
 			if (r != 0)
 				fatal("%s: revoke key failed: %s",
 				    __func__, ssh_err(r));
+			freezero(blob, blen);
+			blob = NULL;
+			blen = 0;
 			sshkey_free(key);
 		}
 	}
