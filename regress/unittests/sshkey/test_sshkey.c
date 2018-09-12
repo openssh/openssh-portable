@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.14 2018/07/13 02:13:19 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.15 2018/09/12 01:22:43 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -318,7 +318,7 @@ sshkey_tests(void)
 	TEST_DONE();
 
 	TEST_START("demote KEY_RSA");
-	ASSERT_INT_EQ(sshkey_demote(kr, &k1), 0);
+	ASSERT_INT_EQ(sshkey_from_private(kr, &k1), 0);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(kr, k1);
 	ASSERT_INT_EQ(k1->type, KEY_RSA);
@@ -334,7 +334,7 @@ sshkey_tests(void)
 	TEST_DONE();
 
 	TEST_START("demote KEY_DSA");
-	ASSERT_INT_EQ(sshkey_demote(kd, &k1), 0);
+	ASSERT_INT_EQ(sshkey_from_private(kd, &k1), 0);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(kd, k1);
 	ASSERT_INT_EQ(k1->type, KEY_DSA);
@@ -350,7 +350,7 @@ sshkey_tests(void)
 
 #ifdef OPENSSL_HAS_ECC
 	TEST_START("demote KEY_ECDSA");
-	ASSERT_INT_EQ(sshkey_demote(ke, &k1), 0);
+	ASSERT_INT_EQ(sshkey_from_private(ke, &k1), 0);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(ke, k1);
 	ASSERT_INT_EQ(k1->type, KEY_ECDSA);
@@ -367,7 +367,7 @@ sshkey_tests(void)
 #endif
 
 	TEST_START("demote KEY_ED25519");
-	ASSERT_INT_EQ(sshkey_demote(kf, &k1), 0);
+	ASSERT_INT_EQ(sshkey_from_private(kf, &k1), 0);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(kf, k1);
 	ASSERT_INT_EQ(k1->type, KEY_ED25519);
