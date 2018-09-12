@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.67 2018/09/12 01:31:30 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.68 2018/09/12 01:32:54 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2258,6 +2258,27 @@ get_sigtype(const u_char *sig, size_t siglen, char **sigtypep)
 	free(sigtype);
 	sshbuf_free(b);
 	return r;
+}
+
+/*
+ *
+ * Checks whether a certificate's signature type is allowed.
+ * Returns 0 (success) if the certificate signature type appears in the
+ * "allowed" pattern-list, or the key is not a certificate to begin with.
+ * Otherwise returns a ssherr.h code.
+ */
+int
+sshkey_check_cert_sigtype(const struct sshkey *key, const char *allowed)
+{
+	if (key == NULL || allowed == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (!sshkey_type_is_cert(key->type))
+		return 0;
+	if (key->cert == NULL || key->cert->signature_type == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (match_pattern_list(key->cert->signature_type, allowed, 0) != 1)
+		return SSH_ERR_SIGN_ALG_UNSUPPORTED;
+	return 0;
 }
 
 /*
