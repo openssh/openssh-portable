@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.66 2018/07/03 13:20:25 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.67 2018/09/12 01:31:30 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -78,6 +78,7 @@ int	sshkey_private_serialize_opt(const struct sshkey *key,
     struct sshbuf *buf, enum sshkey_serialize_rep);
 static int sshkey_from_blob_internal(struct sshbuf *buf,
     struct sshkey **keyp, int allow_cert);
+static int get_sigtype(const u_char *sig, size_t siglen, char **sigtypep);
 
 /* Supported key types */
 struct keytype {
@@ -453,6 +454,7 @@ cert_free(struct sshkey_cert *cert)
 		free(cert->principals[i]);
 	free(cert->principals);
 	sshkey_free(cert->signature_key);
+	free(cert->signature_type);
 	freezero(cert, sizeof(*cert));
 }
 
@@ -472,6 +474,7 @@ cert_new(void)
 	cert->key_id = NULL;
 	cert->principals = NULL;
 	cert->signature_key = NULL;
+	cert->signature_type = NULL;
 	return cert;
 }
 
@@ -1695,54 +1698,68 @@ sshkey_cert_copy(const struct sshkey *from_key, struct sshkey *to_key)
 	u_int i;
 	const struct sshkey_cert *from;
 	struct sshkey_cert *to;
-	int ret = SSH_ERR_INTERNAL_ERROR;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if (to_key->cert != NULL) {
-		cert_free(to_key->cert);
-		to_key->cert = NULL;
-	}
-
-	if ((from = from_key->cert) == NULL)
+	if (to_key == NULL || (from = from_key->cert) == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 
-	if ((to = to_key->cert = cert_new()) == NULL)
+	if ((to = cert_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 
-	if ((ret = sshbuf_putb(to->certblob, from->certblob)) != 0 ||
-	    (ret = sshbuf_putb(to->critical, from->critical)) != 0 ||
-	    (ret = sshbuf_putb(to->extensions, from->extensions)) != 0)
-		return ret;
+	if ((r = sshbuf_putb(to->certblob, from->certblob)) != 0 ||
+	    (r = sshbuf_putb(to->critical, from->critical)) != 0 ||
+	    (r = sshbuf_putb(to->extensions, from->extensions)) != 0)
+		goto out;
 
 	to->serial = from->serial;
 	to->type = from->type;
 	if (from->key_id == NULL)
 		to->key_id = NULL;
-	else if ((to->key_id = strdup(from->key_id)) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
+	else if ((to->key_id = strdup(from->key_id)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
 	to->valid_after = from->valid_after;
 	to->valid_before = from->valid_before;
 	if (from->signature_key == NULL)
 		to->signature_key = NULL;
-	else if ((ret = sshkey_from_private(from->signature_key,
+	else if ((r = sshkey_from_private(from->signature_key,
 	    &to->signature_key)) != 0)
-		return ret;
-
-	if (from->nprincipals > SSHKEY_CERT_MAX_PRINCIPALS)
-		return SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	if (from->signature_type != NULL &&
+	    (to->signature_type = strdup(from->signature_type)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (from->nprincipals > SSHKEY_CERT_MAX_PRINCIPALS) {
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	if (from->nprincipals > 0) {
 		if ((to->principals = calloc(from->nprincipals,
-		    sizeof(*to->principals))) == NULL)
-			return SSH_ERR_ALLOC_FAIL;
+		    sizeof(*to->principals))) == NULL) {
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
 		for (i = 0; i < from->nprincipals; i++) {
 			to->principals[i] = strdup(from->principals[i]);
 			if (to->principals[i] == NULL) {
 				to->nprincipals = i;
-				return SSH_ERR_ALLOC_FAIL;
+				r = SSH_ERR_ALLOC_FAIL;
+				goto out;
 			}
 		}
 	}
 	to->nprincipals = from->nprincipals;
-	return 0;
+
+	/* success */
+	cert_free(to_key->cert);
+	to_key->cert = to;
+	to = NULL;
+	r = 0;
+ out:
+	cert_free(to);
+	return r;
 }
 
 int
@@ -1953,6 +1970,8 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 	}
 	if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
 	    sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0)) != 0)
+		goto out;
+	if ((ret = get_sigtype(sig, slen, &key->cert->signature_type)) != 0)
 		goto out;
 
 	/* Success */
@@ -2531,7 +2550,8 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 	u_char *ca_blob = NULL, *sig_blob = NULL, nonce[32];
 	size_t i, ca_len, sig_len;
 	int ret = SSH_ERR_INTERNAL_ERROR;
-	struct sshbuf *cert;
+	struct sshbuf *cert = NULL;
+	char *sigtype = NULL;
 
 	if (k == NULL || k->cert == NULL ||
 	    k->cert->certblob == NULL || ca == NULL)
@@ -2540,6 +2560,16 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 		return SSH_ERR_KEY_TYPE_UNKNOWN;
 	if (!sshkey_type_is_valid_ca(ca->type))
 		return SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
+
+	/*
+	 * If no alg specified as argument but a signature_type was set,
+	 * then prefer that. If both were specified, then they must match.
+	 */
+	if (alg == NULL)
+		alg = k->cert->signature_type;
+	else if (k->cert->signature_type != NULL &&
+	    strcmp(alg, k->cert->signature_type) != 0)
+		return SSH_ERR_INVALID_ARGUMENT;
 
 	if ((ret = sshkey_to_blob(ca, &ca_blob, &ca_len)) != 0)
 		return SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
@@ -2629,7 +2659,17 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 	if ((ret = signer(ca, &sig_blob, &sig_len, sshbuf_ptr(cert),
 	    sshbuf_len(cert), alg, 0, signer_ctx)) != 0)
 		goto out;
-
+	/* Check and update signature_type against what was actually used */
+	if ((ret = get_sigtype(sig_blob, sig_len, &sigtype)) != 0)
+		goto out;
+	if (alg != NULL && strcmp(alg, sigtype) != 0) {
+		ret = SSH_ERR_SIGN_ALG_UNSUPPORTED;
+		goto out;
+	}
+	if (k->cert->signature_type == NULL) {
+		k->cert->signature_type = sigtype;
+		sigtype = NULL;
+	}
 	/* Append signature and we are done */
 	if ((ret = sshbuf_put_string(cert, sig_blob, sig_len)) != 0)
 		goto out;
@@ -2639,6 +2679,7 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 		sshbuf_reset(cert);
 	free(sig_blob);
 	free(ca_blob);
+	free(sigtype);
 	sshbuf_free(principals);
 	return ret;
 }
