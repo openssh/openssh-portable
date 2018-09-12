@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.149 2018/09/12 01:21:34 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.150 2018/09/12 06:18:59 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -820,7 +820,7 @@ Revokes the specified key by including its SHA256 hash in the KRL.
 KRLs that revoke keys by SHA256 hash are not supported by OpenSSH versions
 prior to 7.9.
 .It Cm hash : Ar fingerprint
-Revokes a key using by fingerprint hash, as obtained from a
+Revokes a key using a fingerprint hash, as obtained from a
 .Xr sshd 8
 authentication log message or the
 .Nm
