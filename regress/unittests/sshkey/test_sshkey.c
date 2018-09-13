@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.15 2018/09/12 01:22:43 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.16 2018/09/13 05:06:51 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -173,6 +173,61 @@ get_private(const char *n)
 	return ret;
 }
 
+static const BIGNUM *
+rsa_n(struct sshkey *k)
+{
+	const BIGNUM *n = NULL;
+
+	ASSERT_PTR_NE(k, NULL);
+	ASSERT_PTR_NE(k->rsa, NULL);
+	RSA_get0_key(k->rsa, &n, NULL, NULL);
+	return n;
+}
+
+static const BIGNUM *
+rsa_e(struct sshkey *k)
+{
+	const BIGNUM *e = NULL;
+
+	ASSERT_PTR_NE(k, NULL);
+	ASSERT_PTR_NE(k->rsa, NULL);
+	RSA_get0_key(k->rsa, NULL, &e, NULL);
+	return e;
+}
+
+static const BIGNUM *
+rsa_p(struct sshkey *k)
+{
+	const BIGNUM *p = NULL;
+
+	ASSERT_PTR_NE(k, NULL);
+	ASSERT_PTR_NE(k->rsa, NULL);
+	RSA_get0_factors(k->rsa, &p, NULL);
+	return p;
+}
+
+static const BIGNUM *
+dsa_g(struct sshkey *k)
+{
+	const BIGNUM *g = NULL;
+
+	ASSERT_PTR_NE(k, NULL);
+	ASSERT_PTR_NE(k->dsa, NULL);
+	DSA_get0_pqg(k->dsa, NULL, NULL, &g);
+	return g;
+}
+
+static const BIGNUM *
+dsa_priv_key(struct sshkey *k)
+{
+	const BIGNUM *priv_key = NULL;
+
+	ASSERT_PTR_NE(k, NULL);
+	ASSERT_PTR_NE(k->dsa, NULL);
+	DSA_get0_key(k->dsa, NULL, &priv_key);
+	return priv_key;
+}
+
 void
 sshkey_tests(void)
 {
@@ -197,9 +252,6 @@ sshkey_tests(void)
 	k1 = sshkey_new(KEY_RSA);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(k1->rsa, NULL);
-	ASSERT_PTR_NE(k1->rsa->n, NULL);
-	ASSERT_PTR_NE(k1->rsa->e, NULL);
-	ASSERT_PTR_EQ(k1->rsa->p, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 
@@ -207,8 +259,6 @@ sshkey_tests(void)
 	k1 = sshkey_new(KEY_DSA);
 	ASSERT_PTR_NE(k1, NULL);
 	ASSERT_PTR_NE(k1->dsa, NULL);
-	ASSERT_PTR_NE(k1->dsa->g, NULL);
-	ASSERT_PTR_EQ(k1->dsa->priv_key, NULL);
 	sshkey_free(k1);
 	TEST_DONE();
 
@@ -227,27 +277,6 @@ sshkey_tests(void)
 	/* These should be blank until key loaded or generated */
 	ASSERT_PTR_EQ(k1->ed25519_sk, NULL);
 	ASSERT_PTR_EQ(k1->ed25519_pk, NULL);
-	sshkey_free(k1);
-	TEST_DONE();
-
-	TEST_START("new_private KEY_RSA");
-	k1 = sshkey_new_private(KEY_RSA);
-	ASSERT_PTR_NE(k1, NULL);
-	ASSERT_PTR_NE(k1->rsa, NULL);
-	ASSERT_PTR_NE(k1->rsa->n, NULL);
-	ASSERT_PTR_NE(k1->rsa->e, NULL);
-	ASSERT_PTR_NE(k1->rsa->p, NULL);
-	ASSERT_INT_EQ(sshkey_add_private(k1), 0);
-	sshkey_free(k1);
-	TEST_DONE();
-
-	TEST_START("new_private KEY_DSA");
-	k1 = sshkey_new_private(KEY_DSA);
-	ASSERT_PTR_NE(k1, NULL);
-	ASSERT_PTR_NE(k1->dsa, NULL);
-	ASSERT_PTR_NE(k1->dsa->g, NULL);
-	ASSERT_PTR_NE(k1->dsa->priv_key, NULL);
-	ASSERT_INT_EQ(sshkey_add_private(k1), 0);
 	sshkey_free(k1);
 	TEST_DONE();
 
@@ -285,18 +314,18 @@ sshkey_tests(void)
 	ASSERT_INT_EQ(sshkey_generate(KEY_RSA, 1024, &kr), 0);
 	ASSERT_PTR_NE(kr, NULL);
 	ASSERT_PTR_NE(kr->rsa, NULL);
-	ASSERT_PTR_NE(kr->rsa->n, NULL);
-	ASSERT_PTR_NE(kr->rsa->e, NULL);
-	ASSERT_PTR_NE(kr->rsa->p, NULL);
-	ASSERT_INT_EQ(BN_num_bits(kr->rsa->n), 1024);
+	ASSERT_PTR_NE(rsa_n(kr), NULL);
+	ASSERT_PTR_NE(rsa_e(kr), NULL);
+	ASSERT_PTR_NE(rsa_p(kr), NULL);
+	ASSERT_INT_EQ(BN_num_bits(rsa_n(kr)), 1024);
 	TEST_DONE();
 
 	TEST_START("generate KEY_DSA");
 	ASSERT_INT_EQ(sshkey_generate(KEY_DSA, 1024, &kd), 0);
 	ASSERT_PTR_NE(kd, NULL);
 	ASSERT_PTR_NE(kd->dsa, NULL);
-	ASSERT_PTR_NE(kd->dsa->g, NULL);
-	ASSERT_PTR_NE(kd->dsa->priv_key, NULL);
+	ASSERT_PTR_NE(dsa_g(kd), NULL);
+	ASSERT_PTR_NE(dsa_priv_key(kd), NULL);
 	TEST_DONE();
 
 #ifdef OPENSSL_HAS_ECC
@@ -323,9 +352,9 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(kr, k1);
 	ASSERT_INT_EQ(k1->type, KEY_RSA);
 	ASSERT_PTR_NE(k1->rsa, NULL);
-	ASSERT_PTR_NE(k1->rsa->n, NULL);
-	ASSERT_PTR_NE(k1->rsa->e, NULL);
-	ASSERT_PTR_EQ(k1->rsa->p, NULL);
+	ASSERT_PTR_NE(rsa_n(k1), NULL);
+	ASSERT_PTR_NE(rsa_e(k1), NULL);
+	ASSERT_PTR_EQ(rsa_p(k1), NULL);
 	TEST_DONE();
 
 	TEST_START("equal KEY_RSA/demoted KEY_RSA");
@@ -339,8 +368,8 @@ sshkey_tests(void)
 	ASSERT_PTR_NE(kd, k1);
 	ASSERT_INT_EQ(k1->type, KEY_DSA);
 	ASSERT_PTR_NE(k1->dsa, NULL);
-	ASSERT_PTR_NE(k1->dsa->g, NULL);
-	ASSERT_PTR_EQ(k1->dsa->priv_key, NULL);
+	ASSERT_PTR_NE(dsa_g(k1), NULL);
+	ASSERT_PTR_EQ(dsa_priv_key(k1), NULL);
 	TEST_DONE();
 
 	TEST_START("equal KEY_DSA/demoted KEY_DSA");
