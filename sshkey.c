@@ -60,6 +60,8 @@
 
 #include "xmss_fast.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 /* openssh private key file format */
 #define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
 #define MARK_END		"-----END OPENSSH PRIVATE KEY-----\n"
@@ -1744,7 +1746,6 @@ int
 sshkey_from_private(const struct sshkey *k, struct sshkey **pkp)
 {
 	struct sshkey *n = NULL;
-	int ret = SSH_ERR_INTERNAL_ERROR;
 	int r = SSH_ERR_INTERNAL_ERROR;
 #ifdef WITH_OPENSSL
 	const BIGNUM *rsa_n, *rsa_e;

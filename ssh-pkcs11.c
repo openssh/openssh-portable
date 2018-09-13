@@ -30,6 +30,7 @@
 #include <dlfcn.h>
 
 #include "openbsd-compat/sys-queue.h"
+#include "openbsd-compat/openssl-compat.h"
 
 #include <openssl/x509.h>
 

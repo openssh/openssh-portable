@@ -43,6 +43,8 @@
 #include "misc.h"
 #include "ssherr.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 static int
 parse_prime(int linenum, char *line, struct dhgroup *dhg)
 {

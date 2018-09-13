@@ -43,6 +43,8 @@
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 /* ARGSUSED */
 int
 ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,

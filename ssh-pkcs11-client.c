@@ -32,6 +32,8 @@
 
 #include <openssl/rsa.h>
 
+#include "openbsd-compat/openssl-compat.h"
+
 #include "pathnames.h"
 #include "xmalloc.h"
 #include "sshbuf.h"

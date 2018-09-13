@@ -43,6 +43,8 @@
 #define SSHKEY_INTERNAL
 #include "sshkey.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 #define INTBLOB_LEN	20
 #define SIGBLOB_LEN	(2*INTBLOB_LEN)
 

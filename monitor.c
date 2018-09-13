@@ -29,7 +29,6 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "openbsd-compat/sys-tree.h"
 #include <sys/wait.h>
 
 #include <errno.h>
@@ -60,7 +59,10 @@
 #include <openssl/dh.h>
 #endif
 
+#include "openbsd-compat/sys-tree.h"
 #include "openbsd-compat/sys-queue.h"
+#include "openbsd-compat/openssl-compat.h"
+
 #include "atomicio.h"
 #include "xmalloc.h"
 #include "ssh.h"

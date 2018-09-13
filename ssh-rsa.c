@@ -35,6 +35,8 @@
 #include "digest.h"
 #include "log.h"
 
+#include "openbsd-compat/openssl-compat.h"
+
 static int openssh_RSA_verify(int, u_char *, size_t, u_char *, size_t, RSA *);
 
 static const char *
