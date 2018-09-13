@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.16 2018/09/13 05:06:51 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.17 2018/09/13 09:03:20 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -171,61 +171,6 @@ get_private(const char *n)
 	ASSERT_INT_EQ(sshkey_parse_private_fileblob(b, "", &ret, NULL), 0);
 	sshbuf_free(b);
 	return ret;
-}
-
-static const BIGNUM *
-rsa_n(struct sshkey *k)
-{
-	const BIGNUM *n = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, &n, NULL, NULL);
-	return n;
-}
-
-static const BIGNUM *
-rsa_e(struct sshkey *k)
-{
-	const BIGNUM *e = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_key(k->rsa, NULL, &e, NULL);
-	return e;
-}
-
-static const BIGNUM *
-rsa_p(struct sshkey *k)
-{
-	const BIGNUM *p = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->rsa, NULL);
-	RSA_get0_factors(k->rsa, &p, NULL);
-	return p;
-}
-
-static const BIGNUM *
-dsa_g(struct sshkey *k)
-{
-	const BIGNUM *g = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->dsa, NULL);
-	DSA_get0_pqg(k->dsa, NULL, NULL, &g);
-	return g;
-}
-
-static const BIGNUM *
-dsa_priv_key(struct sshkey *k)
-{
-	const BIGNUM *priv_key = NULL;
-
-	ASSERT_PTR_NE(k, NULL);
-	ASSERT_PTR_NE(k->dsa, NULL);
-	DSA_get0_key(k->dsa, NULL, &priv_key);
-	return priv_key;
 }
 
 void
