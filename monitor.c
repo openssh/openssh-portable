@@ -566,6 +566,7 @@ int
 mm_answer_moduli(int sock, struct sshbuf *m)
 {
 	DH *dh;
+	const BIGNUM *dh_p, *dh_g;
 	int r;
 	u_int min, want, max;
 
@@ -590,9 +591,10 @@ mm_answer_moduli(int sock, struct sshbuf *m)
 		return (0);
 	} else {
 		/* Send first bignum */
+		DH_get0_pqg(dh, &dh_p, NULL, &dh_g);
 		if ((r = sshbuf_put_u8(m, 1)) != 0 ||
-		    (r = sshbuf_put_bignum2(m, dh->p)) != 0 ||
-		    (r = sshbuf_put_bignum2(m, dh->g)) != 0)
+		    (r = sshbuf_put_bignum2(m, dh_p)) != 0 ||
+		    (r = sshbuf_put_bignum2(m, dh_g)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 		DH_free(dh);
