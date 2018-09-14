@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.28 2018/09/12 01:32:54 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.30 2018/09/14 04:17:44 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -128,7 +128,6 @@ struct sshkey {
 #define	ED25519_PK_SZ	crypto_sign_ed25519_PUBLICKEYBYTES
 
 struct sshkey	*sshkey_new(int);
-struct sshkey	*sshkey_new_private(int); /* XXX garbage collect */
 void		 sshkey_free(struct sshkey *);
 int		 sshkey_equal_public(const struct sshkey *,
     const struct sshkey *);
