@@ -690,9 +690,13 @@ function Get-BuildLogFile
                 
         [ValidateSet('Debug', 'Release')]
         [string]$Configuration = "Release"
-        
-    )    
-    return Join-Path -Path $root -ChildPath "contrib\win32\openssh\OpenSSH$($Configuration)$($NativeHostArch).log"
+    )
+    if($root -ieq $PSScriptRoot)
+    {
+        return Join-Path -Path $PSScriptRoot -ChildPath "OpenSSH$($Configuration)$($NativeHostArch).log"
+    } else {
+        return Join-Path -Path $root -ChildPath "contrib\win32\openssh\OpenSSH$($Configuration)$($NativeHostArch).log"
+    }
 }
 
 function Get-SolutionFile
@@ -701,9 +705,14 @@ function Get-SolutionFile
     (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
-        [System.IO.DirectoryInfo] $root        
+        [System.IO.DirectoryInfo] $root
     )    
-    return Join-Path -Path $root -ChildPath "contrib\win32\openssh\Win32-OpenSSH.sln"    
+    if($root -ieq $PSScriptRoot)
+    {
+        return Join-Path -Path $PSScriptRoot -ChildPath "Win32-OpenSSH.sln"
+    } else {
+        return Join-Path -Path $root -ChildPath "contrib\win32\openssh\Win32-OpenSSH.sln"
+    }
 }
 
 
