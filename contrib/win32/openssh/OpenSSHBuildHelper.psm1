@@ -691,7 +691,7 @@ function Get-BuildLogFile
         [ValidateSet('Debug', 'Release')]
         [string]$Configuration = "Release"
     )
-    if($root -ieq $PSScriptRoot)
+    if ($root.FullName -ieq $PSScriptRoot)
     {
         return Join-Path -Path $PSScriptRoot -ChildPath "OpenSSH$($Configuration)$($NativeHostArch).log"
     } else {
@@ -707,7 +707,7 @@ function Get-SolutionFile
         [ValidateNotNull()]
         [System.IO.DirectoryInfo] $root
     )    
-    if($root -ieq $PSScriptRoot)
+    if ($root.FullName -ieq $PSScriptRoot)
     {
         return Join-Path -Path $PSScriptRoot -ChildPath "Win32-OpenSSH.sln"
     } else {
