@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-hostbased.c,v 1.37 2018/08/28 12:17:45 mestre Exp $ */
+/* $OpenBSD: auth2-hostbased.c,v 1.38 2018/09/20 03:28:06 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -110,6 +110,13 @@ userauth_hostbased(struct ssh *ssh)
 	if (match_pattern_list(pkalg, options.hostbased_key_types, 0) != 1) {
 		logit("%s: key type %s not in HostbasedAcceptedKeyTypes",
 		    __func__, sshkey_type(key));
+		goto done;
+	}
+	if ((r = sshkey_check_cert_sigtype(key,
+	    options.ca_sign_algorithms)) != 0) {
+		logit("%s: certificate signature algorithm %s: %s", __func__,
+		    (key->cert == NULL || key->cert->signature_type == NULL) ?
+		    "(null)" : key->cert->signature_type, ssh_err(r));
 		goto done;
 	}
 
