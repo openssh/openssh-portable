@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.341 2018/09/20 03:28:06 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.342 2018/09/20 23:40:16 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -644,6 +644,7 @@ static struct {
 	{ "disableforwarding", sDisableForwarding, SSHCFG_ALL },
 	{ "exposeauthinfo", sExposeAuthInfo, SSHCFG_ALL },
 	{ "rdomain", sRDomain, SSHCFG_ALL },
+	{ "casignaturealgorithms", sCASignatureAlgorithms, SSHCFG_ALL },
 	{ NULL, sBadOption, 0 }
 };
 
