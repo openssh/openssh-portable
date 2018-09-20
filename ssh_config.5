@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.282 2018/09/20 03:30:44 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.283 2018/09/20 06:58:48 jmc Exp $
 .Dd $Mdocdate: September 20 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -261,18 +261,6 @@ Only useful on systems with more than one address.
 .It Cm BindInterface
 Use the address of the specified interface on the local machine as the
 source address of the connection.
-.It Cm CASignatureAlgorithms
-Specifies which algorithms are allowed for signing of certificates
-by certificate authorities (CAs).
-The default is:
-.Bd -literal -offset indent
-ecdsa-sha2-nistp256.ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
-ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
-.Ed
-.Pp
-.Xr ssh 1
-will not accept host certificates signed using algorithms other than those
-specified.
 .It Cm CanonicalDomains
 When
 .Cm CanonicalizeHostname
@@ -348,6 +336,18 @@ to be canonicalized to names in the
 or
 .Qq *.c.example.com
 domains.
+.It Cm CASignatureAlgorithms
+Specifies which algorithms are allowed for signing of certificates
+by certificate authorities (CAs).
+The default is:
+.Bd -literal -offset indent
+ecdsa-sha2-nistp256.ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
+ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
+.Ed
+.Pp
+.Xr ssh 1
+will not accept host certificates signed using algorithms other than those
+specified.
 .It Cm CertificateFile
 Specifies a file from which the user's certificate is read.
 A corresponding private key must be provided separately in order
