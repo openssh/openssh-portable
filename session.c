@@ -2102,6 +2102,68 @@ session_env_req(struct ssh *ssh, Session *s)
 }
 
 static int
+name2sig(char *name)
+{
+#define SSH_SIG(x) if (strcmp(name, #x) == 0) return SIG ## x
+
+	SSH_SIG(ABRT);
+	SSH_SIG(ALRM);
+	SSH_SIG(FPE);
+	SSH_SIG(HUP);
+	SSH_SIG(ILL);
+	SSH_SIG(INT);
+	SSH_SIG(KILL);
+	SSH_SIG(PIPE);
+	SSH_SIG(QUIT);
+	SSH_SIG(SEGV);
+	SSH_SIG(TERM);
+	SSH_SIG(USR1);
+	SSH_SIG(USR2);
+
+#undef	SSH_SIG
+
+	return -1;
+
+}
+static int
+session_signal_req(struct ssh *ssh, Channel *c, Session *s) {
+	char * signame;
+	int sig, success = 0;
+	pid_t gkill = 0;
+	gkill = tcgetpgrp(c->wfd);
+	if(gkill == -1) {
+		if(errno == ENOTTY) {
+			debug("session_signal_req: no TTY, killing directly forked pid");
+			gkill = s->pid;
+		} else {
+			//Channel file descriptor is bad
+			debug("session_signal_req: bad channel file des");
+		}
+	}
+	signame = packet_get_string(NULL);
+	sig = name2sig(signame);
+	packet_check_eom();
+	if(sig >= 0) {
+		if(gkill > 0) {
+			debug("session_signal_req: signal %s, killpg(%d, %d)",
+					    signame, gkill, sig);
+			temporarily_use_uid(s->pw);
+			if (killpg(gkill, sig) < 0) {
+				error("session_signal_req: killpg(%d, %d): %s",
+						    gkill, sig, strerror(errno));
+			} else {
+				success = 1;
+			}
+			restore_uid();
+		}
+	} else {
+		debug("session_signal_req: unknown signal %s", signame);
+	}
+	free(signame);
+	return success;
+}
+
+static int
 session_auth_agent_req(struct ssh *ssh, Session *s)
 {
 	static int called = 0;
@@ -2157,8 +2219,9 @@ session_input_channel_req(struct ssh *ssh, Channel *c, const char *rtype)
 		success = session_window_change_req(ssh, s);
 	} else if (strcmp(rtype, "break") == 0) {
 		success = session_break_req(ssh, s);
+	}	else if (strcmp(rtype, "signal") == 0) {
+		success = session_signal_req(ssh, c, s);
 	}
-
 	return success;
 }
 

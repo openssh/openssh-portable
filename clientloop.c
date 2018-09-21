@@ -152,6 +152,7 @@ static time_t control_persist_exit_time = 0;
 /* Common data for the client loop code. */
 volatile sig_atomic_t quit_pending; /* Set non-zero to quit the loop. */
 static int last_was_cr;		/* Last character was a newline. */
+static int last_was_sr;	  /* Last character sequence was signal request*/
 static int exit_status;		/* Used to store the command exit status. */
 static struct sshbuf *stderr_buffer;	/* Used for final exit message. */
 static int connection_in;	/* Connection to server (input). */
@@ -926,6 +927,22 @@ print_escape_help(struct sshbuf *b, int escape_char, int mux_client,
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 }
 
+
+static void
+send_signal_req(struct ssh *ssh, Channel *c, struct sshbuf *berr,
+		u_char escape_char, u_char sig_char, char *signame)
+{
+	int r;
+	if ((r = sshbuf_putf(berr, "%cS%c\r\n",
+			escape_char, sig_char)) != 0)
+		fatal("%s: buffer error: %s",
+				__func__, ssh_err(r));
+	channel_request_start(ssh, c->self, "signal", 0);
+	packet_put_cstring(signame);
+	packet_send();
+}
+
+
 /*
  * Process the characters one by one.
  */
@@ -1021,7 +1038,12 @@ process_escapes(struct ssh *ssh, Channel *c,
 					fatal("%s: %s", __func__,
 					    ssh_err(r));
 				continue;
-
+			case 'S':
+				/* Request for signal registered
+				 * the next character send will specify which signal
+				 */
+				last_was_sr=1;
+				continue;
 			case 'R':
 				if (datafellows & SSH_BUG_NOREKEY)
 					logit("Server does not "
@@ -1141,6 +1163,66 @@ process_escapes(struct ssh *ssh, Channel *c,
 				 */
 				efc->escape_pending = 1;
 				continue;
+			} else {
+				if (last_was_sr) {
+					/* We have previously seen 	 signal request. */
+					/* Clear the flag now. */
+					last_was_sr = 0;
+					switch (ch) {
+						case 'A':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "ABRT");
+							continue;
+						case 'L':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "ALRM");
+							continue;
+						case 'F':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "FPE");
+							continue;
+						case 'H':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "HUP");
+							continue;
+						case 'I':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "ILL");
+							continue;
+						case 'C':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "INT");
+							continue;
+						case 'K':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "KILL");
+							continue;
+						case 'P':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "PIPE");
+							continue;
+						case 'Q':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "QUIT");
+							continue;
+						case 'S':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "SEGV");
+							continue;
+						case 'T':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "TERM");
+							continue;
+						case '1':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "USR1");
+							continue;
+						case '2':
+							send_signal_req(ssh, c, berr, efc->escape_char, ch, "USR2");
+							continue;
+						default:
+							if ((r = sshbuf_put_u8(bin,
+									efc->escape_char)) != 0)
+								fatal("%s: buffer error: %s",
+										__func__, ssh_err(r));
+							bytes++;
+							if ((r = sshbuf_put_u8(bin,
+							    'S')) != 0)
+								fatal("%s: buffer error: %s",
+								    __func__, ssh_err(r));
+							bytes++;
+							break;
+
+					}
+				}
 			}
 		}
 
@@ -1267,6 +1349,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 
 	/* Initialize variables. */
 	last_was_cr = 1;
+	last_was_sr = 0;
 	exit_status = -1;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
