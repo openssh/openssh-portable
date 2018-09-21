@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.284 2018/09/21 03:11:36 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.285 2018/09/21 12:46:22 djm Exp $
 .Dd $Mdocdate: September 21 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -686,6 +686,10 @@ section of
 X11 connections received by
 .Xr ssh 1
 after this time will be refused.
+Setting
+.Cm ForwardX11Timeout
+to zero will disable the timeout and permit X11 forwarding for the life
+of the connection.
 The default is to disable untrusted X11 forwarding after twenty minutes has
 elapsed.
 .It Cm ForwardX11Trusted
