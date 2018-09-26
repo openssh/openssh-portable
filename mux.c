@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.76 2018/09/26 01:48:57 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.77 2018/09/26 07:32:44 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -16,19 +16,6 @@
  */
 
 /* ssh session multiplexing support */
-
-/*
- * TODO:
- *   - Better signalling from master to slave, especially passing of
- *      error messages
- *   - Better fall-back from mux slave error to new connection.
- *   - ExitOnForwardingFailure
- *   - Maybe extension mechanisms for multi-X11/multi-agent forwarding
- *   - Support ~^Z in mux slaves.
- *   - Inspect or control sessions in master.
- *   - If we ever support the "signal" channel request, send signals on
- *     sessions in master.
- */
 
 #include "includes.h"
 
