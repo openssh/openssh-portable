@@ -296,6 +296,18 @@ Describe "E2E scenarios for ssh client" -Tags "CI" {
             iex "cmd /c `"ssh -o UserKnownHostsFile=`"$kh`" -o StrictHostKeyChecking=no test_target hostname 2>&1`""
             @(Get-Content $kh).Count | Should Be 1
         }
+
+        It "ProxyCommand with file name only" {            
+            & cmd /c "ssh -o ProxyCommand=`"cmd.exe /c echo Invalid proxy 1>&2`" abc 2>$stderrFile"
+            $stderrFile | Should Contain "Invalid proxy"
+            $stderrFile | Should Contain "Connection closed by remote host"
+        }
+
+        It "ProxyCommand with absolute path to the file" {
+            & cmd /c "ssh -o ProxyCommand=`"$($env:ComSpec) /c echo Invalid proxy 1>&2`" abc 2>$stderrFile"
+            $stderrFile | Should Contain "Invalid proxy"
+            $stderrFile | Should Contain "Connection closed by remote host"
+        }
     }
     
 }

@@ -236,8 +236,8 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 			posix_spawn_file_actions_adddup2(&actions, pin[0], STDIN_FILENO) != 0 ||
 			posix_spawn_file_actions_adddup2(&actions, pout[1], STDOUT_FILENO) != 0)
 			fatal("posix_spawn initialization failed");
-		else if (posix_spawn(&pid, spawn_argv[0], &actions, NULL, spawn_argv, NULL) != 0)
-			fatal("posix_spawn: %s", strerror(errno));
+		else if (posix_spawnp(&pid, spawn_argv[0], &actions, NULL, spawn_argv, NULL) != 0)
+			fatal("posix_spawnp: %s", strerror(errno));
 
 		posix_spawn_file_actions_destroy(&actions);
 	}

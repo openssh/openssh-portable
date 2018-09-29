@@ -333,6 +333,5 @@ Describe "Tests of sshd_config" -Tags "CI" {
             Stop-SSHDTestDaemon
             Remove-UserFromLocalGroup -UserName $matchuser -GroupName $allowGroup1
         }
-#>
     }
 }

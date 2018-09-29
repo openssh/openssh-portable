@@ -8,13 +8,6 @@
 #include "inc\unistd.h"
 
 int
-posix_spawnp(pid_t *pidp, const char *file, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[])
-{
-	errno = ENOTSUP;
-	return -1;
-}
-
-int
 posix_spawn_file_actions_init(posix_spawn_file_actions_t *file_actions)
 {
 	memset(file_actions, 0, sizeof(posix_spawn_file_actions_t));

@@ -97,7 +97,7 @@ function Add-PasswordSetting
     $platform = Get-Platform
     if ($platform -eq [PlatformType]::Windows) {
         if (-not($env:DISPLAY)) {$env:DISPLAY = 1}
-        $env:SSH_ASKPASS="$($env:ComSpec) /c echo $pass"
+        $env:SSH_ASKPASS="cmd.exe /c echo $pass"
     }
 }
 

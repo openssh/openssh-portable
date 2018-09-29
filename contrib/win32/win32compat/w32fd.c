@@ -1018,7 +1018,7 @@ int fork()
 */
 
 static int
-spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDLE err, unsigned long flags, HANDLE* as_user)
+spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDLE err, unsigned long flags, HANDLE* as_user, BOOLEAN prepend_module_path)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
@@ -1036,7 +1036,7 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	}
 
 	t = cmd;
-	if (!is_absolute_path(t))
+	if (!is_absolute_path(t) && prepend_module_path)
 		add_module_path = 1;
 
 	/* compute total cmdline len*/
@@ -1246,7 +1246,7 @@ fd_decode_state(char* enc_buf)
 }
 
 int
-posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[], HANDLE user_token)
+posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[], HANDLE user_token, BOOLEAN prepend_module_path)
 {
 	int i, ret = -1;
 	int sc_flags = 0;
@@ -1282,7 +1282,7 @@ posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actio
 
 	if (_putenv_s(POSIX_FD_STATE, fd_info) != 0)
 		goto cleanup;
-	i = spawn_child_internal(argv[0], argv + 1, stdio_handles[STDIN_FILENO], stdio_handles[STDOUT_FILENO], stdio_handles[STDERR_FILENO], sc_flags, user_token);
+	i = spawn_child_internal(argv[0], argv + 1, stdio_handles[STDIN_FILENO], stdio_handles[STDOUT_FILENO], stdio_handles[STDERR_FILENO], sc_flags, user_token, prepend_module_path);
 	if (i == -1)
 		goto cleanup;
 	if (pidp)
@@ -1315,5 +1315,11 @@ cleanup:
 int
 posix_spawn(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[])
 {
-	return posix_spawn_internal(pidp, path, file_actions, attrp, argv, envp, NULL);
+	return posix_spawn_internal(pidp, path, file_actions, attrp, argv, envp, NULL, TRUE);
+}
+
+int
+posix_spawnp(pid_t *pidp, const char *file, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[])
+{
+	return posix_spawn_internal(pidp, file, file_actions, attrp, argv, envp, NULL, FALSE);
 }
