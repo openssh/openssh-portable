@@ -2120,8 +2120,10 @@ name2sig(char *name)
 	SSH_SIG(USR1);
 	SSH_SIG(USR2);
 #undef	SSH_SIG
+#ifdef SIGINFO
 	if (strcmp(name, "INFO@openssh.com") == 0)
 		return SIGINFO;
+#endif
 	return -1;
 }
 
