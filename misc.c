@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.131 2018/07/27 05:13:02 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.132 2018/10/03 06:38:35 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1946,6 +1946,25 @@ bad:
 	if (errstr != NULL)
 		*errstr = errbuf;
 	return 0;
+}
+
+/*
+ * Verify that a environment variable name (not including initial '$') is
+ * valid; consisting of one or more alphanumeric or underscore characters only.
+ * Returns 1 on valid, 0 otherwise.
+ */
+int
+valid_env_name(const char *name)
+{
+	const char *cp;
+
+	if (name[0] == '\0')
+		return 0;
+	for (cp = name; *cp != '\0'; cp++) {
+		if (!isalnum((u_char)*cp) && *cp != '_')
+			return 0;
+	}
+	return 1;
 }
 
 const char *

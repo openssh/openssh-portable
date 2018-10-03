@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.493 2018/09/21 03:11:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.494 2018/10/03 06:38:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1453,9 +1453,27 @@ main(int ac, char **av)
 			    "r", options.user,
 			    "u", pw->pw_name,
 			    (char *)NULL);
-			setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
-			free(cp);
 			free(p);
+			/*
+			 * If identity_agent represents an environment variable
+			 * then recheck that it is valid (since processing with
+			 * percent_expand() may have changed it) and substitute
+			 * its value.
+			 */
+			if (cp[0] == '$') {
+				if (!valid_env_name(cp + 1)) {
+					fatal("Invalid IdentityAgent "
+					    "environment variable name %s", cp);
+				}
+				if ((p = getenv(cp + 1)) == NULL)
+					unsetenv(SSH_AUTHSOCKET_ENV_NAME);
+				else
+					setenv(SSH_AUTHSOCKET_ENV_NAME, p, 1);
+			} else {
+				/* identity_agent specifies a path directly */
+				setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
+			}
+			free(cp);
 		}
 	}
 
