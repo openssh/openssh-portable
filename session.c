@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.306 2018/10/02 12:40:07 djm Exp $ */
+/* $OpenBSD: session.c,v 1.307 2018/10/04 00:10:11 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2262,13 +2262,13 @@ void
 session_pty_cleanup2(Session *s)
 {
 	if (s == NULL) {
-		error("session_pty_cleanup: no session");
+		error("%s: no session", __func__);
 		return;
 	}
 	if (s->ttyfd == -1)
 		return;
 
-	debug("session_pty_cleanup: session %d release %s", s->self, s->tty);
+	debug("%s: session %d release %s", __func__, s->self, s->tty);
 
 	/* Record that the user has logged out. */
 	if (s->pid != 0)
@@ -2479,7 +2479,8 @@ session_close_by_channel(struct ssh *ssh, int id, void *arg)
 	}
 	debug("%s: channel %d child %ld", __func__, id, (long)s->pid);
 	if (s->pid != 0) {
-		debug("%s: channel %d: has child", __func__, id);
+		debug("%s: channel %d: has child, ttyfd %d",
+		    __func__, id, s->ttyfd);
 		/*
 		 * delay detach of session, but release pty, since
 		 * the fd's to the child are already closed

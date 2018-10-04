@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.384 2018/07/27 12:03:17 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.385 2018/10/04 00:10:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -799,6 +799,25 @@ channel_find_open(struct ssh *ssh)
 	return -1;
 }
 
+/* Returns the state of the channel's extended usage flag */
+const char *
+channel_format_extended_usage(const Channel *c)
+{
+	if (c->efd == -1)
+		return "closed";
+
+	switch (c->extended_usage) {
+	case CHAN_EXTENDED_WRITE:
+		return "write";
+	case CHAN_EXTENDED_READ:
+		return "read";
+	case CHAN_EXTENDED_IGNORE:
+		return "ignore";
+	default:
+		return "UNKNOWN";
+	}
+}
+
 /*
  * Returns a message describing the currently open forwarded connections,
  * suitable for sending to the client.  The message contains crlf pairs for
@@ -845,13 +864,16 @@ channel_open_message(struct ssh *ssh)
 		case SSH_CHANNEL_MUX_PROXY:
 		case SSH_CHANNEL_MUX_CLIENT:
 			if ((r = sshbuf_putf(buf, "  #%d %.300s "
-			    "(t%d %s%u i%u/%zu o%u/%zu fd %d/%d cc %d)\r\n",
+			    "(t%d %s%u i%u/%zu o%u/%zu "
+			    "fd %d/%d/%d [%s] sock %d cc %d)\r\n",
 			    c->self, c->remote_name,
 			    c->type,
 			    c->have_remote_id ? "r" : "nr", c->remote_id,
 			    c->istate, sshbuf_len(c->input),
 			    c->ostate, sshbuf_len(c->output),
-			    c->rfd, c->wfd, c->ctl_chan)) != 0)
+			    c->rfd, c->wfd, c->efd,
+			    channel_format_extended_usage(c),
+			    c->sock, c->ctl_chan)) != 0)
 				fatal("%s: sshbuf_putf: %s",
 				    __func__, ssh_err(r));
 			continue;
@@ -2352,6 +2374,7 @@ channel_garbage_collect(struct ssh *ssh, Channel *c)
 	if (c->detach_user != NULL) {
 		if (!chan_is_dead(ssh, c, c->detach_close))
 			return;
+
 		debug2("channel %d: gc: notify user", c->self);
 		c->detach_user(ssh, c->self, NULL);
 		/* if we still have a callback */
