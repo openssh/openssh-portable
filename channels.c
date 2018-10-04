@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.385 2018/10/04 00:10:11 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.386 2018/10/04 01:04:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -818,6 +818,22 @@ channel_format_extended_usage(const Channel *c)
 	}
 }
 
+static char *
+channel_format_status(const Channel *c)
+{
+	char *ret = NULL;
+
+	xasprintf(&ret, "t%d %s%u i%u/%zu o%u/%zu e[%s]/%zu "
+	    "fd %d/%d/%d sock %d cc %d",
+	    c->type,
+	    c->have_remote_id ? "r" : "nr", c->remote_id,
+	    c->istate, sshbuf_len(c->input),
+	    c->ostate, sshbuf_len(c->output),
+	    channel_format_extended_usage(c), sshbuf_len(c->extended),
+	    c->rfd, c->wfd, c->efd, c->sock, c->ctl_chan);
+	return ret;
+}
+
 /*
  * Returns a message describing the currently open forwarded connections,
  * suitable for sending to the client.  The message contains crlf pairs for
@@ -830,7 +846,7 @@ channel_open_message(struct ssh *ssh)
 	Channel *c;
 	u_int i;
 	int r;
-	char *ret;
+	char *cp, *ret;
 
 	if ((buf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new", __func__);
@@ -863,19 +879,14 @@ channel_open_message(struct ssh *ssh)
 		case SSH_CHANNEL_X11_OPEN:
 		case SSH_CHANNEL_MUX_PROXY:
 		case SSH_CHANNEL_MUX_CLIENT:
-			if ((r = sshbuf_putf(buf, "  #%d %.300s "
-			    "(t%d %s%u i%u/%zu o%u/%zu "
-			    "fd %d/%d/%d [%s] sock %d cc %d)\r\n",
-			    c->self, c->remote_name,
-			    c->type,
-			    c->have_remote_id ? "r" : "nr", c->remote_id,
-			    c->istate, sshbuf_len(c->input),
-			    c->ostate, sshbuf_len(c->output),
-			    c->rfd, c->wfd, c->efd,
-			    channel_format_extended_usage(c),
-			    c->sock, c->ctl_chan)) != 0)
+			cp = channel_format_status(c);
+			if ((r = sshbuf_putf(buf, "  #%d %.300s (%s)\r\n",
+			    c->self, c->remote_name, cp)) != 0) {
+				free(cp);
 				fatal("%s: sshbuf_putf: %s",
 				    __func__, ssh_err(r));
+			}
+			free(cp);
 			continue;
 		default:
 			fatal("%s: bad channel type %d", __func__, c->type);
