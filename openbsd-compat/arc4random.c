@@ -33,6 +33,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef HAVE_SYS_RANDOM_H
+# include <sys/random.h>
+#endif
+
 #ifndef HAVE_ARC4RANDOM
 
 #ifdef WITH_OPENSSL
@@ -91,14 +95,20 @@ getrnd(u_char *s, size_t len) {
 }
 
 #else /* !WINDOWS */
-#define SSH_RANDOM_DEV "/dev/urandom"
-/* XXX use getrandom() if supported on Linux */
+# ifndef SSH_RANDOM_DEV
+#  define SSH_RANDOM_DEV "/dev/urandom"
+# endif /* SSH_RANDOM_DEV */
 static void
 getrnd(u_char *s, size_t len)
 {
 	int fd;
 	ssize_t r;
 	size_t o = 0;
+
+#ifdef HAVE_GETRANDOM
+	if ((r = getrandom(s, len, 0)) > 0 && (size_t)r == len)
+		return;
+#endif /* HAVE_GETRANDOM */
 
 	if ((fd = open(SSH_RANDOM_DEV, O_RDONLY)) == -1)
 		fatal("Couldn't open %s: %s", SSH_RANDOM_DEV, strerror(errno));
@@ -115,7 +125,7 @@ getrnd(u_char *s, size_t len)
 	close(fd);
 }
 #endif /* !WINDOWS */
-#endif
+#endif /* WITH_OPENSSL */
 
 static void
 _rs_stir(void)
