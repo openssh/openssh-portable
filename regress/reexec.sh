@@ -40,8 +40,8 @@ stop_sshd
 
 cp $OBJ/sshd_config.orig $OBJ/sshd_config
 
-# cygwin can't fork a deleted binary
-if [ "$os" != "cygwin" ]; then
+# cygwin, windows can't fork a deleted binary
+if [ "$os" != "cygwin" ] && [ "$os" != "windows" ]; then
 
 verbose "test reexec fallback"
 

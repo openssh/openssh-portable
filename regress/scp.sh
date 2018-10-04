@@ -19,7 +19,12 @@ DIR2=${COPY}.dd2
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
 chmod 755 ${OBJ}/scp-ssh-wrapper.scp
-scpopts="-q -S ${OBJ}/scp-ssh-wrapper.scp"
+# scpopts should be an array to preverse the double quotes
+if [ "$os" == "windows" ]; then
+	scpopts=(-q -S "$TEST_SHELL_PATH ${OBJ}/scp-ssh-wrapper.scp")
+else
+	scpopts=(-q -S ${OBJ}/scp-ssh-wrapper.scp)
+fi
 export SCP # used in scp-ssh-wrapper.scp
 
 scpclean() {
@@ -29,63 +34,63 @@ scpclean() {
 
 verbose "$tid: simple copy local file to local file"
 scpclean
-$SCP $scpopts ${DATA} ${COPY} || fail "copy failed"
+$SCP "${scpopts[@]}" ${DATA} ${COPY} 2>&1 1>/dev/null || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: simple copy local file to remote file"
 scpclean
-$SCP $scpopts ${DATA} somehost:${COPY} || fail "copy failed"
+$SCP "${scpopts[@]}" ${DATA} somehost:${COPY} || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: simple copy remote file to local file"
 scpclean
-$SCP $scpopts somehost:${DATA} ${COPY} || fail "copy failed"
+$SCP "${scpopts[@]}" somehost:${DATA} ${COPY} || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: simple copy local file to remote dir"
 scpclean
 cp ${DATA} ${COPY}
-$SCP $scpopts ${COPY} somehost:${DIR} || fail "copy failed"
+$SCP "${scpopts[@]}" ${COPY} somehost:${DIR} || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: simple copy local file to local dir"
 scpclean
 cp ${DATA} ${COPY}
-$SCP $scpopts ${COPY} ${DIR} || fail "copy failed"
+$SCP "${scpopts[@]}" ${COPY} ${DIR} 2>&1 1>/dev/null || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: simple copy remote file to local dir"
 scpclean
 cp ${DATA} ${COPY}
-$SCP $scpopts somehost:${COPY} ${DIR} || fail "copy failed"
+$SCP "${scpopts[@]}" somehost:${COPY} ${DIR} || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: recursive local dir to remote dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r ${DIR} somehost:${DIR2} || fail "copy failed"
+$SCP "${scpopts[@]}" -r ${DIR} somehost:${DIR2} || fail "copy failed"
 diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 verbose "$tid: recursive local dir to local dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r ${DIR} ${DIR2} || fail "copy failed"
+$SCP "${scpopts[@]}" -r ${DIR} ${DIR2} 2>&1 1>/dev/null || fail "copy failed"
 diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 verbose "$tid: recursive remote dir to local dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
+$SCP "${scpopts[@]}" -r somehost:${DIR} ${DIR2} || fail "copy failed"
 diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 verbose "$tid: shell metacharacters"
 scpclean
 (cd ${DIR} && \
 touch '`touch metachartest`' && \
-$SCP $scpopts *metachar* ${DIR2} 2>/dev/null; \
+$SCP "${scpopts[@]}" *metachar* ${DIR2} 2>&1 2>/dev/null; \
 [ ! -f metachartest ] ) || fail "shell metacharacters"
 
 if [ ! -z "$SUDO" ]; then
@@ -96,7 +101,7 @@ if [ ! -z "$SUDO" ]; then
 	cp ${DATA} ${DIR2}/copy
 	chmod 660 ${DIR2}/copy
 	$SUDO chown root ${DIR2}/copy
-	$SCP -p $scpopts somehost:${DIR}/\* ${DIR2} >/dev/null 2>&1
+	$SCP -p "${scpopts[@]}" somehost:${DIR}/\* ${DIR2} >/dev/null 2>&1
 	$SUDO diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 	$SUDO rm ${DIR2}/copy
 fi
@@ -106,12 +111,12 @@ for i in 0 1 2 3 4; do
 	SCPTESTMODE=badserver_$i
 	export DIR SCPTESTMODE
 	scpclean
-	$SCP $scpopts somehost:${DATA} ${DIR} >/dev/null 2>/dev/null
+	$SCP "${scpopts[@]}" somehost:${DATA} ${DIR} >/dev/null 2>/dev/null
 	[ -d {$DIR}/rootpathdir ] && fail "allows dir relative to root dir"
 	[ -d ${DIR}/dotpathdir ] && fail "allows dir creation in non-recursive mode"
 
 	scpclean
-	$SCP -r $scpopts somehost:${DATA} ${DIR2} >/dev/null 2>/dev/null
+	$SCP -r "${scpopts[@]}" somehost:${DATA} ${DIR2} >/dev/null 2>/dev/null
 	[ -d ${DIR}/dotpathdir ] && fail "allows dir creation outside of subdir"
 done
 
@@ -119,7 +124,7 @@ verbose "$tid: detect non-directory target"
 scpclean
 echo a > ${COPY}
 echo b > ${COPY2}
-$SCP $scpopts ${DATA} ${COPY} ${COPY2}
+$SCP "${scpopts[@]}" ${DATA} ${COPY} ${COPY2}
 cmp ${COPY} ${COPY2} >/dev/null && fail "corrupt target"
 
 scpclean

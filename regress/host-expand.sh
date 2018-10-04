@@ -4,7 +4,14 @@
 tid="expand %h and %n"
 
 echo 'PermitLocalCommand yes' >> $OBJ/ssh_proxy
-printf 'LocalCommand printf "%%%%s\\n" "%%n" "%%h"\n' >> $OBJ/ssh_proxy
+if [ "$os" == "windows" ]; then
+	# Use bash shell for local command execution as the default shell in windows is cmd.exe
+	printf 'LocalCommand ' >> $OBJ/ssh_proxy
+	printf $TEST_SHELL_PATH >> $OBJ/ssh_proxy
+	printf ' -c "printf \\"%%%%s\\n\\" \\"%%n\\" \\"%%h\\""\n' >> $OBJ/ssh_proxy
+else
+	printf 'LocalCommand printf "%%%%s\\n" "%%n" "%%h"\n' >> $OBJ/ssh_proxy
+fi
 
 cat >$OBJ/expect <<EOE
 somehost

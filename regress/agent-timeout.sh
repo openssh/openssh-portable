@@ -2,7 +2,10 @@
 #	Placed in the Public Domain.
 
 tid="agent timeout test"
-
+if [ "$os" == "windows" ]; then
+	echo "skipped (not supported on WINDOWS platform)"
+	exit 0
+fi
 SSHAGENT_TIMEOUT=10
 
 trace "start agent"

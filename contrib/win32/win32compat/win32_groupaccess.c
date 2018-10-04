@@ -219,9 +219,18 @@ ga_init(const char *user, gid_t base)
 
 	user_name = xstrdup(user);
 
-	if ((user_token = get_user_token(user_name, 0)) == NULL)
-		fatal("%s, unable to resolve user %s", __func__, user_name);
-
+	if ((user_token = get_user_token(user_name, 0)) == NULL) {
+		/*
+		 * TODO - We need to fatal() all the times when we fail to generate the user token.
+		 */
+		if (get_custom_lsa_package()) {
+			error("%s, unable to resolve user %s", __func__, user_name);
+			return 0;
+		} else {
+			fatal("%s, unable to resolve user %s", __func__, user_name);
+		}
+	}
+		
 	/* 
 	 * supposed to retun number of groups associated with user 
 	 * since we do lazy group evaluation, returning 1 here

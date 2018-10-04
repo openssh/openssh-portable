@@ -20,7 +20,11 @@ QUOTECOPY=${COPY}".\"blah\""
 QUOTECOPY_ARG=${COPY}'.\"blah\"'
 # File with spaces
 SPACECOPY="${COPY} this has spaces.txt"
-SPACECOPY_ARG="${COPY}\ this\ has\ spaces.txt"
+if [ "$os" == "windows" ]; then
+    SPACECOPY_ARG="\"${COPY} this has spaces.txt\""
+else
+    SPACECOPY_ARG="${COPY}\ this\ has\ spaces.txt"
+fi
 # File with glob metacharacters
 GLOBMETACOPY="${COPY} [metachar].txt"
 
@@ -77,7 +81,7 @@ echo "get \"$DATA\" $COPY" | ${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "get failed"
 cmp $DATA ${COPY} || fail "corrupted copy after get"
 
-if [ "$os" != "cygwin" ]; then
+if [ "$os" != "cygwin" ] && [ "$os" != "windows" ]; then
 rm -f ${QUOTECOPY}
 cp $DATA ${QUOTECOPY}
 verbose "$tid: get filename with quotes"
@@ -136,7 +140,7 @@ echo "put $DATA $COPY" | \
 	${SFTP} -D ${SFTPSERVER} >/dev/null 2>&1 || fail "put failed"
 cmp $DATA ${COPY} || fail "corrupted copy after put"
 
-if [ "$os" != "cygwin" ]; then
+if [ "$os" != "cygwin" ] && [ "$os" != "windows" ]; then
 rm -f ${QUOTECOPY}
 verbose "$tid: put filename with quotes"
 echo "put $DATA \"$QUOTECOPY_ARG\"" | \

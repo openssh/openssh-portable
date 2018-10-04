@@ -28,7 +28,12 @@ ${SSH} -F $OBJ/ssh_proxy somehost false || fail "forced command in key"
 
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 echo "ForceCommand false" >> $OBJ/sshd_proxy
-echo "Match User $USER" >> $OBJ/sshd_proxy
+if [ "$os" == "windows" ]; then
+	# If User is domainuser then it will be in "domain/user" so convert it to "domain\user"
+	echo "Match user ${USER//\//\\}" >>$OBJ/sshd_proxy
+else
+	echo "Match User $USER" >>$OBJ/sshd_proxy
+fi
 echo "    ForceCommand true" >> $OBJ/sshd_proxy
 
 trace "forced command with match"

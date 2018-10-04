@@ -819,7 +819,7 @@
 /* #undef HAVE_SETEGID */
 
 /* Define to 1 if you have the `setenv' function. */
-/* #undef HAVE_SETENV */
+#define HAVE_SETENV 1
 
 /* Define to 1 if you have the `seteuid' function. */
 /* #undef HAVE_SETEUID */
@@ -1700,3 +1700,4 @@
 #define _PATH_LS			"dir"
 #define FORK_NOT_SUPPORTED 1
 #define HAVE_FREEZERO
+#define FILESYSTEM_NO_BACKSLASH

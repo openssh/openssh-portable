@@ -579,9 +579,12 @@ file_symlink_tests()
 
 		/* verify readlink() output against symlink() input */
 		char readlink_buf[MAX_PATH] = "";
+		/* readlink returns the absolute path */
 		int readlink_ret = readlink(lnk_utf8, readlink_buf, MAX_PATH);
-		ASSERT_INT_EQ(readlink_ret, strlen(tgt_name_utf8));
-		ASSERT_INT_EQ(0, memcmp(readlink_buf, tgt_name_utf8, readlink_ret));
+		char tgt_name_uft8_realpath[PATH_MAX] = { 0 };
+		realpath(tgt_utf8, tgt_name_uft8_realpath);
+		ASSERT_INT_EQ(readlink_ret, strlen(tgt_name_uft8_realpath));
+		ASSERT_INT_EQ(0, memcmp(readlink_buf, tgt_name_uft8_realpath, readlink_ret));
 
 		/* verify lstat() gets the reference to the link */
 		struct w32_stat statbuf;

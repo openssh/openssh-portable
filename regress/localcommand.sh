@@ -8,6 +8,11 @@ echo 'LocalCommand echo foo' >> $OBJ/ssh_proxy
 
 verbose "test $tid: proto $p localcommand"
 a=`${SSH} -F $OBJ/ssh_proxy somehost true`
+
+if [ "$os" == "windows" ]; then
+	a=`echo $a | tr -d '\r\n'` # Remove CR (carriage return)
+fi
+
 if [ "$a" != "foo" ] ; then
 	fail "$tid proto $p"
 fi

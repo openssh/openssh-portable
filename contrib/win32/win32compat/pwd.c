@@ -157,7 +157,7 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 {
 	wchar_t user_resolved[DNLEN + 1 + UNLEN + 1];
 	struct passwd *ret = NULL;
-	wchar_t *sid_string = NULL;
+	wchar_t *sid_string = NULL, *tmp = NULL, *user_utf16_modified = NULL;
 	wchar_t reg_path[PATH_MAX], profile_home[PATH_MAX], profile_home_exp[PATH_MAX];
 	DWORD reg_path_len = PATH_MAX;
 	HKEY reg_key = 0;	
@@ -171,13 +171,29 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	errno = 0;
 	if (reset_pw() != 0)
 		return NULL;
+	
+	/*
+	 * We support both "domain\user" and "domain/user" formats.
+	 * But win32 APIs only accept domain\user format so convert it.
+	 */
+	if (user_utf16) {
+		user_utf16_modified = _wcsdup(user_utf16);
+		if (!user_utf16_modified) {
+			errno = ENOMEM;
+			error("%s failed to duplicate %s", __func__, user_utf16);
+			goto cleanup;
+		}
+
+		if (tmp = wcsstr(user_utf16_modified, L"/"))
+			*tmp = L'\\';
+	}
 
 	/* skip forward lookup on name if sid was passed in */
 	if (sid != NULL)
 		CopySid(sizeof(binary_sid), binary_sid, sid);
 	/* else attempt to lookup the account; this will verify the account is valid and
 	 * is will return its sid and the realm that owns it */
-	else if(LookupAccountNameW(NULL, user_utf16, binary_sid, &sid_size,
+	else if(LookupAccountNameW(NULL, user_utf16_modified, binary_sid, &sid_size,
 	    domain_name, &domain_name_size, &account_type) == 0) {
 		errno = ENOENT;
 		debug("%s: LookupAccountName() failed: %d.", __FUNCTION__, GetLastError());
@@ -215,8 +231,8 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 		goto cleanup;
 	}
 
-	/* if standard local user name, just use name without decoration */
-	if (_wcsicmp(domain_name, computer_name) == 0) 
+	/* If standard local user name, just use name without decoration */
+	if ((_wcsicmp(domain_name, computer_name) == 0))
 		wcscpy_s(user_resolved, ARRAYSIZE(user_resolved), user_name);
 
 	/* put any other format in sam compatible format */

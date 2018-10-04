@@ -784,6 +784,16 @@ parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
 	if ((cp = strchr(tmp, '@')) != NULL) {
 		char *delim;
 
+#ifdef WINDOWS
+		/* TODO - This looks to be a core bug in unix code as user can be in UPN format
+		 *  The above line should be strrchr() instead of strchr.
+		 *  For time being, special handling when username is in User@domain format
+		 */
+
+		char *cp_1 = cp;
+		if ((cp_1 = strchr(cp + 1, '@')) != NULL)
+			cp = cp_1;
+#endif
 		*cp = '\0';
 		/* Extract username and connection params */
 		if ((delim = strchr(tmp, ';')) != NULL) {

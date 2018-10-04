@@ -7,19 +7,26 @@
 _POSIX2_VERSION=199209
 export _POSIX2_VERSION
 
-case `uname -s 2>/dev/null` in
-OSF1*)
-	BIN_SH=xpg4
-	export BIN_SH
-	;;
-CYGWIN_NT-5.0)
-	os=cygwin
-	TEST_SSH_IPV6=no
-	;;
-CYGWIN*)
-	os=cygwin
-	;;
-esac
+if [ "x$TEST_WINDOWS_SSH" != "x" ]; then
+	os="windows"
+fi
+
+if [ "$os" != "windows" ]; then
+	case `uname -s 2>/dev/null` in
+	OSF1*)
+		BIN_SH=xpg4
+		export BIN_SH
+		;;
+	CYGWIN_NT-5.0)
+		os=cygwin
+		TEST_SSH_IPV6=no
+		;;
+	CYGWIN*)
+		os=cygwin
+		;;
+	esac
+fi
+
 
 if [ ! -z "$TEST_SSH_PORT" ]; then
 	PORT="$TEST_SSH_PORT"
@@ -27,14 +34,20 @@ else
 	PORT=4242
 fi
 
-if [ -x /usr/ucb/whoami ]; then
-	USER=`/usr/ucb/whoami`
-elif whoami >/dev/null 2>&1; then
-	USER=`whoami`
-elif logname >/dev/null 2>&1; then
-	USER=`logname`
+if [ "$os" == "windows" ]; then
+	USER=$TEST_SSH_USER
+	USER_DOMAIN=$TEST_SSH_USER_DOMAIN
+	LOGNAME=$USER
 else
-	USER=`id -un`
+	if [ -x /usr/ucb/whoami ]; then
+		USER=`/usr/ucb/whoami`
+	elif whoami >/dev/null 2>&1; then
+		USER=`whoami`
+	elif logname >/dev/null 2>&1; then
+		USER=`logname`
+	else
+		USER=`id -un`
+	fi
 fi
 
 OBJ=$1
@@ -213,7 +226,11 @@ fi
 # because sftp and scp don't handle spaces in arguments.
 SSHLOGWRAP=$OBJ/ssh-log-wrapper.sh
 echo "#!/bin/sh" > $SSHLOGWRAP
-echo "exec ${SSH} -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
+if [ "$os" == "windows" ]; then
+	echo "exec ${SSH} -T -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
+else
+	echo "exec ${SSH} -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
+fi
 
 chmod a+rx $OBJ/ssh-log-wrapper.sh
 REAL_SSH="$SSH"
@@ -229,6 +246,9 @@ cat ${SSHAGENT_BIN} >${DATA}
 chmod u+w ${DATA}
 COPY=$OBJ/copy
 rm -f ${COPY}
+if [ "$os" == "windows" ]; then
+	EXEEXT=".exe"
+fi
 
 increase_datafile_size()
 {
@@ -242,6 +262,11 @@ export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
 # Portable specific functions
+windows_path()
+{
+	cygpath -m $1
+}
+
 have_prog()
 {
 	saved_IFS="$IFS"
@@ -289,29 +314,34 @@ md5 () {
 
 stop_sshd ()
 {
-	if [ -f $PIDFILE ]; then
-		pid=`$SUDO cat $PIDFILE`
-		if [ "X$pid" = "X" ]; then
-			echo no sshd running
-		else
-			if [ $pid -lt 2 ]; then
-				echo bad pid for sshd: $pid
+	# windows process can't be stopped using kill command so use stop-process
+	if [ "$os" == "windows" ]; then
+		powershell.exe /c "stop-process -Name sshd -Force" >/dev/null 2>&1
+	 else
+	 	if [ -f $PIDFILE ]; then
+			pid=`$SUDO cat $PIDFILE`
+			if [ "X$pid" = "X" ]; then
+				echo no sshd running
 			else
-				$SUDO kill $pid
-				trace "wait for sshd to exit"
-				i=0;
-				while [ -f $PIDFILE -a $i -lt 5 ]; do
-					i=`expr $i + 1`
-					sleep $i
-				done
-				if test -f $PIDFILE; then
-					if $SUDO kill -0 $pid; then
-						echo "sshd didn't exit " \
-						    "port $PORT pid $pid"
-					else
-						echo "sshd died without cleanup"
+				if [ $pid -lt 2 ]; then
+					echo bad pid for sshd: $pid
+				else
+					$SUDO kill $pid
+					trace "wait for sshd to exit"
+					i=0;
+					while [ -f $PIDFILE -a $i -lt 5 ]; do
+						i=`expr $i + 1`
+						sleep $i
+					done
+					if test -f $PIDFILE; then
+						if $SUDO kill -0 $pid; then
+							echo "sshd didn't exit " \
+								"port $PORT pid $pid"
+						else
+							echo "sshd died without cleanup"
+						fi
+						exit 1
 					fi
-					exit 1
 				fi
 			fi
 		fi
@@ -321,11 +351,19 @@ stop_sshd ()
 # helper
 cleanup ()
 {
-	if [ "x$SSH_PID" != "x" ]; then
-		if [ $SSH_PID -lt 2 ]; then
-			echo bad pid for ssh: $SSH_PID
-		else
-			kill $SSH_PID
+	# windows process can't be stopped using kill command so use stop-process
+	if [ "$os" == "windows" ]; then
+		powershell.exe /c "stop-process -Name ssh-agent -Force" >/dev/null 2>&1
+		if [ "x$SSH_PID" != "x" ]; then
+			powershell.exe /c "stop-process -Id $SSH_PID -Force" >/dev/null 2>&1
+		fi
+	else
+		if [ "x$SSH_PID" != "x" ]; then
+			if [ $SSH_PID -lt 2 ]; then
+				echo bad pid for ssh: $SSH_PID
+			else
+				kill $SSH_PID
+			fi
 		fi
 	fi
 	stop_sshd
@@ -451,6 +489,21 @@ fi
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
 SSH_KEYTYPES="rsa ed25519"
+if [ "$os" == "windows" ]; then
+	first_key_type=${SSH_KEYTYPES%% *}
+	if [ "x$USER_DOMAIN" != "x" ]; then
+		# For domain user, create folders
+		if [ ! -d $OBJ/authorized_keys_$USER_DOMAIN ]; then
+			mkdir $OBJ/authorized_keys_$USER_DOMAIN
+		fi
+		if [ ! -d $OBJ/authorized_principals_$USER_DOMAIN ]; then
+			mkdir $OBJ/authorized_principals_$USER_DOMAIN
+		fi
+		if [ ! -d /var/run/principals_command_$USER_DOMAIN ]; then
+			mkdir /var/run/principals_command_$USER_DOMAIN
+		fi
+	fi
+fi
 
 trace "generate keys"
 for t in ${SSH_KEYTYPES}; do
@@ -473,12 +526,21 @@ for t in ${SSH_KEYTYPES}; do
 
 	# use key as host key, too
 	$SUDO cp $OBJ/$t $OBJ/host.$t
+	if [ "$os" == "windows" ]; then
+		# set the file permissions (ACLs) properly
+		powershell.exe /c "get-acl `windows_path $OBJ`/$t | set-acl `windows_path $OBJ`/host.$t"
+	fi
+
 	echo HostKey $OBJ/host.$t >> $OBJ/sshd_config
 
 	# don't use SUDO for proxy connect
 	echo HostKey $OBJ/$t >> $OBJ/sshd_proxy
 done
-chmod 644 $OBJ/authorized_keys_$USER
+
+if [ "$os" == "windows" ]; then
+	# set the file permissions (ACLs) properly
+	powershell.exe /c "get-acl `windows_path $OBJ`/$first_key_type | set-acl `windows_path $OBJ`/authorized_keys_$USER"
+fi
 
 # Activate Twisted Conch tests if the binary is present
 REGRESS_INTEROP_CONCH=no
@@ -536,7 +598,11 @@ fi
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
+	if [ "$os" == "windows" ]; then
+		echo proxycommand  `windows_path ${SSHD}` -i -f `windows_path $OBJ`/sshd_proxy
+	else
+		echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
+	fi
 ) > $OBJ/ssh_proxy
 
 # check proxy config
@@ -546,7 +612,14 @@ start_sshd ()
 {
 	# start sshd
 	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -t || fatal "sshd_config broken"
-	$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
+	if [ "$os" == "windows" ]; then
+		# In windows, we need to explicitly remove the sshd pid file.
+		rm -rf $PIDFILE
+		#TODO (Code BUG) : -E<sshd.log> is writing the data the cygwin terminal.
+		${SSHD} -f $OBJ/sshd_config "$@" &
+	else
+		$SUDO ${SSHD} -f $OBJ/sshd_config "$@" -E$TEST_SSHD_LOGFILE
+	fi
 
 	trace "wait for sshd"
 	i=0;

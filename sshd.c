@@ -199,7 +199,8 @@ int have_agent = 0;
 
 int privsep_unauth_child = 0;
 int privsep_auth_child = 0;
-int tmp_sock = 0;
+int io_sock_in = 0;
+int io_sock_out = 0;
 
 /*
  * Any really sensitive data in the application is contained in this
@@ -684,13 +685,13 @@ recv_hostkeys_state(int fd)
 		fatal("%s: ssh_msg_recv failed", __func__);
 
 	if (buffer_get_char(m) != 0)
-		fatal("%s: recv_hostkeys_state version mismatch", __func__);
+		fatal("%s: version mismatch", __func__);
 
-	int num = buffer_get_int(m);
-	sensitive_data.host_keys = xcalloc(num, sizeof(struct sshkey *));
-	sensitive_data.host_pubkeys = xcalloc(num, sizeof(struct sshkey *));
-	sensitive_data.host_certificates = xcalloc(num, sizeof(struct sshkey *));
-	for (int i = 0; i < num; i++) {
+	int num_host_key_files = buffer_get_int(m);
+	sensitive_data.host_keys = xcalloc(num_host_key_files, sizeof(struct sshkey *));
+	sensitive_data.host_pubkeys = xcalloc(num_host_key_files, sizeof(struct sshkey *));
+	sensitive_data.host_certificates = xcalloc(num_host_key_files, sizeof(struct sshkey *));
+	for (int i = 0; i < num_host_key_files; i++) {
 		blob = buffer_get_string_ptr(m, &blen);
 		sensitive_data.host_pubkeys[i] = NULL;
 		sensitive_data.host_keys[i] = NULL;
@@ -700,7 +701,8 @@ recv_hostkeys_state(int fd)
 			sensitive_data.host_pubkeys[i] = key;
 		}
 	}
-	for (int i = 0; i < num; i++) {
+
+	for (int i = 0; i < num_host_key_files; i++) {
 		blob = buffer_get_string_ptr(m, &blen);
 		sensitive_data.host_certificates[i] = NULL;
 		if (blen) {
@@ -750,7 +752,27 @@ static char**
 privsep_child_cmdline(int authenticated)
 {
 	char** argv = rexec_argv ? rexec_argv : saved_argv;
-	int argc = rexec_argv ? rexec_argc : saved_argc - 1;
+	int argc = 0;
+	
+	if (rexec_argv)
+		argc = rexec_argc;
+	else {
+		if (rexeced_flag)
+			argc = saved_argc - 1; // override '-R'
+		else {
+			char **tmp = xcalloc(saved_argc + 1 + 1, sizeof(*saved_argv)); // 1 - extra argument "-y/-z", 1 - NULL
+			int i = 0;
+			for (i = 0; (int)i < saved_argc; i++) {
+				tmp[i] = xstrdup(saved_argv[i]);
+				free(saved_argv[i]);
+			}
+
+			free(saved_argv);
+			argv = saved_argv = tmp;
+			argc = saved_argc;
+		}
+	}
+
 	if (authenticated)
 		argv[argc] = "-z";
 	else
@@ -801,8 +823,8 @@ privsep_preauth(Authctxt *authctxt)
 		posix_spawn_file_actions_t actions;
 
 		if (posix_spawn_file_actions_init(&actions) != 0 ||
-		    posix_spawn_file_actions_adddup2(&actions, tmp_sock, STDIN_FILENO) != 0 ||
-		    posix_spawn_file_actions_adddup2(&actions, tmp_sock, STDOUT_FILENO) != 0 ||
+		    posix_spawn_file_actions_adddup2(&actions, io_sock_in, STDIN_FILENO) != 0 ||
+		    posix_spawn_file_actions_adddup2(&actions, io_sock_out, STDOUT_FILENO) != 0 ||
 		    posix_spawn_file_actions_adddup2(&actions, pmonitor->m_recvfd, PRIVSEP_MONITOR_FD) != 0 ||
 		    posix_spawn_file_actions_adddup2(&actions, pmonitor->m_log_sendfd, PRIVSEP_LOG_FD) != 0 )
 			fatal("posix_spawn initialization failed");		
@@ -923,8 +945,8 @@ privsep_postauth(Authctxt *authctxt)
 		posix_spawn_file_actions_t actions;
 
 		if (posix_spawn_file_actions_init(&actions) != 0 ||
-		    posix_spawn_file_actions_adddup2(&actions, tmp_sock, STDIN_FILENO) != 0 ||
-		    posix_spawn_file_actions_adddup2(&actions, tmp_sock, STDOUT_FILENO) != 0 ||
+		    posix_spawn_file_actions_adddup2(&actions, io_sock_in, STDIN_FILENO) != 0 ||
+		    posix_spawn_file_actions_adddup2(&actions, io_sock_out, STDOUT_FILENO) != 0 ||
 		    posix_spawn_file_actions_adddup2(&actions, pmonitor->m_recvfd, PRIVSEP_MONITOR_FD) != 0)
 			fatal("posix_spawn initialization failed");
 		
@@ -942,6 +964,7 @@ privsep_postauth(Authctxt *authctxt)
 		send_autxctx_state(authctxt, pmonitor->m_sendfd);
 		monitor_send_keystate(pmonitor);
 		monitor_clear_keystate(pmonitor);
+		monitor_send_authopt(pmonitor, 0); // 0 - trusted.
 		monitor_child_postauth(pmonitor);
 		/* NEVERREACHED */
 		exit(0);
@@ -956,6 +979,7 @@ privsep_postauth(Authctxt *authctxt)
 
 	do_setusercontext(authctxt->pw);
 	monitor_apply_keystate(pmonitor);
+	monitor_recv_authopt(pmonitor);
 	packet_set_authenticated();
 skip:
 	return;
@@ -2383,7 +2407,8 @@ done_loading_hostkeys:
 	 * Register our connection.  This turns encryption off because we do
 	 * not have a key.
 	 */
-	tmp_sock = sock_in;
+	io_sock_in = sock_in;
+	io_sock_out = sock_out;
 	packet_set_connection(sock_in, sock_out);
 	packet_set_server();
 	ssh = active_state; /* XXX */

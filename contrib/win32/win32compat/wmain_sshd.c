@@ -81,8 +81,8 @@ static VOID WINAPI service_handler(DWORD dwControl)
 	case SERVICE_CONTROL_STOP: {
 		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 500);
 		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
-		/* TOTO - GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0); doesn't seem to be invoking 
-		 * signal handler (native_sig_handler) when sshd runs as service 
+		/* TODO - GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0); doesn't seem to be invoking
+		 * signal handler (native_sig_handler) when sshd runs as service
 		 * So calling the signal handler directly to interrupt the deamon's main thread
 		 * This is being called after reporting SERVICE_STOPPED because main thread does a exit()
 		 * as part of handling Crtl+c
@@ -100,7 +100,7 @@ static VOID WINAPI service_handler(DWORD dwControl)
 }
 
 #define SSH_HOSTKEY_GEN_CMDLINE L"ssh-keygen -A"
-static void 
+static void
 generate_host_keys()
 {
 	DWORD dwError = 0;
@@ -162,12 +162,12 @@ generate_host_keys()
 * 2) Create %programdata%\ssh\logs - Administrator group(F), system(F)
 * 3) copy <binary_location>\sshd_config_default to %programdata%\ssh\sshd_config
 */
-static void 
+static void
 create_prgdata_ssh_folder()
 {
 	/* create ssh cfg folder */
 	wchar_t ssh_cfg_dir[PATH_MAX] = { 0, };
-	wcscpy_s(ssh_cfg_dir, _countof(ssh_cfg_dir), get_program_data_path());
+	wcscpy_s(ssh_cfg_dir, _countof(ssh_cfg_dir), __wprogdata);
 	wcscat_s(ssh_cfg_dir, _countof(ssh_cfg_dir), L"\\ssh");
 	if (create_directory_withsddl(ssh_cfg_dir, L"O:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1200a9;;;AU)") < 0) {
 		printf("failed to create %s", ssh_cfg_dir);
@@ -228,7 +228,7 @@ create_openssh_registry_key()
 
 static void
 prereq_setup()
-{	
+{
 	create_prgdata_ssh_folder();
 	generate_host_keys();
 	create_openssh_registry_key();
@@ -251,7 +251,7 @@ int sshd_main(int argc, wchar_t **wargv) {
 
 	w32posix_initialize();
 
-	r =  main(argc, argv);
+	r = main(argc, argv);
 	w32posix_done();
 	return r;
 }
@@ -263,7 +263,7 @@ int wmain(int argc, wchar_t **wargv) {
 	wchar_t* path_utf16;
 	argc_original = argc;
 	wargv_original = wargv;
-	
+
 	init_prog_paths();
 	/* change current directory to sshd.exe root */
 	_wchdir(__wprogdir);
@@ -287,5 +287,3 @@ int scm_start_service(DWORD num, LPWSTR* args) {
 	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
 	return sshd_main(argc_original, wargv_original);
 }
-
-

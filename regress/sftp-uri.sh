@@ -23,18 +23,18 @@ egrep -v '^	+(Port|User)	+.*$' $OBJ/ssh_config.orig > $OBJ/ssh_config
 
 verbose "$tid: non-interactive fetch to local file"
 sftpclean
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config "sftp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
+${SFTP} -q -S "$TEST_SHELL_PATH $SSH" -F $OBJ/ssh_config "sftp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: non-interactive fetch to local dir"
 sftpclean
 cp ${DATA} ${COPY}
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config "sftp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
+${SFTP} -q -S "$TEST_SHELL_PATH $SSH" -F $OBJ/ssh_config "sftp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: put to remote directory (trailing slash)"
 sftpclean
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b - \
+${SFTP} -q -S "$TEST_SHELL_PATH $SSH" -F $OBJ/ssh_config -b - \
     "sftp://${USER}@somehost:${PORT}/${DIR}/" > /dev/null 2>&1 << EOF
 	version
 	put ${DATA} copy
@@ -48,7 +48,7 @@ fi
 
 verbose "$tid: put to remote directory (no slash)"
 sftpclean
-${SFTP} -q -S "$SSH" -F $OBJ/ssh_config -b - \
+${SFTP} -q -S "$TEST_SHELL_PATH $SSH" -F $OBJ/ssh_config -b - \
     "sftp://${USER}@somehost:${PORT}/${DIR}" > /dev/null 2>&1 << EOF
 	version
 	put ${DATA} copy

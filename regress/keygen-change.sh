@@ -6,7 +6,11 @@ tid="change passphrase for key"
 S1="secret1"
 S2="2secret"
 
-KEYTYPES=`${SSH} -Q key-plain`
+if [ "$os" == "windows" ]; then
+	KEYTYPES=`${SSH} -Q key-plain | sed 's/\r$//'` # remove CR (carriage return)
+else
+	KEYTYPES=`${SSH} -Q key-plain`
+fi
 
 for t in $KEYTYPES; do
 	# generate user key for agent

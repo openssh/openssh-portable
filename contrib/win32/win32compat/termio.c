@@ -115,8 +115,7 @@ ReadThread(_In_ LPVOID lpParameter)
 
 				if (p) {
 					*p = '\0';
-					pio->read_details.buf_size = (DWORD)strlen(pio->read_details.buf);
-					pio->sync_read_status.transferred = pio->read_details.buf_size;
+					pio->sync_read_status.transferred = (DWORD)strlen(pio->read_details.buf);
 				}
 			}
 		}

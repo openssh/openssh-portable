@@ -8,6 +8,10 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 for c in `${SSH} -Q cipher`; do
 	n=0
 	for m in `${SSH} -Q mac`; do
+		if [ "$os" == "windows" ]; then
+			c=${c/$'\r'/} # remove CR (carriage return)
+			m=${m/$'\r'/} # remove CR (carriage return)
+		fi
 		trace "cipher $c mac $m"
 		verbose "test $tid: cipher $c mac $m"
 		cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy

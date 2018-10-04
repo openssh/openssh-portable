@@ -14,7 +14,11 @@ r=$?
 if [ $r -ne 0 ]; then
 	fatal "could not start ssh-agent: exit code $r"
 fi
-
+if [ "$os" == "windows" ]; then
+	#windows ssh-agent doesn't support "-s" option so we need to set SSH_AUTH_SOCK env here.
+	SSH_AUTH_SOCK="\\\\.\\pipe\\openssh-ssh-agent"
+	${SSHADD} -D
+fi
 ${SSHADD} -l > /dev/null 2>&1
 if [ $? -ne 1 ]; then
 	fail "ssh-add -l did not fail with exit code 1"

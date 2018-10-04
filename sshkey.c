@@ -59,6 +59,9 @@
 #include "match.h"
 
 #include "xmss_fast.h"
+#ifdef WINDOWS
+#include <lmcons.h>
+#endif
 
 /* openssh private key file format */
 #define MARK_BEGIN		"-----BEGIN OPENSSH PRIVATE KEY-----\n"
@@ -2646,7 +2649,27 @@ sshkey_cert_check_authority(const struct sshkey *k,
 	} else if (name != NULL) {
 		principal_matches = 0;
 		for (i = 0; i < k->cert->nprincipals; i++) {
+#ifdef WINDOWS
+			char cert_principal_name_copy[UNLEN + DNLEN + 1 + 1] = { 0, };
+			strcpy_s(cert_principal_name_copy, _countof(cert_principal_name_copy), k->cert->principals[i]);
+
+			/*
+			* For domain user we need special handling.
+			* We support both "domain\user" and "domain/user" formats.
+			* compare user, domain separately.
+			*/
+			if (strstr(name, "/") || strstr(name, "\\")) {
+				char *tmp = NULL;
+				if (tmp = strstr(cert_principal_name_copy, "/"))
+					*tmp = '\\';
+			}
+
+			/* In windows, usernames are case insensitive */
+			if (_strcmpi(name, cert_principal_name_copy) == 0) {
+#else
 			if (strcmp(name, k->cert->principals[i]) == 0) {
+#endif
+			
 				principal_matches = 1;
 				break;
 			}

@@ -9,6 +9,9 @@ rm -f $OBJ/cert_host_key* $OBJ/host_krl_*
 # Allow all hostkey/pubkey types, prefer certs for the client
 types=""
 for i in `$SSH -Q key`; do
+	if [ "$os" == "windows" ]; then
+		i=${i/$'\r'/} # remove CR (carriage return)
+	fi
 	if [ -z "$types" ]; then
 		types="$i"
 		continue
@@ -59,7 +62,12 @@ touch $OBJ/host_revoked_plain
 touch $OBJ/host_revoked_cert
 cat $OBJ/host_ca_key.pub $OBJ/host_ca_key2.pub > $OBJ/host_revoked_ca
 
-PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/g;s/^ssh-//'`
+if [ "$os" == "windows" ]; then
+	# remove CR (carriage return)
+	PLAIN_TYPES=`$SSH -Q key-plain | sed 's/\r$//' | sed 's/^ssh-dss/ssh-dsa/g;s/^ssh-//'`
+else
+	PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/g;s/^ssh-//'`
+fi
 
 if echo "$PLAIN_TYPES" | grep '^rsa$' >/dev/null 2>&1 ; then
 	PLAIN_TYPES="$PLAIN_TYPES rsa-sha2-256 rsa-sha2-512"

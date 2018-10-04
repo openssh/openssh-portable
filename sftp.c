@@ -70,6 +70,9 @@ typedef void EditLine;
 #include "sshbuf.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+#ifdef WINDOWS
+#include "misc_internal.h"
+#endif // WINDOWS
 
 #define DEFAULT_COPY_BUFLEN	32768	/* Size of buffer for up/download */
 #define DEFAULT_NUM_REQUESTS	64	/* # concurrent outstanding requests */
@@ -295,15 +298,30 @@ static void
 local_do_shell(const char *args)
 {
   #ifdef WINDOWS
-	/* execute via system call in Windows*/
-	char cmd_path[PATH_MAX] = { 0, };
-	if (!*args){
+	/* execute via system call in Windows*/	
+	if (!*args) {
+		char cmd_path[PATH_MAX] = { 0, };
 		if (!GetSystemDirectory(cmd_path, sizeof(cmd_path)))
 			fatal("GetSystemDirectory failed");
 
 		strcat_s(cmd_path, PATH_MAX, "\\cmd.exe");
 		args = cmd_path;
 	} else {
+		if (is_bash_test_env()) {
+			char *cygwin_path_prefix_start = NULL;
+			if (cygwin_path_prefix_start = strstr(args, CYGWIN_PATH_PREFIX)) {
+				int len = strlen(cygwin_path_prefix_start) + 1;
+				char *tmp = malloc(len);
+				memset(tmp, 0, len);
+
+				bash_to_win_path(cygwin_path_prefix_start, tmp, len);
+				strcpy_s(cygwin_path_prefix_start, len, tmp); /* override the original string */
+
+				if (tmp)
+					free(tmp);
+			}
+		}
+
 		convertToBackslash((char *) args);
 	}
 	
@@ -402,9 +420,6 @@ make_absolute(char *p, const char *pwd)
 		free(p);
 		p = abs_str;
 	}
-
-	/* convert '\\' to '/' */
-	convertToForwardslash(p);
 
 	/* Append "/" if needed to the absolute windows path */	
 	if (p && p[0] != '\0' && p[1] == ':') {
@@ -2556,11 +2571,13 @@ main(int argc, char **argv)
 			}
 			break;
 		}
-		
-		/* TODO: need to debug this. this parameter doesn't make sense
-		file2 = *(argv + 1);
-		*/
 
+#ifdef WINDOWS
+		if (argc == (optind + 2))
+			file2 = *(argv + 1);
+#else
+		file2 = *(argv + 1);
+#endif
 		if (!*host) {
 			fprintf(stderr, "Missing hostname\n");
 			usage();
@@ -2586,7 +2603,12 @@ main(int argc, char **argv)
 		connect_to_server(ssh_program, args.list, &in, &out);
 	} else {
 		args.list = NULL;
+
+#ifdef WINDOWS
+		addargs(&args, "sftp-server.exe");
+#elif
 		addargs(&args, "sftp-server");
+#endif // WINDOWS
 
 		connect_to_server(sftp_direct, args.list, &in, &out);
 	}

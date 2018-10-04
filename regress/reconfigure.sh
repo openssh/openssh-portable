@@ -2,7 +2,12 @@
 #	Placed in the Public Domain.
 
 tid="simple connect after reconfigure"
-
+if [ "$os" == "windows" ]; then
+	# In windows, sshd service process will not restart if we kill it.
+	# This test case is not applicable to windows OS.
+	echo "skipped, not applicable on windows OS"
+	exit 0
+fi
 # we need the full path to sshd for -HUP
 if test "x$USE_VALGRIND" = "x" ; then
 	case $SSHD in

@@ -46,7 +46,12 @@ EOF
 
 # A specification that revokes some certificated by key ID.
 touch $OBJ/revoked-keyid
-for n in 1 2 3 4 10 15 30 50 `jot 500 300` 999 1000 1001 1002; do
+if [ "$os" == "windows" ]; then
+    revokedids=$(seq 300 1 $((500+300))) # use seq instead of jot
+else
+    revokedids=`jot 500 300`
+fi
+for n in 1 2 3 4 10 15 30 50 $revokedids 999 1000 1001 1002; do
 	test "x$n" = "x499" && continue
 	# Fill in by-ID revocation spec.
 	echo "id: revoked $n" >> $OBJ/revoked-keyid

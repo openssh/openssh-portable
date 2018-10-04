@@ -1662,6 +1662,43 @@ monitor_clear_keystate(struct monitor *pmonitor)
 }
 
 void
+monitor_send_authopt(struct monitor *pmonitor, int untrusted) {
+	struct sshbuf *m = NULL;
+	int r = 0;
+
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	
+	if (auth_opts != NULL && (r = sshauthopt_serialise(auth_opts, m, untrusted)) != 0)
+		fatal("%s: sshauthopt_serialise: %s", __func__, ssh_err(r));
+
+	if (ssh_msg_send(pmonitor->m_sendfd, 0, m) == -1)
+		fatal("%s: ssh_msg_send failed", __func__);
+
+	sshbuf_free(m);
+}
+
+void
+monitor_recv_authopt(struct monitor*pmonitor) {
+	Buffer m;
+	int r = 0;
+
+	buffer_init(&m);
+
+	if (ssh_msg_recv(pmonitor->m_recvfd, &m) == -1)
+		fatal("%s: ssh_msg_recv failed", __func__);
+	
+	if (buffer_get_char(&m) != 0)
+		fatal("%s: version mismatch", __func__);
+
+	if ((r = sshauthopt_deserialise(&m, &auth_opts)) != 0)
+		fatal("%s: sshauthopt_deserialise: %s",
+			__func__, ssh_err(r));
+
+	buffer_free(&m);
+}
+
+void
 monitor_apply_keystate(struct monitor *pmonitor)
 {
 	struct ssh *ssh = active_state;	/* XXX */
@@ -1888,4 +1925,5 @@ mm_answer_gss_userok(int sock, Buffer *m)
 	return (authenticated);
 }
 #endif /* GSSAPI */
+
 

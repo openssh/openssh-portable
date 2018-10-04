@@ -232,6 +232,10 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 		spawn_argv[1] = NULL;
 		pid = -1;
 
+		/* disable inheritance */
+		fcntl(pin[1], F_SETFD, FD_CLOEXEC);
+		fcntl(pout[0], F_SETFD, FD_CLOEXEC);
+
 		if (posix_spawn_file_actions_init(&actions) != 0 ||
 			posix_spawn_file_actions_adddup2(&actions, pin[0], STDIN_FILENO) != 0 ||
 			posix_spawn_file_actions_adddup2(&actions, pout[1], STDOUT_FILENO) != 0)
@@ -1572,8 +1576,19 @@ int
 ssh_local_cmd(const char *args)
 {
 #ifdef WINDOWS
-        fatal("executing local command is not supported in Windows yet");
-        return 0;
+	if (!options.permit_local_command ||
+		args == NULL || !*args)
+		return (1);
+
+	int retVal = -1;
+	wchar_t *args_w = utf8_to_utf16(args);
+
+	if (args_w) {
+		retVal = _wsystem(args_w);
+		free(args_w);
+	}
+
+	return retVal;
 #else /* !WINDOWS */
 	char *shell;
 	pid_t pid;

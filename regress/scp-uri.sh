@@ -11,8 +11,13 @@ DIR2=${COPY}.dd2
 
 SRC=`dirname ${SCRIPT}`
 cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
-chmod 755 ${OBJ}/scp-ssh-wrapper.scp
-scpopts="-q -S ${OBJ}/scp-ssh-wrapper.scp"
+# scpopts should be an array to preverse the double quotes
+if [ "$os" == "windows" ]; then
+	scpopts=(-q -S "$TEST_SHELL_PATH ${OBJ}/scp-ssh-wrapper.scp")
+else
+	chmod 755 ${OBJ}/scp-ssh-wrapper.scp
+	scpopts=(-q -S ${OBJ}/scp-ssh-wrapper.scp)
+fi
 export SCP # used in scp-ssh-wrapper.scp
 
 scpclean() {
@@ -26,31 +31,31 @@ egrep -v '^	+(Port|User)	+.*$' $OBJ/ssh_config.orig > $OBJ/ssh_config
 
 verbose "$tid: simple copy local file to remote file"
 scpclean
-$SCP $scpopts ${DATA} "scp://${USER}@somehost:${PORT}/${COPY}" || fail "copy failed"
+$SCP "${scpopts[@]}" ${DATA} "scp://${USER}@somehost:${PORT}/${COPY}" || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: simple copy remote file to local file"
 scpclean
-$SCP $scpopts "scp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
+$SCP "${scpopts[@]}" "scp://${USER}@somehost:${PORT}/${DATA}" ${COPY} || fail "copy failed"
 cmp ${DATA} ${COPY} || fail "corrupted copy"
 
 verbose "$tid: simple copy local file to remote dir"
 scpclean
 cp ${DATA} ${COPY}
-$SCP $scpopts ${COPY} "scp://${USER}@somehost:${PORT}/${DIR}" || fail "copy failed"
+$SCP "${scpopts[@]}" ${COPY} "scp://${USER}@somehost:${PORT}/${DIR}" || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: simple copy remote file to local dir"
 scpclean
 cp ${DATA} ${COPY}
-$SCP $scpopts "scp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
+$SCP "${scpopts[@]}" "scp://${USER}@somehost:${PORT}/${COPY}" ${DIR} || fail "copy failed"
 cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: recursive local dir to remote dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
+$SCP "${scpopts[@]}" -r ${DIR} "scp://${USER}@somehost:${PORT}/${DIR2}" || fail "copy failed"
 for i in $(cd ${DIR} && echo *); do
 	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
 done
@@ -59,7 +64,7 @@ verbose "$tid: recursive remote dir to local dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
-$SCP $scpopts -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
+$SCP "${scpopts[@]}" -r "scp://${USER}@somehost:${PORT}/${DIR}" ${DIR2} || fail "copy failed"
 for i in $(cd ${DIR} && echo *); do
 	cmp ${DIR}/$i ${DIR2}/$i || fail "corrupted copy"
 done

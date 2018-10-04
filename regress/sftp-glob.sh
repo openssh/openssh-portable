@@ -57,12 +57,15 @@ test "x$nobs" = "x" && touch "${QSLASH}" "${ESLASH}" "${SLASH}"
 #       target                   message                expected     unexpected
 sftp_ls "${DIR}/fil*"            "file glob"            "${DATA}"    ""
 sftp_ls "${BASE}/d*"             "dir glob"             "`basename ${DATA}`" ""
-sftp_ls "${DIR}/g-wild\"*\""     "quoted glob"          "g-wild*"    "g-wildx"
-sftp_ls "${DIR}/g-wild\*"        "escaped glob"         "g-wild*"    "g-wildx"
-sftp_ls "${DIR}/g-quote\\\""     "escaped quote"        "g-quote\""  ""
-sftp_ls "\"${DIR}/g-quote\\\"\"" "quoted quote"         "g-quote\""  ""
-sftp_ls "'${DIR}/g-quote\"'"     "single-quoted quote"  "g-quote\""  ""
-sftp_ls "${DIR}/g-q\\ space"     "escaped space"        "g-q space"  ""
+if [ "$os" != "windows" ]; then
+    sftp_ls "${DIR}/g-wild\"*\""     "quoted glob"          "g-wild*"    "g-wildx"
+    sftp_ls "${DIR}/g-wild\*"        "escaped glob"         "g-wild*"    "g-wildx"
+    sftp_ls "${DIR}/g-quote\\\""     "escaped quote"        "g-quote\""  ""
+    sftp_ls "\"${DIR}/g-quote\\\"\"" "quoted quote"         "g-quote\""  ""
+    sftp_ls "'${DIR}/g-quote\"'"     "single-quoted quote"  "g-quote\""  ""
+    sftp_ls "${DIR}/g-q\\ space"     "escaped space"        "g-q space"  ""
+fi
+
 sftp_ls "'${DIR}/g-q space'"     "quoted space"         "g-q space"  ""
 sftp_ls "${DIR}/g-sl\\\\ash"     "escaped slash"        "g-sl\\ash"  "" "$nobs"
 sftp_ls "'${DIR}/g-sl\\\\ash'"   "quoted slash"         "g-sl\\ash"  "" "$nobs"

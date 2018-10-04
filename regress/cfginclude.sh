@@ -86,9 +86,17 @@ _EOF
 trial() {
 	_host="$1"
 	_exp="$2"
+	if [ "$os" == "windows" ]; then
+		# Fix the file permissions (ACLs)
+		OBJ_WIN=`windows_path $OBJ`
+		powershell.exe /c "get-acl $OBJ_WIN/authorized_keys_$USER | set-acl $OBJ_WIN/ssh_config.i.*"
+	fi
 	${REAL_SSH} -F $OBJ/ssh_config.i -G "$_host" > $OBJ/ssh_config.out ||
 		fatal "ssh config parse failed"
 	_got=`grep -i '^hostname ' $OBJ/ssh_config.out | awk '{print $2}'`
+	if [ "$os" == "windows" ]; then
+		_got=`echo $_got | sed 's/\r$//'`  # remove CR (carriage return)
+	fi
 	if test "x$_exp" != "x$_got" ; then
 		fail "host $_host include fail: expected $_exp got $_got"
 	fi
@@ -227,9 +235,18 @@ _EOF
 trial() {
 	_host="$1"
 	_exp="$2"
+	if [ "$os" == "windows" ]; then
+		OBJ_WIN=`windows_path $OBJ`
+		# Fix the file permissions (ACLs)
+		powershell.exe /c "get-acl $OBJ_WIN/authorized_keys_$USER | set-acl $OBJ_WIN/ssh_config.i.*"
+	fi
 	${REAL_SSH} -F $OBJ/ssh_config.i -G "$_host" > $OBJ/ssh_config.out ||
 		fatal "ssh config parse failed"
 	_got=`grep -i '^hostname ' $OBJ/ssh_config.out | awk '{print $2}'`
+	if [ "$os" == "windows" ]; then
+		 # remove CR (carriage return)
+		_got=`echo $_got | sed 's/\r$//'`
+	fi
 	if test "x$_exp" != "x$_got" ; then
 		fail "host $_host include fail: expected $_exp got $_got"
 	fi

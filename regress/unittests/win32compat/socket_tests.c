@@ -462,7 +462,7 @@ socket_nonblocking_io_tests()
 void 
 socket_select_tests() {
 	int s, r;
-	int num_bytes = 1024 * 1024 * 2; //2 MB
+	int num_bytes = 1024 * 1024 * 4; //4 MB
 	int bytes_sent = 0;
 	int bytes_received = 0;
 	int seed = 326;

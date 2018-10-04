@@ -14,7 +14,11 @@ prepare_server() {
 }
 
 run_client() {
-	echo "$@" | ${SFTP} -D ${TEST_SFTP_SERVER} -vvvb - >$CLIENT_LOG 2>&1
+	if [ "$os" == "windows" ]; then
+		echo "$@" | ${SFTP} -D "$TEST_SHELL_PATH ${TEST_SFTP_SERVER}" -vvvb - >$CLIENT_LOG 2>&1
+	else
+		echo "$@" | ${SFTP} -D ${TEST_SFTP_SERVER} -vvvb - >$CLIENT_LOG 2>&1
+	fi
 }
 
 prepare_files() {
@@ -22,6 +26,10 @@ prepare_files() {
 	rm -f ${COPY} ${COPY}.1
 	test -d ${COPY}.dd && { rmdir ${COPY}.dd || fatal "rmdir ${COPY}.dd"; }
 	test -z "$_prep" && return
+	if [ "$os" == "windows" ]; then
+		# Remove starting, ending double-quotes
+		_prep=`echo $_prep | sed -e 's/^"//' -e 's/"$//'`
+	fi
 	sh -c "$_prep" || fail "preparation failed: \"$_prep\""
 }
 
@@ -88,12 +96,21 @@ ro_test \
 	"cmp $DATA $COPY" \
 	"test ! -f $COPY"
 
-ro_test \
+if [ "$os" == "windows" ]; then
+	ro_test \
+		"setstat" \
+		"chmod 0700 $COPY" \
+		"\"powershell.exe /c new-item `windows_path $OBJ`/copy 1>/dev/null; powershell.exe /c set-itemproperty `windows_path $OBJ`/copy -Name IsReadOnly -Value 1\"" \
+		"powershell.exe /c \"(Get-ChildItem `windows_path $OBJ`/copy).IsReadOnly\" 1>/dev/null" \
+		"powershell.exe /c \"!(Get-ChildItem $`windows_path $OBJ`/copy).IsReadOnly\" 1>/dev/null"
+else
+	ro_test \
 	"setstat" \
 	"chmod 0700 $COPY" \
 	"touch $COPY; chmod 0400 $COPY" \
 	"test -x $COPY" \
 	"test ! -x $COPY"
+fi
 
 ro_test \
 	"rm" \
@@ -188,13 +205,23 @@ perm_test \
 	"realpath,opendir,stat,lstat" \
 	"ls -ln $OBJ"
 
-perm_test \
-	"setstat" \
-	"realpath,stat,lstat" \
-	"chmod 0700 $COPY" \
-	"touch $COPY; chmod 0400 $COPY" \
-	"test -x $COPY" \
-	"test ! -x $COPY"
+if [ "$os" == "windows" ]; then
+	perm_test \
+		"setstat" \
+		"realpath,stat,lstat" \
+		"chmod 0700 $COPY" \
+		"\"powershell.exe /c new-item `windows_path $OBJ`/copy 1>/dev/null; powershell.exe /c set-itemproperty `windows_path $OBJ`/copy -Name IsReadOnly -Value 1\"" \
+		"powershell.exe /c \"(Get-ChildItem `windows_path $OBJ`/copy).IsReadOnly\" 1>/dev/null" \
+		"powershell.exe /c \"!(Get-ChildItem `windows_path $OBJ`/copy).IsReadOnly\" 1>/dev/null"
+else
+	perm_test \
+		"setstat" \
+		"realpath,stat,lstat" \
+		"chmod 0700 $COPY" \
+		"touch $COPY; chmod 0400 $COPY" \
+		"test -x $COPY" \
+		"test ! -x $COPY"
+fi
 
 perm_test \
 	"remove" \

@@ -330,6 +330,7 @@ createFile_flags_setup(int flags, mode_t mode, struct createFile_flags* cf_flags
 		break;
 	case O_WRONLY:
 		cf_flags->dwDesiredAccess = GENERIC_WRITE;
+		cf_flags->dwShareMode = FILE_SHARE_WRITE;
 		break;
 	case O_RDWR:
 		cf_flags->dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
@@ -474,7 +475,7 @@ fileio_open(const char *path_utf8, int flags, mode_t mode)
 
 	if (handle == INVALID_HANDLE_VALUE) {
 		errno = errno_from_Win32LastError();
-		debug3("failed to open file:%s error:%d", path_utf8, GetLastError());
+		debug3("failed to open file:%S error:%d", path_utf16, GetLastError());
 		goto cleanup;
 	}
 
@@ -1157,22 +1158,17 @@ int
 fileio_symlink(const char *target, const char *linkpath)
 {
 	DWORD ret = -1;
+	char target_modified[PATH_MAX] = { 0 };
+	char *linkpath_resolved = NULL, *target_resolved = NULL;
 
 	if (target == NULL || linkpath == NULL) {
 		errno = EFAULT;
 		return -1;
 	}
 
-	wchar_t *target_utf16 = resolved_path_utf16(target);
-	wchar_t *linkpath_utf16 = resolved_path_utf16(linkpath);
-	wchar_t *resolved_utf16 = _wcsdup(target_utf16);
-	if (target_utf16 == NULL || linkpath_utf16 == NULL)
+	/* First resolve linkpath */
+	if (NULL == (linkpath_resolved = resolved_path_utf8(linkpath)))	
 		goto cleanup;
-
-	if (resolved_utf16 == NULL) {
-		errno = ENOMEM;
-		goto cleanup;
-	}
 
 	/* Relative targets are relative to the link and not our current directory
 	 * so attempt to calculate a resolvable path by removing the link file name
@@ -1180,22 +1176,28 @@ fileio_symlink(const char *target, const char *linkpath)
 	 * C:\Path\Link with Link->SubDir\Target to C:\Path\SubDir\Target
 	 */
 	if (!is_absolute_path(target)) {
-
-		/* allocate area to hold the total possible path */
-		free(resolved_utf16);
-		size_t resolved_len = (wcslen(target_utf16) + wcslen(linkpath_utf16) + 1);
-		resolved_utf16 = malloc(resolved_len * sizeof(wchar_t));
-		if (resolved_utf16 == NULL) {
-			errno = ENOMEM;
-			goto cleanup;
-		}
+		strcpy_s(target_modified, _countof(target_modified), linkpath_resolved);
+		convertToBackslash(target_modified);
+		char *tmp = NULL;
 
 		/* copy the relative target to the end of the link's parent */
-		wcscpy_s(resolved_utf16, resolved_len, linkpath_utf16);
-		convertToBackslashW(resolved_utf16);
-		wchar_t * ptr = wcsrchr(resolved_utf16, L'\\');
-		if (ptr == NULL) wcscpy_s(resolved_utf16, resolved_len, target_utf16);
-		else wcscpy_s(ptr + 1, resolved_len - (ptr + 1 - resolved_utf16), target_utf16);
+		if (tmp = strrchr(target_modified, '\\'))			
+			strcpy_s(tmp + 1, _countof(target_modified) - (tmp + 1 - target_modified), target);
+		else
+			strcpy_s(target_modified, _countof(target_modified), target);
+	} else {
+		/* resolve target */
+		if (NULL == (target_resolved = resolved_path_utf8(target)))
+			goto cleanup;
+
+		strcpy_s(target_modified, _countof(target_modified), target_resolved);
+	}
+
+	wchar_t *linkpath_utf16 = resolved_path_utf16(linkpath);
+	wchar_t *resolved_target_utf16 = utf8_to_utf16(target_modified);
+	if (resolved_target_utf16 == NULL || linkpath_utf16 == NULL) {
+		errno = ENOMEM;
+		goto cleanup;
 	}
 
 	/* unlike other platforms, we need to know whether the symbolic link target is
@@ -1204,7 +1206,7 @@ fileio_symlink(const char *target, const char *linkpath)
 	 * limitation of only creating symlink with valid targets
 	 */
 	WIN32_FILE_ATTRIBUTE_DATA attributes = { 0 };
-	if (GetFileAttributesExW(resolved_utf16, GetFileExInfoStandard, &attributes) == FALSE) {
+	if (GetFileAttributesExW(resolved_target_utf16, GetFileExInfoStandard, &attributes) == FALSE) {
 		errno = errno_from_Win32LastError();
 		goto cleanup;
 	}
@@ -1218,8 +1220,8 @@ fileio_symlink(const char *target, const char *linkpath)
  	 * context so we try both operations, attempting privileged version first.
 	 * note: 0x2 = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
 	 */
-	if (CreateSymbolicLinkW(linkpath_utf16, target_utf16, create_flags) == 0) {
-		if (CreateSymbolicLinkW(linkpath_utf16, target_utf16, create_flags | 0x2) == 0) {
+	if (CreateSymbolicLinkW(linkpath_utf16, resolved_target_utf16, create_flags) == 0) {
+		if (CreateSymbolicLinkW(linkpath_utf16, resolved_target_utf16, create_flags | 0x2) == 0) {
 			errno = errno_from_Win32LastError();
 			goto cleanup;
 		}
@@ -1228,12 +1230,18 @@ fileio_symlink(const char *target, const char *linkpath)
 	ret = 0;
 cleanup:
 
-	if (target_utf16)
-		free(target_utf16);
 	if (linkpath_utf16)
 		free(linkpath_utf16);
-	if (resolved_utf16)
-		free(resolved_utf16);
+
+	if (resolved_target_utf16)
+		free(resolved_target_utf16);
+
+	if (linkpath_resolved)
+		free(linkpath_resolved);
+
+	if (target_resolved)
+		free(target_resolved);
+
 	return ret;
 }
 

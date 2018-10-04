@@ -111,7 +111,7 @@ openlog_file()
 			tail--;
 		
 		wchar_t ssh_cfg_path[PATH_MAX] = {0 ,};
-		wcscat_s(ssh_cfg_path, _countof(ssh_cfg_path), get_program_data_path()); /* "%programData%" */
+		wcscat_s(ssh_cfg_path, _countof(ssh_cfg_path), __wprogdata); /* "%programData%" */
 		wcscat_s(ssh_cfg_path, _countof(ssh_cfg_path), L"\\ssh"); /* "%programData%\\ssh" */
 
 		if ((wcsncat_s(log_file, PATH_MAX + 12, ssh_cfg_path, wcslen(ssh_cfg_path)) != 0) ||

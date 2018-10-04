@@ -42,6 +42,7 @@
 #include "tnnet.h"
 
 extern bool gbVTAppMode;
+extern BOOL isAnsiParsingRequired;
 char *glob_out = NULL;
 int glob_outlen = 0;
 int glob_space = 0;
@@ -139,6 +140,14 @@ ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
 	BOOL bCapsOn = FALSE;
 	BOOL bShift = FALSE;
 	int modKey = 0;
+	char *FN_KEY = NULL;
+	char *SHIFT_FN_KEY = NULL;
+	char *ALT_FN_KEY = NULL;
+	char *CTRL_FN_KEY = NULL;
+	char *SHIFT_ALT_FN_KEY = NULL;
+	char *SHIFT_CTRL_FN_KEY = NULL;
+	char *ALT_CTRL_FN_KEY = NULL;
+	char *SHIFT_ALT_CTRL_FN_KEY = NULL;
 
 	glob_out = destin;
 	glob_space = destinlen;
@@ -353,125 +362,168 @@ ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
 					case VK_CAPITAL:
 						break; /* NOP on these */
 					case VK_F1:
+						/* If isAnsiParsingRequired is false then we use XTERM VT sequence */
+						FN_KEY = isAnsiParsingRequired ? PF1_KEY : XTERM_PF1_KEY;
+						SHIFT_FN_KEY = isAnsiParsingRequired ? SHIFT_PF1_KEY : XTERM_SHIFT_PF1_KEY;
+						ALT_FN_KEY = isAnsiParsingRequired ? ALT_PF1_KEY : XTERM_ALT_PF1_KEY;
+						CTRL_FN_KEY = isAnsiParsingRequired ? CTRL_PF1_KEY : XTERM_CTRL_PF1_KEY;
+						SHIFT_ALT_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_PF1_KEY : XTERM_SHIFT_ALT_PF1_KEY;
+						SHIFT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_CTRL_PF1_KEY : XTERM_SHIFT_CTRL_PF1_KEY;
+						ALT_CTRL_FN_KEY = isAnsiParsingRequired ? ALT_CTRL_PF1_KEY : XTERM_ALT_CTRL_PF1_KEY;
+						SHIFT_ALT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_CTRL_PF1_KEY : XTERM_SHIFT_ALT_CTRL_PF1_KEY;
+
 						if (dwControlKeyState == 0)
-							NetWriteString2(pParams->Socket, (char *)PF1_KEY, strlen(PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)FN_KEY, strlen(FN_KEY), 0);
 
 						else if (dwControlKeyState == SHIFT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)SHIFT_PF1_KEY, strlen(SHIFT_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_FN_KEY, strlen(SHIFT_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_CTRL_PRESSED || dwControlKeyState == RIGHT_CTRL_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)CTRL_PF1_KEY, strlen(CTRL_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)CTRL_FN_KEY, strlen(CTRL_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_ALT_PRESSED || dwControlKeyState == RIGHT_ALT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)ALT_PF1_KEY, strlen(ALT_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_FN_KEY, strlen(ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_PF1_KEY, strlen(SHIFT_ALT_CTRL_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_FN_KEY, strlen(SHIFT_ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & RIGHT_ALT_PRESSED) || (dwControlKeyState & LEFT_ALT_PRESSED) &&
 							((dwControlKeyState & LEFT_CTRL_PRESSED) || (dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_PF1_KEY, strlen(ALT_CTRL_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_FN_KEY, strlen(ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_PF1_KEY, strlen(SHIFT_ALT_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_FN_KEY, strlen(SHIFT_ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_PF1_KEY, strlen(SHIFT_CTRL_PF1_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_FN_KEY, strlen(SHIFT_CTRL_FN_KEY), 0);
 
 						break;
 					case VK_F2:
+						/* If isAnsiParsingRequired is false then we use XTERM VT sequence */
+						FN_KEY = isAnsiParsingRequired ? PF2_KEY : XTERM_PF2_KEY;
+						SHIFT_FN_KEY = isAnsiParsingRequired ? SHIFT_PF2_KEY : XTERM_SHIFT_PF2_KEY;
+						ALT_FN_KEY = isAnsiParsingRequired ? ALT_PF2_KEY : XTERM_ALT_PF2_KEY;
+						CTRL_FN_KEY = isAnsiParsingRequired ? CTRL_PF2_KEY : XTERM_CTRL_PF2_KEY;
+						SHIFT_ALT_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_PF2_KEY : XTERM_SHIFT_ALT_PF2_KEY;
+						SHIFT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_CTRL_PF2_KEY : XTERM_SHIFT_CTRL_PF2_KEY;
+						ALT_CTRL_FN_KEY = isAnsiParsingRequired ? ALT_CTRL_PF2_KEY : XTERM_ALT_CTRL_PF2_KEY;
+						SHIFT_ALT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_CTRL_PF2_KEY : XTERM_SHIFT_ALT_CTRL_PF2_KEY;
+
 						if (dwControlKeyState == 0)
-							NetWriteString2(pParams->Socket, (char *)PF2_KEY, strlen(PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)FN_KEY, strlen(FN_KEY), 0);
 
 						else if (dwControlKeyState == SHIFT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)SHIFT_PF2_KEY, strlen(SHIFT_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_FN_KEY, strlen(SHIFT_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_CTRL_PRESSED || dwControlKeyState == RIGHT_CTRL_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)CTRL_PF2_KEY, strlen(CTRL_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)CTRL_FN_KEY, strlen(CTRL_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_ALT_PRESSED || dwControlKeyState == RIGHT_ALT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)ALT_PF2_KEY, strlen(ALT_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_FN_KEY, strlen(ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_PF2_KEY, strlen(SHIFT_ALT_CTRL_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_FN_KEY, strlen(SHIFT_ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & RIGHT_ALT_PRESSED) || (dwControlKeyState & LEFT_ALT_PRESSED) &&
 							((dwControlKeyState & LEFT_CTRL_PRESSED) || (dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_PF2_KEY, strlen(ALT_CTRL_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_FN_KEY, strlen(ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_PF2_KEY, strlen(SHIFT_ALT_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_FN_KEY, strlen(SHIFT_ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_PF2_KEY, strlen(SHIFT_CTRL_PF2_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_FN_KEY, strlen(SHIFT_CTRL_FN_KEY), 0);
+
 						break;
 					case VK_F3:
+						/* If isAnsiParsingRequired is false then we use XTERM VT sequence */
+						FN_KEY = isAnsiParsingRequired ? PF3_KEY : XTERM_PF3_KEY;
+						SHIFT_FN_KEY = isAnsiParsingRequired ? SHIFT_PF3_KEY : XTERM_SHIFT_PF3_KEY;
+						ALT_FN_KEY = isAnsiParsingRequired ? ALT_PF3_KEY : XTERM_ALT_PF3_KEY;
+						CTRL_FN_KEY = isAnsiParsingRequired ? CTRL_PF3_KEY : XTERM_CTRL_PF3_KEY;
+						SHIFT_ALT_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_PF3_KEY : XTERM_SHIFT_ALT_PF3_KEY;
+						SHIFT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_CTRL_PF3_KEY : XTERM_SHIFT_CTRL_PF3_KEY;
+						ALT_CTRL_FN_KEY = isAnsiParsingRequired ? ALT_CTRL_PF3_KEY : XTERM_ALT_CTRL_PF3_KEY;
+						SHIFT_ALT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_CTRL_PF3_KEY : XTERM_SHIFT_ALT_CTRL_PF3_KEY;
+
 						if (dwControlKeyState == 0)
-							NetWriteString2(pParams->Socket, (char *)PF3_KEY, strlen(PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)FN_KEY, strlen(FN_KEY), 0);
 
 						else if (dwControlKeyState == SHIFT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)SHIFT_PF3_KEY, strlen(SHIFT_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_FN_KEY, strlen(SHIFT_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_CTRL_PRESSED || dwControlKeyState == RIGHT_CTRL_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)CTRL_PF3_KEY, strlen(CTRL_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)CTRL_FN_KEY, strlen(CTRL_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_ALT_PRESSED || dwControlKeyState == RIGHT_ALT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)ALT_PF3_KEY, strlen(ALT_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_FN_KEY, strlen(ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_PF3_KEY, strlen(SHIFT_ALT_CTRL_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_FN_KEY, strlen(SHIFT_ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & RIGHT_ALT_PRESSED) || (dwControlKeyState & LEFT_ALT_PRESSED) &&
 							((dwControlKeyState & LEFT_CTRL_PRESSED) || (dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_PF3_KEY, strlen(ALT_CTRL_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_FN_KEY, strlen(ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_PF3_KEY, strlen(SHIFT_ALT_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_FN_KEY, strlen(SHIFT_ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_PF3_KEY, strlen(SHIFT_CTRL_PF3_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_FN_KEY, strlen(SHIFT_CTRL_FN_KEY), 0);
+
 						break;
 					case VK_F4:
+						/* If isAnsiParsingRequired is false then we use XTERM VT sequence */
+						FN_KEY = isAnsiParsingRequired ? PF4_KEY : XTERM_PF4_KEY;
+						SHIFT_FN_KEY = isAnsiParsingRequired ? SHIFT_PF4_KEY : XTERM_SHIFT_PF4_KEY;
+						ALT_FN_KEY = isAnsiParsingRequired ? ALT_PF4_KEY : XTERM_ALT_PF4_KEY;
+						CTRL_FN_KEY = isAnsiParsingRequired ? CTRL_PF4_KEY : XTERM_CTRL_PF4_KEY;
+						SHIFT_ALT_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_PF4_KEY : XTERM_SHIFT_ALT_PF4_KEY;
+						SHIFT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_CTRL_PF4_KEY : XTERM_SHIFT_CTRL_PF4_KEY;
+						ALT_CTRL_FN_KEY = isAnsiParsingRequired ? ALT_CTRL_PF4_KEY : XTERM_ALT_CTRL_PF4_KEY;
+						SHIFT_ALT_CTRL_FN_KEY = isAnsiParsingRequired ? SHIFT_ALT_CTRL_PF4_KEY : XTERM_SHIFT_ALT_CTRL_PF4_KEY;
+
 						if (dwControlKeyState == 0)
-							NetWriteString2(pParams->Socket, (char *)PF4_KEY, strlen(PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)FN_KEY, strlen(FN_KEY), 0);
 
 						else if (dwControlKeyState == SHIFT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)SHIFT_PF4_KEY, strlen(SHIFT_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_FN_KEY, strlen(SHIFT_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_CTRL_PRESSED || dwControlKeyState == RIGHT_CTRL_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)CTRL_PF4_KEY, strlen(CTRL_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)CTRL_FN_KEY, strlen(CTRL_FN_KEY), 0);
 
 						else if (dwControlKeyState == LEFT_ALT_PRESSED || dwControlKeyState == RIGHT_ALT_PRESSED)
-							NetWriteString2(pParams->Socket, (char *)ALT_PF4_KEY, strlen(ALT_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_FN_KEY, strlen(ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_PF4_KEY, strlen(SHIFT_ALT_CTRL_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_CTRL_FN_KEY, strlen(SHIFT_ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & RIGHT_ALT_PRESSED) || (dwControlKeyState & LEFT_ALT_PRESSED) &&
 							((dwControlKeyState & LEFT_CTRL_PRESSED) || (dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_PF4_KEY, strlen(ALT_CTRL_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)ALT_CTRL_FN_KEY, strlen(ALT_CTRL_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & RIGHT_ALT_PRESSED) ||
 							(dwControlKeyState & LEFT_ALT_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_PF4_KEY, strlen(SHIFT_ALT_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_ALT_FN_KEY, strlen(SHIFT_ALT_FN_KEY), 0);
 
 						else if ((dwControlKeyState & SHIFT_PRESSED) && ((dwControlKeyState & LEFT_CTRL_PRESSED) ||
 							(dwControlKeyState & RIGHT_CTRL_PRESSED)))
-							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_PF4_KEY, strlen(SHIFT_CTRL_PF4_KEY), 0);
+							NetWriteString2(pParams->Socket, (char *)SHIFT_CTRL_FN_KEY, strlen(SHIFT_CTRL_FN_KEY), 0);
+
 						break;
 					case VK_F5:
 						if (dwControlKeyState == 0)

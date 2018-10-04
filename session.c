@@ -369,7 +369,7 @@ xauth_valid_string(const char *s)
  * - Interactive shell/commands are executed using ssh-shellhost.exe
  * - ssh-shellhost.exe implements server-side PTY for Windows
  */
-
+static char ** do_setup_env(struct ssh *ssh, Session *s, const char *shell);
 
 #define UTF8_TO_UTF16_WITH_CLEANUP(o, i) do {				\
 	if (o != NULL) free(o);					\
@@ -382,8 +382,8 @@ xauth_valid_string(const char *s)
 		goto cleanup;		\
 } while(0)
 
- /* TODO  - built env var set and pass it along with CreateProcess */
- /* set user environment variables from user profile */
+/* TODO  - built env var set and pass it along with CreateProcess */
+/* set user environment variables from user profile */
 static void
 setup_session_user_vars(wchar_t* profile_path)
 {
@@ -396,11 +396,22 @@ setup_session_user_vars(wchar_t* profile_path)
 	LONG ret;
 
 	SetEnvironmentVariableW(L"USERPROFILE", profile_path);
+
+	if (profile_path[0] && profile_path[1] == L':') {
+		SetEnvironmentVariableW(L"HOMEPATH", profile_path + 2);
+		wchar_t wc = profile_path[2];
+		profile_path[2] = L'\0';
+		SetEnvironmentVariableW(L"HOMEDRIVE", profile_path);
+		profile_path[2] = wc;
+	} else {
+		SetEnvironmentVariableW(L"HOMEPATH", profile_path);
+	}
+
 	swprintf_s(path, _countof(path), L"%s\\AppData\\Local", profile_path);
 	SetEnvironmentVariableW(L"LOCALAPPDATA", path);
 	swprintf_s(path, _countof(path), L"%s\\AppData\\Roaming", profile_path);
 	SetEnvironmentVariableW(L"APPDATA", path);
-	
+
 	ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_QUERY_VALUE, &reg_key);
 	if (ret != ERROR_SUCCESS)
 		//error("Error retrieving user environment variables. RegOpenKeyExW returned %d", ret);
@@ -462,55 +473,20 @@ cleanup:
 		free(path_value);
 }
 
-static int 
-setup_session_vars(Session* s) 
+static int
+setup_session_env(struct ssh *ssh, Session* s) 
 {
-	wchar_t *pw_dir_w = NULL, *tmp = NULL;
+	int i = 0, ret = -1;
+	char *env_name = NULL, *env_value = NULL, *t = NULL, **env = NULL, *path_env_val = NULL;
 	char buf[1024] = { 0 };
-	wchar_t wbuf[1024] = { 0 };
+	wchar_t *env_name_w = NULL, *env_value_w = NULL, *pw_dir_w = NULL, *tmp = NULL, wbuf[1024] = { 0, };
 	char *laddr, *c;
-	int ret = -1;
-
-	struct ssh *ssh = active_state; /* XXX */
 
 	UTF8_TO_UTF16_WITH_CLEANUP(pw_dir_w, s->pw->pw_dir);
-	/* skip domain part (if there) while setting USERNAME */
+	/* skip domain part (if present) while setting USERNAME */
 	c = strchr(s->pw->pw_name, '\\');
 	UTF8_TO_UTF16_WITH_CLEANUP(tmp, c ? c + 1 : s->pw->pw_name);
 	SetEnvironmentVariableW(L"USERNAME", tmp);
-	if (s->display) {
-		UTF8_TO_UTF16_WITH_CLEANUP(tmp, s->display);
-		SetEnvironmentVariableW(L"DISPLAY", tmp);
-	}
-	SetEnvironmentVariableW(L"USERPROFILE", pw_dir_w);
-
-	if (pw_dir_w[0] && pw_dir_w[1] == L':') {
-		SetEnvironmentVariableW(L"HOMEPATH", pw_dir_w + 2);
-		wchar_t wc = pw_dir_w[2];
-		pw_dir_w[2] = L'\0';
-		SetEnvironmentVariableW(L"HOMEDRIVE", pw_dir_w);
-		pw_dir_w[2] = wc;
-	} else {
-		SetEnvironmentVariableW(L"HOMEPATH", pw_dir_w);
-	}
-
-	snprintf(buf, sizeof buf, "%.50s %d %d",
-		ssh->remote_ipaddr, ssh->remote_port, ssh->local_port);
-	SetEnvironmentVariableA("SSH_CLIENT", buf);
-
-	laddr = get_local_ipaddr(packet_get_connection_in());
-	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
-		ssh->remote_ipaddr, ssh->remote_port, laddr, ssh->local_port);
-	free(laddr);
-	SetEnvironmentVariableA("SSH_CONNECTION", buf);
-
-	if (original_command) {
-		UTF8_TO_UTF16_WITH_CLEANUP(tmp, original_command);
-		SetEnvironmentVariableW(L"SSH_ORIGINAL_COMMAND", tmp);
-	}
-
-	if ((s->term) && (s->term[0]))
-		SetEnvironmentVariableA("TERM", s->term);
 
 	if (!s->is_subsystem) {
 		_snprintf(buf, ARRAYSIZE(buf), "%s@%s", s->pw->pw_name, getenv("COMPUTERNAME"));
@@ -525,13 +501,50 @@ setup_session_vars(Session* s)
 		SetEnvironmentVariableW(L"PROMPT", wbuf);
 	}
 
-	/* setup any user specific env variables */
-	setup_session_user_vars(pw_dir_w);
+	setup_session_user_vars(pw_dir_w); /* setup user specific env variables */
 
+	env = do_setup_env(ssh, s, s->pw->pw_shell);
+	while (env_name = env[i]) {
+		if (t = strstr(env[i++], "=")) {
+			/* SKIP, if not applicable on WINDOWS
+				PATH is already set.
+				MAIL is not applicable.
+			*/
+			if ((0 == strncmp(env_name, "PATH=", strlen("PATH="))) ||
+			    (0 == strncmp(env_name, "MAIL=", strlen("MAIL=")))) {
+				continue;
+			}
+
+			env_value = t + 1;
+			*t = '\0';
+			UTF8_TO_UTF16_WITH_CLEANUP(env_name_w, env_name);
+			UTF8_TO_UTF16_WITH_CLEANUP(env_value_w, env_value);
+
+			SetEnvironmentVariableW(env_name_w, env_value_w);
+		}
+	}
+	
 	ret = 0;
-cleanup:
-	free(pw_dir_w);
-	free(tmp);
+cleanup :
+	if (pw_dir_w)
+		free(pw_dir_w);
+
+	if (tmp)
+		free(tmp);
+
+	if (env_name_w)
+		free(env_name_w);
+
+	if (env_value_w)
+		free(env_value_w);
+
+	if (env) {
+		i = 0;
+		while (t = env[i++])
+			free(t);
+
+		free(env);
+	}
 
 	return ret;
 }
@@ -568,7 +581,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		if (environment_set)
 			break;
 
-		if (setup_session_vars(s) != 0)
+		if (setup_session_env(ssh, s) != 0)
 			goto cleanup;
 
 		environment_set = 1;
@@ -637,7 +650,7 @@ int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
 		    !SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)) ||
 		    !AssignProcessToJobObject(job, pi.hProcess) ||
 		    !DuplicateHandle(GetCurrentProcess(), job, pi.hProcess, &job_dup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
-			error("cannot associate job object: %d", GetLastError());
+			error("cannot associate job object: %d", GetLastError());			
 			errno = EOTHER;
 			TerminateProcess(pi.hProcess, 255);
 			CloseHandle(pi.hProcess);
@@ -2207,6 +2220,7 @@ session_window_change_req(struct ssh *ssh, Session *s)
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
 	packet_check_eom();
+
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 	return 1;
 }

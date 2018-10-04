@@ -16,6 +16,9 @@ trace "prepare hostkeys"
 nkeys=0
 all_algs=""
 for k in `${SSH} -Q key-plain` ; do
+	if [ "$os" == "windows" ]; then
+		k=`echo $k | sed 's/\r$//'` # remove CR (carriage return)
+	fi
 	${SSHKEYGEN} -qt $k -f $OBJ/hkr.$k -N '' || fatal "ssh-keygen $k"
 	echo "Hostkey $OBJ/hkr.${k}" >> $OBJ/sshd_proxy.orig
 	nkeys=`expr $nkeys + 1`
@@ -63,6 +66,9 @@ check_key_present ssh-rsa || fail "didn't learn keys"
 
 # Check each key type
 for k in `${SSH} -Q key-plain` ; do
+	if [ "$os" == "windows" ]; then
+		k=`echo $k | sed 's/\r$//'` # remove CR (carriage return)
+	fi
 	verbose "learn additional hostkeys, type=$k"
 	dossh -oStrictHostKeyChecking=yes -oHostKeyAlgorithms=$k,$all_algs
 	expect_nkeys $nkeys "learn hostkeys $k"

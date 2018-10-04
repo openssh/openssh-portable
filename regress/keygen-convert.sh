@@ -25,9 +25,14 @@ for t in rsa dsa; do
 	    fail "$t import rfc4716 public"
 
 	cut -f1,2 -d " " $OBJ/$t-key.pub >$OBJ/$t-key-nocomment.pub
-	cmp $OBJ/$t-key-nocomment.pub $OBJ/$t-rfc-imported || \
-	    fail "$t imported differs from original"
-
+	if [ "$os" == "windows" ]; then
+		# Ignore CR (carriage return) while comparing files
+		diff --strip-trailing-cr $OBJ/$t-key-nocomment.pub $OBJ/$t-rfc-imported || \
+		fail "$t imported differs from original"
+	else
+		cmp $OBJ/$t-key-nocomment.pub $OBJ/$t-rfc-imported || \
+		fail "$t imported differs from original"
+	fi
 	rm -f $OBJ/$t-key $OBJ/$t-key.pub $OBJ/$t-key-rfc $OBJ/$t-key-rfc.pub \
 	    $OBJ/$t-rfc-imported $OBJ/$t-key-nocomment.pub
 done

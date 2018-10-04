@@ -480,11 +480,18 @@ default_ssh_port(void)
 static int
 execute_in_shell(const char *cmd)
 {
-	char *shell;
 #ifdef WINDOWS
-	fatal("LocalCommand execution is not supported on Windows yet");
-	return 0;
+	int retVal = -1;
+	wchar_t *cmd_w = utf8_to_utf16(cmd);
+
+	if (cmd_w) {
+		retVal = _wsystem(cmd_w);
+		free(cmd_w);
+	}
+
+	return retVal;
 #else /* !WINDOWS */
+	char *shell;
 	pid_t pid;
 	int devnull, status;
 	extern uid_t original_real_uid;

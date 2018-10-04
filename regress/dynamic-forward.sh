@@ -3,6 +3,12 @@
 
 tid="dynamic forwarding"
 
+if [ "$os" == "windows" ]; then
+	# Windows, ssh.exe -S option is not supported on windows
+	echo "skipped, not applicable on windows OS"
+	exit 0
+fi
+
 FWDPORT=`expr $PORT + 1`
 
 if have_prog nc && nc -h 2>&1 | grep "proxy address" >/dev/null; then

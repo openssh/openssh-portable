@@ -14,6 +14,9 @@ run_trial()
 	result=`${SSHD} -f $OBJ/sshd_proxy -T \
 	    -C user=${user},addr=${addr},host=${host},laddr=${laddr},lport=${lport} | \
 	    awk '/^forcecommand/ {print $2}'`
+	if [ "$os" == "windows" ]; then
+		result=${result/$'\r'/} # remove CR (carriage return)
+	fi
 	if [ "$result" != "$expected" ]; then
 		fail "failed '$descr' expected $expected got $result"
 	fi

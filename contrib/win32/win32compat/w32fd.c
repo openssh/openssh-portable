@@ -78,6 +78,9 @@ char* __progname = "";
 char* __progdir = "";
 wchar_t* __wprogdir = L"";
 
+/* __progdata */
+char* __progdata = "";
+wchar_t* __wprogdata = L"";
 
 /* initializes mapping table*/
 static int
@@ -196,7 +199,7 @@ init_prog_paths()
 
 	if ((__wprogdir = _wcsdup(wpgmptr)) == NULL ||
 	    (__progdir = utf16_to_utf8(__wprogdir)) == NULL)
-		fatal("out of memory");
+		fatal("%s out of memory", __func__);
 
 	__progname = strrchr(__progdir, '\\') + 1;
 	/* TODO: retain trailing \ at the end of progdir* variants ? */
@@ -205,6 +208,16 @@ init_prog_paths()
 
 	/* strip .exe off __progname */
 	*(__progname + strlen(__progname) - 4) = '\0';
+
+	/* get %programdata% value */
+	size_t len = 0;
+	_dupenv_s(&__progdata, &len, "ProgramData");
+
+	if (!__progdata)
+		fatal("couldn't find ProgramData environment variable");
+
+	if(!(__wprogdata = utf8_to_utf16(__progdata)))
+		fatal("%s out of memory", __func__, __LINE__);
 
 	processed = 1;
 }
@@ -1028,22 +1041,33 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	DWORD cmdline_len = 0;
 	wchar_t * cmdline_utf16 = NULL;
 	int add_module_path = 0, ret = -1;
+	char *path = NULL;
 
-	/* should module path be added */
 	if (!cmd) {
 		error("%s invalid argument cmd:%s", __func__, cmd);
-		return -1;
+		return ret;
 	}
 
-	t = cmd;
-	if (!is_absolute_path(t) && prepend_module_path)
+	if (!(path = _strdup(cmd))) {
+		error("failed to duplicate %s", cmd);
+		return ret;
+	}
+	
+	if (is_bash_test_env()) {
+		size_t len = strlen(path) + 1;
+		memset(path, 0, len);
+
+		bash_to_win_path(cmd, path, len);
+	}
+
+	if (!is_absolute_path(path) && prepend_module_path)
 		add_module_path = 1;
 
 	/* compute total cmdline len*/
 	if (add_module_path)
-		cmdline_len += (DWORD)strlen(__progdir) + 1 + (DWORD)strlen(cmd) + 1 + 2;
+		cmdline_len += (DWORD)strlen(__progdir) + 1 + (DWORD)strlen(path) + 1 + 2;
 	else
-		cmdline_len += (DWORD)strlen(cmd) + 1 + 2;
+		cmdline_len += (DWORD)strlen(path) + 1 + 2;
 
 	if (argv) {
 		t1 = argv;
@@ -1058,19 +1082,34 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 
 	/* add current module path to start if needed */
 	t = cmdline;
-	if (argv && argv[0])
-		*t++ = '\"';
+	*t++ = '\"';
 	if (add_module_path) {
 		memcpy(t, __progdir, strlen(__progdir));
 		t += strlen(__progdir);
 		*t++ = '\\';
 	}
 
-	memcpy(t, cmd, strlen(cmd));
-	t += strlen(cmd);
+	/* Add double quotes around the executable path
+	 * path can be c:\cygwin64\bin\sh.exe "<e:\openssh\regress\ssh-log-wrapper.sh>"
+	 * Please note that, this logic is not just bash test specific.
+	 */
+	const char *exe_extenstion = ".exe";
+	const char *tmp = NULL;
+	if ((tmp = strstr(path, exe_extenstion)) && (strlen(tmp) > strlen(exe_extenstion))) {
+		tmp += strlen(exe_extenstion); /* move the pointer to the end of ".exe" */
+		
+		memcpy(t, path, strlen(path)-strlen(tmp));
+		t += strlen(path) - strlen(tmp);
 
-	if (argv && argv[0])
 		*t++ = '\"';
+		memcpy(t, tmp, strlen(tmp));
+		t += strlen(tmp);
+	} else {
+		memcpy(t, path, strlen(path));
+		t += strlen(path);
+
+		*t++ = '\"';
+	}
 
 	if (argv) {
 		t1 = argv;
@@ -1125,6 +1164,8 @@ cleanup:
 		free(cmdline);
 	if (cmdline_utf16)
 		free(cmdline_utf16);
+	if (path)
+		free(path);
 
 	return ret;
 }

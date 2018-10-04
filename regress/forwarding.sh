@@ -3,6 +3,12 @@
 
 tid="local and remote forwarding"
 
+if [ "$os" == "windows" ]; then
+	# Windows, ssh.exe -S option is not supported on windows
+	echo "skipped, not applicable on windows OS"
+	exit 0
+fi
+
 DATA=/bin/ls${EXEEXT}
 
 start_sshd

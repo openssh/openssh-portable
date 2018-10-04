@@ -49,11 +49,18 @@ EOD
 [ X${SKIP_IPV6} = Xyes ] || cat >> $OBJ/sshd_config.1 <<EOD
 listenaddress ::1
 EOD
-
-($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
- grep 'listenaddress ' >$OBJ/sshd_config.2 &&
- diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
- fail "listenaddress order 1"
+if [ "$os" == "windows" ]; then
+	# Ignore the CR (carriage return) during diff
+	($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
+	 grep 'listenaddress ' >$OBJ/sshd_config.2 &&
+	 diff --strip-trailing-cr $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+	 fail "listenaddress order 1"
+else
+	($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
+	 grep 'listenaddress ' >$OBJ/sshd_config.2 &&
+	 diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+	 fail "listenaddress order 1"
+fi
 # test 2: listenaddress first
 cat > $OBJ/sshd_config.1 <<EOD
 ${SSHD_KEYS}
@@ -65,11 +72,18 @@ EOD
 [ X${SKIP_IPV6} = Xyes ] || cat >> $OBJ/sshd_config.1 <<EOD
 listenaddress ::1
 EOD
-
-($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
- grep 'listenaddress ' >$OBJ/sshd_config.2 &&
- diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
- fail "listenaddress order 2"
+if [ "$os" == "windows" ]; then
+	# Ignore the CR (carriage return) during diff
+	($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
+	 grep 'listenaddress ' >$OBJ/sshd_config.2 &&
+	 diff --strip-trailing-cr $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+	 fail "listenaddress order 2"
+else
+	($SUDO ${SSHD} -T -f $OBJ/sshd_config.1 | \
+	 grep 'listenaddress ' >$OBJ/sshd_config.2 &&
+	 diff $OBJ/sshd_config.0 $OBJ/sshd_config.2) || \
+	 fail "listenaddress order 2"
+fi
 
 # cleanup
 rm -f $OBJ/sshd_config.[012]

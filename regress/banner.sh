@@ -30,9 +30,18 @@ for s in 0 10 100 1000 10000 100000 ; do
 
 	trace "test banner size $s"
 	verbose "test $tid: size $s"
-	( ${SSH} -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
-		cmp $OBJ/banner.in $OBJ/banner.out ) || \
-		fail "banner size $s mismatch"
+	if [ "$os" == "windows" ]; then
+		# For windows, compare files by ignoring line breaks (CR vs CRLF).
+		# CYGWIN created files (banner.in) will have CR.
+		# SSH output files (banner.out) will have CRLF.
+		( ${SSH} -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
+			diff --strip-trailing-cr $OBJ/banner.in $OBJ/banner.out ) || \
+			fail "banner size $s mismatch"
+	else
+		( ${SSH} -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
+			cmp $OBJ/banner.in $OBJ/banner.out ) || \
+			fail "banner size $s mismatch"
+	fi
 done
 
 trace "test suppress banner (-q)"

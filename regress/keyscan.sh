@@ -8,7 +8,12 @@ rm -f ${OBJ}/host.dsa
 
 start_sshd
 
-KEYTYPES=`${SSH} -Q key-plain`
+if [ "$os" == "windows" ]; then
+	# Remove CR (carriage return)
+	KEYTYPES=`${SSH} -Q key-plain | sed 's/\r$//'`
+else
+	KEYTYPES=`${SSH} -Q key-plain`
+fi
 for t in $KEYTYPES; do
 	trace "keyscan type $t"
 	${SSHKEYSCAN} -t $t -p $PORT 127.0.0.1 127.0.0.1 127.0.0.1 \

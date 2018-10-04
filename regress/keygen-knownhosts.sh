@@ -135,47 +135,87 @@ check_hashed_find host-h "find multiple hosts"
 # Attempt remove key on invalid file.
 cp $OBJ/kh.invalid.orig $OBJ/kh.invalid
 ${SSHKEYGEN} -qf $OBJ/kh.invalid -R host-a 2>/dev/null
-diff $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "remove on invalid succeeded"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "remove on invalid succeeded"
+else
+	diff $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "remove on invalid succeeded"
+fi
 
 # Remove key
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -R host-a 2>/dev/null
 grep -v "^host-a " $OBJ/kh.hosts.orig > $OBJ/kh.expect
-diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove simple"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts $OBJ/kh.expect || fail "remove simple"
+else
+	diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove simple"
+fi
 
 # Remove CA key
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -R host-c 2>/dev/null
 # CA key should not be removed.
-diff $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove CA"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove CA"
+else
+	diff $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove CA"
+fi
 
 # Remove revoked key
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -R host-d 2>/dev/null
 # revoked key should not be removed.
-diff $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove revoked"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove revoked"
+else
+	diff $OBJ/kh.hosts $OBJ/kh.hosts.orig || fail "remove revoked"
+fi
 
 # Remove wildcard
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -R host-e.blahblah 2>/dev/null
 grep -v "^host-e[*] " $OBJ/kh.hosts.orig > $OBJ/kh.expect
-diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+else
+	diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+fi
 
 # Remove multiple
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -R host-h 2>/dev/null
 grep -v "^host-f," $OBJ/kh.hosts.orig > $OBJ/kh.expect
-diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+else
+	diff $OBJ/kh.hosts $OBJ/kh.expect || fail "remove wildcard"
+fi
 
 # Attempt hash on invalid file
 cp $OBJ/kh.invalid.orig $OBJ/kh.invalid
 ${SSHKEYGEN} -qf $OBJ/kh.invalid -H 2>/dev/null && fail "hash invalid succeeded"
-diff $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "invalid file modified"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "invalid file modified"
+else
+	diff $OBJ/kh.invalid $OBJ/kh.invalid.orig || fail "invalid file modified"
+fi
 
 # Hash valid file
 cp $OBJ/kh.hosts.orig $OBJ/kh.hosts
 ${SSHKEYGEN} -qf $OBJ/kh.hosts -H 2>/dev/null || fail "hash failed"
-diff $OBJ/kh.hosts.old $OBJ/kh.hosts.orig || fail "backup differs"
+if [ "$os" == "windows" ]; then
+	# Ignore CR (carriage return) while comparing files
+	diff --strip-trailing-cr $OBJ/kh.hosts.old $OBJ/kh.hosts.orig || fail "backup differs"
+else
+	diff $OBJ/kh.hosts.old $OBJ/kh.hosts.orig || fail "backup differs"
+fi
 grep "^host-[abfgh]" $OBJ/kh.hosts && fail "original hostnames persist"
 
 cp $OBJ/kh.hosts $OBJ/kh.hashed.orig

@@ -11,10 +11,19 @@ r=$?
 [ $r -ne 0 ] && fatal "could not start ssh-agent: exit code $r"
 
 grep -vi 'hostkey' $OBJ/sshd_proxy > $OBJ/sshd_proxy.orig
+if [ "$os" == "windows" ]; then
+	# Windows ssh-agent doesn't support "-s" option so we need to set SSH_AUTH_SOCK env here.
+	SSH_AUTH_SOCK="\\\\.\\pipe\\openssh-ssh-agent"
+	${SSHADD} -D
+fi
 echo "HostKeyAgent $SSH_AUTH_SOCK" >> $OBJ/sshd_proxy.orig
 
 trace "load hostkeys"
 for k in `${SSH} -Q key-plain` ; do
+	if [ "$os" == "windows" ]; then
+		k=${k/$'\r'/} # remove CR (carriage return)
+	fi
+
 	${SSHKEYGEN} -qt $k -f $OBJ/agent-key.$k -N '' || fatal "ssh-keygen $k"
 	(
 		printf 'localhost-with-alias,127.0.0.1,::1 '
@@ -32,6 +41,9 @@ unset SSH_AUTH_SOCK
 
 for ps in no yes; do
 	for k in `${SSH} -Q key-plain` ; do
+		if [ "$os" == "windows" ]; then
+			k=${k/$'\r'/} # remove CR (carriage return)
+		fi
 		verbose "key type $k privsep=$ps"
 		cp $OBJ/sshd_proxy.orig $OBJ/sshd_proxy
 		echo "UsePrivilegeSeparation $ps" >> $OBJ/sshd_proxy
@@ -48,6 +60,10 @@ for ps in no yes; do
 	done
 done
 
+if [ "$os" == "windows" ]; then
+	#keys added through ssh-add are stored in windows registry so delete them.
+	${SSHADD} -D
+fi
 trace "kill agent"
 ${SSHAGENT} -k > /dev/null
 

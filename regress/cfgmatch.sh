@@ -23,19 +23,30 @@ start_client()
 		sleep 1
 		n=`expr $n + 1`
 		if test $n -gt 60; then
-			kill $client_pid
+			if [ "$os" == "windows" ]; then
+				# We can't kill windows process from cygwin / wsl so use "stop-process"
+				powershell.exe /c "stop-process -id $client_pid"
+			else
+				kill $client_pid
+			fi
 			fatal "timeout waiting for background ssh"
 		fi
-	done	
+	done
 }
 
 stop_client()
 {
 	pid=`cat $pidfile`
-	if [ ! -z "$pid" ]; then
-		kill $pid
+	if [ "$os" == "windows" ]; then
+		# We can't kill windows process from cygwin / wsl so use "stop-process"
+		powershell.exe /c "stop-process -id $pid"
+		powershell.exe /c "stop-process -name sleep"
+	else
+		if [ ! -z "$pid" ]; then
+			kill $pid
+		fi
+		wait
 	fi
-	wait
 }
 
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
@@ -46,7 +57,13 @@ echo "PermitOpen 127.0.0.1:2 127.0.0.1:3 127.0.0.1:$PORT" >>$OBJ/sshd_config
 grep -v AuthorizedKeysFile $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
 echo "AuthorizedKeysFile /dev/null" >>$OBJ/sshd_proxy
 echo "PermitOpen 127.0.0.1:1" >>$OBJ/sshd_proxy
-echo "Match user $USER" >>$OBJ/sshd_proxy
+if [ "$os" == "windows" ]; then
+	# If User is domainuser then it will be in "domain/user" so convert it to "domain\user"
+	echo "Match user ${USER//\//\\}" >>$OBJ/sshd_proxy
+else
+	echo "Match user $USER" >>$OBJ/sshd_proxy
+fi
+
 echo "AuthorizedKeysFile /dev/null $OBJ/authorized_keys_%u" >>$OBJ/sshd_proxy
 echo "Match Address 127.0.0.1" >>$OBJ/sshd_proxy
 echo "PermitOpen 127.0.0.1:2 127.0.0.1:3 127.0.0.1:$PORT" >>$OBJ/sshd_proxy
@@ -91,7 +108,12 @@ stop_client
 
 cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
 echo "PermitOpen 127.0.0.1:1 127.0.0.1:$PORT 127.0.0.2:2" >>$OBJ/sshd_proxy
-echo "Match User $USER" >>$OBJ/sshd_proxy
+if [ "$os" == "windows" ]; then
+	# If User is domainuser then it will be in "domain/user" so convert it to "domain\user"
+	echo "Match user ${USER//\//\\}" >>$OBJ/sshd_proxy
+else
+	echo "Match user $USER" >>$OBJ/sshd_proxy
+fi
 echo "PermitOpen 127.0.0.1:1 127.0.0.1:2" >>$OBJ/sshd_proxy
 
 # Test that a Match overrides a PermitOpen in the global section

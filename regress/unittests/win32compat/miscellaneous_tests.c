@@ -72,6 +72,8 @@ test_sanitizedpath()
 
 	wchar_t *win32prgdir = utf8_to_utf16(win32prgdir_utf8);
 	wchar_t *ret = resolved_path_utf16(win32prgdir_utf8);
+	/* resolved path will return in unix file format ex - c:/test/1/ */
+	convertToBackslashW(ret);
 	retValue = wcscmp(win32prgdir, ret);
 	ASSERT_INT_EQ(retValue, 0);
 	free(ret);
@@ -83,6 +85,8 @@ test_sanitizedpath()
 	tmp_path[win32prgdir_len+1] = '\0';
 
 	ret = resolved_path_utf16(tmp_path);
+	/* resolved path will return in unix file format ex - c:/test/1/ */
+	convertToBackslashW(ret);
 	retValue = wcscmp(win32prgdir, ret);
 	ASSERT_INT_EQ(retValue, 0);
 	free(ret);
@@ -92,6 +96,8 @@ test_sanitizedpath()
 	s1[0] = '/', s1[1] = win32prgdir[0],  s1[2] = ':', s1[3] = '\0';
 	s2[0] = win32prgdir[0], s2[1] = ':', s2[2] = '\\', s2[3] = '\0';	
 	ret = resolved_path_utf16(s1);
+	/* resolved path will return in unix file format ex - c:/test/1/ */
+	convertToBackslashW(ret);
 	retValue = wcscmp(ret, s2);
 	ASSERT_INT_EQ(retValue, 0);
 	free(ret);

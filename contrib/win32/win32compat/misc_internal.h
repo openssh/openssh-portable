@@ -19,6 +19,7 @@
 #define IS_VALID_HANDLE(h) (!IS_INVALID_HANDLE(h))
 #define PROGRAM_DATA "__PROGRAMDATA__"
 #define PROGRAM_DATAW L"__PROGRAMDATA__"
+#define CYGWIN_PATH_PREFIX "/cygdrive/"
 
 #define errno_from_Win32LastError() errno_from_Win32Error(GetLastError())
 
@@ -36,6 +37,10 @@ extern char* __progname;
 extern char* __progdir;
 extern wchar_t* __wprogdir;
 
+/* %programdata% value */
+extern char* __progdata;
+extern wchar_t* __wprogdata;
+
 static char *machine_domain_name;
 
 extern char* chroot_path;
@@ -44,6 +49,7 @@ extern wchar_t* chroot_pathw;
 
 /* removes first '/' for Windows paths that are unix styled. Ex: /c:/ab.cd */
 wchar_t * resolved_path_utf16(const char *);
+char* resolved_path_utf8(const char *);
 void w32posix_initialize();
 void w32posix_done();
 void init_prog_paths();
@@ -57,7 +63,6 @@ int file_attr_to_st_mode(wchar_t * path, DWORD attributes);
 void invalid_parameter_handler(const wchar_t *, const wchar_t *, const wchar_t *, unsigned int, uintptr_t);
 void to_lower_case(char *s);
 void to_wlower_case(wchar_t *s);
-wchar_t* get_program_data_path();
 HANDLE get_user_token(const char* user, int impersonation);
 int load_user_profile(HANDLE user_token, char* user);
 int create_directory_withsddl(wchar_t *path, wchar_t *sddl);
@@ -71,3 +76,5 @@ int exec_command_with_pty(wchar_t*, STARTUPINFOW*, PROCESS_INFORMATION*, int);
 char* get_custom_lsa_package();
 wchar_t* get_final_path_by_handle(HANDLE h);
 int lookup_principal_name(const wchar_t * sam_account_name, wchar_t * user_principal_name);
+BOOL is_bash_test_env();
+int bash_to_win_path(const char *in, char *out, const size_t out_len);

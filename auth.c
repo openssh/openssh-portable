@@ -589,8 +589,13 @@ getpwnamallow(const char *user)
 #endif
 	struct passwd *pw;
 	struct connection_info *ci = get_connection_info(1, options.use_dns);
-
+#ifdef WINDOWS
+	/* getpwname - normalizes the incoming user and makes it lowercase */
+	pw = getpwnam(user);
+	ci->user = pw? pw->pw_name: user;
+#else
 	ci->user = user;
+#endif // WINDOWS
 	parse_server_match_config(&options, ci);
 	log_change_level(options.log_level);
 	process_permitopen(ssh, &options);
@@ -598,8 +603,9 @@ getpwnamallow(const char *user)
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);
 #endif
-
+#ifndef WINDOWS
 	pw = getpwnam(user);
+#endif
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();

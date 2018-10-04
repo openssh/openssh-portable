@@ -982,7 +982,11 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 			}
 			if (ci->user == NULL)
 				match_test_missing_fatal("User", "user");
+#ifdef WINDOWS
+			if (match_pattern_list(ci->user, arg, 1) != 1)
+#else
 			if (match_pattern_list(ci->user, arg, 0) != 1)
+#endif
 				result = 0;
 			else
 				debug("user %.100s matched 'User %.100s' at "
@@ -2279,17 +2283,46 @@ parse_server_config(ServerOptions *options, const char *filename, Buffer *conf,
 	 *   h) user@domain@hostip
 	 */
 	/* convert the users, user groups to lower case */
-	for(int i = 0; i < options->num_allow_users; i++)
+	char *tmp = NULL;
+	for (int i = 0; i < options->num_allow_users; i++) {
+		/* For domain user we need special handling.
+		* We support both "domain\user" and "domain/user" formats.
+		*/
+		if (tmp = strstr(options->allow_users[i], "/"))
+			*tmp = '\\';
+
 		lowercase(options->allow_users[i]);
+	}
 
-	for (int i = 0; i < options->num_deny_users; i++)
+	for (int i = 0; i < options->num_deny_users; i++) {
+		/* For domain user we need special handling.
+		 * We support both "domain\user" and "domain/user" formats.
+		 */
+		if (tmp = strstr(options->deny_users[i], "/"))
+			*tmp = '\\';
+
 		lowercase(options->deny_users[i]);
+	}
 
-	for (int i = 0; i < options->num_allow_groups; i++)
+	for (int i = 0; i < options->num_allow_groups; i++) {
+		/* For domain group we need special handling.
+		* We support both "domain\group" and "domain/group" formats.
+		*/
+		if (tmp = strstr(options->allow_groups[i], "/"))
+			*tmp = '\\';
+
 		lowercase(options->allow_groups[i]);
+	}
 
-	for (int i = 0; i < options->num_deny_groups; i++)
+	for (int i = 0; i < options->num_deny_groups; i++) {
+		/* For domain group we need special handling.
+		* We support both "domain\group" and "domain/group" formats.
+		*/
+		if (tmp = strstr(options->deny_groups[i], "/"))
+			*tmp = '\\';
+
 		lowercase(options->deny_groups[i]);
+	}
 #endif // WINDOWS
 }
 

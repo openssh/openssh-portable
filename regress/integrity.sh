@@ -7,10 +7,17 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 # start at byte 2900 (i.e. after kex) and corrupt at different offsets
 tries=10
 startoffset=2900
-macs=`${SSH} -Q mac`
+
 # The following are not MACs, but ciphers with integrated integrity. They are
 # handled specially below.
-macs="$macs `${SSH} -Q cipher-auth`"
+if [ "$os" == "windows" ]; then
+	# remove CR (Carriage return)
+	macs=`${SSH} -Q mac | sed 's/\r$//'`
+	macs="$macs `${SSH} -Q cipher-auth | sed 's/\r$//'`"
+else
+	macs=`${SSH} -Q mac`
+	macs="$macs `${SSH} -Q cipher-auth`"
+fi
 
 # avoid DH group exchange as the extra traffic makes it harder to get the
 # offset into the stream right.
@@ -28,7 +35,12 @@ for m in $macs; do
 	etmo=0
 	ecnt=0
 	skip=0
-	for off in `jot $tries $startoffset`; do
+	if [ "$os" == "windows" ]; then
+		offsets=$(seq $startoffset 1 $((startoffset+tries))) # use seq instead of jot
+	else
+		offsets=`jot $tries $startoffset`
+	fi
+	for off in $offsets; do
 		skip=`expr $skip - 1`
 		if [ $skip -gt 0 ]; then
 			# avoid modifying the high bytes of the length
