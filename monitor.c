@@ -1125,7 +1125,7 @@ mm_answer_keyallowed(int sock, struct sshbuf *m)
 	struct sshauthopt *opts = NULL;
 
 	debug3("%s entering", __func__);
-	if ((r = sshbuf_get_u32(m, &type)) != 0 ||
+	if ((r = sshbuf_get_u32(m, &(u_int32_t)type)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &cuser, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &chost, NULL)) != 0 ||
 	    (r = sshkey_froms(m, &key)) != 0 ||
@@ -1641,22 +1641,31 @@ monitor_send_keystate(struct monitor *pmonitor) {
 
 void 
 monitor_recv_keystate(struct monitor*pmonitor) {
-	Buffer m;
-	char *cp;
-	u_int len;
+	struct sshbuf *m;
+	u_char *cp, ver;
+	size_t len;
+	int r;
 
-	buffer_init(&m);
+	debug3("%s: entering ", __func__);
 
-	if (ssh_msg_recv(pmonitor->m_recvfd, &m) == -1)
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if (ssh_msg_recv(pmonitor->m_recvfd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
-	if (buffer_get_char(&m) != 0)
-		fatal("%s: recv_keystate version mismatch", __func__);
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
+		fatal("%s: rexec version mismatch", __func__);
 
-	cp = buffer_get_string(&m, &len);
+	if ((r = sshbuf_get_string_direct(m, &cp, &len)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
 	child_state = sshbuf_new();
-	buffer_append(child_state, cp, len);
-	free(cp);
-	buffer_free(&m);
+	if ((r = sshbuf_put(child_state, cp, len)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	debug3("%s: done", __func__);
+	sshbuf_free(m);
 }
 
 
@@ -1690,22 +1699,27 @@ monitor_send_authopt(struct monitor *pmonitor, int untrusted) {
 
 void
 monitor_recv_authopt(struct monitor*pmonitor) {
-	Buffer m;
+	struct sshbuf *m;
+	u_char *cp, ver;
 	int r = 0;
 
-	buffer_init(&m);
+	debug3("%s: entering ", __func__);
 
-	if (ssh_msg_recv(pmonitor->m_recvfd, &m) == -1)
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if (ssh_msg_recv(pmonitor->m_recvfd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
-	
-	if (buffer_get_char(&m) != 0)
-		fatal("%s: version mismatch", __func__);
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
+		fatal("%s: rexec version mismatch", __func__);
 
-	if ((r = sshauthopt_deserialise(&m, &auth_opts)) != 0)
+	if ((r = sshauthopt_deserialise(m, &auth_opts)) != 0)
 		fatal("%s: sshauthopt_deserialise: %s",
 			__func__, ssh_err(r));
-
-	buffer_free(&m);
+	
+	debug3("%s: done", __func__);
+	sshbuf_free(m);
 }
 
 void

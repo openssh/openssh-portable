@@ -583,8 +583,8 @@ static void send_config_state(int fd, struct sshbuf *conf)
 }
 
 void
-recv_rexec_state(int, Buffer *);
-static void recv_config_state(int fd, Buffer *conf)
+recv_rexec_state(int, struct sshbuf *);
+static void recv_config_state(int fd, struct sshbuf *conf)
 {
 	recv_rexec_state(fd, conf);
 }
@@ -610,23 +610,29 @@ send_idexch_state(int fd)
 static void
 recv_idexch_state(int fd)
 {
-	Buffer m;
-	char *cp;
+	struct sshbuf *m;
+	u_char *cp, ver;
 	size_t tmp;
+	int r;
 	
-	buffer_init(&m);
+	debug3("%s: entering fd = %d", __func__, fd);
 
-	if (ssh_msg_recv(fd, &m) == -1)
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if (ssh_msg_recv(fd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
+		fatal("%s: rexec version mismatch", __func__);
 
-	if (buffer_get_char(&m) != 0)
-		fatal("%s: recv_idexch_state version mismatch", __func__);
-
-	if (sshbuf_get_cstring(&m, &client_version_string, &tmp) != 0 ||
-	    sshbuf_get_cstring(&m, &server_version_string, &tmp) != 0 )
+	if (sshbuf_get_cstring(m, &client_version_string, &tmp) != 0 ||
+	    sshbuf_get_cstring(m, &server_version_string, &tmp) != 0 )
 		fatal("%s: unable to retrieve idexch state", __func__);
 
-	buffer_free(&m);
+	sshbuf_free(m);
+
+	debug3("%s: done", __func__);
 }
 
 static void
@@ -678,26 +684,33 @@ send_hostkeys_state(int fd)
 static void
 recv_hostkeys_state(int fd)
 {
-	Buffer b, *m = &b;
-	char *cp;
+	struct sshbuf *m;
+	u_char *cp, ver;
 	struct sshkey *key = NULL;
-	const char *blob;
-	int blen;
+	const u_char *blob;
+	size_t blen;
+	int r;
+	u_int32_t num_host_key_files;
 
-	buffer_init(m);
+	debug3("%s: entering fd = %d", __func__, fd);
 
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 	if (ssh_msg_recv(fd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
+		fatal("%s: rexec version mismatch", __func__);
 
-	if (buffer_get_char(m) != 0)
-		fatal("%s: version mismatch", __func__);
-
-	int num_host_key_files = buffer_get_int(m);
+	if ((r = sshbuf_get_u32(m, &num_host_key_files)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	sensitive_data.host_keys = xcalloc(num_host_key_files, sizeof(struct sshkey *));
 	sensitive_data.host_pubkeys = xcalloc(num_host_key_files, sizeof(struct sshkey *));
 	sensitive_data.host_certificates = xcalloc(num_host_key_files, sizeof(struct sshkey *));
 	for (int i = 0; i < num_host_key_files; i++) {
-		blob = buffer_get_string_ptr(m, &blen);
+		if ((r = sshbuf_get_string_direct(m, &blob, &blen)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 		sensitive_data.host_pubkeys[i] = NULL;
 		sensitive_data.host_keys[i] = NULL;
 
@@ -708,7 +721,8 @@ recv_hostkeys_state(int fd)
 	}
 
 	for (int i = 0; i < num_host_key_files; i++) {
-		blob = buffer_get_string_ptr(m, &blen);
+		if ((r = sshbuf_get_string_direct(m, &blob, &blen)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 		sensitive_data.host_certificates[i] = NULL;
 		if (blen) {
 			sshkey_from_blob(blob, blen, &key);
@@ -716,7 +730,8 @@ recv_hostkeys_state(int fd)
 		}
 	}
 
-	buffer_free(m);
+	sshbuf_free(m);
+	debug3("%s: done", __func__);
 }
 
 static void
@@ -739,18 +754,27 @@ send_autxctx_state(Authctxt *auth, int fd)
 static void
 recv_autxctx_state(Authctxt *auth, int fd)
 {
-	Buffer m;
-	u_int len;
+	struct sshbuf *m;
+	u_char *cp, ver, *user;
+	size_t user_len;
+	int r;
 
-	buffer_init(&m);
+	debug3("%s: entering fd = %d", __func__, fd);
 
-	if (ssh_msg_recv(fd, &m) == -1)
+	if ((m = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+	if (ssh_msg_recv(fd, m) == -1)
 		fatal("%s: ssh_msg_recv failed", __func__);
-	if (buffer_get_char(&m) != 0)
-		fatal("%s: recv_keystate version mismatch", __func__);
+	if ((r = sshbuf_get_u8(m, &ver)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (ver != 0)
+		fatal("%s: rexec version mismatch", __func__);
+	if ((r = sshbuf_get_string_direct(m, &user, &user_len)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	auth->user = xstrdup(user);
 
-	auth->user = xstrdup(buffer_get_cstring(&m, &len));
-	buffer_free(&m);
+	debug3("%s: done", __func__);
+	sshbuf_free(m);
 }
 
 static char**
@@ -856,7 +880,7 @@ privsep_preauth(Authctxt *authctxt)
 
 		close(pmonitor->m_recvfd);
 		close(pmonitor->m_log_sendfd);
-		send_config_state(pmonitor->m_sendfd, &cfg);
+		send_config_state(pmonitor->m_sendfd, cfg);
 		send_hostkeys_state(pmonitor->m_sendfd);
 		send_idexch_state(pmonitor->m_sendfd);
 		monitor_child_preauth(authctxt, pmonitor);
@@ -963,7 +987,7 @@ privsep_postauth(Authctxt *authctxt)
 		}
 		
 		verbose("User child is on pid %ld", (long)pmonitor->m_pid);
-		send_config_state(pmonitor->m_sendfd, &cfg);
+		send_config_state(pmonitor->m_sendfd, cfg);
 		send_hostkeys_state(pmonitor->m_sendfd);
 		send_idexch_state(pmonitor->m_sendfd);
 		send_autxctx_state(authctxt, pmonitor->m_sendfd);
@@ -2065,7 +2089,7 @@ main(int ac, char **av)
 	if (rexeced_flag)
 		recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg);
 	else if (privsep_unauth_child || privsep_auth_child)
-		recv_config_state(PRIVSEP_MONITOR_FD, &cfg);
+		recv_config_state(PRIVSEP_MONITOR_FD, cfg);
 	else if (strcasecmp(config_file_name, "none") != 0)
 		load_server_config(config_file_name, cfg);
 

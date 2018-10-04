@@ -22,9 +22,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/******* TODO - integrate these changes into ttymodes.c ******/
+
 #include "includes.h"
 
-#include "inc/sys/types.h"
+#include <sys/types.h>
 
 #include <errno.h>
 #include <string.h>
@@ -34,7 +36,8 @@
 #include "packet.h"
 #include "log.h"
 #include "compat.h"
-#include "buffer.h"
+#include "sshbuf.h"
+#include "ssherr.h"
 
 #define TTY_OP_END		0
 /*
@@ -51,44 +54,52 @@
  * being constructed.
  */
 void
-tty_make_modes(int fd, struct termios *tiop)
+ssh_tty_make_modes(struct ssh *ssh, int fd, struct termios *tiop)
 {
-	int baud;
-	Buffer buf;
-	int tty_op_ospeed, tty_op_ispeed;
-	void (*put_arg)(Buffer *, u_int);
+	struct termios tio;
+	struct sshbuf *buf;
+	int r, baud, tty_op_ospeed, tty_op_ispeed;
+	
+	if ((buf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 
-	buffer_init(&buf);
+	tio = *tiop;
+	
 	tty_op_ospeed = TTY_OP_OSPEED_PROTO2;
 	tty_op_ispeed = TTY_OP_ISPEED_PROTO2;
-	put_arg = buffer_put_int;
-
 	/* Store input and output baud rates. */
 	baud = 9600;
 
-	buffer_put_char(&buf, tty_op_ospeed);
-	buffer_put_int(&buf, baud);
-	baud = 9600;
-	buffer_put_char(&buf, tty_op_ispeed);
-	buffer_put_int(&buf, baud);
+	if ((r = sshbuf_put_u8(buf, tty_op_ospeed)) != 0 ||
+	    (r = sshbuf_put_u32(buf, baud)) != 0 ||
+	    (r = sshbuf_put_u8(buf, tty_op_ispeed)) != 0 ||
+	    (r = sshbuf_put_u32(buf, baud)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	/* Store values of mode flags. */
 #define TTYCHAR(NAME, OP) \
-	buffer_put_char(&buf, OP); \
-	put_arg(&buf, special_char_encode(tio.c_cc[NAME]));
+	if ((r = sshbuf_put_u8(buf, OP)) != 0 || \
+	    (r = sshbuf_put_u32(buf, \
+	    special_char_encode(tio.c_cc[NAME]))) != 0) \
+		fatal("%s: buffer error: %s", __func__, ssh_err(r)); \
+
+#define SSH_TTYMODE_IUTF8 42  /* for SSH_BUG_UTF8TTYMODE */
 
 #define TTYMODE(NAME, FIELD, OP) \
-	buffer_put_char(&buf, OP); \
-	put_arg(&buf, ((tio.FIELD & NAME) != 0));
+	if (OP == SSH_TTYMODE_IUTF8 && (datafellows & SSH_BUG_UTF8TTYMODE)) { \
+		debug3("%s: SSH_BUG_UTF8TTYMODE", __func__); \
+	} else if ((r = sshbuf_put_u8(buf, OP)) != 0 || \
+	    (r = sshbuf_put_u32(buf, ((tio.FIELD & NAME) != 0))) != 0) \
+		fatal("%s: buffer error: %s", __func__, ssh_err(r)); \
 
 #undef TTYCHAR
 #undef TTYMODE
 
-end:
-	/* Mark end of mode data. */
-	buffer_put_char(&buf, TTY_OP_END);
-	packet_put_string(buffer_ptr(&buf), buffer_len(&buf));
-	buffer_free(&buf);
+end :
+	    /* Mark end of mode data. */
+	    if ((r = sshbuf_put_u8(buf, TTY_OP_END)) != 0 ||
+		    (r = sshpkt_put_stringb(ssh, buf)) != 0)
+		    fatal("%s: packet error: %s", __func__, ssh_err(r));
+	    sshbuf_free(buf);
 }
 
 /*
@@ -96,90 +107,93 @@ end:
  * manner from a packet being read.
  */
 void
-tty_parse_modes(int fd, int *n_bytes_ptr)
+ssh_tty_parse_modes(struct ssh *ssh, int fd)
 {
+	struct sshbuf *buf;
+	const u_char *data;
+	u_char opcode;
+	u_int baud, u;
+	int r, failure = 0;
+	size_t len;
 
-	u_int tio[255]; // win32 dummy
-	u_int tioFIELD ;
-	int opcode, baud;
-	int n_bytes = 0;
-	int failure = 0;
-	u_int (*get_arg)(void);
-	int arg_size;
-
-	*n_bytes_ptr = packet_get_int();
-	if (*n_bytes_ptr == 0)
+	if ((r = sshpkt_get_string_direct(ssh, &data, &len)) != 0)
+		fatal("%s: packet error: %s", __func__, ssh_err(r));
+	if (len == 0)
 		return;
-	get_arg = packet_get_int;
-	arg_size = 4;
+	if ((buf = sshbuf_from(data, len)) == NULL) {
+		error("%s: sshbuf_from failed", __func__);
+		return;
+	}
 
-	for (;;) {
-		n_bytes += 1;
-		opcode = packet_get_char();
+	while (sshbuf_len(buf) > 0) {
+		if ((r = sshbuf_get_u8(buf, &opcode)) != 0)
+			fatal("%s: packet error: %s", __func__, ssh_err(r));
 		switch (opcode) {
 		case TTY_OP_END:
 			goto set;
 
-		/* XXX: future conflict possible */
-		case TTY_OP_ISPEED_PROTO1:
 		case TTY_OP_ISPEED_PROTO2:
-			n_bytes += 4;
-			baud = packet_get_int();
+			if ((r = sshbuf_get_u32(buf, &baud)) != 0)
+				fatal("%s: packet error: %s",
+					__func__, ssh_err(r));
 			break;
 
-		/* XXX: future conflict possible */
-		case TTY_OP_OSPEED_PROTO1:
 		case TTY_OP_OSPEED_PROTO2:
-			n_bytes += 4;
-			baud = packet_get_int();
+			if ((r = sshbuf_get_u32(buf, &baud)) != 0)
+				fatal("%s: packet error: %s",
+					__func__, ssh_err(r));
 			break;
 
 #define TTYCHAR(NAME, OP) \
-	case OP: \
-	  n_bytes += arg_size; \
-	  tio[NAME] = special_char_decode(get_arg()); \
-	  break;
+		case OP: \
+			if ((r = sshbuf_get_u32(buf, &u)) != 0) \
+				fatal("%s: packet error: %s", __func__, \
+				    ssh_err(r)); \
+			tio.c_cc[NAME] = special_char_decode(u); \
+			break;
 #define TTYMODE(NAME, FIELD, OP) \
-	case OP: \
-	  n_bytes += arg_size; \
-	  if (get_arg()) \
-	    tioFIELD |= NAME; \
-	  else \
-	    tioFIELD &= ~NAME;	\
-	  break;
+		case OP: \
+			if ((r = sshbuf_get_u32(buf, &u)) != 0) \
+				fatal("%s: packet error: %s", __func__, \
+				    ssh_err(r)); \
+			if (u) \
+				tio.FIELD |= NAME; \
+			else \
+				tio.FIELD &= ~NAME; \
+			break;
 
 #undef TTYCHAR
 #undef TTYMODE
 
 		default:
 			debug("Ignoring unsupported tty mode opcode %d (0x%x)",
-			    opcode, opcode);
-			{
-				/*
-				 * SSH2:
-				 * Opcodes 1 to 159 are defined to have
-				 * a uint32 argument.
-				 * Opcodes 160 to 255 are undefined and
-				 * cause parsing to stop.
-				 */
-				if (opcode > 0 && opcode < 160) {
-					n_bytes += 4;
-					(void) packet_get_int();
-					break;
-				} else {
-					logit("parse_tty_modes: unknown opcode %d",
-					    opcode);
-					goto set;
-				}
+				opcode, opcode);
+			/*
+			* SSH2:
+			* Opcodes 1 to 159 are defined to have a uint32
+			* argument.
+			* Opcodes 160 to 255 are undefined and cause parsing
+			* to stop.
+			*/
+			if (opcode > 0 && opcode < 160) {
+				if ((r = sshbuf_get_u32(buf, NULL)) != 0)
+					fatal("%s: packet error: %s", __func__,
+						ssh_err(r));
+				break;
+			}
+			else {
+				logit("%s: unknown opcode %d", __func__,
+					opcode);
+				goto set;
 			}
 		}
 	}
 
 set:
-	if (*n_bytes_ptr != n_bytes) {
-		*n_bytes_ptr = n_bytes;
-		logit("parse_tty_modes: n_bytes_ptr != n_bytes: %d %d",
-		    *n_bytes_ptr, n_bytes);
+	len = sshbuf_len(buf);
+	sshbuf_free(buf);
+	if (len > 0) {
+		logit("%s: %zu bytes left", __func__, len);
 		return;		/* Don't process bytes passed */
 	}
 	if (failure == -1)

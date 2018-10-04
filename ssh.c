@@ -1168,12 +1168,14 @@ main(int ac, char **av)
 		char port_s[8];
 		const char *sshbin = argv0;
 
+#ifndef WINDOWS /* TODO - implement "acesss" in posix layer and enable this */
 		/*
 		 * Try to use SSH indicated by argv[0], but fall back to
 		 * "ssh" if it appears unavailable.
 		 */
 		if (strchr(argv0, '/') != NULL && access(argv0, X_OK) != 0)
 			sshbin = "ssh";
+#endif
 
 		/* Consistency check */
 		if (options.proxy_command != NULL)

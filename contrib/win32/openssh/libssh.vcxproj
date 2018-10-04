@@ -349,10 +349,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)authfd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)authfile.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)bitmap.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)bufaux.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)bufbn.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)bufec.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)buffer.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)canohost.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)chacha.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)channels.c" />
@@ -409,7 +405,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)kexgexc.c">
       <ExcludedFromBuild Condition="$(UseOpenSSL)==false">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)key.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)krl.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)log.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)mac.c" />

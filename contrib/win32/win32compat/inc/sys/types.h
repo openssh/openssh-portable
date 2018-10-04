@@ -13,3 +13,12 @@ typedef int ssize_t;
 typedef int pid_t;
 
 typedef unsigned int	nfds_t;
+
+/* copied from Windows SDK corecrt_wstdio.h to accomodate FILE definition via types.h in Unix */
+#ifndef _FILE_DEFINED
+#define _FILE_DEFINED
+typedef struct _iobuf
+{
+	void* _Placeholder;
+} FILE;
+#endif
