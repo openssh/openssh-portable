@@ -314,7 +314,7 @@ Describe "E2E scenarios for ssh key management" -Tags "CI" {
             $o[1] | Should Be $entry
 
             $o = ssh-keygen -H -F [localhost]:47002 -f $kh
-            $o.StartsWith("|1|")  | Should Be $true
+            $o[1].StartsWith("|1|")  | Should Be $true
 
             $o = ssh-keygen -R [localhost]:47002 -f $kh
             $o.count | Should Be 3

@@ -133,7 +133,7 @@ Describe "Tests for host keys file permission" -Tags "CI" {
             WaitForValidation -LogPath $logPath -Length 1100
 
             #validate file content contains unprotected info.
-            $logPath | Should Contain "key_load_private: bad permissions"            
+            $logPath | Should Contain "bad permissions"            
         }
 
         It "$tC.$tI-Host keys-negative (the private key has wrong owner)" {
@@ -146,22 +146,8 @@ Describe "Tests for host keys file permission" -Tags "CI" {
             WaitForValidation -LogPath $logPath -Length 1100
 
             #validate file content contains unprotected info.
-            $logPath | Should Contain "key_load_private: bad permissions"
+            $logPath | Should Contain "bad permissions"
         }
 
-        #skip on win7 because Set-Acl failed due to issue on win7 when user does not have write permission on the file
-        It "$tC.$tI-Host keys-negative (the running process does not have read access to public key)" -skip:$skip {
-            #setup to have ssouser as owner and grant it full control
-            Repair-FilePermission -Filepath $hostKeyFilePath -Owners $systemSid -FullAccessNeeded $systemSid,$adminsSid -confirm:$false            
-            Repair-FilePermission -Filepath "$hostKeyFilePath.pub" -Owners $systemSid -FullAccessNeeded $systemSid -confirm:$false
-            Set-FilePermission -Filepath "$hostKeyFilePath.pub" -UserSid $adminsSid -Action Delete
-
-            #Run
-            Start-Process -FilePath sshd.exe -WorkingDirectory $($OpenSSHTestInfo['OpenSSHBinPath']) -ArgumentList @("-d", "-p $port", "-h $hostKeyFilePath", "-E $logPath") -NoNewWindow
-            WaitForValidation -LogPath $logPath -Length 1100
-
-            #validate file content contains unprotected info.
-            $logPath | Should Contain "key_load_public: Permission denied"
-        }
     }
 }
