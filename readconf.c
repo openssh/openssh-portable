@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.299 2018/10/03 06:38:35 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.300 2018/10/05 14:26:09 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1158,7 +1158,20 @@ parse_command:
 		return 0;
 
 	case oPort:
-		intptr = &options->port;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		value = a2port(arg);
+		if (value <= 0)
+			fatal("%.200s line %d: Bad port '%s'.",
+			    filename, linenum, arg);
+		if (*activep && options->port == -1)
+			options->port = value;
+		break;
+
+	case oConnectionAttempts:
+		intptr = &options->connection_attempts;
 parse_int:
 		arg = strdelim(&s);
 		if ((errstr = atoi_err(arg, &value)) != NULL)
@@ -1167,10 +1180,6 @@ parse_int:
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
-
-	case oConnectionAttempts:
-		intptr = &options->connection_attempts;
-		goto parse_int;
 
 	case oCiphers:
 		arg = strdelim(&s);
