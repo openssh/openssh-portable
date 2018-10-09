@@ -3455,10 +3455,10 @@ fi
 AC_CHECK_TYPES([long long, unsigned long long, long double])
 
 # Check datatype sizes
-AC_CHECK_SIZEOF([short int], [2])
-AC_CHECK_SIZEOF([int], [4])
-AC_CHECK_SIZEOF([long int], [4])
-AC_CHECK_SIZEOF([long long int], [8])
+AC_CHECK_SIZEOF([short int])
+AC_CHECK_SIZEOF([int])
+AC_CHECK_SIZEOF([long int])
+AC_CHECK_SIZEOF([long long int])
 
 # Sanity check long long for some platforms (AIX)
 if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
