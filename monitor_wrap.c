@@ -279,25 +279,9 @@ mm_getpwnamallow(const char *username)
 		goto out;
 	}
 
-	/* XXX don't like passing struct passwd like this */
-	pw = xcalloc(sizeof(*pw), 1);
-	if ((r = sshbuf_get_string_direct(m, &p, &len)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (len != sizeof(*pw))
-		fatal("%s: struct passwd size mismatch", __func__);
-	memcpy(pw, p, sizeof(*pw));
-
-	if ((r = sshbuf_get_cstring(m, &pw->pw_name, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_passwd, NULL)) != 0 ||
-#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
-	    (r = sshbuf_get_cstring(m, &pw->pw_gecos, NULL)) != 0 ||
-#endif
-#ifdef HAVE_STRUCT_PASSWD_PW_CLASS
-	    (r = sshbuf_get_cstring(m, &pw->pw_class, NULL)) != 0 ||
-#endif
-	    (r = sshbuf_get_cstring(m, &pw->pw_dir, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &pw->pw_shell, NULL)) != 0)
-		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	pw = sshbuf_get_passwd(m);
+	if (pw == NULL)
+		fatal("%s: receive get struct passwd failed", __func__);
 
 out:
 	/* copy options block as a Match directive may have changed some */

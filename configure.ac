@@ -3502,6 +3502,8 @@ AC_CHECK_SIZEOF([short int])
 AC_CHECK_SIZEOF([int])
 AC_CHECK_SIZEOF([long int])
 AC_CHECK_SIZEOF([long long int])
+AC_CHECK_SIZEOF([size_t])
+AC_CHECK_SIZEOF([time_t])
 
 # Sanity check long long for some platforms (AIX)
 if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
