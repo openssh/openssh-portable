@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.70 2018/09/14 04:17:44 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.71 2018/10/09 05:42:23 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3936,7 +3936,16 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	clear_libcrypto_errors();
 	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
 	    (char *)passphrase)) == NULL) {
-		r = convert_libcrypto_error();
+	       /*
+		* libcrypto may return various ASN.1 errors when attempting
+		* to parse a key with an incorrect passphrase.
+		* Treat all format errors as "incorrect passphrase" if a
+		* passphrase was supplied.
+		*/
+		if (passphrase != NULL && *passphrase != '\0')
+			r = SSH_ERR_KEY_WRONG_PASSPHRASE;
+		else
+			r = convert_libcrypto_error();
 		goto out;
 	}
 	if (EVP_PKEY_base_id(pk) == EVP_PKEY_RSA &&
