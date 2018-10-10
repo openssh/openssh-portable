@@ -3914,6 +3914,20 @@ convert_libcrypto_error(void)
 }
 
 static int
+pem_passphrase_cb(char *buf, int size, int rwflag, void *u)
+{
+	char *p = (char *)u;
+	size_t len;
+
+	if (p == NULL || (len = strlen(p)) == 0)
+		return -1;
+	if (size < 0 || len > (size_t)size)
+		return -1;
+	memcpy(buf, p, len);
+	return (int)len;
+}
+
+static int
 sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp)
 {
@@ -3934,7 +3948,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
 	}
 
 	clear_libcrypto_errors();
-	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, NULL,
+	if ((pk = PEM_read_bio_PrivateKey(bio, NULL, pem_passphrase_cb,
 	    (char *)passphrase)) == NULL) {
 	       /*
 		* libcrypto may return various ASN.1 errors when attempting
