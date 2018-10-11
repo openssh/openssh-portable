@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.287 2018/09/14 05:26:27 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.288 2018/10/11 03:48:04 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1088,7 +1088,8 @@ key_sig_algorithm(struct ssh *ssh, const struct sshkey *key)
 	 * newer (SHA2) algorithms.
 	 */
 	if (ssh == NULL || ssh->kex->server_sig_algs == NULL ||
-	    (key->type != KEY_RSA && key->type != KEY_RSA_CERT)) {
+	    (key->type != KEY_RSA && key->type != KEY_RSA_CERT) ||
+	    (key->type == KEY_RSA_CERT && (datafellows & SSH_BUG_SIGTYPE))) {
 		/* Filter base key signature alg against our configuration */
 		return match_list(sshkey_ssh_name(key),
 		    options.pubkey_key_types, NULL);
