@@ -124,10 +124,6 @@ static const struct keytype keytypes[] = {
 	    "rsa-sha2-512", KEY_RSA_CERT, 0, 1, 1 },
 	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", NULL,
 	    KEY_DSA_CERT, 0, 1, 0 },
-	{ "ssh-rsa-cert-v01@openssh.com", "RSA-CERT", NULL,
-	    KEY_RSA_CERT, 0, 1, 0 },
-	{ "ssh-dss-cert-v01@openssh.com", "DSA-CERT", NULL,
-	    KEY_DSA_CERT, 0, 1, 0 },
 # ifdef OPENSSL_HAS_ECC
 	{ "ecdsa-sha2-nistp256-cert-v01@openssh.com", "ECDSA-CERT", NULL,
 	    KEY_ECDSA_CERT, NID_X9_62_prime256v1, 1, 0 },
