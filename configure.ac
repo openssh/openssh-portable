@@ -2110,6 +2110,29 @@ if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	)
 fi
 
+if test "x$ac_cv_func_snprintf" = "xyes" ; then
+	AC_MSG_CHECKING([whether snprintf understands %zu])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#include <stdio.h>
+		]],
+		[[
+	size_t a = 1, b = 2;
+	char z[128];
+	snprintf(z, sizeof z, "%zu%zu", a, b);
+	exit(strcmp(z, "12"));
+		]])],
+		[AC_MSG_RESULT([yes])],
+		[
+			AC_MSG_RESULT([no])
+			AC_DEFINE([BROKEN_SNPRINTF], [1],
+				[snprintf does not understand %zu])
+		],
+		[ AC_MSG_WARN([cross compiling: Assuming working snprintf()]) ]
+	)
+fi
+
 # We depend on vsnprintf returning the right thing on overflow: the
 # number of characters it tried to create (as per SUSv3)
 if test "x$ac_cv_func_vsnprintf" = "xyes" ; then
