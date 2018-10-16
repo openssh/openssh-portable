@@ -80,7 +80,7 @@ ssh_OpenSSL_add_all_algorithms(void)
 	OPENSSL_config(NULL);
 #else
 	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG);
+	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG, NULL);
 #endif
 }
 #endif
