@@ -2612,15 +2612,19 @@ if test "x$openssl" = "xyes" ; then
 			ssl_library_ver=`cat conftest.ssllibver`
 			# Check version is supported.
 			case "$ssl_library_ver" in
-				10000*|0*)
-					AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
-			                ;;
-				100*)   ;; # 1.0.x
-				101*)   ;; # 1.1.x
-				200*)   ;; # LibreSSL
-			        *)
-					AC_MSG_ERROR([OpenSSL > 1.1.x is not yet supported (have "$ssl_library_ver")])
-			                ;;
+			10000*|0*)
+				AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
+		                ;;
+			100*)   ;; # 1.0.x
+			101000[0123456]*)
+				# https://github.com/openssl/openssl/pull/4613
+				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
+				;;
+			101*)   ;; # 1.1.x
+			200*)   ;; # LibreSSL
+		        *)
+				AC_MSG_ERROR([OpenSSL > 1.1.x is not yet supported (have "$ssl_library_ver")])
+		                ;;
 			esac
 			AC_MSG_RESULT([$ssl_library_ver])
 		],
