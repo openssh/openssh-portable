@@ -1132,6 +1132,11 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		error("Offending %s key in %s:%lu",
 		    sshkey_type(host_found->key),
 		    host_found->file, host_found->line);
+		error("You can use the following command to remove the offending key:");
+		if (host_found->file)
+			error("ssh-keygen -R %s -f %s", host, host_found->file);
+		else
+			error("ssh-keygen -R %s", host);
 
 		/*
 		 * If strict host key checking is in use, the user will have
