@@ -1,9 +1,14 @@
-#	$OpenBSD: Makefile.inc,v 1.12 2017/12/21 00:41:22 djm Exp $
+#	$OpenBSD: Makefile.inc,v 1.13 2018/10/17 23:28:05 djm Exp $
 
 REGRESS_FAIL_EARLY?=	yes
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
+
+# User-settable options
+UNITTEST_FAST?= no	# Skip slow tests (e.g. less intensive fuzzing).
+UNITTEST_SLOW?= no	# Include slower tests (e.g. more intensive fuzzing).
+UNITTEST_VERBOSE?= no	# Verbose test output (inc. per-test names).
 
 MALLOC_OPTIONS?=	CFGJRSUX
 TEST_ENV?=		MALLOC_OPTIONS=${MALLOC_OPTIONS}
@@ -67,4 +72,15 @@ DPADD+= ${LIBUTIL}
 .if (${OPENSSL:L} == "yes")
 LDADD+= -lcrypto
 DPADD+= ${LIBCRYPTO}
+.endif
+
+UNITTEST_ARGS?=
+
+.if (${UNITTEST_VERBOSE:L} != "no")
+UNITTEST_ARGS+= -v
+.endif
+.if (${UNITTEST_FAST:L} != "no")
+UNITTEST_ARGS+= -f
+.elif (${UNITTEST_SLOW:L} != "no")
+UNITTEST_ARGS+= -F
 .endif

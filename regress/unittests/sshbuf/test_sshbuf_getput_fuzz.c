@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_getput_fuzz.c,v 1.2 2014/05/02 02:54:00 djm Exp $ */
+/* 	$OpenBSD: test_sshbuf_getput_fuzz.c,v 1.3 2018/10/17 23:28:05 djm Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -115,11 +115,15 @@ sshbuf_getput_fuzz_tests(void)
 		0x55, 0x0f, 0x69, 0xd8, 0x0e, 0xc2, 0x3c, 0xd4,
 	};
 	struct fuzz *fuzz;
+	u_int fuzzers = FUZZ_1_BIT_FLIP | FUZZ_2_BIT_FLIP |
+	    FUZZ_1_BYTE_FLIP | FUZZ_2_BYTE_FLIP |
+	    FUZZ_TRUNCATE_START | FUZZ_TRUNCATE_END;
+
+	if (test_is_fast())
+		fuzzers &= ~(FUZZ_2_BYTE_FLIP|FUZZ_2_BIT_FLIP);
 
 	TEST_START("fuzz blob parsing");
-	fuzz = fuzz_begin(FUZZ_1_BIT_FLIP | FUZZ_2_BIT_FLIP |
-	    FUZZ_1_BYTE_FLIP | FUZZ_2_BYTE_FLIP |
-	    FUZZ_TRUNCATE_START | FUZZ_TRUNCATE_END, blob, sizeof(blob));
+	fuzz = fuzz_begin(fuzzers, blob, sizeof(blob));
 	TEST_ONERROR(onerror, fuzz);
 	for(; !fuzz_done(fuzz); fuzz_next(fuzz))
 		attempt_parse_blob(blob, sizeof(blob));
