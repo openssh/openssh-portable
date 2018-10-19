@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.322 2018/09/14 04:17:44 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.323 2018/10/19 03:12:42 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2003,8 +2003,9 @@ print_cert(struct sshkey *key)
 	printf("        Type: %s %s certificate\n", sshkey_ssh_name(key),
 	    sshkey_cert_type(key));
 	printf("        Public key: %s %s\n", sshkey_type(key), key_fp);
-	printf("        Signing CA: %s %s\n",
-	    sshkey_type(key->cert->signature_key), ca_fp);
+	printf("        Signing CA: %s %s (using %s)\n",
+	    sshkey_type(key->cert->signature_key), ca_fp,
+	    key->cert->signature_type);
 	printf("        Key ID: \"%s\"\n", key->cert->key_id);
 	printf("        Serial: %llu\n", (unsigned long long)key->cert->serial);
 	printf("        Valid: %s\n", valid);
