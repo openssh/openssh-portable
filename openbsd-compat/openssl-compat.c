@@ -76,7 +76,7 @@ ssh_OpenSSL_add_all_algorithms(void)
 	ENGINE_load_builtin_engines();
 	ENGINE_register_all_complete();
 
-#if OPENSSL_VERSION_NUMBER < 0x10001000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	OPENSSL_config(NULL);
 #else
 	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
