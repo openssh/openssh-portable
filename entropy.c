@@ -219,9 +219,11 @@ seed_rng(void)
 #ifndef OPENSSL_PRNG_ONLY
 	unsigned char buf[RANDOM_SEED_SIZE];
 #endif
-	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER, SSLeay()))
+	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER,
+	    OpenSSL_version_num()))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
-		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
+		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER,
+		    OpenSSL_version_num());
 
 #ifndef OPENSSL_PRNG_ONLY
 	if (RAND_status() == 1) {
