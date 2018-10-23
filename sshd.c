@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.516 2018/09/21 12:23:17 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.517 2018/10/23 05:56:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -917,7 +917,7 @@ usage(void)
 	fprintf(stderr, "%s, %s\n",
 	    SSH_RELEASE,
 #ifdef WITH_OPENSSL
-	    SSLeay_version(SSLEAY_VERSION)
+	    OpenSSL_version(OPENSSL_VERSION)
 #else
 	    "without OpenSSL"
 #endif
@@ -1723,7 +1723,7 @@ main(int ac, char **av)
 
 	debug("sshd version %s, %s", SSH_VERSION,
 #ifdef WITH_OPENSSL
-	    SSLeay_version(SSLEAY_VERSION)
+	    OpenSSL_version(OPENSSL_VERSION)
 #else
 	    "without OpenSSL"
 #endif
