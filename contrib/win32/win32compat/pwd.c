@@ -310,7 +310,9 @@ struct passwd*
 w32_getpwnam(const char *user_utf8)
 {
 	struct passwd* ret = NULL;
-	wchar_t * user_utf16 = utf8_to_utf16(user_utf8);
+	wchar_t * user_utf16 = NULL;
+
+	user_utf16 = utf8_to_utf16(user_utf8);
 	if (user_utf16 == NULL) {
 		errno = ENOMEM;
 		return NULL;
@@ -318,12 +320,21 @@ w32_getpwnam(const char *user_utf8)
 
 	ret = get_passwd(user_utf16, NULL);
 	if (ret != NULL)
-		return ret;
+		goto done;
+
+	/* for unpriviliged user account, create placeholder and return*/
+	if (_stricmp(user_utf8, "sshd") == 0) {
+		ret = getpwnam_placeholder(user_utf8);
+		goto done;
+	}
 
 	/* check if custom passwd auth is enabled */
 	if (get_custom_lsa_package())
 		ret = getpwnam_placeholder(user_utf8);
 
+done:
+	if (user_utf16)
+		free(user_utf16);
 	return ret;
 }
 
