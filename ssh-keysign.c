@@ -40,6 +40,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#include "openbsd-compat/openssl-compat.h"
 #endif
 
 #include "xmalloc.h"
