@@ -69,6 +69,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\inet_ntoa.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\inet_ntop.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\kludge-fd_set.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\libressl-api-compat.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\md5.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\mktemp.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)openbsd-compat\openssl-compat.c" />

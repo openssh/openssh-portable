@@ -60,6 +60,7 @@ int w32_raise(int sig);
 
 int w32_kill(int pid, int sig);
 #define kill(a,b)	w32_kill((a), (b))
+#define killpg(a,b)	w32_kill((a), (b))
 
 int w32_sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 #define sigprocmask(a,b,c) w32_sigprocmask((a), (b), (c))
