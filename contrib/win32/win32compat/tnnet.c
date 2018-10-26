@@ -42,6 +42,7 @@
 #define dwBuffer 4096
 
 extern BOOL isAnsiParsingRequired;
+extern int track_view_port;
 extern bool gbVTAppMode;
 BOOL isFirstPacket = TRUE;
 
@@ -62,7 +63,6 @@ processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size
 	const char *normalModeSeq = "\x1b[?1l";
 	const DWORD normalModeSeqLen = (DWORD)strlen(normalModeSeq);
 	const char *clsSeq = "\x1b[2J";
-	static int track_view_port = 1;
 
 	if (len == 0)
 		return;
@@ -70,9 +70,6 @@ processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size
 	if (false == isAnsiParsingRequired) {
 		if(isFirstPacket) {
 			isFirstPacket = FALSE;
-
-			if (is_conpty_supported())
-				track_view_port = 0;
 
 			/* Windows server at first sends the "cls" after the connection is established.
 			 * There is a bug in the conhost which causes the visible window data to loose so to

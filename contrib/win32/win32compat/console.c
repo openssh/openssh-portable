@@ -56,6 +56,8 @@ int ScrollBottom;
 int LastCursorX;
 int LastCursorY;
 BOOL isAnsiParsingRequired = FALSE;
+/* 1 - We track the viewport (visible window) and restore it back because console renders badly when user scroll up/down */
+int track_view_port = 0; 
 char *pSavedScreen = NULL;
 static COORD ZeroCoord = { 0,0 };
 COORD SavedScreenSize = { 0,0 };
@@ -138,6 +140,10 @@ ConEnterRawMode()
 			
 	GetConsoleScreenBufferInfo(hOutputConsole, &csbi);
 	
+	/* We track the view port, if conpty is not supported */
+	if (!is_conpty_supported())
+		track_view_port = 1;
+
 	/* if we are passing rawbuffer to console then we need to move the cursor to top 
 	 *  so that the clearscreen will not erase any lines.
 	 */
@@ -146,19 +152,19 @@ ConEnterRawMode()
 		debug("console doesn't support the ansi parsing");
 	} else {
 		debug("console supports the ansi parsing");
-		if (is_conpty_supported()) {
-			console_out_cp_saved = GetConsoleOutputCP();
-			console_in_cp_saved = GetConsoleCP();
-			if (SetConsoleOutputCP(CP_UTF8))
-				debug3("Successfully set console output code page from:%d to %d", console_out_cp_saved, CP_UTF8);
-			else
-				error("Failed to set console output code page from:%d to %d error:%d", console_out_cp_saved, CP_UTF8, GetLastError());
+		console_out_cp_saved = GetConsoleOutputCP();
+		console_in_cp_saved = GetConsoleCP();
+		if (SetConsoleOutputCP(CP_UTF8))
+			debug3("Successfully set console output code page from:%d to %d", console_out_cp_saved, CP_UTF8);
+		else
+			error("Failed to set console output code page from:%d to %d error:%d", console_out_cp_saved, CP_UTF8, GetLastError());
 
-			if (SetConsoleCP(CP_UTF8))
-				debug3("Successfully set console input code page from:%d to %d", console_in_cp_saved, CP_UTF8);
-			else
-				error("Failed to set console input code page from:%d to %d error:%d", console_in_cp_saved, CP_UTF8, GetLastError());
-		} else {
+		if (SetConsoleCP(CP_UTF8))
+			debug3("Successfully set console input code page from:%d to %d", console_in_cp_saved, CP_UTF8);
+		else
+			error("Failed to set console input code page from:%d to %d error:%d", console_in_cp_saved, CP_UTF8, GetLastError());
+
+		if (track_view_port) {
 			ConSaveViewRect();
 		}
 	}
@@ -178,7 +184,7 @@ ConExitRawMode()
 	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), stdin_dwSavedAttributes);
 	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), stdout_dwSavedAttributes);
 
-	if (FALSE == isAnsiParsingRequired && is_conpty_supported()) {
+	if (FALSE == isAnsiParsingRequired) {
 		if (console_out_cp_saved) {
 			if(SetConsoleOutputCP(console_out_cp_saved))
 				debug3("Successfully set console output code page from %d to %d", CP_UTF8, console_out_cp_saved);
@@ -256,7 +262,7 @@ ConSetScreenRect(int xSize, int ySize)
 			bSuccess = SetConsoleScreenBufferSize(hOutputConsole, coordScreen);
 	}
 
-	if (bSuccess && !is_conpty_supported())
+	if (bSuccess && track_view_port)
 		ConSaveViewRect();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
@@ -303,7 +309,7 @@ ConSetScreenSize(int xSize, int ySize)
 			bSuccess = SetConsoleWindowInfo(hOutputConsole, TRUE, &srWindowRect);
 	}
 
-	if (bSuccess && !is_conpty_supported())
+	if (bSuccess && track_view_port)
 		ConSaveViewRect();
 
 	/* if the current buffer *is* the size we want, don't do anything! */
@@ -1622,7 +1628,7 @@ ConMoveCursorTopOfVisibleWindow()
 		offset = csbi.dwCursorPosition.Y - csbi.srWindow.Top;
 		ConMoveVisibleWindow(offset);
 
-		if(!is_conpty_supported())
+		if(track_view_port)
 			ConSaveViewRect();
 	}
 }
