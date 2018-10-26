@@ -2601,7 +2601,11 @@ if test "x$openssl" = "xyes" ; then
 		fd = fopen(DATA,"w");
 		if(fd == NULL)
 			exit(1);
-
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+# define OpenSSL_version_num	SSLeay
+# define OpenSSL_version	SSLeay_version
+# define OPENSSL_VERSION	SSLEAY_VERSION
+#endif
 		if ((rc = fprintf(fd, "%08lx (%s)\n",
 		    (unsigned long)OpenSSL_version_num(),
 		    OpenSSL_version(OPENSSL_VERSION))) < 0)
@@ -2646,6 +2650,9 @@ if test "x$openssl" = "xyes" ; then
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
 		]], [[
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+# define OpenSSL_version_num SSLeay
+#endif
 		exit(OpenSSL_version_num() == OPENSSL_VERSION_NUMBER ? 0 : 1);
 		]])],
 		[

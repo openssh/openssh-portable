@@ -33,6 +33,12 @@ int ssh_compatible_openssl(long, long);
 # error OpenSSL 0.9.8f or greater is required
 #endif
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+# define OpenSSL_version_num	SSLeay
+# define OpenSSL_version	SSLeay_version
+# define OPENSSL_VERSION	SSLEAY_VERSION
+#endif
+
 #if OPENSSL_VERSION_NUMBER < 0x10000001L
 # define LIBCRYPTO_EVP_INL_TYPE unsigned int
 #else
