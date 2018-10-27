@@ -2585,6 +2585,9 @@ if test "x$openssl" = "xyes" ; then
 		]
 	)
 
+	# Determining OpenSSL library version is version dependent.
+	AC_CHECK_FUNCS([OpenSSL_version OpenSSL_version_num])
+
 	# Determine OpenSSL library version
 	AC_MSG_CHECKING([OpenSSL library version])
 	AC_RUN_IFELSE(
@@ -2601,10 +2604,14 @@ if test "x$openssl" = "xyes" ; then
 		fd = fopen(DATA,"w");
 		if(fd == NULL)
 			exit(1);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-# define OpenSSL_version_num	SSLeay
+#ifndef OPENSSL_VERSION
+# define OPENSSL_VERSION SSLEAY_VERSION
+#endif
+#ifndef HAVE_OPENSSL_VERSION
 # define OpenSSL_version	SSLeay_version
-# define OPENSSL_VERSION	SSLEAY_VERSION
+#endif
+#ifndef HAVE_OPENSSL_VERSION_NUM
+# define OpenSSL_version_num	SSLeay
 #endif
 		if ((rc = fprintf(fd, "%08lx (%s)\n",
 		    (unsigned long)OpenSSL_version_num(),
@@ -2650,8 +2657,8 @@ if test "x$openssl" = "xyes" ; then
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
 		]], [[
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-# define OpenSSL_version_num SSLeay
+#ifndef HAVE_OPENSSL_VERSION_NUM
+# define OpenSSL_version_num	SSLeay
 #endif
 		exit(OpenSSL_version_num() == OPENSSL_VERSION_NUMBER ? 0 : 1);
 		]])],
