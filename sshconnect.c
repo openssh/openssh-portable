@@ -78,6 +78,7 @@ static int matching_host_key_dns = 0;
 static pid_t proxy_command_pid = 0;
 
 /* import */
+extern int debug_flag;
 extern Options options;
 extern char *__progname;
 
@@ -97,6 +98,33 @@ expand_proxy_command(const char *proxy_command, const char *user,
 	    "r", options.user, (char *)NULL);
 	free(tmp);
 	return ret;
+}
+
+/*
+ * If the parent may become a new master daemon in `control_persist_detach()`,
+ * keep stderr of the proxy command in debug mode, so that error messages get
+ * printed on the user's terminal.  But detach stderr in non-debug mode,
+ * because the proxy command will run as a daemon.
+ */
+static void
+prepare_proxy_stderr()
+{
+	int devnull;
+
+	if (!options.control_persist || debug_flag) {
+		return;
+	}
+
+	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+		error("%s: open(\"/dev/null\"): %s", __func__,
+		    strerror(errno));
+		return;
+	}
+
+	if (dup2(devnull, STDERR_FILENO) == -1)
+		error("%s: dup2: %s", __func__, strerror(errno));
+	if (devnull > STDERR_FILENO)
+		close(devnull);
 }
 
 /*
@@ -140,10 +168,8 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 		if (sp[0] >= 2)
 			close(sp[0]);
 
-		/*
-		 * Stderr is left as it is so that error messages get
-		 * printed on the user's terminal.
-		 */
+		prepare_proxy_stderr();
+
 		argv[0] = shell;
 		argv[1] = "-c";
 		argv[2] = command_string;
@@ -219,8 +245,8 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 		/* Cannot be 1 because pin allocated two descriptors. */
 		close(pout[1]);
 
-		/* Stderr is left as it is so that error messages get
-		   printed on the user's terminal. */
+		prepare_proxy_stderr();
+
 		argv[0] = shell;
 		argv[1] = "-c";
 		argv[2] = command_string;
