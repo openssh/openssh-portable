@@ -21,6 +21,7 @@
 #ifdef WITH_OPENSSL
 
 #include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -33,10 +34,16 @@ int ssh_compatible_openssl(long, long);
 # error OpenSSL 0.9.8f or greater is required
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-# define OpenSSL_version_num	SSLeay
-# define OpenSSL_version	SSLeay_version
+#ifndef OPENSSL_VERSION
 # define OPENSSL_VERSION	SSLEAY_VERSION
+#endif
+
+#ifndef HAVE_OPENSSL_VERSION
+# define OpenSSL_version(x)	SSLeay_version(x)
+#endif
+
+#ifndef HAVE_OPENSSL_VERSION_NUM
+# define OpenSSL_version_num	SSLeay
 #endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10000001L
