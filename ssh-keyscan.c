@@ -70,12 +70,7 @@ int hash_hosts = 0;		/* Hash hostname on output */
 
 int print_sshfp = 0;		/* Print SSHFP records instead of known_hosts */
 
-#ifdef WINDOWS
-#define MAXMAXFD 32
-#else
 #define MAXMAXFD 256
-#endif // WINDOWS
-
 
 /* The number of seconds after which to give up on a TCP connection */
 int timeout = 5;

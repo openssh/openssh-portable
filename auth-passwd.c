@@ -55,12 +55,7 @@
 #include "hostfile.h"
 #include "auth.h"
 #include "auth-options.h"
-#include "authfd.h"
 
-#ifdef WINDOWS
-#include "w32api_proxies.h"
-#include "misc_internal.h"
-#endif
 
 extern struct sshbuf *loginmsg;
 extern ServerOptions options;
@@ -114,6 +109,14 @@ auth_password(struct ssh *ssh, const char *password)
 		if (hToken == INVALID_HANDLE_VALUE)
 			return 0;
 		cygwin_set_impersonation_token(hToken);
+		return ok;
+	}
+#endif
+#ifdef WINDOWS
+	{
+		int windows_password_auth(const char *, const char *);
+		if (windows_password_auth(pw->pw_name, password) == 0)
+			return 0;
 		return ok;
 	}
 #endif
@@ -227,84 +230,4 @@ sys_auth_passwd(struct ssh *ssh, const char *password)
 	    strcmp(encrypted_password, pw_password) == 0;
 }
 
-#elif defined(WINDOWS)
-HANDLE password_auth_token = NULL;
-HANDLE process_custom_lsa_auth(const char*, const char*, const char*);
-char* get_custom_lsa_package();
-/*
-* Authenticate on Windows 
-* - Call LogonUser and retrieve user token
-* - If LogonUser fails, then try the LSA (Local Security Authority) authentication.
-*/
-int 
-sys_auth_passwd(struct ssh *ssh, const char *password)
-{
-	wchar_t *user_utf16 = NULL, *pwd_utf16 = NULL, *unam_utf16 = NULL, *udom_utf16 = L".";
-	Authctxt *authctxt = ssh->authctxt;
-	HANDLE token = NULL;
-	WCHAR domain_upn[MAX_UPN_LEN + 1];
-	ULONG domain_upn_len = ARRAYSIZE(domain_upn);
-
-	user_utf16 = utf8_to_utf16(authctxt->pw->pw_name);
-	pwd_utf16 = utf8_to_utf16(password);
-	if (user_utf16 == NULL || pwd_utf16 == NULL) {
-		debug("out of memory");
-		goto done;
-	}
-	
-	/* the format for the user will be constrained to the output of get_passwd()
-	 * so only the only two formats are NetBiosDomain\SamAccountName which is 
-	 * a domain account or just SamAccountName in which is a local account */
-	
-	/* default assumption - local user */
-	unam_utf16 = user_utf16;
-
-	/* translate to domain user if format contains a backslash */
-	wchar_t * backslash = wcschr(user_utf16, L'\\');
-	if (backslash != NULL) {
-
-		/* attempt to format into upn format as this is preferred for login */
-		if (lookup_principal_name(user_utf16, domain_upn) == 0) {
-			unam_utf16 = domain_upn;
-			udom_utf16 = NULL;
-		}
-
-		/* could not discover upn so just use netbios for the domain parameter and
-		 * the sam account name for the user name */
-		else {
-			*backslash = '\0';
-			unam_utf16 = backslash + 1;
-			udom_utf16 = user_utf16;
-		}
-	}
-
-	if (pLogonUserExExW(unam_utf16, udom_utf16, pwd_utf16, LOGON32_LOGON_NETWORK_CLEARTEXT,
-	    LOGON32_PROVIDER_DEFAULT, NULL, &token, NULL, NULL, NULL, NULL) == TRUE)
-		password_auth_token = token;
-	else {
-		if (GetLastError() == ERROR_PASSWORD_MUST_CHANGE)
-			/*
-			* TODO - need to add support to force password change
-			* by sending back SSH_MSG_USERAUTH_PASSWD_CHANGEREQ
-			*/
-			error("password for user %s has expired", authctxt->pw->pw_name);
-		else {
-			debug("Windows authentication failed for user: %ls domain: %ls error: %d", 
-				unam_utf16, udom_utf16, GetLastError());
-
-			/* If LSA authentication package is configured then it will return the auth_token */
-			if (get_custom_lsa_package())
-				password_auth_token = process_custom_lsa_auth(authctxt->pw->pw_name, password, get_custom_lsa_package());
-		}
-	}
-	
-done:
-
-	if (user_utf16)
-		free(user_utf16);
-	if (pwd_utf16)
-		SecureZeroMemory(pwd_utf16, sizeof(wchar_t) * wcslen(pwd_utf16));
-
-	return (password_auth_token) ? 1 : 0;
-}
-#endif   /* WINDOWS */
+#endif

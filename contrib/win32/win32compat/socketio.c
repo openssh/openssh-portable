@@ -36,6 +36,7 @@
 #include <stddef.h>
 #include "w32fd.h"
 #include "inc\utf.h"
+#include "misc_internal.h"
 #include "debug.h"
 
 #define INTERNAL_SEND_BUFFER_SIZE 70*1024 //70KB
@@ -504,7 +505,7 @@ CALLBACK WSASendCompletionRoutine(IN DWORD dwError,
 	if ((dwError == 0) && (pio->write_details.remaining != cbTransferred)) {
 		error("WSASendCB - ERROR: broken assumption, io:%p, sent:%d, remaining:%d", pio,
 			cbTransferred, pio->write_details.remaining);
-		DebugBreak();
+		debug_assert_internal();
 	}
 	pio->write_details.remaining -= cbTransferred;
 	pio->write_details.pending = FALSE;
@@ -637,7 +638,7 @@ socketio_close(struct w32_io* pio)
 	    (pio->read_details.pending || pio->write_details.pending)) {
 		error("close - IO is still pending on closed socket. read:%d, write:%d, io:%p",
 			pio->read_details.pending, pio->write_details.pending, pio);
-		DebugBreak();
+		debug_assert_internal();
 	}
 	if (pio->internal.state == SOCK_LISTENING) {
 		if (pio->read_overlapped.hEvent)

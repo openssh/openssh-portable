@@ -1071,9 +1071,6 @@ process_escapes(struct ssh *ssh, Channel *c,
 				continue;
 
 			case '&':
-#ifdef WINDOWS
-				fatal("Background execution is not supported in Windows");
-#else /* !WINDOWS */
 				if (c && c->ctl_chan != -1)
 					goto noescape;
 				/*
@@ -1110,7 +1107,6 @@ process_escapes(struct ssh *ssh, Channel *c,
 					fatal("%s: buffer error: %s",
 					    __func__, ssh_err(r));
 				return -1;
-#endif /* !WINDOWS */
 			case '?':
 				print_escape_help(berr, efc->escape_char,
 				    (c && c->ctl_chan != -1),

@@ -416,7 +416,17 @@ setegid(gid_t gid)
 	return 0;
 }
 
-void 
+struct passwd *getpwent(void)
+{
+	return NULL;
+}
+
+void setpwent(void)
+{
+	return;
+}
+
+void
 endpwent(void)
 {
 	return;

@@ -1812,3 +1812,68 @@ bash_to_win_path(const char *in, char *out, const size_t out_len)
 
 	return retVal;
 }
+
+int
+getpeereid(int s, uid_t *euid, gid_t *egid)
+{
+	verbose("%s is not supported", __func__);
+	errno = ENOTSUP;
+	return -1;
+}
+
+int
+getrrsetbyname(const char *hostname, unsigned int rdclass,
+	unsigned int rdtype, unsigned int flags,
+	struct rrsetinfo **res)
+{
+	verbose("%s is not supported", __func__);
+	errno = ENOTSUP;
+	return -1;
+}
+
+void
+freerrset(struct rrsetinfo *rrset)
+{
+	verbose("%s is not supported", __func__);
+	return;
+}
+
+void 
+debug_assert_internal()
+{
+	/* debug break on non-release builds */
+#ifndef NDEBUG
+	DebugBreak();
+#endif
+}
+
+char 
+*crypt(const char *key, const char *salt)
+{
+	verbose("%s is not supported", __func__);
+	errno = ENOTSUP;
+	return NULL;
+}
+
+int 
+w32_system(const char *command)
+{
+	int ret = -1;
+	wchar_t *command_w = NULL; 
+
+	if (!command) {
+		errno = ENOTSUP;
+		goto cleanup;
+	}
+
+	if ((command_w = utf8_to_utf16(command)) == NULL)
+		goto cleanup;
+
+	ret = _wsystem(command_w);
+
+cleanup:
+	if (command_w)
+		free(command_w);
+
+	return ret;
+}

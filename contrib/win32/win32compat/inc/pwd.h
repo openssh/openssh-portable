@@ -32,6 +32,8 @@ int setgid(gid_t gid);
 int seteuid(uid_t uid);
 int setegid(gid_t gid);
 char *user_from_uid(uid_t uid, int nouser);
+struct passwd *getpwent(void);
+void setpwent(void);
 
 /*end - declarations not applicable in Windows */
 

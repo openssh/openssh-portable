@@ -663,7 +663,7 @@ WriteCompletionRoutine(_In_ DWORD dwErrorCode,
 	if ((dwErrorCode == 0) && (pio->write_details.remaining != dwNumberOfBytesTransfered)) {
 		error("WriteCB - ERROR: broken assumption, io:%p, wrote:%d, remaining:%d", pio,
 			dwNumberOfBytesTransfered, pio->write_details.remaining);
-		DebugBreak();
+		debug_assert_internal();
 	}
 	pio->write_details.remaining -= dwNumberOfBytesTransfered;
 	pio->write_details.pending = FALSE;

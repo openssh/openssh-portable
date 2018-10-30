@@ -78,3 +78,4 @@ wchar_t* get_final_path_by_handle(HANDLE h);
 int lookup_principal_name(const wchar_t * sam_account_name, wchar_t * user_principal_name);
 BOOL is_bash_test_env();
 int bash_to_win_path(const char *in, char *out, const size_t out_len);
+void debug_assert_internal();

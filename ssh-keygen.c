@@ -60,7 +60,6 @@
 #include "digest.h"
 #include "utf8.h"
 #include "authfd.h"
-#include "sshfileperm.h"
 
 #ifdef WITH_OPENSSL
 # define DEFAULT_KEY_TYPE_NAME "rsa"
@@ -247,7 +246,7 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 #ifdef OPENSSL_HAS_NISTP521
 				"256, 384 or 521 bits");
 #else
-			"256 or 384 bits");
+				"256 or 384 bits");
 #endif
 	}
 #endif
@@ -1095,9 +1094,6 @@ do_gen_all_hostkeys(struct passwd *pw)
 		if (f == NULL) {
 			error("fdopen %s failed: %s", pub_tmp, strerror(errno));
 			close(fd);
-			sshkey_free(public);
-			first = 0;
-			continue;
 			goto failnext;
 		}
 		if ((r = sshkey_write(public, f)) != 0) {
@@ -1665,7 +1661,6 @@ load_pkcs11_key(char *path)
 	return private;
 #else
 	fatal("no pkcs11 support");
-	return NULL;
 #endif /* ENABLE_PKCS11 */
 }
 

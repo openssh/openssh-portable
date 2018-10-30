@@ -219,7 +219,7 @@ sw_process_pending_signals()
 		/* unexpected signals queued up */
 		error("process_signals() - ERROR unexpected signals in queue: %d", pending_tmp);
 		errno = ENOTSUP;
-		DebugBreak();
+		debug_assert_internal();
 		return -1;
 	}
 
@@ -244,7 +244,7 @@ sw_process_pending_signals()
 
 	/* by now all pending signals should have been taken care of*/
 	if (pending_tmp)
-		DebugBreak();
+		debug_assert_internal();
 
 	if (sig_int) {
 		debug4("process_queued_signals: WARNING - A signal has interrupted and was processed");

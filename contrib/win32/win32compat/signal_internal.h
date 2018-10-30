@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <process.h>
+#include "misc_internal.h"
 
 /* child processes */
 #define MAX_CHILDREN 512

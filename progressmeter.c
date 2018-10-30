@@ -82,11 +82,11 @@ static int
 can_output(void)
 {
 #ifdef WINDOWS
-	/* TODO - confirm this is always true */
-	return 1;
-#else /* !WINDOWS */
+	/* On Windows, we can output if the stdout is a terminal*/
+	return isatty(STDOUT_FILENO);
+#else 
 	return (getpgrp() == tcgetpgrp(STDOUT_FILENO));
-#endif /* !WINDOWS */
+#endif
 }
 
 static void

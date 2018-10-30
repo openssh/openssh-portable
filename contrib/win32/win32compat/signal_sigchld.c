@@ -157,13 +157,13 @@ waitpid(int pid, int *status, int options)
 	debug5("waitpid - pid:%d, options:%d", pid, options);
 	if (options & (~WNOHANG)) {
 		errno = ENOTSUP;
-		DebugBreak();
+		debug_assert_internal();
 		return -1;
 	}
 
 	if ((pid < -1) || (pid == 0)) {
 		errno = ENOTSUP;
-		DebugBreak();
+		debug_assert_internal();
 		return -1;
 	}
 
@@ -175,7 +175,7 @@ waitpid(int pid, int *status, int options)
 	if (pid > 0) {
 		if (options != 0) {
 			errno = ENOTSUP;
-			DebugBreak();
+			debug_assert_internal();
 			return -1;
 		}
 		/* find entry in table */
@@ -194,7 +194,7 @@ waitpid(int pid, int *status, int options)
 		if (index < children.num_children - children.num_zombies) {
 			ret = WaitForSingleObject(process, INFINITE);
 			if (ret != WAIT_OBJECT_0)
-				DebugBreak();//fatal
+				debug_assert_internal();//fatal
 		}
 
 		ret_id = children.process_id[index];
@@ -238,7 +238,7 @@ waitpid(int pid, int *status, int options)
 		return 0;
 	}
 
-	DebugBreak(); /* fatal */
+	debug_assert_internal(); /* fatal */
 	return -1;
 }
 

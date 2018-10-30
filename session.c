@@ -188,10 +188,6 @@ auth_sock_cleanup_proc(struct passwd *pw)
 static int
 auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 {
-#ifdef WINDOWS
-	packet_send_debug("Agent forwarding not supported in Windows yet");
-	return 0;
-#else  /* !WINDOWS */
 	Channel *nc;
 	int sock = -1;
 
@@ -248,7 +244,6 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
 	auth_sock_name = NULL;
 	auth_sock_dir = NULL;
 	return 0;
-#endif  /* !WINDOWS */
 }
 
 static void

@@ -67,7 +67,6 @@
 #include "ssherr.h"
 #include "channels.h" /* XXX for session.h */
 #include "session.h" /* XXX for child_set_env(); refactor? */
-#include "authfd.h"
 
 /* import */
 extern ServerOptions options;

@@ -82,6 +82,8 @@ int w32_readlink(const char *path, char *link, int linklen);
 int w32_link(const char *oldpath, const char *newpath);
 #define link w32_link
 
+int getpeereid(int, uid_t*, gid_t*);
+
 int daemon(int nochdir, int noclose);
 char *crypt(const char *key, const char *salt);
 int chroot(const char *path);

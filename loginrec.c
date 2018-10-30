@@ -531,7 +531,6 @@ getlast_entry(struct logininfo *li)
 	/* If wtmp isn't available, try wtmpx */
 	return (wtmpx_get_entry(li));
 # else
-	/* TODO - implement last_login_entry in Windows*/
 	/* Give up: No means of retrieving last login time */
 	return (0);
 # endif /* DISABLE_LASTLOG */

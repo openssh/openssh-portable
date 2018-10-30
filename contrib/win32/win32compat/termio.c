@@ -132,7 +132,7 @@ done:
 	if (0 == QueueUserAPC(ReadAPCProc, main_thread, (ULONG_PTR)pio)) {		
 		pio->read_details.pending = FALSE;
 		pio->read_details.error = GetLastError();
-		DebugBreak();
+		debug_assert_internal();
 	}
 
 	return 0;
@@ -217,7 +217,7 @@ WriteThread(_In_ LPVOID lpParameter)
 		error("WriteThread thread - ERROR QueueUserAPC failed %d, io:%p", GetLastError(), pio);
 		pio->write_details.pending = FALSE;
 		pio->write_details.error = GetLastError();
-		DebugBreak();
+		debug_assert_internal();
 	}
 
 	return 0;

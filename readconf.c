@@ -479,20 +479,13 @@ default_ssh_port(void)
 static int
 execute_in_shell(const char *cmd)
 {
-#ifdef WINDOWS
-	int retVal = -1;
-	wchar_t *cmd_w = utf8_to_utf16(cmd);
-
-	if (cmd_w) {
-		retVal = _wsystem(cmd_w);
-		free(cmd_w);
-	}
-
-	return retVal;
-#else /* !WINDOWS */
 	char *shell;
 	pid_t pid;
 	int devnull, status;
+
+#ifdef WINDOWS
+	return system(cmd);
+#endif
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
@@ -544,7 +537,6 @@ execute_in_shell(const char *cmd)
 	}
 	debug3("command returned status %d", WEXITSTATUS(status));
 	return WEXITSTATUS(status);
-#endif /* !WINDOWS */
 }
 
 /*

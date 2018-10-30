@@ -107,16 +107,6 @@ static int
 ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
     const char *proxy_command)
 {
-#ifdef WINDOWS
-        fatal("proxy fdpass connect is not supported in Windows");
-	/* 
-	 * Unix logic relies on passing in ancillary data over domain sockets 
-	 * This concept does not exist in Windows. 
-	 * Possible implementation in Windows could have proxy_command return 
-	 * connection handle through IPC means
-	 */
-        return 0;
-#else /* !WINDOWS */
 	char *command_string;
 	int sp[2], sock;
 	pid_t pid;
@@ -186,7 +176,6 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 		return -1; /* ssh_packet_set_connection logs error */
 
 	return 0;
-#endif /* !WINDOWS */
 }
 
 /*
@@ -1555,21 +1544,6 @@ warn_changed_key(struct sshkey *host_key)
 int
 ssh_local_cmd(const char *args)
 {
-#ifdef WINDOWS
-	if (!options.permit_local_command ||
-		args == NULL || !*args)
-		return (1);
-
-	int retVal = -1;
-	wchar_t *args_w = utf8_to_utf16(args);
-
-	if (args_w) {
-		retVal = _wsystem(args_w);
-		free(args_w);
-	}
-
-	return retVal;
-#else /* !WINDOWS */
 	char *shell;
 	pid_t pid;
 	int status;
@@ -1578,6 +1552,10 @@ ssh_local_cmd(const char *args)
 	if (!options.permit_local_command ||
 	    args == NULL || !*args)
 		return (1);
+
+#ifdef WINDOWS
+	return system(args);
+#endif
 
 	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 		shell = _PATH_BSHELL;
@@ -1602,7 +1580,6 @@ ssh_local_cmd(const char *args)
 		return (1);
 
 	return (WEXITSTATUS(status));
-#endif  /* !WINDOWS */
 }
 
 void

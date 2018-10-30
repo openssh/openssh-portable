@@ -41,7 +41,6 @@ int	ssh_agent_sign(int sock, const struct sshkey *key,
 	    const u_char *data, size_t datalen, const char *alg, u_int compat);
 
 /* Messages for the authentication agent connection. */
-/* Message Id 0 is reserved */
 #define SSH_AGENTC_REQUEST_RSA_IDENTITIES	1
 #define SSH_AGENT_RSA_IDENTITIES_ANSWER		2
 #define SSH_AGENTC_RSA_CHALLENGE		3

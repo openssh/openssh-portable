@@ -227,11 +227,11 @@ w32posix_initialize()
 {
 	init_prog_paths();
 	if ((fd_table_initialize() != 0) || (socketio_initialize() != 0))
-		DebugBreak();
+		debug_assert_internal();
 	main_thread = OpenThread(THREAD_SET_CONTEXT | SYNCHRONIZE, FALSE, GetCurrentThreadId());
 	if (main_thread == NULL || 
 	    sw_initialize() != 0 ) {
-		DebugBreak();
+		debug_assert_internal();
 		fatal("failed to initialize w32posix wrapper");
 	}
 }
@@ -327,6 +327,12 @@ w32_accept(int fd, struct sockaddr* addr, int* addrlen)
 	if (min_index == -1)
 		return -1;
 
+	if (fd_table.w32_ios[fd]->type == NONSOCK_FD) {
+		errno = ENOTSUP;
+		verbose("Unix domain server sockets are not supported");
+		return -1;
+	}
+
 	pio = socketio_accept(fd_table.w32_ios[fd], addr, addrlen);
 	if (!pio)
 		return -1;
@@ -373,6 +379,12 @@ int
 w32_listen(int fd, int backlog)
 {
 	CHECK_FD(fd);
+	if (fd_table.w32_ios[fd]->type == NONSOCK_FD) {
+		errno = ENOTSUP;
+		verbose("Unix domain server sockets are not supported");
+		return -1;
+	}
+
 	CHECK_SOCK_IO(fd_table.w32_ios[fd]);
 	return socketio_listen(fd_table.w32_ios[fd], backlog);
 }
@@ -381,6 +393,12 @@ int
 w32_bind(int fd, const struct sockaddr *name, int namelen)
 {
 	CHECK_FD(fd);
+	if (fd_table.w32_ios[fd]->type == NONSOCK_FD) {
+		errno = ENOTSUP;
+		verbose("Unix domain server sockets are not supported");
+		return -1;
+	}
+
 	CHECK_SOCK_IO(fd_table.w32_ios[fd]);
 	return socketio_bind(fd_table.w32_ios[fd], name, namelen);
 }
@@ -1013,7 +1031,7 @@ w32_fsync(int fd)
 
 int fork() 
 { 
-	error("fork is not supported"); 
+	verbose("fork is not supported"); 
 	return -1;
 }
 
