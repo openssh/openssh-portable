@@ -1,4 +1,4 @@
-#	$OpenBSD: principals-command.sh,v 1.4 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: principals-command.sh,v 1.5 2018/10/31 11:09:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="authorized principals command"
@@ -57,7 +57,7 @@ fi
 
 if [ -x $PRINCIPALS_COMMAND ]; then
 	# Test explicitly-specified principals
-	for privsep in yes no ; do
+	for privsep in yes sandbox ; do
 		_prefix="privsep $privsep"
 
 		# Setup for AuthorizedPrincipalsCommand
