@@ -702,7 +702,7 @@ derelativise_path(const char *path)
 	if (strcasecmp(path, "none") == 0)
 		return xstrdup("none");
 	expanded = tilde_expand_filename(path, getuid());
-	if (*expanded == '/')
+	if (path_absolute(expanded))
 		return expanded;
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));
