@@ -2042,5 +2042,5 @@ format_absolute_time(uint64_t t, char *buf, size_t len)
 int
 path_absolute(const char *path)
 {
-	return (*file == '/') ? 1 : 0;
+	return (*path == '/') ? 1 : 0;
 }
