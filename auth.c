@@ -437,7 +437,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
 	 */
-	if (*file == '/')
+	if (path_absolute(file))
 		return (file);
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
@@ -567,10 +567,10 @@ getpwnamallow(const char *user)
 	auth_session_t *as;
 #endif
 #endif
-	struct passwd *pw;
+	struct passwd *pw = getpwnam(user);
 	struct connection_info *ci = get_connection_info(1, options.use_dns);
 
-	ci->user = user;
+	ci->user = pw ? pw->pw_name : user;
 	parse_server_match_config(&options, ci);
 	log_change_level(options.log_level);
 	process_permitopen(ssh, &options);
@@ -578,8 +578,6 @@ getpwnamallow(const char *user)
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);
 #endif
-
-	pw = getpwnam(user);
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();
