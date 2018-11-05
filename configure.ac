@@ -2865,7 +2865,7 @@ if test "x$openssl" = "xyes" ; then
 		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
 		    [Define if libcrypto has EVP_CIPHER_CTX_get_iv])])
 	AC_SEARCH_LIBS([EVP_CIPHER_CTX_set_iv], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
+		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_SET_IV], [1],
 		    [Define if libcrypto has EVP_CIPHER_CTX_set_iv])])
 
 	AC_SEARCH_LIBS([RSA_get0_crt_params], [crypto],
