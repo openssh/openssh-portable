@@ -96,6 +96,7 @@
 #include "monitor_wrap.h"
 #include "sftp.h"
 #include "atomicio.h"
+#include "pal_doexec.h"
 
 #if defined(KRB5) && defined(USE_AFS)
 #include <kafs.h>
@@ -118,8 +119,10 @@ void	session_set_fds(struct ssh *, Session *, int, int, int, int, int);
 void	session_pty_cleanup(Session *);
 void	session_proctitle(Session *);
 int	session_setup_x11fwd(struct ssh *, Session *);
+#ifndef WINDOWS /* !WINDOWS */
 int	do_exec_pty(struct ssh *, Session *, const char *);
 int	do_exec_no_pty(struct ssh *, Session *, const char *);
+#endif
 int	do_exec(struct ssh *, Session *, const char *);
 void	do_login(struct ssh *, Session *, const char *);
 void	do_child(struct ssh *, Session *, const char *);
@@ -385,351 +388,7 @@ xauth_valid_string(const char *s)
 
 #define USE_PIPES 1
 
-#ifdef WINDOWS
-/*
- * do_exec* on Windows
- * - Read and set user environment variables from registry
- * - Build subsystem cmdline path
- * - Interactive shell/commands are executed using ssh-shellhost.exe
- * - ssh-shellhost.exe implements server-side PTY for Windows
- */
-static char ** do_setup_env(struct ssh *ssh, Session *s, const char *shell);
-
-#define UTF8_TO_UTF16_WITH_CLEANUP(o, i) do {				\
-	if (o != NULL) free(o);					\
-	if ((o = utf8_to_utf16(i)) == NULL)			\
-		goto cleanup;		\
-} while (0)
-
-#define GOTO_CLEANUP_ON_ERR(exp) do {	\
-	if ((exp) != 0)			\
-		goto cleanup;		\
-} while(0)
-
-/* TODO  - built env var set and pass it along with CreateProcess */
-/* set user environment variables from user profile */
-static void
-setup_session_user_vars(wchar_t* profile_path)
-{
-	/* retrieve and set env variables. */
-	HKEY reg_key = 0;
-	wchar_t name[256];
-	wchar_t path[PATH_MAX + 1] = { 0, };
-	wchar_t *data = NULL, *data_expanded = NULL, *path_value = NULL, *to_apply;
-	DWORD type, name_chars = 256, data_chars = 0, data_expanded_chars = 0, required, i = 0;
-	LONG ret;
-
-	SetEnvironmentVariableW(L"USERPROFILE", profile_path);
-
-	if (profile_path[0] && profile_path[1] == L':') {
-		SetEnvironmentVariableW(L"HOMEPATH", profile_path + 2);
-		wchar_t wc = profile_path[2];
-		profile_path[2] = L'\0';
-		SetEnvironmentVariableW(L"HOMEDRIVE", profile_path);
-		profile_path[2] = wc;
-	} else {
-		SetEnvironmentVariableW(L"HOMEPATH", profile_path);
-	}
-
-	swprintf_s(path, _countof(path), L"%s\\AppData\\Local", profile_path);
-	SetEnvironmentVariableW(L"LOCALAPPDATA", path);
-	swprintf_s(path, _countof(path), L"%s\\AppData\\Roaming", profile_path);
-	SetEnvironmentVariableW(L"APPDATA", path);
-
-	ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_QUERY_VALUE, &reg_key);
-	if (ret != ERROR_SUCCESS)
-		//error("Error retrieving user environment variables. RegOpenKeyExW returned %d", ret);
-		return;
-	else while (1) {
-		to_apply = NULL;
-		required = data_chars * sizeof(wchar_t);
-		name_chars = 256;
-		ret = RegEnumValueW(reg_key, i++, name, &name_chars, 0, &type, (LPBYTE)data, &required);
-		if (ret == ERROR_NO_MORE_ITEMS)
-			break;
-		else if (ret == ERROR_MORE_DATA || required > data_chars * 2) {
-			if (data != NULL)
-				free(data);
-			data = xmalloc(required);
-			data_chars = required / 2;
-			i--;
-			continue;
-		}
-		else if (ret != ERROR_SUCCESS)
-			break;
-
-		if (type == REG_SZ)
-			to_apply = data;
-		else if (type == REG_EXPAND_SZ) {
-			required = ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
-			if (required > data_expanded_chars) {
-				if (data_expanded)
-					free(data_expanded);
-				data_expanded = xmalloc(required * 2);
-				data_expanded_chars = required;
-				ExpandEnvironmentStringsW(data, data_expanded, data_expanded_chars);
-			}
-			to_apply = data_expanded;
-		}
-
-		if (_wcsicmp(name, L"PATH") == 0) {
-			if ((required = GetEnvironmentVariableW(L"PATH", NULL, 0)) != 0) {
-				/* "required" includes null term */
-				path_value = xmalloc((wcslen(to_apply) + 1 + required) * 2);
-				GetEnvironmentVariableW(L"PATH", path_value, required);
-				path_value[required - 1] = L';';
-				GOTO_CLEANUP_ON_ERR(memcpy_s(path_value + required, (wcslen(to_apply) + 1) * 2, to_apply, (wcslen(to_apply) + 1) * 2));
-				to_apply = path_value;
-			}
-
-		}
-		if (to_apply)
-			SetEnvironmentVariableW(name, to_apply);
-	}
-cleanup:
-	if (reg_key)
-		RegCloseKey(reg_key);
-	if (data)
-		free(data);
-	if (data_expanded)
-		free(data_expanded);
-	if (path_value)
-		free(path_value);
-}
-
-static int
-setup_session_env(struct ssh *ssh, Session* s) 
-{
-	int i = 0, ret = -1;
-	char *env_name = NULL, *env_value = NULL, *t = NULL, **env = NULL, *path_env_val = NULL;
-	char buf[1024] = { 0 };
-	wchar_t *env_name_w = NULL, *env_value_w = NULL, *pw_dir_w = NULL, *tmp = NULL, wbuf[1024] = { 0, };
-	char *laddr, *c;
-
-	UTF8_TO_UTF16_WITH_CLEANUP(pw_dir_w, s->pw->pw_dir);
-	/* skip domain part (if present) while setting USERNAME */
-	c = strchr(s->pw->pw_name, '\\');
-	UTF8_TO_UTF16_WITH_CLEANUP(tmp, c ? c + 1 : s->pw->pw_name);
-	SetEnvironmentVariableW(L"USERNAME", tmp);
-
-	if (!s->is_subsystem) {
-		_snprintf(buf, ARRAYSIZE(buf), "%s@%s", s->pw->pw_name, getenv("COMPUTERNAME"));
-		UTF8_TO_UTF16_WITH_CLEANUP(tmp, buf);
-		/* escape $ characters as $$ to distinguish from special prompt characters */
-		for (int i = 0, j = 0; i < wcslen(tmp) && j < ARRAYSIZE(wbuf) - 1; i++) {
-			wbuf[j] = tmp[i];
-			if (wbuf[j++] == L'$')
-				wbuf[j++] = L'$';
-		}
-		wcscat_s(wbuf, ARRAYSIZE(wbuf), L" $P$G");
-		SetEnvironmentVariableW(L"PROMPT", wbuf);
-	}
-
-	setup_session_user_vars(pw_dir_w); /* setup user specific env variables */
-
-	env = do_setup_env(ssh, s, s->pw->pw_shell);
-	while (env_name = env[i]) {
-		if (t = strstr(env[i++], "=")) {
-			/* SKIP, if not applicable on WINDOWS
-				PATH is already set.
-				MAIL is not applicable.
-			*/
-			if ((0 == strncmp(env_name, "PATH=", strlen("PATH="))) ||
-			    (0 == strncmp(env_name, "MAIL=", strlen("MAIL=")))) {
-				continue;
-			}
-
-			env_value = t + 1;
-			*t = '\0';
-			UTF8_TO_UTF16_WITH_CLEANUP(env_name_w, env_name);
-			UTF8_TO_UTF16_WITH_CLEANUP(env_value_w, env_value);
-
-			SetEnvironmentVariableW(env_name_w, env_value_w);
-		}
-	}
-	
-	ret = 0;
-cleanup :
-	if (pw_dir_w)
-		free(pw_dir_w);
-
-	if (tmp)
-		free(tmp);
-
-	if (env_name_w)
-		free(env_name_w);
-
-	if (env_value_w)
-		free(env_value_w);
-
-	if (env) {
-		i = 0;
-		while (t = env[i++])
-			free(t);
-
-		free(env);
-	}
-
-	return ret;
-}
-
-int register_child(void* child, unsigned long pid);
-char* build_session_commandline(const char *, const char *, const char *);
-
-int do_exec_windows(struct ssh *ssh, Session *s, const char *command, int pty) {
-	int pipein[2], pipeout[2], pipeerr[2], r, ret = -1;
-	wchar_t *exec_command_w = NULL;
-	char *exec_command = NULL;
-	HANDLE job = NULL;
-	extern char* shell_command_option;
-	
-	/* Create three pipes for stdin, stdout and stderr */
-	if (pipe(pipein) == -1 || pipe(pipeout) == -1 || pipe(pipeerr) == -1) 
-		goto cleanup;
-
-	set_nonblock(pipein[0]);
-	set_nonblock(pipein[1]);
-	set_nonblock(pipeout[0]);
-	set_nonblock(pipeout[1]);
-	set_nonblock(pipeerr[0]);
-	set_nonblock(pipeerr[1]);
-
-	fcntl(pipein[1], F_SETFD, FD_CLOEXEC);
-	fcntl(pipeout[0], F_SETFD, FD_CLOEXEC);
-	fcntl(pipeerr[0], F_SETFD, FD_CLOEXEC);
-	
-	/* setup Environment varibles */ 
-	do {
-		static int environment_set = 0;
-
-		if (environment_set)
-			break;
-
-		if (setup_session_env(ssh, s) != 0)
-			goto cleanup;
-
-		environment_set = 1;
-	} while (0);
-
-	if (!in_chroot)
-		chdir(s->pw->pw_dir);
-
-	if (s->is_subsystem >= SUBSYSTEM_INT_SFTP_ERROR) {
-		command = "echo This service allows sftp connections only.";
-		pty = 0;
-	}
-
-	exec_command = build_session_commandline(s->pw->pw_shell, shell_command_option, command);
-	if (exec_command == NULL)
-		goto cleanup;
-
-	/* start the process */
-	{
-		PROCESS_INFORMATION pi;
-		STARTUPINFOW si;
-		JOBOBJECT_EXTENDED_LIMIT_INFORMATION job_info;
-		HANDLE job_dup;
-
-		memset(&si, 0, sizeof(STARTUPINFO));
-		si.cb = sizeof(STARTUPINFO);
-		si.dwXSize = 5;
-		si.dwYSize = 5;
-		si.dwXCountChars = s->col;
-		si.dwYCountChars = s->row;
-		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESIZE | STARTF_USECOUNTCHARS;
-		
-		si.hStdInput = (HANDLE)w32_fd_to_handle(pipein[0]);
-		si.hStdOutput = (HANDLE)w32_fd_to_handle(pipeout[1]);
-		si.hStdError = (HANDLE)w32_fd_to_handle(pipeerr[1]);
-		si.lpDesktop = NULL;
-
-		if ((exec_command_w = utf8_to_utf16(exec_command)) == NULL)
-			goto cleanup;
-
-		debug("Executing command: %s with%spty", exec_command, pty? " ":" no ");
-		
-		if (pty) {
-			fcntl(s->ptyfd, F_SETFD, FD_CLOEXEC);
-			if (exec_command_with_pty(exec_command_w, &si, &pi, s->ttyfd) == -1)
-				goto cleanup;
-			close(s->ttyfd);
-			s->ttyfd = -1;
-		} else if (!CreateProcessW(NULL, exec_command_w, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
-			errno = EOTHER;
-			error("ERROR. Cannot create process (%u).\n", GetLastError());
-			goto cleanup;
-		}
-
-		CloseHandle(pi.hThread);
-		memset(&job_info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-		job_info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
-
-		/* 
-		 * assign job object to control processes spawned by shell 
-		 * 1. create job object
-		 * 2. assign child to job object
-		 * 3. duplicate job handle into child so it would be the last to close it
-		 */
-		if ((job = CreateJobObjectW(NULL, NULL)) == NULL ||
-		    !SetInformationJobObject(job, JobObjectExtendedLimitInformation, &job_info, sizeof(job_info)) ||
-		    !AssignProcessToJobObject(job, pi.hProcess) ||
-		    !DuplicateHandle(GetCurrentProcess(), job, pi.hProcess, &job_dup, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
-			error("cannot associate job object: %d", GetLastError());			
-			errno = EOTHER;
-			TerminateProcess(pi.hProcess, 255);
-			CloseHandle(pi.hProcess);
-			goto cleanup;
-		}
-
-		s->pid = pi.dwProcessId;
-		register_child(pi.hProcess, pi.dwProcessId);
-	}
-
-	/* Close the child sides of the socket pairs. */
-	close(pipein[0]);
-	close(pipeout[1]);
-	close(pipeerr[1]);
-
-	/*
-	* Enter the interactive session.  Note: server_loop must be able to
-	* handle the case that fdin and fdout are the same.
-	*/
-	if (pty) {
-		/* Set interactive/non-interactive mode */
-		packet_set_interactive(1, options.ip_qos_interactive,
-			options.ip_qos_bulk);
-		session_set_fds(ssh, s, pipein[1], pipeout[0], -1, 1, 1);
-	} else {
-		/* Set interactive/non-interactive mode */
-		packet_set_interactive(s->display != NULL, options.ip_qos_interactive,
-			options.ip_qos_bulk);
-		session_set_fds(ssh, s, pipein[1], pipeout[0], pipeerr[0], s->is_subsystem, 0);
-	}
-
-	ret = 0;
-
-cleanup:
-	if (!exec_command)
-		free(exec_command);
-	if (!exec_command_w)
-		free(exec_command_w);
-	if (job)
-		CloseHandle(job);
-
-	return ret;
-}
-
-int
-do_exec_no_pty(struct ssh *ssh, Session *s, const char *command) {
-	return do_exec_windows(ssh, s, command, 0);
-}
-
-int
-do_exec_pty(struct ssh *ssh, Session *s, const char *command) {
-	return do_exec_windows(ssh, s, command, 1);
-}
-
-#else    /* !WINDOWS */
+#ifndef WINDOWS /* !WINDOWS */
 /*
  * This is called to fork and execute a command when we have no tty.  This
  * will call do_child from the child, and server_loop from the parent after
@@ -3081,4 +2740,23 @@ session_get_remote_name_or_ip(struct ssh *ssh, u_int utmp_size, int use_dns)
 		remote = ssh_remote_ipaddr(ssh);
 	return remote;
 }
+/*
+* Since in_chroot is static for now, create this function
+* to have unix code intact
+*/
+#ifdef WINDOWS
+int get_in_chroot()
+{
+	return in_chroot;
+}
 
+/*
+ * Since do_setup_env is static for now, create this function
+ * to have unix code intact 
+*/
+char **
+do_setup_env_proxy(struct ssh *ssh, Session *s, const char *shell)
+{
+	return do_setup_env(ssh, s, shell);
+}
+#endif

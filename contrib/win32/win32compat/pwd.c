@@ -50,6 +50,7 @@
 static struct passwd pw;
 static char* pw_shellpath = NULL;
 char* shell_command_option = NULL;
+BOOLEAN arg_escape = TRUE;
 
 /* returns 0 on success, and -1 with errno set on failure */
 static int
@@ -76,8 +77,12 @@ set_defaultshell()
 	    (path_buf[0] != L'\0')) {
 		/* fetched default shell path from registry */
 		tmp_len = _countof(option_buf);
+		DWORD size = sizeof(DWORD);
+		DWORD escape_option = 1;
 		if (RegQueryValueExW(reg_key, L"DefaultShellCommandOption", 0, NULL, (LPBYTE)option_buf, &tmp_len) != ERROR_SUCCESS)
 			option_buf[0] = L'\0';
+		if (RegQueryValueExW(reg_key, L"DefaultShellEscapeArguments", 0, NULL, (LPBYTE)&escape_option, &size) == ERROR_SUCCESS)
+			arg_escape = (escape_option != 0) ? TRUE : FALSE;
 	} else {
 		if (!GetSystemDirectoryW(path_buf, _countof(path_buf))) {
 			errno = GetLastError();

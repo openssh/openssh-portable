@@ -463,6 +463,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_sshpty.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_sshd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\spawn-ext.c" />
+	<ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

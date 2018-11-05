@@ -1034,115 +1034,28 @@ int fork()
 	verbose("fork is not supported"); 
 	return -1;
 }
+char * build_commandline_string(const char* cmd, char *const argv[], BOOLEAN prepend_module_path);
 
 /*
 * spawn a child process
 * - specified by cmd with agruments argv
 * - with std handles set to in, out, err
 * - flags are passed to CreateProcess call
-*
-* cmd will be internally decoarated with a set of '"'
-* to account for any spaces within the commandline
-* this decoration is done only when additional arguments are passed in argv
-*
 * spawned child will run as as_user if its not NULL
 */
-
 static int
 spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDLE err, unsigned long flags, HANDLE* as_user, BOOLEAN prepend_module_path)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
 	BOOL b;
-	char *cmdline, *t;
-	char * const *t1;
-	DWORD cmdline_len = 0;
+	char *cmdline;
 	wchar_t * cmdline_utf16 = NULL;
-	int add_module_path = 0, ret = -1;
-	char *path = NULL;
-
-	if (!cmd) {
-		error("%s invalid argument cmd:%s", __func__, cmd);
-		return ret;
-	}
-
-	if (!(path = _strdup(cmd))) {
-		error("failed to duplicate %s", cmd);
-		return ret;
-	}
-	
-	if (is_bash_test_env()) {
-		size_t len = strlen(path) + 1;
-		memset(path, 0, len);
-
-		bash_to_win_path(cmd, path, len);
-	}
-
-	if (!is_absolute_path(path) && prepend_module_path)
-		add_module_path = 1;
-
-	/* compute total cmdline len*/
-	if (add_module_path)
-		cmdline_len += (DWORD)strlen(__progdir) + 1 + (DWORD)strlen(path) + 1 + 2;
-	else
-		cmdline_len += (DWORD)strlen(path) + 1 + 2;
-
-	if (argv) {
-		t1 = argv;
-		while (*t1)
-			cmdline_len += (DWORD)strlen(*t1++) + 1 + 2;
-	}
-
-	if ((cmdline = malloc(cmdline_len)) == NULL) {
+	int ret = -1;
+	if ((cmdline = build_commandline_string(cmd, argv, prepend_module_path)) == NULL) {
 		errno = ENOMEM;
 		goto cleanup;
 	}
-
-	/* add current module path to start if needed */
-	t = cmdline;
-	*t++ = '\"';
-	if (add_module_path) {
-		memcpy(t, __progdir, strlen(__progdir));
-		t += strlen(__progdir);
-		*t++ = '\\';
-	}
-
-	/* Add double quotes around the executable path
-	 * path can be c:\cygwin64\bin\sh.exe "<e:\openssh\regress\ssh-log-wrapper.sh>"
-	 * Please note that, this logic is not just bash test specific.
-	 */
-	const char *exe_extenstion = ".exe";
-	const char *tmp = NULL;
-	if ((tmp = strstr(path, exe_extenstion)) && (strlen(tmp) > strlen(exe_extenstion))) {
-		tmp += strlen(exe_extenstion); /* move the pointer to the end of ".exe" */
-		
-		memcpy(t, path, strlen(path)-strlen(tmp));
-		t += strlen(path) - strlen(tmp);
-
-		*t++ = '\"';
-		memcpy(t, tmp, strlen(tmp));
-		t += strlen(tmp);
-	} else {
-		memcpy(t, path, strlen(path));
-		t += strlen(path);
-
-		*t++ = '\"';
-	}
-
-	if (argv) {
-		t1 = argv;
-		while (*t1) {
-			*t++ = ' ';
-			*t++ = '\"';
-			memcpy(t, *t1, strlen(*t1));
-			t += strlen(*t1);
-			*t++ = '\"';
-			t1++;
-		}
-	}
-
-	*t = '\0';
-
 	if ((cmdline_utf16 = utf8_to_utf16(cmdline)) == NULL) {
 		errno = ENOMEM;
 		goto cleanup;
@@ -1154,13 +1067,19 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	si.hStdOutput = out;
 	si.hStdError = err;
 	si.dwFlags = STARTF_USESTDHANDLES;
-
-	debug3("spawning %ls", cmdline_utf16);
 	
-	if (as_user)
-		b = CreateProcessAsUserW(as_user, NULL, cmdline_utf16, NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
-	else
-		b = CreateProcessW(NULL, cmdline_utf16, NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
+	wchar_t * t = cmdline_utf16;
+	do {
+		debug3("spawning %ls", t);
+		if (as_user)
+			b = CreateProcessAsUserW(as_user, NULL, t, NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
+		else
+			b = CreateProcessW(NULL, t, NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi);
+		if(b || GetLastError() != ERROR_FILE_NOT_FOUND || (argv != NULL && *argv != NULL) || cmd[0] == '\"')
+			break;
+		t++;
+		*(cmdline_utf16 + wcslen(cmdline_utf16) - 1) = L'\0';
+	} while (t == (cmdline_utf16 + 1));
 
 	if (b) {
 		if (register_child(pi.hProcess, pi.dwProcessId) == -1) {
@@ -1169,21 +1088,18 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 			goto cleanup;
 		}
 		CloseHandle(pi.hThread);
+		ret = pi.dwProcessId;
 	}
 	else {
 		errno = GetLastError();
-		error("%s failed error:%d", (as_user?"CreateProcessAsUserW":"CreateProcessW"), GetLastError());
-		goto cleanup;
+		error("%s failed error:%d", (as_user ? "CreateProcessAsUserW" : "CreateProcessW"), GetLastError());
 	}
 
-	ret = pi.dwProcessId;
 cleanup:
 	if (cmdline)
 		free(cmdline);
 	if (cmdline_utf16)
 		free(cmdline_utf16);
-	if (path)
-		free(path);
 
 	return ret;
 }
@@ -1332,7 +1248,7 @@ posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actio
 	for (i = 0; i < file_actions->num_aux_fds; i++) {
 		aux_handles[i] = dup_handle(file_actions->aux_fds_info.parent_fd[i]);
 		if (aux_handles[i] == NULL) 
-			goto cleanup;		
+			goto cleanup;
 	}
 
 	/* set fd info */

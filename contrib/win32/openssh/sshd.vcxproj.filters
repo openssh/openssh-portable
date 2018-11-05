@@ -150,6 +150,12 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\spawn-ext.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_groupaccess.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc">

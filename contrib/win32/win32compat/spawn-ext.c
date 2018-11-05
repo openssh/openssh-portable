@@ -3,7 +3,7 @@
 #include "inc\unistd.h"
 #include "debug.h"
 
-int posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[], HANDLE user_token);
+int posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[], HANDLE user_token, BOOLEAN prepend_module_path);
 
 int
 __posix_spawn_asuser(pid_t *pidp, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[], char* user)
@@ -21,7 +21,7 @@ __posix_spawn_asuser(pid_t *pidp, const char *path, const posix_spawn_file_actio
 	if (strcmp(user, "sshd"))
 		load_user_profile(user_token, user);
 	
-	r = posix_spawn_internal(pidp, path, file_actions, attrp, argv, envp, user_token);
+	r = posix_spawn_internal(pidp, path, file_actions, attrp, argv, envp, user_token, TRUE);
 	CloseHandle(user_token);
 	return r;
 }

@@ -31,7 +31,9 @@
 #include <string.h>
 #include "Debug.h"
 #include "inc\fcntl.h"
+#include "inc\utf.h"
 #include "misc_internal.h"
+#include "signal_internal.h"
 
 // Return Value: 0 for success, -1 for failure
 int
@@ -96,33 +98,60 @@ int is_conpty_supported()
 	return 0;
 }
 
-int exec_command_with_pty(wchar_t* cmd, STARTUPINFOW* si, PROCESS_INFORMATION* pi, int ttyfd)
+int exec_command_with_pty(int * pid, char* cmd, int in, int out, int err, unsigned int col, unsigned int row, int ttyfd)
 {
-	HANDLE ttyh = (HANDLE)w32_fd_to_handle(ttyfd);
+	PROCESS_INFORMATION pi;
+	STARTUPINFOW si;
 	wchar_t pty_cmdline[MAX_CMD_LEN] = { 0, };
 	int ret = -1;
+	HANDLE ttyh = (HANDLE)w32_fd_to_handle(ttyfd);
+	wchar_t * cmd_w = NULL;
+
+	if ((cmd_w = utf8_to_utf16(cmd)) == NULL)
+		return ret;
+
+	memset(&si, 0, sizeof(STARTUPINFO));
+	si.cb = sizeof(STARTUPINFO);
+	si.dwXCountChars = col;
+	si.dwYCountChars = row;
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESIZE | STARTF_USECOUNTCHARS;
+
+	si.hStdInput = (HANDLE)w32_fd_to_handle(in);
+	si.hStdOutput = (HANDLE)w32_fd_to_handle(out);
+	si.hStdError = (HANDLE)w32_fd_to_handle(err);
+	si.lpDesktop = NULL;
 
 	if (is_conpty_supported())
-		return CreateConPty(cmd, (short)si->dwXCountChars, (short)si->dwYCountChars, si->hStdInput, si->hStdOutput, ttyh, pi);
+		return CreateConPty(cmd_w, (short)si.dwXCountChars, (short)si.dwYCountChars, si.hStdInput, si.hStdOutput, ttyh, &pi);
 
 	/* launch via  "ssh-shellhost" -p command*/
 
-	_snwprintf_s(pty_cmdline, MAX_CMD_LEN, MAX_CMD_LEN, L"\"%ls\\ssh-shellhost.exe\" ---pty %ls", __wprogdir, cmd);
+	_snwprintf_s(pty_cmdline, MAX_CMD_LEN, MAX_CMD_LEN, L"\"%ls\\ssh-shellhost.exe\" ---pty %ls", __wprogdir, cmd_w);
 	/* 
 	 * In PTY mode, ssh-shellhost takes stderr as control channel
 	 * TODO - fix this and pass control channel pipe as a command line parameter
 	 */
-	si->hStdError = ttyh;
+	si.hStdError = ttyh;
 	debug3("pty commandline: %ls", pty_cmdline);
 
-	if (!CreateProcessW(NULL, pty_cmdline, NULL, NULL, TRUE, 0, NULL, NULL, si, pi)) {
+	if (CreateProcessW(NULL, pty_cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+		if (register_child(pi.hProcess, pi.dwProcessId) == -1) {
+			TerminateProcess(pi.hProcess, 0);
+			CloseHandle(pi.hProcess);
+			goto done;
+		}
+		CloseHandle(pi.hThread);
+	}
+	else {
 		debug("%s - failed to execute %ls, error:%d", __func__, pty_cmdline, GetLastError());
 		errno = EOTHER;
 		goto done;
 	}
-
+	*pid = pi.dwProcessId;
 	ret = 0;
 
 done:
+	if (cmd_w)
+		free(cmd_w);
 	return ret;
 }

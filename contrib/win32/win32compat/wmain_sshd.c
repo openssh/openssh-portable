@@ -224,13 +224,47 @@ int argc_original = 0;
 wchar_t **wargv_original = NULL;
 
 int wmain(int argc, wchar_t **wargv) {
-	wchar_t* path_utf16;
+	wchar_t *path_value = NULL, *path_new_value;
+	errno_t result = 0;
+	size_t path_new_len = 0, len;
 	argc_original = argc;
 	wargv_original = wargv;
 
 	init_prog_paths();
 	/* change current directory to sshd.exe root */
 	_wchdir(__wprogdir);
+
+	/*
+	* we want to launch scp and sftp executables from the binary directory
+	* that sshd is hosted in. This will facilitate hosting and evaluating
+	* multiple versions of OpenSSH at the same time.
+	* it does not work well for powershell, cygwin, etc if program path is
+	* prepended to executable directory. 
+	* To achive above, PATH is set to process environment
+	*/
+	_wdupenv_s(&path_value, &len, L"PATH");
+	if (!path_value || (wcsstr(path_value, __wprogdir)) == NULL) {
+		path_new_len = wcslen(__wprogdir) + wcslen(path_value) + 2;
+		if ((path_new_value = (wchar_t *) malloc(path_new_len * sizeof(wchar_t))) == NULL) {
+			errno = ENOMEM;
+			error("failed to allocation memory");
+			return -1;
+		}
+		swprintf_s(path_new_value, path_new_len, L"%s%s%s", __wprogdir, path_value ? L";" : L"",  path_value);
+		if (result = _wputenv_s(L"PATH", path_new_value)) {
+			error("failed to set PATH environment variable: to value:%s, error:%d", path_new_value, result);
+			errno = result;
+			if (path_new_value)
+				free(path_new_value);
+			if(path_value)
+				free(path_value);
+			return -1;
+		}
+		if (path_new_value)
+			free(path_new_value);
+		if(path_value)
+			free(path_value);
+	}
 
 	if (!StartServiceCtrlDispatcherW(dispatch_table)) {
 		if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
