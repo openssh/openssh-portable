@@ -92,10 +92,43 @@ CreateConPty(const wchar_t *cmdline,
 	return 0;
 }
 
-int is_conpty_supported()
+int
+is_conpty_supported()
 {
-	/* TODO - put conditional logic in here that determines if conpty is supported */
-	return 0;
+	wchar_t system32_path[PATH_MAX] = { 0, };
+	wchar_t kernelbase_dll_path[PATH_MAX] = { 0, };
+	HMODULE hm_kernelbase = NULL;
+	static int isConpty = -1;
+
+	if (isConpty != -1)
+		return isConpty;
+
+	isConpty = 0;
+	if (!GetSystemDirectoryW(system32_path, PATH_MAX)) {
+		error("failed to get system directory");
+		goto done;
+	}
+
+	wcscat_s(kernelbase_dll_path, PATH_MAX, system32_path);
+	wcscat_s(kernelbase_dll_path, PATH_MAX, L"\\KernelBase.dll");
+
+	if ((hm_kernelbase = LoadLibraryW(kernelbase_dll_path)) == NULL) {
+		error("failed to load kernerlbase dll:%s", kernelbase_dll_path);
+		goto done;
+	}
+
+	if (GetProcAddress(hm_kernelbase, "CreatePseudoConsole") == NULL) {
+		debug3("couldn't find CreatePseudoConsole() in kernerlbase dll");
+		goto done;
+	}
+
+	isConpty = 1;
+	debug3("This windows OS supports conpty");
+done:
+	if (!isConpty)
+		debug3("This windows OS doesn't support conpty");
+
+	return isConpty;
 }
 
 int exec_command_with_pty(int * pid, char* cmd, int in, int out, int err, unsigned int col, unsigned int row, int ttyfd)
