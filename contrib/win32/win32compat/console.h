@@ -92,9 +92,7 @@ typedef void *  SCREEN_HANDLE;
 void ConEnterRawMode();
 void ConUnInitWithRestore();
 void ConExitRawMode();
-BOOL ConIsRedirected(HANDLE hInput);
-HANDLE GetConsoleOutputHandle();
-HANDLE GetConsoleInputHandle();
+
 BOOL ConSetScreenRect(int xSize, int ySize);
 BOOL ConSetScreenSize(int X, int Y);
 BOOL ConRestoreScreen();
