@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.231 2018/05/11 03:38:51 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.232 2018/11/09 02:57:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1199,7 +1199,7 @@ main(int ac, char **av)
 	 */
 #define SSH_AGENT_MIN_FDS (3+1+1+1+4)
 	if (rlim.rlim_cur < SSH_AGENT_MIN_FDS)
-		fatal("%s: file descriptior rlimit %lld too low (minimum %u)",
+		fatal("%s: file descriptor rlimit %lld too low (minimum %u)",
 		    __progname, (long long)rlim.rlim_cur, SSH_AGENT_MIN_FDS);
 	maxfds = rlim.rlim_cur - SSH_AGENT_MIN_FDS;
 
