@@ -2037,3 +2037,10 @@ format_absolute_time(uint64_t t, char *buf, size_t len)
 	localtime_r(&tt, &tm);
 	strftime(buf, len, "%Y-%m-%dT%H:%M:%S", &tm);
 }
+
+/* check if path is absolute */
+int
+path_absolute(const char *path)
+{
+	return (*path == '/') ? 1 : 0;
+}

@@ -437,7 +437,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
 	 */
-	if (*file == '/')
+	if (path_absolute(file))
 		return (file);
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);

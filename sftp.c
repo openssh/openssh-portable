@@ -389,7 +389,7 @@ make_absolute(char *p, const char *pwd)
 	char *abs_str;
 
 	/* Derelativise */
-	if (p && p[0] != '/') {
+	if (p && !path_absolute(p)) {
 		abs_str = path_append(pwd, p);
 		free(p);
 		return(abs_str);
