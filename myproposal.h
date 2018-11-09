@@ -180,7 +180,11 @@
 
 #endif /* WITH_OPENSSL */
 
+#ifdef NO_ZLIB
+#define	KEX_DEFAULT_COMP	"none"
+#else
 #define	KEX_DEFAULT_COMP	"none,zlib@openssh.com"
+#endif
 #define	KEX_DEFAULT_LANG	""
 
 #define KEX_CLIENT \
