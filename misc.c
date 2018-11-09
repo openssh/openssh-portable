@@ -791,8 +791,11 @@ parse_uri(const char *scheme, const char *uri, char **userp, char **hostp,
 
 	uridup = tmp = xstrdup(uri);
 
-	/* Extract optional ssh-info (username + connection params) */
-	if ((cp = strchr(tmp, '@')) != NULL) {
+	/*
+	 * Extract optional ssh-info (username + connection params)
+	 * Accomodate username in upn format - user@domain@host
+	 */
+	if ((cp = strrchr(tmp, '@')) != NULL) {
 		char *delim;
 
 		*cp = '\0';
