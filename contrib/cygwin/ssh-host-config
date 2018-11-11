@@ -307,7 +307,7 @@ check_service_files_ownership() {
 
   if [ -z "${run_service_as}" ]
   then
-    accnt_name=$(/usr/bin/cygrunsrv -VQ sshd |
+    accnt_name=$(/usr/bin/cygrunsrv -VQ "${service_name}" |
     		 /usr/bin/sed -ne 's/^Account *: *//gp')
     if [ "${accnt_name}" = "LocalSystem" ]
     then
