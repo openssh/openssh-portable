@@ -96,7 +96,7 @@ int
 is_conpty_supported()
 {
 	wchar_t system32_path[PATH_MAX] = { 0, };
-	wchar_t kernelbase_dll_path[PATH_MAX] = { 0, };
+	wchar_t kernel32_dll_path[PATH_MAX] = { 0, };
 	HMODULE hm_kernelbase = NULL;
 	static int isConpty = -1;
 
@@ -109,11 +109,11 @@ is_conpty_supported()
 		goto done;
 	}
 
-	wcscat_s(kernelbase_dll_path, PATH_MAX, system32_path);
-	wcscat_s(kernelbase_dll_path, PATH_MAX, L"\\KernelBase.dll");
+	wcscat_s(kernel32_dll_path, PATH_MAX, system32_path);
+	wcscat_s(kernel32_dll_path, PATH_MAX, L"\\Kernel32.dll");
 
-	if ((hm_kernelbase = LoadLibraryW(kernelbase_dll_path)) == NULL) {
-		error("failed to load kernerlbase dll:%s", kernelbase_dll_path);
+	if ((hm_kernelbase = LoadLibraryW(kernel32_dll_path)) == NULL) {
+		error("failed to load kernerlbase dll:%s", kernel32_dll_path);
 		goto done;
 	}
 
