@@ -91,12 +91,12 @@ ReadThread(_In_ LPVOID lpParameter)
 
 				DWORD dwAttributes;
 				if (!GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &dwAttributes))
-					error("GetConsoleMode on STD_INPUT_HANDLE failed with %d\n", GetLastError());
+					error("GetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
 				
 				dwAttributes |= (ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
 
 				if (!SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), dwAttributes))
-					error("SetConsoleMode on STD_INPUT_HANDLE failed with %d\n", GetLastError());
+					error("SetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
 			}
 
 			if (!ReadFile(WINHANDLE(pio), pio->read_details.buf,
