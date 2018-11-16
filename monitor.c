@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.186 2018/07/20 03:46:34 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.188 2018/11/16 02:43:56 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -846,6 +846,35 @@ mm_answer_authserv(int sock, struct sshbuf *m)
 	return (0);
 }
 
+/*
+ * Check that the key type appears in the supplied pattern list, ignoring
+ * mismatches in the signature algorithm. (Signature algorithm checks are
+ * performed in the unprivileged authentication code).
+ * Returns 1 on success, 0 otherwise.
+ */
+static int
+key_base_type_match(const char *method, const struct sshkey *key,
+    const char *list)
+{
+	char *s, *l, *ol = xstrdup(list);
+	int found = 0;
+
+	l = ol;
+	for ((s = strsep(&l, ",")); s && *s != '\0'; (s = strsep(&l, ","))) {
+		if (sshkey_type_from_name(s) == key->type) {
+			found = 1;
+			break;
+		}
+	}
+	if (!found) {
+		error("%s key type %s is not in permitted list %s", method,
+		    sshkey_ssh_name(key), list);
+	}
+
+	free(ol);
+	return found;
+}
+
 int
 mm_answer_authpassword(int sock, struct sshbuf *m)
 {
@@ -1151,8 +1180,8 @@ mm_answer_keyallowed(int sock, struct sshbuf *m)
 				break;
 			if (auth2_key_already_used(authctxt, key))
 				break;
-			if (match_pattern_list(sshkey_ssh_name(key),
-			    options.pubkey_key_types, 0) != 1)
+			if (!key_base_type_match(auth_method, key,
+			    options.pubkey_key_types))
 				break;
 			allowed = user_key_allowed(ssh, authctxt->pw, key,
 			    pubkey_auth_attempt, &opts);
@@ -1163,8 +1192,8 @@ mm_answer_keyallowed(int sock, struct sshbuf *m)
 				break;
 			if (auth2_key_already_used(authctxt, key))
 				break;
-			if (match_pattern_list(sshkey_ssh_name(key),
-			    options.hostbased_key_types, 0) != 1)
+			if (!key_base_type_match(auth_method, key,
+			    options.hostbased_key_types))
 				break;
 			allowed = hostbased_key_allowed(authctxt->pw,
 			    cuser, chost, key);
