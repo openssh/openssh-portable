@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.288 2018/10/11 03:48:04 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.289 2018/11/16 02:46:20 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -379,7 +379,6 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 
 	/* setup authentication context */
 	memset(&authctxt, 0, sizeof(authctxt));
-	pubkey_prepare(&authctxt);
 	authctxt.server_user = server_user;
 	authctxt.local_user = local_user;
 	authctxt.host = host;
@@ -392,6 +391,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	authctxt.active_ktype = authctxt.oktypes = authctxt.ktypes = NULL;
 	authctxt.info_req_seen = 0;
 	authctxt.agent_fd = -1;
+	pubkey_prepare(&authctxt);
 	if (authctxt.method == NULL)
 		fatal("ssh_userauth2: internal error: cannot send userauth none request");
 
@@ -1620,8 +1620,10 @@ pubkey_cleanup(Authctxt *authctxt)
 {
 	Identity *id;
 
-	if (authctxt->agent_fd != -1)
+	if (authctxt->agent_fd != -1) {
 		ssh_close_authentication_socket(authctxt->agent_fd);
+		authctxt->agent_fd = -1;
+	}
 	for (id = TAILQ_FIRST(&authctxt->keys); id;
 	    id = TAILQ_FIRST(&authctxt->keys)) {
 		TAILQ_REMOVE(&authctxt->keys, id, next);
