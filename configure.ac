@@ -2527,26 +2527,10 @@ AC_ARG_WITH([ssl-engine],
 
 if test "x$openssl" = "xyes" ; then
 	LIBS="-lcrypto $LIBS"
-	AC_TRY_LINK_FUNC([RAND_add], [AC_DEFINE([HAVE_OPENSSL], [1],
-		[Define if your ssl headers are included
-		with #include <openssl/header.h>])],
-		[
-			dnl Check default openssl install dir
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L/usr/local/ssl/lib -R/usr/local/ssl/lib ${saved_LDFLAGS}"
-			else
-				LDFLAGS="-L/usr/local/ssl/lib ${saved_LDFLAGS}"
-			fi
-			CPPFLAGS="-I/usr/local/ssl/include ${saved_CPPFLAGS}"
-			AC_CHECK_HEADER([openssl/opensslv.h], ,
-			    [AC_MSG_ERROR([*** OpenSSL headers missing - please install first or check config.log ***])])
-			AC_TRY_LINK_FUNC([RAND_add], [AC_DEFINE([HAVE_OPENSSL])],
-				[
-					AC_MSG_ERROR([*** Can't find recent OpenSSL libcrypto (see config.log for details) ***])
-				]
-			)
-		]
-	)
+	AC_TRY_LINK_FUNC([RAND_add], ,
+	    [AC_MSG_ERROR([*** working libcrypto not found, check config.log])])
+	AC_CHECK_HEADER([openssl/opensslv.h], ,
+	    [AC_MSG_ERROR([*** OpenSSL headers missing - please install first or check config.log ***])])
 
 	# Determine OpenSSL header version
 	AC_MSG_CHECKING([OpenSSL header version])
