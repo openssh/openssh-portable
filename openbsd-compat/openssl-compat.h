@@ -32,7 +32,7 @@
 
 int ssh_compatible_openssl(long, long);
 
-#if (OPENSSL_VERSION_NUMBER <= 0x1000100fL)
+#if (OPENSSL_VERSION_NUMBER < 0x1000100fL)
 # error OpenSSL 1.0.1 or greater is required
 #endif
 
