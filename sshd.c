@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.517 2018/10/23 05:56:35 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.518 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1624,7 +1624,7 @@ main(int ac, char **av)
 	}
 	if (rexeced_flag || inetd_flag)
 		rexec_flag = 0;
-	if (!test_flag && (rexec_flag && (av[0] == NULL || *av[0] != '/')))
+	if (!test_flag && rexec_flag && !path_absolute(av[0]))
 		fatal("sshd re-exec requires execution with an absolute path");
 	if (rexeced_flag)
 		closefrom(REEXEC_MIN_FREE_FD);

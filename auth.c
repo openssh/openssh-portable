@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.133 2018/09/12 01:19:12 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.134 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -437,7 +437,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
 	 */
-	if (*file == '/')
+	if (path_absolute(file))
 		return (file);
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
@@ -893,7 +893,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	 * If executing an explicit binary, then verify the it exists
 	 * and appears safe-ish to execute
 	 */
-	if (*av[0] != '/') {
+	if (!path_absolute(av[0])) {
 		error("%s path is not absolute", tag);
 		return 0;
 	}

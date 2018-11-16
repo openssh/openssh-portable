@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.342 2018/09/20 23:40:16 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.343 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -702,7 +702,7 @@ derelativise_path(const char *path)
 	if (strcasecmp(path, "none") == 0)
 		return xstrdup("none");
 	expanded = tilde_expand_filename(path, getuid());
-	if (*expanded == '/')
+	if (path_absolute(expanded))
 		return expanded;
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 		fatal("%s: getcwd: %s", __func__, strerror(errno));

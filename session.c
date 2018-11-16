@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.307 2018/10/04 00:10:11 djm Exp $ */
+/* $OpenBSD: session.c,v 1.308 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1334,7 +1334,7 @@ safely_chroot(const char *path, uid_t uid)
 	char component[PATH_MAX];
 	struct stat st;
 
-	if (*path != '/')
+	if (!path_absolute(path))
 		fatal("chroot path does not begin at root");
 	if (strlen(path) >= sizeof(component))
 		fatal("chroot path too long");

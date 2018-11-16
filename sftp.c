@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.187 2018/11/16 02:30:20 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.188 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -389,7 +389,7 @@ make_absolute(char *p, const char *pwd)
 	char *abs_str;
 
 	/* Derelativise */
-	if (p && p[0] != '/') {
+	if (p && !path_absolute(p)) {
 		abs_str = path_append(pwd, p);
 		free(p);
 		return(abs_str);
@@ -1623,7 +1623,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 
 		/* Strip pwd off beginning of non-absolute paths */
 		tmp = NULL;
-		if (*path1 != '/')
+		if (!path_absolute(path1))
 			tmp = *pwd;
 
 		path1 = make_absolute(path1, *pwd);
@@ -1951,7 +1951,7 @@ complete_match(EditLine *el, struct sftp_conn *conn, char *remote_path,
 		xasprintf(&tmp, "%s*", file);
 
 	/* Check if the path is absolute. */
-	isabs = tmp[0] == '/';
+	isabs = path_absolute(tmp);
 
 	memset(&g, 0, sizeof(g));
 	if (remote != LOCAL) {

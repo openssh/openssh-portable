@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.133 2018/10/05 14:26:09 naddy Exp $ */
+/* $OpenBSD: misc.c,v 1.134 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -2036,4 +2036,11 @@ format_absolute_time(uint64_t t, char *buf, size_t len)
 
 	localtime_r(&tt, &tm);
 	strftime(buf, len, "%Y-%m-%dT%H:%M:%S", &tm);
+}
+
+/* check if path is absolute */
+int
+path_absolute(const char *path)
+{
+	return (*path == '/') ? 1 : 0;
 }

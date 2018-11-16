@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.300 2018/10/05 14:26:09 naddy Exp $ */
+/* $OpenBSD: readconf.c,v 1.301 2018/11/16 03:26:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1521,7 +1521,7 @@ parse_keytypes:
 			if (*arg == '~' && (flags & SSHCONF_USERCONF) == 0)
 				fatal("%.200s line %d: bad include path %s.",
 				    filename, linenum, arg);
-			if (*arg != '/' && *arg != '~') {
+			if (!path_absolute(arg) && *arg != '~') {
 				xasprintf(&arg2, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
 				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
