@@ -2710,6 +2710,7 @@ if test "x$openssl" = "xyes" ; then
 	])
 	# LibreSSL/OpenSSL 1.1x API
 	AC_CHECK_FUNCS([ \
+		OPENSSL_init_crypto \
 		DH_get0_key \
 		DH_get0_pqg \
 		DH_set0_key \
