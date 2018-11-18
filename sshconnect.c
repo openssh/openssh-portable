@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.307 2018/11/16 06:17:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.308 2018/11/18 22:43:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -163,7 +163,8 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 		 * Stderr is left for non-ControlPersist connections is so
 		 * error messages may be printed on the user's terminal.
 		 */
-		if (debug_flag || !options.control_persist)
+		if (!debug_flag && options.control_path != NULL &&
+		    options.control_persist)
 			stderr_null();
 
 		argv[0] = shell;
@@ -245,7 +246,8 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 		 * Stderr is left for non-ControlPersist connections is so
 		 * error messages may be printed on the user's terminal.
 		 */
-		if (debug_flag || !options.control_persist)
+		if (!debug_flag && options.control_path != NULL &&
+		    options.control_persist)
 			stderr_null();
 
 		argv[0] = shell;
