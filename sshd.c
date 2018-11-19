@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.518 2018/11/16 03:26:01 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.519 2018/11/19 04:12:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1588,7 +1588,7 @@ main(int ac, char **av)
 			break;
 		case 'h':
 			servconf_add_hostkey("[command-line]", 0,
-			    &options, optarg);
+			    &options, optarg, 1);
 			break;
 		case 't':
 			test_flag = 1;
@@ -1760,15 +1760,18 @@ main(int ac, char **av)
 	}
 
 	for (i = 0; i < options.num_host_key_files; i++) {
+		int ll = options.host_key_file_userprovided[i] ?
+		    SYSLOG_LEVEL_ERROR : SYSLOG_LEVEL_DEBUG1;
+
 		if (options.host_key_files[i] == NULL)
 			continue;
 		if ((r = sshkey_load_private(options.host_key_files[i], "",
 		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
-			error("Error loading host key \"%s\": %s",
+			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
 		if ((r = sshkey_load_public(options.host_key_files[i],
 		    &pubkey, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
-			error("Error loading host key \"%s\": %s",
+			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
 		if (pubkey == NULL && key != NULL)
 			if ((r = sshkey_from_private(key, &pubkey)) != 0)
@@ -1785,7 +1788,7 @@ main(int ac, char **av)
 			keytype = key->type;
 			accumulate_host_timing_secret(cfg, key);
 		} else {
-			error("Could not load host key: %s",
+			do_log2(ll, "Unable to load host key: %s",
 			    options.host_key_files[i]);
 			sensitive_data.host_keys[i] = NULL;
 			sensitive_data.host_pubkeys[i] = NULL;

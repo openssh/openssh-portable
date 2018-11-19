@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.343 2018/11/16 03:26:01 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.344 2018/11/19 04:12:32 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -221,26 +221,40 @@ assemble_algorithms(ServerOptions *o)
 }
 
 static void
-array_append(const char *file, const int line, const char *directive,
-    char ***array, u_int *lp, const char *s)
+array_append2(const char *file, const int line, const char *directive,
+    char ***array, int **iarray, u_int *lp, const char *s, int i)
 {
 
 	if (*lp >= INT_MAX)
 		fatal("%s line %d: Too many %s entries", file, line, directive);
+
+	if (iarray != NULL) {
+		*iarray = xrecallocarray(*iarray, *lp, *lp + 1,
+		    sizeof(**iarray));
+		(*iarray)[*lp] = i;
+	}
 
 	*array = xrecallocarray(*array, *lp, *lp + 1, sizeof(**array));
 	(*array)[*lp] = xstrdup(s);
 	(*lp)++;
 }
 
+static void
+array_append(const char *file, const int line, const char *directive,
+    char ***array, u_int *lp, const char *s)
+{
+	array_append2(file, line, directive, array, NULL, lp, s, 0);
+}
+
 void
 servconf_add_hostkey(const char *file, const int line,
-    ServerOptions *options, const char *path)
+    ServerOptions *options, const char *path, int userprovided)
 {
 	char *apath = derelativise_path(path);
 
-	array_append(file, line, "HostKey",
-	    &options->host_key_files, &options->num_host_key_files, apath);
+	array_append2(file, line, "HostKey",
+	    &options->host_key_files, &options->host_key_file_userprovided,
+	    &options->num_host_key_files, apath, userprovided);
 	free(apath);
 }
 
@@ -268,16 +282,16 @@ fill_default_server_options(ServerOptions *options)
 	if (options->num_host_key_files == 0) {
 		/* fill default hostkeys for protocols */
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_RSA_KEY_FILE);
+		    _PATH_HOST_RSA_KEY_FILE, 0);
 #ifdef OPENSSL_HAS_ECC
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ECDSA_KEY_FILE);
+		    _PATH_HOST_ECDSA_KEY_FILE, 0);
 #endif
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_ED25519_KEY_FILE);
+		    _PATH_HOST_ED25519_KEY_FILE, 0);
 #ifdef WITH_XMSS
 		servconf_add_hostkey("[default]", 0, options,
-		    _PATH_HOST_XMSS_KEY_FILE);
+		    _PATH_HOST_XMSS_KEY_FILE, 0);
 #endif /* WITH_XMSS */
 	}
 	/* No certificates by default */
@@ -1355,8 +1369,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: missing file name.",
 			    filename, linenum);
-		if (*activep)
-			servconf_add_hostkey(filename, linenum, options, arg);
+		if (*activep) {
+			servconf_add_hostkey(filename, linenum,
+			    options, arg, 1);
+		}
 		break;
 
 	case sHostKeyAgent:
