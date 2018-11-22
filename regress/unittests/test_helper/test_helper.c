@@ -228,6 +228,7 @@ test_info(char *s, size_t len)
 	    *subtest_info != '\0' ? " - " : "", subtest_info);
 }
 
+#ifdef SIGINFO
 static void
 siginfo(int unused __attribute__((__unused__)))
 {
@@ -236,6 +237,7 @@ siginfo(int unused __attribute__((__unused__)))
 	test_info(buf, sizeof(buf));
 	atomicio(vwrite, STDERR_FILENO, buf, strlen(buf));
 }
+#endif
 
 void
 test_start(const char *n)
