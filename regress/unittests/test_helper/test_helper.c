@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.9 2018/10/17 23:28:05 djm Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.10 2018/11/22 08:59:11 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
