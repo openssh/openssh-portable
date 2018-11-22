@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.97 2018/06/07 04:46:34 djm Exp $
+#	$OpenBSD: Makefile,v 1.98 2018/11/22 08:48:32 dtucker Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -121,8 +121,6 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
 		t8.out t8.out.pub t9.out t9.out.pub testdata \
 		user_*key* user_ca* user_key*
-
-SUDO_CLEAN+=	/var/run/testdata_${USERNAME} /var/run/keycommand_${USERNAME}
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=CFGJRSUX"
