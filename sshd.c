@@ -1510,6 +1510,8 @@ main(int ac, char **av)
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
+	seed_rng();
+
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);
 
@@ -1631,10 +1633,6 @@ main(int ac, char **av)
 	else
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
-
 	/* If requested, redirect the logs to the specified logfile. */
 	if (logfile != NULL)
 		log_redirect_stderr_to(logfile);
@@ -1676,8 +1674,6 @@ main(int ac, char **av)
 
 	parse_server_config(&options, rexeced_flag ? "rexec" : config_file_name,
 	    cfg, NULL);
-
-	seed_rng();
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);

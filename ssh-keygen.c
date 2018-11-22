@@ -2459,12 +2459,9 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
-	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
-
 	seed_rng();
+
+	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	msetlocale();
 

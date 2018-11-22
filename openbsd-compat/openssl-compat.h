@@ -31,6 +31,7 @@
 #include <openssl/dh.h>
 
 int ssh_compatible_openssl(long, long);
+void ssh_libcrypto_init(void);
 
 #if (OPENSSL_VERSION_NUMBER < 0x1000100fL)
 # error OpenSSL 1.0.1 or greater is required
@@ -91,27 +92,6 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 #  undef HAVE_EVP_RIPEMD160
 # endif
 #endif
-
-/*
- * We overload some of the OpenSSL crypto functions with ssh_* equivalents
- * to automatically handle OpenSSL engine initialisation.
- *
- * In order for the compat library to call the real functions, it must
- * define SSH_DONT_OVERLOAD_OPENSSL_FUNCS before including this file and
- * implement the ssh_* equivalents.
- */
-#ifndef SSH_DONT_OVERLOAD_OPENSSL_FUNCS
-
-# ifdef USE_OPENSSL_ENGINE
-#  ifdef OpenSSL_add_all_algorithms
-#   undef OpenSSL_add_all_algorithms
-#  endif
-#  define OpenSSL_add_all_algorithms()  ssh_OpenSSL_add_all_algorithms()
-# endif
-
-void ssh_OpenSSL_add_all_algorithms(void);
-
-#endif	/* SSH_DONT_OVERLOAD_OPENSSL_FUNCS */
 
 /* LibreSSL/OpenSSL 1.1x API compat */
 #ifndef HAVE_DSA_GET0_PQG

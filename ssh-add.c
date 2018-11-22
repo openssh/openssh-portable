@@ -544,10 +544,6 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
-
 	setvbuf(stdout, NULL, _IOLBF, 0);
 
 	/* First, get a connection to the authentication agent. */

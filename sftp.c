@@ -2367,6 +2367,8 @@ main(int argc, char **argv)
 	sanitise_stdfd();
 	msetlocale();
 
+	seed_rng();
+
 	__progname = ssh_get_progname(argv[0]);
 	memset(&args, '\0', sizeof(args));
 	args.list = NULL;

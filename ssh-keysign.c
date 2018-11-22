@@ -174,9 +174,6 @@ main(int argc, char **argv)
 	u_char *signature, *data, rver;
 	char *host, *fp;
 	size_t slen, dlen;
-#ifdef WITH_OPENSSL
-	u_int32_t rnd[256];
-#endif
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	if (pledge("stdio rpath getpw dns id", NULL) != 0)
@@ -223,12 +220,6 @@ main(int argc, char **argv)
 	}
 	if (found == 0)
 		fatal("could not open any host key");
-
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-	arc4random_buf(rnd, sizeof(rnd));
-	RAND_seed(rnd, sizeof(rnd));
-#endif
 
 	found = 0;
 	for (i = 0; i < NUM_KEYTYPES; i++) {

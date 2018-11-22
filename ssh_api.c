@@ -81,9 +81,7 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 	int r;
 
 	if (!called) {
-#ifdef WITH_OPENSSL
-		OpenSSL_add_all_algorithms();
-#endif /* WITH_OPENSSL */
+		seed_rng();
 		called = 1;
 	}
 

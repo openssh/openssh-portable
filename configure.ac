@@ -2671,8 +2671,8 @@ if test "x$openssl" = "xyes" ; then
 
 	AC_MSG_CHECKING([if programs using OpenSSL functions will link])
 	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-		[[ OpenSSL_add_all_algorithms(); ]])],
+		[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
+		[[ ERR_load_crypto_strings(); ]])],
 		[
 			AC_MSG_RESULT([yes])
 		],
@@ -2682,8 +2682,8 @@ if test "x$openssl" = "xyes" ; then
 			LIBS="$LIBS -ldl"
 			AC_MSG_CHECKING([if programs using OpenSSL need -ldl])
 			AC_LINK_IFELSE(
-				[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-				[[ OpenSSL_add_all_algorithms(); ]])],
+				[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
+				[[ ERR_load_crypto_strings(); ]])],
 				[
 					AC_MSG_RESULT([yes])
 				],
@@ -2698,15 +2698,16 @@ if test "x$openssl" = "xyes" ; then
 	AC_CHECK_FUNCS([ \
 		BN_is_prime_ex \
 		DSA_generate_parameters_ex \
-		EVP_DigestInit_ex \
+		EVP_CIPHER_CTX_ctrl \
 		EVP_DigestFinal_ex \
-		EVP_MD_CTX_init \
+		EVP_DigestInit_ex \
 		EVP_MD_CTX_cleanup \
 		EVP_MD_CTX_copy_ex \
+		EVP_MD_CTX_init \
 		HMAC_CTX_init \
+		OpenSSL_add_all_algorithms \
 		RSA_generate_key_ex \
 		RSA_get_default_method \
-		EVP_CIPHER_CTX_ctrl \
 	])
 	# LibreSSL/OpenSSL 1.1x API
 	AC_CHECK_FUNCS([ \

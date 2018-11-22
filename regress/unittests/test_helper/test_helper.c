@@ -35,11 +35,13 @@
 #include <signal.h>
 
 #include <openssl/bn.h>
+#include <openssl/err.h>
 
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
 
+#include "entropy.h"
 #include "test_helper.h"
 #include "atomicio.h"
 
@@ -122,6 +124,9 @@ int
 main(int argc, char **argv)
 {
 	int ch;
+
+	seed_rng();
+	ERR_load_CRYPTO_strings();
 
 	/* Handle systems without __progname */
 	if (__progname == NULL) {

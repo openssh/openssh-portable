@@ -1095,10 +1095,6 @@ main(int ac, char **av)
 	if (getrlimit(RLIMIT_NOFILE, &rlim) == -1)
 		fatal("%s: getrlimit: %s", __progname, strerror(errno));
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
-
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
 

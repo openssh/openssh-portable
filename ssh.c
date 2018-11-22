@@ -610,6 +610,8 @@ main(int ac, char **av)
 	av = saved_av;
 #endif
 
+	seed_rng();
+
 	/*
 	 * Discard other fds that are hanging around. These can cause problem
 	 * with backgrounded ssh processes started by ControlPersist.
@@ -1036,11 +1038,6 @@ main(int ac, char **av)
 
 	host_arg = xstrdup(host);
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-	ERR_load_crypto_strings();
-#endif
-
 	/* Initialize the command to execute on remote host. */
 	if ((command = sshbuf_new()) == NULL)
 		fatal("sshbuf_new failed");
@@ -1263,8 +1260,6 @@ main(int ac, char **av)
 			    "stdin is not a terminal.");
 		tty_flag = 0;
 	}
-
-	seed_rng();
 
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
