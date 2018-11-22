@@ -1,7 +1,19 @@
 #	$OpenBSD: Makefile.inc,v 1.12 2017/12/21 00:41:22 djm Exp $
 
+REGRESS_FAIL_EARLY?=	yes
+
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
+
+MALLOC_OPTIONS?=	CFGJRSUX
+TEST_ENV?=		MALLOC_OPTIONS=${MALLOC_OPTIONS}
+
+# XXX detect from ssh binary?
+OPENSSL?=	yes
+
+.if (${OPENSSL:L} == "yes")
+CFLAGS+=	-DWITH_OPENSSL
+.endif
 
 # enable warnings
 WARNINGS=Yes
@@ -49,5 +61,10 @@ DPADD+=${.CURDIR}/../test_helper/libtest_helper.a
 
 .PATH: ${.CURDIR}/${SSHREL}
 
+LDADD+= -lutil
+DPADD+= ${LIBUTIL}
+
+.if (${OPENSSL:L} == "yes")
 LDADD+= -lcrypto
 DPADD+= ${LIBCRYPTO}
+.endif
