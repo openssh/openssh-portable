@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.287 2018/11/23 05:08:07 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.288 2018/11/23 06:58:28 jmc Exp $
 .Dd $Mdocdate: November 23 2018 $
 .Dt SSH_CONFIG 5
 .Os
@@ -154,8 +154,8 @@ or
 .Cm final .
 Other criteria may be combined arbitrarily.
 All criteria but
-.Cm all
-.Cm canonical
+.Cm all ,
+.Cm canonical ,
 and
 .Cm final
 require an argument.
@@ -167,7 +167,7 @@ The
 keyword matches only when the configuration file is being re-parsed
 after hostname canonicalization (see the
 .Cm CanonicalizeHostname
-option.)
+option).
 This may be useful to specify conditions that work with canonical host
 names only.
 .Pp
