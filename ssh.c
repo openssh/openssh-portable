@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.495 2018/10/23 05:56:35 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.496 2018/11/23 05:08:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -527,7 +527,8 @@ check_load(int r, const char *path, const char *message)
  * file if the user specifies a config file on the command line.
  */
 static void
-process_config_files(const char *host_name, struct passwd *pw, int post_canon)
+process_config_files(const char *host_name, struct passwd *pw, int final_pass,
+    int *want_final_pass)
 {
 	char buf[PATH_MAX];
 	int r;
@@ -535,7 +536,8 @@ process_config_files(const char *host_name, struct passwd *pw, int post_canon)
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
 		    !read_config_file(config, pw, host, host_name, &options,
-		    SSHCONF_USERCONF | (post_canon ? SSHCONF_POSTCANON : 0)))
+		    SSHCONF_USERCONF | (final_pass ? SSHCONF_FINAL : 0),
+		    want_final_pass))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
@@ -544,12 +546,12 @@ process_config_files(const char *host_name, struct passwd *pw, int post_canon)
 		if (r > 0 && (size_t)r < sizeof(buf))
 			(void)read_config_file(buf, pw, host, host_name,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
-			    (post_canon ? SSHCONF_POSTCANON : 0));
+			    (final_pass ? SSHCONF_FINAL : 0), want_final_pass);
 
 		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
 		    host, host_name, &options,
-		    post_canon ? SSHCONF_POSTCANON : 0);
+		    final_pass ? SSHCONF_FINAL : 0, want_final_pass);
 	}
 }
 
@@ -581,7 +583,7 @@ main(int ac, char **av)
 {
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
-	int was_addr, config_test = 0, opt_terminated = 0;
+	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *logfile;
 	char cname[NI_MAXHOST];
 	struct stat st;
@@ -1089,7 +1091,9 @@ main(int ac, char **av)
 		);
 
 	/* Parse the configuration files */
-	process_config_files(host_arg, pw, 0);
+	process_config_files(host_arg, pw, 0, &want_final_pass);
+	if (want_final_pass)
+		debug("configuration requests final Match pass");
 
 	/* Hostname canonicalisation needs a few options filled. */
 	fill_default_options_for_canonicalization(&options);
@@ -1146,12 +1150,17 @@ main(int ac, char **av)
 	 * If canonicalisation is enabled then re-parse the configuration
 	 * files as new stanzas may match.
 	 */
-	if (options.canonicalize_hostname != 0) {
-		debug("Re-reading configuration after hostname "
-		    "canonicalisation");
+	if (options.canonicalize_hostname != 0 && !want_final_pass) {
+		debug("hostname canonicalisation enabled, "
+		    "will re-parse configuration");
+		want_final_pass = 1;
+	}
+
+	if (want_final_pass) {
+		debug("re-parsing configuration");
 		free(options.hostname);
 		options.hostname = xstrdup(host);
-		process_config_files(host_arg, pw, 1);
+		process_config_files(host_arg, pw, 1, NULL);
 		/*
 		 * Address resolution happens early with canonicalisation
 		 * enabled and the port number may have changed since, so

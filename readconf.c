@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.301 2018/11/16 03:26:01 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.302 2018/11/23 05:08:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -133,10 +133,11 @@
 
 static int read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth);
+    int flags, int *activep, int *want_final_pass, int depth);
 static int process_config_line_depth(Options *options, struct passwd *pw,
     const char *host, const char *original_host, char *line,
-    const char *filename, int linenum, int *activep, int flags, int depth);
+    const char *filename, int linenum, int *activep, int flags,
+    int *want_final_pass, int depth);
 
 /* Keyword tokens. */
 
@@ -539,8 +540,8 @@ execute_in_shell(const char *cmd)
  */
 static int
 match_cfg_line(Options *options, char **condition, struct passwd *pw,
-    const char *host_arg, const char *original_host, int post_canon,
-    const char *filename, int linenum)
+    const char *host_arg, const char *original_host, int final_pass,
+    int *want_final_pass, const char *filename, int linenum)
 {
 	char *arg, *oattrib, *attrib, *cmd, *cp = *condition, *host, *criteria;
 	const char *ruser;
@@ -554,7 +555,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	 */
 	port = options->port <= 0 ? default_ssh_port() : options->port;
 	ruser = options->user == NULL ? pw->pw_name : options->user;
-	if (post_canon) {
+	if (final_pass) {
 		host = xstrdup(options->hostname);
 	} else if (options->hostname != NULL) {
 		/* NB. Please keep in sync with ssh.c:main() */
@@ -586,8 +587,16 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			goto out;
 		}
 		attributes++;
-		if (strcasecmp(attrib, "canonical") == 0) {
-			r = !!post_canon;  /* force bitmask member to boolean */
+		if (strcasecmp(attrib, "canonical") == 0 ||
+		    strcasecmp(attrib, "final") == 0) {
+			/*
+			 * If the config requests "Match final" then remember
+			 * this so we can perform a second pass later.
+			 */
+			if (strcasecmp(attrib, "final") == 0 &&
+			    want_final_pass != NULL)
+				*want_final_pass = 1;
+			r = !!final_pass;  /* force bitmask member to boolean */
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 			debug3("%.200s line %d: %smatched '%s'",
@@ -824,14 +833,14 @@ process_config_line(Options *options, struct passwd *pw, const char *host,
     int linenum, int *activep, int flags)
 {
 	return process_config_line_depth(options, pw, host, original_host,
-	    line, filename, linenum, activep, flags, 0);
+	    line, filename, linenum, activep, flags, NULL, 0);
 }
 
 #define WHITESPACE " \t\r\n"
 static int
 process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
-    int linenum, int *activep, int flags, int depth)
+    int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
@@ -1339,7 +1348,8 @@ parse_keytypes:
 			fatal("Host directive not supported as a command-line "
 			    "option");
 		value = match_cfg_line(options, &s, pw, host, original_host,
-		    flags & SSHCONF_POSTCANON, filename, linenum);
+		    flags & SSHCONF_FINAL, want_final_pass,
+		    filename, linenum);
 		if (value < 0)
 			fatal("%.200s line %d: Bad Match condition", filename,
 			    linenum);
@@ -1548,7 +1558,7 @@ parse_keytypes:
 				    pw, host, original_host, options,
 				    flags | SSHCONF_CHECKPERM |
 				    (oactive ? 0 : SSHCONF_NEVERMATCH),
-				    activep, depth + 1);
+				    activep, want_final_pass, depth + 1);
 				if (r != 1 && errno != ENOENT) {
 					fatal("Can't open user config file "
 					    "%.100s: %.100s", gl.gl_pathv[i],
@@ -1751,19 +1761,20 @@ parse_keytypes:
  */
 int
 read_config_file(const char *filename, struct passwd *pw, const char *host,
-    const char *original_host, Options *options, int flags)
+    const char *original_host, Options *options, int flags,
+    int *want_final_pass)
 {
 	int active = 1;
 
 	return read_config_file_depth(filename, pw, host, original_host,
-	    options, flags, &active, 0);
+	    options, flags, &active, want_final_pass, 0);
 }
 
 #define READCONF_MAX_DEPTH	16
 static int
 read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth)
+    int flags, int *activep, int *want_final_pass, int depth)
 {
 	FILE *f;
 	char *line = NULL;
@@ -1798,7 +1809,8 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		/* Update line number counter. */
 		linenum++;
 		if (process_config_line_depth(options, pw, host, original_host,
-		    line, filename, linenum, activep, flags, depth) != 0)
+		    line, filename, linenum, activep, flags, want_final_pass,
+		    depth) != 0)
 			bad_options++;
 	}
 	free(line);

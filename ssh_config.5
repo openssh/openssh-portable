@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.286 2018/10/03 06:38:35 djm Exp $
-.Dd $Mdocdate: October 3 2018 $
+.\" $OpenBSD: ssh_config.5,v 1.287 2018/11/23 05:08:07 djm Exp $
+.Dd $Mdocdate: November 23 2018 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -139,6 +139,7 @@ or the single token
 which always matches.
 The available criteria keywords are:
 .Cm canonical ,
+.Cm final ,
 .Cm exec ,
 .Cm host ,
 .Cm originalhost ,
@@ -148,12 +149,15 @@ and
 The
 .Cm all
 criteria must appear alone or immediately after
-.Cm canonical .
+.Cm canonical
+or
+.Cm final .
 Other criteria may be combined arbitrarily.
 All criteria but
 .Cm all
-and
 .Cm canonical
+and
+.Cm final
 require an argument.
 Criteria may be negated by prepending an exclamation mark
 .Pq Sq !\& .
@@ -166,6 +170,20 @@ after hostname canonicalization (see the
 option.)
 This may be useful to specify conditions that work with canonical host
 names only.
+.Pp
+The
+.Cm final
+keyword requests that the configuration be re-parsed (regardless of whether
+.Cm CanonicalizeHostname
+is enabled), and matches only during this final pass.
+If
+.Cm CanonicalizeHostname
+is enabled, then
+.Cm canonical
+and
+.Cm final
+match during the same pass.
+.Pp
 The
 .Cm exec
 keyword executes the specified command under the user's shell.
