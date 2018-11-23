@@ -24,6 +24,8 @@
 
 #include "includes.h"
 
+#define RANDOM_SEED_SIZE 48
+
 #ifdef WITH_OPENSSL
 
 #include <sys/types.h>
@@ -55,8 +57,6 @@
 #include "log.h"
 #include "sshbuf.h"
 #include "ssherr.h"
-
-#define RANDOM_SEED_SIZE 48
 
 /*
  * Portable OpenSSH PRNG seeding:
