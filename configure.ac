@@ -2705,10 +2705,19 @@ if test "x$openssl" = "xyes" ; then
 		EVP_MD_CTX_copy_ex \
 		EVP_MD_CTX_init \
 		HMAC_CTX_init \
-		OpenSSL_add_all_algorithms \
 		RSA_generate_key_ex \
 		RSA_get_default_method \
 	])
+
+	# OpenSSL_add_all_algorithms may be a macro.
+	AC_CHECK_FUNC(OpenSSL_add_all_algorithms,
+	    AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a function]),
+	    AC_CHECK_DECL(OpenSSL_add_all_algorithms,
+		AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a macro]), ,
+		[[#include <openssl/evp.h>]]
+	    )
+	)
+
 	# LibreSSL/OpenSSL 1.1x API
 	AC_CHECK_FUNCS([ \
 		OPENSSL_init_crypto \
