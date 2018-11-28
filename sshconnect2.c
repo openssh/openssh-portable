@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.289 2018/11/16 02:46:20 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.290 2018/11/28 06:00:38 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -958,8 +958,7 @@ userauth_passwd(Authctxt *authctxt)
 {
 	struct ssh *ssh = active_state; /* XXX */
 	static int attempt = 0;
-	char prompt[256];
-	char *password;
+	char *password, *prompt = NULL;
 	const char *host = options.host_key_alias ?  options.host_key_alias :
 	    authctxt->host;
 	int r;
@@ -970,8 +969,7 @@ userauth_passwd(Authctxt *authctxt)
 	if (attempt != 1)
 		error("Permission denied, please try again.");
 
-	snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
-	    authctxt->server_user, host);
+	xasprintf(&prompt, "%s@%s's password: ", authctxt->server_user, host);
 	password = read_passphrase(prompt, 0);
 	if ((r = sshpkt_start(ssh, SSH2_MSG_USERAUTH_REQUEST)) != 0 ||
 	    (r = sshpkt_put_cstring(ssh, authctxt->server_user)) != 0 ||
@@ -983,7 +981,8 @@ userauth_passwd(Authctxt *authctxt)
 	    (r = sshpkt_send(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 
-	if (password)
+	free(prompt);
+	if (password != NULL)
 		freezero(password, strlen(password));
 
 	ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
