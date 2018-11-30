@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.111 2018/07/09 21:59:10 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.112 2018/11/30 02:24:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -94,7 +94,7 @@ ssh_get_authentication_socket(int *fdp)
 		*fdp = -1;
 
 	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
-	if (!authsocket)
+	if (authsocket == NULL || *authsocket == '\0')
 		return SSH_ERR_AGENT_NOT_PRESENT;
 
 	memset(&sunaddr, 0, sizeof(sunaddr));
