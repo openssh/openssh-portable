@@ -117,6 +117,17 @@ userauth_pubkey(struct ssh *ssh)
 		error("%s: cannot decode key: %s", __func__, pkalg);
 		goto done;
 	}
+	if (log_level_get() >= SYSLOG_LEVEL_DEBUG2) {
+		if ((b = sshbuf_new()) == NULL)
+			fatal("%s: sshbuf_new failed", __func__);
+		if ((r = sshkey_format_text(key, b)) != 0)
+			fatal("%s: sshkey_format_text failed: %s", __func__,
+				ssh_err(r));
+		debug2("%s: public key of %s: %s", __func__, authctxt->user,
+			sshbuf_ptr(b));
+		sshbuf_free(b);
+		b = NULL;
+	}
 	if (key->type != pktype) {
 		error("%s: type mismatch for decoded key "
 		    "(received %d, expected %d)", __func__, key->type, pktype);
