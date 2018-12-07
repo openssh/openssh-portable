@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.134 2018/11/16 03:26:01 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.135 2018/12/07 04:36:09 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1335,11 +1335,11 @@ bandwidth_limit_init(struct bwlimit *bw, u_int64_t kbps, size_t buflen)
 {
 	bw->buflen = buflen;
 	bw->rate = kbps;
-	bw->thresh = bw->rate;
+	bw->thresh = buflen;
 	bw->lamt = 0;
 	timerclear(&bw->bwstart);
 	timerclear(&bw->bwend);
-}	
+}
 
 /* Callback from read/write loop to insert bandwidth-limiting delays */
 void
@@ -1348,12 +1348,11 @@ bandwidth_limit(struct bwlimit *bw, size_t read_len)
 	u_int64_t waitlen;
 	struct timespec ts, rm;
 
+	bw->lamt += read_len;
 	if (!timerisset(&bw->bwstart)) {
 		monotime_tv(&bw->bwstart);
 		return;
 	}
-
-	bw->lamt += read_len;
 	if (bw->lamt < bw->thresh)
 		return;
 
