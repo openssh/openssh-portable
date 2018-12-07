@@ -1162,15 +1162,18 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 		char **p;
 
 		/*
-		 * Don't allow SSH_AUTH_INFO variables posted to PAM to leak
-		 * back into the environment.
+		 * Don't allow PAM-internal env vars to leak
+		 * back into the session environment.
 		 */
+#define PAM_ENV_BLACKLIST  "SSH_AUTH_INFO*,SSH_CONNECTION*"
 		p = fetch_pam_child_environment();
-		copy_environment_blacklist(p, &env, &envsize, "SSH_AUTH_INFO*");
+		copy_environment_blacklist(p, &env, &envsize,
+		    PAM_ENV_BLACKLIST);
 		free_pam_environment(p);
 
 		p = fetch_pam_environment();
-		copy_environment_blacklist(p, &env, &envsize, "SSH_AUTH_INFO*");
+		copy_environment_blacklist(p, &env, &envsize,
+		    PAM_ENV_BLACKLIST);
 		free_pam_environment(p);
 	}
 #endif /* USE_PAM */

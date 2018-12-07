@@ -673,6 +673,7 @@ sshpam_init(Authctxt *authctxt)
 {
 	const char *pam_rhost, *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
+	char *laddr, *conninfo;
 	struct ssh *ssh = active_state; /* XXX */
 
 	if (sshpam_handle != NULL) {
@@ -702,6 +703,15 @@ sshpam_init(Authctxt *authctxt)
 		sshpam_handle = NULL;
 		return (-1);
 	}
+
+        laddr = get_local_ipaddr(packet_get_connection_in());
+        xasprintf(&conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
+	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+	    laddr, ssh_local_port(ssh));
+	pam_putenv(sshpam_handle, conninfo);
+	free(laddr);
+	free(conninfo);
+
 #ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some silly PAM modules (e.g. pam_time) require a TTY to operate.
