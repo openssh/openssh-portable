@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.150 2018/09/12 06:18:59 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.151 2018/12/07 03:32:26 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: September 12 2018 $
+.Dd $Mdocdate: December 7 2018 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -289,9 +289,10 @@ The default export format is
 .Dq RFC4716 .
 This option allows exporting OpenSSH keys for use by other programs, including
 several commercial SSH implementations.
-.It Fl F Ar hostname
+.It Fl F Ar hostname | [hostname]:port
 Search for the specified
 .Ar hostname
+(with optional port number)
 in a
 .Pa known_hosts
 file, listing any occurrences found.
@@ -517,9 +518,10 @@ Test whether keys have been revoked in a KRL.
 .It Fl q
 Silence
 .Nm ssh-keygen .
-.It Fl R Ar hostname
-Removes all keys belonging to
+.It Fl F Ar hostname | [hostname]:port
+Removes all keys belonging to the specified
 .Ar hostname
+(with optional port number)
 from a
 .Pa known_hosts
 file.
