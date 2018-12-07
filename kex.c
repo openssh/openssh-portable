@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.141 2018/07/09 13:37:10 sf Exp $ */
+/* $OpenBSD: kex.c,v 1.142 2018/12/07 03:39:40 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -487,6 +487,7 @@ kex_input_newkeys(int type, u_int32_t seq, struct ssh *ssh)
 	if ((r = ssh_set_newkeys(ssh, MODE_IN)) != 0)
 		return r;
 	kex->done = 1;
+	kex->flags &= ~KEX_INITIAL;
 	sshbuf_reset(kex->peer);
 	/* sshbuf_reset(kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
@@ -594,6 +595,7 @@ kex_new(struct ssh *ssh, char *proposal[PROPOSAL_MAX], struct kex **kexp)
 	if ((r = kex_prop2buf(kex->my, proposal)) != 0)
 		goto out;
 	kex->done = 0;
+	kex->flags = KEX_INITIAL;
 	kex_reset_dispatch(ssh);
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXINIT, &kex_input_kexinit);
 	r = 0;
@@ -839,7 +841,7 @@ kex_choose_conf(struct ssh *ssh)
 	}
 
 	/* Check whether client supports ext_info_c */
-	if (kex->server) {
+	if (kex->server && (kex->flags & KEX_INITIAL)) {
 		char *ext;
 
 		ext = match_list("ext-info-c", peer[PROPOSAL_KEX_ALGS], NULL);
