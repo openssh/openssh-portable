@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.386 2018/10/04 01:04:52 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.387 2018/12/07 02:31:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -227,11 +227,7 @@ channel_init_channels(struct ssh *ssh)
 {
 	struct ssh_channels *sc;
 
-	if ((sc = calloc(1, sizeof(*sc))) == NULL ||
-	    (sc->channel_pre = calloc(SSH_CHANNEL_MAX_TYPE,
-	    sizeof(*sc->channel_pre))) == NULL ||
-	    (sc->channel_post = calloc(SSH_CHANNEL_MAX_TYPE,
-	    sizeof(*sc->channel_post))) == NULL)
+	if ((sc = calloc(1, sizeof(*sc))) == NULL)
 		fatal("%s: allocation failed", __func__);
 	sc->channels_alloc = 10;
 	sc->channels = xcalloc(sc->channels_alloc, sizeof(*sc->channels));
