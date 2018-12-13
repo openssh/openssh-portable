@@ -258,7 +258,7 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef CUSTOM_SYS_AUTH_ALLOWED_USER
-	if (!sys_auth_allowed_user(pw, &loginmsg))
+	if (!sys_auth_allowed_user(pw, loginmsg))
 		return 0;
 #endif
 
@@ -362,7 +362,7 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 	if (authenticated)
 		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
-		    &loginmsg);
+		    loginmsg);
 # endif
 #endif
 #ifdef SSH_AUDIT_EVENTS
