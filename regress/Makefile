@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.98 2018/11/22 08:48:32 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.99 2018/12/15 00:50:21 tedu Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -11,7 +11,6 @@ prep:
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
-	test -z "${SUDO}" || ${SUDO} rm -f ${SUDO_CLEAN}
 	rm -rf $(OBJ).putty
 
 distclean:	clean
