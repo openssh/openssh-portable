@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519c.c,v 1.9 2017/12/18 02:25:15 djm Exp $ */
+/* $OpenBSD: kexc25519c.c,v 1.10 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -129,8 +129,8 @@ input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh)
 	hashlen = sizeof(hash);
 	if ((r = kex_c25519_hash(
 	    kex->hash_alg,
-	    kex->client_version_string,
-	    kex->server_version_string,
+	    kex->client_version,
+	    kex->server_version,
 	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
 	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
 	    server_host_key_blob, sbloblen,

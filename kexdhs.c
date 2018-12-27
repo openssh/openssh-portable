@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.27 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.29 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -166,8 +166,8 @@ input_kex_dh_init(int type, u_int32_t seq, struct ssh *ssh)
 	hashlen = sizeof(hash);
 	if ((r = kex_dh_hash(
 	    kex->hash_alg,
-	    kex->client_version_string,
-	    kex->server_version_string,
+	    kex->client_version,
+	    kex->server_version,
 	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
 	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
 	    server_host_key_blob, sbloblen,

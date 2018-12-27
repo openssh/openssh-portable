@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.519 2018/11/19 04:12:32 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.520 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -180,13 +180,6 @@ char **rexec_argv;
 int listen_socks[MAX_LISTEN_SOCKS];
 int num_listen_socks = 0;
 
-/*
- * the client's version string, passed by sshd2 in compat mode. if != NULL,
- * sshd will skip the version-number exchange
- */
-char *client_version_string = NULL;
-char *server_version_string = NULL;
-
 /* Daemon's agent connection */
 int auth_sock = -1;
 int have_agent = 0;
@@ -361,108 +354,6 @@ grace_alarm_handler(int sig)
 	/* Log error and exit. */
 	sigdie("Timeout before authentication for %s port %d",
 	    ssh_remote_ipaddr(active_state), ssh_remote_port(active_state));
-}
-
-static void
-sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
-{
-	u_int i;
-	int remote_major, remote_minor;
-	char *s;
-	char buf[256];			/* Must not be larger than remote_version. */
-	char remote_version[256];	/* Must be at least as big as buf. */
-
-	xasprintf(&server_version_string, "SSH-%d.%d-%.100s%s%s\r\n",
-	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION,
-	    *options.version_addendum == '\0' ? "" : " ",
-	    options.version_addendum);
-
-	/* Send our protocol version identification. */
-	if (atomicio(vwrite, sock_out, server_version_string,
-	    strlen(server_version_string))
-	    != strlen(server_version_string)) {
-		logit("Could not write ident string to %s port %d",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		cleanup_exit(255);
-	}
-
-	/* Read other sides version identification. */
-	memset(buf, 0, sizeof(buf));
-	for (i = 0; i < sizeof(buf) - 1; i++) {
-		if (atomicio(read, sock_in, &buf[i], 1) != 1) {
-			logit("Did not receive identification string "
-			    "from %s port %d",
-			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-			cleanup_exit(255);
-		}
-		if (buf[i] == '\r') {
-			buf[i] = 0;
-			/* Kludge for F-Secure Macintosh < 1.0.2 */
-			if (i == 12 &&
-			    strncmp(buf, "SSH-1.5-W1.0", 12) == 0)
-				break;
-			continue;
-		}
-		if (buf[i] == '\n') {
-			buf[i] = 0;
-			break;
-		}
-	}
-	buf[sizeof(buf) - 1] = 0;
-	client_version_string = xstrdup(buf);
-
-	/*
-	 * Check that the versions match.  In future this might accept
-	 * several versions and set appropriate flags to handle them.
-	 */
-	if (sscanf(client_version_string, "SSH-%d.%d-%[^\n]\n",
-	    &remote_major, &remote_minor, remote_version) != 3) {
-		s = "Protocol mismatch.\n";
-		(void) atomicio(vwrite, sock_out, s, strlen(s));
-		logit("Bad protocol version identification '%.100s' "
-		    "from %s port %d", client_version_string,
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
-		close(sock_in);
-		close(sock_out);
-		cleanup_exit(255);
-	}
-	debug("Client protocol version %d.%d; client software version %.100s",
-	    remote_major, remote_minor, remote_version);
-
-	ssh->compat = compat_datafellows(remote_version);
-
-	if ((ssh->compat & SSH_BUG_PROBE) != 0) {
-		logit("probed from %s port %d with %s.  Don't panic.",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-		    client_version_string);
-		cleanup_exit(255);
-	}
-	if ((ssh->compat & SSH_BUG_SCANNER) != 0) {
-		logit("scanned from %s port %d with %s.  Don't panic.",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-		    client_version_string);
-		cleanup_exit(255);
-	}
-	if ((ssh->compat & SSH_BUG_RSASIGMD5) != 0) {
-		logit("Client version \"%.100s\" uses unsafe RSA signature "
-		    "scheme; disabling use of RSA keys", remote_version);
-	}
-
-	chop(server_version_string);
-	debug("Local version string %.200s", server_version_string);
-
-	if (remote_major != 2 &&
-	    !(remote_major == 1 && remote_minor == 99)) {
-		s = "Protocol major versions differ.\n";
-		(void) atomicio(vwrite, sock_out, s, strlen(s));
-		close(sock_in);
-		close(sock_out);
-		logit("Protocol major versions differ for %s port %d: "
-		    "%.200s vs. %.200s",
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-		    server_version_string, client_version_string);
-		cleanup_exit(255);
-	}
 }
 
 /* Destroy the host and server keys.  They will no longer be needed. */
@@ -2115,7 +2006,9 @@ main(int ac, char **av)
 	if (!debug_flag)
 		alarm(options.login_grace_time);
 
-	sshd_exchange_identification(ssh, sock_in, sock_out);
+	if (kex_exchange_identification(ssh, -1, options.version_addendum) != 0)
+		cleanup_exit(255); /* error already logged */
+
 	packet_set_nonblocking();
 
 	/* allocate authentication context */
@@ -2303,9 +2196,6 @@ do_ssh2_kex(void)
 # endif
 #endif
 	kex->kex[KEX_C25519_SHA256] = kexc25519_server;
-	kex->server = 1;
-	kex->client_version_string=client_version_string;
-	kex->server_version_string=server_version_string;
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;

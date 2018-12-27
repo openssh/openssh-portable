@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.496 2018/11/23 05:08:07 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.497 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1490,7 +1490,7 @@ main(int ac, char **av)
 	signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
-	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr,
+	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,
 	    options.port, pw, timeout_ms);
 
 	if (packet_connection_is_on_socket()) {

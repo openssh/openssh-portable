@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.308 2018/11/18 22:43:29 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.309 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -68,9 +68,8 @@
 #include "authfile.h"
 #include "ssherr.h"
 #include "authfd.h"
+#include "kex.h"
 
-char *client_version_string = NULL;
-char *server_version_string = NULL;
 struct sshkey *previous_host_key = NULL;
 
 static int matching_host_key_dns = 0;
@@ -445,73 +444,6 @@ fail:
 }
 
 /*
- * Wait up to *timeoutp milliseconds for fd to be readable. Updates
- * *timeoutp with time remaining.
- * Returns 0 if fd ready or -1 on timeout or error (see errno).
- */
-static int
-waitrfd(int fd, int *timeoutp)
-{
-	struct pollfd pfd;
-	struct timeval t_start;
-	int oerrno, r;
-
-	monotime_tv(&t_start);
-	pfd.fd = fd;
-	pfd.events = POLLIN;
-	for (; *timeoutp >= 0;) {
-		r = poll(&pfd, 1, *timeoutp);
-		oerrno = errno;
-		ms_subtract_diff(&t_start, timeoutp);
-		errno = oerrno;
-		if (r > 0)
-			return 0;
-		else if (r == -1 && errno != EAGAIN)
-			return -1;
-		else if (r == 0)
-			break;
-	}
-	/* timeout */
-	errno = ETIMEDOUT;
-	return -1;
-}
-
-static int
-timeout_connect(int sockfd, const struct sockaddr *serv_addr,
-    socklen_t addrlen, int *timeoutp)
-{
-	int optval = 0;
-	socklen_t optlen = sizeof(optval);
-
-	/* No timeout: just do a blocking connect() */
-	if (*timeoutp <= 0)
-		return connect(sockfd, serv_addr, addrlen);
-
-	set_nonblock(sockfd);
-	if (connect(sockfd, serv_addr, addrlen) == 0) {
-		/* Succeeded already? */
-		unset_nonblock(sockfd);
-		return 0;
-	} else if (errno != EINPROGRESS)
-		return -1;
-
-	if (waitrfd(sockfd, timeoutp) == -1)
-		return -1;
-
-	/* Completed or failed */
-	if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, &optlen) == -1) {
-		debug("getsockopt: %s", strerror(errno));
-		return -1;
-	}
-	if (optval != 0) {
-		errno = optval;
-		return -1;
-	}
-	unset_nonblock(sockfd);
-	return 0;
-}
-
-/*
  * Opens a TCP/IP connection to the remote server on the given host.
  * The address of the remote host will be returned in hostaddr.
  * If port is 0, the default port will be used.
@@ -627,110 +559,6 @@ ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
 		    options.proxy_command);
 	}
 	return ssh_proxy_connect(ssh, host, port, options.proxy_command);
-}
-
-static void
-send_client_banner(int connection_out, int minor1)
-{
-	/* Send our own protocol version identification. */
-	xasprintf(&client_version_string, "SSH-%d.%d-%.100s\r\n",
-	    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2, SSH_VERSION);
-	if (atomicio(vwrite, connection_out, client_version_string,
-	    strlen(client_version_string)) != strlen(client_version_string))
-		fatal("write: %.100s", strerror(errno));
-	chop(client_version_string);
-	debug("Local version string %.100s", client_version_string);
-}
-
-/*
- * Waits for the server identification string, and sends our own
- * identification string.
- */
-void
-ssh_exchange_identification(int timeout_ms)
-{
-	char buf[256], remote_version[256];	/* must be same size! */
-	int remote_major, remote_minor, mismatch;
-	int connection_in = packet_get_connection_in();
-	int connection_out = packet_get_connection_out();
-	u_int i, n;
-	size_t len;
-	int rc;
-
-	send_client_banner(connection_out, 0);
-
-	/* Read other side's version identification. */
-	for (n = 0;;) {
-		for (i = 0; i < sizeof(buf) - 1; i++) {
-			if (timeout_ms > 0) {
-				rc = waitrfd(connection_in, &timeout_ms);
-				if (rc == -1 && errno == ETIMEDOUT) {
-					fatal("Connection timed out during "
-					    "banner exchange");
-				} else if (rc == -1) {
-					fatal("%s: %s",
-					    __func__, strerror(errno));
-				}
-			}
-
-			len = atomicio(read, connection_in, &buf[i], 1);
-			if (len != 1 && errno == EPIPE)
-				fatal("ssh_exchange_identification: "
-				    "Connection closed by remote host");
-			else if (len != 1)
-				fatal("ssh_exchange_identification: "
-				    "read: %.100s", strerror(errno));
-			if (buf[i] == '\r') {
-				buf[i] = '\n';
-				buf[i + 1] = 0;
-				continue;		/**XXX wait for \n */
-			}
-			if (buf[i] == '\n') {
-				buf[i + 1] = 0;
-				break;
-			}
-			if (++n > 65536)
-				fatal("ssh_exchange_identification: "
-				    "No banner received");
-		}
-		buf[sizeof(buf) - 1] = 0;
-		if (strncmp(buf, "SSH-", 4) == 0)
-			break;
-		debug("ssh_exchange_identification: %s", buf);
-	}
-	server_version_string = xstrdup(buf);
-
-	/*
-	 * Check that the versions match.  In future this might accept
-	 * several versions and set appropriate flags to handle them.
-	 */
-	if (sscanf(server_version_string, "SSH-%d.%d-%[^\n]\n",
-	    &remote_major, &remote_minor, remote_version) != 3)
-		fatal("Bad remote protocol version identification: '%.100s'", buf);
-	debug("Remote protocol version %d.%d, remote software version %.100s",
-	    remote_major, remote_minor, remote_version);
-
-	active_state->compat = compat_datafellows(remote_version);
-	mismatch = 0;
-
-	switch (remote_major) {
-	case 2:
-		break;
-	case 1:
-		if (remote_minor != 99)
-			mismatch = 1;
-		break;
-	default:
-		mismatch = 1;
-		break;
-	}
-	if (mismatch)
-		fatal("Protocol major versions differ: %d vs. %d",
-		    PROTOCOL_MAJOR_2, remote_major);
-	if ((datafellows & SSH_BUG_RSASIGMD5) != 0)
-		logit("Server version \"%.100s\" uses unsafe RSA signature "
-		    "scheme; disabling use of RSA keys", remote_version);
-	chop(server_version_string);
 }
 
 /* defaults to 'no' */
@@ -1426,7 +1254,7 @@ out:
  * This function does not require super-user privileges.
  */
 void
-ssh_login(Sensitive *sensitive, const char *orighost,
+ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
     struct sockaddr *hostaddr, u_short port, struct passwd *pw, int timeout_ms)
 {
 	char *host;
@@ -1440,16 +1268,17 @@ ssh_login(Sensitive *sensitive, const char *orighost,
 	lowercase(host);
 
 	/* Exchange protocol version identification strings with the server. */
-	ssh_exchange_identification(timeout_ms);
+	if (kex_exchange_identification(ssh, timeout_ms, NULL) != 0)
+		cleanup_exit(255); /* error already logged */
 
 	/* Put the connection into non-blocking mode. */
-	packet_set_nonblocking();
+	ssh_packet_set_nonblocking(ssh);
 
 	/* key exchange */
 	/* authenticate user */
 	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
-	ssh_kex2(host, hostaddr, port);
-	ssh_userauth2(local_user, server_user, host, sensitive);
+	ssh_kex2(ssh, host, hostaddr, port);
+	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
 }
 

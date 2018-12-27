@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.277 2018/07/16 03:09:13 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.278 2018/12/27 03:25:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -58,6 +58,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <poll.h>
 #include <signal.h>
 #include <time.h>
 
@@ -228,6 +229,7 @@ ssh_alloc_session_state(void)
 
 	if ((ssh = calloc(1, sizeof(*ssh))) == NULL ||
 	    (state = calloc(1, sizeof(*state))) == NULL ||
+	    (ssh->kex = kex_new()) == NULL ||
 	    (state->input = sshbuf_new()) == NULL ||
 	    (state->output = sshbuf_new()) == NULL ||
 	    (state->outgoing_packet = sshbuf_new()) == NULL ||
@@ -250,6 +252,10 @@ ssh_alloc_session_state(void)
 	ssh->state = state;
 	return ssh;
  fail:
+	if (ssh) {
+		kex_free(ssh->kex);
+		free(ssh);
+	}
 	if (state) {
 		sshbuf_free(state->input);
 		sshbuf_free(state->output);
@@ -257,7 +263,6 @@ ssh_alloc_session_state(void)
 		sshbuf_free(state->outgoing_packet);
 		free(state);
 	}
-	free(ssh);
 	return NULL;
 }
 
@@ -272,8 +277,7 @@ ssh_packet_set_input_hook(struct ssh *ssh, ssh_packet_hook_fn *hook, void *ctx)
 int
 ssh_packet_is_rekeying(struct ssh *ssh)
 {
-	return ssh->state->rekeying ||
-	    (ssh->kex != NULL && ssh->kex->done == 0);
+	return ssh->state->rekeying || ssh->kex->done == 0;
 }
 
 /*
@@ -932,7 +936,7 @@ ssh_packet_need_rekeying(struct ssh *ssh, u_int outbound_packet_len)
 		return 0;
 
 	/* Haven't keyed yet or KEX in progress. */
-	if (ssh->kex == NULL || ssh_packet_is_rekeying(ssh))
+	if (ssh_packet_is_rekeying(ssh))
 		return 0;
 
 	/* Peer can't rekey */
@@ -2123,6 +2127,7 @@ void
 ssh_packet_set_server(struct ssh *ssh)
 {
 	ssh->state->server_side = 1;
+	ssh->kex->server = 1; /* XXX unify? */
 }
 
 void
@@ -2175,9 +2180,9 @@ kex_to_blob(struct sshbuf *m, struct kex *kex)
 	    (r = sshbuf_put_u32(m, kex->kex_type)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->my)) != 0 ||
 	    (r = sshbuf_put_stringb(m, kex->peer)) != 0 ||
-	    (r = sshbuf_put_u32(m, kex->flags)) != 0 ||
-	    (r = sshbuf_put_cstring(m, kex->client_version_string)) != 0 ||
-	    (r = sshbuf_put_cstring(m, kex->server_version_string)) != 0)
+	    (r = sshbuf_put_stringb(m, kex->client_version)) != 0 ||
+	    (r = sshbuf_put_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_put_u32(m, kex->flags)) != 0)
 		return r;
 	return 0;
 }
@@ -2327,12 +2332,8 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	struct kex *kex;
 	int r;
 
-	if ((kex = calloc(1, sizeof(struct kex))) == NULL ||
-	    (kex->my = sshbuf_new()) == NULL ||
-	    (kex->peer = sshbuf_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
+	if ((kex = kex_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
 	if ((r = sshbuf_get_string(m, &kex->session_id, &kex->session_id_len)) != 0 ||
 	    (r = sshbuf_get_u32(m, &kex->we_need)) != 0 ||
 	    (r = sshbuf_get_cstring(m, &kex->hostkey_alg, NULL)) != 0 ||
@@ -2341,23 +2342,20 @@ kex_from_blob(struct sshbuf *m, struct kex **kexp)
 	    (r = sshbuf_get_u32(m, &kex->kex_type)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->my)) != 0 ||
 	    (r = sshbuf_get_stringb(m, kex->peer)) != 0 ||
-	    (r = sshbuf_get_u32(m, &kex->flags)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &kex->client_version_string, NULL)) != 0 ||
-	    (r = sshbuf_get_cstring(m, &kex->server_version_string, NULL)) != 0)
+	    (r = sshbuf_get_stringb(m, kex->client_version)) != 0 ||
+	    (r = sshbuf_get_stringb(m, kex->server_version)) != 0 ||
+	    (r = sshbuf_get_u32(m, &kex->flags)) != 0)
 		goto out;
 	kex->server = 1;
 	kex->done = 1;
 	r = 0;
  out:
 	if (r != 0 || kexp == NULL) {
-		if (kex != NULL) {
-			sshbuf_free(kex->my);
-			sshbuf_free(kex->peer);
-			free(kex);
-		}
+		kex_free(kex);
 		if (kexp != NULL)
 			*kexp = NULL;
 	} else {
+		kex_free(*kexp);
 		*kexp = kex;
 	}
 	return r;
