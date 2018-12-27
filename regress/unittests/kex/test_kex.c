@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_kex.c,v 1.2 2015/07/10 06:23:25 markus Exp $ */
+/* 	$OpenBSD: test_kex.c,v 1.3 2018/12/27 03:37:49 djm Exp $ */
 /*
  * Regress test KEX
  *
@@ -139,7 +139,6 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	ASSERT_INT_EQ(ssh_init(&server2, 1, NULL), 0);
 	ASSERT_PTR_NE(server2, NULL);
 	ASSERT_INT_EQ(ssh_add_hostkey(server2, private), 0);
-	kex_free(server2->kex);	/* XXX or should ssh_packet_set_state()? */
 	ASSERT_INT_EQ(ssh_packet_set_state(server2, state), 0);
 	ASSERT_INT_EQ(sshbuf_len(state), 0);
 	sshbuf_free(state);
