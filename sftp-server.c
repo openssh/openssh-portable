@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.112 2018/06/01 03:33:53 djm Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.113 2019/01/01 23:10:53 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -117,7 +117,7 @@ struct sftp_handler {
 	int does_write;		/* if nonzero, banned for readonly mode */
 };
 
-struct sftp_handler handlers[] = {
+static const struct sftp_handler handlers[] = {
 	/* NB. SSH2_FXP_OPEN does the readonly check in the handler itself */
 	{ "open", NULL, SSH2_FXP_OPEN, process_open, 0 },
 	{ "close", NULL, SSH2_FXP_CLOSE, process_close, 0 },
@@ -141,7 +141,7 @@ struct sftp_handler handlers[] = {
 };
 
 /* SSH2_FXP_EXTENDED submessages */
-struct sftp_handler extended_handlers[] = {
+static const struct sftp_handler extended_handlers[] = {
 	{ "posix-rename", "posix-rename@openssh.com", 0,
 	   process_extended_posix_rename, 1 },
 	{ "statvfs", "statvfs@openssh.com", 0, process_extended_statvfs, 0 },
@@ -152,7 +152,7 @@ struct sftp_handler extended_handlers[] = {
 };
 
 static int
-request_permitted(struct sftp_handler *h)
+request_permitted(const struct sftp_handler *h)
 {
 	char *result;
 
@@ -285,9 +285,9 @@ enum {
 	HANDLE_FILE
 };
 
-Handle *handles = NULL;
-u_int num_handles = 0;
-int first_unused_handle = -1;
+static Handle *handles = NULL;
+static u_int num_handles = 0;
+static int first_unused_handle = -1;
 
 static void handle_unused(int i)
 {
