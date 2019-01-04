@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.278 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.279 2019/01/04 03:23:00 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -862,8 +862,6 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		   (unsigned long long)state->p_read.blocks,
 		   (unsigned long long)state->p_send.bytes,
 		   (unsigned long long)state->p_send.blocks);
-		cipher_free(*ccp);
-		*ccp = NULL;
 		kex_free_newkeys(state->newkeys[mode]);
 		state->newkeys[mode] = NULL;
 	}
@@ -882,6 +880,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	}
 	mac->enabled = 1;
 	DBG(debug("cipher_init_context: %d", mode));
+	cipher_free(*ccp);
+	*ccp = NULL;
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
 	    enc->iv, enc->iv_len, crypt_type)) != 0)
 		return r;
