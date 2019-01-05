@@ -134,6 +134,13 @@ process_request(struct agent_connection* con)
 	debug("process agent request type %d", type);
 
 	switch (type) {
+	case SSH_AGENTC_REQUEST_RSA_IDENTITIES:
+	case SSH_AGENTC_RSA_CHALLENGE:
+	case SSH_AGENTC_ADD_RSA_IDENTITY:
+	case SSH_AGENTC_REMOVE_RSA_IDENTITY:
+	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
+		r = process_unsupported_request(request, response, con);
+		break;
 	case SSH2_AGENTC_ADD_IDENTITY:
 		r =  process_add_identity(request, response, con);
 		break;

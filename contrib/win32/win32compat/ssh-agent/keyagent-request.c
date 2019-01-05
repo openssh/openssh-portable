@@ -116,6 +116,16 @@ done:
 #define REG_KEY_SDDL L"D:P(A;; GA;;; SY)(A;; GA;;; BA)"
 
 int
+process_unsupported_request(struct sshbuf* request, struct sshbuf* response, struct agent_connection* con)
+{
+	int r = 0;
+	debug("ssh protocol 1 is not supported");
+	if (sshbuf_put_u8(response, SSH_AGENT_FAILURE) != 0)
+		r = -1;
+	return r;
+}
+
+int
 process_add_identity(struct sshbuf* request, struct sshbuf* response, struct agent_connection* con) 
 {
 	struct sshkey* key = NULL;
