@@ -227,8 +227,6 @@ con_type_to_string(struct agent_connection* con)
 		return "restricted user";
 	case ADMIN_USER:
 		return "administrator";
-	case SSHD_SERVICE:
-		return "sshd service";
 	case SYSTEM:
 		return "system";
 	case SERVICE:
@@ -243,7 +241,6 @@ get_con_client_info(struct agent_connection* con)
 {
 	int r = -1;
 	char sid[SECURITY_MAX_SID_SIZE];
-	wchar_t *sshd_act = L"NT SERVICE\\SSHD", *ref_dom = NULL;
 	ULONG client_pid;
 	DWORD reg_dom_len = 0, info_len = 0, sid_size;
 	DWORD sshd_sid_len = 0;
@@ -271,38 +268,6 @@ get_con_client_info(struct agent_connection* con)
 		con->client_type = SYSTEM;
 		r = 0;
 		goto done;
-	}
-
-	/* check if its SSHD service */
-	{
-		/* Does NT Service/SSHD exist */
-		LookupAccountNameW(NULL, sshd_act, NULL, &sshd_sid_len, NULL, &reg_dom_len, &nuse);
-
-		if (GetLastError() == ERROR_NONE_MAPPED)
-			debug3("Cannot look up SSHD account, its likely not installed");
-		else if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-			error("LookupAccountNameW on SSHD account failed with %d", GetLastError());
-			goto done;
-		}
-		else {
-			if ((sshd_sid = malloc(sshd_sid_len)) == NULL ||
-				(ref_dom = (wchar_t*)malloc(reg_dom_len * 2)) == NULL ||
-				LookupAccountNameW(NULL, sshd_act, sshd_sid, &sshd_sid_len, ref_dom, &reg_dom_len, &nuse) == FALSE)
-				goto done;
-
-			if (EqualSid(info->User.Sid, sshd_sid)) {
-				con->client_type = SSHD_SERVICE;
-				r = 0;
-				goto done;
-			}
-			if (CheckTokenMembership(client_impersonation_token, sshd_sid, &isMember) == FALSE)
-				goto done;
-			if (isMember) {
-				con->client_type = SSHD_SERVICE;
-				r = 0;
-				goto done;
-			}
-		}
 	}
 
 	/* check if its LS or NS */
@@ -335,8 +300,6 @@ done:
 
 	if (sshd_sid)
 		free(sshd_sid);
-	if (ref_dom)
-		free(ref_dom);
 	if (info)
 		free(info);
 	if (client_primary_token)

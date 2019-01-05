@@ -33,7 +33,6 @@ struct agent_connection {
 		UNKNOWN = 0,
 		NONADMIN_USER, /* client is running as a nonadmin user */
 		ADMIN_USER, /* client is running as admin */
-		SSHD_SERVICE, /* client is sshd service */
 		SYSTEM, /* client is running as System */
 		SERVICE, /* client is running as LS or NS */
 	} client_type;

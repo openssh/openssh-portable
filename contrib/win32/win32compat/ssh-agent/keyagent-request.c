@@ -204,7 +204,7 @@ static int sign_blob(const struct sshkey *pubkey, u_char ** sig, size_t *siglen,
 	HKEY reg = 0, sub = 0, user_root = 0;
 	int r = 0, success = 0;
 	struct sshkey* prikey = NULL;
-	char *thumbprint = NULL, *regdata = NULL;
+	char *thumbprint = NULL, *regdata = NULL, *algo = NULL;
 	DWORD regdatalen = 0, keyblob_len = 0;
 	struct sshbuf* tmpbuf = NULL;
 	char *keyblob = NULL;
@@ -225,8 +225,13 @@ static int sign_blob(const struct sshkey *pubkey, u_char ** sig, size_t *siglen,
 	    (tmpbuf = sshbuf_from(keyblob, keyblob_len)) == NULL)
 		goto done;
 
+	if (flags & SSH_AGENT_RSA_SHA2_256)
+		algo = "rsa-sha2-256";
+	else if (flags & SSH_AGENT_RSA_SHA2_512)
+		algo = "rsa-sha2-512";
+
 	if (sshkey_private_deserialize(tmpbuf, &prikey) != 0 ||
-	    sshkey_sign(prikey, sig, siglen, blob, blen, NULL, 0) != 0) {
+	    sshkey_sign(prikey, sig, siglen, blob, blen, algo, 0) != 0) {
 		debug("cannot sign using retrieved key");
 		goto done;
 	}
@@ -272,9 +277,7 @@ process_sign_request(struct sshbuf* request, struct sshbuf* response, struct age
 		goto done;
 	}
 
-	/* TODO - flags?*/
-
-	if (sign_blob(key, &signature, &slen, data, dlen, 0, con) != 0)
+	if (sign_blob(key, &signature, &slen, data, dlen, flags, con) != 0)
 		goto done;
 
 	success = 1;
