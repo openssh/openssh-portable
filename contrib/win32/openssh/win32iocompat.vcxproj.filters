@@ -24,6 +24,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32api_proxies.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\win32_usertoken_utils.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\conhost_conpty.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\gss-sspi.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\w32fd.h" />
@@ -151,6 +152,9 @@
     </ClInclude>
     <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\net\if.h">
       <Filter>inc\net</Filter>
+    </ClInclude>
+    <ClInclude Include="$(OpenSSH-Src-Path)\contrib\win32\win32compat\inc\gssapi.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

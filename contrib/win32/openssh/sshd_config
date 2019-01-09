@@ -51,6 +51,9 @@ AuthorizedKeysFile	.ssh/authorized_keys
 #PasswordAuthentication yes
 #PermitEmptyPasswords no
 
+# GSSAPI options
+GSSAPIAuthentication yes
+
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
