@@ -266,7 +266,9 @@ syncio_close(struct w32_io* pio)
 		WaitForSingleObject(pio->write_overlapped.hEvent, INFINITE);
 	/* drain queued APCs */
 	SleepEx(0, TRUE);
-	CloseHandle(WINHANDLE(pio));
+	/* TODO - fix this, closing Console handles is interfering with TTY/PTY rendering */
+	if (FILETYPE(pio) != FILE_TYPE_CHAR)
+		CloseHandle(WINHANDLE(pio));
 	if (pio->read_details.buf)
 		free(pio->read_details.buf);
 	if (pio->write_details.buf)
