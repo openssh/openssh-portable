@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.188 2018/11/16 03:26:01 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.189 2019/01/16 23:23:45 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -278,9 +278,9 @@ help(void)
 	printf("Available commands:\n"
 	    "bye                                Quit sftp\n"
 	    "cd path                            Change remote directory to 'path'\n"
-	    "chgrp grp path                     Change group of file 'path' to 'grp'\n"
-	    "chmod mode path                    Change permissions of file 'path' to 'mode'\n"
-	    "chown own path                     Change owner of file 'path' to 'own'\n"
+	    "chgrp [-h] grp path                Change group of file 'path' to 'grp'\n"
+	    "chmod [-h] mode path               Change permissions of file 'path' to 'mode'\n"
+	    "chown [-h] own path                Change owner of file 'path' to 'own'\n"
 	    "df [-hi] [path]                    Display statistics for current directory or\n"
 	    "                                   filesystem containing 'path'\n"
 	    "exit                               Quit sftp\n"
@@ -551,6 +551,30 @@ parse_df_flags(const char *cmd, char **argv, int argc, int *hflag, int *iflag)
 			break;
 		case 'i':
 			*iflag = 1;
+			break;
+		default:
+			error("%s: Invalid flag -%c", cmd, optopt);
+			return -1;
+		}
+	}
+
+	return optind;
+}
+
+static int
+parse_ch_flags(const char *cmd, char **argv, int argc, int *hflag)
+{
+	extern int opterr, optind, optopt, optreset;
+	int ch;
+
+	optind = optreset = 1;
+	opterr = 0;
+
+	*hflag = 0;
+	while ((ch = getopt(argc, argv, "h")) != -1) {
+		switch (ch) {
+		case 'h':
+			*hflag = 1;
 			break;
 		default:
 			error("%s: Invalid flag -%c", cmd, optopt);
@@ -1456,7 +1480,7 @@ parse_args(const char **cpp, int *ignore_errors, int *disable_echo, int *aflag,
 		/* FALLTHROUGH */
 	case I_CHOWN:
 	case I_CHGRP:
-		if ((optidx = parse_no_flags(cmd, argv, argc)) == -1)
+		if ((optidx = parse_ch_flags(cmd, argv, argc, hflag)) == -1)
 			return -1;
 		/* Get numeric arg (mandatory) */
 		if (argc - optidx < 1)
@@ -1675,7 +1699,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 			if (!quiet)
 				mprintf("Changing mode on %s\n",
 				    g.gl_pathv[i]);
-			err = do_setstat(conn, g.gl_pathv[i], &a);
+			err = (hflag ? do_lsetstat : do_setstat)(conn,
+			    g.gl_pathv[i], &a);
 			if (err != 0 && err_abort)
 				break;
 		}
@@ -1685,7 +1710,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
-			if (!(aa = do_stat(conn, g.gl_pathv[i], 0))) {
+			if (!(aa = (hflag ? do_lstat : do_stat)(conn,
+			    g.gl_pathv[i], 0))) {
 				if (err_abort) {
 					err = -1;
 					break;
@@ -1713,7 +1739,8 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 					    g.gl_pathv[i]);
 				aa->gid = n_arg;
 			}
-			err = do_setstat(conn, g.gl_pathv[i], aa);
+			err = (hflag ? do_lsetstat : do_setstat)(conn,
+			    g.gl_pathv[i], aa);
 			if (err != 0 && err_abort)
 				break;
 		}
