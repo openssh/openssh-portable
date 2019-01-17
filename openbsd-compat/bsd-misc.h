@@ -64,6 +64,14 @@ struct timeval {
 int utimes(char *, struct timeval *);
 #endif /* HAVE_UTIMES */
 
+#ifndef HAVE_UTIMENSAT
+/* start with the high bits and work down to minimise risk of overlap */
+# ifndef AT_SYMLINK_NOFOLLOW
+#  define AT_SYMLINK_NOFOLLOW 0x80000000
+# endif
+int utimensat(int, const char *, const struct timespec[2], int);
+#endif
+
 #ifndef HAVE_TRUNCATE
 int truncate (const char *, off_t);
 #endif /* HAVE_TRUNCATE */

@@ -25,6 +25,7 @@
 # include <sys/time.h>
 #endif
 
+#include <fcntl.h>
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -114,6 +115,42 @@ int utimes(char *filename, struct timeval *tvp)
 	ub.modtime = tvp[1].tv_sec;
 
 	return (utime(filename, &ub));
+}
+#endif
+
+#ifndef HAVE_UTIMENSAT
+/*
+ * A limited implementation of utimensat() that only implements the
+ * functionality used by OpenSSH, currently only AT_FDCWD and
+ * AT_SYMLINK_NOFOLLOW.
+ */
+int
+utimensat(int fd, const char *path, const struct timespec times[2],
+    int flag)
+{
+	struct timeval tv[2];
+	int ret, oflags = O_WRONLY;
+
+	tv[0].tv_sec = times[0].tv_sec;
+	tv[0].tv_usec = times[0].tv_nsec / 1000;
+	tv[1].tv_sec = times[1].tv_sec;
+	tv[1].tv_usec = times[1].tv_nsec / 1000;
+
+	if (fd != AT_FDCWD) {
+		errno = ENOSYS;
+		return -1;
+	}
+# ifndef HAVE_FUTIMES
+	return utimes(path, tv);
+# else
+	if (flag & AT_SYMLINK_NOFOLLOW)
+		oflags |= O_NOFOLLOW;
+	if ((fd = open(path, oflags)) == -1)
+		return -1;
+	ret = futimes(fd, tv);
+	close(fd);
+	return ret;
+# endif
 }
 #endif
 
