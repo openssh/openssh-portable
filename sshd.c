@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.520 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.521 2019/01/17 01:50:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -151,38 +151,38 @@ int debug_flag = 0;
  * configuration, optionally using connection information provided by the
  * "-C" flag.
  */
-int test_flag = 0;
+static int test_flag = 0;
 
 /* Flag indicating that the daemon is being started from inetd. */
-int inetd_flag = 0;
+static int inetd_flag = 0;
 
 /* Flag indicating that sshd should not detach and become a daemon. */
-int no_daemon_flag = 0;
+static int no_daemon_flag = 0;
 
 /* debug goes to stderr unless inetd_flag is set */
-int log_stderr = 0;
+static int log_stderr = 0;
 
 /* Saved arguments to main(). */
-char **saved_argv;
-int saved_argc;
+static char **saved_argv;
+static int saved_argc;
 
 /* re-exec */
-int rexeced_flag = 0;
-int rexec_flag = 1;
-int rexec_argc = 0;
-char **rexec_argv;
+static int rexeced_flag = 0;
+static int rexec_flag = 1;
+static int rexec_argc = 0;
+static char **rexec_argv;
 
 /*
  * The sockets that the server is listening; this is used in the SIGHUP
  * signal handler.
  */
 #define	MAX_LISTEN_SOCKS	16
-int listen_socks[MAX_LISTEN_SOCKS];
-int num_listen_socks = 0;
+static int listen_socks[MAX_LISTEN_SOCKS];
+static int num_listen_socks = 0;
 
 /* Daemon's agent connection */
 int auth_sock = -1;
-int have_agent = 0;
+static int have_agent = 0;
 
 /*
  * Any really sensitive data in the application is contained in this
@@ -214,8 +214,8 @@ u_int session_id2_len = 0;
 u_int utmp_len = HOST_NAME_MAX+1;
 
 /* options.max_startup sized array of fd ints */
-int *startup_pipes = NULL;
-int startup_pipe;		/* in child */
+static int *startup_pipes = NULL;
+static int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
 int use_privsep = -1;
