@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.149 2018/07/11 18:53:29 markus Exp $ */
+/* $OpenBSD: auth2.c,v 1.151 2019/01/17 04:20:53 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "atomicio.h"
 #include "xmalloc.h"
