@@ -1719,7 +1719,9 @@ AC_CHECK_FUNCS([ \
 	errx \
 	explicit_bzero \
 	fchmod \
+	fchmodat \
 	fchown \
+	fchownat \
 	flock \
 	freeaddrinfo \
 	freezero \

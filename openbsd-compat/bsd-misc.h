@@ -72,6 +72,18 @@ int utimes(char *, struct timeval *);
 int utimensat(int, const char *, const struct timespec[2], int);
 #endif
 
+#ifndef AT_FDCWD
+# define AT_FDCWD (-2)
+#endif
+
+#ifndef HAVE_FCHMODAT
+int fchmodat(int, const char *, mode_t, int);
+#endif
+
+#ifndef HAVE_FCHOWNAT
+int fchownat(int, const char *, uid_t, gid_t, int);
+#endif
+
 #ifndef HAVE_TRUNCATE
 int truncate (const char *, off_t);
 #endif /* HAVE_TRUNCATE */

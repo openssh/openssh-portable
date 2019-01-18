@@ -154,6 +154,64 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 }
 #endif
 
+#ifndef HAVE_FCHOWNAT
+/*
+ * A limited implementation of fchownat() that only implements the
+ * functionality used by OpenSSH, currently only AT_FDCWD and
+ * AT_SYMLINK_NOFOLLOW.
+ */
+int
+fchownat(int fd, const char *path, uid_t owner, gid_t group, int flag)
+{
+	int ret, oflags = O_WRONLY;
+
+	if (fd != AT_FDCWD) {
+		errno = ENOSYS;
+		return -1;
+	}
+# ifndef HAVE_FCHOWN
+	return chown(pathname, owner, group);
+# else
+	if (flag & AT_SYMLINK_NOFOLLOW)
+		oflags |= O_NOFOLLOW;
+	if ((fd = open(path, oflags)) == -1)
+		return -1;
+	ret = fchown(fd, owner, group);
+	close(fd);
+	return ret;
+# endif
+}
+#endif
+
+#ifndef HAVE_FCHMODAT
+/*
+ * A limited implementation of fchmodat() that only implements the
+ * functionality used by OpenSSH, currently only AT_FDCWD and
+ * AT_SYMLINK_NOFOLLOW.
+ */
+int
+fchmodat(int fd, const char *path, mode_t mode, int flag)
+{
+	int ret, oflags = O_WRONLY;
+
+	if (fd != AT_FDCWD) {
+		errno = ENOSYS;
+		return -1;
+	}
+# ifndef HAVE_FCHMOD
+	return chown(pathname, owner, group);
+# else
+	if (flag & AT_SYMLINK_NOFOLLOW)
+		oflags |= O_NOFOLLOW;
+	if ((fd = open(path, oflags)) == -1)
+		return -1;
+	ret = fchmod(fd, mode);
+	close(fd);
+	return ret;
+# endif
+}
+#endif
+
 #ifndef HAVE_TRUNCATE
 int truncate(const char *path, off_t length)
 {
