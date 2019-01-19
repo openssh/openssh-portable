@@ -626,7 +626,7 @@ mm_session_pty_cleanup2(Session *s)
 
 #ifdef USE_PAM
 void
-mm_start_pam(Authctxt *authctxt)
+mm_start_pam(struct ssh *ssh)
 {
 	struct sshbuf *m;
 

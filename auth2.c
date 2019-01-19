@@ -299,7 +299,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 		}
 #ifdef USE_PAM
 		if (options.use_pam)
-			PRIVSEP(start_pam(authctxt));
+			PRIVSEP(start_pam(ssh));
 #endif
 		ssh_packet_set_log_preamble(ssh, "%suser %s",
 		    authctxt->valid ? "authenticating " : "invalid ", user);

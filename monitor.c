@@ -991,7 +991,7 @@ mm_answer_pam_start(struct ssh *ssh, int sock, struct sshbuf *m)
 	if (!options.use_pam)
 		fatal("UsePAM not set, but ended up in %s anyway", __func__);
 
-	start_pam(authctxt);
+	start_pam(ssh);
 
 	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
 	if (options.kbd_interactive_authentication)
