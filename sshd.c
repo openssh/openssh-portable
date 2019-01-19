@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.521 2019/01/17 01:50:24 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.522 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -122,6 +122,9 @@
 #include "auth-options.h"
 #include "version.h"
 #include "ssherr.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX move decl to this file */
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)

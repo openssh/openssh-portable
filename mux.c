@@ -1,4 +1,4 @@
-/* $OpenBSD: mux.c,v 1.77 2018/09/26 07:32:44 djm Exp $ */
+/* $OpenBSD: mux.c,v 1.78 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright (c) 2002-2008 Damien Miller <djm@openbsd.org>
  *
@@ -67,6 +67,9 @@
 #include "readconf.h"
 #include "clientloop.h"
 #include "ssherr.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 /* from ssh.c */
 extern int tty_flag;

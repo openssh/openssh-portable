@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.151 2019/01/17 04:20:53 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.152 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -60,6 +60,9 @@
 #include "monitor_wrap.h"
 #include "ssherr.h"
 #include "digest.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 /* import */
 extern ServerOptions options;

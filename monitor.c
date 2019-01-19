@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.188 2018/11/16 02:43:56 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.189 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -95,6 +95,9 @@
 #include "authfd.h"
 #include "match.h"
 #include "ssherr.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 #ifdef GSSAPI
 static Gssctxt *gsscontext = NULL;

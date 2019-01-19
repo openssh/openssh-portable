@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.387 2018/12/07 02:31:20 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.388 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -83,6 +83,9 @@
 #include "authfd.h"
 #include "pathnames.h"
 #include "match.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 /* -- agent forwarding */
 #define	NUM_SOCKS	10

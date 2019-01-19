@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.344 2018/11/19 04:12:32 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.345 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -64,6 +64,9 @@
 #include "auth.h"
 #include "myproposal.h"
 #include "digest.h"
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 static void add_listen_addr(ServerOptions *, const char *,
     const char *, int);

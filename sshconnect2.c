@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.292 2019/01/04 03:27:50 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.293 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -76,6 +76,9 @@
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 /* import */
 extern char *client_version_string;

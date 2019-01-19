@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.497 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.498 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -112,6 +112,9 @@
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
 #endif
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX move here */
 
 extern char *__progname;
 

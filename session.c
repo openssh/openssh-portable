@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.309 2019/01/17 04:45:09 djm Exp $ */
+/* $OpenBSD: session.c,v 1.310 2019/01/19 21:31:32 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -104,6 +104,9 @@
 #ifdef WITH_SELINUX
 #include <selinux/selinux.h>
 #endif
+
+#include "opacket.h" /* XXX */
+extern struct ssh *active_state; /* XXX */
 
 #define IS_INTERNAL_SFTP(c) \
 	(!strncmp(c, INTERNAL_SFTP_NAME, sizeof(INTERNAL_SFTP_NAME) - 1) && \
