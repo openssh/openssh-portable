@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.310 2019/01/19 21:31:32 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.311 2019/01/19 21:36:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,9 +69,6 @@
 #include "ssherr.h"
 #include "authfd.h"
 #include "kex.h"
-
-#include "opacket.h" /* XXX */
-extern struct ssh *active_state; /* XXX */
 
 struct sshkey *previous_host_key = NULL;
 
@@ -1283,24 +1280,6 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 	ssh_kex2(ssh, host, hostaddr, port);
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
-}
-
-void
-ssh_put_password(char *password)
-{
-	int size;
-	char *padded;
-
-	if (datafellows & SSH_BUG_PASSWORDPAD) {
-		packet_put_cstring(password);
-		return;
-	}
-	size = ROUNDUP(strlen(password) + 1, 32);
-	padded = xcalloc(1, size);
-	strlcpy(padded, password, size);
-	packet_put_string(padded, size);
-	explicit_bzero(padded, size);
-	free(padded);
 }
 
 /* print all known host keys for a given host, but skip keys of given type */

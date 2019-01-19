@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.h,v 1.36 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: sshconnect.h,v 1.37 2019/01/19 21:36:38 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -50,7 +50,6 @@ void	 ssh_kex2(struct ssh *ssh, char *, struct sockaddr *, u_short);
 void	 ssh_userauth2(struct ssh *ssh, const char *, const char *,
     char *, Sensitive *);
 
-void	 ssh_put_password(char *);
 int	 ssh_local_cmd(const char *);
 
 void	 maybe_add_key_to_agent(char *, const struct sshkey *, char *, char *);
