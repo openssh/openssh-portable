@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.212 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.213 2019/01/19 22:30:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -642,7 +642,7 @@ server_request_session(struct ssh *ssh)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 
 	if (no_more_sessions) {
-		sshpkt_disconnect(ssh, "Possible attack: attempt to open a "
+		ssh_packet_disconnect(ssh, "Possible attack: attempt to open a "
 		    "session after additional sessions disabled");
 	}
 
@@ -928,8 +928,10 @@ server_input_channel_req(int type, u_int32_t seq, struct ssh *ssh)
 	debug("server_input_channel_req: channel %u request %s reply %d",
 	    id, rtype, want_reply);
 
-	if (id >= INT_MAX || (c = channel_lookup(ssh, (int)id)) == NULL)
-		sshpkt_disconnect(ssh, "%s: unknown channel %d", __func__, id);
+	if (id >= INT_MAX || (c = channel_lookup(ssh, (int)id)) == NULL) {
+		ssh_packet_disconnect(ssh, "%s: unknown channel %d",
+		    __func__, id);
+	}
 	if (!strcmp(rtype, "eow@openssh.com")) {
 		if ((r = sshpkt_get_end(ssh)) != 0)
 			sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
