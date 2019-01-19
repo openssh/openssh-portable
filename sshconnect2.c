@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.293 2019/01/19 21:31:32 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.294 2019/01/19 21:34:45 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -197,7 +197,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
-		packet_set_rekey_limits(options.rekey_limit,
+		ssh_packet_set_rekey_limits(ssh, options.rekey_limit,
 		    options.rekey_interval);
 
 	/* start key exchange */
@@ -510,17 +510,21 @@ input_userauth_error(int type, u_int32_t seq, struct ssh *ssh)
 int
 input_userauth_banner(int type, u_int32_t seq, struct ssh *ssh)
 {
-	char *msg, *lang;
-	u_int len;
+	char *msg = NULL, *lang = NULL;
+	size_t len;
+	int r;
 
 	debug3("%s", __func__);
-	msg = packet_get_string(&len);
-	lang = packet_get_string(NULL);
+	if ((r = sshpkt_get_cstring(ssh, &msg, &len)) != 0 ||
+	    (r = sshpkt_get_cstring(ssh, &lang, NULL)) != 0)
+		goto out;
 	if (len > 0 && options.log_level >= SYSLOG_LEVEL_INFO)
 		fmprintf(stderr, "%s", msg);
+	r = 0;
+ out:
 	free(msg);
 	free(lang);
-	return 0;
+	return r;
 }
 
 /* ARGSUSED */
@@ -1806,13 +1810,13 @@ input_userauth_info_req(int type, u_int32_t seq, struct ssh *ssh)
 }
 
 static int
-ssh_keysign(struct sshkey *key, u_char **sigp, size_t *lenp,
+ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen)
 {
 	struct sshbuf *b;
 	struct stat st;
 	pid_t pid;
-	int i, r, to[2], from[2], status, sock = packet_get_connection_in();
+	int i, r, to[2], from[2], status, sock = ssh_packet_get_connection_in(ssh);
 	u_char rversion = 0, version = 2;
 	void (*osigchld)(int);
 
@@ -1986,7 +1990,7 @@ userauth_hostbased(Authctxt *authctxt)
 	    __func__, sshkey_ssh_name(private), fp);
 
 	/* figure out a name for the client host */
-	if ((lname = get_local_name(packet_get_connection_in())) == NULL) {
+	if ((lname = get_local_name(ssh_packet_get_connection_in(ssh))) == NULL) {
 		error("%s: cannot get local ipaddr/name", __func__);
 		goto out;
 	}
@@ -2020,9 +2024,8 @@ userauth_hostbased(Authctxt *authctxt)
 #ifdef DEBUG_PK
 	sshbuf_dump(b, stderr);
 #endif
-	r = ssh_keysign(private, &sig, &siglen,
-	    sshbuf_ptr(b), sshbuf_len(b));
-	if (r != 0) {
+	if ((r = ssh_keysign(ssh, private, &sig, &siglen,
+	    sshbuf_ptr(b), sshbuf_len(b))) != 0) {
 		error("sign using hostkey %s %s failed",
 		    sshkey_ssh_name(private), fp);
 		goto out;
