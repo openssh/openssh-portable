@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.39 2019/01/19 21:41:18 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.40 2019/01/19 21:43:07 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -89,8 +89,6 @@ void mm_session_pty_cleanup2(struct Session *);
 struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
-void monitor_clear_keystate(struct monitor *);
-void monitor_apply_keystate(struct monitor *);
 void mm_get_keystate(struct monitor *);
 void mm_send_keystate(struct monitor*);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.525 2019/01/19 21:42:30 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.526 2019/01/19 21:43:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -459,7 +459,6 @@ privsep_preauth_child(void)
 static int
 privsep_preauth(struct ssh *ssh)
 {
-	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
 	int status, r;
 	pid_t pid;
 	struct ssh_sandbox *box = NULL;
@@ -488,7 +487,7 @@ privsep_preauth(struct ssh *ssh)
 		}
 		if (box != NULL)
 			ssh_sandbox_parent_preauth(box, pid);
-		monitor_child_preauth(authctxt, pmonitor);
+		monitor_child_preauth(ssh, pmonitor);
 
 		/* Wait for the child's exit status */
 		while (waitpid(pid, &status, 0) < 0) {
@@ -548,8 +547,8 @@ privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 	else if (pmonitor->m_pid != 0) {
 		verbose("User child is on pid %ld", (long)pmonitor->m_pid);
 		sshbuf_reset(loginmsg);
-		monitor_clear_keystate(pmonitor);
-		monitor_child_postauth(pmonitor);
+		monitor_clear_keystate(ssh, pmonitor);
+		monitor_child_postauth(ssh, pmonitor);
 
 		/* NEVERREACHED */
 		exit(0);
@@ -570,7 +569,7 @@ privsep_postauth(struct ssh *ssh, Authctxt *authctxt)
 
  skip:
 	/* It is safe now to apply the key state */
-	monitor_apply_keystate(pmonitor);
+	monitor_apply_keystate(ssh, pmonitor);
 
 	/*
 	 * Tell the packet layer that authentication was successful, since

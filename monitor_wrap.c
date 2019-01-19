@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.109 2019/01/19 21:41:18 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.110 2019/01/19 21:43:07 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -76,7 +76,6 @@
 
 #include "ssherr.h"
 
-#include "opacket.h" /* XXX */
 extern struct ssh *active_state; /* XXX */
 
 /* Imports */
