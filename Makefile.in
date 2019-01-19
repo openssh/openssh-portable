@@ -88,7 +88,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	canohost.o channels.o cipher.o cipher-aes.o cipher-aesctr.o \
 	cipher-ctr.o cleanup.o \
 	compat.o crc32.o fatal.o hostfile.o \
-	log.o match.o moduli.o nchan.o packet.o opacket.o \
+	log.o match.o moduli.o nchan.o packet.o \
 	readpass.o ttymodes.o xmalloc.o addrmatch.o \
 	atomicio.o dispatch.o mac.o uuencode.o misc.o utf8.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-ecdsa.o ssh-rsa.o dh.o \
