@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.526 2019/01/19 21:43:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.527 2019/01/19 21:43:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -123,8 +123,6 @@
 #include "version.h"
 #include "ssherr.h"
 
-extern struct ssh *active_state; /* XXX move decl to this file */
-
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
 #define REEXEC_STARTUP_PIPE_FD		(STDERR_FILENO + 2)
@@ -225,8 +223,9 @@ struct monitor *pmonitor = NULL;
 int privsep_is_preauth = 1;
 static int privsep_chroot = 1;
 
-/* global authentication context */
+/* global connection state and authentication contexts */
 Authctxt *the_authctxt = NULL;
+struct ssh *the_active_state;
 
 /* global key/cert auth options. XXX move to permanent ssh->authctxt? */
 struct sshauthopt *auth_opts = NULL;
@@ -353,9 +352,11 @@ grace_alarm_handler(int sig)
 		kill(0, SIGTERM);
 	}
 
+	/* XXX pre-format ipaddr/port so we don't need to access active_state */
 	/* Log error and exit. */
 	sigdie("Timeout before authentication for %s port %d",
-	    ssh_remote_ipaddr(active_state), ssh_remote_port(active_state));
+	    ssh_remote_ipaddr(the_active_state),
+	    ssh_remote_port(the_active_state));
 }
 
 /* Destroy the host and server keys.  They will no longer be needed. */
@@ -742,7 +743,7 @@ notify_hostkeys(struct ssh *ssh)
 	char *fp;
 
 	/* Some clients cannot cope with the hostkeys message, skip those. */
-	if (datafellows & SSH_BUG_HOSTKEYS)
+	if (ssh->compat & SSH_BUG_HOSTKEYS)
 		return;
 
 	if ((buf = sshbuf_new()) == NULL)
@@ -1960,8 +1961,8 @@ main(int ac, char **av)
 	 */
 	if ((ssh = ssh_packet_set_connection(NULL, sock_in, sock_out)) == NULL)
 		fatal("Unable to create connection");
+	the_active_state = ssh;
 	ssh_packet_set_server(ssh);
-	active_state = ssh; /* XXX needed elsewhere */
 
 	check_ip_options(ssh);
 
@@ -2060,7 +2061,7 @@ main(int ac, char **av)
 	 * the current keystate and exits
 	 */
 	if (use_privsep) {
-		mm_send_keystate(pmonitor);
+		mm_send_keystate(ssh, pmonitor);
 		ssh_packet_clear_keys(ssh);
 		exit(0);
 	}
@@ -2139,25 +2140,35 @@ main(int ac, char **av)
 }
 
 int
-sshd_hostkey_sign(struct sshkey *privkey, struct sshkey *pubkey,
-    u_char **signature, size_t *slenp, const u_char *data, size_t dlen,
-    const char *alg, u_int flag)
+sshd_hostkey_sign(struct ssh *ssh, struct sshkey *privkey,
+    struct sshkey *pubkey, u_char **signature, size_t *slenp,
+    const u_char *data, size_t dlen, const char *alg)
 {
 	int r;
 
-	if (privkey) {
-		if (PRIVSEP(sshkey_sign(privkey, signature, slenp, data, dlen,
-		    alg, datafellows)) < 0)
-			fatal("%s: key_sign failed", __func__);
-	} else if (use_privsep) {
-		if (mm_sshkey_sign(pubkey, signature, slenp, data, dlen,
-		    alg, datafellows) < 0)
-			fatal("%s: pubkey_sign failed", __func__);
+	if (use_privsep) {
+		if (privkey) {
+			if (mm_sshkey_sign(ssh, privkey, signature, slenp,
+			    data, dlen, alg, ssh->compat) < 0)
+				fatal("%s: privkey sign failed", __func__);
+		} else {
+			if (mm_sshkey_sign(ssh, pubkey, signature, slenp,
+			    data, dlen, alg, ssh->compat) < 0)
+				fatal("%s: pubkey sign failed", __func__);
+		}
 	} else {
-		if ((r = ssh_agent_sign(auth_sock, pubkey, signature, slenp,
-		    data, dlen, alg, datafellows)) != 0)
-			fatal("%s: ssh_agent_sign failed: %s",
-			    __func__, ssh_err(r));
+		if (privkey) {
+			if (sshkey_sign(privkey, signature, slenp, data, dlen,
+			    alg, ssh->compat) < 0)
+				fatal("%s: privkey sign failed", __func__);
+		} else {
+			if ((r = ssh_agent_sign(auth_sock, pubkey,
+			    signature, slenp, data, dlen, alg,
+			    ssh->compat)) != 0) {
+				fatal("%s: agent sign failed: %s",
+				    __func__, ssh_err(r));
+			}
+		}
 	}
 	return 0;
 }
@@ -2232,10 +2243,8 @@ do_ssh2_kex(struct ssh *ssh)
 void
 cleanup_exit(int i)
 {
-	struct ssh *ssh = active_state; /* XXX */
-
-	if (the_authctxt) {
-		do_cleanup(ssh, the_authctxt);
+	if (the_active_state != NULL && the_authctxt != NULL) {
+		do_cleanup(the_active_state, the_authctxt);
 		if (use_privsep && privsep_is_preauth &&
 		    pmonitor != NULL && pmonitor->m_pid > 1) {
 			debug("Killing privsep child %d", pmonitor->m_pid);

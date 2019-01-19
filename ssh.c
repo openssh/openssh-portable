@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.499 2019/01/19 21:36:06 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.500 2019/01/19 21:43:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -112,8 +112,6 @@
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
 #endif
-
-extern struct ssh *active_state; /* XXX remove after sshconnect2.c updated */
 
 extern char *__progname;
 
@@ -652,7 +650,6 @@ main(int ac, char **av)
 	 */
 	if ((ssh = ssh_alloc_session_state()) == NULL)
 		fatal("Couldn't allocate session state");
-	active_state = ssh; /* XXX */
 	channel_init_channels(ssh);
 
 	/* Parse command-line arguments. */

@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519s.c,v 1.12 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kexc25519s.c,v 1.13 2019/01/19 21:43:56 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -133,8 +133,8 @@ input_kex_c25519_init(int type, u_int32_t seq, struct ssh *ssh)
 	}
 
 	/* sign H */
-	if ((r = kex->sign(server_host_private, server_host_public, &signature,
-	     &slen, hash, hashlen, kex->hostkey_alg, ssh->compat)) < 0)
+	if ((r = kex->sign(ssh, server_host_private, server_host_public,
+	    &signature, &slen, hash, hashlen, kex->hostkey_alg)) < 0)
 		goto out;
 
 	/* send server hostkey, ECDH pubkey 'Q_S' and signed H */

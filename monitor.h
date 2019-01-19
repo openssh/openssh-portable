@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.h,v 1.22 2019/01/19 21:43:07 djm Exp $ */
+/* $OpenBSD: monitor.h,v 1.23 2019/01/19 21:43:56 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -90,5 +90,6 @@ void monitor_apply_keystate(struct ssh *, struct monitor *);
 void mm_request_send(int, enum monitor_reqtype, struct sshbuf *);
 void mm_request_receive(int, struct sshbuf *);
 void mm_request_receive_expect(int, enum monitor_reqtype, struct sshbuf *);
+void mm_get_keystate(struct ssh *, struct monitor *);
 
 #endif /* _MONITOR_H_ */

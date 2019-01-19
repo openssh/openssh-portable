@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.40 2019/01/19 21:43:07 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.41 2019/01/19 21:43:56 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -42,8 +42,8 @@ struct sshauthopt;
 void mm_log_handler(LogLevel, const char *, void *);
 int mm_is_monitor(void);
 DH *mm_choose_dh(int, int, int);
-int mm_sshkey_sign(struct sshkey *, u_char **, size_t *, const u_char *, size_t,
-    const char *, u_int compat);
+int mm_sshkey_sign(struct ssh *, struct sshkey *, u_char **, size_t *,
+    const u_char *, size_t, const char *, u_int compat);
 void mm_inform_authserv(char *, char *);
 struct passwd *mm_getpwnamallow(struct ssh *, const char *);
 char *mm_auth2_read_banner(void);
@@ -52,7 +52,7 @@ int mm_key_allowed(enum mm_keytype, const char *, const char *, struct sshkey *,
     int, struct sshauthopt **);
 int mm_user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
     struct sshauthopt **);
-int mm_hostbased_key_allowed(struct passwd *, const char *,
+int mm_hostbased_key_allowed(struct ssh *, struct passwd *, const char *,
     const char *, struct sshkey *);
 int mm_sshkey_verify(const struct sshkey *, const u_char *, size_t,
     const u_char *, size_t, const char *, u_int);
@@ -89,8 +89,7 @@ void mm_session_pty_cleanup2(struct Session *);
 struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
-void mm_get_keystate(struct monitor *);
-void mm_send_keystate(struct monitor*);
+void mm_send_keystate(struct ssh *, struct monitor*);
 
 /* bsdauth */
 int mm_bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);

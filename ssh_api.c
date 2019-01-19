@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.9 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.10 2019/01/19 21:43:56 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -40,8 +40,8 @@ int	_ssh_order_hostkeyalgs(struct ssh *);
 int	_ssh_verify_host_key(struct sshkey *, struct ssh *);
 struct sshkey *_ssh_host_public_key(int, int, struct ssh *);
 struct sshkey *_ssh_host_private_key(int, int, struct ssh *);
-int	_ssh_host_key_sign(struct sshkey *, struct sshkey *,
-    u_char **, size_t *, const u_char *, size_t, const char *, u_int);
+int	_ssh_host_key_sign(struct ssh *, struct sshkey *, struct sshkey *,
+    u_char **, size_t *, const u_char *, size_t, const char *);
 
 /*
  * stubs for the server side implementation of kex.
@@ -547,9 +547,10 @@ _ssh_order_hostkeyalgs(struct ssh *ssh)
 }
 
 int
-_ssh_host_key_sign(struct sshkey *privkey, struct sshkey *pubkey,
-    u_char **signature, size_t *slen, const u_char *data, size_t dlen,
-    const char *alg, u_int compat)
+_ssh_host_key_sign(struct ssh *ssh, struct sshkey *privkey,
+    struct sshkey *pubkey, u_char **signature, size_t *slen,
+    const u_char *data, size_t dlen, const char *alg)
 {
-	return sshkey_sign(privkey, signature, slen, data, dlen, alg, compat);
+	return sshkey_sign(privkey, signature, slen, data, dlen,
+	    alg, ssh->compat);
 }

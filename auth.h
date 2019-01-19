@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.98 2019/01/19 21:41:18 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.99 2019/01/19 21:43:56 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -132,8 +132,8 @@ auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
 int      auth_password(struct ssh *, const char *);
 
-int	 hostbased_key_allowed(struct passwd *, const char *, char *,
-	    struct sshkey *);
+int	 hostbased_key_allowed(struct ssh *, struct passwd *,
+	    const char *, char *, struct sshkey *);
 int	 user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
     struct sshauthopt **);
 int	 auth2_key_already_used(Authctxt *, const struct sshkey *);
@@ -208,8 +208,8 @@ struct sshkey	*get_hostkey_public_by_index(int, struct ssh *);
 struct sshkey	*get_hostkey_public_by_type(int, int, struct ssh *);
 struct sshkey	*get_hostkey_private_by_type(int, int, struct ssh *);
 int	 get_hostkey_index(struct sshkey *, int, struct ssh *);
-int	 sshd_hostkey_sign(struct sshkey *, struct sshkey *, u_char **,
-	     size_t *, const u_char *, size_t, const char *, u_int);
+int	 sshd_hostkey_sign(struct ssh *, struct sshkey *, struct sshkey *,
+    u_char **, size_t *, const u_char *, size_t, const char *);
 
 /* Key / cert options linkage to auth layer */
 const struct sshauthopt *auth_options(struct ssh *);

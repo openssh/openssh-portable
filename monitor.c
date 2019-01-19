@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.191 2019/01/19 21:43:07 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.192 2019/01/19 21:43:56 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -360,7 +360,7 @@ monitor_child_preauth(struct ssh *ssh, struct monitor *pmonitor)
 	ssh->authctxt = NULL;
 	ssh_packet_set_log_preamble(ssh, "user %s", authctxt->user);
 
-	mm_get_keystate(pmonitor);
+	mm_get_keystate(ssh, pmonitor);
 
 	/* Drain any buffered messages from the child */
 	while (pmonitor->m_log_recvfd != -1 && monitor_read_log(pmonitor) == 0)
@@ -1195,7 +1195,7 @@ mm_answer_keyallowed(struct ssh *ssh, int sock, struct sshbuf *m)
 			if (!key_base_type_match(auth_method, key,
 			    options.hostbased_key_types))
 				break;
-			allowed = hostbased_key_allowed(authctxt->pw,
+			allowed = hostbased_key_allowed(ssh, authctxt->pw,
 			    cuser, chost, key);
 			auth2_record_info(authctxt,
 			    "client user \"%.100s\", client host \"%.100s\"",
@@ -1699,7 +1699,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 /* This function requries careful sanity checking */
 
 void
-mm_get_keystate(struct monitor *pmonitor)
+mm_get_keystate(struct ssh *ssh, struct monitor *pmonitor)
 {
 	debug3("%s: Waiting for new keys", __func__);
 
