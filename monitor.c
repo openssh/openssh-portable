@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.189 2019/01/19 21:31:32 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.190 2019/01/19 21:41:18 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -338,7 +338,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 #endif
 		}
 		if (ent->flags & (MON_AUTHDECIDE|MON_ALOG)) {
-			auth_log(authctxt, authenticated, partial,
+			auth_log(ssh, authenticated, partial,
 			    auth_method, auth_submethod);
 			if (!partial && !authenticated)
 				authctxt->failures++;
@@ -729,7 +729,7 @@ mm_answer_pwnamallow(int sock, struct sshbuf *m)
 	if ((r = sshbuf_get_cstring(m, &username, NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	pwent = getpwnamallow(username);
+	pwent = getpwnamallow(ssh, username);
 
 	authctxt->user = xstrdup(username);
 	setproctitle("%s [priv]", pwent ? username : "unknown");
@@ -1230,7 +1230,7 @@ mm_answer_keyallowed(int sock, struct sshbuf *m)
 		hostbased_chost = chost;
 	} else {
 		/* Log failed attempt */
-		auth_log(authctxt, 0, 0, auth_method, NULL);
+		auth_log(ssh, 0, 0, auth_method, NULL);
 		free(cuser);
 		free(chost);
 	}

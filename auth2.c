@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.153 2019/01/19 21:38:24 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.154 2019/01/19 21:41:18 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -284,7 +284,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
-		authctxt->pw = PRIVSEP(getpwnamallow(user));
+		authctxt->pw = PRIVSEP(getpwnamallow(ssh, user));
 		authctxt->user = xstrdup(user);
 		if (authctxt->pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->valid = 1;
@@ -381,7 +381,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 	}
 
 	/* Log before sending the reply */
-	auth_log(authctxt, authenticated, partial, method, submethod);
+	auth_log(ssh, authenticated, partial, method, submethod);
 
 	/* Update information exposed to session */
 	if (authenticated || partial)
@@ -429,7 +429,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 #ifdef SSH_AUDIT_EVENTS
 			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
-			auth_maxtries_exceeded(authctxt);
+			auth_maxtries_exceeded(ssh);
 		}
 		methods = authmethods_get(authctxt);
 		debug3("%s: failure partial=%d next methods=\"%s\"", __func__,
