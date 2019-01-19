@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.h,v 1.96 2018/04/10 00:10:49 djm Exp $ */
+/* $OpenBSD: auth.h,v 1.97 2019/01/19 21:38:24 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -166,14 +166,12 @@ int auth_shadow_pwexpired(Authctxt *);
 #include "audit.h"
 void remove_kbdint_device(const char *);
 
-void	do_authentication2(Authctxt *);
+void	do_authentication2(struct ssh *);
 
 void	auth_log(Authctxt *, int, int, const char *, const char *);
 void	auth_maxtries_exceeded(Authctxt *) __attribute__((noreturn));
 void	userauth_finish(struct ssh *, int, const char *, const char *);
 int	auth_root_allowed(struct ssh *, const char *);
-
-void	userauth_send_banner(const char *);
 
 char	*auth2_read_banner(void);
 int	 auth2_methods_valid(const char *, int);

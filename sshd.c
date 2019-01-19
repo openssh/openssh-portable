@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.523 2019/01/19 21:37:48 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.524 2019/01/19 21:38:24 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2044,7 +2044,8 @@ main(int ac, char **av)
 	/* perform the key exchange */
 	/* authenticate user and start session */
 	do_ssh2_kex();
-	do_authentication2(authctxt);
+	ssh->authctxt = authctxt;
+	do_authentication2(ssh);
 
 	/*
 	 * If we use privilege separation, the unprivileged child transfers
