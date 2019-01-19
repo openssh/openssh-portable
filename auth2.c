@@ -401,7 +401,10 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 					fatal("%s: buffer error: %s",
 					    __func__, ssh_err(r));
 				userauth_send_banner(ssh, sshbuf_ptr(loginmsg));
-				packet_write_wait();
+				if ((r = ssh_packet_write_wait(ssh)) != 0) {
+					sshpkt_fatal(ssh, r,
+					    "%s: send PAM banner", __func__);
+				}
 			}
 			fatal("Access denied for user %s by PAM account "
 			    "configuration", authctxt->user);

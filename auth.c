@@ -356,11 +356,11 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 	    (strcmp(method, "password") == 0 ||
 	    strncmp(method, "keyboard-interactive", 20) == 0 ||
 	    strcmp(method, "challenge-response") == 0))
-		record_failed_login(authctxt->user,
+		record_failed_login(ssh, authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 # ifdef WITH_AIXAUTHENTICATE
 	if (authenticated)
-		sys_auth_record_login(authctxt->user,
+		sys_auth_record_login(ssh, authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
 		    loginmsg);
 # endif
@@ -601,7 +601,7 @@ getpwnamallow(struct ssh *ssh, const char *user)
 		logit("Invalid user %.100s from %.100s port %d",
 		    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 #ifdef CUSTOM_FAILED_LOGIN
-		record_failed_login(user,
+		record_failed_login(ssh, user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 #endif
 #ifdef SSH_AUDIT_EVENTS

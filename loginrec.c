@@ -1653,7 +1653,7 @@ utmpx_get_entry(struct logininfo *li)
    */
 
 void
-record_failed_login(const char *username, const char *hostname,
+record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
     const char *ttyn)
 {
 	int fd;
@@ -1696,8 +1696,8 @@ record_failed_login(const char *username, const char *hostname,
 	/* strncpy because we don't necessarily want nul termination */
 	strncpy(ut.ut_host, hostname, sizeof(ut.ut_host));
 
-	if (packet_connection_is_on_socket() &&
-	    getpeername(packet_get_connection_in(),
+	if (ssh_packet_connection_is_on_socket(ssh) &&
+	    getpeername(ssh_packet_get_connection_in(ssh),
 	    (struct sockaddr *)&from, &fromlen) == 0) {
 		ipv64_normalise_mapped(&from, &fromlen);
 		if (from.ss_family == AF_INET) {
