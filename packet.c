@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.279 2019/01/04 03:23:00 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.280 2019/01/19 21:33:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1809,10 +1809,10 @@ sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 /*
  * Pretty-print connection-terminating errors and exit.
  */
-void
-sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
+static void
+sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 {
-	char remote_id[512];
+	char *tag = NULL, remote_id[512];
 
 	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
@@ -1846,12 +1846,29 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 		}
 		/* FALLTHROUGH */
 	default:
+		if (vasprintf(&tag, fmt, ap) == -1) {
+			ssh_packet_clear_keys(ssh);
+			logdie("%s: could not allocate failure message",
+			    __func__);
+		}
 		ssh_packet_clear_keys(ssh);
 		logdie("%s%sConnection %s %s: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
 		    ssh->state->server_side ? "from" : "to",
 		    remote_id, ssh_err(r));
 	}
+}
+
+void
+sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	sshpkt_vfatal(ssh, r, fmt, ap);
+	/* NOTREACHED */
+	va_end(ap);
+	logdie("%s: should have exited", __func__);
 }
 
 /*
@@ -1889,10 +1906,10 @@ ssh_packet_disconnect(struct ssh *ssh, const char *fmt,...)
 	 * for it to get sent.
 	 */
 	if ((r = sshpkt_disconnect(ssh, "%s", buf)) != 0)
-		sshpkt_fatal(ssh, __func__, r);
+		sshpkt_fatal(ssh, r, "%s", __func__);
 
 	if ((r = ssh_packet_write_wait(ssh)) != 0)
-		sshpkt_fatal(ssh, __func__, r);
+		sshpkt_fatal(ssh, r, "%s", __func__);
 
 	/* Close the connection. */
 	ssh_packet_close(ssh);
