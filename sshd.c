@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.522 2019/01/19 21:31:32 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.523 2019/01/19 21:37:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1493,7 +1493,7 @@ main(int ac, char **av)
 			test_flag = 2;
 			break;
 		case 'C':
-			connection_info = get_connection_info(0, 0);
+			connection_info = get_connection_info(ssh, 0, 0);
 			if (parse_server_match_testspec(connection_info,
 			    optarg) == -1)
 				exit(1);
@@ -1776,7 +1776,7 @@ main(int ac, char **av)
 		 * use a blank one that will cause no predicate to match.
 		 */
 		if (connection_info == NULL)
-			connection_info = get_connection_info(0, 0);
+			connection_info = get_connection_info(ssh, 0, 0);
 		parse_server_match_config(&options, connection_info);
 		dump_config(&options);
 	}

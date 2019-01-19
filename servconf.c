@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.345 2019/01/19 21:31:32 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.346 2019/01/19 21:37:48 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -64,9 +64,6 @@
 #include "auth.h"
 #include "myproposal.h"
 #include "digest.h"
-
-#include "opacket.h" /* XXX */
-extern struct ssh *active_state; /* XXX */
 
 static void add_listen_addr(ServerOptions *, const char *,
     const char *, int);
@@ -926,12 +923,11 @@ process_permitopen(struct ssh *ssh, ServerOptions *options)
 }
 
 struct connection_info *
-get_connection_info(int populate, int use_dns)
+get_connection_info(struct ssh *ssh, int populate, int use_dns)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	static struct connection_info ci;
 
-	if (!populate)
+	if (ssh == NULL || !populate)
 		return &ci;
 	ci.host = auth_get_canonical_hostname(ssh, use_dns);
 	ci.address = ssh_remote_ipaddr(ssh);

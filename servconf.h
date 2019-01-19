@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.138 2018/11/19 04:12:32 djm Exp $ */
+/* $OpenBSD: servconf.h,v 1.139 2019/01/19 21:37:48 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -258,7 +258,7 @@ struct connection_info {
 		M_CP_STRARRAYOPT(permitted_listens, num_permitted_listens); \
 	} while (0)
 
-struct connection_info *get_connection_info(int, int);
+struct connection_info *get_connection_info(struct ssh *, int, int);
 void	 initialize_server_options(ServerOptions *);
 void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int,
