@@ -76,7 +76,7 @@ void mm_sshpam_free_ctx(void *);
 
 #ifdef SSH_AUDIT_EVENTS
 #include "audit.h"
-void mm_audit_event(ssh_audit_event_t);
+void mm_audit_event(struct ssh *, ssh_audit_event_t);
 void mm_audit_run_command(const char *);
 #endif
 

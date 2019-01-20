@@ -123,9 +123,6 @@ int	do_exec_no_pty(struct ssh *, Session *, const char *);
 int	do_exec(struct ssh *, Session *, const char *);
 void	do_login(struct ssh *, Session *, const char *);
 void	do_child(struct ssh *, Session *, const char *);
-#ifdef LOGIN_NEEDS_UTMPX
-static void	do_pre_login(Session *s);
-#endif
 void	do_motd(void);
 int	check_quietlogin(Session *, const char *);
 
@@ -655,35 +652,6 @@ do_exec_pty(struct ssh *ssh, Session *s, const char *command)
 	session_set_fds(ssh, s, ptyfd, fdout, -1, 1, 1);
 	return 0;
 }
-
-#ifdef LOGIN_NEEDS_UTMPX
-static void
-do_pre_login(Session *s)
-{
-	struct ssh *ssh = active_state;	/* XXX */
-	socklen_t fromlen;
-	struct sockaddr_storage from;
-	pid_t pid = getpid();
-
-	/*
-	 * Get IP address of client. If the connection is not a socket, let
-	 * the address be 0.0.0.0.
-	 */
-	memset(&from, 0, sizeof(from));
-	fromlen = sizeof(from);
-	if (packet_connection_is_on_socket()) {
-		if (getpeername(packet_get_connection_in(),
-		    (struct sockaddr *)&from, &fromlen) < 0) {
-			debug("getpeername: %.100s", strerror(errno));
-			cleanup_exit(255);
-		}
-	}
-
-	record_utmp_only(pid, s->tty, s->pw->pw_name,
-	    session_get_remote_name_or_ip(ssh, utmp_len, options.use_dns),
-	    (struct sockaddr *)&from, fromlen);
-}
-#endif
 
 /*
  * This is called to fork and execute a command.  If another command is

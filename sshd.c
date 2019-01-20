@@ -2080,7 +2080,7 @@ main(int ac, char **av)
 	}
 
 #ifdef SSH_AUDIT_EVENTS
-	audit_event(SSH_AUTH_SUCCESS);
+	audit_event(ssh, SSH_AUTH_SUCCESS);
 #endif
 
 #ifdef GSSAPI
@@ -2128,7 +2128,7 @@ main(int ac, char **av)
 #endif /* USE_PAM */
 
 #ifdef SSH_AUDIT_EVENTS
-	PRIVSEP(audit_event(SSH_CONNECTION_CLOSE));
+	PRIVSEP(audit_event(ssh, SSH_CONNECTION_CLOSE));
 #endif
 
 	ssh_packet_close(ssh);
@@ -2256,8 +2256,8 @@ cleanup_exit(int i)
 	}
 #ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
-	if (!use_privsep || mm_is_monitor())
-		audit_event(SSH_CONNECTION_ABANDON);
+	if (the_active_state != NULL && (!use_privsep || mm_is_monitor()))
+		audit_event(the_active_state, SSH_CONNECTION_ABANDON);
 #endif
 	_exit(i);
 }

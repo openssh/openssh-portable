@@ -294,7 +294,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 			/* Invalid user, fake password information */
 			authctxt->pw = fakepw();
 #ifdef SSH_AUDIT_EVENTS
-			PRIVSEP(audit_event(SSH_INVALID_USER));
+			PRIVSEP(audit_event(ssh, SSH_INVALID_USER));
 #endif
 		}
 #ifdef USE_PAM
@@ -369,7 +369,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 	    !auth_root_allowed(ssh, method)) {
 		authenticated = 0;
 #ifdef SSH_AUDIT_EVENTS
-		PRIVSEP(audit_event(SSH_LOGIN_ROOT_DENIED));
+		PRIVSEP(audit_event(ssh, SSH_LOGIN_ROOT_DENIED));
 #endif
 	}
 
@@ -430,7 +430,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 			authctxt->failures++;
 		if (authctxt->failures >= options.max_authtries) {
 #ifdef SSH_AUDIT_EVENTS
-			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
+			PRIVSEP(audit_event(ssh, SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
 			auth_maxtries_exceeded(ssh);
 		}

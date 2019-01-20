@@ -1628,7 +1628,7 @@ mm_answer_audit_event(struct ssh *ssh, int socket, struct sshbuf *m)
 	case SSH_LOGIN_ROOT_DENIED:
 	case SSH_CONNECTION_CLOSE:
 	case SSH_INVALID_USER:
-		audit_event(event);
+		audit_event(ssh, event);
 		break;
 	default:
 		fatal("Audit event type %d not permitted", event);

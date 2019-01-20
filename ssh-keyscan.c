@@ -83,8 +83,6 @@ fd_set *read_wait;
 size_t read_wait_nfdset;
 int ncon;
 
-struct ssh *active_state = NULL; /* XXX needed for linking */
-
 /*
  * Keep a connection structure for each file descriptor.  The state
  * associated with file descriptor n is held in fdcon[n].

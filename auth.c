@@ -367,7 +367,7 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 #endif
 #ifdef SSH_AUDIT_EVENTS
 	if (authenticated == 0 && !authctxt->postponed)
-		audit_event(audit_classify_auth(method));
+		audit_event(ssh, audit_classify_auth(method));
 #endif
 }
 
@@ -605,7 +605,7 @@ getpwnamallow(struct ssh *ssh, const char *user)
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 #endif
 #ifdef SSH_AUDIT_EVENTS
-		audit_event(SSH_INVALID_USER);
+		audit_event(ssh, SSH_INVALID_USER);
 #endif /* SSH_AUDIT_EVENTS */
 		return (NULL);
 	}

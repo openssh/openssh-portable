@@ -29,8 +29,6 @@
 #include "authfile.h"
 #include "log.h"
 
-struct ssh *active_state = NULL; /* XXX - needed for linking */
-
 void kex_tests(void);
 static int do_debug = 0;
 

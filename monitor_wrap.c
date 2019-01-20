@@ -867,7 +867,7 @@ mm_bsdauth_respond(void *ctx, u_int numresponses, char **responses)
 
 #ifdef SSH_AUDIT_EVENTS
 void
-mm_audit_event(ssh_audit_event_t event)
+mm_audit_event(struct ssh *ssh, ssh_audit_event_t event)
 {
 	struct sshbuf *m;
 	int r;

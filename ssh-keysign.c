@@ -59,8 +59,6 @@
 #include "sshkey.h"
 #include "ssherr.h"
 
-struct ssh *active_state = NULL; /* XXX needed for linking */
-
 extern char *__progname;
 
 static int
