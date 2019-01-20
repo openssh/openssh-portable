@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.13 2019/01/20 22:54:30 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.14 2019/01/20 22:57:45 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -117,19 +117,25 @@ pkcs11_terminate(void)
 static int
 rsa_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa, int padding)
 {
-	struct sshkey key;	/* XXX */
-	u_char *blob, *signature = NULL;
+	struct sshkey *key = NULL;
+	struct sshbuf *msg = NULL;
+	u_char *blob = NULL, *signature = NULL;
 	size_t blen, slen = 0;
 	int r, ret = -1;
-	struct sshbuf *msg;
 
 	if (padding != RSA_PKCS1_PADDING)
-		return (-1);
-	key.type = KEY_RSA;
-	key.rsa = rsa;
-	if ((r = sshkey_to_blob(&key, &blob, &blen)) != 0) {
+		goto fail;
+	key = sshkey_new(KEY_UNSPEC);
+	if (key == NULL) {
+		error("%s: sshkey_new failed", __func__);
+		goto fail;
+	}
+	key->type = KEY_RSA;
+	RSA_up_ref(rsa);
+	key->rsa = rsa;
+	if ((r = sshkey_to_blob(key, &blob, &blen)) != 0) {
 		error("%s: sshkey_to_blob: %s", __func__, ssh_err(r));
-		return -1;
+		goto fail;
 	}
 	if ((msg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -138,7 +144,6 @@ rsa_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa, int padding)
 	    (r = sshbuf_put_string(msg, from, flen)) != 0 ||
 	    (r = sshbuf_put_u32(msg, 0)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	free(blob);
 	send_msg(msg);
 	sshbuf_reset(msg);
 
@@ -151,6 +156,9 @@ rsa_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa, int padding)
 		}
 		free(signature);
 	}
+ fail:
+	free(blob);
+	sshkey_free(key);
 	sshbuf_free(msg);
 	return (ret);
 }
@@ -159,24 +167,33 @@ static ECDSA_SIG *
 ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
     const BIGNUM *rp, EC_KEY *ec)
 {
-	struct sshkey key; /* XXX */
-	u_char *blob, *signature = NULL;
-	const u_char *cp;
-	size_t blen, slen = 0;
+	struct sshkey *key = NULL;
+	struct sshbuf *msg = NULL;
 	ECDSA_SIG *ret = NULL;
-	struct sshbuf *msg;
-	int r;
+	const u_char *cp;
+	u_char *blob = NULL, *signature = NULL;
+	size_t blen, slen = 0;
+	int r, nid;
 
-	key.type = KEY_ECDSA;
-	key.ecdsa = ec;
-	key.ecdsa_nid = sshkey_ecdsa_key_to_nid(ec);
-	if (key.ecdsa_nid < 0) {
+	nid = sshkey_ecdsa_key_to_nid(ec);
+	if (nid < 0) {
 		error("%s: couldn't get curve nid", __func__);
-		return (NULL);
+		goto fail;
 	}
-	if ((r = sshkey_to_blob(&key, &blob, &blen)) != 0) {
+
+	key = sshkey_new(KEY_UNSPEC);
+	if (key == NULL) {
+		error("%s: sshkey_new failed", __func__);
+		goto fail;
+	}
+	key->ecdsa = ec;
+	key->ecdsa_nid = nid;
+	key->type = KEY_ECDSA;
+	EC_KEY_up_ref(ec);
+
+	if ((r = sshkey_to_blob(key, &blob, &blen)) != 0) {
 		error("%s: sshkey_to_blob: %s", __func__, ssh_err(r));
-		return (NULL);
+		goto fail;
 	}
 	if ((msg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -185,7 +202,6 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 	    (r = sshbuf_put_string(msg, dgst, dgst_len)) != 0 ||
 	    (r = sshbuf_put_u32(msg, 0)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	free(blob);
 	send_msg(msg);
 	sshbuf_reset(msg);
 
@@ -197,6 +213,9 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 		free(signature);
 	}
 
+ fail:
+	free(blob);
+	sshkey_free(key);
 	sshbuf_free(msg);
 	return (ret);
 }
