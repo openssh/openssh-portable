@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.33 2019/01/20 23:08:24 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.34 2019/01/20 23:10:33 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -72,7 +72,6 @@ TAILQ_HEAD(, pkcs11_provider) pkcs11_providers;
 struct pkcs11_key {
 	struct pkcs11_provider	*provider;
 	CK_ULONG		slotidx;
-	int			(*orig_finish)(RSA *rsa);
 	RSA_METHOD		*rsa_method;
 	EC_KEY_METHOD		*ec_key_method;
 	char			*keyid;
@@ -190,23 +189,20 @@ pkcs11_del_provider(char *provider_id)
 	return (-1);
 }
 
-/* openssl callback for freeing an RSA key */
-static int
-pkcs11_rsa_finish(RSA *rsa)
+/* release a wrapped object */
+static void
+pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
+    long argl, void *argp)
 {
-	struct pkcs11_key	*k11;
-	int rv = -1;
+        struct pkcs11_key       *k11 = ptr;
 
-	if ((k11 = RSA_get_app_data(rsa)) != NULL) {
-		if (k11->orig_finish)
-			rv = k11->orig_finish(rsa);
-		if (k11->provider)
-			pkcs11_provider_unref(k11->provider);
-		RSA_meth_free(k11->rsa_method);
-		free(k11->keyid);
-		free(k11);
-	}
-	return (rv);
+        debug("%s: parent %p ptr %p idx %d", __func__, parent, ptr, idx);
+        if (k11 == NULL)
+                return;
+        if (k11->provider)
+                pkcs11_provider_unref(k11->provider);
+        free(k11->keyid);
+        free(k11);
 }
 
 /* find a single 'obj' for given attributes */
@@ -366,6 +362,7 @@ pkcs11_rsa_private_decrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 }
 
 static RSA_METHOD *rsa_method;
+static int rsa_idx = 0;
 
 static int
 pkcs11_rsa_start_wrapper(void)
@@ -375,10 +372,13 @@ pkcs11_rsa_start_wrapper(void)
 	rsa_method = RSA_meth_dup(RSA_get_default_method());
 	if (rsa_method == NULL)
 		return (-1);
+	rsa_idx = RSA_get_ex_new_index(0, "ssh-pkcs11-rsa",
+	    NULL, NULL, pkcs11_k11_free);
+	if (rsa_idx == -1)
+		return (-1);
 	if (!RSA_meth_set1_name(rsa_method, "pkcs11") ||
 	    !RSA_meth_set_priv_enc(rsa_method, pkcs11_rsa_private_encrypt) ||
-	    !RSA_meth_set_priv_dec(rsa_method, pkcs11_rsa_private_decrypt) ||
-	    !RSA_meth_set_finish(rsa_method, pkcs11_rsa_finish)) {
+	    !RSA_meth_set_priv_dec(rsa_method, pkcs11_rsa_private_decrypt)) {
 		error("%s: setup pkcs11 method failed", __func__);
 		return (-1);
 	}
@@ -408,7 +408,7 @@ pkcs11_rsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 
 	k11->rsa_method = rsa_method;
 	RSA_set_method(rsa, k11->rsa_method);
-	RSA_set_ex_data(rsa, 0, k11);
+	RSA_set_ex_data(rsa, rsa_idx, k11);
 	return (0);
 }
 
@@ -471,20 +471,6 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 
 static EC_KEY_METHOD *ec_key_method;
 static int ec_key_idx = 0;
-
-static void
-pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
-    long argl, void *argp)
-{
-	struct pkcs11_key	*k11 = ptr;
-
-	if (k11 == NULL)
-		return;
-	if (k11->provider)
-		pkcs11_provider_unref(k11->provider);
-	free(k11->keyid);
-	free(k11);
-}
 
 static int
 pkcs11_ecdsa_start_wrapper(void)
