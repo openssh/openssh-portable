@@ -1,16 +1,33 @@
-#	$OpenBSD: agent-pkcs11.sh,v 1.3 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: agent-pkcs11.sh,v 1.4 2019/01/20 23:25:25 djm Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent test"
 
-TEST_SSH_PIN=""
-TEST_SSH_PKCS11=/usr/local/lib/soft-pkcs11.so.0.0
+TEST_SSH_PIN=1234
+TEST_SSH_SOPIN=12345678
+TEST_SSH_PKCS11=/usr/local/lib/softhsm/libsofthsm2.so
 
 test -f "$TEST_SSH_PKCS11" || fatal "$TEST_SSH_PKCS11 does not exist"
 
-# setup environment for soft-pkcs11 token
-SOFTPKCS11RC=$OBJ/pkcs11.info
-export SOFTPKCS11RC
+# setup environment for softhsm2 token
+DIR=$OBJ/SOFTHSM
+rm -rf $DIR
+TOKEN=$DIR/tokendir
+mkdir -p $TOKEN
+SOFTHSM2_CONF=$DIR/softhsm2.conf
+export SOFTHSM2_CONF
+cat > $SOFTHSM2_CONF << EOF
+# SoftHSM v2 configuration file
+directories.tokendir = ${TOKEN}
+objectstore.backend = file
+# ERROR, WARNING, INFO, DEBUG
+log.level = DEBUG
+# If CKF_REMOVABLE_DEVICE flag should be set
+slots.removable = false
+EOF
+out=$(softhsm2-util --init-token --free --label token-slot-0 --pin "$TEST_SSH_PIN" --so-pin "$TEST_SSH_SOPIN")
+slot=$(echo -- $out | sed 's/.* //')
+
 # prevent ssh-agent from calling ssh-askpass
 SSH_ASKPASS=/usr/bin/true
 export SSH_ASKPASS
@@ -22,22 +39,29 @@ notty() {
 	    if (fork) { wait; exit($? >> 8); } else { exec(@ARGV) }' "$@"
 }
 
+trace "generating keys"
+RSA=${DIR}/RSA
+EC=${DIR}/EC
+openssl genpkey -algorithm rsa > $RSA
+openssl pkcs8 -nocrypt -in $RSA |\
+    softhsm2-util --slot "$slot" --label 01 --id 01 --pin "$TEST_SSH_PIN" --import /dev/stdin
+openssl genpkey \
+    -genparam \
+    -algorithm ec \
+    -pkeyopt ec_paramgen_curve:prime256v1 |\
+    openssl genpkey \
+    -paramfile /dev/stdin > $EC
+openssl pkcs8 -nocrypt -in $EC |\
+    softhsm2-util --slot "$slot" --label 02 --id 02 --pin "$TEST_SSH_PIN" --import /dev/stdin
+
+LIBCRYPTO=${OBJ}/../../../../lib/libcrypto/obj
+
 trace "start agent"
-eval `${SSHAGENT} -s` > /dev/null
+eval `LD_LIBRARY_PATH=$LIBCRYPTO ${SSHAGENT} -s` > /dev/null
 r=$?
 if [ $r -ne 0 ]; then
 	fail "could not start ssh-agent: exit code $r"
 else
-	trace "generating key/cert"
-	rm -f $OBJ/pkcs11.key $OBJ/pkcs11.crt
-	openssl genrsa -out $OBJ/pkcs11.key 2048 > /dev/null 2>&1
-	chmod 600 $OBJ/pkcs11.key 
-	openssl req -key $OBJ/pkcs11.key -new -x509 \
-	    -out $OBJ/pkcs11.crt -text -subj '/CN=pkcs11 test' > /dev/null
-	printf "a\ta\t$OBJ/pkcs11.crt\t$OBJ/pkcs11.key" > $SOFTPKCS11RC
-	# add to authorized keys
-	${SSHKEYGEN} -y -f $OBJ/pkcs11.key > $OBJ/authorized_keys_$USER
-
 	trace "add pkcs11 key to agent"
 	echo ${TEST_SSH_PIN} | notty ${SSHADD} -s ${TEST_SSH_PKCS11} > /dev/null 2>&1
 	r=$?
@@ -52,12 +76,23 @@ else
 		fail "ssh-add -l failed: exit code $r"
 	fi
 
-	trace "pkcs11 connect via agent"
-	${SSH} -F $OBJ/ssh_proxy somehost exit 5
-	r=$?
-	if [ $r -ne 5 ]; then
-		fail "ssh connect failed (exit code $r)"
-	fi
+	for k in $RSA $EC; do
+		trace "testing $k"
+		chmod 600 $k
+		ssh-keygen -y -f $k > $k.pub
+		pub=$(cat $k.pub)
+		${SSHADD} -L | grep -q "$pub" || fail "key $k missing in ssh-add -L"
+		${SSHADD} -T $k.pub || fail "ssh-add -T with $k failed"
+
+		# add to authorized keys
+		cat $k.pub > $OBJ/authorized_keys_$USER
+		trace "pkcs11 connect via agent ($k)"
+		${SSH} -F $OBJ/ssh_proxy somehost exit 5
+		r=$?
+		if [ $r -ne 5 ]; then
+			fail "ssh connect failed (exit code $r)"
+		fi
+	done
 
 	trace "remove pkcs11 keys"
 	echo ${TEST_SSH_PIN} | notty ${SSHADD} -e ${TEST_SSH_PKCS11} > /dev/null 2>&1
