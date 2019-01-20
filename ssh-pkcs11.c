@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.35 2019/01/20 23:11:11 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.36 2019/01/20 23:12:35 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -72,8 +72,6 @@ TAILQ_HEAD(, pkcs11_provider) pkcs11_providers;
 struct pkcs11_key {
 	struct pkcs11_provider	*provider;
 	CK_ULONG		slotidx;
-	RSA_METHOD		*rsa_method;
-	EC_KEY_METHOD		*ec_key_method;
 	char			*keyid;
 	int			keyid_len;
 };
@@ -406,8 +404,7 @@ pkcs11_rsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 		memcpy(k11->keyid, keyid_attrib->pValue, k11->keyid_len);
 	}
 
-	k11->rsa_method = rsa_method;
-	RSA_set_method(rsa, k11->rsa_method);
+	RSA_set_method(rsa, rsa_method);
 	RSA_set_ex_data(rsa, rsa_idx, k11);
 	return (0);
 }
@@ -509,9 +506,8 @@ pkcs11_ecdsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 	k11->keyid_len = keyid_attrib->ulValueLen;
 	k11->keyid = xmalloc(k11->keyid_len);
 	memcpy(k11->keyid, keyid_attrib->pValue, k11->keyid_len);
-	k11->ec_key_method = ec_key_method;
 
-	EC_KEY_set_method(ec, k11->ec_key_method);
+	EC_KEY_set_method(ec, ec_key_method);
 	EC_KEY_set_ex_data(ec, ec_key_idx, k11);
 
 	return (0);
