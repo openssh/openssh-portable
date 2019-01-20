@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.31 2019/01/20 23:03:26 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.32 2019/01/20 23:05:52 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -457,6 +457,21 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 }
 
 static EC_KEY_METHOD *ec_key_method;
+static int ec_key_idx = 0;
+
+static void
+pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
+    long argl, void *argp)
+{
+	struct pkcs11_key	*k11 = ptr;
+
+	if (k11 == NULL)
+		return;
+	if (k11->provider)
+		pkcs11_provider_unref(k11->provider);
+	free(k11->keyid);
+	free(k11);
+}
 
 static int
 pkcs11_ecdsa_start_wrapper(void)
@@ -466,6 +481,10 @@ pkcs11_ecdsa_start_wrapper(void)
 
 	if (ec_key_method != NULL)
 		return (0);
+	ec_key_idx = EC_KEY_get_ex_new_index(0, "ssh-pkcs11-ecdsa",
+	    NULL, NULL, pkcs11_k11_free);
+	if (ec_key_idx == -1)
+		return (-1);
 	ec_key_method = EC_KEY_METHOD_new(EC_KEY_OpenSSL());
 	if (ec_key_method == NULL)
 		return (-1);
@@ -494,7 +513,7 @@ pkcs11_ecdsa_wrap(struct pkcs11_provider *provider, CK_ULONG slotidx,
 	k11->ec_key_method = ec_key_method;
 
 	EC_KEY_set_method(ec, k11->ec_key_method);
-	EC_KEY_set_ex_data(ec, 0, k11);
+	EC_KEY_set_ex_data(ec, ec_key_idx, k11);
 
 	return (0);
 }
