@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-pkcs11.sh,v 1.4 2019/01/20 23:25:25 djm Exp $
+#	$OpenBSD: agent-pkcs11.sh,v 1.5 2019/01/20 23:26:44 djm Exp $
 #	Placed in the Public Domain.
 
 tid="pkcs11 agent test"
@@ -6,6 +6,10 @@ tid="pkcs11 agent test"
 TEST_SSH_PIN=1234
 TEST_SSH_SOPIN=12345678
 TEST_SSH_PKCS11=/usr/local/lib/softhsm/libsofthsm2.so
+if [ "x$TEST_SSH_SSHPKCS11HELPER" != "x" ]; then
+	SSH_PKCS11_HELPER="${TEST_SSH_SSHPKCS11HELPER}"
+	export SSH_PKCS11_HELPER
+fi
 
 test -f "$TEST_SSH_PKCS11" || fatal "$TEST_SSH_PKCS11 does not exist"
 
