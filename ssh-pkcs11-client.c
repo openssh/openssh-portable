@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.12 2019/01/20 22:51:37 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.13 2019/01/20 22:54:30 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -245,6 +245,7 @@ static int
 pkcs11_start_helper(void)
 {
 	int pair[2];
+	char *helper;
 
 	if (pkcs11_start_helper_methods() == -1) {
 		error("pkcs11_start_helper_methods failed");
@@ -266,10 +267,11 @@ pkcs11_start_helper(void)
 		}
 		close(pair[0]);
 		close(pair[1]);
-		execlp(_PATH_SSH_PKCS11_HELPER, _PATH_SSH_PKCS11_HELPER,
-		    (char *)NULL);
-		fprintf(stderr, "exec: %s: %s\n", _PATH_SSH_PKCS11_HELPER,
-		    strerror(errno));
+		helper = getenv("SSH_PKCS11_HELPER");
+		if (helper == NULL || strlen(helper) == 0)
+			helper = _PATH_SSH_PKCS11_HELPER;
+		execlp(helper, helper, (char *)NULL);
+		fprintf(stderr, "exec: %s: %s\n", helper, strerror(errno));
 		_exit(1);
 	}
 	close(pair[1]);
