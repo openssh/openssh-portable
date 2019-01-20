@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.30 2019/01/20 23:01:59 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.31 2019/01/20 23:03:26 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -877,12 +877,11 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		key->flags |= SSHKEY_FLAG_EXT;
 		rsa = NULL;	/* now owned by key */
 	} else if (EVP_PKEY_base_id(evp) == EVP_PKEY_EC) {
-		/* XXX XXX fix accessor */
-		if (evp->pkey.ec == NULL) {
+		if (EVP_PKEY_get0_EC_KEY(evp) == NULL) {
 			error("invalid x509; no ec key");
 			goto fail;
 		}
-		if ((ec = EC_KEY_dup(evp->pkey.ec)) == NULL) {
+		if ((ec = EC_KEY_dup(EVP_PKEY_get0_EC_KEY(evp))) == NULL) {
 			error("EC_KEY_dup failed");
 			goto fail;
 		}
