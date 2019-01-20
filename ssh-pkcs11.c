@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.34 2019/01/20 23:10:33 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.35 2019/01/20 23:11:11 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -84,11 +84,11 @@ int pkcs11_interactive = 0;
 static void
 ossl_error(const char *msg)
 {
-        unsigned long    e;
+	unsigned long    e;
 
-        while ((e = ERR_get_error()) != 0)
-                error("%s: %s: %.100s", __func__, msg,
-                    ERR_error_string(e, NULL));
+	while ((e = ERR_get_error()) != 0)
+		error("%s: %s: %.100s", __func__, msg,
+		    ERR_error_string(e, NULL));
 }
 #endif
 
@@ -1251,7 +1251,7 @@ static struct ec_curve_info {
 	{"prime256v1",	"1.2.840.10045.3.1.7",	"06082A8648CE3D030107", 256},
 	{"secp384r1",	"1.3.132.0.34",		"06052B81040022",	384},
 	{"secp521r1",	"1.3.132.0.35",		"06052B81040023",	521},
-        {NULL,		NULL,			NULL,			0},
+	{NULL,		NULL,			NULL,			0},
 };
 
 static struct sshkey *
