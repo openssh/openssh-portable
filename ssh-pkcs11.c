@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.29 2019/01/20 23:00:12 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.30 2019/01/20 23:01:59 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -576,6 +576,7 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
+	ASN1_OCTET_STRING	*octet = NULL;
 	EC_KEY			*ec = NULL;
 	EC_GROUP		*group = NULL;
 	struct sshkey		*key = NULL;
@@ -644,15 +645,16 @@ pkcs11_fetch_ecdsa_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 		goto fail;
 	}
 
-	attrp = (const unsigned char *)key_attr[1].pValue;
-	if (o2i_ECPublicKey(&ec, &attrp, key_attr[1].ulValueLen) == NULL) {
-		/* try to skip DER header (octet string type and length byte) */
-		attrp = (const unsigned char *)key_attr[1].pValue + 2;
-		if (o2i_ECPublicKey(&ec, &attrp, key_attr[1].ulValueLen - 2)
-		    == NULL) {
-			ossl_error("o2i_ECPublicKey failed");
-			goto fail;
-		}
+	attrp = key_attr[1].pValue;
+	octet = d2i_ASN1_OCTET_STRING(NULL, &attrp, key_attr[1].ulValueLen);
+	if (octet == NULL) {
+		ossl_error("d2i_ASN1_OCTET_STRING failed");
+		goto fail;
+	}
+	attrp = octet->data;
+	if (o2i_ECPublicKey(&ec, &attrp, octet->length) == NULL) {
+		ossl_error("o2i_ECPublicKey failed");
+		goto fail;
 	}
 
 	nid = sshkey_ecdsa_key_to_nid(ec);
@@ -683,6 +685,8 @@ fail:
 		EC_KEY_free(ec);
 	if (group)
 		EC_GROUP_free(group);
+	if (octet)
+		ASN1_OCTET_STRING_free(octet);
 
 	return (key);
 }
