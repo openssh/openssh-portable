@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.99 2018/12/15 00:50:21 tedu Exp $
+#	$OpenBSD: Makefile,v 1.100 2019/01/20 23:24:19 djm Exp $
 
 REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
 tests:		prep $(REGRESS_TARGETS)
@@ -91,7 +91,8 @@ LTESTS= 	connect \
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
-#LTESTS= 	cipher-speed
+EXTRA_TESTS=	agent-pkcs11
+#EXTRA_TESTS+= 	cipher-speed
 
 USERNAME=		${LOGNAME}
 CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
@@ -208,6 +209,13 @@ t-exec:	${LTESTS:=.sh}
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
+	@if [ "x$?" = "x" ]; then exit 0; fi; \
+	for TEST in ""$?; do \
+		echo "run test $${TEST}" ... 1>&2; \
+		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+	done
+
+t-extra:	${EXTRA_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \
