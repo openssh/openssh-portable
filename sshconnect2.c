@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.299 2019/01/21 10:28:02 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.300 2019/01/21 10:29:56 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -209,7 +209,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 	ssh->kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	ssh->kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 # ifdef OPENSSL_HAS_ECC
-	ssh->kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
+	ssh->kex->kex[KEX_ECDH_SHA2] = kex_kem_client;
 # endif
 #endif
 	ssh->kex->kex[KEX_C25519_SHA256] = kex_kem_client;

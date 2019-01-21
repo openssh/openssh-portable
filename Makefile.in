@@ -98,8 +98,7 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	ssh-ed25519.o digest-openssl.o digest-libc.o hmac.o \
 	sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o \
 	kex.o kexdh.o kexgex.o kexecdh.o kexc25519.o \
-	kexgexc.o kexecdhc.o \
-	kexgexs.o kexecdhs.o \
+	kexgexc.o kexgexs.o \
 	sntrup4591761.o kexsntrup4591761x25519.o kexkemc.o kexkems.o \
 	platform-pledge.o platform-tracing.o platform-misc.o
 

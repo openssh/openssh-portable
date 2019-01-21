@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.101 2019/01/21 10:28:01 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.102 2019/01/21 10:29:56 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -216,6 +216,11 @@ int	 kex_dh_enc(struct kex *, const u_char *, size_t, struct sshbuf **,
     struct sshbuf **);
 int	 kex_dh_dec(struct kex *, const u_char *, size_t, struct sshbuf **);
 
+int	 kex_ecdh_keypair(struct kex *);
+int	 kex_ecdh_enc(struct kex *, const u_char *, size_t, struct sshbuf **,
+    struct sshbuf **);
+int	 kex_ecdh_dec(struct kex *, const u_char *, size_t, struct sshbuf **);
+
 int	 kex_c25519_keypair(struct kex *);
 int	 kex_c25519_enc(struct kex *, const u_char *, size_t, struct sshbuf **,
     struct sshbuf **);
@@ -236,11 +241,6 @@ int	 kexgex_hash(int, const struct sshbuf *, const struct sshbuf *,
     const BIGNUM *, const BIGNUM *, const BIGNUM *,
     const BIGNUM *, const u_char *, size_t,
     u_char *, size_t *);
-
-int kex_ecdh_hash(int, const EC_GROUP *,
-    const struct sshbuf *, const struct sshbuf *,
-    const u_char *, size_t, const u_char *, size_t, const u_char *, size_t,
-    const EC_POINT *, const EC_POINT *, const BIGNUM *, u_char *, size_t *);
 
 int	 kex_c25519_hash(int, const struct sshbuf *, const struct sshbuf *,
     const u_char *, size_t, const u_char *, size_t,

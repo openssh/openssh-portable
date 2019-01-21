@@ -1,4 +1,4 @@
-/* $OpenBSD: kexkemc.c,v 1.3 2019/01/21 10:28:02 djm Exp $ */
+/* $OpenBSD: kexkemc.c,v 1.4 2019/01/21 10:29:56 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -54,6 +54,9 @@ kex_kem_client(struct ssh *ssh)
 	case KEX_DH_GRP16_SHA512:
 	case KEX_DH_GRP18_SHA512:
 		r = kex_dh_keypair(kex);
+		break;
+	case KEX_ECDH_SHA2:
+		r = kex_ecdh_keypair(kex);
 		break;
 	case KEX_C25519_SHA256:
 		r = kex_c25519_keypair(kex);
@@ -112,6 +115,9 @@ input_kex_kem_reply(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_DH_GRP16_SHA512:
 	case KEX_DH_GRP18_SHA512:
 		r = kex_dh_dec(kex, server_pubkey, pklen, &shared_secret);
+		break;
+	case KEX_ECDH_SHA2:
+		r = kex_ecdh_dec(kex, server_pubkey, pklen, &shared_secret);
 		break;
 	case KEX_C25519_SHA256:
 		r = kex_c25519_dec(kex, server_pubkey, pklen, &shared_secret);
