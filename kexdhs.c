@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.31 2019/01/21 09:54:11 djm Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.32 2019/01/21 09:55:52 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -172,17 +172,6 @@ input_kex_dh_init(int type, u_int32_t seq, struct ssh *ssh)
 	    shared_secret,
 	    hash, &hashlen)) != 0)
 		goto out;
-
-	/* save session id := H */
-	if (kex->session_id == NULL) {
-		kex->session_id_len = hashlen;
-		kex->session_id = malloc(kex->session_id_len);
-		if (kex->session_id == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		memcpy(kex->session_id, hash, kex->session_id_len);
-	}
 
 	/* sign H */
 	if ((r = kex->sign(ssh, server_host_private, server_host_public,

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.143 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.144 2019/01/21 09:55:52 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1009,6 +1009,14 @@ kex_derive_keys(struct ssh *ssh, u_char *hash, u_int hashlen,
 	u_int i, j, mode, ctos;
 	int r;
 
+	/* save initial hash as session id */
+	if (kex->session_id == NULL) {
+		kex->session_id_len = hashlen;
+		kex->session_id = malloc(kex->session_id_len);
+		if (kex->session_id == NULL)
+			return SSH_ERR_ALLOC_FAIL;
+		memcpy(kex->session_id, hash, kex->session_id_len);
+	}
 	for (i = 0; i < NKEYS; i++) {
 		if ((r = derive_key(ssh, 'A'+i, kex->we_need, hash, hashlen,
 		    shared_secret, &keys[i])) != 0) {

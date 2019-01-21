@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexc.c,v 1.30 2019/01/21 09:54:11 djm Exp $ */
+/* $OpenBSD: kexgexc.c,v 1.31 2019/01/21 09:55:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -228,17 +228,6 @@ input_kex_dh_gex_reply(int type, u_int32_t seq, struct ssh *ssh)
 	if ((r = sshkey_verify(server_host_key, signature, slen, hash,
 	    hashlen, kex->hostkey_alg, ssh->compat)) != 0)
 		goto out;
-
-	/* save session id */
-	if (kex->session_id == NULL) {
-		kex->session_id_len = hashlen;
-		kex->session_id = malloc(kex->session_id_len);
-		if (kex->session_id == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		memcpy(kex->session_id, hash, kex->session_id_len);
-	}
 
 	if ((r = kex_derive_keys_bn(ssh, hash, hashlen, shared_secret)) == 0)
 		r = kex_send_newkeys(ssh);

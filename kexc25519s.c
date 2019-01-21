@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519s.c,v 1.13 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: kexc25519s.c,v 1.14 2019/01/21 09:55:52 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -120,17 +120,6 @@ input_kex_c25519_init(int type, u_int32_t seq, struct ssh *ssh)
 	    sshbuf_ptr(shared_secret), sshbuf_len(shared_secret),
 	    hash, &hashlen)) < 0)
 		goto out;
-
-	/* save session id := H */
-	if (kex->session_id == NULL) {
-		kex->session_id_len = hashlen;
-		kex->session_id = malloc(kex->session_id_len);
-		if (kex->session_id == NULL) {
-			r = SSH_ERR_ALLOC_FAIL;
-			goto out;
-		}
-		memcpy(kex->session_id, hash, kex->session_id_len);
-	}
 
 	/* sign H */
 	if ((r = kex->sign(ssh, server_host_private, server_host_public,
