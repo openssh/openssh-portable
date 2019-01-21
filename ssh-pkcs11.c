@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.38 2019/01/21 02:01:03 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.39 2019/01/21 02:05:38 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -84,8 +84,9 @@ ossl_error(const char *msg)
 {
 	unsigned long    e;
 
+	error("%s: %s", __func__, msg);
 	while ((e = ERR_get_error()) != 0)
-		error("%s: %s: %.100s", __func__, msg,
+		error("%s: libcrypto error: %.100s", __func__,
 		    ERR_error_string(e, NULL));
 }
 #endif /* HAVE_EC_KEY_METHOD_NEW */
