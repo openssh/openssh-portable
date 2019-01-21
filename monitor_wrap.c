@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.111 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.112 2019/01/21 09:54:11 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -202,12 +202,8 @@ mm_choose_dh(int min, int nbits, int max)
 	if (success == 0)
 		fatal("%s: MONITOR_ANS_MODULI failed", __func__);
 
-	if ((p = BN_new()) == NULL)
-		fatal("%s: BN_new failed", __func__);
-	if ((g = BN_new()) == NULL)
-		fatal("%s: BN_new failed", __func__);
-	if ((r = sshbuf_get_bignum2(m, p)) != 0 ||
-	    (r = sshbuf_get_bignum2(m, g)) != 0)
+	if ((r = sshbuf_get_bignum2(m, &p)) != 0 ||
+	    (r = sshbuf_get_bignum2(m, &g)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
 	debug3("%s: remaining %zu", __func__, sshbuf_len(m));

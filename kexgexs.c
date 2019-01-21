@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.37 2019/01/19 21:43:56 djm Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.38 2019/01/21 09:54:11 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -150,11 +150,7 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	}
 
 	/* key, cert */
-	if ((dh_client_pub = BN_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = sshpkt_get_bignum2(ssh, dh_client_pub)) != 0 ||
+	if ((r = sshpkt_get_bignum2(ssh, &dh_client_pub)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		goto out;
 

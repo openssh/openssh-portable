@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.24 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.25 2019/01/21 09:54:11 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -136,13 +136,8 @@ input_kex_dh(int type, u_int32_t seq, struct ssh *ssh)
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
-	/* DH parameter f, server public DH key */
-	if ((dh_server_pub = BN_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	/* signed H */
-	if ((r = sshpkt_get_bignum2(ssh, dh_server_pub)) != 0 ||
+	/* DH parameter f, server public DH key, signed H */
+	if ((r = sshpkt_get_bignum2(ssh, &dh_server_pub)) != 0 ||
 	    (r = sshpkt_get_string(ssh, &signature, &slen)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		goto out;

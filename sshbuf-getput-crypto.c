@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.6 2019/01/21 09:52:25 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-crypto.c,v 1.7 2019/01/21 09:54:11 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -32,16 +32,25 @@
 #include "sshbuf.h"
 
 int
-sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM *v)
+sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM **valp)
 {
+	BIGNUM *v;
 	const u_char *d;
 	size_t len;
 	int r;
 
+	if (valp != NULL)
+		*valp = NULL;
 	if ((r = sshbuf_get_bignum2_bytes_direct(buf, &d, &len)) != 0)
 		return r;
-	if (v != NULL && BN_bin2bn(d, len, v) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
+	if (valp != NULL) {
+		if ((v = BN_new()) == NULL ||
+		    BN_bin2bn(d, len, v) == NULL) {
+			BN_clear_free(v);
+			return SSH_ERR_ALLOC_FAIL;
+		}
+		*valp = v;
+	}
 	return 0;
 }
 
