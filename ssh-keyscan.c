@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.122 2019/01/21 10:24:09 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.123 2019/01/21 10:28:02 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -260,11 +260,11 @@ keygrab_ssh2(con *c)
 		exit(1);
 	}
 #ifdef WITH_OPENSSL
-	c->c_ssh->kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
-	c->c_ssh->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
-	c->c_ssh->kex->kex[KEX_DH_GRP14_SHA256] = kexdh_client;
-	c->c_ssh->kex->kex[KEX_DH_GRP16_SHA512] = kexdh_client;
-	c->c_ssh->kex->kex[KEX_DH_GRP18_SHA512] = kexdh_client;
+	c->c_ssh->kex->kex[KEX_DH_GRP1_SHA1] = kex_kem_client;
+	c->c_ssh->kex->kex[KEX_DH_GRP14_SHA1] = kex_kem_client;
+	c->c_ssh->kex->kex[KEX_DH_GRP14_SHA256] = kex_kem_client;
+	c->c_ssh->kex->kex[KEX_DH_GRP16_SHA512] = kex_kem_client;
+	c->c_ssh->kex->kex[KEX_DH_GRP18_SHA512] = kex_kem_client;
 	c->c_ssh->kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	c->c_ssh->kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 # ifdef OPENSSL_HAS_ECC

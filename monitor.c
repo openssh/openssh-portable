@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.194 2019/01/21 10:24:09 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.195 2019/01/21 10:28:02 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1677,11 +1677,11 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 	if ((kex = ssh->kex) != NULL) {
 		/* XXX set callbacks */
 #ifdef WITH_OPENSSL
-		kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
-		kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
-		kex->kex[KEX_DH_GRP14_SHA256] = kexdh_server;
-		kex->kex[KEX_DH_GRP16_SHA512] = kexdh_server;
-		kex->kex[KEX_DH_GRP18_SHA512] = kexdh_server;
+		kex->kex[KEX_DH_GRP1_SHA1] = kex_kem_server;
+		kex->kex[KEX_DH_GRP14_SHA1] = kex_kem_server;
+		kex->kex[KEX_DH_GRP14_SHA256] = kex_kem_server;
+		kex->kex[KEX_DH_GRP16_SHA512] = kex_kem_server;
+		kex->kex[KEX_DH_GRP18_SHA512] = kex_kem_server;
 		kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 		kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 # ifdef OPENSSL_HAS_ECC
