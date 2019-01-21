@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_kex.c,v 1.3 2018/12/27 03:37:49 djm Exp $ */
+/* 	$OpenBSD: test_kex.c,v 1.4 2019/01/21 12:35:20 djm Exp $ */
 /*
  * Regress test KEX
  *
@@ -142,14 +142,14 @@ do_kex_with_key(char *kex, int keytype, int bits)
 	sshbuf_free(state);
 	ASSERT_PTR_NE(server2->kex, NULL);
 	/* XXX we need to set the callbacks */
-	server2->kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
-	server2->kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
+	server2->kex->kex[KEX_DH_GRP1_SHA1] = kex_gen_server;
+	server2->kex->kex[KEX_DH_GRP14_SHA1] = kex_gen_server;
 	server2->kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	server2->kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 #ifdef OPENSSL_HAS_ECC
-	server2->kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
+	server2->kex->kex[KEX_ECDH_SHA2] = kex_gen_server;
 #endif
-	server2->kex->kex[KEX_C25519_SHA256] = kexc25519_server;
+	server2->kex->kex[KEX_C25519_SHA256] = kex_gen_server;
 	server2->kex->load_host_public_key = server->kex->load_host_public_key;
 	server2->kex->load_host_private_key = server->kex->load_host_private_key;
 	server2->kex->sign = server->kex->sign;
