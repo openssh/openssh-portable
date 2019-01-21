@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.137 2019/01/20 22:03:29 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.138 2019/01/21 12:53:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -560,6 +560,7 @@ usage(void)
 	fprintf(stderr, "  -e pkcs11   Remove keys provided by PKCS#11 provider.\n");
 	fprintf(stderr, "  -T pubkey   Test if ssh-agent can access matching private key.\n");
 	fprintf(stderr, "  -q          Be quiet after a successful operation.\n");
+	fprintf(stderr, "  -v          Be more verbose.\n");
 }
 
 int
@@ -571,6 +572,8 @@ main(int argc, char **argv)
 	char *pkcs11provider = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0;
 	int xflag = 0, lflag = 0, Dflag = 0, qflag = 0, Tflag = 0;
+	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
+	LogLevel log_level = SYSLOG_LEVEL_INFO;
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -578,6 +581,8 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
+
+	log_init(__progname, log_level, log_facility, 1);
 
 	setvbuf(stdout, NULL, _IOLBF, 0);
 
@@ -594,8 +599,14 @@ main(int argc, char **argv)
 		exit(2);
 	}
 
-	while ((ch = getopt(argc, argv, "klLcdDTxXE:e:M:m:qs:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vklLcdDTxXE:e:M:m:qs:t:")) != -1) {
 		switch (ch) {
+		case 'v':
+			if (log_level == SYSLOG_LEVEL_INFO)
+				log_level = SYSLOG_LEVEL_DEBUG1;
+			else if (log_level < SYSLOG_LEVEL_DEBUG3)
+				log_level++;
+			break;
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
 			if (fingerprint_hash == -1)
@@ -667,6 +678,7 @@ main(int argc, char **argv)
 			goto done;
 		}
 	}
+	log_init(__progname, log_level, log_facility, 1);
 
 	if ((xflag != 0) + (lflag != 0) + (Dflag != 0) > 1)
 		fatal("Invalid combination of actions");

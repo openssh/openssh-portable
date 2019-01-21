@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.68 2019/01/21 07:09:10 jmc Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.69 2019/01/21 12:53:35 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -43,7 +43,7 @@
 .Nd adds private key identities to the authentication agent
 .Sh SYNOPSIS
 .Nm ssh-add
-.Op Fl cDdkLlqXx
+.Op Fl cDdkLlqvXx
 .Op Fl E Ar fingerprint_hash
 .Op Fl t Ar life
 .Op Ar
@@ -143,6 +143,16 @@ Set a maximum lifetime when adding identities to an agent.
 The lifetime may be specified in seconds or in a time format
 specified in
 .Xr sshd_config 5 .
+.It Fl v
+Verbose mode.
+Causes
+.Nm
+to print debugging messages about its progress.
+This is helpful in debugging problems.
+Multiple
+.Fl v
+options increase the verbosity.
+The maximum is 3.
 .It Fl X
 Unlock the agent.
 .It Fl x

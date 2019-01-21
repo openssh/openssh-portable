@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.15 2019/01/20 22:51:37 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.16 2019/01/21 12:53:35 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -307,11 +307,12 @@ cleanup_exit(int i)
 	_exit(i);
 }
 
+
 int
 main(int argc, char **argv)
 {
 	fd_set *rset, *wset;
-	int r, in, out, max, log_stderr = 0;
+	int r, ch, in, out, max, log_stderr = 0;
 	ssize_t len, olen, set_size;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -320,13 +321,30 @@ main(int argc, char **argv)
 	extern char *__progname;
 
 	ssh_malloc_init();	/* must be called before any mallocs */
-	TAILQ_INIT(&pkcs11_keylist);
-	pkcs11_init(0);
-
-	seed_rng();
 	__progname = ssh_get_progname(argv[0]);
+	seed_rng();
+	TAILQ_INIT(&pkcs11_keylist);
 
 	log_init(__progname, log_level, log_facility, log_stderr);
+
+	while ((ch = getopt(argc, argv, "v")) != -1) {
+		switch (ch) {
+		case 'v':
+			log_stderr = 1;
+			if (log_level == SYSLOG_LEVEL_ERROR)
+				log_level = SYSLOG_LEVEL_DEBUG1;
+			else if (log_level < SYSLOG_LEVEL_DEBUG3)
+				log_level++;
+			break;
+		default:
+			fprintf(stderr, "usage: %s [-v]\n", __progname);
+			exit(1);
+		}
+	}
+
+	log_init(__progname, log_level, log_facility, log_stderr);
+
+	pkcs11_init(0);
 
 	in = STDIN_FILENO;
 	out = STDOUT_FILENO;

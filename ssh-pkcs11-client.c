@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-client.c,v 1.14 2019/01/20 22:57:45 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-client.c,v 1.15 2019/01/21 12:53:35 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -49,8 +49,8 @@
 
 /* borrows code from sftp-server and ssh-agent */
 
-int fd = -1;
-pid_t pid = -1;
+static int fd = -1;
+static pid_t pid = -1;
 
 static void
 send_msg(struct sshbuf *m)
@@ -272,7 +272,10 @@ static int
 pkcs11_start_helper(void)
 {
 	int pair[2];
-	char *helper;
+	char *helper, *verbosity = NULL;
+
+	if (log_level_get() >= SYSLOG_LEVEL_DEBUG1)
+		verbosity = "-vvv";
 
 	if (pkcs11_start_helper_methods() == -1) {
 		error("pkcs11_start_helper_methods failed");
@@ -297,7 +300,9 @@ pkcs11_start_helper(void)
 		helper = getenv("SSH_PKCS11_HELPER");
 		if (helper == NULL || strlen(helper) == 0)
 			helper = _PATH_SSH_PKCS11_HELPER;
-		execlp(helper, helper, (char *)NULL);
+		debug("%s: starting %s %s", __func__, helper,
+		    verbosity == NULL ? "" : verbosity);
+		execlp(helper, helper, verbosity, (char *)NULL);
 		fprintf(stderr, "exec: %s: %s\n", helper, strerror(errno));
 		_exit(1);
 	}
