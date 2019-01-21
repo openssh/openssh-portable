@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.189 2019/01/16 23:23:45 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.190 2019/01/21 22:50:42 tb Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2362,11 +2362,10 @@ usage(void)
 
 	fprintf(stderr,
 	    "usage: %s [-46aCfpqrv] [-B buffer_size] [-b batchfile] [-c cipher]\n"
-	    "          [-D sftp_server_path] [-F ssh_config] "
-	    "[-i identity_file] [-l limit]\n"
-	    "          [-o ssh_option] [-P port] [-R num_requests] "
-	    "[-S program]\n"
-	    "          [-s subsystem | sftp_server] destination\n",
+	    "          [-D sftp_server_path] [-F ssh_config] [-i identity_file]\n"
+	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
+	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
+	    "          destination\n",
 	    __progname);
 	exit(1);
 }
@@ -2409,7 +2408,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:P:R:")) != -1) {
+	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2419,6 +2418,7 @@ main(int argc, char **argv)
 			break;
 		/* Passed through to ssh(1) with argument */
 		case 'F':
+		case 'J':
 		case 'c':
 		case 'i':
 		case 'o':
