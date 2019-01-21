@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgex.c,v 1.30 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kexgex.c,v 1.31 2019/01/21 10:03:37 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -56,7 +56,7 @@ kexgex_hash(
     const BIGNUM *gen,
     const BIGNUM *client_dh_pub,
     const BIGNUM *server_dh_pub,
-    const BIGNUM *shared_secret,
+    const u_char *shared_secret, size_t secretlen,
     u_char *hash, size_t *hashlen)
 {
 	struct sshbuf *b;
@@ -83,7 +83,7 @@ kexgex_hash(
 	    (r = sshbuf_put_bignum2(b, gen)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, client_dh_pub)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, server_dh_pub)) != 0 ||
-	    (r = sshbuf_put_bignum2(b, shared_secret)) != 0) {
+	    (r = sshbuf_put(b, shared_secret, secretlen)) != 0) {
 		sshbuf_free(b);
 		return r;
 	}

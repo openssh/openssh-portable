@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdh.c,v 1.28 2019/01/21 10:00:23 djm Exp $ */
+/* $OpenBSD: kexdh.c,v 1.29 2019/01/21 10:03:37 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -43,6 +43,7 @@
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "digest.h"
+#include "dh.h"
 
 int
 kex_dh_keygen(struct kex *kex)
@@ -70,6 +71,48 @@ kex_dh_keygen(struct kex *kex)
 }
 
 int
+kex_dh_compute_key(struct kex *kex, BIGNUM *dh_pub, struct sshbuf *out)
+{
+	BIGNUM *shared_secret = NULL;
+	u_char *kbuf = NULL;
+	size_t klen = 0;
+	int kout, r;
+
+#ifdef DEBUG_KEXDH
+	fprintf(stderr, "dh_pub= ");
+	BN_print_fp(stderr, dh_pub);
+	fprintf(stderr, "\n");
+	debug("bits %d", BN_num_bits(dh_pub));
+	DHparams_print_fp(stderr, kex->dh);
+	fprintf(stderr, "\n");
+#endif
+
+	if (!dh_pub_is_valid(kex->dh, dh_pub)) {
+		r = SSH_ERR_MESSAGE_INCOMPLETE;
+		goto out;
+	}
+	klen = DH_size(kex->dh);
+	if ((kbuf = malloc(klen)) == NULL ||
+	    (shared_secret = BN_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((kout = DH_compute_key(kbuf, dh_pub, kex->dh)) < 0 ||
+	    BN_bin2bn(kbuf, kout, shared_secret) == NULL) {
+		r = SSH_ERR_LIBCRYPTO_ERROR;
+		goto out;
+	}
+#ifdef DEBUG_KEXDH
+	dump_digest("shared secret", kbuf, kout);
+#endif
+	r = sshbuf_put_bignum2(out, shared_secret);
+ out:
+	freezero(kbuf, klen);
+	BN_clear_free(shared_secret);
+	return r;
+}
+
+int
 kex_dh_hash(
     int hash_alg,
     const struct sshbuf *client_version,
@@ -79,7 +122,7 @@ kex_dh_hash(
     const u_char *serverhostkeyblob, size_t sbloblen,
     const BIGNUM *client_dh_pub,
     const BIGNUM *server_dh_pub,
-    const BIGNUM *shared_secret,
+    const u_char *shared_secret, size_t secretlen,
     u_char *hash, size_t *hashlen)
 {
 	struct sshbuf *b;
@@ -101,7 +144,7 @@ kex_dh_hash(
 	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, client_dh_pub)) != 0 ||
 	    (r = sshbuf_put_bignum2(b, server_dh_pub)) != 0 ||
-	    (r = sshbuf_put_bignum2(b, shared_secret)) != 0) {
+	    (r = sshbuf_put(b, shared_secret, secretlen)) != 0) {
 		sshbuf_free(b);
 		return r;
 	}
