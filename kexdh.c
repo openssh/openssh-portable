@@ -33,6 +33,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "openbsd-compat/openssl-compat.h"
+#include <openssh/dh.h>
+
 #include "sshkey.h"
 #include "kex.h"
 #include "sshbuf.h"
