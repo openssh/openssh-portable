@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.531 2019/01/21 10:29:56 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.532 2019/01/21 10:38:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2207,19 +2207,19 @@ do_ssh2_kex(struct ssh *ssh)
 		fatal("kex_setup: %s", ssh_err(r));
 	kex = ssh->kex;
 #ifdef WITH_OPENSSL
-	kex->kex[KEX_DH_GRP1_SHA1] = kex_kem_server;
-	kex->kex[KEX_DH_GRP14_SHA1] = kex_kem_server;
-	kex->kex[KEX_DH_GRP14_SHA256] = kex_kem_server;
-	kex->kex[KEX_DH_GRP16_SHA512] = kex_kem_server;
-	kex->kex[KEX_DH_GRP18_SHA512] = kex_kem_server;
+	kex->kex[KEX_DH_GRP1_SHA1] = kex_gen_server;
+	kex->kex[KEX_DH_GRP14_SHA1] = kex_gen_server;
+	kex->kex[KEX_DH_GRP14_SHA256] = kex_gen_server;
+	kex->kex[KEX_DH_GRP16_SHA512] = kex_gen_server;
+	kex->kex[KEX_DH_GRP18_SHA512] = kex_gen_server;
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 # ifdef OPENSSL_HAS_ECC
-	kex->kex[KEX_ECDH_SHA2] = kex_kem_server;
+	kex->kex[KEX_ECDH_SHA2] = kex_gen_server;
 # endif
 #endif
-	kex->kex[KEX_C25519_SHA256] = kex_kem_server;
-	kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_server;
+	kex->kex[KEX_C25519_SHA256] = kex_gen_server;
+	kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_server;
 	kex->load_host_public_key=&get_hostkey_public_by_type;
 	kex->load_host_private_key=&get_hostkey_private_by_type;
 	kex->host_key_index=&get_hostkey_index;

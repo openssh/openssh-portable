@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.104 2019/01/21 10:35:09 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.106 2019/01/21 10:40:11 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -170,7 +170,7 @@ struct kex {
 	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 + KEM */
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
 	u_char sntrup4591761_client_key[crypto_kem_sntrup4591761_SECRETKEYBYTES]; /* KEM */
-	struct sshbuf *kem_client_pub;	/* KEM */
+	struct sshbuf *client_pub;
 };
 
 int	 kex_names_valid(const char *);
@@ -199,16 +199,10 @@ int	 kex_derive_keys(struct ssh *, u_char *, u_int, const struct sshbuf *);
 int	 kex_send_newkeys(struct ssh *);
 int	 kex_start_rekex(struct ssh *);
 
-int	 kexdh_client(struct ssh *);
-int	 kexdh_server(struct ssh *);
 int	 kexgex_client(struct ssh *);
 int	 kexgex_server(struct ssh *);
-int	 kexecdh_client(struct ssh *);
-int	 kexecdh_server(struct ssh *);
-int	 kexc25519_client(struct ssh *);
-int	 kexc25519_server(struct ssh *);
-int	 kex_kem_client(struct ssh *);
-int	 kex_kem_server(struct ssh *);
+int	 kex_gen_client(struct ssh *);
+int	 kex_gen_server(struct ssh *);
 
 int	 kex_dh_keypair(struct kex *);
 int	 kex_dh_enc(struct kex *, const struct sshbuf *, struct sshbuf **,
@@ -240,11 +234,6 @@ int	 kexgex_hash(int, const struct sshbuf *, const struct sshbuf *,
     const BIGNUM *, const BIGNUM *, const BIGNUM *,
     const BIGNUM *, const u_char *, size_t,
     u_char *, size_t *);
-
-int	 kex_c25519_hash(int, const struct sshbuf *, const struct sshbuf *,
-    const u_char *, size_t, const u_char *, size_t,
-    const u_char *, size_t, const struct sshbuf *, const struct sshbuf *,
-    const struct sshbuf *, u_char *, size_t *);
 
 void	kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))

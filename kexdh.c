@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdh.c,v 1.31 2019/01/21 10:35:09 djm Exp $ */
+/* $OpenBSD: kexdh.c,v 1.32 2019/01/21 10:40:11 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -128,7 +128,7 @@ kex_dh_keypair(struct kex *kex)
 	BN_print_fp(stderr, pub_key);
 	fprintf(stderr, "\n");
 #endif
-	kex->kem_client_pub = buf;
+	kex->client_pub = buf;
 	buf = NULL;
  out:
 	sshbuf_free(buf);

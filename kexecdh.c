@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdh.c,v 1.9 2019/01/21 10:35:09 djm Exp $ */
+/* $OpenBSD: kexecdh.c,v 1.10 2019/01/21 10:40:11 djm Exp $ */
 /*
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
@@ -80,7 +80,7 @@ kex_ecdh_keypair(struct kex *kex)
 	kex->ec_client_key = client_key;
 	kex->ec_group = group;
 	client_key = NULL;	/* owned by the kex */
-	kex->kem_client_pub = buf;
+	kex->client_pub = buf;
 	buf = NULL;
  out:
 	EC_KEY_free(client_key);

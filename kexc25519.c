@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.15 2019/01/21 10:35:09 djm Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.17 2019/01/21 10:40:11 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -89,57 +89,6 @@ kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
 }
 
 int
-kex_c25519_hash(
-    int hash_alg,
-    const struct sshbuf *client_version,
-    const struct sshbuf *server_version,
-    const u_char *ckexinit, size_t ckexinitlen,
-    const u_char *skexinit, size_t skexinitlen,
-    const u_char *serverhostkeyblob, size_t sbloblen,
-    const struct sshbuf *client_pub,
-    const struct sshbuf *server_pub,
-    const struct sshbuf *shared_secret,
-    u_char *hash, size_t *hashlen)
-{
-	struct sshbuf *b;
-	int r;
-
-	if (*hashlen < ssh_digest_bytes(hash_alg))
-		return SSH_ERR_INVALID_ARGUMENT;
-	if ((b = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_put_stringb(b, client_version)) != 0 ||
-	    (r = sshbuf_put_stringb(b, server_version)) != 0 ||
-	    /* kexinit messages: fake header: len+SSH2_MSG_KEXINIT */
-	    (r = sshbuf_put_u32(b, ckexinitlen+1)) != 0 ||
-	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
-	    (r = sshbuf_put(b, ckexinit, ckexinitlen)) != 0 ||
-	    (r = sshbuf_put_u32(b, skexinitlen+1)) != 0 ||
-	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
-	    (r = sshbuf_put(b, skexinit, skexinitlen)) != 0 ||
-	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) != 0 ||
-	    (r = sshbuf_put_stringb(b, client_pub)) != 0 ||
-	    (r = sshbuf_put_stringb(b, server_pub)) != 0 ||
-	    (r = sshbuf_putb(b, shared_secret)) != 0) {
-		sshbuf_free(b);
-		return r;
-	}
-#ifdef DEBUG_KEX
-	sshbuf_dump(b, stderr);
-#endif
-	if (ssh_digest_buffer(hash_alg, b, hash, *hashlen) != 0) {
-		sshbuf_free(b);
-		return SSH_ERR_LIBCRYPTO_ERROR;
-	}
-	sshbuf_free(b);
-	*hashlen = ssh_digest_bytes(hash_alg);
-#ifdef DEBUG_KEX
-	dump_digest("hash", hash, *hashlen);
-#endif
-	return 0;
-}
-
-int
 kex_c25519_keypair(struct kex *kex)
 {
 	struct sshbuf *buf = NULL;
@@ -154,7 +103,7 @@ kex_c25519_keypair(struct kex *kex)
 #ifdef DEBUG_KEXECDH
 	dump_digest("client public key c25519:", cp, CURVE25519_SIZE);
 #endif
-	kex->kem_client_pub = buf;
+	kex->client_pub = buf;
 	buf = NULL;
  out:
 	sshbuf_free(buf);

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.196 2019/01/21 10:29:56 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.197 2019/01/21 10:38:54 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1677,19 +1677,19 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 	if ((kex = ssh->kex) != NULL) {
 		/* XXX set callbacks */
 #ifdef WITH_OPENSSL
-		kex->kex[KEX_DH_GRP1_SHA1] = kex_kem_server;
-		kex->kex[KEX_DH_GRP14_SHA1] = kex_kem_server;
-		kex->kex[KEX_DH_GRP14_SHA256] = kex_kem_server;
-		kex->kex[KEX_DH_GRP16_SHA512] = kex_kem_server;
-		kex->kex[KEX_DH_GRP18_SHA512] = kex_kem_server;
+		kex->kex[KEX_DH_GRP1_SHA1] = kex_gen_server;
+		kex->kex[KEX_DH_GRP14_SHA1] = kex_gen_server;
+		kex->kex[KEX_DH_GRP14_SHA256] = kex_gen_server;
+		kex->kex[KEX_DH_GRP16_SHA512] = kex_gen_server;
+		kex->kex[KEX_DH_GRP18_SHA512] = kex_gen_server;
 		kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 		kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 # ifdef OPENSSL_HAS_ECC
-		kex->kex[KEX_ECDH_SHA2] = kex_kem_server;
+		kex->kex[KEX_ECDH_SHA2] = kex_gen_server;
 # endif
 #endif /* WITH_OPENSSL */
-		kex->kex[KEX_C25519_SHA256] = kex_kem_server;
-		kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_server;
+		kex->kex[KEX_C25519_SHA256] = kex_gen_server;
+		kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_gen_server;
 		kex->load_host_public_key=&get_hostkey_public_by_type;
 		kex->load_host_private_key=&get_hostkey_private_by_type;
 		kex->host_key_index=&get_hostkey_index;
