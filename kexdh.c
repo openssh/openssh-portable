@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdh.c,v 1.30 2019/01/21 10:28:01 djm Exp $ */
+/* $OpenBSD: kexdh.c,v 1.31 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -136,7 +136,7 @@ kex_dh_keypair(struct kex *kex)
 }
 
 int
-kex_dh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
+kex_dh_enc(struct kex *kex, const struct sshbuf *client_blob,
     struct sshbuf **server_blobp, struct sshbuf **shared_secretp)
 {
 	const BIGNUM *pub_key;
@@ -156,7 +156,7 @@ kex_dh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
 	if ((r = sshbuf_put_bignum2(server_blob, pub_key)) != 0 ||
 	    (r = sshbuf_get_u32(server_blob, NULL)) != 0)
 		goto out;
-	if ((r = kex_dh_dec(kex, pkblob, pklen, shared_secretp)) != 0)
+	if ((r = kex_dh_dec(kex, client_blob, shared_secretp)) != 0)
 		goto out;
 	*server_blobp = server_blob;
 	server_blob = NULL;
@@ -168,7 +168,7 @@ kex_dh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
 }
 
 int
-kex_dh_dec(struct kex *kex, const u_char *pkblob, size_t pklen,
+kex_dh_dec(struct kex *kex, const struct sshbuf *dh_blob,
     struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
@@ -181,13 +181,9 @@ kex_dh_dec(struct kex *kex, const u_char *pkblob, size_t pklen,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_put_u32(buf, pklen)) != 0 ||
-	    (r = sshbuf_put(buf, pkblob, pklen)) != 0) {
+	if ((r = sshbuf_put_stringb(buf, dh_blob)) != 0 ||
+	    (r = sshbuf_get_bignum2(buf, &dh_pub)) != 0)
 		goto out;
-	}
-	if ((r = sshbuf_get_bignum2(buf, &dh_pub)) != 0) {
-		goto out;
-	}
 	sshbuf_reset(buf);
 	if ((r = kex_dh_compute_key(kex, dh_pub, buf)) != 0)
 		goto out;

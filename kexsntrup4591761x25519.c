@@ -1,4 +1,4 @@
-/* $OpenBSD: kexsntrup4591761x25519.c,v 1.1 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: kexsntrup4591761x25519.c,v 1.2 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -66,11 +66,13 @@ kex_kem_sntrup4591761x25519_keypair(struct kex *kex)
 }
 
 int
-kex_kem_sntrup4591761x25519_enc(struct kex *kex, const u_char *pkblob,
-   size_t pklen, struct sshbuf **server_blobp, struct sshbuf **shared_secretp)
+kex_kem_sntrup4591761x25519_enc(struct kex *kex,
+   const struct sshbuf *client_blob, struct sshbuf **server_blobp,
+   struct sshbuf **shared_secretp)
 {
 	struct sshbuf *server_blob = NULL;
 	struct sshbuf *buf = NULL;
+	const u_char *client_pub;
 	u_char *kem_key, *ciphertext, *server_pub;
 	u_char server_key[CURVE25519_SIZE];
 	u_char hash[SSH_DIGEST_MAX_LENGTH];
@@ -80,17 +82,19 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex, const u_char *pkblob,
 	*server_blobp = NULL;
 	*shared_secretp = NULL;
 
-	/* pkblob contains both KEM and ECDH client pubkeys */
+	/* client_blob contains both KEM and ECDH client pubkeys */
 	need = crypto_kem_sntrup4591761_PUBLICKEYBYTES + CURVE25519_SIZE;
-	if (pklen != need) {
+	if (sshbuf_len(client_blob) != need) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
+	client_pub = sshbuf_ptr(client_blob);
 #ifdef DEBUG_KEXECDH
-	dump_digest("client public key sntrup4591761:", pkblob,
+	dump_digest("client public key sntrup4591761:", client_pub,
 	    crypto_kem_sntrup4591761_PUBLICKEYBYTES);
 	dump_digest("client public key 25519:",
-	    pkblob + crypto_kem_sntrup4591761_PUBLICKEYBYTES, CURVE25519_SIZE);
+	    client_pub + crypto_kem_sntrup4591761_PUBLICKEYBYTES,
+	    CURVE25519_SIZE);
 #endif
 	/* allocate buffer for concatenation of KEM key and ECDH shared key */
 	/* the buffer will be hashed and the result is the shared secret */
@@ -110,13 +114,13 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex, const u_char *pkblob,
 	if ((r = sshbuf_reserve(server_blob, need, &ciphertext)) != 0)
 		goto out;
 	/* generate and encrypt KEM key with client key */
-	crypto_kem_sntrup4591761_enc(ciphertext, kem_key, pkblob);
+	crypto_kem_sntrup4591761_enc(ciphertext, kem_key, client_pub);
 	/* generate ECDH key pair, store server pubkey after ciphertext */
 	server_pub = ciphertext + crypto_kem_sntrup4591761_CIPHERTEXTBYTES;
 	kexc25519_keygen(server_key, server_pub);
 	/* append ECDH shared key */
-	if ((r = kexc25519_shared_key_ext(server_key,
-	    pkblob + crypto_kem_sntrup4591761_PUBLICKEYBYTES, buf, 1)) < 0)
+	client_pub += crypto_kem_sntrup4591761_PUBLICKEYBYTES;
+	if ((r = kexc25519_shared_key_ext(server_key, client_pub, buf, 1)) < 0)
 		goto out;
 	if ((r = ssh_digest_buffer(kex->hash_alg, buf, hash, sizeof(hash))) != 0)
 		goto out;
@@ -149,8 +153,8 @@ kex_kem_sntrup4591761x25519_enc(struct kex *kex, const u_char *pkblob,
 }
 
 int
-kex_kem_sntrup4591761x25519_dec(struct kex *kex, const u_char *pkblob,
-    size_t pklen, struct sshbuf **shared_secretp)
+kex_kem_sntrup4591761x25519_dec(struct kex *kex,
+    const struct sshbuf *server_blob, struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
 	u_char *kem_key = NULL;
@@ -162,12 +166,12 @@ kex_kem_sntrup4591761x25519_dec(struct kex *kex, const u_char *pkblob,
 	*shared_secretp = NULL;
 
 	need = crypto_kem_sntrup4591761_CIPHERTEXTBYTES + CURVE25519_SIZE;
-	if (pklen != need) {
+	if (sshbuf_len(server_blob) != need) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
-	ciphertext = pkblob;
-	server_pub = pkblob + crypto_kem_sntrup4591761_CIPHERTEXTBYTES;
+	ciphertext = sshbuf_ptr(server_blob);
+	server_pub = ciphertext + crypto_kem_sntrup4591761_CIPHERTEXTBYTES;
 #ifdef DEBUG_KEXECDH
 	dump_digest("server cipher text:", ciphertext,
 	    crypto_kem_sntrup4591761_CIPHERTEXTBYTES);

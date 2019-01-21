@@ -1,4 +1,4 @@
-/* $OpenBSD: kexecdh.c,v 1.8 2019/01/21 10:29:56 djm Exp $ */
+/* $OpenBSD: kexecdh.c,v 1.9 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
@@ -43,7 +43,7 @@
 #include "ssherr.h"
 
 static int
-kex_ecdh_dec_key_group(struct kex *, const u_char *, size_t, EC_KEY *key,
+kex_ecdh_dec_key_group(struct kex *, const struct sshbuf *, EC_KEY *key,
     const EC_GROUP *, struct sshbuf **);
 
 int
@@ -89,7 +89,7 @@ kex_ecdh_keypair(struct kex *kex)
 }
 
 int
-kex_ecdh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
+kex_ecdh_enc(struct kex *kex, const struct sshbuf *client_blob,
     struct sshbuf **server_blobp, struct sshbuf **shared_secretp)
 {
 	const EC_GROUP *group;
@@ -123,7 +123,7 @@ kex_ecdh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
 	if ((r = sshbuf_put_ec(server_blob, pub_key, group)) != 0 ||
 	    (r = sshbuf_get_u32(server_blob, NULL)) != 0)
 		goto out;
-	if ((r = kex_ecdh_dec_key_group(kex, pkblob, pklen, server_key, group,
+	if ((r = kex_ecdh_dec_key_group(kex, client_blob, server_key, group,
 	    shared_secretp)) != 0)
 		goto out;
 	*server_blobp = server_blob;
@@ -135,7 +135,7 @@ kex_ecdh_enc(struct kex *kex, const u_char *pkblob, size_t pklen,
 }
 
 static int
-kex_ecdh_dec_key_group(struct kex *kex, const u_char *pkblob, size_t pklen,
+kex_ecdh_dec_key_group(struct kex *kex, const struct sshbuf *ec_blob,
     EC_KEY *key, const EC_GROUP *group, struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
@@ -151,10 +151,8 @@ kex_ecdh_dec_key_group(struct kex *kex, const u_char *pkblob, size_t pklen,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = sshbuf_put_u32(buf, pklen)) != 0 ||
-	    (r = sshbuf_put(buf, pkblob, pklen)) != 0) {
+	if ((r = sshbuf_put_stringb(buf, ec_blob)) != 0)
 		goto out;
-	}
 	if ((dh_pub = EC_POINT_new(group)) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -199,12 +197,12 @@ kex_ecdh_dec_key_group(struct kex *kex, const u_char *pkblob, size_t pklen,
 }
 
 int
-kex_ecdh_dec(struct kex *kex, const u_char *pkblob, size_t pklen,
+kex_ecdh_dec(struct kex *kex, const struct sshbuf *server_blob,
     struct sshbuf **shared_secretp)
 {
 	int r;
 
-	r = kex_ecdh_dec_key_group(kex, pkblob, pklen, kex->ec_client_key,
+	r = kex_ecdh_dec_key_group(kex, server_blob, kex->ec_client_key,
 	    kex->ec_group, shared_secretp);
 	EC_KEY_free(kex->ec_client_key);
 	kex->ec_client_key = NULL;

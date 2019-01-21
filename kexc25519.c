@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.14 2019/01/21 10:24:09 djm Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.15 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -96,9 +96,9 @@ kex_c25519_hash(
     const u_char *ckexinit, size_t ckexinitlen,
     const u_char *skexinit, size_t skexinitlen,
     const u_char *serverhostkeyblob, size_t sbloblen,
-    const u_char *client_pub, size_t client_pub_len,
-    const u_char *server_pub, size_t server_pub_len,
-    const u_char *shared_secret, size_t secretlen,
+    const struct sshbuf *client_pub,
+    const struct sshbuf *server_pub,
+    const struct sshbuf *shared_secret,
     u_char *hash, size_t *hashlen)
 {
 	struct sshbuf *b;
@@ -118,9 +118,9 @@ kex_c25519_hash(
 	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
 	    (r = sshbuf_put(b, skexinit, skexinitlen)) != 0 ||
 	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) != 0 ||
-	    (r = sshbuf_put_string(b, client_pub, client_pub_len)) != 0 ||
-	    (r = sshbuf_put_string(b, server_pub, server_pub_len)) != 0 ||
-	    (r = sshbuf_put(b, shared_secret, secretlen)) != 0) {
+	    (r = sshbuf_put_stringb(b, client_pub)) != 0 ||
+	    (r = sshbuf_put_stringb(b, server_pub)) != 0 ||
+	    (r = sshbuf_putb(b, shared_secret)) != 0) {
 		sshbuf_free(b);
 		return r;
 	}
@@ -162,11 +162,12 @@ kex_c25519_keypair(struct kex *kex)
 }
 
 int
-kex_c25519_enc(struct kex *kex, const u_char *pkblob,
-   size_t pklen, struct sshbuf **server_blobp, struct sshbuf **shared_secretp)
+kex_c25519_enc(struct kex *kex, const struct sshbuf *client_blob,
+   struct sshbuf **server_blobp, struct sshbuf **shared_secretp)
 {
 	struct sshbuf *server_blob = NULL;
 	struct sshbuf *buf = NULL;
+	const u_char *client_pub;
 	u_char *server_pub;
 	u_char server_key[CURVE25519_SIZE];
 	int r;
@@ -174,12 +175,13 @@ kex_c25519_enc(struct kex *kex, const u_char *pkblob,
 	*server_blobp = NULL;
 	*shared_secretp = NULL;
 
-	if (pklen != CURVE25519_SIZE) {
+	if (sshbuf_len(client_blob) != CURVE25519_SIZE) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
+	client_pub = sshbuf_ptr(client_blob);
 #ifdef DEBUG_KEXECDH
-	dump_digest("client public key 25519:", pkblob, CURVE25519_SIZE);
+	dump_digest("client public key 25519:", client_pub, CURVE25519_SIZE);
 #endif
 	/* allocate space for encrypted KEM key and ECDH pub key */
 	if ((server_blob = sshbuf_new()) == NULL) {
@@ -194,7 +196,7 @@ kex_c25519_enc(struct kex *kex, const u_char *pkblob,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = kexc25519_shared_key_ext(server_key, pkblob, buf, 0)) < 0)
+	if ((r = kexc25519_shared_key_ext(server_key, client_pub, buf, 0)) < 0)
 		goto out;
 #ifdef DEBUG_KEXECDH
 	dump_digest("server public key 25519:", server_pub, CURVE25519_SIZE);
@@ -212,27 +214,29 @@ kex_c25519_enc(struct kex *kex, const u_char *pkblob,
 }
 
 int
-kex_c25519_dec(struct kex *kex, const u_char *pkblob,
-    size_t pklen, struct sshbuf **shared_secretp)
+kex_c25519_dec(struct kex *kex, const struct sshbuf *server_blob,
+    struct sshbuf **shared_secretp)
 {
 	struct sshbuf *buf = NULL;
+	const u_char *server_pub;
 	int r;
 
 	*shared_secretp = NULL;
 
-	if (pklen != CURVE25519_SIZE) {
+	if (sshbuf_len(server_blob) != CURVE25519_SIZE) {
 		r = SSH_ERR_SIGNATURE_INVALID;
 		goto out;
 	}
+	server_pub = sshbuf_ptr(server_blob);
 #ifdef DEBUG_KEXECDH
-	dump_digest("server public key c25519:", pkblob, CURVE25519_SIZE);
+	dump_digest("server public key c25519:", server_pub, CURVE25519_SIZE);
 #endif
 	/* shared secret */
 	if ((buf = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = kexc25519_shared_key_ext(kex->c25519_client_key, pkblob,
+	if ((r = kexc25519_shared_key_ext(kex->c25519_client_key, server_pub,
 	    buf, 0)) < 0)
 		goto out;
 #ifdef DEBUG_KEXECDH

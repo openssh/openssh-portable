@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.281 2019/01/21 09:54:11 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.282 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2481,6 +2481,12 @@ int
 sshpkt_put_stringb(struct ssh *ssh, const struct sshbuf *v)
 {
 	return sshbuf_put_stringb(ssh->state->outgoing_packet, v);
+}
+
+int
+sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp)
+{
+	return sshbuf_froms(ssh->state->incoming_packet, valp);
 }
 
 #ifdef WITH_OPENSSL

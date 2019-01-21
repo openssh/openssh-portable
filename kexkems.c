@@ -1,4 +1,4 @@
-/* $OpenBSD: kexkems.c,v 1.4 2019/01/21 10:29:56 djm Exp $ */
+/* $OpenBSD: kexkems.c,v 1.5 2019/01/21 10:35:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -53,17 +53,17 @@ input_kex_kem_init(int type, u_int32_t seq, struct ssh *ssh)
 	struct sshkey *server_host_private, *server_host_public;
 	struct sshbuf *shared_secret = NULL;
 	struct sshbuf *server_pubkey = NULL;
+	struct sshbuf *client_pubkey = NULL;
 	u_char *server_host_key_blob = NULL, *signature = NULL;
-	u_char *client_pubkey = NULL;
 	u_char hash[SSH_DIGEST_MAX_LENGTH];
-	size_t slen, pklen, sbloblen, hashlen;
+	size_t slen, sbloblen, hashlen;
 	int r;
 
 	if ((r = kex_load_hostkey(ssh, &server_host_private,
 	    &server_host_public)) != 0)
 		goto out;
 
-	if ((r = sshpkt_get_string(ssh, &client_pubkey, &pklen)) != 0 ||
+	if ((r = sshpkt_getb_froms(ssh, &client_pubkey)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		goto out;
 
@@ -74,19 +74,19 @@ input_kex_kem_init(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_DH_GRP14_SHA256:
 	case KEX_DH_GRP16_SHA512:
 	case KEX_DH_GRP18_SHA512:
-		r = kex_dh_enc(kex, client_pubkey, pklen, &server_pubkey,
+		r = kex_dh_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
 	case KEX_ECDH_SHA2:
-		r = kex_ecdh_enc(kex, client_pubkey, pklen, &server_pubkey,
+		r = kex_ecdh_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
 	case KEX_C25519_SHA256:
-		r = kex_c25519_enc(kex, client_pubkey, pklen, &server_pubkey,
+		r = kex_c25519_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
 	case KEX_KEM_SNTRUP4591761X25519_SHA512:
-		r = kex_kem_sntrup4591761x25519_enc(kex, client_pubkey, pklen,
+		r = kex_kem_sntrup4591761x25519_enc(kex, client_pubkey,
 		    &server_pubkey, &shared_secret);
 		break;
 	default:
@@ -108,9 +108,9 @@ input_kex_kem_init(int type, u_int32_t seq, struct ssh *ssh)
 	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
 	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
 	    server_host_key_blob, sbloblen,
-	    client_pubkey, pklen,
-	    sshbuf_ptr(server_pubkey), sshbuf_len(server_pubkey),
-	    sshbuf_ptr(shared_secret), sshbuf_len(shared_secret),
+	    client_pubkey,
+	    server_pubkey,
+	    shared_secret,
 	    hash, &hashlen)) != 0)
 		goto out;
 
@@ -133,8 +133,8 @@ out:
 	explicit_bzero(hash, sizeof(hash));
 	free(server_host_key_blob);
 	free(signature);
-	free(client_pubkey);
 	sshbuf_free(shared_secret);
+	sshbuf_free(client_pubkey);
 	sshbuf_free(server_pubkey);
 	return r;
 }

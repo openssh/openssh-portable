@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.h,v 1.89 2019/01/21 09:54:11 djm Exp $ */
+/* $OpenBSD: packet.h,v 1.90 2019/01/21 10:35:09 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -199,6 +199,7 @@ int	sshpkt_get_string(struct ssh *ssh, u_char **valp, size_t *lenp);
 int	sshpkt_get_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp);
 int	sshpkt_peek_string_direct(struct ssh *ssh, const u_char **valp, size_t *lenp);
 int	sshpkt_get_cstring(struct ssh *ssh, char **valp, size_t *lenp);
+int	sshpkt_getb_froms(struct ssh *ssh, struct sshbuf **valp);
 int	sshpkt_get_ec(struct ssh *ssh, EC_POINT *v, const EC_GROUP *g);
 int	sshpkt_get_bignum2(struct ssh *ssh, BIGNUM **valp);
 int	sshpkt_get_end(struct ssh *ssh);
