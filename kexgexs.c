@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.40 2019/01/21 10:03:37 djm Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.41 2019/01/21 10:05:09 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -136,19 +136,9 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	size_t hashlen;
 	int r;
 
-	if (kex->load_host_public_key == NULL ||
-	    kex->load_host_private_key == NULL) {
-		r = SSH_ERR_INVALID_ARGUMENT;
+	if ((r = kex_load_hostkey(ssh, &server_host_private,
+	    &server_host_public)) != 0)
 		goto out;
-	}
-	server_host_public = kex->load_host_public_key(kex->hostkey_type,
-	    kex->hostkey_nid, ssh);
-	server_host_private = kex->load_host_private_key(kex->hostkey_type,
-	    kex->hostkey_nid, ssh);
-	if (server_host_public == NULL) {
-		r = SSH_ERR_NO_HOSTKEY_LOADED;
-		goto out;
-	}
 
 	/* key, cert */
 	if ((r = sshpkt_get_bignum2(ssh, &dh_client_pub)) != 0 ||

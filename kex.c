@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.144 2019/01/21 09:55:52 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.145 2019/01/21 10:05:09 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1052,6 +1052,24 @@ kex_derive_keys_bn(struct ssh *ssh, u_char *hash, u_int hashlen,
 }
 #endif
 
+int
+kex_load_hostkey(struct ssh *ssh, struct sshkey **pubp, struct sshkey **prvp)
+{
+	struct kex *kex = ssh->kex;
+
+	*pubp = NULL;
+	*prvp = NULL;
+	if (kex->load_host_public_key == NULL ||
+	    kex->load_host_private_key == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	*pubp = kex->load_host_public_key(kex->hostkey_type,
+	    kex->hostkey_nid, ssh);
+	*prvp = kex->load_host_private_key(kex->hostkey_type,
+	    kex->hostkey_nid, ssh);
+	if (*pubp == NULL)
+		return SSH_ERR_NO_HOSTKEY_LOADED;
+	return 0;
+}
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void

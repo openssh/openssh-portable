@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519s.c,v 1.14 2019/01/21 09:55:52 djm Exp $ */
+/* $OpenBSD: kexc25519s.c,v 1.15 2019/01/21 10:05:09 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -70,20 +70,9 @@ input_kex_c25519_init(int type, u_int32_t seq, struct ssh *ssh)
 #ifdef DEBUG_KEXECDH
 	dump_digest("server private key:", server_key, sizeof(server_key));
 #endif
-	if (kex->load_host_public_key == NULL ||
-	    kex->load_host_private_key == NULL) {
-		r = SSH_ERR_INVALID_ARGUMENT;
+	if ((r = kex_load_hostkey(ssh, &server_host_private,
+	    &server_host_public)) != 0)
 		goto out;
-	}
-	server_host_public = kex->load_host_public_key(kex->hostkey_type,
-	    kex->hostkey_nid, ssh);
-	server_host_private = kex->load_host_private_key(kex->hostkey_type,
-	    kex->hostkey_nid, ssh);
-	if (server_host_public == NULL) {
-		r = SSH_ERR_NO_HOSTKEY_LOADED;
-		goto out;
-	}
-
 	if ((r = sshpkt_get_string(ssh, &client_pubkey, &pklen)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		goto out;
