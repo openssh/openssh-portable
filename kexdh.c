@@ -37,6 +37,7 @@
 #include "kex.h"
 #include "sshbuf.h"
 #include "digest.h"
+#include "ssherr.h"
 #include "dh.h"
 
 int
