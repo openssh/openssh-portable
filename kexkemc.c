@@ -1,8 +1,6 @@
-/* $OpenBSD: kexc25519c.c,v 1.13 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: kexkemc.c,v 1.1 2019/01/21 10:20:12 djm Exp $ */
 /*
- * Copyright (c) 2001 Markus Friedl.  All rights reserved.
- * Copyright (c) 2010 Damien Miller.  All rights reserved.
- * Copyright (c) 2013 Aris Adamantiadis.  All rights reserved.
+ * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,8 +23,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "includes.h"
-
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -34,7 +30,6 @@
 #include <signal.h>
 
 #include "sshkey.h"
-#include "cipher.h"
 #include "kex.h"
 #include "log.h"
 #include "packet.h"
@@ -44,32 +39,27 @@
 #include "ssherr.h"
 
 static int
-input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh);
+input_kex_kem_reply(int type, u_int32_t seq, struct ssh *ssh);
 
 int
-kexc25519_client(struct ssh *ssh)
+kex_kem_client(struct ssh *ssh)
 {
 	struct kex *kex = ssh->kex;
 	int r;
 
-	kexc25519_keygen(kex->c25519_client_key, kex->c25519_client_pubkey);
-#ifdef DEBUG_KEXECDH
-	dump_digest("client private key:", kex->c25519_client_key,
-	    sizeof(kex->c25519_client_key));
-#endif
+	if ((r = kex_kem_sntrup4591761x25519_keypair(kex)) != 0)
+		return r;
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEX_ECDH_INIT)) != 0 ||
-	    (r = sshpkt_put_string(ssh, kex->c25519_client_pubkey,
-	    sizeof(kex->c25519_client_pubkey))) != 0 ||
+	    (r = sshpkt_put_stringb(ssh, kex->kem_client_pub)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
 		return r;
-
 	debug("expecting SSH2_MSG_KEX_ECDH_REPLY");
-	ssh_dispatch_set(ssh, SSH2_MSG_KEX_ECDH_REPLY, &input_kex_c25519_reply);
+	ssh_dispatch_set(ssh, SSH2_MSG_KEX_ECDH_REPLY, &input_kex_kem_reply);
 	return 0;
 }
 
 static int
-input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh)
+input_kex_kem_reply(int type, u_int32_t seq, struct ssh *ssh)
 {
 	struct kex *kex = ssh->kex;
 	struct sshkey *server_host_key = NULL;
@@ -95,21 +85,10 @@ input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_string(ssh, &signature, &slen)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
 		goto out;
-	if (pklen != CURVE25519_SIZE) {
-		r = SSH_ERR_SIGNATURE_INVALID;
-		goto out;
-	}
 
-#ifdef DEBUG_KEXECDH
-	dump_digest("server public key:", server_pubkey, CURVE25519_SIZE);
-#endif
-
-	if ((shared_secret = sshbuf_new()) == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = kexc25519_shared_key(kex->c25519_client_key, server_pubkey,
-	    shared_secret)) != 0)
+	/* compute shared secret */
+	if ((r = kex_kem_sntrup4591761x25519_dec(kex, server_pubkey, pklen,
+	    &shared_secret)) != 0)
 		goto out;
 
 	/* calc and verify H */
@@ -121,7 +100,7 @@ input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh)
 	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
 	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
 	    server_host_key_blob, sbloblen,
-	    kex->c25519_client_pubkey, sizeof(kex->c25519_client_pubkey),
+	    sshbuf_ptr(kex->kem_client_pub), sshbuf_len(kex->kem_client_pub),
 	    server_pubkey, pklen,
 	    sshbuf_ptr(shared_secret), sshbuf_len(shared_secret),
 	    hash, &hashlen)) != 0)
@@ -136,10 +115,14 @@ input_kex_c25519_reply(int type, u_int32_t seq, struct ssh *ssh)
 out:
 	explicit_bzero(hash, sizeof(hash));
 	explicit_bzero(kex->c25519_client_key, sizeof(kex->c25519_client_key));
+	explicit_bzero(kex->sntrup4591761_client_key,
+	    sizeof(kex->sntrup4591761_client_key));
 	free(server_host_key_blob);
 	free(server_pubkey);
 	free(signature);
 	sshkey_free(server_host_key);
 	sshbuf_free(shared_secret);
+	sshbuf_free(kex->kem_client_pub);
+	kex->kem_client_pub = NULL;
 	return r;
 }

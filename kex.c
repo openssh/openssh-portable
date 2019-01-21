@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.146 2019/01/21 10:07:22 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.147 2019/01/21 10:20:12 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -108,6 +108,8 @@ static const struct kexalg kexalgs[] = {
 #if defined(HAVE_EVP_SHA256) || !defined(WITH_OPENSSL)
 	{ KEX_CURVE25519_SHA256, KEX_C25519_SHA256, 0, SSH_DIGEST_SHA256 },
 	{ KEX_CURVE25519_SHA256_OLD, KEX_C25519_SHA256, 0, SSH_DIGEST_SHA256 },
+	{ KEX_SNTRUP4591761X25519_SHA512, KEX_KEM_SNTRUP4591761X25519_SHA512, 0,
+	    SSH_DIGEST_SHA512 },
 #endif /* HAVE_EVP_SHA256 || !WITH_OPENSSL */
 	{ NULL, -1, -1, -1},
 };
@@ -653,6 +655,7 @@ kex_free(struct kex *kex)
 	sshbuf_free(kex->my);
 	sshbuf_free(kex->client_version);
 	sshbuf_free(kex->server_version);
+	sshbuf_free(kex->kem_client_pub);
 	free(kex->session_id);
 	free(kex->failed_choice);
 	free(kex->hostkey_alg);
@@ -1089,7 +1092,7 @@ kex_verify_host_key(struct ssh *ssh, struct sshkey *server_host_key)
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
 void
-dump_digest(char *msg, u_char *digest, int len)
+dump_digest(const char *msg, const u_char *digest, int len)
 {
 	fprintf(stderr, "%s\n", msg);
 	sshbuf_dump_data(digest, len, stderr);

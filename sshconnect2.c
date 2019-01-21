@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.296 2019/01/21 01:05:00 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.297 2019/01/21 10:20:12 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -213,6 +213,7 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 # endif
 #endif
 	ssh->kex->kex[KEX_C25519_SHA256] = kexc25519_client;
+	ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_client;
 	ssh->kex->verify_host_key=&verify_host_key_callback;
 
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &ssh->kex->done);

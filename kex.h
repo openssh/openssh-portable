@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.98 2019/01/21 10:07:22 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.99 2019/01/21 10:20:12 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -27,6 +27,7 @@
 #define KEX_H
 
 #include "mac.h"
+#include "crypto_api.h"
 
 #ifdef WITH_LEAKMALLOC
 #include "leakmalloc.h"
@@ -62,6 +63,7 @@
 #define	KEX_ECDH_SHA2_NISTP521		"ecdh-sha2-nistp521"
 #define	KEX_CURVE25519_SHA256		"curve25519-sha256"
 #define	KEX_CURVE25519_SHA256_OLD	"curve25519-sha256@libssh.org"
+#define	KEX_SNTRUP4591761X25519_SHA512	"sntrup4591761x25519-sha512@tinyssh.org"
 
 #define COMP_NONE	0
 /* pre-auth compression (COMP_ZLIB) is only supported in the client */
@@ -100,6 +102,7 @@ enum kex_exchange {
 	KEX_DH_GEX_SHA256,
 	KEX_ECDH_SHA2,
 	KEX_C25519_SHA256,
+	KEX_KEM_SNTRUP4591761X25519_SHA512,
 	KEX_MAX
 };
 
@@ -164,8 +167,10 @@ struct kex {
 	u_int	min, max, nbits;	/* GEX */
 	EC_KEY	*ec_client_key;		/* ECDH */
 	const EC_GROUP *ec_group;	/* ECDH */
-	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 */
+	u_char c25519_client_key[CURVE25519_SIZE]; /* 25519 + KEM */
 	u_char c25519_client_pubkey[CURVE25519_SIZE]; /* 25519 */
+	u_char sntrup4591761_client_key[crypto_kem_sntrup4591761_SECRETKEYBYTES]; /* KEM */
+	struct sshbuf *kem_client_pub;	/* KEM */
 };
 
 int	 kex_names_valid(const char *);
@@ -203,6 +208,14 @@ int	 kexecdh_client(struct ssh *);
 int	 kexecdh_server(struct ssh *);
 int	 kexc25519_client(struct ssh *);
 int	 kexc25519_server(struct ssh *);
+int	 kex_kem_client(struct ssh *);
+int	 kex_kem_server(struct ssh *);
+
+int	 kex_kem_sntrup4591761x25519_keypair(struct kex *);
+int	 kex_kem_sntrup4591761x25519_enc(struct kex *, const u_char *, size_t,
+    struct sshbuf **, struct sshbuf **);
+int	 kex_kem_sntrup4591761x25519_dec(struct kex *, const u_char *, size_t,
+    struct sshbuf **);
 
 int	 kex_dh_keygen(struct kex *);
 int	 kex_dh_compute_key(struct kex *, BIGNUM *, struct sshbuf *);
@@ -224,7 +237,7 @@ int kex_ecdh_hash(int, const EC_GROUP *,
 
 int	 kex_c25519_hash(int, const struct sshbuf *, const struct sshbuf *,
     const u_char *, size_t, const u_char *, size_t,
-    const u_char *, size_t, const u_char *, const u_char *,
+    const u_char *, size_t, const u_char *, size_t, const u_char *, size_t,
     const u_char *, size_t, u_char *, size_t *);
 
 void	kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
@@ -234,9 +247,13 @@ int	kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
 	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
 	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
+int	kexc25519_shared_key_ext(const u_char key[CURVE25519_SIZE],
+    const u_char pub[CURVE25519_SIZE], struct sshbuf *out, int)
+	__attribute__((__bounded__(__minbytes__, 1, CURVE25519_SIZE)))
+	__attribute__((__bounded__(__minbytes__, 2, CURVE25519_SIZE)));
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH) || defined(DEBUG_KEXECDH)
-void	dump_digest(char *, u_char *, int);
+void	dump_digest(const char *, const u_char *, int);
 #endif
 
 #if !defined(WITH_OPENSSL) || !defined(OPENSSL_HAS_ECC)

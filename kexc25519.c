@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.12 2019/01/21 09:49:37 djm Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.13 2019/01/21 10:20:12 djm Exp $ */
 /*
  * Copyright (c) 2001, 2013 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -60,8 +60,8 @@ kexc25519_keygen(u_char key[CURVE25519_SIZE], u_char pub[CURVE25519_SIZE])
 }
 
 int
-kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
-    const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
+kexc25519_shared_key_ext(const u_char key[CURVE25519_SIZE],
+    const u_char pub[CURVE25519_SIZE], struct sshbuf *out, int raw)
 {
 	u_char shared_key[CURVE25519_SIZE];
 	u_char zero[CURVE25519_SIZE];
@@ -77,10 +77,19 @@ kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
 #ifdef DEBUG_KEXECDH
 	dump_digest("shared secret", shared_key, CURVE25519_SIZE);
 #endif
-	sshbuf_reset(out);
-	r = sshbuf_put_bignum2_bytes(out, shared_key, CURVE25519_SIZE);
+	if (raw)
+		r = sshbuf_put(out, shared_key, CURVE25519_SIZE);
+	else
+		r = sshbuf_put_bignum2_bytes(out, shared_key, CURVE25519_SIZE);
 	explicit_bzero(shared_key, CURVE25519_SIZE);
 	return r;
+}
+
+int
+kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
+    const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
+{
+	return kexc25519_shared_key_ext(key, pub, out, 0);
 }
 
 int
@@ -91,8 +100,8 @@ kex_c25519_hash(
     const u_char *ckexinit, size_t ckexinitlen,
     const u_char *skexinit, size_t skexinitlen,
     const u_char *serverhostkeyblob, size_t sbloblen,
-    const u_char client_dh_pub[CURVE25519_SIZE],
-    const u_char server_dh_pub[CURVE25519_SIZE],
+    const u_char *client_pub, size_t client_pub_len,
+    const u_char *server_pub, size_t server_pub_len,
     const u_char *shared_secret, size_t secretlen,
     u_char *hash, size_t *hashlen)
 {
@@ -103,19 +112,19 @@ kex_c25519_hash(
 		return SSH_ERR_INVALID_ARGUMENT;
 	if ((b = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((r = sshbuf_put_stringb(b, client_version)) < 0 ||
-	    (r = sshbuf_put_stringb(b, server_version)) < 0 ||
+	if ((r = sshbuf_put_stringb(b, client_version)) != 0 ||
+	    (r = sshbuf_put_stringb(b, server_version)) != 0 ||
 	    /* kexinit messages: fake header: len+SSH2_MSG_KEXINIT */
-	    (r = sshbuf_put_u32(b, ckexinitlen+1)) < 0 ||
-	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) < 0 ||
-	    (r = sshbuf_put(b, ckexinit, ckexinitlen)) < 0 ||
-	    (r = sshbuf_put_u32(b, skexinitlen+1)) < 0 ||
-	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) < 0 ||
-	    (r = sshbuf_put(b, skexinit, skexinitlen)) < 0 ||
-	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) < 0 ||
-	    (r = sshbuf_put_string(b, client_dh_pub, CURVE25519_SIZE)) < 0 ||
-	    (r = sshbuf_put_string(b, server_dh_pub, CURVE25519_SIZE)) < 0 ||
-	    (r = sshbuf_put(b, shared_secret, secretlen)) < 0) {
+	    (r = sshbuf_put_u32(b, ckexinitlen+1)) != 0 ||
+	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
+	    (r = sshbuf_put(b, ckexinit, ckexinitlen)) != 0 ||
+	    (r = sshbuf_put_u32(b, skexinitlen+1)) != 0 ||
+	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
+	    (r = sshbuf_put(b, skexinit, skexinitlen)) != 0 ||
+	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) != 0 ||
+	    (r = sshbuf_put_string(b, client_pub, client_pub_len)) != 0 ||
+	    (r = sshbuf_put_string(b, server_pub, server_pub_len)) != 0 ||
+	    (r = sshbuf_put(b, shared_secret, secretlen)) != 0) {
 		sshbuf_free(b);
 		return r;
 	}
