@@ -78,6 +78,7 @@ struct pkcs11_key {
 
 int pkcs11_interactive = 0;
 
+#ifdef HAVE_EC_KEY_METHOD_NEW
 static void
 ossl_error(const char *msg)
 {
@@ -87,6 +88,7 @@ ossl_error(const char *msg)
 		error("%s: %s: %.100s", __func__, msg,
 		    ERR_error_string(e, NULL));
 }
+#endif /* HAVE_EC_KEY_METHOD_NEW */
 
 int
 pkcs11_init(int interactive)
