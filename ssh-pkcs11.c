@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.37 2019/01/21 00:47:34 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.38 2019/01/21 02:01:03 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -187,6 +187,11 @@ pkcs11_del_provider(char *provider_id)
 	return (-1);
 }
 
+static RSA_METHOD *rsa_method;
+static int rsa_idx = 0;
+static EC_KEY_METHOD *ec_key_method;
+static int ec_key_idx = 0;
+
 /* release a wrapped object */
 static void
 pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
@@ -328,7 +333,7 @@ pkcs11_rsa_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 	CK_RV			rv;
 	int			rval = -1;
 
-	if ((k11 = RSA_get_ex_data(rsa, 0)) == NULL) {
+	if ((k11 = RSA_get_ex_data(rsa, rsa_idx)) == NULL) {
 		error("RSA_get_ex_data failed for rsa %p", rsa);
 		return (-1);
 	}
@@ -358,9 +363,6 @@ pkcs11_rsa_private_decrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
 {
 	return (-1);
 }
-
-static RSA_METHOD *rsa_method;
-static int rsa_idx = 0;
 
 static int
 pkcs11_rsa_start_wrapper(void)
@@ -424,7 +426,7 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 	u_char			*sig;
 	BIGNUM			*r = NULL, *s = NULL;
 
-	if ((k11 = EC_KEY_get_ex_data(ec, 0)) == NULL) {
+	if ((k11 = EC_KEY_get_ex_data(ec, ec_key_idx)) == NULL) {
 		ossl_error("EC_KEY_get_key_method_data failed for ec");
 		return (NULL);
 	}
@@ -477,9 +479,6 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 
 	return (ret);
 }
-
-static EC_KEY_METHOD *ec_key_method;
-static int ec_key_idx = 0;
 
 static int
 pkcs11_ecdsa_start_wrapper(void)
