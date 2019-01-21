@@ -3,9 +3,24 @@
 
 tid="pkcs11 agent test"
 
+try_token_libs() {
+	for _lib in "$@" ; do
+		if test -f "$_lib" ; then
+			verbose "Using token library $_lib"
+			TEST_SSH_PKCS11="$_lib"
+			return
+		fi
+	done
+	echo "skipped: Unable to find PKCS#11 token library"
+	exit 0
+}
+
+try_token_libs \
+	/usr/local/lib/softhsm/libsofthsm2.so \
+	/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so
+
 TEST_SSH_PIN=1234
 TEST_SSH_SOPIN=12345678
-TEST_SSH_PKCS11=/usr/local/lib/softhsm/libsofthsm2.so
 if [ "x$TEST_SSH_SSHPKCS11HELPER" != "x" ]; then
 	SSH_PKCS11_HELPER="${TEST_SSH_SSHPKCS11HELPER}"
 	export SSH_PKCS11_HELPER
