@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.145 2019/01/21 10:05:09 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.146 2019/01/21 10:07:22 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1068,6 +1068,22 @@ kex_load_hostkey(struct ssh *ssh, struct sshkey **pubp, struct sshkey **prvp)
 	    kex->hostkey_nid, ssh);
 	if (*pubp == NULL)
 		return SSH_ERR_NO_HOSTKEY_LOADED;
+	return 0;
+}
+
+int
+kex_verify_host_key(struct ssh *ssh, struct sshkey *server_host_key)
+{
+	struct kex *kex = ssh->kex;
+
+	if (kex->verify_host_key == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (server_host_key->type != kex->hostkey_type ||
+	    (kex->hostkey_type == KEY_ECDSA &&
+	    server_host_key->ecdsa_nid != kex->hostkey_nid))
+		return SSH_ERR_KEY_TYPE_MISMATCH;
+	if (kex->verify_host_key(server_host_key, ssh) == -1)
+		return  SSH_ERR_SIGNATURE_INVALID;
 	return 0;
 }
 

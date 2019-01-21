@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.28 2019/01/21 10:03:37 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.29 2019/01/21 10:07:22 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -95,26 +95,14 @@ input_kex_dh(int type, u_int32_t seq, struct ssh *ssh)
 	size_t slen, sbloblen, hashlen;
 	int r;
 
-	if (kex->verify_host_key == NULL) {
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
-	}
 	/* key, cert */
 	if ((r = sshpkt_get_string(ssh, &server_host_key_blob,
 	    &sbloblen)) != 0 ||
 	    (r = sshkey_from_blob(server_host_key_blob, sbloblen,
 	    &server_host_key)) != 0)
 		goto out;
-	if (server_host_key->type != kex->hostkey_type ||
-	    (kex->hostkey_type == KEY_ECDSA &&
-	    server_host_key->ecdsa_nid != kex->hostkey_nid)) {
-		r = SSH_ERR_KEY_TYPE_MISMATCH;
+	if ((r = kex_verify_host_key(ssh, server_host_key)) != 0)
 		goto out;
-	}
-	if (kex->verify_host_key(server_host_key, ssh) == -1) {
-		r = SSH_ERR_SIGNATURE_INVALID;
-		goto out;
-	}
 	/* DH parameter f, server public DH key, signed H */
 	if ((r = sshpkt_get_bignum2(ssh, &dh_server_pub)) != 0 ||
 	    (r = sshpkt_get_string(ssh, &signature, &slen)) != 0 ||
