@@ -598,6 +598,7 @@ tests interop-tests t-exec unit: regress-prep regress-binaries $(TARGETS)
 	TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/ssh-keyscan"; \
 	TEST_SSH_SFTP="$${BUILDDIR}/sftp"; \
 	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
+	TEST_SSH_SSHPKCS11HELPER="$${BUILDDIR}/ssh-pkcs11-helper"; \
 	TEST_SSH_PLINK="plink"; \
 	TEST_SSH_PUTTYGEN="puttygen"; \
 	TEST_SSH_CONCH="conch"; \
