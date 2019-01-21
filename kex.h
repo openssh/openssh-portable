@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.102 2019/01/21 10:29:56 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.103 2019/01/21 10:33:49 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -196,7 +196,6 @@ int	 kex_send_kexinit(struct ssh *);
 int	 kex_input_kexinit(int, u_int32_t, struct ssh *);
 int	 kex_input_ext_info(int, u_int32_t, struct ssh *);
 int	 kex_derive_keys(struct ssh *, u_char *, u_int, const struct sshbuf *);
-int	 kex_derive_keys_bn(struct ssh *, u_char *, u_int, const BIGNUM *);
 int	 kex_send_newkeys(struct ssh *);
 int	 kex_start_rekex(struct ssh *);
 
