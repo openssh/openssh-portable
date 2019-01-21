@@ -1,4 +1,4 @@
-/* $OpenBSD: kexc25519.c,v 1.11 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kexc25519.c,v 1.12 2019/01/21 09:49:37 djm Exp $ */
 /*
  * Copyright (c) 2001, 2013 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -64,14 +64,16 @@ kexc25519_shared_key(const u_char key[CURVE25519_SIZE],
     const u_char pub[CURVE25519_SIZE], struct sshbuf *out)
 {
 	u_char shared_key[CURVE25519_SIZE];
+	u_char zero[CURVE25519_SIZE];
 	int r;
 
-	/* Check for all-zero public key */
-	explicit_bzero(shared_key, CURVE25519_SIZE);
-	if (timingsafe_bcmp(pub, shared_key, CURVE25519_SIZE) == 0)
+	crypto_scalarmult_curve25519(shared_key, key, pub);
+
+	/* Check for all-zero shared secret */
+	explicit_bzero(zero, CURVE25519_SIZE);
+	if (timingsafe_bcmp(zero, shared_key, CURVE25519_SIZE) == 0)
 		return SSH_ERR_KEY_INVALID_EC_VALUE;
 
-	crypto_scalarmult_curve25519(shared_key, key, pub);
 #ifdef DEBUG_KEXECDH
 	dump_digest("shared secret", shared_key, CURVE25519_SIZE);
 #endif
