@@ -78,7 +78,6 @@ struct pkcs11_key {
 
 int pkcs11_interactive = 0;
 
-#ifdef HAVE_DLOPEN
 static void
 ossl_error(const char *msg)
 {
@@ -88,7 +87,6 @@ ossl_error(const char *msg)
 		error("%s: %s: %.100s", __func__, msg,
 		    ERR_error_string(e, NULL));
 }
-#endif
 
 int
 pkcs11_init(int interactive)
@@ -1675,7 +1673,7 @@ out:
 	return (k);
 }
 #endif /* WITH_PKCS11_KEYGEN */
-#else /* HAVE_DLOPEN */
+#else /* ENABLE_PKCS11 */
 int
 pkcs11_init(int interactive)
 {
@@ -1695,4 +1693,4 @@ pkcs11_terminate(void)
 {
 	error("%s: dlopen() not supported", __func__);
 }
-#endif /* HAVE_DLOPEN */
+#endif /* ENABLE_PKCS11 */
