@@ -285,10 +285,11 @@ AC_ARG_WITH([rpath],
 	[  --without-rpath         Disable auto-added -R linker paths],
 	[
 		if test "x$withval" = "xno" ; then
-			need_dash_r=""
-		fi
-		if test "x$withval" = "xyes" ; then
-			need_dash_r=1
+			rpath_opt=""
+		elif test "x$withval" = "xyes" ; then
+			rpath_opt="-R"
+		else
+			rpath_opt="$withval"
 		fi
 	]
 )
@@ -911,7 +912,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-netbsd*)
 	check_for_libcrypt_before=1
 	if test "x$withval" != "xno" ; then
-		need_dash_r=1
+		rpath_opt="-R"
 	fi
 	CPPFLAGS="$CPPFLAGS -D_OPENBSD_SOURCE"
 	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
@@ -962,7 +963,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
-		need_dash_r=1
+		rpath_opt="-R"
 	fi
 	AC_DEFINE([PAM_SUN_CODEBASE])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
@@ -1263,14 +1264,14 @@ AC_ARG_WITH([zlib],
 		AC_MSG_ERROR([*** zlib is required ***])
 	  elif test "x$withval" != "xyes"; then
 		if test -d "$withval/lib"; then
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
 		else
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval} ${rpath_opt}${withval} ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval} ${LDFLAGS}"
 			fi
@@ -1290,8 +1291,8 @@ AC_CHECK_LIB([z], [deflate], ,
 		saved_LDFLAGS="$LDFLAGS"
 		save_LIBS="$LIBS"
 		dnl Check default zlib install dir
-		if test -n "${need_dash_r}"; then
-			LDFLAGS="-L/usr/local/lib -R/usr/local/lib ${saved_LDFLAGS}"
+		if test -n "${rpath_opt}"; then
+			LDFLAGS="-L/usr/local/lib ${rpath_opt}/usr/local/lib ${saved_LDFLAGS}"
 		else
 			LDFLAGS="-L/usr/local/lib ${saved_LDFLAGS}"
 		fi
@@ -1558,8 +1559,8 @@ AC_ARG_WITH([libedit],
 			fi
 		else
 			CPPFLAGS="$CPPFLAGS -I${withval}/include"
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
@@ -2479,20 +2480,20 @@ AC_ARG_WITH([ssl-dir],
 				./*|../*)	withval="`pwd`/$withval"
 			esac
 			if test -d "$withval/lib"; then
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 				fi
 			elif test -d "$withval/lib64"; then
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval}/lib64 -R${withval}/lib64 ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval}/lib64 ${rpath_opt}${withval}/lib64 ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval}/lib64 ${LDFLAGS}"
 				fi
 			else
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval} ${rpath_opt}${withval} ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval} ${LDFLAGS}"
 				fi
@@ -4406,8 +4407,8 @@ AC_ARG_WITH([kerberos5],
 					[ CPPFLAGS="$oldCPP" ])
 
 		fi
-		if test ! -z "$need_dash_r" ; then
-			LDFLAGS="$LDFLAGS -R${KRB5ROOT}/lib"
+		if test -n "${rpath_opt}" ; then
+			LDFLAGS="$LDFLAGS ${rpath_opt}${KRB5ROOT}/lib"
 		fi
 		if test ! -z "$blibpath" ; then
 			blibpath="$blibpath:${KRB5ROOT}/lib"
