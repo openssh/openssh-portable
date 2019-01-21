@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.36 2019/01/20 23:12:35 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.37 2019/01/21 00:47:34 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -420,6 +420,7 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 	CK_RV			rv;
 	ECDSA_SIG		*ret = NULL;
 	u_char			*sig;
+	BIGNUM			*r = NULL, *s = NULL;
 
 	if ((k11 = EC_KEY_get_ex_data(ec, 0)) == NULL) {
 		ossl_error("EC_KEY_get_key_method_data failed for ec");
@@ -452,14 +453,24 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 		error("ECDSA_SIG_new failed");
 		goto done;
 	}
-	if (BN_bin2bn(sig, bnlen, ret->r) == NULL ||
-	    BN_bin2bn(sig+bnlen, bnlen, ret->s) == NULL) {
+	if ((r = BN_bin2bn(sig, bnlen, NULL)) == NULL ||
+	    (s = BN_bin2bn(sig+bnlen, bnlen, NULL)) == NULL) {
 		ossl_error("d2i_ECDSA_SIG failed");
 		ECDSA_SIG_free(ret);
 		ret = NULL;
 		goto done;
 	}
+	if (!ECDSA_SIG_set0(ret, r, s)) {
+		error("%s: ECDSA_SIG_set0 failed", __func__);
+		ECDSA_SIG_free(ret);
+		ret = NULL;
+		goto done;
+	}
+	r = s = NULL; /* now owned by ret */
+	/* success */
  done:
+	BN_free(r);
+	BN_free(s);
 	free(sig);
 
 	return (ret);
