@@ -2973,6 +2973,7 @@ if test "x$openssl" = "xyes" ; then
 	if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
 	    test x$enable_nistp521 = x1; then
 		AC_DEFINE(OPENSSL_HAS_ECC, [1], [OpenSSL has ECC])
+		AC_CHECK_FUNCS([EC_KEY_METHOD_new])
 	fi
 	if test x$enable_nistp256 = x1; then
 		AC_DEFINE([OPENSSL_HAS_NISTP256], [1],

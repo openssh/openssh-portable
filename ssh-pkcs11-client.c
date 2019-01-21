@@ -163,6 +163,7 @@ rsa_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa, int padding)
 	return (ret);
 }
 
+#ifdef HAVE_EC_KEY_METHOD_NEW
 static ECDSA_SIG *
 ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
     const BIGNUM *rp, EC_KEY *ec)
@@ -219,9 +220,12 @@ ecdsa_do_sign(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
 	sshbuf_free(msg);
 	return (ret);
 }
+#endif /* HAVE_EC_KEY_METHOD_NEW */
 
 static RSA_METHOD	*helper_rsa;
+#ifdef HAVE_EC_KEY_METHOD_NEW
 static EC_KEY_METHOD	*helper_ecdsa;
+#endif /* HAVE_EC_KEY_METHOD_NEW */
 
 /* redirect private key crypto operations to the ssh-pkcs11-helper */
 static void
@@ -229,8 +233,10 @@ wrap_key(struct sshkey *k)
 {
 	if (k->type == KEY_RSA)
 		RSA_set_method(k->rsa, helper_rsa);
+#ifdef HAVE_EC_KEY_METHOD_NEW
 	else if (k->type == KEY_ECDSA)
 		EC_KEY_set_method(k->ecdsa, helper_ecdsa);
+#endif /* HAVE_EC_KEY_METHOD_NEW */
 	else
 		fatal("%s: unknown key type", __func__);
 }
@@ -238,9 +244,10 @@ wrap_key(struct sshkey *k)
 static int
 pkcs11_start_helper_methods(void)
 {
-	if (helper_ecdsa != NULL)
+	if (helper_rsa != NULL)
 		return (0);
 
+#ifdef HAVE_EC_KEY_METHOD_NEW
 	int (*orig_sign)(int, const unsigned char *, int, unsigned char *,
 	    unsigned int *, const BIGNUM *, const BIGNUM *, EC_KEY *) = NULL;
 	if (helper_ecdsa != NULL)
@@ -250,6 +257,7 @@ pkcs11_start_helper_methods(void)
 		return (-1);
 	EC_KEY_METHOD_get_sign(helper_ecdsa, &orig_sign, NULL, NULL);
 	EC_KEY_METHOD_set_sign(helper_ecdsa, orig_sign, NULL, ecdsa_do_sign);
+#endif /* HAVE_EC_KEY_METHOD_NEW */
 
 	if ((helper_rsa = RSA_meth_dup(RSA_get_default_method())) == NULL)
 		fatal("%s: RSA_meth_dup failed", __func__);
