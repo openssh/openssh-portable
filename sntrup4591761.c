@@ -1,26 +1,36 @@
 #include <string.h>
 #include "crypto_api.h"
 
-/* from supercop-20181216/crypto_sort/int32/portable3/int32_minmax.inc */
-#define int32_MINMAX(a,b) \
-do { \
-  int32 ab = b ^ a; \
-  int32 c = b - a; \
-  c ^= ab & (c ^ b); \
-  c >>= 31; \
-  c &= ab; \
-  a ^= c; \
-  b ^= c; \
-} while(0)
-
-/* from supercop-20181216/crypto_sort/int32/portable3/sort.c */
-#define int32 crypto_int32
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/int32_sort.h */
+#ifndef int32_sort_h
+#define int32_sort_h
 
 
-static void crypto_sort_int32(void *array,long long n)
+static void int32_sort(crypto_int32 *,int);
+
+#endif
+
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/int32_sort.c */
+/* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
+
+
+static void minmax(crypto_int32 *x,crypto_int32 *y)
 {
-  long long top,p,q,r,i;
-  int32 *x = array;
+  crypto_uint32 xi = *x;
+  crypto_uint32 yi = *y;
+  crypto_uint32 xy = xi ^ yi;
+  crypto_uint32 c = yi - xi;
+  c ^= xy & (c ^ yi);
+  c >>= 31;
+  c = -c;
+  c &= xy;
+  *x = xi ^ c;
+  *y = yi ^ c;
+}
+
+static void int32_sort(crypto_int32 *x,int n)
+{
+  int top,p,q,i;
 
   if (n < 2) return;
   top = 1;
@@ -29,22 +39,15 @@ static void crypto_sort_int32(void *array,long long n)
   for (p = top;p > 0;p >>= 1) {
     for (i = 0;i < n - p;++i)
       if (!(i & p))
-        int32_MINMAX(x[i],x[i+p]);
-    i = 0;
-    for (q = top;q > p;q >>= 1) {
-      for (;i < n - q;++i) {
-        if (!(i & p)) {
-          int32 a = x[i + p];
-          for (r = q;r > p;r >>= 1)
-            int32_MINMAX(a,x[i+r]);
-	  x[i + p] = a;
-	}
-      }
-    }
+        minmax(x + i,x + i + p);
+    for (q = top;q > p;q >>= 1)
+      for (i = 0;i < n - q;++i)
+        if (!(i & p))
+          minmax(x + i + p,x + i + q);
   }
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/small.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/small.h */
 #ifndef small_h
 #define small_h
 
@@ -62,7 +65,7 @@ static void small_random_weightw(small *);
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/mod3.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/mod3.h */
 #ifndef mod3_h
 #define mod3_h
 
@@ -122,7 +125,7 @@ static inline small mod3_quotient(small num,small den)
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/modq.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/modq.h */
 #ifndef modq_h
 #define modq_h
 
@@ -212,7 +215,7 @@ static inline modq modq_quotient(modq num,modq den)
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/params.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/params.h */
 #ifndef params_h
 #define params_h
 
@@ -228,7 +231,7 @@ static inline modq modq_quotient(modq num,modq den)
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/r3.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/r3.h */
 #ifndef r3_h
 #define r3_h
 
@@ -239,7 +242,7 @@ extern int r3_recip(small *,const small *);
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq.h */
 #ifndef rq_h
 #define rq_h
 
@@ -260,7 +263,7 @@ int rq_recip3(modq *,const small *);
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/swap.h */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/swap.h */
 #ifndef swap_h
 #define swap_h
 
@@ -268,7 +271,7 @@ static void swap(void *,void *,int,int);
 
 #endif
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/dec.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/dec.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 #ifdef KAT
@@ -334,7 +337,7 @@ int crypto_kem_sntrup4591761_dec(
   return result;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/enc.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/enc.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 #ifdef KAT
@@ -380,7 +383,7 @@ int crypto_kem_sntrup4591761_enc(
   return 0;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/keypair.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/keypair.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -416,7 +419,7 @@ int crypto_kem_sntrup4591761_keypair(unsigned char *pk,unsigned char *sk)
   return 0;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/r3_mult.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/r3_mult.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -448,7 +451,7 @@ static void r3_mult(small *h,const small *f,const small *g)
     h[i] = fg[i];
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/r3_recip.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/r3_recip.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -574,7 +577,7 @@ int r3_recip(small *r,const small *s)
   return smaller_mask_r3_recip(0,d);
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/randomsmall.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/randomsmall.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -588,7 +591,7 @@ static void small_random(small *g)
   }
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/randomweightw.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/randomweightw.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -600,11 +603,11 @@ static void small_random_weightw(small *f)
   for (i = 0;i < p;++i) r[i] = small_random32();
   for (i = 0;i < w;++i) r[i] &= -2;
   for (i = w;i < p;++i) r[i] = (r[i] & -3) | 1;
-  crypto_sort_int32(r,p);
+  int32_sort(r,p);
   for (i = 0;i < p;++i) f[i] = ((small) (r[i] & 3)) - 1;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -733,7 +736,7 @@ static void rq_decode(modq *f,const unsigned char *c)
   *f++ = modq_freeze(c0 + q - qshift);
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq_mult.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq_mult.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -765,7 +768,7 @@ static void rq_mult(modq *h,const modq *f,const small *g)
     h[i] = fg[i];
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq_recip3.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq_recip3.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -891,7 +894,7 @@ int rq_recip3(modq *r,const small *s)
   return smaller_mask_rq_recip3(0,d);
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq_round3.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq_round3.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -903,7 +906,7 @@ static void rq_round3(modq *h,const modq *f)
     h[i] = ((21846 * (f[i] + 2295) + 32768) >> 16) * 3 - 2295;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/rq_rounded.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/rq_rounded.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -1005,7 +1008,7 @@ static void rq_decoderounded(modq *f,const unsigned char *c)
   *f++ = modq_freeze(f1 * 3 + q - qshift);
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/small.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/small.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
@@ -1044,7 +1047,7 @@ static void small_decode(small *f,const unsigned char *c)
   *f++ = ((small) (c0 & 3)) - 1;
 }
 
-/* from supercop-20181216/crypto_kem/sntrup4591761/ref/swap.c */
+/* from libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/swap.c */
 /* See https://ntruprime.cr.yp.to/software.html for detailed documentation. */
 
 
