@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.11 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.12 2019/01/21 10:24:09 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -110,7 +110,7 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 		ssh->kex->kex[KEX_ECDH_SHA2] = kexecdh_server;
 # endif
 #endif /* WITH_OPENSSL */
-		ssh->kex->kex[KEX_C25519_SHA256] = kexc25519_server;
+		ssh->kex->kex[KEX_C25519_SHA256] = kex_kem_server;
 		ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_server;
 		ssh->kex->load_host_public_key=&_ssh_host_public_key;
 		ssh->kex->load_host_private_key=&_ssh_host_private_key;
@@ -128,7 +128,7 @@ ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 		ssh->kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
 # endif
 #endif /* WITH_OPENSSL */
-		ssh->kex->kex[KEX_C25519_SHA256] = kexc25519_client;
+		ssh->kex->kex[KEX_C25519_SHA256] = kex_kem_client;
 		ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_client;
 		ssh->kex->verify_host_key =&_ssh_verify_host_key;
 	}

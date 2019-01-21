@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.99 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.100 2019/01/21 10:24:09 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -210,6 +210,11 @@ int	 kexc25519_client(struct ssh *);
 int	 kexc25519_server(struct ssh *);
 int	 kex_kem_client(struct ssh *);
 int	 kex_kem_server(struct ssh *);
+
+int	 kex_c25519_keypair(struct kex *);
+int	 kex_c25519_enc(struct kex *, const u_char *, size_t, struct sshbuf **,
+    struct sshbuf **);
+int	 kex_c25519_dec(struct kex *, const u_char *, size_t, struct sshbuf **);
 
 int	 kex_kem_sntrup4591761x25519_keypair(struct kex *);
 int	 kex_kem_sntrup4591761x25519_enc(struct kex *, const u_char *, size_t,

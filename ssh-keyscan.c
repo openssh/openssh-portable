@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.121 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.122 2019/01/21 10:24:09 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -271,7 +271,7 @@ keygrab_ssh2(con *c)
 	c->c_ssh->kex->kex[KEX_ECDH_SHA2] = kexecdh_client;
 # endif
 #endif
-	c->c_ssh->kex->kex[KEX_C25519_SHA256] = kexc25519_client;
+	c->c_ssh->kex->kex[KEX_C25519_SHA256] = kex_kem_client;
 	c->c_ssh->kex->kex[KEX_KEM_SNTRUP4591761X25519_SHA512] = kex_kem_client;
 	ssh_set_verify_host_key_callback(c->c_ssh, key_print_wrapper);
 	/*

@@ -1,4 +1,4 @@
-/* $OpenBSD: kexkems.c,v 1.1 2019/01/21 10:20:12 djm Exp $ */
+/* $OpenBSD: kexkems.c,v 1.2 2019/01/21 10:24:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -68,8 +68,20 @@ input_kex_kem_init(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	/* compute shared secret */
-	if ((r = kex_kem_sntrup4591761x25519_enc(kex, client_pubkey, pklen,
-	    &server_pubkey, &shared_secret)) != 0)
+	switch (kex->kex_type) {
+	case KEX_C25519_SHA256:
+		r = kex_c25519_enc(kex, client_pubkey, pklen, &server_pubkey,
+		    &shared_secret);
+		break;
+	case KEX_KEM_SNTRUP4591761X25519_SHA512:
+		r = kex_kem_sntrup4591761x25519_enc(kex, client_pubkey, pklen,
+		    &server_pubkey, &shared_secret);
+		break;
+	default:
+		r = SSH_ERR_INVALID_ARGUMENT;
+		break;
+	}
+	if (r !=0 )
 		goto out;
 
 	/* calc H */
