@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhs.c,v 1.32 2019/01/21 09:55:52 djm Exp $ */
+/* $OpenBSD: kexdhs.c,v 1.33 2019/01/21 10:00:23 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -40,10 +40,10 @@
 #include "sshkey.h"
 #include "cipher.h"
 #include "digest.h"
+#include "dh.h"
 #include "kex.h"
 #include "log.h"
 #include "packet.h"
-#include "dh.h"
 #include "ssh2.h"
 
 #include "dispatch.h"
@@ -60,36 +60,11 @@ kexdh_server(struct ssh *ssh)
 	int r;
 
 	/* generate server DH public key */
-	switch (kex->kex_type) {
-	case KEX_DH_GRP1_SHA1:
-		kex->dh = dh_new_group1();
-		break;
-	case KEX_DH_GRP14_SHA1:
-	case KEX_DH_GRP14_SHA256:
-		kex->dh = dh_new_group14();
-		break;
-	case KEX_DH_GRP16_SHA512:
-		kex->dh = dh_new_group16();
-		break;
-	case KEX_DH_GRP18_SHA512:
-		kex->dh = dh_new_group18();
-		break;
-	default:
-		r = SSH_ERR_INVALID_ARGUMENT;
-		goto out;
-	}
-	if (kex->dh == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = dh_gen_key(kex->dh, kex->we_need * 8)) != 0)
-		goto out;
-
+	if ((r = kex_dh_keygen(kex)) != 0)
+		return r;
 	debug("expecting SSH2_MSG_KEXDH_INIT");
 	ssh_dispatch_set(ssh, SSH2_MSG_KEXDH_INIT, &input_kex_dh_init);
-	r = 0;
- out:
-	return r;
+	return 0;
 }
 
 int

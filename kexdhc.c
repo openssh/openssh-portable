@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdhc.c,v 1.26 2019/01/21 09:55:52 djm Exp $ */
+/* $OpenBSD: kexdhc.c,v 1.27 2019/01/21 10:00:23 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -41,10 +41,10 @@
 #include "sshkey.h"
 #include "cipher.h"
 #include "digest.h"
+#include "dh.h"
 #include "kex.h"
 #include "log.h"
 #include "packet.h"
-#include "dh.h"
 #include "ssh2.h"
 #include "dispatch.h"
 #include "compat.h"
@@ -61,31 +61,9 @@ kexdh_client(struct ssh *ssh)
 	const BIGNUM *pub_key;
 
 	/* generate and send 'e', client DH public key */
-	switch (kex->kex_type) {
-	case KEX_DH_GRP1_SHA1:
-		kex->dh = dh_new_group1();
-		break;
-	case KEX_DH_GRP14_SHA1:
-	case KEX_DH_GRP14_SHA256:
-		kex->dh = dh_new_group14();
-		break;
-	case KEX_DH_GRP16_SHA512:
-		kex->dh = dh_new_group16();
-		break;
-	case KEX_DH_GRP18_SHA512:
-		kex->dh = dh_new_group18();
-		break;
-	default:
-		r = SSH_ERR_INVALID_ARGUMENT;
+	if ((r = kex_dh_keygen(kex)) != 0)
 		goto out;
-	}
-	if (kex->dh == NULL) {
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
 	debug("sending SSH2_MSG_KEXDH_INIT");
-	if ((r = dh_gen_key(kex->dh, kex->we_need * 8)) != 0)
-		goto out;
 	DH_get0_key(kex->dh, &pub_key, NULL);
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEXDH_INIT)) != 0 ||
 	    (r = sshpkt_put_bignum2(ssh, pub_key)) != 0 ||

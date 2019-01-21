@@ -1,4 +1,4 @@
-/* $OpenBSD: kexdh.c,v 1.27 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: kexdh.c,v 1.28 2019/01/21 10:00:23 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -39,9 +39,35 @@
 #include "sshkey.h"
 #include "cipher.h"
 #include "kex.h"
+#include "dh.h"
 #include "ssherr.h"
 #include "sshbuf.h"
 #include "digest.h"
+
+int
+kex_dh_keygen(struct kex *kex)
+{
+	switch (kex->kex_type) {
+	case KEX_DH_GRP1_SHA1:
+		kex->dh = dh_new_group1();
+		break;
+	case KEX_DH_GRP14_SHA1:
+	case KEX_DH_GRP14_SHA256:
+		kex->dh = dh_new_group14();
+		break;
+	case KEX_DH_GRP16_SHA512:
+		kex->dh = dh_new_group16();
+		break;
+	case KEX_DH_GRP18_SHA512:
+		kex->dh = dh_new_group18();
+		break;
+	default:
+		return SSH_ERR_INVALID_ARGUMENT;
+	}
+	if (kex->dh == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	return (dh_gen_key(kex->dh, kex->we_need * 8));
+}
 
 int
 kex_dh_hash(
