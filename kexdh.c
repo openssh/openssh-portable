@@ -34,7 +34,7 @@
 #include <string.h>
 
 #include "openbsd-compat/openssl-compat.h"
-#include <openssh/dh.h>
+#include <openssl/dh.h>
 
 #include "sshkey.h"
 #include "kex.h"
