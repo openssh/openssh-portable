@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.149 2019/01/21 10:40:11 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.150 2019/01/21 12:08:13 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -1039,7 +1039,7 @@ kex_derive_keys(struct ssh *ssh, u_char *hash, u_int hashlen,
 }
 
 int
-kex_load_hostkey(struct ssh *ssh, struct sshkey **pubp, struct sshkey **prvp)
+kex_load_hostkey(struct ssh *ssh, struct sshkey **prvp, struct sshkey **pubp)
 {
 	struct kex *kex = ssh->kex;
 
