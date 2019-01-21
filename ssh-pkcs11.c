@@ -190,7 +190,7 @@ pkcs11_del_provider(char *provider_id)
 
 static RSA_METHOD *rsa_method;
 static int rsa_idx = 0;
-#ifdef EC_KEY_METHOD_NEW
+#ifdef HAVE_EC_KEY_METHOD_NEW
 static EC_KEY_METHOD *ec_key_method;
 static int ec_key_idx = 0;
 #endif
