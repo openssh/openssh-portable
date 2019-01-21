@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.295 2019/01/19 21:40:21 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.296 2019/01/21 01:05:00 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -826,7 +826,7 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 	    oidv[0] != SSH_GSS_OIDTYPE ||
 	    oidv[1] != oidlen - 2) {
 		debug("Badly encoded mechanism OID received");
-		userauth(authctxt, NULL);
+		userauth(ssh, NULL);
 		goto ok;
 	}
 
@@ -839,7 +839,7 @@ input_gssapi_response(int type, u_int32_t plen, struct ssh *ssh)
 	if (GSS_ERROR(process_gssapi_token(ssh, GSS_C_NO_BUFFER))) {
 		/* Start again with next method on list */
 		debug("Trying to start again");
-		userauth(authctxt, NULL);
+		userauth(ssh, NULL);
 		goto ok;
 	}
  ok:
@@ -873,7 +873,7 @@ input_gssapi_token(int type, u_int32_t plen, struct ssh *ssh)
 
 	/* Start again with the next method in the list */
 	if (GSS_ERROR(status)) {
-		userauth(authctxt, NULL);
+		userauth(ssh, NULL);
 		/* ok */
 	}
 	r = 0;
