@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.40 2019/01/22 12:00:50 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.41 2019/01/22 12:03:58 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -620,26 +620,36 @@ static int
 pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin,
     CK_ULONG user)
 {
-	CK_RV			rv;
+	struct pkcs11_slotinfo	*si;
 	CK_FUNCTION_LIST	*f;
+	CK_RV			rv;
 	CK_SESSION_HANDLE	session;
-	int			login_required, ret;
+	int			login_required, have_pinpad, ret;
 
 	f = p->function_list;
-	login_required = p->slotinfo[slotidx].token.flags & CKF_LOGIN_REQUIRED;
-	if (pin && login_required && !strlen(pin)) {
+	si = &p->slotinfo[slotidx];
+
+	have_pinpad = si->token.flags & CKF_PROTECTED_AUTHENTICATION_PATH;
+	login_required = si->token.flags & CKF_LOGIN_REQUIRED;
+
+	/* fail early before opening session */
+	if (login_required && !have_pinpad && pin != NULL && strlen(pin) == 0) {
 		error("pin required");
 		return (-SSH_PKCS11_ERR_PIN_REQUIRED);
 	}
 	if ((rv = f->C_OpenSession(p->slotlist[slotidx], CKF_RW_SESSION|
-	    CKF_SERIAL_SESSION, NULL, NULL, &session))
-	    != CKR_OK) {
+	    CKF_SERIAL_SESSION, NULL, NULL, &session)) != CKR_OK) {
 		error("C_OpenSession failed: %lu", rv);
 		return (-1);
 	}
-	if (login_required && pin) {
-		rv = f->C_Login(session, user,
-		    (u_char *)pin, strlen(pin));
+	if (login_required) {
+		if (have_pinpad && (pin == NULL || strlen(pin) == 0)) {
+			/* defer PIN entry to the reader keypad */
+			rv = f->C_Login(session, CKU_USER, NULL_PTR, 0);
+		} else {
+			rv = f->C_Login(session, CKU_USER,
+			    (u_char *)pin, strlen(pin));
+		}
 		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
 			error("C_Login failed: %lu", rv);
 			ret = (rv == CKR_PIN_LOCKED) ?
@@ -649,9 +659,9 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin,
 				error("C_CloseSession failed: %lu", rv);
 			return (ret);
 		}
-		p->slotinfo[slotidx].logged_in = 1;
+		si->logged_in = 1;
 	}
-	p->slotinfo[slotidx].session = session;
+	si->session = session;
 	return (0);
 }
 
