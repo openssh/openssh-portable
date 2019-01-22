@@ -8,9 +8,9 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.83 2019/01/21 23:55:12 tb Exp $
+.\" $OpenBSD: scp.1,v 1.84 2019/01/22 06:58:31 jmc Exp $
 .\"
-.Dd $Mdocdate: January 21 2019 $
+.Dd $Mdocdate: January 22 2019 $
 .Dt SCP 1
 .Os
 .Sh NAME
@@ -21,8 +21,8 @@
 .Op Fl 346BCpqrv
 .Op Fl c Ar cipher
 .Op Fl F Ar ssh_config
-.Op Fl J Ar destination
 .Op Fl i Ar identity_file
+.Op Fl J Ar destination
 .Op Fl l Ar limit
 .Op Fl o Ar ssh_option
 .Op Fl P Ar port
@@ -108,7 +108,7 @@ authentication is read.
 This option is directly passed to
 .Xr ssh 1 .
 .It Fl J Ar destination
-Connect to the target host by first making a
+Connect to the target host by first making an
 .Nm
 connection to the jump host described by
 .Ar destination
