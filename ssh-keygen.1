@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.154 2019/01/22 11:19:42 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.155 2019/01/22 11:40:42 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -50,11 +50,13 @@
 .Op Fl N Ar new_passphrase
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
+.Op Fl m Ar format
 .Nm ssh-keygen
 .Fl p
 .Op Fl P Ar old_passphrase
 .Op Fl N Ar new_passphrase
 .Op Fl f Ar keyfile
+.Op Fl m Ar format
 .Nm ssh-keygen
 .Fl i
 .Op Fl m Ar key_format
@@ -404,11 +406,15 @@ fingerprint.
 Specify the amount of memory to use (in megabytes) when generating
 candidate moduli for DH-GEX.
 .It Fl m Ar key_format
-Specify a key format for the
+Specify a key format for key generation, the
 .Fl i
-(import) or
+(import),
 .Fl e
-(export) conversion options.
+(export) conversion options, and the
+.Fl p
+change passphrase operation.
+The latter may be used to convert between OpenSSH private key and PEM
+private key formats.
 The supported key formats are:
 .Dq RFC4716
 (RFC 4716/SSH2 public or private key),
