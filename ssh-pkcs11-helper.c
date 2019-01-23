@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.16 2019/01/21 12:53:35 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.17 2019/01/23 02:01:10 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -24,10 +24,11 @@
 
 #include "openbsd-compat/sys-queue.h"
 
+#include <errno.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include "xmalloc.h"
 #include "sshbuf.h"
@@ -311,14 +312,13 @@ cleanup_exit(int i)
 int
 main(int argc, char **argv)
 {
-	fd_set *rset, *wset;
 	int r, ch, in, out, max, log_stderr = 0;
-	ssize_t len, olen, set_size;
+	ssize_t len;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
 	char buf[4*4096];
-
 	extern char *__progname;
+	struct pollfd pfd[2];
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	__progname = ssh_get_progname(argv[0]);
@@ -360,13 +360,10 @@ main(int argc, char **argv)
 	if ((oqueue = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 
-	set_size = howmany(max + 1, NFDBITS) * sizeof(fd_mask);
-	rset = xmalloc(set_size);
-	wset = xmalloc(set_size);
-
-	for (;;) {
-		memset(rset, 0, set_size);
-		memset(wset, 0, set_size);
+	while (1) {
+		memset(pfd, 0, sizeof(pfd));
+		pfd[0].fd = in;
+		pfd[1].fd = out;
 
 		/*
 		 * Ensure that we can read a full buffer and handle
@@ -375,23 +372,21 @@ main(int argc, char **argv)
 		 */
 		if ((r = sshbuf_check_reserve(iqueue, sizeof(buf))) == 0 &&
 		    (r = sshbuf_check_reserve(oqueue, MAX_MSG_LENGTH)) == 0)
-			FD_SET(in, rset);
+			pfd[0].events = POLLIN;
 		else if (r != SSH_ERR_NO_BUFFER_SPACE)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-		olen = sshbuf_len(oqueue);
-		if (olen > 0)
-			FD_SET(out, wset);
+		if (sshbuf_len(oqueue) > 0)
+			pfd[1].events = POLLOUT;
 
-		if (select(max+1, rset, wset, NULL, NULL) < 0) {
-			if (errno == EINTR)
+		if ((r = poll(pfd, 2, -1 /* INFTIM */)) <= 0) {
+			if (r == 0 || errno == EINTR)
 				continue;
-			error("select: %s", strerror(errno));
-			cleanup_exit(2);
+			fatal("poll: %s", strerror(errno));
 		}
 
 		/* copy stdin to iqueue */
-		if (FD_ISSET(in, rset)) {
+		if ((pfd[0].revents & (POLLIN|POLLERR)) != 0) {
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
 				debug("read eof");
@@ -405,8 +400,9 @@ main(int argc, char **argv)
 			}
 		}
 		/* send oqueue to stdout */
-		if (FD_ISSET(out, wset)) {
-			len = write(out, sshbuf_ptr(oqueue), olen);
+		if ((pfd[1].revents & (POLLOUT|POLLHUP)) != 0) {
+			len = write(out, sshbuf_ptr(oqueue),
+			    sshbuf_len(oqueue));
 			if (len < 0) {
 				error("write: %s", strerror(errno));
 				cleanup_exit(1);
