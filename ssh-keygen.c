@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.325 2019/01/23 04:16:22 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.326 2019/01/23 04:51:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1645,7 +1645,8 @@ agent_signer(const struct sshkey *key, u_char **sigp, size_t *lenp,
 
 static void
 do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
-    unsigned long long cert_serial, int argc, char **argv)
+    unsigned long long cert_serial, int cert_serial_autoinc,
+    int argc, char **argv)
 {
 	int r, i, fd, found, agent_fd = -1;
 	u_int n;
@@ -1785,6 +1786,8 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 
 		sshkey_free(public);
 		free(out);
+		if (cert_serial_autoinc)
+			cert_serial++;
 	}
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
@@ -2414,7 +2417,7 @@ main(int argc, char **argv)
 	int find_host = 0, delete_host = 0, hash_hosts = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
-	int print_public = 0, print_generic = 0;
+	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
 	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL;
 	u_int bits = 0;
@@ -2610,6 +2613,10 @@ main(int argc, char **argv)
 			break;
 		case 'z':
 			errno = 0;
+			if (*optarg == '+') {
+				cert_serial_autoinc = 1;
+				optarg++;
+			}
 			cert_serial = strtoull(optarg, &ep, 10);
 			if (*optarg < '0' || *optarg > '9' || *ep != '\0' ||
 			    (errno == ERANGE && cert_serial == ULLONG_MAX))
@@ -2700,8 +2707,8 @@ main(int argc, char **argv)
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");
-		do_ca_sign(pw, ca_key_path, prefer_agent, cert_serial,
-		    argc, argv);
+		do_ca_sign(pw, ca_key_path, prefer_agent,
+		    cert_serial, cert_serial_autoinc, argc, argv);
 	}
 	if (show_cert)
 		do_show_cert(pw);
