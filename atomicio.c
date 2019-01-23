@@ -57,9 +57,11 @@ atomicio6(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n,
 	ssize_t res;
 	struct pollfd pfd;
 
-#ifndef BROKEN_READ_COMPARISON
 	pfd.fd = fd;
+#ifndef BROKEN_READ_COMPARISON
 	pfd.events = f == read ? POLLIN : POLLOUT;
+#else
+	pfd.events = POLLIN|POLLOUT;
 #endif
 	while (n > pos) {
 		res = (f) (fd, s + pos, n - pos);
@@ -68,9 +70,7 @@ atomicio6(ssize_t (*f) (int, void *, size_t), int fd, void *_s, size_t n,
 			if (errno == EINTR)
 				continue;
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-#ifndef BROKEN_READ_COMPARISON
 				(void)poll(&pfd, 1, -1);
-#endif
 				continue;
 			}
 			return 0;
@@ -114,9 +114,11 @@ atomiciov6(ssize_t (*f) (int, const struct iovec *, int), int fd,
 	/* Make a copy of the iov array because we may modify it below */
 	memcpy(iov, _iov, (size_t)iovcnt * sizeof(*_iov));
 
-#ifndef BROKEN_READV_COMPARISON
 	pfd.fd = fd;
+#ifndef BROKEN_READV_COMPARISON
 	pfd.events = f == readv ? POLLIN : POLLOUT;
+#else
+	pfd.events = POLLIN|POLLOUT;
 #endif
 	for (; iovcnt > 0 && iov[0].iov_len > 0;) {
 		res = (f) (fd, iov, iovcnt);
@@ -125,9 +127,7 @@ atomiciov6(ssize_t (*f) (int, const struct iovec *, int), int fd,
 			if (errno == EINTR)
 				continue;
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-#ifndef BROKEN_READV_COMPARISON
 				(void)poll(&pfd, 1, -1);
-#endif
 				continue;
 			}
 			return 0;
