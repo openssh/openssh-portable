@@ -64,6 +64,26 @@ struct timeval {
 int utimes(char *, struct timeval *);
 #endif /* HAVE_UTIMES */
 
+#ifndef HAVE_UTIMENSAT
+/* start with the high bits and work down to minimise risk of overlap */
+# ifndef AT_SYMLINK_NOFOLLOW
+#  define AT_SYMLINK_NOFOLLOW 0x80000000
+# endif
+int utimensat(int, const char *, const struct timespec[2], int);
+#endif
+
+#ifndef AT_FDCWD
+# define AT_FDCWD (-2)
+#endif
+
+#ifndef HAVE_FCHMODAT
+int fchmodat(int, const char *, mode_t, int);
+#endif
+
+#ifndef HAVE_FCHOWNAT
+int fchownat(int, const char *, uid_t, gid_t, int);
+#endif
+
 #ifndef HAVE_TRUNCATE
 int truncate (const char *, off_t);
 #endif /* HAVE_TRUNCATE */
@@ -93,12 +113,6 @@ int tcsendbreak(int, int);
 #ifndef HAVE_UNSETENV
 int unsetenv(const char *);
 #endif
-
-/* wrapper for signal interface */
-typedef void (*mysig_t)(int);
-mysig_t mysignal(int sig, mysig_t act);
-
-#define signal(a,b) mysignal(a,b)
 
 #ifndef HAVE_ISBLANK
 int	isblank(int);
@@ -137,6 +151,30 @@ void warn(const char *, ...) __attribute__((format(printf, 1, 2)));
 
 #ifndef HAVE_LLABS
 long long llabs(long long);
+#endif
+
+#if defined(HAVE_DECL_BZERO) && HAVE_DECL_BZERO == 0
+void bzero(void *, size_t);
+#endif
+
+#ifndef HAVE_RAISE
+int raise(int);
+#endif
+
+#ifndef HAVE_GETSID
+pid_t getsid(pid_t);
+#endif
+
+#ifndef HAVE_FLOCK
+# define LOCK_SH		0x01
+# define LOCK_EX		0x02
+# define LOCK_NB		0x04
+# define LOCK_UN		0x08
+int flock(int, int);
+#endif
+
+#ifdef FFLUSH_NULL_BUG
+# define fflush(x)	(_ssh_compat_fflush(x))
 #endif
 
 #endif /* _BSD_MISC_H */

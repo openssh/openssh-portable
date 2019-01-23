@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-none.c,v 1.20 2017/05/30 14:29:59 markus Exp $ */
+/* $OpenBSD: auth2-none.c,v 1.22 2018/07/09 21:35:50 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -42,7 +42,6 @@
 #include "auth.h"
 #include "packet.h"
 #include "log.h"
-#include "buffer.h"
 #include "misc.h"
 #include "servconf.h"
 #include "compat.h"
@@ -68,7 +67,7 @@ userauth_none(struct ssh *ssh)
 	if ((r = sshpkt_get_end(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
 	if (options.permit_empty_passwd && options.password_authentication)
-		return (PRIVSEP(auth_password(ssh->authctxt, "")));
+		return (PRIVSEP(auth_password(ssh, "")));
 	return (0);
 }
 

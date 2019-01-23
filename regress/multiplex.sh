@@ -1,7 +1,8 @@
-#	$OpenBSD: multiplex.sh,v 1.28 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.29 2019/01/01 22:20:16 djm Exp $
 #	Placed in the Public Domain.
 
-CTL=/tmp/openssh.regress.ctl-sock.$$
+make_tmpdir
+CTL=${SSH_REGRESS_TMP}/ctl-sock
 
 tid="connection multiplexing"
 
@@ -141,7 +142,8 @@ ${SSH} -F $OBJ/ssh_config -p$P otherhost true \
 verbose "test $tid: cmd forward local (UNIX)"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "request local forward failed"
-echo "" | $NC -U $OBJ/unix-1.fwd | grep "Protocol mismatch" >/dev/null 2>&1 \
+echo "" | $NC -U $OBJ/unix-1.fwd | \
+    grep "Invalid SSH identification string" >/dev/null 2>&1 \
      || fail "connect to local forward path failed"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -L $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "cancel local forward failed"
@@ -152,7 +154,8 @@ rm -f $OBJ/unix-1.fwd
 verbose "test $tid: cmd forward remote (UNIX)"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "request remote forward failed"
-echo "" | $NC -U $OBJ/unix-1.fwd | grep "Protocol mismatch" >/dev/null 2>&1 \
+echo "" | $NC -U $OBJ/unix-1.fwd | \
+    grep "Invalid SSH identification string" >/dev/null 2>&1 \
      || fail "connect to remote forwarded path failed"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -R $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "cancel remote forward failed"

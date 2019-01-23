@@ -26,12 +26,12 @@
 
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef SSH_AUDIT_EVENTS
 
 #include "audit.h"
 #include "log.h"
-#include "key.h"
 #include "hostfile.h"
 #include "auth.h"
 
@@ -131,7 +131,7 @@ audit_connection_from(const char *host, int port)
  * events and what they mean).
  */
 void
-audit_event(ssh_audit_event_t event)
+audit_event(struct ssh *ssh, ssh_audit_event_t event)
 {
 	debug("audit event euid %d user %s event %d (%s)", geteuid(),
 	    audit_username(), event, audit_event_lookup(event));

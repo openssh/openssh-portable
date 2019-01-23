@@ -24,6 +24,8 @@
 
 #include "includes.h"
 
+#define RANDOM_SEED_SIZE 48
+
 #ifdef WITH_OPENSSL
 
 #include <sys/types.h>
@@ -53,7 +55,8 @@
 #include "atomicio.h"
 #include "pathnames.h"
 #include "log.h"
-#include "buffer.h"
+#include "sshbuf.h"
+#include "ssherr.h"
 
 /*
  * Portable OpenSSH PRNG seeding:
@@ -62,8 +65,6 @@
  * PRNGd.
  */
 #ifndef OPENSSL_PRNG_ONLY
-
-#define RANDOM_SEED_SIZE 48
 
 /*
  * Collect 'len' bytes of entropy into 'buf' from PRNGD/EGD daemon
@@ -108,7 +109,7 @@ get_random_bytes_prngd(unsigned char *buf, int len,
 		    strlen(socket_path) + 1;
 	}
 
-	old_sigpipe = mysignal(SIGPIPE, SIG_IGN);
+	old_sigpipe = signal(SIGPIPE, SIG_IGN);
 
 	errors = 0;
 	rval = -1;
@@ -158,7 +159,7 @@ reopen:
 
 	rval = 0;
 done:
-	mysignal(SIGPIPE, old_sigpipe);
+	signal(SIGPIPE, old_sigpipe);
 	if (fd != -1)
 		close(fd);
 	return rval;
@@ -181,64 +182,80 @@ seed_from_prngd(unsigned char *buf, size_t bytes)
 }
 
 void
-rexec_send_rng_seed(Buffer *m)
+rexec_send_rng_seed(struct sshbuf *m)
 {
 	u_char buf[RANDOM_SEED_SIZE];
+	size_t len = sizeof(buf);
+	int r;
 
 	if (RAND_bytes(buf, sizeof(buf)) <= 0) {
 		error("Couldn't obtain random bytes (error %ld)",
 		    ERR_get_error());
-		buffer_put_string(m, "", 0);
-	} else 
-		buffer_put_string(m, buf, sizeof(buf));
+		len = 0;
+	}
+	if ((r = sshbuf_put_string(m, buf, len)) != 0)
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	explicit_bzero(buf, sizeof(buf));
 }
 
 void
-rexec_recv_rng_seed(Buffer *m)
+rexec_recv_rng_seed(struct sshbuf *m)
 {
-	u_char *buf;
-	u_int len;
+	u_char *buf = NULL;
+	size_t len = 0;
+	int r;
 
-	buf = buffer_get_string_ret(m, &len);
-	if (buf != NULL) {
-		debug3("rexec_recv_rng_seed: seeding rng with %u bytes", len);
-		RAND_add(buf, len, len);
-	}
+	if ((r = sshbuf_get_string_direct(m, &buf, &len)) != 0
+		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+
+	debug3("rexec_recv_rng_seed: seeding rng with %u bytes", len);
+	RAND_add(buf, len, len);
 }
 #endif /* OPENSSL_PRNG_ONLY */
 
 void
 seed_rng(void)
 {
-#ifndef OPENSSL_PRNG_ONLY
 	unsigned char buf[RANDOM_SEED_SIZE];
-#endif
-	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER, SSLeay()))
+
+	/* Initialise libcrypto */
+	ssh_libcrypto_init();
+
+	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER,
+	    OpenSSL_version_num()))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
-		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
+		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER,
+		    OpenSSL_version_num());
 
 #ifndef OPENSSL_PRNG_ONLY
-	if (RAND_status() == 1) {
+	if (RAND_status() == 1)
 		debug3("RNG is ready, skipping seeding");
-		return;
+	else {
+		if (seed_from_prngd(buf, sizeof(buf)) == -1)
+			fatal("Could not obtain seed from PRNGd");
+		RAND_add(buf, sizeof(buf), sizeof(buf));
 	}
-
-	if (seed_from_prngd(buf, sizeof(buf)) == -1)
-		fatal("Could not obtain seed from PRNGd");
-	RAND_add(buf, sizeof(buf), sizeof(buf));
-	memset(buf, '\0', sizeof(buf));
-
 #endif /* OPENSSL_PRNG_ONLY */
+
 	if (RAND_status() != 1)
 		fatal("PRNG is not seeded");
+
+	/* Ensure arc4random() is primed */
+	arc4random_buf(buf, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 }
 
 #else /* WITH_OPENSSL */
 
-/* Handled in arc4random() */
+/* Acutal initialisation is handled in arc4random() */
 void
 seed_rng(void)
 {
+	unsigned char buf[RANDOM_SEED_SIZE];
+
+	/* Ensure arc4random() is primed */
+	arc4random_buf(buf, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 }
 
 #endif /* WITH_OPENSSL */

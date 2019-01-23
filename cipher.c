@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.107 2017/05/07 23:12:57 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.111 2018/02/23 15:58:37 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -82,7 +82,9 @@ struct sshcipher {
 
 static const struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL
+#ifndef OPENSSL_NO_DES
 	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
+#endif
 	{ "aes128-cbc",		16, 16, 0, 0, CFLAG_CBC, EVP_aes_128_cbc },
 	{ "aes192-cbc",		16, 24, 0, 0, CFLAG_CBC, EVP_aes_192_cbc },
 	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },
@@ -310,8 +312,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 	} else {
 		if (cc != NULL) {
 #ifdef WITH_OPENSSL
-			if (cc->evp != NULL)
-				EVP_CIPHER_CTX_free(cc->evp);
+			EVP_CIPHER_CTX_free(cc->evp);
 #endif /* WITH_OPENSSL */
 			explicit_bzero(cc, sizeof(*cc));
 			free(cc);
@@ -402,7 +403,7 @@ cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
 		    cp, len);
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
-	*plenp = get_u32(cp);
+	*plenp = PEEK_U32(cp);
 	return 0;
 }
 
@@ -416,10 +417,8 @@ cipher_free(struct sshcipher_ctx *cc)
 	else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));
 #ifdef WITH_OPENSSL
-	if (cc->evp != NULL) {
-		EVP_CIPHER_CTX_free(cc->evp);
-		cc->evp = NULL;
-	}
+	EVP_CIPHER_CTX_free(cc->evp);
+	cc->evp = NULL;
 #endif
 	explicit_bzero(cc, sizeof(*cc));
 	free(cc);
@@ -447,11 +446,11 @@ cipher_get_keyiv_len(const struct sshcipher_ctx *cc)
 }
 
 int
-cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
+cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, size_t len)
 {
-	const struct sshcipher *c = cc->cipher;
 #ifdef WITH_OPENSSL
- 	int evplen;
+	const struct sshcipher *c = cc->cipher;
+	int evplen;
 #endif
 
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
@@ -474,7 +473,7 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 		return 0;
 	else if (evplen < 0)
 		return SSH_ERR_LIBCRYPTO_ERROR;
-	if ((u_int)evplen != len)
+	if ((size_t)evplen != len)
 		return SSH_ERR_INVALID_ARGUMENT;
 #ifndef OPENSSL_HAVE_EVPCTR
 	if (c->evptype == evp_aes_128_ctr)
@@ -485,18 +484,18 @@ cipher_get_keyiv(struct sshcipher_ctx *cc, u_char *iv, u_int len)
 		if (!EVP_CIPHER_CTX_ctrl(cc->evp, EVP_CTRL_GCM_IV_GEN,
 		   len, iv))
 		       return SSH_ERR_LIBCRYPTO_ERROR;
-	} else
-		memcpy(iv, cc->evp->iv, len);
+	} else if (!EVP_CIPHER_CTX_get_iv(cc->evp, iv, len))
+	       return SSH_ERR_LIBCRYPTO_ERROR;
 #endif
 	return 0;
 }
 
 int
-cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
+cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv, size_t len)
 {
-	const struct sshcipher *c = cc->cipher;
 #ifdef WITH_OPENSSL
- 	int evplen = 0;
+	const struct sshcipher *c = cc->cipher;
+	int evplen = 0;
 #endif
 
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
@@ -508,6 +507,8 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 	evplen = EVP_CIPHER_CTX_iv_length(cc->evp);
 	if (evplen <= 0)
 		return SSH_ERR_LIBCRYPTO_ERROR;
+	if ((size_t)evplen != len)
+		return SSH_ERR_INVALID_ARGUMENT;
 #ifndef OPENSSL_HAVE_EVPCTR
 	/* XXX iv arg is const, but ssh_aes_ctr_iv isn't */
 	if (c->evptype == evp_aes_128_ctr)
@@ -519,46 +520,8 @@ cipher_set_keyiv(struct sshcipher_ctx *cc, const u_char *iv)
 		if (!EVP_CIPHER_CTX_ctrl(cc->evp,
 		    EVP_CTRL_GCM_SET_IV_FIXED, -1, (void *)iv))
 			return SSH_ERR_LIBCRYPTO_ERROR;
-	} else
-		memcpy(cc->evp->iv, iv, evplen);
+	} else if (!EVP_CIPHER_CTX_set_iv(cc->evp, iv, evplen))
+		return SSH_ERR_LIBCRYPTO_ERROR;
 #endif
 	return 0;
-}
-
-#ifdef WITH_OPENSSL
-#define EVP_X_STATE(evp)	(evp)->cipher_data
-#define EVP_X_STATE_LEN(evp)	(evp)->cipher->ctx_size
-#endif
-
-int
-cipher_get_keycontext(const struct sshcipher_ctx *cc, u_char *dat)
-{
-#if defined(WITH_OPENSSL) && !defined(OPENSSL_NO_RC4)
-	const struct sshcipher *c = cc->cipher;
-	int plen = 0;
-
-	if (c->evptype == EVP_rc4) {
-		plen = EVP_X_STATE_LEN(cc->evp);
-		if (dat == NULL)
-			return (plen);
-		memcpy(dat, EVP_X_STATE(cc->evp), plen);
-	}
-	return (plen);
-#else
-	return 0;
-#endif
-}
-
-void
-cipher_set_keycontext(struct sshcipher_ctx *cc, const u_char *dat)
-{
-#if defined(WITH_OPENSSL) && !defined(OPENSSL_NO_RC4)
-	const struct sshcipher *c = cc->cipher;
-	int plen;
-
-	if (c->evptype == EVP_rc4) {
-		plen = EVP_X_STATE_LEN(cc->evp);
-		memcpy(EVP_X_STATE(cc->evp), dat, plen);
-	}
-#endif
 }

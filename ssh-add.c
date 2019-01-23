@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.133 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.138 2019/01/21 12:53:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -78,6 +78,7 @@ static char *default_files[] = {
 #endif
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
+	_PATH_SSH_CLIENT_ID_XMSS,
 	NULL
 };
 
@@ -88,6 +89,10 @@ static int lifetime = 0;
 
 /* User has to confirm key use */
 static int confirm = 0;
+
+/* Maximum number of signatures (XMSS) */
+static u_int maxsign = 0;
+static u_int minleft = 0;
 
 /* we keep a cache of one passphrase */
 static char *pass = NULL;
@@ -102,7 +107,7 @@ clear_pass(void)
 }
 
 static int
-delete_file(int agent_fd, const char *filename, int key_only)
+delete_file(int agent_fd, const char *filename, int key_only, int qflag)
 {
 	struct sshkey *public, *cert = NULL;
 	char *certpath = NULL, *comment = NULL;
@@ -113,7 +118,10 @@ delete_file(int agent_fd, const char *filename, int key_only)
 		return -1;
 	}
 	if ((r = ssh_remove_identity(agent_fd, public)) == 0) {
-		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
+		if (!qflag) {
+			fprintf(stderr, "Identity removed: %s (%s)\n",
+			    filename, comment);
+		}
 		ret = 0;
 	} else
 		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
@@ -138,8 +146,10 @@ delete_file(int agent_fd, const char *filename, int key_only)
 		    certpath, filename);
 
 	if ((r = ssh_remove_identity(agent_fd, cert)) == 0) {
-		fprintf(stderr, "Identity removed: %s (%s)\n", certpath,
-		    comment);
+		if (!qflag) {
+			fprintf(stderr, "Identity removed: %s (%s)\n",
+			    certpath, comment);
+		}
 		ret = 0;
 	} else
 		fprintf(stderr, "Could not remove identity \"%s\": %s\n",
@@ -156,7 +166,7 @@ delete_file(int agent_fd, const char *filename, int key_only)
 
 /* Send a request to remove all identities. */
 static int
-delete_all(int agent_fd)
+delete_all(int agent_fd, int qflag)
 {
 	int ret = -1;
 
@@ -170,22 +180,25 @@ delete_all(int agent_fd)
 	/* ignore error-code for ssh1 */
 	ssh_remove_all_identities(agent_fd, 1);
 
-	if (ret == 0)
-		fprintf(stderr, "All identities removed.\n");
-	else
+	if (ret != 0)
 		fprintf(stderr, "Failed to remove all identities.\n");
+	else if (!qflag)
+		fprintf(stderr, "All identities removed.\n");
 
 	return ret;
 }
 
 static int
-add_file(int agent_fd, const char *filename, int key_only)
+add_file(int agent_fd, const char *filename, int key_only, int qflag)
 {
 	struct sshkey *private, *cert;
 	char *comment = NULL;
 	char msg[1024], *certpath = NULL;
 	int r, fd, ret = -1;
+	size_t i;
+	u_int32_t left;
 	struct sshbuf *keyblob;
+	struct ssh_identitylist *idlist;
 
 	if (strcmp(filename, "-") == 0) {
 		fd = STDIN_FILENO;
@@ -263,16 +276,53 @@ add_file(int agent_fd, const char *filename, int key_only)
 		comment = xstrdup(filename);
 	sshbuf_free(keyblob);
 
+	/* For XMSS */
+	if ((r = sshkey_set_filename(private, filename)) != 0) {
+		fprintf(stderr, "Could not add filename to private key: %s (%s)\n",
+		    filename, comment);
+		goto out;
+	}
+	if (maxsign && minleft &&
+	    (r = ssh_fetch_identitylist(agent_fd, &idlist)) == 0) {
+		for (i = 0; i < idlist->nkeys; i++) {
+			if (!sshkey_equal_public(idlist->keys[i], private))
+				continue;
+			left = sshkey_signatures_left(idlist->keys[i]);
+			if (left < minleft) {
+				fprintf(stderr,
+				    "Only %d signatures left.\n", left);
+				break;
+			}
+			fprintf(stderr, "Skipping update: ");
+			if (left == minleft) {
+				fprintf(stderr,
+				   "required signatures left (%d).\n", left);
+			} else {
+				fprintf(stderr,
+				   "more signatures left (%d) than"
+				    " required (%d).\n", left, minleft);
+			}
+			ssh_free_identitylist(idlist);
+			goto out;
+		}
+		ssh_free_identitylist(idlist);
+	}
+
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm)) == 0) {
-		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
+	    lifetime, confirm, maxsign)) == 0) {
 		ret = 0;
-		if (lifetime != 0)
-			fprintf(stderr,
-			    "Lifetime set to %d seconds\n", lifetime);
-		if (confirm != 0)
-			fprintf(stderr,
-			    "The user must confirm each use of the key\n");
+		if (!qflag) {
+			fprintf(stderr, "Identity added: %s (%s)\n",
+			    filename, comment);
+			if (lifetime != 0) {
+				fprintf(stderr,
+				    "Lifetime set to %d seconds\n", lifetime);
+			}
+			if (confirm != 0) {
+				fprintf(stderr, "The user must confirm "
+				    "each use of the key\n");
+			}
+		}
 	} else {
 		fprintf(stderr, "Could not add identity \"%s\": %s\n",
 		    filename, ssh_err(r));
@@ -312,17 +362,25 @@ add_file(int agent_fd, const char *filename, int key_only)
 	sshkey_free(cert);
 
 	if ((r = ssh_add_identity_constrained(agent_fd, private, comment,
-	    lifetime, confirm)) != 0) {
+	    lifetime, confirm, maxsign)) != 0) {
 		error("Certificate %s (%s) add failed: %s", certpath,
 		    private->cert->key_id, ssh_err(r));
 		goto out;
 	}
-	fprintf(stderr, "Certificate added: %s (%s)\n", certpath,
-	    private->cert->key_id);
-	if (lifetime != 0)
-		fprintf(stderr, "Lifetime set to %d seconds\n", lifetime);
-	if (confirm != 0)
-		fprintf(stderr, "The user must confirm each use of the key\n");
+	/* success */
+	if (!qflag) {
+		fprintf(stderr, "Certificate added: %s (%s)\n", certpath,
+		    private->cert->key_id);
+		if (lifetime != 0) {
+			fprintf(stderr, "Lifetime set to %d seconds\n",
+			    lifetime);
+		}
+		if (confirm != 0) {
+			fprintf(stderr, "The user must confirm each use "
+			    "of the key\n");
+		}
+	}
+
  out:
 	free(certpath);
 	free(comment);
@@ -332,7 +390,7 @@ add_file(int agent_fd, const char *filename, int key_only)
 }
 
 static int
-update_card(int agent_fd, int add, const char *id)
+update_card(int agent_fd, int add, const char *id, int qflag)
 {
 	char *pin = NULL;
 	int r, ret = -1;
@@ -345,9 +403,11 @@ update_card(int agent_fd, int add, const char *id)
 
 	if ((r = ssh_update_card(agent_fd, add, id, pin == NULL ? "" : pin,
 	    lifetime, confirm)) == 0) {
-		fprintf(stderr, "Card %s: %s\n",
-		    add ? "added" : "removed", id);
 		ret = 0;
+		if (!qflag) {
+			fprintf(stderr, "Card %s: %s\n",
+			    add ? "added" : "removed", id);
+		}
 	} else {
 		fprintf(stderr, "Could not %s card \"%s\": %s\n",
 		    add ? "add" : "remove", id, ssh_err(r));
@@ -358,11 +418,46 @@ update_card(int agent_fd, int add, const char *id)
 }
 
 static int
+test_key(int agent_fd, const char *filename)
+{
+	struct sshkey *key = NULL;
+	u_char *sig = NULL;
+	size_t slen = 0;
+	int r, ret = -1;
+	char data[1024];
+
+	if ((r = sshkey_load_public(filename, &key, NULL)) != 0) {
+		error("Couldn't read public key %s: %s", filename, ssh_err(r));
+		return -1;
+	}
+	arc4random_buf(data, sizeof(data));
+	if ((r = ssh_agent_sign(agent_fd, key, &sig, &slen, data, sizeof(data),
+	    NULL, 0)) != 0) {
+		error("Agent signature failed for %s: %s",
+		    filename, ssh_err(r));
+		goto done;
+	}
+	if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
+	    NULL, 0)) != 0) {
+		error("Signature verification failed for %s: %s",
+		    filename, ssh_err(r));
+		goto done;
+	}
+	/* success */
+	ret = 0;
+ done:
+	free(sig);
+	sshkey_free(key);
+	return ret;
+}
+
+static int
 list_identities(int agent_fd, int do_fp)
 {
 	char *fp;
 	int r;
 	struct ssh_identitylist *idlist;
+	u_int32_t left;
 	size_t i;
 
 	if ((r = ssh_fetch_identitylist(agent_fd, &idlist)) != 0) {
@@ -387,7 +482,12 @@ list_identities(int agent_fd, int do_fp)
 				    ssh_err(r));
 				continue;
 			}
-			fprintf(stdout, " %s\n", idlist->comments[i]);
+			fprintf(stdout, " %s", idlist->comments[i]);
+			left = sshkey_signatures_left(idlist->keys[i]);
+			if (left > 0)
+				fprintf(stdout,
+				    " [signatures left %d]", left);
+			fprintf(stdout, "\n");
 		}
 	}
 	ssh_free_identitylist(idlist);
@@ -427,13 +527,13 @@ lock_agent(int agent_fd, int lock)
 }
 
 static int
-do_file(int agent_fd, int deleting, int key_only, char *file)
+do_file(int agent_fd, int deleting, int key_only, char *file, int qflag)
 {
 	if (deleting) {
-		if (delete_file(agent_fd, file, key_only) == -1)
+		if (delete_file(agent_fd, file, key_only, qflag) == -1)
 			return -1;
 	} else {
-		if (add_file(agent_fd, file, key_only) == -1)
+		if (add_file(agent_fd, file, key_only, qflag) == -1)
 			return -1;
 	}
 	return 0;
@@ -449,6 +549,8 @@ usage(void)
 	fprintf(stderr, "  -L          List public key parameters of all identities.\n");
 	fprintf(stderr, "  -k          Load only keys and not certificates.\n");
 	fprintf(stderr, "  -c          Require confirmation to sign using identities\n");
+	fprintf(stderr, "  -m minleft  Maxsign is only changed if less than minleft are left (for XMSS)\n");
+	fprintf(stderr, "  -M maxsign  Maximum number of signatures allowed (for XMSS)\n");
 	fprintf(stderr, "  -t life     Set lifetime (in seconds) when adding identities.\n");
 	fprintf(stderr, "  -d          Delete identity.\n");
 	fprintf(stderr, "  -D          Delete all identities.\n");
@@ -456,6 +558,9 @@ usage(void)
 	fprintf(stderr, "  -X          Unlock agent.\n");
 	fprintf(stderr, "  -s pkcs11   Add keys from PKCS#11 provider.\n");
 	fprintf(stderr, "  -e pkcs11   Remove keys provided by PKCS#11 provider.\n");
+	fprintf(stderr, "  -T pubkey   Test if ssh-agent can access matching private key.\n");
+	fprintf(stderr, "  -q          Be quiet after a successful operation.\n");
+	fprintf(stderr, "  -v          Be more verbose.\n");
 }
 
 int
@@ -466,7 +571,9 @@ main(int argc, char **argv)
 	int agent_fd;
 	char *pkcs11provider = NULL;
 	int r, i, ch, deleting = 0, ret = 0, key_only = 0;
-	int xflag = 0, lflag = 0, Dflag = 0;
+	int xflag = 0, lflag = 0, Dflag = 0, qflag = 0, Tflag = 0;
+	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
+	LogLevel log_level = SYSLOG_LEVEL_INFO;
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -475,9 +582,7 @@ main(int argc, char **argv)
 	__progname = ssh_get_progname(argv[0]);
 	seed_rng();
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
+	log_init(__progname, log_level, log_facility, 1);
 
 	setvbuf(stdout, NULL, _IOLBF, 0);
 
@@ -494,8 +599,14 @@ main(int argc, char **argv)
 		exit(2);
 	}
 
-	while ((ch = getopt(argc, argv, "klLcdDxXE:e:s:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vklLcdDTxXE:e:M:m:qs:t:")) != -1) {
 		switch (ch) {
+		case 'v':
+			if (log_level == SYSLOG_LEVEL_INFO)
+				log_level = SYSLOG_LEVEL_DEBUG1;
+			else if (log_level < SYSLOG_LEVEL_DEBUG3)
+				log_level++;
+			break;
 		case 'E':
 			fingerprint_hash = ssh_digest_alg_by_name(optarg);
 			if (fingerprint_hash == -1)
@@ -519,6 +630,22 @@ main(int argc, char **argv)
 		case 'c':
 			confirm = 1;
 			break;
+		case 'm':
+			minleft = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			if (minleft == 0) {
+				usage();
+				ret = 1;
+				goto done;
+			}
+			break;
+		case 'M':
+			maxsign = (int)strtonum(optarg, 1, UINT_MAX, NULL);
+			if (maxsign == 0) {
+				usage();
+				ret = 1;
+				goto done;
+			}
+			break;
 		case 'd':
 			deleting = 1;
 			break;
@@ -539,12 +666,19 @@ main(int argc, char **argv)
 				goto done;
 			}
 			break;
+		case 'q':
+			qflag = 1;
+			break;
+		case 'T':
+			Tflag = 1;
+			break;
 		default:
 			usage();
 			ret = 1;
 			goto done;
 		}
 	}
+	log_init(__progname, log_level, log_facility, 1);
 
 	if ((xflag != 0) + (lflag != 0) + (Dflag != 0) > 1)
 		fatal("Invalid combination of actions");
@@ -557,15 +691,24 @@ main(int argc, char **argv)
 			ret = 1;
 		goto done;
 	} else if (Dflag) {
-		if (delete_all(agent_fd) == -1)
+		if (delete_all(agent_fd, qflag) == -1)
 			ret = 1;
 		goto done;
 	}
 
 	argc -= optind;
 	argv += optind;
+	if (Tflag) {
+		if (argc <= 0)
+			fatal("no keys to test");
+		for (r = i = 0; i < argc; i++)
+			r |= test_key(agent_fd, argv[i]);
+		ret = r == 0 ? 0 : 1;
+		goto done;
+	}
 	if (pkcs11provider != NULL) {
-		if (update_card(agent_fd, !deleting, pkcs11provider) == -1)
+		if (update_card(agent_fd, !deleting, pkcs11provider,
+		    qflag) == -1)
 			ret = 1;
 		goto done;
 	}
@@ -587,7 +730,8 @@ main(int argc, char **argv)
 			    default_files[i]);
 			if (stat(buf, &st) < 0)
 				continue;
-			if (do_file(agent_fd, deleting, key_only, buf) == -1)
+			if (do_file(agent_fd, deleting, key_only, buf,
+			    qflag) == -1)
 				ret = 1;
 			else
 				count++;
@@ -597,7 +741,7 @@ main(int argc, char **argv)
 	} else {
 		for (i = 0; i < argc; i++) {
 			if (do_file(agent_fd, deleting, key_only,
-			    argv[i]) == -1)
+			    argv[i], qflag) == -1)
 				ret = 1;
 		}
 	}

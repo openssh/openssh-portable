@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.15 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.17 2018/10/31 11:09:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -14,6 +14,13 @@ for i in `$SSH -Q key`; do
 		continue
 	fi
 	case "$i" in
+	# Special treatment for RSA keys.
+	*rsa*cert*)
+		types="rsa-sha2-256-cert-v01@openssh.com,$i,$types"
+		types="rsa-sha2-512-cert-v01@openssh.com,$types";;
+	*rsa*)
+		types="$types,rsa-sha2-512,rsa-sha2-256,$i";;
+	# Prefer certificate to plain keys.
 	*cert*)	types="$i,$types";;
 	*)	types="$types,$i";;
 	esac
@@ -120,7 +127,7 @@ attempt_connect() {
 }
 
 # Basic connect and revocation tests.
-for privsep in yes no ; do
+for privsep in yes sandbox ; do
 	for ktype in $PLAIN_TYPES ; do
 		verbose "$tid: host ${ktype} cert connect privsep $privsep"
 		(
@@ -158,7 +165,7 @@ for ktype in $PLAIN_TYPES ; do
 	kh_revoke cert_host_key_${ktype}.pub >> $OBJ/known_hosts-cert.orig
 done
 cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
-for privsep in yes no ; do
+for privsep in yes sandbox ; do
 	for ktype in $PLAIN_TYPES ; do
 		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
 		(

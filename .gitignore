@@ -25,3 +25,4 @@ ssh-keyscan
 ssh-keysign
 ssh-pkcs11-helper
 sshd
+!regress/misc/fuzz-harness/Makefile

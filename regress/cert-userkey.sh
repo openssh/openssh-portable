@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.18 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.20 2018/10/31 11:09:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -8,6 +8,7 @@ cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak
 cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
 PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
+EXTRA_TYPES=""
 
 if echo "$PLAIN_TYPES" | grep '^rsa$' >/dev/null 2>&1 ; then
 	PLAIN_TYPES="$PLAIN_TYPES rsa-sha2-256 rsa-sha2-512"
@@ -15,7 +16,7 @@ fi
 
 kname() {
 	case $ktype in
-	rsa-sha2-*) ;;
+	rsa-sha2-*) n="$ktype" ;;
 	# subshell because some seds will add a newline
 	*) n=$(echo $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/') ;;
 	esac
@@ -46,7 +47,7 @@ done
 # Test explicitly-specified principals
 for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 	t=$(kname $ktype)
-	for privsep in yes no ; do
+	for privsep in yes sandbox ; do
 		_prefix="${ktype} privsep $privsep"
 
 		# Setup for AuthorizedPrincipalsFile

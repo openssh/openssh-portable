@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.62 2016/12/15 21:20:41 dtucker Exp $ */
+/* $OpenBSD: dh.c,v 1.69 2018/11/09 02:56:22 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -25,6 +25,7 @@
 
 #include "includes.h"
 
+#ifdef WITH_OPENSSL
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -41,6 +42,8 @@
 #include "log.h"
 #include "misc.h"
 #include "ssherr.h"
+
+#include "openbsd-compat/openssl-compat.h"
 
 static int
 parse_prime(int linenum, char *line, struct dhgroup *dhg)
@@ -134,10 +137,8 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	return 1;
 
  fail:
-	if (dhg->g != NULL)
-		BN_clear_free(dhg->g);
-	if (dhg->p != NULL)
-		BN_clear_free(dhg->p);
+	BN_clear_free(dhg->g);
+	BN_clear_free(dhg->p);
 	dhg->g = dhg->p = NULL;
 	return 0;
 }
@@ -146,9 +147,9 @@ DH *
 choose_dh(int min, int wantbits, int max)
 {
 	FILE *f;
-	char line[4096];
-	int best, bestcount, which;
-	int linenum;
+	char *line = NULL;
+	size_t linesize = 0;
+	int best, bestcount, which, linenum;
 	struct dhgroup dhg;
 
 	if ((f = fopen(_PATH_DH_MODULI, "r")) == NULL) {
@@ -159,7 +160,7 @@ choose_dh(int min, int wantbits, int max)
 
 	linenum = 0;
 	best = bestcount = 0;
-	while (fgets(line, sizeof(line), f)) {
+	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
 		if (!parse_prime(linenum, line, &dhg))
 			continue;
@@ -177,6 +178,9 @@ choose_dh(int min, int wantbits, int max)
 		if (dhg.size == best)
 			bestcount++;
 	}
+	free(line);
+	line = NULL;
+	linesize = 0;
 	rewind(f);
 
 	if (bestcount == 0) {
@@ -184,25 +188,29 @@ choose_dh(int min, int wantbits, int max)
 		logit("WARNING: no suitable primes in %s", _PATH_DH_MODULI);
 		return (dh_new_group_fallback(max));
 	}
+	which = arc4random_uniform(bestcount);
 
 	linenum = 0;
-	which = arc4random_uniform(bestcount);
-	while (fgets(line, sizeof(line), f)) {
+	bestcount = 0;
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
 		if (!parse_prime(linenum, line, &dhg))
 			continue;
 		if ((dhg.size > max || dhg.size < min) ||
 		    dhg.size != best ||
-		    linenum++ != which) {
+		    bestcount++ != which) {
 			BN_clear_free(dhg.g);
 			BN_clear_free(dhg.p);
 			continue;
 		}
 		break;
 	}
+	free(line);
+	line = NULL;
 	fclose(f);
-	if (linenum != which+1) {
-		logit("WARNING: line %d disappeared in %s, giving up",
-		    which, _PATH_DH_MODULI);
+	if (bestcount != which + 1) {
+		logit("WARNING: selected prime disappeared in %s, giving up",
+		    _PATH_DH_MODULI);
 		return (dh_new_group_fallback(max));
 	}
 
@@ -212,14 +220,17 @@ choose_dh(int min, int wantbits, int max)
 /* diffie-hellman-groupN-sha1 */
 
 int
-dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
+dh_pub_is_valid(const DH *dh, const BIGNUM *dh_pub)
 {
 	int i;
 	int n = BN_num_bits(dh_pub);
 	int bits_set = 0;
 	BIGNUM *tmp;
+	const BIGNUM *dh_p;
 
-	if (dh_pub->neg) {
+	DH_get0_pqg(dh, &dh_p, NULL, NULL);
+
+	if (BN_is_negative(dh_pub)) {
 		logit("invalid public DH value: negative");
 		return 0;
 	}
@@ -232,7 +243,7 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 		error("%s: BN_new failed", __func__);
 		return 0;
 	}
-	if (!BN_sub(tmp, dh->p, BN_value_one()) ||
+	if (!BN_sub(tmp, dh_p, BN_value_one()) ||
 	    BN_cmp(dh_pub, tmp) != -1) {		/* pub_exp > p-2 */
 		BN_clear_free(tmp);
 		logit("invalid public DH value: >= p-1");
@@ -243,14 +254,14 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 	for (i = 0; i <= n; i++)
 		if (BN_is_bit_set(dh_pub, i))
 			bits_set++;
-	debug2("bits set: %d/%d", bits_set, BN_num_bits(dh->p));
+	debug2("bits set: %d/%d", bits_set, BN_num_bits(dh_p));
 
 	/*
 	 * if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial
 	 */
 	if (bits_set < 4) {
 		logit("invalid public DH value (%d/%d)",
-		   bits_set, BN_num_bits(dh->p));
+		   bits_set, BN_num_bits(dh_p));
 		return 0;
 	}
 	return 1;
@@ -260,9 +271,12 @@ int
 dh_gen_key(DH *dh, int need)
 {
 	int pbits;
+	const BIGNUM *dh_p, *pub_key;
 
-	if (need < 0 || dh->p == NULL ||
-	    (pbits = BN_num_bits(dh->p)) <= 0 ||
+	DH_get0_pqg(dh, &dh_p, NULL, NULL);
+
+	if (need < 0 || dh_p == NULL ||
+	    (pbits = BN_num_bits(dh_p)) <= 0 ||
 	    need > INT_MAX / 2 || 2 * need > pbits)
 		return SSH_ERR_INVALID_ARGUMENT;
 	if (need < 256)
@@ -271,12 +285,14 @@ dh_gen_key(DH *dh, int need)
 	 * Pollard Rho, Big step/Little Step attacks are O(sqrt(n)),
 	 * so double requested need here.
 	 */
-	dh->length = MINIMUM(need * 2, pbits - 1);
-	if (DH_generate_key(dh) == 0 ||
-	    !dh_pub_is_valid(dh, dh->pub_key)) {
-		BN_clear_free(dh->priv_key);
+	if (!DH_set_length(dh, MINIMUM(need * 2, pbits - 1)))
 		return SSH_ERR_LIBCRYPTO_ERROR;
-	}
+
+	if (DH_generate_key(dh) == 0)
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	DH_get0_key(dh, &pub_key, NULL);
+	if (!dh_pub_is_valid(dh, pub_key))
+		return SSH_ERR_INVALID_FORMAT;
 	return 0;
 }
 
@@ -284,22 +300,27 @@ DH *
 dh_new_group_asc(const char *gen, const char *modulus)
 {
 	DH *dh;
+	BIGNUM *dh_p = NULL, *dh_g = NULL;
 
 	if ((dh = DH_new()) == NULL)
 		return NULL;
-	if (BN_hex2bn(&dh->p, modulus) == 0 ||
-	    BN_hex2bn(&dh->g, gen) == 0) {
-		DH_free(dh);
-		return NULL;
-	}
-	return (dh);
+	if (BN_hex2bn(&dh_p, modulus) == 0 ||
+	    BN_hex2bn(&dh_g, gen) == 0)
+		goto fail;
+	if (!DH_set0_pqg(dh, dh_p, NULL, dh_g))
+		goto fail;
+	return dh;
+ fail:
+	DH_free(dh);
+	BN_clear_free(dh_p);
+	BN_clear_free(dh_g);
+	return NULL;
 }
 
 /*
  * This just returns the group, we still need to generate the exchange
  * value.
  */
-
 DH *
 dh_new_group(BIGNUM *gen, BIGNUM *modulus)
 {
@@ -307,10 +328,12 @@ dh_new_group(BIGNUM *gen, BIGNUM *modulus)
 
 	if ((dh = DH_new()) == NULL)
 		return NULL;
-	dh->p = modulus;
-	dh->g = gen;
+	if (!DH_set0_pqg(dh, modulus, NULL, gen)) {
+		DH_free(dh);
+		return NULL;
+	}
 
-	return (dh);
+	return dh;
 }
 
 /* rfc2409 "Second Oakley Group" (1024 bits) */
@@ -383,7 +406,7 @@ dh_new_group16(void)
 DH *
 dh_new_group18(void)
 {
-	static char *gen = "2", *group16 =
+	static char *gen = "2", *group18 =
 	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B" "80DC1CD1"
 	    "29024E08" "8A67CC74" "020BBEA6" "3B139B22" "514A0879" "8E3404DD"
 	    "EF9519B3" "CD3A431B" "302B0A6D" "F25F1437" "4FE1356D" "6D51C245"
@@ -428,7 +451,7 @@ dh_new_group18(void)
 	    "9558E447" "5677E9AA" "9E3050E2" "765694DF" "C81F56E8" "80B96E71"
 	    "60C980DD" "98EDD3DF" "FFFFFFFF" "FFFFFFFF";
 
-	return (dh_new_group_asc(gen, group16));
+	return (dh_new_group_asc(gen, group18));
 }
 
 /* Select fallback group used by DH-GEX if moduli file cannot be read. */
@@ -465,3 +488,5 @@ dh_estimate(int bits)
 		return 7680;
 	return 8192;
 }
+
+#endif /* WITH_OPENSSL */

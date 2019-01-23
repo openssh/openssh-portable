@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.60 2017/04/30 23:34:55 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.64 2018/08/10 01:35:49 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -75,6 +75,9 @@ SSHKEYSCAN=ssh-keyscan
 SFTP=sftp
 SFTPSERVER=/usr/libexec/openssh/sftp-server
 SCP=scp
+
+# Set by make_tmpdir() on demand (below).
+SSH_REGRESS_TMP=
 
 # Interop testing
 PLINK=plink
@@ -163,9 +166,13 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	esac
 
 	if [ x"$VG_SKIP" = "x" ]; then
+		VG_LEAK="--leak-check=no"
+		if [ x"$VALGRIND_CHECK_LEAKS" != "x" ]; then
+			VG_LEAK="--leak-check=full"
+		fi
 		VG_IGNORE="/bin/*,/sbin/*,/usr/*,/var/*"
 		VG_LOG="$OBJ/valgrind-out/${VG_TEST}."
-		VG_OPTS="--track-origins=yes --leak-check=full"
+		VG_OPTS="--track-origins=yes $VG_LEAK"
 		VG_OPTS="$VG_OPTS --trace-children=yes"
 		VG_OPTS="$VG_OPTS --trace-children-skip=${VG_IGNORE}"
 		VG_PATH="valgrind"
@@ -304,11 +311,24 @@ stop_sshd ()
 					i=`expr $i + 1`
 					sleep $i
 				done
-				test -f $PIDFILE && \
-				    fatal "sshd didn't exit port $PORT pid $pid"
+				if test -f $PIDFILE; then
+					if $SUDO kill -0 $pid; then
+						echo "sshd didn't exit " \
+						    "port $PORT pid $pid"
+					else
+						echo "sshd died without cleanup"
+					fi
+					exit 1
+				fi
 			fi
 		fi
 	fi
+}
+
+make_tmpdir ()
+{
+	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
+	    fatal "failed to create temporary directory"
 }
 
 # helper
@@ -320,6 +340,9 @@ cleanup ()
 		else
 			kill $SSH_PID
 		fi
+	fi
+	if [ "x$SSH_REGRESS_TMP" != "x" ]; then
+		rm -rf "$SSH_REGRESS_TMP"
 	fi
 	stop_sshd
 }
@@ -368,7 +391,10 @@ fail ()
 	save_debug_log "FAIL: $@"
 	RESULT=1
 	echo "$@"
-
+	if test "x$TEST_SSH_FAIL_FATAL" != "x" ; then
+		cleanup
+		exit $RESULT
+	fi
 }
 
 fatal ()
@@ -496,6 +522,7 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	# Add a PuTTY key to authorized_keys
 	rm -f ${OBJ}/putty.rsa2
 	if ! puttygen -t rsa -o ${OBJ}/putty.rsa2 \
+	    --random-device=/dev/urandom \
 	    --new-passphrase /dev/null < /dev/null > /dev/null; then
 		echo "Your installed version of PuTTY is too old to support --new-passphrase; trying without (may require manual interaction) ..." >&2
 		puttygen -t rsa -o ${OBJ}/putty.rsa2 < /dev/null > /dev/null
@@ -504,10 +531,13 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	    >> $OBJ/authorized_keys_$USER
 
 	# Convert rsa2 host key to PuTTY format
-	${SRC}/ssh2putty.sh 127.0.0.1 $PORT $OBJ/rsa > \
+	cp $OBJ/rsa $OBJ/rsa_oldfmt
+	${SSHKEYGEN} -p -N '' -m PEM -f $OBJ/rsa_oldfmt >/dev/null
+	${SRC}/ssh2putty.sh 127.0.0.1 $PORT $OBJ/rsa_oldfmt > \
 	    ${OBJ}/.putty/sshhostkeys
-	${SRC}/ssh2putty.sh 127.0.0.1 22 $OBJ/rsa >> \
+	${SRC}/ssh2putty.sh 127.0.0.1 22 $OBJ/rsa_oldfmt >> \
 	    ${OBJ}/.putty/sshhostkeys
+	rm -f $OBJ/rsa_oldfmt
 
 	# Setup proxied session
 	mkdir -p ${OBJ}/.putty/sessions
@@ -518,6 +548,9 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	echo "ProxyMethod=5" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyTelnetCommand=sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy" >> ${OBJ}/.putty/sessions/localhost_proxy
 	echo "ProxyLocalhost=1" >> ${OBJ}/.putty/sessions/localhost_proxy
+
+	PUTTYDIR=${OBJ}/.putty
+	export PUTTYDIR
 
 	REGRESS_INTEROP_PUTTY=yes
 fi

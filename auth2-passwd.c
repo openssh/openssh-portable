@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-passwd.c,v 1.14 2017/05/30 14:29:59 markus Exp $ */
+/* $OpenBSD: auth2-passwd.c,v 1.16 2018/07/09 21:35:50 markus Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -36,7 +36,6 @@
 #include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
-#include "buffer.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
@@ -63,7 +62,7 @@ userauth_passwd(struct ssh *ssh)
 
 	if (change)
 		logit("password change not supported");
-	else if (PRIVSEP(auth_password(ssh->authctxt, password)) == 1)
+	else if (PRIVSEP(auth_password(ssh, password)) == 1)
 		authenticated = 1;
 	explicit_bzero(password, len);
 	free(password);

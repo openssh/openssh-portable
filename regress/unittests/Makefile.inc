@@ -1,7 +1,24 @@
-#	$OpenBSD: Makefile.inc,v 1.11 2017/04/30 23:33:48 djm Exp $
+#	$OpenBSD: Makefile.inc,v 1.13 2018/10/17 23:28:05 djm Exp $
+
+REGRESS_FAIL_EARLY?=	yes
 
 .include <bsd.own.mk>
 .include <bsd.obj.mk>
+
+# User-settable options
+UNITTEST_FAST?= no	# Skip slow tests (e.g. less intensive fuzzing).
+UNITTEST_SLOW?= no	# Include slower tests (e.g. more intensive fuzzing).
+UNITTEST_VERBOSE?= no	# Verbose test output (inc. per-test names).
+
+MALLOC_OPTIONS?=	CFGJRSUX
+TEST_ENV?=		MALLOC_OPTIONS=${MALLOC_OPTIONS}
+
+# XXX detect from ssh binary?
+OPENSSL?=	yes
+
+.if (${OPENSSL:L} == "yes")
+CFLAGS+=	-DWITH_OPENSSL
+.endif
 
 # enable warnings
 WARNINGS=Yes
@@ -30,8 +47,8 @@ CDIAGFLAGS+=	-Wswitch
 CDIAGFLAGS+=	-Wtrigraphs
 CDIAGFLAGS+=	-Wuninitialized
 CDIAGFLAGS+=	-Wunused
+CDIAGFLAGS+=	-Wno-unused-parameter
 .if ${COMPILER_VERSION:L} != "gcc3"
-CDIAGFLAGS+=	-Wpointer-sign
 CDIAGFLAGS+=	-Wold-style-definition
 .endif
 
@@ -47,17 +64,23 @@ LDADD+=-L${.CURDIR}/../test_helper -ltest_helper
 DPADD+=${.CURDIR}/../test_helper/libtest_helper.a
 .endif
 
-.if exists(${.CURDIR}/${SSHREL}/lib/${__objdir})
-LDADD+=-L${.CURDIR}/${SSHREL}/lib/${__objdir} -lssh
-LIBSSH=${.CURDIR}/${SSHREL}/lib/${__objdir}/libssh.a
-.else
-LDADD+=-L${.CURDIR}/${SSHREL}/lib -lssh
-LIBSSH=${.CURDIR}/${SSHREL}/lib/libssh.a
-.endif
-DPADD+=${LIBSSH}
-${PROG}: ${LIBSSH}
-${LIBSSH}:
-	cd ${.CURDIR}/${SSHREL} && ${MAKE} lib
+.PATH: ${.CURDIR}/${SSHREL}
 
+LDADD+= -lutil
+DPADD+= ${LIBUTIL}
+
+.if (${OPENSSL:L} == "yes")
 LDADD+= -lcrypto
 DPADD+= ${LIBCRYPTO}
+.endif
+
+UNITTEST_ARGS?=
+
+.if (${UNITTEST_VERBOSE:L} != "no")
+UNITTEST_ARGS+= -v
+.endif
+.if (${UNITTEST_FAST:L} != "no")
+UNITTEST_ARGS+= -f
+.elif (${UNITTEST_SLOW:L} != "no")
+UNITTEST_ARGS+= -F
+.endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.127 2017/07/01 13:50:45 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.131 2018/09/21 12:20:12 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -59,7 +59,7 @@ sshkey_save_private_blob(struct sshbuf *keybuf, const char *filename)
 
 	if ((fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0)
 		return SSH_ERR_SYSTEM_ERROR;
-	if (atomicio(vwrite, fd, (u_char *)sshbuf_ptr(keybuf),
+	if (atomicio(vwrite, fd, sshbuf_mutable_ptr(keybuf),
 	    sshbuf_len(keybuf)) != sshbuf_len(keybuf)) {
 		oerrno = errno;
 		close(fd);
@@ -191,6 +191,8 @@ sshkey_load_private_type(int type, const char *filename, const char *passphrase,
 		*perm_ok = 1;
 
 	r = sshkey_load_private_type_fd(fd, type, passphrase, keyp, commentp);
+	if (r == 0 && keyp && *keyp)
+		r = sshkey_set_filename(*keyp, filename);
  out:
 	close(fd);
 	return r;
@@ -249,6 +251,9 @@ sshkey_load_private(const char *filename, const char *passphrase,
 	    (r = sshkey_parse_private_fileblob(buffer, passphrase, keyp,
 	    commentp)) != 0)
 		goto out;
+	if (keyp && *keyp &&
+	    (r = sshkey_set_filename(*keyp, filename)) != 0)
+		goto out;
 	r = 0;
  out:
 	close(fd);
@@ -260,17 +265,15 @@ static int
 sshkey_try_load_public(struct sshkey *k, const char *filename, char **commentp)
 {
 	FILE *f;
-	char line[SSH_MAX_PUBKEY_BYTES];
-	char *cp;
-	u_long linenum = 0;
+	char *line = NULL, *cp;
+	size_t linesize = 0;
 	int r;
 
 	if (commentp != NULL)
 		*commentp = NULL;
 	if ((f = fopen(filename, "r")) == NULL)
 		return SSH_ERR_SYSTEM_ERROR;
-	while (read_keyfile_line(f, filename, line, sizeof(line),
-		    &linenum) != -1) {
+	while (getline(&line, &linesize, f) != -1) {
 		cp = line;
 		switch (*cp) {
 		case '#':
@@ -294,11 +297,13 @@ sshkey_try_load_public(struct sshkey *k, const char *filename, char **commentp)
 					if (*commentp == NULL)
 						r = SSH_ERR_ALLOC_FAIL;
 				}
+				free(line);
 				fclose(f);
 				return r;
 			}
 		}
 	}
+	free(line);
 	fclose(f);
 	return SSH_ERR_INVALID_FORMAT;
 }
@@ -397,6 +402,7 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	case KEY_ECDSA:
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
+	case KEY_XMSS:
 	case KEY_UNSPEC:
 		break;
 	default:
@@ -441,19 +447,20 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type,
     int check_ca)
 {
 	FILE *f;
-	char line[SSH_MAX_PUBKEY_BYTES];
-	char *cp;
-	u_long linenum = 0;
+	char *line = NULL, *cp;
+	size_t linesize = 0;
 	int r = 0;
 	struct sshkey *pub = NULL;
+
 	int (*sshkey_compare)(const struct sshkey *, const struct sshkey *) =
 	    strict_type ?  sshkey_equal : sshkey_equal_public;
 
 	if ((f = fopen(filename, "r")) == NULL)
 		return SSH_ERR_SYSTEM_ERROR;
 
-	while (read_keyfile_line(f, filename, line, sizeof(line),
-	    &linenum) != -1) {
+	while (getline(&line, &linesize, f) != -1) {
+		sshkey_free(pub);
+		pub = NULL;
 		cp = line;
 
 		/* Skip leading whitespace. */
@@ -472,19 +479,24 @@ sshkey_in_file(struct sshkey *key, const char *filename, int strict_type,
 			r = SSH_ERR_ALLOC_FAIL;
 			goto out;
 		}
-		if ((r = sshkey_read(pub, &cp)) != 0)
+		switch (r = sshkey_read(pub, &cp)) {
+		case 0:
+			break;
+		case SSH_ERR_KEY_LENGTH:
+			continue;
+		default:
 			goto out;
+		}
 		if (sshkey_compare(key, pub) ||
 		    (check_ca && sshkey_is_cert(key) &&
 		    sshkey_compare(key->cert->signature_key, pub))) {
 			r = 0;
 			goto out;
 		}
-		sshkey_free(pub);
-		pub = NULL;
 	}
 	r = SSH_ERR_KEY_NOT_FOUND;
  out:
+	free(line);
 	sshkey_free(pub);
 	fclose(f);
 	return r;

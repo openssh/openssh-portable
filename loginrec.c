@@ -168,7 +168,7 @@
 #include <unistd.h>
 
 #include "xmalloc.h"
-#include "key.h"
+#include "sshkey.h"
 #include "hostfile.h"
 #include "ssh.h"
 #include "loginrec.h"
@@ -177,7 +177,8 @@
 #include "packet.h"
 #include "canohost.h"
 #include "auth.h"
-#include "buffer.h"
+#include "sshbuf.h"
+#include "ssherr.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -210,7 +211,7 @@ int utmpx_get_entry(struct logininfo *li);
 int wtmp_get_entry(struct logininfo *li);
 int wtmpx_get_entry(struct logininfo *li);
 
-extern Buffer loginmsg;
+extern struct sshbuf *loginmsg;
 
 /* pick the shortest string */
 #define MIN_SIZEOF(s1,s2) (sizeof(s1) < sizeof(s2) ? sizeof(s1) : sizeof(s2))
@@ -466,7 +467,7 @@ login_write(struct logininfo *li)
 #ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
 	if (li->type == LTYPE_LOGIN &&
 	    !sys_auth_record_login(li->username,li->hostname,li->line,
-	    &loginmsg))
+	    loginmsg))
 		logit("Writing login record failed for %s", li->username);
 #endif
 #ifdef SSH_AUDIT_EVENTS
@@ -663,15 +664,9 @@ construct_utmp(struct logininfo *li,
 	switch (li->type) {
 	case LTYPE_LOGIN:
 		ut->ut_type = USER_PROCESS;
-#ifdef _UNICOS
-		cray_set_tmpdir(ut);
-#endif
 		break;
 	case LTYPE_LOGOUT:
 		ut->ut_type = DEAD_PROCESS;
-#ifdef _UNICOS
-		cray_retain_utmp(ut, li->pid);
-#endif
 		break;
 	}
 # endif
@@ -1658,7 +1653,7 @@ utmpx_get_entry(struct logininfo *li)
    */
 
 void
-record_failed_login(const char *username, const char *hostname,
+record_failed_login(struct ssh *ssh, const char *username, const char *hostname,
     const char *ttyn)
 {
 	int fd;
@@ -1701,8 +1696,8 @@ record_failed_login(const char *username, const char *hostname,
 	/* strncpy because we don't necessarily want nul termination */
 	strncpy(ut.ut_host, hostname, sizeof(ut.ut_host));
 
-	if (packet_connection_is_on_socket() &&
-	    getpeername(packet_get_connection_in(),
+	if (ssh_packet_connection_is_on_socket(ssh) &&
+	    getpeername(ssh_packet_get_connection_in(ssh),
 	    (struct sockaddr *)&from, &fromlen) == 0) {
 		ipv64_normalise_mapped(&from, &fromlen);
 		if (from.ss_family == AF_INET) {

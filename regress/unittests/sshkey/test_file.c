@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_file.c,v 1.6 2017/04/30 23:33:48 djm Exp $ */
+/* 	$OpenBSD: test_file.c,v 1.8 2018/09/13 09:03:20 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -60,9 +60,9 @@ sshkey_file_tests(void)
 	a = load_bignum("rsa_1.param.n");
 	b = load_bignum("rsa_1.param.p");
 	c = load_bignum("rsa_1.param.q");
-	ASSERT_BIGNUM_EQ(k1->rsa->n, a);
-	ASSERT_BIGNUM_EQ(k1->rsa->p, b);
-	ASSERT_BIGNUM_EQ(k1->rsa->q, c);
+	ASSERT_BIGNUM_EQ(rsa_n(k1), a);
+	ASSERT_BIGNUM_EQ(rsa_p(k1), b);
+	ASSERT_BIGNUM_EQ(rsa_q(k1), c);
 	BN_free(a);
 	BN_free(b);
 	BN_free(c);
@@ -102,6 +102,24 @@ sshkey_file_tests(void)
 	    NULL), 0);
 	ASSERT_PTR_NE(k2, NULL);
 	ASSERT_INT_EQ(sshkey_equal(k1, k2), 1);
+	sshkey_free(k2);
+	TEST_DONE();
+
+	TEST_START("load RSA cert with SHA1 signature");
+	ASSERT_INT_EQ(sshkey_load_cert(test_data_file("rsa_1_sha1"), &k2), 0);
+	ASSERT_PTR_NE(k2, NULL);
+	ASSERT_INT_EQ(k2->type, KEY_RSA_CERT);
+	ASSERT_INT_EQ(sshkey_equal_public(k1, k2), 1);
+	ASSERT_STRING_EQ(k2->cert->signature_type, "ssh-rsa");
+	sshkey_free(k2);
+	TEST_DONE();
+
+	TEST_START("load RSA cert with SHA512 signature");
+	ASSERT_INT_EQ(sshkey_load_cert(test_data_file("rsa_1_sha512"), &k2), 0);
+	ASSERT_PTR_NE(k2, NULL);
+	ASSERT_INT_EQ(k2->type, KEY_RSA_CERT);
+	ASSERT_INT_EQ(sshkey_equal_public(k1, k2), 1);
+	ASSERT_STRING_EQ(k2->cert->signature_type, "rsa-sha2-512");
 	sshkey_free(k2);
 	TEST_DONE();
 
@@ -151,9 +169,9 @@ sshkey_file_tests(void)
 	a = load_bignum("dsa_1.param.g");
 	b = load_bignum("dsa_1.param.priv");
 	c = load_bignum("dsa_1.param.pub");
-	ASSERT_BIGNUM_EQ(k1->dsa->g, a);
-	ASSERT_BIGNUM_EQ(k1->dsa->priv_key, b);
-	ASSERT_BIGNUM_EQ(k1->dsa->pub_key, c);
+	ASSERT_BIGNUM_EQ(dsa_g(k1), a);
+	ASSERT_BIGNUM_EQ(dsa_priv_key(k1), b);
+	ASSERT_BIGNUM_EQ(dsa_pub_key(k1), c);
 	BN_free(a);
 	BN_free(b);
 	BN_free(c);

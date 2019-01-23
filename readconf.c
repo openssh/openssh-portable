@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.277 2017/05/30 18:58:37 bluhm Exp $ */
+/* $OpenBSD: readconf.c,v 1.302 2018/11/23 05:08:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -53,6 +53,7 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
+#include "ssherr.h"
 #include "compat.h"
 #include "cipher.h"
 #include "pathnames.h"
@@ -132,10 +133,11 @@
 
 static int read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth);
+    int flags, int *activep, int *want_final_pass, int depth);
 static int process_config_line_depth(Options *options, struct passwd *pw,
     const char *host, const char *original_host, char *line,
-    const char *filename, int linenum, int *activep, int flags, int depth);
+    const char *filename, int linenum, int *activep, int flags,
+    int *want_final_pass, int depth);
 
 /* Keyword tokens. */
 
@@ -156,12 +158,12 @@ typedef enum {
 	oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms, oBindAddress, oPKCS11Provider,
+	oHostKeyAlgorithms, oBindAddress, oBindInterface, oPKCS11Provider,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
-	oSendEnv, oControlPath, oControlMaster, oControlPersist,
+	oSendEnv, oSetEnv, oControlPath, oControlMaster, oControlPersist,
 	oHashKnownHosts,
 	oTunnel, oTunnelDevice,
 	oLocalCommand, oPermitLocalCommand, oRemoteCommand,
@@ -171,7 +173,7 @@ typedef enum {
 	oCanonicalizeFallbackLocal, oCanonicalizePermittedCNAMEs,
 	oStreamLocalBindMask, oStreamLocalBindUnlink, oRevokedHostKeys,
 	oFingerprintHash, oUpdateHostkeys, oHostbasedKeyTypes,
-	oPubkeyAcceptedKeyTypes, oProxyJump,
+	oPubkeyAcceptedKeyTypes, oCASignatureAlgorithms, oProxyJump,
 	oIgnore, oIgnoredUnknownOption, oDeprecated, oUnsupported
 } OpCodes;
 
@@ -190,6 +192,7 @@ static struct {
 	{ "userknownhostsfile2", oDeprecated },
 	{ "useroaming", oDeprecated },
 	{ "usersh", oDeprecated },
+	{ "useprivilegedport", oDeprecated },
 
 	/* Unsupported options */
 	{ "afstokenpassing", oUnsupported },
@@ -222,7 +225,6 @@ static struct {
 	{ "exitonforwardfailure", oExitOnForwardFailure },
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
-	{ "useprivilegedport", oUsePrivilegedPort },
 	{ "passwordauthentication", oPasswordAuthentication },
 	{ "kbdinteractiveauthentication", oKbdInteractiveAuthentication },
 	{ "kbdinteractivedevices", oKbdInteractiveDevices },
@@ -230,7 +232,7 @@ static struct {
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
 	{ "hostbasedauthentication", oHostbasedAuthentication },
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
-	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
+	{ "skeyauthentication", oUnsupported },
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
 	{ "identityfile", oIdentityFile },
 	{ "identityfile2", oIdentityFile },			/* obsolete */
@@ -265,7 +267,9 @@ static struct {
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
+	{ "casignaturealgorithms", oCASignatureAlgorithms },
 	{ "bindaddress", oBindAddress },
+	{ "bindinterface", oBindInterface },
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "verifyhostkeydns", oVerifyHostKeyDNS },
@@ -276,6 +280,7 @@ static struct {
 	{ "serveraliveinterval", oServerAliveInterval },
 	{ "serveralivecountmax", oServerAliveCountMax },
 	{ "sendenv", oSendEnv },
+	{ "setenv", oSetEnv },
 	{ "controlpath", oControlPath },
 	{ "controlmaster", oControlMaster },
 	{ "controlpersist", oControlPersist },
@@ -318,12 +323,8 @@ void
 add_local_forward(Options *options, const struct Forward *newfwd)
 {
 	struct Forward *fwd;
-	extern uid_t original_real_uid;
 	int i;
 
-	if (!bind_permitted(newfwd->listen_port, original_real_uid) &&
-	    newfwd->listen_path == NULL)
-		fatal("Privileged ports can only be forwarded by root.");
 	/* Don't add duplicates */
 	for (i = 0; i < options->num_local_forwards; i++) {
 		if (forward_equals(newfwd, options->local_forwards + i))
@@ -481,7 +482,6 @@ execute_in_shell(const char *cmd)
 	char *shell;
 	pid_t pid;
 	int devnull, status;
-	extern uid_t original_real_uid;
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
@@ -495,9 +495,6 @@ execute_in_shell(const char *cmd)
 	/* Fork and execute the command. */
 	if ((pid = fork()) == 0) {
 		char *argv[4];
-
-		/* Child.  Permanently give up superuser privileges. */
-		permanently_drop_suid(original_real_uid);
 
 		/* Redirect child stdin and stdout. Leave stderr */
 		if (dup2(devnull, STDIN_FILENO) == -1)
@@ -543,13 +540,14 @@ execute_in_shell(const char *cmd)
  */
 static int
 match_cfg_line(Options *options, char **condition, struct passwd *pw,
-    const char *host_arg, const char *original_host, int post_canon,
-    const char *filename, int linenum)
+    const char *host_arg, const char *original_host, int final_pass,
+    int *want_final_pass, const char *filename, int linenum)
 {
 	char *arg, *oattrib, *attrib, *cmd, *cp = *condition, *host, *criteria;
 	const char *ruser;
 	int r, port, this_result, result = 1, attributes = 0, negate;
 	char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
+	char uidstr[32];
 
 	/*
 	 * Configuration is likely to be incomplete at this point so we
@@ -557,7 +555,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	 */
 	port = options->port <= 0 ? default_ssh_port() : options->port;
 	ruser = options->user == NULL ? pw->pw_name : options->user;
-	if (post_canon) {
+	if (final_pass) {
 		host = xstrdup(options->hostname);
 	} else if (options->hostname != NULL) {
 		/* NB. Please keep in sync with ssh.c:main() */
@@ -589,8 +587,16 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			goto out;
 		}
 		attributes++;
-		if (strcasecmp(attrib, "canonical") == 0) {
-			r = !!post_canon;  /* force bitmask member to boolean */
+		if (strcasecmp(attrib, "canonical") == 0 ||
+		    strcasecmp(attrib, "final") == 0) {
+			/*
+			 * If the config requests "Match final" then remember
+			 * this so we can perform a second pass later.
+			 */
+			if (strcasecmp(attrib, "final") == 0 &&
+			    want_final_pass != NULL)
+				*want_final_pass = 1;
+			r = !!final_pass;  /* force bitmask member to boolean */
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 			debug3("%.200s line %d: %smatched '%s'",
@@ -630,6 +636,8 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			strlcpy(shorthost, thishost, sizeof(shorthost));
 			shorthost[strcspn(thishost, ".")] = '\0';
 			snprintf(portstr, sizeof(portstr), "%d", port);
+			snprintf(uidstr, sizeof(uidstr), "%llu",
+			    (unsigned long long)pw->pw_uid);
 
 			cmd = percent_expand(arg,
 			    "L", shorthost,
@@ -640,6 +648,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			    "p", portstr,
 			    "r", ruser,
 			    "u", pw->pw_name,
+			    "i", uidstr,
 			    (char *)NULL);
 			if (result != 1) {
 				/* skip execution if prior predicate failed */
@@ -683,32 +692,33 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	return result;
 }
 
-/* Check and prepare a domain name: removes trailing '.' and lowercases */
+/* Remove environment variable by pattern */
 static void
-valid_domain(char *name, const char *filename, int linenum)
+rm_env(Options *options, const char *arg, const char *filename, int linenum)
 {
-	size_t i, l = strlen(name);
-	u_char c, last = '\0';
+	int i, j;
+	char *cp;
 
-	if (l == 0)
-		fatal("%s line %d: empty hostname suffix", filename, linenum);
-	if (!isalpha((u_char)name[0]) && !isdigit((u_char)name[0]))
-		fatal("%s line %d: hostname suffix \"%.100s\" "
-		    "starts with invalid character", filename, linenum, name);
-	for (i = 0; i < l; i++) {
-		c = tolower((u_char)name[i]);
-		name[i] = (char)c;
-		if (last == '.' && c == '.')
-			fatal("%s line %d: hostname suffix \"%.100s\" contains "
-			    "consecutive separators", filename, linenum, name);
-		if (c != '.' && c != '-' && !isalnum(c) &&
-		    c != '_') /* technically invalid, but common */
-			fatal("%s line %d: hostname suffix \"%.100s\" contains "
-			    "invalid characters", filename, linenum, name);
-		last = c;
+	/* Remove an environment variable */
+	for (i = 0; i < options->num_send_env; ) {
+		cp = xstrdup(options->send_env[i]);
+		if (!match_pattern(cp, arg + 1)) {
+			free(cp);
+			i++;
+			continue;
+		}
+		debug3("%s line %d: removing environment %s",
+		    filename, linenum, cp);
+		free(cp);
+		free(options->send_env[i]);
+		options->send_env[i] = NULL;
+		for (j = i; j < options->num_send_env - 1; j++) {
+			options->send_env[j] = options->send_env[j + 1];
+			options->send_env[j + 1] = NULL;
+		}
+		options->num_send_env--;
+		/* NB. don't increment i */
 	}
-	if (name[l - 1] == '.')
-		name[l - 1] = '\0';
 }
 
 /*
@@ -749,6 +759,16 @@ static const struct multistate multistate_yesnoask[] = {
 	{ "yes",			1 },
 	{ "no",				0 },
 	{ "ask",			2 },
+	{ NULL, -1 }
+};
+static const struct multistate multistate_strict_hostkey[] = {
+	{ "true",			SSH_STRICT_HOSTKEY_YES },
+	{ "false",			SSH_STRICT_HOSTKEY_OFF },
+	{ "yes",			SSH_STRICT_HOSTKEY_YES },
+	{ "no",				SSH_STRICT_HOSTKEY_OFF },
+	{ "ask",			SSH_STRICT_HOSTKEY_ASK },
+	{ "off",			SSH_STRICT_HOSTKEY_OFF },
+	{ "accept-new",			SSH_STRICT_HOSTKEY_NEW },
 	{ NULL, -1 }
 };
 static const struct multistate multistate_yesnoaskconfirm[] = {
@@ -813,19 +833,20 @@ process_config_line(Options *options, struct passwd *pw, const char *host,
     int linenum, int *activep, int flags)
 {
 	return process_config_line_depth(options, pw, host, original_host,
-	    line, filename, linenum, activep, flags, 0);
+	    line, filename, linenum, activep, flags, NULL, 0);
 }
 
 #define WHITESPACE " \t\r\n"
 static int
 process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
-    int linenum, int *activep, int flags, int depth)
+    int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
 	u_int i, *uintptr, max_entries = 0;
 	int r, oactive, negated, opcode, *intptr, value, value2, cmdline = 0;
+	int remotefwd, dynamicfwd;
 	LogLevel *log_level_ptr;
 	SyslogFacility *log_facility_ptr;
 	long long val64;
@@ -834,6 +855,7 @@ process_config_line_depth(Options *options, struct passwd *pw, const char *host,
 	const struct multistate *multistate_ptr;
 	struct allowed_cname *cname;
 	glob_t gl;
+	const char *errstr;
 
 	if (activep == NULL) { /* We are processing a command line directive */
 		cmdline = 1;
@@ -933,10 +955,6 @@ parse_time:
 		intptr = &options->exit_on_forward_failure;
 		goto parse_flag;
 
-	case oUsePrivilegedPort:
-		intptr = &options->use_privileged_port;
-		goto parse_flag;
-
 	case oPasswordAuthentication:
 		intptr = &options->password_authentication;
 		goto parse_flag;
@@ -984,7 +1002,7 @@ parse_time:
 
 	case oStrictHostKeyChecking:
 		intptr = &options->strict_host_key_checking;
-		multistate_ptr = multistate_yesnoask;
+		multistate_ptr = multistate_strict_hostkey;
 		goto parse_multistate;
 
 	case oCompression:
@@ -1115,6 +1133,10 @@ parse_char_array:
 		charptr = &options->bind_address;
 		goto parse_string;
 
+	case oBindInterface:
+		charptr = &options->bind_interface;
+		goto parse_string;
+
 	case oPKCS11Provider:
 		charptr = &options->pkcs11_provider;
 		goto parse_string;
@@ -1145,25 +1167,28 @@ parse_command:
 		return 0;
 
 	case oPort:
-		intptr = &options->port;
-parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
-			fatal("%.200s line %d: Bad number.", filename, linenum);
-
-		/* Octal, decimal, or hex format? */
-		value = strtol(arg, &endofnumber, 0);
-		if (arg == endofnumber)
-			fatal("%.200s line %d: Bad number.", filename, linenum);
-		if (*activep && *intptr == -1)
-			*intptr = value;
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		value = a2port(arg);
+		if (value <= 0)
+			fatal("%.200s line %d: Bad port '%s'.",
+			    filename, linenum, arg);
+		if (*activep && options->port == -1)
+			options->port = value;
 		break;
 
 	case oConnectionAttempts:
 		intptr = &options->connection_attempts;
-		goto parse_int;
+parse_int:
+		arg = strdelim(&s);
+		if ((errstr = atoi_err(arg, &value)) != NULL)
+			fatal("%s line %d: integer value %s.",
+			    filename, linenum, errstr);
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
 
 	case oCiphers:
 		arg = strdelim(&s);
@@ -1215,6 +1240,10 @@ parse_keytypes:
 			*charptr = xstrdup(arg);
 		break;
 
+	case oCASignatureAlgorithms:
+		charptr = &options->ca_sign_algorithms;
+		goto parse_keytypes;
+
 	case oLogLevel:
 		log_level_ptr = &options->log_level;
 		arg = strdelim(&s);
@@ -1245,31 +1274,36 @@ parse_keytypes:
 			fatal("%.200s line %d: Missing port argument.",
 			    filename, linenum);
 
-		if (opcode == oLocalForward ||
-		    opcode == oRemoteForward) {
+		remotefwd = (opcode == oRemoteForward);
+		dynamicfwd = (opcode == oDynamicForward);
+
+		if (!dynamicfwd) {
 			arg2 = strdelim(&s);
-			if (arg2 == NULL || *arg2 == '\0')
-				fatal("%.200s line %d: Missing target argument.",
-				    filename, linenum);
-
-			/* construct a string for parse_forward */
-			snprintf(fwdarg, sizeof(fwdarg), "%s:%s", arg, arg2);
-		} else if (opcode == oDynamicForward) {
-			strlcpy(fwdarg, arg, sizeof(fwdarg));
+			if (arg2 == NULL || *arg2 == '\0') {
+				if (remotefwd)
+					dynamicfwd = 1;
+				else
+					fatal("%.200s line %d: Missing target "
+					    "argument.", filename, linenum);
+			} else {
+				/* construct a string for parse_forward */
+				snprintf(fwdarg, sizeof(fwdarg), "%s:%s", arg,
+				    arg2);
+			}
 		}
+		if (dynamicfwd)
+			strlcpy(fwdarg, arg, sizeof(fwdarg));
 
-		if (parse_forward(&fwd, fwdarg,
-		    opcode == oDynamicForward ? 1 : 0,
-		    opcode == oRemoteForward ? 1 : 0) == 0)
+		if (parse_forward(&fwd, fwdarg, dynamicfwd, remotefwd) == 0)
 			fatal("%.200s line %d: Bad forwarding specification.",
 			    filename, linenum);
 
 		if (*activep) {
-			if (opcode == oLocalForward ||
-			    opcode == oDynamicForward)
-				add_local_forward(options, &fwd);
-			else if (opcode == oRemoteForward)
+			if (remotefwd) {
 				add_remote_forward(options, &fwd);
+			} else {
+				add_local_forward(options, &fwd);
+			}
 		}
 		break;
 
@@ -1314,7 +1348,8 @@ parse_keytypes:
 			fatal("Host directive not supported as a command-line "
 			    "option");
 		value = match_cfg_line(options, &s, pw, host, original_host,
-		    flags & SSHCONF_POSTCANON, filename, linenum);
+		    flags & SSHCONF_FINAL, want_final_pass,
+		    filename, linenum);
 		if (value < 0)
 			fatal("%.200s line %d: Bad Match condition", filename,
 			    linenum);
@@ -1371,11 +1406,41 @@ parse_keytypes:
 				    filename, linenum);
 			if (!*activep)
 				continue;
-			if (options->num_send_env >= MAX_SEND_ENV)
-				fatal("%s line %d: too many send env.",
+			if (*arg == '-') {
+				/* Removing an env var */
+				rm_env(options, arg, filename, linenum);
+				continue;
+			} else {
+				/* Adding an env var */
+				if (options->num_send_env >= INT_MAX)
+					fatal("%s line %d: too many send env.",
+					    filename, linenum);
+				options->send_env = xrecallocarray(
+				    options->send_env, options->num_send_env,
+				    options->num_send_env + 1,
+				    sizeof(*options->send_env));
+				options->send_env[options->num_send_env++] =
+				    xstrdup(arg);
+			}
+		}
+		break;
+
+	case oSetEnv:
+		value = options->num_setenv;
+		while ((arg = strdelimw(&s)) != NULL && *arg != '\0') {
+			if (strchr(arg, '=') == NULL)
+				fatal("%s line %d: Invalid SetEnv.",
 				    filename, linenum);
-			options->send_env[options->num_send_env++] =
-			    xstrdup(arg);
+			if (!*activep || value != 0)
+				continue;
+			/* Adding a setenv var */
+			if (options->num_setenv >= INT_MAX)
+				fatal("%s line %d: too many SetEnv.",
+				    filename, linenum);
+			options->setenv = xrecallocarray(
+			    options->setenv, options->num_setenv,
+			    options->num_setenv + 1, sizeof(*options->setenv));
+			options->setenv[options->num_setenv++] = xstrdup(arg);
 		}
 		break;
 
@@ -1466,7 +1531,7 @@ parse_keytypes:
 			if (*arg == '~' && (flags & SSHCONF_USERCONF) == 0)
 				fatal("%.200s line %d: bad include path %s.",
 				    filename, linenum, arg);
-			if (*arg != '/' && *arg != '~') {
+			if (!path_absolute(arg) && *arg != '~') {
 				xasprintf(&arg2, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
 				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
@@ -1493,7 +1558,7 @@ parse_keytypes:
 				    pw, host, original_host, options,
 				    flags | SSHCONF_CHECKPERM |
 				    (oactive ? 0 : SSHCONF_NEVERMATCH),
-				    activep, depth + 1);
+				    activep, want_final_pass, depth + 1);
 				if (r != 1 && errno != ENOENT) {
 					fatal("Can't open user config file "
 					    "%.100s: %.100s", gl.gl_pathv[i],
@@ -1546,7 +1611,10 @@ parse_keytypes:
 	case oCanonicalDomains:
 		value = options->num_canonical_domains != 0;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
-			valid_domain(arg, filename, linenum);
+			if (!valid_domain(arg, 1, &errstr)) {
+				fatal("%s line %d: %s", filename, linenum,
+				    errstr);
+			}
 			if (!*activep || value)
 				continue;
 			if (options->num_canonical_domains >= MAX_CANON_DOMAINS)
@@ -1651,7 +1719,18 @@ parse_keytypes:
 
 	case oIdentityAgent:
 		charptr = &options->identity_agent;
-		goto parse_string;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		/* Extra validation if the string represents an env var. */
+		if (arg[0] == '$' && !valid_env_name(arg + 1)) {
+			fatal("%.200s line %d: Invalid environment name %s.",
+			    filename, linenum, arg);
+		}
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+		break;
 
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
@@ -1682,22 +1761,24 @@ parse_keytypes:
  */
 int
 read_config_file(const char *filename, struct passwd *pw, const char *host,
-    const char *original_host, Options *options, int flags)
+    const char *original_host, Options *options, int flags,
+    int *want_final_pass)
 {
 	int active = 1;
 
 	return read_config_file_depth(filename, pw, host, original_host,
-	    options, flags, &active, 0);
+	    options, flags, &active, want_final_pass, 0);
 }
 
 #define READCONF_MAX_DEPTH	16
 static int
 read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth)
+    int flags, int *activep, int *want_final_pass, int depth)
 {
 	FILE *f;
-	char line[4096];
+	char *line = NULL;
+	size_t linesize = 0;
 	int linenum;
 	int bad_options = 0;
 
@@ -1724,15 +1805,15 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 	 * on/off by Host specifications.
 	 */
 	linenum = 0;
-	while (fgets(line, sizeof(line), f)) {
+	while (getline(&line, &linesize, f) != -1) {
 		/* Update line number counter. */
 		linenum++;
-		if (strlen(line) == sizeof(line) - 1)
-			fatal("%s line %d too long", filename, linenum);
 		if (process_config_line_depth(options, pw, host, original_host,
-		    line, filename, linenum, activep, flags, depth) != 0)
+		    line, filename, linenum, activep, flags, want_final_pass,
+		    depth) != 0)
 			bad_options++;
 	}
+	free(line);
 	fclose(f);
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
@@ -1770,7 +1851,6 @@ initialize_options(Options * options)
 	options->fwd_opts.gateway_ports = -1;
 	options->fwd_opts.streamlocal_bind_mask = (mode_t)-1;
 	options->fwd_opts.streamlocal_bind_unlink = -1;
-	options->use_privileged_port = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
 	options->gss_authentication = -1;
@@ -1793,6 +1873,7 @@ initialize_options(Options * options)
 	options->macs = NULL;
 	options->kex_algorithms = NULL;
 	options->hostkeyalgorithms = NULL;
+	options->ca_sign_algorithms = NULL;
 	options->num_identity_files = 0;
 	options->num_certificate_files = 0;
 	options->hostname = NULL;
@@ -1814,6 +1895,7 @@ initialize_options(Options * options)
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
+	options->bind_interface = NULL;
 	options->pkcs11_provider = NULL;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
@@ -1823,7 +1905,10 @@ initialize_options(Options * options)
 	options->verify_host_key_dns = -1;
 	options->server_alive_interval = -1;
 	options->server_alive_count_max = -1;
+	options->send_env = NULL;
 	options->num_send_env = 0;
+	options->setenv = NULL;
+	options->num_setenv = 0;
 	options->control_path = NULL;
 	options->control_master = -1;
 	options->control_persist = -1;
@@ -1877,6 +1962,9 @@ fill_default_options_for_canonicalization(Options *options)
 void
 fill_default_options(Options * options)
 {
+	char *all_cipher, *all_mac, *all_kex, *all_key, *all_sig;
+	int r;
+
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
@@ -1906,8 +1994,6 @@ fill_default_options(Options * options)
 		options->fwd_opts.streamlocal_bind_mask = 0177;
 	if (options->fwd_opts.streamlocal_bind_unlink == -1)
 		options->fwd_opts.streamlocal_bind_unlink = 0;
-	if (options->use_privileged_port == -1)
-		options->use_privileged_port = 0;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
 	if (options->challenge_response_authentication == -1)
@@ -1927,7 +2013,7 @@ fill_default_options(Options * options)
 	if (options->check_host_ip == -1)
 		options->check_host_ip = 1;
 	if (options->strict_host_key_checking == -1)
-		options->strict_host_key_checking = 2;	/* 2 is default */
+		options->strict_host_key_checking = SSH_STRICT_HOSTKEY_ASK;
 	if (options->compression == -1)
 		options->compression = 0;
 	if (options->tcp_keep_alive == -1)
@@ -1951,6 +2037,7 @@ fill_default_options(Options * options)
 #endif
 		add_identity_file(options, "~/",
 		    _PATH_SSH_CLIENT_ID_ED25519, 0);
+		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_XMSS, 0);
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';
@@ -2005,9 +2092,9 @@ fill_default_options(Options * options)
 	if (options->visual_host_key == -1)
 		options->visual_host_key = 0;
 	if (options->ip_qos_interactive == -1)
-		options->ip_qos_interactive = IPTOS_LOWDELAY;
+		options->ip_qos_interactive = IPTOS_DSCP_AF21;
 	if (options->ip_qos_bulk == -1)
-		options->ip_qos_bulk = IPTOS_THROUGHPUT;
+		options->ip_qos_bulk = IPTOS_DSCP_CS1;
 	if (options->request_tty == -1)
 		options->request_tty = REQUEST_TTY_AUTO;
 	if (options->proxy_use_fdpass == -1)
@@ -2022,14 +2109,31 @@ fill_default_options(Options * options)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	if (options->update_hostkeys == -1)
 		options->update_hostkeys = 0;
-	if (kex_assemble_names(KEX_CLIENT_ENCRYPT, &options->ciphers) != 0 ||
-	    kex_assemble_names(KEX_CLIENT_MAC, &options->macs) != 0 ||
-	    kex_assemble_names(KEX_CLIENT_KEX, &options->kex_algorithms) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->hostbased_key_types) != 0 ||
-	    kex_assemble_names(KEX_DEFAULT_PK_ALG,
-	    &options->pubkey_key_types) != 0)
-		fatal("%s: kex_assemble_names failed", __func__);
+
+	/* Expand KEX name lists */
+	all_cipher = cipher_alg_list(',', 0);
+	all_mac = mac_alg_list(',');
+	all_kex = kex_alg_list(',');
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	all_sig = sshkey_alg_list(0, 1, 1, ',');
+#define ASSEMBLE(what, defaults, all) \
+	do { \
+		if ((r = kex_assemble_names(&options->what, \
+		    defaults, all)) != 0) \
+			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
+	} while (0)
+	ASSEMBLE(ciphers, KEX_SERVER_ENCRYPT, all_cipher);
+	ASSEMBLE(macs, KEX_SERVER_MAC, all_mac);
+	ASSEMBLE(kex_algorithms, KEX_SERVER_KEX, all_kex);
+	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(ca_sign_algorithms, SSH_ALLOWED_CA_SIGALGS, all_sig);
+#undef ASSEMBLE
+	free(all_cipher);
+	free(all_mac);
+	free(all_kex);
+	free(all_key);
+	free(all_sig);
 
 #define CLEAR_ON_NONE(v) \
 	do { \
@@ -2043,6 +2147,12 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->proxy_command);
 	CLEAR_ON_NONE(options->control_path);
 	CLEAR_ON_NONE(options->revoked_host_keys);
+	if (options->jump_host != NULL &&
+	    strcmp(options->jump_host, "none") == 0 &&
+	    options->jump_port == 0 && options->jump_user == NULL) {
+		free(options->jump_host);
+		options->jump_host = NULL;
+	}
 	/* options->identity_agent distinguishes NULL from 'none' */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */
@@ -2271,6 +2381,8 @@ parse_jump(const char *s, Options *o, int active)
 	orig = sdup = xstrdup(s);
 	first = active;
 	do {
+		if (strcasecmp(s, "none") == 0)
+			break;
 		if ((cp = strrchr(sdup, ',')) == NULL)
 			cp = sdup; /* last */
 		else
@@ -2278,25 +2390,32 @@ parse_jump(const char *s, Options *o, int active)
 
 		if (first) {
 			/* First argument and configuration is active */
-			if (parse_user_host_port(cp, &user, &host, &port) != 0)
+			if (parse_ssh_uri(cp, &user, &host, &port) == -1 ||
+			    parse_user_host_port(cp, &user, &host, &port) != 0)
 				goto out;
 		} else {
 			/* Subsequent argument or inactive configuration */
-			if (parse_user_host_port(cp, NULL, NULL, NULL) != 0)
+			if (parse_ssh_uri(cp, NULL, NULL, NULL) == -1 ||
+			    parse_user_host_port(cp, NULL, NULL, NULL) != 0)
 				goto out;
 		}
 		first = 0; /* only check syntax for subsequent hosts */
 	} while (cp != sdup);
 	/* success */
 	if (active) {
-		o->jump_user = user;
-		o->jump_host = host;
-		o->jump_port = port;
-		o->proxy_command = xstrdup("none");
-		user = host = NULL;
-		if ((cp = strrchr(s, ',')) != NULL && cp != s) {
-			o->jump_extra = xstrdup(s);
-			o->jump_extra[cp - s] = '\0';
+		if (strcasecmp(s, "none") == 0) {
+			o->jump_host = xstrdup("none");
+			o->jump_port = 0;
+		} else {
+			o->jump_user = user;
+			o->jump_host = host;
+			o->jump_port = port;
+			o->proxy_command = xstrdup("none");
+			user = host = NULL;
+			if ((cp = strrchr(s, ',')) != NULL && cp != s) {
+				o->jump_extra = xstrdup(s);
+				o->jump_extra[cp - s] = '\0';
+			}
 		}
 	}
 	ret = 0;
@@ -2305,6 +2424,18 @@ parse_jump(const char *s, Options *o, int active)
 	free(user);
 	free(host);
 	return ret;
+}
+
+int
+parse_ssh_uri(const char *uri, char **userp, char **hostp, int *portp)
+{
+	char *path;
+	int r;
+
+	r = parse_uri("ssh", uri, userp, hostp, portp, &path);
+	if (r == 0 && path != NULL)
+		r = -1;		/* path not allowed */
+	return r;
 }
 
 /* XXX the following is a near-vebatim copy from servconf.c; refactor */
@@ -2329,9 +2460,10 @@ fmt_intarg(OpCodes code, int val)
 	case oAddressFamily:
 		return fmt_multistate_int(val, multistate_addressfamily);
 	case oVerifyHostKeyDNS:
-	case oStrictHostKeyChecking:
 	case oUpdateHostkeys:
 		return fmt_multistate_int(val, multistate_yesnoask);
+	case oStrictHostKeyChecking:
+		return fmt_multistate_int(val, multistate_strict_hostkey);
 	case oControlMaster:
 		return fmt_multistate_int(val, multistate_controlmaster);
 	case oTunnel:
@@ -2340,6 +2472,8 @@ fmt_intarg(OpCodes code, int val)
 		return fmt_multistate_int(val, multistate_requesttty);
 	case oCanonicalizeHostname:
 		return fmt_multistate_int(val, multistate_canonicalizehostname);
+	case oAddKeysToAgent:
+		return fmt_multistate_int(val, multistate_yesnoaskconfirm);
 	case oFingerprintHash:
 		return ssh_digest_alg_name(val);
 	default:
@@ -2447,11 +2581,14 @@ void
 dump_client_config(Options *o, const char *host)
 {
 	int i;
-	char buf[8];
+	char buf[8], *all_key;
 
 	/* This is normally prepared in ssh_kex2 */
-	if (kex_assemble_names(KEX_DEFAULT_PK_ALG, &o->hostkeyalgorithms) != 0)
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	if (kex_assemble_names( &o->hostkeyalgorithms,
+	    KEX_DEFAULT_PK_ALG, all_key) != 0)
 		fatal("%s: kex_assemble_names failed", __func__);
+	free(all_key);
 
 	/* Most interesting options first: user, host, port */
 	dump_cfg_string(oUser, o->user);
@@ -2459,6 +2596,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_int(oPort, o->port);
 
 	/* Flag options */
+	dump_cfg_fmtint(oAddKeysToAgent, o->add_keys_to_agent);
 	dump_cfg_fmtint(oAddressFamily, o->address_family);
 	dump_cfg_fmtint(oBatchMode, o->batch_mode);
 	dump_cfg_fmtint(oCanonicalizeFallbackLocal, o->canonicalize_fallback_local);
@@ -2493,7 +2631,6 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_fmtint(oStrictHostKeyChecking, o->strict_host_key_checking);
 	dump_cfg_fmtint(oTCPKeepAlive, o->tcp_keep_alive);
 	dump_cfg_fmtint(oTunnel, o->tun_open);
-	dump_cfg_fmtint(oUsePrivilegedPort, o->use_privileged_port);
 	dump_cfg_fmtint(oVerifyHostKeyDNS, o->verify_host_key_dns);
 	dump_cfg_fmtint(oVisualHostKey, o->visual_host_key);
 	dump_cfg_fmtint(oUpdateHostkeys, o->update_hostkeys);
@@ -2508,14 +2645,17 @@ dump_client_config(Options *o, const char *host)
 
 	/* String options */
 	dump_cfg_string(oBindAddress, o->bind_address);
+	dump_cfg_string(oBindInterface, o->bind_interface);
 	dump_cfg_string(oCiphers, o->ciphers ? o->ciphers : KEX_CLIENT_ENCRYPT);
 	dump_cfg_string(oControlPath, o->control_path);
 	dump_cfg_string(oHostKeyAlgorithms, o->hostkeyalgorithms);
 	dump_cfg_string(oHostKeyAlias, o->host_key_alias);
 	dump_cfg_string(oHostbasedKeyTypes, o->hostbased_key_types);
 	dump_cfg_string(oIdentityAgent, o->identity_agent);
+	dump_cfg_string(oIgnoreUnknown, o->ignored_unknown);
 	dump_cfg_string(oKbdInteractiveDevices, o->kbd_interactive_devices);
 	dump_cfg_string(oKexAlgorithms, o->kex_algorithms ? o->kex_algorithms : KEX_CLIENT_KEX);
+	dump_cfg_string(oCASignatureAlgorithms, o->ca_sign_algorithms ? o->ca_sign_algorithms : SSH_ALLOWED_CA_SIGALGS);
 	dump_cfg_string(oLocalCommand, o->local_command);
 	dump_cfg_string(oRemoteCommand, o->remote_command);
 	dump_cfg_string(oLogLevel, log_level_name(o->log_level));
@@ -2536,9 +2676,11 @@ dump_client_config(Options *o, const char *host)
 	/* String array options */
 	dump_cfg_strarray(oIdentityFile, o->num_identity_files, o->identity_files);
 	dump_cfg_strarray_oneline(oCanonicalDomains, o->num_canonical_domains, o->canonical_domains);
+	dump_cfg_strarray(oCertificateFile, o->num_certificate_files, o->certificate_files);
 	dump_cfg_strarray_oneline(oGlobalKnownHostsFile, o->num_system_hostfiles, o->system_hostfiles);
 	dump_cfg_strarray_oneline(oUserKnownHostsFile, o->num_user_hostfiles, o->user_hostfiles);
 	dump_cfg_strarray(oSendEnv, o->num_send_env, o->send_env);
+	dump_cfg_strarray(oSetEnv, o->num_setenv, o->setenv);
 
 	/* Special cases */
 
@@ -2595,6 +2737,9 @@ dump_client_config(Options *o, const char *host)
 	/* oStreamLocalBindMask */
 	printf("streamlocalbindmask 0%o\n",
 	    o->fwd_opts.streamlocal_bind_mask);
+
+	/* oLogFacility */
+	printf("syslogfacility %s\n", log_facility_name(o->log_facility));
 
 	/* oProxyCommand / oProxyJump */
 	if (o->jump_host == NULL)
