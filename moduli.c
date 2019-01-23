@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.33 2019/01/20 02:01:59 tb Exp $ */
+/* $OpenBSD: moduli.c,v 1.34 2019/01/23 09:49:00 dtucker Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -716,8 +716,6 @@ prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted,
 		if (generator_known == 0) {
 			if (BN_mod_word(p, 24) == 11)
 				generator_known = 2;
-			else if (BN_mod_word(p, 12) == 5)
-				generator_known = 3;
 			else {
 				u_int32_t r = BN_mod_word(p, 10);
 
