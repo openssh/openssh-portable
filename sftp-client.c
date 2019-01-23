@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.131 2019/01/16 23:23:45 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.132 2019/01/23 08:01:46 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -102,7 +102,9 @@ sftpio(void *_bwlimit, size_t amount)
 {
 	struct bwlimit *bwlimit = (struct bwlimit *)_bwlimit;
 
-	bandwidth_limit(bwlimit, amount);
+	refresh_progress_meter();
+	if (bwlimit != NULL)
+		bandwidth_limit(bwlimit, amount);
 	return 0;
 }
 
@@ -122,8 +124,8 @@ send_msg(struct sftp_conn *conn, struct sshbuf *m)
 	iov[1].iov_base = (u_char *)sshbuf_ptr(m);
 	iov[1].iov_len = sshbuf_len(m);
 
-	if (atomiciov6(writev, conn->fd_out, iov, 2,
-	    conn->limit_kbps > 0 ? sftpio : NULL, &conn->bwlimit_out) !=
+	if (atomiciov6(writev, conn->fd_out, iov, 2, sftpio,
+	    conn->limit_kbps > 0 ? &conn->bwlimit_out : NULL) !=
 	    sshbuf_len(m) + sizeof(mlen))
 		fatal("Couldn't send packet: %s", strerror(errno));
 
@@ -139,8 +141,8 @@ get_msg_extended(struct sftp_conn *conn, struct sshbuf *m, int initial)
 
 	if ((r = sshbuf_reserve(m, 4, &p)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (atomicio6(read, conn->fd_in, p, 4,
-	    conn->limit_kbps > 0 ? sftpio : NULL, &conn->bwlimit_in) != 4) {
+	if (atomicio6(read, conn->fd_in, p, 4, sftpio,
+	    conn->limit_kbps > 0 ? &conn->bwlimit_in : NULL) != 4) {
 		if (errno == EPIPE || errno == ECONNRESET)
 			fatal("Connection closed");
 		else
@@ -158,8 +160,8 @@ get_msg_extended(struct sftp_conn *conn, struct sshbuf *m, int initial)
 
 	if ((r = sshbuf_reserve(m, msg_len, &p)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
-	if (atomicio6(read, conn->fd_in, p, msg_len,
-	    conn->limit_kbps > 0 ? sftpio : NULL, &conn->bwlimit_in)
+	if (atomicio6(read, conn->fd_in, p, msg_len, sftpio,
+	    conn->limit_kbps > 0 ? &conn->bwlimit_in : NULL)
 	    != msg_len) {
 		if (errno == EPIPE)
 			fatal("Connection closed");
