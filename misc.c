@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.136 2018/12/27 03:25:25 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.137 2019/01/23 21:50:56 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -564,7 +564,7 @@ put_host_port(const char *host, u_short port)
  * The delimiter char, if present, is stored in delim.
  * If this is the last field, *cp is set to NULL.
  */
-static char *
+char *
 hpdelim2(char **cp, char *delim)
 {
 	char *s, *old;
