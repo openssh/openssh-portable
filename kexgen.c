@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgen.c,v 1.1 2019/01/21 11:22:00 djm Exp $ */
+/* $OpenBSD: kexgen.c,v 1.2 2019/01/23 00:30:41 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -48,9 +48,9 @@ kex_gen_hash(
     int hash_alg,
     const struct sshbuf *client_version,
     const struct sshbuf *server_version,
-    const u_char *ckexinit, size_t ckexinitlen,
-    const u_char *skexinit, size_t skexinitlen,
-    const u_char *serverhostkeyblob, size_t sbloblen,
+    const struct sshbuf *client_kexinit,
+    const struct sshbuf *server_kexinit,
+    const struct sshbuf *server_host_key_blob,
     const struct sshbuf *client_pub,
     const struct sshbuf *server_pub,
     const struct sshbuf *shared_secret,
@@ -66,13 +66,13 @@ kex_gen_hash(
 	if ((r = sshbuf_put_stringb(b, client_version)) != 0 ||
 	    (r = sshbuf_put_stringb(b, server_version)) != 0 ||
 	    /* kexinit messages: fake header: len+SSH2_MSG_KEXINIT */
-	    (r = sshbuf_put_u32(b, ckexinitlen+1)) != 0 ||
+	    (r = sshbuf_put_u32(b, sshbuf_len(client_kexinit) + 1)) != 0 ||
 	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
-	    (r = sshbuf_put(b, ckexinit, ckexinitlen)) != 0 ||
-	    (r = sshbuf_put_u32(b, skexinitlen+1)) != 0 ||
+	    (r = sshbuf_putb(b, client_kexinit)) != 0 ||
+	    (r = sshbuf_put_u32(b, sshbuf_len(server_kexinit) + 1)) != 0 ||
 	    (r = sshbuf_put_u8(b, SSH2_MSG_KEXINIT)) != 0 ||
-	    (r = sshbuf_put(b, skexinit, skexinitlen)) != 0 ||
-	    (r = sshbuf_put_string(b, serverhostkeyblob, sbloblen)) != 0 ||
+	    (r = sshbuf_putb(b, server_kexinit)) != 0 ||
+	    (r = sshbuf_put_stringb(b, server_host_key_blob)) != 0 ||
 	    (r = sshbuf_put_stringb(b, client_pub)) != 0 ||
 	    (r = sshbuf_put_stringb(b, server_pub)) != 0 ||
 	    (r = sshbuf_putb(b, shared_secret)) != 0) {
@@ -139,16 +139,21 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	struct sshkey *server_host_key = NULL;
 	struct sshbuf *shared_secret = NULL;
 	struct sshbuf *server_blob = NULL;
-	u_char *server_host_key_blob = NULL, *signature = NULL;
+	struct sshbuf *tmp = NULL, *server_host_key_blob = NULL;
+	u_char *signature = NULL;
 	u_char hash[SSH_DIGEST_MAX_LENGTH];
-	size_t slen, sbloblen, hashlen;
+	size_t slen, hashlen;
 	int r;
 
 	/* hostkey */
-	if ((r = sshpkt_get_string(ssh, &server_host_key_blob,
-	    &sbloblen)) != 0 ||
-	    (r = sshkey_from_blob(server_host_key_blob, sbloblen,
-	    &server_host_key)) != 0)
+	if ((r = sshpkt_getb_froms(ssh, &server_host_key_blob)) != 0)
+		goto out;
+	/* sshkey_fromb() consumes its buffer, so make a copy */
+	if ((tmp = sshbuf_fromb(server_host_key_blob)) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshkey_fromb(tmp, &server_host_key)) != 0)
 		goto out;
 	if ((r = kex_verify_host_key(ssh, server_host_key)) != 0)
 		goto out;
@@ -192,9 +197,9 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	    kex->hash_alg,
 	    kex->client_version,
 	    kex->server_version,
-	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
-	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
-	    server_host_key_blob, sbloblen,
+	    kex->my,
+	    kex->peer,
+	    server_host_key_blob,
 	    kex->client_pub,
 	    server_blob,
 	    shared_secret,
@@ -212,8 +217,9 @@ out:
 	explicit_bzero(kex->c25519_client_key, sizeof(kex->c25519_client_key));
 	explicit_bzero(kex->sntrup4591761_client_key,
 	    sizeof(kex->sntrup4591761_client_key));
-	free(server_host_key_blob);
+	sshbuf_free(server_host_key_blob);
 	free(signature);
+	sshbuf_free(tmp);
 	sshkey_free(server_host_key);
 	sshbuf_free(server_blob);
 	sshbuf_free(shared_secret);
@@ -238,9 +244,9 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 	struct sshbuf *shared_secret = NULL;
 	struct sshbuf *server_pubkey = NULL;
 	struct sshbuf *client_pubkey = NULL;
-	u_char *server_host_key_blob = NULL, *signature = NULL;
-	u_char hash[SSH_DIGEST_MAX_LENGTH];
-	size_t slen, sbloblen, hashlen;
+	struct sshbuf *server_host_key_blob = NULL;
+	u_char *signature = NULL, hash[SSH_DIGEST_MAX_LENGTH];
+	size_t slen, hashlen;
 	int r;
 
 	if ((r = kex_load_hostkey(ssh, &server_host_private,
@@ -281,17 +287,20 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		goto out;
 
 	/* calc H */
-	if ((r = sshkey_to_blob(server_host_public, &server_host_key_blob,
-	    &sbloblen)) != 0)
+	if ((server_host_key_blob = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshkey_putb(server_host_public, server_host_key_blob)) != 0)
 		goto out;
 	hashlen = sizeof(hash);
 	if ((r = kex_gen_hash(
 	    kex->hash_alg,
 	    kex->client_version,
 	    kex->server_version,
-	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
-	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
-	    server_host_key_blob, sbloblen,
+	    kex->peer,
+	    kex->my,
+	    server_host_key_blob,
 	    client_pubkey,
 	    server_pubkey,
 	    shared_secret,
@@ -305,7 +314,7 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 
 	/* send server hostkey, ECDH pubkey 'Q_S' and signed H */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEX_ECDH_REPLY)) != 0 ||
-	    (r = sshpkt_put_string(ssh, server_host_key_blob, sbloblen)) != 0 ||
+	    (r = sshpkt_put_stringb(ssh, server_host_key_blob)) != 0 ||
 	    (r = sshpkt_put_stringb(ssh, server_pubkey)) != 0 ||
 	    (r = sshpkt_put_string(ssh, signature, slen)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
@@ -315,7 +324,7 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_send_newkeys(ssh);
 out:
 	explicit_bzero(hash, sizeof(hash));
-	free(server_host_key_blob);
+	sshbuf_free(server_host_key_blob);
 	free(signature);
 	sshbuf_free(shared_secret);
 	sshbuf_free(client_pubkey);

@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.106 2019/01/21 10:40:11 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.107 2019/01/23 00:30:41 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -229,7 +229,7 @@ int	 kex_dh_keygen(struct kex *);
 int	 kex_dh_compute_key(struct kex *, BIGNUM *, struct sshbuf *);
 
 int	 kexgex_hash(int, const struct sshbuf *, const struct sshbuf *,
-    const u_char *, size_t, const u_char *, size_t, const u_char *, size_t,
+    const struct sshbuf *, const struct sshbuf *, const struct sshbuf *,
     int, int, int,
     const BIGNUM *, const BIGNUM *, const BIGNUM *,
     const BIGNUM *, const u_char *, size_t,

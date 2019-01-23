@@ -1,4 +1,4 @@
-/* $OpenBSD: kexgexs.c,v 1.41 2019/01/21 10:05:09 djm Exp $ */
+/* $OpenBSD: kexgexs.c,v 1.42 2019/01/23 00:30:41 djm Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -129,11 +129,11 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	BIGNUM *dh_client_pub = NULL;
 	const BIGNUM *pub_key, *dh_p, *dh_g;
 	struct sshbuf *shared_secret = NULL;
+	struct sshbuf *server_host_key_blob = NULL;
 	struct sshkey *server_host_public, *server_host_private;
-	u_char *signature = NULL, *server_host_key_blob = NULL;
+	u_char *signature = NULL;
 	u_char hash[SSH_DIGEST_MAX_LENGTH];
-	size_t sbloblen, slen;
-	size_t hashlen;
+	size_t slen, hashlen;
 	int r;
 
 	if ((r = kex_load_hostkey(ssh, &server_host_private,
@@ -150,8 +150,11 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	}
 	if ((r = kex_dh_compute_key(kex, dh_client_pub, shared_secret)) != 0)
 		goto out;
-	if ((r = sshkey_to_blob(server_host_public, &server_host_key_blob,
-	    &sbloblen)) != 0)
+	if ((server_host_key_blob = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshkey_putb(server_host_public, server_host_key_blob)) != 0)
 		goto out;
 
 	/* calc H */
@@ -162,9 +165,9 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	    kex->hash_alg,
 	    kex->client_version,
 	    kex->server_version,
-	    sshbuf_ptr(kex->peer), sshbuf_len(kex->peer),
-	    sshbuf_ptr(kex->my), sshbuf_len(kex->my),
-	    server_host_key_blob, sbloblen,
+	    kex->peer,
+	    kex->my,
+	    server_host_key_blob,
 	    kex->min, kex->nbits, kex->max,
 	    dh_p, dh_g,
 	    dh_client_pub,
@@ -180,7 +183,7 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 
 	/* send server hostkey, DH pubkey 'f' and signed H */
 	if ((r = sshpkt_start(ssh, SSH2_MSG_KEX_DH_GEX_REPLY)) != 0 ||
-	    (r = sshpkt_put_string(ssh, server_host_key_blob, sbloblen)) != 0 ||
+	    (r = sshpkt_put_stringb(ssh, server_host_key_blob)) != 0 ||
 	    (r = sshpkt_put_bignum2(ssh, pub_key)) != 0 ||     /* f */
 	    (r = sshpkt_put_string(ssh, signature, slen)) != 0 ||
 	    (r = sshpkt_send(ssh)) != 0)
@@ -194,7 +197,7 @@ input_kex_dh_gex_init(int type, u_int32_t seq, struct ssh *ssh)
 	kex->dh = NULL;
 	BN_clear_free(dh_client_pub);
 	sshbuf_free(shared_secret);
-	free(server_host_key_blob);
+	sshbuf_free(server_host_key_blob);
 	free(signature);
 	return r;
 }
