@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.132 2019/01/23 08:01:46 dtucker Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.133 2019/01/24 16:52:17 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -102,7 +102,7 @@ sftpio(void *_bwlimit, size_t amount)
 {
 	struct bwlimit *bwlimit = (struct bwlimit *)_bwlimit;
 
-	refresh_progress_meter();
+	refresh_progress_meter(0);
 	if (bwlimit != NULL)
 		bandwidth_limit(bwlimit, amount);
 	return 0;
