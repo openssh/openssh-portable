@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.347 2019/01/23 21:50:56 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.348 2019/01/24 02:34:52 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -896,6 +896,7 @@ process_permitopen_list(struct ssh *ssh, ServerOpCodes opcode,
 	/* Otherwise treat it as a list of permitted host:port */
 	for (i = 0; i < num_opens; i++) {
 		oarg = arg = xstrdup(opens[i]);
+		ch = '\0';
 		host = hpdelim2(&arg, &ch);
 		if (host == NULL || ch == '/')
 			fatal("%s: missing host in %s", __func__, what);
@@ -1214,7 +1215,7 @@ process_server_config_line(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
     struct connection_info *connectinfo)
 {
-	char *cp, ***chararrayptr, **charptr, *arg, *arg2, *p;
+	char ch, *cp, ***chararrayptr, **charptr, *arg, *arg2, *p;
 	int cmdline = 0, *intptr, value, value2, n, port;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
@@ -1314,8 +1315,8 @@ process_server_config_line(ServerOptions *options, char *line,
 			port = 0;
 			p = arg;
 		} else {
-			char ch;
 			arg2 = NULL;
+			ch = '\0';
 			p = hpdelim2(&arg, &ch);
 			if (p == NULL || ch == '/')
 				fatal("%s line %d: bad address:port usage",
@@ -1944,9 +1945,8 @@ process_server_config_line(ServerOptions *options, char *line,
 				 */
 				xasprintf(&arg2, "*:%s", arg);
 			} else {
-				char ch;
-
 				arg2 = xstrdup(arg);
+				ch = '\0';
 				p = hpdelim2(&arg, &ch);
 				if (p == NULL || ch == '/') {
 					fatal("%s line %d: missing host in %s",
