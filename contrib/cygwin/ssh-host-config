@@ -669,14 +669,24 @@ then
 fi
 
 # handle sshd_config
+# make sure not to change the existing file
+mod_before=""
+if [ -e "${SYSCONFDIR}/sshd_config" ]
+then
+  mod_before=$(stat "${SYSCONFDIR}/sshd_config" | grep '^Modify:')
+fi
 csih_install_config "${SYSCONFDIR}/sshd_config" "${SYSCONFDIR}/defaults" || let ++warning_cnt
+mod_now=$(stat "${SYSCONFDIR}/sshd_config" | grep '^Modify:')
 if ! /usr/bin/cmp "${SYSCONFDIR}/sshd_config" "${SYSCONFDIR}/defaults/${SYSCONFDIR}/sshd_config" >/dev/null 2>&1
 then
   sshd_config_configured=yes
 fi
-sshd_strictmodes || let warning_cnt+=$?
-sshd_privsep || let warning_cnt+=$?
-sshd_config_tweak || let warning_cnt+=$?
+if [ "${mod_before}" != "${mod_now}" ]
+then
+  sshd_strictmodes || let warning_cnt+=$?
+  sshd_config_tweak || let warning_cnt+=$?
+fi
+#sshd_privsep || let warning_cnt+=$?
 update_services_file || let warning_cnt+=$?
 update_inetd_conf || let warning_cnt+=$?
 install_service || let warning_cnt+=$?
