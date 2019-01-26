@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.125 2019/01/21 10:38:54 djm Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.126 2019/01/26 22:35:01 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -69,6 +69,8 @@ int get_keytypes = KT_RSA|KT_ECDSA|KT_ED25519;
 int hash_hosts = 0;		/* Hash hostname on output */
 
 int print_sshfp = 0;		/* Print SSHFP records instead of known_hosts */
+
+int found_one = 0;		/* Successfully found a key */
 
 #define MAXMAXFD 256
 
@@ -286,6 +288,8 @@ keyprint_one(const char *host, struct sshkey *key)
 {
 	char *hostport;
 	const char *known_host, *hashed;
+
+	found_one = 1;
 
 	if (print_sshfp) {
 		export_dns_rr(host, key, stdout, 0);
@@ -802,5 +806,5 @@ main(int argc, char **argv)
 	while (ncon > 0)
 		conloop();
 
-	return (0);
+	return found_one ? 0 : 1;
 }
