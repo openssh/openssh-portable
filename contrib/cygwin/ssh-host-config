@@ -61,7 +61,7 @@ LOCALSTATEDIR=/var
 
 sshd_config_configured=no
 port_number=22
-service_name=sshd
+service_name=cygsshd
 strictmodes=yes
 cygwin_value=""
 user_account=
