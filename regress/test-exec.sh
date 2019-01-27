@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.64 2018/08/10 01:35:49 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.65 2019/01/27 06:30:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -469,11 +469,11 @@ fi
 
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
-SSH_KEYTYPES="rsa ed25519"
+SSH_KEYTYPES=`$SSH -Q key-plain`
 
-trace "generate keys"
 for t in ${SSH_KEYTYPES}; do
 	# generate user key
+	trace "generating key type $t"
 	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN_BIN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t
 		${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\
