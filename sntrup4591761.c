@@ -1,3 +1,13 @@
+/*  $OpenBSD: sntrup4591761.c,v 1.3 2019/01/30 19:51:15 markus Exp $ */
+
+/*
+ * Public Domain, Authors:
+ * - Daniel J. Bernstein
+ * - Chitchanok Chuengsatiansup
+ * - Tanja Lange
+ * - Christine van Vredendaal
+ */
+
 #include <string.h>
 #include "crypto_api.h"
 

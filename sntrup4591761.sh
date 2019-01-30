@@ -1,4 +1,8 @@
 #!/bin/sh
+#       $OpenBSD: sntrup4591761.sh,v 1.3 2019/01/30 19:51:15 markus Exp $
+#       Placed in the Public Domain.
+#
+AUTHOR="libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/implementors"
 FILES="
 	libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/int32_sort.h
 	libpqcrypto-20180314/crypto_kem/sntrup4591761/ref/int32_sort.c
@@ -27,8 +31,15 @@ FILES="
 ###
 
 set -e
-DIR=/data/git/mfriedl
-cd $DIR
+cd $1
+echo -n '/*  $'
+echo 'OpenBSD: $ */'
+echo
+echo '/*'
+echo ' * Public Domain, Authors:'
+sed -e '/Alphabetical order:/d' -e 's/^/ * - /' < $AUTHOR
+echo ' */'
+echo
 echo '#include <string.h>'
 echo '#include "crypto_api.h"'
 echo
