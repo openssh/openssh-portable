@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.312 2019/01/24 17:00:29 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.313 2019/02/01 03:52:23 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -457,7 +457,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
     struct sockaddr_storage *hostaddr, u_short port, int family,
     int connection_attempts, int *timeout_ms, int want_keepalive)
 {
-	int on = 1;
+	int on = 1, saved_timeout_ms = *timeout_ms;
 	int oerrno, sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo *ai;
@@ -501,6 +501,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				continue;
 			}
 
+			*timeout_ms = saved_timeout_ms;
 			if (timeout_connect(sock, ai->ai_addr, ai->ai_addrlen,
 			    timeout_ms) >= 0) {
 				/* Successful connection. */
