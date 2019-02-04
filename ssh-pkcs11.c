@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.41 2019/01/22 12:03:58 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.42 2019/02/04 23:37:54 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -625,6 +625,7 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin,
 	CK_RV			rv;
 	CK_SESSION_HANDLE	session;
 	int			login_required, have_pinpad, ret;
+	char			prompt[1024], *xpin = NULL;
 
 	f = p->function_list;
 	si = &p->slotinfo[slotidx];
@@ -633,7 +634,8 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin,
 	login_required = si->token.flags & CKF_LOGIN_REQUIRED;
 
 	/* fail early before opening session */
-	if (login_required && !have_pinpad && pin != NULL && strlen(pin) == 0) {
+	if (login_required && !have_pinpad && !pkcs11_interactive &&
+	    (pin == NULL || strlen(pin) == 0)) {
 		error("pin required");
 		return (-SSH_PKCS11_ERR_PIN_REQUIRED);
 	}
@@ -647,8 +649,21 @@ pkcs11_open_session(struct pkcs11_provider *p, CK_ULONG slotidx, char *pin,
 			/* defer PIN entry to the reader keypad */
 			rv = f->C_Login(session, CKU_USER, NULL_PTR, 0);
 		} else {
+			if (pkcs11_interactive) {
+				snprintf(prompt, sizeof(prompt),
+				    "Enter PIN for '%s': ", si->token.label);
+				if ((xpin = read_passphrase(prompt,
+				    RP_ALLOW_EOF)) == NULL) {
+					debug("%s: no pin specified",
+					    __func__);
+					return (-SSH_PKCS11_ERR_PIN_REQUIRED);
+				}
+				pin = xpin;
+			}
 			rv = f->C_Login(session, CKU_USER,
 			    (u_char *)pin, strlen(pin));
+			if (xpin != NULL)
+				freezero(xpin, strlen(xpin));
 		}
 		if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN) {
 			error("C_Login failed: %lu", rv);
