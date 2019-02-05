@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.312 2019/01/19 21:41:53 djm Exp $ */
+/* $OpenBSD: session.c,v 1.313 2019/02/05 11:35:56 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -545,7 +545,7 @@ do_exec_no_pty(struct ssh *ssh, Session *s, const char *command)
 	 * Enter the interactive session.  Note: server_loop must be able to
 	 * handle the case that fdin and fdout are the same.
 	 */
-	session_set_fds(s, inout[1], inout[1], err[1],
+	session_set_fds(ssh, s, inout[1], inout[1], err[1],
 	    s->is_subsystem, 0);
 #endif
 	return 0;
