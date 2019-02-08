@@ -2100,16 +2100,18 @@ channel_handle_efd_read(struct ssh *ssh, Channel *c,
     fd_set *readset, fd_set *writeset)
 {
 	char buf[CHAN_RBUF];
-	int r;
 	ssize_t len;
+	int r, force;
 
-	if (!c->detach_close && !FD_ISSET(c->efd, readset))
+	force = c->isatty && c->detach_close && c->istate != CHAN_INPUT_CLOSED;
+
+	if (c->efd == -1 || (!force && !FD_ISSET(c->efd, readset)))
 		return 1;
 
 	len = read(c->efd, buf, sizeof(buf));
 	debug2("channel %d: read %zd from efd %d", c->self, len, c->efd);
 	if (len < 0 && (errno == EINTR || ((errno == EAGAIN ||
-	    errno == EWOULDBLOCK) && !c->detach_close)))
+	    errno == EWOULDBLOCK) && !force)))
 		return 1;
 	if (len <= 0) {
 		debug2("channel %d: closing read-efd %d",
