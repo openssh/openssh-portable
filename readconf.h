@@ -29,7 +29,7 @@ struct allowed_cname {
 
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
-	char   *forward_identity_agent;		/* Optional path to ssh-agent socket */
+	char   *forward_identity_agent;	/* Optional path to ssh-agent socket */
 	int     forward_x11;	/* Forward X11 display. */
 	int     forward_x11_timeout;	/* Expiration for Cookies */
 	int     forward_x11_trusted;	/* Trust Forward X11 display. */

@@ -24,8 +24,7 @@ struct ssh_identitylist {
 };
 
 int	ssh_get_authentication_socket(int *fdp);
-int
-ssh_get_forward_authentication_socket(const char *authsocket, int *fdp);
+int ssh_get_forward_authentication_socket(const char *authsocket, int *fdp);
 void	ssh_close_authentication_socket(int sock);
 
 int	ssh_lock_agent(int sock, int lock, const char *password);

@@ -1746,8 +1746,6 @@ parse_keytypes:
 		}
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(arg);
-
-		printf("forward_identity_agent: %s\n", options->forward_identity_agent);
 		break;
 
 	case oDeprecated:
