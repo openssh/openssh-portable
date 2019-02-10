@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.326 2019/01/23 04:51:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.327 2019/02/10 16:35:41 benno Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -769,7 +769,7 @@ do_download(struct passwd *pw)
 	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
 	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
 
-	pkcs11_init(0);
+	pkcs11_init(1);
 	nkeys = pkcs11_add_provider(pkcs11provider, NULL, &keys);
 	if (nkeys <= 0)
 		fatal("cannot read public key from pkcs11");
