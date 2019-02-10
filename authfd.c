@@ -82,18 +82,16 @@ decode_reply(u_char type)
 		return SSH_ERR_INVALID_FORMAT;
 }
 
-/* Returns the number of the authentication fd, or -1 if there is none. */
+/* Returns socket fd, or -1 if there is none. */
 int
-ssh_get_authentication_socket(int *fdp)
+get_authentication_socket(const char *authsocket, int *fdp)
 {
-	const char *authsocket;
 	int sock, oerrno;
 	struct sockaddr_un sunaddr;
 
 	if (fdp != NULL)
 		*fdp = -1;
 
-	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
 	if (authsocket == NULL || *authsocket == '\0')
 		return SSH_ERR_AGENT_NOT_PRESENT;
 
@@ -117,6 +115,20 @@ ssh_get_authentication_socket(int *fdp)
 	else
 		close(sock);
 	return 0;
+}
+
+/* Returns the number of the authentication fd, or -1 if there is none. */
+int
+ssh_get_forward_authentication_socket(const char *authsocket, int *fdp)
+{
+	return get_authentication_socket(authsocket, fdp);
+}
+
+/* Returns the number of the authentication fd, or -1 if there is none. */
+int
+ssh_get_authentication_socket(int *fdp)
+{
+	return get_authentication_socket(getenv(SSH_AUTHSOCKET_ENV_NAME), fdp);
 }
 
 /* Communicate with agent: send request and read reply */

@@ -676,6 +676,33 @@ can access the local agent through the forwarded connection.
 An attacker cannot obtain key material from the agent,
 however they can perform operations on the keys that enable them to
 authenticate using the identities loaded into the agent.
+.It ForwardIdentityAgent
+Specifies the
+.Ux Ns -domain
+socket used to communicate with the forwarded authentication agent.
+.Pp
+.Cm ForwardIdentityAgent
+is used in conjunction with
+.Cm ForwardAgent
+to configure a separate ssh-agent for agent forwarding.
+If the string
+.Qq SSH_AUTH_SOCK
+is specified, the location of the socket will be read from the
+.Ev SSH_AUTH_SOCK
+environment variable.
+Otherwise if the specified value begins with a
+.Sq $
+character, then it will be treated as an environment variable containing
+the location of the socket.
+.Pp
+Arguments to
+.Cm ForwardIdentityAgent
+may use the tilde syntax to refer to a user's home directory
+or the tokens described in the
+.Sx TOKENS
+section.
+.Pp
+This option allow users to use a dedicated ssh-agent for agent forwarding.
 .It Cm ForwardX11
 Specifies whether X11 connections will be automatically redirected
 over the secure channel and

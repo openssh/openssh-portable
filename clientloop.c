@@ -1619,7 +1619,13 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 		    "malicious server.");
 		return NULL;
 	}
-	if ((r = ssh_get_authentication_socket(&sock)) != 0) {
+
+	if (options.forward_identity_agent)
+		r = ssh_get_forward_authentication_socket(options.forward_identity_agent, &sock);
+	else
+		r = ssh_get_authentication_socket(&sock);
+
+	if (r != 0) {
 		if (r != SSH_ERR_AGENT_NOT_PRESENT)
 			debug("%s: ssh_get_authentication_socket: %s",
 			    __func__, ssh_err(r));

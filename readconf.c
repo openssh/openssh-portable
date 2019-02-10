@@ -145,6 +145,7 @@ typedef enum {
 	oBadOption,
 	oHost, oMatch, oInclude,
 	oForwardAgent, oForwardX11, oForwardX11Trusted, oForwardX11Timeout,
+	oForwardIdentityAgent,
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
@@ -219,6 +220,7 @@ static struct {
 	{ "compressionlevel", oUnsupported },
 
 	{ "forwardagent", oForwardAgent },
+	{ "forwardidentityagent", oForwardIdentityAgent },
 	{ "forwardx11", oForwardX11 },
 	{ "forwardx11trusted", oForwardX11Trusted },
 	{ "forwardx11timeout", oForwardX11Timeout },
@@ -729,7 +731,6 @@ parse_token(const char *cp, const char *filename, int linenum,
     const char *ignored_unknown)
 {
 	int i;
-
 	for (i = 0; keywords[i].name; i++)
 		if (strcmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
@@ -1732,6 +1733,23 @@ parse_keytypes:
 			*charptr = xstrdup(arg);
 		break;
 
+	case oForwardIdentityAgent:
+		charptr = &options->forward_identity_agent;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.",
+			    filename, linenum);
+		/* Extra validation if the string represents an env var. */
+		if (arg[0] == '$' && !valid_env_name(arg + 1)) {
+			fatal("%.200s line %d: Invalid environment name %s.",
+			    filename, linenum, arg);
+		}
+		if (*activep && *charptr == NULL)
+			*charptr = xstrdup(arg);
+
+		printf("forward_identity_agent: %s\n", options->forward_identity_agent);
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -1840,6 +1858,7 @@ initialize_options(Options * options)
 {
 	memset(options, 'X', sizeof(*options));
 	options->forward_agent = -1;
+	options->forward_identity_agent = NULL;
 	options->forward_x11 = -1;
 	options->forward_x11_trusted = -1;
 	options->forward_x11_timeout = -1;
@@ -2660,6 +2679,7 @@ dump_client_config(Options *o, const char *host)
 	dump_cfg_string(oRemoteCommand, o->remote_command);
 	dump_cfg_string(oLogLevel, log_level_name(o->log_level));
 	dump_cfg_string(oMacs, o->macs ? o->macs : KEX_CLIENT_MAC);
+	dump_cfg_string(oForwardIdentityAgent, o->forward_identity_agent);
 #ifdef ENABLE_PKCS11
 	dump_cfg_string(oPKCS11Provider, o->pkcs11_provider);
 #endif
