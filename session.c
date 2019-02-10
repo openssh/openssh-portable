@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.313 2019/02/05 11:35:56 dtucker Exp $ */
+/* $OpenBSD: session.c,v 1.314 2019/02/10 11:10:57 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1510,11 +1510,12 @@ void
 do_child(struct ssh *ssh, Session *s, const char *command)
 {
 	extern char **environ;
-	char **env;
-	char *argv[ARGV_MAX];
+	char **env, *argv[ARGV_MAX], remote_id[512];
 	const char *shell, *shell0;
 	struct passwd *pw = s->pw;
 	int r = 0;
+
+	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
@@ -1638,6 +1639,8 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	signal(SIGPIPE, SIG_DFL);
 
 	if (s->is_subsystem == SUBSYSTEM_INT_SFTP_ERROR) {
+		error("Connection from %s: refusing non-sftp session",
+		    remote_id);
 		printf("This service allows sftp connections only.\n");
 		fflush(NULL);
 		exit(1);
