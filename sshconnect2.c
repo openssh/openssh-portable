@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.302 2019/02/11 09:44:42 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.303 2019/02/12 23:53:10 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -306,7 +306,6 @@ static int input_userauth_passwd_changereq(int, u_int32_t, struct ssh *);
 
 static int userauth_none(struct ssh *);
 static int userauth_pubkey(struct ssh *);
-static void userauth_pubkey_cleanup(struct ssh *);
 static int userauth_passwd(struct ssh *);
 static int userauth_kbdint(struct ssh *);
 static int userauth_hostbased(struct ssh *);
@@ -322,6 +321,7 @@ static int input_gssapi_errtok(int, u_int32_t, struct ssh *);
 
 void	userauth(struct ssh *, char *);
 
+static void pubkey_cleanup(struct ssh *);
 static int sign_and_send_pubkey(struct ssh *ssh, Identity *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_reset(Authctxt *);
@@ -346,7 +346,7 @@ Authmethod authmethods[] = {
 		NULL},
 	{"publickey",
 		userauth_pubkey,
-		userauth_pubkey_cleanup,
+		NULL,
 		&options.pubkey_authentication,
 		NULL},
 	{"keyboard-interactive",
@@ -415,6 +415,7 @@ ssh_userauth2(struct ssh *ssh, const char *local_user,
 	ssh_dispatch_set(ssh, SSH2_MSG_EXT_INFO, &input_userauth_ext_info);
 	ssh_dispatch_set(ssh, SSH2_MSG_SERVICE_ACCEPT, &input_userauth_service_accept);
 	ssh_dispatch_run_fatal(ssh, DISPATCH_BLOCK, &authctxt.success);	/* loop until success */
+	pubkey_cleanup(ssh);
 	ssh->authctxt = NULL;
 
 	ssh_dispatch_range(ssh, SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
@@ -1638,10 +1639,9 @@ pubkey_prepare(Authctxt *authctxt)
 }
 
 static void
-userauth_pubkey_cleanup(struct ssh *ssh)
+pubkey_cleanup(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
-
 	Identity *id;
 
 	if (authctxt->agent_fd != -1) {
