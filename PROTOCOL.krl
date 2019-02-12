@@ -36,8 +36,9 @@ The available section types are:
 #define KRL_SECTION_EXPLICIT_KEY		2
 #define KRL_SECTION_FINGERPRINT_SHA1		3
 #define KRL_SECTION_SIGNATURE			4
+#define KRL_SECTION_FINGERPRINT_SHA256		5
 
-3. Certificate serial section
+2. Certificate section
 
 These sections use type KRL_SECTION_CERTIFICATES to revoke certificates by
 serial number or key ID. The consist of the CA key that issued the
@@ -46,6 +47,11 @@ ignored.
 
 	string ca_key
 	string reserved
+
+Where "ca_key" is the standard SSH wire serialisation of the CA's
+public key. Alternately, "ca_key" may be an empty string to indicate
+the certificate section applies to all CAs (this is most useful when
+revoking key IDs).
 
 Followed by one or more sections:
 
@@ -122,25 +128,26 @@ must be a raw key (i.e. not a certificate).
 
 This section may appear multiple times.
 
-4. SHA1 fingerprint sections
+4. SHA1/SHA256 fingerprint sections
 
-These sections, identified as KRL_SECTION_FINGERPRINT_SHA1, revoke
-plain keys (i.e. not certificates) by listing their SHA1 hashes:
+These sections, identified as KRL_SECTION_FINGERPRINT_SHA1 and
+KRL_SECTION_FINGERPRINT_SHA256, revoke plain keys (i.e. not
+certificates) by listing their hashes:
 
 	string	public_key_hash[0]
 	....
 
 This section must contain at least one "public_key_hash". The hash blob
-is obtained by taking the SHA1 hash of the public key blob. Hashes in
-this section must appear in numeric order, treating each hash as a big-
-endian integer.
+is obtained by taking the SHA1 or SHA256 hash of the public key blob.
+Hashes in this section must appear in numeric order, treating each hash
+as a big-endian integer.
 
 This section may appear multiple times.
 
 5. KRL signature sections
 
 The KRL_SECTION_SIGNATURE section serves a different purpose to the
-preceeding ones: to provide cryptographic authentication of a KRL that
+preceding ones: to provide cryptographic authentication of a KRL that
 is retrieved over a channel that does not provide integrity protection.
 Its format is slightly different to the previously-described sections:
 in order to simplify the signature generation, it includes as a "body"
@@ -161,4 +168,4 @@ Implementations that retrieve KRLs over untrusted channels must verify
 signatures. Signature sections are optional for KRLs distributed by
 trusted means.
 
-$OpenBSD: PROTOCOL.krl,v 1.2 2013/01/18 00:24:58 djm Exp $
+$OpenBSD: PROTOCOL.krl,v 1.5 2018/09/12 01:21:34 djm Exp $

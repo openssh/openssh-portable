@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.c,v 1.2 2014/05/02 09:41:32 andre Exp $	*/
+/*	$OpenBSD: test_helper.c,v 1.11 2018/11/23 02:53:57 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <sys/param.h>
+#include <sys/uio.h>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -31,14 +32,18 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <openssl/bn.h>
+#include <openssl/err.h>
 
 #if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H) && !defined(BROKEN_STRNVIS)
 # include <vis.h>
 #endif
 
+#include "entropy.h"
 #include "test_helper.h"
+#include "atomicio.h"
 
 #define TEST_CHECK_INT(r, pred) do {		\
 		switch (pred) {			\
@@ -111,11 +116,17 @@ static u_int test_number = 0;
 static test_onerror_func_t *test_onerror = NULL;
 static void *onerror_ctx = NULL;
 static const char *data_dir = NULL;
+static char subtest_info[512];
+static int fast = 0;
+static int slow = 0;
 
 int
 main(int argc, char **argv)
 {
 	int ch;
+
+	seed_rng();
+	ERR_load_CRYPTO_strings();
 
 	/* Handle systems without __progname */
 	if (__progname == NULL) {
@@ -130,8 +141,14 @@ main(int argc, char **argv)
 		}
 	}
 
-	while ((ch = getopt(argc, argv, "vqd:")) != -1) {
+	while ((ch = getopt(argc, argv, "Ffvqd:")) != -1) {
 		switch (ch) {
+		case 'F':
+			slow = 1;
+			break;
+		case 'f':
+			fast = 1;
+			break;
 		case 'd':
 			data_dir = optarg;
 			break;
@@ -162,6 +179,30 @@ main(int argc, char **argv)
 	return 0;
 }
 
+int
+test_is_verbose(void)
+{
+	return verbose_mode;
+}
+
+int
+test_is_quiet(void)
+{
+	return quiet_mode;
+}
+
+int
+test_is_fast(void)
+{
+	return fast;
+}
+
+int
+test_is_slow(void)
+{
+	return slow;
+}
+
 const char *
 test_data_file(const char *name)
 {
@@ -180,13 +221,35 @@ test_data_file(const char *name)
 }
 
 void
+test_info(char *s, size_t len)
+{
+	snprintf(s, len, "In test %u: \"%s\"%s%s\n", test_number,
+	    active_test_name == NULL ? "<none>" : active_test_name,
+	    *subtest_info != '\0' ? " - " : "", subtest_info);
+}
+
+static void
+siginfo(int unused __attribute__((__unused__)))
+{
+	char buf[256];
+
+	test_info(buf, sizeof(buf));
+	atomicio(vwrite, STDERR_FILENO, buf, strlen(buf));
+}
+
+void
 test_start(const char *n)
 {
 	assert(active_test_name == NULL);
 	assert((active_test_name = strdup(n)) != NULL);
+	*subtest_info = '\0';
 	if (verbose_mode)
 		printf("test %u - \"%s\": ", test_number, active_test_name);
 	test_number++;
+#ifdef SIGINFO
+	signal(SIGINFO, siginfo);
+#endif
+	signal(SIGUSR1, siginfo);
 }
 
 void
@@ -199,6 +262,7 @@ set_onerror_func(test_onerror_func_t *f, void *ctx)
 void
 test_done(void)
 {
+	*subtest_info = '\0';
 	assert(active_test_name != NULL);
 	free(active_test_name);
 	active_test_name = NULL;
@@ -208,6 +272,16 @@ test_done(void)
 		printf(".");
 		fflush(stdout);
 	}
+}
+
+void
+test_subtest_info(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(subtest_info, sizeof(subtest_info), fmt, ap);
+	va_end(ap);
 }
 
 void
@@ -256,8 +330,9 @@ static void
 test_header(const char *file, int line, const char *a1, const char *a2,
     const char *name, enum test_predicate pred)
 {
-	fprintf(stderr, "\n%s:%d test #%u \"%s\"\n", 
-	    file, line, test_number, active_test_name);
+	fprintf(stderr, "\n%s:%d test #%u \"%s\"%s%s\n", 
+	    file, line, test_number, active_test_name,
+	    *subtest_info != '\0' ? " - " : "", subtest_info);
 	fprintf(stderr, "ASSERT_%s_%s(%s%s%s) failed:\n",
 	    name, pred_name(pred), a1,
 	    a2 != NULL ? ", " : "", a2 != NULL ? a2 : "");
@@ -280,8 +355,13 @@ void
 assert_string(const char *file, int line, const char *a1, const char *a2,
     const char *aa1, const char *aa2, enum test_predicate pred)
 {
-	int r = strcmp(aa1, aa2);
+	int r;
 
+	/* Verify pointers are not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+	assert_ptr(file, line, a2, "NULL", aa2, NULL, TEST_NE);
+
+	r = strcmp(aa1, aa2);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, a2, "STRING", pred);
 	fprintf(stderr, "%12s = %s (len %zu)\n", a1, aa1, strlen(aa1));
@@ -310,8 +390,15 @@ void
 assert_mem(const char *file, int line, const char *a1, const char *a2,
     const void *aa1, const void *aa2, size_t l, enum test_predicate pred)
 {
-	int r = memcmp(aa1, aa2, l);
+	int r;
 
+	if (l == 0)
+		return;
+	/* If length is >0, then verify pointers are not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+	assert_ptr(file, line, a2, "NULL", aa2, NULL, TEST_NE);
+
+	r = memcmp(aa1, aa2, l);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, a2, "STRING", pred);
 	fprintf(stderr, "%12s = %s (len %zu)\n", a1, tohex(aa1, MIN(l, 256)), l);
@@ -338,11 +425,15 @@ assert_mem_filled(const char *file, int line, const char *a1,
     const void *aa1, u_char v, size_t l, enum test_predicate pred)
 {
 	size_t where = -1;
-	int r = memvalcmp(aa1, v, l, &where);
+	int r;
 	char tmp[64];
 
 	if (l == 0)
 		return;
+	/* If length is >0, then verify the pointer is not NULL */
+	assert_ptr(file, line, a1, "NULL", aa1, NULL, TEST_NE);
+
+	r = memvalcmp(aa1, v, l, &where);
 	TEST_CHECK_INT(r, pred);
 	test_header(file, line, a1, NULL, "MEM_ZERO", pred);
 	fprintf(stderr, "%20s = %s%s (len %zu)\n", a1,
@@ -383,6 +474,17 @@ assert_u_int(const char *file, int line, const char *a1, const char *a2,
 	test_header(file, line, a1, a2, "U_INT", pred);
 	fprintf(stderr, "%12s = %u / 0x%x\n", a1, aa1, aa1);
 	fprintf(stderr, "%12s = %u / 0x%x\n", a2, aa2, aa2);
+	test_die();
+}
+
+void
+assert_long(const char *file, int line, const char *a1, const char *a2,
+    long aa1, long aa2, enum test_predicate pred)
+{
+	TEST_CHECK(aa1, aa2, pred);
+	test_header(file, line, a1, a2, "LONG", pred);
+	fprintf(stderr, "%12s = %ld / 0x%lx\n", a1, aa1, aa1);
+	fprintf(stderr, "%12s = %ld / 0x%lx\n", a2, aa2, aa2);
 	test_die();
 }
 

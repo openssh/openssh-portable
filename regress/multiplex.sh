@@ -1,24 +1,12 @@
-#	$OpenBSD: multiplex.sh,v 1.25 2014/07/22 01:32:12 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.29 2019/01/01 22:20:16 djm Exp $
 #	Placed in the Public Domain.
 
-CTL=/tmp/openssh.regress.ctl-sock.$$
+make_tmpdir
+CTL=${SSH_REGRESS_TMP}/ctl-sock
 
 tid="connection multiplexing"
 
-if have_prog nc ; then
-	if nc -h 2>&1 | grep -- -N >/dev/null; then
-		NC="nc -N";
-        elif nc -h 2>&1 | grep -- "-U.*Use UNIX" >/dev/null ; then
-                NC="nc"
-        else
-		echo "nc is incompatible"
-	fi
-fi
-
-if test -z "$NC" ; then
-	echo "skipped (no compatible nc found)"
-	exit 0
-fi
+NC=$OBJ/netcat
 
 trace "will use ProxyCommand $proxycmd"
 if config_defined DISABLE_FD_PASSING ; then
@@ -90,20 +78,20 @@ cmp ${DATA} ${COPY}		|| fail "scp: corrupted copy of ${DATA}"
 rm -f ${COPY}
 verbose "test $tid: forward"
 trace "forward over TCP/IP and check result"
-$NC -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} &
+$NC -N -l 127.0.0.1 $((${PORT} + 1)) < ${DATA} > /dev/null &
 netcat_pid=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L127.0.0.1:$((${PORT} + 2)):127.0.0.1:$((${PORT} + 1)) otherhost >>$TEST_SSH_LOGFILE 2>&1
-$NC -d 127.0.0.1 $((${PORT} + 2)) > ${COPY} < /dev/null
+$NC 127.0.0.1 $((${PORT} + 2)) < /dev/null > ${COPY}
 cmp ${DATA} ${COPY}		|| fail "ssh: corrupted copy of ${DATA}"
 kill $netcat_pid 2>/dev/null
 rm -f ${COPY} $OBJ/unix-[123].fwd
 
 trace "forward over UNIX and check result"
-$NC -Ul $OBJ/unix-1.fwd < ${DATA} &
+$NC -N -Ul $OBJ/unix-1.fwd < ${DATA} > /dev/null &
 netcat_pid=$!
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L$OBJ/unix-2.fwd:$OBJ/unix-1.fwd otherhost >>$TEST_SSH_LOGFILE 2>&1
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R$OBJ/unix-3.fwd:$OBJ/unix-2.fwd otherhost >>$TEST_SSH_LOGFILE 2>&1
-$NC -d -U $OBJ/unix-3.fwd > ${COPY} </dev/null
+$NC -U $OBJ/unix-3.fwd < /dev/null > ${COPY} 2>/dev/null
 cmp ${DATA} ${COPY}		|| fail "ssh: corrupted copy of ${DATA}"
 kill $netcat_pid 2>/dev/null
 rm -f ${COPY} $OBJ/unix-[123].fwd
@@ -114,7 +102,7 @@ for s in 0 1 4 5 44; do
 	${SSH} -F $OBJ/ssh_config -S $CTL otherhost exit $s
 	r=$?
 	if [ $r -ne $s ]; then
-		fail "exit code mismatch for protocol $p: $r != $s"
+		fail "exit code mismatch: $r != $s"
 	fi
 
 	# same with early close of stdout/err
@@ -123,7 +111,7 @@ for s in 0 1 4 5 44; do
                 exec sh -c \'"sleep 2; exec > /dev/null 2>&1; sleep 3; exit $s"\'
 	r=$?
 	if [ $r -ne $s ]; then
-		fail "exit code (with sleep) mismatch for protocol $p: $r != $s"
+		fail "exit code (with sleep) mismatch: $r != $s"
 	fi
 done
 
@@ -154,7 +142,8 @@ ${SSH} -F $OBJ/ssh_config -p$P otherhost true \
 verbose "test $tid: cmd forward local (UNIX)"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -L $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "request local forward failed"
-echo "" | $NC -U $OBJ/unix-1.fwd | grep "Protocol mismatch" >/dev/null 2>&1 \
+echo "" | $NC -U $OBJ/unix-1.fwd | \
+    grep "Invalid SSH identification string" >/dev/null 2>&1 \
      || fail "connect to local forward path failed"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -L $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "cancel local forward failed"
@@ -165,7 +154,8 @@ rm -f $OBJ/unix-1.fwd
 verbose "test $tid: cmd forward remote (UNIX)"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Oforward -R $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "request remote forward failed"
-echo "" | $NC -U $OBJ/unix-1.fwd | grep "Protocol mismatch" >/dev/null 2>&1 \
+echo "" | $NC -U $OBJ/unix-1.fwd | \
+    grep "Invalid SSH identification string" >/dev/null 2>&1 \
      || fail "connect to remote forwarded path failed"
 ${SSH} -F $OBJ/ssh_config -S $CTL -Ocancel -R $OBJ/unix-1.fwd:localhost:$PORT otherhost \
      || fail "cancel remote forward failed"

@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-getput-basic.c,v 1.1 2014/04/30 05:29:56 djm Exp $	*/
+/*	$OpenBSD: sshbuf-getput-basic.c,v 1.7 2017/06/01 04:51:58 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -19,6 +19,8 @@
 #include "includes.h"
 
 #include <sys/types.h>
+
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,7 +36,7 @@ sshbuf_get(struct sshbuf *buf, void *v, size_t len)
 
 	if ((r = sshbuf_consume(buf, len)) < 0)
 		return r;
-	if (v != NULL)
+	if (v != NULL && len != 0)
 		memcpy(v, p, len);
 	return 0;
 }
@@ -109,7 +111,8 @@ sshbuf_get_string(struct sshbuf *buf, u_char **valp, size_t *lenp)
 			SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
 			return SSH_ERR_ALLOC_FAIL;
 		}
-		memcpy(*valp, val, len);
+		if (len != 0)
+			memcpy(*valp, val, len);
 		(*valp)[len] = '\0';
 	}
 	if (lenp != NULL)
@@ -130,7 +133,7 @@ sshbuf_get_string_direct(struct sshbuf *buf, const u_char **valp, size_t *lenp)
 		*lenp = 0;
 	if ((r = sshbuf_peek_string_direct(buf, &p, &len)) < 0)
 		return r;
-	if (valp != 0)
+	if (valp != NULL)
 		*valp = p;
 	if (lenp != NULL)
 		*lenp = len;
@@ -167,7 +170,7 @@ sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
 		SSHBUF_DBG(("SSH_ERR_MESSAGE_INCOMPLETE"));
 		return SSH_ERR_MESSAGE_INCOMPLETE;
 	}
-	if (valp != 0)
+	if (valp != NULL)
 		*valp = p + 4;
 	if (lenp != NULL)
 		*lenp = len;
@@ -200,7 +203,8 @@ sshbuf_get_cstring(struct sshbuf *buf, char **valp, size_t *lenp)
 			SSHBUF_DBG(("SSH_ERR_ALLOC_FAIL"));
 			return SSH_ERR_ALLOC_FAIL;
 		}
-		memcpy(*valp, p, len);
+		if (len != 0)
+			memcpy(*valp, p, len);
 		(*valp)[len] = '\0';
 	}
 	if (lenp != NULL)
@@ -236,7 +240,8 @@ sshbuf_put(struct sshbuf *buf, const void *v, size_t len)
 
 	if ((r = sshbuf_reserve(buf, len, &p)) < 0)
 		return r;
-	memcpy(p, v, len);
+	if (len != 0)
+		memcpy(p, v, len);
 	return 0;
 }
 
@@ -265,7 +270,7 @@ sshbuf_putfv(struct sshbuf *buf, const char *fmt, va_list ap)
 	int r, len;
 	u_char *p;
 
-	va_copy(ap2, ap);
+	VA_COPY(ap2, ap);
 	if ((len = vsnprintf(NULL, 0, fmt, ap2)) < 0) {
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
@@ -275,7 +280,7 @@ sshbuf_putfv(struct sshbuf *buf, const char *fmt, va_list ap)
 		goto out; /* Nothing to do */
 	}
 	va_end(ap2);
-	va_copy(ap2, ap);
+	VA_COPY(ap2, ap);
 	if ((r = sshbuf_reserve(buf, (size_t)len + 1, &p)) < 0)
 		goto out;
 	if ((r = vsnprintf((char *)p, len + 1, fmt, ap2)) != len) {
@@ -352,14 +357,15 @@ sshbuf_put_string(struct sshbuf *buf, const void *v, size_t len)
 	if ((r = sshbuf_reserve(buf, len + 4, &d)) < 0)
 		return r;
 	POKE_U32(d, len);
-	memcpy(d + 4, v, len);
+	if (len != 0)
+		memcpy(d + 4, v, len);
 	return 0;
 }
 
 int
 sshbuf_put_cstring(struct sshbuf *buf, const char *v)
 {
-	return sshbuf_put_string(buf, (u_char *)v, strlen(v));
+	return sshbuf_put_string(buf, v, v == NULL ? 0 : strlen(v));
 }
 
 int
@@ -416,6 +422,43 @@ sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len)
 	POKE_U32(d, len + prepend);
 	if (prepend)
 		d[4] = 0;
-	memcpy(d + 4 + prepend, s, len);
+	if (len != 0)
+		memcpy(d + 4 + prepend, s, len);
+	return 0;
+}
+
+int
+sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
+    const u_char **valp, size_t *lenp)
+{
+	const u_char *d;
+	size_t len, olen;
+	int r;
+
+	if ((r = sshbuf_peek_string_direct(buf, &d, &olen)) < 0)
+		return r;
+	len = olen;
+	/* Refuse negative (MSB set) bignums */
+	if ((len != 0 && (*d & 0x80) != 0))
+		return SSH_ERR_BIGNUM_IS_NEGATIVE;
+	/* Refuse overlong bignums, allow prepended \0 to avoid MSB set */
+	if (len > SSHBUF_MAX_BIGNUM + 1 ||
+	    (len == SSHBUF_MAX_BIGNUM + 1 && *d != 0))
+		return SSH_ERR_BIGNUM_TOO_LARGE;
+	/* Trim leading zeros */
+	while (len > 0 && *d == 0x00) {
+		d++;
+		len--;
+	}
+	if (valp != NULL)
+		*valp = d;
+	if (lenp != NULL)
+		*lenp = len;
+	if (sshbuf_consume(buf, olen + 4) != 0) {
+		/* Shouldn't happen */
+		SSHBUF_DBG(("SSH_ERR_INTERNAL_ERROR"));
+		SSHBUF_ABORT();
+		return SSH_ERR_INTERNAL_ERROR;
+	}
 	return 0;
 }

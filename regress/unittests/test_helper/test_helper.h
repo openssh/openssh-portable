@@ -1,4 +1,4 @@
-/*	$OpenBSD: test_helper.h,v 1.3 2014/05/02 09:41:32 andre Exp $	*/
+/*	$OpenBSD: test_helper.h,v 1.9 2018/10/17 23:28:05 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller <djm@mindrot.org>
  *
@@ -40,8 +40,15 @@ void tests(void);
 
 const char *test_data_file(const char *name);
 void test_start(const char *n);
+void test_info(char *s, size_t len);
 void set_onerror_func(test_onerror_func_t *f, void *ctx);
 void test_done(void);
+int test_is_verbose(void);
+int test_is_quiet(void);
+int test_is_fast(void);
+int test_is_slow(void);
+void test_subtest_info(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 void ssl_err_check(const char *file, int line);
 void assert_bignum(const char *file, int line,
     const char *a1, const char *a2,
@@ -64,6 +71,9 @@ void assert_size_t(const char *file, int line,
 void assert_u_int(const char *file, int line,
     const char *a1, const char *a2,
     u_int aa1, u_int aa2, enum test_predicate pred);
+void assert_long(const char *file, int line,
+    const char *a1, const char *a2,
+    long aa1, long aa2, enum test_predicate pred);
 void assert_long_long(const char *file, int line,
     const char *a1, const char *a2,
     long long aa1, long long aa2, enum test_predicate pred);
@@ -107,6 +117,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_EQ)
 #define ASSERT_U_INT_EQ(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_EQ)
+#define ASSERT_LONG_EQ(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_EQ)
 #define ASSERT_LONG_LONG_EQ(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_EQ)
 #define ASSERT_CHAR_EQ(a1, a2) \
@@ -136,6 +148,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_NE)
 #define ASSERT_U_INT_NE(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_NE)
+#define ASSERT_LONG_NE(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_NE)
 #define ASSERT_LONG_LONG_NE(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_NE)
 #define ASSERT_CHAR_NE(a1, a2) \
@@ -163,6 +177,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LT)
 #define ASSERT_U_INT_LT(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LT)
+#define ASSERT_LONG_LT(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LT)
 #define ASSERT_LONG_LONG_LT(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LT)
 #define ASSERT_CHAR_LT(a1, a2) \
@@ -190,6 +206,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LE)
 #define ASSERT_U_INT_LE(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LE)
+#define ASSERT_LONG_LE(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LE)
 #define ASSERT_LONG_LONG_LE(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_LE)
 #define ASSERT_CHAR_LE(a1, a2) \
@@ -217,6 +235,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GT)
 #define ASSERT_U_INT_GT(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GT)
+#define ASSERT_LONG_GT(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GT)
 #define ASSERT_LONG_LONG_GT(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GT)
 #define ASSERT_CHAR_GT(a1, a2) \
@@ -244,6 +264,8 @@ void assert_u64(const char *file, int line,
 	assert_size_t(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GE)
 #define ASSERT_U_INT_GE(a1, a2) \
 	assert_u_int(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GE)
+#define ASSERT_LONG_GE(a1, a2) \
+	assert_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GE)
 #define ASSERT_LONG_LONG_GE(a1, a2) \
 	assert_long_long(__FILE__, __LINE__, #a1, #a2, a1, a2, TEST_GE)
 #define ASSERT_CHAR_GE(a1, a2) \
@@ -280,6 +302,13 @@ void fuzz_cleanup(struct fuzz *fuzz);
 /* Prepare the next fuzz case in the series */
 void fuzz_next(struct fuzz *fuzz);
 
+/*
+ * Check whether this fuzz case is identical to the original
+ * This is slow, but useful if the caller needs to ensure that all tests
+ * generated change the input (e.g. when fuzzing signatures).
+ */
+int fuzz_matches_original(struct fuzz *fuzz);
+
 /* Determine whether the current fuzz sequence is exhausted (nonzero = yes) */
 int fuzz_done(struct fuzz *fuzz);
 
@@ -289,4 +318,5 @@ u_char *fuzz_ptr(struct fuzz *fuzz);
 
 /* Dump the current fuzz case to stderr */
 void fuzz_dump(struct fuzz *fuzz);
+
 #endif /* _TEST_HELPER_H */

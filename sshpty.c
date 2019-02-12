@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.29 2014/09/03 18:55:07 djm Exp $ */
+/* $OpenBSD: sshpty.c,v 1.31 2016/11/29 03:54:50 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -85,12 +85,12 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 void
 pty_release(const char *tty)
 {
-#ifndef __APPLE_PRIVPTY__
+#if !defined(__APPLE_PRIVPTY__) && !defined(HAVE_OPENPTY)
 	if (chown(tty, (uid_t) 0, (gid_t) 0) < 0)
 		error("chown %.100s 0 0 failed: %.100s", tty, strerror(errno));
 	if (chmod(tty, (mode_t) 0666) < 0)
 		error("chmod %.100s 0666 failed: %.100s", tty, strerror(errno));
-#endif /* __APPLE_PRIVPTY__ */
+#endif /* !__APPLE_PRIVPTY__ && !HAVE_OPENPTY */
 }
 
 /* Makes the tty the process's controlling tty and sets it to sane modes. */
@@ -99,30 +99,6 @@ void
 pty_make_controlling_tty(int *ttyfd, const char *tty)
 {
 	int fd;
-
-#ifdef _UNICOS
-	if (setsid() < 0)
-		error("setsid: %.100s", strerror(errno));
-
-	fd = open(tty, O_RDWR|O_NOCTTY);
-	if (fd != -1) {
-		signal(SIGHUP, SIG_IGN);
-		ioctl(fd, TCVHUP, (char *)NULL);
-		signal(SIGHUP, SIG_DFL);
-		setpgid(0, 0);
-		close(fd);
-	} else {
-		error("Failed to disconnect from controlling tty.");
-	}
-
-	debug("Setting controlling tty using TCSETCTTY.");
-	ioctl(*ttyfd, TCSETCTTY, NULL);
-	fd = open("/dev/tty", O_RDWR);
-	if (fd < 0)
-		error("%.100s: %.100s", tty, strerror(errno));
-	close(*ttyfd);
-	*ttyfd = fd;
-#else /* _UNICOS */
 
 	/* First disconnect from the old controlling tty. */
 #ifdef TIOCNOTTY
@@ -155,11 +131,11 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 		error("SETPGRP %s",strerror(errno));
 #endif /* NEED_SETPGRP */
 	fd = open(tty, O_RDWR);
-	if (fd < 0) {
+	if (fd < 0)
 		error("%.100s: %.100s", tty, strerror(errno));
-	} else {
+	else
 		close(fd);
-	}
+
 	/* Verify that we now have a controlling tty. */
 	fd = open(_PATH_TTY, O_WRONLY);
 	if (fd < 0)
@@ -167,7 +143,6 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 		    strerror(errno));
 	else
 		close(fd);
-#endif /* _UNICOS */
 }
 
 /* Changes the window size associated with the pty. */
@@ -197,7 +172,7 @@ pty_setowner(struct passwd *pw, const char *tty)
 	/* Determine the group to make the owner of the tty. */
 	grp = getgrnam("tty");
 	gid = (grp != NULL) ? grp->gr_gid : pw->pw_gid;
-	mode = (grp != NULL) ? 0622 : 0600;
+	mode = (grp != NULL) ? 0620 : 0600;
 
 	/*
 	 * Change owner and mode of the tty as required.
@@ -237,4 +212,18 @@ pty_setowner(struct passwd *pw, const char *tty)
 				    tty, (u_int)mode, strerror(errno));
 		}
 	}
+}
+
+/* Disconnect from the controlling tty. */
+void
+disconnect_controlling_tty(void)
+{
+#ifdef TIOCNOTTY
+	int fd;
+
+	if ((fd = open(_PATH_TTY, O_RDWR | O_NOCTTY)) >= 0) {
+		(void) ioctl(fd, TIOCNOTTY, NULL);
+		close(fd);
+	}
+#endif /* TIOCNOTTY */
 }

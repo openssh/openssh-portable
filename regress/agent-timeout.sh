@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-timeout.sh,v 1.2 2013/05/17 01:16:09 dtucker Exp $
+#	$OpenBSD: agent-timeout.sh,v 1.4 2019/01/28 00:08:26 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="agent timeout test"
@@ -12,16 +12,18 @@ if [ $r -ne 0 ]; then
 	fail "could not start ssh-agent: exit code $r"
 else
 	trace "add keys with timeout"
-	for t in rsa rsa1; do
+	keys=0
+	for t in ${SSH_KEYTYPES}; do
 		${SSHADD} -t ${SSHAGENT_TIMEOUT} $OBJ/$t > /dev/null 2>&1
 		if [ $? -ne 0 ]; then
 			fail "ssh-add did succeed exit code 0"
 		fi
+		keys=$((${keys} + 1))
 	done
 	n=`${SSHADD} -l 2> /dev/null | wc -l`
 	trace "agent has $n keys"
-	if [ $n -ne 2 ]; then
-		fail "ssh-add -l did not return 2 keys: $n"
+	if [ $n -ne $keys ]; then
+		fail "ssh-add -l did not return $keys keys: $n"
 	fi
 	trace "sleeping 2*${SSHAGENT_TIMEOUT} seconds"
 	sleep ${SSHAGENT_TIMEOUT}

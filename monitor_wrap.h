@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.24 2014/01/29 06:18:35 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.41 2019/01/19 21:43:56 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -31,28 +31,31 @@
 extern int use_privsep;
 #define PRIVSEP(x)	(use_privsep ? mm_##x : x)
 
-enum mm_keytype {MM_NOKEY, MM_HOSTKEY, MM_USERKEY, MM_RSAHOSTKEY, MM_RSAUSERKEY};
+enum mm_keytype { MM_NOKEY, MM_HOSTKEY, MM_USERKEY };
 
+struct ssh;
 struct monitor;
-struct mm_master;
 struct Authctxt;
+struct sshkey;
+struct sshauthopt;
 
 void mm_log_handler(LogLevel, const char *, void *);
 int mm_is_monitor(void);
 DH *mm_choose_dh(int, int, int);
-int mm_key_sign(Key *, u_char **, u_int *, u_char *, u_int);
+int mm_sshkey_sign(struct ssh *, struct sshkey *, u_char **, size_t *,
+    const u_char *, size_t, const char *, u_int compat);
 void mm_inform_authserv(char *, char *);
-struct passwd *mm_getpwnamallow(const char *);
+struct passwd *mm_getpwnamallow(struct ssh *, const char *);
 char *mm_auth2_read_banner(void);
-int mm_auth_password(struct Authctxt *, char *);
-int mm_key_allowed(enum mm_keytype, char *, char *, Key *);
-int mm_user_key_allowed(struct passwd *, Key *);
-int mm_hostbased_key_allowed(struct passwd *, char *, char *, Key *);
-int mm_auth_rhosts_rsa_key_allowed(struct passwd *, char *, char *, Key *);
-int mm_key_verify(Key *, u_char *, u_int, u_char *, u_int);
-int mm_auth_rsa_key_allowed(struct passwd *, BIGNUM *, Key **);
-int mm_auth_rsa_verify_response(Key *, BIGNUM *, u_char *);
-BIGNUM *mm_auth_rsa_generate_challenge(Key *);
+int mm_auth_password(struct ssh *, char *);
+int mm_key_allowed(enum mm_keytype, const char *, const char *, struct sshkey *,
+    int, struct sshauthopt **);
+int mm_user_key_allowed(struct ssh *, struct passwd *, struct sshkey *, int,
+    struct sshauthopt **);
+int mm_hostbased_key_allowed(struct ssh *, struct passwd *, const char *,
+    const char *, struct sshkey *);
+int mm_sshkey_verify(const struct sshkey *, const u_char *, size_t,
+    const u_char *, size_t, const char *, u_int);
 
 #ifdef GSSAPI
 OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **, gss_OID);
@@ -63,7 +66,7 @@ OM_uint32 mm_ssh_gssapi_checkmic(Gssctxt *, gss_buffer_t, gss_buffer_t);
 #endif
 
 #ifdef USE_PAM
-void mm_start_pam(struct Authctxt *);
+void mm_start_pam(struct ssh *ssh);
 u_int mm_do_pam_account(void);
 void *mm_sshpam_init_ctx(struct Authctxt *);
 int mm_sshpam_query(void *, char **, char **, u_int *, char ***, u_int **);
@@ -73,7 +76,7 @@ void mm_sshpam_free_ctx(void *);
 
 #ifdef SSH_AUDIT_EVENTS
 #include "audit.h"
-void mm_audit_event(ssh_audit_event_t);
+void mm_audit_event(struct ssh *, ssh_audit_event_t);
 void mm_audit_run_command(const char *);
 #endif
 
@@ -82,30 +85,14 @@ void mm_terminate(void);
 int mm_pty_allocate(int *, int *, char *, size_t);
 void mm_session_pty_cleanup2(struct Session *);
 
-/* SSHv1 interfaces */
-void mm_ssh1_session_id(u_char *);
-int mm_ssh1_session_key(BIGNUM *);
-
 /* Key export functions */
-struct Newkeys *mm_newkeys_from_blob(u_char *, int);
+struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
-void monitor_apply_keystate(struct monitor *);
-void mm_get_keystate(struct monitor *);
-void mm_send_keystate(struct monitor*);
+void mm_send_keystate(struct ssh *, struct monitor*);
 
 /* bsdauth */
 int mm_bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_bsdauth_respond(void *, u_int, char **);
-
-/* skey */
-int mm_skey_query(void *, char **, char **, u_int *, char ***, u_int **);
-int mm_skey_respond(void *, u_int, char **);
-
-/* zlib allocation hooks */
-
-void *mm_zalloc(struct mm_master *, u_int, u_int);
-void mm_zfree(struct mm_master *, void *);
-void mm_init_compression(struct mm_master *);
 
 #endif /* _MM_WRAP_H_ */

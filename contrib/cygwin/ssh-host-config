@@ -22,7 +22,7 @@
 
 CSIH_SCRIPT=/usr/share/csih/cygwin-service-installation-helper.sh
 
-# List of apps used.  This is checkad for existance in csih_sanity_check
+# List of apps used.  This is checkad for existence in csih_sanity_check
 # Don't use *any* transient commands before sourcing the csih helper script,
 # otherwise the sanity checks are short-circuited.
 declare -a csih_required_commands=(
@@ -61,8 +61,8 @@ LOCALSTATEDIR=/var
 
 sshd_config_configured=no
 port_number=22
+service_name=cygsshd
 strictmodes=yes
-privsep_used=yes
 cygwin_value=""
 user_account=
 password_value=
@@ -139,33 +139,21 @@ sshd_strictmodes() {
 
 # ======================================================================
 # Routine: sshd_privsep
-#  MODIFIES: privsep_used
+# Try to create ssshd user account
 # ======================================================================
 sshd_privsep() {
   local ret=0
 
   if [ "${sshd_config_configured}" != "yes" ]
   then
-    echo
-    csih_inform "Privilege separation is set to 'sandbox' by default since"
-    csih_inform "OpenSSH 6.1.  This is unsupported by Cygwin and has to be set"
-    csih_inform "to 'yes' or 'no'."
-    csih_inform "However, using privilege separation requires a non-privileged account"
-    csih_inform "called 'sshd'."
-    csih_inform "For more info on privilege separation read /usr/share/doc/openssh/README.privsep."
-    if csih_request "Should privilege separation be used?"
+    if ! csih_create_unprivileged_user sshd
     then
-      privsep_used=yes
-      if ! csih_create_unprivileged_user sshd
-      then
-	csih_error_recoverable "Couldn't create user 'sshd'!"
-	csih_error_recoverable "Privilege separation set to 'no' again!"
-	csih_error_recoverable "Check your ${SYSCONFDIR}/sshd_config file!"
-	let ++ret
-	privsep_used=no
-      fi
-    else
-      privsep_used=no
+      csih_error_recoverable "Could not create user 'sshd'!"
+      csih_error_recoverable "You will not be able to run an sshd service"
+      csih_error_recoverable "under a privileged account successfully."
+      csih_error_recoverable "Make sure to create a non-privileged user 'sshd'"
+      csih_error_recoverable "manually before trying to run the service!"
+      let ++ret
     fi
   fi
   return $ret
@@ -197,18 +185,6 @@ sshd_config_tweak() {
     if [ $? -ne 0 ]
     then
       csih_warning "Setting StrictModes to 'no' failed!"
-      csih_warning "Check your ${SYSCONFDIR}/sshd_config file!"
-      let ++ret
-    fi
-  fi
-  if [ "${sshd_config_configured}" != "yes" ]
-  then
-    /usr/bin/sed -i -e "
-      s/^#\?UsePrivilegeSeparation .*/UsePrivilegeSeparation ${privsep_used}/" \
-      ${SYSCONFDIR}/sshd_config
-    if [ $? -ne 0 ]
-    then
-      csih_warning "Setting privilege separation failed!"
       csih_warning "Check your ${SYSCONFDIR}/sshd_config file!"
       let ++ret
     fi
@@ -331,7 +307,7 @@ check_service_files_ownership() {
 
   if [ -z "${run_service_as}" ]
   then
-    accnt_name=$(/usr/bin/cygrunsrv -VQ sshd |
+    accnt_name=$(/usr/bin/cygrunsrv -VQ "${service_name}" |
     		 /usr/bin/sed -ne 's/^Account *: *//gp')
     if [ "${accnt_name}" = "LocalSystem" ]
     then
@@ -353,9 +329,9 @@ check_service_files_ownership() {
     fi
     if [ -z "${run_service_as}" ]
     then
-      csih_warning "Couldn't determine name of user running sshd service from account database!"
+      csih_warning "Couldn't determine name of user running ${service_name} service from account database!"
       csih_warning "As a result, this script cannot make sure that the files used"
-      csih_warning "by the sshd service belong to the user running the service."
+      csih_warning "by the ${service_name} service belong to the user running the service."
       return 1
     fi
   fi
@@ -391,8 +367,8 @@ check_service_files_ownership() {
   if [ $ret -ne 0 ]
   then
     csih_warning "Couldn't change owner of important files to ${run_service_as}!"
-    csih_warning "This may cause the sshd service to fail!  Please make sure that"
-    csih_warning "you have suufficient permissions to change the ownership of files"
+    csih_warning "This may cause the ${service_name} service to fail!  Please make sure that"
+    csih_warning "you have sufficient permissions to change the ownership of files"
     csih_warning "and try to run the ssh-host-config script again."
   fi
   return $ret
@@ -408,7 +384,7 @@ install_service() {
   local ret=0
 
   echo
-  if /usr/bin/cygrunsrv -Q sshd >/dev/null 2>&1
+  if /usr/bin/cygrunsrv -Q ${service_name} >/dev/null 2>&1
   then
     csih_inform "Sshd service is already installed."
     check_service_files_ownership "" || let ret+=$?
@@ -464,30 +440,30 @@ install_service() {
       fi
       if [ -z "${password}" ]
       then
-	if /usr/bin/cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd \
+	if /usr/bin/cygrunsrv -I ${service_name} -d "CYGWIN ${service_name}" -p /usr/sbin/sshd \
 			      -a "-D" -y tcpip "${cygwin_env[@]}"
 	then
 	  echo
 	  csih_inform "The sshd service has been installed under the LocalSystem"
 	  csih_inform "account (also known as SYSTEM). To start the service now, call"
-	  csih_inform "\`net start sshd' or \`cygrunsrv -S sshd'.  Otherwise, it"
+	  csih_inform "\`net start ${service_name}' or \`cygrunsrv -S ${service_name}'.  Otherwise, it"
 	  csih_inform "will start automatically after the next reboot."
 	fi
       else
-	if /usr/bin/cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd \
+	if /usr/bin/cygrunsrv -I ${service_name} -d "CYGWIN ${service_name}" -p /usr/sbin/sshd \
 			      -a "-D" -y tcpip "${cygwin_env[@]}" \
 			      -u "${run_service_as}" -w "${password}"
 	then
 	  /usr/bin/editrights -u "${run_service_as}" -a SeServiceLogonRight
 	  echo
 	  csih_inform "The sshd service has been installed under the '${run_service_as}'"
-	  csih_inform "account.  To start the service now, call \`net start sshd' or"
-	  csih_inform "\`cygrunsrv -S sshd'.  Otherwise, it will start automatically"
+	  csih_inform "account.  To start the service now, call \`net start ${service_name}' or"
+	  csih_inform "\`cygrunsrv -S ${service_name}'.  Otherwise, it will start automatically"
 	  csih_inform "after the next reboot."
 	fi
       fi
 
-      if /usr/bin/cygrunsrv -Q sshd >/dev/null 2>&1
+      if /usr/bin/cygrunsrv -Q ${service_name} >/dev/null 2>&1
       then
 	check_service_files_ownership "${run_service_as}" || let ret+=$?
       else
@@ -561,6 +537,11 @@ do
     shift
     ;;
 
+  -N | --name )
+    service_name=$1
+    shift
+    ;;
+
   -p | --port )
     port_number=$1
     shift
@@ -590,6 +571,7 @@ do
     echo "  --yes    -y            Answer all questions with \"yes\" automatically."
     echo "  --no     -n            Answer all questions with \"no\" automatically."
     echo "  --cygwin -c <options>  Use \"options\" as value for CYGWIN environment var."
+    echo "  --name   -N <name>     sshd windows service name."
     echo "  --port   -p <n>        sshd listens on port n."
     echo "  --user   -u <account>  privileged user for service, default 'cyg_server'."
     echo "  --pwd    -w <passwd>   Use \"pwd\" as password for privileged user."
@@ -623,10 +605,7 @@ then
   csih_warning "However, it seems your account does not have these privileges."
   csih_warning "Here's the list of groups in your user token:"
   echo
-  for i in $(/usr/bin/id -G)
-  do
-    /usr/bin/awk -F: "/[^:]*:[^:]*:$i:/{ print \"    \" \$1; }" /etc/group
-  done
+  /usr/bin/id -Gnz | xargs -0n1 echo "   "
   echo
   csih_warning "This usually means you're running this script from a non-admin"
   csih_warning "desktop session, or in a non-elevated shell under UAC control."
@@ -689,15 +668,25 @@ then
   fi
 fi
 
-# handle sshd_config (and privsep)
+# handle sshd_config
+# make sure not to change the existing file
+mod_before=""
+if [ -e "${SYSCONFDIR}/sshd_config" ]
+then
+  mod_before=$(stat "${SYSCONFDIR}/sshd_config" | grep '^Modify:')
+fi
 csih_install_config "${SYSCONFDIR}/sshd_config" "${SYSCONFDIR}/defaults" || let ++warning_cnt
+mod_now=$(stat "${SYSCONFDIR}/sshd_config" | grep '^Modify:')
 if ! /usr/bin/cmp "${SYSCONFDIR}/sshd_config" "${SYSCONFDIR}/defaults/${SYSCONFDIR}/sshd_config" >/dev/null 2>&1
 then
   sshd_config_configured=yes
 fi
-sshd_strictmodes || let warning_cnt+=$?
-sshd_privsep || let warning_cnt+=$?
-sshd_config_tweak || let warning_cnt+=$?
+if [ "${mod_before}" != "${mod_now}" ]
+then
+  sshd_strictmodes || let warning_cnt+=$?
+  sshd_config_tweak || let warning_cnt+=$?
+fi
+#sshd_privsep || let warning_cnt+=$?
 update_services_file || let warning_cnt+=$?
 update_inetd_conf || let warning_cnt+=$?
 install_service || let warning_cnt+=$?

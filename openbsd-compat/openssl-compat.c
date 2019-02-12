@@ -1,5 +1,3 @@
-/* $Id: openssl-compat.c,v 1.19 2014/07/02 05:28:07 djm Exp $ */
-
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
  *
@@ -18,6 +16,8 @@
 
 #define SSH_DONT_OVERLOAD_OPENSSL_FUNCS
 #include "includes.h"
+
+#ifdef WITH_OPENSSL
 
 #include <stdarg.h>
 #include <string.h>
@@ -53,7 +53,7 @@ ssh_compatible_openssl(long headerver, long libver)
 		mask = 0xfffff00fL; /* major,minor,fix,status */
 		return (headerver & mask) == (libver & mask);
 	}
-	
+
 	/*
 	 * For versions >= 1.0.0, major,minor,status must match and library
 	 * fix version must be equal to or newer than the header.
@@ -66,15 +66,31 @@ ssh_compatible_openssl(long headerver, long libver)
 	return 0;
 }
 
-#ifdef	USE_OPENSSL_ENGINE
 void
-ssh_OpenSSL_add_all_algorithms(void)
+ssh_libcrypto_init(void)
 {
+#if defined(HAVE_OPENSSL_INIT_CRYPTO) && \
+      defined(OPENSSL_INIT_ADD_ALL_CIPHERS) && \
+      defined(OPENSSL_INIT_ADD_ALL_DIGESTS)
+	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
+	    OPENSSL_INIT_ADD_ALL_DIGESTS, NULL);
+#elif defined(HAVE_OPENSSL_ADD_ALL_ALGORITHMS)
 	OpenSSL_add_all_algorithms();
+#endif
 
+#ifdef	USE_OPENSSL_ENGINE
 	/* Enable use of crypto hardware */
 	ENGINE_load_builtin_engines();
 	ENGINE_register_all_complete();
+
+	/* Load the libcrypto config file to pick up engines defined there */
+# if defined(HAVE_OPENSSL_INIT_CRYPTO) && defined(OPENSSL_INIT_LOAD_CONFIG)
+	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS |
+	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG, NULL);
+# else
 	OPENSSL_config(NULL);
+# endif
+#endif /* USE_OPENSSL_ENGINE */
 }
-#endif
+
+#endif /* WITH_OPENSSL */

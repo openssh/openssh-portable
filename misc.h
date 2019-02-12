@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.54 2014/07/15 15:54:14 millert Exp $ */
+/* $OpenBSD: misc.h,v 1.79 2019/01/23 21:50:56 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,6 +15,10 @@
 #ifndef _MISC_H
 #define _MISC_H
 
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 /* Data structure for representing a forwarding request. */
 struct Forward {
 	char	 *listen_host;		/* Host (address) to listen on. */
@@ -27,6 +31,9 @@ struct Forward {
 	int	  handle;		/* Handle for dynamic listen ports */
 };
 
+int forward_equals(const struct Forward *, const struct Forward *);
+int daemonized(void);
+
 /* Common server and client forwarding options. */
 struct ForwardOptions {
 	int	 gateway_ports; /* Allow remote connects to forwarded ports. */
@@ -38,15 +45,25 @@ struct ForwardOptions {
 
 char	*chop(char *);
 char	*strdelim(char **);
+char	*strdelimw(char **);
 int	 set_nonblock(int);
 int	 unset_nonblock(int);
 void	 set_nodelay(int);
+int	 set_reuseaddr(int);
+char	*get_rdomain(int);
+int	 set_rdomain(int, const char *);
+int	 waitrfd(int, int *);
+int	 timeout_connect(int, const struct sockaddr *, socklen_t, int *);
 int	 a2port(const char *);
 int	 a2tun(const char *, int *);
 char	*put_host_port(const char *, u_short);
+char	*hpdelim2(char **, char *);
 char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);
+int	 parse_user_host_path(const char *, char **, char **, char **);
+int	 parse_user_host_port(const char *, char **, char **, int *);
+int	 parse_uri(const char *, const char *, char **, char **, int *, char **);
 long	 convtime(const char *);
 char	*tilde_expand_filename(const char *, uid_t);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
@@ -54,9 +71,18 @@ char	*tohex(const void *, size_t);
 void	 sanitise_stdfd(void);
 void	 ms_subtract_diff(struct timeval *, int *);
 void	 ms_to_timeval(struct timeval *, int);
+void	 monotime_ts(struct timespec *);
+void	 monotime_tv(struct timeval *);
 time_t	 monotime(void);
+double	 monotime_double(void);
 void	 lowercase(char *s);
 int	 unix_listener(const char *, int, int);
+int	 valid_domain(char *, int, const char **);
+int	 valid_env_name(const char *);
+const char *atoi_err(const char *, int *);
+int	 parse_absolute_time(const char *, uint64_t *);
+void	 format_absolute_time(uint64_t, char *, size_t);
+int	 path_absolute(const char *);
 
 void	 sock_set_v6only(int);
 
@@ -75,7 +101,7 @@ void	 replacearg(arglist *, u_int, char *, ...)
 	     __attribute__((format(printf, 3, 4)));
 void	 freeargs(arglist *);
 
-int	 tun_open(int, int);
+int	 tun_open(int, int, char **);
 
 /* Common definitions for ssh tunnel device forwarding */
 #define SSH_TUNMODE_NO		0x00
@@ -113,7 +139,9 @@ void		put_u32_le(void *, u_int32_t)
 
 struct bwlimit {
 	size_t buflen;
-	u_int64_t rate, thresh, lamt;
+	u_int64_t rate;		/* desired rate in kbit/s */
+	u_int64_t thresh;	/* threshold after which we'll check timers */
+	u_int64_t lamt;		/* amount written in last timer interval */
 	struct timeval bwstart, bwend;
 };
 
@@ -124,6 +152,19 @@ int parse_ipqos(const char *);
 const char *iptos2str(int);
 void mktemp_proto(char *, size_t);
 
+void	 child_set_env(char ***envp, u_int *envsizep, const char *name,
+	     const char *value);
+
+int	 argv_split(const char *, int *, char ***);
+char	*argv_assemble(int, char **argv);
+int	 exited_cleanly(pid_t, const char *, const char *, int);
+
+struct stat;
+int	 safe_path(const char *, struct stat *, const char *, uid_t,
+	     char *, size_t);
+int	 safe_path_fd(int, const char *, struct passwd *,
+	     char *err, size_t errlen);
+
 /* readpass.c */
 
 #define RP_ECHO			0x0001
@@ -133,6 +174,9 @@ void mktemp_proto(char *, size_t);
 
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
-int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
+
+#define MINIMUM(a, b)	(((a) < (b)) ? (a) : (b))
+#define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))
+#define ROUNDUP(x, y)   ((((x)+((y)-1))/(y))*(y))
 
 #endif /* _MISC_H */

@@ -1,5 +1,3 @@
-/* $Id: audit.h,v 1.4 2011/01/17 10:15:30 dtucker Exp $ */
-
 /*
  * Copyright (c) 2004, 2005 Darren Tucker.  All rights reserved.
  *
@@ -29,6 +27,8 @@
 
 #include "loginrec.h"
 
+struct ssh;
+
 enum ssh_audit_event_type {
 	SSH_LOGIN_EXCEED_MAXTRIES,
 	SSH_LOGIN_ROOT_DENIED,
@@ -48,7 +48,7 @@ enum ssh_audit_event_type {
 typedef enum ssh_audit_event_type ssh_audit_event_t;
 
 void	audit_connection_from(const char *, int);
-void	audit_event(ssh_audit_event_t);
+void	audit_event(struct ssh *, ssh_audit_event_t);
 void	audit_session_open(struct logininfo *);
 void	audit_session_close(struct logininfo *);
 void	audit_run_command(const char *);

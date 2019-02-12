@@ -1,14 +1,21 @@
-#	$OpenBSD: keyscan.sh,v 1.3 2002/03/15 13:08:56 markus Exp $
+#	$OpenBSD: keyscan.sh,v 1.9 2019/01/28 03:50:39 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="keyscan"
 
-# remove DSA hostkey
-rm -f ${OBJ}/host.dsa
+KEYTYPES=`${SSH} -Q key-plain`
+for i in $KEYTYPES; do
+	if [ -z "$algs" ]; then
+		algs="$i"
+	else
+		algs="$algs,$i"
+	fi
+done
+echo "HostKeyAlgorithms $algs" >> $OBJ/sshd_config
 
 start_sshd
 
-for t in rsa1 rsa dsa; do
+for t in $KEYTYPES; do
 	trace "keyscan type $t"
 	${SSHKEYSCAN} -t $t -p $PORT 127.0.0.1 127.0.0.1 127.0.0.1 \
 		> /dev/null 2>&1

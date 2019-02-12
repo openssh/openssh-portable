@@ -1,4 +1,4 @@
-#	$OpenBSD: rekey.sh,v 1.15 2014/04/21 22:15:37 djm Exp $
+#	$OpenBSD: rekey.sh,v 1.18 2018/04/10 00:14:10 djm Exp $
 #	Placed in the Public Domain.
 
 tid="rekey"
@@ -30,7 +30,7 @@ ssh_data_rekeying()
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
-		fail "no rekeying occured ($@)"
+		fail "no rekeying occurred ($@)"
 	fi
 }
 
@@ -80,7 +80,7 @@ for s in 5 10; do
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
-		fail "no rekeying occured"
+		fail "no rekeying occurred"
 	fi
 done
 
@@ -96,13 +96,33 @@ for s in 5 10; do
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
-		fail "no rekeying occured"
+		fail "no rekeying occurred"
 	fi
 done
 
-echo "rekeylimit default 5" >>$OBJ/sshd_proxy
+for s in 16 1k 128k 256k; do
+	verbose "server rekeylimit ${s}"
+	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+	echo "rekeylimit ${s}" >>$OBJ/sshd_proxy
+	rm -f ${COPY} ${LOG}
+	${SSH} -oCompression=no -F $OBJ/ssh_proxy somehost "cat ${DATA}" \
+	    > ${COPY}
+	if [ $? -ne 0 ]; then
+		fail "ssh failed"
+	fi
+	cmp ${DATA} ${COPY}		|| fail "corrupted copy"
+	n=`grep 'NEWKEYS sent' ${LOG} | wc -l`
+	n=`expr $n - 1`
+	trace "$n rekeying(s)"
+	if [ $n -lt 1 ]; then
+		fail "no rekeying occurred"
+	fi
+done
+
 for s in 5 10; do
 	verbose "server rekeylimit default ${s} no data"
+	cp $OBJ/sshd_proxy_bak $OBJ/sshd_proxy
+	echo "rekeylimit default ${s}" >>$OBJ/sshd_proxy
 	rm -f ${COPY} ${LOG}
 	${SSH} -oCompression=no -F $OBJ/ssh_proxy somehost "sleep $s;sleep 3"
 	if [ $? -ne 0 ]; then
@@ -112,18 +132,20 @@ for s in 5 10; do
 	n=`expr $n - 1`
 	trace "$n rekeying(s)"
 	if [ $n -lt 1 ]; then
-		fail "no rekeying occured"
+		fail "no rekeying occurred"
 	fi
 done
 
 verbose "rekeylimit parsing"
-for size in 16 1k 1K 1m 1M 1g 1G; do
+for size in 16 1k 1K 1m 1M 1g 1G 4G 8G; do
     for time in 1 1m 1M 1h 1H 1d 1D 1w 1W; do
 	case $size in
 		16)	bytes=16 ;;
 		1k|1K)	bytes=1024 ;;
 		1m|1M)	bytes=1048576 ;;
 		1g|1G)	bytes=1073741824 ;;
+		4g|4G)	bytes=4294967296 ;;
+		8g|8G)	bytes=8589934592 ;;
 	esac
 	case $time in
 		1)	seconds=1 ;;

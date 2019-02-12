@@ -1,4 +1,4 @@
-/* $OpenBSD: digest.h,v 1.6 2014/07/03 04:36:45 djm Exp $ */
+/* $OpenBSD: digest.h,v 1.8 2017/05/08 22:57:38 djm Exp $ */
 /*
  * Copyright (c) 2013 Damien Miller <djm@mindrot.org>
  *
@@ -23,15 +23,20 @@
 
 /* Digest algorithms */
 #define SSH_DIGEST_MD5		0
-#define SSH_DIGEST_RIPEMD160	1
-#define SSH_DIGEST_SHA1		2
-#define SSH_DIGEST_SHA256	3
-#define SSH_DIGEST_SHA384	4
-#define SSH_DIGEST_SHA512	5
-#define SSH_DIGEST_MAX		6
+#define SSH_DIGEST_SHA1		1
+#define SSH_DIGEST_SHA256	2
+#define SSH_DIGEST_SHA384	3
+#define SSH_DIGEST_SHA512	4
+#define SSH_DIGEST_MAX		5
 
 struct sshbuf;
 struct ssh_digest_ctx;
+
+/* Looks up a digest algorithm by name */
+int ssh_digest_alg_by_name(const char *name);
+
+/* Returns the algorithm name for a digest identifier */
+const char *ssh_digest_alg_name(int alg);
 
 /* Returns the algorithm's digest length in bytes or 0 for invalid algorithm */
 size_t ssh_digest_bytes(int alg);

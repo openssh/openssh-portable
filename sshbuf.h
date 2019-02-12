@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.3 2014/06/24 01:13:21 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.13 2019/01/21 09:54:11 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -49,15 +49,6 @@ struct sshbuf {
 	u_int refcount;		/* Tracks self and number of child buffers */
 	struct sshbuf *parent;	/* If child, pointer to parent */
 };
-
-#ifndef SSHBUF_NO_DEPREACTED
-/*
- * NB. Please do not use sshbuf_init() in new code. Please use sshbuf_new()
- * instead. sshbuf_init() is deprectated and will go away soon (it is
- * only included to allow compat with buffer_* in OpenSSH)
- */
-void sshbuf_init(struct sshbuf *buf);
-#endif
 
 /*
  * Create a new sshbuf buffer.
@@ -120,12 +111,12 @@ size_t	sshbuf_len(const struct sshbuf *buf);
 size_t	sshbuf_avail(const struct sshbuf *buf);
 
 /*
- * Returns a read-only pointer to the start of the the data in buf
+ * Returns a read-only pointer to the start of the data in buf
  */
 const u_char *sshbuf_ptr(const struct sshbuf *buf);
 
 /*
- * Returns a mutable pointer to the start of the the data in buf, or
+ * Returns a mutable pointer to the start of the data in buf, or
  * NULL if the buffer is read-only.
  */
 u_char *sshbuf_mutable_ptr(const struct sshbuf *buf);
@@ -137,6 +128,14 @@ u_char *sshbuf_mutable_ptr(const struct sshbuf *buf);
  * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
  */
 int	sshbuf_check_reserve(const struct sshbuf *buf, size_t len);
+
+/*
+ * Preallocates len additional bytes in buf.
+ * Useful for cases where the caller knows how many bytes will ultimately be
+ * required to avoid realloc in the buffer code.
+ * Returns 0 on success, or a negative SSH_ERR_* error code on failure.
+ */
+int	sshbuf_allocate(struct sshbuf *buf, size_t len);
 
 /*
  * Reserve len bytes in buf.
@@ -203,17 +202,18 @@ int	sshbuf_get_string_direct(struct sshbuf *buf, const u_char **valp,
 /* Another variant: "peeks" into the buffer without modifying it */
 int	sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
 	    size_t *lenp);
+/* XXX peek_u8 / peek_u32 */
 
 /*
  * Functions to extract or store SSH wire encoded bignums and elliptic
  * curve points.
  */
 int	sshbuf_put_bignum2_bytes(struct sshbuf *buf, const void *v, size_t len);
+int	sshbuf_get_bignum2_bytes_direct(struct sshbuf *buf,
+	    const u_char **valp, size_t *lenp);
 #ifdef WITH_OPENSSL
-int	sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM *v);
-int	sshbuf_get_bignum1(struct sshbuf *buf, BIGNUM *v);
+int	sshbuf_get_bignum2(struct sshbuf *buf, BIGNUM **valp);
 int	sshbuf_put_bignum2(struct sshbuf *buf, const BIGNUM *v);
-int	sshbuf_put_bignum1(struct sshbuf *buf, const BIGNUM *v);
 # ifdef OPENSSL_HAS_ECC
 int	sshbuf_get_ec(struct sshbuf *buf, EC_POINT *v, const EC_GROUP *g);
 int	sshbuf_get_eckey(struct sshbuf *buf, EC_KEY *v);
@@ -237,47 +237,57 @@ char	*sshbuf_dtob64(struct sshbuf *buf);
 /* Decode base64 data and append it to the buffer */
 int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);
 
+/*
+ * Duplicate the contents of a buffer to a string (caller to free).
+ * Returns NULL on buffer error, or if the buffer contains a premature
+ * nul character.
+ */
+char *sshbuf_dup_string(struct sshbuf *buf);
+
 /* Macros for decoding/encoding integers */
 #define PEEK_U64(p) \
-	(((u_int64_t)(((u_char *)(p))[0]) << 56) | \
-	 ((u_int64_t)(((u_char *)(p))[1]) << 48) | \
-	 ((u_int64_t)(((u_char *)(p))[2]) << 40) | \
-	 ((u_int64_t)(((u_char *)(p))[3]) << 32) | \
-	 ((u_int64_t)(((u_char *)(p))[4]) << 24) | \
-	 ((u_int64_t)(((u_char *)(p))[5]) << 16) | \
-	 ((u_int64_t)(((u_char *)(p))[6]) << 8) | \
-	  (u_int64_t)(((u_char *)(p))[7]))
+	(((u_int64_t)(((const u_char *)(p))[0]) << 56) | \
+	 ((u_int64_t)(((const u_char *)(p))[1]) << 48) | \
+	 ((u_int64_t)(((const u_char *)(p))[2]) << 40) | \
+	 ((u_int64_t)(((const u_char *)(p))[3]) << 32) | \
+	 ((u_int64_t)(((const u_char *)(p))[4]) << 24) | \
+	 ((u_int64_t)(((const u_char *)(p))[5]) << 16) | \
+	 ((u_int64_t)(((const u_char *)(p))[6]) << 8) | \
+	  (u_int64_t)(((const u_char *)(p))[7]))
 #define PEEK_U32(p) \
-	(((u_int32_t)(((u_char *)(p))[0]) << 24) | \
-	 ((u_int32_t)(((u_char *)(p))[1]) << 16) | \
-	 ((u_int32_t)(((u_char *)(p))[2]) << 8) | \
-	  (u_int32_t)(((u_char *)(p))[3]))
+	(((u_int32_t)(((const u_char *)(p))[0]) << 24) | \
+	 ((u_int32_t)(((const u_char *)(p))[1]) << 16) | \
+	 ((u_int32_t)(((const u_char *)(p))[2]) << 8) | \
+	  (u_int32_t)(((const u_char *)(p))[3]))
 #define PEEK_U16(p) \
-	(((u_int16_t)(((u_char *)(p))[0]) << 8) | \
-	  (u_int16_t)(((u_char *)(p))[1]))
+	(((u_int16_t)(((const u_char *)(p))[0]) << 8) | \
+	  (u_int16_t)(((const u_char *)(p))[1]))
 
 #define POKE_U64(p, v) \
 	do { \
-		((u_char *)(p))[0] = (((u_int64_t)(v)) >> 56) & 0xff; \
-		((u_char *)(p))[1] = (((u_int64_t)(v)) >> 48) & 0xff; \
-		((u_char *)(p))[2] = (((u_int64_t)(v)) >> 40) & 0xff; \
-		((u_char *)(p))[3] = (((u_int64_t)(v)) >> 32) & 0xff; \
-		((u_char *)(p))[4] = (((u_int64_t)(v)) >> 24) & 0xff; \
-		((u_char *)(p))[5] = (((u_int64_t)(v)) >> 16) & 0xff; \
-		((u_char *)(p))[6] = (((u_int64_t)(v)) >> 8) & 0xff; \
-		((u_char *)(p))[7] = ((u_int64_t)(v)) & 0xff; \
+		const u_int64_t __v = (v); \
+		((u_char *)(p))[0] = (__v >> 56) & 0xff; \
+		((u_char *)(p))[1] = (__v >> 48) & 0xff; \
+		((u_char *)(p))[2] = (__v >> 40) & 0xff; \
+		((u_char *)(p))[3] = (__v >> 32) & 0xff; \
+		((u_char *)(p))[4] = (__v >> 24) & 0xff; \
+		((u_char *)(p))[5] = (__v >> 16) & 0xff; \
+		((u_char *)(p))[6] = (__v >> 8) & 0xff; \
+		((u_char *)(p))[7] = __v & 0xff; \
 	} while (0)
 #define POKE_U32(p, v) \
 	do { \
-		((u_char *)(p))[0] = (((u_int64_t)(v)) >> 24) & 0xff; \
-		((u_char *)(p))[1] = (((u_int64_t)(v)) >> 16) & 0xff; \
-		((u_char *)(p))[2] = (((u_int64_t)(v)) >> 8) & 0xff; \
-		((u_char *)(p))[3] = ((u_int64_t)(v)) & 0xff; \
+		const u_int32_t __v = (v); \
+		((u_char *)(p))[0] = (__v >> 24) & 0xff; \
+		((u_char *)(p))[1] = (__v >> 16) & 0xff; \
+		((u_char *)(p))[2] = (__v >> 8) & 0xff; \
+		((u_char *)(p))[3] = __v & 0xff; \
 	} while (0)
 #define POKE_U16(p, v) \
 	do { \
-		((u_char *)(p))[0] = (((u_int64_t)(v)) >> 8) & 0xff; \
-		((u_char *)(p))[1] = ((u_int64_t)(v)) & 0xff; \
+		const u_int16_t __v = (v); \
+		((u_char *)(p))[0] = (__v >> 8) & 0xff; \
+		((u_char *)(p))[1] = __v & 0xff; \
 	} while (0)
 
 /* Internal definitions follow. Exposed for regress tests */
