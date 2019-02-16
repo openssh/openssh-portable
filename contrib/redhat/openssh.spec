@@ -25,10 +25,16 @@
 
 # Use build6x options for older RHEL builds
 # RHEL 7 not yet supported
-%if 0%{?rhel} > 6
-%global build6x 0
-%else
+%if 0%{?rhel} == 6
 %global build6x 1
+%else
+%global build6x 0
+%endif
+
+%if 0%{?rhel} == 7
+%global build7x 1
+%else
+%global build7x 0
 %endif
 
 %if 0%{?fedora} >= 26
@@ -50,8 +56,11 @@
 # rpm -ba|--rebuild --define 'no_gtk2 1'
 %{?no_gtk2:%global gtk2 0}
 
-# Is this a build for RHL 6.x or earlier?
+# Is this a build for RHL 6.x
 %{?build_6x:%global build6x 1}
+
+# Is this a build for RHL 7.x
+%{?build_7x:%global build7x 1}
 
 # If this is RHL 6.x, the default configuration has sysconfdir in /usr/etc.
 %if %{build6x}
@@ -99,11 +108,20 @@ BuildRequires: perl
 %if %{compat_openssl}
 BuildRequires: compat-openssl10-devel
 %else
+%if %{build7x}
+BuildRequires: openssl-devel >= 1:1.0.1
+BuildRequires: openssl-devel < 1:1.1
+%else
 BuildRequires: openssl-devel >= 1.0.1
 BuildRequires: openssl-devel < 1.1
-%endif
+%endif # build7x
+%endif # compat_openssl
+%if %{build7x}
+BuildRequires: /usr/bin/login
+%else
 BuildRequires: /bin/login
-%if ! %{build6x}
+%endif
+%if ! %{build6x} && ! %{build7x}
 BuildRequires: glibc-devel, pam
 %else
 BuildRequires: /usr/include/security/pam_appl.h
