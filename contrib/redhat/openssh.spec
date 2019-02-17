@@ -23,26 +23,6 @@
 # Use GTK2 instead of GNOME in gnome-ssh-askpass
 %global gtk2 1
 
-# Use build6x options for older RHEL builds
-# RHEL 7 not yet supported
-%if 0%{?rhel} == 6
-%global build6x 1
-%else
-%global build6x 0
-%endif
-
-%if 0%{?rhel} == 7
-%global build7x 1
-%else
-%global build7x 0
-%endif
-
-%if 0%{?fedora} >= 26
-%global compat_openssl 1
-%else
-%global compat_openssl 0
-%endif
-
 # Do we want kerberos5 support (1=yes 0=no)
 %global kerberos5 1
 
@@ -59,11 +39,8 @@
 # Is this a build for RHL 6.x
 %{?build_6x:%global build6x 1}
 
-# Is this a build for RHL 7.x
-%{?build_7x:%global build7x 1}
-
 # If this is RHL 6.x, the default configuration has sysconfdir in /usr/etc.
-%if %{build6x}
+%if 0%{?rhel} == 6
 %global _sysconfdir /etc
 %endif
 
@@ -99,33 +76,28 @@ License: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Obsoletes: ssh
-%if %{build6x}
+%if 0%{?rhel} == 6
 PreReq: initscripts >= 5.00
 %else
 Requires: initscripts >= 5.20
 %endif
 BuildRequires: perl
-%if %{compat_openssl}
+%if 0%{?fedora} >= 26
 BuildRequires: compat-openssl10-devel
 %else
-%if %{build7x}
+%if 0%{?rhel} == 7
 BuildRequires: openssl-devel >= 1:1.0.1
 BuildRequires: openssl-devel < 1:1.1
 %else
 BuildRequires: openssl-devel >= 1.0.1
 BuildRequires: openssl-devel < 1.1
-%endif # build7x
-%endif # compat_openssl
-%if %{build7x}
+%endif # rhel == 7
+%endif # fedora >= 26
 BuildRequires: /usr/bin/login
-%else
-BuildRequires: /bin/login
-%endif
-%if ! %{build6x} && ! %{build7x}
 BuildRequires: glibc-devel, pam
-%else
+%if 0%{?rhel} >= 6
 BuildRequires: /usr/include/security/pam_appl.h
-%endif
+%endif # rhel >= 6
 %if ! %{no_x11_askpass}
 BuildRequires: /usr/include/X11/Xlib.h
 # Xt development tools
@@ -154,9 +126,7 @@ Summary: The OpenSSH server daemon.
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 Requires: openssh = %{version}-%{release}, chkconfig >= 0.9
-%if ! %{build6x}
 Requires: /etc/pam.d/system-auth
-%endif
 
 %package askpass
 Summary: A passphrase dialog for OpenSSH and X.
@@ -291,7 +261,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
-%if %{build6x}
+%if 0%{?rhel} == 6
 install -m644 contrib/redhat/sshd.pam.old $RPM_BUILD_ROOT/etc/pam.d/sshd
 %else
 install -m644 contrib/redhat/sshd.pam     $RPM_BUILD_ROOT/etc/pam.d/sshd
@@ -440,6 +410,11 @@ fi
 %endif
 
 %changelog
+* Sat Feb  6 2019 Nico Kadel-Garcia <nkadel@gmail.com>
+- Require /usr/bin/login for for RHEL cross-compatibility.
+- Set epoch on for openssl requirements.
+- Change build6x to specific RHEL version requirements.
+
 * Sat Feb 10 2018 Darren Tucker <dtucker@dtucker.net>
 - Update openssl-devel dependency to match current requirements.
 - Handle Fedora >=6 openssl 1.0 compat libs.
