@@ -87,14 +87,18 @@ static void warn_changed_key(struct sshkey *);
 /* Expand a proxy command */
 static char *
 expand_proxy_command(const char *proxy_command, const char *user,
-    const char *host, int port)
+    const char *host, const char *host_arg, int port)
 {
 	char *tmp, *ret, strport[NI_MAXSERV];
 
 	snprintf(strport, sizeof strport, "%d", port);
 	xasprintf(&tmp, "exec %s", proxy_command);
-	ret = percent_expand(tmp, "h", host, "p", strport,
-	    "r", options.user, (char *)NULL);
+	ret = percent_expand(tmp,
+        "h", host,
+        "n", host_arg,
+        "p", strport,
+	    "r", options.user,
+        (char *)NULL);
 	free(tmp);
 	return ret;
 }
@@ -122,8 +126,8 @@ stderr_null(void)
  * a connected fd back to us.
  */
 static int
-ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
-    const char *proxy_command)
+ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, const char *host_arg,
+    u_short port, const char *proxy_command)
 {
 	char *command_string;
 	int sp[2], sock;
@@ -138,7 +142,7 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 		    "proxy dialer: %.100s", strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, port);
+	    host_arg, host, port);
 	debug("Executing proxy dialer command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -204,8 +208,8 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
  * Connect to the given ssh server using a proxy command.
  */
 static int
-ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
-    const char *proxy_command)
+ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
+    u_short port, const char *proxy_command)
 {
 	char *command_string;
 	int pin[2], pout[2];
@@ -221,7 +225,7 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 		    strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, port);
+        host_arg, host, port);
 	debug("Executing proxy command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -543,9 +547,9 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 }
 
 int
-ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
-    struct sockaddr_storage *hostaddr, u_short port, int family,
-    int connection_attempts, int *timeout_ms, int want_keepalive)
+ssh_connect(struct ssh *ssh, const char *host, const char *host_arg,
+    struct addrinfo *addrs, struct sockaddr_storage *hostaddr, u_short port,
+    int family, int connection_attempts, int *timeout_ms, int want_keepalive)
 {
 	if (options.proxy_command == NULL) {
 		return ssh_connect_direct(ssh, host, addrs, hostaddr, port,
@@ -556,10 +560,10 @@ ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
 			return -1; /* ssh_packet_set_connection logs error */
 		return 0;
 	} else if (options.proxy_use_fdpass) {
-		return ssh_proxy_fdpass_connect(ssh, host, port,
+		return ssh_proxy_fdpass_connect(ssh, host, host_arg, port,
 		    options.proxy_command);
 	}
-	return ssh_proxy_connect(ssh, host, port, options.proxy_command);
+	return ssh_proxy_connect(ssh, host, host_arg, port, options.proxy_command);
 }
 
 /* defaults to 'no' */
@@ -781,7 +785,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		ip_status = check_key_in_hostkeys(ip_hostkeys, host_key,
 		    &ip_found);
 		if (host_status == HOST_CHANGED &&
-		    (ip_status != HOST_CHANGED || 
+		    (ip_status != HOST_CHANGED ||
 		    (ip_found != NULL &&
 		    !sshkey_equal(ip_found->key, host_found->key))))
 			host_ip_differ = 1;
@@ -1055,7 +1059,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		if (options.exit_on_forward_failure && cancelled_forwarding)
 			fatal("Error: forwarding disabled due to host key "
 			    "check failure");
-		
+
 		/*
 		 * XXX Should permit the user to change to use the new id.
 		 * This could be done by converting the host key to an
