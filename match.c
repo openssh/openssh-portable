@@ -111,8 +111,6 @@ match_pattern(const char *s, const char *pattern)
 	/* NOTREACHED */
 }
 
-#ifndef HAVE_CYGWIN /* Cygwin version in openbsd-compat/bsd-cygwin_util.c */
-
 /*
  * Tries to match the string against the
  * comma-separated sequence of subpatterns (each possibly preceded by ! to
@@ -171,8 +169,6 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 	 */
 	return got_positive;
 }
-
-#endif
 
 /*
  * Tries to match the host name (which must be in all lowercase) against the

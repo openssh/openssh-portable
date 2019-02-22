@@ -103,11 +103,7 @@ ga_match_pattern_list(const char *group_pattern)
 	int i, found = 0;
 
 	for (i = 0; i < ngroups; i++) {
-#ifndef HAVE_CYGWIN
 		switch (match_pattern_list(groups_byname[i], group_pattern, 0)) {
-#else
-		switch (match_pattern_list(groups_byname[i], group_pattern, 1)) {
-#endif
 		case -1:
 			return 0;	/* Negated match wins */
 		case 0:

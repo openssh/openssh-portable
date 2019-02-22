@@ -1049,11 +1049,7 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 			}
 			if (ci->user == NULL)
 				match_test_missing_fatal("User", "user");
-#ifndef HAVE_CYGWIN
 			if (match_pattern_list(ci->user, arg, 0) != 1)
-#else
-			if (match_pattern_list(ci->user, arg, 1) != 1)
-#endif
 				result = 0;
 			else
 				debug("user %.100s matched 'User %.100s' at "
