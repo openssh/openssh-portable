@@ -56,7 +56,7 @@ ssh_sandbox_init(struct monitor *m)
 void
 ssh_sandbox_child(struct ssh_sandbox *box)
 {
-	if (pledge("stdio", NULL) == -1)
+	if (pledge("stdio error", NULL) == -1)
 		fatal("%s: pledge()", __func__);
 }
 
