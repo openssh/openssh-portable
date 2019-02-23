@@ -384,8 +384,11 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 	 * several versions and set appropriate flags to handle them.
 	 */
 	if (sscanf(cp, "SSH-%d.%d-%[^\n]\n",
-	    &remote_major, &remote_minor, remote_version) != 3)
+	    &remote_major, &remote_minor, remote_version) != 3) {
+		free(remote_version);
+		free(cp);
 		return SSH_ERR_INVALID_FORMAT;
+	}
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	    remote_major, remote_minor, remote_version);
 
@@ -394,8 +397,10 @@ _ssh_read_banner(struct ssh *ssh, struct sshbuf *banner)
 		remote_major = 2;
 		remote_minor = 0;
 	}
-	if (remote_major != 2)
+	if (remote_major != 2) {
+		free(cp);
 		return SSH_ERR_PROTOCOL_MISMATCH;
+	}
 	debug("Remote version string %.100s", cp);
 	free(cp);
 	return 0;

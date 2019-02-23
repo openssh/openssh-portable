@@ -266,6 +266,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 		 * listen_host wildcard.
 		 */
 		if (asprintf(&tmp, "*:%s", opt) == -1) {
+			free(opt);
 			*errstrp = "memory allocation failed";
 			return -1;
 		}
