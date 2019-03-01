@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.303 2019/02/23 08:20:43 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.304 2019/03/01 02:08:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -208,8 +208,8 @@ static struct {
 	{ "gssapidelegatecredentials", oUnsupported },
 #endif
 #ifdef ENABLE_PKCS11
-	{ "smartcarddevice", oPKCS11Provider },
 	{ "pkcs11provider", oPKCS11Provider },
+	{ "smartcarddevice", oPKCS11Provider },
 # else
 	{ "smartcarddevice", oUnsupported },
 	{ "pkcs11provider", oUnsupported },
@@ -2147,6 +2147,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->proxy_command);
 	CLEAR_ON_NONE(options->control_path);
 	CLEAR_ON_NONE(options->revoked_host_keys);
+	CLEAR_ON_NONE(options->pkcs11_provider);
 	if (options->jump_host != NULL &&
 	    strcmp(options->jump_host, "none") == 0 &&
 	    options->jump_port == 0 && options->jump_user == NULL) {
