@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.400 2019/01/22 11:51:25 djm Exp $
-.Dd $Mdocdate: January 22 2019 $
+.\" $OpenBSD: ssh.1,v 1.401 2019/03/05 16:17:12 naddy Exp $
+.Dd $Mdocdate: March 5 2019 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -270,8 +270,8 @@ on the master process.
 .It Fl I Ar pkcs11
 Specify the PKCS#11 shared library
 .Nm
-should use to communicate with a PKCS#11 token providing the user's
-private RSA key.
+should use to communicate with a PKCS#11 token providing keys for user
+authentication.
 .Pp
 .It Fl i Ar identity_file
 Selects a file from which the identity (private key) for

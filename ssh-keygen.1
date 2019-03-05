@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.156 2019/01/23 04:51:02 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.157 2019/03/05 16:17:12 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 23 2019 $
+.Dd $Mdocdate: March 5 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -279,7 +279,7 @@ Requests changing the comment in the private and public key files.
 The program will prompt for the file containing the private keys, for
 the passphrase if the key has one, and for the new comment.
 .It Fl D Ar pkcs11
-Download the RSA public keys provided by the PKCS#11 shared library
+Download the public keys provided by the PKCS#11 shared library
 .Ar pkcs11 .
 When used in combination with
 .Fl s ,
