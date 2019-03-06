@@ -129,7 +129,7 @@ SHA1Update(SHA1_CTX *context, const u_int8_t *data, size_t len)
 	size_t i, j;
 
 	j = (size_t)((context->count >> 3) & 63);
-	context->count += (len << 3);
+	context->count += ((u_int64_t)len << 3);
 	if ((j + len) > 63) {
 		(void)memcpy(&context->buffer[j], data, (i = 64-j));
 		SHA1Transform(context->state, context->buffer);
