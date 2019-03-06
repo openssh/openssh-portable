@@ -1,4 +1,4 @@
-/* $OpenBSD: match.c,v 1.38 2018/07/04 13:49:31 djm Exp $ */
+/* $OpenBSD: match.c,v 1.39 2019/03/06 22:14:23 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -173,6 +173,19 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 }
 
 #endif
+
+/* Match a list representing users or groups. */
+int
+match_usergroup_pattern_list(const char *string, const char *pattern)
+{
+#ifndef HAVE_CYGWIN
+	/* Case sensitive match */
+	return match_pattern_list(string, pattern, 0);
+#else
+	/* Case insensitive match */
+	return match_pattern_list(string, pattern, 1);
+#endif
+}
 
 /*
  * Tries to match the host name (which must be in all lowercase) against the

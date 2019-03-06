@@ -1,4 +1,4 @@
-/* $OpenBSD: groupaccess.c,v 1.16 2015/05/04 06:10:48 djm Exp $ */
+/* $OpenBSD: groupaccess.c,v 1.17 2019/03/06 22:14:23 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Kevin Steves.  All rights reserved.
  *
@@ -103,11 +103,8 @@ ga_match_pattern_list(const char *group_pattern)
 	int i, found = 0;
 
 	for (i = 0; i < ngroups; i++) {
-#ifndef HAVE_CYGWIN
-		switch (match_pattern_list(groups_byname[i], group_pattern, 0)) {
-#else
-		switch (match_pattern_list(groups_byname[i], group_pattern, 1)) {
-#endif
+		switch (match_usergroup_pattern_list(groups_byname[i],
+		    group_pattern)) {
 		case -1:
 			return 0;	/* Negated match wins */
 		case 0:
