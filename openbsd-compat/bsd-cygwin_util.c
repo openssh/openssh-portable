@@ -128,7 +128,7 @@ free_windows_environment(char **p)
  */
 
 static int
-__match_pattern (const wchar_t *s, const wchar_t *pattern, int caseinsensitive)
+__match_pattern (const wchar_t *s, const wchar_t *pattern)
 {
 	for (;;) {
 		/* If at end of pattern, accept if also at end of string. */
@@ -152,8 +152,7 @@ __match_pattern (const wchar_t *s, const wchar_t *pattern, int caseinsensitive)
 				 */
 				for (; *s; s++)
 					if (*s == *pattern &&
-					    __match_pattern(s + 1, pattern + 1,
-							    caseinsensitive))
+					    __match_pattern(s + 1, pattern + 1))
 						return 1;
 				/* Failed. */
 				return 0;
@@ -163,7 +162,7 @@ __match_pattern (const wchar_t *s, const wchar_t *pattern, int caseinsensitive)
 			 * match at each position.
 			 */
 			for (; *s; s++)
-				if (__match_pattern(s, pattern, caseinsensitive))
+				if (__match_pattern(s, pattern))
 					return 1;
 			/* Failed. */
 			return 0;
@@ -176,8 +175,7 @@ __match_pattern (const wchar_t *s, const wchar_t *pattern, int caseinsensitive)
 			return 0;
 
 		/* Check if the next character of the string is acceptable. */
-		if (*pattern != '?' && (*pattern != *s &&
-		     (!caseinsensitive || towlower(*pattern) != towlower(*s))))
+		if (*pattern != '?' && towlower(*pattern) != towlower(*s))
 			return 0;
 
 		/* Move to the next character, both in string and in pattern. */
@@ -188,7 +186,7 @@ __match_pattern (const wchar_t *s, const wchar_t *pattern, int caseinsensitive)
 }
 
 static int
-_match_pattern(const char *s, const char *pattern, int caseinsensitive)
+_match_pattern(const char *s, const char *pattern)
 {
 	wchar_t *ws;
 	wchar_t *wpattern;
@@ -202,7 +200,7 @@ _match_pattern(const char *s, const char *pattern, int caseinsensitive)
 		return 0;
 	wpattern = (wchar_t *) alloca((len + 1) * sizeof (wchar_t));
 	mbstowcs(wpattern, pattern, len + 1);
-	return __match_pattern (ws, wpattern, caseinsensitive);
+	return __match_pattern (ws, wpattern);
 }
 
 /*
@@ -212,7 +210,7 @@ _match_pattern(const char *s, const char *pattern, int caseinsensitive)
  * a positive match, 0 if there is no match at all.
  */
 int
-match_pattern_list(const char *string, const char *pattern, int caseinsensitive)
+cygwin_ug_match_pattern_list(const char *string, const char *pattern)
 {
 	char sub[1024];
 	int negated;
@@ -248,7 +246,7 @@ match_pattern_list(const char *string, const char *pattern, int caseinsensitive)
 		sub[subi] = '\0';
 
 		/* Try to match the subpattern against the string. */
-		if (_match_pattern(string, sub, caseinsensitive)) {
+		if (_match_pattern(string, sub)) {
 			if (negated)
 				return -1;		/* Negative */
 			else

@@ -111,8 +111,6 @@ match_pattern(const char *s, const char *pattern)
 	/* NOTREACHED */
 }
 
-#ifndef HAVE_CYGWIN /* Cygwin version in openbsd-compat/bsd-cygwin_util.c */
-
 /*
  * Tries to match the string against the
  * comma-separated sequence of subpatterns (each possibly preceded by ! to
@@ -172,18 +170,16 @@ match_pattern_list(const char *string, const char *pattern, int dolower)
 	return got_positive;
 }
 
-#endif
-
 /* Match a list representing users or groups. */
 int
 match_usergroup_pattern_list(const char *string, const char *pattern)
 {
-#ifndef HAVE_CYGWIN
-	/* Case sensitive match */
-	return match_pattern_list(string, pattern, 0);
+#ifdef HAVE_CYGWIN
+	/* Windows usernames may be Unicode and are not case sensitive */
+	return cygwin_ug_match_pattern_list(string, pattern);
 #else
 	/* Case insensitive match */
-	return match_pattern_list(string, pattern, 1);
+	return match_pattern_list(string, pattern, 0);
 #endif
 }
 
