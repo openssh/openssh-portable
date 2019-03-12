@@ -37,6 +37,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <wchar.h>
 #include <wctype.h>
 
@@ -191,16 +192,20 @@ _match_pattern(const char *s, const char *pattern)
 	wchar_t *ws;
 	wchar_t *wpattern;
 	size_t len;
+	int ret;
 
 	if ((len = mbstowcs(NULL, s, 0)) < 0)
 		return 0;
-	ws = (wchar_t *) alloca((len + 1) * sizeof (wchar_t));
+	ws = (wchar_t *) xcalloc(len + 1, sizeof (wchar_t));
 	mbstowcs(ws, s, len + 1);
 	if ((len = mbstowcs(NULL, pattern, 0)) < 0)
 		return 0;
-	wpattern = (wchar_t *) alloca((len + 1) * sizeof (wchar_t));
+	wpattern = (wchar_t *) xcalloc(len + 1, sizeof (wchar_t));
 	mbstowcs(wpattern, pattern, len + 1);
-	return __match_pattern (ws, wpattern);
+	ret = __match_pattern (ws, wpattern);
+	free(ws);
+	free(wpattern);
+	return ret;
 }
 
 /*
