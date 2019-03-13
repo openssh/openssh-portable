@@ -394,14 +394,24 @@ install_service() {
     then
       csih_get_cygenv "${cygwin_value}"
 
-      if ( csih_is_nt2003 || [ "$csih_FORCE_PRIVILEGED_USER" = "yes" ] )
+      if ( [ "$csih_FORCE_PRIVILEGED_USER" != "yes" ] )
       then
-	csih_inform "On Windows Server 2003, Windows Vista, and above, the"
-	csih_inform "SYSTEM account cannot setuid to other users -- a capability"
-	csih_inform "sshd requires.  You need to have or to create a privileged"
-	csih_inform "account.  This script will help you do so."
-	echo
+	# Enforce using privileged user on 64 bit Vista or W7 under WOW64
+	is_wow64=$(/usr/bin/uname | /usr/bin/grep -q 'WOW' && echo 1 || echo 0)
 
+	if ( csih_is_nt2003 && ! csih_is_windows8 && [ "${is_wow64}" = "1" ] )
+	then
+	  csih_inform "Running 32 bit Cygwin on 64 bit Windows Vista or Windows 7"
+	  csih_inform "the SYSTEM account is not sufficient to setuid to a local"
+	  csih_inform "user account.  You need to have or to create a privileged"
+	  csih_inform "account.  This script will help you do so."
+	  echo
+	  csih_FORCE_PRIVILEGED_USER=yes
+	fi
+      fi
+
+      if ( [ "$csih_FORCE_PRIVILEGED_USER" = "yes" ] )
+      then
 	[ "${opt_force}" = "yes" ] && opt_f=-f
 	[ -n "${user_account}" ] && opt_u="-u ""${user_account}"""
 	csih_select_privileged_username ${opt_f} ${opt_u} sshd
@@ -412,10 +422,11 @@ install_service() {
 	  csih_request "Do you want to proceed anyway?" || exit 1
 	  let ++ret
 	fi
+	# Never returns empty if NT or above
+	run_service_as=$(csih_service_should_run_as)
+      else
+	run_service_as="SYSTEM"
       fi
-
-      # Never returns empty if NT or above
-      run_service_as=$(csih_service_should_run_as)
 
       if [ "${run_service_as}" = "${csih_PRIVILEGED_USERNAME}" ]
       then
