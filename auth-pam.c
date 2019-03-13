@@ -239,6 +239,7 @@ pthread_join(sp_pthread_t thread, void **value)
 
 
 static pam_handle_t *sshpam_handle = NULL;
+static pam_handle_t *sshpam_password_handle = NULL;
 static int sshpam_err = 0;
 static int sshpam_authenticated = 0;
 static int sshpam_session_open = 0;
@@ -652,27 +653,31 @@ static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 void
 sshpam_cleanup(void)
 {
-	if (sshpam_handle == NULL || (use_privsep && !mm_is_monitor()))
-		return;
-	debug("PAM: cleanup");
-	pam_set_item(sshpam_handle, PAM_CONV, (const void *)&null_conv);
-	if (sshpam_session_open) {
-		debug("PAM: closing session");
-		pam_close_session(sshpam_handle, PAM_SILENT);
-		sshpam_session_open = 0;
+	if (!(sshpam_handle == NULL || (use_privsep && !mm_is_monitor()))) {
+		debug("PAM: cleanup");
+		pam_set_item(sshpam_handle, PAM_CONV, (const void *)&null_conv);
+		if (sshpam_session_open) {
+			debug("PAM: closing session");
+			pam_close_session(sshpam_handle, PAM_SILENT);
+			sshpam_session_open = 0;
+		}
+		if (sshpam_cred_established) {
+			debug("PAM: deleting credentials");
+			pam_setcred(sshpam_handle, PAM_DELETE_CRED);
+			sshpam_cred_established = 0;
+		}
+		sshpam_authenticated = 0;
+		pam_end(sshpam_handle, sshpam_err);
+		sshpam_handle = NULL;
 	}
-	if (sshpam_cred_established) {
-		debug("PAM: deleting credentials");
-		pam_setcred(sshpam_handle, PAM_DELETE_CRED);
-		sshpam_cred_established = 0;
+	if (!(sshpam_password_handle == NULL)) {
+		pam_end(sshpam_password_handle, sshpam_err);
+		sshpam_password_handle = NULL;
 	}
-	sshpam_authenticated = 0;
-	pam_end(sshpam_handle, sshpam_err);
-	sshpam_handle = NULL;
 }
 
 static int
-sshpam_init(struct ssh *ssh, Authctxt *authctxt)
+sshpam_init(struct ssh *ssh, Authctxt *authctxt, char * service_name, pam_handle_t **sshpam_phandle )
 {
 	const char *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
@@ -682,23 +687,19 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 			fatal("%s: called initially with no "
 			    "packet context", __func__);
 		}
-	} if (sshpam_handle != NULL) {
-		/* We already have a PAM context; check if the user matches */
-		sshpam_err = pam_get_item(sshpam_handle,
-		    PAM_USER, (sshpam_const void **)ptr_pam_user);
-		if (sshpam_err == PAM_SUCCESS && strcmp(user, pam_user) == 0)
-			return (0);
-		pam_end(sshpam_handle, sshpam_err);
-		sshpam_handle = NULL;
+	} if (*sshpam_phandle != NULL) {
+		/* We already have a PAM context; erase */
+		pam_end(*sshpam_phandle, sshpam_err);
+		*sshpam_phandle = NULL;
 	}
 	debug("PAM: initializing for \"%s\"", user);
 	sshpam_err =
-	    pam_start(SSHD_PAM_SERVICE, user, &store_conv, &sshpam_handle);
+	    pam_start(service_name, user, &store_conv, sshpam_phandle);
 	sshpam_authctxt = authctxt;
 
 	if (sshpam_err != PAM_SUCCESS) {
-		pam_end(sshpam_handle, sshpam_err);
-		sshpam_handle = NULL;
+		pam_end(*sshpam_phandle, sshpam_err);
+		*sshpam_phandle = NULL;
 		return (-1);
 	}
 
@@ -717,15 +718,15 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 	}
 	if (sshpam_rhost != NULL) {
 		debug("PAM: setting PAM_RHOST to \"%s\"", sshpam_rhost);
-		sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST,
+		sshpam_err = pam_set_item(*sshpam_phandle, PAM_RHOST,
 		    sshpam_rhost);
 		if (sshpam_err != PAM_SUCCESS) {
-			pam_end(sshpam_handle, sshpam_err);
-			sshpam_handle = NULL;
+			pam_end(*sshpam_phandle, sshpam_err);
+			*sshpam_phandle = NULL;
 			return (-1);
 		}
 		/* Put SSH_CONNECTION in the PAM environment too */
-		pam_putenv(sshpam_handle, sshpam_conninfo);
+		pam_putenv(*sshpam_phandle, sshpam_conninfo);
 	}
 
 #ifdef PAM_TTY_KLUDGE
@@ -735,10 +736,10 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 	 * may not even set one (for tty-less connections)
 	 */
 	debug("PAM: setting PAM_TTY to \"ssh\"");
-	sshpam_err = pam_set_item(sshpam_handle, PAM_TTY, "ssh");
+	sshpam_err = pam_set_item(*sshpam_phandle, PAM_TTY, "ssh");
 	if (sshpam_err != PAM_SUCCESS) {
-		pam_end(sshpam_handle, sshpam_err);
-		sshpam_handle = NULL;
+		pam_end(*sshpam_phandle, sshpam_err);
+		*sshpam_phandle = NULL;
 		return (-1);
 	}
 #endif
@@ -771,6 +772,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
 	int socks[2];
+	char *service_name = SSHD_PAM_SERVICE;
 
 	debug3("PAM: %s entering", __func__);
 	/*
@@ -780,8 +782,11 @@ sshpam_init_ctx(Authctxt *authctxt)
 	if (!options.use_pam || sshpam_account_status == 0)
 		return NULL;
 
+	if (!( options.pam_service_name == NULL || strcasecmp(options.pam_service_name, "none") == 0))
+		service_name = options.pam_service_name;
+
 	/* Initialize PAM */
-	if (sshpam_init(NULL, authctxt) == -1) {
+	if (sshpam_init(NULL, authctxt, service_name, &sshpam_handle) == -1) {
 		error("PAM: initialization failed");
 		return (NULL);
 	}
@@ -1022,11 +1027,15 @@ void
 start_pam(struct ssh *ssh)
 {
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
+	char *service_name = SSHD_PAM_SERVICE;
 
 	if (!options.use_pam)
 		fatal("PAM: initialisation requested when UsePAM=no");
 
-	if (sshpam_init(ssh, authctxt) == -1)
+	if (!( options.pam_service_name == NULL || strcasecmp(options.pam_service_name, "none") == 0))
+		service_name = options.pam_service_name;
+
+	if (sshpam_init(ssh, authctxt, service_name, &sshpam_handle) == -1)
 		fatal("PAM: initialisation failed");
 }
 
@@ -1316,10 +1325,19 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	int flags = (options.permit_empty_passwd == 0 ?
 	    PAM_DISALLOW_NULL_AUTHTOK : 0);
 	char *fake = NULL;
+	char *service_name = SSHD_PAM_SERVICE;
 
-	if (!options.use_pam || sshpam_handle == NULL)
-		fatal("PAM: %s called when PAM disabled or failed to "
-		    "initialise.", __func__);
+	if (!options.use_pam)
+		fatal("PAM: %s called when PAM disabled.", __func__);
+
+	if (!( options.pam_service_name == NULL || strcasecmp(options.pam_service_name, "none") == 0))
+		service_name = options.pam_service_name;
+
+	if (!( options.password_pam_service_name == NULL || strcasecmp(options.password_pam_service_name, "none") == 0))
+		service_name = options.password_pam_service_name;
+
+	if (sshpam_init(NULL, authctxt, service_name, &sshpam_password_handle) == -1)
+		fatal("PAM: initialisation for password authentication failed");
 
 	sshpam_password = password;
 	sshpam_authctxt = authctxt;
@@ -1333,13 +1351,13 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	    options.permit_root_login != PERMIT_YES))
 		sshpam_password = fake = fake_password(password);
 
-	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
+	sshpam_err = pam_set_item(sshpam_password_handle, PAM_CONV,
 	    (const void *)&passwd_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: %s: failed to set PAM_CONV: %s", __func__,
-		    pam_strerror(sshpam_handle, sshpam_err));
+		    pam_strerror(sshpam_password_handle, sshpam_err));
 
-	sshpam_err = pam_authenticate(sshpam_handle, flags);
+	sshpam_err = pam_authenticate(sshpam_password_handle, flags);
 	sshpam_password = NULL;
 	free(fake);
 	if (sshpam_err == PAM_MAXTRIES)
@@ -1351,7 +1369,7 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 	} else {
 		debug("PAM: password authentication failed for %.100s: %s",
 		    authctxt->valid ? authctxt->user : "an illegal user",
-		    pam_strerror(sshpam_handle, sshpam_err));
+		    pam_strerror(sshpam_password_handle, sshpam_err));
 		return 0;
 	}
 }
