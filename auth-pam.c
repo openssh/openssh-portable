@@ -681,18 +681,47 @@ sshpam_init(struct ssh *ssh, Authctxt *authctxt, char * service_name, pam_handle
 {
 	const char *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
+	const char *pam_service;
+	const char **ptr_pam_service = &pam_service;
 
-	if (sshpam_handle == NULL) {
-		if (ssh == NULL) {
+	if (*sshpam_phandle == NULL) {
+		if (ssh == NULL && sshpam_rhost == NULL) {
 			fatal("%s: called initially with no "
 			    "packet context", __func__);
 		}
-	} if (*sshpam_phandle != NULL) {
-		/* We already have a PAM context; erase */
+	}
+	if (*sshpam_phandle != NULL) {
+		/* We already have a PAM context;
+		 * check if the user and service name matches */
+		sshpam_err = pam_get_item(*sshpam_phandle,
+		    PAM_USER, (sshpam_const void **)ptr_pam_user);
+		if (sshpam_err == PAM_SUCCESS
+		    && strcmp(user, pam_user) == 0 ) {
+			sshpam_err = pam_get_item(*sshpam_phandle,
+			    PAM_SERVICE, (sshpam_const void **)ptr_pam_service);
+			if (sshpam_err == PAM_SUCCESS
+			    && strncmp(service_name, pam_service, strlen(service_name)) == 0 ) {
+				// full match. no reinit needed.
+				return (0);
+			}
+		}
+		/*
+		 * Clean up previous PAM state.  No need to clean up session 
+		 * and creds.
+		 */
+		if (sshpam_phandle == &sshpam_handle) {
+			/* (This is not needed for password auth, it does not change or read these states) */
+			sshpam_authenticated = 0;
+			sshpam_account_status = -1;
+		}
+		sshpam_err = pam_set_item(sshpam_handle, PAM_CONV, NULL);
+		if (sshpam_err != PAM_SUCCESS)
+		        debug3("Cannot remove PAM conv"); /* a warning only */
+
 		pam_end(*sshpam_phandle, sshpam_err);
 		*sshpam_phandle = NULL;
 	}
-	debug("PAM: initializing for \"%s\"", user);
+	debug("PAM: (%s) initializing for \"%s\"", service_name, user);
 	sshpam_err =
 	    pam_start(service_name, user, &store_conv, sshpam_phandle);
 	sshpam_authctxt = authctxt;
