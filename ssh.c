@@ -575,6 +575,96 @@ set_addrinfo_port(struct addrinfo *addrs, int port)
 	}
 }
 
+static const char* escape_argument(char *buf, int bufsize, char *arg){
+	int len = strlen(arg);
+	if (len == 0){
+		return "\"\"";
+	}
+	if(len+2>=bufsize){
+		return arg;
+	}
+	int hasspace, i ,n;
+	hasspace = 0;
+	n = len;
+	for (i=0; i<len; i++){
+		switch(arg[i]){
+			case '"':
+			case '\\':
+			n++;
+			break;
+			case ' ':
+			case '\t':
+			hasspace =1;
+			break;
+			default:
+			break;
+		}
+	}
+	if(hasspace){
+		n+=2;
+	}
+	if (n == len||bufsize+1<n){
+		return arg;
+	}
+	int j=0;
+	int slashes=0;
+	if(hasspace){
+		buf[j]='"';
+		j++;
+	}
+	for(i=0; i<len; i++){
+		switch(arg[i]){
+			case '\\':
+				slashes++;
+				buf[j]=arg[i];
+			break;
+			case '"':{
+				for(;slashes>0;slashes--){
+					buf[j]='\\';
+					j++;
+				}
+				buf[j]='\\';
+				j++;
+				buf[j]=arg[i];
+			}
+			break;
+			default:
+				slashes=0;
+				buf[j]=arg[i];
+			break;
+		}
+		j++;
+	}
+	if(hasspace){
+		for(;slashes>0;slashes--){
+			buf[j]='\\';
+			j++;
+		}
+		buf[j]='"';
+		j++;
+	}
+	buf[j]=0;
+	//memchr(, int __c, size_t __n)
+	return buf;
+}
+
+/* Convert command argument to shell line*/
+static int argv_to_command(struct sshbuf *command, int ac, char **av)
+{
+	int i,r;
+	char *buffer;
+	const char *ecmd;
+	buffer = xmalloc(4096);
+	for(i=0;i<ac;i++){
+		ecmd = escape_argument(buffer, 4096, av[i]);
+		if ((r = sshbuf_putf(command, "%s%s",
+			i ? " " : "", ecmd)) != 0)
+			fatal("%s: buffer error: %s",__func__, ssh_err(r));
+	}
+	free(buffer);
+	return 0;
+}
+
 /*
  * Main program for the ssh client.
  */
@@ -1057,12 +1147,13 @@ main(int ac, char **av)
 		}
 	} else {
 		/* A command has been specified.  Store it into the buffer. */
-		for (i = 0; i < ac; i++) {
-			if ((r = sshbuf_putf(command, "%s%s",
-			    i ? " " : "", av[i])) != 0)
-				fatal("%s: buffer error: %s",
-				    __func__, ssh_err(r));
-		}
+		// for (i = 0; i < ac; i++) {
+		// 	if ((r = sshbuf_putf(command, "%s%s",
+		// 	    i ? " " : "", av[i])) != 0)
+		// 		fatal("%s: buffer error: %s",
+		// 		    __func__, ssh_err(r));
+		// }
+		argv_to_command(command,ac,av);
 	}
 
 	/*
