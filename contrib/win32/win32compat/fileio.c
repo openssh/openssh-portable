@@ -98,6 +98,8 @@ errno_from_Win32Error(int win32_error)
 	case ERROR_PATH_NOT_FOUND:
 	case ERROR_INVALID_NAME:
 		return ENOENT;
+	case ERROR_INVALID_FUNCTION:
+		return EOPNOTSUPP;
 	default:
 		return win32_error;
 	}

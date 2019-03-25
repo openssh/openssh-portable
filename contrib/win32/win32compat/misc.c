@@ -1250,8 +1250,9 @@ get_others_file_permissions(wchar_t * file_name, int isReadOnlyFile)
 		goto cleanup;
 	}
 
-	if (((is_valid_sid = IsValidSid(owner_sid)) == FALSE) || ((is_valid_acl = IsValidAcl(dacl)) == FALSE)) {
-		debug3("IsValidSid: %d; is_valid_acl: %d", is_valid_sid, is_valid_acl);
+	if (((is_valid_sid = IsValidSid(owner_sid)) == FALSE) || dacl == NULL ||
+		((is_valid_acl = IsValidAcl(dacl)) == FALSE)) {
+		debug3("IsValidSid: %d; NULL Acl: %d; IsValidAcl: %d", is_valid_sid, dacl == NULL, is_valid_acl);
 		goto cleanup;
 	}
 
