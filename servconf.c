@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.349 2019/03/06 22:14:23 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.350 2019/03/25 22:33:44 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -470,7 +470,6 @@ fill_default_server_options(ServerOptions *options)
 		options->compression = 0;
 	}
 #endif
-
 }
 
 /* Keyword tokens. */
