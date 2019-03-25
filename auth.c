@@ -595,9 +595,12 @@ getpwnamallow(const char *user)
 	struct passwd *pw;
 	struct connection_info *ci = get_connection_info(1, options.use_dns);
 #ifdef WINDOWS
-	/* getpwname - normalizes the incoming user and makes it lowercase */
+	/* getpwname - normalizes the incoming user and makes it lowercase
+	/* it must be duped as the server matching routines may use getpwnam() and
+	 * and free the name being assigned to the connection info structure 
+	 */
 	pw = getpwnam(user);
-	ci->user = pw? pw->pw_name: user;
+	ci->user = pw? xstrdup(pw->pw_name): user;
 #else
 	ci->user = user;
 #endif // WINDOWS
