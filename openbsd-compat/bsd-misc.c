@@ -143,8 +143,10 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 # ifndef HAVE_FUTIMES
 	return utimes(path, tv);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = futimes(fd, tv);
