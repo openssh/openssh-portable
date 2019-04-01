@@ -502,8 +502,8 @@ int r3_recip(small *r,const small *s)
   int loop;
   small f[p + 1]; 
   small g[p + 1]; 
-  small u[loops + 1];
-  small v[loops + 1];
+  small u[2*p + 2];
+  small v[2*p + 2];
   small c;
   int i;
   int d = p;
@@ -819,8 +819,8 @@ int rq_recip3(modq *r,const small *s)
   int loop;
   modq f[p + 1]; 
   modq g[p + 1]; 
-  modq u[loops + 1];
-  modq v[loops + 1];
+  modq u[2*p + 2];
+  modq v[2*p + 2];
   modq c;
   int i;
   int d = p;
