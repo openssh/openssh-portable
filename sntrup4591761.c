@@ -8,6 +8,8 @@
  * - Christine van Vredendaal
  */
 
+#include "includes.h"
+
 #include <string.h>
 #include "crypto_api.h"
 
