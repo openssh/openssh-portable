@@ -360,7 +360,7 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 # ifdef WITH_AIXAUTHENTICATE
 	if (authenticated)
-		sys_auth_record_login(ssh, authctxt->user,
+		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
 		    loginmsg);
 # endif

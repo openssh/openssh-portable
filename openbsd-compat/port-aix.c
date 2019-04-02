@@ -280,8 +280,8 @@ sys_auth_allowed_user(struct passwd *pw, struct sshbuf *loginmsg)
 }
 
 int
-sys_auth_record_login(struct ssh *ssh, const char *user, const char *host,
-    const char *ttynm, struct sshbuf *loginmsg)
+sys_auth_record_login(const char *user, const char *host, const char *ttynm,
+    struct sshbuf *loginmsg)
 {
 	char *msg = NULL;
 	int success = 0;
