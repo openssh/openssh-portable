@@ -2620,7 +2620,7 @@ session_setup_x11fwd(struct ssh *ssh, Session *s)
 		he = gethostbyname(hostname);
 		if (he == NULL) {
 			error("Can't get IP address for X11 DISPLAY.");
-			packet_send_debug("Can't get IP address for X11 DISPLAY.");
+			ssh_packet_send_debug(ssh, "Can't get IP address for X11 DISPLAY.");
 			return 0;
 		}
 		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));
