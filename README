@@ -1,74 +1,62 @@
-# Portable OpenSSH
+See https://www.openssh.com/releasenotes.html#8.0p1 for the release notes.
 
-OpenSSH is a complete implementation of the SSH protocol (version 2) for secure remote login, command execution and file transfer. It includes a client ``ssh`` and server ``sshd``, file transfer utilities ``scp`` and ``sftp`` as well as tools for key generation (``ssh-keygen``), run-time key storage (``ssh-agent``) and a number of supporting programs.
+Please read https://www.openssh.com/report.html for bug reporting
+instructions and note that we do not use Github for bug reporting or
+patch/pull-request management.
 
-This is a port of OpenBSD's [OpenSSH](https://openssh.com) to most Unix-like operating systems, including Linux, OS X and Cygwin. Portable OpenSSH polyfills OpenBSD APIs that are not available elsewhere, adds sshd sandboxing for more operating systems and includes support for OS-native authentication and auditing (e.g. using PAM).
+This is the port of OpenBSD's excellent OpenSSH[0] to Linux and other
+Unices.
 
-## Documentation
+OpenSSH is based on the last free version of Tatu Ylonen's sample
+implementation with all patent-encumbered algorithms removed (to
+external libraries), all known security bugs fixed, new features
+reintroduced and many other clean-ups.  OpenSSH has been created by
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, Theo de Raadt,
+and Dug Song. It has a homepage at https://www.openssh.com/
 
-The official documentation for OpenSSH are the man pages for each tool:
+This port consists of the re-introduction of autoconf support, PAM
+support, EGD[1]/PRNGD[2] support and replacements for OpenBSD library
+functions that are (regrettably) absent from other unices. This port
+has been best tested on AIX, Cygwin, HP-UX, Linux, MacOS/X,
+FreeBSD, NetBSD, OpenBSD, OpenServer, Solaris and UnixWare.
 
-* [ssh(1)](https://man.openbsd.org/ssh.1)
-* [sshd(8)](https://man.openbsd.org/sshd.8)
-* [ssh-keygen(1)](https://man.openbsd.org/ssh-keygen.1)
-* [ssh-agent(1)](https://man.openbsd.org/ssh-agent.1)
-* [scp(1)](https://man.openbsd.org/scp.1)
-* [sftp(1)](https://man.openbsd.org/sftp.1)
-* [ssh-keyscan(8)](https://man.openbsd.org/ssh-keyscan.8)
-* [sftp-server(8)](https://man.openbsd.org/sftp-server.8)
+This version actively tracks changes in the OpenBSD CVS repository.
 
-## Stable Releases
+The PAM support is now more functional than the popular packages of
+commercial ssh-1.2.x. It checks "account" and "session" modules for
+all logins, not just when using password authentication.
 
-Stable release tarballs are available from a number of [download mirrors](https://www.openssh.com/portable.html#downloads). We recommend the use of a stable release for most users. Please read the [release notes](https://www.openssh.com/releasenotes.html) for details of recent changes and potential incompatibilities.
+OpenSSH depends on Zlib[3], OpenSSL[4], and optionally PAM[5] and
+libedit[6]
 
-## Building Portable OpenSSH
+There is now several mailing lists for this port of OpenSSH. Please
+refer to https://www.openssh.com/list.html for details on how to join.
 
-### Dependencies
+Please send bug reports and patches to the mailing list
+openssh-unix-dev@mindrot.org. The list is open to posting by unsubscribed
+users.  Code contribution are welcomed, but please follow the OpenBSD
+style guidelines[7].
 
-Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers, as well as [zlib](https://www.zlib.net/) and ``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) to build. Certain platforms and build-time options may require additional dependencies.
+Please refer to the INSTALL document for information on how to install
+OpenSSH on your system.
 
-### Building a release
+Damien Miller <djm@mindrot.org>
 
-Releases include a pre-built copy of the ``configure`` script and may be built using:
+Miscellania -
 
-```
-tar zxvf openssh-X.Y.tar.gz
-cd openssh
-./configure # [options]
-make && make tests
-```
+This version of OpenSSH is based upon code retrieved from the OpenBSD
+CVS repository which in turn was based on the last free sample
+implementation released by Tatu Ylonen.
 
-See the [Build-time Customisation](#build-time-customisation) section below for configure options. If you plan on installing OpenSSH to your system, then you will usually want to specify destination paths.
- 
-### Building from git
+References -
 
-If building from git, you'll need [autoconf](https://www.gnu.org/software/autoconf/) installed to build the ``configure`` script. The following commands will check out and build portable OpenSSH from git:
-
-```
-git clone https://github.com/openssh/openssh-portable # or https://anongit.mindrot.org/openssh.git
-cd openssh-portable
-autoreconf
-./configure
-make && make tests
-```
-
-### Build-time Customisation
-
-There are many build-time customisation options available. All Autoconf destination path flags (e.g. ``--prefix``) are supported (and are usually required if you want to install OpenSSH).
-
-For a full list of available flags, run ``configure --help`` but a few of the more frequently-used ones are described below. Some of these flags will require additional libraries and/or headers be installed.
-
-Flag | Meaning
---- | ---
-``--with-pam`` | Enable [PAM](https://en.wikipedia.org/wiki/Pluggable_authentication_module) support. [OpenPAM](https://www.openpam.org/), [Linux PAM](http://www.linux-pam.org/) and Solaris PAM are supported.
-``--with-libedit`` | Enable [libedit](https://www.thrysoee.dk/editline/) support for sftp.
-``--with-kerberos5`` | Enable Kerberos/GSSAPI support. Both [Heimdal](https://www.h5l.org/) and [MIT](https://web.mit.edu/kerberos/) Kerberos implementations are supported.
-``--with-selinux`` | Enable [SELinux](https://en.wikipedia.org/wiki/Security-Enhanced_Linux) support.
-
-## Development
-
-Portable OpenSSH development is discussed on the [openssh-unix-dev mailing list](https://lists.mindrot.org/mailman/listinfo/openssh-unix-dev) ([archive mirror](https://marc.info/?l=openssh-unix-dev)). Bugs and feature requests are tracked on our [Bugzilla](https://bugzilla.mindrot.org/).
-
-## Reporting bugs
-
-_Non-security_ bugs may be reported to the developers via [Bugzilla](https://bugzilla.mindrot.org/) or via the mailing list above. Security bugs should be reported to [openssh@openssh.com](mailto:openssh.openssh.com).
+[0] https://www.openssh.com/
+[1] http://www.lothar.com/tech/crypto/
+[2] http://prngd.sourceforge.net/
+[3] https://www.zlib.net/
+[4] https://www.openssl.org/
+[5] https://www.openpam.org
+    https://www.kernel.org/pub/linux/libs/pam/
+    (PAM also is standard on Solaris and HP-UX 11)
+[6] https://thrysoee.dk/editline/ (portable version)
+[7] https://man.openbsd.org/style.9
