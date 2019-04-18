@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.533 2019/03/01 02:32:39 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.534 2019/04/18 18:56:16 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1843,6 +1843,7 @@ main(int ac, char **av)
 		 */
 		if (connection_info == NULL)
 			connection_info = get_connection_info(ssh, 0, 0);
+		connection_info->test = 1;
 		parse_server_match_config(&options, connection_info);
 		dump_config(&options);
 	}
