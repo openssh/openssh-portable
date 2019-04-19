@@ -88,8 +88,30 @@ main(void)
 	if (symlink(TMPFILE2, TMPFILE) == -1)
 		fail("symlink", 0, 0);
 
+#ifdef __linux__
+	/*
+	 * The semantics of the original test are wrong on Linux
+	 * From the man page for utimensat():
+	 *   AT_SYMLINK_NOFOLLOW
+	 *        If pathname specifies a symbolic link, then update the
+	 *        timestamps of the link, rather than the file to which it refers.
+	 *
+	 *  So the call will succeed, and update the times on the symlink.
+	 */
+	if (utimensat(AT_FDCWD, TMPFILE, ts, AT_SYMLINK_NOFOLLOW) != -1) {
+		if (fstatat(AT_FDCWD, TMPFILE, &sb, 0) == -1)
+			fail("could not follow and stat symlink", 0, 0);
+
+		if (sb.st_atim.tv_sec == ts[0].tv_sec
+				&& sb.st_atim.tv_nsec == ts[0].tv_nsec
+				&& sb.st_mtim.tv_nsec == ts[1].tv_sec
+				&& sb.st_mtim.tv_nsec == ts[1].tv_nsec)
+		fail("utimensat followed symlink", 0, 0);
+	}
+#else /* __linux__ */
 	if (utimensat(AT_FDCWD, TMPFILE, ts, AT_SYMLINK_NOFOLLOW) != -1)
 		fail("utimensat followed symlink", 0, 0);
+#endif /* __linux__ */
 
 	if (!(unlink(TMPFILE) == 0 && unlink(TMPFILE2) == 0))
 		fail("unlink", 0, 0);
