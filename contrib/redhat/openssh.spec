@@ -1,5 +1,5 @@
-%global ver 7.9p1
-%global rel 1%{?dist}
+%define ver 8.0p1
+%define rel 1%{?dist}
 
 # OpenSSH privilege separation requires a user & group ID
 %global sshd_uid    74
