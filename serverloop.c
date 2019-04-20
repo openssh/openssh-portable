@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.213 2019/01/19 22:30:52 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.215 2019/03/27 09:29:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -225,6 +225,7 @@ wait_until_can_do_something(struct ssh *ssh,
 	int ret;
 	time_t minwait_secs = 0;
 	int client_alive_scheduled = 0;
+	/* time we last heard from the client OR sent a keepalive */
 	static time_t last_client_time;
 
 	/* Allocate and update select() masks for channel descriptors. */
@@ -247,9 +248,10 @@ wait_until_can_do_something(struct ssh *ssh,
 		uint64_t keepalive_ms =
 		    (uint64_t)options.client_alive_interval * 1000;
 
-		client_alive_scheduled = 1;
-		if (max_time_ms == 0 || max_time_ms > keepalive_ms)
+		if (max_time_ms == 0 || max_time_ms > keepalive_ms) {
 			max_time_ms = keepalive_ms;
+			client_alive_scheduled = 1;
+		}
 	}
 
 #if 0
@@ -293,13 +295,15 @@ wait_until_can_do_something(struct ssh *ssh,
 	} else if (client_alive_scheduled) {
 		time_t now = monotime();
 
-		if (ret == 0) { /* timeout */
+		/*
+		 * If the select timed out, or returned for some other reason
+		 * but we haven't heard from the client in time, send keepalive.
+		 */
+		if (ret == 0 || (last_client_time != 0 && last_client_time +
+		    options.client_alive_interval <= now)) {
 			client_alive_check(ssh);
-		} else if (FD_ISSET(connection_in, *readsetp)) {
 			last_client_time = now;
-		} else if (last_client_time != 0 && last_client_time +
-		    options.client_alive_interval <= now) {
-			client_alive_check(ssh);
+		} else if (FD_ISSET(connection_in, *readsetp)) {
 			last_client_time = now;
 		}
 	}

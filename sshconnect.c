@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.313 2019/02/01 03:52:23 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.314 2019/02/27 19:37:01 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -547,12 +547,20 @@ ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
     struct sockaddr_storage *hostaddr, u_short port, int family,
     int connection_attempts, int *timeout_ms, int want_keepalive)
 {
+	int in, out;
+
 	if (options.proxy_command == NULL) {
 		return ssh_connect_direct(ssh, host, addrs, hostaddr, port,
 		    family, connection_attempts, timeout_ms, want_keepalive);
 	} else if (strcmp(options.proxy_command, "-") == 0) {
-		if ((ssh_packet_set_connection(ssh,
-		    STDIN_FILENO, STDOUT_FILENO)) == NULL)
+		if ((in = dup(STDIN_FILENO)) < 0 ||
+		    (out = dup(STDOUT_FILENO)) < 0) {
+			if (in >= 0)
+				close(in);
+			error("%s: dup() in/out failed", __func__);
+			return -1; /* ssh_packet_set_connection logs error */
+		}
+		if ((ssh_packet_set_connection(ssh, in, out)) == NULL)
 			return -1; /* ssh_packet_set_connection logs error */
 		return 0;
 	} else if (options.proxy_use_fdpass) {

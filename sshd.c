@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.532 2019/01/21 10:38:54 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.533 2019/03/01 02:32:39 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -213,9 +213,26 @@ u_int session_id2_len = 0;
 /* record remote hostname or ip */
 u_int utmp_len = HOST_NAME_MAX+1;
 
-/* options.max_startup sized array of fd ints */
+/*
+ * startup_pipes/flags are used for tracking children of the listening sshd
+ * process early in their lifespans. This tracking is needed for three things:
+ *
+ * 1) Implementing the MaxStartups limit of concurrent unauthenticated
+ *    connections.
+ * 2) Avoiding a race condition for SIGHUP processing, where child processes
+ *    may have listen_socks open that could collide with main listener process
+ *    after it restarts.
+ * 3) Ensuring that rexec'd sshd processes have received their initial state
+ *    from the parent listen process before handling SIGHUP.
+ *
+ * Child processes signal that they have completed closure of the listen_socks
+ * and (if applicable) received their rexec state by sending a char over their
+ * sock. Child processes signal that authentication has completed by closing
+ * the sock (or by exiting).
+ */
 static int *startup_pipes = NULL;
-static int startup_pipe;		/* in child */
+static int *startup_flags = NULL;	/* Indicates child closed listener */
+static int startup_pipe = -1;		/* in child */
 
 /* variables used for privilege separation */
 int use_privsep = -1;
@@ -901,14 +918,9 @@ server_accept_inetd(int *sock_in, int *sock_out)
 {
 	int fd;
 
-	startup_pipe = -1;
 	if (rexeced_flag) {
 		close(REEXEC_CONFIG_PASS_FD);
 		*sock_in = *sock_out = dup(STDIN_FILENO);
-		if (!debug_flag) {
-			startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
-			close(REEXEC_STARTUP_PIPE_FD);
-		}
 	} else {
 		*sock_in = dup(STDIN_FILENO);
 		*sock_out = dup(STDOUT_FILENO);
@@ -1033,8 +1045,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 {
 	fd_set *fdset;
 	int i, j, ret, maxfd;
-	int startups = 0;
+	int startups = 0, listening = 0, lameduck = 0;
 	int startup_p[2] = { -1 , -1 };
+	char c = 0;
 	struct sockaddr_storage from;
 	socklen_t fromlen;
 	pid_t pid;
@@ -1048,6 +1061,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			maxfd = listen_socks[i];
 	/* pipes connected to unauthenticated childs */
 	startup_pipes = xcalloc(options.max_startups, sizeof(int));
+	startup_flags = xcalloc(options.max_startups, sizeof(int));
 	for (i = 0; i < options.max_startups; i++)
 		startup_pipes[i] = -1;
 
@@ -1056,8 +1070,15 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	 * the daemon is killed with a signal.
 	 */
 	for (;;) {
-		if (received_sighup)
-			sighup_restart();
+		if (received_sighup) {
+			if (!lameduck) {
+				debug("Received SIGHUP; waiting for children");
+				close_listen_socks();
+				lameduck = 1;
+			}
+			if (listening <= 0)
+				sighup_restart();
+		}
 		free(fdset);
 		fdset = xcalloc(howmany(maxfd + 1, NFDBITS),
 		    sizeof(fd_mask));
@@ -1083,19 +1104,37 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 		if (ret < 0)
 			continue;
 
-		for (i = 0; i < options.max_startups; i++)
-			if (startup_pipes[i] != -1 &&
-			    FD_ISSET(startup_pipes[i], fdset)) {
-				/*
-				 * the read end of the pipe is ready
-				 * if the child has closed the pipe
-				 * after successful authentication
-				 * or if the child has died
-				 */
+		for (i = 0; i < options.max_startups; i++) {
+			if (startup_pipes[i] == -1 ||
+			    !FD_ISSET(startup_pipes[i], fdset))
+				continue;
+			switch (read(startup_pipes[i], &c, sizeof(c))) {
+			case -1:
+				if (errno == EINTR || errno == EAGAIN)
+					continue;
+				if (errno != EPIPE) {
+					error("%s: startup pipe %d (fd=%d): "
+					    "read %s", __func__, i,
+					    startup_pipes[i], strerror(errno));
+				}
+				/* FALLTHROUGH */
+			case 0:
+				/* child exited or completed auth */
 				close(startup_pipes[i]);
 				startup_pipes[i] = -1;
 				startups--;
+				if (startup_flags[i])
+					listening--;
+				break;
+			case 1:
+				/* child has finished preliminaries */
+				if (startup_flags[i]) {
+					listening--;
+					startup_flags[i] = 0;
+				}
+				break;
 			}
+		}
 		for (i = 0; i < num_listen_socks; i++) {
 			if (!FD_ISSET(listen_socks[i], fdset))
 				continue;
@@ -1149,6 +1188,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					if (maxfd < startup_p[0])
 						maxfd = startup_p[0];
 					startups++;
+					startup_flags[j] = 1;
 					break;
 				}
 
@@ -1174,7 +1214,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					send_rexec_state(config_s[0], cfg);
 					close(config_s[0]);
 				}
-				break;
+				return;
 			}
 
 			/*
@@ -1183,13 +1223,14 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * parent continues listening.
 			 */
 			platform_pre_fork();
+			listening++;
 			if ((pid = fork()) == 0) {
 				/*
 				 * Child.  Close the listening and
 				 * max_startup sockets.  Start using
 				 * the accepted socket. Reinitialize
 				 * logging (since our pid has changed).
-				 * We break out of the loop to handle
+				 * We return from this function to handle
 				 * the connection.
 				 */
 				platform_post_fork_child();
@@ -1204,7 +1245,18 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				    log_stderr);
 				if (rexec_flag)
 					close(config_s[0]);
-				break;
+				else {
+					/*
+					 * Signal parent that the preliminaries
+					 * for this child are complete. For the
+					 * re-exec case, this happens after the
+					 * child has received the rexec state
+					 * from the server.
+					 */
+					(void)atomicio(vwrite, startup_pipe,
+					    "\0", 1);
+				}
+				return;
 			}
 
 			/* Parent.  Stay in the loop. */
@@ -1236,10 +1288,6 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 #endif
 			explicit_bzero(rnd, sizeof(rnd));
 		}
-
-		/* child process check (or debug mode) */
-		if (num_listen_socks < 0)
-			break;
 	}
 }
 
@@ -1569,8 +1617,18 @@ main(int ac, char **av)
 	/* Fetch our configuration */
 	if ((cfg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
-	if (rexeced_flag)
+	if (rexeced_flag) {
 		recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg);
+		if (!debug_flag) {
+			startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
+			close(REEXEC_STARTUP_PIPE_FD);
+			/*
+			 * Signal parent that this child is at a point where
+			 * they can go away if they have a SIGHUP pending.
+			 */
+			(void)atomicio(vwrite, startup_pipe, "\0", 1);
+		}
+	}
 	else if (strcasecmp(config_file_name, "none") != 0)
 		load_server_config(config_file_name, cfg);
 

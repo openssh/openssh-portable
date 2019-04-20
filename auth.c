@@ -360,7 +360,7 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 # ifdef WITH_AIXAUTHENTICATE
 	if (authenticated)
-		sys_auth_record_login(ssh, authctxt->user,
+		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
 		    loginmsg);
 # endif
@@ -583,19 +583,6 @@ getpwnamallow(struct ssh *ssh, const char *user)
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();
-#endif
-#ifdef HAVE_CYGWIN
-	/*
-	 * Windows usernames are case-insensitive.  To avoid later problems
-	 * when trying to match the username, the user is only allowed to
-	 * login if the username is given in the same case as stored in the
-	 * user database.
-	 */
-	if (pw != NULL && strcmp(user, pw->pw_name) != 0) {
-		logit("Login name %.100s does not match stored username %.100s",
-		    user, pw->pw_name);
-		pw = NULL;
-	}
 #endif
 	if (pw == NULL) {
 		logit("Invalid user %.100s from %.100s port %d",

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.327 2019/02/10 16:35:41 benno Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.329 2019/03/25 16:19:44 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -67,8 +67,18 @@
 # define DEFAULT_KEY_TYPE_NAME "ed25519"
 #endif
 
-/* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
-#define DEFAULT_BITS		2048
+/*
+ * Default number of bits in the RSA, DSA and ECDSA keys.  These value can be
+ * overridden on the command line.
+ *
+ * These values, with the exception of DSA, provide security equivalent to at
+ * least 128 bits of security according to NIST Special Publication 800-57:
+ * Recommendation for Key Management Part 1 rev 4 section 5.6.1.
+ * For DSA it (and FIPS-186-4 section 4.2) specifies that the only size for
+ * which a 160bit hash is acceptable is 1kbit, and since ssh-dss specifies only
+ * SHA1 we limit the DSA key size 1k bits.
+ */
+#define DEFAULT_BITS		3072
 #define DEFAULT_BITS_DSA	1024
 #define DEFAULT_BITS_ECDSA	256
 

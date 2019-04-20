@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.282 2019/01/21 10:35:09 djm Exp $ */
+/* $OpenBSD: packet.c,v 1.283 2019/03/01 03:29:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -841,6 +841,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	u_int64_t *max_blocks;
 	const char *wmsg;
 	int r, crypt_type;
+	const char *dir = mode == MODE_OUT ? "out" : "in";
 
 	debug2("set_newkeys: mode %d", mode);
 
@@ -856,8 +857,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 		max_blocks = &state->max_blocks_in;
 	}
 	if (state->newkeys[mode] != NULL) {
-		debug("set_newkeys: rekeying, input %llu bytes %llu blocks, "
-		   "output %llu bytes %llu blocks",
+		debug("%s: rekeying %s, input %llu bytes %llu blocks, "
+		   "output %llu bytes %llu blocks", __func__, dir,
 		   (unsigned long long)state->p_read.bytes,
 		   (unsigned long long)state->p_read.blocks,
 		   (unsigned long long)state->p_send.bytes,
@@ -879,7 +880,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 			return r;
 	}
 	mac->enabled = 1;
-	DBG(debug("cipher_init_context: %d", mode));
+	DBG(debug("%s: cipher_init_context: %s", __func__, dir));
 	cipher_free(*ccp);
 	*ccp = NULL;
 	if ((r = cipher_init(ccp, enc->cipher, enc->key, enc->key_len,
@@ -920,7 +921,8 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	if (state->rekey_limit)
 		*max_blocks = MINIMUM(*max_blocks,
 		    state->rekey_limit / enc->block_size);
-	debug("rekey after %llu blocks", (unsigned long long)*max_blocks);
+	debug("rekey %s after %llu blocks", dir,
+	    (unsigned long long)*max_blocks);
 	return 0;
 }
 

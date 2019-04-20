@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.154 2019/01/19 21:41:18 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.155 2019/03/25 22:34:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -576,6 +576,14 @@ int
 auth2_setup_methods_lists(Authctxt *authctxt)
 {
 	u_int i;
+
+	/* First, normalise away the "any" pseudo-method */
+	if (options.num_auth_methods == 1 &&
+	    strcmp(options.auth_methods[0], "any") == 0) {
+		free(options.auth_methods[0]);
+		options.auth_methods[0] = NULL;
+		options.num_auth_methods = 0;
+	}
 
 	if (options.num_auth_methods == 0)
 		return 0;

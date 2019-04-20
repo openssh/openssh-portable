@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.302 2018/11/23 05:08:07 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.304 2019/03/01 02:08:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -208,8 +208,8 @@ static struct {
 	{ "gssapidelegatecredentials", oUnsupported },
 #endif
 #ifdef ENABLE_PKCS11
-	{ "smartcarddevice", oPKCS11Provider },
 	{ "pkcs11provider", oPKCS11Provider },
+	{ "smartcarddevice", oPKCS11Provider },
 # else
 	{ "smartcarddevice", oUnsupported },
 	{ "pkcs11provider", oUnsupported },
@@ -2122,9 +2122,9 @@ fill_default_options(Options * options)
 		    defaults, all)) != 0) \
 			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
 	} while (0)
-	ASSEMBLE(ciphers, KEX_SERVER_ENCRYPT, all_cipher);
-	ASSEMBLE(macs, KEX_SERVER_MAC, all_mac);
-	ASSEMBLE(kex_algorithms, KEX_SERVER_KEX, all_kex);
+	ASSEMBLE(ciphers, KEX_CLIENT_ENCRYPT, all_cipher);
+	ASSEMBLE(macs, KEX_CLIENT_MAC, all_mac);
+	ASSEMBLE(kex_algorithms, KEX_CLIENT_KEX, all_kex);
 	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(ca_sign_algorithms, SSH_ALLOWED_CA_SIGALGS, all_sig);
@@ -2147,6 +2147,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->proxy_command);
 	CLEAR_ON_NONE(options->control_path);
 	CLEAR_ON_NONE(options->revoked_host_keys);
+	CLEAR_ON_NONE(options->pkcs11_provider);
 	if (options->jump_host != NULL &&
 	    strcmp(options->jump_host, "none") == 0 &&
 	    options->jump_port == 0 && options->jump_user == NULL) {

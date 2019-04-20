@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.314 2019/02/10 11:10:57 djm Exp $ */
+/* $OpenBSD: session.c,v 1.315 2019/02/22 03:37:11 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -233,7 +233,9 @@ auth_input_request_forwarding(struct ssh *ssh, struct passwd * pw)
  authsock_err:
 	free(auth_sock_name);
 	if (auth_sock_dir != NULL) {
+		temporarily_use_uid(pw);
 		rmdir(auth_sock_dir);
+		restore_uid();
 		free(auth_sock_dir);
 	}
 	if (sock != -1)
@@ -2618,7 +2620,7 @@ session_setup_x11fwd(struct ssh *ssh, Session *s)
 		he = gethostbyname(hostname);
 		if (he == NULL) {
 			error("Can't get IP address for X11 DISPLAY.");
-			packet_send_debug("Can't get IP address for X11 DISPLAY.");
+			ssh_packet_send_debug(ssh, "Can't get IP address for X11 DISPLAY.");
 			return 0;
 		}
 		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));

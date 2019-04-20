@@ -143,8 +143,10 @@ utimensat(int fd, const char *path, const struct timespec times[2],
 # ifndef HAVE_FUTIMES
 	return utimes(path, tv);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = futimes(fd, tv);
@@ -172,8 +174,10 @@ fchownat(int fd, const char *path, uid_t owner, gid_t group, int flag)
 # ifndef HAVE_FCHOWN
 	return chown(pathname, owner, group);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = fchown(fd, owner, group);
@@ -201,8 +205,10 @@ fchmodat(int fd, const char *path, mode_t mode, int flag)
 # ifndef HAVE_FCHMOD
 	return chown(pathname, owner, group);
 # else
+#  ifdef O_NOFOLLOW
 	if (flag & AT_SYMLINK_NOFOLLOW)
 		oflags |= O_NOFOLLOW;
+#  endif /* O_NOFOLLOW */
 	if ((fd = open(path, oflags)) == -1)
 		return -1;
 	ret = fchmod(fd, mode);
