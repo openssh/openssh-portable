@@ -777,6 +777,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
 	int socks[2];
+	int result;
 
 	debug3("PAM: %s entering", __func__);
 	/*
@@ -803,9 +804,10 @@ sshpam_init_ctx(Authctxt *authctxt)
 	}
 	ctxt->pam_psock = socks[0];
 	ctxt->pam_csock = socks[1];
-	if (pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt) == -1) {
+	result = pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt);
+	if (result != 0) {
 		error("PAM: failed to start authentication thread: %s",
-		    strerror(errno));
+		    strerror(result));
 		close(socks[0]);
 		close(socks[1]);
 		free(ctxt);
