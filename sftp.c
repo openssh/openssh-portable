@@ -223,7 +223,7 @@ killchild(int signo)
 {
 	if (sshpid > 1) {
 		kill(sshpid, SIGTERM);
-		waitpid(sshpid, NULL, 0);
+		(void) waitpid(sshpid, NULL, 0);
 	}
 
 	_exit(1);
@@ -2343,7 +2343,7 @@ int
 main(int argc, char **argv)
 {
 	int in, out, ch, err, tmp, port = -1;
-	char *host = NULL, *user, *cp, *file2 = NULL;
+	char *host = NULL, *user, *userhost, *cp, *file2 = NULL;
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
@@ -2496,8 +2496,24 @@ main(int argc, char **argv)
 		default:
 			if (parse_user_host_path(*argv, &user, &host,
 			    &file1) == -1) {
+
 				/* Treat as a plain hostname. */
-				host = xstrdup(*argv);
+                               userhost = xstrdup(*argv);
+                               if ((host = strrchr(userhost, '@')) == NULL)
+                                    host = userhost;
+                                 else {
+                                    *host++ = '\0';
+                                    if (!userhost[0]) {
+                                        fprintf(stderr, "Missing username\n");
+                                        usage();
+
+                                       }
+				   
+                                     /*because *host++='\0',so then userhost str include username.*/
+				     user=userhost;
+				  
+                                }
+
 				host = cleanhostname(host);
 			}
 			break;
