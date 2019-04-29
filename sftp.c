@@ -223,7 +223,7 @@ killchild(int signo)
 {
 	if (sshpid > 1) {
 		kill(sshpid, SIGTERM);
-		waitpid(sshpid, NULL, 0);
+		(void) waitpid(sshpid, NULL, 0);
 	}
 
 	_exit(1);
