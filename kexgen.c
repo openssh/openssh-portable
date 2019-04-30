@@ -109,9 +109,11 @@ kex_gen_client(struct ssh *ssh)
 	case KEX_DH_GRP18_SHA512:
 		r = kex_dh_keypair(kex);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEX_ECDH_SHA2:
 		r = kex_ecdh_keypair(kex);
 		break;
+#endif
 #endif
 	case KEX_C25519_SHA256:
 		r = kex_c25519_keypair(kex);
@@ -177,9 +179,11 @@ input_kex_gen_reply(int type, u_int32_t seq, struct ssh *ssh)
 	case KEX_DH_GRP18_SHA512:
 		r = kex_dh_dec(kex, server_blob, &shared_secret);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEX_ECDH_SHA2:
 		r = kex_ecdh_dec(kex, server_blob, &shared_secret);
 		break;
+#endif
 #endif
 	case KEX_C25519_SHA256:
 		r = kex_c25519_dec(kex, server_blob, &shared_secret);
@@ -272,10 +276,12 @@ input_kex_gen_init(int type, u_int32_t seq, struct ssh *ssh)
 		r = kex_dh_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEX_ECDH_SHA2:
 		r = kex_ecdh_enc(kex, client_pubkey, &server_pubkey,
 		    &shared_secret);
 		break;
+#endif
 #endif
 	case KEX_C25519_SHA256:
 		r = kex_c25519_enc(kex, client_pubkey, &server_pubkey,
