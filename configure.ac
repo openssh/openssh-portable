@@ -3342,8 +3342,7 @@ AC_RUN_IFELSE(
 #include <stdlib.h>
 	]],[[
 	struct rlimit rl_zero;
-	int fd, r;
-	fd_set fds;
+	int r;
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 	r = setrlimit(RLIMIT_NOFILE, &rl_zero);
