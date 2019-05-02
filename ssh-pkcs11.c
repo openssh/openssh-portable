@@ -200,15 +200,15 @@ static void
 pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
     long argl, void *argp)
 {
-        struct pkcs11_key       *k11 = ptr;
+	struct pkcs11_key	*k11 = ptr;
 
-        debug("%s: parent %p ptr %p idx %d", __func__, parent, ptr, idx);
-        if (k11 == NULL)
-                return;
-        if (k11->provider)
-                pkcs11_provider_unref(k11->provider);
-        free(k11->keyid);
-        free(k11);
+	debug("%s: parent %p ptr %p idx %d", __func__, parent, ptr, idx);
+	if (k11 == NULL)
+		return;
+	if (k11->provider)
+		pkcs11_provider_unref(k11->provider);
+	free(k11->keyid);
+	free(k11);
 }
 
 /* find a single 'obj' for given attributes */
