@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.389 2019/01/19 21:37:13 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.390 2019/05/03 04:11:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -639,10 +639,30 @@ void
 channel_free_all(struct ssh *ssh)
 {
 	u_int i;
+	struct ssh_channels *sc = ssh->chanctxt;
 
-	for (i = 0; i < ssh->chanctxt->channels_alloc; i++)
-		if (ssh->chanctxt->channels[i] != NULL)
-			channel_free(ssh, ssh->chanctxt->channels[i]);
+	for (i = 0; i < sc->channels_alloc; i++)
+		if (sc->channels[i] != NULL)
+			channel_free(ssh, sc->channels[i]);
+
+	free(sc->channels);
+	sc->channels = NULL;
+	sc->channels_alloc = 0;
+	sc->channel_max_fd = 0;
+
+	free(sc->x11_saved_display);
+	sc->x11_saved_display = NULL;
+
+	free(sc->x11_saved_proto);
+	sc->x11_saved_proto = NULL;
+
+	free(sc->x11_saved_data);
+	sc->x11_saved_data = NULL;
+	sc->x11_saved_data_len = 0;
+
+	free(sc->x11_fake_data);
+	sc->x11_fake_data = NULL;
+	sc->x11_fake_data_len = 0;
 }
 
 /*
