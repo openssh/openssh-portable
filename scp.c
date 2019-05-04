@@ -157,6 +157,8 @@ int sshport = -1;
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
 
+char *source_port = NULL;
+
 /* This is used to store the pid of ssh_program */
 pid_t do_cmd_pid = -1;
 
@@ -290,6 +292,10 @@ do_cmd(char *host, char *remuser, int port, char *cmd, int *fdin, int *fdout)
 			addargs(&args, "-l");
 			addargs(&args, "%s", remuser);
 		}
+		if (source_port != NULL) {
+			addargs(&args, "-Z");
+			addargs(&args, "%s", source_port);
+		}
 		addargs(&args, "--");
 		addargs(&args, "%s", host);
 		addargs(&args, "%s", cmd);
@@ -345,6 +351,10 @@ do_cmd2(char *host, char *remuser, int port, char *cmd, int fdin, int fdout)
 		if (remuser != NULL) {
 			addargs(&args, "-l");
 			addargs(&args, "%s", remuser);
+		}
+		if (source_port != NULL) {
+			addargs(&args, "-Z");
+			addargs(&args, "%s", source_port);
 		}
 		addargs(&args, "--");
 		addargs(&args, "%s", host);
@@ -426,7 +436,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "dfl:prtTvBCc:i:P:q12346S:o:F:J:")) != -1) {
+	    "dfl:prtTvBCc:i:P:q12346S:o:F:J:Z:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -479,6 +489,9 @@ main(int argc, char **argv)
 			break;
 		case 'S':
 			ssh_program = xstrdup(optarg);
+			break;
+		case 'Z':
+			source_port = xstrdup(optarg);
 			break;
 		case 'v':
 			addargs(&args, "-v");
@@ -1601,6 +1614,7 @@ usage(void)
 	(void) fprintf(stderr,
 	    "usage: scp [-346BCpqrTv] [-c cipher] [-F ssh_config] [-i identity_file]\n"
 	    "            [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
+	    "            [-Z source_port]\n"
 	    "            [-S program] source ... target\n");
 	exit(1);
 }
