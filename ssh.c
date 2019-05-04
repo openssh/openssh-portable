@@ -167,6 +167,8 @@ char *config = NULL;
  */
 char *host;
 
+char *source_port = NULL;
+
 /* Various strings used to to percent_expand() arguments */
 static char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 static char uidstr[32], *host_arg, *conn_hash_hex;
@@ -202,6 +204,7 @@ usage(void)
 "           [-i identity_file] [-J [user@]host[:port]] [-L address]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-Q query_option] [-R address] [-S ctl_path] [-W host:port]\n"
+"           [-Z source_port]\n"
 "           [-w local_tun[:remote_tun]] destination [command]\n"
 	);
 	exit(255);
@@ -574,7 +577,7 @@ set_addrinfo_port(struct addrinfo *addrs, int port)
 		}
 	}
 }
-
+  
 /*
  * Main program for the ssh client.
  */
@@ -594,7 +597,7 @@ main(int ac, char **av)
 	struct addrinfo *addrs = NULL;
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
-
+  
 	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -660,7 +663,7 @@ main(int ac, char **av)
 
  again:
 	while ((opt = getopt(ac, av, "1246ab:c:e:fgi:kl:m:no:p:qstvx"
-	    "AB:CD:E:F:GI:J:KL:MNO:PQ:R:S:TVw:W:XYy")) != -1) {
+	    "AB:CD:E:F:GI:J:KL:MNO:PQ:R:S:Z:TVw:W:XYy")) != -1) {
 		switch (opt) {
 		case '1':
 			fatal("SSH protocol v.1 is no longer supported");
@@ -972,6 +975,10 @@ main(int ac, char **av)
 		case 'S':
 			free(options.control_path);
 			options.control_path = xstrdup(optarg);
+			break;
+		case 'Z':
+			free(source_port);
+			source_port = xstrdup(optarg);
 			break;
 		case 'b':
 			options.bind_address = optarg;

@@ -81,6 +81,8 @@ extern int debug_flag;
 extern Options options;
 extern char *__progname;
 
+extern char *source_port;
+
 static int show_other_keys(struct hostkeys *, struct sshkey *);
 static void warn_changed_key(struct sshkey *);
 
@@ -378,16 +380,16 @@ ssh_create_socket(struct addrinfo *ai)
 	fcntl(sock, F_SETFD, FD_CLOEXEC);
 
 	/* Bind the socket to an alternative local IP address */
-	if (options.bind_address == NULL && options.bind_interface == NULL)
+	if (options.bind_address == NULL && options.bind_interface == NULL && source_port == NULL)
 		return sock;
 
-	if (options.bind_address != NULL) {
+	if (options.bind_address != NULL || source_port != NULL) {
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = ai->ai_family;
 		hints.ai_socktype = ai->ai_socktype;
 		hints.ai_protocol = ai->ai_protocol;
 		hints.ai_flags = AI_PASSIVE;
-		if ((r = getaddrinfo(options.bind_address, NULL,
+		if ((r = getaddrinfo(options.bind_address, source_port,
 		    &hints, &res)) != 0) {
 			error("getaddrinfo: %s: %s", options.bind_address,
 			    ssh_gai_strerror(r));
@@ -417,6 +419,7 @@ ssh_create_socket(struct addrinfo *ai)
 		error("BindInterface not supported on this platform.");
 #endif
 	}
+
 	if ((r = getnameinfo((struct sockaddr *)&bindaddr, bindaddrlen,
 	    ntop, sizeof(ntop), NULL, 0, NI_NUMERICHOST)) != 0) {
 		error("%s: getnameinfo failed: %s", __func__,
