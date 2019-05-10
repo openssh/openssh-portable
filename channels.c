@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.390 2019/05/03 04:11:00 dtucker Exp $ */
+/* $OpenBSD: channels.c,v 1.391 2019/05/10 18:55:17 florian Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3823,6 +3823,23 @@ channel_setup_remote_fwd_listener(struct ssh *ssh, struct Forward *fwd,
 {
 	if (!check_rfwd_permission(ssh, fwd)) {
 		ssh_packet_send_debug(ssh, "port forwarding refused");
+		if (fwd->listen_path != NULL)
+			/* XXX always allowed, see remote_open_match() */
+			logit("Received request from %.100s port %d to "
+			    "remote forward to path \"%.100s\", "
+			    "but the request was denied.",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+			    fwd->listen_path);
+		else if(fwd->listen_host != NULL)
+			logit("Received request from %.100s port %d to "
+			    "remote forward to host %.100s port %d, "
+			    "but the request was denied.",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+			    fwd->listen_host, fwd->listen_port );
+		else
+			logit("Received request from %.100s port %d to remote "
+			    "forward, but the request was denied.",
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 		return 0;
 	}
 	if (fwd->listen_path != NULL) {
@@ -4418,8 +4435,9 @@ channel_connect_to_port(struct ssh *ssh, const char *host, u_short port,
 	}
 
 	if (!permit || !permit_adm) {
-		logit("Received request to connect to host %.100s port %d, "
-		    "but the request was denied.", host, port);
+		logit("Received request from %.100s port %d to connect to "
+		    "host %.100s port %d, but the request was denied.",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), host, port);
 		if (reason != NULL)
 			*reason = SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED;
 		return NULL;
