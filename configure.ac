@@ -41,11 +41,11 @@ AC_PATH_PROG([TEST_MINUS_S_SH], [ksh])
 AC_PATH_PROG([TEST_MINUS_S_SH], [sh])
 AC_PATH_PROG([SH], [sh])
 AC_PATH_PROG([GROFF], [groff])
-AC_PATH_PROG([NROFF], [nroff])
+AC_PATH_PROG([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
 AC_SUBST([TEST_SHELL], [sh])
 
-dnl select manpage formatter
+dnl select manpage formatter to be used to build "cat" format pages.
 if test "x$MANDOC" != "x" ; then
 	MANFMT="$MANDOC"
 elif test "x$NROFF" != "x" ; then
@@ -4626,9 +4626,9 @@ AC_ARG_WITH([mantype],
 	]
 )
 if test -z "$MANTYPE"; then
-	TestPath="/usr/bin${PATH_SEPARATOR}/usr/ucb"
-	AC_PATH_PROGS([NROFF], [nroff awf], [/bin/false], [$TestPath])
-	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	if ${MANDOC} ${srcdir}/ssh.1 >/dev/null 2>&1; then
+		MANTYPE=doc
+	elif ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
 	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=man
