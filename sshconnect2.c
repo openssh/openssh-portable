@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.303 2019/02/12 23:53:10 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.304 2019/05/15 04:43:31 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1833,7 +1833,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	struct sshbuf *b;
 	struct stat st;
 	pid_t pid;
-	int i, r, to[2], from[2], status;
+	int r, to[2], from[2], status;
 	int sock = ssh_packet_get_connection_in(ssh);
 	u_char rversion = 0, version = 2;
 	void (*osigchld)(int);
@@ -1863,8 +1863,6 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
 	osigchld = signal(SIGCHLD, SIG_DFL);
 	if (pid == 0) {
-		/* keep the socket on exec */
-		fcntl(sock, F_SETFD, 0);
 		close(from[0]);
 		if (dup2(from[1], STDOUT_FILENO) < 0)
 			fatal("%s: dup2: %s", __func__, strerror(errno));
@@ -1873,10 +1871,13 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 			fatal("%s: dup2: %s", __func__, strerror(errno));
 		close(from[1]);
 		close(to[0]);
-		/* Close everything but stdio and the socket */
-		for (i = STDERR_FILENO + 1; i < sock; i++)
-			close(i);
+
+		if (dup2(sock, STDERR_FILENO + 1) < 0)
+			fatal("%s: dup2: %s", __func__, strerror(errno));
+		sock = STDERR_FILENO + 1;
+		fcntl(sock, F_SETFD, 0);	/* keep the socket on exec */
 		closefrom(sock + 1);
+
 		debug3("%s: [child] pid=%ld, exec %s",
 		    __func__, (long)getpid(), _PATH_SSH_KEY_SIGN);
 		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *)NULL);
@@ -1885,6 +1886,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
 	close(from[1]);
 	close(to[0]);
+	sock = STDIN_FILENO + 1;
 
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
