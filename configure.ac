@@ -53,7 +53,7 @@ elif test "x$NROFF" != "x" ; then
 elif test "x$GROFF" != "x" ; then
 	MANFMT="$GROFF -mandoc -Tascii"
 else
-	AC_MSG_WARN([no manpage formatted found])
+	AC_MSG_WARN([no manpage formatter found])
 	MANFMT="false"
 fi
 AC_SUBST([MANFMT])
