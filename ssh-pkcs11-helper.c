@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.17 2019/01/23 02:01:10 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.18 2019/05/16 08:47:27 dtucker Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -195,7 +195,6 @@ process_sign(void)
 	else {
 		if ((found = lookup_key(key)) != NULL) {
 #ifdef WITH_OPENSSL
-			u_int xslen;
 			int ret;
 
 			if (key->type == KEY_RSA) {
@@ -208,7 +207,8 @@ process_sign(void)
 					ok = 0;
 				}
 			} else if (key->type == KEY_ECDSA) {
-				xslen = ECDSA_size(key->ecdsa);
+				u_int xslen = ECDSA_size(key->ecdsa);
+
 				signature = xmalloc(xslen);
 				/* "The parameter type is ignored." */
 				ret = ECDSA_sign(-1, data, dlen, signature,
