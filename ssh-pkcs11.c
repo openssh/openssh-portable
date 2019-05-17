@@ -916,7 +916,9 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	X509			*x509 = NULL;
 	EVP_PKEY		*evp;
 	RSA			*rsa = NULL;
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY			*ec = NULL;
+#endif
 	struct sshkey		*key = NULL;
 	int			 i;
 #ifdef HAVE_EC_KEY_METHOD_NEW
@@ -1043,7 +1045,9 @@ fail:
 		free(cert_attr[i].pValue);
 	X509_free(x509);
 	RSA_free(rsa);
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY_free(ec);
+#endif
 
 	return (key);
 }

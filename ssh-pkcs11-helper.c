@@ -206,6 +206,7 @@ process_sign(void)
 					slen = ret;
 					ok = 0;
 				}
+#ifdef OPENSSL_HAS_ECC
 			} else if (key->type == KEY_ECDSA) {
 				u_int xslen = ECDSA_size(key->ecdsa);
 
@@ -219,6 +220,7 @@ process_sign(void)
 					error("%s: ECDSA_sign"
 					    " returns %d", __func__, ret);
 				slen = xslen;
+#endif /* OPENSSL_HAS_ECC */
 			} else
 				error("%s: don't know how to sign with key "
 				    "type %d", __func__, (int)key->type);
