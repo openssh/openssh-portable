@@ -266,6 +266,14 @@ pam_getenvlist(pam_handle_t *pamh)
 }
 #endif
 
+#ifndef HAVE_PAM_PUTENV
+static int
+pam_putenv(pam_handle_t *pamh, const char *name_value)
+{
+	return PAM_SUCCESS;
+}
+#endif /* HAVE_PAM_PUTENV */
+
 /*
  * Some platforms, notably Solaris, do not enforce password complexity
  * rules during pam_chauthtok() if the real uid of the calling process
@@ -360,13 +368,11 @@ import_environments(struct sshbuf *b)
 	for (i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &env, NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-#ifdef HAVE_PAM_PUTENV
 		/* Errors are not fatal here */
 		if ((r = pam_putenv(sshpam_handle, env)) != PAM_SUCCESS) {
 			error("PAM: pam_putenv: %s",
 			    pam_strerror(sshpam_handle, r));
 		}
-#endif
 		/* XXX leak env? */
 	}
 #endif
@@ -1205,7 +1211,6 @@ int
 do_pam_putenv(char *name, char *value)
 {
 	int ret = 1;
-#ifdef HAVE_PAM_PUTENV
 	char *compound;
 	size_t len;
 
@@ -1215,7 +1220,6 @@ do_pam_putenv(char *name, char *value)
 	snprintf(compound, len, "%s=%s", name, value);
 	ret = pam_putenv(sshpam_handle, compound);
 	free(compound);
-#endif
 
 	return (ret);
 }
