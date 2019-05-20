@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.87 2019/01/22 11:26:16 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.88 2019/05/20 00:25:55 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -418,7 +418,7 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	pid_t pid;
 	char *tmp, *username = NULL, *command = NULL, **av = NULL;
 	char *ca_fp = NULL, *key_fp = NULL, *catext = NULL, *keytext = NULL;
-	char serial_s[16], uidstr[32];
+	char serial_s[32], uidstr[32];
 	void (*osigchld)(int);
 
 	if (authoptsp != NULL)
