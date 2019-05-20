@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.74 2019/05/03 03:25:18 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.75 2019/05/20 00:20:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2527,6 +2527,13 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 	else if (k->cert->signature_type != NULL &&
 	    strcmp(alg, k->cert->signature_type) != 0)
 		return SSH_ERR_INVALID_ARGUMENT;
+
+	/*
+	 * If no signing algorithm or signature_type was specified and we're
+	 * using a RSA key, then default to a good signature algorithm.
+	 */
+	if (alg == NULL && ca->type == KEY_RSA)
+		alg = "rsa-sha2-512";
 
 	if ((ret = sshkey_to_blob(ca, &ca_blob, &ca_len)) != 0)
 		return SSH_ERR_KEY_CERT_INVALID_SIGN_KEY;
