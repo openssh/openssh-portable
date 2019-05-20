@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.159 2019/05/20 00:20:35 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.160 2019/05/20 06:01:59 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -579,11 +579,12 @@ or
 .Dq rsa .
 .Pp
 This flag may also be used to specify the desired signature type when
-signing certificates using a RSA CA key.
+signing certificates using an RSA CA key.
 The available RSA signature variants are
 .Dq ssh-rsa
 (SHA1 signatures, not recommended),
-.Dq rsa-sha2-256
+.Dq rsa-sha2-256 ,
+and
 .Dq rsa-sha2-512
 (the default).
 .It Fl U
