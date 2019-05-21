@@ -150,7 +150,7 @@ struct key_translation keys[] = {
     { L"\x1b[D",     VK_LEFT,     0 , 0 , 0},
     { L"\x1b[F",     VK_END,      0 , 0 , 0},    /* KeyPad END */
     { L"\x1b[H",     VK_HOME,     0 , 0 , 0},    /* KeyPad HOME */
-    { L"\x1b[Z",     0,           0 , 0 , 0},    /* ignore Shift+TAB */
+    { L"\x1b[Z",     VK_TAB,     L'\t' , 0 , SHIFT_PRESSED},
     { L"\x1b[1~",    VK_HOME,     0 , 0 , 0},
     { L"\x1b[2~",    VK_INSERT,   0 , 0 , 0},
     { L"\x1b[3~",    VK_DELETE,   0 , 0 , 0},
