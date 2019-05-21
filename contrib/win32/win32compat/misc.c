@@ -221,10 +221,23 @@ explicit_bzero(void *b, size_t len)
 	SecureZeroMemory(b, len);
 }
 
+static DWORD last_dlerror = ERROR_SUCCESS;
+
 HMODULE
 dlopen(const char *filename, int flags)
 {
-	return LoadLibraryA(filename);
+	wchar_t *wfilename = utf8_to_utf16(filename);
+	if (wfilename == NULL) {
+		last_dlerror = ERROR_INVALID_PARAMETER;
+		return NULL;
+	}
+
+	HMODULE module = LoadLibraryW(wfilename);
+	if (module == NULL)
+		last_dlerror = GetLastError();
+
+	free(wfilename);
+	return module;
 }
 
 int
@@ -237,9 +250,48 @@ dlclose(HMODULE handle)
 FARPROC 
 dlsym(HMODULE handle, const char *symbol)
 {
-	return GetProcAddress(handle, symbol);
+	void *ptr = GetProcAddress(handle, symbol);
+	if (ptr == NULL)
+		last_dlerror = GetLastError();
+	return ptr;
 }
 
+char *
+dlerror()
+{
+	static char *message = NULL;
+	if (message != NULL) {
+		free(message);
+		message = NULL;
+	}
+	if (last_dlerror == ERROR_SUCCESS)
+		return NULL;
+
+	wchar_t *wmessage = NULL;
+	DWORD length = FormatMessageW(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, last_dlerror, 0, (wchar_t *) &wmessage, 0, NULL);
+	last_dlerror = ERROR_SUCCESS;
+
+	if (length == 0)
+		goto error;
+
+	if (wmessage[length - 1] == L'\n')
+		wmessage[length - 1] = L'\0';
+	if (length > 1 && wmessage[length - 2] == L'\r')
+		wmessage[length - 2] = L'\0';
+
+	message = utf16_to_utf8(wmessage);
+	LocalFree(wmessage);
+
+	if (message == NULL)
+		goto error;
+
+	return message;
+
+error:
+	return "Failed to format error message";
+}
 
 /*fopen on Windows to mimic https://linux.die.net/man/3/fopen
 * only r, w, a are supported for now
