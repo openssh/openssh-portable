@@ -90,13 +90,14 @@ ReadThread(_In_ LPVOID lpParameter)
 				isFirstTime = false;
 
 				DWORD dwAttributes;
-				if (!GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &dwAttributes))
-					error("GetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
-				
-				dwAttributes |= (ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
+				/* open(dev/null) is showing up as FILE_TYPE_CHAR but is not a valid console handle */
+				if (GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &dwAttributes)) {
+					dwAttributes |= (ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
+					if (!SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), dwAttributes))
+						debug2("SetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
+				} else if (GetLastError() != ERROR_INVALID_HANDLE)
+					debug2("GetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
 
-				if (!SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), dwAttributes))
-					error("SetConsoleMode on STD_INPUT_HANDLE failed with %d", GetLastError());
 			}
 
 			if (!ReadFile(WINHANDLE(pio), pio->read_details.buf,
