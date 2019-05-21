@@ -244,6 +244,12 @@ syncio_initiate_write(struct w32_io* pio, DWORD num_bytes)
 	return 0;
 }
 
+static VOID CALLBACK
+InterruptThread(_In_ ULONG_PTR dwParam)
+{
+	_endthreadex(0);
+}
+
 /* close */
 int 
 syncio_close(struct w32_io* pio)
@@ -258,10 +264,12 @@ syncio_close(struct w32_io* pio)
 		1. For console - the read thread is blocked by the while loop on raw mode
 		2. Function ReadFile on Win7 machine dees not return when no content to read in non-interactive mode.
 		*/
-		if (FILETYPE(pio) == FILE_TYPE_CHAR && (IsWin7OrLess() || in_raw_mode))
-			TerminateThread(pio->read_overlapped.hEvent, 0);
-		else
-			WaitForSingleObject(pio->read_overlapped.hEvent, INFINITE);
+		if (FILETYPE(pio) == FILE_TYPE_CHAR && (IsWin7OrLess() || in_raw_mode)) {
+			QueueUserAPC(InterruptThread, pio->read_overlapped.hEvent, (ULONG_PTR)NULL);
+			CancelSynchronousIo(pio->read_overlapped.hEvent);
+		}
+
+		WaitForSingleObject(pio->read_overlapped.hEvent, INFINITE);
 	}
 	if (pio->write_details.pending)
 		WaitForSingleObject(pio->write_overlapped.hEvent, INFINITE);

@@ -96,7 +96,7 @@ NetWriteString2(SOCKET sock, char* source, size_t len, int options)
 BOOL
 DataAvailable(HANDLE h)
 {
-	DWORD dwRet = WaitForSingleObject(h, INFINITE);
+	DWORD dwRet = WaitForSingleObjectEx(h, INFINITE, TRUE);
 	if (dwRet == WAIT_OBJECT_0)
 		return TRUE;
 	if (dwRet == WAIT_FAILED)
