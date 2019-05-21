@@ -918,11 +918,18 @@ fileio_fdopen(struct w32_io* pio, const char *mode)
 {
 	wchar_t *file_path, *wmode = NULL;
 	FILE* ret = NULL;
+	DWORD type = 0;
 	
 	debug4("fdopen - io:%p", pio);
 
 	if ((wmode = utf8_to_utf16(mode)) == NULL)
 		goto cleanup;
+
+	/* for non-disk files, just return the descriptor */
+	type = GetFileType(pio->handle);
+	if (type != FILE_TYPE_DISK) {
+		return _fdopen(pio->table_index, mode);
+	}
 
 	file_path = get_final_path_by_handle(pio->handle);
 	if (!file_path) 
