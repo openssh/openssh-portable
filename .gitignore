@@ -27,6 +27,7 @@ ssh-keysign
 ssh-pkcs11-helper
 sshd
 !regress/misc/fuzz-harness/Makefile
+tags
 
 # Ignores in Windows fork
 /bin/x64/Debug

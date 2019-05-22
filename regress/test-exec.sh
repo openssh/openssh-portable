@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.64 2018/08/10 01:35:49 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.65 2019/01/27 06:30:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -17,16 +17,11 @@ if [ "$os" != "windows" ]; then
 		BIN_SH=xpg4
 		export BIN_SH
 		;;
-	CYGWIN_NT-5.0)
-		os=cygwin
-		TEST_SSH_IPV6=no
-		;;
 	CYGWIN*)
 		os=cygwin
 		;;
 	esac
 fi
-
 
 if [ ! -z "$TEST_SSH_PORT" ]; then
 	PORT="$TEST_SSH_PORT"
@@ -507,7 +502,7 @@ fi
 
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
-SSH_KEYTYPES="rsa ed25519"
+SSH_KEYTYPES=`$SSH -Q key-plain`
 if [ "$os" == "windows" ]; then
 	first_key_type=${SSH_KEYTYPES%% *}
 	if [ "x$USER_DOMAIN" != "x" ]; then
@@ -524,9 +519,9 @@ if [ "$os" == "windows" ]; then
 	fi
 fi
 
-trace "generate keys"
 for t in ${SSH_KEYTYPES}; do
 	# generate user key
+	trace "generating key type $t"
 	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN_BIN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t
 		${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\

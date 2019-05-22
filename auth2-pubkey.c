@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.86 2018/09/20 03:28:06 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.88 2019/05/20 00:25:55 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -102,6 +102,22 @@ userauth_pubkey(struct ssh *ssh)
 	    (r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
 	    (r = sshpkt_get_string(ssh, &pkblob, &blen)) != 0)
 		fatal("%s: parse request failed: %s", __func__, ssh_err(r));
+
+	if (log_level_get() >= SYSLOG_LEVEL_DEBUG2) {
+		char *keystring;
+		struct sshbuf *pkbuf;
+
+		if ((pkbuf = sshbuf_from(pkblob, blen)) == NULL)
+			fatal("%s: sshbuf_from failed", __func__);
+		if ((keystring = sshbuf_dtob64(pkbuf)) == NULL)
+			fatal("%s: sshbuf_dtob64 failed", __func__);
+		debug2("%s: %s user %s %s public key %s %s", __func__,
+		    authctxt->valid ? "valid" : "invalid", authctxt->user,
+		    have_sig ? "attempting" : "querying", pkalg, keystring);
+		sshbuf_free(pkbuf);
+		free(keystring);
+	}
+
 	pktype = sshkey_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
 		/* this is perfectly legal */
@@ -402,7 +418,7 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	pid_t pid;
 	char *tmp, *username = NULL, *command = NULL, **av = NULL;
 	char *ca_fp = NULL, *key_fp = NULL, *catext = NULL, *keytext = NULL;
-	char serial_s[16], uidstr[32];
+	char serial_s[32], uidstr[32];
 	void (*osigchld)(int);
 
 	if (authoptsp != NULL)

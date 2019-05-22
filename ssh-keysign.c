@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.55 2018/07/27 05:34:42 dtucker Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.56 2018/11/23 05:08:07 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -58,8 +58,6 @@
 #include "uidswap.h"
 #include "sshkey.h"
 #include "ssherr.h"
-
-struct ssh *active_state = NULL; /* XXX needed for linking */
 
 extern char *__progname;
 
@@ -174,9 +172,6 @@ main(int argc, char **argv)
 	u_char *signature, *data, rver;
 	char *host, *fp;
 	size_t slen, dlen;
-#ifdef WITH_OPENSSL
-	u_int32_t rnd[256];
-#endif
 
 	ssh_malloc_init();	/* must be called before any mallocs */
 	if (pledge("stdio rpath getpw dns id", NULL) != 0)
@@ -211,7 +206,8 @@ main(int argc, char **argv)
 
 	/* verify that ssh-keysign is enabled by the admin */
 	initialize_options(&options);
-	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", "", &options, 0);
+	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", "",
+	    &options, 0, NULL);
 	fill_default_options(&options);
 	if (options.enable_ssh_keysign != 1)
 		fatal("ssh-keysign not enabled in %s",
@@ -223,12 +219,6 @@ main(int argc, char **argv)
 	}
 	if (found == 0)
 		fatal("could not open any host key");
-
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-	arc4random_buf(rnd, sizeof(rnd));
-	RAND_seed(rnd, sizeof(rnd));
-#endif
 
 	found = 0;
 	for (i = 0; i < NUM_KEYTYPES; i++) {

@@ -248,6 +248,9 @@ static int sshpam_maxtries_reached = 0;
 static char **sshpam_env = NULL;
 static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
+static char *sshpam_rhost = NULL;
+static char *sshpam_laddr = NULL;
+static char *sshpam_conninfo = NULL;
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -262,6 +265,14 @@ pam_getenvlist(pam_handle_t *pamh)
 	 return NULL;
 }
 #endif
+
+#ifndef HAVE_PAM_PUTENV
+static int
+pam_putenv(pam_handle_t *pamh, const char *name_value)
+{
+	return PAM_SUCCESS;
+}
+#endif /* HAVE_PAM_PUTENV */
 
 /*
  * Some platforms, notably Solaris, do not enforce password complexity
@@ -357,13 +368,11 @@ import_environments(struct sshbuf *b)
 	for (i = 0; i < num_env; i++) {
 		if ((r = sshbuf_get_cstring(b, &env, NULL)) != 0)
 			fatal("%s: buffer error: %s", __func__, ssh_err(r));
-#ifdef HAVE_PAM_PUTENV
 		/* Errors are not fatal here */
 		if ((r = pam_putenv(sshpam_handle, env)) != PAM_SUCCESS) {
 			error("PAM: pam_putenv: %s",
 			    pam_strerror(sshpam_handle, r));
 		}
-#endif
 		/* XXX leak env? */
 	}
 #endif
@@ -669,13 +678,17 @@ sshpam_cleanup(void)
 }
 
 static int
-sshpam_init(Authctxt *authctxt)
+sshpam_init(struct ssh *ssh, Authctxt *authctxt)
 {
-	const char *pam_rhost, *pam_user, *user = authctxt->user;
+	const char *pam_user, *user = authctxt->user;
 	const char **ptr_pam_user = &pam_user;
-	struct ssh *ssh = active_state; /* XXX */
 
-	if (sshpam_handle != NULL) {
+	if (sshpam_handle == NULL) {
+		if (ssh == NULL) {
+			fatal("%s: called initially with no "
+			    "packet context", __func__);
+		}
+	} if (sshpam_handle != NULL) {
 		/* We already have a PAM context; check if the user matches */
 		sshpam_err = pam_get_item(sshpam_handle,
 		    PAM_USER, (sshpam_const void **)ptr_pam_user);
@@ -694,14 +707,33 @@ sshpam_init(Authctxt *authctxt)
 		sshpam_handle = NULL;
 		return (-1);
 	}
-	pam_rhost = auth_get_canonical_hostname(ssh, options.use_dns);
-	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
-	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
-	if (sshpam_err != PAM_SUCCESS) {
-		pam_end(sshpam_handle, sshpam_err);
-		sshpam_handle = NULL;
-		return (-1);
+
+	if (ssh != NULL && sshpam_rhost == NULL) {
+		/*
+		 * We need to cache these as we don't have packet context
+		 * during the kbdint flow.
+		 */
+		sshpam_rhost = xstrdup(auth_get_canonical_hostname(ssh,
+		    options.use_dns));
+	        sshpam_laddr = get_local_ipaddr(
+		    ssh_packet_get_connection_in(ssh));
+	        xasprintf(&sshpam_conninfo, "SSH_CONNECTION=%.50s %d %.50s %d",
+		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
+		    sshpam_laddr, ssh_local_port(ssh));
 	}
+	if (sshpam_rhost != NULL) {
+		debug("PAM: setting PAM_RHOST to \"%s\"", sshpam_rhost);
+		sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST,
+		    sshpam_rhost);
+		if (sshpam_err != PAM_SUCCESS) {
+			pam_end(sshpam_handle, sshpam_err);
+			sshpam_handle = NULL;
+			return (-1);
+		}
+		/* Put SSH_CONNECTION in the PAM environment too */
+		pam_putenv(sshpam_handle, sshpam_conninfo);
+	}
+
 #ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some silly PAM modules (e.g. pam_time) require a TTY to operate.
@@ -755,7 +787,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 		return NULL;
 
 	/* Initialize PAM */
-	if (sshpam_init(authctxt) == -1) {
+	if (sshpam_init(NULL, authctxt) == -1) {
 		error("PAM: initialization failed");
 		return (NULL);
 	}
@@ -787,7 +819,6 @@ static int
 sshpam_query(void *ctx, char **name, char **info,
     u_int *num, char ***prompts, u_int **echo_on)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	struct sshbuf *buffer;
 	struct pam_ctxt *ctxt = ctx;
 	size_t plen;
@@ -877,8 +908,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			}
 			error("PAM: %s for %s%.100s from %.100s", msg,
 			    sshpam_authctxt->valid ? "" : "illegal user ",
-			    sshpam_authctxt->user,
-			    auth_get_canonical_hostname(ssh, options.use_dns));
+			    sshpam_authctxt->user, sshpam_rhost);
 			/* FALLTHROUGH */
 		default:
 			*num = 0;
@@ -995,12 +1025,14 @@ KbdintDevice mm_sshpam_device = {
  * This replaces auth-pam.c
  */
 void
-start_pam(Authctxt *authctxt)
+start_pam(struct ssh *ssh)
 {
+	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
+
 	if (!options.use_pam)
 		fatal("PAM: initialisation requested when UsePAM=no");
 
-	if (sshpam_init(authctxt) == -1)
+	if (sshpam_init(ssh, authctxt) == -1)
 		fatal("PAM: initialisation failed");
 }
 
@@ -1179,7 +1211,6 @@ int
 do_pam_putenv(char *name, char *value)
 {
 	int ret = 1;
-#ifdef HAVE_PAM_PUTENV
 	char *compound;
 	size_t len;
 
@@ -1189,7 +1220,6 @@ do_pam_putenv(char *name, char *value)
 	snprintf(compound, len, "%s=%s", name, value);
 	ret = pam_putenv(sshpam_handle, compound);
 	free(compound);
-#endif
 
 	return (ret);
 }
