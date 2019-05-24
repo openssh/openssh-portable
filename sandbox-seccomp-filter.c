@@ -250,6 +250,7 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW_ARG(__NR_ioctl, 1, Z90STAT_STATUS_MASK),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSAMODEXPO),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSACRT),
+	SC_ALLOW_ARG(__NR_ioctl, 1, ZSECSENDCPRB),
 #endif
 #if defined(__x86_64__) && defined(__ILP32__) && defined(__X32_SYSCALL_BIT)
 	/*
