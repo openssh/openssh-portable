@@ -586,6 +586,14 @@ w32_chown(const char *pathname, unsigned int owner, unsigned int group)
 	return -1;
 }
 
+int 
+w32_fchown( int fd, unsigned int owner, unsigned int group)
+{
+	/* TODO - implement this */
+	errno = EOPNOTSUPP;
+	return -1;
+}
+
 /* Convert a UNIX time into a Windows file time */
 void
 unix_time_to_file_time(ULONG t, LPFILETIME pft)
@@ -1902,6 +1910,33 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	verbose("%s is not supported", __func__);
 	errno = ENOTSUP;
 	return -1;
+}
+
+int 
+fnmatch(const char *pattern, const char *string, int flags)
+{
+	int r = -1;
+	wchar_t *pw = NULL, *sw = NULL;
+
+	if (flags) {
+		verbose("%s is not supported with flags", __func__);
+		goto done;
+	}
+
+	pw = utf8_to_utf16(pattern);
+	sw = utf8_to_utf16(string);
+	if (!pw || !sw)
+		goto done;
+	convertToBackslashW(pw);
+	convertToBackslashW(sw);
+	if (PathMatchSpecW(sw, pw))
+		r = 0;
+done:
+	if (pw)
+		free(pw);
+	if (sw)
+		free(sw);
+	return r;
 }
 
 void

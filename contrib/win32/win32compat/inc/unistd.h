@@ -64,6 +64,9 @@ int w32_symlink(const char *target, const char *linkpath);
 int w32_chown(const char *pathname, unsigned int owner, unsigned int group);
 #define chown w32_chown
 
+int w32_fchown(int fd, unsigned int owner, unsigned int group);
+#define fchown w32_fchown
+
 int w32_unlink(const char *path);
 #define unlink w32_unlink
 

@@ -84,12 +84,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)gss-serv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(OpenSSH-Src-Path)loginrec.c">
       <Filter>Source Files</Filter>
     </ClCompile>

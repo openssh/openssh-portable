@@ -440,8 +440,6 @@
     <ClCompile Include="$(OpenSSH-Src-Path)auth2.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)gss-serv-krb5.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)gss-serv.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexdhs.c" />
-    <ClCompile Include="$(OpenSSH-Src-Path)kexecdhs.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)loginrec.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)md5crypt.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)monitor.c" />
@@ -463,7 +461,7 @@
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\win32_sshpty.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\wmain_sshd.c" />
     <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\spawn-ext.c" />
-	<ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c" />
+    <ClCompile Include="$(OpenSSH-Src-Path)contrib\win32\win32compat\w32-doexec.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

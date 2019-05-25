@@ -363,10 +363,10 @@
 /* #undef HAVE_EXIT_IN_UTMP */
 
 /* Define to 1 if you have the `fchmod' function. */
-/* #undef HAVE_FCHMOD */
+#define HAVE_FCHMOD  1
 
 /* Define to 1 if you have the `fchown' function. */
-/* #undef HAVE_FCHOWN */
+#define HAVE_FCHOWN  1
 
 /* Use F_CLOSEM fcntl for closefrom */
 /* #undef HAVE_FCNTL_CLOSEM */

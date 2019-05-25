@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 7,9,0,0
- PRODUCTVERSION 7,9,0,0
+ FILEVERSION 8,0,0,0
+ PRODUCTVERSION 8,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,7 +67,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileVersion", "7.9.0.0"
+            VALUE "FileVersion", "8.0.0.0"
             VALUE "ProductName", "OpenSSH for Windows"
             VALUE "ProductVersion", "OpenSSH_7.9p1 for Windows"
         END
