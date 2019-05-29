@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.329 2019/03/25 16:19:44 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.330 2019/05/29 08:30:26 lum Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1488,14 +1488,14 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 		exit(1);
 	}
 	if (comment)
-		printf("Key now has comment '%s'\n", comment);
+		printf("Old comment: %s\n", comment);
 	else
-		printf("Key now has no comment\n");
+		printf("No existing comment\n");
 
 	if (identity_comment) {
 		strlcpy(new_comment, identity_comment, sizeof(new_comment));
 	} else {
-		printf("Enter new comment: ");
+		printf("New comment: ");
 		fflush(stdout);
 		if (!fgets(new_comment, sizeof(new_comment), stdin)) {
 			explicit_bzero(passphrase, strlen(passphrase));
@@ -1503,6 +1503,13 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 			exit(1);
 		}
 		new_comment[strcspn(new_comment, "\n")] = '\0';
+	}
+	if (comment != NULL && strcmp(comment, new_comment) == 0) {
+		printf("No change to comment\n");
+		free(passphrase);
+		sshkey_free(private);
+		free(comment);
+		exit(0);
 	}
 
 	/* Save the file using the new passphrase. */
@@ -1537,7 +1544,11 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 
 	free(comment);
 
-	printf("The comment in your key file has been changed.\n");
+	if (strlen(new_comment) > 0)
+		printf("Comment '%s' applied\n", new_comment);
+	else
+		printf("Comment removed\n");
+
 	exit(0);
 }
 
