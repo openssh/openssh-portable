@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.304 2019/05/15 04:43:31 deraadt Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.305 2019/05/31 03:20:07 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1886,7 +1886,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
 	close(from[1]);
 	close(to[0]);
-	sock = STDIN_FILENO + 1;
+	sock = STDERR_FILENO + 1;
 
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
