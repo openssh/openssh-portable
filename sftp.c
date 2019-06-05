@@ -119,6 +119,8 @@ int remote_glob(struct sftp_conn *, const char *, int,
 
 extern char *__progname;
 
+char *source_port;
+
 /* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"
 
@@ -2365,6 +2367,7 @@ usage(void)
 	    "          [-D sftp_server_path] [-F ssh_config] [-i identity_file]\n"
 	    "          [-J destination] [-l limit] [-o ssh_option] [-P port]\n"
 	    "          [-R num_requests] [-S program] [-s subsystem | sftp_server]\n"
+	    "          [-Z source_port]\n"
 	    "          destination\n",
 	    __progname);
 	exit(1);
@@ -2408,7 +2411,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:Z:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2502,6 +2505,10 @@ main(int argc, char **argv)
 		case 'S':
 			ssh_program = optarg;
 			replacearg(&args, 0, "%s", ssh_program);
+			break;
+		case 'Z':
+			source_port = optarg;
+			addargs(&args, "-Z %s", source_port);
 			break;
 		case 'h':
 		default:
