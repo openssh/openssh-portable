@@ -83,6 +83,8 @@ initialize_server_options(ServerOptions *options)
 
 	/* Portable-specific options */
 	options->use_pam = -1;
+	options->pam_service_name = NULL;
+	options->password_pam_service_name = NULL;
 
 	/* Standard Options */
 	options->num_ports = 0;
@@ -439,6 +441,10 @@ fill_default_server_options(ServerOptions *options)
 			v = NULL; \
 		} \
 	} while(0)
+	/* Portable-specific options */
+	CLEAR_ON_NONE(options->pam_service_name);
+	CLEAR_ON_NONE(options->password_pam_service_name);
+	/* Standard Options */
 	CLEAR_ON_NONE(options->pid_file);
 	CLEAR_ON_NONE(options->xauth_location);
 	CLEAR_ON_NONE(options->banner);
@@ -477,6 +483,8 @@ typedef enum {
 	sBadOption,		/* == unknown option */
 	/* Portable-specific options */
 	sUsePAM,
+	sPAMServiceName,
+	sPasswordPAMServiceName,
 	/* Standard Options */
 	sPort, sHostKeyFile, sLoginGraceTime,
 	sPermitRootLogin, sLogFacility, sLogLevel,
@@ -526,8 +534,12 @@ static struct {
 	/* Portable-specific options */
 #ifdef USE_PAM
 	{ "usepam", sUsePAM, SSHCFG_GLOBAL },
+	{ "pamservicename", sPAMServiceName, SSHCFG_ALL },
+	{ "passwordpamservicename", sPasswordPAMServiceName, SSHCFG_ALL },
 #else
 	{ "usepam", sUnsupported, SSHCFG_GLOBAL },
+	{ "pamservicename", sUnsupported, SSHCFG_ALL },
+	{ "passwordpamservicename", sUnsupported, SSHCFG_ALL },
 #endif
 	{ "pamauthenticationviakbdint", sDeprecated, SSHCFG_GLOBAL },
 	/* Standard Options */
@@ -1270,6 +1282,22 @@ process_server_config_line(ServerOptions *options, char *line,
 	case sUsePAM:
 		intptr = &options->use_pam;
 		goto parse_flag;
+
+	case sPAMServiceName:
+		charptr = &options->pam_service_name;
+parse_string:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing string argument.",
+			    filename, linenum);
+		if (*activep && *charptr == NULL) {
+			*charptr = xstrdup(arg);
+		}
+		break;
+
+	case sPasswordPAMServiceName:
+		charptr = &options->password_pam_service_name;
+		goto parse_string;
 
 	/* Standard Options */
 	case sBadOption:
@@ -2346,6 +2374,17 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	} \
 } while(0)
 
+	M_CP_STROPT(pam_service_name);
+	if (option_clear_or_none(dst->pam_service_name)) {
+		free(dst->pam_service_name);
+		dst->pam_service_name = NULL;
+	}
+	M_CP_STROPT(password_pam_service_name);
+	if (option_clear_or_none(dst->password_pam_service_name)) {
+		free(dst->password_pam_service_name);
+		dst->password_pam_service_name = NULL;
+	}
+
 	/* See comment in servconf.h */
 	COPY_MATCH_STRING_OPTS();
 
@@ -2553,6 +2592,10 @@ dump_config(ServerOptions *o)
 	/* integer arguments */
 #ifdef USE_PAM
 	dump_cfg_fmtint(sUsePAM, o->use_pam);
+	dump_cfg_string(sPAMServiceName, *o->pam_service_name == '\0'
+	    ? "none" : o->pam_service_name);
+	dump_cfg_string(sPasswordPAMServiceName, *o->password_pam_service_name == '\0'
+	    ? "none" : o->password_pam_service_name);
 #endif
 	dump_cfg_int(sLoginGraceTime, o->login_grace_time);
 	dump_cfg_int(sX11DisplayOffset, o->x11_display_offset);
