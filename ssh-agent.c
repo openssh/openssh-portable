@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.233 2019/01/22 22:58:50 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.234 2019/06/06 05:13:13 otto Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1096,7 +1096,6 @@ main(int ac, char **av)
 	size_t npfd = 0;
 	u_int maxfds;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 

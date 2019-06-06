@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.330 2019/05/29 08:30:26 lum Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.331 2019/06/06 05:13:13 otto Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2457,7 +2457,6 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 

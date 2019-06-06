@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.190 2019/01/21 22:50:42 tb Exp $ */
+/* $OpenBSD: sftp.c,v 1.191 2019/06/06 05:13:13 otto Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2388,7 +2388,6 @@ main(int argc, char **argv)
 	size_t num_requests = DEFAULT_NUM_REQUESTS;
 	long long limit_kbps = 0;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 	msetlocale();
