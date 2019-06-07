@@ -258,7 +258,7 @@ static char **
 pam_getenvlist(pam_handle_t *pamh)
 {
 	/*
-	 * XXX - If necessary, we can still support envrionment passing
+	 * XXX - If necessary, we can still support environment passing
 	 * for platforms without pam_getenvlist by searching for known
 	 * env vars (e.g. KRB5CCNAME) from the PAM environment.
 	 */
@@ -541,7 +541,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; environ[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many enviornment strings", __func__);
+			fatal("%s: too many environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -554,7 +554,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; env_from_pam != NULL && env_from_pam[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many PAM enviornment strings", __func__);
+			fatal("%s: too many PAM environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
