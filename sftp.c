@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.191 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: sftp.c,v 1.192 2019/06/07 03:47:12 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2527,12 +2527,17 @@ main(int argc, char **argv)
 				port = tmp;
 			break;
 		default:
+			/* Try with user, host and path. */
 			if (parse_user_host_path(*argv, &user, &host,
-			    &file1) == -1) {
-				/* Treat as a plain hostname. */
-				host = xstrdup(*argv);
-				host = cleanhostname(host);
-			}
+			    &file1) == 0)
+				break;
+			/* Try with user and host. */
+			if (parse_user_host_port(*argv, &user, &host, NULL)
+			    == 0)
+				break;
+			/* Treat as a plain hostname. */
+			host = xstrdup(*argv);
+			host = cleanhostname(host);
 			break;
 		}
 		file2 = *(argv + 1);
