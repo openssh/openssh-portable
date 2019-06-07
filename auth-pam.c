@@ -197,7 +197,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 	switch ((pid = fork())) {
 	case -1:
 		error("fork(): %s", strerror(errno));
-		return (-1);
+		return errno;
 	case 0:
 		close(ctx->pam_psock);
 		ctx->pam_psock = -1;
@@ -776,8 +776,7 @@ static void *
 sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
-	int socks[2];
-	int result;
+	int result, socks[2];
 
 	debug3("PAM: %s entering", __func__);
 	/*
