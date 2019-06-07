@@ -33,7 +33,14 @@
 
 int utimensat(int, const char *, const struct timespec[2], int);
 
-void
+static void
+cleanup(void)
+{
+	(void)unlink(TMPFILE);
+	(void)unlink(TMPFILE2);
+}
+
+static void
 fail(char *msg, long expect, long got)
 {
 	int saved_errno = errno;
@@ -44,6 +51,7 @@ fail(char *msg, long expect, long got)
 	else
 		fprintf(stderr, "utimensat: %s: expected %ld got %ld\n",
 		     msg, expect, got);
+	cleanup();
 	exit(1);
 }
 
@@ -54,6 +62,7 @@ main(void)
 	struct stat sb;
 	struct timespec ts[2];
 
+	cleanup();
 	if ((fd = open(TMPFILE, O_CREAT, 0600)) == -1)
 		fail("open", 0, 0);
 	close(fd);
@@ -87,8 +96,8 @@ main(void)
 	 * POSIX specifies that when given a symlink, AT_SYMLINK_NOFOLLOW
 	 * should update the symlink and not the destination.  The compat
 	 * code doesn't have a way to do this, so where possible it fails
-	 * with ENOSYS instead of following a symlink when explicitly asked
-	 * not to.  Here we just test that it does not update the destination.
+	 * with instead of following a symlink when explicitly asked not to.
+	 * Here we just test that it does not update the destination.
 	 */
 	if (rename(TMPFILE, TMPFILE2) == -1)
 		fail("rename", 0, 0);
@@ -104,8 +113,6 @@ main(void)
 	if (sb.st_mtime == 55667788)
 		fail("utimensat symlink st_mtime", 0, 0 );
 
-	/* Clean up */
-	if (!(unlink(TMPFILE) == 0 && unlink(TMPFILE2) == 0))
-		fail("unlink", 0, 0);
+	cleanup();
 	exit(0);
 }
