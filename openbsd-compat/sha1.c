@@ -1,4 +1,4 @@
-/*	$OpenBSD: sha1.c,v 1.26 2015/09/11 09:18:27 guenther Exp $	*/
+/*	$OpenBSD: sha1.c,v 1.27 2019/06/07 22:56:36 dtucker Exp $	*/
 
 /*
  * SHA-1 in C
@@ -131,7 +131,7 @@ SHA1Update(SHA1_CTX *context, const u_int8_t *data, size_t len)
 	size_t i, j;
 
 	j = (size_t)((context->count >> 3) & 63);
-	context->count += (len << 3);
+	context->count += ((u_int64_t)len << 3);
 	if ((j + len) > 63) {
 		(void)memcpy(&context->buffer[j], data, (i = 64-j));
 		SHA1Transform(context->state, context->buffer);
