@@ -27,7 +27,7 @@
 #include "log.h"
 
 #if defined(__OpenBSD__)
-+char *malloc_options = "S";
+char *malloc_options = "S";
 #endif /* __OpenBSD__ */
 
 void *
