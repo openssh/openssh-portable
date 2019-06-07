@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.284 2019/04/18 07:32:57 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.285 2019/06/07 14:18:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -296,7 +296,7 @@ ssh_packet_set_connection(struct ssh *ssh, int fd_in, int fd_out)
 	if (ssh == NULL)
 		ssh = ssh_alloc_session_state();
 	if (ssh == NULL) {
-		error("%s: cound not allocate state", __func__);
+		error("%s: could not allocate state", __func__);
 		return NULL;
 	}
 	state = ssh->state;

@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.391 2019/05/10 18:55:17 florian Exp $ */
+/* $OpenBSD: channels.c,v 1.392 2019/06/07 14:18:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -493,7 +493,7 @@ permission_set_get(struct ssh *ssh, int where)
 	}
 }
 
-/* Reutrns pointers to the specified forwarding list and its element count */
+/* Returns pointers to the specified forwarding list and its element count */
 static void
 permission_set_get_array(struct ssh *ssh, int who, int where,
     struct permission ***permpp, u_int **npermpp)

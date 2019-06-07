@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.304 2019/03/01 02:08:50 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.305 2019/06/07 14:18:48 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1206,7 +1206,7 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*arg != '-' && !mac_valid(*arg == '+' ? arg + 1 : arg))
-			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
+			fatal("%.200s line %d: Bad SSH2 MAC spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->macs == NULL)
 			options->macs = xstrdup(arg);
