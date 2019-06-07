@@ -83,14 +83,28 @@ main(void)
 		fail("mtim.tv_nsec", 45678000, sb.st_mtim.tv_nsec);
 #endif
 
+	/*
+	 * POSIX specifies that when given a symlink, AT_SYMLINK_NOFOLLOW
+	 * should update the symlink and not the destination.  The compat
+	 * code doesn't have a way to do this, so where possible it fails
+	 * with ENOSYS instead of following a symlink when explicitly asked
+	 * not to.  Here we just test that it does not update the destination.
+	 */
 	if (rename(TMPFILE, TMPFILE2) == -1)
 		fail("rename", 0, 0);
 	if (symlink(TMPFILE2, TMPFILE) == -1)
 		fail("symlink", 0, 0);
+	ts[0].tv_sec = 11223344;
+	ts[1].tv_sec = 55667788;
+	(void)utimensat(AT_FDCWD, TMPFILE, ts, AT_SYMLINK_NOFOLLOW);
+	if (stat(TMPFILE2, &sb) == -1)
+		fail("stat", 0, 0 );
+	if (sb.st_atime == 11223344)
+		fail("utimensat symlink st_atime", 0, 0 );
+	if (sb.st_mtime == 55667788)
+		fail("utimensat symlink st_mtime", 0, 0 );
 
-	if (utimensat(AT_FDCWD, TMPFILE, ts, AT_SYMLINK_NOFOLLOW) != -1)
-		fail("utimensat followed symlink", 0, 0);
-
+	/* Clean up */
 	if (!(unlink(TMPFILE) == 0 && unlink(TMPFILE2) == 0))
 		fail("unlink", 0, 0);
 	exit(0);
