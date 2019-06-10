@@ -1,5 +1,8 @@
 /*
 * Author: Yanbing Wang <yawang@microsoft.com>
+
+* Author: Bryan Berns <berns@uwalumni.com>
+*   Updates to account for sidhistory checking
 *
 * Support file permission check on Win32 based operating systems.
 *
@@ -119,12 +122,33 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 			EqualSid(current_trustee_sid, user_sid)) {
 			continue;
 		} else {
+
+			/* do reverse lookups on the sids to verify the sids are not actually for 
+			 * for the same user as could be the case of a sidhistory entry in the ace */
+			wchar_t resolved_user[DNLEN + 1 + UNLEN + 1] = L"UNKNOWN", resolved_trustee[DNLEN + 1 + UNLEN + 1] = L"UNKNOWN";
+			DWORD resolved_user_len = _countof(resolved_user), resolved_trustee_len = _countof(resolved_trustee);
+			wchar_t resolved_user_domain[DNLEN + 1] = L"UNKNOWN", resolved_trustee_domain[DNLEN + 1] = L"UNKNOWN";
+			DWORD resolved_user_domain_len = _countof(resolved_user_domain), resolved_trustee_domain_len = _countof(resolved_trustee_domain);
+			SID_NAME_USE resolved_user_type, resolved_trustee_type;
+			
+			if (LookupAccountSidW(NULL, user_sid, resolved_user, &resolved_user_len,
+				resolved_user_domain, &resolved_user_domain_len, &resolved_user_type) != 0 &&
+				LookupAccountSidW(NULL, current_trustee_sid, resolved_trustee, &resolved_trustee_len,
+					resolved_trustee_domain, &resolved_trustee_domain_len, &resolved_trustee_type) != 0 &&
+				wcsicmp(resolved_user, resolved_trustee) == 0 && 
+				wcsicmp(resolved_user_domain, resolved_trustee_domain) == 0 &&
+				resolved_user_type == resolved_trustee_type) {
+				/* same user */
+				continue;
+			}
+
 			ret = -1;
 			if (ConvertSidToStringSid(current_trustee_sid, &bad_user) == FALSE) {
 				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
 				break;
 			}
-			debug3("Bad permissions. Try removing permissions for user: %s on file %S.", bad_user, path_utf16);
+			debug3("Bad permissions. Try removing permissions for user: %S\\%S (%s) on file %S.", 
+				resolved_trustee_domain, resolved_trustee, bad_user, path_utf16);
 			break;
 		}
 	}	
