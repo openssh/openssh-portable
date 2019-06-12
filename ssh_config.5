@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.294 2019/06/11 13:39:40 jmc Exp $
-.Dd $Mdocdate: June 11 2019 $
+.\" $OpenBSD: ssh_config.5,v 1.295 2019/06/12 05:53:21 jmc Exp $
+.Dd $Mdocdate: June 12 2019 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -203,7 +203,7 @@ The criteria for the
 .Cm host
 keyword are matched against the target hostname, after any substitution
 by the
-.Cm HostName
+.Cm Hostname
 or
 .Cm CanonicalizeHostname
 options.
@@ -845,16 +845,16 @@ real host name when looking up or saving the host key
 in the host key database files and when validating host certificates.
 This option is useful for tunneling SSH connections
 or for multiple servers running on a single host.
-.It Cm HostName
+.It Cm Hostname
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
 Arguments to
-.Cm HostName
+.Cm Hostname
 accept the tokens described in the
 .Sx TOKENS
 section.
 Numeric IP addresses are also permitted (both on the command line and in
-.Cm HostName
+.Cm Hostname
 specifications).
 The default is the name given on the command line.
 .It Cm IdentitiesOnly
@@ -1785,7 +1785,7 @@ accepts the tokens %%, %d, %h, %i, %l, %r, and %u.
 .Cm ControlPath
 accepts the tokens %%, %C, %h, %i, %L, %l, %n, %p, %r, and %u.
 .Pp
-.Cm HostName
+.Cm Hostname
 accepts the tokens %% and %h.
 .Pp
 .Cm IdentityAgent
