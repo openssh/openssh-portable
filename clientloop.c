@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.323 2019/04/23 11:56:41 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.324 2019/06/12 11:31:50 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -129,7 +129,7 @@ extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
- * command line, or the HostName specified for the user-supplied name in a
+ * command line, or the Hostname specified for the user-supplied name in a
  * configuration file.
  */
 extern char *host;

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.305 2019/06/07 14:18:48 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.306 2019/06/12 11:31:50 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,7 @@
      User foo
 
    Host fake.com
-     HostName another.host.name.real.org
+     Hostname another.host.name.real.org
      User blaah
      Port 34289
      ForwardX11 no
@@ -148,7 +148,7 @@ typedef enum {
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
-	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
+	oIdentityFile, oHostname, oPort, oCipher, oRemoteForward, oLocalForward,
 	oCertificateFile, oAddKeysToAgent, oIdentityAgent,
 	oUser, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -240,7 +240,7 @@ static struct {
 	{ "certificatefile", oCertificateFile },
 	{ "addkeystoagent", oAddKeysToAgent },
 	{ "identityagent", oIdentityAgent },
-	{ "hostname", oHostName },
+	{ "hostname", oHostname },
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
@@ -1117,7 +1117,7 @@ parse_char_array:
 		max_entries = SSH_MAX_HOSTS_FILES;
 		goto parse_char_array;
 
-	case oHostName:
+	case oHostname:
 		charptr = &options->hostname;
 		goto parse_string;
 
@@ -2593,7 +2593,7 @@ dump_client_config(Options *o, const char *host)
 
 	/* Most interesting options first: user, host, port */
 	dump_cfg_string(oUser, o->user);
-	dump_cfg_string(oHostName, host);
+	dump_cfg_string(oHostname, host);
 	dump_cfg_int(oPort, o->port);
 
 	/* Flag options */

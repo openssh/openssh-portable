@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.295 2019/06/12 05:53:21 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.296 2019/06/12 11:31:50 jmc Exp $
 .Dd $Mdocdate: June 12 2019 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1222,8 +1222,8 @@ server running on some machine, or execute
 .Ic sshd -i
 somewhere.
 Host key management will be done using the
-HostName of the host being connected (defaulting to the name typed by
-the user).
+.Cm Hostname
+of the host being connected (defaulting to the name typed by the user).
 Setting the command to
 .Cm none
 disables this option entirely.
