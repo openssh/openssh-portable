@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.234 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.235 2019/06/14 03:51:47 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -269,6 +269,11 @@ agent_decode_alg(struct sshkey *key, u_int flags)
 			return "rsa-sha2-256";
 		else if (flags & SSH_AGENT_RSA_SHA2_512)
 			return "rsa-sha2-512";
+	} else if (key->type == KEY_RSA_CERT) {
+		if (flags & SSH_AGENT_RSA_SHA2_256)
+			return "rsa-sha2-256-cert-v01@openssh.com";
+		else if (flags & SSH_AGENT_RSA_SHA2_512)
+			return "rsa-sha2-512-cert-v01@openssh.com";
 	}
 	return NULL;
 }
