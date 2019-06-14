@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.88 2019/05/20 00:25:55 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.89 2019/06/14 03:39:59 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -1014,9 +1014,10 @@ int
 user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
     int auth_attempt, struct sshauthopt **authoptsp)
 {
-	u_int success, i;
+	u_int success = 0, i;
 	char *file;
 	struct sshauthopt *opts = NULL;
+
 	if (authoptsp != NULL)
 		*authoptsp = NULL;
 
@@ -1025,6 +1026,21 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 	if (sshkey_is_cert(key) &&
 	    auth_key_is_revoked(key->cert->signature_key))
 		return 0;
+
+	for (i = 0; !success && i < options.num_authkeys_files; i++) {
+		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
+			continue;
+		file = expand_authorized_keys(
+		    options.authorized_keys_files[i], pw);
+		success = user_key_allowed2(ssh, pw, key, file, &opts);
+		free(file);
+		if (!success) {
+			sshauthopt_free(opts);
+			opts = NULL;
+		}
+	}
+	if (success)
+		goto out;
 
 	if ((success = user_cert_trusted_ca(ssh, pw, key, &opts)) != 0)
 		goto out;
@@ -1035,15 +1051,6 @@ user_key_allowed(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		goto out;
 	sshauthopt_free(opts);
 	opts = NULL;
-
-	for (i = 0; !success && i < options.num_authkeys_files; i++) {
-		if (strcasecmp(options.authorized_keys_files[i], "none") == 0)
-			continue;
-		file = expand_authorized_keys(
-		    options.authorized_keys_files[i], pw);
-		success = user_key_allowed2(ssh, pw, key, file, &opts);
-		free(file);
-	}
 
  out:
 	if (success && authoptsp != NULL) {
