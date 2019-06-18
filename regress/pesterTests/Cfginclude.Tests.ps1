@@ -58,7 +58,8 @@ Describe "Tests for ssh config" -Tags "CI" {
 
             $userConfigFile = Join-Path $home ".ssh\config"
             if( -not (Test-path $userConfigFile) ) {
-                Copy-item "$PSScriptRoot\testdata\ssh_config" $userConfigFile -force
+                #prep sample config
+                Add-Content "PubkeyAcceptedKeyTypes ssh-ed25519*" $userConfigFile 
             }
             Enable-Privilege SeRestorePrivilege | out-null
             $oldACL = Get-ACL $userConfigFile

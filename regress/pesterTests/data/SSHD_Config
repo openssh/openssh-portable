@@ -1,6 +1,16 @@
-#	test usage of sshd_config
+#	$OpenBSD: sshd_config,v 1.84 2011/05/23 03:30:07 djm Exp $
 
-Port 47003
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
+
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
+
+Port 47002
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
@@ -11,10 +21,10 @@ Port 47003
 # HostKey for protocol version 1
 #HostKey /etc/ssh/ssh_host_key
 # HostKeys for protocol version 2
-HostKey __PROGRAMDATA__\ssh\sshtest_hostkey_rsa
-HostKey __PROGRAMDATA__\ssh\sshtest_hostkey_dsa
-HostKey __PROGRAMDATA__\ssh\sshtest_hostkey_ecdsa
-HostKey __PROGRAMDATA__\ssh\sshtest_hostkey_ed25519
+HostKey ___TEST_SERVICE_CONFIG_DIR___\sshtest_hostkey_rsa
+HostKey ___TEST_SERVICE_CONFIG_DIR___\sshtest_hostkey_dsa
+HostKey ___TEST_SERVICE_CONFIG_DIR___\sshtest_hostkey_ecdsa
+HostKey ___TEST_SERVICE_CONFIG_DIR___\sshtest_hostkey_ed25519
 
 # Lifetime and size of ephemeral version 1 server key
 #KeyRegenerationInterval 1h
@@ -112,10 +122,8 @@ Subsystem	sftp	sftp-server.exe -l DEBUG3
 #	ForceCommand cvs server
 PubkeyAcceptedKeyTypes ssh-ed25519*
 
-DenyUsers denyuser1 deny*2 denyuse?3, 
-AllowUsers allowuser1 allowu*r2 allow?se?3 allowuser4 localuser1 localu*r2 loc?lu?er3 localadmin matchuser
-DenyGroups denygroup1 denygr*p2 deny?rou?3
-AllowGroups allowgroup1 allowg*2 allowg?ou?3 Adm*
-
-Match User matchuser
-	ForceCommand cmd.exe /c "whoami & set SSH_ORIGINAL_COMMAND"
+#DenyUsers denyuser1 deny*2 denyuse?3, 
+#AllowUsers allowuser1 allowu*r2 allow?se?3 allowuser4 localuser1 localu*r2 loc?lu?er3 localadmin
+#DenyGroups denygroup1 denygr*p2 deny?rou?3
+#AllowGroups allowgroup1 allowg*2 allowg?ou?3 Adm*
+TrustedUserCAKeys ___TEST_SERVICE_CONFIG_DIR___\sshtest_ca_userkeys.pub
