@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.192 2019/06/07 03:47:12 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.193 2019/06/19 20:12:44 jmc Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -284,9 +284,7 @@ help(void)
 	    "df [-hi] [path]                    Display statistics for current directory or\n"
 	    "                                   filesystem containing 'path'\n"
 	    "exit                               Quit sftp\n"
-	    "get [-afPpRr] remote [local]       Download file\n"
-	    "reget [-fPpRr] remote [local]      Resume download file\n"
-	    "reput [-fPpRr] [local] remote      Resume upload file\n"
+	    "get [-afpR] remote [local]         Download file\n"
 	    "help                               Display this help text\n"
 	    "lcd path                           Change local directory to 'path'\n"
 	    "lls [ls-options [path]]            Display local directory listing\n"
@@ -297,10 +295,12 @@ help(void)
 	    "lumask umask                       Set local umask to 'umask'\n"
 	    "mkdir path                         Create remote directory\n"
 	    "progress                           Toggle display of progress meter\n"
-	    "put [-afPpRr] local [remote]       Upload file\n"
+	    "put [-afpR] local [remote]         Upload file\n"
 	    "pwd                                Display remote working directory\n"
 	    "quit                               Quit sftp\n"
+	    "reget [-fpR] remote [local]        Resume download file\n"
 	    "rename oldpath newpath             Rename remote file\n"
+	    "reput [-fpR] local [remote]        Resume upload file\n"
 	    "rm path                            Delete remote file\n"
 	    "rmdir path                         Remove remote directory\n"
 	    "symlink oldpath newpath            Symlink remote file\n"
