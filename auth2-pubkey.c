@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.89 2019/06/14 03:39:59 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.90 2019/06/21 03:19:59 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -450,12 +450,12 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	/* Turn the command into an argument vector */
 	if (argv_split(options.authorized_principals_command, &ac, &av) != 0) {
 		error("AuthorizedPrincipalsCommand \"%s\" contains "
-		    "invalid quotes", command);
+		    "invalid quotes", options.authorized_principals_command);
 		goto out;
 	}
 	if (ac == 0) {
 		error("AuthorizedPrincipalsCommand \"%s\" yielded no arguments",
-		    command);
+		    options.authorized_principals_command);
 		goto out;
 	}
 	if ((ca_fp = sshkey_fingerprint(cert->signature_key,
