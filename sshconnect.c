@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.315 2019/05/03 03:27:38 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.316 2019/06/21 04:21:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1401,7 +1401,7 @@ ssh_local_cmd(const char *args)
 }
 
 void
-maybe_add_key_to_agent(char *authfile, const struct sshkey *private,
+maybe_add_key_to_agent(char *authfile, struct sshkey *private,
     char *comment, char *passphrase)
 {
 	int auth_sock = -1, r;

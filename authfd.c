@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.113 2018/12/27 23:02:11 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.114 2019/06/21 04:21:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -423,7 +423,7 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm, u_int maxsign)
  * This call is intended only for use by ssh-add(1) and like applications.
  */
 int
-ssh_add_identity_constrained(int sock, const struct sshkey *key,
+ssh_add_identity_constrained(int sock, struct sshkey *key,
     const char *comment, u_int life, u_int confirm, u_int maxsign)
 {
 	struct sshbuf *msg;

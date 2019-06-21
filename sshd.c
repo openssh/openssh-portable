@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.535 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: sshd.c,v 1.536 2019/06/21 04:21:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1375,7 +1375,7 @@ set_process_rdomain(struct ssh *ssh, const char *name)
 
 static void
 accumulate_host_timing_secret(struct sshbuf *server_cfg,
-    const struct sshkey *key)
+    struct sshkey *key)
 {
 	static struct ssh_digest_ctx *ctx;
 	u_char *hash;
@@ -1723,6 +1723,12 @@ main(int ac, char **av)
 		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
+		if (r == 0 && (r = sshkey_shield_private(key)) != 0) {
+			do_log2(ll, "Unable to shield host key \"%s\": %s",
+			    options.host_key_files[i], ssh_err(r));
+			sshkey_free(key);
+			key = NULL;
+		}
 		if ((r = sshkey_load_public(options.host_key_files[i],
 		    &pubkey, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
