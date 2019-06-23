@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.76 2019/06/21 04:21:05 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.77 2019/06/23 12:21:46 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4313,7 +4313,7 @@ sshkey_parse_private_fileblob(struct sshbuf *buffer, const char *passphrase,
  * maxsign times.
  */
 int
-sshkey_private_serialize_maxsign(const struct sshkey *k, struct sshbuf *b,
+sshkey_private_serialize_maxsign(struct sshkey *k, struct sshbuf *b,
     u_int32_t maxsign, sshkey_printfn *pr)
 {
 	int r, rupdate;
