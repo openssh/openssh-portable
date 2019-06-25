@@ -338,7 +338,6 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 			    "%s/xauthfile", xauthdir)) < 0 ||
 			    (size_t)r >= sizeof(xauthfile)) {
 				error("%s: xauthfile path too long", __func__);
-				unlink(xauthfile);
 				rmdir(xauthdir);
 				return -1;
 			}
