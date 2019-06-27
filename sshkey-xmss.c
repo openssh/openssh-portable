@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey-xmss.c,v 1.3 2018/07/09 21:59:10 markus Exp $ */
+/* $OpenBSD: sshkey-xmss.c,v 1.4 2019/06/27 18:03:37 deraadt Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
  *
@@ -467,9 +467,9 @@ sshkey_xmss_get_state(const struct sshkey *k, sshkey_printfn *pr)
 	}
 	if ((filename = k->xmss_filename) == NULL)
 		goto done;
-	if (asprintf(&lockfile, "%s.lock", filename) < 0 ||
-	    asprintf(&statefile, "%s.state", filename) < 0 ||
-	    asprintf(&ostatefile, "%s.ostate", filename) < 0) {
+	if (asprintf(&lockfile, "%s.lock", filename) == -1 ||
+	    asprintf(&statefile, "%s.state", filename) == -1 ||
+	    asprintf(&ostatefile, "%s.ostate", filename) == -1) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto done;
 	}
@@ -594,9 +594,9 @@ sshkey_xmss_update_state(const struct sshkey *k, sshkey_printfn *pr)
 	state->idx = idx;
 	if ((filename = k->xmss_filename) == NULL)
 		goto done;
-	if (asprintf(&statefile, "%s.state", filename) < 0 ||
-	    asprintf(&ostatefile, "%s.ostate", filename) < 0 ||
-	    asprintf(&nstatefile, "%s.nstate", filename) < 0) {
+	if (asprintf(&statefile, "%s.state", filename) == -1 ||
+	    asprintf(&ostatefile, "%s.ostate", filename) == -1 ||
+	    asprintf(&nstatefile, "%s.nstate", filename) == -1) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto done;
 	}

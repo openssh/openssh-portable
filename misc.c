@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.137 2019/01/23 21:50:56 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.138 2019/06/27 18:03:37 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -550,7 +550,7 @@ put_host_port(const char *host, u_short port)
 
 	if (port == 0 || port == SSH_DEFAULT_PORT)
 		return(xstrdup(host));
-	if (asprintf(&hoststr, "[%s]:%d", host, (int)port) < 0)
+	if (asprintf(&hoststr, "[%s]:%d", host, (int)port) == -1)
 		fatal("put_host_port: asprintf: %s", strerror(errno));
 	debug3("put_host_port: %s", hoststr);
 	return hoststr;

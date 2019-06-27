@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.84 2018/10/03 06:38:35 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.85 2019/06/27 18:03:37 deraadt Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -332,7 +332,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 		 * Allow a bare port number in permitlisten to indicate a
 		 * listen_host wildcard.
 		 */
-		if (asprintf(&tmp, "*:%s", opt) < 0) {
+		if (asprintf(&tmp, "*:%s", opt) == -1) {
 			*errstrp = "memory allocation failed";
 			return -1;
 		}
