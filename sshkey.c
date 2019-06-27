@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.77 2019/06/23 12:21:46 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.78 2019/06/27 06:29:35 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1985,9 +1985,9 @@ sshkey_shield_private(struct sshkey *k)
  out:
 	/* XXX behaviour on error - invalidate original private key? */
 	cipher_free(cctx);
-	explicit_bzero(enc, enclen);
 	explicit_bzero(keyiv, sizeof(keyiv));
 	explicit_bzero(&tmp, sizeof(tmp));
+	freezero(enc, enclen);
 	freezero(prekey, SSHKEY_SHIELD_PREKEY_LEN);
 	sshkey_free(kswap);
 	sshbuf_free(prvbuf);
