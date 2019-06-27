@@ -565,7 +565,18 @@ gss_release_cred(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_cred_id_t * cre
 		return GSS_S_FAILURE;
 
 	if (*cred_handle != GSS_C_NO_CREDENTIAL) {
-		SecFunctions->FreeCredentialsHandle(*cred_handle);
+
+		/* in some cases gss_cred_id_t can be a token and not a credential handle so
+		 * test if its a token and relase the data appropriately */
+		HANDLE handle = *((HANDLE *) *cred_handle);
+		DWORD token_ret = 0;
+		DWORD token_type = 0;
+		if (GetTokenInformation(handle, TokenType, &token_type, sizeof(TOKEN_TYPE), &token_ret) != 0)
+			CloseHandle(handle);
+		else
+			SecFunctions->FreeCredentialsHandle(*cred_handle);
+		
+		free(*cred_handle);
 		*cred_handle = GSS_C_NO_CREDENTIAL;
 	}
 
@@ -812,7 +823,8 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 	/* get the user token for impersonation */
 	if (delegated_cred_handle != NULL) {
 		SecFunctions->QuerySecurityContextToken(*context_handle, &sspi_auth_user);
-		*delegated_cred_handle = (gss_cred_id_t) &sspi_auth_user;
+		*delegated_cred_handle = malloc(sizeof(HANDLE));
+		memcpy(*delegated_cred_handle, &sspi_auth_user, sizeof(HANDLE));
 	}
 
 	return (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
