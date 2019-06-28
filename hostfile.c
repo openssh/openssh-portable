@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.74 2019/06/27 18:03:37 deraadt Exp $ */
+/* $OpenBSD: hostfile.c,v 1.75 2019/06/28 01:23:50 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -545,7 +545,7 @@ hostfile_replace_entries(const char *filename, const char *host, const char *ip,
 	/*
 	 * Prepare temporary file for in-place deletion.
 	 */
-	if ((r = asprintf(&temp, "%s.XXXXXXXXXXX", filename)) = -1 ||
+	if ((r = asprintf(&temp, "%s.XXXXXXXXXXX", filename)) == -1 ||
 	    (r = asprintf(&back, "%s.old", filename)) == -1) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto fail;
