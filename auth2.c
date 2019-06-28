@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.155 2019/03/25 22:34:52 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.156 2019/06/28 05:44:09 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -717,7 +717,7 @@ auth2_record_info(Authctxt *authctxt, const char *fmt, ...)
 	i = vasprintf(&authctxt->auth_method_info, fmt, ap);
 	va_end(ap);
 
-	if (i < 0 || authctxt->auth_method_info == NULL)
+	if (i == -1)
 		fatal("%s: vasprintf failed", __func__);
 }
 
