@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.139 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.140 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -203,7 +203,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag)
 	if (strcmp(filename, "-") == 0) {
 		fd = STDIN_FILENO;
 		filename = "(stdin)";
-	} else if ((fd = open(filename, O_RDONLY)) < 0) {
+	} else if ((fd = open(filename, O_RDONLY)) == -1) {
 		perror(filename);
 		return -1;
 	}
@@ -727,7 +727,7 @@ main(int argc, char **argv)
 		for (i = 0; default_files[i]; i++) {
 			snprintf(buf, sizeof(buf), "%s/%s", pw->pw_dir,
 			    default_files[i]);
-			if (stat(buf, &st) < 0)
+			if (stat(buf, &st) == -1)
 				continue;
 			if (do_file(agent_fd, deleting, key_only, buf,
 			    qflag) == -1)

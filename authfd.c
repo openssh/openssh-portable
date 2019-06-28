@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.114 2019/06/21 04:21:04 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.115 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -101,12 +101,12 @@ ssh_get_authentication_socket(int *fdp)
 	sunaddr.sun_family = AF_UNIX;
 	strlcpy(sunaddr.sun_path, authsocket, sizeof(sunaddr.sun_path));
 
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		return SSH_ERR_SYSTEM_ERROR;
 
 	/* close on exec */
 	if (fcntl(sock, F_SETFD, FD_CLOEXEC) == -1 ||
-	    connect(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
+	    connect(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) == -1) {
 		oerrno = errno;
 		close(sock);
 		errno = oerrno;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.127 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.128 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -122,7 +122,7 @@ fdlim_get(int hard)
 #if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
 
-	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
+	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
 		return (-1);
 	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY)
 		return SSH_SYSFDMAX;
@@ -143,10 +143,10 @@ fdlim_set(int lim)
 	if (lim <= 0)
 		return (-1);
 #if defined(HAVE_SETRLIMIT) && defined(RLIMIT_NOFILE)
-	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
+	if (getrlimit(RLIMIT_NOFILE, &rlfd) == -1)
 		return (-1);
 	rlfd.rlim_cur = lim;
-	if (setrlimit(RLIMIT_NOFILE, &rlfd) < 0)
+	if (setrlimit(RLIMIT_NOFILE, &rlfd) == -1)
 		return (-1);
 #elif defined (HAVE_SETDTABLESIZE)
 	setdtablesize(lim);
@@ -343,13 +343,13 @@ tcpconnect(char *host)
 	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-		if (s < 0) {
+		if (s == -1) {
 			error("socket: %s", strerror(errno));
 			continue;
 		}
 		if (set_nonblock(s) == -1)
 			fatal("%s: set_nonblock(%d)", __func__, s);
-		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0 &&
+		if (connect(s, ai->ai_addr, ai->ai_addrlen) == -1 &&
 		    errno != EINPROGRESS)
 			error("connect (`%s'): %s", host, strerror(errno));
 		else

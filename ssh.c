@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.504 2019/06/14 04:13:58 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.505 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -773,7 +773,7 @@ main(int ac, char **av)
 			break;
 		case 'i':
 			p = tilde_expand_filename(optarg, getuid());
-			if (stat(p, &st) < 0)
+			if (stat(p, &st) == -1)
 				fprintf(stderr, "Warning: Identity file %s "
 				    "not accessible: %s.\n", p,
 				    strerror(errno));
@@ -1426,7 +1426,7 @@ main(int ac, char **av)
 	if (config == NULL) {
 		r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
 		    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
-		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
+		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) == -1) {
 #ifdef WITH_SELINUX
 			ssh_selinux_setfscreatecon(buf);
 #endif
@@ -1593,7 +1593,7 @@ fork_postauth(void)
 		control_persist_detach();
 	debug("forking to background");
 	fork_after_authentication_flag = 0;
-	if (daemon(1, 1) < 0)
+	if (daemon(1, 1) == -1)
 		fatal("daemon() failed: %.200s", strerror(errno));
 }
 
@@ -1689,8 +1689,8 @@ ssh_init_stdio_forwarding(struct ssh *ssh)
 	debug3("%s: %s:%d", __func__, options.stdio_forward_host,
 	    options.stdio_forward_port);
 
-	if ((in = dup(STDIN_FILENO)) < 0 ||
-	    (out = dup(STDOUT_FILENO)) < 0)
+	if ((in = dup(STDIN_FILENO)) == -1 ||
+	    (out = dup(STDOUT_FILENO)) == -1)
 		fatal("channel_connect_stdio_fwd: dup() in/out failed");
 	if ((c = channel_connect_stdio_fwd(ssh, options.stdio_forward_host,
 	    options.stdio_forward_port, in, out)) == NULL)
@@ -1843,7 +1843,7 @@ ssh_session2_open(struct ssh *ssh)
 	out = dup(STDOUT_FILENO);
 	err = dup(STDERR_FILENO);
 
-	if (in < 0 || out < 0 || err < 0)
+	if (in == -1 || out == -1 || err == -1)
 		fatal("dup() in/out/err failed");
 
 	/* enable nonblocking unless tty */
@@ -1974,7 +1974,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
 			error("%s: open %s: %s", __func__,
 			    _PATH_DEVNULL, strerror(errno));
-		if (dup2(devnull, STDOUT_FILENO) < 0)
+		if (dup2(devnull, STDOUT_FILENO) == -1)
 			fatal("%s: dup2() stdout failed", __func__);
 		if (devnull > STDERR_FILENO)
 			close(devnull);
@@ -2161,7 +2161,7 @@ main_sigchld_handler(int sig)
 	int status;
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
-	    (pid < 0 && errno == EINTR))
+	    (pid == -1 && errno == EINTR))
 		;
 	errno = save_errno;
 }

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.306 2019/06/12 11:31:50 jmc Exp $ */
+/* $OpenBSD: readconf.c,v 1.307 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -518,7 +518,7 @@ execute_in_shell(const char *cmd)
 		_exit(1);
 	}
 	/* Parent. */
-	if (pid < 0)
+	if (pid == -1)
 		fatal("%s: fork: %.100s", __func__, strerror(errno));
 
 	close(devnull);

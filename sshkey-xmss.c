@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey-xmss.c,v 1.4 2019/06/27 18:03:37 deraadt Exp $ */
+/* $OpenBSD: sshkey-xmss.c,v 1.5 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Copyright (c) 2017 Markus Friedl.  All rights reserved.
  *
@@ -473,12 +473,12 @@ sshkey_xmss_get_state(const struct sshkey *k, sshkey_printfn *pr)
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto done;
 	}
-	if ((lockfd = open(lockfile, O_CREAT|O_RDONLY, 0600)) < 0) {
+	if ((lockfd = open(lockfile, O_CREAT|O_RDONLY, 0600)) == -1) {
 		ret = SSH_ERR_SYSTEM_ERROR;
 		PRINT("%s: cannot open/create: %s", __func__, lockfile);
 		goto done;
 	}
-	while (flock(lockfd, LOCK_EX|LOCK_NB) < 0) {
+	while (flock(lockfd, LOCK_EX|LOCK_NB) == -1) {
 		if (errno != EWOULDBLOCK) {
 			ret = SSH_ERR_SYSTEM_ERROR;
 			PRINT("%s: cannot lock: %s", __func__, lockfile);
@@ -613,7 +613,7 @@ sshkey_xmss_update_state(const struct sshkey *k, sshkey_printfn *pr)
 		PRINT("%s: ENCRYPT FAILED: %d", __func__, ret);
 		goto done;
 	}
-	if ((fd = open(nstatefile, O_CREAT|O_WRONLY|O_EXCL, 0600)) < 0) {
+	if ((fd = open(nstatefile, O_CREAT|O_WRONLY|O_EXCL, 0600)) == -1) {
 		ret = SSH_ERR_SYSTEM_ERROR;
 		PRINT("%s: open new state file: %s", __func__, nstatefile);
 		goto done;
@@ -632,13 +632,13 @@ sshkey_xmss_update_state(const struct sshkey *k, sshkey_printfn *pr)
 		close(fd);
 		goto done;
 	}
-	if (fsync(fd) < 0) {
+	if (fsync(fd) == -1) {
 		ret = SSH_ERR_SYSTEM_ERROR;
 		PRINT("%s: sync new state file: %s", __func__, nstatefile);
 		close(fd);
 		goto done;
 	}
-	if (close(fd) < 0) {
+	if (close(fd) == -1) {
 		ret = SSH_ERR_SYSTEM_ERROR;
 		PRINT("%s: close new state file: %s", __func__, nstatefile);
 		goto done;
@@ -652,7 +652,7 @@ sshkey_xmss_update_state(const struct sshkey *k, sshkey_printfn *pr)
 			goto done;
 		}
 	}
-	if (rename(nstatefile, statefile) < 0) {
+	if (rename(nstatefile, statefile) == -1) {
 		ret = SSH_ERR_SYSTEM_ERROR;
 		PRINT("%s: rename %s to %s", __func__, nstatefile, statefile);
 		goto done;

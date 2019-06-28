@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.138 2019/06/27 18:03:37 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.139 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -96,7 +96,7 @@ set_nonblock(int fd)
 	int val;
 
 	val = fcntl(fd, F_GETFL);
-	if (val < 0) {
+	if (val == -1) {
 		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
@@ -120,7 +120,7 @@ unset_nonblock(int fd)
 	int val;
 
 	val = fcntl(fd, F_GETFL);
-	if (val < 0) {
+	if (val == -1) {
 		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
@@ -1136,7 +1136,7 @@ tun_open(int tun, int mode, char **ifname)
 		return -1;
 	}
 
-	if (fd < 0) {
+	if (fd == -1) {
 		debug("%s: %s open: %s", __func__, name, strerror(errno));
 		return -1;
 	}
@@ -1575,7 +1575,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	}
 
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0) {
+	if (sock == -1) {
 		saved_errno = errno;
 		error("%s: socket: %.100s", __func__, strerror(errno));
 		errno = saved_errno;
@@ -1585,7 +1585,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 		if (unlink(path) != 0 && errno != ENOENT)
 			error("unlink(%s): %.100s", path, strerror(errno));
 	}
-	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
+	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) == -1) {
 		saved_errno = errno;
 		error("%s: cannot bind to path %s: %s",
 		    __func__, path, strerror(errno));
@@ -1593,7 +1593,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 		errno = saved_errno;
 		return -1;
 	}
-	if (listen(sock, backlog) < 0) {
+	if (listen(sock, backlog) == -1) {
 		saved_errno = errno;
 		error("%s: cannot listen on path %s: %s",
 		    __func__, path, strerror(errno));
@@ -1875,7 +1875,7 @@ safe_path(const char *name, struct stat *stp, const char *pw_dir,
 		}
 		strlcpy(buf, cp, sizeof(buf));
 
-		if (stat(buf, &st) < 0 ||
+		if (stat(buf, &st) == -1 ||
 		    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
 			snprintf(err, errlen,
@@ -1910,7 +1910,7 @@ safe_path_fd(int fd, const char *file, struct passwd *pw,
 	struct stat st;
 
 	/* check the open file to avoid races */
-	if (fstat(fd, &st) < 0) {
+	if (fstat(fd, &st) == -1) {
 		snprintf(err, errlen, "cannot stat file %s: %s",
 		    file, strerror(errno));
 		return -1;
