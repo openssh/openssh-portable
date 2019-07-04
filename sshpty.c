@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.33 2019/07/04 16:16:51 deraadt Exp $ */
+/* $OpenBSD: sshpty.c,v 1.34 2019/07/04 16:20:10 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -171,6 +171,8 @@ pty_setowner(struct passwd *pw, const char *tty)
 
 	/* Determine the group to make the owner of the tty. */
 	grp = getgrnam("tty");
+	if (grp == NULL)
+		fatal("no tty group");
 	gid = (grp != NULL) ? grp->gr_gid : pw->pw_gid;
 	mode = (grp != NULL) ? 0620 : 0600;
 
