@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.32 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: sshpty.c,v 1.33 2019/07/04 16:16:51 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -179,7 +179,7 @@ pty_setowner(struct passwd *pw, const char *tty)
 	 * Warn but continue if filesystem is read-only and the uids match/
 	 * tty is owned by root.
 	 */
-	if (stat(tty, &st))
+	if (stat(tty, &st) == -1)
 		fatal("stat(%.100s) failed: %.100s", tty,
 		    strerror(errno));
 
