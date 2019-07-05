@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.334 2019/07/05 04:55:40 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.335 2019/07/05 07:32:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -43,6 +43,7 @@
 #include "xmalloc.h"
 #include "sshkey.h"
 #include "authfile.h"
+#include "uuencode.h"
 #include "sshbuf.h"
 #include "pathnames.h"
 #include "log.h"
