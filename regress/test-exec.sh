@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.65 2019/01/27 06:30:53 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.66 2019/07/05 04:12:46 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -527,13 +527,13 @@ if test "$REGRESS_INTEROP_PUTTY" = "yes" ; then
 	    >> $OBJ/authorized_keys_$USER
 
 	# Convert rsa2 host key to PuTTY format
-	cp $OBJ/rsa $OBJ/rsa_oldfmt
-	${SSHKEYGEN} -p -N '' -m PEM -f $OBJ/rsa_oldfmt >/dev/null
-	${SRC}/ssh2putty.sh 127.0.0.1 $PORT $OBJ/rsa_oldfmt > \
+	cp $OBJ/ssh-rsa $OBJ/ssh-rsa_oldfmt
+	${SSHKEYGEN} -p -N '' -m PEM -f $OBJ/ssh-rsa_oldfmt >/dev/null
+	${SRC}/ssh2putty.sh 127.0.0.1 $PORT $OBJ/ssh-rsa_oldfmt > \
 	    ${OBJ}/.putty/sshhostkeys
-	${SRC}/ssh2putty.sh 127.0.0.1 22 $OBJ/rsa_oldfmt >> \
+	${SRC}/ssh2putty.sh 127.0.0.1 22 $OBJ/ssh-rsa_oldfmt >> \
 	    ${OBJ}/.putty/sshhostkeys
-	rm -f $OBJ/rsa_oldfmt
+	rm -f $OBJ/ssh-rsa_oldfmt
 
 	# Setup proxied session
 	mkdir -p ${OBJ}/.putty/sessions
