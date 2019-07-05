@@ -7,6 +7,7 @@ fa728823ba21c4b45212750e1d3a4b2086fd1a62	more Makefile refactoring
 04431e8e7872f49a2129bf080a6b73c19d576d40	moduli update
 c07772f58028fda683ee6abd41c73da3ff70d403	moduli update
 db6375fc302e3bdf07d96430c63c991b2c2bd3ff	moduli update
+5ea3d63ab972691f43e9087ab5fd8376d48e898f	uuencode.c Makefile accident
 
 Old upstream tree:
 
