@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-server.c,v 1.116 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: sftp-server.c,v 1.117 2019/07/05 04:55:40 djm Exp $ */
 /*
  * Copyright (c) 2000-2004 Markus Friedl.  All rights reserved.
  *
@@ -50,6 +50,8 @@
 
 #include "sftp.h"
 #include "sftp-common.h"
+
+char *sftp_realpath(const char *, char *); /* sftp-realpath.c */
 
 /* Our verbosity */
 static LogLevel log_level = SYSLOG_LEVEL_ERROR;
@@ -1174,7 +1176,7 @@ process_realpath(u_int32_t id)
 	}
 	debug3("request %u: realpath", id);
 	verbose("realpath \"%s\"", path);
-	if (realpath(path, resolvedname) == NULL) {
+	if (sftp_realpath(path, resolvedname) == NULL) {
 		send_status(id, errno_to_portable(errno));
 	} else {
 		Stat s;
