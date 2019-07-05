@@ -172,7 +172,7 @@ pty_setowner(struct passwd *pw, const char *tty)
 	/* Determine the group to make the owner of the tty. */
 	grp = getgrnam("tty");
 	if (grp == NULL)
-		fatal("no tty group");
+		debug("%s: no tty group", __func__);
 	gid = (grp != NULL) ? grp->gr_gid : pw->pw_gid;
 	mode = (grp != NULL) ? 0620 : 0600;
 
