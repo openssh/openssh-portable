@@ -109,6 +109,10 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 char *strcasestr(const char *, const char *);
 #endif
 
+#ifndef HAVE_STRNDUP
+char *strndup(const char *s, size_t n);
+#endif
+
 #ifndef HAVE_SETENV
 int setenv(register const char *name, register const char *value, int rewrite);
 #endif
