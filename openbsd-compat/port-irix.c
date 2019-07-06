@@ -25,6 +25,8 @@
 
 #include "includes.h"
 
+#include "log.h"
+
 #if defined(WITH_IRIX_PROJECT) || \
     defined(WITH_IRIX_JOBS) || \
     defined(WITH_IRIX_ARRAY)
