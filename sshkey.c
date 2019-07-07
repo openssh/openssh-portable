@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.78 2019/06/27 06:29:35 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.79 2019/07/07 01:05:00 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -950,7 +950,6 @@ fingerprint_b64(const char *alg, u_char *dgst_raw, size_t dgst_raw_len)
 	char *ret;
 	size_t plen = strlen(alg) + 1;
 	size_t rlen = ((dgst_raw_len + 2) / 3) * 4 + plen + 1;
-	int r;
 
 	if (dgst_raw_len > 65536 || (ret = calloc(1, rlen)) == NULL)
 		return NULL;
@@ -958,8 +957,7 @@ fingerprint_b64(const char *alg, u_char *dgst_raw, size_t dgst_raw_len)
 	strlcat(ret, ":", rlen);
 	if (dgst_raw_len == 0)
 		return ret;
-	if ((r = b64_ntop(dgst_raw, dgst_raw_len,
-	    ret + plen, rlen - plen)) == -1) {
+	if (b64_ntop(dgst_raw, dgst_raw_len, ret + plen, rlen - plen) == -1) {
 		freezero(ret, rlen);
 		return NULL;
 	}

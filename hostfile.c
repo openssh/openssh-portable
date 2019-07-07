@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.75 2019/06/28 01:23:50 deraadt Exp $ */
+/* $OpenBSD: hostfile.c,v 1.76 2019/07/07 01:05:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -163,13 +163,12 @@ int
 hostfile_read_key(char **cpp, u_int *bitsp, struct sshkey *ret)
 {
 	char *cp;
-	int r;
 
 	/* Skip leading whitespace. */
 	for (cp = *cpp; *cp == ' ' || *cp == '\t'; cp++)
 		;
 
-	if ((r = sshkey_read(ret, &cp)) != 0)
+	if (sshkey_read(ret, &cp) != 0)
 		return 0;
 
 	/* Skip trailing whitespace. */

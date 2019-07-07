@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.393 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: channels.c,v 1.394 2019/07/07 01:05:00 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3277,7 +3277,6 @@ channel_input_status_confirm(int type, u_int32_t seq, struct ssh *ssh)
 	int id = channel_parse_id(ssh, __func__, "status confirm");
 	Channel *c;
 	struct channel_confirm *cc;
-	int r;
 
 	/* Reset keepalive timeout */
 	ssh_packet_set_alive_timeouts(ssh, 0);
@@ -3290,7 +3289,7 @@ channel_input_status_confirm(int type, u_int32_t seq, struct ssh *ssh)
 	}
 	if (channel_proxy_upstream(c, type, seq, ssh))
 		return 0;
-        if ((r = sshpkt_get_end(ssh)) != 0)
+        if (sshpkt_get_end(ssh) != 0)
 		ssh_packet_disconnect(ssh, "Invalid status confirm message");
 	if ((cc = TAILQ_FIRST(&c->status_confirms)) == NULL)
 		return 0;

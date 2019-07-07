@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.306 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.307 2019/07/07 01:05:00 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -570,14 +570,13 @@ input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 	Authctxt *authctxt = ssh->authctxt;
 	char *authlist = NULL;
 	u_char partial;
-	int r;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_failure: no authentication context");
 
-	if ((r = sshpkt_get_cstring(ssh, &authlist, NULL)) != 0 ||
-	    (r = sshpkt_get_u8(ssh, &partial)) != 0 ||
-	    (r = sshpkt_get_end(ssh)) != 0)
+	if (sshpkt_get_cstring(ssh, &authlist, NULL) != 0 ||
+	    sshpkt_get_u8(ssh, &partial) != 0 ||
+	    sshpkt_get_end(ssh) != 0)
 		goto out;
 
 	if (partial != 0) {

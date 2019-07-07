@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.6 2016/05/02 08:49:03 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.7 2019/07/07 01:05:00 dtucker Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -95,14 +95,13 @@ sshbuf_dtob64(struct sshbuf *buf)
 	size_t len = sshbuf_len(buf), plen;
 	const u_char *p = sshbuf_ptr(buf);
 	char *ret;
-	int r;
 
 	if (len == 0)
 		return strdup("");
 	plen = ((len + 2) / 3) * 4 + 1;
 	if (SIZE_MAX / 2 <= len || (ret = malloc(plen)) == NULL)
 		return NULL;
-	if ((r = b64_ntop(p, len, ret, plen)) == -1) {
+	if (b64_ntop(p, len, ret, plen) == -1) {
 		explicit_bzero(ret, plen);
 		free(ret);
 		return NULL;
