@@ -317,7 +317,8 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp)
 	struct sshkey *k;
 	int r, type;
 	u_char *blob;
-	size_t blen;
+	char *label;
+	size_t blen, llen;
 	u_int nkeys, i;
 	struct sshbuf *msg;
 
@@ -341,11 +342,15 @@ pkcs11_add_provider(char *name, char *pin, struct sshkey ***keysp)
 		for (i = 0; i < nkeys; i++) {
 			/* XXX clean up properly instead of fatal() */
 			if ((r = sshbuf_get_string(msg, &blob, &blen)) != 0 ||
-			    (r = sshbuf_skip_string(msg)) != 0)
+			    (r = sshbuf_get_cstring(msg, &label, &llen)) != 0)
 				fatal("%s: buffer error: %s",
 				    __func__, ssh_err(r));
 			if ((r = sshkey_from_blob(blob, blen, &k)) != 0)
 				fatal("%s: bad key: %s", __func__, ssh_err(r));
+			if (llen > 0)
+				k->label = label;
+			else
+				free(label);
 			wrap_key(k);
 			(*keysp)[i] = k;
 			free(blob);

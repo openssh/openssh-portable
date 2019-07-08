@@ -123,6 +123,7 @@ struct sshkey {
 	u_char	*xmss_sk;
 	u_char	*xmss_pk;
 	struct sshkey_cert *cert;
+	char	*label;
 };
 
 #define	ED25519_SK_SZ	crypto_sign_ed25519_SECRETKEYBYTES

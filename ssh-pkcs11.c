@@ -41,6 +41,8 @@
 
 #define CRYPTOKI_COMPAT
 #include "pkcs11.h"
+#define MAX_LABEL_SIZE 255
+
 
 #include "log.h"
 #include "misc.h"
@@ -1167,7 +1169,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 {
 	struct sshkey		*key = NULL;
 	CK_OBJECT_CLASS		 key_class;
-	CK_ATTRIBUTE		 key_attr[1];
+	CK_ATTRIBUTE		 key_attr[2];
 	CK_SESSION_HANDLE	 session;
 	CK_FUNCTION_LIST	*f = NULL;
 	CK_RV			 rv;
@@ -1194,6 +1196,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 
 	while (1) {
 		CK_KEY_TYPE	ck_key_type;
+		CK_UTF8CHAR	label[MAX_LABEL_SIZE+1];
 
 		rv = f->C_FindObjects(session, &obj, 1, &n);
 		if (rv != CKR_OK) {
@@ -1208,12 +1211,17 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 		key_attr[0].type = CKA_KEY_TYPE;
 		key_attr[0].pValue = &ck_key_type;
 		key_attr[0].ulValueLen = sizeof(ck_key_type);
+		key_attr[1].type = CKA_LABEL;
+		key_attr[1].pValue = &label;
+		key_attr[1].ulValueLen = MAX_LABEL_SIZE;
 
-		rv = f->C_GetAttributeValue(session, obj, key_attr, 1);
+		rv = f->C_GetAttributeValue(session, obj, key_attr, 2);
 		if (rv != CKR_OK) {
 			error("C_GetAttributeValue failed: %lu", rv);
 			goto fail;
 		}
+
+		label[key_attr[1].ulValueLen] = '\0';
 
 		switch (ck_key_type) {
 		case CKK_RSA:
@@ -1239,6 +1247,8 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 			sshkey_free(key);
 		} else {
 			/* expand key array and add key */
+			if (key_attr[1].ulValueLen > 0)
+				key->label = xstrdup(label);
 			*keysp = xrecallocarray(*keysp, *nkeys,
 			    *nkeys + 1, sizeof(struct sshkey *));
 			(*keysp)[*nkeys] = key;

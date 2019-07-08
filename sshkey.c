@@ -503,6 +503,7 @@ sshkey_new(int type)
 	k->ed25519_pk = NULL;
 	k->xmss_sk = NULL;
 	k->xmss_pk = NULL;
+	k->label = NULL;
 	switch (k->type) {
 #ifdef WITH_OPENSSL
 	case KEY_RSA:
@@ -602,6 +603,7 @@ sshkey_free(struct sshkey *k)
 	}
 	if (sshkey_is_cert(k))
 		cert_free(k->cert);
+	free(k->label);
 	freezero(k, sizeof(*k));
 }
 

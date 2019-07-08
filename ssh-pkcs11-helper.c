@@ -134,7 +134,7 @@ process_add(void)
 				continue;
 			}
 			if ((r = sshbuf_put_string(msg, blob, blen)) != 0 ||
-			    (r = sshbuf_put_cstring(msg, name)) != 0)
+			    (r = sshbuf_put_cstring(msg, keys[i]->label)) != 0)
 				fatal("%s: buffer error: %s",
 				    __func__, ssh_err(r));
 			free(blob);

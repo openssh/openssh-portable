@@ -613,7 +613,7 @@ process_add_smartcard_key(SocketEntry *e)
 			id = xcalloc(1, sizeof(Identity));
 			id->key = k;
 			id->provider = xstrdup(canonical_provider);
-			id->comment = xstrdup(canonical_provider); /* XXX */
+			id->comment = xstrdup(k->label ? k->label : canonical_provider);
 			id->death = death;
 			id->confirm = confirm;
 			TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
