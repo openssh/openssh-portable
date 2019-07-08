@@ -25,8 +25,6 @@
 
 #include "includes.h"
 
-#include "log.h"
-
 #if defined(WITH_IRIX_PROJECT) || \
     defined(WITH_IRIX_JOBS) || \
     defined(WITH_IRIX_ARRAY)
@@ -44,6 +42,8 @@
 #ifdef WITH_IRIX_AUDIT
 # include <sat.h>
 #endif /* WITH_IRIX_AUDIT */
+
+#include "log.h"
 
 void
 irix_setusercontext(struct passwd *pw)
