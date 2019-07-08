@@ -38,7 +38,6 @@ OPENBSD=base64.o \
 	pwcache.o \
 	readpassphrase.o \
 	reallocarray.o \
-	realpath.o \
 	recallocarray.o \
 	rmd160.o \
 	rresvport.o \
