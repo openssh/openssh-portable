@@ -790,14 +790,16 @@ do_download(struct passwd *pw)
 			    SSH_FP_RANDOMART);
 			if (fp == NULL || ra == NULL)
 				fatal("%s: sshkey_fingerprint fail", __func__);
-			printf("%u %s %s (PKCS11 key)\n", sshkey_size(keys[i]),
-			    fp, sshkey_type(keys[i]));
+			printf("%u %s %s (%s)\n", sshkey_size(keys[i]),
+			    fp, keys[i]->label ? keys[i]->label : "(PKCS11 key)", sshkey_type(keys[i]));
 			if (log_level_get() >= SYSLOG_LEVEL_VERBOSE)
 				printf("%s\n", ra);
 			free(ra);
 			free(fp);
 		} else {
 			(void) sshkey_write(keys[i], stdout); /* XXX check */
+			if (keys[i]->label)
+				fprintf(stdout, " %s", keys[i]->label);
 			fprintf(stdout, "\n");
 		}
 		sshkey_free(keys[i]);
