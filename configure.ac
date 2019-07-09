@@ -816,7 +816,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	    AC_DEFINE([SYS_RDOMAIN_LINUX], [1],
 		[Support routing domains using Linux VRF]), [], [
 #ifdef HAVE_SYS_TYPES_H
-# include <sys/types.H>
+# include <sys/types.h>
 #endif
 	    ])
 	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
