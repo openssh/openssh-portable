@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.85 2019/06/27 18:03:37 deraadt Exp $ */
+/* $OpenBSD: auth-options.c,v 1.86 2019/07/09 04:15:00 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -320,7 +320,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 	size_t npermits = *npermitsp;
 	const char *errstr = "unknown error";
 
-	if (npermits > INT_MAX) {
+	if (npermits > SSH_AUTHOPT_PERMIT_MAX) {
 		*errstrp = "too many permission directives";
 		return -1;
 	}
