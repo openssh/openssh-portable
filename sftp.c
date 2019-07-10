@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.193 2019/06/19 20:12:44 jmc Exp $ */
+/* $OpenBSD: sftp.c,v 1.194 2019/07/10 07:04:27 tb Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2189,7 +2189,7 @@ interactive_loop(struct sftp_conn *conn, char *file1, char *file2)
 		el_set(el, EL_BIND, "^I", "ftp-complete", NULL);
 		/* enable ctrl-left-arrow and ctrl-right-arrow */
 		el_set(el, EL_BIND, "\\e[1;5C", "em-next-word", NULL);
-		el_set(el, EL_BIND, "\\e[5C", "em-next-word", NULL);
+		el_set(el, EL_BIND, "\\e\\e[C", "em-next-word", NULL);
 		el_set(el, EL_BIND, "\\e[1;5D", "ed-prev-word", NULL);
 		el_set(el, EL_BIND, "\\e\\e[D", "ed-prev-word", NULL);
 		/* make ^w match ksh behaviour */
