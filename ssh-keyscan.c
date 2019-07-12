@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keyscan.c,v 1.128 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: ssh-keyscan.c,v 1.129 2019/07/12 04:08:39 djm Exp $ */
 /*
  * Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
  *
@@ -233,7 +233,12 @@ keygrab_ssh2(con *c)
 		break;
 	case KT_RSA:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
-		    "ssh-rsa-cert-v01@openssh.com" : "ssh-rsa";
+		    "rsa-sha2-512-cert-v01@openssh.com,"
+		    "rsa-sha2-256-cert-v01@openssh.com,"
+		    "ssh-rsa-cert-v01@openssh.com" :
+		    "rsa-sha2-512,"
+		    "rsa-sha2-256,"
+		    "ssh-rsa";
 		break;
 	case KT_ED25519:
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = get_cert ?
