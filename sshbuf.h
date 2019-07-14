@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.13 2019/01/21 09:54:11 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.14 2019/07/14 23:32:27 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -176,6 +176,26 @@ int	sshbuf_put_u32(struct sshbuf *buf, u_int32_t val);
 int	sshbuf_put_u16(struct sshbuf *buf, u_int16_t val);
 int	sshbuf_put_u8(struct sshbuf *buf, u_char val);
 
+/* Functions to peek at the contents of a buffer without modifying it. */
+int	sshbuf_peek_u64(const struct sshbuf *buf, size_t offset,
+    u_int64_t *valp);
+int	sshbuf_peek_u32(const struct sshbuf *buf, size_t offset,
+    u_int32_t *valp);
+int	sshbuf_peek_u16(const struct sshbuf *buf, size_t offset,
+    u_int16_t *valp);
+int	sshbuf_peek_u8(const struct sshbuf *buf, size_t offset,
+    u_char *valp);
+
+/*
+ * Functions to poke values into an exisiting buffer (e.g. a length header
+ * to a packet). The destination bytes must already exist in the buffer.
+ */
+int sshbuf_poke_u64(struct sshbuf *buf, size_t offset, u_int64_t val);
+int sshbuf_poke_u32(struct sshbuf *buf, size_t offset, u_int32_t val);
+int sshbuf_poke_u16(struct sshbuf *buf, size_t offset, u_int16_t val);
+int sshbuf_poke_u8(struct sshbuf *buf, size_t offset, u_char val);
+int sshbuf_poke(struct sshbuf *buf, size_t offset, void *v, size_t len);
+
 /*
  * Functions to extract or store SSH wire encoded strings (u32 len || data)
  * The "cstring" variants admit no \0 characters in the string contents.
@@ -202,7 +222,6 @@ int	sshbuf_get_string_direct(struct sshbuf *buf, const u_char **valp,
 /* Another variant: "peeks" into the buffer without modifying it */
 int	sshbuf_peek_string_direct(const struct sshbuf *buf, const u_char **valp,
 	    size_t *lenp);
-/* XXX peek_u8 / peek_u32 */
 
 /*
  * Functions to extract or store SSH wire encoded bignums and elliptic
