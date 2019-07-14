@@ -484,9 +484,8 @@ This may be useful in scripts if the connection sometimes fails.
 The default is 1.
 .It Cm ConnectTimeout
 Specifies the timeout (in seconds) used when connecting to the
-SSH server, instead of using the default system TCP timeout.
-This value is used only when the target is down or really unreachable,
-not when it refuses the connection.
+SSH server. This value is used when the target is down, unreachable,
+or not timely finalizing the initial SSH-specific handshake.
 .It Cm ControlMaster
 Enables the sharing of multiple sessions over a single network connection.
 When set to
