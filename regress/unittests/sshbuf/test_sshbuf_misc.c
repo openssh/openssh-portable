@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_misc.c,v 1.2 2016/05/03 13:48:33 djm Exp $ */
+/* 	$OpenBSD: test_sshbuf_misc.c,v 1.3 2019/07/15 13:12:02 djm Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -19,6 +19,7 @@
 #include "../test_helper/test_helper.h"
 
 #include "sshbuf.h"
+#include "ssherr.h"
 
 void sshbuf_misc_tests(void);
 
@@ -26,7 +27,7 @@ void
 sshbuf_misc_tests(void)
 {
 	struct sshbuf *p1;
-	char tmp[512], *p;
+	char tmp[512], msg[] = "imploring ping silence ping over", *p;
 	FILE *out;
 	size_t sz;
 
@@ -162,6 +163,56 @@ sshbuf_misc_tests(void)
 	p = sshbuf_dup_string(p1);
 	ASSERT_PTR_EQ(p, NULL);
 	sshbuf_free(p1);
+	TEST_DONE();
+
+	TEST_START("sshbuf_cmp");
+	p1 = sshbuf_from(msg, sizeof(msg) - 1);
+	ASSERT_PTR_NE(p1, NULL);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, "i", 1), 0);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, "j", 1), SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, "imploring", 9), 0);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, "implored", 9), SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 10, "ping", 4), 0);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 10, "ring", 4), SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 28, "over", 4), 0);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 28, "rove", 4), SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 28, "overt", 5),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 32, "ping", 4),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 1000, "silence", 7),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_cmp(p1, 0, msg, sizeof(msg) - 1), 0);
+	TEST_DONE();
+
+	TEST_START("sshbuf_find");
+	p1 = sshbuf_from(msg, sizeof(msg) - 1);
+	ASSERT_PTR_NE(p1, NULL);
+	ASSERT_INT_EQ(sshbuf_find(p1, 0, "i", 1, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 0);
+	ASSERT_INT_EQ(sshbuf_find(p1, 0, "j", 1, &sz), SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_find(p1, 0, "imploring", 9, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 0);
+	ASSERT_INT_EQ(sshbuf_find(p1, 0, "implored", 9, &sz),
+	    SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_find(p1, 3, "ping", 4, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 10);
+	ASSERT_INT_EQ(sshbuf_find(p1, 11, "ping", 4, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 23);
+	ASSERT_INT_EQ(sshbuf_find(p1, 20, "over", 4, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 28);
+	ASSERT_INT_EQ(sshbuf_find(p1, 28, "over", 4, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 28);
+	ASSERT_INT_EQ(sshbuf_find(p1, 28, "rove", 4, &sz),
+	    SSH_ERR_INVALID_FORMAT);
+	ASSERT_INT_EQ(sshbuf_find(p1, 28, "overt", 5, &sz),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_find(p1, 32, "ping", 4, &sz),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_find(p1, 1000, "silence", 7, &sz),
+	    SSH_ERR_MESSAGE_INCOMPLETE);
+	ASSERT_INT_EQ(sshbuf_find(p1, 0, msg + 1, sizeof(msg) - 2, &sz), 0);
+	ASSERT_SIZE_T_EQ(sz, 1);
 	TEST_DONE();
 }
 
