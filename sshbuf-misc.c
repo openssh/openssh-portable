@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.7 2019/07/07 01:05:00 dtucker Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.8 2019/07/15 13:11:38 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -158,3 +158,40 @@ sshbuf_dup_string(struct sshbuf *buf)
 	return r;
 }
 
+int
+sshbuf_cmp(const struct sshbuf *b, size_t offset,
+    const u_char *s, size_t len)
+{
+	if (sshbuf_ptr(b) == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
+	if (offset > SSHBUF_SIZE_MAX || len > SSHBUF_SIZE_MAX || len == 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (offset + len > sshbuf_len(b))
+		return SSH_ERR_MESSAGE_INCOMPLETE;
+	if (timingsafe_bcmp(sshbuf_ptr(b) + offset, s, len) != 0)
+		return SSH_ERR_INVALID_FORMAT;
+	return 0;
+}
+
+int
+sshbuf_find(const struct sshbuf *b, size_t start_offset,
+    const u_char *s, size_t len, size_t *offsetp)
+{
+	void *p;
+
+	if (offsetp != NULL)
+		*offsetp = 0;
+
+	if (sshbuf_ptr(b) == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
+	if (start_offset > SSHBUF_SIZE_MAX || len > SSHBUF_SIZE_MAX || len == 0)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (start_offset > sshbuf_len(b) || start_offset + len > sshbuf_len(b))
+		return SSH_ERR_MESSAGE_INCOMPLETE;
+	if ((p = memmem(sshbuf_ptr(b) + start_offset,
+	    sshbuf_len(b) - start_offset, s, len)) == NULL)
+		return SSH_ERR_INVALID_FORMAT;
+	if (offsetp != NULL)
+		*offsetp = (const u_char *)p - sshbuf_ptr(b);
+	return 0;
+}
