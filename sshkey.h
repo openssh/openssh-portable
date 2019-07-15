@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.32 2019/06/21 04:21:05 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.33 2019/07/15 13:16:29 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -86,6 +86,13 @@ enum sshkey_serialize_rep {
 	SSHKEY_SERIALIZE_STATE = 1,
 	SSHKEY_SERIALIZE_FULL = 2,
 	SSHKEY_SERIALIZE_INFO = 254,
+};
+
+/* Private key disk formats */
+enum sshkey_private_format {
+	SSHKEY_PRIVATE_OPENSSH = 0,
+	SSHKEY_PRIVATE_PEM = 1,
+	SSHKEY_PRIVATE_PKCS8 = 2,
 };
 
 /* key is stored in external hardware */
@@ -221,7 +228,7 @@ int	sshkey_private_deserialize(struct sshbuf *buf,  struct sshkey **keyp);
 /* private key file format parsing and serialisation */
 int	sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
     const char *passphrase, const char *comment,
-    int force_new_format, const char *new_format_cipher, int new_format_rounds);
+    int format, const char *openssh_format_cipher, int openssh_format_rounds);
 int	sshkey_parse_private_fileblob(struct sshbuf *buffer,
     const char *passphrase, struct sshkey **keyp, char **commentp);
 int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,

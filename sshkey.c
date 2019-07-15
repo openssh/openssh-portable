@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.79 2019/07/07 01:05:00 dtucker Exp $ */
+/* $OpenBSD: sshkey.c,v 1.80 2019/07/15 13:16:29 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3975,10 +3975,10 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 
 
 #ifdef WITH_OPENSSL
-/* convert SSH v2 key in OpenSSL PEM format */
+/* convert SSH v2 key to PEM or PKCS#8 format */
 static int
-sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *buf,
-    const char *_passphrase, const char *comment)
+sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
+    int format, const char *_passphrase, const char *comment)
 {
 	int was_shielded = sshkey_is_shielded(key);
 	int success, r;
@@ -3988,32 +3988,49 @@ sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *buf,
 	char *bptr;
 	BIO *bio = NULL;
 	struct sshbuf *blob;
+	EVP_PKEY *pkey = NULL;
 
 	if (len > 0 && len <= 4)
 		return SSH_ERR_PASSPHRASE_TOO_SHORT;
 	if ((blob = sshbuf_new()) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
-	if ((bio = BIO_new(BIO_s_mem())) == NULL) {
-		sshbuf_free(blob);
-		return SSH_ERR_ALLOC_FAIL;
+ 	if ((bio = BIO_new(BIO_s_mem())) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
 	}
+	if (format == SSHKEY_PRIVATE_PKCS8 && (pkey = EVP_PKEY_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+ 	}
 	if ((r = sshkey_unshield_private(key)) != 0)
 		goto out;
 
 	switch (key->type) {
 	case KEY_DSA:
-		success = PEM_write_bio_DSAPrivateKey(bio, key->dsa,
-		    cipher, passphrase, len, NULL, NULL);
+		if (format == SSHKEY_PRIVATE_PEM) {
+			success = PEM_write_bio_DSAPrivateKey(bio, key->dsa,
+			    cipher, passphrase, len, NULL, NULL);
+		} else {
+			success = EVP_PKEY_set1_DSA(pkey, key->dsa);
+		}
 		break;
 #ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
-		success = PEM_write_bio_ECPrivateKey(bio, key->ecdsa,
-		    cipher, passphrase, len, NULL, NULL);
+		if (format == SSHKEY_PRIVATE_PEM) {
+			success = PEM_write_bio_ECPrivateKey(bio, key->ecdsa,
+			    cipher, passphrase, len, NULL, NULL);
+		} else {
+			success = EVP_PKEY_set1_EC_KEY(pkey, key->ecdsa);
+		}
 		break;
 #endif
 	case KEY_RSA:
-		success = PEM_write_bio_RSAPrivateKey(bio, key->rsa,
-		    cipher, passphrase, len, NULL, NULL);
+		if (format == SSHKEY_PRIVATE_PEM) {
+			success = PEM_write_bio_RSAPrivateKey(bio, key->rsa,
+			    cipher, passphrase, len, NULL, NULL);
+		} else {
+			success = EVP_PKEY_set1_RSA(pkey, key->rsa);
+		}
 		break;
 	default:
 		success = 0;
@@ -4022,6 +4039,13 @@ sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *buf,
 	if (success == 0) {
 		r = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
+	}
+	if (format == SSHKEY_PRIVATE_PKCS8) {
+		if ((success = PEM_write_bio_PrivateKey(bio, pkey, cipher,
+		    passphrase, len, NULL, NULL)) == 0) {
+			r = SSH_ERR_LIBCRYPTO_ERROR;
+			goto out;
+		}
 	}
 	if ((blen = BIO_get_mem_data(bio, &bptr)) <= 0) {
 		r = SSH_ERR_INTERNAL_ERROR;
@@ -4035,8 +4059,9 @@ sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *buf,
 		r = sshkey_shield_private(key);
 	if (r == 0)
 		r = sshbuf_putb(buf, blob);
-	sshbuf_free(blob);
 
+	EVP_PKEY_free(pkey);
+	sshbuf_free(blob);
 	BIO_free(bio);
 	return r;
 }
@@ -4046,29 +4071,38 @@ sshkey_private_pem_to_blob(struct sshkey *key, struct sshbuf *buf,
 int
 sshkey_private_to_fileblob(struct sshkey *key, struct sshbuf *blob,
     const char *passphrase, const char *comment,
-    int force_new_format, const char *new_format_cipher, int new_format_rounds)
+    int format, const char *openssh_format_cipher, int openssh_format_rounds)
 {
 	switch (key->type) {
 #ifdef WITH_OPENSSL
 	case KEY_DSA:
 	case KEY_ECDSA:
 	case KEY_RSA:
-		if (force_new_format) {
-			return sshkey_private_to_blob2(key, blob, passphrase,
-			    comment, new_format_cipher, new_format_rounds);
-		}
-		return sshkey_private_pem_to_blob(key, blob,
-		    passphrase, comment);
+		break; /* see below */
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519:
 #ifdef WITH_XMSS
 	case KEY_XMSS:
 #endif /* WITH_XMSS */
 		return sshkey_private_to_blob2(key, blob, passphrase,
-		    comment, new_format_cipher, new_format_rounds);
+		    comment, openssh_format_cipher, openssh_format_rounds);
 	default:
 		return SSH_ERR_KEY_TYPE_UNKNOWN;
 	}
+
+#ifdef WITH_OPENSSL
+	switch (format) {
+	case SSHKEY_PRIVATE_OPENSSH:
+		return sshkey_private_to_blob2(key, blob, passphrase,
+		    comment, openssh_format_cipher, openssh_format_rounds);
+	case SSHKEY_PRIVATE_PEM:
+	case SSHKEY_PRIVATE_PKCS8:
+		return sshkey_private_to_blob_pem_pkcs8(key, blob,
+		    format, passphrase, comment);
+	default:
+		return SSH_ERR_INVALID_ARGUMENT;
+	}
+#endif /* WITH_OPENSSL */
 }
 
 
