@@ -27,6 +27,10 @@
  * SUCH DAMAGE.
  */
 
+#include "includes.h"
+
+#ifndef HAVE_MEMMEM
+
 #include <string.h>
 
 /*
@@ -62,3 +66,4 @@ memmem(const void *l, size_t l_len, const void *s, size_t s_len)
 	return NULL;
 }
 DEF_WEAK(memmem);
+#endif /* HAVE_MEMMEM */

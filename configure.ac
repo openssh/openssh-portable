@@ -1751,6 +1751,7 @@ AC_CHECK_FUNCS([ \
 	llabs \
 	login_getcapbool \
 	md5_crypt \
+	memmem \
 	memmove \
 	memset_s \
 	mkdtemp \
