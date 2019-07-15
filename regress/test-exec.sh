@@ -153,6 +153,8 @@ SCP_BIN=${SCP}
 
 if [ "x$USE_VALGRIND" != "x" ]; then
 	mkdir -p $OBJ/valgrind-out
+	# ensure agent low-priv tests can write logs.
+	chmod 777 $OBJ/valgrind-out
 	VG_TEST=`basename $SCRIPT .sh`
 
 	# Some tests are difficult to fix.
