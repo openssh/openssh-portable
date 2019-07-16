@@ -509,7 +509,8 @@ send_idexch_state(struct ssh *ssh, int fd)
 		fatal("%s: sshbuf_new failed", __func__);
 
 	if (sshbuf_put_stringb(m, ssh->kex->client_version) != 0  ||
-	    sshbuf_put_stringb(m, ssh->kex->server_version) != 0 )
+	    sshbuf_put_stringb(m, ssh->kex->server_version) != 0  ||
+	    sshbuf_put_u32(m, ssh->compat) != 0 )
 		fatal("%s: buffer error", __func__);
 
 	if (ssh_msg_send(fd, 0, m) == -1)
@@ -540,7 +541,8 @@ recv_idexch_state(struct ssh *ssh, int fd)
 		fatal("%s: rexec version mismatch", __func__);
 
 	if (sshbuf_get_stringb(m, ssh->kex->client_version) != 0 ||
-	    sshbuf_get_stringb(m, ssh->kex->server_version) != 0 )
+	    sshbuf_get_stringb(m, ssh->kex->server_version) != 0 ||
+	    sshbuf_get_u32(m, &ssh->compat) != 0 )
 		fatal("%s: unable to retrieve idexch state", __func__);
 
 	sshbuf_free(m);
