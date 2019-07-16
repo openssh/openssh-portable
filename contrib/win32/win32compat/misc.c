@@ -949,8 +949,10 @@ convertToForwardslash(char *str)
  *  path to produce a canonicalized absolute pathname.
  */
 char *
-realpath(const char *inputpath, char resolved[PATH_MAX])
+realpath(const char *inputpath, char * resolved)
 {
+	wchar_t* temppath_utf16 = NULL;
+	wchar_t* resolved_utf16 = NULL;
 	char path[PATH_MAX] = { 0, }, tempPath[PATH_MAX] = { 0, }, *ret = NULL;
 	int is_win_path = 1;
 
@@ -1036,7 +1038,10 @@ realpath(const char *inputpath, char resolved[PATH_MAX])
 		resolved[3] = '\0';
 	}
 
-	if (_fullpath(tempPath, resolved, PATH_MAX) == NULL) {
+	/* note: _wfullpath() is required to resolve paths containing unicode characters */
+	if ((resolved_utf16 = utf8_to_utf16(resolved)) == NULL ||
+		(temppath_utf16 = _wfullpath(NULL, resolved_utf16, 0)) == NULL ||
+		WideCharToMultiByte(CP_UTF8, 0, temppath_utf16, -1, tempPath, sizeof(tempPath), NULL, NULL) == 0) {
 		errno = EINVAL;
 		goto done;
 	}
@@ -1080,6 +1085,10 @@ realpath(const char *inputpath, char resolved[PATH_MAX])
 	}
 
 done:
+	if (resolved_utf16 != NULL)
+		free(resolved_utf16);
+	if (temppath_utf16 != NULL)
+		free(temppath_utf16);
 	return ret;
 }
 
