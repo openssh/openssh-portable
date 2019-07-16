@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.90 2019/06/21 03:19:59 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.91 2019/07/16 13:18:39 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -109,7 +109,7 @@ userauth_pubkey(struct ssh *ssh)
 
 		if ((pkbuf = sshbuf_from(pkblob, blen)) == NULL)
 			fatal("%s: sshbuf_from failed", __func__);
-		if ((keystring = sshbuf_dtob64(pkbuf)) == NULL)
+		if ((keystring = sshbuf_dtob64_string(pkbuf, 0)) == NULL)
 			fatal("%s: sshbuf_dtob64 failed", __func__);
 		debug2("%s: %s user %s %s public key %s %s", __func__,
 		    authctxt->valid ? "valid" : "invalid", authctxt->user,

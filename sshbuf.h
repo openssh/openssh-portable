@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.15 2019/07/15 13:11:38 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.16 2019/07/16 13:18:39 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -251,7 +251,8 @@ void	sshbuf_dump_data(const void *s, size_t len, FILE *f);
 char	*sshbuf_dtob16(struct sshbuf *buf);
 
 /* Encode the contents of the buffer as base64 */
-char	*sshbuf_dtob64(struct sshbuf *buf);
+char	*sshbuf_dtob64_string(const struct sshbuf *buf, int wrap);
+int	sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap);
 
 /* Decode base64 data and append it to the buffer */
 int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);

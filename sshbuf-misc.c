@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.8 2019/07/15 13:11:38 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.9 2019/07/16 13:18:39 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -89,23 +89,58 @@ sshbuf_dtob16(struct sshbuf *buf)
 	return ret;
 }
 
-char *
-sshbuf_dtob64(struct sshbuf *buf)
+int
+sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap)
 {
-	size_t len = sshbuf_len(buf), plen;
-	const u_char *p = sshbuf_ptr(buf);
+	size_t i, slen = 0;
+	char *s = NULL;
+	int r;
+
+	if (d == NULL || b64 == NULL || sshbuf_len(d) >= SIZE_MAX / 2)
+		return SSH_ERR_INVALID_ARGUMENT;
+	if (sshbuf_len(d) == 0)
+		return 0;
+	slen = ((sshbuf_len(d) + 2) / 3) * 4 + 1;
+	if ((s = malloc(slen)) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+	if (b64_ntop(sshbuf_ptr(d), sshbuf_len(d), s, slen) == -1) {
+		r = SSH_ERR_INTERNAL_ERROR;
+		goto fail;
+	}
+	if (wrap) {
+		for (i = 0; s[i] != '\0'; i++) {
+			if ((r = sshbuf_put_u8(b64, s[i])) != 0)
+				goto fail;
+			if (i % 70 == 69 && (r = sshbuf_put_u8(b64, '\n')) != 0)
+				goto fail;
+		}
+		if (i % 70 != 69 && (r = sshbuf_put_u8(b64, '\n')) != 0)
+			goto fail;
+	} else {
+		if ((r = sshbuf_put(b64, s, strlen(s))) != 0)
+			goto fail;
+	}
+	/* Success */
+	r = 0;
+ fail:
+	freezero(s, slen);
+	return r;
+}
+
+char *
+sshbuf_dtob64_string(const struct sshbuf *buf, int wrap)
+{
+	struct sshbuf *tmp;
 	char *ret;
 
-	if (len == 0)
-		return strdup("");
-	plen = ((len + 2) / 3) * 4 + 1;
-	if (SIZE_MAX / 2 <= len || (ret = malloc(plen)) == NULL)
+	if ((tmp = sshbuf_new()) == NULL)
 		return NULL;
-	if (b64_ntop(p, len, ret, plen) == -1) {
-		explicit_bzero(ret, plen);
-		free(ret);
+	if (sshbuf_dtob64(buf, tmp, wrap) != 0) {
+		sshbuf_free(tmp);
 		return NULL;
 	}
+	ret = sshbuf_dup_string(tmp);
+	sshbuf_free(tmp);
 	return ret;
 }
 
