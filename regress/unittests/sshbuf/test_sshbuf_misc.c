@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshbuf_misc.c,v 1.3 2019/07/15 13:12:02 djm Exp $ */
+/* 	$OpenBSD: test_sshbuf_misc.c,v 1.4 2019/07/16 22:16:49 djm Exp $ */
 /*
  * Regress test for sshbuf.h buffer API
  *
@@ -61,48 +61,48 @@ sshbuf_misc_tests(void)
 	sshbuf_free(p1);
 	TEST_DONE();
 
-	TEST_START("sshbuf_dtob64 len 1");
+	TEST_START("sshbuf_dtob64_string len 1");
 	p1 = sshbuf_new();
 	ASSERT_PTR_NE(p1, NULL);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x11), 0);
-	p = sshbuf_dtob64(p1);
+	p = sshbuf_dtob64_string(p1, 0);
 	ASSERT_PTR_NE(p, NULL);
 	ASSERT_STRING_EQ(p, "EQ==");
 	free(p);
 	sshbuf_free(p1);
 	TEST_DONE();
 
-	TEST_START("sshbuf_dtob64 len 2");
+	TEST_START("sshbuf_dtob64_string len 2");
 	p1 = sshbuf_new();
 	ASSERT_PTR_NE(p1, NULL);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x11), 0);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x22), 0);
-	p = sshbuf_dtob64(p1);
+	p = sshbuf_dtob64_string(p1, 0);
 	ASSERT_PTR_NE(p, NULL);
 	ASSERT_STRING_EQ(p, "ESI=");
 	free(p);
 	sshbuf_free(p1);
 	TEST_DONE();
 
-	TEST_START("sshbuf_dtob64 len 3");
+	TEST_START("sshbuf_dtob64_string len 3");
 	p1 = sshbuf_new();
 	ASSERT_PTR_NE(p1, NULL);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x11), 0);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x22), 0);
 	ASSERT_INT_EQ(sshbuf_put_u8(p1, 0x33), 0);
-	p = sshbuf_dtob64(p1);
+	p = sshbuf_dtob64_string(p1, 0);
 	ASSERT_PTR_NE(p, NULL);
 	ASSERT_STRING_EQ(p, "ESIz");
 	free(p);
 	sshbuf_free(p1);
 	TEST_DONE();
 
-	TEST_START("sshbuf_dtob64 len 8191");
+	TEST_START("sshbuf_dtob64_string len 8191");
 	p1 = sshbuf_new();
 	ASSERT_PTR_NE(p1, NULL);
 	ASSERT_INT_EQ(sshbuf_reserve(p1, 8192, NULL), 0);
 	bzero(sshbuf_mutable_ptr(p1), 8192);
-	p = sshbuf_dtob64(p1);
+	p = sshbuf_dtob64_string(p1, 0);
 	ASSERT_PTR_NE(p, NULL);
 	ASSERT_SIZE_T_EQ(strlen(p), ((8191 + 2) / 3) * 4);
 	free(p);
