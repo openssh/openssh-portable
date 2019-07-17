@@ -152,8 +152,8 @@ SFTPSERVER_BIN=${SFTPSERVER}
 SCP_BIN=${SCP}
 
 if [ "x$USE_VALGRIND" != "x" ]; then
-	mkdir -p $OBJ/valgrind-out
-	rm -f $OBJ/valgrind-out/*
+	rm -rf $OBJ/valgrind-out $OBJ/valgrind-vgdb
+	mkdir -p $OBJ/valgrind-out $OBJ/valgrind-vgdb
 	# ensure agent low-priv tests can write logs.
 	chmod 777 $OBJ/valgrind-out
 	VG_TEST=`basename $SCRIPT .sh`
@@ -174,6 +174,7 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 		VG_OPTS="--track-origins=yes $VG_LEAK"
 		VG_OPTS="$VG_OPTS --trace-children=yes"
 		VG_OPTS="$VG_OPTS --trace-children-skip=${VG_IGNORE}"
+		VG_OPTS="$VG_OPTS --vgdb-prefix=$OBJ/valgrind-vgdb/"
 		VG_PATH="valgrind"
 		if [ "x$VALGRIND_PATH" != "x" ]; then
 			VG_PATH="$VALGRIND_PATH"
