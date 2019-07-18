@@ -50,7 +50,7 @@ setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 	}
 	if (setgid(rgid) < 0) {
 		saved_errno = errno;
-		error("setgid %ul: %.100s", (u_long)rgid, strerror(errno));
+		error("setgid %lu: %.100s", (u_long)rgid, strerror(errno));
 		errno = saved_errno;
 		ret = -1;
 	}
