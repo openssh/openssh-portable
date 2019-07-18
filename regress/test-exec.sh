@@ -587,6 +587,21 @@ start_sshd ()
 
 # kill sshd
 cleanup
+
+if [ "x$USE_VALGRIND" != "x" ]; then
+	# wait for any running process to complete
+	wait; sleep 1
+	VG_ERROR=0
+	for i in $OBJ/valgrind-out/*; do
+		if grep "ERROR SUMMARY" $i >/dev/null && \
+		    ! grep "ERROR SUMMARY: 0 errors" $i >/dev/null; then
+			RESULT=1
+			verbose valgrind failure $i
+			cat $i
+		fi
+	done
+fi
+
 if [ $RESULT -eq 0 ]; then
 	verbose ok $tid
 else
