@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.9 2019/07/16 13:18:39 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.10 2019/07/18 13:26:00 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -114,7 +114,7 @@ sshbuf_dtob64(const struct sshbuf *d, struct sshbuf *b64, int wrap)
 			if (i % 70 == 69 && (r = sshbuf_put_u8(b64, '\n')) != 0)
 				goto fail;
 		}
-		if (i % 70 != 69 && (r = sshbuf_put_u8(b64, '\n')) != 0)
+		if ((i - 1) % 70 != 69 && (r = sshbuf_put_u8(b64, '\n')) != 0)
 			goto fail;
 	} else {
 		if ((r = sshbuf_put(b64, s, strlen(s))) != 0)
