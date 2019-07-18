@@ -154,8 +154,10 @@ SCP_BIN=${SCP}
 if [ "x$USE_VALGRIND" != "x" ]; then
 	rm -rf $OBJ/valgrind-out $OBJ/valgrind-vgdb
 	mkdir -p $OBJ/valgrind-out $OBJ/valgrind-vgdb
-	# ensure agent low-priv tests can write logs.
-	chmod 777 $OBJ/valgrind-out
+	# When using sudo ensure low-priv tests can write pipes and logs.
+	if [ "x$SUDO" != "x" ]; then
+		chmod 777 $OBJ/valgrind-out $OBJ/valgrind-vgdb
+	fi
 	VG_TEST=`basename $SCRIPT .sh`
 
 	# Some tests are difficult to fix.
