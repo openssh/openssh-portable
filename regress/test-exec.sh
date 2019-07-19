@@ -605,7 +605,11 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 			fi
 		fi
 	done
-	verbose valgrind results $VG_RESULT_COUNT errors $VG_ERROR_COUNT
+	if [ x"$VG_SKIP" != "x" ]; then
+		verbose valgrind skipped
+	else
+		verbose valgrind results $VG_RESULT_COUNT errors $VG_ERROR_COUNT
+	fi
 fi
 
 if [ $RESULT -eq 0 ]; then
