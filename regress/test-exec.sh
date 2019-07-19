@@ -164,6 +164,10 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	case "$VG_TEST" in
 	reexec)
 		VG_SKIP=1 ;;
+	sftp-chroot)
+		if [ "x${SUDO}" != "x" ]; then
+			VG_SKIP=1
+		fi ;;
 	esac
 
 	if [ x"$VG_SKIP" = "x" ]; then
