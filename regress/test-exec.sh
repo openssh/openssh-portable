@@ -162,7 +162,7 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 
 	# Some tests are difficult to fix.
 	case "$VG_TEST" in
-	connect-privsep|reexec)
+	reexec)
 		VG_SKIP=1 ;;
 	esac
 
