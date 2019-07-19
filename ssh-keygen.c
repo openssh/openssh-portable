@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.337 2019/07/16 13:18:39 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.338 2019/07/19 03:38:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1172,7 +1172,7 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 	struct known_hosts_ctx *ctx = (struct known_hosts_ctx *)_ctx;
 	enum sshkey_fp_rep rep;
 	int fptype;
-	char *fp;
+	char *fp = NULL, *ra = NULL;
 
 	fptype = print_bubblebabble ? SSH_DIGEST_SHA1 : fingerprint_hash;
 	rep =    print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_DEFAULT;
@@ -1206,8 +1206,16 @@ known_hosts_find_delete(struct hostkey_foreach_line *l, void *_ctx)
 				known_hosts_hash(l, ctx);
 			else if (print_fingerprint) {
 				fp = sshkey_fingerprint(l->key, fptype, rep);
+				ra = sshkey_fingerprint(l->key,
+				    fingerprint_hash, SSH_FP_RANDOMART);
+				if (fp == NULL || ra == NULL)
+					fatal("%s: sshkey_fingerprint failed",
+					    __func__);
 				mprintf("%s %s %s %s\n", ctx->host,
 				    sshkey_type(l->key), fp, l->comment);
+				if (log_level_get() >= SYSLOG_LEVEL_VERBOSE)
+					printf("%s\n", ra);
+				free(ra);
 				free(fp);
 			} else
 				fprintf(ctx->out, "%s\n", l->line);
