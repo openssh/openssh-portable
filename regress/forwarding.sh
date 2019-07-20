@@ -1,4 +1,4 @@
-#	$OpenBSD: forwarding.sh,v 1.21 2019/07/20 09:14:40 dtucker Exp $
+#	$OpenBSD: forwarding.sh,v 1.22 2019/07/20 09:37:31 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="local and remote forwarding"
@@ -7,7 +7,7 @@ DATA=/bin/ls${EXEEXT}
 
 start_sshd
 
-SLEEPTIME=10
+SLEEPTIME=${SLEEPTIME:-10}
 
 base=33
 last=$PORT
