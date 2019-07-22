@@ -597,12 +597,12 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	wait; sleep 1
 	VG_RESULTS=$(find $OBJ/valgrind-out -type f -print)
 	VG_RESULT_COUNT=0
-	VG_ERROR_COUNT=0
+	VG_FAIL_COUNT=0
 	for i in $VG_RESULTS; do
 		if grep "ERROR SUMMARY" $i >/dev/null; then
 			VG_RESULT_COUNT=$(($VG_RESULT_COUNT + 1))
 			if ! grep "ERROR SUMMARY: 0 errors" $i >/dev/null; then
-				VG_ERROR_COUNT=$(($VG_ERROR_COUNT + 1))
+				VG_FAIL_COUNT=$(($VG_FAIL_COUNT + 1))
 				RESULT=1
 				verbose valgrind failure $i
 				cat $i
@@ -612,7 +612,7 @@ if [ "x$USE_VALGRIND" != "x" ]; then
 	if [ x"$VG_SKIP" != "x" ]; then
 		verbose valgrind skipped
 	else
-		verbose valgrind results $VG_RESULT_COUNT errors $VG_ERROR_COUNT
+		verbose valgrind results $VG_RESULT_COUNT failures $VG_FAIL_COUNT
 	fi
 fi
 
