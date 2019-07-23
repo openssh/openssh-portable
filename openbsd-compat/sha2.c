@@ -1,4 +1,4 @@
-/*	$OpenBSD: sha2.c,v 1.27 2019/06/07 22:56:36 dtucker Exp $	*/
+/*	$OpenBSD: sha2.c,v 1.28 2019/07/23 12:35:22 dtucker Exp $	*/
 
 /*
  * FILE:	sha2.c
@@ -72,7 +72,7 @@
  * Please make sure that your system defines BYTE_ORDER.  If your
  * architecture is little-endian, make sure it also defines
  * LITTLE_ENDIAN and that the two (BYTE_ORDER and LITTLE_ENDIAN) are
- * equivilent.
+ * equivalent.
  *
  * If your system does not define the above, then you can do so by
  * hand like this:
