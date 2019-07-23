@@ -34,7 +34,14 @@
  * $From: sha2.c,v 1.1 2001/11/08 00:01:51 adg Exp adg $
  */
 
-#include <sys/types.h>
+/* OPENBSD ORIGINAL: lib/libc/hash/sha2.c */
+
+#include "includes.h"
+
+#if !defined(HAVE_SHA256UPDATE) || !defined(HAVE_SHA384UPDATE) || \
+    !defined(HAVE_SHA512UPDATE)
+
+#define MAKE_CLONE(x, y)	/* no-op out */
 
 #include <string.h>
 #include <sha2.h>
@@ -264,6 +271,7 @@ static const u_int64_t sha512_initial_hash_value[8] = {
 };
 
 #if !defined(SHA2_SMALL)
+#if 0
 /* Initial hash value H for SHA-224: */
 static const u_int32_t sha224_initial_hash_value[8] = {
 	0xc1059ed8UL,
@@ -275,6 +283,7 @@ static const u_int32_t sha224_initial_hash_value[8] = {
 	0x64f98fa7UL,
 	0xbefa4fa4UL
 };
+#endif /* 0 */
 
 /* Initial hash value H for SHA-384 */
 static const u_int64_t sha384_initial_hash_value[8] = {
@@ -288,6 +297,7 @@ static const u_int64_t sha384_initial_hash_value[8] = {
 	0x47b5481dbefa4fa4ULL
 };
 
+#if 0
 /* Initial hash value H for SHA-512-256 */
 static const u_int64_t sha512_256_initial_hash_value[8] = {
 	0x22312194fc2bf72cULL,
@@ -336,6 +346,7 @@ SHA224Final(u_int8_t digest[SHA224_DIGEST_LENGTH], SHA2_CTX *context)
 }
 DEF_WEAK(SHA224Final);
 #endif /* !defined(SHA2_SMALL) */
+#endif /* 0 */
 
 /*** SHA-256: *********************************************************/
 void
@@ -917,6 +928,25 @@ DEF_WEAK(SHA384Transform);
 DEF_WEAK(SHA384Update);
 DEF_WEAK(SHA384Pad);
 
+/* Equivalent of MAKE_CLONE (which is a no-op) for SHA384 funcs */
+void
+SHA384Transform(u_int64_t state[8], const u_int8_t data[SHA512_BLOCK_LENGTH])
+{
+	return SHA512Transform(state, data);
+}
+
+void
+SHA384Update(SHA2_CTX *context, const u_int8_t *data, size_t len)
+{
+	SHA512Update(context, data, len);
+}
+
+void
+SHA384Pad(SHA2_CTX *context)
+{
+	SHA512Pad(context);
+}
+
 void
 SHA384Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA2_CTX *context)
 {
@@ -936,6 +966,7 @@ SHA384Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA2_CTX *context)
 }
 DEF_WEAK(SHA384Final);
 
+#if 0
 /*** SHA-512/256: *********************************************************/
 void
 SHA512_256Init(SHA2_CTX *context)
@@ -973,3 +1004,6 @@ SHA512_256Final(u_int8_t digest[SHA512_256_DIGEST_LENGTH], SHA2_CTX *context)
 }
 DEF_WEAK(SHA512_256Final);
 #endif /* !defined(SHA2_SMALL) */
+#endif /* 0 */
+
+#endif /* HAVE_SHA{256,384,512}UPDATE */

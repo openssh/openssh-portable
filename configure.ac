@@ -1699,6 +1699,9 @@ AC_CHECK_FUNCS([ \
 	Blowfish_expandstate \
 	Blowfish_expand0state \
 	Blowfish_stream2word \
+	SHA256Update \
+	SHA384Update \
+	SHA512Update \
 	asprintf \
 	b64_ntop \
 	__b64_ntop \
@@ -2849,16 +2852,9 @@ if test "x$openssl" = "xyes" ; then
 	fi
 	AC_CHECK_FUNCS([crypt DES_crypt])
 
-	# Search for SHA256 support in libc and/or OpenSSL
-	AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
-	    [unsupported_algorithms="$unsupported_algorithms \
-		hmac-sha2-256 \
-		hmac-sha2-512 \
-		diffie-hellman-group-exchange-sha256 \
-		hmac-sha2-256-etm@openssh.com \
-		hmac-sha2-512-etm@openssh.com"
-	     ]
-	)
+	# Check for SHA256, SHA384 and SHA512 support in OpenSSL
+	AC_CHECK_FUNCS([EVP_sha256 EVP_sha384 EVP_sha512])
+
 	# Search for RIPE-MD support in OpenSSL
 	AC_CHECK_FUNCS([EVP_ripemd160], ,
 	    [unsupported_algorithms="$unsupported_algorithms \
