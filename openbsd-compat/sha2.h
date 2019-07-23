@@ -40,7 +40,6 @@
 #define _SSHSHA2_H
 
 #include "includes.h"
-#include <sys/cdefs.h>
 
 #if !defined(HAVE_SHA256UPDATE) || !defined(HAVE_SHA384UPDATE) || \
     !defined(HAVE_SHA512UPDATE)
