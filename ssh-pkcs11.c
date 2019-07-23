@@ -1789,6 +1789,14 @@ out:
 }
 #endif /* WITH_PKCS11_KEYGEN */
 #else /* ENABLE_PKCS11 */
+
+#include <sys/types.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+#include "log.h"
+#include "sshkey.h"
+
 int
 pkcs11_init(int interactive)
 {
