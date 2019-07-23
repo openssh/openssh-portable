@@ -591,7 +591,7 @@ regress-unit-binaries: \
 
 unit: regress-unit-binaries
 
-tests interop-tests t-exec unit: regress-prep regress-binaries $(TARGETS)
+tests interop-tests t-exec: unit regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
 	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
