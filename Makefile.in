@@ -572,13 +572,14 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-regress-binaries: regress/modpipe$(EXEEXT) \
+regress-binaries: $(LIBCOMPAT) \
+	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
 	regress/mkdtemp$(EXEEXT)
 
-regress-unit-binaries: \
+regress-unit-binaries: $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/bitmap/test_bitmap$(EXEEXT) \
