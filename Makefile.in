@@ -572,14 +572,14 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
-regress-binaries: $(LIBCOMPAT) \
+regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
 	regress/mkdtemp$(EXEEXT)
 
-regress-unit-binaries: $(REGRESSLIBS) \
+regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
 	regress/unittests/sshkey/test_sshkey$(EXEEXT) \
 	regress/unittests/bitmap/test_bitmap$(EXEEXT) \
@@ -590,9 +590,17 @@ regress-unit-binaries: $(REGRESSLIBS) \
 	regress/unittests/utf8/test_utf8$(EXEEXT) \
 	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
-unit: regress-unit-binaries
+tests:	file-tests t-exec interop-tests unit
 
-tests interop-tests t-exec: unit regress-prep regress-binaries $(TARGETS)
+unit: regress-unit-binaries
+	BUILDDIR=`pwd`; \
+	cd $(srcdir)/regress || exit $$?; \
+	$(MAKE) \
+		.OBJDIR="$${BUILDDIR}/regress" \
+		.CURDIR="`pwd`" \
+		$@
+
+interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
 	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \

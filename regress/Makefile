@@ -1,7 +1,11 @@
 #	$OpenBSD: Makefile,v 1.103 2019/07/16 03:21:54 dtucker Exp $
 
-REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
-tests:		prep $(REGRESS_TARGETS)
+tests:		prep file-tests t-exec unit
+
+REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12
+
+# File based tests
+file-tests: $(REGRESS_TARGETS)
 
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
