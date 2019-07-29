@@ -591,6 +591,7 @@ regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 
 tests:	file-tests t-exec interop-tests unit
+	echo all tests passed
 
 unit: regress-unit-binaries
 	BUILDDIR=`pwd`; \
@@ -598,7 +599,7 @@ unit: regress-unit-binaries
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
 		.CURDIR="`pwd`" \
-		$@
+		$@ && echo $@ tests passed
 
 interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
@@ -646,7 +647,7 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_ECC="$${TEST_SSH_ECC}" \
 		TEST_SHELL="${TEST_SHELL}" \
 		EXEEXT="$(EXEEXT)" \
-		$@ && echo all tests passed
+		$@ && echo all $@ passed
 
 compat-tests: $(LIBCOMPAT)
 	(cd openbsd-compat/regress && $(MAKE))
