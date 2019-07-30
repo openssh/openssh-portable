@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf.h,v 1.16 2019/07/16 13:18:39 djm Exp $	*/
+/*	$OpenBSD: sshbuf.h,v 1.17 2019/07/30 05:04:49 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -270,7 +270,7 @@ int	sshbuf_b64tod(struct sshbuf *buf, const char *b64);
  * all.
  */
 int	sshbuf_cmp(const struct sshbuf *b, size_t offset,
-    const u_char *s, size_t len);
+    const void *s, size_t len);
 
 /*
  * Searches the buffer for the specified string. Returns 0 on success
@@ -282,7 +282,7 @@ int	sshbuf_cmp(const struct sshbuf *b, size_t offset,
  */
 int
 sshbuf_find(const struct sshbuf *b, size_t start_offset,
-    const u_char *s, size_t len, size_t *offsetp);
+    const void *s, size_t len, size_t *offsetp);
 
 /*
  * Duplicate the contents of a buffer to a string (caller to free).

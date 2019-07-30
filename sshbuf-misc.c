@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-misc.c,v 1.10 2019/07/18 13:26:00 djm Exp $	*/
+/*	$OpenBSD: sshbuf-misc.c,v 1.11 2019/07/30 05:04:49 djm Exp $	*/
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -195,7 +195,7 @@ sshbuf_dup_string(struct sshbuf *buf)
 
 int
 sshbuf_cmp(const struct sshbuf *b, size_t offset,
-    const u_char *s, size_t len)
+    const void *s, size_t len)
 {
 	if (sshbuf_ptr(b) == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
@@ -210,13 +210,12 @@ sshbuf_cmp(const struct sshbuf *b, size_t offset,
 
 int
 sshbuf_find(const struct sshbuf *b, size_t start_offset,
-    const u_char *s, size_t len, size_t *offsetp)
+    const void *s, size_t len, size_t *offsetp)
 {
 	void *p;
 
 	if (offsetp != NULL)
 		*offsetp = 0;
-
 	if (sshbuf_ptr(b) == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
 	if (start_offset > SSHBUF_SIZE_MAX || len > SSHBUF_SIZE_MAX || len == 0)
