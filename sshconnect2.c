@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.307 2019/07/07 01:05:00 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.308 2019/08/05 11:50:33 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1404,7 +1404,7 @@ load_identity_file(Identity *id)
 {
 	struct sshkey *private = NULL;
 	char prompt[300], *passphrase, *comment;
-	int r, perm_ok = 0, quit = 0, i;
+	int r, quit = 0, i;
 	struct stat st;
 
 	if (stat(id->filename, &st) == -1) {
@@ -1426,7 +1426,7 @@ load_identity_file(Identity *id)
 			}
 		}
 		switch ((r = sshkey_load_private_type(KEY_UNSPEC, id->filename,
-		    passphrase, &private, &comment, &perm_ok))) {
+		    passphrase, &private, &comment))) {
 		case 0:
 			break;
 		case SSH_ERR_KEY_WRONG_PASSPHRASE:

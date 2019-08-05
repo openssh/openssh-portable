@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.133 2019/07/15 13:16:29 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.134 2019/08/05 11:50:33 dtucker Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -164,10 +164,9 @@ sshkey_perm_ok(int fd, const char *filename)
 	return 0;
 }
 
-/* XXX kill perm_ok now that we have SSH_ERR_KEY_BAD_PERMISSIONS? */
 int
 sshkey_load_private_type(int type, const char *filename, const char *passphrase,
-    struct sshkey **keyp, char **commentp, int *perm_ok)
+    struct sshkey **keyp, char **commentp)
 {
 	int fd, r;
 
@@ -176,19 +175,12 @@ sshkey_load_private_type(int type, const char *filename, const char *passphrase,
 	if (commentp != NULL)
 		*commentp = NULL;
 
-	if ((fd = open(filename, O_RDONLY)) == -1) {
-		if (perm_ok != NULL)
-			*perm_ok = 0;
+	if ((fd = open(filename, O_RDONLY)) == -1)
 		return SSH_ERR_SYSTEM_ERROR;
-	}
-	if (sshkey_perm_ok(fd, filename) != 0) {
-		if (perm_ok != NULL)
-			*perm_ok = 0;
-		r = SSH_ERR_KEY_BAD_PERMISSIONS;
+
+	r = sshkey_perm_ok(fd, filename);
+	if (r != 0)
 		goto out;
-	}
-	if (perm_ok != NULL)
-		*perm_ok = 1;
 
 	r = sshkey_load_private_type_fd(fd, type, passphrase, keyp, commentp);
 	if (r == 0 && keyp && *keyp)
@@ -387,7 +379,7 @@ sshkey_load_cert(const char *filename, struct sshkey **keyp)
 /* Load private key and certificate */
 int
 sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
-    struct sshkey **keyp, int *perm_ok)
+    struct sshkey **keyp)
 {
 	struct sshkey *key = NULL, *cert = NULL;
 	int r;
@@ -410,7 +402,7 @@ sshkey_load_private_cert(int type, const char *filename, const char *passphrase,
 	}
 
 	if ((r = sshkey_load_private_type(type, filename,
-	    passphrase, &key, NULL, perm_ok)) != 0 ||
+	    passphrase, &key, NULL)) != 0 ||
 	    (r = sshkey_load_cert(filename, &cert)) != 0)
 		goto out;
 
