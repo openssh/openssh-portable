@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.338 2019/07/19 03:38:01 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.339 2019/08/05 21:45:27 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -173,31 +173,30 @@ int prime_test(FILE *, FILE *, u_int32_t, u_int32_t, char *, unsigned long,
 static void
 type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 {
-#ifdef WITH_OPENSSL
-	u_int maxbits, nid;
-#endif
-
 	if (type == KEY_UNSPEC)
 		fatal("unknown key type %s", key_type_name);
 	if (*bitsp == 0) {
 #ifdef WITH_OPENSSL
-		if (type == KEY_DSA)
+		u_int nid;
+
+		switch(type) {
+		case KEY_DSA:
 			*bitsp = DEFAULT_BITS_DSA;
-		else if (type == KEY_ECDSA) {
+			break;
+		case KEY_ECDSA:
 			if (name != NULL &&
 			    (nid = sshkey_ecdsa_nid_from_name(name)) > 0)
 				*bitsp = sshkey_curve_nid_to_bits(nid);
 			if (*bitsp == 0)
 				*bitsp = DEFAULT_BITS_ECDSA;
-		} else
-#endif
+			break;
+		case KEY_RSA:
 			*bitsp = DEFAULT_BITS;
+			break;
+		}
+#endif
 	}
 #ifdef WITH_OPENSSL
-	maxbits = (type == KEY_DSA) ?
-	    OPENSSL_DSA_MAX_MODULUS_BITS : OPENSSL_RSA_MAX_MODULUS_BITS;
-	if (*bitsp > maxbits)
-		fatal("key bits exceeds maximum %d", maxbits);
 	switch (type) {
 	case KEY_DSA:
 		if (*bitsp != 1024)
@@ -207,6 +206,9 @@ type_bits_valid(int type, const char *name, u_int32_t *bitsp)
 		if (*bitsp < SSH_RSA_MINIMUM_MODULUS_SIZE)
 			fatal("Invalid RSA key length: minimum is %d bits",
 			    SSH_RSA_MINIMUM_MODULUS_SIZE);
+		else if (*bitsp > OPENSSL_RSA_MAX_MODULUS_BITS)
+			fatal("Invalid RSA key length: maximum is %d bits",
+			    OPENSSL_RSA_MAX_MODULUS_BITS);
 		break;
 	case KEY_ECDSA:
 		if (sshkey_ecdsa_bits_to_nid(*bitsp) == -1)
