@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.339 2019/08/05 21:45:27 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.340 2019/08/08 08:02:57 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -987,7 +987,7 @@ do_gen_all_hostkeys(struct passwd *pw)
 		{ NULL, NULL, NULL }
 	};
 
-	u_int bits = 0;
+	u_int32_t bits = 0;
 	int first = 0;
 	struct stat st;
 	struct sshkey *private, *public;
@@ -2450,7 +2450,7 @@ main(int argc, char **argv)
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
 	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL;
-	u_int bits = 0;
+	u_int32_t bits = 0;
 	FILE *f;
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
@@ -2493,7 +2493,8 @@ main(int argc, char **argv)
 			gen_all_hostkeys = 1;
 			break;
 		case 'b':
-			bits = (u_int32_t)strtonum(optarg, 10, 32768, &errstr);
+			bits = (u_int32_t)strtonum(optarg, 1, UINT32_MAX,
+			    &errstr);
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",
 					optarg, errstr);
