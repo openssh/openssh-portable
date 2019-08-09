@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.307 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: readconf.c,v 1.308 2019/08/09 05:05:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -485,6 +485,11 @@ execute_in_shell(const char *cmd)
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
+
+	if (access(shell, X_OK) == -1) {
+		fatal("Shell \"%s\" is not executable: %s",
+		    shell, strerror(errno));
+	}
 
 	/* Need this to redirect subprocess stdin/out */
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
