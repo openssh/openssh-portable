@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.139 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: misc.c,v 1.140 2019/08/16 06:13:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1049,13 +1049,18 @@ char *
 percent_expand(const char *string, ...)
 {
 #define EXPAND_MAX_KEYS	16
-	u_int num_keys, i, j;
+	u_int num_keys, i;
 	struct {
 		const char *key;
 		const char *repl;
 	} keys[EXPAND_MAX_KEYS];
-	char buf[4096];
+	struct sshbuf *buf;
 	va_list ap;
+	int r;
+	char *ret;
+
+	if ((buf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 
 	/* Gather keys */
 	va_start(ap, string);
@@ -1072,14 +1077,13 @@ percent_expand(const char *string, ...)
 	va_end(ap);
 
 	/* Expand string */
-	*buf = '\0';
 	for (i = 0; *string != '\0'; string++) {
 		if (*string != '%') {
  append:
-			buf[i++] = *string;
-			if (i >= sizeof(buf))
-				fatal("%s: string too long", __func__);
-			buf[i] = '\0';
+			if ((r = sshbuf_put_u8(buf, *string)) != 0) {
+				fatal("%s: sshbuf_put_u8: %s",
+				    __func__, ssh_err(r));
+			}
 			continue;
 		}
 		string++;
@@ -1088,18 +1092,23 @@ percent_expand(const char *string, ...)
 			goto append;
 		if (*string == '\0')
 			fatal("%s: invalid format", __func__);
-		for (j = 0; j < num_keys; j++) {
-			if (strchr(keys[j].key, *string) != NULL) {
-				i = strlcat(buf, keys[j].repl, sizeof(buf));
-				if (i >= sizeof(buf))
-					fatal("%s: string too long", __func__);
+		for (i = 0; i < num_keys; i++) {
+			if (strchr(keys[i].key, *string) != NULL) {
+				if ((r = sshbuf_put(buf, keys[i].repl,
+				    strlen(keys[i].repl))) != 0) {
+					fatal("%s: sshbuf_put: %s",
+					    __func__, ssh_err(r));
+				}
 				break;
 			}
 		}
-		if (j >= num_keys)
+		if (i >= num_keys)
 			fatal("%s: unknown key %%%c", __func__, *string);
 	}
-	return (xstrdup(buf));
+	if ((ret = sshbuf_dup_string(buf)) == NULL)
+		fatal("%s: sshbuf_dup_string failed", __func__);
+	sshbuf_free(buf);
+	return ret;
 #undef EXPAND_MAX_KEYS
 }
 
