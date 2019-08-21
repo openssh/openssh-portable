@@ -307,7 +307,7 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			if ((host = hpdelim(&cp)) == NULL)
 				fatal("%s: internal error: hpdelim", __func__);
 			host = cleanhostname(host);
-			if (cp == NULL || (port = permitopen_port(cp)) < 0)
+			if (cp == NULL || (port = permitopen_port(cp, FORWARD_LOCAL)) < 0)
 				fatal("%s: internal error: permitopen port",
 				    __func__);
 			channel_add_permission(ssh,
@@ -323,7 +323,7 @@ set_fwdpermit_from_authopts(struct ssh *ssh, const struct sshauthopt *opts)
 			if ((host = hpdelim(&cp)) == NULL)
 				fatal("%s: internal error: hpdelim", __func__);
 			host = cleanhostname(host);
-			if (cp == NULL || (port = permitopen_port(cp)) < 0)
+			if (cp == NULL || (port = permitopen_port(cp, FORWARD_REMOTE)) < 0)
 				fatal("%s: internal error: permitlisten port",
 				    __func__);
 			channel_add_permission(ssh,
