@@ -9,6 +9,7 @@ c07772f58028fda683ee6abd41c73da3ff70d403	moduli update
 db6375fc302e3bdf07d96430c63c991b2c2bd3ff	moduli update
 5ea3d63ab972691f43e9087ab5fd8376d48e898f	uuencode.c Makefile accident
 99dd10e72c04e93849981d43d64c946619efa474	include sshbuf-misc.c
+9e1c23476bb845f3cf3d15d9032da3ed0cb2fcf5	sshbuf-misc.c in regress
 
 Old upstream tree:
 
