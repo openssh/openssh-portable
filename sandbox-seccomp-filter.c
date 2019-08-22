@@ -202,6 +202,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_mmap2
 	SC_ALLOW(__NR_mmap2),
 #endif
+#ifdef __NR_mprotect
+	SC_ALLOW(__NR_mprotect),
+#endif
 #ifdef __NR_mremap
 	SC_ALLOW(__NR_mremap),
 #endif
