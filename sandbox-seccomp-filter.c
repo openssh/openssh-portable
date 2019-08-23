@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/prctl.h>
+#include <sys/mman.h>
 
 #include <linux/net.h>
 #include <linux/audit.h>
@@ -95,16 +96,34 @@
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW)
 #define SC_ALLOW_ARG(_nr, _arg_nr, _arg_val) \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, (_nr), 0, 6), \
-	/* load and test first syscall argument, low word */ \
+	/* load and test syscall argument, low word */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
 	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_LO_OFFSET), \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
 	    ((_arg_val) & 0xFFFFFFFF), 0, 3), \
-	/* load and test first syscall argument, high word */ \
+	/* load and test syscall argument, high word */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
 	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_HI_OFFSET), \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, \
 	    (((uint32_t)((uint64_t)(_arg_val) >> 32)) & 0xFFFFFFFF), 0, 1), \
+	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW), \
+	/* reload syscall number; all rules expect it in accumulator */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+		offsetof(struct seccomp_data, nr))
+/* Allow if syscall argument contains only values in mask */
+#define SC_ALLOW_ARG_MASK(_nr, _arg_nr, _arg_mask) \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, (_nr), 0, 8), \
+	/* load, mask and test syscall argument, low word */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_LO_OFFSET), \
+	BPF_STMT(BPF_ALU+BPF_AND+BPF_K, ~((_arg_mask) & 0xFFFFFFFF)), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0, 0, 4), \
+	/* load, mask and test syscall argument, high word */ \
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
+	    offsetof(struct seccomp_data, args[(_arg_nr)]) + ARG_HI_OFFSET), \
+	BPF_STMT(BPF_ALU+BPF_AND+BPF_K, \
+	    ~(((uint32_t)((uint64_t)(_arg_mask) >> 32)) & 0xFFFFFFFF)), \
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0, 0, 1), \
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW), \
 	/* reload syscall number; all rules expect it in accumulator */ \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, \
@@ -201,6 +220,9 @@ static const struct sock_filter preauth_insns[] = {
 #endif
 #ifdef __NR_mmap2
 	SC_ALLOW(__NR_mmap2),
+#endif
+#ifdef __NR_mprotect
+	SC_ALLOW_ARG_MASK(__NR_mprotect, 2, PROT_READ|PROT_WRITE|PROT_NONE),
 #endif
 #ifdef __NR_mremap
 	SC_ALLOW(__NR_mremap),
