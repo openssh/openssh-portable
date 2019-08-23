@@ -216,10 +216,10 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW(__NR_madvise),
 #endif
 #ifdef __NR_mmap
-	SC_ALLOW(__NR_mmap),
+	SC_ALLOW_ARG_MASK(__NR_mmap, 2, PROT_READ|PROT_WRITE|PROT_NONE),
 #endif
 #ifdef __NR_mmap2
-	SC_ALLOW(__NR_mmap2),
+	SC_ALLOW_ARG_MASK(__NR_mmap2, 2, PROT_READ|PROT_WRITE|PROT_NONE),
 #endif
 #ifdef __NR_mprotect
 	SC_ALLOW_ARG_MASK(__NR_mprotect, 2, PROT_READ|PROT_WRITE|PROT_NONE),
