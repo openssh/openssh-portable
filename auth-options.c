@@ -361,7 +361,7 @@ handle_permit(const char **optsp, int listen,
 	 * permitlisten is allowed on port 0.
 	 */
 	if (cp == NULL ||
-	    (strcmp(cp, "*") != 0 && ((port = (a2port(cp) < 0)) || (!listen && port == 0)))) {
+	    (strcmp(cp, "*") != 0 && !(((port = a2port(cp)) >= 0) && (listen || (port != 0))))) {
 		free(tmp);
 		free(opt);
 		*errstrp = "invalid permission port";

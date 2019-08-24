@@ -4179,7 +4179,7 @@ permitopen_port(const char *p, int where)
 	
 	port = a2port(p);
 	// FORWARD_REMOTE can be permitted on port 0
-	if ((port > 0) && ((where == FORWARD_LOCAL) && (port != 0))
+	if ((port >= 0) && ((where == FORWARD_REMOTE) || (port != 0)))
 		return port;
 	return -1;
 }

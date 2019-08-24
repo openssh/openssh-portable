@@ -1957,7 +1957,7 @@ process_server_config_line(ServerOptions *options, char *line,
 				p = cleanhostname(p);
 			}
 			if (arg == NULL ||
-			    ((port = permitopen_port(arg, opcode == sPermitListen ? FORWARD_LOCAL : FORWARD_REMOTE)) < 0)) {
+			    ((port = permitopen_port(arg, opcode == sPermitListen ? FORWARD_REMOTE : FORWARD_LOCAL)) < 0)) {
 				fatal("%s line %d: bad port number in %s",
 				    filename, linenum,
 				    lookup_opcode_name(opcode));
