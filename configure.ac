@@ -679,6 +679,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
+	# proc_pidinfo()-based closefrom() replacement.
+	AC_CHECK_HEADERS([libproc.h])
+	AC_CHECK_FUNCS([proc_pidinfo])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
