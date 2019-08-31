@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.321 2019/01/19 21:39:12 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.327 2019/07/24 08:57:00 mestre Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -129,7 +129,7 @@ extern int muxserver_sock; /* XXX use mux_client_cleanup() instead */
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
- * command line, or the HostName specified for the user-supplied name in a
+ * command line, or the Hostname specified for the user-supplied name in a
  * configuration file.
  */
 extern char *host;
@@ -338,7 +338,6 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 			    "%s/xauthfile", xauthdir)) < 0 ||
 			    (size_t)r >= sizeof(xauthfile)) {
 				error("%s: xauthfile path too long", __func__);
-				unlink(xauthfile);
 				rmdir(xauthdir);
 				return -1;
 			}
@@ -364,7 +363,7 @@ client_x11_get_proto(struct ssh *ssh, const char *display,
 				    SSH_X11_PROTO, x11_timeout_real,
 				    _PATH_DEVNULL);
 			}
-			debug2("%s: %s", __func__, cmd);
+			debug2("%s: xauth command: %s", __func__, cmd);
 
 			if (timeout != 0 && x11_refuse_time == 0) {
 				now = monotime() + 1;
@@ -492,7 +491,7 @@ server_alive_check(struct ssh *ssh)
 	    (r = sshpkt_put_cstring(ssh, "keepalive@openssh.com")) != 0 ||
 	    (r = sshpkt_put_u8(ssh, 1)) != 0 ||		/* boolean: want reply */
 	    (r = sshpkt_send(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal("%s: send packet: %s", __func__, ssh_err(r));
 	/* Insert an empty placeholder to maintain ordering */
 	client_register_global_confirm(NULL, NULL);
 }
@@ -562,7 +561,7 @@ client_wait_until_can_do_something(struct ssh *ssh,
 	}
 
 	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
-	if (ret < 0) {
+	if (ret == -1) {
 		/*
 		 * We have to clear the select masks, because we return.
 		 * We have to return, because the mainloop checks for the flags
@@ -645,11 +644,11 @@ client_process_net_input(struct ssh *ssh, fd_set *readset)
 		 * There is a kernel bug on Solaris that causes select to
 		 * sometimes wake up even though there is no data available.
 		 */
-		if (len < 0 &&
+		if (len == -1 &&
 		    (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK))
 			len = 0;
 
-		if (len < 0) {
+		if (len == -1) {
 			/*
 			 * An error has encountered.  Perhaps there is a
 			 * network problem.
@@ -1035,7 +1034,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 				channel_request_start(ssh, c->self, "break", 0);
 				if ((r = sshpkt_put_u32(ssh, 1000)) != 0 ||
 				    (r = sshpkt_send(ssh)) != 0)
-					fatal("%s: %s", __func__,
+					fatal("%s: send packet: %s", __func__,
 					    ssh_err(r));
 				continue;
 
@@ -1097,7 +1096,7 @@ process_escapes(struct ssh *ssh, Channel *c,
 
 				/* Fork into background. */
 				pid = fork();
-				if (pid < 0) {
+				if (pid == -1) {
 					error("fork: %.100s", strerror(errno));
 					continue;
 				}
@@ -1252,7 +1251,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	if (options.control_master &&
 	    !option_clear_or_none(options.control_path)) {
 		debug("pledge: id");
-		if (pledge("stdio rpath wpath cpath unix inet dns recvfd proc exec id tty",
+		if (pledge("stdio rpath wpath cpath unix inet dns recvfd sendfd proc exec id tty",
 		    NULL) == -1)
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 
@@ -1416,7 +1415,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	    (r = sshpkt_put_cstring(ssh, "")) != 0 ||	/* language tag */
 	    (r = sshpkt_send(ssh)) != 0 ||
 	    (r = ssh_packet_write_wait(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal("%s: send disconnect: %s", __func__, ssh_err(r));
 
 	channel_free_all(ssh);
 
@@ -1502,7 +1501,7 @@ client_request_forwarded_tcpip(struct ssh *ssh, const char *request_type,
 	    (r = sshpkt_get_cstring(ssh, &originator_address, NULL)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &originator_port)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal("%s: parse packet: %s", __func__, ssh_err(r));
 
 	debug("%s: listen %s port %d, originator %s port %d", __func__,
 	    listen_address, listen_port, originator_address, originator_port);
@@ -1559,9 +1558,9 @@ client_request_forwarded_streamlocal(struct ssh *ssh,
 	if ((r = sshpkt_get_cstring(ssh, &listen_path, NULL)) != 0 ||
 	    (r = sshpkt_get_string(ssh, NULL, NULL)) != 0 ||	/* reserved */
 	    (r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal("%s: parse packet: %s", __func__, ssh_err(r));
 
-	debug("%s: %s", __func__, listen_path);
+	debug("%s: request: %s", __func__, listen_path);
 
 	c = channel_connect_by_listen_path(ssh, listen_path,
 	    "forwarded-streamlocal@openssh.com", "forwarded-streamlocal");
@@ -1591,7 +1590,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 	if ((r = sshpkt_get_cstring(ssh, &originator, NULL)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &originator_port)) != 0 ||
 	    (r = sshpkt_get_end(ssh)) != 0)
-		fatal("%s: %s", __func__, ssh_err(r));
+		fatal("%s: parse packet: %s", __func__, ssh_err(r));
 	/* XXX check permission */
 	/* XXX range check originator port? */
 	debug("client_request_x11: request from %s %u", originator,
@@ -1881,7 +1880,7 @@ static void
 update_known_hosts(struct hostkeys_update_ctx *ctx)
 {
 	int r, was_raw = 0;
-	int loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
+	LogLevel loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
 	    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE;
 	char *fp, *response;
 	size_t i;
@@ -2249,7 +2248,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		struct winsize ws;
 
 		/* Store window size in the packet. */
-		if (ioctl(in_fd, TIOCGWINSZ, &ws) < 0)
+		if (ioctl(in_fd, TIOCGWINSZ, &ws) == -1)
 			memset(&ws, 0, sizeof(ws));
 
 		channel_request_start(ssh, id, "pty-req", 1);
@@ -2260,12 +2259,12 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		    (r = sshpkt_put_u32(ssh, (u_int)ws.ws_row)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, (u_int)ws.ws_xpixel)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, (u_int)ws.ws_ypixel)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal("%s: build packet: %s", __func__, ssh_err(r));
 		if (tiop == NULL)
 			tiop = get_saved_tio();
 		ssh_tty_make_modes(ssh, -1, tiop);
 		if ((r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal("%s: send packet: %s", __func__, ssh_err(r));
 		/* XXX wait for reply */
 		c->client_tty = 1;
 	}
@@ -2299,8 +2298,10 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 			channel_request_start(ssh, id, "env", 0);
 			if ((r = sshpkt_put_cstring(ssh, name)) != 0 ||
 			    (r = sshpkt_put_cstring(ssh, val)) != 0 ||
-			    (r = sshpkt_send(ssh)) != 0)
-				fatal("%s: %s", __func__, ssh_err(r));
+			    (r = sshpkt_send(ssh)) != 0) {
+				fatal("%s: send packet: %s",
+				    __func__, ssh_err(r));
+			}
 			free(name);
 		}
 	}
@@ -2318,7 +2319,7 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		if ((r = sshpkt_put_cstring(ssh, name)) != 0 ||
 		    (r = sshpkt_put_cstring(ssh, val)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal("%s: send packet: %s", __func__, ssh_err(r));
 		free(name);
 	}
 
@@ -2340,12 +2341,14 @@ client_session2_setup(struct ssh *ssh, int id, int want_tty, int want_subsystem,
 		}
 		if ((r = sshpkt_put_stringb(ssh, cmd)) != 0 ||
 		    (r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+			fatal("%s: send command: %s", __func__, ssh_err(r));
 	} else {
 		channel_request_start(ssh, id, "shell", 1);
 		client_expect_confirm(ssh, id, "shell", CONFIRM_CLOSE);
-		if ((r = sshpkt_send(ssh)) != 0)
-			fatal("%s: %s", __func__, ssh_err(r));
+		if ((r = sshpkt_send(ssh)) != 0) {
+			fatal("%s: send shell request: %s",
+			    __func__, ssh_err(r));
+		}
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.56 2018/11/23 05:08:07 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.58 2019/06/14 03:28:19 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -31,6 +31,7 @@
 #endif
 #include <pwd.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -173,7 +174,6 @@ main(int argc, char **argv)
 	char *host, *fp;
 	size_t slen, dlen;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	if (pledge("stdio rpath getpw dns id", NULL) != 0)
 		fatal("%s: pledge: %s", __progname, strerror(errno));
 
@@ -252,7 +252,7 @@ main(int argc, char **argv)
 	if ((r = sshbuf_get_u32(b, (u_int *)&fd)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 	if (fd < 0 || fd == STDIN_FILENO || fd == STDOUT_FILENO)
-		fatal("bad fd");
+		fatal("bad fd = %d", fd);
 	if ((host = get_local_name(fd)) == NULL)
 		fatal("cannot get local name for fd");
 

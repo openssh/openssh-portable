@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.113 2018/12/27 23:02:11 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.115 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -101,12 +101,12 @@ ssh_get_authentication_socket(int *fdp)
 	sunaddr.sun_family = AF_UNIX;
 	strlcpy(sunaddr.sun_path, authsocket, sizeof(sunaddr.sun_path));
 
-	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		return SSH_ERR_SYSTEM_ERROR;
 
 	/* close on exec */
 	if (fcntl(sock, F_SETFD, FD_CLOEXEC) == -1 ||
-	    connect(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
+	    connect(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) == -1) {
 		oerrno = errno;
 		close(sock);
 		errno = oerrno;
@@ -423,7 +423,7 @@ encode_constraints(struct sshbuf *m, u_int life, u_int confirm, u_int maxsign)
  * This call is intended only for use by ssh-add(1) and like applications.
  */
 int
-ssh_add_identity_constrained(int sock, const struct sshkey *key,
+ssh_add_identity_constrained(int sock, struct sshkey *key,
     const char *comment, u_int life, u_int confirm, u_int maxsign)
 {
 	struct sshbuf *msg;

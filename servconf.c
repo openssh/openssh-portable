@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.348 2019/01/24 02:34:52 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.351 2019/04/18 18:56:16 dtucker Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -470,7 +470,6 @@ fill_default_server_options(ServerOptions *options)
 		options->compression = 0;
 	}
 #endif
-
 }
 
 /* Keyword tokens. */
@@ -1043,19 +1042,19 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 			return -1;
 		}
 		if (strcasecmp(attrib, "user") == 0) {
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->user == NULL)) {
 				result = 0;
 				continue;
 			}
 			if (ci->user == NULL)
 				match_test_missing_fatal("User", "user");
-			if (match_pattern_list(ci->user, arg, 0) != 1)
+			if (match_usergroup_pattern_list(ci->user, arg) != 1)
 				result = 0;
 			else
 				debug("user %.100s matched 'User %.100s' at "
 				    "line %d", ci->user, arg, line);
 		} else if (strcasecmp(attrib, "group") == 0) {
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->user == NULL)) {
 				result = 0;
 				continue;
 			}
@@ -1068,7 +1067,7 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				result = 0;
 			}
 		} else if (strcasecmp(attrib, "host") == 0) {
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->host == NULL)) {
 				result = 0;
 				continue;
 			}
@@ -1080,7 +1079,7 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				debug("connection from %.100s matched 'Host "
 				    "%.100s' at line %d", ci->host, arg, line);
 		} else if (strcasecmp(attrib, "address") == 0) {
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->address == NULL)) {
 				result = 0;
 				continue;
 			}
@@ -1099,7 +1098,7 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				return -1;
 			}
 		} else if (strcasecmp(attrib, "localaddress") == 0){
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->laddress == NULL)) {
 				result = 0;
 				continue;
 			}
@@ -1125,7 +1124,7 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 				    arg);
 				return -1;
 			}
-			if (ci == NULL) {
+			if (ci == NULL || (ci->test && ci->lport == -1)) {
 				result = 0;
 				continue;
 			}
@@ -1139,10 +1138,12 @@ match_cfg_line(char **condition, int line, struct connection_info *ci)
 			else
 				result = 0;
 		} else if (strcasecmp(attrib, "rdomain") == 0) {
-			if (ci == NULL || ci->rdomain == NULL) {
+			if (ci == NULL || (ci->test && ci->rdomain == NULL)) {
 				result = 0;
 				continue;
 			}
+			if (ci->rdomain == NULL)
+				match_test_missing_fatal("RDomain", "rdomain");
 			if (match_pattern_list(ci->rdomain, arg, 0) != 1)
 				result = 0;
 			else

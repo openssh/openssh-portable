@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.42 2019/02/04 23:37:54 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.43 2019/03/08 17:24:43 markus Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -200,15 +200,15 @@ static void
 pkcs11_k11_free(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx,
     long argl, void *argp)
 {
-        struct pkcs11_key       *k11 = ptr;
+	struct pkcs11_key	*k11 = ptr;
 
-        debug("%s: parent %p ptr %p idx %d", __func__, parent, ptr, idx);
-        if (k11 == NULL)
-                return;
-        if (k11->provider)
-                pkcs11_provider_unref(k11->provider);
-        free(k11->keyid);
-        free(k11);
+	debug("%s: parent %p ptr %p idx %d", __func__, parent, ptr, idx);
+	if (k11 == NULL)
+		return;
+	if (k11->provider)
+		pkcs11_provider_unref(k11->provider);
+	free(k11->keyid);
+	free(k11);
 }
 
 /* find a single 'obj' for given attributes */
@@ -916,7 +916,9 @@ pkcs11_fetch_x509_pubkey(struct pkcs11_provider *p, CK_ULONG slotidx,
 	X509			*x509 = NULL;
 	EVP_PKEY		*evp;
 	RSA			*rsa = NULL;
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY			*ec = NULL;
+#endif
 	struct sshkey		*key = NULL;
 	int			 i;
 #ifdef HAVE_EC_KEY_METHOD_NEW
@@ -1043,7 +1045,9 @@ fail:
 		free(cert_attr[i].pValue);
 	X509_free(x509);
 	RSA_free(rsa);
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY_free(ec);
+#endif
 
 	return (key);
 }
@@ -1124,6 +1128,7 @@ pkcs11_fetch_certs(struct pkcs11_provider *p, CK_ULONG slotidx,
 			break;
 		default:
 			/* XXX print key type? */
+			key = NULL;
 			error("skipping unsupported certificate type");
 		}
 
@@ -1225,6 +1230,7 @@ pkcs11_fetch_keys(struct pkcs11_provider *p, CK_ULONG slotidx,
 #endif /* HAVE_EC_KEY_METHOD_NEW */
 		default:
 			/* XXX print key type? */
+			key = NULL;
 			error("skipping unsupported key type");
 		}
 
@@ -1783,6 +1789,14 @@ out:
 }
 #endif /* WITH_PKCS11_KEYGEN */
 #else /* ENABLE_PKCS11 */
+
+#include <sys/types.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+#include "log.h"
+#include "sshkey.h"
+
 int
 pkcs11_init(int interactive)
 {

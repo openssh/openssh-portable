@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.137 2019/01/23 21:50:56 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.140 2019/08/16 06:13:15 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -96,7 +96,7 @@ set_nonblock(int fd)
 	int val;
 
 	val = fcntl(fd, F_GETFL);
-	if (val < 0) {
+	if (val == -1) {
 		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
@@ -120,7 +120,7 @@ unset_nonblock(int fd)
 	int val;
 
 	val = fcntl(fd, F_GETFL);
-	if (val < 0) {
+	if (val == -1) {
 		error("fcntl(%d, F_GETFL): %s", fd, strerror(errno));
 		return (-1);
 	}
@@ -550,7 +550,7 @@ put_host_port(const char *host, u_short port)
 
 	if (port == 0 || port == SSH_DEFAULT_PORT)
 		return(xstrdup(host));
-	if (asprintf(&hoststr, "[%s]:%d", host, (int)port) < 0)
+	if (asprintf(&hoststr, "[%s]:%d", host, (int)port) == -1)
 		fatal("put_host_port: asprintf: %s", strerror(errno));
 	debug3("put_host_port: %s", hoststr);
 	return hoststr;
@@ -1049,13 +1049,18 @@ char *
 percent_expand(const char *string, ...)
 {
 #define EXPAND_MAX_KEYS	16
-	u_int num_keys, i, j;
+	u_int num_keys, i;
 	struct {
 		const char *key;
 		const char *repl;
 	} keys[EXPAND_MAX_KEYS];
-	char buf[4096];
+	struct sshbuf *buf;
 	va_list ap;
+	int r;
+	char *ret;
+
+	if ((buf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
 
 	/* Gather keys */
 	va_start(ap, string);
@@ -1072,14 +1077,13 @@ percent_expand(const char *string, ...)
 	va_end(ap);
 
 	/* Expand string */
-	*buf = '\0';
 	for (i = 0; *string != '\0'; string++) {
 		if (*string != '%') {
  append:
-			buf[i++] = *string;
-			if (i >= sizeof(buf))
-				fatal("%s: string too long", __func__);
-			buf[i] = '\0';
+			if ((r = sshbuf_put_u8(buf, *string)) != 0) {
+				fatal("%s: sshbuf_put_u8: %s",
+				    __func__, ssh_err(r));
+			}
 			continue;
 		}
 		string++;
@@ -1088,18 +1092,23 @@ percent_expand(const char *string, ...)
 			goto append;
 		if (*string == '\0')
 			fatal("%s: invalid format", __func__);
-		for (j = 0; j < num_keys; j++) {
-			if (strchr(keys[j].key, *string) != NULL) {
-				i = strlcat(buf, keys[j].repl, sizeof(buf));
-				if (i >= sizeof(buf))
-					fatal("%s: string too long", __func__);
+		for (i = 0; i < num_keys; i++) {
+			if (strchr(keys[i].key, *string) != NULL) {
+				if ((r = sshbuf_put(buf, keys[i].repl,
+				    strlen(keys[i].repl))) != 0) {
+					fatal("%s: sshbuf_put: %s",
+					    __func__, ssh_err(r));
+				}
 				break;
 			}
 		}
-		if (j >= num_keys)
+		if (i >= num_keys)
 			fatal("%s: unknown key %%%c", __func__, *string);
 	}
-	return (xstrdup(buf));
+	if ((ret = sshbuf_dup_string(buf)) == NULL)
+		fatal("%s: sshbuf_dup_string failed", __func__);
+	sshbuf_free(buf);
+	return ret;
 #undef EXPAND_MAX_KEYS
 }
 
@@ -1136,7 +1145,7 @@ tun_open(int tun, int mode, char **ifname)
 		return -1;
 	}
 
-	if (fd < 0) {
+	if (fd == -1) {
 		debug("%s: %s open: %s", __func__, name, strerror(errno));
 		return -1;
 	}
@@ -1575,7 +1584,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 	}
 
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0) {
+	if (sock == -1) {
 		saved_errno = errno;
 		error("%s: socket: %.100s", __func__, strerror(errno));
 		errno = saved_errno;
@@ -1585,7 +1594,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 		if (unlink(path) != 0 && errno != ENOENT)
 			error("unlink(%s): %.100s", path, strerror(errno));
 	}
-	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) < 0) {
+	if (bind(sock, (struct sockaddr *)&sunaddr, sizeof(sunaddr)) == -1) {
 		saved_errno = errno;
 		error("%s: cannot bind to path %s: %s",
 		    __func__, path, strerror(errno));
@@ -1593,7 +1602,7 @@ unix_listener(const char *path, int backlog, int unlink_first)
 		errno = saved_errno;
 		return -1;
 	}
-	if (listen(sock, backlog) < 0) {
+	if (listen(sock, backlog) == -1) {
 		saved_errno = errno;
 		error("%s: cannot listen on path %s: %s",
 		    __func__, path, strerror(errno));
@@ -1875,7 +1884,7 @@ safe_path(const char *name, struct stat *stp, const char *pw_dir,
 		}
 		strlcpy(buf, cp, sizeof(buf));
 
-		if (stat(buf, &st) < 0 ||
+		if (stat(buf, &st) == -1 ||
 		    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
 			snprintf(err, errlen,
@@ -1910,7 +1919,7 @@ safe_path_fd(int fd, const char *file, struct passwd *pw,
 	struct stat st;
 
 	/* check the open file to avoid races */
-	if (fstat(fd, &st) < 0) {
+	if (fstat(fd, &st) == -1) {
 		snprintf(err, errlen, "cannot stat file %s: %s",
 		    file, strerror(errno));
 		return -1;

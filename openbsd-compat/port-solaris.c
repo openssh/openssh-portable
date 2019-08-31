@@ -348,8 +348,7 @@ solaris_drop_privs_root_pinfo_net_exec(void)
 	    priv_delset(pset, PRIV_NET_ACCESS) != 0 ||
 #endif
 	    priv_delset(pset, PRIV_PROC_EXEC) != 0 ||
-	    priv_delset(pset, PRIV_PROC_INFO) != 0 ||
-	    priv_delset(pset, PRIV_PROC_SESSION) != 0)
+	    priv_delset(pset, PRIV_PROC_INFO) != 0)
 		fatal("priv_delset: %s", strerror(errno));
 
 	if (setppriv(PRIV_SET, PRIV_PERMITTED, pset) != 0 ||

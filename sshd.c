@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.532 2019/01/21 10:38:54 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.537 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -213,9 +213,26 @@ u_int session_id2_len = 0;
 /* record remote hostname or ip */
 u_int utmp_len = HOST_NAME_MAX+1;
 
-/* options.max_startup sized array of fd ints */
+/*
+ * startup_pipes/flags are used for tracking children of the listening sshd
+ * process early in their lifespans. This tracking is needed for three things:
+ *
+ * 1) Implementing the MaxStartups limit of concurrent unauthenticated
+ *    connections.
+ * 2) Avoiding a race condition for SIGHUP processing, where child processes
+ *    may have listen_socks open that could collide with main listener process
+ *    after it restarts.
+ * 3) Ensuring that rexec'd sshd processes have received their initial state
+ *    from the parent listen process before handling SIGHUP.
+ *
+ * Child processes signal that they have completed closure of the listen_socks
+ * and (if applicable) received their rexec state by sending a char over their
+ * sock. Child processes signal that authentication has completed by closing
+ * the sock (or by exiting).
+ */
 static int *startup_pipes = NULL;
-static int startup_pipe;		/* in child */
+static int *startup_flags = NULL;	/* Indicates child closed listener */
+static int startup_pipe = -1;		/* in child */
 
 /* variables used for privilege separation */
 int use_privsep = -1;
@@ -328,7 +345,7 @@ main_sigchld_handler(int sig)
 	int status;
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
-	    (pid < 0 && errno == EINTR))
+	    (pid == -1 && errno == EINTR))
 		;
 	errno = save_errno;
 }
@@ -451,7 +468,7 @@ privsep_preauth_child(void)
 		debug3("privsep user:group %u:%u", (u_int)privsep_pw->pw_uid,
 		    (u_int)privsep_pw->pw_gid);
 		gidset[0] = privsep_pw->pw_gid;
-		if (setgroups(1, gidset) < 0)
+		if (setgroups(1, gidset) == -1)
 			fatal("setgroups: %.100s", strerror(errno));
 		permanently_set_uid(privsep_pw);
 	}
@@ -491,7 +508,7 @@ privsep_preauth(struct ssh *ssh)
 		monitor_child_preauth(ssh, pmonitor);
 
 		/* Wait for the child's exit status */
-		while (waitpid(pid, &status, 0) < 0) {
+		while (waitpid(pid, &status, 0) == -1) {
 			if (errno == EINTR)
 				continue;
 			pmonitor->m_pid = -1;
@@ -901,14 +918,9 @@ server_accept_inetd(int *sock_in, int *sock_out)
 {
 	int fd;
 
-	startup_pipe = -1;
 	if (rexeced_flag) {
 		close(REEXEC_CONFIG_PASS_FD);
 		*sock_in = *sock_out = dup(STDIN_FILENO);
-		if (!debug_flag) {
-			startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
-			close(REEXEC_STARTUP_PIPE_FD);
-		}
 	} else {
 		*sock_in = dup(STDIN_FILENO);
 		*sock_out = dup(STDOUT_FILENO);
@@ -955,7 +967,7 @@ listen_on_addrs(struct listenaddr *la)
 		/* Create socket for listening. */
 		listen_sock = socket(ai->ai_family, ai->ai_socktype,
 		    ai->ai_protocol);
-		if (listen_sock < 0) {
+		if (listen_sock == -1) {
 			/* kernel may not support ipv6 */
 			verbose("socket: %.100s", strerror(errno));
 			continue;
@@ -984,7 +996,7 @@ listen_on_addrs(struct listenaddr *la)
 		debug("Bind to port %s on %s.", strport, ntop);
 
 		/* Bind the socket to the desired port. */
-		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+		if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) == -1) {
 			error("Bind to port %s on %s failed: %.200s.",
 			    strport, ntop, strerror(errno));
 			close(listen_sock);
@@ -994,7 +1006,7 @@ listen_on_addrs(struct listenaddr *la)
 		num_listen_socks++;
 
 		/* Start listening on the port. */
-		if (listen(listen_sock, SSH_LISTEN_BACKLOG) < 0)
+		if (listen(listen_sock, SSH_LISTEN_BACKLOG) == -1)
 			fatal("listen on [%s]:%s: %.100s",
 			    ntop, strport, strerror(errno));
 		logit("Server listening on %s port %s%s%s.",
@@ -1033,8 +1045,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 {
 	fd_set *fdset;
 	int i, j, ret, maxfd;
-	int startups = 0;
+	int startups = 0, listening = 0, lameduck = 0;
 	int startup_p[2] = { -1 , -1 };
+	char c = 0;
 	struct sockaddr_storage from;
 	socklen_t fromlen;
 	pid_t pid;
@@ -1048,6 +1061,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			maxfd = listen_socks[i];
 	/* pipes connected to unauthenticated childs */
 	startup_pipes = xcalloc(options.max_startups, sizeof(int));
+	startup_flags = xcalloc(options.max_startups, sizeof(int));
 	for (i = 0; i < options.max_startups; i++)
 		startup_pipes[i] = -1;
 
@@ -1056,8 +1070,15 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	 * the daemon is killed with a signal.
 	 */
 	for (;;) {
-		if (received_sighup)
-			sighup_restart();
+		if (received_sighup) {
+			if (!lameduck) {
+				debug("Received SIGHUP; waiting for children");
+				close_listen_socks();
+				lameduck = 1;
+			}
+			if (listening <= 0)
+				sighup_restart();
+		}
 		free(fdset);
 		fdset = xcalloc(howmany(maxfd + 1, NFDBITS),
 		    sizeof(fd_mask));
@@ -1070,7 +1091,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 
 		/* Wait in select until there is a connection. */
 		ret = select(maxfd+1, fdset, NULL, NULL, NULL);
-		if (ret < 0 && errno != EINTR)
+		if (ret == -1 && errno != EINTR)
 			error("select: %.100s", strerror(errno));
 		if (received_sigterm) {
 			logit("Received signal %d; terminating.",
@@ -1080,29 +1101,47 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				unlink(options.pid_file);
 			exit(received_sigterm == SIGTERM ? 0 : 255);
 		}
-		if (ret < 0)
+		if (ret == -1)
 			continue;
 
-		for (i = 0; i < options.max_startups; i++)
-			if (startup_pipes[i] != -1 &&
-			    FD_ISSET(startup_pipes[i], fdset)) {
-				/*
-				 * the read end of the pipe is ready
-				 * if the child has closed the pipe
-				 * after successful authentication
-				 * or if the child has died
-				 */
+		for (i = 0; i < options.max_startups; i++) {
+			if (startup_pipes[i] == -1 ||
+			    !FD_ISSET(startup_pipes[i], fdset))
+				continue;
+			switch (read(startup_pipes[i], &c, sizeof(c))) {
+			case -1:
+				if (errno == EINTR || errno == EAGAIN)
+					continue;
+				if (errno != EPIPE) {
+					error("%s: startup pipe %d (fd=%d): "
+					    "read %s", __func__, i,
+					    startup_pipes[i], strerror(errno));
+				}
+				/* FALLTHROUGH */
+			case 0:
+				/* child exited or completed auth */
 				close(startup_pipes[i]);
 				startup_pipes[i] = -1;
 				startups--;
+				if (startup_flags[i])
+					listening--;
+				break;
+			case 1:
+				/* child has finished preliminaries */
+				if (startup_flags[i]) {
+					listening--;
+					startup_flags[i] = 0;
+				}
+				break;
 			}
+		}
 		for (i = 0; i < num_listen_socks; i++) {
 			if (!FD_ISSET(listen_socks[i], fdset))
 				continue;
 			fromlen = sizeof(from);
 			*newsock = accept(listen_socks[i],
 			    (struct sockaddr *)&from, &fromlen);
-			if (*newsock < 0) {
+			if (*newsock == -1) {
 				if (errno != EINTR && errno != EWOULDBLOCK &&
 				    errno != ECONNABORTED && errno != EAGAIN)
 					error("accept: %.100s",
@@ -1149,6 +1188,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					if (maxfd < startup_p[0])
 						maxfd = startup_p[0];
 					startups++;
+					startup_flags[j] = 1;
 					break;
 				}
 
@@ -1174,7 +1214,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					send_rexec_state(config_s[0], cfg);
 					close(config_s[0]);
 				}
-				break;
+				return;
 			}
 
 			/*
@@ -1183,13 +1223,14 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			 * parent continues listening.
 			 */
 			platform_pre_fork();
+			listening++;
 			if ((pid = fork()) == 0) {
 				/*
 				 * Child.  Close the listening and
 				 * max_startup sockets.  Start using
 				 * the accepted socket. Reinitialize
 				 * logging (since our pid has changed).
-				 * We break out of the loop to handle
+				 * We return from this function to handle
 				 * the connection.
 				 */
 				platform_post_fork_child();
@@ -1204,12 +1245,23 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				    log_stderr);
 				if (rexec_flag)
 					close(config_s[0]);
-				break;
+				else {
+					/*
+					 * Signal parent that the preliminaries
+					 * for this child are complete. For the
+					 * re-exec case, this happens after the
+					 * child has received the rexec state
+					 * from the server.
+					 */
+					(void)atomicio(vwrite, startup_pipe,
+					    "\0", 1);
+				}
+				return;
 			}
 
 			/* Parent.  Stay in the loop. */
 			platform_post_fork_parent(pid);
-			if (pid < 0)
+			if (pid == -1)
 				error("fork: %.100s", strerror(errno));
 			else
 				debug("Forked child %ld.", (long)pid);
@@ -1236,10 +1288,6 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 #endif
 			explicit_bzero(rnd, sizeof(rnd));
 		}
-
-		/* child process check (or debug mode) */
-		if (num_listen_socks < 0)
-			break;
 	}
 }
 
@@ -1266,7 +1314,7 @@ check_ip_options(struct ssh *ssh)
 
 	memset(&from, 0, sizeof(from));
 	if (getpeername(sock_in, (struct sockaddr *)&from,
-	    &fromlen) < 0)
+	    &fromlen) == -1)
 		return;
 	if (from.ss_family != AF_INET)
 		return;
@@ -1327,7 +1375,7 @@ set_process_rdomain(struct ssh *ssh, const char *name)
 
 static void
 accumulate_host_timing_secret(struct sshbuf *server_cfg,
-    const struct sshkey *key)
+    struct sshkey *key)
 {
 	static struct ssh_digest_ctx *ctx;
 	u_char *hash;
@@ -1384,8 +1432,6 @@ main(int ac, char **av)
 	int keytype;
 	Authctxt *authctxt;
 	struct connection_info *connection_info = NULL;
-
-	ssh_malloc_init();	/* must be called before any mallocs */
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -1569,8 +1615,18 @@ main(int ac, char **av)
 	/* Fetch our configuration */
 	if ((cfg = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
-	if (rexeced_flag)
+	if (rexeced_flag) {
 		recv_rexec_state(REEXEC_CONFIG_PASS_FD, cfg);
+		if (!debug_flag) {
+			startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
+			close(REEXEC_STARTUP_PIPE_FD);
+			/*
+			 * Signal parent that this child is at a point where
+			 * they can go away if they have a SIGHUP pending.
+			 */
+			(void)atomicio(vwrite, startup_pipe, "\0", 1);
+		}
+	}
 	else if (strcasecmp(config_file_name, "none") != 0)
 		load_server_config(config_file_name, cfg);
 
@@ -1667,6 +1723,12 @@ main(int ac, char **av)
 		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
+		if (r == 0 && (r = sshkey_shield_private(key)) != 0) {
+			do_log2(ll, "Unable to shield host key \"%s\": %s",
+			    options.host_key_files[i], ssh_err(r));
+			sshkey_free(key);
+			key = NULL;
+		}
 		if ((r = sshkey_load_public(options.host_key_files[i],
 		    &pubkey, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
@@ -1785,6 +1847,7 @@ main(int ac, char **av)
 		 */
 		if (connection_info == NULL)
 			connection_info = get_connection_info(ssh, 0, 0);
+		connection_info->test = 1;
 		parse_server_match_config(&options, connection_info);
 		dump_config(&options);
 	}
@@ -1832,7 +1895,7 @@ main(int ac, char **av)
 	already_daemon = daemonized();
 	if (!(debug_flag || inetd_flag || no_daemon_flag || already_daemon)) {
 
-		if (daemon(0, 0) < 0)
+		if (daemon(0, 0) == -1)
 			fatal("daemon() failed: %.200s", strerror(errno));
 
 		disconnect_controlling_tty();
@@ -1895,7 +1958,7 @@ main(int ac, char **av)
 	 * controlling terminal which will result in "could not set
 	 * controlling tty" errors.
 	 */
-	if (!debug_flag && !inetd_flag && setsid() < 0)
+	if (!debug_flag && !inetd_flag && setsid() == -1)
 		error("setsid: %.100s", strerror(errno));
 #endif
 
@@ -1973,7 +2036,7 @@ main(int ac, char **av)
 
 	/* Set SO_KEEPALIVE if requested. */
 	if (options.tcp_keep_alive && ssh_packet_connection_is_on_socket(ssh) &&
-	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0)
+	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) == -1)
 		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
 	if ((remote_port = ssh_remote_port(ssh)) < 0) {
