@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_sshkey.c,v 1.17 2018/09/13 09:03:20 djm Exp $ */
+/* 	$OpenBSD: test_sshkey.c,v 1.18 2019/06/21 04:21:45 djm Exp $ */
 /*
  * Regress test for sshkey.h key management API
  *
@@ -51,8 +51,8 @@ put_opt(struct sshbuf *b, const char *name, const char *value)
 }
 
 static void
-build_cert(struct sshbuf *b, const struct sshkey *k, const char *type,
-    const struct sshkey *sign_key, const struct sshkey *ca_key,
+build_cert(struct sshbuf *b, struct sshkey *k, const char *type,
+    struct sshkey *sign_key, struct sshkey *ca_key,
     const char *sig_alg)
 {
 	struct sshbuf *ca_buf, *pk, *principals, *critopts, *exts;

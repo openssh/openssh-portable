@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.52 2018/07/18 11:34:04 dtucker Exp $ */
+/* $OpenBSD: readpass.c,v 1.54 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -61,19 +61,19 @@ ssh_askpass(char *askpass, const char *msg)
 		error("ssh_askpass: fflush: %s", strerror(errno));
 	if (askpass == NULL)
 		fatal("internal error: askpass undefined");
-	if (pipe(p) < 0) {
+	if (pipe(p) == -1) {
 		error("ssh_askpass: pipe: %s", strerror(errno));
 		return NULL;
 	}
 	osigchld = signal(SIGCHLD, SIG_DFL);
-	if ((pid = fork()) < 0) {
+	if ((pid = fork()) == -1) {
 		error("ssh_askpass: fork: %s", strerror(errno));
 		signal(SIGCHLD, osigchld);
 		return NULL;
 	}
 	if (pid == 0) {
 		close(p[0]);
-		if (dup2(p[1], STDOUT_FILENO) < 0)
+		if (dup2(p[1], STDOUT_FILENO) == -1)
 			fatal("ssh_askpass: dup2: %s", strerror(errno));
 		execlp(askpass, askpass, msg, (char *)NULL);
 		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
@@ -93,7 +93,7 @@ ssh_askpass(char *askpass, const char *msg)
 	buf[len] = '\0';
 
 	close(p[0]);
-	while ((ret = waitpid(pid, &status, 0)) < 0)
+	while ((ret = waitpid(pid, &status, 0)) == -1)
 		if (errno != EINTR)
 			break;
 	signal(SIGCHLD, osigchld);
@@ -117,7 +117,7 @@ ssh_askpass(char *askpass, const char *msg)
 char *
 read_passphrase(const char *prompt, int flags)
 {
-	char *askpass = NULL, *ret, buf[1024];
+	char cr = '\r', *askpass = NULL, *ret, buf[1024];
 	int rppflags, use_askpass = 0, ttyfd;
 
 	rppflags = (flags & RP_ECHO) ? RPP_ECHO_ON : RPP_ECHO_OFF;
@@ -131,9 +131,16 @@ read_passphrase(const char *prompt, int flags)
 	} else {
 		rppflags |= RPP_REQUIRE_TTY;
 		ttyfd = open(_PATH_TTY, O_RDWR);
-		if (ttyfd >= 0)
+		if (ttyfd >= 0) {
+			/*
+			 * If we're on a tty, ensure that show the prompt at
+			 * the beginning of the line. This will hopefully
+			 * clobber any password characters the user has
+			 * optimistically typed before echo is disabled.
+			 */
+			(void)write(ttyfd, &cr, 1);
 			close(ttyfd);
-		else {
+		} else {
 			debug("read_passphrase: can't open %s: %s", _PATH_TTY,
 			    strerror(errno));
 			use_askpass = 1;

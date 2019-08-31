@@ -1,5 +1,5 @@
-%global ver 7.9p1
-%global rel 1%{?dist}
+%define ver 8.0p1
+%define rel 1%{?dist}
 
 # OpenSSH privilege separation requires a user & group ID
 %global sshd_uid    74
@@ -419,7 +419,7 @@ fi
 - Update openssl-devel dependency to match current requirements.
 - Handle Fedora >=6 openssl 1.0 compat libs.
 - Remove SSH1 from description.
-- Don't strip binaries at build time so that debuginfo package can be
+- Do not strip binaries at build time so that debuginfo package can be
   created.
 
 * Sun Nov 16 2014 Nico Kadel-Garcia <nakdel@gmail.com>

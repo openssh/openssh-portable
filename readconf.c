@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.300 2018/10/05 14:26:09 naddy Exp $ */
+/* $OpenBSD: readconf.c,v 1.308 2019/08/09 05:05:54 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,7 @@
      User foo
 
    Host fake.com
-     HostName another.host.name.real.org
+     Hostname another.host.name.real.org
      User blaah
      Port 34289
      ForwardX11 no
@@ -133,10 +133,11 @@
 
 static int read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth);
+    int flags, int *activep, int *want_final_pass, int depth);
 static int process_config_line_depth(Options *options, struct passwd *pw,
     const char *host, const char *original_host, char *line,
-    const char *filename, int linenum, int *activep, int flags, int depth);
+    const char *filename, int linenum, int *activep, int flags,
+    int *want_final_pass, int depth);
 
 /* Keyword tokens. */
 
@@ -147,7 +148,7 @@ typedef enum {
 	oGatewayPorts, oExitOnForwardFailure,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
-	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
+	oIdentityFile, oHostname, oPort, oCipher, oRemoteForward, oLocalForward,
 	oCertificateFile, oAddKeysToAgent, oIdentityAgent,
 	oUser, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -207,8 +208,8 @@ static struct {
 	{ "gssapidelegatecredentials", oUnsupported },
 #endif
 #ifdef ENABLE_PKCS11
-	{ "smartcarddevice", oPKCS11Provider },
 	{ "pkcs11provider", oPKCS11Provider },
+	{ "smartcarddevice", oPKCS11Provider },
 # else
 	{ "smartcarddevice", oUnsupported },
 	{ "pkcs11provider", oUnsupported },
@@ -239,7 +240,7 @@ static struct {
 	{ "certificatefile", oCertificateFile },
 	{ "addkeystoagent", oAddKeysToAgent },
 	{ "identityagent", oIdentityAgent },
-	{ "hostname", oHostName },
+	{ "hostname", oHostname },
 	{ "hostkeyalias", oHostKeyAlias },
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
@@ -485,6 +486,11 @@ execute_in_shell(const char *cmd)
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
 
+	if (access(shell, X_OK) == -1) {
+		fatal("Shell \"%s\" is not executable: %s",
+		    shell, strerror(errno));
+	}
+
 	/* Need this to redirect subprocess stdin/out */
 	if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1)
 		fatal("open(/dev/null): %s", strerror(errno));
@@ -517,7 +523,7 @@ execute_in_shell(const char *cmd)
 		_exit(1);
 	}
 	/* Parent. */
-	if (pid < 0)
+	if (pid == -1)
 		fatal("%s: fork: %.100s", __func__, strerror(errno));
 
 	close(devnull);
@@ -539,8 +545,8 @@ execute_in_shell(const char *cmd)
  */
 static int
 match_cfg_line(Options *options, char **condition, struct passwd *pw,
-    const char *host_arg, const char *original_host, int post_canon,
-    const char *filename, int linenum)
+    const char *host_arg, const char *original_host, int final_pass,
+    int *want_final_pass, const char *filename, int linenum)
 {
 	char *arg, *oattrib, *attrib, *cmd, *cp = *condition, *host, *criteria;
 	const char *ruser;
@@ -554,7 +560,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 	 */
 	port = options->port <= 0 ? default_ssh_port() : options->port;
 	ruser = options->user == NULL ? pw->pw_name : options->user;
-	if (post_canon) {
+	if (final_pass) {
 		host = xstrdup(options->hostname);
 	} else if (options->hostname != NULL) {
 		/* NB. Please keep in sync with ssh.c:main() */
@@ -586,8 +592,16 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			goto out;
 		}
 		attributes++;
-		if (strcasecmp(attrib, "canonical") == 0) {
-			r = !!post_canon;  /* force bitmask member to boolean */
+		if (strcasecmp(attrib, "canonical") == 0 ||
+		    strcasecmp(attrib, "final") == 0) {
+			/*
+			 * If the config requests "Match final" then remember
+			 * this so we can perform a second pass later.
+			 */
+			if (strcasecmp(attrib, "final") == 0 &&
+			    want_final_pass != NULL)
+				*want_final_pass = 1;
+			r = !!final_pass;  /* force bitmask member to boolean */
 			if (r == (negate ? 1 : 0))
 				this_result = result = 0;
 			debug3("%.200s line %d: %smatched '%s'",
@@ -824,14 +838,14 @@ process_config_line(Options *options, struct passwd *pw, const char *host,
     int linenum, int *activep, int flags)
 {
 	return process_config_line_depth(options, pw, host, original_host,
-	    line, filename, linenum, activep, flags, 0);
+	    line, filename, linenum, activep, flags, NULL, 0);
 }
 
 #define WHITESPACE " \t\r\n"
 static int
 process_config_line_depth(Options *options, struct passwd *pw, const char *host,
     const char *original_host, char *line, const char *filename,
-    int linenum, int *activep, int flags, int depth)
+    int linenum, int *activep, int flags, int *want_final_pass, int depth)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2;
 	char **cpptr, fwdarg[256];
@@ -1108,7 +1122,7 @@ parse_char_array:
 		max_entries = SSH_MAX_HOSTS_FILES;
 		goto parse_char_array;
 
-	case oHostName:
+	case oHostname:
 		charptr = &options->hostname;
 		goto parse_string;
 
@@ -1197,7 +1211,7 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*arg != '-' && !mac_valid(*arg == '+' ? arg + 1 : arg))
-			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
+			fatal("%.200s line %d: Bad SSH2 MAC spec '%s'.",
 			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->macs == NULL)
 			options->macs = xstrdup(arg);
@@ -1339,7 +1353,8 @@ parse_keytypes:
 			fatal("Host directive not supported as a command-line "
 			    "option");
 		value = match_cfg_line(options, &s, pw, host, original_host,
-		    flags & SSHCONF_POSTCANON, filename, linenum);
+		    flags & SSHCONF_FINAL, want_final_pass,
+		    filename, linenum);
 		if (value < 0)
 			fatal("%.200s line %d: Bad Match condition", filename,
 			    linenum);
@@ -1521,7 +1536,7 @@ parse_keytypes:
 			if (*arg == '~' && (flags & SSHCONF_USERCONF) == 0)
 				fatal("%.200s line %d: bad include path %s.",
 				    filename, linenum, arg);
-			if (*arg != '/' && *arg != '~') {
+			if (!path_absolute(arg) && *arg != '~') {
 				xasprintf(&arg2, "%s/%s",
 				    (flags & SSHCONF_USERCONF) ?
 				    "~/" _PATH_SSH_USER_DIR : SSHDIR, arg);
@@ -1548,7 +1563,7 @@ parse_keytypes:
 				    pw, host, original_host, options,
 				    flags | SSHCONF_CHECKPERM |
 				    (oactive ? 0 : SSHCONF_NEVERMATCH),
-				    activep, depth + 1);
+				    activep, want_final_pass, depth + 1);
 				if (r != 1 && errno != ENOENT) {
 					fatal("Can't open user config file "
 					    "%.100s: %.100s", gl.gl_pathv[i],
@@ -1751,19 +1766,20 @@ parse_keytypes:
  */
 int
 read_config_file(const char *filename, struct passwd *pw, const char *host,
-    const char *original_host, Options *options, int flags)
+    const char *original_host, Options *options, int flags,
+    int *want_final_pass)
 {
 	int active = 1;
 
 	return read_config_file_depth(filename, pw, host, original_host,
-	    options, flags, &active, 0);
+	    options, flags, &active, want_final_pass, 0);
 }
 
 #define READCONF_MAX_DEPTH	16
 static int
 read_config_file_depth(const char *filename, struct passwd *pw,
     const char *host, const char *original_host, Options *options,
-    int flags, int *activep, int depth)
+    int flags, int *activep, int *want_final_pass, int depth)
 {
 	FILE *f;
 	char *line = NULL;
@@ -1798,7 +1814,8 @@ read_config_file_depth(const char *filename, struct passwd *pw,
 		/* Update line number counter. */
 		linenum++;
 		if (process_config_line_depth(options, pw, host, original_host,
-		    line, filename, linenum, activep, flags, depth) != 0)
+		    line, filename, linenum, activep, flags, want_final_pass,
+		    depth) != 0)
 			bad_options++;
 	}
 	free(line);
@@ -2110,9 +2127,9 @@ fill_default_options(Options * options)
 		    defaults, all)) != 0) \
 			fatal("%s: %s: %s", __func__, #what, ssh_err(r)); \
 	} while (0)
-	ASSEMBLE(ciphers, KEX_SERVER_ENCRYPT, all_cipher);
-	ASSEMBLE(macs, KEX_SERVER_MAC, all_mac);
-	ASSEMBLE(kex_algorithms, KEX_SERVER_KEX, all_kex);
+	ASSEMBLE(ciphers, KEX_CLIENT_ENCRYPT, all_cipher);
+	ASSEMBLE(macs, KEX_CLIENT_MAC, all_mac);
+	ASSEMBLE(kex_algorithms, KEX_CLIENT_KEX, all_kex);
 	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(ca_sign_algorithms, SSH_ALLOWED_CA_SIGALGS, all_sig);
@@ -2135,6 +2152,7 @@ fill_default_options(Options * options)
 	CLEAR_ON_NONE(options->proxy_command);
 	CLEAR_ON_NONE(options->control_path);
 	CLEAR_ON_NONE(options->revoked_host_keys);
+	CLEAR_ON_NONE(options->pkcs11_provider);
 	if (options->jump_host != NULL &&
 	    strcmp(options->jump_host, "none") == 0 &&
 	    options->jump_port == 0 && options->jump_user == NULL) {
@@ -2580,7 +2598,7 @@ dump_client_config(Options *o, const char *host)
 
 	/* Most interesting options first: user, host, port */
 	dump_cfg_string(oUser, o->user);
-	dump_cfg_string(oHostName, host);
+	dump_cfg_string(oHostname, host);
 	dump_cfg_int(oPort, o->port);
 
 	/* Flag options */

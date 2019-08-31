@@ -13,33 +13,35 @@ OpenSSL)
 Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
 http://www.gzip.org/zlib/
 
-libcrypto (LibreSSL or OpenSSL >= 1.0.1 < 1.1.0)
-LibreSSL http://www.libressl.org/ ; or
-OpenSSL http://www.openssl.org/
+libcrypto from either of:
+ - LibreSSL (https://www.libressl.org/)
+ - OpenSSL (https://www.openssl.org) with any of the following versions:
+   - 1.0.x >= 1.0.1 or 1.1.0 >= 1.1.0g or any 1.1.1
 
 LibreSSL/OpenSSL should be compiled as a position-independent library
 (i.e. with -fPIC) otherwise OpenSSH will not be able to link with it.
 If you must use a non-position-independent libcrypto, then you may need
-to configure OpenSSH --without-pie.  Note that because of API changes,
-OpenSSL 1.1.x is not currently supported.
+to configure OpenSSH --without-pie.  Note that due to a bug in EVP_CipherInit
+OpenSSL 1.1 versions prior to 1.1.0g can't be used.
 
 The remaining items are optional.
 
 NB. If you operating system supports /dev/random, you should configure
 libcrypto (LibreSSL/OpenSSL) to use it. OpenSSH relies on libcrypto's
-direct support of /dev/random, or failing that, either prngd or egd
+direct support of /dev/random, or failing that, either prngd or egd.
 
 PRNGD:
 
 If your system lacks kernel-based random collection, the use of Lutz
-Jaenicke's PRNGd is recommended.
+Jaenicke's PRNGd is recommended. It requires that libcrypto be configured
+to support it.
 
 http://prngd.sourceforge.net/
 
 EGD:
 
-If the kernel lacks /dev/random the Entropy Gathering Daemon (EGD) is
-supported only if libcrypto supports it.
+The Entropy Gathering Daemon (EGD) suppports the same interface as prngd.
+It also supported only if libcrypto is configured to support it.
 
 http://egd.sourceforge.net/
 

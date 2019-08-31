@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.84 2018/10/03 06:38:35 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.86 2019/07/09 04:15:00 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -21,6 +21,7 @@
 
 #include <netdb.h>
 #include <pwd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -320,7 +321,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 	size_t npermits = *npermitsp;
 	const char *errstr = "unknown error";
 
-	if (npermits > INT_MAX) {
+	if (npermits > SSH_AUTHOPT_PERMIT_MAX) {
 		*errstrp = "too many permission directives";
 		return -1;
 	}
@@ -332,7 +333,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 		 * Allow a bare port number in permitlisten to indicate a
 		 * listen_host wildcard.
 		 */
-		if (asprintf(&tmp, "*:%s", opt) < 0) {
+		if (asprintf(&tmp, "*:%s", opt) == -1) {
 			*errstrp = "memory allocation failed";
 			return -1;
 		}

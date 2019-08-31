@@ -24,6 +24,8 @@
 
 #include "includes.h"
 
+#define RANDOM_SEED_SIZE 48
+
 #ifdef WITH_OPENSSL
 
 #include <sys/types.h>
@@ -37,6 +39,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stddef.h> /* for offsetof */
@@ -63,8 +66,6 @@
  * PRNGd.
  */
 #ifndef OPENSSL_PRNG_ONLY
-
-#define RANDOM_SEED_SIZE 48
 
 /*
  * Collect 'len' bytes of entropy into 'buf' from PRNGD/EGD daemon
@@ -201,14 +202,15 @@ rexec_send_rng_seed(struct sshbuf *m)
 void
 rexec_recv_rng_seed(struct sshbuf *m)
 {
-	u_char *buf = NULL;
+	const u_char *buf = NULL;
 	size_t len = 0;
 	int r;
 
-	if ((r = sshbuf_get_string_direct(m, &buf, &len)) != 0
+	if ((r = sshbuf_get_string_direct(m, &buf, &len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 
-	debug3("rexec_recv_rng_seed: seeding rng with %u bytes", len);
+	debug3("rexec_recv_rng_seed: seeding rng with %lu bytes",
+	    (unsigned long)len);
 	RAND_add(buf, len, len);
 }
 #endif /* OPENSSL_PRNG_ONLY */
@@ -216,35 +218,49 @@ rexec_recv_rng_seed(struct sshbuf *m)
 void
 seed_rng(void)
 {
-#ifndef OPENSSL_PRNG_ONLY
 	unsigned char buf[RANDOM_SEED_SIZE];
-#endif
-	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER, SSLeay()))
+
+	/* Initialise libcrypto */
+	ssh_libcrypto_init();
+
+	if (!ssh_compatible_openssl(OPENSSL_VERSION_NUMBER,
+	    OpenSSL_version_num()))
 		fatal("OpenSSL version mismatch. Built against %lx, you "
-		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER, SSLeay());
+		    "have %lx", (u_long)OPENSSL_VERSION_NUMBER,
+		    OpenSSL_version_num());
 
 #ifndef OPENSSL_PRNG_ONLY
-	if (RAND_status() == 1) {
+	if (RAND_status() == 1)
 		debug3("RNG is ready, skipping seeding");
-		return;
+	else {
+		if (seed_from_prngd(buf, sizeof(buf)) == -1)
+			fatal("Could not obtain seed from PRNGd");
+		RAND_add(buf, sizeof(buf), sizeof(buf));
 	}
-
-	if (seed_from_prngd(buf, sizeof(buf)) == -1)
-		fatal("Could not obtain seed from PRNGd");
-	RAND_add(buf, sizeof(buf), sizeof(buf));
-	memset(buf, '\0', sizeof(buf));
-
 #endif /* OPENSSL_PRNG_ONLY */
+
 	if (RAND_status() != 1)
 		fatal("PRNG is not seeded");
+
+	/* Ensure arc4random() is primed */
+	arc4random_buf(buf, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 }
 
 #else /* WITH_OPENSSL */
 
-/* Handled in arc4random() */
+#include <stdlib.h>
+#include <string.h>
+
+/* Acutal initialisation is handled in arc4random() */
 void
 seed_rng(void)
 {
+	unsigned char buf[RANDOM_SEED_SIZE];
+
+	/* Ensure arc4random() is primed */
+	arc4random_buf(buf, sizeof(buf));
+	explicit_bzero(buf, sizeof(buf));
 }
 
 #endif /* WITH_OPENSSL */

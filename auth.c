@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.133 2018/09/12 01:19:12 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.139 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <netdb.h>
+#include <time.h>
 
 #include "xmalloc.h"
 #include "match.h"
@@ -96,9 +97,8 @@ static struct sshbuf *auth_debug;
  * Otherwise true is returned.
  */
 int
-allowed_user(struct passwd * pw)
+allowed_user(struct ssh *ssh, struct passwd * pw)
 {
-	struct ssh *ssh = active_state; /* XXX */
 	struct stat st;
 	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
 	u_int i;
@@ -167,7 +167,7 @@ allowed_user(struct passwd * pw)
 		char *shell = xstrdup((pw->pw_shell[0] == '\0') ?
 		    _PATH_BSHELL : pw->pw_shell); /* empty = /bin/sh */
 
-		if (stat(shell, &st) != 0) {
+		if (stat(shell, &st) == -1) {
 			logit("User %.100s not allowed because shell %.100s "
 			    "does not exist", pw->pw_name, shell);
 			free(shell);
@@ -258,7 +258,7 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef CUSTOM_SYS_AUTH_ALLOWED_USER
-	if (!sys_auth_allowed_user(pw, &loginmsg))
+	if (!sys_auth_allowed_user(pw, loginmsg))
 		return 0;
 #endif
 
@@ -308,10 +308,10 @@ format_method_key(Authctxt *authctxt)
 }
 
 void
-auth_log(Authctxt *authctxt, int authenticated, int partial,
+auth_log(struct ssh *ssh, int authenticated, int partial,
     const char *method, const char *submethod)
 {
-	struct ssh *ssh = active_state; /* XXX */
+	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
 	int level = SYSLOG_LEVEL_VERBOSE;
 	const char *authmsg;
 	char *extra = NULL;
@@ -356,26 +356,26 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 	    (strcmp(method, "password") == 0 ||
 	    strncmp(method, "keyboard-interactive", 20) == 0 ||
 	    strcmp(method, "challenge-response") == 0))
-		record_failed_login(authctxt->user,
+		record_failed_login(ssh, authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 # ifdef WITH_AIXAUTHENTICATE
 	if (authenticated)
 		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
-		    &loginmsg);
+		    loginmsg);
 # endif
 #endif
 #ifdef SSH_AUDIT_EVENTS
 	if (authenticated == 0 && !authctxt->postponed)
-		audit_event(audit_classify_auth(method));
+		audit_event(ssh, audit_classify_auth(method));
 #endif
 }
 
 
 void
-auth_maxtries_exceeded(Authctxt *authctxt)
+auth_maxtries_exceeded(struct ssh *ssh)
 {
-	struct ssh *ssh = active_state; /* XXX */
+	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
 
 	error("maximum authentication attempts exceeded for "
 	    "%s%.100s from %.200s port %d ssh2",
@@ -383,7 +383,7 @@ auth_maxtries_exceeded(Authctxt *authctxt)
 	    authctxt->user,
 	    ssh_remote_ipaddr(ssh),
 	    ssh_remote_port(ssh));
-	packet_disconnect("Too many authentication failures");
+	ssh_packet_disconnect(ssh, "Too many authentication failures");
 	/* NOTREACHED */
 }
 
@@ -437,7 +437,7 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
 	 */
-	if (*file == '/')
+	if (path_absolute(file))
 		return (file);
 
 	i = snprintf(ret, sizeof(ret), "%s/%s", pw->pw_dir, file);
@@ -517,7 +517,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
 		return NULL;
 	}
 
-	if (fstat(fd, &st) < 0) {
+	if (fstat(fd, &st) == -1) {
 		close(fd);
 		return NULL;
 	}
@@ -558,9 +558,8 @@ auth_openprincipals(const char *file, struct passwd *pw, int strict_modes)
 }
 
 struct passwd *
-getpwnamallow(const char *user)
+getpwnamallow(struct ssh *ssh, const char *user)
 {
-	struct ssh *ssh = active_state; /* XXX */
 #ifdef HAVE_LOGIN_CAP
 	extern login_cap_t *lc;
 #ifdef BSD_AUTH
@@ -568,8 +567,9 @@ getpwnamallow(const char *user)
 #endif
 #endif
 	struct passwd *pw;
-	struct connection_info *ci = get_connection_info(1, options.use_dns);
+	struct connection_info *ci;
 
+	ci = get_connection_info(ssh, 1, options.use_dns);
 	ci->user = user;
 	parse_server_match_config(&options, ci);
 	log_change_level(options.log_level);
@@ -584,32 +584,19 @@ getpwnamallow(const char *user)
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_restoreauthdb();
 #endif
-#ifdef HAVE_CYGWIN
-	/*
-	 * Windows usernames are case-insensitive.  To avoid later problems
-	 * when trying to match the username, the user is only allowed to
-	 * login if the username is given in the same case as stored in the
-	 * user database.
-	 */
-	if (pw != NULL && strcmp(user, pw->pw_name) != 0) {
-		logit("Login name %.100s does not match stored username %.100s",
-		    user, pw->pw_name);
-		pw = NULL;
-	}
-#endif
 	if (pw == NULL) {
 		logit("Invalid user %.100s from %.100s port %d",
 		    user, ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 #ifdef CUSTOM_FAILED_LOGIN
-		record_failed_login(user,
+		record_failed_login(ssh, user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
 #endif
 #ifdef SSH_AUDIT_EVENTS
-		audit_event(SSH_INVALID_USER);
+		audit_event(ssh, SSH_INVALID_USER);
 #endif /* SSH_AUDIT_EVENTS */
 		return (NULL);
 	}
-	if (!allowed_user(pw))
+	if (!allowed_user(ssh, pw))
 		return (NULL);
 #ifdef HAVE_LOGIN_CAP
 	if ((lc = login_getclass(pw->pw_class)) == NULL) {
@@ -688,9 +675,8 @@ auth_debug_add(const char *fmt,...)
 }
 
 void
-auth_debug_send(void)
+auth_debug_send(struct ssh *ssh)
 {
-	struct ssh *ssh = active_state;		/* XXX */
 	char *msg;
 	int r;
 
@@ -760,7 +746,7 @@ remote_hostname(struct ssh *ssh)
 	fromlen = sizeof(from);
 	memset(&from, 0, sizeof(from));
 	if (getpeername(ssh_packet_get_connection_in(ssh),
-	    (struct sockaddr *)&from, &fromlen) < 0) {
+	    (struct sockaddr *)&from, &fromlen) == -1) {
 		debug("getpeername failed: %.100s", strerror(errno));
 		return strdup(ntop);
 	}
@@ -893,12 +879,12 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	 * If executing an explicit binary, then verify the it exists
 	 * and appears safe-ish to execute
 	 */
-	if (*av[0] != '/') {
+	if (!path_absolute(av[0])) {
 		error("%s path is not absolute", tag);
 		return 0;
 	}
 	temporarily_use_uid(pw);
-	if (stat(av[0], &st) < 0) {
+	if (stat(av[0], &st) == -1) {
 		error("Could not stat %s \"%s\": %s", tag,
 		    av[0], strerror(errno));
 		restore_uid();
@@ -910,7 +896,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 		return 0;
 	}
 	/* Prepare to keep the child's stdout if requested */
-	if (pipe(p) != 0) {
+	if (pipe(p) == -1) {
 		error("%s: pipe: %s", tag, strerror(errno));
 		restore_uid();
 		return 0;
@@ -960,12 +946,12 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 		closefrom(STDERR_FILENO + 1);
 
 		/* Don't use permanently_set_uid() here to avoid fatal() */
-		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) != 0) {
+		if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) == -1) {
 			error("%s: setresgid %u: %s", tag, (u_int)pw->pw_gid,
 			    strerror(errno));
 			_exit(1);
 		}
-		if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) != 0) {
+		if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) == -1) {
 			error("%s: setresuid %u: %s", tag, (u_int)pw->pw_uid,
 			    strerror(errno));
 			_exit(1);

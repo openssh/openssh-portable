@@ -29,6 +29,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "packet.h"
 #include "ssherr.h"

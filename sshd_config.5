@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.282 2018/09/20 03:28:06 djm Exp $
-.Dd $Mdocdate: September 20 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.288 2019/08/09 04:24:03 dtucker Exp $
+.Dd $Mdocdate: August 9 2019 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -277,9 +277,7 @@ is not, then
 will refuse to start.
 .It Cm AuthorizedKeysFile
 Specifies the file that contains the public keys used for user authentication.
-The format is described in the
-.Sx AUTHORIZED_KEYS FILE FORMAT
-section of
+The format is described in the AUTHORIZED_KEYS FILE FORMAT section of
 .Xr sshd 8 .
 Arguments to
 .Cm AuthorizedKeysFile
@@ -387,7 +385,7 @@ Specifies which algorithms are allowed for signing of certificates
 by certificate authorities (CAs).
 The default is:
 .Bd -literal -offset indent
-ecdsa-sha2-nistp256.ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
+ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,
 ssh-ed25519,rsa-sha2-512,rsa-sha2-256,ssh-rsa
 .Ed
 .Pp
@@ -514,7 +512,7 @@ The TCP keepalive option enabled by
 .Cm TCPKeepAlive
 is spoofable.
 The client alive mechanism is valuable when the client or
-server depend on knowing when a connection has become inactive.
+server depend on knowing when a connection has become unresponsive.
 .Pp
 The default value is 3.
 If
@@ -1084,7 +1082,7 @@ and
 .Cm RDomain
 representing the
 .Xr rdomain 4
-on which the connection was received.)
+on which the connection was received).
 .Pp
 The match patterns may consist of single entries or comma-separated
 lists and may use the wildcard and negation operators described in the
@@ -1157,7 +1155,7 @@ Available keywords are
 .Cm X11DisplayOffset ,
 .Cm X11Forwarding
 and
-.Cm X11UseLocalHost .
+.Cm X11UseLocalhost .
 .It Cm MaxAuthTries
 Specifies the maximum number of authentication attempts permitted per
 connection.
@@ -1237,7 +1235,7 @@ Note also that
 .Xr ssh 1
 will request a listen host of
 .Dq localhost
-if no listen host was specifically requested, and this this name is
+if no listen host was specifically requested, and this name is
 treated differently to explicit localhost addresses of
 .Dq 127.0.0.1
 and

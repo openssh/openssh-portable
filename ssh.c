@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.494 2018/10/03 06:38:35 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.505 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -162,7 +162,7 @@ char *config = NULL;
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
- * command line, or the HostName specified for the user-supplied name in a
+ * command line, or the Hostname specified for the user-supplied name in a
  * configuration file.
  */
 char *host;
@@ -236,7 +236,8 @@ resolve_host(const char *name, int port, int logerr, char *cname, size_t clen)
 {
 	char strport[NI_MAXSERV];
 	struct addrinfo hints, *res;
-	int gaierr, loglevel = SYSLOG_LEVEL_DEBUG1;
+	int gaierr;
+	LogLevel loglevel = SYSLOG_LEVEL_DEBUG1;
 
 	if (port <= 0)
 		port = default_ssh_port();
@@ -527,7 +528,8 @@ check_load(int r, const char *path, const char *message)
  * file if the user specifies a config file on the command line.
  */
 static void
-process_config_files(const char *host_name, struct passwd *pw, int post_canon)
+process_config_files(const char *host_name, struct passwd *pw, int final_pass,
+    int *want_final_pass)
 {
 	char buf[PATH_MAX];
 	int r;
@@ -535,7 +537,8 @@ process_config_files(const char *host_name, struct passwd *pw, int post_canon)
 	if (config != NULL) {
 		if (strcasecmp(config, "none") != 0 &&
 		    !read_config_file(config, pw, host, host_name, &options,
-		    SSHCONF_USERCONF | (post_canon ? SSHCONF_POSTCANON : 0)))
+		    SSHCONF_USERCONF | (final_pass ? SSHCONF_FINAL : 0),
+		    want_final_pass))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else {
@@ -544,12 +547,12 @@ process_config_files(const char *host_name, struct passwd *pw, int post_canon)
 		if (r > 0 && (size_t)r < sizeof(buf))
 			(void)read_config_file(buf, pw, host, host_name,
 			    &options, SSHCONF_CHECKPERM | SSHCONF_USERCONF |
-			    (post_canon ? SSHCONF_POSTCANON : 0));
+			    (final_pass ? SSHCONF_FINAL : 0), want_final_pass);
 
 		/* Read systemwide configuration file after user config. */
 		(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw,
 		    host, host_name, &options,
-		    post_canon ? SSHCONF_POSTCANON : 0);
+		    final_pass ? SSHCONF_FINAL : 0, want_final_pass);
 	}
 }
 
@@ -581,7 +584,7 @@ main(int ac, char **av)
 {
 	struct ssh *ssh = NULL;
 	int i, r, opt, exit_status, use_syslog, direct, timeout_ms;
-	int was_addr, config_test = 0, opt_terminated = 0;
+	int was_addr, config_test = 0, opt_terminated = 0, want_final_pass = 0;
 	char *p, *cp, *line, *argv0, buf[PATH_MAX], *logfile;
 	char cname[NI_MAXHOST];
 	struct stat st;
@@ -593,7 +596,6 @@ main(int ac, char **av)
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
@@ -609,6 +611,8 @@ main(int ac, char **av)
 	compat_init_setproctitle(ac, av);
 	av = saved_av;
 #endif
+
+	seed_rng();
 
 	/*
 	 * Discard other fds that are hanging around. These can cause problem
@@ -647,7 +651,6 @@ main(int ac, char **av)
 	if ((ssh = ssh_alloc_session_state()) == NULL)
 		fatal("Couldn't allocate session state");
 	channel_init_channels(ssh);
-	active_state = ssh; /* XXX legacy API compat */
 
 	/* Parse command-line arguments. */
 	host = NULL;
@@ -770,7 +773,7 @@ main(int ac, char **av)
 			break;
 		case 'i':
 			p = tilde_expand_filename(optarg, getuid());
-			if (stat(p, &st) < 0)
+			if (stat(p, &st) == -1)
 				fprintf(stderr, "Warning: Identity file %s "
 				    "not accessible: %s.\n", p,
 				    strerror(errno));
@@ -787,8 +790,11 @@ main(int ac, char **av)
 #endif
 			break;
 		case 'J':
-			if (options.jump_host != NULL)
-				fatal("Only a single -J option permitted");
+			if (options.jump_host != NULL) {
+				fatal("Only a single -J option is permitted "
+				    "(use commas to separate multiple "
+				    "jump hops)");
+			}
 			if (options.proxy_command != NULL)
 				fatal("Cannot specify -J with ProxyCommand");
 			if (parse_jump(optarg, &options, 1) == -1)
@@ -816,7 +822,7 @@ main(int ac, char **av)
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE,
 #ifdef WITH_OPENSSL
-			    SSLeay_version(SSLEAY_VERSION)
+			    OpenSSL_version(OPENSSL_VERSION)
 #else
 			    "without OpenSSL"
 #endif
@@ -1036,11 +1042,6 @@ main(int ac, char **av)
 
 	host_arg = xstrdup(host);
 
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-	ERR_load_crypto_strings();
-#endif
-
 	/* Initialize the command to execute on remote host. */
 	if ((command = sshbuf_new()) == NULL)
 		fatal("sshbuf_new failed");
@@ -1085,14 +1086,16 @@ main(int ac, char **av)
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE,
 #ifdef WITH_OPENSSL
-		    SSLeay_version(SSLEAY_VERSION)
+		    OpenSSL_version(OPENSSL_VERSION)
 #else
 		    "without OpenSSL"
 #endif
 		);
 
 	/* Parse the configuration files */
-	process_config_files(host_arg, pw, 0);
+	process_config_files(host_arg, pw, 0, &want_final_pass);
+	if (want_final_pass)
+		debug("configuration requests final Match pass");
 
 	/* Hostname canonicalisation needs a few options filled. */
 	fill_default_options_for_canonicalization(&options);
@@ -1149,12 +1152,17 @@ main(int ac, char **av)
 	 * If canonicalisation is enabled then re-parse the configuration
 	 * files as new stanzas may match.
 	 */
-	if (options.canonicalize_hostname != 0) {
-		debug("Re-reading configuration after hostname "
-		    "canonicalisation");
+	if (options.canonicalize_hostname != 0 && !want_final_pass) {
+		debug("hostname canonicalisation enabled, "
+		    "will re-parse configuration");
+		want_final_pass = 1;
+	}
+
+	if (want_final_pass) {
+		debug("re-parsing configuration");
 		free(options.hostname);
 		options.hostname = xstrdup(host);
-		process_config_files(host_arg, pw, 1);
+		process_config_files(host_arg, pw, 1, NULL);
 		/*
 		 * Address resolution happens early with canonicalisation
 		 * enabled and the port number may have changed since, so
@@ -1264,8 +1272,6 @@ main(int ac, char **av)
 		tty_flag = 0;
 	}
 
-	seed_rng();
-
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
 
@@ -1344,7 +1350,7 @@ main(int ac, char **av)
 		int sock;
 		if ((sock = muxclient(options.control_path)) >= 0) {
 			ssh_packet_set_connection(ssh, sock, sock);
-			packet_set_mux();
+			ssh_packet_set_mux(ssh);
 			goto skip_connect;
 		}
 	}
@@ -1371,10 +1377,8 @@ main(int ac, char **av)
 	if (addrs != NULL)
 		freeaddrinfo(addrs);
 
-	packet_set_timeout(options.server_alive_interval,
+	ssh_packet_set_timeout(ssh, options.server_alive_interval,
 	    options.server_alive_count_max);
-
-	ssh = active_state; /* XXX */
 
 	if (timeout_ms > 0)
 		debug3("timeout: %d ms remain after connect", timeout_ms);
@@ -1422,7 +1426,7 @@ main(int ac, char **av)
 	if (config == NULL) {
 		r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
 		    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
-		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
+		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) == -1) {
 #ifdef WITH_SELINUX
 			ssh_selinux_setfscreatecon(buf);
 #endif
@@ -1486,10 +1490,10 @@ main(int ac, char **av)
 	signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
-	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr,
+	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,
 	    options.port, pw, timeout_ms);
 
-	if (packet_connection_is_on_socket()) {
+	if (ssh_packet_connection_is_on_socket(ssh)) {
 		verbose("Authenticated to %s ([%s]:%d).", host,
 		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 	} else {
@@ -1523,7 +1527,7 @@ main(int ac, char **av)
 
  skip_connect:
 	exit_status = ssh_session2(ssh, pw);
-	packet_close();
+	ssh_packet_close(ssh);
 
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
@@ -1589,7 +1593,7 @@ fork_postauth(void)
 		control_persist_detach();
 	debug("forking to background");
 	fork_after_authentication_flag = 0;
-	if (daemon(1, 1) < 0)
+	if (daemon(1, 1) == -1)
 		fatal("daemon() failed: %.200s", strerror(errno));
 }
 
@@ -1598,6 +1602,8 @@ static void
 ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 {
 	struct Forward *rfwd = (struct Forward *)ctxt;
+	u_int port;
+	int r;
 
 	/* XXX verbose() on failure? */
 	debug("remote forward %s for: listen %s%s%d, connect %s:%d",
@@ -1609,12 +1615,25 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 	    rfwd->connect_host, rfwd->connect_port);
 	if (rfwd->listen_path == NULL && rfwd->listen_port == 0) {
 		if (type == SSH2_MSG_REQUEST_SUCCESS) {
-			rfwd->allocated_port = packet_get_int();
-			logit("Allocated port %u for remote forward to %s:%d",
-			    rfwd->allocated_port,
-			    rfwd->connect_host, rfwd->connect_port);
-			channel_update_permission(ssh,
-			    rfwd->handle, rfwd->allocated_port);
+			if ((r = sshpkt_get_u32(ssh, &port)) != 0)
+				fatal("%s: %s", __func__, ssh_err(r));
+			if (port > 65535) {
+				error("Invalid allocated port %u for remote "
+				    "forward to %s:%d", port,
+				    rfwd->connect_host, rfwd->connect_port);
+				/* Ensure failure processing runs below */
+				type = SSH2_MSG_REQUEST_FAILURE;
+				channel_update_permission(ssh,
+				    rfwd->handle, -1);
+			} else {
+				rfwd->allocated_port = (int)port;
+				logit("Allocated port %u for remote "
+				    "forward to %s:%d",
+				    rfwd->allocated_port, rfwd->connect_host,
+				    rfwd->connect_port);
+				channel_update_permission(ssh,
+				    rfwd->handle, rfwd->allocated_port);
+			}
 		} else {
 			channel_update_permission(ssh, rfwd->handle, -1);
 		}
@@ -1670,8 +1689,8 @@ ssh_init_stdio_forwarding(struct ssh *ssh)
 	debug3("%s: %s:%d", __func__, options.stdio_forward_host,
 	    options.stdio_forward_port);
 
-	if ((in = dup(STDIN_FILENO)) < 0 ||
-	    (out = dup(STDOUT_FILENO)) < 0)
+	if ((in = dup(STDIN_FILENO)) == -1 ||
+	    (out = dup(STDOUT_FILENO)) == -1)
 		fatal("channel_connect_stdio_fwd: dup() in/out failed");
 	if ((c = channel_connect_stdio_fwd(ssh, options.stdio_forward_host,
 	    options.stdio_forward_port, in, out)) == NULL)
@@ -1771,7 +1790,7 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 {
 	extern char **environ;
 	const char *display;
-	int interactive = tty_flag;
+	int r, interactive = tty_flag;
 	char *proto = NULL, *data = NULL;
 
 	if (!success)
@@ -1797,11 +1816,12 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	if (options.forward_agent) {
 		debug("Requesting authentication agent forwarding.");
 		channel_request_start(ssh, id, "auth-agent-req@openssh.com", 0);
-		packet_send();
+		if ((r = sshpkt_send(ssh)) != 0)
+			fatal("%s: %s", __func__, ssh_err(r));
 	}
 
 	/* Tell the packet module whether this is an interactive session. */
-	packet_set_interactive(interactive,
+	ssh_packet_set_interactive(ssh, interactive,
 	    options.ip_qos_interactive, options.ip_qos_bulk);
 
 	client_session2_setup(ssh, id, tty_flag, subsystem_flag, getenv("TERM"),
@@ -1823,7 +1843,7 @@ ssh_session2_open(struct ssh *ssh)
 	out = dup(STDOUT_FILENO);
 	err = dup(STDERR_FILENO);
 
-	if (in < 0 || out < 0 || err < 0)
+	if (in == -1 || out == -1 || err == -1)
 		fatal("dup() in/out/err failed");
 
 	/* enable nonblocking unless tty */
@@ -1858,7 +1878,7 @@ ssh_session2_open(struct ssh *ssh)
 static int
 ssh_session2(struct ssh *ssh, struct passwd *pw)
 {
-	int devnull, id = -1;
+	int r, devnull, id = -1;
 	char *cp, *tun_fwd_ifname = NULL;
 
 	/* XXX should be pre-session */
@@ -1888,7 +1908,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	}
 
 	/* Start listening for multiplex clients */
-	if (!packet_get_mux())
+	if (!ssh_packet_get_mux(ssh))
 		muxserver_listen(ssh);
 
 	/*
@@ -1922,7 +1942,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (!no_shell_flag)
 		id = ssh_session2_open(ssh);
 	else {
-		packet_set_interactive(
+		ssh_packet_set_interactive(ssh,
 		    options.control_master == SSHCTL_MASTER_NO,
 		    options.ip_qos_interactive, options.ip_qos_bulk);
 	}
@@ -1931,10 +1951,12 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 	if (options.control_master == SSHCTL_MASTER_NO &&
 	    (datafellows & SSH_NEW_OPENSSH)) {
 		debug("Requesting no-more-sessions@openssh.com");
-		packet_start(SSH2_MSG_GLOBAL_REQUEST);
-		packet_put_cstring("no-more-sessions@openssh.com");
-		packet_put_char(0);
-		packet_send();
+		if ((r = sshpkt_start(ssh, SSH2_MSG_GLOBAL_REQUEST)) != 0 ||
+		    (r = sshpkt_put_cstring(ssh,
+		    "no-more-sessions@openssh.com")) != 0 ||
+		    (r = sshpkt_put_u8(ssh, 0)) != 0 ||
+		    (r = sshpkt_send(ssh)) != 0)
+			fatal("%s: %s", __func__, ssh_err(r));
 	}
 
 	/* Execute a local command */
@@ -1952,7 +1974,7 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 		if ((devnull = open(_PATH_DEVNULL, O_WRONLY)) == -1)
 			error("%s: open %s: %s", __func__,
 			    _PATH_DEVNULL, strerror(errno));
-		if (dup2(devnull, STDOUT_FILENO) < 0)
+		if (dup2(devnull, STDOUT_FILENO) == -1)
 			fatal("%s: dup2() stdout failed", __func__);
 		if (devnull > STDERR_FILENO)
 			close(devnull);
@@ -2139,7 +2161,7 @@ main_sigchld_handler(int sig)
 	int status;
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
-	    (pid < 0 && errno == EINTR))
+	    (pid == -1 && errno == EINTR))
 		;
 	errno = save_errno;
 }

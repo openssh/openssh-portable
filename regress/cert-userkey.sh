@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.19 2018/03/12 00:54:04 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.21 2019/07/25 08:28:15 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -9,8 +9,10 @@ cp $OBJ/ssh_proxy $OBJ/ssh_proxy_bak
 
 PLAIN_TYPES=`$SSH -Q key-plain | sed 's/^ssh-dss/ssh-dsa/;s/^ssh-//'`
 EXTRA_TYPES=""
+rsa=""
 
 if echo "$PLAIN_TYPES" | grep '^rsa$' >/dev/null 2>&1 ; then
+	rsa=rsa
 	PLAIN_TYPES="$PLAIN_TYPES rsa-sha2-256 rsa-sha2-512"
 fi
 
@@ -20,11 +22,20 @@ kname() {
 	# subshell because some seds will add a newline
 	*) n=$(echo $1 | sed 's/^dsa/ssh-dss/;s/^rsa/ssh-rsa/;s/^ed/ssh-ed/') ;;
 	esac
-	echo "$n*,ssh-rsa*,ssh-ed25519*"
+	if [ -z "$rsa" ]; then
+		echo "$n*,ssh-ed25519*"
+	else
+		echo "$n*,ssh-rsa*,ssh-ed25519*"
+	fi
 }
 
 # Create a CA key
-${SSHKEYGEN} -q -N '' -t rsa  -f $OBJ/user_ca_key ||\
+if [ ! -z "$rsa" ]; then
+	catype=rsa
+else
+	catype=ed25519
+fi
+${SSHKEYGEN} -q -N '' -t $catype  -f $OBJ/user_ca_key ||\
 	fail "ssh-keygen of user_ca_key failed"
 
 # Generate and sign user keys
@@ -47,7 +58,7 @@ done
 # Test explicitly-specified principals
 for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 	t=$(kname $ktype)
-	for privsep in yes no ; do
+	for privsep in yes sandbox ; do
 		_prefix="${ktype} privsep $privsep"
 
 		# Setup for AuthorizedPrincipalsFile
@@ -283,7 +294,7 @@ test_one() {
 	fi
 
 	for auth in $auth_choice ; do
-		for ktype in rsa ed25519 ; do
+		for ktype in $rsa ed25519 ; do
 			cat $OBJ/sshd_proxy_bak > $OBJ/sshd_proxy
 			if test "x$auth" = "xauthorized_keys" ; then
 				# Add CA to authorized_keys

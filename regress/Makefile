@@ -1,7 +1,11 @@
-#	$OpenBSD: Makefile,v 1.97 2018/06/07 04:46:34 djm Exp $
+#	$OpenBSD: Makefile,v 1.103 2019/07/16 03:21:54 dtucker Exp $
 
-REGRESS_TARGETS=	unit t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t-exec
-tests:		prep $(REGRESS_TARGETS)
+tests:		prep file-tests t-exec unit
+
+REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12
+
+# File based tests
+file-tests: $(REGRESS_TARGETS)
 
 # Interop tests are not run by default
 interop interop-tests: t-exec-interop
@@ -11,7 +15,6 @@ prep:
 
 clean:
 	for F in $(CLEANFILES); do rm -f $(OBJ)$$F; done
-	test -z "${SUDO}" || ${SUDO} rm -f ${SUDO_CLEAN}
 	rm -rf $(OBJ).putty
 
 distclean:	clean
@@ -92,7 +95,8 @@ LTESTS= 	connect \
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
 
-#LTESTS= 	cipher-speed
+EXTRA_TESTS=	agent-pkcs11
+#EXTRA_TESTS+= 	cipher-speed
 
 USERNAME=		${LOGNAME}
 CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
@@ -102,18 +106,19 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		copy.1 copy.2 data ed25519-agent ed25519-agent* \
 		ed25519-agent.pub ed25519 ed25519.pub empty.in \
 		expect failed-regress.log failed-ssh.log failed-sshd.log \
-		hkr.* host.ed25519 host.rsa host.rsa1 host_* \
-		host_ca_key* host_krl_* host_revoked_* key.* \
+		hkr.* host.ecdsa-sha2-nistp256 host.ecdsa-sha2-nistp384 \
+		host.ecdsa-sha2-nistp521 host.ssh-dss host.ssh-ed25519 \
+		host.ssh-rsa host_ca_key* host_krl_* host_revoked_* key.* \
 		key.dsa-* key.ecdsa-* key.ed25519-512 \
 		key.ed25519-512.pub key.rsa-* keys-command-args kh.* \
 		known_hosts known_hosts-cert known_hosts.* krl-* ls.copy \
 		modpipe netcat no_identity_config \
-		pidfile putty.rsa2 ready regress.log \
-		remote_pid revoked-* rsa rsa-agent rsa-agent.pub rsa.pub \
-		rsa1 rsa1-agent rsa1-agent.pub rsa1.pub rsa_ssh2_cr.prv \
+		pidfile putty.rsa2 ready regress.log remote_pid \
+		revoked-* rsa rsa-agent rsa-agent.pub rsa.pub rsa_ssh2_cr.prv \
 		rsa_ssh2_crnl.prv scp-ssh-wrapper.exe \
 		scp-ssh-wrapper.scp setuid-allowed sftp-server.log \
 		sftp-server.sh sftp.log ssh-log-wrapper.sh ssh.log \
+		ssh-rsa_oldfmt \
 		ssh_config ssh_config.* ssh_proxy ssh_proxy_bak \
 		ssh_proxy_envpass sshd.log sshd_config sshd_config_minimal \
 		sshd_config.orig sshd_proxy sshd_proxy.* sshd_proxy_bak \
@@ -121,8 +126,6 @@ CLEANFILES=	*.core actual agent-key.* authorized_keys_${USERNAME} \
 		t2.out t3.out t6.out1 t6.out2 t7.out t7.out.pub \
 		t8.out t8.out.pub t9.out t9.out.pub testdata \
 		user_*key* user_ca* user_key*
-
-SUDO_CLEAN+=	/var/run/testdata_${USERNAME} /var/run/keycommand_${USERNAME}
 
 # Enable all malloc(3) randomisations and checks
 TEST_ENV=      "MALLOC_OPTIONS=CFGJRSUX"
@@ -211,6 +214,13 @@ t-exec:	${LTESTS:=.sh}
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
+	@if [ "x$?" = "x" ]; then exit 0; fi; \
+	for TEST in ""$?; do \
+		echo "run test $${TEST}" ... 1>&2; \
+		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+	done
+
+t-extra:	${EXTRA_TESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
 		echo "run test $${TEST}" ... 1>&2; \

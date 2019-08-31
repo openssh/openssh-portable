@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.231 2018/05/11 03:38:51 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.237 2019/06/28 13:35:04 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -96,6 +96,8 @@
 
 /* Maximum accepted message length */
 #define AGENT_MAX_LEN	(256*1024)
+/* Maximum bytes to read from client socket */
+#define AGENT_RBUF_LEN	(4096)
 
 typedef enum {
 	AUTH_UNUSED,
@@ -267,6 +269,11 @@ agent_decode_alg(struct sshkey *key, u_int flags)
 			return "rsa-sha2-256";
 		else if (flags & SSH_AGENT_RSA_SHA2_512)
 			return "rsa-sha2-512";
+	} else if (key->type == KEY_RSA_CERT) {
+		if (flags & SSH_AGENT_RSA_SHA2_256)
+			return "rsa-sha2-256-cert-v01@openssh.com";
+		else if (flags & SSH_AGENT_RSA_SHA2_512)
+			return "rsa-sha2-512-cert-v01@openssh.com";
 	}
 	return NULL;
 }
@@ -416,7 +423,10 @@ process_add_identity(SocketEntry *e)
 		error("%s: decode private key: %s", __func__, ssh_err(r));
 		goto err;
 	}
-
+	if ((r = sshkey_shield_private(k)) != 0) {
+		error("%s: shield private key: %s", __func__, ssh_err(r));
+		goto err;
+	}
 	while (sshbuf_len(e->request)) {
 		if ((r = sshbuf_get_u8(e->request, &ctype)) != 0) {
 			error("%s: buffer error: %s", __func__, ssh_err(r));
@@ -817,11 +827,11 @@ handle_socket_read(u_int socknum)
 
 	slen = sizeof(sunaddr);
 	fd = accept(sockets[socknum].fd, (struct sockaddr *)&sunaddr, &slen);
-	if (fd < 0) {
+	if (fd == -1) {
 		error("accept from AUTH_SOCKET: %s", strerror(errno));
 		return -1;
 	}
-	if (getpeereid(fd, &euid, &egid) < 0) {
+	if (getpeereid(fd, &euid, &egid) == -1) {
 		error("getpeereid %d failed: %s", fd, strerror(errno));
 		close(fd);
 		return -1;
@@ -839,7 +849,7 @@ handle_socket_read(u_int socknum)
 static int
 handle_conn_read(u_int socknum)
 {
-	char buf[1024];
+	char buf[AGENT_RBUF_LEN];
 	ssize_t len;
 	int r;
 
@@ -946,6 +956,7 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 	struct pollfd *pfd = *pfdp;
 	size_t i, j, npfd = 0;
 	time_t deadline;
+	int r;
 
 	/* Count active sockets */
 	for (i = 0; i < sockets_alloc; i++) {
@@ -983,8 +994,19 @@ prepare_poll(struct pollfd **pfdp, size_t *npfdp, int *timeoutp, u_int maxfds)
 		case AUTH_CONNECTION:
 			pfd[j].fd = sockets[i].fd;
 			pfd[j].revents = 0;
-			/* XXX backoff when input buffer full */
-			pfd[j].events = POLLIN;
+			/*
+			 * Only prepare to read if we can handle a full-size
+			 * input read buffer and enqueue a max size reply..
+			 */
+			if ((r = sshbuf_check_reserve(sockets[i].input,
+			    AGENT_RBUF_LEN)) == 0 &&
+			    (r = sshbuf_check_reserve(sockets[i].output,
+			     AGENT_MAX_LEN)) == 0)
+				pfd[j].events = POLLIN;
+			else if (r != SSH_ERR_NO_BUFFER_SPACE) {
+				fatal("%s: buffer error: %s",
+				    __func__, ssh_err(r));
+			}
 			if (sshbuf_len(sockets[i].output) > 0)
 				pfd[j].events |= POLLOUT;
 			j++;
@@ -1082,7 +1104,6 @@ main(int ac, char **av)
 	size_t npfd = 0;
 	u_int maxfds;
 
-	ssh_malloc_init();	/* must be called before any mallocs */
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
 
@@ -1094,10 +1115,6 @@ main(int ac, char **av)
 
 	if (getrlimit(RLIMIT_NOFILE, &rlim) == -1)
 		fatal("%s: getrlimit: %s", __progname, strerror(errno));
-
-#ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-#endif
 
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
@@ -1199,7 +1216,7 @@ main(int ac, char **av)
 	 */
 #define SSH_AGENT_MIN_FDS (3+1+1+1+4)
 	if (rlim.rlim_cur < SSH_AGENT_MIN_FDS)
-		fatal("%s: file descriptior rlimit %lld too low (minimum %u)",
+		fatal("%s: file descriptor rlimit %lld too low (minimum %u)",
 		    __progname, (long long)rlim.rlim_cur, SSH_AGENT_MIN_FDS);
 	maxfds = rlim.rlim_cur - SSH_AGENT_MIN_FDS;
 
@@ -1295,7 +1312,7 @@ main(int ac, char **av)
 #ifdef HAVE_SETRLIMIT
 	/* deny core dumps, since memory contains unencrypted private keys */
 	rlim.rlim_cur = rlim.rlim_max = 0;
-	if (setrlimit(RLIMIT_CORE, &rlim) < 0) {
+	if (setrlimit(RLIMIT_CORE, &rlim) == -1) {
 		error("setrlimit RLIMIT_CORE: %s", strerror(errno));
 		cleanup_exit(1);
 	}
@@ -1328,7 +1345,7 @@ skip:
 		if (parent_alive_interval != 0)
 			check_parent_exists();
 		(void) reaper();	/* remove expired keys */
-		if (result < 0) {
+		if (result == -1) {
 			if (saved_errno == EINTR)
 				continue;
 			fatal("poll: %s", strerror(saved_errno));

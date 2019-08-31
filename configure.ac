@@ -19,7 +19,7 @@ AC_CONFIG_SRCDIR([ssh.c])
 AC_LANG([C])
 
 AC_CONFIG_HEADER([config.h])
-AC_PROG_CC
+AC_PROG_CC([cc gcc])
 AC_CANONICAL_HOST
 AC_C_BIGENDIAN
 
@@ -41,11 +41,11 @@ AC_PATH_PROG([TEST_MINUS_S_SH], [ksh])
 AC_PATH_PROG([TEST_MINUS_S_SH], [sh])
 AC_PATH_PROG([SH], [sh])
 AC_PATH_PROG([GROFF], [groff])
-AC_PATH_PROG([NROFF], [nroff])
+AC_PATH_PROG([NROFF], [nroff awf])
 AC_PATH_PROG([MANDOC], [mandoc])
 AC_SUBST([TEST_SHELL], [sh])
 
-dnl select manpage formatter
+dnl select manpage formatter to be used to build "cat" format pages.
 if test "x$MANDOC" != "x" ; then
 	MANFMT="$MANDOC"
 elif test "x$NROFF" != "x" ; then
@@ -53,7 +53,7 @@ elif test "x$NROFF" != "x" ; then
 elif test "x$GROFF" != "x" ; then
 	MANFMT="$GROFF -mandoc -Tascii"
 else
-	AC_MSG_WARN([no manpage formatted found])
+	AC_MSG_WARN([no manpage formatter found])
 	MANFMT="false"
 fi
 AC_SUBST([MANFMT])
@@ -152,9 +152,11 @@ CFLAGS="$saved_CFLAGS"
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-pipe])
-	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments])
 	OSSH_CHECK_CFLAG_COMPILE([-Wunknown-warning-option])
+	OSSH_CHECK_CFLAG_COMPILE([-Wno-error=format-truncation])
+	OSSH_CHECK_CFLAG_COMPILE([-Qunused-arguments])
 	OSSH_CHECK_CFLAG_COMPILE([-Wall])
+	OSSH_CHECK_CFLAG_COMPILE([-Wextra])
 	OSSH_CHECK_CFLAG_COMPILE([-Wpointer-arith])
 	OSSH_CHECK_CFLAG_COMPILE([-Wuninitialized])
 	OSSH_CHECK_CFLAG_COMPILE([-Wsign-compare])
@@ -285,10 +287,11 @@ AC_ARG_WITH([rpath],
 	[  --without-rpath         Disable auto-added -R linker paths],
 	[
 		if test "x$withval" = "xno" ; then
-			need_dash_r=""
-		fi
-		if test "x$withval" = "xyes" ; then
-			need_dash_r=1
+			rpath_opt=""
+		elif test "x$withval" = "xyes" ; then
+			rpath_opt="-R"
+		else
+			rpath_opt="$withval"
 		fi
 	]
 )
@@ -587,7 +590,6 @@ case "$host" in
 	      #include <fcntl.h> ]
 	)
 	check_for_aix_broken_getaddrinfo=1
-	AC_DEFINE([BROKEN_REALPATH], [1], [Define if you have a broken realpath.])
 	AC_DEFINE([SETEUID_BREAKS_SETUID], [1],
 	    [Define if your platform breaks doing a seteuid before a setuid])
 	AC_DEFINE([BROKEN_SETREUID], [1], [Define if your setreuid() is broken])
@@ -679,6 +681,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
+	# proc_pidinfo()-based closefrom() replacement.
+	AC_CHECK_HEADERS([libproc.h])
+	AC_CHECK_FUNCS([proc_pidinfo])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
@@ -816,7 +821,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	    AC_DEFINE([SYS_RDOMAIN_LINUX], [1],
 		[Support routing domains using Linux VRF]), [], [
 #ifdef HAVE_SYS_TYPES_H
-# include <sys/types.H>
+# include <sys/types.h>
 #endif
 	    ])
 	AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h], [],
@@ -911,7 +916,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-netbsd*)
 	check_for_libcrypt_before=1
 	if test "x$withval" != "xno" ; then
-		need_dash_r=1
+		rpath_opt="-R"
 	fi
 	CPPFLAGS="$CPPFLAGS -D_OPENBSD_SOURCE"
 	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
@@ -947,7 +952,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	conf_wtmp_location=/usr/adm/wtmp
 	maildir=/usr/spool/mail
 	AC_DEFINE([HAVE_NEXT], [1], [Define if you are on NeXT])
-	AC_DEFINE([BROKEN_REALPATH])
 	AC_DEFINE([USE_PIPES])
 	AC_DEFINE([BROKEN_SAVED_UIDS], [1], [Needed for NeXT])
 	;;
@@ -962,7 +966,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
-		need_dash_r=1
+		rpath_opt="-R"
 	fi
 	AC_DEFINE([PAM_SUN_CODEBASE])
 	AC_DEFINE([LOGIN_NEEDS_UTMPX])
@@ -1263,14 +1267,14 @@ AC_ARG_WITH([zlib],
 		AC_MSG_ERROR([*** zlib is required ***])
 	  elif test "x$withval" != "xyes"; then
 		if test -d "$withval/lib"; then
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
 		else
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval} ${rpath_opt}${withval} ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval} ${LDFLAGS}"
 			fi
@@ -1290,8 +1294,8 @@ AC_CHECK_LIB([z], [deflate], ,
 		saved_LDFLAGS="$LDFLAGS"
 		save_LIBS="$LIBS"
 		dnl Check default zlib install dir
-		if test -n "${need_dash_r}"; then
-			LDFLAGS="-L/usr/local/lib -R/usr/local/lib ${saved_LDFLAGS}"
+		if test -n "${rpath_opt}"; then
+			LDFLAGS="-L/usr/local/lib ${rpath_opt}/usr/local/lib ${saved_LDFLAGS}"
 		else
 			LDFLAGS="-L/usr/local/lib ${saved_LDFLAGS}"
 		fi
@@ -1558,8 +1562,8 @@ AC_ARG_WITH([libedit],
 			fi
 		else
 			CPPFLAGS="$CPPFLAGS -I${withval}/include"
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+			if test -n "${rpath_opt}"; then
+				LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 			else
 				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
@@ -1700,6 +1704,9 @@ AC_CHECK_FUNCS([ \
 	Blowfish_expandstate \
 	Blowfish_expand0state \
 	Blowfish_stream2word \
+	SHA256Update \
+	SHA384Update \
+	SHA512Update \
 	asprintf \
 	b64_ntop \
 	__b64_ntop \
@@ -1719,7 +1726,9 @@ AC_CHECK_FUNCS([ \
 	errx \
 	explicit_bzero \
 	fchmod \
+	fchmodat \
 	fchown \
+	fchownat \
 	flock \
 	freeaddrinfo \
 	freezero \
@@ -1750,6 +1759,7 @@ AC_CHECK_FUNCS([ \
 	llabs \
 	login_getcapbool \
 	md5_crypt \
+	memmem \
 	memmove \
 	memset_s \
 	mkdtemp \
@@ -1812,6 +1822,7 @@ AC_CHECK_FUNCS([ \
 	truncate \
 	unsetenv \
 	updwtmpx \
+	utimensat \
 	user_from_uid \
 	usleep \
 	vasprintf \
@@ -2017,32 +2028,6 @@ AC_CHECK_FUNCS([setresgid], [
 			[Define if your setresgid() is broken])
 		 AC_MSG_RESULT([not implemented])],
 		[AC_MSG_WARN([cross compiling: not checking setresuid])]
-	)
-])
-
-AC_CHECK_FUNCS([realpath], [
-	dnl the sftp v3 spec says SSH_FXP_REALPATH will "canonicalize any given
-	dnl path name", however some implementations of realpath (and some
-	dnl versions of the POSIX spec) do not work on non-existent files,
-	dnl so we use the OpenBSD implementation on those platforms.
-	AC_MSG_CHECKING([if realpath works with non-existent files])
-	AC_RUN_IFELSE(
-		[AC_LANG_PROGRAM([[
-#include <limits.h>
-#include <stdlib.h>
-#include <errno.h>
-		]], [[
-		char buf[PATH_MAX];
-		if (realpath("/opensshnonexistentfilename1234", buf) == NULL)
-			if (errno == ENOENT)
-				exit(1);
-		exit(0);
-		]])],
-		[AC_MSG_RESULT([yes])],
-		[AC_DEFINE([BROKEN_REALPATH], [1],
-			[realpath does not work with nonexistent files])
-		 AC_MSG_RESULT([no])],
-		[AC_MSG_WARN([cross compiling: assuming working])]
 	)
 ])
 
@@ -2476,20 +2461,20 @@ AC_ARG_WITH([ssl-dir],
 				./*|../*)	withval="`pwd`/$withval"
 			esac
 			if test -d "$withval/lib"; then
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval}/lib ${rpath_opt}${withval}/lib ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 				fi
 			elif test -d "$withval/lib64"; then
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval}/lib64 -R${withval}/lib64 ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval}/lib64 ${rpath_opt}${withval}/lib64 ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval}/lib64 ${LDFLAGS}"
 				fi
 			else
-				if test -n "${need_dash_r}"; then
-					LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+				if test -n "${rpath_opt}"; then
+					LDFLAGS="-L${withval} ${rpath_opt}${withval} ${LDFLAGS}"
 				else
 					LDFLAGS="-L${withval} ${LDFLAGS}"
 				fi
@@ -2527,26 +2512,10 @@ AC_ARG_WITH([ssl-engine],
 
 if test "x$openssl" = "xyes" ; then
 	LIBS="-lcrypto $LIBS"
-	AC_TRY_LINK_FUNC([RAND_add], [AC_DEFINE([HAVE_OPENSSL], [1],
-		[Define if your ssl headers are included
-		with #include <openssl/header.h>])],
-		[
-			dnl Check default openssl install dir
-			if test -n "${need_dash_r}"; then
-				LDFLAGS="-L/usr/local/ssl/lib -R/usr/local/ssl/lib ${saved_LDFLAGS}"
-			else
-				LDFLAGS="-L/usr/local/ssl/lib ${saved_LDFLAGS}"
-			fi
-			CPPFLAGS="-I/usr/local/ssl/include ${saved_CPPFLAGS}"
-			AC_CHECK_HEADER([openssl/opensslv.h], ,
-			    [AC_MSG_ERROR([*** OpenSSL headers missing - please install first or check config.log ***])])
-			AC_TRY_LINK_FUNC([RAND_add], [AC_DEFINE([HAVE_OPENSSL])],
-				[
-					AC_MSG_ERROR([*** Can't find recent OpenSSL libcrypto (see config.log for details) ***])
-				]
-			)
-		]
-	)
+	AC_TRY_LINK_FUNC([RAND_add], ,
+	    [AC_MSG_ERROR([*** working libcrypto not found, check config.log])])
+	AC_CHECK_HEADER([openssl/opensslv.h], ,
+	    [AC_MSG_ERROR([*** OpenSSL headers missing - please install first or check config.log ***])])
 
 	# Determine OpenSSL header version
 	AC_MSG_CHECKING([OpenSSL header version])
@@ -2585,6 +2554,9 @@ if test "x$openssl" = "xyes" ; then
 		]
 	)
 
+	# Determining OpenSSL library version is version dependent.
+	AC_CHECK_FUNCS([OpenSSL_version OpenSSL_version_num])
+
 	# Determine OpenSSL library version
 	AC_MSG_CHECKING([OpenSSL library version])
 	AC_RUN_IFELSE(
@@ -2601,9 +2573,18 @@ if test "x$openssl" = "xyes" ; then
 		fd = fopen(DATA,"w");
 		if(fd == NULL)
 			exit(1);
-
-		if ((rc = fprintf(fd, "%08lx (%s)\n", (unsigned long)SSLeay(),
-		    SSLeay_version(SSLEAY_VERSION))) < 0)
+#ifndef OPENSSL_VERSION
+# define OPENSSL_VERSION SSLEAY_VERSION
+#endif
+#ifndef HAVE_OPENSSL_VERSION
+# define OpenSSL_version	SSLeay_version
+#endif
+#ifndef HAVE_OPENSSL_VERSION_NUM
+# define OpenSSL_version_num	SSLeay
+#endif
+		if ((rc = fprintf(fd, "%08lx (%s)\n",
+		    (unsigned long)OpenSSL_version_num(),
+		    OpenSSL_version(OPENSSL_VERSION))) < 0)
 			exit(1);
 
 		exit(0);
@@ -2616,14 +2597,15 @@ if test "x$openssl" = "xyes" ; then
 				AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
 		                ;;
 			100*)   ;; # 1.0.x
-			101000[0123456]*)
+			101000[[0123456]]*)
 				# https://github.com/openssl/openssl/pull/4613
 				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
 				;;
 			101*)   ;; # 1.1.x
 			200*)   ;; # LibreSSL
+			300*)   ;; # OpenSSL development branch.
 		        *)
-				AC_MSG_ERROR([OpenSSL > 1.1.x is not yet supported (have "$ssl_library_ver")])
+				AC_MSG_ERROR([Unknown/unsupported OpenSSL version ("$ssl_library_ver")])
 		                ;;
 			esac
 			AC_MSG_RESULT([$ssl_library_ver])
@@ -2645,7 +2627,10 @@ if test "x$openssl" = "xyes" ; then
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
 		]], [[
-		exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1);
+#ifndef HAVE_OPENSSL_VERSION_NUM
+# define OpenSSL_version_num	SSLeay
+#endif
+		exit(OpenSSL_version_num() == OPENSSL_VERSION_NUMBER ? 0 : 1);
 		]])],
 		[
 			AC_MSG_RESULT([yes])
@@ -2672,8 +2657,8 @@ if test "x$openssl" = "xyes" ; then
 
 	AC_MSG_CHECKING([if programs using OpenSSL functions will link])
 	AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-		[[ SSLeay_add_all_algorithms(); ]])],
+		[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
+		[[ ERR_load_crypto_strings(); ]])],
 		[
 			AC_MSG_RESULT([yes])
 		],
@@ -2683,8 +2668,8 @@ if test "x$openssl" = "xyes" ; then
 			LIBS="$LIBS -ldl"
 			AC_MSG_CHECKING([if programs using OpenSSL need -ldl])
 			AC_LINK_IFELSE(
-				[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-				[[ SSLeay_add_all_algorithms(); ]])],
+				[AC_LANG_PROGRAM([[ #include <openssl/err.h> ]],
+				[[ ERR_load_crypto_strings(); ]])],
 				[
 					AC_MSG_RESULT([yes])
 				],
@@ -2699,14 +2684,62 @@ if test "x$openssl" = "xyes" ; then
 	AC_CHECK_FUNCS([ \
 		BN_is_prime_ex \
 		DSA_generate_parameters_ex \
-		EVP_DigestInit_ex \
+		EVP_CIPHER_CTX_ctrl \
 		EVP_DigestFinal_ex \
-		EVP_MD_CTX_init \
+		EVP_DigestInit_ex \
 		EVP_MD_CTX_cleanup \
 		EVP_MD_CTX_copy_ex \
+		EVP_MD_CTX_init \
 		HMAC_CTX_init \
 		RSA_generate_key_ex \
 		RSA_get_default_method \
+	])
+
+	# OpenSSL_add_all_algorithms may be a macro.
+	AC_CHECK_FUNC(OpenSSL_add_all_algorithms,
+	    AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a function]),
+	    AC_CHECK_DECL(OpenSSL_add_all_algorithms,
+		AC_DEFINE(HAVE_OPENSSL_ADD_ALL_ALGORITHMS, 1, [as a macro]), ,
+		[[#include <openssl/evp.h>]]
+	    )
+	)
+
+	# LibreSSL/OpenSSL 1.1x API
+	AC_CHECK_FUNCS([ \
+		OPENSSL_init_crypto \
+		DH_get0_key \
+		DH_get0_pqg \
+		DH_set0_key \
+		DH_set_length \
+		DH_set0_pqg \
+		DSA_get0_key \
+		DSA_get0_pqg \
+		DSA_set0_key \
+		DSA_set0_pqg \
+		DSA_SIG_get0 \
+		DSA_SIG_set0 \
+		ECDSA_SIG_get0 \
+		ECDSA_SIG_set0 \
+		EVP_CIPHER_CTX_iv \
+		EVP_CIPHER_CTX_iv_noconst \
+		EVP_CIPHER_CTX_get_iv \
+		EVP_CIPHER_CTX_set_iv \
+		RSA_get0_crt_params \
+		RSA_get0_factors \
+		RSA_get0_key \
+		RSA_set0_crt_params \
+		RSA_set0_factors \
+		RSA_set0_key \
+		RSA_meth_free \
+		RSA_meth_dup \
+		RSA_meth_set1_name \
+		RSA_meth_get_finish \
+		RSA_meth_set_priv_enc \
+		RSA_meth_set_priv_dec \
+		RSA_meth_set_finish \
+		EVP_PKEY_get0_RSA \
+		EVP_MD_CTX_new \
+		EVP_MD_CTX_free \
 	])
 
 	if test "x$openssl_engine" = "xyes" ; then
@@ -2792,119 +2825,6 @@ if test "x$openssl" = "xyes" ; then
 		]
 	)
 
-	AC_SEARCH_LIBS([EVP_CIPHER_CTX_ctrl], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_CTRL], [1],
-		    [Define if libcrypto has EVP_CIPHER_CTX_ctrl])])
-
-	# LibreSSL/OpenSSL 1.1x API
-	AC_SEARCH_LIBS([DH_get0_key], [crypto],
-		[AC_DEFINE([HAVE_DH_GET0_KEY], [1],
-		    [Define if libcrypto has DH_get0_key])])
-	AC_SEARCH_LIBS([DH_get0_pqg], [crypto],
-		[AC_DEFINE([HAVE_DH_GET0_PQG], [1],
-		    [Define if libcrypto has DH_get0_pqg])])
-	AC_SEARCH_LIBS([DH_set0_key], [crypto],
-		[AC_DEFINE([HAVE_DH_SET0_KEY], [1],
-		    [Define if libcrypto has DH_set0_key])])
-	AC_SEARCH_LIBS([DH_set_length], [crypto],
-		[AC_DEFINE([HAVE_DH_SET_LENGTH], [1],
-		    [Define if libcrypto has DH_set_length])])
-	AC_SEARCH_LIBS([DH_set0_pqg], [crypto],
-		[AC_DEFINE([HAVE_DH_SET0_PQG], [1],
-		    [Define if libcrypto has DH_set0_pqg])])
-
-	AC_SEARCH_LIBS([DSA_get0_key], [crypto],
-		[AC_DEFINE([HAVE_DSA_GET0_KEY], [1],
-		    [Define if libcrypto has DSA_get0_key])])
-	AC_SEARCH_LIBS([DSA_get0_pqg], [crypto],
-		[AC_DEFINE([HAVE_DSA_GET0_PQG], [1],
-		    [Define if libcrypto has DSA_get0_pqg])])
-	AC_SEARCH_LIBS([DSA_set0_key], [crypto],
-		[AC_DEFINE([HAVE_DSA_SET0_KEY], [1],
-		    [Define if libcrypto has DSA_set0_key])])
-	AC_SEARCH_LIBS([DSA_set0_pqg], [crypto],
-		[AC_DEFINE([HAVE_DSA_SET0_PQG], [1],
-		    [Define if libcrypto has DSA_set0_pqg])])
-
-	AC_SEARCH_LIBS([DSA_SIG_get0], [crypto],
-		[AC_DEFINE([HAVE_DSA_SIG_GET0], [1],
-		    [Define if libcrypto has DSA_SIG_get0])])
-	AC_SEARCH_LIBS([DSA_SIG_set0], [crypto],
-		[AC_DEFINE([HAVE_DSA_SIG_SET0], [1],
-		    [Define if libcrypto has DSA_SIG_set0])])
-
-	AC_SEARCH_LIBS([ECDSA_SIG_get0], [crypto],
-		[AC_DEFINE([HAVE_ECDSA_SIG_GET0], [1],
-		    [Define if libcrypto has ECDSA_SIG_get0])])
-	AC_SEARCH_LIBS([ECDSA_SIG_set0], [crypto],
-		[AC_DEFINE([HAVE_ECDSA_SIG_SET0], [1],
-		    [Define if libcrypto has ECDSA_SIG_set0])])
-
-	AC_SEARCH_LIBS([EVP_CIPHER_CTX_iv], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_IV], [1],
-		    [Define if libcrypto has EVP_CIPHER_CTX_iv])])
-	AC_SEARCH_LIBS([EVP_CIPHER_CTX_iv_noconst], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_IV_NOCONST], [1],
-		    [Define if libcrypto has EVP_CIPHER_CTX_iv_noconst])])
-	AC_SEARCH_LIBS([EVP_CIPHER_CTX_get_iv], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
-		    [Define if libcrypto has EVP_CIPHER_CTX_get_iv])])
-	AC_SEARCH_LIBS([EVP_CIPHER_CTX_set_iv], [crypto],
-		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
-		    [Define if libcrypto has EVP_CIPHER_CTX_set_iv])])
-
-	AC_SEARCH_LIBS([RSA_get0_crt_params], [crypto],
-		[AC_DEFINE([HAVE_RSA_GET0_CRT_PARAMS], [1],
-		    [Define if libcrypto has RSA_get0_crt_params])])
-	AC_SEARCH_LIBS([RSA_get0_factors], [crypto],
-		[AC_DEFINE([HAVE_RSA_GET0_FACTORS], [1],
-		    [Define if libcrypto has RSA_get0_factors])])
-	AC_SEARCH_LIBS([RSA_get0_key], [crypto],
-		[AC_DEFINE([HAVE_RSA_GET0_KEY], [1],
-		    [Define if libcrypto has RSA_get0_key])])
-	AC_SEARCH_LIBS([RSA_set0_crt_params], [crypto],
-		[AC_DEFINE([HAVE_RSA_SET0_CRT_PARAMS], [1],
-		    [Define if libcrypto has RSA_get0_srt_params])])
-	AC_SEARCH_LIBS([RSA_set0_factors], [crypto],
-		[AC_DEFINE([HAVE_RSA_SET0_FACTORS], [1],
-		    [Define if libcrypto has RSA_set0_factors])])
-	AC_SEARCH_LIBS([RSA_set0_key], [crypto],
-		[AC_DEFINE([HAVE_RSA_SET0_KEY], [1],
-		    [Define if libcrypto has RSA_set0_key])])
-
-	AC_SEARCH_LIBS([RSA_meth_free], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_FREE], [1],
-		    [Define if libcrypto has RSA_meth_free])])
-	AC_SEARCH_LIBS([RSA_meth_dup], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_DUP], [1],
-		    [Define if libcrypto has RSA_meth_dup])])
-	AC_SEARCH_LIBS([RSA_meth_set1_name], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_SET1_NAME], [1],
-		    [Define if libcrypto has RSA_meth_set1_name])])
-	AC_SEARCH_LIBS([RSA_meth_get_finish], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_GET_FINISH], [1],
-		    [Define if libcrypto has RSA_meth_get_finish])])
-	AC_SEARCH_LIBS([RSA_meth_set_priv_enc], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_SET_PRIV_ENC], [1],
-		    [Define if libcrypto has RSA_meth_set_priv_enc])])
-	AC_SEARCH_LIBS([RSA_meth_set_priv_dec], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_SET_PRIV_DEC], [1],
-		    [Define if libcrypto has RSA_meth_set_priv_dec])])
-	AC_SEARCH_LIBS([RSA_meth_set_finish], [crypto],
-		[AC_DEFINE([HAVE_RSA_METH_SET_FINISH], [1],
-		    [Define if libcrypto has RSA_meth_set_finish])])
-
-	AC_SEARCH_LIBS([EVP_PKEY_get0_RSA], [crypto],
-		[AC_DEFINE([HAVE_EVP_PKEY_GET0_RSA], [1],
-		    [Define if libcrypto has EVP_PKEY_get0_RSA])])
-
-	AC_SEARCH_LIBS([EVP_MD_CTX_new], [crypto],
-		[AC_DEFINE([HAVE_EVP_MD_CTX_NEW], [1],
-		    [Define if libcrypto has EVP_MD_CTX_new])])
-	AC_SEARCH_LIBS([EVP_MD_CTX_free], [crypto],
-		[AC_DEFINE([HAVE_EVP_MD_CTX_FREE], [1],
-		    [Define if libcrypto has EVP_MD_CTX_free])])
-
 	AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[
@@ -2937,16 +2857,9 @@ if test "x$openssl" = "xyes" ; then
 	fi
 	AC_CHECK_FUNCS([crypt DES_crypt])
 
-	# Search for SHA256 support in libc and/or OpenSSL
-	AC_CHECK_FUNCS([SHA256_Update EVP_sha256], ,
-	    [unsupported_algorithms="$unsupported_algorithms \
-		hmac-sha2-256 \
-		hmac-sha2-512 \
-		diffie-hellman-group-exchange-sha256 \
-		hmac-sha2-256-etm@openssh.com \
-		hmac-sha2-512-etm@openssh.com"
-	     ]
-	)
+	# Check for SHA256, SHA384 and SHA512 support in OpenSSL
+	AC_CHECK_FUNCS([EVP_sha256 EVP_sha384 EVP_sha512])
+
 	# Search for RIPE-MD support in OpenSSL
 	AC_CHECK_FUNCS([EVP_ripemd160], ,
 	    [unsupported_algorithms="$unsupported_algorithms \
@@ -3036,6 +2949,7 @@ if test "x$openssl" = "xyes" ; then
 	if test x$enable_nistp256 = x1 || test x$enable_nistp384 = x1 || \
 	    test x$enable_nistp521 = x1; then
 		AC_DEFINE(OPENSSL_HAS_ECC, [1], [OpenSSL has ECC])
+		AC_CHECK_FUNCS([EC_KEY_METHOD_new])
 	fi
 	if test x$enable_nistp256 = x1; then
 		AC_DEFINE([OPENSSL_HAS_NISTP256], [1],
@@ -3402,8 +3316,7 @@ AC_RUN_IFELSE(
 #include <stdlib.h>
 	]],[[
 	struct rlimit rl_zero;
-	int fd, r;
-	fd_set fds;
+	int r;
 
 	rl_zero.rlim_cur = rl_zero.rlim_max = 0;
 	r = setrlimit(RLIMIT_NOFILE, &rl_zero);
@@ -3516,10 +3429,10 @@ fi
 AC_CHECK_TYPES([long long, unsigned long long, long double])
 
 # Check datatype sizes
-AC_CHECK_SIZEOF([short int], [2])
-AC_CHECK_SIZEOF([int], [4])
-AC_CHECK_SIZEOF([long int], [4])
-AC_CHECK_SIZEOF([long long int], [8])
+AC_CHECK_SIZEOF([short int])
+AC_CHECK_SIZEOF([int])
+AC_CHECK_SIZEOF([long int])
+AC_CHECK_SIZEOF([long long int])
 
 # Sanity check long long for some platforms (AIX)
 if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
@@ -4468,8 +4381,8 @@ AC_ARG_WITH([kerberos5],
 					[ CPPFLAGS="$oldCPP" ])
 
 		fi
-		if test ! -z "$need_dash_r" ; then
-			LDFLAGS="$LDFLAGS -R${KRB5ROOT}/lib"
+		if test -n "${rpath_opt}" ; then
+			LDFLAGS="$LDFLAGS ${rpath_opt}${KRB5ROOT}/lib"
 		fi
 		if test ! -z "$blibpath" ; then
 			blibpath="$blibpath:${KRB5ROOT}/lib"
@@ -4687,9 +4600,9 @@ AC_ARG_WITH([mantype],
 	]
 )
 if test -z "$MANTYPE"; then
-	TestPath="/usr/bin${PATH_SEPARATOR}/usr/ucb"
-	AC_PATH_PROGS([NROFF], [nroff awf], [/bin/false], [$TestPath])
-	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+	if ${MANDOC} ${srcdir}/ssh.1 >/dev/null 2>&1; then
+		MANTYPE=doc
+	elif ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
 	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=man
