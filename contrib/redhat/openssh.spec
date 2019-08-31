@@ -93,11 +93,14 @@ BuildRequires: openssl-devel >= 1.0.1
 BuildRequires: openssl-devel < 1.1
 %endif # rhel == 7
 %endif # fedora >= 26
+%if 0%{?rhel} == 6
+BuildRequires: /bin/login
+%else
 BuildRequires: /usr/bin/login
-BuildRequires: glibc-devel, pam
-%if 0%{?rhel} >= 6
-BuildRequires: /usr/include/security/pam_appl.h
-%endif # rhel >= 6
+%endif
+BuildRequires: glibc-devel
+BuildRequires: pam
+BuildRequires: pam-devel
 %if ! %{no_x11_askpass}
 BuildRequires: /usr/include/X11/Xlib.h
 # Xt development tools
@@ -410,7 +413,7 @@ fi
 %endif
 
 %changelog
-* Sat Feb  6 2019 Nico Kadel-Garcia <nkadel@gmail.com>
+* Sat Feb 16 2019 Nico Kadel-Garcia <nkadel@gmail.com>
 - Require /usr/bin/login for for RHEL cross-compatibility.
 - Set epoch on for openssl requirements.
 - Change build6x to specific RHEL version requirements.
