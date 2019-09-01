@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.340 2019/08/08 08:02:57 dtucker Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.341 2019/09/01 23:47:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -271,13 +271,15 @@ ask_filename(struct passwd *pw, const char *prompt)
 }
 
 static struct sshkey *
-load_identity(char *filename)
+load_identity(char *filename, char **commentp)
 {
 	char *pass;
 	struct sshkey *prv;
 	int r;
 
-	if ((r = sshkey_load_private(filename, "", &prv, NULL)) == 0)
+	if (commentp != NULL)
+		*commentp = NULL;
+	if ((r = sshkey_load_private(filename, "", &prv, commentp)) == 0)
 		return prv;
 	if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 		fatal("Load key \"%s\": %s", filename, ssh_err(r));
@@ -285,7 +287,7 @@ load_identity(char *filename)
 		pass = xstrdup(identity_passphrase);
 	else
 		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
-	r = sshkey_load_private(filename, pass, &prv, NULL);
+	r = sshkey_load_private(filename, pass, &prv, commentp);
 	explicit_bzero(pass, strlen(pass));
 	free(pass);
 	if (r != 0)
@@ -379,7 +381,7 @@ do_convert_to(struct passwd *pw)
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s: %s", __progname, identity_file, strerror(errno));
 	if ((r = sshkey_load_public(identity_file, &k, NULL)) != 0)
-		k = load_identity(identity_file);
+		k = load_identity(identity_file, NULL);
 	switch (convert_format) {
 	case FMT_RFC4716:
 		do_convert_to_ssh2(pw, k);
@@ -752,16 +754,20 @@ do_print_public(struct passwd *pw)
 	struct sshkey *prv;
 	struct stat st;
 	int r;
+	char *comment = NULL;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s", identity_file, strerror(errno));
-	prv = load_identity(identity_file);
+	prv = load_identity(identity_file, &comment);
 	if ((r = sshkey_write(prv, stdout)) != 0)
 		error("sshkey_write failed: %s", ssh_err(r));
 	sshkey_free(prv);
+	if (comment != NULL && *comment != '\0')
+		fprintf(stdout, " %s", comment);
 	fprintf(stdout, "\n");
+	free(comment);
 	exit(0);
 }
 
@@ -1721,7 +1727,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		ca->flags |= SSHKEY_FLAG_EXT;
 	} else {
 		/* CA key is assumed to be a private key on the filesystem */
-		ca = load_identity(tmp);
+		ca = load_identity(tmp, NULL);
 	}
 	free(tmp);
 
