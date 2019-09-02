@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.43 2019/03/08 17:24:43 markus Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.44 2019/09/02 00:19:25 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -1523,7 +1523,7 @@ pkcs11_register_provider(char *provider_id, char *pin, struct sshkey ***keyp,
 		goto fail;
 	}
 	if (p->nslots == 0) {
-		error("%s: provider %s returned no slots", __func__,
+		debug("%s: provider %s returned no slots", __func__,
 		    provider_id);
 		ret = -SSH_PKCS11_ERR_NO_SLOTS;
 		goto fail;
