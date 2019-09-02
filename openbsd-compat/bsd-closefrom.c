@@ -107,9 +107,9 @@ closefrom(int lowfd)
 	if ((fdinfo_buf = malloc(sz)) == NULL)
 		goto fallback;
 	r = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fdinfo_buf, sz);
-	if (r < 0 || r >= sz)
+	if (r < 0 || r > sz)
 		goto fallback;
-	for (i = 0; i < sz / (int)PROC_PIDLISTFD_SIZE; i++) {
+	for (i = 0; i < r / (int)PROC_PIDLISTFD_SIZE; i++) {
 		if (fdinfo_buf[i].proc_fd >= lowfd)
 			close(fdinfo_buf[i].proc_fd);
 	}
