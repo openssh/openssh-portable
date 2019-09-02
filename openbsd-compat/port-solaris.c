@@ -284,11 +284,10 @@ solaris_drop_privs_pinfo_net_fork_exec(void)
 	    priv_addset(npset, PRIV_FILE_OWNER) != 0)
 		fatal("priv_addset: %s", strerror(errno));
 
-	if (priv_delset(npset, PRIV_FILE_LINK_ANY) != 0 ||
+	if (priv_delset(npset, PRIV_PROC_EXEC) != 0 ||
 #ifdef PRIV_NET_ACCESS
 	    priv_delset(npset, PRIV_NET_ACCESS) != 0 ||
 #endif
-	    priv_delset(npset, PRIV_PROC_EXEC) != 0 ||
 	    priv_delset(npset, PRIV_PROC_FORK) != 0 ||
 	    priv_delset(npset, PRIV_PROC_INFO) != 0 ||
 	    priv_delset(npset, PRIV_PROC_SESSION) != 0)
