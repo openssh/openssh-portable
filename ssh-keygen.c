@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.341 2019/09/01 23:47:32 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.342 2019/09/02 23:46:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -271,7 +271,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 }
 
 static struct sshkey *
-load_identity(char *filename, char **commentp)
+load_identity(const char *filename, char **commentp)
 {
 	char *pass;
 	struct sshkey *prv;
