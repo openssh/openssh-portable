@@ -134,7 +134,7 @@ sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out)
 	}
 
 	if ((r = sshbuf_b64tod(buf, b64)) != 0) {
-		error("Coundn't decode signature: %s", ssh_err(r));
+		error("Couldn't decode signature: %s", ssh_err(r));
 		goto done;
 	}
 
