@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.92 2019/09/03 08:29:58 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.93 2019/09/03 08:30:47 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -539,28 +539,6 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 }
 
 /*
- * Advanced *cpp past the end of key options, defined as the first unquoted
- * whitespace character. Returns 0 on success or -1 on failure (e.g.
- * unterminated quotes).
- */
-static int
-advance_past_options(char **cpp)
-{
-	char *cp = *cpp;
-	int quoted = 0;
-
-	for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
-		if (*cp == '\\' && cp[1] == '"')
-			cp++;	/* Skip both */
-		else if (*cp == '"')
-			quoted = !quoted;
-	}
-	*cpp = cp;
-	/* return failure for unterminated quotes */
-	return (*cp == '\0' && quoted) ? -1 : 0;
-}
-
-/*
  * Check a single line of an authorized_keys-format file. Returns 0 if key
  * matches, -1 otherwise. Will return key/cert options via *authoptsp
  * on success. "loc" is used as file/line location in log messages.
@@ -590,7 +568,7 @@ check_authkey_line(struct ssh *ssh, struct passwd *pw, struct sshkey *key,
 		/* no key?  check for options */
 		debug2("%s: check options: '%s'", loc, cp);
 		key_options = cp;
-		if (advance_past_options(&cp) != 0) {
+		if (sshkey_advance_past_options(&cp) != 0) {
 			reason = "invalid key option string";
 			goto fail_reason;
 		}
