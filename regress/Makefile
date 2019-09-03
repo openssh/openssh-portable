@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.103 2019/07/16 03:21:54 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.104 2019/09/03 08:37:45 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -87,7 +87,8 @@ LTESTS= 	connect \
 		cert-file \
 		cfginclude \
 		allow-deny-users \
-		authinfo
+		authinfo \
+		sshsig
 
 
 #		dhgex \
