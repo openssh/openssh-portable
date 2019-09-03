@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.116 2019/09/03 08:28:30 djm Exp $ */
+/* $OpenBSD: authfd.c,v 1.117 2019/09/03 08:29:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -315,6 +315,32 @@ ssh_free_identitylist(struct ssh_identitylist *idl)
 	free(idl->keys);
 	free(idl->comments);
 	free(idl);
+}
+
+/*
+ * Check if the ssh agent has a given key.
+ * Returns 0 if found, or a negative SSH_ERR_* error code on failure.
+ */
+int
+ssh_agent_has_key(int sock, struct sshkey *key)
+{
+	int r, ret = SSH_ERR_KEY_NOT_FOUND;
+	size_t i;
+	struct ssh_identitylist *idlist = NULL;
+
+	if ((r = ssh_fetch_identitylist(sock, &idlist)) < 0) {
+		return r;
+	}
+
+	for (i = 0; i < idlist->nkeys; i++) {
+		if (sshkey_equal_public(idlist->keys[i], key)) {
+			ret = 0;
+			break;
+		}
+	}
+
+	ssh_free_identitylist(idlist);
+	return ret;
 }
 
 /*
