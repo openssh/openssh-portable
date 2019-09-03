@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.344 2019/09/03 08:34:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.345 2019/09/03 08:35:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2659,10 +2659,10 @@ verify(const char *signature, const char *sig_namespace, const char *principal,
 	fp = NULL;
 
 	if (revoked_keys != NULL) {
-	    if ((r = sshkey_check_revoked(sign_key, revoked_keys)) != 0) {
-		    debug3("sshkey_check_revoked failed: %s", ssh_err(r));
-		    goto done;
-	    }
+		if ((r = sshkey_check_revoked(sign_key, revoked_keys)) != 0) {
+			debug3("sshkey_check_revoked failed: %s", ssh_err(r));
+			goto done;
+		}
 	}
 
 	if ((r = sshsig_check_allowed_keys(allowed_keys, sign_key,

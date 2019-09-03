@@ -8,9 +8,9 @@ At present, only detached and armored signatures are supported.
 The Armored SSH signatures consist of a header, a base64
 encoded blob, and a footer.
 
-The header is the string “-----BEGIN SSH SIGNATURE-----”
+The header is the string "-----BEGIN SSH SIGNATURE-----"
 followed by a newline. The footer is the string
-“-----END SSH SIGNATURE-----” immediately after a newline.
+"-----END SSH SIGNATURE-----" immediately after a newline.
 
 The header MUST be present at the start of every signature.
 Files containing the signature MUST start with the header.

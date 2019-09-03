@@ -23,14 +23,27 @@ struct sshkey;
 typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, u_int, void *);
 
+/* Buffer-oriented API */
+
 /*
- * Creates a detached SSH signature for a given message.
+ * Creates a detached SSH signature for a given buffer.
  * Returns 0 on success or a negative SSH_ERR_* error code on failure.
  * out is populated with the detached signature, or NULL on failure.
  */
-int sshsig_sign_message(struct sshkey *key, const char *hashalg,
+int sshsig_signb(struct sshkey *key, const char *hashalg,
     const struct sshbuf *message, const char *sig_namespace,
     struct sshbuf **out, sshsig_signer *signer, void *signer_ctx);
+
+/*
+ * Verifies that a detached signature is valid and optionally returns key
+ * used to sign via argument.
+ * Returns 0 on success or a negative SSH_ERR_* error code on failure.
+ */
+int sshsig_verifyb(struct sshbuf *signature,
+    const struct sshbuf *message, const char *sig_namespace,
+    struct sshkey **sign_keyp);
+
+/* File/FD-oriented API */
 
 /*
  * Creates a detached SSH signature for a given file.
@@ -42,21 +55,14 @@ int sshsig_sign_fd(struct sshkey *key, const char *hashalg,
     sshsig_signer *signer, void *signer_ctx);
 
 /*
- * Verifies that a detached signature is valid and optionally returns key
- * used to sign via argument.
- * Returns 0 on success or a negative SSH_ERR_* error code on failure.
- */
-int sshsig_verify_message(struct sshbuf *signature,
-    const struct sshbuf *message, const char *sig_namespace,
-    struct sshkey **sign_keyp);
-
-/*
  * Verifies that a detached signature over a file is valid and optionally
  * returns key used to sign via argument.
  * Returns 0 on success or a negative SSH_ERR_* error code on failure.
  */
 int sshsig_verify_fd(struct sshbuf *signature, int fd,
     const char *sig_namespace, struct sshkey **sign_keyp);
+
+/* Utility functions */
 
 /*
  * Return a base64 encoded "ASCII armoured" version of a raw signature.
