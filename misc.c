@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.140 2019/08/16 06:13:15 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.141 2019/09/03 08:29:58 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -2126,4 +2126,14 @@ int
 path_absolute(const char *path)
 {
 	return (*path == '/') ? 1 : 0;
+}
+
+void
+skip_space(char **cpp)
+{
+	char *cp;
+
+	for (cp = *cpp; *cp == ' ' || *cp == '\t'; cp++)
+		;
+	*cpp = cp;
 }

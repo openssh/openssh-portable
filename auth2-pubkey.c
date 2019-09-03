@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.91 2019/07/16 13:18:39 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.92 2019/09/03 08:29:58 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -536,16 +536,6 @@ match_principals_command(struct ssh *ssh, struct passwd *user_pw,
 	free(catext);
 	free(keytext);
 	return found_principal;
-}
-
-static void
-skip_space(char **cpp)
-{
-	char *cp;
-
-	for (cp = *cpp; *cp == ' ' || *cp == '\t'; cp++)
-		;
-	*cpp = cp;
 }
 
 /*
