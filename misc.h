@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.80 2019/09/03 08:29:58 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.81 2019/09/03 08:32:11 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -165,6 +165,11 @@ int	 safe_path(const char *, struct stat *, const char *, uid_t,
 	     char *, size_t);
 int	 safe_path_fd(int, const char *, struct passwd *,
 	     char *err, size_t errlen);
+
+/* authorized_key-style options parsing helpers */
+int	opt_flag(const char *opt, int allow_negate, const char **optsp);
+char	*opt_dequote(const char **sp, const char **errstrp);
+int	opt_match(const char **opts, const char *term);
 
 /* readpass.c */
 
