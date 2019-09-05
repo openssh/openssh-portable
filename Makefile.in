@@ -156,10 +156,14 @@ all: configure-check $(CONFIGFILES) $(MANPAGES) $(TARGETS)
 $(LIBSSH_OBJS): Makefile.in config.h
 $(SSHOBJS): Makefile.in config.h
 $(SSHDOBJS): Makefile.in config.h
-configure-check: configure config.h
+configure-check: configure config.h.in config.h
 
-configure config.h: configure.ac aclocal.m4
-	@echo "ERROR: configure/config.h is out of date; please run ${AUTORECONF} and configure" 1>&2
+configure config.h.in: configure.ac aclocal.m4
+	@echo "ERROR: configure or config.h.in are out of date; please run ${AUTORECONF} (and configure)" 1>&2
+	@exit 1
+
+config.h: config.h.in configure
+	@echo "ERROR: config.h is out of date; please run configure" 1>&2
 	@exit 1
 
 .c.o:
