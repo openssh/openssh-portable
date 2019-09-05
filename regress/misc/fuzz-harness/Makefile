@@ -7,7 +7,9 @@ CXXFLAGS=-O2 -g -Wall -Wextra -I ../../.. $(FUZZ_FLAGS)
 LDFLAGS=-L ../../.. -L ../../../openbsd-compat -g $(FUZZ_FLAGS)
 LIBS=-lssh -lopenbsd-compat -lcrypto $(FUZZ_LIBS)
 
-all: pubkey_fuzz sig_fuzz authopt_fuzz sshsig_fuzz
+TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz sshsig_fuzz sshsigopt_fuzz
+
+all: $(TARGETS)
 
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -24,5 +26,8 @@ authopt_fuzz: authopt_fuzz.o
 sshsig_fuzz: sshsig_fuzz.o
 	$(CXX) -o $@ sshsig_fuzz.o ../../../sshsig.o $(LDFLAGS) $(LIBS)
 
+sshsigopt_fuzz: sshsigopt_fuzz.o
+	$(CXX) -o $@ sshsigopt_fuzz.o ../../../sshsig.o $(LDFLAGS) $(LIBS)
+
 clean:
-	-rm -f *.o pubkey_fuzz sig_fuzz authopt_fuzz
+	-rm -f *.o $(TARGETS)
