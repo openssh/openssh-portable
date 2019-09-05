@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11.c,v 1.44 2019/09/02 00:19:25 djm Exp $ */
+/* $OpenBSD: ssh-pkcs11.c,v 1.45 2019/09/05 10:05:51 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  * Copyright (c) 2014 Pedro Martelletto. All rights reserved.
@@ -240,20 +240,16 @@ pkcs11_find(struct pkcs11_provider *p, CK_ULONG slotidx, CK_ATTRIBUTE *attr,
 }
 
 static int
-pkcs11_login(struct pkcs11_key *k11, CK_USER_TYPE type)
+pkcs11_login_slot(struct pkcs11_provider *provider, struct pkcs11_slotinfo *si,
+    CK_USER_TYPE type)
 {
-	struct pkcs11_slotinfo	*si;
-	CK_FUNCTION_LIST	*f;
 	char			*pin = NULL, prompt[1024];
 	CK_RV			 rv;
 
-	if (!k11->provider || !k11->provider->valid) {
+	if (provider == NULL || si == NULL || !provider->valid) {
 		error("no pkcs11 (valid) provider found");
 		return (-1);
 	}
-
-	f = k11->provider->function_list;
-	si = &k11->provider->slotinfo[k11->slotidx];
 
 	if (!pkcs11_interactive) {
 		error("need pin entry%s",
@@ -271,7 +267,7 @@ pkcs11_login(struct pkcs11_key *k11, CK_USER_TYPE type)
 			return (-1);	/* bail out */
 		}
 	}
-	rv = f->C_Login(si->session, type, (u_char *)pin,
+	rv = provider->function_list->C_Login(si->session, type, (u_char *)pin,
 	    (pin != NULL) ? strlen(pin) : 0);
 	if (pin != NULL)
 		freezero(pin, strlen(pin));
@@ -282,6 +278,19 @@ pkcs11_login(struct pkcs11_key *k11, CK_USER_TYPE type)
 	si->logged_in = 1;
 	return (0);
 }
+
+static int
+pkcs11_login(struct pkcs11_key *k11, CK_USER_TYPE type)
+{
+	if (k11 == NULL || k11->provider == NULL || !k11->provider->valid) {
+		error("no pkcs11 (valid) provider found");
+		return (-1);
+	}
+
+	return pkcs11_login_slot(k11->provider,
+	    &k11->provider->slotinfo[k11->slotidx], type);
+}
+
 
 static int
 pkcs11_check_obj_bool_attrib(struct pkcs11_key *k11, CK_OBJECT_HANDLE obj,
@@ -1565,9 +1574,22 @@ pkcs11_register_provider(char *provider_id, char *pin, struct sshkey ***keyp,
 		 * open session, login with pin and retrieve public
 		 * keys (if keyp is provided)
 		 */
-		if ((ret = pkcs11_open_session(p, i, pin, user)) == 0) {
-			if (keyp == NULL)
+		if ((ret = pkcs11_open_session(p, i, pin, user)) != 0 ||
+		    keyp == NULL)
+			continue;
+		pkcs11_fetch_keys(p, i, keyp, &nkeys);
+		pkcs11_fetch_certs(p, i, keyp, &nkeys);
+		if (nkeys == 0 && !p->slotinfo[i].logged_in &&
+		    pkcs11_interactive) {
+			/*
+			 * Some tokens require login before they will
+			 * expose keys.
+			 */
+			if (pkcs11_login_slot(p, &p->slotinfo[i],
+			    CKU_USER) < 0) {
+				error("login failed");
 				continue;
+			}
 			pkcs11_fetch_keys(p, i, keyp, &nkeys);
 			pkcs11_fetch_certs(p, i, keyp, &nkeys);
 		}
