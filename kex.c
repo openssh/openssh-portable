@@ -223,7 +223,9 @@ kex_assemble_names(char **listp, const char *def, const char *all)
 	char *list = NULL, *ret = NULL, *matching = NULL, *opatterns = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if (listp == NULL || *listp == NULL || **listp == '\0') {
+	if (listp == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
+	if (*listp == NULL || **listp == '\0') {
 		if ((*listp = strdup(def)) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
 		return 0;
