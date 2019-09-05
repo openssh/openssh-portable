@@ -151,11 +151,16 @@ FIXPATHSCMD	= $(SED) $(PATHSUBS)
 FIXALGORITHMSCMD= $(SHELL) $(srcdir)/fixalgorithms $(SED) \
 		     @UNSUPPORTED_ALGORITHMS@
 
-all: $(CONFIGFILES) $(MANPAGES) $(TARGETS)
+all: configure-check $(CONFIGFILES) $(MANPAGES) $(TARGETS)
 
 $(LIBSSH_OBJS): Makefile.in config.h
 $(SSHOBJS): Makefile.in config.h
 $(SSHDOBJS): Makefile.in config.h
+configure-check: configure config.h
+
+configure config.h: configure.ac aclocal.m4
+	@echo "ERROR: configure/config.h is out of date; please run ${AUTORECONF} and configure" 1>&2
+	@exit 1
 
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
