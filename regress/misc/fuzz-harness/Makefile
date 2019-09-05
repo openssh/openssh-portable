@@ -1,6 +1,6 @@
 # NB. libssh and libopenbsd-compat should be built with the same sanitizer opts.
-CXX=clang++-3.9
-FUZZ_FLAGS=-fsanitize=address,undefined -fsanitize-coverage=edge
+CXX=clang++-6.0
+FUZZ_FLAGS=-fsanitize=address,undefined -fsanitize-coverage=edge,trace-pc
 FUZZ_LIBS=-lFuzzer
 
 CXXFLAGS=-O2 -g -Wall -Wextra -I ../../.. $(FUZZ_FLAGS)
