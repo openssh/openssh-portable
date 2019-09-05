@@ -605,16 +605,16 @@ sshsig_verify_fd(struct sshbuf *signature, int fd,
 	return r;
 }
 
-struct sigopts {
+struct sshsigopt {
 	int ca;
 	char *namespaces;
 };
 
-static struct sigopts *
-sigopts_parse(const char *opts, const char *path, u_long linenum,
+struct sshsigopt *
+sshsigopt_parse(const char *opts, const char *path, u_long linenum,
     const char **errstrp)
 {
-	struct sigopts *ret;
+	struct sshsigopt *ret;
 	int r;
 	const char *errstr = NULL;
 
@@ -662,8 +662,8 @@ sigopts_parse(const char *opts, const char *path, u_long linenum,
 	return NULL;
 }
 
-static void
-sigopts_free(struct sigopts *opts)
+void
+sshsigopt_free(struct sshsigopt *opts)
 {
 	if (opts == NULL)
 		return;
@@ -680,7 +680,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	char *cp, *opts = NULL, *identities = NULL;
 	int r, found = 0;
 	const char *reason = NULL;
-	struct sigopts *sigopts = NULL;
+	struct sshsigopt *sigopts = NULL;
 
 	if ((found_key = sshkey_new(KEY_UNSPEC)) == NULL) {
 		error("%s: sshkey_new failed", __func__);
@@ -720,7 +720,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 		}
 	}
 	debug3("%s:%lu: options %s", path, linenum, opts == NULL ? "" : opts);
-	if ((sigopts = sigopts_parse(opts, path, linenum, &reason)) == NULL) {
+	if ((sigopts = sshsigopt_parse(opts, path, linenum, &reason)) == NULL) {
 		error("%s:%lu: bad options: %s", path, linenum, reason);
 		goto done;
 	}
@@ -756,7 +756,7 @@ check_allowed_keys_line(const char *path, u_long linenum, char *line,
 	}
  done:
 	sshkey_free(found_key);
-	sigopts_free(sigopts);
+	sshsigopt_free(sigopts);
 	return found ? 0 : SSH_ERR_KEY_NOT_FOUND;
 }
 

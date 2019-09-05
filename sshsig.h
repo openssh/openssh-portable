@@ -19,6 +19,7 @@
 
 struct sshbuf;
 struct sshkey;
+struct sshsigopt;
 
 typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, u_int, void *);
@@ -80,5 +81,12 @@ int sshsig_dearmor(struct sshbuf *sig, struct sshbuf **out);
  */
 int sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
     const char *principal, const char *ns);
+
+/* Parse zero or more allowed_keys signature options */
+struct sshsigopt *sshsigopt_parse(const char *opts,
+    const char *path, u_long linenum, const char **errstrp);
+
+/* Free signature options */
+void sshsigopt_free(struct sshsigopt *opts);
 
 #endif /* SSHSIG_H */
