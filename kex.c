@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.c,v 1.152 2019/09/05 09:35:19 djm Exp $ */
+/* $OpenBSD: kex.c,v 1.153 2019/09/06 01:58:50 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
@@ -223,7 +223,10 @@ kex_assemble_names(char **listp, const char *def, const char *all)
 	char *list = NULL, *ret = NULL, *matching = NULL, *opatterns = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if (listp == NULL || *listp == NULL || **listp == '\0') {
+	if (listp == NULL || def == NULL || all == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+
+	if (*listp == NULL || **listp == '\0') {
 		if ((*listp = strdup(def)) == NULL)
 			return SSH_ERR_ALLOC_FAIL;
 		return 0;
