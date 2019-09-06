@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.87 2019/09/03 08:32:11 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.88 2019/09/06 04:53:27 djm Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -19,6 +19,7 @@
 
 #include <sys/types.h>
 
+#include <stdlib.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdlib.h>

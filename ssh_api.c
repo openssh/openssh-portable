@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh_api.c,v 1.15 2019/01/21 10:38:54 djm Exp $ */
+/* $OpenBSD: ssh_api.c,v 1.16 2019/09/06 04:53:27 djm Exp $ */
 /*
  * Copyright (c) 2012 Markus Friedl.  All rights reserved.
  *
@@ -16,6 +16,11 @@
  */
 
 #include "includes.h"
+
+#include <sys/types.h>
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "ssh_api.h"
 #include "compat.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-pkcs11-helper.c,v 1.19 2019/06/06 05:13:13 otto Exp $ */
+/* $OpenBSD: ssh-pkcs11-helper.c,v 1.20 2019/09/06 04:53:27 djm Exp $ */
 /*
  * Copyright (c) 2010 Markus Friedl.  All rights reserved.
  *
@@ -24,6 +24,7 @@
 
 #include "openbsd-compat/sys-queue.h"
 
+#include <stdlib.h>
 #include <errno.h>
 #include <poll.h>
 #include <stdarg.h>

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.346 2019/09/03 20:51:49 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.347 2019/09/06 04:53:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -24,6 +24,7 @@
 #include "openbsd-compat/openssl-compat.h"
 #endif
 
+#include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
