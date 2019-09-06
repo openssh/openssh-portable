@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.289 2019/09/04 20:31:15 naddy Exp $
-.Dd $Mdocdate: September 4 2019 $
+.\" $OpenBSD: sshd_config.5,v 1.290 2019/09/06 14:45:34 naddy Exp $
+.Dd $Mdocdate: September 6 2019 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -462,6 +462,10 @@ If the specified list begins with a
 .Sq -
 character, then the specified ciphers (including wildcards) will be removed
 from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified ciphers will be placed at the head of the
+default set.
 .Pp
 The supported ciphers are:
 .Pp
@@ -676,6 +680,10 @@ If the specified list begins with a
 .Sq -
 character, then the specified key types (including wildcards) will be removed
 from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified key types will be placed at the head of the
+default set.
 The default for this option is:
 .Bd -literal -offset 3n
 ecdsa-sha2-nistp256-cert-v01@openssh.com,
@@ -881,6 +889,10 @@ If the specified list begins with a
 .Sq -
 character, then the specified methods (including wildcards) will be removed
 from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified methods will be placed at the head of the
+default set.
 The supported algorithms are:
 .Pp
 .Bl -item -compact -offset indent
@@ -998,6 +1010,10 @@ If the specified list begins with a
 .Sq -
 character, then the specified algorithms (including wildcards) will be removed
 from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified algorithms will be placed at the head of the
+default set.
 .Pp
 The algorithms that contain
 .Qq -etm
@@ -1403,6 +1419,10 @@ If the specified list begins with a
 .Sq -
 character, then the specified key types (including wildcards) will be removed
 from the default set instead of replacing them.
+If the specified list begins with a
+.Sq ^
+character, then the specified key types will be placed at the head of the
+default set.
 The default for this option is:
 .Bd -literal -offset 3n
 ecdsa-sha2-nistp256-cert-v01@openssh.com,

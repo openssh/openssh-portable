@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.505 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: ssh.c,v 1.506 2019/09/06 14:45:34 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -877,7 +877,7 @@ main(int ac, char **av)
 			}
 			break;
 		case 'c':
-			if (!ciphers_valid(*optarg == '+' ?
+			if (!ciphers_valid(*optarg == '+' || *optarg == '^' ?
 			    optarg + 1 : optarg)) {
 				fprintf(stderr, "Unknown cipher type '%s'\n",
 				    optarg);
