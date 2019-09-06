@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.107 2019/01/23 00:30:41 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.108 2019/09/06 03:30:42 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -28,10 +28,6 @@
 
 #include "mac.h"
 #include "crypto_api.h"
-
-#ifdef WITH_LEAKMALLOC
-#include "leakmalloc.h"
-#endif
 
 #ifdef WITH_OPENSSL
 # ifdef OPENSSL_HAS_ECC
