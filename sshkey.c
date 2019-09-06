@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.82 2019/09/03 08:31:20 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.83 2019/09/06 05:23:55 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.

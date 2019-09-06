@@ -1,4 +1,4 @@
-/* $OpenBSD: kex.h,v 1.108 2019/09/06 03:30:42 djm Exp $ */
+/* $OpenBSD: kex.h,v 1.109 2019/09/06 05:23:55 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -43,6 +43,18 @@
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void
+#endif /* WITH_OPENSSL */
+
+#ifdef WITH_OPENSSL
+#include <openssl/bn.h>
+#include <openssl/dh.h>
+#include <openssl/ec.h>
+#include <openssl/ecdsa.h>
+#else /* OPENSSL */
+#define BIGNUM		void
+#define DH		void
+#define EC_KEY		void
+#define EC_GROUP	void
 #endif /* WITH_OPENSSL */
 
 #define KEX_COOKIE_LEN	16
