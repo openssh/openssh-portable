@@ -47,7 +47,8 @@
 typedef uint32_t OM_uint32;
 
 typedef char *gss_name_struct, *gss_name_t;
-typedef CredHandle *gss_cred_id_t;
+
+typedef struct cred_st *gss_cred_id_t;
 typedef CtxtHandle *gss_ctx_id_t;
 
 typedef OM_uint32 gss_qop_t;

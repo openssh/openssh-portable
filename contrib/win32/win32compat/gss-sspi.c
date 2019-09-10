@@ -76,6 +76,14 @@ gss_OID GSS_C_NT_HOSTBASED_SERVICE = &(gss_OID_desc)
  */
 HANDLE sspi_auth_user = 0;
 
+struct cred_st {
+	int isToken;
+	union { 
+		HANDLE token;
+		CredHandle credHandle;
+	};
+};
+
 /*
  * This is called before each gssapi implementation function to ensure the
  * environment is initialized properly.  Any additional implementation setup
@@ -415,9 +423,10 @@ gss_acquire_cred(_Out_ OM_uint32 *minor_status, _In_opt_ gss_name_t desired_name
 	
 	/* copy credential data out of local buffer */
 	if (output_cred_handle != NULL) {
-		if ((*output_cred_handle = malloc(sizeof(CredHandle))) == NULL)
+		if ((*output_cred_handle = malloc(sizeof(struct cred_st))) == NULL)
 			return GSS_S_FAILURE;
-		memcpy(*output_cred_handle, &cred_handle, sizeof(CredHandle));
+		(*output_cred_handle)->isToken = 0;
+		(*output_cred_handle)->credHandle = cred_handle;
 	}
 	
 	/* determine expiration if requested */
@@ -482,9 +491,13 @@ gss_init_sec_context(
 	GetSystemTime(&current_time_system);
 
 	/* acquire default cred handler if none specified */
-	if (claimant_cred_handle == NULL) {
+	CredHandle *pCredHandle = NULL;
+	if (claimant_cred_handle != NULL)
+		pCredHandle = &(claimant_cred_handle->credHandle);
+	
+	if (pCredHandle == NULL) {
 		static CredHandle cred_handle = { 0, 0 };
-		claimant_cred_handle = &cred_handle;
+		pCredHandle = &cred_handle;
 		if (cred_handle.dwLower == 0 && cred_handle.dwUpper == 0) {
 			TimeStamp expiry_cred;
 			if (SecFunctions->AcquireCredentialsHandleW(NULL, MICROSOFT_KERBEROS_NAME_W, SECPKG_CRED_OUTBOUND,
@@ -501,8 +514,8 @@ gss_init_sec_context(
 	LONG sspi_ret_flags = 0;
 	CtxtHandle out_context;
 
-	const SECURITY_STATUS status = SecFunctions->InitializeSecurityContextW(claimant_cred_handle,
-		(*context_handle == GSS_C_NO_CREDENTIAL) ? NULL : *context_handle,
+	const SECURITY_STATUS status = SecFunctions->InitializeSecurityContextW(pCredHandle,
+		(*context_handle == GSS_C_NO_CONTEXT) ? NULL : *context_handle,
 		target_name_utf16, sspi_req_flags, 0, SECURITY_NATIVE_DREP, (no_input_buffer) ? NULL : &input_buffer,
 		0, (*context_handle != NULL) ? NULL : &out_context, &output_buffer, &sspi_ret_flags, (time_rec == NULL) ? NULL : &expiry);
 	free(target_name_utf16);
@@ -544,7 +557,7 @@ gss_init_sec_context(
 		*actual_mech_type = GSS_C_NT_HOSTBASED_SERVICE;
 	
 	/* copy the credential context structure to the caller */
-	if (*context_handle == GSS_C_NO_CREDENTIAL) {
+	if (*context_handle == GSS_C_NO_CONTEXT) {
 		*context_handle = malloc(sizeof(out_context));
 		memcpy(*context_handle, &out_context, sizeof(out_context));
 	}
@@ -565,17 +578,13 @@ gss_release_cred(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_cred_id_t * cre
 		return GSS_S_FAILURE;
 
 	if (*cred_handle != GSS_C_NO_CREDENTIAL) {
-
-		/* in some cases gss_cred_id_t can be a token and not a credential handle so
-		 * test if its a token and relase the data appropriately */
-		HANDLE handle = *((HANDLE *) *cred_handle);
-		DWORD token_ret = 0;
-		DWORD token_type = 0;
-		if (GetTokenInformation(handle, TokenType, &token_type, sizeof(TOKEN_TYPE), &token_ret) != 0)
-			CloseHandle(handle);
+		if ((*cred_handle)->isToken) {
+			CloseHandle((*cred_handle)->token);
+			if ((*cred_handle)->token == sspi_auth_user)
+				sspi_auth_user = 0;
+		}
 		else
-			SecFunctions->FreeCredentialsHandle(*cred_handle);
-		
+			SecFunctions->FreeCredentialsHandle(&(*cred_handle)->credHandle);
 		free(*cred_handle);
 		*cred_handle = GSS_C_NO_CREDENTIAL;
 	}
@@ -740,7 +749,7 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 		ASC_REQ_DELEGATE | ASC_REQ_SEQUENCE_DETECT | ASC_REQ_ALLOCATE_MEMORY;
 
 	/* call sspi accept security context function */
-	const SECURITY_STATUS status = SecFunctions->AcceptSecurityContext(acceptor_cred_handle, 
+	const SECURITY_STATUS status = SecFunctions->AcceptSecurityContext(&acceptor_cred_handle->credHandle, 
 		(*context_handle == GSS_C_NO_CONTEXT) ? NULL : *context_handle, &input_buffer,
 		sspi_req_flags, SECURITY_NATIVE_DREP, 
 		(*context_handle == GSS_C_NO_CONTEXT) ? &sspi_context_handle : *context_handle, 
@@ -822,9 +831,11 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 
 	/* get the user token for impersonation */
 	if (delegated_cred_handle != NULL) {
+		if ((*delegated_cred_handle = malloc(sizeof(struct cred_st))) == NULL)
+			return GSS_S_FAILURE;
 		SecFunctions->QuerySecurityContextToken(*context_handle, &sspi_auth_user);
-		*delegated_cred_handle = malloc(sizeof(HANDLE));
-		memcpy(*delegated_cred_handle, &sspi_auth_user, sizeof(HANDLE));
+		(*delegated_cred_handle)->isToken = 1;
+		(*delegated_cred_handle)->token = sspi_auth_user;
 	}
 
 	return (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
