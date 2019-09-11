@@ -1860,8 +1860,10 @@ upload_dir_internal(struct sftp_conn *conn, const char *src, const char *dst,
 	a.flags &= ~SSH2_FILEXFER_ATTR_SIZE;
 	a.flags &= ~SSH2_FILEXFER_ATTR_UIDGID;
 	a.perm &= 01777;
-	if (!preserve_flag)
-		a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
+	if (!preserve_flag) {
+        a.flags &= ~SSH2_FILEXFER_ATTR_ACMODTIME;
+        a.flags &= ~SSH2_FILEXFER_ATTR_PERMISSIONS;
+    }
 
 	/*
 	 * sftp lacks a portable status value to match errno EEXIST,
