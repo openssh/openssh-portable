@@ -78,10 +78,11 @@ ssh_askpass(char *askpass, const char *msg)
 			signal(SIGCHLD, osigchld);
 			return NULL;
 		} else {
-			char* spawn_argv[2];
+			const char* spawn_argv[3];
 			spawn_argv[0] = askpass;
-			spawn_argv[1] = NULL;
-			if (posix_spawnp(&pid, spawn_argv[0], &actions, NULL, spawn_argv, NULL) != 0) {
+			spawn_argv[1] = msg;
+			spawn_argv[2] = NULL;
+			if (posix_spawnp(&pid, spawn_argv[0], &actions, NULL, (char* const*) spawn_argv, NULL) != 0) {
 				posix_spawn_file_actions_destroy(&actions);
 				error("ssh_askpass: posix_spawnp: %s", strerror(errno));
 				signal(SIGCHLD, osigchld);
