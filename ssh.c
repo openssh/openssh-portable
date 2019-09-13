@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.506 2019/09/06 14:45:34 naddy Exp $ */
+/* $OpenBSD: ssh.c,v 1.507 2019/09/13 04:27:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1369,7 +1369,7 @@ main(int ac, char **av)
 	timeout_ms = options.connection_timeout * 1000;
 
 	/* Open a connection to the remote host. */
-	if (ssh_connect(ssh, host, addrs, &hostaddr, options.port,
+	if (ssh_connect(ssh, host_arg, host, addrs, &hostaddr, options.port,
 	    options.address_family, options.connection_attempts,
 	    &timeout_ms, options.tcp_keep_alive) != 0)
  		exit(255);
