@@ -345,10 +345,13 @@ function Get-LocalUserProfile
     if (-not (Test-Path $userProfileRegistry) ) {        
         #create profile
         if (-not($env:DISPLAY)) { $env:DISPLAY = 1 }
-        $env:SSH_ASKPASS="$($env:ComSpec) /c echo $($OpenSSHTestAccountsPassword)"
+        $askpass_util = Join-Path $Script:E2ETestDirectory "utilities\askpass_util\askpass_util.exe"
+        $env:SSH_ASKPASS=$askpass_util
+        $env:ASKPASS_PASSWORD=$OpenSSHTestAccountsPassword
         $ret = ssh -p 47002 "$User@localhost" echo %userprofile%
         if ($env:DISPLAY -eq 1) { Remove-Item env:\DISPLAY }
         remove-item "env:SSH_ASKPASS" -ErrorAction SilentlyContinue
+        Remove-item "env:ASKPASS_PASSWORD" -ErrorAction SilentlyContinue 
     }   
     
     (Get-ItemProperty -Path $userProfileRegistry -Name 'ProfileImagePath').ProfileImagePath    

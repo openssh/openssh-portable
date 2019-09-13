@@ -97,7 +97,9 @@ function Add-PasswordSetting
     $platform = Get-Platform
     if ($platform -eq [PlatformType]::Windows) {
         if (-not($env:DISPLAY)) {$env:DISPLAY = 1}
-        $env:SSH_ASKPASS="cmd.exe /c echo $pass"
+        $askpass_util = Join-Path $PSScriptRoot "utilities\askpass_util\askpass_util.exe"
+        $env:SSH_ASKPASS=$askpass_util
+        $env:ASKPASS_PASSWORD=$pass
     }
 }
 
@@ -105,6 +107,7 @@ function Remove-PasswordSetting
 {
     if ($env:DISPLAY -eq 1) { Remove-Item env:\DISPLAY }
     Remove-item "env:SSH_ASKPASS" -ErrorAction SilentlyContinue
+    Remove-item "env:ASKPASS_PASSWORD" -ErrorAction SilentlyContinue
 }
 
 $Taskfolder = "\OpenSSHTestTasks\"
