@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.303 2019/09/13 04:27:35 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.304 2019/09/13 04:52:34 djm Exp $
 .Dd $Mdocdate: September 13 2019 $
 .Dt SSH_CONFIG 5
 .Os
@@ -872,13 +872,13 @@ The default is the name given on the command line.
 .It Cm IdentitiesOnly
 Specifies that
 .Xr ssh 1
-should only use the authentication identity and certificate files explicitly
-configured in the
+should only use the configured authentication identity and certificate files
+(either the default files, or those explicitly configured in the
 .Nm
 files
 or passed on the
 .Xr ssh 1
-command-line,
+command-line),
 even if
 .Xr ssh-agent 1
 or a
