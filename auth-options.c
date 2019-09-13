@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.88 2019/09/06 04:53:27 djm Exp $ */
+/* $OpenBSD: auth-options.c,v 1.89 2019/09/13 04:36:43 dtucker Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -266,6 +266,7 @@ handle_permit(const char **optsp, int allow_bare_port,
 		 * listen_host wildcard.
 		 */
 		if (asprintf(&tmp, "*:%s", opt) == -1) {
+			free(opt);
 			*errstrp = "memory allocation failed";
 			return -1;
 		}
