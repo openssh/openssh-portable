@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.318 2019/09/13 04:27:35 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.319 2019/09/13 04:31:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -543,7 +543,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 	if (ssh_packet_set_connection(ssh, sock, sock) == NULL)
 		return -1; /* ssh_packet_set_connection logs error */
 
-        return 0;
+	return 0;
 }
 
 int
@@ -794,7 +794,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		ip_status = check_key_in_hostkeys(ip_hostkeys, host_key,
 		    &ip_found);
 		if (host_status == HOST_CHANGED &&
-		    (ip_status != HOST_CHANGED || 
+		    (ip_status != HOST_CHANGED ||
 		    (ip_found != NULL &&
 		    !sshkey_equal(ip_found->key, host_found->key))))
 			host_ip_differ = 1;
