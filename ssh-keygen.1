@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.166 2019/09/05 05:47:23 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.167 2019/09/16 03:23:02 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: September 5 2019 $
+.Dd $Mdocdate: September 16 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -149,10 +149,14 @@
 .Nm ssh-keygen
 .Fl Y Cm verify
 .Fl I Ar signer_identity
-.Fl f Ar allowed_keys_file
+.Fl f Ar allowed_signers_file
 .Fl n Ar namespace
 .Fl s Ar signature_file
 .Op Fl r Ar revocation_file
+.Nm ssh-keygen
+.Fl Y Cm check-novalidate
+.Fl s Ar signature_file
+.Fl n Ar namespace
 .Ek
 .Sh DESCRIPTION
 .Nm
@@ -715,6 +719,20 @@ A file containing revoked keys can be passed using the
 flag.
 The revocation file may be a KRL or a one-per-line list of public keys.
 Successful verification by an authorized signer is signalled by
+.Nm
+.It Fl Y Cm check-novalidate
+Checks that a signature generated using
+.Nm
+.Fl Y Cm sign
+has a valid structure.
+This does not validate if a signature comes from an authorized signer.
+When testing a signature,
+.Nm
+accepts a message on standard input and a signature namespace using
+.Fl n .
+A file containing the corresponding signature must also be supplied using the
+.Fl s
+flag. Successful testing of the signature is signalled by
 .Nm
 returning a zero exit status.
 .It Fl z Ar serial_number

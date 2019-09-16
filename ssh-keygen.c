@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.349 2019/09/06 07:53:40 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.350 2019/09/16 03:23:02 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2666,8 +2666,9 @@ verify(const char *signature, const char *sig_namespace, const char *principal,
 		}
 	}
 
-	if ((r = sshsig_check_allowed_keys(allowed_keys, sign_key,
-	    principal, sig_namespace)) != 0) {
+	if (allowed_keys != NULL &&
+	    (r = sshsig_check_allowed_keys(allowed_keys, sign_key,
+					   principal, sig_namespace)) != 0) {
 		debug3("sshsig_check_allowed_keys failed: %s", ssh_err(r));
 		goto done;
 	}
@@ -2681,9 +2682,15 @@ done:
 				fatal("%s: sshkey_fingerprint failed",
 				    __func__);
 			}
-			printf("Good \"%s\" signature for %s with %s key %s\n",
-			    sig_namespace, principal,
-			    sshkey_type(sign_key), fp);
+			if (principal == NULL) {
+				printf("Good \"%s\" signature with %s key %s\n",
+				       sig_namespace, sshkey_type(sign_key), fp);
+
+			} else {
+				printf("Good \"%s\" signature for %s with %s key %s\n",
+				       sig_namespace, principal,
+				       sshkey_type(sign_key), fp);
+			}
 		} else {
 			printf("Could not verify signature.\n");
 		}
@@ -2735,7 +2742,8 @@ usage(void)
 	    "       ssh-keygen -Q -f krl_file file ...\n"
 	    "       ssh-keygen -Y sign -f sign_key -n namespace\n"
 	    "       ssh-keygen -Y verify -I signer_identity -s signature_file\n"
-	    "                  -n namespace -f allowed_keys [-r revoked_keys]\n");
+	    "                  -n namespace -f allowed_keys [-r revoked_keys]\n"
+	    "       ssh-keygen -Y check-novalidate -s signature_file -n namespace\n");
 	exit(1);
 }
 
@@ -3034,6 +3042,14 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sign(identity_file, cert_principals, argc, argv);
+		} else if (strncmp(sign_op, "check-novalidate", 16) == 0) {
+			if (ca_key_path == NULL) {
+				error("Too few arguments for check-novalidate: "
+				      "missing signature file");
+				exit(1);
+			}
+			return verify(ca_key_path, cert_principals,
+				      NULL, NULL, NULL);
 		} else if (strncmp(sign_op, "verify", 6) == 0) {
 			if (ca_key_path == NULL) {
 				error("Too few arguments for verify: "
