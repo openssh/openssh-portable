@@ -218,9 +218,6 @@ static void channel_handler_init(struct ssh_channels *sc);
 static int hpn_disabled = 0;
 static int hpn_buffer_size = 2 * 1024 * 1024;
 
-static int hpn_disabled = 0;
-static int hpn_buffer_size = 2 * 1024 * 1024;
-
 /* -- channel core */
 
 void
@@ -977,28 +974,6 @@ channel_pre_connecting(struct ssh *ssh, Channel *c,
 {
 	debug3("channel %d: waiting for connection", c->self);
 	FD_SET(c->sock, writeset);
-}
-
-static int
-channel_tcpwinsz(void)
-{
-	u_int32_t tcpwinsz = 0;
-	socklen_t optsz = sizeof(tcpwinsz);
-	int ret = -1;
-
-	/* if we aren't on a socket return 128KB */
-	if (!packet_connection_is_on_socket())
-		return 128 * 1024;
-
-	ret = getsockopt(packet_get_connection_in(),
-			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
-	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
-	if (ret == 0 && tcpwinsz > SSHBUF_SIZE_MAX)
-		tcpwinsz = SSHBUF_SIZE_MAX;
-
-	debug2("tcpwinsz: %d for connection: %d", tcpwinsz,
-	       packet_get_connection_in());
-	return tcpwinsz;
 }
 
 static int

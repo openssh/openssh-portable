@@ -341,7 +341,4 @@ void	 chan_obuf_empty(struct ssh *, Channel *);
 /* hpn handler */
 void     channel_set_hpn(int, int);
 
-/* hpn handler */
-void     channel_set_hpn(int, int);
-
 #endif

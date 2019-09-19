@@ -52,16 +52,8 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
-
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
-
-/* for multi-threaded aes-ctr cipher */
-extern const EVP_CIPHER *evp_aes_ctr_mt(void);
-
-/* no longer needed. replaced by evp pointer swap */
-/* extern void ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx); */
-/* extern void ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx); */
 
 struct sshcipher_ctx {
 	int	plaintext;
