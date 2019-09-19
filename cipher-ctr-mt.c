@@ -33,6 +33,7 @@
 
 #include "xmalloc.h"
 #include "log.h"
+#include <unistd.h>
 
 /* compatibility with old or broken OpenSSL versions */
 #include "openbsd-compat/openssl-compat.h"
@@ -44,11 +45,15 @@
 #include <pthread.h>
 
 /*-------------------- TUNABLES --------------------*/
+/* maximum number of threads and queues */
+#define MAX_THREADS       16
+#define MAX_NUMKQ        (MAX_THREADS + 2)
+
 /* Number of pregen threads to use */
-#define CIPHER_THREADS	2
+int cipher_threads = 2;
 
 /* Number of keystream queues */
-#define NUMKQ		(CIPHER_THREADS + 2)
+int numkq = 4;
 
 /* Length of a keystream queue */
 #define KQLEN		4096
@@ -57,7 +62,7 @@
 #define CACHELINE_LEN	64
 
 /* Collect thread stats and print at cancellation when in debug mode */
-/* #define CIPHER_THREAD_STATS */
+#define CIPHER_THREAD_STATS
 
 /* Can the system do unaligned loads natively? */
 #if defined(__aarch64__) || \
@@ -93,8 +98,7 @@ static void
 thread_loop_stats(void *x)
 {
 	struct thread_stats *s = x;
-
-	debug("tid %lu - %u fills, %u skips, %u waits", pthread_self(),
+	debug("AES-CTR MT tid %lu - %u fills, %u skips, %u waits", pthread_self(),
 			s->fills, s->skips, s->waits);
 }
 
@@ -134,13 +138,15 @@ struct kq {
 };
 
 /* Context struct */
-struct ssh_aes_ctr_ctx
+struct ssh_aes_ctr_ctx_mt
 {
-	struct kq	q[NUMKQ];
+	int             struct_id;
+	struct kq	q[MAX_NUMKQ];
 	AES_KEY		aes_ctx;
 	STATS_STRUCT(stats);
 	u_char		aes_counter[AES_BLOCK_SIZE];
-	pthread_t	tid[CIPHER_THREADS];
+	pthread_t	tid[MAX_THREADS];
+	int             id[MAX_THREADS];
 	pthread_rwlock_t tid_lock;
 #ifdef __APPLE__
 	pthread_rwlock_t stop_lock;
@@ -199,7 +205,7 @@ thread_loop_cleanup(void *x)
  * when the main process join()-s the cancelled thread.
  */
 static void
-thread_loop_check_exit(struct ssh_aes_ctr_ctx *c)
+thread_loop_check_exit(struct ssh_aes_ctr_ctx_mt *c)
 {
 	int exit_flag;
 
@@ -218,7 +224,7 @@ thread_loop_check_exit(struct ssh_aes_ctr_ctx *c)
  * Helper function to terminate the helper threads
  */
 static void
-stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
+stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 {
 	int i;
 
@@ -230,16 +236,22 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx *c)
 #endif /* __APPLE__ */
 
 	/* Cancel pregen threads */
-	for (i = 0; i < CIPHER_THREADS; i++) {
+	for (i = 0; i < cipher_threads; i++) {
+		debug ("Canceled %lu (%d,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
-	for (i = 0; i < NUMKQ; i++) {
+	for (i = 0; i < numkq; i++) {
 		pthread_mutex_lock(&c->q[i].lock);
 		pthread_cond_broadcast(&c->q[i].cond);
 		pthread_mutex_unlock(&c->q[i].lock);
 	}
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		pthread_join(c->tid[i], NULL);
+	for (i = 0; i < cipher_threads; i++) {
+		if (pthread_kill(c->tid[i], 0) != 0)
+			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s", c->tid[i], __FUNCTION__);
+		else {
+			debug ("Joining %lu (%d, %d)", c->tid[i], c->struct_id, c->id[i]);
+			pthread_join(c->tid[i], NULL);
+		}
 	}
 }
 
@@ -253,7 +265,7 @@ thread_loop(void *x)
 {
 	AES_KEY key;
 	STATS_STRUCT(stats);
-	struct ssh_aes_ctr_ctx *c = x;
+	struct ssh_aes_ctr_ctx_mt *c = x;
 	struct kq *q;
 	int i;
 	int qidx;
@@ -284,7 +296,7 @@ thread_loop(void *x)
 				AES_encrypt(q->ctr, q->keys[i], &key);
 				ssh_ctr_inc(q->ctr, AES_BLOCK_SIZE);
 			}
-			ssh_ctr_add(q->ctr, KQLEN * (NUMKQ - 1), AES_BLOCK_SIZE);
+			ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
 			q->qstate = KQDRAINING;
 			STATS_FILL(stats);
 			pthread_cond_broadcast(&q->cond);
@@ -302,7 +314,7 @@ thread_loop(void *x)
 	 * when empty.  The first thread to wake will mark it as filling,
 	 * others will move on to fill, skip, or wait on the next queue.
 	 */
-	for (qidx = 1;; qidx = (qidx + 1) % NUMKQ) {
+	for (qidx = 1;; qidx = (qidx + 1) % numkq) {
 		/* Check if I was cancelled, also checked in cond_wait */
 		pthread_testcancel();
 
@@ -342,7 +354,7 @@ thread_loop(void *x)
 
 		/* Re-lock, mark full and signal consumer */
 		pthread_mutex_lock(&q->lock);
-		ssh_ctr_add(q->ctr, KQLEN * (NUMKQ - 1), AES_BLOCK_SIZE);
+		ssh_ctr_add(q->ctr, KQLEN * (numkq - 1), AES_BLOCK_SIZE);
 		q->qstate = KQFULL;
 		STATS_FILL(stats);
 		pthread_cond_broadcast(&q->cond);
@@ -373,7 +385,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 	} ptrs_t;
 	ptrs_t destp, srcp, bufp;
 	uintptr_t align;
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	struct kq *q, *oldq;
 	int ridx;
 	u_char *buf;
@@ -429,7 +441,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 			oldq = q;
 
 			/* Mark next queue draining, may need to wait */
-			c->qidx = (c->qidx + 1) % NUMKQ;
+			c->qidx = (c->qidx + 1) % numkq;
 			q = &c->q[c->qidx];
 			pthread_mutex_lock(&q->lock);
 			while (q->qstate != KQFULL) {
@@ -455,13 +467,51 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 #define HAVE_NONE       0
 #define HAVE_KEY        1
 #define HAVE_IV         2
+int X = 0;
+
 static int
 ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
     int enc)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 
+	/* get the number of cores in the system */
+	/* if it's not linux it currently defaults to 2 */
+	/* divide by 2 to get threads for each direction (MODE_IN||MODE_OUT) */
+#ifdef __linux__
+	cipher_threads = sysconf(_SC_NPROCESSORS_ONLN) / 2;
+#endif /*__linux__*/
+#ifdef __APPLE__
+	cipher_threads = sysconf(_SC_NPROCESSORS_ONLN) / 2;
+#endif /*__APPLE__*/
+#ifdef __FREEBSD__
+	int req[2];
+	size_t len;
+
+	req[0] = CTL_HW;
+	req[1] = HW_NCPU;
+
+	len = sizeof(ncpu);
+        sysctl(req, 2, &cipher_threads, &len, NULL, 0);
+	cipher_threads = cipher_threads/2;
+#endif /*__FREEBSD__*/
+
+	/* if they have less than 4 cores spin up 4 threads anyway */
+	if (cipher_threads < 2) 
+		cipher_threads = 2;
+		
+        /* assure that we aren't trying to create more threads than we have in the struct */
+	if (cipher_threads > MAX_THREADS)
+		cipher_threads = MAX_THREADS;
+
+	debug("cipher_threads is %d", cipher_threads);
+	
+	/* set the number of keystream queues */
+	numkq = cipher_threads + 2;
+
+	debug("NUMKQ is %d", numkq);
+	
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
 		c = xmalloc(sizeof(*c));
 		pthread_rwlock_init(&c->tid_lock, NULL);
@@ -471,7 +521,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 #endif /* __APPLE__ */
 
 		c->state = HAVE_NONE;
-		for (i = 0; i < NUMKQ; i++) {
+		for (i = 0; i < numkq; i++) {
 			pthread_mutex_init(&c->q[i].lock, NULL);
 			pthread_cond_init(&c->q[i].cond, NULL);
 		}
@@ -483,7 +533,6 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
 		/* tell the pregen threads to exit */
 		stop_and_join_pregen_threads(c);
-
 #ifdef __APPLE__
 		/* reset the exit flag */
 		c->exit_flag = FALSE;
@@ -508,7 +557,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		/* Clear queues */
 		memcpy(c->q[0].ctr, ctx->iv, AES_BLOCK_SIZE);
 		c->q[0].qstate = KQINIT;
-		for (i = 1; i < NUMKQ; i++) {
+		for (i = 1; i < numkq; i++) {
 			memcpy(c->q[i].ctr, ctx->iv, AES_BLOCK_SIZE);
 			ssh_ctr_add(c->q[i].ctr, i * KQLEN, AES_BLOCK_SIZE);
 			c->q[i].qstate = KQEMPTY;
@@ -517,10 +566,16 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		c->ridx = 0;
 
 		/* Start threads */
-		for (i = 0; i < CIPHER_THREADS; i++) {
-			debug("spawned a thread");
+		for (i = 0; i < cipher_threads; i++) {
 			pthread_rwlock_wrlock(&c->tid_lock);
-			pthread_create(&c->tid[i], NULL, thread_loop, c);
+			if (pthread_create(&c->tid[i], NULL, thread_loop, c) != 0)
+				debug ("AES-CTR MT Could not create thread in %s", __FUNCTION__); /*should die here */
+			else {
+				if (!c->struct_id)
+					c->struct_id = X++;
+				c->id[i] = i;
+				debug ("AES-CTR MT spawned a thread with id %lu in %s (%d, %d)", c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
+			}
 			pthread_rwlock_unlock(&c->tid_lock);
 		}
 		pthread_mutex_lock(&c->q[0].lock);
@@ -537,24 +592,29 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 void
 ssh_aes_ctr_thread_destroy(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
-
 	stop_and_join_pregen_threads(c);
 }
 
 void
 ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 	int i;
 	c = EVP_CIPHER_CTX_get_app_data(ctx);
 	/* reconstruct threads */
-	for (i = 0; i < CIPHER_THREADS; i++) {
-		debug("spawned a thread");
+	for (i = 0; i < cipher_threads; i++) {
 		pthread_rwlock_wrlock(&c->tid_lock);
-		pthread_create(&c->tid[i], NULL, thread_loop, c);
+		if (pthread_create(&c->tid[i], NULL, thread_loop, c) !=0 )
+			debug("AES-CTR MT could not create thread in %s", __FUNCTION__);
+		else {
+			c->struct_id = X++;
+			c->id[i] = i;
+			debug ("AES-CTR MT spawned a thread with id %lu in %s (%d, %d)", c->tid[i], __FUNCTION__, c->struct_id, c->id[i]);
+			debug("AES-CTR MT spawned a thread with id %lu in %s", c->tid[i], __FUNCTION__);
+		}
 		pthread_rwlock_unlock(&c->tid_lock);
 	}
 }
@@ -562,12 +622,12 @@ ssh_aes_ctr_thread_reconstruction(EVP_CIPHER_CTX *ctx)
 static int
 ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 {
-	struct ssh_aes_ctr_ctx *c;
+	struct ssh_aes_ctr_ctx_mt *c;
 
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
 #ifdef CIPHER_THREAD_STATS
-		debug("main thread: %u drains, %u waits", c->stats.drains,
-				c->stats.waits);
+		debug("AES-CTR MT main thread: %u drains, %u waits", c->stats.drains,
+		      c->stats.waits);
 #endif
 		stop_and_join_pregen_threads(c);
 

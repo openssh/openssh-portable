@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.h,v 1.7 2016/08/13 17:47:41 markus Exp $ */
+/* $OpenBSD: serverloop.h,v 1.8 2017/09/12 06:32:07 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -24,6 +24,8 @@ u_long stdin_bytes;
 u_long fdout_bytes;
 double start_time; 
 
-void    server_loop2(Authctxt *);
+struct ssh;
+
+void    server_loop2(struct ssh *, Authctxt *);
 
 #endif
