@@ -101,20 +101,6 @@ static volatile sig_atomic_t received_sigterm = 0;
 static void server_init_dispatch(void);
 
 /*
- * Returns current time in seconds from Jan 1, 1970 with the maximum
- * available resolution.
- */
-
-static double
-get_current_time(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
-}
-
-
-/*
  * we write to this pipe if a SIGCHLD is caught in order to avoid
  * the race between select() and child_terminated
  */
