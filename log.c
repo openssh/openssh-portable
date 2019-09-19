@@ -184,14 +184,6 @@ sigdie(const char *fmt,...)
 	_exit(1);
 }
 
-static double
-get_current_time(void)
-{
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
-}
-
 void
 logdie(const char *fmt,...)
 {
