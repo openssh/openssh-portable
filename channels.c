@@ -2112,17 +2112,6 @@ channel_check_window(struct ssh *ssh, Channel *c)
 		if (!c->have_remote_id)
 			fatal(":%s: channel %d: no remote id",
 			    __func__, c->self);
-		u_int addition = 0;
-		/* adjust max window size if we are in a dynamic environment */
-                if (c->dynamic_window == 1) {
-			/* check current tcp rmem size */
-			c->tcpwinsz = channel_tcpwinsz();
-			if (c->tcpwinsz > c->local_window_max) {
-				/* grow the window somewhat aggressively to maintain pressure */
-				addition = 1.5 * (c->tcpwinsz - c->local_window_max);
-				c->local_window_max += addition;
-			}
-		}
 		if ((r = sshpkt_start(ssh,
 		    SSH2_MSG_CHANNEL_WINDOW_ADJUST)) != 0 ||
 		    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
