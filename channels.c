@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.375 2017/09/24 13:45:34 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.379 2018/02/05 05:36:49 tb Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -440,10 +440,15 @@ channel_close_fd(struct ssh *ssh, int *fdp)
 static void
 channel_close_fds(struct ssh *ssh, Channel *c)
 {
+	int sock = c->sock, rfd = c->rfd, wfd = c->wfd, efd = c->efd;
+
 	channel_close_fd(ssh, &c->sock);
-	channel_close_fd(ssh, &c->rfd);
-	channel_close_fd(ssh, &c->wfd);
-	channel_close_fd(ssh, &c->efd);
+	if (rfd != sock)
+		channel_close_fd(ssh, &c->rfd);
+	if (wfd != sock && wfd != rfd)
+		channel_close_fd(ssh, &c->wfd);
+	if (efd != sock && efd != rfd && efd != wfd)
+		channel_close_fd(ssh, &c->efd);
 }
 
 static void
@@ -990,11 +995,11 @@ channel_tcpwinsz(void)
 	ret = getsockopt(packet_get_connection_in(),
 			 SOL_SOCKET, SO_RCVBUF, &tcpwinsz, &optsz);
 	/* return no more than SSHBUF_SIZE_MAX (currently 256MB) */
-	if (ret == 0 && tcpwinsz > SSHBUF_SIZE_MAX)
+	if ((ret == 0) && tcpwinsz > SSHBUF_SIZE_MAX)
 		tcpwinsz = SSHBUF_SIZE_MAX;
 
-	debug2("tcpwinsz: %d for connection: %d", tcpwinsz,
-	       packet_get_connection_in());
+	debug2("tcpwinsz: tcp connection %d, Receive window: %d",
+	       packet_get_connection_in(), tcpwinsz);
 	return tcpwinsz;
 }
 
@@ -1608,13 +1613,8 @@ channel_post_x11_listener(struct ssh *ssh, Channel *c,
 	    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 	    c->local_window_max, c->local_maxpacket, 0, buf, 1);
 	open_preamble(ssh, __func__, nc, "x11");
-	if ((r = sshpkt_put_cstring(ssh, remote_ipaddr)) != 0) {
-		fatal("%s: channel %i: reply %s", __func__,
-		    c->self, ssh_err(r));
-	}
-	if ((datafellows & SSH_BUG_X11FWD) != 0)
-		debug2("channel %d: ssh2 x11 bug compat mode", nc->self);
-	else if ((r = sshpkt_put_u32(ssh, remote_port)) != 0) {
+	if ((r = sshpkt_put_cstring(ssh, remote_ipaddr)) != 0 ||
+	    (r = sshpkt_put_u32(ssh, remote_port)) != 0) {
 		fatal("%s: channel %i: reply %s", __func__,
 		    c->self, ssh_err(r));
 	}
@@ -1692,19 +1692,6 @@ port_open_helper(struct ssh *ssh, Channel *c, char *rtype)
 		fatal("%s: channel %i: send %s", __func__, c->self, ssh_err(r));
 	free(remote_ipaddr);
 	free(local_ipaddr);
-}
-
-static void
-channel_set_reuseaddr(int fd)
-{
-	int on = 1;
-
-	/*
-	 * Set socket options.
-	 * Allow local port reuse in TIME_WAIT.
-	 */
-	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1)
-		error("setsockopt SO_REUSEADDR fd %d: %s", fd, strerror(errno));
 }
 
 void
@@ -1863,15 +1850,13 @@ channel_post_connecting(struct ssh *ssh, Channel *c,
 			if ((r = sshpkt_start(ssh,
 			    SSH2_MSG_CHANNEL_OPEN_FAILURE)) != 0 ||
 			    (r = sshpkt_put_u32(ssh, c->remote_id)) != 0 ||
-			    (r = sshpkt_put_u32(ssh, SSH2_OPEN_CONNECT_FAILED))
-			    != 0)
+			    (r = sshpkt_put_u32(ssh,
+			    SSH2_OPEN_CONNECT_FAILED)) != 0 ||
+			    (r = sshpkt_put_cstring(ssh, strerror(err))) != 0 ||
+			    (r = sshpkt_put_cstring(ssh, "")) != 0) {
 				fatal("%s: channel %i: failure: %s", __func__,
 				    c->self, ssh_err(r));
-			if ((datafellows & SSH_BUG_OPENFAILURE) == 0 &&
-			    ((r = sshpkt_put_cstring(ssh, strerror(err))) != 0 ||
-			    (r = sshpkt_put_cstring(ssh, "")) != 0))
-				fatal("%s: channel %i: failure: %s", __func__,
-				    c->self, ssh_err(r));
+			}
 			if ((r = sshpkt_send(ssh)) != 0)
 				fatal("%s: channel %i: %s", __func__, c->self,
 				    ssh_err(r));
@@ -2115,6 +2100,15 @@ channel_check_window(struct ssh *ssh, Channel *c)
 	    c->local_maxpacket*3) ||
 	    c->local_window < c->local_window_max/2) &&
 	    c->local_consumed > 0) {
+		u_int addition = 0;
+		u_int32_t tcpwinsz = channel_tcpwinsz();
+		/* adjust max window size if we are in a dynamic environment */
+		if (c->dynamic_window && (tcpwinsz > c->local_window_max)) {
+			/* grow the window somewhat aggressively to maintain pressure */
+			addition = 1.5 * (tcpwinsz - c->local_window_max);
+			c->local_window_max += addition;
+			debug("Channel: Window growth to %d by %d bytes", c->local_window_max, addition);
+		}
 		if (!c->have_remote_id)
 			fatal(":%s: channel %d: no remote id",
 			    __func__, c->self);
@@ -2490,7 +2484,7 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 	size_t len, plen;
 	const u_char *pkt;
 	int r;
-
+	
 	if ((len = sshbuf_len(c->input)) == 0) {
 		if (c->istate == CHAN_INPUT_WAIT_DRAIN) {
 			/*
@@ -2536,7 +2530,6 @@ channel_output_poll_input_open(struct ssh *ssh, Channel *c)
 			    c->self, ssh_err(r));
 		}
 		c->remote_window -= plen;
-		return;
 	}
 
 	/* Enqueue packet for buffered data. */
@@ -2608,7 +2601,7 @@ channel_output_poll(struct ssh *ssh)
 		c = sc->channels[i];
 		if (c == NULL)
 			continue;
-
+		
 		/*
 		 * We are only interested in channels that can have buffered
 		 * incoming data.
@@ -2618,10 +2611,10 @@ channel_output_poll(struct ssh *ssh)
 		if ((c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
 			debug3("channel %d: will not send data after close",
-			    c->self);
+			       c->self);
 			continue;
 		}
-
+		
 		/* Get the amount of buffered data for this channel. */
 		if (c->istate == CHAN_INPUT_OPEN ||
 		    c->istate == CHAN_INPUT_WAIT_DRAIN)
@@ -3160,13 +3153,11 @@ channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
 		error("%s: reason: %s", __func__, ssh_err(r));
 		packet_disconnect("Invalid open failure message");
 	}
-	if ((datafellows & SSH_BUG_OPENFAILURE) == 0) {
-		/* skip language */
-		if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
-		    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0) {
-			error("%s: message/lang: %s", __func__, ssh_err(r));
-			packet_disconnect("Invalid open failure message");
-		}
+	/* skip language */
+	if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
+	    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0) {
+		error("%s: message/lang: %s", __func__, ssh_err(r));
+		packet_disconnect("Invalid open failure message");
 	}
 	ssh_packet_check_eom(ssh);
 	logit("channel %d: open failed: %s%s%s", c->self,
@@ -3409,11 +3400,12 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sock < 0) {
 			/* this is no error since kernel may not support ipv6 */
-			verbose("socket: %.100s", strerror(errno));
+			verbose("socket [%s]:%s: %.100s", ntop, strport,
+			    strerror(errno));
 			continue;
 		}
 
-		channel_set_reuseaddr(sock);
+		set_reuseaddr(sock);
 		if (ai->ai_family == AF_INET6)
 			sock_set_v6only(sock);
 
@@ -3427,9 +3419,11 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 			 * already bound
 			 */
 			if (!ai->ai_next)
-				error("bind: %.100s", strerror(errno));
+				error("bind [%s]:%s: %.100s",
+				    ntop, strport, strerror(errno));
 			else
-				verbose("bind: %.100s", strerror(errno));
+				verbose("bind [%s]:%s: %.100s",
+				    ntop, strport, strerror(errno));
 
 			close(sock);
 			continue;
@@ -3437,6 +3431,8 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 		/* Start listening for connections on the socket. */
 		if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
 			error("listen: %.100s", strerror(errno));
+			error("listen [%s]:%s: %.100s", ntop, strport,
+			    strerror(errno));
 			close(sock);
 			continue;
 		}
@@ -3453,11 +3449,13 @@ channel_setup_fwd_listener_tcpip(struct ssh *ssh, int type,
 			debug("Allocated listen port %d",
 			    *allocated_listen_port);
 		}
+
+		/* Allocate a channel number for the socket. */
 		/* explicitly test for hpn disabled option. if true use smaller window size */
 		c = channel_new(ssh, "port listener", type, sock, sock, -1,
-		    hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : hpn_buffer_size,
-		    CHAN_TCP_PACKET_DEFAULT,
-		    0, "port listener", 1);
+				hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : hpn_buffer_size,
+				CHAN_TCP_PACKET_DEFAULT,
+				0, "port listener", 1);
 		c->path = xstrdup(host);
 		c->host_port = fwd->connect_port;
 		c->listening_addr = addr == NULL ? NULL : xstrdup(addr);
@@ -3717,15 +3715,9 @@ static const char *
 channel_rfwd_bind_host(const char *listen_host)
 {
 	if (listen_host == NULL) {
-		if (datafellows & SSH_BUG_RFWD_ADDR)
-			return "127.0.0.1";
-		else
-			return "localhost";
+		return "localhost";
 	} else if (*listen_host == '\0' || strcmp(listen_host, "*") == 0) {
-		if (datafellows & SSH_BUG_RFWD_ADDR)
-			return "0.0.0.0";
-		else
-			return "";
+		return "";
 	} else
 		return listen_host;
 }
@@ -4484,7 +4476,7 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 			if (ai->ai_family == AF_INET6)
 				sock_set_v6only(sock);
 			if (x11_use_localhost)
-				channel_set_reuseaddr(sock);
+				set_reuseaddr(sock);
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
 				debug2("%s: bind port %d: %.100s", __func__,
 				    port, strerror(errno));
@@ -4522,10 +4514,9 @@ x11_create_display_inet(struct ssh *ssh, int x11_display_offset,
 		sock = socks[n];
 		nc = channel_new(ssh, "x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
-		    /* Is this really necassary? */
-		    hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : hpn_buffer_size,
-		    CHAN_X11_PACKET_DEFAULT,
-		    0, "X11 inet listener", 1);
+				 hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : hpn_buffer_size,
+				 CHAN_X11_PACKET_DEFAULT,
+				 0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
 		(*chanids)[n] = nc->self;
 	}

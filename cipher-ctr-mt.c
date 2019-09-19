@@ -46,8 +46,8 @@
 
 /*-------------------- TUNABLES --------------------*/
 /* maximum number of threads and queues */
-#define MAX_THREADS       16
-#define MAX_NUMKQ        (MAX_THREADS + 2)
+#define MAX_THREADS      32 
+#define MAX_NUMKQ        (MAX_THREADS * 2)
 
 /* Number of pregen threads to use */
 int cipher_threads = 2;
@@ -494,7 +494,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 
 	len = sizeof(ncpu);
         sysctl(req, 2, &cipher_threads, &len, NULL, 0);
-	cipher_threads = cipher_threads/2;
+	cipher_threads = cipher_threads / 2;
 #endif /*__FREEBSD__*/
 
 	/* if they have less than 4 cores spin up 4 threads anyway */
@@ -502,16 +502,13 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		cipher_threads = 2;
 		
         /* assure that we aren't trying to create more threads than we have in the struct */
-	if (cipher_threads > MAX_THREADS)
-		cipher_threads = MAX_THREADS;
+	/* cipher_threads is half the total of allowable threads hence the odd looking math here */
+	if (cipher_threads * 2 > MAX_THREADS)
+		cipher_threads = MAX_THREADS / 2;
 
-	debug("cipher_threads is %d", cipher_threads);
-	
 	/* set the number of keystream queues */
-	numkq = cipher_threads + 2;
+	numkq = cipher_threads * 2;
 
-	debug("NUMKQ is %d", numkq);
-	
 	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) == NULL) {
 		c = xmalloc(sizeof(*c));
 		pthread_rwlock_init(&c->tid_lock, NULL);
@@ -533,6 +530,7 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
 		/* tell the pregen threads to exit */
 		stop_and_join_pregen_threads(c);
+		
 #ifdef __APPLE__
 		/* reset the exit flag */
 		c->exit_flag = FALSE;

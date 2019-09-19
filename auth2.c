@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2.c,v 1.143 2017/06/24 06:34:38 djm Exp $ */
+/* $OpenBSD: auth2.c,v 1.145 2018/03/03 03:15:51 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -51,6 +51,7 @@
 #include "dispatch.h"
 #include "pathnames.h"
 #include "buffer.h"
+#include "canohost.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -140,9 +141,6 @@ auth2_read_banner(void)
 void
 userauth_send_banner(const char *msg)
 {
-	if (datafellows & SSH_BUG_BANNER)
-		return;
-
 	packet_start(SSH2_MSG_USERAUTH_BANNER);
 	packet_put_cstring(msg);
 	packet_put_cstring("");		/* language, unused */
@@ -155,7 +153,7 @@ userauth_banner(void)
 {
 	char *banner = NULL;
 
-	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER) != 0)
+	if (options.banner == NULL)
 		return;
 
 	if ((banner = PRIVSEP(auth2_read_banner())) == NULL)
@@ -233,7 +231,7 @@ input_userauth_request(int type, u_int32_t seq, struct ssh *ssh)
 	debug("userauth-request for user %s service %s method %s", user, service, method);
 	if (!log_flag) {
 		logit("SSH: Server;Ltype: Authname;Remote: %s-%d;Name: %s",
-		      ssh_remote_ipaddr(active_state), ssh_remote_port(active_state), user);
+		      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh), user);
 		log_flag = 1;
 	}
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
@@ -320,7 +318,7 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 
 	/* Special handling for root */
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
-	    !auth_root_allowed(method)) {
+	    !auth_root_allowed(ssh, method)) {
 		authenticated = 0;
 #ifdef SSH_AUDIT_EVENTS
 		PRIVSEP(audit_event(SSH_LOGIN_ROOT_DENIED));
@@ -359,13 +357,6 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 	}
 #endif
 
-#ifdef _UNICOS
-	if (authenticated && cray_access_denied(authctxt->user)) {
-		authenticated = 0;
-		fatal("Access denied for user %s.", authctxt->user);
-	}
-#endif /* _UNICOS */
-
 	if (authenticated == 1) {
 		/* turn off userauth */
 		ssh_dispatch_set(ssh, SSH2_MSG_USERAUTH_REQUEST, &dispatch_protocol_ignore);
@@ -376,7 +367,6 @@ userauth_finish(struct ssh *ssh, int authenticated, const char *method,
 		authctxt->success = 1;
 		ssh_packet_set_log_preamble(ssh, "user %s", authctxt->user);
 	} else {
-
 		/* Allow initial try of "none" auth without failure penalty */
 		if (!partial && !authctxt->server_caused_failure &&
 		    (authctxt->attempt > 1 || strcmp(method, "none") != 0))

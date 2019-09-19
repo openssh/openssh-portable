@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.305 2017/09/19 04:24:22 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.311 2018/02/11 21:16:56 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -210,7 +210,6 @@ static void
 window_change_handler(int sig)
 {
 	received_window_change_signal = 1;
-	signal(SIGWINCH, window_change_handler);
 }
 
 /*
@@ -1243,7 +1242,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 			fatal("%s pledge(): %s", __func__, strerror(errno));
 	}
 
-	start_time = get_current_time();
+	start_time = monotime_double();
 
 	/* Initialize variables. */
 	last_was_cr = 1;
@@ -1432,7 +1431,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	buffer_free(&stderr_buffer);
 
 	/* Report bytes transferred, and transfer rates. */
-	total_time = get_current_time() - start_time;
+	total_time = monotime_double() - start_time;
 	packet_get_bytes(&ibytes, &obytes);
 	verbose("Transferred: sent %llu, received %llu bytes, in %.1f seconds",
 	    (unsigned long long)obytes, (unsigned long long)ibytes, total_time);
@@ -1541,12 +1540,7 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 		return NULL;
 	}
 	originator = packet_get_string(NULL);
-	if (datafellows & SSH_BUG_X11FWD) {
-		debug2("buggy server: x11 request w/o originator_port");
-		originator_port = 0;
-	} else {
-		originator_port = packet_get_int();
-	}
+	originator_port = packet_get_int();
 	packet_check_eom();
 	/* XXX check permission */
 	debug("client_request_x11: request from %s %d", originator,
@@ -1555,11 +1549,11 @@ client_request_x11(struct ssh *ssh, const char *request_type, int rchan)
 	sock = x11_connect_display(ssh);
 	if (sock < 0)
 		return NULL;
-	c = channel_new(ssh, "x11",
-	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
-	    /* again is this really necessary for X11? */
-	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
-	    CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
+        c = channel_new(ssh, "x11",
+			SSH_CHANNEL_X11_OPEN, sock, sock, -1,
+			/* again is this really necessary for X11? */
+			options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
+			CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1583,20 +1577,21 @@ client_request_agent(struct ssh *ssh, const char *request_type, int rchan)
 		return NULL;
 	}
 	c = channel_new(ssh, "authentication agent connection",
-	    SSH_CHANNEL_OPEN, sock, sock, -1,
-	    options.hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : options.hpn_buffer_size,
-	    CHAN_TCP_PACKET_DEFAULT, 0,
-	    "authentication agent connection", 1);
+			SSH_CHANNEL_OPEN, sock, sock, -1,
+			options.hpn_disabled ? CHAN_X11_WINDOW_DEFAULT : options.hpn_buffer_size,
+			CHAN_TCP_PACKET_DEFAULT, 0,
+			"authentication agent connection", 1);
 	c->force_drain = 1;
 	return c;
 }
 
-int
+char *
 client_request_tun_fwd(struct ssh *ssh, int tun_mode,
     int local_tun, int remote_tun)
 {
 	Channel *c;
 	int fd;
+	char *ifname = NULL;
 
 	if (tun_mode == SSH_TUNMODE_NO)
 		return 0;
@@ -1604,15 +1599,18 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	debug("Requesting tun unit %d in mode %d", local_tun, tun_mode);
 
 	/* Open local tunnel device */
-	if ((fd = tun_open(local_tun, tun_mode)) == -1) {
+	if ((fd = tun_open(local_tun, tun_mode, &ifname)) == -1) {
 		error("Tunnel device open failed.");
-		return -1;
+		return NULL;
 	}
+	debug("Tunnel forwarding using interface %s", ifname);
 
-	c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
+        c = channel_new(ssh, "tun", SSH_CHANNEL_OPENING, fd, fd, -1,
 	    options.hpn_disabled ? CHAN_TCP_WINDOW_DEFAULT : options.hpn_buffer_size,
 	    CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
+
+
 
 #if defined(SSH_TUN_FILTER)
 	if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
@@ -1629,7 +1627,7 @@ client_request_tun_fwd(struct ssh *ssh, int tun_mode,
 	packet_put_int(remote_tun);
 	packet_send();
 
-	return 0;
+	return ifname;
 }
 
 /* XXXX move to generic input handler */
@@ -1680,10 +1678,8 @@ client_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
-		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring("open failed");
-			packet_put_cstring("");
-		}
+		packet_put_cstring("open failed");
+		packet_put_cstring("");
 		packet_send();
 	}
 	free(ctype);
@@ -1895,7 +1891,7 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 	struct hostkeys_update_ctx *ctx = (struct hostkeys_update_ctx *)_ctx;
 	size_t i, ndone;
 	struct sshbuf *signdata;
-	int r;
+	int r, kexsigtype, use_kexsigtype;
 	const u_char *sig;
 	size_t siglen;
 
@@ -1907,6 +1903,9 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 		hostkeys_update_ctx_free(ctx);
 		return;
 	}
+	kexsigtype = sshkey_type_plain(
+	    sshkey_type_from_name(ssh->kex->hostkey_alg));
+
 	if ((signdata = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 	/* Don't want to accidentally accept an unbound signature */
@@ -1935,8 +1934,15 @@ client_global_hostkeys_private_confirm(struct ssh *ssh, int type,
 			    __func__, ssh_err(r));
 			goto out;
 		}
+		/*
+		 * For RSA keys, prefer to use the signature type negotiated
+		 * during KEX to the default (SHA1).
+		 */
+		use_kexsigtype = kexsigtype == KEY_RSA &&
+		    sshkey_type_plain(ctx->keys[i]->type) == KEY_RSA;
 		if ((r = sshkey_verify(ctx->keys[i], sig, siglen,
-		    sshbuf_ptr(signdata), sshbuf_len(signdata), 0)) != 0) {
+		    sshbuf_ptr(signdata), sshbuf_len(signdata),
+		    use_kexsigtype ? ssh->kex->hostkey_alg : NULL, 0)) != 0) {
 			error("%s: server gave bad signature for %s key %zu",
 			    __func__, sshkey_type(ctx->keys[i]), i);
 			goto out;

@@ -1,3 +1,4 @@
+/* $OpenBSD: opacket.c,v 1.7 2017/10/20 01:56:39 djm Exp $ */
 /* Written by Markus Friedl. Placed in the public domain.  */
 
 #include "includes.h"
@@ -98,13 +99,15 @@ ssh_packet_put_ecpoint(struct ssh *ssh, const EC_GROUP *curve,
 # endif
 #endif /* WITH_OPENSSL */
 
-void
+int
 ssh_packet_send(struct ssh *ssh)
 {
 	int r;
 
 	if ((r = sshpkt_send(ssh)) != 0)
 		fatal("%s: %s", __func__, ssh_err(r));
+
+	return r;
 }
 
 u_int
