@@ -24,6 +24,10 @@ If you must use a non-position-independent libcrypto, then you may need
 to configure OpenSSH --without-pie.  Note that due to a bug in EVP_CipherInit
 OpenSSL 1.1 versions prior to 1.1.0g can't be used.
 
+To support Privilege Separation (which is now required) you will need
+to create the user, group and directory used by sshd for privilege
+separation.  See README.privsep for details.
+
 The remaining items are optional.
 
 NB. If you operating system supports /dev/random, you should configure
@@ -132,10 +136,6 @@ make install
 
 This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
-
-If you are using Privilege Separation (which is enabled by default)
-then you will also need to create the user, group and directory used by
-sshd for privilege separation.  See README.privsep for details.
 
 If you are using PAM, you may need to manually install a PAM control
 file as "/etc/pam.d/sshd" (or wherever your system prefers to keep
