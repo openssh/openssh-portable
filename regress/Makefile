@@ -30,6 +30,7 @@ LTESTS= 	connect \
 		transfer \
 		banner \
 		rekey \
+		dhgex \
 		stderr-data \
 		stderr-after-eof \
 		broken-pipe \
@@ -91,7 +92,6 @@ LTESTS= 	connect \
 		sshsig
 
 
-#		dhgex \
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
