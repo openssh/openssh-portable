@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.168 2019/09/20 18:50:58 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.169 2019/09/27 20:03:24 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: September 20 2019 $
+.Dd $Mdocdate: September 27 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -264,15 +264,15 @@ This is used by
 .Pa /etc/rc
 to generate new host keys.
 .It Fl a Ar rounds
-When saving a private key this option specifies the number of KDF
+When saving a private key, this option specifies the number of KDF
 (key derivation function) rounds used.
 Higher numbers result in slower passphrase verification and increased
 resistance to brute-force password cracking (should the keys be stolen).
 .Pp
 When screening DH-GEX candidates (using the
 .Fl T
-command).
-This option specifies the number of primality tests to perform.
+command),
+this option specifies the number of primality tests to perform.
 .It Fl B
 Show the bubblebabble digest of specified private or public key file.
 .It Fl b Ar bits
