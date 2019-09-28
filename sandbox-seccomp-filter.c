@@ -230,6 +230,15 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_munmap
 	SC_ALLOW(__NR_munmap),
 #endif
+#ifdef __NR_shmget
+	SC_ALLOW(__NR_shmget),
+#endif
+#ifdef __NR_shmat
+	SC_ALLOW(__NR_shmat),
+#endif
+#ifdef __NR_shmdt
+	SC_ALLOW(__NR_shmdt),
+#endif
 #ifdef __NR_nanosleep
 	SC_ALLOW(__NR_nanosleep),
 #endif
