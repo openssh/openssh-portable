@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.351 2019/09/24 12:50:46 deraadt Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.352 2019/09/29 16:31:57 jmc Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2723,16 +2723,16 @@ usage(void)
 	    "       ssh-keygen -D pkcs11\n");
 #endif
 	fprintf(stderr,
-	    "       ssh-keygen -F hostname [-f known_hosts_file] [-l]\n"
+	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
-	    "       ssh-keygen -r hostname [-f input_keyfile] [-g]\n"
+	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
 	    "       ssh-keygen -G output_file [-v] [-b bits] [-M memory] [-S start_point]\n"
 	    "       ssh-keygen -T output_file -f input_file [-v] [-a rounds] [-J num_lines]\n"
 	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
 #endif
-	    "       ssh-keygen -s ca_key -I certificate_identity [-h] [-U]\n"
+	    "       ssh-keygen -s ca_key -I certificate_identity [-hU]\n"
 	    "                  [-D pkcs11_provider] [-n principals] [-O option]\n"
 	    "                  [-V validity_interval] [-z serial_number] file ...\n"
 	    "       ssh-keygen -L [-f input_keyfile]\n"

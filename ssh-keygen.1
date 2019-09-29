@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.169 2019/09/27 20:03:24 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.170 2019/09/29 16:31:57 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: September 27 2019 $
+.Dd $Mdocdate: September 29 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -85,9 +85,8 @@
 .Fl D Ar pkcs11
 .Nm ssh-keygen
 .Fl F Ar hostname
+.Op Fl lv
 .Op Fl f Ar known_hosts_file
-.Op Fl l
-.Op Fl v
 .Nm ssh-keygen
 .Fl H
 .Op Fl f Ar known_hosts_file
@@ -96,8 +95,8 @@
 .Op Fl f Ar known_hosts_file
 .Nm ssh-keygen
 .Fl r Ar hostname
-.Op Fl f Ar input_keyfile
 .Op Fl g
+.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl G Ar output_file
 .Op Fl v
@@ -116,8 +115,7 @@
 .Nm ssh-keygen
 .Fl s Ar ca_key
 .Fl I Ar certificate_identity
-.Op Fl h
-.Op Fl U
+.Op Fl hU
 .Op Fl D Ar pkcs11_provider
 .Op Fl n Ar principals
 .Op Fl O Ar option
