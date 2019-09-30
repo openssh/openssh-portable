@@ -210,8 +210,16 @@ t12: $(OBJ)/t12.out
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
-		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		skip=no; \
+		for t in ""$${SKIP_LTESTS}; do \
+			if [ "x$${t}.sh" = "x$${TEST}" ]; then skip=yes; fi; \
+		done; \
+		if [ "x$${skip}" = "xno" ]; then \
+			echo "run test $${TEST}" ... 1>&2; \
+			(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		else \
+			echo skip test $${TEST} 1>&2; \
+		fi; \
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}
