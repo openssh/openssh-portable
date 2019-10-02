@@ -172,7 +172,7 @@ sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
 	    (r = sshbuf_put_cstring(tosign, sig_namespace)) != 0 ||
 	    (r = sshbuf_put_string(tosign, NULL, 0)) != 0 || /* reserved */
 	    (r = sshbuf_put_cstring(tosign, hashalg)) != 0 ||
-	    (r = sshbuf_putb(tosign, h_message)) != 0) {
+	    (r = sshbuf_put_stringb(tosign, h_message)) != 0) {
 		error("Couldn't construct message to sign: %s", ssh_err(r));
 		goto done;
 	}
@@ -308,7 +308,7 @@ sshsig_wrap_verify(struct sshbuf *signature, const char *hashalg,
 	    (r = sshbuf_put_cstring(toverify, expect_namespace)) != 0 ||
 	    (r = sshbuf_put_string(toverify, NULL, 0)) != 0 || /* reserved */
 	    (r = sshbuf_put_cstring(toverify, hashalg)) != 0 ||
-	    (r = sshbuf_putb(toverify, h_message)) != 0) {
+	    (r = sshbuf_put_stringb(toverify, h_message)) != 0) {
 		error("Couldn't construct message to verify: %s", ssh_err(r));
 		goto done;
 	}
