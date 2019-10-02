@@ -52,14 +52,11 @@
 #include "auth.h"
 #include "dispatch.h"
 #include "pathnames.h"
-#include "sshbuf.h"
 #include "ssherr.h"
-
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
 #include "monitor_wrap.h"
-#include "ssherr.h"
 #include "digest.h"
 
 /* import */

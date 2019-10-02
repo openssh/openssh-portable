@@ -30,6 +30,9 @@
 #include "crypto_api.h"
 
 #ifdef WITH_OPENSSL
+# include <openssl/bn.h>
+# include <openssl/dh.h>
+# include <openssl/ecdsa.h>
 # ifdef OPENSSL_HAS_ECC
 #  include <openssl/ec.h>
 # else /* OPENSSL_HAS_ECC */
@@ -43,18 +46,6 @@
 # define EC_KEY		void
 # define EC_GROUP	void
 # define EC_POINT	void
-#endif /* WITH_OPENSSL */
-
-#ifdef WITH_OPENSSL
-#include <openssl/bn.h>
-#include <openssl/dh.h>
-#include <openssl/ec.h>
-#include <openssl/ecdsa.h>
-#else /* OPENSSL */
-#define BIGNUM		void
-#define DH		void
-#define EC_KEY		void
-#define EC_GROUP	void
 #endif /* WITH_OPENSSL */
 
 #define KEX_COOKIE_LEN	16

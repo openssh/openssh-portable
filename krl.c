@@ -29,7 +29,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <stdlib.h>
 
 #include "sshbuf.h"
 #include "ssherr.h"

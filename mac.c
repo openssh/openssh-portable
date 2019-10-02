@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "digest.h"
 #include "hmac.h"

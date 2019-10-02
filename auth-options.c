@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <pwd.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>

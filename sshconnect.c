@@ -56,7 +56,6 @@
 #include "compat.h"
 #include "sshkey.h"
 #include "sshconnect.h"
-#include "hostfile.h"
 #include "log.h"
 #include "misc.h"
 #include "readconf.h"
