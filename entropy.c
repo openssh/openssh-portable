@@ -252,7 +252,7 @@ seed_rng(void)
 #include <stdlib.h>
 #include <string.h>
 
-/* Acutal initialisation is handled in arc4random() */
+/* Actual initialisation is handled in arc4random() */
 void
 seed_rng(void)
 {
