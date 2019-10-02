@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.353 2019/10/02 08:05:50 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.354 2019/10/02 09:50:50 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3030,7 +3030,7 @@ main(int argc, char **argv)
 	argc -= optind;
 
 	if (sign_op != NULL) {
-		if (cert_principals == NULL && *cert_principals == '\0') {
+		if (cert_principals == NULL || *cert_principals == '\0') {
 			error("Too few arguments for sign/verify: "
 			    "missing namespace");
 			exit(1);
