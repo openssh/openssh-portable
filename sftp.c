@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.194 2019/07/10 07:04:27 tb Exp $ */
+/* $OpenBSD: sftp.c,v 1.195 2019/10/02 00:42:30 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -53,7 +53,6 @@ typedef void EditLine;
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>
 
 #ifdef HAVE_UTIL_H
 # include <util.h>

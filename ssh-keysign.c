@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.60 2019/09/06 05:23:55 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.61 2019/10/02 00:42:30 djm Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -58,7 +58,6 @@
 #include "pathnames.h"
 #include "readconf.h"
 #include "uidswap.h"
-#include "sshkey.h"
 #include "ssherr.h"
 
 extern char *__progname;

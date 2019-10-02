@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.140 2019/09/06 04:53:27 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.141 2019/10/02 00:42:30 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -73,7 +73,6 @@
 #endif
 #include "authfile.h"
 #include "monitor_wrap.h"
-#include "authfile.h"
 #include "ssherr.h"
 #include "compat.h"
 #include "channels.h"
