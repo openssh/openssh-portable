@@ -211,6 +211,8 @@ kex_ecdh_dec(struct kex *kex, const struct sshbuf *server_blob,
 
 #else
 
+#include "ssherr.h"
+
 struct kex;
 struct sshbuf;
 struct sshkey;
