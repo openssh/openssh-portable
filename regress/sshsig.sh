@@ -1,4 +1,4 @@
-#	$OpenBSD: sshsig.sh,v 1.1 2019/09/03 08:37:45 djm Exp $
+#	$OpenBSD: sshsig.sh,v 1.2 2019/10/04 03:39:19 djm Exp $
 #	Placed in the Public Domain.
 
 tid="sshsig"
@@ -22,6 +22,13 @@ ${SSHKEYGEN} -t ed25519 -f $OBJ/sigca-key -C "CA" -N '' \
 CA_PRIV=$OBJ/sigca-key
 CA_PUB=$OBJ/sigca-key.pub
 
+trace "start agent"
+eval `${SSHAGENT} -s` > /dev/null
+r=$?
+if [ $r -ne 0 ]; then
+	fatal "could not start ssh-agent: exit code $r"
+fi
+
 SIGNKEYS="$SSH_KEYTYPES"
 verbose "$tid: make certificates"
 for t in $SSH_KEYTYPES ; do
@@ -35,7 +42,9 @@ done
 for t in $SIGNKEYS; do
 	verbose "$tid: check signature for $t"
 	keybase=`basename $t .pub`
+	privkey=${OBJ}/`basename $t -cert.pub`
 	sigfile=${OBJ}/sshsig-${keybase}.sig
+	sigfile_agent=${OBJ}/sshsig-agent-${keybase}.sig
 	pubkey=${OBJ}/${keybase}.pub
 
 	${SSHKEYGEN} -vvv -Y sign -f ${OBJ}/$t -n $sig_namespace \
@@ -97,11 +106,58 @@ for t in $SIGNKEYS; do
 		< $DATA >/dev/null 2>&1 && \
 		fail "accepted signature for $t key with excluded namespace"
 
+	# public key in revoked keys file
+	cat $pubkey > $OBJ/revoked_keys
+	(printf "$sig_principal namespaces=\"whatever\" " ;
+	 cat $pubkey) > $OBJ/allowed_signers
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-r $OBJ/revoked_keys \
+		< $DATA >/dev/null 2>&1 && \
+		fail "accepted signature for $t key, but key is in revoked_keys"
+
+	# public key not revoked, but other are present in revoked_keysfile
+	cat $WRONG > $OBJ/revoked_keys
+	(printf "$sig_principal " ; cat $pubkey) > $OBJ/allowed_signers
+	${SSHKEYGEN} -vvv -Y verify -s $sigfile -n $sig_namespace \
+		-I $sig_principal -f $OBJ/allowed_signers \
+		-r $OBJ/revoked_keys \
+		< $DATA >/dev/null 2>&1 || \
+		fail "couldn't verify signature for $t key, but key not in revoked_keys"
+
+	# check-novalidate with valid data
+	${SSHKEYGEN} -vvv -Y check-novalidate -s $sigfile -n $sig_namespace \
+		< $DATA >/dev/null 2>&1 || \
+		fail "failed to check valid signature for $t key"
+
+	# check-novalidate with invalid data
+	${SSHKEYGEN} -vvv -Y check-novalidate -s $sigfile -n $sig_namespace \
+		< $DATA2 >/dev/null 2>&1 && \
+		fail "sucessfully checked signature for $t key with invalid data"
+
+	# Check signing keys using ssh-agent.
+	${SSHADD} -D >/dev/null 2>&1 # Remove all previously-loaded keys.
+	${SSHADD} ${privkey} > /dev/null 2>&1 || fail "ssh-add failed"
+
+	# Move private key to ensure agent key is used
+	mv ${privkey} ${privkey}.tmp
+
+	${SSHKEYGEN} -vvv -Y sign -f $pubkey -n $sig_namespace \
+		< $DATA > $sigfile_agent 2>/dev/null || \
+		fail "ssh-agent based sign using $pubkey failed"
+	${SSHKEYGEN} -vvv -Y check-novalidate -s $sigfile_agent \
+		-n $sig_namespace < $DATA >/dev/null 2>&1 || \
+		fail "failed to check valid signature for $t key"
+
+	# Move private key back
+	mv ${privkey}.tmp ${privkey}
+
 	# Remaining tests are for certificates only.
 	case "$keybase" in
 		*-cert) ;;
 		*) continue ;;
 	esac
+
 
 	# correct CA key
 	(printf "$sig_principal cert-authority " ;
@@ -135,6 +191,6 @@ for t in $SIGNKEYS; do
 		fail "accepted signature for $t cert with wrong principal"
 done
 
-# XXX test keys in agent.
-# XXX test revocation
+trace "kill agent"
+${SSHAGENT} -k > /dev/null
 
