@@ -173,7 +173,13 @@
 
 #endif /* WITH_OPENSSL */
 
-#define	KEX_DEFAULT_COMP	"none,zlib@openssh.com"
+#if HAVE_LIBLZ4
+#define LZ4S "lz4@openssh.com,"
+#else
+#define LZ4S ""
+#endif
+
+#define	KEX_DEFAULT_COMP	"none," LZ4S "zlib@openssh.com"
 #define	KEX_DEFAULT_LANG	""
 
 #define KEX_CLIENT \

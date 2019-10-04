@@ -798,6 +798,11 @@ choose_comp(struct sshcomp *comp, char *client, char *server)
 		return SSH_ERR_NO_COMPRESS_ALG_MATCH;
 	if (strcmp(name, "zlib@openssh.com") == 0) {
 		comp->type = COMP_DELAYED;
+#ifdef COMP_LZ4_DELAYED
+#warning EXPERIMENTAL LZ4 SUPPORT
+	} else if (strcmp(name, "lz4@openssh.com") == 0) {
+		comp->type = COMP_LZ4_DELAYED;
+#endif
 	} else if (strcmp(name, "zlib") == 0) {
 		comp->type = COMP_ZLIB;
 	} else if (strcmp(name, "none") == 0) {

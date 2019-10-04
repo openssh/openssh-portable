@@ -76,6 +76,10 @@
 
 #include <zlib.h>
 
+#if HAVE_LIBLZ4
+#include <lz4.h>
+#endif
+
 #include "xmalloc.h"
 #include "compat.h"
 #include "ssh2.h"
@@ -100,6 +104,13 @@
 #endif
 
 #define PACKET_MAX_SIZE (256 * 1024)
+/*
+int _sshbuf_put(struct sshbuf *buf, const void *v, size_t len)
+{
+	debug("putting %lld", len);
+	return sshbuf_put(buf, v, len);
+}
+*/
 
 struct packet_state {
 	u_int32_t seqnr;
@@ -113,6 +124,19 @@ struct packet {
 	u_char type;
 	struct sshbuf *payload;
 };
+
+#if HAVE_LIBLZ4
+#define LZ4_MSGMAX (32 * 1024)
+#define LZ4_RINGSIZE (64 * 1024)
+struct LZ4_state {
+	uint32_t c_off;
+	uint32_t d_off;
+	char c_buf[LZ4_RINGSIZE]; /* Compression */
+	char d_buf[LZ4_RINGSIZE]; /* Decompression */
+	LZ4_stream_t lz4Stream;
+	LZ4_streamDecode_t lz4Decode;
+};
+#endif
 
 struct session_state {
 	/*
@@ -155,6 +179,10 @@ struct session_state {
 	int compression_out_started;
 	int compression_in_failures;
 	int compression_out_failures;
+
+#if HAVE_LIBLZ4
+	struct LZ4_state *lz4_state;
+#endif
 
 	/* default maximum packet size */
 	u_int max_packet_size;
@@ -620,6 +648,12 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 				(double) stream->total_out / stream->total_in);
 			if (state->compression_out_failures == 0)
 				deflateEnd(stream);
+#if HAVE_LIBLZ4
+			if (ssh->state->lz4_state) {
+				free(ssh->state->lz4_state);
+				ssh->state->lz4_state = NULL;
+			}
+#endif
 		}
 		if (state->compression_in_started) {
 			z_streamp stream = &state->compression_in_stream;
@@ -631,6 +665,12 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 			    (double) stream->total_in / stream->total_out);
 			if (state->compression_in_failures == 0)
 				inflateEnd(stream);
+#if HAVE_LIBLZ4
+			if (ssh->state->lz4_state) {
+				free(ssh->state->lz4_state);
+				ssh->state->lz4_state = NULL;
+			}
+#endif
 		}
 	}
 	cipher_free(state->send_context);
@@ -691,19 +731,37 @@ ssh_packet_init_compression(struct ssh *ssh)
 static int
 start_compression_out(struct ssh *ssh, int level)
 {
+	u_int comptype;
+	comptype = ssh->state->newkeys[MODE_OUT]->comp.type;
+	debug("Enabling compression %d at level %d.", comptype, level);
 	if (level < 1 || level > 9)
 		return SSH_ERR_INVALID_ARGUMENT;
-	debug("Enabling compression at level %d.", level);
-	if (ssh->state->compression_out_started == 1)
-		deflateEnd(&ssh->state->compression_out_stream);
-	switch (deflateInit(&ssh->state->compression_out_stream, level)) {
-	case Z_OK:
-		ssh->state->compression_out_started = 1;
-		break;
-	case Z_MEM_ERROR:
-		return SSH_ERR_ALLOC_FAIL;
+	switch (comptype) {
 	default:
-		return SSH_ERR_INTERNAL_ERROR;
+		debug("Enabling compression at level %d.", level);
+		if (ssh->state->compression_out_started == 1)
+			deflateEnd(&ssh->state->compression_out_stream);
+		switch (deflateInit(&ssh->state->compression_out_stream, level)) {
+		case Z_OK:
+			ssh->state->compression_out_started = 1;
+			break;
+		case Z_MEM_ERROR:
+			return SSH_ERR_ALLOC_FAIL;
+		default:
+			return SSH_ERR_INTERNAL_ERROR;
+		}
+		break;
+#if HAVE_LIBLZ4
+	case COMP_LZ4_DELAYED:
+		debug("Enabling lz4 compression.", level);
+		if (ssh->state->lz4_state == NULL)
+			ssh->state->lz4_state = calloc(1, sizeof(*ssh->state->lz4_state));
+		if (ssh->state->lz4_state == NULL)
+			return SSH_ERR_ALLOC_FAIL;
+		LZ4_resetStream_fast(&ssh->state->lz4_state->lz4Stream);
+		ssh->state->compression_out_started = 1;
+		return 0;
+#endif
 	}
 	return 0;
 }
@@ -711,18 +769,39 @@ start_compression_out(struct ssh *ssh, int level)
 static int
 start_compression_in(struct ssh *ssh)
 {
-	if (ssh->state->compression_in_started == 1)
-		inflateEnd(&ssh->state->compression_in_stream);
-	switch (inflateInit(&ssh->state->compression_in_stream)) {
-	case Z_OK:
-		ssh->state->compression_in_started = 1;
-		break;
-	case Z_MEM_ERROR:
-		return SSH_ERR_ALLOC_FAIL;
+	struct sshcomp *comp;
+	comp = &ssh->state->newkeys[MODE_IN]->comp;
+	switch (comp->type) {
 	default:
-		return SSH_ERR_INTERNAL_ERROR;
+		if (ssh->state->compression_in_started == 1)
+			inflateEnd(&ssh->state->compression_in_stream);
+		switch (inflateInit(&ssh->state->compression_in_stream)) {
+		case Z_OK:
+			ssh->state->compression_in_started = 1;
+			break;
+		case Z_MEM_ERROR:
+			return SSH_ERR_ALLOC_FAIL;
+		default:
+			return SSH_ERR_INTERNAL_ERROR;
 	}
 	return 0;
+#if HAVE_LIBLZ4
+	case COMP_LZ4_DELAYED:
+		if (ssh->state->lz4_state == NULL)
+			ssh->state->lz4_state = calloc(1, sizeof(*ssh->state->lz4_state));
+		if (ssh->state->lz4_state == NULL)
+			return SSH_ERR_ALLOC_FAIL;
+
+		if (!LZ4_setStreamDecode(&ssh->state->lz4_state->lz4Decode,
+		                         NULL, 0)) {
+			free(ssh->state->lz4_state);
+			ssh->state->lz4_state = NULL;
+			return SSH_ERR_ALLOC_FAIL;
+		}
+		ssh->state->compression_in_started = 1;
+		return 0;
+#endif
+	}
 }
 
 /* XXX remove need for separate compression buffer */
@@ -730,7 +809,17 @@ static int
 compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 {
 	u_char buf[4096];
+#if HAVE_LIBLZ4
+	char z4buf[LZ4_COMPRESSBOUND(LZ4_MSGMAX)];
+#endif
+
 	int r, status;
+#if HAVE_LIBLZ4
+	u_int comptype, isize;
+	uint16_t osize;
+	struct LZ4_state *z4s;
+	char *buf_out;
+#endif
 
 	if (ssh->state->compression_out_started != 1)
 		return SSH_ERR_INTERNAL_ERROR;
@@ -738,13 +827,17 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	/* This case is not handled below. */
 	if (sshbuf_len(in) == 0)
 		return 0;
-
 	/* Input is the contents of the input buffer. */
 	if ((ssh->state->compression_out_stream.next_in =
 	    sshbuf_mutable_ptr(in)) == NULL)
 		return SSH_ERR_INTERNAL_ERROR;
 	ssh->state->compression_out_stream.avail_in = sshbuf_len(in);
 
+#if HAVE_LIBLZ4
+	comptype = ssh->state->newkeys[MODE_OUT]->comp.type;
+	switch (comptype) {
+	default:
+#endif
 	/* Loop compressing until deflate() returns with avail_out != 0. */
 	do {
 		/* Set up fixed-size output buffer. */
@@ -769,6 +862,39 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			return SSH_ERR_INVALID_FORMAT;
 		}
 	} while (ssh->state->compression_out_stream.avail_out == 0);
+#if HAVE_LIBLZ4
+	break;
+	case COMP_LZ4_DELAYED:
+		z4s = ssh->state->lz4_state;
+		do {
+			isize = MIN(ssh->state->compression_out_stream.avail_in,
+			            LZ4_MSGMAX);
+			buf_out = z4s->c_buf + z4s->c_off;
+			memcpy(buf_out,
+			       ssh->state->compression_out_stream.next_in,
+			       ssh->state->compression_out_stream.avail_in);
+			z4s->c_off += ssh->state->compression_out_stream.avail_in;
+			osize = LZ4_compress_fast_continue(&z4s->lz4Stream,
+			  buf_out, z4buf, isize, sizeof(z4buf), 1);
+			/* TODO: Error check */
+			ssh->state->compression_out_stream.avail_in -= isize;
+			ssh->state->compression_out_stream.next_in += isize;
+			ssh->state->compression_out_stream.total_in += isize;
+			ssh->state->compression_out_stream.total_out += osize
+			    + SIZEOF_SHORT_INT;
+			// We have to do framing here; LZ4 packet out: [uint32 len][data]
+			osize = htons(osize);
+			if (sshbuf_put(out, &osize, sizeof(osize)) != 0)
+				return SSH_ERR_ALLOC_FAIL;
+			osize = ntohs(osize);
+			if ((r = sshbuf_put(out, z4buf, osize)) != 0)
+				return r;
+			if (z4s->c_off > (LZ4_RINGSIZE - LZ4_MSGMAX))
+				z4s->c_off = 0;
+		} while (ssh->state->compression_out_stream.avail_in > 0);
+		break;
+	}
+#endif
 	return 0;
 }
 
@@ -777,6 +903,12 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 {
 	u_char buf[4096];
 	int r, status;
+#if HAVE_LIBLZ4
+	uint16_t comptype, isize;
+	uint16_t osize;
+	struct LZ4_state *z4s;
+	char *buf_dec;
+#endif
 
 	if (ssh->state->compression_in_started != 1)
 		return SSH_ERR_INTERNAL_ERROR;
@@ -786,6 +918,11 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 		return SSH_ERR_INTERNAL_ERROR;
 	ssh->state->compression_in_stream.avail_in = sshbuf_len(in);
 
+#if HAVE_LIBLZ4
+	comptype = ssh->state->newkeys[MODE_IN]->comp.type;
+	switch (comptype) {
+	default:
+#endif
 	for (;;) {
 		/* Set up fixed-size output buffer. */
 		ssh->state->compression_in_stream.next_out = buf;
@@ -817,6 +954,48 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 		}
 	}
 	/* NOTREACHED */
+#if HAVE_LIBLZ4
+	break;
+	case COMP_LZ4_DELAYED:
+		z4s = ssh->state->lz4_state;
+		for (;;) {
+			// We have to do framing here; LZ4 packet: [uint32 len][data]
+			if (ssh->state->compression_in_stream.avail_in < SIZEOF_SHORT_INT)
+				return 0;
+			// Using memcopy; no guarantees on alignment of next_in
+			memcpy(&isize, ssh->state->compression_in_stream.next_in,
+			       sizeof(isize));
+			isize = ntohs(isize);
+
+			if (ssh->state->compression_in_stream.avail_in < 
+			    SIZEOF_SHORT_INT + isize)
+				return 0;
+
+			ssh->state->compression_in_stream.next_in += SIZEOF_SHORT_INT;
+			ssh->state->compression_in_stream.avail_in -= SIZEOF_SHORT_INT;
+
+			buf_dec = z4s->d_buf + z4s->d_off;
+
+			osize = LZ4_decompress_safe_continue(&z4s->lz4Decode,
+			  ssh->state->compression_in_stream.next_in,
+			  buf_dec, size, LZ4_MSGMAX);
+			/* TODO: Error check */
+			
+			z4s->d_off += osize;
+			if (z4s->d_off > (LZ4_RINGSIZE - LZ4_MSGMAX))
+				z4s->d_off = 0;
+
+			ssh->state->compression_in_stream.next_in += isize;
+			ssh->state->compression_in_stream.avail_in -= isize;
+
+			ssh->state->compression_in_stream.total_in += isize + SIZEOF_SHORT_INT;
+			ssh->state->compression_in_stream.total_out += osize;
+			if ((r = sshbuf_put(out, buf_dec, osize)) != 0)
+				return r;
+		};
+		break;
+	}
+#endif
 }
 
 void
@@ -895,8 +1074,14 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	   explicit_bzero(enc->key, enc->key_len);
 	   explicit_bzero(mac->key, mac->key_len); */
 	if ((comp->type == COMP_ZLIB ||
-	    (comp->type == COMP_DELAYED &&
+	    (
+#if HAVE_LIBLZ4
+	     (comp->type == COMP_DELAYED || comp->type == COMP_LZ4_DELAYED) &&
+#else
+	     comp->type == COMP_DELAYED &&
+#endif
 	     state->after_authentication)) && comp->enabled == 0) {
+		debug("Trying to enable %d", comp->type); 
 		if ((r = ssh_packet_init_compression(ssh)) < 0)
 			return r;
 		if (mode == MODE_OUT) {
@@ -907,6 +1092,7 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 				return r;
 		}
 		comp->enabled = 1;
+		debug("Enabled!");
 	}
 	/*
 	 * The 2^(blocksize*2) limit is too expensive for 3DES,
@@ -995,7 +1181,13 @@ ssh_packet_enable_delayed_compress(struct ssh *ssh)
 		if (state->newkeys[mode] == NULL)
 			continue;
 		comp = &state->newkeys[mode]->comp;
-		if (comp && !comp->enabled && comp->type == COMP_DELAYED) {
+		if (comp && !comp->enabled && 
+#if HAVE_LIBLZ4
+		    (comp->type == COMP_DELAYED || comp->type == COMP_LZ4_DELAYED)
+#else
+		    comp->type == COMP_DELAYED
+#endif
+		   ) {
 			if ((r = ssh_packet_init_compression(ssh)) != 0)
 				return r;
 			if (mode == MODE_OUT) {
@@ -2701,3 +2893,5 @@ sshpkt_add_padding(struct ssh *ssh, u_char pad)
 	ssh->state->extra_pad = pad;
 	return 0;
 }
+
+/* vim: set ts=4 sw=4 noet : */
