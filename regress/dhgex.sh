@@ -1,4 +1,4 @@
-#	$OpenBSD: dhgex.sh,v 1.5 2019/09/27 05:25:12 dtucker Exp $
+#	$OpenBSD: dhgex.sh,v 1.6 2019/10/06 11:49:50 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dhgex"
@@ -28,9 +28,6 @@ ssh_test_dhgex()
 	if [ $? -ne 0 ]; then
 		fail "ssh failed ($@)"
 	fi
-	# Remove CRs.
-	sed 's/\r//' ${LOG} >${LOG}.new
-	mv ${LOG}.new ${LOG}
 	# check what we request
 	grep "SSH2_MSG_KEX_DH_GEX_REQUEST($groupsz) sent" ${LOG} >/dev/null
 	if [ $? != 0 ]; then
@@ -38,7 +35,8 @@ ssh_test_dhgex()
 		fail "$tid unexpected GEX sizes, expected $groupsz, got $got"
 	fi
 	# check what we got.
-	gotbits="`awk '/bits set:/{print $4}' ${LOG} | head -1 | cut -f2 -d/`"
+	gotbits="`awk 'BEGIN{FS="/"}/bits set:/{print $2}' ${LOG} |
+	    head -1 | tr -d '\r\n'`"
 	trace "expected '$bits' got '$gotbits'"
 	if [ -z "$gotbits" ] || [ "$gotbits" -lt "$bits" ]; then
 		fatal "$tid expected $bits bit group, got $gotbits"
