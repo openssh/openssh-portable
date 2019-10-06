@@ -78,6 +78,10 @@
 
 #if HAVE_LIBLZ4
 #include <lz4.h>
+uint16_t get16(const char * x) {
+	struct __attribute__((__packed__)) Record {uint16_t d;};
+	return ((const struct Record*)x)->d;
+}
 #endif
 
 #include "xmalloc.h"
@@ -733,7 +737,6 @@ start_compression_out(struct ssh *ssh, int level)
 {
 	u_int comptype;
 	comptype = ssh->state->newkeys[MODE_OUT]->comp.type;
-	debug("Enabling compression %d at level %d.", comptype, level);
 	if (level < 1 || level > 9)
 		return SSH_ERR_INVALID_ARGUMENT;
 	switch (comptype) {
@@ -753,7 +756,7 @@ start_compression_out(struct ssh *ssh, int level)
 		break;
 #if HAVE_LIBLZ4
 	case COMP_LZ4_DELAYED:
-		debug("Enabling lz4 compression.", level);
+		debug("Enabling lz4 compression.");
 		if (ssh->state->lz4_state == NULL)
 			ssh->state->lz4_state = calloc(1, sizeof(*ssh->state->lz4_state));
 		if (ssh->state->lz4_state == NULL)
@@ -882,7 +885,7 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			ssh->state->compression_out_stream.total_in += isize;
 			ssh->state->compression_out_stream.total_out += osize
 			    + SIZEOF_SHORT_INT;
-			// We have to do framing here; LZ4 packet out: [uint32 len][data]
+			// We have to do framing here; LZ4 packet out: [uint16 len][data]
 			osize = htons(osize);
 			if (sshbuf_put(out, &osize, sizeof(osize)) != 0)
 				return SSH_ERR_ALLOC_FAIL;
@@ -959,12 +962,11 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	case COMP_LZ4_DELAYED:
 		z4s = ssh->state->lz4_state;
 		for (;;) {
-			// We have to do framing here; LZ4 packet: [uint32 len][data]
+			// We have to do framing here; LZ4 packet: [uint16 len][data]
 			if (ssh->state->compression_in_stream.avail_in < SIZEOF_SHORT_INT)
 				return 0;
-			// Using memcopy; no guarantees on alignment of next_in
-			memcpy(&isize, ssh->state->compression_in_stream.next_in,
-			       sizeof(isize));
+			// No guarantees on alignment of next_in; access as bytes.
+			isize = get16(ssh->state->compression_in_stream.next_in);
 			isize = ntohs(isize);
 
 			if (ssh->state->compression_in_stream.avail_in < 
@@ -978,7 +980,7 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 
 			osize = LZ4_decompress_safe_continue(&z4s->lz4Decode,
 			  ssh->state->compression_in_stream.next_in,
-			  buf_dec, size, LZ4_MSGMAX);
+			  buf_dec, isize, LZ4_MSGMAX);
 			/* TODO: Error check */
 			
 			z4s->d_off += osize;
