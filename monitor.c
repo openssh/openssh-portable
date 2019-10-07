@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.198 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: monitor.c,v 1.199 2019/10/07 23:10:38 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -692,7 +692,7 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 		fatal("%s: no hostkey from index %d", __func__, keyid);
 
 	debug3("%s: %s signature %p(%zu)", __func__,
-	    is_proof ? "KEX" : "hostkey proof", signature, siglen);
+	    is_proof ? "hostkey proof" : "KEX", signature, siglen);
 
 	sshbuf_reset(m);
 	if ((r = sshbuf_put_string(m, signature, siglen)) != 0)
