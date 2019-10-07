@@ -130,8 +130,11 @@ struct packet {
 };
 
 #if HAVE_LIBLZ4
-#define LZ4_MSGMAX (32 * 1024)
-#define LZ4_RINGSIZE (64 * 1024)
+// ! Send small packets without compression
+#define LZ4_THRESH 16
+// !!We use negative sizes for uncompressed small packets
+#define LZ4_MSGMAX (32 * 1024 - 1)
+#define LZ4_RINGSIZE (96 * 1024)
 struct LZ4_state {
 	uint32_t c_off;
 	uint32_t d_off;
@@ -818,8 +821,9 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 
 	int r, status;
 #if HAVE_LIBLZ4
-	u_int comptype, isize;
-	uint16_t osize;
+	u_int comptype;
+	int16_t nsize;
+	int isize, osize;
 	struct LZ4_state *z4s;
 	char *buf_out;
 #endif
@@ -872,13 +876,21 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 		do {
 			isize = MIN(ssh->state->compression_out_stream.avail_in,
 			            LZ4_MSGMAX);
-			buf_out = z4s->c_buf + z4s->c_off;
-			memcpy(buf_out,
-			       ssh->state->compression_out_stream.next_in,
-			       ssh->state->compression_out_stream.avail_in);
-			z4s->c_off += ssh->state->compression_out_stream.avail_in;
-			osize = LZ4_compress_fast_continue(&z4s->lz4Stream,
-			  buf_out, z4buf, isize, sizeof(z4buf), 1);
+			if (isize > LZ4_THRESH) {
+				buf_out = z4s->c_buf + z4s->c_off;
+				memcpy(buf_out,
+				       ssh->state->compression_out_stream.next_in,
+				       ssh->state->compression_out_stream.avail_in);
+				z4s->c_off += ssh->state->compression_out_stream.avail_in;
+				osize = LZ4_compress_fast_continue(&z4s->lz4Stream,
+				  buf_out, z4buf, isize, sizeof(z4buf), 1);
+				nsize = osize;
+				buf_out = z4buf;
+			} else {
+				buf_out = ssh->state->compression_out_stream.next_in;
+				osize = isize;
+				nsize = -isize;
+			}
 			/* TODO: Error check */
 			ssh->state->compression_out_stream.avail_in -= isize;
 			ssh->state->compression_out_stream.next_in += isize;
@@ -886,14 +898,15 @@ compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			ssh->state->compression_out_stream.total_out += osize
 			    + SIZEOF_SHORT_INT;
 			// We have to do framing here; LZ4 packet out: [uint16 len][data]
-			osize = htons(osize);
-			if (sshbuf_put(out, &osize, sizeof(osize)) != 0)
+			nsize = htons(nsize);
+			if (sshbuf_put(out, &nsize, sizeof(nsize)) != 0)
 				return SSH_ERR_ALLOC_FAIL;
-			osize = ntohs(osize);
-			if ((r = sshbuf_put(out, z4buf, osize)) != 0)
+			if ((r = sshbuf_put(out, buf_out, osize)) != 0)
 				return r;
 			if (z4s->c_off > (LZ4_RINGSIZE - LZ4_MSGMAX))
 				z4s->c_off = 0;
+			if (ssh->state->compression_out_stream.avail_in)
+				debug("More than one packet...");
 		} while (ssh->state->compression_out_stream.avail_in > 0);
 		break;
 	}
@@ -907,8 +920,10 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	u_char buf[4096];
 	int r, status;
 #if HAVE_LIBLZ4
-	uint16_t comptype, isize;
-	uint16_t osize;
+	u_int comptype;
+	int16_t nsize;
+	int osize;
+	u_int isize;
 	struct LZ4_state *z4s;
 	char *buf_dec;
 #endif
@@ -966,9 +981,13 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			if (ssh->state->compression_in_stream.avail_in < SIZEOF_SHORT_INT)
 				return 0;
 			// No guarantees on alignment of next_in; access as bytes.
-			isize = get16(ssh->state->compression_in_stream.next_in);
-			isize = ntohs(isize);
-
+			nsize = get16(ssh->state->compression_in_stream.next_in);
+			nsize = ntohs(nsize);
+			
+			if (nsize < 0)
+				isize = -nsize;
+			else
+				isize = nsize;
 			if (ssh->state->compression_in_stream.avail_in < 
 			    SIZEOF_SHORT_INT + isize)
 				return 0;
@@ -976,16 +995,20 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 			ssh->state->compression_in_stream.next_in += SIZEOF_SHORT_INT;
 			ssh->state->compression_in_stream.avail_in -= SIZEOF_SHORT_INT;
 
-			buf_dec = z4s->d_buf + z4s->d_off;
-
-			osize = LZ4_decompress_safe_continue(&z4s->lz4Decode,
-			  ssh->state->compression_in_stream.next_in,
-			  buf_dec, isize, LZ4_MSGMAX);
-			/* TODO: Error check */
-			
-			z4s->d_off += osize;
-			if (z4s->d_off > (LZ4_RINGSIZE - LZ4_MSGMAX))
-				z4s->d_off = 0;
+			if (nsize > 0) {
+				buf_dec = z4s->d_buf + z4s->d_off;
+				osize = LZ4_decompress_safe_continue(&z4s->lz4Decode,
+				  ssh->state->compression_in_stream.next_in,
+				  buf_dec, isize, LZ4_MSGMAX);
+				/* TODO: Error check */
+				
+				z4s->d_off += osize;
+				if (z4s->d_off > (LZ4_RINGSIZE - LZ4_MSGMAX))
+					z4s->d_off = 0;
+			} else {
+				buf_dec = ssh->state->compression_in_stream.next_in;
+				osize = isize;
+			}
 
 			ssh->state->compression_in_stream.next_in += isize;
 			ssh->state->compression_in_stream.avail_in -= isize;
