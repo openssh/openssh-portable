@@ -41,7 +41,8 @@
 #if !defined(HAVE_SHA256UPDATE) || !defined(HAVE_SHA384UPDATE) || \
     !defined(HAVE_SHA512UPDATE)
 
-#define MAKE_CLONE(x, y)	/* no-op out */
+/* no-op out, similar to DEF_WEAK but only needed here */
+#define MAKE_CLONE(x, y)	void __ssh_compat_make_clone_##x_##y(void);
 
 #include <string.h>
 #include <sha2.h>
