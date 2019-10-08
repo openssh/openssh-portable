@@ -932,7 +932,7 @@ DEF_WEAK(SHA384Pad);
 void
 SHA384Transform(u_int64_t state[8], const u_int8_t data[SHA512_BLOCK_LENGTH])
 {
-	return SHA512Transform(state, data);
+	SHA512Transform(state, data);
 }
 
 void
