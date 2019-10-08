@@ -24,7 +24,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 #include "ssherr.h"
 #include "sshbuf.h"
