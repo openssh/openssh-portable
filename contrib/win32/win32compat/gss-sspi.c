@@ -121,9 +121,13 @@ gss_indicate_mechs(_Out_ OM_uint32 * minor_status, _Outptr_ gss_OID_set *mech_se
 		return GSS_S_FAILURE;
 
 	/* create an list that contains the one oid that we support */
-	if (gss_create_empty_oid_set(minor_status, mech_set) != GSS_S_COMPLETE || 
-	    gss_add_oid_set_member(minor_status, GSS_C_NT_HOSTBASED_SERVICE, mech_set) != GSS_S_COMPLETE)
+	if (gss_create_empty_oid_set(minor_status, mech_set) != GSS_S_COMPLETE)
 		return GSS_S_FAILURE;
+	
+	if (gss_add_oid_set_member(minor_status, GSS_C_NT_HOSTBASED_SERVICE, mech_set) != GSS_S_COMPLETE) {
+		gss_release_oid_set(minor_status, mech_set);
+		return GSS_S_FAILURE;
+	}
 
 	return GSS_S_COMPLETE;
 }
@@ -393,11 +397,19 @@ gss_acquire_cred(_Out_ OM_uint32 *minor_status, _In_opt_ gss_name_t desired_name
 	_In_opt_ OM_uint32 time_req, _In_opt_ gss_OID_set desired_mechs, _In_ gss_cred_usage_t cred_usage,
 	_Outptr_opt_ gss_cred_id_t * output_cred_handle, _Outptr_opt_ gss_OID_set *actual_mechs, _Out_opt_ OM_uint32 *time_rec)
 {
-	if (ssh_gss_sspi_init(minor_status) == 0) 
-		return GSS_S_FAILURE;
+	OM_uint32 ret = GSS_S_FAILURE;
+	SYSTEMTIME current_time_system;
+	wchar_t * desired_name_utf16 = NULL;
+	CredHandle cred_handle, *p_cred_handle = NULL;
+	
+
+	if (output_cred_handle != NULL)
+		*output_cred_handle = NULL;
+
+	if (ssh_gss_sspi_init(minor_status) == 0)
+		goto done;
 
 	/* get the current time so we can determine expiration if requested */
-	SYSTEMTIME current_time_system;
 	GetSystemTime(&current_time_system);
 
 	/* translate credential usage parameters */
@@ -407,24 +419,24 @@ gss_acquire_cred(_Out_ OM_uint32 *minor_status, _In_opt_ gss_name_t desired_name
 	else if (cred_usage == GSS_C_BOTH) cred_usage_local = SECPKG_CRED_BOTH;
 
 	/* convert input name to unicode so we can process usernames with special characters */
-	wchar_t * desired_name_utf16 = utf8_to_utf16(desired_name);
+	if ((desired_name_utf16 = utf8_to_utf16(desired_name)) == NULL)
+		goto done;
 
 	/* acquire a handle to existing credentials -- in many cases the name will
 	 * be null in which case the credentials of the current user are used */
-	CredHandle cred_handle;
 	TimeStamp expiry;
 	SECURITY_STATUS status = SecFunctions->AcquireCredentialsHandleW(desired_name_utf16, MICROSOFT_KERBEROS_NAME_W, cred_usage_local,
 		NULL, NULL, NULL, NULL, &cred_handle, &expiry);
-	free(desired_name_utf16);
 
 	/* fail immediately if errors occurred */
 	if (status != SEC_E_OK)
-		return GSS_S_FAILURE;
+		goto done;
 	
+	p_cred_handle = &cred_handle;
 	/* copy credential data out of local buffer */
 	if (output_cred_handle != NULL) {
 		if ((*output_cred_handle = malloc(sizeof(struct cred_st))) == NULL)
-			return GSS_S_FAILURE;
+			goto done;
 		(*output_cred_handle)->isToken = 0;
 		(*output_cred_handle)->credHandle = cred_handle;
 	}
@@ -437,10 +449,23 @@ gss_acquire_cred(_Out_ OM_uint32 *minor_status, _In_opt_ gss_name_t desired_name
 	}
 
 	/* set actual supported mechs if requested */
-	if (actual_mechs != NULL)
-		gss_indicate_mechs(minor_status, actual_mechs);
-	
-	return GSS_S_COMPLETE;
+	if (actual_mechs != NULL && gss_indicate_mechs(minor_status, actual_mechs) != GSS_S_COMPLETE)
+		goto done;
+
+	ret = GSS_S_COMPLETE;
+done:
+	if (desired_name_utf16)
+		free(desired_name_utf16);
+	if (ret != GSS_S_COMPLETE) {
+		if (p_cred_handle)
+			SecFunctions->FreeCredentialsHandle(p_cred_handle);
+		if (output_cred_handle && *output_cred_handle) {
+			free(*output_cred_handle);
+			*output_cred_handle = NULL;
+		}
+	}
+
+	return ret;
 }
 
 /*
@@ -458,21 +483,35 @@ gss_init_sec_context(
 	_In_ gss_buffer_t input_token, _Inout_ gss_OID * actual_mech_type, _Inout_ gss_buffer_t output_token, _Out_ OM_uint32 * ret_flags,
 	_Out_ OM_uint32 * time_rec)
 {
+	OM_uint32 ret = GSS_S_FAILURE;
+	wchar_t * target_name_utf16 = NULL;
+	gss_ctx_id_t p_ctx_h = NULL;
+
+	output_token->value = NULL;
+
 	if (ssh_gss_sspi_init(minor_status) == 0) 
-		return GSS_S_FAILURE;
+		goto done;
 
 	/* make sure we support the passed type */
 	if (mech_type->length != GSS_C_NT_HOSTBASED_SERVICE->length ||
-	    memcmp(mech_type->elements, GSS_C_NT_HOSTBASED_SERVICE->elements, mech_type->length) != 0)
-		return GSS_S_BAD_NAMETYPE;
+	    memcmp(mech_type->elements, GSS_C_NT_HOSTBASED_SERVICE->elements, mech_type->length) != 0) {
+		ret = GSS_S_BAD_NAMETYPE;
+		goto done;
+	}
 	
 	unsigned long sspi_req_flags = ISC_REQ_ALLOCATE_MEMORY;
-	if (req_flags & GSS_C_MUTUAL_FLAG) sspi_req_flags |= ISC_REQ_MUTUAL_AUTH;
-	if (req_flags & GSS_C_CONF_FLAG) sspi_req_flags |= ISC_REQ_CONFIDENTIALITY;
-	if (req_flags & GSS_C_REPLAY_FLAG) sspi_req_flags |= ISC_REQ_REPLAY_DETECT;
-	if (req_flags & GSS_C_DELEG_FLAG) sspi_req_flags |= ISC_REQ_DELEGATE;
-	if (req_flags & GSS_C_INTEG_FLAG) sspi_req_flags |= ISC_REQ_INTEGRITY;
-	if (req_flags & GSS_C_SEQUENCE_FLAG) sspi_req_flags |= ISC_REQ_SEQUENCE_DETECT;
+	if (req_flags & GSS_C_MUTUAL_FLAG) 
+		sspi_req_flags |= ISC_REQ_MUTUAL_AUTH;
+	if (req_flags & GSS_C_CONF_FLAG) 
+		sspi_req_flags |= ISC_REQ_CONFIDENTIALITY;
+	if (req_flags & GSS_C_REPLAY_FLAG) 
+		sspi_req_flags |= ISC_REQ_REPLAY_DETECT;
+	if (req_flags & GSS_C_DELEG_FLAG) 
+		sspi_req_flags |= ISC_REQ_DELEGATE;
+	if (req_flags & GSS_C_INTEG_FLAG) 
+		sspi_req_flags |= ISC_REQ_INTEGRITY;
+	if (req_flags & GSS_C_SEQUENCE_FLAG) 
+		sspi_req_flags |= ISC_REQ_SEQUENCE_DETECT;
 
 	/* determine if this is the first call (no input buffer available) */
 	gss_buffer_desc empty_buffer = GSS_C_EMPTY_BUFFER;
@@ -502,13 +541,16 @@ gss_init_sec_context(
 			TimeStamp expiry_cred;
 			if (SecFunctions->AcquireCredentialsHandleW(NULL, MICROSOFT_KERBEROS_NAME_W, SECPKG_CRED_OUTBOUND,
 			    NULL, NULL, NULL, NULL, &cred_handle, &expiry_cred) != SEC_E_OK)
-				return GSS_S_FAILURE;
+				goto done;
 		}
 	}
 
 	/* condition the string for windows */
-	wchar_t * target_name_utf16 = utf8_to_utf16(target_name);
-	if (wcsncmp(target_name_utf16, L"host@", wcslen(L"host@")) == 0) *wcschr(target_name_utf16, L'@') = L'/';
+	if ((target_name_utf16 = utf8_to_utf16(target_name)) == NULL)
+		goto done;
+
+	if (wcsncmp(target_name_utf16, L"host@", wcslen(L"host@")) == 0) 
+		*wcschr(target_name_utf16, L'@') = L'/';
 
 	TimeStamp expiry;
 	LONG sspi_ret_flags = 0;
@@ -518,27 +560,34 @@ gss_init_sec_context(
 		(*context_handle == GSS_C_NO_CONTEXT) ? NULL : *context_handle,
 		target_name_utf16, sspi_req_flags, 0, SECURITY_NATIVE_DREP, (no_input_buffer) ? NULL : &input_buffer,
 		0, (*context_handle != NULL) ? NULL : &out_context, &output_buffer, &sspi_ret_flags, (time_rec == NULL) ? NULL : &expiry);
-	free(target_name_utf16);
 
 	/* check if error occurred */
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED)
-		return GSS_S_FAILURE;
+		goto done;
 	
 	/* copy output token to output buffer */
 	output_token->length = output_buffer_token.cbBuffer;
-	output_token->value = malloc(output_token->length);
+	if ((output_token->value = malloc(output_token->length)) == NULL)
+		goto done;
+
 	memcpy(output_token->value, output_buffer_token.pvBuffer, output_token->length);
 	SecFunctions->FreeContextBuffer(output_buffer_token.pvBuffer);
 
 	/* if requested, translate returned flags that are actually available */
 	if (ret_flags != NULL) {
 		*ret_flags = 0;
-		if (sspi_ret_flags & ISC_RET_MUTUAL_AUTH) *ret_flags |= GSS_C_MUTUAL_FLAG;
-		if (sspi_ret_flags & ISC_RET_CONFIDENTIALITY) *ret_flags |= GSS_C_CONF_FLAG;
-		if (sspi_ret_flags & ISC_RET_REPLAY_DETECT) *ret_flags |= GSS_C_REPLAY_FLAG;
-		if (sspi_ret_flags & ISC_RET_DELEGATE) *ret_flags |= GSS_C_DELEG_FLAG;
-		if (sspi_ret_flags & ISC_RET_INTEGRITY) *ret_flags |= GSS_C_INTEG_FLAG;
-		if (sspi_ret_flags & ISC_RET_SEQUENCE_DETECT) *ret_flags |= GSS_C_SEQUENCE_FLAG;
+		if (sspi_ret_flags & ISC_RET_MUTUAL_AUTH) 
+			*ret_flags |= GSS_C_MUTUAL_FLAG;
+		if (sspi_ret_flags & ISC_RET_CONFIDENTIALITY) 
+			*ret_flags |= GSS_C_CONF_FLAG;
+		if (sspi_ret_flags & ISC_RET_REPLAY_DETECT) 
+			*ret_flags |= GSS_C_REPLAY_FLAG;
+		if (sspi_ret_flags & ISC_RET_DELEGATE) 
+			*ret_flags |= GSS_C_DELEG_FLAG;
+		if (sspi_ret_flags & ISC_RET_INTEGRITY) 
+			*ret_flags |= GSS_C_INTEG_FLAG;
+		if (sspi_ret_flags & ISC_RET_SEQUENCE_DETECT) 
+			*ret_flags |= GSS_C_SEQUENCE_FLAG;
 	}
 
 	/* report if delegation was requested by not fulfilled */
@@ -558,11 +607,28 @@ gss_init_sec_context(
 	
 	/* copy the credential context structure to the caller */
 	if (*context_handle == GSS_C_NO_CONTEXT) {
-		*context_handle = malloc(sizeof(out_context));
+		if ((p_ctx_h = malloc(sizeof(out_context))) == NULL)
+			goto done;
+		*context_handle = p_ctx_h;
 		memcpy(*context_handle, &out_context, sizeof(out_context));
 	}
 
-	return (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
+	ret = (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
+done:
+	if (target_name_utf16)
+		free(target_name_utf16);
+
+	if (ret != GSS_S_COMPLETE && ret != GSS_S_CONTINUE_NEEDED) {
+		if (output_token->value) {
+			free(output_token->value);
+			output_token->value = NULL;
+		}
+		if (p_ctx_h)
+			free(p_ctx_h);
+		
+	}
+
+	return ret;
 }
 
 /*
@@ -676,13 +742,19 @@ OM_uint32
 gss_get_mic(_Out_ OM_uint32 * minor_status, _In_ gss_ctx_id_t context_handle,
 	_In_opt_ gss_qop_t qop_req, _In_ gss_buffer_t message_buffer, _Out_ gss_buffer_t message_token)
 {
-	if (ssh_gss_sspi_init(minor_status) == 0) 
-		return GSS_S_FAILURE;
+	OM_uint32 ret = GSS_S_FAILURE;
+
+	message_token->value = NULL;	
+	if (ssh_gss_sspi_init(minor_status) == 0)
+		goto done;
 
 	/* determine the max possible signature and allocate memory to support it */
 	SecPkgContext_Sizes sizes;
-	SecFunctions->QueryContextAttributesW(context_handle, SECPKG_ATTR_SIZES, &sizes);
-	message_token->value = malloc(sizes.cbMaxSignature);
+	if (SecFunctions->QueryContextAttributesW(context_handle, SECPKG_ATTR_SIZES, &sizes) != SEC_E_OK)
+		goto done;
+	if ((message_token->value = malloc(sizes.cbMaxSignature)) == NULL)
+		goto done;
+
 	message_token->length = sizes.cbMaxSignature;
 
 	/* translate the message and token to a security buffer so we can sign it */
@@ -696,15 +768,24 @@ gss_get_mic(_Out_ OM_uint32 * minor_status, _In_ gss_ctx_id_t context_handle,
 	const SECURITY_STATUS status = SecFunctions->MakeSignature(context_handle, qop, &sign_buffer, 0);
 
 	/* translate error codes */
-	OM_uint32 return_code = GSS_S_COMPLETE;
 	if (status != SEC_E_OK)  {
-		if (status == SEC_E_CONTEXT_EXPIRED) return_code = GSS_S_CONTEXT_EXPIRED;
-		else if (status == SEC_E_QOP_NOT_SUPPORTED) return_code = GSS_S_BAD_QOP;
-		else return_code = GSS_S_FAILURE;
-		free(message_token->value);
+		if (status == SEC_E_CONTEXT_EXPIRED) 
+			ret = GSS_S_CONTEXT_EXPIRED;
+		else if (status == SEC_E_QOP_NOT_SUPPORTED) 
+			ret = GSS_S_BAD_QOP;
+		goto done;
 	}
 
-	return return_code;
+	ret = GSS_S_COMPLETE;
+
+done:
+	if (ret != GSS_S_COMPLETE) {
+		if (message_token->value) {
+			free(message_token->value);
+			message_token->value = NULL;
+		}
+	}
+	return ret;
 }
 
 /*
@@ -726,8 +807,16 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 	_Out_opt_ gss_name_t * src_name, _Out_opt_ gss_OID * mech_type, _Outptr_ gss_buffer_t output_token,
 	_Out_ OM_uint32 * ret_flags, _Out_opt_ OM_uint32 * time_rec, _Outptr_opt_ gss_cred_id_t * delegated_cred_handle)
 {
+	OM_uint32 ret = GSS_S_FAILURE;
+	gss_ctx_id_t p_ctx_h = NULL;
+
+	*src_name = NULL;
+
+	if (delegated_cred_handle != NULL)
+		*delegated_cred_handle = NULL;
+
 	if (ssh_gss_sspi_init(minor_status) == 0) 
-		return GSS_S_FAILURE;
+		goto done;
 
 	/* setup input buffer */
 	SecBuffer input_buffer_token = { (unsigned long) input_token_buffer->length, 
@@ -757,9 +846,11 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 
 	/* translate error codes */
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED) {
-		if (status == SEC_E_INVALID_TOKEN) return GSS_S_DEFECTIVE_TOKEN;
-		else if (status == SEC_E_INVALID_HANDLE) return GSS_S_NO_CONTEXT;
-		else return GSS_S_FAILURE;
+		if (status == SEC_E_INVALID_TOKEN) 
+			ret = GSS_S_DEFECTIVE_TOKEN;
+		else if (status == SEC_E_INVALID_HANDLE) 
+			ret = GSS_S_NO_CONTEXT;
+		goto done;
 	}
 
 	/* only do checks on the finalized context (no continue needed) */
@@ -768,32 +859,41 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 		SecPkgContext_NativeNamesW target;
 		if (SecFunctions->QueryContextAttributesW((*context_handle == GSS_C_NO_CONTEXT) ? &sspi_context_handle : *context_handle,
 		    SECPKG_ATTR_NATIVE_NAMES, &target) != SEC_E_OK)
-			return GSS_S_FAILURE;
+			goto done;
 		
 		const int valid_spn = _wcsnicmp(target.sServerName, L"host/", wcslen(L"host/")) == 0;
 		FreeContextBuffer(target.sServerName);
 		FreeContextBuffer(target.sClientName);
 		if (valid_spn == 0) {
 			debug("client passed an invalid principal name");
-			return GSS_S_FAILURE;
+			ret = GSS_S_FAILURE;
+			goto done;
 		}
 	}
 
 	/* copy the context handler to the caller */
 	if (*context_handle == GSS_C_NO_CONTEXT) {
-		*context_handle = malloc(sizeof(CtxtHandle));
+		if ((p_ctx_h = malloc(sizeof(CtxtHandle))) == NULL)
+			goto done;
+		*context_handle = p_ctx_h;
 		memcpy(*context_handle, &sspi_context_handle, sizeof(CtxtHandle));
 	}
 
 	/* if requested, translate returned flags that are actually available */
 	if (ret_flags != NULL) {
 		*ret_flags = 0;
-		if (sspi_ret_flags & ASC_RET_MUTUAL_AUTH) *ret_flags |= GSS_C_MUTUAL_FLAG;
-		if (sspi_ret_flags & ASC_RET_CONFIDENTIALITY) *ret_flags |= GSS_C_CONF_FLAG;
-		if (sspi_ret_flags & ASC_RET_REPLAY_DETECT) *ret_flags |= GSS_C_REPLAY_FLAG;
-		if (sspi_ret_flags & ASC_RET_DELEGATE) *ret_flags |= GSS_C_DELEG_FLAG;
-		if (sspi_ret_flags & ASC_RET_INTEGRITY) *ret_flags |= GSS_C_INTEG_FLAG;
-		if (sspi_ret_flags & ASC_RET_SEQUENCE_DETECT) *ret_flags |= GSS_C_SEQUENCE_FLAG;
+		if (sspi_ret_flags & ASC_RET_MUTUAL_AUTH) 
+			*ret_flags |= GSS_C_MUTUAL_FLAG;
+		if (sspi_ret_flags & ASC_RET_CONFIDENTIALITY) 
+			*ret_flags |= GSS_C_CONF_FLAG;
+		if (sspi_ret_flags & ASC_RET_REPLAY_DETECT) 
+			*ret_flags |= GSS_C_REPLAY_FLAG;
+		if (sspi_ret_flags & ASC_RET_DELEGATE) 
+			*ret_flags |= GSS_C_DELEG_FLAG;
+		if (sspi_ret_flags & ASC_RET_INTEGRITY) 
+			*ret_flags |= GSS_C_INTEG_FLAG;
+		if (sspi_ret_flags & ASC_RET_SEQUENCE_DETECT) 
+			*ret_flags |= GSS_C_SEQUENCE_FLAG;
 	}
 
 	/* report if delegation was requested by not fulfilled */
@@ -816,10 +916,12 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 		/* extract the username from the context handle will be domain\samaccountname format */
 		SecPkgContext_NamesW NamesBuffer;
 		if (SecFunctions->QueryContextAttributesW(*context_handle, SECPKG_ATTR_NAMES, &NamesBuffer) != SEC_E_OK)
-			return GSS_S_FAILURE;
+			goto done;
 		
 		/* copy to internal utf8 string and free the sspi string */
-		*src_name = utf16_to_utf8(NamesBuffer.sUserName);
+		if ((*src_name = utf16_to_utf8(NamesBuffer.sUserName)) == NULL)
+			goto done;
+
 		FreeContextBuffer(NamesBuffer.sUserName);
 	}
 
@@ -832,13 +934,25 @@ gss_accept_sec_context(_Out_ OM_uint32 * minor_status, _Inout_opt_ gss_ctx_id_t 
 	/* get the user token for impersonation */
 	if (delegated_cred_handle != NULL) {
 		if ((*delegated_cred_handle = malloc(sizeof(struct cred_st))) == NULL)
-			return GSS_S_FAILURE;
-		SecFunctions->QuerySecurityContextToken(*context_handle, &sspi_auth_user);
+			goto done;
+		if (SecFunctions->QuerySecurityContextToken(*context_handle, &sspi_auth_user) != SEC_E_OK)
+			goto done;
 		(*delegated_cred_handle)->isToken = 1;
 		(*delegated_cred_handle)->token = sspi_auth_user;
 	}
 
-	return (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
+	ret = (status == SEC_I_CONTINUE_NEEDED) ? GSS_S_CONTINUE_NEEDED : GSS_S_COMPLETE;
+
+done:
+	if (ret != GSS_S_COMPLETE && ret != GSS_S_CONTINUE_NEEDED) {
+		if (p_ctx_h)
+			free(p_ctx_h);
+		if (*src_name)
+			free(*src_name);
+		if (delegated_cred_handle && *delegated_cred_handle)
+			free(*delegated_cred_handle);
+	}
+	return ret;
 }
 
 /*
@@ -850,10 +964,12 @@ OM_uint32
 gss_display_name(_Out_ OM_uint32 * minor_status, _In_ gss_name_t input_name, 
 	_Out_ gss_buffer_t output_name_buffer, _Out_ gss_OID * output_name_type)
 {
-	if (ssh_gss_sspi_init(minor_status) == 0) return GSS_S_FAILURE;
+	if (ssh_gss_sspi_init(minor_status) == 0) 
+		return GSS_S_FAILURE;
 
 	output_name_buffer->length = strlen(input_name) + 1;
-	output_name_buffer->value = _strdup(input_name);
+	if ((output_name_buffer->value = _strdup(input_name)) == NULL)
+		return GSS_S_FAILURE;
 
 	/* set the output oid type if requested */
 	if (output_name_type != NULL)
@@ -882,33 +998,57 @@ gss_display_status(_In_ OM_uint32 * minor_status, _In_ OM_uint32 status_value, _
 
 	/* lookup textual representation of the numeric status code */
 	char * message_string = NULL;
-	if (status_value == GSS_S_COMPLETE) message_string = "GSS_S_COMPLETE";
-	else if (status_value == GSS_S_BAD_BINDINGS) message_string = "GSS_S_BAD_BINDINGS";
-	else if (status_value == GSS_S_BAD_MECH) message_string = "GSS_S_BAD_MECH";
-	else if (status_value == GSS_S_BAD_NAME) message_string = "GSS_S_BAD_NAME";
-	else if (status_value == GSS_S_BAD_NAMETYPE) message_string = "GSS_S_BAD_NAMETYPE";
-	else if (status_value == GSS_S_BAD_QOP) message_string = "GSS_S_BAD_QOP";
-	else if (status_value == GSS_S_BAD_SIG) message_string = "GSS_S_BAD_SIG";
-	else if (status_value == GSS_S_BAD_STATUS) message_string = "GSS_S_BAD_STATUS";
-	else if (status_value == GSS_S_CONTEXT_EXPIRED) message_string = "GSS_S_CONTEXT_EXPIRED";
-	else if (status_value == GSS_S_CONTINUE_NEEDED) message_string = "GSS_S_CONTINUE_NEEDED";
-	else if (status_value == GSS_S_CREDENTIALS_EXPIRED) message_string = "GSS_S_CREDENTIALS_EXPIRED";
-	else if (status_value == GSS_S_DEFECTIVE_CREDENTIAL) message_string = "GSS_S_DEFECTIVE_CREDENTIAL";
-	else if (status_value == GSS_S_DEFECTIVE_TOKEN) message_string = "GSS_S_DEFECTIVE_TOKEN";
-	else if (status_value == GSS_S_DUPLICATE_ELEMENT) message_string = "GSS_S_DUPLICATE_ELEMENT";
-	else if (status_value == GSS_S_DUPLICATE_TOKEN) message_string = "GSS_S_DUPLICATE_TOKEN";
-	else if (status_value == GSS_S_FAILURE) message_string = "GSS_S_FAILURE";
-	else if (status_value == GSS_S_NAME_NOT_MN) message_string = "GSS_S_NAME_NOT_MN";
-	else if (status_value == GSS_S_NO_CONTEXT) message_string = "GSS_S_NO_CONTEXT";
-	else if (status_value == GSS_S_NO_CRED) message_string = "GSS_S_NO_CRED";
-	else if (status_value == GSS_S_OLD_TOKEN) message_string = "GSS_S_OLD_TOKEN";
-	else if (status_value == GSS_S_UNAUTHORIZED) message_string = "GSS_S_UNAUTHORIZED";
-	else if (status_value == GSS_S_UNAVAILABLE) message_string = "GSS_S_UNAVAILABLE";
-	else if (status_value == GSS_S_UNSEQ_TOKEN) message_string = "GSS_S_UNSEQ_TOKEN";
+	if (status_value == GSS_S_COMPLETE) 
+		message_string = "GSS_S_COMPLETE";
+	else if (status_value == GSS_S_BAD_BINDINGS) 
+		message_string = "GSS_S_BAD_BINDINGS";
+	else if (status_value == GSS_S_BAD_MECH) 
+		message_string = "GSS_S_BAD_MECH";
+	else if (status_value == GSS_S_BAD_NAME) 
+		message_string = "GSS_S_BAD_NAME";
+	else if (status_value == GSS_S_BAD_NAMETYPE) 
+		message_string = "GSS_S_BAD_NAMETYPE";
+	else if (status_value == GSS_S_BAD_QOP) 
+		message_string = "GSS_S_BAD_QOP";
+	else if (status_value == GSS_S_BAD_SIG) 
+		message_string = "GSS_S_BAD_SIG";
+	else if (status_value == GSS_S_BAD_STATUS) 
+		message_string = "GSS_S_BAD_STATUS";
+	else if (status_value == GSS_S_CONTEXT_EXPIRED) 
+		message_string = "GSS_S_CONTEXT_EXPIRED";
+	else if (status_value == GSS_S_CONTINUE_NEEDED) 
+		message_string = "GSS_S_CONTINUE_NEEDED";
+	else if (status_value == GSS_S_CREDENTIALS_EXPIRED) 
+		message_string = "GSS_S_CREDENTIALS_EXPIRED";
+	else if (status_value == GSS_S_DEFECTIVE_CREDENTIAL) 
+		message_string = "GSS_S_DEFECTIVE_CREDENTIAL";
+	else if (status_value == GSS_S_DEFECTIVE_TOKEN) 
+		message_string = "GSS_S_DEFECTIVE_TOKEN";
+	else if (status_value == GSS_S_DUPLICATE_ELEMENT) 
+		message_string = "GSS_S_DUPLICATE_ELEMENT";
+	else if (status_value == GSS_S_DUPLICATE_TOKEN) 
+		message_string = "GSS_S_DUPLICATE_TOKEN";
+	else if (status_value == GSS_S_FAILURE) 
+		message_string = "GSS_S_FAILURE";
+	else if (status_value == GSS_S_NAME_NOT_MN) 
+		message_string = "GSS_S_NAME_NOT_MN";
+	else if (status_value == GSS_S_NO_CONTEXT) 
+		message_string = "GSS_S_NO_CONTEXT";
+	else if (status_value == GSS_S_NO_CRED) 
+		message_string = "GSS_S_NO_CRED";
+	else if (status_value == GSS_S_OLD_TOKEN) 
+		message_string = "GSS_S_OLD_TOKEN";
+	else if (status_value == GSS_S_UNAUTHORIZED) 
+		message_string = "GSS_S_UNAUTHORIZED";
+	else if (status_value == GSS_S_UNAVAILABLE) 
+		message_string = "GSS_S_UNAVAILABLE";
+	else if (status_value == GSS_S_UNSEQ_TOKEN) 
+		message_string = "GSS_S_UNSEQ_TOKEN";
 
 	/* copy local status string to the output buffer */
 	status_string->length = strlen(message_string) + 1;
-	status_string->value = _strdup(message_string);
+	if ((status_string->value = _strdup(message_string)) == NULL)
+		return GSS_S_FAILURE;
 
 	/* no supplementary messages available */
 	*message_context = 0;
