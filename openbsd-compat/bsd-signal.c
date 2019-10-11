@@ -17,6 +17,7 @@
 #include "includes.h"
 
 #include <signal.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -36,10 +37,15 @@ mysignal(int sig, mysig_t act)
 		memset(&sa, 0, sizeof(sa));
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = 0;
+		if (sig == SIGALRM) {
 #ifdef SA_INTERRUPT
-		if (sig == SIGALRM)
 			sa.sa_flags |= SA_INTERRUPT;
 #endif
+		} else {
+#ifdef SA_RESTART
+			sa.sa_flags |= SA_RESTART;
+#endif
+		}
 		sa.sa_handler = act;
 		if (sigaction(sig, &sa, NULL) == -1)
 			return (mysig_t) -1;

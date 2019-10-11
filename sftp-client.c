@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.c,v 1.134 2019/07/12 03:56:21 djm Exp $ */
+/* $OpenBSD: sftp-client.c,v 1.135 2019/10/04 04:31:59 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -631,8 +631,7 @@ do_lsreaddir(struct sftp_conn *conn, const char *path, int print_flag,
 				    __func__, ssh_err(r));
 				free(filename);
 				free(longname);
-				sshbuf_free(msg);
-				return -1;
+				goto out;
 			}
 
 			if (print_flag)

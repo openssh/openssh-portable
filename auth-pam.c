@@ -851,6 +851,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			plen += mlen;
 			**echo_on = (type == PAM_PROMPT_ECHO_ON);
 			free(msg);
+			sshbuf_free(buffer);
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
@@ -879,6 +880,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**echo_on = 0;
 				ctxt->pam_done = -1;
 				free(msg);
+				sshbuf_free(buffer);
 				return 0;
 			}
 			/* FALLTHROUGH */
@@ -905,6 +907,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**echo_on = 0;
 				ctxt->pam_done = 1;
 				free(msg);
+				sshbuf_free(buffer);
 				return (0);
 			}
 			error("PAM: %s for %s%.100s from %.100s", msg,
@@ -916,9 +919,11 @@ sshpam_query(void *ctx, char **name, char **info,
 			**echo_on = 0;
 			free(msg);
 			ctxt->pam_done = -1;
+			sshbuf_free(buffer);
 			return (-1);
 		}
 	}
+	sshbuf_free(buffer);
 	return (-1);
 }
 

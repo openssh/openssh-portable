@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.317 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.319 2019/09/13 04:31:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -56,7 +56,6 @@
 #include "compat.h"
 #include "sshkey.h"
 #include "sshconnect.h"
-#include "hostfile.h"
 #include "log.h"
 #include "misc.h"
 #include "readconf.h"
@@ -87,14 +86,18 @@ static void warn_changed_key(struct sshkey *);
 /* Expand a proxy command */
 static char *
 expand_proxy_command(const char *proxy_command, const char *user,
-    const char *host, int port)
+    const char *host, const char *host_arg, int port)
 {
 	char *tmp, *ret, strport[NI_MAXSERV];
 
 	snprintf(strport, sizeof strport, "%d", port);
 	xasprintf(&tmp, "exec %s", proxy_command);
-	ret = percent_expand(tmp, "h", host, "p", strport,
-	    "r", options.user, (char *)NULL);
+	ret = percent_expand(tmp,
+	    "h", host,
+	    "n", host_arg,
+	    "p", strport,
+	    "r", options.user,
+	    (char *)NULL);
 	free(tmp);
 	return ret;
 }
@@ -122,8 +125,8 @@ stderr_null(void)
  * a connected fd back to us.
  */
 static int
-ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
-    const char *proxy_command)
+ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host,
+    const char *host_arg, u_short port, const char *proxy_command)
 {
 	char *command_string;
 	int sp[2], sock;
@@ -138,7 +141,7 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
 		    "proxy dialer: %.100s", strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, port);
+	    host_arg, host, port);
 	debug("Executing proxy dialer command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -204,8 +207,8 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host, u_short port,
  * Connect to the given ssh server using a proxy command.
  */
 static int
-ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
-    const char *proxy_command)
+ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
+    u_short port, const char *proxy_command)
 {
 	char *command_string;
 	int pin[2], pout[2];
@@ -221,7 +224,7 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, u_short port,
 		    strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host, port);
+	    host_arg, host, port);
 	debug("Executing proxy command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -539,13 +542,13 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 	if (ssh_packet_set_connection(ssh, sock, sock) == NULL)
 		return -1; /* ssh_packet_set_connection logs error */
 
-        return 0;
+	return 0;
 }
 
 int
-ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
-    struct sockaddr_storage *hostaddr, u_short port, int family,
-    int connection_attempts, int *timeout_ms, int want_keepalive)
+ssh_connect(struct ssh *ssh, const char *host, const char *host_arg,
+    struct addrinfo *addrs, struct sockaddr_storage *hostaddr, u_short port,
+    int family, int connection_attempts, int *timeout_ms, int want_keepalive)
 {
 	int in, out;
 
@@ -564,10 +567,11 @@ ssh_connect(struct ssh *ssh, const char *host, struct addrinfo *addrs,
 			return -1; /* ssh_packet_set_connection logs error */
 		return 0;
 	} else if (options.proxy_use_fdpass) {
-		return ssh_proxy_fdpass_connect(ssh, host, port,
+		return ssh_proxy_fdpass_connect(ssh, host, host_arg, port,
 		    options.proxy_command);
 	}
-	return ssh_proxy_connect(ssh, host, port, options.proxy_command);
+	return ssh_proxy_connect(ssh, host, host_arg, port,
+	    options.proxy_command);
 }
 
 /* defaults to 'no' */
@@ -789,7 +793,7 @@ check_host_key(char *hostname, struct sockaddr *hostaddr, u_short port,
 		ip_status = check_key_in_hostkeys(ip_hostkeys, host_key,
 		    &ip_found);
 		if (host_status == HOST_CHANGED &&
-		    (ip_status != HOST_CHANGED || 
+		    (ip_status != HOST_CHANGED ||
 		    (ip_found != NULL &&
 		    !sshkey_equal(ip_found->key, host_found->key))))
 			host_ip_differ = 1;
