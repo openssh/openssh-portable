@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.103 2019/07/16 03:21:54 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.104 2019/09/03 08:37:45 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -30,6 +30,7 @@ LTESTS= 	connect \
 		transfer \
 		banner \
 		rekey \
+		dhgex \
 		stderr-data \
 		stderr-after-eof \
 		broken-pipe \
@@ -87,10 +88,10 @@ LTESTS= 	connect \
 		cert-file \
 		cfginclude \
 		allow-deny-users \
-		authinfo
+		authinfo \
+		sshsig
 
 
-#		dhgex \
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
 #INTEROP_TESTS+=ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
@@ -209,8 +210,16 @@ t12: $(OBJ)/t12.out
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
 	for TEST in ""$?; do \
-		echo "run test $${TEST}" ... 1>&2; \
-		(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		skip=no; \
+		for t in ""$${SKIP_LTESTS}; do \
+			if [ "x$${t}.sh" = "x$${TEST}" ]; then skip=yes; fi; \
+		done; \
+		if [ "x$${skip}" = "xno" ]; then \
+			echo "run test $${TEST}" ... 1>&2; \
+			(env SUDO="${SUDO}" TEST_ENV=${TEST_ENV} ${TEST_SHELL} ${.CURDIR}/test-exec.sh ${.OBJDIR} ${.CURDIR}/$${TEST}) || exit $$?; \
+		else \
+			echo skip test $${TEST} 1>&2; \
+		fi; \
 	done
 
 t-exec-interop:	${INTEROP_TESTS:=.sh}

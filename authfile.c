@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.134 2019/08/05 11:50:33 dtucker Exp $ */
+/* $OpenBSD: authfile.c,v 1.135 2019/09/03 08:30:47 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -526,5 +526,27 @@ sshkey_check_revoked(struct sshkey *key, const char *revoked_keys_file)
 		/* Some other error occurred */
 		return r;
 	}
+}
+
+/*
+ * Advanced *cpp past the end of key options, defined as the first unquoted
+ * whitespace character. Returns 0 on success or -1 on failure (e.g.
+ * unterminated quotes).
+ */
+int
+sshkey_advance_past_options(char **cpp)
+{
+	char *cp = *cpp;
+	int quoted = 0;
+
+	for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
+		if (*cp == '\\' && cp[1] == '"')
+			cp++;	/* Skip both */
+		else if (*cp == '"')
+			quoted = !quoted;
+	}
+	*cpp = cp;
+	/* return failure for unterminated quotes */
+	return (*cp == '\0' && quoted) ? -1 : 0;
 }
 

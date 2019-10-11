@@ -25,6 +25,7 @@ SUDO: path to sudo/doas command, if desired. Note that some systems
 	(notably systems using PAM) require sudo to execute some tests.
 LTESTS: Whitespace separated list of tests (filenames without the .sh
 	extension) to run.
+SKIP_LTESTS: Whitespace separated list of tests to skip.
 OBJ: used by test scripts to access build dir.
 TEST_SHELL: shell used for running the test scripts.
 TEST_SSH_FAIL_FATAL: set to "yes" to make any failure abort the test

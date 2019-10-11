@@ -211,11 +211,11 @@ kex_ecdh_dec(struct kex *kex, const struct sshbuf *server_blob,
 
 #else
 
-#include <stdio.h>
-
-#include "sshkey.h"
-#include "kex.h"
 #include "ssherr.h"
+
+struct kex;
+struct sshbuf;
+struct sshkey;
 
 int
 kex_ecdh_keypair(struct kex *kex)

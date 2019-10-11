@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.140 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.141 2019/09/06 05:23:55 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -40,8 +40,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <openssl/evp.h>
-#include "openbsd-compat/openssl-compat.h"
+#ifdef WITH_OPENSSL
+# include <openssl/evp.h>
+# include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>

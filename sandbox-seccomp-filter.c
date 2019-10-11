@@ -168,6 +168,15 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_stat64
 	SC_DENY(__NR_stat64, EACCES),
 #endif
+#ifdef __NR_shmget
+	SC_DENY(__NR_shmget, EACCES),
+#endif
+#ifdef __NR_shmat
+	SC_DENY(__NR_shmat, EACCES),
+#endif
+#ifdef __NR_shmdt
+	SC_DENY(__NR_shmdt, EACCES),
+#endif
 
 	/* Syscalls to permit */
 #ifdef __NR_brk
@@ -273,6 +282,8 @@ static const struct sock_filter preauth_insns[] = {
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSAMODEXPO),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ICARSACRT),
 	SC_ALLOW_ARG(__NR_ioctl, 1, ZSECSENDCPRB),
+	/* Allow ioctls for EP11 crypto card on s390 */
+	SC_ALLOW_ARG(__NR_ioctl, 1, ZSENDEP11CPRB),
 #endif
 #if defined(__x86_64__) && defined(__ILP32__) && defined(__X32_SYSCALL_BIT)
 	/*

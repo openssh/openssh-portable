@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-rhosts.c,v 1.50 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: auth-rhosts.c,v 1.51 2019/10/02 00:42:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -38,7 +38,6 @@
 #include "sshkey.h"
 #include "servconf.h"
 #include "canohost.h"
-#include "sshkey.h"
 #include "hostfile.h"
 #include "auth.h"
 
