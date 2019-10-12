@@ -1,15 +1,15 @@
 # Default values for additional components
-%define build_x11_askpass	1
+%global build_x11_askpass	1
 
 # Define the UID/GID to use for privilege separation
-%define sshd_gid	65
-%define sshd_uid	71
+%global sshd_gid	65
+%global sshd_uid	71
 
 # The version of x11-ssh-askpass to use
-%define xversion	1.2.4.1
+%global xversion	1.2.4.1
 
 # Allow the ability to override defaults with -D skip_xxx=1
-%{?skip_x11_askpass:%define build_x11_askpass 0}
+%{?skip_x11_askpass:%global build_x11_askpass 0}
 
 Summary:	OpenSSH, a free Secure Shell (SSH) protocol implementation
 Name:		openssh
