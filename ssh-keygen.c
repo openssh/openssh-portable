@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.355 2019/10/03 17:07:50 jmc Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.356 2019/10/16 06:03:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -651,6 +651,7 @@ do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
 		*k = do_convert_private_ssh2(buf);
 	else if ((r = sshkey_fromb(buf, k)) != 0)
 		fatal("decode blob failed: %s", ssh_err(r));
+	sshbuf_free(buf);
 	fclose(fp);
 }
 
