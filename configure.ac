@@ -213,20 +213,26 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		CFLAGS="$CFLAGS $t -Werror"
 		LDFLAGS="$LDFLAGS $t -Werror"
 		AC_LINK_IFELSE(
-			[AC_LANG_PROGRAM([[ #include <stdio.h> ]],
+			[AC_LANG_PROGRAM([[
+	#include <stdio.h>
+	int func (int t) {char b[100]; snprintf(b,sizeof b,"%d",t); return t;}
+			 ]],
 			[[
 	char x[256];
-	snprintf(x, sizeof(x), "XXX");
+	snprintf(x, sizeof(x), "XXX%d", func(1));
 			 ]])],
 		    [ AC_MSG_RESULT([yes])
 		      CFLAGS="$saved_CFLAGS $t"
 		      LDFLAGS="$saved_LDFLAGS $t"
 		      AC_MSG_CHECKING([if $t works])
 		      AC_RUN_IFELSE(
-			[AC_LANG_PROGRAM([[ #include <stdio.h> ]],
+			[AC_LANG_PROGRAM([[
+	#include <stdio.h>
+	int func (int t) {char b[100]; snprintf(b,sizeof b,"%d",t); return t;}
+			]],
 			[[
 	char x[256];
-	snprintf(x, sizeof(x), "XXX");
+	snprintf(x, sizeof(x), "XXX%d", func(1));
 			]])],
 			[ AC_MSG_RESULT([yes])
 			  break ],
