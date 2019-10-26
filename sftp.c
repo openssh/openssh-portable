@@ -2297,7 +2297,8 @@ static void
 connect_to_server(char *path, char **args, int *in, int *out)
 {
 	int c_in, c_out;
-
+	struct sigaction kact,sact;
+	
 #ifdef USE_PIPES
 	int pin[2], pout[2];
 
@@ -2343,12 +2344,20 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		_exit(1);
 	}
 
-	signal(SIGTERM, killchild);
-	signal(SIGINT, killchild);
-	signal(SIGHUP, killchild);
-	signal(SIGTSTP, suspchild);
-	signal(SIGTTIN, suspchild);
-	signal(SIGTTOU, suspchild);
+	kact.sa_handler = killchild;
+	sigemptyset(&kact.sa_mask);
+	sigaddset(&kact.sa_mask, SIGCHLD);
+	sigaction(SIGTERM, &kact, NULL);
+	sigaction(SIGINT, &kact, NULL);
+	sigaction(SIGHUP, &kact, NULL);
+
+	sact.sa_handler = suspchild;
+	sigemptyset(&sact.sa_mask);
+	sigaddset(&sact.sa_mask, SIGCHLD);
+	sigaction(SIGTSTP, suspchild);
+	sigaction(SIGTTIN, suspchild);
+	sigaction(SIGTTOU, suspchild);
+	
 	signal(SIGCHLD, sigchld_handler);
 	close(c_in);
 	close(c_out);
