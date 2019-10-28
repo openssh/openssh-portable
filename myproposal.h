@@ -24,7 +24,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef WITH_OPENSSL
 #include <openssl/opensslv.h>
+#endif
 
 /* conditional algorithm support */
 
