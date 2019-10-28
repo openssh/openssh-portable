@@ -85,6 +85,7 @@ struct timespec {
 	time_t	tv_sec;
 	long	tv_nsec;
 };
+#endif /* !HAVE_STRUCT_TIMESPEC */
 
 #if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
 int nanosleep(const struct timespec *, struct timespec *);
@@ -97,8 +98,6 @@ int nanosleep(const struct timespec *, struct timespec *);
 # endif
 int utimensat(int, const char *, const struct timespec[2], int);
 #endif /* !HAVE_UTIMENSAT */
-
-#endif /* !HAVE_STRUCT_TIMESPEC */
 
 #ifndef HAVE_USLEEP
 int usleep(unsigned int useconds);
