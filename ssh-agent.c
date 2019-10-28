@@ -1113,8 +1113,10 @@ main(int ac, char **av)
 
 	platform_disable_tracing(0);	/* strict=no */
 
+#ifdef RLIMIT_NOFILE
 	if (getrlimit(RLIMIT_NOFILE, &rlim) == -1)
 		fatal("%s: getrlimit: %s", __progname, strerror(errno));
+#endif
 
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
