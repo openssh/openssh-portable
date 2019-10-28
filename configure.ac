@@ -3751,7 +3751,7 @@ AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t], , , [
 #endif
 ])
 
-AC_CHECK_MEMBERS([struct statfs.f_flags], [], [], [[
+AC_CHECK_MEMBERS([struct statfs.f_files, struct statfs.f_flags], [], [], [[
 #include <sys/types.h>
 #ifdef HAVE_SYS_BITYPES_H
 #include <sys/bitypes.h>
