@@ -3541,6 +3541,17 @@ fprint_ll(FILE *f, long long n)
 	)
 fi
 
+AC_CHECK_DECLS([UINT32_MAX], , , [[
+#ifdef HAVE_SYS_LIMITS_H
+# include <sys/limits.h>
+#endif
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+]])
 
 # More checks for data types
 AC_CACHE_CHECK([for u_int type], ac_cv_have_u_int, [

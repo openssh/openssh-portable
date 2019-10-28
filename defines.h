@@ -244,6 +244,9 @@ typedef unsigned short int u_int16_t;
 #  endif
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
+#    if defined(HAVE_DECL_UINT32_MAX) && (HAVE_DECL_UINT32_MAX == 0)
+#      define UINT32_MAX	UINT_MAX
+#    endif
 #  else
 #    error "32 bit int type not found."
 #  endif
