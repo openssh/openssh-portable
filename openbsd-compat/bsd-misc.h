@@ -64,14 +64,6 @@ struct timeval {
 int utimes(char *, struct timeval *);
 #endif /* HAVE_UTIMES */
 
-#ifndef HAVE_UTIMENSAT
-/* start with the high bits and work down to minimise risk of overlap */
-# ifndef AT_SYMLINK_NOFOLLOW
-#  define AT_SYMLINK_NOFOLLOW 0x80000000
-# endif
-int utimensat(int, const char *, const struct timespec[2], int);
-#endif
-
 #ifndef AT_FDCWD
 # define AT_FDCWD (-2)
 #endif
@@ -88,15 +80,25 @@ int fchownat(int, const char *, uid_t, gid_t, int);
 int truncate (const char *, off_t);
 #endif /* HAVE_TRUNCATE */
 
-#if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
 #ifndef HAVE_STRUCT_TIMESPEC
 struct timespec {
 	time_t	tv_sec;
 	long	tv_nsec;
 };
-#endif
+
+#if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
 int nanosleep(const struct timespec *, struct timespec *);
 #endif
+
+#ifndef HAVE_UTIMENSAT
+/* start with the high bits and work down to minimise risk of overlap */
+# ifndef AT_SYMLINK_NOFOLLOW
+#  define AT_SYMLINK_NOFOLLOW 0x80000000
+# endif
+int utimensat(int, const char *, const struct timespec[2], int);
+#endif /* !HAVE_UTIMENSAT */
+
+#endif /* !HAVE_STRUCT_TIMESPEC */
 
 #ifndef HAVE_USLEEP
 int usleep(unsigned int useconds);
