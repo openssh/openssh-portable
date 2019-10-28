@@ -58,7 +58,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <signal.h>
 #include <time.h>
 

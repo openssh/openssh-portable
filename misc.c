@@ -38,7 +38,9 @@
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
 #endif
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
