@@ -178,4 +178,8 @@ int flock(int, int);
 # define fflush(x)	(_ssh_compat_fflush(x))
 #endif
 
+#ifndef HAVE_LOCALTIME_R
+struct tm *localtime_r(const time_t *, struct tm *);
+#endif
+
 #endif /* _BSD_MISC_H */

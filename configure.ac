@@ -1763,6 +1763,7 @@ AC_CHECK_FUNCS([ \
 	inet_ntop \
 	innetgr \
 	llabs \
+	localtime_r \
 	login_getcapbool \
 	md5_crypt \
 	memmem \
