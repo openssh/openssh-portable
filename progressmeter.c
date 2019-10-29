@@ -1,4 +1,4 @@
-/* $OpenBSD: progressmeter.c,v 1.48 2019/05/03 06:06:30 dtucker Exp $ */
+/* $OpenBSD: progressmeter.c,v 1.49 2019/10/29 07:47:27 dtucker Exp $ */
 /*
  * Copyright (c) 2003 Nils Nordman.  All rights reserved.
  *
@@ -233,7 +233,6 @@ refresh_progress_meter(int force_update)
 static void
 sig_alarm(int ignore)
 {
-	signal(SIGALRM, sig_alarm);
 	alarm_fired = 1;
 	alarm(UPDATE_INTERVAL);
 }
@@ -277,7 +276,6 @@ stop_progress_meter(void)
 static void
 sig_winch(int sig)
 {
-	signal(SIGWINCH, sig_winch);
 	win_resized = 1;
 }
 
