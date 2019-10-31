@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.357 2019/10/31 21:17:09 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.358 2019/10/31 21:23:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -577,8 +577,10 @@ do_convert_private_ssh2(struct sshbuf *b)
 		error("%s: remaining bytes in key blob %d", __func__, rlen);
 
 	/* try the key */
-	if (sshkey_sign(key, &sig, &slen, data, sizeof(data), NULL, 0) != 0 ||
-	    sshkey_verify(key, sig, slen, data, sizeof(data), NULL, 0) != 0) {
+	if (sshkey_sign(key, &sig, &slen, data, sizeof(data),
+	    NULL, NULL, 0) != 0 ||
+	    sshkey_verify(key, sig, slen, data, sizeof(data),
+	    NULL, 0) != 0) {
 		sshkey_free(key);
 		free(sig);
 		return NULL;
@@ -1709,7 +1711,7 @@ load_pkcs11_key(char *path)
 static int
 agent_signer(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, u_int compat, void *ctx)
+    const char *alg, const char *sk_provider, u_int compat, void *ctx)
 {
 	int *agent_fdp = (int *)ctx;
 
@@ -1821,11 +1823,13 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 
 		if (agent_fd != -1 && (ca->flags & SSHKEY_FLAG_EXT) != 0) {
 			if ((r = sshkey_certify_custom(public, ca,
-			    key_type_name, agent_signer, &agent_fd)) != 0)
+			    key_type_name, sk_provider, agent_signer,
+			    &agent_fd)) != 0)
 				fatal("Couldn't certify key %s via agent: %s",
 				    tmp, ssh_err(r));
 		} else {
-			if ((sshkey_certify(public, ca, key_type_name)) != 0)
+			if ((sshkey_certify(public, ca, key_type_name,
+			    sk_provider)) != 0)
 				fatal("Couldn't certify key %s: %s",
 				    tmp, ssh_err(r));
 		}
@@ -2507,7 +2511,7 @@ sign_one(struct sshkey *signkey, const char *filename, int fd,
 		else
 			fprintf(stderr, "Signing file %s\n", filename);
 	}
-	if ((r = sshsig_sign_fd(signkey, NULL, fd, sig_namespace,
+	if ((r = sshsig_sign_fd(signkey, NULL, sk_provider, fd, sig_namespace,
 	    &sigbuf, signer, signer_ctx)) != 0) {
 		error("Signing %s failed: %s", filename, ssh_err(r));
 		goto out;

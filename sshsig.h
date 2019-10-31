@@ -22,7 +22,7 @@ struct sshkey;
 struct sshsigopt;
 
 typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
-    const u_char *, size_t, const char *, u_int, void *);
+    const u_char *, size_t, const char *, const char *, u_int, void *);
 
 /* Buffer-oriented API */
 
@@ -32,8 +32,9 @@ typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
  * out is populated with the detached signature, or NULL on failure.
  */
 int sshsig_signb(struct sshkey *key, const char *hashalg,
-    const struct sshbuf *message, const char *sig_namespace,
-    struct sshbuf **out, sshsig_signer *signer, void *signer_ctx);
+    const char *sk_provider, const struct sshbuf *message,
+    const char *sig_namespace, struct sshbuf **out,
+    sshsig_signer *signer, void *signer_ctx);
 
 /*
  * Verifies that a detached signature is valid and optionally returns key
@@ -52,8 +53,8 @@ int sshsig_verifyb(struct sshbuf *signature,
  * out is populated with the detached signature, or NULL on failure.
  */
 int sshsig_sign_fd(struct sshkey *key, const char *hashalg,
-    int fd, const char *sig_namespace, struct sshbuf **out,
-    sshsig_signer *signer, void *signer_ctx);
+    const char *sk_provider, int fd, const char *sig_namespace,
+    struct sshbuf **out, sshsig_signer *signer, void *signer_ctx);
 
 /*
  * Verifies that a detached signature over a file is valid and optionally

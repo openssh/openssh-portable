@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.238 2019/10/31 21:22:01 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.239 2019/10/31 21:23:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -430,12 +430,13 @@ process_sign_request2(SocketEntry *e)
 		if ((r = provider_sign(id->sk_provider, id->key, &signature,
 		    &slen, data, dlen, agent_decode_alg(key, flags),
 		    compat)) != 0) {
-			error("%s: sshkey_sign: %s", __func__, ssh_err(r));
+			error("%s: sign: %s", __func__, ssh_err(r));
 			goto send;
 		}
 	} else {
 		if ((r = sshkey_sign(id->key, &signature, &slen,
-		    data, dlen, agent_decode_alg(key, flags), compat)) != 0) {
+		    data, dlen, agent_decode_alg(key, flags),
+		    NULL, compat)) != 0) {
 			error("%s: sshkey_sign: %s", __func__, ssh_err(r));
 			goto send;
 		}

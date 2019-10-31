@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.538 2019/10/29 07:47:27 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.539 2019/10/31 21:23:19 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2209,17 +2209,17 @@ sshd_hostkey_sign(struct ssh *ssh, struct sshkey *privkey,
 	if (use_privsep) {
 		if (privkey) {
 			if (mm_sshkey_sign(ssh, privkey, signature, slenp,
-			    data, dlen, alg, ssh->compat) < 0)
+			    data, dlen, alg, NULL, ssh->compat) < 0)
 				fatal("%s: privkey sign failed", __func__);
 		} else {
 			if (mm_sshkey_sign(ssh, pubkey, signature, slenp,
-			    data, dlen, alg, ssh->compat) < 0)
+			    data, dlen, alg, NULL, ssh->compat) < 0)
 				fatal("%s: pubkey sign failed", __func__);
 		}
 	} else {
 		if (privkey) {
 			if (sshkey_sign(privkey, signature, slenp, data, dlen,
-			    alg, ssh->compat) < 0)
+			    alg, NULL, ssh->compat) < 0)
 				fatal("%s: privkey sign failed", __func__);
 		} else {
 			if ((r = ssh_agent_sign(auth_sock, pubkey,

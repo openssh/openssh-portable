@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.113 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.114 2019/10/31 21:23:19 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -215,7 +215,8 @@ mm_choose_dh(int min, int nbits, int max)
 
 int
 mm_sshkey_sign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
-    const u_char *data, size_t datalen, const char *hostkey_alg, u_int compat)
+    const u_char *data, size_t datalen, const char *hostkey_alg,
+    const char *sk_provider, u_int compat)
 {
 	struct kex *kex = *pmonitor->m_pkex;
 	struct sshbuf *m;
@@ -223,7 +224,8 @@ mm_sshkey_sign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	int r;
 
 	debug3("%s entering", __func__);
-
+	if (sk_provider != NULL)
+		fatal("%s: sk_provider != NULL", __func__);
 	if ((m = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_put_u32(m, ndx)) != 0 ||
