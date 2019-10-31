@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.34 2019/09/03 08:31:20 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.35 2019/10/31 21:15:14 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -65,6 +65,8 @@ enum sshkey_types {
 	KEY_ED25519_CERT,
 	KEY_XMSS,
 	KEY_XMSS_CERT,
+	KEY_ECDSA_SK,
+	KEY_ECDSA_SK_CERT,
 	KEY_UNSPEC
 };
 
@@ -118,18 +120,30 @@ struct sshkey_cert {
 struct sshkey {
 	int	 type;
 	int	 flags;
+	/* KEY_RSA */
 	RSA	*rsa;
+	/* KEY_DSA */
 	DSA	*dsa;
+	/* KEY_ECDSA and KEY_ECDSA_SK */
 	int	 ecdsa_nid;	/* NID of curve */
 	EC_KEY	*ecdsa;
+	/* KEY_ED25519 */
 	u_char	*ed25519_sk;
 	u_char	*ed25519_pk;
+	/* KEY_XMSS */
 	char	*xmss_name;
 	char	*xmss_filename;	/* for state file updates */
 	void	*xmss_state;	/* depends on xmss_name, opaque */
 	u_char	*xmss_sk;
 	u_char	*xmss_pk;
+	/* KEY_ECDSA_SK */
+	char	*sk_application;
+	uint8_t	sk_flags;
+	struct sshbuf *sk_key_handle;
+	struct sshbuf *sk_reserved;
+	/* Certificates */
 	struct sshkey_cert *cert;
+	/* Private key shielding */
 	u_char	*shielded_private;
 	size_t	shielded_len;
 	u_char	*shield_prekey;
@@ -266,6 +280,9 @@ int ssh_dss_verify(const struct sshkey *key,
 int ssh_ecdsa_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ecdsa_verify(const struct sshkey *key,
+    const u_char *signature, size_t signaturelen,
+    const u_char *data, size_t datalen, u_int compat);
+int ssh_ecdsa_sk_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
