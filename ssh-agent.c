@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.237 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.238 2019/10/31 21:22:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -41,6 +41,7 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
@@ -85,13 +86,13 @@
 #include "digest.h"
 #include "ssherr.h"
 #include "match.h"
-
-#ifdef ENABLE_PKCS11
+#include "msg.h"
+#include "pathnames.h"
 #include "ssh-pkcs11.h"
-#endif
+#include "ssh-sk.h"
 
-#ifndef DEFAULT_PKCS11_WHITELIST
-# define DEFAULT_PKCS11_WHITELIST "/usr/lib*/*,/usr/local/lib*/*"
+#ifndef DEFAULT_PROVIDER_WHITELIST
+# define DEFAULT_PROVIDER_WHITELIST "/usr/lib*/*,/usr/local/lib*/*"
 #endif
 
 /* Maximum accepted message length */
@@ -123,6 +124,7 @@ typedef struct identity {
 	char *provider;
 	time_t death;
 	u_int confirm;
+	char *sk_provider;
 } Identity;
 
 struct idtable {
@@ -146,8 +148,8 @@ pid_t cleanup_pid = 0;
 char socket_name[PATH_MAX];
 char socket_dir[PATH_MAX];
 
-/* PKCS#11 path whitelist */
-static char *pkcs11_whitelist;
+/* PKCS#11/Security key path whitelist */
+static char *provider_whitelist;
 
 /* locking */
 #define LOCK_SIZE	32
@@ -189,6 +191,7 @@ free_identity(Identity *id)
 	sshkey_free(id->key);
 	free(id->provider);
 	free(id->comment);
+	free(id->sk_provider);
 	free(id);
 }
 
@@ -278,6 +281,121 @@ agent_decode_alg(struct sshkey *key, u_int flags)
 	return NULL;
 }
 
+static int
+provider_sign(const char *provider, struct sshkey *key,
+    u_char **sigp, size_t *lenp,
+    const u_char *data, size_t datalen,
+    const char *alg, u_int compat)
+{
+	int status, pair[2], r = SSH_ERR_INTERNAL_ERROR;
+	pid_t pid;
+	char *helper, *verbosity = NULL;
+	struct sshbuf *kbuf, *req, *resp;
+	u_char version;
+
+	debug3("%s: start for provider %s", __func__, provider);
+
+	*sigp = NULL;
+	*lenp = 0;
+
+	helper = getenv("SSH_SK_HELPER");
+	if (helper == NULL || strlen(helper) == 0)
+		helper = _PATH_SSH_SK_HELPER;
+	if (log_level_get() >= SYSLOG_LEVEL_DEBUG1)
+		verbosity = "-vvv";
+
+	/* Start helper */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) == -1) {
+		error("socketpair: %s", strerror(errno));
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+	if ((pid = fork()) == -1) {
+		error("fork: %s", strerror(errno));
+		close(pair[0]);
+		close(pair[1]);
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+	if (pid == 0) {
+		if ((dup2(pair[1], STDIN_FILENO) == -1) ||
+		    (dup2(pair[1], STDOUT_FILENO) == -1))
+			fatal("%s: dup2: %s", __func__, ssh_err(r));
+		close(pair[0]);
+		close(pair[1]);
+		closefrom(STDERR_FILENO + 1);
+		debug("%s: starting %s %s", __func__, helper,
+		    verbosity == NULL ? "" : verbosity);
+		execlp(helper, helper, verbosity, (char *)NULL);
+		fatal("%s: execlp: %s", __func__, strerror(errno));
+	}
+	close(pair[1]);
+
+	if ((kbuf = sshbuf_new()) == NULL ||
+	    (req = sshbuf_new()) == NULL ||
+	    (resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __func__);
+
+	if ((r = sshkey_private_serialize(key, kbuf)) != 0 ||
+	    (r = sshbuf_put_stringb(req, kbuf)) != 0 ||
+	    (r = sshbuf_put_cstring(req, provider)) != 0 ||
+	    (r = sshbuf_put_string(req, data, datalen)) != 0 ||
+	    (r = sshbuf_put_u32(req, compat)) != 0)
+		fatal("%s: compose: %s", __func__, ssh_err(r));
+	if ((r = ssh_msg_send(pair[0], SSH_SK_HELPER_VERSION, req)) != 0) {
+		error("%s: send: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if ((r = ssh_msg_recv(pair[0], resp)) != 0) {
+		error("%s: receive: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if ((r = sshbuf_get_u8(resp, &version)) != 0) {
+		error("%s: parse version: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if (version != SSH_SK_HELPER_VERSION) {
+		error("%s: unsupported version: got %u, expected %u",
+		    __func__, version, SSH_SK_HELPER_VERSION);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if ((r = sshbuf_get_string(resp, sigp, lenp)) != 0) {
+		error("%s: parse signature: %s", __func__, ssh_err(r));
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshbuf_len(resp) != 0) {
+		error("%s: trailing data in response", __func__);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
+	while (waitpid(pid, &status, 0) == -1) {
+		if (errno != EINTR)
+			fatal("%s: waitpid: %s", __func__, ssh_err(r));
+	}
+	if (!WIFEXITED(status)) {
+		error("%s: helper %s exited abnormally", __func__, helper);
+		if (r == 0)
+			r = SSH_ERR_SYSTEM_ERROR;
+	} else if (WEXITSTATUS(status) != 0) {
+		error("%s: helper %s exited with non-zero exit status",
+		    __func__, helper);
+		if (r == 0)
+			r = SSH_ERR_SYSTEM_ERROR;
+	}
+	if (r != 0) {
+		freezero(*sigp, *lenp);
+		*sigp = NULL;
+		*lenp = 0;
+	}
+	sshbuf_free(kbuf);
+	sshbuf_free(req);
+	sshbuf_free(resp);
+	return r;
+}
+
 /* ssh2 only */
 static void
 process_sign_request2(SocketEntry *e)
@@ -308,10 +426,19 @@ process_sign_request2(SocketEntry *e)
 		verbose("%s: user refused key", __func__);
 		goto send;
 	}
-	if ((r = sshkey_sign(id->key, &signature, &slen,
-	    data, dlen, agent_decode_alg(key, flags), compat)) != 0) {
-		error("%s: sshkey_sign: %s", __func__, ssh_err(r));
-		goto send;
+	if (id->sk_provider != NULL) {
+		if ((r = provider_sign(id->sk_provider, id->key, &signature,
+		    &slen, data, dlen, agent_decode_alg(key, flags),
+		    compat)) != 0) {
+			error("%s: sshkey_sign: %s", __func__, ssh_err(r));
+			goto send;
+		}
+	} else {
+		if ((r = sshkey_sign(id->key, &signature, &slen,
+		    data, dlen, agent_decode_alg(key, flags), compat)) != 0) {
+			error("%s: sshkey_sign: %s", __func__, ssh_err(r));
+			goto send;
+		}
 	}
 	/* Success */
 	ok = 0;
@@ -411,7 +538,7 @@ process_add_identity(SocketEntry *e)
 	Identity *id;
 	int success = 0, confirm = 0;
 	u_int seconds, maxsign;
-	char *comment = NULL;
+	char *fp, *comment = NULL, *ext_name = NULL, *sk_provider = NULL;
 	time_t death = 0;
 	struct sshkey *k = NULL;
 	u_char ctype;
@@ -456,12 +583,55 @@ process_add_identity(SocketEntry *e)
 				goto err;
 			}
 			break;
+		case SSH_AGENT_CONSTRAIN_EXTENSION:
+			if ((r = sshbuf_get_cstring(e->request,
+			    &ext_name, NULL)) != 0) {
+				error("%s: cannot parse extension: %s",
+				    __func__, ssh_err(r));
+				goto err;
+			}
+			debug("%s: constraint ext %s", __func__, ext_name);
+			if (strcmp(ext_name, "sk-provider@openssh.com") == 0) {
+				if (sk_provider != NULL) {
+					error("%s already set", ext_name);
+					goto err;
+				}
+				if ((r = sshbuf_get_cstring(e->request,
+				    &sk_provider, NULL)) != 0) {
+					error("%s: cannot parse %s: %s",
+					    __func__, ext_name, ssh_err(r));
+					goto err;
+				}
+			} else {
+				error("%s: unsupported constraint \"%s\"",
+				    __func__, ext_name);
+				goto err;
+			}
+			free(ext_name);
+			break;
 		default:
 			error("%s: Unknown constraint %d", __func__, ctype);
  err:
+			free(sk_provider);
+			free(ext_name);
 			sshbuf_reset(e->request);
 			free(comment);
 			sshkey_free(k);
+			goto send;
+		}
+	}
+	if (sk_provider != NULL) {
+		if (sshkey_type_plain(k->type) != KEY_ECDSA_SK) {
+			error("Cannot add provider: %s is not a security key",
+			    sshkey_type(k));
+			free(sk_provider);
+			goto send;
+		}
+		if (match_pattern_list(sk_provider,
+		    provider_whitelist, 0) != 1) {
+			error("Refusing add key: provider %s not whitelisted",
+			    sk_provider);
+			free(sk_provider);
 			goto send;
 		}
 	}
@@ -478,11 +648,21 @@ process_add_identity(SocketEntry *e)
 		/* key state might have been updated */
 		sshkey_free(id->key);
 		free(id->comment);
+		free(id->sk_provider);
 	}
 	id->key = k;
 	id->comment = comment;
 	id->death = death;
 	id->confirm = confirm;
+	id->sk_provider = sk_provider;
+
+	if ((fp = sshkey_fingerprint(k, SSH_FP_HASH_DEFAULT,
+	    SSH_FP_DEFAULT)) == NULL)
+		fatal("%s: sshkey_fingerprint failed", __func__);
+	debug("%s: add %s %s \"%.100s\" (life: %u) (confirm: %u) "
+	    "(provider: %s)", __func__, sshkey_ssh_name(k), fp, comment,
+	    seconds, confirm, sk_provider == NULL ? "none" : sk_provider);
+	free(fp);
 send:
 	send_status(e, success);
 }
@@ -600,7 +780,7 @@ process_add_smartcard_key(SocketEntry *e)
 		    provider, strerror(errno));
 		goto send;
 	}
-	if (match_pattern_list(canonical_provider, pkcs11_whitelist, 0) != 1) {
+	if (match_pattern_list(canonical_provider, provider_whitelist, 0) != 1) {
 		verbose("refusing PKCS#11 add of \"%.100s\": "
 		    "provider not whitelisted", canonical_provider);
 		goto send;
@@ -1079,7 +1259,7 @@ usage(void)
 {
 	fprintf(stderr,
 	    "usage: ssh-agent [-c | -s] [-Dd] [-a bind_address] [-E fingerprint_hash]\n"
-	    "                 [-P pkcs11_whitelist] [-t life] [command [arg ...]]\n"
+	    "                 [-P provider_whitelist] [-t life] [command [arg ...]]\n"
 	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
@@ -1137,9 +1317,9 @@ main(int ac, char **av)
 			k_flag++;
 			break;
 		case 'P':
-			if (pkcs11_whitelist != NULL)
+			if (provider_whitelist != NULL)
 				fatal("-P option already specified");
-			pkcs11_whitelist = xstrdup(optarg);
+			provider_whitelist = xstrdup(optarg);
 			break;
 		case 's':
 			if (c_flag)
@@ -1175,8 +1355,8 @@ main(int ac, char **av)
 	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag || D_flag))
 		usage();
 
-	if (pkcs11_whitelist == NULL)
-		pkcs11_whitelist = xstrdup(DEFAULT_PKCS11_WHITELIST);
+	if (provider_whitelist == NULL)
+		provider_whitelist = xstrdup(DEFAULT_PROVIDER_WHITELIST);
 
 	if (ac == 0 && !c_flag && !s_flag) {
 		shell = getenv("SHELL");

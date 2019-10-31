@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.1 2019/10/31 21:16:20 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.2 2019/10/31 21:22:01 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -20,6 +20,9 @@
 
 struct sshbuf;
 struct sshkey;
+
+/* Version of protocol between ssh-agent and ssh-sk-helper */
+#define SSH_SK_HELPER_VERSION	1
 
 /*
  * Enroll (generate) a new security-key hosted private key via the specified
