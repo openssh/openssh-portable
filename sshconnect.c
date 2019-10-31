@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.319 2019/09/13 04:31:19 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.320 2019/10/31 21:19:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1426,7 +1426,7 @@ maybe_add_key_to_agent(char *authfile, struct sshkey *private,
 	}
 
 	if ((r = ssh_add_identity_constrained(auth_sock, private, comment, 0,
-	    (options.add_keys_to_agent == 3), 0)) == 0)
+	    (options.add_keys_to_agent == 3), 0, NULL)) == 0)
 		debug("identity added to agent: %s", authfile);
 	else
 		debug("could not add identity to agent: %s (%d)", authfile, r);
