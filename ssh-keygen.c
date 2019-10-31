@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.358 2019/10/31 21:23:19 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.359 2019/10/31 21:28:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1711,7 +1711,7 @@ load_pkcs11_key(char *path)
 static int
 agent_signer(struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen,
-    const char *alg, const char *sk_provider, u_int compat, void *ctx)
+    const char *alg, const char *provider, u_int compat, void *ctx)
 {
 	int *agent_fdp = (int *)ctx;
 
