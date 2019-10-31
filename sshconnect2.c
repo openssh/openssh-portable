@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.308 2019/08/05 11:50:33 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.309 2019/10/31 21:18:28 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -72,6 +72,7 @@
 #include "hostfile.h"
 #include "ssherr.h"
 #include "utf8.h"
+#include "ssh-sk.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -601,17 +602,23 @@ static char *
 format_identity(Identity *id)
 {
 	char *fp = NULL, *ret = NULL;
+	const char *note = "";
 
 	if (id->key != NULL) {
 	     fp = sshkey_fingerprint(id->key, options.fingerprint_hash,
 		    SSH_FP_DEFAULT);
 	}
+	if (id->key) {
+		if ((id->key->flags & SSHKEY_FLAG_EXT) != 0)
+			note = " token";
+		else if (sshkey_type_plain(id->key->type) == KEY_ECDSA_SK)
+			note = " security-key";
+	}
 	xasprintf(&ret, "%s %s%s%s%s%s%s",
 	    id->filename,
 	    id->key ? sshkey_type(id->key) : "", id->key ? " " : "",
 	    fp ? fp : "",
-	    id->userprovided ? " explicit" : "",
-	    (id->key && (id->key->flags & SSHKEY_FLAG_EXT)) ? " token" : "",
+	    id->userprovided ? " explicit" : "", note,
 	    id->agent_fd != -1 ? " agent" : "");
 	free(fp);
 	return ret;
@@ -1140,8 +1147,11 @@ static int
 identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat, const char *alg)
 {
-	struct sshkey *prv;
-	int r;
+	struct sshkey *sign_key = NULL, *prv = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	*sigp = NULL;
+	*lenp = 0;
 
 	/* The agent supports this key. */
 	if (id->key != NULL && id->agent_fd != -1) {
@@ -1155,27 +1165,46 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	 */
 	if (id->key != NULL &&
 	    (id->isprivate || (id->key->flags & SSHKEY_FLAG_EXT))) {
-		if ((r = sshkey_sign(id->key, sigp, lenp, data, datalen,
-		    alg, compat)) != 0)
-			return r;
-		/*
-		 * PKCS#11 tokens may not support all signature algorithms,
-		 * so check what we get back.
-		 */
-		if ((r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0)
-			return r;
-		return 0;
+		sign_key = id->key;
+	} else {
+		/* Load the private key from the file. */
+		if ((prv = load_identity_file(id)) == NULL)
+			return SSH_ERR_KEY_NOT_FOUND;
+		if (id->key != NULL && !sshkey_equal_public(prv, id->key)) {
+			error("%s: private key %s contents do not match public",
+			   __func__, id->filename);
+			r = SSH_ERR_KEY_NOT_FOUND;
+			goto out;
+		}
+		sign_key = prv;
 	}
 
-	/* Load the private key from the file. */
-	if ((prv = load_identity_file(id)) == NULL)
-		return SSH_ERR_KEY_NOT_FOUND;
-	if (id->key != NULL && !sshkey_equal_public(prv, id->key)) {
-		error("%s: private key %s contents do not match public",
-		   __func__, id->filename);
-		return SSH_ERR_KEY_NOT_FOUND;
+	if (sshkey_type_plain(sign_key->type) == KEY_ECDSA_SK) {
+		if (options.sk_provider == NULL) {
+			/* Shouldn't happen here; checked in pubkey_prepare() */
+			fatal("%s: missing SecurityKeyProvider", __func__);
+		}
+		if ((r = sshsk_ecdsa_sign(options.sk_provider, sign_key,
+		    sigp, lenp, data, datalen, compat)) != 0) {
+			debug("%s: sshsk_ecdsa_sign: %s", __func__, ssh_err(r));
+			goto out;
+		}
+	} else if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
+	    alg, compat)) != 0) {
+		debug("%s: sshkey_sign: %s", __func__, ssh_err(r));
+		goto out;
 	}
-	r = sshkey_sign(prv, sigp, lenp, data, datalen, alg, compat);
+	/*
+	 * PKCS#11 tokens may not support all signature algorithms,
+	 * so check what we get back.
+	 */
+	if ((r = sshkey_check_sigtype(*sigp, *lenp, alg)) != 0) {
+		debug("%s: sshkey_check_sigtype: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	/* success */
+	r = 0;
+ out:
 	sshkey_free(prv);
 	return r;
 }
@@ -1450,6 +1479,15 @@ load_identity_file(Identity *id)
 			quit = 1;
 			break;
 		}
+		if (private != NULL &&
+		    sshkey_type_plain(private->type) == KEY_ECDSA_SK &&
+		    options.sk_provider == NULL) {
+			debug("key \"%s\" is a security key, but no "
+			    "provider specified", id->filename);
+			sshkey_free(private);
+			private = NULL;
+			quit = 1;
+		}
 		if (!quit && private != NULL && id->agent_fd == -1 &&
 		    !(id->key && id->isprivate))
 			maybe_add_key_to_agent(id->filename, private, comment,
@@ -1520,8 +1558,20 @@ pubkey_prepare(Authctxt *authctxt)
 	/* list of keys stored in the filesystem and PKCS#11 */
 	for (i = 0; i < options.num_identity_files; i++) {
 		key = options.identity_keys[i];
-		if (key && key->cert && key->cert->type != SSH2_CERT_TYPE_USER)
+		if (key && key->cert &&
+		    key->cert->type != SSH2_CERT_TYPE_USER) {
+			debug("%s: ignoring certificate %s: not a user "
+			    "certificate",  __func__,
+			    options.identity_files[i]);
 			continue;
+		}
+		if (key && sshkey_type_plain(key->type) == KEY_ECDSA_SK &&
+		    options.sk_provider == NULL) {
+			debug("%s: ignoring security key %s as no "
+			    "SecurityKeyProvider has been specified",
+			    __func__, options.identity_files[i]);
+			continue;
+		}
 		options.identity_keys[i] = NULL;
 		id = xcalloc(1, sizeof(*id));
 		id->agent_fd = -1;
@@ -1534,8 +1584,19 @@ pubkey_prepare(Authctxt *authctxt)
 	for (i = 0; i < options.num_certificate_files; i++) {
 		key = options.certificates[i];
 		if (!sshkey_is_cert(key) || key->cert == NULL ||
-		    key->cert->type != SSH2_CERT_TYPE_USER)
+		    key->cert->type != SSH2_CERT_TYPE_USER) {
+			debug("%s: ignoring certificate %s: not a user "
+			    "certificate",  __func__,
+			    options.identity_files[i]);
 			continue;
+		}
+		if (key && sshkey_type_plain(key->type) == KEY_ECDSA_SK &&
+		    options.sk_provider == NULL) {
+			debug("%s: ignoring security key certificate %s as no "
+			    "SecurityKeyProvider has been specified",
+			    __func__, options.identity_files[i]);
+			continue;
+		}
 		id = xcalloc(1, sizeof(*id));
 		id->agent_fd = -1;
 		id->key = key;

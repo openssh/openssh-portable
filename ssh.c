@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.507 2019/09/13 04:27:35 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.508 2019/10/31 21:18:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1342,6 +1342,22 @@ main(int ac, char **av)
 	if (config_test) {
 		dump_client_config(&options, host);
 		exit(0);
+	}
+
+	/* Expand SecurityKeyProvider if it refers to an environment variable */
+	if (options.sk_provider != NULL && *options.sk_provider == '$' &&
+	    strlen(options.sk_provider) > 1) {
+		if ((cp = getenv(options.sk_provider + 1)) == NULL) {
+			debug("Security key provider %s did not resolve; "
+			    "disabling", options.sk_provider);
+			free(options.sk_provider);
+			options.sk_provider = NULL;
+		} else {
+			debug2("resolved SecurityKeyProvider %s => %s",
+			    options.sk_provider, cp);
+			free(options.sk_provider);
+			options.sk_provider = xstrdup(cp);
+		}
 	}
 
 	if (muxclient_command != 0 && options.control_path == NULL)
