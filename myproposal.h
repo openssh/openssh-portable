@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.58 2019/02/23 08:20:43 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.59 2019/10/31 21:17:49 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -144,6 +144,24 @@
 	"rsa-sha2-256," \
 	"ssh-rsa"
 
+#define	PUBKEY_DEFAULT_PK_ALG	\
+	"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com," \
+	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
+	"ecdsa-sha2-nistp384-cert-v01@openssh.com," \
+	"ecdsa-sha2-nistp521-cert-v01@openssh.com," \
+	"ssh-ed25519-cert-v01@openssh.com," \
+	"rsa-sha2-512-cert-v01@openssh.com," \
+	"rsa-sha2-256-cert-v01@openssh.com," \
+	"ssh-rsa-cert-v01@openssh.com," \
+	"sk-ecdsa-sha2-nistp256@openssh.com," \
+	"ecdsa-sha2-nistp256," \
+	"ecdsa-sha2-nistp384," \
+	"ecdsa-sha2-nistp521," \
+	"ssh-ed25519," \
+	"rsa-sha2-512," \
+	"rsa-sha2-256," \
+	"ssh-rsa"
+
 #else /* WITH_OPENSSL */
 
 #define KEX_SERVER_KEX		\
@@ -152,6 +170,7 @@
 #define	KEX_DEFAULT_PK_ALG	\
 	"ssh-ed25519-cert-v01@openssh.com," \
 	"ssh-ed25519"
+#define PUBKEY_DEFAULT_PK_ALG KEX_DEFAULT_PK_ALG
 #define	KEX_SERVER_ENCRYPT \
 	"chacha20-poly1305@openssh.com," \
 	"aes128-ctr,aes192-ctr,aes256-ctr"
@@ -172,6 +191,10 @@
 #define KEX_CLIENT_MAC KEX_SERVER_MAC
 
 #define	SSH_ALLOWED_CA_SIGALGS	"ssh-ed25519"
+
+#define	PUBKEY_DEFAULT_PK_ALG	\
+	"ssh-ed25519-cert-v01@openssh.com," \
+	"ssh-ed25519"
 
 #endif /* WITH_OPENSSL */
 
