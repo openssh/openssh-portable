@@ -551,7 +551,7 @@ function Start-OpenSSHBuild
         $win10SDKVer = Get-Windows10SDKVersion
         [XML]$xml = Get-Content $PathTargets
         $xml.Project.PropertyGroup.WindowsSDKVersion = $win10SDKVer.ToString()
-        $xml.Project.PropertyGroup.AdditionalDependentLibs = 'onecore.lib'
+        $xml.Project.PropertyGroup.AdditionalDependentLibs = 'onecore.lib;shlwapi.lib'
         $xml.Project.PropertyGroup.MinimalCoreWin = 'true'
         
         #Use onecore libcrypto binaries
