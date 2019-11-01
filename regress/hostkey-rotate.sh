@@ -1,10 +1,10 @@
-#	$OpenBSD: hostkey-rotate.sh,v 1.6 2019/08/30 05:08:28 dtucker Exp $
+#	$OpenBSD: hostkey-rotate.sh,v 1.7 2019/11/01 01:55:41 djm Exp $
 #	Placed in the Public Domain.
 
 tid="hostkey rotate"
 
 # Need full names here since they are used in HostKeyAlgorithms
-HOSTKEY_TYPES="`${SSH} -Q key-plain`"
+HOSTKEY_TYPES="`${SSH} -Q key-plain | grep -v ^sk-`"
 
 rm -f $OBJ/hkr.* $OBJ/ssh_proxy.orig
 

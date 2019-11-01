@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.66 2019/07/05 04:12:46 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.67 2019/11/01 01:55:41 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -475,7 +475,7 @@ fi
 
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
-SSH_KEYTYPES=`$SSH -Q key-plain`
+SSH_KEYTYPES=`$SSH -Q key-plain | grep -v ^sk`
 
 for t in ${SSH_KEYTYPES}; do
 	# generate user key

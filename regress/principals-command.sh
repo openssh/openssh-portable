@@ -1,4 +1,4 @@
-#	$OpenBSD: principals-command.sh,v 1.7 2019/09/06 04:24:06 dtucker Exp $
+#	$OpenBSD: principals-command.sh,v 1.8 2019/11/01 01:55:41 djm Exp $
 #	Placed in the Public Domain.
 
 tid="authorized principals command"
@@ -12,7 +12,7 @@ if [ -z "$SUDO" -a ! -w /var/run ]; then
 	exit 0
 fi
 
-case "`${SSH} -Q key-plain`" in
+case "`${SSH} -Q key-plain | grep -v ^sk-`" in
 	*ssh-rsa*)	userkeytype=rsa ;;
 	*)		userkeytype=ed25519 ;;
 esac
