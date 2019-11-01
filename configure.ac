@@ -697,8 +697,10 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-haiku*)
 	LIBS="$LIBS -lbsd "
+	CFLAGS="$CFLAGS -D_BSD_SOURCE"
 	AC_CHECK_LIB([network], [socket])
 	AC_DEFINE([HAVE_U_INT64_T])
+	AC_DEFINE([DISABLE_UTMPX], [1], [no utmpx])
 	MANTYPE=man
 	;;
 *-*-hpux*)
