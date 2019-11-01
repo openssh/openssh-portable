@@ -51,6 +51,7 @@
 #include "ssherr.h"
 #include "ssh-sk.h"
 
+#ifdef ENABLE_SK
 extern char *__progname;
 
 int
@@ -141,3 +142,13 @@ main(int argc, char **argv)
 
 	return (0);
 }
+#else /* ENABLE_SK */
+#include <stdio.h>
+
+int
+main(int argc, char **argv)
+{
+	fprintf(stderr, "ssh-sk-helper: disabled at compile time\n");
+	return -1;
+}
+#endif /* ENABLE_SK */

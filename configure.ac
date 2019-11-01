@@ -1878,16 +1878,53 @@ AC_ARG_ENABLE([pkcs11],
 	]
 )
 
-# PKCS11 depends on OpenSSL.
-if test "x$openssl" = "xyes" && test "x$disable_pkcs11" = "x"; then
-	# PKCS#11 support requires dlopen() and co
-	AC_SEARCH_LIBS([dlopen], [dl],
-	    AC_CHECK_DECL([RTLD_NOW],
-		AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support]),
-		[], [#include <dlfcn.h>]
-	    )
-	)
+disable_sk=
+AC_ARG_ENABLE([security-key],
+	[  --disable-security-key  disable U2F/FIDO support code [no]],
+	[
+		if test "x$enableval" = "xno" ; then
+			disable_sk=1
+		fi
+	]
+)
+
+# PKCS11/U2F depend on OpenSSL and dlopen().
+AC_SEARCH_LIBS([dlopen], [dl])
+AC_CHECK_FUNCS([dlopen])
+AC_CHECK_DECL([RTLD_NOW], [], [], [#include <dlfcn.h>])
+
+enable_pkcs11=yes
+enable_sk=yes
+if test "x$openssl" != "xyes" ; then
+	enable_pkcs11="disabled; missing libcrypto"
+	enable_sk="disabled; missing libcrypto"
 fi
+if test "x$ac_cv_func_dlopen" != "xyes" ; then
+	enable_pkcs11="disabled; missing dlopen(3)"
+	enable_sk="disabled; missing dlopen(3)"
+fi
+if test "x$ac_cv_have_decl_RTLD_NOW" != "xyes" ; then
+	enable_pkcs11="disabled; missing RTLD_NOW"
+	enable_sk="disabled; missing RTLD_NOW"
+fi
+if test ! -z "$disable_pkcs11" ; then
+	enable_pkcs11="disabled by user"
+fi
+if test ! -z "$disable_sk" ; then
+	enable_sk="disabled by user"
+fi
+
+AC_MSG_CHECKING([whether to enable PKCS11])
+if test "x$enable_pkcs11" = "xyes" ; then
+	AC_DEFINE([ENABLE_PKCS11], [], [Enable for PKCS#11 support])
+fi
+AC_MSG_RESULT([$enable_pkcs11])
+
+AC_MSG_CHECKING([whether to enable U2F])
+if test "x$enable_sk" = "xyes" ; then
+	AC_DEFINE([ENABLE_SK], [], [Enable for U2F/FIDO support])
+fi
+AC_MSG_RESULT([$enable_sk])
 
 # IRIX has a const char return value for gai_strerror()
 AC_CHECK_FUNCS([gai_strerror], [
@@ -5247,6 +5284,8 @@ echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"
 echo "              Random number source: $RAND_MSG"
 echo "             Privsep sandbox style: $SANDBOX_STYLE"
+echo "                   PKCS#11 support: $enable_pkcs11"
+echo "                  U2F/FIDO support: $enable_sk"
 
 echo ""
 

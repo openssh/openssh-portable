@@ -2783,7 +2783,6 @@ main(int argc, char **argv)
 	unsigned long long ull, cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL;
 	u_int32_t bits = 0;
-	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 	FILE *f;
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
@@ -2795,6 +2794,9 @@ main(int argc, char **argv)
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	unsigned long start_lineno = 0, lines_to_process = 0;
 	BIGNUM *start = NULL;
+#endif
+#ifdef ENABLE_SK
+	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 #endif
 
 	extern int optind;
@@ -2991,7 +2993,9 @@ main(int argc, char **argv)
 				    "number", optarg);
 			if (ull > 0xff)
 				fatal("Invalid security key flags 0x%llx", ull);
+#ifdef ENABLE_SK
 			sk_flags = (uint8_t)ull;
+#endif
 			break;
 		case 'z':
 			errno = 0;
@@ -3250,10 +3254,14 @@ main(int argc, char **argv)
 		printf("Generating public/private %s key pair.\n",
 		    key_type_name);
 	if (type == KEY_ECDSA_SK) {
+#ifndef ENABLE_SK
+		fatal("Security key support was disabled at compile time");
+#else /* ENABLE_SK */
 		if (sshsk_enroll(sk_provider,
 		    cert_key_id == NULL ? "ssh:" : cert_key_id,
 		    sk_flags, NULL, &private, NULL) != 0)
 			exit(1); /* error message already printed */
+#endif /* ENABLE_SK */
 	} else if ((r = sshkey_generate(type, bits, &private)) != 0)
 		fatal("sshkey_generate failed");
 	if ((r = sshkey_from_private(private, &public)) != 0)

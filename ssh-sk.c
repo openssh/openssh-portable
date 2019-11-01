@@ -19,6 +19,8 @@
 
 #include "includes.h"
 
+#ifdef ENABLE_SK
+
 #include <dlfcn.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -375,3 +377,4 @@ sshsk_ecdsa_sign(const char *provider_path, const struct sshkey *key,
 	sshbuf_free(inner_sig);
 	return r;
 }
+#endif /* ENABLE_SK */
