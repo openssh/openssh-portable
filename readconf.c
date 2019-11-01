@@ -486,7 +486,7 @@ execute_in_shell(const char *cmd)
 
 #ifdef WINDOWS
 	return system(cmd);
-#endif
+#else
 
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
@@ -543,6 +543,7 @@ execute_in_shell(const char *cmd)
 	}
 	debug3("command returned status %d", WEXITSTATUS(status));
 	return WEXITSTATUS(status);
+#endif
 }
 
 /*

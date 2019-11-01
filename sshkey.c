@@ -61,6 +61,7 @@
 #ifdef WITH_XMSS
 #include "sshkey-xmss.h"
 #include "xmss_fast.h"
+#endif
 #ifdef WINDOWS
 #include <lmcons.h>
 #endif
