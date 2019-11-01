@@ -1783,6 +1783,7 @@ AC_CHECK_FUNCS([ \
 	raise \
 	readpassphrase \
 	reallocarray \
+	realpath \
 	recvmsg \
 	recallocarray \
 	rresvport_af \
