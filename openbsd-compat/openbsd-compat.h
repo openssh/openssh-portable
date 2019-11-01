@@ -322,6 +322,10 @@ void explicit_bzero(void *p, size_t n);
 void freezero(void *, size_t);
 #endif
 
+#ifndef HAVE_LOCALTIME_R
+struct tm *localtime_r(const time_t *, struct tm *);
+#endif
+
 char *xcrypt(const char *password, const char *salt);
 char *shadow_pw(struct passwd *pw);
 
