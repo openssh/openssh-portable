@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.204 2019/02/10 11:15:52 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.206 2019/09/09 02:31:19 dtucker Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -101,7 +101,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+# include <stdint.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -297,13 +297,13 @@ do_cmd(char *host, char *remuser, int port, char *cmd, int *fdin, int *fdout)
 	 * Reserve two descriptors so that the real pipes won't get
 	 * descriptors 0 and 1 because that will screw up dup2 below.
 	 */
-	if (pipe(reserved) < 0)
+	if (pipe(reserved) == -1)
 		fatal("pipe: %s", strerror(errno));
 
 	/* Create a socket pair for communicating with ssh. */
-	if (pipe(pin) < 0)
+	if (pipe(pin) == -1)
 		fatal("pipe: %s", strerror(errno));
-	if (pipe(pout) < 0)
+	if (pipe(pout) == -1)
 		fatal("pipe: %s", strerror(errno));
 	fcntl(pout[0], F_SETFD, FD_CLOEXEC);
 	fcntl(pout[1], F_SETFD, FD_CLOEXEC);
@@ -1252,7 +1252,7 @@ source(int argc, char **argv)
 	off_t i, statbytes;
 	size_t amt, nr;
 	int fd = -1, haderr, indx;
-	char *last, *name, buf[2048], encname[PATH_MAX];
+	char *last, *name, buf[PATH_MAX + 128], encname[PATH_MAX];
 	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
@@ -1261,13 +1261,13 @@ source(int argc, char **argv)
 		len = strlen(name);
 		while (len > 1 && name[len-1] == '/')
 			name[--len] = '\0';
-		if ((fd = open(name, O_RDONLY|O_NONBLOCK, 0)) < 0)
+		if ((fd = open(name, O_RDONLY|O_NONBLOCK, 0)) == -1)
 			goto syserr;
 		if (strchr(name, '\n') != NULL) {
 			strnvis(encname, name, sizeof(encname), VIS_NL);
 			name = encname;
 		}
-		if (fstat(fd, &stb) < 0) {
+		if (fstat(fd, &stb) == -1) {
 syserr:			run_err("%s: %s", name, strerror(errno));
 			goto next;
 		}
@@ -1341,7 +1341,7 @@ next:			if (fd != -1) {
 		unset_nonblock(remout);
 
 		if (fd != -1) {
-			if (close(fd) < 0 && !haderr)
+			if (close(fd) == -1 && !haderr)
 				haderr = errno;
 			fd = -1;
 		}
@@ -1605,14 +1605,14 @@ sink(int argc, char **argv, const char *src)
 				/* Handle copying from a read-only
 				   directory */
 				mod_flag = 1;
-				if (mkdir(np, mode | S_IRWXU) < 0)
+				if (mkdir(np, mode | S_IRWXU) == -1)
 					goto bad;
 			}
 			vect[0] = xstrdup(np);
 			sink(1, vect, src);
 			if (setimes) {
 				setimes = 0;
-				if (utimes(vect[0], tv) < 0)
+				if (utimes(vect[0], tv) == -1)
 					run_err("%s: set times: %s",
 					    vect[0], strerror(errno));
 			}
@@ -1625,9 +1625,9 @@ sink(int argc, char **argv, const char *src)
 		mode |= S_IWUSR;
 #ifdef WINDOWS
 		// In windows, we would like to inherit the parent folder permissions by setting mode to USHRT_MAX.
-		if ((ofd = open(np, O_WRONLY | O_CREAT, USHRT_MAX)) < 0) {
+		if ((ofd = open(np, O_WRONLY|O_CREAT, USHRT_MAX)) == -1) {
 #else
-		if ((ofd = open(np, O_WRONLY | O_CREAT, mode)) < 0) {
+		if ((ofd = open(np, O_WRONLY|O_CREAT, mode)) == -1) {
 #endif // WINDOWS
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;
@@ -1718,7 +1718,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			stop_progress_meter();
 		if (setimes && wrerr == NO) {
 			setimes = 0;
-			if (utimes(np, tv) < 0) {
+			if (utimes(np, tv) == -1) {
 				run_err("%s: set times: %s",
 				    np, strerror(errno));
 				wrerr = DISPLAYED;
@@ -1872,7 +1872,7 @@ allocbuf(BUF *bp, int fd, int blksize)
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
 	struct stat stb;
 
-	if (fstat(fd, &stb) < 0) {
+	if (fstat(fd, &stb) == -1) {
 		run_err("fstat: %s", strerror(errno));
 		return (0);
 	}

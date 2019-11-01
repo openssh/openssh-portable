@@ -197,7 +197,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 	switch ((pid = fork())) {
 	case -1:
 		error("fork(): %s", strerror(errno));
-		return (-1);
+		return errno;
 	case 0:
 		close(ctx->pam_psock);
 		ctx->pam_psock = -1;
@@ -258,7 +258,7 @@ static char **
 pam_getenvlist(pam_handle_t *pamh)
 {
 	/*
-	 * XXX - If necessary, we can still support envrionment passing
+	 * XXX - If necessary, we can still support environment passing
 	 * for platforms without pam_getenvlist by searching for known
 	 * env vars (e.g. KRB5CCNAME) from the PAM environment.
 	 */
@@ -541,7 +541,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; environ[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many enviornment strings", __func__);
+			fatal("%s: too many environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -554,7 +554,7 @@ sshpam_thread(void *ctxtp)
 	for (i = 0; env_from_pam != NULL && env_from_pam[i] != NULL; i++) {
 		/* Count */
 		if (i > INT_MAX)
-			fatal("%s: too many PAM enviornment strings", __func__);
+			fatal("%s: too many PAM environment strings", __func__);
 	}
 	if ((r = sshbuf_put_u32(buffer, i)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
@@ -776,7 +776,7 @@ static void *
 sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
-	int socks[2];
+	int result, socks[2];
 
 	debug3("PAM: %s entering", __func__);
 	/*
@@ -803,9 +803,10 @@ sshpam_init_ctx(Authctxt *authctxt)
 	}
 	ctxt->pam_psock = socks[0];
 	ctxt->pam_csock = socks[1];
-	if (pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt) == -1) {
+	result = pthread_create(&ctxt->pam_thread, NULL, sshpam_thread, ctxt);
+	if (result != 0) {
 		error("PAM: failed to start authentication thread: %s",
-		    strerror(errno));
+		    strerror(result));
 		close(socks[0]);
 		close(socks[1]);
 		free(ctxt);
@@ -850,6 +851,7 @@ sshpam_query(void *ctx, char **name, char **info,
 			plen += mlen;
 			**echo_on = (type == PAM_PROMPT_ECHO_ON);
 			free(msg);
+			sshbuf_free(buffer);
 			return (0);
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
@@ -878,6 +880,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**echo_on = 0;
 				ctxt->pam_done = -1;
 				free(msg);
+				sshbuf_free(buffer);
 				return 0;
 			}
 			/* FALLTHROUGH */
@@ -904,6 +907,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**echo_on = 0;
 				ctxt->pam_done = 1;
 				free(msg);
+				sshbuf_free(buffer);
 				return (0);
 			}
 			error("PAM: %s for %s%.100s from %.100s", msg,
@@ -915,9 +919,11 @@ sshpam_query(void *ctx, char **name, char **info,
 			**echo_on = 0;
 			free(msg);
 			ctxt->pam_done = -1;
+			sshbuf_free(buffer);
 			return (-1);
 		}
 	}
+	sshbuf_free(buffer);
 	return (-1);
 }
 
