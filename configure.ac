@@ -1201,8 +1201,24 @@ mips-sony-bsd|mips-sony-newsos4)
 
 *-*-ultrix*)
 	AC_DEFINE([BROKEN_GETGROUPS], [1], [getgroups(0,NULL) will return -1])
-	AC_DEFINE([NEED_SETPGRP])
+	AC_DEFINE([NEED_SETPGRP], [1], [Need setpgrp to for controlling tty])
 	AC_DEFINE([HAVE_SYS_SYSLOG_H], [1], [Force use of sys/syslog.h on Ultrix])
+	AC_DEFINE([DISABLE_UTMPX], [1], [Disable utmpx])
+	# DISABLE_FD_PASSING so that we call setpgrp as root, otherwise we
+	# don't get a controlling tty.
+	AC_DEFINE([DISABLE_FD_PASSING], [1], [Need to call setpgrp as root])
+	AC_DEFINE([realpath(x, y)], [(sftp_realpath((x),(y)))], [no realpath])
+	# On Ultrix netinet/ip.h is not protected against multiple includes,
+	# so we create our own wrapper and put it where the compiler will
+	# find it.
+	AC_MSG_WARN([creating compat wrapper for netinet/ip.h])
+	mkdir -p netinet
+	cat >netinet/ip.h <<EOD
+#ifndef _SSH_COMPAT_NETINET_IP_H
+#define _SSH_COMPAT_NETINET_IP_H
+#include "/usr/include/netinet/ip.h"
+#endif
+EOD
 	;;
 
 *-*-lynxos)
