@@ -2684,11 +2684,13 @@ sshkey_sign(struct sshkey *key,
 	case KEY_ECDSA:
 		r = ssh_ecdsa_sign(key, sigp, lenp, data, datalen, compat);
 		break;
+#  ifdef ENABLE_SK
 	case KEY_ECDSA_SK_CERT:
 	case KEY_ECDSA_SK:
 		r = sshsk_ecdsa_sign(sk_provider, key, sigp, lenp,
 		    data, datalen, compat);
 		break;
+#  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
@@ -2734,10 +2736,12 @@ sshkey_verify(const struct sshkey *key,
 	case KEY_ECDSA_CERT:
 	case KEY_ECDSA:
 		return ssh_ecdsa_verify(key, sig, siglen, data, dlen, compat);
+#  ifdef ENABLE_SK
 	case KEY_ECDSA_SK_CERT:
 	case KEY_ECDSA_SK:
 		return ssh_ecdsa_sk_verify(key, sig, siglen, data, dlen,
 		    compat);
+#  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
