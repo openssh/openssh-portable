@@ -183,7 +183,7 @@ struct tm *localtime_r(const time_t *, struct tm *);
 #endif
 
 #ifndef HAVE_REALPATH
-#define realpath(x, y)	(sftp_realpath((x), (y))
+#define realpath(x, y)	(sftp_realpath((x), (y)))
 #endif
 
 #endif /* _BSD_MISC_H */
