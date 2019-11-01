@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.195 2019/10/02 00:42:30 djm Exp $ */
+/* $OpenBSD: sftp.c,v 1.196 2019/11/01 03:54:33 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -220,9 +220,12 @@ static const struct CMD cmds[] = {
 static void
 killchild(int signo)
 {
-	if (sshpid > 1) {
-		kill(sshpid, SIGTERM);
-		waitpid(sshpid, NULL, 0);
+	pid_t pid;
+
+	pid = sshpid;
+	if (pid > 1) {
+		kill(pid, SIGTERM);
+		waitpid(pid, NULL, 0);
 	}
 
 	_exit(1);
