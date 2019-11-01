@@ -25,6 +25,7 @@ OPENBSD=base64.o \
 	explicit_bzero.o \
 	fmt_scaled.o \
 	freezero.o \
+	fnmatch.o \
 	getcwd.o \
 	getgrouplist.o \
 	getopt_long.o \

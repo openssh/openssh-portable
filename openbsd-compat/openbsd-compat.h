@@ -47,6 +47,7 @@
 #include "rmd160.h"
 #include "md5.h"
 #include "blf.h"
+#include "fnmatch.h"
 
 #ifndef HAVE_BASENAME
 char *basename(const char *path);

@@ -85,6 +85,11 @@
  * path delimiter must be aware that 0x5C is NOT unique within SHIFT-JIS.
  */
 
+/* OPENBSD ORIGINAL: lib/libc/gen/fnmatch.c */
+
+#include "includes.h"
+#ifndef HAVE_FNMATCH
+
 #include <fnmatch.h>
 #include <string.h>
 #include <ctype.h>
@@ -487,3 +492,4 @@ firstsegment:
 	/* Pattern didn't match to the end of string. */
 	return FNM_NOMATCH;
 }
+#endif /* HAVE_FNMATCH */

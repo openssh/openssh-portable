@@ -32,10 +32,16 @@
  *	@(#)fnmatch.h	8.1 (Berkeley) 6/2/93
  */
 
+/* OPENBSD ORIGINAL: include/fnmatch.h */
+
+#ifndef HAVE_FNMATCH_H
+
 #ifndef	_FNMATCH_H_
 #define	_FNMATCH_H_
 
+#ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
+#endif
 
 #define	FNM_NOMATCH	1	/* Match failed. */
 #define	FNM_NOSYS	2	/* Function not supported (unused). */
@@ -50,8 +56,9 @@
 #define	FNM_FILE_NAME	FNM_PATHNAME
 #endif
 
-__BEGIN_DECLS
+/* __BEGIN_DECLS */
 int	 fnmatch(const char *, const char *, int);
-__END_DECLS
+/* __END_DECLS */
 
 #endif /* !_FNMATCH_H_ */
+#endif /* ! HAVE_FNMATCH_H */

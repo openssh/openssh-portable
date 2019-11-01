@@ -94,7 +94,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
+#endif
 #include <limits.h>
 #include <locale.h>
 #include <pwd.h>
