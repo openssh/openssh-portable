@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.59 2019/10/31 21:17:49 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.60 2019/11/01 02:32:05 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -191,10 +191,6 @@
 #define KEX_CLIENT_MAC KEX_SERVER_MAC
 
 #define	SSH_ALLOWED_CA_SIGALGS	"ssh-ed25519"
-
-#define	PUBKEY_DEFAULT_PK_ALG	\
-	"ssh-ed25519-cert-v01@openssh.com," \
-	"ssh-ed25519"
 
 #endif /* WITH_OPENSSL */
 
