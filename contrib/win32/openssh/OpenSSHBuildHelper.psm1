@@ -292,39 +292,6 @@ function Start-OpenSSHBootstrap
     }
 }
 
-function Copy-LibreSSLSDK
-{
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor `
-                                                  [Net.SecurityProtocolType]::Tls11 -bor `
-                                                  [Net.SecurityProtocolType]::Tls
-
-    $url = 'https://github.com/PowerShell/libressl/releases/latest/'
-    $request = [System.Net.WebRequest]::Create($url)
-    $request.AllowAutoRedirect = $false
-    $request.Timeout = 30000; #30 sec
-    $response=$request.GetResponse()
-    $libressl_release_url=$([String]$response.GetResponseHeader("Location")).Replace('tag','download') + '/LibreSSL.zip'
-    $libressl_zip_path=Join-Path $script:gitRoot "libressl.zip"
-
-    #download libressl latest release binaries
-    Remove-Item $libressl_zip_path -Force -ErrorAction SilentlyContinue
-    (New-Object System.Net.WebClient).DownloadFile($libressl_release_url, $libressl_zip_path)
-    if(-not (Test-Path $libressl_zip_path))
-    {
-        Write-BuildMsg -AsError -ErrorAction Stop -Message "Unable to download $libressl_release_url to $libressl_zip_path."
-    }
-    
-    #copy libressl
-    $openssh_libressl_path=Join-Path $script:OpenSSHRoot "contrib\win32\openssh"
-    Expand-Archive -Path $libressl_zip_path -DestinationPath $openssh_libressl_path -Force -ErrorAction SilentlyContinue -ErrorVariable e
-    if($e -ne $null)
-    {
-        Write-BuildMsg -AsError -ErrorAction Stop -Message "Unable to extract LibreSSL from $libressl_zip_path to $openssh_libressl_path failed."
-    }
-    
-    Remove-Item $libressl_zip_path -Force -ErrorAction SilentlyContinue
-}
-
 function Start-OpenSSHPackage
 {
     [CmdletBinding(SupportsShouldProcess=$false)]    
@@ -545,14 +512,6 @@ function Start-OpenSSHBuild
 
     Start-OpenSSHBootstrap -OneCore:$OneCore
 
-    # Download the LibreSSL
-    if (-not (Test-Path (Join-Path $PSScriptRoot "LibreSSL")))
-    {
-        Write-BuildMsg -AsInfo -Message "Download, Copy LibreSSL"
-        Copy-LibreSSLSDK
-        Write-BuildMsg -AsInfo -Message "LibreSSL copied successfully"
-    }
-
     $PathTargets = Join-Path $PSScriptRoot paths.targets
     if ($NoOpenSSL) 
     {        
@@ -624,7 +583,7 @@ function Start-OpenSSHBuild
 
     if ($errorCode -ne 0)
     {
-        Write-BuildMsg -AsError -ErrorAction Stop -Message "Build failed for OpenSSH.`nExitCode: $error."
+        Write-BuildMsg -AsError -ErrorAction Stop -Message "Build failed for OpenSSH.`nExitCode: $errorCode."
     }    
 
     Write-BuildMsg -AsInfo -Message "SSH build successful."
