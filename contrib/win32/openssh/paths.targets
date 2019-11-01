@@ -4,11 +4,17 @@
     <OpenSSH-Src-Path>$(SolutionDir)..\..\..\</OpenSSH-Src-Path>
     <OpenSSH-Bin-Path>$(SolutionDir)..\..\..\bin\</OpenSSH-Bin-Path>
     <OpenSSH-Lib-Path>$(SolutionDir)lib\</OpenSSH-Lib-Path>
+    <ZLibVersion>2.1.11</ZLibVersion>
     <LibreSSL-Path>$(SolutionDir)\LibreSSL\sdk\</LibreSSL-Path>
     <LibreSSL-x86-Path>$(SolutionDir)\LibreSSL\bin\desktop\x86\</LibreSSL-x86-Path>
     <LibreSSL-x64-Path>$(SolutionDir)\LibreSSL\bin\desktop\x64\</LibreSSL-x64-Path>
     <LibreSSL-arm64-Path>$(SolutionDir)\LibreSSL\bin\desktop\arm64\</LibreSSL-arm64-Path>
     <LibreSSL-arm-Path>$(SolutionDir)\LibreSSL\bin\desktop\arm\</LibreSSL-arm-Path>
+    <ZLib-Path>$(SolutionDir)\ZLib\sdk\</ZLib-Path>
+    <ZLib-x86-Path>$(SolutionDir)\ZLib\bin\x86\</ZLib-x86-Path>
+    <ZLib-x64-Path>$(SolutionDir)\ZLib\bin\x64\</ZLib-x64-Path>
+    <ZLib-arm64-Path>$(SolutionDir)\ZLib\bin\arm64\</ZLib-arm64-Path>
+    <ZLib-arm-Path>$(SolutionDir)\ZLib\bin\arm\</ZLib-arm-Path>
     <UseOpenSSL>true</UseOpenSSL>
     <SSLLib>libcrypto.lib;</SSLLib>
     <WindowsSDKVersion>8.1</WindowsSDKVersion>

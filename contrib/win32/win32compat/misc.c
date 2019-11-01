@@ -417,7 +417,7 @@ char*
 				goto cleanup;
 			}
 			
-			if((actual_read + strlen(str_tmp)) >= n)
+			if((actual_read + (int)strlen(str_tmp)) >= n)
 				break;
 			if ((r = memcpy_s(cp, n - actual_read, str_tmp, strlen(str_tmp))) != 0) {
 				debug3("memcpy_s failed with error: %d.", r);
@@ -555,7 +555,7 @@ strmode(mode_t mode, char *p)
 		*p++ = '-';
 
 	const char *permissions = "****** ";	
-	for(int i = 0; i < strlen(permissions); i++)
+	for(int i = 0; i < (int)strlen(permissions); i++)
 		*p++ = permissions[i];
 	
 	*p = '\0';
@@ -832,7 +832,7 @@ w32_getcwd(char *buffer, int maxlen)
 		return NULL;
 	}
 
-	if (strlen(putf8) >= maxlen) {
+	if ((int)strlen(putf8) >= maxlen) {
 		errno = ERANGE;
 		free(putf8);
 		return NULL;
@@ -847,7 +847,7 @@ w32_getcwd(char *buffer, int maxlen)
 	if (chroot_path) {
 		/* ensure we are within chroot jail */
 		char c = buffer[chroot_path_len];
-		if ( strlen(buffer) < chroot_path_len ||
+		if ((int)strlen(buffer) < chroot_path_len ||
 		    memcmp(chroot_path, buffer, chroot_path_len) != 0 ||
 		    (c != '\0' && c!= '\\') ) {
 			errno = EOTHER;
@@ -1218,7 +1218,7 @@ readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags)
 	_cputws(wtmp);
 	free(wtmp);
 
-	while (current_index < outBufLen - 1) {
+	while (current_index < (int)outBufLen - 1) {
 		ch = _getch();
 		
 		if (ch == '\r') {
