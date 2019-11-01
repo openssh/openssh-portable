@@ -22,13 +22,13 @@ given key is backed by hardware. Finally the signature format includes
 a monotonic signature counter that can be used (at scale) to detect
 concurrent use of a private key, should it be extracted from hardware.
 
-U2F private keys are generatted through an enrollment operation,
+U2F private keys are generated through an enrollment operation,
 which takes an application ID - a URL-like string, typically "ssh:"
 in this case, but a HTTP origin for the case of web authentication,
 and a challenge string (typically randomly generated). The enrollment
 operation returns a public key, a key handle that must be used to invoke
 the hardware-backed private key, some flags and signed attestation
-information that may be used to verify that private key is hosted on a
+information that may be used to verify that a private key is hosted on a
 particular hardware instance.
 
 It is common for U2F hardware to derive private keys from the key handle
@@ -73,7 +73,7 @@ The corresponding private key contains:
 The certificate form of a SSH U2F key appends the usual certificate
 information to the public key:
 
-	string		"sk-ecdsa-sha2-nistp256@openssh.com"
+	string		"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com"
 	string		nonce
 	ec_point	Q
 	string		application
@@ -98,7 +98,7 @@ choose not to include this information in the public key or save it by
 default.
 
 Attestation information is very useful however in an organisational
-context, where it may be used by an CA as part of certificate
+context, where it may be used by a CA as part of certificate
 issuance. In this case, exposure to the CA of hardware identity is
 desirable. To support this case, OpenSSH optionally allows retaining the
 attestation information at the time of key generation. It will take the
@@ -151,16 +151,16 @@ ecdsa_signature field returned from the hardware.
 ssh-agent protocol extensions
 -----------------------------
 
-ssh-agent requires some protocol extension to support U2F keys. At
+ssh-agent requires a protocol extension to support U2F keys. At
 present the closest analogue to Security Keys in ssh-agent are PKCS#11
 tokens, insofar as they require a middleware library to communicate with
 the device that holds the keys. Unfortunately, the protocol message used
 to add PKCS#11 keys to ssh-agent does not include any way to send the
 key handle to the agent as U2F keys require.
 
-To avoid this, without having to add wholy new messages to the agent
-protocol we will use the existing SSH2_AGENTC_ADD_ID_CONSTRAINED message
-with a new a key constraint extension to encode a path to the middleware
+To avoid this, without having to add wholly new messages to the agent
+protocol, we will use the existing SSH2_AGENTC_ADD_ID_CONSTRAINED message
+with a new key constraint extension to encode a path to the middleware
 library for the key. The format of this constraint extension would be:
 
 	byte		SSH_AGENT_CONSTRAIN_EXTENSION
