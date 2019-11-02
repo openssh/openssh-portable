@@ -19,7 +19,9 @@
 #define _SK_API_H 1
 
 #include <stddef.h>
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 /* Flags */
 #define SSH_SK_USER_PRESENCE_REQD	0x01
