@@ -3817,6 +3817,7 @@ AC_CHECK_TYPES([fsblkcnt_t, fsfilcnt_t], , , [
 ])
 
 AC_CHECK_MEMBERS([struct statfs.f_files, struct statfs.f_flags], [], [], [[
+#include <sys/param.h>
 #include <sys/types.h>
 #ifdef HAVE_SYS_BITYPES_H
 #include <sys/bitypes.h>
@@ -3829,6 +3830,9 @@ AC_CHECK_MEMBERS([struct statfs.f_files, struct statfs.f_flags], [], [], [[
 #endif
 #ifdef HAVE_SYS_VFS_H
 #include <sys/vfs.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
 #endif
 ]])
 
