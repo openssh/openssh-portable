@@ -35,6 +35,8 @@
 /* OPENBSD ORIGINAL: include/fnmatch.h */
 
 #ifndef HAVE_FNMATCH_H
+/* Ensure we define FNM_CASEFOLD */
+#define __BSD_VISIBLE 1
 
 #ifndef	_FNMATCH_H_
 #define	_FNMATCH_H_
