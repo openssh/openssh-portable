@@ -3000,14 +3000,12 @@ main(int argc, char **argv)
 		case 'x':
 			if (*optarg == '\0')
 				fatal("Missing security key flags");
-			ull = strtoull(optarg, &ep, 0);
-			if (*ep != '\0')
-				fatal("Security key flags \"%s\" is not a "
-				    "number", optarg);
-			if (ull > 0xff)
-				fatal("Invalid security key flags 0x%llx", ull);
 #ifdef ENABLE_SK
-			sk_flags = (uint8_t)ull;
+			if (strcasecmp(optarg, "no_up") == 0){
+				sk_flags = sk_flags & ~SSH_SK_USER_PRESENCE_REQD;
+			}else{
+				fatal("Unsupported U2F option \"%s\"", optarg);
+			}
 #endif
 			break;
 		case 'z':
