@@ -77,7 +77,6 @@
 #include "auth-options.h"
 #include "serverloop.h"
 #include "ssherr.h"
-#include "counters.h"
 
 extern ServerOptions options;
 
@@ -335,7 +334,7 @@ process_output(fd_set *writeset, int connection_out, struct ssh *ssh)
 {
 	/* Send any buffered packet data to the client. */
 	if (FD_ISSET(connection_out, writeset))
-		stdin_bytes += packet_write_poll();
+		ssh->stdin_bytes += packet_write_poll();
 }
 
 static void
@@ -375,7 +374,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 	u_int64_t rekey_timeout_ms = 0;
 
 	debug("Entering interactive session for SSH2.");
-	ssh->start_time = get_current_time();
+	ssh->start_time = monotime_double();
 
 	signal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
@@ -410,6 +409,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		    &readset, &writeset, &max_fd, &nalloc, rekey_timeout_ms);
 
 		if (received_sigterm) {
+			sshpkt_final_log_entry(ssh);
 			logit("Exiting on signal %d", (int)received_sigterm);
 			/* Clean up sessions, utmp, etc. */
 			cleanup_exit(255);
@@ -423,10 +423,13 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		process_output(writeset, connection_out, ssh);
 	}
 	collect_children(ssh);
-
+	
 	free(readset);
 	free(writeset);
 
+	/* write final log entry */
+	sshpkt_final_log_entry(ssh);
+	
 	/* free all channels, no more reads and writes */
 	channel_free_all(ssh);
 

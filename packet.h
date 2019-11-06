@@ -182,8 +182,9 @@ void	*ssh_packet_get_output(struct ssh *);
 void	*ssh_packet_get_receive_context(struct ssh *);
 void	*ssh_packet_get_send_context(struct ssh *);
 void    packet_request_rekeying(void);
+void    sshpkt_final_log_entry (struct ssh *);
 
-double  get_current_time(void);
+
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);

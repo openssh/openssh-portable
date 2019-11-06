@@ -1419,18 +1419,6 @@ process_server_config_line(ServerOptions *options, char *line,
 		intptr = &options->hpn_buffer_size;
 		goto parse_int;
 
-	case sTcpRcvBufPoll:
-		intptr = &options->tcp_rcv_buf_poll;
-		goto parse_flag;
-
-	case sHPNDisabled:
-		intptr = &options->hpn_disabled;
-		goto parse_flag;
-
-	case sHPNBufferSize:
-		intptr = &options->hpn_buffer_size;
-		goto parse_int;
-
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;
 		goto parse_flag;
