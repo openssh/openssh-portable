@@ -947,6 +947,10 @@ main(int ac, char **av)
 			break;
 		case 'T':
 			options.request_tty = REQUEST_TTY_NO;
+			/* ensure that the user doesn't try to backdoor a */
+			/* null cipher switch on an interactive session */
+			/* so explicitly disable it no matter what */
+			options.none_switch=0;
 			break;
 		case 'o':
 			line = xstrdup(optarg);
@@ -1557,6 +1561,8 @@ control_persist_detach(void)
 	setproctitle("%s [mux]", options.control_path);
 }
 
+extern const EVP_CIPHER *evp_aes_ctr_mt(void);
+
 /* Do fork() after authentication. Used by "ssh -f" */
 static void
 fork_postauth(void)
@@ -1784,6 +1790,78 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
 	    NULL, fileno(stdin), command, environ);
 }
 
+static void
+hpn_options_init(void)
+{
+	/*
+	 * We need to check to see if what they want to do about buffer
+	 * sizes here. In a hpn to nonhpn connection we want to limit
+	 * the window size to something reasonable in case the far side
+	 * has the large window bug. In hpn to hpn connection we want to
+	 * use the max window size but allow the user to override it
+	 * lastly if they disabled hpn then use the ssh std window size.
+	 *
+	 * So why don't we just do a getsockopt() here and set the
+	 * ssh window to that? In the case of a autotuning receive
+	 * window the window would get stuck at the initial buffer
+	 * size generally less than 96k. Therefore we need to set the
+	 * maximum ssh window size to the maximum hpn buffer size
+	 * unless the user has specifically set the tcprcvbufpoll
+	 * to no. In which case we *can* just set the window to the
+	 * minimum of the hpn buffer size and tcp receive buffer size.
+	 */
+
+	if (tty_flag)
+		options.hpn_buffer_size = CHAN_SES_WINDOW_DEFAULT;
+	else
+		options.hpn_buffer_size = 2 * 1024 * 1024;
+
+	if (datafellows & SSH_BUG_LARGEWINDOW) {
+		debug("HPN to Non-HPN Connection");
+	} else {
+		int sock, socksize;
+		socklen_t socksizelen;
+		if (options.tcp_rcv_buf_poll <= 0) {
+			sock = socket(AF_INET, SOCK_STREAM, 0);
+			socksizelen = sizeof(socksize);
+			getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+				   &socksize, &socksizelen);
+			close(sock);
+			debug("socksize %d", socksize);
+			options.hpn_buffer_size = socksize;
+			debug("HPNBufferSize set to TCP RWIN: %d", options.hpn_buffer_size);
+		} else {
+			if (options.tcp_rcv_buf > 0) {
+				/*
+				 * Create a socket but don't connect it:
+				 * we use that the get the rcv socket size
+				 */
+				sock = socket(AF_INET, SOCK_STREAM, 0);
+				/*
+				 * If they are using the tcp_rcv_buf option,
+				 * attempt to set the buffer size to that.
+				 */
+				if (options.tcp_rcv_buf) {
+					socksizelen = sizeof(options.tcp_rcv_buf);
+					setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+						   &options.tcp_rcv_buf, socksizelen);
+				}
+				socksizelen = sizeof(socksize);
+				getsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+					   &socksize, &socksizelen);
+				close(sock);
+				debug("socksize %d", socksize);
+				options.hpn_buffer_size = socksize;
+				debug("HPNBufferSize set to user TCPRcvBuf: %d", options.hpn_buffer_size);
+			}
+		}
+	}
+
+	debug("Final hpn_buffer_size = %d", options.hpn_buffer_size);
+
+	channel_set_hpn(options.hpn_disabled, options.hpn_buffer_size);
+}
+
 /* open new channel for a session */
 static int
 ssh_session2_open(struct ssh *ssh)
@@ -1810,9 +1888,11 @@ ssh_session2_open(struct ssh *ssh)
 	if (!isatty(err))
 		set_nonblock(err);
 
-	window = CHAN_SES_WINDOW_DEFAULT;
+	window = options.hpn_buffer_size;
+
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (tty_flag) {
+		window = CHAN_SES_WINDOW_DEFAULT;
 		window >>= 1;
 		packetmax >>= 1;
 	}
@@ -1821,6 +1901,10 @@ ssh_session2_open(struct ssh *ssh)
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    "client-session", /*nonblock*/0);
 
+	if ((options.tcp_rcv_buf_poll > 0) && (!options.hpn_disabled)) {
+		c->dynamic_window = 1;
+		debug("Enabled Dynamic Window Scaling");
+	}
 	debug3("%s: channel_new: %d", __func__, c->self);
 
 	channel_send_open(ssh, c->self);
@@ -1836,6 +1920,13 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 {
 	int devnull, id = -1;
 	char *cp, *tun_fwd_ifname = NULL;
+
+	/*
+	 * We need to initialize this early because the forwarding logic below
+	 * might open channels that use the hpn buffer sizes.  We can't send a
+	 * window of -1 (the default) to the server as it breaks things.
+	 */
+	hpn_options_init();
 
 	/* XXX should be pre-session */
 	if (!options.control_persist)
