@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.172 2019/10/22 08:50:35 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.173 2019/11/07 08:38:38 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: October 22 2019 $
+.Dd $Mdocdate: November 7 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -48,8 +48,10 @@
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
 .Op Fl m Ar format
+.Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | rsa
 .Op Fl N Ar new_passphrase
-.Op Fl t Cm dsa | ecdsa | ed25519 | rsa
+.Op Fl w Ar provider
+.Op Fl x Ar flags
 .Nm ssh-keygen
 .Fl p
 .Op Fl f Ar keyfile
@@ -188,6 +190,7 @@ with public key authentication runs this once to create the authentication
 key in
 .Pa ~/.ssh/id_dsa ,
 .Pa ~/.ssh/id_ecdsa ,
+.Pa ~/.ssh/id_ecdsa_sk ,
 .Pa ~/.ssh/id_ed25519
 or
 .Pa ~/.ssh/id_rsa .
@@ -248,7 +251,7 @@ should be placed to be activated.
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl A
-For each of the key types (rsa, dsa, ecdsa and ed25519)
+For each of the key types (rsa, dsa, ecdsa, ecdsa-sk and ed25519)
 for which host keys
 do not exist, generate the host keys with the default key file path,
 an empty passphrase, default bits for the key type, and default comment.
@@ -282,7 +285,7 @@ flag determines the key length by selecting from one of three elliptic
 curve sizes: 256, 384 or 521 bits.
 Attempting to use bit lengths other than these three values for ECDSA keys
 will fail.
-Ed25519 keys have a fixed length and the
+ECDSA-SK and Ed25519 keys have a fixed length and the
 .Fl b
 flag will be ignored.
 .It Fl C Ar comment
@@ -583,11 +586,12 @@ section for details.
 Test DH group exchange candidate primes (generated using the
 .Fl G
 option) for safety.
-.It Fl t Cm dsa | ecdsa | ed25519 | rsa
+.It Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | rsa
 Specifies the type of key to create.
 The possible values are
 .Dq dsa ,
 .Dq ecdsa ,
+.Dq ecdsa-sk ,
 .Dq ed25519 ,
 or
 .Dq rsa .
@@ -658,6 +662,14 @@ options increase the verbosity.
 The maximum is 3.
 .It Fl W Ar generator
 Specify desired generator when testing candidate moduli for DH-GEX.
+.It Fl w Ar provider
+Specifies a path to a security key provider library that will be used when
+creating any security key-hosted keys, overriding the default of using the
+.Ev SSH_SK_PROVIDER
+environment variable to specify a provider.
+.It Fl x Ar flags
+Specifies the security key flags to use when enrolling a security key-hosted
+key.
 .It Fl y
 This option will read a private
 OpenSSH format file and print an OpenSSH public key to stdout.
@@ -1020,13 +1032,20 @@ user1@example.com,user2@example.com ssh-rsa AAAAX1...
 # A key that is accepted only for file signing.
 user2@example.com namespaces="file" ssh-ed25519 AAA41...
 .Ed
+.Sh ENVIRONMENT
+.Bl -tag -width Ds
+.It Ev SSH_SK_PROVIDER
+Specifies the path to a security key provider library used to interact with
+hardware security keys.
+.El
 .Sh FILES
 .Bl -tag -width Ds -compact
 .It Pa ~/.ssh/id_dsa
 .It Pa ~/.ssh/id_ecdsa
+.It Pa ~/.ssh/id_ecdsa_sk
 .It Pa ~/.ssh/id_ed25519
 .It Pa ~/.ssh/id_rsa
-Contains the DSA, ECDSA, Ed25519 or RSA
+Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519 or RSA
 authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
@@ -1040,9 +1059,10 @@ will read this file when a login attempt is made.
 .Pp
 .It Pa ~/.ssh/id_dsa.pub
 .It Pa ~/.ssh/id_ecdsa.pub
+.It Pa ~/.ssh/id_ecdsa_sk.pub
 .It Pa ~/.ssh/id_ed25519.pub
 .It Pa ~/.ssh/id_rsa.pub
-Contains the DSA, ECDSA, Ed25519 or RSA
+Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519 or RSA
 public key for authentication.
 The contents of this file should be added to
 .Pa ~/.ssh/authorized_keys

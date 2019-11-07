@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.304 2018/07/22 12:16:59 dtucker Exp $
-.Dd $Mdocdate: July 22 2018 $
+.\" $OpenBSD: sshd.8,v 1.305 2019/11/07 08:38:38 naddy Exp $
+.Dd $Mdocdate: November 7 2019 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -429,24 +429,35 @@ comments).
 Public keys consist of the following space-separated fields:
 options, keytype, base64-encoded key, comment.
 The options field is optional.
-The keytype is
-.Dq ecdsa-sha2-nistp256 ,
-.Dq ecdsa-sha2-nistp384 ,
-.Dq ecdsa-sha2-nistp521 ,
-.Dq ssh-ed25519 ,
-.Dq ssh-dss
-or
-.Dq ssh-rsa ;
-the comment field is not used for anything (but may be convenient for the
+The supported key types are:
+.Pp
+.Bl -item -compact -offset indent
+.It
+sk-ecdsa-sha2-nistp256@openssh.com
+.It
+ecdsa-sha2-nistp256
+.It
+ecdsa-sha2-nistp384
+.It
+ecdsa-sha2-nistp521
+.It
+ssh-ed25519
+.It
+ssh-dss
+.It
+ssh-rsa
+.El
+.Pp
+The comment field is not used for anything (but may be convenient for the
 user to identify the key).
 .Pp
 Note that lines in this file can be several hundred bytes long
 (because of the size of the public key encoding) up to a limit of
-8 kilobytes, which permits DSA keys up to 8 kilobits and RSA
-keys up to 16 kilobits.
+8 kilobytes, which permits RSA keys up to 16 kilobits.
 You don't want to type them in; instead, copy the
 .Pa id_dsa.pub ,
 .Pa id_ecdsa.pub ,
+.Pa id_ecdsa_sk.pub ,
 .Pa id_ed25519.pub ,
 or the
 .Pa id_rsa.pub
