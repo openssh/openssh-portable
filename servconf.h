@@ -182,6 +182,13 @@ typedef struct {
 	char   *adm_forced_command;
 
 	int	use_pam;		/* Enable auth via PAM */
+        int     tcp_rcv_buf_poll;       /* poll tcp rcv window in autotuning kernels*/
+	int	hpn_disabled;		/* disable hpn functionality. false by default */
+	int	hpn_buffer_size;	/* set the hpn buffer size - default 3MB */
+
+	int	none_enabled;		/* Enable NONE cipher switch */
+
+        int     disable_multithreaded;  /*disable multithreaded aes-ctr cipher */
 
 	int	permit_tun;
 
