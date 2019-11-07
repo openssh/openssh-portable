@@ -241,10 +241,7 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 		debug ("Canceled %lu (%d,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
-	/* looks like the following code block was breaking things
-	 * in a really random way. Thsi might resolve some of the problems
-	 * we've been seeing with the mt cipher -cjr 11/7/2019
-	 */
+	/* shouldn't need this - see commit logs for hpn-7_7_P1 -cjr 11/7/19*/
 	/* for (i = 0; i < numkq; i++) { */
 	/* 	pthread_mutex_lock(&c->q[i].lock); */
 	/* 	pthread_cond_broadcast(&c->q[i].cond); */
@@ -439,7 +436,7 @@ ssh_aes_ctr(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 		destp.u += AES_BLOCK_SIZE;
 		srcp.u += AES_BLOCK_SIZE;
 		len -= AES_BLOCK_SIZE;
-		ssh_ctr_inc(ctx->iv, AES_BLOCK_SIZE);
+		ssh_ctr_inc(c->aes_counter, AES_BLOCK_SIZE);
 
 		/* Increment read index, switch queues on rollover */
 		if ((ridx = (ridx + 1) % KQLEN) == 0) {
@@ -506,11 +503,10 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	/* if they have less than 4 cores spin up 4 threads anyway */
 	if (cipher_threads < 2) 
 		cipher_threads = 2;
-
-	//cipher_threads = 4; /*testing -cjr*/
 		
-        /* assure that we aren't trying to create more threads than we have in the struct */
-	/* cipher_threads is half the total of allowable threads hence the odd looking math here */
+	/* assure that we aren't trying to create more threads */
+	/* than we have in the struct. cipher_threads is half the */
+	/* total of allowable threads hence the odd looking math here */
 	if (cipher_threads * 2 > MAX_THREADS)
 		cipher_threads = MAX_THREADS / 2;
 
@@ -555,16 +551,16 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	}
 
 	if (iv != NULL) {
-		memcpy(ctx->iv, iv, AES_BLOCK_SIZE);
+		memcpy(c->aes_counter, iv, AES_BLOCK_SIZE);
 		c->state |= HAVE_IV;
 	}
 
 	if (c->state == (HAVE_KEY | HAVE_IV)) {
 		/* Clear queues */
-		memcpy(c->q[0].ctr, ctx->iv, AES_BLOCK_SIZE);
+		memcpy(c->q[0].ctr, c->aes_counter, AES_BLOCK_SIZE);
 		c->q[0].qstate = KQINIT;
 		for (i = 1; i < numkq; i++) {
-			memcpy(c->q[i].ctr, ctx->iv, AES_BLOCK_SIZE);
+			memcpy(c->q[i].ctr, c->aes_counter, AES_BLOCK_SIZE);
 			ssh_ctr_add(c->q[i].ctr, i * KQLEN, AES_BLOCK_SIZE);
 			c->q[i].qstate = KQEMPTY;
 		}
@@ -648,8 +644,22 @@ ssh_aes_ctr_cleanup(EVP_CIPHER_CTX *ctx)
 const EVP_CIPHER *
 evp_aes_ctr_mt(void)
 {
+# if OPENSSL_VERSION_NUMBER >= 0x10100000UL
+	static EVP_CIPHER *aes_ctr;
+	aes_ctr = EVP_CIPHER_meth_new(NID_undef, 16/*block*/, 16/*key*/);
+	EVP_CIPHER_meth_set_iv_length(aes_ctr, AES_BLOCK_SIZE);
+	EVP_CIPHER_meth_set_init(aes_ctr, ssh_aes_ctr_init);
+	EVP_CIPHER_meth_set_cleanup(aes_ctr, ssh_aes_ctr_cleanup);
+	EVP_CIPHER_meth_set_do_cipher(aes_ctr, ssh_aes_ctr);
+#  ifndef SSH_OLD_EVP
+	EVP_CIPHER_meth_set_flags(aes_ctr, EVP_CIPH_CBC_MODE
+				      | EVP_CIPH_VARIABLE_LENGTH
+				      | EVP_CIPH_ALWAYS_CALL_INIT
+				      | EVP_CIPH_CUSTOM_IV);
+#  endif /*SSH_OLD_EVP*/
+	return (aes_ctr);
+# else /*earlier versions of openssl*/
 	static EVP_CIPHER aes_ctr;
-
 	memset(&aes_ctr, 0, sizeof(EVP_CIPHER));
 	aes_ctr.nid = NID_undef;
 	aes_ctr.block_size = AES_BLOCK_SIZE;
@@ -658,11 +668,12 @@ evp_aes_ctr_mt(void)
 	aes_ctr.init = ssh_aes_ctr_init;
 	aes_ctr.cleanup = ssh_aes_ctr_cleanup;
 	aes_ctr.do_cipher = ssh_aes_ctr;
-#ifndef SSH_OLD_EVP
-	aes_ctr.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
-	    EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
-#endif
-	return &aes_ctr;
+#  ifndef SSH_OLD_EVP
+        aes_ctr.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
+		EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
+#  endif /*SSH_OLD_EVP*/
+        return &aes_ctr;
+# endif /*OPENSSH_VERSION_NUMBER*/
 }
 
 #endif /* defined(WITH_OPENSSL) */
