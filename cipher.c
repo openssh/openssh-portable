@@ -51,7 +51,6 @@
 
 #include "openbsd-compat/openssl-compat.h"
 
-
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
 

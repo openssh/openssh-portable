@@ -430,7 +430,7 @@ sshd_exchange_identification(struct ssh *ssh, int sock_in, int sock_out)
 	    remote_major, remote_minor, remote_version);
 	logit("SSH: Server;Ltype: Version;Remote: %s-%d;Protocol: %d.%d;Client: %.100s",
 	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),
-	    remote_major, remote_minor, remote_version);
+	      remote_major, remote_minor, remote_version);
 
 	ssh->compat = compat_datafellows(remote_version);
 

@@ -982,7 +982,7 @@ sink(int argc, char **argv)
 	off_t size, statbytes;
 	unsigned long long ull;
 	int setimes, targisdir, wrerrno = 0;
-	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048], visbuf[2048];
+	char ch, *cp, *np, *targ, *why, *vect[1], buf[16384], visbuf[16384];
 	struct timeval tv[2];
 
 #define	atime	tv[0]

@@ -49,14 +49,14 @@ geared towards 10GigE transcontinental connections.
 Conditions: HPNBufferSize NOT Set, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
 HPN Buffer Size = TCP receive buffer value.
 Users on non-autotuning systesm should disable TCPRcvBufPoll in the
-ssh_cofig and sshd_config
+ssh_config and sshd_config
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf NOT Set
-HPN Buffer Size = minmum of TCP receive buffer and HPNBufferSize.
+HPN Buffer Size = miinmum of TCP receive buffer and HPNBufferSize.
 This would be the system defined TCP receive buffer (RWIN).
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll disabled, TCPRcvBuf SET
-HPN Buffer Size = minmum of TCPRcvBuf and HPNBufferSize.
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
 Generally there is no need to set both.
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf NOT Set
@@ -64,7 +64,7 @@ HPN Buffer Size = grows to HPNBufferSize
 The buffer will grow up to the maximum size specified here.
 
 Conditions: HPNBufferSize SET, TCPRcvBufPoll enabled, TCPRcvBuf SET
-HPN Buffer Size = minmum of TCPRcvBuf and HPNBufferSize.
+HPN Buffer Size = minimum of TCPRcvBuf and HPNBufferSize.
 Generally there is no need to set both of these, especially on autotuning
 systems. However, if the users wishes to override the autotuning this would be
 one way to do it.
@@ -78,7 +78,7 @@ value.
 HPN Specific Configuration options
 
 TcpRcvBuf=[int]KB client
-      set the TCP socket receive buffer to n Kilobytes. It can be set up to the
+      Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
 maximum socket size allowed by the system. This is useful in situations where
 the tcp receive window is set low but the maximum buffer size is set
 higher (as is typical). This works on a per TCP connection basis. You can also
@@ -87,13 +87,13 @@ cases the throughput will be no more than n/RTT. The minimum buffer size is 1KB.
 Default is the current system wide tcp receive buffer size.
 
 TcpRcvBufPoll=[yes/no] client/server
-      enable of disable the polling of the tcp receive buffer through the life
+      Enable of disable the polling of the tcp receive buffer through the life
 of the connection. You would want to make sure that this option is enabled
 for systems making use of autotuning kernels (linux 2.4.24+, 2.6, MS Vista)
 default is yes.
 
 NoneEnabled=[yes/no] client/server
-      enable or disable the use of the None cipher. Care must always be used
+      Enable or disable the use of the None cipher. Care must always be used
 when enabling this as it will allow users to send data in the clear. However,
 it is important to note that authentication information remains encrypted
 even if this option is enabled. Set to no by default.
