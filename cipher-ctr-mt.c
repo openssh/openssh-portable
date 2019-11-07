@@ -241,11 +241,15 @@ stop_and_join_pregen_threads(struct ssh_aes_ctr_ctx_mt *c)
 		debug ("Canceled %lu (%d,%d)", c->tid[i], c->struct_id, c->id[i]);
 		pthread_cancel(c->tid[i]);
 	}
-	for (i = 0; i < numkq; i++) {
-		pthread_mutex_lock(&c->q[i].lock);
-		pthread_cond_broadcast(&c->q[i].cond);
-		pthread_mutex_unlock(&c->q[i].lock);
-	}
+	/* looks like the following code block was breaking things
+	 * in a really random way. Thsi might resolve some of the problems
+	 * we've been seeing with the mt cipher -cjr 11/7/2019
+	 */
+	/* for (i = 0; i < numkq; i++) { */
+	/* 	pthread_mutex_lock(&c->q[i].lock); */
+	/* 	pthread_cond_broadcast(&c->q[i].cond); */
+	/* 	pthread_mutex_unlock(&c->q[i].lock); */
+	/* } */
 	for (i = 0; i < cipher_threads; i++) {
 		if (pthread_kill(c->tid[i], 0) != 0)
 			debug3("AES-CTR MT pthread_join failure: Invalid thread id %lu in %s", c->tid[i], __FUNCTION__);
@@ -502,6 +506,8 @@ ssh_aes_ctr_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	/* if they have less than 4 cores spin up 4 threads anyway */
 	if (cipher_threads < 2) 
 		cipher_threads = 2;
+
+	//cipher_threads = 4; /*testing -cjr*/
 		
         /* assure that we aren't trying to create more threads than we have in the struct */
 	/* cipher_threads is half the total of allowable threads hence the odd looking math here */

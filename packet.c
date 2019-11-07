@@ -258,9 +258,6 @@ ssh_alloc_session_state(void)
 	return NULL;
 }
 
-/* forward declaration */ 
-void ssh_final_log_entry (struct ssh *);
-
 void
 ssh_packet_set_input_hook(struct ssh *ssh, ssh_packet_hook_fn *hook, void *ctx)
 {
@@ -1834,16 +1831,6 @@ sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 	    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
 }
 
-/* Povide the current time in seconds since epoch */
-
-double
-get_current_time(void)
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
-}
-
 /*
  * Pretty-print connection-terminating errors and exit.
  */
@@ -1857,21 +1844,21 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
 		ssh_packet_clear_keys(ssh);
-		ssh_final_log_entry(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
 		ssh_packet_clear_keys(ssh);
-		ssh_final_log_entry(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Connection %s %s timed out",
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
-		ssh_final_log_entry(ssh);
+		sshpkt_final_log_entry(ssh);
 		logdie("Disconnected from %s", remote_id);
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);
-			ssh_final_log_entry(ssh);
+			sshpkt_final_log_entry(ssh);
 			logdie("Connection reset by %s", remote_id);
 		}
 		/* FALLTHROUGH */
@@ -1896,16 +1883,16 @@ sshpkt_fatal(struct ssh *ssh, const char *tag, int r)
 	}
 }
 
-/* this prints out the final log entry - used in sshpkt_fatal -cjr */
+/* this prints out the final log entry */
 void 
-ssh_final_log_entry (struct ssh *ssh) {
+sshpkt_final_log_entry (struct ssh *ssh) {
 	double total_time;
 	
 	if (ssh->start_time < 1) 
 		/* this will produce a NaN in the output. -cjr */
 		total_time = 0;
 	else
-		total_time = get_current_time() - ssh->start_time;
+		total_time = monotime_double() - ssh->start_time;
 	
 	logit("SSH: Server;LType: Throughput;Remote: %s-%d;IN: %lu;OUT: %lu;Duration: %.1f;tPut_in: %.1f;tPut_out: %.1f",
 	      ssh_remote_ipaddr(ssh), ssh_remote_port(ssh),

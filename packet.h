@@ -161,8 +161,6 @@ int	 ssh_packet_inc_alive_timeouts(struct ssh *);
 int	 ssh_packet_set_maxsize(struct ssh *, u_int);
 u_int	 ssh_packet_get_maxsize(struct ssh *);
 
-/* for forced packet rekeying post auth */
-void	 packet_request_rekeying(void);
 int	 packet_authentication_state(const struct ssh *);
 
 int	 ssh_packet_get_state(struct ssh *, struct sshbuf *);
@@ -181,9 +179,11 @@ void	*ssh_packet_get_input(struct ssh *);
 void	*ssh_packet_get_output(struct ssh *);
 void	*ssh_packet_get_receive_context(struct ssh *);
 void	*ssh_packet_get_send_context(struct ssh *);
-void    packet_request_rekeying(void);
 
-double  get_current_time(void);
+/* for forced packet rekeying post auth */
+void	 packet_request_rekeying(void);
+/* final log entry support */
+void    sshpkt_final_log_entry (struct ssh *);
 
 /* new API */
 int	sshpkt_start(struct ssh *ssh, u_char type);
