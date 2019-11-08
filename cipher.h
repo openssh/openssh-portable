@@ -73,8 +73,8 @@ const char *cipher_ctx_name(const struct sshcipher_ctx *);
 const char *cipher_ctx_name(const struct sshcipher_ctx *);
 u_int	 cipher_ctx_is_plaintext(struct sshcipher_ctx *);
 
-int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, u_int);
-int	 cipher_set_keyiv(struct sshcipher_ctx *, const u_char *);
+int	 cipher_get_keyiv(struct sshcipher_ctx *, u_char *, size_t);
+int	 cipher_set_keyiv(struct sshcipher_ctx *, const u_char *, size_t);
 int	 cipher_get_keyiv_len(const struct sshcipher_ctx *);
 
 #endif				/* CIPHER_H */

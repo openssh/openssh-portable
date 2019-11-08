@@ -164,15 +164,6 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	OSSH_CHECK_CFLAG_COMPILE([-Wunused-result], [-Wno-unused-result])
 	OSSH_CHECK_CFLAG_COMPILE([-fno-strict-aliasing])
     if test "x$use_toolchain_hardening" = "x1"; then
-	# Cygwin GCC 7.x allows thunking on the CLI, but produces non-working
-	# code.  Unfortunately you only notice this at link time.
-	case "$host" in
-	*-*-cygwin*) ;;
-	*)
-	    OSSH_CHECK_CFLAG_COMPILE([-mfunction-return=thunk]) # gcc
-	    OSSH_CHECK_CFLAG_COMPILE([-mindirect-branch=thunk]) # gcc
-	    ;;
-	esac
 	OSSH_CHECK_CFLAG_COMPILE([-mretpoline]) # clang
 	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,retpolineplt])
 	OSSH_CHECK_CFLAG_COMPILE([-D_FORTIFY_SOURCE=2])
@@ -2110,6 +2101,29 @@ if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	)
 fi
 
+if test "x$ac_cv_func_snprintf" = "xyes" ; then
+	AC_MSG_CHECKING([whether snprintf understands %zu])
+	AC_RUN_IFELSE(
+		[AC_LANG_PROGRAM([[
+#include <sys/types.h>
+#include <stdio.h>
+		]],
+		[[
+	size_t a = 1, b = 2;
+	char z[128];
+	snprintf(z, sizeof z, "%zu%zu", a, b);
+	exit(strcmp(z, "12"));
+		]])],
+		[AC_MSG_RESULT([yes])],
+		[
+			AC_MSG_RESULT([no])
+			AC_DEFINE([BROKEN_SNPRINTF], [1],
+				[snprintf does not understand %zu])
+		],
+		[ AC_MSG_WARN([cross compiling: Assuming working snprintf()]) ]
+	)
+fi
+
 # We depend on vsnprintf returning the right thing on overflow: the
 # number of characters it tried to create (as per SUSv3)
 if test "x$ac_cv_func_vsnprintf" = "xyes" ; then
@@ -2598,14 +2612,19 @@ if test "x$openssl" = "xyes" ; then
 			ssl_library_ver=`cat conftest.ssllibver`
 			# Check version is supported.
 			case "$ssl_library_ver" in
-				10000*|0*)
-					AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
-			                ;;
-				100*)   ;; # 1.0.x
-				200*)   ;; # LibreSSL
-			        *)
-					AC_MSG_ERROR([OpenSSL >= 1.1.0 is not yet supported (have "$ssl_library_ver")])
-			                ;;
+			10000*|0*)
+				AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
+		                ;;
+			100*)   ;; # 1.0.x
+			101000[0123456]*)
+				# https://github.com/openssl/openssl/pull/4613
+				AC_MSG_ERROR([OpenSSL 1.1.x versions prior to 1.1.0g have a bug that breaks their use with OpenSSH (have "$ssl_library_ver")])
+				;;
+			101*)   ;; # 1.1.x
+			200*)   ;; # LibreSSL
+		        *)
+				AC_MSG_ERROR([OpenSSL > 1.1.x is not yet supported (have "$ssl_library_ver")])
+		                ;;
 			esac
 			AC_MSG_RESULT([$ssl_library_ver])
 		],
@@ -2776,6 +2795,115 @@ if test "x$openssl" = "xyes" ; then
 	AC_SEARCH_LIBS([EVP_CIPHER_CTX_ctrl], [crypto],
 		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_CTRL], [1],
 		    [Define if libcrypto has EVP_CIPHER_CTX_ctrl])])
+
+	# LibreSSL/OpenSSL 1.1x API
+	AC_SEARCH_LIBS([DH_get0_key], [crypto],
+		[AC_DEFINE([HAVE_DH_GET0_KEY], [1],
+		    [Define if libcrypto has DH_get0_key])])
+	AC_SEARCH_LIBS([DH_get0_pqg], [crypto],
+		[AC_DEFINE([HAVE_DH_GET0_PQG], [1],
+		    [Define if libcrypto has DH_get0_pqg])])
+	AC_SEARCH_LIBS([DH_set0_key], [crypto],
+		[AC_DEFINE([HAVE_DH_SET0_KEY], [1],
+		    [Define if libcrypto has DH_set0_key])])
+	AC_SEARCH_LIBS([DH_set_length], [crypto],
+		[AC_DEFINE([HAVE_DH_SET_LENGTH], [1],
+		    [Define if libcrypto has DH_set_length])])
+	AC_SEARCH_LIBS([DH_set0_pqg], [crypto],
+		[AC_DEFINE([HAVE_DH_SET0_PQG], [1],
+		    [Define if libcrypto has DH_set0_pqg])])
+
+	AC_SEARCH_LIBS([DSA_get0_key], [crypto],
+		[AC_DEFINE([HAVE_DSA_GET0_KEY], [1],
+		    [Define if libcrypto has DSA_get0_key])])
+	AC_SEARCH_LIBS([DSA_get0_pqg], [crypto],
+		[AC_DEFINE([HAVE_DSA_GET0_PQG], [1],
+		    [Define if libcrypto has DSA_get0_pqg])])
+	AC_SEARCH_LIBS([DSA_set0_key], [crypto],
+		[AC_DEFINE([HAVE_DSA_SET0_KEY], [1],
+		    [Define if libcrypto has DSA_set0_key])])
+	AC_SEARCH_LIBS([DSA_set0_pqg], [crypto],
+		[AC_DEFINE([HAVE_DSA_SET0_PQG], [1],
+		    [Define if libcrypto has DSA_set0_pqg])])
+
+	AC_SEARCH_LIBS([DSA_SIG_get0], [crypto],
+		[AC_DEFINE([HAVE_DSA_SIG_GET0], [1],
+		    [Define if libcrypto has DSA_SIG_get0])])
+	AC_SEARCH_LIBS([DSA_SIG_set0], [crypto],
+		[AC_DEFINE([HAVE_DSA_SIG_SET0], [1],
+		    [Define if libcrypto has DSA_SIG_set0])])
+
+	AC_SEARCH_LIBS([ECDSA_SIG_get0], [crypto],
+		[AC_DEFINE([HAVE_ECDSA_SIG_GET0], [1],
+		    [Define if libcrypto has ECDSA_SIG_get0])])
+	AC_SEARCH_LIBS([ECDSA_SIG_set0], [crypto],
+		[AC_DEFINE([HAVE_ECDSA_SIG_SET0], [1],
+		    [Define if libcrypto has ECDSA_SIG_set0])])
+
+	AC_SEARCH_LIBS([EVP_CIPHER_CTX_iv], [crypto],
+		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_IV], [1],
+		    [Define if libcrypto has EVP_CIPHER_CTX_iv])])
+	AC_SEARCH_LIBS([EVP_CIPHER_CTX_iv_noconst], [crypto],
+		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_IV_NOCONST], [1],
+		    [Define if libcrypto has EVP_CIPHER_CTX_iv_noconst])])
+	AC_SEARCH_LIBS([EVP_CIPHER_CTX_get_iv], [crypto],
+		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
+		    [Define if libcrypto has EVP_CIPHER_CTX_get_iv])])
+	AC_SEARCH_LIBS([EVP_CIPHER_CTX_set_iv], [crypto],
+		[AC_DEFINE([HAVE_EVP_CIPHER_CTX_GET_IV], [1],
+		    [Define if libcrypto has EVP_CIPHER_CTX_set_iv])])
+
+	AC_SEARCH_LIBS([RSA_get0_crt_params], [crypto],
+		[AC_DEFINE([HAVE_RSA_GET0_CRT_PARAMS], [1],
+		    [Define if libcrypto has RSA_get0_crt_params])])
+	AC_SEARCH_LIBS([RSA_get0_factors], [crypto],
+		[AC_DEFINE([HAVE_RSA_GET0_FACTORS], [1],
+		    [Define if libcrypto has RSA_get0_factors])])
+	AC_SEARCH_LIBS([RSA_get0_key], [crypto],
+		[AC_DEFINE([HAVE_RSA_GET0_KEY], [1],
+		    [Define if libcrypto has RSA_get0_key])])
+	AC_SEARCH_LIBS([RSA_set0_crt_params], [crypto],
+		[AC_DEFINE([HAVE_RSA_SET0_CRT_PARAMS], [1],
+		    [Define if libcrypto has RSA_get0_srt_params])])
+	AC_SEARCH_LIBS([RSA_set0_factors], [crypto],
+		[AC_DEFINE([HAVE_RSA_SET0_FACTORS], [1],
+		    [Define if libcrypto has RSA_set0_factors])])
+	AC_SEARCH_LIBS([RSA_set0_key], [crypto],
+		[AC_DEFINE([HAVE_RSA_SET0_KEY], [1],
+		    [Define if libcrypto has RSA_set0_key])])
+
+	AC_SEARCH_LIBS([RSA_meth_free], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_FREE], [1],
+		    [Define if libcrypto has RSA_meth_free])])
+	AC_SEARCH_LIBS([RSA_meth_dup], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_DUP], [1],
+		    [Define if libcrypto has RSA_meth_dup])])
+	AC_SEARCH_LIBS([RSA_meth_set1_name], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_SET1_NAME], [1],
+		    [Define if libcrypto has RSA_meth_set1_name])])
+	AC_SEARCH_LIBS([RSA_meth_get_finish], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_GET_FINISH], [1],
+		    [Define if libcrypto has RSA_meth_get_finish])])
+	AC_SEARCH_LIBS([RSA_meth_set_priv_enc], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_SET_PRIV_ENC], [1],
+		    [Define if libcrypto has RSA_meth_set_priv_enc])])
+	AC_SEARCH_LIBS([RSA_meth_set_priv_dec], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_SET_PRIV_DEC], [1],
+		    [Define if libcrypto has RSA_meth_set_priv_dec])])
+	AC_SEARCH_LIBS([RSA_meth_set_finish], [crypto],
+		[AC_DEFINE([HAVE_RSA_METH_SET_FINISH], [1],
+		    [Define if libcrypto has RSA_meth_set_finish])])
+
+	AC_SEARCH_LIBS([EVP_PKEY_get0_RSA], [crypto],
+		[AC_DEFINE([HAVE_EVP_PKEY_GET0_RSA], [1],
+		    [Define if libcrypto has EVP_PKEY_get0_RSA])])
+
+	AC_SEARCH_LIBS([EVP_MD_CTX_new], [crypto],
+		[AC_DEFINE([HAVE_EVP_MD_CTX_NEW], [1],
+		    [Define if libcrypto has EVP_MD_CTX_new])])
+	AC_SEARCH_LIBS([EVP_MD_CTX_free], [crypto],
+		[AC_DEFINE([HAVE_EVP_MD_CTX_FREE], [1],
+		    [Define if libcrypto has EVP_MD_CTX_free])])
 
 	AC_MSG_CHECKING([if EVP_DigestUpdate returns an int])
 	AC_LINK_IFELSE(

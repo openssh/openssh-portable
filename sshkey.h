@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.26 2018/07/03 13:20:25 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.30 2018/09/14 04:17:44 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -39,6 +39,7 @@
 #  define EC_POINT	void
 # endif /* OPENSSL_HAS_ECC */
 #else /* WITH_OPENSSL */
+# define BIGNUM		void
 # define RSA		void
 # define DSA		void
 # define EC_KEY		void
@@ -102,6 +103,7 @@ struct sshkey_cert {
 	struct sshbuf	*critical;
 	struct sshbuf	*extensions;
 	struct sshkey	*signature_key;
+	char		*signature_type;
 };
 
 /* XXX opaquify? */
@@ -126,10 +128,7 @@ struct sshkey {
 #define	ED25519_PK_SZ	crypto_sign_ed25519_PUBLICKEYBYTES
 
 struct sshkey	*sshkey_new(int);
-int		 sshkey_add_private(struct sshkey *);
-struct sshkey	*sshkey_new_private(int);
 void		 sshkey_free(struct sshkey *);
-int		 sshkey_demote(const struct sshkey *, struct sshkey **);
 int		 sshkey_equal_public(const struct sshkey *,
     const struct sshkey *);
 int		 sshkey_equal(const struct sshkey *, const struct sshkey *);
@@ -157,6 +156,7 @@ int	 sshkey_cert_check_authority(const struct sshkey *, int, int,
     const char *, const char **);
 size_t	 sshkey_format_cert_validity(const struct sshkey_cert *,
     char *, size_t) __attribute__((__bounded__(__string__, 2, 3)));
+int	 sshkey_check_cert_sigtype(const struct sshkey *, const char *);
 
 int	 sshkey_certify(struct sshkey *, struct sshkey *, const char *);
 /* Variant allowing use of a custom signature function (e.g. for ssh-agent) */
@@ -218,7 +218,7 @@ int	sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
     const char *passphrase, struct sshkey **keyp, char **commentp);
 
 /* XXX should be internal, but used by ssh-keygen */
-int ssh_rsa_generate_additional_parameters(struct sshkey *);
+int ssh_rsa_complete_crt_parameters(struct sshkey *, const BIGNUM *);
 
 /* stateful keys (e.g. XMSS) */
 #ifdef NO_ATTRIBUTE_ON_PROTOTYPE_ARGS
