@@ -2223,7 +2223,7 @@ main(int ac, char **av)
 		 * so we repoint the define to the multithreaded evp. To start the threads we
 		 * then force a rekey
 		 */
-		const void *cc = ssh_packet_get_send_context(active_state);
+		const void *cc = ssh_packet_get_send_context(the_active_state);
 
 		/* only rekey if necessary. If we don't do this gcm mode cipher breaks */
 		if (strstr(cipher_ctx_name(cc), "ctr")) {
