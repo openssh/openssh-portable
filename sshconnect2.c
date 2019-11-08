@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.303 2019/02/12 23:53:10 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.308 2019/08/05 11:50:33 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -622,14 +622,13 @@ input_userauth_failure(int type, u_int32_t seq, struct ssh *ssh)
 	Authctxt *authctxt = ssh->authctxt;
 	char *authlist = NULL;
 	u_char partial;
-	int r;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_failure: no authentication context");
 
-	if ((r = sshpkt_get_cstring(ssh, &authlist, NULL)) != 0 ||
-	    (r = sshpkt_get_u8(ssh, &partial)) != 0 ||
-	    (r = sshpkt_get_end(ssh)) != 0)
+	if (sshpkt_get_cstring(ssh, &authlist, NULL) != 0 ||
+	    sshpkt_get_u8(ssh, &partial) != 0 ||
+	    sshpkt_get_end(ssh) != 0)
 		goto out;
 
 	if (partial != 0) {
@@ -1457,10 +1456,10 @@ load_identity_file(Identity *id)
 {
 	struct sshkey *private = NULL;
 	char prompt[300], *passphrase, *comment;
-	int r, perm_ok = 0, quit = 0, i;
+	int r, quit = 0, i;
 	struct stat st;
 
-	if (stat(id->filename, &st) < 0) {
+	if (stat(id->filename, &st) == -1) {
 		(id->userprovided ? logit : debug3)("no such identity: %s: %s",
 		    id->filename, strerror(errno));
 		return NULL;
@@ -1479,7 +1478,7 @@ load_identity_file(Identity *id)
 			}
 		}
 		switch ((r = sshkey_load_private_type(KEY_UNSPEC, id->filename,
-		    passphrase, &private, &comment, &perm_ok))) {
+		    passphrase, &private, &comment))) {
 		case 0:
 			break;
 		case SSH_ERR_KEY_WRONG_PASSPHRASE:
@@ -1885,7 +1884,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	struct sshbuf *b;
 	struct stat st;
 	pid_t pid;
-	int i, r, to[2], from[2], status;
+	int r, to[2], from[2], status;
 	int sock = ssh_packet_get_connection_in(ssh);
 	u_char rversion = 0, version = 2;
 	void (*osigchld)(int);
@@ -1893,7 +1892,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	*sigp = NULL;
 	*lenp = 0;
 
-	if (stat(_PATH_SSH_KEY_SIGN, &st) < 0) {
+	if (stat(_PATH_SSH_KEY_SIGN, &st) == -1) {
 		error("%s: not installed: %s", __func__, strerror(errno));
 		return -1;
 	}
@@ -1901,34 +1900,35 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 		error("%s: fflush: %s", __func__, strerror(errno));
 		return -1;
 	}
-	if (pipe(to) < 0) {
+	if (pipe(to) == -1) {
 		error("%s: pipe: %s", __func__, strerror(errno));
 		return -1;
 	}
-	if (pipe(from) < 0) {
+	if (pipe(from) == -1) {
 		error("%s: pipe: %s", __func__, strerror(errno));
 		return -1;
 	}
-	if ((pid = fork()) < 0) {
+	if ((pid = fork()) == -1) {
 		error("%s: fork: %s", __func__, strerror(errno));
 		return -1;
 	}
 	osigchld = signal(SIGCHLD, SIG_DFL);
 	if (pid == 0) {
-		/* keep the socket on exec */
-		fcntl(sock, F_SETFD, 0);
 		close(from[0]);
-		if (dup2(from[1], STDOUT_FILENO) < 0)
+		if (dup2(from[1], STDOUT_FILENO) == -1)
 			fatal("%s: dup2: %s", __func__, strerror(errno));
 		close(to[1]);
-		if (dup2(to[0], STDIN_FILENO) < 0)
+		if (dup2(to[0], STDIN_FILENO) == -1)
 			fatal("%s: dup2: %s", __func__, strerror(errno));
 		close(from[1]);
 		close(to[0]);
-		/* Close everything but stdio and the socket */
-		for (i = STDERR_FILENO + 1; i < sock; i++)
-			close(i);
+
+		if (dup2(sock, STDERR_FILENO + 1) == -1)
+			fatal("%s: dup2: %s", __func__, strerror(errno));
+		sock = STDERR_FILENO + 1;
+		fcntl(sock, F_SETFD, 0);	/* keep the socket on exec */
 		closefrom(sock + 1);
+
 		debug3("%s: [child] pid=%ld, exec %s",
 		    __func__, (long)getpid(), _PATH_SSH_KEY_SIGN);
 		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *)NULL);
@@ -1937,6 +1937,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
 	close(from[1]);
 	close(to[0]);
+	sock = STDERR_FILENO + 1;
 
 	if ((b = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
@@ -1956,7 +1957,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	}
 
 	errno = 0;
-	while (waitpid(pid, &status, 0) < 0) {
+	while (waitpid(pid, &status, 0) == -1) {
 		if (errno != EINTR) {
 			error("%s: waitpid %ld: %s",
 			    __func__, (long)pid, strerror(errno));
