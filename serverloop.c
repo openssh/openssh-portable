@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.205 2018/03/03 03:15:51 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.209 2018/07/27 05:13:02 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -58,7 +58,7 @@
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
 #include "packet.h"
-#include "buffer.h"
+#include "sshbuf.h"
 #include "log.h"
 #include "misc.h"
 #include "servconf.h"
@@ -67,7 +67,7 @@
 #include "channels.h"
 #include "compat.h"
 #include "ssh2.h"
-#include "key.h"
+#include "sshkey.h"
 #include "cipher.h"
 #include "kex.h"
 #include "hostfile.h"
@@ -102,6 +102,17 @@ static void server_init_dispatch(void);
 
 /* requested tunnel forwarding interface(s), shared with session.c */
 char *tun_fwd_ifnames = NULL;
+
+/* returns 1 if bind to specified port by specified user is permitted */
+static int
+bind_permitted(int port, uid_t uid)
+{
+	if (use_privsep)
+		return 1; /* allow system to decide */
+	if (port < IPPORT_RESERVED && uid != 0)
+		return 0;
+	return 1;
+}
 
 /*
  * we write to this pipe if a SIGCHLD is caught in order to avoid
@@ -145,7 +156,7 @@ notify_done(fd_set *readset)
 
 	if (notify_pipe[0] != -1 && FD_ISSET(notify_pipe[0], readset))
 		while (read(notify_pipe[0], &c, 1) != -1)
-			debug2("notify_done: reading");
+			debug2("%s: reading", __func__);
 }
 
 /*ARGSUSED*/
@@ -411,6 +422,7 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 		if (received_sigterm) {
 			sshpkt_final_log_entry(ssh);
 			logit("Exiting on signal %d", (int)received_sigterm);
+			sshpkt_final_log_entry(ssh);
 			/* Clean up sessions, utmp, etc. */
 			cleanup_exit(255);
 		}
@@ -433,6 +445,9 @@ server_loop2(struct ssh *ssh, Authctxt *authctxt)
 	/* free all channels, no more reads and writes */
 	channel_free_all(ssh);
 
+	/* final entry must come after channels close -cjr */
+        sshpkt_final_log_entry(ssh);
+	
 	/* free remaining sessions, e.g. remove wtmp entries */
 	session_destroy_all(ssh, NULL);
 }
@@ -632,7 +647,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	rwindow = packet_get_int();
 	rmaxpack = packet_get_int();
 
-	debug("server_input_channel_open: ctype %s rchan %d win %d max %d",
+	debug("%s: ctype %s rchan %d win %d max %d", __func__,
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "session") == 0) {
@@ -645,7 +660,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 		c = server_request_tun(ssh);
 	}
 	if (c != NULL) {
-		debug("server_input_channel_open: confirm %s", ctype);
+		debug("%s: confirm %s", __func__, ctype);
 		c->remote_id = rchan;
 		c->have_remote_id = 1;
 		c->remote_window = rwindow;
@@ -659,7 +674,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 			packet_send();
 		}
 	} else {
-		debug("server_input_channel_open: failure %s", ctype);
+		debug("%s: failure %s", __func__, ctype);
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(reason);
@@ -759,11 +774,11 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 	struct passwd *pw = the_authctxt->pw;
 
 	if (pw == NULL || !the_authctxt->valid)
-		fatal("server_input_global_request: no/invalid user");
+		fatal("%s: no/invalid user", __func__);
 
 	rtype = packet_get_string(NULL);
 	want_reply = packet_get_char();
-	debug("server_input_global_request: rtype %s want_reply %d", rtype, want_reply);
+	debug("%s: rtype %s want_reply %d", __func__, rtype, want_reply);
 
 	/* -R style forwarding */
 	if (strcmp(rtype, "tcpip-forward") == 0) {
@@ -772,7 +787,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 		memset(&fwd, 0, sizeof(fwd));
 		fwd.listen_host = packet_get_string(NULL);
 		fwd.listen_port = (u_short)packet_get_int();
-		debug("server_input_global_request: tcpip-forward listen %s port %d",
+		debug("%s: tcpip-forward listen %s port %d", __func__,
 		    fwd.listen_host, fwd.listen_port);
 
 		/* check permissions */
@@ -811,7 +826,7 @@ server_input_global_request(int type, u_int32_t seq, struct ssh *ssh)
 
 		memset(&fwd, 0, sizeof(fwd));
 		fwd.listen_path = packet_get_string(NULL);
-		debug("server_input_global_request: streamlocal-forward listen path %s",
+		debug("%s: streamlocal-forward listen path %s", __func__,
 		    fwd.listen_path);
 
 		/* check permissions */

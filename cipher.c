@@ -55,9 +55,6 @@
 /* for multi-threaded aes-ctr cipher */
 extern const EVP_CIPHER *evp_aes_ctr_mt(void);
 
-/* for multi-threaded aes-ctr cipher */
-extern const EVP_CIPHER *evp_aes_ctr_mt(void);
-
 struct sshcipher_ctx {
 	int	plaintext;
 	int	encrypt;
@@ -88,7 +85,9 @@ struct sshcipher {
 
 static struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL
+#ifndef OPENSSL_NO_DES
 	{ "3des-cbc",		8, 24, 0, 0, CFLAG_CBC, EVP_des_ede3_cbc },
+#endif
 	{ "aes128-cbc",		16, 16, 0, 0, CFLAG_CBC, EVP_aes_128_cbc },
 	{ "aes192-cbc",		16, 24, 0, 0, CFLAG_CBC, EVP_aes_192_cbc },
 	{ "aes256-cbc",		16, 32, 0, 0, CFLAG_CBC, EVP_aes_256_cbc },

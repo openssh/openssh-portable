@@ -78,7 +78,7 @@ value.
 HPN Specific Configuration options
 
 TcpRcvBuf=[int]KB client
-      set the TCP socket receive buffer to n Kilobytes. It can be set up to the
+      Set the TCP socket receive buffer to n Kilobytes. It can be set up to the
 maximum socket size allowed by the system. This is useful in situations where
 the tcp receive window is set low but the maximum buffer size is set
 higher (as is typical). This works on a per TCP connection basis. You can also
@@ -87,13 +87,13 @@ cases the throughput will be no more than n/RTT. The minimum buffer size is 1KB.
 Default is the current system wide tcp receive buffer size.
 
 TcpRcvBufPoll=[yes/no] client/server
-      enable of disable the polling of the tcp receive buffer through the life
+      Enable of disable the polling of the tcp receive buffer through the life
 of the connection. You would want to make sure that this option is enabled
 for systems making use of autotuning kernels (linux 2.4.24+, 2.6, MS Vista)
 default is yes.
 
 NoneEnabled=[yes/no] client/server
-      enable or disable the use of the None cipher. Care must always be used
+      Enable or disable the use of the None cipher. Care must always be used
 when enabling this as it will allow users to send data in the clear. However,
 it is important to note that authentication information remains encrypted
 even if this option is enabled. Set to no by default.
