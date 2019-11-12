@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.7 2019/11/12 19:32:30 markus Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.8 2019/11/12 19:34:00 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -365,6 +365,12 @@ sshsk_ecdsa_inner_sig(struct sk_sign_response *resp, struct sshbuf **retp)
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	*retp = NULL;
+	/* Check response validity */
+	if (resp->sig_r == NULL || resp->sig_r == NULL) {
+		error("%s: sk_sign response invalid", __func__);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	if ((inner_sig = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -400,6 +406,12 @@ sshsk_ed25519_inner_sig(struct sk_sign_response *resp, struct sshbuf **retp)
 	int r = SSH_ERR_INTERNAL_ERROR;
 
 	*retp = NULL;
+	/* Check response validity */
+	if (resp->sig_r == NULL) {
+		error("%s: sk_sign response invalid", __func__);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 	if ((inner_sig = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
