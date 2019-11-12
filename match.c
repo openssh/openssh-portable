@@ -178,7 +178,7 @@ match_usergroup_pattern_list(const char *string, const char *pattern)
 	/* Windows usernames may be Unicode and are not case sensitive */
 	return cygwin_ug_match_pattern_list(string, pattern);
 #else
-	/* Case insensitive match */
+	/* Case sensitive match */
 	return match_pattern_list(string, pattern, 0);
 #endif
 }
