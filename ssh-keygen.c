@@ -3258,7 +3258,6 @@ main(int argc, char **argv)
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n",
 		    key_type_name);
-	if (type == KEY_ECDSA_SK) {
 	switch (type) {
 	case KEY_ECDSA_SK:
 	case KEY_ED25519_SK:
