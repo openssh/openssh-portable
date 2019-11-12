@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-api.h,v 1.1 2019/10/31 21:16:20 djm Exp $ */
+/* $OpenBSD: sk-api.h,v 1.2 2019/11/12 19:32:30 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -26,6 +26,10 @@
 /* Flags */
 #define SSH_SK_USER_PRESENCE_REQD	0x01
 
+/* Algs */
+#define SSH_SK_ECDSA			0x00
+#define SSH_SK_ED25519			0x01
+
 struct sk_enroll_response {
 	uint8_t *public_key;
 	size_t public_key_len;
@@ -46,19 +50,19 @@ struct sk_sign_response {
 	size_t sig_s_len;
 };
 
-#define SSH_SK_VERSION_MAJOR		0x00010000 /* current API version */
+#define SSH_SK_VERSION_MAJOR		0x00020000 /* current API version */
 #define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
 /* Return the version of the middleware API */
 uint32_t sk_api_version(void);
 
 /* Enroll a U2F key (private key generation) */
-int sk_enroll(const uint8_t *challenge, size_t challenge_len,
+int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags,
     struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
-int sk_sign(const uint8_t *message, size_t message_len,
+int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, struct sk_sign_response **sign_response);
 

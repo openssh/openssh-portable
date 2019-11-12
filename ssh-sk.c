@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.6 2019/11/12 19:31:45 markus Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.7 2019/11/12 19:32:30 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -49,12 +49,12 @@ struct sshsk_provider {
 	uint32_t (*sk_api_version)(void);
 
 	/* Enroll a U2F key (private key generation) */
-	int (*sk_enroll)(const uint8_t *challenge, size_t challenge_len,
-	    const char *application, uint8_t flags,
+	int (*sk_enroll)(int alg, const uint8_t *challenge,
+	    size_t challenge_len, const char *application, uint8_t flags,
 	    struct sk_enroll_response **enroll_response);
 
 	/* Sign a challenge */
-	int (*sk_sign)(const uint8_t *message, size_t message_len,
+	int (*sk_sign)(int alg, const uint8_t *message, size_t message_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
 	    uint8_t flags, struct sk_sign_response **sign_response);
@@ -243,13 +243,17 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	size_t challenge_len;
 	struct sk_enroll_response *resp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
+	int alg;
 
 	*keyp = NULL;
 	if (attest)
 		sshbuf_reset(attest);
 	switch (type) {
 	case KEY_ECDSA_SK:
+		alg = SSH_SK_ECDSA;
+		break;
 	case KEY_ED25519_SK:
+		alg = SSH_SK_ED25519;
 		break;
 	default:
 		error("%s: unsupported key type", __func__);
@@ -287,7 +291,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	}
 	/* XXX validate flags? */
 	/* enroll key */
-	if ((r = skp->sk_enroll(challenge, challenge_len, application,
+	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
 	    flags, &resp)) != 0) {
 		error("Security key provider %s returned failure %d",
 		    provider_path, r);
@@ -427,7 +431,7 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 {
 	struct sshsk_provider *skp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
-	int type;
+	int type, alg;
 	struct sk_sign_response *resp = NULL;
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
@@ -439,7 +443,10 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 	type = sshkey_type_plain(key->type);
 	switch (type) {
 	case KEY_ECDSA_SK:
+		alg = SSH_SK_ECDSA;
+		break;
 	case KEY_ED25519_SK:
+		alg = SSH_SK_ED25519;
 		break;
 	default:
 		return SSH_ERR_INVALID_ARGUMENT;
@@ -462,7 +469,7 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 		r = SSH_ERR_INTERNAL_ERROR;
 		goto out;
 	}
-	if ((r = skp->sk_sign(message, sizeof(message),
+	if ((r = skp->sk_sign(alg, message, sizeof(message),
 	    key->sk_application,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
 	    key->sk_flags, &resp)) != 0) {
