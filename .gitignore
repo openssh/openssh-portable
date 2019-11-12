@@ -24,6 +24,7 @@ ssh-keygen
 ssh-keyscan
 ssh-keysign
 ssh-pkcs11-helper
+ssh-sk-helper
 sshd
 !regress/misc/fuzz-harness/Makefile
 tags
