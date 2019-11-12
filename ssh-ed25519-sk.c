@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.1 2019/11/12 19:29:24 markus Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.2 2019/11/12 19:34:40 markus Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -36,7 +36,6 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
     const u_char *data, size_t datalen, u_int compat)
 {
 	struct sshbuf *b = NULL;
-	struct sshbuf *sigbuf = NULL;
 	struct sshbuf *encoded = NULL;
 	char *ktype = NULL;
 	const u_char *sigblob;
@@ -60,10 +59,9 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
-	    sshbuf_froms(b, &sigbuf) != 0 ||
-	    sshbuf_get_string_direct(sigbuf, &sigblob, &len) != 0 ||
-	    sshbuf_get_u8(sigbuf, &sig_flags) != 0 ||
-	    sshbuf_get_u32(sigbuf, &sig_counter) != 0) {
+	    sshbuf_get_string_direct(b, &sigblob, &len) != 0 ||
+	    sshbuf_get_u8(b, &sig_flags) != 0 ||
+	    sshbuf_get_u32(b, &sig_counter) != 0) {
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
@@ -123,7 +121,6 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 		free(m);
 	}
 	sshbuf_free(b);
-	sshbuf_free(sigbuf);
 	sshbuf_free(encoded);
 	free(ktype);
 	return r;

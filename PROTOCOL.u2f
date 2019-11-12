@@ -148,6 +148,14 @@ be reformatted slightly and the ecdsa_signature_blob value has the encoding:
 Where 'r' and 's' are extracted by the client or token middleware from the
 ecdsa_signature field returned from the hardware.
 
+For Ed25519 keys the signature is encoded as:
+
+	string		"sk-ssh-ed25519@openssh.com"
+	string		signature
+	byte		flags
+	uint32		counter
+
+
 ssh-agent protocol extensions
 -----------------------------
 
