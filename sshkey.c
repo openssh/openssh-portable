@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.87 2019/11/12 19:29:24 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.88 2019/11/12 19:30:50 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2687,8 +2687,8 @@ sshkey_sign(struct sshkey *key,
 #  ifdef ENABLE_SK
 	case KEY_ECDSA_SK_CERT:
 	case KEY_ECDSA_SK:
-		r = sshsk_ecdsa_sign(sk_provider, key, sigp, lenp,
-		    data, datalen, compat);
+		r = sshsk_sign(sk_provider, key, sigp, lenp, data, datalen,
+		    compat);
 		break;
 #  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */

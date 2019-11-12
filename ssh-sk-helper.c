@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.1 2019/10/31 21:22:01 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.2 2019/11/12 19:30:50 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -128,7 +128,7 @@ main(int argc, char **argv)
 	    "msg len %zu, compat 0x%lx", __progname, sshkey_type(key),
 	    provider, msglen, (u_long)compat);
 
-	if ((r = sshsk_ecdsa_sign(provider, key, &sig, &siglen,
+	if ((r = sshsk_sign(provider, key, &sig, &siglen,
 	    message, msglen, compat)) != 0)
 		fatal("Signing failed: %s", ssh_err(r));
 

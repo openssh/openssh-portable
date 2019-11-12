@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.2 2019/10/31 21:22:01 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.3 2019/11/12 19:30:50 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -39,12 +39,12 @@ int sshsk_enroll(const char *provider_path, const char *application,
     struct sshbuf *attest);
 
 /*
- * Calculate an ECDSA_SK signature using the specified key and provider
- * middleware.
+ * Calculate an ECDSA_SK signature using the specified key
+ * and provider middleware.
  *
  * Returns 0 on success or a ssherr.h error code on failure.
  */
-int sshsk_ecdsa_sign(const char *provider_path, const struct sshkey *key,
+int sshsk_sign(const char *provider_path, const struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
     u_int compat);
 
