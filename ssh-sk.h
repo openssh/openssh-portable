@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.4 2019/11/12 19:31:18 markus Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.5 2019/11/12 19:31:45 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -25,8 +25,8 @@ struct sshkey;
 #define SSH_SK_HELPER_VERSION	1
 
 /*
- * Enroll (generate) a new security-key hosted private key via the specified
- * provider middleware.
+ * Enroll (generate) a new security-key hosted private key of given type
+ * via the specified provider middleware.
  * If challenge_buf is NULL then a random 256 bit challenge will be used.
  *
  * Returns 0 on success or a ssherr.h error code on failure.
@@ -34,7 +34,7 @@ struct sshkey;
  * If successful and the attest_data buffer is not NULL then attestation
  * information is placed there.
  */
-int sshsk_enroll(const char *provider_path, const char *application,
+int sshsk_enroll(int type, const char *provider_path, const char *application,
     uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
     struct sshbuf *attest);
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.5 2019/11/12 19:31:18 markus Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.6 2019/11/12 19:31:45 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -39,6 +39,7 @@
 
 #include "ssh-sk.h"
 #include "sk-api.h"
+#include "crypto_api.h"
 
 struct sshsk_provider {
 	char *path;
@@ -198,8 +199,40 @@ sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	return r;
 }
 
+static int
+sshsk_ed25519_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
+{
+	struct sshkey *key = NULL;
+	int r;
+
+	*keyp = NULL;
+	if (resp->public_key_len != ED25519_PK_SZ) {
+		error("%s: invalid size: %zu", __func__, resp->public_key_len);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if ((key = sshkey_new(KEY_ED25519_SK)) == NULL) {
+		error("%s: sshkey_new failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((key->ed25519_pk = malloc(ED25519_PK_SZ)) == NULL) {
+		error("%s: malloc failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	memcpy(key->ed25519_pk, resp->public_key, ED25519_PK_SZ);
+	/* success */
+	*keyp = key;
+	key = NULL; /* transferred */
+	r = 0;
+ out:
+	sshkey_free(key);
+	return r;
+}
+
 int
-sshsk_enroll(const char *provider_path, const char *application,
+sshsk_enroll(int type, const char *provider_path, const char *application,
     uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
     struct sshbuf *attest)
 {
@@ -214,6 +247,15 @@ sshsk_enroll(const char *provider_path, const char *application,
 	*keyp = NULL;
 	if (attest)
 		sshbuf_reset(attest);
+	switch (type) {
+	case KEY_ECDSA_SK:
+	case KEY_ED25519_SK:
+		break;
+	default:
+		error("%s: unsupported key type", __func__);
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
 	if (provider_path == NULL) {
 		error("%s: missing provider", __func__);
 		r = SSH_ERR_INVALID_ARGUMENT;
@@ -259,8 +301,16 @@ sshsk_enroll(const char *provider_path, const char *application,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if ((r = sshsk_ecdsa_assemble(resp, &key)) != 0)
-		goto out;
+	switch (type) {
+	case KEY_ECDSA_SK:
+		if ((r = sshsk_ecdsa_assemble(resp, &key)) != 0)
+			goto out;
+		break;
+	case KEY_ED25519_SK:
+		if ((r = sshsk_ed25519_assemble(resp, &key)) != 0)
+			goto out;
+		break;
+	}
 	key->sk_flags = flags;
 	if ((key->sk_key_handle = sshbuf_new()) == NULL ||
 	    (key->sk_reserved = sshbuf_new()) == NULL) {
