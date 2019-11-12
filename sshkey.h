@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.36 2019/10/31 21:23:19 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.37 2019/11/12 19:29:25 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -67,6 +67,8 @@ enum sshkey_types {
 	KEY_XMSS_CERT,
 	KEY_ECDSA_SK,
 	KEY_ECDSA_SK_CERT,
+	KEY_ED25519_SK,
+	KEY_ED25519_SK_CERT,
 	KEY_UNSPEC
 };
 
@@ -289,6 +291,9 @@ int ssh_ecdsa_sk_verify(const struct sshkey *key,
 int ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ed25519_verify(const struct sshkey *key,
+    const u_char *signature, size_t signaturelen,
+    const u_char *data, size_t datalen, u_int compat);
+int ssh_ed25519_sk_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
