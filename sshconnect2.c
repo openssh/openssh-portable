@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.311 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.312 2019/11/12 22:36:44 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -73,6 +73,7 @@
 #include "ssherr.h"
 #include "utf8.h"
 #include "ssh-sk.h"
+#include "sk-api.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -1149,6 +1150,8 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 {
 	struct sshkey *sign_key = NULL, *prv = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
+	struct notifier_ctx *notifier = NULL;
+	char *fp = NULL;
 
 	*sigp = NULL;
 	*lenp = 0;
@@ -1177,12 +1180,24 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 			goto out;
 		}
 		sign_key = prv;
+		if (sshkey_is_sk(sign_key) &&
+		    (sign_key->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+			/* XXX match batch mode should just skip these keys? */
+			if ((fp = sshkey_fingerprint(sign_key,
+			    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+				fatal("%s: sshkey_fingerprint", __func__);
+			notifier = notify_start(options.batch_mode,
+			    "Confirm user presence for key %s %s",
+			    sshkey_type(sign_key), fp);
+			free(fp);
+		}
 	}
 	if ((r = sshkey_sign(sign_key, sigp, lenp, data, datalen,
 	    alg, options.sk_provider, compat)) != 0) {
 		debug("%s: sshkey_sign: %s", __func__, ssh_err(r));
 		goto out;
 	}
+	notify_complete(notifier);
 	/*
 	 * PKCS#11 tokens may not support all signature algorithms,
 	 * so check what we get back.

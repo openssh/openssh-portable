@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.240 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.241 2019/11/12 22:36:44 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -289,9 +289,10 @@ provider_sign(const char *provider, struct sshkey *key,
 {
 	int status, pair[2], r = SSH_ERR_INTERNAL_ERROR;
 	pid_t pid;
-	char *helper, *verbosity = NULL;
+	char *helper, *verbosity = NULL, *fp = NULL;
 	struct sshbuf *kbuf, *req, *resp;
 	u_char version;
+	struct notifier_ctx *notifier = NULL;
 
 	debug3("%s: start for provider %s", __func__, provider);
 
@@ -344,10 +345,17 @@ provider_sign(const char *provider, struct sshkey *key,
 		error("%s: send: %s", __func__, ssh_err(r));
 		goto out;
 	}
+	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
+	    SSH_FP_DEFAULT)) == NULL)
+		fatal("%s: sshkey_fingerprint failed", __func__);
+	notifier = notify_start(0,
+	    "Confirm user presence for key %s %s", sshkey_type(key), fp);
 	if ((r = ssh_msg_recv(pair[0], resp)) != 0) {
 		error("%s: receive: %s", __func__, ssh_err(r));
 		goto out;
 	}
+	notify_complete(notifier);
+	notifier = NULL;
 	if ((r = sshbuf_get_u8(resp, &version)) != 0) {
 		error("%s: parse version: %s", __func__, ssh_err(r));
 		goto out;
@@ -375,6 +383,7 @@ provider_sign(const char *provider, struct sshkey *key,
 		if (errno != EINTR)
 			fatal("%s: waitpid: %s", __func__, ssh_err(r));
 	}
+	notify_complete(notifier);
 	if (!WIFEXITED(status)) {
 		error("%s: helper %s exited abnormally", __func__, helper);
 		if (r == 0)
