@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.239 2019/10/31 21:23:19 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.240 2019/11/12 19:33:08 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -622,7 +622,7 @@ process_add_identity(SocketEntry *e)
 		}
 	}
 	if (sk_provider != NULL) {
-		if (sshkey_type_plain(k->type) != KEY_ECDSA_SK) {
+		if (!sshkey_is_sk(k)) {
 			error("Cannot add provider: %s is not a security key",
 			    sshkey_type(k));
 			free(sk_provider);

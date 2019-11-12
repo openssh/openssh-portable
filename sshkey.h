@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.37 2019/11/12 19:29:25 markus Exp $ */
+/* $OpenBSD: sshkey.h,v 1.38 2019/11/12 19:33:08 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -129,7 +129,7 @@ struct sshkey {
 	/* KEY_ECDSA and KEY_ECDSA_SK */
 	int	 ecdsa_nid;	/* NID of curve */
 	EC_KEY	*ecdsa;
-	/* KEY_ED25519 */
+	/* KEY_ED25519 and KEY_ED25519_SK */
 	u_char	*ed25519_sk;
 	u_char	*ed25519_pk;
 	/* KEY_XMSS */
@@ -138,7 +138,7 @@ struct sshkey {
 	void	*xmss_state;	/* depends on xmss_name, opaque */
 	u_char	*xmss_sk;
 	u_char	*xmss_pk;
-	/* KEY_ECDSA_SK */
+	/* KEY_ECDSA_SK and KEY_ED25519_SK */
 	char	*sk_application;
 	uint8_t	sk_flags;
 	struct sshbuf *sk_key_handle;
@@ -180,6 +180,7 @@ int		 sshkey_unshield_private(struct sshkey *);
 
 int	 sshkey_type_from_name(const char *);
 int	 sshkey_is_cert(const struct sshkey *);
+int	 sshkey_is_sk(const struct sshkey *);
 int	 sshkey_type_is_cert(int);
 int	 sshkey_type_plain(int);
 int	 sshkey_to_certified(struct sshkey *);

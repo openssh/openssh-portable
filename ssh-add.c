@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.143 2019/10/31 21:19:56 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.144 2019/11/12 19:33:08 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -81,6 +81,7 @@ static char *default_files[] = {
 #endif
 #endif /* WITH_OPENSSL */
 	_PATH_SSH_CLIENT_ID_ED25519,
+	_PATH_SSH_CLIENT_ID_ED25519_SK,
 	_PATH_SSH_CLIENT_ID_XMSS,
 	NULL
 };
@@ -312,7 +313,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 		ssh_free_identitylist(idlist);
 	}
 
-	if (sshkey_type_plain(private->type) != KEY_ECDSA_SK)
+	if (!sshkey_is_sk(private))
 		skprovider = NULL; /* Don't send constraint for other keys */
 	else if (skprovider == NULL) {
 		fprintf(stderr, "Cannot load security key %s without "
