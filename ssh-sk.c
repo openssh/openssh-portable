@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.1 2019/10/31 21:16:20 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.2 2019/11/12 19:29:54 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -143,6 +143,61 @@ sshsk_free_sign_response(struct sk_sign_response *r)
 	freezero(r, sizeof(*r));
 };
 
+/* Assemble key from response */
+static int
+sshsk_ecdsa_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
+{
+	struct sshkey *key = NULL;
+	struct sshbuf *b = NULL;
+	EC_POINT *q = NULL;
+	int r;
+
+	*keyp = NULL;
+	if ((key = sshkey_new(KEY_ECDSA_SK)) == NULL) {
+		error("%s: sshkey_new failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	key->ecdsa_nid = NID_X9_62_prime256v1;
+	if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL ||
+	    (q = EC_POINT_new(EC_KEY_get0_group(key->ecdsa))) == NULL ||
+	    (b = sshbuf_new()) == NULL) {
+		error("%s: allocation failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshbuf_put_string(b,
+	    resp->public_key, resp->public_key_len)) != 0) {
+		error("%s: buffer error: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if ((r = sshbuf_get_ec(b, q, EC_KEY_get0_group(key->ecdsa))) != 0) {
+		error("%s: parse key: %s", __func__, ssh_err(r));
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa), q) != 0) {
+		error("Security key returned invalid ECDSA key");
+		r = SSH_ERR_KEY_INVALID_EC_VALUE;
+		goto out;
+	}
+	if (EC_KEY_set_public_key(key->ecdsa, q) != 1) {
+		/* XXX assume it is a allocation error */
+		error("%s: allocation failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	/* success */
+	*keyp = key;
+	key = NULL; /* transferred */
+	r = 0;
+ out:
+	EC_POINT_free(q);
+	sshkey_free(key);
+	sshbuf_free(b);
+	return r;
+}
+
 int
 sshsk_enroll(const char *provider_path, const char *application,
     uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
@@ -155,8 +210,6 @@ sshsk_enroll(const char *provider_path, const char *application,
 	size_t challenge_len;
 	struct sk_enroll_response *resp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
-	struct sshbuf *b = NULL;
-	EC_POINT *q = NULL;
 
 	*keyp = NULL;
 	if (attest)
@@ -206,46 +259,17 @@ sshsk_enroll(const char *provider_path, const char *application,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	/* Assemble key from response */
-	if ((key = sshkey_new(KEY_ECDSA_SK)) == NULL) {
-		error("%s: sshkey_new failed", __func__);
-		r = SSH_ERR_ALLOC_FAIL;
+	if ((r = sshsk_ecdsa_assemble(resp, &key)) != 0)
 		goto out;
-	}
-	key->ecdsa_nid = NID_X9_62_prime256v1;
 	key->sk_flags = flags;
-	if ((key->ecdsa = EC_KEY_new_by_curve_name(key->ecdsa_nid)) == NULL ||
-	    (q = EC_POINT_new(EC_KEY_get0_group(key->ecdsa))) == NULL ||
-	    (key->sk_key_handle = sshbuf_new()) == NULL ||
-	    (key->sk_reserved = sshbuf_new()) == NULL ||
-	    (b = sshbuf_new()) == NULL) {
+	if ((key->sk_key_handle = sshbuf_new()) == NULL ||
+	    (key->sk_reserved = sshbuf_new()) == NULL) {
 		error("%s: allocation failed", __func__);
 		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = sshbuf_put_string(b,
-	    resp->public_key, resp->public_key_len)) != 0) {
-		error("%s: buffer error: %s", __func__, ssh_err(r));
 		goto out;
 	}
 	if ((key->sk_application = strdup(application)) == NULL) {
 		error("%s: strdup application failed", __func__);
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = sshbuf_get_ec(b, q, EC_KEY_get0_group(key->ecdsa))) != 0) {
-		error("%s: parse key: %s", __func__, ssh_err(r));
-		r = SSH_ERR_INVALID_FORMAT;
-		goto out;
-	}
-	if (sshkey_ec_validate_public(EC_KEY_get0_group(key->ecdsa), q) != 0) {
-		error("Security key returned invalid ECDSA key");
-		r = SSH_ERR_KEY_INVALID_EC_VALUE;
-		goto out;
-	}
-	if (EC_KEY_set_public_key(key->ecdsa, q) != 1) {
-		/* XXX assume it is a allocation error */
-		error("%s: allocation failed", __func__);
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
@@ -273,9 +297,7 @@ sshsk_enroll(const char *provider_path, const char *application,
 	key = NULL; /* transferred */
 	r = 0;
  out:
-	EC_POINT_free(q);
 	sshsk_free(skp);
-	sshbuf_free(b);
 	sshkey_free(key);
 	sshsk_free_enroll_response(resp);
 	explicit_bzero(randchall, sizeof(randchall));
