@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.4 2019/11/12 19:30:50 markus Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.5 2019/11/12 19:31:18 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -330,8 +330,37 @@ sshsk_ecdsa_inner_sig(struct sk_sign_response *resp, struct sshbuf **retp)
 	sshbuf_dump_data(resp->sig_r, resp->sig_r_len, stderr);
 	fprintf(stderr, "%s: sig_s:\n", __func__);
 	sshbuf_dump_data(resp->sig_s, resp->sig_s_len, stderr);
-	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
-	    __func__, resp->flags, resp->counter);
+#endif
+	*retp = inner_sig;
+	inner_sig = NULL;
+	r = 0;
+out:
+	sshbuf_free(inner_sig);
+	return r;
+}
+
+static int
+sshsk_ed25519_inner_sig(struct sk_sign_response *resp, struct sshbuf **retp)
+{
+	struct sshbuf *inner_sig = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	*retp = NULL;
+	if ((inner_sig = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	/* Prepare inner signature object */
+	if ((r = sshbuf_put_string(inner_sig,
+	    resp->sig_r, resp->sig_r_len)) != 0 ||
+	    (r = sshbuf_put_u8(inner_sig, resp->flags)) != 0 ||
+	    (r = sshbuf_put_u32(inner_sig, resp->counter)) != 0) {
+		debug("%s: buffer error: %s", __func__, ssh_err(r));
+		goto out;
+	}
+#ifdef DEBUG_SK
+	fprintf(stderr, "%s: sig_r:\n", __func__);
+	sshbuf_dump_data(resp->sig_r, resp->sig_r_len, stderr);
 #endif
 	*retp = inner_sig;
 	inner_sig = NULL;
@@ -348,6 +377,7 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 {
 	struct sshsk_provider *skp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
+	int type;
 	struct sk_sign_response *resp = NULL;
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
@@ -356,8 +386,15 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 		*sigp = NULL;
 	if (lenp != NULL)
 		*lenp = 0;
+	type = sshkey_type_plain(key->type);
+	switch (type) {
+	case KEY_ECDSA_SK:
+	case KEY_ED25519_SK:
+		break;
+	default:
+		return SSH_ERR_INVALID_ARGUMENT;
+	}
 	if (provider_path == NULL ||
-	    sshkey_type_plain(key->type) != KEY_ECDSA_SK ||
 	    key->sk_key_handle == NULL ||
 	    key->sk_application == NULL || *key->sk_application == '\0') {
 		r = SSH_ERR_INVALID_ARGUMENT;
@@ -383,8 +420,16 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 		goto out;
 	}
 	/* Prepare inner signature object */
-	if ((r = sshsk_ecdsa_inner_sig(resp, &inner_sig)) != 0)
-		goto out;
+	switch (type) {
+	case KEY_ECDSA_SK:
+		if ((r = sshsk_ecdsa_inner_sig(resp, &inner_sig)) != 0)
+			goto out;
+		break;
+	case KEY_ED25519_SK:
+		if ((r = sshsk_ed25519_inner_sig(resp, &inner_sig)) != 0)
+			goto out;
+		break;
+	}
 	/* Assemble outer signature */
 	if ((sig = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
@@ -396,6 +441,8 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 		goto out;
 	}
 #ifdef DEBUG_SK
+	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
+	    __func__, resp->flags, resp->counter);
 	fprintf(stderr, "%s: hashed message:\n", __func__);
 	sshbuf_dump_data(message, sizeof(message), stderr);
 	fprintf(stderr, "%s: inner:\n", __func__);

@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.88 2019/11/12 19:30:50 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.89 2019/11/12 19:31:18 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2700,6 +2700,11 @@ sshkey_sign(struct sshkey *key,
 	case KEY_ED25519:
 	case KEY_ED25519_CERT:
 		r = ssh_ed25519_sign(key, sigp, lenp, data, datalen, compat);
+		break;
+	case KEY_ED25519_SK:
+	case KEY_ED25519_SK_CERT:
+		r = sshsk_sign(sk_provider, key, sigp, lenp, data, datalen,
+		    compat);
 		break;
 #ifdef WITH_XMSS
 	case KEY_XMSS:
