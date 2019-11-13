@@ -23,6 +23,7 @@
 #endif
 
 #include <dirent.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
