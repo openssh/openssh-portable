@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.322 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.323 2019/11/13 04:47:52 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -39,9 +39,9 @@
 #include <poll.h>
 #endif
 #include <signal.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #ifdef HAVE_IFADDRS_H

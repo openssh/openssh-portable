@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.119 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: authfd.c,v 1.120 2019/11/13 04:47:52 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -44,8 +44,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
 

@@ -1,4 +1,4 @@
-/* $OpenBSD: session.c,v 1.316 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: session.c,v 1.317 2019/11/13 04:47:52 deraadt Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -56,10 +56,10 @@
 #endif
 #include <pwd.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <limits.h>
 
