@@ -1882,7 +1882,6 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 			    __func__);
 		}
 		ssh_packet_clear_keys(ssh);
-		sshpkt_final_log_entry(ssh);
 		logdie("%s%sConnection %s %s: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
 		    ssh->state->server_side ? "from" : "to",
