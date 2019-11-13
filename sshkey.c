@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.90 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.91 2019/11/13 07:53:10 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2045,7 +2045,7 @@ sshkey_shield_private(struct sshkey *k)
 	if (sshkey_is_shielded(k) && (r = sshkey_unshield_private(k)) != 0)
 		goto out;
 	if ((r = sshkey_private_serialize_opt(k, prvbuf,
-	     SSHKEY_SERIALIZE_FULL)) != 0)
+	     SSHKEY_SERIALIZE_SHIELD)) != 0)
 		goto out;
 	/* pad to cipher blocksize */
 	i = 0;

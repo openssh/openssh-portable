@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.38 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: sshkey.h,v 1.39 2019/11/13 07:53:10 markus Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -87,9 +87,10 @@ enum sshkey_fp_rep {
 /* Private key serialisation formats, used on the wire */
 enum sshkey_serialize_rep {
 	SSHKEY_SERIALIZE_DEFAULT = 0,
-	SSHKEY_SERIALIZE_STATE = 1,
-	SSHKEY_SERIALIZE_FULL = 2,
-	SSHKEY_SERIALIZE_INFO = 254,
+	SSHKEY_SERIALIZE_STATE = 1,	/* only state is serialized */
+	SSHKEY_SERIALIZE_FULL = 2,	/* include keys for saving to disk */
+	SSHKEY_SERIALIZE_SHIELD = 3,	/* everything, for encrypting in ram */
+	SSHKEY_SERIALIZE_INFO = 254,	/* minimal information */
 };
 
 /* Private key disk formats */
