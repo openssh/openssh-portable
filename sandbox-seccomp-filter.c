@@ -245,9 +245,6 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_clock_nanosleep
 	SC_ALLOW(__NR_clock_nanosleep),
 #endif
-#ifdef __NR_clock_nanosleep
-	SC_ALLOW(__NR_clock_nanosleep),
-#endif
 #ifdef __NR__newselect
 	SC_ALLOW(__NR__newselect),
 #endif
