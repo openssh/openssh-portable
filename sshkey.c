@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.91 2019/11/13 07:53:10 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.92 2019/11/13 22:00:21 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1951,6 +1951,7 @@ sshkey_from_private(const struct sshkey *k, struct sshkey **pkp)
 		if ((r = sshkey_xmss_init(n, k->xmss_name)) != 0)
 			goto out;
 		if (k->xmss_pk != NULL) {
+			u_int32_t left;
 			size_t pklen = sshkey_xmss_pklen(k);
 			if (pklen == 0 || sshkey_xmss_pklen(n) != pklen) {
 				r = SSH_ERR_INTERNAL_ERROR;
@@ -1961,6 +1962,10 @@ sshkey_from_private(const struct sshkey *k, struct sshkey **pkp)
 				goto out;
 			}
 			memcpy(n->xmss_pk, k->xmss_pk, pklen);
+			/* simulate number of signatures left on pubkey */
+			left = sshkey_xmss_signatures_left(k);
+			if (left)
+				sshkey_xmss_enable_maxsign(n, left);
 		}
 		break;
 #endif /* WITH_XMSS */
