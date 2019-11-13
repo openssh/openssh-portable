@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.539 2019/10/31 21:23:19 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.540 2019/11/13 11:25:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1154,6 +1154,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			if (drop_connection(startups) == 1) {
 				char *laddr = get_local_ipaddr(*newsock);
 				char *raddr = get_peer_ipaddr(*newsock);
+				char msg[] = "Exceeded MaxStartups\r\n";
 
 				verbose("drop connection #%d from [%s]:%d "
 				    "on [%s]:%d past MaxStartups", startups,
@@ -1161,6 +1162,8 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				    laddr, get_local_port(*newsock));
 				free(laddr);
 				free(raddr);
+				/* best-effort notification to client */
+				(void)write(*newsock, msg, strlen(msg));
 				close(*newsock);
 				continue;
 			}
