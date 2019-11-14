@@ -2775,11 +2775,13 @@ sshkey_sign(struct sshkey *key,
 	case KEY_ED25519_CERT:
 		r = ssh_ed25519_sign(key, sigp, lenp, data, datalen, compat);
 		break;
+#ifdef ENABLE_SK
 	case KEY_ED25519_SK:
 	case KEY_ED25519_SK_CERT:
 		r = sshsk_sign(sk_provider, key, sigp, lenp, data, datalen,
 		    compat);
 		break;
+#endif /* ENABLE_SK */
 #ifdef WITH_XMSS
 	case KEY_XMSS:
 	case KEY_XMSS_CERT:
