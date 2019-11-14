@@ -50,6 +50,7 @@ GSSLIBS=@GSSLIBS@
 SSHLIBS=@SSHLIBS@
 SSHDLIBS=@SSHDLIBS@
 LIBEDIT=@LIBEDIT@
+LIBFIDO2=@LIBFIDO2@
 AR=@AR@
 AWK=@AWK@
 RANLIB=@RANLIB@
@@ -98,8 +99,8 @@ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
 	msg.o progressmeter.o dns.o entropy.o gss-genr.o umac.o umac128.o \
 	ssh-pkcs11.o smult_curve25519_ref.o \
 	poly1305.o chacha.o cipher-chachapoly.o \
-	ssh-ed25519.o ssh-sk.o digest-openssl.o digest-libc.o hmac.o \
-	sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o \
+	ssh-ed25519.o ssh-sk.o sk-usbhid.c digest-openssl.o digest-libc.o \
+	hmac.o sc25519.o ge25519.o fe25519.o ed25519.o verify.o hash.o \
 	kex.o kexdh.o kexgex.o kexecdh.o kexc25519.o \
 	kexgexc.o kexgexs.o \
 	sntrup4591761.o kexsntrup4591761x25519.o kexgen.o \

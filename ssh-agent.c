@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.242 2019/11/13 07:53:10 markus Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.243 2019/11/14 21:27:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -298,6 +298,13 @@ provider_sign(const char *provider, struct sshkey *key,
 
 	*sigp = NULL;
 	*lenp = 0;
+
+#ifdef ENABLE_SK_INTERNAL
+	if (strcasecmp(provider, "internal") == 0) {
+		return sshsk_sign(provider, key, sigp, lenp,
+		    data, datalen, compat);
+	}
+#endif
 
 	helper = getenv("SSH_SK_HELPER");
 	if (helper == NULL || strlen(helper) == 0)

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.11 2019/11/13 20:25:45 markus Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.12 2019/11/14 21:27:30 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -60,6 +60,15 @@ struct sshsk_provider {
 	    uint8_t flags, struct sk_sign_response **sign_response);
 };
 
+/* Built-in version */
+int ssh_sk_enroll(int alg, const uint8_t *challenge,
+    size_t challenge_len, const char *application, uint8_t flags,
+    struct sk_enroll_response **enroll_response);
+int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
+    const char *application,
+    const uint8_t *key_handle, size_t key_handle_len,
+    uint8_t flags, struct sk_sign_response **sign_response);
+
 static void
 sshsk_free(struct sshsk_provider *p)
 {
@@ -84,6 +93,16 @@ sshsk_open(const char *path)
 	if ((ret->path = strdup(path)) == NULL) {
 		error("%s: strdup failed", __func__);
 		goto fail;
+	}
+	/* Skip the rest if we're using the linked in middleware */
+	if (strcasecmp(ret->path, "internal") == 0) {
+#ifdef ENABLE_SK_INTERNAL
+		ret->sk_enroll = ssh_sk_enroll;
+		ret->sk_sign = ssh_sk_sign;
+#else
+		error("internal security key support not enabled");
+#endif
+		return ret;
 	}
 	if ((ret->dlhandle = dlopen(path, RTLD_NOW)) == NULL) {
 		error("Security key provider %s dlopen failed: %s",

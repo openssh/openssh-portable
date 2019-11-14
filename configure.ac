@@ -3061,6 +3061,39 @@ if test "x$enable_sk" = "xyes" ; then
 fi
 AC_MSG_RESULT([$enable_sk])
 
+# Now check for built-in security key support.
+if test "x$enable_sk" = "xyes" ; then
+	AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
+	use_pkgconfig_for_libfido2=
+	if test "x$PKGCONFIG" != "xno"; then
+		AC_MSG_CHECKING([if $PKGCONFIG knows about libfido2])
+		if "$PKGCONFIG" libfido2; then
+			AC_MSG_RESULT([yes])
+			use_pkgconfig_for_libfido2=yes
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+	if test "x$use_pkgconfig_for_libfido2" = "xyes"; then
+		LIBFIDO2=`$PKGCONFIG --libs libfido2`
+		CPPFLAGS="$CPPFLAGS `$PKGCONFIG --cflags libfido2`"
+	else
+		LIBFIDO2="-lfido2 -lcbor"
+	fi
+	OTHERLIBS=`echo $LIBFIDO2 | sed 's/-lfido2//'`
+	AC_CHECK_LIB([fido2], [fido_init],
+		[
+			LIBS="$LIBS $LIBFIDO2" # XXX avoid linking to all.
+			AC_SUBST([LIBFIDO2])
+			AC_DEFINE([ENABLE_SK_INTERNAL], [],
+			    [Enable for built-in U2F/FIDO support])
+			enable_sk="built-in"
+		],
+		[ AC_MSG_ERROR([libfido2 not found]) ],
+		[ $OTHERLIBS ]
+	)
+fi
+
 AC_CHECK_FUNCS([ \
 	arc4random \
 	arc4random_buf \
