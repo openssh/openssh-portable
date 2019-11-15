@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.46 2015/12/28 22:08:18 mmcc Exp $ */
+/*	$OpenBSD: glob.c,v 1.47 2017/05/08 14:53:27 millert Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -137,9 +137,6 @@ typedef char Char;
 #define	GLOB_LIMIT_STAT		2048
 #define	GLOB_LIMIT_READDIR	16384
 
-/* Limit of recursion during matching attempts. */
-#define GLOB_LIMIT_RECUR	64
-
 struct glob_lim {
 	size_t	glim_malloc;
 	size_t	glim_stat;
@@ -172,7 +169,7 @@ static const Char *
 static int	 globexp1(const Char *, glob_t *, struct glob_lim *);
 static int	 globexp2(const Char *, const Char *, glob_t *,
 		    struct glob_lim *);
-static int	 match(Char *, Char *, Char *, int);
+static int	 match(Char *, Char *, Char *);
 #ifdef DEBUG
 static void	 qprintf(const char *, Char *);
 #endif
@@ -763,7 +760,7 @@ glob3(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 			break;
 		}
 
-		if (!match(pathend, pattern, restpattern, GLOB_LIMIT_RECUR)) {
+		if (!match(pathend, pattern, restpattern)) {
 			*pathend = EOS;
 			continue;
 		}
@@ -893,17 +890,24 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 
 /*
  * pattern matching function for filenames.  Each occurrence of the *
- * pattern causes a recursion level.
+ * pattern causes an iteration.
+ *
+ * Note, this function differs from the original as per the discussion
+ * here: https://research.swtch.com/glob
+ *
+ * Basically we removed the recursion and made it use the algorithm
+ * from Russ Cox to not go quadratic on cases like a file called
+ * ("a" x 100) . "x" matched against a pattern like "a*a*a*a*a*a*a*y".
  */
 static int
-match(Char *name, Char *pat, Char *patend, int recur)
+match(Char *name, Char *pat, Char *patend)
 {
 	int ok, negate_range;
 	Char c, k;
+	Char *nextp = NULL;
+	Char *nextn = NULL;
 
-	if (recur-- == 0)
-		return(GLOB_NOSPACE);
-
+loop:
 	while (pat < patend) {
 		c = *pat++;
 		switch (c & M_MASK) {
@@ -912,19 +916,19 @@ match(Char *name, Char *pat, Char *patend, int recur)
 				pat++;	/* eat consecutive '*' */
 			if (pat == patend)
 				return(1);
-			do {
-			    if (match(name, pat, patend, recur))
-				    return(1);
-			} while (*name++ != EOS);
-			return(0);
+			if (*name == EOS)
+				return(0);
+			nextn = name + 1;
+			nextp = pat - 1;
+			break;
 		case M_ONE:
 			if (*name++ == EOS)
-				return(0);
+				goto fail;
 			break;
 		case M_SET:
 			ok = 0;
 			if ((k = *name++) == EOS)
-				return(0);
+				goto fail;
 			if ((negate_range = ((*pat & M_MASK) == M_NOT)) != EOS)
 				++pat;
 			while (((c = *pat++) & M_MASK) != M_END) {
@@ -943,15 +947,24 @@ match(Char *name, Char *pat, Char *patend, int recur)
 					ok = 1;
 			}
 			if (ok == negate_range)
-				return(0);
+				goto fail;
 			break;
 		default:
 			if (*name++ != c)
-				return(0);
+				goto fail;
 			break;
 		}
 	}
-	return(*name == EOS);
+	if (*name == EOS)
+		return(1);
+
+fail:
+	if (nextn) {
+		pat = nextp;
+		name = nextn;
+		goto loop;
+	}
+	return(0);
 }
 
 /* Free allocated data belonging to a glob_t structure. */
