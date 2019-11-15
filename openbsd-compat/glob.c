@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.38 2011/09/22 06:27:29 djm Exp $ */
+/*	$OpenBSD: glob.c,v 1.39 2012/01/20 07:09:42 tedu Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -131,7 +131,7 @@ typedef char Char;
 #define	ismeta(c)	(((c)&M_QUOTE) != 0)
 
 #define	GLOB_LIMIT_MALLOC	65536
-#define	GLOB_LIMIT_STAT		128
+#define	GLOB_LIMIT_STAT		2048
 #define	GLOB_LIMIT_READDIR	16384
 
 /* Limit of recursion during matching attempts. */
@@ -639,8 +639,6 @@ glob2(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 	for (anymeta = 0;;) {
 		if (*pattern == EOS) {		/* End of pattern? */
 			*pathend = EOS;
-			if (g_lstat(pathbuf, &sb, pglob))
-				return(0);
 
 			if ((pglob->gl_flags & GLOB_LIMIT) &&
 			    limitp->glim_stat++ >= GLOB_LIMIT_STAT) {
@@ -649,6 +647,8 @@ glob2(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
 				*pathend = EOS;
 				return(GLOB_NOSPACE);
 			}
+			if (g_lstat(pathbuf, &sb, pglob))
+				return(0);
 
 			if (((pglob->gl_flags & GLOB_MARK) &&
 			    pathend[-1] != SEP) && (S_ISDIR(sb.st_mode) ||
