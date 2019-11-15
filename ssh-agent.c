@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.244 2019/11/15 02:38:07 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.245 2019/11/15 04:12:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -646,7 +646,9 @@ process_add_identity(SocketEntry *e)
 			free(sk_provider);
 			goto send;
 		}
-		if (match_pattern_list(sk_provider,
+		if (strcasecmp(sk_provider, "internal") == 0)
+			debug("%s: internal provider", __func__);
+		else if (match_pattern_list(sk_provider,
 		    provider_whitelist, 0) != 1) {
 			error("Refusing add key: provider %s not whitelisted",
 			    sk_provider);
