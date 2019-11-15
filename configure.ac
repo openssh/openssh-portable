@@ -3088,8 +3088,7 @@ if test "x$enable_sk" = "xyes" ; then
 			AC_DEFINE([ENABLE_SK_INTERNAL], [],
 			    [Enable for built-in U2F/FIDO support])
 			enable_sk="built-in"
-		],
-		[ AC_MSG_ERROR([libfido2 not found]) ],
+		], [ ],
 		[ $OTHERLIBS ]
 	)
 fi
