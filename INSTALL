@@ -111,6 +111,15 @@ If you are making significant changes to the code you may need to rebuild
 the dependency (.depend) file using "make depend", which requires the
 "makedepend" tool from the X11 distribution.
 
+libfido2:
+
+libfido2 allows the use of hardware security keys over USB.  libfido2
+in turn depends on libcbor.
+
+https://github.com/Yubico/libfido2
+https://github.com/pjk/libcbor
+
+
 2. Building / Installation
 --------------------------
 
