@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.245 2019/11/15 04:12:32 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.246 2019/11/15 05:37:27 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -426,7 +426,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t dlen, slen = 0;
 	u_int compat = 0, flags;
-	int r, ok = -1;
+	int was_shielded, r, r2, ok = -1;
 	struct sshbuf *msg;
 	struct sshkey *key = NULL;
 	struct identity *id;
@@ -449,9 +449,21 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 	if (id->sk_provider != NULL) {
-		if ((r = provider_sign(id->sk_provider, id->key, &signature,
+		was_shielded = sshkey_is_shielded(id->key);
+		if ((r = sshkey_unshield_private(id->key)) != 0) {
+			error("%s: unshield: %s", __func__, ssh_err(r));
+			goto send;
+		}
+		r = provider_sign(id->sk_provider, id->key, &signature,
 		    &slen, data, dlen, agent_decode_alg(key, flags),
-		    compat)) != 0) {
+		    compat);
+		if (was_shielded &&
+		    (r2 = sshkey_shield_private(id->key)) != 0) {
+			error("%s: shield: %s", __func__, ssh_err(r));
+			r = r2;
+			goto send;
+		}
+		if (r != 0) {
 			error("%s: sign: %s", __func__, ssh_err(r));
 			goto send;
 		}
