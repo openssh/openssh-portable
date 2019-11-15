@@ -1207,17 +1207,19 @@ mips-sony-bsd|mips-sony-newsos4)
 	# DISABLE_FD_PASSING so that we call setpgrp as root, otherwise we
 	# don't get a controlling tty.
 	AC_DEFINE([DISABLE_FD_PASSING], [1], [Need to call setpgrp as root])
-	# On Ultrix netinet/ip.h is not protected against multiple includes,
-	# so we create our own wrapper and put it where the compiler will
-	# find it.
-	AC_MSG_WARN([creating compat wrapper for netinet/ip.h])
+	# On Ultrix some headers are not protected against multiple includes,
+	# so we create wrappers and put it where the compiler will find it.
+	AC_MSG_WARN([creating compat wrappers for headers])
 	mkdir -p netinet
-	cat >netinet/ip.h <<EOD
-#ifndef _SSH_COMPAT_NETINET_IP_H
-#define _SSH_COMPAT_NETINET_IP_H
-#include "/usr/include/netinet/ip.h"
+	for header in netinet/ip.h netdb.h resolv.h; do
+		name=`echo $header | tr 'a-z/.' 'A-Z__'`
+		cat >$header <<EOD
+#ifndef _SSH_COMPAT_${name}
+#define _SSH_COMPAT_${name}
+#include "/usr/include/${header}"
 #endif
 EOD
+	done
 	;;
 
 *-*-lynxos)
