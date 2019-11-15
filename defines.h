@@ -336,6 +336,7 @@ typedef unsigned int size_t;
 
 #ifndef HAVE_SSIZE_T
 typedef int ssize_t;
+#define SSIZE_MAX INT_MAX
 # define HAVE_SSIZE_T
 #endif /* HAVE_SSIZE_T */
 
