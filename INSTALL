@@ -7,13 +7,20 @@ options.  Some notes about specific compilers:
  - clang: -ftrapv and -sanitize=integer require the compiler-rt runtime
   (CC=clang LDFLAGS=--rtlib=compiler-rt ./configure)
 
-You will need working installations of Zlib and libcrypto (LibreSSL /
-OpenSSL)
+You will need a working installation of zlib:
 
 Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
 http://www.gzip.org/zlib/
 
-libcrypto from either of:
+To support Privilege Separation (which is now required) you will need
+to create the user, group and directory used by sshd for privilege
+separation.  See README.privsep for details.
+
+
+The remaining items are optional.
+
+libcrypto from either of LibreSSL or OpenSSL.  Building without libcrypto
+is supported but severely restricts the avilable ciphers and algorithms.
  - LibreSSL (https://www.libressl.org/)
  - OpenSSL (https://www.openssl.org) with any of the following versions:
    - 1.0.x >= 1.0.1 or 1.1.0 >= 1.1.0g or any 1.1.1
@@ -23,12 +30,6 @@ LibreSSL/OpenSSL should be compiled as a position-independent library
 If you must use a non-position-independent libcrypto, then you may need
 to configure OpenSSH --without-pie.  Note that due to a bug in EVP_CipherInit
 OpenSSL 1.1 versions prior to 1.1.0g can't be used.
-
-To support Privilege Separation (which is now required) you will need
-to create the user, group and directory used by sshd for privilege
-separation.  See README.privsep for details.
-
-The remaining items are optional.
 
 NB. If you operating system supports /dev/random, you should configure
 libcrypto (LibreSSL/OpenSSL) to use it. OpenSSH relies on libcrypto's
