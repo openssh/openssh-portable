@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.92 2019/11/13 22:00:21 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.93 2019/11/15 06:00:20 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -706,9 +706,6 @@ sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 	const BIGNUM *rsa_e_b, *rsa_n_b;
 	const BIGNUM *dsa_p_a, *dsa_q_a, *dsa_g_a, *dsa_pub_key_a;
 	const BIGNUM *dsa_p_b, *dsa_q_b, *dsa_g_b, *dsa_pub_key_b;
-# if defined(OPENSSL_HAS_ECC)
-	BN_CTX *bnctx;
-# endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
 
 	if (a == NULL || b == NULL ||
@@ -751,17 +748,12 @@ sshkey_equal_public(const struct sshkey *a, const struct sshkey *b)
 		    EC_KEY_get0_public_key(a->ecdsa) == NULL ||
 		    EC_KEY_get0_public_key(b->ecdsa) == NULL)
 			return 0;
-		if ((bnctx = BN_CTX_new()) == NULL)
-			return 0;
 		if (EC_GROUP_cmp(EC_KEY_get0_group(a->ecdsa),
-		    EC_KEY_get0_group(b->ecdsa), bnctx) != 0 ||
+		    EC_KEY_get0_group(b->ecdsa), NULL) != 0 ||
 		    EC_POINT_cmp(EC_KEY_get0_group(a->ecdsa),
 		    EC_KEY_get0_public_key(a->ecdsa),
-		    EC_KEY_get0_public_key(b->ecdsa), bnctx) != 0) {
-			BN_CTX_free(bnctx);
+		    EC_KEY_get0_public_key(b->ecdsa), NULL) != 0)
 			return 0;
-		}
-		BN_CTX_free(bnctx);
 		return 1;
 # endif /* OPENSSL_HAS_ECC */
 #endif /* WITH_OPENSSL */
@@ -1659,7 +1651,6 @@ sshkey_ecdsa_key_to_nid(EC_KEY *k)
 	};
 	int nid;
 	u_int i;
-	BN_CTX *bnctx;
 	const EC_GROUP *g = EC_KEY_get0_group(k);
 
 	/*
@@ -1672,18 +1663,13 @@ sshkey_ecdsa_key_to_nid(EC_KEY *k)
 	 */
 	if ((nid = EC_GROUP_get_curve_name(g)) > 0)
 		return nid;
-	if ((bnctx = BN_CTX_new()) == NULL)
-		return -1;
 	for (i = 0; nids[i] != -1; i++) {
-		if ((eg = EC_GROUP_new_by_curve_name(nids[i])) == NULL) {
-			BN_CTX_free(bnctx);
+		if ((eg = EC_GROUP_new_by_curve_name(nids[i])) == NULL)
 			return -1;
-		}
-		if (EC_GROUP_cmp(g, eg, bnctx) == 0)
+		if (EC_GROUP_cmp(g, eg, NULL) == 0)
 			break;
 		EC_GROUP_free(eg);
 	}
-	BN_CTX_free(bnctx);
 	if (nids[i] != -1) {
 		/* Use the group with the NID attached */
 		EC_GROUP_set_asn1_flag(eg, OPENSSL_EC_NAMED_CURVE);
@@ -3788,9 +3774,8 @@ sshkey_private_deserialize(struct sshbuf *buf, struct sshkey **kp)
 int
 sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 {
-	BN_CTX *bnctx;
 	EC_POINT *nq = NULL;
-	BIGNUM *order, *x, *y, *tmp;
+	BIGNUM *order = NULL, *x = NULL, *y = NULL, *tmp = NULL;
 	int ret = SSH_ERR_KEY_INVALID_EC_VALUE;
 
 	/*
@@ -3800,10 +3785,6 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	 * reachable with public points not unmarshalled using
 	 * EC_POINT_oct2point then the caller will need to explicitly check.
 	 */
-
-	if ((bnctx = BN_CTX_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	BN_CTX_start(bnctx);
 
 	/*
 	 * We shouldn't ever hit this case because bignum_get_ecpoint()
@@ -3817,18 +3798,18 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 	if (EC_POINT_is_at_infinity(group, public))
 		goto out;
 
-	if ((x = BN_CTX_get(bnctx)) == NULL ||
-	    (y = BN_CTX_get(bnctx)) == NULL ||
-	    (order = BN_CTX_get(bnctx)) == NULL ||
-	    (tmp = BN_CTX_get(bnctx)) == NULL) {
+	if ((x = BN_new()) == NULL ||
+	    (y = BN_new()) == NULL ||
+	    (order = BN_new()) == NULL ||
+	    (tmp = BN_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 
 	/* log2(x) > log2(order)/2, log2(y) > log2(order)/2 */
-	if (EC_GROUP_get_order(group, order, bnctx) != 1 ||
+	if (EC_GROUP_get_order(group, order, NULL) != 1 ||
 	    EC_POINT_get_affine_coordinates_GFp(group, public,
-	    x, y, bnctx) != 1) {
+	    x, y, NULL) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -3841,7 +3822,7 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if (EC_POINT_mul(group, nq, NULL, public, order, bnctx) != 1) {
+	if (EC_POINT_mul(group, nq, NULL, public, order, NULL) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -3857,7 +3838,10 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 		goto out;
 	ret = 0;
  out:
-	BN_CTX_free(bnctx);
+	BN_clear_free(x);
+	BN_clear_free(y);
+	BN_clear_free(order);
+	BN_clear_free(tmp);
 	EC_POINT_free(nq);
 	return ret;
 }
@@ -3865,22 +3849,16 @@ sshkey_ec_validate_public(const EC_GROUP *group, const EC_POINT *public)
 int
 sshkey_ec_validate_private(const EC_KEY *key)
 {
-	BN_CTX *bnctx;
-	BIGNUM *order, *tmp;
+	BIGNUM *order = NULL, *tmp = NULL;
 	int ret = SSH_ERR_KEY_INVALID_EC_VALUE;
 
-	if ((bnctx = BN_CTX_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
-	BN_CTX_start(bnctx);
-
-	if ((order = BN_CTX_get(bnctx)) == NULL ||
-	    (tmp = BN_CTX_get(bnctx)) == NULL) {
+	if ((order = BN_new()) == NULL || (tmp = BN_new()) == NULL) {
 		ret = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
 
 	/* log2(private) > log2(order)/2 */
-	if (EC_GROUP_get_order(EC_KEY_get0_group(key), order, bnctx) != 1) {
+	if (EC_GROUP_get_order(EC_KEY_get0_group(key), order, NULL) != 1) {
 		ret = SSH_ERR_LIBCRYPTO_ERROR;
 		goto out;
 	}
@@ -3897,47 +3875,43 @@ sshkey_ec_validate_private(const EC_KEY *key)
 		goto out;
 	ret = 0;
  out:
-	BN_CTX_free(bnctx);
+	BN_clear_free(order);
+	BN_clear_free(tmp);
 	return ret;
 }
 
 void
 sshkey_dump_ec_point(const EC_GROUP *group, const EC_POINT *point)
 {
-	BIGNUM *x, *y;
-	BN_CTX *bnctx;
+	BIGNUM *x = NULL, *y = NULL;
 
 	if (point == NULL) {
 		fputs("point=(NULL)\n", stderr);
 		return;
 	}
-	if ((bnctx = BN_CTX_new()) == NULL) {
-		fprintf(stderr, "%s: BN_CTX_new failed\n", __func__);
-		return;
-	}
-	BN_CTX_start(bnctx);
-	if ((x = BN_CTX_get(bnctx)) == NULL ||
-	    (y = BN_CTX_get(bnctx)) == NULL) {
-		fprintf(stderr, "%s: BN_CTX_get failed\n", __func__);
-		return;
+	if ((x = BN_new()) == NULL || (y = BN_new()) == NULL) {
+		fprintf(stderr, "%s: BN_new failed\n", __func__);
+		goto out;
 	}
 	if (EC_METHOD_get_field_type(EC_GROUP_method_of(group)) !=
 	    NID_X9_62_prime_field) {
 		fprintf(stderr, "%s: group is not a prime field\n", __func__);
-		return;
+		goto out;
 	}
-	if (EC_POINT_get_affine_coordinates_GFp(group, point, x, y,
-	    bnctx) != 1) {
+	if (EC_POINT_get_affine_coordinates_GFp(group, point,
+	    x, y, NULL) != 1) {
 		fprintf(stderr, "%s: EC_POINT_get_affine_coordinates_GFp\n",
 		    __func__);
-		return;
+		goto out;
 	}
 	fputs("x=", stderr);
 	BN_print_fp(stderr, x);
 	fputs("\ny=", stderr);
 	BN_print_fp(stderr, y);
 	fputs("\n", stderr);
-	BN_CTX_free(bnctx);
+ out:
+	BN_clear_free(x);
+	BN_clear_free(y);
 }
 
 void

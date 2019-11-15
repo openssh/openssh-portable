@@ -282,15 +282,13 @@ pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
 	BIGNUM *x = NULL, *y = NULL;
 	EC_POINT *q = NULL;
 	EC_GROUP *g = NULL;
-	BN_CTX *bn_ctx = NULL;
 	int ret = -1;
 
 	response->public_key = NULL;
 	response->public_key_len = 0;
 
-	if ((bn_ctx = BN_CTX_new()) == NULL ||
-	    (x = BN_CTX_get(bn_ctx)) == NULL ||
-	    (y = BN_CTX_get(bn_ctx)) == NULL ||
+	if ((x = BN_new()) == NULL ||
+	    (y = BN_new()) == NULL ||
 	    (g = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1)) == NULL ||
 	    (q = EC_POINT_new(g)) == NULL) {
 		skdebug(__func__, "libcrypto setup failed");
@@ -311,12 +309,12 @@ pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
 		skdebug(__func__, "BN_bin2bn failed");
 		goto out;
 	}
-	if (EC_POINT_set_affine_coordinates_GFp(g, q, x, y, bn_ctx) != 1) {
+	if (EC_POINT_set_affine_coordinates_GFp(g, q, x, y, NULL) != 1) {
 		skdebug(__func__, "EC_POINT_set_affine_coordinates_GFp failed");
 		goto out;
 	}
 	response->public_key_len = EC_POINT_point2oct(g, q,
-	    POINT_CONVERSION_UNCOMPRESSED, NULL, 0, bn_ctx);
+	    POINT_CONVERSION_UNCOMPRESSED, NULL, 0, NULL);
 	if (response->public_key_len == 0 || response->public_key_len > 2048) {
 		skdebug(__func__, "bad pubkey length %zu",
 		    response->public_key_len);
@@ -327,7 +325,7 @@ pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
 		goto out;
 	}
 	if (EC_POINT_point2oct(g, q, POINT_CONVERSION_UNCOMPRESSED,
-	    response->public_key, response->public_key_len, bn_ctx) == 0) {
+	    response->public_key, response->public_key_len, NULL) == 0) {
 		skdebug(__func__, "EC_POINT_point2oct failed");
 		goto out;
 	}
@@ -341,7 +339,8 @@ pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
 	}
 	EC_POINT_free(q);
 	EC_GROUP_free(g);
-	BN_CTX_free(bn_ctx);
+	BN_clear_free(x);
+	BN_clear_free(y);
 	return ret;
 }
 
