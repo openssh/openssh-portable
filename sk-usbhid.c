@@ -113,7 +113,7 @@ skdebug(const char *func, const char *fmt, ...)
 	va_start(ap, fmt);
 	xvasprintf(&msg, fmt, ap);
 	va_end(ap);
-	debug("%s: %s", __func__, msg);
+	debug("%s: %s", func, msg);
 	free(msg);
 #elif defined(SK_DEBUG)
 	va_list ap;
