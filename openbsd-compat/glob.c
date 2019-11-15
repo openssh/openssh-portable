@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.42 2015/02/05 12:59:57 millert Exp $ */
+/*	$OpenBSD: glob.c,v 1.43 2015/06/13 16:57:04 deraadt Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -186,9 +186,6 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int),
 	Char *bufnext, *bufend, patbuf[PATH_MAX];
 	struct glob_lim limit = { 0, 0, 0 };
 
-	if (strnlen(pattern, PATH_MAX) == PATH_MAX)
-		return(GLOB_NOMATCH);
-
 	patnext = (u_char *) pattern;
 	if (!(flags & GLOB_APPEND)) {
 		pglob->gl_pathc = 0;
@@ -200,6 +197,9 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int),
 	pglob->gl_flags = flags & ~GLOB_MAGCHAR;
 	pglob->gl_errfunc = errfunc;
 	pglob->gl_matchc = 0;
+
+	if (strnlen(pattern, PATH_MAX) == PATH_MAX)
+		return(GLOB_NOMATCH);
 
 	if (pglob->gl_offs < 0 || pglob->gl_pathc < 0 ||
 	    pglob->gl_offs >= INT_MAX || pglob->gl_pathc >= INT_MAX ||
