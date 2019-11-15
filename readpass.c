@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.56 2019/11/12 22:35:02 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.57 2019/11/15 00:32:40 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -228,8 +228,9 @@ notify_start(int force_askpass, const char *fmt, ...)
 		free(prompt);
 		return NULL;
 	}
-	if (getenv("DISPLAY") == NULL ||
-	    (askpass = getenv("SSH_ASKPASS")) == NULL || *askpass == '\0') {
+	if ((askpass = getenv("SSH_ASKPASS")) == NULL)
+		askpass = _PATH_SSH_ASKPASS_DEFAULT;
+	if (getenv("DISPLAY") == NULL || *askpass == '\0') {
 		debug3("%s: cannot notify", __func__);
 		free(prompt);
 		return NULL;
