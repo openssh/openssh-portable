@@ -391,7 +391,7 @@ pack_public_key(int alg, fido_cred_t *cred, struct sk_enroll_response *response)
 int
 sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags,
-    struct sk_enroll_response **enroll_reponse)
+    struct sk_enroll_response **enroll_response)
 {
 	fido_cred_t *cred = NULL;
 	fido_dev_t *dev = NULL;
@@ -408,11 +408,11 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 #ifdef SK_DEBUG
 	fido_init(FIDO_DEBUG);
 #endif
-	if (enroll_reponse == NULL) {
-		skdebug(__func__, "enroll_reponse == NULL");
+	if (enroll_response == NULL) {
+		skdebug(__func__, "enroll_response == NULL");
 		goto out;
 	}
-	*enroll_reponse = NULL;
+	*enroll_response = NULL;
 	switch(alg) {
 	case SK_ECDSA:
 		cose_alg = COSE_ES256;
@@ -514,7 +514,7 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 		memcpy(response->attestation_cert, ptr, len);
 		response->attestation_cert_len = len;
 	}
-	*enroll_reponse = response;
+	*enroll_response = response;
 	response = NULL;
 	ret = 0;
  out:
