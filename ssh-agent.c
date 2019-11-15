@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.243 2019/11/14 21:27:30 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.244 2019/11/15 02:38:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -87,6 +87,7 @@
 #include "ssherr.h"
 #include "match.h"
 #include "msg.h"
+#include "ssherr.h"
 #include "pathnames.h"
 #include "ssh-pkcs11.h"
 #include "ssh-sk.h"
@@ -299,10 +300,22 @@ provider_sign(const char *provider, struct sshkey *key,
 	*sigp = NULL;
 	*lenp = 0;
 
+	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
+	    SSH_FP_DEFAULT)) == NULL)
+		fatal("%s: sshkey_fingerprint failed", __func__);
+	notifier = notify_start(0,
+	    "Confirm user presence for key %s %s", sshkey_type(key), fp);
+
 #ifdef ENABLE_SK_INTERNAL
 	if (strcasecmp(provider, "internal") == 0) {
-		return sshsk_sign(provider, key, sigp, lenp,
+		r = sshsk_sign(provider, key, sigp, lenp,
 		    data, datalen, compat);
+		if (r != 0) {
+			error("%s: sshsk_sign internal: %s",
+			    __func__, ssh_err(r));
+		}
+		notify_complete(notifier);
+		return r;
 	}
 #endif
 
@@ -352,17 +365,10 @@ provider_sign(const char *provider, struct sshkey *key,
 		error("%s: send: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
-	    SSH_FP_DEFAULT)) == NULL)
-		fatal("%s: sshkey_fingerprint failed", __func__);
-	notifier = notify_start(0,
-	    "Confirm user presence for key %s %s", sshkey_type(key), fp);
 	if ((r = ssh_msg_recv(pair[0], resp)) != 0) {
 		error("%s: receive: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	notify_complete(notifier);
-	notifier = NULL;
 	if ((r = sshbuf_get_u8(resp, &version)) != 0) {
 		error("%s: parse version: %s", __func__, ssh_err(r));
 		goto out;
