@@ -1908,6 +1908,16 @@ AC_ARG_ENABLE([security-key],
 		fi
 	]
 )
+enable_sk_internal=
+AC_ARG_WITH([security-key-builtin],
+	[  --with-security-key-builtin include builtin U2F/FIDO support],
+	[
+		if test "x$withval" != "xno" ; then
+			enable_sk_internal=yes
+		fi
+	]
+)
+test "x$disable_sk" != "x" && enable_sk_internal=""
 
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_CHECK_FUNCS([dlopen])
@@ -3062,7 +3072,7 @@ fi
 AC_MSG_RESULT([$enable_sk])
 
 # Now check for built-in security key support.
-if test "x$enable_sk" = "xyes" ; then
+if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 	AC_PATH_TOOL([PKGCONFIG], [pkg-config], [no])
 	use_pkgconfig_for_libfido2=
 	if test "x$PKGCONFIG" != "xno"; then
