@@ -2793,7 +2793,7 @@ main(int argc, char **argv)
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
-	unsigned long long ull, cert_serial = 0;
+	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL;
 	u_int32_t bits = 0;
 	FILE *f;
