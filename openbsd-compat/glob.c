@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.47 2017/05/08 14:53:27 millert Exp $ */
+/*	$OpenBSD: glob.c,v 1.48 2019/02/04 16:45:40 millert Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -150,7 +150,7 @@ struct glob_path_stat {
 
 static int	 compare(const void *, const void *);
 static int	 compare_gps(const void *, const void *);
-static int	 g_Ctoc(const Char *, char *, u_int);
+static int	 g_Ctoc(const Char *, char *, size_t);
 static int	 g_lstat(Char *, struct stat *, glob_t *);
 static DIR	*g_opendir(Char *, glob_t *);
 static Char	*g_strchr(const Char *, int);
@@ -198,9 +198,8 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int),
 	if (strnlen(pattern, PATH_MAX) == PATH_MAX)
 		return(GLOB_NOMATCH);
 
-	if (pglob->gl_offs < 0 || pglob->gl_pathc < 0 ||
-	    pglob->gl_offs >= INT_MAX || pglob->gl_pathc >= INT_MAX ||
-	    pglob->gl_pathc >= INT_MAX - pglob->gl_offs - 1)
+	if (pglob->gl_offs >= SSIZE_MAX || pglob->gl_pathc >= SSIZE_MAX ||
+	    pglob->gl_pathc >= SSIZE_MAX - pglob->gl_offs - 1)
 		return GLOB_NOSPACE;
 
 	bufnext = patbuf;
@@ -472,7 +471,8 @@ static int
 glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 {
 	const Char *qpatnext;
-	int c, err, oldpathc;
+	int c, err;
+	size_t oldpathc;
 	Char *bufnext, patbuf[PATH_MAX];
 
 	qpatnext = globtilde(pattern, patbuf, PATH_MAX, pglob);
@@ -566,9 +566,9 @@ glob0(const Char *pattern, glob_t *pglob, struct glob_lim *limitp)
 		if ((pglob->gl_flags & GLOB_KEEPSTAT)) {
 			/* Keep the paths and stat info synced during sort */
 			struct glob_path_stat *path_stat;
-			int i;
-			int n = pglob->gl_pathc - oldpathc;
-			int o = pglob->gl_offs + oldpathc;
+			size_t i;
+			size_t n = pglob->gl_pathc - oldpathc;
+			size_t o = pglob->gl_offs + oldpathc;
 
 			if ((path_stat = calloc(n, sizeof(*path_stat))) == NULL)
 				return GLOB_NOSPACE;
@@ -797,20 +797,19 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
     struct stat *sb)
 {
 	char **pathv;
-	ssize_t i;
-	size_t newn, len;
+	size_t i, newn, len;
 	char *copy = NULL;
 	const Char *p;
 	struct stat **statv;
 
 	newn = 2 + pglob->gl_pathc + pglob->gl_offs;
-	if (pglob->gl_offs >= INT_MAX ||
-	    pglob->gl_pathc >= INT_MAX ||
-	    newn >= INT_MAX ||
+	if (pglob->gl_offs >= SSIZE_MAX ||
+	    pglob->gl_pathc >= SSIZE_MAX ||
+	    newn >= SSIZE_MAX ||
 	    SIZE_MAX / sizeof(*pathv) <= newn ||
 	    SIZE_MAX / sizeof(*statv) <= newn) {
  nospace:
-		for (i = pglob->gl_offs; i < (ssize_t)(newn - 2); i++) {
+		for (i = pglob->gl_offs; i < newn - 2; i++) {
 			if (pglob->gl_pathv && pglob->gl_pathv[i])
 				free(pglob->gl_pathv[i]);
 			if ((pglob->gl_flags & GLOB_KEEPSTAT) != 0 &&
@@ -971,7 +970,7 @@ fail:
 void
 globfree(glob_t *pglob)
 {
-	int i;
+	size_t i;
 	char **pp;
 
 	if (pglob->gl_pathv != NULL) {
@@ -1043,7 +1042,7 @@ g_strchr(const Char *str, int ch)
 }
 
 static int
-g_Ctoc(const Char *str, char *buf, u_int len)
+g_Ctoc(const Char *str, char *buf, size_t len)
 {
 
 	while (len--) {
