@@ -201,6 +201,10 @@ try_device(fido_dev_t *dev, const uint8_t *message, size_t message_len,
 	}
 	r = fido_dev_get_assert(dev, assert, NULL);
 	skdebug(__func__, "fido_dev_get_assert: %s", fido_strerr(r));
+	if (r == FIDO_ERR_USER_PRESENCE_REQUIRED) {
+		/* U2F tokens may return this */
+		r = FIDO_OK;
+	}
  out:
 	fido_assert_free(&assert);
 
