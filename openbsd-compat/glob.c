@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.c,v 1.40 2013/09/30 12:02:34 millert Exp $ */
+/*	$OpenBSD: glob.c,v 1.41 2014/10/08 05:35:27 deraadt Exp $ */
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -828,7 +828,7 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 		return(GLOB_NOSPACE);
 	}
 
-	pathv = realloc(pglob->gl_pathv, newn * sizeof(*pathv));
+	pathv = reallocarray(pglob->gl_pathv, newn, sizeof(*pathv));
 	if (pathv == NULL)
 		goto nospace;
 	if (pglob->gl_pathv == NULL && pglob->gl_offs > 0) {
@@ -840,7 +840,7 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 	pglob->gl_pathv = pathv;
 
 	if ((pglob->gl_flags & GLOB_KEEPSTAT) != 0) {
-		statv = realloc(pglob->gl_statv, newn * sizeof(*statv));
+		statv = reallocarray(pglob->gl_statv, newn, sizeof(*statv));
 		if (statv == NULL)
 			goto nospace;
 		if (pglob->gl_statv == NULL && pglob->gl_offs > 0) {
