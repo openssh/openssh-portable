@@ -527,7 +527,7 @@ auth_openfile(const char *file, struct passwd *pw, int strict_modes,
                         strerror(errno));
                 return NULL;
         }
-	if (strict_modes && check_secure_file_permission(file, pw) != 0) {
+	if (strict_modes && check_secure_file_permission(file, pw, 0) != 0) {
 		fclose(f);
 		logit("Authentication refused.");
 		auth_debug_add("Ignored %s", file_type);
@@ -925,11 +925,20 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 		restore_uid();
 		return 0;
 	}
+#ifdef WINDOWS
+	if (check_secure_file_permission(av[0], pw, 1) != 0) {
+		error("Permissions on %s:\"%s\" are too open", tag, av[0]);
+		restore_uid();
+		return 0;
+	}
+#else
 	if (safe_path(av[0], &st, NULL, 0, errmsg, sizeof(errmsg)) != 0) {
 		error("Unsafe %s \"%s\": %s", tag, av[0], errmsg);
 		restore_uid();
 		return 0;
 	}
+#endif
+
 	/* Prepare to keep the child's stdout if requested */
 	if (pipe(p) == -1) {
 		error("%s: pipe: %s", tag, strerror(errno));
@@ -938,6 +947,20 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	}
 	restore_uid();
 
+#ifdef FORK_NOT_SUPPORTED
+	{
+		posix_spawn_file_actions_t actions;
+		pid = -1;
+
+		if (posix_spawn_file_actions_init(&actions) != 0 ||
+			posix_spawn_file_actions_adddup2(&actions, p[1], STDOUT_FILENO) != 0)
+			fatal("posix_spawn initialization failed");
+		else if (__posix_spawn_asuser((pid_t*)&pid, av[0], &actions, NULL, av, NULL, pw->pw_name) != 0)
+			fatal("posix_spawn: %s", strerror(errno));
+
+		posix_spawn_file_actions_destroy(&actions);
+	}
+#else 
 	switch ((pid = fork())) {
 	case -1: /* error */
 		error("%s: fork: %s", tag, strerror(errno));
@@ -1004,6 +1027,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 	default: /* parent */
 		break;
 	}
+#endif
 
 	close(p[1]);
 	if ((flags & SSH_SUBPROCESS_STDOUT_CAPTURE) == 0)

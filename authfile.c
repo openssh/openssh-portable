@@ -154,7 +154,7 @@ sshkey_perm_ok(int fd, const char *filename)
 #endif
 		
 #ifdef WINDOWS  /*implement permission checks on Windows*/
-	if(check_secure_file_permission(filename, NULL) != 0) {
+	if(check_secure_file_permission(filename, NULL, 0) != 0) {
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");

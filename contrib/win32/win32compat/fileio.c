@@ -906,30 +906,63 @@ fileio_lseek(struct w32_io* pio, unsigned __int64 offset, int origin)
 	return 0;
 }
 
-/* 
- * fdopen implementation - use with caution
- * this implementation deviates from POSIX spec the following way
- * - the underlying file descriptor is closed automatically
- * hence no further POSIX io operations (read, write, close, etc) on the 
- * underlying file descriptor are supported
- */
-FILE*
-fileio_fdopen(struct w32_io* pio, const char *mode)
+/* fdopen() to be used  on pipe handles */
+static FILE*
+fileio_fdopen_pipe(struct w32_io* pio, const char *mode)
+{
+	int fd_flags = 0;
+	FILE* ret;
+	debug4("fdopen - io:%p", pio);
+
+	if (mode[1] == '\0') {
+		switch (*mode) {
+		case 'r':
+			fd_flags = _O_RDONLY;
+			break;
+		case 'w':
+			break;
+		case 'a':
+			fd_flags = _O_APPEND;
+			break;
+		default:
+			errno = ENOTSUP;
+			debug3("fdopen - ERROR unsupported mode %s", mode);
+			return NULL;
+		}
+	}
+	else {
+		errno = ENOTSUP;
+		debug3("fdopen - ERROR unsupported mode %s", mode);
+		return NULL;
+	}
+
+	int fd = _open_osfhandle((intptr_t)pio->handle, fd_flags);
+
+	if (fd == -1 || (ret = _fdopen(fd, mode)) == NULL) {
+		errno = EOTHER;
+		debug3("fdopen - ERROR:%d _open_osfhandle()", errno);
+		return NULL;
+	}
+
+	// overwrite underlying win32 handle - its expected to be closed via fclose
+	// and close pio
+	pio->handle = NULL;
+	int w32_close(int);
+	w32_close(pio->table_index);
+	return ret;
+}
+
+/* fdopen() to be used  on file handles */
+static FILE*
+fileio_fdopen_disk(struct w32_io* pio, const char *mode)
 {
 	wchar_t *file_path, *wmode = NULL;
 	FILE* ret = NULL;
-	DWORD type = 0;
 	
 	debug4("fdopen - io:%p", pio);
 
 	if ((wmode = utf8_to_utf16(mode)) == NULL)
 		goto cleanup;
-
-	/* for non-disk files, just return the descriptor */
-	type = GetFileType(pio->handle);
-	if (type != FILE_TYPE_DISK) {
-		return _fdopen(pio->table_index, mode);
-	}
 
 	file_path = get_final_path_by_handle(pio->handle);
 	if (!file_path) 
@@ -948,6 +981,31 @@ cleanup:
 		free(wmode);
 
 	return ret;
+}
+
+/*
+ * fdopen implementation - use with caution
+ * this implementation deviates from POSIX spec the following way
+ * - the underlying file descriptor is closed automatically
+ * hence no further POSIX io operations (read, write, close, etc) on the
+ * underlying file descriptor are supported
+ */
+FILE*
+fileio_fdopen(struct w32_io* pio, const char *mode)
+{
+	DWORD type = 0;
+
+	debug4("fdopen - io:%p", pio);
+
+	type = GetFileType(pio->handle);
+	if (type == FILE_TYPE_DISK) {
+		return fileio_fdopen_disk(pio, mode);
+	} else if (type == FILE_TYPE_PIPE) {
+		return fileio_fdopen_pipe(pio, mode);
+	} else {
+		errno = ENOTSUP;
+		return NULL;
+	}
 }
 
 void

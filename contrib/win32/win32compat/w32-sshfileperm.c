@@ -45,15 +45,14 @@
 * Check the owner of the file is one of these types: Local Administrators groups, system account, current user account
 * Check the users have access permission to the file don't voilate the following rules:	
 	1. no user other than local administrators group, system account, and pwd user have write permission on the file
-	2. sshd account can only have read permission	
 * Returns 0 on success and -1 on failure
 */
 int
-check_secure_file_permission(const char *input_path, struct passwd * pw)
+check_secure_file_permission(const char *input_path, struct passwd * pw, int read_ok)
 {	
 	PSECURITY_DESCRIPTOR pSD = NULL;
 	wchar_t * path_utf16 = NULL;
-	PSID owner_sid = NULL, user_sid = NULL;
+	PSID owner_sid = NULL, user_sid = NULL, ti_sid = NULL;
 	PACL dacl = NULL;
 	DWORD error_code = ERROR_SUCCESS; 
 	BOOL is_valid_sid = FALSE, is_valid_acl = FALSE;
@@ -67,6 +66,8 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 		ret = -1;
 		goto cleanup;
 	}
+
+	ti_sid = get_sid("NT SERVICE\\TrustedInstaller");
 
 	/*Get the owner sid of the file.*/
 	if ((error_code = GetNamedSecurityInfoW(path_utf16, SE_FILE_OBJECT,
@@ -83,8 +84,9 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 		goto cleanup;
 	}
 	if (!IsWellKnownSid(owner_sid, WinBuiltinAdministratorsSid) &&
-		!IsWellKnownSid(owner_sid, WinLocalSystemSid) &&
-		!EqualSid(owner_sid, user_sid)) {
+	    !IsWellKnownSid(owner_sid, WinLocalSystemSid) &&
+	    !EqualSid(owner_sid, user_sid) &&
+	    !(ti_sid && EqualSid(owner_sid, ti_sid))) {
 		debug3("Bad owner on %S", path_utf16);
 		ret = -1;
 		goto cleanup;
@@ -92,7 +94,6 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	/*
 	iterate all aces of the file to find out if there is voilation of the following rules:
 		1. no others than administrators group, system account, and current user account have write permission on the file
-		2. sshd account can only have read permission
 	*/
 	for (DWORD i = 0; i < dacl->AceCount; i++) {
 		PVOID current_ace = NULL;
@@ -118,8 +119,12 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 		
 		/*no need to check administrators group, pwd user account, and system account*/
 		if (IsWellKnownSid(current_trustee_sid, WinBuiltinAdministratorsSid) ||
-			IsWellKnownSid(current_trustee_sid, WinLocalSystemSid) ||
-			EqualSid(current_trustee_sid, user_sid)) {
+		    IsWellKnownSid(current_trustee_sid, WinLocalSystemSid) ||
+		    EqualSid(current_trustee_sid, user_sid) ||
+		    (ti_sid && EqualSid(current_trustee_sid, ti_sid))) {
+			continue;
+		} else if (read_ok && (current_access_mask & (FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA)) == 0 ) {
+			/* if read is allowed, allow ACES that do not give write access*/
 			continue;
 		} else {
 
@@ -159,6 +164,8 @@ cleanup:
 		LocalFree(pSD);
 	if (user_sid)
 		free(user_sid);
+	if (ti_sid)
+		free(ti_sid);
 	if(path_utf16)
 		free(path_utf16);
 	return ret;

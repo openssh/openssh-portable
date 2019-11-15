@@ -127,7 +127,7 @@ Describe "Tests for ssh config" -Tags "CI" {
 
         It "$tC.$tI-User SSHConfig-ReadConfig negative (others has permission)" {
             #setup
-            Repair-FilePermission -Filepath $userConfigFile -Owners $currentUserSid -FullAccessNeeded $adminsSid,$systemSid,$currentUserSid -ReadAccessNeeded $objUserSid -confirm:$false
+            Repair-FilePermission -Filepath $userConfigFile -Owners $currentUserSid -FullAccessNeeded $adminsSid,$systemSid,$currentUserSid,$objUserSid -confirm:$false
 
             #Run
             cmd /c "ssh test_target echo 1234 2> $logPath"

@@ -311,6 +311,12 @@ check_principals_line(struct ssh *ssh, char *cp, const struct sshkey_cert *cert,
 	while (ep > cp && (*ep == '\n' || *ep == ' ' || *ep == '\t'))
 		*ep-- = '\0';
 
+#ifdef SUPPORT_CRLF
+	/* account for \r at line end */
+	if (*ep == '\r')
+		*ep-- = '\0';
+#endif
+
 	/*
 	 * If the line has internal whitespace then assume it has
 	 * key options.
