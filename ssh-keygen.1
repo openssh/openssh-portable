@@ -51,7 +51,7 @@
 .Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | rsa
 .Op Fl N Ar new_passphrase
 .Op Fl w Ar provider
-.Op Fl x Ar flags
+.Op Fl x Cm no_up
 .Nm ssh-keygen
 .Fl p
 .Op Fl f Ar keyfile
@@ -666,9 +666,10 @@ Specify desired generator when testing candidate moduli for DH-GEX.
 Specifies a path to a security key provider library that will be used when
 creating any security key-hosted keys, overriding the default of the
 internal support for USB HID keys.
-.It Fl x Ar flags
+.It Fl x Cm no_up
 Specifies the security key flags to use when enrolling a security key-hosted
-key.
+key. Currently only "no_up" is supported, which disables the user-presence
+requirement to use the key.
 .It Fl y
 This option will read a private
 OpenSSH format file and print an OpenSSH public key to stdout.
