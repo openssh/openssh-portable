@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.313 2019/11/13 04:47:52 deraadt Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.314 2019/11/15 02:37:24 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1197,7 +1197,6 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 		debug("%s: sshkey_sign: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	notify_complete(notifier);
 	/*
 	 * PKCS#11 tokens may not support all signature algorithms,
 	 * so check what we get back.
@@ -1209,6 +1208,7 @@ identity_sign(struct identity *id, u_char **sigp, size_t *lenp,
 	/* success */
 	r = 0;
  out:
+	notify_complete(notifier);
 	sshkey_free(prv);
 	return r;
 }
