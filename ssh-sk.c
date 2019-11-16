@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.12 2019/11/14 21:27:30 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.13 2019/11/16 22:42:30 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -264,6 +264,10 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	int r = SSH_ERR_INTERNAL_ERROR;
 	int alg;
 
+	debug("%s: provider \"%s\", application \"%s\", flags 0x%02x, "
+	    "challenge len %zu", __func__, provider_path, application,
+	    flags, challenge_buf == NULL ? 0 : sshbuf_len(challenge_buf));
+
 	*keyp = NULL;
 	if (attest)
 		sshbuf_reset(attest);
@@ -460,6 +464,9 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 	struct sk_sign_response *resp = NULL;
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
+
+	debug("%s: provider \"%s\", key \"%s\", flags 0x%02x", __func__,
+	    provider_path, sshkey_type(key), key->sk_flags);
 
 	if (sigp != NULL)
 		*sigp = NULL;
