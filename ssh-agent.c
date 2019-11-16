@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.246 2019/11/15 05:37:27 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.247 2019/11/16 22:36:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -300,25 +300,6 @@ provider_sign(const char *provider, struct sshkey *key,
 	*sigp = NULL;
 	*lenp = 0;
 
-	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
-	    SSH_FP_DEFAULT)) == NULL)
-		fatal("%s: sshkey_fingerprint failed", __func__);
-	notifier = notify_start(0,
-	    "Confirm user presence for key %s %s", sshkey_type(key), fp);
-
-#ifdef ENABLE_SK_INTERNAL
-	if (strcasecmp(provider, "internal") == 0) {
-		r = sshsk_sign(provider, key, sigp, lenp,
-		    data, datalen, compat);
-		if (r != 0) {
-			error("%s: sshsk_sign internal: %s",
-			    __func__, ssh_err(r));
-		}
-		notify_complete(notifier);
-		return r;
-	}
-#endif
-
 	helper = getenv("SSH_SK_HELPER");
 	if (helper == NULL || strlen(helper) == 0)
 		helper = _PATH_SSH_SK_HELPER;
@@ -361,6 +342,13 @@ provider_sign(const char *provider, struct sshkey *key,
 	    (r = sshbuf_put_string(req, data, datalen)) != 0 ||
 	    (r = sshbuf_put_u32(req, compat)) != 0)
 		fatal("%s: compose: %s", __func__, ssh_err(r));
+
+	if ((fp = sshkey_fingerprint(key, SSH_FP_HASH_DEFAULT,
+	    SSH_FP_DEFAULT)) == NULL)
+		fatal("%s: sshkey_fingerprint failed", __func__);
+	notifier = notify_start(0,
+	    "Confirm user presence for key %s %s", sshkey_type(key), fp);
+
 	if ((r = ssh_msg_send(pair[0], SSH_SK_HELPER_VERSION, req)) != 0) {
 		error("%s: send: %s", __func__, ssh_err(r));
 		goto out;
@@ -426,7 +414,7 @@ process_sign_request2(SocketEntry *e)
 	u_char *signature = NULL;
 	size_t dlen, slen = 0;
 	u_int compat = 0, flags;
-	int was_shielded, r, r2, ok = -1;
+	int r, ok = -1;
 	struct sshbuf *msg;
 	struct sshkey *key = NULL;
 	struct identity *id;
@@ -449,21 +437,9 @@ process_sign_request2(SocketEntry *e)
 		goto send;
 	}
 	if (id->sk_provider != NULL) {
-		was_shielded = sshkey_is_shielded(id->key);
-		if ((r = sshkey_unshield_private(id->key)) != 0) {
-			error("%s: unshield: %s", __func__, ssh_err(r));
-			goto send;
-		}
-		r = provider_sign(id->sk_provider, id->key, &signature,
+		if ((r = provider_sign(id->sk_provider, id->key, &signature,
 		    &slen, data, dlen, agent_decode_alg(key, flags),
-		    compat);
-		if (was_shielded &&
-		    (r2 = sshkey_shield_private(id->key)) != 0) {
-			error("%s: shield: %s", __func__, ssh_err(r));
-			r = r2;
-			goto send;
-		}
-		if (r != 0) {
+		    compat)) != 0) {
 			error("%s: sign: %s", __func__, ssh_err(r));
 			goto send;
 		}
