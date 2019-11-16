@@ -1486,7 +1486,7 @@ wmain(int ac, wchar_t **av)
 	while (*exec_command != L'\0' && *exec_command == L' ')
 		exec_command++;
 
-	if (exec_command == L'\0')
+	if (*exec_command == L'\0')
 		goto usage;
 
 	if (with_pty)
