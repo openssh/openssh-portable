@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.13 2019/11/16 22:42:30 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.14 2019/11/16 23:17:20 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -465,7 +465,7 @@ sshsk_sign(const char *provider_path, const struct sshkey *key,
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
 
-	debug("%s: provider \"%s\", key \"%s\", flags 0x%02x", __func__,
+	debug("%s: provider \"%s\", key %s, flags 0x%02x", __func__,
 	    provider_path, sshkey_type(key), key->sk_flags);
 
 	if (sigp != NULL)
