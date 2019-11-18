@@ -31,35 +31,41 @@
 /* conditional algorithm support */
 
 #ifdef OPENSSL_HAS_ECC
-#ifdef OPENSSL_HAS_NISTP521
-# define KEX_ECDH_METHODS \
+# ifdef OPENSSL_HAS_NISTP521
+#  define KEX_ECDH_METHODS \
 	"ecdh-sha2-nistp256," \
 	"ecdh-sha2-nistp384," \
 	"ecdh-sha2-nistp521,"
-# define HOSTKEY_ECDSA_CERT_METHODS \
+#  define HOSTKEY_ECDSA_CERT_METHODS \
 	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
 	"ecdsa-sha2-nistp384-cert-v01@openssh.com," \
 	"ecdsa-sha2-nistp521-cert-v01@openssh.com,"
-# define HOSTKEY_ECDSA_METHODS \
+#  define HOSTKEY_ECDSA_METHODS \
 	"ecdsa-sha2-nistp256," \
 	"ecdsa-sha2-nistp384," \
 	"ecdsa-sha2-nistp521,"
-#else
-# define KEX_ECDH_METHODS \
+# else /* OPENSSL_HAS_NISTP521 */
+#  define KEX_ECDH_METHODS \
 	"ecdh-sha2-nistp256," \
 	"ecdh-sha2-nistp384,"
-# define HOSTKEY_ECDSA_CERT_METHODS \
+#  define HOSTKEY_ECDSA_CERT_METHODS \
 	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
 	"ecdsa-sha2-nistp384-cert-v01@openssh.com,"
-# define HOSTKEY_ECDSA_METHODS \
+#  define HOSTKEY_ECDSA_METHODS \
 	"ecdsa-sha2-nistp256," \
 	"ecdsa-sha2-nistp384,"
-#endif
-#else
+# endif /* OPENSSL_HAS_NISTP521 */
+# define USERKEY_ECDSA_SK_CERT_METHODS \
+	"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,"
+# define USERKEY_ECDSA_SK_METHODS \
+	"sk-ecdsa-sha2-nistp256@openssh.com,"
+#else /* OPENSSL_HAS_ECC */
 # define KEX_ECDH_METHODS
 # define HOSTKEY_ECDSA_CERT_METHODS
 # define HOSTKEY_ECDSA_METHODS
-#endif
+# define USERKEY_ECDSA_SK_CERT_METHODS
+# define USERKEY_ECDSA_SK_METHODS
+#endif /* OPENSSL_HAS_ECC */
 
 #ifdef OPENSSL_HAVE_EVPGCM
 # define AESGCM_CIPHER_MODES \
@@ -145,7 +151,7 @@
 	"ssh-rsa"
 
 #define	PUBKEY_DEFAULT_PK_ALG	\
-	"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com," \
+	USERKEY_ECDSA_SK_CERT_METHODS \
 	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
 	"ecdsa-sha2-nistp384-cert-v01@openssh.com," \
 	"ecdsa-sha2-nistp521-cert-v01@openssh.com," \
@@ -154,7 +160,7 @@
 	"rsa-sha2-512-cert-v01@openssh.com," \
 	"rsa-sha2-256-cert-v01@openssh.com," \
 	"ssh-rsa-cert-v01@openssh.com," \
-	"sk-ecdsa-sha2-nistp256@openssh.com," \
+	USERKEY_ECDSA_SK_METHODS \
 	"ecdsa-sha2-nistp256," \
 	"ecdsa-sha2-nistp384," \
 	"ecdsa-sha2-nistp521," \
