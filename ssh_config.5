@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.308 2019/11/18 23:16:49 naddy Exp $
+.\" $OpenBSD: ssh_config.5,v 1.309 2019/11/18 23:17:48 naddy Exp $
 .Dd $Mdocdate: November 18 2019 $
 .Dt SSH_CONFIG 5
 .Os
@@ -1453,7 +1453,12 @@ For more information on KRLs, see the KEY REVOCATION LISTS section in
 .It Cm SecurityKeyProvider
 Specifies a path to a security key provider library that will be used when
 loading any security key-hosted keys, overriding the default of using
-the build-in support for USB HID keys.
+the built-in support for USB HID keys.
+.Pp
+If the specified value begins with a
+.Sq $
+character, then it will be treated as an environment variable containing
+the path to the library.
 .It Cm SendEnv
 Specifies what variables from the local
 .Xr environ 7
