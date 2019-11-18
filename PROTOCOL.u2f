@@ -58,12 +58,14 @@ the existing ecdsa-sha2-nistp* key types.
 The format of a sk-ecdsa-sha2-nistp256@openssh.com public key is:
 
 	string		"sk-ecdsa-sha2-nistp256@openssh.com"
+	string		curve name
 	ec_point	Q
 	string		application (user-specified, but typically "ssh:")
 
 The corresponding private key contains:
 
 	string		"sk-ecdsa-sha2-nistp256@openssh.com"
+	string		curve name
 	ec_point	Q
 	string		application (user-specified, but typically "ssh:")
 	string		key_handle
@@ -75,6 +77,7 @@ information to the public key:
 
 	string		"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com"
 	string		nonce
+	string		curve name
 	ec_point	Q
 	string		application
 	uint64		serial
