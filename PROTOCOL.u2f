@@ -68,8 +68,8 @@ The corresponding private key contains:
 	string		curve name
 	ec_point	Q
 	string		application (user-specified, but typically "ssh:")
+	uint8		flags
 	string		key_handle
-	uint32		flags
 	string		reserved
 
 The certificate form of a SSH U2F key appends the usual certificate
