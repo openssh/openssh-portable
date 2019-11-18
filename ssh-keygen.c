@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.365 2019/11/18 01:59:48 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.366 2019/11/18 06:24:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1801,9 +1801,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		if ((r = sshkey_load_public(tmp, &public, &comment)) != 0)
 			fatal("%s: unable to open \"%s\": %s",
 			    __func__, tmp, ssh_err(r));
-		if (public->type != KEY_RSA && public->type != KEY_DSA &&
-		    public->type != KEY_ECDSA && public->type != KEY_ED25519 &&
-		    public->type != KEY_XMSS)
+		if (sshkey_is_cert(public))
 			fatal("%s: key \"%s\" type %s cannot be certified",
 			    __func__, tmp, sshkey_type(public));
 
