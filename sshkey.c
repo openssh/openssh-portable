@@ -2430,6 +2430,7 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 		DSA_print_fp(stderr, key->dsa, 8);
 #endif
 		break;
+# ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA_CERT:
 	case KEY_ECDSA_SK_CERT:
 		/* Skip nonce */
@@ -2438,7 +2439,6 @@ sshkey_from_blob_internal(struct sshbuf *b, struct sshkey **keyp,
 			goto out;
 		}
 		/* FALLTHROUGH */
-# ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 	case KEY_ECDSA_SK:
 		if ((key = sshkey_new(type)) == NULL) {
