@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.175 2019/11/18 04:50:45 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.176 2019/11/18 23:16:49 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -191,7 +191,8 @@ key in
 .Pa ~/.ssh/id_dsa ,
 .Pa ~/.ssh/id_ecdsa ,
 .Pa ~/.ssh/id_ecdsa_sk ,
-.Pa ~/.ssh/id_ed25519
+.Pa ~/.ssh/id_ed25519 ,
+.Pa ~/.ssh/id_ed25519_sk
 or
 .Pa ~/.ssh/id_rsa .
 Additionally, the system administrator may use this to generate host keys,
@@ -285,7 +286,7 @@ flag determines the key length by selecting from one of three elliptic
 curve sizes: 256, 384 or 521 bits.
 Attempting to use bit lengths other than these three values for ECDSA keys
 will fail.
-ECDSA-SK and Ed25519 keys have a fixed length and the
+ECDSA-SK, Ed25519 and Ed25519-SK keys have a fixed length and the
 .Fl b
 flag will be ignored.
 .It Fl C Ar comment
@@ -1044,9 +1045,10 @@ hardware security keys.
 .It Pa ~/.ssh/id_ecdsa
 .It Pa ~/.ssh/id_ecdsa_sk
 .It Pa ~/.ssh/id_ed25519
+.It Pa ~/.ssh/id_ed25519_sk
 .It Pa ~/.ssh/id_rsa
-Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519 or RSA
-authentication identity of the user.
+Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519,
+security key-hosted Ed25519 or RSA authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
 specify a passphrase when generating the key; that passphrase will be
@@ -1061,9 +1063,10 @@ will read this file when a login attempt is made.
 .It Pa ~/.ssh/id_ecdsa.pub
 .It Pa ~/.ssh/id_ecdsa_sk.pub
 .It Pa ~/.ssh/id_ed25519.pub
+.It Pa ~/.ssh/id_ed25519_sk.pub
 .It Pa ~/.ssh/id_rsa.pub
-Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519 or RSA
-public key for authentication.
+Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519,
+security key-hosted Ed25519 or RSA public key for authentication.
 The contents of this file should be added to
 .Pa ~/.ssh/authorized_keys
 on all machines
