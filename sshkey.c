@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.94 2019/11/18 06:39:02 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.95 2019/11/18 06:58:00 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -823,6 +823,7 @@ to_blob_buf(const struct sshkey *key, struct sshbuf *b, int force_plain,
 	case KEY_RSA_CERT:
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519_CERT:
+	case KEY_ED25519_SK_CERT:
 #ifdef WITH_XMSS
 	case KEY_XMSS_CERT:
 #endif /* WITH_XMSS */
