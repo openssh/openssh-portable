@@ -152,18 +152,14 @@
 
 #define	PUBKEY_DEFAULT_PK_ALG	\
 	USERKEY_ECDSA_SK_CERT_METHODS \
-	"ecdsa-sha2-nistp256-cert-v01@openssh.com," \
-	"ecdsa-sha2-nistp384-cert-v01@openssh.com," \
-	"ecdsa-sha2-nistp521-cert-v01@openssh.com," \
+	HOSTKEY_ECDSA_CERT_METHODS \
 	"sk-ssh-ed25519-cert-v01@openssh.com," \
 	"ssh-ed25519-cert-v01@openssh.com," \
 	"rsa-sha2-512-cert-v01@openssh.com," \
 	"rsa-sha2-256-cert-v01@openssh.com," \
 	"ssh-rsa-cert-v01@openssh.com," \
 	USERKEY_ECDSA_SK_METHODS \
-	"ecdsa-sha2-nistp256," \
-	"ecdsa-sha2-nistp384," \
-	"ecdsa-sha2-nistp521," \
+	HOSTKEY_ECDSA_METHODS \
 	"sk-ssh-ed25519@openssh.com," \
 	"ssh-ed25519," \
 	"rsa-sha2-512," \
