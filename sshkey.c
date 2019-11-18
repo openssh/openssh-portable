@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.93 2019/11/15 06:00:20 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.94 2019/11/18 06:39:02 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2978,9 +2978,15 @@ sshkey_certify_custom(struct sshkey *k, struct sshkey *ca, const char *alg,
 		break;
 #endif /* WITH_OPENSSL */
 	case KEY_ED25519_CERT:
+	case KEY_ED25519_SK_CERT:
 		if ((ret = sshbuf_put_string(cert,
 		    k->ed25519_pk, ED25519_PK_SZ)) != 0)
 			goto out;
+		if (k->type == KEY_ED25519_SK_CERT) {
+			if ((ret = sshbuf_put_cstring(cert,
+			    k->sk_application)) != 0)
+				goto out;
+		}
 		break;
 #ifdef WITH_XMSS
 	case KEY_XMSS_CERT:
