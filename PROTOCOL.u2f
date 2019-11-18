@@ -36,15 +36,18 @@ in conjunction with a small per-device secret that is unique to the
 hardware, thus requiring little on-device storage for an effectively
 unlimited number of supported keys. This drives the requirement that
 the key handle be supplied for each signature operation. U2F tokens
-primarily use ECDSA signatures in the NIST-P256 field.
+primarily use ECDSA signatures in the NIST-P256 field, though the FIDO2
+standard specified additional key types include one based on Ed25519.
 
 SSH U2F Key formats
 -------------------
 
-OpenSSH integrates U2F as a new key and corresponding certificate type:
+OpenSSH integrates U2F as new key and corresponding certificate types:
 
 	sk-ecdsa-sha2-nistp256@openssh.com
 	sk-ecdsa-sha2-nistp256-cert-v01@openssh.com
+	sk-ssh-ed25519@openssh.com
+	sk-ssh-ed25519-cert-v01@openssh.com
 
 These key types are supported only for user authentication with the
 "publickey" method. They are not used for host-based user authentication
@@ -72,13 +75,44 @@ The corresponding private key contains:
 	string		key_handle
 	string		reserved
 
-The certificate form of a SSH U2F key appends the usual certificate
+The format of a sk-ssh-ed25519@openssh.com public key is:
+
+	string		"sk-ssh-ed25519@openssh.com"
+	string		public key
+	string		application (user-specified, but typically "ssh:")
+
+With a private half consisting of:
+
+	string		"sk-ssh-ed25519@openssh.com"
+	string		public key
+	string		application (user-specified, but typically "ssh:")
+	uint32		flags
+	string		key_handle
+	string		reserved
+
+The certificate form for SSH U2F keys appends the usual certificate
 information to the public key:
 
 	string		"sk-ecdsa-sha2-nistp256-cert-v01@openssh.com"
 	string		nonce
 	string		curve name
 	ec_point	Q
+	string		application
+	uint64		serial
+	uint32		type
+	string		key id
+	string		valid principals
+	uint64		valid after
+	uint64		valid before
+	string		critical options
+	string		extensions
+	string		reserved
+	string		signature key
+	string		signature
+
+	string		"sk-ssh-ed25519-cert-v01@openssh.com"
+	string		nonce
+	string		public key
 	string		application
 	uint64		serial
 	uint32		type
@@ -187,8 +221,9 @@ OpenSSH integration
 U2F tokens may be attached via a number of means, including USB and NFC.
 The USB interface is standardised around a HID protocol, but we want to
 be able to support other transports as well as dummy implementations for
-regress testing. For this reason, OpenSSH shall perform all U2F operations
-via a dynamically-loaded middleware library.
+regress testing. For this reason, OpenSSH shall support a dynamically-
+loaded middleware libraries to communicate with security keys, but offer
+support for the common case of USB HID security keys internally.
 
 The middleware library need only expose a handful of functions:
 
