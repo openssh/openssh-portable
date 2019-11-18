@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.366 2019/11/18 06:24:17 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.367 2019/11/18 06:39:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1830,7 +1830,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 				fatal("Couldn't certify key %s via agent: %s",
 				    tmp, ssh_err(r));
 		} else {
-			if ((sshkey_certify(public, ca, key_type_name,
+			if ((r = sshkey_certify(public, ca, key_type_name,
 			    sk_provider)) != 0)
 				fatal("Couldn't certify key %s: %s",
 				    tmp, ssh_err(r));
