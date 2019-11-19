@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.65 2019/10/31 21:22:01 djm Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.66 2019/11/19 14:54:47 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: October 31 2019 $
+.Dd $Mdocdate: November 19 2019 $
 .Dt SSH-AGENT 1
 .Os
 .Sh NAME
@@ -43,15 +43,12 @@
 .Sh SYNOPSIS
 .Nm ssh-agent
 .Op Fl c | s
-.Op Fl \&Dd
+.Op Fl Ddk
 .Op Fl a Ar bind_address
 .Op Fl E Ar fingerprint_hash
 .Op Fl P Ar provider_whitelist
 .Op Fl t Ar life
 .Op Ar command Op Ar arg ...
-.Nm ssh-agent
-.Op Fl c | s
-.Fl k
 .Sh DESCRIPTION
 .Nm
 is a program to hold private keys used for public key authentication
@@ -122,6 +119,7 @@ The default is
 Kill the current agent (given by the
 .Ev SSH_AGENT_PID
 environment variable).
+This option should not be used with any other options.
 .It Fl P Ar provider_whitelist
 Specify a pattern-list of acceptable paths for PKCS#11 and security key shared
 libraries that may be used with the
