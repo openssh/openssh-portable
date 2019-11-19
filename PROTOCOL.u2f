@@ -175,15 +175,18 @@ The signature returned from U2F hardware takes the following format:
 For use in the SSH protocol, we wish to avoid server-side parsing of ASN.1
 format data in the pre-authentication attack surface. Therefore, the
 signature format used on the wire in SSH2_USERAUTH_REQUEST packets will
-be reformatted slightly and the ecdsa_signature_blob value has the encoding:
+be reformatted to better match the existing signature encoding:
 
-	mpint		r
-	mpint		s
+	string		"sk-ecdsa-sha2-nistp256@openssh.com"
+	string		ecdsa_signature
 	byte		flags
 	uint32		counter
 
-Where 'r' and 's' are extracted by the client or token middleware from the
-ecdsa_signature field returned from the hardware.
+Where the "ecdsa_signature" field follows the RFC5656 ECDSA signature
+encoding:
+
+	mpint		r
+	mpint		s
 
 For Ed25519 keys the signature is encoded as:
 

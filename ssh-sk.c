@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.15 2019/11/18 16:08:57 naddy Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.16 2019/11/19 22:23:19 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -411,13 +411,13 @@ sshsk_ecdsa_sig(struct sk_sign_response *resp, struct sshbuf *sig)
 	if ((r = sshbuf_put_bignum2_bytes(inner_sig,
 	    resp->sig_r, resp->sig_r_len)) != 0 ||
 	    (r = sshbuf_put_bignum2_bytes(inner_sig,
-	    resp->sig_s, resp->sig_s_len)) != 0 ||
-	    (r = sshbuf_put_u8(inner_sig, resp->flags)) != 0 ||
-	    (r = sshbuf_put_u32(inner_sig, resp->counter)) != 0) {
+	    resp->sig_s, resp->sig_s_len)) != 0) {
 		debug("%s: buffer error: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	if ((r = sshbuf_put_stringb(sig, inner_sig)) != 0) {
+	if ((r = sshbuf_put_stringb(sig, inner_sig)) != 0 ||
+	    (r = sshbuf_put_u8(sig, resp->flags)) != 0 ||
+	    (r = sshbuf_put_u32(sig, resp->counter)) != 0) {
 		debug("%s: buffer error: %s", __func__, ssh_err(r));
 		goto out;
 	}

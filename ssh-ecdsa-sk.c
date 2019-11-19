@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.1 2019/10/31 21:15:14 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.2 2019/11/19 22:23:19 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -77,7 +77,9 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	if ((b = sshbuf_from(signature, signaturelen)) == NULL)
 		return SSH_ERR_ALLOC_FAIL;
 	if (sshbuf_get_cstring(b, &ktype, NULL) != 0 ||
-	    sshbuf_froms(b, &sigbuf) != 0) {
+	    sshbuf_froms(b, &sigbuf) != 0 ||
+	    sshbuf_get_u8(b, &sig_flags) != 0 ||
+	    sshbuf_get_u32(b, &sig_counter) != 0) {
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
@@ -92,9 +94,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 
 	/* parse signature */
 	if (sshbuf_get_bignum2(sigbuf, &sig_r) != 0 ||
-	    sshbuf_get_bignum2(sigbuf, &sig_s) != 0 ||
-	    sshbuf_get_u8(sigbuf, &sig_flags) != 0 ||
-	    sshbuf_get_u32(sigbuf, &sig_counter) != 0) {
+	    sshbuf_get_bignum2(sigbuf, &sig_s) != 0) {
 		ret = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
