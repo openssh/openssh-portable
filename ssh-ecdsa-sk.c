@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdio.h> /* needed for DEBUG_SK only */
 
+#include "openbsd-compat/openssl-compat.h"
+
 #include "sshbuf.h"
 #include "ssherr.h"
 #include "digest.h"
