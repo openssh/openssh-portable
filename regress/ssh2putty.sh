@@ -1,5 +1,5 @@
 #!/bin/sh
-#	$OpenBSD: ssh2putty.sh,v 1.4 2019/11/18 09:15:17 dtucker Exp $
+#	$OpenBSD: ssh2putty.sh,v 1.5 2019/11/21 05:18:47 tb Exp $
 
 if test "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ; then
 	echo "Usage: ssh2putty hostname port ssh-private-key"
@@ -19,7 +19,7 @@ else
 fi
 
 public_exponent=`
-	openssl rsa -noout -text -in $KEYFILE | egrep '^(public)?Exponent' |
+	openssl rsa -noout -text -in $KEYFILE | grep ^publicExponent |
 	sed 's/.*(//;s/).*//'
 `
 test $? -ne 0 && exit 1
