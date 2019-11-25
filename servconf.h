@@ -1,4 +1,4 @@
-/* $OpenBSD: servconf.h,v 1.140 2019/04/18 18:56:16 dtucker Exp $ */
+/* $OpenBSD: servconf.h,v 1.141 2019/11/25 00:52:46 djm Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -41,6 +41,9 @@
 
 /* Magic name for internal sftp-server */
 #define INTERNAL_SFTP_NAME	"internal-sftp"
+
+/* PubkeyAuthOptions flags */
+#define PUBKEYAUTH_TOUCH_REQUIRED	1
 
 struct ssh;
 struct fwd_perm_list;
@@ -114,6 +117,7 @@ typedef struct {
 	char   *ca_sign_algorithms;	/* Allowed CA signature algorithms */
 	int     pubkey_authentication;	/* If true, permit ssh2 pubkey authentication. */
 	char   *pubkey_key_types;	/* Key types allowed for public key */
+	int	pubkey_auth_options;	/* -1 or mask of PUBKEYAUTH_* flags */
 	int     kerberos_authentication;	/* If true, permit Kerberos
 						 * authentication. */
 	int     kerberos_or_local_passwd;	/* If true, permit kerberos
