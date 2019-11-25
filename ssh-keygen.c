@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.371 2019/11/25 00:54:23 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.372 2019/11/25 00:55:58 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2810,6 +2810,7 @@ main(int argc, char **argv)
 	unsigned long long ull, cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL;
 	u_int32_t bits = 0;
+	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 	FILE *f;
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
@@ -2821,9 +2822,6 @@ main(int argc, char **argv)
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	unsigned long start_lineno = 0, lines_to_process = 0;
 	BIGNUM *start = NULL;
-#endif
-#ifdef ENABLE_SK
-	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 #endif
 
 	extern int optind;
@@ -3015,15 +3013,19 @@ main(int argc, char **argv)
 		case 'x':
 			if (*optarg == '\0')
 				fatal("Missing security key flags");
-			ull = strtoull(optarg, &ep, 0);
-			if (*ep != '\0')
-				fatal("Security key flags \"%s\" is not a "
-				    "number", optarg);
-			if (ull > 0xff)
-				fatal("Invalid security key flags 0x%llx", ull);
-#ifdef ENABLE_SK
-			sk_flags = (uint8_t)ull;
-#endif
+			if (strcasecmp(optarg, "no-touch-required") == 0)
+				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+			else {
+				ull = strtoull(optarg, &ep, 0);
+				if (*ep != '\0')
+					fatal("Security key flags \"%s\" is "
+					    "not a number", optarg);
+				if (ull > 0xff) {
+					fatal("Invalid security key "
+					    "flags 0x%llx", ull);
+				}
+				sk_flags = (uint8_t)ull;
+			}
 			break;
 		case 'z':
 			errno = 0;

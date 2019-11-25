@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.177 2019/11/25 00:54:23 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.178 2019/11/25 00:55:58 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -679,6 +679,15 @@ internal support for USB HID keys.
 .It Fl x Ar flags
 Specifies the security key flags to use when enrolling a security key-hosted
 key.
+Flags may be specified by name or directly as a hexadecimal value.
+Only one named flag is supported at present:
+.Cm no-touch-required ,
+which indicates that the generated private key should not require touch
+events (user presence) when making signatures.
+Note that
+.Xr sshd 8
+will refuse such signatures by default, unless overridden via
+an authorized_keys option.
 .It Fl y
 This option will read a private
 OpenSSH format file and print an OpenSSH public key to stdout.
