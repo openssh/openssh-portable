@@ -5,7 +5,7 @@ FUZZ_LIBS=-lFuzzer
 
 CXXFLAGS=-O2 -g -Wall -Wextra -I ../../.. $(FUZZ_FLAGS)
 LDFLAGS=-L ../../.. -L ../../../openbsd-compat -g $(FUZZ_FLAGS)
-LIBS=-lssh -lopenbsd-compat -lcrypto $(FUZZ_LIBS)
+LIBS=-lssh -lopenbsd-compat -lcrypto -lfido2 -lcbor $(FUZZ_LIBS)
 
 TARGETS=pubkey_fuzz sig_fuzz authopt_fuzz sshsig_fuzz \
 	sshsigopt_fuzz privkey_fuzz
