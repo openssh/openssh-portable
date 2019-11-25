@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.2 2019/11/12 19:34:40 markus Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.3 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -33,7 +33,8 @@
 int
 ssh_ed25519_sk_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat)
+    const u_char *data, size_t datalen, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
 	struct sshbuf *b = NULL;
 	struct sshbuf *encoded = NULL;
@@ -49,6 +50,10 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 	unsigned long long smlen = 0, mlen = 0;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	int ret;
+	struct sshkey_sig_details *details = NULL;
+
+	if (detailsp != NULL)
+		*detailsp = NULL;
 
 	if (key == NULL ||
 	    sshkey_type_plain(key->type) != KEY_ED25519_SK ||
@@ -84,6 +89,12 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
+	if ((details = calloc(1, sizeof(*details))) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	details->sk_counter = sig_counter;
+	details->sk_flags = sig_flags;
 	if ((encoded = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -115,11 +126,16 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 	/* XXX compare 'm' and 'sm + len' ? */
 	/* success */
 	r = 0;
+	if (detailsp != NULL) {
+		*detailsp = details;
+		details = NULL;
+	}
  out:
 	if (m != NULL) {
 		explicit_bzero(m, smlen); /* NB mlen may be invalid if r != 0 */
 		free(m);
 	}
+	sshkey_sig_details_free(details);
 	sshbuf_free(b);
 	sshbuf_free(encoded);
 	free(ktype);

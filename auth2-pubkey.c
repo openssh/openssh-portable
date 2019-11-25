@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.94 2019/09/06 04:53:27 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.95 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -98,6 +98,7 @@ userauth_pubkey(struct ssh *ssh)
 	int r, pktype;
 	int authenticated = 0;
 	struct sshauthopt *authopts = NULL;
+	struct sshkey_sig_details *sig_details = NULL;
 
 	if ((r = sshpkt_get_u8(ssh, &have_sig)) != 0 ||
 	    (r = sshpkt_get_cstring(ssh, &pkalg, NULL)) != 0 ||
@@ -213,8 +214,13 @@ userauth_pubkey(struct ssh *ssh)
 		    PRIVSEP(sshkey_verify(key, sig, slen,
 		    sshbuf_ptr(b), sshbuf_len(b),
 		    (ssh->compat & SSH_BUG_SIGTYPE) == 0 ? pkalg : NULL,
-		    ssh->compat)) == 0) {
+		    ssh->compat, &sig_details)) == 0) {
 			authenticated = 1;
+		}
+		if (sig_details != NULL) {
+			debug("%s: sk_counter = %u, sk_flags = 0x%02x",
+			    __func__, sig_details->sk_counter,
+			    sig_details->sk_flags);
 		}
 		auth2_record_key(authctxt, authenticated, key);
 	} else {
@@ -266,6 +272,7 @@ done:
 	free(key_s);
 	free(ca_s);
 	free(sig);
+	sshkey_sig_details_free(sig_details);
 	return authenticated;
 }
 

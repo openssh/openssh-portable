@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.369 2019/11/18 23:16:49 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.370 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -584,7 +584,7 @@ do_convert_private_ssh2(struct sshbuf *b)
 	if (sshkey_sign(key, &sig, &slen, data, sizeof(data),
 	    NULL, NULL, 0) != 0 ||
 	    sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0) != 0) {
+	    NULL, 0, NULL) != 0) {
 		sshkey_free(key);
 		free(sig);
 		return NULL;
@@ -2657,7 +2657,9 @@ verify(const char *signature, const char *sig_namespace, const char *principal,
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
 	char *fp = NULL;
+	struct sshkey_sig_details *sig_details = NULL;
 
+	memset(&sig_details, 0, sizeof(sig_details));
 	if ((abuf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new() failed", __func__);
 
@@ -2675,13 +2677,17 @@ verify(const char *signature, const char *sig_namespace, const char *principal,
 		return r;
 	}
 	if ((r = sshsig_verify_fd(sigbuf, STDIN_FILENO, sig_namespace,
-	    &sign_key)) != 0)
+	    &sign_key, &sig_details)) != 0)
 		goto done; /* sshsig_verify() prints error */
 
 	if ((fp = sshkey_fingerprint(sign_key, fingerprint_hash,
 	    SSH_FP_DEFAULT)) == NULL)
 		fatal("%s: sshkey_fingerprint failed", __func__);
 	debug("Valid (unverified) signature from key %s", fp);
+	if (sig_details != NULL) {
+		debug2("%s: signature details: counter = %u, flags = 0x%02x",
+		    __func__, sig_details->sk_counter, sig_details->sk_flags);
+	}
 	free(fp);
 	fp = NULL;
 
@@ -2726,6 +2732,7 @@ done:
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
 	sshkey_free(sign_key);
+	sshkey_sig_details_free(sig_details);
 	free(fp);
 	return ret;
 }

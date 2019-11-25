@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.146 2019/11/18 16:10:05 naddy Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.147 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -451,7 +451,7 @@ test_key(int agent_fd, const char *filename)
 		goto done;
 	}
 	if ((r = sshkey_verify(key, sig, slen, data, sizeof(data),
-	    NULL, 0)) != 0) {
+	    NULL, 0, NULL)) != 0) {
 		error("Signature verification failed for %s: %s",
 		    filename, ssh_err(r));
 		goto done;

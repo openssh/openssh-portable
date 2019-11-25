@@ -20,6 +20,7 @@
 struct sshbuf;
 struct sshkey;
 struct sshsigopt;
+struct sshkey_sig_details;
 
 typedef int sshsig_signer(struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, const char *, u_int, void *);
@@ -43,7 +44,7 @@ int sshsig_signb(struct sshkey *key, const char *hashalg,
  */
 int sshsig_verifyb(struct sshbuf *signature,
     const struct sshbuf *message, const char *sig_namespace,
-    struct sshkey **sign_keyp);
+    struct sshkey **sign_keyp, struct sshkey_sig_details **sig_details);
 
 /* File/FD-oriented API */
 
@@ -62,7 +63,8 @@ int sshsig_sign_fd(struct sshkey *key, const char *hashalg,
  * Returns 0 on success or a negative SSH_ERR_* error code on failure.
  */
 int sshsig_verify_fd(struct sshbuf *signature, int fd,
-    const char *sig_namespace, struct sshkey **sign_keyp);
+    const char *sig_namespace, struct sshkey **sign_keyp,
+    struct sshkey_sig_details **sig_details);
 
 /* Utility functions */
 

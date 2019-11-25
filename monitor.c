@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.201 2019/11/19 22:21:15 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.202 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1391,6 +1391,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 	char *sigalg;
 	size_t signaturelen, datalen, bloblen;
 	int r, ret, valid_data = 0, encoded_ret;
+	struct sshkey_sig_details *sig_details = NULL;
 
 	if ((r = sshbuf_get_string(m, &blob, &bloblen)) != 0 ||
 	    (r = sshbuf_get_string(m, &signature, &signaturelen)) != 0 ||
@@ -1430,7 +1431,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 		fatal("%s: bad signature data blob", __func__);
 
 	ret = sshkey_verify(key, signature, signaturelen, data, datalen,
-	    sigalg, ssh->compat);
+	    sigalg, ssh->compat, &sig_details);
 	debug3("%s: %s %p signature %s%s%s", __func__, auth_method, key,
 	    (ret == 0) ? "verified" : "unverified",
 	    (ret != 0) ? ": " : "", (ret != 0) ? ssh_err(ret) : "");
@@ -1450,8 +1451,15 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	/* encode ret != 0 as positive integer, since we're sending u32 */
 	encoded_ret = (ret != 0);
-	if ((r = sshbuf_put_u32(m, encoded_ret)) != 0)
+	if ((r = sshbuf_put_u32(m, encoded_ret)) != 0 ||
+	    (r = sshbuf_put_u8(m, sig_details != NULL != 0)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	if (sig_details != NULL) {
+		if ((r = sshbuf_put_u32(m, sig_details->sk_counter)) != 0 ||
+		    (r = sshbuf_put_u8(m, sig_details->sk_flags)) != 0)
+			fatal("%s: buffer error: %s", __func__, ssh_err(r));
+	}
+	sshkey_sig_details_free(sig_details);
 	mm_request_send(sock, MONITOR_ANS_KEYVERIFY, m);
 
 	return ret == 0;

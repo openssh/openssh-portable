@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.39 2019/11/13 07:53:10 markus Exp $ */
+/* $OpenBSD: sshkey.h,v 1.40 2019/11/25 00:51:37 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -156,6 +156,12 @@ struct sshkey {
 #define	ED25519_SK_SZ	crypto_sign_ed25519_SECRETKEYBYTES
 #define	ED25519_PK_SZ	crypto_sign_ed25519_PUBLICKEYBYTES
 
+/* Additional fields contained in signature */
+struct sshkey_sig_details {
+	uint32_t sk_counter;	/* U2F signature counter */
+	uint8_t sk_flags;	/* U2F signature flags; see ssh-sk.h */
+};
+
 struct sshkey	*sshkey_new(int);
 void		 sshkey_free(struct sshkey *);
 int		 sshkey_equal_public(const struct sshkey *,
@@ -230,7 +236,7 @@ int	 sshkey_putb_plain(const struct sshkey *, struct sshbuf *);
 int	 sshkey_sign(struct sshkey *, u_char **, size_t *,
     const u_char *, size_t, const char *, const char *, u_int);
 int	 sshkey_verify(const struct sshkey *, const u_char *, size_t,
-    const u_char *, size_t, const char *, u_int);
+    const u_char *, size_t, const char *, u_int, struct sshkey_sig_details **);
 int	 sshkey_check_sigtype(const u_char *, size_t, const char *);
 const char *sshkey_sigalg_by_name(const char *);
 int	 sshkey_get_sigtype(const u_char *, size_t, char **);
@@ -270,6 +276,8 @@ int	 sshkey_forward_state(const struct sshkey *, u_int32_t, sshkey_printfn *);
 int	 sshkey_private_serialize_maxsign(struct sshkey *key, struct sshbuf *buf,
     u_int32_t maxsign, sshkey_printfn *pr);
 
+void	 sshkey_sig_details_free(struct sshkey_sig_details *);
+
 #ifdef SSHKEY_INTERNAL
 int ssh_rsa_sign(const struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
@@ -289,7 +297,8 @@ int ssh_ecdsa_verify(const struct sshkey *key,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ecdsa_sk_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat);
+    const u_char *data, size_t datalen, u_int compat,
+    struct sshkey_sig_details **detailsp);
 int ssh_ed25519_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ed25519_verify(const struct sshkey *key,
@@ -297,7 +306,8 @@ int ssh_ed25519_verify(const struct sshkey *key,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_ed25519_sk_verify(const struct sshkey *key,
     const u_char *signature, size_t signaturelen,
-    const u_char *data, size_t datalen, u_int compat);
+    const u_char *data, size_t datalen, u_int compat,
+    struct sshkey_sig_details **detailsp);
 int ssh_xmss_sign(const struct sshkey *key, u_char **sigp, size_t *lenp,
     const u_char *data, size_t datalen, u_int compat);
 int ssh_xmss_verify(const struct sshkey *key,

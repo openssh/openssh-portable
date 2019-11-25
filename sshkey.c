@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.95 2019/11/18 06:58:00 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.96 2019/11/25 00:51:37 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2301,7 +2301,7 @@ cert_parse(struct sshbuf *b, struct sshkey *key, struct sshbuf *certbuf)
 		goto out;
 	}
 	if ((ret = sshkey_verify(key->cert->signature_key, sig, slen,
-	    sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0)) != 0)
+	    sshbuf_ptr(key->cert->certblob), signed_len, NULL, 0, NULL)) != 0)
 		goto out;
 	if ((ret = sshkey_get_sigtype(sig, slen,
 	    &key->cert->signature_type)) != 0)
@@ -2796,8 +2796,11 @@ sshkey_sign(struct sshkey *key,
 int
 sshkey_verify(const struct sshkey *key,
     const u_char *sig, size_t siglen,
-    const u_char *data, size_t dlen, const char *alg, u_int compat)
+    const u_char *data, size_t dlen, const char *alg, u_int compat,
+    struct sshkey_sig_details **detailsp)
 {
+	if (detailsp != NULL)
+		*detailsp = NULL;
 	if (siglen == 0 || dlen > SSH_KEY_MAX_SIGN_DATA_SIZE)
 		return SSH_ERR_INVALID_ARGUMENT;
 	switch (key->type) {
@@ -2813,7 +2816,7 @@ sshkey_verify(const struct sshkey *key,
 	case KEY_ECDSA_SK_CERT:
 	case KEY_ECDSA_SK:
 		return ssh_ecdsa_sk_verify(key, sig, siglen, data, dlen,
-		    compat);
+		    compat, detailsp);
 #  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
@@ -2826,7 +2829,7 @@ sshkey_verify(const struct sshkey *key,
 	case KEY_ED25519_SK:
 	case KEY_ED25519_SK_CERT:
 		return ssh_ed25519_sk_verify(key, sig, siglen, data, dlen,
-		    compat);
+		    compat, detailsp);
 #ifdef WITH_XMSS
 	case KEY_XMSS:
 	case KEY_XMSS_CERT:
@@ -4659,6 +4662,12 @@ sshkey_parse_private_fileblob(struct sshbuf *buffer, const char *passphrase,
 
 	return sshkey_parse_private_fileblob_type(buffer, KEY_UNSPEC,
 	    passphrase, keyp, commentp);
+}
+
+void
+sshkey_sig_details_free(struct sshkey_sig_details *details)
+{
+	freezero(details, sizeof(*details));
 }
 
 #ifdef WITH_XMSS
