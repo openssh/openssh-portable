@@ -1,4 +1,4 @@
-/* 	$OpenBSD: test_fuzz.c,v 1.10 2019/11/01 01:57:59 djm Exp $ */
+/* 	$OpenBSD: test_fuzz.c,v 1.11 2019/11/25 10:32:35 djm Exp $ */
 /*
  * Fuzz tests for key parsing
  *
@@ -91,7 +91,7 @@ sig_fuzz(struct sshkey *k, const char *sig_alg)
 	    sig_alg, NULL, 0), 0);
 	ASSERT_SIZE_T_GT(l, 0);
 	fuzz = fuzz_begin(fuzzers, sig, l);
-	ASSERT_INT_EQ(sshkey_verify(k, sig, l, c, sizeof(c), NULL, 0), 0);
+	ASSERT_INT_EQ(sshkey_verify(k, sig, l, c, sizeof(c), NULL, 0, NULL), 0);
 	free(sig);
 	TEST_ONERROR(onerror, fuzz);
 	for(; !fuzz_done(fuzz); fuzz_next(fuzz)) {
@@ -99,7 +99,7 @@ sig_fuzz(struct sshkey *k, const char *sig_alg)
 		if (fuzz_matches_original(fuzz))
 			continue;
 		ASSERT_INT_NE(sshkey_verify(k, fuzz_ptr(fuzz), fuzz_len(fuzz),
-		    c, sizeof(c), NULL, 0), 0);
+		    c, sizeof(c), NULL, 0, NULL), 0);
 	}
 	fuzz_cleanup(fuzz);
 }
