@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.203 2019/11/25 00:52:46 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.204 2019/11/25 00:54:23 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1440,7 +1440,8 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if (ret == 0 && key_blobtype == MM_USERKEY && sig_details != NULL) {
 		req_presence = (options.pubkey_auth_options &
-		    PUBKEYAUTH_TOUCH_REQUIRED);
+		    PUBKEYAUTH_TOUCH_REQUIRED) ||
+		    !key_opts->no_require_user_presence;
 		if (req_presence &&
 		    (sig_details->sk_flags & SSH_SK_USER_PRESENCE_REQD) == 0) {
 			error("public key %s %s signature for %s%s from %.128s "

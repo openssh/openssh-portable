@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.96 2019/11/25 00:52:46 djm Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.97 2019/11/25 00:54:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -225,7 +225,8 @@ userauth_pubkey(struct ssh *ssh)
 			    __func__, sig_details->sk_counter,
 			    sig_details->sk_flags);
 			req_presence = (options.pubkey_auth_options &
-			    PUBKEYAUTH_TOUCH_REQUIRED);
+			    PUBKEYAUTH_TOUCH_REQUIRED) ||
+			    !authopts->no_require_user_presence;
 			if (req_presence && (sig_details->sk_flags &
 			    SSH_SK_USER_PRESENCE_REQD) == 0) {
 				error("public key %s signature for %s%s from "
