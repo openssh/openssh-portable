@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.204 2019/11/25 00:54:23 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.205 2019/11/25 10:23:36 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1464,7 +1464,7 @@ mm_answer_keyverify(struct ssh *ssh, int sock, struct sshbuf *m)
 	/* encode ret != 0 as positive integer, since we're sending u32 */
 	encoded_ret = (ret != 0);
 	if ((r = sshbuf_put_u32(m, encoded_ret)) != 0 ||
-	    (r = sshbuf_put_u8(m, sig_details != NULL != 0)) != 0)
+	    (r = sshbuf_put_u8(m, sig_details != NULL)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	if (sig_details != NULL) {
 		if ((r = sshbuf_put_u32(m, sig_details->sk_counter)) != 0 ||
