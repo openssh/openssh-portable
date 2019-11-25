@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.2 2019/11/19 22:23:19 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.3 2019/11/25 00:38:17 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -124,8 +124,10 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	}
 
 	/* Reconstruct data that was supposedly signed */
-	if ((original_signed = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
+	if ((original_signed = sshbuf_new()) == NULL) {
+		ret = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
 	if ((ret = ssh_digest_memory(SSH_DIGEST_SHA256, data, datalen,
 	    msghash, sizeof(msghash))) != 0)
 		goto out;
