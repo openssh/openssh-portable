@@ -1,4 +1,4 @@
-#	$OpenBSD: agent.sh,v 1.15 2019/07/23 07:39:43 dtucker Exp $
+#	$OpenBSD: agent.sh,v 1.16 2019/11/26 23:43:10 djm Exp $
 #	Placed in the Public Domain.
 
 tid="simple agent test"
@@ -8,8 +8,8 @@ if [ $? -ne 2 ]; then
 	fail "ssh-add -l did not fail with exit code 2"
 fi
 
-trace "start agent"
-eval `${SSHAGENT} -s` > /dev/null
+trace "start agent, args ${EXTRA_AGENT_ARGS} -s"
+eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s` > /dev/null
 r=$?
 if [ $r -ne 0 ]; then
 	fatal "could not start ssh-agent: exit code $r"
@@ -39,9 +39,9 @@ for t in ${SSH_KEYTYPES}; do
 	# add to authorized keys
 	cat $OBJ/$t-agent.pub >> $OBJ/authorized_keys_$USER
 	# add privat key to agent
-	${SSHADD} $OBJ/$t-agent > /dev/null 2>&1
+	${SSHADD} $OBJ/$t-agent #> /dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		fail "ssh-add did succeed exit code 0"
+		fail "ssh-add failed exit code $?"
 	fi
 	# Remove private key to ensure that we aren't accidentally using it.
 	rm -f $OBJ/$t-agent

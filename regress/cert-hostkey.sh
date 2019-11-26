@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.19 2019/11/01 01:55:41 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.20 2019/11/26 23:43:10 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -9,7 +9,7 @@ rm -f $OBJ/cert_host_key* $OBJ/host_krl_*
 # Allow all hostkey/pubkey types, prefer certs for the client
 rsa=0
 types=""
-for i in `$SSH -Q key | grep -v ^sk-`; do
+for i in `$SSH -Q key | filter_sk`; do
 	if [ -z "$types" ]; then
 		types="$i"
 		continue
@@ -70,7 +70,7 @@ touch $OBJ/host_revoked_plain
 touch $OBJ/host_revoked_cert
 cat $OBJ/host_ca_key.pub $OBJ/host_ca_key2.pub > $OBJ/host_revoked_ca
 
-PLAIN_TYPES=`$SSH -Q key-plain  | grep -v ^sk- | sed 's/^ssh-dss/ssh-dsa/g;s/^ssh-//'`
+PLAIN_TYPES=`$SSH -Q key-plain  | filter_sk | sed 's/^ssh-dss/ssh-dsa/g;s/^ssh-//'`
 
 if echo "$PLAIN_TYPES" | grep '^rsa$' >/dev/null 2>&1 ; then
 	PLAIN_TYPES="$PLAIN_TYPES rsa-sha2-256 rsa-sha2-512"

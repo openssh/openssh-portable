@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.67 2019/11/01 01:55:41 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.68 2019/11/26 23:43:10 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -128,6 +128,12 @@ if [ "x$TEST_SSH_CONCH" != "x" ]; then
 	*) CONCH=`which ${TEST_SSH_CONCH} 2>/dev/null` ;;
 	esac
 fi
+if [ "x$TEST_SSH_PKCS11_HELPER" != "x" ]; then
+	SSH_PKCS11_HELPER="${TEST_SSH_PKCS11_HELPER}"
+fi
+if [ "x$TEST_SSH_SK_HELPER" != "x" ]; then
+	SSH_SK_HELPER="${TEST_SSH_SK_HELPER}"
+fi
 
 # Path to sshd must be absolute for rexec
 case "$SSHD" in
@@ -252,6 +258,7 @@ increase_datafile_size()
 
 # these should be used in tests
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
+export SSH_PKCS11_HELPER SSH_SK_HELPER
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
 # Portable specific functions
@@ -475,8 +482,35 @@ fi
 
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
-SSH_KEYTYPES=`$SSH -Q key-plain | grep -v ^sk`
+SSH_SK_PROVIDER=
+if [ -f "${SRC}/misc/sk-dummy/obj/sk-dummy.so" ] ; then
+	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/obj/sk-dummy.so"
+elif [ -f "${SRC}/misc/sk-dummy/sk-dummy.so" ] ; then
+	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/sk-dummy.so"
+fi
+export SSH_SK_PROVIDER
 
+if ! test -z "$SSH_SK_PROVIDER"; then
+	EXTRA_AGENT_ARGS='-P/*' # XXX want realpath(1)...
+	echo "SecurityKeyProvider $SSH_SK_PROVIDER" >> $OBJ/ssh_config
+fi
+export EXTRA_AGENT_ARGS
+
+filter_sk() {
+	grep -v ^sk
+}
+
+maybe_filter_sk() {
+	if test -z "$SSH_SK_PROVIDER" ; then
+		filter_sk
+	else
+		cat
+	fi
+}
+
+SSH_KEYTYPES=`$SSH -Q key-plain | maybe_filter_sk`
+SSH_HOSTKEY_TYPES=`$SSH -Q key-plain | filter_sk`
+ 
 for t in ${SSH_KEYTYPES}; do
 	# generate user key
 	trace "generating key type $t"
@@ -486,15 +520,17 @@ for t in ${SSH_KEYTYPES}; do
 			fail "ssh-keygen for $t failed"
 	fi
 
+	# setup authorized keys
+	cat $OBJ/$t.pub >> $OBJ/authorized_keys_$USER
+	echo IdentityFile $OBJ/$t >> $OBJ/ssh_config
+done
+
+for t in ${SSH_HOSTKEY_TYPES}; do
 	# known hosts file for client
 	(
 		printf 'localhost-with-alias,127.0.0.1,::1 '
 		cat $OBJ/$t.pub
 	) >> $OBJ/known_hosts
-
-	# setup authorized keys
-	cat $OBJ/$t.pub >> $OBJ/authorized_keys_$USER
-	echo IdentityFile $OBJ/$t >> $OBJ/ssh_config
 
 	# use key as host key, too
 	$SUDO cp $OBJ/$t $OBJ/host.$t

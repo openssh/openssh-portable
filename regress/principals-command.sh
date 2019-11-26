@@ -12,7 +12,7 @@ if [ -z "$SUDO" -a ! -w /var/run ]; then
 	exit 0
 fi
 
-case "`${SSH} -Q key-plain | grep -v ^sk-`" in
+case "`${SSH} -Q key-plain`" in
 	*ssh-rsa*)	userkeytype=rsa ;;
 	*)		userkeytype=ed25519 ;;
 esac
