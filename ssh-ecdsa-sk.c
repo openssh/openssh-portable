@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ecdsa-sk.c,v 1.4 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: ssh-ecdsa-sk.c,v 1.5 2019/11/26 03:04:27 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2010 Damien Miller.  All rights reserved.
@@ -113,6 +113,8 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 		goto out;
 	}
 #ifdef DEBUG_SK
+	fprintf(stderr, "%s: data: (len %zu)\n", __func__, datalen);
+	/* sshbuf_dump_data(data, datalen, stderr); */
 	fprintf(stderr, "%s: sig_r: %s\n", __func__, (tmp = BN_bn2hex(sig_r)));
 	free(tmp);
 	fprintf(stderr, "%s: sig_s: %s\n", __func__, (tmp = BN_bn2hex(sig_s)));
@@ -140,6 +142,8 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	    strlen(key->sk_application), apphash, sizeof(apphash))) != 0)
 		goto out;
 #ifdef DEBUG_SK
+	fprintf(stderr, "%s: hashed application:\n", __func__);
+	sshbuf_dump_data(apphash, sizeof(apphash), stderr);
 	fprintf(stderr, "%s: hashed message:\n", __func__);
 	sshbuf_dump_data(msghash, sizeof(msghash), stderr);
 #endif

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-ed25519-sk.c,v 1.3 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: ssh-ed25519-sk.c,v 1.4 2019/11/26 03:04:27 djm Exp $ */
 /*
  * Copyright (c) 2019 Markus Friedl.  All rights reserved.
  *
@@ -14,6 +14,9 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* #define DEBUG_SK 1 */
+
 #define SSHKEY_INTERNAL
 #include <sys/types.h>
 #include <limits.h>
@@ -70,6 +73,14 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
+#ifdef DEBUG_SK
+	fprintf(stderr, "%s: data:\n", __func__);
+	/* sshbuf_dump_data(data, datalen, stderr); */
+	fprintf(stderr, "%s: sigblob:\n", __func__);
+	sshbuf_dump_data(sigblob, len, stderr);
+	fprintf(stderr, "%s: sig_flags = 0x%02x, sig_counter = %u\n",
+	    __func__, sig_flags, sig_counter);
+#endif
 	if (strcmp(sshkey_ssh_name_plain(key), ktype) != 0) {
 		r = SSH_ERR_KEY_TYPE_MISMATCH;
 		goto out;
@@ -89,6 +100,12 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 		r = SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
+#ifdef DEBUG_SK
+	fprintf(stderr, "%s: hashed application:\n", __func__);
+	sshbuf_dump_data(apphash, sizeof(apphash), stderr);
+	fprintf(stderr, "%s: hashed message:\n", __func__);
+	sshbuf_dump_data(msghash, sizeof(msghash), stderr);
+#endif
 	if ((details = calloc(1, sizeof(*details))) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
@@ -107,6 +124,10 @@ ssh_ed25519_sk_verify(const struct sshkey *key,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
+#ifdef DEBUG_SK
+	fprintf(stderr, "%s: signed buf:\n", __func__);
+	sshbuf_dump(encoded, stderr);
+#endif
 	sm = sshbuf_ptr(encoded);
 	smlen = sshbuf_len(encoded);
 	mlen = smlen;
