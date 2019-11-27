@@ -461,6 +461,7 @@ regress-prep:
 	$(MKDIR_P) `pwd`/regress/unittests/match
 	$(MKDIR_P) `pwd`/regress/unittests/utf8
 	$(MKDIR_P) `pwd`/regress/misc/kexfuzz
+	$(MKDIR_P) `pwd`/regress/misc/sk-dummy
 	[ -f `pwd`/regress/Makefile ] || \
 	    ln -s `cd $(srcdir) && pwd`/regress/Makefile `pwd`/regress/Makefile
 
@@ -591,13 +592,16 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
 # These all need to be compiled -fPIC, so they are treated differently.
-SK_DUMMY_SRCS=\
-	regress/misc/sk-dummy/sk-dummy.c \
-	ed25519.c hash.c ge25519.c fe25519.c sc25519.c verify.c \
-	digest-openssl.c ssherr.c fatal.c sshbuf.c log.c cleanup.c
+SK_DUMMY_OBJS=\
+	regress/misc/sk-dummy/sk-dummy.lo \
+	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo \
+	digest-openssl.lo ssherr.lo fatal.lo sshbuf.lo log.lo cleanup.lo
 
-regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_SRCS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -o $@ $(SK_DUMMY_SRCS) \
+.c.lo:
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $< -o $@
+
+regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -o $@ $< \
 	    -L. -Lopenbsd-compat -lopenbsd-compat $(LIBS)
 
 regress-binaries: regress-prep $(LIBCOMPAT) \
