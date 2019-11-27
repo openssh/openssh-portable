@@ -264,6 +264,8 @@ clean:	regressclean
 	rm -f regress/unittests/utf8/test_utf8$(EXEEXT)
 	rm -f regress/misc/kexfuzz/*.o
 	rm -f regress/misc/kexfuzz/kexfuzz$(EXEEXT)
+	rm -f regress/misc/sk-dummy/*.o
+	rm -f regress/misc/sk-dummy/sk-dummy.so
 	(cd openbsd-compat && $(MAKE) clean)
 
 distclean:	regressclean
@@ -588,12 +590,23 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 	$(LD) -o $@ $(LDFLAGS) $(MISC_KEX_FUZZ_OBJS) \
 	    -lssh -lopenbsd-compat -lssh -lopenbsd-compat $(LIBS)
 
+# These all need to be compiled -fPIC, so they are treated differently.
+SK_DUMMY_SRCS=\
+	regress/misc/sk-dummy/sk-dummy.c \
+	ed25519.c hash.c ge25519.c fe25519.c sc25519.c verify.c \
+	digest-openssl.c ssherr.c fatal.c sshbuf.c log.c cleanup.c
+
+regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_SRCS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -o $@ $(SK_DUMMY_SRCS) \
+	    -L. -Lopenbsd-compat -lopenbsd-compat $(LIBS)
+
 regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/modpipe$(EXEEXT) \
 	regress/setuid-allowed$(EXEEXT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
-	regress/mkdtemp$(EXEEXT)
+	regress/mkdtemp$(EXEEXT) \
+	regress/misc/sk-dummy/sk-dummy.so
 
 regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \
@@ -630,6 +643,9 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/ssh-keyscan"; \
 	TEST_SSH_SFTP="$${BUILDDIR}/sftp"; \
 	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
+	TEST_SSH_PKCS11_HELPER="$${BUILDDIR}/ssh-pkcs11-helper"; \
+	TEST_SSH_SK_HELPER="$${BUILDDIR}/ssh-sk-helper"; \
+	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
 	TEST_SSH_PLINK="plink"; \
 	TEST_SSH_PUTTYGEN="puttygen"; \
 	TEST_SSH_CONCH="conch"; \
@@ -654,6 +670,8 @@ interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 		TEST_SSH_SSHPKCS11HELPER="$${TEST_SSH_SSHPKCS11HELPER}" \
 		TEST_SSH_SSHKEYSCAN="$${TEST_SSH_SSHKEYSCAN}" \
 		TEST_SSH_SFTP="$${TEST_SSH_SFTP}" \
+		TEST_SSH_PKCS11_HELPER="$${TEST_SSH_PKCS11_HELPER}" \
+		TEST_SSH_SK_HELPER="$${TEST_SSH_SK_HELPER}" \
 		TEST_SSH_SFTPSERVER="$${TEST_SSH_SFTPSERVER}" \
 		TEST_SSH_PLINK="$${TEST_SSH_PLINK}" \
 		TEST_SSH_PUTTYGEN="$${TEST_SSH_PUTTYGEN}" \
