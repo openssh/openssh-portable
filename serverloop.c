@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.217 2019/11/27 03:34:04 dtucker Exp $ */
+/* $OpenBSD: serverloop.c,v 1.218 2019/11/27 05:38:43 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -675,7 +675,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	char *ctype = NULL;
 	const char *errmsg = NULL;
 	int r, reason = SSH2_OPEN_CONNECT_FAILED;
-	u_int32_t rchan = 0, rmaxpack = 0, rwindow = 0;
+	u_int rchan = 0, rmaxpack = 0, rwindow = 0;
 
 	if ((r = sshpkt_get_cstring(ssh, &ctype, NULL)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &rchan)) != 0 ||
@@ -683,9 +683,11 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	    (r = sshpkt_get_u32(ssh, &rmaxpack)) != 0)
 		sshpkt_fatal(ssh, r, "%s: parse packet", __func__);
 	debug("%s: ctype %s rchan %u win %u max %u", __func__,
-	    ctype, (u_int)rchan, (u_int)rwindow, (u_int)rmaxpack);
+	    ctype, rchan, rwindow, rmaxpack);
 
-	if (strcmp(ctype, "session") == 0) {
+	if (rchan > INT_MAX) {
+		error("%s: invalid remote channel ID", __func__);
+	} else if (strcmp(ctype, "session") == 0) {
 		c = server_request_session(ssh);
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
 		c = server_request_direct_tcpip(ssh, &reason, &errmsg);
@@ -696,7 +698,7 @@ server_input_channel_open(int type, u_int32_t seq, struct ssh *ssh)
 	}
 	if (c != NULL) {
 		debug("%s: confirm %s", __func__, ctype);
-		c->remote_id = rchan;
+		c->remote_id = (int)rchan;
 		c->have_remote_id = 1;
 		c->remote_window = rwindow;
 		c->remote_maxpacket = rmaxpack;
