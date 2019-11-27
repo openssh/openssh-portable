@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.16 2019/11/19 22:23:19 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.17 2019/11/27 22:32:11 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -153,7 +153,7 @@ sshsk_free_enroll_response(struct sk_enroll_response *r)
 	freezero(r->signature, r->signature_len);
 	freezero(r->attestation_cert, r->attestation_cert_len);
 	freezero(r, sizeof(*r));
-};
+}
 
 static void
 sshsk_free_sign_response(struct sk_sign_response *r)
@@ -163,7 +163,7 @@ sshsk_free_sign_response(struct sk_sign_response *r)
 	freezero(r->sig_r, r->sig_r_len);
 	freezero(r->sig_s, r->sig_s_len);
 	freezero(r, sizeof(*r));
-};
+}
 
 #ifdef WITH_OPENSSL
 /* Assemble key from response */
