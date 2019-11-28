@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.406 2019/11/18 23:16:49 naddy Exp $
-.Dd $Mdocdate: November 18 2019 $
+.\" $OpenBSD: ssh.1,v 1.407 2019/11/28 12:24:31 jmc Exp $
+.Dd $Mdocdate: November 28 2019 $
 .Dt SSH 1
 .Os
 .Sh NAME
@@ -110,7 +110,8 @@ Forces
 to use IPv6 addresses only.
 .Pp
 .It Fl A
-Enables forwarding of the authentication agent connection.
+Enables forwarding of connections from an authentication agent such as
+.Xr ssh-agent 1 .
 This can also be specified on a per-host basis in a configuration file.
 .Pp
 Agent forwarding should be enabled with caution.
@@ -121,6 +122,9 @@ socket) can access the local agent through the forwarded connection.
 An attacker cannot obtain key material from the agent,
 however they can perform operations on the keys that enable them to
 authenticate using the identities loaded into the agent.
+A safer alternative may be to use a jump host
+(see
+.Fl J ) .
 .Pp
 .It Fl a
 Disables forwarding of the authentication agent connection.
