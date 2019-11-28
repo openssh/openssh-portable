@@ -149,7 +149,7 @@ following format:
 SSH U2F signatures
 ------------------
 
-In addition to the message to be signed, the U2F signature operation 
+In addition to the message to be signed, the U2F signature operation
 requires a few additional parameters:
 
 	byte		control bits (e.g. "user presence required" flag)
@@ -271,7 +271,7 @@ The middleware library need only expose a handful of functions:
 	    const uint8_t *key_handle, size_t key_handle_len,
 	    uint8_t flags, struct sk_sign_response **sign_response);
 
-In OpenSSH, these will be invoked by generalising the existing
-ssh-pkcs11-helper mechanism to provide containment of the middleware from
-ssh-agent.
+In OpenSSH, these will be invoked by using a similar mechanism to
+ssh-pkcs11-helper to provide address-space containment of the
+middleware from ssh-agent.
 
