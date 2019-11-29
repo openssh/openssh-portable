@@ -596,8 +596,7 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 # These all need to be compiled -fPIC, so they are treated differently.
 SK_DUMMY_OBJS=\
 	regress/misc/sk-dummy/sk-dummy.lo \
-	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo \
-	digest-openssl.lo ssherr.lo fatal.lo sshbuf.lo log.lo cleanup.lo
+	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo
 
 .c.lo:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $< -o $@
