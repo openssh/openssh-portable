@@ -1725,6 +1725,18 @@ if test "x$use_pie" != "xno"; then
 	fi
 fi
 
+AC_MSG_CHECKING([whether -fPIC is accepted])
+SAVED_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -fPIC"
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM( [[ #include <stdlib.h> ]], [[ exit(0); ]] )],
+   [AC_MSG_RESULT([yes])
+    PICFLAG="-fPIC"; ],
+   [AC_MSG_RESULT([no])
+    PICFLAG=""; ])
+CFLAGS="$SAVED_CFLAGS"
+AC_SUBST([PICFLAG])
+
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS([ \
 	Blowfish_initstate \
@@ -5300,6 +5312,10 @@ AC_SUBST([DEPEND], [$(cat $srcdir/.depend)])
 
 CFLAGS="${CFLAGS} ${CFLAGS_AFTER}"
 LDFLAGS="${LDFLAGS} ${LDFLAGS_AFTER}"
+
+# Make a copy of CFLAGS without -fpie
+CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/ -fPIE//'`
+AC_SUBST([CFLAGS_NOPIE])
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openssh.xml \

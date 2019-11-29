@@ -43,7 +43,9 @@ PATHS= -DSSHDIR=\"$(sysconfdir)\" \
 CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
+CFLAGS_NOPIE=@CFLAGS_NOPIE@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
+PICFLAG=@PICFLAG@
 LIBS=@LIBS@
 K5LIBS=@K5LIBS@
 GSSLIBS=@GSSLIBS@
@@ -601,7 +603,7 @@ SK_DUMMY_OBJS=\
 	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo
 
 .c.lo: Makefile.in config.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $< -o $@
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
 
 regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -shared -o $@ $(SK_DUMMY_OBJS) \

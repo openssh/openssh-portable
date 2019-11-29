@@ -7,7 +7,9 @@ VPATH=@srcdir@
 CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
+CFLAGS_NOPIE=@CFLAGS_NOPIE@
 CPPFLAGS=-I. -I.. -I$(srcdir) -I$(srcdir)/.. @CPPFLAGS@ @DEFS@
+PICFLAG=@PICFLAG@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
@@ -97,7 +99,7 @@ PORTS=	port-aix.o \
 	port-uw.o
 
 .c.o:
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $<
 
 all: libopenbsd-compat.a
 
