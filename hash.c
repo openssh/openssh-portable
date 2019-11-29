@@ -6,6 +6,8 @@
  * API compatible reimplementation of function from nacl
  */
 
+#include "includes.h"
+
 #include "crypto_api.h"
 
 #include <stdarg.h>
