@@ -26,7 +26,9 @@ crypto_hash_sha512(unsigned char *out, const unsigned char *in,
 }
 
 #else
-#include <sha2.h>
+# ifdef HAVE_SHA2_H
+#  include <sha2.h>
+# endif
 
 int
 crypto_hash_sha512(unsigned char *out, const unsigned char *in,
