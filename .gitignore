@@ -11,6 +11,8 @@ opensshd.init
 survey.sh
 **/*.0
 **/*.o
+**/*.lo
+**/*.so
 **/*.out
 **/*.a
 autom4te.cache/

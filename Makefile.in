@@ -242,7 +242,7 @@ moduli:
 	echo
 
 clean:	regressclean
-	rm -f *.o *.a $(TARGETS) logintest config.cache config.log
+	rm -f *.o *.lo *.a $(TARGETS) logintest config.cache config.log
 	rm -f *.out core survey
 	rm -f regress/check-perm$(EXEEXT)
 	rm -f regress/mkdtemp$(EXEEXT)
@@ -267,6 +267,7 @@ clean:	regressclean
 	rm -f regress/misc/kexfuzz/*.o
 	rm -f regress/misc/kexfuzz/kexfuzz$(EXEEXT)
 	rm -f regress/misc/sk-dummy/*.o
+	rm -f regress/misc/sk-dummy/*.lo
 	rm -f regress/misc/sk-dummy/sk-dummy.so
 	(cd openbsd-compat && $(MAKE) clean)
 
@@ -596,9 +597,10 @@ regress/misc/kexfuzz/kexfuzz$(EXEEXT): ${MISC_KEX_FUZZ_OBJS} libssh.a
 # These all need to be compiled -fPIC, so they are treated differently.
 SK_DUMMY_OBJS=\
 	regress/misc/sk-dummy/sk-dummy.lo \
+	regress/misc/sk-dummy/fatal.lo \
 	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo
 
-.c.lo:
+.c.lo: Makefile.in config.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -fPIC -c $< -o $@
 
 regress/misc/sk-dummy/sk-dummy.so: $(SK_DUMMY_OBJS)
