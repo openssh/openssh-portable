@@ -15,6 +15,7 @@ AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 LDFLAGS=-L. @LDFLAGS@
+LDFLAGS_NOPIE=-L. -Lopenbsd-compat/ @LDFLAGS_NOPIE@
 
 OPENBSD=base64.o \
 	basename.o \

@@ -5313,8 +5313,10 @@ AC_SUBST([DEPEND], [$(cat $srcdir/.depend)])
 CFLAGS="${CFLAGS} ${CFLAGS_AFTER}"
 LDFLAGS="${LDFLAGS} ${LDFLAGS_AFTER}"
 
-# Make a copy of CFLAGS without -fpie
+# Make a copy of CFLAGS/LDFLAGS without PIE options.
+LDFLAGS_NOPIE=`echo "$LDFLAGS" | sed 's/ -pie//'`
 CFLAGS_NOPIE=`echo "$CFLAGS" | sed 's/ -fPIE//'`
+AC_SUBST([LDFLAGS_NOPIE])
 AC_SUBST([CFLAGS_NOPIE])
 
 AC_EXEEXT
