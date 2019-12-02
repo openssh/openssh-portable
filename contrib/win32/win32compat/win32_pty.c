@@ -38,30 +38,21 @@
 int
 is_conpty_supported()
 {
-	wchar_t system32_path[PATH_MAX] = { 0, };
-	wchar_t kernel32_dll_path[PATH_MAX] = { 0, };
-	HMODULE hm_kernelbase = NULL;
+	wchar_t *kernel32_dll_path = L"kernel32.dll";
+	HMODULE hm_kernel32 = NULL;
 	static int isConpty = -1;
 
 	if (isConpty != -1)
 		return isConpty;
 
 	isConpty = 0;
-	if (!GetSystemDirectoryW(system32_path, PATH_MAX)) {
-		error("failed to get system directory");
+	if ((hm_kernel32 = LoadLibraryExW(kernel32_dll_path, NULL, LOAD_LIBRARY_SEARCH_SYSTEM32)) == NULL) {
+		error("failed to load %S dll", kernel32_dll_path);
 		goto done;
 	}
 
-	wcscat_s(kernel32_dll_path, PATH_MAX, system32_path);
-	wcscat_s(kernel32_dll_path, PATH_MAX, L"\\Kernel32.dll");
-
-	if ((hm_kernelbase = LoadLibraryW(kernel32_dll_path)) == NULL) {
-		error("failed to load kernerlbase dll:%s", kernel32_dll_path);
-		goto done;
-	}
-
-	if (GetProcAddress(hm_kernelbase, "CreatePseudoConsole") == NULL) {
-		debug3("couldn't find CreatePseudoConsole() in kernerlbase dll");
+	if (GetProcAddress(hm_kernel32, "CreatePseudoConsole") == NULL) {
+		debug3("couldn't find CreatePseudoConsole() in %S dll", kernel32_dll_path);
 		goto done;
 	}
 
