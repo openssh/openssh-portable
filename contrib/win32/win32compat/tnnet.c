@@ -36,12 +36,14 @@
 #include <windows.h>
 #include "ansiprsr.h"
 #include "inc\utf.h"
+#include "inc\string.h"
 #include "console.h"
 #include "misc_internal.h"
 
 #define dwBuffer 4096
 
 extern BOOL isAnsiParsingRequired;
+extern BOOL isConsoleVTSeqAvailable;
 extern int track_view_port;
 extern bool gbVTAppMode;
 BOOL isFirstPacket = TRUE;
@@ -63,6 +65,8 @@ processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size
 	const char *normalModeSeq = "\x1b[?1l";
 	const DWORD normalModeSeqLen = (DWORD)strlen(normalModeSeq);
 	const char *clsSeq = "\x1b[2J";
+	const char *appModePtr = NULL;
+	const char *normalModePtr = NULL;
 
 	if (len == 0)
 		return;
@@ -79,10 +83,18 @@ processBuffer(HANDLE handle, char *buf, DWORD len, unsigned char **respbuf, size
 				ConMoveCursorTopOfVisibleWindow();
 		}
 
-		if(len >= applicationModeSeqLen && strstr(buf, applicationModeSeq))
-			gbVTAppMode = true;
-		else if(len >= normalModeSeqLen && strstr(buf, normalModeSeq))
-			gbVTAppMode = false;
+		if (!isConsoleVTSeqAvailable) {
+			if (len >= applicationModeSeqLen && (appModePtr = strrstr(buf, applicationModeSeq)))
+				gbVTAppMode = true;
+
+			if (len >= normalModeSeqLen && (normalModePtr = strrstr(buf, normalModeSeq)))
+			{
+				if (appModePtr && (appModePtr > normalModePtr))
+					gbVTAppMode = true;
+				else
+					gbVTAppMode = false;
+			}
+		}
 
 		/* WriteFile() gets messy when user does scroll up/down so we need to restore the visible window. 
 		 * It's a conhost bug but we need to live with it as they are not going to back port the fix.

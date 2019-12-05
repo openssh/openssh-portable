@@ -13,3 +13,4 @@ char *w32_strerror(int);
 static char errorBuf[ERROR_MSG_MAXLEN];
 
 char *strndup(const char*, size_t);
+char * strrstr(const char *, const char *);

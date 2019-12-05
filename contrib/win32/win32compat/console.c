@@ -55,6 +55,7 @@ int ScrollBottom;
 int LastCursorX;
 int LastCursorY;
 BOOL isAnsiParsingRequired = FALSE;
+BOOL isConsoleVTSeqAvailable = FALSE;
 /* 1 - We track the viewport (visible window) and restore it back because console renders badly when user scroll up/down */
 int track_view_port = 0; 
 char *pSavedScreen = NULL;
@@ -152,6 +153,12 @@ ConEnterRawMode()
 		return;
 	}
 
+	dwAttributes |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+	if (SetConsoleMode(GetConsoleInputHandle(), dwAttributes)) {
+		debug("ENABLE_VIRTUAL_TERMINAL_INPUT is supported. Reading the VTSequence from console");
+		isConsoleVTSeqAvailable = TRUE;
+	}
+
 	if (!GetConsoleMode(GetConsoleOutputHandle(), &stdout_dwSavedAttributes)) {
 		dwRet = GetLastError();
 		error("GetConsoleMode on GetConsoleOutputHandle() failed with %d", dwRet);
@@ -190,7 +197,7 @@ ConEnterRawMode()
 		SavedViewRect = csbi.srWindow;
 		debug("console doesn't support the ansi parsing");
 	} else {
-		debug("console supports the ansi parsing");
+		debug("ENABLE_VIRTUAL_TERMINAL_PROCESSING is supported. Console supports the ansi parsing");
 		console_out_cp_saved = GetConsoleOutputCP();
 		console_in_cp_saved = GetConsoleCP();
 		if (SetConsoleOutputCP(CP_UTF8))

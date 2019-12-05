@@ -1994,3 +1994,14 @@ cleanup:
 
 	return ret;
 }
+
+char *
+strrstr(const char *inStr, const char *pattern)
+{
+	char *tmp = NULL, *last = NULL;
+	tmp = (char *) inStr;
+	while(tmp = strstr(tmp, pattern))
+		last = tmp++;
+
+	return last;
+}
