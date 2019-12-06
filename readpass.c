@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.58 2019/11/27 05:00:17 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.59 2019/12/06 02:55:21 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -58,26 +58,26 @@ ssh_askpass(char *askpass, const char *msg)
 	void (*osigchld)(int);
 
 	if (fflush(stdout) != 0)
-		error("ssh_askpass: fflush: %s", strerror(errno));
+		error("%s: fflush: %s", __func__, strerror(errno));
 	if (askpass == NULL)
 		fatal("internal error: askpass undefined");
 	if (pipe(p) == -1) {
-		error("ssh_askpass: pipe: %s", strerror(errno));
+		error("%s: pipe: %s", __func__, strerror(errno));
 		return NULL;
 	}
 	osigchld = signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {
-		error("ssh_askpass: fork: %s", strerror(errno));
+		error("%s: fork: %s", __func__, strerror(errno));
 		signal(SIGCHLD, osigchld);
 		return NULL;
 	}
 	if (pid == 0) {
 		close(p[0]);
 		if (dup2(p[1], STDOUT_FILENO) == -1)
-			fatal("ssh_askpass: dup2: %s", strerror(errno));
+			fatal("%s: dup2: %s", __func__, strerror(errno));
 		setenv("SSH_ASKPASS_PROMPT", "confirm", 1); /* hint to UI */
 		execlp(askpass, askpass, msg, (char *)NULL);
-		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
+		fatal("%s: exec(%s): %s", __func__, askpass, strerror(errno));
 	}
 	close(p[1]);
 
