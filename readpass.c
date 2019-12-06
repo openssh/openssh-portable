@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.59 2019/12/06 02:55:21 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.60 2019/12/06 03:06:08 djm Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -48,7 +48,7 @@
 #include "uidswap.h"
 
 static char *
-ssh_askpass(char *askpass, const char *msg)
+ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 {
 	pid_t pid, ret;
 	size_t len;
@@ -75,7 +75,8 @@ ssh_askpass(char *askpass, const char *msg)
 		close(p[0]);
 		if (dup2(p[1], STDOUT_FILENO) == -1)
 			fatal("%s: dup2: %s", __func__, strerror(errno));
-		setenv("SSH_ASKPASS_PROMPT", "confirm", 1); /* hint to UI */
+		if (env_hint != NULL)
+			setenv("SSH_ASKPASS_PROMPT", env_hint, 1);
 		execlp(askpass, askpass, msg, (char *)NULL);
 		fatal("%s: exec(%s): %s", __func__, askpass, strerror(errno));
 	}
@@ -109,6 +110,9 @@ ssh_askpass(char *askpass, const char *msg)
 	return pass;
 }
 
+/* private/internal read_passphrase flags */
+#define RP_ASK_PERMISSION	0x8000 /* pass hint to askpass for confirm UI */
+
 /*
  * Reads a passphrase from /dev/tty with echo turned off/on.  Returns the
  * passphrase (allocated with xmalloc).  Exits if EOF is encountered. If
@@ -120,6 +124,7 @@ read_passphrase(const char *prompt, int flags)
 {
 	char cr = '\r', *askpass = NULL, *ret, buf[1024];
 	int rppflags, use_askpass = 0, ttyfd;
+	const char *askpass_hint = NULL;
 
 	rppflags = (flags & RP_ECHO) ? RPP_ECHO_ON : RPP_ECHO_OFF;
 	if (flags & RP_USE_ASKPASS)
@@ -156,7 +161,9 @@ read_passphrase(const char *prompt, int flags)
 			askpass = getenv(SSH_ASKPASS_ENV);
 		else
 			askpass = _PATH_SSH_ASKPASS_DEFAULT;
-		if ((ret = ssh_askpass(askpass, prompt)) == NULL)
+		if ((flags & RP_ASK_PERMISSION) != 0)
+			askpass_hint = "confirm";
+		if ((ret = ssh_askpass(askpass, prompt, askpass_hint)) == NULL)
 			if (!(flags & RP_ALLOW_EOF))
 				return xstrdup("");
 		return ret;
@@ -184,7 +191,8 @@ ask_permission(const char *fmt, ...)
 	vsnprintf(prompt, sizeof(prompt), fmt, args);
 	va_end(args);
 
-	p = read_passphrase(prompt, RP_USE_ASKPASS|RP_ALLOW_EOF);
+	p = read_passphrase(prompt,
+	    RP_USE_ASKPASS|RP_ALLOW_EOF|RP_ASK_PERMISSION);
 	if (p != NULL) {
 		/*
 		 * Accept empty responses and responses consisting
