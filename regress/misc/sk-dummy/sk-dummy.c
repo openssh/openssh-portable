@@ -115,6 +115,7 @@ sk_api_version(void)
 static int
 pack_key_ecdsa(struct sk_enroll_response *response)
 {
+#ifdef OPENSSL_HAS_ECC
 	EC_KEY *key = NULL;
 	const EC_GROUP *g;
 	const EC_POINT *q;
@@ -194,6 +195,9 @@ pack_key_ecdsa(struct sk_enroll_response *response)
 	BIO_free(bio);
 	EC_KEY_free(key);
 	return ret;
+#else
+	return -1;
+#endif
 }
 
 static int
@@ -310,6 +314,7 @@ sig_ecdsa(const uint8_t *message, size_t message_len,
     const uint8_t *key_handle, size_t key_handle_len,
     struct sk_sign_response *response)
 {
+#ifdef OPENSSL_HAS_ECC
 	ECDSA_SIG *sig = NULL;
 	const BIGNUM *sig_r, *sig_s;
 	int ret = -1;
@@ -394,6 +399,9 @@ sig_ecdsa(const uint8_t *message, size_t message_len,
 	EC_KEY_free(ec);
 	EVP_PKEY_free(pk);
 	return ret;
+#else
+	return -1;
+#endif
 }
 
 static int
