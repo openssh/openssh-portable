@@ -1553,6 +1553,10 @@ parse_keytypes:
 			} else
 				arg2 = xstrdup(arg);
 			memset(&gl, 0, sizeof(gl));
+#ifdef WINDOWS
+			convertToForwardslash(arg2);
+#endif // WINDOWS
+
 			r = glob(arg2, GLOB_TILDE, NULL, &gl);
 			if (r == GLOB_NOMATCH) {
 				debug("%.200s line %d: include %s matched no "
