@@ -73,6 +73,7 @@ int exec_command_with_pty(int * pid, char* cmd, int in, int out, int err, unsign
 	int ret = -1;
 	HANDLE ttyh = (HANDLE)w32_fd_to_handle(ttyfd);
 	wchar_t * cmd_w = NULL;
+	unsigned long flags = 0;
 
 	if ((cmd_w = utf8_to_utf16(cmd)) == NULL) {
 		errno = ENOMEM;
@@ -121,8 +122,9 @@ int exec_command_with_pty(int * pid, char* cmd, int in, int out, int err, unsign
 		si.hStdError = ttyh;
 	}
 
+	flags = CREATE_NO_WINDOW;
 	debug3("pty commandline: %ls", pty_cmdline);
-	if (CreateProcessW(NULL, pty_cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+	if (CreateProcessW(NULL, pty_cmdline, NULL, NULL, TRUE, flags, NULL, NULL, &si, &pi)) {
 		if (register_child(pi.hProcess, pi.dwProcessId) == -1) {
 			TerminateProcess(pi.hProcess, 0);
 			CloseHandle(pi.hProcess);

@@ -1067,6 +1067,7 @@ spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDL
 	si.hStdOutput = out;
 	si.hStdError = err;
 	si.dwFlags = STARTF_USESTDHANDLES;
+	flags |= CREATE_NO_WINDOW;
 	
 	wchar_t * t = cmdline_utf16;
 	do {

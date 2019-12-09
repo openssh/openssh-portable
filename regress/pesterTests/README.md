@@ -8,7 +8,7 @@ Import-Module  .\openssh-portable\contrib\win32\openssh\OpenSSHTestHelper.psm1 â
 Setup-OpenSSHTestEnvironment
 ```
 
-`Setup-OpenSSHTestEnvironment` contains below parameters:
+`Set-OpenSSHTestEnvironment` contains below parameters:
 * `-OpenSSHBinPath`: Specify the location where ssh.exe should be picked up. If not specified, the function will prompt to user if he/she want to choose the first ssh.exe found in `$env:path` if exists.
 * `-TestDataPath`: Specify the location where the test binaries deploy to. The default is `$env:SystemDrive\OpenSSHTests` if it not specified.
 * `-Quiet`: If it is set, the function will do all the changes without prompting to user to confirm.
