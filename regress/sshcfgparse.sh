@@ -72,31 +72,55 @@ test "$f" = "no" || fail "clearallforwardings override"
 verbose "user first match"
 user=`awk '$1=="User" {print $2}' $OBJ/ssh_config`
 f=`${SSH} -GF $OBJ/ssh_config host | awk '/^user /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 test "$f" = "$user" || fail "user from config, expected '$user' got '$f'"
 f=`${SSH} -GF $OBJ/ssh_config -o user=foo -l bar baz@host | awk '/^user /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 test "$f" = "foo" || fail "user first match -oUser, expected 'foo' got '$f' "
 f=`${SSH} -GF $OBJ/ssh_config -lbar baz@host user=foo baz@host | awk '/^user /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 test "$f" = "bar" || fail "user first match -l, expected 'bar' got '$f'"
 f=`${SSH} -GF $OBJ/ssh_config baz@host -o user=foo -l bar baz@host | awk '/^user /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 test "$f" = "baz" || fail "user first match user@host, expected 'baz' got '$f'"
 
 verbose "pubkeyacceptedkeytypes"
 # Default set
 f=`${SSH} -GF none host | awk '/^pubkeyacceptedkeytypes /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "ssh-ed25519" "ssh-ed25519-cert-v01.*"
 expect_result_absent "$f" "ssh-dss"
 # Explicit override
 f=`${SSH} -GF none -opubkeyacceptedkeytypes=ssh-ed25519 host | \
     awk '/^pubkeyacceptedkeytypes /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "ssh-ed25519"
 expect_result_absent "$f" "ssh-ed25519-cert-v01.*" "ssh-dss"
 # Removal from default set
 f=`${SSH} -GF none -opubkeyacceptedkeytypes=-ssh-ed25519-cert* host | \
     awk '/^pubkeyacceptedkeytypes /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "ssh-ed25519"
 expect_result_absent "$f" "ssh-ed25519-cert-v01.*" "ssh-dss"
 f=`${SSH} -GF none -opubkeyacceptedkeytypes=-ssh-ed25519 host | \
     awk '/^pubkeyacceptedkeytypes /{print $2}'`
+if [ "$os" == "windows" ]; then
+	f=${f/$'\r'/} # remove CR (carriage return)
+fi
 expect_result_present "$f" "ssh-ed25519-cert-v01.*"
 expect_result_absent "$f" "ssh-ed25519" "ssh-dss"
 # Append to default set.
@@ -104,10 +128,16 @@ expect_result_absent "$f" "ssh-ed25519" "ssh-dss"
 if [ "$dsa" = "1" ]; then
 	f=`${SSH} -GF none -opubkeyacceptedkeytypes=+ssh-dss-cert* host | \
 	    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+	if [ "$os" == "windows" ]; then
+		f=${f/$'\r'/} # remove CR (carriage return)
+	fi
 	expect_result_present "$f" "ssh-ed25519" "ssh-dss-cert-v01.*"
 	expect_result_absent "$f" "ssh-dss"
 	f=`${SSH} -GF none -opubkeyacceptedkeytypes=+ssh-dss host | \
 	    awk '/^pubkeyacceptedkeytypes /{print $2}'`
+	if [ "$os" == "windows" ]; then
+		f=${f/$'\r'/} # remove CR (carriage return)
+	fi
 	expect_result_present "$f" "ssh-ed25519" "ssh-ed25519-cert-v01.*" "ssh-dss"
 	expect_result_absent "$f" "ssh-dss-cert-v01.*"
 fi

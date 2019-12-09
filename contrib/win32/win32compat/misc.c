@@ -1710,10 +1710,10 @@ build_exec_command(const char * command)
 }
 
 /*
- * cmd is internally decoarated with a set of '"'
- * to account for any spaces within the commandline
- * the double quotes and backslash is escaped if needed 
- * this decoration is done only when additional arguments are passed in argv
+* cmd is internally decoarated with a set of '"'
+* to account for any spaces within the commandline
+* the double quotes and backslash is escaped if needed
+* this decoration is done only when additional arguments are passed in argv
 */
 char *
 build_commandline_string(const char* cmd, char *const argv[], BOOLEAN prepend_module_path)
@@ -1738,6 +1738,7 @@ build_commandline_string(const char* cmd, char *const argv[], BOOLEAN prepend_mo
 	if (is_bash_test_env()) {
 		memset(path, 0, path_len + 1);
 		bash_to_win_path(cmd, path, path_len + 1);
+		path_len = (DWORD)strlen(path);
 	}
 
 	if (!is_absolute_path(path) && prepend_module_path)
@@ -1787,7 +1788,9 @@ build_commandline_string(const char* cmd, char *const argv[], BOOLEAN prepend_mo
 		errno = ENOMEM;
 		goto cleanup;
 	}
+
 	t = cmdline;
+
 	*t++ = '\"';
 	if (add_module_path) {
 		/* add current module path to start if needed */
@@ -1795,10 +1798,27 @@ build_commandline_string(const char* cmd, char *const argv[], BOOLEAN prepend_mo
 		t += strlen(__progdir);
 		*t++ = '\\';
 	}
+
 	if (path[0] != '\"') {
-		memcpy(t, path, path_len);
-		t += path_len;
-		*t++ = '\"';
+		/* If path is <executable_path> <arg> then we should add double quotes after <executable_path> i.e., "<executable_path>" <arg> should be passed to CreateProcess().
+		* Example - If path is C:\cygwin64\bin\bash.exe /cygdrive/e/openssh-portable-latestw_all/openssh-portable/regress/scp-ssh-wrapper.sh then
+		*           we should pass "C:\cygwin64\bin\bash.exe" /cygdrive/e/openssh-portable-latestw_all/openssh-portable/regress/scp-ssh-wrapper.sh
+		*           to the CreateProcess() otherwise CreateProcess() will fail with error code 2.
+		*/
+		if (strstr(path, ".exe") && (tmp = strstr(strstr(path, ".exe"), " ")))
+		{
+			size_t tmp_pos = tmp - path;
+			memcpy(t, path, tmp_pos);
+			t += tmp_pos;
+			*t++ = '\"';
+			memcpy(t, tmp, strlen(path) - tmp_pos);
+			t += (strlen(path) - tmp_pos);
+		}
+		else {
+			memcpy(t, path, path_len);
+			t += path_len;
+			*t++ = '\"';
+		}
 	}
 	else {
 		/*path already contains "*/
@@ -1869,6 +1889,7 @@ cleanup:
 		free(cmdline);
 	return ret;
 }
+
 BOOL
 is_bash_test_env()
 {

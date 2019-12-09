@@ -277,6 +277,12 @@ function Publish-Artifact
         Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["UninstallTestResultsFile"]
         Add-Artifact -artifacts $artifacts -FileToAdd $Global:OpenSSHTestInfo["TestSetupLogFile"]
     }
+
+    if ($Global:bash_tests_summary)
+    {
+        Add-Artifact -artifacts $artifacts -FileToAdd $Global:bash_tests_summary["BashTestSummaryFile"]
+        Add-Artifact -artifacts $artifacts -FileToAdd $Global:bash_tests_summary["BashTestLogFile"]
+    }
     
     foreach ($artifact in $artifacts)
     {
@@ -324,7 +330,7 @@ function Invoke-OpenSSHTests
     else
     {
         Write-Host "All Unit tests passed!"
-        Write-BuildMessage -Message "All Unit tests passed!" -Category Information    
+        Write-BuildMessage -Message "All Unit tests passed!" -Category Information
     }
 
     # Run all E2E tests.
@@ -339,7 +345,7 @@ function Invoke-OpenSSHTests
         return
     }
     $xml = [xml](Get-Content $OpenSSHTestInfo["E2ETestResultsFile"] | out-string)
-    if ([int]$xml.'test-results'.failures -gt 0) 
+    if ([int]$xml.'test-results'.failures -gt 0)
     {
         $errorMessage = "$($xml.'test-results'.failures) tests in regress\pesterTests failed. Detail test log is at $($OpenSSHTestInfo["E2ETestResultsFile"])."
         Write-Warning $errorMessage
@@ -347,7 +353,31 @@ function Invoke-OpenSSHTests
         Set-BuildVariable TestPassed False
         Write-Warning "Stop running further tests!"
         return
-    }    
+    }
+
+    # Run UNIX bash tests.
+    Invoke-OpenSSHBashTests
+    if (-not $Global:bash_tests_summary)
+    {
+        $errorMessage = "Failed to start OpenSSH bash tests"
+        Write-Warning $errorMessage
+        Write-BuildMessage -Message $errorMessage -Category Error
+        Set-BuildVariable TestPassed False
+        Write-Warning "Stop running further tests!"
+        return
+    }
+
+    if ($Global:bash_tests_summary["TotalBashTestsFailed"] -ne 0)
+    {
+        $total_bash_failed_tests = $Global:bash_tests_summary["TotalBashTestsFailed"]
+        $total_bash_tests = $Global:bash_tests_summary["TotalBashTests"]
+        $errorMessage = "At least one of the bash tests failed. [$total_bash_failed_tests of $total_bash_tests]"
+        Write-Warning $errorMessage
+        Write-BuildMessage -Message $errorMessage -Category Error
+        Set-BuildVariable TestPassed False
+        Write-Warning "Stop running further tests!"
+        return
+    }
 
     Invoke-OpenSSHUninstallTest
     if (($OpenSSHTestInfo -eq $null) -or (-not (Test-Path $OpenSSHTestInfo["UninstallTestResultsFile"])))

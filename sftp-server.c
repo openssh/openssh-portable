@@ -1181,7 +1181,12 @@ process_realpath(u_int32_t id)
 	}
 	debug3("request %u: realpath", id);
 	verbose("realpath \"%s\"", path);
+
+#ifdef WINDOWS
+	if (realpath(path, resolvedname) == NULL) {
+#else
 	if (sftp_realpath(path, resolvedname) == NULL) {
+#endif // WINDOWS
 		send_status(id, errno_to_portable(errno));
 	} else {
 		Stat s;

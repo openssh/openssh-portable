@@ -362,8 +362,15 @@ stop_sshd ()
 
 make_tmpdir ()
 {
-	SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
-	    fatal "failed to create temporary directory"
+	if [ "$os" == "windows" ]; then
+		powershell.exe /c "New-Item -Path $OBJ\openssh-XXXXXXXX -ItemType Directory -Force" >/dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			fatal "failed to create temporary directory"
+		fi
+	else
+		SSH_REGRESS_TMP="$($OBJ/mkdtemp openssh-XXXXXXXX)" || \
+			fatal "failed to create temporary directory"
+	fi
 }
 
 # helper
@@ -514,6 +521,7 @@ rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
 SSH_KEYTYPES=`$SSH -Q key-plain`
 if [ "$os" == "windows" ]; then
+	SSH_KEYTYPES=`echo $SSH_KEYTYPES | tr -d '\r','\n'`  # remove \r\n
 	first_key_type=${SSH_KEYTYPES%% *}
 	if [ "x$USER_DOMAIN" != "x" ]; then
 		# For domain user, create folders
@@ -529,9 +537,14 @@ if [ "$os" == "windows" ]; then
 	fi
 fi
 
+if [ "$os" == "windows" ]; then
+	OBJ_WIN_FORMAT=`windows_path $OBJ`
+fi
+
 for t in ${SSH_KEYTYPES}; do
 	# generate user key
 	trace "generating key type $t"
+
 	if [ ! -f $OBJ/$t ] || [ ${SSHKEYGEN_BIN} -nt $OBJ/$t ]; then
 		rm -f $OBJ/$t
 		${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\
@@ -552,7 +565,7 @@ for t in ${SSH_KEYTYPES}; do
 	$SUDO cp $OBJ/$t $OBJ/host.$t
 	if [ "$os" == "windows" ]; then
 		# set the file permissions (ACLs) properly
-		powershell.exe /c "get-acl `windows_path $OBJ`/$t | set-acl `windows_path $OBJ`/host.$t"
+		powershell.exe /c "get-acl $OBJ_WIN_FORMAT/$t | set-acl $OBJ_WIN_FORMAT/host.$t"
 	fi
 
 	echo HostKey $OBJ/host.$t >> $OBJ/sshd_config
@@ -563,7 +576,7 @@ done
 
 if [ "$os" == "windows" ]; then
 	# set the file permissions (ACLs) properly
-	powershell.exe /c "get-acl `windows_path $OBJ`/$first_key_type | set-acl `windows_path $OBJ`/authorized_keys_$USER"
+	powershell.exe /c "get-acl $OBJ_WIN_FORMAT/$first_key_type | set-acl $OBJ_WIN_FORMAT/authorized_keys_$USER"
 fi
 
 # Activate Twisted Conch tests if the binary is present
@@ -626,7 +639,7 @@ fi
 (
 	cat $OBJ/ssh_config
 	if [ "$os" == "windows" ]; then
-		echo proxycommand  `windows_path ${SSHD}` -i -f `windows_path $OBJ`/sshd_proxy
+		echo proxycommand  `windows_path ${SSHD}` -i -f $OBJ_WIN_FORMAT/sshd_proxy
 	else
 		echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${TEST_SSHD_LOGFILE} ${SSHD} -i -f $OBJ/sshd_proxy
 	fi

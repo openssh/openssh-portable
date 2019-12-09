@@ -115,7 +115,6 @@ get_user_groups()
 	}
 
 	for (DWORD i = 0; i < group_buf->GroupCount; i++) {
-
 		/* only bother with group thats are 'enabled' from a security perspective */
 		if ((group_buf->Groups[i].Attributes & SE_GROUP_ENABLED) == 0 ||
 			!IsValidSid(group_buf->Groups[i].Sid))
@@ -278,6 +277,7 @@ int
 ga_match_pattern_list(const char *group_pattern)
 {
 	int i, found = 0;
+	char *tmp = NULL;
 
 	/* group retrieval is expensive, optmizing the common case scenario - only one group with no wild cards and no negation */
 	if (!strchr(group_pattern, ',') && !strchr(group_pattern, '?') && 
@@ -287,8 +287,15 @@ ga_match_pattern_list(const char *group_pattern)
 	if (get_user_groups() == -1)
 		fatal("unable to retrieve group info for user %s", user_name);
 
+	/* For domain groups we need special handling.
+	 * We support both "domain\group_name" and "domain/group_name" formats.
+	 */
+	if (tmp = strstr(group_pattern, "/"))
+		*tmp = '\\';
+
 	for (i = 0; i < ngroups; i++) {
-		switch (match_pattern_list(groups_byname[i], group_pattern, 0)) {
+		/* Group names are case insensitive */
+		switch (match_pattern_list(groups_byname[i], group_pattern, 1)) {
 		case -1:
 			return 0;	/* Negated match wins */
 		case 0:

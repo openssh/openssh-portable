@@ -4,7 +4,11 @@
 tid="hostkey rotate"
 
 # Need full names here since they are used in HostKeyAlgorithms
-HOSTKEY_TYPES="`${SSH} -Q key-plain`"
+if [ "$os" == "windows" ]; then
+	HOSTKEY_TYPES=`${SSH} -Q key-plain | sed 's/\r$//'` # remove CR (carriage return)
+else
+	HOSTKEY_TYPES=`${SSH} -Q key-plain`
+fi
 
 rm -f $OBJ/hkr.* $OBJ/ssh_proxy.orig
 
@@ -21,9 +25,6 @@ trace "prepare hostkeys"
 nkeys=0
 all_algs=""
 for k in $HOSTKEY_TYPES; do
-	if [ "$os" == "windows" ]; then
-		k=`echo $k | sed 's/\r$//'` # remove CR (carriage return)
-	fi
 	${SSHKEYGEN} -qt $k -f $OBJ/hkr.$k -N '' || fatal "ssh-keygen $k"
 	echo "Hostkey $OBJ/hkr.${k}" >> $OBJ/sshd_proxy.orig
 	nkeys=`expr $nkeys + 1`

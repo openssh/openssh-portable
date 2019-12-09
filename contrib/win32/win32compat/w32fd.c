@@ -1044,7 +1044,7 @@ char * build_commandline_string(const char* cmd, char *const argv[], BOOLEAN pre
 * spawned child will run as as_user if its not NULL
 */
 static int
-spawn_child_internal(char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDLE err, unsigned long flags, HANDLE* as_user, BOOLEAN prepend_module_path)
+spawn_child_internal(const char* cmd, char *const argv[], HANDLE in, HANDLE out, HANDLE err, unsigned long flags, HANDLE* as_user, BOOLEAN prepend_module_path)
 {
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
@@ -1262,7 +1262,7 @@ posix_spawn_internal(pid_t *pidp, const char *path, const posix_spawn_file_actio
 
 	if (_putenv_s(POSIX_FD_STATE, fd_info) != 0)
 		goto cleanup;
-	i = spawn_child_internal(argv[0], argv + 1, stdio_handles[STDIN_FILENO], stdio_handles[STDOUT_FILENO], stdio_handles[STDERR_FILENO], sc_flags, user_token, prepend_module_path);
+	i = spawn_child_internal(path, argv + 1, stdio_handles[STDIN_FILENO], stdio_handles[STDOUT_FILENO], stdio_handles[STDERR_FILENO], sc_flags, user_token, prepend_module_path);
 	if (i == -1)
 		goto cleanup;
 	if (pidp)

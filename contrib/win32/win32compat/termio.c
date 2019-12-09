@@ -127,6 +127,11 @@ ReadThread(_In_ LPVOID lpParameter)
 			pio->sync_read_status.error = GetLastError();
 			goto done;
 		}
+
+		/* If there is no data to be read then set the error to ERROR_HANDLE_EOF */
+		if (!pio->sync_read_status.transferred) {
+			pio->sync_read_status.error = ERROR_HANDLE_EOF;
+		}
 	}
 
 done:

@@ -29,8 +29,12 @@ start_client()
 		sleep 1
 		n=`expr $n + 1`
 		if test $n -gt 60; then
-			kill $client_pid
-			fatal "timeout waiting for background ssh"
+			if [ "$os" == "windows" ]; then
+				powershell.exe /c "stop-process -Id $client_pid -Force" >/dev/null 2>&1
+			else
+				kill $client_pid
+				fatal "timeout waiting for background ssh"
+			fi
 		fi
 	done
 	return $r
@@ -53,10 +57,14 @@ expect_client_fail()
 stop_client()
 {
 	pid=`cat $pidfile`
-	if [ ! -z "$pid" ]; then
-		kill $pid
+	if [ "$os" == "windows" ]; then
+		powershell.exe /c "stop-process -Id $pid -Force" >/dev/null 2>&1
+	else
+		if [ ! -z "$pid" ]; then
+			kill $pid
+		fi
+		wait
 	fi
-	wait
 }
 
 cp $OBJ/sshd_proxy $OBJ/sshd_proxy_bak

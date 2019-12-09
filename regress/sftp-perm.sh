@@ -105,11 +105,11 @@ if [ "$os" == "windows" ]; then
 		"powershell.exe /c \"!(Get-ChildItem $`windows_path $OBJ`/copy).IsReadOnly\" 1>/dev/null"
 else
 	ro_test \
-	"setstat" \
-	"chmod 0700 $COPY" \
-	"touch $COPY; chmod 0400 $COPY" \
-	"test -x $COPY" \
-	"test ! -x $COPY"
+		"setstat" \
+		"chmod 0700 $COPY" \
+		"touch $COPY; chmod 0400 $COPY" \
+		"test -x $COPY" \
+		"test ! -x $COPY"
 fi
 
 ro_test \

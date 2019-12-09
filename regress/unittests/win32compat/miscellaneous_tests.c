@@ -364,7 +364,7 @@ test_build_commandline_string()
 	ASSERT_STRING_EQ(out, "\"c:\\windows\\system32\\cmd.exe\" /c arg");
 	free(out);
 	out = build_commandline_string("cmd.exe /c ping.exe", NULL, FALSE);
-	ASSERT_STRING_EQ(out, "\"cmd.exe /c ping.exe\"");
+	ASSERT_STRING_EQ(out, "\"cmd.exe\" /c ping.exe");
 	sprintf_s(in, PATH_MAX, "\"%s\\%s\"", __progdir, "ssh-shellhost.exe\" -c \"arg1 arg2\"");
 	out = build_commandline_string(in, NULL, TRUE);
 	ASSERT_STRING_EQ(out, in);
