@@ -31,6 +31,10 @@ If you must use a non-position-independent libcrypto, then you may need
 to configure OpenSSH --without-pie.  Note that due to a bug in EVP_CipherInit
 OpenSSL 1.1 versions prior to 1.1.0g can't be used.
 
+If you build either from source, running the OpenSSL self-test ("make
+tests") or the LibreSSL equivalent ("make check") and ensuring that all
+tests pass is strongly recommended.
+
 NB. If you operating system supports /dev/random, you should configure
 libcrypto (LibreSSL/OpenSSL) to use it. OpenSSH relies on libcrypto's
 direct support of /dev/random, or failing that, either prngd or egd.
