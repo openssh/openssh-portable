@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.373 2019/11/25 00:57:27 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.374 2019/12/10 22:37:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1735,10 +1735,12 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 	int r, i, fd, found, agent_fd = -1;
 	u_int n;
 	struct sshkey *ca, *public;
-	char valid[64], *otmp, *tmp, *cp, *out, *comment, **plist = NULL;
+	char valid[64], *otmp, *tmp, *cp, *out, *comment;
+	char *ca_fp = NULL, **plist = NULL;
 	FILE *f;
 	struct ssh_identitylist *agent_ids;
 	size_t j;
+	struct notifier_ctx *notifier = NULL;
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(1);
@@ -1784,6 +1786,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		fatal("CA key type %s doesn't match specified %s",
 		    sshkey_ssh_name(ca), key_type_name);
 	}
+	ca_fp = sshkey_fingerprint(ca, fingerprint_hash, SSH_FP_DEFAULT);
 
 	for (i = 0; i < argc; i++) {
 		/* Split list of principals */
@@ -1834,8 +1837,16 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 				fatal("Couldn't certify key %s via agent: %s",
 				    tmp, ssh_err(r));
 		} else {
-			if ((r = sshkey_certify(public, ca, key_type_name,
-			    sk_provider)) != 0)
+			if (sshkey_is_sk(ca) &&
+			    (ca->sk_flags & SSH_SK_USER_PRESENCE_REQD)) {
+				notifier = notify_start(0,
+				    "Confirm user presence for key %s %s",
+				    sshkey_type(ca), ca_fp);
+			}
+			r = sshkey_certify(public, ca, key_type_name,
+			    sk_provider);
+			notify_complete(notifier);
+			if (r != 0)
 				fatal("Couldn't certify key %s: %s",
 				    tmp, ssh_err(r));
 		}
@@ -1873,6 +1884,7 @@ do_ca_sign(struct passwd *pw, const char *ca_key_path, int prefer_agent,
 		if (cert_serial_autoinc)
 			cert_serial++;
 	}
+	free(ca_fp);
 #ifdef ENABLE_PKCS11
 	pkcs11_terminate();
 #endif
