@@ -150,15 +150,8 @@ SSH U2F signatures
 ------------------
 
 In addition to the message to be signed, the U2F signature operation
-requires a few additional parameters:
-
-	byte		control bits (e.g. "user presence required" flag)
-	byte[32]	SHA256(message)
-	byte[32]	SHA256(application)
-	byte		key_handle length
-	byte[]		key_handle
-
-This signature is signed over a blob that consists of:
+requires the key handle and a few additional parameters. The signature
+is signed over a blob that consists of:
 
 	byte[32]	SHA256(application)
 	byte		flags (including "user present", extensions present)
@@ -170,7 +163,7 @@ The signature returned from U2F hardware takes the following format:
 
 	byte		flags (including "user present")
 	uint32		counter
-	byte[32]	ecdsa_signature (in X9.62 format).
+	byte[]		ecdsa_signature (in X9.62 format).
 
 For use in the SSH protocol, we wish to avoid server-side parsing of ASN.1
 format data in the pre-authentication attack surface. Therefore, the
