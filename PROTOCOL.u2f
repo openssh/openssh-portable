@@ -205,7 +205,7 @@ with a new key constraint extension to encode a path to the middleware
 library for the key. The format of this constraint extension would be:
 
 	byte		SSH_AGENT_CONSTRAIN_EXTENSION
-	string		sk@openssh.com
+	string		sk-provider@openssh.com
 	string		middleware path
 
 This constraint-based approach does not present any compatibility
