@@ -86,7 +86,7 @@ With a private half consisting of:
 	string		"sk-ssh-ed25519@openssh.com"
 	string		public key
 	string		application (user-specified, but typically "ssh:")
-	uint32		flags
+	uint8		flags
 	string		key_handle
 	string		reserved
 
@@ -110,6 +110,8 @@ information to the public key:
 	string		signature key
 	string		signature
 
+and for security key ed25519 certificates:
+
 	string		"sk-ssh-ed25519-cert-v01@openssh.com"
 	string		nonce
 	string		public key
@@ -125,6 +127,15 @@ information to the public key:
 	string		reserved
 	string		signature key
 	string		signature
+
+Both security key certificates use the following encoding for private keys:
+
+	string		type (e.g. "sk-ssh-ed25519-cert-v01@openssh.com")
+	string		pubkey (the above key/cert structure)
+	string		application
+	uint8		flags
+	string		key_handle
+	string		reserved
 
 During key generation, the hardware also returns attestation information
 that may be used to cryptographically prove that a given key is
@@ -187,7 +198,6 @@ For Ed25519 keys the signature is encoded as:
 	string		signature
 	byte		flags
 	uint32		counter
-
 
 ssh-agent protocol extensions
 -----------------------------
