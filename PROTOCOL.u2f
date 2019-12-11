@@ -170,6 +170,10 @@ is signed over a blob that consists of:
 	byte[]		extensions
 	byte[32]	SHA256(message)
 
+No extensons are yet defined for SSH use. If any are defined in the future,
+it will be possible to infer their presence from the contents of the "flags"
+value.
+
 The signature returned from U2F hardware takes the following format:
 
 	byte		flags (including "user present")
