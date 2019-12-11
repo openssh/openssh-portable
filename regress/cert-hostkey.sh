@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-hostkey.sh,v 1.20 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: cert-hostkey.sh,v 1.21 2019/12/11 18:47:14 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified host keys"
@@ -131,7 +131,7 @@ attempt_connect() {
 }
 
 # Basic connect and revocation tests.
-for privsep in yes sandbox ; do
+for privsep in yes ; do
 	for ktype in $PLAIN_TYPES ; do
 		verbose "$tid: host ${ktype} cert connect privsep $privsep"
 		(
@@ -169,7 +169,7 @@ for ktype in $PLAIN_TYPES ; do
 	kh_revoke cert_host_key_${ktype}.pub >> $OBJ/known_hosts-cert.orig
 done
 cp $OBJ/known_hosts-cert.orig $OBJ/known_hosts-cert
-for privsep in yes sandbox ; do
+for privsep in yes ; do
 	for ktype in $PLAIN_TYPES ; do
 		verbose "$tid: host ${ktype} revoked cert privsep $privsep"
 		(

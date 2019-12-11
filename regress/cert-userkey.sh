@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.23 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.24 2019/12/11 18:47:14 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -60,7 +60,7 @@ done
 # Test explicitly-specified principals
 for ktype in $EXTRA_TYPES $PLAIN_TYPES ; do
 	t=$(kname $ktype)
-	for privsep in yes sandbox ; do
+	for privsep in yes ; do
 		_prefix="${ktype} privsep $privsep"
 
 		# Setup for AuthorizedPrincipalsFile
@@ -197,7 +197,7 @@ basic_tests() {
 
 	for ktype in $PLAIN_TYPES ; do
 		t=$(kname $ktype)
-		for privsep in yes no ; do
+		for privsep in yes ; do
 			_prefix="${ktype} privsep $privsep $auth"
 			# Simple connect
 			verbose "$tid: ${_prefix} connect"
