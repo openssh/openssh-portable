@@ -331,6 +331,8 @@ depend-rebuild:
 	rm -f config.h
 	touch config.h
 	makedepend -w1000 -Y. -f .depend *.c 2>/dev/null
+	(head -2 .depend; tail +3 .depend | sort) >.depend.tmp
+	mv .depend.tmp .depend
 	rm -f config.h
 
 depend-check: depend-rebuild
