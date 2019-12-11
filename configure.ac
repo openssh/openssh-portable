@@ -1873,7 +1873,7 @@ AC_CHECK_FUNCS([ \
 	warn \
 ])
 
-AC_CHECK_DECLS([bzero])
+AC_CHECK_DECLS([bzero, memmem])
 
 dnl Wide character support.
 AC_CHECK_FUNCS([mblen mbtowc nl_langinfo wcwidth])
