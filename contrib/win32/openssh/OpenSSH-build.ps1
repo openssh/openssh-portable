@@ -40,8 +40,8 @@ try
     Copy-Item -Path $buildLog -Destination "$($Bucket)_symbols\" -Force -ErrorAction SilentlyContinue
 
     $unitTestPaths = Get-ChildItem "$repolocation\UnitTests\*" -Directory
-    Compress-Archive -path $unitTestPaths.FullName -DestinationPath "$repolocation\$($Bucket)_symbols\$UnitTestFolder"
-    Compress-Archive -path "$repolocation\$($Bucket)_symbols\*" -DestinationPath "$destination\$($Bucket)_symbols"
+    Compress-Archive -path $unitTestPaths.FullName -DestinationPath "$repolocation\$($Bucket)_symbols\$UnitTestFolder" -Force
+    Compress-Archive -path "$repolocation\$($Bucket)_symbols\*" -DestinationPath "$destination\$($Bucket)_symbols" -Force
 }
 finally
 {
