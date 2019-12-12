@@ -1199,7 +1199,7 @@ main(int ac, char **av)
 		snprintf(port_s, sizeof(port_s), "%d", options.jump_port);
 		xasprintf(&options.proxy_command,
 #ifdef WINDOWS
-		    "%s%s%s%s%s%s%s%s%s%s%.*s -W \"[%%h]:%%p\" %s",
+		    "\"%s\" %s%s%s%s%s%s%s%s%s%.*s -W \"[%%h]:%%p\" %s",
 #else
 		    "%s%s%s%s%s%s%s%s%s%s%.*s -W '[%%h]:%%p' %s",
 #endif
