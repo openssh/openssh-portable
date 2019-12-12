@@ -1202,7 +1202,9 @@ char *
 readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags)
 {
 	int current_index = 0;
-	char ch;
+	int utf8_read = 0;
+	char utf8_char[4];
+	wchar_t ch;
 	wchar_t* wtmp = NULL;
 
 	if (outBufLen == 0) {
@@ -1210,7 +1212,7 @@ readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags)
 		return NULL;
 	}
 
-	while (_kbhit()) _getch();
+	while (_kbhit()) _getwch();
 
 	wtmp = utf8_to_utf16(prompt);
 	if (wtmp == NULL)
@@ -1220,36 +1222,51 @@ readpassphrase(const char *prompt, char *outBuf, size_t outBufLen, int flags)
 	free(wtmp);
 
 	while (current_index < (int)outBufLen - 1) {
-		ch = _getch();
+		ch = _getwch();
 		
-		if (ch == '\r') {
-			if (_kbhit()) _getch(); /* read linefeed if its there */
+		if (ch == L'\r') {
+			if (_kbhit()) _getwch(); /* read linefeed if its there */
 			break;
-		} else if (ch == '\n') {
+		} else if (ch == L'\n') {
 			break;
-		} else if (ch == '\b') { /* backspace */
+		} else if (ch == L'\b') { /* backspace */
 			if (current_index > 0) {
 				if (flags & RPP_ECHO_ON)
-					printf_s("%c \b", ch);
+					wprintf_s(L"%c \b", ch);
 
-				current_index--; /* overwrite last character */
+				/* overwrite last character - remove any utf8 extended chars */
+				while (current_index > 0 && (outBuf[current_index - 1] & 0xC0) == 0x80)
+					current_index--;
+
+				/* overwrite last character - remove first utf8 byte */
+				if (current_index > 0)
+					current_index--;
 			}
-		} else if (ch == '\003') { /* exit on Ctrl+C */
+		} else if (ch == L'\003') { /* exit on Ctrl+C */
 			fatal("");
 		} else {
 			if (flags & RPP_SEVENBIT)
 				ch &= 0x7f;
 
-			if (isalpha((unsigned char)ch)) {
+			if (iswalpha(ch)) {
 				if(flags & RPP_FORCELOWER)
-					ch = tolower((unsigned char)ch);
+					ch = towlower(ch);
 				if(flags & RPP_FORCEUPPER)
-					ch = toupper((unsigned char)ch);
+					ch = towupper(ch);
 			}
 
-			outBuf[current_index++] = ch;
+			/* convert unicode to utf8 characters */
+			int utf8_char_size = sizeof(utf8_char);
+			if ((utf8_read = WideCharToMultiByte(CP_UTF8, 0, &ch, 1, utf8_char, sizeof(utf8_char), NULL, NULL)) == 0)
+				fatal("character conversion failed");
+
+			/* append to output buffer if the characters fit */
+			if (current_index + utf8_read >= outBufLen - 1) break;
+			memcpy(&outBuf[current_index], utf8_char, utf8_read);
+			current_index += utf8_read;
+
 			if(flags & RPP_ECHO_ON)
-				printf_s("%c", ch);
+				wprintf_s(L"%c", ch);
 		}
 	}
 
