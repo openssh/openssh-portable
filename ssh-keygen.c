@@ -3303,9 +3303,6 @@ main(int argc, char **argv)
 	switch (type) {
 	case KEY_ECDSA_SK:
 	case KEY_ED25519_SK:
-#ifndef ENABLE_SK
-		fatal("Security key support was disabled at compile time");
-#else /* ENABLE_SK */
 		if (!quiet) {
 			printf("You may need to touch your security key "
 			    "to authorize key generation.\n");
@@ -3316,7 +3313,6 @@ main(int argc, char **argv)
  		    sk_flags, NULL, &private, NULL) != 0)
  			exit(1); /* error message already printed */
 		break;
-#endif /* ENABLE_SK */
 	default:
 		if ((r = sshkey_generate(type, bits, &private)) != 0)
 			fatal("sshkey_generate failed");

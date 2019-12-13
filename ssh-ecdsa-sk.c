@@ -29,8 +29,6 @@
 
 #include "includes.h"
 
-#ifdef ENABLE_SK
-
 #include <sys/types.h>
 
 #include <openssl/bn.h>
@@ -203,4 +201,3 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	free(ktype);
 	return ret;
 }
-#endif /* ENABLE_SK */

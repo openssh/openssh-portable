@@ -198,6 +198,10 @@ sshsk_sign(const char *provider, struct sshkey *key,
 	*sigp = NULL;
 	*lenp = 0;
 
+#ifndef ENABLE_SK
+	return SSH_ERR_KEY_TYPE_UNKNOWN;
+#endif
+
 	if ((kbuf = sshbuf_new()) == NULL ||
 	    (req = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
@@ -265,6 +269,10 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	*keyp = NULL;
 	if (attest != NULL)
 		sshbuf_reset(attest);
+
+#ifndef ENABLE_SK
+	return SSH_ERR_KEY_TYPE_UNKNOWN;
+#endif
 
 	if (type < 0)
 		return SSH_ERR_INVALID_ARGUMENT;
