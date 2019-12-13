@@ -153,6 +153,7 @@ main(int argc, char **argv)
 {
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
+	struct sshbuf *req, *resp;
 	int in, out, ch, r, log_stderr = 0;
 	u_int rtype;
 	uint8_t version;
