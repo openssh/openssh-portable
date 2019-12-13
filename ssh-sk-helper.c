@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.3 2019/11/12 19:33:08 markus Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.4 2019/12/13 19:11:14 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -18,20 +18,16 @@
 /*
  * This is a tiny program used to isolate the address space used for
  * security key middleware signing operations from ssh-agent. It is similar
- * to ssh-pkcs11-helper.c but considerably simpler as the signing operation
- * for this case are stateless.
+ * to ssh-pkcs11-helper.c but considerably simpler as the operations for
+ * security keys are stateless.
  *
- * It receives a signing request (key, provider, message, flags) from
- * stdin, attempts to perform a signature using the security key provider
- * and returns the resultant signature via stdout.
- *
- * In the future, this program might gain additional functions to support
- * FIDO2 tokens such as enumerating resident keys. When this happens it will
- * be necessary to crank SSH_SK_HELPER_VERSION below.
+ * Please crank SSH_SK_HELPER_VERSION in sshkey.h for any incompatible
+ * protocol changes.
  */
-
+ 
 #include "includes.h"
 
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,19 +50,112 @@
 #ifdef ENABLE_SK
 extern char *__progname;
 
+static struct sshbuf *
+process_sign(struct sshbuf *req)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *resp, *kbuf;
+	struct sshkey *key;
+	uint32_t compat;
+	const u_char *message;
+	u_char *sig;
+	size_t msglen, siglen;
+	char *provider;
+
+	if ((r = sshbuf_froms(req, &kbuf)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_string_direct(req, &message, &msglen)) != 0 ||
+	    (r = sshbuf_get_cstring(req, NULL, NULL)) != 0 || /* alg */
+	    (r = sshbuf_get_u32(req, &compat)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+	if (sshbuf_len(req) != 0)
+		fatal("%s: trailing data in request", __progname);
+
+	if ((r = sshkey_private_deserialize(kbuf, &key)) != 0)
+		fatal("Unable to parse private key: %s", ssh_err(r));
+	if (!sshkey_is_sk(key))
+		fatal("Unsupported key type %s", sshkey_ssh_name(key));
+
+	debug("%s: ready to sign with key %s, provider %s: "
+	    "msg len %zu, compat 0x%lx", __progname, sshkey_type(key),
+	    provider, msglen, (u_long)compat);
+
+	if ((r = sshsk_sign(provider, key, &sig, &siglen,
+	    message, msglen, compat)) != 0)
+		fatal("Signing failed: %s", ssh_err(r));
+
+	if ((resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+
+	if ((r = sshbuf_put_string(resp, sig, siglen)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+
+	sshbuf_free(kbuf);
+	free(provider);
+
+	return resp;
+}
+
+static struct sshbuf *
+process_enroll(struct sshbuf *req)
+{
+	int r;
+	u_int type;
+	char *provider;
+	char *application;
+	uint8_t flags;
+	struct sshbuf *challenge, *attest, *kbuf, *resp;
+	struct sshkey *key;
+
+	if ((resp = sshbuf_new()) == NULL ||
+	    (attest = sshbuf_new()) == NULL ||
+	    (kbuf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+
+	if ((r = sshbuf_get_u32(req, &type)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &application, NULL)) != 0 ||
+	    (r = sshbuf_get_u8(req, &flags)) != 0 ||
+	    (r = sshbuf_froms(req, &challenge)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+	if (sshbuf_len(req) != 0)
+		fatal("%s: trailing data in request", __progname);
+
+	if (type > INT_MAX)
+		fatal("%s: bad type %u", __progname, type);
+	if (sshbuf_len(challenge) == 0) {
+		sshbuf_free(challenge);
+		challenge = NULL;
+	}
+
+	if ((r = sshsk_enroll((int)type, provider, application, flags,
+	    challenge, &key, attest)) != 0)
+		fatal("%s: sshsk_enroll failed: %s", __progname, ssh_err(r));
+
+	if ((r = sshkey_private_serialize(key, kbuf)) != 0)
+		fatal("%s: serialize private key: %s", __progname, ssh_err(r));
+	if ((r = sshbuf_put_stringb(resp, kbuf)) != 0 ||
+	    (r = sshbuf_put_stringb(resp, attest)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+
+	sshkey_free(key);
+	sshbuf_free(kbuf);
+	sshbuf_free(attest);
+	sshbuf_free(challenge);
+	free(provider);
+	free(application);
+
+	return resp;
+}
+
 int
 main(int argc, char **argv)
 {
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
-	struct sshbuf *req, *resp, *kbuf;
-	struct sshkey *key;
-	uint32_t compat;
-	const u_char *message;
-	u_char version, *sig;
-	size_t msglen, siglen;
-	char *provider;
 	int in, out, ch, r, log_stderr = 0;
+	u_int rtype;
+	uint8_t version;
 
 	sanitise_stdfd();
 	log_init(__progname, log_level, log_facility, log_stderr);
@@ -98,7 +187,7 @@ main(int argc, char **argv)
 	close(STDOUT_FILENO);
 	sanitise_stdfd(); /* resets to /dev/null */
 
-	if ((req = sshbuf_new()) == NULL || (resp = sshbuf_new()) == NULL)
+	if ((req = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __progname);
 	if (ssh_msg_recv(in, req) < 0)
 		fatal("ssh_msg_recv failed");
@@ -111,33 +200,26 @@ main(int argc, char **argv)
 		fatal("unsupported version: received %d, expected %d",
 		    version, SSH_SK_HELPER_VERSION);
 	}
-	if ((r = sshbuf_froms(req, &kbuf)) != 0 ||
-	    (r = sshkey_private_deserialize(kbuf, &key)) != 0)
-		fatal("Unable to parse key: %s", ssh_err(r));
-	if (!sshkey_is_sk(key))
-		fatal("Unsupported key type %s", sshkey_ssh_name(key));
 
-	if ((r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
-	    (r = sshbuf_get_string_direct(req, &message, &msglen)) != 0 ||
-	    (r = sshbuf_get_u32(req, &compat)) != 0)
+	if ((r = sshbuf_get_u32(req, &rtype)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
-	if (sshbuf_len(req) != 0)
-		fatal("%s: trailing data in request", __progname);
 
-	debug("%s: ready to sign with key %s, provider %s: "
-	    "msg len %zu, compat 0x%lx", __progname, sshkey_type(key),
-	    provider, msglen, (u_long)compat);
-
-	if ((r = sshsk_sign(provider, key, &sig, &siglen,
-	    message, msglen, compat)) != 0)
-		fatal("Signing failed: %s", ssh_err(r));
-
-	/* send reply */
-	if ((r = sshbuf_put_string(resp, sig, siglen)) != 0)
-		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+	switch (rtype) {
+	case SSH_SK_HELPER_SIGN:
+		resp = process_sign(req);
+		break;
+	case SSH_SK_HELPER_ENROLL:
+		resp = process_enroll(req);
+		break;
+	default:
+		fatal("%s: unsupported request type %u", __progname, rtype);
+	}
+	sshbuf_free(req);
 	debug("%s: reply len %zu", __progname, sshbuf_len(resp));
+
 	if (ssh_msg_send(out, SSH_SK_HELPER_VERSION, resp) == -1)
 		fatal("ssh_msg_send failed");
+	sshbuf_free(resp);
 	close(out);
 
 	return (0);
