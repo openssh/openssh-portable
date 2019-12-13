@@ -3107,7 +3107,6 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 	OTHERLIBS=`echo $LIBFIDO2 | sed 's/-lfido2//'`
 	AC_CHECK_LIB([fido2], [fido_init],
 		[
-			LIBS="$LIBS $LIBFIDO2" # XXX avoid linking to all.
 			AC_SUBST([LIBFIDO2])
 			AC_DEFINE([ENABLE_SK_INTERNAL], [],
 			    [Enable for built-in U2F/FIDO support])
