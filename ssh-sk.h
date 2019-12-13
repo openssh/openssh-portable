@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.5 2019/11/12 19:31:45 markus Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.6 2019/12/13 19:09:10 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -21,9 +21,6 @@
 struct sshbuf;
 struct sshkey;
 
-/* Version of protocol between ssh-agent and ssh-sk-helper */
-#define SSH_SK_HELPER_VERSION	1
-
 /*
  * Enroll (generate) a new security-key hosted private key of given type
  * via the specified provider middleware.
@@ -44,7 +41,7 @@ int sshsk_enroll(int type, const char *provider_path, const char *application,
  *
  * Returns 0 on success or a ssherr.h error code on failure.
  */
-int sshsk_sign(const char *provider_path, const struct sshkey *key,
+int sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
     u_int compat);
 

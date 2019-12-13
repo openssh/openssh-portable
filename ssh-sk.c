@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.17 2019/11/27 22:32:11 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.18 2019/12/13 19:09:10 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -464,7 +464,7 @@ sshsk_ed25519_sig(struct sk_sign_response *resp, struct sshbuf *sig)
 }
 
 int
-sshsk_sign(const char *provider_path, const struct sshkey *key,
+sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
     u_int compat)
 {

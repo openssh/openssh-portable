@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.96 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.97 2019/12/13 19:09:10 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2750,13 +2750,6 @@ sshkey_sign(struct sshkey *key,
 	case KEY_ECDSA:
 		r = ssh_ecdsa_sign(key, sigp, lenp, data, datalen, compat);
 		break;
-#  ifdef ENABLE_SK
-	case KEY_ECDSA_SK_CERT:
-	case KEY_ECDSA_SK:
-		r = sshsk_sign(sk_provider, key, sigp, lenp, data, datalen,
-		    compat);
-		break;
-#  endif /* ENABLE_SK */
 # endif /* OPENSSL_HAS_ECC */
 	case KEY_RSA_CERT:
 	case KEY_RSA:
@@ -2770,8 +2763,10 @@ sshkey_sign(struct sshkey *key,
 #ifdef ENABLE_SK
 	case KEY_ED25519_SK:
 	case KEY_ED25519_SK_CERT:
-		r = sshsk_sign(sk_provider, key, sigp, lenp, data, datalen,
-		    compat);
+	case KEY_ECDSA_SK_CERT:
+	case KEY_ECDSA_SK:
+		r = sshsk_sign(sk_provider, key, sigp, lenp, data,
+		    datalen, compat);
 		break;
 #endif /* ENABLE_SK */
 #ifdef WITH_XMSS
