@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.205 2019/11/25 10:23:36 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.206 2019/12/15 18:57:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -679,7 +679,7 @@ mm_answer_sign(struct ssh *ssh, int sock, struct sshbuf *m)
 
 	if ((key = get_hostkey_by_index(keyid)) != NULL) {
 		if ((r = sshkey_sign(key, &signature, &siglen, p, datlen, alg,
-		    NULL, compat)) != 0)
+		    options.sk_provider, compat)) != 0)
 			fatal("%s: sshkey_sign failed: %s",
 			    __func__, ssh_err(r));
 	} else if ((key = get_hostkey_public_by_index(keyid, ssh)) != NULL &&

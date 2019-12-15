@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.354 2019/11/25 00:52:46 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.355 2019/12/15 18:57:30 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -171,6 +171,7 @@ initialize_server_options(ServerOptions *options)
 	options->authorized_keys_command = NULL;
 	options->authorized_keys_command_user = NULL;
 	options->revoked_keys_file = NULL;
+	options->sk_provider = NULL;
 	options->trusted_user_ca_keys = NULL;
 	options->authorized_principals_file = NULL;
 	options->authorized_principals_command = NULL;
@@ -211,7 +212,7 @@ assemble_algorithms(ServerOptions *o)
 	ASSEMBLE(kex_algorithms, KEX_SERVER_KEX, all_kex);
 	ASSEMBLE(hostkeyalgorithms, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
-	ASSEMBLE(pubkey_key_types, PUBKEY_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(ca_sign_algorithms, SSH_ALLOWED_CA_SIGALGS, all_sig);
 #undef ASSEMBLE
 	free(all_cipher);
@@ -428,6 +429,8 @@ fill_default_server_options(ServerOptions *options)
 		options->disable_forwarding = 0;
 	if (options->expose_userauth_info == -1)
 		options->expose_userauth_info = 0;
+	if (options->sk_provider == NULL)
+		options->sk_provider = xstrdup("internal");
 
 	assemble_algorithms(options);
 
@@ -447,6 +450,7 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->banner);
 	CLEAR_ON_NONE(options->trusted_user_ca_keys);
 	CLEAR_ON_NONE(options->revoked_keys_file);
+	CLEAR_ON_NONE(options->sk_provider);
 	CLEAR_ON_NONE(options->authorized_principals_file);
 	CLEAR_ON_NONE(options->adm_forced_command);
 	CLEAR_ON_NONE(options->chroot_directory);
@@ -512,7 +516,7 @@ typedef enum {
 	sAuthenticationMethods, sHostKeyAgent, sPermitUserRC,
 	sStreamLocalBindMask, sStreamLocalBindUnlink,
 	sAllowStreamLocalForwarding, sFingerprintHash, sDisableForwarding,
-	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions,
+	sExposeAuthInfo, sRDomain, sPubkeyAuthOptions, sSecurityKeyProvider,
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
@@ -662,6 +666,7 @@ static struct {
 	{ "exposeauthinfo", sExposeAuthInfo, SSHCFG_ALL },
 	{ "rdomain", sRDomain, SSHCFG_ALL },
 	{ "casignaturealgorithms", sCASignatureAlgorithms, SSHCFG_ALL },
+	{ "securitykeyprovider", sSecurityKeyProvider, SSHCFG_GLOBAL },
 	{ NULL, sBadOption, 0 }
 };
 
@@ -2025,6 +2030,10 @@ process_server_config_line(ServerOptions *options, char *line,
 		charptr = &options->revoked_keys_file;
 		goto parse_filename;
 
+	case sSecurityKeyProvider:
+		charptr = &options->sk_provider;
+		goto parse_filename;
+
 	case sIPQoS:
 		arg = strdelim(&cp);
 		if ((value = parse_ipqos(arg)) == -1)
@@ -2646,6 +2655,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sChrootDirectory, o->chroot_directory);
 	dump_cfg_string(sTrustedUserCAKeys, o->trusted_user_ca_keys);
 	dump_cfg_string(sRevokedKeys, o->revoked_keys_file);
+	dump_cfg_string(sSecurityKeyProvider, o->sk_provider);
 	dump_cfg_string(sAuthorizedPrincipalsFile,
 	    o->authorized_principals_file);
 	dump_cfg_string(sVersionAddendum, *o->version_addendum == '\0'
@@ -2664,7 +2674,7 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sHostKeyAlgorithms, o->hostkeyalgorithms ?
 	    o->hostkeyalgorithms : KEX_DEFAULT_PK_ALG);
 	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types ?
-	    o->pubkey_key_types : PUBKEY_DEFAULT_PK_ALG);
+	    o->pubkey_key_types : KEX_DEFAULT_PK_ALG);
 	dump_cfg_string(sRDomain, o->routing_domain);
 
 	/* string arguments requiring a lookup */

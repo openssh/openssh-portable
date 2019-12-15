@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.541 2019/11/18 16:10:05 naddy Exp $ */
+/* $OpenBSD: sshd.c,v 1.542 2019/12/15 18:57:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -122,6 +122,7 @@
 #include "auth-options.h"
 #include "version.h"
 #include "ssherr.h"
+#include "sk-api.h"
 
 /* Re-exec fds */
 #define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
@@ -632,6 +633,8 @@ list_hostkey_types(void)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_ECDSA_SK:
+		case KEY_ED25519_SK:
 		case KEY_XMSS:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
@@ -651,6 +654,8 @@ list_hostkey_types(void)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_ECDSA_SK_CERT:
+		case KEY_ED25519_SK_CERT:
 		case KEY_XMSS_CERT:
 			append_hostkey_type(b, sshkey_ssh_name(key));
 			break;
@@ -675,6 +680,8 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 		case KEY_DSA_CERT:
 		case KEY_ECDSA_CERT:
 		case KEY_ED25519_CERT:
+		case KEY_ECDSA_SK_CERT:
+		case KEY_ED25519_SK_CERT:
 		case KEY_XMSS_CERT:
 			key = sensitive_data.host_certificates[i];
 			break;
@@ -684,10 +691,20 @@ get_hostkey_by_type(int type, int nid, int need_private, struct ssh *ssh)
 				key = sensitive_data.host_pubkeys[i];
 			break;
 		}
-		if (key != NULL && key->type == type &&
-		    (key->type != KEY_ECDSA || key->ecdsa_nid == nid))
+		if (key == NULL || key->type != type)
+			continue;
+		switch (type) {
+		case KEY_ECDSA:
+		case KEY_ECDSA_SK:
+		case KEY_ECDSA_CERT:
+		case KEY_ECDSA_SK_CERT:
+			if (key->ecdsa_nid != nid)
+				continue;
+			/* FALLTHROUGH */
+		default:
 			return need_private ?
 			    sensitive_data.host_keys[i] : key;
+		}
 	}
 	return NULL;
 }
@@ -1723,7 +1740,14 @@ main(int ac, char **av)
 		    &key, NULL)) != 0 && r != SSH_ERR_SYSTEM_ERROR)
 			do_log2(ll, "Unable to load host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
-		if (r == 0 && (r = sshkey_shield_private(key)) != 0) {
+		if (sshkey_is_sk(key) &&
+		    key->sk_flags & SSH_SK_USER_PRESENCE_REQD) {
+			debug("host key %s requires user presence, ignoring",
+			    options.host_key_files[i]);
+			key->sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+		}
+		if (r == 0 && key != NULL &&
+		    (r = sshkey_shield_private(key)) != 0) {
 			do_log2(ll, "Unable to shield host key \"%s\": %s",
 			    options.host_key_files[i], ssh_err(r));
 			sshkey_free(key);
@@ -1760,6 +1784,8 @@ main(int ac, char **av)
 		case KEY_DSA:
 		case KEY_ECDSA:
 		case KEY_ED25519:
+		case KEY_ECDSA_SK:
+		case KEY_ED25519_SK:
 		case KEY_XMSS:
 			if (have_agent || key != NULL)
 				sensitive_data.have_ssh2_key = 1;
@@ -2212,17 +2238,19 @@ sshd_hostkey_sign(struct ssh *ssh, struct sshkey *privkey,
 	if (use_privsep) {
 		if (privkey) {
 			if (mm_sshkey_sign(ssh, privkey, signature, slenp,
-			    data, dlen, alg, NULL, ssh->compat) < 0)
+			    data, dlen, alg, options.sk_provider,
+			    ssh->compat) < 0)
 				fatal("%s: privkey sign failed", __func__);
 		} else {
 			if (mm_sshkey_sign(ssh, pubkey, signature, slenp,
-			    data, dlen, alg, NULL, ssh->compat) < 0)
+			    data, dlen, alg, options.sk_provider,
+			    ssh->compat) < 0)
 				fatal("%s: pubkey sign failed", __func__);
 		}
 	} else {
 		if (privkey) {
 			if (sshkey_sign(privkey, signature, slenp, data, dlen,
-			    alg, NULL, ssh->compat) < 0)
+			    alg, options.sk_provider, ssh->compat) < 0)
 				fatal("%s: privkey sign failed", __func__);
 		} else {
 			if ((r = ssh_agent_sign(auth_sock, pubkey,

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.c,v 1.116 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: monitor_wrap.c,v 1.117 2019/12/15 18:57:30 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -224,8 +224,6 @@ mm_sshkey_sign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	int r;
 
 	debug3("%s entering", __func__);
-	if (sk_provider != NULL)
-		fatal("%s: sk_provider != NULL", __func__);
 	if ((m = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __func__);
 	if ((r = sshbuf_put_u32(m, ndx)) != 0 ||

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.314 2019/11/14 21:27:29 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.315 2019/12/15 18:57:30 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2153,7 +2153,7 @@ fill_default_options(Options * options)
 	ASSEMBLE(macs, KEX_CLIENT_MAC, all_mac);
 	ASSEMBLE(kex_algorithms, KEX_CLIENT_KEX, all_kex);
 	ASSEMBLE(hostbased_key_types, KEX_DEFAULT_PK_ALG, all_key);
-	ASSEMBLE(pubkey_key_types, PUBKEY_DEFAULT_PK_ALG, all_key);
+	ASSEMBLE(pubkey_key_types, KEX_DEFAULT_PK_ALG, all_key);
 	ASSEMBLE(ca_sign_algorithms, SSH_ALLOWED_CA_SIGALGS, all_sig);
 #undef ASSEMBLE
 	free(all_cipher);
