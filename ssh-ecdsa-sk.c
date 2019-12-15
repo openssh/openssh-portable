@@ -54,6 +54,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
     const u_char *data, size_t datalen, u_int compat,
     struct sshkey_sig_details **detailsp)
 {
+#ifdef OPENSSL_HAS_ECC
 	ECDSA_SIG *sig = NULL;
 	BIGNUM *sig_r = NULL, *sig_s = NULL;
 	u_char sig_flags;
@@ -200,4 +201,7 @@ ssh_ecdsa_sk_verify(const struct sshkey *key,
 	BN_clear_free(sig_s);
 	free(ktype);
 	return ret;
+#else
+	return SSH_ERR_INTERNAL_ERROR;
+#endif
 }
