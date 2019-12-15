@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.355 2019/12/15 18:57:30 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.356 2019/12/15 20:57:15 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -2032,7 +2032,18 @@ process_server_config_line(ServerOptions *options, char *line,
 
 	case sSecurityKeyProvider:
 		charptr = &options->sk_provider;
-		goto parse_filename;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing file name.",
+			    filename, linenum);
+		if (*activep && *charptr == NULL) {
+			*charptr = strcasecmp(arg, "internal") == 0 ?
+			    xstrdup(arg) : derelativise_path(arg);
+			/* increase optional counter */
+			if (intptr != NULL)
+				*intptr = *intptr + 1;
+		}
+		break;
 
 	case sIPQoS:
 		arg = strdelim(&cp);
