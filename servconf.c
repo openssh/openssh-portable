@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.356 2019/12/15 20:57:15 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.357 2019/12/15 20:59:23 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -455,6 +455,7 @@ fill_default_server_options(ServerOptions *options)
 	CLEAR_ON_NONE(options->adm_forced_command);
 	CLEAR_ON_NONE(options->chroot_directory);
 	CLEAR_ON_NONE(options->routing_domain);
+	CLEAR_ON_NONE(options->host_key_agent);
 	for (i = 0; i < options->num_host_key_files; i++)
 		CLEAR_ON_NONE(options->host_key_files[i]);
 	for (i = 0; i < options->num_host_cert_files; i++)
