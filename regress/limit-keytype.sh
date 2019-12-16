@@ -1,4 +1,4 @@
-#	$OpenBSD: limit-keytype.sh,v 1.8 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: limit-keytype.sh,v 1.9 2019/12/16 02:39:05 djm Exp $
 #	Placed in the Public Domain.
 
 tid="restrict pubkey type"
@@ -13,7 +13,7 @@ mv $OBJ/ssh_proxy $OBJ/ssh_proxy.orig
 
 ktype1=ed25519; ktype2=ed25519; ktype3=ed25519;
 ktype4=ed25519; ktype5=ed25519; ktype6=ed25519;
-for t in `${SSH} -Q key-plain | maybe_filter_sk`; do
+for t in $SSH_KEYTYPES ; do 
 	case "$t" in
 		ssh-rsa)	ktype2=rsa ;;
 		ecdsa*)		ktype3=ecdsa ;;  # unused

@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.10 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: krl.sh,v 1.11 2019/12/16 02:39:05 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -7,7 +7,7 @@ tid="key revocation lists"
 # w/out OpenSSL.  Populate ktype[2-4] with the other types if supported.
 ktype1=ed25519; ktype2=ed25519; ktype3=ed25519;
 ktype4=ed25519; ktype5=ed25519; ktype6=ed25519;
-for t in `${SSH} -Q key-plain | maybe_filter_sk`; do
+for t in $SSH_KEYTYPES; do
 	case "$t" in
 		ecdsa*)		ktype2=ecdsa ;;
 		ssh-rsa)	ktype3=rsa ;;

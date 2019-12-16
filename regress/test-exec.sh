@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.68 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.69 2019/12/16 02:39:05 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -493,23 +493,21 @@ export SSH_SK_PROVIDER
 if ! test -z "$SSH_SK_PROVIDER"; then
 	EXTRA_AGENT_ARGS='-P/*' # XXX want realpath(1)...
 	echo "SecurityKeyProvider $SSH_SK_PROVIDER" >> $OBJ/ssh_config
+	echo "SecurityKeyProvider $SSH_SK_PROVIDER" >> $OBJ/sshd_config
+	echo "SecurityKeyProvider $SSH_SK_PROVIDER" >> $OBJ/sshd_proxy
 fi
 export EXTRA_AGENT_ARGS
 
-filter_sk() {
-	grep -v ^sk
-}
-
 maybe_filter_sk() {
 	if test -z "$SSH_SK_PROVIDER" ; then
-		filter_sk
+		grep -v ^sk
 	else
 		cat
 	fi
 }
 
 SSH_KEYTYPES=`$SSH -Q key-plain | maybe_filter_sk`
-SSH_HOSTKEY_TYPES=`$SSH -Q key-plain | filter_sk`
+SSH_HOSTKEY_TYPES=`$SSH -Q key-plain | maybe_filter_sk`
  
 for t in ${SSH_KEYTYPES}; do
 	# generate user key

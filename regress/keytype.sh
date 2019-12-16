@@ -1,4 +1,4 @@
-#	$OpenBSD: keytype.sh,v 1.9 2019/11/26 23:43:10 djm Exp $
+#	$OpenBSD: keytype.sh,v 1.10 2019/12/16 02:39:05 djm Exp $
 #	Placed in the Public Domain.
 
 tid="login with different key types"
@@ -50,11 +50,7 @@ kname_to_ktype() {
 tries="1 2 3"
 for ut in $ktypes; do
 	user_type=`kname_to_ktype "$ut"`
-	# SK keys are not supported for hostkeys.
-	case "$ut" in
-	*sk)	htypes=ed25519-512;;
-	*)	htypes="$ut";;
-	esac
+	htypes="$ut"
 	#htypes=$ktypes
 	for ht in $htypes; do
 		host_type=`kname_to_ktype "$ht"`
