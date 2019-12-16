@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.286 2019/06/28 13:35:04 deraadt Exp $ */
+/* $OpenBSD: packet.c,v 1.287 2019/12/16 13:58:53 tobhe Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -530,9 +530,9 @@ ssh_remote_ipaddr(struct ssh *ssh)
 			ssh->local_ipaddr = get_local_ipaddr(sock);
 			ssh->local_port = get_local_port(sock);
 		} else {
-			ssh->remote_ipaddr = strdup("UNKNOWN");
+			ssh->remote_ipaddr = xstrdup("UNKNOWN");
 			ssh->remote_port = 65535;
-			ssh->local_ipaddr = strdup("UNKNOWN");
+			ssh->local_ipaddr = xstrdup("UNKNOWN");
 			ssh->local_port = 65535;
 		}
 	}
