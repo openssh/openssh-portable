@@ -34,7 +34,7 @@ Portable OpenSSH is built using autoconf and make. It requires a working C compi
 Releases include a pre-built copy of the ``configure`` script and may be built using:
 
 ```
-tar zxvf openssh-X.Y.tar.gz
+tar zxvf openssh-X.YpZ.tar.gz
 cd openssh
 ./configure # [options]
 make && make tests
