@@ -237,7 +237,7 @@ get_passwd(const wchar_t * user_utf16, PSID sid)
 	}
 
 	/* If standard local user name, just use name without decoration */
-	if ((_wcsicmp(domain_name, computer_name) == 0))
+	if ((_wcsicmp(domain_name, computer_name) == 0) && (_wcsicmp(computer_name, user_name) != 0))
 		wcscpy_s(user_resolved, ARRAYSIZE(user_resolved), user_name);
 
 	/* put any other format in sam compatible format */
