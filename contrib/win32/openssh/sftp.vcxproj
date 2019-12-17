@@ -207,6 +207,9 @@
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -230,6 +233,9 @@
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
@@ -276,6 +282,9 @@
       <EntryPointSymbol>wmainCRTStartup</EntryPointSymbol>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -303,6 +312,9 @@
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -330,6 +342,9 @@
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
@@ -384,6 +399,9 @@
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AdditionalOptions>/debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>targetos.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

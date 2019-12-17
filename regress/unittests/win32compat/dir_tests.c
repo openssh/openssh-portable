@@ -17,7 +17,7 @@ dir_tests_1()
 
 	char *test_dirname_1 = "test_dir_1";
 	char *tes_dirname_2 = "test_dir_2";
-	char cwd[MAX_PATH];
+	char cwd[PATH_MAX];
 	char *p_ret;
 	struct stat st;
 	char *tmpfile = "tmp.txt";
@@ -25,13 +25,13 @@ dir_tests_1()
 	struct timeval tv[2];
 	DIR *dirp = NULL;
 	struct dirent *dp = NULL;
-	char dir_fullpath[MAX_PATH];
+	char dir_fullpath[PATH_MAX];
 	int f = -1;
 
-	p_ret = getcwd(NULL, MAX_PATH);
+	p_ret = getcwd(NULL, PATH_MAX);
 	ASSERT_PTR_EQ(p_ret, NULL);
 
-	p_ret = getcwd(cwd, MAX_PATH);
+	p_ret = getcwd(cwd, PATH_MAX);
 	ASSERT_PTR_NE(p_ret, NULL);
 
 	// delete test_dirname_1, if exits.	
@@ -67,7 +67,7 @@ dir_tests_1()
 	retValue = chdir(test_dirname_1);
 	ASSERT_INT_EQ(retValue, 0);
 	
-	p_ret = getcwd(cwd, MAX_PATH);
+	p_ret = getcwd(cwd, PATH_MAX);
 	ASSERT_PTR_NE(p_ret, NULL);
 	p_ret = NULL;
 	p_ret = strstr(cwd, test_dirname_1);

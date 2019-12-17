@@ -105,7 +105,7 @@ generate_host_keys()
 {
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
-	wchar_t cmdline[MAX_PATH];
+	wchar_t cmdline[PATH_MAX];
 
 	if (am_system()) {
 		/* create host keys if they dont already exist */

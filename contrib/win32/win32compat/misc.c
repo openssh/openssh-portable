@@ -1518,10 +1518,10 @@ setenv(const char *name, const char *value, int rewrite)
 int
 chroot(const char *path)
 {
-	char cwd[MAX_PATH];
+	char cwd[PATH_MAX];
 
 	if (strcmp(path, ".") == 0) {
-		if (w32_getcwd(cwd, MAX_PATH) == NULL)
+		if (w32_getcwd(cwd, PATH_MAX) == NULL)
 			return -1;
 		path = (const char *)cwd;
 	} else if (*(path + 1) != ':') {

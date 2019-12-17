@@ -29,12 +29,13 @@
 
 #include "w32api_proxies.h"
 #include "debug.h"
+#include "misc_internal.h"
 
 static wchar_t* 
 system32_dir()
 {
 	static wchar_t* s_system32_dir = NULL;
-	static wchar_t s_system32_path[MAX_PATH + 1] = { 0, };
+	static wchar_t s_system32_path[PATH_MAX + 1] = { 0, };
 
 	if (s_system32_dir)
 		return s_system32_dir;

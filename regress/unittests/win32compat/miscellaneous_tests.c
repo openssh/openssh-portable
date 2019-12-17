@@ -130,9 +130,9 @@ test_statvfs()
 	TEST_START("test statvfs");
 
 	struct statvfs st;
-	char cwd[MAX_PATH];
+	char cwd[PATH_MAX];
 
-	char *tmp = getcwd(cwd, MAX_PATH);
+	char *tmp = getcwd(cwd, PATH_MAX);
 	ASSERT_PTR_NE(tmp, NULL);
 
 	retValue = statvfs(NULL, &st);
@@ -150,7 +150,7 @@ void test_realpath()
 {
 	TEST_START("test realpath");
 
-	char resolved_path[MAX_PATH];
+	char resolved_path[PATH_MAX];
 	char *ret = NULL;
 	char *expectedOutput1 = "/c:/windows/system32";
 	char *expectedOutput2 = "/c:/";
@@ -212,7 +212,7 @@ test_chroot()
 {
 	int fd;
 	FILE *f;
-	char path[MAX_PATH], test_root[MAX_PATH];
+	char path[PATH_MAX], test_root[PATH_MAX];
 
 	/* test directory setup */
 	_wsystem(L"RD /S /Q chroot-testdir >NUL 2>&1");
@@ -240,21 +240,21 @@ test_chroot()
 	TEST_DONE();
 
 	TEST_START("real chroot now");
-	getcwd(path, MAX_PATH);
-	getcwd(test_root, MAX_PATH);
+	getcwd(path, PATH_MAX);
+	getcwd(test_root, PATH_MAX);
 	strcat(path, "\\chroot-testdir\\jail");
 	ASSERT_INT_EQ(chdir(path), 0);
 	ASSERT_INT_EQ(chroot(path), 0);
 	TEST_DONE();
 
 	TEST_START("chdir; getcwd and realpath");
-	ASSERT_PTR_NE(getcwd(path, MAX_PATH), NULL);
+	ASSERT_PTR_NE(getcwd(path, PATH_MAX), NULL);
 	ASSERT_STRING_EQ(path, "\\");
 	ASSERT_INT_NE(chdir(test_root), 0);
 	ASSERT_INT_EQ(chdir("d1"), 0);
 	ASSERT_PTR_NE(realpath("..", path), NULL);
 	ASSERT_STRING_EQ(path, "/");
-	ASSERT_PTR_NE(getcwd(path, MAX_PATH), NULL);
+	ASSERT_PTR_NE(getcwd(path, PATH_MAX), NULL);
 	ASSERT_STRING_EQ(path, "\\d1");
 	ASSERT_PTR_NE(realpath(".", path), NULL);
 	ASSERT_STRING_EQ(path, "/d1");

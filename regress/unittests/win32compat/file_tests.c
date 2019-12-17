@@ -410,8 +410,8 @@ file_miscellaneous_tests()
 {
 	TEST_START("file miscellaneous");
 	
-	char cwd[MAX_PATH];
-	char *pcwd = getcwd(cwd, MAX_PATH);
+	char cwd[PATH_MAX];
+	char *pcwd = getcwd(cwd, PATH_MAX);
 	ASSERT_PTR_NE(pcwd, NULL);
 
 	char thishost[NI_MAXHOST];	
@@ -503,8 +503,8 @@ file_symlink_tests()
 	}
 	DeleteFileW(L"admin_check");
 
-	wchar_t curdir[MAX_PATH];
-	GetCurrentDirectoryW(MAX_PATH, curdir);
+	wchar_t curdir[PATH_MAX];
+	GetCurrentDirectoryW(PATH_MAX, curdir);
 
 	/* perform a variety of symlink tests using unicode, directory targets, 
 	 * file targets, absolute/relative links, absolute/relative targets 
@@ -526,8 +526,8 @@ file_symlink_tests()
 		_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
 		_wsystem(L"MKDIR win32compat-tmp >NUL 2>&1");
 
-		wchar_t tgt_path[MAX_PATH] = L"";
-		wchar_t lnk_path[MAX_PATH] = L"";
+		wchar_t tgt_path[PATH_MAX] = L"";
+		wchar_t lnk_path[PATH_MAX] = L"";
 
 		/* prepend absolute path if doing absolute test */
 		if (do_absolute_tgt) {
@@ -578,9 +578,9 @@ file_symlink_tests()
 		ASSERT_INT_EQ(symlink_ret, 0);
 
 		/* verify readlink() output against symlink() input */
-		char readlink_buf[MAX_PATH] = "";
+		char readlink_buf[PATH_MAX] = "";
 		/* readlink returns the absolute path */
-		int readlink_ret = readlink(lnk_utf8, readlink_buf, MAX_PATH);
+		int readlink_ret = readlink(lnk_utf8, readlink_buf, PATH_MAX);
 		char tgt_name_uft8_realpath[PATH_MAX] = { 0 };
 		realpath(tgt_utf8, tgt_name_uft8_realpath);
 		ASSERT_INT_EQ(readlink_ret, strlen(tgt_name_uft8_realpath));
@@ -615,8 +615,8 @@ file_link_tests()
 	DeleteFileW(L"admin_check_tgt");
 	if (perm_test == 0) return;
 
-	wchar_t curdir[MAX_PATH];
-	GetCurrentDirectoryW(MAX_PATH, curdir);
+	wchar_t curdir[PATH_MAX];
+	GetCurrentDirectoryW(PATH_MAX, curdir);
 
 	/* perform a variety of link tests using unicode, absolute/relative links,
 	 * absolute/relative targets
@@ -636,8 +636,8 @@ file_link_tests()
 		_wsystem(L"RD /S /Q win32compat-tmp >NUL 2>&1");
 		_wsystem(L"MKDIR win32compat-tmp >NUL 2>&1");
 
-		wchar_t tgt_path[MAX_PATH] = L"";
-		wchar_t lnk_path[MAX_PATH] = L"";
+		wchar_t tgt_path[PATH_MAX] = L"";
+		wchar_t lnk_path[PATH_MAX] = L"";
 
 		/* prepend absolute path if doing absolute test */
 		if (do_absolute_tgt) {

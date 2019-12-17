@@ -101,12 +101,12 @@ openlog_file()
 	if (GetModuleFileNameW(NULL, module_path, PATH_MAX) == 0)
 		return;
 
-	if (wcsnlen(module_path, MAX_PATH) > MAX_PATH - wcslen(logs_dir))
+	if (wcsnlen(module_path, PATH_MAX) > PATH_MAX - wcslen(logs_dir))
 		return;
 
 	/* split path root and module */
 	{
-		wchar_t* tail = module_path + wcsnlen(module_path, MAX_PATH);
+		wchar_t* tail = module_path + wcsnlen(module_path, PATH_MAX);
 		while (tail > module_path && *tail != L'\\' && *tail != L'/')
 			tail--;
 		

@@ -49,7 +49,7 @@ delete_dir_recursive(char *full_dir_path)
 	struct stat st;
 	struct dirent *dp;
 	char mode[12];
-	char *tmpFullPath = malloc(MAX_PATH + 1);
+	char *tmpFullPath = malloc(PATH_MAX + 1);
 	strcpy(tmpFullPath, full_dir_path);
 	int tmpStrLen = strlen(tmpFullPath);
 	tmpFullPath[tmpStrLen++] = '\\';
