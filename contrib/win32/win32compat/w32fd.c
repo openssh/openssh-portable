@@ -1067,7 +1067,6 @@ spawn_child_internal(const char* cmd, char *const argv[], HANDLE in, HANDLE out,
 	si.hStdOutput = out;
 	si.hStdError = err;
 	si.dwFlags = STARTF_USESTDHANDLES;
-	flags |= CREATE_NO_WINDOW;
 	
 	if (strstr(cmd, "sshd.exe")) {
 		flags |= DETACHED_PROCESS;
