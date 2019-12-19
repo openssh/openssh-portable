@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.309 2019/12/17 16:21:07 naddy Exp $
-.Dd $Mdocdate: December 17 2019 $
+.\" $OpenBSD: sshd.8,v 1.310 2019/12/19 03:50:01 dtucker Exp $
+.Dd $Mdocdate: December 19 2019 $
 .Dt SSHD 8
 .Os
 .Sh NAME
@@ -253,13 +253,13 @@ Whenever a client connects, the daemon responds with its public
 host key.
 The client compares the
 host key against its own database to verify that it has not changed.
-Forward security is provided through a Diffie-Hellman key agreement.
+Forward secrecy is provided through a Diffie-Hellman key agreement.
 This key agreement results in a shared session key.
 The rest of the session is encrypted using a symmetric cipher.
 The client selects the encryption algorithm
 to use from those offered by the server.
 Additionally, session integrity is provided
-through a cryptographic message authentication code.
+through a cryptographic message authentication code (MAC).
 .Pp
 Finally, the server and the client enter an authentication dialog.
 The client tries to authenticate itself using
