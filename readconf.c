@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.317 2019/12/20 02:29:21 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.318 2019/12/20 02:42:42 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -197,6 +197,9 @@ static struct {
 	{ "afstokenpassing", oUnsupported },
 	{ "kerberosauthentication", oUnsupported },
 	{ "kerberostgtpassing", oUnsupported },
+	{ "rsaauthentication", oUnsupported },
+	{ "rhostsrsaauthentication", oUnsupported },
+	{ "compressionlevel", oUnsupported },
 
 	/* Sometimes-unsupported options */
 #if defined(GSSAPI)
@@ -213,10 +216,6 @@ static struct {
 	{ "smartcarddevice", oUnsupported },
 	{ "pkcs11provider", oUnsupported },
 #endif
-	{ "securitykeyprovider", oSecurityKeyProvider },
-	{ "rsaauthentication", oUnsupported },
-	{ "rhostsrsaauthentication", oUnsupported },
-	{ "compressionlevel", oUnsupported },
 
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
@@ -310,6 +309,7 @@ static struct {
 	{ "pubkeyacceptedkeytypes", oPubkeyAcceptedKeyTypes },
 	{ "ignoreunknown", oIgnoreUnknown },
 	{ "proxyjump", oProxyJump },
+	{ "securitykeyprovider", oSecurityKeyProvider },
 
 	{ NULL, oBadOption }
 };
