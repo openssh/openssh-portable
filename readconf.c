@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.315 2019/12/15 18:57:30 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.316 2019/12/20 02:11:38 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -121,8 +121,6 @@
      ForwardAgent no
      ForwardX11 no
      PasswordAuthentication yes
-     RSAAuthentication yes
-     RhostsRSAAuthentication yes
      StrictHostKeyChecking yes
      TcpKeepAlive no
      IdentityFile ~/.ssh/identity
