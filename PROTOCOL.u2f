@@ -37,7 +37,7 @@ hardware, thus requiring little on-device storage for an effectively
 unlimited number of supported keys. This drives the requirement that
 the key handle be supplied for each signature operation. U2F tokens
 primarily use ECDSA signatures in the NIST-P256 field, though the FIDO2
-standard specified additional key types include one based on Ed25519.
+standard specifies additional key types, including one based on Ed25519.
 
 SSH U2F Key formats
 -------------------
@@ -48,10 +48,6 @@ OpenSSH integrates U2F as new key and corresponding certificate types:
 	sk-ecdsa-sha2-nistp256-cert-v01@openssh.com
 	sk-ssh-ed25519@openssh.com
 	sk-ssh-ed25519-cert-v01@openssh.com
-
-These key types are supported only for user authentication with the
-"publickey" method. They are not used for host-based user authentication
-or server host key authentication.
 
 While each uses ecdsa-sha256-nistp256 as the underlying signature primitive,
 keys require extra information in the public and private keys, and in
