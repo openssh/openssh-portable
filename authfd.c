@@ -1,4 +1,4 @@
-/* $OpenBSD: authfd.c,v 1.120 2019/11/13 04:47:52 deraadt Exp $ */
+/* $OpenBSD: authfd.c,v 1.121 2019/12/21 02:19:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -82,20 +82,15 @@ decode_reply(u_char type)
 		return SSH_ERR_INVALID_FORMAT;
 }
 
-/* Returns the number of the authentication fd, or -1 if there is none. */
+/*
+ * Opens an authentication socket at the provided path and stores the file
+ * descriptor in fdp. Returns 0 on success and an error on failure.
+ */
 int
-ssh_get_authentication_socket(int *fdp)
+ssh_get_authentication_socket_path(const char *authsocket, int *fdp)
 {
-	const char *authsocket;
 	int sock, oerrno;
 	struct sockaddr_un sunaddr;
-
-	if (fdp != NULL)
-		*fdp = -1;
-
-	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
-	if (authsocket == NULL || *authsocket == '\0')
-		return SSH_ERR_AGENT_NOT_PRESENT;
 
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
@@ -117,6 +112,25 @@ ssh_get_authentication_socket(int *fdp)
 	else
 		close(sock);
 	return 0;
+}
+
+/*
+ * Opens the default authentication socket and stores the file descriptor in
+ * fdp. Returns 0 on success and an error on failure.
+ */
+int
+ssh_get_authentication_socket(int *fdp)
+{
+	const char *authsocket;
+
+	if (fdp != NULL)
+		*fdp = -1;
+
+	authsocket = getenv(SSH_AUTHSOCKET_ENV_NAME);
+	if (authsocket == NULL || *authsocket == '\0')
+		return SSH_ERR_AGENT_NOT_PRESENT;
+
+	return ssh_get_authentication_socket_path(authsocket, fdp);
 }
 
 /* Communicate with agent: send request and read reply */
