@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.296 2019/12/19 15:09:30 naddy Exp $
-.Dd $Mdocdate: December 19 2019 $
+.\" $OpenBSD: sshd_config.5,v 1.297 2019/12/21 20:22:34 naddy Exp $
+.Dd $Mdocdate: December 21 2019 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -1462,20 +1462,20 @@ and
 .Pp
 The
 .Cm touch-required
-option causes public key authentication using a security key algorithm
+option causes public key authentication using a FIDO authenticator algorithm
 (i.e.\&
 .Cm ecdsa-sk
 or
 .Cm ed25519-sk )
 to always require the signature to attest that a physically present user
-explicitly confirmed the authentication (usually by touching the security key).
+explicitly confirmed the authentication (usually by touching the authenticator).
 By default,
 .Xr sshd 8
-requires key touch unless overridden with an authorized_keys option.
+requires user presence unless overridden with an authorized_keys option.
 The
 .Cm touch-required
 flag disables this override.
-This option has no effect for other, non-security key, public key types.
+This option has no effect for other, non-authenticator public key types.
 .It Cm PubkeyAuthentication
 Specifies whether public key authentication is allowed.
 The default is
@@ -1527,9 +1527,9 @@ If the routing domain is set to
 .Cm \&%D ,
 then the domain in which the incoming connection was received will be applied.
 .It Cm SecurityKeyProvider
-Specifies a path to a security key provider library that will be used when
-loading any security key-hosted keys, overriding the default of using
-the built-in support for USB HID keys.
+Specifies a path to a library that will be used when loading
+FIDO authenticator-hosted keys, overriding the default of using
+the built-in USB HID support.
 .It Cm SetEnv
 Specifies one or more environment variables to set in child sessions started
 by

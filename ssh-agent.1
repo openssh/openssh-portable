@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.69 2019/11/30 07:07:59 jmc Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.70 2019/12/21 20:22:34 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: November 30 2019 $
+.Dd $Mdocdate: December 21 2019 $
 .Dt SSH-AGENT 1
 .Os
 .Sh NAME
@@ -98,8 +98,8 @@ Kill the current agent (given by the
 .Ev SSH_AGENT_PID
 environment variable).
 .It Fl P Ar provider_whitelist
-Specify a pattern-list of acceptable paths for PKCS#11 and security key shared
-libraries that may be used with the
+Specify a pattern-list of acceptable paths for PKCS#11 and FIDO authenticator
+shared libraries that may be used with the
 .Fl S
 or
 .Fl s

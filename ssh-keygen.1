@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.179 2019/11/30 07:07:59 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.180 2019/12/21 20:22:34 naddy Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: November 30 2019 $
+.Dd $Mdocdate: December 21 2019 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -537,7 +537,7 @@ Allows X11 forwarding.
 .It Ic no-touch-required
 Do not require signatures made using this key require demonstration
 of user presence (e.g. by having the user touch the key).
-This option only makes sense for the Security Key algorithms
+This option only makes sense for the FIDO authenticator algorithms
 .Cm ecdsa-sk
 and
 .Cm ed25519-sk .
@@ -673,11 +673,11 @@ The maximum is 3.
 .It Fl W Ar generator
 Specify desired generator when testing candidate moduli for DH-GEX.
 .It Fl w Ar provider
-Specifies a path to a security key provider library that will be used when
-creating any security key-hosted keys, overriding the default of the
-internal support for USB HID keys.
+Specifies a path to a library that will be used when creating
+FIDO authenticator-hosted keys, overriding the default of using
+the internal USB HID support.
 .It Fl x Ar flags
-Specifies the security key flags to use when enrolling a security key-hosted
+Specifies the authenticator flags to use when enrolling an authenticator-hosted
 key.
 Flags may be specified by name or directly as a hexadecimal value.
 Only one named flag is supported at present:
@@ -1053,8 +1053,7 @@ user2@example.com namespaces="file" ssh-ed25519 AAA41...
 .Sh ENVIRONMENT
 .Bl -tag -width Ds
 .It Ev SSH_SK_PROVIDER
-Specifies the path to a security key provider library used to interact with
-hardware security keys.
+Specifies the path to a library used to interact with FIDO authenticators.
 .El
 .Sh FILES
 .Bl -tag -width Ds -compact
@@ -1064,8 +1063,8 @@ hardware security keys.
 .It Pa ~/.ssh/id_ed25519
 .It Pa ~/.ssh/id_ed25519_sk
 .It Pa ~/.ssh/id_rsa
-Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519,
-security key-hosted Ed25519 or RSA authentication identity of the user.
+Contains the DSA, ECDSA, authenticator-hosted ECDSA, Ed25519,
+authenticator-hosted Ed25519 or RSA authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
 specify a passphrase when generating the key; that passphrase will be
@@ -1082,8 +1081,8 @@ will read this file when a login attempt is made.
 .It Pa ~/.ssh/id_ed25519.pub
 .It Pa ~/.ssh/id_ed25519_sk.pub
 .It Pa ~/.ssh/id_rsa.pub
-Contains the DSA, ECDSA, security key-hosted ECDSA, Ed25519,
-security key-hosted Ed25519 or RSA public key for authentication.
+Contains the DSA, ECDSA, authenticator-hosted ECDSA, Ed25519,
+authenticator-hosted Ed25519 or RSA public key for authentication.
 The contents of this file should be added to
 .Pa ~/.ssh/authorized_keys
 on all machines
