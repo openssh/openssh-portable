@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.181 2019/12/27 08:25:07 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.182 2019/12/27 08:28:44 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -688,6 +688,22 @@ Note that
 .Xr sshd 8
 will refuse such signatures by default, unless overridden via
 an authorized_keys option.
+.It Fl Y Cm check-novalidate
+Checks that a signature generated using
+.Nm
+.Fl Y Cm sign
+has a valid structure.
+This does not validate if a signature comes from an authorized signer.
+When testing a signature,
+.Nm
+accepts a message on standard input and a signature namespace using
+.Fl n .
+A file containing the corresponding signature must also be supplied using the
+.Fl s
+flag.
+Successful testing of the signature is signalled by
+.Nm
+returning a zero exit status.
 .It Fl Y Cm sign
 Cryptographically sign a file or some data using a SSH key.
 When signing,
@@ -742,22 +758,6 @@ A file containing revoked keys can be passed using the
 flag.
 The revocation file may be a KRL or a one-per-line list of public keys.
 Successful verification by an authorized signer is signalled by
-.Nm
-returning a zero exit status.
-.It Fl Y Cm check-novalidate
-Checks that a signature generated using
-.Nm
-.Fl Y Cm sign
-has a valid structure.
-This does not validate if a signature comes from an authorized signer.
-When testing a signature,
-.Nm
-accepts a message on standard input and a signature namespace using
-.Fl n .
-A file containing the corresponding signature must also be supplied using the
-.Fl s
-flag.
-Successful testing of the signature is signalled by
 .Nm
 returning a zero exit status.
 .It Fl y
