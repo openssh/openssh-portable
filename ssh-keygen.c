@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.378 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.379 2019/12/30 09:24:45 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3361,16 +3361,26 @@ main(int argc, char **argv)
 	switch (type) {
 	case KEY_ECDSA_SK:
 	case KEY_ED25519_SK:
-		if (!quiet) {
-			printf("You may need to touch your security key "
-			    "to authorize key generation.\n");
+		passphrase1 = NULL;
+		for (i = 0 ; i < 3; i++) {
+			if (!quiet) {
+				printf("You may need to touch your security "
+				    "key to authorize key generation.\n");
+			}
+			fflush(stdout);
+			r = sshsk_enroll(type, sk_provider,
+			    cert_key_id == NULL ? "ssh:" : cert_key_id,
+			    sk_flags, passphrase1, NULL, &private, NULL);
+			if (r == 0)
+				break;
+			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
+				exit(1); /* error message already printed */
+			passphrase1 = read_passphrase("Enter PIN for security "
+			    "key: ", RP_ALLOW_STDIN);
 		}
-		fflush(stdout);
-		if (sshsk_enroll(type, sk_provider,
- 		    cert_key_id == NULL ? "ssh:" : cert_key_id,
-		    sk_flags, NULL, NULL, &private, NULL) != 0)
- 			exit(1); /* error message already printed */
-		break;
+		if (i > 3)
+			fatal("Too many incorrect PINs");
+ 		break;
 	default:
 		if ((r = sshkey_generate(type, bits, &private)) != 0)
 			fatal("sshkey_generate failed");

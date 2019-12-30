@@ -65,6 +65,11 @@
 #define	SK_ECDSA		0x00
 #define	SK_ED25519		0x01
 
+/* Error codes */
+#define SSH_SK_ERR_GENERAL		-1
+#define SSH_SK_ERR_UNSUPPORTED		-2
+#define SSH_SK_ERR_PIN_REQUIRED		-3
+
 struct sk_enroll_response {
 	uint8_t *public_key;
 	size_t public_key_len;
@@ -412,6 +417,20 @@ pack_public_key(int alg, const fido_cred_t *cred,
 	}
 }
 
+static int
+fidoerr_to_skerr(int fidoerr)
+{
+	switch (fidoerr) {
+	case FIDO_ERR_UNSUPPORTED_OPTION:
+		return SSH_SK_ERR_UNSUPPORTED;
+	case FIDO_ERR_PIN_REQUIRED:
+	case FIDO_ERR_PIN_INVALID:
+		return SSH_SK_ERR_PIN_REQUIRED;
+	default:
+		return -1;
+	}
+}
+
 int
 sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
@@ -424,7 +443,7 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 	struct sk_enroll_response *response = NULL;
 	size_t len;
 	int cose_alg;
-	int ret = -1;
+	int ret = SSH_SK_ERR_GENERAL;
 	int r;
 	char *device = NULL;
 
@@ -491,8 +510,9 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 		skdebug(__func__, "fido_dev_open: %s", fido_strerr(r));
 		goto out;
 	}
-	if ((r = fido_dev_make_cred(dev, cred, NULL)) != FIDO_OK) {
+	if ((r = fido_dev_make_cred(dev, cred, pin)) != FIDO_OK) {
 		skdebug(__func__, "fido_dev_make_cred: %s", fido_strerr(r));
+		ret = fidoerr_to_skerr(r);
 		goto out;
 	}
 	if (fido_cred_x5c_ptr(cred) != NULL) {
@@ -657,7 +677,7 @@ sk_sign(int alg, const uint8_t *message, size_t message_len,
 	fido_assert_t *assert = NULL;
 	fido_dev_t *dev = NULL;
 	struct sk_sign_response *response = NULL;
-	int ret = -1;
+	int ret = SSH_SK_ERR_GENERAL;
 	int r;
 
 #ifdef SK_DEBUG
@@ -736,7 +756,7 @@ static int
 read_rks(const char *devpath, const char *pin,
     struct sk_resident_key ***rksp, size_t *nrksp)
 {
-	int r = -1;
+	int ret = SSH_SK_ERR_GENERAL, r = -1;
 	fido_dev_t *dev = NULL;
 	fido_credman_metadata_t *metadata = NULL;
 	fido_credman_rp_t *rp = NULL;
@@ -747,16 +767,15 @@ read_rks(const char *devpath, const char *pin,
 
 	if ((dev = fido_dev_new()) == NULL) {
 		skdebug(__func__, "fido_dev_new failed");
-		return -1;
+		return ret;
 	}
 	if ((r = fido_dev_open(dev, devpath)) != FIDO_OK) {
 		skdebug(__func__, "fido_dev_open %s failed: %s",
 		    devpath, fido_strerr(r));
 		fido_dev_free(&dev);
-		return -1;
+		return ret;
 	}
 	if ((metadata = fido_credman_metadata_new()) == NULL) {
-		r = -1;
 		skdebug(__func__, "alloc failed");
 		goto out;
 	}
@@ -765,7 +784,7 @@ read_rks(const char *devpath, const char *pin,
 		if (r == FIDO_ERR_INVALID_COMMAND) {
 			skdebug(__func__, "device %s does not support "
 			    "resident keys", devpath);
-			r = 0;
+			ret = 0;
 			goto out;
 		}
 		skdebug(__func__, "get metadata for %s failed: %s",
@@ -776,7 +795,6 @@ read_rks(const char *devpath, const char *pin,
 	    (unsigned long long)fido_credman_rk_existing(metadata),
 	    (unsigned long long)fido_credman_rk_remaining(metadata));
 	if ((rp = fido_credman_rp_new()) == NULL) {
-		r = -1;
 		skdebug(__func__, "alloc rp failed");
 		goto out;
 	}
@@ -801,7 +819,6 @@ read_rks(const char *devpath, const char *pin,
 
 		fido_credman_rk_free(&rk);
 		if ((rk = fido_credman_rk_new()) == NULL) {
-			r = -1;
 			skdebug(__func__, "alloc rk failed");
 			goto out;
 		}
@@ -831,7 +848,6 @@ read_rks(const char *devpath, const char *pin,
 			    fido_cred_id_len(cred))) == NULL ||
 			    (srk->application = strdup(fido_credman_rp_id(rp,
 			    i))) == NULL) {
-				r = -1;
 				skdebug(__func__, "alloc sk_resident_key");
 				goto out;
 			}
@@ -862,7 +878,6 @@ read_rks(const char *devpath, const char *pin,
 			/* append */
 			if ((tmp = recallocarray(*rksp, *nrksp, (*nrksp) + 1,
 			    sizeof(**rksp))) == NULL) {
-				r = -1;
 				skdebug(__func__, "alloc rksp");
 				goto out;
 			}
@@ -872,7 +887,7 @@ read_rks(const char *devpath, const char *pin,
 		}
 	}
 	/* Success */
-	r = 0;
+	ret = 0;
  out:
 	if (srk != NULL) {
 		free(srk->application);
@@ -885,14 +900,14 @@ read_rks(const char *devpath, const char *pin,
 	fido_dev_close(dev);
 	fido_dev_free(&dev);
 	fido_credman_metadata_free(&metadata);
-	return r;
+	return ret;
 }
 
 int
 sk_load_resident_keys(const char *pin,
     struct sk_resident_key ***rksp, size_t *nrksp)
 {
-	int r = -1;
+	int ret = SSH_SK_ERR_GENERAL, r = -1;
 	fido_dev_info_t *devlist = NULL;
 	size_t i, ndev = 0, nrks = 0;
 	const fido_dev_info_t *di;
@@ -924,7 +939,7 @@ sk_load_resident_keys(const char *pin,
 		}
 	}
 	/* success */
-	r = 0;
+	ret = 0;
 	*rksp = rks;
 	*nrksp = nrks;
 	rks = NULL;
@@ -938,7 +953,7 @@ sk_load_resident_keys(const char *pin,
 	}
 	free(rks);
 	fido_dev_info_free(&devlist, MAX_FIDO_DEVICES);
-	return r;
+	return ret;
 }
 
 #endif /* ENABLE_SK_INTERNAL */

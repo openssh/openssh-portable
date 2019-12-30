@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-api.h,v 1.5 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: sk-api.h,v 1.6 2019/12/30 09:24:45 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -31,6 +31,11 @@
 /* Algs */
 #define SSH_SK_ECDSA			0x00
 #define SSH_SK_ED25519			0x01
+
+/* Error codes */
+#define SSH_SK_ERR_GENERAL		-1
+#define SSH_SK_ERR_UNSUPPORTED		-2
+#define SSH_SK_ERR_PIN_REQUIRED		-3
 
 struct sk_enroll_response {
 	uint8_t *public_key;

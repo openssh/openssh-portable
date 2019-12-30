@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.22 2019/12/30 09:24:03 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.23 2019/12/30 09:24:45 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -325,6 +325,20 @@ sshsk_key_from_response(int alg, const char *application, uint8_t flags,
 	return r;
 }
 
+static int
+skerr_to_ssherr(int skerr)
+{
+	switch (skerr) {
+	case SSH_SK_ERR_UNSUPPORTED:
+		return SSH_ERR_FEATURE_UNSUPPORTED;
+	case SSH_SK_ERR_PIN_REQUIRED:
+		return SSH_ERR_KEY_WRONG_PASSPHRASE;
+	case SSH_SK_ERR_GENERAL:
+	default:
+		return SSH_ERR_INVALID_FORMAT;
+	}
+}
+
 int
 sshsk_enroll(int type, const char *provider_path, const char *application,
     uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
@@ -396,7 +410,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	    flags, pin, &resp)) != 0) {
 		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
-		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
+		r = skerr_to_ssherr(r);
 		goto out;
 	}
 
@@ -559,6 +573,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
 	    key->sk_flags, pin, &resp)) != 0) {
 		debug("%s: sk_sign failed with code %d", __func__, r);
+		r = skerr_to_ssherr(r);
 		goto out;
 	}
 	/* Assemble signature */
@@ -655,7 +670,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 	if ((r = skp->sk_load_resident_keys(pin, &rks, &nrks)) != 0) {
 		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
-		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
+		r = skerr_to_ssherr(r);
 		goto out;
 	}
 	for (i = 0; i < nrks; i++) {
