@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.185 2019/12/30 09:49:52 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.186 2019/12/30 16:10:00 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -742,29 +742,23 @@ that both ends of a connection share common moduli.
 A number of options are available for moduli generation and screening via the
 .Fl O
 flag:
-.Bl -tag -width Ds -compact
-.Pp
+.Bl -tag -width Ds
 .It Ic lines Ns = Ns Ar number
 Exit after screening the specified number of lines while performing DH
 candidate screening.
-.Pp
 .It Ic start-line Ns = Ns Ar line-number
 Start screening at the specified line number while performing DH candidate
 screening.
-.Pp
 .It Ic checkpoint Ns = Ns Ar filename
 Write the last line processed to the specified file while performing DH
 candidate screening.
 This will be used to skip lines in the input file that have already been
 processed if the job is restarted.
-.Pp
 .It Ic memory Ns = Ns Ar mbytes
 Specify the amount of memory to use (in megabytes) when generating
 candidate moduli for DH-GEX.
-.Pp
 .It Ic start Ns = Ns Ar hex-value
 Specify start point (in hex) when generating candidate moduli for DH-GEX.
-.Pp
 .It Ic generator Ns = Ns Ar value
 Specify desired generator (in decimal) when testing candidate moduli for DH-GEX.
 .El
