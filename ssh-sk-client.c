@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.1 2019/12/13 20:16:56 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.2 2019/12/30 09:21:59 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -326,6 +326,76 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	sshkey_free(key);
 	sshbuf_free(kbuf);
 	sshbuf_free(abuf);
+	sshbuf_free(req);
+	sshbuf_free(resp);
+	errno = oerrno;
+	return r;
+}
+
+int
+sshsk_load_resident(const char *provider_path, const char *pin,
+    struct sshkey ***keysp, size_t *nkeysp)
+{
+	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *kbuf = NULL, *req = NULL, *resp = NULL;
+	struct sshkey *key = NULL, **keys = NULL, **tmp;
+	size_t i, nkeys = 0;
+
+	*keysp = NULL;
+	*nkeysp = 0;
+
+	if ((resp = sshbuf_new()) == NULL ||
+	    (kbuf = sshbuf_new()) == NULL ||
+	    (req = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+
+	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_LOAD_RESIDENT)) != 0 ||
+	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
+	    (r = sshbuf_put_cstring(req, pin)) != 0) {
+		error("%s: compose: %s", __func__, ssh_err(r));
+		goto out;
+	}
+
+	if ((r = client_converse(req, &resp)) != 0)
+		goto out;
+
+	while (sshbuf_len(resp) != 0) {
+		/* key, comment */
+		if ((r = sshbuf_get_stringb(resp, kbuf)) != 0 ||
+		    (r = sshbuf_get_cstring(resp, NULL, NULL)) != 0) {
+			error("%s: parse signature: %s", __func__, ssh_err(r));
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
+		}
+		if ((r = sshkey_private_deserialize(kbuf, &key)) != 0) {
+			error("Unable to parse private key: %s", ssh_err(r));
+			goto out;
+		}
+		if ((tmp = recallocarray(keys, nkeys, nkeys + 1,
+		    sizeof(*keys))) == NULL) {
+			error("%s: recallocarray keys failed", __func__);
+			goto out;
+		}
+		keys = tmp;
+		keys[nkeys++] = key;
+		key = NULL;
+	}
+
+	/* success */
+	r = 0;
+	*keysp = keys;
+	*nkeysp = nkeys;
+	keys = NULL;
+	nkeys = 0;
+ out:
+	oerrno = errno;
+	for (i = 0; i < nkeys; i++)
+		sshkey_free(keys[i]);
+	free(keys);
+	sshkey_free(key);
+	sshbuf_free(kbuf);
 	sshbuf_free(req);
 	sshbuf_free(resp);
 	errno = oerrno;

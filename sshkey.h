@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.h,v 1.42 2019/12/13 19:11:14 djm Exp $ */
+/* $OpenBSD: sshkey.h,v 1.43 2019/12/30 09:21:59 djm Exp $ */
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -57,6 +57,7 @@
 /* ssh-sk-helper messages */
 #define SSH_SK_HELPER_SIGN		1
 #define SSH_SK_HELPER_ENROLL		2
+#define SSH_SK_HELPER_LOAD_RESIDENT	3
 
 struct sshbuf;
 

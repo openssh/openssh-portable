@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.4 2019/12/13 19:11:14 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.5 2019/12/30 09:21:59 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -148,6 +148,50 @@ process_enroll(struct sshbuf *req)
 	return resp;
 }
 
+static struct sshbuf *
+process_load_resident(struct sshbuf *req)
+{
+	int r;
+	char *provider, *pin;
+	struct sshbuf *kbuf, *resp;
+	struct sshkey **keys = NULL;
+	size_t nkeys = 0, i;
+
+	if ((resp = sshbuf_new()) == NULL ||
+	    (kbuf = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+
+	if ((r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &pin, NULL)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+	if (sshbuf_len(req) != 0)
+		fatal("%s: trailing data in request", __progname);
+
+	if ((r = sshsk_load_resident(provider, pin, &keys, &nkeys)) != 0)
+		fatal("%s: sshsk_load_resident failed: %s",
+		    __progname, ssh_err(r));
+
+	for (i = 0; i < nkeys; i++) {
+		debug("%s: key %zu %s %s", __func__, i,
+		    sshkey_type(keys[i]), keys[i]->sk_application);
+		sshbuf_reset(kbuf);
+		if ((r = sshkey_private_serialize(keys[i], kbuf)) != 0)
+			fatal("%s: serialize private key: %s",
+			    __progname, ssh_err(r));
+		if ((r = sshbuf_put_stringb(resp, kbuf)) != 0 ||
+		    (r = sshbuf_put_cstring(resp, "")) != 0) /* comment */
+			fatal("%s: buffer error: %s", __progname, ssh_err(r));
+	}
+
+	for (i = 0; i < nkeys; i++)
+		sshkey_free(keys[i]);
+	free(keys);
+	sshbuf_free(kbuf);
+	free(provider);
+	freezero(pin, strlen(pin));
+	return resp;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -211,6 +255,9 @@ main(int argc, char **argv)
 		break;
 	case SSH_SK_HELPER_ENROLL:
 		resp = process_enroll(req);
+		break;
+	case SSH_SK_HELPER_LOAD_RESIDENT:
+		resp = process_load_resident(req);
 		break;
 	default:
 		fatal("%s: unsupported request type %u", __progname, rtype);
