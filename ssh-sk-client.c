@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.2 2019/12/30 09:21:59 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.3 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
+#include <limits.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -128,14 +129,14 @@ reap_helper(pid_t pid)
 }
 
 static int
-client_converse(struct sshbuf *req, struct sshbuf **respp)
+client_converse(struct sshbuf *req, struct sshbuf **respp, u_int msg)
 {
 	int oerrno, fd, r2, r = SSH_ERR_INTERNAL_ERROR;
+	u_int rmsg, rerr;
 	pid_t pid;
 	u_char version;
 	void (*osigchld)(int);
 	struct sshbuf *resp = NULL;
-
 	*respp = NULL;
 
 	if ((r = start_helper(&fd, &pid, &osigchld)) != 0)
@@ -164,6 +165,28 @@ client_converse(struct sshbuf *req, struct sshbuf **respp)
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
+	if ((r = sshbuf_get_u32(resp, &rmsg)) != 0) {
+		error("%s: parse message type: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	if (rmsg == SSH_SK_HELPER_ERROR) {
+		if ((r = sshbuf_get_u32(resp, &rerr)) != 0) {
+			error("%s: parse error: %s", __func__, ssh_err(r));
+			goto out;
+		}
+		debug("%s: helper returned error -%u", __func__, rerr);
+		/* OpenSSH error values are negative; encoded as -err on wire */
+		if (rerr == 0 || rerr >= INT_MAX)
+			r = SSH_ERR_INTERNAL_ERROR;
+		else
+			r = -(int)rerr;
+		goto out;
+	} else if (rmsg != msg) {
+		error("%s: helper returned incorrect message type %u, "
+		    "expecting %u", __func__, rmsg, msg);
+		r = SSH_ERR_INTERNAL_ERROR;
+		goto out;
+	}
 	/* success */
 	r = 0;
  out:
@@ -189,7 +212,7 @@ client_converse(struct sshbuf *req, struct sshbuf **respp)
 int
 sshsk_sign(const char *provider, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
-    u_int compat)
+    u_int compat, const char *pin)
 {
 	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	char *fp = NULL;
@@ -217,7 +240,8 @@ sshsk_sign(const char *provider, struct sshkey *key,
 	    (r = sshbuf_put_cstring(req, provider)) != 0 ||
 	    (r = sshbuf_put_string(req, data, datalen)) != 0 ||
 	    (r = sshbuf_put_cstring(req, NULL)) != 0 || /* alg */
-	    (r = sshbuf_put_u32(req, compat)) != 0) {
+	    (r = sshbuf_put_u32(req, compat)) != 0 ||
+	    (r = sshbuf_put_cstring(req, pin)) != 0) {
 		error("%s: compose: %s", __func__, ssh_err(r));
 		goto out;
 	}
@@ -228,7 +252,7 @@ sshsk_sign(const char *provider, struct sshkey *key,
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-	if ((r = client_converse(req, &resp)) != 0)
+	if ((r = client_converse(req, &resp, SSH_SK_HELPER_SIGN)) != 0)
 		goto out;
 
 	if ((r = sshbuf_get_string(resp, sigp, lenp)) != 0) {
@@ -259,8 +283,8 @@ sshsk_sign(const char *provider, struct sshkey *key,
 
 int
 sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
-    struct sshbuf *attest)
+    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+    struct sshkey **keyp, struct sshbuf *attest)
 {
 	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *kbuf = NULL, *abuf = NULL, *req = NULL, *resp = NULL;
@@ -289,12 +313,13 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
 	    (r = sshbuf_put_cstring(req, application)) != 0 ||
 	    (r = sshbuf_put_u8(req, flags)) != 0 ||
+	    (r = sshbuf_put_cstring(req, pin)) != 0 ||
 	    (r = sshbuf_put_stringb(req, challenge_buf)) != 0) {
 		error("%s: compose: %s", __func__, ssh_err(r));
 		goto out;
 	}
 
-	if ((r = client_converse(req, &resp)) != 0)
+	if ((r = client_converse(req, &resp, SSH_SK_HELPER_ENROLL)) != 0)
 		goto out;
 
 	if ((r = sshbuf_get_stringb(resp, kbuf)) != 0 ||
@@ -358,7 +383,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 		goto out;
 	}
 
-	if ((r = client_converse(req, &resp)) != 0)
+	if ((r = client_converse(req, &resp, SSH_SK_HELPER_LOAD_RESIDENT)) != 0)
 		goto out;
 
 	while (sshbuf_len(resp) != 0) {
@@ -378,6 +403,8 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 			error("%s: recallocarray keys failed", __func__);
 			goto out;
 		}
+		debug("%s: keys[%zu]: %s %s", __func__,
+		    nkeys, sshkey_type(key), key->sk_application);
 		keys = tmp;
 		keys[nkeys++] = key;
 		key = NULL;

@@ -54,7 +54,7 @@
 	} while (0)
 #endif
 
-#define SK_VERSION_MAJOR	0x00020000 /* current API version */
+#define SK_VERSION_MAJOR	0x00030000 /* current API version */
 
 /* Flags */
 #define SK_USER_PRESENCE_REQD		0x01
@@ -105,13 +105,13 @@ uint32_t sk_api_version(void);
 
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags,
+    const char *application, uint8_t flags, const char *pin,
     struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
 int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response);
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
 
 /* Load resident keys */
 int sk_load_resident_keys(const char *pin,
@@ -414,7 +414,7 @@ pack_public_key(int alg, const fido_cred_t *cred,
 
 int
 sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags,
+    const char *application, uint8_t flags, const char *pin,
     struct sk_enroll_response **enroll_response)
 {
 	fido_cred_t *cred = NULL;
@@ -652,7 +652,7 @@ int
 sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response)
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response)
 {
 	fido_assert_t *assert = NULL;
 	fido_dev_t *dev = NULL;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.377 2019/12/30 09:19:52 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.378 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3368,7 +3368,7 @@ main(int argc, char **argv)
 		fflush(stdout);
 		if (sshsk_enroll(type, sk_provider,
  		    cert_key_id == NULL ? "ssh:" : cert_key_id,
- 		    sk_flags, NULL, &private, NULL) != 0)
+		    sk_flags, NULL, NULL, &private, NULL) != 0)
  			exit(1); /* error message already printed */
 		break;
 	default:

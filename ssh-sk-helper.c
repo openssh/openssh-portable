@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.5 2019/12/30 09:21:59 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.6 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -50,6 +50,33 @@
 #ifdef ENABLE_SK
 extern char *__progname;
 
+static struct sshbuf *reply_error(int r, char *fmt, ...)
+    __attribute__((__format__ (printf, 2, 3)));
+
+static struct sshbuf *
+reply_error(int r, char *fmt, ...)
+{
+	char *msg;
+	va_list ap;
+	struct sshbuf *resp;
+
+	va_start(ap, fmt);
+	xvasprintf(&msg, fmt, ap);
+	va_end(ap);
+	error("%s: %s", __progname, msg);
+	free(msg);
+
+	if (r >= 0)
+		fatal("%s: invalid error code %d", __func__, r);
+
+	if ((resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+	if (sshbuf_put_u32(resp, SSH_SK_HELPER_ERROR) != 0 ||
+	    sshbuf_put_u32(resp, (u_int)-r) != 0)
+		fatal("%s: buffer error", __progname);
+	return resp;
+}
+
 static struct sshbuf *
 process_sign(struct sshbuf *req)
 {
@@ -60,13 +87,14 @@ process_sign(struct sshbuf *req)
 	const u_char *message;
 	u_char *sig;
 	size_t msglen, siglen;
-	char *provider;
+	char *provider, *pin;
 
 	if ((r = sshbuf_froms(req, &kbuf)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_string_direct(req, &message, &msglen)) != 0 ||
 	    (r = sshbuf_get_cstring(req, NULL, NULL)) != 0 || /* alg */
-	    (r = sshbuf_get_u32(req, &compat)) != 0)
+	    (r = sshbuf_get_u32(req, &compat)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &pin, NULL)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 	if (sshbuf_len(req) != 0)
 		fatal("%s: trailing data in request", __progname);
@@ -80,19 +108,28 @@ process_sign(struct sshbuf *req)
 	    "msg len %zu, compat 0x%lx", __progname, sshkey_type(key),
 	    provider, msglen, (u_long)compat);
 
+	if (*pin == 0) {
+		free(pin);
+		pin = NULL;
+	}
+
 	if ((r = sshsk_sign(provider, key, &sig, &siglen,
-	    message, msglen, compat)) != 0)
-		fatal("Signing failed: %s", ssh_err(r));
+	    message, msglen, compat, pin)) != 0) {
+		resp = reply_error(r, "Signing failed: %s", ssh_err(r));
+		goto out;
+	}
 
 	if ((resp = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __progname);
 
-	if ((r = sshbuf_put_string(resp, sig, siglen)) != 0)
+	if ((r = sshbuf_put_u32(resp, SSH_SK_HELPER_SIGN)) != 0 ||
+	    (r = sshbuf_put_string(resp, sig, siglen)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
-
+ out:
 	sshbuf_free(kbuf);
 	free(provider);
-
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	return resp;
 }
 
@@ -101,14 +138,12 @@ process_enroll(struct sshbuf *req)
 {
 	int r;
 	u_int type;
-	char *provider;
-	char *application;
+	char *provider, *application, *pin;
 	uint8_t flags;
 	struct sshbuf *challenge, *attest, *kbuf, *resp;
 	struct sshkey *key;
 
-	if ((resp = sshbuf_new()) == NULL ||
-	    (attest = sshbuf_new()) == NULL ||
+	if ((attest = sshbuf_new()) == NULL ||
 	    (kbuf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __progname);
 
@@ -116,6 +151,7 @@ process_enroll(struct sshbuf *req)
 	    (r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &application, NULL)) != 0 ||
 	    (r = sshbuf_get_u8(req, &flags)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &pin, NULL)) != 0 ||
 	    (r = sshbuf_froms(req, &challenge)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 	if (sshbuf_len(req) != 0)
@@ -127,23 +163,35 @@ process_enroll(struct sshbuf *req)
 		sshbuf_free(challenge);
 		challenge = NULL;
 	}
+	if (*pin == 0) {
+		free(pin);
+		pin = NULL;
+	}
 
-	if ((r = sshsk_enroll((int)type, provider, application, flags,
-	    challenge, &key, attest)) != 0)
-		fatal("%s: sshsk_enroll failed: %s", __progname, ssh_err(r));
+	if ((r = sshsk_enroll((int)type, provider, application, flags, pin,
+	    challenge, &key, attest)) != 0) {
+		resp = reply_error(r, "Enrollment failed: %s", ssh_err(r));
+		goto out;
+	}
 
+	if ((resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
 	if ((r = sshkey_private_serialize(key, kbuf)) != 0)
 		fatal("%s: serialize private key: %s", __progname, ssh_err(r));
-	if ((r = sshbuf_put_stringb(resp, kbuf)) != 0 ||
+	if ((r = sshbuf_put_u32(resp, SSH_SK_HELPER_ENROLL)) != 0 ||
+	    (r = sshbuf_put_stringb(resp, kbuf)) != 0 ||
 	    (r = sshbuf_put_stringb(resp, attest)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 
+ out:
 	sshkey_free(key);
 	sshbuf_free(kbuf);
 	sshbuf_free(attest);
 	sshbuf_free(challenge);
 	free(provider);
 	free(application);
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 
 	return resp;
 }
@@ -157,8 +205,7 @@ process_load_resident(struct sshbuf *req)
 	struct sshkey **keys = NULL;
 	size_t nkeys = 0, i;
 
-	if ((resp = sshbuf_new()) == NULL ||
-	    (kbuf = sshbuf_new()) == NULL)
+	if ((kbuf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new failed", __progname);
 
 	if ((r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
@@ -167,9 +214,22 @@ process_load_resident(struct sshbuf *req)
 	if (sshbuf_len(req) != 0)
 		fatal("%s: trailing data in request", __progname);
 
-	if ((r = sshsk_load_resident(provider, pin, &keys, &nkeys)) != 0)
-		fatal("%s: sshsk_load_resident failed: %s",
-		    __progname, ssh_err(r));
+	if (*pin == 0) {
+		free(pin);
+		pin = NULL;
+	}
+
+	if ((r = sshsk_load_resident(provider, pin, &keys, &nkeys)) != 0) {
+		resp = reply_error(r, " sshsk_load_resident failed: %s",
+		    ssh_err(r));
+		goto out;
+	}
+
+	if ((resp = sshbuf_new()) == NULL)
+		fatal("%s: sshbuf_new failed", __progname);
+
+	if ((r = sshbuf_put_u32(resp, SSH_SK_HELPER_LOAD_RESIDENT)) != 0)
+		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 
 	for (i = 0; i < nkeys; i++) {
 		debug("%s: key %zu %s %s", __func__, i,
@@ -183,12 +243,14 @@ process_load_resident(struct sshbuf *req)
 			fatal("%s: buffer error: %s", __progname, ssh_err(r));
 	}
 
+ out:
 	for (i = 0; i < nkeys; i++)
 		sshkey_free(keys[i]);
 	free(keys);
 	sshbuf_free(kbuf);
 	free(provider);
-	freezero(pin, strlen(pin));
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 	return resp;
 }
 

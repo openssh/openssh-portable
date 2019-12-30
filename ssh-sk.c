@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.20 2019/12/30 09:21:16 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.21 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -53,13 +53,14 @@ struct sshsk_provider {
 	/* Enroll a U2F key (private key generation) */
 	int (*sk_enroll)(int alg, const uint8_t *challenge,
 	    size_t challenge_len, const char *application, uint8_t flags,
-	    struct sk_enroll_response **enroll_response);
+	    const char *pin, struct sk_enroll_response **enroll_response);
 
 	/* Sign a challenge */
 	int (*sk_sign)(int alg, const uint8_t *message, size_t message_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
-	    uint8_t flags, struct sk_sign_response **sign_response);
+	    uint8_t flags, const char *pin,
+	    struct sk_sign_response **sign_response);
 
 	/* Enumerate resident keys */
 	int (*sk_load_resident_keys)(const char *pin,
@@ -69,11 +70,11 @@ struct sshsk_provider {
 /* Built-in version */
 int ssh_sk_enroll(int alg, const uint8_t *challenge,
     size_t challenge_len, const char *application, uint8_t flags,
-    struct sk_enroll_response **enroll_response);
+    const char *pin, struct sk_enroll_response **enroll_response);
 int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response);
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
 int ssh_sk_load_resident_keys(const char *pin,
     struct sk_resident_key ***rks, size_t *nrks);
 
@@ -326,8 +327,8 @@ sshsk_key_from_response(int alg, const char *application, uint8_t flags,
 
 int
 sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
-    struct sshbuf *attest)
+    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+    struct sshkey **keyp, struct sshbuf *attest)
 {
 	struct sshsk_provider *skp = NULL;
 	struct sshkey *key = NULL;
@@ -339,8 +340,9 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	int alg;
 
 	debug("%s: provider \"%s\", application \"%s\", flags 0x%02x, "
-	    "challenge len %zu", __func__, provider_path, application,
-	    flags, challenge_buf == NULL ? 0 : sshbuf_len(challenge_buf));
+	    "challenge len %zu%s", __func__, provider_path, application,
+	    flags, challenge_buf == NULL ? 0 : sshbuf_len(challenge_buf),
+	    (pin != NULL && *pin != '\0') ? " with-pin" : "");
 
 	*keyp = NULL;
 	if (attest)
@@ -391,7 +393,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	/* XXX validate flags? */
 	/* enroll key */
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
-	    flags, &resp)) != 0) {
+	    flags, pin, &resp)) != 0) {
 		error("Security key provider %s returned failure %d",
 		    provider_path, r);
 		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
@@ -504,7 +506,7 @@ sshsk_ed25519_sig(struct sk_sign_response *resp, struct sshbuf *sig)
 int
 sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
-    u_int compat)
+    u_int compat, const char *pin)
 {
 	struct sshsk_provider *skp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -513,8 +515,9 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
 
-	debug("%s: provider \"%s\", key %s, flags 0x%02x", __func__,
-	    provider_path, sshkey_type(key), key->sk_flags);
+	debug("%s: provider \"%s\", key %s, flags 0x%02x%s", __func__,
+	    provider_path, sshkey_type(key), key->sk_flags,
+	    (pin != NULL && *pin != '\0') ? " with-pin" : "");
 
 	if (sigp != NULL)
 		*sigp = NULL;
@@ -554,7 +557,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	if ((r = skp->sk_sign(alg, message, sizeof(message),
 	    key->sk_application,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
-	    key->sk_flags, &resp)) != 0) {
+	    key->sk_flags, pin, &resp)) != 0) {
 		debug("%s: sk_sign failed with code %d", __func__, r);
 		goto out;
 	}

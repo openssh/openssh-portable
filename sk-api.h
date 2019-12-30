@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-api.h,v 1.4 2019/12/30 09:21:16 djm Exp $ */
+/* $OpenBSD: sk-api.h,v 1.5 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -59,7 +59,7 @@ struct sk_resident_key {
 	struct sk_enroll_response key;
 };
 
-#define SSH_SK_VERSION_MAJOR		0x00020000 /* current API version */
+#define SSH_SK_VERSION_MAJOR		0x00030000 /* current API version */
 #define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
 /* Return the version of the middleware API */
@@ -67,13 +67,13 @@ uint32_t sk_api_version(void);
 
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags,
+    const char *application, uint8_t flags, const char *pin,
     struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
 int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response);
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
 
 /* Enumerate all resident keys */
 int sk_load_resident_keys(const char *pin,

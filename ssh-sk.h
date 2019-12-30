@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.7 2019/12/30 09:21:16 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.8 2019/12/30 09:23:28 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -21,6 +21,15 @@
 struct sshbuf;
 struct sshkey;
 
+/* Version of protocol expected from ssh-sk-helper */
+#define SSH_SK_HELPER_VERSION		3
+
+/* ssh-sk-helper messages */
+#define SSH_SK_HELPER_ERROR		0	/* Only valid H->C */
+#define SSH_SK_HELPER_SIGN		1
+#define SSH_SK_HELPER_ENROLL		2
+#define SSH_SK_HELPER_LOAD_RESIDENT	3
+
 /*
  * Enroll (generate) a new security-key hosted private key of given type
  * via the specified provider middleware.
@@ -32,8 +41,8 @@ struct sshkey;
  * information is placed there.
  */
 int sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
-    struct sshbuf *attest);
+    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+    struct sshkey **keyp, struct sshbuf *attest);
 
 /*
  * Calculate an ECDSA_SK or ED25519_SK signature using the specified key
@@ -43,7 +52,7 @@ int sshsk_enroll(int type, const char *provider_path, const char *application,
  */
 int sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
-    u_int compat);
+    u_int compat, const char *pin);
 
 /*
  * Enumerates and loads all SSH-compatible resident keys from a security
