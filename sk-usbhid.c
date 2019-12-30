@@ -56,7 +56,9 @@
 #define SK_VERSION_MAJOR	0x00020000 /* current API version */
 
 /* Flags */
-#define SK_USER_PRESENCE_REQD	0x01
+#define SK_USER_PRESENCE_REQD		0x01
+#define SK_USER_VERIFICATION_REQD	0x04
+#define SK_RESIDENT_KEY			0x20
 
 /* Algs */
 #define	SK_ECDSA		0x00
@@ -410,7 +412,6 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 	int r;
 	char *device = NULL;
 
-	(void)flags; /* XXX; unused */
 #ifdef SK_DEBUG
 	fido_init(FIDO_DEBUG);
 #endif
@@ -450,6 +451,11 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 	    challenge_len)) != FIDO_OK) {
 		skdebug(__func__, "fido_cred_set_clientdata_hash: %s",
 		    fido_strerr(r));
+		goto out;
+	}
+	if ((r = fido_cred_set_rk(cred, (flags & SK_RESIDENT_KEY) != 0 ?
+	    FIDO_OPT_TRUE : FIDO_OPT_OMIT)) != FIDO_OK) {
+		skdebug(__func__, "fido_cred_set_rk: %s", fido_strerr(r));
 		goto out;
 	}
 	if ((r = fido_cred_set_user(cred, user_id, sizeof(user_id),

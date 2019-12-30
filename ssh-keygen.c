@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.376 2019/12/30 03:30:09 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.377 2019/12/30 09:19:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3135,6 +3135,8 @@ main(int argc, char **argv)
 				fatal("Missing security key flags");
 			if (strcasecmp(optarg, "no-touch-required") == 0)
 				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+			else if (strcasecmp(optarg, "resident") == 0)
+				sk_flags |= SSH_SK_RESIDENT_KEY;
 			else {
 				ull = strtoull(optarg, &ep, 0);
 				if (*ep != '\0')
