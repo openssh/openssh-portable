@@ -233,6 +233,9 @@ support for the common case of USB HID security keys internally.
 
 The middleware library need only expose a handful of functions:
 
+	#define SSH_SK_VERSION_MAJOR		0x00030000 /* API version */
+	#define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
+
 	/* Flags */
 	#define SSH_SK_USER_PRESENCE_REQD	0x01
 	#define SSH_SK_USER_VERIFICATION_REQD	0x04
@@ -262,19 +265,34 @@ The middleware library need only expose a handful of functions:
 		size_t sig_s_len;
 	};
 
+	struct sk_resident_key {
+		uint8_t alg;
+		size_t slot;
+		char *application;
+		struct sk_enroll_response key;
+	};
+
 	/* Return the version of the middleware API */
 	uint32_t sk_api_version(void);
 
 	/* Enroll a U2F key (private key generation) */
 	int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-	    const char *application, uint8_t flags,
+	    const char *application, uint8_t flags, const char *pin,
 	    struct sk_enroll_response **enroll_response);
 
 	/* Sign a challenge */
 	int sk_sign(int alg, const uint8_t *message, size_t message_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
-	    uint8_t flags, struct sk_sign_response **sign_response);
+	    uint8_t flags, const char *pin,
+	    struct sk_sign_response **sign_response);
+
+	/* Enumerate all resident keys */
+	int sk_load_resident_keys(const char *pin,
+	    struct sk_resident_key ***rks, size_t *nrks);
+
+The SSH_SK_VERSION_MAJOR should be incremented for each incompatible
+API change.
 
 In OpenSSH, these will be invoked by using a similar mechanism to
 ssh-pkcs11-helper to provide address-space containment of the
