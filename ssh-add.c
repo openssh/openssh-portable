@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.147 2019/11/25 00:51:37 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.148 2019/12/30 09:22:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -66,6 +66,7 @@
 #include "misc.h"
 #include "ssherr.h"
 #include "digest.h"
+#include "ssh-sk.h"
 
 /* argv0 */
 extern char *__progname;
@@ -540,6 +541,54 @@ lock_agent(int agent_fd, int lock)
 }
 
 static int
+load_resident_keys(int agent_fd, const char *skprovider, int qflag)
+{
+	struct sshkey **keys;
+	size_t nkeys, i;
+	int r, ok = 0;
+	char *fp;
+
+	pass = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
+	if ((r = sshsk_load_resident(skprovider, pass, &keys, &nkeys)) != 0) {
+		error("Unable to load resident keys: %s", ssh_err(r));
+		return r;
+	}
+	for (i = 0; i < nkeys; i++) {
+		if ((fp = sshkey_fingerprint(keys[i],
+		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal("%s: sshkey_fingerprint failed", __func__);
+		if ((r = ssh_add_identity_constrained(agent_fd, keys[i], "",
+		    lifetime, confirm, maxsign, skprovider)) != 0) {
+			error("Unable to add key %s %s",
+			    sshkey_type(keys[i]), fp);
+			free(fp);
+			ok = r;
+			continue;
+		}
+		if (ok == 0)
+			ok = 1;
+		if (!qflag) {
+			fprintf(stderr, "Resident identity added: %s %s\n",
+			    sshkey_type(keys[i]), fp);
+			if (lifetime != 0) {
+				fprintf(stderr,
+				    "Lifetime set to %d seconds\n", lifetime);
+			}
+			if (confirm != 0) {
+				fprintf(stderr, "The user must confirm "
+				    "each use of the key\n");
+			}
+		}
+		free(fp);
+		sshkey_free(keys[i]);
+	}
+	free(keys);
+	if (nkeys == 0)
+		return SSH_ERR_KEY_NOT_FOUND;
+	return ok == 1 ? 0 : ok;
+}
+
+static int
 do_file(int agent_fd, int deleting, int key_only, char *file, int qflag,
     const char *skprovider)
 {
@@ -585,7 +634,7 @@ main(int argc, char **argv)
 	extern int optind;
 	int agent_fd;
 	char *pkcs11provider = NULL, *skprovider = NULL;
-	int r, i, ch, deleting = 0, ret = 0, key_only = 0;
+	int r, i, ch, deleting = 0, ret = 0, key_only = 0, do_download = 0;
 	int xflag = 0, lflag = 0, Dflag = 0, qflag = 0, Tflag = 0;
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_INFO;
@@ -615,7 +664,7 @@ main(int argc, char **argv)
 
 	skprovider = getenv("SSH_SK_PROVIDER");
 
-	while ((ch = getopt(argc, argv, "vklLcdDTxXE:e:M:m:qs:S:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "vklLcdDTxXE:e:M:m:Oqs:S:t:")) != -1) {
 		switch (ch) {
 		case 'v':
 			if (log_level == SYSLOG_LEVEL_INFO)
@@ -636,6 +685,9 @@ main(int argc, char **argv)
 			if (lflag != 0)
 				fatal("-%c flag already specified", lflag);
 			lflag = ch;
+			break;
+		case 'O':
+			do_download = 1;
 			break;
 		case 'x':
 		case 'X':
@@ -736,6 +788,13 @@ main(int argc, char **argv)
 			ret = 1;
 		goto done;
 	}
+	if (do_download) {
+		if (skprovider == NULL)
+			fatal("Cannot download keys without provider");
+		if (load_resident_keys(agent_fd, skprovider, qflag) != 0)
+			ret = 1;
+		goto done;
+	}
 	if (argc == 0) {
 		char buf[PATH_MAX];
 		struct passwd *pw;
@@ -769,9 +828,8 @@ main(int argc, char **argv)
 				ret = 1;
 		}
 	}
-	clear_pass();
-
 done:
+	clear_pass();
 	ssh_close_authentication_socket(agent_fd);
 	return ret;
 }
