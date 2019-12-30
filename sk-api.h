@@ -1,4 +1,4 @@
-/* $OpenBSD: sk-api.h,v 1.3 2019/12/30 09:19:52 djm Exp $ */
+/* $OpenBSD: sk-api.h,v 1.4 2019/12/30 09:21:16 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -52,6 +52,13 @@ struct sk_sign_response {
 	size_t sig_s_len;
 };
 
+struct sk_resident_key {
+	uint8_t alg;
+	size_t slot;
+	char *application;
+	struct sk_enroll_response key;
+};
+
 #define SSH_SK_VERSION_MAJOR		0x00020000 /* current API version */
 #define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
@@ -67,5 +74,9 @@ int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, struct sk_sign_response **sign_response);
+
+/* Enumerate all resident keys */
+int sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rks, size_t *nrks);
 
 #endif /* _SK_API_H */

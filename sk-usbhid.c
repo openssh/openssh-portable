@@ -34,6 +34,7 @@
 #endif /* WITH_OPENSSL */
 
 #include <fido.h>
+#include <fido/credman.h>
 
 #ifndef SK_STANDALONE
 #include "log.h"
@@ -84,11 +85,19 @@ struct sk_sign_response {
 	size_t sig_s_len;
 };
 
+struct sk_resident_key {
+	uint8_t alg;
+	size_t slot;
+	char *application;
+	struct sk_enroll_response key;
+};
+
 /* If building as part of OpenSSH, then rename exported functions */
 #if !defined(SK_STANDALONE)
-#define sk_api_version	ssh_sk_api_version
-#define sk_enroll	ssh_sk_enroll
-#define sk_sign		ssh_sk_sign
+#define sk_api_version		ssh_sk_api_version
+#define sk_enroll		ssh_sk_enroll
+#define sk_sign			ssh_sk_sign
+#define sk_load_resident_keys	ssh_sk_load_resident_keys
 #endif
 
 /* Return the version of the middleware API */
@@ -103,6 +112,10 @@ int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, struct sk_sign_response **sign_response);
+
+/* Load resident keys */
+int sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rks, size_t *nrks);
 
 static void skdebug(const char *func, const char *fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
@@ -281,7 +294,8 @@ find_device(const uint8_t *message, size_t message_len, const char *application,
  * but the API expects a SEC1 octet string.
  */
 static int
-pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
+pack_public_key_ecdsa(const fido_cred_t *cred,
+    struct sk_enroll_response *response)
 {
 	const uint8_t *ptr;
 	BIGNUM *x = NULL, *y = NULL;
@@ -351,7 +365,8 @@ pack_public_key_ecdsa(fido_cred_t *cred, struct sk_enroll_response *response)
 #endif /* WITH_OPENSSL */
 
 static int
-pack_public_key_ed25519(fido_cred_t *cred, struct sk_enroll_response *response)
+pack_public_key_ed25519(const fido_cred_t *cred,
+    struct sk_enroll_response *response)
 {
 	const uint8_t *ptr;
 	size_t len;
@@ -382,7 +397,8 @@ pack_public_key_ed25519(fido_cred_t *cred, struct sk_enroll_response *response)
 }
 
 static int
-pack_public_key(int alg, fido_cred_t *cred, struct sk_enroll_response *response)
+pack_public_key(int alg, const fido_cred_t *cred,
+    struct sk_enroll_response *response)
 {
 	switch(alg) {
 #ifdef WITH_OPENSSL
@@ -715,4 +731,214 @@ sk_sign(int alg, const uint8_t *message, size_t message_len,
 	}
 	return ret;
 }
+
+static int
+read_rks(const char *devpath, const char *pin,
+    struct sk_resident_key ***rksp, size_t *nrksp)
+{
+	int r = -1;
+	fido_dev_t *dev = NULL;
+	fido_credman_metadata_t *metadata = NULL;
+	fido_credman_rp_t *rp = NULL;
+	fido_credman_rk_t *rk = NULL;
+	size_t i, j, nrp, nrk;
+	const fido_cred_t *cred;
+	struct sk_resident_key *srk = NULL, **tmp;
+
+	if ((dev = fido_dev_new()) == NULL) {
+		skdebug(__func__, "fido_dev_new failed");
+		return -1;
+	}
+	if ((r = fido_dev_open(dev, devpath)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_open %s failed: %s",
+		    devpath, fido_strerr(r));
+		fido_dev_free(&dev);
+		return -1;
+	}
+	if ((metadata = fido_credman_metadata_new()) == NULL) {
+		r = -1;
+		skdebug(__func__, "alloc failed");
+		goto out;
+	}
+
+	if ((r = fido_credman_get_dev_metadata(dev, metadata, pin)) != 0) {
+		if (r == FIDO_ERR_INVALID_COMMAND) {
+			skdebug(__func__, "device %s does not support "
+			    "resident keys", devpath);
+			r = 0;
+			goto out;
+		}
+		skdebug(__func__, "get metadata for %s failed: %s",
+		    devpath, fido_strerr(r));
+		goto out;
+	}
+	skdebug(__func__, "existing %llu, remaining %llu",
+	    (unsigned long long)fido_credman_rk_existing(metadata),
+	    (unsigned long long)fido_credman_rk_remaining(metadata));
+	if ((rp = fido_credman_rp_new()) == NULL) {
+		r = -1;
+		skdebug(__func__, "alloc rp failed");
+		goto out;
+	}
+	if ((r = fido_credman_get_dev_rp(dev, rp, pin)) != 0) {
+		skdebug(__func__, "get RPs for %s failed: %s",
+		    devpath, fido_strerr(r));
+		goto out;
+	}
+	nrp = fido_credman_rp_count(rp);
+	skdebug(__func__, "Device %s has resident keys for %zu RPs",
+	    devpath, nrp);
+
+	/* Iterate over RP IDs that have resident keys */
+	for (i = 0; i < nrp; i++) {
+		skdebug(__func__, "rp %zu: name=\"%s\" id=\"%s\" hashlen=%zu",
+		    i, fido_credman_rp_name(rp, i), fido_credman_rp_id(rp, i),
+		    fido_credman_rp_id_hash_len(rp, i));
+
+		/* Skip non-SSH RP IDs */
+		if (strncasecmp(fido_credman_rp_id(rp, i), "ssh:", 4) != 0)
+			continue;
+
+		fido_credman_rk_free(&rk);
+		if ((rk = fido_credman_rk_new()) == NULL) {
+			r = -1;
+			skdebug(__func__, "alloc rk failed");
+			goto out;
+		}
+		if ((r = fido_credman_get_dev_rk(dev, fido_credman_rp_id(rp, i),
+		    rk, pin)) != 0) {
+			skdebug(__func__, "get RKs for %s slot %zu failed: %s",
+			    devpath, i, fido_strerr(r));
+			goto out;
+		}
+		nrk = fido_credman_rk_count(rk);
+		skdebug(__func__, "RP \"%s\" has %zu resident keys",
+		    fido_credman_rp_id(rp, i), nrk);
+
+		/* Iterate over resident keys for this RP ID */
+		for (j = 0; j < nrk; j++) {
+			if ((cred = fido_credman_rk(rk, j)) == NULL) {
+				skdebug(__func__, "no RK in slot %zu", j);
+				continue;
+			}
+			skdebug(__func__, "Device %s RP \"%s\" slot %zu: "
+			    "type %d", devpath, fido_credman_rp_id(rp, i), j,
+			    fido_cred_type(cred));
+
+			/* build response entry */
+			if ((srk = calloc(1, sizeof(*srk))) == NULL ||
+			    (srk->key.key_handle = calloc(1,
+			    fido_cred_id_len(cred))) == NULL ||
+			    (srk->application = strdup(fido_credman_rp_id(rp,
+			    i))) == NULL) {
+				r = -1;
+				skdebug(__func__, "alloc sk_resident_key");
+				goto out;
+			}
+
+			srk->key.key_handle_len = fido_cred_id_len(cred);
+			memcpy(srk->key.key_handle,
+			    fido_cred_id_ptr(cred),
+			    srk->key.key_handle_len);
+
+			switch (fido_cred_type(cred)) {
+			case COSE_ES256:
+				srk->alg = SK_ECDSA;
+				break;
+			case COSE_EDDSA:
+				srk->alg = SK_ED25519;
+				break;
+			default:
+				skdebug(__func__, "unsupported key type %d",
+				    fido_cred_type(cred));
+				goto out;
+			}
+
+			if ((r = pack_public_key(srk->alg, cred,
+			    &srk->key)) != 0) {
+				skdebug(__func__, "pack public key failed");
+				goto out;
+			}
+			/* append */
+			if ((tmp = recallocarray(*rksp, *nrksp, (*nrksp) + 1,
+			    sizeof(**rksp))) == NULL) {
+				r = -1;
+				skdebug(__func__, "alloc rksp");
+				goto out;
+			}
+			*rksp = tmp;
+			(*rksp)[(*nrksp)++] = srk;
+			srk = NULL;
+		}
+	}
+	/* Success */
+	r = 0;
+ out:
+	if (srk != NULL) {
+		free(srk->application);
+		freezero(srk->key.public_key, srk->key.public_key_len);
+		freezero(srk->key.key_handle, srk->key.key_handle_len);
+		freezero(srk, sizeof(*srk));
+	}
+	fido_credman_rp_free(&rp);
+	fido_credman_rk_free(&rk);
+	fido_dev_close(dev);
+	fido_dev_free(&dev);
+	fido_credman_metadata_free(&metadata);
+	return r;
+}
+
+int
+sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rksp, size_t *nrksp)
+{
+	int r = -1;
+	fido_dev_info_t *devlist = NULL;
+	size_t i, ndev = 0, nrks = 0;
+	const fido_dev_info_t *di;
+	struct sk_resident_key **rks = NULL;
+	*rksp = NULL;
+	*nrksp = 0;
+
+	if ((devlist = fido_dev_info_new(MAX_FIDO_DEVICES)) == NULL) {
+		skdebug(__func__, "fido_dev_info_new failed");
+		goto out;
+	}
+	if ((r = fido_dev_info_manifest(devlist,
+	    MAX_FIDO_DEVICES, &ndev)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_info_manifest failed: %s",
+		    fido_strerr(r));
+		goto out;
+	}
+	for (i = 0; i < ndev; i++) {
+		if ((di = fido_dev_info_ptr(devlist, i)) == NULL) {
+			skdebug(__func__, "no dev info at %zu", i);
+			continue;
+		}
+		skdebug(__func__, "trying %s", fido_dev_info_path(di));
+		if ((r = read_rks(fido_dev_info_path(di), pin,
+		    &rks, &nrks)) != 0) {
+			skdebug(__func__, "read_rks failed for %s",
+			    fido_dev_info_path(di));
+			continue;
+		}
+	}
+	/* success */
+	r = 0;
+	*rksp = rks;
+	*nrksp = nrks;
+	rks = NULL;
+	nrks = 0;
+ out:
+	for (i = 0; i < nrks; i++) {
+		free(rks[i]->application);
+		freezero(rks[i]->key.public_key, rks[i]->key.public_key_len);
+		freezero(rks[i]->key.key_handle, rks[i]->key.key_handle_len);
+		freezero(rks[i], sizeof(*rks[i]));
+	}
+	free(rks);
+	fido_dev_info_free(&devlist, MAX_FIDO_DEVICES);
+	return r;
+}
+
 #endif /* ENABLE_SK_INTERNAL */

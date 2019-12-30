@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.19 2019/12/30 09:20:36 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.20 2019/12/30 09:21:16 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -60,6 +60,10 @@ struct sshsk_provider {
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
 	    uint8_t flags, struct sk_sign_response **sign_response);
+
+	/* Enumerate resident keys */
+	int (*sk_load_resident_keys)(const char *pin,
+	    struct sk_resident_key ***rks, size_t *nrks);
 };
 
 /* Built-in version */
@@ -70,6 +74,8 @@ int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
     uint8_t flags, struct sk_sign_response **sign_response);
+int ssh_sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rks, size_t *nrks);
 
 static void
 sshsk_free(struct sshsk_provider *p)
@@ -101,6 +107,7 @@ sshsk_open(const char *path)
 #ifdef ENABLE_SK_INTERNAL
 		ret->sk_enroll = ssh_sk_enroll;
 		ret->sk_sign = ssh_sk_sign;
+		ret->sk_load_resident_keys = ssh_sk_load_resident_keys;
 #else
 		error("internal security key support not enabled");
 #endif
@@ -134,6 +141,12 @@ sshsk_open(const char *path)
 	if ((ret->sk_sign = dlsym(ret->dlhandle, "sk_sign")) == NULL) {
 		error("Security key provider %s dlsym(sk_sign) failed: %s",
 		    path, dlerror());
+		goto fail;
+	}
+	if ((ret->sk_load_resident_keys = dlsym(ret->dlhandle,
+	    "sk_load_resident_keys")) == NULL) {
+		error("Security key provider %s dlsym(sk_load_resident_keys) "
+		    "failed: %s", path, dlerror());
 		goto fail;
 	}
 	/* success */
@@ -264,9 +277,7 @@ sshsk_key_from_response(int alg, const char *application, uint8_t flags,
 	*keyp = NULL;
 
 	/* Check response validity */
-	if (resp->public_key == NULL || resp->key_handle == NULL ||
-	    resp->signature == NULL ||
-	    (resp->attestation_cert == NULL && resp->attestation_cert_len != 0)) {
+	if (resp->public_key == NULL || resp->key_handle == NULL) {
 		error("%s: sk_enroll response invalid", __func__);
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
@@ -595,4 +606,101 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	sshbuf_free(inner_sig);
 	return r;
 }
+
+static void
+sshsk_free_sk_resident_keys(struct sk_resident_key **rks, size_t nrks)
+{
+	size_t i;
+
+	if (nrks == 0 || rks == NULL)
+		return;
+	for (i = 0; i < nrks; i++) {
+		free(rks[i]->application);
+		freezero(rks[i]->key.key_handle, rks[i]->key.key_handle_len);
+		freezero(rks[i]->key.public_key, rks[i]->key.public_key_len);
+		freezero(rks[i]->key.signature, rks[i]->key.signature_len);
+		freezero(rks[i]->key.attestation_cert,
+		    rks[i]->key.attestation_cert_len);
+		freezero(rks[i], sizeof(**rks));
+	}
+	free(rks);
+}
+
+int
+sshsk_load_resident(const char *provider_path, const char *pin,
+    struct sshkey ***keysp, size_t *nkeysp)
+{
+	struct sshsk_provider *skp = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+	struct sk_resident_key **rks = NULL;
+	size_t i, nrks = 0, nkeys = 0;
+	struct sshkey *key = NULL, **keys = NULL, **tmp;
+	uint8_t flags;
+
+	debug("%s: provider \"%s\"%s", __func__, provider_path,
+	    (pin != NULL && *pin != '\0') ? ", have-pin": "");
+
+	if (keysp == NULL || nkeysp == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
+	*keysp = NULL;
+	*nkeysp = 0;
+
+	if ((skp = sshsk_open(provider_path)) == NULL) {
+		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
+		goto out;
+	}
+	if ((r = skp->sk_load_resident_keys(pin, &rks, &nrks)) != 0) {
+		error("Security key provider %s returned failure %d",
+		    provider_path, r);
+		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
+		goto out;
+	}
+	for (i = 0; i < nrks; i++) {
+		debug3("%s: rk %zu: slot = %zu, alg = %d, application = \"%s\"",
+		    __func__, i, rks[i]->slot, rks[i]->alg,
+		    rks[i]->application);
+		/* XXX need better filter here */
+		if (strncmp(rks[i]->application, "ssh:", 4) != 0)
+			continue;
+		switch (rks[i]->alg) {
+		case SSH_SK_ECDSA:
+		case SSH_SK_ED25519:
+			break;
+		default:
+			continue;
+		}
+		/* XXX where to get flags? */
+		flags = SSH_SK_USER_PRESENCE_REQD|SSH_SK_RESIDENT_KEY;
+		if ((r = sshsk_key_from_response(rks[i]->alg,
+		    rks[i]->application, flags, &rks[i]->key, &key)) != 0)
+			goto out;
+		if ((tmp = recallocarray(keys, nkeys, nkeys + 1,
+		    sizeof(*tmp))) == NULL) {
+			error("%s: recallocarray failed", __func__);
+			r = SSH_ERR_ALLOC_FAIL;
+			goto out;
+		}
+		keys = tmp;
+		keys[nkeys++] = key;
+		key = NULL;
+		/* XXX synthesise comment */
+	}
+	/* success */
+	*keysp = keys;
+	*nkeysp = nkeys;
+	keys = NULL;
+	nkeys = 0;
+	r = 0;
+ out:
+	sshsk_free(skp);
+	sshsk_free_sk_resident_keys(rks, nrks);
+	sshkey_free(key);
+	if (nkeys != 0) {
+		for (i = 0; i < nkeys; i++)
+			sshkey_free(keys[i]);
+		free(keys);
+	}
+	return r;
+}
+
 #endif /* ENABLE_SK */

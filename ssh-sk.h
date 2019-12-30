@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.6 2019/12/13 19:09:10 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.7 2019/12/30 09:21:16 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -44,6 +44,15 @@ int sshsk_enroll(int type, const char *provider_path, const char *application,
 int sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
     u_int compat);
+
+/*
+ * Enumerates and loads all SSH-compatible resident keys from a security
+ * key.
+ *
+ * Returns 0 on success or a ssherr.h error code on failure.
+ */
+int sshsk_load_resident(const char *provider_path, const char *pin,
+    struct sshkey ***keysp, size_t *nkeysp);
 
 #endif /* _SSH_SK_H */
 
