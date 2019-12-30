@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.375 2019/12/30 03:28:41 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.376 2019/12/30 03:30:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -162,10 +162,7 @@ static int private_key_format = SSHKEY_PRIVATE_OPENSSH;
 /* Cipher for new-format private keys */
 static char *openssh_format_cipher = NULL;
 
-/*
- * Number of KDF rounds to derive new format keys /
- * number of primality trials when screening moduli.
- */
+/* Number of KDF rounds to derive new format keys. */
 static int rounds = 0;
 
 /* argv0 */
@@ -2759,6 +2756,122 @@ done:
 }
 
 static void
+do_moduli_gen(const char *out_file, char **opts, size_t nopts)
+{
+#ifdef WITH_OPENSSL
+	/* Moduli generation/screening */
+	u_int32_t memory = 0;
+	BIGNUM *start = NULL;
+	int moduli_bits = 0;
+	FILE *out;
+	size_t i;
+	const char *errstr;
+
+	/* Parse options */
+	for (i = 0; i < nopts; i++) {
+		if (strncmp(opts[i], "memory=", 7) == 0) {
+			memory = (u_int32_t)strtonum(opts[i]+7, 1,
+			    UINT_MAX, &errstr);
+			if (errstr) {
+				fatal("Memory limit is %s: %s",
+				    errstr, opts[i]+7);
+			}
+		} else if (strncmp(opts[i], "start=", 6) == 0) {
+			/* XXX - also compare length against bits */
+			if (BN_hex2bn(&start, opts[i]+6) == 0)
+				fatal("Invalid start point.");
+		} else if (strncmp(opts[i], "bits=", 5) == 0) {
+			moduli_bits = (int)strtonum(opts[i]+5, 1,
+			    INT_MAX, &errstr);
+			if (errstr) {
+				fatal("Invalid number: %s (%s)",
+					opts[i]+12, errstr);
+			}
+		} else {
+			fatal("Option \"%s\" is unsupported for moduli "
+			    "generation", opts[i]);
+		}
+	}
+
+	if ((out = fopen(out_file, "w")) == NULL) {
+		fatal("Couldn't open modulus candidate file \"%s\": %s",
+		    out_file, strerror(errno));
+	}
+	setvbuf(out, NULL, _IOLBF, 0);
+
+	if (moduli_bits == 0)
+		moduli_bits = DEFAULT_BITS;
+	if (gen_candidates(out, memory, moduli_bits, start) != 0)
+		fatal("modulus candidate generation failed");
+#else /* WITH_OPENSSL */
+	fatal("Moduli generation is not supported");
+#endif /* WITH_OPENSSL */
+}
+
+static void
+do_moduli_screen(const char *out_file, char **opts, size_t nopts)
+{
+#ifdef WITH_OPENSSL
+	/* Moduli generation/screening */
+	char *checkpoint = NULL;
+	u_int32_t generator_wanted = 0;
+	unsigned long start_lineno = 0, lines_to_process = 0;
+	int prime_tests = 0;
+	FILE *out, *in = stdin;
+	size_t i;
+	const char *errstr;
+
+	/* Parse options */
+	for (i = 0; i < nopts; i++) {
+		if (strncmp(opts[i], "lines=", 6) == 0) {
+			lines_to_process = strtoul(opts[i]+6, NULL, 10);
+		} else if (strncmp(opts[i], "start-line=", 11) == 0) {
+			start_lineno = strtoul(opts[i]+11, NULL, 10);
+		} else if (strncmp(opts[i], "checkpoint=", 11) == 0) {
+			checkpoint = xstrdup(opts[i]+11);
+		} else if (strncmp(opts[i], "generator=", 10) == 0) {
+			generator_wanted = (u_int32_t)strtonum(
+			    opts[i]+10, 1, UINT_MAX, &errstr);
+			if (errstr != NULL) {
+				fatal("Generator invalid: %s (%s)",
+				    opts[i]+10, errstr);
+			}
+		} else if (strncmp(opts[i], "prime-tests=", 12) == 0) {
+			prime_tests = (int)strtonum(opts[i]+12, 1,
+			    INT_MAX, &errstr);
+			if (errstr) {
+				fatal("Invalid number: %s (%s)",
+					opts[i]+12, errstr);
+			}
+		} else {
+			fatal("Option \"%s\" is unsupported for moduli "
+			    "screening", opts[i]);
+		}
+	}
+
+	if (have_identity && strcmp(identity_file, "-") != 0) {
+		if ((in = fopen(identity_file, "r")) == NULL) {
+			fatal("Couldn't open modulus candidate "
+			    "file \"%s\": %s", identity_file,
+			    strerror(errno));
+		}
+	}
+
+	if ((out = fopen(out_file, "a")) == NULL) {
+		fatal("Couldn't open moduli file \"%s\": %s",
+		    out_file, strerror(errno));
+	}
+	setvbuf(out, NULL, _IOLBF, 0);
+	if (prime_test(in, out, prime_tests == 0 ? 100 : prime_tests,
+	    generator_wanted, checkpoint,
+	    start_lineno, lines_to_process) != 0)
+		fatal("modulus screening failed");
+#else /* WITH_OPENSSL */
+	fatal("Moduli screening is not supported");
+#endif /* WITH_OPENSSL */
+}
+
+static void
 usage(void)
 {
 	fprintf(stderr,
@@ -2783,9 +2896,8 @@ usage(void)
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
 	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
-	    "       ssh-keygen -G output_file [-v] [-b bits] [-M memory] [-S start_point]\n"
-	    "       ssh-keygen -f input_file -T output_file [-v] [-a rounds] [-J num_lines]\n"
-	    "                  [-j start_line] [-K checkpt] [-W generator]\n"
+	    "       ssh-keygen -M generate [-O option] output\n"
+	    "       ssh-keygen -M screen [-f input_file] [-O option] [-a rounds] output_file\n"
 #endif
 	    "       ssh-keygen -I certificate_identity -s ca_key [-hU] [-D pkcs11_provider]\n"
 	    "                  [-n principals] [-O option] [-V validity_interval]\n"
@@ -2819,6 +2931,7 @@ main(int argc, char **argv)
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
+	int do_gen_candidates = 0, do_screen_candidates = 0;
 	unsigned long long ull, cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
 	size_t i, nopts = 0;
@@ -2828,14 +2941,6 @@ main(int argc, char **argv)
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
 	char *sign_op = NULL;
-#ifdef WITH_OPENSSL
-	/* Moduli generation/screening */
-	char out_file[PATH_MAX], *checkpoint = NULL;
-	u_int32_t memory = 0, generator_wanted = 0;
-	int do_gen_candidates = 0, do_screen_candidates = 0;
-	unsigned long start_lineno = 0, lines_to_process = 0;
-	BIGNUM *start = NULL;
-#endif
 
 	extern int optind;
 	extern char *optarg;
@@ -2860,10 +2965,10 @@ main(int argc, char **argv)
 
 	sk_provider = getenv("SSH_SK_PROVIDER");
 
-	/* Remaining character: d */
+	/* Remaining characters: dGjJKSTW */
 	while ((opt = getopt(argc, argv, "ABHLQUXceghiklopquvy"
-	    "C:D:E:F:G:I:J:K:M:N:O:P:R:S:T:V:W:Y:Z:"
-	    "a:b:f:g:j:m:n:r:s:t:w:x:z:")) != -1) {
+	    "C:D:E:F:I:M:N:O:P:R:V:Y:Z:"
+	    "a:b:f:g:m:n:r:s:t:w:x:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -3053,50 +3158,14 @@ main(int argc, char **argv)
 			    (errno == ERANGE && cert_serial == ULLONG_MAX))
 				fatal("Invalid serial number \"%s\"", optarg);
 			break;
-#ifdef WITH_OPENSSL
-		/* Moduli generation/screening */
-		case 'G':
-			do_gen_candidates = 1;
-			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
-			    sizeof(out_file))
-				fatal("Output filename too long");
-			break;
-		case 'J':
-			lines_to_process = strtoul(optarg, NULL, 10);
-			break;
-		case 'j':
-			start_lineno = strtoul(optarg, NULL, 10);
-			break;
-		case 'K':
-			if (strlen(optarg) >= PATH_MAX)
-				fatal("Checkpoint filename too long");
-			checkpoint = xstrdup(optarg);
-			break;
 		case 'M':
-			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX,
-			    &errstr);
-			if (errstr)
-				fatal("Memory limit is %s: %s", errstr, optarg);
+			if (strcmp(optarg, "generate") == 0)
+				do_gen_candidates = 1;
+			else if (strcmp(optarg, "screen") == 0)
+				do_screen_candidates = 1;
+			else
+				fatal("Unsupported moduli option %s", optarg);
 			break;
-		case 'S':
-			/* XXX - also compare length against bits */
-			if (BN_hex2bn(&start, optarg) == 0)
-				fatal("Invalid start point.");
-			break;
-		case 'T':
-			do_screen_candidates = 1;
-			if (strlcpy(out_file, optarg, sizeof(out_file)) >=
-			    sizeof(out_file))
-				fatal("Output filename too long");
-			break;
-		case 'W':
-			generator_wanted = (u_int32_t)strtonum(optarg, 1,
-			    UINT_MAX, &errstr);
-			if (errstr != NULL)
-				fatal("Desired generator invalid: %s (%s)",
-				    optarg, errstr);
-			break;
-#endif /* WITH_OPENSSL */
 		case '?':
 		default:
 			usage();
@@ -3163,7 +3232,8 @@ main(int argc, char **argv)
 			error("Too few arguments.");
 			usage();
 		}
-	} else if (argc > 0 && !gen_krl && !check_krl) {
+	} else if (argc > 0 && !gen_krl && !check_krl &&
+	    !do_gen_candidates && !do_screen_candidates) {
 		error("Too many arguments.");
 		usage();
 	}
@@ -3176,13 +3246,21 @@ main(int argc, char **argv)
 		usage();
 	}
 	if (gen_krl) {
+#ifdef WITH_OPENSSL
 		do_gen_krl(pw, update_krl, ca_key_path,
 		    cert_serial, identity_comment, argc, argv);
 		return (0);
+#else
+		fatal("KRL generation not supported");
+#endif
 	}
 	if (check_krl) {
+#ifdef WITH_OPENSSL
 		do_check_krl(pw, argc, argv);
 		return (0);
+#else
+		fatal("KRL checking not supported");
+#endif
 	}
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
@@ -3249,47 +3327,20 @@ main(int argc, char **argv)
 		}
 	}
 
-#ifdef WITH_OPENSSL
+	if (do_gen_candidates || do_screen_candidates) {
+		if (argc <= 0)
+			fatal("No output file specified");
+		else if (argc > 1)
+			fatal("Too many output files specified");
+	}
 	if (do_gen_candidates) {
-		FILE *out = fopen(out_file, "w");
-
-		if (out == NULL) {
-			error("Couldn't open modulus candidate file \"%s\": %s",
-			    out_file, strerror(errno));
-			return (1);
-		}
-		if (bits == 0)
-			bits = DEFAULT_BITS;
-		if (gen_candidates(out, memory, bits, start) != 0)
-			fatal("modulus candidate generation failed");
-
-		return (0);
+		do_moduli_gen(argv[0], opts, nopts);
+		return 0;
 	}
-
 	if (do_screen_candidates) {
-		FILE *in;
-		FILE *out = fopen(out_file, "a");
-
-		if (have_identity && strcmp(identity_file, "-") != 0) {
-			if ((in = fopen(identity_file, "r")) == NULL) {
-				fatal("Couldn't open modulus candidate "
-				    "file \"%s\": %s", identity_file,
-				    strerror(errno));
-			}
-		} else
-			in = stdin;
-
-		if (out == NULL) {
-			fatal("Couldn't open moduli file \"%s\": %s",
-			    out_file, strerror(errno));
-		}
-		if (prime_test(in, out, rounds == 0 ? 100 : rounds,
-		    generator_wanted, checkpoint,
-		    start_lineno, lines_to_process) != 0)
-			fatal("modulus screening failed");
-		return (0);
+		do_moduli_screen(argv[0], opts, nopts);
+		return 0;
 	}
-#endif
 
 	if (gen_all_hostkeys) {
 		do_gen_all_hostkeys(pw);
