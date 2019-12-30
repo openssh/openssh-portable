@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.18 2019/12/13 19:09:10 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.19 2019/12/30 09:20:36 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -254,6 +254,65 @@ sshsk_ed25519_assemble(struct sk_enroll_response *resp, struct sshkey **keyp)
 	return r;
 }
 
+static int
+sshsk_key_from_response(int alg, const char *application, uint8_t flags,
+    struct sk_enroll_response *resp, struct sshkey **keyp)
+{
+	struct sshkey *key = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	*keyp = NULL;
+
+	/* Check response validity */
+	if (resp->public_key == NULL || resp->key_handle == NULL ||
+	    resp->signature == NULL ||
+	    (resp->attestation_cert == NULL && resp->attestation_cert_len != 0)) {
+		error("%s: sk_enroll response invalid", __func__);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	switch (alg) {
+#ifdef WITH_OPENSSL
+	case SSH_SK_ECDSA:
+		if ((r = sshsk_ecdsa_assemble(resp, &key)) != 0)
+			goto out;
+		break;
+#endif /* WITH_OPENSSL */
+	case SSH_SK_ED25519:
+		if ((r = sshsk_ed25519_assemble(resp, &key)) != 0)
+			goto out;
+		break;
+	default:
+		error("%s: unsupported algorithm %d", __func__, alg);
+		r = SSH_ERR_INVALID_ARGUMENT;
+		goto out;
+	}
+	key->sk_flags = flags;
+	if ((key->sk_key_handle = sshbuf_new()) == NULL ||
+	    (key->sk_reserved = sshbuf_new()) == NULL) {
+		error("%s: allocation failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((key->sk_application = strdup(application)) == NULL) {
+		error("%s: strdup application failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if ((r = sshbuf_put(key->sk_key_handle, resp->key_handle,
+	    resp->key_handle_len)) != 0) {
+		error("%s: buffer error: %s", __func__, ssh_err(r));
+		goto out;
+	}
+	/* success */
+	r = 0;
+	*keyp = key;
+	key = NULL;
+ out:
+	sshkey_free(key);
+	return r;
+}
+
 int
 sshsk_enroll(int type, const char *provider_path, const char *application,
     uint8_t flags, struct sshbuf *challenge_buf, struct sshkey **keyp,
@@ -327,43 +386,11 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
 		goto out;
 	}
-	/* Check response validity */
-	if (resp->public_key == NULL || resp->key_handle == NULL ||
-	    resp->signature == NULL ||
-	    (resp->attestation_cert == NULL && resp->attestation_cert_len != 0)) {
-		error("%s: sk_enroll response invalid", __func__);
-		r = SSH_ERR_INVALID_FORMAT;
+
+	if ((r = sshsk_key_from_response(alg, application, flags,
+	    resp, &key)) != 0)
 		goto out;
-	}
-	switch (type) {
-#ifdef WITH_OPENSSL
-	case KEY_ECDSA_SK:
-		if ((r = sshsk_ecdsa_assemble(resp, &key)) != 0)
-			goto out;
-		break;
-#endif /* WITH_OPENSSL */
-	case KEY_ED25519_SK:
-		if ((r = sshsk_ed25519_assemble(resp, &key)) != 0)
-			goto out;
-		break;
-	}
-	key->sk_flags = flags;
-	if ((key->sk_key_handle = sshbuf_new()) == NULL ||
-	    (key->sk_reserved = sshbuf_new()) == NULL) {
-		error("%s: allocation failed", __func__);
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((key->sk_application = strdup(application)) == NULL) {
-		error("%s: strdup application failed", __func__);
-		r = SSH_ERR_ALLOC_FAIL;
-		goto out;
-	}
-	if ((r = sshbuf_put(key->sk_key_handle, resp->key_handle,
-	    resp->key_handle_len)) != 0) {
-		error("%s: buffer error: %s", __func__, ssh_err(r));
-		goto out;
-	}
+
 	/* Optionally fill in the attestation information */
 	if (attest != NULL) {
 		if ((r = sshbuf_put_cstring(attest, "sk-attest-v00")) != 0 ||
