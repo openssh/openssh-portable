@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.374 2019/12/10 22:37:20 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.375 2019/12/30 03:28:41 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2820,7 +2820,8 @@ main(int argc, char **argv)
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
 	unsigned long long ull, cert_serial = 0;
-	char *identity_comment = NULL, *ca_key_path = NULL;
+	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
+	size_t i, nopts = 0;
 	u_int32_t bits = 0;
 	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
 	FILE *f;
@@ -2950,7 +2951,9 @@ main(int argc, char **argv)
 			check_krl = 1;
 			break;
 		case 'O':
-			add_cert_option(optarg);
+			opts = xrecallocarray(opts, nopts, nopts + 1,
+			    sizeof(*opts));
+			opts[nopts++] = xstrdup(optarg);
 			break;
 		case 'Z':
 			openssh_format_cipher = optarg;
@@ -3184,6 +3187,8 @@ main(int argc, char **argv)
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
 			fatal("Must specify key id (-I) when certifying");
+		for (i = 0; i < nopts; i++)
+			add_cert_option(opts[i]);
 		do_ca_sign(pw, ca_key_path, prefer_agent,
 		    cert_serial, cert_serial_autoinc, argc, argv);
 	}
