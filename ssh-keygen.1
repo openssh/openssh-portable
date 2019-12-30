@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.184 2019/12/30 03:30:09 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.185 2019/12/30 09:49:52 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -48,10 +48,10 @@
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
 .Op Fl m Ar format
+.Op Fl O Ar option
 .Op Fl t Cm dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa
 .Op Fl N Ar new_passphrase
 .Op Fl w Ar provider
-.Op Fl x Ar flags
 .Nm ssh-keygen
 .Fl p
 .Op Fl f Ar keyfile
@@ -453,7 +453,28 @@ listed in the
 .Sx MODULI GENERATION
 section may be specified.
 .Pp
-This option may be specified multiple times.
+When generating a key that will be hosted on a FIDO authenticator, this
+flag may be used to specify key-specific options.
+Two FIDO authenticator options are supported at present:
+.Pp
+.Cm no-touch-required
+indicates that the generated private key should not require touch
+events (user presence) when making signatures.
+Note that
+.Xr sshd 8
+will refuse such signatures by default, unless overridden via
+an authorized_keys option.
+.Pp
+.Cm resident
+indicates that the key should be stored on the FIDO authenticator itself.
+Resident keys may be supported on FIDO2 tokens and typically require that
+a PIN be set on the token prior to generation.
+Resident keys may be loaded off the token using
+.Xr ssh-add 1 .
+.Pp
+The
+.Fl O
+option may be specified multiple times.
 .It Fl P Ar passphrase
 Provides the (old) passphrase.
 .It Fl p
@@ -573,18 +594,6 @@ The maximum is 3.
 Specifies a path to a library that will be used when creating
 FIDO authenticator-hosted keys, overriding the default of using
 the internal USB HID support.
-.It Fl x Ar flags
-Specifies the authenticator flags to use when enrolling an authenticator-hosted
-key.
-Flags may be specified by name or directly as a hexadecimal value.
-Only one named flag is supported at present:
-.Cm no-touch-required ,
-which indicates that the generated private key should not require touch
-events (user presence) when making signatures.
-Note that
-.Xr sshd 8
-will refuse such signatures by default, unless overridden via
-an authorized_keys option.
 .It Fl Y Cm check-novalidate
 Checks that a signature generated using
 .Nm

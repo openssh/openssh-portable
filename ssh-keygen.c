@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.379 2019/12/30 09:24:45 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.380 2019/12/30 09:49:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2932,7 +2932,7 @@ main(int argc, char **argv)
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
-	unsigned long long ull, cert_serial = 0;
+	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
 	size_t i, nopts = 0;
 	u_int32_t bits = 0;
@@ -2965,10 +2965,10 @@ main(int argc, char **argv)
 
 	sk_provider = getenv("SSH_SK_PROVIDER");
 
-	/* Remaining characters: dGjJKSTW */
+	/* Remaining characters: dGjJKSTWx */
 	while ((opt = getopt(argc, argv, "ABHLQUXceghiklopquvy"
 	    "C:D:E:F:I:M:N:O:P:R:V:Y:Z:"
-	    "a:b:f:g:m:n:r:s:t:w:x:z:")) != -1) {
+	    "a:b:f:g:m:n:r:s:t:w:z:")) != -1) {
 		switch (opt) {
 		case 'A':
 			gen_all_hostkeys = 1;
@@ -3129,25 +3129,6 @@ main(int argc, char **argv)
 			break;
 		case 'w':
 			sk_provider = optarg;
-			break;
-		case 'x':
-			if (*optarg == '\0')
-				fatal("Missing security key flags");
-			if (strcasecmp(optarg, "no-touch-required") == 0)
-				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
-			else if (strcasecmp(optarg, "resident") == 0)
-				sk_flags |= SSH_SK_RESIDENT_KEY;
-			else {
-				ull = strtoull(optarg, &ep, 0);
-				if (*ep != '\0')
-					fatal("Security key flags \"%s\" is "
-					    "not a number", optarg);
-				if (ull > 0xff) {
-					fatal("Invalid security key "
-					    "flags 0x%llx", ull);
-				}
-				sk_flags = (uint8_t)ull;
-			}
 			break;
 		case 'z':
 			errno = 0;
@@ -3361,6 +3342,20 @@ main(int argc, char **argv)
 	switch (type) {
 	case KEY_ECDSA_SK:
 	case KEY_ED25519_SK:
+		for (i = 0; i < nopts; i++) {
+			if (strcasecmp(opts[i], "no-touch-required") == 0) {
+				sk_flags &= ~SSH_SK_USER_PRESENCE_REQD;
+			} else if (strcasecmp(opts[i], "resident") == 0) {
+				sk_flags |= SSH_SK_RESIDENT_KEY;
+			} else {
+				fatal("Option \"%s\" is unsupported for "
+				    "FIDO authenticator enrollment", opts[i]);
+			}
+		}
+		if (!quiet) {
+			printf("You may need to touch your security key "
+			    "to authorize key generation.\n");
+		}
 		passphrase1 = NULL;
 		for (i = 0 ; i < 3; i++) {
 			if (!quiet) {
@@ -3375,9 +3370,13 @@ main(int argc, char **argv)
 				break;
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				exit(1); /* error message already printed */
+			if (passphrase1 != NULL)
+				freezero(passphrase1, strlen(passphrase1));
 			passphrase1 = read_passphrase("Enter PIN for security "
 			    "key: ", RP_ALLOW_STDIN);
 		}
+		if (passphrase1 != NULL)
+			freezero(passphrase1, strlen(passphrase1));
 		if (i > 3)
 			fatal("Too many incorrect PINs");
  		break;
