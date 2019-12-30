@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.21 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.22 2019/12/30 09:24:03 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -115,13 +115,13 @@ sshsk_open(const char *path)
 		return ret;
 	}
 	if ((ret->dlhandle = dlopen(path, RTLD_NOW)) == NULL) {
-		error("Security key provider %s dlopen failed: %s",
+		error("Security key provider \"%s\" dlopen failed: %s",
 		    path, dlerror());
 		goto fail;
 	}
 	if ((ret->sk_api_version = dlsym(ret->dlhandle,
 	    "sk_api_version")) == NULL) {
-		error("Security key provider %s dlsym(sk_api_version) "
+		error("Security key provider \"%s\" dlsym(sk_api_version) "
 		    "failed: %s", path, dlerror());
 		goto fail;
 	}
@@ -129,9 +129,9 @@ sshsk_open(const char *path)
 	debug("%s: provider %s implements version 0x%08lx", __func__,
 	    ret->path, (u_long)version);
 	if ((version & SSH_SK_VERSION_MAJOR_MASK) != SSH_SK_VERSION_MAJOR) {
-		error("Security key provider %s implements unsupported version "
-		    "0x%08lx (supported: 0x%08lx)", path, (u_long)version,
-		    (u_long)SSH_SK_VERSION_MAJOR);
+		error("Security key provider \"%s\" implements unsupported "
+		    "version 0x%08lx (supported: 0x%08lx)",
+		    path, (u_long)version, (u_long)SSH_SK_VERSION_MAJOR);
 		goto fail;
 	}
 	if ((ret->sk_enroll = dlsym(ret->dlhandle, "sk_enroll")) == NULL) {
@@ -140,14 +140,14 @@ sshsk_open(const char *path)
 		goto fail;
 	}
 	if ((ret->sk_sign = dlsym(ret->dlhandle, "sk_sign")) == NULL) {
-		error("Security key provider %s dlsym(sk_sign) failed: %s",
+		error("Security key provider \"%s\" dlsym(sk_sign) failed: %s",
 		    path, dlerror());
 		goto fail;
 	}
 	if ((ret->sk_load_resident_keys = dlsym(ret->dlhandle,
 	    "sk_load_resident_keys")) == NULL) {
-		error("Security key provider %s dlsym(sk_load_resident_keys) "
-		    "failed: %s", path, dlerror());
+		error("Security key provider \"%s\" "
+		    "dlsym(sk_load_resident_keys) failed: %s", path, dlerror());
 		goto fail;
 	}
 	/* success */
@@ -394,7 +394,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	/* enroll key */
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
 	    flags, pin, &resp)) != 0) {
-		error("Security key provider %s returned failure %d",
+		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
 		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
 		goto out;
@@ -653,7 +653,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 		goto out;
 	}
 	if ((r = skp->sk_load_resident_keys(pin, &rks, &nrks)) != 0) {
-		error("Security key provider %s returned failure %d",
+		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
 		r = SSH_ERR_INVALID_FORMAT; /* XXX error codes in API? */
 		goto out;
