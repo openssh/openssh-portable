@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.380 2019/12/30 09:49:52 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.381 2020/01/02 22:40:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2871,6 +2871,137 @@ do_moduli_screen(const char *out_file, char **opts, size_t nopts)
 #endif /* WITH_OPENSSL */
 }
 
+static char *
+private_key_passphrase(void)
+{
+	char *passphrase1, *passphrase2;
+
+	/* Ask for a passphrase (twice). */
+	if (identity_passphrase)
+		passphrase1 = xstrdup(identity_passphrase);
+	else if (identity_new_passphrase)
+		passphrase1 = xstrdup(identity_new_passphrase);
+	else {
+passphrase_again:
+		passphrase1 =
+			read_passphrase("Enter passphrase (empty for no "
+			    "passphrase): ", RP_ALLOW_STDIN);
+		passphrase2 = read_passphrase("Enter same passphrase again: ",
+		    RP_ALLOW_STDIN);
+		if (strcmp(passphrase1, passphrase2) != 0) {
+			/*
+			 * The passphrases do not match.  Clear them and
+			 * retry.
+			 */
+			freezero(passphrase1, strlen(passphrase1));
+			freezero(passphrase2, strlen(passphrase2));
+			printf("Passphrases do not match.  Try again.\n");
+			goto passphrase_again;
+		}
+		/* Clear the other copy of the passphrase. */
+		freezero(passphrase2, strlen(passphrase2));
+	}
+	return passphrase1;
+}
+
+static const char *
+skip_ssh_url_preamble(const char *s)
+{
+	if (strncmp(s, "ssh://", 6) == 0)
+		return s + 6;
+	else if (strncmp(s, "ssh:", 4) == 0)
+		return s + 4;
+	return s;
+}
+
+static int
+do_download_sk(const char *skprovider)
+{
+	struct sshkey **keys;
+	size_t nkeys, i;
+	int r, ok = -1;
+	char *fp, *pin, *pass = NULL, *path, *pubpath;
+	const char *ext;
+
+	if (skprovider == NULL)
+		fatal("Cannot download keys without provider");
+
+	pin = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
+	if ((r = sshsk_load_resident(skprovider, pin, &keys, &nkeys)) != 0) {
+		freezero(pin, strlen(pin));
+		error("Unable to load resident keys: %s", ssh_err(r));
+		return -1;
+	}
+	if (nkeys == 0)
+		logit("No keys to download");
+	freezero(pin, strlen(pin));
+
+	for (i = 0; i < nkeys; i++) {
+		if (keys[i]->type != KEY_ECDSA_SK &&
+		    keys[i]->type != KEY_ED25519_SK) {
+			error("Unsupported key type %s (%d)",
+			    sshkey_type(keys[i]), keys[i]->type);
+			continue;
+		}
+		if ((fp = sshkey_fingerprint(keys[i],
+		    fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
+			fatal("%s: sshkey_fingerprint failed", __func__);
+		debug("%s: key %zu: %s %s %s (flags 0x%02x)", __func__, i,
+		    sshkey_type(keys[i]), fp, keys[i]->sk_application,
+		    keys[i]->sk_flags);
+		ext = skip_ssh_url_preamble(keys[i]->sk_application);
+		xasprintf(&path, "id_%s_rk%s%s",
+		    keys[i]->type == KEY_ECDSA_SK ? "ecdsa_sk" : "ed25519_sk",
+		    *ext == '\0' ? "" : "_", ext);
+
+		/* If the file already exists, ask the user to confirm. */
+		if (!confirm_overwrite(path)) {
+			free(path);
+			break;
+		}
+
+		/* Save the key with the application string as the comment */
+		if (pass == NULL)
+			pass = private_key_passphrase();
+		if ((r = sshkey_save_private(keys[i], path, pass,
+		    keys[i]->sk_application, private_key_format,
+		    openssh_format_cipher, rounds)) != 0) {
+			error("Saving key \"%s\" failed: %s",
+			    path, ssh_err(r));
+			free(path);
+			break;
+		}
+		if (!quiet) {
+			printf("Saved %s key%s%s to %s\n",
+			    sshkey_type(keys[i]),
+			    *ext != '\0' ? " " : "",
+			    *ext != '\0' ? keys[i]->sk_application : "",
+			    path);
+		}
+
+		/* Save public key too */
+		xasprintf(&pubpath, "%s.pub", path);
+		free(path);
+		if ((r = sshkey_save_public(keys[i], pubpath,
+		    keys[i]->sk_application)) != 0) {
+			free(pubpath);
+			error("Saving public key \"%s\" failed: %s",
+			    pubpath, ssh_err(r));
+			break;
+		}
+		free(pubpath);
+	}
+
+	if (i >= nkeys)
+		ok = 0; /* success */
+	if (pass != NULL)
+		freezero(pass, strlen(pass));
+	for (i = 0; i < nkeys; i++)
+		sshkey_free(keys[i]);
+	free(keys);
+	return ok ? 0 : -1;
+}
+
 static void
 usage(void)
 {
@@ -2890,6 +3021,8 @@ usage(void)
 	fprintf(stderr,
 	    "       ssh-keygen -D pkcs11\n");
 #endif
+	fprintf(stderr,
+	    "       ssh-keygen -K path [-w sk_provider]\n");
 	fprintf(stderr,
 	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
@@ -2920,24 +3053,23 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char dotsshdir[PATH_MAX], comment[1024], *passphrase1, *passphrase2;
+	char dotsshdir[PATH_MAX], comment[1024], *passphrase;
 	char *rr_hostname = NULL, *ep, *fp, *ra;
 	struct sshkey *private, *public;
 	struct passwd *pw;
 	struct stat st;
-	int r, opt, type, fd;
+	int r, opt, type;
 	int change_passphrase = 0, change_comment = 0, show_cert = 0;
 	int find_host = 0, delete_host = 0, hash_hosts = 0;
 	int gen_all_hostkeys = 0, gen_krl = 0, update_krl = 0, check_krl = 0;
 	int prefer_agent = 0, convert_to = 0, convert_from = 0;
 	int print_public = 0, print_generic = 0, cert_serial_autoinc = 0;
-	int do_gen_candidates = 0, do_screen_candidates = 0;
+	int do_gen_candidates = 0, do_screen_candidates = 0, download_sk = 0;
 	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
 	size_t i, nopts = 0;
 	u_int32_t bits = 0;
 	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
-	FILE *f;
 	const char *errstr;
 	int log_level = SYSLOG_LEVEL_INFO;
 	char *sign_op = NULL;
@@ -2965,8 +3097,8 @@ main(int argc, char **argv)
 
 	sk_provider = getenv("SSH_SK_PROVIDER");
 
-	/* Remaining characters: dGjJKSTWx */
-	while ((opt = getopt(argc, argv, "ABHLQUXceghiklopquvy"
+	/* Remaining characters: dGjJSTWx */
+	while ((opt = getopt(argc, argv, "ABHKLQUXceghiklopquvy"
 	    "C:D:E:F:I:M:N:O:P:R:V:Y:Z:"
 	    "a:b:f:g:m:n:r:s:t:w:z:")) != -1) {
 		switch (opt) {
@@ -3045,6 +3177,9 @@ main(int argc, char **argv)
 			break;
 		case 'g':
 			print_generic = 1;
+			break;
+		case 'K':
+			download_sk = 1;
 			break;
 		case 'P':
 			identity_passphrase = optarg;
@@ -3261,6 +3396,8 @@ main(int argc, char **argv)
 	}
 	if (pkcs11provider != NULL)
 		do_download(pw);
+	if (download_sk)
+		return do_download_sk(sk_provider);
 	if (print_fingerprint || print_bubblebabble)
 		do_fingerprint(pw);
 	if (change_passphrase)
@@ -3356,7 +3493,7 @@ main(int argc, char **argv)
 			printf("You may need to touch your security key "
 			    "to authorize key generation.\n");
 		}
-		passphrase1 = NULL;
+		passphrase = NULL;
 		for (i = 0 ; i < 3; i++) {
 			if (!quiet) {
 				printf("You may need to touch your security "
@@ -3365,21 +3502,21 @@ main(int argc, char **argv)
 			fflush(stdout);
 			r = sshsk_enroll(type, sk_provider,
 			    cert_key_id == NULL ? "ssh:" : cert_key_id,
-			    sk_flags, passphrase1, NULL, &private, NULL);
+			    sk_flags, passphrase, NULL, &private, NULL);
 			if (r == 0)
 				break;
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
 				exit(1); /* error message already printed */
-			if (passphrase1 != NULL)
-				freezero(passphrase1, strlen(passphrase1));
-			passphrase1 = read_passphrase("Enter PIN for security "
+			if (passphrase != NULL)
+				freezero(passphrase, strlen(passphrase));
+			passphrase = read_passphrase("Enter PIN for security "
 			    "key: ", RP_ALLOW_STDIN);
 		}
-		if (passphrase1 != NULL)
-			freezero(passphrase1, strlen(passphrase1));
+		if (passphrase != NULL)
+			freezero(passphrase, strlen(passphrase));
 		if (i > 3)
 			fatal("Too many incorrect PINs");
- 		break;
+		break;
 	default:
 		if ((r = sshkey_generate(type, bits, &private)) != 0)
 			fatal("sshkey_generate failed");
@@ -3409,35 +3546,9 @@ main(int argc, char **argv)
 	/* If the file already exists, ask the user to confirm. */
 	if (!confirm_overwrite(identity_file))
 		exit(1);
-	/* Ask for a passphrase (twice). */
-	if (identity_passphrase)
-		passphrase1 = xstrdup(identity_passphrase);
-	else if (identity_new_passphrase)
-		passphrase1 = xstrdup(identity_new_passphrase);
-	else {
-passphrase_again:
-		passphrase1 =
-			read_passphrase("Enter passphrase (empty for no "
-			    "passphrase): ", RP_ALLOW_STDIN);
-		passphrase2 = read_passphrase("Enter same passphrase again: ",
-		    RP_ALLOW_STDIN);
-		if (strcmp(passphrase1, passphrase2) != 0) {
-			/*
-			 * The passphrases do not match.  Clear them and
-			 * retry.
-			 */
-			explicit_bzero(passphrase1, strlen(passphrase1));
-			explicit_bzero(passphrase2, strlen(passphrase2));
-			free(passphrase1);
-			free(passphrase2);
-			printf("Passphrases do not match.  Try again.\n");
-			goto passphrase_again;
-		}
-		/* Clear the other copy of the passphrase. */
-		explicit_bzero(passphrase2, strlen(passphrase2));
-		free(passphrase2);
-	}
 
+	/* Determine the passphrase for the private key */
+	passphrase = private_key_passphrase();
 	if (identity_comment) {
 		strlcpy(comment, identity_comment, sizeof(comment));
 	} else {
@@ -3446,35 +3557,26 @@ passphrase_again:
 	}
 
 	/* Save the key with the given passphrase and comment. */
-	if ((r = sshkey_save_private(private, identity_file, passphrase1,
+	if ((r = sshkey_save_private(private, identity_file, passphrase,
 	    comment, private_key_format, openssh_format_cipher, rounds)) != 0) {
 		error("Saving key \"%s\" failed: %s",
 		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase1, strlen(passphrase1));
-		free(passphrase1);
+		freezero(passphrase, strlen(passphrase));
 		exit(1);
 	}
-	/* Clear the passphrase. */
-	explicit_bzero(passphrase1, strlen(passphrase1));
-	free(passphrase1);
-
-	/* Clear the private key and the random number generator. */
+	freezero(passphrase, strlen(passphrase));
 	sshkey_free(private);
 
-	if (!quiet)
-		printf("Your identification has been saved in %s.\n", identity_file);
+	if (!quiet) {
+		printf("Your identification has been saved in %s.\n",
+		    identity_file);
+	}
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
-	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
+	if ((r = sshkey_save_public(public, identity_file, comment)) != 0) {
 		fatal("Unable to save public key to %s: %s",
 		    identity_file, strerror(errno));
-	if ((f = fdopen(fd, "w")) == NULL)
-		fatal("fdopen %s failed: %s", identity_file, strerror(errno));
-	if ((r = sshkey_write(public, f)) != 0)
-		error("write key failed: %s", ssh_err(r));
-	fprintf(f, " %s\n", comment);
-	if (ferror(f) || fclose(f) != 0)
-		fatal("write public failed: %s", strerror(errno));
+	}
 
 	if (!quiet) {
 		fp = sshkey_fingerprint(public, fingerprint_hash,
