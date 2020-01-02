@@ -15,6 +15,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+extern "C" {
+
 #include "includes.h"
 
 #include <sys/types.h>
@@ -44,3 +46,5 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 {
 	return SSH_ERR_FEATURE_UNSUPPORTED;
 }
+
+};
