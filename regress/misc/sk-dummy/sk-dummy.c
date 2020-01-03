@@ -44,7 +44,7 @@
 	} while (0)
 #endif
 
-#define SK_VERSION_MAJOR	0x00020000 /* current API version */
+#define SK_VERSION_MAJOR	0x00030000 /* current API version */
 
 /* Flags */
 #define SK_USER_PRESENCE_REQD	0x01
@@ -52,6 +52,11 @@
 /* Algs */
 #define	SK_ECDSA		0x00
 #define	SK_ED25519		0x01
+
+/* Error codes */
+#define SSH_SK_ERR_GENERAL		-1
+#define SSH_SK_ERR_UNSUPPORTED		-2
+#define SSH_SK_ERR_PIN_REQUIRED		-3
 
 struct sk_enroll_response {
 	uint8_t *public_key;
@@ -73,18 +78,29 @@ struct sk_sign_response {
 	size_t sig_s_len;
 };
 
+struct sk_resident_key {
+	uint8_t alg;
+	size_t slot;
+	char *application;
+	struct sk_enroll_response key;
+};
+
 /* Return the version of the middleware API */
 uint32_t sk_api_version(void);
 
 /* Enroll a U2F key (private key generation) */
 int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags,
+    const char *application, uint8_t flags, const char *pin,
     struct sk_enroll_response **enroll_response);
 
 /* Sign a challenge */
 int sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application, const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response);
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
+
+/* Enumerate all resident keys */
+int sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rks, size_t *nrks);
 
 static void skdebug(const char *func, const char *fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
@@ -239,7 +255,7 @@ pack_key_ed25519(struct sk_enroll_response *response)
 
 int
 sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags,
+    const char *application, uint8_t flags, const char *pin,
     struct sk_enroll_response **enroll_response)
 {
 	struct sk_enroll_response *response = NULL;
@@ -486,7 +502,7 @@ int
 sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, struct sk_sign_response **sign_response)
+    uint8_t flags, const char *pin, struct sk_sign_response **sign_response)
 {
 	struct sk_sign_response *response = NULL;
 	int ret = -1;
@@ -529,4 +545,11 @@ sk_sign(int alg, const uint8_t *message, size_t message_len,
 		free(response);
 	}
 	return ret;
+}
+
+int
+sk_load_resident_keys(const char *pin,
+    struct sk_resident_key ***rks, size_t *nrks)
+{
+	return SSH_SK_ERR_UNSUPPORTED;
 }
