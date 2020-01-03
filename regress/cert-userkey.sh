@@ -1,4 +1,4 @@
-#	$OpenBSD: cert-userkey.sh,v 1.24 2019/12/11 18:47:14 djm Exp $
+#	$OpenBSD: cert-userkey.sh,v 1.25 2020/01/03 03:02:26 djm Exp $
 #	Placed in the Public Domain.
 
 tid="certified user keys"
@@ -340,7 +340,7 @@ test_one() {
 test_one "correct principal"	success "-n ${USER}"
 test_one "host-certificate"	failure "-n ${USER} -h"
 test_one "wrong principals"	failure "-n foo"
-test_one "cert not yet valid"	failure "-n ${USER} -V20200101:20300101"
+test_one "cert not yet valid"	failure "-n ${USER} -V20300101:20320101"
 test_one "cert expired"		failure "-n ${USER} -V19800101:19900101"
 test_one "cert valid interval"	success "-n ${USER} -V-1w:+2w"
 test_one "wrong source-address"	failure "-n ${USER} -Osource-address=10.0.0.0/8"
