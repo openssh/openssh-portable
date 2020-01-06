@@ -465,7 +465,7 @@ check_enroll_options(struct sk_option **options, char **devicep,
 				return -1;
 			}
 			skdebug(__func__, "requested device %s", *devicep);
-		} if (strcmp(options[i]->name, "user") == 0) {
+		} else if (strcmp(options[i]->name, "user") == 0) {
 			if (strlcpy(user_id, options[i]->value, user_id_len) >=
 			    user_id_len) {
 				skdebug(__func__, "user too long");
