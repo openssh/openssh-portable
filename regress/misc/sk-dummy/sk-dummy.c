@@ -24,6 +24,7 @@
 #include <stdarg.h>
 
 #include "crypto_api.h"
+#include "sk-api.h"
 
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
@@ -44,63 +45,9 @@
 	} while (0)
 #endif
 
-#define SK_VERSION_MAJOR	0x00030000 /* current API version */
-
-/* Flags */
-#define SK_USER_PRESENCE_REQD	0x01
-
-/* Algs */
-#define	SK_ECDSA		0x00
-#define	SK_ED25519		0x01
-
-/* Error codes */
-#define SSH_SK_ERR_GENERAL		-1
-#define SSH_SK_ERR_UNSUPPORTED		-2
-#define SSH_SK_ERR_PIN_REQUIRED		-3
-
-struct sk_enroll_response {
-	uint8_t *public_key;
-	size_t public_key_len;
-	uint8_t *key_handle;
-	size_t key_handle_len;
-	uint8_t *signature;
-	size_t signature_len;
-	uint8_t *attestation_cert;
-	size_t attestation_cert_len;
-};
-
-struct sk_sign_response {
-	uint8_t flags;
-	uint32_t counter;
-	uint8_t *sig_r;
-	size_t sig_r_len;
-	uint8_t *sig_s;
-	size_t sig_s_len;
-};
-
-struct sk_resident_key {
-	uint8_t alg;
-	size_t slot;
-	char *application;
-	struct sk_enroll_response key;
-};
-
-/* Return the version of the middleware API */
-uint32_t sk_api_version(void);
-
-/* Enroll a U2F key (private key generation) */
-int sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
-    const char *application, uint8_t flags, const char *pin,
-    struct sk_enroll_response **enroll_response);
-
-/* Sign a challenge */
-int sk_sign(int alg, const uint8_t *message, size_t message_len,
-    const char *application, const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
-
-/* Enumerate all resident keys */
-int sk_load_resident_keys(const char *pin,
-    struct sk_resident_key ***rks, size_t *nrks);
+#if SSH_SK_VERSION_MAJOR != 0x00040000
+# error SK API has changed, sk-dummy.c needs an update
+#endif
 
 static void skdebug(const char *func, const char *fmt, ...)
     __attribute__((__format__ (printf, 2, 3)));
@@ -125,7 +72,7 @@ skdebug(const char *func, const char *fmt, ...)
 uint32_t
 sk_api_version(void)
 {
-	return SK_VERSION_MAJOR;
+	return SSH_SK_VERSION_MAJOR;
 }
 
 static int
@@ -253,13 +200,31 @@ pack_key_ed25519(struct sk_enroll_response *response)
 	return ret;
 }
 
+static int
+check_options(struct sk_option **options)
+{
+	size_t i;
+
+	if (options == NULL)
+		return 0;
+	for (i = 0; options[i] != NULL; i++) {
+		skdebug(__func__, "requested unsupported option %s",
+		    options[i]->name);
+		if (options[i]->required) {
+			skdebug(__func__, "unknown required option");
+			return -1;
+		}
+	}
+	return 0;
+}
+
 int
-sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
+sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
-    struct sk_enroll_response **enroll_response)
+    struct sk_option **options, struct sk_enroll_response **enroll_response)
 {
 	struct sk_enroll_response *response = NULL;
-	int ret = -1;
+	int ret = SSH_SK_ERR_GENERAL;
 
 	(void)flags; /* XXX; unused */
 
@@ -268,16 +233,18 @@ sk_enroll(int alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	*enroll_response = NULL;
+	if (check_options(options) != 0)
+		goto out; /* error already logged */
 	if ((response = calloc(1, sizeof(*response))) == NULL) {
 		skdebug(__func__, "calloc response failed");
 		goto out;
 	}
 	switch(alg) {
-	case SK_ECDSA:
+	case SSH_SK_ECDSA:
 		if (pack_key_ecdsa(response) != 0)
 			goto out;
 		break;
-	case SK_ED25519:
+	case SSH_SK_ED25519:
 		if (pack_key_ed25519(response) != 0)
 			goto out;
 		break;
@@ -499,19 +466,21 @@ sig_ed25519(const uint8_t *message, size_t message_len,
 }
 
 int
-sk_sign(int alg, const uint8_t *message, size_t message_len,
-    const char *application,
-    const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, const char *pin, struct sk_sign_response **sign_response)
+sk_sign(uint32_t alg, const uint8_t *message, size_t message_len,
+    const char *application, const uint8_t *key_handle, size_t key_handle_len,
+    uint8_t flags, const char *pin, struct sk_option **options,
+    struct sk_sign_response **sign_response)
 {
 	struct sk_sign_response *response = NULL;
-	int ret = -1;
+	int ret = SSH_SK_ERR_GENERAL;
 
 	if (sign_response == NULL) {
 		skdebug(__func__, "sign_response == NULL");
 		goto out;
 	}
 	*sign_response = NULL;
+	if (check_options(options) != 0)
+		goto out; /* error already logged */
 	if ((response = calloc(1, sizeof(*response))) == NULL) {
 		skdebug(__func__, "calloc response failed");
 		goto out;
@@ -519,13 +488,13 @@ sk_sign(int alg, const uint8_t *message, size_t message_len,
 	response->flags = flags;
 	response->counter = 0x12345678;
 	switch(alg) {
-	case SK_ECDSA:
+	case SSH_SK_ECDSA:
 		if (sig_ecdsa(message, message_len, application,
 		    response->counter, flags, key_handle, key_handle_len,
 		    response) != 0)
 			goto out;
 		break;
-	case SK_ED25519:
+	case SSH_SK_ED25519:
 		if (sig_ed25519(message, message_len, application,
 		    response->counter, flags, key_handle, key_handle_len,
 		    response) != 0)
@@ -548,7 +517,7 @@ sk_sign(int alg, const uint8_t *message, size_t message_len,
 }
 
 int
-sk_load_resident_keys(const char *pin,
+sk_load_resident_keys(const char *pin, struct sk_option **options,
     struct sk_resident_key ***rks, size_t *nrks)
 {
 	return SSH_SK_ERR_UNSUPPORTED;
