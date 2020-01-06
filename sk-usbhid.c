@@ -1013,8 +1013,7 @@ sk_load_resident_keys(const char *pin, struct sk_option **options,
 	if (device != NULL) {
 		skdebug(__func__, "trying %s", device);
 		if ((r = read_rks(device, pin, &rks, &nrks)) != 0) {
-			skdebug(__func__, "read_rks failed for %s",
-			    fido_dev_info_path(di));
+			skdebug(__func__, "read_rks failed for %s", device);
 			ret = r;
 			goto out;
 		}
