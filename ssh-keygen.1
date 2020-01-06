@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.189 2020/01/06 02:00:46 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.190 2020/01/06 07:43:28 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -460,39 +460,37 @@ listed in the
 .Sx MODULI GENERATION
 section may be specified.
 .Pp
-When generating a key that will be hosted on a FIDO authenticator, this
-flag may be used to specify key-specific options.
-The FIDO authenticator options are supported at present are:
-.Pp
-.Cm application
-overrides the default FIDO application/origin string of
+When generating a key that will be hosted on a FIDO authenticator,
+this flag may be used to specify key-specific options.
+Those supported at present are:
+.Bl -tag -width Ds
+.It Cm application
+Override the default FIDO application/origin string of
 .Dq ssh: .
-This option may be useful when generating host or domain-specific resident
-keys.
-.Cm device
-explicitly specify a device to generate the key on, rather than accepting
-the authenticator middleware's automatic selection.
+This may be useful when generating host or domain-specific resident keys.
+.It Cm device
+Explicitly specify a
 .Xr fido 4
 device to use, rather than letting the token middleware select one.
-.Cm no-touch-required
-indicates that the generated private key should not require touch
+.It Cm no-touch-required
+Indicate that the generated private key should not require touch
 events (user presence) when making signatures.
 Note that
 .Xr sshd 8
 will refuse such signatures by default, unless overridden via
 an authorized_keys option.
-.Pp
-.Cm resident
-indicates that the key should be stored on the FIDO authenticator itself.
+.It Cm resident
+Indicate that the key should be stored on the FIDO authenticator itself.
 Resident keys may be supported on FIDO2 tokens and typically require that
 a PIN be set on the token prior to generation.
 Resident keys may be loaded off the token using
 .Xr ssh-add 1 .
-.Cm user
-allows specification of a username to be associated with a resident key,
+.It Cm user
+A username to be associated with a resident key,
 overriding the empty default username.
 Specifying a username may be useful when generating multiple resident keys
 for the same application name.
+.El
 .Pp
 The
 .Fl O
