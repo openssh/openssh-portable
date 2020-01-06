@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.148 2019/12/30 09:22:49 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.149 2020/01/06 02:00:46 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -549,7 +549,8 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 	char *fp;
 
 	pass = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
-	if ((r = sshsk_load_resident(skprovider, pass, &keys, &nkeys)) != 0) {
+	if ((r = sshsk_load_resident(skprovider, NULL, pass,
+	    &keys, &nkeys)) != 0) {
 		error("Unable to load resident keys: %s", ssh_err(r));
 		return r;
 	}

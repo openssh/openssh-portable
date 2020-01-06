@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.3 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.4 2020/01/06 02:00:46 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -282,8 +282,9 @@ sshsk_sign(const char *provider, struct sshkey *key,
 }
 
 int
-sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+sshsk_enroll(int type, const char *provider_path, const char *device,
+    const char *application, const char *userid, uint8_t flags,
+    const char *pin, struct sshbuf *challenge_buf,
     struct sshkey **keyp, struct sshbuf *attest)
 {
 	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
@@ -311,7 +312,9 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_ENROLL)) != 0 ||
 	    (r = sshbuf_put_u32(req, (u_int)type)) != 0 ||
 	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
+	    (r = sshbuf_put_cstring(req, device)) != 0 ||
 	    (r = sshbuf_put_cstring(req, application)) != 0 ||
+	    (r = sshbuf_put_cstring(req, userid)) != 0 ||
 	    (r = sshbuf_put_u8(req, flags)) != 0 ||
 	    (r = sshbuf_put_cstring(req, pin)) != 0 ||
 	    (r = sshbuf_put_stringb(req, challenge_buf)) != 0) {
@@ -358,8 +361,8 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 }
 
 int
-sshsk_load_resident(const char *provider_path, const char *pin,
-    struct sshkey ***keysp, size_t *nkeysp)
+sshsk_load_resident(const char *provider_path, const char *device,
+    const char *pin, struct sshkey ***keysp, size_t *nkeysp)
 {
 	int oerrno, r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *kbuf = NULL, *req = NULL, *resp = NULL;
@@ -378,6 +381,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 
 	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_LOAD_RESIDENT)) != 0 ||
 	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
+	    (r = sshbuf_put_cstring(req, device)) != 0 ||
 	    (r = sshbuf_put_cstring(req, pin)) != 0) {
 		error("%s: compose: %s", __func__, ssh_err(r));
 		goto out;

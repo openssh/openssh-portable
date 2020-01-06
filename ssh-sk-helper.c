@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.6 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.7 2020/01/06 02:00:46 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -77,6 +77,17 @@ reply_error(int r, char *fmt, ...)
 	return resp;
 }
 
+/* If the specified string is zero length, then free it and replace with NULL */
+static void
+null_empty(char **s)
+{
+	if (s == NULL || *s == NULL || **s != '\0')
+		return;
+
+	free(*s);
+	*s = NULL;
+}
+
 static struct sshbuf *
 process_sign(struct sshbuf *req)
 {
@@ -108,10 +119,7 @@ process_sign(struct sshbuf *req)
 	    "msg len %zu, compat 0x%lx", __progname, sshkey_type(key),
 	    provider, msglen, (u_long)compat);
 
-	if (*pin == 0) {
-		free(pin);
-		pin = NULL;
-	}
+	null_empty(&pin);
 
 	if ((r = sshsk_sign(provider, key, &sig, &siglen,
 	    message, msglen, compat, pin)) != 0) {
@@ -138,7 +146,7 @@ process_enroll(struct sshbuf *req)
 {
 	int r;
 	u_int type;
-	char *provider, *application, *pin;
+	char *provider, *application, *pin, *device, *userid;
 	uint8_t flags;
 	struct sshbuf *challenge, *attest, *kbuf, *resp;
 	struct sshkey *key;
@@ -149,7 +157,9 @@ process_enroll(struct sshbuf *req)
 
 	if ((r = sshbuf_get_u32(req, &type)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &device, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &application, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &userid, NULL)) != 0 ||
 	    (r = sshbuf_get_u8(req, &flags)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &pin, NULL)) != 0 ||
 	    (r = sshbuf_froms(req, &challenge)) != 0)
@@ -163,13 +173,12 @@ process_enroll(struct sshbuf *req)
 		sshbuf_free(challenge);
 		challenge = NULL;
 	}
-	if (*pin == 0) {
-		free(pin);
-		pin = NULL;
-	}
+	null_empty(&device);
+	null_empty(&userid);
+	null_empty(&pin);
 
-	if ((r = sshsk_enroll((int)type, provider, application, flags, pin,
-	    challenge, &key, attest)) != 0) {
+	if ((r = sshsk_enroll((int)type, provider, device, application, userid,
+	    flags, pin, challenge, &key, attest)) != 0) {
 		resp = reply_error(r, "Enrollment failed: %s", ssh_err(r));
 		goto out;
 	}
@@ -200,7 +209,7 @@ static struct sshbuf *
 process_load_resident(struct sshbuf *req)
 {
 	int r;
-	char *provider, *pin;
+	char *provider, *pin, *device;
 	struct sshbuf *kbuf, *resp;
 	struct sshkey **keys = NULL;
 	size_t nkeys = 0, i;
@@ -209,17 +218,17 @@ process_load_resident(struct sshbuf *req)
 		fatal("%s: sshbuf_new failed", __progname);
 
 	if ((r = sshbuf_get_cstring(req, &provider, NULL)) != 0 ||
+	    (r = sshbuf_get_cstring(req, &device, NULL)) != 0 ||
 	    (r = sshbuf_get_cstring(req, &pin, NULL)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
 	if (sshbuf_len(req) != 0)
 		fatal("%s: trailing data in request", __progname);
 
-	if (*pin == 0) {
-		free(pin);
-		pin = NULL;
-	}
+	null_empty(&device);
+	null_empty(&pin);
 
-	if ((r = sshsk_load_resident(provider, pin, &keys, &nkeys)) != 0) {
+	if ((r = sshsk_load_resident(provider, device, pin,
+	    &keys, &nkeys)) != 0) {
 		resp = reply_error(r, " sshsk_load_resident failed: %s",
 		    ssh_err(r));
 		goto out;

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.188 2020/01/03 07:33:33 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.189 2020/01/06 02:00:46 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 3 2020 $
+.Dd $Mdocdate: January 6 2020 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -462,8 +462,18 @@ section may be specified.
 .Pp
 When generating a key that will be hosted on a FIDO authenticator, this
 flag may be used to specify key-specific options.
-Two FIDO authenticator options are supported at present:
+The FIDO authenticator options are supported at present are:
 .Pp
+.Cm application
+overrides the default FIDO application/origin string of
+.Dq ssh: .
+This option may be useful when generating host or domain-specific resident
+keys.
+.Cm device
+explicitly specify a device to generate the key on, rather than accepting
+the authenticator middleware's automatic selection.
+.Xr fido 4
+device to use, rather than letting the token middleware select one.
 .Cm no-touch-required
 indicates that the generated private key should not require touch
 events (user presence) when making signatures.
@@ -478,6 +488,11 @@ Resident keys may be supported on FIDO2 tokens and typically require that
 a PIN be set on the token prior to generation.
 Resident keys may be loaded off the token using
 .Xr ssh-add 1 .
+.Cm user
+allows specification of a username to be associated with a resident key,
+overriding the empty default username.
+Specifying a username may be useful when generating multiple resident keys
+for the same application name.
 .Pp
 The
 .Fl O

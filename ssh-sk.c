@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.23 2019/12/30 09:24:45 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.24 2020/01/06 02:00:47 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -53,29 +53,32 @@ struct sshsk_provider {
 	/* Enroll a U2F key (private key generation) */
 	int (*sk_enroll)(int alg, const uint8_t *challenge,
 	    size_t challenge_len, const char *application, uint8_t flags,
-	    const char *pin, struct sk_enroll_response **enroll_response);
+	    const char *pin, struct sk_option **opts,
+	    struct sk_enroll_response **enroll_response);
 
 	/* Sign a challenge */
 	int (*sk_sign)(int alg, const uint8_t *message, size_t message_len,
 	    const char *application,
 	    const uint8_t *key_handle, size_t key_handle_len,
-	    uint8_t flags, const char *pin,
+	    uint8_t flags, const char *pin, struct sk_option **opts,
 	    struct sk_sign_response **sign_response);
 
 	/* Enumerate resident keys */
-	int (*sk_load_resident_keys)(const char *pin,
+	int (*sk_load_resident_keys)(const char *pin, struct sk_option **opts,
 	    struct sk_resident_key ***rks, size_t *nrks);
 };
 
 /* Built-in version */
 int ssh_sk_enroll(int alg, const uint8_t *challenge,
     size_t challenge_len, const char *application, uint8_t flags,
-    const char *pin, struct sk_enroll_response **enroll_response);
+    const char *pin, struct sk_option **opts,
+    struct sk_enroll_response **enroll_response);
 int ssh_sk_sign(int alg, const uint8_t *message, size_t message_len,
     const char *application,
     const uint8_t *key_handle, size_t key_handle_len,
-    uint8_t flags, const char *pin, struct sk_sign_response **sign_response);
-int ssh_sk_load_resident_keys(const char *pin,
+    uint8_t flags, const char *pin, struct sk_option **opts,
+    struct sk_sign_response **sign_response);
+int ssh_sk_load_resident_keys(const char *pin, struct sk_option **opts,
     struct sk_resident_key ***rks, size_t *nrks);
 
 static void
@@ -339,9 +342,80 @@ skerr_to_ssherr(int skerr)
 	}
 }
 
+static void
+sshsk_free_options(struct sk_option **opts)
+{
+	size_t i;
+
+	if (opts == NULL)
+		return;
+	for (i = 0; opts[i] != NULL; i++) {
+		free(opts[i]->name);
+		free(opts[i]->value);
+		free(opts[i]);
+	}
+	free(opts);
+}
+
+static int
+sshsk_add_option(struct sk_option ***optsp, size_t *noptsp,
+    const char *name, const char *value, uint8_t required)
+{
+	struct sk_option **opts = *optsp;
+	size_t nopts = *noptsp;
+
+	if ((opts = recallocarray(opts, nopts, nopts + 2, /* extra for NULL */
+	    sizeof(*opts))) == NULL) {
+		error("%s: array alloc failed", __func__);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	*optsp = opts;
+	*noptsp = nopts + 1;
+	if ((opts[nopts] = calloc(1, sizeof(**opts))) == NULL) {
+		error("%s: alloc failed", __func__);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	if ((opts[nopts]->name = strdup(name)) == NULL ||
+	    (opts[nopts]->value = strdup(value)) == NULL) {
+		error("%s: alloc failed", __func__);
+		return SSH_ERR_ALLOC_FAIL;
+	}
+	opts[nopts]->required = required;
+	return 0;
+}
+
+static int
+make_options(const char *device, const char *user_id,
+    struct sk_option ***optsp)
+{
+	struct sk_option **opts = NULL;
+	size_t nopts = 0;
+	int r, ret = SSH_ERR_INTERNAL_ERROR;
+
+	if (device != NULL &&
+	    (r = sshsk_add_option(&opts, &nopts, "device", device, 0)) != 0) {
+		ret = r;
+		goto out;
+	}
+	if (user_id != NULL &&
+	    (r = sshsk_add_option(&opts, &nopts, "user", user_id, 0)) != 0) {
+		ret = r;
+		goto out;
+	}
+	/* success */
+	*optsp = opts;
+	opts = NULL;
+	nopts = 0;
+	ret = 0;
+ out:
+	sshsk_free_options(opts);
+	return ret;
+}
+
 int
-sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+sshsk_enroll(int type, const char *provider_path, const char *device,
+    const char *application, const char *userid, uint8_t flags,
+    const char *pin, struct sshbuf *challenge_buf,
     struct sshkey **keyp, struct sshbuf *attest)
 {
 	struct sshsk_provider *skp = NULL;
@@ -350,17 +424,23 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	const u_char *challenge;
 	size_t challenge_len;
 	struct sk_enroll_response *resp = NULL;
+	struct sk_option **opts = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	int alg;
 
-	debug("%s: provider \"%s\", application \"%s\", flags 0x%02x, "
-	    "challenge len %zu%s", __func__, provider_path, application,
-	    flags, challenge_buf == NULL ? 0 : sshbuf_len(challenge_buf),
+	debug("%s: provider \"%s\", device \"%s\", application \"%s\", "
+	    "userid \"%s\", flags 0x%02x, challenge len %zu%s", __func__,
+	    provider_path, device, application, userid, flags,
+	    challenge_buf == NULL ? 0 : sshbuf_len(challenge_buf),
 	    (pin != NULL && *pin != '\0') ? " with-pin" : "");
 
 	*keyp = NULL;
 	if (attest)
 		sshbuf_reset(attest);
+
+	if ((r = make_options(device, userid, &opts)) != 0)
+		goto out;
+
 	switch (type) {
 #ifdef WITH_OPENSSL
 	case KEY_ECDSA_SK:
@@ -407,7 +487,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	/* XXX validate flags? */
 	/* enroll key */
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
-	    flags, pin, &resp)) != 0) {
+	    flags, pin, opts, &resp)) != 0) {
 		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
 		r = skerr_to_ssherr(r);
@@ -437,6 +517,7 @@ sshsk_enroll(int type, const char *provider_path, const char *application,
 	key = NULL; /* transferred */
 	r = 0;
  out:
+	sshsk_free_options(opts);
 	sshsk_free(skp);
 	sshkey_free(key);
 	sshsk_free_enroll_response(resp);
@@ -528,6 +609,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	struct sk_sign_response *resp = NULL;
 	struct sshbuf *inner_sig = NULL, *sig = NULL;
 	uint8_t message[32];
+	struct sk_option **opts = NULL;
 
 	debug("%s: provider \"%s\", key %s, flags 0x%02x%s", __func__,
 	    provider_path, sshkey_type(key), key->sk_flags,
@@ -571,7 +653,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	if ((r = skp->sk_sign(alg, message, sizeof(message),
 	    key->sk_application,
 	    sshbuf_ptr(key->sk_key_handle), sshbuf_len(key->sk_key_handle),
-	    key->sk_flags, pin, &resp)) != 0) {
+	    key->sk_flags, pin, opts, &resp)) != 0) {
 		debug("%s: sk_sign failed with code %d", __func__, r);
 		r = skerr_to_ssherr(r);
 		goto out;
@@ -617,6 +699,7 @@ sshsk_sign(const char *provider_path, struct sshkey *key,
 	/* success */
 	r = 0;
  out:
+	sshsk_free_options(opts);
 	explicit_bzero(message, sizeof(message));
 	sshsk_free(skp);
 	sshsk_free_sign_response(resp);
@@ -645,8 +728,8 @@ sshsk_free_sk_resident_keys(struct sk_resident_key **rks, size_t nrks)
 }
 
 int
-sshsk_load_resident(const char *provider_path, const char *pin,
-    struct sshkey ***keysp, size_t *nkeysp)
+sshsk_load_resident(const char *provider_path, const char *device,
+    const char *pin, struct sshkey ***keysp, size_t *nkeysp)
 {
 	struct sshsk_provider *skp = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
@@ -654,6 +737,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 	size_t i, nrks = 0, nkeys = 0;
 	struct sshkey *key = NULL, **keys = NULL, **tmp;
 	uint8_t flags;
+	struct sk_option **opts = NULL;
 
 	debug("%s: provider \"%s\"%s", __func__, provider_path,
 	    (pin != NULL && *pin != '\0') ? ", have-pin": "");
@@ -663,11 +747,13 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 	*keysp = NULL;
 	*nkeysp = 0;
 
+	if ((r = make_options(device, NULL, &opts)) != 0)
+		goto out;
 	if ((skp = sshsk_open(provider_path)) == NULL) {
 		r = SSH_ERR_INVALID_FORMAT; /* XXX sshsk_open return code? */
 		goto out;
 	}
-	if ((r = skp->sk_load_resident_keys(pin, &rks, &nrks)) != 0) {
+	if ((r = skp->sk_load_resident_keys(pin, opts, &rks, &nrks)) != 0) {
 		error("Security key provider \"%s\" returned failure %d",
 		    provider_path, r);
 		r = skerr_to_ssherr(r);
@@ -710,6 +796,7 @@ sshsk_load_resident(const char *provider_path, const char *pin,
 	nkeys = 0;
 	r = 0;
  out:
+	sshsk_free_options(opts);
 	sshsk_free(skp);
 	sshsk_free_sk_resident_keys(rks, nrks);
 	sshkey_free(key);

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.8 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.9 2020/01/06 02:00:47 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -20,9 +20,10 @@
 
 struct sshbuf;
 struct sshkey;
+struct sk_option;
 
 /* Version of protocol expected from ssh-sk-helper */
-#define SSH_SK_HELPER_VERSION		3
+#define SSH_SK_HELPER_VERSION		4
 
 /* ssh-sk-helper messages */
 #define SSH_SK_HELPER_ERROR		0	/* Only valid H->C */
@@ -40,8 +41,9 @@ struct sshkey;
  * If successful and the attest_data buffer is not NULL then attestation
  * information is placed there.
  */
-int sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
+int sshsk_enroll(int type, const char *provider_path, const char *device,
+    const char *application, const char *userid, uint8_t flags,
+    const char *pin, struct sshbuf *challenge_buf,
     struct sshkey **keyp, struct sshbuf *attest);
 
 /*
@@ -60,8 +62,8 @@ int sshsk_sign(const char *provider_path, struct sshkey *key,
  *
  * Returns 0 on success or a ssherr.h error code on failure.
  */
-int sshsk_load_resident(const char *provider_path, const char *pin,
-    struct sshkey ***keysp, size_t *nkeysp);
+int sshsk_load_resident(const char *provider_path, const char *device,
+    const char *pin, struct sshkey ***keysp, size_t *nkeysp);
 
 #endif /* _SSH_SK_H */
 
