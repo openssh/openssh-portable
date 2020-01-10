@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.7 2020/01/06 02:00:46 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.8 2020/01/10 23:43:26 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -269,9 +269,9 @@ main(int argc, char **argv)
 	SyslogFacility log_facility = SYSLOG_FACILITY_AUTH;
 	LogLevel log_level = SYSLOG_LEVEL_ERROR;
 	struct sshbuf *req, *resp;
-	int in, out, ch, r, log_stderr = 0;
-	u_int rtype;
-	uint8_t version;
+	int in, out, ch, r, vflag = 0;
+	u_int rtype, ll = 0;
+	uint8_t version, log_stderr = 0;
 
 	sanitise_stdfd();
 	log_init(__progname, log_level, log_facility, log_stderr);
@@ -279,7 +279,7 @@ main(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "v")) != -1) {
 		switch (ch) {
 		case 'v':
-			log_stderr = 1;
+			vflag = 1;
 			if (log_level == SYSLOG_LEVEL_ERROR)
 				log_level = SYSLOG_LEVEL_DEBUG1;
 			else if (log_level < SYSLOG_LEVEL_DEBUG3)
@@ -290,7 +290,7 @@ main(int argc, char **argv)
 			exit(1);
 		}
 	}
-	log_init(__progname, log_level, log_facility, log_stderr);
+	log_init(__progname, log_level, log_facility, vflag);
 
 	/*
 	 * Rearrange our file descriptors a little; we don't trust the
@@ -317,8 +317,13 @@ main(int argc, char **argv)
 		    version, SSH_SK_HELPER_VERSION);
 	}
 
-	if ((r = sshbuf_get_u32(req, &rtype)) != 0)
+	if ((r = sshbuf_get_u32(req, &rtype)) != 0 ||
+	    (r = sshbuf_get_u8(req, &log_stderr)) != 0 ||
+	    (r = sshbuf_get_u32(req, &ll)) != 0)
 		fatal("%s: buffer error: %s", __progname, ssh_err(r));
+
+	if (!vflag && log_level_name((LogLevel)ll) != NULL)
+		log_init(__progname, (LogLevel)ll, log_facility, log_stderr);
 
 	switch (rtype) {
 	case SSH_SK_HELPER_SIGN:

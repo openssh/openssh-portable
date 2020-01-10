@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.h,v 1.9 2020/01/06 02:00:47 djm Exp $ */
+/* $OpenBSD: ssh-sk.h,v 1.10 2020/01/10 23:43:26 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -23,7 +23,7 @@ struct sshkey;
 struct sk_option;
 
 /* Version of protocol expected from ssh-sk-helper */
-#define SSH_SK_HELPER_VERSION		4
+#define SSH_SK_HELPER_VERSION		5
 
 /* ssh-sk-helper messages */
 #define SSH_SK_HELPER_ERROR		0	/* Only valid H->C */

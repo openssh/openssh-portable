@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-client.c,v 1.4 2020/01/06 02:00:46 djm Exp $ */
+/* $OpenBSD: ssh-sk-client.c,v 1.5 2020/01/10 23:43:26 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -129,24 +129,32 @@ reap_helper(pid_t pid)
 }
 
 static int
-client_converse(struct sshbuf *req, struct sshbuf **respp, u_int msg)
+client_converse(struct sshbuf *msg, struct sshbuf **respp, u_int type)
 {
-	int oerrno, fd, r2, r = SSH_ERR_INTERNAL_ERROR;
-	u_int rmsg, rerr;
+	int oerrno, fd, r2, ll, r = SSH_ERR_INTERNAL_ERROR;
+	u_int rtype, rerr;
 	pid_t pid;
 	u_char version;
 	void (*osigchld)(int);
-	struct sshbuf *resp = NULL;
+	struct sshbuf *req = NULL, *resp = NULL;
 	*respp = NULL;
 
 	if ((r = start_helper(&fd, &pid, &osigchld)) != 0)
 		return r;
 
-	if ((resp = sshbuf_new()) == NULL) {
+	if ((req = sshbuf_new()) == NULL || (resp = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
 		goto out;
 	}
-
+	/* Request preamble: type, log_on_stderr, log_level */
+	ll = log_level_get();
+	if ((r = sshbuf_put_u32(req, type)) != 0 ||
+	   (r = sshbuf_put_u8(req, log_is_on_stderr() != 0)) != 0 ||
+	   (r = sshbuf_put_u32(req, ll < 0 ? 0 : ll)) != 0 ||
+	   (r = sshbuf_putb(req, msg)) != 0) {
+		error("%s: build: %s", __func__, ssh_err(r));
+		goto out;
+	}
 	if ((r = ssh_msg_send(fd, SSH_SK_HELPER_VERSION, req)) != 0) {
 		error("%s: send: %s", __func__, ssh_err(r));
 		goto out;
@@ -165,11 +173,11 @@ client_converse(struct sshbuf *req, struct sshbuf **respp, u_int msg)
 		r = SSH_ERR_INVALID_FORMAT;
 		goto out;
 	}
-	if ((r = sshbuf_get_u32(resp, &rmsg)) != 0) {
+	if ((r = sshbuf_get_u32(resp, &rtype)) != 0) {
 		error("%s: parse message type: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	if (rmsg == SSH_SK_HELPER_ERROR) {
+	if (rtype == SSH_SK_HELPER_ERROR) {
 		if ((r = sshbuf_get_u32(resp, &rerr)) != 0) {
 			error("%s: parse error: %s", __func__, ssh_err(r));
 			goto out;
@@ -181,9 +189,9 @@ client_converse(struct sshbuf *req, struct sshbuf **respp, u_int msg)
 		else
 			r = -(int)rerr;
 		goto out;
-	} else if (rmsg != msg) {
+	} else if (rtype != type) {
 		error("%s: helper returned incorrect message type %u, "
-		    "expecting %u", __func__, rmsg, msg);
+		    "expecting %u", __func__, rtype, type);
 		r = SSH_ERR_INTERNAL_ERROR;
 		goto out;
 	}
@@ -202,6 +210,7 @@ client_converse(struct sshbuf *req, struct sshbuf **respp, u_int msg)
 		*respp = resp;
 		resp = NULL;
 	}
+	sshbuf_free(req);
 	sshbuf_free(resp);
 	signal(SIGCHLD, osigchld);
 	errno = oerrno;
@@ -235,8 +244,7 @@ sshsk_sign(const char *provider, struct sshkey *key,
 		error("%s: serialize private key: %s", __func__, ssh_err(r));
 		goto out;
 	}
-	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_SIGN)) != 0 ||
-	    (r = sshbuf_put_stringb(req, kbuf)) != 0 ||
+	if ((r = sshbuf_put_stringb(req, kbuf)) != 0 ||
 	    (r = sshbuf_put_cstring(req, provider)) != 0 ||
 	    (r = sshbuf_put_string(req, data, datalen)) != 0 ||
 	    (r = sshbuf_put_cstring(req, NULL)) != 0 || /* alg */
@@ -309,8 +317,7 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 		goto out;
 	}
 
-	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_ENROLL)) != 0 ||
-	    (r = sshbuf_put_u32(req, (u_int)type)) != 0 ||
+	if ((r = sshbuf_put_u32(req, (u_int)type)) != 0 ||
 	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
 	    (r = sshbuf_put_cstring(req, device)) != 0 ||
 	    (r = sshbuf_put_cstring(req, application)) != 0 ||
@@ -379,8 +386,7 @@ sshsk_load_resident(const char *provider_path, const char *device,
 		goto out;
 	}
 
-	if ((r = sshbuf_put_u32(req, SSH_SK_HELPER_LOAD_RESIDENT)) != 0 ||
-	    (r = sshbuf_put_cstring(req, provider_path)) != 0 ||
+	if ((r = sshbuf_put_cstring(req, provider_path)) != 0 ||
 	    (r = sshbuf_put_cstring(req, device)) != 0 ||
 	    (r = sshbuf_put_cstring(req, pin)) != 0) {
 		error("%s: compose: %s", __func__, ssh_err(r));
