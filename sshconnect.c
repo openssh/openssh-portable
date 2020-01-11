@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.324 2020/01/09 03:28:38 djm Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.325 2020/01/11 16:23:10 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,7 @@ static void warn_changed_key(struct sshkey *);
 /* Expand a proxy command */
 static char *
 expand_proxy_command(const char *proxy_command, const char *user,
-    const char *host_arg, const char *host, int port)
+    const char *host, const char *host_arg, int port)
 {
 	char *tmp, *ret, strport[NI_MAXSERV];
 
@@ -141,7 +141,7 @@ ssh_proxy_fdpass_connect(struct ssh *ssh, const char *host,
 		    "proxy dialer: %.100s", strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host_arg, host, port);
+	    host, host_arg, port);
 	debug("Executing proxy dialer command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
@@ -224,7 +224,7 @@ ssh_proxy_connect(struct ssh *ssh, const char *host, const char *host_arg,
 		    strerror(errno));
 
 	command_string = expand_proxy_command(proxy_command, options.user,
-	    host_arg, host, port);
+	    host, host_arg, port);
 	debug("Executing proxy command: %.500s", command_string);
 
 	/* Fork and execute the proxy command. */
