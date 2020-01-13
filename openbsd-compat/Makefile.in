@@ -44,7 +44,6 @@ OPENBSD=base64.o \
 	readpassphrase.o \
 	reallocarray.o \
 	recallocarray.o \
-	rmd160.o \
 	rresvport.o \
 	setenv.o \
 	setproctitle.o \

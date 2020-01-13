@@ -2915,15 +2915,6 @@ if test "x$openssl" = "xyes" ; then
 	# Check for SHA256, SHA384 and SHA512 support in OpenSSL
 	AC_CHECK_FUNCS([EVP_sha256 EVP_sha384 EVP_sha512])
 
-	# Search for RIPE-MD support in OpenSSL
-	AC_CHECK_FUNCS([EVP_ripemd160], ,
-	    [unsupported_algorithms="$unsupported_algorithms \
-		hmac-ripemd160 \
-		hmac-ripemd160@openssh.com \
-		hmac-ripemd160-etm@openssh.com"
-	     ]
-	)
-
 	# Check complete ECC support in OpenSSL
 	AC_MSG_CHECKING([whether OpenSSL has NID_X9_62_prime256v1])
 	AC_LINK_IFELSE(
