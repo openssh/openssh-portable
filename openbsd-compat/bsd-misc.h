@@ -88,10 +88,12 @@ struct timespec {
 #endif /* !HAVE_STRUCT_TIMESPEC */
 
 #if !defined(HAVE_NANOSLEEP) && !defined(HAVE_NSLEEP)
+# include <time.h>
 int nanosleep(const struct timespec *, struct timespec *);
 #endif
 
 #ifndef HAVE_UTIMENSAT
+# include <time.h>
 /* start with the high bits and work down to minimise risk of overlap */
 # ifndef AT_SYMLINK_NOFOLLOW
 #  define AT_SYMLINK_NOFOLLOW 0x80000000

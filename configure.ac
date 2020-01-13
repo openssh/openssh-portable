@@ -4025,6 +4025,8 @@ if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
 		[define if you have struct addrinfo data type])
 fi
 
+AC_HEADER_TIME
+
 AC_CACHE_CHECK([for struct timeval], ac_cv_have_struct_timeval, [
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <sys/time.h> ]],
 	[[ struct timeval tv; tv.tv_sec = 1;]])],
@@ -4037,7 +4039,28 @@ if test "x$ac_cv_have_struct_timeval" = "xyes" ; then
 	have_struct_timeval=1
 fi
 
-AC_CHECK_TYPES([struct timespec])
+AC_CACHE_CHECK([for struct timespec], ac_cv_have_struct_timespec, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #ifdef TIME_WITH_SYS_TIME
+    # include <sys/time.h>
+    # include <time.h>
+    #else
+    # ifdef HAVE_SYS_TIME_H
+    #  include <sys/time.h>
+    # else
+    #  include <time.h>
+    # endif
+    #endif
+	]],
+	[[ struct timespec ts; ts.tv_sec = 1;]])],
+	[ ac_cv_have_struct_timespec="yes" ],
+	[ ac_cv_have_struct_timespec="no"
+	])
+])
+if test "x$ac_cv_have_struct_timespec" = "xyes" ; then
+	AC_DEFINE([HAVE_STRUCT_TIMESPEC], [1], [define if you have struct timespec])
+	have_struct_timespec=1
+fi
 
 # We need int64_t or else certain parts of the compile will fail.
 if test "x$ac_cv_have_int64_t" = "xno" && \
