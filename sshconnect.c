@@ -1300,7 +1300,12 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 
 	/* key exchange */
 	/* authenticate user */
-	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
+	if (hostaddr->sa_family == AF_LOCAL) {
+		debug("Authenticating to %s as '%s'", host, server_user);
+	} else {
+		debug("Authenticating to %s:%d as '%s'", host, port,
+		    server_user);
+	}
 	ssh_kex2(ssh, host, hostaddr, port);
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);
