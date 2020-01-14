@@ -1543,8 +1543,12 @@ main(int ac, char **av)
 	    options.port, pw, timeout_ms);
 
 	if (ssh_packet_connection_is_on_socket(ssh)) {
-		verbose("Authenticated to %s ([%s]:%d).", host,
-		    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+		if (ssh_packet_connection_af(ssh) == AF_LOCAL) {
+			verbose("Authenticated to %s.", host);
+		} else {
+			verbose("Authenticated to %s ([%s]:%d).", host,
+			    ssh_remote_ipaddr(ssh), ssh_remote_port(ssh));
+		}
 	} else {
 		verbose("Authenticated to %s (via proxy).", host);
 	}

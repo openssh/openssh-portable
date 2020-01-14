@@ -462,7 +462,8 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 {
 	int on = 1, saved_timeout_ms = *timeout_ms;
 	int oerrno, sock = -1, attempt;
-	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	char ntop[NI_MAXHOST];
+	char strport[6 /* strlen(" port ") */ + NI_MAXSERV];
 	struct addrinfo *ai;
 
 	debug2("%s", __func__);
@@ -494,7 +495,13 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				errno = oerrno;
 				continue;
 			}
-			debug("Connecting to %.200s [%.100s] port %s.",
+			if (ai->ai_family == AF_LOCAL) {
+				memset(strport, 0, sizeof(strport));
+			} else {
+				snprintf(strport, sizeof(strport), " port %s",
+				    strport);
+			}
+			debug("Connecting to %.200s [%.100s]%s.",
 				host, ntop, strport);
 
 			/* Create a socket for connecting. */
@@ -513,7 +520,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 				break;
 			} else {
 				oerrno = errno;
-				debug("connect to address %s port %s: %s",
+				debug("connect to %s%s: %s",
 				    ntop, strport, strerror(errno));
 				close(sock);
 				sock = -1;
@@ -526,7 +533,7 @@ ssh_connect_direct(struct ssh *ssh, const char *host, struct addrinfo *aitop,
 
 	/* Return failure if we didn't get a successful connection. */
 	if (sock == -1) {
-		error("ssh: connect to host %s port %s: %s",
+		error("ssh: connect to %s%s: %s",
 		    host, strport, errno == 0 ? "failure" : strerror(errno));
 		return -1;
 	}
