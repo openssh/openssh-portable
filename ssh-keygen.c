@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.382 2020/01/06 02:00:46 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.383 2020/01/14 15:07:30 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3009,7 +3009,7 @@ usage(void)
 	fprintf(stderr,
 	    "usage: ssh-keygen [-q] [-b bits] [-C comment] [-f output_keyfile] [-m format]\n"
 	    "                  [-t dsa | ecdsa | ecdsa-sk | ed25519 | ed25519-sk | rsa]\n"
-	    "                  [-N new_passphrase] [-w provider] [-x flags]\n"
+	    "                  [-N new_passphrase] [-O option] [-w provider]\n"
 	    "       ssh-keygen -p [-f keyfile] [-m format] [-N new_passphrase]\n"
 	    "                   [-P old_passphrase]\n"
 	    "       ssh-keygen -i [-f input_keyfile] [-m key_format]\n"
@@ -3023,15 +3023,14 @@ usage(void)
 	    "       ssh-keygen -D pkcs11\n");
 #endif
 	fprintf(stderr,
-	    "       ssh-keygen -K path [-w sk_provider]\n");
-	fprintf(stderr,
 	    "       ssh-keygen -F hostname [-lv] [-f known_hosts_file]\n"
 	    "       ssh-keygen -H [-f known_hosts_file]\n"
+	    "       ssh-keygen -K [-w provider]\n"
 	    "       ssh-keygen -R hostname [-f known_hosts_file]\n"
 	    "       ssh-keygen -r hostname [-g] [-f input_keyfile]\n"
 #ifdef WITH_OPENSSL
-	    "       ssh-keygen -M generate [-O option] output\n"
-	    "       ssh-keygen -M screen [-f input_file] [-O option] [-a rounds] output_file\n"
+	    "       ssh-keygen -M generate [-O option] output_file\n"
+	    "       ssh-keygen -M screen [-f input_file] [-O option] output_file\n"
 #endif
 	    "       ssh-keygen -I certificate_identity -s ca_key [-hU] [-D pkcs11_provider]\n"
 	    "                  [-n principals] [-O option] [-V validity_interval]\n"
