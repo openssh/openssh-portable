@@ -17,6 +17,8 @@
 
 /* #define DEBUG_SK 1 */
 
+#include "includes.h"
+
 #define SSHKEY_INTERNAL
 #include <sys/types.h>
 #include <limits.h>
