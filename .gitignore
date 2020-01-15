@@ -2,6 +2,7 @@ Makefile
 buildpkg.sh
 config.h
 config.h.in
+config.log
 config.status
 configure
 openbsd-compat/Makefile
