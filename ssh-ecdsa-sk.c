@@ -31,10 +31,12 @@
 
 #include <sys/types.h>
 
+#ifdef WITH_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/evp.h>
+#endif
 
 #include <string.h>
 #include <stdio.h> /* needed for DEBUG_SK only */
