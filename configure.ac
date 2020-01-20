@@ -1533,8 +1533,6 @@ AC_ARG_WITH(ldns,
 	if test "x$withval" = "xyes" ; then
 		AC_PATH_TOOL([LDNSCONFIG], [ldns-config], [no])
 		if test "x$LDNSCONFIG" = "xno"; then
-			CPPFLAGS="$CPPFLAGS -I${withval}/include"
-			LDFLAGS="$LDFLAGS -L${withval}/lib"
 			LIBS="-lldns $LIBS"
 			ldns=yes
 		else
