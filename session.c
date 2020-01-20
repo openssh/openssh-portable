@@ -974,11 +974,13 @@ copy_environment_blacklist(char **source, char ***env, u_int *envsize,
 	}
 }
 
-void
+#ifdef HAVE_CYGWIN
+static void
 copy_environment(char **source, char ***env, u_int *envsize)
 {
 	copy_environment_blacklist(source, env, envsize, NULL);
 }
+#endif
 
 static char **
 do_setup_env(struct ssh *ssh, Session *s, const char *shell)
