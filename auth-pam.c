@@ -300,7 +300,7 @@ sshpam_chauthtok_ruid(pam_handle_t *pamh, int flags)
 # define pam_chauthtok(a,b)	(sshpam_chauthtok_ruid((a), (b)))
 #endif
 
-void
+static void
 sshpam_password_change_required(int reqd)
 {
 	extern struct sshauthopt *auth_opts;
