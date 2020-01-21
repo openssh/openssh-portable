@@ -1059,7 +1059,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 {
 	fd_set *fdset;
 	int i, j, ret, maxfd;
-	int startups = 0, listening = 0, lameduck = 0;
+	int ostartups = -1, startups = 0, listening = 0, lameduck = 0;
 	int startup_p[2] = { -1 , -1 };
 	char c = 0;
 	struct sockaddr_storage from;
@@ -1084,6 +1084,11 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	 * the daemon is killed with a signal.
 	 */
 	for (;;) {
+		if (ostartups != startups) {
+			setproctitle("[listener] %d/%d startups",
+			    startups, options.max_startups);
+			ostartups = startups;
+		}
 		if (received_sighup) {
 			if (!lameduck) {
 				debug("Received SIGHUP; waiting for children");
