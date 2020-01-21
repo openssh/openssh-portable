@@ -946,6 +946,7 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 }
 #endif /* HAVE_ETC_DEFAULT_LOGIN */
 
+#if defined(USE_PAM) || defined(HAVE_CYGWIN)
 static void
 copy_environment_blacklist(char **source, char ***env, u_int *envsize,
     const char *blacklist)
@@ -973,6 +974,7 @@ copy_environment_blacklist(char **source, char ***env, u_int *envsize,
 		free(var_name);
 	}
 }
+#endif /* defined(USE_PAM) || defined(HAVE_CYGWIN) */
 
 #ifdef HAVE_CYGWIN
 static void
