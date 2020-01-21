@@ -25,7 +25,16 @@ extern "C" {
 #include "ssh-sk.h"
 
 int
-sshsk_sign(const char *provider, struct sshkey *key,
+sshsk_enroll(int type, const char *provider_path, const char *device,
+    const char *application, const char *userid, uint8_t flags,
+    const char *pin, struct sshbuf *challenge_buf,
+    struct sshkey **keyp, struct sshbuf *attest)
+{
+	return SSH_ERR_FEATURE_UNSUPPORTED;
+}
+
+int
+sshsk_sign(const char *provider_path, struct sshkey *key,
     u_char **sigp, size_t *lenp, const u_char *data, size_t datalen,
     u_int compat, const char *pin)
 {
@@ -33,16 +42,8 @@ sshsk_sign(const char *provider, struct sshkey *key,
 }
 
 int
-sshsk_enroll(int type, const char *provider_path, const char *application,
-    uint8_t flags, const char *pin, struct sshbuf *challenge_buf,
-    struct sshkey **keyp, struct sshbuf *attest)
-{
-	return SSH_ERR_FEATURE_UNSUPPORTED;
-}
-
-int
-sshsk_load_resident(const char *provider_path, const char *pin,
-    struct sshkey ***keysp, size_t *nkeysp)
+sshsk_load_resident(const char *provider_path, const char *device,
+    const char *pin, struct sshkey ***keysp, size_t *nkeysp)
 {
 	return SSH_ERR_FEATURE_UNSUPPORTED;
 }
