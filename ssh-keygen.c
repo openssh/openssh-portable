@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.383 2020/01/14 15:07:30 naddy Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.384 2020/01/21 11:06:09 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3365,21 +3365,13 @@ main(int argc, char **argv)
 		usage();
 	}
 	if (gen_krl) {
-#ifdef WITH_OPENSSL
 		do_gen_krl(pw, update_krl, ca_key_path,
 		    cert_serial, identity_comment, argc, argv);
 		return (0);
-#else
-		fatal("KRL generation not supported");
-#endif
 	}
 	if (check_krl) {
-#ifdef WITH_OPENSSL
 		do_check_krl(pw, argc, argv);
 		return (0);
-#else
-		fatal("KRL checking not supported");
-#endif
 	}
 	if (ca_key_path != NULL) {
 		if (cert_key_id == NULL)
