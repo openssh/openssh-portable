@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.313 2019/12/21 20:22:34 naddy Exp $
-.Dd $Mdocdate: December 21 2019 $
+.\" $OpenBSD: ssh_config.5,v 1.314 2020/01/21 12:40:04 naddy Exp $
+.Dd $Mdocdate: January 21 2020 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -566,7 +566,8 @@ specifies that the master connection should remain open
 in the background (waiting for future client connections)
 after the initial client connection has been closed.
 If set to
-.Cm no ,
+.Cm no
+(the default),
 then the master connection will not be placed into the background,
 and will close as soon as the initial client connection is closed.
 If set to
