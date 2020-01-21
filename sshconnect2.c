@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.314 2019/11/15 02:37:24 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.315 2020/01/21 05:56:27 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1311,7 +1311,7 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 			error("%s: no mutual signature supported", __func__);
 			goto out;
 		}
-		debug3("%s: signing using %s", __func__, alg);
+		debug3("%s: signing using %s %s", __func__, alg, fp);
 
 		sshbuf_free(b);
 		if ((b = sshbuf_new()) == NULL)
@@ -1358,7 +1358,9 @@ sign_and_send_pubkey(struct ssh *ssh, Identity *id)
 			    loc, sshkey_type(id->key), fp);
 			continue;
 		}
-		error("%s: signing failed: %s", __func__, ssh_err(r));
+		error("%s: signing failed for %s \"%s\"%s: %s", __func__,
+		    sshkey_type(sign_id->key), sign_id->filename,
+		    id->agent_fd != -1 ? " from agent" : "", ssh_err(r));
 		goto out;
 	}
 	if (slen == 0 || signature == NULL) /* shouldn't happen */
