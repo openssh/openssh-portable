@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.98 2019/12/30 09:23:28 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.99 2020/01/21 05:56:56 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -2079,6 +2079,9 @@ sshkey_shield_private(struct sshkey *k)
 	k->shield_prekey_len = SSHKEY_SHIELD_PREKEY_LEN;
 	enc = prekey = NULL; /* transferred */
 	enclen = 0;
+
+	/* preserve key fields that are required for correct operation */
+	k->sk_flags = kswap->sk_flags;
 
 	/* success */
 	r = 0;
