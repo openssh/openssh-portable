@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.325 2020/01/11 16:23:10 naddy Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.326 2020/01/22 07:38:30 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -580,22 +580,23 @@ confirm(const char *prompt, const char *fingerprint)
 {
 	const char *msg, *again = "Please type 'yes' or 'no': ";
 	const char *again_fp = "Please type 'yes', 'no' or the fingerprint: ";
-	char *p;
+	char *p, *cp;
 	int ret = -1;
 
 	if (options.batch_mode)
 		return 0;
 	for (msg = prompt;;msg = fingerprint ? again_fp : again) {
-		p = read_passphrase(msg, RP_ECHO);
+		cp = p = read_passphrase(msg, RP_ECHO);
 		if (p == NULL)
 			return 0;
-		p[strcspn(p, "\n")] = '\0';
+		p += strspn(p, " \t"); /* skip leading whitespace */
+		p[strcspn(p, " \t\n")] = '\0'; /* remove trailing whitespace */
 		if (p[0] == '\0' || strcasecmp(p, "no") == 0)
 			ret = 0;
 		else if (strcasecmp(p, "yes") == 0 || (fingerprint != NULL &&
 		    strcasecmp(p, fingerprint) == 0))
 			ret = 1;
-		free(p);
+		free(cp);
 		if (ret != -1)
 			return ret;
 	}
