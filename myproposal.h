@@ -1,4 +1,4 @@
-/* $OpenBSD: myproposal.h,v 1.64 2019/12/16 03:16:58 djm Exp $ */
+/* $OpenBSD: myproposal.h,v 1.65 2020/01/22 04:58:23 tedu Exp $ */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -100,8 +100,7 @@
 	KEX_CURVE25519_METHODS \
 	KEX_ECDH_METHODS \
 	KEX_SHA2_METHODS \
-	KEX_SHA2_GROUP14 \
-	"diffie-hellman-group14-sha1"
+	KEX_SHA2_GROUP14
 
 #define KEX_CLIENT_KEX KEX_SERVER_KEX
 
