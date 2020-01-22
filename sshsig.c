@@ -679,56 +679,116 @@ sshsigopt_free(struct sshsigopt *opts)
 }
 
 static int
-check_allowed_keys_line(const char *path, u_long linenum, char *line,
-    const struct sshkey *sign_key, const char *principal,
-    const char *sig_namespace)
+parse_principals_key_and_options(const char *path, u_long linenum, char *line,
+    const char *required_principal, char **principalsp, struct sshkey **keyp,
+    struct sshsigopt **sigoptsp)
 {
-	struct sshkey *found_key = NULL;
-	char *cp, *opts = NULL, *identities = NULL;
-	int r, found = 0;
+	char *opts = NULL, *tmp, *cp, *principals = NULL;
 	const char *reason = NULL;
 	struct sshsigopt *sigopts = NULL;
+	struct sshkey *key = NULL;
+	int r = SSH_ERR_INTERNAL_ERROR;
 
-	if ((found_key = sshkey_new(KEY_UNSPEC)) == NULL) {
-		error("%s: sshkey_new failed", __func__);
-		return SSH_ERR_ALLOC_FAIL;
-	}
+	if (principalsp != NULL)
+		*principalsp = NULL;
+	if (sigoptsp != NULL)
+		*sigoptsp = NULL;
+	if (keyp != NULL)
+		*keyp = NULL;
 
-	/* format: identity[,identity...] [option[,option...]] key */
 	cp = line;
 	cp = cp + strspn(cp, " \t"); /* skip leading whitespace */
 	if (*cp == '#' || *cp == '\0')
-		goto done;
-	if ((identities = strdelimw(&cp)) == NULL) {
-		error("%s:%lu: invalid line", path, linenum);
-		goto done;
-	}
-	if (match_pattern_list(principal, identities, 0) != 1) {
-		/* principal didn't match */
-		goto done;
-	}
-	debug("%s: %s:%lu: matched principal \"%s\"",
-	    __func__, path, linenum, principal);
+		return SSH_ERR_KEY_NOT_FOUND; /* blank or all-comment line */
 
-	if (sshkey_read(found_key, &cp) != 0) {
+	/* format: identity[,identity...] [option[,option...]] key */
+	if ((tmp = strdelimw(&cp)) == NULL) {
+		error("%s:%lu: invalid line", path, linenum);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	if ((principals = strdup(tmp)) == NULL) {
+		error("%s: strdup failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	/*
+	 * Bail out early if we're looking for a particular principal and this
+	 * line does not list it.
+	 */
+	if (required_principal != NULL) {
+		if (match_pattern_list(required_principal,
+		    principals, 0) != 1) {
+			/* principal didn't match */
+			r = SSH_ERR_KEY_NOT_FOUND;
+			goto out;
+		}
+		debug("%s: %s:%lu: matched principal \"%s\"",
+		    __func__, path, linenum, required_principal);
+	}
+
+	if ((key = sshkey_new(KEY_UNSPEC)) == NULL) {
+		error("%s: sshkey_new failed", __func__);
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
+	if (sshkey_read(key, &cp) != 0) {
 		/* no key? Check for options */
 		opts = cp;
 		if (sshkey_advance_past_options(&cp) != 0) {
-			error("%s:%lu: invalid options",
-			    path, linenum);
-			goto done;
+			error("%s:%lu: invalid options", path, linenum);
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
 		}
 		*cp++ = '\0';
 		skip_space(&cp);
-		if (sshkey_read(found_key, &cp) != 0) {
-			error("%s:%lu: invalid key", path,
-			    linenum);
-			goto done;
+		if (sshkey_read(key, &cp) != 0) {
+			error("%s:%lu: invalid key", path, linenum);
+			r = SSH_ERR_INVALID_FORMAT;
+			goto out;
 		}
 	}
 	debug3("%s:%lu: options %s", path, linenum, opts == NULL ? "" : opts);
 	if ((sigopts = sshsigopt_parse(opts, path, linenum, &reason)) == NULL) {
 		error("%s:%lu: bad options: %s", path, linenum, reason);
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+	/* success */
+	if (principalsp != NULL) {
+		*principalsp = principals;
+		principals = NULL; /* transferred */
+	}
+	if (sigoptsp != NULL) {
+		*sigoptsp = sigopts;
+		sigopts = NULL; /* transferred */
+	}
+	if (keyp != NULL) {
+		*keyp = key;
+		key = NULL; /* transferred */
+	}
+	r = 0;
+ out:
+	free(principals);
+	sshsigopt_free(sigopts);
+	sshkey_free(key);
+	return r;
+}
+
+static int
+check_allowed_keys_line(const char *path, u_long linenum, char *line,
+    const struct sshkey *sign_key, const char *principal,
+    const char *sig_namespace)
+{
+	struct sshkey *found_key = NULL;
+	int r, found = 0;
+	const char *reason = NULL;
+	struct sshsigopt *sigopts = NULL;
+
+	/* Parse the line */
+	if ((r = parse_principals_key_and_options(path, linenum, line,
+	    principal, NULL, &found_key, &sigopts)) != 0) {
+		/* error already logged */
 		goto done;
 	}
 
