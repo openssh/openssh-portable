@@ -1287,11 +1287,12 @@ AC_CHECK_FUNC([getspnam], ,
 AC_SEARCH_LIBS([basename], [gen], [AC_DEFINE([HAVE_BASENAME], [1],
 	[Define if you have the basename function.])])
 
-dnl zlib is required
+dnl zlib defaults to enabled
+zlib=yes
 AC_ARG_WITH([zlib],
 	[  --with-zlib=PATH        Use zlib in PATH],
 	[ if test "x$withval" = "xno" ; then
-		AC_MSG_ERROR([*** zlib is required ***])
+		zlib=no
 	  elif test "x$withval" != "xyes"; then
 		if test -d "$withval/lib"; then
 			if test -n "${rpath_opt}"; then
@@ -1314,8 +1315,14 @@ AC_ARG_WITH([zlib],
 	fi ]
 )
 
-AC_CHECK_HEADER([zlib.h], ,[AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***])])
-AC_CHECK_LIB([z], [deflate], ,
+AC_MSG_CHECKING([for zlib])
+if test "x${zlib}" = "xno"; then
+	AC_MSG_RESULT([no])
+else
+	AC_MSG_RESULT([yes])
+	AC_DEFINE([WITH_ZLIB], [1], [Enable zlib])
+    AC_CHECK_HEADER([zlib.h], ,[AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***])])
+    AC_CHECK_LIB([z], [deflate], ,
 	[
 		saved_CPPFLAGS="$CPPFLAGS"
 		saved_LDFLAGS="$LDFLAGS"
@@ -1334,18 +1341,18 @@ AC_CHECK_LIB([z], [deflate], ,
 			]
 		)
 	]
-)
+    )
 
-AC_ARG_WITH([zlib-version-check],
+    AC_ARG_WITH([zlib-version-check],
 	[  --without-zlib-version-check Disable zlib version check],
 	[  if test "x$withval" = "xno" ; then
 		zlib_check_nonfatal=1
 	   fi
 	]
-)
+    )
 
-AC_MSG_CHECKING([for possibly buggy zlib])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+    AC_MSG_CHECKING([for possibly buggy zlib])
+    AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <stdio.h>
 #include <stdlib.h>
 #include <zlib.h>
@@ -1383,7 +1390,8 @@ See http://www.gzip.org/zlib/ for details.])
 	  fi
 	],
 	[	AC_MSG_WARN([cross compiling: not checking zlib version]) ]
-)
+    )
+fi
 
 dnl UnixWare 2.x
 AC_CHECK_FUNC([strcasecmp],
