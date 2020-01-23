@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.194 2020/01/23 02:43:48 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.195 2020/01/23 07:16:38 jmc Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -627,8 +627,8 @@ flag in an authorized signers file provided using the
 flag.
 The format of the allowed signers file is documented in the
 .Sx ALLOWED SIGNERS
-section below. If a matching principal is found, it is returned
-on standard output.
+section below.
+If a matching principal is found, it is returned on standard output.
 .It Fl Y Cm check-novalidate
 Checks that a signature generated using
 .Nm
