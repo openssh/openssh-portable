@@ -868,13 +868,64 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 }
 
 static int
-get_matching_principal_from_line(const char *path, u_long linenum, char *line,
+cert_filter_principals(const char *path, u_long linenum,
+    char **principalsp, const struct sshkey *cert)
+{
+	char *cp, *oprincipals, *principals;
+	const char *reason;
+	struct sshbuf *nprincipals;
+	int r = SSH_ERR_INTERNAL_ERROR, success = 0;
+
+	oprincipals = principals = *principalsp;
+	*principalsp = NULL;
+
+	if ((nprincipals = sshbuf_new()) == NULL)
+		return SSH_ERR_ALLOC_FAIL;
+
+	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
+		if (strcspn(cp, "!?*") != strlen(cp)) {
+			debug("%s:%lu: principal \"%s\" not authorized: "
+			    "contains wildcards", path, linenum, cp);
+			continue;
+		}
+		/* Check against principals list in certificate */
+		if ((r = sshkey_cert_check_authority(cert, 0, 1,
+		    cp, &reason)) != 0) {
+			debug("%s:%lu: principal \"%s\" not authorized: %s",
+			    path, linenum, cp, reason);
+			continue;
+		}
+		if ((r = sshbuf_putf(nprincipals, "%s%s",
+		    sshbuf_len(nprincipals) != 0 ? "," : "", cp)) != 0) {
+			error("%s: buffer error", __func__);
+			goto out;
+		}
+	}
+	if (sshbuf_len(nprincipals) == 0) {
+		error("%s:%lu: no valid principals found", path, linenum);
+		r = SSH_ERR_KEY_CERT_INVALID;
+		goto out;
+	}
+	if ((principals = sshbuf_dup_string(nprincipals)) == NULL) {
+		error("%s: buffer error", __func__);
+		goto out;
+	}
+	/* success */
+	success = 1;
+	*principalsp = principals;
+ out:
+	sshbuf_free(nprincipals);
+	free(oprincipals);
+	return success ? 0 : r;
+}
+
+static int
+get_matching_principals_from_line(const char *path, u_long linenum, char *line,
     const struct sshkey *sign_key, char **principalsp)
 {
 	struct sshkey *found_key = NULL;
 	char *principals = NULL;
 	int r, found = 0;
-	const char *reason = NULL;
 	struct sshsigopt *sigopts = NULL;
 
 	if (principalsp != NULL)
@@ -894,11 +945,12 @@ get_matching_principal_from_line(const char *path, u_long linenum, char *line,
 		found = 1;
 	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
 	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
-		/* Match of certificate's CA key */
-		if ((r = sshkey_cert_check_authority(sign_key, 0, 1,
-		    principals, &reason)) != 0) {
-			error("%s:%lu: certificate not authorized: %s",
-			    path, linenum, reason);
+		/* Remove principals listed in file but not allowed by cert */
+		if ((r = cert_filter_principals(path, linenum,
+		    &principals, sign_key)) != 0) {
+			/* error already displayed */
+			debug("%s:%lu: cert_filter_principals: %s",
+			    path, linenum, ssh_err(r));
 			goto done;
 		}
 		debug("%s:%lu: matched certificate CA key", path, linenum);
@@ -920,8 +972,8 @@ get_matching_principal_from_line(const char *path, u_long linenum, char *line,
 }
 
 int
-sshsig_find_principal(const char *path, const struct sshkey *sign_key,
-    char **principal)
+sshsig_find_principals(const char *path, const struct sshkey *sign_key,
+    char **principals)
 {
 	FILE *f = NULL;
 	char *line = NULL;
@@ -939,8 +991,8 @@ sshsig_find_principal(const char *path, const struct sshkey *sign_key,
 
 	while (getline(&line, &linesize, f) != -1) {
 		linenum++;
-		r = get_matching_principal_from_line(path, linenum, line,
-		    sign_key, principal);
+		r = get_matching_principals_from_line(path, linenum, line,
+		    sign_key, principals);
 		free(line);
 		line = NULL;
 		if (r == SSH_ERR_KEY_NOT_FOUND)

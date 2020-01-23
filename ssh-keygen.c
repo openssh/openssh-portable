@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.387 2020/01/23 07:54:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.388 2020/01/23 23:31:52 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2758,11 +2758,11 @@ done:
 }
 
 static int
-sig_find_principal(const char *signature, const char *allowed_keys) {
+sig_find_principals(const char *signature, const char *allowed_keys) {
 	int r, ret = -1, sigfd = -1;
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
-	char *principal = NULL;
+	char *principals = NULL;
 
 	if ((abuf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new() failed", __func__);
@@ -2782,12 +2782,11 @@ sig_find_principal(const char *signature, const char *allowed_keys) {
 	}
 	if ((r = sshsig_get_pubkey(sigbuf, &sign_key)) != 0) {
 		error("%s: sshsig_get_pubkey: %s",
-		      __func__, ssh_err(r));
+		    __func__, ssh_err(r));
 		goto done;
 	}
-
-	if ((r = sshsig_find_principal(allowed_keys, sign_key,
-				      &principal)) != 0) {
+	if ((r = sshsig_find_principals(allowed_keys, sign_key,
+	    &principals)) != 0) {
 		error("%s: sshsig_get_principal: %s",
 		      __func__, ssh_err(r));
 		goto done;
@@ -2795,7 +2794,7 @@ sig_find_principal(const char *signature, const char *allowed_keys) {
 	ret = 0;
 done:
 	if (ret == 0 ) {
-		printf("Found matching principal: %s\n", principal);
+		printf("Found matching principal: %s\n", principals);
 	} else {
 		printf("Could not find matching principal.\n");
 	}
@@ -2804,7 +2803,7 @@ done:
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
 	sshkey_free(sign_key);
-	free(principal);
+	free(principals);
 	return ret;
 }
 
@@ -3093,7 +3092,7 @@ usage(void)
 	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
 	    "                  file ...\n"
 	    "       ssh-keygen -Q -f krl_file file ...\n"
-	    "       ssh-keygen -Y find-principal -s signature_file -f allowed_signers_file\n"
+	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
 	    "       ssh-keygen -Y verify -f allowed_signers_file -I signer_identity\n"
@@ -3357,18 +3356,18 @@ main(int argc, char **argv)
 	argc -= optind;
 
 	if (sign_op != NULL) {
-		if (strncmp(sign_op, "find-principal", 14) == 0) {
+		if (strncmp(sign_op, "find-principals", 15) == 0) {
 			if (ca_key_path == NULL) {
-				error("Too few arguments for find-principal:"
+				error("Too few arguments for find-principals:"
 				      "missing signature file");
 				exit(1);
 			}
 			if (!have_identity) {
-				error("Too few arguments for find-principal:"
+				error("Too few arguments for find-principals:"
 				      "missing allowed keys file");
 				exit(1);
 			}
-			return sig_find_principal(ca_key_path, identity_file);
+			return sig_find_principals(ca_key_path, identity_file);
 		}
 		if (cert_principals == NULL || *cert_principals == '\0') {
 			error("Too few arguments for sign/verify: "

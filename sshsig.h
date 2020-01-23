@@ -93,13 +93,12 @@ struct sshsigopt *sshsigopt_parse(const char *opts,
 void sshsigopt_free(struct sshsigopt *opts);
 
 /* Get public key from signature */
-int
-sshsig_get_pubkey(struct sshbuf *signature, struct sshkey **pubkey);
+int sshsig_get_pubkey(struct sshbuf *signature, struct sshkey **pubkey);
 
 /* Find principal in allowed_keys file, given a sshkey. Returns
  * 0 on success.
  */
-int sshsig_find_principal(const char *path, const struct sshkey *sign_key,
+int sshsig_find_principals(const char *path, const struct sshkey *sign_key,
     char **principal);
 
 #endif /* SSHSIG_H */
