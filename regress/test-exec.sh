@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.71 2020/01/23 03:42:41 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.72 2020/01/23 10:19:59 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -449,10 +449,12 @@ else
 	unsafe=""
 	dir="${OBJ}"
 	while test ${dir} != "/"; do
-		perms=`ls -ld ${dir}`
-		case "${perms}" in
+		if test -d "${dir}" ; then
+			perms=`ls -ld ${dir}`
+			case "${perms}" in
 			?????w????*|????????w?*) unsafe="${unsafe} ${dir}" ;;
-		esac
+			esac
+		fi
 		dir=`dirname ${dir}`
 	done
 	if ! test  -z "${unsafe}"; then
