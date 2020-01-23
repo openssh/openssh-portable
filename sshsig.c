@@ -866,3 +866,120 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	free(line);
 	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
 }
+
+static int
+get_matching_principal_from_line(const char *path, u_long linenum, char *line,
+    const struct sshkey *sign_key, char **principalsp)
+{
+	struct sshkey *found_key = NULL;
+	char *principals = NULL;
+	int r, found = 0;
+	const char *reason = NULL;
+	struct sshsigopt *sigopts = NULL;
+
+	if (principalsp != NULL)
+		*principalsp = NULL;
+
+	/* Parse the line */
+	if ((r = parse_principals_key_and_options(path, linenum, line,
+	    NULL, &principals, &found_key, &sigopts)) != 0) {
+		/* error already logged */
+		goto done;
+	}
+
+	if (!sigopts->ca && sshkey_equal(found_key, sign_key)) {
+		/* Exact match of key */
+		debug("%s:%lu: matched key", path, linenum);
+		/* success */
+		found = 1;
+	} else if (sigopts->ca && sshkey_is_cert(sign_key) &&
+	    sshkey_equal_public(sign_key->cert->signature_key, found_key)) {
+		/* Match of certificate's CA key */
+		if ((r = sshkey_cert_check_authority(sign_key, 0, 1,
+		    principals, &reason)) != 0) {
+			error("%s:%lu: certificate not authorized: %s",
+			    path, linenum, reason);
+			goto done;
+		}
+		debug("%s:%lu: matched certificate CA key", path, linenum);
+		/* success */
+		found = 1;
+	} else {
+		/* Key didn't match */
+		goto done;
+	}
+ done:
+	if (found) {
+		*principalsp = principals;
+		principals = NULL; /* transferred */
+	}
+	free(principals);
+	sshkey_free(found_key);
+	sshsigopt_free(sigopts);
+	return found ? 0 : SSH_ERR_KEY_NOT_FOUND;
+}
+
+int
+sshsig_find_principal(const char *path, const struct sshkey *sign_key,
+    char **principal)
+{
+	FILE *f = NULL;
+	char *line = NULL;
+	size_t linesize = 0;
+	u_long linenum = 0;
+	int r, oerrno;
+
+	if ((f = fopen(path, "r")) == NULL) {
+		oerrno = errno;
+		error("Unable to open allowed keys file \"%s\": %s",
+		    path, strerror(errno));
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+
+	while (getline(&line, &linesize, f) != -1) {
+		linenum++;
+		r = get_matching_principal_from_line(path, linenum, line,
+		    sign_key, principal);
+		free(line);
+		line = NULL;
+		if (r == SSH_ERR_KEY_NOT_FOUND)
+			continue;
+		else if (r == 0) {
+			/* success */
+			fclose(f);
+			return 0;
+		} else
+			break;
+	}
+	free(line);
+	/* Either we hit an error parsing or we simply didn't find the key */
+	if (ferror(f) != 0) {
+		oerrno = errno;
+		fclose(f);
+		error("Unable to read allowed keys file \"%s\": %s",
+		    path, strerror(errno));
+		errno = oerrno;
+		return SSH_ERR_SYSTEM_ERROR;
+	}
+	fclose(f);
+	return r == 0 ? SSH_ERR_KEY_NOT_FOUND : r;
+}
+
+int
+sshsig_get_pubkey(struct sshbuf *signature, struct sshkey **pubkey)
+{
+	struct sshkey *pk = NULL;
+	int r = SSH_ERR_SIGNATURE_INVALID;
+
+	if (pubkey != NULL)
+		*pubkey = NULL;
+	if ((r = sshsig_parse_preamble(signature)) != 0)
+		return r;
+	if ((r = sshkey_froms(signature, &pk)) != 0)
+		return r;
+
+	*pubkey = pk;
+	pk = NULL;
+	return 0;
+}
