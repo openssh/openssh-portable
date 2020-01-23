@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.317 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.318 2020/01/23 10:24:30 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -174,8 +174,8 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 	myproposal[PROPOSAL_ENC_ALGS_STOC] =
 	    compat_cipher_proposal(options.ciphers);
 	myproposal[PROPOSAL_COMP_ALGS_CTOS] =
-	    myproposal[PROPOSAL_COMP_ALGS_STOC] = options.compression ?
-	    "zlib@openssh.com,zlib,none" : "none,zlib@openssh.com,zlib";
+	    myproposal[PROPOSAL_COMP_ALGS_STOC] =
+	    (char *)compression_alg_list(options.compression);
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	if (options.hostkeyalgorithms != NULL) {

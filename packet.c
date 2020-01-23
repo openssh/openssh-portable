@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.287 2019/12/16 13:58:53 tobhe Exp $ */
+/* $OpenBSD: packet.c,v 1.288 2020/01/23 10:24:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -76,7 +76,9 @@
 # endif
 #endif
 
+#ifdef WITH_ZLIB
 #include <zlib.h>
+#endif
 
 #include "xmalloc.h"
 #include "compat.h"
@@ -150,9 +152,11 @@ struct session_state {
 	/* Scratch buffer for packet compression/decompression. */
 	struct sshbuf *compression_buffer;
 
+#ifdef WITH_ZLIB
 	/* Incoming/outgoing compression dictionaries */
 	z_stream compression_in_stream;
 	z_stream compression_out_stream;
+#endif
 	int compression_in_started;
 	int compression_out_started;
 	int compression_in_failures;
@@ -609,7 +613,8 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 		state->newkeys[mode] = NULL;
 		ssh_clear_newkeys(ssh, mode);		/* next keys */
 	}
-	/* compression state is in shared mem, so we can only release it once */
+#ifdef WITH_ZLIB
+	/* comression state is in shared mem, so we can only release it once */
 	if (do_close && state->compression_buffer) {
 		sshbuf_free(state->compression_buffer);
 		if (state->compression_out_started) {
@@ -635,6 +640,7 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 				inflateEnd(stream);
 		}
 	}
+#endif	/* WITH_ZLIB */
 	cipher_free(state->send_context);
 	cipher_free(state->receive_context);
 	state->send_context = state->receive_context = NULL;
@@ -690,6 +696,7 @@ ssh_packet_init_compression(struct ssh *ssh)
 	return 0;
 }
 
+#ifdef WITH_ZLIB
 static int
 start_compression_out(struct ssh *ssh, int level)
 {
@@ -820,6 +827,33 @@ uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
 	}
 	/* NOTREACHED */
 }
+
+#else	/* WITH_ZLIB */
+
+static int
+start_compression_out(struct ssh *ssh, int level)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+start_compression_in(struct ssh *ssh)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+compress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+
+static int
+uncompress_buffer(struct ssh *ssh, struct sshbuf *in, struct sshbuf *out)
+{
+	return SSH_ERR_INTERNAL_ERROR;
+}
+#endif	/* WITH_ZLIB */
 
 void
 ssh_clear_newkeys(struct ssh *ssh, int mode)

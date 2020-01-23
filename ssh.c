@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.512 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.513 2020/01/23 10:24:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -602,6 +602,7 @@ main(int ac, char **av)
 	struct addrinfo *addrs = NULL;
 	struct ssh_digest_ctx *md;
 	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
+	size_t n, len;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -753,10 +754,16 @@ main(int ac, char **av)
 				cp = sshkey_alg_list(0, 1, 1, '\n');
 			else if (strcmp(optarg, "protocol-version") == 0)
 				cp = xstrdup("2");
-			else if (strcmp(optarg, "help") == 0) {
+			else if (strcmp(optarg, "compression") == 0) {
+				cp = xstrdup(compression_alg_list(0));
+				len = strlen(cp);
+				for (n = 0; n < len; n++)
+					if (cp[n] == ',')
+						cp[n] = '\n';
+			} else if (strcmp(optarg, "help") == 0) {
 				cp = xstrdup(
-				    "cipher\ncipher-auth\nkex\nkey\n"
-				    "key-cert\nkey-plain\nmac\n"
+				    "cipher\ncipher-auth\ncompression\nkex\n"
+				    "key\nkey-cert\nkey-plain\nmac\n"
 				    "protocol-version\nsig");
 			}
 			if (cp == NULL)
@@ -959,7 +966,11 @@ main(int ac, char **av)
 			break;
 
 		case 'C':
+#ifdef WITH_ZLIB
 			options.compression = 1;
+#else
+			error("Compression not supported, disabling.");
+#endif
 			break;
 		case 'N':
 			no_shell_flag = 1;

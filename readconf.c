@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.321 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.322 2020/01/23 10:24:29 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -837,6 +837,13 @@ static const struct multistate multistate_canonicalizehostname[] = {
 	{ "always",			SSH_CANONICALISE_ALWAYS },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_compression[] = {
+#ifdef WITH_ZLIB
+	{ "yes",			COMP_ZLIB },
+#endif
+	{ "no",				COMP_NONE },
+	{ NULL, -1 }
+};
 
 /*
  * Processes a single option line as used in the configuration files. This
@@ -1046,7 +1053,8 @@ parse_time:
 
 	case oCompression:
 		intptr = &options->compression;
-		goto parse_flag;
+		multistate_ptr = multistate_compression;
+		goto parse_multistate;
 
 	case oTCPKeepAlive:
 		intptr = &options->tcp_keep_alive;
