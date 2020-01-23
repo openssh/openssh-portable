@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.288 2020/01/23 10:24:29 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.289 2020/01/23 10:53:04 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -614,7 +614,7 @@ ssh_packet_close_internal(struct ssh *ssh, int do_close)
 		ssh_clear_newkeys(ssh, mode);		/* next keys */
 	}
 #ifdef WITH_ZLIB
-	/* comression state is in shared mem, so we can only release it once */
+	/* compression state is in shared mem, so we can only release it once */
 	if (do_close && state->compression_buffer) {
 		sshbuf_free(state->compression_buffer);
 		if (state->compression_out_started) {
