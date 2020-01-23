@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.386 2020/01/23 02:43:48 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.387 2020/01/23 07:54:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3642,7 +3642,7 @@ main(int argc, char **argv)
 	sshkey_free(private);
 
 	if (!quiet) {
-		printf("Your identification has been saved in %s.\n",
+		printf("Your identification has been saved in %s\n",
 		    identity_file);
 	}
 
@@ -3659,7 +3659,7 @@ main(int argc, char **argv)
 		    SSH_FP_RANDOMART);
 		if (fp == NULL || ra == NULL)
 			fatal("sshkey_fingerprint failed");
-		printf("Your public key has been saved in %s.\n",
+		printf("Your public key has been saved in %s\n",
 		    identity_file);
 		printf("The key fingerprint is:\n");
 		printf("%s %s\n", fp, comment);
