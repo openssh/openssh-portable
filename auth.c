@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.144 2019/12/16 13:58:53 tobhe Exp $ */
+/* $OpenBSD: auth.c,v 1.145 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -921,7 +921,7 @@ subprocess(const char *tag, struct passwd *pw, const char *command,
 			child_set_env(&child_env, &envsize, "LANG", cp);
 
 		for (i = 0; i < NSIG; i++)
-			signal(i, SIG_DFL);
+			ssh_signal(i, SIG_DFL);
 
 		if ((devnull = open(_PATH_DEVNULL, O_RDWR)) == -1) {
 			error("%s: open %s: %s", tag, _PATH_DEVNULL,

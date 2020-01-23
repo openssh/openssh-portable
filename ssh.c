@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.511 2020/01/05 16:28:22 beck Exp $ */
+/* $OpenBSD: ssh.c,v 1.512 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1535,8 +1535,8 @@ main(int ac, char **av)
 	    options.num_system_hostfiles);
 	tilde_expand_paths(options.user_hostfiles, options.num_user_hostfiles);
 
-	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
-	signal(SIGCHLD, main_sigchld_handler);
+	ssh_signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
+	ssh_signal(SIGCHLD, main_sigchld_handler);
 
 	/* Log into the remote system.  Never returns if the login fails. */
 	ssh_login(ssh, &sensitive_data, host, (struct sockaddr *)&hostaddr,

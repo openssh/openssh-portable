@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.h,v 1.82 2019/11/12 22:34:20 djm Exp $ */
+/* $OpenBSD: misc.h,v 1.83 2020/01/23 07:10:22 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -190,4 +190,6 @@ void	notify_complete(struct notifier_ctx *);
 #define MAXIMUM(a, b)	(((a) > (b)) ? (a) : (b))
 #define ROUNDUP(x, y)   ((((x)+((y)-1))/(y))*(y))
 
+typedef void (*sshsig_t)(int);
+sshsig_t ssh_signal(int, sshsig_t);
 #endif /* _MISC_H */

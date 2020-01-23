@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.143 2019/11/22 06:50:30 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.144 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -2221,3 +2221,20 @@ opt_match(const char **opts, const char *term)
 	return 0;
 }
 
+sshsig_t
+ssh_signal(int signum, sshsig_t handler)
+{
+	struct sigaction sa, osa;
+
+	/* mask all other signals while in handler */
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = handler;
+	sigfillset(&sa.sa_mask);
+	if (signum != SIGALRM)
+		sa.sa_flags = SA_RESTART;
+	if (sigaction(signum, &sa, &osa) == -1) {
+		debug3("sigaction(%s): %s", strsignal(signum), strerror(errno));
+		return SIG_ERR;
+	}
+	return osa.sa_handler;
+}

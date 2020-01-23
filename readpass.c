@@ -1,4 +1,4 @@
-/* $OpenBSD: readpass.c,v 1.60 2019/12/06 03:06:08 djm Exp $ */
+/* $OpenBSD: readpass.c,v 1.61 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
  *
@@ -65,10 +65,10 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 		error("%s: pipe: %s", __func__, strerror(errno));
 		return NULL;
 	}
-	osigchld = signal(SIGCHLD, SIG_DFL);
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {
 		error("%s: fork: %s", __func__, strerror(errno));
-		signal(SIGCHLD, osigchld);
+		ssh_signal(SIGCHLD, osigchld);
 		return NULL;
 	}
 	if (pid == 0) {
@@ -98,7 +98,7 @@ ssh_askpass(char *askpass, const char *msg, const char *env_hint)
 	while ((ret = waitpid(pid, &status, 0)) == -1)
 		if (errno != EINTR)
 			break;
-	signal(SIGCHLD, osigchld);
+	ssh_signal(SIGCHLD, osigchld);
 	if (ret == -1 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
 		explicit_bzero(buf, sizeof(buf));
 		return NULL;
@@ -243,10 +243,10 @@ notify_start(int force_askpass, const char *fmt, ...)
 		free(prompt);
 		return NULL;
 	}
-	osigchld = signal(SIGCHLD, SIG_DFL);
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if ((pid = fork()) == -1) {
 		error("%s: fork: %s", __func__, strerror(errno));
-		signal(SIGCHLD, osigchld);
+		ssh_signal(SIGCHLD, osigchld);
 		free(prompt);
 		return NULL;
 	}
@@ -289,6 +289,6 @@ notify_complete(struct notifier_ctx *ctx)
 	}
 	if (ret == -1)
 		fatal("%s: waitpid: %s", __func__, strerror(errno));
-	signal(SIGCHLD, ctx->osigchld);
+	ssh_signal(SIGCHLD, ctx->osigchld);
 	free(ctx);
 }

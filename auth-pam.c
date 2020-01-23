@@ -156,7 +156,7 @@ static mysig_t sshpam_oldsig;
 static void
 sshpam_sigchld_handler(int sig)
 {
-	signal(SIGCHLD, SIG_DFL);
+	ssh_signal(SIGCHLD, SIG_DFL);
 	if (cleanup_ctxt == NULL)
 		return;	/* handler called after PAM cleanup, shouldn't happen */
 	if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, WNOHANG)
@@ -208,7 +208,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 		*thread = pid;
 		close(ctx->pam_csock);
 		ctx->pam_csock = -1;
-		sshpam_oldsig = signal(SIGCHLD, sshpam_sigchld_handler);
+		sshpam_oldsig = ssh_signal(SIGCHLD, sshpam_sigchld_handler);
 		return (0);
 	}
 }
@@ -216,7 +216,7 @@ pthread_create(sp_pthread_t *thread, const void *attr,
 static int
 pthread_cancel(sp_pthread_t thread)
 {
-	signal(SIGCHLD, sshpam_oldsig);
+	ssh_signal(SIGCHLD, sshpam_oldsig);
 	return (kill(thread, SIGTERM));
 }
 
@@ -228,7 +228,7 @@ pthread_join(sp_pthread_t thread, void **value)
 
 	if (sshpam_thread_status != -1)
 		return (sshpam_thread_status);
-	signal(SIGCHLD, sshpam_oldsig);
+	ssh_signal(SIGCHLD, sshpam_oldsig);
 	while (waitpid(thread, &status, 0) == -1) {
 		if (errno == EINTR)
 			continue;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.251 2019/12/13 19:09:10 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.252 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1404,10 +1404,10 @@ skip:
 	if (ac > 0)
 		parent_alive_interval = 10;
 	idtab_init();
-	signal(SIGPIPE, SIG_IGN);
-	signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
-	signal(SIGHUP, cleanup_handler);
-	signal(SIGTERM, cleanup_handler);
+	ssh_signal(SIGPIPE, SIG_IGN);
+	ssh_signal(SIGINT, (d_flag | D_flag) ? cleanup_handler : SIG_IGN);
+	ssh_signal(SIGHUP, cleanup_handler);
+	ssh_signal(SIGTERM, cleanup_handler);
 
 	if (pledge("stdio rpath cpath unix id proc exec", NULL) == -1)
 		fatal("%s: pledge: %s", __progname, strerror(errno));

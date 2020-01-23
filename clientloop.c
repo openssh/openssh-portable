@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.331 2020/01/23 02:46:49 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.332 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -785,7 +785,7 @@ process_cmdline(struct ssh *ssh)
 	memset(&fwd, 0, sizeof(fwd));
 
 	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
-	handler = signal(SIGINT, SIG_IGN);
+	handler = ssh_signal(SIGINT, SIG_IGN);
 	cmd = s = read_passphrase("\r\nssh> ", RP_ECHO);
 	if (s == NULL)
 		goto out;
@@ -883,7 +883,7 @@ process_cmdline(struct ssh *ssh)
 	}
 
 out:
-	signal(SIGINT, handler);
+	ssh_signal(SIGINT, handler);
 	enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
 	free(cmd);
 	free(fwd.listen_host);
@@ -1306,15 +1306,15 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	 * Set signal handlers, (e.g. to restore non-blocking mode)
 	 * but don't overwrite SIG_IGN, matches behaviour from rsh(1)
 	 */
-	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
-		signal(SIGHUP, signal_handler);
-	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
-		signal(SIGINT, signal_handler);
-	if (signal(SIGQUIT, SIG_IGN) != SIG_IGN)
-		signal(SIGQUIT, signal_handler);
-	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
-		signal(SIGTERM, signal_handler);
-	signal(SIGWINCH, window_change_handler);
+	if (ssh_signal(SIGHUP, SIG_IGN) != SIG_IGN)
+		ssh_signal(SIGHUP, signal_handler);
+	if (ssh_signal(SIGINT, SIG_IGN) != SIG_IGN)
+		ssh_signal(SIGINT, signal_handler);
+	if (ssh_signal(SIGQUIT, SIG_IGN) != SIG_IGN)
+		ssh_signal(SIGQUIT, signal_handler);
+	if (ssh_signal(SIGTERM, SIG_IGN) != SIG_IGN)
+		ssh_signal(SIGTERM, signal_handler);
+	ssh_signal(SIGWINCH, window_change_handler);
 
 	if (have_pty)
 		enter_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
@@ -1413,7 +1413,7 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	/* Terminate the session. */
 
 	/* Stop watching for window change. */
-	signal(SIGWINCH, SIG_DFL);
+	ssh_signal(SIGWINCH, SIG_DFL);
 
 	if ((r = sshpkt_start(ssh, SSH2_MSG_DISCONNECT)) != 0 ||
 	    (r = sshpkt_put_u32(ssh, SSH2_DISCONNECT_BY_APPLICATION)) != 0 ||

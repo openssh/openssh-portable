@@ -103,10 +103,10 @@ openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 		return (-1);
 
 	/* XXX: need to close ptm on error? */
-	old_signal = signal(SIGCHLD, SIG_DFL);
+	old_signal = ssh_signal(SIGCHLD, SIG_DFL);
 	if (grantpt(ptm) < 0)
 		return (-1);
-	signal(SIGCHLD, old_signal);
+	ssh_signal(SIGCHLD, old_signal);
 
 	if (unlockpt(ptm) < 0)
 		return (-1);

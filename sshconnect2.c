@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.316 2020/01/23 02:46:49 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.317 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -1924,7 +1924,7 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 		error("%s: fork: %s", __func__, strerror(errno));
 		return -1;
 	}
-	osigchld = signal(SIGCHLD, SIG_DFL);
+	osigchld = ssh_signal(SIGCHLD, SIG_DFL);
 	if (pid == 0) {
 		close(from[0]);
 		if (dup2(from[1], STDOUT_FILENO) == -1)
@@ -1996,11 +1996,11 @@ ssh_keysign(struct ssh *ssh, struct sshkey *key, u_char **sigp, size_t *lenp,
 	if ((r = sshbuf_get_string(b, sigp, lenp)) != 0) {
 		error("%s: buffer error: %s", __func__, ssh_err(r));
  fail:
-		signal(SIGCHLD, osigchld);
+		ssh_signal(SIGCHLD, osigchld);
 		sshbuf_free(b);
 		return -1;
 	}
-	signal(SIGCHLD, osigchld);
+	ssh_signal(SIGCHLD, osigchld);
 	sshbuf_free(b);
 
 	return 0;

@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.320 2020/01/23 02:46:49 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.321 2020/01/23 07:10:22 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -528,7 +528,7 @@ execute_in_shell(const char *cmd)
 		execv(argv[0], argv);
 		error("Unable to execute '%.100s': %s", cmd, strerror(errno));
 		/* Die with signal to make this error apparent to parent. */
-		signal(SIGTERM, SIG_DFL);
+		ssh_signal(SIGTERM, SIG_DFL);
 		kill(getpid(), SIGTERM);
 		_exit(1);
 	}
