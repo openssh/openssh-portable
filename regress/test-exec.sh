@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.70 2020/01/21 08:06:27 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.71 2020/01/23 03:42:41 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -444,6 +444,29 @@ EOF
 # be abused to locally escalate privileges.
 if [ ! -z "$TEST_SSH_UNSAFE_PERMISSIONS" ]; then
 	echo "StrictModes no" >> $OBJ/sshd_config
+else
+	# check and warn if excessive permissions are likely to cause failures.
+	unsafe=""
+	dir="${OBJ}"
+	while test ${dir} != "/"; do
+		perms=`ls -ld ${dir}`
+		case "${perms}" in
+			?????w????*|????????w?*) unsafe="${unsafe} ${dir}" ;;
+		esac
+		dir=`dirname ${dir}`
+	done
+	if ! test  -z "${unsafe}"; then
+		cat <<EOD
+
+WARNING: Unsafe (group or world writable) directory permissions found:
+${unsafe}
+
+These could be abused to locally escalate privileges.  If you are
+sure that this is not a risk (eg there are no other users), you can
+bypass this check by setting TEST_SSH_UNSAFE_PERMISSIONS=1
+
+EOD
+	fi
 fi
 
 if [ ! -z "$TEST_SSH_SSHD_CONFOPTS" ]; then
