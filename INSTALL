@@ -7,17 +7,16 @@ options.  Some notes about specific compilers:
  - clang: -ftrapv and -sanitize=integer require the compiler-rt runtime
   (CC=clang LDFLAGS=--rtlib=compiler-rt ./configure)
 
-You will need a working installation of zlib:
-
-Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
-http://www.gzip.org/zlib/
-
 To support Privilege Separation (which is now required) you will need
 to create the user, group and directory used by sshd for privilege
 separation.  See README.privsep for details.
 
 
 The remaining items are optional.
+
+A working installation of zlib:
+Zlib 1.1.4 or 1.2.1.2 or greater (earlier 1.2.x versions have problems):
+http://www.gzip.org/zlib/
 
 libcrypto from either of LibreSSL or OpenSSL.  Building without libcrypto
 is supported but severely restricts the avilable ciphers and algorithms.
