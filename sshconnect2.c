@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.315 2020/01/21 05:56:27 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.316 2020/01/23 02:46:49 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -119,7 +119,7 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port)
 	for (i = 0; i < options.num_system_hostfiles; i++)
 		load_hostkeys(hostkeys, hostname, options.system_hostfiles[i]);
 
-	oavail = avail = xstrdup(KEX_DEFAULT_PK_ALG);
+	oavail = avail = xstrdup(kex_default_pk_alg());
 	maxlen = strlen(avail) + 1;
 	first = xmalloc(maxlen);
 	last = xmalloc(maxlen);
@@ -181,14 +181,14 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 	if (options.hostkeyalgorithms != NULL) {
 		all_key = sshkey_alg_list(0, 0, 1, ',');
 		if (kex_assemble_names(&options.hostkeyalgorithms,
-		    KEX_DEFAULT_PK_ALG, all_key) != 0)
+		    kex_default_pk_alg(), all_key) != 0)
 			fatal("%s: kex_assemble_namelist", __func__);
 		free(all_key);
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    compat_pkalg_proposal(options.hostkeyalgorithms);
 	} else {
 		/* Enforce default */
-		options.hostkeyalgorithms = xstrdup(KEX_DEFAULT_PK_ALG);
+		options.hostkeyalgorithms = xstrdup(kex_default_pk_alg());
 		/* Prefer algorithms that we already have keys for */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    compat_pkalg_proposal(

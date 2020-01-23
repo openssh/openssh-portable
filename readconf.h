@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.h,v 1.131 2019/12/21 02:19:13 djm Exp $ */
+/* $OpenBSD: readconf.h,v 1.132 2020/01/23 02:46:49 dtucker Exp $ */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -199,6 +199,7 @@ typedef struct {
 #define SSH_STRICT_HOSTKEY_YES	2
 #define SSH_STRICT_HOSTKEY_ASK	3
 
+const char *kex_default_pk_alg(void);
 void     initialize_options(Options *);
 void     fill_default_options(Options *);
 void	 fill_default_options_for_canonicalization(Options *);

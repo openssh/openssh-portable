@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.330 2019/12/21 02:19:13 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.331 2020/01/23 02:46:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2046,8 +2046,7 @@ static int
 key_accepted_by_hostkeyalgs(const struct sshkey *key)
 {
 	const char *ktype = sshkey_ssh_name(key);
-	const char *hostkeyalgs = options.hostkeyalgorithms != NULL ?
-	    options.hostkeyalgorithms : KEX_DEFAULT_PK_ALG;
+	const char *hostkeyalgs = options.hostkeyalgorithms;
 
 	if (key == NULL || key->type == KEY_UNSPEC)
 		return 0;
