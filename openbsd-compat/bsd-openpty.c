@@ -65,6 +65,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "misc.h"
+
 #ifndef O_NOCTTY
 #define O_NOCTTY 0
 #endif
@@ -97,7 +99,7 @@ openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 	 */
 	int ptm;
 	char *pts;
-	mysig_t old_signal;
+	sshsig_t old_signal;
 
 	if ((ptm = open("/dev/ptmx", O_RDWR | O_NOCTTY)) == -1)
 		return (-1);

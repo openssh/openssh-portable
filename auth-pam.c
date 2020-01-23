@@ -100,6 +100,7 @@ extern char *__progname;
 #include "servconf.h"
 #include "ssh2.h"
 #include "auth-options.h"
+#include "misc.h"
 #ifdef GSSAPI
 #include "ssh-gss.h"
 #endif
@@ -151,7 +152,7 @@ static struct pam_ctxt *cleanup_ctxt;
  */
 
 static int sshpam_thread_status = -1;
-static mysig_t sshpam_oldsig;
+static sshsig_t sshpam_oldsig;
 
 static void
 sshpam_sigchld_handler(int sig)

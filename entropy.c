@@ -84,7 +84,7 @@ get_random_bytes_prngd(unsigned char *buf, int len,
 	struct sockaddr_storage addr;
 	struct sockaddr_in *addr_in = (struct sockaddr_in *)&addr;
 	struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
-	mysig_t old_sigpipe;
+	sshsig_t old_sigpipe;
 
 	/* Sanity checks */
 	if (socket_path == NULL && tcp_port == 0)
