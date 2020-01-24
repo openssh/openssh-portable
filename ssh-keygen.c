@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.390 2020/01/24 00:27:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.391 2020/01/24 05:33:01 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2774,7 +2774,7 @@ sig_find_principals(const char *signature, const char *allowed_keys) {
 	int r, ret = -1, sigfd = -1;
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
-	char *principals = NULL;
+	char *principals = NULL, *cp, *tmp;
 
 	if ((abuf = sshbuf_new()) == NULL)
 		fatal("%s: sshbuf_new() failed", __func__);
@@ -2806,9 +2806,12 @@ sig_find_principals(const char *signature, const char *allowed_keys) {
 	ret = 0;
 done:
 	if (ret == 0 ) {
-		printf("Found matching principal: %s\n", principals);
+		/* Emit matching principals one per line */
+		tmp = principals;
+		while ((cp = strsep(&tmp, ",")) != NULL && *cp != '\0')
+			puts(cp);
 	} else {
-		printf("Could not find matching principal.\n");
+		fprintf(stderr, "No principal matched.\n");
 	}
 	if (sigfd != -1)
 		close(sigfd);
@@ -3380,13 +3383,13 @@ main(int argc, char **argv)
 				exit(1);
 			}
 			return sig_find_principals(ca_key_path, identity_file);
-		}
-		if (cert_principals == NULL || *cert_principals == '\0') {
-			error("Too few arguments for sign/verify: "
-			    "missing namespace");
-			exit(1);
-		}
-		if (strncmp(sign_op, "sign", 4) == 0) {
+		} else if (strncmp(sign_op, "sign", 4) == 0) {
+			if (cert_principals == NULL ||
+			    *cert_principals == '\0') {
+				error("Too few arguments for sign: "
+				    "missing namespace");
+				exit(1);
+			}
 			if (!have_identity) {
 				error("Too few arguments for sign: "
 				    "missing key");
@@ -3403,6 +3406,12 @@ main(int argc, char **argv)
 			return sig_verify(ca_key_path, cert_principals,
 			    NULL, NULL, NULL);
 		} else if (strncmp(sign_op, "verify", 6) == 0) {
+			if (cert_principals == NULL ||
+			    *cert_principals == '\0') {
+				error("Too few arguments for verify: "
+				    "missing namespace");
+				exit(1);
+			}
 			if (ca_key_path == NULL) {
 				error("Too few arguments for verify: "
 				    "missing signature file");
@@ -3421,6 +3430,7 @@ main(int argc, char **argv)
 			return sig_verify(ca_key_path, cert_principals,
 			    cert_key_id, identity_file, rr_hostname);
 		}
+		error("Unsupported operation for -Y: \"%s\"", sign_op);
 		usage();
 		/* NOTREACHED */
 	}
