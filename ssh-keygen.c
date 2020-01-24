@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.388 2020/01/23 23:31:52 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.389 2020/01/24 00:00:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -401,6 +401,14 @@ do_convert_to_pem(struct sshkey *k)
 	case KEY_RSA:
 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
 			fatal("PEM_write_RSAPublicKey failed");
+		break;
+	case KEY_DSA:
+		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
+			fatal("PEM_write_DSA_PUBKEY failed");
+		break;
+	case KEY_ECDSA:
+		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
+			fatal("PEM_write_EC_PUBKEY failed");
 		break;
 	default:
 		fatal("%s: unsupported key type %s", __func__, sshkey_type(k));
