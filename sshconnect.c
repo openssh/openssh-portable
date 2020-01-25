@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect.c,v 1.327 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: sshconnect.c,v 1.328 2020/01/25 07:17:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1406,8 +1406,8 @@ ssh_local_cmd(const char *args)
 }
 
 void
-maybe_add_key_to_agent(char *authfile, struct sshkey *private,
-    char *comment, char *passphrase)
+maybe_add_key_to_agent(const char *authfile, struct sshkey *private,
+    const char *comment, const char *passphrase)
 {
 	int auth_sock = -1, r;
 	const char *skprovider = NULL;
@@ -1428,7 +1428,8 @@ maybe_add_key_to_agent(char *authfile, struct sshkey *private,
 	}
 	if (sshkey_is_sk(private))
 		skprovider = options.sk_provider;
-	if ((r = ssh_add_identity_constrained(auth_sock, private, comment, 0,
+	if ((r = ssh_add_identity_constrained(auth_sock, private,
+	    comment == NULL ? authfile : comment, 0,
 	    (options.add_keys_to_agent == 3), 0, skprovider)) == 0)
 		debug("identity added to agent: %s", authfile);
 	else
