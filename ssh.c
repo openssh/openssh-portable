@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.514 2020/01/25 00:03:36 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.515 2020/01/25 00:21:08 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1248,7 +1248,7 @@ main(int ac, char **av)
 	    strcmp(options.proxy_command, "-") == 0 &&
 	    options.proxy_use_fdpass)
 		fatal("ProxyCommand=- and ProxyUseFDPass are incompatible");
-	if (options.control_persist &&
+	if (options.control_persist && options.control_path != NULL &&
 	    options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK) {
 		debug("UpdateHostKeys=ask is incompatible with ControlPersist; "
 		    "disabling");
