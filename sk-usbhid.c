@@ -37,9 +37,19 @@
 #include <fido/credman.h>
 
 #ifndef SK_STANDALONE
-#include "log.h"
-#include "xmalloc.h"
-#endif
+# include "log.h"
+# include "xmalloc.h"
+/*
+ * If building as part of OpenSSH, then rename exported functions.
+ * This must be done before including sk-api.h.
+ */
+# define sk_api_version		ssh_sk_api_version
+# define sk_enroll		ssh_sk_enroll
+# define sk_sign		ssh_sk_sign
+# define sk_load_resident_keys	ssh_sk_load_resident_keys
+#endif /* !SK_STANDALONE */
+
+#include "sk-api.h"
 
 /* #define SK_DEBUG 1 */
 
@@ -52,63 +62,6 @@
 		(*pr) = sig->r; \
 		(*ps) = sig->s; \
 	} while (0)
-#endif
-
-#define SK_VERSION_MAJOR	0x00040000 /* current API version */
-
-/* Flags */
-#define SK_USER_PRESENCE_REQD		0x01
-#define SK_USER_VERIFICATION_REQD	0x04
-#define SK_RESIDENT_KEY			0x20
-
-/* Algs */
-#define	SK_ECDSA		0x00
-#define	SK_ED25519		0x01
-
-/* Error codes */
-#define SSH_SK_ERR_GENERAL		-1
-#define SSH_SK_ERR_UNSUPPORTED		-2
-#define SSH_SK_ERR_PIN_REQUIRED		-3
-
-struct sk_enroll_response {
-	uint8_t *public_key;
-	size_t public_key_len;
-	uint8_t *key_handle;
-	size_t key_handle_len;
-	uint8_t *signature;
-	size_t signature_len;
-	uint8_t *attestation_cert;
-	size_t attestation_cert_len;
-};
-
-struct sk_sign_response {
-	uint8_t flags;
-	uint32_t counter;
-	uint8_t *sig_r;
-	size_t sig_r_len;
-	uint8_t *sig_s;
-	size_t sig_s_len;
-};
-
-struct sk_resident_key {
-	uint32_t alg;
-	size_t slot;
-	char *application;
-	struct sk_enroll_response key;
-};
-
-struct sk_option {
-	char *name;
-	char *value;
-	uint8_t required;
-};
-
-/* If building as part of OpenSSH, then rename exported functions */
-#if !defined(SK_STANDALONE)
-#define sk_api_version		ssh_sk_api_version
-#define sk_enroll		ssh_sk_enroll
-#define sk_sign			ssh_sk_sign
-#define sk_load_resident_keys	ssh_sk_load_resident_keys
 #endif
 
 /* Return the version of the middleware API */
@@ -161,7 +114,7 @@ skdebug(const char *func, const char *fmt, ...)
 uint32_t
 sk_api_version(void)
 {
-	return SK_VERSION_MAJOR;
+	return SSH_SK_VERSION_MAJOR;
 }
 
 /* Select the first identified FIDO device attached to the system */
@@ -426,10 +379,10 @@ pack_public_key(uint32_t alg, const fido_cred_t *cred,
 {
 	switch(alg) {
 #ifdef WITH_OPENSSL
-	case SK_ECDSA:
+	case SSH_SK_ECDSA:
 		return pack_public_key_ecdsa(cred, response);
 #endif /* WITH_OPENSSL */
-	case SK_ED25519:
+	case SSH_SK_ED25519:
 		return pack_public_key_ed25519(cred, response);
 	default:
 		return -1;
@@ -441,6 +394,7 @@ fidoerr_to_skerr(int fidoerr)
 {
 	switch (fidoerr) {
 	case FIDO_ERR_UNSUPPORTED_OPTION:
+	case FIDO_ERR_UNSUPPORTED_ALGORITHM:
 		return SSH_SK_ERR_UNSUPPORTED;
 	case FIDO_ERR_PIN_REQUIRED:
 	case FIDO_ERR_PIN_INVALID:
@@ -516,11 +470,11 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	*enroll_response = NULL;
 	switch(alg) {
 #ifdef WITH_OPENSSL
-	case SK_ECDSA:
+	case SSH_SK_ECDSA:
 		cose_alg = COSE_ES256;
 		break;
 #endif /* WITH_OPENSSL */
-	case SK_ED25519:
+	case SSH_SK_ED25519:
 		cose_alg = COSE_EDDSA;
 		break;
 	default:
@@ -528,6 +482,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		goto out;
 	}
 	if (device == NULL && (device = pick_first_device()) == NULL) {
+		ret = SSH_SK_ERR_DEVICE_NOT_FOUND;
 		skdebug(__func__, "pick_first_device failed");
 		goto out;
 	}
@@ -546,7 +501,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 		    fido_strerr(r));
 		goto out;
 	}
-	if ((r = fido_cred_set_rk(cred, (flags & SK_RESIDENT_KEY) != 0 ?
+	if ((r = fido_cred_set_rk(cred, (flags & SSH_SK_RESIDENT_KEY) != 0 ?
 	    FIDO_OPT_TRUE : FIDO_OPT_OMIT)) != FIDO_OK) {
 		skdebug(__func__, "fido_cred_set_rk: %s", fido_strerr(r));
 		goto out;
@@ -717,10 +672,10 @@ pack_sig(uint32_t  alg, fido_assert_t *assert,
 {
 	switch(alg) {
 #ifdef WITH_OPENSSL
-	case SK_ECDSA:
+	case SSH_SK_ECDSA:
 		return pack_sig_ecdsa(assert, response);
 #endif /* WITH_OPENSSL */
-	case SK_ED25519:
+	case SSH_SK_ED25519:
 		return pack_sig_ed25519(assert, response);
 	default:
 		return -1;
@@ -804,7 +759,7 @@ sk_sign(uint32_t alg, const uint8_t *message, size_t message_len,
 		goto out;
 	}
 	if ((r = fido_assert_set_up(assert,
-	    (flags & SK_USER_PRESENCE_REQD) ?
+	    (flags & SSH_SK_USER_PRESENCE_REQD) ?
 	    FIDO_OPT_TRUE : FIDO_OPT_FALSE)) != FIDO_OK) {
 		skdebug(__func__, "fido_assert_set_up: %s", fido_strerr(r));
 		goto out;
@@ -951,15 +906,15 @@ read_rks(const char *devpath, const char *pin,
 
 			switch (fido_cred_type(cred)) {
 			case COSE_ES256:
-				srk->alg = SK_ECDSA;
+				srk->alg = SSH_SK_ECDSA;
 				break;
 			case COSE_EDDSA:
-				srk->alg = SK_ED25519;
+				srk->alg = SSH_SK_ED25519;
 				break;
 			default:
 				skdebug(__func__, "unsupported key type %d",
 				    fido_cred_type(cred));
-				goto out;
+				goto out; /* XXX free rk and continue */
 			}
 
 			if ((r = pack_public_key(srk->alg, cred,

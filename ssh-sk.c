@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.24 2020/01/06 02:00:47 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.25 2020/01/25 23:13:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -338,6 +338,8 @@ skerr_to_ssherr(int skerr)
 		return SSH_ERR_FEATURE_UNSUPPORTED;
 	case SSH_SK_ERR_PIN_REQUIRED:
 		return SSH_ERR_KEY_WRONG_PASSPHRASE;
+	case SSH_SK_ERR_DEVICE_NOT_FOUND:
+		return SSH_ERR_DEVICE_NOT_FOUND;
 	case SSH_SK_ERR_GENERAL:
 	default:
 		return SSH_ERR_INVALID_FORMAT;
@@ -490,7 +492,7 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 	/* enroll key */
 	if ((r = skp->sk_enroll(alg, challenge, challenge_len, application,
 	    flags, pin, opts, &resp)) != 0) {
-		error("Security key provider \"%s\" returned failure %d",
+		debug("%s: provider \"%s\" returned failure %d", __func__,
 		    provider_path, r);
 		r = skerr_to_ssherr(r);
 		goto out;

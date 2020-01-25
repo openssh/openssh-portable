@@ -249,6 +249,7 @@ The middleware library need only expose a handful of functions:
 	#define SSH_SK_ERR_GENERAL		-1
 	#define SSH_SK_ERR_UNSUPPORTED		-2
 	#define SSH_SK_ERR_PIN_REQUIRED		-3
+	#define SSH_SK_ERR_DEVICE_NOT_FOUND	-4
 
 	struct sk_enroll_response {
 		uint8_t *public_key;

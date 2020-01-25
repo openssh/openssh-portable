@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk-helper.c,v 1.8 2020/01/10 23:43:26 djm Exp $ */
+/* $OpenBSD: ssh-sk-helper.c,v 1.9 2020/01/25 23:13:09 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -63,7 +63,7 @@ reply_error(int r, char *fmt, ...)
 	va_start(ap, fmt);
 	xvasprintf(&msg, fmt, ap);
 	va_end(ap);
-	error("%s: %s", __progname, msg);
+	debug("%s: %s", __progname, msg);
 	free(msg);
 
 	if (r >= 0)
