@@ -406,10 +406,12 @@ do_convert_to_pem(struct sshkey *k)
 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
 			fatal("PEM_write_DSA_PUBKEY failed");
 		break;
+#ifdef OPENSSL_HAS_ECC
 	case KEY_ECDSA:
 		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
 			fatal("PEM_write_EC_PUBKEY failed");
 		break;
+#endif
 	default:
 		fatal("%s: unsupported key type %s", __func__, sshkey_type(k));
 	}
