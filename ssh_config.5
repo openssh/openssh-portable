@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.317 2020/01/25 07:09:14 tedu Exp $
+.\" $OpenBSD: ssh_config.5,v 1.318 2020/01/25 23:33:27 djm Exp $
 .Dd $Mdocdate: January 25 2020 $
 .Dt SSH_CONFIG 5
 .Os
@@ -264,9 +264,11 @@ Valid arguments are
 .It Cm BatchMode
 If set to
 .Cm yes ,
-passphrase/password querying will be disabled.
+user interaction such as password prompts and host key confirmation requests
+will be disabled.
 This option is useful in scripts and other batch jobs where no user
-is present to supply the password.
+is present to interact with
+.Xr ssh 1 .
 The argument must be
 .Cm yes
 or
