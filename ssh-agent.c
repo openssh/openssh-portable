@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.253 2020/01/25 00:03:36 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.254 2020/01/25 00:06:48 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -430,6 +430,7 @@ process_add_identity(SocketEntry *e)
 	int success = 0, confirm = 0;
 	u_int seconds, maxsign;
 	char *fp, *comment = NULL, *ext_name = NULL, *sk_provider = NULL;
+	char canonical_provider[PATH_MAX];
 	time_t death = 0;
 	struct sshkey *k = NULL;
 	u_char ctype;
@@ -514,14 +515,25 @@ process_add_identity(SocketEntry *e)
 			free(sk_provider);
 			goto send;
 		}
-		if (strcasecmp(sk_provider, "internal") == 0)
+		if (strcasecmp(sk_provider, "internal") == 0) {
 			debug("%s: internal provider", __func__);
-		else if (match_pattern_list(sk_provider,
-		    provider_whitelist, 0) != 1) {
-			error("Refusing add key: provider %s not whitelisted",
-			    sk_provider);
+		} else {
+			if (realpath(sk_provider, canonical_provider) == NULL) {
+				verbose("failed provider \"%.100s\": "
+				    "realpath: %s", sk_provider,
+				    strerror(errno));
+				free(sk_provider);
+				goto send;
+			}
 			free(sk_provider);
-			goto send;
+			sk_provider = xstrdup(canonical_provider);
+			if (match_pattern_list(sk_provider,
+			    provider_whitelist, 0) != 1) {
+				error("Refusing add key: "
+				    "provider %s not whitelisted", sk_provider);
+				free(sk_provider);
+				goto send;
+			}
 		}
 	}
 	if ((r = sshkey_shield_private(k)) != 0) {
