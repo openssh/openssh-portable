@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.392 2020/01/25 00:03:36 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.393 2020/01/25 23:02:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2189,15 +2189,10 @@ static void
 load_krl(const char *path, struct ssh_krl **krlp)
 {
 	struct sshbuf *krlbuf;
-	int r, fd;
+	int r;
 
-	if ((krlbuf = sshbuf_new()) == NULL)
-		fatal("sshbuf_new failed");
-	if ((fd = open(path, O_RDONLY)) == -1)
-		fatal("open %s: %s", path, strerror(errno));
-	if ((r = sshkey_load_file(fd, krlbuf)) != 0)
+	if ((r = sshbuf_load_file(path, &krlbuf)) != 0)
 		fatal("Unable to load KRL: %s", ssh_err(r));
-	close(fd);
 	/* XXX check sigs */
 	if ((r = ssh_krl_from_blob(krlbuf, krlp, NULL, 0)) != 0 ||
 	    *krlp == NULL)
@@ -2399,7 +2394,7 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 	struct ssh_krl *krl;
 	struct stat sb;
 	struct sshkey *ca = NULL;
-	int fd, i, r, wild_ca = 0;
+	int i, r, wild_ca = 0;
 	char *tmp;
 	struct sshbuf *kbuf;
 
@@ -2441,12 +2436,8 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 		fatal("sshbuf_new failed");
 	if (ssh_krl_to_blob(krl, kbuf, NULL, 0) != 0)
 		fatal("Couldn't generate KRL");
-	if ((fd = open(identity_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1)
-		fatal("open %s: %s", identity_file, strerror(errno));
-	if (atomicio(vwrite, fd, sshbuf_mutable_ptr(kbuf), sshbuf_len(kbuf)) !=
-	    sshbuf_len(kbuf))
+	if ((r = sshbuf_write_file(identity_file, kbuf)) != 0)
 		fatal("write %s: %s", identity_file, strerror(errno));
-	close(fd);
 	sshbuf_free(kbuf);
 	ssh_krl_free(krl);
 	sshkey_free(ca);
@@ -2691,25 +2682,18 @@ static int
 sig_verify(const char *signature, const char *sig_namespace,
     const char *principal, const char *allowed_keys, const char *revoked_keys)
 {
-	int r, ret = -1, sigfd = -1;
+	int r, ret = -1;
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
 	char *fp = NULL;
 	struct sshkey_sig_details *sig_details = NULL;
 
 	memset(&sig_details, 0, sizeof(sig_details));
-	if ((abuf = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new() failed", __func__);
-
-	if ((sigfd = open(signature, O_RDONLY)) < 0) {
-		error("Couldn't open signature file %s", signature);
-		goto done;
-	}
-
-	if ((r = sshkey_load_file(sigfd, abuf)) != 0) {
+	if ((r = sshbuf_load_file(signature, &abuf)) != 0) {
 		error("Couldn't read signature file: %s", ssh_err(r));
 		goto done;
 	}
+
 	if ((r = sshsig_dearmor(abuf, &sigbuf)) != 0) {
 		error("%s: sshsig_armor: %s", __func__, ssh_err(r));
 		goto done;
@@ -2765,8 +2749,6 @@ done:
 			printf("Could not verify signature.\n");
 		}
 	}
-	if (sigfd != -1)
-		close(sigfd);
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
 	sshkey_free(sign_key);
@@ -2777,20 +2759,12 @@ done:
 
 static int
 sig_find_principals(const char *signature, const char *allowed_keys) {
-	int r, ret = -1, sigfd = -1;
+	int r, ret = -1;
 	struct sshbuf *sigbuf = NULL, *abuf = NULL;
 	struct sshkey *sign_key = NULL;
 	char *principals = NULL, *cp, *tmp;
 
-	if ((abuf = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new() failed", __func__);
-
-	if ((sigfd = open(signature, O_RDONLY)) < 0) {
-		error("Couldn't open signature file %s", signature);
-		goto done;
-	}
-
-	if ((r = sshkey_load_file(sigfd, abuf)) != 0) {
+	if ((r = sshbuf_load_file(signature, &abuf)) != 0) {
 		error("Couldn't read signature file: %s", ssh_err(r));
 		goto done;
 	}
@@ -2819,8 +2793,6 @@ done:
 	} else {
 		fprintf(stderr, "No principal matched.\n");
 	}
-	if (sigfd != -1)
-		close(sigfd);
 	sshbuf_free(sigbuf);
 	sshbuf_free(abuf);
 	sshkey_free(sign_key);

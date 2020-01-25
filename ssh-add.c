@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.150 2020/01/17 20:13:47 naddy Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.151 2020/01/25 23:02:13 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -224,9 +224,7 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 			return -1;
 		}
 	}
-	if ((keyblob = sshbuf_new()) == NULL)
-		fatal("%s: sshbuf_new failed", __func__);
-	if ((r = sshkey_load_file(fd, keyblob)) != 0) {
+	if ((r = sshbuf_load_fd(fd, &keyblob)) != 0) {
 		fprintf(stderr, "Error loading key \"%s\": %s\n",
 		    filename, ssh_err(r));
 		sshbuf_free(keyblob);
