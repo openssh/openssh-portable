@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.252 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.253 2020/01/25 00:03:36 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -633,6 +633,7 @@ static void
 process_add_smartcard_key(SocketEntry *e)
 {
 	char *provider = NULL, *pin = NULL, canonical_provider[PATH_MAX];
+	char **comments = NULL;
 	int r, i, count = 0, success = 0, confirm = 0;
 	u_int seconds;
 	time_t death = 0;
@@ -682,28 +683,34 @@ process_add_smartcard_key(SocketEntry *e)
 	if (lifetime && !death)
 		death = monotime() + lifetime;
 
-	count = pkcs11_add_provider(canonical_provider, pin, &keys);
+	count = pkcs11_add_provider(canonical_provider, pin, &keys, &comments);
 	for (i = 0; i < count; i++) {
 		k = keys[i];
 		if (lookup_identity(k) == NULL) {
 			id = xcalloc(1, sizeof(Identity));
 			id->key = k;
+			keys[i] = NULL; /* transferred */
 			id->provider = xstrdup(canonical_provider);
-			id->comment = xstrdup(canonical_provider); /* XXX */
+			if (*comments[i] != '\0') {
+				id->comment = comments[i];
+				comments[i] = NULL; /* transferred */
+			} else {
+				id->comment = xstrdup(canonical_provider);
+			}
 			id->death = death;
 			id->confirm = confirm;
 			TAILQ_INSERT_TAIL(&idtab->idlist, id, next);
 			idtab->nentries++;
 			success = 1;
-		} else {
-			sshkey_free(k);
 		}
-		keys[i] = NULL;
+		sshkey_free(keys[i]);
+		free(comments[i]);
 	}
 send:
 	free(pin);
 	free(provider);
 	free(keys);
+	free(comments);
 	send_status(e, success);
 }
 
