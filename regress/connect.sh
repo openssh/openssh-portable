@@ -1,9 +1,7 @@
-#	$OpenBSD: connect.sh,v 1.7 2020/01/24 10:08:17 dtucker Exp $
+#	$OpenBSD: connect.sh,v 1.8 2020/01/25 02:57:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="simple connect"
-
-NC=nc
 
 start_sshd
 

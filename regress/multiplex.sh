@@ -1,12 +1,10 @@
-#	$OpenBSD: multiplex.sh,v 1.31 2020/01/25 00:27:56 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.32 2020/01/25 02:57:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 make_tmpdir
 CTL=${SSH_REGRESS_TMP}/ctl-sock
 
 tid="connection multiplexing"
-
-NC=$OBJ/netcat
 
 trace "will use ProxyCommand $proxycmd"
 if config_defined DISABLE_FD_PASSING ; then

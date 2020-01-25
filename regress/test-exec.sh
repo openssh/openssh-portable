@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.73 2020/01/24 01:29:23 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.74 2020/01/25 02:57:53 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -79,6 +79,9 @@ SSH_REGRESS_TMP=
 PLINK=plink
 PUTTYGEN=puttygen
 CONCH=conch
+
+# Tools used by multiple tests
+NC=$OBJ/netcat
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
