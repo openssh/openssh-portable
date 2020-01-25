@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.300 2020/01/25 07:09:14 tedu Exp $
+.\" $OpenBSD: sshd_config.5,v 1.301 2020/01/25 22:36:22 djm Exp $
 .Dd $Mdocdate: January 25 2020 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -113,11 +113,8 @@ If specified, login is allowed only for users whose primary
 group or supplementary group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
-The allow/deny directives are processed in the following order:
-.Cm DenyUsers ,
-.Cm AllowUsers ,
+The allow/deny groups directives are processed in the following order:
 .Cm DenyGroups ,
-and finally
 .Cm AllowGroups .
 .Pp
 See PATTERNS in
@@ -173,12 +170,9 @@ are separately checked, restricting logins to particular
 users from particular hosts.
 HOST criteria may additionally contain addresses to match in CIDR
 address/masklen format.
-The allow/deny directives are processed in the following order:
+The allow/deny users directives are processed in the following order:
 .Cm DenyUsers ,
-.Cm AllowUsers ,
-.Cm DenyGroups ,
-and finally
-.Cm AllowGroups .
+.Cm AllowUsers .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
@@ -552,11 +546,8 @@ Login is disallowed for users whose primary group or supplementary
 group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
-The allow/deny directives are processed in the following order:
-.Cm DenyUsers ,
-.Cm AllowUsers ,
+The allow/deny groups directives are processed in the following order:
 .Cm DenyGroups ,
-and finally
 .Cm AllowGroups .
 .Pp
 See PATTERNS in
@@ -573,12 +564,9 @@ are separately checked, restricting logins to particular
 users from particular hosts.
 HOST criteria may additionally contain addresses to match in CIDR
 address/masklen format.
-The allow/deny directives are processed in the following order:
+The allow/deny users directives are processed in the following order:
 .Cm DenyUsers ,
-.Cm AllowUsers ,
-.Cm DenyGroups ,
-and finally
-.Cm AllowGroups .
+.Cm AllowUsers .
 .Pp
 See PATTERNS in
 .Xr ssh_config 5
