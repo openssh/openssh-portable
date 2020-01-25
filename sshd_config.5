@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.301 2020/01/25 22:36:22 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.302 2020/01/25 22:41:01 djm Exp $
 .Dd $Mdocdate: January 25 2020 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -519,6 +519,9 @@ is set to 15, and
 .Cm ClientAliveCountMax
 is left at the default, unresponsive SSH clients
 will be disconnected after approximately 45 seconds.
+Setting a zero
+.Cm ClientAliveCountMax
+disables connection termination.
 .It Cm ClientAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
 from the client,
