@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.322 2020/01/23 10:24:29 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.323 2020/01/25 00:22:31 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2171,7 +2171,7 @@ fill_default_options(Options * options)
 	if (options->fingerprint_hash == -1)
 		options->fingerprint_hash = SSH_FP_HASH_DEFAULT;
 	if (options->update_hostkeys == -1)
-		options->update_hostkeys = 0;
+		options->update_hostkeys = SSH_UPDATE_HOSTKEYS_ASK;
 #ifdef ENABLE_SK_INTERNAL
 	if (options->sk_provider == NULL)
 		options->sk_provider = xstrdup("internal");
