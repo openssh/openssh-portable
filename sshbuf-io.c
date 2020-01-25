@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshbuf-io.c,v 1.1 2020/01/25 23:02:14 djm Exp $ */
+/*	$OpenBSD: sshbuf-io.c,v 1.2 2020/01/25 23:28:06 djm Exp $ */
 /*
  * Copyright (c) 2011 Damien Miller
  *
@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "ssherr.h"
-#define SSHBUF_INTERNAL
 #include "sshbuf.h"
 #include "atomicio.h"
 
