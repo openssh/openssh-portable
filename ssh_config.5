@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.314 2020/01/21 12:40:04 naddy Exp $
-.Dd $Mdocdate: January 21 2020 $
+.\" $OpenBSD: ssh_config.5,v 1.315 2020/01/25 07:01:00 djm Exp $
+.Dd $Mdocdate: January 25 2020 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -777,8 +777,8 @@ These hashed names may be used normally by
 .Xr ssh 1
 and
 .Xr sshd 8 ,
-but they do not reveal identifying information should the file's contents
-be disclosed.
+but they do not visually reveal identifying information should the
+file's contents be disclosed.
 The default is
 .Cm no .
 Note that existing names and addresses in known hosts files
