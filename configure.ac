@@ -1564,7 +1564,9 @@ AC_ARG_WITH(ldns,
 			[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 #include <ldns/ldns.h>
 int main() { ldns_status status = ldns_verify_trusted(NULL, NULL, NULL, NULL); status=LDNS_STATUS_OK; exit(0); }
 			]])
@@ -3849,7 +3851,9 @@ fi
 
 AC_CHECK_TYPES([intmax_t, uintmax_t], , , [
 #include <sys/types.h>
-#include <stdint.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
 ])
 
 TYPE_SOCKLEN_T
