@@ -1,6 +1,6 @@
 #	$OpenBSD: Makefile,v 1.8 2020/01/26 00:09:50 djm Exp $
 
-.include <bsd.regress.mk>
+#	$OpenBSD: Makefile,v 1.8 2020/01/26 00:09:50 djm Exp $
 
 PROG=test_sshbuf
 SRCS=tests.c
