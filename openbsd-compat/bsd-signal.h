@@ -19,6 +19,8 @@
 
 #include "includes.h"
 
+#include <signal.h>
+
 #ifndef _NSIG
 # ifdef NSIG
 #  define _NSIG NSIG
