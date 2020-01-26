@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.333 2020/01/25 00:21:08 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.334 2020/01/26 00:13:20 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2172,7 +2172,7 @@ client_input_hostkeys(struct ssh *ssh)
 		    hostkeys_find, ctx, ctx->host_str, ctx->ip_str,
 		    HKF_WANT_PARSE_KEY|HKF_WANT_MATCH)) != 0) {
 			if (r == SSH_ERR_SYSTEM_ERROR && errno == ENOENT) {
-				error("%s: hostkeys file %s does not exist",
+				debug("%s: hostkeys file %s does not exist",
 				    __func__, options.user_hostfiles[i]);
 				continue;
 			}
