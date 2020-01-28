@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.516 2020/01/27 20:51:32 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.517 2020/01/28 07:24:15 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1258,6 +1258,9 @@ main(int ac, char **av)
 		    options.request_tty == REQUEST_TTY_NO) {
 			debug("UpdateHostKeys=ask is incompatible with "
 			    "remote command execution; disabling");
+			options.update_hostkeys = 0;
+		} else if (options.log_level < SYSLOG_LEVEL_INFO) {
+			/* no point logging anything; user won't see it */
 			options.update_hostkeys = 0;
 		}
 	}
