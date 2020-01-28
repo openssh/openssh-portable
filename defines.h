@@ -96,6 +96,9 @@ enum
 #ifndef IPTOS_DSCP_EF
 # define	IPTOS_DSCP_EF		0xb8
 #endif /* IPTOS_DSCP_EF */
+#ifndef IPTOS_DSCP_LE
+# define	IPTOS_DSCP_LE		0x01
+#endif /* IPTOS_DSCP_LE */
 #ifndef IPTOS_PREC_CRITIC_ECP
 # define IPTOS_PREC_CRITIC_ECP		0xa0
 #endif
