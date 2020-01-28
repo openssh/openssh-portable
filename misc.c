@@ -1,4 +1,4 @@
-/* $OpenBSD: misc.c,v 1.145 2020/01/24 23:54:40 djm Exp $ */
+/* $OpenBSD: misc.c,v 1.146 2020/01/28 01:49:36 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
@@ -1559,6 +1559,7 @@ static const struct {
 	{ "cs6", IPTOS_DSCP_CS6 },
 	{ "cs7", IPTOS_DSCP_CS7 },
 	{ "ef", IPTOS_DSCP_EF },
+	{ "le", IPTOS_DSCP_LE },
 	{ "lowdelay", IPTOS_LOWDELAY },
 	{ "throughput", IPTOS_THROUGHPUT },
 	{ "reliability", IPTOS_RELIABILITY },
