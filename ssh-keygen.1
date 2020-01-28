@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.196 2020/01/23 23:31:52 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.197 2020/01/28 08:01:34 djm Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -35,7 +35,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd $Mdocdate: January 23 2020 $
+.Dd $Mdocdate: January 28 2020 $
 .Dt SSH-KEYGEN 1
 .Os
 .Sh NAME
@@ -483,6 +483,14 @@ Note that
 .Xr sshd 8
 will refuse such signatures by default, unless overridden via
 an authorized_keys option.
+.It Cm challenge=path
+Specifies a path to a challenge string that will be passed to the
+FIDO token during key generation.
+The challenge string is optional, but may be used as part of an out-of-band
+protocol for key enrollment.
+If no
+.Cm challenge
+is specified, a random challenge is used.
 .It Cm resident
 Indicate that the key should be stored on the FIDO authenticator itself.
 Resident keys may be supported on FIDO2 tokens and typically require that
@@ -494,6 +502,10 @@ A username to be associated with a resident key,
 overriding the empty default username.
 Specifying a username may be useful when generating multiple resident keys
 for the same application name.
+.It Cm write-attestation=path
+May be used at key generation time to record the attestation certificate
+returned from FIDO tokens during key generation.
+By default this information is discarded.
 .El
 .Pp
 The

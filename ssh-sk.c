@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.25 2020/01/25 23:13:09 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.26 2020/01/28 08:01:34 djm Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -504,14 +504,14 @@ sshsk_enroll(int type, const char *provider_path, const char *device,
 
 	/* Optionally fill in the attestation information */
 	if (attest != NULL) {
-		if ((r = sshbuf_put_cstring(attest, "sk-attest-v00")) != 0 ||
-		    (r = sshbuf_put_u32(attest, 1)) != 0 || /* XXX U2F ver */
+		if ((r = sshbuf_put_cstring(attest,
+		    "ssh-sk-attest-v00")) != 0 ||
 		    (r = sshbuf_put_string(attest,
 		    resp->attestation_cert, resp->attestation_cert_len)) != 0 ||
 		    (r = sshbuf_put_string(attest,
 		    resp->signature, resp->signature_len)) != 0 ||
-		    (r = sshbuf_put_u32(attest, flags)) != 0 || /* XXX right? */
-		    (r = sshbuf_put_string(attest, NULL, 0)) != 0) {
+		    (r = sshbuf_put_u32(attest, 0)) != 0 || /* resvd flags */
+		    (r = sshbuf_put_string(attest, NULL, 0)) != 0 /* resvd */) {
 			error("%s: buffer error: %s", __func__, ssh_err(r));
 			goto out;
 		}

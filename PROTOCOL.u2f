@@ -141,17 +141,20 @@ least manufacturer and batch number granularity. For this reason, we
 choose not to include this information in the public key or save it by
 default.
 
-Attestation information is very useful however in an organisational
-context, where it may be used by a CA as part of certificate
-issuance. In this case, exposure to the CA of hardware identity is
-desirable. To support this case, OpenSSH optionally allows retaining the
-attestation information at the time of key generation. It will take the
-following format:
+Attestation information is useful for out-of-band key and certificate
+registration worksflows, e.g. proving to a CA that a key is backed
+by trusted hardware before it will issue a certificate. To support this
+case, OpenSSH optionally allows retaining the attestation information
+at the time of key generation. It will take the following format:
 
-	string		"sk-attest-v00"
-	uint32		version		(1 for U2F, 2 for FIDO2 in future)
+	string		"ssh-sk-attest-v00"
 	string		attestation certificate
 	string		enrollment signature
+	uint32		reserved flags
+	string		reserved string
+
+OpenSSH treats the attestation certificate and enrollment signatures as
+opaque objects and does no interpretation of them itself.
 
 SSH U2F signatures
 ------------------

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.394 2020/01/25 23:13:09 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.395 2020/01/28 08:01:34 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3114,6 +3114,8 @@ main(int argc, char **argv)
 	unsigned long long cert_serial = 0;
 	char *identity_comment = NULL, *ca_key_path = NULL, **opts = NULL;
 	char *sk_application = NULL, *sk_device = NULL, *sk_user = NULL;
+	char *sk_attestaion_path = NULL;
+	struct sshbuf *challenge = NULL, *attest = NULL;
 	size_t i, nopts = 0;
 	u_int32_t bits = 0;
 	uint8_t sk_flags = SSH_SK_USER_PRESENCE_REQD;
@@ -3557,6 +3559,16 @@ main(int argc, char **argv)
 				sk_device = xstrdup(opts[i] + 7);
 			} else if (strncasecmp(opts[i], "user=", 5) == 0) {
 				sk_user = xstrdup(opts[i] + 5);
+			} else if (strncasecmp(opts[i], "challenge=", 10) == 0) {
+				if ((r = sshbuf_load_file(opts[i] + 10,
+				    &challenge)) != 0) {
+					fatal("Unable to load FIDO enrollment "
+					    "challenge \"%s\": %s",
+					    opts[i] + 10, ssh_err(r));
+				}
+			} else if (strncasecmp(opts[i],
+			    "write-attestation=", 18) == 0) {
+				sk_attestaion_path = opts[i] + 18;
 			} else if (strncasecmp(opts[i],
 			    "application=", 12) == 0) {
 				sk_application = xstrdup(opts[i] + 12);
@@ -3570,12 +3582,14 @@ main(int argc, char **argv)
 			    "to authorize key generation.\n");
 		}
 		passphrase = NULL;
+		if ((attest = sshbuf_new()) == NULL)
+			fatal("sshbuf_new failed");
 		for (i = 0 ; i < 3; i++) {
 			fflush(stdout);
 			r = sshsk_enroll(type, sk_provider, sk_device,
 			    sk_application == NULL ? "ssh:" : sk_application,
-			    sk_user, sk_flags, passphrase, NULL,
-			    &private, NULL);
+			    sk_user, sk_flags, passphrase, challenge,
+			    &private, attest);
 			if (r == 0)
 				break;
 			if (r != SSH_ERR_KEY_WRONG_PASSPHRASE)
@@ -3668,6 +3682,22 @@ main(int argc, char **argv)
 		free(fp);
 	}
 
+	if (sk_attestaion_path != NULL) {
+		if (attest == NULL || sshbuf_len(attest) == 0) {
+			fatal("Enrollment did not return attestation "
+			    "certificate");
+		}
+		if ((r = sshbuf_write_file(sk_attestaion_path, attest)) != 0) {
+			fatal("Unable to write attestation certificate "
+			    "\"%s\": %s", sk_attestaion_path, ssh_err(r));
+		}
+		if (!quiet) {
+			printf("Your FIDO attestation certificate has been "
+			    "saved in %s\n", sk_attestaion_path);
+		}
+	}
+	sshbuf_free(attest);
 	sshkey_free(public);
+
 	exit(0);
 }
