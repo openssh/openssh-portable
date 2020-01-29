@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.336 2020/01/29 07:51:30 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.337 2020/01/29 08:17:49 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1888,11 +1888,8 @@ hostkeys_find(struct hostkey_foreach_line *l, void *_ctx)
 }
 
 static void
-hostkey_change_preamble(void)
+hostkey_change_preamble(LogLevel loglevel)
 {
-	LogLevel loglevel = options.update_hostkeys == SSH_UPDATE_HOSTKEYS_ASK ?
-	    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_VERBOSE;
-
 	do_log2(loglevel, "The server has updated its host keys.");
 	do_log2(loglevel, "These changes were verified by the server's "
 	    "existing trusted key.");
@@ -1915,7 +1912,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal("%s: sshkey_fingerprint failed", __func__);
 		if (first && asking)
-			hostkey_change_preamble();
+			hostkey_change_preamble(loglevel);
 		do_log2(loglevel, "Learned new hostkey: %s %s",
 		    sshkey_type(ctx->keys[i]), fp);
 		first = 0;
@@ -1926,7 +1923,7 @@ update_known_hosts(struct hostkeys_update_ctx *ctx)
 		    options.fingerprint_hash, SSH_FP_DEFAULT)) == NULL)
 			fatal("%s: sshkey_fingerprint failed", __func__);
 		if (first && asking)
-			hostkey_change_preamble();
+			hostkey_change_preamble(loglevel);
 		do_log2(loglevel, "Deprecating obsolete hostkey: %s %s",
 		    sshkey_type(ctx->old_keys[i]), fp);
 		first = 0;
