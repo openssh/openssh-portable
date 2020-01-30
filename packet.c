@@ -1,4 +1,4 @@
-/* $OpenBSD: packet.c,v 1.289 2020/01/23 10:53:04 dtucker Exp $ */
+/* $OpenBSD: packet.c,v 1.290 2020/01/30 07:20:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1850,6 +1850,7 @@ static void
 sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 {
 	char *tag = NULL, remote_id[512];
+	int oerrno = errno;
 
 	sshpkt_fmt_connection_id(ssh, remote_id, sizeof(remote_id));
 
@@ -1877,6 +1878,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	case SSH_ERR_NO_HOSTKEY_ALG_MATCH:
 		if (ssh && ssh->kex && ssh->kex->failed_choice) {
 			ssh_packet_clear_keys(ssh);
+			errno = oerrno;
 			logdie("Unable to negotiate with %s: %s. "
 			    "Their offer: %s", remote_id, ssh_err(r),
 			    ssh->kex->failed_choice);
@@ -1889,6 +1891,7 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 			    __func__);
 		}
 		ssh_packet_clear_keys(ssh);
+		errno = oerrno;
 		logdie("%s%sConnection %s %s: %s",
 		    tag != NULL ? tag : "", tag != NULL ? ": " : "",
 		    ssh->state->server_side ? "from" : "to",
