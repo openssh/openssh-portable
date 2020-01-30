@@ -1,4 +1,4 @@
-/* $OpenBSD: serverloop.c,v 1.221 2020/01/25 22:41:01 djm Exp $ */
+/* $OpenBSD: serverloop.c,v 1.222 2020/01/30 07:21:38 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -359,9 +359,10 @@ process_output(struct ssh *ssh, fd_set *writeset, int connection_out)
 
 	/* Send any buffered packet data to the client. */
 	if (FD_ISSET(connection_out, writeset)) {
-		if ((r = ssh_packet_write_poll(ssh)) != 0)
-			fatal("%s: ssh_packet_write_poll: %s",
-			    __func__, ssh_err(r));
+		if ((r = ssh_packet_write_poll(ssh)) != 0) {
+			sshpkt_fatal(ssh, r, "%s: ssh_packet_write_poll",
+			    __func__);
+		}
 	}
 }
 
