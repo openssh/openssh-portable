@@ -3664,6 +3664,9 @@ AC_CHECK_DECLS([UINT32_MAX], , , [[
 #ifdef HAVE_SYS_LIMITS_H
 # include <sys/limits.h>
 #endif
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
