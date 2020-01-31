@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.74 2020/01/25 02:57:53 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.75 2020/01/31 23:25:08 djm Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -239,6 +239,7 @@ echo "exec ${SSH} -E${TEST_SSH_LOGFILE} "'"$@"' >>$SSHLOGWRAP
 
 chmod a+rx $OBJ/ssh-log-wrapper.sh
 REAL_SSH="$SSH"
+REAL_SSHD="$SSHD"
 SSH="$SSHLOGWRAP"
 
 # Some test data.  We make a copy because some tests will overwrite it.
