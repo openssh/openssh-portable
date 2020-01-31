@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.359 2020/01/23 10:24:29 dtucker Exp $ */
+/* $OpenBSD: servconf.c,v 1.360 2020/01/31 22:42:45 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -40,6 +40,11 @@
 #ifdef HAVE_UTIL_H
 #include <util.h>
 #endif
+#ifdef USE_SYSTEM_GLOB
+# include <glob.h>
+#else
+# include "openbsd-compat/glob.h"
+#endif
 
 #include "openbsd-compat/sys-queue.h"
 #include "xmalloc.h"
@@ -69,6 +74,9 @@ static void add_listen_addr(ServerOptions *, const char *,
     const char *, int);
 static void add_one_listen_addr(ServerOptions *, const char *,
     const char *, int);
+void parse_server_config_depth(ServerOptions *options, const char *filename,
+    struct sshbuf *conf, struct include_list *includes,
+    struct connection_info *connectinfo, int flags, int *activep, int depth);
 
 /* Use of privilege separation or not */
 extern int use_privsep;
@@ -526,7 +534,7 @@ typedef enum {
 	sAcceptEnv, sSetEnv, sPermitTunnel,
 	sMatch, sPermitOpen, sPermitListen, sForceCommand, sChrootDirectory,
 	sUsePrivilegeSeparation, sAllowAgentForwarding,
-	sHostCertificate,
+	sHostCertificate, sInclude,
 	sRevokedKeys, sTrustedUserCAKeys, sAuthorizedPrincipalsFile,
 	sAuthorizedPrincipalsCommand, sAuthorizedPrincipalsCommandUser,
 	sKexAlgorithms, sCASignatureAlgorithms, sIPQoS, sVersionAddendum,
@@ -538,9 +546,10 @@ typedef enum {
 	sDeprecated, sIgnore, sUnsupported
 } ServerOpCodes;
 
-#define SSHCFG_GLOBAL	0x01	/* allowed in main section of sshd_config */
-#define SSHCFG_MATCH	0x02	/* allowed inside a Match section */
-#define SSHCFG_ALL	(SSHCFG_GLOBAL|SSHCFG_MATCH)
+#define SSHCFG_GLOBAL		0x01	/* allowed in main section of config */
+#define SSHCFG_MATCH		0x02	/* allowed inside a Match section */
+#define SSHCFG_ALL		(SSHCFG_GLOBAL|SSHCFG_MATCH)
+#define SSHCFG_NEVERMATCH	0x04  /* Match never matches; internal only */
 
 /* Textual representation of the tokens. */
 static struct {
@@ -669,6 +678,7 @@ static struct {
 	{ "trustedusercakeys", sTrustedUserCAKeys, SSHCFG_ALL },
 	{ "authorizedprincipalsfile", sAuthorizedPrincipalsFile, SSHCFG_ALL },
 	{ "kexalgorithms", sKexAlgorithms, SSHCFG_GLOBAL },
+	{ "include", sInclude, SSHCFG_ALL },
 	{ "ipqos", sIPQoS, SSHCFG_ALL },
 	{ "authorizedkeyscommand", sAuthorizedKeysCommand, SSHCFG_ALL },
 	{ "authorizedkeyscommanduser", sAuthorizedKeysCommandUser, SSHCFG_ALL },
@@ -1240,13 +1250,14 @@ static const struct multistate multistate_tcpfwd[] = {
 	{ NULL, -1 }
 };
 
-int
-process_server_config_line(ServerOptions *options, char *line,
+static int
+process_server_config_line_depth(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
-    struct connection_info *connectinfo)
+    struct connection_info *connectinfo, int inc_flags, int depth,
+    struct include_list *includes)
 {
 	char ch, *cp, ***chararrayptr, **charptr, *arg, *arg2, *p;
-	int cmdline = 0, *intptr, value, value2, n, port;
+	int cmdline = 0, *intptr, value, value2, n, port, oactive, r, found;
 	SyslogFacility *log_facility_ptr;
 	LogLevel *log_level_ptr;
 	ServerOpCodes opcode;
@@ -1255,6 +1266,8 @@ process_server_config_line(ServerOptions *options, char *line,
 	long long val64;
 	const struct multistate *multistate_ptr;
 	const char *errstr;
+	struct include_item *item;
+	glob_t gbuf;
 
 	/* Strip trailing whitespace. Allow \f (form feed) at EOL only */
 	if ((len = strlen(line)) == 0)
@@ -1281,7 +1294,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		cmdline = 1;
 		activep = &cmdline;
 	}
-	if (*activep && opcode != sMatch)
+	if (*activep && opcode != sMatch && opcode != sInclude)
 		debug3("%s:%d setting %s %s", filename, linenum, arg, cp);
 	if (*activep == 0 && !(flags & SSHCFG_MATCH)) {
 		if (connectinfo == NULL) {
@@ -1954,6 +1967,96 @@ process_server_config_line(ServerOptions *options, char *line,
 			*intptr = value;
 		break;
 
+	case sInclude:
+		if (cmdline) {
+			fatal("Include directive not supported as a "
+			    "command-line option");
+		}
+		value = 0;
+		while ((arg2 = strdelim(&cp)) != NULL && *arg2 != '\0') {
+			value++;
+			found = 0;
+			if (*arg2 != '/' && *arg2 != '~') {
+				xasprintf(&arg, "%s/%s", SSHDIR, arg);
+			} else
+				arg = xstrdup(arg2);
+
+			/*
+			 * Don't let included files clobber the containing
+			 * file's Match state.
+			 */
+			oactive = *activep;
+
+			/* consult cache of include files */
+			TAILQ_FOREACH(item, includes, entry) {
+				if (strcmp(item->selector, arg) != 0)
+					continue;
+				if (item->filename != NULL) {
+					parse_server_config_depth(options,
+					    item->filename, item->contents,
+					    includes, connectinfo,
+					    (oactive ? 0 : SSHCFG_NEVERMATCH),
+					    activep, depth + 1);
+				}
+				found = 1;
+				*activep = oactive;
+			}
+			if (found != 0) {
+				free(arg);
+				continue;
+			}
+
+			/* requested glob was not in cache */
+			debug2("%s line %d: new include %s",
+			    filename, linenum, arg);
+			if ((r = glob(arg, 0, NULL, &gbuf)) != 0) {
+				if (r != GLOB_NOMATCH) {
+					fatal("%s line %d: include \"%s\" "
+					    "glob failed", filename,
+					    linenum, arg);
+				}
+				/*
+				 * If no entry matched then record a
+				 * placeholder to skip later glob calls.
+				 */
+				debug2("%s line %d: no match for %s",
+				    filename, linenum, arg);
+				item = xcalloc(1, sizeof(*item));
+				item->selector = strdup(arg);
+				TAILQ_INSERT_TAIL(includes,
+				    item, entry);
+			}
+			if (gbuf.gl_pathc > INT_MAX)
+				fatal("%s: too many glob results", __func__);
+			for (n = 0; n < (int)gbuf.gl_pathc; n++) {
+				debug2("%s line %d: including %s",
+				    filename, linenum, gbuf.gl_pathv[n]);
+				item = xcalloc(1, sizeof(*item));
+				item->selector = strdup(arg);
+				item->filename = strdup(gbuf.gl_pathv[n]);
+				if ((item->contents = sshbuf_new()) == NULL) {
+					fatal("%s: sshbuf_new failed",
+					    __func__);
+				}
+				load_server_config(item->filename,
+				    item->contents);
+				parse_server_config_depth(options,
+				    item->filename, item->contents,
+				    includes, connectinfo,
+				    (oactive ? 0 : SSHCFG_NEVERMATCH),
+				    activep, depth + 1);
+				*activep = oactive;
+				TAILQ_INSERT_TAIL(includes, item, entry);
+			}
+			globfree(&gbuf);
+			free(arg);
+		}
+		if (value == 0) {
+			fatal("%s line %d: Include missing filename argument",
+			    filename, linenum);
+		}
+		break;
+
 	case sMatch:
 		if (cmdline)
 			fatal("Match directive not supported as a command-line "
@@ -1962,7 +2065,7 @@ process_server_config_line(ServerOptions *options, char *line,
 		if (value < 0)
 			fatal("%s line %d: Bad Match condition", filename,
 			    linenum);
-		*activep = value;
+		*activep = (inc_flags & SSHCFG_NEVERMATCH) ? 0 : value;
 		break;
 
 	case sPermitListen:
@@ -2256,6 +2359,16 @@ process_server_config_line(ServerOptions *options, char *line,
 	return 0;
 }
 
+int
+process_server_config_line(ServerOptions *options, char *line,
+    const char *filename, int linenum, int *activep,
+    struct connection_info *connectinfo, struct include_list *includes)
+{
+	return process_server_config_line_depth(options, line, filename,
+	    linenum, activep, connectinfo, 0, 0, includes);
+}
+
+
 /* Reads the server configuration file. */
 
 void
@@ -2294,12 +2407,13 @@ load_server_config(const char *filename, struct sshbuf *conf)
 
 void
 parse_server_match_config(ServerOptions *options,
-   struct connection_info *connectinfo)
+   struct include_list *includes, struct connection_info *connectinfo)
 {
 	ServerOptions mo;
 
 	initialize_server_options(&mo);
-	parse_server_config(&mo, "reprocess config", cfg, connectinfo);
+	parse_server_config(&mo, "reprocess config", cfg, includes,
+	    connectinfo);
 	copy_set_server_options(options, &mo, 0);
 }
 
@@ -2443,22 +2557,27 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 #undef M_CP_STROPT
 #undef M_CP_STRARRAYOPT
 
+#define SERVCONF_MAX_DEPTH	16
 void
-parse_server_config(ServerOptions *options, const char *filename,
-    struct sshbuf *conf, struct connection_info *connectinfo)
+parse_server_config_depth(ServerOptions *options, const char *filename,
+    struct sshbuf *conf, struct include_list *includes,
+    struct connection_info *connectinfo, int flags, int *activep, int depth)
 {
-	int active, linenum, bad_options = 0;
+	int linenum, bad_options = 0;
 	char *cp, *obuf, *cbuf;
+
+	if (depth < 0 || depth > SERVCONF_MAX_DEPTH)
+		fatal("Too many recursive configuration includes");
 
 	debug2("%s: config %s len %zu", __func__, filename, sshbuf_len(conf));
 
 	if ((obuf = cbuf = sshbuf_dup_string(conf)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);
-	active = connectinfo ? 0 : 1;
 	linenum = 1;
 	while ((cp = strsep(&cbuf, "\n")) != NULL) {
-		if (process_server_config_line(options, cp, filename,
-		    linenum++, &active, connectinfo) != 0)
+		if (process_server_config_line_depth(options, cp,
+		    filename, linenum++, activep, connectinfo, flags,
+		    depth, includes) != 0)
 			bad_options++;
 	}
 	free(obuf);
@@ -2466,6 +2585,16 @@ parse_server_config(ServerOptions *options, const char *filename,
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);
 	process_queued_listen_addrs(options);
+}
+
+void
+parse_server_config(ServerOptions *options, const char *filename,
+    struct sshbuf *conf, struct include_list *includes,
+    struct connection_info *connectinfo)
+{
+	int active = connectinfo ? 0 : 1;
+	parse_server_config_depth(options, filename, conf, includes,
+	    connectinfo, 0, &active, 0);
 }
 
 static const char *
