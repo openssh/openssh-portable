@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.320 2020/01/30 22:25:34 djm Exp $
-.Dd $Mdocdate: January 30 2020 $
+.\" $OpenBSD: ssh_config.5,v 1.321 2020/01/31 22:25:59 jmc Exp $
+.Dd $Mdocdate: January 31 2020 $
 .Dt SSH_CONFIG 5
 .Os
 .Sh NAME
@@ -1687,7 +1687,7 @@ Additional hostkeys are only accepted if the key used to authenticate the
 host was already trusted or explicitly accepted by the user.
 .Pp
 .Cm UpdateHostKeys
-is enabled by default if the user has not overriden the default
+is enabled by default if the user has not overridden the default
 .Cm UserKnownHostsFile
 setting, otherwise
 .Cm UpdateHostKeys
