@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.547 2020/01/31 23:08:08 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.548 2020/01/31 23:11:25 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1664,7 +1664,7 @@ main(int ac, char **av)
 	    SYSLOG_LEVEL_INFO : options.log_level,
 	    options.log_facility == SYSLOG_FACILITY_NOT_SET ?
 	    SYSLOG_FACILITY_AUTH : options.log_facility,
-	    log_stderr || !inetd_flag);
+	    log_stderr || !inetd_flag || debug_flag);
 
 	/*
 	 * Unset KRB5CCNAME, otherwise the user's session may inherit it from
