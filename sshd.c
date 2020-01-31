@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.548 2020/01/31 23:11:25 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.549 2020/01/31 23:13:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1697,8 +1697,7 @@ main(int ac, char **av)
 			 */
 			(void)atomicio(vwrite, startup_pipe, "\0", 1);
 		}
-	}
-	else if (strcasecmp(config_file_name, "none") != 0)
+	} else if (strcasecmp(config_file_name, "none") != 0)
 		load_server_config(config_file_name, cfg);
 
 	parse_server_config(&options, rexeced_flag ? "rexec" : config_file_name,
