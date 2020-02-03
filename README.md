@@ -27,7 +27,9 @@ Stable release tarballs are available from a number of [download mirrors](https:
 
 ### Dependencies
 
-Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers, and [zlib](https://www.zlib.net/). ``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms. Certain platforms and build-time options may require additional dependencies, see README.platform for details.
+Portable OpenSSH is built using autoconf and make. It requires a working C compiler, standard library and headers, and [zlib](https://www.zlib.net/). ``libcrypto`` from either [LibreSSL](https://www.libressl.org/) or [OpenSSL](https://www.openssl.org) may also be used, but OpenSSH may be built without it supporting a subset of crypto algorithms.
+
+FIDO security token support need [libfido2](https://github.com/Yubico/libfido2) and its dependenciesi. Also, certain platforms and build-time options may require additional dependencies, see README.platform for details.
 
 ### Building a release
 
