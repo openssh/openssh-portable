@@ -188,6 +188,9 @@ static const struct sock_filter preauth_insns[] = {
 #ifdef __NR_clock_gettime
 	SC_ALLOW(__NR_clock_gettime),
 #endif
+#ifdef __NR_clock_gettime64
+	SC_ALLOW(__NR_clock_gettime64),
+#endif
 #ifdef __NR_close
 	SC_ALLOW(__NR_close),
 #endif
