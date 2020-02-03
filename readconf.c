@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.324 2020/01/30 22:19:32 djm Exp $ */
+/* $OpenBSD: readconf.c,v 1.325 2020/02/03 23:47:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2110,19 +2110,8 @@ fill_default_options(Options * options)
 		options->system_hostfiles[options->num_system_hostfiles++] =
 		    xstrdup(_PATH_SSH_SYSTEM_HOSTFILE2);
 	}
-	if (options->update_hostkeys == -1) {
-		/*
-		 * Enable UpdateHostKeys non-interactively if the user has
-		 * not overridden the default known_hosts selection, or has
-		 * overridden it with the default. Otherwise, prompt.
-		 */
-		if (options->num_user_hostfiles == 0 ||
-		    (options->num_user_hostfiles == 1 && strcmp(options->
-		    user_hostfiles[0], _PATH_SSH_USER_HOSTFILE) == 0))
-			options->update_hostkeys = SSH_UPDATE_HOSTKEYS_YES;
-		else
-			options->update_hostkeys = SSH_UPDATE_HOSTKEYS_ASK;
-	}
+	if (options->update_hostkeys == -1)
+			options->update_hostkeys = SSH_UPDATE_HOSTKEYS_NO;
 	if (options->num_user_hostfiles == 0) {
 		options->user_hostfiles[options->num_user_hostfiles++] =
 		    xstrdup(_PATH_SSH_USER_HOSTFILE);
