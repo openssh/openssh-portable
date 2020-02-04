@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.395 2020/01/28 08:01:34 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.396 2020/02/04 09:58:04 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -3572,6 +3572,10 @@ main(int argc, char **argv)
 			} else if (strncasecmp(opts[i],
 			    "application=", 12) == 0) {
 				sk_application = xstrdup(opts[i] + 12);
+				if (strncmp(sk_application, "ssh:", 4) != 0) {
+					fatal("FIDO application string must "
+					    "begin with \"ssh:\"");
+				}
 			} else {
 				fatal("Option \"%s\" is unsupported for "
 				    "FIDO authenticator enrollment", opts[i]);
