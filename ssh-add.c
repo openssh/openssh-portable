@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-add.c,v 1.151 2020/01/25 23:02:13 djm Exp $ */
+/* $OpenBSD: ssh-add.c,v 1.152 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -315,8 +315,8 @@ add_file(int agent_fd, const char *filename, int key_only, int qflag,
 	if (!sshkey_is_sk(private))
 		skprovider = NULL; /* Don't send constraint for other keys */
 	else if (skprovider == NULL) {
-		fprintf(stderr, "Cannot load security key %s without "
-		    "provider\n", filename);
+		fprintf(stderr, "Cannot load authenticator-hosted key %s "
+		    "without provider\n", filename);
 		goto out;
 	}
 
@@ -546,7 +546,7 @@ load_resident_keys(int agent_fd, const char *skprovider, int qflag)
 	int r, ok = 0;
 	char *fp;
 
-	pass = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
+	pass = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
 	if ((r = sshsk_load_resident(skprovider, NULL, pass,
 	    &keys, &nkeys)) != 0) {
 		error("Unable to load resident keys: %s", ssh_err(r));

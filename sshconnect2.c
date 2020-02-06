@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.318 2020/01/23 10:24:30 dtucker Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.319 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -613,7 +613,7 @@ format_identity(Identity *id)
 		if ((id->key->flags & SSHKEY_FLAG_EXT) != 0)
 			note = " token";
 		else if (sshkey_is_sk(id->key))
-			note = " security-key";
+			note = " authenticator";
 	}
 	xasprintf(&ret, "%s %s%s%s%s%s%s",
 	    id->filename,
@@ -1487,8 +1487,8 @@ load_identity_file(Identity *id)
 		}
 		if (private != NULL && sshkey_is_sk(private) &&
 		    options.sk_provider == NULL) {
-			debug("key \"%s\" is a security key, but no "
-			    "provider specified", id->filename);
+			debug("key \"%s\" is an authenticator-hosted key, "
+			    "but no provider specified", id->filename);
 			sshkey_free(private);
 			private = NULL;
 			quit = 1;
@@ -1571,7 +1571,7 @@ pubkey_prepare(Authctxt *authctxt)
 			continue;
 		}
 		if (key && sshkey_is_sk(key) && options.sk_provider == NULL) {
-			debug("%s: ignoring security key %s as no "
+			debug("%s: ignoring authenticator-hosted key %s as no "
 			    "SecurityKeyProvider has been specified",
 			    __func__, options.identity_files[i]);
 			continue;
@@ -1595,7 +1595,8 @@ pubkey_prepare(Authctxt *authctxt)
 			continue;
 		}
 		if (key && sshkey_is_sk(key) && options.sk_provider == NULL) {
-			debug("%s: ignoring security key certificate %s as no "
+			debug("%s: ignoring authenticator-hosted key "
+			    "certificate %s as no "
 			    "SecurityKeyProvider has been specified",
 			    __func__, options.identity_files[i]);
 			continue;

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.517 2020/01/28 07:24:15 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.518 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1376,7 +1376,7 @@ main(int ac, char **av)
 	if (options.sk_provider != NULL && *options.sk_provider == '$' &&
 	    strlen(options.sk_provider) > 1) {
 		if ((cp = getenv(options.sk_provider + 1)) == NULL) {
-			debug("Security key provider %s did not resolve; "
+			debug("Authenticator provider %s did not resolve; "
 			    "disabling", options.sk_provider);
 			free(options.sk_provider);
 			options.sk_provider = NULL;

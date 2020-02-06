@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.396 2020/02/04 09:58:04 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.397 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2971,7 +2971,7 @@ do_download_sk(const char *skprovider, const char *device)
 	if (skprovider == NULL)
 		fatal("Cannot download keys without provider");
 
-	pin = read_passphrase("Enter PIN for security key: ", RP_ALLOW_STDIN);
+	pin = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
 	if ((r = sshsk_load_resident(skprovider, device, pin,
 	    &keys, &nkeys)) != 0) {
 		freezero(pin, strlen(pin));
@@ -3582,7 +3582,7 @@ main(int argc, char **argv)
 			}
 		}
 		if (!quiet) {
-			printf("You may need to touch your security key "
+			printf("You may need to touch your authenticator "
 			    "to authorize key generation.\n");
 		}
 		passphrase = NULL;
@@ -3600,8 +3600,8 @@ main(int argc, char **argv)
 				fatal("Key enrollment failed: %s", ssh_err(r));
 			if (passphrase != NULL)
 				freezero(passphrase, strlen(passphrase));
-			passphrase = read_passphrase("Enter PIN for security "
-			    "key: ", RP_ALLOW_STDIN);
+			passphrase = read_passphrase("Enter PIN for "
+			    "authenticator: ", RP_ALLOW_STDIN);
 		}
 		if (passphrase != NULL)
 			freezero(passphrase, strlen(passphrase));

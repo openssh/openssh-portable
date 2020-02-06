@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.254 2020/01/25 00:06:48 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.255 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -510,8 +510,8 @@ process_add_identity(SocketEntry *e)
 	}
 	if (sk_provider != NULL) {
 		if (!sshkey_is_sk(k)) {
-			error("Cannot add provider: %s is not a security key",
-			    sshkey_type(k));
+			error("Cannot add provider: %s is not an "
+			    "authenticator-hosted key", sshkey_type(k));
 			free(sk_provider);
 			goto send;
 		}

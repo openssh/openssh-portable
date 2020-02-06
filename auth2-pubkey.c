@@ -1,4 +1,4 @@
-/* $OpenBSD: auth2-pubkey.c,v 1.98 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: auth2-pubkey.c,v 1.99 2020/02/06 22:30:54 naddy Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -231,7 +231,8 @@ userauth_pubkey(struct ssh *ssh)
 			    SSH_SK_USER_PRESENCE_REQD) == 0) {
 				error("public key %s signature for %s%s from "
 				    "%.128s port %d rejected: user presence "
-				    "(key touch) requirement not met ", key_s,
+				    "(authenticator touch) requirement "
+				    "not met ", key_s,
 				    authctxt->valid ? "" : "invalid user ",
 				    authctxt->user, ssh_remote_ipaddr(ssh),
 				    ssh_remote_port(ssh));
