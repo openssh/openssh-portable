@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.319 2020/02/06 22:30:54 naddy Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.320 2020/02/06 22:48:23 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -119,7 +119,7 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port)
 	for (i = 0; i < options.num_system_hostfiles; i++)
 		load_hostkeys(hostkeys, hostname, options.system_hostfiles[i]);
 
-	oavail = avail = xstrdup(kex_default_pk_alg());
+	oavail = avail = xstrdup(options.hostkeyalgorithms);
 	maxlen = strlen(avail) + 1;
 	first = xmalloc(maxlen);
 	last = xmalloc(maxlen);
@@ -161,10 +161,27 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 {
 	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	char *s, *all_key;
-	int r;
+	int r, use_known_hosts_order = 0;
 
 	xxx_host = host;
 	xxx_hostaddr = hostaddr;
+
+	/*
+	 * If the user has not specified HostkeyAlgorithms, or has only
+	 * appended or removed algorithms from that list then prefer algorithms
+	 * that are in the list that are supported by known_hosts keys.
+	 */
+	if (options.hostkeyalgorithms == NULL ||
+	    options.hostkeyalgorithms[0] == '-' ||
+	    options.hostkeyalgorithms[0] == '+')
+		use_known_hosts_order = 1;
+
+	/* Expand or fill in HostkeyAlgorithms */
+	all_key = sshkey_alg_list(0, 0, 1, ',');
+	if (kex_assemble_names(&options.hostkeyalgorithms,
+	    kex_default_pk_alg(), all_key) != 0)
+		fatal("%s: kex_assemble_namelist", __func__);
+	free(all_key);
 
 	if ((s = kex_names_cat(options.kex_algorithms, "ext-info-c")) == NULL)
 		fatal("%s: kex_names_cat", __func__);
@@ -178,21 +195,15 @@ ssh_kex2(struct ssh *ssh, char *host, struct sockaddr *hostaddr, u_short port)
 	    (char *)compression_alg_list(options.compression);
 	myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 	    myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
-	if (options.hostkeyalgorithms != NULL) {
-		all_key = sshkey_alg_list(0, 0, 1, ',');
-		if (kex_assemble_names(&options.hostkeyalgorithms,
-		    kex_default_pk_alg(), all_key) != 0)
-			fatal("%s: kex_assemble_namelist", __func__);
-		free(all_key);
-		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
-		    compat_pkalg_proposal(options.hostkeyalgorithms);
-	} else {
-		/* Enforce default */
-		options.hostkeyalgorithms = xstrdup(kex_default_pk_alg());
-		/* Prefer algorithms that we already have keys for */
+	if (use_known_hosts_order) {
+		/* Query known_hosts and prefer algorithms that appear there */
 		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    compat_pkalg_proposal(
 		    order_hostkeyalgs(host, hostaddr, port));
+	} else {
+		/* Use specified HostkeyAlgorithms exactly */
+		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+		    compat_pkalg_proposal(options.hostkeyalgorithms);
 	}
 
 	if (options.rekey_limit || options.rekey_interval)
