@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.518 2020/02/06 22:30:54 naddy Exp $ */
+/* $OpenBSD: ssh.c,v 1.519 2020/02/07 03:54:44 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -736,13 +736,16 @@ main(int ac, char **av)
 			break;
 		case 'Q':
 			cp = NULL;
-			if (strcmp(optarg, "cipher") == 0)
+			if (strcmp(optarg, "cipher") == 0 ||
+			    strcasecmp(optarg, "Ciphers") == 0)
 				cp = cipher_alg_list('\n', 0);
 			else if (strcmp(optarg, "cipher-auth") == 0)
 				cp = cipher_alg_list('\n', 1);
-			else if (strcmp(optarg, "mac") == 0)
+			else if (strcmp(optarg, "mac") == 0 ||
+			    strcasecmp(optarg, "MACs") == 0)
 				cp = mac_alg_list('\n');
-			else if (strcmp(optarg, "kex") == 0)
+			else if (strcmp(optarg, "kex") == 0 ||
+			    strcasecmp(optarg, "KexAlgorithms") == 0)
 				cp = kex_alg_list('\n');
 			else if (strcmp(optarg, "key") == 0)
 				cp = sshkey_alg_list(0, 0, 0, '\n');
@@ -750,6 +753,12 @@ main(int ac, char **av)
 				cp = sshkey_alg_list(1, 0, 0, '\n');
 			else if (strcmp(optarg, "key-plain") == 0)
 				cp = sshkey_alg_list(0, 1, 0, '\n');
+			else if (strcmp(optarg, "key-sig") == 0 ||
+			    strcasecmp(optarg, "PubkeyAcceptedKeyTypes") == 0 ||
+			    strcasecmp(optarg, "HostKeyAlgorithms") == 0 ||
+			    strcasecmp(optarg, "HostbasedKeyTypes") == 0 ||
+			    strcasecmp(optarg, "HostbasedAcceptedKeyTypes") == 0)
+				cp = sshkey_alg_list(0, 0, 1, '\n');
 			else if (strcmp(optarg, "sig") == 0)
 				cp = sshkey_alg_list(0, 1, 1, '\n');
 			else if (strcmp(optarg, "protocol-version") == 0)
@@ -763,7 +772,7 @@ main(int ac, char **av)
 			} else if (strcmp(optarg, "help") == 0) {
 				cp = xstrdup(
 				    "cipher\ncipher-auth\ncompression\nkex\n"
-				    "key\nkey-cert\nkey-plain\nmac\n"
+				    "key\nkey-cert\nkey-plain\nkey-sig\nmac\n"
 				    "protocol-version\nsig");
 			}
 			if (cp == NULL)
