@@ -252,7 +252,7 @@ to generate keys for all supported types.
 
 Replacing /etc/ssh with the correct path to the configuration directory.
 (${prefix}/etc or whatever you specified with --sysconfdir during
-configuration)
+configuration).
 
 If you have configured OpenSSH with EGD support, ensure that EGD is
 running and has collected some Entropy.
