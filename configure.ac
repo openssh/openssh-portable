@@ -1986,10 +1986,11 @@ AC_CHECK_DECL([tcsendbreak],
 
 AC_CHECK_DECLS([h_errno], , ,[#include <netdb.h>])
 
-AC_CHECK_DECLS([SHUT_RD], , ,
+AC_CHECK_DECLS([SHUT_RD, getpeereid], , ,
 	[
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 	])
 
 AC_CHECK_DECLS([O_NONBLOCK], , ,
