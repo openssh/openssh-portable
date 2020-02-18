@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.519 2020/02/07 03:54:44 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.520 2020/02/18 08:49:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1208,6 +1208,14 @@ main(int ac, char **av)
 	if (options.jump_host != NULL) {
 		char port_s[8];
 		const char *sshbin = argv0;
+		int port = options.port, jumpport = options.jump_port;
+
+		if (port <= 0)
+			port = default_ssh_port();
+		if (jumpport <= 0)
+			jumpport = default_ssh_port();
+		if (strcmp(options.jump_host, host) == 0 && port == jumpport)
+			fatal("jumphost loop via %s", options.jump_host);
 
 		/*
 		 * Try to use SSH indicated by argv[0], but fall back to
