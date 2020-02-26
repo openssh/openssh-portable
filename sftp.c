@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.197 2020/01/23 07:10:22 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.198 2020/02/26 11:46:51 dtucker Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2377,7 +2377,7 @@ main(int argc, char **argv)
 {
 	int in, out, ch, err, tmp, port = -1;
 	char *host = NULL, *user, *cp, *file2 = NULL;
-	int debug_level = 0, sshver = 2;
+	int debug_level = 0;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
 	const char *errstr;
@@ -2445,12 +2445,10 @@ main(int argc, char **argv)
 			debug_level++;
 			break;
 		case '1':
-			sshver = 1;
-			if (sftp_server == NULL)
-				sftp_server = _PATH_SFTP_SERVER;
+			fatal("SSH protocol v.1 is no longer supported");
 			break;
 		case '2':
-			sshver = 2;
+			/* accept silently */
 			break;
 		case 'a':
 			global_aflag = 1;
@@ -2555,7 +2553,6 @@ main(int argc, char **argv)
 			addargs(&args, "-l");
 			addargs(&args, "%s", user);
 		}
-		addargs(&args, "-oProtocol %d", sshver);
 
 		/* no subsystem if the server-spec contains a '/' */
 		if (sftp_server == NULL || strchr(sftp_server, '/') == NULL)
