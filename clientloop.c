@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.340 2020/02/02 09:45:34 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.341 2020/02/26 01:31:47 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -457,11 +457,8 @@ client_check_window_change(struct ssh *ssh)
 {
 	if (!received_window_change_signal)
 		return;
-	/** XXX race */
 	received_window_change_signal = 0;
-
 	debug2("%s: changed", __func__);
-
 	channel_send_window_changes(ssh);
 }
 
