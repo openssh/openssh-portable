@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.395 2020/01/25 06:40:20 djm Exp $ */
+/* $OpenBSD: channels.c,v 1.396 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -625,14 +625,12 @@ channel_free(struct ssh *ssh, Channel *c)
 		if (cc->abandon_cb != NULL)
 			cc->abandon_cb(ssh, c, cc->ctx);
 		TAILQ_REMOVE(&c->status_confirms, cc, entry);
-		explicit_bzero(cc, sizeof(*cc));
-		free(cc);
+		freezero(cc, sizeof(*cc));
 	}
 	if (c->filter_cleanup != NULL && c->filter_ctx != NULL)
 		c->filter_cleanup(ssh, c->self, c->filter_ctx);
 	sc->channels[c->self] = NULL;
-	explicit_bzero(c, sizeof(*c));
-	free(c);
+	freezero(c, sizeof(*c));
 }
 
 void
@@ -3295,8 +3293,7 @@ channel_input_status_confirm(int type, u_int32_t seq, struct ssh *ssh)
 		return 0;
 	cc->cb(ssh, type, c, cc->ctx);
 	TAILQ_REMOVE(&c->status_confirms, cc, entry);
-	explicit_bzero(cc, sizeof(*cc));
-	free(cc);
+	freezero(cc, sizeof(*cc));
 	return 0;
 }
 

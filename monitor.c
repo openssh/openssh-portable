@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.208 2020/02/06 22:30:54 naddy Exp $ */
+/* $OpenBSD: monitor.c,v 1.209 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -893,8 +893,7 @@ mm_answer_authpassword(struct ssh *ssh, int sock, struct sshbuf *m)
 	/* Only authenticate if the context is valid */
 	authenticated = options.password_authentication &&
 	    auth_password(ssh, passwd);
-	explicit_bzero(passwd, plen);
-	free(passwd);
+	freezero(passwd, plen);
 
 	sshbuf_reset(m);
 	if ((r = sshbuf_put_u32(m, authenticated)) != 0)

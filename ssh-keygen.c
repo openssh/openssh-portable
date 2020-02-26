@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.398 2020/02/07 03:27:54 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.399 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -327,8 +327,7 @@ load_identity(const char *filename, char **commentp)
 	else
 		pass = read_passphrase("Enter passphrase: ", RP_ALLOW_STDIN);
 	r = sshkey_load_private(filename, pass, &prv, commentp);
-	explicit_bzero(pass, strlen(pass));
-	free(pass);
+	freezero(pass, strlen(pass));
 	if (r != 0)
 		fatal("Load key \"%s\": %s", filename, ssh_err(r));
 	return prv;
@@ -1424,8 +1423,7 @@ do_change_passphrase(struct passwd *pw)
 			    RP_ALLOW_STDIN);
 		r = sshkey_load_private(identity_file, old_passphrase,
 		    &private, &comment);
-		explicit_bzero(old_passphrase, strlen(old_passphrase));
-		free(old_passphrase);
+		freezero(old_passphrase, strlen(old_passphrase));
 		if (r != 0)
 			goto badkey;
 	} else if (r != 0) {
@@ -1456,8 +1454,7 @@ do_change_passphrase(struct passwd *pw)
 			exit(1);
 		}
 		/* Destroy the other copy. */
-		explicit_bzero(passphrase2, strlen(passphrase2));
-		free(passphrase2);
+		freezero(passphrase2, strlen(passphrase2));
 	}
 
 	/* Save the file using the new passphrase. */
@@ -1465,15 +1462,13 @@ do_change_passphrase(struct passwd *pw)
 	    comment, private_key_format, openssh_format_cipher, rounds)) != 0) {
 		error("Saving key \"%s\" failed: %s.",
 		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase1, strlen(passphrase1));
-		free(passphrase1);
+		freezero(passphrase1, strlen(passphrase1));
 		sshkey_free(private);
 		free(comment);
 		exit(1);
 	}
 	/* Destroy the passphrase and the copy of the key in memory. */
-	explicit_bzero(passphrase1, strlen(passphrase1));
-	free(passphrase1);
+	freezero(passphrase1, strlen(passphrase1));
 	sshkey_free(private);		 /* Destroys contents */
 	free(comment);
 
@@ -1543,8 +1538,7 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 		/* Try to load using the passphrase. */
 		if ((r = sshkey_load_private(identity_file, passphrase,
 		    &private, &comment)) != 0) {
-			explicit_bzero(passphrase, strlen(passphrase));
-			free(passphrase);
+			freezero(passphrase, strlen(passphrase));
 			fatal("Cannot load private key \"%s\": %s.",
 			    identity_file, ssh_err(r));
 		}
@@ -1589,14 +1583,12 @@ do_change_comment(struct passwd *pw, const char *identity_comment)
 	    rounds)) != 0) {
 		error("Saving key \"%s\" failed: %s",
 		    identity_file, ssh_err(r));
-		explicit_bzero(passphrase, strlen(passphrase));
-		free(passphrase);
+		freezero(passphrase, strlen(passphrase));
 		sshkey_free(private);
 		free(comment);
 		exit(1);
 	}
-	explicit_bzero(passphrase, strlen(passphrase));
-	free(passphrase);
+	freezero(passphrase, strlen(passphrase));
 	if ((r = sshkey_from_private(private, &public)) != 0)
 		fatal("sshkey_from_private failed: %s", ssh_err(r));
 	sshkey_free(private);

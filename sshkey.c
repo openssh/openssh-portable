@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.99 2020/01/21 05:56:56 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.100 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -1019,10 +1019,8 @@ sshkey_fingerprint_raw(const struct sshkey *k, int dgst_alg,
 	r = 0;
  out:
 	free(ret);
-	if (blob != NULL) {
-		explicit_bzero(blob, blob_len);
-		free(blob);
-	}
+	if (blob != NULL)
+		freezero(blob, blob_len);
 	return r;
 }
 
@@ -1280,12 +1278,10 @@ sshkey_fingerprint(const struct sshkey *k, int dgst_alg,
 		    dgst_raw, dgst_raw_len, k);
 		break;
 	default:
-		explicit_bzero(dgst_raw, dgst_raw_len);
-		free(dgst_raw);
+		freezero(dgst_raw, dgst_raw_len);
 		return NULL;
 	}
-	explicit_bzero(dgst_raw, dgst_raw_len);
-	free(dgst_raw);
+	freezero(dgst_raw, dgst_raw_len);
 	return retval;
 }
 
@@ -4054,18 +4050,12 @@ sshkey_private_to_blob2(struct sshkey *prv, struct sshbuf *blob,
 	sshbuf_free(encrypted);
 	cipher_free(ciphercontext);
 	explicit_bzero(salt, sizeof(salt));
-	if (key != NULL) {
-		explicit_bzero(key, keylen + ivlen);
-		free(key);
-	}
-	if (pubkeyblob != NULL) {
-		explicit_bzero(pubkeyblob, pubkeylen);
-		free(pubkeyblob);
-	}
-	if (b64 != NULL) {
-		explicit_bzero(b64, strlen(b64));
-		free(b64);
-	}
+	if (key != NULL)
+		freezero(key, keylen + ivlen);
+	if (pubkeyblob != NULL) 
+		freezero(pubkeyblob, pubkeylen);
+	if (b64 != NULL) 
+		freezero(b64, strlen(b64));
 	return r;
 }
 
@@ -4273,14 +4263,10 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	free(ciphername);
 	free(kdfname);
 	free(comment);
-	if (salt != NULL) {
-		explicit_bzero(salt, slen);
-		free(salt);
-	}
-	if (key != NULL) {
-		explicit_bzero(key, keylen + ivlen);
-		free(key);
-	}
+	if (salt != NULL)
+		freezero(salt, slen);
+	if (key != NULL)
+		freezero(key, keylen + ivlen);
 	sshbuf_free(encoded);
 	sshbuf_free(decoded);
 	sshbuf_free(kdf);

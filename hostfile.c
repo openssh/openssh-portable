@@ -1,4 +1,4 @@
-/* $OpenBSD: hostfile.c,v 1.77 2020/01/25 00:21:08 djm Exp $ */
+/* $OpenBSD: hostfile.c,v 1.78 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -298,8 +298,7 @@ free_hostkeys(struct hostkeys *hostkeys)
 		explicit_bzero(hostkeys->entries + i, sizeof(*hostkeys->entries));
 	}
 	free(hostkeys->entries);
-	explicit_bzero(hostkeys, sizeof(*hostkeys));
-	free(hostkeys);
+	freezero(hostkeys, sizeof(*hostkeys));
 }
 
 static int

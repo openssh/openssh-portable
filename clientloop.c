@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.341 2020/02/26 01:31:47 dtucker Exp $ */
+/* $OpenBSD: clientloop.c,v 1.342 2020/02/26 13:40:09 jsg Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -473,8 +473,7 @@ client_global_request_reply(int type, u_int32_t seq, struct ssh *ssh)
 		gc->cb(ssh, type, seq, gc->ctx);
 	if (--gc->ref_count <= 0) {
 		TAILQ_REMOVE(&global_confirms, gc, entry);
-		explicit_bzero(gc, sizeof(*gc));
-		free(gc);
+		freezero(gc, sizeof(*gc));
 	}
 
 	ssh_packet_set_alive_timeouts(ssh, 0);
