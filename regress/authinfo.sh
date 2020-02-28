@@ -3,6 +3,12 @@
 
 tid="authinfo"
 
+if [ "$os" == "windows" ]; then
+	# Windows, ssh.exe -S option is not supported on windows
+	echo "skipped, not applicable on windows OS"
+	exit 0
+fi
+
 # Ensure the environment variable doesn't leak when ExposeAuthInfo=no.
 verbose "ExposeAuthInfo=no"
 env SSH_USER_AUTH=blah ${SSH} -F $OBJ/ssh_proxy x \
