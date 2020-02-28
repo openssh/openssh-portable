@@ -183,10 +183,19 @@ read_passphrase(const char *prompt, int flags)
 			askpass = getenv(SSH_ASKPASS_ENV);
 		else
 			askpass = _PATH_SSH_ASKPASS_DEFAULT;
+
+#ifdef WINDOWS
+		if (getenv(SSH_ASKPASS_ENV)) {
+#endif
+
 		if ((ret = ssh_askpass(askpass, prompt)) == NULL)
 			if (!(flags & RP_ALLOW_EOF))
 				return xstrdup("");
 		return ret;
+
+#ifdef WINDOWS
+		}
+#endif
 	}
 
 	if (readpassphrase(prompt, buf, sizeof buf, rppflags) == NULL) {
