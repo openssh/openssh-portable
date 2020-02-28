@@ -1678,7 +1678,7 @@ prepare_options_buf(struct sshbuf *c, int which)
 	if ((which & OPTIONS_EXTENSIONS) != 0 &&
 	    (certflags_flags & CERTOPT_USER_RC) != 0)
 		add_flag_option(c, "permit-user-rc");
-	if ((which & OPTIONS_CRITICAL) != 0 &&
+	if ((which & OPTIONS_EXTENSIONS) != 0 &&
 	    (certflags_flags & CERTOPT_NO_REQUIRE_USER_PRESENCE) != 0)
 		add_flag_option(c, "no-touch-required");
 	if ((which & OPTIONS_CRITICAL) != 0 &&
