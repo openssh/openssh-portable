@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.101 2020/03/06 18:21:28 markus Exp $ */
+/* $OpenBSD: sshkey.c,v 1.102 2020/03/06 18:23:17 markus Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -3078,8 +3078,8 @@ sshkey_cert_check_authority(const struct sshkey *k,
 	u_int i, principal_matches;
 	time_t now = time(NULL);
 
-	if (reason != NULL)
-		*reason = NULL;
+	if (reason == NULL)
+		return SSH_ERR_INVALID_ARGUMENT;
 
 	if (want_host) {
 		if (k->cert->type != SSH2_CERT_TYPE_HOST) {
