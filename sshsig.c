@@ -981,7 +981,7 @@ sshsig_find_principals(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r, oerrno;
+	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
 
 	if ((f = fopen(path, "r")) == NULL) {
 		oerrno = errno;
