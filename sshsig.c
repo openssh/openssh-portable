@@ -209,8 +209,10 @@ sshsig_wrap_sign(struct sshkey *key, const char *hashalg,
 		goto done;
 	}
 
-	*out = blob;
-	blob = NULL;
+	if (out != NULL) {
+		*out = blob;
+		blob = NULL;
+	}
 	r = 0;
 done:
 	free(sig);
@@ -424,7 +426,7 @@ hash_buffer(const struct sshbuf *m, const char *hashalg, struct sshbuf **bp)
  out:
 	sshbuf_free(b);
 	explicit_bzero(hash, sizeof(hash));
-	return 0;
+	return r;
 }
 
 int
@@ -552,7 +554,7 @@ hash_file(int fd, const char *hashalg, struct sshbuf **bp)
 	sshbuf_free(b);
 	ssh_digest_free(ctx);
 	explicit_bzero(hash, sizeof(hash));
-	return 0;
+	return r;
 }
 
 int
@@ -835,7 +837,7 @@ sshsig_check_allowed_keys(const char *path, const struct sshkey *sign_key,
 	char *line = NULL;
 	size_t linesize = 0;
 	u_long linenum = 0;
-	int r, oerrno;
+	int r = SSH_ERR_INTERNAL_ERROR, oerrno;
 
 	/* Check key and principal against file */
 	if ((f = fopen(path, "r")) == NULL) {
