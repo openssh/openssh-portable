@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.396 2020/02/26 13:40:09 jsg Exp $ */
+/* $OpenBSD: channels.c,v 1.397 2020/03/06 18:19:21 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -4001,7 +4001,7 @@ channel_request_rforward_cancel_tcpip(struct ssh *ssh,
 	struct permission_set *pset = &sc->local_perms;
 	int r;
 	u_int i;
-	struct permission *perm;
+	struct permission *perm = NULL;
 
 	for (i = 0; i < pset->num_permitted_user; i++) {
 		perm = &pset->permitted_user[i];
@@ -4037,7 +4037,7 @@ channel_request_rforward_cancel_streamlocal(struct ssh *ssh, const char *path)
 	struct permission_set *pset = &sc->local_perms;
 	int r;
 	u_int i;
-	struct permission *perm;
+	struct permission *perm = NULL;
 
 	for (i = 0; i < pset->num_permitted_user; i++) {
 		perm = &pset->permitted_user[i];
