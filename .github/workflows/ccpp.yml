@@ -21,3 +21,7 @@ jobs:
       run: make
     - name: make check
       run: make tests
+    - name: keygen1
+      run: ./ssh-keygen -t ecdsa -f foo -P foofoo
+    - name: keygen2
+      run: ./ssh-keygen -p -f foo -P foofoo
