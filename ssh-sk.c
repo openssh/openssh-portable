@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-sk.c,v 1.28 2020/02/28 01:06:05 djm Exp $ */
+/* $OpenBSD: ssh-sk.c,v 1.29 2020/03/06 18:25:48 markus Exp $ */
 /*
  * Copyright (c) 2019 Google LLC
  *
@@ -602,7 +602,7 @@ sshsk_ed25519_sig(struct sk_sign_response *resp, struct sshbuf *sig)
 #endif
 	r = 0;
  out:
-	return 0;
+	return r;
 }
 
 int
