@@ -963,7 +963,7 @@ get_matching_principals_from_line(const char *path, u_long linenum, char *line,
 		goto done;
 	}
  done:
-	if (found) {
+	if (found && principalsp != NULL) {
 		*principalsp = principals;
 		principals = NULL; /* transferred */
 	}
@@ -1026,8 +1026,8 @@ sshsig_get_pubkey(struct sshbuf *signature, struct sshkey **pubkey)
 	struct sshkey *pk = NULL;
 	int r = SSH_ERR_SIGNATURE_INVALID;
 
-	if (pubkey != NULL)
-		*pubkey = NULL;
+	if (pubkey == NULL)
+		return SSH_ERR_INTERNAL_ERROR;
 	if ((r = sshsig_parse_preamble(signature)) != 0)
 		return r;
 	if ((r = sshkey_froms(signature, &pk)) != 0)
