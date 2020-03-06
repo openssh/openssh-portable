@@ -20,8 +20,8 @@ jobs:
     - name: make
       run: make
     - name: keygen1
-      run: ./ssh-keygen -t ecdsa -f foo -P foofoo
+      run: ./ssh-keygen -t ecdsa -f foo -P ""
     - name: keygen2
-      run: ./ssh-keygen -p -m PEM -f foo -P foofoo
+      run: ./ssh-keygen -p -m PEM -f foo -P "" 
     - name: keygen3
-      run: ./ssh-agent -s && ./ssh-add foo
+      run: Eval $(./ssh-agent) && ./ssh-add foo
