@@ -24,4 +24,4 @@ jobs:
     - name: keygen2
       run: ./ssh-keygen -p -m PEM -f foo -P foofoo
     - name: keygen3
-      run: ./ssh-agent && ./ssh-add foo
+      run: ./ssh-agent -s && ./ssh-add foo
