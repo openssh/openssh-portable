@@ -20,4 +20,4 @@ jobs:
     - name: make
       run: make
     - name: make check
-      run: make test
+      run: make tests
