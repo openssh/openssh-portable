@@ -881,8 +881,10 @@ cert_filter_principals(const char *path, u_long linenum,
 	oprincipals = principals = *principalsp;
 	*principalsp = NULL;
 
-	if ((nprincipals = sshbuf_new()) == NULL)
-		return SSH_ERR_ALLOC_FAIL;
+	if ((nprincipals = sshbuf_new()) == NULL) {
+		r = SSH_ERR_ALLOC_FAIL;
+		goto out;
+	}
 
 	while ((cp = strsep(&principals, ",")) != NULL && *cp != '\0') {
 		if (strcspn(cp, "!?*") != strlen(cp)) {
