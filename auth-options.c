@@ -1,4 +1,4 @@
-/* $OpenBSD: auth-options.c,v 1.91 2020/02/26 13:40:09 jsg Exp $ */
+/* $OpenBSD: auth-options.c,v 1.92 2020/03/06 18:15:38 markus Exp $ */
 /*
  * Copyright (c) 2018 Damien Miller <djm@mindrot.org>
  *
@@ -734,9 +734,11 @@ deserialise_array(struct sshbuf *m, char ***ap, size_t *np)
 	*np = n;
 	n = 0;
  out:
-	for (i = 0; i < n; i++)
-		free(a[i]);
-	free(a);
+	if (a != NULL) {
+		for (i = 0; i < n; i++)
+			free(a[i]);
+		free(a);
+	}
 	sshbuf_free(b);
 	return r;
 }
