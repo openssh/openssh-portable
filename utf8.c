@@ -1,4 +1,4 @@
-/* $OpenBSD: utf8.c,v 1.8 2018/08/21 13:56:27 schwarze Exp $ */
+/* $OpenBSD: utf8.c,v 1.9 2020/03/06 18:12:55 markus Exp $ */
 /*
  * Copyright (c) 2016 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -241,7 +241,7 @@ int
 snmprintf(char *str, size_t sz, int *wp, const char *fmt, ...)
 {
 	va_list	 ap;
-	char	*cp;
+	char	*cp = NULL;
 	int	 ret;
 
 	va_start(ap, fmt);
@@ -263,11 +263,13 @@ snmprintf(char *str, size_t sz, int *wp, const char *fmt, ...)
 int
 vfmprintf(FILE *stream, const char *fmt, va_list ap)
 {
-	char	*str;
+	char	*str = NULL;
 	int	 ret;
 
-	if ((ret = vasnmprintf(&str, INT_MAX, NULL, fmt, ap)) < 0)
+	if ((ret = vasnmprintf(&str, INT_MAX, NULL, fmt, ap)) < 0) {
+		free(str);
 		return -1;
+	}
 	if (fputs(str, stream) == EOF)
 		ret = -1;
 	free(str);
