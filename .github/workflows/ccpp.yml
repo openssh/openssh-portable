@@ -22,4 +22,4 @@ jobs:
     - name: keygen1
       run: ./ssh-keygen -t ecdsa -f foo -P foofoo
     - name: keygen2
-      run: ./ssh-keygen -p -m PEM -f foo -P foofoo < foofoo
+      run: ./ssh-keygen -p -m PEM -f foo -P foofoo
