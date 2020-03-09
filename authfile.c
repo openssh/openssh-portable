@@ -224,9 +224,8 @@ sshkey_try_load_public(struct sshkey *k, const char *filename, char **commentp)
 		if (*cp) {
 			if ((r = sshkey_read(k, &cp)) == 0) {
 				cp[strcspn(cp, "\r\n")] = '\0';
-				if (commentp) {
-					*commentp = strdup(*cp ?
-					    cp : filename);
+				if (commentp && *cp) {
+					*commentp = strdup(cp);
 					if (*commentp == NULL)
 						r = SSH_ERR_ALLOC_FAIL;
 				}
