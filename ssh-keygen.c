@@ -241,6 +241,8 @@ confirm_overwrite(const char *filename)
 	char yesno[3];
 	struct stat st;
 
+	if (quiet)
+		return 1;
 	if (stat(filename, &st) != 0)
 		return 1;
 	printf("%s already exists.\n", filename);
