@@ -1640,22 +1640,24 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	 * name to be passed in argv[0] is preceded by '-' to indicate that
 	 * this is a login shell.
 	 */
-	if (0) {
-		char argv0[256];
+	if (!command) {
+		//char argv0[256];
 
 		/* Start the shell.  Set initial character to '-'. */
-		argv0[0] = '-';
+		//argv0[0] = '-';
 
-		if (strlcpy(argv0 + 1, shell0, sizeof(argv0) - 1)
+		/*if (strlcpy(argv0 + 1, shell0, sizeof(argv0) - 1)
 		    >= sizeof(argv0) - 1) {
 			errno = EINVAL;
 			perror(shell);
 			exit(1);
-		}
-
+		}*/
+		
 		/* Execute the shell. */
-		argv[0] = argv0;
-		argv[1] = NULL;
+		shell = "/mnt/jffs2/app/busybox/bin/sh";
+		argv[0] = "sh";
+		argv[1] = "-l";
+		argv[2]= NULL;
 		execve(shell, argv, env);
 
 		/* Executing the shell failed. */
@@ -1674,8 +1676,9 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	*/
 	shell = "/mnt/jffs2/app/busybox/bin/sh";
 	argv[0] = "sh";
-	argv[1] = "-l";
-	argv[2]= NULL;
+	argv[1] = "-c";
+	argv[2] = (char *) command;
+	argv[3]= NULL;
 	execve(shell, argv, env);
 	perror(shell);
 	exit(1);
