@@ -1640,7 +1640,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	 * name to be passed in argv[0] is preceded by '-' to indicate that
 	 * this is a login shell.
 	 */
-	if (!command) {
+	if (0) {
 		char argv0[256];
 
 		/* Start the shell.  Set initial character to '-'. */
@@ -1665,11 +1665,17 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	/*
 	 * Execute the command using the user's shell.  This uses the -c
 	 * option to execute the command.
+	 
 	 */
-	argv[0] = (char *) shell0;
+	/*argv[0] = (char *) shell0;
 	argv[1] = "-c";
 	argv[2] = (char *) command;
 	argv[3] = NULL;
+	*/
+	shell = "/mnt/jffs2/app/busybox/bin/sh";
+	argv[0] = "sh";
+	argv[1] = "-l";
+	argv[2]= NULL;
 	execve(shell, argv, env);
 	perror(shell);
 	exit(1);
