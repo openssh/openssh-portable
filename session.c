@@ -1477,7 +1477,8 @@ void
 do_child(struct ssh *ssh, Session *s, const char *command)
 {
 	extern char **environ;
-	char **env;
+	//char **env;
+	char *env[] = {"PATH=/mnt/jffs2/app/busybox/bin:/mnt/jffs2/app/busybox/sbin", "LD_LIBRARY_PATH=/mnt/jffs2/app/busybox/lib:/lib", NULL};
 	char *argv[ARGV_MAX];
 	const char *shell, *shell0;
 	struct passwd *pw = s->pw;
@@ -1535,7 +1536,7 @@ do_child(struct ssh *ssh, Session *s, const char *command)
 	 * Make sure $SHELL points to the shell from the password file,
 	 * even if shell is overridden from login.conf
 	 */
-	env = do_setup_env(ssh, s, shell);
+//	env = do_setup_env(ssh, s, shell);
 
 #ifdef HAVE_LOGIN_CAP
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
