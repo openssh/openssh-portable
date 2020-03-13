@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.550 2020/03/13 03:17:07 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.551 2020/03/13 03:24:49 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -317,7 +317,6 @@ sighup_restart(void)
 	platform_pre_restart();
 	close_listen_socks();
 	close_startup_pipes();
-	alarm(0);  /* alarm timer persists across exec */
 	ssh_signal(SIGHUP, SIG_IGN); /* will be restored after exec */
 	execv(saved_argv[0], saved_argv);
 	logit("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0],
@@ -2085,12 +2084,7 @@ main(int ac, char **av)
 	fcntl(sock_out, F_SETFD, FD_CLOEXEC);
 	fcntl(sock_in, F_SETFD, FD_CLOEXEC);
 
-	/*
-	 * Disable the key regeneration alarm.  We will not regenerate the
-	 * key since we are no longer in a position to give it to anyone. We
-	 * will not restart on SIGHUP since it no longer makes sense.
-	 */
-	alarm(0);
+	/* We will not restart on SIGHUP since it no longer makes sense. */
 	ssh_signal(SIGALRM, SIG_DFL);
 	ssh_signal(SIGHUP, SIG_DFL);
 	ssh_signal(SIGTERM, SIG_DFL);
