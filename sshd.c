@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.551 2020/03/13 03:24:49 dtucker Exp $ */
+/* $OpenBSD: sshd.c,v 1.552 2020/03/13 04:01:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2155,8 +2155,9 @@ main(int ac, char **av)
 	if (!debug_flag)
 		alarm(options.login_grace_time);
 
-	if (kex_exchange_identification(ssh, -1, options.version_addendum) != 0)
-		cleanup_exit(255); /* error already logged */
+	if ((r = kex_exchange_identification(ssh, -1,
+	    options.version_addendum)) != 0)
+		sshpkt_fatal(ssh, r, "banner exchange");
 
 	ssh_packet_set_nonblocking(ssh);
 
