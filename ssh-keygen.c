@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.402 2020/03/06 18:29:14 markus Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.403 2020/03/13 03:12:17 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2960,18 +2960,25 @@ do_download_sk(const char *skprovider, const char *device)
 	struct sshkey **keys;
 	size_t nkeys, i;
 	int r, ok = -1;
-	char *fp, *pin, *pass = NULL, *path, *pubpath;
+	char *fp, *pin = NULL, *pass = NULL, *path, *pubpath;
 	const char *ext;
 
 	if (skprovider == NULL)
 		fatal("Cannot download keys without provider");
 
-	pin = read_passphrase("Enter PIN for authenticator: ", RP_ALLOW_STDIN);
-	if ((r = sshsk_load_resident(skprovider, device, pin,
-	    &keys, &nkeys)) != 0) {
-		freezero(pin, strlen(pin));
-		error("Unable to load resident keys: %s", ssh_err(r));
-		return -1;
+	for (i = 0; i < 2; i++) {
+		if (i == 1) {
+			pin = read_passphrase("Enter PIN for authenticator: ",
+			    RP_ALLOW_STDIN);
+		}
+		if ((r = sshsk_load_resident(skprovider, device, pin,
+		    &keys, &nkeys)) != 0) {
+			if (i == 0 && r == SSH_ERR_KEY_WRONG_PASSPHRASE)
+				continue;
+			freezero(pin, strlen(pin));
+			error("Unable to load resident keys: %s", ssh_err(r));
+			return -1;
+		}
 	}
 	if (nkeys == 0)
 		logit("No keys to download");
