@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.209 2020/02/26 13:40:09 jsg Exp $ */
+/* $OpenBSD: monitor.c,v 1.210 2020/03/13 03:17:07 djm Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -1722,7 +1722,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 	}
 }
 
-/* This function requries careful sanity checking */
+/* This function requires careful sanity checking */
 
 void
 mm_get_keystate(struct ssh *ssh, struct monitor *pmonitor)

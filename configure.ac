@@ -3111,9 +3111,13 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 			AC_DEFINE([ENABLE_SK_INTERNAL], [],
 			    [Enable for built-in U2F/FIDO support])
 			enable_sk="built-in"
-		], [ ],
+		], [ AC_MSG_ERROR([no usable libfido2 found]) ],
 		[ $OTHERLIBS ]
 	)
+	AC_CHECK_HEADER([fido.h], [],
+		AC_MSG_ERROR([missing fido.h from libfido2]))
+	AC_CHECK_HEADER([fido/credman.h], [],
+		AC_MSG_ERROR([missing fido/credman.h from libfido2]))
 fi
 
 AC_CHECK_FUNCS([ \

@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.403 2020/03/13 03:12:17 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.404 2020/03/13 03:17:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2476,7 +2476,7 @@ load_sign_key(const char *keypath, const struct sshkey *pubkey)
 	int r;
 
 	/*
-	 * If passed a public key filename, then try to locate the correponding
+	 * If passed a public key filename, then try to locate the corresponding
 	 * private key. This lets us specify certificates on the command-line
 	 * and have ssh-keygen find the appropriate private key.
 	 */

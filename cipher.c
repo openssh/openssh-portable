@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.115 2020/02/26 13:40:09 jsg Exp $ */
+/* $OpenBSD: cipher.c,v 1.116 2020/03/13 03:17:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -337,7 +337,7 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 /*
  * cipher_crypt() operates as following:
  * Copy 'aadlen' bytes (without en/decryption) from 'src' to 'dest'.
- * Theses bytes are treated as additional authenticated data for
+ * These bytes are treated as additional authenticated data for
  * authenticated encryption modes.
  * En/Decrypt 'len' bytes at offset 'aadlen' from 'src' to 'dest'.
  * Use 'authlen' bytes at offset 'len'+'aadlen' as the authentication tag.

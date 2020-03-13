@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.549 2020/01/31 23:13:04 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.550 2020/03/13 03:17:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1110,7 +1110,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 	for (i = 0; i < num_listen_socks; i++)
 		if (listen_socks[i] > maxfd)
 			maxfd = listen_socks[i];
-	/* pipes connected to unauthenticated childs */
+	/* pipes connected to unauthenticated child sshd processes */
 	startup_pipes = xcalloc(options.max_startups, sizeof(int));
 	startup_flags = xcalloc(options.max_startups, sizeof(int));
 	for (i = 0; i < options.max_startups; i++)
