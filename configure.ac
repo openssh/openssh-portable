@@ -3117,7 +3117,9 @@ if test "x$enable_sk" = "xyes" -a "x$enable_sk_internal" = "xyes" ; then
 	AC_CHECK_HEADER([fido.h], [],
 		AC_MSG_ERROR([missing fido.h from libfido2]))
 	AC_CHECK_HEADER([fido/credman.h], [],
-		AC_MSG_ERROR([missing fido/credman.h from libfido2]))
+		AC_MSG_ERROR([missing fido/credman.h from libfido2]),
+		[#include <fido.h>]
+	)
 fi
 
 AC_CHECK_FUNCS([ \
