@@ -133,6 +133,28 @@ main(int argc, char **argv)
 	ERR_load_CRYPTO_strings();
 #endif
 
+#ifdef WINDOWS
+	/* copy moduli file to __PROGRAMDATA__\SSH folder */
+	extern wchar_t* __wprogdir;
+	extern wchar_t* __wprogdata;
+	int isModuliFileCopied = 0;
+	wchar_t programdata_moduli_path[PATH_MAX] = { 0, };
+	if (__wprogdir && __wprogdata) {
+		wcscat_s(programdata_moduli_path, _countof(programdata_moduli_path), __wprogdata);
+		wcscat_s(programdata_moduli_path, _countof(programdata_moduli_path), L"\\ssh\\moduli");
+		if (GetFileAttributesW(programdata_moduli_path) == INVALID_FILE_ATTRIBUTES) {
+			wchar_t moduli_default_path[PATH_MAX] = { 0, };
+			swprintf_s(moduli_default_path, PATH_MAX, L"%s\\..\\%s", __wprogdir, L"moduli");
+
+			if (CopyFileW(moduli_default_path, programdata_moduli_path, TRUE) == 0) {
+				printf("Failed to copy %s to %s, error:%d", moduli_default_path, programdata_moduli_path, GetLastError());
+				exit(255);
+			}
+			isModuliFileCopied = 1;
+		}
+	}
+#endif
+
 	/* Handle systems without __progname */
 	if (__progname == NULL) {
 		__progname = strrchr(argv[0], '/');
@@ -178,6 +200,12 @@ main(int argc, char **argv)
 		printf("\n");
 
 	tests();
+
+#ifdef WINDOWS
+	if (isModuliFileCopied) {
+		_wunlink(programdata_moduli_path);
+	}
+#endif
 
 	if (!quiet_mode)
 		printf(" %u tests ok\n", test_number);

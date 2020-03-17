@@ -199,8 +199,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -234,8 +235,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -269,8 +271,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -304,8 +307,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -343,8 +347,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -382,8 +387,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -421,8 +427,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -460,8 +467,9 @@ copy /Y "$(SolutionDir)uninstall-ssh*ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)OpenSSHUtils.ps*1" "$(OutDir)"
 copy /Y "$(SolutionDir)Fix*FilePermissions.ps1" "$(OutDir)"
 copy /Y "$(SolutionDir)sshd_config" "$(OutDir)sshd_config_default"
+copy /Y "$(SolutionDir)moduli" "$(OutDir)moduli"
 copy /Y "$(SolutionDir)openssh-events.man" "$(OutDir)"</Command>
-      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man to build directory</Message>
+      <Message>Copy install-sshd.ps1, uninstall-sshd.ps1, OpenSSHUtils.psm1, OpenSSHUtils.psd1, FixHostFilePermissions.ps1, FixUserFilePermissions.ps1,  ssh-add-hostkey.ps1, sshd_config (as sshd_config_default), openssh-events.man, moduli to build directory</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
