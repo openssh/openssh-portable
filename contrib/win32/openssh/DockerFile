@@ -1,7 +1,6 @@
 # escape=`
 #0.3.6 (no powershell 6)
-#FROM travisez13/microsoft.windowsservercore.build-tools:latest
-FROM balu1202/winservercore_openssh:latest
+FROM balu1202/openssh-dockerbuildimage-ltsc2019-new:latest
 
 SHELL ["PowerShell.exe", "-command"]
 RUN Set-ExecutionPolicy Unrestricted

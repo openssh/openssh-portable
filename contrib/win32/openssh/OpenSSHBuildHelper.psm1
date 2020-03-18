@@ -627,7 +627,9 @@ function Get-Windows10SDKVersion
    $windowsSDKPath = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\Lib"
    $minSDKVersion = [version]"10.0.14393.0"
    $versionsAvailable = @()
-   $versionsAvailable += Get-ChildItem $windowsSDKPath | ? {$_.Name.StartsWith("10.")} | % {$version = [version]$_.Name; if($version.CompareTo($minSDKVersion) -ge 0) {$version}}
+   #Temporary fix - Onecore builds are failing with latest widows 10 SDK (10.0.18362.0)
+   $maxSDKVersion = [version]"10.0.17763.0"
+   $versionsAvailable = Get-ChildItem $windowsSDKPath | ? {$_.Name.StartsWith("10.")} | % {$version = [version]$_.Name; if(($version.CompareTo($minSDKVersion) -ge 0) -and ($version.CompareTo($maxSDKVersion) -le 0)) {$version}}
    if(0 -eq $versionsAvailable.count)
    {
         return $null

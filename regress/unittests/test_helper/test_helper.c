@@ -147,7 +147,7 @@ main(int argc, char **argv)
 			swprintf_s(moduli_default_path, PATH_MAX, L"%s\\..\\%s", __wprogdir, L"moduli");
 
 			if (CopyFileW(moduli_default_path, programdata_moduli_path, TRUE) == 0) {
-				printf("Failed to copy %s to %s, error:%d", moduli_default_path, programdata_moduli_path, GetLastError());
+				printf("Failed to copy %ls to %ls, error:%d", moduli_default_path, programdata_moduli_path, GetLastError());
 				exit(255);
 			}
 			isModuliFileCopied = 1;
