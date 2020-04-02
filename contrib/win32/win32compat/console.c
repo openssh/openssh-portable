@@ -221,6 +221,17 @@ ConEnterRawMode()
 	ScrollBottom = ConVisibleWindowHeight();
 	
 	in_raw_mode = 1;
+
+	/*
+	Consume and ignore the first WINDOW_BUFFER_SIZE_EVENT, as we've triggered it ourselves by updating the console settings above.
+	Not consuming this event can cause a race condition: the event can cause a write to the console to be printed twice as the
+	SIGWINCH interrupt makes the write operation think its failed, and causes it to try again.
+	*/
+	INPUT_RECORD peek_input;
+	int out_count = 0;
+	if (PeekConsoleInputW(GetConsoleInputHandle(), &peek_input, 1, &out_count) && peek_input.EventType == WINDOW_BUFFER_SIZE_EVENT) {
+		ReadConsoleInputW(GetConsoleInputHandle(), &peek_input, 1, &out_count);
+	}
 }
 
 /* Used to Uninitialize the Console */
