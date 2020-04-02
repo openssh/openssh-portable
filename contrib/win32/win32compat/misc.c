@@ -41,9 +41,9 @@
 #include <LM.h>
 #include <Sddl.h>
 #include <Aclapi.h>
-#include <Ntsecapi.h>
 #include <security.h>
 #include <ntstatus.h>
+#include <malloc.h>
 
 #include "inc\unistd.h"
 #include "inc\sys\stat.h"
@@ -56,12 +56,9 @@
 #include "inc\sys\ioctl.h"
 #include "inc\fcntl.h"
 #include "inc\utf.h"
-#include "signal_internal.h"
-#include "misc_internal.h"
 #include "debug.h"
 #include "w32fd.h"
 #include "inc\string.h"
-#include "inc\grp.h"
 #include "inc\time.h"
 
 #include <wchar.h>
@@ -746,20 +743,15 @@ w32_rename(const char *old_name, const char *new_name)
 		return -1;
 	
 	/*
-	 * To be consistent with POSIX rename(),
-	 * 1) if the new_name is file, then delete it so that _wrename will succeed.
-	 * 2) if the new_name is directory and it is empty then delete it so that _wrename will succeed.
+	 * To be consistent with POSIX rename(), if the new_name is directory
+	 * and it is empty then delete it so that MoveFileEx will succeed.
 	 */
 	struct _stat64 st_new;
 	struct _stat64 st_old;
 	if ((fileio_stat(new_name, &st_new) != -1) &&
-	    (fileio_stat(old_name, &st_old) != -1)) {
-		if (((st_old.st_mode & _S_IFMT) == _S_IFREG) &&
-		    ((st_new.st_mode & _S_IFMT) == _S_IFREG))
-			w32_unlink(new_name);
-
-		if (((st_old.st_mode & _S_IFMT) == _S_IFDIR) &&
-		    ((st_new.st_mode & _S_IFMT) == _S_IFDIR)) {
+	    (fileio_stat(old_name, &st_old) != -1) &&
+	    ((st_old.st_mode & _S_IFMT) == _S_IFDIR) &&
+	    ((st_new.st_mode & _S_IFMT) == _S_IFDIR)) {
 			DIR *dirp = opendir(new_name);
 			if (NULL != dirp) {
 				struct dirent *dp = readdir(dirp);
@@ -767,15 +759,21 @@ w32_rename(const char *old_name, const char *new_name)
 
 				if (dp == NULL)
 					w32_rmdir(new_name);
-			}
 		}
 	}
 
-	int returnStatus = _wrename(resolvedOldPathName_utf16, resolvedNewPathName_utf16);
+	const int returnStatus = MoveFileExW(resolvedOldPathName_utf16, resolvedNewPathName_utf16, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+
 	free(resolvedOldPathName_utf16);
 	free(resolvedNewPathName_utf16);
 
-	return returnStatus;
+	/* Adjust errors and return codes to be consistent with rename() syscall */
+	if (returnStatus == 0) {
+		errno = errno_from_Win32LastError();
+		return -1;
+	}
+	
+	return 0;
 }
 
 int
