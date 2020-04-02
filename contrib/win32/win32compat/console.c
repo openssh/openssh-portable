@@ -249,6 +249,8 @@ ConExitRawMode()
 				error("Failed to set console input code page from %d to %d error:%d", CP_UTF8, console_in_cp_saved, GetLastError());
 		}
 	}
+	
+	in_raw_mode = 0;
 }
 
 /* Used to exit the raw mode */
