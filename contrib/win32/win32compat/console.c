@@ -227,8 +227,12 @@ ConEnterRawMode()
 void 
 ConExitRawMode()
 {
-	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), stdin_dwSavedAttributes);
-	SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), stdout_dwSavedAttributes);
+	if (0 == in_raw_mode) {
+		return;
+	}
+
+	SetConsoleMode(GetConsoleInputHandle(), stdin_dwSavedAttributes);
+	SetConsoleMode(GetConsoleOutputHandle(), stdout_dwSavedAttributes);
 
 	if (FALSE == isAnsiParsingRequired) {
 		if (console_out_cp_saved) {
