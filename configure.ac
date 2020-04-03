@@ -2804,6 +2804,7 @@ if test "x$openssl" = "xyes" ; then
 		EVP_PKEY_get0_RSA \
 		EVP_MD_CTX_new \
 		EVP_MD_CTX_free \
+		EVP_chacha20 \
 	])
 
 	if test "x$openssl_engine" = "xyes" ; then

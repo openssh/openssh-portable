@@ -18,6 +18,8 @@
 
 #include "includes.h"
 
+#if !defined(HAVE_EVP_CHACHA20) || defined(HAVE_BROKEN_CHACHA20)
+
 #include <sys/types.h>
 #include <stdarg.h> /* needed for log.h */
 #include <string.h>
@@ -130,3 +132,5 @@ chachapoly_get_length(struct chachapoly_ctx *ctx,
 	*plenp = PEEK_U32(buf);
 	return 0;
 }
+
+#endif /* !defined(HAVE_EVP_CHACHA20) || defined(HAVE_BROKEN_CHACHA20) */
