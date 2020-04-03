@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.3 2020/04/03 05:43:11 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.4 2020/04/03 07:53:10 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -39,23 +39,23 @@ trial()
 	esac
 	if [ "$got" != "$expect" ]; then
 		fail "$opt=$arg expect $expect got $got"
-	else
-		trace "$opt=$arg expect $expect got $got"
 	fi
 }
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
     forwardagent; do
+	verbose $tid $i
 	if [ "$i" = "localcommand" ]; then
-		HASH=94237ca18fe6b187dccf57e5593c0bb0a29cc302
 		REMUSER=$USER
 		trial $i '%T' NONE
 	else
-		HASH=dbc43d45c7f8c0ecd0a65c0da484c03b6903622e
 		REMUSER=remuser
 	fi
+	# Matches implementation in readconf.c:ssh_connection_hash()
+	HASH=`printf "${HOSTNAME}127.0.0.1${PORT}$REMUSER" |
+	    openssl sha1 | cut -f2 -d' '`
 	trial $i '%%' '%'
-	#trial $i '%C' $HASH
+	trial $i '%C' $HASH
 	trial $i '%i' $USERID
 	trial $i '%h' 127.0.0.1
 	trial $i '%d' $HOME
@@ -65,8 +65,8 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	trial $i '%p' $PORT
 	trial $i '%r' $REMUSER
 	trial $i '%u' $USER
-	trial $i '%%/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
-	    "%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+	trial $i '%%/%C/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
+	    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
 done
 
 # A subset of options support tilde expansion
