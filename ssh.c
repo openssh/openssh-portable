@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.524 2020/04/03 04:03:51 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.525 2020/04/03 04:06:26 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1679,7 +1679,7 @@ forwarding_success(void)
 	if (forward_confirms_pending == -1)
 		return;
 	if (--forward_confirms_pending == 0) {
-		debug("%s: all expected forwarding replies received");
+		debug("%s: all expected forwarding replies received", __func__);
 		if (fork_after_authentication_flag)
 			fork_postauth();
 	} else {
