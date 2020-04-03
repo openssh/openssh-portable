@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.522 2020/04/03 02:27:12 dtucker Exp $ */
+/* $OpenBSD: ssh.c,v 1.523 2020/04/03 02:40:32 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -197,7 +197,7 @@ struct sshbuf *command;
 int subsystem_flag = 0;
 
 /* # of replies received for global requests */
-static int remote_forward_confirms_received = 0;
+static int forward_confirms_pending = -1;
 
 /* mux.c */
 extern int muxserver_sock;
@@ -1673,6 +1673,16 @@ fork_postauth(void)
 		fatal("daemon() failed: %.200s", strerror(errno));
 }
 
+static void
+forwarding_success(void)
+{
+	if (forward_confirms_pending > 0 && --forward_confirms_pending == 0) {
+		debug("All forwarding requests processed");
+		if (fork_after_authentication_flag)
+			fork_postauth();
+	}
+}
+
 /* Callback for remote forward global requests */
 static void
 ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
@@ -1732,11 +1742,7 @@ ssh_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 				    "for listen port %d", rfwd->listen_port);
 		}
 	}
-	if (++remote_forward_confirms_received == options.num_remote_forwards) {
-		debug("All remote forwarding requests processed");
-		if (fork_after_authentication_flag)
-			fork_postauth();
-	}
+	forwarding_success();
 }
 
 static void
@@ -1751,6 +1757,19 @@ ssh_stdio_confirm(struct ssh *ssh, int id, int success, void *arg)
 {
 	if (!success)
 		fatal("stdio forwarding failed");
+}
+
+static void
+ssh_tun_confirm(struct ssh *ssh, int id, int success, void *arg)
+{
+	if (!success) {
+		error("Tunnel forwarding failed");
+		if (options.exit_on_forward_failure)
+			cleanup_exit(255);
+	}
+
+	debug("%s: tunnel forward established, id=%d", __func__, id);
+	forwarding_success();
 }
 
 static void
@@ -1816,32 +1835,29 @@ ssh_init_forwarding(struct ssh *ssh, char **ifname)
 		    options.remote_forwards[i].connect_path :
 		    options.remote_forwards[i].connect_host,
 		    options.remote_forwards[i].connect_port);
-		options.remote_forwards[i].handle =
+		if ((options.remote_forwards[i].handle =
 		    channel_request_remote_forwarding(ssh,
-		    &options.remote_forwards[i]);
-		if (options.remote_forwards[i].handle < 0) {
-			if (options.exit_on_forward_failure)
-				fatal("Could not request remote forwarding.");
-			else
-				logit("Warning: Could not request remote "
-				    "forwarding.");
-		} else {
+		    &options.remote_forwards[i])) >= 0) {
 			client_register_global_confirm(
 			    ssh_confirm_remote_forward,
 			    &options.remote_forwards[i]);
-		}
+			forward_confirms_pending++;
+		} else if (options.exit_on_forward_failure)
+			fatal("Could not request remote forwarding.");
+		else
+			logit("Warning: Could not request remote forwarding.");
 	}
 
 	/* Initiate tunnel forwarding. */
 	if (options.tun_open != SSH_TUNMODE_NO) {
 		if ((*ifname = client_request_tun_fwd(ssh,
 		    options.tun_open, options.tun_local,
-		    options.tun_remote)) == NULL) {
-			if (options.exit_on_forward_failure)
-				fatal("Could not request tunnel forwarding.");
-			else
-				error("Could not request tunnel forwarding.");
-		}
+		    options.tun_remote, ssh_tun_confirm, NULL)) != NULL)
+			forward_confirms_pending++;
+		else if (options.exit_on_forward_failure)
+			fatal("Could not request tunnel forwarding.");
+		else
+			error("Could not request tunnel forwarding.");
 	}
 }
 
