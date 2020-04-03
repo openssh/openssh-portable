@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: krl.c,v 1.48 2020/04/03 02:26:56 djm Exp $ */
+/* $OpenBSD: krl.c,v 1.49 2020/04/03 04:43:24 djm Exp $ */
 
 #include "includes.h"
 
@@ -1370,7 +1370,7 @@ krl_dump(struct ssh_krl *krl, FILE *f)
 
 	/* Try to print in a KRL spec-compatible format */
 	format_timestamp(krl->generated_date, timestamp, sizeof(timestamp));
-	fprintf(f, "# KRL version %lld\n", krl->krl_version);
+	fprintf(f, "# KRL version %llu\n", krl->krl_version);
 	fprintf(f, "# Generated at %s\n", timestamp);
 	if (krl->comment != NULL && *krl->comment != '\0') {
 		r = INT_MAX;
@@ -1428,9 +1428,9 @@ krl_dump(struct ssh_krl *krl, FILE *f)
 		}
 		RB_FOREACH(rs, revoked_serial_tree, &rc->revoked_serials) {
 			if (rs->lo == rs->hi)
-				fprintf(f, "serial: %lld\n", rs->lo);
+				fprintf(f, "serial: %llu\n", rs->lo);
 			else {
-				fprintf(f, "serial: %lld-%lld\n",
+				fprintf(f, "serial: %llu-%llu\n",
 				    rs->lo, rs->hi);
 			}
 		}
