@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.404 2020/03/13 03:17:07 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.405 2020/04/03 02:26:56 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2439,7 +2439,7 @@ do_gen_krl(struct passwd *pw, int updating, const char *ca_key_path,
 }
 
 static void
-do_check_krl(struct passwd *pw, int argc, char **argv)
+do_check_krl(struct passwd *pw, int print_krl, int argc, char **argv)
 {
 	int i, r, ret = 0;
 	char *comment;
@@ -2449,6 +2449,8 @@ do_check_krl(struct passwd *pw, int argc, char **argv)
 	if (*identity_file == '\0')
 		fatal("KRL checking requires an input file");
 	load_krl(identity_file, &krl);
+	if (print_krl)
+		krl_dump(krl, stdout);
 	for (i = 0; i < argc; i++) {
 		if ((r = sshkey_load_public(argv[i], &k, &comment)) != 0)
 			fatal("Cannot load public key %s: %s",
@@ -3086,7 +3088,7 @@ usage(void)
 	    "       ssh-keygen -A [-f prefix_path]\n"
 	    "       ssh-keygen -k -f krl_file [-u] [-s ca_public] [-z version_number]\n"
 	    "                  file ...\n"
-	    "       ssh-keygen -Q -f krl_file file ...\n"
+	    "       ssh-keygen -Q [-l] -f krl_file [file ...]\n"
 	    "       ssh-keygen -Y find-principals -s signature_file -f allowed_signers_file\n"
 	    "       ssh-keygen -Y check-novalidate -n namespace -s signature_file\n"
 	    "       ssh-keygen -Y sign -f key_file -n namespace file ...\n"
@@ -3441,7 +3443,7 @@ main(int argc, char **argv)
 		return (0);
 	}
 	if (check_krl) {
-		do_check_krl(pw, argc, argv);
+		do_check_krl(pw, print_fingerprint, argc, argv);
 		return (0);
 	}
 	if (ca_key_path != NULL) {
