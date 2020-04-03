@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.521 2020/03/06 18:20:02 markus Exp $ */
+/* $OpenBSD: ssh.c,v 1.522 2020/04/03 02:27:12 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -86,7 +86,6 @@
 #include "canohost.h"
 #include "compat.h"
 #include "cipher.h"
-#include "digest.h"
 #include "packet.h"
 #include "sshbuf.h"
 #include "channels.h"
@@ -177,6 +176,13 @@ char *forward_agent_sock_path = NULL;
 /* Various strings used to to percent_expand() arguments */
 static char thishost[NI_MAXHOST], shorthost[NI_MAXHOST], portstr[NI_MAXSERV];
 static char uidstr[32], *host_arg, *conn_hash_hex;
+#define DEFAULT_CLIENT_PERCENT_EXPAND_ARGS \
+    "C", conn_hash_hex, \
+    "L", shorthost, \
+    "i", uidstr, \
+    "l", thishost, \
+    "n", host_arg, \
+    "p", portstr
 
 /* socket address the host resolves to */
 struct sockaddr_storage hostaddr;
@@ -601,8 +607,6 @@ main(int ac, char **av)
 	extern char *optarg;
 	struct Forward fwd;
 	struct addrinfo *addrs = NULL;
-	struct ssh_digest_ctx *md;
-	u_char conn_hash[SSH_DIGEST_MAX_LENGTH];
 	size_t n, len;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
@@ -1330,15 +1334,8 @@ main(int ac, char **av)
 	snprintf(uidstr, sizeof(uidstr), "%llu",
 	    (unsigned long long)pw->pw_uid);
 
-	if ((md = ssh_digest_start(SSH_DIGEST_SHA1)) == NULL ||
-	    ssh_digest_update(md, thishost, strlen(thishost)) < 0 ||
-	    ssh_digest_update(md, host, strlen(host)) < 0 ||
-	    ssh_digest_update(md, portstr, strlen(portstr)) < 0 ||
-	    ssh_digest_update(md, options.user, strlen(options.user)) < 0 ||
-	    ssh_digest_final(md, conn_hash, sizeof(conn_hash)) < 0)
-		fatal("%s: mux digest failed", __func__);
-	ssh_digest_free(md);
-	conn_hash_hex = tohex(conn_hash, ssh_digest_bytes(SSH_DIGEST_SHA1));
+	conn_hash_hex = ssh_connection_hash(thishost, host, portstr,
+	    options.user);
 
 	/*
 	 * Expand tokens in arguments. NB. LocalCommand is expanded later,
@@ -1349,14 +1346,9 @@ main(int ac, char **av)
 		debug3("expanding RemoteCommand: %s", options.remote_command);
 		cp = options.remote_command;
 		options.remote_command = percent_expand(cp,
-		    "C", conn_hash_hex,
-		    "L", shorthost,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
 		    "d", pw->pw_dir,
 		    "h", host,
-		    "i", uidstr,
-		    "l", thishost,
-		    "n", host_arg,
-		    "p", portstr,
 		    "r", options.user,
 		    "u", pw->pw_name,
 		    (char *)NULL);
@@ -1371,18 +1363,42 @@ main(int ac, char **av)
 		cp = tilde_expand_filename(options.control_path, getuid());
 		free(options.control_path);
 		options.control_path = percent_expand(cp,
-		    "C", conn_hash_hex,
-		    "L", shorthost,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
+		    "d", pw->pw_dir,
 		    "h", host,
-		    "i", uidstr,
-		    "l", thishost,
-		    "n", host_arg,
-		    "p", portstr,
 		    "r", options.user,
 		    "u", pw->pw_name,
-		    "i", uidstr,
 		    (char *)NULL);
 		free(cp);
+	}
+
+	if (options.identity_agent != NULL) {
+		p = tilde_expand_filename(options.identity_agent, getuid());
+		cp = percent_expand(p,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
+		    "d", pw->pw_dir,
+		    "h", host,
+		    "r", options.user,
+		    "u", pw->pw_name,
+		    (char *)NULL);
+		free(p);
+		free(options.identity_agent);
+		options.identity_agent = cp;
+	}
+
+	if (options.forward_agent_sock_path != NULL) {
+		p = tilde_expand_filename(options.forward_agent_sock_path,
+		    getuid());
+		cp = percent_expand(p,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
+		    "d", pw->pw_dir,
+		    "h", host,
+		    "r", options.user,
+		    "u", pw->pw_name,
+		    (char *)NULL);
+		free(p);
+		free(options.forward_agent_sock_path);
+		options.forward_agent_sock_path = cp;
 	}
 
 	if (config_test) {
@@ -1509,23 +1525,7 @@ main(int ac, char **av)
 		if (strcmp(options.identity_agent, "none") == 0) {
 			unsetenv(SSH_AUTHSOCKET_ENV_NAME);
 		} else {
-			p = tilde_expand_filename(options.identity_agent,
-			    getuid());
-			cp = percent_expand(p,
-			    "d", pw->pw_dir,
-			    "h", host,
-			    "i", uidstr,
-			    "l", thishost,
-			    "r", options.user,
-			    "u", pw->pw_name,
-			    (char *)NULL);
-			free(p);
-			/*
-			 * If identity_agent represents an environment variable
-			 * then recheck that it is valid (since processing with
-			 * percent_expand() may have changed it) and substitute
-			 * its value.
-			 */
+			cp = options.identity_agent;
 			if (cp[0] == '$') {
 				if (!valid_env_name(cp + 1)) {
 					fatal("Invalid IdentityAgent "
@@ -1539,22 +1539,10 @@ main(int ac, char **av)
 				/* identity_agent specifies a path directly */
 				setenv(SSH_AUTHSOCKET_ENV_NAME, cp, 1);
 			}
-			free(cp);
 		}
 	}
 
-	if (options.forward_agent && (options.forward_agent_sock_path != NULL)) {
-		p = tilde_expand_filename(options.forward_agent_sock_path, getuid());
-		cp = percent_expand(p,
-		    "d", pw->pw_dir,
-		    "h", host,
-		    "i", uidstr,
-		    "l", thishost,
-		    "r", options.user,
-		    "u", pw->pw_name,
-		    (char *)NULL);
-		free(p);
-
+	if (options.forward_agent && options.forward_agent_sock_path != NULL) {
 		if (cp[0] == '$') {
 			if (!valid_env_name(cp + 1)) {
 				fatal("Invalid ForwardAgent environment variable name %s", cp);
@@ -1979,14 +1967,9 @@ ssh_session2(struct ssh *ssh, struct passwd *pw)
 		debug3("expanding LocalCommand: %s", options.local_command);
 		cp = options.local_command;
 		options.local_command = percent_expand(cp,
-		    "C", conn_hash_hex,
-		    "L", shorthost,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
 		    "d", pw->pw_dir,
 		    "h", host,
-		    "i", uidstr,
-		    "l", thishost,
-		    "n", host_arg,
-		    "p", portstr,
 		    "r", options.user,
 		    "u", pw->pw_name,
 		    "T", tun_fwd_ifname == NULL ? "NONE" : tun_fwd_ifname,
@@ -2143,9 +2126,13 @@ load_public_identity_files(struct passwd *pw)
 			continue;
 		}
 		cp = tilde_expand_filename(options.identity_files[i], getuid());
-		filename = percent_expand(cp, "d", pw->pw_dir,
-		    "u", pw->pw_name, "l", thishost, "h", host,
-		    "r", options.user, (char *)NULL);
+		filename = percent_expand(cp,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
+		    "d", pw->pw_dir,
+		    "h", host,
+		    "r", options.user,
+		    "u", pw->pw_name,
+		    (char *)NULL);
 		free(cp);
 		check_load(sshkey_load_public(filename, &public, NULL),
 		    filename, "pubkey");
@@ -2195,10 +2182,9 @@ load_public_identity_files(struct passwd *pw)
 		cp = tilde_expand_filename(options.certificate_files[i],
 		    getuid());
 		filename = percent_expand(cp,
+		    DEFAULT_CLIENT_PERCENT_EXPAND_ARGS,
 		    "d", pw->pw_dir,
 		    "h", host,
-		    "i", uidstr,
-		    "l", thishost,
 		    "r", options.user,
 		    "u", pw->pw_name,
 		    (char *)NULL);
