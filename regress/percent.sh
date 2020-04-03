@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.1 2020/04/03 02:33:31 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.2 2020/04/03 03:14:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -19,14 +19,24 @@ trial()
 	opt="$1"; arg="$2"; expect="$3"
 
 	trace "test $opt=$arg $expect"
-	if [ "$opt" = "localcommand" ]; then
+	rm -f $OBJ/actual
+	case "$opt" in
+	localcommand)
 		${SSH} -F $OBJ/ssh_proxy -o $opt="echo '$arg' >$OBJ/actual" \
 		    somehost true
 		got=`cat $OBJ/actual`
-	else
+		;;
+	matchexec)
+		(cat $OBJ/ssh_proxy && \
+		 echo "Match Exec \"echo '$arg' >$OBJ/actual\"") \
+		    >$OBJ/ssh_proxy_match
+		${SSH} -F $OBJ/ssh_proxy_match remuser@somehost true || true
+		got=`cat $OBJ/actual`
+		;;
+	*)
 		got=`${SSH} -F $OBJ/ssh_proxy -o $opt="$arg" -G \
 		    remuser@somehost | awk '$1=="'$opt'"{print $2}'`
-	fi
+	esac
 	if [ "$got" != "$expect" ]; then
 		fail "$opt=$arg expect $expect got $got"
 	else
@@ -34,7 +44,8 @@ trial()
 	fi
 }
 
-for i in localcommand remotecommand controlpath identityagent forwardagent; do
+for i in matchexec localcommand remotecommand controlpath identityagent \
+    forwardagent; do
 	if [ "$i" = "localcommand" ]; then
 		HASH=94237ca18fe6b187dccf57e5593c0bb0a29cc302
 		REMUSER=$USER
