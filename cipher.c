@@ -1,4 +1,4 @@
-/* $OpenBSD: cipher.c,v 1.116 2020/03/13 03:17:07 djm Exp $ */
+/* $OpenBSD: cipher.c,v 1.117 2020/04/03 04:27:03 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -59,7 +59,7 @@ struct sshcipher_ctx {
 	int	plaintext;
 	int	encrypt;
 	EVP_CIPHER_CTX *evp;
-	struct chachapoly_ctx cp_ctx; /* XXX union with evp? */
+	struct chachapoly_ctx *cp_ctx;
 	struct aesctr_ctx ac_ctx; /* XXX union with evp? */
 	const struct sshcipher *cipher;
 };
@@ -273,7 +273,8 @@ cipher_init(struct sshcipher_ctx **ccp, const struct sshcipher *cipher,
 
 	cc->cipher = cipher;
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		ret = chachapoly_init(&cc->cp_ctx, key, keylen);
+		cc->cp_ctx = chachapoly_new(key, keylen);
+		ret = cc->cp_ctx != NULL ? 0 : SSH_ERR_INVALID_ARGUMENT;
 		goto out;
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
@@ -349,7 +350,7 @@ cipher_crypt(struct sshcipher_ctx *cc, u_int seqnr, u_char *dest,
    const u_char *src, u_int len, u_int aadlen, u_int authlen)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
-		return chachapoly_crypt(&cc->cp_ctx, seqnr, dest, src,
+		return chachapoly_crypt(cc->cp_ctx, seqnr, dest, src,
 		    len, aadlen, authlen, cc->encrypt);
 	}
 	if ((cc->cipher->flags & CFLAG_NONE) != 0) {
@@ -412,7 +413,7 @@ cipher_get_length(struct sshcipher_ctx *cc, u_int *plenp, u_int seqnr,
     const u_char *cp, u_int len)
 {
 	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		return chachapoly_get_length(&cc->cp_ctx, plenp, seqnr,
+		return chachapoly_get_length(cc->cp_ctx, plenp, seqnr,
 		    cp, len);
 	if (len < 4)
 		return SSH_ERR_MESSAGE_INCOMPLETE;
@@ -425,9 +426,10 @@ cipher_free(struct sshcipher_ctx *cc)
 {
 	if (cc == NULL)
 		return;
-	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0)
-		explicit_bzero(&cc->cp_ctx, sizeof(cc->cp_ctx));
-	else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
+	if ((cc->cipher->flags & CFLAG_CHACHAPOLY) != 0) {
+		chachapoly_free(cc->cp_ctx);
+		cc->cp_ctx = NULL;
+	} else if ((cc->cipher->flags & CFLAG_AESCTR) != 0)
 		explicit_bzero(&cc->ac_ctx, sizeof(cc->ac_ctx));
 #ifdef WITH_OPENSSL
 	EVP_CIPHER_CTX_free(cc->evp);

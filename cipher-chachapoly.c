@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $OpenBSD: cipher-chachapoly.c,v 1.8 2016/08/03 05:41:57 djm Exp $ */
+/* $OpenBSD: cipher-chachapoly.c,v 1.9 2020/04/03 04:27:03 djm Exp $ */
 
 #include "includes.h"
 
@@ -28,15 +28,28 @@
 #include "ssherr.h"
 #include "cipher-chachapoly.h"
 
-int
-chachapoly_init(struct chachapoly_ctx *ctx,
-    const u_char *key, u_int keylen)
+struct chachapoly_ctx {
+	struct chacha_ctx main_ctx, header_ctx;
+};
+
+struct chachapoly_ctx *
+chachapoly_new(const u_char *key, u_int keylen)
 {
+	struct chachapoly_ctx *ctx;
+
 	if (keylen != (32 + 32)) /* 2 x 256 bit keys */
-		return SSH_ERR_INVALID_ARGUMENT;
+		return NULL;
+	if ((ctx = calloc(1, sizeof(*ctx))) == NULL)
+		return NULL;
 	chacha_keysetup(&ctx->main_ctx, key, 256);
 	chacha_keysetup(&ctx->header_ctx, key + 32, 256);
-	return 0;
+	return ctx;
+}
+
+void
+chachapoly_free(struct chachapoly_ctx *cpctx)
+{
+	freezero(cpctx, sizeof(*cpctx));
 }
 
 /*
