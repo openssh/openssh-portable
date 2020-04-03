@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.327 2020/04/03 02:27:12 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.328 2020/04/03 03:12:11 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -674,7 +674,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 			snprintf(uidstr, sizeof(uidstr), "%llu",
 			    (unsigned long long)pw->pw_uid);
 			conn_hash_hex = ssh_connection_hash(thishost, host,
-			   portstr, pw->pw_name);
+			   portstr, ruser);
 
 			cmd = percent_expand(arg,
 			    "C", conn_hash_hex,
