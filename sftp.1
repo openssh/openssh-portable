@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.129 2020/04/03 04:34:15 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.130 2020/04/03 05:53:52 jmc Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -197,6 +197,10 @@ This option is directly passed to
 .Xr ssh 1 .
 .It Fl l Ar limit
 Limits the used bandwidth, specified in Kbit/s.
+.It Fl N
+Disables quiet mode, e.g. to override the implicit quiet mode set by the
+.Fl b
+flag.
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh
@@ -275,10 +279,6 @@ For full details of the options listed below, and their possible values, see
 .El
 .It Fl P Ar port
 Specifies the port to connect to on the remote host.
-.It Fl N
-Disables quiet mode, e.g. to override the implicit quiet mode set by the
-.Fl b
-flag.
 .It Fl p
 Preserves modification times, access times, and modes from the
 original files transferred.
