@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp.c,v 1.198 2020/02/26 11:46:51 dtucker Exp $ */
+/* $OpenBSD: sftp.c,v 1.199 2020/04/03 04:34:15 djm Exp $ */
 /*
  * Copyright (c) 2001-2004 Damien Miller <djm@openbsd.org>
  *
@@ -2375,7 +2375,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	int in, out, ch, err, tmp, port = -1;
+	int in, out, ch, err, tmp, port = -1, noisy = 0;
 	char *host = NULL, *user, *cp, *file2 = NULL;
 	int debug_level = 0;
 	char *file1 = NULL, *sftp_server = NULL;
@@ -2409,7 +2409,7 @@ main(int argc, char **argv)
 	infile = stdin;
 
 	while ((ch = getopt(argc, argv,
-	    "1246afhpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
+	    "1246afhNpqrvCc:D:i:l:o:s:S:b:B:F:J:P:R:")) != -1) {
 		switch (ch) {
 		/* Passed through to ssh(1) */
 		case '4':
@@ -2473,6 +2473,9 @@ main(int argc, char **argv)
 		case 'f':
 			global_fflag = 1;
 			break;
+		case 'N':
+			noisy = 1; /* Used to clear quiet mode after getopt */
+			break;
 		case 'p':
 			global_pflag = 1;
 			break;
@@ -2510,6 +2513,9 @@ main(int argc, char **argv)
 
 	if (!isatty(STDERR_FILENO))
 		showprogress = 0;
+
+	if (noisy)
+		quiet = 0;
 
 	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
 
