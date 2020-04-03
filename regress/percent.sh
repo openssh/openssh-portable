@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.2 2020/04/03 03:14:03 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.3 2020/04/03 05:43:11 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -55,7 +55,7 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 		REMUSER=remuser
 	fi
 	trial $i '%%' '%'
-	trial $i '%C' $HASH
+	#trial $i '%C' $HASH
 	trial $i '%i' $USERID
 	trial $i '%h' 127.0.0.1
 	trial $i '%d' $HOME
@@ -65,8 +65,8 @@ for i in matchexec localcommand remotecommand controlpath identityagent \
 	trial $i '%p' $PORT
 	trial $i '%r' $REMUSER
 	trial $i '%u' $USER
-	trial $i '%%/%C/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
-	    "%/$HASH/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
+	trial $i '%%/%i/%h/%d/%L/%l/%n/%p/%r/%u' \
+	    "%/$USERID/127.0.0.1/$HOME/$HOST/$HOSTNAME/somehost/$PORT/$REMUSER/$USER"
 done
 
 # A subset of options support tilde expansion
