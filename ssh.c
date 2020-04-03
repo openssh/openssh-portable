@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh.c,v 1.523 2020/04/03 02:40:32 djm Exp $ */
+/* $OpenBSD: ssh.c,v 1.524 2020/04/03 04:03:51 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1676,10 +1676,15 @@ fork_postauth(void)
 static void
 forwarding_success(void)
 {
-	if (forward_confirms_pending > 0 && --forward_confirms_pending == 0) {
-		debug("All forwarding requests processed");
+	if (forward_confirms_pending == -1)
+		return;
+	if (--forward_confirms_pending == 0) {
+		debug("%s: all expected forwarding replies received");
 		if (fork_after_authentication_flag)
 			fork_postauth();
+	} else {
+		debug2("%s: %d expected forwarding replies remaining",
+		    __func__, forward_confirms_pending);
 	}
 }
 
@@ -1800,6 +1805,8 @@ ssh_init_forwarding(struct ssh *ssh, char **ifname)
 	int success = 0;
 	int i;
 
+	if (options.exit_on_forward_failure)
+		forward_confirms_pending = 0; /* track pending requests */
 	/* Initiate local TCP/IP port forwardings. */
 	for (i = 0; i < options.num_local_forwards; i++) {
 		debug("Local connections to %.200s:%d forwarded to remote "
@@ -1858,6 +1865,10 @@ ssh_init_forwarding(struct ssh *ssh, char **ifname)
 			fatal("Could not request tunnel forwarding.");
 		else
 			error("Could not request tunnel forwarding.");
+	}
+	if (forward_confirms_pending > 0) {
+		debug("%s: expecting replies for %d forwards", __func__,
+		    forward_confirms_pending);
 	}
 }
 
