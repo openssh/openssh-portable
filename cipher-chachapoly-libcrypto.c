@@ -17,6 +17,9 @@
 /* $OpenBSD: cipher-chachapoly-libcrypto.c,v 1.1 2020/04/03 04:32:21 djm Exp $ */
 
 #include "includes.h"
+#ifdef WITH_OPENSSL
+#include "openbsd-compat/openssl-compat.h"
+#endif
 
 #if defined(HAVE_EVP_CHACHA20) || !defined(HAVE_BROKEN_CHACHA20)
 
