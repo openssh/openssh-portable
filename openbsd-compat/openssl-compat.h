@@ -63,7 +63,7 @@ void ssh_libcrypto_init(void);
 #endif
 
 #ifdef LIBRESSL_VERSION_NUMBER
-# if LIBRESSL_VERSION_NUMBER >= 0x3010000fL
+# if LIBRESSL_VERSION_NUMBER < 0x3010000fL
 #  define HAVE_BROKEN_CHACHA20
 # endif
 #endif
