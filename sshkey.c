@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.106 2020/04/08 00:07:19 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.107 2020/04/08 00:08:46 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4366,6 +4366,56 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	return r;
 }
 
+static int
+sshkey_parse_private2_pubkey(struct sshbuf *blob, int type,
+    struct sshkey **keyp)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+	struct sshbuf *decoded = NULL;
+	struct sshkey *pubkey = NULL;
+	u_int nkeys = 0;
+
+	if (keyp != NULL)
+		*keyp = NULL;
+
+	if ((r = private2_uudecode(blob, &decoded)) != 0)
+		goto out;
+	/* parse public key from unencrypted envelope */
+	if ((r = sshbuf_consume(decoded, sizeof(AUTH_MAGIC))) != 0 ||
+	    (r = sshbuf_skip_string(decoded)) != 0 || /* cipher */
+	    (r = sshbuf_skip_string(decoded)) != 0 || /* KDF alg */
+	    (r = sshbuf_skip_string(decoded)) != 0 || /* KDF hint */
+	    (r = sshbuf_get_u32(decoded, &nkeys)) != 0)
+		goto out;
+
+	if (nkeys != 1) {
+		/* XXX only one key supported at present */
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
+
+	/* Parse the public key */
+	if ((r = sshkey_froms(decoded, &pubkey)) != 0)
+		goto out;
+
+	if (type != KEY_UNSPEC &&
+	    sshkey_type_plain(type) != sshkey_type_plain(pubkey->type)) {
+		r = SSH_ERR_KEY_TYPE_MISMATCH;
+		goto out;
+	}
+
+	/* success */
+	r = 0;
+	if (keyp != NULL) {
+		*keyp = pubkey;
+		pubkey = NULL;
+	}
+ out:
+	sshbuf_free(decoded);
+	sshkey_free(pubkey);
+	return r;
+}
+
 #ifdef WITH_OPENSSL
 /* convert SSH v2 key to PEM or PKCS#8 format */
 static int
@@ -4728,6 +4778,20 @@ void
 sshkey_sig_details_free(struct sshkey_sig_details *details)
 {
 	freezero(details, sizeof(*details));
+}
+
+int
+sshkey_parse_pubkey_from_private_fileblob_type(struct sshbuf *blob, int type,
+    struct sshkey **pubkeyp)
+{
+	int r = SSH_ERR_INTERNAL_ERROR;
+
+	if (pubkeyp != NULL)
+		*pubkeyp = NULL;
+	/* only new-format private keys bundle a public key inside */
+	if ((r = sshkey_parse_private2_pubkey(blob, type, pubkeyp)) != 0)
+		return r;
+	return 0;
 }
 
 #ifdef WITH_XMSS
