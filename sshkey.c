@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.104 2020/04/08 00:04:32 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.105 2020/04/08 00:05:59 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4325,6 +4325,12 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	    (r = private2_decrypt(decoded, passphrase,
 	    &decrypted, &pubkey)) != 0)
 		goto out;
+
+	if (type != KEY_UNSPEC &&
+	    sshkey_type_plain(type) != sshkey_type_plain(pubkey->type)) {
+		r = SSH_ERR_KEY_TYPE_MISMATCH;
+		goto out;
+	}
 
 	/* Load the private key and comment */
 	if ((r = sshkey_private_deserialize(decrypted, &k)) != 0 ||
