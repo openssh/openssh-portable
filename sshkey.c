@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.105 2020/04/08 00:05:59 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.106 2020/04/08 00:07:19 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4366,7 +4366,6 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	return r;
 }
 
-
 #ifdef WITH_OPENSSL
 /* convert SSH v2 key to PEM or PKCS#8 format */
 static int
@@ -4692,24 +4691,16 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 		*commentp = NULL;
 
 	switch (type) {
-#ifdef WITH_OPENSSL
-	case KEY_DSA:
-	case KEY_ECDSA:
-	case KEY_RSA:
-		return sshkey_parse_private_pem_fileblob(blob, type,
-		    passphrase, keyp);
-#endif /* WITH_OPENSSL */
 	case KEY_ED25519:
-#ifdef WITH_XMSS
 	case KEY_XMSS:
-#endif /* WITH_XMSS */
+		/* No fallback for new-format-only keys */
 		return sshkey_parse_private2(blob, type, passphrase,
 		    keyp, commentp);
-	case KEY_UNSPEC:
+	default:
 		r = sshkey_parse_private2(blob, type, passphrase, keyp,
 		    commentp);
-		/* Do not fallback to PEM parser if only passphrase is wrong. */
-		if (r == 0 || r == SSH_ERR_KEY_WRONG_PASSPHRASE)
+		/* Only fallback to PEM parser if a format error occurred. */
+		if (r != SSH_ERR_INVALID_FORMAT)
 			return r;
 #ifdef WITH_OPENSSL
 		return sshkey_parse_private_pem_fileblob(blob, type,
@@ -4717,8 +4708,6 @@ sshkey_parse_private_fileblob_type(struct sshbuf *blob, int type,
 #else
 		return SSH_ERR_INVALID_FORMAT;
 #endif /* WITH_OPENSSL */
-	default:
-		return SSH_ERR_KEY_TYPE_UNKNOWN;
 	}
 }
 
