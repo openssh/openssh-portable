@@ -1,4 +1,4 @@
-/* $OpenBSD: sshkey.c,v 1.103 2020/04/08 00:01:52 djm Exp $ */
+/* $OpenBSD: sshkey.c,v 1.104 2020/04/08 00:04:32 djm Exp $ */
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Alexander von Gernler.  All rights reserved.
@@ -4135,8 +4135,8 @@ private2_uudecode(struct sshbuf *blob, struct sshbuf **decodedp)
 }
 
 static int
-private2_decrypt(struct sshbuf *decoded, struct sshbuf **decryptedp,
-    const char *passphrase)
+private2_decrypt(struct sshbuf *decoded, const char *passphrase,
+    struct sshbuf **decryptedp, struct sshkey **pubkeyp)
 {
 	char *ciphername = NULL, *kdfname = NULL;
 	const struct sshcipher *cipher = NULL;
@@ -4144,13 +4144,15 @@ private2_decrypt(struct sshbuf *decoded, struct sshbuf **decryptedp,
 	size_t keylen = 0, ivlen = 0, authlen = 0, slen = 0;
 	struct sshbuf *kdf = NULL, *decrypted = NULL;
 	struct sshcipher_ctx *ciphercontext = NULL;
+	struct sshkey *pubkey = NULL;
 	u_char *key = NULL, *salt = NULL, *dp;
 	u_int blocksize, rounds, nkeys, encrypted_len, check1, check2;
 
-	if (decoded == NULL || decryptedp == NULL)
+	if (decoded == NULL || decryptedp == NULL || pubkeyp == NULL)
 		return SSH_ERR_INVALID_ARGUMENT;
 
 	*decryptedp = NULL;
+	*pubkeyp = NULL;
 
 	if ((decrypted = sshbuf_new()) == NULL) {
 		r = SSH_ERR_ALLOC_FAIL;
@@ -4171,7 +4173,7 @@ private2_decrypt(struct sshbuf *decoded, struct sshbuf **decryptedp,
 		goto out;
 	}
 
-	if ((r = sshbuf_skip_string(decoded)) != 0 || /* pubkey */
+	if ((r = sshkey_froms(decoded, &pubkey)) != 0 ||
 	    (r = sshbuf_get_u32(decoded, &encrypted_len)) != 0)
 		goto out;
 
@@ -4258,11 +4260,14 @@ private2_decrypt(struct sshbuf *decoded, struct sshbuf **decryptedp,
 	/* success */
 	*decryptedp = decrypted;
 	decrypted = NULL;
+	*pubkeyp = pubkey;
+	pubkey = NULL;
 	r = 0;
  out:
 	cipher_free(ciphercontext);
 	free(ciphername);
 	free(kdfname);
+	sshkey_free(pubkey);
 	if (salt != NULL) {
 		explicit_bzero(salt, slen);
 		free(salt);
@@ -4308,7 +4313,7 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	char *comment = NULL;
 	int r = SSH_ERR_INTERNAL_ERROR;
 	struct sshbuf *decoded = NULL, *decrypted = NULL;
-	struct sshkey *k = NULL;
+	struct sshkey *k = NULL, *pubkey = NULL;
 
 	if (keyp != NULL)
 		*keyp = NULL;
@@ -4317,7 +4322,8 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 
 	/* Undo base64 encoding and decrypt the private section */
 	if ((r = private2_uudecode(blob, &decoded)) != 0 ||
-	    (r = private2_decrypt(decoded, &decrypted, passphrase)) != 0)
+	    (r = private2_decrypt(decoded, passphrase,
+	    &decrypted, &pubkey)) != 0)
 		goto out;
 
 	/* Load the private key and comment */
@@ -4329,7 +4335,11 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	if ((r = private2_check_padding(decrypted)) != 0)
 		goto out;
 
-	/* XXX decode pubkey and check against private */
+	/* Check that the public key in the envelope matches the private key */
+	if (!sshkey_equal(pubkey, k)) {
+		r = SSH_ERR_INVALID_FORMAT;
+		goto out;
+	}
 
 	/* success */
 	r = 0;
@@ -4346,6 +4356,7 @@ sshkey_parse_private2(struct sshbuf *blob, int type, const char *passphrase,
 	sshbuf_free(decoded);
 	sshbuf_free(decrypted);
 	sshkey_free(k);
+	sshkey_free(pubkey);
 	return r;
 }
 
