@@ -1,4 +1,4 @@
-#	$OpenBSD: percent.sh,v 1.5 2020/04/04 22:14:26 dtucker Exp $
+#	$OpenBSD: percent.sh,v 1.6 2020/04/10 00:54:03 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="percent expansions"
@@ -38,6 +38,13 @@ trial()
 		${SSH} -F $OBJ/ssh_proxy_match remuser@somehost true || true
 		got=`cat $OBJ/actual`
 		;;
+	*forward)
+		# LocalForward and RemoteForward take two args and only
+		# operate on Unix domain socket paths
+		got=`${SSH} -F $OBJ/ssh_proxy -o $opt="/$arg /$arg" -G \
+		    remuser@somehost | awk '$1=="'$opt'"{print $2" "$3}'`
+		expect="/$expect /$expect"
+		;;
 	*)
 		got=`${SSH} -F $OBJ/ssh_proxy -o $opt="$arg" -G \
 		    remuser@somehost | awk '$1=="'$opt'"{print $2}'`
@@ -48,7 +55,7 @@ trial()
 }
 
 for i in matchexec localcommand remotecommand controlpath identityagent \
-    forwardagent; do
+    forwardagent localforward remoteforward; do
 	verbose $tid $i
 	if [ "$i" = "localcommand" ]; then
 		REMUSER=$USER
