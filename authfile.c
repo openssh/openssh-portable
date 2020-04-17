@@ -1,4 +1,4 @@
-/* $OpenBSD: authfile.c,v 1.139 2020/04/08 00:10:37 djm Exp $ */
+/* $OpenBSD: authfile.c,v 1.140 2020/04/17 07:15:11 djm Exp $ */
 /*
  * Copyright (c) 2000, 2013 Markus Friedl.  All rights reserved.
  *
@@ -141,6 +141,14 @@ sshkey_load_private_type(int type, const char *filename, const char *passphrase,
 }
 
 int
+sshkey_load_private(const char *filename, const char *passphrase,
+    struct sshkey **keyp, char **commentp)
+{
+	return sshkey_load_private_type(KEY_UNSPEC, filename, passphrase,
+	    keyp, commentp);
+}
+
+int
 sshkey_load_private_type_fd(int fd, int type, const char *passphrase,
     struct sshkey **keyp, char **commentp)
 {
@@ -157,39 +165,6 @@ sshkey_load_private_type_fd(int fd, int type, const char *passphrase,
 	/* success */
 	r = 0;
  out:
-	sshbuf_free(buffer);
-	return r;
-}
-
-/* XXX this is almost identical to sshkey_load_private_type() */
-int
-sshkey_load_private(const char *filename, const char *passphrase,
-    struct sshkey **keyp, char **commentp)
-{
-	struct sshbuf *buffer = NULL;
-	int r, fd;
-
-	if (keyp != NULL)
-		*keyp = NULL;
-	if (commentp != NULL)
-		*commentp = NULL;
-
-	if ((fd = open(filename, O_RDONLY)) == -1)
-		return SSH_ERR_SYSTEM_ERROR;
-	if (sshkey_perm_ok(fd, filename) != 0) {
-		r = SSH_ERR_KEY_BAD_PERMISSIONS;
-		goto out;
-	}
-	if ((r = sshbuf_load_fd(fd, &buffer)) != 0 ||
-	    (r = sshkey_parse_private_fileblob(buffer, passphrase, keyp,
-	    commentp)) != 0)
-		goto out;
-	if (keyp && *keyp &&
-	    (r = sshkey_set_filename(*keyp, filename)) != 0)
-		goto out;
-	r = 0;
- out:
-	close(fd);
 	sshbuf_free(buffer);
 	return r;
 }
