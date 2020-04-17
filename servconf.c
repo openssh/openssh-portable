@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.361 2020/03/06 18:29:54 markus Exp $ */
+/* $OpenBSD: servconf.c,v 1.362 2020/04/17 03:23:13 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -626,7 +626,7 @@ static struct {
 #else
 	{ "printlastlog", sPrintLastLog, SSHCFG_GLOBAL },
 #endif
-	{ "ignorerhosts", sIgnoreRhosts, SSHCFG_GLOBAL },
+	{ "ignorerhosts", sIgnoreRhosts, SSHCFG_ALL },
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts, SSHCFG_GLOBAL },
 	{ "x11forwarding", sX11Forwarding, SSHCFG_ALL },
 	{ "x11displayoffset", sX11DisplayOffset, SSHCFG_ALL },
@@ -2473,6 +2473,7 @@ copy_set_server_options(ServerOptions *dst, ServerOptions *src, int preauth)
 	M_CP_INTOPT(kbd_interactive_authentication);
 	M_CP_INTOPT(permit_root_login);
 	M_CP_INTOPT(permit_empty_passwd);
+	M_CP_INTOPT(ignore_rhosts);
 
 	M_CP_INTOPT(allow_tcp_forwarding);
 	M_CP_INTOPT(allow_streamlocal_forwarding);
