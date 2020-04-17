@@ -15,7 +15,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#ifdef HAVE_SYS_SYSCTL_H
+#ifdef __OpenBSD__
 #include <sys/sysctl.h>
 #endif
 
