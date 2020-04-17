@@ -33,7 +33,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.308 2020/04/17 03:23:13 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.309 2020/04/17 03:30:05 djm Exp $
 .Dd $Mdocdate: April 17 2020 $
 .Dt SSHD_CONFIG 5
 .Os
@@ -778,19 +778,32 @@ rsa-sha2-512,rsa-sha2-256,ssh-rsa
 The list of available key types may also be obtained using
 .Qq ssh -Q HostKeyAlgorithms .
 .It Cm IgnoreRhosts
-Specifies that
+Specifies whether to ignore per-user
 .Pa .rhosts
 and
 .Pa .shosts
-files will not be used in
+files during
 .Cm HostbasedAuthentication .
-.Pp
+The system-wide
 .Pa /etc/hosts.equiv
 and
 .Pa /etc/shosts.equiv
-are still used.
-The default is
-.Cm yes .
+are still used regardless of this setting.
+.Pp
+Accepted values are
+.Cm yes
+(the default) to ignore all per-user files,
+.Cm shosts-only
+to allow the use of
+.Pa .shosts
+but to ignore
+.Pa .rhosts
+or
+.Cm no
+to allow both
+.Pa .shosts
+and
+.Pa rhosts.
 .It Cm IgnoreUserKnownHosts
 Specifies whether
 .Xr sshd 8

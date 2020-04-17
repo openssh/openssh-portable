@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.362 2020/04/17 03:23:13 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.363 2020/04/17 03:30:05 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -1213,6 +1213,12 @@ static const struct multistate multistate_flag[] = {
 	{ "no",				0 },
 	{ NULL, -1 }
 };
+static const struct multistate multistate_ignore_rhosts[] = {
+	{ "yes",			IGNORE_RHOSTS_YES },
+	{ "no",				IGNORE_RHOSTS_NO },
+	{ "shosts-only",		IGNORE_RHOSTS_SHOSTS },
+	{ NULL, -1 }
+};
 static const struct multistate multistate_addressfamily[] = {
 	{ "inet",			AF_INET },
 	{ "inet6",			AF_INET6 },
@@ -1462,13 +1468,14 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 
 	case sIgnoreRhosts:
 		intptr = &options->ignore_rhosts;
- parse_flag:
-		multistate_ptr = multistate_flag;
+		multistate_ptr = multistate_ignore_rhosts;
 		goto parse_multistate;
 
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;
-		goto parse_flag;
+ parse_flag:
+		multistate_ptr = multistate_flag;
+		goto parse_multistate;
 
 	case sHostbasedAuthentication:
 		intptr = &options->hostbased_authentication;
@@ -2628,6 +2635,8 @@ fmt_intarg(ServerOpCodes code, int val)
 		return fmt_multistate_int(val, multistate_tcpfwd);
 	case sAllowStreamLocalForwarding:
 		return fmt_multistate_int(val, multistate_tcpfwd);
+	case sIgnoreRhosts:
+		return fmt_multistate_int(val, multistate_ignore_rhosts);
 	case sFingerprintHash:
 		return ssh_digest_alg_name(val);
 	default:
