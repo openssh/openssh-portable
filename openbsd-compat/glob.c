@@ -833,7 +833,7 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 	if (pglob->gl_pathv == NULL && pglob->gl_offs > 0) {
 		/* first time around -- clear initial gl_offs items */
 		pathv += pglob->gl_offs;
-		for (i = pglob->gl_offs; --i >= 0; )
+		for (i = pglob->gl_offs; i-- > 0; )
 			*--pathv = NULL;
 	}
 	pglob->gl_pathv = pathv;
@@ -845,7 +845,7 @@ globextend(const Char *path, glob_t *pglob, struct glob_lim *limitp,
 		if (pglob->gl_statv == NULL && pglob->gl_offs > 0) {
 			/* first time around -- clear initial gl_offs items */
 			statv += pglob->gl_offs;
-			for (i = pglob->gl_offs; --i >= 0; )
+			for (i = pglob->gl_offs; i-- > 0; )
 				*--statv = NULL;
 		}
 		pglob->gl_statv = statv;
