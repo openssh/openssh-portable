@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.406 2020/04/17 07:16:07 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.407 2020/04/20 04:43:57 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -910,21 +910,25 @@ fingerprint_private(const char *path)
 {
 	struct stat st;
 	char *comment = NULL;
-	struct sshkey *key = NULL;
+	struct sshkey *privkey = NULL, *pubkey = NULL;
 	int r;
 
 	if (stat(identity_file, &st) == -1)
 		fatal("%s: %s", path, strerror(errno));
-	if ((r = sshkey_load_private(path, NULL, &key, &comment)) != 0) {
-		debug("load private \"%s\": %s", path, ssh_err(r));
-		if ((r = sshkey_load_public(path, &key, &comment)) != 0) {
-			debug("load public \"%s\": %s", path, ssh_err(r));
-			fatal("%s is not a key file.", path);
-		}
+	if ((r = sshkey_load_public(path, &pubkey, &comment)) != 0)
+		debug("load public \"%s\": %s", path, ssh_err(r));
+	if (pubkey == NULL || comment == NULL || *comment == '\0') {
+		free(comment);
+		if ((r = sshkey_load_private(path, NULL,
+		    &privkey, &comment)) != 0)
+			debug("load private \"%s\": %s", path, ssh_err(r));
 	}
+	if (pubkey == NULL && privkey == NULL)
+		fatal("%s is not a key file.", path);
 
-	fingerprint_one_key(key, comment);
-	sshkey_free(key);
+	fingerprint_one_key(pubkey == NULL ? privkey : pubkey, comment);
+	sshkey_free(pubkey);
+	sshkey_free(privkey);
 	free(comment);
 }
 
