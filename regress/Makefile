@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.107 2020/04/03 02:33:31 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.108 2020/04/20 04:44:47 djm Exp $
 
 tests:		prep file-tests t-exec unit
 
@@ -91,8 +91,8 @@ LTESTS= 	connect \
 		servcfginclude \
 		allow-deny-users \
 		authinfo \
-		sshsig
-
+		sshsig \
+		keygen-comment
 
 
 INTEROP_TESTS=	putty-transfer putty-ciphers putty-kex conch-ciphers
