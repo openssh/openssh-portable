@@ -1861,8 +1861,9 @@ hpn_options_init(void)
 		options.hpn_buffer_size = 2 * 1024 * 1024;
 
 	if (datafellows & SSH_BUG_LARGEWINDOW) {
-		debug("HPN to Non-HPN Connection");
+		debug("HPN to Non-HPN connection");
 	} else {
+		debug("HPN to HPN connection");
 		int sock, socksize;
 		socklen_t socksizelen;
 		if (options.tcp_rcv_buf_poll <= 0) {

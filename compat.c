@@ -154,7 +154,9 @@ compat_datafellows(const char *version)
 			if (strstr(version, "OpenSSH") != NULL) {
 				if (strstr(version, "hpn") == NULL) {
 					datafellows |= SSH_BUG_LARGEWINDOW;
-					debug("Remote is NON-HPN aware");
+					debug("Remote is NOT HPN enabled");
+				} else {
+					debug("Remote is HPN Enabled");
 				}
 			}
 			return check[i].bugs;
