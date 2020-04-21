@@ -11,7 +11,7 @@ check_fingerprint () {
 	if ! ${SSHKEYGEN} -l -E sha256 -f $file > $OBJ/$t-fgp ; then
 		fail "ssh-keygen -l failed for $t-key"
 	fi
-	if ! egrep "^([0-9]+) SHA256:(.){43} ${comment} \(.*\)$" \
+	if ! egrep "^([0-9]+) SHA256:(.){43} ${comment} \(.*\)\$" \
 	    $OBJ/$t-fgp >/dev/null 2>&1 ; then
 		fail "comment is not correctly recovered for $t-key"
 	fi
