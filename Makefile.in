@@ -670,26 +670,6 @@ unit: regress-unit-binaries
 
 interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
-	TEST_SSH_SCP="$${BUILDDIR}/scp"; \
-	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
-	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
-	TEST_SSH_SSHAGENT="$${BUILDDIR}/ssh-agent"; \
-	TEST_SSH_SSHADD="$${BUILDDIR}/ssh-add"; \
-	TEST_SSH_SSHKEYGEN="$${BUILDDIR}/ssh-keygen"; \
-	TEST_SSH_SSHPKCS11HELPER="$${BUILDDIR}/ssh-pkcs11-helper"; \
-	TEST_SSH_SSHSKHELPER="$${BUILDDIR}/ssh-sk-helper"; \
-	TEST_SSH_SSHKEYSCAN="$${BUILDDIR}/ssh-keyscan"; \
-	TEST_SSH_SFTP="$${BUILDDIR}/sftp"; \
-	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
-	TEST_SSH_PKCS11_HELPER="$${BUILDDIR}/ssh-pkcs11-helper"; \
-	TEST_SSH_SK_HELPER="$${BUILDDIR}/ssh-sk-helper"; \
-	TEST_SSH_SFTPSERVER="$${BUILDDIR}/sftp-server"; \
-	TEST_SSH_PLINK="plink"; \
-	TEST_SSH_PUTTYGEN="puttygen"; \
-	TEST_SSH_CONCH="conch"; \
-	TEST_SSH_IPV6="@TEST_SSH_IPV6@" ; \
-	TEST_SSH_UTF8="@TEST_SSH_UTF8@" ; \
-	TEST_SSH_ECC="@TEST_SSH_ECC@" ; \
 	cd $(srcdir)/regress || exit $$?; \
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
