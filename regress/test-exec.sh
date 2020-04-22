@@ -23,6 +23,16 @@ else
 	PORT=4242
 fi
 
+# If configure tells us to use a different egrep, create a wrapper function
+# to call it.  This means we don't need to change all the tests that depend
+# on a good implementation.
+if test "x${EGREP}" != "x"; then
+	egrep ()
+{
+	 ${EGREP} "$@"
+}
+fi
+
 if [ -x /usr/ucb/whoami ]; then
 	USER=`/usr/ucb/whoami`
 elif whoami >/dev/null 2>&1; then

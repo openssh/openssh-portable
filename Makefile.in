@@ -671,6 +671,7 @@ unit: regress-unit-binaries
 interop-tests t-exec file-tests: regress-prep regress-binaries $(TARGETS)
 	BUILDDIR=`pwd`; \
 	cd $(srcdir)/regress || exit $$?; \
+	EGREP='@EGREP@' \
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
 		.CURDIR="`pwd`" \
