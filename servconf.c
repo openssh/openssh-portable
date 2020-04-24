@@ -2332,6 +2332,10 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		goto parse_flag;
 
 	case sRDomain:
+#if !defined(__OpenBSD__) && !defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
+		fatal("%s line %d: setting RDomain not supported on this "
+		    "platform.", filename, linenum);
+#endif
 		charptr = &options->routing_domain;
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
@@ -2840,7 +2844,9 @@ dump_config(ServerOptions *o)
 	dump_cfg_string(sHostbasedAcceptedKeyTypes, o->hostbased_key_types);
 	dump_cfg_string(sHostKeyAlgorithms, o->hostkeyalgorithms);
 	dump_cfg_string(sPubkeyAcceptedKeyTypes, o->pubkey_key_types);
+#if defined(__OpenBSD__) || defined(HAVE_SYS_SET_PROCESS_RDOMAIN)
 	dump_cfg_string(sRDomain, o->routing_domain);
+#endif
 
 	/* string arguments requiring a lookup */
 	dump_cfg_string(sLogLevel, log_level_name(o->log_level));
