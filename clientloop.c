@@ -1,4 +1,4 @@
-/* $OpenBSD: clientloop.c,v 1.343 2020/04/03 02:40:32 djm Exp $ */
+/* $OpenBSD: clientloop.c,v 1.344 2020/04/24 02:19:40 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -149,9 +149,6 @@ extern char *forward_agent_sock_path;
 static volatile sig_atomic_t received_window_change_signal = 0;
 static volatile sig_atomic_t received_signal = 0;
 
-/* Flag indicating whether the user's terminal is in non-blocking mode. */
-static int in_non_blocking_mode = 0;
-
 /* Time when backgrounded control master using ControlPersist should exit */
 static time_t control_persist_exit_time = 0;
 
@@ -195,17 +192,6 @@ static struct global_confirms global_confirms =
     TAILQ_HEAD_INITIALIZER(global_confirms);
 
 void ssh_process_session2_setup(int, int, int, struct sshbuf *);
-
-/* Restores stdin to blocking mode. */
-
-static void
-leave_non_blocking(void)
-{
-	if (in_non_blocking_mode) {
-		unset_nonblock(fileno(stdin));
-		in_non_blocking_mode = 0;
-	}
-}
 
 /*
  * Signal handler for the window change signal (SIGWINCH).  This just sets a
@@ -2458,7 +2444,6 @@ void
 cleanup_exit(int i)
 {
 	leave_raw_mode(options.request_tty == REQUEST_TTY_FORCE);
-	leave_non_blocking();
 	if (options.control_path != NULL && muxserver_sock != -1)
 		unlink(options.control_path);
 	ssh_kill_proxy_command();
