@@ -1,4 +1,4 @@
-/* $OpenBSD: channels.c,v 1.397 2020/03/06 18:19:21 markus Exp $ */
+/* $OpenBSD: channels.c,v 1.398 2020/04/25 06:59:36 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -454,7 +454,7 @@ fwd_perm_clear(struct permission *perm)
 	free(perm->host_to_connect);
 	free(perm->listen_host);
 	free(perm->listen_path);
-	bzero(perm, sizeof(*perm));
+	memset(perm, 0, sizeof(*perm));
 }
 
 /* Returns an printable name for the specified forwarding permission list */
