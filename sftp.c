@@ -82,7 +82,7 @@ int batchmode = 0;
 /* PID of ssh transport process */
 static volatile pid_t sshpid = -1;
 
-/* Suppress diagnositic messages */
+/* Suppress diagnostic messages */
 int quiet = 0;
 
 /* This is set to 0 if the progressmeter is not desired. */

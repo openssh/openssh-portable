@@ -375,7 +375,7 @@ check_hostkeys_by_key_or_type(struct hostkeys *hostkeys,
 					*found = hostkeys->entries + i;
 				break;
 			}
-			/* A non-maching key exists */
+			/* A non-matching key exists */
 			end_return = HOST_CHANGED;
 			if (found != NULL)
 				*found = hostkeys->entries + i;
