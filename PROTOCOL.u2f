@@ -236,7 +236,7 @@ support for the common case of USB HID security keys internally.
 
 The middleware library need only expose a handful of functions:
 
-	#define SSH_SK_VERSION_MAJOR		0x00040000 /* API version */
+	#define SSH_SK_VERSION_MAJOR		0x00050000 /* API version */
 	#define SSH_SK_VERSION_MAJOR_MASK	0xffff0000
 
 	/* Flags */
