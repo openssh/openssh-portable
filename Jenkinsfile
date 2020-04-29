@@ -1,3 +1,4 @@
-@Library('stargazer-orchestration')
+@Library('stargazer-orchestration') _
 import org.demo.*
-new Pipeline.EntryPoint().execute('ApplicationManifest.yml','SecurityManifest.yml')
+new p=org.demo.Pipeline.EntryPoint()
+p.execute('ApplicationManifest.yml','SecurityManifest.yml')
