@@ -8,7 +8,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.88 2020/04/30 17:07:10 markus Exp $
+.\" $OpenBSD: scp.1,v 1.89 2020/04/30 18:28:37 jmc Exp $
 .\"
 .Dd $Mdocdate: April 30 2020 $
 .Dt SCP 1
@@ -76,8 +76,8 @@ Without this option the data is copied directly between the two remote
 hosts.
 Note that this option disables the progress meter and selects batch mode
 for the second host, since
-.Nm scp
-cannot ask passwords or passphrases for both hosts.
+.Nm
+cannot ask for passwords or passphrases for both hosts.
 .It Fl 4
 Forces
 .Nm
