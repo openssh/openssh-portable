@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.407 2020/04/20 04:43:57 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.408 2020/05/01 04:23:11 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -669,9 +669,10 @@ do_convert_from_ssh2(struct passwd *pw, struct sshkey **k, int *private)
 		encoded[len-3] = '\0';
 	if ((r = sshbuf_b64tod(buf, encoded)) != 0)
 		fatal("%s: base64 decoding failed: %s", __func__, ssh_err(r));
-	if (*private)
-		*k = do_convert_private_ssh2(buf);
-	else if ((r = sshkey_fromb(buf, k)) != 0)
+	if (*private) {
+		if ((*k = do_convert_private_ssh2(buf)) == NULL)
+			fatal("%s: private key conversion failed", __func__);
+	} else if ((r = sshkey_fromb(buf, k)) != 0)
 		fatal("decode blob failed: %s", ssh_err(r));
 	sshbuf_free(buf);
 	fclose(fp);
