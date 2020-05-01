@@ -93,6 +93,7 @@ AC_SUBST([LD])
 AC_C_INLINE
 
 AC_CHECK_DECL([LLONG_MAX], [have_llong_max=1], , [#include <limits.h>])
+AC_CHECK_DECL([LONG_LONG_MAX], [have_long_long_max=1], , [#include <limits.h>])
 AC_CHECK_DECL([SYSTR_POLICY_KILL], [have_systr_policy_kill=1], , [
 	#include <sys/types.h>
 	#include <sys/param.h>
@@ -3611,7 +3612,7 @@ if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
 fi
 
 # compute LLONG_MIN and LLONG_MAX if we don't know them.
-if test -z "$have_llong_max"; then
+if test -z "$have_llong_max" && test -z "$have_long_long_max"; then
 	AC_MSG_CHECKING([for max value of long long])
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM([[
