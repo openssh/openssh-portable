@@ -2500,6 +2500,43 @@ static void sighandler(int sig) { _exit(1); }
 	)
 fi
 
+AC_MSG_CHECKING([if SA_RESTARTed signals interrupt select()])
+AC_RUN_IFELSE(
+	[AC_LANG_PROGRAM([[
+#ifdef HAVE_SYS_SELECT
+# include <sys/select.h>
+#endif
+#include <sys/types.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <signal.h>
+static void sighandler(int sig) { }
+		]], [[
+	int r;
+	pid_t pid;
+	struct sigaction sa;
+
+	sa.sa_handler = sighandler;
+	sa.sa_flags = SA_RESTART;
+	(void)sigaction(SIGTERM, &sa, NULL);
+	if ((pid = fork()) == 0) { /* child */
+		sleep(1);
+		kill(getppid(), SIGTERM);
+		sleep(1);
+		kill(getppid(), SIGKILL);
+		exit(0);
+	} else { /* parent */
+		r = select(0, NULL, NULL, NULL, NULL);
+	}
+	exit(r == -1 ? 0 : 1);
+	]])],
+	[AC_MSG_RESULT([yes])],
+	[AC_MSG_RESULT([no])
+	 AC_DEFINE([NO_SA_RESTART], [1],
+	    [SA_RESTARTed signals do no interrupt select])],
+	[AC_MSG_WARN([cross compiling: assuming yes])]
+)
+
 AC_CHECK_FUNCS([getpgrp],[
 	AC_MSG_CHECKING([if getpgrp accepts zero args])
 	AC_COMPILE_IFELSE(
