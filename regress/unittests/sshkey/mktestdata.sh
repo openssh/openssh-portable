@@ -1,5 +1,5 @@
 #!/bin/sh
-# $OpenBSD: mktestdata.sh,v 1.9 2020/05/01 04:00:29 djm Exp $
+# $OpenBSD: mktestdata.sh,v 1.10 2020/05/01 04:03:14 djm Exp $
 
 PW=mekmitasdigoat
 
@@ -90,6 +90,10 @@ ssh-keygen -t ed25519 -C "ED25519 test key #1" -N "" -f ed25519_2
 cp rsa_1 rsa_n
 cp dsa_1 dsa_n
 cp ecdsa_1 ecdsa_n
+
+ssh-keygen -pf rsa_n -N ""
+ssh-keygen -pf dsa_n -N ""
+ssh-keygen -pf ecdsa_n -N ""
 
 cp rsa_1 rsa_1_pw
 cp dsa_1 dsa_1_pw
