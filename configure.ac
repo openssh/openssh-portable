@@ -413,6 +413,7 @@ AC_CHECK_HEADERS([ \
 	string.h \
 	strings.h \
 	sys/bitypes.h \
+	sys/byteorder.h \
 	sys/bsdtty.h \
 	sys/cdefs.h \
 	sys/dir.h \
