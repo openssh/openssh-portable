@@ -24,7 +24,9 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
+#ifdef HAVE_SHA2_H
 #include <sha2.h>
+#endif
 
 #ifdef WITH_OPENSSL
 #include <openssl/opensslv.h>
