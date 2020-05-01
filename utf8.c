@@ -1,4 +1,4 @@
-/* $OpenBSD: utf8.c,v 1.10 2020/04/03 02:25:21 djm Exp $ */
+/* $OpenBSD: utf8.c,v 1.11 2020/05/01 06:28:52 djm Exp $ */
 /*
  * Copyright (c) 2016 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -43,7 +43,6 @@
 
 static int	 dangerous_locale(void);
 static int	 grow_dst(char **, size_t *, size_t, char **, size_t);
-static int	 vasnmprintf(char **, size_t, int *, const char *, va_list);
 
 
 /*
@@ -101,7 +100,7 @@ grow_dst(char **dst, size_t *sz, size_t maxsz, char **dp, size_t need)
  * written is returned in *wp.
  */
 
-static int
+int
 vasnmprintf(char **str, size_t maxsz, int *wp, const char *fmt, va_list ap)
 {
 	char	*src;	/* Source string returned from vasprintf. */
