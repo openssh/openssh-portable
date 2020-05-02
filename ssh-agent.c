@@ -822,7 +822,7 @@ process_message(u_int socknum)
 			/* send a fail message for all other request types */
 			send_status(e, 0);
 		}
-		return 0;
+		return 1;
 	}
 
 	switch (type) {
@@ -866,7 +866,7 @@ process_message(u_int socknum)
 		send_status(e, 0);
 		break;
 	}
-	return 0;
+	return 1;
 }
 
 static void
@@ -957,7 +957,7 @@ handle_conn_read(u_int socknum)
 	if ((r = sshbuf_put(sockets[socknum].input, buf, len)) != 0)
 		fatal("%s: buffer error: %s", __func__, ssh_err(r));
 	explicit_bzero(buf, sizeof(buf));
-	process_message(socknum);
+	while(process_message(socknum) > 0);
 	return 0;
 }
 
