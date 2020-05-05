@@ -522,7 +522,9 @@ fi
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
 SSH_SK_PROVIDER=
-if [ -f "${SRC}/misc/sk-dummy/obj/sk-dummy.so" ] ; then
+if ! config_defined ENABLE_SK; then
+	trace skipping sk-dummy
+elif [ -f "${SRC}/misc/sk-dummy/obj/sk-dummy.so" ] ; then
 	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/obj/sk-dummy.so"
 elif [ -f "${SRC}/misc/sk-dummy/sk-dummy.so" ] ; then
 	SSH_SK_PROVIDER="${SRC}/misc/sk-dummy/sk-dummy.so"
