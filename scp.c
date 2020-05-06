@@ -1,4 +1,4 @@
-/* $OpenBSD: scp.c,v 1.209 2020/05/01 06:31:42 djm Exp $ */
+/* $OpenBSD: scp.c,v 1.210 2020/05/06 20:57:38 djm Exp $ */
 /*
  * scp - secure remote copy.  This is basically patched BSD rcp which
  * uses ssh to do the data transfer (instead of using rcmd).
@@ -1427,9 +1427,7 @@ sink(int argc, char **argv, const char *src)
 			sink(1, vect, src);
 			if (setimes) {
 				setimes = 0;
-				if (utimes(vect[0], tv) == -1)
-					run_err("%s: set times: %s",
-					    vect[0], strerror(errno));
+				(void) utimes(vect[0], tv);
 			}
 			if (mod_flag)
 				(void) chmod(vect[0], mode);
