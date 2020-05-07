@@ -1969,6 +1969,19 @@ AC_SEARCH_LIBS([nanosleep], [rt posix4], [AC_DEFINE([HAVE_NANOSLEEP], [1],
 AC_SEARCH_LIBS([clock_gettime], [rt],
 	[AC_DEFINE([HAVE_CLOCK_GETTIME], [1], [Have clock_gettime])])
 
+dnl check if we need -D_REENTRANT for localtime_r declaration.
+AC_CHECK_DECL([localtime_r], [],
+	[ saved_CPPFLAGS="$CFLAGS"
+	  CPPFLAGS="$CPPFLAGS -D_REENTRANT"
+	  unset ac_cv_have_decl_localtime_r
+	  AC_CHECK_DECL([localtime_r], [],
+		[ CPPFLAGS="$saved_CPPFLAGS" ],
+		[ #include <time.h> ]
+	  )
+	],
+	[ #include <time.h> ]
+)
+
 dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL([strsep],
 	[AC_CHECK_FUNCS([strsep])],
