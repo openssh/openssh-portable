@@ -1502,6 +1502,7 @@ main(int ac, char **av)
 	int keytype;
 	Authctxt *authctxt;
 	struct connection_info *connection_info = NULL;
+	struct passwd *newpw;
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -2215,6 +2216,15 @@ main(int ac, char **av)
 	if (startup_pipe != -1) {
 		close(startup_pipe);
 		startup_pipe = -1;
+	}
+
+	/* Refresh GID; The correct primary group ID may not be available until
+	 * after successful authentication. */
+	newpw = getpwnam(authctxt->user);
+	if (newpw != NULL) {
+		debug ("GID refresh: old=%d, new=%d",
+		    (int) authctxt->pw->pw_gid, (int) newpw->pw_gid);
+		authctxt->pw->pw_gid = newpw->pw_gid;
 	}
 
 #ifdef SSH_AUDIT_EVENTS
