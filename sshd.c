@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.552 2020/03/13 04:01:57 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.553 2020/05/08 05:13:14 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2372,10 +2372,11 @@ do_ssh2_kex(struct ssh *ssh)
 
 #ifdef DEBUG_KEXDH
 	/* send 1st encrypted/maced/compressed message */
-	packet_start(SSH2_MSG_IGNORE);
-	packet_put_cstring("markus");
-	packet_send();
-	packet_write_wait();
+	if ((r = sshpkt_start(ssh, SSH2_MSG_IGNORE)) != 0 ||
+	    (r = sshpkt_put_cstring(ssh, "markus")) != 0 ||
+	    (r = sshpkt_send(ssh)) != 0 ||
+	    (r = ssh_packet_write_wait(ssh)) != 0)
+		fatal("%s: send test: %s", __func__, ssh_err(r));
 #endif
 	debug("KEX done");
 }
