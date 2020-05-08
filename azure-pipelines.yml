@@ -11,5 +11,7 @@ pool:
 
 steps:
 - script: |
+    autoreconf
+    ./configure
     make
   displayName: 'make'
