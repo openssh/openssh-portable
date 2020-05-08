@@ -2534,10 +2534,12 @@ static void sighandler(int sig) { }
 	sa.sa_flags = SA_RESTART;
 	(void)sigaction(SIGTERM, &sa, NULL);
 	if ((pid = fork()) == 0) { /* child */
+		pid = getppid();
 		sleep(1);
-		kill(getppid(), SIGTERM);
+		kill(pid, SIGTERM);
 		sleep(1);
-		kill(getppid(), SIGKILL);
+		if (getppid() == pid) /* if parent did not exit, shoot it */
+			kill(pid, SIGKILL);
 		exit(0);
 	} else { /* parent */
 		r = select(0, NULL, NULL, NULL, NULL);
