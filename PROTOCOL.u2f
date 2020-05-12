@@ -40,7 +40,7 @@ primarily use ECDSA signatures in the NIST-P256 field, though the FIDO2
 standard specifies additional key types, including one based on Ed25519.
 
 Use of U2F security keys does not automatically imply multi-factor
-authentication. From sshd’s perspective, a security key constitutes a
+authentication. From sshd's perspective, a security key constitutes a
 single factor of authentication, even if protected by a PIN or biometric
 authentication.  To enable multi-factor authentication in ssh, please
 refer to the AuthenticationMethods option in sshd_config(5).
