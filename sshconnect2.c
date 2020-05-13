@@ -1,4 +1,4 @@
-/* $OpenBSD: sshconnect2.c,v 1.321 2020/04/17 03:38:47 djm Exp $ */
+/* $OpenBSD: sshconnect2.c,v 1.322 2020/05/13 09:52:41 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  * Copyright (c) 2008 Damien Miller.  All rights reserved.
@@ -135,11 +135,23 @@ order_hostkeyalgs(char *host, struct sockaddr *hostaddr, u_short port)
 	while ((alg = strsep(&avail, ",")) && *alg != '\0') {
 		if ((ktype = sshkey_type_from_name(alg)) == KEY_UNSPEC)
 			fatal("%s: unknown alg %s", __func__, alg);
-		if (lookup_key_in_hostkeys_by_type(hostkeys,
-		    sshkey_type_plain(ktype), NULL))
+		/*
+		 * If we have a @cert-authority marker in known_hosts then
+		 * prefer all certificate algorithms.
+		 */
+		if (sshkey_type_is_cert(ktype) &&
+		    lookup_marker_in_hostkeys(hostkeys, MRK_CA)) {
 			ALG_APPEND(first, alg);
-		else
-			ALG_APPEND(last, alg);
+			continue;
+		}
+		/* If the key appears in known_hosts then prefer it */
+		if (lookup_key_in_hostkeys_by_type(hostkeys,
+		    sshkey_type_plain(ktype), NULL)) {
+			ALG_APPEND(first, alg);
+			continue;
+		}
+		/* Otherwise, put it last */
+		ALG_APPEND(last, alg);
 	}
 #undef ALG_APPEND
 	xasprintf(&ret, "%s%s%s", first,
