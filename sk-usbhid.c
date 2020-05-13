@@ -454,7 +454,7 @@ check_sk_extensions(fido_dev_t *dev, const char *ext, int *ret)
 {
 	fido_cbor_info_t *info;
 	char * const *ptr;
-	size_t len;
+	size_t len, i;
 	int r;
 
 	*ret = 0;
@@ -474,7 +474,7 @@ check_sk_extensions(fido_dev_t *dev, const char *ext, int *ret)
 	}
 	ptr = fido_cbor_info_extensions_ptr(info);
 	len = fido_cbor_info_extensions_len(info);
-	for (size_t i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		if (!strcmp(ptr[i], ext)) {
 			*ret = 1;
 			break;
