@@ -635,6 +635,8 @@ SK_DUMMY_OBJS=\
 	regress/misc/sk-dummy/fatal.lo \
 	ed25519.lo hash.lo ge25519.lo fe25519.lo sc25519.lo verify.lo
 
+SK_DUMMY_LIBRARY=@SK_DUMMY_LIBRARY@
+
 .c.lo: Makefile.in config.h
 	$(CC) $(CFLAGS_NOPIE) $(PICFLAG) $(CPPFLAGS) -c $< -o $@
 
@@ -648,7 +650,7 @@ regress-binaries: regress-prep $(LIBCOMPAT) \
 	regress/netcat$(EXEEXT) \
 	regress/check-perm$(EXEEXT) \
 	regress/mkdtemp$(EXEEXT) \
-	regress/misc/sk-dummy/sk-dummy.so
+	$(SK_DUMMY_LIBRARY)
 
 regress-unit-binaries: regress-prep $(REGRESSLIBS) \
 	regress/unittests/sshbuf/test_sshbuf$(EXEEXT) \

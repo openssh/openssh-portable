@@ -3137,6 +3137,10 @@ AC_MSG_RESULT([$enable_pkcs11])
 AC_MSG_CHECKING([whether to enable U2F])
 if test "x$enable_sk" = "xyes" ; then
 	AC_DEFINE([ENABLE_SK], [], [Enable for U2F/FIDO support])
+	AC_SUBST(SK_DUMMY_LIBRARY, [regress/misc/sk-dummy/sk-dummy.so])
+else
+	# Do not try to build sk-dummy library.
+	AC_SUBST(SK_DUMMY_LIBRARY, [""])
 fi
 AC_MSG_RESULT([$enable_sk])
 
