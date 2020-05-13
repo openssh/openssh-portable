@@ -449,6 +449,43 @@ check_enroll_options(struct sk_option **options, char **devicep,
 	return 0;
 }
 
+static int
+check_sk_extensions(fido_dev_t *dev, const char *ext, int *ret)
+{
+	fido_cbor_info_t *info;
+	char * const *ptr;
+	size_t len;
+	int r;
+
+	*ret = 0;
+
+	if (!fido_dev_is_fido2(dev)) {
+		skdebug(__func__, "device is not fido2");
+		return 0;
+	}
+	if ((info = fido_cbor_info_new()) == NULL) {
+		skdebug(__func__, "fido_cbor_info_new failed");
+		return -1;
+	}
+	if ((r = fido_dev_get_cbor_info(dev, info)) != FIDO_OK) {
+		skdebug(__func__, "fido_dev_get_cbor_info: %s", fido_strerr(r));
+		fido_cbor_info_free(&info);
+		return -1;
+	}
+	ptr = fido_cbor_info_extensions_ptr(info);
+	len = fido_cbor_info_extensions_len(info);
+	for (size_t i = 0; i < len; i++) {
+		if (!strcmp(ptr[i], ext)) {
+			*ret = 1;
+			break;
+		}
+	}
+	fido_cbor_info_free(&info);
+	skdebug(__func__, "extension %s %s", ext, *ret ? "present" : "absent");
+
+	return 0;
+}
+
 int
 sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
     const char *application, uint8_t flags, const char *pin,
@@ -460,6 +497,7 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	uint8_t user_id[32];
 	struct sk_enroll_response *response = NULL;
 	size_t len;
+	int credprot;
 	int cose_alg;
 	int ret = SSH_SK_ERR_GENERAL;
 	int r;
@@ -531,6 +569,25 @@ sk_enroll(uint32_t alg, const uint8_t *challenge, size_t challenge_len,
 	if ((r = fido_dev_open(dev, device)) != FIDO_OK) {
 		skdebug(__func__, "fido_dev_open: %s", fido_strerr(r));
 		goto out;
+	}
+	if ((flags & SSH_SK_RESIDENT_KEY) != 0) {
+		if (check_sk_extensions(dev, "credProtect", &credprot) < 0) {
+			skdebug(__func__, "check_sk_extensions failed");
+			goto out;
+		}
+		if (credprot == 0) {
+			skdebug(__func__, "refusing to create unprotected "
+			    "resident key");
+			ret = SSH_SK_ERR_UNSUPPORTED;
+			goto out;
+		}
+		if ((r = fido_cred_set_prot(cred,
+		    FIDO_CRED_PROT_UV_OPTIONAL_WITH_ID)) != FIDO_OK) {
+			skdebug(__func__, "fido_cred_set_prot: %s",
+			    fido_strerr(r));
+			ret = fidoerr_to_skerr(r);
+			goto out;
+		}
 	}
 	if ((r = fido_dev_make_cred(dev, cred, pin)) != FIDO_OK) {
 		skdebug(__func__, "fido_dev_make_cred: %s", fido_strerr(r));
