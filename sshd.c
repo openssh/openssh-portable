@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.553 2020/05/08 05:13:14 djm Exp $ */
+/* $OpenBSD: sshd.c,v 1.554 2020/05/15 08:34:03 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1270,6 +1270,7 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				startup_pipe = -1;
 				pid = getpid();
 				if (rexec_flag) {
+					close(config_s[1]);
 					send_rexec_state(config_s[0], cfg);
 					close(config_s[0]);
 				}
@@ -1328,9 +1329,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 			close(startup_p[1]);
 
 			if (rexec_flag) {
+				close(config_s[1]);
 				send_rexec_state(config_s[0], cfg);
 				close(config_s[0]);
-				close(config_s[1]);
 			}
 			close(*newsock);
 
