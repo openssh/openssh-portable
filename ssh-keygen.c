@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.410 2020/05/13 09:55:57 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.411 2020/05/18 04:29:35 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -2954,14 +2954,16 @@ do_download_sk(const char *skprovider, const char *device)
 		    &keys, &nkeys)) != 0) {
 			if (i == 0 && r == SSH_ERR_KEY_WRONG_PASSPHRASE)
 				continue;
-			freezero(pin, strlen(pin));
+			if (pin != NULL)
+				freezero(pin, strlen(pin));
 			error("Unable to load resident keys: %s", ssh_err(r));
 			return -1;
 		}
 	}
 	if (nkeys == 0)
 		logit("No keys to download");
-	freezero(pin, strlen(pin));
+	if (pin != NULL)
+		freezero(pin, strlen(pin));
 
 	for (i = 0; i < nkeys; i++) {
 		if (keys[i]->type != KEY_ECDSA_SK &&
