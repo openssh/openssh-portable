@@ -706,7 +706,7 @@ void
 auth2_record_info(Authctxt *authctxt, const char *fmt, ...)
 {
 	va_list ap;
-        int i;
+	int i;
 
 	free(authctxt->auth_method_info);
 	authctxt->auth_method_info = NULL;

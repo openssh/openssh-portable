@@ -3012,7 +3012,7 @@ channel_input_data(int type, u_int32_t seq, struct ssh *ssh)
 
 	/* Get the data. */
 	if ((r = sshpkt_get_string_direct(ssh, &data, &data_len)) != 0 ||
-            (r = sshpkt_get_end(ssh)) != 0)
+	    (r = sshpkt_get_end(ssh)) != 0)
 		fatal("%s: channel %d: get data: %s", __func__,
 		    c->self, ssh_err(r));
 
@@ -3089,7 +3089,7 @@ channel_input_extended_data(int type, u_int32_t seq, struct ssh *ssh)
 		return 0;
 	}
 	if ((r = sshpkt_get_string_direct(ssh, &data, &data_len)) != 0 ||
-            (r = sshpkt_get_end(ssh)) != 0) {
+	    (r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: parse data: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid extended_data message");
 	}
@@ -3113,7 +3113,7 @@ channel_input_ieof(int type, u_int32_t seq, struct ssh *ssh)
 	Channel *c = channel_from_packet_id(ssh, __func__, "ieof");
 	int r;
 
-        if ((r = sshpkt_get_end(ssh)) != 0) {
+	if ((r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: parse data: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid ieof message");
 	}
@@ -3140,7 +3140,7 @@ channel_input_oclose(int type, u_int32_t seq, struct ssh *ssh)
 
 	if (channel_proxy_upstream(c, type, seq, ssh))
 		return 0;
-        if ((r = sshpkt_get_end(ssh)) != 0) {
+	if ((r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: parse data: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid oclose message");
 	}
@@ -3167,7 +3167,7 @@ channel_input_open_confirmation(int type, u_int32_t seq, struct ssh *ssh)
 	if ((r = sshpkt_get_u32(ssh, &c->remote_id)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &remote_window)) != 0 ||
 	    (r = sshpkt_get_u32(ssh, &remote_maxpacket)) != 0 ||
-            (r = sshpkt_get_end(ssh)) != 0) {
+	    (r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: window/maxpacket: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid open confirmation message");
 	}
@@ -3222,7 +3222,7 @@ channel_input_open_failure(int type, u_int32_t seq, struct ssh *ssh)
 	/* skip language */
 	if ((r = sshpkt_get_cstring(ssh, &msg, NULL)) != 0 ||
 	    (r = sshpkt_get_string_direct(ssh, NULL, NULL)) != 0 ||
-            (r = sshpkt_get_end(ssh)) != 0) {
+	    (r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: message/lang: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid open failure message");
 	}
@@ -3256,7 +3256,7 @@ channel_input_window_adjust(int type, u_int32_t seq, struct ssh *ssh)
 	if (channel_proxy_upstream(c, type, seq, ssh))
 		return 0;
 	if ((r = sshpkt_get_u32(ssh, &adjust)) != 0 ||
-            (r = sshpkt_get_end(ssh)) != 0) {
+	    (r = sshpkt_get_end(ssh)) != 0) {
 		error("%s: adjust: %s", __func__, ssh_err(r));
 		ssh_packet_disconnect(ssh, "Invalid window adjust message");
 	}
@@ -3287,7 +3287,7 @@ channel_input_status_confirm(int type, u_int32_t seq, struct ssh *ssh)
 	}
 	if (channel_proxy_upstream(c, type, seq, ssh))
 		return 0;
-        if (sshpkt_get_end(ssh) != 0)
+	if (sshpkt_get_end(ssh) != 0)
 		ssh_packet_disconnect(ssh, "Invalid status confirm message");
 	if ((cc = TAILQ_FIRST(&c->status_confirms)) == NULL)
 		return 0;

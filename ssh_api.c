@@ -85,7 +85,7 @@ mm_choose_dh(int min, int nbits, int max)
 int
 ssh_init(struct ssh **sshp, int is_server, struct kex_params *kex_params)
 {
-        char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
+	char *myproposal[PROPOSAL_MAX] = { KEX_CLIENT };
 	struct ssh *ssh;
 	char **proposal;
 	static int called;

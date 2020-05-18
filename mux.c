@@ -667,7 +667,7 @@ mux_confirm_remote_forward(struct ssh *ssh, int type, u_int32_t seq, void *ctxt)
 			xasprintf(&failmsg, "remote port forwarding failed for "
 			    "listen port %d", rfwd->listen_port);
 
-                debug2("%s: clearing registered forwarding for listen %d, "
+		debug2("%s: clearing registered forwarding for listen %d, "
 		    "connect %s:%d", __func__, rfwd->listen_port,
 		    rfwd->connect_path ? rfwd->connect_path :
 		    rfwd->connect_host, rfwd->connect_port);

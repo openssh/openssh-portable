@@ -1695,7 +1695,7 @@ monitor_apply_keystate(struct ssh *ssh, struct monitor *pmonitor)
 
 	debug3("%s: packet_set_state", __func__);
 	if ((r = ssh_packet_set_state(ssh, child_state)) != 0)
-                fatal("%s: packet_set_state: %s", __func__, ssh_err(r));
+		fatal("%s: packet_set_state: %s", __func__, ssh_err(r));
 	sshbuf_free(child_state);
 	child_state = NULL;
 

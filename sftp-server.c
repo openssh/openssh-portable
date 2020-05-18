@@ -1327,7 +1327,7 @@ process_extended_statvfs(u_int32_t id)
 		send_status(id, errno_to_portable(errno));
 	else
 		send_statvfs(id, &st);
-        free(path);
+	free(path);
 }
 
 static void

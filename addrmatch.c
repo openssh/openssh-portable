@@ -403,7 +403,7 @@ addr_match_list(const char *addr, const char *_list)
 			break;
 		} else if (r == 0) {
 			if (addr != NULL && addr_netmatch(&try_addr,
-                           &match_addr, masklen) == 0) {
+			    &match_addr, masklen) == 0) {
  foundit:
 				if (neg) {
 					ret = -1;
