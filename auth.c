@@ -352,23 +352,26 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 
 	free(extra);
 
-#ifdef CUSTOM_FAILED_LOGIN
-	if (authenticated == 0 && !authctxt->postponed &&
-	    (strcmp(method, "password") == 0 ||
-	    strncmp(method, "keyboard-interactive", 20) == 0 ||
-	    strcmp(method, "challenge-response") == 0))
-		record_failed_login(ssh, authctxt->user,
-		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
-# ifdef WITH_AIXAUTHENTICATE
+#if defined(CUSTOM_FAILED_LOGIN) || defined(SSH_AUDIT_EVENTS)
+	if (authenticated == 0 && !(authctxt->postponed || partial)) {
+		/* Log failed login attempt */
+# ifdef CUSTOM_FAILED_LOGIN
+		if (strcmp(method, "password") == 0 ||
+		    strncmp(method, "keyboard-interactive", 20) == 0 ||
+		    strcmp(method, "challenge-response") == 0)
+			record_failed_login(ssh, authctxt->user,
+			    auth_get_canonical_hostname(ssh, options.use_dns), "ssh");
+# endif
+# ifdef SSH_AUDIT_EVENTS
+		audit_event(ssh, audit_classify_auth(method));
+	}
+# endif
+#endif
+#if defined(CUSTOM_FAILED_LOGIN) && defined(WITH_AIXAUTHENTICATE)
 	if (authenticated)
 		sys_auth_record_login(authctxt->user,
 		    auth_get_canonical_hostname(ssh, options.use_dns), "ssh",
 		    loginmsg);
-# endif
-#endif
-#ifdef SSH_AUDIT_EVENTS
-	if (authenticated == 0 && !authctxt->postponed)
-		audit_event(ssh, audit_classify_auth(method));
 #endif
 }
 
