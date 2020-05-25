@@ -912,6 +912,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 			;;
 		esac
 		;;
+	riscv64-*)
+		seccomp_audit_arch=AUDIT_ARCH_RISCV64
+		;;
 	esac
 	if test "x$seccomp_audit_arch" != "x" ; then
 		AC_MSG_RESULT(["$seccomp_audit_arch"])
