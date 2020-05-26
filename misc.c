@@ -1,28 +1,22 @@
-/* $OpenBSD: misc.c,v 1.147 2020/04/25 06:59:36 dtucker Exp $ */
+/* $OpenBSD: misc.c,v 1.148 2020/05/26 01:06:52 djm Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
- * Copyright (c) 2005,2006 Damien Miller.  All rights reserved.
+ * Copyright (c) 2005-2020 Damien Miller.  All rights reserved.
+ * Copyright (c) 2004 Henning Brauer <henning@openbsd.org>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 
 #include "includes.h"
 
@@ -549,6 +543,43 @@ convtime(const char *s)
 	}
 
 	return total;
+}
+
+#define TF_BUFS	8
+#define TF_LEN	9
+
+const char *
+fmt_timeframe(time_t t)
+{
+	char		*buf;
+	static char	 tfbuf[TF_BUFS][TF_LEN];	/* ring buffer */
+	static int	 idx = 0;
+	unsigned int	 sec, min, hrs, day;
+	unsigned long long	week;
+
+	buf = tfbuf[idx++];
+	if (idx == TF_BUFS)
+		idx = 0;
+
+	week = t;
+
+	sec = week % 60;
+	week /= 60;
+	min = week % 60;
+	week /= 60;
+	hrs = week % 24;
+	week /= 24;
+	day = week % 7;
+	week /= 7;
+
+	if (week > 0)
+		snprintf(buf, TF_LEN, "%02lluw%01ud%02uh", week, day, hrs);
+	else if (day > 0)
+		snprintf(buf, TF_LEN, "%01ud%02uh%02um", day, hrs, min);
+	else
+		snprintf(buf, TF_LEN, "%02u:%02u:%02u", hrs, min, sec);
+
+	return (buf);
 }
 
 /*
