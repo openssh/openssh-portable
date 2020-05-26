@@ -1,0 +1,32 @@
+To access SSH server, you must enter:
+
+server name or IP address (optionally followed by :port, default is 22)
+username
+ Optional parameters are:
+
+path on server, if specified, X-plore will list only folders insiThe SSH protocol supports multiple authorization methods, X-plore allows to use two most common:
+
+ 
+
+Authorization by password
+
+User enters login password, either permanently in server-edit dialog, or each time when accessing the server.
+
+ 
+
+Authorization by private key file
+User loads RSA or DSA private key in PuTTY format into X-plore. The private key itself may be protected by passphrase, which is kind of password used to decrypt the private key. If private key is encrypted, X-plore will ask for the passphrase each time when server is accessed (the passphrase is not saved permanently).
+
+ⓘ There is a tool named puttygen available for Windows as well as Linux, which allows you to convert keys from OpenSSH to Putty format.
+
+X-plore saves its own copy of private key in its settings (in secured storage), so the private key doesn’t need to be present on device after it was loaded to X-plore.
+Note: the SSH server must have copy of user’s public key, which is part of the loaded key.
+
+ 
+
+Using Fingerprint sensor
+On devices with fingerprint sensor, it is possible to save encrypted server password using your fingerprint. You can’t set password in the Edit server dialog, but leave it empty and let X-plore ask password each time when server is opened.
+
+The first time when you’re asked to enter password, you’ll get possibility to save the password, which will be confirmed by fingerprint scan. Next time you can logon to your server by just using fingerprint sensor. The password is encrypted by device’s hardware, and can’t be decrypted without your finger scan.
+
+For this to work, your device must have enrolled fingerprint and set up secure screen lock using fingerprint scanner.de of this path
