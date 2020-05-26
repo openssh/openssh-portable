@@ -1,4 +1,4 @@
-/* $OpenBSD: sshd.c,v 1.554 2020/05/15 08:34:03 markus Exp $ */
+/* $OpenBSD: sshd.c,v 1.555 2020/05/26 01:09:05 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -829,7 +829,7 @@ notify_hostkeys(struct ssh *ssh)
  * all connections are dropped for startups > max_startups
  */
 static int
-drop_connection(int startups)
+should_drop_connection(int startups)
 {
 	int p, r;
 
@@ -846,8 +846,66 @@ drop_connection(int startups)
 	p += options.max_startups_rate;
 	r = arc4random_uniform(100);
 
-	debug("drop_connection: p %d, r %d", p, r);
+	debug("%s: p %d, r %d", __func__, p, r);
 	return (r < p) ? 1 : 0;
+}
+
+/*
+ * Check whether connection should be accepted by MaxStartups.
+ * Returns 0 if the connection is accepted. If the connection is refused,
+ * returns 1 and attempts to send notification to client.
+ * Logs when the MaxStartups condition is entered or exited, and periodically
+ * while in that state.
+ */
+static int
+drop_connection(int sock, int startups)
+{
+	char *laddr, *raddr;
+	const char msg[] = "Exceeded MaxStartups\r\n";
+	static time_t last_drop, first_drop;
+	static u_int ndropped;
+	LogLevel drop_level = SYSLOG_LEVEL_VERBOSE;
+	time_t now;
+
+	now = monotime();
+	if (!should_drop_connection(startups)) {
+		if (last_drop != 0 &&
+		    startups < options.max_startups_begin - 1) {
+			/* XXX maybe need better hysteresis here */
+			logit("exited MaxStartups throttling after %s, "
+			    "%u connections dropped",
+			    fmt_timeframe(now - first_drop), ndropped);
+			last_drop = 0;
+		}
+		return 0;
+	}
+
+#define SSHD_MAXSTARTUPS_LOG_INTERVAL	(5 * 60)
+	if (last_drop == 0) {
+		error("beginning MaxStartups throttling");
+		drop_level = SYSLOG_LEVEL_INFO;
+		first_drop = now;
+		ndropped = 0;
+	} else if (last_drop + SSHD_MAXSTARTUPS_LOG_INTERVAL < now) {
+		/* Periodic logs */
+		error("in MaxStartups throttling for %s, "
+		    "%u connections dropped",
+		    fmt_timeframe(now - first_drop), ndropped + 1);
+		drop_level = SYSLOG_LEVEL_INFO;
+	}
+	last_drop = now;
+	ndropped++;
+
+	laddr = get_local_ipaddr(sock);
+	raddr = get_peer_ipaddr(sock);
+	do_log2(drop_level, "drop connection #%d from [%s]:%d on [%s]:%d "
+	    "past MaxStartups", startups, raddr, get_peer_port(sock),
+	    laddr, get_local_port(sock));
+	free(laddr);
+	free(raddr);
+	/* best-effort notification to client */
+	(void)write(sock, msg, sizeof(msg) - 1);
+	return 1;
 }
 
 static void
@@ -1206,27 +1264,9 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 					usleep(100 * 1000);
 				continue;
 			}
-			if (unset_nonblock(*newsock) == -1) {
-				close(*newsock);
-				continue;
-			}
-			if (drop_connection(startups) == 1) {
-				char *laddr = get_local_ipaddr(*newsock);
-				char *raddr = get_peer_ipaddr(*newsock);
-				char msg[] = "Exceeded MaxStartups\r\n";
-
-				verbose("drop connection #%d from [%s]:%d "
-				    "on [%s]:%d past MaxStartups", startups,
-				    raddr, get_peer_port(*newsock),
-				    laddr, get_local_port(*newsock));
-				free(laddr);
-				free(raddr);
-				/* best-effort notification to client */
-				(void)write(*newsock, msg, strlen(msg));
-				close(*newsock);
-				continue;
-			}
-			if (pipe(startup_p) == -1) {
+			if (unset_nonblock(*newsock) == -1 ||
+			    drop_connection(*newsock, startups) ||
+			    pipe(startup_p) == -1) {
 				close(*newsock);
 				continue;
 			}
