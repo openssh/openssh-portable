@@ -1,4 +1,4 @@
-/* $OpenBSD: readconf.c,v 1.329 2020/04/24 03:33:21 dtucker Exp $ */
+/* $OpenBSD: readconf.c,v 1.330 2020/05/27 21:25:18 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -735,7 +735,7 @@ match_cfg_line(Options *options, char **condition, struct passwd *pw,
 static void
 rm_env(Options *options, const char *arg, const char *filename, int linenum)
 {
-	int i, j;
+	int i, j, onum_send_env = options->num_send_env;
 	char *cp;
 
 	/* Remove an environment variable */
@@ -757,6 +757,11 @@ rm_env(Options *options, const char *arg, const char *filename, int linenum)
 		}
 		options->num_send_env--;
 		/* NB. don't increment i */
+	}
+	if (onum_send_env != options->num_send_env) {
+		options->send_env = xrecallocarray(options->send_env,
+		    onum_send_env, options->num_send_env,
+		    sizeof(*options->send_env));
 	}
 }
 
