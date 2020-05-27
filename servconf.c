@@ -1,5 +1,5 @@
 
-/* $OpenBSD: servconf.c,v 1.364 2020/05/27 21:59:11 djm Exp $ */
+/* $OpenBSD: servconf.c,v 1.365 2020/05/27 22:37:53 djm Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -550,6 +550,7 @@ typedef enum {
 #define SSHCFG_MATCH		0x02	/* allowed inside a Match section */
 #define SSHCFG_ALL		(SSHCFG_GLOBAL|SSHCFG_MATCH)
 #define SSHCFG_NEVERMATCH	0x04  /* Match never matches; internal only */
+#define SSHCFG_MATCH_ONLY	0x08  /* Match only in conditional blocks; internal only */
 
 /* Textual representation of the tokens. */
 static struct {
@@ -1259,7 +1260,7 @@ static const struct multistate multistate_tcpfwd[] = {
 static int
 process_server_config_line_depth(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
-    struct connection_info *connectinfo, int inc_flags, int depth,
+    struct connection_info *connectinfo, int *inc_flags, int depth,
     struct include_list *includes)
 {
 	char ch, *cp, ***chararrayptr, **charptr, *arg, *arg2, *p;
@@ -2002,7 +2003,9 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 					parse_server_config_depth(options,
 					    item->filename, item->contents,
 					    includes, connectinfo,
-					    (oactive ? 0 : SSHCFG_NEVERMATCH),
+					    (*inc_flags & SSHCFG_MATCH_ONLY
+					        ? SSHCFG_MATCH_ONLY : (oactive
+					            ? 0 : SSHCFG_NEVERMATCH)),
 					    activep, depth + 1);
 				}
 				found = 1;
@@ -2050,7 +2053,9 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 				parse_server_config_depth(options,
 				    item->filename, item->contents,
 				    includes, connectinfo,
-				    (oactive ? 0 : SSHCFG_NEVERMATCH),
+				    (*inc_flags & SSHCFG_MATCH_ONLY
+				        ? SSHCFG_MATCH_ONLY : (oactive
+				            ? 0 : SSHCFG_NEVERMATCH)),
 				    activep, depth + 1);
 				*activep = oactive;
 				TAILQ_INSERT_TAIL(includes, item, entry);
@@ -2068,11 +2073,14 @@ process_server_config_line_depth(ServerOptions *options, char *line,
 		if (cmdline)
 			fatal("Match directive not supported as a command-line "
 			   "option");
-		value = match_cfg_line(&cp, linenum, connectinfo);
+		value = match_cfg_line(&cp, linenum,
+		    (*inc_flags & SSHCFG_NEVERMATCH ? NULL : connectinfo));
 		if (value < 0)
 			fatal("%s line %d: Bad Match condition", filename,
 			    linenum);
-		*activep = (inc_flags & SSHCFG_NEVERMATCH) ? 0 : value;
+		*activep = (*inc_flags & SSHCFG_NEVERMATCH) ? 0 : value;
+		/* The MATCH_ONLY is applicable only until the first match block */
+		*inc_flags &= ~SSHCFG_MATCH_ONLY;
 		break;
 
 	case sPermitListen:
@@ -2375,8 +2383,10 @@ process_server_config_line(ServerOptions *options, char *line,
     const char *filename, int linenum, int *activep,
     struct connection_info *connectinfo, struct include_list *includes)
 {
+	int inc_flags = 0;
+
 	return process_server_config_line_depth(options, line, filename,
-	    linenum, activep, connectinfo, 0, 0, includes);
+	    linenum, activep, connectinfo, &inc_flags, 0, includes);
 }
 
 
@@ -2581,14 +2591,15 @@ parse_server_config_depth(ServerOptions *options, const char *filename,
 	if (depth < 0 || depth > SERVCONF_MAX_DEPTH)
 		fatal("Too many recursive configuration includes");
 
-	debug2("%s: config %s len %zu", __func__, filename, sshbuf_len(conf));
+	debug2("%s: config %s len %zu%s", __func__, filename, sshbuf_len(conf),
+	    (flags & SSHCFG_NEVERMATCH ? " [checking syntax only]" : ""));
 
 	if ((obuf = cbuf = sshbuf_dup_string(conf)) == NULL)
 		fatal("%s: sshbuf_dup_string failed", __func__);
 	linenum = 1;
 	while ((cp = strsep(&cbuf, "\n")) != NULL) {
 		if (process_server_config_line_depth(options, cp,
-		    filename, linenum++, activep, connectinfo, flags,
+		    filename, linenum++, activep, connectinfo, &flags,
 		    depth, includes) != 0)
 			bad_options++;
 	}
@@ -2605,7 +2616,7 @@ parse_server_config(ServerOptions *options, const char *filename,
 {
 	int active = connectinfo ? 0 : 1;
 	parse_server_config_depth(options, filename, conf, includes,
-	    connectinfo, 0, &active, 0);
+	    connectinfo, (connectinfo ? SSHCFG_MATCH_ONLY : 0), &active, 0);
 	process_queued_listen_addrs(options);
 }
 
